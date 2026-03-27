@@ -238,7 +238,8 @@ const ContractsViewPage = () => {
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">إلى</span>
                         <span>{formatDate(contract.end_date ?? '')}</span>
-                      </div>
+              <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+            </div>
                     </CardContent>
                   </Card>
                 );
