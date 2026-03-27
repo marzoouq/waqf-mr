@@ -217,7 +217,7 @@ const AccountsCollectionTable = ({
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">إجمالي المحصّل</span>
-                  <span className="font-bold text-primary">{fmt(totalCollectedAll)} ريال</span>
+                  <span className="font-bold text-primary">{fmt(filteredTotalCollected)} ريال</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">إجمالي المتأخرات</span>
