@@ -1,10 +1,15 @@
-import { useMemo } from 'react';
+/**
+ * تقرير التدفق النقدي — الرسم البياني يُحمَّل كسولاً.
+ */
+import { useMemo, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { Banknote, TrendingUp, TrendingDown } from 'lucide-react';
 import { fmtInt } from '@/utils/format';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const CashFlowChartInner = lazy(() => import('./CashFlowChartInner'));
 
 // أسماء الأشهر العربية
 const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
@@ -17,7 +22,6 @@ interface CashFlowReportProps {
 
 const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) => {
   const monthlyData = useMemo(() => {
-    // بناء بيانات 12 شهر
     const months: Array<{
       month: string;
       monthNum: number;
@@ -27,9 +31,8 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
       cumulative: number;
     }> = [];
 
-    // تحديد الأشهر بناءً على السنة المالية أو السنة الحالية
     const startDate = fiscalYear ? new Date(fiscalYear.start_date) : new Date(new Date().getFullYear(), 0, 1);
-    
+
     let cumulative = 0;
     for (let i = 0; i < 12; i++) {
       const monthDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
@@ -117,7 +120,7 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
         </Card>
       </div>
 
-      {/* الرسم البياني */}
+      {/* الرسم البياني — يُحمَّل كسولاً */}
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -126,30 +129,9 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[350px] min-w-0 min-h-[1px]" dir="ltr">
-            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-              <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                <Tooltip
-                  contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }}
-                  formatter={(value: number | undefined, name: string | undefined) => [
-                    `${fmt(value ?? 0)} ر.س`,
-                    name === 'income' ? 'الدخل' : name === 'expenses' ? 'المصروفات' : 'الصافي',
-                  ]}
-                />
-                <Legend
-                  formatter={(value: string) =>
-                    value === 'income' ? 'الدخل' : value === 'expenses' ? 'المصروفات' : 'الصافي'
-                  }
-                />
-                <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
-                <Bar dataKey="income" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} name="income" />
-                <Bar dataKey="expenses" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} name="expenses" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <Suspense fallback={<Skeleton className="h-[350px] w-full rounded-lg" />}>
+            <CashFlowChartInner monthlyData={monthlyData} fmt={fmt} />
+          </Suspense>
         </CardContent>
       </Card>
 
