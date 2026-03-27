@@ -5,6 +5,7 @@ export { reshapeArabic, reshapeRow } from './arabicReshaper';
 // ═══ Re-exports من الملفات المقسّمة — يضمن عدم كسر أي import موجود ═══
 export { toBase64, fetchFontWithRetry, loadArabicFont, isValidLogoUrl, loadLogoBase64 } from './pdfFonts';
 export { addHeader, addHeaderToAllPages, addPageBorder, addFooter } from './pdfLayout';
+import { addHeaderToAllPages, addFooter } from './pdfLayout';
 
 /* PDF Core - Shared types, factory functions, table styles */
 
