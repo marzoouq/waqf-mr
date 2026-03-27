@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/data/useNotifications';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Bell, CheckCheck, AlertTriangle, Info, FileText, DollarSign, X, Trash2 } from 'lucide-react';
+import { Bell, CheckCheck, AlertTriangle, Info, FileText, DollarSign, X, Trash2, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -24,7 +24,11 @@ const typeColors: Record<string, string> = {
 };
 
 const NotificationBell = () => {
-  const { data: allNotifications, filteredData: notifications, filteredUnreadCount: unreadCount, markAsRead, markAllAsRead, deleteOne, deleteRead } = useNotifications();
+  const {
+    data: allNotifications, filteredData: notifications, filteredUnreadCount: unreadCount,
+    markAsRead, markAllAsRead, deleteOne, deleteRead,
+    hasNextPage, fetchNextPage, isFetchingNextPage,
+  } = useNotifications();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -124,6 +128,24 @@ const NotificationBell = () => {
                   </button>
                 );
               })}
+              {/* #52: زر تحميل المزيد */}
+              {hasNextPage && (
+                <div className="p-3 text-center border-t border-border">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs gap-1.5"
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                  >
+                    {isFetchingNextPage ? (
+                      <><Loader2 className="w-3.5 h-3.5 animate-spin" /> جارٍ التحميل...</>
+                    ) : (
+                      'تحميل إشعارات أقدم'
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </ScrollArea>

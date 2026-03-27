@@ -41,9 +41,10 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
     enabled: fiscalYearId !== '__none__',
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
+      // #45: جلب الحقول المطلوبة فقط بدل * لتقليل حجم البيانات
       let query = supabase
         .from('payment_invoices')
-        .select('*, contract:contracts(contract_number, tenant_name, property_id, payment_count, property:properties(property_number))')
+        .select('id, contract_id, fiscal_year_id, invoice_number, payment_number, due_date, amount, status, paid_date, paid_amount, notes, vat_rate, vat_amount, zatca_uuid, zatca_status, file_path, created_at, updated_at, contract:contracts(contract_number, tenant_name, property_id, payment_count, property:properties(property_number))')
         .order('due_date', { ascending: true })
         .limit(1000);
       if (fiscalYearId !== 'all') {
@@ -53,6 +54,10 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
       if (error) throw error;
       if (data && data.length >= 1000) {
         logger.warn(`payment_invoices query hit limit (1000) for fiscal year ${fiscalYearId}`);
+        toast.warning('تم الوصول للحد الأقصى (1000 فاتورة) — قد تكون هناك فواتير إضافية غير معروضة');
+      } else if (data && data.length >= 900) {
+        logger.warn(`payment_invoices approaching limit: ${data.length}/1000`);
+        toast.info(`عدد الفواتير (${data.length}) يقترب من الحد الأقصى (1000)`);
       }
       return data as unknown as PaymentInvoice[];
     },

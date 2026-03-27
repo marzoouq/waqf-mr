@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calculator, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fmt, fmtInt } from '@/utils/format';
+import { useSetting } from '@/hooks/page/useAppSettings';
 
 interface ZakatEstimationReportProps {
   totalIncome: number;
@@ -20,9 +21,6 @@ interface ZakatEstimationReportProps {
   grandTotal: number;
   fiscalYearLabel?: string;
 }
-
-/** نسبة الزكاة الشرعية (2.5%) */
-const ZAKAT_RATE = 0.025;
 
 /** حد النصاب التقريبي بالريال (85 جرام ذهب × سعر تقريبي) */
 const NISAB_APPROX = 85 * 300; // ~25,500 ر.س تقريبي
@@ -38,6 +36,10 @@ const ZakatEstimationReport = ({
   grandTotal,
   fiscalYearLabel,
 }: ZakatEstimationReportProps) => {
+  // #49: نسبة الزكاة القابلة للتغيير من الإعدادات
+  const zakatPercentageSetting = useSetting('zakat_percentage', '2.5');
+  const ZAKAT_RATE = (parseFloat(zakatPercentageSetting) || 2.5) / 100;
+
   // الوعاء الزكوي = صافي ما بعد الضريبة (netAfterVat)
   const zakatBase = netAfterVat;
   const calculatedZakat = Math.max(0, zakatBase * ZAKAT_RATE);

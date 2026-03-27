@@ -24,6 +24,7 @@ const waqfFields = [
 const financialFields = [
   { key: 'admin_share_percentage', label: 'نسبة الناظر (%)' },
   { key: 'waqif_share_percentage', label: 'نسبة الواقف (%)' },
+  { key: 'zakat_percentage', label: 'نسبة الزكاة (%)' },
   { key: 'fiscal_year', label: 'السنة المالية' },
 ];
 
