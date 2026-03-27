@@ -55,7 +55,7 @@ interface AccountsCollectionTableProps {
 const AccountsCollectionTable = ({
   contracts, collectionData, editingIndex, editData, setEditData,
   onStartEdit, onCancelEdit, onSaveEdit,
-  totalExpectedPayments: _tep, totalPaidMonths: _tpm, totalCollectedAll, totalArrearsAll,
+  totalExpectedPayments: _tep, totalPaidMonths: _tpm, totalCollectedAll: _tcAll, totalArrearsAll: _taAll,
   isUpdatePending, isUpsertPending,
 }: AccountsCollectionTableProps) => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
