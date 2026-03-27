@@ -19,8 +19,53 @@ vi.mock('recharts', () => ({
   Cell: () => <div />,
 }));
 
-vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: vi.fn(() => ({ user: { id: 'u1', email: 'admin@waqf.app' }, role: 'admin', signOut: vi.fn() })),
+vi.mock('@/hooks/auth/useAuthContext', () => ({
+  useAuth: vi.fn(() => ({ user: { id: 'u1', email: 'admin@waqf.app', user_metadata: {} }, role: 'admin', signOut: vi.fn() })),
+}));
+
+vi.mock('@/hooks/page/useDashboardSummary', () => ({
+  useDashboardSummary: vi.fn(() => ({
+    properties: [
+      { id: 'p1', property_number: '101', property_type: 'عمارة', location: 'الرياض', area: 500 },
+      { id: 'p2', property_number: '102', property_type: 'شقة', location: 'جدة', area: 200 },
+    ],
+    contracts: [
+      { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 30000, status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' },
+      { id: 'c2', contract_number: 'W-002', tenant_name: 'محمد', rent_amount: 20000, status: 'expired', start_date: '2023-01-01', end_date: '2024-01-01' },
+    ],
+    allUnits: [
+      { id: 'u1', unit_number: '1', status: 'مؤجرة', property_id: 'p1' },
+      { id: 'u2', unit_number: '2', status: 'شاغرة', property_id: 'p1' },
+    ],
+    paymentInvoices: [],
+    contractAllocations: [],
+    advanceRequests: [],
+    orphanedContracts: [],
+    income: [{ id: 'i1', amount: 30000, date: '2024-03-15', source: 'إيجار' }],
+    expenses: [{ id: 'e1', amount: 5000, date: '2024-03-20', expense_type: 'صيانة' }],
+    accounts: [],
+    beneficiaries: [{ id: 'b1', name: 'فهد', share_percentage: 50 }, { id: 'b2', name: 'سارة', share_percentage: 50 }],
+    settings: null,
+    allFiscalYears: [{ id: 'fy-1', label: '1446-1447هـ', status: 'active' }],
+    yoy: { hasPrevYear: false, prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0 },
+    isLoading: false,
+  })),
+}));
+
+vi.mock('@/hooks/financial/useComputedFinancials', () => ({
+  useComputedFinancials: vi.fn(() => ({
+    totalIncome: 30000,
+    totalExpenses: 5000,
+    adminShare: 2500,
+    waqifShare: 2500,
+    waqfRevenue: 20000,
+    netAfterExpenses: 25000,
+    netAfterZakat: 25000,
+    availableAmount: 20000,
+    zakatAmount: 0,
+    distributionsAmount: 0,
+    usingFallbackPct: false,
+  })),
 }));
 
 vi.mock('@/hooks/financial/useFiscalYears', () => ({
@@ -50,6 +95,26 @@ vi.mock('@/hooks/financial/useYoYComparison', () => ({
 
 vi.mock('@/hooks/financial/useAdvanceRequests', () => ({
   useAdvanceRequests: vi.fn(() => ({ data: [], isLoading: false })),
+}));
+
+vi.mock('@/hooks/page/useAdminDashboardStats', () => ({
+  useAdminDashboardStats: vi.fn(() => ({
+    stats: [
+      { title: 'إجمالي العقارات', value: 2, icon: () => null, color: 'bg-primary', link: '/dashboard/properties' },
+      { title: 'العقود النشطة', value: 1, icon: () => null, color: 'bg-secondary', link: '/dashboard/contracts' },
+      { title: 'إجمالي الدخل الفعلي', value: '30,000 ر.س', icon: () => null, color: 'bg-primary', link: '/dashboard/income' },
+      { title: 'إجمالي المصروفات', value: '5,000 ر.س', icon: () => null, color: 'bg-destructive', link: '/dashboard/expenses' },
+      { title: 'حصة الناظر', value: 'تُحسب عند الإقفال', icon: () => null, color: 'bg-accent', link: '/dashboard/accounts' },
+      { title: 'حصة الواقف', value: 'تُحسب عند الإقفال', icon: () => null, color: 'bg-secondary', link: '/dashboard/accounts' },
+      { title: 'المستفيدون النشطون', value: 2, icon: () => null, color: 'bg-muted', link: '/dashboard/beneficiaries' },
+    ],
+    kpis: [
+      { label: 'نسبة التحصيل', value: 0, suffix: '%', color: 'text-muted-foreground', progressColor: '' },
+      { label: 'معدل الإشغال', value: 50, suffix: '%', color: 'text-success', progressColor: '[&>div]:bg-success' },
+    ],
+    collectionSummary: { percentage: 0, paid: 0, total: 0, outstanding: 0 },
+    collectionColor: { text: 'text-muted-foreground', bar: '' },
+  })),
 }));
 
 vi.mock('@/contexts/FiscalYearContext', () => ({

@@ -32,6 +32,33 @@ const mockUseFiscalYear = vi.fn(() => ({
 }));
 
 const mockUseCarryforwardBalance = vi.fn(() => ({ data: 0 }));
+const mockUseMySharePage = vi.fn();
+
+const baseMySharePageState = {
+  isLoading: false,
+  isError: false,
+  handleRetry: vi.fn(),
+  currentBeneficiary: { id: 'b1', user_id: 'user-1', name: 'محمد أحمد', share_percentage: 10 },
+  isAccountMissing: false,
+  isClosed: false,
+  myShare: 100000,
+  totalReceived: 0,
+  pendingAmount: 0,
+  paidAdvancesTotal: 0,
+  carryforwardBalance: 0,
+  filteredDistributions: [],
+  myAdvances: [],
+  myCarryforwards: [],
+  advancesEnabled: true,
+  advanceSettings: { enabled: true, min_amount: 500, max_percentage: 50 },
+  fiscalYearId: 'fy1',
+  selectedFY: { id: 'fy1', label: '1446-1447', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' },
+  handleDownloadPDF: vi.fn(),
+  handleDownloadDistributionsPDF: vi.fn(),
+  handleDownloadComprehensivePDF: vi.fn(),
+  handlePrintReport: vi.fn(),
+  navigate: vi.fn(),
+};
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary' })),
@@ -88,6 +115,10 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: () => ({ select: () => ({ eq: () => ({ order: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }) }) }) }) },
 }));
 
+vi.mock('@/hooks/financial/useMySharePage', () => ({
+  useMySharePage: () => mockUseMySharePage(),
+}));
+
 import MySharePage from './MySharePage';
 
 const renderPage = () => {
@@ -102,6 +133,7 @@ const renderPage = () => {
 describe('MySharePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseMySharePage.mockReturnValue({ ...baseMySharePageState });
     mockUseFinancialSummary.mockReturnValue({
       beneficiaries: [{ id: 'b1', user_id: 'user-1', name: 'محمد أحمد', share_percentage: 10 }],
       currentAccount: null, isAccountMissing: false,
@@ -148,13 +180,9 @@ describe('MySharePage', () => {
   // ─── اختبارات جديدة ───
 
   it('يعرض زر إعادة المحاولة عند حدوث خطأ', async () => {
-    mockUseFinancialSummary.mockReturnValue({
-      beneficiaries: [], currentAccount: null, isAccountMissing: false,
-      totalIncome: 0, totalExpenses: 0, netAfterVat: 0, netAfterZakat: 0,
-      adminShare: 0, waqifShare: 0, waqfRevenue: 0, waqfCorpusManual: 0,
-      vatAmount: 0, zakatAmount: 0, netAfterExpenses: 0, availableAmount: 0,
-      incomeBySource: {}, expensesByTypeExcludingVat: {},
-      remainingBalance: 0, grandTotal: 0, isLoading: false, isError: true,
+    mockUseMySharePage.mockReturnValue({
+      ...baseMySharePageState,
+      isError: true,
     });
     renderPage();
     expect(await screen.findByText('إعادة المحاولة')).toBeInTheDocument();
@@ -162,9 +190,9 @@ describe('MySharePage', () => {
   });
 
   it('يعرض رسالة عدم العثور على المستفيد', async () => {
-    mockUseMyShare.mockReturnValue({
-      currentBeneficiary: null as unknown as { id: string; user_id: string; name: string; share_percentage: number },
-      myShare: 0, totalBenPct: 0, pctLoading: false,
+    mockUseMySharePage.mockReturnValue({
+      ...baseMySharePageState,
+      currentBeneficiary: null,
     });
     renderPage();
     expect(await screen.findByText('لم يتم العثور على سجل المستفيد')).toBeInTheDocument();
@@ -176,11 +204,10 @@ describe('MySharePage', () => {
   });
 
   it('لا يعرض تنبيه السنة المالية عند الإقفال', async () => {
-    mockUseFiscalYear.mockReturnValue({
-      fiscalYearId: 'fy1', setFiscalYearId: vi.fn(),
-      fiscalYear: { id: 'fy1', label: '1446-1447', status: 'closed', start_date: '2024-01-01', end_date: '2025-01-01' },
-      fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'closed' }],
-      isClosed: true, isLoading: false, noPublishedYears: false,
+    mockUseMySharePage.mockReturnValue({
+      ...baseMySharePageState,
+      isClosed: true,
+      selectedFY: { id: 'fy1', label: '1446-1447', status: 'closed', start_date: '2024-01-01', end_date: '2025-01-01' },
     });
     renderPage();
     // يجب أن يظهر العنوان لكن لا تظهر رسالة التنبيه
@@ -189,7 +216,10 @@ describe('MySharePage', () => {
   });
 
   it('يعرض تنبيه الفروق المرحّلة عند وجود رصيد', async () => {
-    mockUseCarryforwardBalance.mockReturnValue({ data: 5000 });
+    mockUseMySharePage.mockReturnValue({
+      ...baseMySharePageState,
+      carryforwardBalance: 5000,
+    });
     renderPage();
     expect(await screen.findByText('فروق مرحّلة من سنوات سابقة')).toBeInTheDocument();
   });

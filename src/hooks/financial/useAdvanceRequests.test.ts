@@ -84,7 +84,7 @@ describe('usePaidAdvancesTotal', () => {
   });
 
   it('يحسب المجموع', async () => {
-    mockLimit.mockResolvedValue({ data: [{ amount: 100 }, { amount: 200 }], error: null });
+    mockLimit.mockResolvedValue({ data: [{ amount: 100, status: 'paid' }, { amount: 200, status: 'paid' }], error: null });
     const { usePaidAdvancesTotal } = await import('./useAdvanceRequests');
     const { result } = renderHook(() => usePaidAdvancesTotal('ben-1'), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -100,7 +100,13 @@ describe('useCarryforwardBalance', () => {
   });
 
   it('يحسب المرحّلات النشطة', async () => {
-    mockLimit.mockResolvedValue({ data: [{ amount: 500 }, { amount: 300 }], error: null });
+    mockLimit.mockResolvedValue({
+      data: [
+        { amount: 500, status: 'active', to_fiscal_year_id: 'fy-1' },
+        { amount: 300, status: 'active', to_fiscal_year_id: null },
+      ],
+      error: null,
+    });
     const { useCarryforwardBalance } = await import('./useAdvanceRequests');
     const { result } = renderHook(() => useCarryforwardBalance('ben-1', 'fy-1'), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));

@@ -47,6 +47,12 @@ export default tseslint.config(
     },
   },
   {
+    files: ["supabase/functions/**/*.ts"],
+    rules: {
+      "no-console": "off",
+    },
+  },
+  {
     files: [
       "src/components/settings/MenuCustomizationTab.tsx",
       "src/components/ui/badge.tsx",
