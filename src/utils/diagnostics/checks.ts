@@ -474,6 +474,36 @@ export async function checkStaleOtp(): Promise<CheckResult> {
   }
 }
 
+/** فحص تطابق عدد الفواتير مع سجلات السلسلة */
+export async function checkInvoiceChainCompleteness(): Promise<CheckResult> {
+  const id = 'invoice_chain_completeness';
+  try {
+    // نجلب فقط الفواتير التي لها icv (أي دخلت السلسلة فعلاً)
+    const [invoicesRes, chainRes] = await Promise.all([
+      supabase.from('payment_invoices').select('id', { count: 'exact', head: true }).not('icv', 'is', null),
+      supabase.from('invoice_chain').select('id', { count: 'exact', head: true }).eq('source_table', 'payment_invoices'),
+    ]);
+
+    if (invoicesRes.error || chainRes.error) {
+      return { id, label: 'تطابق الفواتير مع السلسلة', status: 'info', detail: 'تعذر الفحص' };
+    }
+
+    const invoiceCount = invoicesRes.count ?? 0;
+    const chainCount = chainRes.count ?? 0;
+    const diff = invoiceCount - chainCount;
+
+    if (diff > 0) {
+      return { id, label: 'تطابق الفواتير مع السلسلة', status: 'warn', detail: `${diff} فاتورة لها ICV لكن بدون سجل في invoice_chain (فواتير: ${invoiceCount}، سلسلة: ${chainCount})` };
+    }
+    if (diff < 0) {
+      return { id, label: 'تطابق الفواتير مع السلسلة', status: 'warn', detail: `سجلات السلسلة أكثر من الفواتير بـ ${Math.abs(diff)} (فواتير: ${invoiceCount}، سلسلة: ${chainCount})` };
+    }
+    return { id, label: 'تطابق الفواتير مع السلسلة', status: 'pass', detail: `متطابق — ${invoiceCount} فاتورة و${chainCount} سجل` };
+  } catch {
+    return { id, label: 'تطابق الفواتير مع السلسلة', status: 'info', detail: 'تعذر الفحص' };
+  }
+}
+
 // ════════════════════════════════════════════════
 // مجمّع — تشغيل كل الفحوصات
 // ════════════════════════════════════════════════
@@ -510,7 +540,7 @@ export const diagnosticCategories: DiagnosticCategory[] = [
   },
   {
     title: 'ZATCA والفوترة الإلكترونية',
-    checks: [checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPendingInvoiceChains, checkUnsubmittedInvoices, checkZatcaSettings, checkStaleOtp],
+    checks: [checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPendingInvoiceChains, checkUnsubmittedInvoices, checkZatcaSettings, checkStaleOtp, checkInvoiceChainCompleteness],
   },
 ];
 
