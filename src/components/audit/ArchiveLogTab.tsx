@@ -136,7 +136,7 @@ const ArchiveLogTab = () => {
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-8 text-center text-muted-foreground">جاري التحميل...</div>
+            <TableSkeleton rows={5} cols={5} />
           ) : filtered.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Archive className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />

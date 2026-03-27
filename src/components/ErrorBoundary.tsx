@@ -31,12 +31,22 @@ class ErrorBoundary extends Component<Props, State> {
     if (error.message === 'Test explosion') return;
 
     try {
+      // في الإنتاج: إرسال رسالة الخطأ فقط بدون مسارات الملفات الداخلية
+      const sanitizeStack = (stack: string | undefined): string | null => {
+        if (!stack) return null;
+        if (import.meta.env.PROD) {
+          // الاحتفاظ بأول سطر (رسالة الخطأ) فقط — إزالة مسارات الملفات
+          return stack.split('\n').slice(0, 1).join('').slice(0, 200);
+        }
+        return stack.slice(0, 1000);
+      };
+
       const metadata = {
         error_name: error.name,
         error_message: error.message,
-        error_stack: error.stack?.slice(0, 1000) ?? null,
-        component_stack: errorInfo.componentStack?.slice(0, 500),
-        url: typeof window !== 'undefined' ? window.location.href : null,
+        error_stack: sanitizeStack(error.stack),
+        component_stack: import.meta.env.PROD ? null : errorInfo.componentStack?.slice(0, 500),
+        url: typeof window !== 'undefined' ? window.location.pathname : null,
         user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 200) : null,
         timestamp: new Date().toISOString(),
       };
