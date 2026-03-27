@@ -13,6 +13,7 @@ import { StatsGridSkeleton } from '@/components/SkeletonLoaders';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, AlertTriangle } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
+import CrudPagination from '@/components/CrudPagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generatePropertiesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
