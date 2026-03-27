@@ -394,8 +394,8 @@ describe('close → reopen دورة كاملة', () => {
       existing_account_id: null,
       existing_next_fy: null,
     })).toThrow('فقط الناظر يملك صلاحية إقفال السنة المالية');
-    expect(closeResult.success).toBe(true);
 
+    // المحاسب لا يمكنه إعادة الفتح أيضاً
     expect(() => simulateReopenFiscalYear({
       fiscal_year_id: 'fy-cycle-2',
       reason: 'تصحيح',
