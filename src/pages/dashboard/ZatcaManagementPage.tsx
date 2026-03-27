@@ -154,7 +154,7 @@ function ZatcaManagementPage() {
   const submitToZatca = useMutation({
     mutationFn: async ({ invoiceId, table, action }: { invoiceId: string; table: string; action: 'report' | 'clearance' }) => {
       addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action, invoice_id: invoiceId, table } });
+      const { data, error } = await supabase.functions.invoke('zatca-report', { body: { action, invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
     },
