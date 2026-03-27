@@ -229,8 +229,6 @@ export function useAiChat() {
       }
 
       // حفظ المحادثة بعد اكتمال الرد
-      const finalMessages = [...allMessages.filter(m => m.role === 'user'), ...(assistantContent ? [{ role: 'assistant' as const, content: assistantContent }] : [])];
-      // دمج الرسائل القديمة مع الجديدة
       const mergedMessages = [...messages, userMsg, ...(assistantContent ? [{ role: 'assistant' as const, content: assistantContent }] : [])].slice(-HISTORY_LIMIT);
       const newId = await saveSession(mergedMessages, mode, activeSessionId);
       if (newId) setActiveSessionId(newId);
