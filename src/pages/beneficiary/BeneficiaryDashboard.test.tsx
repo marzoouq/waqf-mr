@@ -28,9 +28,13 @@ vi.mock('@/hooks/page/useBeneficiaryDashboardData', () => ({
 }));
 
 vi.mock('@/hooks/data/useNotifications', () => ({
-  useNotifications: vi.fn(() => ({ data: [
-    { id: 'n1', title: 'إشعار تجريبي', message: 'رسالة تجريبية', is_read: false, created_at: '2024-06-01T00:00:00Z', type: 'info' },
-  ], isLoading: false })),
+  useNotifications: vi.fn(() => ({
+    filteredData: [
+      { id: 'n1', title: 'إشعار تجريبي', message: 'رسالة تجريبية', is_read: false, created_at: '2024-06-01T00:00:00Z', type: 'info' },
+    ],
+    filteredUnreadCount: 1,
+    isLoading: false,
+  })),
 }));
 
 vi.mock('@/hooks/financial/useFiscalYears', () => ({
