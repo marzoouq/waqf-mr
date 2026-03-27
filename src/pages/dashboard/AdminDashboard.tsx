@@ -152,23 +152,24 @@ const AdminDashboard = () => {
     return Object.entries(types).map(([name, value]) => ({ name, value }));
   }, [expenses]);
 
+  // ── التحية المحسوبة مرة واحدة ──
+  const greetingText = useMemo(() => {
+    const displayName = user?.user_metadata?.full_name
+      || user?.email?.split('@')[0]
+      || (role === 'accountant' ? 'المحاسب' : 'ناظر الوقف');
+    const base = role === 'accountant'
+      ? `مرحباً بك، ${displayName} — يمكنك إدارة الحسابات والعمليات المالية`
+      : `مرحباً بك، ${displayName}`;
+    return base + (fiscalYearId === 'all' ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '');
+  }, [user, role, fiscalYearId, fiscalYear]);
+
   return (
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
         <PageHeaderCard
           title="لوحة التحكم"
           icon={Gauge}
-          description={
-            (() => {
-              const displayName = user?.user_metadata?.full_name
-                || user?.email?.split('@')[0]
-                || (role === 'accountant' ? 'المحاسب' : 'ناظر الوقف');
-              const greeting = role === 'accountant'
-                ? `مرحباً بك، ${displayName} — يمكنك إدارة الحسابات والعمليات المالية`
-                : `مرحباً بك، ${displayName}`;
-              return greeting + (fiscalYearId === 'all' ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '');
-            })()
-          }
+          description={greetingText}
           actions={
             <Button variant="outline" onClick={() => window.print()} className="gap-2">
               <Printer className="w-4 h-4" />
