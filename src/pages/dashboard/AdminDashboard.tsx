@@ -60,6 +60,12 @@ const AdminDashboard = () => {
   const { data: allFiscalYears = [], isLoading: fyListLoading } = useFiscalYears();
   const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== 'all' ? fiscalYearId : undefined);
 
+  // ── حساب عدد السلف المعلقة مرة واحدة ──
+  const pendingAdvancesCount = useMemo(
+    () => advanceRequests.filter(r => r.status === 'pending').length,
+    [advanceRequests],
+  );
+
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
