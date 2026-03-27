@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Trophy, AlertTriangle, Lightbulb, Building2, FileDown, Printer,
-  Loader2, DollarSign, Receipt, FileText, Info,
+  Loader2, DollarSign, Receipt, FileText, Info, FileSpreadsheet,
 } from 'lucide-react';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import {
@@ -25,6 +25,7 @@ import { useContracts } from '@/hooks/data/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import ReportItemCard from '@/components/annual-report/ReportItemCard';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';
+import { buildCsv, downloadCsv } from '@/utils/csv';
 const IncomeComparisonChart = lazy(() => import('@/components/annual-report/IncomeComparisonChart'));
 import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/annualReport';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -78,6 +79,19 @@ const AnnualReportViewPage = () => {
     await generateAnnualReportPDF(pdfData, waqfInfo);
   };
 
+  const handleExportCsv = () => {
+    const rows: Record<string, string>[] = [];
+    summaryCards.forEach(c => rows.push({ القسم: 'ملخص', العنوان: c.label, المحتوى: c.value }));
+    const sectionLabels: Record<string, string> = {
+      achievement: 'إنجازات', challenge: 'تحديات', future_plan: 'خطط مستقبلية', property_status: 'حالة العقارات',
+    };
+    items.forEach(item => {
+      rows.push({ القسم: sectionLabels[item.section_type] || item.section_type, العنوان: item.title, المحتوى: item.content });
+    });
+    const csv = buildCsv(rows, ['القسم', 'العنوان', 'المحتوى']);
+    downloadCsv(csv, `تقرير-سنوي-${fiscalYear?.label || ''}.csv`);
+  };
+
   if (statusLoading || isLoading) {
     return (
       <DashboardLayout>
@@ -116,6 +130,10 @@ const AnnualReportViewPage = () => {
             <Button variant="outline" size="sm" onClick={handleExportPdf} className="gap-1.5">
               <FileDown className="h-4 w-4" />
               PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportCsv} className="gap-1.5">
+              <FileSpreadsheet className="h-4 w-4" />
+              CSV
             </Button>
             <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5">
               <Printer className="h-4 w-4" />

@@ -278,7 +278,8 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
                   onMouseLeave={() => setHoverRating(0)}
                   onTouchStart={() => setHoverRating(i)}
                   onClick={() => setRating(i)}
-                  className="p-1 transition-transform hover:scale-110"
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setRating(i); } }}
+                  className="p-1 transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
                 >
                   <Star
                     className={`w-8 h-8 transition-colors ${
