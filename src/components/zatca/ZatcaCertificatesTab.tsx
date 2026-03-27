@@ -10,6 +10,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { ShieldCheck, CheckCircle, AlertTriangle, Loader2, ArrowUpCircle, ClipboardCheck } from 'lucide-react';
+import { fmtDate } from '@/utils/format';
 
 interface Certificate {
   id: string;
@@ -137,7 +138,7 @@ export default function ZatcaCertificatesTab({
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono text-xs">{cert.request_id || '—'}</TableCell>
-                      <TableCell>{cert.created_at ? new Date(cert.created_at).toLocaleDateString('ar-SA') : '—'}</TableCell>
+                      <TableCell>{cert.created_at ? fmtDate(cert.created_at) : '—'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

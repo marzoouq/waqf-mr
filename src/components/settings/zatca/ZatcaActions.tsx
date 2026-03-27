@@ -6,6 +6,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Save, ShieldCheck, CheckCircle, Loader2, RefreshCw } from 'lucide-react';
+import { fmtDate } from '@/utils/format';
 
 interface ActiveCert {
   certificate_type: string;
@@ -40,7 +41,7 @@ const ZatcaActions = ({
                 <p className="text-sm text-muted-foreground">
                   معرّف الطلب: <span className="font-mono">{activeCert.request_id || '—'}</span>
                   {' • '}
-                  {activeCert.created_at ? new Date(activeCert.created_at).toLocaleDateString('ar-SA') : ''}
+                  {activeCert.created_at ? fmtDate(activeCert.created_at) : ''}
                 </p>
               </div>
               <Badge variant={activeCert.certificate_type === 'production' ? 'default' : 'secondary'} className="mr-auto">

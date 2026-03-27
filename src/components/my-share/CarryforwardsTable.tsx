@@ -44,7 +44,7 @@ const CarryforwardsTable = ({ carryforwards }: Props) => {
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <p className="text-muted-foreground">التاريخ</p>
-                  <p className="font-medium">{new Date(cf.created_at).toLocaleDateString('ar-SA')}</p>
+                  <p className="font-medium">{fmtDate(cf.created_at)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">ملاحظات</p>
@@ -68,7 +68,7 @@ const CarryforwardsTable = ({ carryforwards }: Props) => {
             <TableBody>
               {carryforwards.map(cf => (
                 <TableRow key={cf.id}>
-                  <TableCell>{new Date(cf.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                  <TableCell>{fmtDate(cf.created_at)}</TableCell>
                   <TableCell className="font-bold text-destructive">{fmt(Number(cf.amount))} ر.س</TableCell>
                   <TableCell>
                     <Badge className={cf.status === 'active' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}>

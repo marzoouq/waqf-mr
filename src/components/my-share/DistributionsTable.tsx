@@ -56,7 +56,7 @@ const DistributionsTable = ({ distributions }: Props) => (
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <p className="text-muted-foreground">التاريخ</p>
-                    <p className="font-medium">{new Date(dist.date).toLocaleDateString('ar-SA')}</p>
+                    <p className="font-medium">{fmtDate(dist.date)}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">السنة المالية</p>
@@ -80,7 +80,7 @@ const DistributionsTable = ({ distributions }: Props) => (
               <TableBody>
                 {distributions.map((dist) => (
                   <TableRow key={dist.id}>
-                    <TableCell>{new Date(dist.date).toLocaleDateString('ar-SA')}</TableCell>
+                    <TableCell>{fmtDate(dist.date)}</TableCell>
                     <TableCell>{dist.account?.fiscal_year || '-'}</TableCell>
                     <TableCell className="font-bold">{fmt(Number(dist.amount))} ر.س</TableCell>
                     <TableCell>{getStatusBadge(dist.status)}</TableCell>

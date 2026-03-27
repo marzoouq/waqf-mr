@@ -87,7 +87,7 @@ export function printShareReport(params: PrintShareReportParams) {
       <table>
         <tr><th>التاريخ</th><th>السنة المالية</th><th>المبلغ</th><th>الحالة</th></tr>
         ${filteredDistributions.map(d => `<tr>
-          <td>${new Date(d.date).toLocaleDateString('ar-SA')}</td>
+          <td>${fmtDate(d.date)}</td>
           <td>${d.account?.fiscal_year || '—'}</td>
           <td>${fmt(safeNumber(d.amount))} ر.س</td>
           <td>${d.status === 'paid' ? 'مستلم' : d.status === 'pending' ? 'معلق' : d.status}</td>

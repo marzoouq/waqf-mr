@@ -145,7 +145,7 @@ const OverdueTenantsReport = ({ contracts, paymentInvoices, properties }: Overdu
                   </div>
                   <div>
                     <span className="text-muted-foreground text-xs">أقدم استحقاق</span>
-                    <p className="font-medium">{new Date(row.oldestDue).toLocaleDateString('ar-SA')}</p>
+                    <p className="font-medium">{fmtDate(row.oldestDue)}</p>
                   </div>
                   <div>
                     <span className="text-muted-foreground text-xs">إجمالي المتأخر</span>
@@ -182,7 +182,7 @@ const OverdueTenantsReport = ({ contracts, paymentInvoices, properties }: Overdu
                   <TableCell className="text-destructive font-medium">
                     {fmt(row.totalOverdue)} ر.س
                   </TableCell>
-                  <TableCell>{new Date(row.oldestDue).toLocaleDateString('ar-SA')}</TableCell>
+                  <TableCell>{fmtDate(row.oldestDue)}</TableCell>
                   <TableCell className="font-bold">{row.maxDays}</TableCell>
                   <TableCell>{getSeverityBadge(row.severity)}</TableCell>
                 </TableRow>

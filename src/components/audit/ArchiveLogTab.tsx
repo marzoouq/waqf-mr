@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import TablePagination from '@/components/TablePagination';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
+import { fmtDate } from '@/utils/format';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -163,7 +164,7 @@ const ArchiveLogTab = () => {
                       </div>
                       {log.email && <p className="text-xs font-mono" dir="ltr">{log.email}</p>}
                       {log.target_path && <p className="text-[11px] text-muted-foreground font-mono truncate" dir="ltr">{log.target_path}</p>}
-                      <p className="text-[11px] text-muted-foreground">أرشفة: {new Date(log.archived_at).toLocaleDateString('ar-SA')}</p>
+                      <p className="text-[11px] text-muted-foreground">أرشفة: {fmtDate(log.archived_at)}</p>
                     </div>
                   );
                 })}
@@ -188,7 +189,7 @@ const ArchiveLogTab = () => {
                       return (
                         <TableRow key={log.id}>
                           <TableCell className="text-sm">{new Date(log.created_at).toLocaleString('ar-SA')}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{new Date(log.archived_at).toLocaleDateString('ar-SA')}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{fmtDate(log.archived_at)}</TableCell>
                           <TableCell>
                             <Badge className={config.color} variant="outline">
                               <Icon className="w-3 h-3 ml-1" />

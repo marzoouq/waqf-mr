@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Fingerprint, Smartphone, Trash2, Plus, Loader2, ShieldCheck, Info, Globe } from 'lucide-react';
 import { useWebAuthn } from '@/hooks/auth/useWebAuthn';
+import { fmtDate } from '@/utils/format';
 
 const SUPPORTED_BROWSERS = [
   { name: 'Chrome / Edge', version: '67+' },
@@ -103,7 +104,7 @@ const BiometricSettings = () => {
                   <div>
                     <p className="text-sm font-medium">{cred.device_name || 'جهاز غير مسمى'}</p>
                     <p className="text-[11px] text-muted-foreground">
-                      {new Date(cred.created_at).toLocaleDateString('ar-SA')}
+                      {fmtDate(cred.created_at)}
                     </p>
                   </div>
                 </div>
