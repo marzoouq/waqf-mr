@@ -43,6 +43,7 @@ const IncomePage = () => {
     totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome,
   } = useIncomePage();
 
+  const paginatedItems = filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
     <DashboardLayout>
