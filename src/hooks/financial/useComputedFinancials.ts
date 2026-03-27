@@ -125,7 +125,7 @@ export const useComputedFinancials = ({
         waqfRevenue: storedWaqfRevenue,
         availableAmount: storedWaqfRevenue - waqfCorpusManual,
         remainingBalance: storedWaqfRevenue - waqfCorpusManual - distributionsAmount,
-        isDeficit: (storedWaqfRevenue - waqfCorpusManual) < 0,
+        isDeficit: (storedWaqfRevenue - waqfCorpusManual) < 0 || (storedWaqfRevenue - waqfCorpusManual - distributionsAmount) < 0,
       };
     }
     return calculateFinancials({
