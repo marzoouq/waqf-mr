@@ -48,7 +48,7 @@ export interface ClientError {
 export const useSupportTickets = (statusFilter?: string, page = 1, pageSize = 20) => {
   return useQuery({
     queryKey: ['support_tickets', statusFilter ?? 'all', page, pageSize],
-    staleTime: 10_000,
+    staleTime: STALE_REALTIME,
     queryFn: async () => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
