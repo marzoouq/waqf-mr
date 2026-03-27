@@ -48,6 +48,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
   const { user } = useAuth();
   const [results, setResults] = useState<{ category: string; results: CheckResult[] }[]>([]);
   const [running, setRunning] = useState(false);
+  const [runningCategory, setRunningCategory] = useState<string | null>(null);
   const [lastRun, setLastRun] = useState<Date | null>(null);
 
   const run = useCallback(async () => {
@@ -56,7 +57,6 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
       const output = await runAllDiagnostics();
       setResults(output);
       setLastRun(new Date());
-      // تسجيل الحدث
       logAccessEvent({
         event_type: 'diagnostics_run',
         user_id: user?.id,
@@ -72,6 +72,29 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
       setRunning(false);
     }
   }, [user?.id]);
+
+  /** تشغيل بطاقة واحدة فقط */
+  const runSingle = useCallback(async (categoryTitle: string) => {
+    setRunningCategory(categoryTitle);
+    try {
+      const output = await runCategoryDiagnostics(categoryTitle);
+      if (!output) return;
+      setResults(prev => {
+        const idx = prev.findIndex(c => c.category === categoryTitle);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = output;
+          return next;
+        }
+        return [...prev, output];
+      });
+      setLastRun(new Date());
+    } catch (e) {
+      logger.error(`[Diagnostics] فشل تشغيل ${categoryTitle}:`, e);
+    } finally {
+      setRunningCategory(null);
+    }
+  }, []);
 
   useEffect(() => {
     if (autoRun) run();
@@ -98,6 +121,12 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
   const failures = results.reduce((s, c) => s + c.results.filter(r => r.status === 'fail').length, 0);
   const warnings = results.reduce((s, c) => s + c.results.filter(r => r.status === 'warn').length, 0);
 
+  /** البطاقات — نعرض الجميع (بنتائج أو فارغة) */
+  const allCategories = diagnosticCategories.map(cat => {
+    const found = results.find(r => r.category === cat.title);
+    return { title: cat.title, results: found?.results ?? null, checksCount: cat.checks.length };
+  });
+
   const content = (
     <div className="space-y-6">
       {/* شريط التحكم */}
@@ -117,52 +146,59 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
               تصدير
             </Button>
           )}
-          <Button onClick={run} disabled={running} size="sm">
+          <Button onClick={run} disabled={running || !!runningCategory} size="sm">
             <RefreshCw className={`w-4 h-4 ml-2 ${running ? 'animate-spin' : ''}`} />
-            {running ? 'جارٍ الفحص...' : 'تشغيل الفحوصات'}
+            {running ? 'جارٍ الفحص...' : 'تشغيل الكل'}
           </Button>
         </div>
       </div>
 
       {/* البطاقات */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {results.map((cat) => {
-          const catFailures = cat.results.filter(r => r.status === 'fail').length;
-          const catWarnings = cat.results.filter(r => r.status === 'warn').length;
+        {allCategories.map((cat) => {
+          const catFailures = cat.results?.filter(r => r.status === 'fail').length ?? 0;
+          const catWarnings = cat.results?.filter(r => r.status === 'warn').length ?? 0;
+          const isCatRunning = runningCategory === cat.title;
           return (
-            <Card key={cat.category}>
+            <Card key={cat.title}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  {cat.category}
-                  {catFailures > 0 && <Badge variant="destructive" className="text-xs">{catFailures} فشل</Badge>}
-                  {catWarnings > 0 && <Badge variant="secondary" className="text-xs">{catWarnings} تحذير</Badge>}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    {cat.title}
+                    {catFailures > 0 && <Badge variant="destructive" className="text-xs">{catFailures} فشل</Badge>}
+                    {catWarnings > 0 && <Badge variant="secondary" className="text-xs">{catWarnings} تحذير</Badge>}
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    disabled={running || !!runningCategory}
+                    onClick={() => runSingle(cat.title)}
+                    title={`تشغيل فحوصات ${cat.title}`}
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isCatRunning ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="pt-0">
-                {cat.results.map(r => <CheckRow key={r.id} result={r} />)}
+                {cat.results ? (
+                  cat.results.map(r => <CheckRow key={r.id} result={r} />)
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center py-4">
+                    {cat.checksCount} فحص — اضغط ▶ لتشغيل هذه البطاقة
+                  </p>
+                )}
               </CardContent>
             </Card>
           );
         })}
       </div>
-
-      {/* حالة فارغة */}
-      {results.length === 0 && !running && (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Info className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">اضغط "تشغيل الفحوصات" لبدء التشخيص</p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 
-  // عند استخدامه كصفحة كاملة (من الـ route)
   if (autoRun) {
     return <DashboardLayout>{content}</DashboardLayout>;
   }
 
-  // عند استخدامه داخل modal (من DiagnosticOverlay)
   return content;
 }
