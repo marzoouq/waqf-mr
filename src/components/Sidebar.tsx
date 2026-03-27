@@ -31,7 +31,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   const { user, role } = useAuth();
   const location = useLocation();
   const { data: waqfInfo } = useWaqfInfo();
-  const prefetchAccounts = usePrefetchAccounts();
+  const { getPrefetchHandler } = usePrefetchPages();
   const { data: unreadCount = 0 } = useUnreadMessages();
 
   return (
