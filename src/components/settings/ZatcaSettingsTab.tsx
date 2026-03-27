@@ -93,7 +93,7 @@ const ZatcaSettingsTab = () => {
               saving={saving}
               onboardLoading={onboardLoading}
               renewLoading={renewLoading}
-              activeCert={activeCert}
+              activeCert={activeCert ?? null}
               handleSave={handleSave}
               handleSetupAndOnboard={handleSetupAndOnboard}
               handleRenewCertificate={handleRenewCertificate}
