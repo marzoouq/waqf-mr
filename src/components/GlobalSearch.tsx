@@ -3,236 +3,23 @@
  * يتيح البحث عبر العقارات والعقود والمستفيدين والمصروفات
  * يعمل كحقل بحث على الشاشات الكبيرة وكأيقونة + Dialog على الجوال
  */
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Building2, FileText, Users, Receipt, X, Loader2 } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { cn } from '@/lib/utils';
-import { fmt } from '@/utils/format';
-import { safeNumber } from '@/utils/safeNumber';
-import { useIsMobile } from '@/hooks/ui/use-mobile';
-
-interface SearchResult {
-  id: string;
-  title: string;
-  subtitle: string;
-  type: 'property' | 'contract' | 'beneficiary' | 'expense';
-  path: string;
-}
-
-const TYPE_CONFIG = {
-  property: { icon: Building2, label: 'عقار', color: 'bg-primary/10 text-primary' },
-  contract: { icon: FileText, label: 'عقد', color: 'bg-accent/10 text-accent-foreground' },
-  beneficiary: { icon: Users, label: 'مستفيد', color: 'bg-secondary/10 text-secondary' },
-  expense: { icon: Receipt, label: 'مصروف', color: 'bg-muted text-muted-foreground' },
-};
-
-/** قائمة نتائج البحث المشتركة بين Desktop و Mobile */
-const SearchResults = ({
-  isLoading,
-  results,
-  query,
-  onSelect,
-}: {
-  isLoading: boolean;
-  results: SearchResult[];
-  query: string;
-  onSelect: (r: SearchResult) => void;
-}) => {
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-6">
-        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-  if (results.length === 0) {
-    return (
-      <div className="py-6 text-center text-sm text-muted-foreground">
-        لا توجد نتائج لـ &quot;{query}&quot;
-      </div>
-    );
-  }
-  return (
-    <div className="py-1">
-      {results.map((result) => {
-        const config = TYPE_CONFIG[result.type];
-        const Icon = config.icon;
-        return (
-          <button
-            key={`${result.type}-${result.id}`}
-            onClick={() => onSelect(result)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors text-right"
-          >
-            <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', config.color)}>
-              <Icon className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{result.title}</p>
-              <p className="text-[11px] text-muted-foreground truncate">{result.subtitle}</p>
-            </div>
-            <Badge variant="outline" className="text-[11px] shrink-0 hidden sm:inline-flex">{config.label}</Badge>
-          </button>
-        );
-      })}
-    </div>
-  );
-};
+import { useGlobalSearch } from '@/hooks/page/useGlobalSearch';
+import SearchResults from '@/components/search/SearchResults';
 
 const GlobalSearch = () => {
-  const { role } = useAuth();
-  const { fiscalYearId } = useFiscalYear();
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const mobileInputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const abortRef = useRef<AbortController>(undefined);
-
-  const isAdmin = role === 'admin' || role === 'accountant';
-  const basePath = isAdmin ? '/dashboard' : '/beneficiary';
-
-  const search = useCallback(async (term: string) => {
-    // إلغاء أي طلب بحث سابق لمنع race condition
-    if (abortRef.current) abortRef.current.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    if (term.length < 2) {
-      setResults([]);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const searchResults: SearchResult[] = [];
-      const pattern = `%${term}%`;
-
-      // تنفيذ جميع الاستعلامات بالتوازي لتقليل وقت الاستجابة
-      const contractSelectFields = 'id, contract_number, tenant_name, status, fiscal_year_id';
-      const contractFilter = `contract_number.ilike.${pattern},tenant_name.ilike.${pattern}`;
-
-      const buildContractQuery = () => {
-        if (isAdmin) {
-          let q = supabase.from('contracts').select(contractSelectFields).or(contractFilter).limit(5);
-          if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
-          return q.abortSignal(controller.signal);
-        } else {
-          let q = supabase.from('contracts_safe').select(contractSelectFields).or(contractFilter).limit(5);
-          if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
-          return q.abortSignal(controller.signal);
-        }
-      };
-
-      const buildExpensesQuery = () => {
-        let q = supabase.from('expenses').select('id, expense_type, description, amount, fiscal_year_id').or(`expense_type.ilike.${pattern},description.ilike.${pattern}`).limit(5);
-        if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
-        return q.abortSignal(controller.signal);
-      };
-
-      const [propsRes, contractsRes, bensRes, expsRes] = await Promise.all([
-        supabase.from('properties').select('id, property_number, property_type, location').or(`property_number.ilike.${pattern},location.ilike.${pattern},property_type.ilike.${pattern}`).limit(5).abortSignal(controller.signal),
-        buildContractQuery(),
-        isAdmin ? supabase.from('beneficiaries').select('id, name, share_percentage').ilike('name', pattern).limit(5).abortSignal(controller.signal) : Promise.resolve({ data: null as null }),
-        isAdmin ? buildExpensesQuery() : Promise.resolve({ data: null as null }),
-      ]);
-
-      if (propsRes.data) {
-        for (const p of propsRes.data) {
-          searchResults.push({ id: p.id, title: `${p.property_number} - ${p.property_type}`, subtitle: p.location, type: 'property', path: `${basePath}/properties` });
-        }
-      }
-      if (contractsRes.data) {
-        for (const c of contractsRes.data) {
-          searchResults.push({ id: c.id!, title: `عقد ${c.contract_number}`, subtitle: c.tenant_name || `حالة: ${c.status}`, type: 'contract', path: `${basePath}/contracts` });
-        }
-      }
-      if (bensRes.data) {
-        for (const b of bensRes.data) {
-          searchResults.push({ id: b.id, title: b.name, subtitle: `${b.share_percentage}%`, type: 'beneficiary', path: `${basePath}/beneficiaries` });
-        }
-      }
-      if (expsRes.data) {
-        for (const e of expsRes.data) {
-          searchResults.push({ id: e.id, title: e.expense_type, subtitle: `${fmt(safeNumber(e.amount))} ر.س${e.description ? ` — ${e.description}` : ''}`, type: 'expense', path: `${basePath}/expenses` });
-        }
-      }
-
-      // تجاهل النتائج إذا تم إلغاء الطلب
-      if (controller.signal.aborted) return;
-      setResults(searchResults);
-    } catch {
-      // Fail silently (includes aborted requests)
-    } finally {
-      if (!controller.signal.aborted) setIsLoading(false);
-    }
-  }, [basePath, isAdmin, fiscalYearId]);
-
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(query), 300);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [query, search]);
-
-  // Close on click outside (desktop)
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  // Keyboard shortcut: Ctrl+K
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        if (isMobile) {
-          setMobileOpen(true);
-        } else {
-          inputRef.current?.focus();
-          setIsOpen(true);
-        }
-      }
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-        setMobileOpen(false);
-        inputRef.current?.blur();
-      }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [isMobile]);
-
-  const handleSelect = (result: SearchResult) => {
-    navigate(result.path);
-    setIsOpen(false);
-    setMobileOpen(false);
-    setQuery('');
-  };
-
-  // إعادة تعيين البحث عند إغلاق الـ Dialog
-  const handleMobileOpenChange = (open: boolean) => {
-    setMobileOpen(open);
-    if (!open) {
-      setQuery('');
-      setResults([]);
-    }
-  };
+  const {
+    query, setQuery,
+    results, isLoading,
+    isOpen, setIsOpen,
+    mobileOpen,
+    isMobile,
+    inputRef, mobileInputRef, containerRef,
+    handleSelect, handleMobileOpenChange,
+  } = useGlobalSearch();
 
   // --- عرض الجوال: زر أيقونة + Dialog ---
   if (isMobile) {
@@ -242,7 +29,7 @@ const GlobalSearch = () => {
           variant="ghost"
           size="icon"
           className="h-9 w-9 text-sidebar-foreground hover:bg-sidebar-accent/50"
-          onClick={() => setMobileOpen(true)}
+          onClick={() => handleMobileOpenChange(true)}
           aria-label="بحث"
         >
           <Search className="w-5 h-5" />
@@ -250,7 +37,6 @@ const GlobalSearch = () => {
 
         <Dialog open={mobileOpen} onOpenChange={handleMobileOpenChange}>
           <DialogContent className="max-w-full h-[80dvh] p-0 gap-0 flex flex-col [&>button]:hidden">
-            {/* حقل البحث */}
             <div className="flex items-center gap-2 p-3 border-b border-border">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
               <Input name="query" id="global-search-field-1" ref={mobileInputRef}
@@ -265,13 +51,12 @@ const GlobalSearch = () => {
                   variant="ghost"
                   size="icon"
                   className="w-7 h-7 shrink-0"
-                  onClick={() => { setQuery(''); setResults([]); }}
+                  onClick={() => { setQuery(''); }}
                 >
                   <X className="w-3.5 h-3.5" />
                 </Button>
               )}
             </div>
-            {/* النتائج */}
             <div className="flex-1 overflow-y-auto">
               {query.length >= 2 ? (
                 <SearchResults isLoading={isLoading} results={results} query={query} onSelect={handleSelect} />
@@ -304,7 +89,7 @@ const GlobalSearch = () => {
             variant="ghost"
             size="icon"
             className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6"
-            onClick={() => { setQuery(''); setResults([]); }}
+            onClick={() => { setQuery(''); }}
             aria-label="مسح البحث"
           >
             <X className="w-3 h-3" />
