@@ -1,6 +1,5 @@
 // اختبارات تكاملية لوظيفة zatca-report
-import { loadSync } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
-loadSync({ export: true, allowEmptyValues: true });
+try { const { loadSync } = await import("https://deno.land/std@0.224.0/dotenv/mod.ts"); loadSync({ export: true, allowEmptyValues: true, examplePath: null }); } catch { /* env already set */ }
 import { assertEquals, assertExists } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
