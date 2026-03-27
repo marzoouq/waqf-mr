@@ -3,10 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense, useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
@@ -14,6 +13,11 @@ import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { setPerformanceToast } from "@/lib/performanceMonitor";
 import { toast as sonnerToast } from "sonner";
+
+// ملفات المسارات المقسّمة
+import { publicRoutes, catchAllRoute } from "@/routes/publicRoutes";
+import { adminRoutes } from "@/routes/adminRoutes";
+import { beneficiaryRoutes } from "@/routes/beneficiaryRoutes";
 
 // ربط دالة التنبيه بمراقب الأداء
 setPerformanceToast((msg, opts) => sonnerToast.warning(msg, opts));
@@ -24,57 +28,7 @@ function PagePerformanceTracker() {
   return null;
 }
 
-// Pages - Lazy loaded
-const Index = lazyWithRetry(() => import("./pages/Index"));
-const Auth = lazyWithRetry(() => import("./pages/Auth"));
-const Unauthorized = lazyWithRetry(() => import("./pages/Unauthorized"));
-const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
-const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
-const TermsOfUse = lazyWithRetry(() => import("./pages/TermsOfUse"));
-const InstallApp = lazyWithRetry(() => import("./pages/InstallApp"));
-const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
-
-// Admin Dashboard Pages - Lazy loaded
-const AdminDashboard = lazyWithRetry(() => import("./pages/dashboard/AdminDashboard"));
-const PropertiesPage = lazyWithRetry(() => import("./pages/dashboard/PropertiesPage"));
-const ContractsPage = lazyWithRetry(() => import("./pages/dashboard/ContractsPage"));
-const IncomePage = lazyWithRetry(() => import("./pages/dashboard/IncomePage"));
-const ExpensesPage = lazyWithRetry(() => import("./pages/dashboard/ExpensesPage"));
-const BeneficiariesPage = lazyWithRetry(() => import("./pages/dashboard/BeneficiariesPage"));
-const ReportsPage = lazyWithRetry(() => import("./pages/dashboard/ReportsPage"));
-const AccountsPage = lazyWithRetry(() => import("./pages/dashboard/AccountsPage"));
-const UserManagementPage = lazyWithRetry(() => import("./pages/dashboard/UserManagementPage"));
-const SettingsPage = lazyWithRetry(() => import("./pages/dashboard/SettingsPage"));
-const MessagesPage = lazyWithRetry(() => import("./pages/dashboard/MessagesPage"));
-const InvoicesPage = lazyWithRetry(() => import("./pages/dashboard/InvoicesPage"));
-const AuditLogPage = lazyWithRetry(() => import("./pages/dashboard/AuditLogPage"));
-const BylawsPage = lazyWithRetry(() => import("./pages/dashboard/BylawsPage"));
-const ZatcaManagementPage = lazyWithRetry(() => import("./pages/dashboard/ZatcaManagementPage"));
-const SupportDashboardPage = lazyWithRetry(() => import("./pages/dashboard/SupportDashboardPage"));
-const AnnualReportPage = lazyWithRetry(() => import("./pages/dashboard/AnnualReportPage"));
-const ChartOfAccountsPage = lazyWithRetry(() => import("./pages/dashboard/ChartOfAccountsPage"));
-const HistoricalComparisonPage = lazyWithRetry(() => import("./pages/dashboard/HistoricalComparisonPage"));
-const SystemDiagnosticsPage = lazyWithRetry(() => import("./pages/dashboard/SystemDiagnosticsPage"));
-
-// Beneficiary Pages - Lazy loaded
-const BeneficiaryDashboard = lazyWithRetry(() => import("./pages/beneficiary/BeneficiaryDashboard"));
-const DisclosurePage = lazyWithRetry(() => import("./pages/beneficiary/DisclosurePage"));
-const MySharePage = lazyWithRetry(() => import("./pages/beneficiary/MySharePage"));
-const FinancialReportsPage = lazyWithRetry(() => import("./pages/beneficiary/FinancialReportsPage"));
-const AccountsViewPage = lazyWithRetry(() => import("./pages/beneficiary/AccountsViewPage"));
-const BeneficiarySettingsPage = lazyWithRetry(() => import("./pages/beneficiary/BeneficiarySettingsPage"));
-const BeneficiaryMessagesPage = lazyWithRetry(() => import("./pages/beneficiary/BeneficiaryMessagesPage"));
-const InvoicesViewPage = lazyWithRetry(() => import("./pages/beneficiary/InvoicesViewPage"));
-const NotificationsPage = lazyWithRetry(() => import("./pages/beneficiary/NotificationsPage"));
-const BylawsViewPage = lazyWithRetry(() => import("./pages/beneficiary/BylawsViewPage"));
-const PropertiesViewPage = lazyWithRetry(() => import("./pages/beneficiary/PropertiesViewPage"));
-const ContractsViewPage = lazyWithRetry(() => import("./pages/beneficiary/ContractsViewPage"));
-const CarryforwardHistoryPage = lazyWithRetry(() => import("./pages/beneficiary/CarryforwardHistoryPage"));
-const WaqifDashboard = lazyWithRetry(() => import("./pages/beneficiary/WaqifDashboard"));
-const BeneficiarySupportPage = lazyWithRetry(() => import("./pages/beneficiary/SupportPage"));
-const AnnualReportViewPage = lazyWithRetry(() => import("./pages/beneficiary/AnnualReportViewPage"));
-
-// AI Assistant (admin/accountant فقط) & Security - Lazy loaded
+// AI Assistant & Security - Lazy loaded
 const AiAssistant = lazyWithRetry(() => import("./components/AiAssistant"));
 const SecurityGuard = lazyWithRetry(() => import("./components/SecurityGuard"));
 const PwaUpdateNotifier = lazyWithRetry(() => import("./components/PwaUpdateNotifier"));
@@ -106,6 +60,7 @@ function DeferredRender({ children, delay = 3000 }: { children: React.ReactNode;
   if (!ready) return null;
   return <>{children}</>;
 }
+
 /** يحمّل AiAssistant فقط لأدوار admin/accountant لتوفير JS */
 function RoleGatedAiAssistant() {
   const { role } = useAuth();
@@ -118,6 +73,7 @@ function RoleGatedAiAssistant() {
     </DeferredRender>
   );
 }
+
 function App() {
   return (
     <ErrorBoundary>
@@ -136,59 +92,10 @@ function App() {
                 <PagePerformanceTracker />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/unauthorized" element={<Unauthorized />} />
-                    <Route path="/privacy" element={<PrivacyPolicy />} />
-                    <Route path="/terms" element={<TermsOfUse />} />
-                    <Route path="/install" element={<InstallApp />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-
-                    {/* Admin & Accountant Routes */}
-                    <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><AdminDashboard /></ProtectedRoute>} />
-                    <Route path="/dashboard/properties" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><PropertiesPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/contracts" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><ContractsPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/income" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><IncomePage /></ProtectedRoute>} />
-                    <Route path="/dashboard/expenses" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><ExpensesPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/beneficiaries" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><BeneficiariesPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/reports" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><ReportsPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/accounts" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><AccountsPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><MessagesPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/invoices" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><InvoicesPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/audit-log" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><AuditLogPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/bylaws" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><BylawsPage /></ProtectedRoute>} />
-
-                    {/* Admin Only */}
-                    <Route path="/dashboard/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagementPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={['admin']}><SettingsPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/zatca" element={<ProtectedRoute allowedRoles={['admin']}><ZatcaManagementPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/support" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><SupportDashboardPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/annual-report" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><AnnualReportPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/chart-of-accounts" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><ChartOfAccountsPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/comparison" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><HistoricalComparisonPage /></ProtectedRoute>} />
-                    <Route path="/dashboard/diagnostics" element={<ProtectedRoute allowedRoles={['admin']}><SystemDiagnosticsPage /></ProtectedRoute>} />
-
-                    {/* Beneficiary Routes (admin can also access) */}
-                    <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><BeneficiaryDashboard /></ProtectedRoute>} />
-                    <Route path="/waqif" element={<ProtectedRoute allowedRoles={['admin', 'waqif']}><WaqifDashboard /></ProtectedRoute>} />
-                    <Route path="/beneficiary/properties" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><PropertiesViewPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/contracts" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><ContractsViewPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/disclosure" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><DisclosurePage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/my-share" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><MySharePage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/financial-reports" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><FinancialReportsPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/accounts" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><AccountsViewPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/settings" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BeneficiarySettingsPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/messages" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BeneficiaryMessagesPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/invoices" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><InvoicesViewPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/notifications" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><NotificationsPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/bylaws" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BylawsViewPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/carryforward" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><CarryforwardHistoryPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/support" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif', 'accountant']}><BeneficiarySupportPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/annual-report" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><AnnualReportViewPage /></ProtectedRoute>} />
-
-                    {/* Catch-all Route */}
-                    <Route path="*" element={<NotFound />} />
+                    {publicRoutes}
+                    {adminRoutes}
+                    {beneficiaryRoutes}
+                    {catchAllRoute}
                   </Routes>
                 </Suspense>
                 <ErrorBoundary>

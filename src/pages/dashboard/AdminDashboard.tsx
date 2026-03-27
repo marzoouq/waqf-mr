@@ -14,7 +14,7 @@ import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useYoYComparison } from '@/hooks/financial/useYoYComparison';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
-import { FileText, TrendingUp, TrendingDown, Users, Wallet, Printer, Gauge, ArrowUpDown, Landmark, GitBranch } from 'lucide-react';
+import { Printer, Gauge, ArrowUpDown } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/DashboardLayout';
