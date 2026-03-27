@@ -132,9 +132,9 @@ describe('close_fiscal_year — التحقق من الأدوار', () => {
     expect(result.success).toBe(true);
   });
 
-  it('accountant يمكنه إقفال السنة المالية', () => {
-    const result = simulateCloseFiscalYear({ ...baseParams, caller_role: 'accountant' });
-    expect(result.success).toBe(true);
+  it('accountant لا يمكنه إقفال السنة المالية (admin فقط)', () => {
+    expect(() => simulateCloseFiscalYear({ ...baseParams, caller_role: 'accountant' }))
+      .toThrow('فقط الناظر يملك صلاحية إقفال السنة المالية');
   });
 
   it('beneficiary لا يمكنه إقفال السنة', () => {
