@@ -91,7 +91,7 @@ const ChartTooltip = RechartsPrimitive.Tooltip;
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shadcn/ui generated component; Recharts Tooltip props are untyped
   any & {
       hideLabel?: boolean;
       hideIndicator?: boolean;
@@ -230,7 +230,7 @@ const ChartLegend = RechartsPrimitive.Legend;
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Recharts Legend payload is untyped
       payload?: any[];
       verticalAlign?: "top" | "bottom" | "middle";
       hideIcon?: boolean;

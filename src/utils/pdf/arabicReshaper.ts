@@ -52,10 +52,15 @@ export const reshapeArabic = (text: string): string => {
  * نسخة مُحسّنة تعالج مصفوفة عناصر جدول autoTable
  * تدعم: string, number, وكائنات { content, styles, colSpan, ... }
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const reshapeRow = (row: any[]): any[] =>
+/** خلية جدول autoTable: نص، رقم، null، أو كائن content */
+interface AutoTableCellObject { content: string | number; styles?: Record<string, unknown>; colSpan?: number; [key: string]: unknown }
+type AutoTableCell = string | number | null | AutoTableCellObject;
+
+export { type AutoTableCell, type AutoTableCellObject };
+
+export const reshapeRow = (row: AutoTableCell[]): AutoTableCell[] =>
   row.map(cell => {
-    if (cell === null || cell === undefined) return cell;
+    if (cell === null || cell === undefined) return null;
     if (typeof cell === 'number') return cell;
     if (typeof cell === 'string') return reshapeArabic(cell);
     if (typeof cell === 'object' && 'content' in cell) {
