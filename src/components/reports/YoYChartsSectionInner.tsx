@@ -6,6 +6,7 @@ import {
   Legend, LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
 import { fmt } from '@/utils/format';
+import { tooltipStyleRtl } from '@/utils/chartHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
