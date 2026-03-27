@@ -246,7 +246,7 @@ export const useSupportAnalytics = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_support_analytics');
       if (error) throw error;
-      return data as SupportAnalyticsData;
+      return data as unknown as SupportAnalyticsData;
     },
   });
 };

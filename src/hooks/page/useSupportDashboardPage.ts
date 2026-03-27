@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import {
   useSupportTickets, useSupportStats, useSupportAnalytics,
   useClientErrors, fetchTicketsForExport,
-  type SupportTicket, type SupportAnalyticsData,
+  type SupportTicket,
 } from '@/hooks/data/useSupportTickets';
 import { toast } from 'sonner';
 import { fmtDate } from '@/utils/format';
