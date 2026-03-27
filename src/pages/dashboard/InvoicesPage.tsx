@@ -2,10 +2,8 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NativeSelect } from '@/components/ui/native-select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import InvoiceUploadDialog from '@/components/invoices/InvoiceUploadDialog';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import InvoicePreviewDialog from '@/components/invoices/InvoicePreviewDialog';
 import CreateInvoiceFromTemplate from '@/components/invoices/CreateInvoiceFromTemplate';
@@ -14,7 +12,7 @@ import InvoiceSummaryCards from '@/components/invoices/InvoiceSummaryCards';
 import TablePagination from '@/components/TablePagination';
 import MobileCardView from '@/components/MobileCardView';
 import { Badge } from '@/components/ui/badge';
-import { Plus, FileText, Search, Upload, Eye, LayoutGrid, List, FileDown, X } from 'lucide-react';
+import { FileText, Search, Eye, LayoutGrid, List, FileDown } from 'lucide-react';
 import InvoicesDesktopTable from '@/components/invoices/InvoicesDesktopTable';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
@@ -81,68 +79,26 @@ const InvoicesPage = () => {
               downloadCsv(csv, `فواتير-${fyLabel}.csv`);
               toast.success('تم تصدير الفواتير بنجاح');
             }} />
-            <Dialog open={h.isOpen} onOpenChange={(open) => { h.setIsOpen(open); if (!open) h.resetForm(); }}>
-              <DialogTrigger asChild>
-                <Button className="gradient-primary gap-2" disabled={isLocked}><Plus className="w-4 h-4" /><span className="hidden sm:inline">رفع فاتورة</span></Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-                <DialogHeader><DialogTitle>{h.editingInvoice ? 'تعديل الفاتورة' : 'رفع فاتورة جديدة'}</DialogTitle><DialogDescription className="sr-only">نموذج رفع أو تعديل فاتورة</DialogDescription></DialogHeader>
-                <form onSubmit={h.handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>{h.editingInvoice ? 'تغيير ملف الفاتورة (اختياري)' : 'ملف الفاتورة (صورة أو PDF) *'}</Label>
-                    <div
-                      className={`border-2 rounded-lg p-6 text-center cursor-pointer transition-colors ${h.isDragging ? 'border-primary bg-primary/5 border-solid' : 'border-dashed hover:border-primary/50'}`}
-                      onClick={() => h.fileInputRef.current?.click()}
-                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); h.setIsDragging(true); }}
-                      onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); h.setIsDragging(true); }}
-                      onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); h.setIsDragging(false); }}
-                      onDrop={(e) => { e.preventDefault(); e.stopPropagation(); h.setIsDragging(false); const file = e.dataTransfer.files?.[0]; if (file) h.validateAndSetFile(file); }}
-                    >
-                      {h.previewUrl && h.selectedFile ? (
-                        <div className="relative inline-block">
-                          <img src={h.previewUrl} alt="معاينة" className="max-h-32 rounded-md mx-auto object-contain" />
-                          <button type="button" className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5" onClick={(e) => { e.stopPropagation(); h.resetForm(); }}>
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                          <p className="text-xs text-muted-foreground mt-1">{h.selectedFile.name}</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">اضغط أو اسحب ملف هنا</p>
-                          <p className="text-xs text-muted-foreground">صور (JPG, PNG) أو PDF — حد أقصى 10 ميجا</p>
-                        </div>
-                      )}
-                    </div>
-                    <input ref={h.fileInputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) h.validateAndSetFile(file); }} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2"><Label htmlFor="invoice-number">رقم الفاتورة</Label><Input id="invoice-number" name="invoice_number" value={h.formData.invoice_number} onChange={(e) => h.setFormData({ ...h.formData, invoice_number: e.target.value })} placeholder="INV-001" /></div>
-                    <div className="space-y-2"><Label htmlFor="invoice-amount">المبلغ (ر.س) *</Label><Input id="invoice-amount" name="amount" type="number" value={h.formData.amount} onChange={(e) => h.setFormData({ ...h.formData, amount: e.target.value })} placeholder="10000" /></div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2"><Label htmlFor="invoice-date">التاريخ *</Label><Input id="invoice-date" name="date" type="date" value={h.formData.date} onChange={(e) => h.setFormData({ ...h.formData, date: e.target.value })} /></div>
-                    <div className="space-y-2">
-                      <Label htmlFor="invoice-type">نوع الفاتورة *</Label>
-                      <NativeSelect id="invoice-type" value={h.formData.invoice_type} onValueChange={(v) => h.setFormData({ ...h.formData, invoice_type: v })} placeholder="اختر النوع" options={Object.entries(h.INVOICE_TYPE_LABELS).map(([key, label]) => ({ value: key, label }))} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="invoice-property">العقار (اختياري)</Label>
-                    <NativeSelect id="invoice-property" value={h.formData.property_id} onValueChange={(v) => h.setFormData({ ...h.formData, property_id: v })} placeholder="اختر العقار" options={h.properties.map((p) => ({ value: p.id, label: `${p.property_number} - ${p.location}` }))} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="invoice-contract">العقد (اختياري)</Label>
-                    <NativeSelect id="invoice-contract" value={h.formData.contract_id} onValueChange={(v) => h.setFormData({ ...h.formData, contract_id: v })} placeholder="اختر العقد" options={h.contracts.map((c) => ({ value: c.id, label: `${c.contract_number} - ${c.tenant_name}` }))} />
-                  </div>
-                  <div className="space-y-2"><Label htmlFor="invoice-description">وصف</Label><Input id="invoice-description" name="description" value={h.formData.description} onChange={(e) => h.setFormData({ ...h.formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
-                  <div className="flex gap-2 pt-4">
-                    <Button type="submit" className="flex-1 gradient-primary" disabled={h.uploading || h.createInvoice.isPending || h.updateInvoice.isPending}>{h.uploading ? 'جاري الحفظ...' : h.editingInvoice ? 'تحديث' : 'رفع الفاتورة'}</Button>
-                    <Button type="button" variant="outline" onClick={() => { h.setIsOpen(false); h.resetForm(); }}>إلغاء</Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <InvoiceUploadDialog
+              open={h.isOpen}
+              onOpenChange={h.setIsOpen}
+              isEditing={!!h.editingInvoice}
+              isLocked={isLocked}
+              formData={h.formData}
+              setFormData={h.setFormData}
+              onSubmit={h.handleSubmit}
+              onReset={h.resetForm}
+              isSaving={h.uploading || h.createInvoice.isPending || h.updateInvoice.isPending}
+              fileInputRef={h.fileInputRef}
+              selectedFile={h.selectedFile}
+              previewUrl={h.previewUrl}
+              isDragging={h.isDragging}
+              setIsDragging={h.setIsDragging}
+              validateAndSetFile={h.validateAndSetFile}
+              typeLabels={h.INVOICE_TYPE_LABELS}
+              properties={h.properties}
+              contracts={h.contracts}
+            />
           </>}
         />
 
