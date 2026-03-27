@@ -1,62 +1,123 @@
 
 
-# الجلسة السابعة — فحص وتحسين 4 ملفات رئيسية
+# خطة إصلاح أخطاء البناء وتحديث التعليقات
 
-## الملفات المفحوصة وحالتها
+## الملخص
 
-### 1. `zatca-xml-generator/index.ts` (548 سطر)
-**الحالة**: يعمل بشكل سليم أمنياً (getUser + role check + rate limiting + UUID validation)
-
-**تحسينات مقترحة:**
-- **استخراج `buildUBL`** (~330 سطر) إلى ملف مشترك `_shared/zatca-xml-builder.ts` — الدالة ضخمة وقابلة لإعادة الاستخدام
-- **استبدال `console.error`** بـ structured logging (سطر 545)
-- **إضافة validation بـ Zod** لـ request body بدلاً من التحقق اليدوي (سطر 454-457)
-- **إضافة `Content-Type` check**: التأكد أن الطلب `application/json`
-
-### 2. `FiscalYearContext.tsx` (118 سطر)
-**الحالة**: نظيف ومحكم — fallback آمن، localStorage مع UUID validation، دعم bfcache
-
-**لا تحسينات جوهرية مطلوبة** — الملف بحجم مناسب ومنظم جيداً.
-
-### 3. `AuthContext.tsx` (254 سطر)
-**الحالة**: مستقر — race condition محلول، safety timeout، stale closure fix، HMR support
-
-**تحسين بسيط واحد:**
-- **تنظيف localStorage في signOut**: القائمة طويلة (10 عناصر) — يمكن استخراجها لثابت `CLEARABLE_STORAGE_KEYS`
-
-### 4. `SystemDiagnosticsPage.tsx` (168 سطر)
-**الحالة**: نظيف وقصير بما يكفي
-
-**لا تحسينات مطلوبة** — الملف مقروء ومنظم.
+أخطاء البناء الحالية نوعان: (1) حزم npm مفقودة في بيئة Deno بسبب عدم وجود `deno.json`، (2) أخطاء TypeScript في `zatca-shared.ts` و`zatca-report/index.ts`. بالإضافة لتعليقات قديمة تحتاج تحديث.
 
 ---
 
-## خطة التنفيذ
+## الأخطاء بالتفصيل
 
-### المهمة 1: استخراج `buildUBL` من zatca-xml-generator
-- إنشاء `supabase/functions/_shared/zatca-xml-builder.ts`
-- نقل `buildUBL` + الدوال المساعدة (`getInvoiceTypeInfo`, `getVatCategoryCode`, `getTaxExemptionInfo`, `escapeXml`) + الأنواع (`LineItemInput`, `AllowanceChargeInput`)
-- تحديث `zatca-xml-generator/index.ts` ليستورد من الملف المشترك
-- **النتيجة**: `index.ts` ينخفض من ~548 إلى ~135 سطر
+### الفئة 1 — حزم npm مفقودة (6 أخطاء)
 
-### المهمة 2: إضافة Zod validation + Content-Type check
-- استبدال التحقق اليدوي من `invoice_id` و `table` بـ schema Zod
-- إضافة فحص `Content-Type: application/json`
-- استبدال `console.error` بهيكل خطأ منظم
+| الوظيفة | الحزمة | الاستيراد |
+|---|---|---|
+| `generate-invoice-pdf` | `@pdf-lib/fontkit@1.1.1` | `npm:@pdf-lib/fontkit@1.1.1` |
+| `webauthn` | `@simplewebauthn/server@11` | `npm:@simplewebauthn/server@11` |
+| `zatca-onboard` | `@noble/curves@1.4.0` | `npm:@noble/curves@1.4.0/p256` |
+| `zatca-renew` | `@noble/curves@1.4.0` | `npm:@noble/curves@1.4.0/p256` |
+| `zatca-signer` | `@noble/hashes@1.4.0` | `npm:@noble/hashes@1.4.0/sha256` |
+| `zatca-xml-generator` | `zod@3` | `npm:zod@3` |
 
-### المهمة 3: استخراج مفاتيح localStorage من AuthContext
-- إنشاء ثابت `CLEARABLE_STORAGE_KEYS` في ملف مشترك أو أعلى الملف
-- تبسيط حلقة الحذف في `signOut`
+**السبب**: بيئة Deno تحتاج `"nodeModulesDir": "auto"` في `deno.json` لتثبيت حزم `npm:` تلقائياً.
+
+**الحل**: إنشاء `supabase/functions/deno.json`:
+```json
+{
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
+    "zod": "npm:zod@3"
+  }
+}
+```
+
+### الفئة 2 — أخطاء TypeScript (9 أخطاء)
+
+#### 2A. `zatca-shared.ts` سطر 135 — `sha256Async`
+```
+Uint8Array<ArrayBufferLike> not assignable to BufferSource
+```
+**السبب**: `crypto.subtle.digest` يُرجع `ArrayBuffer` لكن Deno الجديد يعتبره `ArrayBufferLike`.
+**الحل**: تحويل صريح:
+```ts
+return new Uint8Array(await crypto.subtle.digest("SHA-256", data) as ArrayBuffer);
+```
+
+#### 2B. `zatca-shared.ts` سطر 177 — `resolveZatcaUrl`
+```
+Property 'value' does not exist on type 'never'
+```
+**السبب**: `createClient()` بدون Database generic يجعل Deno يستنتج النوع كـ `never`.
+**الحل**: إضافة type assertion:
+```ts
+const { data } = await adminClient.from("app_settings").select("value").eq("key", "zatca_platform").single() as { data: { value: string } | null };
+```
+
+#### 2C. `zatca-shared.ts` سطر 194 — `logZatcaOperation`
+```
+Argument of type '...' not assignable to parameter of type 'never'
+```
+**السبب**: نفس مشكلة عدم وجود generic — `from("zatca_operation_log").insert(...)` يستنتج `never`.
+**الحل**: إضافة `as any` مع تعليق:
+```ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- admin client بدون Database generic
+await (admin.from("zatca_operation_log") as any).insert({...});
+```
+
+#### 2D. `zatca-report/index.ts` سطر 14 — `Deno.serve`
+```
+Argument not assignable — handler returns Promise<Response | undefined>
+```
+**السبب**: المسارات لا تُغطي كل الحالات — `Deno.serve` يحتاج `Response` مضمون.
+**الحل**: السطر 149 يُرجع Response لكل حالة غير معروفة، والمشكلة أن TypeScript لا يستطيع استنتاج ذلك. الحل: إضافة return type صريح أو تحويل:
+```ts
+Deno.serve(async (req): Promise<Response> => {
+```
+
+#### 2E. `zatca-report/index.ts` أسطر 25, 39, 62, 66 — `SupabaseClient` mismatch
+```
+SupabaseClient<any, "public"> not assignable to SupabaseClient<unknown, ...>
+```
+**السبب**: `admin` من `authenticateAdmin` (في `zatca-shared.ts`) مُنشأ بـ `createClient()` بدون generic، والدوال المشتركة تحتاج نوعاً متوافقاً.
+**الحل**: تغيير نوع الإرجاع في `authenticateAdmin` ليستخدم `any`:
+```ts
+// في zatca-shared.ts سطر 226
+const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY) as any;
+```
+أو الأفضل: تحديد نوع `resolveZatcaUrl` و`logZatcaOperation` ليقبلا `any`:
+```ts
+export async function resolveZatcaUrl(adminClient: any): Promise<string> {
+export async function logZatcaOperation(admin: any, opts: {...}) {
+```
+
+### الفئة 3 — تعليقات قديمة
+
+| الملف | السطر | الحالي | المطلوب |
+|---|---|---|---|
+| `checks.ts` | 2 | `31 فحصاً` | `33 فحصاً` |
+| `checks.ts` | 309 | `(5)` | `(7)` |
 
 ---
 
-## الأثر
+## خطوات التنفيذ
 
-| الملف | قبل | بعد |
-|-------|------|------|
-| `zatca-xml-generator/index.ts` | 548 سطر | ~135 سطر |
-| `_shared/zatca-xml-builder.ts` | — | ~420 سطر (جديد) |
-| `AuthContext.tsx` | 254 سطر | ~245 سطر |
-| `FiscalYearContext.tsx` | بدون تغيير | — |
-| `SystemDiagnosticsPage.tsx` | بدون تغيير | — |
+1. **إنشاء `supabase/functions/deno.json`** — يحل الفئة 1 كاملة (6 أخطاء)
+2. **إصلاح `zatca-shared.ts`** — 3 إصلاحات TS:
+   - سطر 135: `as ArrayBuffer`
+   - سطر 174: نوع `adminClient` → `any`
+   - سطر 182: نوع `admin` → `any`
+3. **إصلاح `zatca-report/index.ts`** — سطر 14: إضافة `: Promise<Response>` (يحل 5 أخطاء)
+4. **تحديث تعليقات `checks.ts`** — سطر 2 وسطر 309
+
+---
+
+## تفاصيل تقنية
+
+- إجمالي الأخطاء: **15 خطأ بناء**
+- الملفات المتأثرة: **3 ملفات** (`deno.json` جديد + `zatca-shared.ts` + `zatca-report/index.ts`) + تعليقات `checks.ts`
+- **لا تأثير وظيفي** — كل الإصلاحات هي type assertions وتكوين بيئة فقط
+- **لا تعديل** على الملفات المحمية (`config.toml`, `client.ts`, `types.ts`, `.env`)
 
