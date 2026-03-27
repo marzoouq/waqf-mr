@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { useState, useCallback, useMemo } from 'react';
 import type { Database } from '@/integrations/supabase/types';
 
 // سجل تتبع تحذيرات الحد الأقصى — بديل آمن عن تخزين في window
@@ -30,7 +31,7 @@ interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
   orderBy?: string;
   /** Order direction – defaults to descending */
   ascending?: boolean;
-  /** Max rows to fetch – defaults to 500 */
+  /** Max rows per page – defaults to 500 */
   limit?: number;
   /** Arabic entity label for toast messages (e.g. 'العقار') */
   label: string;
@@ -40,6 +41,25 @@ interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
   onUpdateSuccess?: (data: TData) => void;
   /** ms before data is considered stale — defaults to 60 000 (1 min) */
   staleTime?: number;
+}
+
+/** نتيجة useList مع دعم التصفح */
+interface PaginatedQueryResult<TData> extends Omit<UseQueryResult<TData[]>, 'data'> {
+  data: TData[] | undefined;
+  /** رقم الصفحة الحالية (يبدأ من 0) */
+  page: number;
+  /** الانتقال إلى الصفحة التالية */
+  nextPage: () => void;
+  /** الانتقال إلى الصفحة السابقة */
+  prevPage: () => void;
+  /** الانتقال إلى صفحة محددة */
+  goToPage: (p: number) => void;
+  /** هل توجد صفحة تالية */
+  hasNextPage: boolean;
+  /** هل توجد صفحة سابقة */
+  hasPrevPage: boolean;
+  /** حجم الصفحة */
+  pageSize: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -62,33 +82,66 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
     staleTime = STALE_FINANCIAL,
   } = config;
 
-  /** List / fetch all rows */
-  const useList = (): UseQueryResult<TData[]> => {
-    return useQuery({
-      queryKey: [queryKey],
+  /** List / fetch all rows — مع دعم التصفح (pagination) */
+  const useList = (): PaginatedQueryResult<TData> => {
+    const [page, setPage] = useState(0);
+
+    const rangeFrom = page * limit;
+    const rangeTo = rangeFrom + limit - 1;
+
+    const query = useQuery({
+      // إضافة الصفحة للـ queryKey لتخزين كل صفحة بشكل مستقل
+      queryKey: [queryKey, { page }],
       staleTime,
       queryFn: async () => {
         const { data, error } = await supabase
           .from(table)
-          .select(select)
+          .select(select, { count: 'exact' })
           .order(orderBy, { ascending })
-          .limit(limit);
+          .range(rangeFrom, rangeTo);
 
         if (error) throw error;
         return data as TData[];
       },
       select: (data: TData[]) => {
-        if (data && data.length === limit) {
+        // تحذير فقط في الصفحة الأولى لتجنب التكرار
+        if (page === 0 && data && data.length === limit) {
           const key = `limit-warn-${queryKey}`;
           if (!limitWarnShown.has(key)) {
             limitWarnShown.add(key);
-            toast.warning(`تم عرض أول ${limit} سجل فقط من ${label}. قد توجد سجلات إضافية لم تُعرض.`);
+            toast.info(`يتم عرض أول ${limit} سجل من ${label}. استخدم التصفح لمشاهدة المزيد.`);
             setTimeout(() => { limitWarnShown.delete(key); }, 300_000);
           }
         }
         return data;
       },
     });
+
+    const hasNextPage = (query.data?.length ?? 0) === limit;
+    const hasPrevPage = page > 0;
+
+    const nextPage = useCallback(() => {
+      if (hasNextPage) setPage((p) => p + 1);
+    }, [hasNextPage]);
+
+    const prevPage = useCallback(() => {
+      if (hasPrevPage) setPage((p) => Math.max(0, p - 1));
+    }, [hasPrevPage]);
+
+    const goToPage = useCallback((p: number) => {
+      setPage(Math.max(0, p));
+    }, []);
+
+    return useMemo(() => ({
+      ...query,
+      page,
+      nextPage,
+      prevPage,
+      goToPage,
+      hasNextPage,
+      hasPrevPage,
+      pageSize: limit,
+    }), [query, page, nextPage, prevPage, goToPage, hasNextPage, hasPrevPage, limit]);
   };
 
   /** Create a new row */
