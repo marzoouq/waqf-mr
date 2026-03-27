@@ -71,7 +71,8 @@ export const useBeneficiaryDashboardData = (fiscalYearId?: string) => {
       if (!data || typeof data !== 'object' || Array.isArray(data)) {
         throw new Error('استجابة غير متوقعة من خادم لوحة المستفيد');
       }
-      return data as BeneficiaryDashboardData;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- RPC returns Json; runtime guard above validates shape
+      return data as unknown as BeneficiaryDashboardData;
     },
   });
 };
