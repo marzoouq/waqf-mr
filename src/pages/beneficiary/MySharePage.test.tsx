@@ -56,6 +56,7 @@ vi.mock('@/hooks/financial/useMyShare', () => ({
 }));
 
 vi.mock('@/hooks/financial/useAdvanceRequests', () => ({
+  useMyBeneficiaryFinance: vi.fn(() => ({ data: { myAdvances: [], myCarryforwards: [], paidAdvancesTotal: 0, carryforwardBalance: 0 } })),
   useMyAdvanceRequests: vi.fn(() => ({ data: [] })),
   usePaidAdvancesTotal: vi.fn(() => ({ data: 0 })),
   useCarryforwardBalance: () => mockUseCarryforwardBalance(),
