@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fmt } from '@/utils/format';
+import { tooltipStyleRtl } from '@/utils/chartHelpers';
 
 const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
