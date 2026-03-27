@@ -90,20 +90,20 @@ export default function CreateInvoiceFromTemplate({
           <TabsContent value="form" className="px-6 pb-6 space-y-5 mt-4">
             <InvoiceFormFields
               invoiceNumber={invoiceNumber} setInvoiceNumber={setInvoiceNumber}
-              invoiceDate={invoiceDate} setInvoiceDate={setInvoiceDate}
+              invoiceDate={invoiceDate ?? ''} setInvoiceDate={setInvoiceDate}
               invoiceType={invoiceType} setInvoiceType={setInvoiceType}
               invoiceTypeOptions={INVOICE_TYPES}
               contractId={contractId} handleContractChange={handleContractChange}
               contracts={contracts}
               propertyId={propertyId} setPropertyId={setPropertyId}
               properties={properties}
-              selectedContract={selectedContract}
+              selectedContract={selectedContract ?? null}
               buyerAddress={buyerAddress}
             />
 
             <InvoiceItemsTable
               items={items} computedItems={computedItems}
-              addItem={addItem} removeItem={removeItem} updateItem={updateItem}
+              addItem={addItem} removeItem={removeItem} updateItem={updateItem as (id: string, field: string, value: string | number) => void}
               totalExVat={totalExVat} totalVat={totalVat} grandTotal={grandTotal}
               notes={notes} setNotes={setNotes}
               allowances={allowances} setAllowances={setAllowances}
