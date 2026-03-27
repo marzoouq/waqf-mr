@@ -64,10 +64,17 @@ export const useMySharePage = () => {
     queryKey: ['my-distributions', currentBeneficiary?.id, fiscalYearId],
     queryFn: async () => {
       if (!currentBeneficiary?.id) return [];
-      const { data, error } = await supabase
+      let query = supabase
         .from('distributions')
         .select('*, account:accounts(id, fiscal_year, fiscal_year_id)')
-        .eq('beneficiary_id', currentBeneficiary.id)
+        .eq('beneficiary_id', currentBeneficiary.id);
+
+      // #16: فلتر بالسنة المالية في الاستعلام بدلاً من جلب الكل
+      if (fiscalYearId && fiscalYearId !== 'all') {
+        query = query.eq('fiscal_year_id', fiscalYearId);
+      }
+
+      const { data, error } = await query
         .order('date', { ascending: false })
         .limit(200);
       if (error) throw error;
