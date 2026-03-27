@@ -36,6 +36,7 @@ import RecentContractsCard from '@/components/dashboard/RecentContractsCard';
 
 // هوك الإحصائيات المستخرج
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 // Lazy-load heavy below-the-fold components
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
