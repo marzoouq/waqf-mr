@@ -76,17 +76,13 @@ export const useMySharePage = () => {
     enabled: !!currentBeneficiary?.id,
   });
 
-  // سُلف المستفيد
-  const { data: myAdvances = [] } = useMyAdvanceRequests(currentBeneficiary?.id ?? undefined);
-  const { data: paidAdvancesTotal = 0 } = usePaidAdvancesTotal(
-    currentBeneficiary?.id ?? undefined,
-    fiscalYearId === 'all' ? undefined : fiscalYearId,
-  );
-  const { data: carryforwardBalance = 0 } = useCarryforwardBalance(
-    currentBeneficiary?.id ?? undefined,
-    fiscalYearId === 'all' ? undefined : fiscalYearId,
-  );
-  const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id ?? undefined);
+  // سُلف وترحيلات المستفيد — استعلام مدمج واحد بدل 4
+  const effectiveFyId = fiscalYearId === 'all' ? undefined : fiscalYearId;
+  const { data: benFinance, isLoading: benFinLoading } = useMyBeneficiaryFinance(currentBeneficiary?.id ?? undefined, effectiveFyId);
+  const myAdvances = benFinance?.myAdvances ?? [];
+  const paidAdvancesTotal = benFinance?.paidAdvancesTotal ?? 0;
+  const carryforwardBalance = benFinance?.carryforwardBalance ?? 0;
+  const myCarryforwards = benFinance?.myCarryforwards ?? [];
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
 
   const { getJsonSetting } = useAppSettings();
