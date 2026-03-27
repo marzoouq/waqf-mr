@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { STALE_STATIC } from '@/lib/queryStaleTime';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
@@ -86,7 +87,7 @@ const Auth = () => {
         .maybeSingle();
       return data?.value === 'true';
     },
-    staleTime: 5 * 60_000,
+    staleTime: STALE_STATIC,
     gcTime: 30 * 60_000,
   });
 
