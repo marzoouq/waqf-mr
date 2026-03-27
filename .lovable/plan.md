@@ -1,38 +1,41 @@
 
 
-## تحويل DashboardCharts و IncomeMonthlyChart إلى lazy import
+## التحقق من وظائف ZATCA بعد إعادة التنظيم — المشاكل المكتشفة
 
-### الوضع الحالي
-كلا المكوّنين **محمّلان بالفعل بـ lazy على مستوى الصفحة** (`AdminDashboard` و `IncomePage`)، لكنهما يستوردان recharts مباشرة في أعلى الملف. تطبيق نفس نمط Inner المُستخدم في التقارير يفصل recharts عن منطق البيانات ويوحّد المعمارية.
+### المشاكل الحالية
 
-### التغييرات
+| # | المشكلة | الملف | التأثير |
+|---|---------|-------|---------|
+| 1 | `config.toml` لا يزال يحتوي على `[functions.zatca-api]` (محذوفة) ولا يحتوي على الوظائف الجديدة الثلاث | `supabase/config.toml` | ⚠️ الوظائف الجديدة قد لا تُنشر بإعدادات `verify_jwt = false` الصحيحة |
+| 2 | مراجع `zatca-api` لا تزال في الوثائق (3 ملفات) | `docs/API.md`, `docs/SECURITY-KNOWLEDGE.md`, `supabase/functions/README.md` | وثائق مضللة |
 
-**ملف واحد:** `supabase/functions/zatca-api/index.ts` — لا، هذا عن الرسوم البيانية:
+### الكود الفعلي (الاستدعاءات)
 
-#### 1. `DashboardCharts` → Inner
-- **إنشاء** `src/components/dashboard/DashboardChartsInner.tsx`
-  - نقل كل كود recharts (BarChart + PieChart) + الثوابت (`COLORS`, `ARABIC_MONTHS`, `formatArabicMonth`, `tooltipStyle`)
-  - يستقبل نفس الـ props: `monthlyData` + `expenseTypes`
+استدعاءات الواجهة في `useZatcaSettings.ts` و `ZatcaManagementPage.tsx` **صحيحة** — تشير للوظائف الجديدة (`zatca-onboard`, `zatca-report`, `zatca-renew`). ✅
 
-- **تعديل** `src/components/dashboard/DashboardCharts.tsx`
-  - يصبح wrapper خفيف: `lazy(() => import('./DashboardChartsInner'))` + `Suspense` مع `Skeleton`
-  - يحتفظ بـ Card shells + حالة "لا توجد بيانات"، أو ينقل كل شيء للـ Inner ويبقى كغلاف Suspense فقط
+الملف المشترك `_shared/zatca-shared.ts` يصدّر كل الدوال المطلوبة والوظائف الثلاث تستوردها بشكل صحيح. ✅
 
-#### 2. `IncomeMonthlyChart` → Inner
-- **إنشاء** `src/components/dashboard/IncomeMonthlyChartInner.tsx`
-  - نقل كود recharts (BarChart + ResponsiveContainer + Tooltip + Legend)
-  - يستقبل: `chartData` + `achievementRate` (البيانات المحسوبة)
+### الإصلاحات المطلوبة
 
-- **تعديل** `src/components/dashboard/IncomeMonthlyChart.tsx`
-  - يبقى فيه: `useMemo` لحساب `chartData` + `totalActual/totalExpected/achievementRate`
-  - يحمّل `IncomeMonthlyChartInner` بـ `lazy` + `Suspense`
-  - Card + Header يبقيان في الملف الأصلي (عرض فوري)
+#### 1. تحديث `supabase/config.toml`
+- حذف `[functions.zatca-api]`
+- إضافة:
+  - `[functions.zatca-onboard]` → `verify_jwt = false`
+  - `[functions.zatca-report]` → `verify_jwt = false`
+  - `[functions.zatca-renew]` → `verify_jwt = false`
 
-### ملف واحد لكل تحويل — المجموع: إنشاء 2 ملف + تعديل 2 ملف
+#### 2. تحديث `docs/API.md`
+- تحديث القسم 11 ليعكس التقسيم الجديد:
+  - `zatca-onboard` → onboard, production, test-connection
+  - `zatca-report` → report, clearance, compliance-check, compliance-buyer-qr, compliance-seller-qr
+  - `zatca-renew` → renew
 
-### ملاحظات تقنية
-- نفس النمط المُطبّق سابقاً على `CashFlowChartInner`, `YoYChartsSectionInner`, إلخ
-- `minWidth={1} minHeight={1}` على كل `ResponsiveContainer`
-- `min-w-0 min-h-[1px]` على الحاوية الأب
-- لا تغيير في المنطق أو السلوك
+#### 3. تحديث `docs/SECURITY-KNOWLEDGE.md`
+- استبدال سطر `zatca-api` بثلاثة أسطر للوظائف الجديدة
+
+#### 4. تحديث `supabase/functions/README.md`
+- استبدال سطر `zatca-api` بالوظائف الجديدة الثلاث
+
+### ملاحظة
+الملف المحمي `config.toml` يحتوي على إعداد `project_id` فقط كجزء محمي. تغيير إعدادات الوظائف مسموح حسب التعليمات ("you CAN add function-specific configuration blocks").
 
