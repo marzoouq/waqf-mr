@@ -1,11 +1,8 @@
-import { useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/data/useBeneficiaries';
-import { Beneficiary } from '@/types/database';
 import { Users, Percent, Search, AlertTriangle, Wallet, UserCheck } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { generateBeneficiariesPDF } from '@/utils/pdf';
@@ -13,120 +10,18 @@ import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import ExportMenu from '@/components/ExportMenu';
 import { buildCsv, downloadCsv } from '@/utils/csv';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
-import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import TablePagination from '@/components/TablePagination';
-import BeneficiaryFormDialog, { BeneficiaryFormData } from '@/components/beneficiaries/BeneficiaryFormDialog';
+import BeneficiaryFormDialog from '@/components/beneficiaries/BeneficiaryFormDialog';
 import BeneficiaryCard from '@/components/beneficiaries/BeneficiaryCard';
 import AdvanceRequestsTab from '@/components/accounts/AdvanceRequestsTab';
-
-const ITEMS_PER_PAGE = 9;
-
-
+import { useBeneficiariesPage } from '@/hooks/page/useBeneficiariesPage';
 
 const BeneficiariesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: beneficiaries = [], isLoading } = useBeneficiaries();
-  const { data: decryptedBeneficiaries = [] } = useBeneficiariesDecrypted();
-  const createBeneficiary = useCreateBeneficiary();
-  const updateBeneficiary = useUpdateBeneficiary();
-  const deleteBeneficiary = useDeleteBeneficiary();
-
-  const [isOpen, setIsOpen] = useState(false);
-
-  const { data: users = [] } = useQuery({
-    queryKey: ['beneficiary-users'],
-    staleTime: STALE_FINANCIAL,
-    enabled: isOpen,
-    queryFn: async () => {
-      // التحقق من صلاحية المستخدم أولاً
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("يجب تسجيل الدخول أولاً");
-      // supabase.functions.invoke يُرسل الـ token تلقائياً — لا حاجة لـ header يدوي
-      const { data, error } = await supabase.functions.invoke('admin-manage-users', {
-        body: { action: 'list_users' },
-      });
-      if (error) throw error;
-      return (data?.users || [])
-        .filter((u: { role?: string }) => u.role === 'beneficiary')
-        .map((u: { id: string; email?: string }) => ({ id: u.id, email: u.email || u.id }));
-    },
-  });
-  const [editingBeneficiary, setEditingBeneficiary] = useState<Beneficiary | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [formData, setFormData] = useState<BeneficiaryFormData>({
-    name: '', share_percentage: '', phone: '', email: '', bank_account: '', notes: '', user_id: '', national_id: '',
-  });
-
-  const availableUsers = useMemo(() => {
-    const linkedUserIds = new Set(
-      beneficiaries.filter(b => b.user_id && b.id !== editingBeneficiary?.id).map(b => b.user_id)
-    );
-    return users.filter((u: { id: string }) => !linkedUserIds.has(u.id));
-  }, [users, beneficiaries, editingBeneficiary]);
-
-  const resetForm = () => {
-    setFormData({ name: '', share_percentage: '', phone: '', email: '', bank_account: '', notes: '', user_id: '', national_id: '' });
-    setEditingBeneficiary(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name || !formData.share_percentage) { toast.error('يرجى ملء جميع الحقول المطلوبة'); return; }
-    const newPercentage = parseFloat(formData.share_percentage);
-    const currentTotal = beneficiaries
-      .filter(b => b.id !== editingBeneficiary?.id)
-      .reduce((sum, b) => sum + Number(b.share_percentage), 0);
-    if (currentTotal + newPercentage > 100) { toast.error('مجموع نسب المستفيدين يتجاوز 100%'); return; }
-    const beneficiaryData = {
-      name: formData.name, share_percentage: parseFloat(formData.share_percentage),
-      phone: formData.phone || undefined, email: formData.email || undefined,
-      bank_account: formData.bank_account || undefined, notes: formData.notes || undefined,
-      user_id: formData.user_id || undefined, national_id: formData.national_id || undefined,
-    };
-    try {
-      if (editingBeneficiary) { await updateBeneficiary.mutateAsync({ id: editingBeneficiary.id, ...beneficiaryData }); } else { await createBeneficiary.mutateAsync(beneficiaryData); }
-      setIsOpen(false);
-      resetForm();
-    } catch { /* mutationCache handles toast */ }
-  };
-
-  const handleEdit = (beneficiary: Beneficiary) => {
-    // استخدام البيانات المفكوكة إن وجدت
-    const decrypted = decryptedBeneficiaries.find(b => b.id === beneficiary.id);
-    const source = decrypted || beneficiary;
-    setEditingBeneficiary(beneficiary);
-    setFormData({
-      name: source.name, share_percentage: source.share_percentage.toString(),
-      phone: source.phone || '', email: source.email || '',
-      bank_account: source.bank_account || '', notes: source.notes || '',
-      user_id: source.user_id || '', national_id: source.national_id || '',
-    });
-    setIsOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
-    await deleteBeneficiary.mutateAsync(deleteTarget.id);
-    setDeleteTarget(null);
-    setCurrentPage(1);
-  };
-
-  const totalPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
-  const activeBeneficiaries = beneficiaries.filter(b => Number(b.share_percentage) > 0).length;
-  const percentageExceeds = totalPercentage > 100;
-
-  const filteredBeneficiaries = beneficiaries.filter((b) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return b.name.toLowerCase().includes(q) || (b.phone || '').includes(q) || (b.email || '').toLowerCase().includes(q) || (b.national_id || '').includes(q);
-  });
+  const h = useBeneficiariesPage();
 
   return (
     <DashboardLayout>
@@ -136,8 +31,8 @@ const BeneficiariesPage = () => {
           icon={Users}
           description="عرض وإدارة المستفيدين من الوقف"
           actions={<>
-            <ExportMenu onExportPdf={() => generateBeneficiariesPDF(filteredBeneficiaries, pdfWaqfInfo)} onExportCsv={() => {
-              const csv = buildCsv(filteredBeneficiaries.map(b => ({
+            <ExportMenu onExportPdf={() => generateBeneficiariesPDF(h.filteredBeneficiaries, pdfWaqfInfo)} onExportCsv={() => {
+              const csv = buildCsv(h.filteredBeneficiaries.map(b => ({
                 'الاسم': b.name,
                 'النسبة %': Number(b.share_percentage),
                 'البريد': b.email || '-',
@@ -148,9 +43,9 @@ const BeneficiariesPage = () => {
               toast.success('تم تصدير المستفيدين بنجاح');
             }} />
             <BeneficiaryFormDialog
-              isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} setFormData={setFormData}
-              isEditing={!!editingBeneficiary} isPending={createBeneficiary.isPending || updateBeneficiary.isPending}
-              availableUsers={availableUsers} onSubmit={handleSubmit} onReset={resetForm}
+              isOpen={h.isOpen} setIsOpen={h.setIsOpen} formData={h.formData} setFormData={h.setFormData}
+              isEditing={!!h.editingBeneficiary} isPending={h.isPending}
+              availableUsers={h.availableUsers} onSubmit={h.handleSubmit} onReset={h.resetForm}
             />
           </>}
         />
@@ -162,7 +57,7 @@ const BeneficiariesPage = () => {
           </TabsList>
 
           <TabsContent value="beneficiaries" className="space-y-5 mt-4">
-            {isLoading ? (
+            {h.isLoading ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <Card key={i} className="shadow-sm">
@@ -182,7 +77,7 @@ const BeneficiariesPage = () => {
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center"><Users className="w-4 h-4 sm:w-6 sm:h-6 text-primary" /></div>
-                      <div><p className="text-[11px] sm:text-sm text-muted-foreground">إجمالي المستفيدين</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length}</p></div>
+                      <div><p className="text-[11px] sm:text-sm text-muted-foreground">إجمالي المستفيدين</p><p className="text-xl sm:text-3xl font-bold">{h.beneficiaries.length}</p></div>
                     </div>
                   </CardContent>
                 </Card>
@@ -190,20 +85,20 @@ const BeneficiariesPage = () => {
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <div className="w-9 h-9 sm:w-12 sm:h-12 bg-success/10 rounded-xl flex items-center justify-center"><UserCheck className="w-4 h-4 sm:w-6 sm:h-6 text-success" /></div>
-                      <div><p className="text-[11px] sm:text-sm text-muted-foreground">نشطون (نسبة {'>'} 0)</p><p className="text-xl sm:text-3xl font-bold text-success">{activeBeneficiaries}</p></div>
+                      <div><p className="text-[11px] sm:text-sm text-muted-foreground">نشطون (نسبة {'>'} 0)</p><p className="text-xl sm:text-3xl font-bold text-success">{h.activeBeneficiaries}</p></div>
                     </div>
                   </CardContent>
                 </Card>
-                <Card className={`shadow-sm ${percentageExceeds ? 'border-destructive/50' : ''}`}>
+                <Card className={`shadow-sm ${h.percentageExceeds ? 'border-destructive/50' : ''}`}>
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
-                      <div className={`w-9 h-9 sm:w-12 sm:h-12 ${percentageExceeds ? 'bg-destructive/10' : 'bg-secondary/20'} rounded-xl flex items-center justify-center`}>
-                        {percentageExceeds ? <AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-destructive" /> : <Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" />}
+                      <div className={`w-9 h-9 sm:w-12 sm:h-12 ${h.percentageExceeds ? 'bg-destructive/10' : 'bg-secondary/20'} rounded-xl flex items-center justify-center`}>
+                        {h.percentageExceeds ? <AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-destructive" /> : <Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" />}
                       </div>
                       <div>
                         <p className="text-[11px] sm:text-sm text-muted-foreground">مجموع النسب</p>
-                        <p className={`text-xl sm:text-3xl font-bold ${percentageExceeds ? 'text-destructive' : ''}`}>{totalPercentage.toFixed(2)}%</p>
-                        {percentageExceeds && <p className="text-[11px] text-destructive">تجاوز 100%!</p>}
+                        <p className={`text-xl sm:text-3xl font-bold ${h.percentageExceeds ? 'text-destructive' : ''}`}>{h.totalPercentage.toFixed(2)}%</p>
+                        {h.percentageExceeds && <p className="text-[11px] text-destructive">تجاوز 100%!</p>}
                       </div>
                     </div>
                   </CardContent>
@@ -212,7 +107,7 @@ const BeneficiariesPage = () => {
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <div className="w-9 h-9 sm:w-12 sm:h-12 bg-accent/20 rounded-xl flex items-center justify-center"><Wallet className="w-4 h-4 sm:w-6 sm:h-6 text-accent-foreground" /></div>
-                      <div><p className="text-[11px] sm:text-sm text-muted-foreground">متوسط الحصة</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length > 0 ? (totalPercentage / beneficiaries.length).toFixed(1) : 0}%</p></div>
+                      <div><p className="text-[11px] sm:text-sm text-muted-foreground">متوسط الحصة</p><p className="text-xl sm:text-3xl font-bold">{h.beneficiaries.length > 0 ? (h.totalPercentage / h.beneficiaries.length).toFixed(1) : 0}%</p></div>
                     </div>
                   </CardContent>
                 </Card>
@@ -221,31 +116,31 @@ const BeneficiariesPage = () => {
 
             <div className="relative max-w-md">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="beneficiaries-search" name="beneficiaries-search" aria-label="بحث" placeholder="بحث في المستفيدين..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
+              <Input id="beneficiaries-search" name="beneficiaries-search" aria-label="بحث" placeholder="بحث في المستفيدين..." value={h.searchQuery} onChange={(e) => { h.setSearchQuery(e.target.value); h.setCurrentPage(1); }} className="pr-10" />
             </div>
 
-            {isLoading ? (
+            {h.isLoading ? (
               <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
-            ) : filteredBeneficiaries.length === 0 ? (
+            ) : h.filteredBeneficiaries.length === 0 ? (
               <Card className="shadow-sm">
                 <CardContent className="py-12 text-center">
                   <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا يوجد مستفيدين مسجلين'}</p>
+                  <p className="text-muted-foreground">{h.searchQuery ? 'لا توجد نتائج للبحث' : 'لا يوجد مستفيدين مسجلين'}</p>
                 </CardContent>
               </Card>
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredBeneficiaries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((beneficiary) => (
+                  {h.filteredBeneficiaries.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE).map((beneficiary) => (
                     <BeneficiaryCard
                       key={beneficiary.id}
                       beneficiary={beneficiary}
-                      onEdit={handleEdit}
-                      onDelete={(id, name) => setDeleteTarget({ id, name })}
+                      onEdit={h.handleEdit}
+                      onDelete={(id, name) => h.setDeleteTarget({ id, name })}
                     />
                   ))}
                 </div>
-                <TablePagination currentPage={currentPage} totalItems={filteredBeneficiaries.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+                <TablePagination currentPage={h.currentPage} totalItems={h.filteredBeneficiaries.length} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
               </>
             )}
           </TabsContent>
@@ -255,15 +150,15 @@ const BeneficiariesPage = () => {
           </TabsContent>
         </Tabs>
 
-        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialog open={!!h.deleteTarget} onOpenChange={(open) => !open && h.setDeleteTarget(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>هل أنت متأكد من الحذف؟</AlertDialogTitle>
-              <AlertDialogDescription>سيتم حذف {deleteTarget?.name} نهائياً ولا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+              <AlertDialogDescription>سيتم حذف {h.deleteTarget?.name} نهائياً ولا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-row-reverse gap-2">
               <AlertDialogCancel>إلغاء</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">تأكيد الحذف</AlertDialogAction>
+              <AlertDialogAction onClick={h.handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">تأكيد الحذف</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

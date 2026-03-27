@@ -14,9 +14,8 @@ import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useYoYComparison } from '@/hooks/financial/useYoYComparison';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
-import { FileText, TrendingUp, TrendingDown, Users, Wallet, Printer, Gauge, ArrowUpDown, Landmark, GitBranch } from 'lucide-react';
+import { Printer, Gauge, ArrowUpDown } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -33,6 +32,7 @@ import DashboardStatsGrid from '@/components/dashboard/DashboardStatsGrid';
 import DashboardKpiPanel from '@/components/dashboard/DashboardKpiPanel';
 import CollectionSummaryCard from '@/components/dashboard/CollectionSummaryCard';
 import RecentContractsCard from '@/components/dashboard/RecentContractsCard';
+import QuickActionsCard from '@/components/dashboard/QuickActionsCard';
 
 // هوك الإحصائيات المستخرج
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
@@ -202,99 +202,7 @@ const AdminDashboard = () => {
         />
 
         {/* إجراءات سريعة */}
-        {(role === 'accountant' || role === 'admin') && (
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wallet className="w-5 h-5" />
-                إجراءات سريعة
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {role === 'accountant' ? (
-                  <>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/income">
-                        <TrendingUp className="w-5 h-5 text-success" />
-                        <span className="text-xs">تسجيل دخل</span>
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/expenses">
-                        <TrendingDown className="w-5 h-5 text-destructive" />
-                        <span className="text-xs">تسجيل مصروف</span>
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/accounts">
-                        <FileText className="w-5 h-5 text-primary" />
-                        <span className="text-xs">الحسابات الختامية</span>
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/invoices">
-                        <FileText className="w-5 h-5 text-secondary" />
-                        <span className="text-xs">إدارة الفواتير</span>
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/chart-of-accounts">
-                        <GitBranch className="w-5 h-5 text-accent-foreground" />
-                        <span className="text-xs">الشجرة المحاسبية</span>
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/comparison">
-                        <ArrowUpDown className="w-5 h-5 text-muted-foreground" />
-                        <span className="text-xs">المقارنة التاريخية</span>
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/annual-report">
-                        <Printer className="w-5 h-5 text-primary" />
-                        <span className="text-xs">التقرير السنوي</span>
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/reports">
-                        <Gauge className="w-5 h-5 text-secondary" />
-                        <span className="text-xs">التقارير المالية</span>
-                      </Link>
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/contracts">
-                        <FileText className="w-5 h-5 text-primary" />
-                        <span className="text-xs">مراجعة العقود</span>
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/beneficiaries">
-                        <Users className="w-5 h-5 text-success" />
-                        <span className="text-xs">إدارة المستفيدين</span>
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/reports">
-                        <Gauge className="w-5 h-5 text-warning" />
-                        <span className="text-xs">التقارير</span>
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                      <Link to="/dashboard/settings">
-                        <Landmark className="w-5 h-5 text-muted-foreground" />
-                        <span className="text-xs">الإعدادات</span>
-                      </Link>
-                    </Button>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <QuickActionsCard role={role} />
 
         {/* ملخص التحصيل */}
         <ErrorBoundary>
