@@ -40,7 +40,7 @@ async function ecdsaVerify(publicKey: CryptoKey, signature: ArrayBuffer, data: U
     { name: "ECDSA", hash: "SHA-256" },
     publicKey,
     signature,
-    data as unknown as BufferSource,
+    data.buffer as ArrayBuffer,
   );
 }
 
