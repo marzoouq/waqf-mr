@@ -148,6 +148,6 @@ export default defineConfig(({ mode }) => ({
       },
     },
     chunkSizeWarningLimit: 300,
-    sourcemap: 'hidden',
+    sourcemap: mode === 'production' ? false : 'hidden',
   },
 }));
