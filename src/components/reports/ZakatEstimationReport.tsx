@@ -36,6 +36,10 @@ const ZakatEstimationReport = ({
   grandTotal,
   fiscalYearLabel,
 }: ZakatEstimationReportProps) => {
+  // #49: نسبة الزكاة القابلة للتغيير من الإعدادات
+  const zakatPercentageSetting = useSetting('zakat_percentage', '2.5');
+  const ZAKAT_RATE = (parseFloat(zakatPercentageSetting) || 2.5) / 100;
+
   // الوعاء الزكوي = صافي ما بعد الضريبة (netAfterVat)
   const zakatBase = netAfterVat;
   const calculatedZakat = Math.max(0, zakatBase * ZAKAT_RATE);
