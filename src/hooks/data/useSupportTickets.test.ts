@@ -126,3 +126,75 @@ describe('useClientErrors', () => {
     expect(typeof result.current.refetch).toBe('function');
   });
 });
+
+describe('useSupportAnalytics', () => {
+  it('يستدعي RPC get_support_analytics', async () => {
+    const analyticsData = {
+      category_stats: [{ key: 'technical', count: 5 }],
+      priority_stats: [{ key: 'high', count: 3 }],
+      avg_resolution_hours: 12,
+      avg_rating: 4.2,
+      rated_count: 10,
+      total_count: 20,
+    };
+    mockRpc.mockResolvedValue({ data: analyticsData, error: null });
+
+    const { useSupportAnalytics } = await import('./useSupportTickets');
+    const { result } = renderHook(() => useSupportAnalytics(), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockRpc).toHaveBeenCalledWith('get_support_analytics');
+    expect(result.current.data).toMatchObject(analyticsData);
+  });
+
+  it('يُعيد خطأ عند فشل RPC', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'RPC failed' } });
+
+    const { useSupportAnalytics } = await import('./useSupportTickets');
+    const { result } = renderHook(() => useSupportAnalytics(), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+});
+
+describe('useSupportStats', () => {
+  it('يستدعي RPC get_support_stats ويُعيد البيانات', async () => {
+    const statsData = {
+      totalTickets: 50, openTickets: 10, inProgressTickets: 5,
+      resolvedTickets: 30, highPriorityTickets: 8, ticketsLast7d: 12,
+      totalErrors: 100, errorsLast24h: 5, errorsLast7d: 20,
+    };
+    mockRpc.mockResolvedValue({ data: statsData, error: null });
+
+    const { useSupportStats } = await import('./useSupportTickets');
+    const { result } = renderHook(() => useSupportStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockRpc).toHaveBeenCalledWith('get_support_stats');
+    expect(result.current.data).toMatchObject(statsData);
+  });
+});
+
+describe('fetchTicketsForExport', () => {
+  it('يجلب التذاكر بأعمدة محددة للتصدير', async () => {
+    const exportData = [
+      { ticket_number: 'TK-001', title: 'Test', category: 'technical', priority: 'high', status: 'open', created_at: '2026-01-01', resolved_at: null, rating: null },
+    ];
+    mockOrder.mockReturnValue({ limit: mockLimit });
+    mockLimit.mockResolvedValue({ data: exportData, error: null });
+
+    const { fetchTicketsForExport } = await import('./useSupportTickets');
+    const result = await fetchTicketsForExport();
+
+    expect(result).toHaveLength(1);
+    expect(result[0]!.ticket_number).toBe('TK-001');
+  });
+
+  it('يرمي خطأ عند فشل الاستعلام', async () => {
+    mockOrder.mockReturnValue({ limit: mockLimit });
+    mockLimit.mockResolvedValue({ data: null, error: { message: 'Query failed' } });
+
+    const { fetchTicketsForExport } = await import('./useSupportTickets');
+    await expect(fetchTicketsForExport()).rejects.toMatchObject({ message: 'Query failed' });
+  });
+});
