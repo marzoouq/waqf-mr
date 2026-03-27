@@ -13,7 +13,8 @@ import { Property } from '@/types/database';
 import { toast } from 'sonner';
 
 export function usePropertiesPage() {
-  const { data: properties = [], isLoading } = useProperties();
+  const propertiesQuery = useProperties();
+  const { data: properties = [], isLoading } = propertiesQuery;
   const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
   const isClosed = fiscalYear?.status === 'closed';
 
