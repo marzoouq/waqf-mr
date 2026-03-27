@@ -60,7 +60,16 @@ export const useMySharePage = () => {
     isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
-  const { currentBeneficiary, myShare, pctLoading } = useMyShare({ beneficiaries, availableAmount });
+  // #9: جلب my_share من RPC الخادم كمصدر موثوق واحد
+  const { data: dashData } = useBeneficiaryDashboardData(
+    fiscalYearId !== '__none__' ? fiscalYearId : undefined,
+  );
+
+  const { currentBeneficiary, myShare, pctLoading } = useMyShare({
+    beneficiaries,
+    availableAmount,
+    serverMyShare: dashData?.my_share,
+  });
 
   const { data: distributions = [], isLoading: distLoading } = useQuery({
     queryKey: ['my-distributions', currentBeneficiary?.id, fiscalYearId],
