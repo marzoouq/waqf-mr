@@ -70,7 +70,7 @@ describe('useSupportDashboardPage', () => {
     const { result } = renderHook(() => useSupportDashboardPage(), { wrapper: createWrapper() });
     act(() => result.current.setCategoryFilter('technical'));
     expect(result.current.filteredTickets).toHaveLength(1);
-    expect(result.current.filteredTickets[0].id).toBe('t1');
+    expect(result.current.filteredTickets[0]!.id).toBe('t1');
   });
 
   it('يفلتر التذاكر بالبحث النصي (العنوان)', async () => {
