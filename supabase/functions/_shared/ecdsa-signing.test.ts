@@ -6,8 +6,8 @@ import { c14n } from "./xml-c14n.ts";
 // ═══════════════════════════════════════════════════════════════
 
 async function sha256Base64(text: string): Promise<string> {
-  const data = new TextEncoder().encode(text) as unknown as BufferSource;
-  const hash = await crypto.subtle.digest("SHA-256", data);
+  const data = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest("SHA-256", data.buffer as ArrayBuffer);
   return btoa(String.fromCharCode(...new Uint8Array(hash as ArrayBuffer)));
 }
 
