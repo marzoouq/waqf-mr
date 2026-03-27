@@ -13,7 +13,7 @@ import type { Income } from '@/types/database';
 import { EMPTY_FILTERS, type FilterState } from '@/components/filters/advancedFilters.types';
 import { toast } from 'sonner';
 
-type SortField = 'amount' | 'date' | 'source' | null;
+export type SortField = 'amount' | 'date' | 'source' | null;
 type SortDir = 'asc' | 'desc';
 
 export function useIncomePage() {
