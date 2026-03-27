@@ -222,10 +222,12 @@ export const useNotifications = () => {
 
   const markAsRead = useMutation({
     mutationFn: async (id: string) => {
+      if (!user) return;
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
