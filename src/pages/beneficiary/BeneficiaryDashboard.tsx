@@ -87,7 +87,6 @@ const BeneficiaryDashboard = () => {
     !!currentBeneficiary?.id,
   );
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
   const recentNotifications = notifications.slice(0, 3);
 
   // ── Guards ──
