@@ -322,17 +322,15 @@ const { data } = await supabase.functions.invoke('zatca-signer', {
 
 ---
 
-## 11. `zatca-api` — التكامل مع بوابة فاتورة (ZATCA)
+## 11. وظائف ZATCA — التكامل مع بوابة فاتورة
 
-**الوصف**: يتواصل مع بوابة ZATCA الرسمية لتنفيذ عمليات الربط والإرسال. يدعم بيئتي الإنتاج والمحاكاة (Sandbox). يسجّل جميع العمليات في `zatca_operation_log`.
+تم تقسيم الوظيفة القديمة `zatca-api` إلى 3 وظائف مستقلة. جميعها تتطلب JWT صالح + دور admin وتسجّل العمليات في `zatca_operation_log`.
 
-**المصادقة**: يتطلب JWT صالح + دور admin.
-
-### العمليات المتاحة (`action`):
+### 11.1 `zatca-onboard` — التسجيل واختبار الاتصال
 
 #### `test-connection` — اختبار الاتصال بالبوابة
 ```typescript
-const { data } = await supabase.functions.invoke('zatca-api', {
+const { data } = await supabase.functions.invoke('zatca-onboard', {
   body: { action: 'test-connection' }
 });
 // الاستجابة: { connected: true, url: '...', status_code: 200, tested_at: '...' }
@@ -340,29 +338,46 @@ const { data } = await supabase.functions.invoke('zatca-api', {
 
 #### `onboard` — التسجيل في بوابة فاتورة (CCSID + PCSID)
 ```typescript
-const { data } = await supabase.functions.invoke('zatca-api', {
+const { data } = await supabase.functions.invoke('zatca-onboard', {
   body: { action: 'onboard' }
 });
 ```
 
-#### `compliance` — فحص المطابقة
+#### `production` — تفعيل شهادة الإنتاج
 ```typescript
-const { data } = await supabase.functions.invoke('zatca-api', {
-  body: { action: 'compliance', invoice_id: 'uuid', table: 'invoices' }
+const { data } = await supabase.functions.invoke('zatca-onboard', {
+  body: { action: 'production' }
 });
 ```
 
+### 11.2 `zatca-report` — إرسال الفواتير وفحص الامتثال
+
 #### `report` — إرسال فاتورة (Reporting)
 ```typescript
-const { data } = await supabase.functions.invoke('zatca-api', {
+const { data } = await supabase.functions.invoke('zatca-report', {
   body: { action: 'report', invoice_id: 'uuid', table: 'invoices' }
 });
 ```
 
 #### `clearance` — اعتماد فاتورة (Clearance)
 ```typescript
-const { data } = await supabase.functions.invoke('zatca-api', {
+const { data } = await supabase.functions.invoke('zatca-report', {
   body: { action: 'clearance', invoice_id: 'uuid', table: 'invoices' }
+});
+```
+
+#### `compliance-check` — فحص المطابقة
+```typescript
+const { data } = await supabase.functions.invoke('zatca-report', {
+  body: { action: 'compliance-check', invoice_id: 'uuid', table: 'invoices' }
+});
+```
+
+### 11.3 `zatca-renew` — تجديد الشهادة
+
+```typescript
+const { data } = await supabase.functions.invoke('zatca-renew', {
+  body: { action: 'renew' }
 });
 ```
 

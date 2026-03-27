@@ -70,7 +70,9 @@ For functions that don't require user auth (webhooks, cron, hooks):
 | `ai-assistant` | ✅ `getUser()` | User-scoped |
 | `guard-signup` | ⚡ Public | Signup validation, rate-limited |
 | `webauthn` | ✅ `getUser()` | Credential management |
-| `zatca-api` | ✅ `getUser()` | Tax integration |
+| `zatca-onboard` | ✅ `getUser()` | Onboarding & connection test |
+| `zatca-report` | ✅ `getUser()` | Invoice reporting & compliance |
+| `zatca-renew` | ✅ `getUser()` | Certificate renewal |
 | `zatca-signer` | ✅ `getUser()` | Invoice signing |
 | `zatca-xml-generator` | ✅ `getUser()` | XML generation |
 | `check-contract-expiry` | ⚡ Cron | Server-initiated |
