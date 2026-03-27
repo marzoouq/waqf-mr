@@ -98,7 +98,7 @@ describe('checks — قاعدة البيانات', () => {
   });
 
   it('checkAuthSession يُرجع fail بدون مستخدم', async () => {
-    mockGetUser.mockReturnValueOnce(Promise.resolve({ data: { user: null }, error: null }));
+    mockGetUser.mockReturnValueOnce(Promise.resolve({ data: { user: null }, error: null }) as any);
     const { checkAuthSession } = await import('./checks');
     const result = await checkAuthSession();
     expect(result.status).toBe('fail');
