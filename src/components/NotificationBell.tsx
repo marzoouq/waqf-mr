@@ -24,7 +24,11 @@ const typeColors: Record<string, string> = {
 };
 
 const NotificationBell = () => {
-  const { data: allNotifications, filteredData: notifications, filteredUnreadCount: unreadCount, markAsRead, markAllAsRead, deleteOne, deleteRead } = useNotifications();
+  const {
+    data: allNotifications, filteredData: notifications, filteredUnreadCount: unreadCount,
+    markAsRead, markAllAsRead, deleteOne, deleteRead,
+    hasNextPage, fetchNextPage, isFetchingNextPage,
+  } = useNotifications();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
