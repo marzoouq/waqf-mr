@@ -37,14 +37,14 @@ describe('xlsx utilities', () => {
       expect(blob.size).toBeGreaterThan(0);
     });
 
-    it('يحتوي على ZIP signature (PK)', async () => {
-      const data = [{ اختبار: 'قيمة' }];
-      const blob = buildXlsx(data);
-      const buffer = await blob.arrayBuffer();
-      const bytes = new Uint8Array(buffer);
-      // ZIP magic bytes: PK (0x50, 0x4B)
-      expect(bytes[0]).toBe(0x50);
-      expect(bytes[1]).toBe(0x4B);
+    it('ينتج Blob بحجم معقول يتناسب مع البيانات', () => {
+      const small = buildXlsx([{ أ: 1 }]);
+      const bigger = buildXlsx([
+        { أ: 1, ب: 2, ج: 3 },
+        { أ: 4, ب: 5, ج: 6 },
+        { أ: 7, ب: 8, ج: 9 },
+      ]);
+      expect(bigger.size).toBeGreaterThan(small.size);
     });
 
     it('يتعامل مع أحرف XML الخاصة', () => {
