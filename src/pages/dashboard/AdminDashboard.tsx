@@ -15,6 +15,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import DeferredRender from '@/components/DeferredRender';
 
 // هوك البيانات المدمج — طلب واحد بدلاً من ~10
 import { useDashboardSummary } from '@/hooks/page/useDashboardSummary';
@@ -188,75 +189,85 @@ const AdminDashboard = () => {
         </ErrorBoundary>
 
         {/* خريطة حرارية — تُخفى عند الطباعة */}
-        <div className="print:hidden">
-          <ErrorBoundary>
-            <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
-              <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
-            </Suspense>
-          </ErrorBoundary>
-        </div>
-
-        {/* جدول الإجراءات المعلقة */}
-        <ErrorBoundary>
-          <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-            <PendingActionsTable advanceRequests={advanceRequests} paymentInvoices={paymentInvoices} />
-          </Suspense>
-        </ErrorBoundary>
-
-        {/* الرسوم البيانية — تُخفى عند الطباعة */}
-        <div className="print:hidden">
-          <ErrorBoundary>
-            <Suspense fallback={<ChartSkeleton />}>
-              <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
-            </Suspense>
-          </ErrorBoundary>
-        </div>
-
-        {/* مقارنة بين السنوات */}
-        {allFiscalYears.length >= 2 ? (
-          <ErrorBoundary>
-            <Suspense fallback={<ChartSkeleton />}>
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ArrowUpDown className="w-5 h-5" />
-                    مقارنة بين السنوات المالية
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <YearOverYearComparison
-                    fiscalYears={allFiscalYears}
-                    currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
-                  />
-                </CardContent>
-              </Card>
-            </Suspense>
-          </ErrorBoundary>
-        ) : (
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ArrowUpDown className="w-5 h-5" />
-                مقارنة بين السنوات المالية
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground py-8">
-                ستتوفر المقارنة بين السنوات عند إضافة سنة مالية ثانية على الأقل.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* مراقبة أداء الصفحات — للناظر فقط، تُخفى عند الطباعة */}
-        {role === 'admin' && (
+        <DeferredRender delay={1500}>
           <div className="print:hidden">
             <ErrorBoundary>
-              <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-                <PagePerformanceCard />
+              <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
+                <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
               </Suspense>
             </ErrorBoundary>
           </div>
+        </DeferredRender>
+
+        {/* جدول الإجراءات المعلقة */}
+        <DeferredRender delay={2000}>
+          <ErrorBoundary>
+            <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+              <PendingActionsTable advanceRequests={advanceRequests} paymentInvoices={paymentInvoices} />
+            </Suspense>
+          </ErrorBoundary>
+        </DeferredRender>
+
+        {/* الرسوم البيانية — تُخفى عند الطباعة */}
+        <DeferredRender delay={2500}>
+          <div className="print:hidden">
+            <ErrorBoundary>
+              <Suspense fallback={<ChartSkeleton />}>
+                <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
+              </Suspense>
+            </ErrorBoundary>
+          </div>
+        </DeferredRender>
+
+        {/* مقارنة بين السنوات */}
+        <DeferredRender delay={3000}>
+          {allFiscalYears.length >= 2 ? (
+            <ErrorBoundary>
+              <Suspense fallback={<ChartSkeleton />}>
+                <Card className="shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ArrowUpDown className="w-5 h-5" />
+                      مقارنة بين السنوات المالية
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <YearOverYearComparison
+                      fiscalYears={allFiscalYears}
+                      currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
+                    />
+                  </CardContent>
+                </Card>
+              </Suspense>
+            </ErrorBoundary>
+          ) : (
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ArrowUpDown className="w-5 h-5" />
+                  مقارنة بين السنوات المالية
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-center text-muted-foreground py-8">
+                  ستتوفر المقارنة بين السنوات عند إضافة سنة مالية ثانية على الأقل.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </DeferredRender>
+
+        {/* مراقبة أداء الصفحات — للناظر فقط، تُخفى عند الطباعة */}
+        {role === 'admin' && (
+          <DeferredRender delay={3500}>
+            <div className="print:hidden">
+              <ErrorBoundary>
+                <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+                  <PagePerformanceCard />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+          </DeferredRender>
         )}
 
         {/* آخر العقود */}
