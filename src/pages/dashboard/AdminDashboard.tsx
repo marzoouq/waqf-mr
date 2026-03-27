@@ -15,6 +15,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import DeferredRender from '@/components/DeferredRender';
 
 // هوك البيانات المدمج — طلب واحد بدلاً من ~10
 import { useDashboardSummary } from '@/hooks/page/useDashboardSummary';

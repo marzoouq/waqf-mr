@@ -42,24 +42,7 @@ function PageLoader() {
   );
 }
 
-/** Renders children only after a delay so non-critical JS doesn't block initial paint */
-function DeferredRender({ children, delay = 3000 }: { children: React.ReactNode; delay?: number }) {
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    let timerId: number;
-    if (window.requestIdleCallback) {
-      timerId = window.requestIdleCallback(() => setReady(true), { timeout: delay });
-    } else {
-      timerId = window.setTimeout(() => setReady(true), delay) as unknown as number;
-    }
-    return () => {
-      if (window.cancelIdleCallback) window.cancelIdleCallback(timerId);
-      else window.clearTimeout(timerId);
-    };
-  }, [delay]);
-  if (!ready) return null;
-  return <>{children}</>;
-}
+import DeferredRender from '@/components/DeferredRender';
 
 /** يحمّل AiAssistant فقط لأدوار admin/accountant لتوفير JS */
 function RoleGatedAiAssistant() {
