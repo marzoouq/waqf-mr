@@ -454,6 +454,26 @@ export async function checkZatcaSettings(): Promise<CheckResult> {
   }
 }
 
+export async function checkStaleOtp(): Promise<CheckResult> {
+  const id = 'stale_otp';
+  try {
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('key')
+      .in('key', ['zatca_otp_1', 'zatca_otp_2']);
+
+    if (error) return { id, label: 'OTP متبقٍ في الإعدادات', status: 'info', detail: `تعذر الفحص: ${error.message}` };
+
+    if (data && data.length > 0) {
+      const keys = data.map(r => r.key).join('، ');
+      return { id, label: 'OTP متبقٍ في الإعدادات', status: 'warn', detail: `وُجد ${data.length} مفتاح OTP لم يُحذف: ${keys} — قد يشير لعملية onboard/renew لم تكتمل` };
+    }
+    return { id, label: 'OTP متبقٍ في الإعدادات', status: 'pass', detail: 'لا يوجد OTP متبقٍ — سليم' };
+  } catch {
+    return { id, label: 'OTP متبقٍ في الإعدادات', status: 'info', detail: 'تعذر الفحص' };
+  }
+}
+
 // ════════════════════════════════════════════════
 // مجمّع — تشغيل كل الفحوصات
 // ════════════════════════════════════════════════
@@ -490,7 +510,7 @@ export const diagnosticCategories: DiagnosticCategory[] = [
   },
   {
     title: 'ZATCA والفوترة الإلكترونية',
-    checks: [checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPendingInvoiceChains, checkUnsubmittedInvoices, checkZatcaSettings],
+    checks: [checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPendingInvoiceChains, checkUnsubmittedInvoices, checkZatcaSettings, checkStaleOtp],
   },
 ];
 
