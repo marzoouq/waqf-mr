@@ -373,7 +373,9 @@ const AdminDashboard = () => {
         )}
 
         {/* آخر العقود */}
-        <RecentContractsCard contracts={contracts} isLoading={isLoading} />
+        <ErrorBoundary>
+          <RecentContractsCard contracts={contracts} isLoading={isLoading} />
+        </ErrorBoundary>
       </div>
     </DashboardLayout>
   );
