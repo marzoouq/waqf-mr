@@ -131,6 +131,10 @@ const AnnualReportViewPage = () => {
               <FileDown className="h-4 w-4" />
               PDF
             </Button>
+            <Button variant="outline" size="sm" onClick={handleExportCsv} className="gap-1.5">
+              <FileSpreadsheet className="h-4 w-4" />
+              CSV
+            </Button>
             <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5">
               <Printer className="h-4 w-4" />
               طباعة
