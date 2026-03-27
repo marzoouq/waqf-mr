@@ -30,7 +30,7 @@ async function ecdsaSign(privateKey: CryptoKey, data: Uint8Array): Promise<Array
   return await crypto.subtle.sign(
     { name: "ECDSA", hash: "SHA-256" },
     privateKey,
-    data,
+    data as unknown as BufferSource,
   );
 }
 
