@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -452,7 +452,8 @@ Deno.serve(async (req) => {
     }
 
     const { invoice_id, table } = await req.json();
-    if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!invoice_id || !UUID_RE.test(invoice_id) || !table || !["invoices", "payment_invoices"].includes(table)) {
       return new Response(JSON.stringify({ error: "Invalid parameters" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -468,10 +469,28 @@ Deno.serve(async (req) => {
       "business_address_street", "business_address_building",
       "business_address_city", "business_address_postal_code",
       "business_address_district", "business_address_province",
+      "default_vat_rate",
     ];
     const { data: settingsRows } = await admin.from("app_settings").select("key, value").in("key", settingKeys);
     const settings: Record<string, string> = {};
     (settingsRows || []).forEach((s: { key: string; value: string }) => { settings[s.key] = s.value; });
+
+    // جلب بنود الفاتورة من جدول invoice_items إن وجدت
+    const { data: dbLineItems } = await admin
+      .from("invoice_items")
+      .select("item_name, quantity, unit_price, vat_rate")
+      .eq("invoice_id", invoice_id)
+      .eq("invoice_source", table)
+      .order("sort_order", { ascending: true });
+    if (dbLineItems && dbLineItems.length > 0) {
+      (inv as Record<string, unknown>).line_items = dbLineItems.map((li: { item_name: string; quantity: number; unit_price: number; vat_rate: number }) => ({
+        name: li.item_name,
+        quantity: li.quantity,
+        unit_price: li.unit_price,
+        vat_rate: li.vat_rate,
+        unit_code: "MON",
+      }));
+    }
 
     // Get previous invoice hash for PIH
     // تصفية سجلات PENDING لتجنب كسر سلسلة PIH

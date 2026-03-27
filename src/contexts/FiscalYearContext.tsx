@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useActiveFiscalYear, FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { useAuth } from '@/contexts/AuthContext';
 import { logger } from '@/lib/logger';
@@ -67,7 +67,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
   const isClosed = fiscalYear?.status === 'closed';
   const isSpecificYear = fiscalYearId !== 'all' && fiscalYearId !== '__none__' && !!fiscalYearId;
 
-  const handleSetFiscalYearId = (id: string) => {
+  const handleSetFiscalYearId = useCallback((id: string) => {
     setSelectedId(id);
     try {
       if (id) {
@@ -76,7 +76,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
         localStorage.removeItem(STORAGE_KEY);
       }
     } catch { /* storage unavailable */ }
-  };
+  }, []);
 
   return (
     <FiscalYearContext.Provider value={{
