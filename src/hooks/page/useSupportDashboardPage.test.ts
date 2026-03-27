@@ -203,10 +203,10 @@ describe('avgResolutionTime', () => {
 describe('PRIORITY_MAP / STATUS_MAP / CATEGORY_MAP', () => {
   it('يصدّر خرائط صحيحة', async () => {
     const { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } = await import('./useSupportDashboardPage');
-    expect(PRIORITY_MAP.high.label).toBe('عالي');
-    expect(PRIORITY_MAP.critical.label).toBe('حرج');
-    expect(STATUS_MAP.open.label).toBe('مفتوح');
-    expect(STATUS_MAP.resolved.label).toBe('تم الحل');
+    expect(PRIORITY_MAP['high']!.label).toBe('عالي');
+    expect(PRIORITY_MAP['critical']!.label).toBe('حرج');
+    expect(STATUS_MAP['open']!.label).toBe('مفتوح');
+    expect(STATUS_MAP['resolved']!.label).toBe('تم الحل');
     expect(CATEGORY_MAP.technical).toBe('تقني');
     expect(CATEGORY_MAP.financial).toBe('مالي');
     expect(Object.keys(PRIORITY_MAP)).toHaveLength(4);

@@ -187,7 +187,7 @@ describe('fetchTicketsForExport', () => {
     const result = await fetchTicketsForExport();
 
     expect(result).toHaveLength(1);
-    expect(result[0].ticket_number).toBe('TK-001');
+    expect(result[0]!.ticket_number).toBe('TK-001');
   });
 
   it('يرمي خطأ عند فشل الاستعلام', async () => {
