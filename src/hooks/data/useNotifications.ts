@@ -201,7 +201,7 @@ export const useNotifications = () => {
 
   // تجميع كل الصفحات في مصفوفة واحدة
   const allNotifications = useMemo(
-    () => infiniteQuery.data?.pages.flat() || [],
+    () => (infiniteQuery.data?.pages ?? []).flat(),
     [infiniteQuery.data]
   );
 
