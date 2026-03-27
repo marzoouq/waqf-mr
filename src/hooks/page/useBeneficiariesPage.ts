@@ -10,7 +10,8 @@ import type { BeneficiaryFormData } from '@/components/beneficiaries/Beneficiary
 const ITEMS_PER_PAGE = 9;
 
 export function useBeneficiariesPage() {
-  const { data: beneficiaries = [], isLoading } = useBeneficiaries();
+  const beneficiariesQuery = useBeneficiaries();
+  const { data: beneficiaries = [], isLoading } = beneficiariesQuery;
   const { data: decryptedBeneficiaries = [] } = useBeneficiariesDecrypted();
   const createBeneficiary = useCreateBeneficiary();
   const updateBeneficiary = useUpdateBeneficiary();
