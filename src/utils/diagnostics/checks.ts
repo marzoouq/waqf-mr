@@ -373,15 +373,13 @@ export async function checkInvoiceChainIntegrity(): Promise<CheckResult> {
     }
 
     const total = chainRecords.length;
-    const firstIcv = chainRecords[0]?.icv ?? 0;
-    const lastIcv = chainRecords[total - 1]?.icv ?? 0;
     if (brokenLinks > 0) {
       return { id, label: 'تكامل سلسلة الفواتير', status: 'fail', detail: `${total} سجل — ${brokenLinks} رابط مكسور في سلسلة PIH!` };
     }
     if (icvGaps > 0) {
       return { id, label: 'تكامل سلسلة الفواتير', status: 'warn', detail: `${total} سجل — ${icvGaps} فجوة في تسلسل ICV` };
     }
-    return { id, label: 'تكامل سلسلة الفواتير', status: 'pass', detail: `${total} سجل — السلسلة متكاملة (ICV ${chainRecords[0].icv}–${chainRecords[total - 1].icv})` };
+    return { id, label: 'تكامل سلسلة الفواتير', status: 'pass', detail: `${total} سجل — السلسلة متكاملة (ICV ${chainRecords[0]?.icv ?? '?'}–${chainRecords[total - 1]?.icv ?? '?'})` };
   } catch {
     return { id, label: 'تكامل سلسلة الفواتير', status: 'fail', detail: 'تعذر الفحص' };
   }
