@@ -188,7 +188,7 @@ export const useRateTicket = () => {
 export const useClientErrors = () => {
   return useQuery({
     queryKey: ['client_errors'],
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('access_log')
