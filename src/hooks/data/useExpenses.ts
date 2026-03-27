@@ -32,7 +32,7 @@ export const useExpensesByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['expenses', 'fiscal_year', fiscalYearId],
     enabled: fiscalYearId !== '__none__',
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase.from('expenses').select(EXPENSE_SELECT).order('date', { ascending: false });
       if (fiscalYearId !== 'all') {

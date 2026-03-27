@@ -71,7 +71,7 @@ export const useMessages = (conversationId: string | null) => {
       return allPages.reduce((sum, page) => sum + page.length, 0);
     },
     enabled: !!user && !!conversationId,
-    staleTime: 5_000,
+    staleTime: STALE_LIVE,
   });
 
   const queryClientRef = useRef(queryClient);
