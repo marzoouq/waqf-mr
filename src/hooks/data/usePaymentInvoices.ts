@@ -3,6 +3,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 
@@ -38,7 +39,7 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['payment_invoices', fiscalYearId],
     enabled: fiscalYearId !== '__none__',
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase
         .from('payment_invoices')

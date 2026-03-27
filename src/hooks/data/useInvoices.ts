@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { createCrudFactory } from './useCrudFactory';
 import { logger } from '@/lib/logger';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 // ---------------------------------------------------------------------------
 // Types & constants
@@ -121,7 +122,7 @@ export const useInvoicesByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['invoices', 'fiscal_year', fiscalYearId],
     enabled: fiscalYearId !== '__none__',
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase
         .from('invoices')

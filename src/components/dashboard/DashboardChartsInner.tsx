@@ -1,34 +1,11 @@
 import { fmt } from '@/utils/format';
+import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chartHelpers';
 /**
  * مكوّن الرسوم البيانية الداخلي — يُحمّل بشكل كسول (lazy)
  * يحتوي على: رسم الدخل/المصروفات الشهري + توزيع المصروفات الدائري
  */
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-const ARABIC_MONTHS: Record<string, string> = {
-  '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
-  '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
-  '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
-};
-
-const formatArabicMonth = (month: unknown) => {
-  const parts = String(month ?? '').split('-');
-  return (parts[1] ? ARABIC_MONTHS[parts[1]] : undefined) || String(month);
-};
-
-const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
-
-const COLORS = [
-  'hsl(var(--primary))',
-  'hsl(var(--secondary))',
-  'hsl(var(--info))',
-  'hsl(var(--success))',
-  'hsl(var(--destructive))',
-  'hsl(var(--warning))',
-  'hsl(var(--accent-foreground))',
-  'hsl(var(--muted-foreground))',
-];
 
 interface DashboardChartsInnerProps {
   monthlyData: Array<{ month: string; income: number; expenses: number }>;
@@ -45,13 +22,13 @@ const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInne
         </CardHeader>
         <CardContent className="min-h-[300px]">
           {monthlyData.length > 0 ? (
-            <div className="min-w-0 min-h-[1px]">
+            <div className="h-[300px] min-w-0 min-h-[1px]">
               <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
                   <YAxis tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
-                  <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
+                  <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyleRtl} labelFormatter={formatArabicMonth} />
                   <Legend />
                   <Bar dataKey="income" fill="hsl(var(--primary))" name="الدخل" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="expenses" fill="hsl(var(--secondary))" name="المصروفات" radius={[4, 4, 0, 0]} />
@@ -71,7 +48,7 @@ const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInne
         </CardHeader>
         <CardContent className="min-h-[300px]">
           {expenseTypes.length > 0 ? (
-            <div className="min-w-0 min-h-[1px]">
+            <div className="h-[300px] min-w-0 min-h-[1px]">
               <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
                 <PieChart>
                   <Pie
@@ -86,10 +63,10 @@ const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInne
                     style={{ fontSize: '12px' }}
                   >
                     {expenseTypes.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
+                  <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyleRtl} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>

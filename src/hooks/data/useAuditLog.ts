@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 
 export interface AuditLogEntry {
   id: string;
@@ -87,6 +88,6 @@ export const useAuditLog = (filters?: {
         totalCount: count ?? 0,
       };
     },
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
   });
 };

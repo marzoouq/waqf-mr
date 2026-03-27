@@ -4,6 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 
 export const useUnreadMessages = () => {
   const { user } = useAuth();
@@ -24,7 +25,7 @@ export const useUnreadMessages = () => {
       return count || 0;
     },
     enabled: !!user,
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     refetchInterval: 60_000, // تحديث كل دقيقة
   });
 };

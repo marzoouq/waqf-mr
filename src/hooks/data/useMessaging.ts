@@ -6,6 +6,7 @@ import { Conversation, Message } from '@/types/database';
 import { notifyUser } from '@/utils/notifications';
 import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
+import { STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
 
 export type { Conversation, Message };
 
@@ -25,7 +26,7 @@ export const useConversations = (type?: string) => {
       return (data || []) as Conversation[];
     },
     enabled: !!user,
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
   });
 
   const queryClientRef = useRef(queryClient);
@@ -70,7 +71,7 @@ export const useMessages = (conversationId: string | null) => {
       return allPages.reduce((sum, page) => sum + page.length, 0);
     },
     enabled: !!user && !!conversationId,
-    staleTime: 5_000,
+    staleTime: STALE_LIVE,
   });
 
   const queryClientRef = useRef(queryClient);

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { createCrudFactory } from '@/hooks/data/useCrudFactory';
 import type { Tables } from '@/integrations/supabase/types';
+import { STALE_STATIC } from '@/lib/queryStaleTime';
 
 // ---------------------------------------------------------------------------
 // النوع العام — يُصدَّر للاستخدام في الصفحات
@@ -19,7 +20,7 @@ const bylawsFactory = createCrudFactory<'waqf_bylaws', BylawEntry>({
   ascending: true,
   limit: 500,
   label: 'البند',
-  staleTime: 5 * 60_000,
+  staleTime: STALE_STATIC,
 });
 
 // ---------------------------------------------------------------------------

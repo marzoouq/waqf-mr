@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { STALE_REALTIME, STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
 
 export interface SupportTicket {
   id: string;
@@ -47,7 +48,7 @@ export interface ClientError {
 export const useSupportTickets = (statusFilter?: string, page = 1, pageSize = 20) => {
   return useQuery({
     queryKey: ['support_tickets', statusFilter ?? 'all', page, pageSize],
-    staleTime: 10_000,
+    staleTime: STALE_REALTIME,
     queryFn: async () => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
@@ -75,7 +76,7 @@ export const useSupportTickets = (statusFilter?: string, page = 1, pageSize = 20
 export const useTicketReplies = (ticketId?: string) => {
   return useQuery({
     queryKey: ['ticket_replies', ticketId],
-    staleTime: 5_000,
+    staleTime: STALE_LIVE,
     enabled: !!ticketId,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -187,7 +188,7 @@ export const useRateTicket = () => {
 export const useClientErrors = () => {
   return useQuery({
     queryKey: ['client_errors'],
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('access_log')
@@ -205,7 +206,7 @@ export const useClientErrors = () => {
 export const useSupportStats = () => {
   return useQuery({
     queryKey: ['support_stats'],
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_support_stats');
       if (error) throw error;
@@ -232,7 +233,7 @@ export const useSupportStats = () => {
 export const useSupportAnalytics = () => {
   return useQuery({
     queryKey: ['support_analytics'],
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('support_tickets')

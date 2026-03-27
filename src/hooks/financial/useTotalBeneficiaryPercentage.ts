@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/safeNumber';
 import { toast } from 'sonner';
 
@@ -24,6 +25,6 @@ export const useTotalBeneficiaryPercentage = () => {
       }
       return result;
     },
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
   });
 };

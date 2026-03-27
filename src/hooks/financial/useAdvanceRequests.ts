@@ -3,6 +3,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_REALTIME } from '@/lib/queryStaleTime';
 import { toast } from 'sonner';
 import { notifyAdmins, notifyUser } from '@/utils/notifications';
 import { safeNumber } from '@/utils/safeNumber';
@@ -41,7 +42,7 @@ export interface AdvanceCarryforward {
 export const useAdvanceRequests = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', fiscalYearId ?? 'all'],
-    staleTime: 10_000, // M-08 fix: 10 ثوانٍ بدل دقيقة — عمليات مالية حساسة
+    staleTime: STALE_REALTIME, // M-08 fix: 10 ثوانٍ بدل دقيقة — عمليات مالية حساسة
     queryFn: async () => {
       let query = supabase
       .from('advance_requests')
@@ -64,7 +65,7 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
 export const useMyAdvanceRequests = (beneficiaryId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', 'my', beneficiaryId],
-    staleTime: 10_000,
+    staleTime: STALE_REALTIME,
     queryFn: async () => {
       if (!beneficiaryId) return [];
       const { data, error } = await supabase
@@ -86,7 +87,7 @@ export const useMyAdvanceRequests = (beneficiaryId?: string) => {
 export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', 'paid_total', beneficiaryId, fiscalYearId],
-    staleTime: 10_000,
+    staleTime: STALE_REALTIME,
     queryFn: async () => {
       if (!beneficiaryId) return 0;
       let query = supabase
@@ -112,7 +113,7 @@ export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: stri
 export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_carryforward', 'balance', beneficiaryId, fiscalYearId],
-    staleTime: 10_000,
+    staleTime: STALE_REALTIME,
     queryFn: async () => {
       if (!beneficiaryId) return 0;
       let query = supabase
@@ -140,7 +141,7 @@ export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: st
 export const useMyCarryforwards = (beneficiaryId?: string) => {
   return useQuery({
     queryKey: ['advance_carryforward', 'my', beneficiaryId],
-    staleTime: 10_000,
+    staleTime: STALE_REALTIME,
     queryFn: async () => {
       if (!beneficiaryId) return [];
       const { data, error } = await supabase
@@ -163,7 +164,7 @@ export const useMyCarryforwards = (beneficiaryId?: string) => {
 export const useAllCarryforwards = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_carryforward', 'all', fiscalYearId],
-    staleTime: 10_000,
+    staleTime: STALE_REALTIME,
     queryFn: async () => {
       let query = supabase
         .from('advance_carryforward')

@@ -6,6 +6,7 @@ import type { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/safeNumber';
 
 // ---------------------------------------------------------------------------
@@ -50,7 +51,7 @@ export const useAnnualReportItems = (fiscalYearId?: string) => {
       return data as AnnualReportItem[];
     },
     enabled: !!fiscalYearId,
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
   });
 };
 
@@ -130,7 +131,7 @@ export const useReportStatus = (fiscalYearId?: string) => {
       return data as AnnualReportStatus | null;
     },
     enabled: !!fiscalYearId,
-    staleTime: 300_000,
+    staleTime: STALE_STATIC,
   });
 };
 
@@ -202,6 +203,6 @@ export const useIncomeComparison = () => {
 
       return results.reverse(); // الأقدم أولاً
     },
-    staleTime: 5 * 60_000,
+    staleTime: STALE_STATIC,
   });
 };

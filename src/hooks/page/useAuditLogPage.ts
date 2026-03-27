@@ -4,6 +4,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/useAuditLog';
 import { generateAuditLogPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
@@ -42,7 +43,7 @@ export function useAuditLogPage() {
 
   const { data: todayCount = 0 } = useQuery({
     queryKey: ['audit_log_today_count'],
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const todayStr = new Date().toISOString().split('T')[0];
       const { count } = await supabase

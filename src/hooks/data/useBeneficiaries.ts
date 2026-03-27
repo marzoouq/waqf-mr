@@ -10,6 +10,7 @@
  * useBeneficiariesDecrypted: هوك لفك تشفير البيانات الحساسة (ناظر/محاسب فقط)
  */
 import { useQuery } from '@tanstack/react-query';
+import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { createCrudFactory } from './useCrudFactory';
@@ -70,7 +71,7 @@ export const useBeneficiariesDecrypted = () => {
 export const useBeneficiariesSafe = () => {
   return useQuery({
     queryKey: ['beneficiaries-safe'],
-    staleTime: 5 * 60_000,
+    staleTime: STALE_STATIC,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('beneficiaries_safe')
