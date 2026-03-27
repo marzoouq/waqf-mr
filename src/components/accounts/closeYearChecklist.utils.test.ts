@@ -25,11 +25,11 @@ describe('buildClosureChecklist', () => {
     expect(accountItem?.severity).toBe('error');
   });
 
-  it('يحذّر عند عدم وجود إيرادات', () => {
+  it('يُعطي خطأ عند عدم وجود إيرادات (severity: error)', () => {
     const items = buildClosureChecklist({ ...defaults, totalIncome: 0 });
     const incomeItem = items.find(i => i.label.includes('الإيرادات'));
     expect(incomeItem?.passed).toBe(false);
-    expect(incomeItem?.severity).toBe('warning');
+    expect(incomeItem?.severity).toBe('error');
   });
 
   it('يعطي خطأ عند تجاوز النسب 100%', () => {
