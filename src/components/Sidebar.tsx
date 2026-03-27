@@ -25,7 +25,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   links, sidebarOpen, setSidebarOpen, setMobileSidebarOpen, onSignOut,
 }) => {
   const { user, role } = useAuth();
-  const [logoutOpen, setLogoutOpen] = useState(false);
   const location = useLocation();
   const { data: waqfInfo } = useWaqfInfo();
   const { getPrefetchHandler } = usePrefetchPages();
