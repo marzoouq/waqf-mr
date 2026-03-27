@@ -139,7 +139,7 @@ export const useZatcaSettings = () => {
     setOnboardLoading(true);
     try {
       await handleSave();
-      const { error } = await supabase.functions.invoke('zatca-api', { body: { action: 'onboard' } });
+      const { error } = await supabase.functions.invoke('zatca-onboard', { body: { action: 'onboard' } });
       if (error) throw error;
       toast.success('تم التسجيل بنجاح في بوابة فاتورة');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
@@ -162,7 +162,7 @@ export const useZatcaSettings = () => {
     setRenewLoading(true);
     try {
       await handleSave();
-      const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action: 'renew' } });
+      const { data, error } = await supabase.functions.invoke('zatca-renew');
       if (error) throw error;
       if (data?.success) {
         toast.success('تم تجديد شهادة الإنتاج بنجاح');
@@ -181,7 +181,7 @@ export const useZatcaSettings = () => {
   const handleTestConnection = async () => {
     setConnectionTest({ loading: true, result: null });
     try {
-      const { data, error } = await supabase.functions.invoke('zatca-api', {
+      const { data, error } = await supabase.functions.invoke('zatca-onboard', {
         body: { action: 'test-connection' },
       });
       if (error) throw error;

@@ -154,7 +154,7 @@ function ZatcaManagementPage() {
   const submitToZatca = useMutation({
     mutationFn: async ({ invoiceId, table, action }: { invoiceId: string; table: string; action: 'report' | 'clearance' }) => {
       addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action, invoice_id: invoiceId, table } });
+      const { data, error } = await supabase.functions.invoke('zatca-report', { body: { action, invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
     },
@@ -166,7 +166,7 @@ function ZatcaManagementPage() {
   const complianceCheck = useMutation({
     mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
       addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action: 'compliance-check', invoice_id: invoiceId, table } });
+      const { data, error } = await supabase.functions.invoke('zatca-report', { body: { action: 'compliance-check', invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
     },
@@ -184,7 +184,7 @@ function ZatcaManagementPage() {
   const handleOnboard = async () => {
     setOnboardLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('zatca-api', { body: { action: 'onboard' } });
+      const { error } = await supabase.functions.invoke('zatca-onboard', { body: { action: 'onboard' } });
       if (error) throw error;
       toast.success('تم إرسال طلب التسجيل');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
@@ -198,7 +198,7 @@ function ZatcaManagementPage() {
   const handleProductionUpgrade = async () => {
     setProductionLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('zatca-api', { body: { action: 'production' } });
+      const { error } = await supabase.functions.invoke('zatca-onboard', { body: { action: 'production' } });
       if (error) throw error;
       toast.success('✅ تمت الترقية لشهادة الإنتاج بنجاح');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
