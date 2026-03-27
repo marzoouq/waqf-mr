@@ -7,7 +7,7 @@ import { BrowserRouter, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { Suspense, useState, useEffect } from "react";
+import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
