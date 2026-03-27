@@ -238,12 +238,14 @@ const ContractsViewPage = () => {
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">إلى</span>
                         <span>{formatDate(contract.end_date ?? '')}</span>
-              <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-            </div>
+                      </div>
                     </CardContent>
                   </Card>
                 );
               })}
+            </div>
+            <div className="md:hidden">
+              <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
             </div>
 
             {/* Desktop table */}
