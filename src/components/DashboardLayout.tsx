@@ -4,6 +4,10 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { BookOpen, Menu, Lock, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -52,6 +56,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     try { return localStorage.getItem('sidebar-open') === 'true'; }
     catch { return false; }
   });
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   useEffect(() => {
     try { localStorage.setItem('sidebar-open', String(sidebarOpen)); }
@@ -128,12 +133,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       });
   }, [role, rolePermissions, menuLabels, sectionsVisibility, beneficiarySections]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
+    setLogoutOpen(false);
     setMobileSidebarOpen(false);
     await logAccessEvent({ event_type: 'logout', user_id: user?.id });
     await signOut();
     navigate('/auth', { replace: true });
-  };
+  }, [navigate, signOut, user?.id]);
+
+  const handleSignOutClick = useCallback(() => {
+    setLogoutOpen(true);
+  }, []);
 
   // ─── Idle Timeout ───
   const idleMinutesRaw = getJsonSetting<number>('idle_timeout_minutes', 15);
@@ -200,7 +210,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           setMobileSidebarOpen={setMobileSidebarOpen}
-          onSignOut={handleSignOut}
+          onSignOut={handleSignOutClick}
         />
       </aside>
 
@@ -216,7 +226,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           setMobileSidebarOpen={setMobileSidebarOpen}
-          onSignOut={handleSignOut}
+          onSignOut={handleSignOutClick}
         />
       </aside>
 
@@ -283,6 +293,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </main>
 
       <BottomNav onOpenSidebar={() => setMobileSidebarOpen(true)} />
+
+      <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
+            <AlertDialogDescription>هل أنت متأكد من رغبتك في تسجيل الخروج من النظام؟</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSignOut} className="bg-destructive hover:bg-destructive/90">
+              تسجيل الخروج
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {user && (
         <IdleTimeoutWarning
