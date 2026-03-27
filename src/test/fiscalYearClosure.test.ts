@@ -149,7 +149,7 @@ describe('close_fiscal_year — التحقق من الأدوار', () => {
 
   it('مستخدم غير مصادق لا يمكنه الإقفال', () => {
     expect(() => simulateCloseFiscalYear({ ...baseParams, caller_role: null }))
-      .toThrow('غير مصرح بإقفال السنة المالية');
+      .toThrow('فقط الناظر يملك صلاحية إقفال السنة المالية');
   });
 });
 
