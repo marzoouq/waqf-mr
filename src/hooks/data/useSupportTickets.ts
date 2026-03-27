@@ -206,7 +206,7 @@ export const useClientErrors = () => {
 export const useSupportStats = () => {
   return useQuery({
     queryKey: ['support_stats'],
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_support_stats');
       if (error) throw error;
