@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
+import { logger } from '@/lib/logger';
 import { ShieldCheck, FileText, Link2 } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { useState, useMemo } from 'react';
