@@ -15,6 +15,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import { useMyShare } from '@/hooks/financial/useMyShare';
+import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -52,7 +53,15 @@ const FinancialReportsPage = () => {
     isError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
-  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
+  // #9: جلب my_share من RPC الخادم كمصدر موثوق
+  const { data: dashData } = useBeneficiaryDashboardData(
+    fiscalYearId !== '__none__' ? fiscalYearId : undefined,
+  );
+  const { currentBeneficiary, myShare } = useMyShare({
+    beneficiaries,
+    availableAmount,
+    serverMyShare: dashData?.my_share,
+  });
   const beneficiariesShare = availableAmount;
 
   const incomeVsExpenses = useMemo(() => [

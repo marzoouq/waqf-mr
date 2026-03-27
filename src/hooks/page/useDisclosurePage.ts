@@ -11,6 +11,7 @@ import { useMyShare } from '@/hooks/financial/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { toast } from 'sonner';
+import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 
 /** تنسيق تاريخ ميلادي بصيغة يوم/شهر/سنة */
 function toGregorianShort(dateStr: string): string {
@@ -46,7 +47,16 @@ export const useDisclosurePage = () => {
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
   const { data: contracts = [], isLoading: contractsLoading } = useContractsSafeByFiscalYear(fiscalYearId);
-  const { currentBeneficiary, myShare, pctLoading } = useMyShare({ beneficiaries, availableAmount });
+
+  // #9: جلب my_share من RPC الخادم كمصدر موثوق
+  const { data: dashData } = useBeneficiaryDashboardData(
+    fiscalYearId !== '__none__' ? fiscalYearId : undefined,
+  );
+  const { currentBeneficiary, myShare, pctLoading } = useMyShare({
+    beneficiaries,
+    availableAmount,
+    serverMyShare: dashData?.my_share,
+  });
   const beneficiariesShare = availableAmount;
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';

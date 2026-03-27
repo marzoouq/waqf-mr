@@ -1,6 +1,7 @@
 /**
  * هوك بيانات صفحة "حصتي من الريع"
  * يجمع: البيانات المالية، التوزيعات، السُلف، الفروق المرحّلة، PDF handlers
+ * #9: يستخدم RPC get_beneficiary_dashboard كمصدر موثوق لـ my_share
  */
 import { useState } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
@@ -17,6 +18,7 @@ import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { printShareReport } from '@/utils/printShareReport';
 import { useNavigate } from 'react-router-dom';
+import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 
 
 export const useMySharePage = () => {
@@ -58,7 +60,16 @@ export const useMySharePage = () => {
     isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
-  const { currentBeneficiary, myShare, pctLoading } = useMyShare({ beneficiaries, availableAmount });
+  // #9: جلب my_share من RPC الخادم كمصدر موثوق واحد
+  const { data: dashData } = useBeneficiaryDashboardData(
+    fiscalYearId !== '__none__' ? fiscalYearId : undefined,
+  );
+
+  const { currentBeneficiary, myShare, pctLoading } = useMyShare({
+    beneficiaries,
+    availableAmount,
+    serverMyShare: dashData?.my_share,
+  });
 
   const { data: distributions = [], isLoading: distLoading } = useQuery({
     queryKey: ['my-distributions', currentBeneficiary?.id, fiscalYearId],
