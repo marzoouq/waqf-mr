@@ -20,6 +20,20 @@ import { queryClient } from '@/lib/queryClient';
 import { clearToasts, toast } from '@/hooks/ui/use-toast';
 import { AuthContext } from '@/hooks/auth/useAuthContext';
 
+// مفاتيح التخزين المحلي القابلة للمسح عند تسجيل الخروج
+const CLEARABLE_STORAGE_KEYS = [
+  'waqf_selected_fiscal_year',
+  'sidebar-open',
+  'pwa_last_seen_version',
+  'waqf_theme_color',
+  'waqf_notification_tone',
+  'waqf_notification_volume',
+  'waqf_notification_preferences',
+  'error_log_queue',
+  'waqf_notification_sound',
+  'page_perf_entries',
+] as const;
+
 // إعادة تصدير useAuth للتوافقية مع الاستيراد القديم
 export { useAuth } from '@/hooks/auth/useAuthContext';
 
@@ -213,16 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setRoleWithRef(null);
       queryClient.clear();
       try {
-        localStorage.removeItem('waqf_selected_fiscal_year');
-        localStorage.removeItem('sidebar-open');
-        localStorage.removeItem('pwa_last_seen_version');
-        localStorage.removeItem('waqf_theme_color');
-        localStorage.removeItem('waqf_notification_tone');
-        localStorage.removeItem('waqf_notification_volume');
-        localStorage.removeItem('waqf_notification_preferences');
-        localStorage.removeItem('error_log_queue');
-        localStorage.removeItem('waqf_notification_sound');
-        localStorage.removeItem('page_perf_entries');
+        CLEARABLE_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
       } catch { /* storage unavailable */ }
       try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
       clearSlowQueries();
