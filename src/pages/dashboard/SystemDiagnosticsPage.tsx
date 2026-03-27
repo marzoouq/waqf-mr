@@ -1,5 +1,5 @@
 /**
- * صفحة تشخيص النظام — 26 فحصاً في 6 بطاقات
+ * صفحة تشخيص النظام — 31 فحصاً في 7 بطاقات
  * متاحة للمسؤولين فقط عبر /dashboard/diagnostics
  */
 import { useState, useEffect, useCallback } from 'react';
