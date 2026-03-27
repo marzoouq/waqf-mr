@@ -14,6 +14,8 @@ import { p256 } from "npm:@noble/curves@1.4.0/p256";
 import { sha256 } from "npm:@noble/hashes@1.4.0/sha256";
 
 import { getCorsHeaders } from "../_shared/cors.ts";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // ═══════════════════════════════════════════════════════════════
