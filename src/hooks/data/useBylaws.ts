@@ -20,7 +20,7 @@ const bylawsFactory = createCrudFactory<'waqf_bylaws', BylawEntry>({
   ascending: true,
   limit: 500,
   label: 'البند',
-  staleTime: 5 * 60_000,
+  staleTime: STALE_STATIC,
 });
 
 // ---------------------------------------------------------------------------
