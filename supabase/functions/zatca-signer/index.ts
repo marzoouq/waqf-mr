@@ -514,18 +514,13 @@ Deno.serve(async (req) => {
     }
 
     // ════════════════════════════════════════════════════════════
-    // Step 1: Atomic ICV allocation FIRST (before hashing)
+    // Step 1: Reserve ICV atomically (no chain insert yet — #33 fix)
     // ════════════════════════════════════════════════════════════
-    const placeholderHash = "PENDING";
-    const { data: chainResult, error: chainErr } = await admin.rpc("allocate_icv_and_chain", {
-      p_invoice_id: invoice_id,
-      p_invoice_hash: placeholderHash,
-      p_source_table: table,
-    });
+    const { data: chainResult, error: chainErr } = await admin.rpc("reserve_icv");
 
     if (chainErr) {
-      console.error("Chain allocation error:", chainErr);
-      return json({ error: "فشل تخصيص رقم التسلسل" }, 500, corsHeaders);
+      console.error("ICV reservation error:", chainErr);
+      return json({ error: "فشل حجز رقم التسلسل" }, 500, corsHeaders);
     }
 
     const icv = chainResult.icv;
