@@ -27,3 +27,5 @@ project_id = "nuzdeamtujezrsxbvpfi"
     verify_jwt = false
   [functions.zatca-xml-generator]
     verify_jwt = false
+  [functions.health-check]
+    verify_jwt = false
