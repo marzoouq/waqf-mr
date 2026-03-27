@@ -162,7 +162,7 @@ export const useZatcaSettings = () => {
     setRenewLoading(true);
     try {
       await handleSave();
-      const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action: 'renew' } });
+      const { data, error } = await supabase.functions.invoke('zatca-renew');
       if (error) throw error;
       if (data?.success) {
         toast.success('تم تجديد شهادة الإنتاج بنجاح');
