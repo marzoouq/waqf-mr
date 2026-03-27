@@ -20,6 +20,9 @@ User-agent: *
 Allow: /
 Disallow: /dashboard/
 Disallow: /beneficiary/
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /auth
 Disallow: /unauthorized
 
 Sitemap: https://waqf-wise.net/sitemap.xml

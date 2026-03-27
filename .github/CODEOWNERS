@@ -1,0 +1,9 @@
+# المالكون الافتراضيون لكل الملفات
+* @marzoouq
+
+# الملفات الأمنية والبنية التحتية — تحتاج مراجعة إضافية
+supabase/ @marzoouq
+.github/ @marzoouq
+src/integrations/ @marzoouq
+src/contexts/AuthContext.tsx @marzoouq
+src/components/SecurityGuard.tsx @marzoouq
