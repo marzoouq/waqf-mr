@@ -10,7 +10,8 @@ import type { BeneficiaryFormData } from '@/components/beneficiaries/Beneficiary
 const ITEMS_PER_PAGE = 9;
 
 export function useBeneficiariesPage() {
-  const { data: beneficiaries = [], isLoading } = useBeneficiaries();
+  const beneficiariesQuery = useBeneficiaries();
+  const { data: beneficiaries = [], isLoading } = beneficiariesQuery;
   const { data: decryptedBeneficiaries = [] } = useBeneficiariesDecrypted();
   const createBeneficiary = useCreateBeneficiary();
   const updateBeneficiary = useUpdateBeneficiary();
@@ -121,5 +122,12 @@ export function useBeneficiariesPage() {
     deleteTarget, setDeleteTarget, handleConfirmDelete,
     searchQuery, setSearchQuery, currentPage, setCurrentPage, ITEMS_PER_PAGE,
     totalPercentage, activeBeneficiaries, percentageExceeds,
+    // صفحات — server-side (من useCrudFactory)
+    serverPage: beneficiariesQuery.page,
+    serverNextPage: beneficiariesQuery.nextPage,
+    serverPrevPage: beneficiariesQuery.prevPage,
+    serverHasNextPage: beneficiariesQuery.hasNextPage,
+    serverHasPrevPage: beneficiariesQuery.hasPrevPage,
+    serverPageSize: beneficiariesQuery.pageSize,
   };
 }

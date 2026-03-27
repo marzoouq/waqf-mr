@@ -13,6 +13,7 @@ import { StatsGridSkeleton } from '@/components/SkeletonLoaders';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, AlertTriangle } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
+import CrudPagination from '@/components/CrudPagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generatePropertiesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
@@ -37,6 +38,7 @@ const PropertiesPage = () => {
     searchQuery, setSearchQuery, typeFilter, setTypeFilter,
     occupancyFilter, setOccupancyFilter, uniqueTypes,
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
+    serverPage, serverNextPage, serverPrevPage, serverHasNextPage, serverHasPrevPage, serverPageSize,
     selectedProperty, setSelectedProperty,
     filteredProperties,
   } = usePropertiesPage();
@@ -235,6 +237,16 @@ const PropertiesPage = () => {
             })}
           </div>
           <TablePagination currentPage={currentPage} totalItems={filteredProperties.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+          <CrudPagination
+            page={serverPage}
+            pageSize={serverPageSize}
+            currentCount={properties.length}
+            hasNextPage={serverHasNextPage}
+            hasPrevPage={serverHasPrevPage}
+            nextPage={serverNextPage}
+            prevPage={serverPrevPage}
+            isLoading={isLoading}
+          />
           </>
         )}
 

@@ -14,6 +14,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import TablePagination from '@/components/TablePagination';
+import CrudPagination from '@/components/CrudPagination';
 import BeneficiaryFormDialog from '@/components/beneficiaries/BeneficiaryFormDialog';
 import BeneficiaryCard from '@/components/beneficiaries/BeneficiaryCard';
 import AdvanceRequestsTab from '@/components/accounts/AdvanceRequestsTab';
@@ -141,6 +142,16 @@ const BeneficiariesPage = () => {
                   ))}
                 </div>
                 <TablePagination currentPage={h.currentPage} totalItems={h.filteredBeneficiaries.length} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
+                <CrudPagination
+                  page={h.serverPage}
+                  pageSize={h.serverPageSize}
+                  currentCount={h.beneficiaries.length}
+                  hasNextPage={h.serverHasNextPage}
+                  hasPrevPage={h.serverHasPrevPage}
+                  nextPage={h.serverNextPage}
+                  prevPage={h.serverPrevPage}
+                  isLoading={h.isLoading}
+                />
               </>
             )}
           </TabsContent>
