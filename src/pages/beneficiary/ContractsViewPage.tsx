@@ -14,7 +14,8 @@ import { FileText, CheckCircle, XCircle, DollarSign, AlertTriangle, AlertCircle,
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
+import TablePagination from '@/components/TablePagination';
 import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
