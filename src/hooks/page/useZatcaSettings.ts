@@ -139,7 +139,7 @@ export const useZatcaSettings = () => {
     setOnboardLoading(true);
     try {
       await handleSave();
-      const { error } = await supabase.functions.invoke('zatca-api', { body: { action: 'onboard' } });
+      const { error } = await supabase.functions.invoke('zatca-onboard', { body: { action: 'onboard' } });
       if (error) throw error;
       toast.success('تم التسجيل بنجاح في بوابة فاتورة');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
