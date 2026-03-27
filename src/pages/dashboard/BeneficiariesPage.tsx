@@ -142,6 +142,16 @@ const BeneficiariesPage = () => {
                   ))}
                 </div>
                 <TablePagination currentPage={h.currentPage} totalItems={h.filteredBeneficiaries.length} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
+                <CrudPagination
+                  page={h.serverPage}
+                  pageSize={h.serverPageSize}
+                  currentCount={h.beneficiaries.length}
+                  hasNextPage={h.serverHasNextPage}
+                  hasPrevPage={h.serverHasPrevPage}
+                  nextPage={h.serverNextPage}
+                  prevPage={h.serverPrevPage}
+                  isLoading={h.isLoading}
+                />
               </>
             )}
           </TabsContent>
