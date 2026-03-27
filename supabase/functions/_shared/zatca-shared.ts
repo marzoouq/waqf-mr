@@ -132,7 +132,8 @@ export function buildEcSpki(publicKey: Uint8Array): Uint8Array {
 }
 
 export async function sha256Async(data: Uint8Array): Promise<Uint8Array> {
-  return new Uint8Array(await crypto.subtle.digest("SHA-256", data));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Deno ArrayBufferLike ↔ ArrayBuffer mismatch
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", data as any) as ArrayBuffer);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
