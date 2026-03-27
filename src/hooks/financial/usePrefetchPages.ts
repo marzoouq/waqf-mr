@@ -118,8 +118,3 @@ export function usePrefetchPages() {
   return { getPrefetchHandler, prefetchAccounts };
 }
 
-// تصدير متوافق مع الاستخدام القديم
-export function usePrefetchAccounts() {
-  const { prefetchAccounts } = usePrefetchPages();
-  return prefetchAccounts;
-}

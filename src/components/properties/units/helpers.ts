@@ -73,28 +73,6 @@ export const getPaymentStatusFromInvoices = (
   return { status: 'ontime', overdueCount: 0 };
 };
 
-/**
- * حساب حالة التحصيل (منتظم أو متأخر) — fallback رياضي
- * @deprecated استخدم getPaymentStatusFromInvoices بدلاً منها — هذه الدالة تُجاهل السنوات المالية والترحيل (القاعدة #15)
- */
-export const getPaymentStatus = (
-  tenant: TenantInfo,
-  paidMonths: number
-): { status: 'ontime' | 'late'; overdueCount: number } => {
-  if (tenant.status !== 'active' || !tenant.start_date) return { status: 'ontime', overdueCount: 0 };
-  const start = new Date(tenant.start_date);
-  const today = new Date();
-  const totalMonths = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
-  if (totalMonths < 0) return { status: 'ontime', overdueCount: 0 };
-  let expectedPayments: number;
-  const pt = tenant.payment_type;
-  if (pt === 'monthly') expectedPayments = totalMonths;
-  else if (pt === 'multi') expectedPayments = Math.floor(totalMonths / (12 / (tenant.payment_count || 1)));
-  else expectedPayments = Math.floor(totalMonths / 12);
-  const overdue = expectedPayments - paidMonths;
-  if (overdue > 0) return { status: 'late', overdueCount: overdue };
-  return { status: 'ontime', overdueCount: 0 };
-};
 
 /** حساب الإيجار الشهري — دائماً rent_amount / 12 (rent_amount سنوي) */
 export const getMonthlyRent = (tenant: TenantInfo): number => {

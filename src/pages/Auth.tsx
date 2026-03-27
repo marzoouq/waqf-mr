@@ -1,97 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
 import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { logAccessEvent } from '@/hooks/data/useAccessLog';
-import { STALE_STATIC } from '@/lib/queryStaleTime';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
+import { useAuthPage } from '@/hooks/page/useAuthPage';
 
 const Auth = () => {
-  const [resetMode, setResetMode] = useState(false);
-  const { signIn, signUp, user, role, loading, signOut } = useAuth();
-  const navigate = useNavigate();
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const {
+    resetMode, setResetMode, isOffline, isAppInstalled, roleWaitTimeout,
+    registrationEnabled, user, role, loading, signIn, signUp, signOut,
+    handleInstallClick,
+  } = useAuthPage();
 
-  // Online/offline detection
-  useEffect(() => {
-    const goOnline = () => setIsOffline(false);
-    const goOffline = () => setIsOffline(true);
-    window.addEventListener('online', goOnline);
-    window.addEventListener('offline', goOffline);
-    return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline); };
-  }, []);
-
-  // PWA install prompt
-  const [installPrompt, setInstallPrompt] = useState<(Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> }) | null>(null);
-  const [isAppInstalled, setIsAppInstalled] = useState(false);
-
-  useEffect(() => {
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsAppInstalled(true);
-    }
-    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e as Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> }); };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
-  // Show idle logout message
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('reason') === 'idle') {
-      toast.info('تم تسجيل خروجك تلقائياً بسبب عدم النشاط. يرجى تسجيل الدخول مرة أخرى.');
-      logAccessEvent({ event_type: 'idle_logout', target_path: '/auth?reason=idle' });
-      window.history.replaceState({}, '', '/auth');
-    }
-  }, []);
-
-  // Redirect after login
-  useEffect(() => {
-    if (user && !loading && role) {
-      if (role === 'beneficiary') {
-        navigate('/beneficiary', { replace: true });
-      } else if (role === 'admin' || role === 'accountant') {
-        navigate('/dashboard', { replace: true });
-      } else if (role === 'waqif') {
-        navigate('/waqif', { replace: true });
-      }
-    }
-  }, [user, role, loading, navigate]);
-
-  // Role wait timeout
-  const [roleWaitTimeout, setRoleWaitTimeout] = useState(false);
-  useEffect(() => {
-    if (!user || loading || role) {
-      setRoleWaitTimeout(false);
-      return;
-    }
-    const timer = setTimeout(() => setRoleWaitTimeout(true), 5000);
-    return () => clearTimeout(timer);
-  }, [user, role, loading]);
-
-  // استعلام cached لإعداد التسجيل — آمن للمستخدم المجهول
-  const { data: registrationEnabled = false } = useQuery({
-    queryKey: ['registration-enabled'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'registration_enabled')
-        .maybeSingle();
-      return data?.value === 'true';
-    },
-    staleTime: STALE_STATIC,
-    gcTime: 30 * 60_000,
-  });
-
-  // Waiting for role resolution
+  // انتظار تحديد الصلاحيات
   if (user && !loading && !role) {
     return (
       <div className="min-h-screen gradient-auth pattern-islamic-strong flex items-center justify-center p-4" dir="rtl">
@@ -173,22 +96,12 @@ const Auth = () => {
           </CardContent>
         </Card>
 
-        {/* Install app button */}
+        {/* زر تثبيت التطبيق */}
         {!isAppInstalled && (
           <Button
             variant="outline"
             className="w-full mt-4 gap-2 bg-card/80 backdrop-blur-xs border-border/50 hover:bg-accent"
-            onClick={() => {
-              if (installPrompt) {
-                installPrompt.prompt();
-                installPrompt.userChoice.then((r: { outcome: string }) => {
-                  if (r.outcome === 'accepted') setIsAppInstalled(true);
-                  setInstallPrompt(null);
-                });
-              } else {
-                navigate('/install');
-              }
-            }}
+            onClick={handleInstallClick}
           >
             <Download className="w-4 h-4" />
             تثبيت التطبيق على جوالك
