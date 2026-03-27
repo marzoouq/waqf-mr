@@ -26,7 +26,7 @@ const BeneficiaryDashboard = () => {
   }, [queryClient]);
 
   const { role, loading: authLoading } = useAuth();
-  const { data: notifications = [] } = useNotifications();
+  const { filteredData: notifications = [], filteredUnreadCount: unreadCount } = useNotifications();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
 
   // ── RPC الموحد — يجلب كل البيانات في استدعاء واحد ──
@@ -87,7 +87,6 @@ const BeneficiaryDashboard = () => {
     !!currentBeneficiary?.id,
   );
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
   const recentNotifications = notifications.slice(0, 3);
 
   // ── Guards ──

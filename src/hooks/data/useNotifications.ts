@@ -180,8 +180,10 @@ export const useNotifications = () => {
         .limit(PAGE_SIZE);
 
       // cursor: جلب الإشعارات الأقدم من آخر created_at
+      // #47: compound cursor بـ (created_at, id) لتجنب تكرار/تخطي الإشعارات ذات نفس التوقيت
       if (pageParam) {
-        query = query.lt('created_at', pageParam);
+        const [cursorTs, cursorId] = pageParam.split('|');
+        query = query.or(`created_at.lt.${cursorTs},and(created_at.eq.${cursorTs},id.lt.${cursorId})`);
       }
 
       const { data, error } = await query;
@@ -194,7 +196,10 @@ export const useNotifications = () => {
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {
       if (lastPage.length < PAGE_SIZE) return undefined;
-      return lastPage[lastPage.length - 1]?.created_at;
+      const last = lastPage[lastPage.length - 1];
+      if (!last) return undefined;
+      // compound cursor: "created_at|id"
+      return `${last.created_at}|${last.id}`;
     },
     enabled: !!user && userId.length > 0,
   });
@@ -222,10 +227,12 @@ export const useNotifications = () => {
 
   const markAsRead = useMutation({
     mutationFn: async (id: string) => {
+      if (!user) return;
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
@@ -263,10 +270,12 @@ export const useNotifications = () => {
 
   const deleteOne = useMutation({
     mutationFn: async (id: string) => {
+      if (!user) return;
       const { error } = await supabase
         .from('notifications')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),

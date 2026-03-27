@@ -115,11 +115,21 @@ Deno.serve(async (req: Request) => {
       .select("user_id")
       .eq("role", "admin");
 
-    // Fetch beneficiaries with user accounts
-    const { data: beneficiaries } = await supabase
-      .from("beneficiaries")
-      .select("user_id")
-      .not("user_id", "is", null);
+    // Fetch beneficiaries with user accounts — فقط إذا كانت هناك سنة مالية منشورة (#48)
+    const { data: publishedYears } = await supabase
+      .from("fiscal_years")
+      .select("id")
+      .eq("published", true)
+      .limit(1);
+
+    const hasPublishedYear = (publishedYears?.length ?? 0) > 0;
+
+    const { data: beneficiaries } = hasPublishedYear
+      ? await supabase
+          .from("beneficiaries")
+          .select("user_id")
+          .not("user_id", "is", null)
+      : { data: [] as { user_id: string | null }[] };
 
     const allRecipients = [
       ...(admins || []).map((a: { user_id: string }) => ({ user_id: a.user_id, role: 'admin' as const })),

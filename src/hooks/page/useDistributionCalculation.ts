@@ -23,16 +23,16 @@ export function useDistributionCalculation(
   const { data: paidAdvances = [] } = useQuery({
     queryKey: ['advance_requests', 'paid_all', fiscalYearId],
     queryFn: async () => {
-      let query = supabase
+      if (!fiscalYearId) return [];
+      const { data, error } = await supabase
         .from('advance_requests')
         .select('beneficiary_id, amount')
-        .eq('status', 'paid');
-      if (fiscalYearId) query = query.eq('fiscal_year_id', fiscalYearId);
-      const { data, error } = await query;
+        .eq('status', 'paid')
+        .eq('fiscal_year_id', fiscalYearId);
       if (error) throw error;
       return (data ?? []) as { beneficiary_id: string; amount: number }[];
     },
-    enabled: open,
+    enabled: open && !!fiscalYearId,
   });
 
   // جلب الفروق المرحّلة النشطة

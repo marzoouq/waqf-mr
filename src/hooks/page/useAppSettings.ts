@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { STALE_STATIC } from '@/lib/queryStaleTime';
+import { STALE_SETTINGS } from '@/lib/queryStaleTime';
 
 const jsonSettingCache = new Map<string, { raw: string; parsed: unknown }>();
 
@@ -30,7 +30,7 @@ export const useAppSettings = () => {
       data?.forEach((row) => { settings[row.key] = row.value; });
       return settings;
     },
-    staleTime: STALE_STATIC,
+    staleTime: STALE_SETTINGS,
     retry: 2,
     retryDelay: 1500,
     gcTime: 1000 * 60 * 30,
@@ -99,7 +99,7 @@ export const useSetting = (key: string, fallback = ''): string => {
       data?.forEach((row) => { settings[row.key] = row.value; });
       return settings;
     },
-    staleTime: STALE_STATIC,
+    staleTime: STALE_SETTINGS,
     gcTime: 1000 * 60 * 30,
     select: (settings) => settings[key] ?? fallback,
   });
