@@ -14,6 +14,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import TablePagination from '@/components/TablePagination';
+import CrudPagination from '@/components/CrudPagination';
 import BeneficiaryFormDialog from '@/components/beneficiaries/BeneficiaryFormDialog';
 import BeneficiaryCard from '@/components/beneficiaries/BeneficiaryCard';
 import AdvanceRequestsTab from '@/components/accounts/AdvanceRequestsTab';
