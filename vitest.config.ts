@@ -9,6 +9,10 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    onConsoleLog(log) {
+      if (log.includes('Invalid prop `data-state` supplied to `React.Fragment`')) return false;
+      if (log.includes('useAuth called outside AuthProvider')) return false;
+    },
     coverage: {
       provider: "v8",
       include: [

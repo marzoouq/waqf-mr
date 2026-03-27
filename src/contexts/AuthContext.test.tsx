@@ -1,8 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider, useAuth } from "./AuthContext";
 import { BrowserRouter } from "react-router-dom";
+
+// إلغاء الموك العام لـ useAuthContext لاختبار AuthContext الحقيقي
+vi.unmock('@/hooks/auth/useAuthContext');
+
+import { AuthProvider, useAuth } from "./AuthContext";
 
 // Mock supabase client
 const mockOnAuthStateChange = vi.fn();
