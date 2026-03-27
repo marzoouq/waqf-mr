@@ -76,7 +76,7 @@ export const useSupportTickets = (statusFilter?: string, page = 1, pageSize = 20
 export const useTicketReplies = (ticketId?: string) => {
   return useQuery({
     queryKey: ['ticket_replies', ticketId],
-    staleTime: 5_000,
+    staleTime: STALE_LIVE,
     enabled: !!ticketId,
     queryFn: async () => {
       const { data, error } = await supabase
