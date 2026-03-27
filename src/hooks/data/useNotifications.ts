@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
@@ -124,6 +124,8 @@ export const previewTone = (tone: ToneId, volumeOverride?: number) => {
   } catch { /* silent */ }
 };
 
+const PAGE_SIZE = 50;
+
 export const useNotifications = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -151,7 +153,6 @@ export const useNotifications = () => {
 
   // #46: الاستماع لتغييرات localStorage — يعمل من نفس النافذة وعبر النوافذ
   useEffect(() => {
-    // StorageEvent يُطلق فقط من نوافذ أخرى — نستخدم حدث مخصص للنافذة الحالية
     const handleStorage = (e: StorageEvent) => {
       if (e.key === NOTIF_PREFS_KEY) setDisabledTypes(getDisabledTypes());
     };
@@ -165,41 +166,60 @@ export const useNotifications = () => {
     };
   }, []);
 
-  // #58: queryKey يتضمن user.id لتحديد النطاق
   const userId = user?.id ?? '';
 
-  const query = useQuery({
+  // #52: تحويل إلى useInfiniteQuery مع cursor-based pagination
+  const infiniteQuery = useInfiniteQuery({
     queryKey: ['notifications', userId],
-    queryFn: async (): Promise<Notification[]> => {
-      const { data, error } = await supabase
+    queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
+      let query = supabase
         .from('notifications')
         .select('id, title, message, type, is_read, link, created_at, user_id')
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(PAGE_SIZE);
+
+      // cursor: جلب الإشعارات الأقدم من آخر created_at
+      if (pageParam) {
+        query = query.lt('created_at', pageParam);
+      }
+
+      const { data, error } = await query;
       if (error) {
         logger.error('Notifications fetch error:', error);
         throw error;
       }
       return (data || []) as Notification[];
     },
-    // #57: تفعيل فقط عند وجود userId صالح
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.length < PAGE_SIZE) return undefined;
+      return lastPage[lastPage.length - 1]?.created_at;
+    },
     enabled: !!user && userId.length > 0,
   });
 
-  const unreadCount = query.data?.filter((n) => !n.is_read).length || 0;
+  // تجميع كل الصفحات في مصفوفة واحدة
+  const allNotifications = useMemo(
+    () => infiniteQuery.data?.pages.flat() || [],
+    [infiniteQuery.data]
+  );
+
+  const unreadCount = useMemo(
+    () => allNotifications.filter((n) => !n.is_read).length,
+    [allNotifications]
+  );
 
   // Filtered data based on beneficiary notification preferences
   const filteredData = useMemo(
-    () => query.data?.filter((n) => !disabledTypes.has(n.type)) || [],
-    [query.data, disabledTypes]
+    () => allNotifications.filter((n) => !disabledTypes.has(n.type)),
+    [allNotifications, disabledTypes]
   );
   const filteredUnreadCount = useMemo(
     () => filteredData.filter((n) => !n.is_read).length,
     [filteredData]
   );
 
-  // #58: تحديد النطاق بـ user.id في كل mutations
   const markAsRead = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -232,7 +252,6 @@ export const useNotifications = () => {
         .delete()
         .eq('user_id', user.id)
         .eq('is_read', true);
-      // استثناء الأنواع المعطَّلة من الحذف
       if (disabledTypes.size > 0) {
         query = query.not('type', 'in', `(${[...disabledTypes].join(',')})`);
       }
@@ -260,7 +279,6 @@ export const useNotifications = () => {
   useEffect(() => { qcRef.current = queryClient; }, [queryClient]);
 
   // Realtime subscription with browser push notifications — bfcache safe
-  // #57: guard — لا نشترك إذا كان userId فارغاً
   const notifSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
     if (!userId) return;
     channel.on('postgres_changes', {
@@ -273,12 +291,10 @@ export const useNotifications = () => {
       
       const newNotif = payload.new as Notification;
 
-      // Play notification chime (if enabled)
       let soundEnabled = true;
       try { soundEnabled = localStorage.getItem('waqf_notification_sound') !== 'false'; } catch { /* safe default */ }
       if (soundEnabled) playSoundRef.current();
 
-      // Show browser push notification
       if ('Notification' in window && window.Notification.permission === 'granted') {
         if (lastNotifIdRef.current !== newNotif.id) {
           lastNotifIdRef.current = newNotif.id;
@@ -300,5 +316,24 @@ export const useNotifications = () => {
 
   useBfcacheSafeChannel(`notifications-${userId}`, notifSubscribeFn, !!user && userId.length > 0);
 
-  return { ...query, unreadCount, filteredData, filteredUnreadCount, markAsRead, markAllAsRead, deleteRead, deleteOne };
+  return {
+    // بيانات متوافقة مع الاستخدام السابق
+    data: allNotifications,
+    isLoading: infiniteQuery.isLoading,
+    isError: infiniteQuery.isError,
+    error: infiniteQuery.error,
+    // #52: تحميل المزيد
+    hasNextPage: infiniteQuery.hasNextPage,
+    fetchNextPage: infiniteQuery.fetchNextPage,
+    isFetchingNextPage: infiniteQuery.isFetchingNextPage,
+    // إحصائيات
+    unreadCount,
+    filteredData,
+    filteredUnreadCount,
+    // mutations
+    markAsRead,
+    markAllAsRead,
+    deleteRead,
+    deleteOne,
+  };
 };

@@ -128,6 +128,24 @@ const NotificationBell = () => {
                   </button>
                 );
               })}
+              {/* #52: زر تحميل المزيد */}
+              {hasNextPage && (
+                <div className="p-3 text-center border-t border-border">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs gap-1.5"
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                  >
+                    {isFetchingNextPage ? (
+                      <><Loader2 className="w-3.5 h-3.5 animate-spin" /> جارٍ التحميل...</>
+                    ) : (
+                      'تحميل إشعارات أقدم'
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </ScrollArea>
