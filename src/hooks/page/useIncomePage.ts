@@ -176,4 +176,4 @@ export function useIncomePage() {
   };
 }
 
-export type { SortField };
+
