@@ -129,7 +129,6 @@ export const useNotifications = () => {
   const queryClient = useQueryClient();
   const lastNotifIdRef = useRef<string | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const [prefsVersion, setPrefsVersion] = useState(0);
   const [disabledTypes, setDisabledTypes] = useState<Set<string>>(() => getDisabledTypes());
 
   const playNotificationSound = useCallback(() => {
@@ -150,21 +149,27 @@ export const useNotifications = () => {
     return () => { audioCtxRef.current?.close(); };
   }, []);
 
-  // Listen for localStorage changes to notification preferences
+  // #46: الاستماع لتغييرات localStorage — يعمل من نفس النافذة وعبر النوافذ
   useEffect(() => {
-    const handler = (e: StorageEvent) => {
-      if (e.key === NOTIF_PREFS_KEY) setPrefsVersion((v) => v + 1);
+    // StorageEvent يُطلق فقط من نوافذ أخرى — نستخدم حدث مخصص للنافذة الحالية
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === NOTIF_PREFS_KEY) setDisabledTypes(getDisabledTypes());
     };
-    window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
+    const handleCustom = () => setDisabledTypes(getDisabledTypes());
+    
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('notif-prefs-changed', handleCustom);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('notif-prefs-changed', handleCustom);
+    };
   }, []);
 
-  useEffect(() => {
-    setDisabledTypes(getDisabledTypes());
-  }, [prefsVersion]);
+  // #58: queryKey يتضمن user.id لتحديد النطاق
+  const userId = user?.id ?? '';
 
   const query = useQuery({
-    queryKey: ['notifications', user?.id],
+    queryKey: ['notifications', userId],
     queryFn: async (): Promise<Notification[]> => {
       const { data, error } = await supabase
         .from('notifications')
@@ -178,7 +183,8 @@ export const useNotifications = () => {
       }
       return (data || []) as Notification[];
     },
-    enabled: !!user,
+    // #57: تفعيل فقط عند وجود userId صالح
+    enabled: !!user && userId.length > 0,
   });
 
   const unreadCount = query.data?.filter((n) => !n.is_read).length || 0;
@@ -193,6 +199,7 @@ export const useNotifications = () => {
     [filteredData]
   );
 
+  // #58: تحديد النطاق بـ user.id في كل mutations
   const markAsRead = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -201,7 +208,7 @@ export const useNotifications = () => {
         .eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
   });
 
   const markAllAsRead = useMutation({
@@ -214,7 +221,7 @@ export const useNotifications = () => {
         .eq('is_read', false);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
   });
 
   const deleteRead = useMutation({
@@ -232,7 +239,7 @@ export const useNotifications = () => {
       const { error } = await query;
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
   });
 
   const deleteOne = useMutation({
@@ -243,7 +250,7 @@ export const useNotifications = () => {
         .eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
   });
 
   // Stable refs to avoid re-subscribing on callback/queryClient changes
@@ -253,8 +260,9 @@ export const useNotifications = () => {
   useEffect(() => { qcRef.current = queryClient; }, [queryClient]);
 
   // Realtime subscription with browser push notifications — bfcache safe
-  const userId = user?.id ?? '';
+  // #57: guard — لا نشترك إذا كان userId فارغاً
   const notifSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
+    if (!userId) return;
     channel.on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
@@ -290,7 +298,7 @@ export const useNotifications = () => {
     });
   }, [userId]);
 
-  useBfcacheSafeChannel(`notifications-${userId}`, notifSubscribeFn, !!user);
+  useBfcacheSafeChannel(`notifications-${userId}`, notifSubscribeFn, !!user && userId.length > 0);
 
   return { ...query, unreadCount, filteredData, filteredUnreadCount, markAsRead, markAllAsRead, deleteRead, deleteOne };
 };

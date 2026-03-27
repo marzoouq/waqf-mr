@@ -24,7 +24,6 @@ class SimpleCache {
 
   set(key: string, data: string): void {
     if (this.cache.size >= this.maxSize) {
-      // حذف الأقدم (أول مدخل في Map)
       const oldest = this.cache.keys().next().value;
       if (oldest) this.cache.delete(oldest);
     }
@@ -33,6 +32,10 @@ class SimpleCache {
 }
 
 const dataCache = new SimpleCache();
+
+// #51: قائمة بيضاء للأوضاع المسموحة
+const ALLOWED_MODES = ["chat", "analysis", "report"] as const;
+type AllowedMode = (typeof ALLOWED_MODES)[number];
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -102,7 +105,10 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const forceRefresh = url.searchParams.get("refresh") === "true";
-    const { messages, mode } = await req.json();
+    const { messages, mode: rawMode } = await req.json();
+
+    // #51: التحقق من صحة الوضع
+    const mode: AllowedMode = (ALLOWED_MODES as readonly string[]).includes(rawMode) ? rawMode as AllowedMode : "chat";
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return new Response(
@@ -192,9 +198,9 @@ Deno.serve(async (req) => {
 أجب باللغة العربية بشكل ودود ومختصر. إذا سُئلت عن أمر خارج نطاق إدارة الوقف، وجّه السائل بلطف.`;
     }
 
-    // إضافة البيانات الحقيقية إلى السياق
-    systemPrompt += `\n\n## بيانات الوقف الحقيقية (من قاعدة البيانات):\n${dataContext}`;
-    systemPrompt += `\n\n**تعليمات مهمة:** استخدم هذه البيانات الحقيقية للإجابة على أسئلة المستخدم. عند ذكر أرقام أو إحصائيات، اعتمد على هذه البيانات الفعلية وليس على تخمينات. إذا لم تجد بيانات كافية للإجابة، أخبر المستخدم بذلك.`;
+    // إضافة البيانات إلى السياق — بعد التجريد
+    systemPrompt += `\n\n## بيانات الوقف (من قاعدة البيانات):\n${dataContext}`;
+    systemPrompt += `\n\n**تعليمات مهمة:** استخدم هذه البيانات للإجابة على أسئلة المستخدم. عند ذكر أرقام أو إحصائيات، اعتمد على هذه البيانات وليس على تخمينات. إذا لم تجد بيانات كافية للإجابة، أخبر المستخدم بذلك.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -237,6 +243,17 @@ Deno.serve(async (req) => {
   }
 });
 
+// ─── #43: تحويل المبالغ إلى نطاقات مجمّعة لحماية الخصوصية ───
+function toRange(amount: number): string {
+  if (amount <= 0) return "0";
+  if (amount < 10_000) return "أقل من 10,000";
+  if (amount < 50_000) return "10,000 - 50,000";
+  if (amount < 100_000) return "50,000 - 100,000";
+  if (amount < 500_000) return "100,000 - 500,000";
+  if (amount < 1_000_000) return "500,000 - مليون";
+  return "أكثر من مليون";
+}
+
 // ─── دالة جلب بيانات الوقف من قاعدة البيانات ───
 async function fetchWaqfData(
   client: SupabaseClient,
@@ -271,17 +288,28 @@ async function fetchWaqfData(
     const adminPct = pctMap["admin_share_percentage"] || "10";
     const waqifPct = pctMap["waqif_share_percentage"] || "5";
 
-    // 3. الحسابات المالية (ملخص) — للأدمن/المحاسب فقط التفاصيل الكاملة
-    const { data: accounts } = await client
+    // 3. الحسابات المالية — #59: فلتر السنوات المنشورة فقط لغير الأدمن
+    const accountsQuery = client
       .from("accounts")
-      .select("*")
+      .select("*, fiscal_year_id")
       .order("created_at", { ascending: false })
       .limit(3);
 
-    if (accounts?.length) {
+    const { data: accounts } = await accountsQuery;
+
+    // #59: فلتر الحسابات للسنوات المنشورة فقط لغير الأدمن
+    const publishedFYIds = new Set(
+      (fiscalYears ?? []).filter(fy => fy.published || fy.status === "active").map(fy => fy.id)
+    );
+    const filteredAccounts = isAdmin
+      ? accounts
+      : accounts?.filter(acc => publishedFYIds.has(acc.fiscal_year_id));
+
+    if (filteredAccounts?.length) {
       if (isAdmin) {
+        // #43: الأدمن يرى الأرقام الحقيقية (مسؤول عن الإدارة)
         sections.push("\n### الحسابات المالية:");
-        for (const acc of accounts) {
+        for (const acc of filteredAccounts) {
           sections.push(`**السنة: ${acc.fiscal_year}**`);
           sections.push(`- إجمالي الدخل: ${Number(acc.total_income).toLocaleString("ar-SA")} ر.س`);
           sections.push(`- إجمالي المصروفات: ${Number(acc.total_expenses).toLocaleString("ar-SA")} ر.س`);
@@ -291,23 +319,20 @@ async function fetchWaqfData(
           sections.push(`- حصة الناظر (${adminPct}%): ${Number(acc.admin_share).toLocaleString("ar-SA")} ر.س`);
           sections.push(`- حصة الواقف (${waqifPct}%): ${Number(acc.waqif_share).toLocaleString("ar-SA")} ر.س`);
           sections.push(`- ريع الوقف للتوزيع: ${Number(acc.waqf_revenue).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- رقبة الوقف المرحلة: ${Number(acc.waqf_corpus_previous).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- رقبة الوقف اليدوية: ${Number(acc.waqf_corpus_manual).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- رأس مال الوقف: ${Number(acc.waqf_corpus_manual).toLocaleString("ar-SA")} ر.س`);
         }
       } else {
-        // المستفيد/الواقف: ملخص عام فقط بدون تفاصيل حساسة
+        // #43: المستفيد/الواقف يرى نطاقات مالية فقط بدون أرقام دقيقة
         sections.push("\n### ملخص مالي عام:");
-        for (const acc of accounts) {
+        for (const acc of filteredAccounts) {
           sections.push(`**السنة: ${acc.fiscal_year}**`);
-          sections.push(`- إجمالي الدخل: ${Number(acc.total_income).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- إجمالي المصروفات: ${Number(acc.total_expenses).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- ريع الوقف للتوزيع: ${Number(acc.waqf_revenue).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- نطاق الدخل: ${toRange(Number(acc.total_income))} ر.س`);
+          sections.push(`- نطاق المصروفات: ${toRange(Number(acc.total_expenses))} ر.س`);
+          sections.push(`- نطاق ريع الوقف: ${toRange(Number(acc.waqf_revenue))} ر.س`);
         }
       }
     }
 
-    // 3. العقارات
+    // 3. العقارات — معلومات عامة آمنة
     const { data: properties } = await client
       .from("properties")
       .select("property_number, property_type, location, area")
@@ -320,7 +345,7 @@ async function fetchWaqfData(
       }
     }
 
-    // 4. العقود النشطة — التفاصيل للأدمن/المحاسب فقط
+    // 4. العقود النشطة — بيانات مجمّعة بدون أسماء مستأجرين
     if (isAdmin) {
       const { data: contracts } = await client
         .from("contracts")
@@ -329,7 +354,6 @@ async function fetchWaqfData(
         .limit(30);
 
       if (contracts?.length) {
-        // بيانات مجمّعة بدون أسماء المستأجرين لحماية الخصوصية
         const totalRent = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
         const byType: Record<string, { count: number; total: number }> = {};
         for (const c of contracts) {
@@ -343,7 +367,6 @@ async function fetchWaqfData(
         for (const [type, info] of Object.entries(byType)) {
           sections.push(`  - ${type}: ${info.count} عقد | ${info.total.toLocaleString("ar-SA")} ر.س`);
         }
-        // أقرب عقد للانتهاء
         const sorted = [...contracts].sort((a, b) => a.end_date.localeCompare(b.end_date));
         const soonest = sorted[0];
         if (soonest) {
@@ -351,7 +374,6 @@ async function fetchWaqfData(
         }
       }
     } else {
-      // المستفيد/الواقف: عدد العقود فقط بدون تفاصيل
       const { count } = await client
         .from("contracts")
         .select("id", { count: "exact", head: true })
@@ -364,7 +386,7 @@ async function fetchWaqfData(
 
     // 5. ملخص الدخل حسب المصدر (آخر سنة مالية)
     const activeFY = fiscalYears?.find(fy => fy.status === "active");
-    // للمستفيد/الواقف: لا نعرض بيانات السنة غير المنشورة
+    // #59: للمستفيد/الواقف لا نعرض بيانات سنة غير منشورة
     if (activeFY && (isAdmin || activeFY.published)) {
       const { data: income } = await client
         .from("income")
@@ -380,9 +402,15 @@ async function fetchWaqfData(
           bySrc[i.source] = (bySrc[i.source] || 0) + Number(i.amount);
         }
         sections.push(`\n### الدخل للسنة النشطة (${activeFY.label}):`);
-        sections.push(`- إجمالي الدخل: ${totalIncome.toLocaleString("ar-SA")} ر.س (${income.length} سجل)`);
-        for (const [src, amt] of Object.entries(bySrc)) {
-          sections.push(`  - ${src}: ${amt.toLocaleString("ar-SA")} ر.س`);
+        if (isAdmin) {
+          sections.push(`- إجمالي الدخل: ${totalIncome.toLocaleString("ar-SA")} ر.س (${income.length} سجل)`);
+          for (const [src, amt] of Object.entries(bySrc)) {
+            sections.push(`  - ${src}: ${amt.toLocaleString("ar-SA")} ر.س`);
+          }
+        } else {
+          // #43: نطاقات مالية فقط لغير الأدمن
+          sections.push(`- نطاق الدخل: ${toRange(totalIncome)} ر.س`);
+          sections.push(`- عدد مصادر الدخل: ${Object.keys(bySrc).length}`);
         }
       }
 
@@ -400,49 +428,52 @@ async function fetchWaqfData(
           byType[e.expense_type] = (byType[e.expense_type] || 0) + Number(e.amount);
         }
         sections.push(`\n### المصروفات للسنة النشطة (${activeFY.label}):`);
-        sections.push(`- إجمالي المصروفات: ${totalExp.toLocaleString("ar-SA")} ر.س (${expenses.length} سجل)`);
-        for (const [type, amt] of Object.entries(byType)) {
-          sections.push(`  - ${type}: ${amt.toLocaleString("ar-SA")} ر.س`);
+        if (isAdmin) {
+          sections.push(`- إجمالي المصروفات: ${totalExp.toLocaleString("ar-SA")} ر.س (${expenses.length} سجل)`);
+          for (const [type, amt] of Object.entries(byType)) {
+            sections.push(`  - ${type}: ${amt.toLocaleString("ar-SA")} ر.س`);
+          }
+        } else {
+          sections.push(`- نطاق المصروفات: ${toRange(totalExp)} ر.س`);
+          sections.push(`- عدد أنواع المصروفات: ${Object.keys(byType).length}`);
         }
       }
     }
 
-    // 7. المستفيدين
+    // 7. المستفيدون — #43: إخفاء الأسماء واستبدالها بمراجع مجهولة
     if (isAdmin) {
       const { data: beneficiaries } = await client
         .from("beneficiaries")
-        .select("name, share_percentage")
+        .select("share_percentage")
         .order("share_percentage", { ascending: false })
         .limit(50);
 
       if (beneficiaries?.length) {
-        sections.push(`\n### المستفيدون (${beneficiaries.length} مستفيد):`);
-        for (const b of beneficiaries) {
-          sections.push(`- ${b.name}: ${b.share_percentage}%`);
-        }
         const totalPct = beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
+        sections.push(`\n### المستفيدون (${beneficiaries.length} مستفيد):`);
+        beneficiaries.forEach((b, i) => {
+          sections.push(`- مستفيد ${i + 1}: ${b.share_percentage}%`);
+        });
         sections.push(`- **إجمالي النسب: ${totalPct}%**`);
       }
     } else {
-      // المستفيد يرى بياناته فقط
       const { data: myBeneficiary } = await client
         .from("beneficiaries")
-        .select("name, share_percentage")
+        .select("share_percentage")
         .eq("user_id", userId)
         .single();
 
       if (myBeneficiary) {
         sections.push(`\n### بياناتك كمستفيد:`);
-        sections.push(`- الاسم: ${myBeneficiary.name}`);
         sections.push(`- نسبة الحصة: ${myBeneficiary.share_percentage}%`);
       }
     }
 
-    // 8. التوزيعات الأخيرة — للأدمن التفاصيل الكاملة، للمستفيد حصته فقط
+    // 8. التوزيعات الأخيرة — مجمّعة بدون أسماء
     if (isAdmin) {
       const { data: distributions } = await client
         .from("distributions")
-        .select("amount, date, status, beneficiary_id")
+        .select("amount, date, status")
         .order("date", { ascending: false })
         .limit(20);
 
@@ -454,7 +485,6 @@ async function fetchWaqfData(
         sections.push(`- إجمالي: ${totalDist.toLocaleString("ar-SA")} ر.س | مدفوعة: ${paid} | معلقة: ${pending}`);
       }
     } else {
-      // المستفيد: حصته الشخصية فقط
       const { data: myBen } = await client
         .from("beneficiaries")
         .select("id")
@@ -472,7 +502,8 @@ async function fetchWaqfData(
         if (myDists?.length) {
           const myTotal = myDists.reduce((s, d) => s + Number(d.amount), 0);
           sections.push(`\n### توزيعاتك:`);
-          sections.push(`- إجمالي حصتك: ${myTotal.toLocaleString("ar-SA")} ر.س (${myDists.length} توزيعة)`);
+          // #43: نطاقات مالية لغير الأدمن
+          sections.push(`- نطاق إجمالي حصتك: ${toRange(myTotal)} ر.س (${myDists.length} توزيعة)`);
         }
       }
     }
