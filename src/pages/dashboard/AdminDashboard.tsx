@@ -33,6 +33,7 @@ import DashboardStatsGrid from '@/components/dashboard/DashboardStatsGrid';
 import DashboardKpiPanel from '@/components/dashboard/DashboardKpiPanel';
 import CollectionSummaryCard from '@/components/dashboard/CollectionSummaryCard';
 import RecentContractsCard from '@/components/dashboard/RecentContractsCard';
+import QuickActionsCard from '@/components/dashboard/QuickActionsCard';
 
 // هوك الإحصائيات المستخرج
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
