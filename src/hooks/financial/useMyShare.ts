@@ -14,16 +14,24 @@ interface UseMyShareParams {
   beneficiaries: BeneficiaryLike[];
   /** المبلغ القابل للتوزيع على المستفيدين */
   availableAmount: number;
+  /**
+   * القيمة المحسوبة من الخادم (RPC) — عند تقديمها تُستخدم كمصدر موثوق
+   * بدلاً من الحساب المحلي لضمان اتساق الأرقام مع لوحة التحكم.
+   * إصلاح #9: توحيد مصدر my_share
+   */
+  serverMyShare?: number | null;
 }
 
 /**
  * هوك موحّد لحساب حصة المستفيد الحالي من الريع.
- * يستخدم `safeNumber` على كل من `availableAmount` و `share_percentage`
- * لمنع أخطاء NaN الصامتة.
+ * يُفضّل القيمة المحسوبة من الخادم (serverMyShare) عند توفرها
+ * لضمان اتساق الأرقام مع RPC get_beneficiary_dashboard.
+ * يعود للحساب المحلي كـ fallback (مثلاً عند معاينة الناظر).
  */
 export const useMyShare = <T extends BeneficiaryLike>({
   beneficiaries,
   availableAmount,
+  serverMyShare,
 }: UseMyShareParams & { beneficiaries: T[] }) => {
   const { user } = useAuth();
   const { data: totalBenPct = 0, isLoading: pctLoading } = useTotalBeneficiaryPercentage();
@@ -34,9 +42,14 @@ export const useMyShare = <T extends BeneficiaryLike>({
   );
 
   const myShare = useMemo(() => {
+    // #9: تفضيل القيمة المحسوبة من الخادم (RPC) عند توفرها
+    if (serverMyShare != null && isFinite(serverMyShare)) {
+      return serverMyShare;
+    }
+    // fallback: حساب محلي (للناظر أو عند غياب RPC)
     if (!currentBeneficiary || totalBenPct <= 0) return 0;
     return Math.round(safeNumber(availableAmount) * safeNumber(currentBeneficiary.share_percentage) / totalBenPct * 100) / 100;
-  }, [currentBeneficiary, availableAmount, totalBenPct]);
+  }, [serverMyShare, currentBeneficiary, availableAmount, totalBenPct]);
 
   return { currentBeneficiary, totalBenPct, pctLoading, myShare };
 };
