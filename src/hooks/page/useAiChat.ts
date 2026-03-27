@@ -83,7 +83,7 @@ export function useAiChat() {
         // تحديث جلسة موجودة
         await supabase
           .from('ai_chat_sessions')
-          .update({ messages: msgs as unknown as Record<string, unknown>[], title })
+          .update({ messages: JSON.parse(JSON.stringify(msgs)), title })
           .eq('id', sessionId)
           .eq('user_id', user.id);
         return sessionId;
@@ -91,7 +91,7 @@ export function useAiChat() {
       // إنشاء جلسة جديدة
       const { data, error } = await supabase
         .from('ai_chat_sessions')
-        .insert({ user_id: user.id, mode: sessionMode, messages: msgs as unknown as Record<string, unknown>[], title })
+        .insert({ user_id: user.id, mode: sessionMode, messages: JSON.parse(JSON.stringify(msgs)), title })
         .select('id')
         .single();
       if (error) { logger.error('فشل حفظ جلسة AI', error); return null; }
