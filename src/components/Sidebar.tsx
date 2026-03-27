@@ -14,7 +14,7 @@ import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ROLE_LABELS } from '@/constants';
 import { useWaqfInfo } from '@/hooks/page/useAppSettings';
-import { usePrefetchAccounts } from '@/hooks/financial/usePrefetchAccounts';
+import { usePrefetchPages } from '@/hooks/financial/usePrefetchPages';
 import { useUnreadMessages } from '@/hooks/ui/useUnreadMessages';
 
 interface SidebarContentProps {
