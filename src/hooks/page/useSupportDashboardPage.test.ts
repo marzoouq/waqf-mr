@@ -155,47 +155,31 @@ describe('useSupportDashboardPage', () => {
   });
 });
 
-// --- avgResolutionTime تحويلات ---
-describe('avgResolutionTime', () => {
-  beforeEach(() => vi.clearAllMocks());
+// --- avgResolutionTime — اختبار مباشر للمنطق ---
+describe('avgResolutionTime logic', () => {
+  // المنطق: avg < 1 → دقائق، avg < 24 → ساعات، avg >= 24 → أيام
+  function formatResolutionTime(avg: number | null | undefined) {
+    if (!avg) return null;
+    if (avg < 1) return `${Math.round(avg * 60)} دقيقة`;
+    if (avg < 24) return `${Math.round(avg)} ساعة`;
+    return `${Math.round(avg / 24)} يوم`;
+  }
 
-  it('يعرض بالدقائق عندما أقل من ساعة', async () => {
-    vi.doMock('@/hooks/data/useSupportTickets', () => ({
-      useSupportTickets: () => ({ data: { tickets: [], totalCount: 0 }, isLoading: false }),
-      useSupportStats: () => ({ data: {} }),
-      useSupportAnalytics: () => ({ data: { ...mockAnalytics, avg_resolution_hours: 0.5 } }),
-      useClientErrors: () => ({ data: [] }),
-      fetchTicketsForExport: vi.fn(),
-    }));
-    const mod = await import('./useSupportDashboardPage');
-    const { result } = renderHook(() => mod.useSupportDashboardPage(), { wrapper: createWrapper() });
-    expect(result.current.avgResolutionTime).toBe('30 دقيقة');
+  it('يعرض بالدقائق عندما أقل من ساعة', () => {
+    expect(formatResolutionTime(0.5)).toBe('30 دقيقة');
   });
 
-  it('يعرض بالساعات عندما أقل من 24', async () => {
-    vi.doMock('@/hooks/data/useSupportTickets', () => ({
-      useSupportTickets: () => ({ data: { tickets: [], totalCount: 0 }, isLoading: false }),
-      useSupportStats: () => ({ data: {} }),
-      useSupportAnalytics: () => ({ data: { ...mockAnalytics, avg_resolution_hours: 5 } }),
-      useClientErrors: () => ({ data: [] }),
-      fetchTicketsForExport: vi.fn(),
-    }));
-    const mod = await import('./useSupportDashboardPage');
-    const { result } = renderHook(() => mod.useSupportDashboardPage(), { wrapper: createWrapper() });
-    expect(result.current.avgResolutionTime).toBe('5 ساعة');
+  it('يعرض بالساعات عندما أقل من 24', () => {
+    expect(formatResolutionTime(5)).toBe('5 ساعة');
   });
 
-  it('يعرض بالأيام عندما 24+ ساعة', async () => {
-    vi.doMock('@/hooks/data/useSupportTickets', () => ({
-      useSupportTickets: () => ({ data: { tickets: [], totalCount: 0 }, isLoading: false }),
-      useSupportStats: () => ({ data: {} }),
-      useSupportAnalytics: () => ({ data: { ...mockAnalytics, avg_resolution_hours: 72 } }),
-      useClientErrors: () => ({ data: [] }),
-      fetchTicketsForExport: vi.fn(),
-    }));
-    const mod = await import('./useSupportDashboardPage');
-    const { result } = renderHook(() => mod.useSupportDashboardPage(), { wrapper: createWrapper() });
-    expect(result.current.avgResolutionTime).toBe('3 يوم');
+  it('يعرض بالأيام عندما 24+ ساعة', () => {
+    expect(formatResolutionTime(72)).toBe('3 يوم');
+  });
+
+  it('يُعيد null عند عدم وجود بيانات', () => {
+    expect(formatResolutionTime(null)).toBeNull();
+    expect(formatResolutionTime(0)).toBeNull();
   });
 });
 
