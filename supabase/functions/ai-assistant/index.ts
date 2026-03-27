@@ -324,14 +324,30 @@ async function fetchWaqfData(
     if (isAdmin) {
       const { data: contracts } = await client
         .from("contracts")
-        .select("contract_number, tenant_name, rent_amount, start_date, end_date, status, payment_type")
+        .select("contract_number, rent_amount, start_date, end_date, status, payment_type")
         .eq("status", "active")
         .limit(30);
 
       if (contracts?.length) {
-        sections.push(`\n### العقود النشطة (${contracts.length} عقد):`);
+        // بيانات مجمّعة بدون أسماء المستأجرين لحماية الخصوصية
+        const totalRent = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
+        const byType: Record<string, { count: number; total: number }> = {};
         for (const c of contracts) {
-          sections.push(`- عقد ${c.contract_number} | ${c.tenant_name} | ${Number(c.rent_amount).toLocaleString("ar-SA")} ر.س/${c.payment_type === "annual" ? "سنوي" : c.payment_type === "monthly" ? "شهري" : "دفعات"} | ${c.start_date} → ${c.end_date}`);
+          const key = c.payment_type === "annual" ? "سنوي" : c.payment_type === "monthly" ? "شهري" : "دفعات";
+          if (!byType[key]) byType[key] = { count: 0, total: 0 };
+          byType[key].count++;
+          byType[key].total += Number(c.rent_amount);
+        }
+        sections.push(`\n### العقود النشطة (${contracts.length} عقد):`);
+        sections.push(`- إجمالي الإيجارات: ${totalRent.toLocaleString("ar-SA")} ر.س`);
+        for (const [type, info] of Object.entries(byType)) {
+          sections.push(`  - ${type}: ${info.count} عقد | ${info.total.toLocaleString("ar-SA")} ر.س`);
+        }
+        // أقرب عقد للانتهاء
+        const sorted = [...contracts].sort((a, b) => a.end_date.localeCompare(b.end_date));
+        const soonest = sorted[0];
+        if (soonest) {
+          sections.push(`- أقرب انتهاء: عقد ${soonest.contract_number} في ${soonest.end_date}`);
         }
       }
     } else {
@@ -461,20 +477,22 @@ async function fetchWaqfData(
       }
     }
 
-    // 9. العقود المنتهية أو قريبة الانتهاء (للمشرفين فقط)
+    // 9. العقود المنتهية أو قريبة الانتهاء (للمشرفين فقط) — بدون أسماء مستأجرين
     if (isAdmin) {
       const { data: expiring } = await client
         .from("contracts")
-        .select("contract_number, tenant_name, end_date, rent_amount")
+        .select("contract_number, end_date, rent_amount")
         .eq("status", "active")
         .lte("end_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
         .order("end_date", { ascending: true })
         .limit(10);
 
       if (expiring?.length) {
+        const totalExpRent = expiring.reduce((s, c) => s + Number(c.rent_amount), 0);
         sections.push(`\n### ⚠️ عقود تنتهي خلال 30 يوماً (${expiring.length}):`);
+        sections.push(`- إجمالي إيجاراتها: ${totalExpRent.toLocaleString("ar-SA")} ر.س`);
         for (const c of expiring) {
-          sections.push(`- ${c.contract_number} | ${c.tenant_name} | ${c.end_date} | ${Number(c.rent_amount).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- عقد ${c.contract_number} | ينتهي ${c.end_date} | ${Number(c.rent_amount).toLocaleString("ar-SA")} ر.س`);
         }
       }
     }
