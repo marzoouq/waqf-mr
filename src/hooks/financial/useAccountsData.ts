@@ -25,30 +25,8 @@ export function useAccountsData() {
 
   const { fiscalYearId, fiscalYear: selectedFY, fiscalYears, isClosed } = useFiscalYear();
 
-  // حساب تخصيصات العقود ديناميكياً
-  const allocationMap = useMemo(() => {
-    const map = new Map<string, { allocated_payments: number; allocated_amount: number }>();
-    if (!fiscalYearId || fiscalYearId === 'all' || fiscalYears.length === 0) return map;
-    for (const c of allContracts) {
-      const allocs = allocateContractToFiscalYears(
-        {
-          id: c.id,
-          start_date: c.start_date,
-          end_date: c.end_date,
-          rent_amount: Number(c.rent_amount),
-          payment_type: c.payment_type,
-          payment_count: c.payment_count,
-          payment_amount: c.payment_amount !== null && c.payment_amount !== undefined ? Number(c.payment_amount) : undefined,
-        },
-        fiscalYears
-      );
-      const match = allocs.find(a => a.fiscal_year_id === fiscalYearId);
-      if (match) {
-        map.set(c.id, { allocated_payments: match.allocated_payments, allocated_amount: match.allocated_amount });
-      }
-    }
-    return map;
-  }, [allContracts, fiscalYearId, fiscalYears]);
+  // تخصيصات العقود — مصدر واحد للحقيقة
+  const allocationMap = useContractAllocationMap(allContracts);
 
   // تصفية العقود حسب السنة المالية (مع استبعاد الملغاة)
   const contracts = useMemo(() => {
