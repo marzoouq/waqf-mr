@@ -172,7 +172,8 @@ export function parseCertExpiry(base64Cert: string): string | null {
 // ZATCA API Helpers
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function resolveZatcaUrl(adminClient: ReturnType<typeof createClient>): Promise<string> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- admin client بدون Database generic
+export async function resolveZatcaUrl(adminClient: any): Promise<string> {
   if (ZATCA_API_URL_ENV) return ZATCA_API_URL_ENV;
   const { data } = await adminClient.from("app_settings").select("value").eq("key", "zatca_platform").single();
   const platform = data?.value || "sandbox";
