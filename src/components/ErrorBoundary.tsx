@@ -59,8 +59,10 @@ class ErrorBoundary extends Component<Props, State> {
       }).then(() => { /* reported */ }, () => {
         // Supabase unavailable — persist locally as fallback
         try {
+          // معرّف جلسة فريد لتجميع الأخطاء حسب الجلسة
+          const sessionId = (globalThis as Record<string, unknown>).__ERROR_SESSION_ID ??= crypto.randomUUID();
           const queue = JSON.parse(localStorage.getItem('error_log_queue') || '[]');
-          queue.push({ ...metadata, logged_at: new Date().toISOString() });
+          queue.push({ ...metadata, session_id: sessionId, logged_at: new Date().toISOString() });
           if (queue.length > 20) queue.shift();
           localStorage.setItem('error_log_queue', JSON.stringify(queue));
         } catch { /* storage full or unavailable */ }
