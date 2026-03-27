@@ -3,7 +3,7 @@
 // الإجراءات: onboard, production, test-connection
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { p256 } from "https://esm.sh/@noble/curves@1.4.0/p256";
+import { p256 } from "npm:@noble/curves@1.4.0/p256";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import {
   ZATCA_COMMON_HEADERS,

@@ -9,9 +9,9 @@
  *  5. Assemble full ds:Signature block → inject into UBLExtensions
  *  6. Inject QR TLV (with TaxInclusiveAmount) → save
  */
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { p256 } from "https://esm.sh/@noble/curves@1.4.0/p256";
-import { sha256 } from "https://esm.sh/@noble/hashes@1.4.0/sha256";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { p256 } from "npm:@noble/curves@1.4.0/p256";
+import { sha256 } from "npm:@noble/hashes@1.4.0/sha256";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
