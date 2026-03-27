@@ -80,11 +80,10 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       select: (data: TData[]) => {
         if (data && data.length === limit) {
           const key = `limit-warn-${queryKey}`;
-          const w = window as unknown as Record<string, unknown>;
-          if (!w[key]) {
-            w[key] = true;
+          if (!limitWarnShown.has(key)) {
+            limitWarnShown.add(key);
             toast.warning(`تم عرض أول ${limit} سجل فقط من ${label}. قد توجد سجلات إضافية لم تُعرض.`);
-            setTimeout(() => { delete w[key]; }, 300_000);
+            setTimeout(() => { limitWarnShown.delete(key); }, 300_000);
           }
         }
         return data;
