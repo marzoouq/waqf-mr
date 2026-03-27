@@ -71,8 +71,8 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
             <Input name="share_percentage" id="beneficiary-form-dialog-field-2" type="number" step="0.01" min="0.01" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="7.14" />
             {errors.share_percentage && <p className="text-xs text-destructive">{errors.share_percentage}</p>}
           </div>
-          <div className="space-y-2"><Label htmlFor="beneficiary-form-dialog-field-2">رقم الهاتف</Label><Input name="phone" id="beneficiary-form-dialog-field-1" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="05xxxxxxxx" dir="ltr" maxLength={15} /></div>
-          <div className="space-y-2"><Label htmlFor="beneficiary-form-dialog-field-3">البريد الإلكتروني</Label><Input name="email" id="beneficiary-form-dialog-field-2" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" dir="ltr" maxLength={255} /></div>
+          <div className="space-y-2"><Label htmlFor="beneficiary-form-dialog-field-3">رقم الهاتف</Label><Input name="phone" id="beneficiary-form-dialog-field-3" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="05xxxxxxxx" dir="ltr" maxLength={15} /></div>
+          <div className="space-y-2"><Label htmlFor="beneficiary-form-dialog-field-4">البريد الإلكتروني</Label><Input name="email" id="beneficiary-form-dialog-field-4" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" dir="ltr" maxLength={255} /></div>
           <div className="space-y-2">
             <Label htmlFor="beneficiary-form-dialog-field-3">رقم الحساب البنكي (IBAN)</Label>
             <Input name="bank_account" id="beneficiary-form-dialog-field-3" value={formData.bank_account} onChange={(e) => setFormData({ ...formData, bank_account: e.target.value })} placeholder="SA0000000000000000000000" dir="ltr" maxLength={24} />
