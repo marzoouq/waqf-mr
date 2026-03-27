@@ -218,7 +218,9 @@ const ReportsPage = () => {
           </TabsContent>
 
           <TabsContent value="monthly" className="space-y-6">
-            <MonthlyPerformanceReport income={income} expenses={expenses} fiscalYear={currentAccount?.fiscal_year} />
+            <Suspense fallback={null}>
+              <MonthlyPerformanceReport income={income} expenses={expenses} fiscalYear={currentAccount?.fiscal_year} />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="cashflow" className="space-y-6">
