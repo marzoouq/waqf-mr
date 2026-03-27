@@ -6,6 +6,7 @@ import type { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/safeNumber';
 
 // ---------------------------------------------------------------------------
