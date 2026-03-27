@@ -62,7 +62,7 @@ const CarryforwardHistoryPage = () => {
     return fiscalYears?.find(f => f.id === id)?.label ?? id;
   };
 
-  const { data: benFinance, isLoading: loadingFinance } = useMyBeneficiaryFinance(beneficiary?.id ?? undefined);
+  const { data: benFinance, isLoading: loadingBenFin } = useMyBeneficiaryFinance(beneficiary?.id ?? undefined);
   const carryforwards = benFinance?.myCarryforwards ?? [];
   const advances = benFinance?.myAdvances ?? [];
   const activeBalance = benFinance?.carryforwardBalance ?? 0;
