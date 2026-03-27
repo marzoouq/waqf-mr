@@ -181,7 +181,7 @@ export const useZatcaSettings = () => {
   const handleTestConnection = async () => {
     setConnectionTest({ loading: true, result: null });
     try {
-      const { data, error } = await supabase.functions.invoke('zatca-api', {
+      const { data, error } = await supabase.functions.invoke('zatca-onboard', {
         body: { action: 'test-connection' },
       });
       if (error) throw error;
