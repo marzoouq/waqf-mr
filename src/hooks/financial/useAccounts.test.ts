@@ -6,7 +6,7 @@ import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 const mockSelect = vi.fn();
 const mockOrder = vi.fn();
-const mockLimit = vi.fn();
+const mockRange = vi.fn();
 const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
 const mockDelete = vi.fn();
@@ -24,7 +24,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 
 import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from './useAccounts';
 import { supabase } from '@/integrations/supabase/client';
@@ -60,8 +60,8 @@ const sampleAccount = {
 beforeEach(() => {
   vi.clearAllMocks();
   mockSelect.mockReturnValue({ order: mockOrder });
-  mockOrder.mockReturnValue({ limit: mockLimit });
-  mockLimit.mockResolvedValue({ data: [sampleAccount], error: null });
+  mockOrder.mockReturnValue({ range: mockRange });
+  mockRange.mockResolvedValue({ data: [sampleAccount], error: null });
   mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle }) });
   mockMaybeSingle.mockResolvedValue({ data: sampleAccount, error: null });
   mockUpdate.mockReturnValue({ eq: mockEq });
@@ -125,7 +125,7 @@ describe('useAccounts (CRUD)', () => {
   });
 
   it('handles empty accounts list', async () => {
-    mockLimit.mockResolvedValueOnce({ data: [], error: null });
+    mockRange.mockResolvedValueOnce({ data: [], error: null });
     const { result } = renderHook(() => useAccounts(), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([]);
