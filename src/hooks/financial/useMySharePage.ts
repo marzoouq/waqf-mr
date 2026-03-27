@@ -11,7 +11,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import { useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards } from '@/hooks/financial/useAdvanceRequests';
+import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
@@ -76,17 +76,13 @@ export const useMySharePage = () => {
     enabled: !!currentBeneficiary?.id,
   });
 
-  // سُلف المستفيد
-  const { data: myAdvances = [] } = useMyAdvanceRequests(currentBeneficiary?.id ?? undefined);
-  const { data: paidAdvancesTotal = 0 } = usePaidAdvancesTotal(
-    currentBeneficiary?.id ?? undefined,
-    fiscalYearId === 'all' ? undefined : fiscalYearId,
-  );
-  const { data: carryforwardBalance = 0 } = useCarryforwardBalance(
-    currentBeneficiary?.id ?? undefined,
-    fiscalYearId === 'all' ? undefined : fiscalYearId,
-  );
-  const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id ?? undefined);
+  // سُلف وترحيلات المستفيد — استعلام مدمج واحد بدل 4
+  const effectiveFyId = fiscalYearId === 'all' ? undefined : fiscalYearId;
+  const { data: benFinance } = useMyBeneficiaryFinance(currentBeneficiary?.id ?? undefined, effectiveFyId);
+  const myAdvances = benFinance?.myAdvances ?? [];
+  const paidAdvancesTotal = benFinance?.paidAdvancesTotal ?? 0;
+  const carryforwardBalance = benFinance?.carryforwardBalance ?? 0;
+  const myCarryforwards = benFinance?.myCarryforwards ?? [];
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
 
   const { getJsonSetting } = useAppSettings();

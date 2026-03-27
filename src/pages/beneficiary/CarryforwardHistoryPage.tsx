@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useMyCarryforwards, useMyAdvanceRequests, useCarryforwardBalance } from '@/hooks/financial/useAdvanceRequests';
+import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
 import { ArrowDownUp, TrendingDown, CheckCircle, Clock, AlertTriangle, Wallet, RefreshCw, ArrowRight } from 'lucide-react';
@@ -62,16 +62,17 @@ const CarryforwardHistoryPage = () => {
     return fiscalYears?.find(f => f.id === id)?.label ?? id;
   };
 
-  const { data: carryforwards = [], isLoading: loadingCF } = useMyCarryforwards(beneficiary?.id ?? undefined);
-  const { data: advances = [], isLoading: loadingAdv } = useMyAdvanceRequests(beneficiary?.id ?? undefined);
-  const { data: activeBalance = 0 } = useCarryforwardBalance(beneficiary?.id ?? undefined);
+  const { data: benFinance, isLoading: loadingBenFin } = useMyBeneficiaryFinance(beneficiary?.id ?? undefined);
+  const carryforwards = benFinance?.myCarryforwards ?? [];
+  const advances = benFinance?.myAdvances ?? [];
+  const activeBalance = benFinance?.carryforwardBalance ?? 0;
 
   const paidAdvances = advances.filter(a => a.status === 'paid');
   const totalPaidAdvances = paidAdvances.reduce((s, a) => s + safeNumber(a.amount), 0);
   const settledCF = carryforwards.filter(c => c.status === 'settled');
   const totalSettled = settledCF.reduce((s, c) => s + safeNumber(c.amount), 0);
 
-  if (loadingBen || loadingCF || loadingAdv) {
+  if (loadingBen || loadingBenFin) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
