@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { safeNumber } from '@/utils/safeNumber';
 import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/data/useContracts';
@@ -10,9 +10,8 @@ import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts/contractForm.types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { getPaymentTypeLabel } from '@/utils/contractHelpers';
-
-const getBaseNumber = (num: string) => num.replace(/-R\d+$/, '');
+import { useContractsFilters } from './useContractsFilters';
+import { useContractsBulkRenew } from './useContractsBulkRenew';
 
 export const useContractsPage = () => {
   const { fiscalYearId, fiscalYears, isClosed, setFiscalYearId, isSpecificYear } = useFiscalYear();
@@ -35,22 +34,22 @@ export const useContractsPage = () => {
     return map;
   }, [paymentInvoices]);
 
+  // التصفية والتجميع
+  const filters = useContractsFilters({ contracts, paymentInvoices });
+
+  // التجديد الجماعي
+  const bulkRenew = useContractsBulkRenew({
+    contracts,
+    fiscalYearId,
+    createContractAsync: (data) => createContract.mutateAsync(data as unknown as Parameters<typeof createContract.mutateAsync>[0]),
+  });
+
   // State
   const [isOpen, setIsOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [bulkRenewOpen, setBulkRenewOpen] = useState(false);
-  const [bulkRenewing, setBulkRenewing] = useState(false);
-  const [selectedForRenewal, setSelectedForRenewal] = useState<Set<string>>(new Set());
-  // تصفير التحديد عند تغيير السنة المالية
-  useEffect(() => setSelectedForRenewal(new Set()), [fiscalYearId]);
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'cancelled' | 'overdue'>('all');
-  const [propertyFilter, setPropertyFilter] = useState<string>('all');
-  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('contracts');
   const ITEMS_PER_PAGE = 10;
 
@@ -63,7 +62,6 @@ export const useContractsPage = () => {
     const num = contract.contract_number;
     const match = num.match(/-R(\d+)$/);
     const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]!) + 1}`) : `${num}-R1`;
-    // حساب تواريخ مقترحة بناءً على مدة العقد الأصلي
     const oldStart = new Date(contract.start_date);
     const oldEnd = new Date(contract.end_date);
     const durationMs = oldEnd.getTime() - oldStart.getTime();
@@ -106,7 +104,6 @@ export const useContractsPage = () => {
   }, []);
 
   const handleFormSubmit = async (formData: ContractFormData, isEditing: boolean) => {
-    // تحقق: تاريخ الانتهاء بعد تاريخ البداية
     if (formData.end_date <= formData.start_date) {
       toast.error('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
       return;
@@ -193,153 +190,6 @@ export const useContractsPage = () => {
     setDeleteTarget(null);
   };
 
-  const expiredContracts = useMemo(() => contracts.filter(c => c.status === 'expired'), [contracts]);
-
-  const toggleSelection = useCallback((id: string) => {
-    setSelectedForRenewal(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  }, []);
-  const selectAllExpired = useCallback(() => setSelectedForRenewal(new Set(expiredContracts.map(c => c.id))), [expiredContracts]);
-  const deselectAll = useCallback(() => setSelectedForRenewal(new Set()), []);
-
-  const handleBulkRenew = async () => {
-    if (bulkRenewing) return; // حماية من النقر المزدوج
-    setBulkRenewing(true);
-    try {
-      const { data: activeFY } = await supabase.from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
-      const contractsToRenew = expiredContracts.filter(c => selectedForRenewal.has(c.id));
-      let created = 0;
-      for (const contract of contractsToRenew) {
-        const oldStart = new Date(contract.start_date);
-        const oldEnd = new Date(contract.end_date);
-        const durationMs = oldEnd.getTime() - oldStart.getTime();
-        const newStart = new Date(oldEnd);
-        const newEnd = new Date(newStart.getTime() + durationMs);
-        const startDate = newStart.toISOString().split('T')[0];
-        const endDate = newEnd.toISOString().split('T')[0];
-        const num = contract.contract_number;
-        const match = num.match(/-R(\d+)$/);
-        const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]!) + 1}`) : `${num}-R1`;
-        const paymentCount = contract.payment_type === 'monthly' ? 12 : contract.payment_type === 'quarterly' ? 4 : contract.payment_type === 'semi_annual' ? 2 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
-        const paymentAmount = safeNumber(contract.rent_amount) / paymentCount;
-        const newContract: Record<string, unknown> = {
-          contract_number: newNumber, property_id: contract.property_id, unit_id: contract.unit_id || null,
-          tenant_name: contract.tenant_name, start_date: startDate, end_date: endDate,
-          rent_amount: contract.rent_amount, status: 'active',
-          notes: `تجديد جماعي للعقد ${contract.contract_number}`,
-          payment_type: contract.payment_type || 'annual', payment_count: paymentCount, payment_amount: paymentAmount,
-          fiscal_year_id: activeFY?.id || null,
-          tenant_id_type: contract.tenant_id_type || 'NAT',
-          tenant_id_number: contract.tenant_id_number || null,
-          tenant_tax_number: contract.tenant_tax_number || null,
-          tenant_crn: contract.tenant_crn || null,
-          tenant_street: contract.tenant_street || null,
-          tenant_building: contract.tenant_building || null,
-          tenant_district: contract.tenant_district || null,
-          tenant_city: contract.tenant_city || null,
-          tenant_postal_code: contract.tenant_postal_code || null,
-        };
-        await createContract.mutateAsync(newContract as unknown as Parameters<typeof createContract.mutateAsync>[0]);
-        created++;
-      }
-      await supabase.rpc('notify_admins', { p_title: 'تجديد جماعي للعقود', p_message: `تم تجديد ${created} عقد منتهي بنجاح`, p_type: 'success', p_link: '/dashboard/contracts' });
-      await supabase.rpc('notify_all_beneficiaries', { p_title: 'تجديد عقود الإيجار', p_message: `تم تجديد ${created} عقد إيجار للسنة الجديدة`, p_type: 'info', p_link: '/beneficiary/notifications' });
-      toast.success(`تم تجديد ${created} عقد بنجاح`);
-    } catch {
-      toast.error('حدث خطأ أثناء التجديد');
-    } finally {
-      setBulkRenewing(false);
-      setBulkRenewOpen(false);
-      setSelectedForRenewal(new Set());
-    }
-  };
-
-  // تجميع العقود حسب الرقم الأساسي
-  const groupedContracts = useMemo(() => {
-    const map = new Map<string, Contract[]>();
-    for (const c of contracts) {
-      const base = getBaseNumber(c.contract_number);
-      if (!map.has(base)) map.set(base, []);
-      map.get(base)!.push(c);
-    }
-    for (const [, group] of map) {
-      group.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
-    }
-    return [...map.entries()].sort((a, b) => {
-      const latestA = new Date(a[1][0]!.start_date).getTime();
-      const latestB = new Date(b[1][0]!.start_date).getTime();
-      return latestB - latestA;
-    });
-  }, [contracts]);
-
-  // العقود المتأخرة عن السداد > 30 يوم
-  const overdueContractIds = useMemo(() => {
-    const ids = new Set<string>();
-    const now = Date.now();
-    const thirtyDays = 30 * 24 * 3600 * 1000;
-    for (const inv of paymentInvoices) {
-      if (inv.status === 'overdue' || (inv.status === 'pending' && new Date(inv.due_date).getTime() + thirtyDays < now)) {
-        ids.add(inv.contract_id);
-      }
-    }
-    return ids;
-  }, [paymentInvoices]);
-
-  const statusCounts = useMemo(() => {
-    let active = 0, expired = 0, cancelled = 0;
-    for (const [, group] of groupedContracts) {
-      const latestStatus = group[0]!.status;
-      if (latestStatus === 'active') active++;
-      else if (latestStatus === 'cancelled') cancelled++;
-      else expired++;
-    }
-    const overdue = groupedContracts.filter(([, group]) => group.some(c => overdueContractIds.has(c.id))).length;
-    return { active, expired, cancelled, all: groupedContracts.length, overdue };
-  }, [groupedContracts, overdueContractIds]);
-
-  // فلترة المجموعات
-  const filteredGroups = useMemo(() => {
-    let result = groupedContracts;
-    if (statusFilter === 'overdue') {
-      result = result.filter(([, group]) => group.some(c => overdueContractIds.has(c.id)));
-    } else if (statusFilter !== 'all') {
-      result = result.filter(([, group]) => {
-        const latestStatus = group[0]!.status;
-        if (statusFilter === 'active') return latestStatus === 'active';
-        if (statusFilter === 'cancelled') return latestStatus === 'cancelled';
-        return latestStatus !== 'active' && latestStatus !== 'cancelled';
-      });
-    }
-    if (propertyFilter !== 'all') {
-      result = result.filter(([, group]) => group.some(c => c.property_id === propertyFilter));
-    }
-    if (paymentTypeFilter !== 'all') {
-      result = result.filter(([, group]) => group.some(c => c.payment_type === paymentTypeFilter));
-    }
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(([, group]) => group.some(c =>
-        c.contract_number.toLowerCase().includes(q) || c.tenant_name.toLowerCase().includes(q) ||
-        (c.notes || '').toLowerCase().includes(q) || getPaymentTypeLabel(c.payment_type).includes(q)
-      ));
-    }
-    return result;
-  }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter, overdueContractIds]);
-
-  const allExpanded = filteredGroups.length > 0 && filteredGroups.every(([base]) => expandedGroups.has(base));
-  const toggleAllGroups = useCallback(() => {
-    if (allExpanded) {
-      setExpandedGroups(new Set());
-    } else {
-      setExpandedGroups(new Set(filteredGroups.map(([base]) => base)));
-    }
-  }, [allExpanded, filteredGroups]);
-
-  const expiredIds = useMemo(() => new Set(expiredContracts.map(c => c.id)), [expiredContracts]);
-
   const stats = useMemo(() => {
     const active = contracts.filter(c => c.status === 'active');
     const expired = contracts.filter(c => c.status === 'expired');
@@ -371,15 +221,16 @@ export const useContractsPage = () => {
     fiscalYearId, fiscalYears, isClosed, isSpecificYear, setFiscalYearId,
     isLoading, isPending: createContract.isPending || updateContract.isPending,
     // Computed
-    stats, expiredContracts, expiredIds, groupedContracts, filteredGroups, statusCounts, overdueContractIds, allExpanded,
+    stats,
+    ...filters,
+    ...bulkRenew,
     // State
-    isOpen, setIsOpen, editingContract, searchQuery, setSearchQuery, deleteTarget, setDeleteTarget,
-    currentPage, setCurrentPage, bulkRenewOpen, setBulkRenewOpen, bulkRenewing,
-    selectedForRenewal, formInitialData, expandedGroups, setExpandedGroups,
-    statusFilter, setStatusFilter, propertyFilter, setPropertyFilter,
-    paymentTypeFilter, setPaymentTypeFilter, activeTab, setActiveTab, ITEMS_PER_PAGE,
+    isOpen, setIsOpen, editingContract,
+    deleteTarget, setDeleteTarget,
+    currentPage, setCurrentPage,
+    formInitialData,
+    activeTab, setActiveTab, ITEMS_PER_PAGE,
     // Actions
     resetForm, handleRenew, handleEdit, handleFormSubmit, handleConfirmDelete,
-    handleBulkRenew, toggleSelection, selectAllExpired, deselectAll, toggleAllGroups,
   };
 };
