@@ -196,13 +196,15 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
       </div>
 
       {/* الرسوم البيانية */}
-      <YoYChartsSection
-        comparisonData={comparisonData}
-        year1Label={year1Label}
-        year2Label={year2Label}
-        expensesByType1={expensesByType1}
-        expensesByType2={expensesByType2}
-      />
+      <Suspense fallback={null}>
+        <YoYChartsSection
+          comparisonData={comparisonData}
+          year1Label={year1Label}
+          year2Label={year2Label}
+          expensesByType1={expensesByType1}
+          expensesByType2={expensesByType2}
+        />
+      </Suspense>
 
       {/* جدول المقارنة */}
       <YoYComparisonTable

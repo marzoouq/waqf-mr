@@ -139,7 +139,9 @@ const AnnualReportViewPage = () => {
           ))}
         </div>
 
-        <IncomeComparisonChart />
+        <Suspense fallback={null}>
+          <IncomeComparisonChart />
+        </Suspense>
 
         <Tabs defaultValue={viewTab} value={viewTab} onValueChange={setViewTab} dir="rtl">
           {/* قائمة Select للجوال */}

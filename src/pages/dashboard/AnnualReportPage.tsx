@@ -229,7 +229,9 @@ const AnnualReportPage = () => {
         </div>
 
         {/* مقارنة الدخل */}
-        <IncomeComparisonChart />
+        <Suspense fallback={null}>
+          <IncomeComparisonChart />
+        </Suspense>
 
         {/* التبويبات */}
         {isLoading ? (
