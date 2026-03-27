@@ -5,6 +5,9 @@ import { toast } from 'sonner';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { Database } from '@/integrations/supabase/types';
 
+// سجل تتبع تحذيرات الحد الأقصى — بديل آمن عن تخزين في window
+const limitWarnShown = new Set<string>();
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
