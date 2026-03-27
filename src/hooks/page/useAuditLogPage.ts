@@ -4,6 +4,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/useAuditLog';
 import { generateAuditLogPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
