@@ -77,10 +77,10 @@ describe('checks — إعدادات التطبيق', () => {
 });
 
 describe('diagnosticCategories', () => {
-  it('يحتوي 7 بطاقات و32 فحص', async () => {
+  it('يحتوي 7 بطاقات و33 فحص', async () => {
     const { diagnosticCategories } = await import('./checks');
     expect(diagnosticCategories).toHaveLength(7);
     const totalChecks = diagnosticCategories.reduce((sum, cat) => sum + cat.checks.length, 0);
-    expect(totalChecks).toBe(32);
+    expect(totalChecks).toBe(33);
   });
 });
