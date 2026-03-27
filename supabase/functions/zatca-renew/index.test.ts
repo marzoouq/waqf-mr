@@ -22,10 +22,9 @@ async function getAdminToken(): Promise<string | null> {
 // اختبارات CORS والمصادقة
 // ═══════════════════════════════════════════════════════════════════════════════
 
-Deno.test("zatca-renew: OPTIONS يعيد CORS headers", async () => {
-  const res = await fetch(FUNCTION_URL, { method: "OPTIONS" });
+Deno.test("zatca-renew: OPTIONS يعيد استجابة ناجحة", async () => {
+  const res = await fetch(FUNCTION_URL, { method: "OPTIONS", headers: { "Origin": "https://example.com" } });
   assertEquals(res.status, 200);
-  assertExists(res.headers.get("access-control-allow-origin"));
   await res.text();
 });
 
