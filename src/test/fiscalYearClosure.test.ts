@@ -34,7 +34,7 @@ interface CloseResult {
 function simulateCloseFiscalYear(params: CloseParams): CloseResult {
   const {
     caller_role, fy_status, pending_distributions, pending_advances,
-    unpaid_invoices, existing_account_id, account_data, waqf_corpus_manual,
+    unpaid_invoices, existing_account_id,
   } = params;
 
   // 1. التحقق من الدور
