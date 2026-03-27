@@ -93,12 +93,16 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "فشل توليد طلب الشهادة (CSR) للتجديد" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // دالة مساعدة لحذف OTP بعد أي نتيجة
+    const clearOtp = () => admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"]).catch(() => {});
+
     try {
       // الخطوة 2: الحصول على Compliance CSID جديد
       const csrResponse = await fetch(`${ZATCA_API_URL}/compliance`, { method: "POST", headers: { ...ZATCA_COMMON_HEADERS, "OTP": otp }, body: JSON.stringify({ csr: csrPem }) });
       if (!csrResponse.ok) {
         const errText = await csrResponse.text();
         await logZatcaOperation(admin, { operation_type: "renew", status: "error", request_summary: { step: "compliance", url: `${ZATCA_API_URL}/compliance` }, response_summary: { status_code: csrResponse.status }, error_message: errText, user_id: user.id });
+        await clearOtp();
         return new Response(JSON.stringify({ error: `فشل الحصول على شهادة امتثال للتجديد: ${errText}` }), { status: csrResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       const csrData = await csrResponse.json();
@@ -115,6 +119,7 @@ Deno.serve(async (req) => {
       if (!prodResponse.ok) {
         const errText = await prodResponse.text();
         await logZatcaOperation(admin, { operation_type: "renew", status: "error", request_summary: { step: "production", url: `${ZATCA_API_URL}/production/csids` }, response_summary: { status_code: prodResponse.status }, error_message: errText, user_id: user.id });
+        await clearOtp();
         return new Response(JSON.stringify({ error: `فشل تجديد شهادة الإنتاج: ${errText}` }), { status: prodResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       const prodData = await prodResponse.json();
@@ -123,13 +128,14 @@ Deno.serve(async (req) => {
       await admin.from("zatca_certificates").update({ is_active: false }).eq("is_active", true);
       const renewExpiry = parseCertExpiry(prodData.binarySecurityToken || "");
       await admin.from("zatca_certificates").insert({ certificate_type: "production", certificate: prodData.binarySecurityToken || "", private_key: privKeyHex, zatca_secret: prodData.secret || "", request_id: prodData.requestID || "", is_active: true, expires_at: renewExpiry });
-      await admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"]);
+      await clearOtp();
 
       await logZatcaOperation(admin, { operation_type: "renew", status: "success", request_summary: { platform: isProduction ? "production" : "sandbox" }, response_summary: { request_id: prodData.requestID, certificate_type: "production" }, user_id: user.id });
       return new Response(JSON.stringify({ success: true, request_id: prodData.requestID, certificate_type: "production", message: "تم تجديد شهادة الإنتاج بنجاح" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     } catch (fetchErr) {
       const errMsg = `ZATCA API unreachable: ${(fetchErr as Error).message}`;
       await logZatcaOperation(admin, { operation_type: "renew", status: "error", error_message: errMsg, user_id: user.id });
+      await clearOtp();
       return new Response(JSON.stringify({ error: errMsg }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
   } catch (e) {
