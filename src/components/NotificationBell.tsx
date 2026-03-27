@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/data/useNotifications';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Bell, CheckCheck, AlertTriangle, Info, FileText, DollarSign, X, Trash2 } from 'lucide-react';
+import { Bell, CheckCheck, AlertTriangle, Info, FileText, DollarSign, X, Trash2, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
