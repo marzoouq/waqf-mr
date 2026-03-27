@@ -693,6 +693,7 @@ export type Database = {
       }
       conversations: {
         Row: {
+          ai_mode: string | null
           created_at: string
           created_by: string
           id: string
@@ -703,6 +704,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_mode?: string | null
           created_at?: string
           created_by: string
           id?: string
@@ -713,6 +715,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_mode?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -1156,6 +1159,7 @@ export type Database = {
           conversation_id: string
           created_at: string
           id: string
+          is_ai_response: boolean
           is_read: boolean
           sender_id: string
         }
@@ -1164,6 +1168,7 @@ export type Database = {
           conversation_id: string
           created_at?: string
           id?: string
+          is_ai_response?: boolean
           is_read?: boolean
           sender_id: string
         }
@@ -1172,6 +1177,7 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           id?: string
+          is_ai_response?: boolean
           is_read?: boolean
           sender_id?: string
         }
