@@ -128,61 +128,47 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
           </p>
         </div>
         <TooltipProvider delayDuration={0}>
-          <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
-            {/* Mobile: always show button directly, no tooltip */}
-            <div className="lg:hidden">
+          {/* Mobile: always show button directly, no tooltip */}
+          <div className="lg:hidden">
+            <Button
+              variant="ghost"
+              className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
+              onClick={onSignOut}
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="mr-2">تسجيل الخروج</span>
+            </Button>
+          </div>
+          {/* Desktop collapsed: tooltip wraps trigger */}
+          {!sidebarOpen && (
+            <div className="hidden lg:block">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive px-0"
+                    onClick={onSignOut}
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">تسجيل الخروج</TooltipContent>
+              </Tooltip>
+            </div>
+          )}
+          {/* Desktop expanded: simple button */}
+          {sidebarOpen && (
+            <div className="hidden lg:block">
               <Button
                 variant="ghost"
                 className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
-                onClick={() => setLogoutOpen(true)}
+                onClick={onSignOut}
               >
                 <LogOut className="w-5 h-5" />
                 <span className="mr-2">تسجيل الخروج</span>
               </Button>
             </div>
-            {/* Desktop collapsed: tooltip wraps trigger */}
-            {!sidebarOpen && (
-              <div className="hidden lg:block">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive px-0"
-                      onClick={() => setLogoutOpen(true)}
-                    >
-                      <LogOut className="w-5 h-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left">تسجيل الخروج</TooltipContent>
-                </Tooltip>
-              </div>
-            )}
-            {/* Desktop expanded: simple button */}
-            {sidebarOpen && (
-              <div className="hidden lg:block">
-                <Button
-                  variant="ghost"
-                  className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
-                  onClick={() => setLogoutOpen(true)}
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span className="mr-2">تسجيل الخروج</span>
-                </Button>
-              </div>
-            )}
-            <AlertDialogContent className="z-70" onTouchStart={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onTouchEnd={(e) => e.stopPropagation()}>
-              <AlertDialogHeader>
-                <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
-                <AlertDialogDescription>هل أنت متأكد من رغبتك في تسجيل الخروج من النظام؟</AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="gap-2">
-                <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                <AlertDialogAction onClick={onSignOut} className="bg-destructive hover:bg-destructive/90">
-                  تسجيل الخروج
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          )}
         </TooltipProvider>
       </div>
     </>
