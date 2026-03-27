@@ -60,101 +60,81 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
 };
 
 /**
- * جلب طلبات سُلف مستفيد معين
+ * هوك مدمج لبيانات المستفيد: سُلف + ترحيلات في استعلامين متوازيين بدل 4 منفصلة
+ * يحسب paidAdvancesTotal و carryforwardBalance من البيانات المجلوبة محلياً
  */
+export const useMyBeneficiaryFinance = (beneficiaryId?: string, fiscalYearId?: string) => {
+  return useQuery({
+    queryKey: ['my_beneficiary_finance', beneficiaryId, fiscalYearId ?? 'all'],
+    staleTime: STALE_REALTIME,
+    queryFn: async () => {
+      if (!beneficiaryId) return { advances: [] as AdvanceRequest[], carryforwards: [] as AdvanceCarryforward[] };
+
+      // استعلامان متوازيان بدل 4
+      const [advRes, cfRes] = await Promise.all([
+        supabase
+          .from('advance_requests')
+          .select('id, beneficiary_id, fiscal_year_id, amount, reason, status, rejection_reason, approved_by, approved_at, paid_at, created_at')
+          .eq('beneficiary_id', beneficiaryId)
+          .order('created_at', { ascending: false })
+          .limit(100),
+        supabase
+          .from('advance_carryforward')
+          .select('id, beneficiary_id, from_fiscal_year_id, to_fiscal_year_id, amount, status, notes, created_at')
+          .eq('beneficiary_id', beneficiaryId)
+          .order('created_at', { ascending: false })
+          .limit(100),
+      ]);
+
+      if (advRes.error) throw advRes.error;
+      if (cfRes.error) throw cfRes.error;
+
+      return {
+        advances: (advRes.data ?? []) as unknown as AdvanceRequest[],
+        carryforwards: (cfRes.data ?? []) as unknown as AdvanceCarryforward[],
+      };
+    },
+    enabled: !!beneficiaryId,
+    select: (raw) => {
+      // حساب مشتقات من البيانات المجلوبة — بدل استعلامات منفصلة
+      const paidAdvancesTotal = raw.advances
+        .filter(a => a.status === 'paid' && (!fiscalYearId || a.fiscal_year_id === fiscalYearId))
+        .reduce((sum, a) => sum + safeNumber(a.amount), 0);
+
+      const carryforwardBalance = raw.carryforwards
+        .filter(c => c.status === 'active' && (!fiscalYearId || c.to_fiscal_year_id === fiscalYearId || !c.to_fiscal_year_id))
+        .reduce((sum, c) => sum + safeNumber(c.amount), 0);
+
+      return {
+        myAdvances: raw.advances,
+        myCarryforwards: raw.carryforwards,
+        paidAdvancesTotal,
+        carryforwardBalance,
+      };
+    },
+  });
+};
+
+// ─── Backward-compatible aliases ───
+/** @deprecated استخدم useMyBeneficiaryFinance بدلاً منه */
 export const useMyAdvanceRequests = (beneficiaryId?: string) => {
-  return useQuery({
-    queryKey: ['advance_requests', 'my', beneficiaryId],
-    staleTime: STALE_REALTIME,
-    queryFn: async () => {
-      if (!beneficiaryId) return [];
-      const { data, error } = await supabase
-        .from('advance_requests')
-        .select('id, beneficiary_id, fiscal_year_id, amount, reason, status, rejection_reason, approved_by, approved_at, paid_at, created_at')
-        .eq('beneficiary_id', beneficiaryId)
-        .order('created_at', { ascending: false })
-        .limit(100);
-      if (error) throw error;
-      return (data ?? []) as unknown as AdvanceRequest[];
-    },
-    enabled: !!beneficiaryId,
-  });
+  const q = useMyBeneficiaryFinance(beneficiaryId);
+  return { ...q, data: q.data?.myAdvances ?? [] };
 };
-
-/**
- * إجمالي السُلف المصروفة لمستفيد في سنة مالية
- */
+/** @deprecated استخدم useMyBeneficiaryFinance بدلاً منه */
 export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: string) => {
-  return useQuery({
-    queryKey: ['advance_requests', 'paid_total', beneficiaryId, fiscalYearId],
-    staleTime: STALE_REALTIME,
-    queryFn: async () => {
-      if (!beneficiaryId) return 0;
-      let query = supabase
-        .from('advance_requests')
-        .select('amount')
-        .eq('beneficiary_id', beneficiaryId)
-        .eq('status', 'paid');
-      if (fiscalYearId) {
-        query = query.eq('fiscal_year_id', fiscalYearId);
-      }
-      const { data, error } = await query.limit(1000);
-      if (error) throw error;
-      return (data ?? []).reduce((sum: number, r: { amount: string | number }) => sum + safeNumber(r.amount), 0);
-    },
-    enabled: !!beneficiaryId,
-  });
+  const q = useMyBeneficiaryFinance(beneficiaryId, fiscalYearId);
+  return { ...q, data: q.data?.paidAdvancesTotal ?? 0 };
 };
-
-/**
- * M-02 fix: جلب الفروق المرحّلة النشطة لمستفيد — تُفلتر بالسنة المالية المستهدفة (to_fiscal_year_id)
- * لضمان التوافق مع منطق DistributeDialog الذي يخصم بنفس الفلتر.
- */
+/** @deprecated استخدم useMyBeneficiaryFinance بدلاً منه */
 export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: string) => {
-  return useQuery({
-    queryKey: ['advance_carryforward', 'balance', beneficiaryId, fiscalYearId],
-    staleTime: STALE_REALTIME,
-    queryFn: async () => {
-      if (!beneficiaryId) return 0;
-      let query = supabase
-        .from('advance_carryforward')
-        .select('amount')
-        .eq('beneficiary_id', beneficiaryId)
-        .eq('status', 'active');
-
-      // M-02 fix: فلترة بالسنة المستهدفة أو الترحيلات بدون سنة محددة
-      if (fiscalYearId) {
-        query = query.or(`to_fiscal_year_id.eq.${fiscalYearId},to_fiscal_year_id.is.null`);
-      }
-
-      const { data, error } = await query.limit(1000);
-      if (error) throw error;
-      return (data ?? []).reduce((sum: number, r: { amount: string | number }) => sum + safeNumber(r.amount), 0);
-    },
-    enabled: !!beneficiaryId,
-  });
+  const q = useMyBeneficiaryFinance(beneficiaryId, fiscalYearId);
+  return { ...q, data: q.data?.carryforwardBalance ?? 0 };
 };
-
-/**
- * جلب سجلات الترحيل لمستفيد
- */
+/** @deprecated استخدم useMyBeneficiaryFinance بدلاً منه */
 export const useMyCarryforwards = (beneficiaryId?: string) => {
-  return useQuery({
-    queryKey: ['advance_carryforward', 'my', beneficiaryId],
-    staleTime: STALE_REALTIME,
-    queryFn: async () => {
-      if (!beneficiaryId) return [];
-      const { data, error } = await supabase
-        .from('advance_carryforward')
-        .select('id, beneficiary_id, from_fiscal_year_id, to_fiscal_year_id, amount, status, notes, created_at')
-        .eq('beneficiary_id', beneficiaryId)
-        .order('created_at', { ascending: false })
-        .limit(100);
-      if (error) throw error;
-      return (data ?? []) as unknown as AdvanceCarryforward[];
-    },
-    enabled: !!beneficiaryId,
-  });
+  const q = useMyBeneficiaryFinance(beneficiaryId);
+  return { ...q, data: q.data?.myCarryforwards ?? [] };
 };
 
 /**
