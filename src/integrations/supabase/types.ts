@@ -1816,15 +1816,25 @@ export type Database = {
       cron_update_overdue_invoices: { Args: never; Returns: undefined }
       decrypt_pii: { Args: { p_encrypted: string }; Returns: string }
       encrypt_pii: { Args: { p_value: string }; Returns: string }
-      execute_distribution: {
-        Args: {
-          p_account_id: string
-          p_distributions?: Json
-          p_fiscal_year_id?: string
-          p_total_distributed?: number
-        }
-        Returns: Json
-      }
+      execute_distribution:
+        | {
+            Args: {
+              p_account_id: string
+              p_distributions?: Json
+              p_fiscal_year_id?: string
+              p_total_distributed?: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_account_id: string
+              p_distributions?: Json
+              p_fiscal_year_id?: string
+              p_total_distributed?: number
+            }
+            Returns: Json
+          }
       generate_all_active_invoices: { Args: never; Returns: number }
       generate_contract_invoices: {
         Args: { p_contract_id: string }
