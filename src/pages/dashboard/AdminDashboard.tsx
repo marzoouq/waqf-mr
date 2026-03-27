@@ -1,30 +1,23 @@
 
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { lazy, Suspense, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { supabase } from '@/integrations/supabase/client';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { safeNumber } from '@/utils/safeNumber';
 import { computeMonthlyData } from '@/utils/dashboardComputations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useProperties } from '@/hooks/data/useProperties';
-import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
-import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import { useYoYComparison } from '@/hooks/financial/useYoYComparison';
+import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
 import { Printer, Gauge, ArrowUpDown } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useAllUnits } from '@/hooks/data/useUnits';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
-import { useFiscalYears } from '@/hooks/financial/useFiscalYears';
-import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAdvanceRequests } from '@/hooks/financial/useAdvanceRequests';
+
+// هوك البيانات المدمج — طلب واحد بدلاً من ~10
+import { useDashboardSummary } from '@/hooks/page/useDashboardSummary';
 
 // مكونات فرعية مستخرجة
 import DashboardAlerts from '@/components/dashboard/DashboardAlerts';
@@ -36,7 +29,6 @@ import QuickActionsCard from '@/components/dashboard/QuickActionsCard';
 
 // هوك الإحصائيات المستخرج
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
-import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 // Lazy-load heavy below-the-fold components
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
@@ -54,58 +46,44 @@ const ChartSkeleton = () => (
 
 const AdminDashboard = () => {
   const { role, user } = useAuth();
-  const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
 
   // ═══ Realtime: تحديث فوري للبطاقات عند تغيير البيانات المالية ═══
   useDashboardRealtime('admin-dashboard-realtime', ['income', 'expenses', 'accounts', 'payment_invoices']);
-  const { data: allFiscalYears = [], isLoading: fyListLoading } = useFiscalYears();
-  const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== 'all' ? fiscalYearId : undefined);
 
-  // ── حساب عدد السلف المعلقة مرة واحدة ──
+  // ═══ طلب واحد مدمج بدلاً من ~10 طلبات منفصلة ═══
+  const {
+    properties, contracts, allUnits, paymentInvoices,
+    contractAllocations, advanceRequests, orphanedContracts,
+    income, expenses, accounts, beneficiaries, settings,
+    allFiscalYears, yoy,
+    isLoading: summaryLoading,
+  } = useDashboardSummary(fiscalYearId, fiscalYear?.label);
+
+  // ── حساب عدد السلف المعلقة ──
   const pendingAdvancesCount = useMemo(
     () => advanceRequests.filter(r => r.status === 'pending').length,
     [advanceRequests],
   );
 
-  const { data: properties = [], isLoading: propsLoading } = useProperties();
-  const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
-  const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
-  const { data: paymentInvoices = [], isLoading: paymentsLoading } = usePaymentInvoices(fiscalYearId || 'all');
-  const allocFyId = (fiscalYearId !== 'all' && !!fiscalYearId) ? fiscalYearId : undefined;
-  const { data: contractAllocations = [] } = useContractAllocations(allocFyId);
-
-  const { data: orphanedContracts = [] } = useQuery({
-    queryKey: ['contracts', 'orphaned'],
-    staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('contracts')
-        .select('id, contract_number')
-        .is('fiscal_year_id', null)
-        .limit(500);
-      if (error) throw error;
-      return data;
-    },
-  });
-
+  // ── الحسابات المالية (من البيانات المجلوبة) ──
+  const computedAccounts = useMemo(
+    () => accounts.map(a => ({ ...a, fiscal_year_id: a.fiscal_year_id ?? '' })),
+    [accounts],
+  );
   const {
-    income, expenses, beneficiaries,
-    totalIncome, totalExpenses,
-    adminShare, waqifShare, waqfRevenue,
+    totalIncome, totalExpenses, adminShare, waqifShare, waqfRevenue,
     netAfterExpenses, netAfterZakat, availableAmount,
-    zakatAmount: _zakatAmount,
-    distributionsAmount,
-    usingFallbackPct,
-    isLoading: finLoading,
-  } = useFinancialSummary(fiscalYearId, fiscalYear?.label, {
+    zakatAmount: _zakatAmount, distributionsAmount, usingFallbackPct,
+  } = useComputedFinancials({
+    income, expenses, accounts: computedAccounts, settings,
+    fiscalYearLabel: fiscalYear?.label,
+    fiscalYearId,
     fiscalYearStatus: fiscalYear?.status,
   });
 
-  const yoy = useYoYComparison(fiscalYearId === 'all' ? undefined : fiscalYearId);
+  const isLoading = summaryLoading;
 
-  const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading || fyListLoading;
-
-  const { isSpecificYear } = useFiscalYear();
   const relevantContracts = useMemo(
     () => isSpecificYear ? contracts : contracts.filter(c => c.status === 'active'),
     [contracts, isSpecificYear]
@@ -137,7 +115,7 @@ const AdminDashboard = () => {
   const { stats, kpis, collectionSummary, collectionColor } = useAdminDashboardStats({
     properties, activeContractsCount, contractualRevenue,
     totalIncome, totalExpenses, netAfterExpenses, netAfterZakat,
-    availableAmount, adminShare, waqifShare, waqfRevenue,
+    availableAmount, adminShare: adminShare ?? 0, waqifShare: waqifShare ?? 0, waqfRevenue: waqfRevenue ?? 0,
     distributionsAmount, beneficiaries, isYearActive, sharesNote,
     yoy, contracts, paymentInvoices, allUnits, isSpecificYear,
   });
