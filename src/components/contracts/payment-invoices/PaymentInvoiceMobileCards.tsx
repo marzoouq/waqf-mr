@@ -7,9 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CheckCircle2, Clock, AlertTriangle, Check, X, Download, Loader2, Eye } from 'lucide-react';
 import { fmt } from '@/utils/format';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Invoice = any;
+import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 
 interface PaymentInvoiceMobileCardsProps {
   groupedPaginated: Map<string, Invoice[]>;

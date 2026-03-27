@@ -12,9 +12,7 @@ import {
 } from 'lucide-react';
 import { fmt } from '@/utils/format';
 import type { SortKey } from '@/hooks/page/usePaymentInvoicesTab';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Invoice = any;
+import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 
 interface PaymentInvoiceDesktopTableProps {
   groupedPaginated: Map<string, Invoice[]>;
