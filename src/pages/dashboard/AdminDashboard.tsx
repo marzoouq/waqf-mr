@@ -213,54 +213,54 @@ const AdminDashboard = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {role === 'accountant' ? (
                   <>
-                    <Link to="/dashboard/income">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/income">
                         <TrendingUp className="w-5 h-5 text-success" />
                         <span className="text-xs">تسجيل دخل</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/expenses">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/expenses">
                         <TrendingDown className="w-5 h-5 text-destructive" />
                         <span className="text-xs">تسجيل مصروف</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/accounts">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/accounts">
                         <FileText className="w-5 h-5 text-primary" />
                         <span className="text-xs">الحسابات الختامية</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/invoices">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/invoices">
                         <FileText className="w-5 h-5 text-secondary" />
                         <span className="text-xs">إدارة الفواتير</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/chart-of-accounts">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/chart-of-accounts">
                         <GitBranch className="w-5 h-5 text-accent-foreground" />
                         <span className="text-xs">الشجرة المحاسبية</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/comparison">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/comparison">
                         <ArrowUpDown className="w-5 h-5 text-muted-foreground" />
                         <span className="text-xs">المقارنة التاريخية</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/annual-report">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/annual-report">
                         <Printer className="w-5 h-5 text-primary" />
                         <span className="text-xs">التقرير السنوي</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/reports">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/reports">
                         <Gauge className="w-5 h-5 text-secondary" />
                         <span className="text-xs">التقارير المالية</span>
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </>
                 ) : (
                   <>
