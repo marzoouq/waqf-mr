@@ -32,7 +32,21 @@ const PAGE_LABELS: Record<string, string> = {
   '/dashboard/settings': 'الإعدادات',
   '/dashboard/support': 'الدعم الفني',
   '/dashboard/diagnostics': 'تشخيص النظام',
+  '/dashboard/zatca': 'إدارة ZATCA',
+  '/dashboard/annual-report': 'التقرير السنوي',
+  '/dashboard/comparison': 'المقارنة التاريخية',
+  '/dashboard/chart-of-accounts': 'دليل الحسابات',
+  '/dashboard/users': 'إدارة المستخدمين',
   '/beneficiary': 'بوابة المستفيد',
+  '/beneficiary/disclosure': 'الإفصاح السنوي',
+  '/beneficiary/my-share': 'حصتي',
+  '/beneficiary/financial-reports': 'التقارير المالية',
+  '/beneficiary/properties': 'العقارات',
+  '/beneficiary/contracts': 'العقود',
+  '/beneficiary/accounts': 'الحسابات الختامية',
+  '/beneficiary/bylaws': 'النظام الأساسي',
+  '/beneficiary/support': 'الدعم الفني',
+  '/beneficiary/annual-report': 'التقرير السنوي',
 };
 
 function getPageLabel(path: string): string {
