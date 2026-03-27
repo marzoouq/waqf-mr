@@ -29,7 +29,7 @@ function SessionItem({ session, isActive, onLoad, onDelete }: {
       <button className="flex-1 text-start truncate" onClick={() => onLoad(session)}>
         <p className="truncate font-medium">{label}</p>
         <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-          <span className="inline-block px-1.5 py-0.5 rounded bg-muted text-[10px]">{MODE_LABELS[session.ai_mode ?? 'chat'] ?? session.ai_mode}</span>
+          <span className="inline-block px-1.5 py-0.5 rounded bg-muted text-[10px]">{MODE_LABELS[session.mode] ?? session.mode}</span>
           <span>{date.toLocaleDateString('ar-SA')}</span>
         </p>
       </button>

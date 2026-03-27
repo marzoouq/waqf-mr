@@ -15,12 +15,10 @@ export const useUnreadMessages = () => {
       if (!user) return 0;
 
       // عدد الرسائل غير المقروءة في محادثات المستخدم (التي لم يرسلها هو)
-      // استبعاد رسائل المساعد الذكي من عدد الرسائل غير المقروءة
       const { count, error } = await supabase
         .from('messages')
         .select('id', { count: 'exact', head: true })
         .eq('is_read', false)
-        .eq('is_ai_response', false)
         .neq('sender_id', user.id);
 
       if (error) return 0;

@@ -57,7 +57,7 @@ export const useMessages = (conversationId: string | null) => {
       if (!conversationId) return [];
       const { data, error } = await supabase
         .from('messages')
-        .select('id, conversation_id, sender_id, content, is_read, is_ai_response, created_at')
+        .select('id, conversation_id, sender_id, content, is_read, created_at')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: false })
         .range(pageParam, pageParam + MESSAGES_PAGE_SIZE - 1);
