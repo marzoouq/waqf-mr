@@ -196,7 +196,10 @@ export const useNotifications = () => {
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {
       if (lastPage.length < PAGE_SIZE) return undefined;
-      return lastPage[lastPage.length - 1]?.created_at;
+      const last = lastPage[lastPage.length - 1];
+      if (!last) return undefined;
+      // compound cursor: "created_at|id"
+      return `${last.created_at}|${last.id}`;
     },
     enabled: !!user && userId.length > 0,
   });
