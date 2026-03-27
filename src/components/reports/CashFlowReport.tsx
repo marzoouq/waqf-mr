@@ -130,7 +130,7 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
         </CardHeader>
         <CardContent>
           <Suspense fallback={<Skeleton className="h-[350px] w-full rounded-lg" />}>
-            <CashFlowChartInner monthlyData={monthlyData} title="" fmt={fmt} />
+            <CashFlowChartInner monthlyData={monthlyData} fmt={fmt} />
           </Suspense>
         </CardContent>
       </Card>

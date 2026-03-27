@@ -13,11 +13,10 @@ interface MonthData {
 
 interface CashFlowChartInnerProps {
   monthlyData: MonthData[];
-  title: string;
   fmt: (v: number) => string;
 }
 
-const CashFlowChartInner: React.FC<CashFlowChartInnerProps> = ({ monthlyData, title, fmt }) => (
+const CashFlowChartInner: React.FC<CashFlowChartInnerProps> = ({ monthlyData, fmt }) => (
   <div className="h-[350px] min-w-0 min-h-[1px]" dir="ltr">
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
       <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
