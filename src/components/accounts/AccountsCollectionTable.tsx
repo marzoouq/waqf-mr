@@ -243,7 +243,7 @@ const AccountsCollectionTable = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {collectionData.map((item, idx) => {
+                {filteredData.map((item, idx) => {
                   const isEditing = editingIndex === idx;
                   const editRent = editData?.monthlyRent ?? item.paymentPerPeriod;
                   const editPaid = editData?.paidMonths ?? item.paidMonths;
