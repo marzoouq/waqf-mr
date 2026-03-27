@@ -14,7 +14,8 @@ import { FileText, CheckCircle, XCircle, DollarSign, AlertTriangle, AlertCircle,
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
+import TablePagination from '@/components/TablePagination';
 import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
@@ -29,9 +30,12 @@ const statusMap: Record<string, { label: string; variant: 'default' | 'secondary
   cancelled: { label: 'ملغي', variant: 'secondary' },
 };
 
+const ITEMS_PER_PAGE = 10;
+
 const ContractsViewPage = () => {
   const { fiscalYearId } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
+  const [currentPage, setCurrentPage] = useState(1);
   
   // جلب أسماء العقارات لعرضها بدل property_id
   const propertyIds = useMemo(() => {
@@ -78,6 +82,16 @@ const ContractsViewPage = () => {
       expiringSoon: active.filter(c => isExpiringSoon(c)).length,
     };
   }, [contracts, isExpiringSoon]);
+
+  // ترقيم الصفحات
+  const paginatedContracts = useMemo(() => {
+    if (!contracts) return [];
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return contracts.slice(start, start + ITEMS_PER_PAGE);
+  }, [contracts, currentPage]);
+
+  // إعادة ضبط الصفحة عند تغيير البيانات
+  useMemo(() => setCurrentPage(1), [fiscalYearId]);
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString('ar-SA');
   const formatCurrency = (n: number) => fmt(n) + ' ر.س';
@@ -194,7 +208,7 @@ const ContractsViewPage = () => {
           <>
             {/* Mobile cards */}
             <div className="space-y-3 md:hidden">
-              {contracts.map(contract => {
+              {paginatedContracts.map(contract => {
                 const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
                 return (
                   <Card key={contract.id}>
@@ -224,7 +238,8 @@ const ContractsViewPage = () => {
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">إلى</span>
                         <span>{formatDate(contract.end_date ?? '')}</span>
-                      </div>
+              <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+            </div>
                     </CardContent>
                   </Card>
                 );
@@ -247,7 +262,7 @@ const ContractsViewPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {contracts.map(contract => {
+                    {paginatedContracts.map(contract => {
                       const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
                       return (
                         <TableRow key={contract.id}>
@@ -274,6 +289,7 @@ const ContractsViewPage = () => {
                 </Table>
               </CardContent>
             </Card>
+            <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </>
         )}
       </div>
