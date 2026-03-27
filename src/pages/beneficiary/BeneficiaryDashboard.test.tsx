@@ -111,7 +111,7 @@ describe('BeneficiaryDashboard', () => {
       fiscalYear: { id: 'fy1', label: '1446-1447', status: 'closed', start_date: '2024-01-01', end_date: '2025-01-01', published: true, created_at: '' },
       fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'closed', start_date: '2024-01-01', end_date: '2025-01-01', published: true, created_at: '' }],
       isClosed: true, isLoading: false, noPublishedYears: false,
-    } as ReturnType<typeof useFiscalYear>);
+    } as unknown as ReturnType<typeof useFiscalYear>);
 
     const { useBeneficiaryDashboardData } = await import('@/hooks/page/useBeneficiaryDashboardData');
     vi.mocked(useBeneficiaryDashboardData).mockReturnValue({
