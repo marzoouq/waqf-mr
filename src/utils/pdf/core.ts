@@ -64,14 +64,11 @@ export const finalizePdf = (
   waqfInfo?: PdfWaqfInfo,
   options?: { skipHeaders?: boolean }
 ) => {
-  // استيراد ديناميكي لتجنب circular dependency
-  import('./pdfLayout').then(({ addHeaderToAllPages, addFooter }) => {
-    if (!options?.skipHeaders) {
-      addHeaderToAllPages(doc, fontFamily, waqfInfo);
-    }
-    addFooter(doc, fontFamily, waqfInfo);
-    doc.save(filename);
-  });
+  if (!options?.skipHeaders) {
+    addHeaderToAllPages(doc, fontFamily, waqfInfo);
+  }
+  addFooter(doc, fontFamily, waqfInfo);
+  doc.save(filename);
 };
 
 /**
