@@ -477,20 +477,22 @@ async function fetchWaqfData(
       }
     }
 
-    // 9. العقود المنتهية أو قريبة الانتهاء (للمشرفين فقط)
+    // 9. العقود المنتهية أو قريبة الانتهاء (للمشرفين فقط) — بدون أسماء مستأجرين
     if (isAdmin) {
       const { data: expiring } = await client
         .from("contracts")
-        .select("contract_number, tenant_name, end_date, rent_amount")
+        .select("contract_number, end_date, rent_amount")
         .eq("status", "active")
         .lte("end_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
         .order("end_date", { ascending: true })
         .limit(10);
 
       if (expiring?.length) {
+        const totalExpRent = expiring.reduce((s, c) => s + Number(c.rent_amount), 0);
         sections.push(`\n### ⚠️ عقود تنتهي خلال 30 يوماً (${expiring.length}):`);
+        sections.push(`- إجمالي إيجاراتها: ${totalExpRent.toLocaleString("ar-SA")} ر.س`);
         for (const c of expiring) {
-          sections.push(`- ${c.contract_number} | ${c.tenant_name} | ${c.end_date} | ${Number(c.rent_amount).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- عقد ${c.contract_number} | ينتهي ${c.end_date} | ${Number(c.rent_amount).toLocaleString("ar-SA")} ر.س`);
         }
       }
     }
