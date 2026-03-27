@@ -10,7 +10,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 }));
 
 vi.mock('@/hooks/page/useAppSettings', () => ({
-  useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false }))
+  useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: unknown) => d), isLoading: false }))
 }));
 
 const mockMarkAsRead = { mutate: vi.fn() };
@@ -65,7 +65,7 @@ vi.mock('@/hooks/data/usePushNotifications', () => ({
   })),
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 
 import NotificationsPage from './NotificationsPage';
 
@@ -124,7 +124,7 @@ describe('NotificationsPage', () => {
 
   it('shows empty state when no notifications', async () => {
     const { useNotifications } = await import('@/hooks/data/useNotifications');
-    (useNotifications as any).mockReturnValueOnce({
+    vi.mocked(useNotifications).mockReturnValueOnce({
       data: [],
       filteredData: [],
       markAsRead: mockMarkAsRead,
@@ -135,7 +135,7 @@ describe('NotificationsPage', () => {
       filteredUnreadCount: 0,
       isLoading: false,
       isError: false,
-    });
+    } as ReturnType<typeof useNotifications>);
     renderPage();
     expect(screen.getByText('لا توجد إشعارات')).toBeInTheDocument();
   });

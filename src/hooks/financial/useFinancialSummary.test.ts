@@ -27,6 +27,12 @@ import {
 } from '@/utils/accountsCalculations';
 
 // ---------------------------------------------------------------------------
+// أنواع مساعدة للاختبار
+// ---------------------------------------------------------------------------
+interface IncomeRow { amount: number; source: string }
+interface ExpenseRow { amount: number; expense_type: string }
+
+// ---------------------------------------------------------------------------
 // Simulated stored account (from audited closing file)
 // ---------------------------------------------------------------------------
 const storedAccount = {
@@ -49,12 +55,12 @@ const storedAccount = {
   updated_at: '',
 };
 
-const income = [
+const income: IncomeRow[] = [
   { amount: 754_000, source: 'إيجارات' },
   { amount: 500_000, source: 'إيجارات' },
 ];
 
-const expenses = [
+const expenses: ExpenseRow[] = [
   { amount: 71_723.02, expense_type: 'كهرباء' },
   { amount: 50_000, expense_type: 'صيانة' },
 ];
@@ -101,8 +107,8 @@ describe('useFinancialSummary – تكامل مع حساب مخزن', () => {
 
   it('المسار الثاني: بدون currentAccount يحسب ديناميكياً عبر calculateFinancials', () => {
     const { totalIncome, totalExpenses } = computeTotals(
-      income as any,
-      expenses as any,
+      income as Array<{ amount: number }>,
+      expenses as Array<{ amount: number }>,
     );
 
     const result = calculateFinancials({
@@ -126,18 +132,18 @@ describe('useFinancialSummary – تكامل مع حساب مخزن', () => {
   });
 
   it('تطابق التجميعات: incomeBySource و expensesByType', () => {
-    const bySource = groupIncomeBySource(income as any);
+    const bySource = groupIncomeBySource(income as Array<{ amount: number; source: string }>);
     expect(bySource['إيجارات']).toBe(1_254_000);
 
-    const byType = groupExpensesByType(expenses as any);
+    const byType = groupExpensesByType(expenses as Array<{ amount: number; expense_type: string }>);
     expect(byType['كهرباء']).toBe(71_723.02);
     expect(byType['صيانة']).toBe(50_000);
   });
 
   it('تطابق computeTotals مع إجمالي الحساب المخزن', () => {
     const { totalIncome, totalExpenses } = computeTotals(
-      income as any,
-      expenses as any,
+      income as Array<{ amount: number }>,
+      expenses as Array<{ amount: number }>,
     );
     expect(totalIncome).toBe(storedAccount.total_income);
     expect(totalExpenses).toBe(storedAccount.total_expenses);

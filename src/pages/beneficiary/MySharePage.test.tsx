@@ -44,7 +44,7 @@ vi.mock('@/hooks/financial/useFiscalYears', () => ({
 
 vi.mock('@/contexts/FiscalYearContext', () => ({
   useFiscalYear: () => mockUseFiscalYear(),
-  FiscalYearProvider: ({ children }: any) => children,
+  FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 vi.mock('@/hooks/financial/useFinancialSummary', () => ({
@@ -69,17 +69,17 @@ vi.mock('@/hooks/data/useContracts', () => ({
 
 vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/hooks/page/useAppSettings', () => ({
-  useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false })),
+  useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: unknown) => d), isLoading: false })),
 }));
 vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
 vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => <div>no years</div> }));
-vi.mock('@/components/RequirePublishedYears', () => ({ default: ({ children }: any) => <>{children}</> }));
-vi.mock('@/components/PageHeaderCard', () => ({ default: ({ title }: any) => <div>{title}</div> }));
+vi.mock('@/components/RequirePublishedYears', () => ({ default: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
+vi.mock('@/components/PageHeaderCard', () => ({ default: ({ title }: { title: string }) => <div>{title}</div> }));
 vi.mock('@/utils/pdf', () => ({ generateMySharePDF: vi.fn(), generateDistributionsPDF: vi.fn(), generateComprehensiveBeneficiaryPDF: vi.fn() }));
 vi.mock('@/utils/printShareReport', () => ({ printShareReport: vi.fn() }));
 vi.mock('@/components/beneficiaries/AdvanceRequestDialog', () => ({ default: () => null }));
@@ -162,7 +162,7 @@ describe('MySharePage', () => {
 
   it('يعرض رسالة عدم العثور على المستفيد', async () => {
     mockUseMyShare.mockReturnValue({
-      currentBeneficiary: null as any,
+      currentBeneficiary: null,
       myShare: 0, totalBenPct: 0, pctLoading: false,
     });
     renderPage();

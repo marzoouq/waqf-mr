@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
+import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 const mockSelect = vi.fn();
 const mockOrder = vi.fn();
@@ -80,16 +81,19 @@ describe('useAccounts (CRUD)', () => {
 
   it('creates account with Arabic success toast', async () => {
     const { result } = renderHook(() => useCreateAccount(), { wrapper: wrapper() });
-    await result.current.mutateAsync({
+    const payload: TablesInsert<'accounts'> = {
       fiscal_year: '1447-1448',
+      fiscal_year_id: 'fy-new',
       total_income: 100000,
-    } as any);
+    };
+    await result.current.mutateAsync(payload);
     expect(toast.success).toHaveBeenCalledWith('تم إضافة الحساب بنجاح');
   });
 
   it('updates account and shows success toast', async () => {
     const { result } = renderHook(() => useUpdateAccount(), { wrapper: wrapper() });
-    await result.current.mutateAsync({ id: 'acc-1', total_income: 250000 } as any);
+    const payload = { id: 'acc-1', total_income: 250000 } as TablesUpdate<'accounts'> & { id: string };
+    await result.current.mutateAsync(payload);
     expect(toast.success).toHaveBeenCalledWith('تم تحديث الحساب بنجاح');
   });
 
@@ -106,7 +110,8 @@ describe('useAccounts (CRUD)', () => {
       }),
     });
     const { result } = renderHook(() => useCreateAccount(), { wrapper: wrapper() });
-    await expect(result.current.mutateAsync({ fiscal_year: '1446-1447' } as any)).rejects.toThrow();
+    const payload: TablesInsert<'accounts'> = { fiscal_year: '1446-1447', fiscal_year_id: 'fy-1' };
+    await expect(result.current.mutateAsync(payload)).rejects.toThrow();
     expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء إضافة الحساب');
   });
 

@@ -52,7 +52,7 @@ describe('LoginForm', () => {
         addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn(),
       })),
     });
-    (globalThis as any).ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+    globalThis.ResizeObserver = class ResizeObserver { observe() {} unobserve() {} disconnect() {} } as unknown as typeof ResizeObserver;
   });
 
   // ─── عرض المكوّن ───

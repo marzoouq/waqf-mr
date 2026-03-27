@@ -80,11 +80,11 @@ describe('Public pages smoke tests', () => {
       loading: false,
       signIn: vi.fn(async () => ({ error: null })),
       signUp: vi.fn(async () => ({ error: null })),
-    } as any);
+    } as ReturnType<typeof useAuth>);
 
     mockedUseAppSettings.mockReturnValue({
       getJsonSetting: vi.fn((_key: string, fallback: unknown) => fallback),
-    } as any);
+    } as ReturnType<typeof useAppSettings>);
 
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
@@ -100,11 +100,7 @@ describe('Public pages smoke tests', () => {
       })),
     });
 
-    (globalThis as any).ResizeObserver = class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    };
+    globalThis.ResizeObserver = class ResizeObserver { observe() {} unobserve() {} disconnect() {} } as unknown as typeof ResizeObserver;
   });
 
   it('renders Unauthorized page', () => {

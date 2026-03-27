@@ -38,7 +38,7 @@ describe('FiscalYearSelector', () => {
   });
 
   it('renders skeleton while loading', () => {
-    mockedUseFiscalYears.mockReturnValueOnce({ data: [], isLoading: true } as any);
+    mockedUseFiscalYears.mockReturnValueOnce({ data: [], isLoading: true } as ReturnType<typeof useFiscalYears>);
     const { container } = render(<FiscalYearSelector value="all" onChange={vi.fn()} />);
     expect(container.querySelector('[class*="animate-pulse"]')).toBeInTheDocument();
   });
