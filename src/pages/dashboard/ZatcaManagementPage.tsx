@@ -112,8 +112,16 @@ function ZatcaManagementPage() {
   const { data: chain = [], isLoading: chainLoading } = useQuery({
     queryKey: ['invoice-chain'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('invoice_chain').select('id, invoice_id, icv, previous_hash, invoice_hash, source_table, created_at').order('icv', { ascending: false }).limit(100);
+      const limit = 1000;
+      const { data, error } = await supabase.from('invoice_chain').select('id, invoice_id, icv, previous_hash, invoice_hash, source_table, created_at').order('icv', { ascending: false }).limit(limit);
       if (error) throw error;
+      if (data && data.length >= limit) {
+        logger.warn(`invoice_chain query hit limit (${limit})`);
+        toast.warning('تم الوصول للحد الأقصى (1000 سجل) — قد تكون هناك سجلات سلسلة إضافية غير معروضة');
+      } else if (data && data.length >= 900) {
+        logger.warn(`invoice_chain approaching limit: ${data.length}/${limit}`);
+        toast.info(`عدد سجلات السلسلة (${data.length}) يقترب من الحد الأقصى (1000)`);
+      }
       return data;
     },
   });
