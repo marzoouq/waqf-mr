@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { fmt } from '@/utils/format';
+import { fmt, fmtDate } from '@/utils/format';
 
 const getStatusBadge = (status: string) => {
   switch (status) {

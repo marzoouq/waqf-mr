@@ -19,7 +19,7 @@ import TablePagination from '@/components/TablePagination';
 import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
-import { fmt } from '@/utils/format';
+import { fmt, fmtDate } from '@/utils/format';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_STATIC } from '@/lib/queryStaleTime';

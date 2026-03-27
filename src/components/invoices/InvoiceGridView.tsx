@@ -8,7 +8,7 @@ import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import TablePagination from '@/components/TablePagination';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { fmt } from '@/utils/format';
+import { fmt, fmtDate } from '@/utils/format';
 
 interface InvoiceGridViewProps {
   invoices: Invoice[];
