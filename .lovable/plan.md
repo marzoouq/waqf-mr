@@ -1,59 +1,84 @@
 
 
-## تحسين التنظيم الداخلي لملف `zatca-api/index.ts`
+## تقسيم الملفات الكبيرة المتبقية (5 ملفات فوق 300 سطر)
 
-### الوضع الحالي
-الملف 1143 سطر، الدوال المساعدة مبعثرة بدون تصنيف واضح. الترتيب الحالي:
-- imports → ثوابت → `resolveZatcaUrl` → `logZatcaOperation` → `parseCertExpiry` → 12 دالة ASN.1 → `buildCsrExtensions` → `buildDistinguishedName` → `buildEcSpki` → `sha256Async` → `_hexToBytes` → `_derToPem` → ثوابت headers → المعالج الرئيسي
+### الملفات المستهدفة
 
-### التغييرات المطلوبة
-إعادة ترتيب الملف بأقسام واضحة مع تعليقات فاصلة بارزة، **بدون تغيير أي منطق**:
+| الملف | السطور | التقسيم |
+|-------|--------|---------|
+| `PaymentInvoicesTab.tsx` | 375 | 4 مكونات فرعية |
+| `ContractFormDialog.tsx` | 387 | 3 مكونات فرعية |
+| `core.ts` (PDF) | 355 | ملفين مساعدين |
+| `CreateInvoiceFromTemplate.tsx` | 347 | 3 مكونات فرعية |
+| `GlobalSearch.tsx` | 324 | hook + مكون فرعي |
 
-```text
-┌─────────────────────────────────────────────┐
-│ 1. Imports & Constants                      │
-│    (imports, URLs, env vars, common headers)│
-├─────────────────────────────────────────────┤
-│ 2. ASN.1 Encoding Utilities                 │
-│    (asn1Length, asn1Wrap, asn1Sequence,      │
-│     asn1Set, asn1Integer, asn1Oid,          │
-│     asn1Utf8String, asn1PrintableString,    │
-│     asn1BitString, asn1Context,             │
-│     asn1OctetString, asn1Ia5String)         │
-├─────────────────────────────────────────────┤
-│ 3. CSR & Crypto Helpers                     │
-│    (buildCsrExtensions, buildDN,            │
-│     buildEcSpki, sha256Async,               │
-│     _hexToBytes, _derToPem)                 │
-├─────────────────────────────────────────────┤
-│ 4. Certificate Helpers                      │
-│    (parseCertExpiry)                         │
-├─────────────────────────────────────────────┤
-│ 5. ZATCA API Helpers                        │
-│    (resolveZatcaUrl, logZatcaOperation)      │
-├─────────────────────────────────────────────┤
-│ 6. Main Handler                             │
-│    ├── Auth & Rate Limiting                 │
-│    ├── Action: test-connection              │
-│    ├── Action: onboard                      │
-│    ├── Action: compliance-check             │
-│    ├── Action: production                   │
-│    ├── Action: renew                        │
-│    ├── Action: compliance-buyer/seller-qr   │
-│    ├── Action: report / clearance           │
-│    └── Invalid action fallback              │
-└─────────────────────────────────────────────┘
-```
+---
 
-### التفاصيل
-- إضافة تعليقات فاصلة بارزة بين كل قسم: `// ═══════════════════════════════════════`
-- نقل `ZATCA_COMMON_HEADERS` إلى قسم الثوابت في الأعلى (بجوار `ZATCA_URLS`)
-- تجميع دوال ASN.1 الـ 12 معًا في قسم واحد
-- نقل `parseCertExpiry` بعد دوال CSR/Crypto (منطقياً أقرب للشهادات)
-- نقل `resolveZatcaUrl` و`logZatcaOperation` مباشرة قبل المعالج الرئيسي
-- إضافة تعليق موجز لكل قسم action داخل المعالج
-- **لا تغيير في المنطق أو السلوك — إعادة ترتيب وتعليقات فقط**
+### 1. `src/components/contracts/PaymentInvoicesTab.tsx` → 375 سطر
 
-### الملف المُعدّل
-ملف واحد: `supabase/functions/zatca-api/index.ts` — نفس المحتوى، ترتيب أفضل.
+المنطق مفصول بالفعل في `usePaymentInvoicesTab`. الملف JSX ضخم بسبب عرض الجوال + سطح المكتب.
+
+**مكونات جديدة** في `src/components/contracts/payment-invoices/`:
+- **`PaymentInvoiceSummaryCards.tsx`** — بطاقات الملخص الأربع + شريط التحصيل (سطر 108-149)
+- **`PaymentInvoiceToolbar.tsx`** — البحث + الفلاتر + أزرار التوليد والتصدير (سطر 151-198)
+- **`PaymentInvoiceMobileCards.tsx`** — عرض البطاقات للجوال (سطر 229-280)
+- **`PaymentInvoiceDesktopTable.tsx`** — جدول سطح المكتب (سطر 282-367)
+
+**الملف الأصلي** يبقى كمنسّق يجمع المكونات + dialogs الدفع/المعاينة.
+
+---
+
+### 2. `src/components/contracts/ContractFormDialog.tsx` → 387 سطر
+
+المنطق مفصول في `useContractFormDialog`. الملف JSX ضخم بسبب أقسام النموذج المتعددة.
+
+**مكونات جديدة** في `src/components/contracts/contract-form/`:
+- **`ContractRentalModeSection.tsx`** — اختيار نوع التأجير + اختيار الوحدات/التعدد + التسعير (سطر 97-242)
+- **`ContractPaymentSection.tsx`** — نوع الدفع + VAT + ملخص الدفعة + تنبيه السنوات المالية (سطر 263-365)
+- **`ContractMultiPreview.tsx`** — معاينة أرقام العقود المتعددة (سطر 317-329)
+
+**الملف الأصلي** يبقى كـ Dialog wrapper مع الحقول الأساسية (رقم العقد، العقار، المستأجر، التواريخ، الحالة).
+
+---
+
+### 3. `src/utils/pdf/core.ts` → 355 سطر
+
+ملف مساعد يحتوي: تحميل خطوط + header/footer + styles + factory functions.
+
+**ملفات جديدة**:
+- **`src/utils/pdf/pdfFonts.ts`** — `toBase64`, `fetchFontWithRetry`, `loadArabicFont`, `isValidLogoUrl`, `loadLogoBase64`, `fontCache` (~70 سطر)
+- **`src/utils/pdf/pdfLayout.ts`** — `addHeader`, `addHeaderToAllPages`, `addPageBorder`, `addFooter` (~100 سطر)
+
+**`core.ts`** يبقى كنقطة تصدير مركزية: re-exports من الملفين + types + `createPdfDocument` + `finalizePdf` + table styles + `addSectionTitle` (~180 سطر). هذا يضمن عدم كسر أي import موجود.
+
+---
+
+### 4. `src/components/invoices/CreateInvoiceFromTemplate.tsx` → 347 سطر
+
+المنطق مفصول في `useCreateInvoiceForm`. الملف JSX ضخم بسبب النموذج + جدول البنود + المعاينة.
+
+**مكونات جديدة** في `src/components/invoices/create-invoice/`:
+- **`InvoiceFormFields.tsx`** — الحقول الأساسية + ربط العقد/العقار + بيانات المشتري (سطر 96-156)
+- **`InvoiceItemsTable.tsx`** — جدول البنود + الخصومات/الإضافات + الإجماليات (سطر 158-260)
+- **`InvoiceFormFooter.tsx`** — تحذيرات الحقول الناقصة + أزرار الحفظ (سطر ~260-290)
+
+**الملف الأصلي** يبقى كـ Dialog مع Tabs (النموذج + المعاينة).
+
+---
+
+### 5. `src/components/GlobalSearch.tsx` → 324 سطر
+
+**ملفات جديدة**:
+- **`src/hooks/page/useGlobalSearch.ts`** — منطق البحث: state + debounce + Supabase queries + keyboard shortcuts (~120 سطر)
+- مكون `SearchResults` موجود بالفعل كمكون داخلي — يُستخرج إلى **`src/components/search/SearchResults.tsx`**
+
+**`GlobalSearch.tsx`** يبقى كمكون عرض فقط (~150 سطر) يستخدم `useGlobalSearch` + `SearchResults`.
+
+---
+
+### ملاحظات تقنية
+- جميع imports الموجودة تبقى تعمل بدون تغيير (الملفات الأصلية تبقى كنقاط دخول)
+- لا تغيير في المنطق أو السلوك — فقط نقل كود
+- الهدف: كل ملف أقل من **250 سطر**
+- المكونات المستبعدة: `paymentInvoiceShared.ts` (استثناء مؤكد)، `sidebar.tsx` (shadcn/ui)
 
