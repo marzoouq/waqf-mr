@@ -70,6 +70,9 @@ export function clearSlowQueries(): void {
 export function reportPageLoadMetrics(): void {
   if (typeof window === 'undefined' || !window.performance) return;
 
+  // في بيئة التطوير، Vite يضخّم loadEventEnd بسبب HMR — تجاهل القياس
+  if (import.meta.env.DEV) return;
+
   // تأجيل القياس ليتم بعد اكتمال التحميل
   const measureLoad = () => {
     const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
