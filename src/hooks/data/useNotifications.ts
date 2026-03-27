@@ -180,8 +180,10 @@ export const useNotifications = () => {
         .limit(PAGE_SIZE);
 
       // cursor: جلب الإشعارات الأقدم من آخر created_at
+      // #47: compound cursor بـ (created_at, id) لتجنب تكرار/تخطي الإشعارات ذات نفس التوقيت
       if (pageParam) {
-        query = query.lt('created_at', pageParam);
+        const [cursorTs, cursorId] = pageParam.split('|');
+        query = query.or(`created_at.lt.${cursorTs},and(created_at.eq.${cursorTs},id.lt.${cursorId})`);
       }
 
       const { data, error } = await query;
