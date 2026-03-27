@@ -51,7 +51,7 @@ export const useAnnualReportItems = (fiscalYearId?: string) => {
       return data as AnnualReportItem[];
     },
     enabled: !!fiscalYearId,
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
   });
 };
 
