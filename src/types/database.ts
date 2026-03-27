@@ -156,7 +156,6 @@ export interface Conversation {
   status: string;
   created_by: string;
   participant_id: string | null;
-  ai_mode: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -167,7 +166,6 @@ export interface Message {
   sender_id: string;
   content: string;
   is_read: boolean;
-  is_ai_response: boolean;
   created_at: string;
 }
 
