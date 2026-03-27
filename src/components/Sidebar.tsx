@@ -134,32 +134,30 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
           </p>
         </div>
         <TooltipProvider delayDuration={0}>
-          <AlertDialog>
+          <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
             {/* Mobile: always show button directly, no tooltip */}
             <div className="lg:hidden">
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span className="mr-2">تسجيل الخروج</span>
-                </Button>
-              </AlertDialogTrigger>
+              <Button
+                variant="ghost"
+                className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
+                onClick={() => setLogoutOpen(true)}
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="mr-2">تسجيل الخروج</span>
+              </Button>
             </div>
             {/* Desktop collapsed: tooltip wraps trigger */}
             {!sidebarOpen && (
               <div className="hidden lg:block">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive px-0"
-                      >
-                        <LogOut className="w-5 h-5" />
-                      </Button>
-                    </AlertDialogTrigger>
+                    <Button
+                      variant="ghost"
+                      className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive px-0"
+                      onClick={() => setLogoutOpen(true)}
+                    >
+                      <LogOut className="w-5 h-5" />
+                    </Button>
                   </TooltipTrigger>
                   <TooltipContent side="left">تسجيل الخروج</TooltipContent>
                 </Tooltip>
@@ -168,15 +166,14 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             {/* Desktop expanded: simple button */}
             {sidebarOpen && (
               <div className="hidden lg:block">
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    <span className="mr-2">تسجيل الخروج</span>
-                  </Button>
-                </AlertDialogTrigger>
+                <Button
+                  variant="ghost"
+                  className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
+                  onClick={() => setLogoutOpen(true)}
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="mr-2">تسجيل الخروج</span>
+                </Button>
               </div>
             )}
             <AlertDialogContent className="z-70" onTouchStart={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onTouchEnd={(e) => e.stopPropagation()}>
