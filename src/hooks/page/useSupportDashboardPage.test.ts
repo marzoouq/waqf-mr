@@ -112,7 +112,7 @@ describe('useSupportDashboardPage', () => {
     const { result } = renderHook(() => useSupportDashboardPage(), { wrapper: createWrapper() });
     act(() => result.current.setErrorSearch('contracts'));
     expect(result.current.filteredErrors).toHaveLength(1);
-    expect(result.current.filteredErrors[0].id).toBe('e2');
+    expect(result.current.filteredErrors[0]!.id).toBe('e2');
   });
 
   it('يفلتر الأخطاء باسم الخطأ', async () => {
