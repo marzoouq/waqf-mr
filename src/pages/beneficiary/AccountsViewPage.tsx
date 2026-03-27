@@ -17,6 +17,7 @@ import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
+import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 
 const AccountsViewPage = () => {
   const queryClient = useQueryClient();
