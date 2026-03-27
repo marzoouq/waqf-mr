@@ -78,7 +78,7 @@ export const useMySharePage = () => {
 
   // سُلف وترحيلات المستفيد — استعلام مدمج واحد بدل 4
   const effectiveFyId = fiscalYearId === 'all' ? undefined : fiscalYearId;
-  const { data: benFinance, isLoading: benFinLoading } = useMyBeneficiaryFinance(currentBeneficiary?.id ?? undefined, effectiveFyId);
+  const { data: benFinance } = useMyBeneficiaryFinance(currentBeneficiary?.id ?? undefined, effectiveFyId);
   const myAdvances = benFinance?.myAdvances ?? [];
   const paidAdvancesTotal = benFinance?.paidAdvancesTotal ?? 0;
   const carryforwardBalance = benFinance?.carryforwardBalance ?? 0;
