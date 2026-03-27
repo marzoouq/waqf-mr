@@ -38,7 +38,6 @@ import MobileHeader from '@/components/dashboard-layout/MobileHeader';
 import DesktopTopBar from '@/components/dashboard-layout/DesktopTopBar';
 
 // DiagnosticOverlay — يُحمّل فقط في وضع التطوير
-import { lazy, Suspense } from 'react';
 const DiagnosticOverlay = import.meta.env.DEV
   ? lazy(() => import('@/components/DiagnosticOverlay'))
   : null;
