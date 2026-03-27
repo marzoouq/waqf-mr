@@ -16,7 +16,6 @@ import { useYoYComparison } from '@/hooks/financial/useYoYComparison';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
 import { Printer, Gauge, ArrowUpDown } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
