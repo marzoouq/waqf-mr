@@ -132,18 +132,18 @@ describe('useFinancialSummary – تكامل مع حساب مخزن', () => {
   });
 
   it('تطابق التجميعات: incomeBySource و expensesByType', () => {
-    const bySource = groupIncomeBySource(income as Array<{ amount: number; source: string }>);
+    const bySource = groupIncomeBySource(income as unknown as Parameters<typeof groupIncomeBySource>[0]);
     expect(bySource['إيجارات']).toBe(1_254_000);
 
-    const byType = groupExpensesByType(expenses as Array<{ amount: number; expense_type: string }>);
+    const byType = groupExpensesByType(expenses as unknown as Parameters<typeof groupExpensesByType>[0]);
     expect(byType['كهرباء']).toBe(71_723.02);
     expect(byType['صيانة']).toBe(50_000);
   });
 
   it('تطابق computeTotals مع إجمالي الحساب المخزن', () => {
     const { totalIncome, totalExpenses } = computeTotals(
-      income as Array<{ amount: number }>,
-      expenses as Array<{ amount: number }>,
+      income as unknown as Parameters<typeof computeTotals>[0],
+      expenses as unknown as Parameters<typeof computeTotals>[1],
     );
     expect(totalIncome).toBe(storedAccount.total_income);
     expect(totalExpenses).toBe(storedAccount.total_expenses);

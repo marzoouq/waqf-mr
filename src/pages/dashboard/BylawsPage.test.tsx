@@ -60,7 +60,7 @@ describe('BylawsPage', () => {
   });
 
   it('renders loading state', () => {
-    mockedUseBylawsList.mockReturnValueOnce({ data: [], isLoading: true } as ReturnType<typeof useBylawsList>);
+    mockedUseBylawsList.mockReturnValueOnce({ data: [], isLoading: true } as unknown as ReturnType<typeof useBylawsList>);
 
     render(
       <MemoryRouter>

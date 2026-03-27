@@ -87,7 +87,7 @@ describe('DashboardLayout', () => {
   });
 
   it('shows beneficiary links for beneficiary role', () => {
-    vi.mocked(useAuth).mockReturnValue({ user: { id: 'u1', email: 'ben@waqf.com' }, role: 'beneficiary', signOut: vi.fn() } as ReturnType<typeof useAuth>);
+    vi.mocked(useAuth).mockReturnValue({ user: { id: 'u1', email: 'ben@waqf.com' }, role: 'beneficiary', signOut: vi.fn() } as unknown as ReturnType<typeof useAuth>);
     renderLayout();
     expect(screen.getAllByText('الإفصاح السنوي').length).toBeGreaterThan(0);
     expect(screen.getAllByText('حصتي من الريع').length).toBeGreaterThan(0);

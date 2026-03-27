@@ -130,7 +130,7 @@ describe('BeneficiaryDashboard', () => {
       },
       isLoading: false,
       isError: false,
-    } as ReturnType<typeof useBeneficiaryDashboardData>);
+    } as unknown as ReturnType<typeof useBeneficiaryDashboardData>);
 
     renderWithRouter(<BeneficiaryDashboard />);
     // When closed, share amount is shown

@@ -102,7 +102,7 @@ describe('BeneficiarySettingsPage', () => {
     const { useBeneficiariesSafe } = await import('@/hooks/data/useBeneficiaries');
     vi.mocked(useBeneficiariesSafe).mockReturnValueOnce({
       data: [], isLoading: false, isError: true,
-    } as ReturnType<typeof useBeneficiariesSafe>);
+    } as unknown as ReturnType<typeof useBeneficiariesSafe>);
     render(<MemoryRouter><BeneficiarySettingsPage /></MemoryRouter>);
     expect(screen.getByText('حدث خطأ أثناء تحميل البيانات')).toBeInTheDocument();
   });
@@ -111,7 +111,7 @@ describe('BeneficiarySettingsPage', () => {
     const { useBeneficiariesSafe } = await import('@/hooks/data/useBeneficiaries');
     vi.mocked(useBeneficiariesSafe).mockReturnValueOnce({
       data: [], isLoading: true, isError: false,
-    } as ReturnType<typeof useBeneficiariesSafe>);
+    } as unknown as ReturnType<typeof useBeneficiariesSafe>);
     render(<MemoryRouter><BeneficiarySettingsPage /></MemoryRouter>);
     expect(screen.queryByText('الإعدادات')).not.toBeInTheDocument();
   });

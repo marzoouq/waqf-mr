@@ -135,7 +135,7 @@ describe('NotificationsPage', () => {
       filteredUnreadCount: 0,
       isLoading: false,
       isError: false,
-    } as ReturnType<typeof useNotifications>);
+    } as unknown as ReturnType<typeof useNotifications>);
     renderPage();
     expect(screen.getByText('لا توجد إشعارات')).toBeInTheDocument();
   });

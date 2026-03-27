@@ -76,7 +76,7 @@ describe('MessagesPage', () => {
 
   it('hides new conversation button for beneficiary', async () => {
     const { useAuth } = await import('@/hooks/auth/useAuthContext');
-    vi.mocked(useAuth).mockReturnValue({ user: { id: 'user-1' }, role: 'beneficiary' } as ReturnType<typeof useAuth>);
+    vi.mocked(useAuth).mockReturnValue({ user: { id: 'user-1' }, role: 'beneficiary' } as unknown as ReturnType<typeof useAuth>);
     renderPage();
     expect(screen.queryByText('محادثة جديدة')).not.toBeInTheDocument();
   });

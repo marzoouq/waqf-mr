@@ -80,11 +80,11 @@ describe('Public pages smoke tests', () => {
       loading: false,
       signIn: vi.fn(async () => ({ error: null })),
       signUp: vi.fn(async () => ({ error: null })),
-    } as ReturnType<typeof useAuth>);
+    } as unknown as ReturnType<typeof useAuth>);
 
     mockedUseAppSettings.mockReturnValue({
       getJsonSetting: vi.fn((_key: string, fallback: unknown) => fallback),
-    } as ReturnType<typeof useAppSettings>);
+    } as unknown as ReturnType<typeof useAppSettings>);
 
     Object.defineProperty(window, 'matchMedia', {
       writable: true,

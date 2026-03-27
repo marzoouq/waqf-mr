@@ -54,19 +54,19 @@ describe('BylawsViewPage', () => {
         },
       ],
       isLoading: false,
-    } as ReturnType<typeof useBylaws>);
+    } as unknown as ReturnType<typeof useBylaws>);
 
     mockedUseAppSettings.mockReturnValue({
       data: { bylaws_published: 'true' },
       isLoading: false,
-    } as ReturnType<typeof useAppSettings>);
+    } as unknown as ReturnType<typeof useAppSettings>);
   });
 
   it('renders unpublished message when bylaws are hidden', () => {
     mockedUseAppSettings.mockReturnValueOnce({
       data: { bylaws_published: 'false' },
       isLoading: false,
-    } as ReturnType<typeof useAppSettings>);
+    } as unknown as ReturnType<typeof useAppSettings>);
 
     render(
       <QueryClientProvider client={qc}>
