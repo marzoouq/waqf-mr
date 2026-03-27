@@ -41,6 +41,12 @@ export default tseslint.config(
     },
   },
   {
+    files: ["src/lib/logger.ts"],
+    rules: {
+      "no-console": "off",
+    },
+  },
+  {
     files: [
       "src/components/settings/MenuCustomizationTab.tsx",
       "src/components/ui/badge.tsx",
