@@ -56,7 +56,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
     label,
     onCreateSuccess,
     onUpdateSuccess,
-    staleTime = 60_000,
+    staleTime = STALE_FINANCIAL,
   } = config;
 
   /** List / fetch all rows */
