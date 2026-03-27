@@ -2,49 +2,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bot, Send, X, Sparkles, Trash2, MessageSquare, BarChart3, FileText, History, Plus, ArrowRight } from 'lucide-react';
+import { Bot, Send, X, Sparkles, Trash2, MessageSquare, BarChart3, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useAiChat, type ChatMode, type AiChatSession } from '@/hooks/page/useAiChat';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useAiChat, type ChatMode } from '@/hooks/page/useAiChat';
 
 const MODE_CONFIG: Record<ChatMode, { label: string; icon: typeof Bot; placeholder: string; welcome: string }> = {
   chat: { label: 'محادثة', icon: MessageSquare, placeholder: 'اسأل المساعد الذكي...', welcome: 'اسألني عن أي شيء يتعلق بالوقف' },
   analysis: { label: 'تحليل مالي', icon: BarChart3, placeholder: 'اطلب تحليلاً مالياً...', welcome: 'اطلب تحليلاً مالياً للوقف وسأقدم لك رؤى تفصيلية' },
   report: { label: 'إعداد تقرير', icon: FileText, placeholder: 'اطلب إعداد تقرير...', welcome: 'اطلب إعداد تقرير وسأجهزه لك بصياغة احترافية' },
 };
-
-const MODE_LABELS: Record<string, string> = { chat: 'محادثة', analysis: 'تحليل', report: 'تقرير' };
-
-/** عنصر جلسة واحدة في السجل */
-function SessionItem({ session, isActive, onLoad, onDelete }: {
-  session: AiChatSession; isActive: boolean;
-  onLoad: (s: AiChatSession) => void; onDelete: (id: string) => void;
-}) {
-  const date = new Date(session.updated_at);
-  const label = session.title ?? 'محادثة بدون عنوان';
-  return (
-    <div className={cn('group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm', isActive ? 'bg-primary/10 text-primary' : 'hover:bg-muted')}>
-      <button className="flex-1 text-start truncate" onClick={() => onLoad(session)}>
-        <p className="truncate font-medium">{label}</p>
-        <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-          <span className="inline-block px-1.5 py-0.5 rounded bg-muted text-[10px]">{MODE_LABELS[session.mode] ?? session.mode}</span>
-          <span>{date.toLocaleDateString('ar-SA')}</span>
-        </p>
-      </button>
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0"><Trash2 className="w-3 h-3" /></Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader><AlertDialogTitle>حذف المحادثة</AlertDialogTitle><AlertDialogDescription>هل أنت متأكد من حذف هذه المحادثة نهائياً؟</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter className="flex-row-reverse gap-2"><AlertDialogAction onClick={() => onDelete(session.id)}>حذف</AlertDialogAction><AlertDialogCancel>إلغاء</AlertDialogCancel></AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-}
 
 const AiAssistant = () => {
   const {
@@ -56,12 +24,6 @@ const AiAssistant = () => {
     mode, handleModeChange,
     send,
     endRef,
-    sessions,
-    activeSessionId,
-    showHistory, setShowHistory,
-    loadSession,
-    deleteSession,
-    startNewChat,
   } = useAiChat();
 
   if (!isAvailable || !user) return null;
@@ -101,23 +63,7 @@ const AiAssistant = () => {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            {/* زر محادثة جديدة */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={startNewChat}><Plus className="w-4 h-4" /></Button>
-              </TooltipTrigger>
-              <TooltipContent>محادثة جديدة</TooltipContent>
-            </Tooltip>
-            {/* زر السجل */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className={cn('text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8', showHistory && 'bg-sidebar-accent/50')} onClick={() => setShowHistory(!showHistory)}>
-                  {showHistory ? <ArrowRight className="w-4 h-4" /> : <History className="w-4 h-4" />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{showHistory ? 'العودة للمحادثة' : 'سجل المحادثات'}</TooltipContent>
-            </Tooltip>
-            {messages.length > 0 && !showHistory && (
+            {messages.length > 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
@@ -132,77 +78,52 @@ const AiAssistant = () => {
           </div>
         </div>
 
-        {showHistory ? (
-          /* ── عرض سجل المحادثات ── */
-          <ScrollArea className="flex-1 p-2">
-            {sessions.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <History className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">لا توجد محادثات سابقة</p>
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {sessions.map(s => (
-                  <SessionItem key={s.id} session={s} isActive={s.id === activeSessionId} onLoad={loadSession} onDelete={deleteSession} />
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-        ) : (
-          /* ── المحادثة النشطة ── */
-          <>
-            <div className="px-3 pt-2 pb-1 border-b border-border">
-              <Tabs value={mode} onValueChange={handleModeChange}>
-                <TabsList className="w-full h-8 p-0.5">
-                  {(Object.entries(MODE_CONFIG) as [ChatMode, typeof MODE_CONFIG['chat']][]).map(([key, cfg]) => {
-                    const Icon = cfg.icon;
-                    return (
-                      <TabsTrigger key={key} value={key} className="flex-1 text-[11px] gap-1 h-7 data-[state=active]:shadow-sm" disabled={isLoading}>
-                        <Icon className="w-3 h-3" />{cfg.label}
-                      </TabsTrigger>
-                    );
-                  })}
-                </TabsList>
-              </Tabs>
-            </div>
+        {/* ── المحادثة ── */}
+        <div className="px-3 pt-2 pb-1 border-b border-border">
+          <Tabs value={mode} onValueChange={handleModeChange}>
+            <TabsList className="w-full h-8 p-0.5">
+              {(Object.entries(MODE_CONFIG) as [ChatMode, typeof MODE_CONFIG['chat']][]).map(([key, cfg]) => {
+                const Icon = cfg.icon;
+                return (
+                  <TabsTrigger key={key} value={key} className="flex-1 text-[11px] gap-1 h-7 data-[state=active]:shadow-sm" disabled={isLoading}>
+                    <Icon className="w-3 h-3" />{cfg.label}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </Tabs>
+        </div>
 
-            <ScrollArea className="flex-1 p-3">
-              {messages.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <ModeIcon className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">مرحباً! أنا المساعد الذكي لإدارة الوقف.</p>
-                  <p className="text-xs mt-1">{currentConfig.welcome}</p>
-                  {sessions.length > 0 && (
-                    <Button variant="link" size="sm" className="mt-3 text-xs" onClick={() => setShowHistory(true)}>
-                      <History className="w-3 h-3 ml-1" />عرض المحادثات السابقة ({sessions.length})
-                    </Button>
-                  )}
+        <ScrollArea className="flex-1 p-3">
+          {messages.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <ModeIcon className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">مرحباً! أنا المساعد الذكي لإدارة الوقف.</p>
+              <p className="text-xs mt-1">{currentConfig.welcome}</p>
+            </div>
+          )}
+          <div className="space-y-3">
+            {messages.map((msg, i) => (
+              <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-start' : 'justify-end')}>
+                <div className={cn('max-w-[85%] rounded-xl px-3 py-2 text-sm', msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                  {msg.role === 'assistant' ? (
+                    <div className="prose prose-sm max-w-none dark:prose-invert [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0"><ReactMarkdown>{msg.content}</ReactMarkdown></div>
+                  ) : <p>{msg.content}</p>}
                 </div>
-              )}
-              <div className="space-y-3">
-                {messages.map((msg, i) => (
-                  <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-start' : 'justify-end')}>
-                    <div className={cn('max-w-[85%] rounded-xl px-3 py-2 text-sm', msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                      {msg.role === 'assistant' ? (
-                        <div className="prose prose-sm max-w-none dark:prose-invert [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0"><ReactMarkdown>{msg.content}</ReactMarkdown></div>
-                      ) : <p>{msg.content}</p>}
-                    </div>
-                  </div>
-                ))}
-                {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-                  <div className="flex justify-end"><div className="bg-muted rounded-xl px-4 py-2 text-sm"><span className="animate-pulse">يفكر...</span></div></div>
-                )}
-                <div ref={endRef} />
               </div>
-            </ScrollArea>
+            ))}
+            {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
+              <div className="flex justify-end"><div className="bg-muted rounded-xl px-4 py-2 text-sm"><span className="animate-pulse">يفكر...</span></div></div>
+            )}
+            <div ref={endRef} />
+          </div>
+        </ScrollArea>
 
-            <div className="p-3 border-t border-border flex gap-2">
-              <label htmlFor="ai-assistant-input" className="sr-only">اسأل المساعد الذكي</label>
-              <Input id="ai-assistant-input" name="ai-assistant-input" value={input} onChange={(e) => setInput(e.target.value)} placeholder={currentConfig.placeholder} maxLength={1000} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} disabled={isLoading} />
-              <Button onClick={send} disabled={!input.trim() || isLoading} size="icon"><Send className="w-4 h-4" /></Button>
-            </div>
-          </>
-        )}
+        <div className="p-3 border-t border-border flex gap-2">
+          <label htmlFor="ai-assistant-input" className="sr-only">اسأل المساعد الذكي</label>
+          <Input id="ai-assistant-input" name="ai-assistant-input" value={input} onChange={(e) => setInput(e.target.value)} placeholder={currentConfig.placeholder} maxLength={1000} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} disabled={isLoading} />
+          <Button onClick={send} disabled={!input.trim() || isLoading} size="icon"><Send className="w-4 h-4" /></Button>
+        </div>
       </div>
     </>
   );
