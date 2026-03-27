@@ -210,7 +210,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           setMobileSidebarOpen={setMobileSidebarOpen}
-          onSignOut={handleSignOut}
+          onSignOut={handleSignOutClick}
         />
       </aside>
 
@@ -226,7 +226,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           setMobileSidebarOpen={setMobileSidebarOpen}
-          onSignOut={handleSignOut}
+          onSignOut={handleSignOutClick}
         />
       </aside>
 
