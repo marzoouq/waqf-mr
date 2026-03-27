@@ -148,6 +148,12 @@ export const useZatcaSettings = () => {
       toast.error(e instanceof Error ? e.message : 'فشل التسجيل');
     } finally {
       setOnboardLoading(false);
+      // #41/#54: حذف OTP من قاعدة البيانات بعد أي نتيجة (نجاح أو فشل)
+      try {
+        await supabase.rpc('clear_zatca_otp');
+        setFormData(prev => ({ ...prev, zatca_otp_1: '', zatca_otp_2: '' }));
+        queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+      } catch { /* صمت — لا نعيق التدفق */ }
     }
   };
 
