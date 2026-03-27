@@ -244,6 +244,9 @@ const ContractsViewPage = () => {
                 );
               })}
             </div>
+            <div className="md:hidden">
+              <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+            </div>
 
             {/* Desktop table */}
             <Card className="hidden md:block">
