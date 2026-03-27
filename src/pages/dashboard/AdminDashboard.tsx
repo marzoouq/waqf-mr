@@ -8,7 +8,6 @@ import { computeMonthlyData } from '@/utils/dashboardComputations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
-import type { Tables } from '@/integrations/supabase/types';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
 import { Printer, Gauge, ArrowUpDown } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
