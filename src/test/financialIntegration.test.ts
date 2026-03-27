@@ -199,6 +199,7 @@ describe('Integration: Carry-forward between fiscal years', () => {
 
     const year2Account = mkAccount({
       fiscal_year: '1446-1447',
+      total_income: 170000,
       waqf_corpus_previous: 25000,
       net_after_expenses: 195000,
       net_after_vat: 195000,

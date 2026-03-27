@@ -19,7 +19,7 @@ type SortDir = 'asc' | 'desc';
 export function useIncomePage() {
   const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const { role } = useAuth();
-  const isLocked = isClosed && role !== 'admin';
+  const isLocked = isClosed && role !== 'admin' && role !== 'accountant';
 
   const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
