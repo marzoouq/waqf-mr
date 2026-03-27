@@ -7,16 +7,17 @@ import { notifyUser, notifyAdmins } from '@/utils/notifications';
 import { logger } from '@/lib/logger';
 
 /**
- * استخلاص بصمة مختصرة للجهاز من User-Agent
- * تُستخدم للمقارنة مع سجلات الدخول السابقة
+ * استخلاص بصمة مختصرة من نص User-Agent
+ * تُستخدم للمقارنة بين الأجهزة
  */
-const getDeviceFingerprint = (): string => {
-  const ua = navigator.userAgent || '';
-  // استخلاص نظام التشغيل والمتصفح فقط للمقارنة
+const extractFingerprint = (ua: string): string => {
   const osMatch = ua.match(/(Windows NT [\d.]+|Mac OS X [\d_.]+|Linux|Android [\d.]+|iPhone OS [\d_]+|iPad)/);
   const browserMatch = ua.match(/(Chrome\/[\d.]+|Firefox\/[\d.]+|Safari\/[\d.]+|Edge\/[\d.]+|OPR\/[\d.]+)/);
   return `${osMatch?.[1] || 'unknown-os'}|${browserMatch?.[1] || 'unknown-browser'}`;
 };
+
+/** بصمة الجهاز الحالي */
+const getDeviceFingerprint = (): string => extractFingerprint(navigator.userAgent || '');
 
 /**
  * فحص ما إذا كان الجهاز الحالي جديداً بالنسبة للمستخدم
@@ -44,12 +45,7 @@ export const checkNewDeviceLogin = async (userId: string, userEmail?: string): P
     const previousFingerprints = new Set(
       (previousLogins || [])
         .filter(log => log.device_info)
-        .map(log => {
-          const ua = log.device_info || '';
-          const osMatch = ua.match(/(Windows NT [\d.]+|Mac OS X [\d_.]+|Linux|Android [\d.]+|iPhone OS [\d_]+|iPad)/);
-          const browserMatch = ua.match(/(Chrome\/[\d.]+|Firefox\/[\d.]+|Safari\/[\d.]+|Edge\/[\d.]+|OPR\/[\d.]+)/);
-          return `${osMatch?.[1] || 'unknown-os'}|${browserMatch?.[1] || 'unknown-browser'}`;
-        })
+        .map(log => extractFingerprint(log.device_info || ''))
     );
 
     // إذا لم تكن هناك سجلات سابقة (أول تسجيل دخول)، لا نرسل تنبيه
