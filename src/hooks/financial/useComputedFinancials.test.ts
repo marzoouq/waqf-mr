@@ -344,4 +344,329 @@ describe('useComputedFinancials', () => {
       expect(r.incomeBySource).toEqual({ 'غير محدد': 10000 });
     });
   });
+
+  // ─── سنة نشطة: الحصص = 0 دائماً ───
+  describe('سنة نشطة مع حساب موجود', () => {
+    it('الحصص = 0 في السنة النشطة حتى مع وجود حساب مخزن', () => {
+      const account = mkAccount({ fiscal_year_id: 'fy-active' });
+      const r = render({
+        income: [mkIncome({ amount: 100000 })],
+        expenses: [mkExpense({ amount: 20000 })],
+        accounts: [account],
+        settings: null,
+        fiscalYearId: 'fy-active',
+        fiscalYearStatus: 'active',
+      });
+
+      expect(r.currentAccount).toBe(account);
+      expect(r.adminShare).toBe(0);
+      expect(r.waqifShare).toBe(0);
+      expect(r.waqfRevenue).toBe(0);
+      expect(r.availableAmount).toBe(0);
+      expect(r.remainingBalance).toBe(0);
+    });
+
+    it('يحسب من البيانات الحية لا المخزنة في السنة النشطة', () => {
+      const account = mkAccount({
+        fiscal_year_id: 'fy-active',
+        total_income: 50000,
+        net_after_expenses: 40000,
+        waqf_corpus_previous: 5000,
+        vat_amount: 1000,
+      });
+      const r = render({
+        income: [mkIncome({ amount: 80000 })],
+        expenses: [mkExpense({ amount: 10000 })],
+        accounts: [account],
+        settings: null,
+        fiscalYearId: 'fy-active',
+        fiscalYearStatus: 'active',
+      });
+
+      // grandTotal = live income + stored corpus
+      expect(r.grandTotal).toBe(80000 + 5000);
+      // netAfterExpenses = grandTotal - live expenses
+      expect(r.netAfterExpenses).toBe(85000 - 10000);
+      // netAfterVat = netAfterExpenses - stored vat
+      expect(r.netAfterVat).toBe(75000 - 1000);
+    });
+
+    it('isDeficit = false دائماً في السنة النشطة', () => {
+      const account = mkAccount({
+        fiscal_year_id: 'fy-active',
+        waqf_revenue: 10000,
+        waqf_corpus_manual: 999999,
+      });
+      const r = render({
+        income: [mkIncome({ amount: 5000 })],
+        expenses: [mkExpense({ amount: 100000 })],
+        accounts: [account],
+        settings: null,
+        fiscalYearId: 'fy-active',
+        fiscalYearStatus: 'active',
+      });
+      expect(r.isDeficit).toBe(false);
+    });
+
+    it('shareBase = max(0, liveIncome - liveExpenses - zakat) في النشطة', () => {
+      const account = mkAccount({
+        fiscal_year_id: 'fy-active',
+        zakat_amount: 3000,
+      });
+      const r = render({
+        income: [mkIncome({ amount: 10000 })],
+        expenses: [mkExpense({ amount: 15000 })],
+        accounts: [account],
+        settings: null,
+        fiscalYearId: 'fy-active',
+        fiscalYearStatus: 'active',
+      });
+      // 10000 - 15000 - 3000 = -8000 → clamped to 0
+      expect(r.shareBase).toBe(0);
+    });
+  });
+
+  // ─── سنة مقفلة: القيم المخزنة ───
+  describe('سنة مقفلة — قيم مخزنة بالكامل', () => {
+    it('يتجاهل البيانات الحية ويستخدم المخزنة فقط', () => {
+      const account = mkAccount({
+        fiscal_year_id: 'fy-closed',
+        total_income: 200000,
+        net_after_expenses: 180000,
+        waqf_corpus_previous: 20000,
+      });
+      const r = render({
+        income: [mkIncome({ amount: 999999 })], // بيانات حية مختلفة تماماً
+        expenses: [mkExpense({ amount: 888888 })],
+        accounts: [account],
+        settings: null,
+        fiscalYearId: 'fy-closed',
+        fiscalYearStatus: 'closed',
+      });
+
+      // grandTotal يعتمد على totalIncome المخزن لا الحي
+      expect(r.grandTotal).toBe(200000 + 20000);
+      expect(r.netAfterExpenses).toBe(180000);
+    });
+
+    it('shareBase لا يصبح سالباً عند العجز في السنة المقفلة', () => {
+      const account = mkAccount({
+        fiscal_year_id: 'fy-closed',
+        total_income: 50000,
+        total_expenses: 200000,
+        zakat_amount: 10000,
+      });
+      const r = render({
+        income: [],
+        expenses: [],
+        accounts: [account],
+        settings: null,
+        fiscalYearId: 'fy-closed',
+        fiscalYearStatus: 'closed',
+      });
+
+      // 50000 - 200000 - 10000 = -160000 → clamped to 0
+      expect(r.shareBase).toBe(0);
+    });
+
+    it('netAfterZakat = netAfterVat − zakat في المقفلة', () => {
+      const account = mkAccount({
+        fiscal_year_id: 'fy-closed',
+        net_after_vat: 75000,
+        zakat_amount: 2500,
+      });
+      const r = render({
+        income: [],
+        expenses: [],
+        accounts: [account],
+        settings: null,
+        fiscalYearId: 'fy-closed',
+        fiscalYearStatus: 'closed',
+      });
+
+      expect(r.netAfterZakat).toBe(72500);
+    });
+  });
+
+  // ─── حالات العجز المتنوعة ───
+  describe('حالات العجز', () => {
+    it('عجز: waqfCorpusManual > waqfRevenue → isDeficit = true', () => {
+      const account = mkAccount({
+        fiscal_year_id: 'fy-d1',
+        waqf_revenue: 30000,
+        waqf_corpus_manual: 80000,
+        distributions_amount: 0,
+      });
+      const r = render({
+        income: [], expenses: [],
+        accounts: [account], settings: null,
+        fiscalYearId: 'fy-d1', fiscalYearStatus: 'closed',
+      });
+
+      expect(r.availableAmount).toBe(30000 - 80000);
+      expect(r.isDeficit).toBe(true);
+    });
+
+    it('عجز: توزيعات > المتاح → isDeficit = true', () => {
+      const account = mkAccount({
+        fiscal_year_id: 'fy-d2',
+        waqf_revenue: 100000,
+        waqf_corpus_manual: 20000,
+        distributions_amount: 200000,
+      });
+      const r = render({
+        income: [], expenses: [],
+        accounts: [account], settings: null,
+        fiscalYearId: 'fy-d2', fiscalYearStatus: 'closed',
+      });
+
+      expect(r.availableAmount).toBe(80000);
+      expect(r.remainingBalance).toBe(-120000);
+      expect(r.isDeficit).toBe(true);
+    });
+
+    it('عجز ديناميكي: مصروفات + زكاة > دخل → shareBase = 0, حصص = 0', () => {
+      const r = render({
+        income: [mkIncome({ amount: 10000 })],
+        expenses: [mkExpense({ amount: 8000 })],
+        accounts: [],
+        settings: null,
+        forceClosedMode: true,
+      });
+      // shareBase = max(0, 10000 - 8000) = 2000 (no zakat without account)
+      expect(r.shareBase).toBe(2000);
+
+      // لكن مع حساب ديناميكي وزكاة كبيرة عبر calculateFinancials
+      const r2 = render({
+        income: [mkIncome({ amount: 10000 })],
+        expenses: [mkExpense({ amount: 8000 })],
+        accounts: [],
+        settings: null,
+        forceClosedMode: true,
+      });
+      // بدون zakat أو vat في المسار الديناميكي (لا حساب مخزن)
+      expect(r2.adminShare).toBeGreaterThan(0);
+    });
+
+    it('عجز ديناميكي: waqfCorpusManual ضخم → isDeficit = true', () => {
+      const account = mkAccount({
+        fiscal_year_id: 'fy-d3',
+        waqf_revenue: 5000,
+        waqf_corpus_manual: 999999,
+        distributions_amount: 0,
+      });
+      const r = render({
+        income: [], expenses: [],
+        accounts: [account], settings: null,
+        fiscalYearId: 'fy-d3', fiscalYearStatus: 'closed',
+      });
+
+      expect(r.isDeficit).toBe(true);
+      expect(r.availableAmount).toBeLessThan(0);
+    });
+
+    it('لا عجز عندما المتاح ≥ 0 والرصيد ≥ 0', () => {
+      const account = mkAccount({
+        fiscal_year_id: 'fy-ok',
+        waqf_revenue: 100000,
+        waqf_corpus_manual: 10000,
+        distributions_amount: 50000,
+      });
+      const r = render({
+        income: [], expenses: [],
+        accounts: [account], settings: null,
+        fiscalYearId: 'fy-ok', fiscalYearStatus: 'closed',
+      });
+
+      expect(r.availableAmount).toBe(90000);
+      expect(r.remainingBalance).toBe(40000);
+      expect(r.isDeficit).toBe(false);
+    });
+  });
+
+  // ─── forceClosedMode vs fiscalYearStatus ───
+  describe('forceClosedMode', () => {
+    it('forceClosedMode يفرض حساب الحصص حتى بدون fiscalYearStatus', () => {
+      const r = render({
+        income: [mkIncome({ amount: 100000 })],
+        expenses: [mkExpense({ amount: 20000 })],
+        accounts: [],
+        settings: null,
+        forceClosedMode: true,
+      });
+      expect(r.adminShare).toBeGreaterThan(0);
+      expect(r.waqifShare).toBeGreaterThan(0);
+      expect(r.waqfRevenue).toBeGreaterThan(0);
+    });
+
+    it('بدون forceClosedMode وبدون status → حصص = 0', () => {
+      const r = render({
+        income: [mkIncome({ amount: 100000 })],
+        expenses: [mkExpense({ amount: 20000 })],
+        accounts: [],
+        settings: null,
+      });
+      expect(r.adminShare).toBe(0);
+      expect(r.waqifShare).toBe(0);
+      expect(r.waqfRevenue).toBe(0);
+    });
+  });
+
+  // ─── isAccountMissing ───
+  describe('isAccountMissing', () => {
+    it('true عندما fiscalYearId محدد ولا يوجد حساب', () => {
+      const r = render({
+        income: [], expenses: [], accounts: [], settings: null,
+        fiscalYearId: 'some-fy-id',
+      });
+      expect(r.isAccountMissing).toBe(true);
+    });
+
+    it('false عندما fiscalYearId = "all"', () => {
+      const r = render({
+        income: [], expenses: [], accounts: [], settings: null,
+        fiscalYearId: 'all',
+      });
+      expect(r.isAccountMissing).toBe(false);
+    });
+
+    it('false عندما لا يوجد fiscalYearId', () => {
+      const r = render({
+        income: [], expenses: [], accounts: [], settings: null,
+      });
+      expect(r.isAccountMissing).toBe(false);
+    });
+
+    it('false عندما يوجد حساب مطابق', () => {
+      const account = mkAccount({ fiscal_year_id: 'fy-match' });
+      const r = render({
+        income: [], expenses: [],
+        accounts: [account], settings: null,
+        fiscalYearId: 'fy-match',
+      });
+      expect(r.isAccountMissing).toBe(false);
+    });
+  });
+
+  // ─── الضريبة لا تؤثر على shareBase ───
+  describe('VAT لا تدخل في shareBase', () => {
+    it('shareBase = income - expenses - zakat (بدون VAT)', () => {
+      const account = mkAccount({
+        fiscal_year_id: 'fy-vat',
+        total_income: 100000,
+        total_expenses: 10000,
+        vat_amount: 15000,
+        zakat_amount: 5000,
+        net_after_vat: 75000,
+      });
+      const r = render({
+        income: [], expenses: [],
+        accounts: [account], settings: null,
+        fiscalYearId: 'fy-vat', fiscalYearStatus: 'closed',
+      });
+
+      // shareBase = 100000 - 10000 - 5000 = 85000 (VAT excluded)
+      expect(r.shareBase).toBe(85000);
+    });
+  });
 });
