@@ -50,9 +50,9 @@ describe('BylawsPage', () => {
     mockedUseAppSettings.mockReturnValue({
       data: { bylaws_published: 'true' },
       updateSetting: { mutateAsync: vi.fn(async () => undefined) },
-    } as ReturnType<typeof useAppSettings>);
+    } as unknown as ReturnType<typeof useAppSettings>);
 
-    mockedUseBylawsList.mockReturnValue({ data: [], isLoading: false } as ReturnType<typeof useBylawsList>);
+    mockedUseBylawsList.mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useBylawsList>);
     mockedUseCreateBylaw.mockReturnValue(mutationStub);
     mockedUseUpdateBylaw.mockReturnValue(mutationStub as ReturnType<typeof useUpdateBylaw>);
     mockedUseDeleteBylaw.mockReturnValue(mutationStub as ReturnType<typeof useDeleteBylaw>);
