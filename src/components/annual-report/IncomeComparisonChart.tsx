@@ -1,13 +1,13 @@
 /**
- * رسم بياني لمقارنة الدخل عبر آخر 3-4 سنوات مالية
+ * رسم بياني لمقارنة الدخل عبر السنوات المالية — الرسم يُحمَّل كسولاً.
  */
+import { lazy, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useIncomeComparison } from '@/hooks/data/useAnnualReport';
 import { Loader2, TrendingUp } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const formatAmount = (v: number) =>
-  new Intl.NumberFormat('ar-SA', { style: 'decimal', maximumFractionDigits: 0 }).format(v);
+const IncomeComparisonChartInner = lazy(() => import('./IncomeComparisonChartInner'));
 
 const IncomeComparisonChart: React.FC = () => {
   const { data = [], isLoading } = useIncomeComparison();
@@ -33,20 +33,9 @@ const IncomeComparisonChart: React.FC = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[250px] w-full min-w-0 min-h-[1px]" dir="ltr">
-          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-            <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis dataKey="label" className="text-xs" />
-              <YAxis tickFormatter={(v: number) => formatAmount(v)} className="text-xs" />
-              <Tooltip
-                formatter={(v: number | undefined) => [formatAmount(v ?? 0) + ' ر.س', 'الدخل']}
-                contentStyle={{ direction: 'rtl', fontFamily: 'Tajawal' }}
-              />
-              <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <Suspense fallback={<Skeleton className="h-[250px] w-full rounded-lg" />}>
+          <IncomeComparisonChartInner data={data} />
+        </Suspense>
       </CardContent>
     </Card>
   );

@@ -1,13 +1,15 @@
-import { useMemo } from 'react';
+/**
+ * تقرير الأداء الشهري — الرسوم البيانية تُحمَّل كسولاً.
+ */
+import { useMemo, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  Legend, Area, AreaChart,
-} from 'recharts';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { fmt } from '@/utils/format';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const MonthlyPerformanceChartsInner = lazy(() => import('./MonthlyPerformanceChartsInner'));
 
 interface MonthlyPerformanceReportProps {
   income: Array<{ date: string; amount: number }>;
@@ -19,8 +21,6 @@ const MONTH_NAMES = [
   'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
   'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
 ];
-
-const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
 const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReportProps) => {
   const monthlyData = useMemo(() => {
@@ -76,7 +76,6 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
   const avgMonthlyIncome = monthlyData.length > 0 ? totals.income / monthlyData.length : 0;
   const avgMonthlyExpenses = monthlyData.length > 0 ? totals.expenses / monthlyData.length : 0;
 
-
   if (monthlyData.length === 0) {
     return (
       <Card className="shadow-sm">
@@ -125,70 +124,10 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
         </Card>
       </div>
 
-      {/* Bar Chart: Income vs Expenses */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-sm sm:text-base">مقارنة الدخل والمصروفات الشهرية</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px] sm:h-[400px] min-w-0 min-h-[1px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-              <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                <Tooltip
-                  contentStyle={tooltipStyle}
-                  formatter={(value: number | undefined, name: string | undefined) => [
-                    `${fmt(value ?? 0)} ر.س`,
-                    name === 'income' ? 'الدخل' : name === 'expenses' ? 'المصروفات' : 'الصافي',
-                  ]}
-                  labelFormatter={(label) => label}
-                />
-                <Legend formatter={(value) => value === 'income' ? 'الدخل' : value === 'expenses' ? 'المصروفات' : 'الصافي'} />
-                <Bar dataKey="income" fill="hsl(var(--success))" name="income" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="expenses" fill="hsl(var(--destructive))" name="expenses" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Area Chart: Net Trend */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-sm sm:text-base">اتجاه صافي الدخل الشهري</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[250px] sm:h-[300px] min-w-0 min-h-[1px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-              <AreaChart data={monthlyData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                <Tooltip
-                  contentStyle={tooltipStyle}
-                  formatter={(value: number | undefined) => [`${fmt(value ?? 0)} ر.س`, 'صافي الدخل']}
-                />
-                <defs>
-                  <linearGradient id="netGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Area
-                  type="monotone"
-                  dataKey="net"
-                  stroke="hsl(var(--primary))"
-                  fill="url(#netGradient)"
-                  strokeWidth={2}
-                  name="صافي الدخل"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      {/* الرسوم البيانية — تُحمَّل كسولاً */}
+      <Suspense fallback={<Skeleton className="h-[400px] w-full rounded-lg" />}>
+        <MonthlyPerformanceChartsInner monthlyData={monthlyData} />
+      </Suspense>
 
       {/* Monthly Table */}
       <Card className="shadow-sm">
