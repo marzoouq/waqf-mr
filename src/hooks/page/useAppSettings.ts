@@ -99,7 +99,7 @@ export const useSetting = (key: string, fallback = ''): string => {
       data?.forEach((row) => { settings[row.key] = row.value; });
       return settings;
     },
-    staleTime: STALE_STATIC,
+    staleTime: STALE_SETTINGS,
     gcTime: 1000 * 60 * 30,
     select: (settings) => settings[key] ?? fallback,
   });
