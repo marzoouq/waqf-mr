@@ -30,7 +30,7 @@ export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['contracts', 'fiscal_year', fiscalYearId],
     enabled: fiscalYearId !== '__none__' && fiscalYearId !== '__skip__',
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase
         .from('contracts')
