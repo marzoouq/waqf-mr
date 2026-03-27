@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResul
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { Database } from '@/integrations/supabase/types';
 
 // ---------------------------------------------------------------------------
