@@ -306,7 +306,7 @@ export async function checkOnlineStatus(): Promise<CheckResult> {
 }
 
 // ════════════════════════════════════════════════
-// بطاقة 7 — ZATCA وسلسلة الفواتير (5)
+// بطاقة 7 — ZATCA وسلسلة الفواتير (7)
 // ════════════════════════════════════════════════
 
 export async function checkZatcaCertificateValidity(): Promise<CheckResult> {

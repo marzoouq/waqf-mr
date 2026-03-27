@@ -181,7 +181,8 @@ export async function resolveZatcaUrl(adminClient: any): Promise<string> {
 }
 
 export async function logZatcaOperation(
-  admin: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- admin client بدون Database generic
+  admin: any,
   opts: {
     operation_type: string;
     status: string;
