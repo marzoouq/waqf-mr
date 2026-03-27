@@ -162,7 +162,7 @@ describe('MySharePage', () => {
 
   it('يعرض رسالة عدم العثور على المستفيد', async () => {
     mockUseMyShare.mockReturnValue({
-      currentBeneficiary: null,
+      currentBeneficiary: null as unknown as { id: string; user_id: string; name: string; share_percentage: number },
       myShare: 0, totalBenPct: 0, pctLoading: false,
     });
     renderPage();

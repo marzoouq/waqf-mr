@@ -53,10 +53,10 @@ describe('BylawsPage', () => {
     } as unknown as ReturnType<typeof useAppSettings>);
 
     mockedUseBylawsList.mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useBylawsList>);
-    mockedUseCreateBylaw.mockReturnValue(mutationStub);
-    mockedUseUpdateBylaw.mockReturnValue(mutationStub as ReturnType<typeof useUpdateBylaw>);
-    mockedUseDeleteBylaw.mockReturnValue(mutationStub as ReturnType<typeof useDeleteBylaw>);
-    mockedUseReorderBylaws.mockReturnValue(mutationStub as ReturnType<typeof useReorderBylaws>);
+    mockedUseCreateBylaw.mockReturnValue(mutationStub as unknown as ReturnType<typeof useCreateBylaw>);
+    mockedUseUpdateBylaw.mockReturnValue(mutationStub as unknown as ReturnType<typeof useUpdateBylaw>);
+    mockedUseDeleteBylaw.mockReturnValue(mutationStub as unknown as ReturnType<typeof useDeleteBylaw>);
+    mockedUseReorderBylaws.mockReturnValue(mutationStub as unknown as ReturnType<typeof useReorderBylaws>);
   });
 
   it('renders loading state', () => {

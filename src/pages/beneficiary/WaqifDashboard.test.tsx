@@ -154,7 +154,7 @@ describe('WaqifDashboard', () => {
 
   it('يعرض NoPublishedYearsNotice عند عدم وجود سنوات منشورة', async () => {
     mockUseFiscalYear.mockReturnValue({
-      fiscalYear: null, fiscalYearId: '', isLoading: false,
+      fiscalYear: null as unknown as { id: string; label: string; status: string; published: boolean }, fiscalYearId: '', isLoading: false,
       noPublishedYears: true, isSpecificYear: false,
     });
     await renderPage();
