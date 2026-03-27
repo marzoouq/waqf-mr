@@ -26,7 +26,7 @@ export const useConversations = (type?: string) => {
       return (data || []) as Conversation[];
     },
     enabled: !!user,
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
   });
 
   const queryClientRef = useRef(queryClient);
