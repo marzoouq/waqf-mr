@@ -19,7 +19,7 @@ interface ContractPaymentSectionProps {
   isMulti: boolean;
   perUnitAmount: number;
   fiscalYears: FiscalYear[];
-  suffixLetters: string[];
+  suffixLetters: string;
   selectedCount: number;
 }
 
