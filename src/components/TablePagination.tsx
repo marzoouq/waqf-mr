@@ -49,6 +49,7 @@ const TablePagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }
                   className="h-8 w-8"
                   onClick={() => onPageChange(page)}
                   aria-label={`صفحة ${page}`}
+                  aria-current={currentPage === page ? 'page' : undefined}
                 >
                   {page}
                 </Button>
