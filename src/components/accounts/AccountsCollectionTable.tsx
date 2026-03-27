@@ -58,13 +58,42 @@ const AccountsCollectionTable = ({
   totalExpectedPayments: _tep, totalPaidMonths: _tpm, totalCollectedAll, totalArrearsAll,
   isUpdatePending, isUpsertPending,
 }: AccountsCollectionTableProps) => {
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // فلترة بيانات التحصيل حسب الحالة
+  const filteredData = useMemo(() => {
+    if (statusFilter === 'all') return collectionData;
+    return collectionData.filter(item => item.status === statusFilter);
+  }, [collectionData, statusFilter]);
+
+  // إعادة حساب الإجماليات بناءً على الفلترة
+  const filteredTotalCollected = useMemo(() => filteredData.reduce((s, d) => s + d.totalCollected, 0), [filteredData]);
+  const filteredTotalArrears = useMemo(() => filteredData.reduce((s, d) => s + d.arrears, 0), [filteredData]);
+
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Wallet className="w-5 h-5" />
-          تفصيل التحصيل والمتأخرات
-        </CardTitle>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <CardTitle className="flex items-center gap-2">
+            <Wallet className="w-5 h-5" />
+            تفصيل التحصيل والمتأخرات
+          </CardTitle>
+          {contracts.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-28 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل ({collectionData.length})</SelectItem>
+                  <SelectItem value="مكتمل">مكتمل ({collectionData.filter(d => d.status === 'مكتمل').length})</SelectItem>
+                  <SelectItem value="متأخر">متأخر ({collectionData.filter(d => d.status === 'متأخر').length})</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {contracts.length === 0 ? (
