@@ -85,6 +85,37 @@ export const useAppSettings = () => {
   return { ...query, updateSetting, getJsonSetting, updateJsonSetting };
 };
 
+/**
+ * #50/#60: هوك مُحسَّن لجلب إعداد واحد فقط — يمنع re-renders غير ضرورية
+ * عبر select في useQuery الذي يُقارن القيمة المُرجعة بالمرجعية
+ */
+export const useSetting = (key: string, fallback = ''): string => {
+  const { data } = useQuery({
+    queryKey: ['app-settings-all'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('app_settings').select('key, value');
+      if (error) throw error;
+      const settings: Record<string, string> = {};
+      data?.forEach((row) => { settings[row.key] = row.value; });
+      return settings;
+    },
+    staleTime: STALE_STATIC,
+    gcTime: 1000 * 60 * 30,
+    select: (settings) => settings[key] ?? fallback,
+  });
+  return data ?? fallback;
+};
+
+/**
+ * #46: تحديث التفضيلات مع إطلاق حدث مخصص للنافذة الحالية
+ */
+export const updateNotificationPrefs = (prefs: Record<string, boolean>) => {
+  try {
+    localStorage.setItem('waqf_notification_preferences', JSON.stringify(prefs));
+    window.dispatchEvent(new CustomEvent('notif-prefs-changed'));
+  } catch { /* silent */ }
+};
+
 export const useWaqfInfo = () => {
   const { data: settings, isLoading, error } = useAppSettings();
 
