@@ -79,6 +79,19 @@ const AnnualReportViewPage = () => {
     await generateAnnualReportPDF(pdfData, waqfInfo);
   };
 
+  const handleExportCsv = () => {
+    const rows: Record<string, string>[] = [];
+    summaryCards.forEach(c => rows.push({ القسم: 'ملخص', العنوان: c.label, المحتوى: c.value }));
+    const sectionLabels: Record<string, string> = {
+      achievement: 'إنجازات', challenge: 'تحديات', future_plan: 'خطط مستقبلية', property_status: 'حالة العقارات',
+    };
+    items.forEach(item => {
+      rows.push({ القسم: sectionLabels[item.section_type] || item.section_type, العنوان: item.title, المحتوى: item.content });
+    });
+    const csv = buildCsv(rows, ['القسم', 'العنوان', 'المحتوى']);
+    downloadCsv(csv, `تقرير-سنوي-${fiscalYear?.label || ''}.csv`);
+  };
+
   if (statusLoading || isLoading) {
     return (
       <DashboardLayout>
