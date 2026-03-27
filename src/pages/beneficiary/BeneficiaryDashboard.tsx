@@ -1,21 +1,23 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/hooks/data/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp, AlertCircle, RefreshCw, Banknote } from 'lucide-react';
+import { AlertCircle, RefreshCw, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useNavigate } from 'react-router-dom';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
-import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
 import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 
-import { fmt } from '@/utils/format';
+import BeneficiaryWelcomeCard from '@/components/beneficiary-dashboard/BeneficiaryWelcomeCard';
+import BeneficiaryStatsRow from '@/components/beneficiary-dashboard/BeneficiaryStatsRow';
+import BeneficiaryQuickLinks from '@/components/beneficiary-dashboard/BeneficiaryQuickLinks';
+import BeneficiaryRecentDistributions from '@/components/beneficiary-dashboard/BeneficiaryRecentDistributions';
+import BeneficiaryNotificationsCard from '@/components/beneficiary-dashboard/BeneficiaryNotificationsCard';
+import BeneficiaryAdvanceCard from '@/components/beneficiary-dashboard/BeneficiaryAdvanceCard';
 
 const BeneficiaryDashboard = () => {
   const queryClient = useQueryClient();
@@ -24,7 +26,6 @@ const BeneficiaryDashboard = () => {
   }, [queryClient]);
 
   const { role, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const { data: notifications = [] } = useNotifications();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
 
@@ -44,29 +45,6 @@ const BeneficiaryDashboard = () => {
   const fyReady = fiscalYearId && fiscalYearId !== '__none__';
   const isLoading = authLoading || fyLoading || (!fyReady ? false : dashLoading);
 
-  /* ── Live clock ── */
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    let id: ReturnType<typeof setInterval> | undefined;
-    const start = () => { id = setInterval(() => setNow(new Date()), 60_000); };
-    const stop = () => { if (id) { clearInterval(id); id = undefined; } };
-    const onVisibility = () => { if (document.hidden) { stop(); } else { setNow(new Date()); start(); } };
-    start();
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
-  }, []);
-
-  const hour = now.getHours();
-  const greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
-  const GreetingIcon = hour < 12 ? Sun : Moon;
-
-  const { hijriDate, gregorianDate, timeStr } = useMemo(() => ({
-    hijriDate: now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-    gregorianDate: now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
-    timeStr: now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
-  }), [now]);
-
-  /* ── Fiscal year progress ── */
   const isClosed = fiscalYear?.status === 'closed';
   const fyProgress = (() => {
     if (!fiscalYear) return { percent: 0, daysLeft: 0 };
@@ -83,27 +61,21 @@ const BeneficiaryDashboard = () => {
   const displayName = currentBeneficiary?.name || (role === 'admin' ? 'الناظر' : role === 'waqif' ? 'الواقف' : 'مستفيد');
   const roleLabel = role === 'admin' ? 'واجهة معاينة المستفيد' : 'واجهة المستفيد';
 
-  // Realtime invalidation for distributions — bfcache safe
+  // Realtime invalidation — bfcache safe
   const beneficiaryId = currentBeneficiary?.id ?? '';
   const qcRef = useRef(queryClient);
   qcRef.current = queryClient;
 
   const distSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
-    // متابعة التوزيعات الخاصة بالمستفيد
     channel.on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'distributions',
+      event: '*', schema: 'public', table: 'distributions',
       filter: `beneficiary_id=eq.${beneficiaryId}`,
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
       qcRef.current.invalidateQueries({ queryKey: ['my-distributions'] });
     });
-    // متابعة تغييرات الحسابات الختامية
     channel.on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'accounts',
+      event: '*', schema: 'public', table: 'accounts',
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });
@@ -118,16 +90,7 @@ const BeneficiaryDashboard = () => {
   const unreadCount = notifications.filter(n => !n.is_read).length;
   const recentNotifications = notifications.slice(0, 3);
 
-  const quickLinks = useMemo(() => [
-    ...(role !== 'waqif' ? [
-      { title: 'الإفصاح السنوي', description: 'البيان المالي التفصيلي', icon: FileText, path: '/beneficiary/disclosure', color: 'bg-primary/10 text-primary' },
-      { title: 'حصتي من الريع', description: 'تفاصيل حصتك والتوزيعات', icon: PieChart, path: '/beneficiary/my-share', color: 'bg-accent/10 text-accent-foreground' },
-    ] : []),
-    { title: 'التقارير المالية', description: 'الرسوم البيانية والإحصائيات', icon: BarChart3, path: '/beneficiary/financial-reports', color: 'bg-muted text-muted-foreground' },
-    { title: 'اللائحة التنظيمية', description: 'أحكام ولوائح الوقف', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-secondary/10 text-secondary' },
-  ], [role]);
-
-  // ── Guards: loading → error → unlinked account → noPublishedYears ──
+  // ── Guards ──
   if (isLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
@@ -165,6 +128,9 @@ const BeneficiaryDashboard = () => {
   }
 
   if (noPublishedYears) {
+    const hour = new Date().getHours();
+    const GreetingIcon = hour < 12 ? Sun : Moon;
+    const greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
     return (
       <DashboardLayout>
         <div className="p-3 sm:p-6 space-y-4">
@@ -190,101 +156,17 @@ const BeneficiaryDashboard = () => {
   return (
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+        <BeneficiaryWelcomeCard displayName={displayName} roleLabel={roleLabel} />
 
-        {/* ═══ Welcome Card ═══ */}
-        <Card className="overflow-hidden border-0 shadow-lg gradient-primary text-primary-foreground animate-slide-up">
-          <CardContent className="p-4 sm:p-6 md:p-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary-foreground/20 flex items-center justify-center shrink-0">
-                  <GreetingIcon className="w-6 h-6 sm:w-7 sm:h-7" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm sm:text-base text-primary-foreground/80">{greeting}</p>
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">
-                    {displayName}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">{roleLabel}</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-primary-foreground/85 shrink-0">
-                <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />{hijriDate}</span>
-                <span className="hidden sm:inline text-primary-foreground/40">|</span>
-                <span>{gregorianDate}</span>
-                <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{timeStr}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <BeneficiaryStatsRow
+          myShare={myShare}
+          isClosed={isClosed}
+          distributions={distributions}
+          fiscalYearLabel={fiscalYear?.label || ''}
+          fyProgress={fyProgress}
+        />
 
-        {/* ═══ Stats row ═══ */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {/* My share amount */}
-          <Card className="shadow-sm">
-            <CardContent className="p-4 sm:p-5">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                  <Wallet className="w-5 h-5 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">حصتي من الريع</p>
-                  {!isClosed ? (
-                    <p className="text-sm font-medium text-muted-foreground">تُحسب عند الإقفال</p>
-                  ) : (
-                    <p className="text-lg sm:text-xl font-bold truncate">{fmt(myShare)} ر.س</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Total received */}
-          <Card className="shadow-sm">
-            <CardContent className="p-4 sm:p-5">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-success/10 rounded-xl flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-5 h-5 text-success" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">آخر توزيع مستلم</p>
-                  {(() => {
-                    const lastPaid = [...distributions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).find(d => d.status === 'paid');
-                    return lastPaid ? (
-                      <>
-                        <p className="text-lg sm:text-xl font-bold truncate">
-                          {fmt(Number(lastPaid.amount))} ر.س
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {new Date(lastPaid.date).toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' })}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">لا توجد توزيعات</p>
-                    );
-                  })()}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Fiscal year progress */}
-          <Card className="shadow-sm">
-            <CardContent className="p-4 sm:p-5 space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">السنة المالية</p>
-                <Badge variant="outline" className="text-[11px]">{fiscalYear?.label || '—'}</Badge>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-                <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${fyProgress.percent}%` }} />
-              </div>
-              <p className="text-[11px] text-muted-foreground text-center">
-                {isClosed ? 'مُقفلة' : `متبقي ${fyProgress.daysLeft} يوم`}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* ═══ Unclosed year notice ═══ */}
+        {/* تنبيه السنة غير المقفلة */}
         {fiscalYear && !isClosed && (
           <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/5 text-sm text-muted-foreground">
             <AlertCircle className="w-4 h-4 text-warning shrink-0" />
@@ -292,124 +174,24 @@ const BeneficiaryDashboard = () => {
           </div>
         )}
 
-        {/* ═══ بطاقة طلب السُلفة ═══ */}
+        {/* بطاقة طلب السُلفة */}
         {advanceEnabled && role !== 'waqif' && currentBeneficiary && fiscalYearId && fiscalYearId !== '__none__' && (
-          <Card className="shadow-sm border-accent/30">
-            <CardContent className="p-4 sm:p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 bg-accent/10 rounded-xl flex items-center justify-center shrink-0">
-                    <Banknote className="w-5 h-5 text-accent-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-sm">طلب سلفة</p>
-                    <p className="text-xs text-muted-foreground">
-                      {pendingAdvanceCount > 0
-                        ? `لديك ${pendingAdvanceCount} طلب قيد المراجعة`
-                        : 'يمكنك طلب سلفة من حصتك المستقبلية'}
-                    </p>
-                  </div>
-                </div>
-                <AdvanceRequestDialog
-                  beneficiaryId={currentBeneficiary.id!}
-                  fiscalYearId={fiscalYearId}
-                  estimatedShare={myShare}
-                  paidAdvances={0}
-                  isFiscalYearActive={!isClosed}
-                  minAmount={advanceSettings?.min_amount ?? 500}
-                  maxPercentage={advanceSettings?.max_percentage ?? 50}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <BeneficiaryAdvanceCard
+            beneficiaryId={currentBeneficiary.id!}
+            fiscalYearId={fiscalYearId}
+            myShare={myShare}
+            isClosed={isClosed}
+            pendingAdvanceCount={pendingAdvanceCount}
+            minAmount={advanceSettings?.min_amount ?? 500}
+            maxPercentage={advanceSettings?.max_percentage ?? 50}
+          />
         )}
 
-        <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3">الوصول السريع</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {quickLinks.map((link) => (
-              <Card key={link.path} className="shadow-sm cursor-pointer hover:shadow-md transition-shadow group" onClick={() => navigate(link.path)}>
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${link.color}`}>
-                      <link.icon className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm">{link.title}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{link.description}</p>
-                    </div>
-                    <ArrowLeft className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mt-1" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+        <BeneficiaryQuickLinks role={role} />
 
-        {/* ═══ Bottom grid: Distributions + Notifications ═══ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Recent distributions */}
-          <Card className="shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Wallet className="w-5 h-5" />
-                آخر التوزيعات
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {distributions.length === 0 ? (
-                <p className="text-center text-muted-foreground py-6 text-sm">لا توجد توزيعات مسجلة</p>
-              ) : (
-                <div className="space-y-3">
-                  {distributions.map((d) => (
-                    <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm">{fmt(Number(d.amount))} ر.س</p>
-                        <p className="text-[11px] text-muted-foreground">{new Date(d.date).toLocaleDateString('ar-SA')}</p>
-                      </div>
-                      <Badge variant={d.status === 'paid' ? 'default' : 'secondary'} className="text-[11px]">
-                        {d.status === 'paid' ? 'مدفوع' : 'معلق'}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Notifications */}
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Bell className="w-5 h-5" />
-                آخر الإشعارات
-                {unreadCount > 0 && (
-                  <Badge variant="destructive" className="text-[11px] px-1.5">{unreadCount}</Badge>
-                )}
-              </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/beneficiary/notifications')}>عرض الكل</Button>
-            </CardHeader>
-            <CardContent>
-              {recentNotifications.length === 0 ? (
-                <p className="text-center text-muted-foreground py-6 text-sm">لا توجد إشعارات جديدة</p>
-              ) : (
-                <div className="space-y-3">
-                  {recentNotifications.map((n) => (
-                    <div key={n.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-sm">{n.title}</p>
-                          {!n.is_read && <Badge variant="secondary" className="text-[11px] px-1.5 py-0">جديد</Badge>}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{n.message}</p>
-                      </div>
-                      <span className="text-[11px] text-muted-foreground whitespace-nowrap">{new Date(n.created_at).toLocaleDateString('ar-SA')}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <BeneficiaryRecentDistributions distributions={distributions} />
+          <BeneficiaryNotificationsCard notifications={recentNotifications} unreadCount={unreadCount} />
         </div>
       </div>
     </DashboardLayout>
