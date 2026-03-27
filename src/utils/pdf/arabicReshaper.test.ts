@@ -12,8 +12,9 @@ describe('reshapeArabic', () => {
   });
 
   it('يُرجع null/undefined بدون تعديل', () => {
-    expect(reshapeArabic(null as any)).toBe(null);
-    expect(reshapeArabic(undefined as any)).toBe(undefined);
+    // اختبار المتانة — الدالة تتعامل مع قيم غير نصية بأمان
+    expect(reshapeArabic(null as unknown as string)).toBe(null);
+    expect(reshapeArabic(undefined as unknown as string)).toBe(undefined);
   });
 
   it('يُرجع نصاً إنجليزياً بدون تعديل', () => {

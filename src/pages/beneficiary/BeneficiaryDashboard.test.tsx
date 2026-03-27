@@ -45,7 +45,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
     fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }],
     isClosed: false, isLoading: false, noPublishedYears: false,
   })),
-  FiscalYearProvider: ({ children }: any) => children,
+  FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 vi.mock('@/hooks/financial/useFinancialSummary', () => ({
@@ -79,7 +79,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 
 import BeneficiaryDashboard from './BeneficiaryDashboard';
 
@@ -111,7 +111,7 @@ describe('BeneficiaryDashboard', () => {
       fiscalYear: { id: 'fy1', label: '1446-1447', status: 'closed', start_date: '2024-01-01', end_date: '2025-01-01', published: true, created_at: '' },
       fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'closed', start_date: '2024-01-01', end_date: '2025-01-01', published: true, created_at: '' }],
       isClosed: true, isLoading: false, noPublishedYears: false,
-    } as any);
+    } as unknown as ReturnType<typeof useFiscalYear>);
 
     const { useBeneficiaryDashboardData } = await import('@/hooks/page/useBeneficiaryDashboardData');
     vi.mocked(useBeneficiaryDashboardData).mockReturnValue({
@@ -130,7 +130,7 @@ describe('BeneficiaryDashboard', () => {
       },
       isLoading: false,
       isError: false,
-    } as any);
+    } as unknown as ReturnType<typeof useBeneficiaryDashboardData>);
 
     renderWithRouter(<BeneficiaryDashboard />);
     // When closed, share amount is shown

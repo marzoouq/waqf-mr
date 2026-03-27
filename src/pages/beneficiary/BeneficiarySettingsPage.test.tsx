@@ -22,7 +22,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
     fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }],
     isClosed: false, isLoading: false, noPublishedYears: false,
   })),
-  FiscalYearProvider: ({ children }: any) => children,
+  FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 vi.mock('@/hooks/financial/useFiscalYears', () => ({
@@ -55,7 +55,7 @@ vi.mock('@tanstack/react-query', async () => {
   };
 });
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock('@/components/ThemeColorPicker', () => ({ default: () => <div>ThemeColorPicker</div> }));
 
 import BeneficiarySettingsPage from './BeneficiarySettingsPage';
@@ -100,18 +100,18 @@ describe('BeneficiarySettingsPage', () => {
 
   it('يعرض حالة الخطأ', async () => {
     const { useBeneficiariesSafe } = await import('@/hooks/data/useBeneficiaries');
-    (useBeneficiariesSafe as any).mockReturnValueOnce({
+    vi.mocked(useBeneficiariesSafe).mockReturnValueOnce({
       data: [], isLoading: false, isError: true,
-    });
+    } as unknown as ReturnType<typeof useBeneficiariesSafe>);
     render(<MemoryRouter><BeneficiarySettingsPage /></MemoryRouter>);
     expect(screen.getByText('حدث خطأ أثناء تحميل البيانات')).toBeInTheDocument();
   });
 
   it('يعرض حالة التحميل', async () => {
     const { useBeneficiariesSafe } = await import('@/hooks/data/useBeneficiaries');
-    (useBeneficiariesSafe as any).mockReturnValueOnce({
+    vi.mocked(useBeneficiariesSafe).mockReturnValueOnce({
       data: [], isLoading: true, isError: false,
-    });
+    } as unknown as ReturnType<typeof useBeneficiariesSafe>);
     render(<MemoryRouter><BeneficiarySettingsPage /></MemoryRouter>);
     expect(screen.queryByText('الإعدادات')).not.toBeInTheDocument();
   });

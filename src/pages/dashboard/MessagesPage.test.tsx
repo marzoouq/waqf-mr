@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 
 vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'admin-1' }, role: 'admin' })),
@@ -76,7 +76,7 @@ describe('MessagesPage', () => {
 
   it('hides new conversation button for beneficiary', async () => {
     const { useAuth } = await import('@/hooks/auth/useAuthContext');
-    (useAuth as any).mockReturnValue({ user: { id: 'user-1' }, role: 'beneficiary' });
+    vi.mocked(useAuth).mockReturnValue({ user: { id: 'user-1' }, role: 'beneficiary' } as unknown as ReturnType<typeof useAuth>);
     renderPage();
     expect(screen.queryByText('محادثة جديدة')).not.toBeInTheDocument();
   });

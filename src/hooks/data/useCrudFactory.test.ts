@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
+import type { TablesInsert } from '@/integrations/supabase/types';
 
 // ---- Supabase mock ----
 const mockSelect = vi.fn();
@@ -37,8 +38,8 @@ function wrapper() {
 }
 
 const sampleRows = [
-  { id: '1', property_number: 'W-001', location: 'A', area: 100, property_type: 'مبنى', created_at: '', updated_at: '', description: null },
-  { id: '2', property_number: 'W-002', location: 'B', area: 200, property_type: 'أرض', created_at: '', updated_at: '', description: null },
+  { id: '1', property_number: 'W-001', location: 'A', area: 100, property_type: 'مبنى', created_at: '', updated_at: '', description: null, vat_exempt: false },
+  { id: '2', property_number: 'W-002', location: 'B', area: 200, property_type: 'أرض', created_at: '', updated_at: '', description: null, vat_exempt: false },
 ];
 
 beforeEach(() => {
@@ -77,14 +78,16 @@ describe('createCrudFactory', () => {
   describe('useCreate', () => {
     it('shows success toast on create', async () => {
       const { result } = renderHook(() => factory.useCreate(), { wrapper: wrapper() });
-      await result.current.mutateAsync({ property_number: 'W-003', location: 'C', area: 300, property_type: 'فيلا' } as any);
+      const payload: TablesInsert<'properties'> = { property_number: 'W-003', location: 'C', area: 300, property_type: 'فيلا' };
+      await result.current.mutateAsync(payload);
       expect(toast.success).toHaveBeenCalledWith('تم إضافة العقار بنجاح');
     });
 
     it('shows error toast on failure', async () => {
       mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: { message: 'err' } }) }) });
       const { result } = renderHook(() => factory.useCreate(), { wrapper: wrapper() });
-      await expect(result.current.mutateAsync({} as any)).rejects.toThrow();
+      const payload: TablesInsert<'properties'> = { property_number: '', location: '', area: 0, property_type: '' };
+      await expect(result.current.mutateAsync(payload)).rejects.toThrow();
       expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء إضافة العقار');
     });
   });
@@ -119,7 +122,8 @@ describe('createCrudFactory', () => {
       const onCreateSuccess = vi.fn();
       const withCb = createCrudFactory({ table: 'properties', queryKey: 'cb-test', label: 'العقار', onCreateSuccess });
       const { result } = renderHook(() => withCb.useCreate(), { wrapper: wrapper() });
-      await result.current.mutateAsync({} as any);
+      const payload: TablesInsert<'properties'> = { property_number: '', location: '', area: 0, property_type: '' };
+      await result.current.mutateAsync(payload);
       expect(onCreateSuccess).toHaveBeenCalledWith(sampleRows[0]);
     });
   });

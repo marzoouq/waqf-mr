@@ -3,10 +3,13 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
+// نوع مساعد لمحاكاة Supabase query builder
+type SupabaseQueryBuilder = ReturnType<typeof import('@/integrations/supabase/client').supabase.from>;
+
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => ({
-      select: vi.fn(() => Promise.resolve({ data: [] as any[], error: null })),
+      select: vi.fn(() => Promise.resolve({ data: [] as unknown[], error: null })),
     })),
   },
 }));
@@ -32,7 +35,7 @@ describe('useWaqfInfo', () => {
     ];
     vi.mocked(supabase.from).mockReturnValue({
       select: vi.fn(() => Promise.resolve({ data: mockData, error: null })),
-    } as any);
+    } as unknown as SupabaseQueryBuilder);
 
     const { useWaqfInfo } = await import('@/hooks/page/useAppSettings');
     const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
@@ -48,7 +51,7 @@ describe('useWaqfInfo', () => {
   it('returns loading state initially', async () => {
     vi.mocked(supabase.from).mockReturnValue({
       select: vi.fn(() => new Promise(() => {})),
-    } as any);
+    } as unknown as SupabaseQueryBuilder);
 
     const { useWaqfInfo } = await import('@/hooks/page/useAppSettings');
     const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
@@ -59,7 +62,7 @@ describe('useWaqfInfo', () => {
   it('returns empty strings when settings is empty', async () => {
     vi.mocked(supabase.from).mockReturnValue({
       select: vi.fn(() => Promise.resolve({ data: [], error: null })),
-    } as any);
+    } as unknown as SupabaseQueryBuilder);
 
     const { useWaqfInfo } = await import('@/hooks/page/useAppSettings');
     const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
@@ -76,7 +79,7 @@ describe('useWaqfInfo', () => {
     const err = new Error('fail');
     vi.mocked(supabase.from).mockReturnValue({
       select: vi.fn(() => Promise.resolve({ data: null, error: err })),
-    } as any);
+    } as unknown as SupabaseQueryBuilder);
 
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const wrapper = ({ children }: { children: React.ReactNode }) =>

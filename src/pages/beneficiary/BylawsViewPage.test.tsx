@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/components/DashboardLayout', () => ({
-  default: ({ children }: any) => <div>{children}</div>,
+  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 vi.mock('@/components/ExportMenu', () => ({
@@ -54,19 +54,19 @@ describe('BylawsViewPage', () => {
         },
       ],
       isLoading: false,
-    } as any);
+    } as unknown as ReturnType<typeof useBylaws>);
 
     mockedUseAppSettings.mockReturnValue({
       data: { bylaws_published: 'true' },
       isLoading: false,
-    } as any);
+    } as unknown as ReturnType<typeof useAppSettings>);
   });
 
   it('renders unpublished message when bylaws are hidden', () => {
     mockedUseAppSettings.mockReturnValueOnce({
       data: { bylaws_published: 'false' },
       isLoading: false,
-    } as any);
+    } as unknown as ReturnType<typeof useAppSettings>);
 
     render(
       <QueryClientProvider client={qc}>

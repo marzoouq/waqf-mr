@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('@/components/DashboardLayout', () => ({
-  default: ({ children }: any) => <div>{children}</div>,
+  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 vi.mock('@/components/ExportMenu', () => ({
@@ -41,24 +41,26 @@ const mockedUseDeleteBylaw = vi.mocked(useDeleteBylaw);
 const mockedUseReorderBylaws = vi.mocked(useReorderBylaws);
 const mockedUseAppSettings = vi.mocked(useAppSettings);
 
-const mutationStub = { mutate: vi.fn(), mutateAsync: vi.fn(), isPending: false } as any;
+// نوع مساعد لمحاكاة mutation stub
+type MutationStub = ReturnType<typeof useCreateBylaw>;
+const mutationStub = { mutate: vi.fn(), mutateAsync: vi.fn(), isPending: false } as unknown as MutationStub;
 
 describe('BylawsPage', () => {
   beforeEach(() => {
     mockedUseAppSettings.mockReturnValue({
       data: { bylaws_published: 'true' },
       updateSetting: { mutateAsync: vi.fn(async () => undefined) },
-    } as any);
+    } as unknown as ReturnType<typeof useAppSettings>);
 
-    mockedUseBylawsList.mockReturnValue({ data: [], isLoading: false } as any);
-    mockedUseCreateBylaw.mockReturnValue(mutationStub);
-    mockedUseUpdateBylaw.mockReturnValue(mutationStub);
-    mockedUseDeleteBylaw.mockReturnValue(mutationStub);
-    mockedUseReorderBylaws.mockReturnValue(mutationStub);
+    mockedUseBylawsList.mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useBylawsList>);
+    mockedUseCreateBylaw.mockReturnValue(mutationStub as unknown as ReturnType<typeof useCreateBylaw>);
+    mockedUseUpdateBylaw.mockReturnValue(mutationStub as unknown as ReturnType<typeof useUpdateBylaw>);
+    mockedUseDeleteBylaw.mockReturnValue(mutationStub as unknown as ReturnType<typeof useDeleteBylaw>);
+    mockedUseReorderBylaws.mockReturnValue(mutationStub as unknown as ReturnType<typeof useReorderBylaws>);
   });
 
   it('renders loading state', () => {
-    mockedUseBylawsList.mockReturnValueOnce({ data: [], isLoading: true } as any);
+    mockedUseBylawsList.mockReturnValueOnce({ data: [], isLoading: true } as unknown as ReturnType<typeof useBylawsList>);
 
     render(
       <MemoryRouter>

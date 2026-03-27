@@ -25,7 +25,7 @@ const mockUseFiscalYear = vi.fn(() => ({
 
 vi.mock('@/contexts/FiscalYearContext', () => ({
   useFiscalYear: () => mockUseFiscalYear(),
-  FiscalYearProvider: ({ children }: any) => children,
+  FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 const mockUseFinancialSummary = vi.fn(() => ({
@@ -92,7 +92,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
 vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => <div>لا توجد سنوات مالية منشورة</div> }));
 vi.mock('@/components/ExportMenu', () => ({ default: () => null }));
@@ -154,7 +154,7 @@ describe('WaqifDashboard', () => {
 
   it('يعرض NoPublishedYearsNotice عند عدم وجود سنوات منشورة', async () => {
     mockUseFiscalYear.mockReturnValue({
-      fiscalYear: null as any, fiscalYearId: '', isLoading: false,
+      fiscalYear: null as unknown as { id: string; label: string; status: string; published: boolean }, fiscalYearId: '', isLoading: false,
       noPublishedYears: true, isSpecificYear: false,
     });
     await renderPage();

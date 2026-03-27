@@ -14,7 +14,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 vi.mock('@/hooks/page/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({
-    getJsonSetting: vi.fn((_key: string, def: any) => def),
+    getJsonSetting: vi.fn((_key: string, def: unknown) => def),
     isLoading: false,
   })),
   useWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', nazirName: 'ناظر' })),
@@ -32,7 +32,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
     fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }],
     isClosed: false, isLoading: false,
   })),
-  FiscalYearProvider: ({ children }: any) => children,
+  FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 import DashboardLayout from './DashboardLayout';
@@ -87,7 +87,7 @@ describe('DashboardLayout', () => {
   });
 
   it('shows beneficiary links for beneficiary role', () => {
-    (useAuth as any).mockReturnValue({ user: { id: 'u1', email: 'ben@waqf.com' }, role: 'beneficiary', signOut: vi.fn() });
+    vi.mocked(useAuth).mockReturnValue({ user: { id: 'u1', email: 'ben@waqf.com' }, role: 'beneficiary', signOut: vi.fn() } as unknown as ReturnType<typeof useAuth>);
     renderLayout();
     expect(screen.getAllByText('الإفصاح السنوي').length).toBeGreaterThan(0);
     expect(screen.getAllByText('حصتي من الريع').length).toBeGreaterThan(0);
