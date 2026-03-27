@@ -1,33 +1,59 @@
 
 
-## تحديث سكريبت الفحص الجنائي v5 — استبعاد جميع الإيجابيات الكاذبة المؤكدة
+## تحسين التنظيم الداخلي لملف `zatca-api/index.ts`
 
-### الهدف
-إنشاء نسخة محدّثة من السكريبت تستبعد **جميع** الإيجابيات الكاذبة المؤكدة من التقرير الأخير (66 ملاحظة)، ثم تشغيله لإنتاج تقرير نظيف.
+### الوضع الحالي
+الملف 1143 سطر، الدوال المساعدة مبعثرة بدون تصنيف واضح. الترتيب الحالي:
+- imports → ثوابت → `resolveZatcaUrl` → `logZatcaOperation` → `parseCertExpiry` → 12 دالة ASN.1 → `buildCsrExtensions` → `buildDistinguishedName` → `buildEcSpki` → `sha256Async` → `_hexToBytes` → `_derToPem` → ثوابت headers → المعالج الرئيسي
 
-### الاستبعادات المطلوبة (بناءً على التحليل المؤكد)
+### التغييرات المطلوبة
+إعادة ترتيب الملف بأقسام واضحة مع تعليقات فاصلة بارزة، **بدون تغيير أي منطق**:
 
-| الفئة | القاعدة | السبب |
-|-------|---------|-------|
-| أمان | `src/components/ui/` بالكامل | مكونات shadcn/ui — لا تُعدّل |
-| أمان | `as any` في **تعليقات** فقط (ليس كود) | إيجابية كاذبة — السكريبت يلتقط التعليقات |
-| أمان | `console.*` في `src/test/` | ملفات اختبار مستبعدة |
-| جودة | `src/integrations/supabase/types.ts` | ملف مُولّد تلقائيًا |
-| جودة | `src/components/ui/sidebar.tsx` | مكون shadcn/ui |
-| جودة | عتبة حجم الملفات ← **500 سطر** | الملفات الثلاثة (448/419/458) مراجَعة ومقبولة |
-| جودة | `toast.error(...)` ليس TODO/FIXME | إيجابية كاذبة في الكشف |
-| قاعدة بيانات | `auth.users` في `supabase/migrations/` | تاريخية — لا FK نشطة مؤكد |
-| وظائف حافة | `lookup-national-id` بدون `getUser()` | مقصود — endpoint عام مؤمّن بآليات بديلة |
-| PDF | ملفات helper/test لا تولّد PDF مباشرة | `pdfHelpers.ts`, `pdfHelpers.test.ts` |
-| PDF | `invoice.ts` يستدعي دالة تحتوي الخطوط | ليس ملف PDF مستقل |
-| اختبارات | `as any` في `*.test.*` و `*.spec.*` | مقبول في الاختبارات — تحسين اختياري |
+```text
+┌─────────────────────────────────────────────┐
+│ 1. Imports & Constants                      │
+│    (imports, URLs, env vars, common headers)│
+├─────────────────────────────────────────────┤
+│ 2. ASN.1 Encoding Utilities                 │
+│    (asn1Length, asn1Wrap, asn1Sequence,      │
+│     asn1Set, asn1Integer, asn1Oid,          │
+│     asn1Utf8String, asn1PrintableString,    │
+│     asn1BitString, asn1Context,             │
+│     asn1OctetString, asn1Ia5String)         │
+├─────────────────────────────────────────────┤
+│ 3. CSR & Crypto Helpers                     │
+│    (buildCsrExtensions, buildDN,            │
+│     buildEcSpki, sha256Async,               │
+│     _hexToBytes, _derToPem)                 │
+├─────────────────────────────────────────────┤
+│ 4. Certificate Helpers                      │
+│    (parseCertExpiry)                         │
+├─────────────────────────────────────────────┤
+│ 5. ZATCA API Helpers                        │
+│    (resolveZatcaUrl, logZatcaOperation)      │
+├─────────────────────────────────────────────┤
+│ 6. Main Handler                             │
+│    ├── Auth & Rate Limiting                 │
+│    ├── Action: test-connection              │
+│    ├── Action: onboard                      │
+│    ├── Action: compliance-check             │
+│    ├── Action: production                   │
+│    ├── Action: renew                        │
+│    ├── Action: compliance-buyer/seller-qr   │
+│    ├── Action: report / clearance           │
+│    └── Invalid action fallback              │
+└─────────────────────────────────────────────┘
+```
 
-### الخطوات
+### التفاصيل
+- إضافة تعليقات فاصلة بارزة بين كل قسم: `// ═══════════════════════════════════════`
+- نقل `ZATCA_COMMON_HEADERS` إلى قسم الثوابت في الأعلى (بجوار `ZATCA_URLS`)
+- تجميع دوال ASN.1 الـ 12 معًا في قسم واحد
+- نقل `parseCertExpiry` بعد دوال CSR/Crypto (منطقياً أقرب للشهادات)
+- نقل `resolveZatcaUrl` و`logZatcaOperation` مباشرة قبل المعالج الرئيسي
+- إضافة تعليق موجز لكل قسم action داخل المعالج
+- **لا تغيير في المنطق أو السلوك — إعادة ترتيب وتعليقات فقط**
 
-1. **إنشاء `/tmp/forensic_audit_v5.py`** — سكريبت Python محدّث يشمل جميع الاستبعادات أعلاه
-2. **تشغيل السكريبت** على مجلد المشروع
-3. **توليد `/mnt/documents/audit-report_v5.md`** — النتيجة المتوقعة: **0 ملاحظات** مع قسم شفافية يوثّق كل الاستبعادات
-
-### النتيجة المتوقعة
-تقرير نظيف بـ **0 ملاحظات** + قسم **"الاستبعادات المؤكدة"** يوثّق ما تم تجاهله وأسبابه.
+### الملف المُعدّل
+ملف واحد: `supabase/functions/zatca-api/index.ts` — نفس المحتوى، ترتيب أفضل.
 
