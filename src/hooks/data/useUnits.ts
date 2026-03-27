@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { createCrudFactory } from './useCrudFactory';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { Unit } from '@/types/database';
 
 // Re-export types for backward compatibility
@@ -42,7 +43,7 @@ export const useUpdateUnit = unitsCrud.useUpdate;
 export const useUnits = (propertyId?: string) => {
   return useQuery({
     queryKey: ['units', propertyId],
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('units')

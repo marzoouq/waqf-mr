@@ -3,6 +3,7 @@
  */
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { fmt } from '@/utils/format';
+import { tooltipStyleRtl } from '@/utils/chartHelpers';
 
 const REPORT_COLORS = [
   'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
@@ -10,7 +11,7 @@ const REPORT_COLORS = [
   'hsl(var(--accent))', 'hsl(var(--chart-4))',
 ];
 
-const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
+
 
 interface DataItem { name: string; value: number }
 
@@ -30,7 +31,7 @@ const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceDat
                 <Cell key={`cell-${index}`} fill={REPORT_COLORS[index % REPORT_COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
+            <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyleRtl} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
@@ -45,7 +46,7 @@ const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceDat
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis />
-            <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
+            <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyleRtl} />
             <Bar dataKey="value" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

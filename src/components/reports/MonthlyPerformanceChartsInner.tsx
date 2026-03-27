@@ -7,8 +7,9 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fmt } from '@/utils/format';
+import { tooltipStyleRtl } from '@/utils/chartHelpers';
 
-const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
+
 
 interface MonthData {
   label: string;
@@ -36,7 +37,7 @@ const MonthlyPerformanceChartsInner: React.FC<MonthlyPerformanceChartsInnerProps
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
               <Tooltip
-                contentStyle={tooltipStyle}
+                contentStyle={tooltipStyleRtl}
                 formatter={(value: number | undefined, name: string | undefined) => [
                   `${fmt(value ?? 0)} ر.س`,
                   name === 'income' ? 'الدخل' : name === 'expenses' ? 'المصروفات' : 'الصافي',
@@ -65,7 +66,7 @@ const MonthlyPerformanceChartsInner: React.FC<MonthlyPerformanceChartsInnerProps
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
               <Tooltip
-                contentStyle={tooltipStyle}
+                contentStyle={tooltipStyleRtl}
                 formatter={(value: number | undefined) => [`${fmt(value ?? 0)} ر.س`, 'صافي الدخل']}
               />
               <defs>

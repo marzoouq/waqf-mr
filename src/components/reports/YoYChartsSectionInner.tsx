@@ -6,10 +6,11 @@ import {
   Legend, LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
 import { fmt } from '@/utils/format';
+import { tooltipStyleRtl } from '@/utils/chartHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
+
 
 const COLORS = [
   'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
@@ -42,7 +43,7 @@ const YoYChartsSectionInner = ({
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(value: number | undefined, name: string | undefined) => [`${fmt(value ?? 0)} ر.س`, name ?? '']} />
+              <Tooltip contentStyle={tooltipStyleRtl} formatter={(value: number | undefined, name: string | undefined) => [`${fmt(value ?? 0)} ر.س`, name ?? '']} />
               <Legend />
               <Bar dataKey={`دخل ${year1Label}`} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               <Bar dataKey={`دخل ${year2Label}`} fill="hsl(var(--primary) / 0.5)" radius={[4, 4, 0, 0]} />
@@ -64,7 +65,7 @@ const YoYChartsSectionInner = ({
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(value: number | undefined, name: string | undefined) => [`${fmt(value ?? 0)} ر.س`, name ?? '']} />
+              <Tooltip contentStyle={tooltipStyleRtl} formatter={(value: number | undefined, name: string | undefined) => [`${fmt(value ?? 0)} ر.س`, name ?? '']} />
               <Legend />
               <Line type="monotone" dataKey="net1" stroke="hsl(var(--primary))" strokeWidth={2} name={`صافي ${year1Label}`} dot={{ r: 4 }} />
               <Line type="monotone" dataKey="net2" stroke="hsl(var(--success))" strokeWidth={2} name={`صافي ${year2Label}`} dot={{ r: 4 }} />
@@ -93,7 +94,7 @@ const YoYChartsSectionInner = ({
                     <Cell key={`cell-y1-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
+                <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyleRtl} />
                 <Legend wrapperStyle={{ fontSize: '11px' }} />
               </PieChart>
             </ResponsiveContainer>
@@ -119,7 +120,7 @@ const YoYChartsSectionInner = ({
                     <Cell key={`cell-y2-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
+                <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyleRtl} />
                 <Legend wrapperStyle={{ fontSize: '11px' }} />
               </PieChart>
             </ResponsiveContainer>

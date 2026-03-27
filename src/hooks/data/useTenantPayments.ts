@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 interface TenantPayment {
   id: string;
@@ -38,7 +39,7 @@ export const useTenantPayments = () => {
       if (error) throw error;
       return data as TenantPayment[];
     },
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
   });
 };
 
