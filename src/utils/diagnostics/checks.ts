@@ -1,5 +1,5 @@
 /**
- * 26 فحصاً تشخيصياً للنظام — مقسّمة على 6 بطاقات
+ * 31 فحصاً تشخيصياً للنظام — مقسّمة على 7 بطاقات
  */
 import { supabase } from '@/integrations/supabase/client';
 import { getPagePerfSummaries } from '@/lib/pagePerformanceTracker';
