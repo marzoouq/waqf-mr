@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { createCrudFactory } from './useCrudFactory';
 import { logger } from '@/lib/logger';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 // ---------------------------------------------------------------------------
 // Types & constants

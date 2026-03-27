@@ -10,6 +10,7 @@
  * useBeneficiariesDecrypted: هوك لفك تشفير البيانات الحساسة (ناظر/محاسب فقط)
  */
 import { useQuery } from '@tanstack/react-query';
+import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { createCrudFactory } from './useCrudFactory';
