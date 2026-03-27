@@ -5,7 +5,8 @@ import { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import {
   useSupportTickets, useSupportStats, useSupportAnalytics,
-  useClientErrors, type SupportTicket,
+  useClientErrors, fetchTicketsForExport,
+  type SupportTicket, type SupportAnalyticsData,
 } from '@/hooks/data/useSupportTickets';
 import { toast } from 'sonner';
 import { fmtDate } from '@/utils/format';
@@ -43,7 +44,7 @@ export function useSupportDashboardPage() {
   const { data: ticketsData, isLoading } = useSupportTickets(statusFilter);
   const tickets = useMemo(() => ticketsData?.tickets ?? [], [ticketsData?.tickets]);
   const { data: stats } = useSupportStats();
-  const { data: allTickets = [] } = useSupportAnalytics();
+  const { data: analytics } = useSupportAnalytics();
   const { data: errors = [] } = useClientErrors();
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [showNewTicket, setShowNewTicket] = useState(false);
@@ -68,16 +69,21 @@ export function useSupportDashboardPage() {
     });
   }, [errors, errorSearch]);
 
-  const handleExportTickets = useCallback(() => {
-    const headers = ['الرقم', 'العنوان', 'التصنيف', 'الأولوية', 'الحالة', 'التاريخ'];
-    const source = allTickets.length > 0 ? allTickets : filteredTickets;
-    const rows = source.map(t => [
-      t.ticket_number, t.title, CATEGORY_MAP[t.category] || t.category,
-      PRIORITY_MAP[t.priority]?.label || t.priority, STATUS_MAP[t.status]?.label || t.status,
-      fmtDate(t.created_at),
-    ]);
-    exportToCsv('support-tickets.csv', headers, rows);
-  }, [allTickets, filteredTickets]);
+  /** تصدير التذاكر — جلب عند الطلب من قاعدة البيانات */
+  const handleExportTickets = useCallback(async () => {
+    try {
+      const rows = await fetchTicketsForExport();
+      const headers = ['الرقم', 'العنوان', 'التصنيف', 'الأولوية', 'الحالة', 'التاريخ'];
+      const csvRows = rows.map(t => [
+        t.ticket_number, t.title, CATEGORY_MAP[t.category] || t.category,
+        PRIORITY_MAP[t.priority]?.label || t.priority, STATUS_MAP[t.status]?.label || t.status,
+        fmtDate(t.created_at),
+      ]);
+      await exportToCsv('support-tickets.csv', headers, csvRows);
+    } catch {
+      toast.error('فشل تصدير التذاكر');
+    }
+  }, []);
 
   const handleExportErrors = useCallback(() => {
     const headers = ['التاريخ', 'الصفحة', 'الخطأ', 'المتصفح'];
@@ -91,42 +97,42 @@ export function useSupportDashboardPage() {
     exportToCsv('client-errors.csv', headers, rows);
   }, [filteredErrors]);
 
+  // إحصائيات من RPC بدلاً من حساب في الواجهة
   const categoryStats = useMemo(() => {
-    const map: Record<string, number> = {};
-    allTickets.forEach(t => { map[t.category] = (map[t.category] || 0) + 1; });
-    return Object.entries(map).map(([key, count]) => ({
-      key, label: CATEGORY_MAP[key] || key, count,
-      pct: allTickets.length > 0 ? Math.round((count / allTickets.length) * 100) : 0,
+    if (!analytics?.category_stats) return [];
+    const total = analytics.total_count || 1;
+    return analytics.category_stats.map(s => ({
+      key: s.key,
+      label: CATEGORY_MAP[s.key] || s.key,
+      count: s.count,
+      pct: Math.round((s.count / total) * 100),
     }));
-  }, [allTickets]);
+  }, [analytics]);
 
   const priorityStats = useMemo(() => {
-    const map: Record<string, number> = {};
-    allTickets.forEach(t => { map[t.priority] = (map[t.priority] || 0) + 1; });
-    return Object.entries(map).map(([key, count]) => ({
-      key, label: PRIORITY_MAP[key]?.label || key, color: PRIORITY_MAP[key]?.color || '',
-      count, pct: allTickets.length > 0 ? Math.round((count / allTickets.length) * 100) : 0,
+    if (!analytics?.priority_stats) return [];
+    const total = analytics.total_count || 1;
+    return analytics.priority_stats.map(s => ({
+      key: s.key,
+      label: PRIORITY_MAP[s.key]?.label || s.key,
+      color: PRIORITY_MAP[s.key]?.color || '',
+      count: s.count,
+      pct: Math.round((s.count / total) * 100),
     }));
-  }, [allTickets]);
+  }, [analytics]);
 
   const avgResolutionTime = useMemo(() => {
-    const resolved = allTickets.filter(t => t.resolved_at);
-    if (resolved.length === 0) return null;
-    const totalHours = resolved.reduce((sum, t) => {
-      return sum + (new Date(t.resolved_at!).getTime() - new Date(t.created_at).getTime()) / (1000 * 60 * 60);
-    }, 0);
-    const avg = totalHours / resolved.length;
+    if (!analytics?.avg_resolution_hours) return null;
+    const avg = analytics.avg_resolution_hours;
     if (avg < 1) return `${Math.round(avg * 60)} دقيقة`;
     if (avg < 24) return `${Math.round(avg)} ساعة`;
     return `${Math.round(avg / 24)} يوم`;
-  }, [allTickets]);
+  }, [analytics]);
 
   const avgRating = useMemo(() => {
-    const rated = allTickets.filter(t => t.rating);
-    if (rated.length === 0) return null;
-    const total = rated.reduce((sum, t) => sum + (t.rating ?? 0), 0);
-    return { avg: (total / rated.length).toFixed(1), count: rated.length };
-  }, [allTickets]);
+    if (!analytics?.rated_count) return null;
+    return { avg: String(analytics.avg_rating), count: analytics.rated_count };
+  }, [analytics]);
 
   return {
     role, isLoading, stats,
