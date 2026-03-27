@@ -30,7 +30,7 @@ export const useAppSettings = () => {
       data?.forEach((row) => { settings[row.key] = row.value; });
       return settings;
     },
-    staleTime: STALE_STATIC,
+    staleTime: STALE_SETTINGS,
     retry: 2,
     retryDelay: 1500,
     gcTime: 1000 * 60 * 30,
