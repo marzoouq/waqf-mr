@@ -72,7 +72,7 @@ const CarryforwardHistoryPage = () => {
   const settledCF = carryforwards.filter(c => c.status === 'settled');
   const totalSettled = settledCF.reduce((s, c) => s + safeNumber(c.amount), 0);
 
-  if (loadingBen || loadingCF || loadingAdv) {
+  if (loadingBen || loadingBenFin) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
