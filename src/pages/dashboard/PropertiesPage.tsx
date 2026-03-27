@@ -237,6 +237,16 @@ const PropertiesPage = () => {
             })}
           </div>
           <TablePagination currentPage={currentPage} totalItems={filteredProperties.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+          <CrudPagination
+            page={serverPage}
+            pageSize={serverPageSize}
+            currentCount={properties.length}
+            hasNextPage={serverHasNextPage}
+            hasPrevPage={serverHasPrevPage}
+            nextPage={serverNextPage}
+            prevPage={serverPrevPage}
+            isLoading={isLoading}
+          />
           </>
         )}
 
