@@ -522,3 +522,11 @@ export async function runAllDiagnostics(): Promise<{ category: string; results: 
   }
   return output;
 }
+
+/** تشغيل فحوصات بطاقة واحدة فقط حسب العنوان */
+export async function runCategoryDiagnostics(categoryTitle: string): Promise<{ category: string; results: CheckResult[] } | null> {
+  const cat = diagnosticCategories.find(c => c.title === categoryTitle);
+  if (!cat) return null;
+  const results = await Promise.all(cat.checks.map(fn => fn()));
+  return { category: cat.title, results };
+}

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download } from 'lucide-react';
-import { runAllDiagnostics, type CheckResult, type CheckStatus } from '@/utils/diagnostics/checks';
+import { runAllDiagnostics, runCategoryDiagnostics, diagnosticCategories, type CheckResult, type CheckStatus } from '@/utils/diagnostics/checks';
 import { sanitizeDiagnosticOutput } from '@/utils/diagnostics/sanitize';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { useAuth } from '@/hooks/auth/useAuthContext';
