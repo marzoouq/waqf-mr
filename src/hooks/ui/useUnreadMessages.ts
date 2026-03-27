@@ -25,7 +25,7 @@ export const useUnreadMessages = () => {
       return count || 0;
     },
     enabled: !!user,
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     refetchInterval: 60_000, // تحديث كل دقيقة
   });
 };

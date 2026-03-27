@@ -43,7 +43,7 @@ export function useAuditLogPage() {
 
   const { data: todayCount = 0 } = useQuery({
     queryKey: ['audit_log_today_count'],
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const todayStr = new Date().toISOString().split('T')[0];
       const { count } = await supabase

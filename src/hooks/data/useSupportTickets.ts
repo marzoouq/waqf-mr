@@ -233,7 +233,7 @@ export const useSupportStats = () => {
 export const useSupportAnalytics = () => {
   return useQuery({
     queryKey: ['support_analytics'],
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('support_tickets')

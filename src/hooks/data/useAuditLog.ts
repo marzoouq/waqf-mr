@@ -88,6 +88,6 @@ export const useAuditLog = (filters?: {
         totalCount: count ?? 0,
       };
     },
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
   });
 };

@@ -203,6 +203,6 @@ export const useIncomeComparison = () => {
 
       return results.reverse(); // الأقدم أولاً
     },
-    staleTime: 5 * 60_000,
+    staleTime: STALE_STATIC,
   });
 };
