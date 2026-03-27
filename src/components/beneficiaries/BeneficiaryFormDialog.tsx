@@ -74,8 +74,8 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
           <div className="space-y-2"><Label htmlFor="beneficiary-form-dialog-field-3">رقم الهاتف</Label><Input name="phone" id="beneficiary-form-dialog-field-3" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="05xxxxxxxx" dir="ltr" maxLength={15} /></div>
           <div className="space-y-2"><Label htmlFor="beneficiary-form-dialog-field-4">البريد الإلكتروني</Label><Input name="email" id="beneficiary-form-dialog-field-4" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" dir="ltr" maxLength={255} /></div>
           <div className="space-y-2">
-            <Label htmlFor="beneficiary-form-dialog-field-3">رقم الحساب البنكي (IBAN)</Label>
-            <Input name="bank_account" id="beneficiary-form-dialog-field-3" value={formData.bank_account} onChange={(e) => setFormData({ ...formData, bank_account: e.target.value })} placeholder="SA0000000000000000000000" dir="ltr" maxLength={24} />
+            <Label htmlFor="beneficiary-form-dialog-field-5">رقم الحساب البنكي (IBAN)</Label>
+            <Input name="bank_account" id="beneficiary-form-dialog-field-5" value={formData.bank_account} onChange={(e) => setFormData({ ...formData, bank_account: e.target.value })} placeholder="SA0000000000000000000000" dir="ltr" maxLength={24} />
             {errors.bank_account && <p className="text-xs text-destructive">{errors.bank_account}</p>}
           </div>
           <div className="space-y-2">
