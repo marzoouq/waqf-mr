@@ -93,7 +93,7 @@ const ContractsViewPage = () => {
   // إعادة ضبط الصفحة عند تغيير البيانات
   useMemo(() => setCurrentPage(1), [fiscalYearId]);
 
-  const formatDate = (d: string) => fmtDate(d);
+  
   const formatCurrency = (n: number) => fmt(n) + ' ر.س';
 
 
@@ -233,11 +233,11 @@ const ContractsViewPage = () => {
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">من</span>
-                        <span>{formatDate(contract.start_date ?? '')}</span>
+                        <span>{fmtDate(contract.start_date ?? '')}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">إلى</span>
-                        <span>{formatDate(contract.end_date ?? '')}</span>
+                        <span>{fmtDate(contract.end_date ?? '')}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -272,8 +272,8 @@ const ContractsViewPage = () => {
                           <TableCell>{contract.tenant_name ?? ''}</TableCell>
                           <TableCell>{(contract.property_id && propertiesMap[contract.property_id]) || '-'}</TableCell>
                           <TableCell>{formatCurrency(contract.rent_amount ?? 0)}</TableCell>
-                          <TableCell>{formatDate(contract.start_date ?? '')}</TableCell>
-                          <TableCell>{formatDate(contract.end_date ?? '')}</TableCell>
+                          <TableCell>{fmtDate(contract.start_date ?? '')}</TableCell>
+                          <TableCell>{fmtDate(contract.end_date ?? '')}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1.5">
                               <Badge variant={st.variant}>{st.label}</Badge>
