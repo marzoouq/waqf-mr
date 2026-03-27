@@ -140,7 +140,7 @@ export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: st
 export const useMyCarryforwards = (beneficiaryId?: string) => {
   return useQuery({
     queryKey: ['advance_carryforward', 'my', beneficiaryId],
-    staleTime: 10_000,
+    staleTime: STALE_REALTIME,
     queryFn: async () => {
       if (!beneficiaryId) return [];
       const { data, error } = await supabase
