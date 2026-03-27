@@ -70,7 +70,7 @@ export const useBeneficiariesDecrypted = () => {
 export const useBeneficiariesSafe = () => {
   return useQuery({
     queryKey: ['beneficiaries-safe'],
-    staleTime: 5 * 60_000,
+    staleTime: STALE_STATIC,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('beneficiaries_safe')

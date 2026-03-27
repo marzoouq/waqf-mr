@@ -6,6 +6,7 @@
 import { createCrudFactory } from './useCrudFactory';
 import { Income } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 

@@ -6,6 +6,7 @@
 import { createCrudFactory } from '@/hooks/data/useCrudFactory';
 import { Account } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
 
 const accountsCrud = createCrudFactory<'accounts', Account>({

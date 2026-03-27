@@ -24,6 +24,6 @@ export const useTotalBeneficiaryPercentage = () => {
       }
       return result;
     },
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
   });
 };
