@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppSettings, useWaqfInfo } from '@/hooks/page/useAppSettings';
+import { STALE_STATIC } from '@/lib/queryStaleTime';
 import type { LandingPageContent } from '@/components/settings/LandingPageTab';
 
 const defaultLanding: LandingPageContent = {
