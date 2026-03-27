@@ -1806,6 +1806,16 @@ export type Database = {
         }
         Returns: Json
       }
+      commit_icv_chain: {
+        Args: {
+          p_icv: number
+          p_invoice_hash: string
+          p_invoice_id: string
+          p_previous_hash: string
+          p_source_table?: string
+        }
+        Returns: undefined
+      }
       cron_archive_old_access_logs: { Args: never; Returns: undefined }
       cron_auto_expire_contracts: { Args: never; Returns: undefined }
       cron_check_contract_expiry: { Args: never; Returns: undefined }
@@ -1909,7 +1919,9 @@ export type Database = {
           email: string
         }[]
       }
-      mask_audit_fields: { Args: { p_data: Json }; Returns: Json }
+      mask_audit_fields:
+        | { Args: { p_data: Json }; Returns: Json }
+        | { Args: { p_data: Json; p_table_name?: string }; Returns: Json }
       notify_admins: {
         Args: {
           p_link?: string
@@ -1937,6 +1949,7 @@ export type Database = {
         Returns: Json
       }
       reorder_bylaws: { Args: { items: Json }; Returns: undefined }
+      reserve_icv: { Args: never; Returns: Json }
       unpay_invoice_and_revert_collection: {
         Args: { p_invoice_id: string }
         Returns: Json
