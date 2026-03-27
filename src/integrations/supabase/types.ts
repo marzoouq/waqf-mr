@@ -1722,32 +1722,6 @@ export type Database = {
           updated_at: string | null
           user_id: string | null
         }
-        Insert: {
-          bank_account?: never
-          created_at?: string | null
-          email?: never
-          id?: string | null
-          name?: string | null
-          national_id?: never
-          notes?: never
-          phone?: never
-          share_percentage?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          bank_account?: never
-          created_at?: string | null
-          email?: never
-          id?: string | null
-          name?: string | null
-          national_id?: never
-          notes?: never
-          phone?: never
-          share_percentage?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
         Relationships: []
       }
       contracts_safe: {
@@ -1777,60 +1751,6 @@ export type Database = {
           tenant_tax_number: string | null
           unit_id: string | null
           updated_at: string | null
-        }
-        Insert: {
-          contract_number?: string | null
-          created_at?: string | null
-          end_date?: string | null
-          fiscal_year_id?: string | null
-          id?: string | null
-          notes?: never
-          payment_amount?: number | null
-          payment_count?: number | null
-          payment_type?: string | null
-          property_id?: string | null
-          rent_amount?: number | null
-          start_date?: string | null
-          status?: string | null
-          tenant_building?: never
-          tenant_city?: never
-          tenant_crn?: never
-          tenant_district?: never
-          tenant_id_number?: never
-          tenant_id_type?: never
-          tenant_name?: string | null
-          tenant_postal_code?: never
-          tenant_street?: never
-          tenant_tax_number?: never
-          unit_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          contract_number?: string | null
-          created_at?: string | null
-          end_date?: string | null
-          fiscal_year_id?: string | null
-          id?: string | null
-          notes?: never
-          payment_amount?: number | null
-          payment_count?: number | null
-          payment_type?: string | null
-          property_id?: string | null
-          rent_amount?: number | null
-          start_date?: string | null
-          status?: string | null
-          tenant_building?: never
-          tenant_city?: never
-          tenant_crn?: never
-          tenant_district?: never
-          tenant_id_number?: never
-          tenant_id_type?: never
-          tenant_name?: string | null
-          tenant_postal_code?: never
-          tenant_street?: never
-          tenant_tax_number?: never
-          unit_id?: string | null
-          updated_at?: string | null
         }
         Relationships: [
           {

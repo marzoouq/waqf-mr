@@ -7,7 +7,7 @@ import type { TablesInsert } from '@/integrations/supabase/types';
 // ---- Supabase mock ----
 const mockSelect = vi.fn();
 const mockOrder = vi.fn();
-const mockLimit = vi.fn();
+const mockRange = vi.fn();
 const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
 const mockDelete = vi.fn();
@@ -25,7 +25,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 
 import { createCrudFactory } from './useCrudFactory';
 import { toast } from 'sonner';
@@ -44,10 +44,10 @@ const sampleRows = [
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Default chain for select queries
+  // Default chain for select queries: .select(_, { count }) → .order() → .range()
   mockSelect.mockReturnValue({ order: mockOrder });
-  mockOrder.mockReturnValue({ limit: mockLimit });
-  mockLimit.mockResolvedValue({ data: sampleRows, error: null });
+  mockOrder.mockReturnValue({ range: mockRange });
+  mockRange.mockResolvedValue({ data: sampleRows, error: null });
   // Default chain for insert — code calls .insert().select().maybeSingle()
   mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle }) });
   mockMaybeSingle.mockResolvedValue({ data: sampleRows[0], error: null });
@@ -69,9 +69,17 @@ describe('createCrudFactory', () => {
     });
 
     it('throws on supabase error', async () => {
-      mockLimit.mockResolvedValueOnce({ data: null, error: { message: 'fail' } });
+      mockRange.mockResolvedValueOnce({ data: null, error: { message: 'fail' } });
       const { result } = renderHook(() => factory.useList(), { wrapper: wrapper() });
       await waitFor(() => expect(result.current.isError).toBe(true));
+    });
+
+    it('exposes pagination helpers', async () => {
+      const { result } = renderHook(() => factory.useList(), { wrapper: wrapper() });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.page).toBe(0);
+      expect(result.current.hasPrevPage).toBe(false);
+      expect(result.current.pageSize).toBe(500);
     });
   });
 
@@ -101,11 +109,12 @@ describe('createCrudFactory', () => {
   });
 
   describe('config defaults', () => {
-    it('uses default orderBy=created_at, ascending=false, limit=500', async () => {
+    it('uses default orderBy=created_at, ascending=false with range pagination', async () => {
       const { result } = renderHook(() => factory.useList(), { wrapper: wrapper() });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(mockSelect).toHaveBeenCalledWith('*', { count: 'exact' });
       expect(mockOrder).toHaveBeenCalledWith('created_at', { ascending: false });
-      expect(mockLimit).toHaveBeenCalledWith(500);
+      expect(mockRange).toHaveBeenCalledWith(0, 499);
     });
 
     it('respects custom config', async () => {
@@ -113,7 +122,7 @@ describe('createCrudFactory', () => {
       const { result } = renderHook(() => custom.useList(), { wrapper: wrapper() });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(mockOrder).toHaveBeenCalledWith('unit_number', { ascending: true });
-      expect(mockLimit).toHaveBeenCalledWith(100);
+      expect(mockRange).toHaveBeenCalledWith(0, 99);
     });
   });
 

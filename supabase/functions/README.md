@@ -78,4 +78,5 @@ For functions that don't require user auth (webhooks, cron, hooks):
 | `check-contract-expiry` | ⚡ Cron | Server-initiated |
 | `generate-invoice-pdf` | ✅ `getUser()` | User-scoped |
 | `lookup-national-id` | ✅ `getUser()` | Rate-limited |
+| `health-check` | ⚡ Public | No auth needed, DB + env checks |
 | `auth-email-hook` | ⚡ Hook | Supabase-initiated |

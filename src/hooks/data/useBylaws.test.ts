@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 
-const mockLimit = vi.fn().mockResolvedValue({
+const mockRange = vi.fn().mockResolvedValue({
   data: [{ id: 'b1', part_number: 1, part_title: 'الباب الأول', content: 'نص', sort_order: 1, is_visible: true }],
   error: null,
 });
-const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit });
+const mockOrder = vi.fn().mockReturnValue({ range: mockRange });
 const mockSelect = vi.fn().mockReturnValue({ order: mockOrder });
 
 vi.mock('@/integrations/supabase/client', () => ({
@@ -19,9 +19,20 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }));
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() } }));
 
 let capturedQueryFn: (() => Promise<unknown>) | null = null;
+
+// محاكاة React hooks المستخدمة في useCrudFactory
+vi.mock('react', async () => {
+  const actual = await vi.importActual<typeof import('react')>('react');
+  return {
+    ...actual,
+    useState: (init: unknown) => [init, vi.fn()],
+    useCallback: (fn: unknown) => fn,
+    useMemo: (fn: () => unknown) => fn(),
+  };
+});
 
 vi.mock('@tanstack/react-query', () => ({
   useQuery: ({ queryFn }: { queryFn: () => Promise<unknown> }) => {
@@ -68,14 +79,14 @@ describe('useBylaws (factory)', () => {
   });
 
   it('queryFn returns null on empty data (factory does not coerce)', async () => {
-    mockLimit.mockResolvedValueOnce({ data: null, error: null });
+    mockRange.mockResolvedValueOnce({ data: null, error: null });
     useBylaws();
     const data = await capturedQueryFn!();
     expect(data).toBeNull();
   });
 
   it('queryFn throws on error', async () => {
-    mockLimit.mockResolvedValueOnce({ data: null, error: { message: 'db error' } });
+    mockRange.mockResolvedValueOnce({ data: null, error: { message: 'db error' } });
     useBylaws();
     await expect(capturedQueryFn!()).rejects.toBeDefined();
   });
