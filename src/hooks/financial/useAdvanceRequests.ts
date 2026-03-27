@@ -267,6 +267,7 @@ export const useUpdateAdvanceStatus = () => {
       // M-04 fix: invalidate carryforward and accounts too
       qc.invalidateQueries({ queryKey: ['advance_requests'] });
       qc.invalidateQueries({ queryKey: ['advance_carryforward'] });
+      qc.invalidateQueries({ queryKey: ['my_beneficiary_finance'] });
       if (vars.status === 'paid') {
         qc.invalidateQueries({ queryKey: ['accounts'] });
       }
