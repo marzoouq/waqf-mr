@@ -20,7 +20,7 @@ export function useExpensesPage() {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const { role } = useAuth();
-  const isLocked = isClosed && role !== 'admin';
+  const isLocked = isClosed && role !== 'admin' && role !== 'accountant';
 
   const { data: expenses = [], isLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: allInvoices = [] } = useInvoicesByFiscalYear(fiscalYearId);
