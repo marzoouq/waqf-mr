@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Trophy, AlertTriangle, Lightbulb, Building2, FileDown, Printer,
-  Loader2, DollarSign, Receipt, FileText, Info, Table2,
+  Loader2, DollarSign, Receipt, FileText, Info, FileSpreadsheet,
 } from 'lucide-react';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import {
