@@ -190,6 +190,7 @@ export const useCreateAdvanceRequest = () => {
     },
     onSuccess: (result, vars) => {
       qc.invalidateQueries({ queryKey: ['advance_requests'] });
+      qc.invalidateQueries({ queryKey: ['my_beneficiary_finance'] });
       toast.success('تم إرسال طلب السلفة بنجاح');
       const name = result._beneficiaryName || 'مستفيد';
       notifyAdmins(
