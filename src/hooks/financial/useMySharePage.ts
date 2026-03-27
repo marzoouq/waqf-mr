@@ -11,7 +11,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import { useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards } from '@/hooks/financial/useAdvanceRequests';
+import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
