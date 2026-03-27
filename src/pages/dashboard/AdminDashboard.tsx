@@ -264,30 +264,30 @@ const AdminDashboard = () => {
                   </>
                 ) : (
                   <>
-                    <Link to="/dashboard/contracts">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/contracts">
                         <FileText className="w-5 h-5 text-primary" />
                         <span className="text-xs">مراجعة العقود</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/beneficiaries">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/beneficiaries">
                         <Users className="w-5 h-5 text-success" />
                         <span className="text-xs">إدارة المستفيدين</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/reports">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/reports">
                         <Gauge className="w-5 h-5 text-warning" />
                         <span className="text-xs">التقارير</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/settings">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/settings">
                         <Landmark className="w-5 h-5 text-muted-foreground" />
                         <span className="text-xs">الإعدادات</span>
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </>
                 )}
               </div>
