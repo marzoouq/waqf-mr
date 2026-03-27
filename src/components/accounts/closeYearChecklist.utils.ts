@@ -25,11 +25,12 @@ export function buildClosureChecklist(params: {
     detail: 'يجب إنشاء حساب ختامي قبل الإقفال',
   });
 
+  // #17: إقفال بحسابات صفرية يُعد خطأً حرجاً — لا تحذيراً
   items.push({
     label: 'تم تسجيل الإيرادات',
     passed: params.totalIncome > 0,
-    severity: 'warning',
-    detail: 'لم يتم تسجيل أي دخل لهذه السنة',
+    severity: 'error',
+    detail: 'لا يمكن إقفال السنة بدون تسجيل إيرادات. احفظ الحسابات الختامية أولاً.',
   });
 
   items.push({
