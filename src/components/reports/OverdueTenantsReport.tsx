@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Clock } from 'lucide-react';
-import { fmt } from '@/utils/format';
+import { fmt, fmtDate } from '@/utils/format';
 
 interface OverdueTenantsReportProps {
   contracts: Array<{

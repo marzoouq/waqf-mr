@@ -6,16 +6,7 @@ export { reshapeArabic, reshapeRow } from './arabicReshaper';
 export { toBase64, fetchFontWithRetry, loadArabicFont, isValidLogoUrl, loadLogoBase64 } from './pdfFonts';
 export { addHeader, addHeaderToAllPages, addPageBorder, addFooter } from './pdfLayout';
 import { addHeaderToAllPages, addFooter } from './pdfLayout';
-import { fmtDate } from '@/utils/format';
-
-/* PDF Core - Shared types, factory functions, table styles */
-
-// دالة تنسيق التاريخ المشتركة
-export const fmtDate = (d: string | null | undefined): string => {
-  if (!d) return '-';
-  try { return fmtDate(d); }
-  catch { return d; }
-};
+export { fmtDate } from '@/utils/format';
 
 // Waqf info passed optionally to PDF generators
 export interface PdfWaqfInfo {
