@@ -1,5 +1,5 @@
 /**
- * 31 فحصاً تشخيصياً للنظام — مقسّمة على 7 بطاقات
+ * 33 فحصاً تشخيصياً للنظام — مقسّمة على 7 بطاقات
  */
 import { supabase } from '@/integrations/supabase/client';
 import { getPagePerfSummaries } from '@/lib/pagePerformanceTracker';
@@ -306,7 +306,7 @@ export async function checkOnlineStatus(): Promise<CheckResult> {
 }
 
 // ════════════════════════════════════════════════
-// بطاقة 7 — ZATCA وسلسلة الفواتير (5)
+// بطاقة 7 — ZATCA وسلسلة الفواتير (7)
 // ════════════════════════════════════════════════
 
 export async function checkZatcaCertificateValidity(): Promise<CheckResult> {

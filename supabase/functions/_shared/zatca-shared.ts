@@ -132,7 +132,8 @@ export function buildEcSpki(publicKey: Uint8Array): Uint8Array {
 }
 
 export async function sha256Async(data: Uint8Array): Promise<Uint8Array> {
-  return new Uint8Array(await crypto.subtle.digest("SHA-256", data));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Deno ArrayBufferLike ↔ ArrayBuffer mismatch
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", data as any) as ArrayBuffer);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -171,7 +172,8 @@ export function parseCertExpiry(base64Cert: string): string | null {
 // ZATCA API Helpers
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function resolveZatcaUrl(adminClient: ReturnType<typeof createClient>): Promise<string> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- admin client بدون Database generic
+export async function resolveZatcaUrl(adminClient: any): Promise<string> {
   if (ZATCA_API_URL_ENV) return ZATCA_API_URL_ENV;
   const { data } = await adminClient.from("app_settings").select("value").eq("key", "zatca_platform").single();
   const platform = data?.value || "sandbox";
@@ -179,7 +181,8 @@ export async function resolveZatcaUrl(adminClient: ReturnType<typeof createClien
 }
 
 export async function logZatcaOperation(
-  admin: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- admin client بدون Database generic
+  admin: any,
   opts: {
     operation_type: string;
     status: string;
