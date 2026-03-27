@@ -1,11 +1,12 @@
 /**
- * هوك منطق المساعد الذكي مع حفظ المحادثات في قاعدة البيانات
+ * هوك منطق المساعد الذكي — مدمج مع نظام المراسلات (conversations + messages)
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { logger } from '@/lib/logger';
+import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const AI_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai-assistant` : null;
@@ -13,17 +14,18 @@ const AI_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai-assistant` : null
 type Msg = { role: 'user' | 'assistant'; content: string };
 export type ChatMode = 'chat' | 'analysis' | 'report';
 
-interface AiChatSession {
+/** محادثة AI (من جدول conversations) */
+interface AiConversation {
   id: string;
-  mode: string;
-  title: string | null;
-  messages: Msg[];
+  subject: string | null;
+  ai_mode: string | null;
   created_at: string;
   updated_at: string;
 }
 
 const SEND_COOLDOWN_MS = 2000;
-const SESSIONS_QUERY_KEY = ['ai-chat-sessions'];
+const SESSIONS_QUERY_KEY = ['ai-conversations'];
+const HISTORY_LIMIT = 10;
 
 export function useAiChat() {
   const { user, role } = useAuth();
@@ -50,77 +52,75 @@ export function useAiChat() {
 
   const isAvailable = role === 'admin' || role === 'accountant' || role === 'beneficiary' || role === 'waqif';
 
-  // ── جلب سجل المحادثات ──
-  const { data: sessions = [] } = useQuery<AiChatSession[]>({
+  // ── جلب قائمة محادثات AI ──
+  const { data: sessions = [] } = useQuery<AiConversation[]>({
     queryKey: SESSIONS_QUERY_KEY,
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
-        .from('ai_chat_sessions')
-        .select('id, mode, title, messages, created_at, updated_at')
-        .eq('user_id', user.id)
+        .from('conversations')
+        .select('id, subject, ai_mode, created_at, updated_at')
+        .eq('created_by', user.id)
+        .eq('type', 'ai_chat')
         .order('updated_at', { ascending: false })
         .limit(50);
       if (error) { logger.error('فشل جلب محادثات AI', error); return []; }
-      return (data ?? []).map(s => ({
-        ...s,
-        messages: (Array.isArray(s.messages) ? s.messages : []) as Msg[],
-      }));
+      return (data ?? []) as AiConversation[];
     },
     enabled: !!user && isAvailable,
-    staleTime: 2 * 60_000,
+    staleTime: STALE_MESSAGING,
   });
 
-  // ── حفظ الجلسة في قاعدة البيانات ──
-  const saveSession = useCallback(async (msgs: Msg[], sessionMode: ChatMode, sessionId: string | null): Promise<string | null> => {
-    if (!user || msgs.length === 0) return sessionId;
-    // استخراج عنوان من أول رسالة للمستخدم
-    const firstUserMsg = msgs.find(m => m.role === 'user');
-    const title = firstUserMsg?.content.slice(0, 80) ?? null;
-
-    try {
-      if (sessionId) {
-        // تحديث جلسة موجودة
-        await supabase
-          .from('ai_chat_sessions')
-          .update({ messages: JSON.parse(JSON.stringify(msgs)), title })
-          .eq('id', sessionId)
-          .eq('user_id', user.id);
-        return sessionId;
-      }
-      // إنشاء جلسة جديدة
-      const { data, error } = await supabase
-        .from('ai_chat_sessions')
-        .insert({ user_id: user.id, mode: sessionMode, messages: JSON.parse(JSON.stringify(msgs)), title })
-        .select('id')
-        .single();
-      if (error) { logger.error('فشل حفظ جلسة AI', error); return null; }
-      return data?.id ?? null;
-    } catch (e) {
-      logger.error('خطأ في حفظ جلسة AI', e);
-      return sessionId;
-    }
+  // ── إنشاء محادثة جديدة في DB ──
+  const createConversation = useCallback(async (title: string, chatMode: ChatMode): Promise<string | null> => {
+    if (!user) return null;
+    const { data, error } = await supabase
+      .from('conversations')
+      .insert({
+        type: 'ai_chat',
+        subject: title.slice(0, 80) || null,
+        created_by: user.id,
+        participant_id: null,
+        ai_mode: chatMode,
+      })
+      .select('id')
+      .single();
+    if (error) { logger.error('فشل إنشاء محادثة AI', error); return null; }
+    return data?.id ?? null;
   }, [user]);
 
-  const handleModeChange = (newMode: string) => {
-    if (newMode === mode) return;
-    abortControllerRef.current?.abort();
-    // حفظ المحادثة الحالية قبل التبديل
-    if (messages.length > 0) {
-      saveSession(messages, mode, activeSessionId).then(() => {
-        queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
-      });
-    }
-    setMode(newMode as ChatMode);
-    setMessages([]);
-    setActiveSessionId(null);
-    setIsLoading(false);
-  };
+  // ── إدراج رسالة في DB ──
+  const insertMessage = useCallback(async (conversationId: string, content: string, isAi: boolean) => {
+    if (!user) return;
+    const { error } = await supabase.from('messages').insert({
+      conversation_id: conversationId,
+      sender_id: user.id,
+      content,
+      is_ai_response: isAi,
+      is_read: true, // رسائل AI مقروءة دائماً
+    });
+    if (error) logger.error('فشل حفظ رسالة AI', error);
+    // تحديث updated_at للمحادثة
+    await supabase.from('conversations')
+      .update({ updated_at: new Date().toISOString() })
+      .eq('id', conversationId);
+  }, [user]);
 
   // ── تحميل جلسة سابقة ──
-  const loadSession = useCallback((session: AiChatSession) => {
-    setMessages(session.messages);
-    setMode(session.mode as ChatMode);
+  const loadSession = useCallback(async (session: AiConversation) => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('content, is_ai_response')
+      .eq('conversation_id', session.id)
+      .order('created_at', { ascending: true })
+      .limit(HISTORY_LIMIT * 2);
+    if (error) { logger.error('فشل تحميل رسائل المحادثة', error); return; }
+    const loaded: Msg[] = (data ?? []).map(m => ({
+      role: (m.is_ai_response ? 'assistant' : 'user') as Msg['role'],
+      content: m.content,
+    }));
+    setMessages(loaded);
+    setMode((session.ai_mode as ChatMode) || 'chat');
     setActiveSessionId(session.id);
     setShowHistory(false);
   }, []);
@@ -128,17 +128,25 @@ export function useAiChat() {
   // ── حذف جلسة ──
   const deleteSession = useCallback(async (sessionId: string) => {
     if (!user) return;
-    await supabase
-      .from('ai_chat_sessions')
-      .delete()
-      .eq('id', sessionId)
-      .eq('user_id', user.id);
+    // حذف الرسائل أولاً ثم المحادثة
+    await supabase.from('messages').delete().eq('conversation_id', sessionId);
+    await supabase.from('conversations').delete().eq('id', sessionId).eq('created_by', user.id);
     if (activeSessionId === sessionId) {
       setMessages([]);
       setActiveSessionId(null);
     }
     queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
   }, [user, activeSessionId, queryClient]);
+
+  const handleModeChange = (newMode: string) => {
+    if (newMode === mode) return;
+    abortControllerRef.current?.abort();
+    // بدء محادثة جديدة عند تغيير الوضع
+    setMode(newMode as ChatMode);
+    setMessages([]);
+    setActiveSessionId(null);
+    setIsLoading(false);
+  };
 
   const send = async () => {
     const trimmed = input.trim().slice(0, 1000);
@@ -158,7 +166,6 @@ export function useAiChat() {
     abortControllerRef.current = new AbortController();
 
     const userMsg: Msg = { role: 'user', content: trimmed };
-    const HISTORY_LIMIT = 10;
     const allMessages = [...messages, userMsg].slice(-HISTORY_LIMIT);
     setMessages(allMessages);
     setInput('');
@@ -169,6 +176,17 @@ export function useAiChat() {
     try {
       const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
       if (userError || !currentUser) throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
+
+      // إنشاء محادثة جديدة إذا لم تكن موجودة
+      let convId = activeSessionId;
+      if (!convId) {
+        convId = await createConversation(trimmed, mode);
+        if (!convId) throw new Error('فشل إنشاء المحادثة');
+        setActiveSessionId(convId);
+      }
+
+      // حفظ رسالة المستخدم في DB
+      await insertMessage(convId, trimmed, false);
 
       const storageKey = `sb-${import.meta.env.VITE_SUPABASE_PROJECT_ID}-auth-token`;
       const stored = localStorage.getItem(storageKey);
@@ -228,10 +246,10 @@ export function useAiChat() {
         }
       }
 
-      // حفظ المحادثة بعد اكتمال الرد
-      const mergedMessages = [...messages, userMsg, ...(assistantContent ? [{ role: 'assistant' as const, content: assistantContent }] : [])].slice(-HISTORY_LIMIT);
-      const newId = await saveSession(mergedMessages, mode, activeSessionId);
-      if (newId) setActiveSessionId(newId);
+      // حفظ رد المساعد الذكي في DB
+      if (assistantContent && convId) {
+        await insertMessage(convId, assistantContent, true);
+      }
       queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
 
     } catch (e) {
@@ -244,12 +262,6 @@ export function useAiChat() {
 
   const closePanel = () => {
     abortControllerRef.current?.abort();
-    // حفظ المحادثة عند الإغلاق
-    if (messages.length > 0) {
-      saveSession(messages, mode, activeSessionId).then(() => {
-        queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
-      });
-    }
     setOpen(false);
   };
 
@@ -259,16 +271,10 @@ export function useAiChat() {
   };
 
   const startNewChat = useCallback(() => {
-    // حفظ المحادثة الحالية أولاً
-    if (messages.length > 0) {
-      saveSession(messages, mode, activeSessionId).then(() => {
-        queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
-      });
-    }
     setMessages([]);
     setActiveSessionId(null);
     setShowHistory(false);
-  }, [messages, mode, activeSessionId, saveSession, queryClient]);
+  }, []);
 
   return {
     user, role, isAvailable,
@@ -279,7 +285,6 @@ export function useAiChat() {
     mode, handleModeChange,
     send,
     endRef,
-    // جديد: إدارة الجلسات
     sessions,
     activeSessionId,
     showHistory, setShowHistory,
@@ -289,4 +294,4 @@ export function useAiChat() {
   };
 }
 
-export type { Msg, AiChatSession };
+export type { Msg, AiConversation };
