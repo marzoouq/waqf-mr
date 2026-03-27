@@ -452,7 +452,8 @@ Deno.serve(async (req) => {
     }
 
     const { invoice_id, table } = await req.json();
-    if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!invoice_id || !UUID_RE.test(invoice_id) || !table || !["invoices", "payment_invoices"].includes(table)) {
       return new Response(JSON.stringify({ error: "Invalid parameters" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
