@@ -87,7 +87,7 @@ const Auth = () => {
         .maybeSingle();
       return data?.value === 'true';
     },
-    staleTime: 5 * 60_000,
+    staleTime: STALE_STATIC,
     gcTime: 30 * 60_000,
   });
 

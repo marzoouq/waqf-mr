@@ -25,7 +25,7 @@ interface DistributionRow {
 const DistributionHistory = ({ beneficiary }: Props) => {
   const { data: distributions = [], isLoading } = useQuery({
     queryKey: ['beneficiary-distribution-history', beneficiary.id],
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       // جلب التوزيعات مع بيانات الحساب للسنة المالية
       const { data, error } = await supabase

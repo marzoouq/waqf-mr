@@ -42,7 +42,7 @@ const ContractsViewPage = () => {
   const { data: propertiesMap = {} } = useQuery({
     queryKey: ['properties_names', propertyIds],
     enabled: propertyIds.length > 0,
-    staleTime: 300_000,
+    staleTime: STALE_STATIC,
     queryFn: async () => {
       const { data } = await supabase
         .from('properties')

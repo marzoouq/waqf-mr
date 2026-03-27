@@ -74,7 +74,7 @@ const AccessLogTab = () => {
   // Stats use separate lightweight COUNT queries
   const { data: failedToday = 0 } = useQuery({
     queryKey: ['access_log_failed_today'],
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const todayStr = new Date().toISOString().split('T')[0];
       const { count } = await supabase
@@ -87,7 +87,7 @@ const AccessLogTab = () => {
   });
   const { data: unauthorizedToday = 0 } = useQuery({
     queryKey: ['access_log_unauthorized_today'],
-    staleTime: 30_000,
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const todayStr = new Date().toISOString().split('T')[0];
       const { count } = await supabase

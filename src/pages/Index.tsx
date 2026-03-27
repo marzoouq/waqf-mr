@@ -60,7 +60,7 @@ const Index = () => {
         { label: 'تقرير سنوي', value: String(d.fiscal_years ?? 0) },
       ];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_STATIC,
     gcTime: 10 * 60 * 1000,
     placeholderData: placeholderStats,
   });

@@ -40,7 +40,7 @@ const BeneficiariesPage = () => {
 
   const { data: users = [] } = useQuery({
     queryKey: ['beneficiary-users'],
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
     enabled: isOpen,
     queryFn: async () => {
       // التحقق من صلاحية المستخدم أولاً

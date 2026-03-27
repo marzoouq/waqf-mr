@@ -76,7 +76,7 @@ const AdminDashboard = () => {
 
   const { data: orphanedContracts = [] } = useQuery({
     queryKey: ['contracts', 'orphaned'],
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('contracts')
