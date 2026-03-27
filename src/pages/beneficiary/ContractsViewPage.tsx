@@ -83,6 +83,16 @@ const ContractsViewPage = () => {
     };
   }, [contracts, isExpiringSoon]);
 
+  // ترقيم الصفحات
+  const paginatedContracts = useMemo(() => {
+    if (!contracts) return [];
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return contracts.slice(start, start + ITEMS_PER_PAGE);
+  }, [contracts, currentPage]);
+
+  // إعادة ضبط الصفحة عند تغيير البيانات
+  useMemo(() => setCurrentPage(1), [fiscalYearId]);
+
   const formatDate = (d: string) => new Date(d).toLocaleDateString('ar-SA');
   const formatCurrency = (n: number) => fmt(n) + ' ر.س';
 
