@@ -143,8 +143,8 @@ describe('useSupportDashboardPage', () => {
     const { useSupportDashboardPage } = await import('./useSupportDashboardPage');
     const { result } = renderHook(() => useSupportDashboardPage(), { wrapper: createWrapper() });
     expect(result.current.priorityStats).toHaveLength(2);
-    expect(result.current.priorityStats[0]).toMatchObject({ key: 'high', label: 'عالي', count: 4, pct: 40 });
-    expect(result.current.priorityStats[0].color).toContain('bg-');
+    expect(result.current.priorityStats[0]!).toMatchObject({ key: 'high', label: 'عالي', count: 4, pct: 40 });
+    expect(result.current.priorityStats[0]!.color).toContain('bg-');
   });
 
   // --- متوسط التقييم ---
