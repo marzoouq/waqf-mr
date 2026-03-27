@@ -213,7 +213,7 @@ const AccountsCollectionTable = ({
               <div className="p-3 bg-muted/50 rounded-lg space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">عدد المستأجرين</span>
-                  <span className="font-bold">{contracts.length}</span>
+                  <span className="font-bold">{filteredData.length}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">إجمالي المحصّل</span>
