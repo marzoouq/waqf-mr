@@ -12,7 +12,7 @@ import { useAllUnits } from '@/hooks/data/useUnits';
 import { useProperties } from '@/hooks/data/useProperties';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
+import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 
 export function useAccountsData() {
   const { data: accounts = [], isLoading } = useAccounts();
