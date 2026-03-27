@@ -1,114 +1,63 @@
 
 
-## تحليل التطبيق — التحسينات المطلوبة
+## فحص جنائي هجين — نتائج التدقيق الشامل
 
-بعد فحص شامل للكود، المشروع في حالة جيدة جداً من حيث البنية والأداء. فيما يلي التحسينات المكتشفة مرتبة حسب الأولوية:
-
----
-
-### 1. إزالة `any` من مكونات فواتير الدفعات (أمان الأنواع)
-
-**الملفات المتأثرة:**
-- `src/components/contracts/payment-invoices/PaymentInvoiceDesktopTable.tsx`
-- `src/components/contracts/payment-invoices/PaymentInvoiceMobileCards.tsx`
-- `src/components/contracts/payment-invoices/PaymentInvoiceToolbar.tsx`
-
-**المشكلة:** `type Invoice = any` — يضعف أمان TypeScript ويخفي أخطاء محتملة.
-
-**الحل:** استبدال `any` بنوع `PaymentInvoice` المستورد من `@/types/database` أو إنشاء interface مناسب يعكس بنية البيانات الفعلية.
+### الحالة العامة
+المشروع في حالة **جيدة جداً** أمنياً وبنيوياً. التحسينات السابقة (إزالة `any`، إصلاح `id/htmlFor`، `Button asChild`، `ErrorBoundary`، `useMemo` للتحية والعدادات، تثبيت Realtime) **تم تنفيذها بنجاح**. لا توجد ثغرات أمنية مفتوحة.
 
 ---
 
-### 2. تكرار الـ `id` في `htmlFor` بنموذج المستفيد
+### النتائج المكتشفة
 
-**الملف:** `src/components/beneficiaries/BeneficiaryFormDialog.tsx` (سطر 74-75)
-
-**المشكلة:** حقل الهاتف يستخدم `id="beneficiary-form-dialog-field-1"` وحقل البريد يستخدم `id="beneficiary-form-dialog-field-2"`، بينما `Label htmlFor` يشير لـ `field-2` و `field-3`. هذا عدم تطابق يؤثر على إمكانية الوصول (Accessibility).
-
-**الحل:** توحيد الـ `id` مع `htmlFor` لكل حقل.
-
----
-
-### 3. تحسين `advanceRequests.filter` المكرر في لوحة التحكم
-
-**الملف:** `src/pages/dashboard/AdminDashboard.tsx` (سطر 179)
-
-**المشكلة:** `advanceRequests.filter(r => r.status === 'pending').length` يُحسب داخل JSX مباشرة — يُعاد حسابه مع كل render.
-
-**الحل:** لفه بـ `useMemo` أو حسابه مرة واحدة في متغير خارج JSX.
+| # | الفئة | المشكلة | الخطورة | الملفات |
+|---|-------|---------|---------|---------|
+| 1 | كود ميت | ثوابت `queryStaleTime.ts` أُنشئت لكن **لم تُستورد في أي ملف** — 33 ملف ما زالت تستخدم أرقاماً حرفية | منخفضة | `src/lib/queryStaleTime.ts` + 33 hooks |
+| 2 | تكرار كود | `formatArabicMonth` + `ARABIC_MONTHS` مكررة في 3 ملفات منفصلة بنسخ متطابقة | منخفضة | `DashboardChartsInner`, `FinancialChartsInner`, `WaqifChartsInner` |
+| 3 | تكرار كود | `tooltipStyle` و `COLORS` مكررة في 3 ملفات رسوم بيانية | منخفضة | نفس الملفات أعلاه |
+| 4 | تحذيرات Recharts | تحذيرات `width(-1) height(-1)` **ما زالت تظهر** في الكونسول رغم إضافة `minWidth/minHeight` | متوسطة | مكونات الرسوم البيانية |
+| 5 | `eslint-disable` مبررة | 10 حالات — كلها مبررة بتعليقات واضحة (shadcn/ui، Deno، أنماط مقصودة) | ✅ سليم | — |
+| 6 | `console.*` في Edge Functions | Deno Edge Functions تستخدم `console.error` مباشرة — **مقبول** لأن `logger` خاص بالواجهة | ✅ سليم | — |
+| 7 | `dangerouslySetInnerHTML` | حالتان فقط: JSON-LD في `Index.tsx` + `chart.tsx` (shadcn) — **آمنة** | ✅ سليم | — |
+| 8 | أمان المصادقة | كل Edge Functions تستخدم `getUser()` — لا `getSession()` — لا أدوار في localStorage | ✅ سليم | — |
+| 9 | `catch {}` فارغ | 3 حالات فقط — كلها مقصودة (fire-and-forget لتسجيل الأخطاء أو مسح الكاش) | ✅ سليم | — |
 
 ---
 
-### 4. إنشاء دالة `greeting` مستخرجة من JSX
+### الإصلاحات المطلوبة
 
-**الملف:** `src/pages/dashboard/AdminDashboard.tsx` (سطور 156-164)
+#### 1. تفعيل ثوابت `queryStaleTime` (استكمال عمل سابق)
+الثوابت `STALE_STATIC`، `STALE_FINANCIAL`، `STALE_REALTIME` أُنشئت في الخطة السابقة لكن **لم تُستخدم فعلياً**. يجب استبدال الأرقام الحرفية في الـ hooks بالثوابت المركزية:
 
-**المشكلة:** IIFE داخل JSX لحساب التحية — يصعب قراءته ويُعاد تنفيذه مع كل render.
+- `staleTime: 60_000` → `STALE_FINANCIAL` في: `useUnits`, `useContracts`, `useContractAllocations`, `useAnnualReport`
+- `staleTime: 10_000` → `STALE_REALTIME` في: `useAdvanceRequests` (6 مواقع)
+- `staleTime: 30_000` → `STALE_REALTIME` أو ثابت جديد `STALE_MESSAGING = 30_000` في: `useMessaging`
+- `staleTime: 5_000` → `STALE_REALTIME` في: `useMessaging` (الرسائل الفردية)
+- `staleTime: 1000 * 60 * 5` → `STALE_STATIC` في: `useAppSettings`
 
-**الحل:** استخراجه إلى `useMemo` أو ثابت محسوب خارج JSX.
+#### 2. استخراج دوال/ثوابت مشتركة للرسوم البيانية
+إنشاء ملف `src/utils/chartHelpers.ts`:
+- نقل `formatArabicMonth` + `ARABIC_MONTHS`
+- نقل `tooltipStyle`
+- نقل `COLORS` المشتركة
 
----
+ثم استبدال النسخ المكررة في: `DashboardChartsInner`, `FinancialChartsInner`, `WaqifChartsInner`
 
-### 5. تحسين `useDashboardRealtime` — eslint-disable لـ deps
-
-**الملف:** `src/hooks/ui/useDashboardRealtime.ts` (سطر 35-36)
-
-**المشكلة:** `eslint-disable-next-line react-hooks/exhaustive-deps` مع spread `...tables` في dependency array — قد يسبب إعادة اشتراك غير مرغوبة إذا تغيّر مرجع المصفوفة.
-
-**الحل:** تحويل `tables` إلى `JSON.stringify` key أو استخدام `useRef` لتثبيت المرجع.
-
----
-
-### 6. توحيد staleTime للاستعلامات المتشابهة
-
-**المشكلة:** بعض الاستعلامات المتشابهة تستخدم `staleTime` مختلفة:
-- `useProperties` — يعتمد على الافتراضي (5 دقائق من queryClient)
-- `useContractAllocations` — `60_000`
-- `useFiscalYears` — `60_000`
-- `useAdvanceRequests` — `10_000`
-
-**الحل:** إنشاء ثوابت staleTime مركزية:
-```text
-STALE_STATIC    = 5 * 60_000   // بيانات نادرة التغيّر (عقارات، إعدادات)
-STALE_FINANCIAL = 60_000       // بيانات مالية
-STALE_REALTIME  = 10_000       // بيانات حساسة (سلف، رسائل)
-```
+#### 3. معالجة تحذيرات Recharts المتبقية
+التحذيرات `width(-1) height(-1)` تظهر عند lazy loading لأن المكون يُعرض قبل أن يحصل الحاوي على أبعاد فعلية. الحل:
+- إضافة `h-[300px]` أو ارتفاع صريح على الـ `div` الأب المباشر لـ `ResponsiveContainer` في `FinancialChartsInner` (السطور 43، 59، 80، 98، 118 تحتاج حاوي بارتفاع صريح)
 
 ---
 
-### 7. إضافة `ErrorBoundary` حول `CollectionSummaryCard` و `RecentContractsCard`
+### ملخص
 
-**الملف:** `src/pages/dashboard/AdminDashboard.tsx`
-
-**المشكلة:** المكونات الأخرى below-the-fold ملفوفة بـ `ErrorBoundary` + `Suspense`، لكن `CollectionSummaryCard` و `RecentContractsCard` ليسا كذلك.
-
-**الحل:** إضافة `ErrorBoundary` حولهما للاتساق ومنع انهيار الصفحة بالكامل.
-
----
-
-### 8. تحسين Accessibility — أزرار الإجراءات السريعة
-
-**الملف:** `src/pages/dashboard/AdminDashboard.tsx` (سطور 209-288)
-
-**المشكلة:** أزرار الإجراءات السريعة ملفوفة بـ `<Link>` ثم `<Button>` — عنصران تفاعليان متداخلان (interactive element nesting) وهو مخالف لمعايير الوصول.
-
-**الحل:** استخدام `<Button asChild>` مع `<Link>` أو تحويل الأزرار لعناصر `Link` مع تنسيق Button.
-
----
-
-### ملخص الأولويات
-
-| الأولوية | التحسين | التأثير |
-|----------|---------|---------|
-| عالية | إزالة `any` من فواتير الدفعات | أمان الأنواع |
-| عالية | إصلاح تداخل `Link`/`Button` | إمكانية الوصول |
-| متوسطة | إصلاح `id`/`htmlFor` في نموذج المستفيد | إمكانية الوصول |
-| متوسطة | توحيد ثوابت `staleTime` | صيانة الكود |
-| متوسطة | استخراج IIFE + `useMemo` للحسابات | أداء |
-| منخفضة | `ErrorBoundary` للمكونات الناقصة | استقرار |
-| منخفضة | تثبيت مرجع `tables` في Realtime | منع re-subscribe |
+| الحالة | العدد |
+|--------|-------|
+| ✅ سليم — لا يحتاج تدخل | 5 نتائج |
+| ⚠️ تحسين مطلوب | 3 نتائج |
+| 🔴 ثغرة أمنية | 0 |
 
 ### خطة التنفيذ
-
-أبدأ بالتحسينات ذات الأولوية العالية (1، 8، 2) ثم المتوسطة (6، 3، 4) ثم المنخفضة (7، 5). كل تحسين مستقل ولا يعتمد على الآخر.
+1. تفعيل ثوابت `staleTime` في ~10 ملفات hooks
+2. استخراج `chartHelpers.ts` وإزالة التكرار من 3 ملفات
+3. إصلاح حاويات الرسوم في `FinancialChartsInner`
 
