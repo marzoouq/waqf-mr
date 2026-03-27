@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { fmt } from '@/utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { Wallet, Pencil, Check, X, CalendarRange } from 'lucide-react';
+import { Wallet, Pencil, Check, X, CalendarRange, Filter } from 'lucide-react';
 
 export interface CollectionItem {
   index: number;
