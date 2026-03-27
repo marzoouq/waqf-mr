@@ -1,10 +1,15 @@
-import { useMemo } from 'react';
+/**
+ * I-3 + I-8: رسم بياني للإيرادات الفعلية مقابل المتوقعة شهرياً
+ * المتوقع = مجموع إيجارات العقود النشطة مقسّمة على عدد الأشهر
+ */
+import { lazy, Suspense, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp } from 'lucide-react';
 import { safeNumber } from '@/utils/safeNumber';
-import { fmt } from '@/utils/format';
 import { logger } from '@/lib/logger';
+
+const IncomeMonthlyChartInner = lazy(() => import('./IncomeMonthlyChartInner'));
 
 const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
@@ -22,12 +27,8 @@ interface IncomeChartProps {
   paymentInvoices?: PaymentInvoiceLike[];
 }
 
-/**
- * I-3 + I-8: رسم بياني للإيرادات الفعلية مقابل المتوقعة شهرياً
- * المتوقع = مجموع إيجارات العقود النشطة مقسّمة على عدد الأشهر
- */
 const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, paymentInvoices }: IncomeChartProps) => {
-  const chartData: Array<{ month: string; actual: number; expected: number; gap: number }> = useMemo(() => {
+  const chartData = useMemo(() => {
     const startDate = fiscalYear ? new Date(fiscalYear.start_date) : new Date(new Date().getFullYear(), 0, 1);
 
     // بناء خريطة المتوقع من الفواتير الفعلية (إن وجدت)
@@ -40,8 +41,6 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, pay
       });
     }
 
-    // fallback: حساب المتوقع الخطي من العقود
-    // ⚠️ هذا التقريب غير دقيق للعقود السنوية التي تُدفع دفعة واحدة — يُفضل دائماً توفر الفواتير
     const useInvoices = invoiceExpectedByMonth.size > 0;
     let linearMonthlyExpected = 0;
     if (!useInvoices) {
@@ -97,25 +96,9 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, pay
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[280px] min-h-[280px] min-w-0" dir="ltr">
-          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-            <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-              <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip
-                contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }}
-                formatter={(value: number | undefined, name: string | undefined) => [
-                  `${fmt(value ?? 0)} ر.س`,
-                  name === 'actual' ? 'الفعلي' : 'المتوقع',
-                ]}
-              />
-              <Legend formatter={(value: string) => value === 'actual' ? 'الفعلي' : 'المتوقع'} />
-              <Bar dataKey="expected" fill="hsl(var(--muted-foreground) / 0.3)" radius={[4, 4, 0, 0]} name="expected" />
-              <Bar dataKey="actual" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} name="actual" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <Suspense fallback={<Skeleton className="h-[280px] w-full rounded-lg" />}>
+          <IncomeMonthlyChartInner chartData={chartData} />
+        </Suspense>
       </CardContent>
     </Card>
   );
