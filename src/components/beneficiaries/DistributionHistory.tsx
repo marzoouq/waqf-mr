@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Beneficiary } from '@/types/database';
 import { fmt as fmtNum } from '@/utils/format';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 interface Props {
   beneficiary: Beneficiary;
