@@ -38,8 +38,9 @@ function simulateCloseFiscalYear(params: CloseParams): CloseResult {
   } = params;
 
   // 1. التحقق من الدور
-  if (caller_role !== 'admin' && caller_role !== 'accountant') {
-    throw new Error('غير مصرح بإقفال السنة المالية');
+  // #10: الناظر فقط — المحاسب لم يعد يملك صلاحية الإقفال
+  if (caller_role !== 'admin') {
+    throw new Error('فقط الناظر يملك صلاحية إقفال السنة المالية');
   }
 
   // 2. التحقق من وجود السنة
