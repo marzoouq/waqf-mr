@@ -8,6 +8,7 @@ import { Search, Zap, AlertTriangle, FileDown, CalendarDays, X } from 'lucide-re
 import { generateOverdueInvoicesPDF } from '@/utils/pdf';
 import type { FilterStatus } from '@/hooks/page/usePaymentInvoicesTab';
 import type { PdfWaqfInfo } from '@/utils/pdf/core';
+import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 
 interface PaymentInvoiceToolbarProps {
   search: string;
@@ -23,8 +24,7 @@ interface PaymentInvoiceToolbarProps {
   isClosed: boolean;
   fiscalYearId: string;
   generateAll: { mutate: () => void; isPending: boolean };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  invoices: any[];
+  invoices: PaymentInvoice[];
   waqfInfo: PdfWaqfInfo;
 }
 

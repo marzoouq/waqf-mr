@@ -60,6 +60,12 @@ const AdminDashboard = () => {
   const { data: allFiscalYears = [], isLoading: fyListLoading } = useFiscalYears();
   const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== 'all' ? fiscalYearId : undefined);
 
+  // ── حساب عدد السلف المعلقة مرة واحدة ──
+  const pendingAdvancesCount = useMemo(
+    () => advanceRequests.filter(r => r.status === 'pending').length,
+    [advanceRequests],
+  );
+
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
@@ -146,23 +152,24 @@ const AdminDashboard = () => {
     return Object.entries(types).map(([name, value]) => ({ name, value }));
   }, [expenses]);
 
+  // ── التحية المحسوبة مرة واحدة ──
+  const greetingText = useMemo(() => {
+    const displayName = user?.user_metadata?.full_name
+      || user?.email?.split('@')[0]
+      || (role === 'accountant' ? 'المحاسب' : 'ناظر الوقف');
+    const base = role === 'accountant'
+      ? `مرحباً بك، ${displayName} — يمكنك إدارة الحسابات والعمليات المالية`
+      : `مرحباً بك، ${displayName}`;
+    return base + (fiscalYearId === 'all' ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '');
+  }, [user, role, fiscalYearId, fiscalYear]);
+
   return (
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
         <PageHeaderCard
           title="لوحة التحكم"
           icon={Gauge}
-          description={
-            (() => {
-              const displayName = user?.user_metadata?.full_name
-                || user?.email?.split('@')[0]
-                || (role === 'accountant' ? 'المحاسب' : 'ناظر الوقف');
-              const greeting = role === 'accountant'
-                ? `مرحباً بك، ${displayName} — يمكنك إدارة الحسابات والعمليات المالية`
-                : `مرحباً بك، ${displayName}`;
-              return greeting + (fiscalYearId === 'all' ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '');
-            })()
-          }
+          description={greetingText}
           actions={
             <Button variant="outline" onClick={() => window.print()} className="gap-2">
               <Printer className="w-4 h-4" />
@@ -176,7 +183,7 @@ const AdminDashboard = () => {
           usingFallbackPct={usingFallbackPct}
           expiringContracts={expiringContracts}
           orphanedContracts={orphanedContracts}
-          pendingAdvancesCount={advanceRequests.filter(r => r.status === 'pending').length}
+          pendingAdvancesCount={pendingAdvancesCount}
           collectionRate={collectionSummary.percentage}
         />
 
@@ -206,81 +213,81 @@ const AdminDashboard = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {role === 'accountant' ? (
                   <>
-                    <Link to="/dashboard/income">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/income">
                         <TrendingUp className="w-5 h-5 text-success" />
                         <span className="text-xs">تسجيل دخل</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/expenses">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/expenses">
                         <TrendingDown className="w-5 h-5 text-destructive" />
                         <span className="text-xs">تسجيل مصروف</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/accounts">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/accounts">
                         <FileText className="w-5 h-5 text-primary" />
                         <span className="text-xs">الحسابات الختامية</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/invoices">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/invoices">
                         <FileText className="w-5 h-5 text-secondary" />
                         <span className="text-xs">إدارة الفواتير</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/chart-of-accounts">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/chart-of-accounts">
                         <GitBranch className="w-5 h-5 text-accent-foreground" />
                         <span className="text-xs">الشجرة المحاسبية</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/comparison">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/comparison">
                         <ArrowUpDown className="w-5 h-5 text-muted-foreground" />
                         <span className="text-xs">المقارنة التاريخية</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/annual-report">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/annual-report">
                         <Printer className="w-5 h-5 text-primary" />
                         <span className="text-xs">التقرير السنوي</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/reports">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/reports">
                         <Gauge className="w-5 h-5 text-secondary" />
                         <span className="text-xs">التقارير المالية</span>
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </>
                 ) : (
                   <>
-                    <Link to="/dashboard/contracts">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/contracts">
                         <FileText className="w-5 h-5 text-primary" />
                         <span className="text-xs">مراجعة العقود</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/beneficiaries">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/beneficiaries">
                         <Users className="w-5 h-5 text-success" />
                         <span className="text-xs">إدارة المستفيدين</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/reports">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/reports">
                         <Gauge className="w-5 h-5 text-warning" />
                         <span className="text-xs">التقارير</span>
-                      </Button>
-                    </Link>
-                    <Link to="/dashboard/settings">
-                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                      <Link to="/dashboard/settings">
                         <Landmark className="w-5 h-5 text-muted-foreground" />
                         <span className="text-xs">الإعدادات</span>
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </>
                 )}
               </div>
@@ -289,7 +296,9 @@ const AdminDashboard = () => {
         )}
 
         {/* ملخص التحصيل */}
-        <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
+        <ErrorBoundary>
+          <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
+        </ErrorBoundary>
 
         {/* خريطة حرارية — تُخفى عند الطباعة */}
         <div className="print:hidden">
@@ -364,7 +373,9 @@ const AdminDashboard = () => {
         )}
 
         {/* آخر العقود */}
-        <RecentContractsCard contracts={contracts} isLoading={isLoading} />
+        <ErrorBoundary>
+          <RecentContractsCard contracts={contracts} isLoading={isLoading} />
+        </ErrorBoundary>
       </div>
     </DashboardLayout>
   );

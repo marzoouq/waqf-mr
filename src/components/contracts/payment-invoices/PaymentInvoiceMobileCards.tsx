@@ -7,18 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CheckCircle2, Clock, AlertTriangle, Check, X, Download, Loader2, Eye } from 'lucide-react';
 import { fmt } from '@/utils/format';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Invoice = any;
+import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 
 interface PaymentInvoiceMobileCardsProps {
-  groupedPaginated: Map<string, Invoice[]>;
+  groupedPaginated: Map<string, PaymentInvoice[]>;
   isClosed: boolean;
   selectedIds: Set<string>;
   toggleSelect: (id: string) => void;
   payingInvoiceId: string | null;
-  openPayDialog: (inv: Invoice) => void;
-  handlePreviewTemplate: (inv: Invoice) => void;
+  openPayDialog: (inv: PaymentInvoice) => void;
+  handlePreviewTemplate: (inv: PaymentInvoice) => void;
   markUnpaid: { mutate: (id: string) => void; isPending: boolean };
 }
 
@@ -46,7 +44,7 @@ export default function PaymentInvoiceMobileCards({
               <span className="text-sm font-bold">{first?.contract?.contract_number || '-'}</span>
               <span className="text-xs text-muted-foreground">— {first?.contract?.tenant_name}</span>
             </div>
-            {invs.map((inv: Invoice) => (
+            {invs.map((inv) => (
               <Card key={inv.id} className={`shadow-sm border-r-4 ${
                 inv.status === 'paid' ? 'border-r-success/60' :
                 inv.status === 'overdue' ? 'border-r-destructive/60' :

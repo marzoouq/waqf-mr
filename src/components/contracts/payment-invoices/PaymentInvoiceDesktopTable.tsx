@@ -12,23 +12,21 @@ import {
 } from 'lucide-react';
 import { fmt } from '@/utils/format';
 import type { SortKey } from '@/hooks/page/usePaymentInvoicesTab';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Invoice = any;
+import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 
 interface PaymentInvoiceDesktopTableProps {
-  groupedPaginated: Map<string, Invoice[]>;
+  groupedPaginated: Map<string, PaymentInvoice[]>;
   isClosed: boolean;
   selectedIds: Set<string>;
-  unpaidFiltered: Invoice[];
+  unpaidFiltered: PaymentInvoice[];
   toggleSelect: (id: string) => void;
   toggleSelectAll: () => void;
   sortKey: SortKey;
   sortDir: 'asc' | 'desc';
   toggleSort: (key: SortKey) => void;
   payingInvoiceId: string | null;
-  openPayDialog: (inv: Invoice) => void;
-  handlePreviewTemplate: (inv: Invoice) => void;
+  openPayDialog: (inv: PaymentInvoice) => void;
+  handlePreviewTemplate: (inv: PaymentInvoice) => void;
   markUnpaid: { mutate: (id: string) => void; isPending: boolean };
 }
 
@@ -95,7 +93,7 @@ export default function PaymentInvoiceDesktopTable({
                     <Badge variant="outline" className="text-[11px] px-1.5 py-0 mr-2">{invs.length} فاتورة</Badge>
                   </TableCell>
                 </TableRow>
-                {invs.map((inv: Invoice) => (
+                {invs.map((inv) => (
                   <TableRow key={inv.id} className={inv.status === 'overdue' ? 'bg-destructive/5' : ''}>
                     {!isClosed && (
                       <TableCell className="text-center">

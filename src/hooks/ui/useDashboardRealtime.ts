@@ -2,7 +2,7 @@
  * هوك موحد لاشتراكات Realtime في لوحات التحكم
  * يستخدم useBfcacheSafeChannel لضمان التوافق مع bfcache
  */
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 
@@ -19,9 +19,14 @@ export const useDashboardRealtime = (
 ) => {
   const queryClient = useQueryClient();
 
+  // تثبيت مرجع الجداول لمنع إعادة الاشتراك عند تغيّر مرجع المصفوفة
+  const tablesKey = JSON.stringify(tables);
+  const tablesRef = useRef(tables);
+  tablesRef.current = tables;
+
   const subscribeFn = useCallback(
     (channel: Parameters<Parameters<typeof useBfcacheSafeChannel>[1]>[0]) => {
-      tables.forEach((table) => {
+      tablesRef.current.forEach((table) => {
         channel.on(
           'postgres_changes',
           { event: '*', schema: 'public', table },
@@ -32,8 +37,9 @@ export const useDashboardRealtime = (
         );
       });
     },
+    // tablesKey يتغير فقط عند تغيّر محتوى المصفوفة فعلياً
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [queryClient, ...tables],
+    [queryClient, tablesKey],
   );
 
   useBfcacheSafeChannel(channelName, subscribeFn, enabled);
