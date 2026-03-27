@@ -20,6 +20,20 @@ import { queryClient } from '@/lib/queryClient';
 import { clearToasts, toast } from '@/hooks/ui/use-toast';
 import { AuthContext } from '@/hooks/auth/useAuthContext';
 
+// مفاتيح التخزين المحلي القابلة للمسح عند تسجيل الخروج
+const CLEARABLE_STORAGE_KEYS = [
+  'waqf_selected_fiscal_year',
+  'sidebar-open',
+  'pwa_last_seen_version',
+  'waqf_theme_color',
+  'waqf_notification_tone',
+  'waqf_notification_volume',
+  'waqf_notification_preferences',
+  'error_log_queue',
+  'waqf_notification_sound',
+  'page_perf_entries',
+] as const;
+
 // إعادة تصدير useAuth للتوافقية مع الاستيراد القديم
 export { useAuth } from '@/hooks/auth/useAuthContext';
 
