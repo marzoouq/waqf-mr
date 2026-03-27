@@ -107,8 +107,8 @@ describe('useFinancialSummary – تكامل مع حساب مخزن', () => {
 
   it('المسار الثاني: بدون currentAccount يحسب ديناميكياً عبر calculateFinancials', () => {
     const { totalIncome, totalExpenses } = computeTotals(
-      income as Array<{ amount: number }>,
-      expenses as Array<{ amount: number }>,
+      income as unknown as Parameters<typeof computeTotals>[0],
+      expenses as unknown as Parameters<typeof computeTotals>[1],
     );
 
     const result = calculateFinancials({
