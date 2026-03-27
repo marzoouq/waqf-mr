@@ -67,12 +67,16 @@ const AdminDashboard = () => {
   );
 
   // ── الحسابات المالية (من البيانات المجلوبة) ──
+  const computedAccounts = useMemo(
+    () => accounts.map(a => ({ ...a, fiscal_year_id: a.fiscal_year_id ?? '' })),
+    [accounts],
+  );
   const {
     totalIncome, totalExpenses, adminShare, waqifShare, waqfRevenue,
     netAfterExpenses, netAfterZakat, availableAmount,
     zakatAmount: _zakatAmount, distributionsAmount, usingFallbackPct,
   } = useComputedFinancials({
-    income, expenses, accounts, settings,
+    income, expenses, accounts: computedAccounts, settings,
     fiscalYearLabel: fiscalYear?.label,
     fiscalYearId,
     fiscalYearStatus: fiscalYear?.status,
