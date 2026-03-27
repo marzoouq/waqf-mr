@@ -133,12 +133,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       });
   }, [role, rolePermissions, menuLabels, sectionsVisibility, beneficiarySections]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
+    setLogoutOpen(false);
     setMobileSidebarOpen(false);
     await logAccessEvent({ event_type: 'logout', user_id: user?.id });
     await signOut();
     navigate('/auth', { replace: true });
-  };
+  }, [navigate, signOut, user?.id]);
+
+  const handleSignOutClick = useCallback(() => {
+    setLogoutOpen(true);
+  }, []);
 
   // ─── Idle Timeout ───
   const idleMinutesRaw = getJsonSetting<number>('idle_timeout_minutes', 15);
