@@ -12,12 +12,7 @@ import { type ContractFormData, type PricingMode, type RentalMode } from '../con
 import { fmt } from '@/utils/format';
 import type { Contract } from '@/types/database';
 
-interface Unit {
-  id: string;
-  unit_number: string;
-  unit_type: string;
-  floor: string | null;
-}
+import type { Unit } from '@/types/database';
 
 interface ContractRentalModeSectionProps {
   formData: ContractFormData;
