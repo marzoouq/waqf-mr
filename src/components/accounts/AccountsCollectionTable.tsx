@@ -353,12 +353,12 @@ const AccountsCollectionTable = ({
               <TableFooter>
                 <TableRow className="bg-muted/70 font-bold">
                   <TableCell>الإجمالي</TableCell>
-                  <TableCell>{contracts.length} مستأجر</TableCell>
-                  <TableCell className="text-primary font-bold">{fmt(collectionData.reduce((sum, d) => sum + d.paymentPerPeriod, 0))} ريال</TableCell>
+                  <TableCell>{filteredData.length} مستأجر</TableCell>
+                  <TableCell className="text-primary font-bold">{fmt(filteredData.reduce((sum, d) => sum + d.paymentPerPeriod, 0))} ريال</TableCell>
                   <TableCell className="text-center text-muted-foreground">—</TableCell>
                   <TableCell className="text-center text-muted-foreground">—</TableCell>
-                  <TableCell className="text-primary font-bold">{fmt(totalCollectedAll)} ريال</TableCell>
-                  <TableCell className="text-destructive font-bold">{fmt(totalArrearsAll)} ريال</TableCell>
+                  <TableCell className="text-primary font-bold">{fmt(filteredTotalCollected)} ريال</TableCell>
+                  <TableCell className="text-destructive font-bold">{fmt(filteredTotalArrears)} ريال</TableCell>
                   <TableCell></TableCell>
                   <TableCell></TableCell>
                 </TableRow>
