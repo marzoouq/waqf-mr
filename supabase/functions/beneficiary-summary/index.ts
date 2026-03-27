@@ -148,11 +148,9 @@ Deno.serve(async (req) => {
       )
       .reduce((sum: number, a: { amount: number }) => sum + Number(a.amount || 0), 0);
 
+    // #25: توحيد فلتر carryforward مع منطق الـ trigger — تراكمي بدون فلتر سنة
     const carryforwardBalance = carryforwards
-      .filter((c: { status: string; to_fiscal_year_id: string | null }) =>
-        c.status === "active" &&
-        (!fiscal_year_id || c.to_fiscal_year_id === fiscal_year_id || !c.to_fiscal_year_id),
-      )
+      .filter((c: { status: string }) => c.status === "active")
       .reduce((sum: number, c: { amount: number }) => sum + Number(c.amount || 0), 0);
 
     const totalReceived = distributions
