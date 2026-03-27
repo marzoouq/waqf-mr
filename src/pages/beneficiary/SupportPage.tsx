@@ -17,6 +17,7 @@ import {
 import { useState } from 'react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import {
+import { fmtDate } from '@/utils/format';
   useSupportTickets, useTicketReplies, useCreateTicket,
   useAddTicketReply, useRateTicket, type SupportTicket,
 } from '@/hooks/data/useSupportTickets';
@@ -86,7 +87,7 @@ const BeneficiarySupportPage = () => {
                           <div className="grid grid-cols-2 gap-2">
                             <div>
                               <p className="text-[11px] text-muted-foreground">التاريخ</p>
-                              <p className="text-sm">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</p>
+                              <p className="text-sm">{fmtDate(ticket.created_at)}</p>
                             </div>
                             <div>
                               <p className="text-[11px] text-muted-foreground">التقييم</p>
@@ -144,7 +145,7 @@ const BeneficiarySupportPage = () => {
                                 <span className="text-xs text-muted-foreground">—</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-xs">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                            <TableCell className="text-xs">{fmtDate(ticket.created_at)}</TableCell>
                             <TableCell>
                               <Button size="sm" variant="outline" onClick={() => setSelectedTicket(ticket)}>
                                 <Eye className="w-3 h-3 ml-1" />عرض
@@ -242,7 +243,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
             ) : replies.map(r => (
               <div key={r.id} className="bg-muted/50 rounded p-2 text-sm">
                 <p>{r.content}</p>
-                <p className="text-[11px] text-muted-foreground mt-1">{new Date(r.created_at).toLocaleDateString('ar-SA')}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">{fmtDate(r.created_at)}</p>
               </div>
             ))}
           </div>

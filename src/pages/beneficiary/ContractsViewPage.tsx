@@ -93,7 +93,7 @@ const ContractsViewPage = () => {
   // إعادة ضبط الصفحة عند تغيير البيانات
   useMemo(() => setCurrentPage(1), [fiscalYearId]);
 
-  const formatDate = (d: string) => new Date(d).toLocaleDateString('ar-SA');
+  const formatDate = (d: string) => fmtDate(d);
   const formatCurrency = (n: number) => fmt(n) + ' ر.س';
 
 

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link2 } from 'lucide-react';
+import { fmtDate } from '@/utils/format';
 
 interface ChainEntry {
   id: string;
@@ -66,7 +67,7 @@ export default function ZatcaChainTab({ chain, chainLoading }: ZatcaChainTabProp
                   <TableCell className="font-mono font-bold">{entry.icv}</TableCell>
                   <TableCell><HashCell hash={entry.invoice_hash} /></TableCell>
                   <TableCell><HashCell hash={entry.previous_hash} /></TableCell>
-                  <TableCell>{entry.created_at ? new Date(entry.created_at).toLocaleDateString('ar-SA') : '—'}</TableCell>
+                  <TableCell>{entry.created_at ? fmtDate(entry.created_at) : '—'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

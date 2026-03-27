@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Bell } from 'lucide-react';
+import { fmtDate } from '@/utils/format';
 
 interface Notification {
   id: string;
@@ -46,7 +47,7 @@ const BeneficiaryNotificationsCard = ({ notifications, unreadCount }: Beneficiar
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{n.message}</p>
                 </div>
-                <span className="text-[11px] text-muted-foreground whitespace-nowrap">{new Date(n.created_at).toLocaleDateString('ar-SA')}</span>
+                <span className="text-[11px] text-muted-foreground whitespace-nowrap">{fmtDate(n.created_at)}</span>
               </div>
             ))}
           </div>

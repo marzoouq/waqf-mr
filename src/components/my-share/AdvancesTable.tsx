@@ -58,7 +58,7 @@ const AdvancesTable = ({ advances }: Props) => {
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <p className="text-muted-foreground">التاريخ</p>
-                    <p className="font-medium">{new Date(adv.created_at).toLocaleDateString('ar-SA')}</p>
+                    <p className="font-medium">{fmtDate(adv.created_at)}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">السبب</p>
@@ -66,7 +66,7 @@ const AdvancesTable = ({ advances }: Props) => {
                   </div>
                 </div>
                 {adv.status === 'paid' && adv.paid_at && (
-                  <p className="text-xs text-success">تاريخ الصرف: {new Date(adv.paid_at).toLocaleDateString('ar-SA')}</p>
+                  <p className="text-xs text-success">تاريخ الصرف: {fmtDate(adv.paid_at)}</p>
                 )}
                 {adv.status === 'rejected' && adv.rejection_reason && (
                   <div className="flex items-start gap-1.5 p-2 bg-destructive/5 rounded text-xs text-destructive">
@@ -92,7 +92,7 @@ const AdvancesTable = ({ advances }: Props) => {
             <TableBody>
               {advances.map(adv => (
                 <TableRow key={adv.id}>
-                  <TableCell>{new Date(adv.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                  <TableCell>{fmtDate(adv.created_at)}</TableCell>
                   <TableCell className="font-bold">{fmt(Number(adv.amount))} ر.س</TableCell>
                   <TableCell className="max-w-[200px] truncate">{adv.reason || '—'}</TableCell>
                   <TableCell>

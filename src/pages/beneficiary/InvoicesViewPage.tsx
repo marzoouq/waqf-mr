@@ -150,7 +150,7 @@ const InvoicesViewPage = () => {
                         <div className="flex items-center justify-between text-sm">
                           <span className="font-semibold text-primary">{fmt(safeNumber(item.amount))} ر.س</span>
                           <span className="text-xs text-muted-foreground">
-                            {new Date(item.date).toLocaleDateString('ar-SA')}
+                            {fmtDate(item.date)}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -199,7 +199,7 @@ const InvoicesViewPage = () => {
                             <TableCell className="font-medium">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
                             <TableCell>{item.invoice_number || '-'}</TableCell>
                             <TableCell className="font-medium">{fmt(safeNumber(item.amount))} ر.س</TableCell>
-                            <TableCell>{new Date(item.date).toLocaleDateString('ar-SA')}</TableCell>
+                            <TableCell>{fmtDate(item.date)}</TableCell>
                             <TableCell>{item.property?.property_number || '-'}</TableCell>
                             <TableCell>
                               <Badge variant={statusBadgeVariant(item.status)}>

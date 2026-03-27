@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MessageSquare, Search, Filter, Download, Eye, Loader2, Clock, ArrowUpCircle, CheckCircle, XCircle, Star } from 'lucide-react';
 import type { SupportTicket } from '@/hooks/data/useSupportTickets';
+import { fmtDate } from '@/utils/format';
 
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   low: { label: 'منخفض', color: 'bg-muted text-muted-foreground' },
@@ -157,7 +158,7 @@ export default function SupportTicketsTab({
                       )}
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</span>
+                      <span className="text-xs text-muted-foreground">{fmtDate(ticket.created_at)}</span>
                       <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onSelectTicket(ticket)}>
                         <Eye className="w-3 h-3 ml-1" />
                         عرض
@@ -206,7 +207,7 @@ export default function SupportTicketsTab({
                             </div>
                           ) : <span className="text-xs text-muted-foreground">—</span>}
                         </TableCell>
-                        <TableCell className="text-xs">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                        <TableCell className="text-xs">{fmtDate(ticket.created_at)}</TableCell>
                         <TableCell>
                           <Button size="sm" variant="outline" onClick={() => onSelectTicket(ticket)}>
                             <Eye className="w-3 h-3 ml-1" />

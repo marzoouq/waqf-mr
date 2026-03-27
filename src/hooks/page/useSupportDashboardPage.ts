@@ -8,6 +8,7 @@ import {
   useClientErrors, type SupportTicket,
 } from '@/hooks/data/useSupportTickets';
 import { toast } from 'sonner';
+import { fmtDate } from '@/utils/format';
 
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   low: { label: 'منخفض', color: 'bg-muted text-muted-foreground' },
@@ -73,7 +74,7 @@ export function useSupportDashboardPage() {
     const rows = source.map(t => [
       t.ticket_number, t.title, CATEGORY_MAP[t.category] || t.category,
       PRIORITY_MAP[t.priority]?.label || t.priority, STATUS_MAP[t.status]?.label || t.status,
-      new Date(t.created_at).toLocaleDateString('ar-SA'),
+      fmtDate(t.created_at),
     ]);
     exportToCsv('support-tickets.csv', headers, rows);
   }, [allTickets, filteredTickets]);

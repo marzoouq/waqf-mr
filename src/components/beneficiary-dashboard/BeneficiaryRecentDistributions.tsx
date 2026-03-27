@@ -32,7 +32,7 @@ const BeneficiaryRecentDistributions = ({ distributions }: BeneficiaryRecentDist
               <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                 <div className="min-w-0">
                   <p className="font-medium text-sm">{fmt(Number(d.amount))} ر.س</p>
-                  <p className="text-[11px] text-muted-foreground">{new Date(d.date).toLocaleDateString('ar-SA')}</p>
+                  <p className="text-[11px] text-muted-foreground">{fmtDate(d.date)}</p>
                 </div>
                 <Badge variant={d.status === 'paid' ? 'default' : 'secondary'} className="text-[11px]">
                   {d.status === 'paid' ? 'مدفوع' : 'معلق'}

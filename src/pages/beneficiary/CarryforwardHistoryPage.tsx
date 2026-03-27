@@ -205,7 +205,7 @@ const CarryforwardHistoryPage = () => {
                         </div>
                         <div>
                           <p className="text-[11px] text-muted-foreground">التاريخ</p>
-                          <p className="text-xs font-medium">{new Date(cf.created_at).toLocaleDateString('ar-SA')}</p>
+                          <p className="text-xs font-medium">{fmtDate(cf.created_at)}</p>
                         </div>
                         {cf.notes && (
                           <div>
@@ -247,7 +247,7 @@ const CarryforwardHistoryPage = () => {
                             {cf.notes || '—'}
                           </TableCell>
                           <TableCell className="text-xs text-muted-foreground">
-                            {new Date(cf.created_at).toLocaleDateString('ar-SA')}
+                            {fmtDate(cf.created_at)}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -281,11 +281,11 @@ const CarryforwardHistoryPage = () => {
                       </div>
                       <div>
                         <p className="text-[11px] text-muted-foreground">تاريخ الصرف</p>
-                        <p className="text-xs font-medium">{adv.paid_at ? new Date(adv.paid_at).toLocaleDateString('ar-SA') : '—'}</p>
+                        <p className="text-xs font-medium">{adv.paid_at ? fmtDate(adv.paid_at) : '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-muted-foreground">تاريخ الطلب</p>
-                        <p className="text-xs font-medium">{new Date(adv.created_at).toLocaleDateString('ar-SA')}</p>
+                        <p className="text-xs font-medium">{fmtDate(adv.created_at)}</p>
                       </div>
                     </div>
                   </div>
@@ -312,10 +312,10 @@ const CarryforwardHistoryPage = () => {
                           {adv.reason || '—'}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
-                          {adv.paid_at ? new Date(adv.paid_at).toLocaleDateString('ar-SA') : '—'}
+                          {adv.paid_at ? fmtDate(adv.paid_at) : '—'}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
-                          {new Date(adv.created_at).toLocaleDateString('ar-SA')}
+                          {fmtDate(adv.created_at)}
                         </TableCell>
                       </TableRow>
                     ))}

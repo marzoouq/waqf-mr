@@ -117,7 +117,7 @@ const AdvanceRequestsTab = () => {
                     <TableCell>{fmt(safeNumber(req.amount))} ر.س</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{req.fiscal_year?.label || '—'}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{req.reason || '—'}</TableCell>
-                    <TableCell>{new Date(req.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                    <TableCell>{fmtDate(req.created_at)}</TableCell>
                     <TableCell>{getStatusBadge(req.status)}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
