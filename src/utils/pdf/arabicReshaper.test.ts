@@ -104,15 +104,17 @@ describe('reshapeRow', () => {
   });
 
   it('يعالج كائنات { content } داخل المصفوفة', () => {
-    const row = [{ content: 'اسم المستأجر', styles: { fontStyle: 'bold' } }];
+    const row: AutoTableCellObject[] = [{ content: 'اسم المستأجر', styles: { fontStyle: 'bold' } }];
     const result = reshapeRow(row);
+    const first = result[0] as AutoTableCellObject;
 
-    expect(result[0].styles.fontStyle).toBe('bold');
-    expect(result[0].content).not.toBe('اسم المستأجر');
+    expect(first.styles!.fontStyle).toBe('bold');
+    expect(first.content).not.toBe('اسم المستأجر');
     // يجب أن يحتوي على Presentation Forms
     let hasPF = false;
-    for (let i = 0; i < result[0].content.length; i++) {
-      const code = result[0].content.charCodeAt(i);
+    const content = String(first.content);
+    for (let i = 0; i < content.length; i++) {
+      const code = content.charCodeAt(i);
       if (code >= 0xFE70 && code <= 0xFEFF) {
         hasPF = true;
         break;
@@ -122,10 +124,11 @@ describe('reshapeRow', () => {
   });
 
   it('يعالج كائنات { content } رقمية بدون تعديل', () => {
-    const row = [{ content: 500, colSpan: 2 }];
+    const row: AutoTableCellObject[] = [{ content: 500, colSpan: 2 }];
     const result = reshapeRow(row);
-    expect(result[0].content).toBe(500);
-    expect(result[0].colSpan).toBe(2);
+    const first = result[0] as AutoTableCellObject;
+    expect(first.content).toBe(500);
+    expect(first.colSpan).toBe(2);
   });
 
   it('يعالج مصفوفة فارغة', () => {
