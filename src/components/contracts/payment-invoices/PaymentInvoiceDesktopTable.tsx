@@ -93,7 +93,7 @@ export default function PaymentInvoiceDesktopTable({
                     <Badge variant="outline" className="text-[11px] px-1.5 py-0 mr-2">{invs.length} فاتورة</Badge>
                   </TableCell>
                 </TableRow>
-                {invs.map((inv: Invoice) => (
+                {invs.map((inv) => (
                   <TableRow key={inv.id} className={inv.status === 'overdue' ? 'bg-destructive/5' : ''}>
                     {!isClosed && (
                       <TableCell className="text-center">
