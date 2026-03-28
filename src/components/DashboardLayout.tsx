@@ -12,16 +12,16 @@ import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
-import PrintHeader from '@/components/PrintHeader';
-import PrintFooter from '@/components/PrintFooter';
+const PrintHeader = lazy(() => import('@/components/PrintHeader'));
+const PrintFooter = lazy(() => import('@/components/PrintFooter'));
 import BetaBanner from '@/components/BetaBanner';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { defaultMenuLabels, type MenuLabels } from '@/components/settings/MenuCustomizationTab';
+import { defaultMenuLabels, type MenuLabels } from '@/types/menuLabels';
 import SidebarContent from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
-import GlobalSearch from '@/components/GlobalSearch';
-import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
+const GlobalSearch = lazy(() => import('@/components/GlobalSearch'));
+const IdleTimeoutWarning = lazy(() => import('@/components/IdleTimeoutWarning'));
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
@@ -228,7 +228,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
         )}
       >
-        <PrintHeader />
+        <Suspense fallback={null}><PrintHeader /></Suspense>
         <DesktopTopBar
           fiscalYearId={fiscalYearId}
           onFiscalYearChange={setFiscalYearId}
@@ -244,12 +244,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <Lock className="w-3 h-3" /> مقفلة
               </span>
             )}
-            <GlobalSearch />
+            <Suspense fallback={null}><GlobalSearch /></Suspense>
           </div>
         </div>
         {(role === 'admin' || role === 'accountant') && <BetaBanner />}
         {children}
-        <PrintFooter />
+        <Suspense fallback={null}><PrintFooter /></Suspense>
       </main>
 
       <BottomNav onOpenSidebar={() => setMobileSidebarOpen(true)} />
@@ -270,11 +270,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </AlertDialog>
 
       {user && (
-        <IdleTimeoutWarning
-          open={showWarning}
-          remaining={remaining}
-          onStayActive={stayActive}
-        />
+        <Suspense fallback={null}>
+          <IdleTimeoutWarning
+            open={showWarning}
+            remaining={remaining}
+            onStayActive={stayActive}
+          />
+        </Suspense>
       )}
       {DiagnosticOverlay && role === 'admin' && <Suspense fallback={null}><DiagnosticOverlay /></Suspense>}
     </div>
