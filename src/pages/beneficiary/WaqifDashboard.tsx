@@ -1,9 +1,9 @@
-import { fmt } from '@/utils/format';
-import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
 /**
  * لوحة تحكم مخصصة للواقف
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
  */
+import { fmt } from '@/utils/format';
+import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +11,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useProperties } from '@/hooks/data/useProperties';
@@ -23,29 +22,24 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import ExportMenu from '@/components/ExportMenu';
-import { Progress } from '@/components/ui/progress';
-import {
-  Building2, FileText, Users, TrendingUp, Wallet, BarChart3, BookOpen,
-  Sun, Moon, Calendar, Clock, Gauge, CheckCircle, AlertTriangle,
-} from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Building2, FileText, Users, TrendingUp, Wallet, BarChart3, BookOpen, Sun, Moon,
+} from 'lucide-react';
+
+import WaqifWelcomeCard from '@/components/waqif/WaqifWelcomeCard';
+import WaqifFinancialSection from '@/components/waqif/WaqifFinancialSection';
 
 const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner'));
-
-
 
 const WaqifDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears, isSpecificYear } = useFiscalYear();
 
-  // ═══ Realtime: تحديث فوري للبطاقات عند تغيير البيانات المالية ═══
   useDashboardRealtime('waqif-dashboard-realtime', ['income', 'expenses', 'payment_invoices']);
   const {
-    totalIncome, totalExpenses, availableAmount,
-    income, expenses,
-    expensesByTypeExcludingVat,
-    isLoading: finLoading,
+    totalIncome, totalExpenses, availableAmount, income, expenses, expensesByTypeExcludingVat, isLoading: finLoading,
   } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
   const { data: properties = [], isLoading: propLoading } = useProperties();
   const { data: contracts = [], isLoading: contLoading } = useContractsSafeByFiscalYear(fiscalYearId);
@@ -59,10 +53,10 @@ const WaqifDashboard = () => {
   const isLoading = fyLoading || finLoading || propLoading || contLoading || benLoading;
   const displayName = user?.email?.split('@')[0] || 'الواقف';
 
-  
   const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
   const activeContracts = contracts.filter(c => c.status === 'active');
   const expiredContracts = contracts.filter(c => c.status === 'expired');
+
   const contractualRevenue = useMemo(() => {
     if (isSpecificYear && contractAllocations.length > 0) {
       const allocMap = new Map<string, number>();
@@ -74,18 +68,15 @@ const WaqifDashboard = () => {
     return relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
   }, [relevantContracts, contractAllocations, isSpecificYear]);
 
-  /* ── Collection summary — بالمبالغ (موحّد مع AdminDashboard) ── */
   const collectionSummary = useMemo(() => {
     const result = computeCollectionSummary(activeContracts, paymentInvoices);
     return { onTime: result.paidCount + result.partialCount, late: result.unpaidCount, total: result.total, percentage: result.percentage };
   }, [activeContracts, paymentInvoices]);
 
-  /* ── KPIs ── */
   const kpis = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
     const { occupancyRate } = computeOccupancy(contracts, allUnits, isSpecificYear);
     const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
-
     return [
       { label: 'نسبة التحصيل', value: collectionSummary.total === 0 ? '—' : collectionRate, suffix: collectionSummary.total === 0 ? '' : '%', color: collectionSummary.total === 0 ? 'text-muted-foreground' : (collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive'), progressColor: collectionSummary.total === 0 ? '[&>div]:bg-muted' : (collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
       { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
@@ -93,12 +84,7 @@ const WaqifDashboard = () => {
     ];
   }, [collectionSummary.percentage, collectionSummary.total, totalIncome, totalExpenses, allUnits, contracts, isSpecificYear]);
 
-  /* ── Monthly chart data ── */
   const monthlyData = useMemo(() => computeMonthlyData(income, expenses), [income, expenses]);
-
-  // formatArabicMonth moved to module level (PERF-01)
-
-  // COLORS moved to module level (see top of file)
 
   /* ── Live clock ── */
   const [now, setNow] = useState(new Date());
@@ -131,20 +117,20 @@ const WaqifDashboard = () => {
     { title: 'اللائحة', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-primary/10 text-primary' },
   ];
 
+  const overviewStats = [
+    { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
+    { title: 'العقود النشطة', value: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
+    { title: 'المستفيدون', value: allBeneficiaries.length, icon: Users, bg: 'bg-secondary/10 text-secondary' },
+    { title: 'القابل للتوزيع', value: fiscalYear?.status === 'active' ? 'تُحسب عند الإقفال' : `${fmt(safeNumber(availableAmount))} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
+  ];
+
   if (isLoading) return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
 
   if (noPublishedYears) {
     return (
       <DashboardLayout>
         <div className="p-3 sm:p-6 space-y-4">
-          <Card className="overflow-hidden border-0 shadow-lg gradient-primary text-primary-foreground">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-primary-foreground/20 flex items-center justify-center"><GreetingIcon className="w-6 h-6" /></div>
-                <div><p className="text-sm text-primary-foreground/80">{greeting}</p><h1 className="text-xl sm:text-2xl font-bold font-display">{displayName}</h1></div>
-              </div>
-            </CardContent>
-          </Card>
+          <WaqifWelcomeCard displayName={displayName} greeting={greeting} GreetingIcon={GreetingIcon} hijriDate={hijriDate} gregorianDate={gregorianDate} timeStr={timeStr} />
           <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
@@ -154,28 +140,7 @@ const WaqifDashboard = () => {
   return (
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
-
-        {/* ═══ Welcome Card ═══ */}
-        <Card className="overflow-hidden border-0 shadow-lg gradient-primary text-primary-foreground animate-slide-up">
-          <CardContent className="p-4 sm:p-6 md:p-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary-foreground/20 flex items-center justify-center shrink-0"><GreetingIcon className="w-6 h-6 sm:w-7 sm:h-7" /></div>
-                <div className="min-w-0">
-                  <p className="text-sm sm:text-base text-primary-foreground/80">{greeting}</p>
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">{displayName}</h1>
-                  <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">لوحة متابعة الوقف</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-primary-foreground/85 shrink-0">
-                <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />{hijriDate}</span>
-                <span className="hidden sm:inline text-primary-foreground/40">|</span>
-                <span>{gregorianDate}</span>
-                <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{timeStr}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <WaqifWelcomeCard displayName={displayName} greeting={greeting} GreetingIcon={GreetingIcon} hijriDate={hijriDate} gregorianDate={gregorianDate} timeStr={timeStr} />
 
         <div className="flex items-center justify-end gap-2">
           <ExportMenu hidePdf />
@@ -183,12 +148,7 @@ const WaqifDashboard = () => {
 
         {/* ═══ Overview Stats ═══ */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {[
-            { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
-            { title: 'العقود النشطة', value: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
-            { title: 'المستفيدون', value: allBeneficiaries.length, icon: Users, bg: 'bg-secondary/10 text-secondary' },
-            { title: 'القابل للتوزيع', value: fiscalYear?.status === 'active' ? 'تُحسب عند الإقفال' : `${fmt(safeNumber(availableAmount))} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
-          ].map((stat, i) => (
+          {overviewStats.map((stat, i) => (
             <Card key={i} className="shadow-sm">
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-center gap-3">
@@ -200,85 +160,18 @@ const WaqifDashboard = () => {
           ))}
         </div>
 
-        {/* ═══ KPI Panel ═══ */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Gauge className="w-5 h-5" />
-              مؤشرات الأداء الرئيسية
-              <Badge variant="outline" className="text-[11px]">{fiscalYear?.label || '—'}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-3 sm:gap-6">
-              {kpis.map((kpi, idx) => (
-                <div key={idx} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
-                  <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
-                  <p className={`text-xl sm:text-3xl font-bold tabular-nums ${kpi.color}`}>{typeof kpi.value === 'number' ? fmt(kpi.value) : kpi.value}{kpi.suffix}</p>
-                  {kpi.progressColor && <Progress value={Math.min(typeof kpi.value === 'number' ? kpi.value : 0, 100)} className={`h-2 ${kpi.progressColor}`} />}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ═══ Financial Summary + Contracts Status ═══ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Card className="shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Wallet className="w-5 h-5" /> التسلسل المالي
-                <Badge variant="outline" className="text-[11px]">{fiscalYear?.label || '—'}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {[
-                { label: 'إجمالي الدخل', value: totalIncome, cls: 'text-primary' },
-                { label: 'إجمالي المصروفات', value: totalExpenses, cls: 'text-destructive' },
-                { label: 'الريع القابل للتوزيع', value: availableAmount, cls: 'font-bold text-lg' },
-              ].map((row, i) => (
-                <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${i === 2 ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30'}`}>
-                  <span className="text-sm text-muted-foreground">{row.label}</span>
-                  <span className={`font-bold ${row.cls}`}>{fmt(safeNumber(row.value))} ر.س</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><FileText className="w-5 h-5" /> حالة العقود والتحصيل</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-primary" /><span className="text-sm">نشطة</span></div>
-                <Badge variant="default">{activeContracts.length}</Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <div className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-warning" /><span className="text-sm">منتهية</span></div>
-                <Badge variant="secondary">{expiredContracts.length}</Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <span className="text-sm text-muted-foreground">إجمالي قيمة العقود النشطة</span>
-                <span className="font-bold">{fmt(contractualRevenue)} ر.س</span>
-              </div>
-              {collectionSummary.total > 0 && (
-                <>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-success/5 border border-success/20">
-                    <span className="text-sm">تحصيل منتظم</span>
-                    <span className="font-bold text-success">{collectionSummary.onTime} فاتورة</span>
-                  </div>
-                  {collectionSummary.late > 0 && (
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-destructive/20">
-                      <span className="text-sm">تحصيل متأخر</span>
-                      <span className="font-bold text-destructive">{collectionSummary.late} فاتورة</span>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        <WaqifFinancialSection
+          kpis={kpis}
+          fiscalYearLabel={fiscalYear?.label || ''}
+          totalIncome={totalIncome}
+          totalExpenses={totalExpenses}
+          availableAmount={availableAmount}
+          isFiscalYearActive={fiscalYear?.status === 'active'}
+          activeContractsCount={activeContracts.length}
+          expiredContractsCount={expiredContracts.length}
+          contractualRevenue={contractualRevenue}
+          collectionSummary={collectionSummary}
+        />
 
         {/* ═══ Charts ═══ */}
         {(monthlyData.length > 0 || (expensesByTypeExcludingVat && Object.keys(expensesByTypeExcludingVat).length > 0)) && (
