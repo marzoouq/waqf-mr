@@ -21,7 +21,8 @@ export function usePropertiesPage() {
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
   const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);
-  const { accounts } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
+  // استعلام واحد بدلاً من useFinancialSummary (5 استعلامات) — نحتاج accounts فقط
+  const { data: accounts = [] } = useAccountByFiscalYear(fiscalYear?.label, fiscalYearId);
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
   const deleteProperty = useDeleteProperty();
