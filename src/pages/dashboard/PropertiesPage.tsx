@@ -1,5 +1,5 @@
-import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
-import { Switch } from '@/components/ui/switch';
+import { useMemo } from 'react';
+import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import DashboardLayout from '@/components/DashboardLayout';
