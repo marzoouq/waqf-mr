@@ -14,6 +14,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
+import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
@@ -27,6 +28,7 @@ const AccountsViewPage = () => {
   
 
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
+  const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId ?? 'all');
 
   const {
     beneficiaries,
@@ -129,7 +131,12 @@ const AccountsViewPage = () => {
             <ExportMenu onExportPdf={async () => {
               try {
                 await generateAccountsPDF({
-                  contracts: [],
+                  contracts: contracts.filter(c => c.status === 'active').map(c => ({
+                    contract_number: c.contract_number ?? '',
+                    tenant_name: c.tenant_name ?? '',
+                    rent_amount: safeNumber(c.rent_amount),
+                    status: c.status ?? '',
+                  })),
                   incomeBySource,
                   expensesByType: expensesByTypeExcludingVat,
                   totalIncome,
