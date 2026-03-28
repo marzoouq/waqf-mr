@@ -24,6 +24,7 @@ export function useZatcaManagement() {
   // ─── Required Settings ───
   const { data: zatcaSettings } = useQuery({
     queryKey: ['zatca-required-settings'],
+    staleTime: STALE_STATIC,
     queryFn: async () => {
       const { data } = await supabase.from('app_settings').select('key, value')
         .in('key', ['waqf_name', 'vat_registration_number', 'zatca_device_serial']);
