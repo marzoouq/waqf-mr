@@ -28,32 +28,34 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
     }
 
+    // جلب المستخدم + تحليل الجسم بالتوازي
     const supaAuth = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user }, error: userError } = await supaAuth.auth.getUser();
+    const [authResult, body] = await Promise.all([
+      supaAuth.auth.getUser(),
+      req.json().catch(() => null),
+    ]);
+    const { data: { user }, error: userError } = authResult;
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // التحقق من الدور (admin أو accountant)
-    const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "accountant"]);
-    if (!roles?.length) {
+    // التحقق من الدور + Rate limiting بالتوازي
+    const [rolesRes, rateLimitRes] = await Promise.all([
+      admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "accountant"]),
+      admin.rpc("check_rate_limit", { p_key: `dashboard-summary:${user.id}`, p_limit: 30, p_window_seconds: 60 }),
+    ]);
+    if (!rolesRes.data?.length) {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: jsonHeaders });
     }
-
-    // Rate limiting
-    const { data: isLimited } = await admin.rpc("check_rate_limit", {
-      p_key: `dashboard-summary:${user.id}`, p_limit: 30, p_window_seconds: 60,
-    });
-    if (isLimited) {
+    if (rateLimitRes.data) {
       return new Response(JSON.stringify({ error: "تم تجاوز الحد المسموح من الطلبات" }), { status: 429, headers: jsonHeaders });
     }
 
     // ── التحقق من المدخلات ──
-    const body = await req.json();
     const parsed = RequestSchema.safeParse(body);
     if (!parsed.success) {
       return new Response(JSON.stringify({ error: "بيانات غير صالحة", details: parsed.error.flatten().fieldErrors }), { status: 400, headers: jsonHeaders });
