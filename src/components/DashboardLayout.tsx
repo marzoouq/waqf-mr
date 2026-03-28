@@ -244,7 +244,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <Lock className="w-3 h-3" /> مقفلة
               </span>
             )}
-            <GlobalSearch />
+            <Suspense fallback={null}><GlobalSearch /></Suspense>
           </div>
         </div>
         {(role === 'admin' || role === 'accountant') && <BetaBanner />}
