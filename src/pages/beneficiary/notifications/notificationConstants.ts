@@ -1,7 +1,7 @@
 /**
  * ثوابت وإعدادات أنواع الإشعارات
  */
-import { Bell, BellRing, CheckCheck, Mail, Wallet, Info, AlertTriangle, AlertCircle, FileText } from 'lucide-react';
+import { Bell, CheckCheck, Mail, Wallet, Info, AlertTriangle, AlertCircle, FileText } from 'lucide-react';
 
 export const NOTIFICATION_CATEGORIES: { id: string; label: string; types: string[] }[] = [
   { id: 'all', label: 'الكل', types: [] },

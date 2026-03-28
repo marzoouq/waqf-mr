@@ -11,7 +11,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { typeConfig } from './notificationConstants';
 
-interface Notification {
+interface NotificationItem {
   id: string;
   title: string;
   message: string;
@@ -19,12 +19,13 @@ interface Notification {
   is_read: boolean;
   link: string | null;
   created_at: string;
+  [key: string]: unknown;
 }
 
 interface Props {
-  groupedNotifications: Record<string, Notification[]>;
+  groupedNotifications: Record<string, NotificationItem[]>;
   isEmpty: boolean;
-  onClickNotification: (n: Notification) => void;
+  onClickNotification: (n: NotificationItem) => void;
   onDelete: (id: string) => void;
 }
 
