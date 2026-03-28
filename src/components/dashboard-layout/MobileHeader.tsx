@@ -42,6 +42,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLa
             <BookOpen className="w-5 h-5" />
           </Button>
         </Link>
+        <ThemeToggle />
         <NotificationBell />
       </div>
     </div>

@@ -47,6 +47,7 @@ const DesktopTopBar: React.FC<DesktopTopBarProps> = ({
             <BookOpen className="w-5 h-5" />
           </Button>
         </Link>
+        <ThemeToggle />
         <NotificationBell />
         {user && (
           <div className="flex items-center gap-2 border-r border-border pr-3 mr-1">
