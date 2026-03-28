@@ -5,6 +5,7 @@
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { prefetchComponent } from '@/lib/componentPrefetch';
 
 const PREFETCH_STALE = 2 * 60_000; // دقيقتان — لتجنب إعادة التحميل المتكررة عند hover
 
@@ -93,26 +94,27 @@ export function usePrefetchPages() {
 
   /**
    * يعيد دالة prefetch المناسبة بناءً على مسار الصفحة
-   * يُستخدم في onMouseEnter على روابط Sidebar
+   * يُحمّل المكوّن (JS chunk) + البيانات معاً عند hover
    */
   const getPrefetchHandler = useCallback((path: string): (() => void) | undefined => {
-    if (path.includes('/properties')) return prefetchProperties;
-    if (path.includes('/contracts')) return prefetchContracts;
-    if (path.includes('/accounts')) return prefetchAccounts;
-    if (path.includes('/income') || path.includes('/expenses')) {
-      // الدخل والمصروفات يحتاجان العقارات + السنوات المالية
-      return () => {
+    // دائماً حمّل مكوّن الصفحة مسبقاً
+    const handler = (): void => {
+      prefetchComponent(path);
+
+      // تحميل البيانات المناسبة
+      if (path.includes('/properties')) prefetchProperties();
+      else if (path.includes('/contracts')) prefetchContracts();
+      else if (path.includes('/accounts')) prefetchAccounts();
+      else if (path.includes('/income') || path.includes('/expenses')) {
         prefetchProperties();
         prefetchFiscalYears();
-      };
-    }
-    if (path.includes('/invoices')) {
-      return () => {
+      } else if (path.includes('/invoices')) {
         prefetchProperties();
         prefetchContracts();
-      };
-    }
-    return undefined;
+      }
+    };
+
+    return handler;
   }, [prefetchProperties, prefetchContracts, prefetchAccounts, prefetchFiscalYears]);
 
   return { getPrefetchHandler, prefetchAccounts };
