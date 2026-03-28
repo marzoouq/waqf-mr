@@ -366,4 +366,44 @@ describe('useWebAuthn', () => {
       expect(creds).toEqual([]);
     });
   });
+
+  // ── removeCredential defense-in-depth ──
+
+  describe('removeCredential — user_id guard', () => {
+    it('يستدعي .eq("user_id", uid) كطبقة حماية عند حذف بصمة', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
+      const chain = chainMethods();
+      mockFrom.mockReturnValue(chain);
+
+      const { result } = renderHook(() => useWebAuthn());
+      await act(async () => {
+        await result.current.removeCredential('cred-xyz');
+      });
+
+      // التحقق من استدعاء from('webauthn_credentials')
+      expect(mockFrom).toHaveBeenCalledWith('webauthn_credentials');
+      // التحقق من استدعاء delete
+      expect(chain.delete).toHaveBeenCalled();
+      // التحقق الحرج: فلتر id + user_id معاً
+      expect(chain.eq).toHaveBeenCalledWith('id', 'cred-xyz');
+      expect(chain.eq).toHaveBeenCalledWith('user_id', fakeUser.id);
+    });
+
+    it('يرفض الحذف إذا لم يكن المستخدم مسجّل دخول', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
+      const chain = chainMethods();
+      mockFrom.mockReturnValue(chain);
+
+      const { result } = renderHook(() => useWebAuthn());
+      let success: boolean | undefined;
+      await act(async () => {
+        success = await result.current.removeCredential('cred-xyz');
+      });
+
+      expect(success).toBe(false);
+      expect(mockToastError).toHaveBeenCalledWith('يجب تسجيل الدخول أولاً');
+      // لا يجب استدعاء delete أصلاً
+      expect(chain.delete).not.toHaveBeenCalled();
+    });
+  });
 });
