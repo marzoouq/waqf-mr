@@ -37,6 +37,7 @@ const AccessLogTab = () => {
 
   const { data: rawData, isLoading } = useQuery({
     queryKey: ['access_log', eventFilter, currentPage],
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const from = (currentPage - 1) * ITEMS_PER_PAGE;
       let query = supabase

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -100,4 +101,4 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContracts, orphanedContract
   );
 };
 
-export default DashboardAlerts;
+export default memo(DashboardAlerts);

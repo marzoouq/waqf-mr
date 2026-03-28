@@ -11,6 +11,7 @@ import { Expense } from '@/types/database';
 import { safeNumber } from '@/utils/safeNumber';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
@@ -39,6 +40,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
   const { data: budgets = [] } = useQuery({
     queryKey: ['expense_budgets', fiscalYearId],
     enabled: !!fiscalYearId && fiscalYearId !== 'all' && fiscalYearId !== '__none__',
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('expense_budgets')

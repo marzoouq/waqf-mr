@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, Archive, Activity, CalendarDays } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
 import TablePagination from '@/components/TablePagination';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
@@ -41,6 +42,7 @@ const ArchiveLogTab = () => {
   // Server-side pagination with count (FIX B-02)
   const { data: rawData, isLoading } = useQuery({
     queryKey: ['access_log_archive', eventFilter, searchQuery, currentPage],
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const from = (currentPage - 1) * ITEMS_PER_PAGE;
       let query = supabase

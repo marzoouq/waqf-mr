@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Gauge, TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -62,4 +63,4 @@ const DashboardKpiPanel = ({ kpis, isLoading }: DashboardKpiPanelProps) => {
   );
 };
 
-export default DashboardKpiPanel;
+export default memo(DashboardKpiPanel);

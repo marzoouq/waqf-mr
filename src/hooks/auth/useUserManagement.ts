@@ -4,6 +4,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_SETTINGS, STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { toast } from 'sonner';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,6 +56,7 @@ export const useUserManagement = () => {
   // إعداد التسجيل العام
   const { data: registrationEnabled = false } = useQuery({
     queryKey: ['registration-enabled'],
+    staleTime: STALE_SETTINGS,
     queryFn: async () => {
       const { data } = await supabase
         .from('app_settings')
@@ -81,6 +83,7 @@ export const useUserManagement = () => {
   // جلب المستخدمين
   const { data: usersResult = { users: [] as ManagedUser[], total: 0, nextPage: null as number | null }, isLoading, isError, error } = useQuery({
     queryKey: ['admin-users', currentPage],
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const result = await callAdminApi({ action: 'list_users', page: currentPage });
       return {
@@ -118,6 +121,7 @@ export const useUserManagement = () => {
   // مستفيدين بدون ربط
   const { data: orphanedBeneficiaries = [] } = useQuery({
     queryKey: ['orphaned-beneficiaries'],
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data } = await supabase
         .from('beneficiaries')
@@ -130,6 +134,7 @@ export const useUserManagement = () => {
 
   const { data: unlinkedBeneficiaries = [] } = useQuery({
     queryKey: ['unlinked-beneficiaries'],
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data } = await supabase
         .from('beneficiaries')

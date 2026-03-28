@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { logger } from '@/lib/logger';
+import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 const INVOICES_PER_PAGE = 20;
@@ -23,6 +24,7 @@ export function useZatcaManagement() {
   // ─── Required Settings ───
   const { data: zatcaSettings } = useQuery({
     queryKey: ['zatca-required-settings'],
+    staleTime: STALE_STATIC,
     queryFn: async () => {
       const { data } = await supabase.from('app_settings').select('key, value')
         .in('key', ['waqf_name', 'vat_registration_number', 'zatca_device_serial']);
@@ -42,6 +44,7 @@ export function useZatcaManagement() {
   // ─── Certificates ───
   const { data: certificates = [], isLoading: certsLoading } = useQuery({
     queryKey: ['zatca-certificates'],
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase.from('zatca_certificates').select('id, certificate_type, is_active, request_id, created_at').order('created_at', { ascending: false });
       if (error) throw error;
@@ -52,6 +55,7 @@ export function useZatcaManagement() {
   // ─── Invoices ───
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
     queryKey: ['zatca-invoices', statusFilter, fiscalYearId],
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let q = supabase.from('invoices').select('id, invoice_number, invoice_type, amount, vat_amount, vat_rate, date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, fiscal_year_id').order('date', { ascending: false }).limit(1000);
       if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);
@@ -64,6 +68,7 @@ export function useZatcaManagement() {
 
   const { data: paymentInvoices = [] } = useQuery({
     queryKey: ['zatca-payment-invoices', statusFilter, fiscalYearId],
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let q = supabase.from('payment_invoices').select('id, invoice_number, amount, vat_amount, vat_rate, due_date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, invoice_type, fiscal_year_id').order('due_date', { ascending: false }).limit(1000);
       if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -57,4 +58,4 @@ function QuickAction({ to, icon, label }: { to: string; icon: React.ReactNode; l
   );
 }
 
-export default QuickActionsCard;
+export default memo(QuickActionsCard);

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { StatsGridSkeleton } from '@/components/SkeletonLoaders';
@@ -48,4 +49,4 @@ const DashboardStatsGrid = ({ stats, isLoading }: DashboardStatsGridProps) => {
   );
 };
 
-export default DashboardStatsGrid;
+export default memo(DashboardStatsGrid);
