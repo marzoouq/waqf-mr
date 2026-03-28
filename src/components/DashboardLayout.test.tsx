@@ -99,9 +99,9 @@ describe('DashboardLayout', () => {
     expect(bells.length).toBeGreaterThan(0);
   });
 
-  it('includes print header and footer', () => {
+  it('includes print header and footer', async () => {
     renderLayout();
-    expect(screen.getByTestId('print-header')).toBeInTheDocument();
-    expect(screen.getByTestId('print-footer')).toBeInTheDocument();
+    expect(await screen.findByTestId('print-header')).toBeInTheDocument();
+    expect(await screen.findByTestId('print-footer')).toBeInTheDocument();
   });
 });
