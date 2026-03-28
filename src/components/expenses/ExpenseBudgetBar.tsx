@@ -39,6 +39,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
   const { data: budgets = [] } = useQuery({
     queryKey: ['expense_budgets', fiscalYearId],
     enabled: !!fiscalYearId && fiscalYearId !== 'all' && fiscalYearId !== '__none__',
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('expense_budgets')

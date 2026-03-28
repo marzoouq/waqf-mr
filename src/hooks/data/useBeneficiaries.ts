@@ -46,6 +46,7 @@ export const useBeneficiariesDecrypted = () => {
   return useQuery({
     queryKey: ['beneficiaries-decrypted'],
     enabled: isAuthorized,
+    staleTime: STALE_STATIC,
     queryFn: async () => {
       if (!isAuthorized) return [];
       const { data, error } = await supabase.rpc('get_beneficiary_decrypted', {
