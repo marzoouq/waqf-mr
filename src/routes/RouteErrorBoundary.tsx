@@ -1,0 +1,15 @@
+/**
+ * غلاف ErrorBoundary على مستوى المسار — يعزل أخطاء كل صفحة
+ * بحيث لا يسقط التطبيق بالكامل عند حدوث خطأ في صفحة واحدة.
+ */
+import { ReactNode } from 'react';
+import ErrorBoundary from '@/components/ErrorBoundary';
+
+export function RouteGuard({ children }: { children: ReactNode }) {
+  return <ErrorBoundary>{children}</ErrorBoundary>;
+}
+
+/** دالة مساعدة تلف عنصر JSX بـ RouteGuard */
+export function withRouteErrorBoundary(element: ReactNode): ReactNode {
+  return <RouteGuard>{element}</RouteGuard>;
+}

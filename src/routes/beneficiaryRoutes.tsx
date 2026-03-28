@@ -1,6 +1,7 @@
 import { Route } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
+import { withRouteErrorBoundary as eb } from "./RouteErrorBoundary";
 
 const BeneficiaryDashboard = lazyWithRetry(() => import("@/pages/beneficiary/BeneficiaryDashboard"));
 const DisclosurePage = lazyWithRetry(() => import("@/pages/beneficiary/DisclosurePage"));
@@ -19,24 +20,35 @@ const WaqifDashboard = lazyWithRetry(() => import("@/pages/beneficiary/WaqifDash
 const BeneficiarySupportPage = lazyWithRetry(() => import("@/pages/beneficiary/SupportPage"));
 const AnnualReportViewPage = lazyWithRetry(() => import("@/pages/beneficiary/AnnualReportViewPage"));
 
+import type { AppRole } from '@/types/database';
+import type { ReactNode } from 'react';
+
+/** دالة مساعدة لتقليل التكرار */
+const pr = (roles: AppRole[], page: ReactNode) =>
+  eb(<ProtectedRoute allowedRoles={roles}>{page}</ProtectedRoute>);
+
+const BEN: AppRole[] = ['admin', 'beneficiary'];
+const ALL: AppRole[] = ['admin', 'beneficiary', 'waqif'];
+const ALL_ACC: AppRole[] = ['admin', 'beneficiary', 'waqif', 'accountant'];
+
 /** مسارات المستفيدين والواقف */
 export const beneficiaryRoutes = (
   <>
-    <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><BeneficiaryDashboard /></ProtectedRoute>} />
-    <Route path="/waqif" element={<ProtectedRoute allowedRoles={['admin', 'waqif']}><WaqifDashboard /></ProtectedRoute>} />
-    <Route path="/beneficiary/properties" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><PropertiesViewPage /></ProtectedRoute>} />
-    <Route path="/beneficiary/contracts" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><ContractsViewPage /></ProtectedRoute>} />
-    <Route path="/beneficiary/disclosure" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><DisclosurePage /></ProtectedRoute>} />
-    <Route path="/beneficiary/my-share" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><MySharePage /></ProtectedRoute>} />
-    <Route path="/beneficiary/financial-reports" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><FinancialReportsPage /></ProtectedRoute>} />
-    <Route path="/beneficiary/accounts" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><AccountsViewPage /></ProtectedRoute>} />
-    <Route path="/beneficiary/settings" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BeneficiarySettingsPage /></ProtectedRoute>} />
-    <Route path="/beneficiary/messages" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BeneficiaryMessagesPage /></ProtectedRoute>} />
-    <Route path="/beneficiary/invoices" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><InvoicesViewPage /></ProtectedRoute>} />
-    <Route path="/beneficiary/notifications" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><NotificationsPage /></ProtectedRoute>} />
-    <Route path="/beneficiary/bylaws" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BylawsViewPage /></ProtectedRoute>} />
-    <Route path="/beneficiary/carryforward" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><CarryforwardHistoryPage /></ProtectedRoute>} />
-    <Route path="/beneficiary/support" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif', 'accountant']}><BeneficiarySupportPage /></ProtectedRoute>} />
-    <Route path="/beneficiary/annual-report" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><AnnualReportViewPage /></ProtectedRoute>} />
+    <Route path="/beneficiary" element={pr(BEN, <BeneficiaryDashboard />)} />
+    <Route path="/waqif" element={pr(['admin', 'waqif'] as AppRole[], <WaqifDashboard />)} />
+    <Route path="/beneficiary/properties" element={pr(ALL, <PropertiesViewPage />)} />
+    <Route path="/beneficiary/contracts" element={pr(ALL, <ContractsViewPage />)} />
+    <Route path="/beneficiary/disclosure" element={pr(BEN, <DisclosurePage />)} />
+    <Route path="/beneficiary/my-share" element={pr(BEN, <MySharePage />)} />
+    <Route path="/beneficiary/financial-reports" element={pr(ALL, <FinancialReportsPage />)} />
+    <Route path="/beneficiary/accounts" element={pr(ALL, <AccountsViewPage />)} />
+    <Route path="/beneficiary/settings" element={pr(ALL, <BeneficiarySettingsPage />)} />
+    <Route path="/beneficiary/messages" element={pr(ALL, <BeneficiaryMessagesPage />)} />
+    <Route path="/beneficiary/invoices" element={pr(ALL, <InvoicesViewPage />)} />
+    <Route path="/beneficiary/notifications" element={pr(ALL, <NotificationsPage />)} />
+    <Route path="/beneficiary/bylaws" element={pr(ALL, <BylawsViewPage />)} />
+    <Route path="/beneficiary/carryforward" element={pr(ALL, <CarryforwardHistoryPage />)} />
+    <Route path="/beneficiary/support" element={pr(ALL_ACC, <BeneficiarySupportPage />)} />
+    <Route path="/beneficiary/annual-report" element={pr(ALL, <AnnualReportViewPage />)} />
   </>
 );
