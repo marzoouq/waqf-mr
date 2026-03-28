@@ -61,6 +61,7 @@ function RoleGatedAiAssistant() {
 function App() {
   return (
     <ErrorBoundary>
+      <ThemeProvider attribute="class" defaultTheme="light" storageKey="waqf-theme">
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <FiscalYearProvider>
