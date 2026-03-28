@@ -55,6 +55,7 @@ export function useZatcaManagement() {
   // ─── Invoices ───
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
     queryKey: ['zatca-invoices', statusFilter, fiscalYearId],
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let q = supabase.from('invoices').select('id, invoice_number, invoice_type, amount, vat_amount, vat_rate, date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, fiscal_year_id').order('date', { ascending: false }).limit(1000);
       if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);
