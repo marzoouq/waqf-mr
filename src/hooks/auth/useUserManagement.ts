@@ -134,6 +134,7 @@ export const useUserManagement = () => {
 
   const { data: unlinkedBeneficiaries = [] } = useQuery({
     queryKey: ['unlinked-beneficiaries'],
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data } = await supabase
         .from('beneficiaries')
