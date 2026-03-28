@@ -56,6 +56,7 @@ export const useUserManagement = () => {
   // إعداد التسجيل العام
   const { data: registrationEnabled = false } = useQuery({
     queryKey: ['registration-enabled'],
+    staleTime: STALE_SETTINGS,
     queryFn: async () => {
       const { data } = await supabase
         .from('app_settings')
