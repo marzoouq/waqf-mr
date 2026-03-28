@@ -8,7 +8,9 @@ import DashboardLayout from '@/components/DashboardLayout';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import ExportMenu from '@/components/ExportMenu';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, AlertCircle, RefreshCw } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { FileText, AlertCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -17,13 +19,18 @@ import TablePagination from '@/components/TablePagination';
 import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import { fmt, fmtDate } from '@/utils/format';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 
 import ContractStatsCards from '@/components/contracts/ContractStatsCards';
-import ContractMobileCards from '@/components/contracts/ContractMobileCards';
-import ContractDesktopTable from '@/components/contracts/ContractDesktopTable';
+
+const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  active: { label: 'نشط', variant: 'default' },
+  expired: { label: 'منتهي', variant: 'destructive' },
+  cancelled: { label: 'ملغي', variant: 'secondary' },
+};
 
 const ITEMS_PER_PAGE = 10;
 
