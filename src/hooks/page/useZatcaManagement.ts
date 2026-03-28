@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { logger } from '@/lib/logger';
+import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 const INVOICES_PER_PAGE = 20;
