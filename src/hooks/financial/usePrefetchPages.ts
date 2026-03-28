@@ -5,6 +5,7 @@
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { prefetchComponent } from '@/lib/componentPrefetch';
 
 const PREFETCH_STALE = 2 * 60_000; // دقيقتان — لتجنب إعادة التحميل المتكررة عند hover
 
