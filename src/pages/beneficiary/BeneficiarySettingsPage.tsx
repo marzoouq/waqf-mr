@@ -1,41 +1,22 @@
-import { useState, useCallback } from 'react';
+/**
+ * صفحة إعدادات المستفيد — مقسّمة إلى تبويبات فرعية
+ */
+import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import type { TabItem } from '@/components/ui/responsive-tabs';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
-import { supabase } from '@/integrations/supabase/client';
-import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import DashboardLayout from '@/components/DashboardLayout';
-import { toast } from 'sonner';
-import { User, Lock, Bell, Eye, EyeOff, Loader2, Shield, Palette, AlertCircle, RefreshCw, Volume2, Play } from 'lucide-react';
-import { z } from 'zod';
+import { User, Lock, Bell, Shield, Palette, AlertCircle, RefreshCw } from 'lucide-react';
 import ThemeColorPicker from '@/components/ThemeColorPicker';
 import BiometricSettings from '@/components/settings/BiometricSettings';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TONE_OPTIONS, NOTIF_PREFS_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/data/useNotifications';
-import { useNotificationPreferences } from '@/hooks/data/useNotificationPreferences';
-
-const passwordSchema = z.object({
-  password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
-  confirmPassword: z.string(),
-}).refine(d => d.password === d.confirmPassword, {
-  message: 'كلمتا المرور غير متطابقتين',
-  path: ['confirmPassword'],
-});
-
-const defaultPrefs = {
-  distributions: true,
-  contracts: true,
-  messages: true,
-};
+import AccountTab from '@/components/settings/AccountTab';
+import PasswordTab from '@/components/settings/PasswordTab';
+import NotificationsTab from '@/components/settings/NotificationsTab';
 
 const BeneficiarySettingsPage = () => {
   const queryClient = useQueryClient();
@@ -44,63 +25,7 @@ const BeneficiarySettingsPage = () => {
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  // Password state
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Notification preferences
-  const [prefs, setPrefs] = useState(() => {
-    try {
-      const stored = localStorage.getItem(NOTIF_PREFS_KEY);
-      return stored ? { ...defaultPrefs, ...JSON.parse(stored) } : defaultPrefs;
-    } catch {
-      return defaultPrefs;
-    }
-  });
-
-  const { soundEnabled, selectedTone, volume, handleSoundChange, handleToneChange, handleVolumeChange } = useNotificationPreferences();
-
-  const handlePrefChange = (key: keyof typeof defaultPrefs, value: boolean) => {
-    const updated = { ...prefs, [key]: value };
-    setPrefs(updated);
-    try { localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(updated)); } catch { /* ignored */ }
-    toast.success('تم حفظ التفضيلات');
-  };
-
-  const handlePasswordChange = async () => {
-    setErrors({});
-    const result = passwordSchema.safeParse({ password, confirmPassword });
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach(e => {
-        fieldErrors[e.path[0] as string] = e.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-
-    setPasswordLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
-      toast.success('تم تغيير كلمة المرور بنجاح');
-      setPassword('');
-      setConfirmPassword('');
-    } catch (err: unknown) {
-      toast.error(getSafeErrorMessage(err));
-    } finally {
-      setPasswordLoading(false);
-    }
-  };
-
-  // national_id مشفر في DB — نعرض قناع ثابت بدل slice من النص المشفر
-  const maskedId = currentBeneficiary?.national_id
-    ? '********'
-    : '—';
+  const maskedId = currentBeneficiary?.national_id ? '********' : '—';
 
   if (benError) {
     return (
@@ -126,7 +51,6 @@ const BeneficiarySettingsPage = () => {
     );
   }
 
-  // حماية — مستفيد بدون user_id مربوط
   if (!currentBeneficiary) {
     return (
       <DashboardLayout>
@@ -161,194 +85,26 @@ const BeneficiarySettingsPage = () => {
             { value: 'theme', label: 'المظهر', icon: <Palette className="w-4 h-4" /> },
           ] satisfies TabItem[]}
         >
-          {/* Account Info Tab - removed share percentage */}
           <TabsContent value="account">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <User className="w-5 h-5" />
-                  معلومات الحساب
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground text-xs flex items-center gap-1">
-                      <Lock className="w-3 h-3" /> الاسم
-                    </Label>
-                    <Input name="beneficiary_name" value={currentBeneficiary?.name || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground text-xs">البريد الإلكتروني</Label>
-                    <Input name="email" value={user?.email || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground text-xs flex items-center gap-1">
-                      <Lock className="w-3 h-3" /> رقم الهوية
-                    </Label>
-                    <div className="flex items-center gap-2">
-                      <Input name="maskedId" value={maskedId} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
-                      <Shield className="w-4 h-4 text-muted-foreground shrink-0" />
-                    </div>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  هذه المعلومات تُدار بواسطة ناظر الوقف. للتعديل يرجى التواصل عبر المراسلات.
-                </p>
-              </CardContent>
-            </Card>
+            <AccountTab
+              name={currentBeneficiary?.name || '—'}
+              email={user?.email || '—'}
+              maskedId={maskedId}
+            />
           </TabsContent>
 
-          {/* Password Tab */}
           <TabsContent value="password">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Lock className="w-5 h-5" />
-                  تغيير كلمة المرور
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 max-w-md">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">كلمة المرور الجديدة</Label>
-                  <div className="relative">
-                    <Input
-                      id="new-password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      placeholder="8 أحرف على الأقل"
-                      className="pl-10"
-                    />
-                    <Button type="button" variant="ghost" size="icon" className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}>
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                  {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">تأكيد كلمة المرور</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirm-password"
-                      type={showConfirm ? 'text' : 'password'}
-                      value={confirmPassword}
-                      onChange={e => setConfirmPassword(e.target.value)}
-                      placeholder="أعد كتابة كلمة المرور"
-                      className="pl-10"
-                    />
-                    <Button type="button" variant="ghost" size="icon" className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setShowConfirm(!showConfirm)} aria-label={showConfirm ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}>
-                      {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                  {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
-                </div>
-
-                <Button onClick={handlePasswordChange} disabled={passwordLoading || !password} className="w-full sm:w-auto">
-                  {passwordLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
-                  حفظ كلمة المرور
-                </Button>
-              </CardContent>
-            </Card>
+            <PasswordTab />
           </TabsContent>
 
-          {/* Biometric Tab */}
           <TabsContent value="biometric">
             <BiometricSettings />
           </TabsContent>
 
-          {/* Notifications Tab */}
           <TabsContent value="notifications">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Bell className="w-5 h-5" />
-                  تفضيلات الإشعارات
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div>
-                    <p className="font-medium text-sm">إشعارات التوزيعات المالية</p>
-                    <p className="text-xs text-muted-foreground">تنبيهات عند صرف التوزيعات</p>
-                  </div>
-                  <Switch checked={prefs.distributions} onCheckedChange={v => handlePrefChange('distributions', v)} />
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div>
-                    <p className="font-medium text-sm">إشعارات العقود</p>
-                    <p className="text-xs text-muted-foreground">تنبيهات تجديد وانتهاء العقود</p>
-                  </div>
-                  <Switch checked={prefs.contracts} onCheckedChange={v => handlePrefChange('contracts', v)} />
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div>
-                    <p className="font-medium text-sm">إشعارات الرسائل</p>
-                    <p className="text-xs text-muted-foreground">تنبيهات الرسائل الجديدة</p>
-                  </div>
-                  <Switch checked={prefs.messages} onCheckedChange={v => handlePrefChange('messages', v)} />
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
-                  <div className="flex items-center gap-2">
-                    <Volume2 className="w-4 h-4 text-primary" />
-                    <div>
-                      <p className="font-medium text-sm">صوت التنبيه</p>
-                      <p className="text-xs text-muted-foreground">تشغيل صوت عند وصول إشعار جديد</p>
-                    </div>
-                  </div>
-                  <Switch checked={soundEnabled} onCheckedChange={handleSoundChange} />
-                </div>
-
-                {soundEnabled && (
-                  <>
-                  <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
-                    <div className="flex items-center gap-2">
-                      <Play className="w-4 h-4 text-primary" />
-                      <p className="font-medium text-sm">نغمة التنبيه</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Select dir="rtl" value={selectedTone} onValueChange={(v) => handleToneChange(v as ToneId)}>
-                        <SelectTrigger className="w-36 h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TONE_OPTIONS.map(t => (
-                            <SelectItem key={t.id} value={t.id} className="text-xs">{t.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => previewTone(selectedTone, VOLUME_OPTIONS.find(v => v.id === volume)?.gain)} aria-label="تشغيل النغمة">
-                        <Play className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
-                    <div className="flex items-center gap-2">
-                      <Volume2 className="w-4 h-4 text-primary" />
-                      <p className="font-medium text-sm">مستوى الصوت</p>
-                    </div>
-                    <Select dir="rtl" value={volume} onValueChange={(v) => handleVolumeChange(v as VolumeLevel)}>
-                      <SelectTrigger className="w-28 h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {VOLUME_OPTIONS.map(v => (
-                          <SelectItem key={v.id} value={v.id} className="text-xs">{v.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            <NotificationsTab />
           </TabsContent>
 
-          {/* Theme Tab */}
           <TabsContent value="theme">
             <ThemeColorPicker />
           </TabsContent>
