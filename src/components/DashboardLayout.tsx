@@ -270,11 +270,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </AlertDialog>
 
       {user && (
-        <IdleTimeoutWarning
-          open={showWarning}
-          remaining={remaining}
-          onStayActive={stayActive}
-        />
+        <Suspense fallback={null}>
+          <IdleTimeoutWarning
+            open={showWarning}
+            remaining={remaining}
+            onStayActive={stayActive}
+          />
+        </Suspense>
       )}
       {DiagnosticOverlay && role === 'admin' && <Suspense fallback={null}><DiagnosticOverlay /></Suspense>}
     </div>
