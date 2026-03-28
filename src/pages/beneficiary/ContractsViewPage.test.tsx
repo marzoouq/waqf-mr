@@ -122,7 +122,7 @@ describe('ContractsViewPage', () => {
 
   it('يعرض بطاقة قريبة الانتهاء', () => {
     renderPage();
-    expect(screen.getByText('قريبة الانتهاء')).toBeInTheDocument();
+    expect(screen.getByText('تنتهي خلال 3 أشهر')).toBeInTheDocument();
   });
 
   it('يعرض رؤوس الجدول', () => {
