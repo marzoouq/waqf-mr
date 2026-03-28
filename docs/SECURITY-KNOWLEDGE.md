@@ -64,7 +64,7 @@
 
 ### قواعد التصنيف العامة
 
-- **إنذار كاذب**: أي ملاحظة `security_invoker VIEW` على `beneficiaries_safe` أو `contracts_safe` — مقصود لوراثة RLS مع تمويه البيانات حسب الدور عبر `CASE WHEN has_role()`
+- **إنذار كاذب**: أي ملاحظة `security_definer VIEW` على `beneficiaries_safe` أو `contracts_safe` — مقصود مع تمويه البيانات حسب الدور عبر `CASE WHEN has_role()` وحصر الوصول على `authenticated`
 - **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة التي لا تُشحن للإنتاج
 - **خطر مقبول**: إصدارات حزم بدون تحديث متاح upstream
 
