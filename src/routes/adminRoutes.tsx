@@ -1,6 +1,7 @@
 import { Route } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
+import { withRouteErrorBoundary as eb } from "./RouteErrorBoundary";
 
 const AdminDashboard = lazyWithRetry(() => import("@/pages/dashboard/AdminDashboard"));
 const PropertiesPage = lazyWithRetry(() => import("@/pages/dashboard/PropertiesPage"));
@@ -23,31 +24,38 @@ const ChartOfAccountsPage = lazyWithRetry(() => import("@/pages/dashboard/ChartO
 const HistoricalComparisonPage = lazyWithRetry(() => import("@/pages/dashboard/HistoricalComparisonPage"));
 const SystemDiagnosticsPage = lazyWithRetry(() => import("@/pages/dashboard/SystemDiagnosticsPage"));
 
+/** دالة مساعدة لتقليل التكرار */
+const pr = (roles: string[], page: JSX.Element) =>
+  eb(<ProtectedRoute allowedRoles={roles}>{page}</ProtectedRoute>);
+
+const ADMIN_ACC = ['admin', 'accountant'];
+const ADMIN_ONLY = ['admin'];
+
 /** مسارات لوحة التحكم — admin و accountant */
 export const adminRoutes = (
   <>
     {/* Admin & Accountant Routes */}
-    <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><AdminDashboard /></ProtectedRoute>} />
-    <Route path="/dashboard/properties" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><PropertiesPage /></ProtectedRoute>} />
-    <Route path="/dashboard/contracts" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><ContractsPage /></ProtectedRoute>} />
-    <Route path="/dashboard/income" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><IncomePage /></ProtectedRoute>} />
-    <Route path="/dashboard/expenses" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><ExpensesPage /></ProtectedRoute>} />
-    <Route path="/dashboard/beneficiaries" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><BeneficiariesPage /></ProtectedRoute>} />
-    <Route path="/dashboard/reports" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><ReportsPage /></ProtectedRoute>} />
-    <Route path="/dashboard/accounts" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><AccountsPage /></ProtectedRoute>} />
-    <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><MessagesPage /></ProtectedRoute>} />
-    <Route path="/dashboard/invoices" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><InvoicesPage /></ProtectedRoute>} />
-    <Route path="/dashboard/audit-log" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><AuditLogPage /></ProtectedRoute>} />
-    <Route path="/dashboard/bylaws" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><BylawsPage /></ProtectedRoute>} />
-    <Route path="/dashboard/support" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><SupportDashboardPage /></ProtectedRoute>} />
-    <Route path="/dashboard/annual-report" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><AnnualReportPage /></ProtectedRoute>} />
-    <Route path="/dashboard/chart-of-accounts" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><ChartOfAccountsPage /></ProtectedRoute>} />
-    <Route path="/dashboard/comparison" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><HistoricalComparisonPage /></ProtectedRoute>} />
+    <Route path="/dashboard" element={pr(ADMIN_ACC, <AdminDashboard />)} />
+    <Route path="/dashboard/properties" element={pr(ADMIN_ACC, <PropertiesPage />)} />
+    <Route path="/dashboard/contracts" element={pr(ADMIN_ACC, <ContractsPage />)} />
+    <Route path="/dashboard/income" element={pr(ADMIN_ACC, <IncomePage />)} />
+    <Route path="/dashboard/expenses" element={pr(ADMIN_ACC, <ExpensesPage />)} />
+    <Route path="/dashboard/beneficiaries" element={pr(ADMIN_ACC, <BeneficiariesPage />)} />
+    <Route path="/dashboard/reports" element={pr(ADMIN_ACC, <ReportsPage />)} />
+    <Route path="/dashboard/accounts" element={pr(ADMIN_ACC, <AccountsPage />)} />
+    <Route path="/dashboard/messages" element={pr(ADMIN_ACC, <MessagesPage />)} />
+    <Route path="/dashboard/invoices" element={pr(ADMIN_ACC, <InvoicesPage />)} />
+    <Route path="/dashboard/audit-log" element={pr(ADMIN_ACC, <AuditLogPage />)} />
+    <Route path="/dashboard/bylaws" element={pr(ADMIN_ACC, <BylawsPage />)} />
+    <Route path="/dashboard/support" element={pr(ADMIN_ACC, <SupportDashboardPage />)} />
+    <Route path="/dashboard/annual-report" element={pr(ADMIN_ACC, <AnnualReportPage />)} />
+    <Route path="/dashboard/chart-of-accounts" element={pr(ADMIN_ACC, <ChartOfAccountsPage />)} />
+    <Route path="/dashboard/comparison" element={pr(ADMIN_ACC, <HistoricalComparisonPage />)} />
 
     {/* Admin Only */}
-    <Route path="/dashboard/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagementPage /></ProtectedRoute>} />
-    <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={['admin']}><SettingsPage /></ProtectedRoute>} />
-    <Route path="/dashboard/zatca" element={<ProtectedRoute allowedRoles={['admin']}><ZatcaManagementPage /></ProtectedRoute>} />
-    <Route path="/dashboard/diagnostics" element={<ProtectedRoute allowedRoles={['admin']}><SystemDiagnosticsPage /></ProtectedRoute>} />
+    <Route path="/dashboard/users" element={pr(ADMIN_ONLY, <UserManagementPage />)} />
+    <Route path="/dashboard/settings" element={pr(ADMIN_ONLY, <SettingsPage />)} />
+    <Route path="/dashboard/zatca" element={pr(ADMIN_ONLY, <ZatcaManagementPage />)} />
+    <Route path="/dashboard/diagnostics" element={pr(ADMIN_ONLY, <SystemDiagnosticsPage />)} />
   </>
 );
