@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, Archive, Activity, CalendarDays } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
 import TablePagination from '@/components/TablePagination';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
