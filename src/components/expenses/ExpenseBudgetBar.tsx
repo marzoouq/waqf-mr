@@ -11,6 +11,7 @@ import { Expense } from '@/types/database';
 import { safeNumber } from '@/utils/safeNumber';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
