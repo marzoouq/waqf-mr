@@ -141,11 +141,90 @@ const ContractsViewPage = () => {
             </Card>
           ) : (
             <>
-              <ContractMobileCards contracts={paginatedContracts} isExpiringSoon={isExpiringSoon} />
+              {/* بطاقات الجوال */}
+              <div className="space-y-3 md:hidden">
+                {paginatedContracts.map(contract => {
+                  const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
+                  return (
+                    <Card key={contract.id}>
+                      <CardContent className="p-4 space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-bold text-foreground">{contract.contract_number ?? ''}</p>
+                            <p className="text-sm text-muted-foreground">{contract.tenant_name ?? ''}</p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <Badge variant={st.variant}>{st.label}</Badge>
+                            {isExpiringSoon(contract) && (
+                              <Badge variant="outline" className="text-warning border-warning text-[11px]">
+                                <AlertTriangle className="w-3 h-3 ml-1" />ينتهي قريباً
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">الإيجار</span>
+                          <span className="font-medium">{fmt(contract.rent_amount ?? 0)} ر.س</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">من</span>
+                          <span>{fmtDate(contract.start_date ?? '')}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">إلى</span>
+                          <span>{fmtDate(contract.end_date ?? '')}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
               <div className="md:hidden">
                 <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
               </div>
-              <ContractDesktopTable contracts={paginatedContracts} propertiesMap={propertiesMap} isExpiringSoon={isExpiringSoon} />
+              {/* جدول سطح المكتب */}
+              <Card className="hidden md:block">
+                <CardContent className="p-0 overflow-x-auto">
+                  <Table className="min-w-[700px]">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">رقم العقد</TableHead>
+                        <TableHead className="text-right">المستأجر</TableHead>
+                        <TableHead className="text-right">العقار</TableHead>
+                        <TableHead className="text-right">قيمة الإيجار</TableHead>
+                        <TableHead className="text-right">تاريخ البداية</TableHead>
+                        <TableHead className="text-right">تاريخ النهاية</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedContracts.map(contract => {
+                        const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
+                        return (
+                          <TableRow key={contract.id}>
+                            <TableCell className="font-medium">{contract.contract_number ?? ''}</TableCell>
+                            <TableCell>{contract.tenant_name ?? ''}</TableCell>
+                            <TableCell>{(contract.property_id && propertiesMap[contract.property_id]) || '-'}</TableCell>
+                            <TableCell>{fmt(contract.rent_amount ?? 0)} ر.س</TableCell>
+                            <TableCell>{fmtDate(contract.start_date ?? '')}</TableCell>
+                            <TableCell>{fmtDate(contract.end_date ?? '')}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1.5">
+                                <Badge variant={st.variant}>{st.label}</Badge>
+                                {isExpiringSoon(contract) && (
+                                  <Badge variant="outline" className="text-warning border-warning text-[11px]">
+                                    <AlertTriangle className="w-3 h-3 ml-1" />قريب
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
               <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
             </>
           )}
