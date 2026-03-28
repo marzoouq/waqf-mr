@@ -89,9 +89,9 @@ describe('ContractsViewPage', () => {
   it('يعرض بطاقات الملخص الإحصائي', () => {
     renderPage();
     expect(screen.getByText('إجمالي العقود')).toBeInTheDocument();
-    expect(screen.getByText('نشطة')).toBeInTheDocument();
-    expect(screen.getByText('منتهية')).toBeInTheDocument();
-    expect(screen.getByText('إجمالي الإيجارات')).toBeInTheDocument();
+    expect(screen.getByText('العقود النشطة')).toBeInTheDocument();
+    expect(screen.getByText('العقود المنتهية')).toBeInTheDocument();
+    expect(screen.getByText('الإيرادات التعاقدية')).toBeInTheDocument();
   });
 
   it('يعرض إجمالي العقود = 2', () => {
