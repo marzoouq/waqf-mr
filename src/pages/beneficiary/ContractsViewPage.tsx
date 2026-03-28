@@ -63,7 +63,7 @@ const ContractsViewPage = () => {
   );
 
   const stats = useMemo(() => {
-    if (!contracts) return { total: 0, active: 0, expired: 0, totalRent: 0, expiringSoon: 0 };
+    if (!contracts) return { total: 0, active: 0, expired: 0, totalRent: 0, expiringSoon: 0, activePercent: 0, activeRent: 0 };
     const active = contracts.filter(c => c.status === 'active');
     const totalRent = contracts.reduce((sum, c) => sum + (c.rent_amount || 0), 0);
     const activeRent = active.reduce((sum, c) => sum + (c.rent_amount || 0), 0);
