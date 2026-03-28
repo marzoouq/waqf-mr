@@ -35,7 +35,7 @@ const ALL_ACC: AppRole[] = ['admin', 'beneficiary', 'waqif', 'accountant'];
 export const beneficiaryRoutes = (
   <>
     <Route path="/beneficiary" element={pr(BEN, <BeneficiaryDashboard />)} />
-    <Route path="/waqif" element={pr(['admin', 'waqif'], <WaqifDashboard />)} />
+    <Route path="/waqif" element={pr(['admin', 'waqif'] as AppRole[], <WaqifDashboard />)} />
     <Route path="/beneficiary/properties" element={pr(ALL, <PropertiesViewPage />)} />
     <Route path="/beneficiary/contracts" element={pr(ALL, <ContractsViewPage />)} />
     <Route path="/beneficiary/disclosure" element={pr(BEN, <DisclosurePage />)} />
