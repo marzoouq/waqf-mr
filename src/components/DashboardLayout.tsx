@@ -249,7 +249,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
         {(role === 'admin' || role === 'accountant') && <BetaBanner />}
         {children}
-        <PrintFooter />
+        <Suspense fallback={null}><PrintFooter /></Suspense>
       </main>
 
       <BottomNav onOpenSidebar={() => setMobileSidebarOpen(true)} />
