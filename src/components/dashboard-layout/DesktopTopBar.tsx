@@ -36,7 +36,7 @@ const DesktopTopBar: React.FC<DesktopTopBarProps> = ({
     <div className="hidden lg:flex items-center justify-between">
       <WaqfInfoBar />
       <div className="flex items-center gap-3 px-4 py-2">
-        <GlobalSearch />
+        <Suspense fallback={null}><GlobalSearch /></Suspense>
         <FiscalYearSelector value={fiscalYearId} onChange={onFiscalYearChange} showAll={showAll} />
         {isClosed && (
           <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-2 py-1 rounded-md border border-warning/30 print:hidden">
