@@ -228,7 +228,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
         )}
       >
-        <PrintHeader />
+        <Suspense fallback={null}><PrintHeader /></Suspense>
         <DesktopTopBar
           fiscalYearId={fiscalYearId}
           onFiscalYearChange={setFiscalYearId}
