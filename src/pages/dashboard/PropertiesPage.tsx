@@ -238,7 +238,8 @@ const PropertiesPage = () => {
                 </CardContent>
               </Card>
               );
-            })}
+            });
+          })()}
           </div>
           <TablePagination currentPage={currentPage} totalItems={filteredProperties.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           <CrudPagination
