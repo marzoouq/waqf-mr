@@ -1,6 +1,7 @@
 /**
  * جلب بيانات الوقف من قاعدة البيانات للمساعد الذكي
  * مفصول عن index.ts لسهولة الصيانة والاختبار
+ * مُحسَّن: جميع الاستعلامات تُنفَّذ بالتوازي بدلاً من التسلسل
  */
 import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
@@ -49,6 +50,7 @@ export const dataCache = new SimpleCache();
 
 /**
  * جلب بيانات الوقف حسب دور المستخدم
+ * مُحسَّن: استعلامات متوازية بدلاً من تسلسلية (~10 استعلامات → دفعتين متوازيتين)
  */
 export async function fetchWaqfData(
   client: SupabaseClient,
@@ -59,13 +61,41 @@ export async function fetchWaqfData(
   const isAdmin = userRole === "admin" || userRole === "accountant";
 
   try {
-    // 1. السنوات المالية
-    const { data: fiscalYears } = await client
-      .from("fiscal_years")
-      .select("id, label, status, published, start_date, end_date")
-      .order("start_date", { ascending: false })
-      .limit(5);
+    // ── الدفعة 1: بيانات أساسية بالتوازي ──
+    const [fyRes, settingsRes, propertiesRes, beneficiariesRes] = await Promise.all([
+      // 1. السنوات المالية
+      client.from("fiscal_years")
+        .select("id, label, status, published, start_date, end_date")
+        .order("start_date", { ascending: false })
+        .limit(5),
+      // 2. نسب الناظر والواقف
+      client.from("app_settings")
+        .select("key, value")
+        .in("key", ["admin_share_percentage", "waqif_share_percentage"]),
+      // 3. العقارات
+      client.from("properties")
+        .select("property_number, property_type, location, area")
+        .limit(20),
+      // 4. المستفيدون
+      isAdmin
+        ? client.from("beneficiaries")
+            .select("share_percentage")
+            .order("share_percentage", { ascending: false })
+            .limit(50)
+        : client.from("beneficiaries")
+            .select("share_percentage")
+            .eq("user_id", userId)
+            .limit(1),
+    ]);
 
+    const fiscalYears = fyRes.data;
+    const pctMap: Record<string, string> = {};
+    for (const r of settingsRes.data ?? []) pctMap[r.key] = r.value;
+    const adminPct = pctMap["admin_share_percentage"] || "10";
+    const waqifPct = pctMap["waqif_share_percentage"] || "5";
+    const activeFY = fiscalYears?.find(fy => fy.status === "active");
+
+    // تجميع السنوات المالية
     if (fiscalYears?.length) {
       sections.push("### السنوات المالية:");
       for (const fy of fiscalYears) {
@@ -73,31 +103,107 @@ export async function fetchWaqfData(
       }
     }
 
-    // 2. نسب الناظر والواقف الفعلية
-    const { data: pctSettings } = await client
-      .from("app_settings")
-      .select("key, value")
-      .in("key", ["admin_share_percentage", "waqif_share_percentage"]);
-    const pctMap: Record<string, string> = {};
-    for (const r of pctSettings ?? []) pctMap[r.key] = r.value;
-    const adminPct = pctMap["admin_share_percentage"] || "10";
-    const waqifPct = pctMap["waqif_share_percentage"] || "5";
+    // تجميع العقارات
+    const properties = propertiesRes.data;
+    if (properties?.length) {
+      sections.push(`\n### العقارات (${properties.length} عقار):`);
+      for (const p of properties) {
+        sections.push(`- ${p.property_number} | ${p.property_type} | ${p.location} | ${p.area} م²`);
+      }
+    }
 
-    // 3. الحسابات المالية
-    const accountsQuery = client
-      .from("accounts")
-      .select("*, fiscal_year_id")
-      .order("created_at", { ascending: false })
-      .limit(3);
+    // تجميع المستفيدون
+    const beneficiaries = beneficiariesRes.data;
+    if (isAdmin && beneficiaries?.length) {
+      const totalPct = beneficiaries.reduce((s: number, b: { share_percentage: number }) => s + Number(b.share_percentage), 0);
+      sections.push(`\n### المستفيدون (${beneficiaries.length} مستفيد):`);
+      beneficiaries.forEach((b: { share_percentage: number }, i: number) => {
+        sections.push(`- مستفيد ${i + 1}: ${b.share_percentage}%`);
+      });
+      sections.push(`- **إجمالي النسب: ${totalPct}%**`);
+    } else if (!isAdmin && beneficiaries?.[0]) {
+      sections.push(`\n### بياناتك كمستفيد:`);
+      sections.push(`- نسبة الحصة: ${beneficiaries[0].share_percentage}%`);
+    }
 
-    const { data: accounts } = await accountsQuery;
-
+    // ── الدفعة 2: بيانات تعتمد على السنة المالية + العقود — كلها بالتوازي ──
     const publishedFYIds = new Set(
       (fiscalYears ?? []).filter(fy => fy.published || fy.status === "active").map(fy => fy.id)
     );
+
+    type PromiseResult = { data: unknown[] | null; error: unknown } | { count: number | null; error: unknown };
+
+    const batch2Promises: Promise<PromiseResult>[] = [
+      // 0: الحسابات المالية
+      client.from("accounts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(3),
+      // 1: العقود النشطة (admin) أو عدد فقط (non-admin)
+      isAdmin
+        ? client.from("contracts")
+            .select("contract_number, rent_amount, start_date, end_date, status, payment_type")
+            .eq("status", "active")
+            .limit(30)
+        : client.from("contracts")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "active"),
+      // 2: التوزيعات (admin) أو توزيعات المستفيد
+      isAdmin
+        ? client.from("distributions")
+            .select("amount, date, status")
+            .order("date", { ascending: false })
+            .limit(20)
+        : (async () => {
+            const { data: myBen } = await client.from("beneficiaries").select("id").eq("user_id", userId).single();
+            if (!myBen) return { data: [], error: null };
+            return client.from("distributions")
+              .select("amount, date, status")
+              .eq("beneficiary_id", myBen.id)
+              .order("date", { ascending: false })
+              .limit(10);
+          })(),
+    ];
+
+    // إضافة استعلامات السنة النشطة إذا وُجدت
+    if (activeFY && (isAdmin || activeFY.published)) {
+      // 3: الدخل للسنة النشطة
+      batch2Promises.push(
+        client.from("income")
+          .select("source, amount, date")
+          .eq("fiscal_year_id", activeFY.id)
+          .order("date", { ascending: false })
+          .limit(500)
+      );
+      // 4: المصروفات للسنة النشطة
+      batch2Promises.push(
+        client.from("expenses")
+          .select("expense_type, amount, date")
+          .eq("fiscal_year_id", activeFY.id)
+          .limit(500)
+      );
+    }
+
+    // 5: العقود المنتهية قريباً (admin فقط)
+    if (isAdmin) {
+      batch2Promises.push(
+        client.from("contracts")
+          .select("contract_number, end_date, rent_amount")
+          .eq("status", "active")
+          .lte("end_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
+          .order("end_date", { ascending: true })
+          .limit(10)
+      );
+    }
+
+    const batch2 = await Promise.all(batch2Promises);
+
+    // ── تجميع الحسابات المالية ──
+    const accountsRes = batch2[0] as { data: Array<Record<string, unknown>> | null };
+    const accounts = accountsRes.data;
     const filteredAccounts = isAdmin
       ? accounts
-      : accounts?.filter(acc => publishedFYIds.has(acc.fiscal_year_id));
+      : accounts?.filter(acc => publishedFYIds.has(acc.fiscal_year_id as string));
 
     if (filteredAccounts?.length) {
       if (isAdmin) {
@@ -124,29 +230,12 @@ export async function fetchWaqfData(
       }
     }
 
-    // 4. العقارات
-    const { data: properties } = await client
-      .from("properties")
-      .select("property_number, property_type, location, area")
-      .limit(20);
-
-    if (properties?.length) {
-      sections.push(`\n### العقارات (${properties.length} عقار):`);
-      for (const p of properties) {
-        sections.push(`- ${p.property_number} | ${p.property_type} | ${p.location} | ${p.area} م²`);
-      }
-    }
-
-    // 5. العقود النشطة
+    // ── تجميع العقود ──
+    const contractsRes = batch2[1] as { data: Array<Record<string, unknown>> | null; count?: number | null };
     if (isAdmin) {
-      const { data: contracts } = await client
-        .from("contracts")
-        .select("contract_number, rent_amount, start_date, end_date, status, payment_type")
-        .eq("status", "active")
-        .limit(30);
-
+      const contracts = contractsRes.data;
       if (contracts?.length) {
-        const totalRent = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
+        const totalRent = contracts.reduce((s: number, c: Record<string, unknown>) => s + Number(c.rent_amount), 0);
         const byType: Record<string, { count: number; total: number }> = {};
         for (const c of contracts) {
           const key = c.payment_type === "annual" ? "سنوي" : c.payment_type === "monthly" ? "شهري" : "دفعات";
@@ -159,33 +248,40 @@ export async function fetchWaqfData(
         for (const [type, info] of Object.entries(byType)) {
           sections.push(`  - ${type}: ${info.count} عقد | ${info.total.toLocaleString("ar-SA")} ر.س`);
         }
-        const sorted = [...contracts].sort((a, b) => a.end_date.localeCompare(b.end_date));
+        const sorted = [...contracts].sort((a, b) => String(a.end_date).localeCompare(String(b.end_date)));
         const soonest = sorted[0];
         if (soonest) {
           sections.push(`- أقرب انتهاء: عقد ${soonest.contract_number} في ${soonest.end_date}`);
         }
       }
     } else {
-      const { count } = await client
-        .from("contracts")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "active");
-
+      const count = (contractsRes as { count: number | null }).count;
       if (count && count > 0) {
         sections.push(`\n### العقود: يوجد ${count} عقد نشط حالياً.`);
       }
     }
 
-    // 6. ملخص الدخل حسب المصدر
-    const activeFY = fiscalYears?.find(fy => fy.status === "active");
-    if (activeFY && (isAdmin || activeFY.published)) {
-      const { data: income } = await client
-        .from("income")
-        .select("source, amount, date")
-        .eq("fiscal_year_id", activeFY.id)
-        .order("date", { ascending: false })
-        .limit(500);
+    // ── تجميع التوزيعات ──
+    const distsRes = batch2[2] as { data: Array<{ amount: number; date: string; status: string }> | null };
+    const distributions = distsRes.data;
+    if (isAdmin && distributions?.length) {
+      const totalDist = distributions.reduce((s, d) => s + Number(d.amount), 0);
+      const pending = distributions.filter(d => d.status === "pending").length;
+      const paid = distributions.filter(d => d.status === "paid").length;
+      sections.push(`\n### آخر التوزيعات:`);
+      sections.push(`- إجمالي: ${totalDist.toLocaleString("ar-SA")} ر.س | مدفوعة: ${paid} | معلقة: ${pending}`);
+    } else if (!isAdmin && distributions?.length) {
+      const myTotal = distributions.reduce((s, d) => s + Number(d.amount), 0);
+      sections.push(`\n### توزيعاتك:`);
+      sections.push(`- نطاق إجمالي حصتك: ${toRange(myTotal)} ر.س (${distributions.length} توزيعة)`);
+    }
 
+    // ── تجميع الدخل والمصروفات (إن وُجدت السنة النشطة) ──
+    let batchIdx = 3;
+    if (activeFY && (isAdmin || activeFY.published)) {
+      const incomeRes = batch2[batchIdx] as { data: Array<{ source: string; amount: number }> | null };
+      batchIdx++;
+      const income = incomeRes?.data;
       if (income?.length) {
         const totalIncome = income.reduce((s, i) => s + Number(i.amount), 0);
         const bySrc: Record<string, number> = {};
@@ -204,13 +300,9 @@ export async function fetchWaqfData(
         }
       }
 
-      // 7. ملخص المصروفات حسب النوع
-      const { data: expenses } = await client
-        .from("expenses")
-        .select("expense_type, amount, date")
-        .eq("fiscal_year_id", activeFY.id)
-        .limit(500);
-
+      const expensesRes = batch2[batchIdx] as { data: Array<{ expense_type: string; amount: number }> | null };
+      batchIdx++;
+      const expenses = expensesRes?.data;
       if (expenses?.length) {
         const totalExp = expenses.reduce((s, e) => s + Number(e.amount), 0);
         const byExpType: Record<string, number> = {};
@@ -230,83 +322,10 @@ export async function fetchWaqfData(
       }
     }
 
-    // 8. المستفيدون
-    if (isAdmin) {
-      const { data: beneficiaries } = await client
-        .from("beneficiaries")
-        .select("share_percentage")
-        .order("share_percentage", { ascending: false })
-        .limit(50);
-
-      if (beneficiaries?.length) {
-        const totalPct = beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
-        sections.push(`\n### المستفيدون (${beneficiaries.length} مستفيد):`);
-        beneficiaries.forEach((b, i) => {
-          sections.push(`- مستفيد ${i + 1}: ${b.share_percentage}%`);
-        });
-        sections.push(`- **إجمالي النسب: ${totalPct}%**`);
-      }
-    } else {
-      const { data: myBeneficiary } = await client
-        .from("beneficiaries")
-        .select("share_percentage")
-        .eq("user_id", userId)
-        .single();
-
-      if (myBeneficiary) {
-        sections.push(`\n### بياناتك كمستفيد:`);
-        sections.push(`- نسبة الحصة: ${myBeneficiary.share_percentage}%`);
-      }
-    }
-
-    // 9. التوزيعات الأخيرة
-    if (isAdmin) {
-      const { data: distributions } = await client
-        .from("distributions")
-        .select("amount, date, status")
-        .order("date", { ascending: false })
-        .limit(20);
-
-      if (distributions?.length) {
-        const totalDist = distributions.reduce((s, d) => s + Number(d.amount), 0);
-        const pending = distributions.filter(d => d.status === "pending").length;
-        const paid = distributions.filter(d => d.status === "paid").length;
-        sections.push(`\n### آخر التوزيعات:`);
-        sections.push(`- إجمالي: ${totalDist.toLocaleString("ar-SA")} ر.س | مدفوعة: ${paid} | معلقة: ${pending}`);
-      }
-    } else {
-      const { data: myBen } = await client
-        .from("beneficiaries")
-        .select("id")
-        .eq("user_id", userId)
-        .single();
-
-      if (myBen) {
-        const { data: myDists } = await client
-          .from("distributions")
-          .select("amount, date, status")
-          .eq("beneficiary_id", myBen.id)
-          .order("date", { ascending: false })
-          .limit(10);
-
-        if (myDists?.length) {
-          const myTotal = myDists.reduce((s, d) => s + Number(d.amount), 0);
-          sections.push(`\n### توزيعاتك:`);
-          sections.push(`- نطاق إجمالي حصتك: ${toRange(myTotal)} ر.س (${myDists.length} توزيعة)`);
-        }
-      }
-    }
-
-    // 10. العقود المنتهية أو قريبة الانتهاء
-    if (isAdmin) {
-      const { data: expiring } = await client
-        .from("contracts")
-        .select("contract_number, end_date, rent_amount")
-        .eq("status", "active")
-        .lte("end_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
-        .order("end_date", { ascending: true })
-        .limit(10);
-
+    // ── العقود المنتهية قريباً (admin) ──
+    if (isAdmin && batch2[batchIdx]) {
+      const expiringRes = batch2[batchIdx] as { data: Array<{ contract_number: string; end_date: string; rent_amount: number }> | null };
+      const expiring = expiringRes?.data;
       if (expiring?.length) {
         const totalExpRent = expiring.reduce((s, c) => s + Number(c.rent_amount), 0);
         sections.push(`\n### ⚠️ عقود تنتهي خلال 30 يوماً (${expiring.length}):`);

@@ -34,7 +34,12 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: userData, error: userError } = await userClient.auth.getUser();
+    // جلب المستخدم + تحليل الجسم بالتوازي
+    const [authResult, body] = await Promise.all([
+      userClient.auth.getUser(),
+      req.json().catch(() => ({})),
+    ]);
+    const { data: userData, error: userError } = authResult;
     if (userError || !userData?.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -43,43 +48,40 @@ Deno.serve(async (req) => {
     }
 
     const callerId = userData.user.id;
-
-    // Check admin role using service role client to bypass RLS
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Rate limiting: 60 طلب/دقيقة لكل مستخدم admin
-    const { data: isLimited, error: rlError } = await adminClient.rpc('check_rate_limit', {
-      p_key: `admin-manage:${callerId}`,
-      p_limit: 60,
-      p_window_seconds: 60,
-    });
-    if (rlError) {
+    // التحقق من الدور + Rate limiting بالتوازي
+    const [rlRes, roleRes] = await Promise.all([
+      adminClient.rpc('check_rate_limit', {
+        p_key: `admin-manage:${callerId}`,
+        p_limit: 60,
+        p_window_seconds: 60,
+      }),
+      adminClient.from("user_roles")
+        .select("role")
+        .eq("user_id", callerId)
+        .eq("role", "admin")
+        .maybeSingle(),
+    ]);
+
+    if (rlRes.error) {
       console.error("admin-manage: rate limit check failed");
       return new Response(JSON.stringify({ error: "خطأ مؤقت في الخادم" }), {
         status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (isLimited) {
+    if (rlRes.data) {
       return new Response(JSON.stringify({ error: "تم تجاوز حد الطلبات، يرجى الانتظار" }), {
         status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { data: roleData } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", callerId)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (!roleData) {
+    if (!roleRes.data) {
       return new Response(JSON.stringify({ error: "Forbidden: Admin only" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const body = await req.json();
     const { action, userId, email, password } = body;
 
     // Validate action against whitelist

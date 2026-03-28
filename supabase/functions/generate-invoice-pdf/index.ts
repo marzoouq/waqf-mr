@@ -429,8 +429,12 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Use getUser for real-time session validation (prevents revoked token usage)
-    const { data: { user: authUser }, error: userError } = await supabaseAuth.auth.getUser();
+    // جلب المستخدم + تحليل الجسم بالتوازي
+    const [authResult, bodyData] = await Promise.all([
+      supabaseAuth.auth.getUser(),
+      req.json().catch(() => ({})),
+    ]);
+    const { data: { user: authUser }, error: userError } = authResult;
     if (userError || !authUser) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -438,31 +442,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create admin client only after successful authentication
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
     const userId = authUser.id;
 
-    // Rate limiting: 10 requests per minute per user
-    const { data: rateLimited } = await supabaseAdmin.rpc("check_rate_limit", {
-      p_key: `pdf_gen_${userId}`,
-      p_limit: 10,
-      p_window_seconds: 60,
-    });
-    if (rateLimited === true) {
+    // التحقق من الدور + Rate limiting بالتوازي
+    const [rateLimitRes, rolesRes] = await Promise.all([
+      supabaseAdmin.rpc("check_rate_limit", {
+        p_key: `pdf_gen_${userId}`,
+        p_limit: 10,
+        p_window_seconds: 60,
+      }),
+      supabaseAdmin.from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .in("role", ["admin", "accountant"]),
+    ]);
+
+    if (rateLimitRes.data === true) {
       return new Response(JSON.stringify({ error: "تم تجاوز الحد الأقصى للطلبات. حاول بعد دقيقة." }), {
         status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { data: roles } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .in("role", ["admin", "accountant"]);
-
-    if (!roles || roles.length === 0) {
+    if (!rolesRes.data || rolesRes.data.length === 0) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

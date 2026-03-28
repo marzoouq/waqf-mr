@@ -39,13 +39,7 @@ Deno.serve(async (req) => {
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const rateLimitKey = `lookup_nid:${clientIp}`;
 
-    // Query current count before checking
-    const { data: currentCount } = await supabase
-      .from('rate_limits')
-      .select('count, window_start')
-      .eq('key', rateLimitKey)
-      .maybeSingle();
-
+    // استعلام واحد: فحص + زيادة العداد (بدلاً من 3 استعلامات منفصلة)
     const { data: isLimited, error: rlError } = await supabase.rpc('check_rate_limit', {
       p_key: rateLimitKey,
       p_limit: RATE_LIMIT,
@@ -62,25 +56,17 @@ Deno.serve(async (req) => {
     }
 
     if (isLimited) {
-      // Calculate seconds until window resets
-      let retryAfter = RATE_WINDOW_SECONDS;
-      if (currentCount?.window_start) {
-        const windowStart = new Date(currentCount.window_start).getTime();
-        const windowEnd = windowStart + RATE_WINDOW_SECONDS * 1000;
-        retryAfter = Math.max(1, Math.ceil((windowEnd - Date.now()) / 1000));
-      }
       return new Response(
         JSON.stringify({
           error: "تم تجاوز حد المحاولات، يرجى الانتظار",
           remaining: 0,
-          retry_after: retryAfter,
+          retry_after: RATE_WINDOW_SECONDS,
         }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Calculate remaining attempts: check_rate_limit already incremented the counter,
-    // so re-read to get the accurate post-increment value
+    // حساب المحاولات المتبقية من استعلام واحد بعد الزيادة
     const { data: updatedCount } = await supabase
       .from('rate_limits')
       .select('count')
