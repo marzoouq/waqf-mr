@@ -6,7 +6,7 @@ import type { Notification } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 import {
-  NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, NOTIF_PREFS_KEY,
+  NOTIFICATION_TONE_KEY, NOTIF_PREFS_KEY,
   type ToneId, getVolumeGain, playTone,
 } from './notificationTones';
 

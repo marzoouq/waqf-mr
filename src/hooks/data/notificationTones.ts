@@ -2,6 +2,7 @@
 
 export const NOTIFICATION_TONE_KEY = 'waqf_notification_tone';
 export const NOTIFICATION_VOLUME_KEY = 'waqf_notification_volume';
+export const NOTIF_PREFS_KEY = 'waqf_notification_preferences';
 
 export type VolumeLevel = 'high' | 'medium' | 'low';
 export const VOLUME_OPTIONS: { id: VolumeLevel; label: string; gain: number }[] = [
