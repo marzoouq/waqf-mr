@@ -28,6 +28,7 @@ const AccountsViewPage = () => {
   
 
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
+  const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId ?? 'all');
 
   const {
     beneficiaries,
