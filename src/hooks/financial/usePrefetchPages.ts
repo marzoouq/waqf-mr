@@ -96,12 +96,55 @@ export function usePrefetchPages() {
    * يعيد دالة prefetch المناسبة بناءً على مسار الصفحة
    * يُحمّل المكوّن (JS chunk) + البيانات معاً عند hover
    */
+  /** تحميل مسبق: التقارير */
+  const prefetchReports = useCallback(() => {
+    prefetchProperties();
+    prefetchFiscalYears();
+    prefetchAccounts();
+  }, [prefetchProperties, prefetchFiscalYears, prefetchAccounts]);
+
+  /** تحميل مسبق: سجل المراجعة */
+  const prefetchAuditLog = useCallback(() => {
+    queryClient.prefetchQuery({
+      queryKey: ['audit_log', { page: 1 }],
+      staleTime: PREFETCH_STALE,
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from('audit_log')
+          .select('id, table_name, operation, record_id, user_id, created_at')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        if (error) throw error;
+        return data;
+      },
+    });
+  }, [queryClient]);
+
+  /** تحميل مسبق: الرسائل */
+  const prefetchMessages = useCallback(() => {
+    queryClient.prefetchQuery({
+      queryKey: ['conversations'],
+      staleTime: PREFETCH_STALE,
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from('conversations')
+          .select('id, subject, type, status, created_by, participant_id, created_at, updated_at')
+          .order('updated_at', { ascending: false })
+          .limit(100);
+        if (error) throw error;
+        return data;
+      },
+    });
+  }, [queryClient]);
+
+  /**
+   * يعيد دالة prefetch المناسبة بناءً على مسار الصفحة
+   * يُحمّل المكوّن (JS chunk) + البيانات معاً عند hover
+   */
   const getPrefetchHandler = useCallback((path: string): (() => void) | undefined => {
-    // دائماً حمّل مكوّن الصفحة مسبقاً
     const handler = (): void => {
       prefetchComponent(path);
 
-      // تحميل البيانات المناسبة
       if (path.includes('/properties')) prefetchProperties();
       else if (path.includes('/contracts')) prefetchContracts();
       else if (path.includes('/accounts')) prefetchAccounts();
@@ -111,11 +154,17 @@ export function usePrefetchPages() {
       } else if (path.includes('/invoices')) {
         prefetchProperties();
         prefetchContracts();
+      } else if (path.includes('/reports') || path.includes('/annual-report') || path.includes('/comparison')) {
+        prefetchReports();
+      } else if (path.includes('/audit-log')) {
+        prefetchAuditLog();
+      } else if (path.includes('/messages')) {
+        prefetchMessages();
       }
     };
 
     return handler;
-  }, [prefetchProperties, prefetchContracts, prefetchAccounts, prefetchFiscalYears]);
+  }, [prefetchProperties, prefetchContracts, prefetchAccounts, prefetchFiscalYears, prefetchReports, prefetchAuditLog, prefetchMessages]);
 
   return { getPrefetchHandler, prefetchAccounts };
 }
