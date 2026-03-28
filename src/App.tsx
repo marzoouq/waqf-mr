@@ -101,6 +101,7 @@ function App() {
           </FiscalYearProvider>
         </AuthProvider>
       </QueryClientProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

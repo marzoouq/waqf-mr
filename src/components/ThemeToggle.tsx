@@ -1,0 +1,37 @@
+/**
+ * زر تبديل الوضع المظلم/الفاتح
+ */
+import { Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
+const ThemeToggle = () => {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="text-sidebar-foreground hover:bg-sidebar-accent/50"
+          aria-label="تبديل الوضع المظلم"
+        >
+          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        <p>{theme === 'dark' ? 'الوضع الفاتح' : 'الوضع المظلم'}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
+export default ThemeToggle;
