@@ -60,7 +60,7 @@
 | وصول `beneficiary`/`waqif` لهويات المستأجرين في `contracts` | إزالة الدورين من سياسة SELECT على الجدول الأصلي — يقرأون حصراً من `contracts_safe` (`security_definer` VIEW مع تمويه PII حسب الدور) + تحديث الواجهة لاستخدام `useContractsSafeByFiscalYear` | 2026-03-13 |
 | 27 دالة حساسة مكشوفة لـ `anon` (بما فيها `get_pii_key`) | **الحل النهائي**: حماية داخلية في كود الدوال نفسها بدلاً من `REVOKE` (الذي يُلغيه `pg_dump` عند كل نشر). التفاصيل: (1) `get_pii_key()` تُرجع `NULL` عند `auth.uid() IS NULL`، (2) `decrypt_pii()` تُرجع `********` لغير المصرح لهم، (3) `get_beneficiary_decrypted()` و `lookup_by_national_id()` و `get_active_zatca_certificate()` تُطلق استثناء `غير مصرح`. **السبب الجذري**: منصة Lovable Cloud تُنفذ `pg_dump` migration بعد هجرات المطور عند كل نشر، و `CREATE OR REPLACE FUNCTION` يُعيد صلاحيات `EXECUTE` لـ `PUBLIC` تلقائياً مما يُبطل أي `REVOKE` سابق. الحماية الداخلية في كود الدالة لا تتأثر بهذه العملية. | 2026-03-13 |
 | عروض `beneficiaries_safe` / `contracts_safe` مكشوفة لـ `anon` SELECT | تم سحب `SELECT` من `anon` و `PUBLIC` ومنحها لـ `authenticated` فقط (يُطبق عبر migration + حماية في كل نشر) | 2026-03-13 |
-| العروض الآمنة تستخدم `SECURITY DEFINER` | تم تحويلها إلى `security_invoker = true` + `security_barrier = true` لوراثة RLS من الجداول الأصلية بدلاً من تجاوزها | 2026-03-18 |
+| العروض الآمنة تستخدم `SECURITY DEFINER` | **الوضع الحالي**: تستخدم `security_definer` مع `WHERE auth.uid() IS NOT NULL` وتمويه PII عبر `CASE WHEN has_role()`. هذا مقصود للسماح بالقراءة دون منح صلاحيات مباشرة على الجداول الأصلية. صلاحية SELECT مقصورة على `authenticated` فقط. | 2026-03-28 |
 
 ### قواعد التصنيف العامة
 
