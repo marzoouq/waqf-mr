@@ -256,12 +256,18 @@ export function useWebAuthn() {
     }
   }, []);
 
-  // حذف بيانات اعتماد
+  // حذف بيانات اعتماد — مع فلتر user_id كطبقة حماية إضافية بجانب RLS
   const removeCredential = useCallback(async (credentialId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error('يجب تسجيل الدخول أولاً');
+      return false;
+    }
     const { error } = await supabase
       .from('webauthn_credentials')
       .delete()
-      .eq('id', credentialId);
+      .eq('id', credentialId)
+      .eq('user_id', user.id);
 
     if (error) {
       toast.error('فشل في حذف البصمة');
