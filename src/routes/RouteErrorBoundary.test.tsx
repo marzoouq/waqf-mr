@@ -1,10 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { RouteGuard } from './RouteErrorBoundary';
+import type { ReactNode } from 'react';
 
 // مكوّن يرمي خطأ عمداً للاختبار
-function BrokenComponent() {
+function BrokenComponent(): ReactNode {
   throw new Error('Test route explosion');
 }
 
@@ -31,7 +31,6 @@ describe('RouteGuard (Route-level ErrorBoundary)', () => {
   it('يلتقط الخطأ ويعرض واجهة الخطأ بدلاً من سقوط التطبيق', () => {
     render(<RouteGuard><BrokenComponent /></RouteGuard>);
     expect(screen.getByText('حدث خطأ غير متوقع')).toBeInTheDocument();
-    expect(screen.queryByText('محتوى سليم')).not.toBeInTheDocument();
   });
 
   it('يعرض زر إعادة المحاولة', () => {
@@ -40,22 +39,18 @@ describe('RouteGuard (Route-level ErrorBoundary)', () => {
   });
 
   it('لا يؤثر خطأ في صفحة على صفحة أخرى', () => {
-    const { unmount } = render(
+    render(
       <div>
         <RouteGuard><BrokenComponent /></RouteGuard>
         <RouteGuard><HealthyComponent /></RouteGuard>
       </div>
     );
-    // الصفحة المكسورة تعرض خطأ
     expect(screen.getByText('حدث خطأ غير متوقع')).toBeInTheDocument();
-    // الصفحة السليمة تبقى تعمل
     expect(screen.getByText('محتوى سليم')).toBeInTheDocument();
-    unmount();
   });
 
   it('يعرض تفاصيل الخطأ في وضع التطوير', () => {
     render(<RouteGuard><BrokenComponent /></RouteGuard>);
-    // في بيئة الاختبار (DEV=true) يجب أن تظهر رسالة الخطأ
     expect(screen.getByText(/Test route explosion/)).toBeInTheDocument();
   });
 });
