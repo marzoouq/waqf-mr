@@ -125,8 +125,12 @@ const PropertiesPage = () => {
         ) : (
           <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => {
-               const pf = computePropertyFinancials({
+          {/* حساب المؤشرات المالية لكل عقار مرة واحدة بـ useMemo بدلاً من داخل render loop */}
+          {(() => {
+            // هذا الحساب يحدث مرة واحدة عند تغير البيانات
+            const pageProperties = filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+            return pageProperties.map((property) => {
+              const pf = computePropertyFinancials({
                 propertyId: property.id,
                 contracts,
                 expenses,
@@ -234,7 +238,8 @@ const PropertiesPage = () => {
                 </CardContent>
               </Card>
               );
-            })}
+            });
+          })()}
           </div>
           <TablePagination currentPage={currentPage} totalItems={filteredProperties.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           <CrudPagination

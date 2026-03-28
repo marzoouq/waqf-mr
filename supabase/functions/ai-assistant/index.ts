@@ -31,7 +31,12 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: userData, error: userError } = await userClient.auth.getUser();
+    // جلب المستخدم + تحليل الجسم بالتوازي
+    const [authRes, bodyData] = await Promise.all([
+      userClient.auth.getUser(),
+      req.json().catch(() => ({})),
+    ]);
+    const { data: userData, error: userError } = authRes;
     if (userError || !userData?.user) {
       return new Response(
         JSON.stringify({ error: "جلسة غير صالحة، يرجى تسجيل الدخول مجدداً" }),
@@ -41,46 +46,39 @@ Deno.serve(async (req) => {
 
     const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // ─── تقييد معدل الطلبات ───
-    const { data: isLimited, error: rlError } = await serviceClient.rpc('check_rate_limit', {
-      p_key: `ai:${userData.user.id}`,
-      p_limit: 30,
-      p_window_seconds: 60,
-    });
-    if (rlError) {
+    // التحقق من الدور + Rate limiting بالتوازي
+    const [roleRes, rlRes] = await Promise.all([
+      serviceClient.from("user_roles").select("role").eq("user_id", userData.user.id).single(),
+      serviceClient.rpc('check_rate_limit', { p_key: `ai:${userData.user.id}`, p_limit: 30, p_window_seconds: 60 }),
+    ]);
+
+    if (rlRes.error) {
       console.error("ai rate_limit check failed");
       return new Response(
         JSON.stringify({ error: "خطأ مؤقت في الخادم، يرجى المحاولة لاحقاً" }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    if (isLimited) {
+    if (rlRes.data) {
       return new Response(
         JSON.stringify({ error: "تم تجاوز حد الطلبات، يرجى الانتظار دقيقة" }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // ─── التحقق من الدور ───
-    const { data: roleData } = await serviceClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userData.user.id)
-      .single();
-
-    if (!roleData?.role) {
+    if (!roleRes.data?.role) {
       console.error("ai-assistant: failed to fetch role for authenticated user");
       return new Response(
         JSON.stringify({ error: "لم يتم التعرف على صلاحياتك. يرجى التواصل مع الناظر." }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    const userRole = roleData.role;
+    const userRole = roleRes.data.role;
 
     // ─── تحليل المدخلات ───
     const url = new URL(req.url);
     const forceRefresh = url.searchParams.get("refresh") === "true";
-    const { messages, mode: rawMode } = await req.json();
+    const { messages, mode: rawMode } = bodyData;
 
     const mode: AllowedMode = ALLOWED_MODES.includes(rawMode) ? rawMode as AllowedMode : "chat";
 

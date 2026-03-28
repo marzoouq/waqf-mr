@@ -7,7 +7,7 @@ import { useAllUnits } from '@/hooks/data/useUnits';
 import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
 import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
+import { useAccountByFiscalYear } from '@/hooks/financial/useAccounts';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { Property } from '@/types/database';
 import { toast } from 'sonner';
@@ -21,7 +21,8 @@ export function usePropertiesPage() {
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
   const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);
-  const { accounts } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
+  // استعلام واحد بدلاً من useFinancialSummary (5 استعلامات) — نحتاج accounts فقط
+  const { data: accounts = [] } = useAccountByFiscalYear(fiscalYear?.label, fiscalYearId);
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
   const deleteProperty = useDeleteProperty();

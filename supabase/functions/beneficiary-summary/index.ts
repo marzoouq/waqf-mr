@@ -30,23 +30,28 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
     }
 
+    // جلب المستخدم + تحليل الجسم بالتوازي
     const supaAuth = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user }, error: userError } = await supaAuth.auth.getUser();
+    const [authResult, body] = await Promise.all([
+      supaAuth.auth.getUser(),
+      req.json().catch(() => ({})),
+    ]);
+    const { data: { user }, error: userError } = authResult;
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // التحقق من الدور (beneficiary)
-    const { data: roles } = await admin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
+    // التحقق من الدور + Rate limiting بالتوازي
+    const [rolesRes, rateLimitRes] = await Promise.all([
+      admin.from("user_roles").select("role").eq("user_id", user.id),
+      admin.rpc("check_rate_limit", { p_key: `beneficiary-summary:${user.id}`, p_limit: 30, p_window_seconds: 60 }),
+    ]);
 
-    const userRoles = (roles ?? []).map((r: { role: string }) => r.role);
+    const userRoles = (rolesRes.data ?? []).map((r: { role: string }) => r.role);
     const isBeneficiary = userRoles.includes("beneficiary");
     const isAdmin = userRoles.includes("admin");
     const isAccountant = userRoles.includes("accountant");
@@ -54,14 +59,7 @@ Deno.serve(async (req) => {
     if (!isBeneficiary && !isAdmin && !isAccountant) {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: jsonHeaders });
     }
-
-    // Rate limiting
-    const { data: isLimited } = await admin.rpc("check_rate_limit", {
-      p_key: `beneficiary-summary:${user.id}`,
-      p_limit: 30,
-      p_window_seconds: 60,
-    });
-    if (isLimited) {
+    if (rateLimitRes.data) {
       return new Response(
         JSON.stringify({ error: "تم تجاوز الحد المسموح من الطلبات" }),
         { status: 429, headers: jsonHeaders },
@@ -69,7 +67,6 @@ Deno.serve(async (req) => {
     }
 
     // ── التحقق من المدخلات ──
-    const body = await req.json().catch(() => ({}));
     const parsed = RequestSchema.safeParse(body);
     if (!parsed.success) {
       return new Response(
