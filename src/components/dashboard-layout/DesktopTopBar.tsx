@@ -9,7 +9,8 @@ import ThemeToggle from '@/components/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
 import NotificationBell from '@/components/NotificationBell';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
-import GlobalSearch from '@/components/GlobalSearch';
+import { lazy, Suspense } from 'react';
+const GlobalSearch = lazy(() => import('@/components/GlobalSearch'));
 import WaqfInfoBar from '@/components/WaqfInfoBar';
 
 interface DesktopTopBarProps {
