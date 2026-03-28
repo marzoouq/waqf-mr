@@ -83,6 +83,7 @@ export const useUserManagement = () => {
   // جلب المستخدمين
   const { data: usersResult = { users: [] as ManagedUser[], total: 0, nextPage: null as number | null }, isLoading, isError, error } = useQuery({
     queryKey: ['admin-users', currentPage],
+    staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const result = await callAdminApi({ action: 'list_users', page: currentPage });
       return {
