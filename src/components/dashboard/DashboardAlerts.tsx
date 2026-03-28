@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
