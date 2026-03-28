@@ -131,7 +131,12 @@ const AccountsViewPage = () => {
             <ExportMenu onExportPdf={async () => {
               try {
                 await generateAccountsPDF({
-                  contracts: [],
+                  contracts: contracts.filter(c => c.status === 'active').map(c => ({
+                    contract_number: c.contract_number ?? '',
+                    tenant_name: c.tenant_name ?? '',
+                    rent_amount: safeNumber(c.rent_amount),
+                    status: c.status ?? '',
+                  })),
                   incomeBySource,
                   expensesByType: expensesByTypeExcludingVat,
                   totalIncome,

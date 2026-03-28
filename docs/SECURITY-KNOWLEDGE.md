@@ -46,8 +46,8 @@
 
 | الملاحظة | السبب |
 |----------|-------|
-| `beneficiaries_safe` / `contracts_safe` بدون RLS | عروض VIEW بـ `security_invoker = true` + `security_barrier = true` — ترث سياسات RLS من الجداول الأصلية تلقائياً، والفلترة الإضافية تتم عبر `CASE WHEN has_role()` داخل العرض |
-| تحذير `security_invoker VIEW` على العروض الآمنة | مقصود — العروض تقرأ بصلاحيات **المستخدم المستدعي** عبر وراثة RLS من الجداول الأصلية، مما يضمن أن كل مستخدم يرى فقط ما تسمح به سياسات الجدول الأصلي |
+| `beneficiaries_safe` / `contracts_safe` بدون RLS | عروض VIEW بـ `security_definer` + `security_barrier` — تتحكم بالوصول عبر `auth.uid() IS NOT NULL` وتمويه البيانات الحساسة عبر `CASE WHEN has_role()` داخل العرض. اختيار `security_definer` مقصود للسماح بالقراءة دون منح صلاحيات مباشرة على الجداول الأصلية |
+| تحذير `security_definer VIEW` على العروض الآمنة | مقصود — العروض تتحقق من `auth.uid()` داخلياً وتمويه PII حسب الدور، مع حصر صلاحية SELECT على `authenticated` فقط (مسحوبة من `anon` و `PUBLIC`) |
 | ثغرات في حزم `devDependencies` (مثل `vite-plugin-pwa`) | أدوات بناء فقط، لا تُشحن مع كود الإنتاج |
 | `verify_jwt = false` في Edge Functions | مقصود — Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف، المصادقة تتم يدوياً عبر `getUser()` |
 
