@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Menu } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
+import ThemeToggle from '@/components/ThemeToggle';
 import { ROUTE_TITLES } from '@/components/dashboard-layout/constants';
 
 interface MobileHeaderProps {
@@ -41,6 +42,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLa
             <BookOpen className="w-5 h-5" />
           </Button>
         </Link>
+        <ThemeToggle />
         <NotificationBell />
       </div>
     </div>

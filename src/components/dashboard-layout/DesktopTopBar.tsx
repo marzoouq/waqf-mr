@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Lock, User } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
 import NotificationBell from '@/components/NotificationBell';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
@@ -46,6 +47,7 @@ const DesktopTopBar: React.FC<DesktopTopBarProps> = ({
             <BookOpen className="w-5 h-5" />
           </Button>
         </Link>
+        <ThemeToggle />
         <NotificationBell />
         {user && (
           <div className="flex items-center gap-2 border-r border-border pr-3 mr-1">
