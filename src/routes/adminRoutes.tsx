@@ -24,12 +24,15 @@ const ChartOfAccountsPage = lazyWithRetry(() => import("@/pages/dashboard/ChartO
 const HistoricalComparisonPage = lazyWithRetry(() => import("@/pages/dashboard/HistoricalComparisonPage"));
 const SystemDiagnosticsPage = lazyWithRetry(() => import("@/pages/dashboard/SystemDiagnosticsPage"));
 
+import type { AppRole } from '@/types/database';
+import type { ReactNode } from 'react';
+
 /** دالة مساعدة لتقليل التكرار */
-const pr = (roles: string[], page: JSX.Element) =>
+const pr = (roles: AppRole[], page: ReactNode) =>
   eb(<ProtectedRoute allowedRoles={roles}>{page}</ProtectedRoute>);
 
-const ADMIN_ACC = ['admin', 'accountant'];
-const ADMIN_ONLY = ['admin'];
+const ADMIN_ACC: AppRole[] = ['admin', 'accountant'];
+const ADMIN_ONLY: AppRole[] = ['admin'];
 
 /** مسارات لوحة التحكم — admin و accountant */
 export const adminRoutes = (

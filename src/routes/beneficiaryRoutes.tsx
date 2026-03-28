@@ -20,13 +20,16 @@ const WaqifDashboard = lazyWithRetry(() => import("@/pages/beneficiary/WaqifDash
 const BeneficiarySupportPage = lazyWithRetry(() => import("@/pages/beneficiary/SupportPage"));
 const AnnualReportViewPage = lazyWithRetry(() => import("@/pages/beneficiary/AnnualReportViewPage"));
 
+import type { AppRole } from '@/types/database';
+import type { ReactNode } from 'react';
+
 /** دالة مساعدة لتقليل التكرار */
-const pr = (roles: string[], page: JSX.Element) =>
+const pr = (roles: AppRole[], page: ReactNode) =>
   eb(<ProtectedRoute allowedRoles={roles}>{page}</ProtectedRoute>);
 
-const BEN = ['admin', 'beneficiary'];
-const ALL = ['admin', 'beneficiary', 'waqif'];
-const ALL_ACC = ['admin', 'beneficiary', 'waqif', 'accountant'];
+const BEN: AppRole[] = ['admin', 'beneficiary'];
+const ALL: AppRole[] = ['admin', 'beneficiary', 'waqif'];
+const ALL_ACC: AppRole[] = ['admin', 'beneficiary', 'waqif', 'accountant'];
 
 /** مسارات المستفيدين والواقف */
 export const beneficiaryRoutes = (
