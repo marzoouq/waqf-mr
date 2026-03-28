@@ -58,4 +58,4 @@ function QuickAction({ to, icon, label }: { to: string; icon: React.ReactNode; l
   );
 }
 
-export default QuickActionsCard;
+export default memo(QuickActionsCard);

@@ -63,4 +63,4 @@ const DashboardKpiPanel = ({ kpis, isLoading }: DashboardKpiPanelProps) => {
   );
 };
 
-export default DashboardKpiPanel;
+export default memo(DashboardKpiPanel);

@@ -101,4 +101,4 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContracts, orphanedContract
   );
 };
 
-export default DashboardAlerts;
+export default memo(DashboardAlerts);

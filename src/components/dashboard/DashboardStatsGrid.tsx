@@ -49,4 +49,4 @@ const DashboardStatsGrid = ({ stats, isLoading }: DashboardStatsGridProps) => {
   );
 };
 
-export default DashboardStatsGrid;
+export default memo(DashboardStatsGrid);
