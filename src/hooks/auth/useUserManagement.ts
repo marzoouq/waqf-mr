@@ -121,7 +121,7 @@ export const useUserManagement = () => {
   // مستفيدين بدون ربط
   const { data: orphanedBeneficiaries = [] } = useQuery({
     queryKey: ['orphaned-beneficiaries'],
-    queryFn: async () => {
+    staleTime: STALE_MESSAGING,
       const { data } = await supabase
         .from('beneficiaries')
         .select('id, name, email, user_id')
