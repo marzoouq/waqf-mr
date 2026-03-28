@@ -17,7 +17,7 @@ import PrintFooter from '@/components/PrintFooter';
 import BetaBanner from '@/components/BetaBanner';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { defaultMenuLabels, type MenuLabels } from '@/components/settings/MenuCustomizationTab';
+import { defaultMenuLabels, type MenuLabels } from '@/types/menuLabels';
 import SidebarContent from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
 import GlobalSearch from '@/components/GlobalSearch';
