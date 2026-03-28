@@ -1,29 +1,22 @@
-/** حوار إدارة وحدات العقار — مكون تنسيقي يجمع المكونات الفرعية */
-import { useState } from 'react';
+/** حوار إدارة وحدات العقار — مكون عرضي يستخدم usePropertyUnits */
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { useUnits, UnitRow } from '@/hooks/data/useUnits';
-import { useCreateUnit, useUpdateUnit, useDeleteUnit } from '@/hooks/data/useUnits';
-import { useCreateContract, useUpdateContract } from '@/hooks/data/useContracts';
-import { useTenantPayments } from '@/hooks/data/useTenantPayments';
-import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
-import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Property, Contract } from '@/types/database';
 import { Plus, Building2, Home, DoorOpen } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { generateUnitsPDF, UnitPdfRow } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { toast } from 'sonner';
+import { usePropertyUnits } from '@/hooks/data/usePropertyUnits';
+import { getTenantFromContracts } from './units/helpers';
 
-import UnitFormCard, { type UnitFormData } from './units/UnitFormCard';
+import UnitFormCard from './units/UnitFormCard';
 import MobileUnitCard from './units/MobileUnitCard';
 import MobileSummaryCard from './units/MobileSummaryCard';
 import DesktopUnitsTable from './units/DesktopUnitsTable';
-import WholePropertyTab, { type WholeRentalForm } from './units/WholePropertyTab';
+import WholePropertyTab from './units/WholePropertyTab';
 import DeleteUnitDialog from './units/DeleteUnitDialog';
-import { getTenantFromContracts } from './units/helpers';
 
 interface PropertyUnitsDialogProps {
   property: Property;
@@ -33,177 +26,7 @@ interface PropertyUnitsDialogProps {
 
 const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDialogProps) => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: units = [], isLoading } = useUnits(property.id);
-  const { data: tenantPayments = [] } = useTenantPayments();
-  const { fiscalYearId } = useFiscalYear();
-  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
-
-  const createUnit = useCreateUnit();
-  const updateUnit = useUpdateUnit();
-  const deleteUnit = useDeleteUnit();
-  const createContract = useCreateContract();
-  const updateContractMutation = useUpdateContract();
-
-  const [rentalMode, setRentalMode] = useState<'units' | 'whole'>('units');
-  const [isUnitFormOpen, setIsUnitFormOpen] = useState(false);
-  const [editingUnit, setEditingUnit] = useState<UnitRow | null>(null);
-  const [deleteUnitTarget, setDeleteUnitTarget] = useState<UnitRow | null>(null);
-
-  const defaultForm: UnitFormData = {
-    property_id: property.id, unit_number: '', unit_type: 'شقة', floor: '', area: undefined, status: 'شاغرة', notes: '',
-    tenant_name: '', rent_amount: '', payment_type: 'annual', payment_count: '1', contract_start_date: '', contract_end_date: '',
-  };
-
-  const [unitForm, setUnitForm] = useState<UnitFormData>(defaultForm);
-
-  const resetUnitForm = () => {
-    setUnitForm(defaultForm);
-    setEditingUnit(null);
-    setIsUnitFormOpen(false);
-  };
-
-  const handleUnitSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!unitForm.unit_number) {
-      toast.error('يرجى إدخال رقم الوحدة');
-      return;
-    }
-
-    let savedUnitId: string | undefined;
-
-    if (editingUnit) {
-      await updateUnit.mutateAsync({
-        id: editingUnit.id,
-        unit_number: unitForm.unit_number,
-        unit_type: unitForm.unit_type,
-        floor: unitForm.floor || null,
-        area: unitForm.area ?? null,
-        status: unitForm.status,
-        notes: unitForm.notes || null,
-      });
-      savedUnitId = editingUnit.id;
-    } else {
-      const result = await createUnit.mutateAsync({
-        property_id: unitForm.property_id,
-        unit_number: unitForm.unit_number,
-        unit_type: unitForm.unit_type,
-        floor: unitForm.floor || '',
-        area: unitForm.area,
-        status: unitForm.status,
-        notes: unitForm.notes || '',
-      });
-      savedUnitId = result?.id;
-    }
-
-    if (unitForm.status === 'مؤجرة' && unitForm.tenant_name && unitForm.rent_amount && savedUnitId) {
-      const rentAmount = parseFloat(unitForm.rent_amount);
-      const paymentCount = unitForm.payment_type === 'monthly' ? 12 : unitForm.payment_type === 'multi' ? parseInt(unitForm.payment_count || '1') : 1;
-      const paymentAmount = rentAmount / paymentCount;
-
-      const existingContract = contracts.find(c => c.unit_id === savedUnitId && c.status === 'active');
-
-      if (existingContract) {
-        await updateContractMutation.mutateAsync({
-          id: existingContract.id,
-          tenant_name: unitForm.tenant_name,
-          rent_amount: rentAmount,
-          payment_type: unitForm.payment_type || 'annual',
-          payment_count: paymentCount,
-          payment_amount: paymentAmount,
-          start_date: unitForm.contract_start_date || existingContract.start_date,
-          end_date: unitForm.contract_end_date || existingContract.end_date,
-        });
-      } else {
-        if (!unitForm.contract_start_date || !unitForm.contract_end_date) {
-          toast.error('يرجى تحديد تاريخ بداية ونهاية العقد');
-          return;
-        }
-        await createContract.mutateAsync({
-          contract_number: `C-${property.property_number}-${unitForm.unit_number}-${Date.now().toString(36)}`,
-          property_id: property.id,
-          unit_id: savedUnitId,
-          tenant_name: unitForm.tenant_name,
-          rent_amount: rentAmount,
-          start_date: unitForm.contract_start_date,
-          end_date: unitForm.contract_end_date,
-          status: 'active',
-          payment_type: unitForm.payment_type || 'annual',
-          payment_count: paymentCount,
-          payment_amount: paymentAmount,
-        });
-      }
-    }
-
-    resetUnitForm();
-  };
-
-  const handleEditUnit = (unit: UnitRow) => {
-    const existingContract = contracts.find(c => c.unit_id === unit.id && c.status === 'active');
-    setEditingUnit(unit);
-    setUnitForm({
-      property_id: property.id,
-      unit_number: unit.unit_number,
-      unit_type: unit.unit_type,
-      floor: unit.floor || '',
-      area: unit.area ?? undefined,
-      status: unit.status,
-      notes: unit.notes || '',
-      tenant_name: existingContract?.tenant_name || '',
-      rent_amount: existingContract?.rent_amount?.toString() || '',
-      payment_type: existingContract?.payment_type || 'annual',
-      payment_count: existingContract?.payment_count?.toString() || '1',
-      contract_start_date: existingContract?.start_date || '',
-      contract_end_date: existingContract?.end_date || '',
-    });
-    setIsUnitFormOpen(true);
-  };
-
-  const handleConfirmDeleteUnit = async () => {
-    if (!deleteUnitTarget) return;
-    await deleteUnit.mutateAsync({ id: deleteUnitTarget.id, propertyId: property.id });
-    setDeleteUnitTarget(null);
-  };
-
-  const getPaymentInfo = (contractId: string) => {
-    const payment = tenantPayments.find(p => p.contract_id === contractId);
-    return payment ? payment.paid_months : 0;
-  };
-
-  const wholePropertyContracts = contracts.filter(c => c.property_id === property.id && !c.unit_id).sort((a, b) => {
-    if (a.status === 'active' && b.status !== 'active') return -1;
-    if (b.status === 'active' && a.status !== 'active') return 1;
-    return new Date(b.end_date).getTime() - new Date(a.end_date).getTime();
-  });
-  const wholePropertyContract = wholePropertyContracts[0] || null;
-
-  const handleWholePropertySave = async (form: WholeRentalForm) => {
-    if (!form.tenant_name || !form.rent_amount || !form.start_date || !form.end_date) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
-      return;
-    }
-    const rentAmount = parseFloat(form.rent_amount);
-    const paymentCount = form.payment_type === 'monthly' ? 12 : form.payment_type === 'multi' ? parseInt(form.payment_count || '1') : 1;
-    const paymentAmount = rentAmount / paymentCount;
-
-    if (wholePropertyContract) {
-      await updateContractMutation.mutateAsync({
-        id: wholePropertyContract.id, tenant_name: form.tenant_name, rent_amount: rentAmount,
-        payment_type: form.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
-        start_date: form.start_date, end_date: form.end_date,
-      });
-    } else {
-      await createContract.mutateAsync({
-        contract_number: `C-${property.property_number}-WHOLE-${Date.now().toString(36)}`,
-        property_id: property.id, tenant_name: form.tenant_name, rent_amount: rentAmount,
-        start_date: form.start_date, end_date: form.end_date, status: 'active',
-        payment_type: form.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
-      });
-    }
-  };
-
-  const rented = units.filter(u => u.status === 'مؤجرة').length;
-  const vacant = units.filter(u => u.status === 'شاغرة').length;
-  const maintenance = units.filter(u => u.status === 'صيانة').length;
+  const pu = usePropertyUnits(property, contracts);
 
   return (
     <>
@@ -232,22 +55,22 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
             </div>
             <div className="text-center">
               <p className="text-xs text-muted-foreground">إجمالي الوحدات</p>
-              <p className="font-medium text-sm">{units.length}</p>
+              <p className="font-medium text-sm">{pu.units.length}</p>
             </div>
           </div>
 
-          <Tabs value={rentalMode} onValueChange={(v) => setRentalMode(v as 'units' | 'whole')} className="w-full">
+          <Tabs value={pu.rentalMode} onValueChange={(v) => pu.setRentalMode(v as 'units' | 'whole')} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="units">وحدات منفصلة</TabsTrigger>
               <TabsTrigger value="whole">العقار كامل</TabsTrigger>
             </TabsList>
 
             <TabsContent value="units" className="space-y-4 mt-4">
-              {units.length > 0 && (
+              {pu.units.length > 0 && (
                 <div className="flex gap-2 flex-wrap">
-                  <Badge variant="default" className="gap-1"><Home className="w-3 h-3" /> مؤجرة: {rented}</Badge>
-                  <Badge variant="secondary" className="gap-1"><DoorOpen className="w-3 h-3" /> شاغرة: {vacant}</Badge>
-                  {maintenance > 0 && <Badge variant="destructive" className="gap-1">صيانة: {maintenance}</Badge>}
+                  <Badge variant="default" className="gap-1"><Home className="w-3 h-3" /> مؤجرة: {pu.rented}</Badge>
+                  <Badge variant="secondary" className="gap-1"><DoorOpen className="w-3 h-3" /> شاغرة: {pu.vacant}</Badge>
+                  {pu.maintenance > 0 && <Badge variant="destructive" className="gap-1">صيانة: {pu.maintenance}</Badge>}
                 </div>
               )}
 
@@ -255,37 +78,37 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                 <h3 className="font-semibold">الوحدات السكنية</h3>
                 <div className="flex gap-2 flex-wrap print:hidden">
                   <ExportMenu onExportPdf={() => {
-                    const pdfRows: UnitPdfRow[] = units.map(u => {
+                    const pdfRows: UnitPdfRow[] = pu.units.map(u => {
                       const tenant = getTenantFromContracts(u.id, contracts);
                       return {
                         unit_number: u.unit_number, unit_type: u.unit_type, status: u.status,
                         tenant_name: tenant?.name || null, start_date: tenant?.start_date || null, end_date: tenant?.end_date || null,
-                        rent_amount: tenant?.rent_amount || null, paid_months: tenant ? getPaymentInfo(tenant.contract_id) : 0,
+                        rent_amount: tenant?.rent_amount || null, paid_months: tenant ? pu.getPaymentInfo(tenant.contract_id) : 0,
                         payment_type: tenant?.payment_type, payment_count: tenant?.payment_count,
                       };
                     });
                     generateUnitsPDF(property.property_number, property.location, pdfRows, pdfWaqfInfo);
                   }} />
-                  <Button size="sm" className="gap-1" onClick={() => { resetUnitForm(); setIsUnitFormOpen(true); }}>
+                  <Button size="sm" className="gap-1" onClick={() => { pu.resetUnitForm(); pu.setIsUnitFormOpen(true); }}>
                     <Plus className="w-4 h-4" /> إضافة وحدة
                   </Button>
                 </div>
               </div>
 
-              {isUnitFormOpen && (
+              {pu.isUnitFormOpen && (
                 <UnitFormCard
-                  form={unitForm}
-                  onChange={setUnitForm}
-                  onSubmit={handleUnitSubmit}
-                  onCancel={resetUnitForm}
-                  isEditing={!!editingUnit}
-                  isPending={createUnit.isPending || updateUnit.isPending || createContract.isPending || updateContractMutation.isPending}
+                  form={pu.unitForm}
+                  onChange={pu.setUnitForm}
+                  onSubmit={pu.handleUnitSubmit}
+                  onCancel={pu.resetUnitForm}
+                  isEditing={!!pu.editingUnit}
+                  isPending={pu.isPending}
                 />
               )}
 
-              {isLoading ? (
+              {pu.isLoading ? (
                 <p className="text-center text-muted-foreground py-8">جاري التحميل...</p>
-              ) : units.length === 0 ? (
+              ) : pu.units.length === 0 ? (
                 <div className="text-center py-8">
                   <DoorOpen className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
                   <p className="text-muted-foreground">لا توجد وحدات مسجلة لهذا العقار</p>
@@ -293,37 +116,24 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                 </div>
               ) : (
                 <div>
-                  {/* بطاقات الجوال */}
                   <div className="space-y-3 md:hidden">
-                    {units.map((unit) => {
+                    {pu.units.map((unit) => {
                       const tenant = getTenantFromContracts(unit.id, contracts);
-                      const paid = tenant ? getPaymentInfo(tenant.contract_id) : 0;
+                      const paid = tenant ? pu.getPaymentInfo(tenant.contract_id) : 0;
                       return (
                         <MobileUnitCard
-                          key={unit.id}
-                          unit={unit}
-                          tenant={tenant}
-                          paidMonths={paid}
-                          paymentInvoices={paymentInvoices}
-                          onEdit={handleEditUnit}
-                          onDelete={setDeleteUnitTarget}
+                          key={unit.id} unit={unit} tenant={tenant} paidMonths={paid}
+                          paymentInvoices={pu.paymentInvoices}
+                          onEdit={pu.handleEditUnit} onDelete={pu.setDeleteUnitTarget}
                         />
                       );
                     })}
                   </div>
-
-                  {/* ملخص الإجماليات على الجوال */}
-                  <MobileSummaryCard units={units} contracts={contracts} wholePropertyContracts={wholePropertyContracts} />
-
-                  {/* جدول سطح المكتب */}
+                  <MobileSummaryCard units={pu.units} contracts={contracts} wholePropertyContracts={pu.wholePropertyContracts} />
                   <DesktopUnitsTable
-                    units={units}
-                    contracts={contracts}
-                    wholePropertyContracts={wholePropertyContracts}
-                    tenantPayments={tenantPayments}
-                    paymentInvoices={paymentInvoices}
-                    onEdit={handleEditUnit}
-                    onDelete={setDeleteUnitTarget}
+                    units={pu.units} contracts={contracts} wholePropertyContracts={pu.wholePropertyContracts}
+                    tenantPayments={pu.tenantPayments} paymentInvoices={pu.paymentInvoices}
+                    onEdit={pu.handleEditUnit} onDelete={pu.setDeleteUnitTarget}
                   />
                 </div>
               )}
@@ -331,9 +141,9 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
 
             <TabsContent value="whole">
               <WholePropertyTab
-                wholePropertyContract={wholePropertyContract}
-                onSave={handleWholePropertySave}
-                isPending={createContract.isPending || updateContractMutation.isPending}
+                wholePropertyContract={pu.wholePropertyContract}
+                onSave={pu.handleWholePropertySave}
+                isPending={pu.isPending}
               />
             </TabsContent>
           </Tabs>
@@ -341,9 +151,9 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
       </Dialog>
 
       <DeleteUnitDialog
-        unit={deleteUnitTarget}
-        onClose={() => setDeleteUnitTarget(null)}
-        onConfirm={handleConfirmDeleteUnit}
+        unit={pu.deleteUnitTarget}
+        onClose={() => pu.setDeleteUnitTarget(null)}
+        onConfirm={pu.handleConfirmDeleteUnit}
       />
     </>
   );
