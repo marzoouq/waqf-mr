@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Lock, User } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
 import NotificationBell from '@/components/NotificationBell';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
