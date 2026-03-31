@@ -71,13 +71,9 @@ export function useAiChat() {
     let assistantContent = '';
 
     try {
-      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
-      if (userError || !currentUser) throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
-
-      const storageKey = `sb-${import.meta.env.VITE_SUPABASE_PROJECT_ID}-auth-token`;
-      const stored = localStorage.getItem(storageKey);
-      const accessToken = stored ? JSON.parse(stored)?.access_token : null;
-      if (!accessToken) throw new Error('تعذر استخراج رمز المصادقة — أعد تسجيل الدخول');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
+      const accessToken = session.access_token;
 
       const resp = await fetch(AI_URL, {
         method: 'POST',
