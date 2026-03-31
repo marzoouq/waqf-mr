@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* ─── Self-hosted Tajawal font (eliminates render-blocking Google Fonts request) ─── */
 /* Critical weights (400, 700) */
@@ -200,7 +198,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   html {
@@ -208,7 +206,11 @@
   }
 
   body {
-    @apply bg-background text-foreground font-arabic antialiased;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: Tajawal, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
@@ -218,11 +220,18 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-muted rounded-full;
+    background-color: hsl(var(--muted));
+    border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-primary/30 rounded-full hover:bg-primary/50 transition-colors;
+    background-color: hsl(var(--primary) / 0.3);
+    border-radius: 9999px;
+    transition: background-color 150ms;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--primary) / 0.5);
   }
 }
 
