@@ -10,7 +10,7 @@ import { useTenantPayments } from '@/hooks/data/useTenantPayments';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Property, Contract } from '@/types/database';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/hooks/data/mutationNotify';
 import type { UnitFormData } from '@/components/properties/units/UnitFormCard';
 import type { WholeRentalForm } from '@/components/properties/units/WholePropertyTab';
 

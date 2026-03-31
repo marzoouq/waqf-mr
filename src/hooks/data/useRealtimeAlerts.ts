@@ -5,7 +5,7 @@
  */
 import { useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { toast } from 'sonner';
+import { defaultNotify } from './mutationNotify';
 import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 

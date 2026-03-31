@@ -3,7 +3,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from './mutationNotify';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { STALE_REALTIME, STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
 

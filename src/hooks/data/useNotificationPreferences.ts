@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
+import { defaultNotify } from './mutationNotify';
 import {
   NOTIFICATION_TONE_KEY,
   NOTIFICATION_VOLUME_KEY,
