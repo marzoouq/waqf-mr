@@ -34,7 +34,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 11 }} width={40} tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)} />
-            <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyleRtl} />
+            <Tooltip formatter={((value: number | undefined) => fmt(value ?? 0) + ' ر.س') as never} contentStyle={tooltipStyleRtl} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {incomeVsExpenses.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
