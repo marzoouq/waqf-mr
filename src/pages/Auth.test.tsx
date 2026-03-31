@@ -8,7 +8,7 @@ beforeAll(() => {
   (globalThis as Record<string, unknown>).ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
 });
 
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: () => ({
     signIn: vi.fn(), signUp: vi.fn(), user: null, role: null, loading: false, signOut: vi.fn(),
   }),

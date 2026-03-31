@@ -8,7 +8,7 @@ beforeAll(() => {
 });
 
 const mockUseAuth = vi.fn();
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: () => mockUseAuth(),
 }));
 

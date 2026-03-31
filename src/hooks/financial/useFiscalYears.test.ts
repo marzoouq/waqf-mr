@@ -11,7 +11,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: () => ({ select: vi.fn().mockReturnValue({ order: vi.fn().mockReturnValue({ limit: vi.fn().mockResolvedValue({ data: mockFiscalYears, error: null }) }) }) }) },
 }));
 
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: () => ({ user: { id: 'user-1' } }),
 }));
 

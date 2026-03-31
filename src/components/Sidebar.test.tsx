@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import SidebarContent from './Sidebar';
 import { Home, Settings } from 'lucide-react';
 
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: () => ({ user: { email: 'admin@test.com' }, role: 'admin' }),
 }));
 

@@ -79,7 +79,7 @@ describe('useUpsertTenantPayment', () => {
       p_contract_id: 'c-1',
       p_paid_months: 8,
     }));
-    expect(toast.success).toHaveBeenCalledWith('تم حفظ بيانات التحصيل');
+    expect(toast.success).toHaveBeenCalledWith('تم حفظ بيانات التحصيل', undefined);
   });
 
   it('passes notes as undefined when not provided', async () => {
@@ -96,7 +96,7 @@ describe('useUpsertTenantPayment', () => {
     expect(mockRpc).toHaveBeenCalledWith('upsert_tenant_payment', expect.objectContaining({
       p_notes: 'مسدد',
     }));
-    expect(toast.success).toHaveBeenCalledWith('تم حفظ بيانات التحصيل');
+    expect(toast.success).toHaveBeenCalledWith('تم حفظ بيانات التحصيل', undefined);
   });
 
   it('calls upsert_tenant_payment RPC', async () => {
@@ -109,7 +109,7 @@ describe('useUpsertTenantPayment', () => {
     mockRpc.mockResolvedValue({ data: null, error: { message: 'rls denied' } });
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await expect(result.current.mutateAsync({ contract_id: 'c-1', paid_months: 5 })).rejects.toThrow();
-    expect(toast.error).toHaveBeenCalledWith('خطأ في حفظ بيانات التحصيل');
+    expect(toast.error).toHaveBeenCalledWith('خطأ في حفظ بيانات التحصيل', undefined);
   });
 
   it('handles zero paid_months', async () => {

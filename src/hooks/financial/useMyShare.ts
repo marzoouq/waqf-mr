@@ -43,7 +43,7 @@ export const useMyShare = <T extends BeneficiaryLike>({
 
   const myShare = useMemo(() => {
     // #9: تفضيل القيمة المحسوبة من الخادم (RPC) عند توفرها
-    if (serverMyShare != null && isFinite(serverMyShare)) {
+    if (serverMyShare !== null && serverMyShare !== undefined && isFinite(serverMyShare)) {
       return serverMyShare;
     }
     // fallback: حساب محلي (للناظر أو عند غياب RPC)

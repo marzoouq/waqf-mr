@@ -73,7 +73,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   }),
 }));
 
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: () => ({ user: { id: 'u1' }, role: 'admin', signOut: vi.fn() }),
 }));
 
@@ -125,7 +125,7 @@ describe('useAccountsPage', () => {
   it('handleAdminPercentChange rejects invalid values', () => {
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
     result.current.handleAdminPercentChange('150');
-    expect(mockToastError).toHaveBeenCalledWith('نسبة الناظر يجب أن تكون رقماً بين 0 و 100');
+    expect(mockToastError).toHaveBeenCalledWith('نسبة الناظر يجب أن تكون رقماً بين 0 و 100', undefined);
   });
 
   it('handleAdminPercentChange rejects negative values', () => {
@@ -137,7 +137,7 @@ describe('useAccountsPage', () => {
   it('handleWaqifPercentChange rejects NaN', () => {
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
     result.current.handleWaqifPercentChange('abc');
-    expect(mockToastError).toHaveBeenCalledWith('نسبة الواقف يجب أن تكون رقماً بين 0 و 100');
+    expect(mockToastError).toHaveBeenCalledWith('نسبة الواقف يجب أن تكون رقماً بين 0 و 100', undefined);
   });
 
   it('computes collectionData correctly', () => {
