@@ -25,10 +25,10 @@ const CashFlowChartInner: React.FC<CashFlowChartInnerProps> = ({ monthlyData, fm
         <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
         <Tooltip
           contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }}
-          formatter={(value: number | undefined, name: string | undefined) => [
+          formatter={((value: number | undefined, name: string | undefined) => [
             `${fmt(value ?? 0)} ر.س`,
             name === 'income' ? 'الدخل' : name === 'expenses' ? 'المصروفات' : 'الصافي',
-          ]}
+          ]) as never}
         />
         <Legend
           formatter={(value: string) =>

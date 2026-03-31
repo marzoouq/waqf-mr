@@ -34,7 +34,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 11 }} width={40} tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)} />
-            <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyleRtl} />
+            <Tooltip formatter={((value: number | undefined) => fmt(value ?? 0) + ' ر.س') as never} contentStyle={tooltipStyleRtl} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {incomeVsExpenses.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -53,7 +53,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
                   <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyleRtl} />
+              <Tooltip formatter={((value: number | undefined) => fmt(value ?? 0) + ' ر.س') as never} contentStyle={tooltipStyleRtl} />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
             </PieChart>
           </ResponsiveContainer>
@@ -74,7 +74,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
                   <Cell key={`cell-${index}`} fill={FINANCIAL_COLORS[index % FINANCIAL_COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyleRtl} />
+              <Tooltip formatter={((value: number | undefined) => fmt(value ?? 0) + ' ر.س') as never} contentStyle={tooltipStyleRtl} />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
             </PieChart>
           </ResponsiveContainer>
@@ -92,7 +92,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
                   <Cell key={`cell-${index}`} fill={FINANCIAL_COLORS[index % FINANCIAL_COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyleRtl} />
+              <Tooltip formatter={((value: number | undefined) => fmt(value ?? 0) + ' ر.س') as never} contentStyle={tooltipStyleRtl} />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
             </PieChart>
           </ResponsiveContainer>
@@ -110,7 +110,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} width={40} tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)} />
-            <Tooltip formatter={(value: number | undefined) => fmt(Math.round(value ?? 0)) + ' ر.س'} contentStyle={tooltipStyleRtl} labelFormatter={formatArabicMonth} />
+            <Tooltip formatter={((value: number | undefined) => fmt(Math.round(value ?? 0)) + ' ر.س') as never} contentStyle={tooltipStyleRtl} labelFormatter={formatArabicMonth} />
             <Bar dataKey="income" fill="hsl(var(--success))" name="الإيرادات" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
