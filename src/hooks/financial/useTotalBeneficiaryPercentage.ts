@@ -21,7 +21,7 @@ export const useTotalBeneficiaryPercentage = () => {
       if (result <= 0) return 0;
       // تحذير عند تجاوز 200% بدلاً من إرجاع 0 صامتاً
       if (result > 200) {
-        toast.warning(`مجموع نسب المستفيدين غير طبيعي (${result}%) — يرجى مراجعة النسب`, { id: 'share-warning' });
+        defaultNotify.warning(`مجموع نسب المستفيدين غير طبيعي (${result}%) — يرجى مراجعة النسب`, { id: 'share-warning' });
       }
       return result;
     },

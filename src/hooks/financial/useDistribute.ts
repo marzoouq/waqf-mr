@@ -59,7 +59,7 @@ export const useDistributeShares = () => {
       invalidateAll();
       let msg = `تم توزيع الحصص بنجاح لـ ${result.with_share} مستفيد`;
       if (result.with_deficit > 0) msg += ` (${result.with_deficit} مستفيد لديهم فروق مرحّلة)`;
-      toast.success(msg);
+      defaultNotify.success(msg);
 
       // إشعار شخصي لكل مستفيد لديه حساب مرتبط
       for (const d of distributions) {
@@ -76,7 +76,7 @@ export const useDistributeShares = () => {
     },
     onError: () => {
       // M-09 fix: لا حاجة لـ invalidateAll — العملية ذرية ولم تُغير شيئاً
-      toast.error('فشل تنفيذ التوزيع — لم يتم تعديل أي بيانات (عملية ذرية)');
+      defaultNotify.error('فشل تنفيذ التوزيع — لم يتم تعديل أي بيانات (عملية ذرية)');
     },
   });
 };

@@ -60,7 +60,7 @@ export const useUpsertContractAllocations = () => {
     },
     onError: (error: Error) => {
       logger.error('Allocation error:', error.message);
-      toast.error('خطأ في حفظ تخصيصات العقد');
+      defaultNotify.error('خطأ في حفظ تخصيصات العقد');
     },
   });
 };

@@ -94,10 +94,10 @@ export function useAccountsActions(params: ActionsParams) {
     saveSettingTimeouts.current[key] = setTimeout(async () => {
       try {
         await updateSettingRef.current({ key, value });
-        toast.success('تم حفظ الإعداد');
+        defaultNotify.success('تم حفظ الإعداد');
       } catch (err) {
         logger.error('خطأ في حفظ الإعداد:', err instanceof Error ? err.message : err);
-        toast.error('خطأ في حفظ الإعداد');
+        defaultNotify.error('خطأ في حفظ الإعداد');
       }
     }, 500);
   }, []);
@@ -105,7 +105,7 @@ export function useAccountsActions(params: ActionsParams) {
   const handleAdminPercentChange = (val: string) => {
     const num = parseFloat(val);
     if (!Number.isFinite(num) || num < 0 || num > 100) {
-      toast.error('نسبة الناظر يجب أن تكون رقماً بين 0 و 100');
+      defaultNotify.error('نسبة الناظر يجب أن تكون رقماً بين 0 و 100');
       return;
     }
     setAdminPercent(num);
@@ -115,7 +115,7 @@ export function useAccountsActions(params: ActionsParams) {
   const handleWaqifPercentChange = (val: string) => {
     const num = parseFloat(val);
     if (!Number.isFinite(num) || num < 0 || num > 100) {
-      toast.error('نسبة الواقف يجب أن تكون رقماً بين 0 و 100');
+      defaultNotify.error('نسبة الواقف يجب أن تكون رقماً بين 0 و 100');
       return;
     }
     setWaqifPercent(num);
@@ -166,7 +166,7 @@ export function useAccountsActions(params: ActionsParams) {
       }
     } catch (err) {
       logger.error('خطأ في حفظ الحسابات:', err instanceof Error ? err.message : err);
-      toast.error('خطأ في حفظ الحسابات');
+      defaultNotify.error('خطأ في حفظ الحسابات');
     }
   };
 
@@ -174,7 +174,7 @@ export function useAccountsActions(params: ActionsParams) {
     const p = paramsRef.current;
     if (!p.selectedFY || p.selectedFY.status === 'closed') return;
     if (role !== 'admin') {
-      toast.error('فقط الناظر يمكنه إقفال السنة المالية');
+      defaultNotify.error('فقط الناظر يمكنه إقفال السنة المالية');
       return;
     }
     setIsClosingYear(true);
@@ -204,15 +204,15 @@ export function useAccountsActions(params: ActionsParams) {
       const rpcResult = result as { closed_label?: string; next_label?: string; warnings?: string[] } | null;
       if (rpcResult?.warnings && rpcResult.warnings.length > 0) {
         for (const w of rpcResult.warnings) {
-          toast.warning(w, { duration: 10000 });
+          defaultNotify.warning(w, { duration: 10000 });
         }
       }
-      toast.success(`تم إقفال السنة المالية ${rpcResult?.closed_label || p.selectedFY.label} وترحيل الرصيد بنجاح`);
-      toast.info('تنبيه: السنة المالية الجديدة غير منشورة — يرجى نشرها من إعدادات السنوات المالية ليتمكن المستفيدون من رؤيتها', { duration: 8000 });
+      defaultNotify.success(`تم إقفال السنة المالية ${rpcResult?.closed_label || p.selectedFY.label} وترحيل الرصيد بنجاح`);
+      defaultNotify.info('تنبيه: السنة المالية الجديدة غير منشورة — يرجى نشرها من إعدادات السنوات المالية ليتمكن المستفيدون من رؤيتها', { duration: 8000 });
       setCloseYearOpen(false);
     } catch (err) {
       logger.error('خطأ في إقفال السنة:', err instanceof Error ? err.message : err);
-      toast.error('خطأ في إقفال السنة المالية');
+      defaultNotify.error('خطأ في إقفال السنة المالية');
     } finally {
       setIsClosingYear(false);
     }
@@ -246,9 +246,9 @@ export function useAccountsActions(params: ActionsParams) {
         availableAmount: p.availableAmount,
         remainingBalance: p.remainingBalance,
       });
-      toast.success('تم تصدير التقرير بنجاح');
+      defaultNotify.success('تم تصدير التقرير بنجاح');
     } catch {
-      toast.error('حدث خطأ أثناء تصدير التقرير');
+      defaultNotify.error('حدث خطأ أثناء تصدير التقرير');
     } finally {
       setIsExportingPdf(false);
     }
