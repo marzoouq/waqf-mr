@@ -1,136 +1,106 @@
 
 
-# تقرير الفحص الجنائي الهجين — حالة كل بند
+# تدقيق معماري شامل — تقرير القراءة فقط
 
-## المنهجية
-تم فحص الكود المصدري، ملفات الهجرات (migrations)، والملفات المرتبطة بشكل مباشر للتحقق من كل بند.
+## الحالة العامة
 
----
-
-## 🔍 البنود التي "تحتاج تحقق أو migration" — النتائج
-
-### #28 — قسمة على صفر في `validate_advance_request_amount`
-**الحالة: ✅ مُنفَّذ بالفعل**
-- Migration `20260327184232` يحتوي على `NULLIF` لمنع القسمة على صفر
-- يوجد فحص `IF v_total_pct <= 0 THEN RAISE EXCEPTION`
-- لا حاجة لأي إجراء إضافي
-
-### #30 — `get_beneficiary_decrypted` بدون فحص ملكية المستفيد
-**الحالة: ✅ مُنفَّذ بالفعل**
-- Migration `20260313194456` يحتوي على فحص مزدوج:
-  - `IF auth.uid() IS NULL` → رفض
-  - `IF NOT has_role(auth.uid(), 'admin') AND NOT has_role(auth.uid(), 'accountant')` → رفض
-- الدالة محمية بشكل كافٍ — admin/accountant فقط يمكنهم فك التشفير
-
-### #32 — `get_beneficiary_dashboard` fallback عند غياب `fiscal_year_id`
-**الحالة: ✅ مُنفَّذ بالفعل**
-- Migration `20260327180215` يحتوي على `p_fiscal_year_id uuid DEFAULT NULL`
-- عند `NULL`: لا يتم جلب بيانات مالية (v_fy.id يبقى NULL)، ويعود فقط بيانات المستفيد الأساسية
-- السلوك آمن ومتسق
-
-### #36 — Index مركّب على `conversations(type, status, created_at)`
-**الحالة: ❌ لم يُنفَّذ**
-- لا يوجد أي `CREATE INDEX` على جدول `conversations` في أي migration
-- الجدول صغير حالياً، لكن الفهرس مفيد إذا نما
-
-### CHECK constraints على `conversations.type`
-**الحالة: ❌ لم يُنفَّذ**
-- لا يوجد أي CHECK أو validation trigger على عمود `type`
-- القيم المستخدمة في الكود: `'chat'`, `'support'`, `'broadcast'`
-
-### حد حجم لقيم `app_settings`
-**الحالة: ❌ لم يُنفَّذ**
-- لا يوجد CHECK أو trigger على طول `value` في `app_settings`
-- عدد الإعدادات ثابت (~31 سطر)، الخطر منخفض جداً
+البنية المعمارية **جيدة بشكل ملحوظ** مقارنة بالتدقيق السابق. تم تنفيذ معظم التوصيات السابقة بنجاح:
+- ✅ توحيد `useAuth` — لا يوجد أي استيراد من `@/contexts/AuthContext` (باستثناء `AuthContext.tsx` نفسه)
+- ✅ نقل `themeDefinitions` و `themeColor.utils` إلى `src/lib/theme/`
+- ✅ نقل `notificationTones` إلى `src/constants/`
+- ✅ إضافة callback pattern في `useCrudFactory`
+- ✅ تقسيم `LoginForm` (213 سطر) و `useWebAuthn` (227 سطر) — أصبحا تحت الحد
 
 ---
 
-## ⏳ البنود "القابلة للتنفيذ فوراً" — النتائج
+## المشاكل المتبقية — مرتبة حسب الأولوية
 
-### #24 — تحسين `useAuditLog` — جلب أعمدة محددة بدل `*`
-**الحالة: ✅ مُنفَّذ بالفعل**
-- السطر 61: `.select('id, table_name, operation, record_id, user_id, created_at', { count: 'exact' })`
-- يجلب الأعمدة الأساسية فقط، `new_data/old_data` مستبعدة من القائمة
-- تعليق واضح: "جلب الأعمدة الأساسية فقط — new_data/old_data ثقيلة ولا تُعرض في القائمة"
+### 1. [حرج] ملفات re-export مهملة يمكن حذفها
 
-### #37 — إضافة `aria-label` وصفي لنجوم التقييم
-**الحالة: ❌ لم يُنفَّذ**
-- نجوم التقييم في `SupportTicketsTab.tsx` و `TicketDetailDialog.tsx` بدون أي `aria-label`
-- مثال: `<Star key={i} className={...} />` — بدون accessibility attributes
-- ملفات تحتاج تعديل: `SupportTicketsTab.tsx`, `TicketDetailDialog.tsx`
+الملفات التالية أصبحت **بدون أي مستهلك** — كل الاستيرادات تذهب مباشرة للمسار الجديد:
 
-### #40 — إضافة `aria-current="page"` في `TablePagination`
-**الحالة: ✅ مُنفَّذ بالفعل**
-- السطر 52 في `TablePagination.tsx`: `aria-current={currentPage === page ? 'page' : undefined}`
-- مُنفَّذ بشكل صحيح
+| ملف مهمل | المسار الجديد | مستهلكون متبقون |
+|---|---|---|
+| `src/components/themeDefinitions.ts` | `src/lib/theme/themeDefinitions.ts` | **0** |
+| `src/components/themeColor.utils.ts` | `src/lib/theme/themeColor.utils.ts` | **0** |
+| `src/hooks/data/notificationTones.ts` | `src/constants/notificationTones.ts` | **0** |
+| `src/components/ui/use-toast.ts` | `src/hooks/ui/use-toast.ts` | **0** (فقط AuthContext يستورد من hooks/ui مباشرة) |
 
-### إضافة `aria-hidden` للمحادثات المخفية على الموبايل
-**الحالة: ✅ مُنفَّذ بالفعل**
-- السطر 155 في `BeneficiaryMessagesPage.tsx`: `aria-hidden={selectedConv ? true : undefined}`
-- عند اختيار محادثة، قائمة المحادثات تُخفى عن قارئات الشاشة
+**التوصية**: حذف هذه الملفات الأربعة — هي dead code الآن.
+
+### 2. [مهم] toast ما زال مقترنًا مباشرة في 15 ملف data hook
+
+رغم إضافة `CrudNotifications` callback في `useCrudFactory`، فإن **15 ملفًا** في `src/hooks/data/` ما زالت تستورد `toast` من `sonner` مباشرة:
+
+- `useSupportTickets.ts` (263 سطر)
+- `useAdvanceRequests.ts` (298 سطر)
+- `usePropertyUnits.ts`
+- `useBylaws.ts`
+- `useUnits.ts`
+- `useExpenses.ts`
+- `useIncome.ts`
+- `useInvoices.ts`
+- `usePaymentInvoices.ts`
+- `useAnnualReport.ts`
+- `useTenantPayments.ts`
+- `useRealtimeAlerts.ts`
+- `useNotificationPreferences.ts`
+- `useCrudFactory.ts` (default fallback — مقبول)
+
+الملفات التي تستخدم `createCrudFactory` (مثل `useUnits`, `useBylaws`, `useInvoices`) تستورد toast **بالإضافة** إلى ما يوفره الـ factory — أي أنها تستخدمه في mutations خارج الـ factory. هذا يعني أن الـ callback pattern لم يُعمَّم بعد على الـ mutations اليدوية.
+
+**التوصية**: في الملفات التي تبني mutations يدويًا (خارج `createCrudFactory`)، استبدال `toast` المباشر بـ callback parameter أو على الأقل تمريره من الـ page hook.
+
+### 3. [مهم] ملفان يقتربان من حد 300 سطر
+
+| ملف | الأسطر | ملاحظة |
+|---|---|---|
+| `useAdvanceRequests.ts` | 298 | يحتوي CRUD كامل + منطق ترحيل سالب + إشعارات — يمكن استخراج منطق الترحيل |
+| `AdminDashboard.tsx` | 282 | مقبول لكن يحتوي JSX كثيف — يمكن استخراج بعض الأقسام كمكونات فرعية |
+| `useSupportTickets.ts` | 263 | يحتوي 6 hooks + تعريف types + دالة export — يمكن فصل الـ types |
+
+**التوصية**: `useAdvanceRequests.ts` هو الأقرب للحد — استخراج منطق الترحيل السالب إلى ملف مستقل.
+
+### 4. [متوسط] اختبار `findAccountByFY.test.ts` في مكان غير مناسب
+
+الاختبار موجود في `src/hooks/financial/findAccountByFY.test.ts` بينما الدالة نفسها في `src/utils/findAccountByFY.ts`. كما أن `useAccountsPage.ts` يعيد تصدير `findAccountByFY` "للتوافق مع الاختبارات" — وهو نمط هش.
+
+**التوصية**: نقل الاختبار إلى `src/utils/findAccountByFY.test.ts` وإزالة إعادة التصدير من `useAccountsPage.ts`.
+
+### 5. [متوسط] نظام toast مزدوج
+
+يوجد نظامان للـ toast:
+- `sonner` — المستخدم في **كل** الكود تقريبًا (46+ ملف)
+- `src/hooks/ui/use-toast.ts` — نظام toast مخصص (185 سطر) يستخدمه فقط `AuthContext.tsx` (لـ `clearToasts`)
+
+**التوصية**: التحقق إذا كان `clearToasts` يمكن استبداله بـ `toast.dismiss()` من sonner. إذا نعم، يمكن حذف `use-toast.ts` بالكامل (185 سطر dead code).
+
+### 6. [اختياري] حدود `lib/` vs `utils/` ما زالت غير واضحة تمامًا
+
+- `src/lib/` يحتوي: logger, queryClient, performance, theme, lazyWithRetry, componentPrefetch
+- `src/utils/` يحتوي: format, csv, xlsx, pdf/, diagnostics/, maskData, safeNumber, notifications, contractAllocation, chartHelpers, dashboardComputations
+
+هذا التقسيم **معقول** لكن غير موثق. `dashboardComputations.ts` و `chartHelpers.ts` يمكن اعتبارها أقرب لـ `lib/`.
+
+**التوصية**: إضافة تعليق في كل مجلد (أو README صغير) يوضح القاعدة. ليس بأولوية عالية.
+
+### 7. [اختياري] بعض ملفات الاختبار colocated وبعضها في `src/test/`
+
+- اختبارات معظم الـ hooks و components موجودة بجانب ملفاتها (colocated) ✅
+- لا يوجد `src/test/` كمجلد مركزي — هذا نمط جيد ومتسق
+
+لا توجد مشكلة فعلية هنا.
 
 ---
 
-## الملخص النهائي
+## ملخص الخطوات المقترحة
 
-| البند | الحالة | ملاحظة |
-|-------|--------|--------|
-| #28 قسمة على صفر | ✅ مكتمل | NULLIF + فحص صريح |
-| #30 get_beneficiary_decrypted | ✅ مكتمل | فحص admin/accountant مزدوج |
-| #32 get_beneficiary_dashboard | ✅ مكتمل | DEFAULT NULL + fallback آمن |
-| #36 Index على conversations | ❌ متبقي | migration مطلوبة (أولوية منخفضة) |
-| CHECK على conversations.type | ❌ متبقي | validation trigger مطلوب |
-| حد حجم app_settings | ❌ متبقي | خطر منخفض جداً |
-| #24 useAuditLog أعمدة محددة | ✅ مكتمل | select محدد بـ 6 أعمدة |
-| #37 aria-label للنجوم | ❌ متبقي | تعديل صغير في ملفين |
-| #40 aria-current pagination | ✅ مكتمل | مُطبّق |
-| aria-hidden محادثات | ✅ مكتمل | مُطبّق |
-
----
-
-## خطة التنفيذ للمتبقي (4 بنود)
-
-### 1. إضافة `aria-label` لنجوم التقييم (صغير جداً)
-- تعديل `SupportTicketsTab.tsx` و `TicketDetailDialog.tsx`
-- إضافة `aria-label={`نجمة ${i} من 5`}` لكل `<Star>`
-
-### 2. Migration: فهرس مركّب على conversations + validation trigger
-```sql
--- فهرس مركّب
-CREATE INDEX IF NOT EXISTS idx_conversations_type_status_created
-  ON conversations(type, status, created_at DESC);
-
--- validation trigger لـ type
-CREATE OR REPLACE FUNCTION validate_conversation_type()
-RETURNS trigger LANGUAGE plpgsql AS $$
-BEGIN
-  IF NEW.type NOT IN ('chat', 'support', 'broadcast') THEN
-    RAISE EXCEPTION 'نوع المحادثة غير صالح: %', NEW.type;
-  END IF;
-  RETURN NEW;
-END; $$;
-
-CREATE TRIGGER trg_validate_conversation_type
-  BEFORE INSERT OR UPDATE ON conversations
-  FOR EACH ROW EXECUTE FUNCTION validate_conversation_type();
-```
-
-### 3. Migration: حد حجم لقيم app_settings (اختياري)
-```sql
-CREATE OR REPLACE FUNCTION validate_app_settings_value()
-RETURNS trigger LANGUAGE plpgsql AS $$
-BEGIN
-  IF length(NEW.value) > 10000 THEN
-    RAISE EXCEPTION 'قيمة الإعداد تتجاوز الحد المسموح (10000 حرف)';
-  END IF;
-  RETURN NEW;
-END; $$;
-
-CREATE TRIGGER trg_validate_app_settings_value
-  BEFORE INSERT OR UPDATE ON app_settings
-  FOR EACH ROW EXECUTE FUNCTION validate_app_settings_value();
-```
-
-### ملاحظة
-التحسينات الـ 52 المصنفة "❌ تحليل خاطئ" و الـ 11 المصنفة "🟡 مبالغ فيها" — **تم التحقق من عينة واسعة منها** وتأكيد أن التصنيف صحيح. الكود الحالي سليم في تلك النقاط.
+| # | الأولوية | الخطوة | الجهد |
+|---|---|---|---|
+| 1 | حرج | حذف 4 ملفات re-export مهملة (لا مستهلكين) | صغير |
+| 2 | مهم | تعميم toast callback على data hooks اليدوية (أو على الأقل الأكثر استخدامًا) | متوسط |
+| 3 | مهم | تقسيم `useAdvanceRequests.ts` — استخراج منطق الترحيل السالب | صغير |
+| 4 | متوسط | نقل `findAccountByFY.test.ts` وإزالة re-export الهش | صغير |
+| 5 | متوسط | تقييم حذف نظام toast المخصص (`use-toast.ts`) لصالح sonner فقط | صغير-متوسط |
+| 6 | اختياري | توثيق قاعدة `lib/` vs `utils/` | صغير |
 
