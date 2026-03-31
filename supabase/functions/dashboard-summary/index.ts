@@ -3,9 +3,16 @@
 // يقلل ~10 طلبات شبكة من العميل إلى طلب واحد
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// @ts-ignore Deno npm specifier is resolved at runtime in Supabase Edge.
 import { createClient } from "npm:@supabase/supabase-js@2";
+// @ts-ignore Deno npm specifier is resolved at runtime in Supabase Edge.
 import { z } from "npm:zod@3";
 import { getCorsHeaders } from "../_shared/cors.ts";
+
+declare const Deno: {
+  env: { get: (key: string) => string | undefined };
+  serve: (handler: (req: Request) => Response | Promise<Response>) => void;
+};
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -14,6 +21,14 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const RequestSchema = z.object({
   fiscal_year_id: z.string().min(1),
 });
+
+type FiscalYearRow = {
+  id: string;
+  label: string;
+  start_date: string;
+};
+
+type AmountRow = { amount: number | null };
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -32,63 +47,81 @@ Deno.serve(async (req) => {
     const supaAuth = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
+
     const [authResult, body] = await Promise.all([
       supaAuth.auth.getUser(),
       req.json().catch(() => null),
     ]);
-    const { data: { user }, error: userError } = authResult;
+
+    const {
+      data: { user },
+      error: userError,
+    } = authResult;
+
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
     }
+
     const t1 = performance.now();
     console.log(`[timing] auth+body: ${(t1 - t0).toFixed(0)}ms`);
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // التحقق من الدور + Rate limiting بالتوازي
-    const [rolesRes, rateLimitRes] = await Promise.all([
+    // التحقق من الدور + rate limit + السنوات المالية المبكرة بالتوازي
+    const [rolesRes, rateLimitRes, fiscalYearsEarlyRes] = await Promise.all([
       admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "accountant"]),
       admin.rpc("check_rate_limit", { p_key: `dashboard-summary:${user.id}`, p_limit: 30, p_window_seconds: 60 }),
+      admin.from("fiscal_years")
+        .select("id, label, start_date, end_date, status, published, created_at")
+        .order("start_date", { ascending: false })
+        .limit(50),
     ]);
+
     if (!rolesRes.data?.length) {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: jsonHeaders });
     }
+
     if (rateLimitRes.data) {
       return new Response(JSON.stringify({ error: "تم تجاوز الحد المسموح من الطلبات" }), { status: 429, headers: jsonHeaders });
     }
+
     const t2 = performance.now();
-    console.log(`[timing] roles+rateLimit: ${(t2 - t1).toFixed(0)}ms`);
+    console.log(`[timing] roles+rateLimit+fiscalYears: ${(t2 - t1).toFixed(0)}ms`);
 
     // ── التحقق من المدخلات ──
     const parsed = RequestSchema.safeParse(body);
     if (!parsed.success) {
-      return new Response(JSON.stringify({ error: "بيانات غير صالحة", details: parsed.error.flatten().fieldErrors }), { status: 400, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({ error: "بيانات غير صالحة", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: jsonHeaders },
+      );
     }
+
     const { fiscal_year_id } = parsed.data;
     const isAll = fiscal_year_id === "all";
 
-    // ── الخطوة الرئيسية: جلب كل البيانات بالتوازي (بما فيها السنوات المالية) ──
-    const [
-      propertiesRes,
-      contractsRes,
-      unitsRes,
-      paymentInvoicesRes,
-      allocationsRes,
-      advanceRequestsRes,
-      orphanedRes,
-      incomeRes,
-      expensesRes,
-      accountsRes,
-      beneficiariesRes,
-      settingsRes,
-      fiscalYearsRes,
-    ] = await Promise.all([
+    const allFiscalYears = (fiscalYearsEarlyRes.data || []) as FiscalYearRow[];
+
+    // تحديد السنة السابقة لمقارنة YoY
+    let prevYearId: string | null = null;
+    let prevYearLabel = "";
+    if (!isAll && fiscal_year_id) {
+      const sorted = [...allFiscalYears].sort((a, b) => a.start_date.localeCompare(b.start_date));
+      const idx = sorted.findIndex((fy) => fy.id === fiscal_year_id);
+      if (idx > 0) {
+        prevYearId = sorted[idx - 1].id;
+        prevYearLabel = sorted[idx - 1].label;
+      }
+    }
+
+    // ── الخطوة الرئيسية: جلب كل البيانات + YoY في نفس Promise.all ──
+    const mainQueries = [
       // 1. العقارات
       admin.from("properties")
         .select("id, property_number, property_type, location, area, vat_exempt, description, created_at, updated_at")
         .order("created_at", { ascending: false }),
 
-      // 2. العقود — أعمدة مقلّصة (حُذفت 10 أعمدة غير مستخدمة في الداشبورد)
+      // 2. العقود
       (() => {
         let q = admin.from("contracts")
           .select("id, contract_number, tenant_name, property_id, unit_id, start_date, end_date, rent_amount, payment_type, payment_count, payment_amount, status, fiscal_year_id, created_at, property:properties(id, property_number), unit:units(id, unit_number, status)")
@@ -104,7 +137,7 @@ Deno.serve(async (req) => {
         .order("unit_number")
         .limit(1000),
 
-      // 4. فواتير الدفعات — أعمدة مقلّصة (حُذفت 7 أعمدة غير مستخدمة)
+      // 4. فواتير الدفعات
       (() => {
         let q = admin.from("payment_invoices")
           .select("id, contract_id, fiscal_year_id, invoice_number, payment_number, due_date, amount, status, paid_date, paid_amount, invoice_type, icv, invoice_hash, created_at, contract:contracts(contract_number, tenant_name, property_id, payment_count, property:properties(property_number))")
@@ -122,7 +155,7 @@ Deno.serve(async (req) => {
         return q;
       })(),
 
-      // 6. طلبات السلف — أعمدة مقلّصة
+      // 6. طلبات السلف
       (() => {
         let q = admin.from("advance_requests")
           .select("id, beneficiary_id, fiscal_year_id, amount, status, reason, created_at, approved_at, paid_at, rejection_reason, beneficiary:beneficiaries(id, name, share_percentage, user_id), fiscal_year:fiscal_years(label)")
@@ -177,36 +210,47 @@ Deno.serve(async (req) => {
       // 12. إعدادات التطبيق
       admin.from("app_settings").select("key, value"),
 
-      // 13. السنوات المالية (نُقلت إلى هنا بدل جولة مستقلة)
-      admin.from("fiscal_years")
-        .select("id, label, start_date, end_date, status, published, created_at")
-        .order("start_date", { ascending: false })
-        .limit(50),
-    ]);
+      // 13 & 14. YoY للسنة السابقة (فقط عند توفرها)
+      ...(prevYearId
+        ? [
+            admin.from("income").select("amount").eq("fiscal_year_id", prevYearId),
+            admin.from("expenses").select("amount").eq("fiscal_year_id", prevYearId),
+          ]
+        : []),
+    ];
+
+    const results = await Promise.all(mainQueries);
+
+    const [
+      propertiesRes,
+      contractsRes,
+      unitsRes,
+      paymentInvoicesRes,
+      allocationsRes,
+      advanceRequestsRes,
+      orphanedRes,
+      incomeRes,
+      expensesRes,
+      accountsRes,
+      beneficiariesRes,
+      settingsRes,
+    ] = results;
 
     const t3 = performance.now();
-    console.log(`[timing] main Promise.all: ${(t3 - t2).toFixed(0)}ms`);
+    console.log(`[timing] main Promise.all (+YoY): ${(t3 - t2).toFixed(0)}ms`);
 
-    const allFiscalYears = fiscalYearsRes.data || [];
-
-    // تحديد السنة السابقة لمقارنة YoY
     let prevYear: { fiscal_year_id: string; label: string; total_income: number; total_expenses: number } | null = null;
-    if (!isAll && fiscal_year_id) {
-      const sorted = [...allFiscalYears].sort((a, b) => a.start_date.localeCompare(b.start_date));
-      const idx = sorted.findIndex((fy) => fy.id === fiscal_year_id);
-      if (idx > 0) {
-        const prev = sorted[idx - 1];
-        // جلب مجاميع YoY فقط (amount بدل السجلات الكاملة)
-        const [prevIncomeRes, prevExpensesRes] = await Promise.all([
-          admin.from("income").select("amount").eq("fiscal_year_id", prev.id),
-          admin.from("expenses").select("amount").eq("fiscal_year_id", prev.id),
-        ]);
-        const totalIncome = (prevIncomeRes.data || []).reduce((s, r) => s + (r.amount || 0), 0);
-        const totalExpenses = (prevExpensesRes.data || []).reduce((s, r) => s + (r.amount || 0), 0);
-        prevYear = { fiscal_year_id: prev.id, label: prev.label, total_income: totalIncome, total_expenses: totalExpenses };
-        const t4 = performance.now();
-        console.log(`[timing] YoY aggregation: ${(t4 - t3).toFixed(0)}ms`);
-      }
+    if (prevYearId) {
+      const prevIncomeData = ((results[12] as { data?: AmountRow[] } | undefined)?.data || []) as AmountRow[];
+      const prevExpensesData = ((results[13] as { data?: AmountRow[] } | undefined)?.data || []) as AmountRow[];
+      const totalIncome = prevIncomeData.reduce((s, r) => s + (r.amount || 0), 0);
+      const totalExpenses = prevExpensesData.reduce((s, r) => s + (r.amount || 0), 0);
+      prevYear = {
+        fiscal_year_id: prevYearId,
+        label: prevYearLabel,
+        total_income: totalIncome,
+        total_expenses: totalExpenses,
+      };
     }
 
     // ── تجميع الإعدادات ──

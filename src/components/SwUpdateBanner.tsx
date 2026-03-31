@@ -48,7 +48,7 @@ const SwUpdateBanner = () => {
 
   return (
     <div
-      className="fixed top-0 inset-x-0 z-9999 bg-primary text-primary-foreground shadow-lg"
+      className="fixed top-0 inset-x-0 z-[9999] bg-primary text-primary-foreground shadow-lg"
       dir="rtl"
       role="alert"
     >
