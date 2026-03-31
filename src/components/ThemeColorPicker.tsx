@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Check, Palette } from 'lucide-react';
 import { toast } from 'sonner';
-import { THEME_KEY, applyTheme, resetTheme, themes, type ThemeTemplate } from '@/components/themeColor.utils';
+import { THEME_KEY, applyTheme, resetTheme, themes, type ThemeTemplate } from '@/lib/theme/themeColor.utils';
 
 const ThemeColorPicker = () => {
   const [activeId, setActiveId] = useState(() => {
