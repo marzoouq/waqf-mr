@@ -85,11 +85,11 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
     if (!data?.prev_year) {
       return { prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0, hasPrevYear: false };
     }
-    const { totalIncome, totalExpenses } = computeTotals(data.prev_year.income, data.prev_year.expenses);
+    const { total_income, total_expenses } = data.prev_year;
     return {
-      prevTotalIncome: totalIncome,
-      prevTotalExpenses: totalExpenses,
-      prevNetAfterExpenses: totalIncome - totalExpenses,
+      prevTotalIncome: total_income,
+      prevTotalExpenses: total_expenses,
+      prevNetAfterExpenses: total_income - total_expenses,
       hasPrevYear: true,
     };
   }, [data?.prev_year]);
