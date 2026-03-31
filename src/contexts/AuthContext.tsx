@@ -235,17 +235,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshRole = async () => {
     if (!user) return;
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (error) throw error;
-      setRoleWithRef(data ? (data.role as AppRole) : null);
-    } catch {
+    const { role: newRole, error } = await fetchUserRole(user.id);
+    if (error) {
       toast.error('تعذّر تحديث الدور — يرجى تحديث الصفحة');
+      return;
     }
+    setRoleWithRef(newRole);
   };
 
   return (
