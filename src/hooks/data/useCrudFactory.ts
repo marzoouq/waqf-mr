@@ -160,7 +160,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       hasNextPage,
       hasPrevPage,
       pageSize: limit,
-    }), [query, page, nextPage, prevPage, goToPage, hasNextPage, hasPrevPage, limit]);
+    }), [query, page, nextPage, prevPage, goToPage, hasNextPage, hasPrevPage]);
   };
 
   /** Create a new row */

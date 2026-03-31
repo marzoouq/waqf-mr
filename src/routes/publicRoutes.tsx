@@ -1,6 +1,6 @@
 import { Route } from "react-router-dom";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
-import { withRouteErrorBoundary as eb } from "./RouteErrorBoundary";
+import { withRouteErrorBoundary as eb } from "./withRouteErrorBoundary";
 
 const Index = lazyWithRetry(() => import("@/pages/Index"));
 const Auth = lazyWithRetry(() => import("@/pages/Auth"));

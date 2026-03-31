@@ -1,7 +1,7 @@
 import { Route } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
-import { withRouteErrorBoundary as eb } from "./RouteErrorBoundary";
+import { withRouteErrorBoundary as eb } from "./withRouteErrorBoundary";
 
 const BeneficiaryDashboard = lazyWithRetry(() => import("@/pages/beneficiary/BeneficiaryDashboard"));
 const DisclosurePage = lazyWithRetry(() => import("@/pages/beneficiary/DisclosurePage"));

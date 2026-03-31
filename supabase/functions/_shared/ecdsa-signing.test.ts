@@ -11,7 +11,7 @@ async function sha256Base64(text: string): Promise<string> {
   return btoa(String.fromCharCode(...new Uint8Array(hash as ArrayBuffer)));
 }
 
-async function sha256Hex(data: Uint8Array): Promise<string> {
+async function _sha256Hex(data: Uint8Array): Promise<string> {
   const hash = await crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
 }

@@ -140,7 +140,6 @@ async function handleWebhook(req: Request): Promise<Response> {
   // Verify signature + timestamp, then parse payload.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- payload يأتي من webhook خارجي بأنواع متغيرة
   let payload: any
-  let run_id = ''
   try {
     const verified = await verifyWebhookRequest({
       req,
@@ -148,7 +147,6 @@ async function handleWebhook(req: Request): Promise<Response> {
       parser: parseEmailWebhookPayload,
     })
     payload = verified.payload
-    run_id = payload.run_id ?? ''
   } catch (error) {
     if (error instanceof WebhookError) {
       switch (error.code) {
@@ -177,6 +175,8 @@ async function handleWebhook(req: Request): Promise<Response> {
       { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
     )
   }
+
+  const run_id = payload.run_id ?? ''
 
   if (!run_id) {
     console.error('Webhook payload missing run_id')
