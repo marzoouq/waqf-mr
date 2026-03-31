@@ -43,12 +43,14 @@ export const useBfcacheSafeChannel = (
     if (typeof getChannels !== 'function') return;
 
     const targetTopic = `realtime:${targetChannelName}`;
-    let channels: RealtimeChannel[] = [];
-    try {
-      channels = getChannels();
-    } catch {
-      return;
-    }
+    const channels = (() => {
+      try {
+        return getChannels();
+      } catch {
+        return null;
+      }
+    })();
+    if (!channels) return;
 
     channels.forEach((ch) => {
       const topic = (ch as RealtimeChannel & { topic?: string }).topic;
