@@ -28,7 +28,7 @@ const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInne
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
                   <YAxis tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
-                  <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyleRtl} labelFormatter={formatArabicMonth} />
+                  <Tooltip formatter={((value: number | undefined) => `${fmt(value ?? 0)} ر.س`) as never} contentStyle={tooltipStyleRtl} labelFormatter={formatArabicMonth} />
                   <Legend />
                   <Bar dataKey="income" fill="hsl(var(--primary))" name="الدخل" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="expenses" fill="hsl(var(--secondary))" name="المصروفات" radius={[4, 4, 0, 0]} />
