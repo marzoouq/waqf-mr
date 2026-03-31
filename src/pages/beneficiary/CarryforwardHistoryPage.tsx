@@ -10,7 +10,7 @@ import { ArrowDownUp, AlertTriangle, RefreshCw, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
-import { useCarryforwardData } from './carryforward/useCarryforwardData';
+import { useCarryforwardData } from '@/hooks/page/useCarryforwardData';
 import CarryforwardSummaryCards from './carryforward/CarryforwardSummaryCards';
 import CarryforwardsRecordTable from './carryforward/CarryforwardsRecordTable';
 import PaidAdvancesTable from './carryforward/PaidAdvancesTable';

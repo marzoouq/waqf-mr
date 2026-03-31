@@ -1,31 +1,11 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save } from 'lucide-react';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useSecuritySettings } from '@/hooks/page/useSecuritySettings';
 
 const SecurityTab = () => {
-  const { data: settings, isLoading } = useAppSettings();
-  const queryClient = useQueryClient();
-  const [saving, setSaving] = useState(false);
-  const [idleMinutes, setIdleMinutes] = useState('15');
-
-  useEffect(() => {
-    if (settings?.idle_timeout_minutes) setIdleMinutes(settings.idle_timeout_minutes);
-  }, [settings]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await supabase.from('app_settings').upsert({ key: 'idle_timeout_minutes', value: idleMinutes, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-      queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      toast.success('تم حفظ إعدادات الأمان');
-    } catch { toast.error('حدث خطأ أثناء الحفظ'); } finally { setSaving(false); }
-  };
+  const { isLoading, saving, idleMinutes, setIdleMinutes, handleSaveIdleTimeout } = useSecuritySettings();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
@@ -53,7 +33,7 @@ const SecurityTab = () => {
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={handleSave} disabled={saving} className="gap-2">
+        <Button onClick={handleSaveIdleTimeout} disabled={saving} className="gap-2">
           <Save className="w-4 h-4" />
           {saving ? 'جارٍ الحفظ...' : 'حفظ إعدادات الأمان'}
         </Button>

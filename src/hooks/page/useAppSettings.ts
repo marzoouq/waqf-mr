@@ -52,6 +52,28 @@ export const useAppSettings = () => {
     },
   });
 
+  const updateSettingsBatch = useMutation({
+    mutationFn: async (rows: Array<{ key: string; value: string; updated_at?: string }>) => {
+      const payload = rows.map((row) => ({
+        key: row.key,
+        value: row.value,
+        updated_at: row.updated_at ?? new Date().toISOString(),
+      }));
+
+      const { error } = await supabase
+        .from('app_settings')
+        .upsert(payload, { onConflict: 'key' });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+    },
+    onError: () => {
+      toast.error('حدث خطأ أثناء حفظ الإعدادات');
+    },
+  });
+
   const getJsonSetting = <T>(key: string, fallback: T): T => {
     const raw = query.data?.[key];
 
@@ -82,7 +104,7 @@ export const useAppSettings = () => {
     }
   };
 
-  return { ...query, updateSetting, getJsonSetting, updateJsonSetting };
+  return { ...query, updateSetting, updateSettingsBatch, getJsonSetting, updateJsonSetting };
 };
 
 /**

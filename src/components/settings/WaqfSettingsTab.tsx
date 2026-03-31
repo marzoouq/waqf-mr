@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -29,8 +27,7 @@ const financialFields = [
 ];
 
 const WaqfSettingsTab = () => {
-  const { data: settings, isLoading } = useAppSettings();
-  const queryClient = useQueryClient();
+  const { data: settings, isLoading, updateSettingsBatch } = useAppSettings();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -74,9 +71,7 @@ const WaqfSettingsTab = () => {
         if (!validatePercentage(field.key, field.label, value)) { setSaving(false); return; }
         rows.push({ key: field.key, value, updated_at: now });
       }
-      const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
-      if (error) failedFields.push('بعض الحقول');
-      queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+      await updateSettingsBatch.mutateAsync(rows);
       
       if (failedFields.length > 0) {
         toast.error(`فشل حفظ: ${failedFields.join('، ')}`);
@@ -99,8 +94,8 @@ const WaqfSettingsTab = () => {
         <CardContent className="grid gap-4 md:grid-cols-2">
           {waqfFields.map((f) => (
             <div key={f.key} className="space-y-1.5">
-              <Label htmlFor="waqf-settings-tab-field-1">{f.label}</Label>
-              <Input name="form_data" id="waqf-settings-tab-field-1" value={formData[f.key] || ''} onChange={(e) => setFormData((p) => ({ ...p, [f.key]: e.target.value }))} maxLength={500} />
+              <Label htmlFor={`waqf-settings-tab-field-${f.key}`}>{f.label}</Label>
+              <Input name="form_data" id={`waqf-settings-tab-field-${f.key}`} value={formData[f.key] || ''} onChange={(e) => setFormData((p) => ({ ...p, [f.key]: e.target.value }))} maxLength={500} />
             </div>
           ))}
         </CardContent>
@@ -115,8 +110,8 @@ const WaqfSettingsTab = () => {
             const isPercentField = f.key.endsWith('_percentage');
             return (
               <div key={f.key} className="space-y-1.5">
-                <Label htmlFor="waqf-settings-tab-field-2">{f.label}</Label>
-                <Input name="waqf_setting" id="waqf-settings-tab-field-2"
+                <Label htmlFor={`waqf-settings-tab-financial-${f.key}`}>{f.label}</Label>
+                <Input name="waqf_setting" id={`waqf-settings-tab-financial-${f.key}`}
                   type={isPercentField ? 'number' : 'text'}
                   min={isPercentField ? 0 : undefined}
                   max={isPercentField ? 100 : undefined}

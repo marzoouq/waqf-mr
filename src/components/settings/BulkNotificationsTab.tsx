@@ -10,37 +10,27 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Send, Megaphone, Loader2, Users } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { notifyUser } from '@/utils/notifications';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
+import { useBulkNotifications } from '@/hooks/page/useBulkNotifications';
 
 const BulkNotificationsTab = () => {
   const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
   const [type, setType] = useState('info');
   const [link, setLink] = useState('');
   const [target, setTarget] = useState<'all' | 'selected'>('all');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [sending, setSending] = useState(false);
 
-  const { data: beneficiaries = [] } = useQuery({
-    queryKey: ['beneficiaries-for-notify'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('beneficiaries')
-        .select('id, name, user_id')
-        .not('user_id', 'is', null)
-        .order('name');
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const toggleBeneficiary = (id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  };
+  const {
+    beneficiaries,
+    loadingBeneficiaries,
+    message,
+    setMessage,
+    selectedBeneficiaries,
+    toggleBeneficiary,
+    handleSelectAll,
+    handleSendNotifications,
+    sending,
+  } = useBulkNotifications();
 
   const handleSend = async () => {
     if (!title.trim() || !message.trim()) {
@@ -48,42 +38,10 @@ const BulkNotificationsTab = () => {
       return;
     }
 
-    setSending(true);
-    try {
-      if (target === 'all') {
-        // Use the DB function to notify all beneficiaries
-        const { error } = await supabase.rpc('notify_all_beneficiaries', {
-          p_title: title.trim(),
-          p_message: message.trim(),
-          p_type: type,
-          p_link: link.trim() || undefined,
-        });
-        if (error) throw error;
-        toast.success(`تم إرسال الإشعار لجميع المستفيدين (${beneficiaries.length})`);
-      } else {
-        // Send to selected beneficiaries only
-        const selectedBeneficiaries = beneficiaries.filter(b => selectedIds.includes(b.id));
-        if (selectedBeneficiaries.length === 0) {
-          toast.error('يرجى اختيار مستفيد واحد على الأقل');
-          setSending(false);
-          return;
-        }
-        for (const b of selectedBeneficiaries) {
-          notifyUser(b.user_id!, title.trim(), message.trim(), type, link.trim() || undefined);
-        }
-        toast.success(`تم إرسال الإشعار لـ ${selectedBeneficiaries.length} مستفيد`);
-      }
-      // Reset form
-      setTitle('');
-      setMessage('');
-      setLink('');
-      setSelectedIds([]);
-    } catch {
-      // Send notification error — toast handles user notification
-      toast.error('حدث خطأ أثناء إرسال الإشعار');
-    } finally {
-      setSending(false);
-    }
+    await handleSendNotifications();
+    setTitle('');
+    setLink('');
+    setTarget('all');
   };
 
   return (
@@ -158,10 +116,10 @@ const BulkNotificationsTab = () => {
                   beneficiaries.map(b => (
                     <label key={b.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1.5 rounded">
                       <Checkbox
-                        checked={selectedIds.includes(b.id)}
+                        checked={selectedBeneficiaries.includes(b.id)}
                         onCheckedChange={() => toggleBeneficiary(b.id)}
                       />
-                      <span className="text-sm">{b.name}</span>
+                      <span className="text-sm">{b.arabic_name || b.english_name || 'بدون اسم'}</span>
                     </label>
                   ))
                 )}
