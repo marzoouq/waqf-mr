@@ -65,7 +65,7 @@ const YoYChartsSectionInner = ({
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={tooltipStyleRtl} formatter={(value: number | undefined, name: string | undefined) => [`${fmt(value ?? 0)} ر.س`, name ?? '']} />
+              <Tooltip contentStyle={tooltipStyleRtl} formatter={((value: number | undefined, name: string | undefined) => [`${fmt(value ?? 0)} ر.س`, name ?? '']) as never} />
               <Legend />
               <Line type="monotone" dataKey="net1" stroke="hsl(var(--primary))" strokeWidth={2} name={`صافي ${year1Label}`} dot={{ r: 4 }} />
               <Line type="monotone" dataKey="net2" stroke="hsl(var(--success))" strokeWidth={2} name={`صافي ${year2Label}`} dot={{ r: 4 }} />
