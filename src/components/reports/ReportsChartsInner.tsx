@@ -31,7 +31,7 @@ const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceDat
                 <Cell key={`cell-${index}`} fill={REPORT_COLORS[index % REPORT_COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyleRtl} />
+            <Tooltip formatter={((value: number | undefined) => `${fmt(value ?? 0)} ر.س`) as never} contentStyle={tooltipStyleRtl} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
