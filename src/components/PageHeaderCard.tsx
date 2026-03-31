@@ -19,7 +19,7 @@ const PageHeaderCard = ({ title, description, icon: Icon, badge, actions, classN
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/10 via-primary/5 to-transparent border p-4 sm:p-6 print:hidden animate-slide-up',
+        'relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-4 sm:p-6 print:hidden animate-slide-up',
         className,
       )}
     >
