@@ -19,6 +19,20 @@ type Row<T extends TableName> = Tables[T]['Row'];
 type Insert<T extends TableName> = Tables[T]['Insert'];
 type Update<T extends TableName> = Tables[T]['Update'];
 
+/** واجهة إشعارات CRUD — يمكن تمريرها لتخصيص أو إلغاء الرسائل */
+export interface CrudNotifications {
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
+  onInfo?: (message: string) => void;
+}
+
+/** الإشعارات الافتراضية عبر sonner toast */
+const defaultNotifications: Required<CrudNotifications> = {
+  onSuccess: (msg) => toast.success(msg),
+  onError: (msg) => toast.error(msg),
+  onInfo: (msg) => toast.info(msg),
+};
+
 /** Configuration for the CRUD factory */
 interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
   /** Supabase table name */
@@ -41,6 +55,8 @@ interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
   onUpdateSuccess?: (data: TData) => void;
   /** ms before data is considered stale — defaults to 60 000 (1 min) */
   staleTime?: number;
+  /** تخصيص إشعارات — إذا لم يُحدد يُستخدم toast الافتراضي */
+  notifications?: CrudNotifications;
 }
 
 /** نتيجة useList مع دعم التصفح */
@@ -80,7 +96,10 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
     onCreateSuccess,
     onUpdateSuccess,
     staleTime = STALE_FINANCIAL,
+    notifications: customNotifications,
   } = config;
+
+  const notify = { ...defaultNotifications, ...customNotifications };
 
   /** List / fetch all rows — مع دعم التصفح (pagination) */
   const useList = (): PaginatedQueryResult<TData> => {
@@ -109,7 +128,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
           const key = `limit-warn-${queryKey}`;
           if (!limitWarnShown.has(key)) {
             limitWarnShown.add(key);
-            toast.info(`يتم عرض أول ${limit} سجل من ${label}. استخدم التصفح لمشاهدة المزيد.`);
+            notify.onInfo(`يتم عرض أول ${limit} سجل من ${label}. استخدم التصفح لمشاهدة المزيد.`);
             setTimeout(() => { limitWarnShown.delete(key); }, 300_000);
           }
         }
@@ -162,12 +181,12 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       },
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
-        toast.success(`تم إضافة ${label} بنجاح`);
+        notify.onSuccess(`تم إضافة ${label} بنجاح`);
         onCreateSuccess?.(data);
       },
       onError: (error) => {
         logger.error(`${label} create error:`, error);
-        toast.error(`حدث خطأ أثناء إضافة ${label}`);
+        notify.onError(`حدث خطأ أثناء إضافة ${label}`);
       },
     });
   };
@@ -190,12 +209,12 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       },
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
-        toast.success(`تم تحديث ${label} بنجاح`);
+        notify.onSuccess(`تم تحديث ${label} بنجاح`);
         onUpdateSuccess?.(data);
       },
       onError: (error) => {
         logger.error(`${label} update error:`, error);
-        toast.error(`حدث خطأ أثناء تحديث ${label}`);
+        notify.onError(`حدث خطأ أثناء تحديث ${label}`);
       },
     });
   };
@@ -215,11 +234,11 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
-        toast.success(`تم حذف ${label} بنجاح`);
+        notify.onSuccess(`تم حذف ${label} بنجاح`);
       },
       onError: (error) => {
         logger.error(`${label} delete error:`, error);
-        toast.error(`حدث خطأ أثناء حذف ${label}`);
+        notify.onError(`حدث خطأ أثناء حذف ${label}`);
       },
     });
   };
