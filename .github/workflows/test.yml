@@ -34,7 +34,7 @@ jobs:
         run: npx vitest run --coverage
 
       - name: Upload coverage to Codecov
-        if: always()
+        if: ${{ always() && secrets.CODECOV_TOKEN != '' && hashFiles('coverage/coverage-final.json') != '' }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
