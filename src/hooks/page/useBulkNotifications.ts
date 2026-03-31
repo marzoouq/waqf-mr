@@ -52,7 +52,7 @@ export const useBulkNotifications = () => {
           p_title: title,
           p_message: msg,
           p_type: type,
-          p_link: link || null,
+          p_link: link ?? undefined,
         });
 
         if (error) throw error;
@@ -64,7 +64,7 @@ export const useBulkNotifications = () => {
         }
 
         const selected = beneficiaries.filter((b) => selectedBeneficiaries.includes(b.id));
-        const validUsers = selected.filter((b) => b.user_id);
+        const validUsers = selected.filter((b) => b.user_id) as Array<Beneficiary & { user_id: string }>;
 
         if (validUsers.length === 0) {
           throw new Error('المستفيدون المختارون ليس لديهم حسابات مرتبطة');
@@ -76,7 +76,7 @@ export const useBulkNotifications = () => {
             title,
             message: msg,
             type,
-            link: link || null,
+            link: link ?? null,
           }))
         );
 
