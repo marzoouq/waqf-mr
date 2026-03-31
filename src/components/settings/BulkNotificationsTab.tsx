@@ -22,12 +22,10 @@ const BulkNotificationsTab = () => {
 
   const {
     beneficiaries,
-    loadingBeneficiaries,
     message,
     setMessage,
     selectedBeneficiaries,
     toggleBeneficiary,
-    handleSelectAll,
     handleSendNotifications,
     sending,
   } = useBulkNotifications();
@@ -38,7 +36,7 @@ const BulkNotificationsTab = () => {
       return;
     }
 
-    await handleSendNotifications();
+    await handleSendNotifications(title, message, type, link || null, target === 'all');
     setTitle('');
     setLink('');
     setTarget('all');
@@ -119,7 +117,7 @@ const BulkNotificationsTab = () => {
                         checked={selectedBeneficiaries.includes(b.id)}
                         onCheckedChange={() => toggleBeneficiary(b.id)}
                       />
-                      <span className="text-sm">{b.arabic_name || b.english_name || 'بدون اسم'}</span>
+                      <span className="text-sm">{b.name || 'بدون اسم'}</span>
                     </label>
                   ))
                 )}

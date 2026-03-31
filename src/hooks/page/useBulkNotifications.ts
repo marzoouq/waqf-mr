@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { notifyUser } from '@/utils/notifications';
 
 interface Beneficiary {
   id: string;
-  arabic_name?: string;
-  english_name?: string;
+  name?: string;
+  user_id?: string;
 }
 
 export const useBulkNotifications = () => {
@@ -20,34 +19,79 @@ export const useBulkNotifications = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('beneficiaries')
-        .select('id, arabic_name, english_name')
-        .order('arabic_name', { ascending: true });
+        .select('id, name, user_id')
+        .order('name', { ascending: true });
 
       if (error) throw error;
       return (data as Beneficiary[]) || [];
     },
   });
 
-  // Send notifications
+  // Send notifications - flexible mutation
   const sendNotifications = useMutation({
-    mutationFn: async (beneficiaryIds: string[]) => {
-      if (!beneficiaryIds.length) {
-        throw new Error('يجب تحديد مستفيد واحد على الأقل');
+    mutationFn: async ({
+      title,
+      message: msg,
+      type,
+      link,
+      isAll,
+    }: {
+      title: string;
+      message: string;
+      type: string;
+      link?: string;
+      isAll: boolean;
+    }) => {
+      if (!msg.trim()) {
+        throw new Error('الرسالة مطلوبة');
       }
 
-      const { data, error } = await supabase.rpc('notify_all_beneficiaries', {
-        beneficiary_ids: beneficiaryIds,
-        message_content: message,
-      });
+      if (isAll) {
+        // Send to all beneficiaries via RPC
+        const { data, error } = await supabase.rpc('notify_all_beneficiaries', {
+          p_title: title,
+          p_message: msg,
+          p_type: type,
+          p_link: link || null,
+        });
 
-      if (error) throw error;
-      return data;
+        if (error) throw error;
+        return data;
+      } else {
+        // Send to selected beneficiaries directly
+        if (selectedBeneficiaries.length === 0) {
+          throw new Error('يجب تحديد مستفيد واحد على الأقل');
+        }
+
+        const selected = beneficiaries.filter((b) => selectedBeneficiaries.includes(b.id));
+        const validUsers = selected.filter((b) => b.user_id);
+
+        if (validUsers.length === 0) {
+          throw new Error('المستفيدون المختارون ليس لديهم حسابات مرتبطة');
+        }
+
+        const { error } = await supabase.from('notifications').insert(
+          validUsers.map((b) => ({
+            user_id: b.user_id,
+            title,
+            message: msg,
+            type,
+            link: link || null,
+          }))
+        );
+
+        if (error) throw error;
+        return null;
+      }
     },
-    onSuccess: () => {
-      toast.success('تم إرسال الإخطارات بنجاح');
+    onSuccess: (_, variables) => {
+      toast.success(
+        variables.isAll
+          ? `تم إرسال الإشعار لجميع المستفيدين`
+          : `تم إرسال الإشعار لـ ${selectedBeneficiaries.length} مستفيد`
+      );
       setMessage('');
       setSelectedBeneficiaries([]);
-      notifyUser('success', 'تم إرسال الإخطارات');
     },
     onError: (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : 'حدث خطأ أثناء إرسال الإخطارات';
@@ -69,8 +113,20 @@ export const useBulkNotifications = () => {
     );
   };
 
-  const handleSendNotifications = async () => {
-    await sendNotifications.mutateAsync(selectedBeneficiaries);
+  const handleSendNotifications = async (
+    title: string,
+    message: string,
+    type: string,
+    link: string | null,
+    isAll: boolean
+  ) => {
+    await sendNotifications.mutateAsync({
+      title,
+      message,
+      type,
+      link: link || undefined,
+      isAll,
+    });
   };
 
   return {
