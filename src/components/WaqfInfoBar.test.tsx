@@ -25,12 +25,9 @@ afterEach(() => {
 
 describe('WaqfInfoBar URL cleanup logic', () => {
   it('revokeObjectURL is called when replacing a blob preview', () => {
-    // Simulate the component logic for handleLogoSelect
-    let logoPreview: string | null = null;
-
     // First file select
     const firstBlob = URL.createObjectURL(new Blob());
-    logoPreview = firstBlob;
+    let logoPreview: string | null = firstBlob;
     expect(logoPreview).toMatch(/^blob:/);
 
     // Second file select — should revoke previous blob
