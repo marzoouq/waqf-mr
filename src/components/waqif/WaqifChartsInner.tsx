@@ -22,7 +22,7 @@ const WaqifChartsInner: React.FC<WaqifChartsInnerProps> = ({ monthlyData, expens
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => fmt(v)} />
-            <Tooltip contentStyle={tooltipStyleRtl} formatter={(v: number | undefined) => fmt(v ?? 0) + ' ر.س'} labelFormatter={formatArabicMonth} />
+            <Tooltip contentStyle={tooltipStyleRtl} formatter={((v: number | undefined) => fmt(v ?? 0) + ' ر.س') as never} labelFormatter={formatArabicMonth} />
             <Bar dataKey="income" name="الدخل" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
             <Bar dataKey="expenses" name="المصروفات" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
           </BarChart>
