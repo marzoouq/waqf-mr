@@ -8,15 +8,15 @@ import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 import {
   NOTIFICATION_TONE_KEY, NOTIF_PREFS_KEY,
   type ToneId, getVolumeGain, playTone,
-} from './notificationTones';
+} from '@/constants/notificationTones';
 
 // إعادة تصدير للتوافق مع الاستيرادات الحالية
 export type { Notification };
 export {
   NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, NOTIF_PREFS_KEY,
-} from './notificationTones';
-export type { VolumeLevel, ToneId, ToneOption } from './notificationTones';
-export { VOLUME_OPTIONS, TONE_OPTIONS, previewTone } from './notificationTones';
+} from '@/constants/notificationTones';
+export type { VolumeLevel, ToneId, ToneOption } from '@/constants/notificationTones';
+export { VOLUME_OPTIONS, TONE_OPTIONS, previewTone } from '@/constants/notificationTones';
 
 /** Maps beneficiary preference keys to notification types */
 const PREF_TYPE_MAP: Record<string, string> = {

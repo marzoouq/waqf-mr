@@ -232,7 +232,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
       clearSlowQueries();
       clearPageLoadEntries();
-      clearToasts();
+      toast.dismiss();
     }
   };
 
