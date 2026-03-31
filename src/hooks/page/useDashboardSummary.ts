@@ -12,7 +12,6 @@ import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 import type { ContractFiscalAllocation } from '@/hooks/financial/useContractAllocations';
 import type { AdvanceRequest } from '@/hooks/financial/useAdvanceRequests';
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
-import { computeTotals } from '@/utils/accountsCalculations';
 
 interface DashboardSummaryResponse {
   properties: Property[];
@@ -31,8 +30,8 @@ interface DashboardSummaryResponse {
   prev_year: {
     fiscal_year_id: string;
     label: string;
-    income: Income[];
-    expenses: Expense[];
+    total_income: number;
+    total_expenses: number;
   } | null;
   fetched_at: string;
 }
@@ -86,11 +85,11 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
     if (!data?.prev_year) {
       return { prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0, hasPrevYear: false };
     }
-    const { totalIncome, totalExpenses } = computeTotals(data.prev_year.income, data.prev_year.expenses);
+    const { total_income, total_expenses } = data.prev_year;
     return {
-      prevTotalIncome: totalIncome,
-      prevTotalExpenses: totalExpenses,
-      prevNetAfterExpenses: totalIncome - totalExpenses,
+      prevTotalIncome: total_income,
+      prevTotalExpenses: total_expenses,
+      prevNetAfterExpenses: total_income - total_expenses,
       hasPrevYear: true,
     };
   }, [data?.prev_year]);
