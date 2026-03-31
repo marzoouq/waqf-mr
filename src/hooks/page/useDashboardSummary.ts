@@ -12,7 +12,6 @@ import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 import type { ContractFiscalAllocation } from '@/hooks/financial/useContractAllocations';
 import type { AdvanceRequest } from '@/hooks/financial/useAdvanceRequests';
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
-import { computeTotals } from '@/utils/accountsCalculations';
 
 interface DashboardSummaryResponse {
   properties: Property[];
