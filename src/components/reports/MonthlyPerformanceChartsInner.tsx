@@ -38,10 +38,10 @@ const MonthlyPerformanceChartsInner: React.FC<MonthlyPerformanceChartsInnerProps
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
               <Tooltip
                 contentStyle={tooltipStyleRtl}
-                formatter={(value: number | undefined, name: string | undefined) => [
+                formatter={((value: number | undefined, name: string | undefined) => [
                   `${fmt(value ?? 0)} ر.س`,
                   name === 'income' ? 'الدخل' : name === 'expenses' ? 'المصروفات' : 'الصافي',
-                ]}
+                ]) as never}
                 labelFormatter={(label) => label}
               />
               <Legend formatter={(value) => value === 'income' ? 'الدخل' : value === 'expenses' ? 'المصروفات' : 'الصافي'} />
