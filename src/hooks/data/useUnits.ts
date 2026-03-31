@@ -69,8 +69,8 @@ export const useDeleteUnit = () => {
     onSuccess: (propertyId) => {
       queryClient.invalidateQueries({ queryKey: ['all-units'] });
       queryClient.invalidateQueries({ queryKey: ['units', propertyId] });
-      toast.success('تم حذف الوحدة بنجاح');
+      defaultNotify.success('تم حذف الوحدة بنجاح');
     },
-    onError: () => toast.error('حدث خطأ أثناء حذف الوحدة'),
+    onError: () => defaultNotify.error('حدث خطأ أثناء حذف الوحدة'),
   });
 };

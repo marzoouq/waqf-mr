@@ -191,7 +191,7 @@ export const useCreateAdvanceRequest = () => {
     onSuccess: (result, vars) => {
       qc.invalidateQueries({ queryKey: ['advance_requests'] });
       qc.invalidateQueries({ queryKey: ['my_beneficiary_finance'] });
-      toast.success('تم إرسال طلب السلفة بنجاح');
+      defaultNotify.success('تم إرسال طلب السلفة بنجاح');
       const name = result._beneficiaryName || 'مستفيد';
       notifyAdmins(
         'طلب سلفة جديد',
@@ -219,7 +219,7 @@ export const useCreateAdvanceRequest = () => {
           });
       }
     },
-    onError: () => toast.error('فشل إرسال طلب السلفة'),
+    onError: () => defaultNotify.error('فشل إرسال طلب السلفة'),
   });
 };
 
@@ -277,7 +277,7 @@ export const useUpdateAdvanceStatus = () => {
         rejected: 'تم رفض طلب السلفة',
         paid: 'تم تأكيد صرف السلفة',
       };
-      toast.success(msgs[vars.status] || 'تم تحديث الطلب');
+      defaultNotify.success(msgs[vars.status] || 'تم تحديث الطلب');
 
       // إشعار المستفيد
       const uid = vars.beneficiary_user_id;
@@ -293,6 +293,6 @@ export const useUpdateAdvanceStatus = () => {
         if (n) notifyUser(uid, n.title, n.message, n.type, '/beneficiary/my-share');
       }
     },
-    onError: () => toast.error('فشل تحديث حالة الطلب'),
+    onError: () => defaultNotify.error('فشل تحديث حالة الطلب'),
   });
 };

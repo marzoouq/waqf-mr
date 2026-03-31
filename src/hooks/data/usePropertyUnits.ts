@@ -46,7 +46,7 @@ export function usePropertyUnits(property: Property, contracts: Contract[]) {
   const handleUnitSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!unitForm.unit_number) {
-      toast.error('يرجى إدخال رقم الوحدة');
+      defaultNotify.error('يرجى إدخال رقم الوحدة');
       return;
     }
 
@@ -85,7 +85,7 @@ export function usePropertyUnits(property: Property, contracts: Contract[]) {
         });
       } else {
         if (!unitForm.contract_start_date || !unitForm.contract_end_date) {
-          toast.error('يرجى تحديد تاريخ بداية ونهاية العقد');
+          defaultNotify.error('يرجى تحديد تاريخ بداية ونهاية العقد');
           return;
         }
         await createContract.mutateAsync({
@@ -134,7 +134,7 @@ export function usePropertyUnits(property: Property, contracts: Contract[]) {
 
   const handleWholePropertySave = async (form: WholeRentalForm) => {
     if (!form.tenant_name || !form.rent_amount || !form.start_date || !form.end_date) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      defaultNotify.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     const rentAmount = parseFloat(form.rent_amount);

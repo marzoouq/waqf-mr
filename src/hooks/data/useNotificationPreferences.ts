@@ -31,7 +31,7 @@ export const useNotificationPreferences = () => {
   const handleSoundChange = useCallback((value: boolean) => {
     setSoundEnabled(value);
     try { localStorage.setItem(NOTIF_SOUND_KEY, String(value)); } catch { /* ignored */ }
-    toast.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
+    defaultNotify.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
   }, []);
 
   const handleToneChange = useCallback((tone: ToneId) => {

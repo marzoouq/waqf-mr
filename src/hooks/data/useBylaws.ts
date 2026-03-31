@@ -46,10 +46,10 @@ export const useReorderBylaws = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waqf_bylaws'] });
-      toast.success('تم حفظ الترتيب الجديد');
+      defaultNotify.success('تم حفظ الترتيب الجديد');
     },
     onError: () => {
-      toast.error('حدث خطأ أثناء حفظ الترتيب');
+      defaultNotify.error('حدث خطأ أثناء حفظ الترتيب');
     },
   });
 };
