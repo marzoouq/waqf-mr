@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
+import { fetchUserRole } from '@/utils/auth/fetchUserRole';
 import { clearSlowQueries } from '@/lib/performanceMonitor';
 import { clearPageLoadEntries } from '@/lib/pagePerformanceTracker';
 import { queryClient } from '@/lib/queryClient';
