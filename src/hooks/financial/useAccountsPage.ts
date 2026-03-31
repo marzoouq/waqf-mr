@@ -11,8 +11,6 @@ import { useAccountsCalculations } from './useAccountsCalculations';
 import { useAccountsEditing } from './useAccountsEditing';
 import { useAccountsActions } from './useAccountsActions';
 
-// إعادة تصدير findAccountByFY من موقعها الجديد للتوافق مع الاختبارات
-export { findAccountByFY } from '@/utils/findAccountByFY';
 
 export function useAccountsPage() {
   // 1. جلب البيانات
