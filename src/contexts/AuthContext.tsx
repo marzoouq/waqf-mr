@@ -17,7 +17,7 @@ import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { clearSlowQueries } from '@/lib/performanceMonitor';
 import { clearPageLoadEntries } from '@/lib/pagePerformanceTracker';
 import { queryClient } from '@/lib/queryClient';
-import { clearToasts, toast } from '@/hooks/ui/use-toast';
+import { toast } from 'sonner';
 import { AuthContext } from '@/hooks/auth/useAuthContext';
 
 // مفاتيح التخزين المحلي القابلة للمسح عند تسجيل الخروج
