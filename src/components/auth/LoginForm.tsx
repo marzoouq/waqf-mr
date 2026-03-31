@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/normalizeDigits';
+import { handleNationalIdLogin } from './nationalIdLogin';
 import BiometricLoginButton from './BiometricLoginButton';
 
 interface LoginFormProps {
@@ -42,109 +43,19 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
     setIsLoading(true);
 
     try {
-      const resolvedEmail = normalizeArabicDigits(loginEmail);
-
       if (loginMethod === 'national_id') {
-        if (!nationalId) {
-          toast.error('يرجى إدخال رقم الهوية الوطنية');
-          return;
-        }
-
-        if (nidLockedUntil && Date.now() < nidLockedUntil) {
-          const secs = Math.ceil((nidLockedUntil - Date.now()) / 1000);
-          toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${secs} ثانية`);
-          return;
-        }
-
-        if (!loginPassword) {
-          toast.error('يرجى إدخال كلمة المرور');
-          return;
-        }
-
-        const cleanId = normalizeArabicDigits(nationalId);
-
-        if (!/^\d{10}$/.test(cleanId)) {
-          toast.error('رقم الهوية يجب أن يكون 10 أرقام');
-          return;
-        }
-
-        const { data, error: lookupError } = await supabase.functions.invoke('lookup-national-id', {
-          body: { national_id: cleanId, password: loginPassword }
+        await handleNationalIdLogin(nationalId, loginPassword, {
+          nidLockedUntil,
+          setNidLockedUntil,
+          setNidAttemptsRemaining,
         });
-
-        // معالجة أخطاء Rate Limit و أخطاء الاتصال
-        if (lookupError || data?.error) {
-          // فحص Rate Limit: الخطأ قد يكون في lookupError أو في data مباشرة
-          const isRateLimited =
-            data?.remaining === 0 ||
-            data?.retry_after ||
-            String(data?.error || '').includes('تم تجاوز حد المحاولات') ||
-            String(lookupError?.message || '').includes('تم تجاوز حد المحاولات');
-
-          if (isRateLimited) {
-            const retryAfter = data?.retry_after || 180;
-            const lockTime = Date.now() + retryAfter * 1000;
-            setNidLockedUntil(lockTime);
-            try { sessionStorage.setItem('nidLockedUntil', String(lockTime)); } catch { /* silent */ }
-            setNidAttemptsRemaining(0);
-            toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
-            return;
-          }
-
-          // أخطاء أخرى (خطأ شبكة، خطأ خادم)
-          if (lookupError) {
-            toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
-            return;
-          }
-        }
-
-        if (data?.remaining !== undefined) {
-          setNidAttemptsRemaining(data.remaining);
-        }
-
-        if (!data?.found) {
-          // رسالة عامة لا تكشف وجود الهوية من عدمه — حماية من تعداد المستخدمين
-          toast.error('بيانات الدخول غير صحيحة');
-          return;
-        }
-
-        if (data?.auth_error) {
-          toast.error(data.auth_error);
-          logAccessEvent({
-            event_type: 'login_failed',
-            metadata: { error_message: 'nid_auth_error', login_method: 'national_id' },
-          });
-          return;
-        }
-
-        if (data?.session?.access_token && data?.session?.refresh_token) {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token,
-          });
-          if (sessionError) {
-            toast.error('حدث خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.');
-            logAccessEvent({
-              event_type: 'login_failed',
-              metadata: { error_message: 'session_set_error', login_method: 'national_id' },
-            });
-          } else {
-            toast.success('تم تسجيل الدخول بنجاح');
-            logAccessEvent({
-              event_type: 'login_success',
-              metadata: { login_method: 'national_id' },
-            });
-          }
-          return;
-        }
-
-        toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
         return;
-      } else {
-        if (!resolvedEmail) {
-          toast.error('يرجى إدخال البريد الإلكتروني');
-          return;
-        }
+      }
+
+      const resolvedEmail = normalizeArabicDigits(loginEmail);
+      if (!resolvedEmail) {
+        toast.error('يرجى إدخال البريد الإلكتروني');
+        return;
       }
 
       if (!loginPassword) {

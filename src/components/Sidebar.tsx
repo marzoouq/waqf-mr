@@ -3,7 +3,7 @@
  * يعرض قائمة التنقل ومعلومات المستخدم وزر تسجيل الخروج.
  */
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';

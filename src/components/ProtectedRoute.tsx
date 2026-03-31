@@ -9,7 +9,7 @@
  * إصلاح #9: إعادة ضبط loggedRef عند تغيير المسار لضمان تسجيل كل حدث وصول غير مصرح
  */
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';

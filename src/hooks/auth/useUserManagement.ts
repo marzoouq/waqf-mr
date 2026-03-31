@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { STALE_SETTINGS, STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { toast } from 'sonner';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 
 export interface ManagedUser {
   id: string;

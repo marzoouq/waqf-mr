@@ -6,7 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import type { TabItem } from '@/components/ui/responsive-tabs';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
 import DashboardLayout from '@/components/DashboardLayout';
 import { User, Lock, Bell, Shield, Palette, AlertCircle, RefreshCw } from 'lucide-react';

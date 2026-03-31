@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useNotifications } from '@/hooks/data/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { AlertCircle, RefreshCw, Sun, Moon } from 'lucide-react';

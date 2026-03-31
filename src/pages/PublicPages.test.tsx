@@ -49,7 +49,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 
 import Auth from './Auth';

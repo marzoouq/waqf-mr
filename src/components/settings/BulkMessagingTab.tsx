@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Send, MessageSquarePlus, Loader2, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUser } from '@/utils/notifications';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';

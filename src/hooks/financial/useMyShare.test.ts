@@ -10,7 +10,7 @@ vi.mock('./useTotalBeneficiaryPercentage', () => ({
 
 import { renderHook } from '@testing-library/react';
 import { useMyShare } from './useMyShare';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useTotalBeneficiaryPercentage } from './useTotalBeneficiaryPercentage';
 
 const mockAuth = useAuth as ReturnType<typeof vi.fn>;

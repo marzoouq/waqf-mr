@@ -4,7 +4,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useCreateAccount } from '@/hooks/financial/useAccounts';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
