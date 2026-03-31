@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/hooks/data/mutationNotify';
 import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format';
 import { findAccountByFY } from '@/utils/findAccountByFY';
