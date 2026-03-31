@@ -65,7 +65,6 @@ function App() {
         <AuthProvider>
           <FiscalYearProvider>
             <TooltipProvider>
-              <Toaster />
               <Sonner />
               <BrowserRouter>
                 <ErrorBoundary>
