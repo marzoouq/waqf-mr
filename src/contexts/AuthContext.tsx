@@ -138,24 +138,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         try {
-          const { data, error } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', user.id)
-            .maybeSingle();
+          const result = await fetchUserRole(user.id);
 
           if (roleFetchIdRef.current !== fetchId) return;
 
-          if (data && !error) {
+          if (result.role && !result.error) {
             const duration = Date.now() - startTime;
-            logger.info('[Auth] fetchRole success:', data.role, `(${duration}ms, ${attempts} attempts)`);
-            setRoleWithRef(data.role as AppRole);
+            logger.info('[Auth] fetchRole success:', result.role, `(${duration}ms, ${attempts} attempts)`);
+            setRoleWithRef(result.role);
             setLoading(false);
             clearTimeout(timeoutId);
             logAccessEvent({
               event_type: 'role_fetch',
               user_id: user.id,
-              metadata: { role: data.role, duration_ms: duration, attempts, status: 'success' },
+              metadata: { role: result.role, duration_ms: duration, attempts, status: 'success' },
             });
             // AL-1: فحص تسجيل الدخول من جهاز جديد
             checkNewDeviceLogin(user.id, user.email);
