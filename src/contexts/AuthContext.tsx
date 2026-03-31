@@ -247,7 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       setRoleWithRef(data ? (data.role as AppRole) : null);
     } catch {
-      toast({ title: 'تعذّر تحديث الدور', description: 'يرجى تحديث الصفحة', variant: 'destructive' });
+      toast.error('تعذّر تحديث الدور — يرجى تحديث الصفحة');
     }
   };
 
