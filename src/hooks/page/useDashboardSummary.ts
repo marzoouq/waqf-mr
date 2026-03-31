@@ -30,8 +30,8 @@ interface DashboardSummaryResponse {
   prev_year: {
     fiscal_year_id: string;
     label: string;
-    income: Income[];
-    expenses: Expense[];
+    total_income: number;
+    total_expenses: number;
   } | null;
   fetched_at: string;
 }
