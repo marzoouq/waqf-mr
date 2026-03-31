@@ -41,7 +41,7 @@ const WaqifChartsInner: React.FC<WaqifChartsInnerProps> = ({ monthlyData, expens
             >
               {expenseData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
             </Pie>
-            <Tooltip contentStyle={tooltipStyleRtl} formatter={(v: number | undefined) => fmt(v ?? 0) + ' ر.س'} />
+            <Tooltip contentStyle={tooltipStyleRtl} formatter={((v: number | undefined) => fmt(v ?? 0) + ' ر.س') as never} />
           </PieChart>
         </ResponsiveContainer>
       </div>
