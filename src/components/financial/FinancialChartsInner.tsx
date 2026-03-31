@@ -53,7 +53,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
                   <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyleRtl} />
+              <Tooltip formatter={((value: number | undefined) => fmt(value ?? 0) + ' ر.س') as never} contentStyle={tooltipStyleRtl} />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
             </PieChart>
           </ResponsiveContainer>
