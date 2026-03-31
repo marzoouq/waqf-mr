@@ -57,7 +57,10 @@ async function fetchFont(name: string, retries = 3): Promise<Uint8Array> {
       if (attempt === retries) {
         // تصفير الكاش عند الفشل النهائي
         cachedFonts = null;
-        throw new Error(`Failed to fetch font ${name} after ${retries} attempts: ${err instanceof Error ? err.message : String(err)}`);
+        throw new Error(
+          `Failed to fetch font ${name} after ${retries} attempts: ${err instanceof Error ? err.message : String(err)}`,
+          { cause: err }
+        );
       }
       // تأخير متزايد قبل إعادة المحاولة
       await new Promise(r => setTimeout(r, attempt * 500));

@@ -55,12 +55,12 @@ export function useAnnualReportPage() {
   const totalExpenses = useMemo(() => expenses.reduce((s, r) => s + safeNumber(r.amount), 0), [expenses]);
   const activeContracts = useMemo(() => contracts.filter(c => c.status === 'active').length, [contracts]);
 
-  const summaryCards = [
+  const summaryCards = useMemo(() => [
     { label: 'إجمالي الدخل', value: formatCurrency(totalIncome) + ' ر.س', icon: DollarSign, color: 'text-success' },
     { label: 'إجمالي المصروفات', value: formatCurrency(totalExpenses) + ' ر.س', icon: Receipt, color: 'text-destructive' },
     { label: 'العقود النشطة', value: String(activeContracts), icon: FileText, color: 'text-info' },
     { label: 'عدد العقارات', value: String(properties.length), icon: Building2, color: 'text-warning' },
-  ];
+  ], [totalIncome, totalExpenses, activeContracts, properties.length]);
 
   // إضافة/تعديل عنصر
   const handleSubmit = useCallback((data: { title: string; content: string; section_type: SectionType; property_id?: string | null }) => {

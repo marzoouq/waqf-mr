@@ -8,8 +8,3 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 export function RouteGuard({ children }: { children: ReactNode }) {
   return <ErrorBoundary>{children}</ErrorBoundary>;
 }
-
-/** دالة مساعدة تلف عنصر JSX بـ RouteGuard */
-export function withRouteErrorBoundary(element: ReactNode): ReactNode {
-  return <RouteGuard>{element}</RouteGuard>;
-}
