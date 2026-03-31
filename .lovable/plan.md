@@ -1,106 +1,66 @@
 
 
-# تدقيق معماري شامل — تقرير القراءة فقط
+# تقرير التدقيق المعماري — الجولة الثالثة
 
 ## الحالة العامة
 
-البنية المعمارية **جيدة بشكل ملحوظ** مقارنة بالتدقيق السابق. تم تنفيذ معظم التوصيات السابقة بنجاح:
-- ✅ توحيد `useAuth` — لا يوجد أي استيراد من `@/contexts/AuthContext` (باستثناء `AuthContext.tsx` نفسه)
-- ✅ نقل `themeDefinitions` و `themeColor.utils` إلى `src/lib/theme/`
-- ✅ نقل `notificationTones` إلى `src/constants/`
-- ✅ إضافة callback pattern في `useCrudFactory`
-- ✅ تقسيم `LoginForm` (213 سطر) و `useWebAuthn` (227 سطر) — أصبحا تحت الحد
+البنية **نظيفة ومنظمة جيدًا** بعد الجولتين السابقتين. معظم التوصيات السابقة نُفذت بنجاح:
+
+- ✅ توحيد `useAuth` — بقي استيراد واحد فقط في `App.tsx` من `@/contexts/AuthContext` (مقبول: يستورد `AuthProvider`)
+- ✅ حذف ملفات re-export المهملة (`use-toast.ts`, `toaster.tsx`, `toast.tsx`)
+- ✅ فصل toast عن data hooks — **12 ملف** في `src/hooks/data/` يستخدمون `defaultNotify` بدل `toast` مباشرة
+- ✅ تقسيم `useAdvanceRequests.ts` (167 سطر الآن)
+- ✅ نقل اختبار `findAccountByFY` إلى `src/utils/`
+- ✅ توثيق `lib/` و `utils/` عبر README
 
 ---
 
-## المشاكل المتبقية — مرتبة حسب الأولوية
+## المشاكل المتبقية
 
-### 1. [حرج] ملفات re-export مهملة يمكن حذفها
+### 1. [متوسط] toast ما زال مباشرًا في `src/hooks/financial/` (6 ملفات)
 
-الملفات التالية أصبحت **بدون أي مستهلك** — كل الاستيرادات تذهب مباشرة للمسار الجديد:
+الملفات التالية تستورد `toast` من `sonner` مباشرة بدل `defaultNotify`:
 
-| ملف مهمل | المسار الجديد | مستهلكون متبقون |
-|---|---|---|
-| `src/components/themeDefinitions.ts` | `src/lib/theme/themeDefinitions.ts` | **0** |
-| `src/components/themeColor.utils.ts` | `src/lib/theme/themeColor.utils.ts` | **0** |
-| `src/hooks/data/notificationTones.ts` | `src/constants/notificationTones.ts` | **0** |
-| `src/components/ui/use-toast.ts` | `src/hooks/ui/use-toast.ts` | **0** (فقط AuthContext يستورد من hooks/ui مباشرة) |
+| ملف | نوع الاستخدام |
+|---|---|
+| `useDistribute.ts` | mutation نتائج التوزيع |
+| `useAccountsActions.ts` | حذف/إعادة ضبط حسابات |
+| `useAccountsEditing.ts` | تعديل تحصيل |
+| `useContractAllocations.ts` | mutation توزيعات العقود |
+| `useTotalBeneficiaryPercentage.ts` | تنبيه تجاوز 100% |
+| `useMySharePage.ts` | تنبيهات PDF |
 
-**التوصية**: حذف هذه الملفات الأربعة — هي dead code الآن.
+هذه أقل خطورة من data hooks لأنها **financial/page hooks** (أقرب للواجهة)، لكن يمكن توحيدها مع `defaultNotify` للاتساق.
 
-### 2. [مهم] toast ما زال مقترنًا مباشرة في 15 ملف data hook
+### 2. [متوسط] toast مباشر في page hooks (10+ ملف)
 
-رغم إضافة `CrudNotifications` callback في `useCrudFactory`، فإن **15 ملفًا** في `src/hooks/data/` ما زالت تستورد `toast` من `sonner` مباشرة:
+ملفات `src/hooks/page/` مثل `useAppSettings`, `useDisclosurePage`, `useZatcaSettings`, `useBylawsPage`, `usePropertiesPage`, إلخ — تستورد toast مباشرة. هذا **مقبول أكثر** لأن page hooks هي الطبقة الأقرب لـ UI، لكن التوحيد يُحسّن الاتساق.
 
-- `useSupportTickets.ts` (263 سطر)
-- `useAdvanceRequests.ts` (298 سطر)
-- `usePropertyUnits.ts`
-- `useBylaws.ts`
-- `useUnits.ts`
-- `useExpenses.ts`
-- `useIncome.ts`
-- `useInvoices.ts`
-- `usePaymentInvoices.ts`
-- `useAnnualReport.ts`
-- `useTenantPayments.ts`
-- `useRealtimeAlerts.ts`
-- `useNotificationPreferences.ts`
-- `useCrudFactory.ts` (default fallback — مقبول)
+### 3. [صغير] `useCrudFactory.ts` يستورد toast مباشرة بالإضافة لـ defaultNotify
 
-الملفات التي تستخدم `createCrudFactory` (مثل `useUnits`, `useBylaws`, `useInvoices`) تستورد toast **بالإضافة** إلى ما يوفره الـ factory — أي أنها تستخدمه في mutations خارج الـ factory. هذا يعني أن الـ callback pattern لم يُعمَّم بعد على الـ mutations اليدوية.
+الـ factory يستخدم `toast` كـ default fallback — هذا مقبول معماريًا لأنه نقطة مركزية واحدة.
 
-**التوصية**: في الملفات التي تبني mutations يدويًا (خارج `createCrudFactory`)، استبدال `toast` المباشر بـ callback parameter أو على الأقل تمريره من الـ page hook.
+### 4. [صغير] `App.tsx` يستورد `useAuth` من مسارين
 
-### 3. [مهم] ملفان يقتربان من حد 300 سطر
+```ts
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";  // AuthProvider + useAuth
+```
 
-| ملف | الأسطر | ملاحظة |
-|---|---|---|
-| `useAdvanceRequests.ts` | 298 | يحتوي CRUD كامل + منطق ترحيل سالب + إشعارات — يمكن استخراج منطق الترحيل |
-| `AdminDashboard.tsx` | 282 | مقبول لكن يحتوي JSX كثيف — يمكن استخراج بعض الأقسام كمكونات فرعية |
-| `useSupportTickets.ts` | 263 | يحتوي 6 hooks + تعريف types + دالة export — يمكن فصل الـ types |
-
-**التوصية**: `useAdvanceRequests.ts` هو الأقرب للحد — استخراج منطق الترحيل السالب إلى ملف مستقل.
-
-### 4. [متوسط] اختبار `findAccountByFY.test.ts` في مكان غير مناسب
-
-الاختبار موجود في `src/hooks/financial/findAccountByFY.test.ts` بينما الدالة نفسها في `src/utils/findAccountByFY.ts`. كما أن `useAccountsPage.ts` يعيد تصدير `findAccountByFY` "للتوافق مع الاختبارات" — وهو نمط هش.
-
-**التوصية**: نقل الاختبار إلى `src/utils/findAccountByFY.test.ts` وإزالة إعادة التصدير من `useAccountsPage.ts`.
-
-### 5. [متوسط] نظام toast مزدوج
-
-يوجد نظامان للـ toast:
-- `sonner` — المستخدم في **كل** الكود تقريبًا (46+ ملف)
-- `src/hooks/ui/use-toast.ts` — نظام toast مخصص (185 سطر) يستخدمه فقط `AuthContext.tsx` (لـ `clearToasts`)
-
-**التوصية**: التحقق إذا كان `clearToasts` يمكن استبداله بـ `toast.dismiss()` من sonner. إذا نعم، يمكن حذف `use-toast.ts` بالكامل (185 سطر dead code).
-
-### 6. [اختياري] حدود `lib/` vs `utils/` ما زالت غير واضحة تمامًا
-
-- `src/lib/` يحتوي: logger, queryClient, performance, theme, lazyWithRetry, componentPrefetch
-- `src/utils/` يحتوي: format, csv, xlsx, pdf/, diagnostics/, maskData, safeNumber, notifications, contractAllocation, chartHelpers, dashboardComputations
-
-هذا التقسيم **معقول** لكن غير موثق. `dashboardComputations.ts` و `chartHelpers.ts` يمكن اعتبارها أقرب لـ `lib/`.
-
-**التوصية**: إضافة تعليق في كل مجلد (أو README صغير) يوضح القاعدة. ليس بأولوية عالية.
-
-### 7. [اختياري] بعض ملفات الاختبار colocated وبعضها في `src/test/`
-
-- اختبارات معظم الـ hooks و components موجودة بجانب ملفاتها (colocated) ✅
-- لا يوجد `src/test/` كمجلد مركزي — هذا نمط جيد ومتسق
-
-لا توجد مشكلة فعلية هنا.
+`AuthProvider` موجود فقط في `AuthContext.tsx` لذا الاستيراد منطقي، لكن `useAuth` يُعاد تصديره هنا بينما كل الملفات الأخرى تستورده من `@/hooks/auth/useAuthContext`. يمكن استيراد `useAuth` منفصلًا.
 
 ---
 
-## ملخص الخطوات المقترحة
+## التوصيات — مرتبة حسب الأولوية
 
 | # | الأولوية | الخطوة | الجهد |
 |---|---|---|---|
-| 1 | حرج | حذف 4 ملفات re-export مهملة (لا مستهلكين) | صغير |
-| 2 | مهم | تعميم toast callback على data hooks اليدوية (أو على الأقل الأكثر استخدامًا) | متوسط |
-| 3 | مهم | تقسيم `useAdvanceRequests.ts` — استخراج منطق الترحيل السالب | صغير |
-| 4 | متوسط | نقل `findAccountByFY.test.ts` وإزالة re-export الهش | صغير |
-| 5 | متوسط | تقييم حذف نظام toast المخصص (`use-toast.ts`) لصالح sonner فقط | صغير-متوسط |
-| 6 | اختياري | توثيق قاعدة `lib/` vs `utils/` | صغير |
+| 1 | متوسط | تعميم `defaultNotify` على 6 ملفات في `hooks/financial/` | صغير |
+| 2 | صغير | فصل استيراد `useAuth` في `App.tsx` ليأتي من `@/hooks/auth/useAuthContext` | دقيقة واحدة |
+| 3 | اختياري | تعميم `defaultNotify` على page hooks (10+ ملف) — أقل أهمية لأنها قريبة من UI | متوسط |
+
+---
+
+## الخلاصة
+
+**البنية الحالية نظيفة وجاهزة للإنتاج.** المشاكل المتبقية هي تحسينات اتساق (consistency) وليست مشاكل معمارية. الفصل بين طبقات البيانات (`hooks/data/`) والواجهة (`hooks/page/`) واضح. لا توجد ملفات في مكان خاطئ، ولا dead code، ولا اقتران خطير.
 
