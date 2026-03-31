@@ -44,9 +44,9 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
             </div>
           )}
           <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="h-px w-16 bg-linear-to-l from-secondary/60 to-transparent" />
+            <div className="h-px w-16 bg-gradient-to-l from-secondary/60 to-transparent" />
             <Star className="w-4 h-4 text-secondary fill-secondary/30" />
-            <div className="h-px w-16 bg-linear-to-r from-secondary/60 to-transparent" />
+            <div className="h-px w-16 bg-gradient-to-r from-secondary/60 to-transparent" />
           </div>
           <h1 className="font-arabic text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
             {content.hero_title}

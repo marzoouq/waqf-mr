@@ -12,7 +12,7 @@ interface LandingCTAProps {
 
 const LandingCTA: React.FC<LandingCTAProps> = ({ content, onNavigateAuth }) => (
   <section className="py-16 gradient-primary pattern-islamic relative overflow-hidden" aria-label="دعوة للبدء">
-    <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-primary/20" aria-hidden="true" />
+    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/20" aria-hidden="true" />
     <div className="container mx-auto px-4 text-center relative z-10">
       <h3 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
         {content.cta_section_title}
