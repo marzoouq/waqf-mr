@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/hooks/data/mutationNotify';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { FiscalAllocation } from '@/utils/contractAllocation';
@@ -60,7 +60,7 @@ export const useUpsertContractAllocations = () => {
     },
     onError: (error: Error) => {
       logger.error('Allocation error:', error.message);
-      toast.error('خطأ في حفظ تخصيصات العقد');
+      defaultNotify.error('خطأ في حفظ تخصيصات العقد');
     },
   });
 };

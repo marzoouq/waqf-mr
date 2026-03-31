@@ -6,7 +6,7 @@ import type { Contract } from '@/types/database';
 import { useUpdateContract, useDeleteContract } from '@/hooks/data/useContracts';
 import { useDeleteAccount } from '@/hooks/financial/useAccounts';
 import { useUpsertTenantPayment } from '@/hooks/data/useTenantPayments';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/hooks/data/mutationNotify';
 
 interface CollectionEditData {
   contractId: string;
@@ -69,7 +69,7 @@ export function useAccountsEditing({ contracts, collectionData, getExpectedPayme
   const handleSaveEdit = async () => {
     if (!editData) return;
     const contract = contracts.find((c: { id: string }) => c.id === editData.contractId);
-    if (!contract) { toast.error('العقد غير موجود'); return; }
+    if (!contract) { defaultNotify.error('العقد غير موجود'); return; }
     try {
       await updateContract.mutateAsync({
         id: contract.id,

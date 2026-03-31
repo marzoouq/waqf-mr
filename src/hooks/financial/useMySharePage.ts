@@ -9,7 +9,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { generateMySharePDF, generateDistributionsPDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/hooks/data/mutationNotify';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
@@ -133,7 +133,7 @@ export const useMySharePage = () => {
 
   const handleDownloadPDF = withPdfLoading(async () => {
     if (!currentBeneficiary) return;
-    if (!isClosed) { toast.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
+    if (!isClosed) { defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
     try {
       const advAmt = paidAdvancesTotal;
       const afterAdv = Math.max(0, myShare - advAmt);
@@ -156,13 +156,13 @@ export const useMySharePage = () => {
           amount: Number(d.amount), status: d.status,
         })),
       }, pdfWaqfInfo);
-      toast.success('تم تحميل ملف PDF بنجاح');
-    } catch { toast.error('حدث خطأ أثناء تصدير PDF'); }
+      defaultNotify.success('تم تحميل ملف PDF بنجاح');
+    } catch { defaultNotify.error('حدث خطأ أثناء تصدير PDF'); }
   });
 
   const handleDownloadDistributionsPDF = withPdfLoading(async () => {
     if (!currentBeneficiary) return;
-    if (!isClosed) { toast.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
+    if (!isClosed) { defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
     try {
       const advances = paidAdvancesTotal;
       const afterAdvances = Math.max(0, myShare - advances);
@@ -181,13 +181,13 @@ export const useMySharePage = () => {
           net_amount: net, deficit,
         }],
       }, pdfWaqfInfo);
-      toast.success('تم تحميل تقرير التوزيعات بنجاح');
-    } catch { toast.error('حدث خطأ أثناء تصدير التقرير'); }
+      defaultNotify.success('تم تحميل تقرير التوزيعات بنجاح');
+    } catch { defaultNotify.error('حدث خطأ أثناء تصدير التقرير'); }
   });
 
   const handleDownloadComprehensivePDF = withPdfLoading(async () => {
     if (!currentBeneficiary) return;
-    if (!isClosed) { toast.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
+    if (!isClosed) { defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
     try {
       await generateComprehensiveBeneficiaryPDF({
         beneficiaryName: currentBeneficiary.name ?? 'غير معروف',
@@ -205,8 +205,8 @@ export const useMySharePage = () => {
           amount: Number(d.amount), status: d.status,
         })),
       }, pdfWaqfInfo);
-      toast.success('تم تحميل التقرير الشامل بنجاح');
-    } catch { toast.error('حدث خطأ أثناء تصدير التقرير الشامل'); }
+      defaultNotify.success('تم تحميل التقرير الشامل بنجاح');
+    } catch { defaultNotify.error('حدث خطأ أثناء تصدير التقرير الشامل'); }
   });
 
   const handlePrintReport = () => {
