@@ -8,7 +8,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Lock } from 'lucide-react';
-import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
@@ -17,25 +17,18 @@ const PrintFooter = lazy(() => import('@/components/PrintFooter'));
 import BetaBanner from '@/components/BetaBanner';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { defaultMenuLabels, type MenuLabels } from '@/types/menuLabels';
 import SidebarContent from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
 const GlobalSearch = lazy(() => import('@/components/GlobalSearch'));
 const IdleTimeoutWarning = lazy(() => import('@/components/IdleTimeoutWarning'));
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
-import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { useRealtimeAlerts } from '@/hooks/data/useRealtimeAlerts';
 import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
-import {
-  linkLabelKeys, allAdminLinks, allBeneficiaryLinks,
-  SHOW_ALL_ROUTES, ADMIN_ROUTE_PERM_KEYS, BENEFICIARY_ROUTE_PERM_KEYS,
-  ACCOUNTANT_EXCLUDED_ROUTES,
-  defaultAdminSections, defaultBeneficiarySections,
-  ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS,
-} from '@/components/dashboard-layout/constants';
+import { SHOW_ALL_ROUTES } from '@/components/dashboard-layout/constants';
 import MobileHeader from '@/components/dashboard-layout/MobileHeader';
 import DesktopTopBar from '@/components/dashboard-layout/DesktopTopBar';
+import { useNavLinks } from '@/hooks/page/useNavLinks';
 
 // DiagnosticOverlay — يُحمّل فقط في وضع التطوير
 const DiagnosticOverlay = import.meta.env.DEV
@@ -55,6 +48,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const showAll = SHOW_ALL_ROUTES.includes(location.pathname);
   useRealtimeAlerts(navigate);
+
+  // روابط القائمة الجانبية — مُستخرجة إلى hook مستقل
+  const links = useNavLinks();
+
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     try { return localStorage.getItem('sidebar-open') === 'true'; }
     catch { return false; }
@@ -83,57 +80,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   });
 
   const { getJsonSetting } = useAppSettings();
-
-  const menuLabels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
-  const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
-  const sectionsVisibility = useMemo(() => ({ ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) }), [getJsonSetting]);
-  const beneficiarySections = useMemo(() => ({ ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) }), [getJsonSetting]);
-
-  const links = useMemo(() => {
-    if (role === 'admin') {
-      return allAdminLinks
-        .filter(link => {
-          const sectionKey = ADMIN_SECTION_KEYS[link.to];
-          return !sectionKey || (sectionsVisibility as Record<string, boolean>)[sectionKey] !== false;
-        })
-        .map(link => {
-          const labelKey = linkLabelKeys[link.to];
-          return { ...link, label: (labelKey && menuLabels[labelKey]) || link.label };
-        });
-    }
-
-    if (role === 'accountant') {
-      const perms = rolePermissions.accountant || DEFAULT_ROLE_PERMS.accountant;
-      return allAdminLinks
-        .filter(link => !ACCOUNTANT_EXCLUDED_ROUTES.includes(link.to))
-        .filter(link => {
-          const sectionKey = ADMIN_SECTION_KEYS[link.to];
-          if (sectionKey && (sectionsVisibility as Record<string, boolean>)[sectionKey] === false) return false;
-          const key = ADMIN_ROUTE_PERM_KEYS[link.to];
-          return !key || perms?.[key] !== false;
-        })
-        .map(link => {
-          const labelKey = linkLabelKeys[link.to];
-          return { ...link, label: (labelKey && menuLabels[labelKey]) || link.label };
-        });
-    }
-
-    const roleKey = role === 'waqif' ? 'waqif' : 'beneficiary';
-    const perms = rolePermissions[roleKey] || DEFAULT_ROLE_PERMS[roleKey] || {};
-    return allBeneficiaryLinks
-      .map(link => {
-        if (role === 'waqif' && link.to === '/beneficiary') {
-          return { ...link, to: '/waqif' };
-        }
-        return link;
-      })
-      .filter(link => {
-        const bsKey = BENEFICIARY_SECTION_KEYS[link.to];
-        if (bsKey && (beneficiarySections as Record<string, boolean>)[bsKey] === false) return false;
-        const key = BENEFICIARY_ROUTE_PERM_KEYS[link.to];
-        return !key || perms[key] !== false;
-      });
-  }, [role, rolePermissions, menuLabels, sectionsVisibility, beneficiarySections]);
 
   const handleSignOut = useCallback(async () => {
     setLogoutOpen(false);

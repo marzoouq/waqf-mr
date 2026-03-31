@@ -12,16 +12,12 @@ import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
-import { setPerformanceToast } from "@/lib/performanceMonitor";
-import { toast as sonnerToast } from "sonner";
+import DeferredRender from '@/components/DeferredRender';
 
 // ملفات المسارات المقسّمة
 import { publicRoutes, catchAllRoute } from "@/routes/publicRoutes";
 import { adminRoutes } from "@/routes/adminRoutes";
 import { beneficiaryRoutes } from "@/routes/beneficiaryRoutes";
-
-// ربط دالة التنبيه بمراقب الأداء
-setPerformanceToast((msg, opts) => sonnerToast.warning(msg, opts));
 
 /** مكوّن يتتبع أداء تحميل الصفحات */
 function PagePerformanceTracker() {
@@ -42,8 +38,6 @@ function PageLoader() {
     </div>
   );
 }
-
-import DeferredRender from '@/components/DeferredRender';
 
 /** يحمّل AiAssistant فقط لأدوار admin/accountant لتوفير JS */
 function RoleGatedAiAssistant() {
