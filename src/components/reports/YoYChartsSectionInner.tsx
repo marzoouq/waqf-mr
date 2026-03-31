@@ -120,7 +120,7 @@ const YoYChartsSectionInner = ({
                     <Cell key={`cell-y2-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyleRtl} />
+                <Tooltip formatter={((value: number | undefined) => `${fmt(value ?? 0)} ر.س`) as never} contentStyle={tooltipStyleRtl} />
                 <Legend wrapperStyle={{ fontSize: '11px' }} />
               </PieChart>
             </ResponsiveContainer>

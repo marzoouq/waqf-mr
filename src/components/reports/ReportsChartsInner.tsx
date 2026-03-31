@@ -46,7 +46,7 @@ const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceDat
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis />
-            <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyleRtl} />
+            <Tooltip formatter={((value: number | undefined) => `${fmt(value ?? 0)} ر.س`) as never} contentStyle={tooltipStyleRtl} />
             <Bar dataKey="value" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

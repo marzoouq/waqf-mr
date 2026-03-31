@@ -18,10 +18,10 @@ const IncomeMonthlyChartInner = ({ chartData }: IncomeMonthlyChartInnerProps) =>
           <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
           <Tooltip
             contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }}
-            formatter={(value: number | undefined, name: string | undefined) => [
+            formatter={((value: number | undefined, name: string | undefined) => [
               `${fmt(value ?? 0)} ر.س`,
               name === 'actual' ? 'الفعلي' : 'المتوقع',
-            ]}
+            ]) as never}
           />
           <Legend formatter={(value: string) => value === 'actual' ? 'الفعلي' : 'المتوقع'} />
           <Bar dataKey="expected" fill="hsl(var(--muted-foreground) / 0.3)" radius={[4, 4, 0, 0]} name="expected" />

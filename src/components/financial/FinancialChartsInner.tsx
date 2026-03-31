@@ -110,7 +110,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} width={40} tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)} />
-            <Tooltip formatter={(value: number | undefined) => fmt(Math.round(value ?? 0)) + ' ر.س'} contentStyle={tooltipStyleRtl} labelFormatter={formatArabicMonth} />
+            <Tooltip formatter={((value: number | undefined) => fmt(Math.round(value ?? 0)) + ' ر.س') as never} contentStyle={tooltipStyleRtl} labelFormatter={formatArabicMonth} />
             <Bar dataKey="income" fill="hsl(var(--success))" name="الإيرادات" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

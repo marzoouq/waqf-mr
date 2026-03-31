@@ -66,7 +66,7 @@ const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInne
                       <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyleRtl} />
+                  <Tooltip formatter={((value: number | undefined) => `${fmt(value ?? 0)} ر.س`) as never} contentStyle={tooltipStyleRtl} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>

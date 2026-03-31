@@ -49,7 +49,7 @@ const CollectionSummaryChart = ({ onTime, late, partial = 0 }: CollectionSummary
               <Cell key={i} fill={color} />
             ))}
           </Pie>
-          <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(value?: number, name?: string) => [`${value ?? 0} فاتورة`, name ?? '']} />
+          <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={((value?: number, name?: string) => [`${value ?? 0} فاتورة`, name ?? '']) as never} />
         </PieChart>
       </ResponsiveContainer>
     </div>
