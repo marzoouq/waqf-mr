@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from './mutationNotify';
 import { createCrudFactory } from '@/hooks/data/useCrudFactory';
 import type { Tables } from '@/integrations/supabase/types';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
@@ -46,10 +46,10 @@ export const useReorderBylaws = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waqf_bylaws'] });
-      toast.success('تم حفظ الترتيب الجديد');
+      defaultNotify.success('تم حفظ الترتيب الجديد');
     },
     onError: () => {
-      toast.error('حدث خطأ أثناء حفظ الترتيب');
+      defaultNotify.error('حدث خطأ أثناء حفظ الترتيب');
     },
   });
 };

@@ -8,7 +8,7 @@ import { Income } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from './mutationNotify';
 
 /** أعمدة الإيرادات مع ربط العقار */
 const INCOME_SELECT = 'id, amount, date, source, notes, fiscal_year_id, property_id, contract_id, created_at, property:properties(id, property_number, location)';
@@ -44,7 +44,7 @@ export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
       const { data, error } = await query;
       if (error) throw error;
       if (data && data.length >= PER_FY_LIMIT) {
-        toast.warning('تم عرض أول 2,000 سجل إيرادات — قد توجد سجلات إضافية. يُرجى تضييق الفلترة.');
+        defaultNotify.warning('تم عرض أول 2,000 سجل إيرادات — قد توجد سجلات إضافية. يُرجى تضييق الفلترة.');
       }
       return data as Income[];
     },

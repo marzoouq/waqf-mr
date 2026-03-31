@@ -5,7 +5,7 @@
  */
 import { useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { toast } from 'sonner';
+import { defaultNotify } from './mutationNotify';
 import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 
@@ -35,7 +35,7 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
         const ticket = payload.new as { ticket_number?: string; title?: string; priority?: string; created_by?: string };
         if (ticket.created_by === userId) return;
         const priorityLabel = ticket.priority === 'critical' ? '🔴 حرج' : ticket.priority === 'high' ? '🟠 عالي' : '';
-        toast.info(`تذكرة دعم جديدة ${priorityLabel}`, {
+        defaultNotify.info(`تذكرة دعم جديدة ${priorityLabel}`, {
           description: `${ticket.ticket_number}: ${ticket.title}`,
           action: {
             label: 'عرض',
@@ -54,7 +54,7 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
         const oldT = payload.old as { status?: string };
         const newT = payload.new as { status?: string; ticket_number?: string; title?: string };
         if (oldT.status && newT.status && oldT.status !== newT.status) {
-          toast.info('تحديث حالة تذكرة دعم', {
+          defaultNotify.info('تحديث حالة تذكرة دعم', {
             description: `${newT.ticket_number}: ${oldT.status} ← ${newT.status}`,
             duration: 6000,
           });
@@ -71,7 +71,7 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
         if (oldC.status && newC.status && oldC.status !== newC.status) {
           const oldLabel = CONTRACT_STATUS_LABELS[oldC.status] || oldC.status;
           const newLabel = CONTRACT_STATUS_LABELS[newC.status] || newC.status;
-          toast.warning('تغيير حالة عقد', {
+          defaultNotify.warning('تغيير حالة عقد', {
             description: `عقد ${newC.contract_number} (${newC.tenant_name}): ${oldLabel} ← ${newLabel}`,
             action: {
               label: 'عرض',
@@ -89,7 +89,7 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
         table: 'contracts',
       }, (payload) => {
         const c = payload.new as { contract_number?: string; tenant_name?: string };
-        toast.success('عقد جديد', {
+        defaultNotify.success('عقد جديد', {
           description: `تم إضافة عقد ${c.contract_number} - ${c.tenant_name}`,
           duration: 6000,
         });

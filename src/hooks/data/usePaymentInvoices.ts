@@ -4,7 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { toast } from 'sonner';
+import { defaultNotify } from './mutationNotify';
 import { logger } from '@/lib/logger';
 
 export interface PaymentInvoice {
@@ -54,10 +54,10 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
       if (error) throw error;
       if (data && data.length >= 1000) {
         logger.warn(`payment_invoices query hit limit (1000) for fiscal year ${fiscalYearId}`);
-        toast.warning('تم الوصول للحد الأقصى (1000 فاتورة) — قد تكون هناك فواتير إضافية غير معروضة');
+        defaultNotify.warning('تم الوصول للحد الأقصى (1000 فاتورة) — قد تكون هناك فواتير إضافية غير معروضة');
       } else if (data && data.length >= 900) {
         logger.warn(`payment_invoices approaching limit: ${data.length}/1000`);
-        toast.info(`عدد الفواتير (${data.length}) يقترب من الحد الأقصى (1000)`);
+        defaultNotify.info(`عدد الفواتير (${data.length}) يقترب من الحد الأقصى (1000)`);
       }
       return data as unknown as PaymentInvoice[];
     },
@@ -77,9 +77,9 @@ export const useGenerateContractInvoices = () => {
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      toast.success(`تم توليد ${count} فاتورة`);
+      defaultNotify.success(`تم توليد ${count} فاتورة`);
     },
-    onError: () => toast.error('فشل توليد الفواتير'),
+    onError: () => defaultNotify.error('فشل توليد الفواتير'),
   });
 };
 
@@ -94,9 +94,9 @@ export const useGenerateAllInvoices = () => {
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      toast.success(`تم توليد ${count} فاتورة لجميع العقود النشطة`);
+      defaultNotify.success(`تم توليد ${count} فاتورة لجميع العقود النشطة`);
     },
-    onError: () => toast.error('فشل توليد الفواتير'),
+    onError: () => defaultNotify.error('فشل توليد الفواتير'),
   });
 };
 
@@ -116,9 +116,9 @@ export const useMarkInvoicePaid = () => {
       qc.invalidateQueries({ queryKey: ['tenant_payments'] });
       qc.invalidateQueries({ queryKey: ['income'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      toast.success('تم تسديد الفاتورة وتسجيل التحصيل');
+      defaultNotify.success('تم تسديد الفاتورة وتسجيل التحصيل');
     },
-    onError: () => toast.error('فشل تسديد الفاتورة'),
+    onError: () => defaultNotify.error('فشل تسديد الفاتورة'),
   });
 };
 
@@ -137,8 +137,8 @@ export const useMarkInvoiceUnpaid = () => {
       qc.invalidateQueries({ queryKey: ['tenant_payments'] });
       qc.invalidateQueries({ queryKey: ['income'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      toast.success('تم إلغاء التسديد والتراجع عن التحصيل');
+      defaultNotify.success('تم إلغاء التسديد والتراجع عن التحصيل');
     },
-    onError: () => toast.error('فشل إلغاء التسديد'),
+    onError: () => defaultNotify.error('فشل إلغاء التسديد'),
   });
 };

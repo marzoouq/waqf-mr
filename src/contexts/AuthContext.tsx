@@ -17,7 +17,7 @@ import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { clearSlowQueries } from '@/lib/performanceMonitor';
 import { clearPageLoadEntries } from '@/lib/pagePerformanceTracker';
 import { queryClient } from '@/lib/queryClient';
-import { clearToasts, toast } from '@/hooks/ui/use-toast';
+import { toast } from 'sonner';
 import { AuthContext } from '@/hooks/auth/useAuthContext';
 
 // مفاتيح التخزين المحلي القابلة للمسح عند تسجيل الخروج
@@ -232,7 +232,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
       clearSlowQueries();
       clearPageLoadEntries();
-      clearToasts();
+      toast.dismiss();
     }
   };
 
@@ -247,7 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       setRoleWithRef(data ? (data.role as AppRole) : null);
     } catch {
-      toast({ title: 'تعذّر تحديث الدور', description: 'يرجى تحديث الصفحة', variant: 'destructive' });
+      toast.error('تعذّر تحديث الدور — يرجى تحديث الصفحة');
     }
   };
 

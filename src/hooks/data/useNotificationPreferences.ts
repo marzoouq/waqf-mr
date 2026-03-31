@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
+import { defaultNotify } from './mutationNotify';
 import {
   NOTIFICATION_TONE_KEY,
   NOTIFICATION_VOLUME_KEY,
@@ -31,7 +31,7 @@ export const useNotificationPreferences = () => {
   const handleSoundChange = useCallback((value: boolean) => {
     setSoundEnabled(value);
     try { localStorage.setItem(NOTIF_SOUND_KEY, String(value)); } catch { /* ignored */ }
-    toast.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
+    defaultNotify.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
   }, []);
 
   const handleToneChange = useCallback((tone: ToneId) => {

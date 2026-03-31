@@ -4,7 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from './mutationNotify';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/safeNumber';
@@ -69,11 +69,11 @@ export const useCreateReportItem = () => {
     },
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['annual_report_items', v.fiscal_year_id] });
-      toast.success('تمت إضافة العنصر بنجاح');
+      defaultNotify.success('تمت إضافة العنصر بنجاح');
     },
     onError: (e) => {
       logger.error('خطأ في إضافة عنصر التقرير:', e);
-      toast.error('فشل في إضافة العنصر');
+      defaultNotify.error('فشل في إضافة العنصر');
     },
   });
 };
@@ -93,9 +93,9 @@ export const useUpdateReportItem = () => {
     },
     onSuccess: (_d, _v) => {
       qc.invalidateQueries({ queryKey: ['annual_report_items'], exact: false });
-      toast.success('تم تحديث العنصر');
+      defaultNotify.success('تم تحديث العنصر');
     },
-    onError: () => toast.error('فشل في تحديث العنصر'),
+    onError: () => defaultNotify.error('فشل في تحديث العنصر'),
   });
 };
 
@@ -108,9 +108,9 @@ export const useDeleteReportItem = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['annual_report_items'] });
-      toast.success('تم حذف العنصر');
+      defaultNotify.success('تم حذف العنصر');
     },
-    onError: () => toast.error('فشل في حذف العنصر'),
+    onError: () => defaultNotify.error('فشل في حذف العنصر'),
   });
 };
 
@@ -154,9 +154,9 @@ export const useToggleReportPublish = () => {
     },
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['annual_report_status', v.fiscalYearId] });
-      toast.success(v.publish ? 'تم نشر التقرير السنوي' : 'تم إرجاع التقرير إلى مسودة');
+      defaultNotify.success(v.publish ? 'تم نشر التقرير السنوي' : 'تم إرجاع التقرير إلى مسودة');
     },
-    onError: () => toast.error('فشل في تحديث حالة النشر'),
+    onError: () => defaultNotify.error('فشل في تحديث حالة النشر'),
   });
 };
 

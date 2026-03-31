@@ -3,7 +3,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from './mutationNotify';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { STALE_REALTIME, STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
 
@@ -110,7 +110,7 @@ export const useCreateTicket = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      toast.success('تم إنشاء التذكرة بنجاح');
+      defaultNotify.success('تم إنشاء التذكرة بنجاح');
       supabase.rpc('notify_admins', {
         p_title: 'تذكرة دعم فني جديدة',
         p_message: 'تم استلام تذكرة دعم فني جديدة تحتاج مراجعة',
@@ -118,7 +118,7 @@ export const useCreateTicket = () => {
         p_link: '/dashboard/support',
       }).then(() => {}, () => {});
     },
-    onError: () => toast.error('فشل إنشاء التذكرة'),
+    onError: () => defaultNotify.error('فشل إنشاء التذكرة'),
   });
 };
 
@@ -138,9 +138,9 @@ export const useUpdateTicketStatus = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      toast.success('تم تحديث التذكرة');
+      defaultNotify.success('تم تحديث التذكرة');
     },
-    onError: () => toast.error('فشل تحديث التذكرة'),
+    onError: () => defaultNotify.error('فشل تحديث التذكرة'),
   });
 };
 
@@ -160,9 +160,9 @@ export const useAddTicketReply = () => {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['ticket_replies', vars.ticket_id] });
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      toast.success('تم إرسال الرد');
+      defaultNotify.success('تم إرسال الرد');
     },
-    onError: () => toast.error('فشل إرسال الرد'),
+    onError: () => defaultNotify.error('فشل إرسال الرد'),
   });
 };
 
@@ -181,9 +181,9 @@ export const useRateTicket = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      toast.success('شكراً لتقييمك!');
+      defaultNotify.success('شكراً لتقييمك!');
     },
-    onError: () => toast.error('فشل إرسال التقييم'),
+    onError: () => defaultNotify.error('فشل إرسال التقييم'),
   });
 };
 

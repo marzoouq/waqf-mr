@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from './mutationNotify';
 import { createCrudFactory } from './useCrudFactory';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
@@ -163,10 +163,10 @@ export const useDeleteInvoice = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast.success('تم حذف الفاتورة بنجاح');
+      defaultNotify.success('تم حذف الفاتورة بنجاح');
     },
     onError: () => {
-      toast.error('حدث خطأ أثناء حذف الفاتورة');
+      defaultNotify.error('حدث خطأ أثناء حذف الفاتورة');
     },
   });
 };
@@ -261,13 +261,13 @@ export const useGenerateInvoicePdf = () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       const successCount = data.results.filter((r) => r.success && r.error !== 'already has file').length;
       if (successCount > 0) {
-        toast.success(`تم توليد ${successCount} ملف PDF بنجاح`);
+        defaultNotify.success(`تم توليد ${successCount} ملف PDF بنجاح`);
       } else {
-        toast.info('جميع الفواتير تحتوي على مرفقات بالفعل');
+        defaultNotify.info('جميع الفواتير تحتوي على مرفقات بالفعل');
       }
     },
     onError: () => {
-      toast.error('حدث خطأ أثناء توليد ملفات PDF');
+      defaultNotify.error('حدث خطأ أثناء توليد ملفات PDF');
     },
   });
 };
