@@ -7,7 +7,7 @@ import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

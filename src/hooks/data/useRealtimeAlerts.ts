@@ -4,7 +4,7 @@
  * وينبّه المستخدم عبر toast + إشعار في قاعدة البيانات
  */
 import { useCallback, useRef } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';

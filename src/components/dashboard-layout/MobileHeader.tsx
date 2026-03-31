@@ -2,7 +2,7 @@
  * رأس الصفحة للموبايل في لوحة التحكم
  */
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Menu } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';

@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { createCrudFactory } from './useCrudFactory';
 import { Beneficiary } from '@/types/database';
 import { notifyAdmins } from '@/utils/notifications';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 
 const beneficiariesCrud = createCrudFactory<'beneficiaries', Beneficiary>({
   table: 'beneficiaries',

@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { fmt } from '@/utils/format';

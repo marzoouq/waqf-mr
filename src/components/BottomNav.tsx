@@ -3,7 +3,7 @@
  * يعرض 5 روابط رئيسية حسب دور المستخدم مع زر "المزيد" لفتح القائمة الجانبية.
  */
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Home, Building2, FileText, Wallet, Menu, ClipboardList, Receipt, TrendingUp, TrendingDown, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnreadMessages } from '@/hooks/ui/useUnreadMessages';
