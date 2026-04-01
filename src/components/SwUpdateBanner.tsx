@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 const SNOOZE_MS = 30 * 60 * 1000; // 30 دقيقة
 const CSS_VAR = "--sw-banner-h";
 
+const isPreview =
+  window.location.hostname.endsWith('.lovable.app') ||
+  window.location.hostname.endsWith('.lovableproject.com');
+
 const SwUpdateBanner = () => {
   const {
     needRefresh: [needRefresh],
@@ -59,7 +63,7 @@ const SwUpdateBanner = () => {
     setSnoozedUntil(Date.now() + SNOOZE_MS);
   }, []);
 
-  if (!visible) return null;
+  if (!visible || isPreview) return null;
 
   return (
     <div
