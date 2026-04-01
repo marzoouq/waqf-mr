@@ -38,6 +38,15 @@ const placeholderStats = [
 const Index = () => {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
+
+  // كشف وجود جلسة سابقة لمنع وميض Landing Page قبل شاشة التحميل
+  const [maybeAuthenticated] = useState(() => {
+    try {
+      const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+      return !!storageKey && !!localStorage.getItem(storageKey);
+    } catch { return false; }
+  });
+
   const { getJsonSetting } = useAppSettings();
   const content = getJsonSetting<LandingPageContent>('landing_page_content', defaultLanding);
   const { data: waqfInfo } = useWaqfInfo();
