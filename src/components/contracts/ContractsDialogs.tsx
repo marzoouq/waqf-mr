@@ -1,7 +1,6 @@
 /**
  * حوارات صفحة العقود — التجديد الجماعي + الحذف
  */
-import { Button } from '@/components/ui/button';
 import { RefreshCw, CheckCircle } from 'lucide-react';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,

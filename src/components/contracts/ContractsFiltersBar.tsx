@@ -4,7 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Lock, Info, RefreshCw, CheckSquare, Square, ChevronsUpDown, Filter, ShieldCheck } from 'lucide-react';
+import { Search, Lock, RefreshCw, CheckSquare, Square, ChevronsUpDown, Filter, ShieldCheck } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import type { Contract } from '@/types/database';
