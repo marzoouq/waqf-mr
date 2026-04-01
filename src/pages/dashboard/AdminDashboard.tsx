@@ -1,6 +1,7 @@
 
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { lazy, Suspense, useMemo } from 'react';
+import YearComparisonSection from '@/components/dashboard/YearComparisonSection';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useDashboardRealtime } from '@/hooks/data/useDashboardRealtime';
 import { safeNumber } from '@/utils/safeNumber';
