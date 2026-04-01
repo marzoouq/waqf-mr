@@ -119,7 +119,7 @@ const FinancialReportsPage = () => {
       if (chartsEl) {
         try {
           const html2canvas = (await import('html2canvas')).default;
-          const canvas = await html2canvas(chartsEl, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
+          const canvas = await html2canvas(chartsEl, { scale: 3, useCORS: true, logging: false, backgroundColor: '#ffffff', windowWidth: 1200 });
           chartsImage = canvas.toDataURL('image/png');
           chartsAspect = canvas.width / canvas.height;
         } catch {
