@@ -8,7 +8,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { safeNumber } from '@/utils/safeNumber';
-import { useDeleteContract, useContractsByFiscalYear } from '@/hooks/data/useContracts';
+import { useCreateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { useProperties } from '@/hooks/data/useProperties';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
