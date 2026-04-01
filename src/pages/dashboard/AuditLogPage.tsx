@@ -102,7 +102,7 @@ const AuditLogPage = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground whitespace-nowrap">إلى:</span>
-                    <Input type="date" value={h.dateTo} onChange={e => { h.setDateTo(e.target.value); h.setCurrentPage(1); }} className="w-[160px]" aria-label="تاريخ النهاية" />
+                    <Input id="audit-date-to" name="audit_date_to" type="date" value={h.dateTo} onChange={e => { h.setDateTo(e.target.value); h.setCurrentPage(1); }} className="w-[160px]" aria-label="تاريخ النهاية" />
                   </div>
                   {h.hasDateFilter && (
                     <Button variant="ghost" size="sm" onClick={h.clearDateFilters} className="gap-1 text-muted-foreground hover:text-destructive">

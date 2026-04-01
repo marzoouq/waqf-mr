@@ -157,6 +157,8 @@ const BeneficiaryMessagesPage = () => {
                 </ScrollArea>
                 <div className="p-3 border-t border-border flex gap-2">
                   <Input
+                    id="beneficiary-message-input"
+                    name="beneficiary_message"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="اكتب رسالتك..."
