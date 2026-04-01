@@ -6,7 +6,7 @@ export {
   useMyCarryforwards,
   usePaidAdvancesTotal,
 } from './advanceTypes';
-export type { AdvanceCarryforward, AdvanceRequest } from './advanceTypes';
+export type { AdvanceCarryforward, AdvanceRequest } from '@/types/advance';
 
 export { useAccounts } from './useAccounts';
 export { useAccountsActions } from './useAccountsActions';
