@@ -98,7 +98,7 @@ const AuditLogPage = () => {
                   <div className="flex items-center gap-2">
                     <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
                     <span className="text-sm text-muted-foreground whitespace-nowrap">من:</span>
-                    <Input type="date" value={h.dateFrom} onChange={e => { h.setDateFrom(e.target.value); h.setCurrentPage(1); }} className="w-[160px]" aria-label="تاريخ البداية" />
+                    <Input id="audit-date-from" name="audit_date_from" type="date" value={h.dateFrom} onChange={e => { h.setDateFrom(e.target.value); h.setCurrentPage(1); }} className="w-[160px]" aria-label="تاريخ البداية" />
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground whitespace-nowrap">إلى:</span>
