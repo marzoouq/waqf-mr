@@ -1,59 +1,72 @@
 
-الهدف في هذه الجولة: إصلاح فشل النشر الحالي الذي يتوقف في مرحلة install قبل الوصول إلى Vite/TypeScript build، مع عدم توسيع نطاق التغيير إلى ملفات الواجهة إلا إذا ظهر خطأ جديد بعد نجاح التثبيت.
 
-ما تأكد جنائياً:
-- الفشل الحالي يحدث أثناء `install (--ignore-scripts)` مع سطر واضح من نوع `migrated lockfile from package-lock.json` ثم `failed to resolve` لحزم متعددة؛ هذا يعني أن البناء لا يصل أصلاً إلى مرحلة تجميع الكود.
-- `package.json` و`package-lock.json` في النسخة الحالية متوافقان بالفعل في الحزمتين اللتين كانتا محل الشك سابقاً:
-  - `vite: 5.4.19`
-  - `@vitejs/plugin-react-swc: 3.7.2`
-  لذا فرضية drift القديمة لهذه الحزم لم تعد السبب الرئيسي الآن.
-- يوجد `bun.lock` محلي قديم ما زال يحمل أثراً لتبعيات لم تعد موجودة في `package.json` مثل `@vitejs/plugin-react 6.0.1`، وقد جرى توثيق تضارب lockfiles سابقاً في `docs/FINAL-AUDIT-REPORT.md`.
-- قائمة `overrides` الحالية في `package.json` تجبر شجرة تبعيات إضافية/ثقيلة، والحزم التي تفشل في السحب الآن تطابق هذه المنطقة تقريباً.
-- النقطة الأكثر خطورة: `workbox-build` يطلب `@rollup/plugin-terser ^0.4.3` بينما `overrides` تجبر `1.0.0`؛ هذا override غير متوافق semverياً ويجب اعتباره مرشحاً أول للإزالة.
-- إصلاحات `src/main.tsx` و`src/lib/pwaBootstrap.ts` ليست سبب فشل البناء الحالي مباشرة، لأن الفشل يسبق مرحلة bundling.
+# خطة تحسين أداء التحميل الأولي
 
-خطة التنفيذ:
-1. تنظيف `package.json` بأضيق فرق ممكن
-   - مراجعة `overrides` وحذف ما هو زائد أو عالي المخاطر.
-   - البدء حتماً بـ:
-     - إزالة `@rollup/plugin-terser` من `overrides`
-     - إزالة `workbox-build` من `overrides` إذا كانت `vite-plugin-pwa` تجلب النسخة الصحيحة بالفعل
-   - ثم مراجعة:
-     - `serialize-javascript`
-     - `flatted`
-     - `minimatch`
-     - `lodash`
-     والإبقاء فقط على ما يثبت أنه ضروري فعلاً وغير مسبب لإعادة resolve غير مستقرة.
-   - الهدف: تقليل الضغط على mirror وتقليل عدد الحزم التي يعاد حلها أثناء النشر.
+## التغييرات المطلوبة
 
-2. توحيد lockfile
-   - اعتماد `package-lock.json` كمصدر الحقيقة في هذا المشروع لأنه المتطابق حالياً مع `package.json`.
-   - حذف `bun.lock` القديم حتى لا يبقى مصدر ثانٍ مضلل أو متناقض.
-   - إعادة توليد `package-lock.json` بعد تنظيف الـ manifest، بحيث تختفي أي آثار لتبعيات قديمة أو overrides لم تعد موجودة.
+### 1. تحميل صفحة Index بشكل فوري (Eager Import)
+**الملف**: `src/routes/publicRoutes.tsx`
 
-3. عدم العبث بملفات الواجهة في هذه الجولة
-   - لا تعديل جديد على:
-     - `src/main.tsx`
-     - `src/lib/pwaBootstrap.ts`
-     - `src/pages/Index.tsx`
-   - السبب: install يفشل قبل build، وأي تعديل إضافي هناك الآن سيكون عشوائياً وغير مرتبط مباشرة بالمشكلة الحالية.
+صفحة الهبوط (`/`) هي أول ما يراه المستخدم — تحميلها lazily يضيف round-trip إضافي. نحوّلها إلى eager import مباشر.
 
-4. خطة احتياطية فقط إذا بقيت السلسلة نفسها تفشل بعد تنظيف التبعيات
-   - عندها يتم تقليل عبء PWA على البناء مؤقتاً عبر جعل `VitePWA` قابلة للتعطيل من `vite.config.ts` كخيار fallback محدود، لأن سلسلة `workbox-build` هي أكبر مرشح ظاهر في السجلات.
-   - هذا ليس الخيار الأول؛ يُستخدم فقط إذا ثبت أن مشكلة النشر ما زالت متركزة في Workbox/PWA بعد تنظيف manifest والـ lockfile.
+```typescript
+// قبل
+const Index = lazyWithRetry(() => import("@/pages/Index"));
 
-التحقق قبل اعتماد الحل:
-- التحقق أن سجل النشر لم يعد يُظهر الحزم المحذوفة أو overrides غير المتوافقة ضمن `failed to resolve`.
-- التحقق أنه لم يعد هناك أي أثر لـ `@vitejs/plugin-react 6.0.1` في أي lockfile.
-- بعد نجاح install، تشغيل build للتأكد إن كان هناك خطأ TypeScript/Vite فعلي مخفي خلف خطأ التثبيت.
-- بعد نجاح build، إعادة فحص سلوك التحديث على `/` للتأكد أن إصلاح الوميض لم يتراجع.
+// بعد
+import Index from "@/pages/Index";
+```
 
-تفاصيل تقنية مستهدفة:
-- `package.json`
-- `package-lock.json`
-- `bun.lock` (إزالة)
-- `vite.config.ts` فقط إذا احتجنا fallback لتقليل عبء PWA
+### 2. تحميل صفحة Auth بشكل فوري
+**الملف**: `src/routes/publicRoutes.tsx`
 
-معيار الشفافية في الاعتماد:
-- إذا نجح install بعد هذه التغييرات فالمشكلة كانت داخلية في إدارة التبعيات.
-- إذا بقيت الأخطاء محصورة فقط في `429` على الحزم الأساسية المباشرة مثل `vite` و`@vitejs/plugin-react-swc` و`web-vitals` بعد تنظيف الشجرة، فحينها يكون المتبقي خارج كود المشروع وليس عيباً تطبيقياً جديداً.
+صفحة المصادقة هي ثاني أكثر صفحة يصل إليها المستخدم مباشرة — تحميلها eager يزيل تأخير الانتقال من Landing إلى Login.
+
+```typescript
+import Auth from "@/pages/Auth";
+```
+
+### 3. فصل ProtectedRoute و RequireBeneficiarySection إلى lazy import
+**الملفات**: `src/routes/adminRoutes.tsx` و `src/routes/beneficiaryRoutes.tsx`
+
+حالياً `ProtectedRoute` و `RequireBeneficiarySection` يُستوردان eagerly في ملفات المسارات المحمية — لكن هذه المسارات لا تُزار إلا بعد تسجيل الدخول. تحويلهما إلى lazy يقلل الحزمة الأولية.
+
+**adminRoutes.tsx:**
+```typescript
+// قبل
+import ProtectedRoute from "@/components/ProtectedRoute";
+
+// بعد
+const ProtectedRoute = lazyWithRetry(() => import("@/components/ProtectedRoute"));
+```
+
+**beneficiaryRoutes.tsx:**
+```typescript
+const ProtectedRoute = lazyWithRetry(() => import("@/components/ProtectedRoute"));
+const RequireBeneficiarySection = lazyWithRetry(() => import("@/components/RequireBeneficiarySection"));
+```
+
+### 4. إضافة Prefetch للصفحات الأكثر زيارة بعد الإقلاع
+**الملف**: `src/routes/publicRoutes.tsx`
+
+بعد تحميل Landing بنجاح، نبدأ prefetch لـ Auth و AdminDashboard في وقت الخمول:
+
+```typescript
+// تحميل مسبق في وقت خمول المتصفح
+if (typeof requestIdleCallback !== 'undefined') {
+  requestIdleCallback(() => {
+    import("@/pages/dashboard/AdminDashboard");
+  });
+}
+```
+
+## الملفات المتأثرة
+- `src/routes/publicRoutes.tsx` — eager import لـ Index و Auth + prefetch
+- `src/routes/adminRoutes.tsx` — lazy import لـ ProtectedRoute
+- `src/routes/beneficiaryRoutes.tsx` — lazy import لـ ProtectedRoute و RequireBeneficiarySection
+
+## النتيجة المتوقعة
+- تقليل وقت First Contentful Paint بإزالة round-trip تحميل chunk لصفحة الهبوط
+- تقليل حجم الحزمة الأولية بنقل ProtectedRoute خارج الحزمة الأساسية
+- تحسين الانتقال إلى Auth بإلغاء التأخير
+
