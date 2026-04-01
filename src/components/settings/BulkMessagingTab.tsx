@@ -152,7 +152,7 @@ const BulkMessagingTab = () => {
 
           <div className="space-y-1.5">
             <Label htmlFor="bulk-messaging-tab-field-2">نص الرسالة *</Label>
-            <Textarea id="bulk-messaging-tab-field-2"
+            <Textarea id="bulk-messaging-tab-field-2" name="bulk_message"
               value={message}
               onChange={e => setMessage(e.target.value)}
               placeholder="اكتب نص الرسالة هنا..."

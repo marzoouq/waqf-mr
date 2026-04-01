@@ -76,7 +76,7 @@ const BulkNotificationsTab = () => {
 
           <div className="space-y-1.5">
             <Label htmlFor="bulk-notifications-tab-field-3">نص الإشعار *</Label>
-            <Textarea id="bulk-notifications-tab-field-3" value={message} onChange={e => setMessage(e.target.value)} placeholder="اكتب نص الإشعار هنا..." rows={3} maxLength={500} />
+            <Textarea id="bulk-notifications-tab-field-3" name="notification_message" value={message} onChange={e => setMessage(e.target.value)} placeholder="اكتب نص الإشعار هنا..." rows={3} maxLength={500} />
           </div>
 
           <div className="space-y-1.5">
