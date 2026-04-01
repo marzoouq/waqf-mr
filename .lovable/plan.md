@@ -1,40 +1,32 @@
 
 
-# إصلاح تحذير `width(-1) height(-1)` في `CollectionSummaryChart`
+# إصلاح حلقة reload اللانهائية في `pwaBootstrap.ts`
 
-## الملخص
-مكوّن واحد فقط يحتاج إصلاح: `CollectionSummaryChart.tsx`. أما `CashFlowChartInner.tsx` فهو **مُصلح بالفعل** ويستخدم `useChartReady` + `ready` guard.
+## المشكلة
 
-## التغيير
-**الملف:** `src/components/dashboard/CollectionSummaryChart.tsx`
+عند كل build جديد في بيئة Preview، يتغير `APP_BUILD_ID` → الشرط في سطر 19 يتحقق → يُعاد التحميل → build جديد → `APP_BUILD_ID` مختلف → reload مجدداً = **حلقة لا نهائية**.
 
-1. استيراد `useChartReady` من `@/hooks/ui/useChartReady`
-2. استدعاء `const { ref, ready } = useChartReady()` داخل المكوّن (قبل guard البيانات الفارغة — لأن hooks لا يمكن استدعاؤها بعد return مبكر)
-3. إضافة `ref` على الـ `div` الحاوية
-4. لف `ResponsiveContainer` بـ `{ready && (...)}`
+نفس المشكلة في المسار غير-Preview (سطر 35-53): إذا تغير الـ ID بين كل reload.
 
-```diff
-+ import { useChartReady } from '@/hooks/ui/useChartReady';
+## الإصلاح
 
-  const CollectionSummaryChart = (...) => {
-+   const { ref, ready } = useChartReady();
-    
-    if (onTime === 0 && late === 0 && partial === 0) { ... }
+إضافة حارس زمني في `sessionStorage` يمنع أكثر من reload واحد كل 10 ثوانٍ. إذا حدث reload قريب، يتم تخطّي إعادة التحميل وتسجيل تحذير فقط.
 
-    return (
--     <div className="w-[180px] h-[180px] min-h-[180px] shrink-0">
--       <ResponsiveContainer ...>
-+     <div ref={ref} className="w-[180px] h-[180px] min-h-[180px] shrink-0">
-+       {ready && (
-+         <ResponsiveContainer ...>
-            ...
--       </ResponsiveContainer>
-+         </ResponsiveContainer>
-+       )}
-      </div>
-    );
-  };
-```
+### التغييرات — ملف واحد: `src/lib/pwaBootstrap.ts`
 
-تغيير minimal — لا إعادة هيكلة، نفس النمط المُستخدم في باقي المكونات.
+1. إضافة ثابت `RELOAD_GUARD_KEY = 'pwa_reload_ts'` و `RELOAD_COOLDOWN = 10_000`
+2. إنشاء دالة مساعدة `canReload()`:
+   - تقرأ `sessionStorage.getItem(RELOAD_GUARD_KEY)`
+   - إذا كان الفرق عن `Date.now()` أقل من 10 ثوانٍ → ترجع `false`
+   - وإلا → تحفظ الوقت الحالي وترجع `true`
+3. استبدال كل `window.location.reload()` (سطران: 27 و 53) بـ:
+   ```typescript
+   if (canReload()) {
+     window.location.reload();
+   } else {
+     logger.warn('[PWA] تم تخطي reload لمنع حلقة لا نهائية');
+   }
+   ```
+
+لا تغييرات على ملفات أخرى.
 
