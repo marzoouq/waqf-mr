@@ -217,13 +217,15 @@ const InvoicesViewPage = () => {
                                 {INVOICE_STATUS_LABELS[item.status] || item.status}
                               </Badge>
                             </TableCell>
-                            <TableCell>
-                              {item.file_path ? (
-                                <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })}>
-                                  <Eye className="w-4 h-4" /><span className="hidden sm:inline">عرض</span>
-                                </Button>
-                              ) : '-'}
-                            </TableCell>
+                            {showAttachments && (
+                              <TableCell>
+                                {item.file_path ? (
+                                  <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })}>
+                                    <Eye className="w-4 h-4" /><span className="hidden sm:inline">عرض</span>
+                                  </Button>
+                                ) : '-'}
+                              </TableCell>
+                            )}
                           </TableRow>
                         ))}
                       </TableBody>
