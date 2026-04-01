@@ -1,4 +1,5 @@
 import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
+import PropertyCard from '@/components/properties/PropertyCard';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
