@@ -42,6 +42,7 @@ const InvoicesViewPage = () => {
     return (
       (item.invoice_number || '').toLowerCase().includes(q) ||
       (INVOICE_TYPE_LABELS[item.invoice_type] || '').includes(q) ||
+      (item.description || '').toLowerCase().includes(q) ||
       item.date.includes(q)
     );
   });
@@ -144,6 +145,9 @@ const InvoicesViewPage = () => {
                             {INVOICE_STATUS_LABELS[item.status] || item.status}
                           </Badge>
                         </div>
+                        {item.description && (
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                        )}
                         {item.invoice_number && (
                           <p className="text-xs text-muted-foreground font-mono">{item.invoice_number}</p>
                         )}
@@ -181,10 +185,11 @@ const InvoicesViewPage = () => {
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <Table className="min-w-[700px]">
+                    <Table className="min-w-[850px]">
                       <TableHeader>
                         <TableRow className="bg-muted/50">
                           <TableHead className="text-right">النوع</TableHead>
+                          <TableHead className="text-right">البيان</TableHead>
                           <TableHead className="text-right">رقم الفاتورة</TableHead>
                           <TableHead className="text-right">المبلغ</TableHead>
                           <TableHead className="text-right">التاريخ</TableHead>
@@ -197,6 +202,7 @@ const InvoicesViewPage = () => {
                         {filteredInvoices.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
                           <TableRow key={item.id}>
                             <TableCell className="font-medium">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
+                            <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate" title={item.description || '-'}>{item.description || '-'}</TableCell>
                             <TableCell>{item.invoice_number || '-'}</TableCell>
                             <TableCell className="font-medium">{fmt(safeNumber(item.amount))} ر.س</TableCell>
                             <TableCell>{fmtDate(item.date)}</TableCell>
