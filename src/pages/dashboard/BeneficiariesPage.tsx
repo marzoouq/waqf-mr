@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Percent, Search, AlertTriangle, Wallet, UserCheck } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import { generateBeneficiariesPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import ExportMenu from '@/components/ExportMenu';
@@ -32,7 +32,7 @@ const BeneficiariesPage = () => {
           icon={Users}
           description="عرض وإدارة المستفيدين من الوقف"
           actions={<>
-            <ExportMenu onExportPdf={() => generateBeneficiariesPDF(h.filteredBeneficiaries, pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => { const { generateBeneficiariesPDF } = await import('@/utils/pdf'); generateBeneficiariesPDF(h.filteredBeneficiaries, pdfWaqfInfo); }} onExportCsv={() => {
               const csv = buildCsv(h.filteredBeneficiaries.map(b => ({
                 'الاسم': b.name,
                 'النسبة %': Number(b.share_percentage),

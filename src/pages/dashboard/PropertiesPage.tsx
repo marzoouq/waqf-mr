@@ -14,7 +14,7 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import CrudPagination from '@/components/CrudPagination';
 import ExportMenu from '@/components/ExportMenu';
-import { generatePropertiesPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -49,7 +49,7 @@ const PropertiesPage = () => {
           icon={Building2}
           description="عرض وإدارة جميع عقارات الوقف"
           actions={<>
-            <ExportMenu onExportPdf={() => generatePropertiesPDF(properties, pdfWaqfInfo)} />
+            <ExportMenu onExportPdf={async () => { const { generatePropertiesPDF } = await import('@/utils/pdf'); generatePropertiesPDF(properties, pdfWaqfInfo); }} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
                 <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة عقار</Button>

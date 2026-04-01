@@ -16,7 +16,7 @@ import ExpenseFormDialog from '@/components/expenses/ExpenseFormDialog';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import ExpensesPieChart from '@/components/expenses/ExpensesPieChart';
 import ExpenseBudgetBar from '@/components/expenses/ExpenseBudgetBar';
-import { generateExpensesPDF } from '@/utils/pdf';
+
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +42,7 @@ const ExpensesPage = () => {
           icon={TrendingDown}
           description="تسجيل ومتابعة المصروفات"
           actions={<>
-            <ExportMenu onExportPdf={() => generateExpensesPDF(h.filteredExpenses, h.totalExpenses, h.pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => { const { generateExpensesPDF } = await import('@/utils/pdf'); generateExpensesPDF(h.filteredExpenses, h.totalExpenses, h.pdfWaqfInfo); }} onExportCsv={() => {
               const csv = buildCsv(h.filteredExpenses.map(item => ({
                 'النوع': item.expense_type, 'المبلغ': safeNumber(item.amount), 'التاريخ': item.date,
                 'العقار': item.property?.property_number || '-', 'الوصف': item.description || '-',

@@ -17,7 +17,7 @@ import InvoicesDesktopTable from '@/components/invoices/InvoicesDesktopTable';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
-import { generateInvoicesViewPDF } from '@/utils/pdf';
+
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { toast } from 'sonner';
 import { safeNumber } from '@/utils/safeNumber';
@@ -59,6 +59,7 @@ const InvoicesPage = () => {
               }
               try {
                 const fyLabel = h.fiscalYear?.label || (h.fiscalYearId ? '' : 'جميع السنوات');
+                const { generateInvoicesViewPDF } = await import('@/utils/pdf');
                 await generateInvoicesViewPDF(h.filteredInvoices.map(inv => ({
                   invoice_type: h.INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
                   invoice_number: inv.invoice_number, amount: safeNumber(inv.amount), date: inv.date,

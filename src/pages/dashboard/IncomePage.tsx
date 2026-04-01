@@ -18,7 +18,7 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
-import { generateIncomePDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -53,7 +53,7 @@ const IncomePage = () => {
           icon={TrendingUp}
           description="تسجيل ومتابعة مصادر الدخل"
           actions={<>
-            <ExportMenu onExportPdf={() => generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => { const { generateIncomePDF } = await import('@/utils/pdf'); generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo); }} onExportCsv={() => {
               const csv = buildCsv(filteredIncome.map(item => ({
                 'المصدر': item.source,
                 'المبلغ': safeNumber(item.amount),

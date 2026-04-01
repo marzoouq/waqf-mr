@@ -7,7 +7,7 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { generateAccountsPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
@@ -130,6 +130,7 @@ const AccountsViewPage = () => {
           actions={
             <ExportMenu onExportPdf={async () => {
               try {
+                const { generateAccountsPDF } = await import('@/utils/pdf');
                 await generateAccountsPDF({
                   contracts: contracts.filter(c => c.status === 'active').map(c => ({
                     contract_number: c.contract_number ?? '',

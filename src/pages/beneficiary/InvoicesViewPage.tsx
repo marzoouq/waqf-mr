@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { generateInvoicesViewPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { fmt, fmtDate } from '@/utils/format';
@@ -64,6 +64,7 @@ const InvoicesViewPage = () => {
         toast.info(`سيتم تصدير ${filteredInvoices.length} فاتورة مفلترة فقط`);
       }
       const fiscalYearLabel = fiscalYear?.label || undefined;
+      const { generateInvoicesViewPDF } = await import('@/utils/pdf');
       await generateInvoicesViewPDF(
         filteredInvoices.map(inv => ({
           invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,

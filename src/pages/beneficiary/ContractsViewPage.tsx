@@ -16,7 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useMemo, useCallback, useState, useEffect } from 'react';
 import TablePagination from '@/components/TablePagination';
-import { generateContractsPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { fmt, fmtDate } from '@/utils/format';
@@ -115,6 +115,7 @@ const ContractsViewPage = () => {
           <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" actions={
             <ExportMenu onExportPdf={async () => {
               try {
+                const { generateContractsPDF } = await import('@/utils/pdf');
                 await generateContractsPDF(
                   (contracts ?? []).map(c => ({
                     contract_number: c.contract_number ?? '', tenant_name: c.tenant_name ?? '',

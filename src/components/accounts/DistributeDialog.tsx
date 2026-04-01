@@ -7,9 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatPercentage } from '@/lib/utils';
 import { useDistributeShares } from '@/hooks/financial/useDistribute';
 import { Loader2, AlertTriangle, ArrowLeftRight, FileDown, Printer } from 'lucide-react';
-import { generateDistributionsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { printDistributionReport } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { useDistributionCalculation } from '@/hooks/page/useDistributionCalculation';
 
@@ -154,10 +152,10 @@ const DistributeDialog = ({
         )}
 
         <DialogFooter className="gap-2">
-          <Button variant="secondary" onClick={() => printDistributionReport({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions, waqfName: pdfWaqfInfo.waqfName, deedNumber: pdfWaqfInfo.deedNumber, logoUrl: pdfWaqfInfo.logoUrl })} disabled={beneficiaries.length === 0}>
+          <Button variant="secondary" onClick={async () => { const { printDistributionReport } = await import('@/utils/pdf'); printDistributionReport({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions, waqfName: pdfWaqfInfo.waqfName, deedNumber: pdfWaqfInfo.deedNumber, logoUrl: pdfWaqfInfo.logoUrl }); }} disabled={beneficiaries.length === 0}>
             <Printer className="w-4 h-4 ml-2" />طباعة
           </Button>
-          <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { toast.error('حدث خطأ أثناء تصدير PDF'); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>
+          <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { const { generateDistributionsPDF } = await import('@/utils/pdf'); await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { toast.error('حدث خطأ أثناء تصدير PDF'); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>
             {pdfLoading ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <FileDown className="w-4 h-4 ml-2" />}تصدير PDF
           </Button>
           <div className="flex-1" />
