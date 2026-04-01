@@ -12,7 +12,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
-import { useNavLinks } from '@/hooks/page/useNavLinks';
+import { useNavLinks } from '@/hooks/ui/useNavLinks';
 import { useRealtimeAlerts } from '@/hooks/data/useRealtimeAlerts';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { clearActiveQueryTimers } from '@/lib/queryClient';
