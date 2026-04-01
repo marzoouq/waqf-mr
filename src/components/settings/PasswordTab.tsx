@@ -83,10 +83,10 @@ const PasswordTab = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="confirm-password">تأكيد كلمة المرور</Label>
+          <Label htmlFor={`${uid}-confirm-password`}>تأكيد كلمة المرور</Label>
           <div className="relative">
             <Input
-              id="confirm-password"
+              id={`${uid}-confirm-password`}
               type={showConfirm ? 'text' : 'password'}
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
