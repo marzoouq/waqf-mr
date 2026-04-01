@@ -55,27 +55,25 @@ const BeneficiaryMessagesPage = () => {
           title="المراسلات"
           description="التواصل مع ناظر الوقف والدعم الفني"
           icon={MessageSquare}
-          actions={
-            <div className="flex gap-2">
-              <Button onClick={() => setChatDialogOpen(true)} variant="default" size="sm" className="gap-2">
-                <MessageSquare className="w-4 h-4" />
-                محادثة الناظر
-              </Button>
-              <Button onClick={() => setSupportDialogOpen(true)} variant="outline" size="sm" className="gap-2">
-                <Headphones className="w-4 h-4" />
-                دعم فني
-              </Button>
-            </div>
-          }
         />
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-4">
+        {/* التبويبات مع زر إنشاء */}
+        <div className="flex items-center gap-2 mb-4">
           <Button variant={activeTab === 'chat' ? 'default' : 'outline'} size="sm" onClick={() => { setActiveTab('chat'); setSelectedConv(null); }}>
             <MessageSquare className="w-4 h-4 ml-1" /> المحادثات
           </Button>
           <Button variant={activeTab === 'support' ? 'default' : 'outline'} size="sm" onClick={() => { setActiveTab('support'); setSelectedConv(null); }}>
             <Headphones className="w-4 h-4 ml-1" /> الدعم الفني
+          </Button>
+          <div className="flex-1" />
+          <Button
+            size="sm"
+            variant="default"
+            className="gap-1.5"
+            onClick={() => activeTab === 'chat' ? setChatDialogOpen(true) : setSupportDialogOpen(true)}
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">{activeTab === 'chat' ? 'محادثة جديدة' : 'طلب دعم'}</span>
           </Button>
         </div>
 
@@ -89,9 +87,14 @@ const BeneficiaryMessagesPage = () => {
                   {activeTab === 'chat' ? (
                     <>
                       <p>لا توجد محادثات بعد</p>
-                      <p className="text-xs mt-1">اضغط "محادثة الناظر" لبدء محادثة جديدة</p>
+                      <p className="text-xs mt-1">اضغط زر + لبدء محادثة جديدة</p>
                     </>
-                  ) : 'لا توجد تذاكر دعم'}
+                  ) : (
+                    <>
+                      <p>لا توجد تذاكر دعم</p>
+                      <p className="text-xs mt-1">اضغط زر + لإنشاء طلب دعم جديد</p>
+                    </>
+                  )}
                 </div>
               ) : (
                 conversations.map((conv) => (
@@ -167,13 +170,13 @@ const BeneficiaryMessagesPage = () => {
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                <div className="text-center space-y-3">
+                <div className="text-center space-y-2">
                   <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                  <p className="text-sm">اختر محادثة أو ابدأ محادثة جديدة مع الناظر</p>
-                  <Button onClick={() => setChatDialogOpen(true)} variant="outline" size="sm" className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    محادثة جديدة
-                  </Button>
+                  <p className="text-sm">
+                    {activeTab === 'chat'
+                      ? 'اختر محادثة من القائمة أو ابدأ محادثة جديدة'
+                      : 'اختر تذكرة من القائمة أو أنشئ طلب دعم جديد'}
+                  </p>
                 </div>
               </div>
             )}
