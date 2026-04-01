@@ -6,4 +6,4 @@ export {
   handleAuthenticationError,
   handleRegistrationError,
   logBiometricEvent,
-} from './webAuthnErrors';
+} from '@/constants/auth/webAuthnErrors';
