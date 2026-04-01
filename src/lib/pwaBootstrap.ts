@@ -7,6 +7,21 @@ import { logger } from './logger';
 const APP_BUILD_ID = import.meta.env.VITE_APP_BUILD_ID || import.meta.env.VITE_APP_VERSION || '0.0.0';
 const CACHE_VERSION_KEY = 'pwa_cache_version';
 const PREVIEW_CACHE_KEY = 'preview_cache_cleared_for';
+const RELOAD_GUARD_KEY = 'pwa_reload_ts';
+const RELOAD_COOLDOWN = 10_000; // 10 ثوانٍ
+
+/** يمنع أكثر من reload واحد كل 10 ثوانٍ */
+function canReload(): boolean {
+  try {
+    const last = sessionStorage.getItem(RELOAD_GUARD_KEY);
+    const now = Date.now();
+    if (last && now - Number(last) < RELOAD_COOLDOWN) return false;
+    sessionStorage.setItem(RELOAD_GUARD_KEY, now.toString());
+    return true;
+  } catch {
+    return true; // إذا فشل sessionStorage، نسمح بالـ reload
+  }
+}
 
 export async function runPwaCacheGuard(): Promise<void> {
   const isPreviewHost =
@@ -24,7 +39,11 @@ export async function runPwaCacheGuard(): Promise<void> {
         const names = await caches.keys();
         await Promise.all(names.map(name => caches.delete(name)));
         localStorage.setItem(PREVIEW_CACHE_KEY, APP_BUILD_ID);
-        window.location.reload();
+        if (canReload()) {
+          window.location.reload();
+          return;
+        }
+        logger.warn('[PWA] تم تخطي reload لمنع حلقة لا نهائية');
         return;
       }
       localStorage.setItem(CACHE_VERSION_KEY, APP_BUILD_ID);
@@ -50,7 +69,11 @@ export async function runPwaCacheGuard(): Promise<void> {
       } catch (error) {
         logger.warn('[PWA] تعذر حفظ علم التحديث', error);
       }
-      window.location.reload();
+      if (canReload()) {
+        window.location.reload();
+        return;
+      }
+      logger.warn('[PWA] تم تخطي reload لمنع حلقة لا نهائية');
       return;
     }
 
