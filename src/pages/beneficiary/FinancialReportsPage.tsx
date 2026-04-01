@@ -95,7 +95,7 @@ const FinancialReportsPage = () => {
   const handleDownloadPDF = async () => {
     try {
       const { generateAnnualReportPDF } = await import('@/utils/pdf');
-      await generateAnnualReportPDF({
+      const reportData = {
         fiscalYear,
         totalIncome,
         totalExpenses,
@@ -110,7 +110,24 @@ const FinancialReportsPage = () => {
           percentage: Number(currentBeneficiary.share_percentage ?? 0),
           amount: myShare,
         }] : [],
-      }, pdfWaqfInfo);
+      };
+
+      // التقاط الرسوم البيانية كصورة وإضافتها للـ PDF
+      const chartsEl = document.getElementById('financial-charts-container');
+      let chartsImage: string | undefined;
+      let chartsAspect = 1;
+      if (chartsEl) {
+        try {
+          const html2canvas = (await import('html2canvas')).default;
+          const canvas = await html2canvas(chartsEl, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
+          chartsImage = canvas.toDataURL('image/png');
+          chartsAspect = canvas.width / canvas.height;
+        } catch {
+          // إذا فشل التقاط الرسوم البيانية، نستمر بدونها
+        }
+      }
+
+      await generateAnnualReportPDF(reportData, pdfWaqfInfo, chartsImage, chartsAspect);
       toast.success('تم تحميل ملف PDF بنجاح');
     } catch {
       toast.error('حدث خطأ أثناء تصدير PDF');
