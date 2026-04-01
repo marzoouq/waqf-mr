@@ -164,7 +164,7 @@ const InvoicesViewPage = () => {
                         </div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <span>{item.property?.property_number || '-'}</span>
-                          {item.file_path && (
+                          {showAttachments && item.file_path && (
                             <Button variant="ghost" size="sm" className="gap-1 text-primary h-7 px-2" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })}>
                               <Eye className="w-3 h-3" /> عرض
                             </Button>
