@@ -1,15 +1,14 @@
 /**
  * C-1: جدول الاستحقاقات الشهري — يعتمد على فواتير الدفعات كمصدر وحيد للحقيقة
- * يعرض المبلغ الفعلي لكل فاتورة في شهر استحقاقها (بدلاً من rent/12)
  */
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Contract } from '@/types/database';
 import { fmtInt } from '@/utils/format';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, ChevronDown, ChevronUp } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { CalendarDays } from 'lucide-react';
+import MobileAccrualCard, { type CellData, type MonthCell, getCellClasses } from './MobileAccrualCard';
 
 /** واجهة فاتورة الدفعة المُمررة من الخارج */
 interface InvoiceInfo {
@@ -33,12 +32,6 @@ const MONTH_NAMES = [
   'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
 ];
 
-interface MonthCell {
-  label: string;
-  month: number;
-  year: number;
-}
-
 /** بناء شبكة 12 شهر ديناميكية تبدأ من شهر بداية السنة المالية */
 const buildFiscalMonthGrid = (fiscalYear?: { start_date: string; end_date: string } | null): MonthCell[] => {
   const startDate = fiscalYear?.start_date ? new Date(fiscalYear.start_date) : new Date();
@@ -53,67 +46,6 @@ const buildFiscalMonthGrid = (fiscalYear?: { start_date: string; end_date: strin
 };
 
 const fmtNum = (v: number) => fmtInt(v);
-
-/** تحديد لون الخلية حسب حالة الفاتورة */
-type CellStatus = 'paid' | 'overdue' | 'pending' | 'empty';
-
-const getCellClasses = (status: CellStatus): string => {
-  switch (status) {
-    case 'paid': return 'bg-success/10 text-success font-medium';
-    case 'overdue': return 'bg-destructive/10 text-destructive font-medium';
-    case 'pending': return 'text-foreground font-medium';
-    case 'empty': return 'text-muted-foreground/40';
-  }
-};
-
-interface CellData {
-  amount: number;
-  status: CellStatus;
-}
-
-/** بطاقة عقد واحد للجوال */
-const MobileAccrualCard = ({ contract, cells, total, grid }: { contract: Contract; cells: CellData[]; total: number; grid: MonthCell[] }) => {
-  const [open, setOpen] = useState(false);
-  const activeMonths = cells.filter(c => c.amount > 0).length;
-
-  return (
-    <Card className="border">
-      <Collapsible open={open} onOpenChange={setOpen}>
-        <CollapsibleTrigger asChild>
-          <CardContent className="p-3 cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-sm truncate">{contract.contract_number}</p>
-                <p className="text-xs text-muted-foreground truncate">{contract.tenant_name}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="text-left">
-                  <p className="font-bold text-sm text-primary tabular-nums">{fmtNum(total)} ر.س</p>
-                  <p className="text-xs text-muted-foreground">{activeMonths} دفعة</p>
-                </div>
-                {open ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-              </div>
-            </div>
-          </CardContent>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="px-3 pb-3 border-t pt-2">
-            <div className="grid grid-cols-3 gap-1.5">
-              {grid.map((cell, i) => (
-                <div key={i} className={`text-center rounded p-1.5 ${cells[i]!.amount > 0 ? getCellClasses(cells[i]!.status).replace('font-medium', '') : 'bg-muted/30'}`}>
-                  <p className="text-xs text-muted-foreground">{cell.label}</p>
-                  <p className={`text-xs tabular-nums font-medium ${cells[i]!.amount > 0 ? getCellClasses(cells[i]!.status) : 'text-muted-foreground/40'}`}>
-                    {cells[i]!.amount > 0 ? fmtNum(cells[i]!.amount) : '—'}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
-  );
-};
 
 const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fiscalYearId, fiscalYear }: MonthlyAccrualTableProps) => {
   const isSpecificYear = fiscalYearId && fiscalYearId !== 'all' && fiscalYearId !== '__none__';
@@ -137,17 +69,16 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
 
   /** بناء خريطة: contract_id → فواتير مجمعة حسب (شهر, سنة) */
   const invoiceMap = useMemo(() => {
-    const map = new Map<string, Map<string, { amount: number; status: CellStatus }>>();
+    const map = new Map<string, Map<string, { amount: number; status: CellData['status'] }>>();
     for (const inv of paymentInvoices) {
       const d = new Date(inv.due_date);
       const key = `${d.getMonth()}-${d.getFullYear()}`;
       if (!map.has(inv.contract_id)) map.set(inv.contract_id, new Map());
       const contractMap = map.get(inv.contract_id)!;
       const existing = contractMap.get(key);
-      const invStatus: CellStatus = inv.status === 'paid' ? 'paid' : inv.status === 'overdue' ? 'overdue' : 'pending';
+      const invStatus: CellData['status'] = inv.status === 'paid' ? 'paid' : inv.status === 'overdue' ? 'overdue' : 'pending';
       if (existing) {
         existing.amount += inv.amount;
-        // أسوأ حالة تأخذ الأولوية: overdue > pending > paid
         if (invStatus === 'overdue') existing.status = 'overdue';
         else if (invStatus === 'pending' && existing.status !== 'overdue') existing.status = 'pending';
       } else {
@@ -163,7 +94,7 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
       const cells: CellData[] = monthGrid.map(cell => {
         const key = `${cell.month}-${cell.year}`;
         const data = contractInvoices?.get(key);
-        return data ? { amount: data.amount, status: data.status } : { amount: 0, status: 'empty' as CellStatus };
+        return data ? { amount: data.amount, status: data.status } : { amount: 0, status: 'empty' as const };
       });
       const total = cells.reduce((s, c) => s + c.amount, 0);
       return { contract, cells, total };
