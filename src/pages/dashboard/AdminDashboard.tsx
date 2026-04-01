@@ -6,7 +6,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { useDashboardRealtime } from '@/hooks/data/useDashboardRealtime';
 import { safeNumber } from '@/utils/safeNumber';
 import { computeMonthlyData } from '@/utils/dashboardComputations';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
