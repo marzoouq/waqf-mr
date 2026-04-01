@@ -239,6 +239,8 @@ const MessagesPage = () => {
                 </ScrollArea>
                 <div className="p-3 border-t border-border flex gap-2">
                   <Input
+                    id="admin-message-input"
+                    name="admin_message"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="اكتب رسالتك..."

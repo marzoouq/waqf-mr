@@ -49,7 +49,7 @@ const ChartOfAccountsPage = () => {
 
         <div className="relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="بحث بالكود أو الاسم..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pr-9" />
+          <Input id="chart-search" name="chart_search" placeholder="بحث بالكود أو الاسم..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pr-9" />
           {searchTerm && <Button variant="ghost" size="icon" className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setSearchTerm('')}><X className="w-4 h-4" /></Button>}
         </div>
 
