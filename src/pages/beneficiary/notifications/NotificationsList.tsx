@@ -10,18 +10,10 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { typeConfig } from './notificationConstants';
+import type { Notification } from '@/types/database';
 
-/** عنصر إشعار من جدول notifications */
-interface NotificationItem {
-  id: string;
-  title: string;
-  message: string;
-  type: string;
-  is_read: boolean;
-  link: string | null;
-  created_at: string;
-  user_id: string;
-}
+/** عنصر إشعار — يُعاد تسميته محلياً لتجنب التعارض مع Web API */
+type NotificationItem = Notification;
 
 interface Props {
   groupedNotifications: Record<string, NotificationItem[]>;
