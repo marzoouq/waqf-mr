@@ -8,6 +8,7 @@ import { Search, Lock, RefreshCw, CheckSquare, Square, ChevronsUpDown, Filter, S
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import type { Contract } from '@/types/database';
+import type { StatusFilterValue } from '@/hooks/page/useContractsFilters';
 
 interface Property {
   id: string;
@@ -26,8 +27,8 @@ interface StatusCounts {
 interface Props {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
-  statusFilter: string;
-  setStatusFilter: (f: string) => void;
+  statusFilter: StatusFilterValue;
+  setStatusFilter: (f: StatusFilterValue) => void;
   propertyFilter: string;
   setPropertyFilter: (f: string) => void;
   paymentTypeFilter: string;
