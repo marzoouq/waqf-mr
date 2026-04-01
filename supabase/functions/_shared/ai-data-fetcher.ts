@@ -146,9 +146,11 @@ export async function fetchWaqfData(
             .select("contract_number, rent_amount, start_date, end_date, status, payment_type")
             .eq("status", "active")
             .limit(30)
+            .then(r => r)
         : client.from("contracts")
             .select("id", { count: "exact", head: true })
-            .eq("status", "active"),
+            .eq("status", "active")
+            .then(r => r),
       // 2: التوزيعات (admin) أو توزيعات المستفيد
       isAdmin
         ? client.from("distributions")
