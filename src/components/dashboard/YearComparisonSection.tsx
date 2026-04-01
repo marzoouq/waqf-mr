@@ -20,7 +20,7 @@ const ChartSkeleton = () => (
 );
 
 interface YearComparisonSectionProps {
-  allFiscalYears: { id: string; label: string; start_date: string; end_date: string; status: string; published: boolean; created_at: string }[];
+  allFiscalYears: FiscalYear[];
   fiscalYearId: string;
 }
 
