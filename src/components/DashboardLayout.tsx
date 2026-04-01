@@ -19,7 +19,7 @@ import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import SidebarContent from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
-const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
+const GlobalSearch = lazy(() => import('@/components/GlobalSearch'));
 const IdleTimeoutWarning = lazy(() => import('@/components/IdleTimeoutWarning'));
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
