@@ -1,7 +1,7 @@
 /**
  * أنواع مصنع CRUD — مستخرجة لإعادة الاستخدام
  */
-import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
 import type { Database } from '@/integrations/supabase/types';
 
 // ---------------------------------------------------------------------------
