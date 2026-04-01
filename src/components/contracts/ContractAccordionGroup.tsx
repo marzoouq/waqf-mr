@@ -1,6 +1,5 @@
 /**
  * مكوّن عرض مجموعة عقود مُجمَّعة حسب الرقم الأساسي
- * يعرض: الصف الرئيسي (آخر عقد) → ينسدل ← تاريخ الإصدارات + الدفعات مع أزرار إجراء
  */
 import { useMemo } from 'react';
 import { Contract } from '@/types/database';
@@ -9,10 +8,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ChevronDown, Edit, Trash2, RefreshCw, Receipt, CheckCircle, Clock, AlertCircle, Check, X, Download, Loader2 } from 'lucide-react';
+import { ChevronDown, Edit, Trash2, RefreshCw } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { getPaymentCount, getPaymentTypeLabel } from '@/utils/contractHelpers';
+import { getPaymentCount } from '@/utils/contractHelpers';
 import { fmt } from '@/utils/format';
+import InvoicePaymentsList from './InvoicePaymentsList';
 
 interface ContractAccordionGroupProps {
   baseNumber: string;
@@ -41,20 +41,6 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   pending: { label: 'معلق', className: 'bg-warning/20 text-warning border-warning/30' },
 };
 
-const invoiceStatusIcon = {
-  paid: <CheckCircle className="w-3.5 h-3.5 text-success" />,
-  pending: <Clock className="w-3.5 h-3.5 text-warning" />,
-  overdue: <AlertCircle className="w-3.5 h-3.5 text-destructive" />,
-  partially_paid: <Clock className="w-3.5 h-3.5 text-info" />,
-};
-
-const invoiceStatusLabel: Record<string, string> = {
-  paid: 'مسددة',
-  pending: 'معلقة',
-  overdue: 'متأخرة',
-  partially_paid: 'جزئية',
-};
-
 const ContractAccordionGroup = ({
   baseNumber,
   contracts,
@@ -75,12 +61,10 @@ const ContractAccordionGroup = ({
   open,
   onOpenChange,
 }: ContractAccordionGroupProps) => {
-  // أحدث عقد = العقد الرئيسي المعروض
   const latest = contracts[0]!;
   const hasMultiple = contracts.length > 1;
   const latestStatus = statusConfig[latest.status] || { label: latest.status, className: 'bg-muted' };
 
-  // دفعات العقد النشط/الأحدث
   const latestInvoices = useMemo(
     () => invoices.filter(inv => inv.contract_id === latest.id).sort((a, b) => a.payment_number - b.payment_number),
     [invoices, latest.id],
@@ -99,7 +83,6 @@ const ContractAccordionGroup = ({
         >
           <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
 
-          {/* معلومات العقد الرئيسية */}
           <div className="flex-1 min-w-0">
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-1 items-center">
               <div className="flex items-center gap-2">
@@ -131,7 +114,6 @@ const ContractAccordionGroup = ({
                 {latestStatus.label}
               </span>
             </div>
-            {/* سطر ثانٍ على الجوال: الإيجار + تقدم الدفعات */}
             <div className="flex items-center gap-3 mt-1.5 lg:hidden text-xs">
               <span className="font-medium text-foreground">{fmt(Number(latest.rent_amount))} ر.س</span>
               <div className="flex items-center gap-1.5">
@@ -150,7 +132,6 @@ const ContractAccordionGroup = ({
 
       <CollapsibleContent>
         <div className="border-t border-border bg-muted/30">
-          {/* قائمة إصدارات العقد */}
           <div className="divide-y divide-border/50">
             {contracts.map((contract) => {
               const st = statusConfig[contract.status] || { label: contract.status, className: 'bg-muted' };
@@ -178,7 +159,6 @@ const ContractAccordionGroup = ({
                         {st.label}
                       </span>
                     </div>
-                    {/* بيانات إضافية على الجوال */}
                     <div className="flex items-center gap-3 mt-1 sm:hidden text-xs text-muted-foreground">
                       <span>{contract.start_date} → {contract.end_date}</span>
                       <span className="font-medium text-foreground">{fmt(Number(contract.rent_amount))} ر.س</span>
@@ -201,72 +181,17 @@ const ContractAccordionGroup = ({
             })}
           </div>
 
-          {/* دفعات العقد الأحدث مع أزرار إجراء */}
-          {latestInvoices.length > 0 && (
-            <div className="border-t border-border px-5 py-3 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                <Receipt className="w-3.5 h-3.5" />
-                <span>دفعات {latest.contract_number} ({getPaymentTypeLabel(latest.payment_type)})</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {latestInvoices.map(inv => (
-                  <div
-                    key={inv.id}
-                    className="flex items-center gap-2 rounded-md border border-border/50 bg-card px-3 py-2 text-sm"
-                  >
-                    {invoiceStatusIcon[inv.status] || <Clock className="w-3.5 h-3.5 text-muted-foreground" />}
-                    <span className="text-muted-foreground">دفعة {inv.payment_number}</span>
-                    <span className="font-medium mr-auto">{fmt(Number(inv.amount))} ر.س</span>
-                    <span className={`text-[11px] px-1.5 py-0.5 rounded-full ${
-                      inv.status === 'paid' ? 'bg-success/15 text-success'
-                        : inv.status === 'overdue' ? 'bg-destructive/15 text-destructive'
-                        : 'bg-warning/15 text-warning'
-                    }`}>
-                      {invoiceStatusLabel[inv.status] || inv.status}
-                    </span>
-                    {/* أزرار الإجراء */}
-                    <div className="flex gap-0.5 mr-1">
-                      {onDownloadInvoice && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-6 h-6"
-                          onClick={() => onDownloadInvoice(inv)}
-                          title="تحميل PDF"
-                          disabled={loadingInvoiceId === inv.id}
-                        >
-                          {loadingInvoiceId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
-                        </Button>
-                      )}
-                      {!isClosed && inv.status !== 'paid' && onPayInvoice && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-6 h-6 text-success hover:text-success/80"
-                          onClick={() => onPayInvoice(inv)}
-                          title="تسديد"
-                          disabled={payingInvoiceId === inv.id}
-                        >
-                          {payingInvoiceId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                        </Button>
-                      )}
-                      {!isClosed && inv.status === 'paid' && onUnpayInvoice && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-6 h-6 text-muted-foreground"
-                          onClick={() => onUnpayInvoice(inv.id)}
-                          title="إلغاء التسديد"
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* دفعات العقد الأحدث */}
+          <InvoicePaymentsList
+            contract={latest}
+            invoices={latestInvoices}
+            onPayInvoice={onPayInvoice}
+            onUnpayInvoice={onUnpayInvoice}
+            onDownloadInvoice={onDownloadInvoice}
+            loadingInvoiceId={loadingInvoiceId}
+            payingInvoiceId={payingInvoiceId}
+            isClosed={isClosed}
+          />
         </div>
       </CollapsibleContent>
     </Collapsible>

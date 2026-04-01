@@ -1,15 +1,16 @@
 
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { lazy, Suspense, useMemo } from 'react';
+import YearComparisonSection from '@/components/dashboard/YearComparisonSection';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useDashboardRealtime } from '@/hooks/data/useDashboardRealtime';
 import { safeNumber } from '@/utils/safeNumber';
 import { computeMonthlyData } from '@/utils/dashboardComputations';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
-import { Printer, Gauge, ArrowUpDown } from 'lucide-react';
+import { Printer, Gauge } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -32,7 +33,7 @@ import QuickActionsCard from '@/components/dashboard/QuickActionsCard';
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
 
 // Lazy-load heavy below-the-fold components
-const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
+
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
 const CollectionHeatmap = lazy(() => import('@/components/dashboard/CollectionHeatmap'));
 const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingActionsTable'));
@@ -221,40 +222,7 @@ const AdminDashboard = () => {
 
         {/* مقارنة بين السنوات */}
         <DeferredRender delay={3000}>
-          {allFiscalYears.length >= 2 ? (
-            <ErrorBoundary>
-              <Suspense fallback={<ChartSkeleton />}>
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <ArrowUpDown className="w-5 h-5" />
-                      مقارنة بين السنوات المالية
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <YearOverYearComparison
-                      fiscalYears={allFiscalYears}
-                      currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
-                    />
-                  </CardContent>
-                </Card>
-              </Suspense>
-            </ErrorBoundary>
-          ) : (
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ArrowUpDown className="w-5 h-5" />
-                  مقارنة بين السنوات المالية
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-center text-muted-foreground py-8">
-                  ستتوفر المقارنة بين السنوات عند إضافة سنة مالية ثانية على الأقل.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <YearComparisonSection allFiscalYears={allFiscalYears} fiscalYearId={fiscalYearId} />
         </DeferredRender>
 
         {/* مراقبة أداء الصفحات — للناظر فقط، تُخفى عند الطباعة */}
