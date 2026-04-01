@@ -34,26 +34,28 @@ const CollectionSummaryChart = ({ onTime, late, partial = 0 }: CollectionSummary
   ];
 
   return (
-    <div className="w-[180px] h-[180px] min-h-[180px] shrink-0">
-      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={40}
-            outerRadius={70}
-            dataKey="value"
-            startAngle={90}
-            endAngle={-270}
-          >
-            {colors.map((color, i) => (
-              <Cell key={i} fill={color} />
-            ))}
-          </Pie>
-          <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={((value?: number, name?: string) => [`${value ?? 0} فاتورة`, name ?? '']) as never} />
-        </PieChart>
-      </ResponsiveContainer>
+    <div ref={ref} className="w-[180px] h-[180px] min-h-[180px] shrink-0">
+      {ready && (
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={40}
+              outerRadius={70}
+              dataKey="value"
+              startAngle={90}
+              endAngle={-270}
+            >
+              {colors.map((color, i) => (
+                <Cell key={i} fill={color} />
+              ))}
+            </Pie>
+            <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={((value?: number, name?: string) => [`${value ?? 0} فاتورة`, name ?? '']) as never} />
+          </PieChart>
+        </ResponsiveContainer>
+      )}
     </div>
   );
 };
