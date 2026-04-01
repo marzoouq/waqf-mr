@@ -18,7 +18,7 @@ describe('loadAmiriFonts', () => {
   });
 
   it('only injects once (idempotent)', async () => {
-    const { loadAmiriFonts } = await import('./loadAmiriFonts');
+    const { loadAmiriFonts } = await import('./pdf/loadAmiriFonts');
     loadAmiriFonts();
     loadAmiriFonts();
     const styles = document.head.querySelectorAll('style');

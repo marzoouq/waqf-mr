@@ -89,7 +89,7 @@ vi.mock('@/utils/contractAllocation', () => ({
   ]),
 }));
 
-import { useAccountsPage } from './useAccountsPage';
+import { useAccountsPage } from '@/hooks/page/useAccountsPage';
 
 const createWrapper = () => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
