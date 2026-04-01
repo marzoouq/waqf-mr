@@ -1,11 +1,16 @@
 import { useState, lazy, Suspense } from 'react';
+import {
+  Building2, LayoutGrid, Users, Palette, Bell, ShieldCheck, Shield,
+  Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical,
+  Fingerprint, Banknote, FileText, Settings, MessageSquare,
+} from 'lucide-react';
+
 import DashboardLayout from '@/components/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
-// — مكونات inline مستخرجة —
+// — مكونات فورية —
 import WaqfSettingsTab from '@/components/settings/WaqfSettingsTab';
 import SectionsTab from '@/components/settings/SectionsTab';
 import BeneficiaryTab from '@/components/settings/BeneficiaryTab';
@@ -13,7 +18,7 @@ import AppearanceTab from '@/components/settings/AppearanceTab';
 import NotificationsTab from '@/components/settings/NotificationsTab';
 import SecurityTab from '@/components/settings/SecurityTab';
 
-// — مكونات محملة كسول —
+// — مكونات كسولة —
 const LandingPageTab = lazy(() => import('@/components/settings/LandingPageTab'));
 const DataExportTab = lazy(() => import('@/components/settings/DataExportTab'));
 const FiscalYearManagementTab = lazy(() => import('@/components/settings/FiscalYearManagementTab'));

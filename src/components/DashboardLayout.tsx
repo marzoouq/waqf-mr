@@ -1,35 +1,41 @@
 /**
  * التخطيط العام للوحة التحكم (DashboardLayout)
  */
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { clearActiveQueryTimers } from '@/lib/queryClient';
+import { cn } from '@/lib/utils';
+import { Lock } from 'lucide-react';
+
+// — سياقات وhooks —
 import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
+import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
+import { useNavLinks } from '@/hooks/page/useNavLinks';
+import { useRealtimeAlerts } from '@/hooks/data/useRealtimeAlerts';
+import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { clearActiveQueryTimers } from '@/lib/queryClient';
+
+// — مكونات فورية —
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Lock } from 'lucide-react';
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
-import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
-const PrintHeader = lazy(() => import('@/components/PrintHeader'));
-const PrintFooter = lazy(() => import('@/components/PrintFooter'));
 import BetaBanner from '@/components/BetaBanner';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
-import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import SidebarContent from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
-const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
-const IdleTimeoutWarning = lazy(() => import('@/components/IdleTimeoutWarning'));
-import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
-import { logAccessEvent } from '@/hooks/data/useAccessLog';
-import { useRealtimeAlerts } from '@/hooks/data/useRealtimeAlerts';
-import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
-import { SHOW_ALL_ROUTES } from '@/components/dashboard-layout/constants';
 import MobileHeader from '@/components/dashboard-layout/MobileHeader';
 import DesktopTopBar from '@/components/dashboard-layout/DesktopTopBar';
-import { useNavLinks } from '@/hooks/page/useNavLinks';
+import { SHOW_ALL_ROUTES } from '@/components/dashboard-layout/constants';
+
+// — مكونات كسولة —
+const PrintHeader = lazy(() => import('@/components/PrintHeader'));
+const PrintFooter = lazy(() => import('@/components/PrintFooter'));
+const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
+const IdleTimeoutWarning = lazy(() => import('@/components/IdleTimeoutWarning'));
 
 // DiagnosticOverlay — يُحمّل فقط في وضع التطوير
 const DiagnosticOverlay = import.meta.env.DEV
