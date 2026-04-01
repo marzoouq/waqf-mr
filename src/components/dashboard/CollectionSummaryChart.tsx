@@ -2,6 +2,7 @@
  * مكوّن رسم ملخص التحصيل — يُحمّل بشكل كسول (lazy)
  */
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { useChartReady } from '@/hooks/ui/useChartReady';
 
 interface CollectionSummaryChartProps {
   onTime: number;
@@ -10,6 +11,7 @@ interface CollectionSummaryChartProps {
 }
 
 const CollectionSummaryChart = ({ onTime, late, partial = 0 }: CollectionSummaryChartProps) => {
+  const { ref, ready } = useChartReady();
   // CS-01: guard للبيانات الفارغة
   if (onTime === 0 && late === 0 && partial === 0) {
     return (
@@ -32,26 +34,28 @@ const CollectionSummaryChart = ({ onTime, late, partial = 0 }: CollectionSummary
   ];
 
   return (
-    <div className="w-[180px] h-[180px] min-h-[180px] shrink-0">
-      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={40}
-            outerRadius={70}
-            dataKey="value"
-            startAngle={90}
-            endAngle={-270}
-          >
-            {colors.map((color, i) => (
-              <Cell key={i} fill={color} />
-            ))}
-          </Pie>
-          <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={((value?: number, name?: string) => [`${value ?? 0} فاتورة`, name ?? '']) as never} />
-        </PieChart>
-      </ResponsiveContainer>
+    <div ref={ref} className="w-[180px] h-[180px] min-h-[180px] shrink-0">
+      {ready && (
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={40}
+              outerRadius={70}
+              dataKey="value"
+              startAngle={90}
+              endAngle={-270}
+            >
+              {colors.map((color, i) => (
+                <Cell key={i} fill={color} />
+              ))}
+            </Pie>
+            <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={((value?: number, name?: string) => [`${value ?? 0} فاتورة`, name ?? '']) as never} />
+          </PieChart>
+        </ResponsiveContainer>
+      )}
     </div>
   );
 };
