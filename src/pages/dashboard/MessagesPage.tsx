@@ -31,6 +31,7 @@ const MessagesPage = () => {
   const { data: allConversations = [] } = useConversations(role === 'admin' ? undefined : 'chat');
   const { data: beneficiaries = [] } = useBeneficiaries();
   const sendMessage = useSendMessage();
+  const createConversation = useCreateConversation();
   const { data: unread } = useUnreadCounts();
 
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
