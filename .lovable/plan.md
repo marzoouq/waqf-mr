@@ -1,72 +1,49 @@
 
 
-# خطة تحسين أداء التحميل الأولي
+# خطة تنفيذ الخطوات 1–3
 
-## التغييرات المطلوبة
+## الخطوة 1: حذف الملف المكرر `useDashboardRealtime`
 
-### 1. تحميل صفحة Index بشكل فوري (Eager Import)
-**الملف**: `src/routes/publicRoutes.tsx`
+**المشكلة**: `src/hooks/ui/useDashboardRealtime.ts` هو مجرد re-export من `hooks/data/useDashboardRealtime`. لا يوجد استيراد مباشر منه سوى mock واحد في اختبار.
 
-صفحة الهبوط (`/`) هي أول ما يراه المستخدم — تحميلها lazily يضيف round-trip إضافي. نحوّلها إلى eager import مباشر.
+**التغييرات**:
+1. حذف `src/hooks/ui/useDashboardRealtime.ts`
+2. إزالة سطر التصدير من `src/hooks/ui/index.ts`
+3. تحديث mock في `src/pages/beneficiary/WaqifDashboard.test.tsx` ليشير إلى `@/hooks/data/useDashboardRealtime`
 
-```typescript
-// قبل
-const Index = lazyWithRetry(() => import("@/pages/Index"));
+---
 
-// بعد
-import Index from "@/pages/Index";
-```
+## الخطوة 2: نقل اختبار `useAccountsPage` إلى مكانه الصحيح
 
-### 2. تحميل صفحة Auth بشكل فوري
-**الملف**: `src/routes/publicRoutes.tsx`
+**المشكلة**: `src/hooks/financial/useAccountsPage.test.ts` يختبر hook موجود في `src/hooks/page/useAccountsPage.ts` — ملف الاختبار في المجلد الخطأ.
 
-صفحة المصادقة هي ثاني أكثر صفحة يصل إليها المستخدم مباشرة — تحميلها eager يزيل تأخير الانتقال من Landing إلى Login.
+**التغييرات**:
+1. نقل `src/hooks/financial/useAccountsPage.test.ts` إلى `src/hooks/page/useAccountsPage.test.ts` (إنشاء في المكان الجديد وحذف القديم)
+2. لا تغيير في المحتوى — الاستيرادات تستخدم مسارات `@/` فهي صالحة بالفعل
 
-```typescript
-import Auth from "@/pages/Auth";
-```
+---
 
-### 3. فصل ProtectedRoute و RequireBeneficiarySection إلى lazy import
-**الملفات**: `src/routes/adminRoutes.tsx` و `src/routes/beneficiaryRoutes.tsx`
+## الخطوة 3: تقسيم `renderers.ts` (305 أسطر) إلى وحدات أصغر
 
-حالياً `ProtectedRoute` و `RequireBeneficiarySection` يُستوردان eagerly في ملفات المسارات المحمية — لكن هذه المسارات لا تُزار إلا بعد تسجيل الدخول. تحويلهما إلى lazy يقلل الحزمة الأولية.
+**المشكلة**: ملف واحد يحتوي 7 دوال رسم مختلفة. نقسمه إلى 4 ملفات متخصصة.
 
-**adminRoutes.tsx:**
-```typescript
-// قبل
-import ProtectedRoute from "@/components/ProtectedRoute";
+**الملفات الجديدة في `src/utils/pdf/shared/`**:
 
-// بعد
-const ProtectedRoute = lazyWithRetry(() => import("@/components/ProtectedRoute"));
-```
+| الملف | المحتوى |
+|-------|---------|
+| `renderers/sellerBuyer.ts` | `renderSellerInfo` + `renderBuyerInfo` |
+| `renderers/invoiceMeta.ts` | `renderInvoiceMeta` |
+| `renderers/tables.ts` | `renderLineItemsTable` + `renderAllowanceChargeTable` |
+| `renderers/summary.ts` | `renderVatSummary` + `renderBankDetails` |
 
-**beneficiaryRoutes.tsx:**
-```typescript
-const ProtectedRoute = lazyWithRetry(() => import("@/components/ProtectedRoute"));
-const RequireBeneficiarySection = lazyWithRetry(() => import("@/components/RequireBeneficiarySection"));
-```
+**تحديث الملفات القائمة**:
+- `src/utils/pdf/shared/renderers.ts` — يصبح barrel file يعيد تصدير كل شيء من المجلد الفرعي (لا يكسر أي استيراد قائم)
+- `src/utils/pdf/paymentInvoiceShared.ts` — لا تغيير (يستورد من `./shared/renderers` الذي لا يزال يصدّر كل شيء)
 
-### 4. إضافة Prefetch للصفحات الأكثر زيارة بعد الإقلاع
-**الملف**: `src/routes/publicRoutes.tsx`
+---
 
-بعد تحميل Landing بنجاح، نبدأ prefetch لـ Auth و AdminDashboard في وقت الخمول:
-
-```typescript
-// تحميل مسبق في وقت خمول المتصفح
-if (typeof requestIdleCallback !== 'undefined') {
-  requestIdleCallback(() => {
-    import("@/pages/dashboard/AdminDashboard");
-  });
-}
-```
-
-## الملفات المتأثرة
-- `src/routes/publicRoutes.tsx` — eager import لـ Index و Auth + prefetch
-- `src/routes/adminRoutes.tsx` — lazy import لـ ProtectedRoute
-- `src/routes/beneficiaryRoutes.tsx` — lazy import لـ ProtectedRoute و RequireBeneficiarySection
-
-## النتيجة المتوقعة
-- تقليل وقت First Contentful Paint بإزالة round-trip تحميل chunk لصفحة الهبوط
-- تقليل حجم الحزمة الأولية بنقل ProtectedRoute خارج الحزمة الأساسية
-- تحسين الانتقال إلى Auth بإلغاء التأخير
+## الملفات المتأثرة (ملخص)
+- **حذف**: `src/hooks/ui/useDashboardRealtime.ts`، `src/hooks/financial/useAccountsPage.test.ts`
+- **تعديل**: `src/hooks/ui/index.ts`، `src/pages/beneficiary/WaqifDashboard.test.tsx`، `src/utils/pdf/shared/renderers.ts`
+- **إنشاء**: `src/hooks/page/useAccountsPage.test.ts`، 4 ملفات في `src/utils/pdf/shared/renderers/`
 
