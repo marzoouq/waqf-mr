@@ -48,9 +48,10 @@ const SwUpdateBanner = () => {
 
   return (
     <div
-      className="fixed top-0 inset-x-0 z-[9999] bg-primary text-primary-foreground shadow-lg"
+      className="fixed top-0 inset-x-0 z-[99999] isolate bg-primary text-primary-foreground shadow-2xl"
       dir="rtl"
       role="alert"
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
       <div className="flex items-center justify-center gap-3 px-4 py-3 text-sm font-medium">
         <RefreshCw className="h-4 w-4 animate-spin" />
