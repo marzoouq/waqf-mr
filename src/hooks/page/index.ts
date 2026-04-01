@@ -23,7 +23,7 @@ export { useDisclosurePage } from './useDisclosurePage';
 export { useDistributionCalculation } from './useDistributionCalculation';
 export { useExpensesPage } from './useExpensesPage';
 export { useFiscalYearManagement } from './useFiscalYearManagement';
-export { useGlobalSearch } from './useGlobalSearch';
+export { useGlobalSearch } from '@/hooks/ui/useGlobalSearch';
 export { useHistoricalComparison } from './useHistoricalComparison';
 export { useIncomePage } from './useIncomePage';
 export { useInvoicesPage } from './useInvoicesPage';
