@@ -189,6 +189,7 @@ const InvoicesViewPage = () => {
                       <TableHeader>
                         <TableRow className="bg-muted/50">
                           <TableHead className="text-right">النوع</TableHead>
+                          <TableHead className="text-right">البيان</TableHead>
                           <TableHead className="text-right">رقم الفاتورة</TableHead>
                           <TableHead className="text-right">المبلغ</TableHead>
                           <TableHead className="text-right">التاريخ</TableHead>
