@@ -29,21 +29,21 @@ const ZatcaFormCards = ({ formData, setFormData }: ZatcaFormCardsProps) => {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
-            <Label>اسم الشركة/المؤسسة <span className="text-destructive">*</span></Label>
+            <Label htmlFor="zatca-company-name">اسم الشركة/المؤسسة <span className="text-destructive">*</span></Label>
             <p className="text-sm text-muted-foreground">يُقرأ من إعدادات الوقف (اسم الوقف)</p>
           </div>
           <div className="space-y-1.5">
-            <Label>الرقم الضريبي (TIN) <span className="text-destructive">*</span></Label>
-            <Input value={formData.vat_registration_number || ''} onChange={(e) => updateField('vat_registration_number', e.target.value)} placeholder="3XXXXXXXXXX0003" maxLength={15} dir="ltr" />
+            <Label htmlFor="zatca-vat_registration_number">الرقم الضريبي (TIN) <span className="text-destructive">*</span></Label>
+            <Input id="zatca-vat_registration_number" name="vat_registration_number" value={formData.vat_registration_number || ''} onChange={(e) => updateField('vat_registration_number', e.target.value)} placeholder="3XXXXXXXXXX0003" maxLength={15} dir="ltr" />
             <p className="text-xs text-muted-foreground">15 رقماً — يبدأ وينتهي بـ 3</p>
           </div>
           <div className="space-y-1.5">
-            <Label>اسم الفرع أو رقم المجموعة الضريبية</Label>
-            <Input value={formData.zatca_branch_name || ''} onChange={(e) => updateField('zatca_branch_name', e.target.value)} placeholder="الفرع الرئيسي" />
+            <Label htmlFor="zatca-zatca_branch_name">اسم الفرع أو رقم المجموعة الضريبية</Label>
+            <Input id="zatca-zatca_branch_name" name="zatca_branch_name" value={formData.zatca_branch_name || ''} onChange={(e) => updateField('zatca_branch_name', e.target.value)} placeholder="الفرع الرئيسي" />
           </div>
           <div className="space-y-1.5">
-            <Label>السجل التجاري (CRN)</Label>
-            <Input value={formData.commercial_registration_number || ''} onChange={(e) => updateField('commercial_registration_number', e.target.value)} placeholder="رقم السجل التجاري" dir="ltr" />
+            <Label htmlFor="zatca-commercial_registration_number">السجل التجاري (CRN)</Label>
+            <Input id="zatca-commercial_registration_number" name="commercial_registration_number" value={formData.commercial_registration_number || ''} onChange={(e) => updateField('commercial_registration_number', e.target.value)} placeholder="رقم السجل التجاري" dir="ltr" />
           </div>
         </CardContent>
       </Card>
@@ -63,8 +63,8 @@ const ZatcaFormCards = ({ formData, setFormData }: ZatcaFormCardsProps) => {
             { key: 'business_address_building', label: 'رقم المبنى', placeholder: 'رقم المبنى', dir: 'ltr' as const },
           ].map(({ key, label, placeholder, dir }) => (
             <div key={key} className="space-y-1.5">
-              <Label>{label}</Label>
-              <Input value={formData[key] || ''} onChange={(e) => updateField(key, e.target.value)} placeholder={placeholder} dir={dir} />
+              <Label htmlFor={`zatca-${key}`}>{label}</Label>
+              <Input id={`zatca-${key}`} name={key} value={formData[key] || ''} onChange={(e) => updateField(key, e.target.value)} placeholder={placeholder} dir={dir} />
             </div>
           ))}
         </CardContent>
@@ -78,7 +78,8 @@ const ZatcaFormCards = ({ formData, setFormData }: ZatcaFormCardsProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-1.5 max-w-md">
-            <Input value={formData.zatca_activity_code || ''} onChange={(e) => updateField('zatca_activity_code', e.target.value)} placeholder="مثال: 681001 — تأجير وإدارة العقارات المملوكة" dir="ltr" />
+            <Label htmlFor="zatca-zatca_activity_code">كود النشاط</Label>
+            <Input id="zatca-zatca_activity_code" name="zatca_activity_code" value={formData.zatca_activity_code || ''} onChange={(e) => updateField('zatca_activity_code', e.target.value)} placeholder="مثال: 681001 — تأجير وإدارة العقارات المملوكة" dir="ltr" />
             <p className="text-xs text-muted-foreground">كود التصنيف الدولي ISIC — لنشاط التأجير العقاري عادةً: <code className="bg-muted px-1 rounded">681001</code></p>
           </div>
         </CardContent>
@@ -92,9 +93,9 @@ const ZatcaFormCards = ({ formData, setFormData }: ZatcaFormCardsProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-1.5 max-w-xs">
-            <Label>نسبة VAT الافتراضية</Label>
+            <Label htmlFor="zatca-default_vat_rate">نسبة VAT الافتراضية</Label>
             <Select value={formData.default_vat_rate || '0'} onValueChange={(value) => updateField('default_vat_rate', value)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger id="zatca-default_vat_rate"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="0">0% — معفاة</SelectItem>
                 <SelectItem value="15">15% — خاضعة</SelectItem>
@@ -116,7 +117,8 @@ const ZatcaFormCards = ({ formData, setFormData }: ZatcaFormCardsProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-1.5 max-w-md">
-            <Input value={formData.zatca_device_serial || ''} onChange={(e) => updateField('zatca_device_serial', e.target.value)} placeholder="1-WAQF|2-POS01|3-SN001" dir="ltr" className="font-mono" />
+            <Label htmlFor="zatca-zatca_device_serial">معرّف الجهاز</Label>
+            <Input id="zatca-zatca_device_serial" name="zatca_device_serial" value={formData.zatca_device_serial || ''} onChange={(e) => updateField('zatca_device_serial', e.target.value)} placeholder="1-WAQF|2-POS01|3-SN001" dir="ltr" className="font-mono" />
             <p className="text-xs text-muted-foreground">الصيغة: <code className="bg-muted px-1 rounded">1-اسم_المزود|2-الموديل|3-الرقم_التسلسلي</code></p>
             {formData.zatca_device_serial && !DEVICE_SERIAL_REGEX.test(formData.zatca_device_serial.trim()) && (
               <p className="text-xs text-destructive">⚠️ الصيغة غير صحيحة</p>
@@ -136,12 +138,12 @@ const ZatcaFormCards = ({ formData, setFormData }: ZatcaFormCardsProps) => {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
-            <Label>رمز التفعيل OTP الأول <span className="text-destructive">*</span></Label>
-            <Input value={formData.zatca_otp_1 || ''} onChange={(e) => updateField('zatca_otp_1', e.target.value)} placeholder="أدخل رمز OTP" dir="ltr" className="font-mono" maxLength={20} />
+            <Label htmlFor="zatca-zatca_otp_1">رمز التفعيل OTP الأول <span className="text-destructive">*</span></Label>
+            <Input id="zatca-zatca_otp_1" name="zatca_otp_1" value={formData.zatca_otp_1 || ''} onChange={(e) => updateField('zatca_otp_1', e.target.value)} placeholder="أدخل رمز OTP" dir="ltr" className="font-mono" maxLength={20} />
           </div>
           <div className="space-y-1.5">
-            <Label>رمز التفعيل OTP الثاني</Label>
-            <Input value={formData.zatca_otp_2 || ''} onChange={(e) => updateField('zatca_otp_2', e.target.value)} placeholder="اختياري — للأجهزة المتعددة" dir="ltr" className="font-mono" maxLength={20} />
+            <Label htmlFor="zatca-zatca_otp_2">رمز التفعيل OTP الثاني</Label>
+            <Input id="zatca-zatca_otp_2" name="zatca_otp_2" value={formData.zatca_otp_2 || ''} onChange={(e) => updateField('zatca_otp_2', e.target.value)} placeholder="اختياري — للأجهزة المتعددة" dir="ltr" className="font-mono" maxLength={20} />
           </div>
           <div className="md:col-span-2">
             <a href="https://fatoora.zatca.gov.sa/" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
@@ -162,16 +164,16 @@ const ZatcaFormCards = ({ formData, setFormData }: ZatcaFormCardsProps) => {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="space-y-1.5">
-            <Label>اسم البنك</Label>
-            <Input value={formData.waqf_bank_name || ''} onChange={(e) => updateField('waqf_bank_name', e.target.value)} placeholder="مثال: البنك الأهلي السعودي" />
+            <Label htmlFor="zatca-waqf_bank_name">اسم البنك</Label>
+            <Input id="zatca-waqf_bank_name" name="waqf_bank_name" value={formData.waqf_bank_name || ''} onChange={(e) => updateField('waqf_bank_name', e.target.value)} placeholder="مثال: البنك الأهلي السعودي" />
           </div>
           <div className="space-y-1.5">
-            <Label>رقم الحساب</Label>
-            <Input value={formData.waqf_bank_account || ''} onChange={(e) => updateField('waqf_bank_account', e.target.value)} placeholder="رقم الحساب البنكي" dir="ltr" />
+            <Label htmlFor="zatca-waqf_bank_account">رقم الحساب</Label>
+            <Input id="zatca-waqf_bank_account" name="waqf_bank_account" value={formData.waqf_bank_account || ''} onChange={(e) => updateField('waqf_bank_account', e.target.value)} placeholder="رقم الحساب البنكي" dir="ltr" />
           </div>
           <div className="space-y-1.5">
-            <Label>IBAN</Label>
-            <Input value={formData.waqf_bank_iban || ''} onChange={(e) => updateField('waqf_bank_iban', e.target.value)} placeholder="SA00 0000 0000 0000 0000 0000" dir="ltr" className="font-mono" />
+            <Label htmlFor="zatca-waqf_bank_iban">IBAN</Label>
+            <Input id="zatca-waqf_bank_iban" name="waqf_bank_iban" value={formData.waqf_bank_iban || ''} onChange={(e) => updateField('waqf_bank_iban', e.target.value)} placeholder="SA00 0000 0000 0000 0000 0000" dir="ltr" className="font-mono" />
           </div>
         </CardContent>
       </Card>

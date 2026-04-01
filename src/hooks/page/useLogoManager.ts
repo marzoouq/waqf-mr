@@ -18,9 +18,9 @@ export const useLogoManager = () => {
         .from('app_settings')
         .select('value')
         .eq('key', 'logo_url')
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+      if (error) throw error;
       return data?.value || null;
     },
   });
