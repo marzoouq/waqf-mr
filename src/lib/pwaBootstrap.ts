@@ -1,14 +1,17 @@
 /**
  * منطق حماية كاش PWA — يُستدعى مرة واحدة عند بدء التطبيق
- * مُستخرج من main.tsx لفصل المسؤوليات
+ * يُرجع حالة واضحة: 'continue' | 'reloading'
  */
 import { logger } from './logger';
 
 const APP_BUILD_ID = import.meta.env.VITE_APP_BUILD_ID || import.meta.env.VITE_APP_VERSION || '0.0.0';
 const CACHE_VERSION_KEY = 'pwa_cache_version';
-const PREVIEW_CACHE_KEY = 'preview_cache_cleared_for';
 const RELOAD_GUARD_KEY = 'pwa_reload_ts';
-const RELOAD_COOLDOWN = 10_000; // 10 ثوانٍ
+const RELOAD_COOLDOWN = 10_000;
+
+const isPreviewHost =
+  window.location.hostname.endsWith('.lovable.app') ||
+  window.location.hostname.endsWith('.lovableproject.com');
 
 /** يمنع أكثر من reload واحد كل 10 ثوانٍ */
 function canReload(): boolean {
@@ -19,37 +22,30 @@ function canReload(): boolean {
     sessionStorage.setItem(RELOAD_GUARD_KEY, now.toString());
     return true;
   } catch {
-    return true; // إذا فشل sessionStorage، نسمح بالـ reload
+    return true;
   }
 }
 
-export async function runPwaCacheGuard(): Promise<void> {
-  const isPreviewHost =
-    window.location.hostname.endsWith('.lovable.app') ||
-    window.location.hostname.endsWith('.lovableproject.com');
+export type CacheGuardResult = 'continue' | 'reloading';
 
+export async function runPwaCacheGuard(): Promise<CacheGuardResult> {
   try {
+    // في بيئة المعاينة: تنظيف فقط بدون reload — لمنع الوميض
     if (isPreviewHost) {
-      const clearedFor = localStorage.getItem(PREVIEW_CACHE_KEY);
-      if (clearedFor !== APP_BUILD_ID) {
-        if ('serviceWorker' in navigator) {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(registrations.map(r => r.unregister()));
-        }
-        const names = await caches.keys();
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(r => r.unregister()));
+      }
+      const names = await caches.keys();
+      if (names.length > 0) {
         await Promise.all(names.map(name => caches.delete(name)));
-        localStorage.setItem(PREVIEW_CACHE_KEY, APP_BUILD_ID);
-        if (canReload()) {
-          window.location.reload();
-          return;
-        }
-        logger.warn('[PWA] تم تخطي reload لمنع حلقة لا نهائية');
-        return;
+        logger.info('[PWA] تم تنظيف كاش المعاينة بدون reload');
       }
       localStorage.setItem(CACHE_VERSION_KEY, APP_BUILD_ID);
-      return;
+      return 'continue';
     }
 
+    // الموقع المنشور: سلوك التحديث الكامل
     const stored = localStorage.getItem(CACHE_VERSION_KEY);
     if (stored && stored !== APP_BUILD_ID) {
       const names = await caches.keys();
@@ -69,16 +65,19 @@ export async function runPwaCacheGuard(): Promise<void> {
       } catch (error) {
         logger.warn('[PWA] تعذر حفظ علم التحديث', error);
       }
+
       if (canReload()) {
         window.location.reload();
-        return;
+        return 'reloading';
       }
       logger.warn('[PWA] تم تخطي reload لمنع حلقة لا نهائية');
-      return;
+      return 'continue';
     }
 
     localStorage.setItem(CACHE_VERSION_KEY, APP_BUILD_ID);
+    return 'continue';
   } catch (error) {
     logger.warn('[PWA] تعذر تنفيذ حماية الكاش', error);
+    return 'continue';
   }
 }
