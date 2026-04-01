@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import PropertyUnitsDialog from '@/components/properties/PropertyUnitsDialog';
 import PropertySummaryCards from '@/components/properties/PropertySummaryCards';
-import { fmt, fmtInt } from '@/utils/format';
+import { usePropertiesPage } from '@/hooks/page/usePropertiesPage';
 import { usePropertiesPage } from '@/hooks/page/usePropertiesPage';
 
 const PropertiesPage = () => {

@@ -10,15 +10,8 @@ import { Edit, Trash2, Building2, MapPin, Ruler, Home, DoorOpen, AlertTriangle }
 import { fmt, fmtInt } from '@/utils/format';
 import type { PropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
 
-interface Property {
-  id: string;
-  property_number: string;
-  property_type: string;
-  location: string;
-  area: number;
-  vat_exempt?: boolean;
-  [key: string]: unknown;
-}
+import type { Property } from '@/types/database';
+
 
 interface Contract {
   property_id: string;
