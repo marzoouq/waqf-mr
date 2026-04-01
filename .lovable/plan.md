@@ -1,30 +1,29 @@
 
 
-# إصلاح توقف المعاينة — السبب الجذري الفعلي
+# إصلاح شريط التحديث ليظهر فوق الهيدر
 
-## التشخيص النهائي
+## المشكلة
+`SwUpdateBanner` يستخدم `fixed top-0 z-[9999]` و`MobileHeader` يستخدم `fixed top-0 z-40`. رغم أن z-index أعلى، قد يحدث تداخل بسبب stacking context أو ترتيب الرسم. الحل: إضافة `isolate` لفرض stacking context مستقل وزيادة safe-area padding.
 
-المعاينة عالقة لأن **`import.meta.env.VITE_SUPABASE_URL` غير محمّل** في وقت التشغيل، رغم وجود `.env` بالقيم الصحيحة. هذا يُسبب خطأ `supabaseUrl is required` في `client.ts` مما يمنع React من الإقلاع — فيبقى splash screen ظاهراً.
+## التعديل
 
-**هذا ليس خطأ كود** — إنما مشكلة كاش/بيئة في خادم المعاينة.
+**ملف واحد: `src/components/SwUpdateBanner.tsx`** — السطر 51:
 
-## الإصلاح
-
-### خطوة واحدة: فرض إعادة بناء
-
-تحديث timestamp في `src/main.tsx` سطر 1:
-
-```ts
-// قبل
-// rebuild: 2026-03-31T12:18
-
-// بعد
-// rebuild: 2026-04-01T10:15
+تغيير:
+```
+className="fixed top-0 inset-x-0 z-[9999] bg-primary text-primary-foreground shadow-lg"
+```
+إلى:
+```
+className="fixed top-0 inset-x-0 z-[99999] isolate bg-primary text-primary-foreground shadow-2xl"
 ```
 
-هذا التغيير البسيط يُجبر Vite على إعادة تحميل الوحدات وقراءة `.env` من جديد.
+- `isolate`: ينشئ stacking context مستقل يضمن الأولوية
+- `z-[99999]`: رفع إضافي للتأكيد
+- `shadow-2xl`: تمييز بصري أوضح عن الهيدر
 
-### إذا لم ينجح
-
-قد تكون المشكلة في بيئة الـ sandbox نفسها ولا يمكن حلها بتغيير كود — ستحتاج إعادة تشغيل المعاينة من واجهة Lovable.
+وإضافة `style` للـ safe-area:
+```
+style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+```
 
