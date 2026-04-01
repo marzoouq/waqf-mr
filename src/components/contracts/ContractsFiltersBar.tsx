@@ -85,7 +85,7 @@ export default function ContractsFiltersBar({
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input name="searchQuery" placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
         </div>
-        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
+        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as StatusFilterValue); setCurrentPage(1); }}>
           <SelectTrigger className="w-full sm:w-48 shrink-0"><Filter className="w-4 h-4 ml-2" /><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">الكل ({statusCounts.all})</SelectItem>
