@@ -102,6 +102,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const handleIdleLogout = useCallback(async () => {
     await logAccessEvent({ event_type: 'idle_logout', user_id: user?.id });
+    clearActiveQueryTimers();
     await signOut();
     window.location.href = '/auth?reason=idle';
   }, [signOut, user?.id]);
