@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/useMessaging';
+import { useConversations, useMessages, useSendMessage, useCreateConversation, useUnreadCounts, Conversation } from '@/hooks/data/useMessaging';
 import { useBeneficiaries } from '@/hooks/data/useBeneficiaries';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card } from '@/components/ui/card';
@@ -32,6 +32,7 @@ const MessagesPage = () => {
   const { data: beneficiaries = [] } = useBeneficiaries();
   const sendMessage = useSendMessage();
   const createConversation = useCreateConversation();
+  const { data: unread } = useUnreadCounts();
 
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
@@ -121,11 +122,22 @@ const MessagesPage = () => {
               >
                 <Icon className="w-4 h-4" />
                 {label}
-                {key !== 'all' && (
-                  <span className="text-xs opacity-70">
-                    ({allConversations.filter(c => c.type === key).length})
-                  </span>
-                )}
+                {(() => {
+                  const unreadCount = key === 'all'
+                    ? (unread?.total ?? 0)
+                    : key === 'chat' ? (unread?.chat ?? 0)
+                    : key === 'support' ? (unread?.support ?? 0)
+                    : (unread?.broadcast ?? 0);
+                  return unreadCount > 0 ? (
+                    <span className="min-w-5 h-5 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  ) : key !== 'all' ? (
+                    <span className="text-xs opacity-70">
+                      ({allConversations.filter(c => c.type === key).length})
+                    </span>
+                  ) : null;
+                })()}
               </Button>
             ))}
           </div>

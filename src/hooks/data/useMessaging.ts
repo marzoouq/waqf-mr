@@ -12,6 +12,73 @@ export type { Conversation, Message };
 
 const MESSAGES_PAGE_SIZE = 50;
 
+/** عدّاد الرسائل غير المقروءة مجمّعة حسب نوع المحادثة */
+export interface UnreadCounts { chat: number; support: number; broadcast: number; total: number }
+
+export const useUnreadCounts = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ['unread-counts', user?.id],
+    queryFn: async (): Promise<UnreadCounts> => {
+      if (!user) return { chat: 0, support: 0, broadcast: 0, total: 0 };
+      // جلب المحادثات التي يشارك فيها المستخدم مع عدد الرسائل غير المقروءة
+      const { data: convs, error: convErr } = await supabase
+        .from('conversations')
+        .select('id, type');
+      if (convErr) throw convErr;
+      if (!convs?.length) return { chat: 0, support: 0, broadcast: 0, total: 0 };
+
+      const convIds = convs.map(c => c.id);
+      // جلب عدد الرسائل غير المقروءة التي لم يرسلها المستخدم الحالي
+      // نجلب الرسائل غير المقروءة مع conversation_id للتفصيل حسب النوع
+      const { data: unreadMsgs, error: detailErr } = await supabase
+        .from('messages')
+        .select('conversation_id')
+        .in('conversation_id', convIds)
+        .eq('is_read', false)
+        .neq('sender_id', user.id)
+        .limit(500);
+      if (detailErr) throw detailErr;
+
+      const convTypeMap = new Map(convs.map(c => [c.id, c.type]));
+      const counts: UnreadCounts = { chat: 0, support: 0, broadcast: 0, total: 0 };
+      for (const msg of (unreadMsgs || [])) {
+        const type = convTypeMap.get(msg.conversation_id) as keyof Omit<UnreadCounts, 'total'> | undefined;
+        if (type && type in counts) {
+          counts[type]++;
+        }
+        counts.total++;
+      }
+      return counts;
+    },
+    enabled: !!user,
+    staleTime: STALE_MESSAGING,
+  });
+
+  // تحديث عند وصول رسائل جديدة
+  const queryClientRef2 = useRef(queryClient);
+  queryClientRef2.current = queryClient;
+
+  const unreadSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
+    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+      queryClientRef2.current.invalidateQueries({ queryKey: ['unread-counts'] });
+    });
+    channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, () => {
+      queryClientRef2.current.invalidateQueries({ queryKey: ['unread-counts'] });
+    });
+  }, []);
+
+  useBfcacheSafeChannel(
+    `unread-counts-${user?.id ?? 'none'}`,
+    unreadSubscribeFn,
+    !!user,
+  );
+
+  return query;
+};
+
 export const useConversations = (type?: string) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
