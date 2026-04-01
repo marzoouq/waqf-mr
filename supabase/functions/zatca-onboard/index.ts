@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       }
 
       // دالة مساعدة لحذف OTP بعد أي نتيجة
-      const clearOtp = () => admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"]).catch(() => {});
+      const clearOtp = () => admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"]).then(() => {}).catch(() => {});
 
       try {
         const csrResponse = await fetch(`${ZATCA_API_URL}/compliance`, { method: "POST", headers: { ...ZATCA_COMMON_HEADERS, "OTP": otp }, body: JSON.stringify({ csr: csrPem }) });
