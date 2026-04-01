@@ -1,198 +1,20 @@
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+/**
+ * ملف تجميعي لهوكات المراسلة — يعيد تصدير من الملفات المقسّمة
+ * للحفاظ على التوافق الرجعي مع الاستيرادات الحالية
+ */
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useCallback, useEffect, useRef } from 'react';
-import { Conversation, Message } from '@/types/database';
+import { useRef } from 'react';
+import { Conversation } from '@/types/database';
 import { notifyUser } from '@/utils/notifications';
 import { logger } from '@/lib/logger';
-import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
-import { STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
 
-export type { Conversation, Message };
-
-const MESSAGES_PAGE_SIZE = 50;
-
-/** عدّاد الرسائل غير المقروءة مجمّعة حسب نوع المحادثة */
-export interface UnreadCounts { chat: number; support: number; broadcast: number; total: number }
-
-export const useUnreadCounts = () => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  const query = useQuery({
-    queryKey: ['unread-counts', user?.id],
-    queryFn: async (): Promise<UnreadCounts> => {
-      if (!user) return { chat: 0, support: 0, broadcast: 0, total: 0 };
-      // جلب المحادثات التي يشارك فيها المستخدم مع عدد الرسائل غير المقروءة
-      const { data: convs, error: convErr } = await supabase
-        .from('conversations')
-        .select('id, type');
-      if (convErr) throw convErr;
-      if (!convs?.length) return { chat: 0, support: 0, broadcast: 0, total: 0 };
-
-      const convIds = convs.map(c => c.id);
-      // جلب عدد الرسائل غير المقروءة التي لم يرسلها المستخدم الحالي
-      // نجلب الرسائل غير المقروءة مع conversation_id للتفصيل حسب النوع
-      const { data: unreadMsgs, error: detailErr } = await supabase
-        .from('messages')
-        .select('conversation_id')
-        .in('conversation_id', convIds)
-        .eq('is_read', false)
-        .neq('sender_id', user.id)
-        .limit(500);
-      if (detailErr) throw detailErr;
-
-      const convTypeMap = new Map(convs.map(c => [c.id, c.type]));
-      const counts: UnreadCounts = { chat: 0, support: 0, broadcast: 0, total: 0 };
-      for (const msg of (unreadMsgs || [])) {
-        const type = convTypeMap.get(msg.conversation_id) as keyof Omit<UnreadCounts, 'total'> | undefined;
-        if (type && type in counts) {
-          counts[type]++;
-        }
-        counts.total++;
-      }
-      return counts;
-    },
-    enabled: !!user,
-    staleTime: STALE_MESSAGING,
-  });
-
-  // تحديث عند وصول رسائل جديدة
-  const queryClientRef2 = useRef(queryClient);
-  queryClientRef2.current = queryClient;
-
-  const unreadSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
-    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
-      queryClientRef2.current.invalidateQueries({ queryKey: ['unread-counts'] });
-    });
-    channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, () => {
-      queryClientRef2.current.invalidateQueries({ queryKey: ['unread-counts'] });
-    });
-  }, []);
-
-  useBfcacheSafeChannel(
-    `unread-counts-${user?.id ?? 'none'}`,
-    unreadSubscribeFn,
-    !!user,
-  );
-
-  return query;
-};
-
-export const useConversations = (type?: string) => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  const query = useQuery({
-    queryKey: ['conversations', type],
-    queryFn: async (): Promise<Conversation[]> => {
-      let q = supabase.from('conversations').select('id, type, subject, status, created_by, participant_id, created_at, updated_at').order('updated_at', { ascending: false }).limit(100);
-      if (type) q = q.eq('type', type);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data || []) as Conversation[];
-    },
-    enabled: !!user,
-    staleTime: STALE_MESSAGING,
-  });
-
-  const queryClientRef = useRef(queryClient);
-  queryClientRef.current = queryClient;
-
-  const convSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
-    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
-      queryClientRef.current.invalidateQueries({ queryKey: ['conversations'] });
-    });
-  }, []);
-
-  useBfcacheSafeChannel(
-    `chat-conv-${user?.id ?? 'none'}-${type || 'all'}`,
-    convSubscribeFn,
-    !!user,
-  );
-
-  return query;
-};
-
-export const useMessages = (conversationId: string | null) => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  const query = useInfiniteQuery({
-    queryKey: ['messages', conversationId],
-    queryFn: async ({ pageParam = 0 }): Promise<Message[]> => {
-      if (!conversationId) return [];
-      const { data, error } = await supabase
-        .from('messages')
-        .select('id, conversation_id, sender_id, content, is_read, created_at')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: false })
-        .range(pageParam, pageParam + MESSAGES_PAGE_SIZE - 1);
-      if (error) throw error;
-      return ((data || []) as Message[]).reverse();
-    },
-    initialPageParam: 0,
-    getNextPageParam: (_lastPage, allPages) => {
-      const lastPage = allPages[allPages.length - 1];
-      if (!lastPage || lastPage.length < MESSAGES_PAGE_SIZE) return undefined;
-      return allPages.reduce((sum, page) => sum + page.length, 0);
-    },
-    enabled: !!user && !!conversationId,
-    staleTime: STALE_LIVE,
-  });
-
-  const queryClientRef = useRef(queryClient);
-  queryClientRef.current = queryClient;
-
-  const msgSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
-    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, () => {
-      queryClientRef.current.invalidateQueries({ queryKey: ['messages', conversationId] });
-    });
-  }, [conversationId]);
-
-  useBfcacheSafeChannel(
-    `chat-msg-${conversationId ?? 'none'}`,
-    msgSubscribeFn,
-    !!user && !!conversationId,
-  );
-
-  // تسطيح الصفحات في مصفوفة واحدة مرتبة زمنياً
-  const allMessages = query.data?.pages.flat() ?? [];
-
-  // تعليم الرسائل غير المقروءة كمقروءة تلقائياً عند فتح المحادثة
-  const markedRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!conversationId || !user || allMessages.length === 0) return;
-    // تجنب التكرار لنفس المحادثة
-    if (markedRef.current === conversationId) return;
-    const unreadIds = allMessages
-      .filter(m => !m.is_read && m.sender_id !== user.id)
-      .map(m => m.id);
-    if (unreadIds.length === 0) return;
-    markedRef.current = conversationId;
-    // تحديث بدفعات (batch) — user_id filter ضمني عبر RLS
-    supabase
-      .from('messages')
-      .update({ is_read: true })
-      .in('id', unreadIds)
-      .then(({ error }) => {
-        if (error) {
-          logger.warn('فشل تعليم الرسائل كمقروءة:', error.message);
-          markedRef.current = null; // إعادة المحاولة
-        } else {
-          queryClientRef.current.invalidateQueries({ queryKey: ['unread-counts'] });
-        }
-      });
-  }, [conversationId, user, allMessages]);
-
-  return {
-    ...query,
-    data: allMessages,
-    hasMore: query.hasNextPage ?? false,
-    loadMore: query.fetchNextPage,
-    isLoadingMore: query.isFetchingNextPage,
-  };
-};
+// إعادة تصدير من الملفات المقسّمة
+export { useUnreadCounts, type UnreadCounts } from './useUnreadCounts';
+export { useConversations } from './useConversations';
+export { useMessages } from './useChatMessages';
+export type { Conversation, Message } from '@/types/database';
 
 export const useSendMessage = () => {
   const queryClient = useQueryClient();
@@ -210,7 +32,6 @@ export const useSendMessage = () => {
       const { error: updateError } = await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
       if (updateError) logger.warn('Failed to update conversation timestamp:', updateError.message);
 
-      // إشعار المستفيد عند إرسال رسالة من المسؤول أو المحاسب
       if (role === 'admin' || role === 'accountant') {
         try {
           const { data: conv } = await supabase
