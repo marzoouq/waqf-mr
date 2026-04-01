@@ -42,6 +42,7 @@ const InvoicesViewPage = () => {
     return (
       (item.invoice_number || '').toLowerCase().includes(q) ||
       (INVOICE_TYPE_LABELS[item.invoice_type] || '').includes(q) ||
+      (item.description || '').toLowerCase().includes(q) ||
       item.date.includes(q)
     );
   });
