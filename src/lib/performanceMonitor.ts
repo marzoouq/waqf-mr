@@ -14,16 +14,6 @@ interface PerfEntry {
 
 const recentSlowQueries: PerfEntry[] = [];
 
-// مرجع لدالة التنبيه — يُضبط من App لتجنب الاستيراد الدائري
-let _toastFn: ((msg: string, opts?: { description?: string }) => void) | null = null;
-
-/**
- * يضبط دالة التنبيه (toast) — يُستدعى مرة واحدة من App
- */
-export function setPerformanceToast(fn: (msg: string, opts?: { description?: string }) => void): void {
-  _toastFn = fn;
-}
-
 /**
  * يبدأ قياس أداء عملية معينة ويُعيد دالة لإنهائها
  */
