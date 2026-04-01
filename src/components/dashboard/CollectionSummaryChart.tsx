@@ -2,6 +2,7 @@
  * مكوّن رسم ملخص التحصيل — يُحمّل بشكل كسول (lazy)
  */
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { useChartReady } from '@/hooks/ui/useChartReady';
 
 interface CollectionSummaryChartProps {
   onTime: number;
