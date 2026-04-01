@@ -156,7 +156,19 @@ const MessagesPage = () => {
                       selectedConv?.id === conv.id && 'bg-accent'
                     )}
                   >
-                    <p className="text-sm font-medium truncate">{conv.subject || 'محادثة'}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium truncate flex-1">{conv.subject || 'محادثة'}</p>
+                      {activeFilter === 'all' && (
+                        <span className={cn(
+                          'text-[10px] px-1.5 py-0.5 rounded-full shrink-0',
+                          conv.type === 'chat' && 'bg-primary/10 text-primary',
+                          conv.type === 'support' && 'bg-orange-500/10 text-orange-600',
+                          conv.type === 'broadcast' && 'bg-blue-500/10 text-blue-600',
+                        )}>
+                          {conv.type === 'chat' ? 'محادثة' : conv.type === 'support' ? 'دعم' : 'بث'}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {role === 'admin' ? getBeneficiaryName(conv.participant_id || conv.created_by) : 'ناظر الوقف'}
                     </p>
