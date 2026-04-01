@@ -60,7 +60,7 @@ const BylawsPage = () => {
                 <span className="hidden sm:inline">إضافة بند</span>
               </Button>
               <ExportMenu
-                onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
+                onExportPdf={async () => { const { generateBylawsPDF } = await import('@/utils/pdf'); generateBylawsPDF(visibleBylaws, pdfWaqfInfo); }}
               />
             </div>
           }

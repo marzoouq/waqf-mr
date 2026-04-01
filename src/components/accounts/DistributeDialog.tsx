@@ -155,7 +155,7 @@ const DistributeDialog = ({
           <Button variant="secondary" onClick={async () => { const { printDistributionReport } = await import('@/utils/pdf'); printDistributionReport({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions, waqfName: pdfWaqfInfo.waqfName, deedNumber: pdfWaqfInfo.deedNumber, logoUrl: pdfWaqfInfo.logoUrl }); }} disabled={beneficiaries.length === 0}>
             <Printer className="w-4 h-4 ml-2" />طباعة
           </Button>
-          <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { toast.error('حدث خطأ أثناء تصدير PDF'); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>
+          <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { const { generateDistributionsPDF } = await import('@/utils/pdf'); await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { toast.error('حدث خطأ أثناء تصدير PDF'); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>
             {pdfLoading ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <FileDown className="w-4 h-4 ml-2" />}تصدير PDF
           </Button>
           <div className="flex-1" />

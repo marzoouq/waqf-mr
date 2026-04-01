@@ -42,7 +42,7 @@ const ExpensesPage = () => {
           icon={TrendingDown}
           description="تسجيل ومتابعة المصروفات"
           actions={<>
-            <ExportMenu onExportPdf={() => generateExpensesPDF(h.filteredExpenses, h.totalExpenses, h.pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => { const { generateExpensesPDF } = await import('@/utils/pdf'); generateExpensesPDF(h.filteredExpenses, h.totalExpenses, h.pdfWaqfInfo); }} onExportCsv={() => {
               const csv = buildCsv(h.filteredExpenses.map(item => ({
                 'النوع': item.expense_type, 'المبلغ': safeNumber(item.amount), 'التاريخ': item.date,
                 'العقار': item.property?.property_number || '-', 'الوصف': item.description || '-',

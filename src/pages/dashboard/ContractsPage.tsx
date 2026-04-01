@@ -52,7 +52,7 @@ const ContractsPage = () => {
         <PageHeaderCard
           title="إدارة العقود" icon={FileText} description="عرض وإدارة عقود الإيجار"
           actions={<>
-            <ExportMenu onExportPdf={() => generateContractsPDF(contracts, pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => { const { generateContractsPDF } = await import('@/utils/pdf'); generateContractsPDF(contracts, pdfWaqfInfo); }} onExportCsv={() => {
               const csv = buildCsv(contracts.map(c => ({
                 'رقم العقد': c.contract_number, 'المستأجر': c.tenant_name,
                 'الإيجار السنوي': safeNumber(c.rent_amount), 'تاريخ البداية': c.start_date,

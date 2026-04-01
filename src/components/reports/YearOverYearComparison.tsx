@@ -64,6 +64,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
       net2: (incomeMap2.get(idx) || 0) - (expenseMap2.get(idx) || 0),
     })).filter(m => m.income1 || m.expenses1 || m.income2 || m.expenses2);
 
+    const { generateYearComparisonPDF } = await import('@/utils/pdf');
     await generateYearComparisonPDF({
       year1Label, year2Label,
       year1: yearTotals.year1, year2: yearTotals.year2,

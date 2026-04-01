@@ -87,6 +87,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         payment_type: tenant?.payment_type, payment_count: tenant?.payment_count,
                       };
                     });
+                    const { generateUnitsPDF } = await import('@/utils/pdf');
                     generateUnitsPDF(property.property_number, property.location, pdfRows, pdfWaqfInfo);
                   }} />
                   <Button size="sm" className="gap-1" onClick={() => { pu.resetUnitForm(); pu.setIsUnitFormOpen(true); }}>

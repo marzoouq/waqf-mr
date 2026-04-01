@@ -53,7 +53,7 @@ const IncomePage = () => {
           icon={TrendingUp}
           description="تسجيل ومتابعة مصادر الدخل"
           actions={<>
-            <ExportMenu onExportPdf={() => generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => { const { generateIncomePDF } = await import('@/utils/pdf'); generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo); }} onExportCsv={() => {
               const csv = buildCsv(filteredIncome.map(item => ({
                 'المصدر': item.source,
                 'المبلغ': safeNumber(item.amount),

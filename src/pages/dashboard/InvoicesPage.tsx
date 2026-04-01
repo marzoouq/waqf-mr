@@ -59,6 +59,7 @@ const InvoicesPage = () => {
               }
               try {
                 const fyLabel = h.fiscalYear?.label || (h.fiscalYearId ? '' : 'جميع السنوات');
+                const { generateInvoicesViewPDF } = await import('@/utils/pdf');
                 await generateInvoicesViewPDF(h.filteredInvoices.map(inv => ({
                   invoice_type: h.INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
                   invoice_number: inv.invoice_number, amount: safeNumber(inv.amount), date: inv.date,
