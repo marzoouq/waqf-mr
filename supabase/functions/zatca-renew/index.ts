@@ -20,7 +20,7 @@ import {
   sha256Async,
 } from "../_shared/zatca-shared.ts";
 
-Deno.serve(async (req) => {
+Deno.serve(async (req): Promise<Response> => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
