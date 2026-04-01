@@ -8,8 +8,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fmt } from '@/utils/format';
 import { tooltipStyleRtl } from '@/utils/chartHelpers';
-
-
+import { useChartReady } from '@/hooks/ui/useChartReady';
 
 interface MonthData {
   label: string;
@@ -22,6 +21,16 @@ interface MonthlyPerformanceChartsInnerProps {
   monthlyData: MonthData[];
 }
 
+/** حاوية رسم بياني مع useChartReady */
+const ChartBox: React.FC<{ height: string; children: React.ReactNode }> = ({ height, children }) => {
+  const { ref, ready } = useChartReady();
+  return (
+    <div ref={ref} className={`${height} min-w-0 min-h-[1px]`}>
+      {ready && children}
+    </div>
+  );
+};
+
 const MonthlyPerformanceChartsInner: React.FC<MonthlyPerformanceChartsInnerProps> = ({ monthlyData }) => (
   <>
     {/* Bar Chart: Income vs Expenses */}
@@ -30,7 +39,7 @@ const MonthlyPerformanceChartsInner: React.FC<MonthlyPerformanceChartsInnerProps
         <CardTitle className="text-sm sm:text-base">مقارنة الدخل والمصروفات الشهرية</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] sm:h-[400px] min-w-0 min-h-[1px]">
+        <ChartBox height="h-[300px] sm:h-[400px]">
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -49,7 +58,7 @@ const MonthlyPerformanceChartsInner: React.FC<MonthlyPerformanceChartsInnerProps
               <Bar dataKey="expenses" fill="hsl(var(--destructive))" name="expenses" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </ChartBox>
       </CardContent>
     </Card>
 
@@ -59,7 +68,7 @@ const MonthlyPerformanceChartsInner: React.FC<MonthlyPerformanceChartsInnerProps
         <CardTitle className="text-sm sm:text-base">اتجاه صافي الدخل الشهري</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[250px] sm:h-[300px] min-w-0 min-h-[1px]">
+        <ChartBox height="h-[250px] sm:h-[300px]">
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <AreaChart data={monthlyData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -85,7 +94,7 @@ const MonthlyPerformanceChartsInner: React.FC<MonthlyPerformanceChartsInnerProps
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </ChartBox>
       </CardContent>
     </Card>
   </>

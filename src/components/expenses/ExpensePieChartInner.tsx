@@ -3,6 +3,7 @@
  */
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { fmt } from '@/utils/format';
+import { useChartReady } from '@/hooks/ui/useChartReady';
 
 const COLORS = [
   'hsl(var(--primary))',
@@ -21,36 +22,41 @@ interface DataItem {
 }
 
 const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = ({ data }) => {
+  const { ref, ready } = useChartReady();
 
   return (
-    <ResponsiveContainer width="100%" height={280} minWidth={1} minHeight={1}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={50}
-          outerRadius={100}
-          dataKey="value"
-          nameKey="name"
-          paddingAngle={2}
-          label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
-          labelLine={false}
-        >
-          {data.map((_, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip
-          formatter={((value: number | undefined) => [`${fmt(value ?? 0)} ر.س`, '']) as never}
-          contentStyle={{ direction: 'rtl', fontSize: 12 }}
-        />
-        <Legend
-          verticalAlign="bottom"
-          formatter={(value: string) => <span className="text-xs">{value}</span>}
-        />
-      </PieChart>
-    </ResponsiveContainer>
+    <div ref={ref} className="w-full h-[280px] min-h-[1px] min-w-0">
+      {ready && (
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={50}
+              outerRadius={100}
+              dataKey="value"
+              nameKey="name"
+              paddingAngle={2}
+              label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
+              labelLine={false}
+            >
+              {data.map((_, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={((value: number | undefined) => [`${fmt(value ?? 0)} ر.س`, '']) as never}
+              contentStyle={{ direction: 'rtl', fontSize: 12 }}
+            />
+            <Legend
+              verticalAlign="bottom"
+              formatter={(value: string) => <span className="text-xs">{value}</span>}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      )}
+    </div>
   );
 };
 
