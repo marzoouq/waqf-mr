@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { generateInvoicesViewPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { fmt, fmtDate } from '@/utils/format';

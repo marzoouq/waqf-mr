@@ -11,7 +11,7 @@ import { Search, X, Lock, ScrollText, Scale, AlertCircle, RefreshCw } from 'luci
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
-import { generateBylawsPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { Button } from '@/components/ui/button';
 import { TableSkeleton } from '@/components/SkeletonLoaders';

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Zap, AlertTriangle, FileDown, CalendarDays, X } from 'lucide-react';
-import { generateOverdueInvoicesPDF } from '@/utils/pdf';
 import type { FilterStatus } from '@/hooks/page/usePaymentInvoicesTab';
 import type { PdfWaqfInfo } from '@/utils/pdf/core';
 import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';

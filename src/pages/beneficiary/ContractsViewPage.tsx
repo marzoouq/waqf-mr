@@ -16,7 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useMemo, useCallback, useState, useEffect } from 'react';
 import TablePagination from '@/components/TablePagination';
-import { generateContractsPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { fmt, fmtDate } from '@/utils/format';

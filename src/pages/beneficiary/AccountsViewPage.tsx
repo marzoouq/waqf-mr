@@ -7,7 +7,7 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { generateAccountsPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';

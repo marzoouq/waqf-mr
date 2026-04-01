@@ -7,9 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatPercentage } from '@/lib/utils';
 import { useDistributeShares } from '@/hooks/financial/useDistribute';
 import { Loader2, AlertTriangle, ArrowLeftRight, FileDown, Printer } from 'lucide-react';
-import { generateDistributionsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { printDistributionReport } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { useDistributionCalculation } from '@/hooks/page/useDistributionCalculation';
 

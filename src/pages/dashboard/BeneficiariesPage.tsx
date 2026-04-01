@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Percent, Search, AlertTriangle, Wallet, UserCheck } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import { generateBeneficiariesPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import ExportMenu from '@/components/ExportMenu';

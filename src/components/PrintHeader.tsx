@@ -1,8 +1,7 @@
 import { useWaqfInfo } from '@/hooks/page/useAppSettings';
 import { useEffect } from 'react';
-import { loadAmiriFonts } from '@/utils/pdf';
 const PrintHeader = () => {
-  useEffect(() => { loadAmiriFonts(); }, []);
+  useEffect(() => { import('@/utils/pdf/loadAmiriFonts').then(m => m.loadAmiriFonts()); }, []);
   const { data: waqfInfo } = useWaqfInfo();
   const waqfName = waqfInfo?.waqf_name || 'الوقف';
   const waqfAdmin = waqfInfo?.waqf_admin || '';

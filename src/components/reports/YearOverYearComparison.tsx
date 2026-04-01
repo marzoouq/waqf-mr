@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowUpDown, FileDown } from 'lucide-react';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { FiscalYear } from '@/hooks/financial/useFiscalYears';
-import { generateYearComparisonPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { useYearComparisonData, buildMonthlyMap } from '@/hooks/reports/useYearComparisonData';
 import YoYChangeCards from './YoYChangeCards';
