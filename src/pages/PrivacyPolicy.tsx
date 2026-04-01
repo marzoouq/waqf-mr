@@ -1,5 +1,5 @@
 import { Shield } from 'lucide-react';
-import LegalPageFooter from '@/components/LegalPageFooter';
+import LegalPageFooter from '@/components/layout/LegalPageFooter';
 
 const PrivacyPolicy = () => {
 

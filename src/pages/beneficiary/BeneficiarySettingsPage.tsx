@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
 import DashboardLayout from '@/components/dashboard-layout';
 import { User, Lock, Bell, Shield, Palette, AlertCircle, RefreshCw } from 'lucide-react';
-import ThemeColorPicker from '@/components/ThemeColorPicker';
+import ThemeColorPicker from '@/components/theme/ThemeColorPicker';
 import BiometricSettings from '@/components/settings/BiometricSettings';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import PageHeaderCard from '@/components/PageHeaderCard';
