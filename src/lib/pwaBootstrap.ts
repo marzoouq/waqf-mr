@@ -39,7 +39,11 @@ export async function runPwaCacheGuard(): Promise<void> {
         const names = await caches.keys();
         await Promise.all(names.map(name => caches.delete(name)));
         localStorage.setItem(PREVIEW_CACHE_KEY, APP_BUILD_ID);
-        window.location.reload();
+        if (canReload()) {
+          window.location.reload();
+          return;
+        }
+        logger.warn('[PWA] تم تخطي reload لمنع حلقة لا نهائية');
         return;
       }
       localStorage.setItem(CACHE_VERSION_KEY, APP_BUILD_ID);
