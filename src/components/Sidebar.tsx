@@ -10,7 +10,7 @@ import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ROLE_LABELS } from '@/constants';
 import { useWaqfInfo } from '@/hooks/page/useAppSettings';
-import { usePrefetchPages } from '@/hooks/financial/usePrefetchPages';
+import { usePrefetchPages } from '@/hooks/ui/usePrefetchPages';
 import { useUnreadMessages } from '@/hooks/ui/useUnreadMessages';
 
 interface SidebarContentProps {
