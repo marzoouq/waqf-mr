@@ -4,6 +4,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { fmt } from '@/utils/format';
 import { formatArabicMonth, tooltipStyleRtl } from '@/utils/chartHelpers';
+import { useChartReady } from '@/hooks/ui/useChartReady';
 
 const FINANCIAL_COLORS = [
   'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))',
@@ -22,14 +23,24 @@ interface FinancialChartsInnerProps {
   monthlyData: MonthlyItem[];
 }
 
+/** مكون فرعي لحاوية رسم بياني مع useChartReady */
+const ChartBox: React.FC<{ height?: number; children: React.ReactNode; fallback?: string }> = ({ height = 250, children, fallback }) => {
+  const { ref, ready } = useChartReady();
+  return (
+    <div ref={ref} className="min-w-0 min-h-[1px] px-2 sm:px-0" style={{ height }}>
+      {ready ? children : (fallback ? <div className="h-full flex items-center justify-center text-muted-foreground">{fallback}</div> : null)}
+    </div>
+  );
+};
+
 const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
   incomeVsExpenses, distributionData, incomePieData, expensesPieData, monthlyData,
 }) => (
   <>
     {/* Charts Row 1 */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <div className="h-[250px] min-w-0 min-h-[1px] px-2 sm:px-0">
-        <ResponsiveContainer width="100%" height={250} minWidth={1} minHeight={1}>
+      <ChartBox>
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <BarChart data={incomeVsExpenses}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -42,11 +53,11 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </ChartBox>
 
-      <div className="h-[250px] min-w-0 min-h-[1px] px-2 sm:px-0">
+      <ChartBox>
         {distributionData.some(d => d.value > 0) ? (
-          <ResponsiveContainer width="100%" height={250} minWidth={1} minHeight={1}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
               <Pie data={distributionData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
                 {distributionData.map((entry, index) => (
@@ -58,16 +69,16 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+          <div className="h-full flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
         )}
-      </div>
+      </ChartBox>
     </div>
 
     {/* Charts Row 2 */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <div className="h-[250px] min-w-0 min-h-[1px] px-2 sm:px-0">
+      <ChartBox>
         {incomePieData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={250} minWidth={1} minHeight={1}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
               <Pie data={incomePieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
                 {incomePieData.map((_, index) => (
@@ -79,13 +90,13 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+          <div className="h-full flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
         )}
-      </div>
+      </ChartBox>
 
-      <div className="h-[250px] min-w-0 min-h-[1px] px-2 sm:px-0">
+      <ChartBox>
         {expensesPieData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={250} minWidth={1} minHeight={1}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
               <Pie data={expensesPieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
                 {expensesPieData.map((_, index) => (
@@ -97,15 +108,15 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+          <div className="h-full flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
         )}
-      </div>
+      </ChartBox>
     </div>
 
     {/* Monthly Trend */}
-    <div className="h-[250px] min-w-0 min-h-[1px] px-2 sm:px-0">
+    <ChartBox>
       {monthlyData.length > 0 ? (
-        <ResponsiveContainer width="100%" height={250} minWidth={1} minHeight={1}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <BarChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
@@ -115,9 +126,9 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
           </BarChart>
         </ResponsiveContainer>
       ) : (
-        <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات شهرية</div>
+        <div className="h-full flex items-center justify-center text-muted-foreground">لا توجد بيانات شهرية</div>
       )}
-    </div>
+    </ChartBox>
   </>
 );
 
