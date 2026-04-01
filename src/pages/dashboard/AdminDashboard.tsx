@@ -222,40 +222,7 @@ const AdminDashboard = () => {
 
         {/* مقارنة بين السنوات */}
         <DeferredRender delay={3000}>
-          {allFiscalYears.length >= 2 ? (
-            <ErrorBoundary>
-              <Suspense fallback={<ChartSkeleton />}>
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <ArrowUpDown className="w-5 h-5" />
-                      مقارنة بين السنوات المالية
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <YearOverYearComparison
-                      fiscalYears={allFiscalYears}
-                      currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
-                    />
-                  </CardContent>
-                </Card>
-              </Suspense>
-            </ErrorBoundary>
-          ) : (
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ArrowUpDown className="w-5 h-5" />
-                  مقارنة بين السنوات المالية
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-center text-muted-foreground py-8">
-                  ستتوفر المقارنة بين السنوات عند إضافة سنة مالية ثانية على الأقل.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <YearComparisonSection allFiscalYears={allFiscalYears} fiscalYearId={fiscalYearId} />
         </DeferredRender>
 
         {/* مراقبة أداء الصفحات — للناظر فقط، تُخفى عند الطباعة */}
