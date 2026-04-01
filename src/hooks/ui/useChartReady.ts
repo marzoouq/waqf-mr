@@ -10,6 +10,13 @@ export function useChartReady() {
 
   useLayoutEffect(() => {
     if (!ref.current) return;
+
+    const rect = ref.current.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      setReady(true);
+      return;
+    }
+
     const obs = new ResizeObserver((entries) => {
       const { width, height } = entries[0]?.contentRect ?? {};
       if (width && width > 0 && height && height > 0) {

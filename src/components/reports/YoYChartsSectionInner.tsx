@@ -9,6 +9,7 @@ import { fmt } from '@/utils/format';
 import { tooltipStyleRtl } from '@/utils/chartHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useChartReady } from '@/hooks/ui/useChartReady';
 
 
 
@@ -17,6 +18,16 @@ const COLORS = [
   'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
   'hsl(var(--accent))', 'hsl(var(--chart-4))',
 ];
+
+const ChartBox: React.FC<{ className: string; children: React.ReactNode }> = ({ className, children }) => {
+  const { ref, ready } = useChartReady();
+
+  return (
+    <div ref={ref} className={`${className} min-w-0 min-h-[1px]`}>
+      {ready && children}
+    </div>
+  );
+};
 
 export interface YoYChartsSectionProps {
   comparisonData: Record<string, unknown>[];
@@ -37,7 +48,7 @@ const YoYChartsSectionInner = ({
         <CardTitle className="text-sm sm:text-base">مقارنة الدخل الشهري</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] sm:h-[400px] min-w-0 min-h-[1px]">
+        <ChartBox className="h-[300px] sm:h-[400px]">
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart data={comparisonData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -49,7 +60,7 @@ const YoYChartsSectionInner = ({
               <Bar dataKey={`دخل ${year2Label}`} fill="hsl(var(--primary) / 0.5)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </ChartBox>
       </CardContent>
     </Card>
 
@@ -59,7 +70,7 @@ const YoYChartsSectionInner = ({
         <CardTitle className="text-sm sm:text-base">مقارنة صافي الدخل الشهري</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[250px] sm:h-[300px] min-w-0 min-h-[1px]">
+        <ChartBox className="h-[250px] sm:h-[300px]">
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <LineChart data={comparisonData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -71,7 +82,7 @@ const YoYChartsSectionInner = ({
               <Line type="monotone" dataKey="net2" stroke="hsl(var(--success))" strokeWidth={2} name={`صافي ${year2Label}`} dot={{ r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </ChartBox>
       </CardContent>
     </Card>
 
@@ -86,18 +97,20 @@ const YoYChartsSectionInner = ({
         </CardHeader>
         <CardContent>
           {expensesByType1.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280} minWidth={1} minHeight={1}>
-              <PieChart>
-                <Pie data={expensesByType1} cx="50%" cy="50%" labelLine outerRadius={85} dataKey="value" style={{ fontSize: '11px' }}
-                  label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}>
-                  {expensesByType1.map((_entry, index) => (
-                    <Cell key={`cell-y1-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={((value: number | undefined) => `${fmt(value ?? 0)} ر.س`) as never} contentStyle={tooltipStyleRtl} />
-                <Legend wrapperStyle={{ fontSize: '11px' }} />
-              </PieChart>
-            </ResponsiveContainer>
+            <ChartBox className="h-[280px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                <PieChart>
+                  <Pie data={expensesByType1} cx="50%" cy="50%" labelLine outerRadius={85} dataKey="value" style={{ fontSize: '11px' }}
+                    label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}>
+                    {expensesByType1.map((_entry, index) => (
+                      <Cell key={`cell-y1-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={((value: number | undefined) => `${fmt(value ?? 0)} ر.س`) as never} contentStyle={tooltipStyleRtl} />
+                  <Legend wrapperStyle={{ fontSize: '11px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartBox>
           ) : (
             <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">لا توجد بيانات</div>
           )}
@@ -112,18 +125,20 @@ const YoYChartsSectionInner = ({
         </CardHeader>
         <CardContent>
           {expensesByType2.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280} minWidth={1} minHeight={1}>
-              <PieChart>
-                <Pie data={expensesByType2} cx="50%" cy="50%" labelLine outerRadius={85} dataKey="value" style={{ fontSize: '11px' }}
-                  label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}>
-                  {expensesByType2.map((_entry, index) => (
-                    <Cell key={`cell-y2-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={((value: number | undefined) => `${fmt(value ?? 0)} ر.س`) as never} contentStyle={tooltipStyleRtl} />
-                <Legend wrapperStyle={{ fontSize: '11px' }} />
-              </PieChart>
-            </ResponsiveContainer>
+            <ChartBox className="h-[280px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                <PieChart>
+                  <Pie data={expensesByType2} cx="50%" cy="50%" labelLine outerRadius={85} dataKey="value" style={{ fontSize: '11px' }}
+                    label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}>
+                    {expensesByType2.map((_entry, index) => (
+                      <Cell key={`cell-y2-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={((value: number | undefined) => `${fmt(value ?? 0)} ر.س`) as never} contentStyle={tooltipStyleRtl} />
+                  <Legend wrapperStyle={{ fontSize: '11px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartBox>
           ) : (
             <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">لا توجد بيانات</div>
           )}

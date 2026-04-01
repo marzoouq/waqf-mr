@@ -131,6 +131,7 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
           <Input
             id={`signin-email${idSuffix}`}
             type="email"
+            autoComplete="email"
             value={loginEmail}
             onChange={(e) => setLoginEmail(e.target.value)}
             placeholder="example@email.com"
@@ -175,6 +176,7 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
           <Input
             id={`signin-password${idSuffix}`}
             type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
             value={loginPassword}
             onChange={(e) => setLoginPassword(e.target.value)}
             placeholder="••••••••"

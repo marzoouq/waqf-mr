@@ -42,6 +42,7 @@ export default function SignupForm({ signUp }: SignupFormProps) {
         <Input
           id="signup-email"
           type="email"
+          autoComplete="email"
           value={signupEmail}
           onChange={(e) => setSignupEmail(e.target.value)}
           placeholder="example@email.com"
@@ -54,6 +55,7 @@ export default function SignupForm({ signUp }: SignupFormProps) {
         <Input
           id="signup-password"
           type="password"
+          autoComplete="new-password"
           value={signupPassword}
           onChange={(e) => setSignupPassword(e.target.value)}
           placeholder="••••••••"
