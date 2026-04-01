@@ -157,6 +157,7 @@ export async function fetchWaqfData(
             .select("amount, date, status")
             .order("date", { ascending: false })
             .limit(20)
+            .then(r => r)
         : (async () => {
             const { data: myBen } = await client.from("beneficiaries").select("id").eq("user_id", userId).single();
             if (!myBen) return { data: [], error: null };
@@ -164,7 +165,8 @@ export async function fetchWaqfData(
               .select("amount, date, status")
               .eq("beneficiary_id", myBen.id)
               .order("date", { ascending: false })
-              .limit(10);
+              .limit(10)
+              .then(r => r);
           })(),
     ];
 
