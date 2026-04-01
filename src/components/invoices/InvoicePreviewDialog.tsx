@@ -100,6 +100,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
               size="sm"
               className="gap-1.5"
               onClick={handleDownloadPdf}
+              onMouseEnter={preloadPdfChunks}
               disabled={downloading}
             >
               {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
