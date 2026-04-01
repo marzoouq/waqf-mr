@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Label } from '@/components/ui/label';
-import { MessageSquare, Send, Plus, Users, ArrowRight, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Plus, Users, ArrowRight, Loader2, Headphones, Radio } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
