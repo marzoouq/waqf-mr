@@ -87,9 +87,14 @@ const BeneficiaryMessagesPage = () => {
                   {activeTab === 'chat' ? (
                     <>
                       <p>لا توجد محادثات بعد</p>
-                      <p className="text-xs mt-1">اضغط "محادثة الناظر" لبدء محادثة جديدة</p>
+                      <p className="text-xs mt-1">اضغط زر + لبدء محادثة جديدة</p>
                     </>
-                  ) : 'لا توجد تذاكر دعم'}
+                  ) : (
+                    <>
+                      <p>لا توجد تذاكر دعم</p>
+                      <p className="text-xs mt-1">اضغط زر + لإنشاء طلب دعم جديد</p>
+                    </>
+                  )}
                 </div>
               ) : (
                 conversations.map((conv) => (
