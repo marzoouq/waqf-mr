@@ -31,6 +31,7 @@ const IncomeMonthlyChartInner = ({ chartData }: IncomeMonthlyChartInnerProps) =>
           <Bar dataKey="actual" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} name="actual" />
         </BarChart>
       </ResponsiveContainer>
+      )}
     </div>
   );
 };
