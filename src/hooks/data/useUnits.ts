@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from './mutationNotify';
 import { createCrudFactory } from './useCrudFactory';
-import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { Unit } from '@/types/database';
 
 // Re-export types for backward compatibility
