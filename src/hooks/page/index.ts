@@ -28,7 +28,7 @@ export { useHistoricalComparison } from './useHistoricalComparison';
 export { useIncomePage } from './useIncomePage';
 export { useInvoicesPage } from './useInvoicesPage';
 export { useLogoManager } from './useLogoManager';
-export { useNavLinks } from './useNavLinks';
+export { useNavLinks } from '@/hooks/ui/useNavLinks';
 export { usePaymentInvoicesTab } from './usePaymentInvoicesTab';
 export { usePropertiesPage } from './usePropertiesPage';
 export { usePropertiesViewData } from './usePropertiesViewData';
