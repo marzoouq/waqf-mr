@@ -70,7 +70,7 @@ export const useMySharePage = () => {
 
   // PDF — hook مفصول
   const pdf = useMySharePdf({
-    currentBeneficiary, isClosed, myShare, totalReceived, pendingAmount,
+    currentBeneficiary: currentBeneficiary ?? null, isClosed, myShare, totalReceived, pendingAmount,
     paidAdvancesTotal, carryforwardBalance, beneficiariesShare,
     netAfterZakat, adminShare, waqifShare, waqfRevenue, waqfCorpusManual,
     totalIncome, totalExpenses, netAfterExpenses, vatAmount, netAfterVat,
