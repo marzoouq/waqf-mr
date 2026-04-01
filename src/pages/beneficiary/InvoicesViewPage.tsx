@@ -30,6 +30,10 @@ const InvoicesViewPage = () => {
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
+  const { getJsonSetting } = useAppSettings();
+  const beneficiarySections = getJsonSetting<Record<string, boolean>>('beneficiary_sections', {});
+  const showAttachments = beneficiarySections['invoice_attachments'] !== false;
+
   const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(fiscalYearId);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
