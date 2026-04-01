@@ -1,7 +1,9 @@
 export { useBfcacheSafeChannel } from './useBfcacheSafeChannel';
 export { useChartReady } from './useChartReady';
+export { useGlobalSearch } from './useGlobalSearch';
 export { useIdleTimeout } from './useIdleTimeout';
 export { useIsMobile } from './use-mobile';
+export { useNavLinks } from './useNavLinks';
 export { usePagePerformance } from './usePagePerformance';
 export { usePrefetchPages } from './usePrefetchPages';
 export { useSidebarSwipe } from './useSidebarSwipe';
