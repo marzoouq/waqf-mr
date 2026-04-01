@@ -2,6 +2,7 @@
  * حفظ الحسابات الختامية — مفصول من useAccountsActions
  */
 import { useCreateAccount } from '@/hooks/financial/useAccounts';
+import type { TablesInsert } from '@/integrations/supabase/types';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
 import { defaultNotify } from '@/hooks/data/mutationNotify';
 import { logger } from '@/lib/logger';
