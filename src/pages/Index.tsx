@@ -42,6 +42,8 @@ const Index = () => {
   const content = getJsonSetting<LandingPageContent>('landing_page_content', defaultLanding);
   const { data: waqfInfo } = useWaqfInfo();
 
+  const [roleTimeout, setRoleTimeout] = useState(false);
+
   useEffect(() => {
     if (!loading && user) {
       if (role === 'admin' || role === 'accountant') {
@@ -53,6 +55,21 @@ const Index = () => {
       }
     }
   }, [user, role, loading, navigate]);
+
+  // Fallback: إذا مرّ 5 ثوانٍ ولم يُحدد الدور، توجيه لصفحة المصادقة
+  useEffect(() => {
+    if (!loading && user && !role) {
+      const timer = setTimeout(() => {
+        logger.warn('[Index] role=null timeout after 5s, redirecting to /auth');
+        setRoleTimeout(true);
+        toast.error('تعذّر تحديد صلاحياتك — يرجى تسجيل الدخول مجدداً');
+        navigate('/auth', { replace: true });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+    setRoleTimeout(false);
+    return undefined;
+  }, [loading, user, role, navigate]);
 
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['public-stats'],
