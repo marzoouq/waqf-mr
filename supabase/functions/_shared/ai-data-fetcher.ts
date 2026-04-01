@@ -138,22 +138,26 @@ export async function fetchWaqfData(
       client.from("accounts")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(3),
+        .limit(3)
+        .then(r => r),
       // 1: العقود النشطة (admin) أو عدد فقط (non-admin)
       isAdmin
         ? client.from("contracts")
             .select("contract_number, rent_amount, start_date, end_date, status, payment_type")
             .eq("status", "active")
             .limit(30)
+            .then(r => r)
         : client.from("contracts")
             .select("id", { count: "exact", head: true })
-            .eq("status", "active"),
+            .eq("status", "active")
+            .then(r => r),
       // 2: التوزيعات (admin) أو توزيعات المستفيد
       isAdmin
         ? client.from("distributions")
             .select("amount, date, status")
             .order("date", { ascending: false })
             .limit(20)
+            .then(r => r)
         : (async () => {
             const { data: myBen } = await client.from("beneficiaries").select("id").eq("user_id", userId).single();
             if (!myBen) return { data: [], error: null };
@@ -161,7 +165,8 @@ export async function fetchWaqfData(
               .select("amount, date, status")
               .eq("beneficiary_id", myBen.id)
               .order("date", { ascending: false })
-              .limit(10);
+              .limit(10)
+              .then(r => r);
           })(),
     ];
 
@@ -174,6 +179,7 @@ export async function fetchWaqfData(
           .eq("fiscal_year_id", activeFY.id)
           .order("date", { ascending: false })
           .limit(500)
+          .then(r => r)
       );
       // 4: المصروفات للسنة النشطة
       batch2Promises.push(
@@ -181,6 +187,7 @@ export async function fetchWaqfData(
           .select("expense_type, amount, date")
           .eq("fiscal_year_id", activeFY.id)
           .limit(500)
+          .then(r => r)
       );
     }
 
@@ -193,6 +200,7 @@ export async function fetchWaqfData(
           .lte("end_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
           .order("end_date", { ascending: true })
           .limit(10)
+          .then(r => r)
       );
     }
 
