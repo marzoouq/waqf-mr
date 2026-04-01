@@ -1,9 +1,7 @@
 import { Route } from "react-router-dom";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { withRouteErrorBoundary as eb } from "./withRouteErrorBoundary";
-
-/* lazy — لا يُحتاج إلا بعد تسجيل الدخول */
-const ProtectedRoute = lazyWithRetry(() => import("@/components/ProtectedRoute"));
 
 const AdminDashboard = lazyWithRetry(() => import("@/pages/dashboard/AdminDashboard"));
 const PropertiesPage = lazyWithRetry(() => import("@/pages/dashboard/PropertiesPage"));
