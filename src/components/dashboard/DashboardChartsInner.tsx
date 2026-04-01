@@ -1,11 +1,22 @@
 import { fmt } from '@/utils/format';
 import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chartHelpers';
+import { useChartReady } from '@/hooks/ui/useChartReady';
 /**
  * مكوّن الرسوم البيانية الداخلي — يُحمّل بشكل كسول (lazy)
  * يحتوي على: رسم الدخل/المصروفات الشهري + توزيع المصروفات الدائري
  */
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+/** حاوية تنتظر اكتساب أبعاد فعلية قبل رندر الرسم */
+const ChartBox: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = 'h-[300px]' }) => {
+  const { ref, ready } = useChartReady();
+  return (
+    <div ref={ref} className={`${className} min-w-0 min-h-[1px]`}>
+      {ready && children}
+    </div>
+  );
+};
 
 interface DashboardChartsInnerProps {
   monthlyData: Array<{ month: string; income: number; expenses: number }>;
@@ -22,8 +33,8 @@ const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInne
         </CardHeader>
         <CardContent className="min-h-[300px]">
           {monthlyData.length > 0 ? (
-            <div className="h-[300px] min-w-0 min-h-[1px]">
-              <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
+            <ChartBox>
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
@@ -34,7 +45,7 @@ const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInne
                   <Bar dataKey="expenses" fill="hsl(var(--secondary))" name="المصروفات" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </ChartBox>
           ) : (
             <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
           )}
@@ -48,8 +59,8 @@ const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInne
         </CardHeader>
         <CardContent className="min-h-[300px]">
           {expenseTypes.length > 0 ? (
-            <div className="h-[300px] min-w-0 min-h-[1px]">
-              <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
+            <ChartBox>
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <PieChart>
                   <Pie
                     data={expenseTypes}
@@ -70,7 +81,7 @@ const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInne
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
+            </ChartBox>
           ) : (
             <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
           )}
