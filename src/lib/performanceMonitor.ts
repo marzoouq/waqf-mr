@@ -77,9 +77,6 @@ export function reportPageLoadMetrics(): void {
 
     if (loadTime > SLOW_QUERY_THRESHOLD_MS) {
       logger.warn(`[Perf] تحميل الصفحة بطيء: ${loadTime}ms (DOM interactive: ${domInteractive}ms)`);
-      _toastFn?.('⚠️ تحميل الصفحة بطيء', {
-        description: `استغرق التحميل ${(loadTime / 1000).toFixed(1)} ثانية`,
-      });
     }
   };
 
