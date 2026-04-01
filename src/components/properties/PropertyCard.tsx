@@ -16,7 +16,8 @@ interface Property {
   property_type: string;
   location: string;
   area: number;
-  vat_exempt: boolean;
+  vat_exempt?: boolean;
+  [key: string]: unknown;
 }
 
 interface Contract {
