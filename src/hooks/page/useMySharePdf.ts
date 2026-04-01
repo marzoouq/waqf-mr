@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { generateMySharePDF, generateDistributionsPDF, generateComprehensiveBeneficiaryPDF, printShareReport } from '@/utils/pdf';
 import { defaultNotify } from '@/hooks/data/mutationNotify';
-import type { PdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import type { PdfWaqfInfo } from '@/utils/pdf';
 
 interface PdfParams {
   currentBeneficiary: { name?: string | null; share_percentage?: number | null } | null;

@@ -43,7 +43,7 @@ interface ReportsExportActionsProps {
   incomeSourceData: IncomeExpenseItem[];
   expenseTypeData: IncomeExpenseItem[];
   distributionData: DistItem[];
-  forensicAuditData: unknown;
+  forensicAuditData: ForensicAuditData;
   pdfWaqfInfo: PdfWaqfInfo;
 }
 
