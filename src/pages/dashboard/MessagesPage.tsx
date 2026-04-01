@@ -10,26 +10,41 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Label } from '@/components/ui/label';
-import { MessageSquare, Send, Plus, Users, ArrowRight, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Plus, Users, ArrowRight, Loader2, Headphones, Radio } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
+const FILTER_TABS = [
+  { key: 'all', label: 'الكل', icon: Users },
+  { key: 'chat', label: 'المحادثات', icon: MessageSquare },
+  { key: 'support', label: 'الدعم الفني', icon: Headphones },
+  { key: 'broadcast', label: 'البث', icon: Radio },
+] as const;
+
+type FilterKey = typeof FILTER_TABS[number]['key'];
+
 const MessagesPage = () => {
   const { user, role } = useAuth();
   // الأدمين يرى كل الأنواع، المحاسب يرى chat فقط
-  const { data: conversations = [] } = useConversations(role === 'admin' ? undefined : 'chat');
+  const { data: allConversations = [] } = useConversations(role === 'admin' ? undefined : 'chat');
   const { data: beneficiaries = [] } = useBeneficiaries();
   const sendMessage = useSendMessage();
   const createConversation = useCreateConversation();
 
+  const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [newConvOpen, setNewConvOpen] = useState(false);
   const [newConvBeneficiary, setNewConvBeneficiary] = useState('');
   const [newConvSubject, setNewConvSubject] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // فلترة المحادثات حسب النوع
+  const conversations = activeFilter === 'all'
+    ? allConversations
+    : allConversations.filter(c => c.type === activeFilter);
 
   const { data: messages = [], hasMore, loadMore, isLoadingMore } = useMessages(selectedConv?.id || null);
 
@@ -93,6 +108,29 @@ const MessagesPage = () => {
           className="mb-0"
         />
 
+        {/* فلترة حسب النوع — للأدمين فقط */}
+        {role === 'admin' && (
+          <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+            {FILTER_TABS.map(({ key, label, icon: Icon }) => (
+              <Button
+                key={key}
+                variant={activeFilter === key ? 'default' : 'outline'}
+                size="sm"
+                className="gap-1.5"
+                onClick={() => { setActiveFilter(key); setSelectedConv(null); }}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+                {key !== 'all' && (
+                  <span className="text-xs opacity-70">
+                    ({allConversations.filter(c => c.type === key).length})
+                  </span>
+                )}
+              </Button>
+            ))}
+          </div>
+        )}
+
         <div className="flex-1 flex gap-2 sm:gap-4 min-h-0">
           {/* Conversations List */}
           <Card className={cn('w-full md:w-80 shrink-0 flex flex-col', selectedConv && 'hidden md:flex')}>
@@ -118,7 +156,19 @@ const MessagesPage = () => {
                       selectedConv?.id === conv.id && 'bg-accent'
                     )}
                   >
-                    <p className="text-sm font-medium truncate">{conv.subject || 'محادثة'}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium truncate flex-1">{conv.subject || 'محادثة'}</p>
+                      {activeFilter === 'all' && (
+                        <span className={cn(
+                          'text-[10px] px-1.5 py-0.5 rounded-full shrink-0',
+                          conv.type === 'chat' && 'bg-primary/10 text-primary',
+                          conv.type === 'support' && 'bg-destructive/10 text-destructive',
+                          conv.type === 'broadcast' && 'bg-accent text-accent-foreground',
+                        )}>
+                          {conv.type === 'chat' ? 'محادثة' : conv.type === 'support' ? 'دعم' : 'بث'}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {role === 'admin' ? getBeneficiaryName(conv.participant_id || conv.created_by) : 'ناظر الوقف'}
                     </p>
