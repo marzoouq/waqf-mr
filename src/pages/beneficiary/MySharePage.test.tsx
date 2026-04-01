@@ -103,7 +103,7 @@ vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
+vi.mock('@/components/dashboard-layout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
 vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => <div>no years</div> }));
 vi.mock('@/components/RequirePublishedYears', () => ({ default: ({ children }: { children: React.ReactNode }) => <>{children}</> }));

@@ -78,7 +78,7 @@ vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/dashboard-layout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/components/ExportMenu', () => ({ default: (props: any) => <button data-testid="export-menu" onClick={props.onExportPdf}>تصدير</button> }));
 vi.mock('@/components/FiscalYearSelector', () => ({ default: () => <div data-testid="fiscal-year-selector" /> }));
 vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => null }));

@@ -60,7 +60,7 @@ vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', adminName: 'ناظر' })),
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({
+vi.mock('@/components/dashboard-layout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 

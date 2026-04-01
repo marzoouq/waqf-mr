@@ -92,7 +92,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
+vi.mock('@/components/dashboard-layout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
 vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => <div>لا توجد سنوات مالية منشورة</div> }));
 vi.mock('@/components/ExportMenu', () => ({ default: () => null }));
