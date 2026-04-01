@@ -5,7 +5,7 @@
 import { useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
-import { defaultMenuLabels, type MenuLabels } from '@/types/menuLabels';
+import { defaultMenuLabels, type MenuLabels } from '@/constants/menuLabels';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 import {
   linkLabelKeys, allAdminLinks, allBeneficiaryLinks,

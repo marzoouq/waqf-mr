@@ -11,10 +11,10 @@ import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useState, useEffect } from 'react';
 
 // أنواع وقيم افتراضية مستخرجة إلى ملف مستقل لتقليل حجم الحزمة
-export type { MenuLabels } from '@/types/menuLabels';
-export { defaultMenuLabels } from '@/types/menuLabels';
-import { defaultMenuLabels } from '@/types/menuLabels';
-import type { MenuLabels } from '@/types/menuLabels';
+export type { MenuLabels } from '@/constants/menuLabels';
+export { defaultMenuLabels } from '@/constants/menuLabels';
+import { defaultMenuLabels } from '@/constants/menuLabels';
+import type { MenuLabels } from '@/constants/menuLabels';
 
 const MenuCustomizationTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();

@@ -2,7 +2,7 @@
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { lazy, Suspense, useMemo } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
+import { useDashboardRealtime } from '@/hooks/data/useDashboardRealtime';
 import { safeNumber } from '@/utils/safeNumber';
 import { computeMonthlyData } from '@/utils/dashboardComputations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

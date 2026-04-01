@@ -8,7 +8,7 @@ import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
+import { useDashboardRealtime } from '@/hooks/data/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
