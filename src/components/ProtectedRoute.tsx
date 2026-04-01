@@ -14,6 +14,7 @@ import { Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { logger } from '@/lib/logger';
 import type { AppRole } from '@/types/database';
 
