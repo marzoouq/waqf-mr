@@ -19,9 +19,6 @@ if (_supabaseUrl) {
   document.head.appendChild(link);
 }
 
-// ─── PWA/cache guard: preview يجب أن يتجاوز أي كاش قديم دائماً ───
-runPwaCacheGuard();
-
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("Root element #root not found in DOM");
 
@@ -30,6 +27,9 @@ createRoot(rootEl).render(
     <App />
   </StrictMode>
 );
+
+// ─── PWA/cache guard: يعمل بعد render حتى لا يحجب ظهور الواجهة ───
+runPwaCacheGuard();
 
 // إزالة splash screen بعد تحميل React
 const splash = document.getElementById('splash');

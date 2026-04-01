@@ -159,7 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (attempt < 2) {
-            await new Promise(r => setTimeout(r, (attempt + 1) * 300));
+            await new Promise(r => setTimeout(r, 200));
           }
         } catch (err) {
           logger.error('[Auth] fetchRole attempt', attempt, 'error:', err);

@@ -60,10 +60,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     if (allowedRoles && !role && !loading && user) {
       const showTimer = setTimeout(() => setShowSignOut(true), 3000);
       const autoLogoutTimer = setTimeout(async () => {
-        logger.warn('[ProtectedRoute] role=null timeout after 10s, auto sign-out');
+        logger.warn('[ProtectedRoute] role=null timeout after 7s, auto sign-out');
         await signOut();
         navigate('/auth', { replace: true });
-      }, 10000);
+      }, 7000);
       return () => {
         clearTimeout(showTimer);
         clearTimeout(autoLogoutTimer);
