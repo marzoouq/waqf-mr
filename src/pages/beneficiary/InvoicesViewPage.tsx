@@ -145,6 +145,9 @@ const InvoicesViewPage = () => {
                             {INVOICE_STATUS_LABELS[item.status] || item.status}
                           </Badge>
                         </div>
+                        {item.description && (
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                        )}
                         {item.invoice_number && (
                           <p className="text-xs text-muted-foreground font-mono">{item.invoice_number}</p>
                         )}
