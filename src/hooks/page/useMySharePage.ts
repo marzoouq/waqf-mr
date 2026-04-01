@@ -51,7 +51,7 @@ export const useMySharePage = () => {
 
   // التوزيعات — hook مفصول
   const { filteredDistributions, totalReceived, pendingAmount, isLoading: distLoading } =
-    useMyShareDistributions(currentBeneficiary?.id, fiscalYearId, currentAccount);
+    useMyShareDistributions(currentBeneficiary?.id ?? undefined, fiscalYearId, currentAccount ?? undefined);
 
   // سُلف وترحيلات
   const effectiveFyId = fiscalYearId === 'all' ? undefined : fiscalYearId;
