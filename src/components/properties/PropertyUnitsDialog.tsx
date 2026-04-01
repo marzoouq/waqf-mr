@@ -77,7 +77,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
               <div className="flex justify-between items-center flex-wrap gap-2">
                 <h3 className="font-semibold">الوحدات السكنية</h3>
                 <div className="flex gap-2 flex-wrap print:hidden">
-                  <ExportMenu onExportPdf={() => {
+                  <ExportMenu onExportPdf={async () => {
                     const pdfRows: UnitPdfRow[] = pu.units.map(u => {
                       const tenant = getTenantFromContracts(u.id, contracts);
                       return {
