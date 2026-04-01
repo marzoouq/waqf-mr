@@ -11,8 +11,6 @@ import { runPwaCacheGuard } from "./lib/pwaBootstrap";
 initThemeFromStorage();
 
 // Preconnect to backend API — يقلل زمن أول طلب بـ 50-100ms
-
-// Preconnect to backend API — يقلل زمن أول طلب بـ 50-100ms
 const _supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 if (_supabaseUrl) {
   const link = document.createElement('link');
