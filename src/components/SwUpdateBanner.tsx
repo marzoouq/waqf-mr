@@ -63,7 +63,8 @@ const SwUpdateBanner = () => {
 
   return (
     <div
-      className="fixed top-0 inset-x-0 z-[99999] isolate bg-primary text-primary-foreground shadow-2xl"
+      ref={bannerRef}
+      className="fixed top-0 inset-x-0 z-[99999] isolate bg-primary text-primary-foreground shadow-2xl animate-fade-in"
       dir="rtl"
       role="alert"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
