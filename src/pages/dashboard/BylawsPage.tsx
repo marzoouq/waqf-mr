@@ -8,7 +8,7 @@ import { BylawAddDialog, BylawEditDialog, BylawDeleteDialog } from '@/components
 import SortableBylawItem from '@/components/bylaws/SortableBylawItem';
 import { Loader2, BookOpen, Eye, EyeOff, Search, X, Plus, Globe, Lock, Scale, FileText } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
-import { generateBylawsPDF } from '@/utils/pdf';
+
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Switch } from '@/components/ui/switch';

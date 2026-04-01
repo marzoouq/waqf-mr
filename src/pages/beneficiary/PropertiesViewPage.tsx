@@ -61,6 +61,7 @@ const PropertiesViewPage = () => {
           actions={
             <ExportMenu onExportPdf={async () => {
               try {
+                const { generatePropertiesPDF } = await import('@/utils/pdf');
                 await generatePropertiesPDF(
                   (properties ?? []).map(p => ({
                     property_number: p.property_number, property_type: p.property_type,

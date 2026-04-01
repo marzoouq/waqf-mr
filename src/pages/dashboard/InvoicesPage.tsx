@@ -17,7 +17,7 @@ import InvoicesDesktopTable from '@/components/invoices/InvoicesDesktopTable';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
-import { generateInvoicesViewPDF } from '@/utils/pdf';
+
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { toast } from 'sonner';
 import { safeNumber } from '@/utils/safeNumber';

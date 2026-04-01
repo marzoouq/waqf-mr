@@ -16,7 +16,7 @@ import ExpenseFormDialog from '@/components/expenses/ExpenseFormDialog';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import ExpensesPieChart from '@/components/expenses/ExpensesPieChart';
 import ExpenseBudgetBar from '@/components/expenses/ExpenseBudgetBar';
-import { generateExpensesPDF } from '@/utils/pdf';
+
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';

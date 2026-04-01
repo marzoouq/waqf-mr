@@ -10,7 +10,7 @@ import ContractAccordionGroup from '@/components/contracts/ContractAccordionGrou
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
-import { generateContractsPDF } from '@/utils/pdf';
+
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';

@@ -99,7 +99,7 @@ const BylawsViewPage = () => {
           description={`لائحة تنظيم أعمال الوقف والنظارة • ${visibleBylaws.length} بند`}
           icon={Scale}
           actions={
-            <ExportMenu onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)} />
+            <ExportMenu onExportPdf={async () => { const { generateBylawsPDF } = await import('@/utils/pdf'); generateBylawsPDF(visibleBylaws, pdfWaqfInfo); }} />
           }
         />
 

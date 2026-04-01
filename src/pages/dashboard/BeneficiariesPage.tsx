@@ -32,7 +32,7 @@ const BeneficiariesPage = () => {
           icon={Users}
           description="عرض وإدارة المستفيدين من الوقف"
           actions={<>
-            <ExportMenu onExportPdf={() => generateBeneficiariesPDF(h.filteredBeneficiaries, pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => { const { generateBeneficiariesPDF } = await import('@/utils/pdf'); generateBeneficiariesPDF(h.filteredBeneficiaries, pdfWaqfInfo); }} onExportCsv={() => {
               const csv = buildCsv(h.filteredBeneficiaries.map(b => ({
                 'الاسم': b.name,
                 'النسبة %': Number(b.share_percentage),

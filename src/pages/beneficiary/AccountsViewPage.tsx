@@ -130,6 +130,7 @@ const AccountsViewPage = () => {
           actions={
             <ExportMenu onExportPdf={async () => {
               try {
+                const { generateAccountsPDF } = await import('@/utils/pdf');
                 await generateAccountsPDF({
                   contracts: contracts.filter(c => c.status === 'active').map(c => ({
                     contract_number: c.contract_number ?? '',

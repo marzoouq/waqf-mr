@@ -115,6 +115,7 @@ const ContractsViewPage = () => {
           <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" actions={
             <ExportMenu onExportPdf={async () => {
               try {
+                const { generateContractsPDF } = await import('@/utils/pdf');
                 await generateContractsPDF(
                   (contracts ?? []).map(c => ({
                     contract_number: c.contract_number ?? '', tenant_name: c.tenant_name ?? '',

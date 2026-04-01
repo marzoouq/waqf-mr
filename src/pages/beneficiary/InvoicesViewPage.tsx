@@ -64,6 +64,7 @@ const InvoicesViewPage = () => {
         toast.info(`سيتم تصدير ${filteredInvoices.length} فاتورة مفلترة فقط`);
       }
       const fiscalYearLabel = fiscalYear?.label || undefined;
+      const { generateInvoicesViewPDF } = await import('@/utils/pdf');
       await generateInvoicesViewPDF(
         filteredInvoices.map(inv => ({
           invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
