@@ -165,13 +165,13 @@ const BeneficiaryMessagesPage = () => {
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                <div className="text-center space-y-3">
+                <div className="text-center space-y-2">
                   <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                  <p className="text-sm">اختر محادثة أو ابدأ محادثة جديدة مع الناظر</p>
-                  <Button onClick={() => setChatDialogOpen(true)} variant="outline" size="sm" className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    محادثة جديدة
-                  </Button>
+                  <p className="text-sm">
+                    {activeTab === 'chat'
+                      ? 'اختر محادثة من القائمة أو ابدأ محادثة جديدة'
+                      : 'اختر تذكرة من القائمة أو أنشئ طلب دعم جديد'}
+                  </p>
                 </div>
               </div>
             )}
