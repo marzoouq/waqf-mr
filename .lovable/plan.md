@@ -1,89 +1,71 @@
 
+الهدف: معالجة مشكلتين فعليتين لم تُحلّا بالحل السابق:
+1) وميض/رجوع واجهة التحميل بعد ظهور التطبيق عند التحديث.
+2) استمرار فشل البناء رغم الانتظار.
 
-# خطة التنفيذ — إصلاح الملاحظات الجنائية
+ما تم التحقق منه جنائياً:
+- `src/pages/Index.tsx` يحتوي حل route-level فقط (`maybeAuthenticated`)؛ هذا يخفف حالة الصفحة الرئيسية لكنه لا يعالج مشكلة bootstrap العامة.
+- `src/main.tsx` يستدعي `runPwaCacheGuard()` بعد `render` ثم يزيل splash مباشرة.
+- `src/lib/pwaBootstrap.ts` يجري `window.location.reload()` تلقائياً عند اختلاف `APP_BUILD_ID` أو تنظيف كاش المعاينة.
+- فحص الشبكة أظهر عدة Document requests ملغاة (`net::ERR_ABORTED`) ثم طلباً ناجحاً واحداً؛ هذا يطابق سلوك إعادة تحميل قسرية بعد بدء الرسم.
+- صورة المعاينة أظهرت شاشة splash “نظام إدارة الوقف”، ما يؤكد أن المستخدم لا يرى مجرد Skeleton داخل React فقط، بل إعادة bootstrap كاملة.
+- `package.json` مثبت على `vite 5.4.19` و `@vitejs/plugin-react-swc 3.7.2`، لكن `package-lock.json` ما يزال يحسم إلى `vite 8.0.3` و `plugin-react-swc 4.3.0`. هذا يعني أن “الانتظار” وحده لا يكفي لأن شجرة الاعتماد غير متسقة.
 
-## الحالة الحالية
+السبب الجذري المرجح:
+- الوميض: سببه الأساسي bootstrap/PWA وليس `Index.tsx`. التطبيق يرسم، ثم منطق cache guard يطلب reload، فتظهر splash/واجهة التحميل بعد أن كان المحتوى قد ظهر.
+- البناء: يوجد عاملان معاً:
+  1) 429 من مرآة الحزم (خارجي).
+  2) lockfile غير متزامن مع `package.json`، ما يفرض إعادة resolve غير مستقرة ويجلب نسخاً مختلفة عن النسخ المقصودة.
 
-خطأ البناء الحالي (HTTP 429) هو تقييد معدل طلبات من npm registry وليس خطأ كود — سيُحل تلقائياً. لكن هناك 3 مشاكل كود حقيقية يجب إصلاحها:
+خطة التنفيذ:
+1. تثبيت مسار الإقلاع ومنع الوميض من المصدر
+   - تعديل `src/lib/pwaBootstrap.ts` ليُرجع حالة واضحة مثل: `continue | reloading | skipped-for-preview`.
+   - في بيئة المعاينة (`*.lovable.app` / `*.lovableproject.com`) إيقاف `window.location.reload()` التلقائي تماماً. يُسمح فقط بتنظيف service workers/caches أو تخطيه في المعاينة.
+   - إبقاء إعادة التحميل القسري للموقع المنشور فقط، مع guard واضح يمنع أي reload أثناء أول إقلاع للمعاينة.
 
----
+2. إعادة ترتيب bootstrap في `src/main.tsx`
+   - تشغيل `runPwaCacheGuard()` قبل إزالة splash.
+   - إذا قرر الحارس إعادة التحميل: لا تُزل splash ولا تُكمل bootstrap.
+   - إذا لم توجد إعادة تحميل: ابدأ `createRoot(...).render(...)` ثم أزل splash بعد أول رسم مستقر، وليس مباشرة بلا شرط.
+   - الهدف: إما splash مستمرة حتى الاستقرار، أو التطبيق يظهر مرة واحدة فقط؛ لا يوجد انتقال “تطبيق ثم تحميل”.
 
-## المشاكل والحلول
+3. تقليل الحلول الموضعية غير الكافية
+   - إبقاء تعديل `Index.tsx` فقط كحماية ثانوية، وعدم الاعتماد عليه كحل رئيسي.
+   - مراجعة إن كان شرط `maybeAuthenticated` ما زال مطلوباً بعد إصلاح bootstrap؛ إن صار زائداً يُبسّط دون المساس بملفات المصادقة المحمية.
 
-### 1. تعارض الأنواع في ContractsFiltersBar (متوسط)
+4. إصلاح البناء من جذره
+   - عدم تغيير الإصدارات المقصودة في `package.json` لأنها متوافقة مع sandbox بالفعل.
+   - إعادة توليد `package-lock.json` من `package.json` الحالي حتى يتطابق مع:
+     - `vite: 5.4.19`
+     - `@vitejs/plugin-react-swc: 3.7.2`
+     - بقية التبعيات الحالية مثل `web-vitals` و `workbox-build`.
+   - بعد مزامنة lockfile، مراجعة الحاجة إلى `@vitejs/plugin-react` غير المستخدم في المشروع؛ إذا كان غير مستخدم فعلاً يُزال لتقليل حجم التبعيات، لكن هذه خطوة ثانوية بعد استقرار القفل.
 
-**الملف:** `src/components/contracts/ContractsFiltersBar.tsx`
+5. فحص الانعكاسات بعد refactor الأخير
+   - مراجعة المستهلكين للـ hooks الثلاثة للتأكد أن refactor ليس سبباً جانبياً للمشكلة الحالية.
+   - هذا فحص تحققي فقط؛ لا توجد الآن دلائل أنه سبب الوميض أو فشل التثبيت.
 
-**التشخيص:** `statusFilter` و `setStatusFilter` مُعرَّفان كـ `string` بينما المصدر في `useContractsFilters` يستخدم `StatusFilterValue`. حالياً لا يمنع البناء (TypeScript يسمح بالتمرير bivariantly في بعض الحالات)، لكنه يفقد سلامة الأنواع.
+التحقق قبل اعتماد الحل:
+- المعاينة:
+  - تحديث الصفحة على `/`.
+  - التأكد من عدم ظهور التطبيق ثم splash/loader بعده.
+  - اختبار مستخدم غير مسجل، ومستخدم لديه جلسة محفوظة، وعلى شاشة موبايل مشابهة للمعاينة الحالية.
+- الشبكة:
+  - التأكد من اختفاء سلسلة Document requests الملغاة الناتجة عن reload الذاتي أثناء أول تحميل.
+- البناء:
+  - التحقق أن lockfile يطابق `package.json`.
+  - إعادة البناء/التثبيت للتأكد أن أي فشل متبقٍ إن وُجد يكون 429 خارجي فقط وليس بسبب drift داخلي.
+- عدم التراجع:
+  - اختبار الصفحة الرئيسية، `/auth`, والمسارات المحمية للتأكد أن splash والإقلاع لم يعودا يعرقلان التنقل.
+  - التأكد أن PWA في الموقع المنشور ما زالت تتعامل مع تحديث النسخة بشكل صحيح.
 
-**الحل:** استيراد `StatusFilterValue` وتحديث Props:
-```typescript
-import type { StatusFilterValue } from '@/hooks/page/useContractsFilters';
-
-interface Props {
-  statusFilter: StatusFilterValue;
-  setStatusFilter: (f: StatusFilterValue) => void;
-  // ... باقي الخصائص بدون تغيير
-}
-```
-
-**ملف واحد يتأثر.**
-
----
-
-### 2. NotificationItem = any (منخفض)
-
-**الملف:** `src/pages/beneficiary/notifications/NotificationsList.tsx`
-
-**التشخيص:** النوع `any` يُفقد كل فحوصات TypeScript. الحقول المستخدمة فعلياً من استعلام `useNotifications` هي: `id, title, message, type, is_read, link, created_at, user_id`.
-
-**الحل:** تعريف واجهة صريحة:
-```typescript
-interface NotificationItem {
-  id: string;
-  title: string;
-  message: string;
-  type: string;
-  is_read: boolean;
-  link: string | null;
-  created_at: string;
-  user_id: string;
-}
-```
-
-**ملف واحد يتأثر.**
-
----
-
-### 3. @ts-ignore في arabicReshaper (منخفض)
-
-**الملف:** `src/utils/pdf/arabicReshaper.ts`
-
-**التشخيص:** مكتبة `arabic-reshaper` بدون تعريفات TypeScript، يُستخدم `@ts-ignore` للتجاوز.
-
-**الحل:** إنشاء ملف declaration:
-```
-src/types/arabic-reshaper.d.ts
-```
-```typescript
-declare module 'arabic-reshaper' {
-  export function convertArabic(text: string): string;
-}
-```
-ثم حذف سطري `@ts-ignore` و `eslint-disable` من `arabicReshaper.ts`.
-
-**ملفان يتأثران.**
-
----
-
-## ملخص التغييرات
-
-| # | الملف | التغيير |
-|---|-------|---------|
-| 1 | `ContractsFiltersBar.tsx` | استيراد `StatusFilterValue` + تحديث نوعين في Props |
-| 2 | `NotificationsList.tsx` | استبدال `any` بواجهة `NotificationItem` صريحة |
-| 3 | `src/types/arabic-reshaper.d.ts` | ملف جديد — declaration للمكتبة |
-| 4 | `arabicReshaper.ts` | حذف `@ts-ignore` و `eslint-disable` |
-
-**إجمالي الملفات المتأثرة:** 4 ملفات، تغييرات minimal بدون أي تأثير على السلوك الوظيفي.
-
+تفاصيل تقنية:
+- الملفات المستهدفة مباشرة:
+  - `src/lib/pwaBootstrap.ts`
+  - `src/main.tsx`
+  - `src/pages/Index.tsx` (مراجعة/تبسيط فقط إذا لزم)
+  - `package-lock.json`
+  - وربما `package.json` فقط إذا تقرر حذف dependency غير مستخدم.
+- لن ألمس:
+  - `src/integrations/supabase/client.ts`
+  - ملفات المصادقة المحمية إلا إذا ظهر عائق لا يمكن تجاوزه بدونها.
