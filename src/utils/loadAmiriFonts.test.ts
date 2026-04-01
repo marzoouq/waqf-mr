@@ -8,7 +8,7 @@ describe('loadAmiriFonts', () => {
   });
 
   it('injects @font-face style into document.head', async () => {
-    const { loadAmiriFonts } = await import('./loadAmiriFonts');
+    const { loadAmiriFonts } = await import('./pdf/loadAmiriFonts');
     loadAmiriFonts();
     const styles = document.head.querySelectorAll('style');
     const amiriStyle = Array.from(styles).find(s => s.textContent?.includes('Amiri'));
@@ -18,7 +18,7 @@ describe('loadAmiriFonts', () => {
   });
 
   it('only injects once (idempotent)', async () => {
-    const { loadAmiriFonts } = await import('./loadAmiriFonts');
+    const { loadAmiriFonts } = await import('./pdf/loadAmiriFonts');
     loadAmiriFonts();
     loadAmiriFonts();
     const styles = document.head.querySelectorAll('style');

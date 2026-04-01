@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('sonner', () => ({ toast: { error: vi.fn() } }));
 
-import { printShareReport } from './printShareReport';
+import { printShareReport } from './pdf/printShareReport';
 import { toast } from 'sonner';
 
 describe('printShareReport', () => {
