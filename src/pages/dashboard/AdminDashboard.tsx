@@ -33,7 +33,7 @@ import QuickActionsCard from '@/components/dashboard/QuickActionsCard';
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
 
 // Lazy-load heavy below-the-fold components
-const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
+
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
 const CollectionHeatmap = lazy(() => import('@/components/dashboard/CollectionHeatmap'));
 const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingActionsTable'));
