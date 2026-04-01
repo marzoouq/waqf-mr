@@ -3,14 +3,17 @@
  */
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { fmt } from '@/utils/format';
+import { useChartReady } from '@/hooks/ui/useChartReady';
 
 interface IncomeMonthlyChartInnerProps {
   chartData: Array<{ month: string; actual: number; expected: number; gap: number }>;
 }
 
 const IncomeMonthlyChartInner = ({ chartData }: IncomeMonthlyChartInnerProps) => {
+  const { ref, ready } = useChartReady();
   return (
-    <div className="h-[280px] min-h-[280px] min-w-0" dir="ltr">
+    <div ref={ref} className="h-[280px] min-h-[280px] min-w-0" dir="ltr">
+      {ready && (
       <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
         <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -28,6 +31,7 @@ const IncomeMonthlyChartInner = ({ chartData }: IncomeMonthlyChartInnerProps) =>
           <Bar dataKey="actual" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} name="actual" />
         </BarChart>
       </ResponsiveContainer>
+      )}
     </div>
   );
 };
