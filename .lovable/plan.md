@@ -1,34 +1,38 @@
 
+# إصلاح تجربة التحميل والتنقل
 
-# إصلاح تأخر المعاينة وإزالة الوعد المعلّق
+## المشكلات والحلول
 
-## المشكلات المكتشفة
+### 1. شاشة التحميل (splash) تظهر لفترة طويلة
 
-### 1. الوعد المعلّق في `lazyWithRetry.ts` (سطر 33-38)
-بعد استدعاء `window.location.reload()` يُنشأ وعد بـ timeout 8 ثوانٍ. هذا غير ضروري — إذا نجح الـ reload لن يصل الكود لهذه النقطة أصلاً، وإذا فشل فإن 8 ثوانٍ تأخير مفرط.
+**السبب:** الـ splash في `index.html` يُزال بعد 500ms (سطر 40 في main.tsx)، لكن مكوّن `<PageLoader />` يظهر أثناء تحميل الصفحات بالـ lazy loading. الأهم: `AuthContext` يبدأ بـ `loading=true` ولا يتحول لـ `false` حتى ينتهي `fetchRole` (حتى 3 ثوانٍ timeout). هذا يعني أن المستخدم يرى شاشة تحميل حتى يكتمل جلب الدور.
 
-**الإصلاح:** حذف الوعد المعلّق بالكامل. بعد `window.location.reload()` نرمي الخطأ مباشرة ليُمسك من ErrorBoundary فوراً إذا لم يحدث reload.
+**الإصلاح:** لا تغيير على AuthContext (يحتاج وقته لجلب الدور). لكن نجعل `<PageLoader />` أخف بصرياً ونضيف رسالة "جاري التحميل..." بدلاً من spinner فقط.
 
-### 2. رسائل التنبيه البطيئة من `performanceMonitor.ts`
-- `reportPageLoadMetrics()` تعرض toast "تحميل الصفحة بطيء" عند تجاوز 5 ثوانٍ
-- `startPerfTimer` تعرض toast "عملية بطيئة" لكل استعلام يتجاوز 5 ثوانٍ
-- هذه التنبيهات **تظهر للمستخدم النهائي** وتُشوّش على تجربة الاستخدام
+### 2. رسائل تنبيه مزعجة
 
-**الإصلاح:** إبقاء التسجيل في logger فقط (للتشخيص)، وإزالة toast التنبيه من المستخدم — هذه معلومات تقنية لا يحتاجها المستخدم العادي.
+**السبب:** 
+- `PwaUpdateNotifier` يعرض toast "تم تحديث التطبيق بنجاح ✨" عند كل تحديث PWA
+- `SwUpdateBanner` يعرض شريط "يوجد تحديث جديد" بشكل متكرر (يفحص كل 60 ثانية)
+- في بيئة Preview، التحديثات مستمرة مما يعني ظهور هذه الرسائل باستمرار
 
-### 3. `runPwaCacheGuard()` يعمل بشكل متزامن قبل الـ render
-في `main.tsx` سطر 28، يُستدعى `runPwaCacheGuard()` (دالة async) قبل `createRoot().render()` لكن **بدون await** — هذا لا يُسبب تأخيراً فعلياً، لكنه قد يُسبب سلوكاً غير متوقع. لا تغيير مطلوب هنا.
+**الإصلاح:**
+- في `SwUpdateBanner`: تجاهل التحديثات في بيئة Preview (lovable.app / lovableproject.com)
+- في `PwaUpdateNotifier`: نفس المنطق — لا تعرض toast في Preview
+
+### 3. تأخير التنقل بين الصفحات
+
+**السبب:** كل الصفحات تُحمّل بـ lazy loading، مما يعني كل تنقل يحتاج تحميل chunk جديد. هذا طبيعي ومقبول، لكن `DeferredRender` يؤخر بعض المكونات 3 ثوانٍ. الـ `<Suspense fallback={<PageLoader />}>` يعرض spinner أثناء التحميل وهذا سلوك صحيح.
+
+**الإصلاح:** لا تغيير على lazy loading (مطلوب للأداء). تقليل `DeferredRender` delay من 3000ms إلى 1000ms لتسريع ظهور المكونات الثانوية.
 
 ## التغييرات
 
-### ملف 1: `src/lib/lazyWithRetry.ts`
-- حذف الوعد المعلّق (أسطر 32-38)
-- بعد `window.location.reload()` → `throw error` مباشرة
+### ملف 1: `src/components/SwUpdateBanner.tsx`
+- إضافة شرط: لا تعرض الشريط في بيئة Preview
 
-### ملف 2: `src/lib/performanceMonitor.ts`
-- إزالة استدعاءات `_toastFn` من `startPerfTimer` (سطر 43-45) ومن `reportPageLoadMetrics` (سطر 86-88)
-- إبقاء `logger.warn` للتشخيص
+### ملف 2: `src/components/PwaUpdateNotifier.tsx`
+- إضافة شرط: لا تعرض toast التحديث في بيئة Preview
 
-### ملف 3: `src/main.tsx`
-- إزالة `setPerformanceToast` واستيراده (أسطر 8, 16) — لم يعد مطلوباً بعد إزالة toast الأداء
-
+### ملف 3: `src/components/DeferredRender.tsx`
+- تقليل الـ delay الافتراضي من 3000ms إلى 1000ms

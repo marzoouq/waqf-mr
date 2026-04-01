@@ -63,7 +63,7 @@ const SwUpdateBanner = () => {
     setSnoozedUntil(Date.now() + SNOOZE_MS);
   }, []);
 
-  if (!visible) return null;
+  if (!visible || isPreview) return null;
 
   return (
     <div

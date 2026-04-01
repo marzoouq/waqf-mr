@@ -48,6 +48,12 @@ const PwaUpdateNotifier = () => {
 
   useEffect(() => {
     const controller = new AbortController();
+    // لا تعرض إشعار التحديث في بيئة Preview
+    const isPreview =
+      window.location.hostname.endsWith('.lovable.app') ||
+      window.location.hostname.endsWith('.lovableproject.com');
+    if (isPreview) return;
+
     try {
       const raw = localStorage.getItem(UPDATE_FLAG_KEY);
       if (!raw) return;
