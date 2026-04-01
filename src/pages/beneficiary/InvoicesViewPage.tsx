@@ -185,7 +185,7 @@ const InvoicesViewPage = () => {
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <Table className="min-w-[700px]">
+                    <Table className="min-w-[850px]">
                       <TableHeader>
                         <TableRow className="bg-muted/50">
                           <TableHead className="text-right">النوع</TableHead>
