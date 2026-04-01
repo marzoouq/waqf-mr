@@ -47,6 +47,12 @@ const PAGE_LABELS: Record<string, string> = {
   '/beneficiary/bylaws': 'النظام الأساسي',
   '/beneficiary/support': 'الدعم الفني',
   '/beneficiary/annual-report': 'التقرير السنوي',
+  '/beneficiary/settings': 'إعدادات المستفيد',
+  '/beneficiary/messages': 'رسائل المستفيد',
+  '/beneficiary/invoices': 'فواتير المستفيد',
+  '/beneficiary/notifications': 'الإشعارات',
+  '/beneficiary/carryforward': 'الترحيل التاريخي',
+  '/waqif': 'بوابة الواقف',
 };
 
 function getPageLabel(path: string): string {

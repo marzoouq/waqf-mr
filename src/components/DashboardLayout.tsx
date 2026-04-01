@@ -2,6 +2,7 @@
  * التخطيط العام للوحة التحكم (DashboardLayout)
  */
 import { useLocation, useNavigate } from 'react-router-dom';
+import { clearActiveQueryTimers } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -85,6 +86,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     setLogoutOpen(false);
     setMobileSidebarOpen(false);
     await logAccessEvent({ event_type: 'logout', user_id: user?.id });
+    clearActiveQueryTimers();
     await signOut();
     navigate('/auth', { replace: true });
   }, [navigate, signOut, user?.id]);
@@ -100,6 +102,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const handleIdleLogout = useCallback(async () => {
     await logAccessEvent({ event_type: 'idle_logout', user_id: user?.id });
+    clearActiveQueryTimers();
     await signOut();
     window.location.href = '/auth?reason=idle';
   }, [signOut, user?.id]);
