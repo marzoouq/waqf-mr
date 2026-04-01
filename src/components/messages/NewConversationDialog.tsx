@@ -5,7 +5,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Label } from '@/components/ui/label';
 
 interface Beneficiary {
-  user_id: string | null;
+  user_id: string | null | undefined;
   name: string;
 }
 
