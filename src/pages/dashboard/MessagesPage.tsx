@@ -162,8 +162,8 @@ const MessagesPage = () => {
                         <span className={cn(
                           'text-[10px] px-1.5 py-0.5 rounded-full shrink-0',
                           conv.type === 'chat' && 'bg-primary/10 text-primary',
-                          conv.type === 'support' && 'bg-orange-500/10 text-orange-600',
-                          conv.type === 'broadcast' && 'bg-blue-500/10 text-blue-600',
+                          conv.type === 'support' && 'bg-destructive/10 text-destructive',
+                          conv.type === 'broadcast' && 'bg-accent text-accent-foreground',
                         )}>
                           {conv.type === 'chat' ? 'محادثة' : conv.type === 'support' ? 'دعم' : 'بث'}
                         </span>
