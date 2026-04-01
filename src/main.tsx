@@ -1,4 +1,4 @@
-// rebuild: 2026-04-01T10:15
+// rebuild: 2026-04-01T11:00
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
@@ -10,7 +10,7 @@ import { runPwaCacheGuard } from "./lib/pwaBootstrap";
 // تهيئة الثيم المحفوظ قبل الرسم
 initThemeFromStorage();
 
-// Preconnect to backend API — يقلل زمن أول طلب بـ 50-100ms
+// Preconnect to backend API
 const _supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 if (_supabaseUrl) {
   const link = document.createElement('link');
@@ -19,29 +19,35 @@ if (_supabaseUrl) {
   document.head.appendChild(link);
 }
 
-const rootEl = document.getElementById("root");
-if (!rootEl) throw new Error("Root element #root not found in DOM");
+// ─── Bootstrap: تشغيل حارس الكاش أولاً ثم الرسم ───
+(async () => {
+  const result = await runPwaCacheGuard();
 
-createRoot(rootEl).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+  // إذا تقرر إعادة التحميل، لا نرسم ولا نزيل splash
+  if (result === 'reloading') return;
 
-// ─── PWA/cache guard: يعمل بعد render حتى لا يحجب ظهور الواجهة ───
-runPwaCacheGuard();
+  const rootEl = document.getElementById("root");
+  if (!rootEl) throw new Error("Root element #root not found in DOM");
 
-// إزالة splash screen بعد تحميل React
-const splash = document.getElementById('splash');
-if (splash) {
-  splash.style.opacity = '0';
-  splash.addEventListener('transitionend', () => splash.remove(), { once: true });
-  // fallback في حال لم يعمل transitionend
-  setTimeout(() => splash.remove(), 500);
-}
+  createRoot(rootEl).render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  );
 
-// مراقبة أداء التحميل
-reportPageLoadMetrics();
+  // إزالة splash بعد الرسم الأول المستقر
+  requestAnimationFrame(() => {
+    const splash = document.getElementById('splash');
+    if (splash) {
+      splash.style.opacity = '0';
+      splash.addEventListener('transitionend', () => splash.remove(), { once: true });
+      setTimeout(() => splash.remove(), 500);
+    }
+  });
 
-// قياس Core Web Vitals (LCP, CLS, INP)
-import('./lib/webVitals').then(({ initWebVitals }) => initWebVitals());
+  // مراقبة أداء التحميل
+  reportPageLoadMetrics();
+
+  // قياس Core Web Vitals
+  import('./lib/webVitals').then(({ initWebVitals }) => initWebVitals());
+})();
