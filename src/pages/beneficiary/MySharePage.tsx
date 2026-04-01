@@ -14,7 +14,7 @@ import MyShareSummaryCards from '@/components/my-share/MyShareSummaryCards';
 import DistributionsTable from '@/components/my-share/DistributionsTable';
 import AdvancesTable from '@/components/my-share/AdvancesTable';
 import CarryforwardsTable from '@/components/my-share/CarryforwardsTable';
-import { useMySharePage } from '@/hooks/financial/useMySharePage';
+import { useMySharePage } from '@/hooks/page/useMySharePage';
 import { fmt } from '@/utils/format';
 
 const MySharePage = () => {

@@ -6,7 +6,7 @@ import { Plus, Lock, Wallet } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import { buildCsv, downloadCsv } from '@/utils/csv';
-import { useAccountsPage } from '@/hooks/financial/useAccountsPage';
+import { useAccountsPage } from '@/hooks/page/useAccountsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useAdvanceRequests } from '@/hooks/financial/useAdvanceRequests';
