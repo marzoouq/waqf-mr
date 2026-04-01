@@ -19,10 +19,6 @@ const TrendIcon = ({ current, previous }: { current: number; previous: number | 
   return <Minus className="w-4 h-4 text-muted-foreground" />;
 };
 
-const trendColor = (current: number, previous: number | null) => {
-  if (previous === null) return 'text-muted-foreground';
-  return current > previous ? 'text-success' : current < previous ? 'text-destructive' : 'text-muted-foreground';
-};
 
 const MonthlyPerformanceTable = ({ monthlyData, totals }: Props) => (
   <Card className="shadow-sm">
