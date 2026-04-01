@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
         let q = admin.from("expenses")
           .select("id, amount, date, description, expense_type, fiscal_year_id, property_id, created_at, property:properties(id, property_number, location)")
           .order("date", { ascending: false });
-        if (!isAll) q = q.eq("fiscal_year_id", fiscal_year_id).limit(2000);
+        if (!isAll) q = q.eq("fiscal_year_id", fiscal_year_id).limit(1000);
         else q = q.limit(1000);
         return q;
       })(),
