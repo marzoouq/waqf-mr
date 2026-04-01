@@ -21,6 +21,7 @@ const passwordSchema = z.object({
 });
 
 const PasswordTab = () => {
+  const uid = useId();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
