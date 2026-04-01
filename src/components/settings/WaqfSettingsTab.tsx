@@ -95,7 +95,7 @@ const WaqfSettingsTab = () => {
           {waqfFields.map((f) => (
             <div key={f.key} className="space-y-1.5">
               <Label htmlFor={`waqf-settings-tab-field-${f.key}`}>{f.label}</Label>
-              <Input name="form_data" id={`waqf-settings-tab-field-${f.key}`} value={formData[f.key] || ''} onChange={(e) => setFormData((p) => ({ ...p, [f.key]: e.target.value }))} maxLength={500} />
+              <Input name={f.key} id={`waqf-settings-tab-field-${f.key}`} value={formData[f.key] || ''} onChange={(e) => setFormData((p) => ({ ...p, [f.key]: e.target.value }))} maxLength={500} />
             </div>
           ))}
         </CardContent>
