@@ -65,10 +65,10 @@ const PasswordTab = () => {
       </CardHeader>
       <CardContent className="space-y-4 max-w-md">
         <div className="space-y-2">
-          <Label htmlFor="new-password">كلمة المرور الجديدة</Label>
+          <Label htmlFor={`${uid}-new-password`}>كلمة المرور الجديدة</Label>
           <div className="relative">
             <Input
-              id="new-password"
+              id={`${uid}-new-password`}
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
