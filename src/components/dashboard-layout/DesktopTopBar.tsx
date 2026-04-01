@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import NotificationBell from '@/components/NotificationBell';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { lazy, Suspense } from 'react';
-const GlobalSearch = lazy(() => import('@/components/GlobalSearch'));
+const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
 import WaqfInfoBar from '@/components/WaqfInfoBar';
 
 interface DesktopTopBarProps {
