@@ -1,8 +1,10 @@
 import { Route } from "react-router-dom";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import RequireBeneficiarySection from "@/components/RequireBeneficiarySection";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { withRouteErrorBoundary as eb } from "./withRouteErrorBoundary";
+
+/* lazy — لا يُحتاج إلا بعد تسجيل الدخول */
+const ProtectedRoute = lazyWithRetry(() => import("@/components/ProtectedRoute"));
+const RequireBeneficiarySection = lazyWithRetry(() => import("@/components/RequireBeneficiarySection"));
 
 const BeneficiaryDashboard = lazyWithRetry(() => import("@/pages/beneficiary/BeneficiaryDashboard"));
 const DisclosurePage = lazyWithRetry(() => import("@/pages/beneficiary/DisclosurePage"));
