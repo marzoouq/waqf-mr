@@ -1,59 +1,27 @@
 
 
-# خطة تنظيف الديون التقنية — 3 مهام
+# إصلاح `width(-1) height(-1)` — تطبيق `useChartReady` على 3 مكوّنات
 
-## التحقق المنهجي (مكتمل)
+## المشكلة
+3 مكوّنات رسوم بيانية تستخدم `ResponsiveContainer` بدون `useChartReady`، مما يسبب تحذير `width(-1) height(-1)` عند التحميل الكسول.
 
-تم التأكد عبر بحث شامل أن **جميع الملفات الـ 8 المرشحة للحذف ليس لها أي مستهلك** في الكود. كذلك تم تأكيد أن `advanceTypes.ts` مستورد فقط من ملفين (`index.ts` + `useAdvanceRequests.ts`).
+## الإصلاح
 
----
+### 1. `DashboardChartsInner.tsx`
+- استيراد `useChartReady`
+- إنشاء مكوّن `ChartBox` محلي (نفس النمط المستخدم في `FinancialChartsInner`)
+- لف كل `ResponsiveContainer` بـ `ChartBox`
 
-## المهام
+### 2. `CashFlowChartInner.tsx`
+- تحويل من arrow function إلى function component مع `useChartReady`
+- لف `ResponsiveContainer` بحاوية `ref` + شرط `ready`
 
-### 1. حذف 8 ملفات stub غير مستخدمة
-
-**0 استيرادات** من المسارات القديمة — حذف آمن 100%.
-
-| الملف | الحجم |
-|-------|-------|
-| `src/hooks/financial/useMySharePage.ts` | 137B re-export |
-| `src/hooks/financial/useAccountsPage.ts` | 140B re-export |
-| `src/hooks/financial/usePrefetchPages.ts` | 181B re-export |
-| `src/hooks/auth/webAuthnErrors.ts` | 236B re-export |
-| `src/utils/printShareReport.ts` | 139B re-export |
-| `src/utils/printDistributionReport.ts` | 153B re-export |
-| `src/utils/loadAmiriFonts.ts` | 135B re-export |
-| `src/components/GlobalSearch.tsx` | 185B re-export |
-
-**تحديث `src/hooks/financial/index.ts`**: إزالة 3 أسطر re-export للمسارات المنقولة (`useAccountsPage`, `useMySharePage`, `usePrefetchPages`).
-
-### 2. إعادة تسمية `advanceTypes.ts` → `useAdvanceFinance.ts`
-
-الملف يحتوي على **5 hooks + هوك مدمج** — اسم `advanceTypes` مضلل. الأنواع تبقى في `types/advance.ts`.
-
-- إعادة تسمية الملف
-- تحديث الاستيراد في `src/hooks/financial/index.ts` (سطر 8)
-- تحديث الاستيراد في `src/hooks/financial/useAdvanceRequests.ts` (سطر 21)
-
-### 3. تصنيف `src/test/` بمجلد `integration/`
-
-نقل 8 ملفات اندماج (Supabase/RPC) إلى `src/test/integration/`:
-
-**تُنقل:**
-- `financialIntegration.test.ts`, `fiscalYearClosure.test.ts`, `beneficiaryIsolation.test.ts`
-- `edgeFunctionAuth.test.ts`, `guardSignupSecurity.test.ts`, `notificationRpcSecurity.test.ts`
-- `roles-security.test.ts`, `bylawsRlsVisibility.test.ts`
-
-**تبقى في الجذر (وحدات صرفة):**
-- `activeContractsFilter`, `auditLogFilter`, `availableAmount`, `computeCollectionSummary`
-- `maybeSingle`, `myShareCalculation`, `regressionFixes`, `zatcaSharedLogic`
-- `setup.ts`, `vitest.d.ts`
-
----
+### 3. `ReportsChartsInner.tsx`
+- نفس نمط `ChartBox` المحلي
+- لف كلا الـ `ResponsiveContainer` (PieChart + BarChart) بـ `ChartBox`
 
 ## التفاصيل التقنية
-
-- لا تأثير على البناء أو التشغيل — تغييرات هيكلية فقط
-- `useContractsPage.ts` لا يحتاج تفكيك (مقسّم فعلاً)
-- `SECURITY.md` سليم (تم إصلاحه سابقاً)
+- `useChartReady` موجود بالفعل في `src/hooks/ui/useChartReady.ts` — لا حاجة لإنشائه
+- النمط مطبّق بنجاح في 6 مكوّنات أخرى — نطبق نفس الأسلوب
+- لا تغيير في المنطق أو البيانات — فقط تأخير الرندر حتى تكتسب الحاوية أبعاداً فعلية
 
