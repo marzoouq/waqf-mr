@@ -37,7 +37,7 @@ const NewTicketDialog = ({ open, onClose }: NewTicketDialogProps) => {
         </DialogHeader>
         <div className="space-y-4">
           <Input name="title" placeholder="عنوان الطلب *" value={title} onChange={e => setTitle(e.target.value)} />
-          <Textarea placeholder="وصف تفصيلي للمشكلة..." value={description} onChange={e => setDescription(e.target.value)} />
+          <Textarea id="ticket-description" name="ticket_description" placeholder="وصف تفصيلي للمشكلة..." value={description} onChange={e => setDescription(e.target.value)} />
           <NativeSelect value={category} onValueChange={setCategory} options={[
             { value: 'general', label: 'عام' },
             { value: 'technical', label: 'تقني' },

@@ -142,6 +142,8 @@ const TicketViewDialog = ({ ticket, onClose }: TicketViewDialogProps) => {
               </p>
             )}
             <Textarea
+              id="ticket-rating-comment"
+              name="ticket_rating_comment"
               placeholder="ملاحظات إضافية (اختياري)..."
               value={ratingComment}
               onChange={e => setRatingComment(e.target.value)}
