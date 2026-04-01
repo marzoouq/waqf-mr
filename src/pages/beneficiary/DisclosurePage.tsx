@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, AlertCircle, RefreshCw, FileDown, Info } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/dashboard-layout';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import PageHeaderCard from '@/components/PageHeaderCard';

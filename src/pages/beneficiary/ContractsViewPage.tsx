@@ -4,7 +4,7 @@
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/dashboard-layout';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import ExportMenu from '@/components/ExportMenu';
 import { Card, CardContent } from '@/components/ui/card';

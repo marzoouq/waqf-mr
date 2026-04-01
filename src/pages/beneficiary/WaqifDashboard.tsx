@@ -18,7 +18,7 @@ import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/dashboard-layout';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import ExportMenu from '@/components/ExportMenu';

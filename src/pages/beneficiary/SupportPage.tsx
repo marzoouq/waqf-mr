@@ -1,7 +1,7 @@
 /**
  * صفحة الدعم الفني للمستفيد — تقديم ومتابعة تذاكر الدعم + تقييم الخدمة
  */
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Headset, Loader2, MessageSquare, Plus } from 'lucide-react';

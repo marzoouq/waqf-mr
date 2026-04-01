@@ -1,4 +1,4 @@
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/dashboard-layout';
 import { safeNumber } from '@/utils/safeNumber';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

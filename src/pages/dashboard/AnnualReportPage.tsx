@@ -2,7 +2,7 @@
  * صفحة التقرير السنوي — الناظر (admin/accountant)
  */
 import { lazy, Suspense } from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/dashboard-layout';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';

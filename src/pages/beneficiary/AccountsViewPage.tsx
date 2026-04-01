@@ -5,7 +5,7 @@ import { Wallet, PieChart, Calculator, AlertCircle, RefreshCw } from 'lucide-rea
 import { useQueryClient } from '@tanstack/react-query';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/dashboard-layout';
 import { Button } from '@/components/ui/button';
 
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
