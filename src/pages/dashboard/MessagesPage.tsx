@@ -108,6 +108,29 @@ const MessagesPage = () => {
           className="mb-0"
         />
 
+        {/* فلترة حسب النوع — للأدمين فقط */}
+        {role === 'admin' && (
+          <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+            {FILTER_TABS.map(({ key, label, icon: Icon }) => (
+              <Button
+                key={key}
+                variant={activeFilter === key ? 'default' : 'outline'}
+                size="sm"
+                className="gap-1.5"
+                onClick={() => { setActiveFilter(key); setSelectedConv(null); }}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+                {key !== 'all' && (
+                  <span className="text-xs opacity-70">
+                    ({allConversations.filter(c => c.type === key).length})
+                  </span>
+                )}
+              </Button>
+            ))}
+          </div>
+        )}
+
         <div className="flex-1 flex gap-2 sm:gap-4 min-h-0">
           {/* Conversations List */}
           <Card className={cn('w-full md:w-80 shrink-0 flex flex-col', selectedConv && 'hidden md:flex')}>
