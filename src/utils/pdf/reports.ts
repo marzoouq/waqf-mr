@@ -28,7 +28,7 @@ interface ReportData {
   }>;
 }
 
-export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWaqfInfo) => {
+export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWaqfInfo, chartsImage?: string, chartsAspect?: number) => {
   const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
@@ -60,7 +60,30 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
     ...baseTableStyles(fontFamily),
   });
 
-  const finalY = getLastAutoTableY(doc, 100);
+  let finalY = getLastAutoTableY(doc, 100);
+
+  // إضافة الرسوم البيانية كصورة إن وُجدت
+  if (chartsImage) {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 10;
+    const imgWidth = pageWidth - margin * 2;
+    const aspect = chartsAspect || 1.5;
+    const imgHeight = imgWidth / aspect;
+
+    // التأكد من وجود مساحة كافية أو إضافة صفحة جديدة
+    const pageHeight = doc.internal.pageSize.getHeight();
+    if (finalY + imgHeight + 20 > pageHeight - 20) {
+      doc.addPage();
+      finalY = 20;
+    }
+
+    doc.setFontSize(14);
+    doc.setFont(fontFamily, 'bold');
+    doc.text(rs('التحليل البياني'), 105, finalY + 12, { align: 'center' });
+
+    doc.addImage(chartsImage, 'PNG', margin, finalY + 18, imgWidth, imgHeight);
+    finalY = finalY + 18 + imgHeight + 5;
+  }
 
   doc.setFontSize(14);
   doc.setFont(fontFamily, 'bold');

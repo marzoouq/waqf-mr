@@ -199,15 +199,17 @@ const FinancialReportsPage = () => {
         </p>
 
         {/* Charts */}
-        <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
-          <LazyFinancialCharts
-            incomeVsExpenses={incomeVsExpenses}
-            distributionData={distributionData}
-            incomePieData={incomePieData}
-            expensesPieData={expensesPieData}
-            monthlyData={monthlyData}
-          />
-        </Suspense>
+        <div id="financial-charts-container" className="space-y-4 sm:space-y-6">
+          <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
+            <LazyFinancialCharts
+              incomeVsExpenses={incomeVsExpenses}
+              distributionData={distributionData}
+              incomePieData={incomePieData}
+              expensesPieData={expensesPieData}
+              monthlyData={monthlyData}
+            />
+          </Suspense>
+        </div>
       </div>
     </DashboardLayout>
     </RequirePublishedYears>
