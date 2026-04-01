@@ -1,6 +1,6 @@
 import { useWaqfInfo } from '@/hooks/page/useAppSettings';
 import { useEffect } from 'react';
-import { loadAmiriFonts } from '@/utils/loadAmiriFonts';
+import { loadAmiriFonts } from '@/utils/pdf';
 const PrintHeader = () => {
   useEffect(() => { loadAmiriFonts(); }, []);
   const { data: waqfInfo } = useWaqfInfo();

@@ -16,7 +16,7 @@ import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
-import { printShareReport } from '@/utils/printShareReport';
+import { printShareReport } from '@/utils/pdf';
 import { useNavigate } from 'react-router-dom';
 import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 

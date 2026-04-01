@@ -108,8 +108,12 @@ vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>l
 vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => <div>no years</div> }));
 vi.mock('@/components/RequirePublishedYears', () => ({ default: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock('@/components/PageHeaderCard', () => ({ default: ({ title }: { title: string }) => <div>{title}</div> }));
-vi.mock('@/utils/pdf', () => ({ generateMySharePDF: vi.fn(), generateDistributionsPDF: vi.fn(), generateComprehensiveBeneficiaryPDF: vi.fn() }));
-vi.mock('@/utils/printShareReport', () => ({ printShareReport: vi.fn() }));
+vi.mock('@/utils/pdf', () => ({
+  generateMySharePDF: vi.fn(),
+  generateDistributionsPDF: vi.fn(),
+  generateComprehensiveBeneficiaryPDF: vi.fn(),
+  printShareReport: vi.fn(),
+}));
 vi.mock('@/components/beneficiaries/AdvanceRequestDialog', () => ({ default: () => null }));
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: () => ({ select: () => ({ eq: () => ({ order: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }) }) }) }) },
