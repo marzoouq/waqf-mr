@@ -1,9 +1,10 @@
 import { useRegisterSW } from "virtual:pwa-register/react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const SNOOZE_MS = 30 * 60 * 1000; // 30 دقيقة
+const CSS_VAR = "--sw-banner-h";
 
 const SwUpdateBanner = () => {
   const {
@@ -20,6 +21,7 @@ const SwUpdateBanner = () => {
 
   const [dismissed, setDismissed] = useState(false);
   const [snoozedUntil, setSnoozedUntil] = useState<number>(0);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   // إعادة إظهار الشريط بعد انتهاء فترة التأجيل
   useEffect(() => {
@@ -33,6 +35,19 @@ const SwUpdateBanner = () => {
     return () => clearTimeout(timer);
   }, [dismissed, snoozedUntil]);
 
+  // ضبط CSS variable لإزاحة العناصر الثابتة الأخرى
+  const visible = needRefresh && !dismissed;
+  useEffect(() => {
+    const root = document.documentElement;
+    if (visible && bannerRef.current) {
+      const h = bannerRef.current.offsetHeight;
+      root.style.setProperty(CSS_VAR, `${h}px`);
+    } else {
+      root.style.setProperty(CSS_VAR, "0px");
+    }
+    return () => { root.style.setProperty(CSS_VAR, "0px"); };
+  }, [visible]);
+
   const handleUpdate = useCallback(() => {
     // تخزين علامة التحديث لعرض سجل التغييرات بعد إعادة التحميل
     try { localStorage.setItem("pwa_just_updated", JSON.stringify({ ts: Date.now() })); } catch { /* ignored */ }
@@ -44,11 +59,12 @@ const SwUpdateBanner = () => {
     setSnoozedUntil(Date.now() + SNOOZE_MS);
   }, []);
 
-  if (!needRefresh || dismissed) return null;
+  if (!visible) return null;
 
   return (
     <div
-      className="fixed top-0 inset-x-0 z-[99999] isolate bg-primary text-primary-foreground shadow-2xl"
+      ref={bannerRef}
+      className="fixed top-0 inset-x-0 z-[99999] isolate bg-primary text-primary-foreground shadow-2xl animate-fade-in"
       dir="rtl"
       role="alert"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
