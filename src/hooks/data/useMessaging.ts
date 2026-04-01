@@ -1,7 +1,7 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Conversation, Message } from '@/types/database';
 import { notifyUser } from '@/utils/notifications';
 import { logger } from '@/lib/logger';
@@ -158,6 +158,32 @@ export const useMessages = (conversationId: string | null) => {
 
   // تسطيح الصفحات في مصفوفة واحدة مرتبة زمنياً
   const allMessages = query.data?.pages.flat() ?? [];
+
+  // تعليم الرسائل غير المقروءة كمقروءة تلقائياً عند فتح المحادثة
+  const markedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!conversationId || !user || allMessages.length === 0) return;
+    // تجنب التكرار لنفس المحادثة
+    if (markedRef.current === conversationId) return;
+    const unreadIds = allMessages
+      .filter(m => !m.is_read && m.sender_id !== user.id)
+      .map(m => m.id);
+    if (unreadIds.length === 0) return;
+    markedRef.current = conversationId;
+    // تحديث بدفعات (batch) — user_id filter ضمني عبر RLS
+    supabase
+      .from('messages')
+      .update({ is_read: true })
+      .in('id', unreadIds)
+      .then(({ error }) => {
+        if (error) {
+          logger.warn('فشل تعليم الرسائل كمقروءة:', error.message);
+          markedRef.current = null; // إعادة المحاولة
+        } else {
+          queryClientRef.current.invalidateQueries({ queryKey: ['unread-counts'] });
+        }
+      });
+  }, [conversationId, user, allMessages]);
 
   return {
     ...query,
