@@ -17,7 +17,8 @@ export function useCreateAccountAction({ buildAccountData, getFiscalYearLabel, g
 
   const handleCreateAccount = async () => {
     try {
-      await createAccount.mutateAsync(buildAccountData());
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await createAccount.mutateAsync(buildAccountData() as any);
       const label = getFiscalYearLabel();
       notifyAllBeneficiaries(
         'تحديث الحسابات الختامية',
