@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { FileText, Search, Eye, LayoutGrid, List, AlertCircle, RefreshCw } from 'lucide-react';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import TablePagination from '@/components/TablePagination';
@@ -28,6 +29,10 @@ const InvoicesViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+
+  const { getJsonSetting } = useAppSettings();
+  const beneficiarySections = getJsonSetting<Record<string, boolean>>('beneficiary_sections', {});
+  const showAttachments = beneficiarySections['invoice_attachments'] !== false;
 
   const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(fiscalYearId);
   const [searchQuery, setSearchQuery] = useState('');
@@ -159,7 +164,7 @@ const InvoicesViewPage = () => {
                         </div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <span>{item.property?.property_number || '-'}</span>
-                          {item.file_path && (
+                          {showAttachments && item.file_path && (
                             <Button variant="ghost" size="sm" className="gap-1 text-primary h-7 px-2" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })}>
                               <Eye className="w-3 h-3" /> عرض
                             </Button>
@@ -195,7 +200,7 @@ const InvoicesViewPage = () => {
                           <TableHead className="text-right">التاريخ</TableHead>
                           <TableHead className="text-right">العقار</TableHead>
                           <TableHead className="text-right">الحالة</TableHead>
-                          <TableHead className="text-right">الملف</TableHead>
+                          {showAttachments && <TableHead className="text-right">الملف</TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -212,13 +217,15 @@ const InvoicesViewPage = () => {
                                 {INVOICE_STATUS_LABELS[item.status] || item.status}
                               </Badge>
                             </TableCell>
-                            <TableCell>
-                              {item.file_path ? (
-                                <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })}>
-                                  <Eye className="w-4 h-4" /><span className="hidden sm:inline">عرض</span>
-                                </Button>
-                              ) : '-'}
-                            </TableCell>
+                            {showAttachments && (
+                              <TableCell>
+                                {item.file_path ? (
+                                  <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })}>
+                                    <Eye className="w-4 h-4" /><span className="hidden sm:inline">عرض</span>
+                                  </Button>
+                                ) : '-'}
+                              </TableCell>
+                            )}
                           </TableRow>
                         ))}
                       </TableBody>
