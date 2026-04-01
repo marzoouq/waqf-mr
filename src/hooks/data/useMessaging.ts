@@ -32,15 +32,7 @@ export const useUnreadCounts = () => {
 
       const convIds = convs.map(c => c.id);
       // جلب عدد الرسائل غير المقروءة التي لم يرسلها المستخدم الحالي
-      const { count, error: msgErr } = await supabase
-        .from('messages')
-        .select('conversation_id', { count: 'exact', head: false })
-        .in('conversation_id', convIds)
-        .eq('is_read', false)
-        .neq('sender_id', user.id);
-      if (msgErr) throw msgErr;
-
-      // نحتاج التفصيل حسب النوع — نجلب الرسائل مع conversation_id
+      // نجلب الرسائل غير المقروءة مع conversation_id للتفصيل حسب النوع
       const { data: unreadMsgs, error: detailErr } = await supabase
         .from('messages')
         .select('conversation_id')
