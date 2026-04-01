@@ -1,32 +1,34 @@
 
 
-# إصلاح حلقة reload اللانهائية في `pwaBootstrap.ts`
+# إصلاح تأخر المعاينة وإزالة الوعد المعلّق
 
-## المشكلة
+## المشكلات المكتشفة
 
-عند كل build جديد في بيئة Preview، يتغير `APP_BUILD_ID` → الشرط في سطر 19 يتحقق → يُعاد التحميل → build جديد → `APP_BUILD_ID` مختلف → reload مجدداً = **حلقة لا نهائية**.
+### 1. الوعد المعلّق في `lazyWithRetry.ts` (سطر 33-38)
+بعد استدعاء `window.location.reload()` يُنشأ وعد بـ timeout 8 ثوانٍ. هذا غير ضروري — إذا نجح الـ reload لن يصل الكود لهذه النقطة أصلاً، وإذا فشل فإن 8 ثوانٍ تأخير مفرط.
 
-نفس المشكلة في المسار غير-Preview (سطر 35-53): إذا تغير الـ ID بين كل reload.
+**الإصلاح:** حذف الوعد المعلّق بالكامل. بعد `window.location.reload()` نرمي الخطأ مباشرة ليُمسك من ErrorBoundary فوراً إذا لم يحدث reload.
 
-## الإصلاح
+### 2. رسائل التنبيه البطيئة من `performanceMonitor.ts`
+- `reportPageLoadMetrics()` تعرض toast "تحميل الصفحة بطيء" عند تجاوز 5 ثوانٍ
+- `startPerfTimer` تعرض toast "عملية بطيئة" لكل استعلام يتجاوز 5 ثوانٍ
+- هذه التنبيهات **تظهر للمستخدم النهائي** وتُشوّش على تجربة الاستخدام
 
-إضافة حارس زمني في `sessionStorage` يمنع أكثر من reload واحد كل 10 ثوانٍ. إذا حدث reload قريب، يتم تخطّي إعادة التحميل وتسجيل تحذير فقط.
+**الإصلاح:** إبقاء التسجيل في logger فقط (للتشخيص)، وإزالة toast التنبيه من المستخدم — هذه معلومات تقنية لا يحتاجها المستخدم العادي.
 
-### التغييرات — ملف واحد: `src/lib/pwaBootstrap.ts`
+### 3. `runPwaCacheGuard()` يعمل بشكل متزامن قبل الـ render
+في `main.tsx` سطر 28، يُستدعى `runPwaCacheGuard()` (دالة async) قبل `createRoot().render()` لكن **بدون await** — هذا لا يُسبب تأخيراً فعلياً، لكنه قد يُسبب سلوكاً غير متوقع. لا تغيير مطلوب هنا.
 
-1. إضافة ثابت `RELOAD_GUARD_KEY = 'pwa_reload_ts'` و `RELOAD_COOLDOWN = 10_000`
-2. إنشاء دالة مساعدة `canReload()`:
-   - تقرأ `sessionStorage.getItem(RELOAD_GUARD_KEY)`
-   - إذا كان الفرق عن `Date.now()` أقل من 10 ثوانٍ → ترجع `false`
-   - وإلا → تحفظ الوقت الحالي وترجع `true`
-3. استبدال كل `window.location.reload()` (سطران: 27 و 53) بـ:
-   ```typescript
-   if (canReload()) {
-     window.location.reload();
-   } else {
-     logger.warn('[PWA] تم تخطي reload لمنع حلقة لا نهائية');
-   }
-   ```
+## التغييرات
 
-لا تغييرات على ملفات أخرى.
+### ملف 1: `src/lib/lazyWithRetry.ts`
+- حذف الوعد المعلّق (أسطر 32-38)
+- بعد `window.location.reload()` → `throw error` مباشرة
+
+### ملف 2: `src/lib/performanceMonitor.ts`
+- إزالة استدعاءات `_toastFn` من `startPerfTimer` (سطر 43-45) ومن `reportPageLoadMetrics` (سطر 86-88)
+- إبقاء `logger.warn` للتشخيص
+
+### ملف 3: `src/main.tsx`
+- إزالة `setPerformanceToast` واستيراده (أسطر 8, 16) — لم يعد مطلوباً بعد إزالة toast الأداء
 
