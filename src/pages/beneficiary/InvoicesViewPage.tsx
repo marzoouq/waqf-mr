@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { FileText, Search, Eye, LayoutGrid, List, AlertCircle, RefreshCw } from 'lucide-react';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import TablePagination from '@/components/TablePagination';
