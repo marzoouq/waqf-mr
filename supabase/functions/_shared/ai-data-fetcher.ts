@@ -179,6 +179,7 @@ export async function fetchWaqfData(
           .eq("fiscal_year_id", activeFY.id)
           .order("date", { ascending: false })
           .limit(500)
+          .then(r => r)
       );
       // 4: المصروفات للسنة النشطة
       batch2Promises.push(
@@ -186,6 +187,7 @@ export async function fetchWaqfData(
           .select("expense_type, amount, date")
           .eq("fiscal_year_id", activeFY.id)
           .limit(500)
+          .then(r => r)
       );
     }
 
