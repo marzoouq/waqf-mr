@@ -23,6 +23,7 @@ export const useContractsPage = () => {
   const { fiscalYearId, fiscalYears, isClosed, setFiscalYearId, isSpecificYear } = useFiscalYear();
   const { data: contracts = [], isLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
+  const createContract = useCreateContract();
   const deleteContract = useDeleteContract();
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
   const { data: contractAllocations = [] } = useContractAllocations(isSpecificYear ? fiscalYearId : undefined);
@@ -57,12 +58,7 @@ export const useContractsPage = () => {
   const bulkRenew = useContractsBulkRenew({
     contracts,
     fiscalYearId,
-    createContractAsync: async (data) => {
-      // نستخدم handleFormSubmit مباشرة بدلاً من createContract.mutateAsync
-      // لكن bulkRenew يحتاج createContractAsync — نستخدمه كما هو
-      const { useCreateContract } = await import('@/hooks/data/useContracts');
-      throw new Error('unused'); // هذا لن يُستدعى
-    },
+    createContractAsync: (data) => createContract.mutateAsync(data as unknown as Parameters<typeof createContract.mutateAsync>[0]),
   });
 
   const resetForm = useCallback(() => {
