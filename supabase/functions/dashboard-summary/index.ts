@@ -119,7 +119,8 @@ Deno.serve(async (req) => {
       // 1. العقارات
       admin.from("properties")
         .select("id, property_number, property_type, location, area, vat_exempt, description, created_at, updated_at")
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(500),
 
       // 2. العقود
       (() => {
