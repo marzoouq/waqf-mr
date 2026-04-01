@@ -10,7 +10,7 @@ import { computeMonthlyData } from '@/utils/dashboardComputations';
 import { Button } from '@/components/ui/button';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
-import { Printer, Gauge, ArrowUpDown } from 'lucide-react';
+import { Printer, Gauge } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
