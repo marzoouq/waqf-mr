@@ -1,14 +1,12 @@
 /**
- * عمليات صفحة الحسابات — منسّق يجمع الإعدادات والإقفال والتصدير
- * الـ hooks الفرعية: useAccountsSettings, useCloseYear
+ * عمليات صفحة الحسابات — منسّق يجمع الإعدادات والإقفال والحفظ والتصدير
+ * الـ hooks الفرعية: useAccountsSettings, useCloseYear, useCreateAccountAction, useExportAccountsPdf
  */
-import { useState, useRef } from 'react';
-import { useCreateAccount } from '@/hooks/financial/useAccounts';
-import { notifyAllBeneficiaries } from '@/utils/notifications';
-import { defaultNotify } from '@/hooks/data/mutationNotify';
-import { logger } from '@/lib/logger';
+import { useRef } from 'react';
 import { useAccountsSettings } from './useAccountsSettings';
 import { useCloseYear } from './useCloseYear';
+import { useCreateAccountAction } from './useCreateAccountAction';
+import { useExportAccountsPdf } from './useExportAccountsPdf';
 import type { Account, Contract, Beneficiary } from '@/types/database';
 
 interface ActionsParams {
@@ -35,8 +33,6 @@ interface ActionsParams {
 }
 
 export function useAccountsActions(params: ActionsParams) {
-  const createAccount = useCreateAccount();
-
   // paramsRef يُحدّث من useAccountsPage بقيم calc الفعلية
   const paramsRef = useRef(params);
 
@@ -67,81 +63,39 @@ export function useAccountsActions(params: ActionsParams) {
     };
   };
 
-  // إقفال السنة — مفصول
+  // إقفال السنة
   const closeYear = useCloseYear({
     selectedFY: params.selectedFY,
     buildAccountData,
     waqfCorpusManual: settings.waqfCorpusManual,
   });
 
-  const handleCreateAccount = async () => {
-    try {
-      await createAccount.mutateAsync(buildAccountData());
-      const p = paramsRef.current;
-      notifyAllBeneficiaries(
-        'تحديث الحسابات الختامية',
-        `تم تحديث الحسابات الختامية للسنة المالية ${p.selectedFY?.label || settings.fiscalYear}`,
-        'info', '/beneficiary/accounts',
-      );
-      if (settings.manualDistributions > 0) {
-        notifyAllBeneficiaries(
-          'تحديث التوزيعات المالية',
-          `تم تحديث توزيعات الأرباح للسنة المالية ${p.selectedFY?.label || settings.fiscalYear}. يرجى مراجعة حصتك`,
-          'info', '/beneficiary/my-share',
-        );
-      }
-    } catch (err) {
-      logger.error('خطأ في حفظ الحسابات:', err instanceof Error ? err.message : err);
-      defaultNotify.error('خطأ في حفظ الحسابات');
-    }
-  };
+  // حفظ الحسابات
+  const { handleCreateAccount, createAccountPending } = useCreateAccountAction({
+    buildAccountData,
+    getFiscalYearLabel: () => paramsRef.current.selectedFY?.label || settings.fiscalYear,
+    getDistributionsAmount: () => settings.manualDistributions,
+  });
 
-  const [isExportingPdf, setIsExportingPdf] = useState(false);
-
-  const handleExportPdf = async () => {
-    setIsExportingPdf(true);
-    try {
-      const p = paramsRef.current;
-      const { generateAccountsPDF } = await import('@/utils/pdf');
-      await generateAccountsPDF({
-        contracts: p.contracts,
-        incomeBySource: p.incomeBySource,
-        expensesByType: p.expensesByType,
-        totalIncome: p.totalIncome,
-        totalExpenses: p.totalExpenses,
-        netRevenue: p.netAfterZakat,
-        adminShare: p.adminShare,
-        waqifShare: p.waqifShare,
-        waqfRevenue: p.waqfRevenue,
-        beneficiaries: p.beneficiaries,
-        vatAmount: settings.manualVat,
-        distributionsAmount: settings.manualDistributions,
-        waqfCorpusManual: settings.waqfCorpusManual,
-        zakatAmount: settings.zakatAmount,
-        netAfterZakat: p.netAfterZakat,
-        waqfCorpusPrevious: settings.waqfCorpusPrevious,
-        grandTotal: p.grandTotal,
-        availableAmount: p.availableAmount,
-        remainingBalance: p.remainingBalance,
-      });
-      defaultNotify.success('تم تصدير التقرير بنجاح');
-    } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير التقرير');
-    } finally {
-      setIsExportingPdf(false);
-    }
-  };
+  // تصدير PDF
+  const { isExportingPdf, handleExportPdf } = useExportAccountsPdf({
+    paramsRef,
+    getSettings: () => ({
+      manualVat: settings.manualVat,
+      manualDistributions: settings.manualDistributions,
+      waqfCorpusManual: settings.waqfCorpusManual,
+      zakatAmount: settings.zakatAmount,
+      waqfCorpusPrevious: settings.waqfCorpusPrevious,
+    }),
+  });
 
   return {
-    // الإعدادات
     ...settings,
     isExportingPdf,
-    // Ref للقيم المالية
     paramsRef,
-    // Handlers
-    handleCreateAccount, handleExportPdf,
-    // Close year
+    handleCreateAccount,
+    handleExportPdf,
     ...closeYear,
-    createAccountPending: createAccount.isPending,
+    createAccountPending,
   };
 }
