@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/useMessaging';
+import { useConversations, useMessages, useSendMessage, useCreateConversation, useUnreadCounts, Conversation } from '@/hooks/data/useMessaging';
 import { useBeneficiaries } from '@/hooks/data/useBeneficiaries';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card } from '@/components/ui/card';
