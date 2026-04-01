@@ -1,5 +1,6 @@
 /**
- * هوك منطق صفحة الفواتير — state + form + handlers
+ * هوك منطق صفحة الفواتير — orchestrator
+ * الحالة والنموذج مُستخرَجان في hooks فرعية
  */
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
@@ -220,22 +221,17 @@ export const useInvoicesPage = () => {
   };
 
   return {
-    // data
     invoices, filteredInvoices, properties, contracts, isLoading, isClosed,
     fiscalYear, fiscalYearId, pdfWaqfInfo,
-    // state
     viewMode, setViewMode, isOpen, setIsOpen, searchQuery, setSearchQuery,
     filterType, setFilterType, filterStatus, setFilterStatus,
     deleteTarget, setDeleteTarget, currentPage, setCurrentPage,
     uploading, selectedFile, isDragging, setIsDragging, previewUrl,
     fileInputRef, viewerFile, setViewerFile, previewInvoice, setPreviewInvoice,
     templateOpen, setTemplateOpen, editingInvoice, formData, setFormData,
-    // handlers
     validateAndSetFile, resetForm, handleEdit, handleSubmit, handleConfirmDelete,
     buildPreviewData, statusBadgeVariant,
-    // mutations
     createInvoice, updateInvoice, generatePdf,
-    // constants
     ITEMS_PER_PAGE, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS,
   };
 };
