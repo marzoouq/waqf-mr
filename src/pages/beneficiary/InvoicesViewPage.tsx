@@ -204,6 +204,7 @@ const InvoicesViewPage = () => {
                             <TableCell className="font-medium">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
                             <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate" title={item.description || '-'}>{item.description || '-'}</TableCell>
                             <TableCell>{item.invoice_number || '-'}</TableCell>
+                            <TableCell className="font-medium">{fmt(safeNumber(item.amount))} ر.س</TableCell>
                             <TableCell>{fmtDate(item.date)}</TableCell>
                             <TableCell>{item.property?.property_number || '-'}</TableCell>
                             <TableCell>
