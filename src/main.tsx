@@ -47,3 +47,6 @@ if (splash) {
 
 // مراقبة أداء التحميل
 reportPageLoadMetrics();
+
+// قياس Core Web Vitals (LCP, CLS, INP)
+import('./lib/webVitals').then(({ initWebVitals }) => initWebVitals());
