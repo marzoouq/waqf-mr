@@ -3,7 +3,7 @@
  */
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppSettings, useWaqfInfo } from '@/hooks/page/useAppSettings';
@@ -13,6 +13,9 @@ import LandingHero from '@/components/landing/LandingHero';
 import LandingFeatures from '@/components/landing/LandingFeatures';
 import LandingCTA from '@/components/landing/LandingCTA';
 import LandingFooter from '@/components/landing/LandingFooter';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 const defaultLanding: LandingPageContent = {
   hero_title: 'نظام إدارة الوقف',
