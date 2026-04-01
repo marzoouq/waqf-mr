@@ -29,8 +29,13 @@ export function lazyWithRetry(importFn: () => Promise<{ default: ComponentType }
           // مسح كاش الأصول القديمة فقط
           caches.delete('static-assets').catch(() => {});
           window.location.reload();
-          // إرجاع وعد لا ينتهي لمنع عرض خطأ قبل إعادة التحميل
-          return new Promise(() => {});
+          // وعد مؤقت — إذا لم يحدث reload خلال 8 ثوانٍ يُرمى الخطأ
+          return new Promise((_, reject) => {
+            setTimeout(() => {
+              sessionStorage.removeItem(key);
+              reject(error);
+            }, 8_000);
+          });
         }
         // إذا فشلت المحاولة الثانية، أزل الحارس وارمي الخطأ
         sessionStorage.removeItem(key);
