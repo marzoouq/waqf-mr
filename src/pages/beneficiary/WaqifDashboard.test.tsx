@@ -70,7 +70,7 @@ vi.mock('@/hooks/financial/useContractAllocations', () => ({
   useContractAllocations: () => ({ data: [] }),
 }));
 
-vi.mock('@/hooks/ui/useDashboardRealtime', () => ({
+vi.mock('@/hooks/data/useDashboardRealtime', () => ({
   useDashboardRealtime: vi.fn(),
 }));
 

@@ -1,6 +1,5 @@
 export { useBfcacheSafeChannel } from './useBfcacheSafeChannel';
 export { useChartReady } from './useChartReady';
-export { useDashboardRealtime } from './useDashboardRealtime';
 export { useIdleTimeout } from './useIdleTimeout';
 export { useIsMobile } from './use-mobile';
 export { usePagePerformance } from './usePagePerformance';
