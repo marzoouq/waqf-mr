@@ -85,6 +85,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     setLogoutOpen(false);
     setMobileSidebarOpen(false);
     await logAccessEvent({ event_type: 'logout', user_id: user?.id });
+    clearActiveQueryTimers();
     await signOut();
     navigate('/auth', { replace: true });
   }, [navigate, signOut, user?.id]);
