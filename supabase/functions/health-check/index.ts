@@ -4,6 +4,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 /**
  * Health Check Edge Function
  * يتحقق من حالة الوظائف وقاعدة البيانات — لا يتطلب مصادقة
+ * يُرجع حالة مبسّطة فقط دون كشف تفاصيل داخلية
  */
 Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
@@ -12,10 +13,9 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const checks: Record<string, { ok: boolean; ms?: number; error?: string }> = {};
+  let allOk = true;
 
-  // 1. فحص اتصال قاعدة البيانات
-  const dbStart = performance.now();
+  // فحص اتصال قاعدة البيانات
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -25,35 +25,22 @@ Deno.serve(async (req: Request) => {
       .from("fiscal_years")
       .select("id")
       .limit(1);
-    checks.database = {
-      ok: !error,
-      ms: Math.round(performance.now() - dbStart),
-      ...(error ? { error: error.message } : {}),
-    };
-  } catch (e) {
-    checks.database = {
-      ok: false,
-      ms: Math.round(performance.now() - dbStart),
-      error: e instanceof Error ? e.message : "خطأ غير معروف",
-    };
+    if (error) allOk = false;
+  } catch {
+    allOk = false;
   }
 
-  // 2. فحص متغيرات البيئة الأساسية
+  // فحص متغيرات البيئة الأساسية
   const requiredEnvVars = ["SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"];
-  const missingVars = requiredEnvVars.filter((v) => !Deno.env.get(v));
-  checks.environment = {
-    ok: missingVars.length === 0,
-    ...(missingVars.length > 0 ? { error: `متغيرات مفقودة: ${missingVars.length}` } : {}),
-  };
+  if (requiredEnvVars.some((v) => !Deno.env.get(v))) {
+    allOk = false;
+  }
 
-  // 3. النتيجة الإجمالية
-  const allOk = Object.values(checks).every((c) => c.ok);
-
+  // استجابة مبسّطة — لا تكشف أي تفاصيل داخلية
   return new Response(
     JSON.stringify({
       status: allOk ? "healthy" : "degraded",
       timestamp: new Date().toISOString(),
-      checks,
     }),
     {
       status: allOk ? 200 : 503,
