@@ -16,20 +16,35 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
+const FILTER_TABS = [
+  { key: 'all', label: 'الكل', icon: Users },
+  { key: 'chat', label: 'المحادثات', icon: MessageSquare },
+  { key: 'support', label: 'الدعم الفني', icon: Headphones },
+  { key: 'broadcast', label: 'البث', icon: Radio },
+] as const;
+
+type FilterKey = typeof FILTER_TABS[number]['key'];
+
 const MessagesPage = () => {
   const { user, role } = useAuth();
   // الأدمين يرى كل الأنواع، المحاسب يرى chat فقط
-  const { data: conversations = [] } = useConversations(role === 'admin' ? undefined : 'chat');
+  const { data: allConversations = [] } = useConversations(role === 'admin' ? undefined : 'chat');
   const { data: beneficiaries = [] } = useBeneficiaries();
   const sendMessage = useSendMessage();
   const createConversation = useCreateConversation();
 
+  const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [newConvOpen, setNewConvOpen] = useState(false);
   const [newConvBeneficiary, setNewConvBeneficiary] = useState('');
   const [newConvSubject, setNewConvSubject] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // فلترة المحادثات حسب النوع
+  const conversations = activeFilter === 'all'
+    ? allConversations
+    : allConversations.filter(c => c.type === activeFilter);
 
   const { data: messages = [], hasMore, loadMore, isLoadingMore } = useMessages(selectedConv?.id || null);
 
