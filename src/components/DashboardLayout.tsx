@@ -2,6 +2,7 @@
  * التخطيط العام للوحة التحكم (DashboardLayout)
  */
 import { useLocation, useNavigate } from 'react-router-dom';
+import { clearActiveQueryTimers } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
