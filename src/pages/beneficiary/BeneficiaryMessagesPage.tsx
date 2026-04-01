@@ -55,27 +55,25 @@ const BeneficiaryMessagesPage = () => {
           title="المراسلات"
           description="التواصل مع ناظر الوقف والدعم الفني"
           icon={MessageSquare}
-          actions={
-            <div className="flex gap-2">
-              <Button onClick={() => setChatDialogOpen(true)} variant="default" size="sm" className="gap-2">
-                <MessageSquare className="w-4 h-4" />
-                محادثة الناظر
-              </Button>
-              <Button onClick={() => setSupportDialogOpen(true)} variant="outline" size="sm" className="gap-2">
-                <Headphones className="w-4 h-4" />
-                دعم فني
-              </Button>
-            </div>
-          }
         />
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-4">
+        {/* التبويبات مع زر إنشاء */}
+        <div className="flex items-center gap-2 mb-4">
           <Button variant={activeTab === 'chat' ? 'default' : 'outline'} size="sm" onClick={() => { setActiveTab('chat'); setSelectedConv(null); }}>
             <MessageSquare className="w-4 h-4 ml-1" /> المحادثات
           </Button>
           <Button variant={activeTab === 'support' ? 'default' : 'outline'} size="sm" onClick={() => { setActiveTab('support'); setSelectedConv(null); }}>
             <Headphones className="w-4 h-4 ml-1" /> الدعم الفني
+          </Button>
+          <div className="flex-1" />
+          <Button
+            size="sm"
+            variant="default"
+            className="gap-1.5"
+            onClick={() => activeTab === 'chat' ? setChatDialogOpen(true) : setSupportDialogOpen(true)}
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">{activeTab === 'chat' ? 'محادثة جديدة' : 'طلب دعم'}</span>
           </Button>
         </div>
 
