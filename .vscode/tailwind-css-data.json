@@ -1,0 +1,11 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    { "name": "@plugin", "description": "Tailwind CSS v4: register a plugin" },
+    { "name": "@theme", "description": "Tailwind CSS v4: define design tokens" },
+    { "name": "@source", "description": "Tailwind CSS v4: add content source paths" },
+    { "name": "@variant", "description": "Tailwind CSS v4: define a custom variant" },
+    { "name": "@utility", "description": "Tailwind CSS v4: define a custom utility" },
+    { "name": "@custom-variant", "description": "Tailwind CSS v4: define a custom variant" }
+  ]
+}

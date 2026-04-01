@@ -111,7 +111,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   });
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="min-h-[var(--app-vh,100vh)] flex w-full bg-background">
       {/* Mobile Header */}
       <MobileHeader
         onOpenSidebar={() => setMobileSidebarOpen(true)}
@@ -169,7 +169,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onTouchMove={handleMainTouchMove}
         onTouchEnd={handleMainTouchEnd}
         className={cn(
-          'flex-1 transition-all duration-300 min-h-screen overflow-y-auto',
+          'flex-1 transition-all duration-300 min-h-[var(--app-vh,100vh)] overflow-y-auto',
           'pt-14 pb-16 lg:pt-0 lg:pb-0',
           sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
         )}

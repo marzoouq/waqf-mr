@@ -8,7 +8,7 @@ import {
   handleRegistrationError,
   handleAuthenticationError,
   getDeviceName,
-} from './webAuthnErrors';
+} from '@/constants/auth/webAuthnErrors';
 
 const BIOMETRIC_ENABLED_KEY = 'waqf_biometric_enabled';
 
