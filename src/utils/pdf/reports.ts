@@ -81,8 +81,18 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
     doc.setFont(fontFamily, 'bold');
     doc.text(rs('التحليل البياني'), 105, finalY + 12, { align: 'center' });
 
+    // إطار مع خلفية بيضاء وحدود واضحة
+    const frameX = margin - 1;
+    const frameY = finalY + 16;
+    const frameW = imgWidth + 2;
+    const frameH = imgHeight + 4;
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, 'FD');
+
     doc.addImage(chartsImage, 'PNG', margin, finalY + 18, imgWidth, imgHeight);
-    finalY = finalY + 18 + imgHeight + 5;
+    finalY = finalY + 18 + imgHeight + 8;
   }
 
   doc.setFontSize(14);
