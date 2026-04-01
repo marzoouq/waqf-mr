@@ -14,7 +14,7 @@ beforeEach(() => {
 describe('logAccessEvent', () => {
   it('يستدعي supabase.rpc بالبارامترات الصحيحة', async () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
-    const { logAccessEvent } = await import('./useAccessLog');
+    const { logAccessEvent } = await import('@/lib/accessLog');
 
     await logAccessEvent({
       event_type: 'login_success',
@@ -36,7 +36,7 @@ describe('logAccessEvent', () => {
 
   it('يمرر metadata فارغة عند عدم التحديد', async () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
-    const { logAccessEvent } = await import('./useAccessLog');
+    const { logAccessEvent } = await import('@/lib/accessLog');
 
     await logAccessEvent({ event_type: 'logout' });
 
@@ -51,7 +51,7 @@ describe('logAccessEvent', () => {
 
   it('لا يرمي خطأ عند فشل RPC (silent fail)', async () => {
     mockRpc.mockRejectedValue(new Error('RPC failed'));
-    const { logAccessEvent } = await import('./useAccessLog');
+    const { logAccessEvent } = await import('@/lib/accessLog');
 
     // يجب أن لا يرمي
     await expect(logAccessEvent({ event_type: 'login_failed' })).resolves.toBeUndefined();

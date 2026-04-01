@@ -4,7 +4,14 @@
  */
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
-import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { logAccessEvent } from '@/lib/accessLog';
+
+const getErrorDetails = (err: unknown) => ({
+  name: err instanceof DOMException || err instanceof Error ? err.name : '',
+  message: err instanceof Error ? err.message : '',
+});
+
+const hasNavigator = () => typeof navigator !== 'undefined';
 
 /** تسجيل حدث بصمة في سجل الوصول */
 export const logBiometricEvent = (
@@ -23,8 +30,8 @@ export const handleRegistrationError = (
   err: unknown,
   retryFn?: () => void,
 ) => {
-  const name = err instanceof DOMException || err instanceof Error ? err.name : '';
-  const errMessage = err instanceof Error ? err.message : 'خطأ غير معروف';
+  const { name, message } = getErrorDetails(err);
+  const errMessage = message || 'خطأ غير معروف';
   logger.error('WebAuthn registration error:', errMessage, err);
 
   if (name === 'NotAllowedError') {
@@ -59,8 +66,8 @@ export const handleRegistrationError = (
 
 /** معالجة أخطاء المصادقة */
 export const handleAuthenticationError = (err: unknown) => {
-  const name = err instanceof DOMException || err instanceof Error ? err.name : '';
-  const errMessage = err instanceof Error ? err.message : '';
+  const { name, message: errMessage } = getErrorDetails(err);
+  logger.error('WebAuthn authentication error:', errMessage || 'خطأ غير معروف', err);
 
   if (name === 'NotAllowedError') {
     if (errMessage.toLowerCase().includes('timeout')) {
@@ -83,9 +90,12 @@ export const handleAuthenticationError = (err: unknown) => {
 };
 
 export function getDeviceName(): string {
+  if (!hasNavigator()) return 'جهاز غير معروف';
+
   const ua = navigator.userAgent;
   if (/iPhone/.test(ua)) return 'iPhone';
   if (/iPad/.test(ua)) return 'iPad';
+  if (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua)) return 'iPad';
   if (/Android/.test(ua)) return 'جهاز Android';
   if (/Mac/.test(ua)) return 'Mac';
   if (/Windows/.test(ua)) return 'Windows';
