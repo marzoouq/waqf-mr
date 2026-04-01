@@ -40,6 +40,7 @@ const componentImports: Record<string, () => Promise<unknown>> = {
   '/beneficiary/contracts': () => import('@/pages/beneficiary/ContractsViewPage'),
   '/beneficiary/support': () => import('@/pages/beneficiary/SupportPage'),
   '/beneficiary/annual-report': () => import('@/pages/beneficiary/AnnualReportViewPage'),
+  '/beneficiary/carryforward': () => import('@/pages/beneficiary/CarryforwardHistoryPage'),
   '/waqif': () => import('@/pages/beneficiary/WaqifDashboard'),
 };
 
