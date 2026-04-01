@@ -1,17 +1,14 @@
 /**
- * عمليات صفحة الحسابات — حفظ، إقفال سنة، تصدير PDF
+ * عمليات صفحة الحسابات — منسّق يجمع الإعدادات والإقفال والتصدير
+ * الـ hooks الفرعية: useAccountsSettings, useCloseYear
  */
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useCreateAccount } from '@/hooks/financial/useAccounts';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
-import { useAuth } from '@/hooks/auth/useAuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
 import { defaultNotify } from '@/hooks/data/mutationNotify';
 import { logger } from '@/lib/logger';
-import { fmt } from '@/utils/format';
-import { findAccountByFY } from '@/utils/findAccountByFY';
+import { useAccountsSettings } from './useAccountsSettings';
+import { useCloseYear } from './useCloseYear';
 import type { Account, Contract, Beneficiary } from '@/types/database';
 
 interface ActionsParams {
@@ -38,115 +35,44 @@ interface ActionsParams {
 }
 
 export function useAccountsActions(params: ActionsParams) {
-  const { role } = useAuth();
-  const queryClient = useQueryClient();
   const createAccount = useCreateAccount();
-  const appSettings = useAppSettings();
 
-  // paramsRef يُحدّث من useAccountsPage بقيم calc الفعلية (سطور 70-85)
+  // paramsRef يُحدّث من useAccountsPage بقيم calc الفعلية
   const paramsRef = useRef(params);
 
-  const [closeYearOpen, setCloseYearOpen] = useState(false);
-  const [isClosingYear, setIsClosingYear] = useState(false);
+  // إعدادات مفصولة
+  const settings = useAccountsSettings({
+    accounts: params.accounts,
+    selectedFY: params.selectedFY,
+  });
 
-  // إعدادات قابلة للتعديل
-  const [adminPercent, setAdminPercent] = useState(10);
-  const [waqifPercent, setWaqifPercent] = useState(5);
-  const [fiscalYear, setFiscalYear] = useState('');
-  const [zakatAmount, setZakatAmount] = useState(0);
-  const [waqfCorpusManual, setWaqfCorpusManual] = useState(0);
-  const [waqfCorpusPrevious, setWaqfCorpusPrevious] = useState(0);
-  const [manualVat, setManualVat] = useState(0);
-  const [manualDistributions, setManualDistributions] = useState(0);
-
-  useEffect(() => {
-    if (appSettings.data) {
-      const settings = appSettings.data;
-      if (settings['admin_share_percentage']) setAdminPercent(Number(settings['admin_share_percentage']));
-      if (settings['waqif_share_percentage']) setWaqifPercent(Number(settings['waqif_share_percentage']));
-      if (settings['fiscal_year']) setFiscalYear(settings['fiscal_year']);
-    }
-  }, [appSettings.data]);
-
-  useEffect(() => {
-    const matchingAccount = findAccountByFY(params.accounts, params.selectedFY);
-    if (matchingAccount) {
-      if (matchingAccount.zakat_amount !== undefined) setZakatAmount(Number(matchingAccount.zakat_amount));
-      if (matchingAccount.waqf_corpus_manual !== undefined) setWaqfCorpusManual(Number(matchingAccount.waqf_corpus_manual));
-      if (matchingAccount.waqf_corpus_previous !== undefined) setWaqfCorpusPrevious(Number(matchingAccount.waqf_corpus_previous));
-      if (matchingAccount.vat_amount !== undefined) setManualVat(Number(matchingAccount.vat_amount));
-      if (matchingAccount.distributions_amount !== undefined) setManualDistributions(Number(matchingAccount.distributions_amount));
-    } else {
-      setZakatAmount(0);
-      setWaqfCorpusManual(0);
-      setWaqfCorpusPrevious(0);
-      setManualVat(0);
-      setManualDistributions(0);
-    }
-  }, [params.accounts, params.selectedFY]);
-
-  const saveSettingTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-  const updateSettingRef = useRef(appSettings.updateSetting.mutateAsync);
-  updateSettingRef.current = appSettings.updateSetting.mutateAsync;
-
-  const saveSetting = useCallback(async (key: string, value: string) => {
-    if (saveSettingTimeouts.current[key]) clearTimeout(saveSettingTimeouts.current[key]);
-    saveSettingTimeouts.current[key] = setTimeout(async () => {
-      try {
-        await updateSettingRef.current({ key, value });
-        defaultNotify.success('تم حفظ الإعداد');
-      } catch (err) {
-        logger.error('خطأ في حفظ الإعداد:', err instanceof Error ? err.message : err);
-        defaultNotify.error('خطأ في حفظ الإعداد');
-      }
-    }, 500);
-  }, []);
-
-  const handleAdminPercentChange = (val: string) => {
-    const num = parseFloat(val);
-    if (!Number.isFinite(num) || num < 0 || num > 100) {
-      defaultNotify.error('نسبة الناظر يجب أن تكون رقماً بين 0 و 100');
-      return;
-    }
-    setAdminPercent(num);
-    saveSetting('admin_share_percentage', val);
-  };
-
-  const handleWaqifPercentChange = (val: string) => {
-    const num = parseFloat(val);
-    if (!Number.isFinite(num) || num < 0 || num > 100) {
-      defaultNotify.error('نسبة الواقف يجب أن تكون رقماً بين 0 و 100');
-      return;
-    }
-    setWaqifPercent(num);
-    saveSetting('waqif_share_percentage', val);
-  };
-
-  const handleFiscalYearChange = (val: string) => {
-    setFiscalYear(val);
-    saveSetting('fiscal_year', val);
-  };
-
-  // استخدام paramsRef.current للحصول على أحدث القيم المحسوبة
+  // بناء بيانات الحساب
   const buildAccountData = () => {
     const p = paramsRef.current;
     return {
-      fiscal_year: p.selectedFY?.label || fiscalYear,
+      fiscal_year: p.selectedFY?.label || settings.fiscalYear,
       fiscal_year_id: p.selectedFY?.id || '',
       total_income: p.totalIncome,
       total_expenses: p.totalExpenses,
       admin_share: p.adminShare,
       waqif_share: p.waqifShare,
       waqf_revenue: p.waqfRevenue,
-      vat_amount: manualVat,
-      distributions_amount: manualDistributions,
+      vat_amount: settings.manualVat,
+      distributions_amount: settings.manualDistributions,
       net_after_expenses: p.netAfterExpenses,
       net_after_vat: p.netAfterVat,
-      zakat_amount: zakatAmount,
-      waqf_corpus_manual: waqfCorpusManual,
-      waqf_corpus_previous: waqfCorpusPrevious,
+      zakat_amount: settings.zakatAmount,
+      waqf_corpus_manual: settings.waqfCorpusManual,
+      waqf_corpus_previous: settings.waqfCorpusPrevious,
     };
   };
+
+  // إقفال السنة — مفصول
+  const closeYear = useCloseYear({
+    selectedFY: params.selectedFY,
+    buildAccountData,
+    waqfCorpusManual: settings.waqfCorpusManual,
+  });
 
   const handleCreateAccount = async () => {
     try {
@@ -154,67 +80,19 @@ export function useAccountsActions(params: ActionsParams) {
       const p = paramsRef.current;
       notifyAllBeneficiaries(
         'تحديث الحسابات الختامية',
-        `تم تحديث الحسابات الختامية للسنة المالية ${p.selectedFY?.label || fiscalYear}`,
+        `تم تحديث الحسابات الختامية للسنة المالية ${p.selectedFY?.label || settings.fiscalYear}`,
         'info', '/beneficiary/accounts',
       );
-      if (manualDistributions > 0) {
+      if (settings.manualDistributions > 0) {
         notifyAllBeneficiaries(
           'تحديث التوزيعات المالية',
-          `تم تحديث توزيعات الأرباح للسنة المالية ${p.selectedFY?.label || fiscalYear}. يرجى مراجعة حصتك`,
+          `تم تحديث توزيعات الأرباح للسنة المالية ${p.selectedFY?.label || settings.fiscalYear}. يرجى مراجعة حصتك`,
           'info', '/beneficiary/my-share',
         );
       }
     } catch (err) {
       logger.error('خطأ في حفظ الحسابات:', err instanceof Error ? err.message : err);
       defaultNotify.error('خطأ في حفظ الحسابات');
-    }
-  };
-
-  const handleCloseYear = async () => {
-    const p = paramsRef.current;
-    if (!p.selectedFY || p.selectedFY.status === 'closed') return;
-    if (role !== 'admin') {
-      defaultNotify.error('فقط الناظر يمكنه إقفال السنة المالية');
-      return;
-    }
-    setIsClosingYear(true);
-    try {
-      const accountData = buildAccountData();
-      const { data: result, error } = await supabase.rpc('close_fiscal_year', {
-        p_fiscal_year_id: p.selectedFY.id,
-        p_account_data: JSON.parse(JSON.stringify(accountData)),
-        p_waqf_corpus_manual: waqfCorpusManual,
-      });
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['income'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['contracts'] });
-      queryClient.invalidateQueries({ queryKey: ['tenant_payments'] });
-      queryClient.invalidateQueries({ queryKey: ['payment_invoices'] });
-
-      notifyAllBeneficiaries(
-        'إقفال السنة المالية',
-        `تم إقفال السنة المالية ${p.selectedFY.label} وأرشفة جميع البيانات. تم ترحيل رقبة الوقف (${fmt(waqfCorpusManual)} ر.س) للسنة الجديدة.`,
-        'info', '/beneficiary/accounts',
-      );
-
-      const rpcResult = result as { closed_label?: string; next_label?: string; warnings?: string[] } | null;
-      if (rpcResult?.warnings && rpcResult.warnings.length > 0) {
-        for (const w of rpcResult.warnings) {
-          defaultNotify.warning(w, { duration: 10000 });
-        }
-      }
-      defaultNotify.success(`تم إقفال السنة المالية ${rpcResult?.closed_label || p.selectedFY.label} وترحيل الرصيد بنجاح`);
-      defaultNotify.info('تنبيه: السنة المالية الجديدة غير منشورة — يرجى نشرها من إعدادات السنوات المالية ليتمكن المستفيدون من رؤيتها', { duration: 8000 });
-      setCloseYearOpen(false);
-    } catch (err) {
-      logger.error('خطأ في إقفال السنة:', err instanceof Error ? err.message : err);
-      defaultNotify.error('خطأ في إقفال السنة المالية');
-    } finally {
-      setIsClosingYear(false);
     }
   };
 
@@ -236,12 +114,12 @@ export function useAccountsActions(params: ActionsParams) {
         waqifShare: p.waqifShare,
         waqfRevenue: p.waqfRevenue,
         beneficiaries: p.beneficiaries,
-        vatAmount: manualVat,
-        distributionsAmount: manualDistributions,
-        waqfCorpusManual,
-        zakatAmount,
+        vatAmount: settings.manualVat,
+        distributionsAmount: settings.manualDistributions,
+        waqfCorpusManual: settings.waqfCorpusManual,
+        zakatAmount: settings.zakatAmount,
         netAfterZakat: p.netAfterZakat,
-        waqfCorpusPrevious,
+        waqfCorpusPrevious: settings.waqfCorpusPrevious,
         grandTotal: p.grandTotal,
         availableAmount: p.availableAmount,
         remainingBalance: p.remainingBalance,
@@ -254,22 +132,16 @@ export function useAccountsActions(params: ActionsParams) {
     }
   };
 
-  const currentAccount = findAccountByFY(params.accounts, params.selectedFY);
-  const usingFallbackPct = !appSettings.data?.['admin_share_percentage'] || !appSettings.data?.['waqif_share_percentage'];
-
   return {
     // الإعدادات
-    adminPercent, waqifPercent, zakatAmount, waqfCorpusManual, waqfCorpusPrevious,
-    manualVat, manualDistributions, fiscalYear, usingFallbackPct, currentAccount, isExportingPdf,
-    // Ref للقيم المالية — يُحدّث من useAccountsPage بقيم calc المحسوبة
+    ...settings,
+    isExportingPdf,
+    // Ref للقيم المالية
     paramsRef,
-    // Setters
-    setWaqfCorpusPrevious, setManualVat, setZakatAmount, setWaqfCorpusManual, setManualDistributions,
     // Handlers
-    handleAdminPercentChange, handleWaqifPercentChange, handleFiscalYearChange,
-    handleCreateAccount, handleCloseYear, handleExportPdf,
-    // Close year dialog
-    closeYearOpen, setCloseYearOpen, isClosingYear,
+    handleCreateAccount, handleExportPdf,
+    // Close year
+    ...closeYear,
     createAccountPending: createAccount.isPending,
   };
 }
