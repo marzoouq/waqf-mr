@@ -6,7 +6,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from './mutationNotify';
-import { logger } from '@/lib/logger';
 
 // ---------------------------------------------------------------------------
 // ثوابت التحقق من الملفات
