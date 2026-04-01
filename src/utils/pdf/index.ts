@@ -23,3 +23,6 @@ export { generateAnnualReportPDF as generateAnnualAchievementsPDF } from './annu
 export type { AnnualReportPdfData } from './annualReport';
 export { generateInvoiceClientPDF } from './invoice';
 export type { GenerateInvoicePdfClientOptions } from './invoice';
+export { printDistributionReport } from './printDistributionReport';
+export { printShareReport } from './printShareReport';
+export { loadAmiriFonts } from './loadAmiriFonts';
