@@ -200,7 +200,7 @@ const InvoicesViewPage = () => {
                           <TableHead className="text-right">التاريخ</TableHead>
                           <TableHead className="text-right">العقار</TableHead>
                           <TableHead className="text-right">الحالة</TableHead>
-                          <TableHead className="text-right">الملف</TableHead>
+                          {showAttachments && <TableHead className="text-right">الملف</TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
