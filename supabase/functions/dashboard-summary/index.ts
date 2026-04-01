@@ -119,7 +119,8 @@ Deno.serve(async (req) => {
       // 1. العقارات
       admin.from("properties")
         .select("id, property_number, property_type, location, area, vat_exempt, description, created_at, updated_at")
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(500),
 
       // 2. العقود
       (() => {
@@ -176,8 +177,8 @@ Deno.serve(async (req) => {
         let q = admin.from("income")
           .select("id, amount, date, source, notes, fiscal_year_id, property_id, contract_id, created_at, property:properties(id, property_number, location)")
           .order("date", { ascending: false });
-        if (!isAll) q = q.eq("fiscal_year_id", fiscal_year_id).limit(2000);
-        else q = q.limit(2000);
+        if (!isAll) q = q.eq("fiscal_year_id", fiscal_year_id).limit(1000);
+        else q = q.limit(1000);
         return q;
       })(),
 
@@ -186,7 +187,7 @@ Deno.serve(async (req) => {
         let q = admin.from("expenses")
           .select("id, amount, date, description, expense_type, fiscal_year_id, property_id, created_at, property:properties(id, property_number, location)")
           .order("date", { ascending: false });
-        if (!isAll) q = q.eq("fiscal_year_id", fiscal_year_id).limit(2000);
+        if (!isAll) q = q.eq("fiscal_year_id", fiscal_year_id).limit(1000);
         else q = q.limit(1000);
         return q;
       })(),
