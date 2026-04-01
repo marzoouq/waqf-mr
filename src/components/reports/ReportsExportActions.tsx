@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import ExportMenu from '@/components/ExportMenu';
-import type { PdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import type { PdfWaqfInfo, ForensicAuditData } from '@/utils/pdf';
 
 interface IncomeExpenseItem {
   name: string;
