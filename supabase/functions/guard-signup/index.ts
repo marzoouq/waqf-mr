@@ -65,10 +65,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // فحص تعقيد كلمة المرور: حرف كبير أو رقم على الأقل
-    const hasUpperOrDigit = /(?=.*[A-Z])|(?=.*\d)/.test(password);
-    if (!hasUpperOrDigit) {
-      return new Response(JSON.stringify({ error: "كلمة المرور يجب أن تحتوي على حرف كبير أو رقم على الأقل" }), {
+    // فحص تعقيد كلمة المرور: حرف كبير + حرف صغير + رقم كحد أدنى
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasDigit = /\d/.test(password);
+    if (!hasUpper || !hasLower || !hasDigit) {
+      return new Response(JSON.stringify({ error: "كلمة المرور يجب أن تحتوي على حرف كبير وحرف صغير ورقم على الأقل" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
