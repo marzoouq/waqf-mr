@@ -38,6 +38,15 @@ const placeholderStats = [
 const Index = () => {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
+
+  // كشف وجود جلسة سابقة لمنع وميض Landing Page قبل شاشة التحميل
+  const [maybeAuthenticated] = useState(() => {
+    try {
+      const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+      return !!storageKey && !!localStorage.getItem(storageKey);
+    } catch { return false; }
+  });
+
   const { getJsonSetting } = useAppSettings();
   const content = getJsonSetting<LandingPageContent>('landing_page_content', defaultLanding);
   const { data: waqfInfo } = useWaqfInfo();
@@ -118,7 +127,8 @@ const Index = () => {
   };
 
   // عرض skeleton للمستخدم المسجّل أثناء التحميل بدلاً من Landing Page
-  if ((loading && user) || (!loading && user && !role && !roleTimeout)) {
+  // maybeAuthenticated يمنع وميض Landing Page عندما loading=true و user=null (قبل حل الجلسة)
+  if ((loading && (user || maybeAuthenticated)) || (!loading && user && !role && !roleTimeout)) {
     return (
       <div className="min-h-screen bg-background p-4 md:p-8 animate-fade-in" dir="rtl">
         <div className="flex items-center justify-between mb-8">
