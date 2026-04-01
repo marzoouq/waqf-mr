@@ -69,7 +69,11 @@ export async function runPwaCacheGuard(): Promise<void> {
       } catch (error) {
         logger.warn('[PWA] تعذر حفظ علم التحديث', error);
       }
-      window.location.reload();
+      if (canReload()) {
+        window.location.reload();
+        return;
+      }
+      logger.warn('[PWA] تم تخطي reload لمنع حلقة لا نهائية');
       return;
     }
 
