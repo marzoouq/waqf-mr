@@ -127,7 +127,8 @@ const Index = () => {
   };
 
   // عرض skeleton للمستخدم المسجّل أثناء التحميل بدلاً من Landing Page
-  if ((loading && user) || (!loading && user && !role && !roleTimeout)) {
+  // maybeAuthenticated يمنع وميض Landing Page عندما loading=true و user=null (قبل حل الجلسة)
+  if ((loading && (user || maybeAuthenticated)) || (!loading && user && !role && !roleTimeout)) {
     return (
       <div className="min-h-screen bg-background p-4 md:p-8 animate-fade-in" dir="rtl">
         <div className="flex items-center justify-between mb-8">
