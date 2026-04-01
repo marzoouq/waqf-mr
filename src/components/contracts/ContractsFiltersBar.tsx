@@ -8,6 +8,7 @@ import { Search, Lock, RefreshCw, CheckSquare, Square, ChevronsUpDown, Filter, S
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import type { Contract } from '@/types/database';
+import type { StatusFilterValue } from '@/hooks/page/useContractsFilters';
 
 interface Property {
   id: string;
@@ -26,8 +27,8 @@ interface StatusCounts {
 interface Props {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
-  statusFilter: string;
-  setStatusFilter: (f: string) => void;
+  statusFilter: StatusFilterValue;
+  setStatusFilter: (f: StatusFilterValue) => void;
   propertyFilter: string;
   setPropertyFilter: (f: string) => void;
   paymentTypeFilter: string;
@@ -84,7 +85,7 @@ export default function ContractsFiltersBar({
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input name="searchQuery" placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
         </div>
-        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
+        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as StatusFilterValue); setCurrentPage(1); }}>
           <SelectTrigger className="w-full sm:w-48 shrink-0"><Filter className="w-4 h-4 ml-2" /><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">الكل ({statusCounts.all})</SelectItem>

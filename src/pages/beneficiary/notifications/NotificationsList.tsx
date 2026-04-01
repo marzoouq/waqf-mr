@@ -10,9 +10,10 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { typeConfig } from './notificationConstants';
+import type { Notification } from '@/types/database';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type NotificationItem = any;
+/** عنصر إشعار — يُعاد تسميته محلياً لتجنب التعارض مع Web API */
+type NotificationItem = Notification;
 
 interface Props {
   groupedNotifications: Record<string, NotificationItem[]>;
