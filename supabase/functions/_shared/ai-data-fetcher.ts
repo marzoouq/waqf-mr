@@ -138,7 +138,8 @@ export async function fetchWaqfData(
       client.from("accounts")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(3),
+        .limit(3)
+        .then(r => r),
       // 1: العقود النشطة (admin) أو عدد فقط (non-admin)
       isAdmin
         ? client.from("contracts")
