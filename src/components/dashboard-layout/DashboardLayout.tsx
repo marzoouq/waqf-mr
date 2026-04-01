@@ -12,7 +12,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
-import { useNavLinks } from '@/hooks/page/useNavLinks';
+import { useNavLinks } from '@/hooks/ui/useNavLinks';
 import { useRealtimeAlerts } from '@/hooks/data/useRealtimeAlerts';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { clearActiveQueryTimers } from '@/lib/queryClient';
@@ -25,15 +25,15 @@ import {
 import WaqfInfoBar from '@/components/WaqfInfoBar';
 import BetaBanner from '@/components/BetaBanner';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
-import SidebarContent from '@/components/Sidebar';
-import BottomNav from '@/components/BottomNav';
+import SidebarContent from '@/components/layout/Sidebar';
+import BottomNav from '@/components/layout/BottomNav';
 import MobileHeader from '@/components/dashboard-layout/MobileHeader';
 import DesktopTopBar from '@/components/dashboard-layout/DesktopTopBar';
 import { SHOW_ALL_ROUTES } from '@/components/dashboard-layout/constants';
 
 // — مكونات كسولة —
-const PrintHeader = lazy(() => import('@/components/PrintHeader'));
-const PrintFooter = lazy(() => import('@/components/PrintFooter'));
+const PrintHeader = lazy(() => import('@/components/layout/PrintHeader'));
+const PrintFooter = lazy(() => import('@/components/layout/PrintFooter'));
 const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
 const IdleTimeoutWarning = lazy(() => import('@/components/IdleTimeoutWarning'));
 

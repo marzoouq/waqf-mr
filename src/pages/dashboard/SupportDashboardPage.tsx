@@ -1,7 +1,7 @@
 /**
  * صفحة لوحة تحكم الدعم الفني — Orchestrator
  */
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/dashboard-layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Headset, Bug, BarChart3 } from 'lucide-react';

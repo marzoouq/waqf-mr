@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useConversations, useMessages, useSendMessage, useCreateConversation, useUnreadCounts, Conversation } from '@/hooks/data/useMessaging';
 import { useBeneficiaries } from '@/hooks/data/useBeneficiaries';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/dashboard-layout';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Plus, Users, Headphones, Radio } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';

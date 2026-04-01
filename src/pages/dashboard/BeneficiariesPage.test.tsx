@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import BeneficiariesPage from './BeneficiariesPage';
 
-vi.mock('@/components/DashboardLayout', () => ({
+vi.mock('@/components/dashboard-layout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="layout">{children}</div>,
 }));
 

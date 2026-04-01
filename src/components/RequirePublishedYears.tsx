@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/dashboard-layout';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import PageHeaderCard from '@/components/PageHeaderCard';
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/dashboard-layout';
 import { Button } from '@/components/ui/button';
 import { Plus, Lock, Wallet } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
