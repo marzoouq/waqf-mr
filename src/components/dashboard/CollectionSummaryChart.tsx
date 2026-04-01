@@ -11,6 +11,7 @@ interface CollectionSummaryChartProps {
 }
 
 const CollectionSummaryChart = ({ onTime, late, partial = 0 }: CollectionSummaryChartProps) => {
+  const { ref, ready } = useChartReady();
   // CS-01: guard للبيانات الفارغة
   if (onTime === 0 && late === 0 && partial === 0) {
     return (
