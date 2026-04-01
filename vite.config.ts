@@ -7,6 +7,7 @@ import pkg from "./package.json";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  envDir: path.resolve(__dirname),
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
     'import.meta.env.VITE_APP_BUILD_ID': JSON.stringify(pkg.version),
