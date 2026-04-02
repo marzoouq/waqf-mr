@@ -14,6 +14,7 @@ interface MobileSummaryCardProps {
 }
 
 const MobileSummaryCard = ({ units, contracts, wholePropertyContracts }: MobileSummaryCardProps) => {
+  const isDesktop = useIsDesktop();
   let totalAnnual = 0;
   let totalMonthly = 0;
   units.forEach(u => {
