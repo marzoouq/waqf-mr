@@ -26,26 +26,26 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLa
     'إدارة الوقف';
 
   return (
-    <div className="fixed top-0 right-0 left-0 z-40 flex items-center justify-between p-3 gradient-hero lg:hidden">
-      <Button variant="ghost" size="icon" onClick={onOpenSidebar} className="text-sidebar-foreground">
-        <Menu className="w-6 h-6" />
+    <header className="fixed top-0 right-0 left-0 z-40 flex items-center justify-between p-3 gradient-hero lg:hidden" role="banner">
+      <Button variant="ghost" size="icon" aria-label="فتح القائمة الجانبية" onClick={onOpenSidebar} className="text-sidebar-foreground">
+        <Menu className="w-6 h-6" aria-hidden="true" />
       </Button>
       <div className="flex flex-col items-center">
-        <span className="font-arabic font-bold text-base text-sidebar-foreground leading-tight">{title}</span>
+        <h1 className="font-arabic font-bold text-base text-sidebar-foreground leading-tight">{title}</h1>
         {fiscalYearLabel && (
           <span className="text-[11px] text-sidebar-foreground/70 leading-none">{fiscalYearLabel}</span>
         )}
       </div>
       <div className="flex items-center gap-1">
-        <Link to={(role === 'admin' || role === 'accountant') ? '/dashboard/bylaws' : '/beneficiary/bylaws'}>
+        <Link to={(role === 'admin' || role === 'accountant') ? '/dashboard/bylaws' : '/beneficiary/bylaws'} aria-label="نظام الوقف">
           <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50">
-            <BookOpen className="w-5 h-5" />
+            <BookOpen className="w-5 h-5" aria-hidden="true" />
           </Button>
         </Link>
         <ThemeToggle />
         <NotificationBell />
       </div>
-    </div>
+    </header>
   );
 };
 

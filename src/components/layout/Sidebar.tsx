@@ -50,6 +50,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
         <Button
           variant="ghost"
           size="icon"
+          aria-label={sidebarOpen ? 'طي القائمة الجانبية' : 'توسيع القائمة الجانبية'}
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="text-sidebar-foreground hover:bg-sidebar-accent hidden lg:flex"
         >
@@ -59,6 +60,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
         <Button
           variant="ghost"
           size="icon"
+          aria-label="إغلاق القائمة الجانبية"
           onClick={() => setMobileSidebarOpen(false)}
           className="text-sidebar-foreground hover:bg-sidebar-accent lg:hidden"
         >
@@ -67,7 +69,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+      <nav aria-label="القائمة الرئيسية" role="navigation" className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
        <TooltipProvider delayDuration={0}>
         {links.map((link) => {
           const isActive = location.pathname === link.to ||
@@ -77,6 +79,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             <Link
               key={link.to}
               to={link.to}
+              aria-current={isActive ? 'page' : undefined}
               onClick={() => setMobileSidebarOpen(false)}
               onMouseEnter={() => getPrefetchHandler(link.to)?.()}
               className={cn(
@@ -87,11 +90,11 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                 !sidebarOpen && 'lg:justify-center'
               )}
             >
-              <link.icon className="w-5 h-5 shrink-0" />
+              <link.icon className="w-5 h-5 shrink-0" aria-hidden="true" />
               <span className={cn(!sidebarOpen && 'lg:hidden')}>{link.label}</span>
               {/* عداد الرسائل غير المقروءة */}
               {link.to.includes('/messages') && unreadCount > 0 && (
-                <span className="mr-auto bg-destructive text-destructive-foreground text-[11px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                <span aria-label={`${unreadCount} رسالة غير مقروءة`} className="mr-auto bg-destructive text-destructive-foreground text-[11px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}

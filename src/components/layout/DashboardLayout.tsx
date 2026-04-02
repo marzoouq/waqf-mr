@@ -111,7 +111,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   });
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="min-h-screen flex w-full bg-background" dir="rtl">
       {/* Mobile Header */}
       <MobileHeader
         onOpenSidebar={() => setMobileSidebarOpen(true)}
@@ -131,6 +131,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Sidebar - Mobile */}
       <aside
+        aria-label="القائمة الجانبية"
         ref={sidebarRef}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -149,6 +150,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Sidebar - Desktop */}
       <aside
+        aria-label="القائمة الجانبية"
         className={cn(
           'fixed inset-y-0 right-0 z-30 hidden lg:flex flex-col gradient-hero transition-all duration-300 shadow-elegant',
           sidebarOpen ? 'w-64' : 'w-16'
@@ -165,6 +167,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Main Content */}
       <main
+        role="main"
+        aria-label="المحتوى الرئيسي"
         onTouchStart={handleMainTouchStart}
         onTouchMove={handleMainTouchMove}
         onTouchEnd={handleMainTouchEnd}
