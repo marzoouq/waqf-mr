@@ -60,9 +60,11 @@ const TicketList = ({ tickets, onSelect }: TicketListProps) => {
           );
         })}
       </div>
+      )}
 
       {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto">
+      {isDesktop && (
+      <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
