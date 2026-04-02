@@ -5,6 +5,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Link } from 'react-router-dom';
 import { fmt } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface Contract {
   id: string;
@@ -20,7 +21,6 @@ interface RecentContractsCardProps {
   isLoading: boolean;
 }
 
-/** دالة مساعدة — تعيد النص واللون حسب حالة العقد */
 const getStatusInfo = (status: string) => {
   switch (status) {
     case 'active':
@@ -33,6 +33,8 @@ const getStatusInfo = (status: string) => {
 };
 
 const RecentContractsCard = ({ contracts, isLoading }: RecentContractsCardProps) => {
+  const isDesktop = useIsDesktop();
+
   if (isLoading) {
     return (
       <Card className="shadow-sm">
@@ -62,66 +64,68 @@ const RecentContractsCard = ({ contracts, isLoading }: RecentContractsCardProps)
         </Link>
       </CardHeader>
       <CardContent>
-        {/* Mobile cards */}
-        <div className="space-y-2 md:hidden">
-          {sorted.map((contract) => {
-            const statusInfo = getStatusInfo(contract.status);
-            return (
-              <div key={contract.id} className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-card">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold truncate">{contract.tenant_name}</p>
-                  <p className="text-xs text-muted-foreground">عقد {contract.contract_number}</p>
-                </div>
-                <div className="text-left shrink-0">
-                  <p className="text-sm font-medium">{fmt(safeNumber(contract.rent_amount))} ر.س</p>
-                  <span className={`px-2 py-0.5 rounded-full text-[11px] ${statusInfo.className}`}>
-                    {statusInfo.label}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-          {contracts.length === 0 && (
-            <p className="py-6 text-center text-sm text-muted-foreground">لا توجد عقود حالياً</p>
-          )}
-        </div>
-        {/* Desktop table */}
-        <div className="hidden md:block overflow-x-auto">
-          <Table className="min-w-[400px]">
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="text-right">رقم العقد</TableHead>
-                <TableHead className="text-right">المستأجر</TableHead>
-                <TableHead className="text-right">قيمة الإيجار</TableHead>
-                <TableHead className="text-right">الحالة</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sorted.map((contract) => {
-                const statusInfo = getStatusInfo(contract.status);
-                return (
-                  <TableRow key={contract.id}>
-                    <TableCell>{contract.contract_number}</TableCell>
-                    <TableCell>{contract.tenant_name}</TableCell>
-                    <TableCell>{fmt(safeNumber(contract.rent_amount))} ر.س</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${statusInfo.className}`}>
-                        {statusInfo.label}
-                      </span>
+        {/* عرض واحد فقط حسب حجم الشاشة */}
+        {isDesktop ? (
+          <div className="overflow-x-auto">
+            <Table className="min-w-[400px]">
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-right">رقم العقد</TableHead>
+                  <TableHead className="text-right">المستأجر</TableHead>
+                  <TableHead className="text-right">قيمة الإيجار</TableHead>
+                  <TableHead className="text-right">الحالة</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sorted.map((contract) => {
+                  const statusInfo = getStatusInfo(contract.status);
+                  return (
+                    <TableRow key={contract.id}>
+                      <TableCell>{contract.contract_number}</TableCell>
+                      <TableCell>{contract.tenant_name}</TableCell>
+                      <TableCell>{fmt(safeNumber(contract.rent_amount))} ر.س</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs ${statusInfo.className}`}>
+                          {statusInfo.label}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {contracts.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                      لا توجد عقود حالياً
                     </TableCell>
                   </TableRow>
-                );
-              })}
-              {contracts.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
-                    لا توجد عقود حالياً
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {sorted.map((contract) => {
+              const statusInfo = getStatusInfo(contract.status);
+              return (
+                <div key={contract.id} className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-card">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold truncate">{contract.tenant_name}</p>
+                    <p className="text-xs text-muted-foreground">عقد {contract.contract_number}</p>
+                  </div>
+                  <div className="text-left shrink-0">
+                    <p className="text-sm font-medium">{fmt(safeNumber(contract.rent_amount))} ر.س</p>
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] ${statusInfo.className}`}>
+                      {statusInfo.label}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+            {contracts.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">لا توجد عقود حالياً</p>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

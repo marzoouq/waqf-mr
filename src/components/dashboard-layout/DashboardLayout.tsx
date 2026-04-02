@@ -138,23 +138,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onClick={() => setMobileSidebarOpen(false)}
       />
 
-      {/* Sidebar - Mobile */}
-      <aside
-        ref={sidebarRef}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        className="fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden transition-transform duration-300"
-        style={{ transform: `translateX(${sidebarTranslateX}px)` }}
-      >
-        <SidebarContent
-          links={links}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          setMobileSidebarOpen={setMobileSidebarOpen}
-          onSignOut={handleSignOutClick}
-        />
-      </aside>
+      {/* Sidebar - Mobile — يُرندر فقط عند الفتح لتقليل DOM */}
+      {mobileSidebarOpen && (
+        <aside
+          ref={sidebarRef}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden transition-transform duration-300"
+          style={{ transform: `translateX(${sidebarTranslateX}px)` }}
+        >
+          <SidebarContent
+            links={links}
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            setMobileSidebarOpen={setMobileSidebarOpen}
+            onSignOut={handleSignOutClick}
+          />
+        </aside>
+      )}
 
       {/* Sidebar - Desktop */}
       <aside
