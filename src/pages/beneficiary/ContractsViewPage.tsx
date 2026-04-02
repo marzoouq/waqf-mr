@@ -145,7 +145,8 @@ const ContractsViewPage = () => {
           ) : (
             <>
               {/* بطاقات الجوال */}
-              <div className="space-y-3 md:hidden">
+              {!isDesktop && (
+              <div className="space-y-3">
                 {paginatedContracts.map(contract => {
                   const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
                   return (
