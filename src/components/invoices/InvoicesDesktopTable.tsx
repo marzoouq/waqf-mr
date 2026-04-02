@@ -1,5 +1,6 @@
-/** جدول الفواتير للديسكتوب */
+/** جدول الفواتير للديسكتوب — عرض واحد حسب الشاشة */
 import { fmt } from '@/utils/format';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 import { safeNumber } from '@/utils/safeNumber';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
