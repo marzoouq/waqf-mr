@@ -83,7 +83,7 @@ describe('generateDistributionsPDF', () => {
   });
 
   it('يعالج حالة العجز (deficit > 0) بدون خطأ', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('./distributions');
     const data = {
       ...baseData,
       distributions: [
