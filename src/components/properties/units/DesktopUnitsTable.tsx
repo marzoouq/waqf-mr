@@ -1,4 +1,4 @@
-/** جدول الوحدات لسطح المكتب */
+/** جدول الوحدات لسطح المكتب — عرض واحد حسب الشاشة */
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -10,6 +10,7 @@ import { fmt, fmtInt } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
 import type { UnitRow } from '@/hooks/data/useUnits';
 import type { Contract } from '@/types/database';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface PaymentInvoiceLike {
   contract_id: string;
