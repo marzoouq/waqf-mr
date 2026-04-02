@@ -19,7 +19,7 @@ export { generateComprehensiveBeneficiaryPDF } from './comprehensiveBeneficiary'
 export type { ComprehensiveBeneficiaryData } from './comprehensiveBeneficiary';
 export { generatePaymentInvoicePDF } from './paymentInvoice';
 export type { PaymentInvoicePdfData, InvoiceTemplate } from './paymentInvoice';
-export { generateAnnualReportPDF as generateAnnualAchievementsPDF } from './annualReport';
+// annualReport.ts يُستورد مباشرةً من المستخدمين (AnnualReportViewPage, useAnnualReportPage)
 export type { AnnualReportPdfData } from './annualReport';
 export { generateInvoiceClientPDF } from './invoice';
 export type { GenerateInvoicePdfClientOptions } from './invoice';
