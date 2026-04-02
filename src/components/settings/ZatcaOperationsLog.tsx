@@ -22,6 +22,7 @@ const OPERATION_TYPE_LABELS: Record<string, string> = {
 };
 
 const ZatcaOperationsLog = () => {
+  const isDesktop = useIsDesktop();
   const [detailItem, setDetailItem] = useState<Record<string, unknown> | null>(null);
 
   const { data: logs = [], isLoading } = useQuery({
