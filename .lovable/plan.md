@@ -1,51 +1,32 @@
 
 
-# خطة الإصلاح — حل مشكلة توقف التطبيق على شاشة البداية
+# إصلاح تعارض حزم Tailwind CSS
 
-## السبب الجذري المؤكد
+## المشكلة
 
-كتلة `define` في `vite.config.ts` تُعرّف مفاتيح داخل `import.meta.env.*` يدوياً، مما يتداخل مع آلية Vite التلقائية لحقن `VITE_SUPABASE_URL` و `VITE_SUPABASE_PUBLISHABLE_KEY`. النتيجة: `undefined` → خطأ `supabaseUrl is required` → التطبيق لا يُقلع.
+ملف `package.json` يحتوي على `tailwindcss@^4.2.2` و `@tailwindcss/postcss@^4.2.2` (حزم الإصدار v4)، بينما ملف `tailwind.config.ts` مكتوب بصيغة الإصدار v3. هذا التعارض يكسر التطبيق.
 
-## الملفات المتأثرة (3 ملفات فقط)
+إضافة لذلك، `postcss.config.js` يستخدم `@tailwindcss/postcss` (خاص بـ v4) ويشير إلى `tailwind.config.js` (بدلاً من `.ts`).
 
-### 1. `vite.config.ts` — تغيير كتلة `define`
-```typescript
-// قبل:
-define: {
-  'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
-  'import.meta.env.VITE_APP_BUILD_ID': JSON.stringify(pkg.version),
-},
+## الحل — ملفان فقط
 
-// بعد:
-define: {
-  '__APP_VERSION__': JSON.stringify(pkg.version),
-  '__APP_BUILD_ID__': JSON.stringify(pkg.version),
-},
+### 1. `package.json` — تثبيت Tailwind v3
 ```
-
-### 2. `src/vite-env.d.ts` — إضافة تعريفات TypeScript
-```typescript
-/// <reference types="vite/client" />
-declare const __APP_VERSION__: string;
-declare const __APP_BUILD_ID__: string;
+"tailwindcss": "3.4.17"        ← بدلاً من "^4.2.2"
 ```
+وحذف `"@tailwindcss/postcss"` من devDependencies (خاص بـ v4).
 
-### 3. `src/lib/pwaBootstrap.ts` (سطر 10) — تحديث المرجع
-```typescript
-// قبل:
-const APP_BUILD_ID = import.meta.env.VITE_APP_BUILD_ID || import.meta.env.VITE_APP_VERSION || '0.0.0';
-
-// بعد:
-const APP_BUILD_ID = __APP_BUILD_ID__ || __APP_VERSION__ || '0.0.0';
+### 2. `postcss.config.js` — استخدام إضافة v3
+```javascript
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
 ```
+هذا يكتشف `tailwind.config.ts` تلقائياً دون تحديد مسار.
 
-## لماذا سينجح
-
-- يُحرر `import.meta.env` بالكامل لآلية Vite التلقائية
-- أضيق نطاق ممكن (3 أسطر في 3 ملفات)
-- لا يمس الملفات المحمية (`client.ts`, `.env`, `types.ts`)
-
-## بعد التنفيذ
-
-يجب النشر (Publish → Update) ثم التحقق من `https://waqf-wise-net.lovable.app` على اللابتوب.
+## لماذا حدثت المشكلة
+النسخة المسترجعة تحتوي على حزم v4 المتعارضة مع إعدادات v3 الموجودة في `tailwind.config.ts`.
 
