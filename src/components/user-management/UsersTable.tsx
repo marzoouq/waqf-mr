@@ -87,7 +87,8 @@ const UsersTable = ({
       ) : (
         <>
           {/* Mobile */}
-          <div className="space-y-3 p-4 md:hidden">
+          {!isDesktop && (
+            <div className="space-y-3 p-4">
             {users.map((user) => (
               <Card key={user.id} className="shadow-sm">
                 <CardContent className="p-4 space-y-3">
