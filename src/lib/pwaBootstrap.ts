@@ -13,7 +13,7 @@ const RELOAD_GUARD_KEY = 'pwa_reload_ts';
 const RELOAD_COOLDOWN = 10_000;
 
 const isPreviewHost =
-  window.location.hostname.endsWith('.lovable.app') ||
+  window.location.hostname.indexOf('id-preview--') !== -1 ||
   window.location.hostname.endsWith('.lovableproject.com');
 
 /** يمنع أكثر من reload واحد كل 10 ثوانٍ */

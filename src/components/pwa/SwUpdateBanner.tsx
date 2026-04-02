@@ -7,7 +7,7 @@ const SNOOZE_MS = 30 * 60 * 1000; // 30 دقيقة
 const CSS_VAR = "--sw-banner-h";
 
 const isPreview =
-  window.location.hostname.endsWith('.lovable.app') ||
+  window.location.hostname.indexOf('id-preview--') !== -1 ||
   window.location.hostname.endsWith('.lovableproject.com');
 
 const SwUpdateBanner = () => {
