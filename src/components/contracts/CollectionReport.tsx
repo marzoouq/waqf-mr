@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -9,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertTriangle, CheckCircle2, Clock, Search, Bell, CalendarRange } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Contract } from '@/types/database';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+
 import ExportMenu from '@/components/ExportMenu';
 import TablePagination from '@/components/TablePagination';
 import { fmt } from '@/utils/format';
@@ -18,6 +17,7 @@ import { fmt } from '@/utils/format';
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 import { useCollectionData, type FilterStatus, type CollectionRow } from '@/hooks/page/useCollectionData';
+import { useCollectionAlerts } from '@/hooks/page/useCollectionAlerts';
 import CollectionSummaryCards from './CollectionSummaryCards';
 
 interface CollectionReportProps {
@@ -31,7 +31,7 @@ interface CollectionReportProps {
 const ITEMS_PER_PAGE = 15;
 
 export default function CollectionReport({ contracts, paymentInvoices, isLoading, fiscalYears = [], fiscalYearId = 'all' }: CollectionReportProps) {
-  const [sendingAlerts, setSendingAlerts] = useState(false);
+  const { sendingAlerts, sendLatePaymentAlerts } = useCollectionAlerts();
 
   const {
     rows, filteredRows, summary,
@@ -41,22 +41,9 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
     useDynamicAllocation,
   } = useCollectionData({ contracts, paymentInvoices, fiscalYears, fiscalYearId });
 
-  const handleSendAlerts = async () => {
-    const overdueRows = rows.filter(r => r.overdue > 0);
-    if (overdueRows.length === 0) {
-      toast.info('لا توجد دفعات متأخرة');
-      return;
-    }
-    setSendingAlerts(true);
-    try {
-      const { error } = await supabase.rpc('cron_check_late_payments');
-      if (error) throw error;
-      toast.success(`تم إرسال تنبيهات لـ ${overdueRows.length} عقد متأخر`);
-    } catch {
-      toast.error('حدث خطأ أثناء إرسال التنبيهات');
-    } finally {
-      setSendingAlerts(false);
-    }
+  const handleSendAlerts = () => {
+    const overdueCount = rows.filter(r => r.overdue > 0).length;
+    sendLatePaymentAlerts(overdueCount);
   };
 
   const getStatusBadge = (status: CollectionRow['status']) => {
