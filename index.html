@@ -35,10 +35,32 @@
     <meta name="apple-mobile-web-app-title" content="إدارة الوقف" />
     <link rel="apple-touch-icon" href="/pwa-512x512.png" />
     <link rel="icon" type="image/png" href="/pwa-512x512.png">
-    
-  
-  
-  
+
+    <!-- تنظيف عدواني لكاش SW القديم — يُشغّل مرة واحدة فقط -->
+    <script>
+    (function(){
+      try{
+        // فقط على الموقع المنشور (ليس المعاينة)
+        var h=location.hostname;
+        if(h.endsWith('.lovable.app')||h.endsWith('.lovableproject.com'))return;
+        if(!navigator.serviceWorker)return;
+        var key='sw_nuke_v2';
+        if(sessionStorage.getItem(key))return;
+        sessionStorage.setItem(key,'1');
+        navigator.serviceWorker.getRegistrations().then(function(regs){
+          if(!regs.length)return;
+          var p=regs.map(function(r){return r.unregister()});
+          Promise.all(p).then(function(){
+            return caches.keys().then(function(names){
+              return Promise.all(names.map(function(n){return caches.delete(n)}));
+            });
+          }).then(function(){
+            location.reload();
+          });
+        });
+      }catch(e){}
+    })();
+    </script>
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
