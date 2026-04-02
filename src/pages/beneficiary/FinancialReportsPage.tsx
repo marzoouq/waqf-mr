@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/common/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import RequirePublishedYears from '@/components/RequirePublishedYears';
+import RequirePublishedYears from '@/components/common/RequirePublishedYears';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 

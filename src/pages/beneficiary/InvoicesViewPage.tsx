@@ -10,7 +10,7 @@ import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import ExportMenu from '@/components/common/ExportMenu';
 import TablePagination from '@/components/common/TablePagination';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import RequirePublishedYears from '@/components/RequirePublishedYears';
+import RequirePublishedYears from '@/components/common/RequirePublishedYears';
 import InvoiceGridView from '@/components/invoices/InvoiceGridView';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';

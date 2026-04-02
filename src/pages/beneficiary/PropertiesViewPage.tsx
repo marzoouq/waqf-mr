@@ -3,7 +3,7 @@
  */
 import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import RequirePublishedYears from '@/components/RequirePublishedYears';
+import RequirePublishedYears from '@/components/common/RequirePublishedYears';
 import ExportMenu from '@/components/common/ExportMenu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DashboardSkeleton } from '@/components/common/SkeletonLoaders';
-import RequirePublishedYears from '@/components/RequirePublishedYears';
+import RequirePublishedYears from '@/components/common/RequirePublishedYears';
 import ExportMenu from '@/components/common/ExportMenu';
 import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';

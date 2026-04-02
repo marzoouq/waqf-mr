@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
-import RequirePublishedYears from '@/components/RequirePublishedYears';
+import RequirePublishedYears from '@/components/common/RequirePublishedYears';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
 import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
