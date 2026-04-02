@@ -132,6 +132,7 @@ const DistributeDialog = ({
             </TableBody>
           </Table>
           </div>
+          )}
           </>
         )}
 

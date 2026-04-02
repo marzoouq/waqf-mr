@@ -2,6 +2,7 @@
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
 import { EXPIRING_SOON_DAYS } from '@/constants';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/dashboard-layout';
