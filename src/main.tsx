@@ -66,8 +66,13 @@ function removeSplash() {
     // قياس Core Web Vitals
     import('./lib/webVitals').then(({ initWebVitals }) => initWebVitals());
   } catch (err) {
-    // شبكة أمان: إذا فشل الإقلاع لأي سبب، نُزيل الـ splash لمنع تجمّد الشاشة
+    // شبكة أمان: إذا فشل الإقلاع لأي سبب، نعرض رسالة خطأ بدلاً من تجمّد الشاشة
     console.error('[main] Bootstrap failed:', err);
-    removeSplash();
+    const loader = document.getElementById('splash-loader');
+    const errorEl = document.getElementById('splash-error');
+    if (loader) loader.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'block';
+    // إذا لم يكن splash موجوداً (React حذفه)، أزل أي حالة تحميل
+    if (!document.getElementById('splash')) removeSplash();
   }
 })();
