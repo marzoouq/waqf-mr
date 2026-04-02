@@ -50,6 +50,8 @@ const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPay
     totalMonthly += getMonthlyFromContract(wc);
   });
 
+  if (!isDesktop) return null;
+
   return (
     <div className="rounded-md border overflow-x-auto">
       <Table className="min-w-[800px]">
