@@ -58,7 +58,6 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
       setOpen(false);
       setAmount('');
       setReason('');
-      setServerData(null);
     } catch {
       // onError in the mutation already shows a toast
     }
