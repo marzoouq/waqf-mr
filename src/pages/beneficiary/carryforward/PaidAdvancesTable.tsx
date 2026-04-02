@@ -87,10 +87,12 @@ const PaidAdvancesTable = ({ paidAdvances }: Props) => {
               </TableBody>
             </Table>
           </div>
+          )}
         </>
       )}
     </CardContent>
   </Card>
-);
+  );
+};
 
 export default PaidAdvancesTable;

@@ -75,12 +75,14 @@ const BeneficiaryDistributionCard = ({
               </TableBody>
             </Table>
           </div>
+          )}
         </>
       ) : (
         <div className="py-12 text-center text-muted-foreground">لا يوجد مستفيدين مسجلين</div>
       )}
     </CardContent>
   </Card>
-);
+  );
+};
 
 export default BeneficiaryDistributionCard;

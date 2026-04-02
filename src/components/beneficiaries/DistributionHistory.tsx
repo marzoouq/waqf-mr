@@ -165,6 +165,7 @@ const DistributionHistory = ({ beneficiary }: Props) => {
             </TableBody>
           </Table>
         </div>
+        )
         <div className="p-3 bg-muted/30 text-center border-t">
           <p className="text-xs text-muted-foreground">إجمالي التوزيعات ({yearlyData.length} سنوات): <span className="font-bold text-foreground">{fmt(totalAllYears)} ر.س</span></p>
         </div>
