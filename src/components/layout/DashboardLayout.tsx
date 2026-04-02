@@ -167,6 +167,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Main Content */}
       <main
+        role="main"
+        aria-label="المحتوى الرئيسي"
         onTouchStart={handleMainTouchStart}
         onTouchMove={handleMainTouchMove}
         onTouchEnd={handleMainTouchEnd}
