@@ -7,7 +7,7 @@
  */
 import { logger } from './logger';
 
-const APP_BUILD_ID = import.meta.env.VITE_APP_BUILD_ID || import.meta.env.VITE_APP_VERSION || '0.0.0';
+const APP_BUILD_ID = __APP_BUILD_ID__ || __APP_VERSION__ || '0.0.0';
 const CACHE_VERSION_KEY = 'pwa_cache_version';
 const RELOAD_GUARD_KEY = 'pwa_reload_ts';
 const RELOAD_COOLDOWN = 10_000;

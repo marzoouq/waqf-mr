@@ -9,8 +9,8 @@ import pkg from "./package.json";
 export default defineConfig(({ mode }) => {
   return ({
   define: {
-    'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
-    'import.meta.env.VITE_APP_BUILD_ID': JSON.stringify(pkg.version),
+    '__APP_VERSION__': JSON.stringify(pkg.version),
+    '__APP_BUILD_ID__': JSON.stringify(pkg.version),
   },
   server: {
     host: "::",
