@@ -30,7 +30,7 @@ interface CollectionReportProps {
 const ITEMS_PER_PAGE = 15;
 
 export default function CollectionReport({ contracts, paymentInvoices, isLoading, fiscalYears = [], fiscalYearId = 'all' }: CollectionReportProps) {
-  const [sendingAlerts, setSendingAlerts] = useState(false);
+  const { sendAlerts, sending: sendingAlerts } = useSendLatePaymentAlerts();
 
   const {
     rows, filteredRows, summary,
@@ -40,16 +40,9 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
     useDynamicAllocation,
   } = useCollectionData({ contracts, paymentInvoices, fiscalYears, fiscalYearId });
 
-  const handleSendAlerts = async () => {
+  const handleSendAlerts = () => {
     const overdueRows = rows.filter(r => r.overdue > 0);
-    if (overdueRows.length === 0) { toast.info('لا توجد دفعات متأخرة'); return; }
-    setSendingAlerts(true);
-    try {
-      const { error } = await supabase.rpc('cron_check_late_payments');
-      if (error) throw error;
-      toast.success(`تم إرسال تنبيهات لـ ${overdueRows.length} عقد متأخر`);
-    } catch { toast.error('حدث خطأ أثناء إرسال التنبيهات'); }
-    finally { setSendingAlerts(false); }
+    sendAlerts(overdueRows.length);
   };
 
   if (isLoading) return <div className="text-center py-12 text-muted-foreground">جاري التحميل...</div>;
