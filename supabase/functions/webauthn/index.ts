@@ -281,7 +281,7 @@ Deno.serve(async (req: Request) => {
         expectedOrigin: rp.origin,
         expectedRPID: rp.rpID,
         credential: {
-          id: credIdBytes,
+          id: storedCred.credential_id as string,
           publicKey: pubKeyBytes,
           counter: Number(storedCred.counter),
           transports: storedCred.transports || [],

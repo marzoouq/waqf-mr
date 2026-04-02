@@ -131,42 +131,41 @@ export async function fetchWaqfData(
       (fiscalYears ?? []).filter(fy => fy.published || fy.status === "active").map(fy => fy.id)
     );
 
-    type PromiseResult = { data: unknown[] | null; error: unknown } | { count: number | null; error: unknown };
+    // deno-lint-ignore no-explicit-any
+    type PromiseResult = { data: any; error: any; count?: any };
+
+    // تحويل PostgREST PromiseLike إلى Promise حقيقي
+    const toPromise = <T>(query: PromiseLike<T>): Promise<T> => Promise.resolve(query);
 
     const batch2Promises: Promise<PromiseResult>[] = [
       // 0: الحسابات المالية
-      client.from("accounts")
+      toPromise(client.from("accounts")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(3)
-        .then(r => r),
+        .limit(3)),
       // 1: العقود النشطة (admin) أو عدد فقط (non-admin)
       isAdmin
-        ? client.from("contracts")
+        ? toPromise(client.from("contracts")
             .select("contract_number, rent_amount, start_date, end_date, status, payment_type")
             .eq("status", "active")
-            .limit(30)
-            .then(r => r)
-        : client.from("contracts")
+            .limit(30))
+        : toPromise(client.from("contracts")
             .select("id", { count: "exact", head: true })
-            .eq("status", "active")
-            .then(r => r),
+            .eq("status", "active")),
       // 2: التوزيعات (admin) أو توزيعات المستفيد
       isAdmin
-        ? client.from("distributions")
+        ? toPromise(client.from("distributions")
             .select("amount, date, status")
             .order("date", { ascending: false })
-            .limit(20)
-            .then(r => r)
+            .limit(20))
         : (async () => {
             const { data: myBen } = await client.from("beneficiaries").select("id").eq("user_id", userId).single();
             if (!myBen) return { data: [], error: null };
-            return client.from("distributions")
+            return toPromise(client.from("distributions")
               .select("amount, date, status")
               .eq("beneficiary_id", myBen.id)
               .order("date", { ascending: false })
-              .limit(10)
-              .then(r => r);
+              .limit(10));
           })(),
     ];
 
@@ -174,33 +173,30 @@ export async function fetchWaqfData(
     if (activeFY && (isAdmin || activeFY.published)) {
       // 3: الدخل للسنة النشطة
       batch2Promises.push(
-        client.from("income")
+        toPromise(client.from("income")
           .select("source, amount, date")
           .eq("fiscal_year_id", activeFY.id)
           .order("date", { ascending: false })
-          .limit(500)
-          .then(r => r)
+          .limit(500))
       );
       // 4: المصروفات للسنة النشطة
       batch2Promises.push(
-        client.from("expenses")
+        toPromise(client.from("expenses")
           .select("expense_type, amount, date")
           .eq("fiscal_year_id", activeFY.id)
-          .limit(500)
-          .then(r => r)
+          .limit(500))
       );
     }
 
     // 5: العقود المنتهية قريباً (admin فقط)
     if (isAdmin) {
       batch2Promises.push(
-        client.from("contracts")
+        toPromise(client.from("contracts")
           .select("contract_number, end_date, rent_amount")
           .eq("status", "active")
           .lte("end_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
           .order("end_date", { ascending: true })
-          .limit(10)
-          .then(r => r)
+          .limit(10))
       );
     }
 

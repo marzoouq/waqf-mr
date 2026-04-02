@@ -94,7 +94,7 @@ Deno.serve(async (req): Promise<Response> => {
     }
 
     // دالة مساعدة لحذف OTP بعد أي نتيجة
-    const clearOtp = () => admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"]).then(() => {}).catch(() => {});
+    const clearOtp = () => Promise.resolve(admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"])).then(() => {}).catch(() => {});
 
     try {
       // الخطوة 2: الحصول على Compliance CSID جديد
