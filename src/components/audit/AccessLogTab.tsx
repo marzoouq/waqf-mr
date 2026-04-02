@@ -160,7 +160,8 @@ const AccessLogTab = () => {
           ) : (
             <>
               {/* Mobile cards */}
-              <div className="space-y-2 p-3 md:hidden">
+              {!isDesktop && (
+              <div className="space-y-2 p-3">
                 {paginated.map(log => {
                   const config = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: Activity };
                   const Icon = config.icon;
