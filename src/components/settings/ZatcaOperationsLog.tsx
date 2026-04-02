@@ -87,7 +87,8 @@ const ZatcaOperationsLog = () => {
         </CardHeader>
         <CardContent>
           {/* Mobile cards */}
-          <div className="space-y-3 md:hidden">
+          {!isDesktop && (
+          <div className="space-y-3">
             {logs.map((log) => (
               <div key={log.id} className="p-3 rounded-lg border bg-card space-y-2">
                 <div className="flex items-center justify-between">
