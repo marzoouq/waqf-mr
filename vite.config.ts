@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
@@ -6,7 +6,10 @@ import { VitePWA } from "vite-plugin-pwa";
 import pkg from "./package.json";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }) => {
+  // تحميل متغيرات البيئة يدوياً لضمان توفرها
+  const env = loadEnv(mode, path.resolve(__dirname), '');
+  return ({
   envDir: path.resolve(__dirname),
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
