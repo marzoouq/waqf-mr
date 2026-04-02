@@ -18,7 +18,7 @@ export {
   useCarryforwardBalance,
   useMyCarryforwards,
   useAllCarryforwards,
-} from './advanceTypes';
+} from './useAdvanceQueries';
 
 /**
  * جلب طلبات السُلف — للناظر: الكل، للمستفيد: طلباته فقط (RLS تتكفل)
