@@ -26,10 +26,10 @@ function PagePerformanceTracker() {
 }
 
 // AI Assistant & Security - Lazy loaded
-const AiAssistant = lazyWithRetry(() => import("./components/AiAssistant"));
-const SecurityGuard = lazyWithRetry(() => import("./components/SecurityGuard"));
-const PwaUpdateNotifier = lazyWithRetry(() => import("./components/PwaUpdateNotifier"));
-const SwUpdateBanner = lazyWithRetry(() => import("./components/SwUpdateBanner"));
+const AiAssistant = lazyWithRetry(() => import("./components/ai/AiAssistant"));
+const SecurityGuard = lazyWithRetry(() => import("./components/auth/SecurityGuard"));
+const PwaUpdateNotifier = lazyWithRetry(() => import("./components/pwa/PwaUpdateNotifier"));
+const SwUpdateBanner = lazyWithRetry(() => import("./components/pwa/SwUpdateBanner"));
 
 function PageLoader() {
   return (
