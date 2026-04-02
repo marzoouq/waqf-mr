@@ -36,6 +36,7 @@ const statusMap: Record<string, { label: string; variant: 'default' | 'secondary
 const ITEMS_PER_PAGE = 10;
 
 const ContractsViewPage = () => {
+  const isDesktop = useIsDesktop();
   const { fiscalYearId } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
   const [currentPage, setCurrentPage] = useState(1);
