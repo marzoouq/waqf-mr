@@ -111,7 +111,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   });
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="min-h-screen flex w-full bg-background" dir="rtl">
       {/* Mobile Header */}
       <MobileHeader
         onOpenSidebar={() => setMobileSidebarOpen(true)}
