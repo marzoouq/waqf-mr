@@ -7,9 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Building2, Upload, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useWaqfInfoSave } from '@/hooks/data/useWaqfInfoSave';
 
 interface WaqfField {
   key: string;
@@ -36,12 +35,12 @@ const MAX_LOGO_SIZE = 2 * 1024 * 1024;
 const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
   open, onOpenChange, fields, initialData, currentLogoUrl,
 }) => {
-  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<Record<string, string>>(initialData);
-  const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(currentLogoUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { saving, saveWaqfInfo } = useWaqfInfoSave(() => onOpenChange(false));
 
   // إعادة تعيين البيانات عند فتح المودال
   const handleOpenChange = (isOpen: boolean) => {
@@ -74,46 +73,7 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
     setLogoPreview(URL.createObjectURL(file));
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      let logoUrl = currentLogoUrl || '';
-      if (logoFile) {
-        const ext = logoFile.name.split('.').pop()?.toLowerCase() || 'png';
-        const path = `logo.${ext}`;
-        const { error: uploadErr } = await supabase.storage
-          .from('waqf-assets')
-          .upload(path, logoFile, { upsert: true });
-        if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from('waqf-assets').getPublicUrl(path);
-        logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-      }
-
-      await supabase
-        .from('app_settings')
-        .upsert({ key: 'waqf_logo_url', value: logoUrl, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-
-      for (const field of fields) {
-        const value = (formData[field.key] || '').trim();
-        if (value.length > 500) {
-          toast.error(`الحقل "${field.label}" طويل جداً`);
-          setSaving(false);
-          return;
-        }
-        const { error } = await supabase
-          .from('app_settings')
-          .upsert({ key: field.key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-        if (error) throw error;
-      }
-      await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      toast.success('تم حفظ بيانات الوقف بنجاح');
-      onOpenChange(false);
-    } catch {
-      toast.error('حدث خطأ أثناء الحفظ');
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleSave = () => saveWaqfInfo(fields, formData, logoFile, currentLogoUrl);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
