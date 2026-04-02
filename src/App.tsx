@@ -28,6 +28,8 @@ function PagePerformanceTracker() {
 // AI Assistant & Security - Lazy loaded
 const AiAssistant = lazyWithRetry(() => import("./components/AiAssistant"));
 const SecurityGuard = lazyWithRetry(() => import("./components/SecurityGuard"));
+const PwaUpdateNotifier = lazyWithRetry(() => import("./components/pwa/PwaUpdateNotifier"));
+const SwUpdateBanner = lazyWithRetry(() => import("./components/pwa/SwUpdateBanner"));
 
 function PageLoader() {
   return (
@@ -80,37 +82,48 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider attribute="class" defaultTheme="light" storageKey="waqf-theme">
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <FiscalYearProvider>
-              <TooltipProvider>
-                <Sonner />
-                <BrowserRouter>
-                  <PagePerformanceTracker />
-                  <Suspense fallback={<PageLoader />}>
-                    <Routes>
-                      {publicRoutes}
-                      {adminRoutes}
-                      {beneficiaryRoutes}
-                      {catchAllRoute}
-                    </Routes>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <FiscalYearProvider>
+            <TooltipProvider>
+              <Sonner />
+              <BrowserRouter>
+                <ErrorBoundary>
+                  <Suspense fallback={null}>
+                    <SwUpdateBanner />
                   </Suspense>
-                  <ErrorBoundary>
-                    <Suspense fallback={null}>
-                      <SecurityGuard />
-                    </Suspense>
-                  </ErrorBoundary>
-                  <ErrorBoundary>
-                    <RoleGatedAiAssistant />
-                  </ErrorBoundary>
-                </BrowserRouter>
-              </TooltipProvider>
-            </FiscalYearProvider>
-          </AuthProvider>
-        </QueryClientProvider>
+                </ErrorBoundary>
+                <PagePerformanceTracker />
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    {publicRoutes}
+                    {adminRoutes}
+                    {beneficiaryRoutes}
+                    {catchAllRoute}
+                  </Routes>
+                </Suspense>
+                <ErrorBoundary>
+                  <Suspense fallback={null}>
+                    <SecurityGuard />
+                  </Suspense>
+                </ErrorBoundary>
+                <ErrorBoundary>
+                  <Suspense fallback={null}>
+                    <PwaUpdateNotifier />
+                  </Suspense>
+                </ErrorBoundary>
+                <ErrorBoundary>
+                  <RoleGatedAiAssistant />
+                </ErrorBoundary>
+              </BrowserRouter>
+            </TooltipProvider>
+          </FiscalYearProvider>
+        </AuthProvider>
+      </QueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
 }
+
 
 export default App;

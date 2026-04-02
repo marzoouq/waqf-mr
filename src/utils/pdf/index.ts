@@ -1,12 +1,10 @@
 // Re-export all PDF types and generators for backward compatibility
 export type { PdfWaqfInfo } from './core';
 export { type UnitPdfRow } from './core';
-export { generateAnnualReportPDF, generateBeneficiaryStatementPDF } from './reports';
-export { generateAnnualDisclosurePDF } from './annualDisclosure';
+export { generateAnnualReportPDF, generateBeneficiaryStatementPDF, generateAnnualDisclosurePDF } from './reports';
 export { generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, generateUnitsPDF } from './entities';
 export { generateIncomePDF, generateExpensesPDF } from './expenses';
-export { generateAccountsPDF } from './accounts';
-export { generateDistributionsPDF } from './distributions';
+export { generateAccountsPDF, generateDistributionsPDF } from './accounts';
 export { generateMySharePDF, generateDisclosurePDF } from './beneficiary';
 export { generateInvoicesViewPDF, generateOverdueInvoicesPDF } from './invoices';
 export { generateYearComparisonPDF } from './comparison';
