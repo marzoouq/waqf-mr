@@ -231,6 +231,7 @@ const ContractsViewPage = () => {
                   </Table>
                 </CardContent>
               </Card>
+              )
               <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
             </>
           )}
