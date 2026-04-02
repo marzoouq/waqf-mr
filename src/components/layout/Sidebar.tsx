@@ -50,6 +50,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
         <Button
           variant="ghost"
           size="icon"
+          aria-label={sidebarOpen ? 'طي القائمة الجانبية' : 'توسيع القائمة الجانبية'}
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="text-sidebar-foreground hover:bg-sidebar-accent hidden lg:flex"
         >
