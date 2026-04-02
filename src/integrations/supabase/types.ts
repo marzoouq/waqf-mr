@@ -1890,29 +1890,17 @@ export type Database = {
         Args: { p_fiscal_year_id: string }
         Returns: boolean
       }
-      log_access_event:
-        | {
-            Args: {
-              p_device_info?: string
-              p_email?: string
-              p_event_type: string
-              p_metadata?: Json
-              p_target_path?: string
-              p_user_id?: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_device_info?: string
-              p_email?: string
-              p_event_type: string
-              p_metadata?: Json
-              p_target_path?: string
-              p_user_id?: string
-            }
-            Returns: undefined
-          }
+      log_access_event: {
+        Args: {
+          p_device_info?: string
+          p_email?: string
+          p_event_type: string
+          p_metadata?: Json
+          p_target_path?: string
+          p_user_id?: string
+        }
+        Returns: undefined
+      }
       lookup_by_national_id: {
         Args: { p_national_id: string }
         Returns: {
