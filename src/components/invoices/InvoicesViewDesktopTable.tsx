@@ -55,7 +55,7 @@ export default function InvoicesViewDesktopTable({
 
   if (invoices.length === 0) {
     return (
-      <Card className="shadow-sm hidden md:block">
+      <Card className="shadow-sm">
         <CardContent className="py-12 text-center">
           <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج' : 'لا توجد فواتير'}</p>
