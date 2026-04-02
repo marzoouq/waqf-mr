@@ -179,6 +179,7 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
             onChange={(e) => setLoginPassword(e.target.value)}
             placeholder="••••••••"
             dir="ltr"
+            autoComplete="current-password"
             className="h-11 pe-10"
           />
           <button
