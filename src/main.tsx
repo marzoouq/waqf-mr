@@ -1,4 +1,4 @@
-// rebuild: 2026-04-01T11:00
+// rebuild: 2026-04-02T00:00
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
@@ -6,6 +6,7 @@ import "./index.css";
 import { reportPageLoadMetrics } from "./lib/performanceMonitor";
 import { initThemeFromStorage } from "./lib/theme/themeColor.utils";
 import { runPwaCacheGuard } from "./lib/pwaBootstrap";
+import type { CacheGuardResult } from "./lib/pwaBootstrap";
 
 // تهيئة الثيم المحفوظ قبل الرسم
 initThemeFromStorage();
@@ -21,7 +22,17 @@ if (_supabaseUrl) {
 
 // ─── Bootstrap: تشغيل حارس الكاش أولاً ثم الرسم ───
 (async () => {
-  const result = await runPwaCacheGuard();
+  // timeout خارجي شامل: إذا علقت runPwaCacheGuard لأي سبب (SW/Cache APIs مجمّدة
+  // في بيئات Sandbox/Preview)، نُكمل الإقلاع بعد 3 ثوانٍ على أقصى تقدير
+  const result = await Promise.race<CacheGuardResult>([
+    runPwaCacheGuard(),
+    new Promise<CacheGuardResult>(resolve =>
+      setTimeout(() => {
+        console.warn('[main] runPwaCacheGuard timeout (3s) — forcing continue');
+        resolve('continue');
+      }, 3000)
+    ),
+  ]);
 
   // إذا تقرر إعادة التحميل، لا نرسم ولا نزيل splash
   if (result === 'reloading') return;
