@@ -111,9 +111,11 @@ const ZatcaOperationsLog = () => {
               </div>
             ))}
           </div>
+          )}
 
           {/* Desktop table */}
-          <div className="overflow-auto hidden md:block">
+          {isDesktop && (
+          <div className="overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow>

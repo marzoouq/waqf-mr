@@ -220,6 +220,7 @@ const AccessLogTab = () => {
                   </TableBody>
                 </Table>
               </div>
+              )
               <TablePagination
                 currentPage={currentPage}
                 totalItems={totalCount}
