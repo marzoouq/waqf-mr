@@ -40,11 +40,12 @@
     <script>
     (function(){
       try{
-        // فقط على الموقع المنشور (ليس المعاينة)
+        // تخطي بيئات المعاينة فقط (id-preview-- أو lovableproject.com)
+        // الموقع المنشور (waqf-wise-net.lovable.app) يحتاج التنظيف
         var h=location.hostname;
-        if(h.endsWith('.lovable.app')||h.endsWith('.lovableproject.com'))return;
+        if(h.indexOf('id-preview--')!==-1||h.endsWith('.lovableproject.com'))return;
         if(!navigator.serviceWorker)return;
-        var key='sw_nuke_v2';
+        var key='sw_nuke_v3';
         if(sessionStorage.getItem(key))return;
         sessionStorage.setItem(key,'1');
         navigator.serviceWorker.getRegistrations().then(function(regs){
