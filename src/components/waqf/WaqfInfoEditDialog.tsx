@@ -35,9 +35,8 @@ const MAX_LOGO_SIZE = 2 * 1024 * 1024;
 const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
   open, onOpenChange, fields, initialData, currentLogoUrl,
 }) => {
-  const queryClient = useQueryClient();
+  const { save, saving } = useSaveWaqfInfo(() => onOpenChange(false));
   const [formData, setFormData] = useState<Record<string, string>>(initialData);
-  const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(currentLogoUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
