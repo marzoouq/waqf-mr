@@ -112,7 +112,7 @@ export function useSupportDashboardPage() {
   const priorityStats = useMemo(() => {
     if (!analytics?.priority_stats) return [];
     const total = analytics.total_count || 1;
-    return analytics.priority_stats.map(s => ({
+    return analytics.priority_stats.map((s: { key: string; count: number }) => ({
       key: s.key,
       label: PRIORITY_MAP[s.key]?.label || s.key,
       color: PRIORITY_MAP[s.key]?.color || '',
