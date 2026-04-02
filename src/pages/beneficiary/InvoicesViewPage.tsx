@@ -1,4 +1,4 @@
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { FileText, Search, Eye, LayoutGrid, List, AlertCircle, RefreshCw } from 'lucide-react';
-import PageHeaderCard from '@/components/PageHeaderCard';
-import ExportMenu from '@/components/ExportMenu';
-import TablePagination from '@/components/TablePagination';
+import PageHeaderCard from '@/components/layout/PageHeaderCard';
+import ExportMenu from '@/components/common/ExportMenu';
+import TablePagination from '@/components/common/TablePagination';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import InvoiceGridView from '@/components/invoices/InvoiceGridView';
@@ -19,7 +19,7 @@ import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { TableSkeleton } from '@/components/SkeletonLoaders';
+import { TableSkeleton } from '@/components/common/SkeletonLoaders';
 import { fmt, fmtDate } from '@/utils/format';
 
 const InvoicesViewPage = () => {

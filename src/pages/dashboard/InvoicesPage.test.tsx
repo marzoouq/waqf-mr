@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 
 const mockInvoices = [
   { id: 'i1', invoice_number: 'INV-001', invoice_type: 'rent', amount: 5000, date: '2024-06-01', status: 'paid', file_path: 'invoices/test.pdf', file_name: 'test.pdf', description: 'فاتورة إيجار', property: { property_number: 'P1' }, contract_id: null, property_id: 'p1', expense_id: null, fiscal_year_id: 'fy1' },

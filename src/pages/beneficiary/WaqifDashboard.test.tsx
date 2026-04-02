@@ -92,10 +92,10 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
-vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
-vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => <div>لا توجد سنوات مالية منشورة</div> }));
-vi.mock('@/components/ExportMenu', () => ({ default: () => null }));
+vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
+vi.mock('@/components/common/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
+vi.mock('@/components/common/NoPublishedYearsNotice', () => ({ default: () => <div>لا توجد سنوات مالية منشورة</div> }));
+vi.mock('@/components/common/ExportMenu', () => ({ default: () => null }));
 
 const renderPage = async () => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

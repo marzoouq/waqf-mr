@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import SupportDashboardPage from './SupportDashboardPage';
 
-vi.mock('@/components/DashboardLayout', () => ({
+vi.mock('@/components/layout/DashboardLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="layout">{children}</div>,
 }));
 
@@ -23,7 +23,7 @@ vi.mock('@/hooks/data/useSupportTickets', () => ({
   useSupportAnalytics: () => ({ data: [], isLoading: false }),
 }));
 
-vi.mock('@/components/PageHeaderCard', () => ({
+vi.mock('@/components/layout/PageHeaderCard', () => ({
   default: ({ title }: { title: string }) => <div>{title}</div>,
 }));
 

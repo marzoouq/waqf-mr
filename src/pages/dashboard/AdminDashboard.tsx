@@ -1,7 +1,7 @@
 
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { lazy, Suspense, useMemo } from 'react';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { safeNumber } from '@/utils/safeNumber';
 import { computeMonthlyData } from '@/utils/dashboardComputations';
@@ -10,12 +10,12 @@ import { Button } from '@/components/ui/button';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
 import { Printer, Gauge, ArrowUpDown } from 'lucide-react';
-import PageHeaderCard from '@/components/PageHeaderCard';
-import DashboardLayout from '@/components/DashboardLayout';
+import PageHeaderCard from '@/components/layout/PageHeaderCard';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import DeferredRender from '@/components/DeferredRender';
+import DeferredRender from '@/components/common/DeferredRender';
 
 // هوك البيانات المدمج — طلب واحد بدلاً من ~10
 import { useDashboardSummary } from '@/hooks/page/useDashboardSummary';

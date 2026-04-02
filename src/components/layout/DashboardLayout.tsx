@@ -10,17 +10,17 @@ import {
 import { Lock } from 'lucide-react';
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { cn } from '@/lib/utils';
-import WaqfInfoBar from '@/components/WaqfInfoBar';
+import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
-const PrintHeader = lazy(() => import('@/components/PrintHeader'));
-const PrintFooter = lazy(() => import('@/components/PrintFooter'));
-import BetaBanner from '@/components/BetaBanner';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
+const PrintHeader = lazy(() => import('@/components/common/PrintHeader'));
+const PrintFooter = lazy(() => import('@/components/common/PrintFooter'));
+import BetaBanner from '@/components/common/BetaBanner';
+import FiscalYearSelector from '@/components/layout/FiscalYearSelector';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import SidebarContent from '@/components/Sidebar';
-import BottomNav from '@/components/BottomNav';
-const GlobalSearch = lazy(() => import('@/components/GlobalSearch'));
-const IdleTimeoutWarning = lazy(() => import('@/components/IdleTimeoutWarning'));
+import SidebarContent from '@/components/layout/Sidebar';
+import BottomNav from '@/components/layout/BottomNav';
+const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
+const IdleTimeoutWarning = lazy(() => import('@/components/auth/IdleTimeoutWarning'));
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { useRealtimeAlerts } from '@/hooks/data/useRealtimeAlerts';
@@ -32,7 +32,7 @@ import { useNavLinks } from '@/hooks/page/useNavLinks';
 
 // DiagnosticOverlay — يُحمّل فقط في وضع التطوير
 const DiagnosticOverlay = import.meta.env.DEV
-  ? lazy(() => import('@/components/DiagnosticOverlay'))
+  ? lazy(() => import('@/components/common/DiagnosticOverlay'))
   : null;
 
 interface DashboardLayoutProps {

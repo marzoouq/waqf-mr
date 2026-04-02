@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import CarryforwardHistoryPage from './CarryforwardHistoryPage';
 
-vi.mock('@/components/DashboardLayout', () => ({
+vi.mock('@/components/layout/DashboardLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="layout">{children}</div>,
 }));
 
@@ -33,15 +33,15 @@ vi.mock('@/hooks/financial/useAdvanceRequests', () => ({
   useCarryforwardBalance: () => ({ data: 0 }),
 }));
 
-vi.mock('@/components/SkeletonLoaders', () => ({
+vi.mock('@/components/common/SkeletonLoaders', () => ({
   DashboardSkeleton: () => <div>loading</div>,
 }));
 
-vi.mock('@/components/PageHeaderCard', () => ({
+vi.mock('@/components/layout/PageHeaderCard', () => ({
   default: ({ title }: { title: string }) => <div>{title}</div>,
 }));
 
-vi.mock('@/components/ExportMenu', () => ({
+vi.mock('@/components/common/ExportMenu', () => ({
   default: () => <div>export</div>,
 }));
 

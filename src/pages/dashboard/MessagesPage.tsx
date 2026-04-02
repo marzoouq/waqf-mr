@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/useMessaging';
 import { useBeneficiaries } from '@/hooks/data/useBeneficiaries';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { NativeSelect } from '@/components/ui/native-select';
 import { Label } from '@/components/ui/label';
 import { MessageSquare, Send, Plus, Users, ArrowRight, Loader2 } from 'lucide-react';
-import PageHeaderCard from '@/components/PageHeaderCard';
+import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';

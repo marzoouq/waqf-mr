@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 
 vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary' })),
@@ -78,8 +78,8 @@ vi.mock('@/hooks/data/useContracts', () => ({
 vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 15, isLoading: false })),
 }));
-vi.mock('@/components/ExportMenu', () => ({ default: (_props: any) => <button data-testid="export-menu">تصدير</button> }));
-vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => null }));
+vi.mock('@/components/common/ExportMenu', () => ({ default: (_props: any) => <button data-testid="export-menu">تصدير</button> }));
+vi.mock('@/components/common/NoPublishedYearsNotice', () => ({ default: () => null }));
 vi.mock('@/utils/pdf', () => ({
   generateDisclosurePDF: vi.fn().mockResolvedValue(undefined),
   generateComprehensiveBeneficiaryPDF: vi.fn().mockResolvedValue(undefined),

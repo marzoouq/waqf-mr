@@ -60,23 +60,23 @@ vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', adminName: 'ناظر' })),
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({
+vi.mock('@/components/layout/DashboardLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-vi.mock('@/components/SkeletonLoaders', () => ({
+vi.mock('@/components/common/SkeletonLoaders', () => ({
   StatsGridSkeleton: () => <div>loading</div>,
 }));
 
-vi.mock('@/components/PageHeaderCard', () => ({
+vi.mock('@/components/layout/PageHeaderCard', () => ({
   default: ({ title, actions }: any) => <div>{title}{actions}</div>,
 }));
 
-vi.mock('@/components/ExportMenu', () => ({
+vi.mock('@/components/common/ExportMenu', () => ({
   default: () => <div>export</div>,
 }));
 
-vi.mock('@/components/TablePagination', () => ({
+vi.mock('@/components/common/TablePagination', () => ({
   default: () => null,
 }));
 

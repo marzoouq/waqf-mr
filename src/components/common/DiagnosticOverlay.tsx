@@ -6,7 +6,7 @@ import { Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 const SystemDiagnosticsPage = lazy(() => import('@/pages/dashboard/SystemDiagnosticsPage'));
 

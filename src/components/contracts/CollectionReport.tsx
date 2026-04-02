@@ -10,8 +10,8 @@ import { AlertTriangle, CheckCircle2, Clock, Search, Bell, CalendarRange } from 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Contract } from '@/types/database';
 
-import ExportMenu from '@/components/ExportMenu';
-import TablePagination from '@/components/TablePagination';
+import ExportMenu from '@/components/common/ExportMenu';
+import TablePagination from '@/components/common/TablePagination';
 import { fmt } from '@/utils/format';
 
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';

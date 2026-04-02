@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { StatsGridSkeleton } from '@/components/SkeletonLoaders';
+import { StatsGridSkeleton } from '@/components/common/SkeletonLoaders';
 import YoYBadge from '@/components/dashboard/YoYBadge';
 import type { LucideIcon } from 'lucide-react';
 

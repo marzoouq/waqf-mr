@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';

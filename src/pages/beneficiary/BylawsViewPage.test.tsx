@@ -3,11 +3,11 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('@/components/DashboardLayout', () => ({
+vi.mock('@/components/layout/DashboardLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-vi.mock('@/components/ExportMenu', () => ({
+vi.mock('@/components/common/ExportMenu', () => ({
   default: () => <button>export</button>,
 }));
 

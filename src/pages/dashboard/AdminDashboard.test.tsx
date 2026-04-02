@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
-vi.mock('@/components/FiscalYearSelector', () => ({ default: () => <div>FiscalYearSelector</div> }));
+vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/layout/FiscalYearSelector', () => ({ default: () => <div>FiscalYearSelector</div> }));
 vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
   BarChart: ({ children }: any) => <div>{children}</div>,

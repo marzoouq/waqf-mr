@@ -20,10 +20,10 @@ vi.mock('@/hooks/page/useAppSettings', () => ({
   useWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', nazirName: 'ناظر' })),
 }));
 
-vi.mock('@/components/WaqfInfoBar', () => ({ default: () => <div data-testid="waqf-info-bar" /> }));
-vi.mock('@/components/NotificationBell', () => ({ default: () => <div data-testid="notification-bell" /> }));
-vi.mock('@/components/PrintHeader', () => ({ default: () => <div data-testid="print-header" /> }));
-vi.mock('@/components/PrintFooter', () => ({ default: () => <div data-testid="print-footer" /> }));
+vi.mock('@/components/layout/WaqfInfoBar', () => ({ default: () => <div data-testid="waqf-info-bar" /> }));
+vi.mock('@/components/notifications/NotificationBell', () => ({ default: () => <div data-testid="notification-bell" /> }));
+vi.mock('@/components/common/PrintHeader', () => ({ default: () => <div data-testid="print-header" /> }));
+vi.mock('@/components/common/PrintFooter', () => ({ default: () => <div data-testid="print-footer" /> }));
 
 vi.mock('@/contexts/FiscalYearContext', () => ({
   useFiscalYear: vi.fn(() => ({

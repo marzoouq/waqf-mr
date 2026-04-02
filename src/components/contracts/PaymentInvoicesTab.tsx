@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Receipt, Check, X, Loader2 } from 'lucide-react';
 import { AlertTriangle } from 'lucide-react';
-import TablePagination from '@/components/TablePagination';
+import TablePagination from '@/components/common/TablePagination';
 import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';

@@ -1,4 +1,4 @@
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,8 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import { TableSkeleton } from '@/components/SkeletonLoaders';
-import PageHeaderCard from '@/components/PageHeaderCard';
+import { TableSkeleton } from '@/components/common/SkeletonLoaders';
+import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import { useBeneficiaryMessages } from '@/hooks/page/useBeneficiaryMessages';
 
 const BeneficiaryMessagesPage = () => {
