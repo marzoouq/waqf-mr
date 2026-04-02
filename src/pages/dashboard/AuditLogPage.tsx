@@ -149,7 +149,9 @@ const AuditLogPage = () => {
                           </Collapsible>
                         ))}
                       </div>
-                      <div className="overflow-x-auto hidden md:block">
+                      )}
+                      {isDesktop && (
+                      <div className="overflow-x-auto">
                       <Table className="min-w-[600px]">
                         <TableHeader>
                           <TableRow>
