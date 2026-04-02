@@ -42,9 +42,12 @@ export default function InvoicesViewDesktopTable({
   invoices, currentPage, itemsPerPage, onPageChange,
   showAttachments, onViewFile, searchQuery, statusBadgeVariant, isLoading,
 }: Props) {
+  const isDesktop = useIsDesktop();
+  if (!isDesktop) return null;
+
   if (isLoading) {
     return (
-      <Card className="shadow-sm hidden md:block">
+      <Card className="shadow-sm">
         <CardContent className="p-4"><TableSkeleton rows={5} cols={5} /></CardContent>
       </Card>
     );
