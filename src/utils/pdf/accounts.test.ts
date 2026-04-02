@@ -100,7 +100,7 @@ describe('generateDistributionsPDF', () => {
   });
 
   it('يعالج سُلف ومرحّل = 0 بعلامة "—"', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('./distributions');
     const data = {
       ...baseData,
       distributions: [
