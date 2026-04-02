@@ -42,7 +42,7 @@ const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = ({ data }) => (
           ))}
         </Pie>
         <Tooltip
-          formatter={((value: number | undefined) => [``${fmt(value ?? 0)} ر.س`, '']) as never}
+          formatter={((value: number | undefined) => [`${fmt(value ?? 0)} ر.س`, '']) as never}
           contentStyle={{ direction: 'rtl', fontSize: 12 }}
         />
         <Legend
