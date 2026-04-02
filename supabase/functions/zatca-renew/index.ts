@@ -26,7 +26,7 @@ Deno.serve(async (req): Promise<Response> => {
 
   try {
     const auth = await authenticateAdmin(req, corsHeaders, "zatca-renew");
-    if ("error" in auth) return auth.error;
+    if ("error" in auth) return auth.error!;
     const { user, admin } = auth;
 
     const ZATCA_API_URL = await resolveZatcaUrl(admin);
