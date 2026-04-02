@@ -136,66 +136,67 @@ const UsersTable = ({
               </Card>
             ))}
           </div>
+          )}
 
           {/* Desktop */}
-          <div className="overflow-x-auto hidden md:block">
-            <Table className="min-w-[700px]">
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="text-right">البريد الإلكتروني</TableHead>
-                  <TableHead className="text-right">الدور</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                  <TableHead className="text-right">آخر دخول</TableHead>
-                  <TableHead className="text-right">الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell dir="ltr">
-                      <span className="flex items-center gap-1">
-                        {user.email}
-                        {isSelf(user.id) && <Badge variant="outline" className="mr-2 text-xs">أنت</Badge>}
-                        {user.role === 'beneficiary' && orphanedBeneficiaries.some((b) => b.email === user.email || (!b.email && b.user_id === user.id)) && (
-                          <span title="مستفيد بدون ربط صحيح"><AlertTriangle className="w-4 h-4 text-destructive shrink-0" /></span>
-                        )}
-                      </span>
-                    </TableCell>
-                    <TableCell>{getRoleBadge(user.role)}</TableCell>
-                    <TableCell>
-                      {user.email_confirmed_at ? (
-                        <Badge className="bg-success/20 text-success gap-1"><CheckCircle className="w-3 h-3" />مفعل</Badge>
-                      ) : (
-                        <Badge className="bg-destructive/20 text-destructive gap-1"><XCircle className="w-3 h-3" />غير مفعل</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA', { timeZone: 'Asia/Riyadh' }) : 'لم يسجل دخول'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-wrap">
-                        {!user.email_confirmed_at && (
-                          <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => onConfirmEmail(user.id)} disabled={pendingConfirmId === user.id}>
-                            <CheckCircle className="w-3 h-3" />{pendingConfirmId === user.id ? 'جاري التفعيل...' : 'تفعيل'}
-                          </Button>
-                        )}
-                        <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => onEdit(user)}><Edit className="w-3 h-3" />تعديل</Button>
-                        <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => onPasswordChange(user.id)}><Key className="w-3 h-3" />كلمة المرور</Button>
-                        {!isSelf(user.id) && (
-                          <Button size="sm" variant="outline" className="gap-1 text-xs text-destructive hover:text-destructive" onClick={() => onDelete({ id: user.id, email: user.email })}>
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
+          {isDesktop && (
+            <div className="overflow-x-auto">
+              <Table className="min-w-[700px]">
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right">البريد الإلكتروني</TableHead>
+                    <TableHead className="text-right">الدور</TableHead>
+                    <TableHead className="text-right">الحالة</TableHead>
+                    <TableHead className="text-right">آخر دخول</TableHead>
+                    <TableHead className="text-right">الإجراءات</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell dir="ltr">
+                        <span className="flex items-center gap-1">
+                          {user.email}
+                          {isSelf(user.id) && <Badge variant="outline" className="mr-2 text-xs">أنت</Badge>}
+                          {user.role === 'beneficiary' && orphanedBeneficiaries.some((b) => b.email === user.email || (!b.email && b.user_id === user.id)) && (
+                            <span title="مستفيد بدون ربط صحيح"><AlertTriangle className="w-4 h-4 text-destructive shrink-0" /></span>
+                          )}
+                        </span>
+                      </TableCell>
+                      <TableCell>{getRoleBadge(user.role)}</TableCell>
+                      <TableCell>
+                        {user.email_confirmed_at ? (
+                          <Badge className="bg-success/20 text-success gap-1"><CheckCircle className="w-3 h-3" />مفعل</Badge>
+                        ) : (
+                          <Badge className="bg-destructive/20 text-destructive gap-1"><XCircle className="w-3 h-3" />غير مفعل</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA', { timeZone: 'Asia/Riyadh' }) : 'لم يسجل دخول'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1 flex-wrap">
+                          {!user.email_confirmed_at && (
+                            <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => onConfirmEmail(user.id)} disabled={pendingConfirmId === user.id}>
+                              <CheckCircle className="w-3 h-3" />{pendingConfirmId === user.id ? 'جاري التفعيل...' : 'تفعيل'}
+                            </Button>
+                          )}
+                          <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => onEdit(user)}><Edit className="w-3 h-3" />تعديل</Button>
+                          <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => onPasswordChange(user.id)}><Key className="w-3 h-3" />كلمة المرور</Button>
+                          {!isSelf(user.id) && (
+                            <Button size="sm" variant="outline" className="gap-1 text-xs text-destructive hover:text-destructive" onClick={() => onDelete({ id: user.id, email: user.email })}>
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </>
-
       {/* Pagination */}
       {(currentPage > 1 || nextPage) && (
         <div className="flex items-center justify-center gap-4 pt-4">
