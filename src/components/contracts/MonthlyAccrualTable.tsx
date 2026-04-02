@@ -7,7 +7,8 @@ import { fmtInt } from '@/utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays } from 'lucide-react';
-import MobileAccrualCard, { type CellData, type MonthCell } from './MobileAccrualCard';
+import MobileAccrualCard from './MobileAccrualCard';
+import { type CellData, type MonthCell } from './accrualUtils';
 import AccrualDesktopTable from './AccrualDesktopTable';
 
 /** واجهة فاتورة الدفعة المُمررة من الخارج */

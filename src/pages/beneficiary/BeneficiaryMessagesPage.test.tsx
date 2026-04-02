@@ -39,7 +39,7 @@ describe('BeneficiaryMessagesPage', () => {
 
   it('shows support button', () => {
     renderPage();
-    expect(screen.getByText('دعم فني')).toBeInTheDocument();
+    expect(screen.getByText('الدعم الفني')).toBeInTheDocument();
   });
 
   it('shows chat and support tabs', () => {
@@ -55,6 +55,6 @@ describe('BeneficiaryMessagesPage', () => {
 
   it('shows empty state prompt when no conversation selected', () => {
     renderPage();
-    expect(screen.getByText('اختر محادثة أو ابدأ محادثة جديدة مع الناظر')).toBeInTheDocument();
+    expect(screen.getByText('اختر محادثة من القائمة أو ابدأ محادثة جديدة')).toBeInTheDocument();
   });
 });

@@ -19,6 +19,7 @@ vi.mock('@/hooks/data/useMessaging', () => ({
   useMessages: vi.fn(() => ({ data: [] })),
   useSendMessage: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
   useCreateConversation: vi.fn(() => ({ mutateAsync: vi.fn() })),
+  useUnreadCounts: vi.fn(() => ({ data: { total: 0, chat: 0, support: 0, broadcast: 0 } })),
 }));
 
 vi.mock('@/hooks/data/useBeneficiaries', () => ({

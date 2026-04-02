@@ -2,8 +2,7 @@
  * جدول الاستحقاقات — عرض سطح المكتب (مستخرج من MonthlyAccrualTable)
  */
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import type { MonthCell, CellData } from './MobileAccrualCard';
-import { getCellClasses } from './MobileAccrualCard';
+import { type MonthCell, type CellData, getCellClasses } from './accrualUtils';
 import type { Contract } from '@/types/database';
 import { fmtInt } from '@/utils/format';
 

@@ -79,7 +79,7 @@
   },
   "overrides": {
     "minimatch": "^10.2.4",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "dompurify": "^3.3.3",
     "flatted": "^3.4.2",
     "serialize-javascript": "7.0.5",

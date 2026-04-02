@@ -35,7 +35,7 @@ describe("ProtectedRoute", () => {
       </MemoryRouter>
     );
     expect(screen.queryByText("محتوى")).not.toBeInTheDocument();
-    expect(document.querySelector(".animate-spin")).toBeInTheDocument();
+    expect(document.querySelector(".animate-pulse")).toBeInTheDocument();
   });
 
   it("redirects to /auth when user is not logged in", () => {
@@ -106,7 +106,7 @@ describe("ProtectedRoute", () => {
         </ProtectedRoute>
       </MemoryRouter>
     );
-    expect(document.querySelector(".animate-spin")).toBeInTheDocument();
+    expect(document.querySelector(".animate-pulse")).toBeInTheDocument();
   });
 
   it("admin can access admin-only routes", () => {

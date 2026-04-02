@@ -6,6 +6,14 @@ import { render, screen } from '@testing-library/react';
 import InvoicePreviewDialog from './InvoicePreviewDialog';
 import type { InvoicePreviewData } from './InvoicePreviewDialog';
 
+vi.mock('@/components/ui/dialog', () => ({
+  Dialog: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogTitle: ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>,
+  DialogDescription: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
+}));
+
 // Mock html2canvas
 const mockToDataURL = vi.fn(() => 'data:image/png;base64,mock');
 vi.mock('html2canvas', () => ({

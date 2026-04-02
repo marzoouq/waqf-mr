@@ -4,7 +4,7 @@
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Message } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
@@ -54,7 +54,7 @@ export const useMessages = (conversationId: string | null) => {
     !!user && !!conversationId,
   );
 
-  const allMessages = query.data?.pages.flat() ?? [];
+  const allMessages = useMemo(() => query.data?.pages.flat() ?? [], [query.data]);
 
   // تعليم الرسائل غير المقروءة كمقروءة تلقائياً
   const markedRef = useRef<string | null>(null);
