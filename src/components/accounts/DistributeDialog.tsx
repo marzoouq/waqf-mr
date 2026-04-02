@@ -34,6 +34,7 @@ const DistributeDialog = ({
   open, onOpenChange, beneficiaries, availableAmount,
   totalBeneficiaryPercentage: _tbp, accountId, fiscalYearId, fiscalYearLabel,
 }: DistributeDialogProps) => {
+  const isDesktop = useIsDesktop();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const distribute = useDistributeShares();
   const [pdfLoading, setPdfLoading] = useState(false);
