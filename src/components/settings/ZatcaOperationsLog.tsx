@@ -153,6 +153,7 @@ const ZatcaOperationsLog = () => {
               </TableBody>
             </Table>
           </div>
+          )}
         </CardContent>
       </Card>
 
