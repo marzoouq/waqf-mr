@@ -9,8 +9,8 @@ import { defaultNotify } from '@/hooks/data/mutationNotify';
 import { notifyAdmins, notifyUser } from '@/utils/notifications';
 import { fmt } from '@/utils/format';
 
-// إعادة تصدير كل شيء من advanceTypes للتوافقية
-export type { AdvanceRequest, AdvanceCarryforward } from './advanceTypes';
+// إعادة تصدير الأنواع والهوكات
+export type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 export {
   useMyBeneficiaryFinance,
   useMyAdvanceRequests,
