@@ -187,6 +187,7 @@ const AuditLogPage = () => {
                         </TableBody>
                       </Table>
                       </div>
+                      )}
                       <TablePagination currentPage={h.currentPage} totalItems={h.totalCount} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
                     </>
                   )}
