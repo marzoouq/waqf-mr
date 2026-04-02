@@ -4,7 +4,7 @@ import { FileText, AlertCircle, RefreshCw, FileDown, Info } from 'lucide-react';
 import ExportMenu from '@/components/common/ExportMenu';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DashboardSkeleton } from '@/components/common/SkeletonLoaders';
-import RequirePublishedYears from '@/components/RequirePublishedYears';
+import RequirePublishedYears from '@/components/common/RequirePublishedYears';
 import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import DisclosureSummaryCards from '@/components/disclosure/DisclosureSummaryCards';
 import DisclosureContractsSection from '@/components/disclosure/DisclosureContractsSection';

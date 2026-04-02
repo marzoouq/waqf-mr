@@ -7,7 +7,7 @@ import { BrowserRouter, Routes } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/auth/useAuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
@@ -26,10 +26,10 @@ function PagePerformanceTracker() {
 }
 
 // AI Assistant & Security - Lazy loaded
-const AiAssistant = lazyWithRetry(() => import("./components/AiAssistant"));
-const SecurityGuard = lazyWithRetry(() => import("./components/SecurityGuard"));
-const PwaUpdateNotifier = lazyWithRetry(() => import("./components/PwaUpdateNotifier"));
-const SwUpdateBanner = lazyWithRetry(() => import("./components/SwUpdateBanner"));
+const AiAssistant = lazyWithRetry(() => import("./components/ai/AiAssistant"));
+const SecurityGuard = lazyWithRetry(() => import("./components/auth/SecurityGuard"));
+const PwaUpdateNotifier = lazyWithRetry(() => import("./components/pwa/PwaUpdateNotifier"));
+const SwUpdateBanner = lazyWithRetry(() => import("./components/pwa/SwUpdateBanner"));
 
 function PageLoader() {
   return (
