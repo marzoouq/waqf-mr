@@ -1,6 +1,6 @@
 /**
  * هوكات إدارة طلبات السُلف (advance_requests) — mutations فقط
- * الأنواع والترحيلات في advanceTypes.ts
+ * الأنواع في src/types/advance.ts، الاستعلامات في advanceTypes.ts
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
