@@ -24,45 +24,14 @@ interface AdvanceRequestDialogProps {
   maxPercentage?: number;
 }
 
-interface ServerAdvanceData {
-  estimated_share: number;
-  active_carryforward: number;
-  effective_share: number;
-  paid_advances: number;
-  max_percentage: number;
-  max_advance: number;
-}
-
 const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, paidAdvances, carryforwardBalance = 0, isFiscalYearActive = false, minAmount = 0, maxPercentage = 50 }: AdvanceRequestDialogProps) => {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
-  const [serverData, setServerData] = useState<ServerAdvanceData | null>(null);
-  const [loading, setLoading] = useState(false);
   const create = useCreateAdvanceRequest();
 
-  // Fetch server-side max advance when dialog opens
-  useEffect(() => {
-    if (!open || !beneficiaryId || !fiscalYearId) return;
-    let cancelled = false;
-    setLoading(true);
-    Promise.resolve(supabase.rpc('get_max_advance_amount', {
-      p_beneficiary_id: beneficiaryId,
-      p_fiscal_year_id: fiscalYearId,
-    })).then(({ data, error }) => {
-      if (cancelled) return;
-      if (!error && data && !(data as Record<string, unknown>).error) {
-        setServerData(data as unknown as ServerAdvanceData);
-      }
-      setLoading(false);
-    }).catch(() => {
-      if (!cancelled) {
-        setLoading(false);
-        toast.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
-      }
-    });
-    return () => { cancelled = true; };
-  }, [open, beneficiaryId, fiscalYearId]);
+  // استخدام الهوك المستخرج بدلاً من استدعاء Supabase مباشرة
+  const { serverData, loading } = useMaxAdvanceAmount(open, beneficiaryId, fiscalYearId);
 
   // Use server values if available, fallback to client-side
   const effectiveShare = serverData ? serverData.effective_share : Math.max(0, estimatedShare - carryforwardBalance);
