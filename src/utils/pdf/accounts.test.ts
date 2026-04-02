@@ -94,7 +94,7 @@ describe('generateDistributionsPDF', () => {
   });
 
   it('يعالج قائمة توزيعات فارغة', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('./distributions');
     const data = { ...baseData, distributions: [] };
     await expect(generateDistributionsPDF(data)).resolves.not.toThrow();
   });
