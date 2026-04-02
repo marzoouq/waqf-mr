@@ -15,9 +15,11 @@ import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 import { operationColor, DataDiff } from '@/components/audit/AuditLogHelpers';
 import TablePagination from '@/components/TablePagination';
 import { useAuditLogPage, getTableNameAr, getOperationNameAr } from '@/hooks/page/useAuditLogPage';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 const AuditLogPage = () => {
   const h = useAuditLogPage();
+  const isDesktop = useIsDesktop();
 
   return (
     <DashboardLayout>
@@ -120,7 +122,8 @@ const AuditLogPage = () => {
                     <div className="p-8 text-center text-muted-foreground">لا توجد سجلات</div>
                   ) : (
                     <>
-                      <div className="block md:hidden space-y-3 p-3">
+                      {!isDesktop && (
+                      <div className="space-y-3 p-3">
                         {h.logs.map(log => (
                           <Collapsible key={log.id} open={h.expandedRows.has(log.id)} onOpenChange={() => h.toggleRow(log.id)}>
                             <Card className="shadow-sm">
@@ -146,7 +149,9 @@ const AuditLogPage = () => {
                           </Collapsible>
                         ))}
                       </div>
-                      <div className="overflow-x-auto hidden md:block">
+                      )}
+                      {isDesktop && (
+                      <div className="overflow-x-auto">
                       <Table className="min-w-[600px]">
                         <TableHeader>
                           <TableRow>
@@ -182,6 +187,7 @@ const AuditLogPage = () => {
                         </TableBody>
                       </Table>
                       </div>
+                      )}
                       <TablePagination currentPage={h.currentPage} totalItems={h.totalCount} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
                     </>
                   )}

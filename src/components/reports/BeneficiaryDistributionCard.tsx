@@ -1,10 +1,11 @@
 /**
- * بطاقة توزيع الحصص على المستفيدين — مستخرجة من ReportsPage
+ * بطاقة توزيع الحصص على المستفيدين — عرض واحد حسب الشاشة
  */
 import { fmt } from '@/utils/format';
 import { formatPercentage } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface DistributionItem {
   name?: string;
@@ -20,14 +21,17 @@ interface BeneficiaryDistributionCardProps {
 
 const BeneficiaryDistributionCard = ({
   distributionData, beneficiariesShare, totalPercentage,
-}: BeneficiaryDistributionCardProps) => (
+}: BeneficiaryDistributionCardProps) => {
+  const isDesktop = useIsDesktop();
+  return (
   <Card className="shadow-sm print:break-before-page">
     <CardHeader><CardTitle>توزيع الحصص على المستفيدين</CardTitle></CardHeader>
     <CardContent>
       {distributionData.length > 0 ? (
         <>
           {/* عرض الجوال */}
-          <div className="space-y-2 md:hidden">
+          {!isDesktop && (
+          <div className="space-y-2">
             {distributionData.map((item, index) => (
               <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border">
                 <div>
@@ -42,9 +46,11 @@ const BeneficiaryDistributionCard = ({
               <span className="text-primary">{fmt(beneficiariesShare)} ر.س</span>
             </div>
           </div>
+          )}
 
           {/* عرض سطح المكتب */}
-          <div className="hidden md:block overflow-x-auto">
+          {isDesktop && (
+          <div className="overflow-x-auto">
             <Table className="min-w-[500px]">
               <TableHeader>
                 <TableRow className="bg-muted/50">
@@ -69,12 +75,14 @@ const BeneficiaryDistributionCard = ({
               </TableBody>
             </Table>
           </div>
+          )}
         </>
       ) : (
         <div className="py-12 text-center text-muted-foreground">لا يوجد مستفيدين مسجلين</div>
       )}
     </CardContent>
   </Card>
-);
+  );
+};
 
 export default BeneficiaryDistributionCard;

@@ -1,9 +1,10 @@
 /**
- * جدول التدفق النقدي الشهري (موبايل + سطح المكتب)
+ * جدول التدفق النقدي الشهري — عرض واحد حسب الشاشة
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import type { CashFlowMonth, CashFlowTotals } from '@/hooks/reports/useCashFlowData';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface Props {
   monthlyData: CashFlowMonth[];
@@ -11,14 +12,17 @@ interface Props {
   fmt: (v: number) => string;
 }
 
-const CashFlowTable = ({ monthlyData, totals, fmt }: Props) => (
+const CashFlowTable = ({ monthlyData, totals, fmt }: Props) => {
+  const isDesktop = useIsDesktop();
+  return (
   <Card className="shadow-sm">
     <CardHeader>
       <CardTitle className="text-base">جدول التدفق النقدي الشهري</CardTitle>
     </CardHeader>
     <CardContent>
       {/* Mobile cards */}
-      <div className="space-y-2 md:hidden">
+      {!isDesktop && (
+      <div className="space-y-2">
         {monthlyData.map((row) => (
           <div key={row.month} className="p-3 rounded-lg border bg-card space-y-1">
             <div className="flex items-center justify-between">
@@ -45,8 +49,10 @@ const CashFlowTable = ({ monthlyData, totals, fmt }: Props) => (
           </div>
         </div>
       </div>
+      )}
       {/* Desktop table */}
-      <div className="hidden md:block overflow-x-auto">
+      {isDesktop && (
+      <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -85,8 +91,10 @@ const CashFlowTable = ({ monthlyData, totals, fmt }: Props) => (
           </TableFooter>
         </Table>
       </div>
+      )}
     </CardContent>
   </Card>
-);
+  );
+};
 
 export default CashFlowTable;

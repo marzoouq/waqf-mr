@@ -2,6 +2,7 @@
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
 import { EXPIRING_SOON_DAYS } from '@/constants';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/dashboard-layout';
@@ -35,6 +36,7 @@ const statusMap: Record<string, { label: string; variant: 'default' | 'secondary
 const ITEMS_PER_PAGE = 10;
 
 const ContractsViewPage = () => {
+  const isDesktop = useIsDesktop();
   const { fiscalYearId } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
   const [currentPage, setCurrentPage] = useState(1);
@@ -143,7 +145,8 @@ const ContractsViewPage = () => {
           ) : (
             <>
               {/* بطاقات الجوال */}
-              <div className="space-y-3 md:hidden">
+              {!isDesktop && (
+              <div className="space-y-3">
                 {paginatedContracts.map(contract => {
                   const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
                   return (
@@ -180,11 +183,13 @@ const ContractsViewPage = () => {
                   );
                 })}
               </div>
-              <div className="md:hidden">
+              )}
+              {!isDesktop && (
                 <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-              </div>
+              )}
               {/* جدول سطح المكتب */}
-              <Card className="hidden md:block">
+              {isDesktop && (
+              <Card>
                 <CardContent className="p-0 overflow-x-auto">
                   <Table className="min-w-[700px]">
                     <TableHeader>
@@ -226,6 +231,7 @@ const ContractsViewPage = () => {
                   </Table>
                 </CardContent>
               </Card>
+              )}
               <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
             </>
           )}

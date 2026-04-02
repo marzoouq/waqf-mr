@@ -2,6 +2,7 @@
  * عرض الفواتير للمستفيد — جدول سطح المكتب (قراءة فقط)
  */
 import { Card, CardContent } from '@/components/ui/card';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,9 +42,12 @@ export default function InvoicesViewDesktopTable({
   invoices, currentPage, itemsPerPage, onPageChange,
   showAttachments, onViewFile, searchQuery, statusBadgeVariant, isLoading,
 }: Props) {
+  const isDesktop = useIsDesktop();
+  if (!isDesktop) return null;
+
   if (isLoading) {
     return (
-      <Card className="shadow-sm hidden md:block">
+      <Card className="shadow-sm">
         <CardContent className="p-4"><TableSkeleton rows={5} cols={5} /></CardContent>
       </Card>
     );
@@ -51,7 +55,7 @@ export default function InvoicesViewDesktopTable({
 
   if (invoices.length === 0) {
     return (
-      <Card className="shadow-sm hidden md:block">
+      <Card className="shadow-sm">
         <CardContent className="py-12 text-center">
           <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج' : 'لا توجد فواتير'}</p>
@@ -61,7 +65,7 @@ export default function InvoicesViewDesktopTable({
   }
 
   return (
-    <Card className="shadow-sm hidden md:block">
+    <Card className="shadow-sm">
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <Table className="min-w-[850px]">

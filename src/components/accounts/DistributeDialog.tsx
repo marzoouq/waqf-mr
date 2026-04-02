@@ -1,4 +1,5 @@
 import { fmt } from '@/utils/format';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ const DistributeDialog = ({
   open, onOpenChange, beneficiaries, availableAmount,
   totalBeneficiaryPercentage: _tbp, accountId, fiscalYearId, fiscalYearLabel,
 }: DistributeDialogProps) => {
+  const isDesktop = useIsDesktop();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const distribute = useDistributeShares();
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -70,7 +72,8 @@ const DistributeDialog = ({
         ) : (
           <>
           {/* Mobile Cards */}
-          <div className="md:hidden space-y-3">
+          {!isDesktop && (
+          <div className="space-y-3">
             {distributions.map(d => (
               <div key={d.beneficiary_id} className={`rounded-lg border p-3 space-y-2 ${d.deficit > 0 ? 'border-destructive/30 bg-destructive/5' : 'border-border'}`}>
                 <div className="flex items-center justify-between">
@@ -91,8 +94,10 @@ const DistributeDialog = ({
               </div>
             ))}
           </div>
+          )}
           {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto">
+          {isDesktop && (
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
@@ -127,6 +132,7 @@ const DistributeDialog = ({
             </TableBody>
           </Table>
           </div>
+          )}
           </>
         )}
 

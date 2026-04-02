@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import TablePagination from '@/components/TablePagination';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -31,6 +32,7 @@ const eventConfig: Record<string, { label: string; color: string; icon: React.El
 };
 
 const AccessLogTab = () => {
+  const isDesktop = useIsDesktop();
   const [eventFilter, setEventFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -158,7 +160,8 @@ const AccessLogTab = () => {
           ) : (
             <>
               {/* Mobile cards */}
-              <div className="space-y-2 p-3 md:hidden">
+              {!isDesktop && (
+              <div className="space-y-2 p-3">
                 {paginated.map(log => {
                   const config = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: Activity };
                   const Icon = config.icon;
@@ -179,8 +182,10 @@ const AccessLogTab = () => {
                   );
                 })}
               </div>
+              )}
               {/* Desktop table */}
-              <div className="hidden md:block overflow-x-auto">
+              {isDesktop && (
+              <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -215,6 +220,7 @@ const AccessLogTab = () => {
                   </TableBody>
                 </Table>
               </div>
+              )}
               <TablePagination
                 currentPage={currentPage}
                 totalItems={totalCount}

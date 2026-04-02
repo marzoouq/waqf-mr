@@ -5,6 +5,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Wallet, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { safeNumber } from '@/utils/safeNumber';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface Account {
   id: string;
@@ -23,6 +24,7 @@ interface AccountsSavedTableProps {
 }
 
 const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSavedTableProps) => {
+  const isDesktop = useIsDesktop();
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -43,7 +45,8 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
         ) : (
           <>
             {/* Mobile cards */}
-            <div className="space-y-3 md:hidden">
+            {!isDesktop && (
+            <div className="space-y-3">
               {accounts.map((account) => (
                 <div key={account.id} className="p-3 rounded-lg border bg-card space-y-2">
                   <div className="flex items-center justify-between">
@@ -73,9 +76,11 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
                 </div>
               ))}
             </div>
+            )}
 
             {/* Desktop table */}
-            <div className="hidden md:block overflow-x-auto">
+            {isDesktop && (
+            <div className="overflow-x-auto">
               <Table className="min-w-[750px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
@@ -107,6 +112,7 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
                 </TableBody>
               </Table>
             </div>
+            )}
           </>
         )}
       </CardContent>

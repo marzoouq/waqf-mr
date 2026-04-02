@@ -1,4 +1,4 @@
-/** جدول الوحدات لسطح المكتب */
+/** جدول الوحدات لسطح المكتب — عرض واحد حسب الشاشة */
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -10,6 +10,7 @@ import { fmt, fmtInt } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
 import type { UnitRow } from '@/hooks/data/useUnits';
 import type { Contract } from '@/types/database';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface PaymentInvoiceLike {
   contract_id: string;
@@ -28,6 +29,7 @@ interface DesktopUnitsTableProps {
 }
 
 const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPayments, paymentInvoices = [], onEdit, onDelete }: DesktopUnitsTableProps) => {
+  const isDesktop = useIsDesktop();
   const getPaymentInfo = (contractId: string) => {
     const payment = tenantPayments.find(p => p.contract_id === contractId);
     return payment ? payment.paid_months : 0;
@@ -48,8 +50,10 @@ const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPay
     totalMonthly += getMonthlyFromContract(wc);
   });
 
+  if (!isDesktop) return null;
+
   return (
-    <div className="rounded-md border overflow-x-auto hidden md:block">
+    <div className="rounded-md border overflow-x-auto">
       <Table className="min-w-[800px]">
         <TableHeader>
           <TableRow className="bg-muted/40">
