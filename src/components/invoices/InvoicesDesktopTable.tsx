@@ -26,7 +26,7 @@ const InvoicesDesktopTable = ({
   typeLabels, statusLabels, statusBadgeVariant,
   onViewFile, onGeneratePdf, onPreview, onEdit, onDelete,
 }: InvoicesDesktopTableProps) => (
-  <div className="overflow-x-auto hidden md:block">
+  <div className="overflow-x-auto">
     <Table className="min-w-[800px]">
       <TableHeader>
         <TableRow className="bg-muted/50">

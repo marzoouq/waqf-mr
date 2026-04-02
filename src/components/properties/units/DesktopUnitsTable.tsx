@@ -49,7 +49,7 @@ const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPay
   });
 
   return (
-    <div className="rounded-md border overflow-x-auto hidden md:block">
+    <div className="rounded-md border overflow-x-auto">
       <Table className="min-w-[800px]">
         <TableHeader>
           <TableRow className="bg-muted/40">
