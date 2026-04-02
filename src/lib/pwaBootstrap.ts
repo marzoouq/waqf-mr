@@ -96,7 +96,7 @@ export async function runPwaCacheGuard(): Promise<CacheGuardResult> {
         );
         await Promise.all(
           registrations.map(r =>
-            withTimeout(r.update(), undefined as void | undefined, 2000).catch(() => undefined)
+            withTimeout(r.update().then(() => {}), undefined as void, 2000).catch(() => undefined)
           )
         );
       }
