@@ -14,6 +14,10 @@ export default defineConfig(({ mode }) => {
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
     'import.meta.env.VITE_APP_BUILD_ID': JSON.stringify(pkg.version),
+   // ═══ حقن متغيرات البيئة الحرجة صراحةً لضمان توفرها في بيئة النشر ═══
+   ...(env.VITE_SUPABASE_URL ? { 'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL) } : {}),
+   ...(env.VITE_SUPABASE_PUBLISHABLE_KEY ? { 'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(env.VITE_SUPABASE_PUBLISHABLE_KEY) } : {}),
+   ...(env.VITE_SUPABASE_PROJECT_ID ? { 'import.meta.env.VITE_SUPABASE_PROJECT_ID': JSON.stringify(env.VITE_SUPABASE_PROJECT_ID) } : {}),
   },
   server: {
     host: "::",
