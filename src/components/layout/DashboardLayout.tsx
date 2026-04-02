@@ -131,6 +131,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Sidebar - Mobile */}
       <aside
+        aria-label="القائمة الجانبية"
         ref={sidebarRef}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
