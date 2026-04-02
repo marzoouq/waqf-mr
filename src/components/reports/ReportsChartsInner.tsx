@@ -4,23 +4,13 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { fmt } from '@/utils/format';
 import { tooltipStyleRtl } from '@/utils/chartHelpers';
-import { useChartReady } from '@/hooks/ui/useChartReady';
+import ChartBox from '@/components/charts/ChartBox';
 
 const REPORT_COLORS = [
   'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
   'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
   'hsl(var(--accent))', 'hsl(var(--chart-4))',
 ];
-
-/** حاوية تنتظر اكتساب أبعاد فعلية قبل رندر الرسم */
-const ChartBox: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = 'h-[300px]' }) => {
-  const { ref, ready } = useChartReady();
-  return (
-    <div ref={ref} className={`${className} min-w-0 min-h-[1px]`}>
-      {ready && children}
-    </div>
-  );
-};
 
 interface DataItem { name: string; value: number }
 
@@ -36,7 +26,7 @@ const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceDat
         <ChartBox>
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
-              <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} outerRadius={90} fill="hsl(var(--primary))" dataKey="value" style={{ fontSize: '12px' }}>
+              <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} outerRadius={90} fill="hsl(var(--primary))" dataKey="value">
                 {incomeSourceData.map((_entry, index) => (
                   <Cell key={`cell-${index}`} fill={REPORT_COLORS[index % REPORT_COLORS.length]} />
                 ))}
