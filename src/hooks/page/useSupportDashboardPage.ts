@@ -101,7 +101,7 @@ export function useSupportDashboardPage() {
   const categoryStats = useMemo(() => {
     if (!analytics?.category_stats) return [];
     const total = analytics.total_count || 1;
-    return analytics.category_stats.map(s => ({
+    return analytics.category_stats.map((s: { key: string; count: number }) => ({
       key: s.key,
       label: CATEGORY_MAP[s.key] || s.key,
       count: s.count,
