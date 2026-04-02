@@ -19,7 +19,9 @@ interface Props {
   paidAdvances: Advance[];
 }
 
-const PaidAdvancesTable = ({ paidAdvances }: Props) => (
+const PaidAdvancesTable = ({ paidAdvances }: Props) => {
+  const isDesktop = useIsDesktop();
+  return (
   <Card>
     <CardHeader>
       <CardTitle className="text-base">سجل السُلف المصروفة</CardTitle>
@@ -30,7 +32,8 @@ const PaidAdvancesTable = ({ paidAdvances }: Props) => (
       ) : (
         <>
           {/* Mobile Cards */}
-          <div className="space-y-3 md:hidden">
+          {!isDesktop && (
+          <div className="space-y-3">
             {paidAdvances.map(adv => (
               <div key={adv.id} className="border rounded-lg p-3 space-y-2">
                 <p className="font-medium text-sm">{fmt(safeNumber(adv.amount))} ر.س</p>
