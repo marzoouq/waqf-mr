@@ -48,7 +48,7 @@ export const INVOICE_STATUS_LABELS: Record<string, string> = {
   overdue: 'متأخرة',
 };
 
-// HIGH-1: ثوابت مشتركة — تُصدَّر لإعادة الاستخدام في InvoicesPage
+// ثوابت مشتركة — تُصدَّر لإعادة الاستخدام في InvoicesPage
 export const ALLOWED_MIME_TYPES = [
   'application/pdf',
   'image/jpeg',
