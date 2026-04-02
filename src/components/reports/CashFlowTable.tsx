@@ -49,8 +49,10 @@ const CashFlowTable = ({ monthlyData, totals, fmt }: Props) => {
           </div>
         </div>
       </div>
+      )}
       {/* Desktop table */}
-      <div className="hidden md:block overflow-x-auto">
+      {isDesktop && (
+      <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
