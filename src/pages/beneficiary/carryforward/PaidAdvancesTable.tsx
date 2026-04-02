@@ -54,8 +54,10 @@ const PaidAdvancesTable = ({ paidAdvances }: Props) => {
               </div>
             ))}
           </div>
+          )}
           {/* Desktop Table */}
-          <div className="overflow-x-auto hidden md:block">
+          {isDesktop && (
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
