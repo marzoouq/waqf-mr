@@ -115,7 +115,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: () => ({ select: () => ({ eq: () => ({ order: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }) }) }) }) },
 }));
 
-vi.mock('@/hooks/financial/useMySharePage', () => ({
+vi.mock('@/hooks/page/useMySharePage', () => ({
   useMySharePage: () => mockUseMySharePage(),
 }));
 
