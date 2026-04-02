@@ -80,6 +80,7 @@ const InvoicesDesktopTable = ({
       </TableBody>
     </Table>
   </div>
-);
+  );
+};
 
 export default InvoicesDesktopTable;
