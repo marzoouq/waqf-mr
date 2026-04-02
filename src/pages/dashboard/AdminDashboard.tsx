@@ -1,7 +1,6 @@
 
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { lazy, Suspense, useMemo } from 'react';
-import YearComparisonSection from '@/components/dashboard/YearComparisonSection';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useDashboardRealtime } from '@/hooks/data/useDashboardRealtime';
 import { safeNumber } from '@/utils/safeNumber';
@@ -10,13 +9,14 @@ import { computeMonthlyData } from '@/utils/dashboardComputations';
 import { Button } from '@/components/ui/button';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
-import { Printer, Gauge } from 'lucide-react';
+import { Printer, Gauge, BarChart3, ArrowUpDown, Activity } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import DashboardLayout from '@/components/dashboard-layout';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import DeferredRender from '@/components/DeferredRender';
+import CollapsibleSection from '@/components/dashboard/CollapsibleSection';
 
 // هوك البيانات المدمج — طلب واحد بدلاً من ~10
 import { useDashboardSummary } from '@/hooks/page/useDashboardSummary';
@@ -33,11 +33,11 @@ import QuickActionsCard from '@/components/dashboard/QuickActionsCard';
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
 
 // Lazy-load heavy below-the-fold components
-
-const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
+const DashboardChartsInner = lazy(() => import('@/components/dashboard/DashboardChartsInner'));
 const CollectionHeatmap = lazy(() => import('@/components/dashboard/CollectionHeatmap'));
 const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingActionsTable'));
 const PagePerformanceCard = lazy(() => import('@/components/dashboard/PagePerformanceCard'));
+const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
 
 const ChartSkeleton = () => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -189,7 +189,7 @@ const AdminDashboard = () => {
           <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
         </ErrorBoundary>
 
-        {/* خريطة حرارية — تُخفى عند الطباعة */}
+        {/* خريطة حرارية — مؤجلة */}
         <DeferredRender delay={1500}>
           <div className="print:hidden">
             <ErrorBoundary>
@@ -209,30 +209,45 @@ const AdminDashboard = () => {
           </ErrorBoundary>
         </DeferredRender>
 
-        {/* الرسوم البيانية — تُخفى عند الطباعة */}
+        {/* الرسوم البيانية — قابلة للطي، مغلقة افتراضياً لتقليل DOM */}
         <DeferredRender delay={2500}>
           <div className="print:hidden">
             <ErrorBoundary>
-              <Suspense fallback={<ChartSkeleton />}>
-                <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
-              </Suspense>
+              <CollapsibleSection title="الرسوم البيانية" icon={BarChart3} printHidden>
+                <Suspense fallback={<ChartSkeleton />}>
+                  <DashboardChartsInner monthlyData={monthlyData} expenseTypes={expenseTypes} />
+                </Suspense>
+              </CollapsibleSection>
             </ErrorBoundary>
           </div>
         </DeferredRender>
 
-        {/* مقارنة بين السنوات */}
-        <DeferredRender delay={3000}>
-          <YearComparisonSection allFiscalYears={allFiscalYears} fiscalYearId={fiscalYearId} />
-        </DeferredRender>
+        {/* مقارنة بين السنوات — قابلة للطي، مغلقة افتراضياً */}
+        {allFiscalYears.length >= 2 && (
+          <DeferredRender delay={3000}>
+            <ErrorBoundary>
+              <CollapsibleSection title="مقارنة بين السنوات المالية" icon={ArrowUpDown}>
+                <Suspense fallback={<ChartSkeleton />}>
+                  <YearOverYearComparison
+                    fiscalYears={allFiscalYears}
+                    currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
+                  />
+                </Suspense>
+              </CollapsibleSection>
+            </ErrorBoundary>
+          </DeferredRender>
+        )}
 
-        {/* مراقبة أداء الصفحات — للناظر فقط، تُخفى عند الطباعة */}
+        {/* مراقبة أداء الصفحات — قابلة للطي */}
         {role === 'admin' && (
           <DeferredRender delay={3500}>
             <div className="print:hidden">
               <ErrorBoundary>
-                <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-                  <PagePerformanceCard />
-                </Suspense>
+                <CollapsibleSection title="مراقبة أداء الصفحات" icon={Activity} printHidden>
+                  <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+                    <PagePerformanceCard />
+                  </Suspense>
+                </CollapsibleSection>
               </ErrorBoundary>
             </div>
           </DeferredRender>
