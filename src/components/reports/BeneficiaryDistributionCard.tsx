@@ -21,14 +21,17 @@ interface BeneficiaryDistributionCardProps {
 
 const BeneficiaryDistributionCard = ({
   distributionData, beneficiariesShare, totalPercentage,
-}: BeneficiaryDistributionCardProps) => (
+}: BeneficiaryDistributionCardProps) => {
+  const isDesktop = useIsDesktop();
+  return (
   <Card className="shadow-sm print:break-before-page">
     <CardHeader><CardTitle>توزيع الحصص على المستفيدين</CardTitle></CardHeader>
     <CardContent>
       {distributionData.length > 0 ? (
         <>
           {/* عرض الجوال */}
-          <div className="space-y-2 md:hidden">
+          {!isDesktop && (
+          <div className="space-y-2">
             {distributionData.map((item, index) => (
               <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border">
                 <div>
