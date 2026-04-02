@@ -44,7 +44,9 @@ const UsersTable = ({
   users, totalUsers, nextPage, currentPage, setCurrentPage,
   isLoading, isError, error, pendingConfirmId, orphanedBeneficiaries,
   isSelf, onConfirmEmail, onEdit, onPasswordChange, onDelete, onRetry,
-}: Props) => (
+}: Props) => {
+  const isDesktop = useIsDesktop();
+  return (
   <Card className="shadow-sm">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -55,20 +57,22 @@ const UsersTable = ({
     <CardContent className="p-0 sm:p-6">
       {isLoading ? (
         <>
-          <div className="space-y-3 p-4 md:hidden">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i} className="shadow-sm">
-                <CardContent className="p-4 space-y-3">
-                  <div className="h-5 w-2/3 rounded bg-muted animate-pulse" />
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="h-4 w-20 rounded bg-muted animate-pulse" />
-                    <div className="h-4 w-16 rounded bg-muted animate-pulse" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <div className="hidden md:block"><TableSkeleton rows={4} cols={5} /></div>
+          {!isDesktop && (
+            <div className="space-y-3 p-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="shadow-sm">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="h-5 w-2/3 rounded bg-muted animate-pulse" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="h-4 w-20 rounded bg-muted animate-pulse" />
+                      <div className="h-4 w-16 rounded bg-muted animate-pulse" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+          {isDesktop && <TableSkeleton rows={4} cols={5} />}
         </>
       ) : isError ? (
         <div className="p-6">
