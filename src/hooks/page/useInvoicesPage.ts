@@ -1,14 +1,14 @@
 /**
  * هوك منطق صفحة الفواتير — orchestrator
- * الحالة والنموذج مُستخرَجان في hooks فرعية
+ * الفلاتر ورفع الملفات مُستخرَجان في hooks فرعية
  */
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { supabase } from '@/integrations/supabase/client';
 import {
   useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile,
   INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear,
-  useGenerateInvoicePdf, ALLOWED_MIME_TYPES, MAX_FILE_SIZE,
+  useGenerateInvoicePdf,
 } from '@/hooks/data/useInvoices';
 import type { InvoicePreviewData } from '@/components/invoices/InvoicePreviewDialog';
 import { useProperties } from '@/hooks/data/useProperties';
@@ -16,6 +16,8 @@ import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import { useInvoiceFilters } from './useInvoiceFilters';
+import { useInvoiceFileUpload } from './useInvoiceFileUpload';
 
 // تعقيم الوصف ضد CSV Injection
 const sanitizeDescription = (value: string): string => {
@@ -36,19 +38,14 @@ export const useInvoicesPage = () => {
   const deleteInvoice = useDeleteInvoice();
   const generatePdf = useGenerateInvoicePdf();
 
+  // هوكات فرعية
+  const filters = useInvoiceFilters(invoices);
+  const fileUpload = useInvoiceFileUpload();
+
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; file_path?: string | null } | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [_fileError, setFileError] = useState('');
-  const [isDragging, setIsDragging] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
   const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
   const [templateOpen, setTemplateOpen] = useState(false);
@@ -57,6 +54,8 @@ export const useInvoicesPage = () => {
     invoice_number: '', invoice_type: '', amount: '', date: '',
     property_id: '', contract_id: '', description: '', status: 'pending',
   });
+
+  const ITEMS_PER_PAGE = 10;
 
   // بناء بيانات المعاينة
   const buildPreviewData = (inv: Invoice): InvoicePreviewData => {
@@ -94,42 +93,10 @@ export const useInvoicesPage = () => {
     };
   };
 
-  useEffect(() => {
-    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
-  }, [previewUrl]);
-
-  const ITEMS_PER_PAGE = 10;
-
-  const validateAndSetFile = (file: File) => {
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      setFileError('نوع الملف غير مسموح. الأنواع المسموحة: PDF, JPG, PNG, WEBP');
-      setSelectedFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      setFileError('حجم الملف يتجاوز الحد الأقصى (10 ميجابايت)');
-      setSelectedFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-    setFileError('');
-    setSelectedFile(file);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    if (file.type.startsWith('image/')) {
-      setPreviewUrl(URL.createObjectURL(file));
-    } else {
-      setPreviewUrl(null);
-    }
-  };
-
   const resetForm = () => {
     setFormData({ invoice_number: '', invoice_type: '', amount: '', date: '', property_id: '', contract_id: '', description: '', status: 'pending' });
-    setSelectedFile(null);
-    setFileError('');
+    fileUpload.resetFileState();
     setEditingInvoice(null);
-    setPreviewUrl(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleEdit = (item: Invoice) => {
@@ -145,7 +112,7 @@ export const useInvoicesPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.invoice_type || !formData.date) { toast.error('يرجى ملء الحقول المطلوبة'); return; }
-    if (!editingInvoice && !selectedFile) { toast.error('يرجى رفع ملف الفاتورة'); return; }
+    if (!editingInvoice && !fileUpload.selectedFile) { toast.error('يرجى رفع ملف الفاتورة'); return; }
     if (!(parseFloat(formData.amount) > 0)) { toast.error('يرجى إدخال مبلغ أكبر من صفر'); return; }
 
     try {
@@ -158,11 +125,11 @@ export const useInvoicesPage = () => {
       };
       if (!editingInvoice && fiscalYear?.id) invoiceData.fiscal_year_id = fiscalYear.id;
 
-      if (selectedFile) {
+      if (fileUpload.selectedFile) {
         if (editingInvoice?.file_path) {
           try { await supabase.storage.from('invoices').remove([editingInvoice.file_path]); } catch { /* تجاهل */ }
         }
-        const { path, name } = await uploadInvoiceFile(selectedFile);
+        const { path, name } = await uploadInvoiceFile(fileUpload.selectedFile);
         invoiceData.file_path = path;
         invoiceData.file_name = name;
       }
@@ -201,19 +168,6 @@ export const useInvoicesPage = () => {
     } catch { /* mutation handles toast */ }
   };
 
-  const filteredInvoices = useMemo(() => {
-    return invoices.filter((item) => {
-      if (filterType !== 'all' && item.invoice_type !== filterType) return false;
-      if (filterStatus !== 'all' && item.status !== filterStatus) return false;
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        return (item.invoice_number || '').toLowerCase().includes(q) || (INVOICE_TYPE_LABELS[item.invoice_type] || '').includes(q) ||
-          (item.description || '').toLowerCase().includes(q) || (item.file_name || '').toLowerCase().includes(q) || item.date.includes(q);
-      }
-      return true;
-    });
-  }, [invoices, filterType, filterStatus, searchQuery]);
-
   const statusBadgeVariant = (status: string) => {
     if (status === 'paid') return 'default' as const;
     if (status === 'cancelled') return 'destructive' as const;
@@ -221,16 +175,22 @@ export const useInvoicesPage = () => {
   };
 
   return {
-    invoices, filteredInvoices, properties, contracts, isLoading, isClosed,
+    invoices, filteredInvoices: filters.filteredInvoices, properties, contracts, isLoading, isClosed,
     fiscalYear, fiscalYearId, pdfWaqfInfo,
-    viewMode, setViewMode, isOpen, setIsOpen, searchQuery, setSearchQuery,
-    filterType, setFilterType, filterStatus, setFilterStatus,
-    deleteTarget, setDeleteTarget, currentPage, setCurrentPage,
-    uploading, selectedFile, isDragging, setIsDragging, previewUrl,
-    fileInputRef, viewerFile, setViewerFile, previewInvoice, setPreviewInvoice,
+    viewMode, setViewMode, isOpen, setIsOpen,
+    searchQuery: filters.searchQuery, setSearchQuery: filters.setSearchQuery,
+    filterType: filters.filterType, setFilterType: filters.setFilterType,
+    filterStatus: filters.filterStatus, setFilterStatus: filters.setFilterStatus,
+    deleteTarget, setDeleteTarget,
+    currentPage: filters.currentPage, setCurrentPage: filters.setCurrentPage,
+    uploading, selectedFile: fileUpload.selectedFile,
+    isDragging: fileUpload.isDragging, setIsDragging: fileUpload.setIsDragging,
+    previewUrl: fileUpload.previewUrl,
+    fileInputRef: fileUpload.fileInputRef,
+    viewerFile, setViewerFile, previewInvoice, setPreviewInvoice,
     templateOpen, setTemplateOpen, editingInvoice, formData, setFormData,
-    validateAndSetFile, resetForm, handleEdit, handleSubmit, handleConfirmDelete,
-    buildPreviewData, statusBadgeVariant,
+    validateAndSetFile: fileUpload.validateAndSetFile, resetForm, handleEdit,
+    handleSubmit, handleConfirmDelete, buildPreviewData, statusBadgeVariant,
     createInvoice, updateInvoice, generatePdf,
     ITEMS_PER_PAGE, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS,
   };
