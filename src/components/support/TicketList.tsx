@@ -17,10 +17,12 @@ interface TicketListProps {
 }
 
 const TicketList = ({ tickets, onSelect }: TicketListProps) => {
+  const isDesktop = useIsDesktop();
   return (
     <>
       {/* Mobile Cards */}
-      <div className="space-y-3 md:hidden">
+      {!isDesktop && (
+      <div className="space-y-3">
         {tickets.map(ticket => {
           const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
           const Icon = s.icon;
