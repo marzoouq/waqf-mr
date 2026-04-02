@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,9 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useCreateAdvanceRequest } from '@/hooks/financial/useAdvanceRequests';
 import { Banknote, Loader2, AlertTriangle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { fmt } from '@/utils/format';
+import { useMaxAdvanceAmount, type ServerAdvanceData } from '@/hooks/data/useMaxAdvanceAmount';
 
 interface AdvanceRequestDialogProps {
   beneficiaryId: string;
