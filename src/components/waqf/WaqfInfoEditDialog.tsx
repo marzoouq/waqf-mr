@@ -76,7 +76,6 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
   const handleSave = () => {
     save(fields, formData, logoFile, currentLogoUrl);
   };
-  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
