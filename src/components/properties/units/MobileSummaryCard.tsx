@@ -5,6 +5,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { fmt, fmtInt } from '@/utils/format';
 import type { UnitRow } from '@/hooks/data/useUnits';
 import type { Contract } from '@/types/database';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface MobileSummaryCardProps {
   units: UnitRow[];
