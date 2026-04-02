@@ -72,7 +72,8 @@ const DistributeDialog = ({
         ) : (
           <>
           {/* Mobile Cards */}
-          <div className="md:hidden space-y-3">
+          {!isDesktop && (
+          <div className="space-y-3">
             {distributions.map(d => (
               <div key={d.beneficiary_id} className={`rounded-lg border p-3 space-y-2 ${d.deficit > 0 ? 'border-destructive/30 bg-destructive/5' : 'border-border'}`}>
                 <div className="flex items-center justify-between">
