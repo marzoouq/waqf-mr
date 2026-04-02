@@ -54,19 +54,7 @@ const AccountsPage = () => {
               </span>
             )}
             <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={() => {
-              const csv = buildCsv([{
-                'السنة المالية': page.selectedFY?.label || '-',
-                'إجمالي الإيرادات': page.totalIncome,
-                'إجمالي المصروفات': page.totalExpenses,
-                'صافي بعد المصروفات': page.netAfterExpenses,
-                'الضريبة': page.manualVat,
-                'الزكاة': page.zakatAmount,
-                'حصة الناظر': page.adminShare,
-                'حصة الواقف': page.waqifShare,
-                'ريع الوقف': page.waqfRevenue,
-                'رقبة الوقف': page.waqfCorpusManual,
-                'المتاح للتوزيع': page.availableAmount,
-              }]);
+              const csv = buildCsv([{ 'السنة المالية': page.selectedFY?.label || '-', 'إجمالي الإيرادات': page.totalIncome, 'إجمالي المصروفات': page.totalExpenses, 'صافي بعد المصروفات': page.netAfterExpenses, 'الضريبة': page.manualVat, 'الزكاة': page.zakatAmount, 'حصة الناظر': page.adminShare, 'حصة الواقف': page.waqifShare, 'ريع الوقف': page.waqfRevenue, 'رقبة الوقف': page.waqfCorpusManual, 'المتاح للتوزيع': page.availableAmount }]);
               downloadCsv(csv, `حسابات-${page.selectedFY?.label || 'عام'}.csv`);
             }} />
             <Button onClick={page.handleCreateAccount} className="gradient-primary gap-2" disabled={page.createAccountPending}>

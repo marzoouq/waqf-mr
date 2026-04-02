@@ -4,7 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
-import type { ClientError, SupportAnalyticsData } from './supportTypes';
+import type { ClientError, SupportAnalyticsData } from '@/types/supportTypes';
 
 /** جلب أخطاء التطبيق من سجل الوصول */
 export const useClientErrors = () => {
