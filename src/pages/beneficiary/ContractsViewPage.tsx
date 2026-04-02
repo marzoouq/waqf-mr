@@ -183,11 +183,13 @@ const ContractsViewPage = () => {
                   );
                 })}
               </div>
-              <div className="md:hidden">
+              )}
+              {!isDesktop && (
                 <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-              </div>
+              )}
               {/* جدول سطح المكتب */}
-              <Card className="hidden md:block">
+              {isDesktop && (
+              <Card>
                 <CardContent className="p-0 overflow-x-auto">
                   <Table className="min-w-[700px]">
                     <TableHeader>
