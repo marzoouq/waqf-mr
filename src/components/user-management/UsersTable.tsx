@@ -1,5 +1,5 @@
 /**
- * جدول المستخدمين — عرض موبايل (بطاقات) + سطح مكتب (جدول)
+ * جدول المستخدمين — عرض واحد حسب الشاشة (viewport-aware)
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, Edit, Trash2, CheckCircle, XCircle, Key, AlertTriangle } from 'lucide-react';
 import type { ManagedUser } from '@/hooks/auth/useUserManagement';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 const getRoleBadge = (role: string | null) => {
   switch (role) {

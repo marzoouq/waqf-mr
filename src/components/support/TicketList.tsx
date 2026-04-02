@@ -1,5 +1,5 @@
 /**
- * مكون قائمة التذاكر — عرض الجدول والبطاقات
+ * مكون قائمة التذاكر — عرض واحد حسب الشاشة (viewport-aware)
  */
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Eye, Star } from 'lucide-react';
 import type { SupportTicket } from '@/hooks/data/useSupportTickets';
 import { fmtDate } from '@/utils/format';
 import { STATUS_MAP } from './supportConstants';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface TicketListProps {
   tickets: SupportTicket[];

@@ -1,9 +1,10 @@
 /**
- * جدول التدفق النقدي الشهري (موبايل + سطح المكتب)
+ * جدول التدفق النقدي الشهري — عرض واحد حسب الشاشة
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import type { CashFlowMonth, CashFlowTotals } from '@/hooks/reports/useCashFlowData';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface Props {
   monthlyData: CashFlowMonth[];

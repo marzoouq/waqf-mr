@@ -1,10 +1,11 @@
 /**
- * بطاقة توزيع الحصص على المستفيدين — مستخرجة من ReportsPage
+ * بطاقة توزيع الحصص على المستفيدين — عرض واحد حسب الشاشة
  */
 import { fmt } from '@/utils/format';
 import { formatPercentage } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface DistributionItem {
   name?: string;

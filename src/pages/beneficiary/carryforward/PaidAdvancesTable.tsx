@@ -1,10 +1,11 @@
 /**
- * جدول سجل السُلف المصروفة — موبايل + سطح مكتب
+ * جدول سجل السُلف المصروفة — عرض واحد حسب الشاشة
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { fmt, fmtDate } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface Advance {
   id: string;

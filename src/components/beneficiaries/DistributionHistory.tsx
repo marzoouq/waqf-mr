@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Beneficiary } from '@/types/database';
 import { fmt as fmtNum } from '@/utils/format';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface Props {
   beneficiary: Beneficiary;
