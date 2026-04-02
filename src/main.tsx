@@ -20,45 +20,54 @@ if (_supabaseUrl) {
   document.head.appendChild(link);
 }
 
+// ─── دالة مساعدة لإزالة الـ splash بأمان ───
+function removeSplash() {
+  const splash = document.getElementById('splash');
+  if (splash) {
+    splash.style.opacity = '0';
+    splash.addEventListener('transitionend', () => splash.remove(), { once: true });
+    setTimeout(() => splash.remove(), 500);
+  }
+}
+
 // ─── Bootstrap: تشغيل حارس الكاش أولاً ثم الرسم ───
 (async () => {
-  // timeout خارجي شامل: إذا علقت runPwaCacheGuard لأي سبب (SW/Cache APIs مجمّدة
-  // في بيئات Sandbox/Preview)، نُكمل الإقلاع بعد 3 ثوانٍ على أقصى تقدير
-  const result = await Promise.race<CacheGuardResult>([
-    runPwaCacheGuard(),
-    new Promise<CacheGuardResult>(resolve =>
-      setTimeout(() => {
-        console.warn('[main] runPwaCacheGuard timeout (3s) — forcing continue');
-        resolve('continue');
-      }, 3000)
-    ),
-  ]);
+  try {
+    // timeout خارجي شامل: إذا علقت runPwaCacheGuard لأي سبب (SW/Cache APIs مجمّدة
+    // في بيئات Sandbox/Preview)، نُكمل الإقلاع بعد 3 ثوانٍ على أقصى تقدير
+    const result = await Promise.race<CacheGuardResult>([
+      runPwaCacheGuard(),
+      new Promise<CacheGuardResult>(resolve =>
+        setTimeout(() => {
+          console.warn('[main] runPwaCacheGuard timeout (3s) — forcing continue');
+          resolve('continue');
+        }, 3000)
+      ),
+    ]);
 
-  // إذا تقرر إعادة التحميل، لا نرسم ولا نزيل splash
-  if (result === 'reloading') return;
+    // إذا تقرر إعادة التحميل، لا نرسم ولا نزيل splash
+    if (result === 'reloading') return;
 
-  const rootEl = document.getElementById("root");
-  if (!rootEl) throw new Error("Root element #root not found in DOM");
+    const rootEl = document.getElementById("root");
+    if (!rootEl) throw new Error("Root element #root not found in DOM");
 
-  createRoot(rootEl).render(
-    <StrictMode>
-      <App />
-    </StrictMode>
-  );
+    createRoot(rootEl).render(
+      <StrictMode>
+        <App />
+      </StrictMode>
+    );
 
-  // إزالة splash بعد الرسم الأول المستقر
-  requestAnimationFrame(() => {
-    const splash = document.getElementById('splash');
-    if (splash) {
-      splash.style.opacity = '0';
-      splash.addEventListener('transitionend', () => splash.remove(), { once: true });
-      setTimeout(() => splash.remove(), 500);
-    }
-  });
+    // إزالة splash بعد الرسم الأول المستقر
+    requestAnimationFrame(removeSplash);
 
-  // مراقبة أداء التحميل
-  reportPageLoadMetrics();
+    // مراقبة أداء التحميل
+    reportPageLoadMetrics();
 
-  // قياس Core Web Vitals
-  import('./lib/webVitals').then(({ initWebVitals }) => initWebVitals());
+    // قياس Core Web Vitals
+    import('./lib/webVitals').then(({ initWebVitals }) => initWebVitals());
+  } catch (err) {
+    // شبكة أمان: إذا فشل الإقلاع لأي سبب، نُزيل الـ splash لمنع تجمّد الشاشة
+    console.error('[main] Bootstrap failed:', err);
+    removeSplash();
+  }
 })();
