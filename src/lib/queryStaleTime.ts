@@ -10,7 +10,7 @@ export const STALE_STATIC = 5 * 60_000;
 export const STALE_SETTINGS = 60_000;
 
 /** بيانات مالية — حسابات، سنوات مالية، تخصيصات، عقود */
-export const STALE_FINANCIAL = 5 * 60_000;
+export const STALE_FINANCIAL = 60_000;
 
 /** بيانات حساسة للوقت — سلف، تذاكر دعم */
 export const STALE_REALTIME = 10_000;

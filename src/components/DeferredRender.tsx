@@ -4,7 +4,7 @@ import { useState, useEffect, type ReactNode } from 'react';
  * يؤجّل عرض المكونات غير الحرجة حتى يفرغ المتصفح —
  * يستخدم requestIdleCallback مع timeout كحد أقصى.
  */
-const DeferredRender = ({ children, delay = 1000 }: { children: ReactNode; delay?: number }) => {
+const DeferredRender = ({ children, delay = 3000 }: { children: ReactNode; delay?: number }) => {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     let timerId: number;

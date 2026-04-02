@@ -4,7 +4,7 @@
  */
 import { useMemo, useState, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';

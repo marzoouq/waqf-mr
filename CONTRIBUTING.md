@@ -82,7 +82,6 @@ npm audit
 إذا كان التغيير يشمل `supabase/migrations`:
 
 - تأكيد ترتيب الهجرة زمنيًا
-- استخدام اسم وصفي بعد الطابع الزمني (مثال: `20260401120000_add_beneficiary_indexes.sql`)
 - منع كسر التوافق مع الهجرات السابقة
 - توثيق سبب كل `DROP/CREATE` في العروض والسياسات
 - التحقق من صلاحيات `anon` و`authenticated` و`service_role`
@@ -103,14 +102,13 @@ npm audit
 
 ```bash
 git status --short
-npm run check:tracked-env
 npm run lint
 ```
 
 ### فحص كامل قبل push
 
 ```bash
-npm run check:tracked-env && npm run lint && npx tsc --noEmit && npm run build && npm test && npm audit
+npm run lint && npx tsc --noEmit && npm run build && npm test && npm audit
 ```
 
 ## معايير الرفض

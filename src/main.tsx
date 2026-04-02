@@ -1,15 +1,21 @@
+// rebuild: 2026-03-31T12:18
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { reportPageLoadMetrics } from "./lib/performanceMonitor";
 import { initThemeFromStorage } from "./lib/theme/themeColor.utils";
+import { setPerformanceToast } from "./lib/performanceMonitor";
+import { toast as sonnerToast } from "sonner";
 import { runPwaCacheGuard } from "./lib/pwaBootstrap";
 
 // تهيئة الثيم المحفوظ قبل الرسم
 initThemeFromStorage();
 
-// Preconnect to backend API
+// ربط دالة التنبيه بمراقب الأداء (كان سابقاً في App.tsx)
+setPerformanceToast((msg, opts) => sonnerToast.warning(msg, opts));
+
+// Preconnect to backend API — يقلل زمن أول طلب بـ 50-100ms
 const _supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 if (_supabaseUrl) {
   const link = document.createElement('link');
@@ -18,46 +24,26 @@ if (_supabaseUrl) {
   document.head.appendChild(link);
 }
 
-// ─── دالة مساعدة لإزالة الـ splash بأمان ───
-function removeSplash() {
-  const splash = document.getElementById('splash');
-  if (splash) {
-    splash.style.opacity = '0';
-    splash.addEventListener('transitionend', () => splash.remove(), { once: true });
-    setTimeout(() => splash.remove(), 500);
-  }
+// ─── PWA/cache guard: preview يجب أن يتجاوز أي كاش قديم دائماً ───
+runPwaCacheGuard();
+
+const rootEl = document.getElementById("root");
+if (!rootEl) throw new Error("Root element #root not found in DOM");
+
+createRoot(rootEl).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+
+// إزالة splash screen بعد تحميل React
+const splash = document.getElementById('splash');
+if (splash) {
+  splash.style.opacity = '0';
+  splash.addEventListener('transitionend', () => splash.remove(), { once: true });
+  // fallback في حال لم يعمل transitionend
+  setTimeout(() => splash.remove(), 500);
 }
 
-// ─── رسم التطبيق مباشرة ───
-function renderApp() {
-  const rootEl = document.getElementById("root");
-  if (!rootEl) throw new Error("Root element #root not found in DOM");
-
-  createRoot(rootEl).render(
-    <StrictMode>
-      <App />
-    </StrictMode>
-  );
-
-  requestAnimationFrame(removeSplash);
-  reportPageLoadMetrics();
-  import('./lib/webVitals').then(({ initWebVitals }) => initWebVitals()).catch(() => {});
-}
-
-// ─── Bootstrap بسيط: cache guard ثم render ───
-runPwaCacheGuard()
-  .catch(() => 'continue' as const)
-  .then((result) => {
-    if (result === 'reloading') return;
-    renderApp();
-  })
-  .catch((err) => {
-    console.error('[main] Bootstrap failed:', err);
-    // شبكة أمان: حاول الرسم على أي حال
-    try { renderApp(); } catch {
-      const loader = document.getElementById('splash-loader');
-      const errorEl = document.getElementById('splash-error');
-      if (loader) loader.style.display = 'none';
-      if (errorEl) errorEl.style.display = 'block';
-    }
-  });
+// مراقبة أداء التحميل
+reportPageLoadMetrics();

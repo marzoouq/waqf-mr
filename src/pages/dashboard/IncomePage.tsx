@@ -3,7 +3,7 @@ import { lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 const IncomeMonthlyChart = lazy(() => import('@/components/dashboard/IncomeMonthlyChart'));
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
-
+import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -53,7 +53,7 @@ const IncomePage = () => {
           icon={TrendingUp}
           description="تسجيل ومتابعة مصادر الدخل"
           actions={<>
-            <ExportMenu onExportPdf={async () => { const { generateIncomePDF } = await import('@/utils/pdf'); generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo); }} onExportCsv={() => {
+            <ExportMenu onExportPdf={() => generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo)} onExportCsv={() => {
               const csv = buildCsv(filteredIncome.map(item => ({
                 'المصدر': item.source,
                 'المبلغ': safeNumber(item.amount),

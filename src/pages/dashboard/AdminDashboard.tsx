@@ -2,21 +2,20 @@
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { lazy, Suspense, useMemo } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { useDashboardRealtime } from '@/hooks/data/useDashboardRealtime';
+import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { safeNumber } from '@/utils/safeNumber';
 import { computeMonthlyData } from '@/utils/dashboardComputations';
-
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
-import { Printer, Gauge, BarChart3, ArrowUpDown, Activity } from 'lucide-react';
+import { Printer, Gauge, ArrowUpDown } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import DeferredRender from '@/components/DeferredRender';
-import CollapsibleSection from '@/components/dashboard/CollapsibleSection';
 
 // هوك البيانات المدمج — طلب واحد بدلاً من ~10
 import { useDashboardSummary } from '@/hooks/page/useDashboardSummary';
@@ -33,11 +32,11 @@ import QuickActionsCard from '@/components/dashboard/QuickActionsCard';
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
 
 // Lazy-load heavy below-the-fold components
-const DashboardChartsInner = lazy(() => import('@/components/dashboard/DashboardChartsInner'));
+const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
+const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
 const CollectionHeatmap = lazy(() => import('@/components/dashboard/CollectionHeatmap'));
 const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingActionsTable'));
 const PagePerformanceCard = lazy(() => import('@/components/dashboard/PagePerformanceCard'));
-const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
 
 const ChartSkeleton = () => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -189,7 +188,7 @@ const AdminDashboard = () => {
           <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
         </ErrorBoundary>
 
-        {/* خريطة حرارية — مؤجلة */}
+        {/* خريطة حرارية — تُخفى عند الطباعة */}
         <DeferredRender delay={1500}>
           <div className="print:hidden">
             <ErrorBoundary>
@@ -209,45 +208,63 @@ const AdminDashboard = () => {
           </ErrorBoundary>
         </DeferredRender>
 
-        {/* الرسوم البيانية — قابلة للطي، مغلقة افتراضياً لتقليل DOM */}
+        {/* الرسوم البيانية — تُخفى عند الطباعة */}
         <DeferredRender delay={2500}>
           <div className="print:hidden">
             <ErrorBoundary>
-              <CollapsibleSection title="الرسوم البيانية" icon={BarChart3} printHidden>
-                <Suspense fallback={<ChartSkeleton />}>
-                  <DashboardChartsInner monthlyData={monthlyData} expenseTypes={expenseTypes} />
-                </Suspense>
-              </CollapsibleSection>
+              <Suspense fallback={<ChartSkeleton />}>
+                <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
+              </Suspense>
             </ErrorBoundary>
           </div>
         </DeferredRender>
 
-        {/* مقارنة بين السنوات — قابلة للطي، مغلقة افتراضياً */}
-        {allFiscalYears.length >= 2 && (
-          <DeferredRender delay={3000}>
+        {/* مقارنة بين السنوات */}
+        <DeferredRender delay={3000}>
+          {allFiscalYears.length >= 2 ? (
             <ErrorBoundary>
-              <CollapsibleSection title="مقارنة بين السنوات المالية" icon={ArrowUpDown}>
-                <Suspense fallback={<ChartSkeleton />}>
-                  <YearOverYearComparison
-                    fiscalYears={allFiscalYears}
-                    currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
-                  />
-                </Suspense>
-              </CollapsibleSection>
+              <Suspense fallback={<ChartSkeleton />}>
+                <Card className="shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ArrowUpDown className="w-5 h-5" />
+                      مقارنة بين السنوات المالية
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <YearOverYearComparison
+                      fiscalYears={allFiscalYears}
+                      currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
+                    />
+                  </CardContent>
+                </Card>
+              </Suspense>
             </ErrorBoundary>
-          </DeferredRender>
-        )}
+          ) : (
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ArrowUpDown className="w-5 h-5" />
+                  مقارنة بين السنوات المالية
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-center text-muted-foreground py-8">
+                  ستتوفر المقارنة بين السنوات عند إضافة سنة مالية ثانية على الأقل.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </DeferredRender>
 
-        {/* مراقبة أداء الصفحات — قابلة للطي */}
+        {/* مراقبة أداء الصفحات — للناظر فقط، تُخفى عند الطباعة */}
         {role === 'admin' && (
           <DeferredRender delay={3500}>
             <div className="print:hidden">
               <ErrorBoundary>
-                <CollapsibleSection title="مراقبة أداء الصفحات" icon={Activity} printHidden>
-                  <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-                    <PagePerformanceCard />
-                  </Suspense>
-                </CollapsibleSection>
+                <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+                  <PagePerformanceCard />
+                </Suspense>
               </ErrorBoundary>
             </div>
           </DeferredRender>

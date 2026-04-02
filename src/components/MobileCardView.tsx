@@ -2,7 +2,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Edit, Trash2 } from 'lucide-react';
-import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 export interface CardField {
   label: string;
@@ -37,12 +36,9 @@ function MobileCardView<T>({
   isLoading,
   skeletonCount = 3,
 }: MobileCardViewProps<T>) {
-  const isDesktop = useIsDesktop();
-  if (isDesktop) return null;
-
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-3 md:hidden">
         {Array.from({ length: skeletonCount }).map((_, i) => (
           <Card key={i} className="shadow-sm">
             <CardContent className="p-4 space-y-3">
@@ -63,7 +59,7 @@ function MobileCardView<T>({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 md:hidden">
       {items.map((item) => (
         <Card key={getKey(item)} className="shadow-sm">
           <CardContent className="p-4 space-y-3">

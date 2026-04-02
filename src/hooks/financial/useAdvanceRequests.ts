@@ -1,6 +1,6 @@
 /**
  * هوكات إدارة طلبات السُلف (advance_requests) — mutations فقط
- * الأنواع في src/types/advance.ts والترحيلات في advanceTypes.ts
+ * الأنواع والترحيلات في advanceTypes.ts
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +10,7 @@ import { notifyAdmins, notifyUser } from '@/utils/notifications';
 import { fmt } from '@/utils/format';
 
 // إعادة تصدير كل شيء من advanceTypes للتوافقية
-export type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
+export type { AdvanceRequest, AdvanceCarryforward } from './advanceTypes';
 export {
   useMyBeneficiaryFinance,
   useMyAdvanceRequests,
@@ -18,7 +18,7 @@ export {
   useCarryforwardBalance,
   useMyCarryforwards,
   useAllCarryforwards,
-} from './useAdvanceFinance';
+} from './advanceTypes';
 
 /**
  * جلب طلبات السُلف — للناظر: الكل، للمستفيد: طلباته فقط (RLS تتكفل)
@@ -38,7 +38,7 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
       }
       const { data, error } = await query;
       if (error) throw error;
-      return (data ?? []) as unknown as import('@/types/advance').AdvanceRequest[];
+      return (data ?? []) as unknown as import('./advanceTypes').AdvanceRequest[];
     },
   });
 };

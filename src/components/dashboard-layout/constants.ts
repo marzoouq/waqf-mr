@@ -8,7 +8,7 @@ import {
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
   ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity,
 } from 'lucide-react';
-import type { MenuLabels } from '@/constants/menuLabels';
+import type { MenuLabels } from '@/types/menuLabels';
 
 // ─── Map link keys to menu_labels keys ───
 export const linkLabelKeys: Record<string, keyof MenuLabels> = {

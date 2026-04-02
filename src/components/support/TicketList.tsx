@@ -1,5 +1,5 @@
 /**
- * مكون قائمة التذاكر — عرض واحد حسب الشاشة (viewport-aware)
+ * مكون قائمة التذاكر — عرض الجدول والبطاقات
  */
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,6 @@ import { Eye, Star } from 'lucide-react';
 import type { SupportTicket } from '@/hooks/data/useSupportTickets';
 import { fmtDate } from '@/utils/format';
 import { STATUS_MAP } from './supportConstants';
-import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface TicketListProps {
   tickets: SupportTicket[];
@@ -17,12 +16,10 @@ interface TicketListProps {
 }
 
 const TicketList = ({ tickets, onSelect }: TicketListProps) => {
-  const isDesktop = useIsDesktop();
   return (
     <>
       {/* Mobile Cards */}
-      {!isDesktop && (
-      <div className="space-y-3">
+      <div className="space-y-3 md:hidden">
         {tickets.map(ticket => {
           const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
           const Icon = s.icon;
@@ -60,11 +57,9 @@ const TicketList = ({ tickets, onSelect }: TicketListProps) => {
           );
         })}
       </div>
-      )}
 
       {/* Desktop Table */}
-      {isDesktop && (
-      <div className="overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
@@ -112,7 +107,6 @@ const TicketList = ({ tickets, onSelect }: TicketListProps) => {
           </TableBody>
         </Table>
       </div>
-      )}
     </>
   );
 };

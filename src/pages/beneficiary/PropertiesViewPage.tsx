@@ -2,7 +2,7 @@
  * صفحة عرض العقارات للمستفيد (قراءة فقط)
  */
 import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import ExportMenu from '@/components/ExportMenu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { Building2, MapPin, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler, TrendingUp, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-
+import { generatePropertiesPDF } from '@/utils/pdf';
 import { toast } from 'sonner';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { fmt, fmtInt } from '@/utils/format';
@@ -61,7 +61,6 @@ const PropertiesViewPage = () => {
           actions={
             <ExportMenu onExportPdf={async () => {
               try {
-                const { generatePropertiesPDF } = await import('@/utils/pdf');
                 await generatePropertiesPDF(
                   (properties ?? []).map(p => ({
                     property_number: p.property_number, property_type: p.property_type,

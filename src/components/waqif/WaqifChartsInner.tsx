@@ -4,7 +4,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { fmt } from '@/utils/format';
 import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chartHelpers';
-import ChartBox from '@/components/charts/ChartBox';
+import { useChartReady } from '@/hooks/ui/useChartReady';
 
 interface MonthlyItem { month: string; income: number; expenses: number }
 interface ExpenseItem { name: string; value: number }
@@ -14,10 +14,20 @@ interface WaqifChartsInnerProps {
   expenseData: ExpenseItem[];
 }
 
+/** مكون فرعي لحاوية رسم بياني مع useChartReady */
+const ChartBox: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { ref, ready } = useChartReady();
+  return (
+    <div ref={ref} className="h-[280px] min-w-0 min-h-[1px]">
+      {ready && children}
+    </div>
+  );
+};
+
 const WaqifChartsInner: React.FC<WaqifChartsInnerProps> = ({ monthlyData, expenseData }) => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
     {monthlyData.length > 0 && (
-      <ChartBox className="h-[280px]">
+      <ChartBox>
         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <BarChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -32,7 +42,7 @@ const WaqifChartsInner: React.FC<WaqifChartsInnerProps> = ({ monthlyData, expens
     )}
 
     {expenseData.length > 0 && (
-      <ChartBox className="h-[280px]">
+      <ChartBox>
         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <PieChart>
             <Pie

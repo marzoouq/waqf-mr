@@ -78,7 +78,7 @@ vi.mock('@/hooks/data/useNotifications', () => ({
 }));
 
 vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
-vi.mock('@/components/dashboard-layout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 
 import PropertiesViewPage from './PropertiesViewPage';
 

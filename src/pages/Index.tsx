@@ -3,7 +3,7 @@
  */
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppSettings, useWaqfInfo } from '@/hooks/page/useAppSettings';
@@ -13,9 +13,6 @@ import LandingHero from '@/components/landing/LandingHero';
 import LandingFeatures from '@/components/landing/LandingFeatures';
 import LandingCTA from '@/components/landing/LandingCTA';
 import LandingFooter from '@/components/landing/LandingFooter';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { logger } from '@/lib/logger';
 
 const defaultLanding: LandingPageContent = {
   hero_title: 'نظام إدارة الوقف',
@@ -38,33 +35,9 @@ const placeholderStats = [
 const Index = () => {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
-
-  // كشف وجود جلسة سابقة لمنع وميض Landing Page قبل شاشة التحميل
-  // أصبح قابلاً للتعديل حتى يمكن كسر قفل Skeleton بعد timeout
-  const [maybeAuthenticated, setMaybeAuthenticated] = useState(() => {
-    try {
-      const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-      return !!storageKey && !!localStorage.getItem(storageKey);
-    } catch { return false; }
-  });
-
   const { getJsonSetting } = useAppSettings();
   const content = getJsonSetting<LandingPageContent>('landing_page_content', defaultLanding);
   const { data: waqfInfo } = useWaqfInfo();
-
-  const [roleTimeout, setRoleTimeout] = useState(false);
-
-  // إصلاح جنائي: safety timeout لكسر Skeleton العالق بسبب توكن قديم في localStorage
-  // إذا مرّت 4 ثوانٍ و loading لا يزال true مع maybeAuthenticated، نُظهر Landing Page قسراً
-  // هذا يضمن أن الواجهة لا تبقى عالقة أكثر من 4 ثوانٍ حتى لو فشل onAuthStateChange كلياً
-  useEffect(() => {
-    if (!maybeAuthenticated || !loading) return;
-    const t = setTimeout(() => {
-      logger.warn('[Index] maybeAuthenticated safety timeout (4s) — forcing landing page');
-      setMaybeAuthenticated(false);
-    }, 4000);
-    return () => clearTimeout(t);
-  }, [maybeAuthenticated, loading]);
 
   useEffect(() => {
     if (!loading && user) {
@@ -77,21 +50,6 @@ const Index = () => {
       }
     }
   }, [user, role, loading, navigate]);
-
-  // Fallback: إذا مرّ 5 ثوانٍ ولم يُحدد الدور، توجيه لصفحة المصادقة
-  useEffect(() => {
-    if (!loading && user && !role) {
-      const timer = setTimeout(() => {
-        logger.warn('[Index] role=null timeout after 5s, redirecting to /auth');
-        setRoleTimeout(true);
-        toast.error('تعذّر تحديد صلاحياتك — يرجى تسجيل الدخول مجدداً');
-        navigate('/auth', { replace: true });
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-    setRoleTimeout(false);
-    return undefined;
-  }, [loading, user, role, navigate]);
 
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['public-stats'],
@@ -138,36 +96,6 @@ const Index = () => {
     inLanguage: "ar",
     offers: { "@type": "Offer", price: "0", priceCurrency: "SAR" },
   };
-
-  // عرض skeleton للمستخدم المسجّل أثناء التحميل بدلاً من Landing Page
-  // maybeAuthenticated يمنع وميض Landing Page عندما loading=true و user=null (قبل حل الجلسة)
-  if ((loading && (user || maybeAuthenticated)) || (!loading && user && !role && !roleTimeout)) {
-    return (
-      <div className="min-h-screen bg-background p-4 md:p-8 animate-fade-in" dir="rtl">
-        <div className="flex items-center justify-between mb-8">
-          <Skeleton className="h-8 w-40 rounded-lg" />
-          <div className="flex gap-3">
-            <Skeleton className="h-9 w-9 rounded-full" />
-            <Skeleton className="h-9 w-9 rounded-full" />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-xl border border-border bg-card p-4 space-y-3">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-7 w-28" />
-            </div>
-          ))}
-        </div>
-        <div className="rounded-xl border border-border bg-card p-4 space-y-4">
-          <Skeleton className="h-5 w-32 mb-2" />
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-4 w-full" />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <main dir="rtl" className="min-h-screen bg-background">

@@ -28,7 +28,7 @@ interface ReportData {
   }>;
 }
 
-export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWaqfInfo, chartsImage?: string, chartsAspect?: number) => {
+export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWaqfInfo) => {
   const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
@@ -60,40 +60,7 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
     ...baseTableStyles(fontFamily),
   });
 
-  let finalY = getLastAutoTableY(doc, 100);
-
-  // إضافة الرسوم البيانية كصورة إن وُجدت
-  if (chartsImage) {
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 10;
-    const imgWidth = pageWidth - margin * 2;
-    const aspect = chartsAspect || 1.5;
-    const imgHeight = imgWidth / aspect;
-
-    // التأكد من وجود مساحة كافية أو إضافة صفحة جديدة
-    const pageHeight = doc.internal.pageSize.getHeight();
-    if (finalY + imgHeight + 20 > pageHeight - 20) {
-      doc.addPage();
-      finalY = 20;
-    }
-
-    doc.setFontSize(14);
-    doc.setFont(fontFamily, 'bold');
-    doc.text(rs('التحليل البياني'), 105, finalY + 12, { align: 'center' });
-
-    // إطار مع خلفية بيضاء وحدود واضحة
-    const frameX = margin - 1;
-    const frameY = finalY + 16;
-    const frameW = imgWidth + 2;
-    const frameH = imgHeight + 4;
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.5);
-    doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, 'FD');
-
-    doc.addImage(chartsImage, 'PNG', margin, finalY + 18, imgWidth, imgHeight);
-    finalY = finalY + 18 + imgHeight + 8;
-  }
+  const finalY = getLastAutoTableY(doc, 100);
 
   doc.setFontSize(14);
   doc.setFont(fontFamily, 'bold');

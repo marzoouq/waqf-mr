@@ -4,7 +4,6 @@
  * تحميل PDF يأخذ لقطة من المعاينة مباشرة (WYSIWYG)
  */
 import { useState, useEffect, useCallback } from 'react';
-import { preloadPdfChunks } from '@/lib/heavyChunkPreloader';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, Printer, Loader2 } from 'lucide-react';
@@ -100,7 +99,6 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
               size="sm"
               className="gap-1.5"
               onClick={handleDownloadPdf}
-              onMouseEnter={preloadPdfChunks}
               disabled={downloading}
             >
               {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}

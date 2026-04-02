@@ -95,7 +95,7 @@ const TicketViewDialog = ({ ticket, onClose }: TicketViewDialogProps) => {
 
         {ticket.status !== 'closed' && ticket.status !== 'resolved' && (
           <div className="flex gap-2">
-            <Textarea id="ticket-view-reply" name="ticket_view_reply" value={replyContent} onChange={e => setReplyContent(e.target.value)} placeholder="اكتب رداً..." className="flex-1" />
+            <Textarea value={replyContent} onChange={e => setReplyContent(e.target.value)} placeholder="اكتب رداً..." className="flex-1" />
             <Button size="icon" onClick={handleSend} disabled={!replyContent.trim() || addReply.isPending}>
               <Send className="w-4 h-4" />
             </Button>
@@ -142,8 +142,6 @@ const TicketViewDialog = ({ ticket, onClose }: TicketViewDialogProps) => {
               </p>
             )}
             <Textarea
-              id="ticket-rating-comment"
-              name="ticket_rating_comment"
               placeholder="ملاحظات إضافية (اختياري)..."
               value={ratingComment}
               onChange={e => setRatingComment(e.target.value)}

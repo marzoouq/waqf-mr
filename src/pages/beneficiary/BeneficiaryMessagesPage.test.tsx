@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('@/components/dashboard-layout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 
 vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary' })),
@@ -39,7 +39,7 @@ describe('BeneficiaryMessagesPage', () => {
 
   it('shows support button', () => {
     renderPage();
-    expect(screen.getByText('الدعم الفني')).toBeInTheDocument();
+    expect(screen.getByText('دعم فني')).toBeInTheDocument();
   });
 
   it('shows chat and support tabs', () => {
@@ -55,6 +55,6 @@ describe('BeneficiaryMessagesPage', () => {
 
   it('shows empty state prompt when no conversation selected', () => {
     renderPage();
-    expect(screen.getByText('اختر محادثة من القائمة أو ابدأ محادثة جديدة')).toBeInTheDocument();
+    expect(screen.getByText('اختر محادثة أو ابدأ محادثة جديدة مع الناظر')).toBeInTheDocument();
   });
 });

@@ -65,7 +65,7 @@ vi.mock('@/hooks/data/usePushNotifications', () => ({
   })),
 }));
 
-vi.mock('@/components/dashboard-layout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 
 import NotificationsPage from './NotificationsPage';
 

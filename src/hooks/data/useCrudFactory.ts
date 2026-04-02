@@ -1,20 +1,30 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { useState, useCallback, useMemo } from 'react';
-
-import type {
-  CrudTableName, CrudRow, CrudInsert, CrudUpdate,
-  CrudNotifications, CrudFactoryConfig, PaginatedQueryResult,
-} from '@/types/crudFactory';
-
-// إعادة تصدير الأنواع للتوافق مع الاستيرادات الحالية
-export type { CrudNotifications, CrudFactoryConfig, PaginatedQueryResult } from '@/types/crudFactory';
+import type { Database } from '@/integrations/supabase/types';
 
 // سجل تتبع تحذيرات الحد الأقصى — بديل آمن عن تخزين في window
 const limitWarnShown = new Set<string>();
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+type Tables = Database['public']['Tables'];
+type TableName = keyof Tables;
+type Row<T extends TableName> = Tables[T]['Row'];
+type Insert<T extends TableName> = Tables[T]['Insert'];
+type Update<T extends TableName> = Tables[T]['Update'];
+
+/** واجهة إشعارات CRUD — يمكن تمريرها لتخصيص أو إلغاء الرسائل */
+export interface CrudNotifications {
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
+  onInfo?: (message: string) => void;
+}
 
 /** الإشعارات الافتراضية عبر sonner toast */
 const defaultNotifications: Required<CrudNotifications> = {
@@ -23,11 +33,56 @@ const defaultNotifications: Required<CrudNotifications> = {
   onInfo: (msg) => toast.info(msg),
 };
 
+/** Configuration for the CRUD factory */
+interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
+  /** Supabase table name */
+  table: T;
+  /** React-query cache key */
+  queryKey: string;
+  /** Custom select string (e.g. '*, property:properties(*)') – defaults to '*' */
+  select?: string;
+  /** Column to order by – defaults to 'created_at' */
+  orderBy?: string;
+  /** Order direction – defaults to descending */
+  ascending?: boolean;
+  /** Max rows per page – defaults to 500 */
+  limit?: number;
+  /** Arabic entity label for toast messages (e.g. 'العقار') */
+  label: string;
+  /** Callback after successful create – receives the created row */
+  onCreateSuccess?: (data: TData) => void;
+  /** Callback after successful update */
+  onUpdateSuccess?: (data: TData) => void;
+  /** ms before data is considered stale — defaults to 60 000 (1 min) */
+  staleTime?: number;
+  /** تخصيص إشعارات — إذا لم يُحدد يُستخدم toast الافتراضي */
+  notifications?: CrudNotifications;
+}
+
+/** نتيجة useList مع دعم التصفح */
+interface PaginatedQueryResult<TData> extends Omit<UseQueryResult<TData[]>, 'data'> {
+  data: TData[] | undefined;
+  /** رقم الصفحة الحالية (يبدأ من 0) */
+  page: number;
+  /** الانتقال إلى الصفحة التالية */
+  nextPage: () => void;
+  /** الانتقال إلى الصفحة السابقة */
+  prevPage: () => void;
+  /** الانتقال إلى صفحة محددة */
+  goToPage: (p: number) => void;
+  /** هل توجد صفحة تالية */
+  hasNextPage: boolean;
+  /** هل توجد صفحة سابقة */
+  hasPrevPage: boolean;
+  /** حجم الصفحة */
+  pageSize: number;
+}
+
 // ---------------------------------------------------------------------------
 // Factory
 // ---------------------------------------------------------------------------
 
-export function createCrudFactory<T extends CrudTableName, TData = CrudRow<T>>(
+export function createCrudFactory<T extends TableName, TData = Row<T>>(
   config: CrudFactoryConfig<T, TData>,
 ) {
   const {
@@ -54,6 +109,7 @@ export function createCrudFactory<T extends CrudTableName, TData = CrudRow<T>>(
     const rangeTo = rangeFrom + limit - 1;
 
     const query = useQuery({
+      // إضافة الصفحة للـ queryKey لتخزين كل صفحة بشكل مستقل
       queryKey: [queryKey, { page }],
       staleTime,
       queryFn: async () => {
@@ -67,6 +123,7 @@ export function createCrudFactory<T extends CrudTableName, TData = CrudRow<T>>(
         return data as TData[];
       },
       select: (data: TData[]) => {
+        // تحذير فقط في الصفحة الأولى لتجنب التكرار
         if (page === 0 && data && data.length === limit) {
           const key = `limit-warn-${queryKey}`;
           if (!limitWarnShown.has(key)) {
@@ -107,14 +164,14 @@ export function createCrudFactory<T extends CrudTableName, TData = CrudRow<T>>(
   };
 
   /** Create a new row */
-  const useCreate = () => {
+  const useCreate = (): UseMutationResult<TData, Error, Insert<T>> => {
     const queryClient = useQueryClient();
 
     return useMutation({
-      mutationFn: async (payload: CrudInsert<T>) => {
+      mutationFn: async (payload: Insert<T>) => {
         const { data, error } = await supabase
           .from(table)
-          .insert(payload as never)
+          .insert(payload as never) // generic T can't be resolved at compile-time
           .select()
           .maybeSingle();
 
@@ -135,14 +192,14 @@ export function createCrudFactory<T extends CrudTableName, TData = CrudRow<T>>(
   };
 
   /** Update an existing row by id */
-  const useUpdate = () => {
+  const useUpdate = (): UseMutationResult<TData, Error, Update<T> & { id: string }> => {
     const queryClient = useQueryClient();
 
     return useMutation({
-      mutationFn: async ({ id, ...payload }: CrudUpdate<T> & { id: string }) => {
+      mutationFn: async ({ id, ...payload }: Update<T> & { id: string }) => {
         const { data, error } = await supabase
           .from(table)
-          .update(payload as never)
+          .update(payload as never) // generic T can't be resolved at compile-time
           .eq('id' as never, id)
           .select()
           .single();
@@ -163,7 +220,7 @@ export function createCrudFactory<T extends CrudTableName, TData = CrudRow<T>>(
   };
 
   /** Delete a row by id */
-  const useDelete = () => {
+  const useDelete = (): UseMutationResult<void, Error, string> => {
     const queryClient = useQueryClient();
 
     return useMutation({

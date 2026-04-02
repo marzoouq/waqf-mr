@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Menu } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
-import ThemeToggle from '@/components/theme/ThemeToggle';
+import ThemeToggle from '@/components/ThemeToggle';
 import { ROUTE_TITLES } from '@/components/dashboard-layout/constants';
 
 interface MobileHeaderProps {
@@ -26,7 +26,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLa
     'إدارة الوقف';
 
   return (
-    <div className="fixed top-[var(--sw-banner-h,0px)] right-0 left-0 z-40 flex items-center justify-between p-3 gradient-hero lg:hidden transition-[top] duration-300" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}>
+    <div className="fixed top-0 right-0 left-0 z-40 flex items-center justify-between p-3 gradient-hero lg:hidden">
       <Button variant="ghost" size="icon" onClick={onOpenSidebar} className="text-sidebar-foreground">
         <Menu className="w-6 h-6" />
       </Button>

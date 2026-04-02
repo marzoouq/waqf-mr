@@ -1,11 +1,10 @@
 /**
- * جدول سجل السُلف المصروفة — عرض واحد حسب الشاشة
+ * جدول سجل السُلف المصروفة — موبايل + سطح مكتب
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { fmt, fmtDate } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
-import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface Advance {
   id: string;
@@ -19,9 +18,7 @@ interface Props {
   paidAdvances: Advance[];
 }
 
-const PaidAdvancesTable = ({ paidAdvances }: Props) => {
-  const isDesktop = useIsDesktop();
-  return (
+const PaidAdvancesTable = ({ paidAdvances }: Props) => (
   <Card>
     <CardHeader>
       <CardTitle className="text-base">سجل السُلف المصروفة</CardTitle>
@@ -32,8 +29,7 @@ const PaidAdvancesTable = ({ paidAdvances }: Props) => {
       ) : (
         <>
           {/* Mobile Cards */}
-          {!isDesktop && (
-          <div className="space-y-3">
+          <div className="space-y-3 md:hidden">
             {paidAdvances.map(adv => (
               <div key={adv.id} className="border rounded-lg p-3 space-y-2">
                 <p className="font-medium text-sm">{fmt(safeNumber(adv.amount))} ر.س</p>
@@ -54,10 +50,8 @@ const PaidAdvancesTable = ({ paidAdvances }: Props) => {
               </div>
             ))}
           </div>
-          )}
           {/* Desktop Table */}
-          {isDesktop && (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -87,12 +81,10 @@ const PaidAdvancesTable = ({ paidAdvances }: Props) => {
               </TableBody>
             </Table>
           </div>
-          )}
         </>
       )}
     </CardContent>
   </Card>
-  );
-};
+);
 
 export default PaidAdvancesTable;

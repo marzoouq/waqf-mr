@@ -1,7 +1,7 @@
 /**
  * صفحة إدارة المستخدمين — مُفكّكة إلى hook + مكونات فرعية
  */
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';

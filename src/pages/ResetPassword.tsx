@@ -82,7 +82,9 @@ const ResetPassword = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full h-11 gradient-primary" onClick={() => navigate('/auth')}> العودة لتسجيل الدخول </Button>
+            <Button className="w-full h-11 gradient-primary" onClick={() => navigate('/auth')}>
+              العودة لتسجيل الدخول
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -103,7 +105,9 @@ const ResetPassword = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full h-11 gradient-primary" onClick={() => navigate('/auth')}> العودة لتسجيل الدخول </Button>
+            <Button className="w-full h-11 gradient-primary" onClick={() => navigate('/auth')}>
+              العودة لتسجيل الدخول
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -122,14 +126,11 @@ const ResetPassword = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* حقل مخفي لمساعدة مديري كلمات المرور على ربط الحساب */}
-            <input type="hidden" autoComplete="username" value="" readOnly />
             <div className="space-y-2">
               <Label htmlFor="new-password">كلمة المرور الجديدة</Label>
               <Input
                 id="new-password"
                 type="password"
-                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -143,7 +144,6 @@ const ResetPassword = () => {
               <Input
                 id="confirm-password"
                 type="password"
-                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
@@ -152,7 +152,13 @@ const ResetPassword = () => {
                 minLength={6}
               />
             </div>
-            <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium" disabled={isLoading}> {isLoading ? (<><Loader2 className="w-4 h-4 animate-spin ml-2" /> جاري التغيير...</>) : ('تغيير كلمة المرور')} </Button>
+            <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium" disabled={isLoading}>
+              {isLoading ? (
+                <><Loader2 className="w-4 h-4 animate-spin ml-2" /> جاري التغيير...</>
+              ) : (
+                'تغيير كلمة المرور'
+              )}
+            </Button>
           </form>
         </CardContent>
       </Card>

@@ -1,6 +1,5 @@
 import { Route } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import RequireBeneficiarySection from "@/components/RequireBeneficiarySection";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { withRouteErrorBoundary as eb } from "./withRouteErrorBoundary";
 
@@ -24,9 +23,9 @@ const AnnualReportViewPage = lazyWithRetry(() => import("@/pages/beneficiary/Ann
 import type { AppRole } from '@/types/database';
 import type { ReactNode } from 'react';
 
-/** دالة مساعدة: حماية دور + حماية قسم */
+/** دالة مساعدة لتقليل التكرار */
 const pr = (roles: AppRole[], page: ReactNode) =>
-  eb(<ProtectedRoute allowedRoles={roles}><RequireBeneficiarySection>{page}</RequireBeneficiarySection></ProtectedRoute>);
+  eb(<ProtectedRoute allowedRoles={roles}>{page}</ProtectedRoute>);
 
 const BEN: AppRole[] = ['admin', 'beneficiary'];
 const ALL: AppRole[] = ['admin', 'beneficiary', 'waqif'];

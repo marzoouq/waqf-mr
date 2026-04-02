@@ -1,4 +1,4 @@
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -15,11 +15,9 @@ import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 import { operationColor, DataDiff } from '@/components/audit/AuditLogHelpers';
 import TablePagination from '@/components/TablePagination';
 import { useAuditLogPage, getTableNameAr, getOperationNameAr } from '@/hooks/page/useAuditLogPage';
-import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 const AuditLogPage = () => {
   const h = useAuditLogPage();
-  const isDesktop = useIsDesktop();
 
   return (
     <DashboardLayout>
@@ -100,11 +98,11 @@ const AuditLogPage = () => {
                   <div className="flex items-center gap-2">
                     <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
                     <span className="text-sm text-muted-foreground whitespace-nowrap">من:</span>
-                    <Input id="audit-date-from" name="audit_date_from" type="date" value={h.dateFrom} onChange={e => { h.setDateFrom(e.target.value); h.setCurrentPage(1); }} className="w-[160px]" aria-label="تاريخ البداية" />
+                    <Input type="date" value={h.dateFrom} onChange={e => { h.setDateFrom(e.target.value); h.setCurrentPage(1); }} className="w-[160px]" aria-label="تاريخ البداية" />
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground whitespace-nowrap">إلى:</span>
-                    <Input id="audit-date-to" name="audit_date_to" type="date" value={h.dateTo} onChange={e => { h.setDateTo(e.target.value); h.setCurrentPage(1); }} className="w-[160px]" aria-label="تاريخ النهاية" />
+                    <Input type="date" value={h.dateTo} onChange={e => { h.setDateTo(e.target.value); h.setCurrentPage(1); }} className="w-[160px]" aria-label="تاريخ النهاية" />
                   </div>
                   {h.hasDateFilter && (
                     <Button variant="ghost" size="sm" onClick={h.clearDateFilters} className="gap-1 text-muted-foreground hover:text-destructive">
@@ -122,8 +120,7 @@ const AuditLogPage = () => {
                     <div className="p-8 text-center text-muted-foreground">لا توجد سجلات</div>
                   ) : (
                     <>
-                      {!isDesktop && (
-                      <div className="space-y-3 p-3">
+                      <div className="block md:hidden space-y-3 p-3">
                         {h.logs.map(log => (
                           <Collapsible key={log.id} open={h.expandedRows.has(log.id)} onOpenChange={() => h.toggleRow(log.id)}>
                             <Card className="shadow-sm">
@@ -149,9 +146,7 @@ const AuditLogPage = () => {
                           </Collapsible>
                         ))}
                       </div>
-                      )}
-                      {isDesktop && (
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto hidden md:block">
                       <Table className="min-w-[600px]">
                         <TableHeader>
                           <TableRow>
@@ -187,7 +182,6 @@ const AuditLogPage = () => {
                         </TableBody>
                       </Table>
                       </div>
-                      )}
                       <TablePagination currentPage={h.currentPage} totalItems={h.totalCount} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
                     </>
                   )}

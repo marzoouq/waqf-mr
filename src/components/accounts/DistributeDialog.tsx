@@ -1,5 +1,4 @@
 import { fmt } from '@/utils/format';
-import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { formatPercentage } from '@/lib/utils';
 import { useDistributeShares } from '@/hooks/financial/useDistribute';
 import { Loader2, AlertTriangle, ArrowLeftRight, FileDown, Printer } from 'lucide-react';
+import { generateDistributionsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { printDistributionReport } from '@/utils/printDistributionReport';
 import { toast } from 'sonner';
 import { useDistributionCalculation } from '@/hooks/page/useDistributionCalculation';
 
@@ -34,7 +35,6 @@ const DistributeDialog = ({
   open, onOpenChange, beneficiaries, availableAmount,
   totalBeneficiaryPercentage: _tbp, accountId, fiscalYearId, fiscalYearLabel,
 }: DistributeDialogProps) => {
-  const isDesktop = useIsDesktop();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const distribute = useDistributeShares();
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -72,8 +72,7 @@ const DistributeDialog = ({
         ) : (
           <>
           {/* Mobile Cards */}
-          {!isDesktop && (
-          <div className="space-y-3">
+          <div className="md:hidden space-y-3">
             {distributions.map(d => (
               <div key={d.beneficiary_id} className={`rounded-lg border p-3 space-y-2 ${d.deficit > 0 ? 'border-destructive/30 bg-destructive/5' : 'border-border'}`}>
                 <div className="flex items-center justify-between">
@@ -94,10 +93,8 @@ const DistributeDialog = ({
               </div>
             ))}
           </div>
-          )}
           {/* Desktop Table */}
-          {isDesktop && (
-          <div className="overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
@@ -132,7 +129,6 @@ const DistributeDialog = ({
             </TableBody>
           </Table>
           </div>
-          )}
           </>
         )}
 
@@ -158,10 +154,10 @@ const DistributeDialog = ({
         )}
 
         <DialogFooter className="gap-2">
-          <Button variant="secondary" onClick={async () => { const { printDistributionReport } = await import('@/utils/pdf'); printDistributionReport({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions, waqfName: pdfWaqfInfo.waqfName, deedNumber: pdfWaqfInfo.deedNumber, logoUrl: pdfWaqfInfo.logoUrl }); }} disabled={beneficiaries.length === 0}>
+          <Button variant="secondary" onClick={() => printDistributionReport({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions, waqfName: pdfWaqfInfo.waqfName, deedNumber: pdfWaqfInfo.deedNumber, logoUrl: pdfWaqfInfo.logoUrl })} disabled={beneficiaries.length === 0}>
             <Printer className="w-4 h-4 ml-2" />طباعة
           </Button>
-          <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { const { generateDistributionsPDF } = await import('@/utils/pdf'); await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { toast.error('حدث خطأ أثناء تصدير PDF'); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>
+          <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { toast.error('حدث خطأ أثناء تصدير PDF'); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>
             {pdfLoading ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <FileDown className="w-4 h-4 ml-2" />}تصدير PDF
           </Button>
           <div className="flex-1" />

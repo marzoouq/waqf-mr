@@ -1,5 +1,5 @@
 import { FileText } from 'lucide-react';
-import LegalPageFooter from '@/components/layout/LegalPageFooter';
+import LegalPageFooter from '@/components/LegalPageFooter';
 
 const TermsOfUse = () => {
 

@@ -43,7 +43,6 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
   const query = useQuery<DashboardSummaryResponse>({
     queryKey: ['dashboard-summary', fiscalYearId],
     staleTime: STALE_FINANCIAL,
-    gcTime: 15 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('dashboard-summary', {
         body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fiscalYearLabel },

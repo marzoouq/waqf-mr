@@ -7,6 +7,8 @@
  * للعرض الصحيح RTL.
  */
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore — المكتبة لا تحتوي على تعريفات TypeScript
 import ArabicReshaper from 'arabic-reshaper';
 
 // نطاقات Unicode للحروف العربية والتشكيل

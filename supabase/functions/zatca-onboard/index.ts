@@ -21,13 +21,13 @@ import {
   sha256Async,
 } from "../_shared/zatca-shared.ts";
 
-Deno.serve(async (req): Promise<Response> => {
+Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const auth = await authenticateAdmin(req, corsHeaders, "zatca-onboard");
-    if ("error" in auth) return auth.error!;
+    if ("error" in auth) return auth.error;
     const { user, admin } = auth;
 
     const body = await req.json();
@@ -116,7 +116,7 @@ Deno.serve(async (req): Promise<Response> => {
       }
 
       // دالة مساعدة لحذف OTP بعد أي نتيجة
-      const clearOtp = () => Promise.resolve(admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"])).then(() => {}).catch(() => {});
+      const clearOtp = () => admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"]).catch(() => {});
 
       try {
         const csrResponse = await fetch(`${ZATCA_API_URL}/compliance`, { method: "POST", headers: { ...ZATCA_COMMON_HEADERS, "OTP": otp }, body: JSON.stringify({ csr: csrPem }) });

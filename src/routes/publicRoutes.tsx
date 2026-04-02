@@ -2,24 +2,14 @@ import { Route } from "react-router-dom";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { withRouteErrorBoundary as eb } from "./withRouteErrorBoundary";
 
-/* صفحات الدخول الأساسية — eager لتسريع أول رسم */
-import Index from "@/pages/Index";
-import Auth from "@/pages/Auth";
-
+const Index = lazyWithRetry(() => import("@/pages/Index"));
+const Auth = lazyWithRetry(() => import("@/pages/Auth"));
 const Unauthorized = lazyWithRetry(() => import("@/pages/Unauthorized"));
 const NotFound = lazyWithRetry(() => import("@/pages/NotFound"));
 const PrivacyPolicy = lazyWithRetry(() => import("@/pages/PrivacyPolicy"));
 const TermsOfUse = lazyWithRetry(() => import("@/pages/TermsOfUse"));
 const InstallApp = lazyWithRetry(() => import("@/pages/InstallApp"));
 const ResetPassword = lazyWithRetry(() => import("@/pages/ResetPassword"));
-
-/* تحميل مسبق للصفحات الأكثر زيارة بعد الإقلاع */
-if (typeof requestIdleCallback !== 'undefined') {
-  requestIdleCallback(() => {
-    import("@/pages/dashboard/AdminDashboard");
-    import("@/pages/beneficiary/BeneficiaryDashboard");
-  });
-}
 
 export const publicRoutes = (
   <>

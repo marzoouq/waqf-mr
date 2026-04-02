@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/auth/useAuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import DeferredRender from '@/components/DeferredRender';
@@ -28,39 +28,13 @@ function PagePerformanceTracker() {
 // AI Assistant & Security - Lazy loaded
 const AiAssistant = lazyWithRetry(() => import("./components/AiAssistant"));
 const SecurityGuard = lazyWithRetry(() => import("./components/SecurityGuard"));
-const PwaUpdateNotifier = lazyWithRetry(() => import("./components/pwa/PwaUpdateNotifier"));
-const SwUpdateBanner = lazyWithRetry(() => import("./components/pwa/SwUpdateBanner"));
+const PwaUpdateNotifier = lazyWithRetry(() => import("./components/PwaUpdateNotifier"));
+const SwUpdateBanner = lazyWithRetry(() => import("./components/SwUpdateBanner"));
 
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 animate-fade-in" dir="rtl">
-      {/* شريط علوي */}
-      <div className="flex items-center justify-between mb-8">
-        <Skeleton className="h-8 w-40 rounded-lg" />
-        <div className="flex gap-3">
-          <Skeleton className="h-9 w-9 rounded-full" />
-          <Skeleton className="h-9 w-9 rounded-full" />
-        </div>
-      </div>
-      {/* بطاقات إحصائية */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-xl border border-border bg-card p-4 space-y-3">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-7 w-28" />
-          </div>
-        ))}
-      </div>
-      {/* محتوى رئيسي */}
-      <div className="rounded-xl border border-border bg-card p-4 space-y-4">
-        <Skeleton className="h-5 w-32 mb-2" />
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-4">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-24 shrink-0" />
-          </div>
-        ))}
-      </div>
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>
   );
 }
@@ -124,6 +98,5 @@ function App() {
     </ErrorBoundary>
   );
 }
-
 
 export default App;

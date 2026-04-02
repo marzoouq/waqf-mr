@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Plus, Lock, Wallet } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import { buildCsv, downloadCsv } from '@/utils/csv';
-import { useAccountsPage } from '@/hooks/page/useAccountsPage';
+import { useAccountsPage } from '@/hooks/financial/useAccountsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useAdvanceRequests } from '@/hooks/financial/useAdvanceRequests';
@@ -54,7 +54,19 @@ const AccountsPage = () => {
               </span>
             )}
             <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={() => {
-              const csv = buildCsv([{ 'السنة المالية': page.selectedFY?.label || '-', 'إجمالي الإيرادات': page.totalIncome, 'إجمالي المصروفات': page.totalExpenses, 'صافي بعد المصروفات': page.netAfterExpenses, 'الضريبة': page.manualVat, 'الزكاة': page.zakatAmount, 'حصة الناظر': page.adminShare, 'حصة الواقف': page.waqifShare, 'ريع الوقف': page.waqfRevenue, 'رقبة الوقف': page.waqfCorpusManual, 'المتاح للتوزيع': page.availableAmount }]);
+              const csv = buildCsv([{
+                'السنة المالية': page.selectedFY?.label || '-',
+                'إجمالي الإيرادات': page.totalIncome,
+                'إجمالي المصروفات': page.totalExpenses,
+                'صافي بعد المصروفات': page.netAfterExpenses,
+                'الضريبة': page.manualVat,
+                'الزكاة': page.zakatAmount,
+                'حصة الناظر': page.adminShare,
+                'حصة الواقف': page.waqifShare,
+                'ريع الوقف': page.waqfRevenue,
+                'رقبة الوقف': page.waqfCorpusManual,
+                'المتاح للتوزيع': page.availableAmount,
+              }]);
               downloadCsv(csv, `حسابات-${page.selectedFY?.label || 'عام'}.csv`);
             }} />
             <Button onClick={page.handleCreateAccount} className="gradient-primary gap-2" disabled={page.createAccountPending}>

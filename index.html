@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- CSP enforced server-side; meta tag removed to avoid blocking preview/HMR scripts -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
@@ -35,33 +35,10 @@
     <meta name="apple-mobile-web-app-title" content="إدارة الوقف" />
     <link rel="apple-touch-icon" href="/pwa-512x512.png" />
     <link rel="icon" type="image/png" href="/pwa-512x512.png">
-
-    <!-- تنظيف عدواني لكاش SW القديم — يُشغّل مرة واحدة فقط -->
-    <script>
-    (function(){
-      try{
-        // تخطي بيئات المعاينة فقط (id-preview-- أو lovableproject.com)
-        // الموقع المنشور (waqf-wise-net.lovable.app) يحتاج التنظيف
-        var h=location.hostname;
-        if(h.indexOf('id-preview--')!==-1||h.endsWith('.lovableproject.com'))return;
-        if(!navigator.serviceWorker)return;
-        var key='sw_nuke_v3';
-        if(sessionStorage.getItem(key))return;
-        sessionStorage.setItem(key,'1');
-        navigator.serviceWorker.getRegistrations().then(function(regs){
-          if(!regs.length)return;
-          var p=regs.map(function(r){return r.unregister()});
-          Promise.all(p).then(function(){
-            return caches.keys().then(function(names){
-              return Promise.all(names.map(function(n){return caches.delete(n)}));
-            });
-          }).then(function(){
-            location.reload();
-          });
-        });
-      }catch(e){}
-    })();
-    </script>
+    
+  
+  
+  
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
@@ -107,17 +84,12 @@
       <div id="splash" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#faf8f5">
         <img src="/pwa-512x512.png" alt="" width="80" height="80" style="border-radius:16px" />
         <div style="font-family:Tajawal,sans-serif;font-size:18px;font-weight:700;color:#1a5c3a">نظام إدارة الوقف</div>
-        <div id="splash-loader" style="width:40px;height:4px;border-radius:4px;background:linear-gradient(90deg,#1a365d,#c9a96e);animation:pulse 1.5s ease-in-out infinite"></div>
-        <div id="splash-error" style="display:none;text-align:center;max-width:360px;margin-top:8px">
-          <div style="font-family:Tajawal,sans-serif;font-size:14px;color:#b91c1c;margin-bottom:12px">تعذّر تحميل التطبيق — يرجى تحديث الصفحة</div>
-          <button onclick="location.reload()" style="font-family:Tajawal,sans-serif;font-size:14px;font-weight:600;color:#fff;background:#1a5c3a;border:none;border-radius:8px;padding:8px 24px;cursor:pointer">إعادة التحميل</button>
-        </div>
+        <div style="width:40px;height:4px;border-radius:4px;background:linear-gradient(90deg,#1a365d,#c9a96e);animation:pulse 1.5s ease-in-out infinite"></div>
       </div>
       <style>#splash{transition:opacity .3s}@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}</style>
-      <script>setTimeout(function(){var s=document.getElementById('splash');if(s){var l=document.getElementById('splash-loader');var e=document.getElementById('splash-error');if(l)l.style.display='none';if(e)e.style.display='block'}},8000)</script>
     </div>
     <!-- حماية Clickjacking — frame-busting (بديل لـ frame-ancestors التي لا تعمل عبر meta) -->
-    <script>try{var h=window.location.hostname;if(window.top!==window.self&&h.indexOf('id-preview--')===-1&&!h.endsWith('.lovableproject.com')){window.top.location=window.self.location}}catch(e){}</script>
+    <script>try{var h=window.location.hostname;if(window.top!==window.self&&!h.endsWith('.lovable.app')&&!h.endsWith('.lovableproject.com')){window.top.location=window.self.location}}catch(e){}</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

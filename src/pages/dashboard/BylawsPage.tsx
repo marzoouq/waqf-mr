@@ -1,4 +1,4 @@
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { BylawAddDialog, BylawEditDialog, BylawDeleteDialog } from '@/components
 import SortableBylawItem from '@/components/bylaws/SortableBylawItem';
 import { Loader2, BookOpen, Eye, EyeOff, Search, X, Plus, Globe, Lock, Scale, FileText } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
-
+import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Switch } from '@/components/ui/switch';
@@ -60,7 +60,7 @@ const BylawsPage = () => {
                 <span className="hidden sm:inline">إضافة بند</span>
               </Button>
               <ExportMenu
-                onExportPdf={async () => { const { generateBylawsPDF } = await import('@/utils/pdf'); generateBylawsPDF(visibleBylaws, pdfWaqfInfo); }}
+                onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
               />
             </div>
           }

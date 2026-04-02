@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('@/components/dashboard-layout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 
 vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'admin-1' }, role: 'admin' })),
@@ -19,7 +19,6 @@ vi.mock('@/hooks/data/useMessaging', () => ({
   useMessages: vi.fn(() => ({ data: [] })),
   useSendMessage: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
   useCreateConversation: vi.fn(() => ({ mutateAsync: vi.fn() })),
-  useUnreadCounts: vi.fn(() => ({ data: { total: 0, chat: 0, support: 0, broadcast: 0 } })),
 }));
 
 vi.mock('@/hooks/data/useBeneficiaries', () => ({

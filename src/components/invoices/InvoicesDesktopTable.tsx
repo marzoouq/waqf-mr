@@ -1,6 +1,5 @@
-/** جدول الفواتير للديسكتوب — عرض واحد حسب الشاشة */
+/** جدول الفواتير للديسكتوب */
 import { fmt } from '@/utils/format';
-import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 import { safeNumber } from '@/utils/safeNumber';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,11 +25,8 @@ const InvoicesDesktopTable = ({
   items, isLocked, generatePdfPending,
   typeLabels, statusLabels, statusBadgeVariant,
   onViewFile, onGeneratePdf, onPreview, onEdit, onDelete,
-}: InvoicesDesktopTableProps) => {
-  const isDesktop = useIsDesktop();
-  if (!isDesktop) return null;
-  return (
-  <div className="overflow-x-auto">
+}: InvoicesDesktopTableProps) => (
+  <div className="overflow-x-auto hidden md:block">
     <Table className="min-w-[800px]">
       <TableHeader>
         <TableRow className="bg-muted/50">
@@ -80,7 +76,6 @@ const InvoicesDesktopTable = ({
       </TableBody>
     </Table>
   </div>
-  );
-};
+);
 
 export default InvoicesDesktopTable;

@@ -1,12 +1,6 @@
 import "@testing-library/jest-dom";
 import { vi } from 'vitest';
 
-// ─── بيئة Supabase افتراضية للاختبارات ───
-// تمنع فشل createClient عند استيراد وحدات تعتمد على client بشكل مبكر.
-vi.stubEnv('VITE_SUPABASE_URL', 'http://127.0.0.1:54321');
-vi.stubEnv('VITE_SUPABASE_PUBLISHABLE_KEY', 'test-publishable-key');
-vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-anon-key');
-
 // ─── قمع تحذيرات معروفة في بيئة الاختبار ───
 
 const suppressPatterns = [

@@ -39,6 +39,9 @@ vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
 
 vi.mock('@/utils/pdf', () => ({
   generateDistributionsPDF: vi.fn(),
+}));
+
+vi.mock('@/utils/printDistributionReport', () => ({
   printDistributionReport: vi.fn(),
 }));
 

@@ -4,7 +4,7 @@
 import { Wallet, AlertCircle, RefreshCw, UserX, FileDown, Info, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import ExportMenu from '@/components/ExportMenu';
@@ -14,7 +14,7 @@ import MyShareSummaryCards from '@/components/my-share/MyShareSummaryCards';
 import DistributionsTable from '@/components/my-share/DistributionsTable';
 import AdvancesTable from '@/components/my-share/AdvancesTable';
 import CarryforwardsTable from '@/components/my-share/CarryforwardsTable';
-import { useMySharePage } from '@/hooks/page/useMySharePage';
+import { useMySharePage } from '@/hooks/financial/useMySharePage';
 import { fmt } from '@/utils/format';
 
 const MySharePage = () => {

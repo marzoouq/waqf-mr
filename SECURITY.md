@@ -1,30 +1,21 @@
+# Security Policy
 
-# سياسة الأمن
+## Supported Versions
 
-## الإصدارات المدعومة
+Use this section to tell people about which versions of your project are
+currently being supported with security updates.
 
-يتم دعم الفرع `main` والإصدار `3.x` فقط بالتحديثات الأمنية.
+| Version | Supported          |
+| ------- | ------------------ |
+| 5.1.x   | :white_check_mark: |
+| 5.0.x   | :x:                |
+| 4.0.x   | :white_check_mark: |
+| < 4.0   | :x:                |
 
-| الإصدار | مدعوم |
-| ------- | ----- |
-| 3.x     | نعم   |
-| < 3.0   | لا    |
+## Reporting a Vulnerability
 
-## الإبلاغ عن ثغرة أمنية
+Use this section to tell people how to report a vulnerability.
 
-يرجى عدم نشر الثغرات الأمنية علناً في Issues.
-
-استخدم إحدى القنوات التالية:
-1. GitHub Security Advisories في المستودع.
-2. التواصل المباشر مع مالك المستودع عبر GitHub.
-
-المعلومات المطلوبة في البلاغ:
-1. وصف الثغرة والخطر المتوقع.
-2. خطوات إعادة الإنتاج.
-3. الأثر على السرية/السلامة/التوافر.
-4. أي اقتراح إصلاح أو Patch مبدئي (اختياري).
-
-الاستجابة المتوقعة:
-1. تأكيد استلام البلاغ خلال 72 ساعة.
-2. تحديثات دورية حتى الحسم.
-3. نشر إصلاح مع توثيق مختصر عند الإغلاق.
+Tell them where to go, how often they can expect to get an update on a
+reported vulnerability, what to expect if the vulnerability is accepted or
+declined, etc.

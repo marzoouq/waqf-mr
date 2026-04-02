@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { BarChart3 } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
@@ -95,7 +95,7 @@ const FinancialReportsPage = () => {
   const handleDownloadPDF = async () => {
     try {
       const { generateAnnualReportPDF } = await import('@/utils/pdf');
-      const reportData = {
+      await generateAnnualReportPDF({
         fiscalYear,
         totalIncome,
         totalExpenses,
@@ -110,24 +110,7 @@ const FinancialReportsPage = () => {
           percentage: Number(currentBeneficiary.share_percentage ?? 0),
           amount: myShare,
         }] : [],
-      };
-
-      // التقاط الرسوم البيانية كصورة وإضافتها للـ PDF
-      const chartsEl = document.getElementById('financial-charts-container');
-      let chartsImage: string | undefined;
-      let chartsAspect = 1;
-      if (chartsEl) {
-        try {
-          const html2canvas = (await import('html2canvas')).default;
-          const canvas = await html2canvas(chartsEl, { scale: 3, useCORS: true, logging: false, backgroundColor: '#ffffff', windowWidth: 1200 });
-          chartsImage = canvas.toDataURL('image/png');
-          chartsAspect = canvas.width / canvas.height;
-        } catch {
-          // إذا فشل التقاط الرسوم البيانية، نستمر بدونها
-        }
-      }
-
-      await generateAnnualReportPDF(reportData, pdfWaqfInfo, chartsImage, chartsAspect);
+      }, pdfWaqfInfo);
       toast.success('تم تحميل ملف PDF بنجاح');
     } catch {
       toast.error('حدث خطأ أثناء تصدير PDF');
@@ -199,17 +182,15 @@ const FinancialReportsPage = () => {
         </p>
 
         {/* Charts */}
-        <div id="financial-charts-container" className="space-y-4 sm:space-y-6">
-          <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
-            <LazyFinancialCharts
-              incomeVsExpenses={incomeVsExpenses}
-              distributionData={distributionData}
-              incomePieData={incomePieData}
-              expensesPieData={expensesPieData}
-              monthlyData={monthlyData}
-            />
-          </Suspense>
-        </div>
+        <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
+          <LazyFinancialCharts
+            incomeVsExpenses={incomeVsExpenses}
+            distributionData={distributionData}
+            incomePieData={incomePieData}
+            expensesPieData={expensesPieData}
+            monthlyData={monthlyData}
+          />
+        </Suspense>
       </div>
     </DashboardLayout>
     </RequirePublishedYears>

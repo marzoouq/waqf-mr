@@ -1,5 +1,5 @@
 /**
- * مكون سجل عمليات ZATCA — عرض واحد حسب الشاشة
+ * مكون سجل عمليات ZATCA
  */
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { History, Eye } from 'lucide-react';
-import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 const OPERATION_TYPE_LABELS: Record<string, string> = {
   'onboard': 'تهيئة وربط',
@@ -22,7 +21,6 @@ const OPERATION_TYPE_LABELS: Record<string, string> = {
 };
 
 const ZatcaOperationsLog = () => {
-  const isDesktop = useIsDesktop();
   const [detailItem, setDetailItem] = useState<Record<string, unknown> | null>(null);
 
   const { data: logs = [], isLoading } = useQuery({
@@ -87,8 +85,7 @@ const ZatcaOperationsLog = () => {
         </CardHeader>
         <CardContent>
           {/* Mobile cards */}
-          {!isDesktop && (
-          <div className="space-y-3">
+          <div className="space-y-3 md:hidden">
             {logs.map((log) => (
               <div key={log.id} className="p-3 rounded-lg border bg-card space-y-2">
                 <div className="flex items-center justify-between">
@@ -111,11 +108,9 @@ const ZatcaOperationsLog = () => {
               </div>
             ))}
           </div>
-          )}
 
           {/* Desktop table */}
-          {isDesktop && (
-          <div className="overflow-auto">
+          <div className="overflow-auto hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -153,7 +148,6 @@ const ZatcaOperationsLog = () => {
               </TableBody>
             </Table>
           </div>
-          )}
         </CardContent>
       </Card>
 

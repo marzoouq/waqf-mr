@@ -1,9 +1,14 @@
 /**
- * تبويب الرسائل الجماعية — يستخدم مكونات فرعية مستخرجة
+ * تبويب الرسائل الجماعية
+ * يتيح للناظر إرسال رسالة واحدة لجميع أو بعض المستفيدين عبر نظام المحادثات
  */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Send, MessageSquarePlus, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Send, MessageSquarePlus, Loader2, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUser } from '@/utils/notifications';
 import { useAuth } from '@/hooks/auth/useAuthContext';
@@ -11,8 +16,6 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { logger } from '@/lib/logger';
-import RecipientSelector from './RecipientSelector';
-import MessageComposer from './MessageComposer';
 
 const BulkMessagingTab = () => {
   const { user } = useAuth();
@@ -41,14 +44,20 @@ const BulkMessagingTab = () => {
   };
 
   const handleSend = async () => {
-    if (!message.trim()) { toast.error('يرجى كتابة نص الرسالة'); return; }
+    if (!message.trim()) {
+      toast.error('يرجى كتابة نص الرسالة');
+      return;
+    }
     if (!user) return;
 
     const recipients = target === 'all'
       ? beneficiaries
       : beneficiaries.filter(b => selectedIds.includes(b.id));
 
-    if (recipients.length === 0) { toast.error('يرجى اختيار مستفيد واحد على الأقل'); return; }
+    if (recipients.length === 0) {
+      toast.error('يرجى اختيار مستفيد واحد على الأقل');
+      return;
+    }
 
     setSending(true);
     try {
@@ -57,20 +66,46 @@ const BulkMessagingTab = () => {
 
       for (const b of recipients) {
         try {
+          // إنشاء محادثة من نوع broadcast
           const { data: conv, error: convError } = await supabase
             .from('conversations')
-            .insert({ type: 'broadcast', subject: subjectText, created_by: user.id, participant_id: b.user_id })
-            .select().single();
+            .insert({
+              type: 'broadcast',
+              subject: subjectText,
+              created_by: user.id,
+              participant_id: b.user_id,
+            })
+            .select()
+            .single();
 
-          if (convError) { logger.error('فشل إنشاء محادثة للمستفيد:', b.name, convError); continue; }
+          if (convError) {
+            logger.error('فشل إنشاء محادثة للمستفيد:', b.name, convError);
+            continue;
+          }
 
+          // إرسال الرسالة
           const { error: msgError } = await supabase
             .from('messages')
-            .insert({ conversation_id: conv.id, sender_id: user.id, content: message.trim() });
+            .insert({
+              conversation_id: conv.id,
+              sender_id: user.id,
+              content: message.trim(),
+            });
 
-          if (msgError) { logger.error('فشل إرسال رسالة للمستفيد:', b.name, msgError); continue; }
+          if (msgError) {
+            logger.error('فشل إرسال رسالة للمستفيد:', b.name, msgError);
+            continue;
+          }
 
-          notifyUser(b.user_id!, 'رسالة جديدة من ناظر الوقف', `لديك رسالة جديدة: "${subjectText}"`, 'info', '/beneficiary/messages');
+          // إشعار المستفيد
+          notifyUser(
+            b.user_id!,
+            'رسالة جديدة من ناظر الوقف',
+            `لديك رسالة جديدة: "${subjectText}"`,
+            'info',
+            '/beneficiary/messages',
+          );
+
           successCount++;
         } catch (err) {
           logger.error('خطأ أثناء إرسال رسالة للمستفيد:', b.name, err);
@@ -80,7 +115,10 @@ const BulkMessagingTab = () => {
       if (successCount > 0) {
         toast.success(`تم إرسال الرسالة لـ ${successCount} مستفيد`);
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
-        setSubject(''); setMessage(''); setSelectedIds([]);
+        // إعادة تعيين النموذج
+        setSubject('');
+        setMessage('');
+        setSelectedIds([]);
       } else {
         toast.error('فشل إرسال الرسالة لجميع المستفيدين');
       }
@@ -102,14 +140,68 @@ const BulkMessagingTab = () => {
           <CardDescription>إرسال رسالة واحدة لجميع أو بعض المستفيدين عبر نظام المراسلات</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <MessageComposer subject={subject} setSubject={setSubject} message={message} setMessage={setMessage} />
-          <RecipientSelector
-            beneficiaries={beneficiaries}
-            target={target}
-            setTarget={setTarget}
-            selectedIds={selectedIds}
-            toggleBeneficiary={toggleBeneficiary}
-          />
+          <div className="space-y-1.5">
+            <Label htmlFor="bulk-messaging-tab-field-1">موضوع الرسالة</Label>
+            <Input name="subject" id="bulk-messaging-tab-field-1"
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              placeholder="مثال: تحديث بشأن التوزيعات"
+              maxLength={200}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="bulk-messaging-tab-field-2">نص الرسالة *</Label>
+            <Textarea id="bulk-messaging-tab-field-2"
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              placeholder="اكتب نص الرسالة هنا..."
+              rows={4}
+              maxLength={5000}
+            />
+          </div>
+
+          <div className="space-y-3 border-t pt-4">
+            <Label className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              المستهدفون
+            </Label>
+            <div className="flex gap-3">
+              <Button
+                variant={target === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTarget('all')}
+              >
+                جميع المستفيدين ({beneficiaries.length})
+              </Button>
+              <Button
+                variant={target === 'selected' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTarget('selected')}
+              >
+                اختيار محدد
+              </Button>
+            </div>
+
+            {target === 'selected' && (
+              <div className="border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                {beneficiaries.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-2">لا يوجد مستفيدون مرتبطون بحسابات</p>
+                ) : (
+                  beneficiaries.map(b => (
+                    <label key={b.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1.5 rounded">
+                      <Checkbox
+                        checked={selectedIds.includes(b.id)}
+                        onCheckedChange={() => toggleBeneficiary(b.id)}
+                      />
+                      <span className="text-sm">{b.name}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
           <Button onClick={handleSend} disabled={sending} className="w-full gap-2 mt-2">
             {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             {sending ? 'جارٍ الإرسال...' : 'إرسال الرسالة'}

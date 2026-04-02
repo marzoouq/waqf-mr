@@ -122,13 +122,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let attempts = 0;
       logger.info('[Auth] fetchRole started');
       
-      // Safety timeout: 2 seconds max
+      // Safety timeout: 3 seconds max
       timeoutId = setTimeout(() => {
         if (roleFetchIdRef.current === fetchId) {
-          logger.info('[Auth] fetchRole timeout after 2s, forcing loading=false');
+          logger.info('[Auth] fetchRole timeout after 3s, forcing loading=false');
           setLoading(false);
         }
-      }, 2000);
+      }, 3000);
 
       for (let attempt = 0; attempt <= 2; attempt++) {
         attempts = attempt + 1;
@@ -159,7 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (attempt < 2) {
-            await new Promise(r => setTimeout(r, 200));
+            await new Promise(r => setTimeout(r, (attempt + 1) * 300));
           }
         } catch (err) {
           logger.error('[Auth] fetchRole attempt', attempt, 'error:', err);

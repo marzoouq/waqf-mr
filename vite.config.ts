@@ -6,11 +6,10 @@ import { VitePWA } from "vite-plugin-pwa";
 import pkg from "./package.json";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  return ({
+export default defineConfig(({ mode }) => ({
   define: {
-    '__APP_VERSION__': JSON.stringify(pkg.version),
-    '__APP_BUILD_ID__': JSON.stringify(pkg.version),
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
+    'import.meta.env.VITE_APP_BUILD_ID': JSON.stringify(pkg.version),
   },
   server: {
     host: "::",
@@ -152,5 +151,4 @@ export default defineConfig(({ mode }) => {
     chunkSizeWarningLimit: 600,
     sourcemap: mode === 'production' ? false : 'hidden',
   },
-});
-});
+}));

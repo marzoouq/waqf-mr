@@ -11,10 +11,10 @@ import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useState, useEffect } from 'react';
 
 // أنواع وقيم افتراضية مستخرجة إلى ملف مستقل لتقليل حجم الحزمة
-export type { MenuLabels } from '@/constants/menuLabels';
-export { defaultMenuLabels } from '@/constants/menuLabels';
-import { defaultMenuLabels } from '@/constants/menuLabels';
-import type { MenuLabels } from '@/constants/menuLabels';
+export type { MenuLabels } from '@/types/menuLabels';
+export { defaultMenuLabels } from '@/types/menuLabels';
+import { defaultMenuLabels } from '@/types/menuLabels';
+import type { MenuLabels } from '@/types/menuLabels';
 
 const MenuCustomizationTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
@@ -71,8 +71,8 @@ const MenuCustomizationTab = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {items.map(item => (
               <div key={item.key} className="space-y-1">
-                <Label htmlFor={`menu-customization-tab-field-${item.key}`} className="text-xs text-muted-foreground">{item.defaultLabel}</Label>
-                <Input name={item.key} id={`menu-customization-tab-field-${item.key}`}
+                <Label htmlFor="menu-customization-tab-field-1" className="text-xs text-muted-foreground">{item.defaultLabel}</Label>
+                <Input name="menu_label" id="menu-customization-tab-field-1"
                   value={form[item.key]}
                   onChange={e => handleChange(item.key, e.target.value)}
                   maxLength={30}

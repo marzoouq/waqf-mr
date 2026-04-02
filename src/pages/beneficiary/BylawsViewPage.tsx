@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import { useBylaws } from '@/hooks/data/useBylaws';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { Search, X, Lock, ScrollText, Scale, AlertCircle, RefreshCw } from 'luci
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
-
+import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { Button } from '@/components/ui/button';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
@@ -99,7 +99,7 @@ const BylawsViewPage = () => {
           description={`لائحة تنظيم أعمال الوقف والنظارة • ${visibleBylaws.length} بند`}
           icon={Scale}
           actions={
-            <ExportMenu onExportPdf={async () => { const { generateBylawsPDF } = await import('@/utils/pdf'); generateBylawsPDF(visibleBylaws, pdfWaqfInfo); }} />
+            <ExportMenu onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)} />
           }
         />
 

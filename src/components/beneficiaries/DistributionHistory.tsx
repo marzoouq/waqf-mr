@@ -9,7 +9,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Beneficiary } from '@/types/database';
 import { fmt as fmtNum } from '@/utils/format';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface Props {
   beneficiary: Beneficiary;
@@ -24,7 +23,6 @@ interface DistributionRow {
 
 /** B-2: تاريخ التوزيعات لكل مستفيد — آخر 5 سنوات */
 const DistributionHistory = ({ beneficiary }: Props) => {
-  const isDesktop = useIsDesktop();
   const { data: distributions = [], isLoading } = useQuery({
     queryKey: ['beneficiary-distribution-history', beneficiary.id],
     staleTime: STALE_FINANCIAL,
@@ -103,8 +101,7 @@ const DistributionHistory = ({ beneficiary }: Props) => {
       </CardHeader>
       <CardContent className="p-0">
         {/* Mobile cards */}
-        {!isDesktop && (
-        <div className="space-y-2 p-3">
+        <div className="space-y-2 p-3 md:hidden">
           {yearlyData.map((row, idx) => {
             const prevRow = yearlyData[idx + 1];
             const change = prevRow ? ((row.total - prevRow.total) / prevRow.total) * 100 : null;
@@ -127,10 +124,8 @@ const DistributionHistory = ({ beneficiary }: Props) => {
             );
           })}
         </div>
-        )}
         {/* Desktop table */}
-        {isDesktop && (
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
@@ -165,7 +160,6 @@ const DistributionHistory = ({ beneficiary }: Props) => {
             </TableBody>
           </Table>
         </div>
-        )}
         <div className="p-3 bg-muted/30 text-center border-t">
           <p className="text-xs text-muted-foreground">إجمالي التوزيعات ({yearlyData.length} سنوات): <span className="font-bold text-foreground">{fmt(totalAllYears)} ر.س</span></p>
         </div>

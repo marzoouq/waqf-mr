@@ -1,7 +1,7 @@
 /**
  * صفحة الشجرة المحاسبية — عرض هرمي + CRUD كامل
  */
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,7 +49,7 @@ const ChartOfAccountsPage = () => {
 
         <div className="relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input id="chart-search" name="chart_search" placeholder="بحث بالكود أو الاسم..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pr-9" />
+          <Input placeholder="بحث بالكود أو الاسم..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pr-9" />
           {searchTerm && <Button variant="ghost" size="icon" className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setSearchTerm('')}><X className="w-4 h-4" /></Button>}
         </div>
 

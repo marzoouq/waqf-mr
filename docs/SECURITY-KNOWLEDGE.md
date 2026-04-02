@@ -46,7 +46,7 @@
 
 | الملاحظة | السبب |
 |----------|-------|
-| `beneficiaries_safe` بدون RLS | العرض الآمن يعمل مع `security_barrier` وتمويه PII حسب الدور. الوصول مضبوط على `authenticated` فقط مع فلاتر هوية/دور داخل العرض |
+| `beneficiaries_safe` / `contracts_safe` بدون RLS | عروض VIEW بـ `security_definer` + `security_barrier` — تتحكم بالوصول عبر `auth.uid() IS NOT NULL` وتمويه البيانات الحساسة عبر `CASE WHEN has_role()` داخل العرض. اختيار `security_definer` مقصود للسماح بالقراءة دون منح صلاحيات مباشرة على الجداول الأصلية |
 | تحذير `security_definer VIEW` على العروض الآمنة | مقصود — العروض تتحقق من `auth.uid()` داخلياً وتمويه PII حسب الدور، مع حصر صلاحية SELECT على `authenticated` فقط (مسحوبة من `anon` و `PUBLIC`) |
 | ثغرات في حزم `devDependencies` (مثل `vite-plugin-pwa`) | أدوات بناء فقط، لا تُشحن مع كود الإنتاج |
 | `verify_jwt = false` في Edge Functions | مقصود — Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف، المصادقة تتم يدوياً عبر `getUser()` |
@@ -61,13 +61,10 @@
 | 27 دالة حساسة مكشوفة لـ `anon` (بما فيها `get_pii_key`) | **الحل النهائي**: حماية داخلية في كود الدوال نفسها بدلاً من `REVOKE` (الذي يُلغيه `pg_dump` عند كل نشر). التفاصيل: (1) `get_pii_key()` تُرجع `NULL` عند `auth.uid() IS NULL`، (2) `decrypt_pii()` تُرجع `********` لغير المصرح لهم، (3) `get_beneficiary_decrypted()` و `lookup_by_national_id()` و `get_active_zatca_certificate()` تُطلق استثناء `غير مصرح`. **السبب الجذري**: منصة Lovable Cloud تُنفذ `pg_dump` migration بعد هجرات المطور عند كل نشر، و `CREATE OR REPLACE FUNCTION` يُعيد صلاحيات `EXECUTE` لـ `PUBLIC` تلقائياً مما يُبطل أي `REVOKE` سابق. الحماية الداخلية في كود الدالة لا تتأثر بهذه العملية. | 2026-03-13 |
 | عروض `beneficiaries_safe` / `contracts_safe` مكشوفة لـ `anon` SELECT | تم سحب `SELECT` من `anon` و `PUBLIC` ومنحها لـ `authenticated` فقط (يُطبق عبر migration + حماية في كل نشر) | 2026-03-13 |
 | العروض الآمنة تستخدم `SECURITY DEFINER` | **الوضع الحالي**: تستخدم `security_definer` مع `WHERE auth.uid() IS NOT NULL` وتمويه PII عبر `CASE WHEN has_role()`. هذا مقصود للسماح بالقراءة دون منح صلاحيات مباشرة على الجداول الأصلية. صلاحية SELECT مقصورة على `authenticated` فقط. | 2026-03-28 |
-| تشديد `contracts_safe` ومنع كشف بيانات المستأجر الحساسة لغير المخولين | حصر صفوف العرض على `admin/accountant` فقط عبر شرط دور مباشر داخل تعريف العرض | 2026-04-01 |
-| نقص سياسة `UPDATE` الصريحة على `conversations` | إضافة سياسة `FOR UPDATE` لمالك المحادثة (`created_by`) لضبط نموذج الصلاحيات صراحةً | 2026-04-01 |
-| سياسة `ALL` واسعة على `user_roles` | إزالة السياسة الشاملة واستبدالها بسياسات صريحة منفصلة لكل عملية (`SELECT/INSERT/UPDATE/DELETE`) للأدمن فقط | 2026-04-01 |
 
 ### قواعد التصنيف العامة
 
-- **إنذار كاذب**: أي ملاحظة `security_definer VIEW` على `beneficiaries_safe` فقط عند وجود تمويه بيانات حسب الدور وحصر الوصول على `authenticated`
+- **إنذار كاذب**: أي ملاحظة `security_definer VIEW` على `beneficiaries_safe` أو `contracts_safe` — مقصود مع تمويه البيانات حسب الدور عبر `CASE WHEN has_role()` وحصر الوصول على `authenticated`
 - **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة التي لا تُشحن للإنتاج
 - **خطر مقبول**: إصدارات حزم بدون تحديث متاح upstream
 

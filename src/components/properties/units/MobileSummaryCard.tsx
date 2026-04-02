@@ -5,7 +5,6 @@ import { safeNumber } from '@/utils/safeNumber';
 import { fmt, fmtInt } from '@/utils/format';
 import type { UnitRow } from '@/hooks/data/useUnits';
 import type { Contract } from '@/types/database';
-import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 interface MobileSummaryCardProps {
   units: UnitRow[];
@@ -14,7 +13,6 @@ interface MobileSummaryCardProps {
 }
 
 const MobileSummaryCard = ({ units, contracts, wholePropertyContracts }: MobileSummaryCardProps) => {
-  const isDesktop = useIsDesktop();
   let totalAnnual = 0;
   let totalMonthly = 0;
   units.forEach(u => {
@@ -29,10 +27,10 @@ const MobileSummaryCard = ({ units, contracts, wholePropertyContracts }: MobileS
     totalMonthly += getMonthlyFromContract(wc);
   });
 
-  if (totalAnnual === 0 || isDesktop) return null;
+  if (totalAnnual === 0) return null;
 
   return (
-    <Card className="bg-primary/10 border-primary/20">
+    <Card className="md:hidden bg-primary/10 border-primary/20">
       <CardContent className="p-3">
         <div className="flex items-center justify-between gap-2">
           <div className="text-center flex-1">

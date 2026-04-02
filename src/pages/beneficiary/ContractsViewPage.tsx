@@ -2,10 +2,9 @@
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
 import { EXPIRING_SOON_DAYS } from '@/constants';
-import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import ExportMenu from '@/components/ExportMenu';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,7 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useMemo, useCallback, useState, useEffect } from 'react';
 import TablePagination from '@/components/TablePagination';
-
+import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { fmt, fmtDate } from '@/utils/format';
@@ -36,7 +35,6 @@ const statusMap: Record<string, { label: string; variant: 'default' | 'secondary
 const ITEMS_PER_PAGE = 10;
 
 const ContractsViewPage = () => {
-  const isDesktop = useIsDesktop();
   const { fiscalYearId } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
   const [currentPage, setCurrentPage] = useState(1);
@@ -117,7 +115,6 @@ const ContractsViewPage = () => {
           <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" actions={
             <ExportMenu onExportPdf={async () => {
               try {
-                const { generateContractsPDF } = await import('@/utils/pdf');
                 await generateContractsPDF(
                   (contracts ?? []).map(c => ({
                     contract_number: c.contract_number ?? '', tenant_name: c.tenant_name ?? '',
@@ -145,8 +142,7 @@ const ContractsViewPage = () => {
           ) : (
             <>
               {/* بطاقات الجوال */}
-              {!isDesktop && (
-              <div className="space-y-3">
+              <div className="space-y-3 md:hidden">
                 {paginatedContracts.map(contract => {
                   const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
                   return (
@@ -183,13 +179,11 @@ const ContractsViewPage = () => {
                   );
                 })}
               </div>
-              )}
-              {!isDesktop && (
+              <div className="md:hidden">
                 <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-              )}
+              </div>
               {/* جدول سطح المكتب */}
-              {isDesktop && (
-              <Card>
+              <Card className="hidden md:block">
                 <CardContent className="p-0 overflow-x-auto">
                   <Table className="min-w-[700px]">
                     <TableHeader>
@@ -231,7 +225,6 @@ const ContractsViewPage = () => {
                   </Table>
                 </CardContent>
               </Card>
-              )}
               <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
             </>
           )}

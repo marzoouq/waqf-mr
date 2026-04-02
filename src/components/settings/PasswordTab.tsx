@@ -1,7 +1,7 @@
 /**
  * تبويب تغيير كلمة المرور
  */
-import { useState, useId } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +21,6 @@ const passwordSchema = z.object({
 });
 
 const PasswordTab = () => {
-  const uid = useId();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -65,10 +64,10 @@ const PasswordTab = () => {
       </CardHeader>
       <CardContent className="space-y-4 max-w-md">
         <div className="space-y-2">
-          <Label htmlFor={`${uid}-new-password`}>كلمة المرور الجديدة</Label>
+          <Label htmlFor="new-password">كلمة المرور الجديدة</Label>
           <div className="relative">
             <Input
-              id={`${uid}-new-password`}
+              id="new-password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -83,10 +82,10 @@ const PasswordTab = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={`${uid}-confirm-password`}>تأكيد كلمة المرور</Label>
+          <Label htmlFor="confirm-password">تأكيد كلمة المرور</Label>
           <div className="relative">
             <Input
-              id={`${uid}-confirm-password`}
+              id="confirm-password"
               type={showConfirm ? 'text' : 'password'}
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}

@@ -30,17 +30,6 @@ const BeneficiaryTab = () => {
             <Switch checked={(sections as Record<string, boolean>)[key] ?? true} onCheckedChange={() => toggle(key)} />
           </div>
         ))}
-
-        <div className="pt-4 border-t border-border">
-          <h4 className="text-sm font-semibold mb-3 text-muted-foreground">خيارات إضافية</h4>
-          <div className="flex items-center justify-between py-2">
-            <span className="text-sm font-medium">إظهار مرفقات الفواتير للمستفيدين</span>
-            <Switch
-              checked={(sections as Record<string, boolean>)['invoice_attachments'] ?? true}
-              onCheckedChange={() => toggle('invoice_attachments')}
-            />
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

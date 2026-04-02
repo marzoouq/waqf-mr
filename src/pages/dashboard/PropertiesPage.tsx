@@ -1,20 +1,21 @@
 import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
-import PropertyCard from '@/components/properties/PropertyCard';
 import { Switch } from '@/components/ui/switch';
-import DashboardLayout from '@/components/dashboard-layout';
-import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
+import DashboardLayout from '@/components/DashboardLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { StatsGridSkeleton } from '@/components/SkeletonLoaders';
-import { Plus, Building2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, AlertTriangle } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import CrudPagination from '@/components/CrudPagination';
 import ExportMenu from '@/components/ExportMenu';
-
+import { generatePropertiesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import PropertyUnitsDialog from '@/components/properties/PropertyUnitsDialog';
 import PropertySummaryCards from '@/components/properties/PropertySummaryCards';
+import { fmt, fmtInt } from '@/utils/format';
 import { usePropertiesPage } from '@/hooks/page/usePropertiesPage';
 
 const PropertiesPage = () => {
@@ -49,7 +51,7 @@ const PropertiesPage = () => {
           icon={Building2}
           description="عرض وإدارة جميع عقارات الوقف"
           actions={<>
-            <ExportMenu onExportPdf={async () => { const { generatePropertiesPDF } = await import('@/utils/pdf'); generatePropertiesPDF(properties, pdfWaqfInfo); }} />
+            <ExportMenu onExportPdf={() => generatePropertiesPDF(properties, pdfWaqfInfo)} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
                 <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة عقار</Button>
@@ -124,23 +126,120 @@ const PropertiesPage = () => {
           <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* حساب المؤشرات المالية لكل عقار مرة واحدة بـ useMemo بدلاً من داخل render loop */}
-          {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => {
-            const pf = computePropertyFinancials({
-              propertyId: property.id, contracts, expenses, units: allUnits, isSpecificYear, allocationMap,
+          {(() => {
+            // هذا الحساب يحدث مرة واحدة عند تغير البيانات
+            const pageProperties = filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+            return pageProperties.map((property) => {
+              const pf = computePropertyFinancials({
+                propertyId: property.id,
+                contracts,
+                expenses,
+                units: allUnits,
+                isSpecificYear,
+                allocationMap,
+              });
+              const { totalUnits, rented, vacant, maintenance, statusMismatch, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
+
+              return (
+              <Card key={property.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedProperty(property)}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-lg">{property.property_number}</CardTitle>
+                      {property.vat_exempt && (
+                        <span className="text-[11px] bg-success/10 text-success px-1.5 py-0.5 rounded font-medium">معفى VAT</span>
+                      )}
+                    </div>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={(e) => handleEdit(property, e)} aria-label="تعديل العقار"><Edit className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: property.id, name: `العقار ${property.property_number}` }); }} className="text-destructive hover:text-destructive" aria-label="حذف العقار"><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                    <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" />{property.property_type}</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{property.location}</span>
+                    <span className="flex items-center gap-1"><Ruler className="w-3.5 h-3.5" />{property.area} م²</span>
+                  </div>
+
+                  <div className="border-t pt-3 space-y-2">
+                    {totalUnits > 0 ? (
+                      <>
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex gap-3 flex-wrap">
+                            <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5 text-success" />مؤجرة: <strong>{rented}</strong></span>
+                            <span className="flex items-center gap-1"><DoorOpen className="w-3.5 h-3.5 text-muted-foreground" />شاغرة: <strong>{vacant}</strong></span>
+                            {maintenance > 0 && <span className="flex items-center gap-1 text-destructive">صيانة: <strong>{maintenance}</strong></span>}
+                            {statusMismatch > 0 && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="flex items-center gap-1 text-warning cursor-help">
+                                      <AlertTriangle className="w-3.5 h-3.5" />
+                                      <strong>{statusMismatch}</strong>
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>{statusMismatch} وحدة بها تناقض بين الحالة والعقود - يرجى المراجعة</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        </div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-2 cursor-help">
+                                <Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} />
+                                <span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>مؤجرة: {rented} من {totalUnits} وحدة | شاغرة: {vacant}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </>
+                    ) : contracts.some(c => c.property_id === property.id && (isSpecificYear || c.status === 'active')) ? (
+                      <>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Home className="w-3.5 h-3.5 text-success" />
+                          <span className="font-medium text-success">مؤجر بالكامل</span>
+                        </div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-2 cursor-help">
+                                <Progress value={100} className="h-2 flex-1 [&>div]:bg-success" />
+                                <span className="text-xs font-semibold text-success">100%</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>العقار مؤجر بالكامل</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">لا توجد وحدات مسجلة</div>
+                    )}
+                  </div>
+
+                  <div className="border-t pt-3 space-y-1 text-sm">
+                    <div className="flex justify-between"><span className="text-muted-foreground">الإيرادات التعاقدية:</span><span className="font-semibold">{fmt(contractualRevenue)} ريال</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">الدخل النشط:</span><span className="font-medium text-success">{fmt(activeAnnualRent)} ريال</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">الاستحقاق الشهري:</span><span className="font-medium">{fmtInt(monthlyRent)} ريال</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">المصروفات:</span><span className="font-medium">{fmt(totalExpenses)} ريال</span></div>
+                    <div className="flex justify-between border-t pt-1 mt-1">
+                      <span className="text-muted-foreground">الصافي:</span>
+                      <span className={`font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(netIncome)} ريال</span>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-2 mt-1 flex items-center gap-2 text-xs text-primary">
+                    <DoorOpen className="w-3.5 h-3.5" /><span>اضغط لعرض الوحدات</span>
+                  </div>
+                </CardContent>
+              </Card>
+              );
             });
-            return (
-              <PropertyCard
-                key={property.id}
-                property={property}
-                financials={pf}
-                contracts={contracts}
-                isSpecificYear={isSpecificYear}
-                onEdit={handleEdit}
-                onDelete={(p) => setDeleteTarget({ id: p.id, name: `العقار ${p.property_number}` })}
-                onClick={setSelectedProperty}
-              />
-            );
-          })}
+          })()}
           </div>
           <TablePagination currentPage={currentPage} totalItems={filteredProperties.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           <CrudPagination

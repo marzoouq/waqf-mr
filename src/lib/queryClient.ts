@@ -73,9 +73,3 @@ queryClient.getQueryCache().subscribe((event) => {
     }
   }
 });
-
-/** تنظيف جميع المؤقتات النشطة — يُستدعى عند تسجيل الخروج */
-export function clearActiveQueryTimers(): void {
-  activeTimers.forEach((endTimer) => endTimer());
-  activeTimers.clear();
-}

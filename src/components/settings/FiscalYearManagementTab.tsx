@@ -84,9 +84,9 @@ const FiscalYearManagementTab = () => {
             <Card className="border-primary/30 bg-primary/5">
               <CardContent className="p-4 space-y-3">
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="space-y-1.5"><Label htmlFor="new-fy-label">المسمى</Label><Input id="new-fy-label" name="new-fy-label" value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="مثال: 2025-2026م" /></div>
-                  <div className="space-y-1.5"><Label htmlFor="new-fy-start">تاريخ البداية</Label><Input id="new-fy-start" name="new-fy-start" type="date" value={newFY.start_date} onChange={e => setNewFY(p => ({ ...p, start_date: e.target.value }))} /></div>
-                  <div className="space-y-1.5"><Label htmlFor="new-fy-end">تاريخ النهاية</Label><Input id="new-fy-end" name="new-fy-end" type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} /></div>
+                  <div className="space-y-1.5"><Label>المسمى</Label><Input value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="مثال: 2025-2026م" /></div>
+                  <div className="space-y-1.5"><Label>تاريخ البداية</Label><Input type="date" value={newFY.start_date} onChange={e => setNewFY(p => ({ ...p, start_date: e.target.value }))} /></div>
+                  <div className="space-y-1.5"><Label>تاريخ النهاية</Label><Input type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} /></div>
                 </div>
                 <p className="text-xs text-caution-foreground">ملاحظ: السنة الجديدة ستكون <strong>محجوبة</strong> عن المستفيدين تلقائياً — يمكنك نشرها بعد إضافة البيانات.</p>
                 <div className="flex gap-2">

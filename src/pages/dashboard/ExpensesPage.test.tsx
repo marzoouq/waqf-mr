@@ -41,7 +41,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
 }));
 
 vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
-vi.mock('@/components/dashboard-layout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/utils/pdf', () => ({ generateExpensesPDF: vi.fn() }));
 vi.mock('@/components/expenses/ExpenseAttachments', () => ({ default: () => <div>مرفقات</div> }));
 vi.mock('@/components/expenses/ExpenseBudgetBar', () => ({ default: () => <div>ميزانية</div> }));

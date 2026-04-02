@@ -2,7 +2,7 @@
  * صفحة إدارة ZATCA — Orchestrator
  */
 import { useState } from 'react';
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShieldCheck, FileText, Link2 } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';

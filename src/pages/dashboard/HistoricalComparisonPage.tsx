@@ -2,8 +2,7 @@
  * صفحة المقارنة التاريخية — مقارنة 2-4 سنوات مالية جنباً إلى جنب
  */
 import { lazy, Suspense } from 'react';
-import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
-import DashboardLayout from '@/components/dashboard-layout';
+import DashboardLayout from '@/components/DashboardLayout';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,7 +30,6 @@ function ChangeIndicator({ current, previous }: { current: number; previous: num
 }
 
 function HistoricalComparisonPage() {
-  const isDesktop = useIsDesktop();
   const {
     fiscalYears, fyLoading, selectedIds, selectedYears,
     yearData, isAnyLoading, toggleYear,
@@ -108,8 +106,7 @@ function HistoricalComparisonPage() {
                   </CardHeader>
                   <CardContent className="p-0">
                     {/* Mobile Cards */}
-                    {!isDesktop && (
-                    <div className="space-y-3 p-3">
+                    <div className="space-y-3 p-3 md:hidden">
                       {comparisonRows.map(row => {
                         const values = yearData.map(d => row.getValue(d));
                         return (
@@ -135,10 +132,8 @@ function HistoricalComparisonPage() {
                         );
                       })}
                     </div>
-                    )}
                     {/* Desktop Table */}
-                    {isDesktop && (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto hidden md:block">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -171,7 +166,6 @@ function HistoricalComparisonPage() {
                         </TableBody>
                       </Table>
                     </div>
-                    )}
                   </CardContent>
                 </Card>
 

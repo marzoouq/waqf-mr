@@ -3,9 +3,9 @@
 // يقلل ~10 طلبات شبكة من العميل إلى طلب واحد
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// @ts-expect-error Deno npm specifier is resolved at runtime in Supabase Edge.
+// @ts-ignore Deno npm specifier is resolved at runtime in Supabase Edge.
 import { createClient } from "npm:@supabase/supabase-js@2";
-// @ts-expect-error Deno npm specifier is resolved at runtime in Supabase Edge.
+// @ts-ignore Deno npm specifier is resolved at runtime in Supabase Edge.
 import { z } from "npm:zod@3";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
@@ -119,8 +119,7 @@ Deno.serve(async (req) => {
       // 1. العقارات
       admin.from("properties")
         .select("id, property_number, property_type, location, area, vat_exempt, description, created_at, updated_at")
-        .order("created_at", { ascending: false })
-        .limit(500),
+        .order("created_at", { ascending: false }),
 
       // 2. العقود
       (() => {
@@ -177,8 +176,8 @@ Deno.serve(async (req) => {
         let q = admin.from("income")
           .select("id, amount, date, source, notes, fiscal_year_id, property_id, contract_id, created_at, property:properties(id, property_number, location)")
           .order("date", { ascending: false });
-        if (!isAll) q = q.eq("fiscal_year_id", fiscal_year_id).limit(1000);
-        else q = q.limit(1000);
+        if (!isAll) q = q.eq("fiscal_year_id", fiscal_year_id).limit(2000);
+        else q = q.limit(2000);
         return q;
       })(),
 
@@ -187,7 +186,7 @@ Deno.serve(async (req) => {
         let q = admin.from("expenses")
           .select("id, amount, date, description, expense_type, fiscal_year_id, property_id, created_at, property:properties(id, property_number, location)")
           .order("date", { ascending: false });
-        if (!isAll) q = q.eq("fiscal_year_id", fiscal_year_id).limit(1000);
+        if (!isAll) q = q.eq("fiscal_year_id", fiscal_year_id).limit(2000);
         else q = q.limit(1000);
         return q;
       })(),

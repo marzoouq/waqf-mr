@@ -40,7 +40,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
 }));
 
 vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
-vi.mock('@/components/dashboard-layout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/hooks/data/usePaymentInvoices', () => ({
   usePaymentInvoices: vi.fn(() => ({ data: [], isLoading: false })),
 }));
