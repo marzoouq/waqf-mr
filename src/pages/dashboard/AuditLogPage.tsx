@@ -15,9 +15,11 @@ import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 import { operationColor, DataDiff } from '@/components/audit/AuditLogHelpers';
 import TablePagination from '@/components/TablePagination';
 import { useAuditLogPage, getTableNameAr, getOperationNameAr } from '@/hooks/page/useAuditLogPage';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 const AuditLogPage = () => {
   const h = useAuditLogPage();
+  const isDesktop = useIsDesktop();
 
   return (
     <DashboardLayout>
