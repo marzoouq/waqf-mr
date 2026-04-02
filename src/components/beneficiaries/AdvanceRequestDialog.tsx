@@ -68,7 +68,7 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
   const isBelowMin = numAmount > 0 && numAmount < minAmount;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setServerData(null); }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); }}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2" disabled={isFiscalYearActive}>
           <Banknote className="w-4 h-4" />

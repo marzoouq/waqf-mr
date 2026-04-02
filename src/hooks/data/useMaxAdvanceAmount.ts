@@ -10,6 +10,7 @@ export interface ServerAdvanceData {
   active_carryforward: number;
   effective_share: number;
   paid_advances: number;
+  max_percentage: number;
   max_advance: number;
 }
 
