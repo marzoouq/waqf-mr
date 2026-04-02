@@ -16,7 +16,7 @@ export function useSaveWaqfInfo(onSuccess?: () => void) {
   const queryClient = useQueryClient();
 
   const save = async (
-    fields: WaqfField[],
+    fields: readonly WaqfField[],
     formData: Record<string, string>,
     logoFile: File | null,
     currentLogoUrl?: string,
