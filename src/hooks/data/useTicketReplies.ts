@@ -4,7 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_LIVE } from '@/lib/queryStaleTime';
-import type { TicketReply } from './supportTypes';
+import type { TicketReply } from '@/types/supportTypes';
 
 /** جلب ردود تذكرة */
 export const useTicketReplies = (ticketId?: string) => {

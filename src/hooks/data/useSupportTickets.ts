@@ -5,11 +5,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_REALTIME } from '@/lib/queryStaleTime';
-import { TICKET_SELECT } from './supportTypes';
-import type { SupportTicket } from './supportTypes';
+import { TICKET_SELECT } from '@/types/supportTypes';
+import type { SupportTicket } from '@/types/supportTypes';
 
 // إعادة تصدير للتوافق الرجعي
-export type { SupportTicket, TicketReply, ClientError, SupportAnalyticsData } from './supportTypes';
+export type { SupportTicket, TicketReply, ClientError, SupportAnalyticsData } from '@/types/supportTypes';
 export { useCreateTicket, useUpdateTicketStatus, useAddTicketReply, useRateTicket } from './useSupportMutations';
 export { useTicketReplies } from './useTicketReplies';
 export { useClientErrors, useSupportStats, useSupportAnalytics } from './useSupportStats';

@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from './mutationNotify';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import type { SupportTicket } from './supportTypes';
+import type { SupportTicket } from '@/types/supportTypes';
 
 /** إنشاء تذكرة جديدة */
 export const useCreateTicket = () => {
