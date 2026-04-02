@@ -2,6 +2,7 @@
  * عرض الفواتير للمستفيد — جدول سطح المكتب (قراءة فقط)
  */
 import { Card, CardContent } from '@/components/ui/card';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
