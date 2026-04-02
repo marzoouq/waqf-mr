@@ -46,9 +46,11 @@ const BeneficiaryDistributionCard = ({
               <span className="text-primary">{fmt(beneficiariesShare)} ر.س</span>
             </div>
           </div>
+          )}
 
           {/* عرض سطح المكتب */}
-          <div className="hidden md:block overflow-x-auto">
+          {isDesktop && (
+          <div className="overflow-x-auto">
             <Table className="min-w-[500px]">
               <TableHeader>
                 <TableRow className="bg-muted/50">
