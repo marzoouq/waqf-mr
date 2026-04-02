@@ -112,6 +112,7 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
                 </TableBody>
               </Table>
             </div>
+            )}
           </>
         )}
       </CardContent>

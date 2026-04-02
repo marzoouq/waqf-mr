@@ -91,8 +91,10 @@ const CashFlowTable = ({ monthlyData, totals, fmt }: Props) => {
           </TableFooter>
         </Table>
       </div>
+      )}
     </CardContent>
   </Card>
-);
+  );
+};
 
 export default CashFlowTable;

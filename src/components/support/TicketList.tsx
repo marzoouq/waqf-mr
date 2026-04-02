@@ -112,6 +112,7 @@ const TicketList = ({ tickets, onSelect }: TicketListProps) => {
           </TableBody>
         </Table>
       </div>
+      )}
     </>
   );
 };
