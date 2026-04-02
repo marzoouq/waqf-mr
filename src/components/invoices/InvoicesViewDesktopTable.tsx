@@ -65,7 +65,7 @@ export default function InvoicesViewDesktopTable({
   }
 
   return (
-    <Card className="shadow-sm hidden md:block">
+    <Card className="shadow-sm">
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <Table className="min-w-[850px]">
