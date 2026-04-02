@@ -27,7 +27,7 @@ Deno.serve(async (req): Promise<Response> => {
 
   try {
     const auth = await authenticateAdmin(req, corsHeaders, "zatca-onboard");
-    if ("error" in auth) return auth.error;
+    if ("error" in auth) return auth.error!;
     const { user, admin } = auth;
 
     const body = await req.json();
