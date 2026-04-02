@@ -76,9 +76,11 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
                 </div>
               ))}
             </div>
+            )}
 
             {/* Desktop table */}
-            <div className="hidden md:block overflow-x-auto">
+            {isDesktop && (
+            <div className="overflow-x-auto">
               <Table className="min-w-[750px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
