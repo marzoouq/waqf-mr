@@ -45,7 +45,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLa
         <ThemeToggle />
         <NotificationBell />
       </div>
-    </div>
+    </header>
   );
 };
 
