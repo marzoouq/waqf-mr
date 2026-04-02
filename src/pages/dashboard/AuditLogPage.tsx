@@ -122,7 +122,8 @@ const AuditLogPage = () => {
                     <div className="p-8 text-center text-muted-foreground">لا توجد سجلات</div>
                   ) : (
                     <>
-                      <div className="block md:hidden space-y-3 p-3">
+                      {!isDesktop && (
+                      <div className="space-y-3 p-3">
                         {h.logs.map(log => (
                           <Collapsible key={log.id} open={h.expandedRows.has(log.id)} onOpenChange={() => h.toggleRow(log.id)}>
                             <Card className="shadow-sm">
