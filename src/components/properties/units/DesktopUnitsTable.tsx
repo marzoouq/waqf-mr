@@ -29,6 +29,7 @@ interface DesktopUnitsTableProps {
 }
 
 const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPayments, paymentInvoices = [], onEdit, onDelete }: DesktopUnitsTableProps) => {
+  const isDesktop = useIsDesktop();
   const getPaymentInfo = (contractId: string) => {
     const payment = tenantPayments.find(p => p.contract_id === contractId);
     return payment ? payment.paid_months : 0;
