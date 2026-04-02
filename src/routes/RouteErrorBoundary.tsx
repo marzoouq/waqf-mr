@@ -3,7 +3,7 @@
  * بحيث لا يسقط التطبيق بالكامل عند حدوث خطأ في صفحة واحدة.
  */
 import { ReactNode } from 'react';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 export function RouteGuard({ children }: { children: ReactNode }) {
   return <ErrorBoundary>{children}</ErrorBoundary>;

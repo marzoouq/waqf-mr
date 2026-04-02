@@ -3,11 +3,11 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/components/RequirePublishedYears', () => ({ default: ({ children }: any) => <>{children}</> }));
-vi.mock('@/components/PageHeaderCard', () => ({ default: ({ title, description }: any) => <div><h1>{title}</h1><p>{description}</p></div> }));
-vi.mock('@/components/SkeletonLoaders', () => ({ TableSkeleton: () => <div>loading</div> }));
-vi.mock('@/components/TablePagination', () => ({ default: () => null }));
+vi.mock('@/components/layout/PageHeaderCard', () => ({ default: ({ title, description }: any) => <div><h1>{title}</h1><p>{description}</p></div> }));
+vi.mock('@/components/common/SkeletonLoaders', () => ({ TableSkeleton: () => <div>loading</div> }));
+vi.mock('@/components/common/TablePagination', () => ({ default: () => null }));
 vi.mock('@/components/invoices/InvoiceGridView', () => ({ default: () => null }));
 
 const mockInvoices = [

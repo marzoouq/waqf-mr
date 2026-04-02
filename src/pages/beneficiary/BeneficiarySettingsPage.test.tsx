@@ -55,8 +55,8 @@ vi.mock('@tanstack/react-query', async () => {
   };
 });
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
-vi.mock('@/components/ThemeColorPicker', () => ({ default: () => <div>ThemeColorPicker</div> }));
+vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
+vi.mock('@/components/theme/ThemeColorPicker', () => ({ default: () => <div>ThemeColorPicker</div> }));
 
 import BeneficiarySettingsPage from './BeneficiarySettingsPage';
 

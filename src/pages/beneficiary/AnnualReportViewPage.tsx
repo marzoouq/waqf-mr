@@ -4,8 +4,8 @@
  */
 import { useMemo, useState, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
-import DashboardLayout from '@/components/DashboardLayout';
-import PageHeaderCard from '@/components/PageHeaderCard';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

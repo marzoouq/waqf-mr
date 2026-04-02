@@ -8,8 +8,8 @@ import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, Archive, Activity,
 import { useQuery } from '@tanstack/react-query';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
-import TablePagination from '@/components/TablePagination';
-import { TableSkeleton } from '@/components/SkeletonLoaders';
+import TablePagination from '@/components/common/TablePagination';
+import { TableSkeleton } from '@/components/common/SkeletonLoaders';
 import { fmtDate } from '@/utils/format';
 
 const ITEMS_PER_PAGE = 15;

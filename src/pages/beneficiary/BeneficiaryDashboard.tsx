@@ -7,9 +7,9 @@ import { useNotifications } from '@/hooks/data/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { AlertCircle, RefreshCw, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import DashboardLayout from '@/components/DashboardLayout';
-import { DashboardSkeleton } from '@/components/SkeletonLoaders';
-import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardSkeleton } from '@/components/common/SkeletonLoaders';
+import NoPublishedYearsNotice from '@/components/common/NoPublishedYearsNotice';
 import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary-dashboard/BeneficiaryWelcomeCard';

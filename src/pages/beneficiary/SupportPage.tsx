@@ -1,12 +1,12 @@
 /**
  * صفحة الدعم الفني للمستفيد — تقديم ومتابعة تذاكر الدعم + تقييم الخدمة
  */
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Headset, Loader2, MessageSquare, Plus } from 'lucide-react';
 import { useState } from 'react';
-import PageHeaderCard from '@/components/PageHeaderCard';
+import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import { useSupportTickets, type SupportTicket } from '@/hooks/data/useSupportTickets';
 import TicketList from '@/components/support/TicketList';
 import TicketViewDialog from '@/components/support/TicketViewDialog';

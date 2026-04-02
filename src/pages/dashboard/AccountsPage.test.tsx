@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AccountsPage from './AccountsPage';
 
 // --- Mocks ---
-vi.mock('@/components/DashboardLayout', () => ({
+vi.mock('@/components/layout/DashboardLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="layout">{children}</div>,
 }));
 
@@ -117,7 +117,7 @@ vi.mock('@/hooks/financial/useAccountsPage', () => ({
   })),
 }));
 
-vi.mock('@/components/FiscalYearSelector', () => ({
+vi.mock('@/components/layout/FiscalYearSelector', () => ({
   default: () => <div data-testid="fiscal-year-selector">FY Selector</div>,
 }));
 

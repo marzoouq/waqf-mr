@@ -5,13 +5,13 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Lock, User } from 'lucide-react';
-import ThemeToggle from '@/components/ThemeToggle';
+import ThemeToggle from '@/components/theme/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
-import NotificationBell from '@/components/NotificationBell';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
+import NotificationBell from '@/components/notifications/NotificationBell';
+import FiscalYearSelector from '@/components/layout/FiscalYearSelector';
 import { lazy, Suspense } from 'react';
-const GlobalSearch = lazy(() => import('@/components/GlobalSearch'));
-import WaqfInfoBar from '@/components/WaqfInfoBar';
+const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
+import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
 
 interface DesktopTopBarProps {
   fiscalYearId: string;

@@ -1,10 +1,10 @@
 /**
  * صفحة تاريخ الترحيلات والفروق المخصومة من حصة المستفيد
  */
-import DashboardLayout from '@/components/DashboardLayout';
-import { DashboardSkeleton } from '@/components/SkeletonLoaders';
-import PageHeaderCard from '@/components/PageHeaderCard';
-import ExportMenu from '@/components/ExportMenu';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardSkeleton } from '@/components/common/SkeletonLoaders';
+import PageHeaderCard from '@/components/layout/PageHeaderCard';
+import ExportMenu from '@/components/common/ExportMenu';
 import { Button } from '@/components/ui/button';
 import { ArrowDownUp, AlertTriangle, RefreshCw, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';

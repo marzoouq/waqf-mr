@@ -3,7 +3,7 @@ import { lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 const IncomeMonthlyChart = lazy(() => import('@/components/dashboard/IncomeMonthlyChart'));
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,15 +14,15 @@ import { Plus, TrendingUp, Search, Lock, AlertTriangle, ShieldCheck } from 'luci
 import IncomeSummaryCards from '@/components/income/IncomeSummaryCards';
 import IncomeMobileCards from '@/components/income/IncomeMobileCards';
 import IncomeDesktopTable from '@/components/income/IncomeDesktopTable';
-import PageHeaderCard from '@/components/PageHeaderCard';
-import TablePagination from '@/components/TablePagination';
-import ExportMenu from '@/components/ExportMenu';
+import PageHeaderCard from '@/components/layout/PageHeaderCard';
+import TablePagination from '@/components/common/TablePagination';
+import ExportMenu from '@/components/common/ExportMenu';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TableSkeleton } from '@/components/SkeletonLoaders';
+import { TableSkeleton } from '@/components/common/SkeletonLoaders';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';

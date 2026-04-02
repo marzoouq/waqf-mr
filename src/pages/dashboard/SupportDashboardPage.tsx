@@ -1,11 +1,11 @@
 /**
  * صفحة لوحة تحكم الدعم الفني — Orchestrator
  */
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Headset, Bug, BarChart3 } from 'lucide-react';
-import PageHeaderCard from '@/components/PageHeaderCard';
+import PageHeaderCard from '@/components/layout/PageHeaderCard';
 
 import SupportStatsCards from '@/components/support/SupportStatsCards';
 import SupportTicketsTab from '@/components/support/SupportTicketsTab';

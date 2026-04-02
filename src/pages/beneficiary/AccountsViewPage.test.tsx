@@ -59,10 +59,10 @@ vi.mock('@/hooks/financial/useFinancialSummary', () => ({
   })),
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
-vi.mock('@/components/ExportMenu', () => ({ default: (_props: any) => <button data-testid="export-menu">تصدير</button> }));
-vi.mock('@/components/FiscalYearSelector', () => ({ default: () => <div data-testid="fiscal-year-selector" /> }));
-vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => null }));
+vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/common/ExportMenu', () => ({ default: (_props: any) => <button data-testid="export-menu">تصدير</button> }));
+vi.mock('@/components/layout/FiscalYearSelector', () => ({ default: () => <div data-testid="fiscal-year-selector" /> }));
+vi.mock('@/components/common/NoPublishedYearsNotice', () => ({ default: () => null }));
 vi.mock('@/utils/pdf', () => ({ generateAccountsPDF: vi.fn().mockResolvedValue(undefined) }));
 
 import AccountsViewPage from './AccountsViewPage';

@@ -78,14 +78,14 @@ vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
 }));
 
-vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
-vi.mock('@/components/ExportMenu', () => ({ default: (props: any) => <button data-testid="export-menu" onClick={props.onExportPdf}>تصدير</button> }));
-vi.mock('@/components/FiscalYearSelector', () => ({ default: () => <div data-testid="fiscal-year-selector" /> }));
-vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => null }));
+vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/common/ExportMenu', () => ({ default: (props: any) => <button data-testid="export-menu" onClick={props.onExportPdf}>تصدير</button> }));
+vi.mock('@/components/layout/FiscalYearSelector', () => ({ default: () => <div data-testid="fiscal-year-selector" /> }));
+vi.mock('@/components/common/NoPublishedYearsNotice', () => ({ default: () => null }));
 vi.mock('@/components/RequirePublishedYears', () => ({ default: ({ children }: any) => <>{children}</> }));
-vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
+vi.mock('@/components/common/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
 vi.mock('@/utils/pdf', () => ({ generateAnnualReportPDF: vi.fn().mockResolvedValue(undefined) }));
-vi.mock('@/components/PageHeaderCard', () => ({ default: ({ title, actions }: any) => <div>{title}{actions}</div> }));
+vi.mock('@/components/layout/PageHeaderCard', () => ({ default: ({ title, actions }: any) => <div>{title}{actions}</div> }));
 
 // Mock the lazy-loaded charts component
 vi.mock('@/components/financial/FinancialChartsInner', () => ({

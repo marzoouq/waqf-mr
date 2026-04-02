@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { TableSkeleton } from '@/components/SkeletonLoaders';
+import { TableSkeleton } from '@/components/common/SkeletonLoaders';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, Edit, Trash2, CheckCircle, XCircle, Key, AlertTriangle } from 'lucide-react';
 import type { ManagedUser } from '@/hooks/auth/useUserManagement';
