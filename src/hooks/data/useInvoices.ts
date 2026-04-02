@@ -222,7 +222,6 @@ export const getInvoiceSignedUrl = async (filePath: string): Promise<string> => 
 
 // ---------------------------------------------------------------------------
 // Generate PDF for invoices without attachments
-// HIGH-2: استبدال getSession() بـ getUser()
 // ---------------------------------------------------------------------------
 
 export interface GenerateInvoicePdfOptions {
