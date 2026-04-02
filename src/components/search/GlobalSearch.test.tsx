@@ -36,7 +36,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-import GlobalSearch from './search/GlobalSearch';
+import GlobalSearch from './GlobalSearch';
 
 describe('GlobalSearch', () => {
   it('يرندر حقل البحث مع placeholder', () => {
