@@ -60,6 +60,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
         <Button
           variant="ghost"
           size="icon"
+          aria-label="إغلاق القائمة الجانبية"
           onClick={() => setMobileSidebarOpen(false)}
           className="text-sidebar-foreground hover:bg-sidebar-accent lg:hidden"
         >
