@@ -117,7 +117,7 @@
       <script>setTimeout(function(){var s=document.getElementById('splash');if(s){var l=document.getElementById('splash-loader');var e=document.getElementById('splash-error');if(l)l.style.display='none';if(e)e.style.display='block'}},8000)</script>
     </div>
     <!-- حماية Clickjacking — frame-busting (بديل لـ frame-ancestors التي لا تعمل عبر meta) -->
-    <script>try{var h=window.location.hostname;if(window.top!==window.self&&!h.endsWith('.lovable.app')&&!h.endsWith('.lovableproject.com')){window.top.location=window.self.location}}catch(e){}</script>
+    <script>try{var h=window.location.hostname;if(window.top!==window.self&&h.indexOf('id-preview--')===-1&&!h.endsWith('.lovableproject.com')){window.top.location=window.self.location}}catch(e){}</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
