@@ -24,6 +24,7 @@ interface DistributionRow {
 
 /** B-2: تاريخ التوزيعات لكل مستفيد — آخر 5 سنوات */
 const DistributionHistory = ({ beneficiary }: Props) => {
+  const isDesktop = useIsDesktop();
   const { data: distributions = [], isLoading } = useQuery({
     queryKey: ['beneficiary-distribution-history', beneficiary.id],
     staleTime: STALE_FINANCIAL,
