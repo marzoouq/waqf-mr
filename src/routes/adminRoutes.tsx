@@ -1,5 +1,5 @@
 import { Route } from "react-router-dom";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import ProtectedRoute from "@/components/auth/ProtectedRoute"; // reorganized
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { withRouteErrorBoundary as eb } from "./withRouteErrorBoundary";
 
