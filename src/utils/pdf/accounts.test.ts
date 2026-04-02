@@ -76,7 +76,7 @@ describe('generateDistributionsPDF', () => {
   });
 
   it('ينشئ جدولين على الأقل (ملخص + تفصيلي)', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('./distributions');
     mockAutoTable.mockClear();
     await generateDistributionsPDF(baseData);
     expect(mockAutoTable).toHaveBeenCalledTimes(2);
