@@ -103,7 +103,8 @@ const DistributionHistory = ({ beneficiary }: Props) => {
       </CardHeader>
       <CardContent className="p-0">
         {/* Mobile cards */}
-        <div className="space-y-2 p-3 md:hidden">
+        {!isDesktop && (
+        <div className="space-y-2 p-3">
           {yearlyData.map((row, idx) => {
             const prevRow = yearlyData[idx + 1];
             const change = prevRow ? ((row.total - prevRow.total) / prevRow.total) * 100 : null;
