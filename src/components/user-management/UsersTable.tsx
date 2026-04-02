@@ -193,8 +193,8 @@ const UsersTable = ({
               </TableBody>
             </Table>
           </div>
+          )}
         </>
-      )}
 
       {/* Pagination */}
       {(currentPage > 1 || nextPage) && (
