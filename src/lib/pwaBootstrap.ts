@@ -9,9 +9,12 @@ const CACHE_VERSION_KEY = 'pwa_cache_version';
 const PREVIEW_CACHE_KEY = 'preview_cache_cleared_for';
 
 export async function runPwaCacheGuard(): Promise<void> {
+  const hostname = window.location.hostname;
   const isPreviewHost =
-    window.location.hostname.includes('id-preview--') ||
-    window.location.hostname.endsWith('.lovableproject.com');
+    hostname.includes('id-preview--') ||
+    hostname.endsWith('.lovableproject.com') ||
+    hostname.includes('-preview--') ||
+    hostname === 'localhost';
 
   try {
     if (isPreviewHost) {

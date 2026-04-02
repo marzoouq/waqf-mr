@@ -67,7 +67,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+      <nav aria-label="القائمة الرئيسية" role="navigation" className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
        <TooltipProvider delayDuration={0}>
         {links.map((link) => {
           const isActive = location.pathname === link.to ||
