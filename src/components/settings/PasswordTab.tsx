@@ -7,9 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-import { toast } from 'sonner';
+import { useChangePassword } from '@/hooks/auth/useChangePassword';
 import { z } from 'zod';
 
 const passwordSchema = z.object({
@@ -26,8 +24,8 @@ const PasswordTab = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { changePassword, loading: passwordLoading } = useChangePassword();
 
   const handlePasswordChange = async () => {
     setErrors({});
@@ -41,17 +39,10 @@ const PasswordTab = () => {
       return;
     }
 
-    setPasswordLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
-      toast.success('تم تغيير كلمة المرور بنجاح');
+    const success = await changePassword(password);
+    if (success) {
       setPassword('');
       setConfirmPassword('');
-    } catch (err: unknown) {
-      toast.error(getSafeErrorMessage(err));
-    } finally {
-      setPasswordLoading(false);
     }
   };
 

@@ -68,7 +68,7 @@ describe('generateDistributionsPDF', () => {
   };
 
   it('ينشئ PDF ويستدعي finalizePdf باسم ملف صحيح', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('./distributions');
     await generateDistributionsPDF(baseData);
     const { finalizePdf } = await import('./core');
     expect(finalizePdf).toHaveBeenCalledTimes(1);
@@ -76,14 +76,14 @@ describe('generateDistributionsPDF', () => {
   });
 
   it('ينشئ جدولين على الأقل (ملخص + تفصيلي)', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('./distributions');
     mockAutoTable.mockClear();
     await generateDistributionsPDF(baseData);
     expect(mockAutoTable).toHaveBeenCalledTimes(2);
   });
 
   it('يعالج حالة العجز (deficit > 0) بدون خطأ', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('./distributions');
     const data = {
       ...baseData,
       distributions: [
@@ -94,13 +94,13 @@ describe('generateDistributionsPDF', () => {
   });
 
   it('يعالج قائمة توزيعات فارغة', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('./distributions');
     const data = { ...baseData, distributions: [] };
     await expect(generateDistributionsPDF(data)).resolves.not.toThrow();
   });
 
   it('يعالج سُلف ومرحّل = 0 بعلامة "—"', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('./distributions');
     const data = {
       ...baseData,
       distributions: [
