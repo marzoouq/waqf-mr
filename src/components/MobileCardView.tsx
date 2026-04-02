@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Edit, Trash2 } from 'lucide-react';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 
 export interface CardField {
   label: string;
