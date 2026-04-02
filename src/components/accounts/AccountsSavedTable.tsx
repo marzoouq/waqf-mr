@@ -24,6 +24,7 @@ interface AccountsSavedTableProps {
 }
 
 const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSavedTableProps) => {
+  const isDesktop = useIsDesktop();
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -44,7 +45,8 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
         ) : (
           <>
             {/* Mobile cards */}
-            <div className="space-y-3 md:hidden">
+            {!isDesktop && (
+            <div className="space-y-3">
               {accounts.map((account) => (
                 <div key={account.id} className="p-3 rounded-lg border bg-card space-y-2">
                   <div className="flex items-center justify-between">
