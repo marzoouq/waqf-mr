@@ -55,10 +55,10 @@ export const useCarryforwardData = () => {
   const advances = benFinance?.myAdvances ?? [];
   const activeBalance = benFinance?.carryforwardBalance ?? 0;
 
-  const paidAdvances = advances.filter(a => a.status === 'paid');
-  const totalPaidAdvances = paidAdvances.reduce((s, a) => s + safeNumber(a.amount), 0);
-  const settledCF = carryforwards.filter(c => c.status === 'settled');
-  const totalSettled = settledCF.reduce((s, c) => s + safeNumber(c.amount), 0);
+  const paidAdvances = advances.filter((a: { status: string }) => a.status === 'paid');
+  const totalPaidAdvances = paidAdvances.reduce((s: number, a: { amount: number }) => s + safeNumber(a.amount), 0);
+  const settledCF = carryforwards.filter((c: { status: string }) => c.status === 'settled');
+  const totalSettled = settledCF.reduce((s: number, c: { amount: number }) => s + safeNumber(c.amount), 0);
 
   return {
     beneficiary,
