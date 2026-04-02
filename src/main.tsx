@@ -8,6 +8,11 @@ import { initThemeFromStorage } from "./lib/theme/themeColor.utils";
 import { runPwaCacheGuard } from "./lib/pwaBootstrap";
 import type { CacheGuardResult } from "./lib/pwaBootstrap";
 
+// تشخيص: طباعة متغيرات البيئة المتاحة
+console.log('[main] VITE_SUPABASE_URL =', import.meta.env.VITE_SUPABASE_URL ?? '❌ UNDEFINED');
+console.log('[main] VITE_SUPABASE_PUBLISHABLE_KEY =', import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ? '✅ SET' : '❌ UNDEFINED');
+console.log('[main] All VITE_ env keys:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
+
 // تهيئة الثيم المحفوظ قبل الرسم
 initThemeFromStorage();
 
