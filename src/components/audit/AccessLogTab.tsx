@@ -32,6 +32,7 @@ const eventConfig: Record<string, { label: string; color: string; icon: React.El
 };
 
 const AccessLogTab = () => {
+  const isDesktop = useIsDesktop();
   const [eventFilter, setEventFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
