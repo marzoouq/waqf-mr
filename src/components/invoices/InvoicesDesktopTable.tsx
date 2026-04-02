@@ -26,7 +26,10 @@ const InvoicesDesktopTable = ({
   items, isLocked, generatePdfPending,
   typeLabels, statusLabels, statusBadgeVariant,
   onViewFile, onGeneratePdf, onPreview, onEdit, onDelete,
-}: InvoicesDesktopTableProps) => (
+}: InvoicesDesktopTableProps) => {
+  const isDesktop = useIsDesktop();
+  if (!isDesktop) return null;
+  return (
   <div className="overflow-x-auto">
     <Table className="min-w-[800px]">
       <TableHeader>
