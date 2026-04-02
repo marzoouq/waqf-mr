@@ -2,6 +2,7 @@
  * صفحة المقارنة التاريخية — مقارنة 2-4 سنوات مالية جنباً إلى جنب
  */
 import { lazy, Suspense } from 'react';
+import { useIsDesktop } from '@/hooks/ui/useIsDesktop';
 import DashboardLayout from '@/components/dashboard-layout';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
