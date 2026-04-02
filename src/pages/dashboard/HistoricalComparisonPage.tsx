@@ -108,7 +108,8 @@ function HistoricalComparisonPage() {
                   </CardHeader>
                   <CardContent className="p-0">
                     {/* Mobile Cards */}
-                    <div className="space-y-3 p-3 md:hidden">
+                    {!isDesktop && (
+                    <div className="space-y-3 p-3">
                       {comparisonRows.map(row => {
                         const values = yearData.map(d => row.getValue(d));
                         return (
