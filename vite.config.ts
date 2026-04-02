@@ -155,4 +155,5 @@ export default defineConfig(({ mode }) => {
     chunkSizeWarningLimit: 600,
     sourcemap: mode === 'production' ? false : 'hidden',
   },
-}));
+});
+});
