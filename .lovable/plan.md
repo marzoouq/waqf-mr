@@ -1,38 +1,53 @@
 
 
-# تقرير الفحص الجنائي المعمّق — واجهة المعاينة
+# خطة تنظيف المستودع وإصلاح خطأ البناء
 
-## النتيجة: لا يوجد تعارض في المكتبات أو الحزم أو الاستيرادات
+## خطأ البناء (أولوية قصوى)
 
-### ما تم فحصه بعمق
+**الملف**: `src/lib/pwaBootstrap.ts` سطر 99
 
-| الفحص | النتيجة |
-|-------|---------|
-| استيرادات قديمة من مسارات محذوفة (`@/components/Sidebar`, `ThemeToggle`, إلخ) | ✅ صفر نتائج |
-| استيرادات من `@/components/DashboardLayout` القديم | ✅ صفر نتائج |
-| استيرادات من `@/hooks/ui/useDashboardRealtime` المحذوف | ✅ صفر نتائج |
-| وجود الملفات الفعلية في `pwa/`, `layout/`, `theme/` | ✅ كلها موجودة |
-| `default export` في كل ملف منقول | ✅ موجود |
-| barrel files (`index.ts`) | ✅ سليمة |
-| `renderers.ts` → `renderers/index.ts` | ✅ التصدير مطابق |
-| `postcss.config.js` + Tailwind v4 | ✅ سليم |
-| `tsconfig.app.json` — مسارات `@/` | ✅ سليم |
-| `package.json` — `overrides` | ✅ لا تعارض |
-| 39 ملف يستورد من `@/hooks/financial/` | ✅ كلها ملفات موجودة |
-| Console errors / Runtime errors | ✅ لا يوجد |
+**السبب**: `r.update()` يُرجع `Promise<ServiceWorkerRegistration>` لكن الـ fallback هو `undefined as void | undefined` — لا يطابق النوع `ServiceWorkerRegistration`.
 
-### التشخيص
+**الإصلاح**: تغيير الـ fallback إلى `undefined as unknown as ServiceWorkerRegistration` أو الأفضل: لف الاستدعاء بـ `.then(() => {})` لتحويله إلى `Promise<void>` ثم استخدام `undefined` كـ fallback:
 
-خطأ **HTTP 412 (Precondition Failed)** هو خطأ من **خادم المعاينة (sandbox)** وليس من الكود. يحدث عندما:
-- الخادم لم يكمل إعادة البناء بعد سلسلة تعديلات كبيرة (نقلنا 30+ ملف)
-- الخادم يحتفظ بنسخة قديمة من البناء الفاشل السابق (قبل إصلاح App.tsx)
+```typescript
+registrations.map(r =>
+  withTimeout(r.update().then(() => {}), undefined as void, 2000).catch(() => undefined)
+)
+```
 
-### الحل المقترح
+---
 
-**تغيير تجميلي بسيط** (مثل إضافة سطر فارغ في `App.tsx` أو تعليق) لإجبار خادم المعاينة على إعادة البناء من الصفر. هذا ليس إصلاحاً برمجياً — بل هو "نقرة" لتحريك الخادم.
+## تنظيف الملفات (6 إجراءات)
 
-### الخطوة الوحيدة
-1. إضافة تعليق فارغ في `src/App.tsx` (مثل `// force rebuild`) ثم حذفه — مجرد لمسة لتنشيط البناء
+### 1. حذف `/DashboardChartsInner.tsx` من جذر المشروع
+ملف يتيم لا يُستورد من أي مكان. النسخة الصحيحة في `src/components/dashboard/`.
 
-لا يوجد أي تعارض في المكتبات أو الحزم. الكود سليم 100%.
+### 2. حذف `src/utils/printDistributionReport.test.ts`
+ملف اختبار يتيم — الدالة المختبَرة في `src/utils/pdf/printDistributionReport.ts` ونسخة الاختبار الصحيحة موجودة هناك.
+
+### 3. حذف `src/utils/printShareReport.test.ts`
+نفس الحالة — الدالة في `src/utils/pdf/` والاختبار الصحيح هناك.
+
+### 4. نقل `src/components/GlobalSearch.test.tsx` → `src/components/search/GlobalSearch.test.tsx`
+تحديث مسار الاستيراد داخل الاختبار ليشير إلى `./GlobalSearch` بدلاً من المسار القديم.
+
+### 5. حذف `src/utils/loadAmiriFonts.test.ts`
+الدالة في `src/utils/pdf/loadAmiriFonts.ts` — ملف الاختبار يتيم.
+
+### 6. ملفات Migration المكررة
+لا توجد في المستودع الحالي (تم تنظيفها سابقاً). لا إجراء مطلوب.
+
+---
+
+## ملخص الملفات المتأثرة
+
+| الإجراء | الملف |
+|---|---|
+| تعديل | `src/lib/pwaBootstrap.ts` (إصلاح خطأ TS2345) |
+| حذف | `/DashboardChartsInner.tsx` |
+| حذف | `src/utils/printDistributionReport.test.ts` |
+| حذف | `src/utils/printShareReport.test.ts` |
+| حذف | `src/utils/loadAmiriFonts.test.ts` |
+| نقل | `src/components/GlobalSearch.test.tsx` → `src/components/search/` |
 
