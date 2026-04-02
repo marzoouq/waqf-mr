@@ -73,7 +73,7 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
   };
 
   const handleSave = () => {
-    save(fields, formData, logoFile, currentLogoUrl);
+    save(fields, formData, logoFile, currentLogoUrl ?? undefined);
   };
 
   return (
