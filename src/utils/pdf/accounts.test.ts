@@ -68,7 +68,7 @@ describe('generateDistributionsPDF', () => {
   };
 
   it('ينشئ PDF ويستدعي finalizePdf باسم ملف صحيح', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('./distributions');
     await generateDistributionsPDF(baseData);
     const { finalizePdf } = await import('./core');
     expect(finalizePdf).toHaveBeenCalledTimes(1);
