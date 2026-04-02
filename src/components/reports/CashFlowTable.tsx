@@ -12,14 +12,17 @@ interface Props {
   fmt: (v: number) => string;
 }
 
-const CashFlowTable = ({ monthlyData, totals, fmt }: Props) => (
+const CashFlowTable = ({ monthlyData, totals, fmt }: Props) => {
+  const isDesktop = useIsDesktop();
+  return (
   <Card className="shadow-sm">
     <CardHeader>
       <CardTitle className="text-base">جدول التدفق النقدي الشهري</CardTitle>
     </CardHeader>
     <CardContent>
       {/* Mobile cards */}
-      <div className="space-y-2 md:hidden">
+      {!isDesktop && (
+      <div className="space-y-2">
         {monthlyData.map((row) => (
           <div key={row.month} className="p-3 rounded-lg border bg-card space-y-1">
             <div className="flex items-center justify-between">
