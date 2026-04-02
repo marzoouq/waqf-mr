@@ -37,9 +37,12 @@ function MobileCardView<T>({
   isLoading,
   skeletonCount = 3,
 }: MobileCardViewProps<T>) {
+  const isDesktop = useIsDesktop();
+  if (isDesktop) return null;
+
   if (isLoading) {
     return (
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-3">
         {Array.from({ length: skeletonCount }).map((_, i) => (
           <Card key={i} className="shadow-sm">
             <CardContent className="p-4 space-y-3">
