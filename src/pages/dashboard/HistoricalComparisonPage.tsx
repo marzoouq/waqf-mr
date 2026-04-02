@@ -171,6 +171,7 @@ function HistoricalComparisonPage() {
                         </TableBody>
                       </Table>
                     </div>
+                    )}
                   </CardContent>
                 </Card>
 
