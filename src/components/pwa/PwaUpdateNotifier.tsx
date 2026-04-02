@@ -50,7 +50,7 @@ const PwaUpdateNotifier = () => {
     const controller = new AbortController();
     // لا تعرض إشعار التحديث في بيئة Preview
     const isPreview =
-      window.location.hostname.endsWith('.lovable.app') ||
+      window.location.hostname.indexOf('id-preview--') !== -1 ||
       window.location.hostname.endsWith('.lovableproject.com');
     if (isPreview) return;
 
