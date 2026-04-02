@@ -10,7 +10,7 @@ const PREVIEW_CACHE_KEY = 'preview_cache_cleared_for';
 
 export async function runPwaCacheGuard(): Promise<void> {
   const isPreviewHost =
-    window.location.hostname.endsWith('.lovable.app') ||
+    window.location.hostname.includes('id-preview--') ||
     window.location.hostname.endsWith('.lovableproject.com');
 
   try {
