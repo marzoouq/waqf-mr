@@ -40,7 +40,8 @@ const Index = () => {
   const navigate = useNavigate();
 
   // كشف وجود جلسة سابقة لمنع وميض Landing Page قبل شاشة التحميل
-  const [maybeAuthenticated] = useState(() => {
+  // أصبح قابلاً للتعديل حتى يمكن كسر قفل Skeleton بعد timeout
+  const [maybeAuthenticated, setMaybeAuthenticated] = useState(() => {
     try {
       const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
       return !!storageKey && !!localStorage.getItem(storageKey);
@@ -52,6 +53,18 @@ const Index = () => {
   const { data: waqfInfo } = useWaqfInfo();
 
   const [roleTimeout, setRoleTimeout] = useState(false);
+
+  // إصلاح جنائي: safety timeout لكسر Skeleton العالق بسبب توكن قديم في localStorage
+  // إذا مرّت 4 ثوانٍ و loading لا يزال true مع maybeAuthenticated، نُظهر Landing Page قسراً
+  // هذا يضمن أن الواجهة لا تبقى عالقة أكثر من 4 ثوانٍ حتى لو فشل onAuthStateChange كلياً
+  useEffect(() => {
+    if (!maybeAuthenticated || !loading) return;
+    const t = setTimeout(() => {
+      logger.warn('[Index] maybeAuthenticated safety timeout (4s) — forcing landing page');
+      setMaybeAuthenticated(false);
+    }, 4000);
+    return () => clearTimeout(t);
+  }, [maybeAuthenticated, loading]);
 
   useEffect(() => {
     if (!loading && user) {
