@@ -1,8 +1,8 @@
 // autoTable يُحمّل ديناميكياً
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
-  TABLE_HEAD_GREEN, TABLE_HEAD_RED, TABLE_HEAD_GOLD,
-  baseTableStyles, headStyles, footStyles,
+  TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
+  baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
