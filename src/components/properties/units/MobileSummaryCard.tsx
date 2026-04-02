@@ -29,10 +29,10 @@ const MobileSummaryCard = ({ units, contracts, wholePropertyContracts }: MobileS
     totalMonthly += getMonthlyFromContract(wc);
   });
 
-  if (totalAnnual === 0) return null;
+  if (totalAnnual === 0 || isDesktop) return null;
 
   return (
-    <Card className="md:hidden bg-primary/10 border-primary/20">
+    <Card className="bg-primary/10 border-primary/20">
       <CardContent className="p-3">
         <div className="flex items-center justify-between gap-2">
           <div className="text-center flex-1">
