@@ -63,7 +63,7 @@ function MobileCardView<T>({
   }
 
   return (
-    <div className="space-y-3 md:hidden">
+    <div className="space-y-3">
       {items.map((item) => (
         <Card key={getKey(item)} className="shadow-sm">
           <CardContent className="p-4 space-y-3">
