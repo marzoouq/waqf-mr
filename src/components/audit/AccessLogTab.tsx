@@ -182,8 +182,10 @@ const AccessLogTab = () => {
                   );
                 })}
               </div>
+              )}
               {/* Desktop table */}
-              <div className="hidden md:block overflow-x-auto">
+              {isDesktop && (
+              <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
