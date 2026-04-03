@@ -24,7 +24,7 @@ interface ContractsTabContentProps {
   isClosed: boolean;
   role: string | null;
   isLoading: boolean;
-  stats: { total: number; active: number; expired: number; cancelled: number; totalRent: number; activePercent: number; activeRent: number; expiringSoon: number };
+  stats: { total: number; active: number; expired: number; totalRent: number; activePercent: number; activeRent: number; expiringSoon: number };
   expiredContracts: Contract[];
   expiredIds: Set<string>;
   filteredGroups: [string, Contract[]][];
