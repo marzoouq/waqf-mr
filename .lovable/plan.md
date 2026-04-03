@@ -1,63 +1,62 @@
 
 
-# تقرير الفحص الأمني الشامل لسياسات RLS
+# خطة تنظيف المشروع — تصفية التقرير
 
-## ملخص النتائج
+## تصنيف النتائج
 
-أُجري فحص أمني كامل باستخدام 3 ماسحات (Supabase Linter + Supabase LOV + Agent Security). إجمالي النتائج: **11 نتيجة** — جميعها **مُعالجة أو مقبولة مسبقاً**.
+### ✅ تم إصلاحه مسبقاً (لا حاجة لعمل)
+| # | المشكلة | الحالة |
+|---|---------|--------|
+| 41 | `@vitejs/plugin-react` مكرر | **حُذف بالفعل** — `devDependencies` يحتوي فقط `plugin-react-swc` |
+| 48 | `AUDIT_REPORT` في الريبو | **حُذف بالفعل** |
 
----
+### ❌ غير قابل للتنفيذ / تصميم مقصود
+| # | المشكلة | السبب |
+|---|---------|-------|
+| 1-20 | Migrations سريعة/مكررة | تاريخية — لا يمكن حذف أو دمج migrations بعد تطبيقها على Live. الملف المكرر (#1/#2) تم تطبيقه بالفعل |
+| 21-35 | سياسات RLS مُعاد كتابتها | تاريخية — النتيجة النهائية صحيحة (تم التحقق في الفحص الأمني) |
+| 36 | `layout/` vs `dashboard-layout/` | **مختلفان**: `layout/` = الهيكل الرئيسي (1293 سطر)، `dashboard-layout/` = مكونات فرعية يستخدمها layout |
+| 37 | `dashboard/` vs `beneficiary-dashboard/` | **مختلفان**: لأدوار مختلفة (admin vs beneficiary) |
+| 38-39 | مجلدات hooks/financial و hooks/auth | **نمط قياسي**: فصل المكونات عن المنطق |
+| 40 | `waqf/` vs `waqif/` | **مفاهيم مختلفة**: waqf = إعدادات الوقف، waqif = لوحة الواقف |
+| 44 | Tailwind v4 + PostCSS | **المشروع يعمل على v4 فعلاً** — `@import "tailwindcss"` في index.css. الذاكرة المحفوظة عن v3 قديمة |
+| 49-50 | أسماء UUID للـ migrations | **نظام Lovable** يُولّدها تلقائياً — لا يمكن تغييرها |
 
-## النتائج حسب الخطورة
-
-### 🔴 أخطاء (Errors) — 7 نتائج، جميعها مُعالجة
-
-| # | النتيجة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| 1 | Security Definer Views (×2) | ✅ مقصود | `beneficiaries_safe` و `contracts_safe` تستخدمان DEFINER + `security_barrier=true` + تقنيع PII عبر `CASE WHEN` — مطلوب معمارياً |
-| 2 | PII مكشوف عبر `beneficiaries_safe` | ✅ محمي | العرض يقنّع national_id و bank_account للأدوار غير الإدارية. `WHERE auth.uid() IS NOT NULL` يمنع الوصول المجهول |
-| 3 | PII مكشوف عبر `contracts_safe` | ✅ محمي | نفس النمط — تقنيع tenant_id_number و tax_number و CRN |
-| 4 | مفتاح خاص ZATCA في جدول | ✅ مشفّر | `private_key` يُشفّر تلقائياً عبر trigger `encrypt_zatca_private_key`. الوصول محصور بـ admin فقط |
-| 5 | Realtime بدون تحكم بالقنوات | ✅ مقبول | المشروع يستخدم `postgres_changes` فقط (لا Broadcast/Presence). RLS الجداول يُطبَّق تلقائياً |
-| 6 | إشعارات عبر Realtime | ✅ مقبول | نفس السبب — لا قنوات مفتوحة، والتغييرات تمر عبر RLS |
-| 7 | ملفات الفواتير — سياسة واسعة | ✅ تم تشديدها سابقاً | سياسة "Authenticated users can view invoices" حُذفت. الوصول الآن لـ admin + accountant فقط |
-
-### 🟡 تحذيرات (Warnings) — 3 نتائج
-
-| # | النتيجة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| 1 | Extension في public schema | ✅ إيجابي كاذب | `pgcrypto` في schema `extensions` وليس `public` |
-| 2 | `has_role()` تقبل user_id خارجي | ✅ مقبول | الدالة تكشف فقط وجود دور (لا بيانات حساسة). تغييرها يكسر 132 سياسة RLS |
-| 3 | bucket `waqf-assets` عام | ✅ مقبول | يحتوي فقط شعارات وخطوط PDF. الملفات الحساسة في bucket `invoices` الخاص |
-
-### ℹ️ معلومات (Info) — 1 نتيجة
-
-| النتيجة | الحالة |
-|---------|--------|
-| مفتاح تشفير PII نُقل إلى Vault | ✅ مكتمل |
+### 🔧 قابل للإصلاح (3 مهام فقط)
 
 ---
 
-## تغطية RLS — إحصائيات
+## الخطوات
 
-| المقياس | القيمة |
-|---------|--------|
-| إجمالي الجداول/العروض | 28+ |
-| سياسات RLS | 132+ |
-| جداول بدون RLS | 0 (العروض الآمنة محمية بآلية مختلفة) |
-| سياسات RESTRICTIVE | نعم — على الجداول المالية + `user_roles` |
-| حماية السنوات غير المنشورة | `is_fiscal_year_accessible()` على كل جدول مالي |
+### 1. تنظيف قواعد ESLint الوهمية
+ملف: `eslint.config.js`
+
+حذف 6 قواعد غير موجودة في `eslint-plugin-react-hooks@7`:
+- `react-hooks/set-state-in-effect`
+- `react-hooks/static-components`
+- `react-hooks/purity`
+- `react-hooks/refs`
+- `react-hooks/immutability`
+- `react-hooks/preserve-manual-memoization`
+
+هذه القواعد كانت مقترحة في React Compiler ولم تُضف للإصدار الرسمي.
+
+### 2. حذف `autoprefixer` من PostCSS config
+ملف: `postcss.config.js`
+
+الحزمة `autoprefixer` حُذفت من `package.json` في الجلسة السابقة، لكن `postcss.config.js` لا يزال يشير إليها. حذف السطر لمنع خطأ محتمل.
+
+### 3. دمج ملفي Type Definitions
+دمج محتوى `src/vite-pwa.d.ts` في `src/vite-env.d.ts` وحذف الملف المنفصل — كلاهما يخدم نفس الغرض (تعريفات أنواع Vite).
 
 ---
 
-## الخلاصة
+## ملاحظة عن الملف المكرر (#1)
+الملفان `20260318101512` و `20260318102000` متطابقان بالفعل (SHA واحد). لكن **لا يمكن حذف أي منهما** لأنهما مُسجلان في جدول `supabase_migrations.schema_migrations` على Live. حذف أحدهما يسبب migration drift وفشل النشر.
 
-**لا توجد ثغرات أمنية مفتوحة.** جميع النتائج مُعالجة أو مُوثقة كقرارات معمارية مقصودة. النظام يطبق:
-- RLS تقييدي على كل جدول
-- تشفير AES-256 للبيانات الشخصية
-- تقنيع PII عبر عروض آمنة
-- عزل السنوات المالية غير المنشورة
-- سجلات تدقيق غير قابلة للتعديل
-
-لا حاجة لأي تغييرات في الوقت الحالي.
+## الملفات المتأثرة
+- `eslint.config.js` — حذف 6 قواعد
+- `postcss.config.js` — حذف autoprefixer
+- `src/vite-env.d.ts` — دمج تعريفات PWA
+- حذف: `src/vite-pwa.d.ts`
 
