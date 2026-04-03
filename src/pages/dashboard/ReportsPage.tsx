@@ -12,8 +12,6 @@ const MonthlyPerformanceReport = lazy(() => import('@/components/reports/Monthly
 import { ExportMenu } from '@/components/common';
 
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
-import AnnualDisclosureTable from '@/components/reports/AnnualDisclosureTable';
-import PropertyPerformanceTable from '@/components/reports/PropertyPerformanceTable';
 import type { TabItem } from '@/components/ui/responsive-tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useReportsData } from '@/hooks/page/useReportsData';

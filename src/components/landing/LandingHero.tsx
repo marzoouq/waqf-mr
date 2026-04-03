@@ -4,7 +4,7 @@
 import { Building2, Star, ArrowRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { LandingPageContent } from '@/components/settings/LandingPageTab';
+import type { LandingPageContent } from '@/components/settings';
 
 interface LandingHeroProps {
   content: LandingPageContent;

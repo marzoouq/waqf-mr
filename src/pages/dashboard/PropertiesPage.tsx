@@ -7,11 +7,7 @@ import { TablePagination, CrudPagination, ExportMenu, StatsGridSkeleton } from '
 import { Building2, Search } from 'lucide-react';
 import { generatePropertiesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import PropertyUnitsDialog from '@/components/properties/PropertyUnitsDialog';
-import PropertySummaryCards from '@/components/properties/PropertySummaryCards';
-import PropertyFormDialog from '@/components/properties/PropertyFormDialog';
-import PropertyCard from '@/components/properties/PropertyCard';
-import PropertyDeleteDialog from '@/components/properties/PropertyDeleteDialog';
+import { PropertyUnitsDialog, PropertySummaryCards, PropertyFormDialog, PropertyCard, PropertyDeleteDialog } from '@/components/properties';
 import { usePropertiesPage } from '@/hooks/page/usePropertiesPage';
 
 const PropertiesPage = () => {

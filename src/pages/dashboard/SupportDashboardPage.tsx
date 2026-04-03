@@ -6,12 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Headset, Bug, BarChart3 } from 'lucide-react';
 
-import SupportStatsCards from '@/components/support/SupportStatsCards';
-import SupportTicketsTab from '@/components/support/SupportTicketsTab';
-import SupportErrorsTab from '@/components/support/SupportErrorsTab';
-import SupportAnalyticsTab from '@/components/support/SupportAnalyticsTab';
-import TicketDetailDialog from '@/components/support/TicketDetailDialog';
-import NewTicketDialog from '@/components/support/NewTicketDialog';
+import { SupportStatsCards, SupportTicketsTab, SupportErrorsTab, SupportAnalyticsTab, TicketDetailDialog, NewTicketDialog } from '@/components/support';
 import { useSupportDashboardPage } from '@/hooks/page/useSupportDashboardPage';
 
 const SupportDashboardPage = () => {

@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
-import LogoManager from '@/components/settings/LogoManager';
+import LogoManager from './LogoManager';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 
 const waqfFields = [

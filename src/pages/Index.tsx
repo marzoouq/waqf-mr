@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useEffect, useCallback } from 'react';
 import { useAppSettings, useWaqfInfo } from '@/hooks/page/useAppSettings';
 import { usePublicStats } from '@/hooks/data/usePublicStats';
-import type { LandingPageContent } from '@/components/settings/LandingPageTab';
+import type { LandingPageContent } from '@/components/settings';
 import LandingHero from '@/components/landing/LandingHero';
 import LandingFeatures from '@/components/landing/LandingFeatures';
 import LandingCTA from '@/components/landing/LandingCTA';

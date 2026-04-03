@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Menu } from 'lucide-react';
-import NotificationBell from '@/components/notifications/NotificationBell';
+import { NotificationBell } from '@/components/notifications';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import { ROUTE_TITLES } from '@/components/layout/constants';
 

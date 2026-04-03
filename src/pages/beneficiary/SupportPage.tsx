@@ -7,9 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Headset, Loader2, MessageSquare, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useSupportTickets, type SupportTicket } from '@/hooks/data/useSupportTickets';
-import TicketList from '@/components/support/TicketList';
-import TicketViewDialog from '@/components/support/TicketViewDialog';
-import NewTicketDialog from '@/components/support/NewTicketDialog';
+import { TicketList, TicketViewDialog, NewTicketDialog } from '@/components/support';
 
 const BeneficiarySupportPage = () => {
   const { data, isLoading } = useSupportTickets();
