@@ -27,7 +27,7 @@ export { useExpenseBudgets } from './useExpenseBudgets';
 export { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from './useExpenses';
 export { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome } from './useIncome';
 export { useIncomeComparison } from './useIncomeComparison';
-export { useInvoiceFileUtils } from './useInvoiceFileUtils';
+export * from './useInvoiceFileUtils';
 export { useInvoicesByFiscalYear, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, useGenerateInvoicePdf } from './useInvoices';
 export { useLogoManager } from './useLogoManager';
 export { useMaxAdvanceAmount } from './useMaxAdvanceAmount';
