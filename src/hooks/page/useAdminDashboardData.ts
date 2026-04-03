@@ -12,7 +12,7 @@ interface UseAdminDashboardDataParams {
   user: { user_metadata?: { full_name?: string }; email?: string } | null;
   role: string | null;
   fiscalYearId: string;
-  fiscalYear: { label: string; status: string; start_date: string; end_date: string } | null;
+  fiscalYear: { label: string; status: string; start_date: string; end_date: string } | undefined;
   isSpecificYear: boolean;
   summary: {
     properties: any[];
