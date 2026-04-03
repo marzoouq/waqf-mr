@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import DeferredRender from '@/components/common/DeferredRender';
+import OfflineBanner from '@/components/common/OfflineBanner';
 import { ADMIN_ROLES } from '@/constants/roles';
 
 // ملفات المسارات المقسّمة
