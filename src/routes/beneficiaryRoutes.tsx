@@ -16,7 +16,7 @@ const BylawsViewPage = lazyWithRetry(() => import("@/pages/beneficiary/BylawsVie
 const PropertiesViewPage = lazyWithRetry(() => import("@/pages/beneficiary/PropertiesViewPage"));
 const ContractsViewPage = lazyWithRetry(() => import("@/pages/beneficiary/ContractsViewPage"));
 const CarryforwardHistoryPage = lazyWithRetry(() => import("@/pages/beneficiary/CarryforwardHistoryPage"));
-const WaqifDashboard = lazyWithRetry(() => import("@/pages/beneficiary/WaqifDashboard"));
+
 const BeneficiarySupportPage = lazyWithRetry(() => import("@/pages/beneficiary/SupportPage"));
 const AnnualReportViewPage = lazyWithRetry(() => import("@/pages/beneficiary/AnnualReportViewPage"));
 
