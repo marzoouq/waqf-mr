@@ -5,7 +5,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Paperclip, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Edit, Paperclip } from 'lucide-react';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
 import ExpenseAttachments from './ExpenseAttachments';
