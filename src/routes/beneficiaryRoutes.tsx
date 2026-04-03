@@ -1,5 +1,6 @@
 import { Route } from "react-router-dom";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import RequirePermission from "@/components/guards/RequirePermission";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { withRouteErrorBoundary as eb } from "./withRouteErrorBoundary";
 
@@ -24,9 +25,9 @@ import type { ReactNode } from 'react';
 import type { AppRole } from '@/types/database';
 import { BENEFICIARY_ROLES, ALL_NON_ACCOUNTANT, ALL_ROLES } from '@/constants/roles';
 
-/** دالة مساعدة لتقليل التكرار */
+/** دالة مساعدة — حماية دور + حماية صلاحيات */
 const pr = (roles: AppRole[], page: ReactNode) =>
-  eb(<ProtectedRoute allowedRoles={roles}>{page}</ProtectedRoute>);
+  eb(<ProtectedRoute allowedRoles={roles}><RequirePermission>{page}</RequirePermission></ProtectedRoute>);
 
 /** مسارات المستفيدين والواقف */
 export const beneficiaryRoutes = (

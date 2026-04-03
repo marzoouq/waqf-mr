@@ -3,10 +3,10 @@ import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
+import { Building2, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
 
 // — مكونات inline مستخرجة —
-import { WaqfSettingsTab, SectionsTab, BeneficiaryTab, AppearanceTab, NotificationsTab, SecurityTab } from '@/components/settings';
+import { WaqfSettingsTab, AppearanceTab, NotificationsTab, SecurityTab } from '@/components/settings';
 
 // — مكونات محملة كسول —
 const LandingPageTab = lazy(() => import('@/components/settings/LandingPageTab'));
@@ -16,7 +16,7 @@ const BulkNotificationsTab = lazy(() => import('@/components/settings/BulkNotifi
 const MenuCustomizationTab = lazy(() => import('@/components/settings/MenuCustomizationTab'));
 const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSettingsTab'));
 const BulkMessagingTab = lazy(() => import('@/components/settings/BulkMessagingTab'));
-const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissionsTab'));
+const PermissionsControlPanel = lazy(() => import('@/components/settings/PermissionsControlPanel'));
 const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
 const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
 const ZatcaSettingsTab = lazy(() => import('@/components/settings/ZatcaSettingsTab'));
@@ -45,10 +45,8 @@ const SETTINGS_CATEGORIES = [
   {
     label: 'المستخدمون والأقسام',
     tabs: [
-      { value: 'role-permissions', label: 'صلاحيات الأدوار', icon: Shield },
-      { value: 'sections', label: 'الأقسام', icon: LayoutGrid },
+      { value: 'permissions', label: 'إدارة الصلاحيات', icon: Shield },
       { value: 'menu', label: 'القائمة', icon: LayoutList },
-      { value: 'beneficiary', label: 'واجهة المستفيد', icon: Users },
     ],
   },
   {
@@ -104,9 +102,7 @@ const SettingsPage = () => {
           )}
           <TabsContent value="waqf"><WaqfSettingsTab /></TabsContent>
           <TabsContent value="landing"><Suspense fallback={LOADING}><LandingPageTab /></Suspense></TabsContent>
-          <TabsContent value="sections"><SectionsTab /></TabsContent>
-          <TabsContent value="menu"><Suspense fallback={LOADING}><MenuCustomizationTab /></Suspense></TabsContent>
-          <TabsContent value="beneficiary"><BeneficiaryTab /></TabsContent>
+          <TabsContent value="permissions"><Suspense fallback={LOADING}><PermissionsControlPanel /></Suspense></TabsContent>
           <TabsContent value="appearance"><AppearanceTab /></TabsContent>
           <TabsContent value="fiscal"><Suspense fallback={LOADING}><FiscalYearManagementTab /></Suspense></TabsContent>
           <TabsContent value="notifications"><NotificationsTab /></TabsContent>
@@ -114,7 +110,7 @@ const SettingsPage = () => {
           <TabsContent value="bulk-message"><Suspense fallback={LOADING}><BulkMessagingTab /></Suspense></TabsContent>
           <TabsContent value="export"><Suspense fallback={LOADING}><DataExportTab /></Suspense></TabsContent>
           <TabsContent value="banner"><Suspense fallback={LOADING}><BannerSettingsTab /></Suspense></TabsContent>
-          <TabsContent value="role-permissions"><Suspense fallback={LOADING}><RolePermissionsTab /></Suspense></TabsContent>
+          <TabsContent value="menu"><Suspense fallback={LOADING}><MenuCustomizationTab /></Suspense></TabsContent>
           <TabsContent value="biometric"><Suspense fallback={LOADING}><BiometricSettings /></Suspense></TabsContent>
           <TabsContent value="advances"><Suspense fallback={LOADING}><AdvanceSettingsTab /></Suspense></TabsContent>
           <TabsContent value="zatca"><Suspense fallback={LOADING}><ZatcaSettingsTab /></Suspense></TabsContent>
