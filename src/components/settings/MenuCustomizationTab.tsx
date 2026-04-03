@@ -10,11 +10,12 @@ import { Save, LayoutList, RotateCcw } from 'lucide-react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useState, useEffect } from 'react';
 
-// أنواع وقيم افتراضية مستخرجة إلى ملف مستقل لتقليل حجم الحزمة
-export type { MenuLabels } from '@/components/layout/menuLabels';
-export { defaultMenuLabels } from '@/components/layout/menuLabels';
-import { defaultMenuLabels } from '@/components/layout';
+// استيراد مباشر بدل barrel لمنع الاعتماديات الدائرية
+import { defaultMenuLabels } from '@/components/layout/menuLabels';
 import type { MenuLabels } from '@/components/layout/menuLabels';
+
+export type { MenuLabels };
+export { defaultMenuLabels };
 
 const MenuCustomizationTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
@@ -71,8 +72,8 @@ const MenuCustomizationTab = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {items.map(item => (
               <div key={item.key} className="space-y-1">
-                <Label htmlFor="menu-customization-tab-field-1" className="text-xs text-muted-foreground">{item.defaultLabel}</Label>
-                <Input name="menu_label" id="menu-customization-tab-field-1"
+                <Label htmlFor={`menu-label-${item.key}`} className="text-xs text-muted-foreground">{item.defaultLabel}</Label>
+                <Input name="menu_label" id={`menu-label-${item.key}`}
                   value={form[item.key]}
                   onChange={e => handleChange(item.key, e.target.value)}
                   maxLength={30}
