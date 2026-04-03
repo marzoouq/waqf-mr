@@ -65,6 +65,7 @@ const SETTINGS_CATEGORIES = [
 ];
 
 const SettingsPage = () => {
+  const isMobile = useIsMobile();
   const [activeSettingsTab, setActiveSettingsTab] = useState('waqf');
   return (
     <DashboardLayout>

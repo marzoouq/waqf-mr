@@ -30,6 +30,7 @@ function ChangeIndicator({ current, previous }: { current: number; previous: num
 }
 
 function HistoricalComparisonPage() {
+  const isMobile = useIsMobile();
   const {
     fiscalYears, fyLoading, selectedIds, selectedYears,
     yearData, isAnyLoading, toggleYear,

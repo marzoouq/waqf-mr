@@ -163,33 +163,35 @@ const AnnualReportViewPage = () => {
         </Suspense>
 
         <Tabs defaultValue={viewTab} value={viewTab} onValueChange={setViewTab} dir="rtl">
-          {/* قائمة Select للجوال */}
-          <div className="md:hidden mb-4">
-            <select
-              value={viewTab}
-              onChange={(e) => setViewTab(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="property_status">حالة العقارات</option>
-              <option value="achievement">الإنجازات</option>
-              <option value="challenge">التحديات</option>
-              <option value="future_plan">الخطط المستقبلية</option>
-            </select>
-          </div>
-          <TabsList className="w-full justify-start hidden md:flex">
-            <TabsTrigger value="property_status" className="gap-1 text-sm">
-              <Building2 className="h-4 w-4" /> حالة العقارات
-            </TabsTrigger>
-            <TabsTrigger value="achievement" className="gap-1 text-sm">
-              <Trophy className="h-4 w-4" /> الإنجازات
-            </TabsTrigger>
-            <TabsTrigger value="challenge" className="gap-1 text-sm">
-              <AlertTriangle className="h-4 w-4" /> التحديات
-            </TabsTrigger>
-            <TabsTrigger value="future_plan" className="gap-1 text-sm">
-              <Lightbulb className="h-4 w-4" /> الخطط المستقبلية
-            </TabsTrigger>
-          </TabsList>
+          {isMobile ? (
+            <div className="mb-4">
+              <select
+                value={viewTab}
+                onChange={(e) => setViewTab(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="property_status">حالة العقارات</option>
+                <option value="achievement">الإنجازات</option>
+                <option value="challenge">التحديات</option>
+                <option value="future_plan">الخطط المستقبلية</option>
+              </select>
+            </div>
+          ) : (
+            <TabsList className="w-full justify-start">
+              <TabsTrigger value="property_status" className="gap-1 text-sm">
+                <Building2 className="h-4 w-4" /> حالة العقارات
+              </TabsTrigger>
+              <TabsTrigger value="achievement" className="gap-1 text-sm">
+                <Trophy className="h-4 w-4" /> الإنجازات
+              </TabsTrigger>
+              <TabsTrigger value="challenge" className="gap-1 text-sm">
+                <AlertTriangle className="h-4 w-4" /> التحديات
+              </TabsTrigger>
+              <TabsTrigger value="future_plan" className="gap-1 text-sm">
+                <Lightbulb className="h-4 w-4" /> الخطط المستقبلية
+              </TabsTrigger>
+            </TabsList>
+          )}
 
           <TabsContent value="property_status">
             <PropertyStatusSection

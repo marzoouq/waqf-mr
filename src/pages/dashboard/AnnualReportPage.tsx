@@ -120,40 +120,43 @@ const AnnualReportPage = () => {
           </div>
         ) : (
           <Tabs value={r.activeTab} onValueChange={r.setActiveTab} dir="rtl">
-            <div className="md:hidden mb-4">
-              <select
-                value={r.activeTab}
-                onChange={(e) => r.setActiveTab(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="property_status">حالة العقارات ({r.grouped.property_status.length})</option>
-                <option value="achievement">الإنجازات ({r.grouped.achievement.length})</option>
-                <option value="challenge">التحديات ({r.grouped.challenge.length})</option>
-                <option value="future_plan">الخطط المستقبلية ({r.grouped.future_plan.length})</option>
-              </select>
-            </div>
-            <TabsList className="w-full justify-start hidden md:flex">
-              <TabsTrigger value="property_status" className="gap-1 text-sm">
-                <Building2 className="h-4 w-4" />
-                حالة العقارات
-                <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.property_status.length}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="achievement" className="gap-1 text-sm">
-                <Trophy className="h-4 w-4" />
-                الإنجازات
-                <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.achievement.length}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="challenge" className="gap-1 text-sm">
-                <AlertTriangle className="h-4 w-4" />
-                التحديات
-                <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.challenge.length}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="future_plan" className="gap-1 text-sm">
-                <Lightbulb className="h-4 w-4" />
-                الخطط المستقبلية
-                <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.future_plan.length}</Badge>
-              </TabsTrigger>
-            </TabsList>
+            {isMobile ? (
+              <div className="mb-4">
+                <select
+                  value={r.activeTab}
+                  onChange={(e) => r.setActiveTab(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="property_status">حالة العقارات ({r.grouped.property_status.length})</option>
+                  <option value="achievement">الإنجازات ({r.grouped.achievement.length})</option>
+                  <option value="challenge">التحديات ({r.grouped.challenge.length})</option>
+                  <option value="future_plan">الخطط المستقبلية ({r.grouped.future_plan.length})</option>
+                </select>
+              </div>
+            ) : (
+              <TabsList className="w-full justify-start">
+                <TabsTrigger value="property_status" className="gap-1 text-sm">
+                  <Building2 className="h-4 w-4" />
+                  حالة العقارات
+                  <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.property_status.length}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="achievement" className="gap-1 text-sm">
+                  <Trophy className="h-4 w-4" />
+                  الإنجازات
+                  <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.achievement.length}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="challenge" className="gap-1 text-sm">
+                  <AlertTriangle className="h-4 w-4" />
+                  التحديات
+                  <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.challenge.length}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="future_plan" className="gap-1 text-sm">
+                  <Lightbulb className="h-4 w-4" />
+                  الخطط المستقبلية
+                  <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.future_plan.length}</Badge>
+                </TabsTrigger>
+              </TabsList>
+            )}
 
             <TabsContent value="property_status">
               <PropertyStatusSection
