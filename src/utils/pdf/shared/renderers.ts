@@ -7,8 +7,8 @@ import {
   TABLE_HEAD_GREEN,
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
-} from '../core';
-import { getLastAutoTableY } from '../pdfHelpers';
+} from '../core/core';
+import { getLastAutoTableY } from '../core/pdfHelpers';
 import { fmt } from '@/utils/format';
 import type { PaymentInvoicePdfData } from './types';
 import { computePdfTotals } from './computations';

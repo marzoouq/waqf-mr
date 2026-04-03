@@ -1,7 +1,7 @@
 /**
  * دوال مساعدة بسيطة (تسميات الحالة، تنظيف المسار)
  */
-import { reshapeArabic as rs } from '../core';
+import { reshapeArabic as rs } from '../core/core';
 
 export const statusLabel = (s: string) => {
   switch (s) {

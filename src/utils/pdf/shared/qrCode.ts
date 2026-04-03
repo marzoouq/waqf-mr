@@ -4,7 +4,7 @@
 import type jsPDF from 'jspdf';
 import { generateZatcaQrTLV, generateQrDataUrl } from '@/utils/zatcaQr';
 import { logger } from '@/lib/logger';
-import type { PdfWaqfInfo } from '../core';
+import type { PdfWaqfInfo } from '../core/core';
 import type { PaymentInvoicePdfData } from './types';
 
 // رسم QR Code — يظهر دائماً حتى لو VAT = 0 مع retry + fallback مرئي
