@@ -26,7 +26,7 @@ const defaultBeneficiarySections = makeDefaults(BENEFICIARY_SECTION_KEYS);
 
 const PermissionsControlPanel = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
-  const { userId } = useAuth();
+  const { user } = useAuth();
 
   // — قراءة الإعدادات المحفوظة —
   const savedRolePerms = getJsonSetting<RolePerms>('role_permissions', DEFAULT_ROLE_PERMS);
