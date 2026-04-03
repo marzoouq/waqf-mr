@@ -100,7 +100,7 @@ const PermissionsControlPanel = () => {
       // تسجيل في سجل المراجعة
       logAccessEvent({
         event_type: 'diagnostics_run',
-        user_id: userId ?? undefined,
+        user_id: user?.id ?? undefined,
         metadata: {
           action: 'permissions_updated',
           role_permissions: perms,

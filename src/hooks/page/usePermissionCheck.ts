@@ -19,8 +19,8 @@ export function usePermissionCheck() {
   const { getJsonSetting } = useAppSettings();
 
   const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
-  const sectionsVisibility = { ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) };
-  const beneficiarySections = { ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) };
+  const sectionsVisibility: Record<string, boolean> = { ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) };
+  const beneficiarySections: Record<string, boolean> = { ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) };
 
   const isRouteAllowed = (path: string): boolean => {
     // الناظر يرى كل شيء
