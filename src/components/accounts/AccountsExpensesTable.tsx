@@ -2,6 +2,7 @@ import { fmt } from '@/utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { TrendingDown } from 'lucide-react';
+import EmptyState from '@/components/common/EmptyState';
 
 interface AccountsExpensesTableProps {
   expensesCount: number;
