@@ -7,7 +7,6 @@ import { ArrowUpDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import type { FiscalYear } from '@/types/database';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
 
