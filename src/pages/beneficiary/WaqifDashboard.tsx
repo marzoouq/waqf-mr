@@ -179,22 +179,7 @@ const WaqifDashboard = () => {
           </Card>
         )}
 
-        {/* ═══ Quick Links ═══ */}
-        <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3">الوصول السريع</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-            {quickLinks.map((link) => (
-              <Card key={link.path} className="shadow-sm cursor-pointer hover:shadow-md transition-shadow group" onClick={() => navigate(link.path)}>
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex flex-col items-center text-center gap-2">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${link.color}`}><link.icon className="w-5 h-5" /></div>
-                    <p className="font-bold text-sm">{link.title}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+        <WaqifQuickLinks />
       </div>
     </DashboardLayout>
   );
