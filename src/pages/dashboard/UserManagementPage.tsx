@@ -16,6 +16,7 @@ import CreateUserForm from '@/components/user-management/CreateUserForm';
 import { UserEditDialog, UserPasswordDialog, UserDeleteDialog } from '@/components/user-management/UserDialogs';
 
 const UserManagementPage = () => {
+  const queryClient = useQueryClient();
   const mgmt = useUserManagement();
 
   return (
