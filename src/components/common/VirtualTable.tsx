@@ -121,15 +121,16 @@ function VirtualTableInner<T>({
             const items = virtualizer.getVirtualItems();
             const lastItem = items[items.length - 1];
             return (
-            <TableRow
-              style={{
-                height: virtualizer.getTotalSize() - (lastItem?.end ?? 0),
-              }}
-              aria-hidden
-            >
-              <td colSpan={100} className="p-0 border-0" />
-            </TableRow>
-          )}
+              <TableRow
+                style={{
+                  height: virtualizer.getTotalSize() - (lastItem?.end ?? 0),
+                }}
+                aria-hidden
+              >
+                <td colSpan={100} className="p-0 border-0" />
+              </TableRow>
+            );
+          })()}
         </TableBody>
       </Table>
     </div>
