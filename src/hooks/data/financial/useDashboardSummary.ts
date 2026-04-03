@@ -72,6 +72,7 @@ export interface AggregatedFiscalYear {
   start_date: string;
   end_date: string;
   published: boolean;
+  created_at?: string;
 }
 
 export interface AggregatedBeneficiary {

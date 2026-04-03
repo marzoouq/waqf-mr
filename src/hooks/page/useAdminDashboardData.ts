@@ -17,7 +17,7 @@ interface UseAdminDashboardDataParams {
 }
 
 export const useAdminDashboardData = ({
-  user, role, fiscalYearId, fiscalYear, isSpecificYear, summary,
+  user, role, fiscalYearId, fiscalYear, isSpecificYear: _isSpecificYear, summary,
 }: UseAdminDashboardDataParams) => {
   const agg = summary.aggregated;
   const totals = agg?.totals;
