@@ -78,7 +78,7 @@ const ContractsPage = () => {
               stats={stats} expiredContracts={expiredContracts} expiredIds={expiredIds}
               filteredGroups={filteredGroups} statusCounts={statusCounts} allExpanded={allExpanded}
               searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-              statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+              statusFilter={statusFilter} setStatusFilter={setStatusFilter as (v: string) => void}
               propertyFilter={propertyFilter} setPropertyFilter={setPropertyFilter}
               paymentTypeFilter={paymentTypeFilter} setPaymentTypeFilter={setPaymentTypeFilter}
               currentPage={currentPage} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE}
