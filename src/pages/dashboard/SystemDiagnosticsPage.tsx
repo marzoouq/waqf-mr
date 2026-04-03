@@ -2,7 +2,7 @@
  * صفحة تشخيص النظام — 31 فحصاً في 7 بطاقات
  * متاحة للمسؤولين فقط عبر /dashboard/diagnostics
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
