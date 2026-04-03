@@ -2,8 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { Contract } from '@/types/database';
 import { toast } from 'sonner';
-import { fetchActiveFiscalYear } from '@/lib/services/fiscalYearService';
-import { notifyAdmins, notifyAllBeneficiaries } from '@/lib/services/notificationService';
+import { fetchActiveFiscalYear, notifyAdmins, notifyAllBeneficiaries } from '@/lib/services';
 
 interface UseContractsBulkRenewParams {
   contracts: Contract[];
