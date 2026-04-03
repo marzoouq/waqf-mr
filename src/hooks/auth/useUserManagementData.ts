@@ -1,0 +1,90 @@
+/**
+ * بيانات واستعلامات إدارة المستخدمين
+ */
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { STALE_SETTINGS, STALE_MESSAGING } from '@/lib/queryStaleTime';
+import { useAuth } from '@/hooks/auth/useAuthContext';
+
+export interface ManagedUser {
+  id: string;
+  email: string;
+  email_confirmed_at: string | null;
+  created_at: string;
+  last_sign_in_at: string | null;
+  role: string | null;
+}
+
+export const callAdminApi = async (body: Record<string, unknown>) => {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error("يجب تسجيل الدخول أولاً");
+  const res = await supabase.functions.invoke('admin-manage-users', { body });
+  if (res.error) throw new Error(res.error.message);
+  if (res.data?.error) throw new Error(res.data.error);
+  return res.data;
+};
+
+export const useRegistrationEnabled = () => {
+  return useQuery({
+    queryKey: ['registration-enabled'],
+    staleTime: STALE_SETTINGS,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'registration_enabled')
+        .maybeSingle();
+      return data?.value === 'true';
+    },
+  });
+};
+
+export const useAdminUsers = (currentPage: number) => {
+  const { user: currentUser } = useAuth();
+  return useQuery({
+    queryKey: ['admin-users', currentPage],
+    staleTime: STALE_MESSAGING,
+    queryFn: async () => {
+      const result = await callAdminApi({ action: 'list_users', page: currentPage });
+      return {
+        users: result.users as ManagedUser[],
+        total: (result.total as number) ?? (result.users as ManagedUser[]).length,
+        nextPage: (result.nextPage as number | null) ?? null,
+      };
+    },
+    enabled: !!currentUser,
+    retry: 2,
+  });
+};
+
+export const useOrphanedBeneficiaries = () => {
+  const { user: currentUser } = useAuth();
+  return useQuery({
+    queryKey: ['orphaned-beneficiaries'],
+    staleTime: STALE_MESSAGING,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('beneficiaries')
+        .select('id, name, email, user_id')
+        .or('email.is.null,email.eq.,user_id.is.null');
+      return data || [];
+    },
+    enabled: !!currentUser,
+  });
+};
+
+export const useUnlinkedBeneficiaries = () => {
+  const { user: currentUser } = useAuth();
+  return useQuery({
+    queryKey: ['unlinked-beneficiaries'],
+    staleTime: STALE_MESSAGING,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('beneficiaries')
+        .select('id, name, user_id')
+        .is('user_id', null);
+      return data || [];
+    },
+    enabled: !!currentUser,
+  });
+};
