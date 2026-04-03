@@ -8,6 +8,7 @@ import {
   groupExpensesByType,
 } from '@/utils/accountsCalculations';
 import { safeNumber, safePercent } from '@/utils/safeNumber';
+import { isFyAll } from '@/constants/fiscalYearIds';
 
 interface ComputedParams {
   income: Income[];
@@ -161,7 +162,7 @@ export const useComputedFinancials = ({
   }, [expenses]);
 
   // إذا كانت هناك سنة مالية محددة ولم يُعثر على الحساب الختامي
-  const isAccountMissing = !currentAccount && !!fiscalYearId && fiscalYearId !== 'all';
+  const isAccountMissing = !currentAccount && !!fiscalYearId && !isFyAll(fiscalYearId);
 
   return {
     currentAccount,

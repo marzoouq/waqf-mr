@@ -20,7 +20,7 @@ export const useYoYComparison = (currentFiscalYearId?: string): YoYResult => {
 
   // إيجاد السنة السابقة
   const prevFiscalYear = useMemo(() => {
-    if (!currentFiscalYearId || currentFiscalYearId === 'all') return null;
+    if (!currentFiscalYearId || isFyAll(currentFiscalYearId)) return null;
     const sorted = [...allFiscalYears].sort((a, b) => a.start_date.localeCompare(b.start_date));
     const currentIdx = sorted.findIndex(fy => fy.id === currentFiscalYearId);
     if (currentIdx > 0) return sorted[currentIdx - 1];

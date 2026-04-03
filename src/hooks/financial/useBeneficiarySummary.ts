@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { STALE_REALTIME } from '@/lib/queryStaleTime';
 import { logger } from '@/lib/logger';
 import type { AdvanceRequest, AdvanceCarryforward } from '@/hooks/financial/useAdvanceRequests';
+import { isFyAll } from '@/constants/fiscalYearIds';
 
 export interface BeneficiarySummaryData {
   beneficiary: {
@@ -37,7 +38,7 @@ export interface BeneficiarySummaryData {
 }
 
 export const useBeneficiarySummary = (fiscalYearId?: string) => {
-  const effectiveFyId = fiscalYearId === 'all' ? undefined : fiscalYearId;
+  const effectiveFyId = isFyAll(fiscalYearId) ? undefined : fiscalYearId;
 
   return useQuery<BeneficiarySummaryData>({
     queryKey: ['beneficiary-summary', effectiveFyId ?? 'all'],

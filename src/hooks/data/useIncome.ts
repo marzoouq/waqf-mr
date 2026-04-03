@@ -37,7 +37,7 @@ export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase.from('income').select(INCOME_SELECT).order('date', { ascending: false });
-      if (fiscalYearId !== 'all') {
+      if (!isFyAll(fiscalYearId)) {
         query = query.eq('fiscal_year_id', fiscalYearId).limit(PER_FY_LIMIT);
       } else {
         query = query.limit(PER_FY_LIMIT);

@@ -5,6 +5,7 @@
 import { useMemo } from 'react';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
+import { isFyAll } from '@/constants/fiscalYearIds';
 
 interface ContractLike {
   id: string | null;
@@ -21,7 +22,7 @@ export function useContractAllocationMap(contracts: ContractLike[]) {
 
   const allocationMap = useMemo(() => {
     const map = new Map<string, { allocated_payments: number; allocated_amount: number }>();
-    if (!fiscalYearId || fiscalYearId === 'all' || fiscalYears.length === 0) return map;
+    if (!fiscalYearId || isFyAll(fiscalYearId) || fiscalYears.length === 0) return map;
     for (const c of contracts) {
       if (!c.id || !c.start_date || !c.end_date) continue;
       const allocs = allocateContractToFiscalYears(

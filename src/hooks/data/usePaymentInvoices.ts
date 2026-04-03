@@ -48,7 +48,7 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
         .select('id, contract_id, fiscal_year_id, invoice_number, payment_number, due_date, amount, status, paid_date, paid_amount, notes, vat_rate, vat_amount, zatca_uuid, zatca_status, file_path, created_at, updated_at, contract:contracts(contract_number, tenant_name, property_id, payment_count, property:properties(property_number))')
         .order('due_date', { ascending: true })
         .limit(1000);
-      if (fiscalYearId !== 'all') {
+      if (!isFyAll(fiscalYearId)) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
       const { data, error } = await query;

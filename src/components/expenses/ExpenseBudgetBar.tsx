@@ -43,7 +43,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
 
   const saveBudget = useSaveBudget(fiscalYearId, budgetMap);
 
-  if (!fiscalYearId || fiscalYearId === 'all' || !isFyReady(fiscalYearId)) return null;
+  if (!fiscalYearId || isFyAll(fiscalYearId) || !isFyReady(fiscalYearId)) return null;
   if (allTypes.length === 0) return null;
 
   return (

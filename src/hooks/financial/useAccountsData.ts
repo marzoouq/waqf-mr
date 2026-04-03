@@ -13,6 +13,7 @@ import { useProperties } from '@/hooks/data/useProperties';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
+import { isFyAll } from '@/constants/fiscalYearIds';
 
 export function useAccountsData() {
   const { data: accounts = [], isLoading } = useAccounts();
@@ -31,7 +32,7 @@ export function useAccountsData() {
   // تصفية العقود حسب السنة المالية (مع استبعاد الملغاة)
   const contracts = useMemo(() => {
     const activeContracts = allContracts.filter(c => c.status !== 'cancelled');
-    if (!fiscalYearId || fiscalYearId === 'all') return activeContracts;
+    if (!fiscalYearId || isFyAll(fiscalYearId)) return activeContracts;
     return activeContracts.filter(c => c.fiscal_year_id === fiscalYearId || allocationMap.has(c.id));
   }, [allContracts, fiscalYearId, allocationMap]);
 

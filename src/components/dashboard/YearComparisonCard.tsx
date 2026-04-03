@@ -7,6 +7,7 @@ import { ArrowUpDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import type { FiscalYear } from '@/types/database';
+import { isFyAll } from '@/constants/fiscalYearIds';
 
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
 
@@ -37,7 +38,7 @@ const YearComparisonCard = ({ allFiscalYears, fiscalYearId }: YearComparisonCard
             <CardContent>
               <YearOverYearComparison
                 fiscalYears={allFiscalYears}
-                currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
+                currentFiscalYearId={isFyAll(fiscalYearId) ? (allFiscalYears[0]?.id || '') : fiscalYearId}
               />
             </CardContent>
           </Card>
