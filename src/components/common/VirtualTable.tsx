@@ -81,7 +81,7 @@ function VirtualTableInner<T>({
   estimateSize,
   header,
   renderRow,
-  getKey,
+  getKey: _getKey,
   className,
   parentRef,
   ariaLabel,
