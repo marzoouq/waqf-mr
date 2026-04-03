@@ -165,22 +165,30 @@ export async function fetchWaqfData(
           })(),
     ];
 
-    // إضافة استعلامات السنة النشطة إذا وُجدت
+    // إضافة استعلامات مُجمّعة للسنة النشطة بدل السجلات الخام
     if (activeFY && (isAdmin || activeFY.published)) {
-      // 3: الدخل للسنة النشطة
+      // 3: إجماليات الدخل حسب المصدر (مُجمّعة بدلاً من 500 سجل)
       batch2Promises.push(
-        client.from("income")
-          .select("source, amount, date")
-          .eq("fiscal_year_id", activeFY.id)
-          .order("date", { ascending: false })
-          .limit(500)
+        client.rpc("get_income_summary_by_source", { p_fiscal_year_id: activeFY.id })
+          .then((res: { data: unknown[] | null; error: unknown }) => res)
+          .catch(() => {
+            // fallback: جلب سجلات محدودة إذا لم تكن الدالة موجودة
+            return client.from("income")
+              .select("source, amount")
+              .eq("fiscal_year_id", activeFY.id)
+              .limit(100);
+          })
       );
-      // 4: المصروفات للسنة النشطة
+      // 4: إجماليات المصروفات حسب النوع (مُجمّعة)
       batch2Promises.push(
-        client.from("expenses")
-          .select("expense_type, amount, date")
-          .eq("fiscal_year_id", activeFY.id)
-          .limit(500)
+        client.rpc("get_expense_summary_by_type", { p_fiscal_year_id: activeFY.id })
+          .then((res: { data: unknown[] | null; error: unknown }) => res)
+          .catch(() => {
+            return client.from("expenses")
+              .select("expense_type, amount")
+              .eq("fiscal_year_id", activeFY.id)
+              .limit(100);
+          })
       );
     }
 
