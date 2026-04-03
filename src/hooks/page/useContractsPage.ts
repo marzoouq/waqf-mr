@@ -8,7 +8,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
 import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts/contractForm.types';
-import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { toast } from 'sonner';
 import { useContractsFilters } from './useContractsFilters';
 import { useContractsBulkRenew } from './useContractsBulkRenew';
