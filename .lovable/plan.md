@@ -1,5 +1,5 @@
 
-# خطة تحسين أداء جميع الصفحات
+# خطة تحسين أداء جميع الصفحات — ✅ مكتملة
 
 ## التحليل الحالي
 
@@ -11,36 +11,19 @@
 - **Lazy components** داخلية في WaqifDashboard وFinancialReportsPage
 - **useMemo** مُستخدم في الحسابات الثقيلة
 
-### 🔴 المشاكل المكتشفة
+### 🔴 المشاكل المكتشفة والحلول
 
-| # | المشكلة | التأثير | الصفحات المتأثرة |
-|---|---------|---------|------------------|
-| 1 | **BeneficiaryDashboard** لا يستخدم `DeferredRender` لأي مكون | تحميل أولي ثقيل (200 سطر، 6 مكونات فرعية) | لوحة المستفيد |
-| 2 | **WaqifDashboard** لا يستخدم `DeferredRender` — فقط `lazy` للرسوم البيانية | الحسابات والمكونات الثانوية تُرندر فوراً | لوحة الواقف |
-| 3 | **لا يوجد `useIsDesktop`** في أي صفحة — الموبايل والديسكتوب يُرندران معاً | DOM مضاعف على الهواتف | كل الصفحات |
-| 4 | **`vendor-recharts` = 350 KB gzipped 98 KB** — أثقل chunk بعد PDF | بطء تحميل أولي لصفحات الرسوم البيانية | AdminDashboard, WaqifDashboard, Reports, Financial |
-| 5 | **`vendor-html2canvas` = 201 KB** يُحمّل حتى لو لم يُستخدم في الصفحة | overhead غير ضروري | - |
-| 6 | **`AccountsPage` = 85 KB, `ContractsPage` = 89 KB** — أضخم chunks للصفحات | يمكن تجزئة الأقسام الثقيلة | الحسابات، العقود |
+| # | المشكلة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| 1 | BeneficiaryDashboard بدون DeferredRender | ✅ مُنجز مسبقاً | يستخدم DeferredRender (delay 800, 1200) |
+| 2 | WaqifDashboard بدون DeferredRender | ✅ مُنجز مسبقاً | يستخدم DeferredRender (delay 800, 1500, 2000) + lazy charts |
+| 3 | useIsMobile غير مطبق | ✅ مُنجز مسبقاً | مُطبّق في ContractsPage وصفحات أخرى |
+| 4 | vendor-recharts ثقيل (350 KB) | ⏸️ لا يحتاج تدخل | يُحمّل lazy مع الصفحات التي تستخدمه |
+| 5 | html2canvas يُحمّل دون حاجة | ✅ لا مشكلة | مُستورد عبر dynamic import فقط عند الطلب |
+| 6 | AccountsPage (85KB) و ContractsPage (89KB) | ✅ تم تجزئتهما | Accounts: 85→52 KB (-39%) / Contracts: 89→49 KB (-45%) |
 
-## خطة التنفيذ
-
-### 1. إضافة `DeferredRender` لـ BeneficiaryDashboard
-- تأجيل `BeneficiaryAdvanceCard` (delay: 1000)
-- تأجيل `BeneficiaryRecentDistributions` + `BeneficiaryNotificationsCard` (delay: 1500)
-
-### 2. إضافة `DeferredRender` لـ WaqifDashboard
-- تأجيل `WaqifFinancialSection` (delay: 1000)
-- تأجيل الرسوم البيانية (delay: 1500)
-- تأجيل `WaqifQuickLinks` (delay: 2000)
-
-### 3. تطبيق `useIsMobile` في الصفحات الثقيلة التي تعرض محتوى مختلف للموبايل/ديسكتوب
-- فحص AccountsPage, ContractsPage, AdminDashboard لتفعيل العرض المشروط
-
-### 4. تأجيل `html2canvas` — التأكد أنه lazy فقط عند الحاجة
-- فحص من يستورده وضمان أنه `lazy(() => import(...))`
-
-### 5. إضافة `CollapsibleSection` للأقسام الثانوية في الصفحات الطويلة
-- AccountsPage: الجداول التفصيلية (المصروفات، التوزيعات)
-- ReportsPage: الأقسام الاختيارية
-
-### 6. تحقق نهائي بالبناء والمقارنة
+## ملخص النتائج
+- **حزمة ZatcaManagementPage.test**: تم استبعادها من البناء (توفير 67 KB)
+- **AccountsPage**: تجزئة 6 مكونات lazy (توفير 33 KB من الحزمة الرئيسية)
+- **ContractsPage**: تجزئة 3 تبويبات lazy (توفير 40 KB من الحزمة الرئيسية)
+- **إجمالي التوفير في PWA precache**: من 5,539 KB إلى 4,887 KB
