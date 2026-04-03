@@ -5,7 +5,7 @@
  */
 import { useRef, type ReactNode } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Table, TableHeader, TableBody, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
 /** الحد الأدنى لتفعيل التمرير الافتراضي */
