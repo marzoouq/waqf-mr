@@ -7,44 +7,10 @@ import { safeNumber } from '@/utils/safeNumber';
 import { computeMonthlyData } from '@/utils/dashboardComputations';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
-import type { Tables } from '@/integrations/supabase/types';
+import type { useDashboardSummary } from '@/hooks/data/useDashboardSummary';
 
-// ── أنواع مخصصة للملخص — تستخدم أنواع قاعدة البيانات مع مرونة للحقول الجزئية ──
-
-type Property = Tables<'properties'>;
-type Contract = Tables<'contracts'>;
-type Unit = Tables<'units'>;
-type PaymentInvoice = Tables<'payment_invoices'>;
-type IncomeRow = Tables<'income'>;
-type ExpenseRow = Tables<'expenses'>;
-type AccountRow = Tables<'accounts'>;
-type Beneficiary = Tables<'beneficiaries'>;
-type FiscalYear = Tables<'fiscal_years'>;
-
-interface ContractAllocation {
-  contract_id: string;
-  allocated_amount: number;
-  fiscal_year_id: string;
-}
-
-interface AdvanceRequest {
-  id: string;
-  status: string;
-  amount: number;
-  beneficiary_id: string;
-}
-
-interface OrphanedContract {
-  id: string;
-  contract_number: string;
-}
-
-interface YoYData {
-  hasPrevYear: boolean;
-  prevTotalIncome: number;
-  prevTotalExpenses: number;
-  prevNetAfterExpenses: number;
-}
+/** النوع المُستنتج من هوك الملخص — يضمن التوافق التام بين الهوكين */
+type DashboardSummary = Omit<ReturnType<typeof useDashboardSummary>, 'isLoading' | 'isError'>;
 
 interface UseAdminDashboardDataParams {
   user: { user_metadata?: { full_name?: string }; email?: string } | null;
@@ -52,22 +18,7 @@ interface UseAdminDashboardDataParams {
   fiscalYearId: string;
   fiscalYear: { label: string; status: string; start_date: string; end_date: string } | undefined;
   isSpecificYear: boolean;
-  summary: {
-    properties: Property[];
-    contracts: Contract[];
-    allUnits: Unit[];
-    paymentInvoices: PaymentInvoice[];
-    contractAllocations: ContractAllocation[];
-    advanceRequests: AdvanceRequest[];
-    orphanedContracts: OrphanedContract[];
-    income: IncomeRow[];
-    expenses: ExpenseRow[];
-    accounts: AccountRow[];
-    beneficiaries: Beneficiary[];
-    settings: Record<string, string> | null;
-    allFiscalYears: FiscalYear[];
-    yoy: YoYData;
-  };
+  summary: DashboardSummary;
 }
 
 export const useAdminDashboardData = ({
