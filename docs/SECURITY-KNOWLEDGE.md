@@ -97,17 +97,18 @@
 | `zatca-signer` | `getUser()` + دور admin/accountant | توقيع فواتير رقمياً (ECDSA P-256) |
 | `zatca-xml-generator` | `getUser()` + دور admin/accountant | إنشاء XML بصيغة UBL 2.1 |
 
-## تصنيف نتائج الفحص الأمني (2026-04-03)
+## تصنيف نتائج الفحص الأمني (2026-04-03 — محدّث)
 
-### إنذارات كاذبة (False Positives)
+### إنذارات كاذبة (False Positives) — 5 نتائج
 
 | النتيجة | المصدر | المبرر |
 |---------|--------|--------|
 | Security Definer View (×2) | Supabase Linter | مقصود — `security_barrier` + `CASE WHEN has_role()` + `WHERE auth.uid() IS NOT NULL` + REVOKE على anon/PUBLIC |
 | Extension in Public (pgcrypto) | Supabase Linter | pgcrypto موجود في schema `extensions` فعلاً — إنذار كاذب |
-| contracts_safe PII exposure | supabase_lov | PII مقنّع عبر CASE WHEN + الجدول الأصلي admin/accountant فقط |
+| beneficiaries_safe بدون RLS | supabase_lov | VIEW لا يحتاج RLS — يستخدم SECURITY DEFINER + security_barrier + CASE WHEN |
+| contracts_safe PII exposure | supabase_lov | نفس النمط — PII مقنّع عبر CASE WHEN + الجدول الأصلي admin/accountant فقط |
 
-### نتائج محلولة (Resolved)
+### نتائج محلولة (Resolved) — 3 نتائج
 
 | النتيجة | الحل | تاريخ الحل |
 |---------|------|-----------|
@@ -115,13 +116,16 @@
 | Raw contracts PII exposure | نفس الحل أعلاه + إجبار على contracts_safe | 2026-03-13 |
 | PII key في app_settings | نُقل إلى Supabase Vault (pgsodium) | 2026-03-13 |
 
-### مخاطر مقبولة (Accepted Risks)
+### مخاطر مقبولة (Accepted Risks) — 6 نتائج
 
 | النتيجة | المبرر | التخفيف |
 |---------|--------|---------|
 | lookup-national-id عامة | مطلوبة لتدفق "نسيت كلمة المرور بالهوية" | Rate limit 3/300s + تأخير تقدمي + استجابة بزمن ثابت + تقنيع البريد |
 | waqf-assets حاوية عامة | مطلوبة لتحميل الشعارات والخطوط في قوالب البريد و Edge Functions | لا بيانات حساسة — الملفات المالية في حاوية `invoices` الخاصة |
 | Realtime broadcast channels | لا يوجد استخدام فعلي لـ Broadcast/Presence | النظام يستخدم `postgres_changes` فقط (محمي بـ RLS على 7 جداول) |
+| شهادات ZATCA — وصول admin | المفتاح الخاص مشفر عبر trigger + الجدول admin-only RLS | تحسين مستقبلي: نقل المفاتيح إلى Vault |
+| سياسة تخزين الفواتير واسعة | المستفيدون يحتاجون عرض فواتيرهم + المسارات UUID غير قابلة للتخمين | RLS على جداول الفواتير يمنع اكتشاف مسارات غير مصرح بها |
+| واقف يرى beneficiary_id في التوزيعات | UUIDs فقط — لا يمكن ربطها بـ PII | جدول beneficiaries يمنع SELECT للواقف + العرض الآمن يقنّع البيانات |
 
 ## نتائج اختبار الحماية على الإنتاج (2026-03-13)
 
