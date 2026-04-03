@@ -6,7 +6,6 @@ import { fmt } from '@/utils/format';
 import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
