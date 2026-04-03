@@ -12,20 +12,7 @@ import FiscalYearSelector from '@/components/layout/FiscalYearSelector';
 import { lazy, Suspense } from 'react';
 const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
 import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
-
-interface DesktopTopBarProps {
-  fiscalYearId: string;
-  onFiscalYearChange: (id: string) => void;
-  showAll: boolean;
-  isClosed: boolean;
-}
-
-const ROLE_LABELS: Record<string, string> = {
-  admin: 'ناظر',
-  accountant: 'محاسب',
-  beneficiary: 'مستفيد',
-  waqif: 'واقف',
-};
+import { ROLE_LABELS } from '@/constants/roles';
 
 const DesktopTopBar: React.FC<DesktopTopBarProps> = ({
   fiscalYearId, onFiscalYearChange, showAll, isClosed,
