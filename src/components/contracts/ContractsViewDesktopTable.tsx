@@ -32,7 +32,7 @@ interface ContractsViewDesktopTableProps {
 
 export default function ContractsViewDesktopTable({ contracts, propertiesMap, isExpiringSoon }: ContractsViewDesktopTableProps) {
   return (
-    <Card className="hidden md:block">
+    <Card>
       <CardContent className="p-0 overflow-x-auto">
         <Table className="min-w-[700px]">
           <TableHeader>
