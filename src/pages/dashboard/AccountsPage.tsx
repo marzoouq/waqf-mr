@@ -154,55 +154,65 @@ const AccountsPage = () => {
           isUpsertPending={page.upsertPaymentPending}
         />
 
-        <AccountsIncomeTable
-          incomeCount={page.income.length}
-          incomeBySource={page.incomeBySource}
-          totalIncome={page.totalIncome}
-        />
+        <DeferredRender delay={600}>
+          <AccountsIncomeTable
+            incomeCount={page.income.length}
+            incomeBySource={page.incomeBySource}
+            totalIncome={page.totalIncome}
+          />
+        </DeferredRender>
 
-        <AccountsExpensesTable
-          expensesCount={page.expenses.length}
-          expensesByType={page.expensesByType}
-          totalExpenses={page.totalExpenses}
-        />
+        <DeferredRender delay={900}>
+          <AccountsExpensesTable
+            expensesCount={page.expenses.length}
+            expensesByType={page.expensesByType}
+            totalExpenses={page.totalExpenses}
+          />
+        </DeferredRender>
 
-        <AccountsDistributionTable
-          waqfCorpusPrevious={page.waqfCorpusPrevious}
-          totalIncome={page.totalIncome}
-          grandTotal={page.grandTotal}
-          totalExpenses={page.totalExpenses}
-          netAfterExpenses={page.netAfterExpenses}
-          manualVat={page.manualVat}
-          netAfterVat={page.netAfterVat}
-          zakatAmount={page.zakatAmount}
-          netAfterZakat={page.netAfterZakat}
-          adminPercent={page.adminPercent}
-          adminShare={page.adminShare}
-          waqifPercent={page.waqifPercent}
-          waqifShare={page.waqifShare}
-          waqfRevenue={page.waqfRevenue}
-          waqfCorpusManual={page.waqfCorpusManual}
-          availableAmount={page.availableAmount}
-          manualDistributions={page.manualDistributions}
-          remainingBalance={page.remainingBalance}
-          isClosed={page.isClosed}
-        />
+        <DeferredRender delay={1200}>
+          <AccountsDistributionTable
+            waqfCorpusPrevious={page.waqfCorpusPrevious}
+            totalIncome={page.totalIncome}
+            grandTotal={page.grandTotal}
+            totalExpenses={page.totalExpenses}
+            netAfterExpenses={page.netAfterExpenses}
+            manualVat={page.manualVat}
+            netAfterVat={page.netAfterVat}
+            zakatAmount={page.zakatAmount}
+            netAfterZakat={page.netAfterZakat}
+            adminPercent={page.adminPercent}
+            adminShare={page.adminShare}
+            waqifPercent={page.waqifPercent}
+            waqifShare={page.waqifShare}
+            waqfRevenue={page.waqfRevenue}
+            waqfCorpusManual={page.waqfCorpusManual}
+            availableAmount={page.availableAmount}
+            manualDistributions={page.manualDistributions}
+            remainingBalance={page.remainingBalance}
+            isClosed={page.isClosed}
+          />
+        </DeferredRender>
 
-        <AccountsBeneficiariesTable
-          beneficiaries={page.beneficiaries}
-          manualDistributions={page.manualDistributions}
-          totalBeneficiaryPercentage={page.totalBeneficiaryPercentage}
-          availableAmount={page.availableAmount}
-          accountId={page.currentAccount?.id}
-          fiscalYearId={page.fiscalYearId === 'all' ? undefined : page.fiscalYearId}
-          fiscalYearLabel={page.selectedFY?.label}
-        />
+        <DeferredRender delay={1500}>
+          <AccountsBeneficiariesTable
+            beneficiaries={page.beneficiaries}
+            manualDistributions={page.manualDistributions}
+            totalBeneficiaryPercentage={page.totalBeneficiaryPercentage}
+            availableAmount={page.availableAmount}
+            accountId={page.currentAccount?.id}
+            fiscalYearId={page.fiscalYearId === 'all' ? undefined : page.fiscalYearId}
+            fiscalYearLabel={page.selectedFY?.label}
+          />
+        </DeferredRender>
 
-        <AccountsSavedTable
-          accounts={page.accounts}
-          isLoading={page.isLoading}
-          onDeleteAccount={(id, name) => page.setDeleteTarget({ type: 'account', id, name })}
-        />
+        <DeferredRender delay={1800}>
+          <AccountsSavedTable
+            accounts={page.accounts}
+            isLoading={page.isLoading}
+            onDeleteAccount={(id, name) => page.setDeleteTarget({ type: 'account', id, name })}
+          />
+        </DeferredRender>
 
         <AccountsDialogs
           deleteTarget={page.deleteTarget}
