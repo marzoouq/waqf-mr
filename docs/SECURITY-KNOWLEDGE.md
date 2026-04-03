@@ -34,7 +34,7 @@
 ## طبقات الحماية المُطبَّقة فعلياً
 
 1. **المصادقة**: تسجيل مقيّد عبر `guard-signup` + تحقق بالبريد الإلكتروني
-2. **التفويض**: أدوار في `user_roles` + سياسات RLS تقييدية على 25 جدول
+2. **التفويض**: أدوار في `user_roles` + سياسات RLS تقييدية على 39 جدول/عرض (134 سياسة)
 3. **التشفير**: AES-256 للبيانات الشخصية عبر `pgcrypto`، مفتاح التشفير في Supabase Vault (pgsodium)
 4. **العزل**: كل مستفيد يرى بياناته فقط، السنوات غير المنشورة محجوبة
 5. **Edge Functions**: مصادقة يدوية عبر `getUser()` مع تقييد معدل الطلبات
@@ -76,23 +76,52 @@
 - أي استخدام لـ `getSession()` بدلاً من `getUser()` في Edge Functions
 - أي استخدام لـ `SUPABASE_SERVICE_ROLE_KEY` كبديل لمصادقة المستخدم
 
-## مرجع الوظائف الآمنة (Edge Functions Auth Matrix)
+## مرجع الوظائف الآمنة (Edge Functions Auth Matrix) — 16 وظيفة
 
 | الوظيفة | نوع المصادقة | ملاحظات |
 |---------|-------------|---------|
 | `admin-manage-users` | `getUser()` + تحقق من دور admin | عمليات مميزة |
-| `ai-assistant` | `getUser()` | نطاق المستخدم |
+| `ai-assistant` | `getUser()` + rate limiting | نطاق المستخدم |
+| `beneficiary-summary` | `getUser()` | ملخص بيانات المستفيد |
+| `check-contract-expiry` | service_role / `getUser()` + admin | مصادقة مزدوجة (Cron + يدوي) |
+| `dashboard-summary` | `getUser()` + admin/accountant | ملخص لوحة التحكم |
+| `generate-invoice-pdf` | `getUser()` | نطاق المستخدم |
 | `guard-signup` | عامة + rate limiting | تسجيل حسابات جديدة |
+| `health-check` | عامة | لا بيانات حساسة — حالة فقط |
+| `lookup-national-id` | عامة + rate limiting + timing-safe | نقطة دخول المصادقة بالهوية |
 | `webauthn` | `getUser()` | إدارة بيانات اعتماد |
+| `auth-email-hook` | Hook (Supabase) + webhook signature | بدون مصادقة مستخدم |
 | `zatca-onboard` | `getUser()` + دور admin | تسجيل واختبار اتصال بوابة فاتورة |
 | `zatca-report` | `getUser()` + دور admin | إرسال/اعتماد فواتير وفحص امتثال |
 | `zatca-renew` | `getUser()` + دور admin | تجديد شهادة ZATCA |
 | `zatca-signer` | `getUser()` + دور admin/accountant | توقيع فواتير رقمياً (ECDSA P-256) |
 | `zatca-xml-generator` | `getUser()` + دور admin/accountant | إنشاء XML بصيغة UBL 2.1 |
-| `check-contract-expiry` | Cron (خادم) | بدون مصادقة مستخدم |
-| `generate-invoice-pdf` | `getUser()` | نطاق المستخدم |
-| `lookup-national-id` | عامة + rate limiting + timing-safe | نقطة دخول المصادقة بالهوية — لا تتطلب جلسة مسبقة |
-| `auth-email-hook` | Hook (Supabase) + webhook signature | بدون مصادقة مستخدم |
+
+## تصنيف نتائج الفحص الأمني (2026-04-03)
+
+### إنذارات كاذبة (False Positives)
+
+| النتيجة | المصدر | المبرر |
+|---------|--------|--------|
+| Security Definer View (×2) | Supabase Linter | مقصود — `security_barrier` + `CASE WHEN has_role()` + `WHERE auth.uid() IS NOT NULL` + REVOKE على anon/PUBLIC |
+| Extension in Public (pgcrypto) | Supabase Linter | pgcrypto موجود في schema `extensions` فعلاً — إنذار كاذب |
+| contracts_safe PII exposure | supabase_lov | PII مقنّع عبر CASE WHEN + الجدول الأصلي admin/accountant فقط |
+
+### نتائج محلولة (Resolved)
+
+| النتيجة | الحل | تاريخ الحل |
+|---------|------|-----------|
+| contracts_safe PII bypass | إزالة beneficiary/waqif من SELECT على contracts الأصلي | 2026-03-13 |
+| Raw contracts PII exposure | نفس الحل أعلاه + إجبار على contracts_safe | 2026-03-13 |
+| PII key في app_settings | نُقل إلى Supabase Vault (pgsodium) | 2026-03-13 |
+
+### مخاطر مقبولة (Accepted Risks)
+
+| النتيجة | المبرر | التخفيف |
+|---------|--------|---------|
+| lookup-national-id عامة | مطلوبة لتدفق "نسيت كلمة المرور بالهوية" | Rate limit 3/300s + تأخير تقدمي + استجابة بزمن ثابت + تقنيع البريد |
+| waqf-assets حاوية عامة | مطلوبة لتحميل الشعارات والخطوط في قوالب البريد و Edge Functions | لا بيانات حساسة — الملفات المالية في حاوية `invoices` الخاصة |
+| Realtime broadcast channels | لا يوجد استخدام فعلي لـ Broadcast/Presence | النظام يستخدم `postgres_changes` فقط (محمي بـ RLS على 7 جداول) |
 
 ## نتائج اختبار الحماية على الإنتاج (2026-03-13)
 
