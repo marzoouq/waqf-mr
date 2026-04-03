@@ -96,7 +96,7 @@ describe('createCrudFactory', () => {
       const { result } = renderHook(() => factory.useCreate(), { wrapper: wrapper() });
       const payload: TablesInsert<'properties'> = { property_number: '', location: '', area: 0, property_type: '' };
       await expect(result.current.mutateAsync(payload)).rejects.toThrow();
-      expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء إضافة العقار');
+      expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء إضافة العقار', undefined);
     });
   });
 
