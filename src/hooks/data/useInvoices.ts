@@ -10,7 +10,7 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 // إعادة تصدير أدوات الملفات للتوافق مع الاستيرادات الحالية
 export { uploadInvoiceFile, getInvoiceSignedUrl, ALLOWED_MIME_TYPES, MAX_FILE_SIZE, VALID_EXTENSIONS } from './useInvoiceFileUtils';
-import { isFyReady } from '@/constants/fiscalYearIds';
+import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 // ---------------------------------------------------------------------------
 // Types & constants

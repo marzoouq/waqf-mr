@@ -8,7 +8,7 @@ import { Contract } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { isFyReady } from '@/constants/fiscalYearIds';
+import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 /** أعمدة العقد المطلوبة للواجهة — بدون PII خام */
 const CONTRACT_SELECT_FIELDS = 'id, contract_number, tenant_name, property_id, unit_id, start_date, end_date, rent_amount, payment_type, payment_count, payment_amount, status, fiscal_year_id, notes, tenant_id_number, tenant_id_type, tenant_tax_number, tenant_crn, tenant_street, tenant_district, tenant_city, tenant_postal_code, tenant_building, created_at, updated_at';

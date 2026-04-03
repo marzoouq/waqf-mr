@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from './mutationNotify';
-import { isFyReady } from '@/constants/fiscalYearIds';
+import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 /** أعمدة المصروفات مع ربط العقار */
 const EXPENSE_SELECT = 'id, amount, date, description, expense_type, fiscal_year_id, property_id, created_at, property:properties(id, property_number, location)';
