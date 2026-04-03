@@ -38,7 +38,7 @@ describe('generateYearComparisonPDF', () => {
       expensesByType2: [{ name: 'صيانة', value: 50000 }],
       monthlyData: [{ month: 'يناير', income1: 33000, expenses1: 3000, net1: 30000, income2: 42000, expenses2: 4000, net2: 38000 }],
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
-    expect(vi.mocked((await import('./core')).finalizePdf).mock.calls[0]?.[2]).toBe('year-comparison-2023-2024-vs-2024-2025.pdf');
+    expect(vi.mocked((await import('../core/core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('../core/core')).finalizePdf).mock.calls[0]?.[2]).toBe('year-comparison-2023-2024-vs-2024-2025.pdf');
   });
 });

@@ -87,27 +87,27 @@ describe('generatePaymentInvoicePDF', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('generates PDF with default template and uploads', async () => {
-    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
     const result = await generatePaymentInvoicePDF(makeInvoice());
     expect(result).not.toBeNull();
     expect(mockUpload).toHaveBeenCalled();
-    expect(vi.mocked((await import('./core')).finalizePdf)).not.toHaveBeenCalled();
+    expect(vi.mocked((await import('../core/core')).finalizePdf)).not.toHaveBeenCalled();
   });
 
   it('generates PDF with classic template', async () => {
-    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
     const result = await generatePaymentInvoicePDF(makeInvoice(), undefined, 'classic');
     expect(result).not.toBeNull();
   });
 
   it('generates PDF with compact template', async () => {
-    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
     const result = await generatePaymentInvoicePDF(makeInvoice(), undefined, 'compact');
     expect(result).not.toBeNull();
   });
 
   it('generates PDF with VAT and adds QR code', async () => {
-    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
     const { generateZatcaQrTLV } = await import('@/utils/zatcaQr');
     const result = await generatePaymentInvoicePDF(
       makeInvoice({ vatRate: 15, vatAmount: 1500, amount: 11500 }),
@@ -126,21 +126,21 @@ describe('generatePaymentInvoicePDF', () => {
     mockUpload
       .mockResolvedValueOnce({ error: { message: 'already exists' } })
       .mockResolvedValueOnce({ error: null });
-    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
     await generatePaymentInvoicePDF(makeInvoice());
     expect(mockUpload).toHaveBeenCalledTimes(2);
   });
 
   it('falls back to local save on storage failure', async () => {
     mockUpload.mockImplementationOnce(() => { throw new Error('network error'); });
-    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
     const result = await generatePaymentInvoicePDF(makeInvoice());
     expect(result).toBeNull();
     expect(mockSave).toHaveBeenCalled();
   });
 
   it('generates QR even without vatNumber (uses empty string)', async () => {
-    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
     const { generateZatcaQrTLV } = await import('@/utils/zatcaQr');
     await generatePaymentInvoicePDF(
       makeInvoice({ vatRate: 15, vatAmount: 1500 }),
@@ -153,13 +153,13 @@ describe('generatePaymentInvoicePDF', () => {
 
   it('updates file_path in DB after successful upload', async () => {
     mockUpload.mockResolvedValue({ error: null });
-    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
     await generatePaymentInvoicePDF(makeInvoice());
     expect(mockUpdate).toHaveBeenCalledWith({ file_path: 'payment-invoices/INV-001.pdf' });
   });
 
   it('renders bank details with tax_professional template', async () => {
-    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
     await generatePaymentInvoicePDF(
       makeInvoice(),
       { waqfName: 'وقف', bankName: 'الأهلي', bankIBAN: 'SA0000' },
@@ -170,7 +170,7 @@ describe('generatePaymentInvoicePDF', () => {
   });
 
   it('renders bilingual title for tax_professional', async () => {
-    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
     await generatePaymentInvoicePDF(
       makeInvoice({ vatRate: 15, vatAmount: 1500 }),
       { waqfName: 'وقف' },
@@ -183,7 +183,7 @@ describe('generatePaymentInvoicePDF', () => {
   });
 
   it('shows placeholder for missing seller fields', async () => {
-    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
     await generatePaymentInvoicePDF(
       makeInvoice(),
       { waqfName: 'وقف' }, // بدون vatNumber, commercialReg, address

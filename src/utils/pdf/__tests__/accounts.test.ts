@@ -68,22 +68,22 @@ describe('generateDistributionsPDF', () => {
   };
 
   it('ينشئ PDF ويستدعي finalizePdf باسم ملف صحيح', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('../entities/accounts');
     await generateDistributionsPDF(baseData);
-    const { finalizePdf } = await import('./core');
+    const { finalizePdf } = await import('../core/core');
     expect(finalizePdf).toHaveBeenCalledTimes(1);
     expect(vi.mocked(finalizePdf).mock.calls[0]?.[2]).toBe('distributions-report-2024-2025.pdf');
   });
 
   it('ينشئ جدولين على الأقل (ملخص + تفصيلي)', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('../entities/accounts');
     mockAutoTable.mockClear();
     await generateDistributionsPDF(baseData);
     expect(mockAutoTable).toHaveBeenCalledTimes(2);
   });
 
   it('يعالج حالة العجز (deficit > 0) بدون خطأ', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('../entities/accounts');
     const data = {
       ...baseData,
       distributions: [
@@ -94,13 +94,13 @@ describe('generateDistributionsPDF', () => {
   });
 
   it('يعالج قائمة توزيعات فارغة', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('../entities/accounts');
     const data = { ...baseData, distributions: [] };
     await expect(generateDistributionsPDF(data)).resolves.not.toThrow();
   });
 
   it('يعالج سُلف ومرحّل = 0 بعلامة "—"', async () => {
-    const { generateDistributionsPDF } = await import('./accounts');
+    const { generateDistributionsPDF } = await import('../entities/accounts');
     const data = {
       ...baseData,
       distributions: [
@@ -145,22 +145,22 @@ describe('generateAccountsPDF', () => {
   };
 
   it('ينشئ PDF باسم accounts-report.pdf', async () => {
-    const { generateAccountsPDF } = await import('./accounts');
+    const { generateAccountsPDF } = await import('../entities/accounts');
     await generateAccountsPDF(fullData);
-    const { finalizePdf } = await import('./core');
+    const { finalizePdf } = await import('../core/core');
     expect(finalizePdf).toHaveBeenCalledTimes(1);
     expect(vi.mocked(finalizePdf).mock.calls[0]?.[2]).toBe('accounts-report.pdf');
   });
 
   it('ينشئ 5 جداول (عقود + إيرادات + مصروفات + توزيع + مستفيدين)', async () => {
-    const { generateAccountsPDF } = await import('./accounts');
+    const { generateAccountsPDF } = await import('../entities/accounts');
     mockAutoTable.mockClear();
     await generateAccountsPDF(fullData);
     expect(mockAutoTable).toHaveBeenCalledTimes(5);
   });
 
   it('يعرض رقبة الوقف المرحلة عندما > 0', async () => {
-    const { generateAccountsPDF } = await import('./accounts');
+    const { generateAccountsPDF } = await import('../entities/accounts');
     mockAutoTable.mockClear();
     await generateAccountsPDF(fullData);
     // الجدول الرابع (التوزيع) يجب أن يحتوي على صفوف رقبة الوقف
@@ -173,7 +173,7 @@ describe('generateAccountsPDF', () => {
   });
 
   it('يُخفي صف الزكاة عندما = 0', async () => {
-    const { generateAccountsPDF } = await import('./accounts');
+    const { generateAccountsPDF } = await import('../entities/accounts');
     mockAutoTable.mockClear();
     const dataNoZakat = { ...fullData, zakatAmount: 0 };
     await generateAccountsPDF(dataNoZakat);
@@ -186,7 +186,7 @@ describe('generateAccountsPDF', () => {
   });
 
   it('يعرض الزكاة عندما > 0', async () => {
-    const { generateAccountsPDF } = await import('./accounts');
+    const { generateAccountsPDF } = await import('../entities/accounts');
     mockAutoTable.mockClear();
     await generateAccountsPDF(fullData);
     const distributionCall = mockAutoTable.mock.calls[3];
@@ -198,7 +198,7 @@ describe('generateAccountsPDF', () => {
   });
 
   it('يعالج بيانات حد أدنى (بدون حقول اختيارية)', async () => {
-    const { generateAccountsPDF } = await import('./accounts');
+    const { generateAccountsPDF } = await import('../entities/accounts');
     await expect(generateAccountsPDF({
       contracts: [],
       incomeBySource: {},
@@ -214,7 +214,7 @@ describe('generateAccountsPDF', () => {
   });
 
   it('يحسب grandTotal تلقائياً عند عدم تمريره', async () => {
-    const { generateAccountsPDF } = await import('./accounts');
+    const { generateAccountsPDF } = await import('../entities/accounts');
     mockAutoTable.mockClear();
     const noGrandTotal = { ...fullData, grandTotal: undefined, waqfCorpusPrevious: 100000 };
     await generateAccountsPDF(noGrandTotal);
@@ -228,7 +228,7 @@ describe('generateAccountsPDF', () => {
   });
 
   it('يحسب حصص المستفيدين تناسبياً', async () => {
-    const { generateAccountsPDF } = await import('./accounts');
+    const { generateAccountsPDF } = await import('../entities/accounts');
     mockAutoTable.mockClear();
     const data = {
       ...fullData,

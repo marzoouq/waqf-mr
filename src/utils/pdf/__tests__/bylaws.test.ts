@@ -37,8 +37,8 @@ describe('generateBylawsPDF', () => {
     await generateBylawsPDF([
       { part_number: 1, part_title: 'أحكام عامة', chapter_title: null, content: 'نص اللائحة **مع تنسيق**' },
     ]);
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
-    expect(vi.mocked((await import('./core')).finalizePdf).mock.calls[0]?.[2]).toBe('waqf-bylaws.pdf');
+    expect(vi.mocked((await import('../core/core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('../core/core')).finalizePdf).mock.calls[0]?.[2]).toBe('waqf-bylaws.pdf');
     expect(mockAddPage).toHaveBeenCalled();
   });
 
@@ -47,6 +47,6 @@ describe('generateBylawsPDF', () => {
       { part_number: 0, part_title: 'المقدمة', chapter_title: 'مقدمة', content: '# عنوان\n**جريء** *مائل*' },
     ]);
     // لن يحتوي النص الناتج على رموز markdown
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('../core/core')).finalizePdf)).toHaveBeenCalled();
   });
 });
