@@ -95,7 +95,7 @@ const ContractsTabContent: React.FC<ContractsTabContentProps> = ({
 
       <ContractsFiltersBar
         searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-        statusFilter={statusFilter} setStatusFilter={(v) => setStatusFilter(v)}
+        statusFilter={statusFilter} setStatusFilter={(v) => setStatusFilter(v as StatusFilterValue)}
         propertyFilter={propertyFilter} setPropertyFilter={setPropertyFilter}
         paymentTypeFilter={paymentTypeFilter} setPaymentTypeFilter={setPaymentTypeFilter}
         statusCounts={statusCounts} properties={properties}
