@@ -1,8 +1,9 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { Contract } from '@/types/database';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { fetchActiveFiscalYear } from '@/lib/services/fiscalYearService';
+import { notifyAdmins, notifyAllBeneficiaries } from '@/lib/services/notificationService';
 
 interface UseContractsBulkRenewParams {
   contracts: Contract[];
@@ -15,7 +16,6 @@ export const useContractsBulkRenew = ({ contracts, fiscalYearId, createContractA
   const [bulkRenewing, setBulkRenewing] = useState(false);
   const [selectedForRenewal, setSelectedForRenewal] = useState<Set<string>>(new Set());
 
-  // تصفير التحديد عند تغيير السنة المالية
   useEffect(() => setSelectedForRenewal(new Set()), [fiscalYearId]);
 
   const expiredContracts = useMemo(() => contracts.filter(c => c.status === 'expired'), [contracts]);
@@ -36,7 +36,7 @@ export const useContractsBulkRenew = ({ contracts, fiscalYearId, createContractA
     if (bulkRenewing) return;
     setBulkRenewing(true);
     try {
-      const { data: activeFY } = await supabase.from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
+      const activeFY = await fetchActiveFiscalYear();
       const contractsToRenew = expiredContracts.filter(c => selectedForRenewal.has(c.id));
       let created = 0;
       for (const contract of contractsToRenew) {
@@ -72,8 +72,8 @@ export const useContractsBulkRenew = ({ contracts, fiscalYearId, createContractA
         await createContractAsync(newContract);
         created++;
       }
-      await supabase.rpc('notify_admins', { p_title: 'تجديد جماعي للعقود', p_message: `تم تجديد ${created} عقد منتهي بنجاح`, p_type: 'success', p_link: '/dashboard/contracts' });
-      await supabase.rpc('notify_all_beneficiaries', { p_title: 'تجديد عقود الإيجار', p_message: `تم تجديد ${created} عقد إيجار للسنة الجديدة`, p_type: 'info', p_link: '/beneficiary/notifications' });
+      await notifyAdmins('تجديد جماعي للعقود', `تم تجديد ${created} عقد منتهي بنجاح`, 'success', '/dashboard/contracts');
+      await notifyAllBeneficiaries('تجديد عقود الإيجار', `تم تجديد ${created} عقد إيجار للسنة الجديدة`, 'info', '/beneficiary/notifications');
       toast.success(`تم تجديد ${created} عقد بنجاح`);
     } catch {
       toast.error('حدث خطأ أثناء التجديد');

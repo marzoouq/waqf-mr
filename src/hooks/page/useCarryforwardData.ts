@@ -2,8 +2,9 @@
  * هوك بيانات صفحة تاريخ الترحيلات
  */
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useMyBeneficiaryProfile } from '@/hooks/data/useMyBeneficiaryProfile';
+import { usePublishedFiscalYears } from '@/hooks/data/usePublishedFiscalYears';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { safeNumber } from '@/utils/safeNumber';
 
@@ -17,33 +18,9 @@ export const useCarryforwardData = () => {
     queryClient.invalidateQueries({ queryKey: ['my-beneficiary'] });
   };
 
-  // جلب بيانات المستفيد
-  const { data: beneficiary, isLoading: loadingBen, isError: benError } = useQuery({
-    queryKey: ['my-beneficiary', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase
-        .from('beneficiaries_safe')
-        .select('id, name, share_percentage')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!user?.id,
-  });
+  const { data: beneficiary, isLoading: loadingBen, isError: benError } = useMyBeneficiaryProfile(user?.id);
 
-  // جلب السنوات المالية للربط
-  const { data: fiscalYears } = useQuery({
-    queryKey: ['fiscal_years_published_all'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('fiscal_years')
-        .select('id, label')
-        .eq('published', true)
-        .order('start_date', { ascending: false });
-      return data ?? [];
-    },
-  });
+  const { data: fiscalYears } = usePublishedFiscalYears();
 
   const fyLabel = (id: string | null) => {
     if (!id) return '—';

@@ -2,9 +2,8 @@
  * هوك حسابات التوزيع على المستفيدين
  */
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { safeNumber } from '@/utils/safeNumber';
+import { usePaidAdvances, useActiveCarryforwards } from '@/hooks/data/useDistributionAdvances';
 
 interface Beneficiary {
   id: string;
@@ -19,39 +18,8 @@ export function useDistributionCalculation(
   fiscalYearId: string | undefined,
   open: boolean,
 ) {
-  // جلب السُلف المصروفة لكل مستفيد في هذه السنة
-  const { data: paidAdvances = [] } = useQuery({
-    queryKey: ['advance_requests', 'paid_all', fiscalYearId],
-    queryFn: async () => {
-      if (!fiscalYearId) return [];
-      const { data, error } = await supabase
-        .from('advance_requests')
-        .select('beneficiary_id, amount')
-        .eq('status', 'paid')
-        .eq('fiscal_year_id', fiscalYearId);
-      if (error) throw error;
-      return (data ?? []) as { beneficiary_id: string; amount: number }[];
-    },
-    enabled: open && !!fiscalYearId,
-  });
-
-  // جلب الفروق المرحّلة النشطة
-  const { data: activeCarryforwards = [] } = useQuery({
-    queryKey: ['advance_carryforward', 'active_for_distribution', fiscalYearId],
-    queryFn: async () => {
-      let query = supabase
-        .from('advance_carryforward')
-        .select('beneficiary_id, amount')
-        .eq('status', 'active');
-      if (fiscalYearId) {
-        query = query.or(`to_fiscal_year_id.eq.${fiscalYearId},to_fiscal_year_id.is.null`);
-      }
-      const { data, error } = await query;
-      if (error) throw error;
-      return (data ?? []) as { beneficiary_id: string; amount: number }[];
-    },
-    enabled: open,
-  });
+  const { data: paidAdvances = [] } = usePaidAdvances(fiscalYearId, open);
+  const { data: activeCarryforwards = [] } = useActiveCarryforwards(fiscalYearId, open);
 
   const advancesByBeneficiary = useMemo(() => {
     const map: Record<string, number> = {};

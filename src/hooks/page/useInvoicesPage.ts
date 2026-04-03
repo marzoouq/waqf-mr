@@ -3,7 +3,6 @@
  */
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
-import { supabase } from '@/integrations/supabase/client';
 import {
   useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile,
   INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear,
@@ -15,6 +14,7 @@ import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import { removeInvoiceFile } from '@/lib/services/invoiceStorageService';
 
 // تعقيم الوصف ضد CSV Injection
 const sanitizeDescription = (value: string): string => {
@@ -57,7 +57,6 @@ export const useInvoicesPage = () => {
     property_id: '', contract_id: '', description: '', status: 'pending',
   });
 
-  // بناء بيانات المعاينة
   const buildPreviewData = (inv: Invoice): InvoicePreviewData => {
     const contract = contracts.find(c => c.id === inv.contract_id);
     const hasVat = safeNumber(inv.vat_rate) > 0;
@@ -159,7 +158,7 @@ export const useInvoicesPage = () => {
 
       if (selectedFile) {
         if (editingInvoice?.file_path) {
-          try { await supabase.storage.from('invoices').remove([editingInvoice.file_path]); } catch { /* تجاهل */ }
+          try { await removeInvoiceFile(editingInvoice.file_path); } catch { /* تجاهل */ }
         }
         const { path, name } = await uploadInvoiceFile(selectedFile);
         invoiceData.file_path = path;
@@ -220,22 +219,17 @@ export const useInvoicesPage = () => {
   };
 
   return {
-    // data
     invoices, filteredInvoices, properties, contracts, isLoading, isClosed,
     fiscalYear, fiscalYearId, pdfWaqfInfo,
-    // state
     viewMode, setViewMode, isOpen, setIsOpen, searchQuery, setSearchQuery,
     filterType, setFilterType, filterStatus, setFilterStatus,
     deleteTarget, setDeleteTarget, currentPage, setCurrentPage,
     uploading, selectedFile, isDragging, setIsDragging, previewUrl,
     fileInputRef, viewerFile, setViewerFile, previewInvoice, setPreviewInvoice,
     templateOpen, setTemplateOpen, editingInvoice, formData, setFormData,
-    // handlers
     validateAndSetFile, resetForm, handleEdit, handleSubmit, handleConfirmDelete,
     buildPreviewData, statusBadgeVariant,
-    // mutations
     createInvoice, updateInvoice, generatePdf,
-    // constants
     ITEMS_PER_PAGE, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS,
   };
 };
