@@ -14,7 +14,7 @@ interface ResizeResult {
 
 export const resizeImage = (
   file: File,
-  maxDimension = 512,
+  maxDimension = 256,
   quality = 0.85,
 ): Promise<ResizeResult> => {
   return new Promise((resolve, reject) => {
