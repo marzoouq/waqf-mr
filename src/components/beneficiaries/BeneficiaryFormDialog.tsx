@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Link, IdCard } from 'lucide-react';
+import { getNationalIdError } from '@/utils/validateNationalId';
 
 export interface BeneficiaryFormData {
   name: string;
@@ -31,7 +32,7 @@ interface BeneficiaryFormDialogProps {
   onReset: () => void;
 }
 
-const validateNationalId = (v: string) => !v || /^\d{10}$/.test(v);
+// validateNationalId مُستبدلة بـ getNationalIdError المباشرة في handleSubmit
 const validateIBAN = (v: string) => !v || /^SA\d{22}$/.test(v.replace(/\s/g, ''));
 
 const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing, isPending, availableUsers, onSubmit, onReset }: BeneficiaryFormDialogProps) => {
@@ -43,7 +44,10 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
     if (!formData.name.trim()) newErrors.name = 'الاسم مطلوب';
     const pct = parseFloat(formData.share_percentage);
     if (!Number.isFinite(pct) || pct <= 0) newErrors.share_percentage = 'النسبة يجب أن تكون أكبر من صفر';
-    if (formData.national_id && !validateNationalId(formData.national_id)) newErrors.national_id = 'رقم الهوية يجب أن يكون 10 أرقام';
+    if (formData.national_id) {
+      const nidErr = getNationalIdError(formData.national_id);
+      if (nidErr) newErrors.national_id = nidErr;
+    }
     if (formData.bank_account && !validateIBAN(formData.bank_account)) newErrors.bank_account = 'صيغة IBAN غير صحيحة (SA + 22 رقم)';
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
