@@ -4,7 +4,6 @@
 import { useState, useCallback } from 'react';
 import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/useAuditLog';
 import { useAuditLogTodayCount, fetchAuditLogForExport } from '@/hooks/data/useAuditLogStats';
-import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/useAuditLog';
 import { generateAuditLogPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';

@@ -3,7 +3,6 @@
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
