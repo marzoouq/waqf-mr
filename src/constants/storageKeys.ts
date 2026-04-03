@@ -19,6 +19,20 @@ export const STORAGE_KEYS = {
   PWA_BANNER_DISMISSED: 'pwa-banner-dismissed',
   /** آخر وقت تحديث PWA */
   PWA_UPDATE_TIME: 'pwa_update_time',
+  /** لون القالب */
+  THEME_COLOR: 'waqf_theme_color',
+  /** تفعيل البصمة */
+  BIOMETRIC_ENABLED: 'waqf_biometric_enabled',
+  /** صوت الإشعارات */
+  NOTIFICATION_SOUND: 'waqf_notification_sound',
+  /** نغمة الإشعار */
+  NOTIFICATION_TONE: 'waqf_notification_tone',
+  /** مستوى صوت الإشعار */
+  NOTIFICATION_VOLUME: 'waqf_notification_volume',
+  /** تفضيلات الإشعارات */
+  NOTIFICATION_PREFS: 'waqf_notification_preferences',
+  /** طابور الأخطاء غير المرسلة */
+  ERROR_LOG_QUEUE: 'error_log_queue',
 } as const;
 
 /** جميع المفاتيح القابلة للمسح عند تسجيل الخروج */
