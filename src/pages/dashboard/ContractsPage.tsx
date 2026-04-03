@@ -16,6 +16,7 @@ import { useContractsPage } from '@/hooks/page/useContractsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 
 const ContractsPage = () => {
+  const isMobile = useIsMobile();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { role } = useAuth();
   const {
