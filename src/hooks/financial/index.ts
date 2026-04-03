@@ -5,7 +5,7 @@ export { useAccountsData } from './useAccountsData';
 export { useAccountsEditing } from './useAccountsEditing';
 export { useAccountsPage } from './useAccountsPage';
 export { useAccountsSettings } from './useAccountsSettings';
-export { useAdvanceQueries, useAdvanceCarryforward } from './useAdvanceQueries';
+export { useMyBeneficiaryFinance, useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards, useAllCarryforwards } from './useAdvanceQueries';
 export { useAdvanceRequests } from './useAdvanceRequests';
 export { useBeneficiarySummary } from './useBeneficiarySummary';
 export { useComputedFinancials } from './useComputedFinancials';
