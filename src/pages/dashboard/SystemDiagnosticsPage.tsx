@@ -155,6 +155,11 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
         </div>
       </div>
 
+      {/* لوحة Core Web Vitals */}
+      <Suspense fallback={null}>
+        <WebVitalsPanel />
+      </Suspense>
+
       {/* البطاقات */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {allCategories.map((cat) => {
