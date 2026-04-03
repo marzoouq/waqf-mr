@@ -2,8 +2,6 @@
  * هوك لتحضير بيانات لوحة تحكم الناظر/المحاسب — يقرأ أرقام جاهزة من RPC
  */
 import { useMemo } from 'react';
-import { EXPIRING_SOON_DAYS } from '@/constants';
-import { fmtInt } from '@/utils/format';
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
 import type { useDashboardSummary } from '@/hooks/data/financial/useDashboardSummary';
 
