@@ -13,7 +13,7 @@ import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
 const MonthlyPerformanceReport = lazy(() => import('@/components/reports/MonthlyPerformanceReport'));
 import ExportMenu from '@/components/common/ExportMenu';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import BeneficiaryDistributionTable from '@/components/reports/BeneficiaryDistributionTable';
 import BeneficiaryDistributionTable from '@/components/reports/BeneficiaryDistributionTable';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import AnnualDisclosureTable from '@/components/reports/AnnualDisclosureTable';
