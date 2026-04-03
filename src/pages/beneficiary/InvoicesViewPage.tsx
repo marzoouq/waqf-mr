@@ -7,7 +7,7 @@ import { InvoiceViewer, InvoiceGridView, InvoicesViewMobileCards, InvoicesViewDe
 import { FileText, Search, LayoutGrid, List, AlertCircle, RefreshCw } from 'lucide-react';
 import { ExportMenu, TablePagination, RequirePublishedYears, TableSkeleton } from '@/components/common';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import InvoiceGridView from '@/components/invoices/InvoiceGridView';
+
 import { toast } from 'sonner';
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
