@@ -22,7 +22,7 @@ export const useFiscalYears = () => {
       if (error) throw error;
       return data as FiscalYear[];
     },
-    enabled: !!user,
+    enabled: true, // نبدأ الجلب فوراً بالتوازي مع Auth — RLS يتكفل بالتصفية
   });
 };
 
