@@ -17,6 +17,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/safeNumber';
 
 const InvoicesViewPage = () => {
+  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['invoices'] }), [queryClient]);
   const pdfWaqfInfo = usePdfWaqfInfo();
