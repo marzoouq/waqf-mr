@@ -6,9 +6,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, Upload, X } from 'lucide-react';
+import { Building2, Upload, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWaqfInfoSave } from '@/hooks/data/useWaqfInfoSave';
+import { resizeImage } from '@/utils/resizeImage';
 
 interface WaqfField {
   key: string;
