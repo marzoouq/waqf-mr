@@ -2,14 +2,13 @@ import { useQueryClient } from '@tanstack/react-query';
 /**
  * صفحة إدارة المستخدمين — مُفكّكة إلى hook + مكونات فرعية
  */
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, Lock, Unlock, AlertTriangle, Search } from 'lucide-react';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import { useUserManagement } from '@/hooks/auth/useUserManagement';
 import UsersTable from '@/components/user-management/UsersTable';
 import CreateUserForm from '@/components/user-management/CreateUserForm';

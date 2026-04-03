@@ -4,16 +4,13 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
+import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import { BarChart3 } from 'lucide-react';
-import ExportMenu from '@/components/common/ExportMenu';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
-import { DashboardSkeleton } from '@/components/common/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import RequirePublishedYears from '@/components/common/RequirePublishedYears';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 

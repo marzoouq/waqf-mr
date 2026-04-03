@@ -1,8 +1,7 @@
 /**
  * صفحة الشجرة المحاسبية — عرض هرمي + CRUD كامل
  */
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

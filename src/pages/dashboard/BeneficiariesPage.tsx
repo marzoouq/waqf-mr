@@ -1,20 +1,17 @@
 import { Skeleton } from '@/components/ui/skeleton';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Percent, Search, AlertTriangle, Wallet, UserCheck } from 'lucide-react';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import { generateBeneficiariesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
-import ExportMenu from '@/components/common/ExportMenu';
+import { ExportMenu, TablePagination, CrudPagination } from '@/components/common';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import TablePagination from '@/components/common/TablePagination';
-import CrudPagination from '@/components/common/CrudPagination';
 import BeneficiaryFormDialog from '@/components/beneficiaries/BeneficiaryFormDialog';
 import BeneficiaryCard from '@/components/beneficiaries/BeneficiaryCard';
 import AdvanceRequestsTab from '@/components/accounts/AdvanceRequestsTab';

@@ -5,7 +5,7 @@ import { lazy, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowUpDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
+import { ErrorBoundary } from '@/components/common';
 import type { FiscalYear } from '@/types/database';
 import { isFyAll } from '@/constants/fiscalYearIds';
 

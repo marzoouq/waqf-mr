@@ -1,4 +1,4 @@
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -8,12 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ShieldCheck, ChevronDown, ChevronUp, Search, Activity, Clock, CalendarDays, ShieldAlert, Archive, FileDown, X } from 'lucide-react';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
-import { TableSkeleton } from '@/components/common/SkeletonLoaders';
+import { TablePagination, TableSkeleton } from '@/components/common';
 import AccessLogTab from '@/components/audit/AccessLogTab';
 import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 import { operationColor, DataDiff } from '@/components/audit/AuditLogHelpers';
-import TablePagination from '@/components/common/TablePagination';
 import { useAuditLogPage, getTableNameAr, getOperationNameAr } from '@/hooks/page/useAuditLogPage';
 
 const AuditLogPage = () => {

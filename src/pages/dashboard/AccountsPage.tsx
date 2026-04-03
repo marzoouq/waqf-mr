@@ -1,10 +1,9 @@
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Plus, Lock, Wallet } from 'lucide-react';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
-import ExportMenu from '@/components/common/ExportMenu';
+import { ExportMenu } from '@/components/common';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { useAccountsPage } from '@/hooks/financial/useAccountsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';

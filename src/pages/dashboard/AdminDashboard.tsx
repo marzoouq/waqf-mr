@@ -1,16 +1,14 @@
 
 import { lazy, Suspense } from 'react';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
+import { ErrorBoundary, DeferredRender } from '@/components/common';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { Button } from '@/components/ui/button';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
 import { Printer, Gauge } from 'lucide-react';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import DeferredRender from '@/components/common/DeferredRender';
 
 // هوك البيانات المدمج
 import { useDashboardSummary } from '@/hooks/page/useDashboardSummary';

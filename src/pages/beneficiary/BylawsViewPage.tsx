@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback, lazy, Suspense } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { useBylaws } from '@/hooks/data/useBylaws';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,13 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Search, X, Lock, ScrollText, Scale, AlertCircle, RefreshCw } from 'lucide-react';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
 const ReactMarkdown = lazy(() => import('react-markdown'));
-import ExportMenu from '@/components/common/ExportMenu';
+import { ExportMenu, TableSkeleton } from '@/components/common';
 import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { Button } from '@/components/ui/button';
-import { TableSkeleton } from '@/components/common/SkeletonLoaders';
 
 const BylawsViewPage = () => {
   const queryClient = useQueryClient();

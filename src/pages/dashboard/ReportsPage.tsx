@@ -4,15 +4,14 @@ const CashFlowReport = lazy(() => import('@/components/reports/CashFlowReport'))
 import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';
 import BalanceSheetReport from '@/components/reports/BalanceSheetReport';
 import ZakatEstimationReport from '@/components/reports/ZakatEstimationReport';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
 import { toast } from 'sonner';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
 const MonthlyPerformanceReport = lazy(() => import('@/components/reports/MonthlyPerformanceReport'));
-import ExportMenu from '@/components/common/ExportMenu';
+import { ExportMenu } from '@/components/common';
 import BeneficiaryDistributionTable from '@/components/reports/BeneficiaryDistributionTable';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import AnnualDisclosureTable from '@/components/reports/AnnualDisclosureTable';

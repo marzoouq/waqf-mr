@@ -11,7 +11,7 @@ import { useRealtimeAlerts } from '@/hooks/ui/useRealtimeAlerts';
 import { useNavLinks } from '@/hooks/page/useNavLinks';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
-import { SHOW_ALL_ROUTES } from '@/components/layout/constants';
+import { SHOW_ALL_ROUTES } from '@/components/layout';
 
 const SIDEBAR_W = 256;
 
