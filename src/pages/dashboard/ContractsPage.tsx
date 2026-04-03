@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
@@ -9,11 +10,19 @@ import { generateContractsPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
-import { ContractFormDialog, CollectionReport, PaymentInvoicesTab, MonthlyAccrualTable, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent } from '@/components/contracts';
+import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent } from '@/components/contracts';
 import { getPaymentTypeLabel } from '@/utils/contractHelpers';
 import { safeNumber } from '@/utils/safeNumber';
 import { useContractsPage } from '@/hooks/page/useContractsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// تبويبات ثانوية — تُحمّل عند الطلب فقط
+const CollectionReport = lazy(() => import('@/components/contracts/CollectionReport'));
+const PaymentInvoicesTab = lazy(() => import('@/components/contracts/PaymentInvoicesTab'));
+const MonthlyAccrualTable = lazy(() => import('@/components/contracts/MonthlyAccrualTable'));
+
+const TabFallback = () => <div className="space-y-3 p-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>;
 
 const ContractsPage = () => {
   const isMobile = useIsMobile();
@@ -89,10 +98,12 @@ const ContractsPage = () => {
           </TabsContent>
 
           <TabsContent value="accruals">
-            <MonthlyAccrualTable contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYearId={fiscalYearId} fiscalYear={fiscalYears?.find(fy => fy.id === fiscalYearId) ?? null} />
+            <Suspense fallback={<TabFallback />}>
+              <MonthlyAccrualTable contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYearId={fiscalYearId} fiscalYear={fiscalYears?.find(fy => fy.id === fiscalYearId) ?? null} />
+            </Suspense>
           </TabsContent>
-          <TabsContent value="invoices"><PaymentInvoicesTab fiscalYearId={fiscalYearId} isClosed={isClosed && role !== 'admin'} /></TabsContent>
-          <TabsContent value="collection"><CollectionReport contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYears={fiscalYears} fiscalYearId={fiscalYearId} /></TabsContent>
+          <TabsContent value="invoices"><Suspense fallback={<TabFallback />}><PaymentInvoicesTab fiscalYearId={fiscalYearId} isClosed={isClosed && role !== 'admin'} /></Suspense></TabsContent>
+          <TabsContent value="collection"><Suspense fallback={<TabFallback />}><CollectionReport contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYears={fiscalYears} fiscalYearId={fiscalYearId} /></Suspense></TabsContent>
         </Tabs>
 
         <ContractFormDialog open={isOpen} onOpenChange={setIsOpen} editingContract={editingContract} properties={properties}
