@@ -41,7 +41,7 @@ const AdminDashboard = () => {
 
   const {
     pendingAdvancesCount, totalIncome, contractualRevenue,
-    usingFallbackPct, expiringContracts, orphanedContracts,
+    usingFallbackPct, expiringContractsCount, orphanedContractsCount,
     stats, kpis, collectionSummary, collectionColor,
     monthlyData, expenseTypes, greetingText,
     allFiscalYears, fiscalYear: fy,
@@ -66,8 +66,8 @@ const AdminDashboard = () => {
 
         <DashboardAlerts
           usingFallbackPct={usingFallbackPct}
-          expiringContracts={expiringContracts}
-          orphanedContracts={orphanedContracts}
+          expiringContractsCount={expiringContractsCount}
+          orphanedContractsCount={orphanedContractsCount}
           pendingAdvancesCount={pendingAdvancesCount}
           collectionRate={collectionSummary.percentage}
         />
