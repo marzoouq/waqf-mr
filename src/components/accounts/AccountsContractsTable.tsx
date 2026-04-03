@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Pencil, Trash2 } from 'lucide-react';
+import EmptyState from '@/components/common/EmptyState';
 import type { Contract } from '@/types/database';
 import { safeNumber } from '@/utils/safeNumber';
 
