@@ -1,6 +1,3 @@
-import type { Config } from "tailwindcss";
-import tailwindcssAnimate from "tailwindcss-animate";
-
 export default {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
@@ -19,7 +16,6 @@ export default {
         display: ['Amiri', 'serif'],
       },
       colors: {
-        // Light mode defaults
         border: 'hsl(40 20% 88%)',
         input: 'hsl(40 20% 88%)',
         ring: 'hsl(158 64% 25%)',
@@ -147,5 +143,5 @@ export default {
       },
     },
   },
-  plugins: [tailwindcssAnimate],
-} satisfies Config;
+  plugins: [],
+};
