@@ -19,6 +19,7 @@ interface Message {
 interface Conversation {
   id: string;
   subject: string | null;
+  [key: string]: unknown;
 }
 
 interface ChatAreaProps {
