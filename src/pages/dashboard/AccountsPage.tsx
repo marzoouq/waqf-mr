@@ -247,23 +247,25 @@ const AccountsPage = () => {
           isUpdatePending={page.updateContractPending}
         />
 
-        <CloseYearDialog
-          open={page.closeYearOpen}
-          onOpenChange={page.setCloseYearOpen}
-          onConfirm={page.handleCloseYear}
-          isClosing={page.isClosingYear}
-          fyLabel={page.selectedFY?.label}
-          waqfCorpusManual={page.waqfCorpusManual}
-          totalIncome={page.totalIncome}
-          totalExpenses={page.totalExpenses}
-          netAfterExpenses={page.netAfterExpenses}
-          availableAmount={page.availableAmount}
-          distributionsAmount={page.manualDistributions}
-          hasAccount={!!page.currentAccount}
-          pendingAdvances={pendingAdvances}
-          unpaidInvoices={unpaidInvoices}
-          beneficiaryPercentage={totalBenPct}
-        />
+        <Suspense fallback={null}>
+          <CloseYearDialog
+            open={page.closeYearOpen}
+            onOpenChange={page.setCloseYearOpen}
+            onConfirm={page.handleCloseYear}
+            isClosing={page.isClosingYear}
+            fyLabel={page.selectedFY?.label}
+            waqfCorpusManual={page.waqfCorpusManual}
+            totalIncome={page.totalIncome}
+            totalExpenses={page.totalExpenses}
+            netAfterExpenses={page.netAfterExpenses}
+            availableAmount={page.availableAmount}
+            distributionsAmount={page.manualDistributions}
+            hasAccount={!!page.currentAccount}
+            pendingAdvances={pendingAdvances}
+            unpaidInvoices={unpaidInvoices}
+            beneficiaryPercentage={totalBenPct}
+          />
+        </Suspense>
       </div>
     </DashboardLayout>
   );
