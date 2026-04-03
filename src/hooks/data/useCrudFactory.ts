@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
-import { toast } from 'sonner';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { useState, useCallback, useMemo } from 'react';
 import type { Database } from '@/integrations/supabase/types';
+import { crudNotifyAdapter } from '@/lib/notify';
+import type { CrudNotifications } from '@/lib/notify';
 
 // سجل تتبع تحذيرات الحد الأقصى — بديل آمن عن تخزين في window
 const limitWarnShown = new Set<string>();
@@ -19,19 +20,7 @@ type Row<T extends TableName> = Tables[T]['Row'];
 type Insert<T extends TableName> = Tables[T]['Insert'];
 type Update<T extends TableName> = Tables[T]['Update'];
 
-/** واجهة إشعارات CRUD — يمكن تمريرها لتخصيص أو إلغاء الرسائل */
-export interface CrudNotifications {
-  onSuccess?: (message: string) => void;
-  onError?: (message: string) => void;
-  onInfo?: (message: string) => void;
-}
-
-/** الإشعارات الافتراضية عبر sonner toast */
-const defaultNotifications: Required<CrudNotifications> = {
-  onSuccess: (msg) => toast.success(msg),
-  onError: (msg) => toast.error(msg),
-  onInfo: (msg) => toast.info(msg),
-};
+export type { CrudNotifications };
 
 /** Configuration for the CRUD factory */
 interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
@@ -99,7 +88,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
     notifications: customNotifications,
   } = config;
 
-  const notify = { ...defaultNotifications, ...customNotifications };
+  const notify = crudNotifyAdapter(customNotifications);
 
   /** List / fetch all rows — مع دعم التصفح (pagination) */
   const useList = (): PaginatedQueryResult<TData> => {
@@ -128,7 +117,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
           const key = `limit-warn-${queryKey}`;
           if (!limitWarnShown.has(key)) {
             limitWarnShown.add(key);
-            notify.onInfo(`يتم عرض أول ${limit} سجل من ${label}. استخدم التصفح لمشاهدة المزيد.`);
+            notify.info(`يتم عرض أول ${limit} سجل من ${label}. استخدم التصفح لمشاهدة المزيد.`);
             setTimeout(() => { limitWarnShown.delete(key); }, 300_000);
           }
         }
@@ -182,12 +171,12 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       },
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
-        notify.onSuccess(`تم إضافة ${label} بنجاح`);
+        notify.success(`تم إضافة ${label} بنجاح`);
         onCreateSuccess?.(data);
       },
       onError: (error) => {
         logger.error(`${label} create error:`, error);
-        notify.onError(`حدث خطأ أثناء إضافة ${label}`);
+        notify.error(`حدث خطأ أثناء إضافة ${label}`);
       },
     });
   };
@@ -210,12 +199,12 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       },
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
-        notify.onSuccess(`تم تحديث ${label} بنجاح`);
+        notify.success(`تم تحديث ${label} بنجاح`);
         onUpdateSuccess?.(data);
       },
       onError: (error) => {
         logger.error(`${label} update error:`, error);
-        notify.onError(`حدث خطأ أثناء تحديث ${label}`);
+        notify.error(`حدث خطأ أثناء تحديث ${label}`);
       },
     });
   };
@@ -235,11 +224,11 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
-        notify.onSuccess(`تم حذف ${label} بنجاح`);
+        notify.success(`تم حذف ${label} بنجاح`);
       },
       onError: (error) => {
         logger.error(`${label} delete error:`, error);
-        notify.onError(`حدث خطأ أثناء حذف ${label}`);
+        notify.error(`حدث خطأ أثناء حذف ${label}`);
       },
     });
   };
