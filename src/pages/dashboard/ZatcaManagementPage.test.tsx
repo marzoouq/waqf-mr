@@ -90,7 +90,7 @@ describe('ZatcaManagementPage', () => {
   it('shows onboarding button when no certificates exist', async () => {
     setupMockFrom([], []);
     await renderPage();
-    await userEvent.click(screen.getAllByText('الشهادات')[0]);
+    await userEvent.click(screen.getAllByText('الشهادات')[0]!);
     expect(await screen.findByText('بدء التسجيل (Onboarding)')).toBeInTheDocument();
   }, 15_000);
 
