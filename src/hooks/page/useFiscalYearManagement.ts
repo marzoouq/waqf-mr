@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useFiscalYears, type FiscalYear } from '@/hooks/financial/useFiscalYears';
-import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY } from '@/lib/services/fiscalYearService';
+import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY } from '@/lib/services';
 
 export function useFiscalYearManagement() {
   const { data: fiscalYears = [], isLoading } = useFiscalYears();

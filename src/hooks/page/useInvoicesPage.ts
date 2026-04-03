@@ -14,7 +14,7 @@ import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
-import { removeInvoiceFile } from '@/lib/services/invoiceStorageService';
+import { removeInvoiceFile } from '@/lib/services';
 
 // تعقيم الوصف ضد CSV Injection
 const sanitizeDescription = (value: string): string => {

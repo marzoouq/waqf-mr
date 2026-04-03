@@ -5,7 +5,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
-import { notifyUser } from '@/lib/services/notificationService';
+import { notifyUser } from '@/lib/services';
 
 interface DistributionInput {
   beneficiary_id: string;

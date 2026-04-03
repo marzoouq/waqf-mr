@@ -7,7 +7,7 @@ import { useCreateAccount } from '@/hooks/financial/useAccounts';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { notifyAllBeneficiaries } from '@/lib/services/notificationService';
+import { notifyAllBeneficiaries } from '@/lib/services';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format';

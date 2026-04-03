@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppSettings } from '@/hooks/data/useAppSettings';
 import { useZatcaCertificates } from '@/hooks/data/useZatcaCertificates';
-import { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp, saveZatcaSettings } from '@/lib/services/zatcaService';
+import { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp, saveZatcaSettings } from '@/lib/services';
 import { toast } from 'sonner';
 
 export const ZATCA_KEYS = [
