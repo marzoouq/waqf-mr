@@ -100,7 +100,7 @@ describe('useAccounts (CRUD)', () => {
   it('deletes account and shows success toast', async () => {
     const { result } = renderHook(() => useDeleteAccount(), { wrapper: wrapper() });
     await result.current.mutateAsync('acc-1');
-    expect(toast.success).toHaveBeenCalledWith('تم حذف الحساب بنجاح');
+    expect(toast.success).toHaveBeenCalledWith('تم حذف الحساب بنجاح', undefined);
   });
 
   it('shows error toast on create failure', async () => {
