@@ -16,7 +16,7 @@ const BulkNotificationsTab = lazy(() => import('@/components/settings/BulkNotifi
 const MenuCustomizationTab = lazy(() => import('@/components/settings/MenuCustomizationTab'));
 const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSettingsTab'));
 const BulkMessagingTab = lazy(() => import('@/components/settings/BulkMessagingTab'));
-const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissionsTab'));
+const PermissionsControlPanel = lazy(() => import('@/components/settings/PermissionsControlPanel'));
 const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
 const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
 const ZatcaSettingsTab = lazy(() => import('@/components/settings/ZatcaSettingsTab'));
