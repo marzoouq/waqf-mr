@@ -7,7 +7,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
-import { useRealtimeAlerts } from '@/hooks/ui/useRealtimeAlerts';
 import { useNavLinks } from '@/hooks/page/useNavLinks';
 import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
