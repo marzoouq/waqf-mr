@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { BylawAddDialog, BylawEditDialog, BylawDeleteDialog } from '@/components/bylaws/BylawDialogs';
 import BylawsStatsCards from '@/components/bylaws/BylawsStatsCards';
 import SortableBylawItem from '@/components/bylaws/SortableBylawItem';
-import { Loader2, BookOpen, Eye, EyeOff, Search, X, Plus, Globe, Lock, Scale, FileText } from 'lucide-react';
+import { Loader2, BookOpen, Search, X, Plus, Lock, Scale } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
 import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
