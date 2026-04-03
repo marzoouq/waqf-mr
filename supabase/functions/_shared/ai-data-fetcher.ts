@@ -284,48 +284,71 @@ export async function fetchWaqfData(
       sections.push(`- نطاق إجمالي حصتك: ${toRange(myTotal)} ر.س (${distributions.length} توزيعة)`);
     }
 
-    // ── تجميع الدخل والمصروفات (إن وُجدت السنة النشطة) ──
+    // ── تجميع الدخل والمصروفات (إن وُجدت السنة النشطة — بيانات مُجمّعة) ──
     let batchIdx = 3;
     if (activeFY && (isAdmin || activeFY.published)) {
-      const incomeRes = batch2[batchIdx] as { data: Array<{ source: string; amount: number }> | null };
+      const incomeRes = batch2[batchIdx] as { data: Array<{ source: string; total_amount?: number; amount?: number; record_count?: number }> | null };
       batchIdx++;
-      const income = incomeRes?.data;
-      if (income?.length) {
-        const totalIncome = income.reduce((s, i) => s + Number(i.amount), 0);
-        const bySrc: Record<string, number> = {};
-        for (const i of income) {
-          bySrc[i.source] = (bySrc[i.source] || 0) + Number(i.amount);
-        }
-        sections.push(`\n### الدخل للسنة النشطة (${activeFY.label}):`);
-        if (isAdmin) {
-          sections.push(`- إجمالي الدخل: ${totalIncome.toLocaleString("ar-SA")} ر.س (${income.length} سجل)`);
-          for (const [src, amt] of Object.entries(bySrc)) {
-            sections.push(`  - ${src}: ${amt.toLocaleString("ar-SA")} ر.س`);
+      const incomeData = incomeRes?.data;
+      if (incomeData?.length) {
+        // تحديد إن كانت البيانات مُجمّعة (من RPC) أو خام (fallback)
+        const isAggregated = incomeData[0]?.total_amount !== undefined;
+        if (isAggregated) {
+          const totalIncome = incomeData.reduce((s, i) => s + Number(i.total_amount ?? 0), 0);
+          const totalRecords = incomeData.reduce((s, i) => s + Number(i.record_count ?? 0), 0);
+          sections.push(`\n### الدخل للسنة النشطة (${activeFY.label}):`);
+          if (isAdmin) {
+            sections.push(`- إجمالي الدخل: ${totalIncome.toLocaleString("ar-SA")} ر.س (${totalRecords} سجل)`);
+            for (const row of incomeData) {
+              sections.push(`  - ${row.source}: ${Number(row.total_amount).toLocaleString("ar-SA")} ر.س (${row.record_count} سجل)`);
+            }
+          } else {
+            sections.push(`- نطاق الدخل: ${toRange(totalIncome)} ر.س`);
+            sections.push(`- عدد مصادر الدخل: ${incomeData.length}`);
           }
         } else {
-          sections.push(`- نطاق الدخل: ${toRange(totalIncome)} ر.س`);
-          sections.push(`- عدد مصادر الدخل: ${Object.keys(bySrc).length}`);
+          // fallback: بيانات خام
+          const totalIncome = incomeData.reduce((s, i) => s + Number(i.amount ?? 0), 0);
+          const bySrc: Record<string, number> = {};
+          for (const i of incomeData) { bySrc[i.source] = (bySrc[i.source] || 0) + Number(i.amount ?? 0); }
+          sections.push(`\n### الدخل للسنة النشطة (${activeFY.label}):`);
+          if (isAdmin) {
+            sections.push(`- إجمالي الدخل: ${totalIncome.toLocaleString("ar-SA")} ر.س (${incomeData.length} سجل)`);
+            for (const [src, amt] of Object.entries(bySrc)) { sections.push(`  - ${src}: ${amt.toLocaleString("ar-SA")} ر.س`); }
+          } else {
+            sections.push(`- نطاق الدخل: ${toRange(totalIncome)} ر.س`);
+          }
         }
       }
 
-      const expensesRes = batch2[batchIdx] as { data: Array<{ expense_type: string; amount: number }> | null };
+      const expensesRes = batch2[batchIdx] as { data: Array<{ expense_type: string; total_amount?: number; amount?: number; record_count?: number }> | null };
       batchIdx++;
-      const expenses = expensesRes?.data;
-      if (expenses?.length) {
-        const totalExp = expenses.reduce((s, e) => s + Number(e.amount), 0);
-        const byExpType: Record<string, number> = {};
-        for (const e of expenses) {
-          byExpType[e.expense_type] = (byExpType[e.expense_type] || 0) + Number(e.amount);
-        }
-        sections.push(`\n### المصروفات للسنة النشطة (${activeFY.label}):`);
-        if (isAdmin) {
-          sections.push(`- إجمالي المصروفات: ${totalExp.toLocaleString("ar-SA")} ر.س (${expenses.length} سجل)`);
-          for (const [type, amt] of Object.entries(byExpType)) {
-            sections.push(`  - ${type}: ${amt.toLocaleString("ar-SA")} ر.س`);
+      const expensesData = expensesRes?.data;
+      if (expensesData?.length) {
+        const isAggregated = expensesData[0]?.total_amount !== undefined;
+        if (isAggregated) {
+          const totalExp = expensesData.reduce((s, e) => s + Number(e.total_amount ?? 0), 0);
+          const totalRecords = expensesData.reduce((s, e) => s + Number(e.record_count ?? 0), 0);
+          sections.push(`\n### المصروفات للسنة النشطة (${activeFY.label}):`);
+          if (isAdmin) {
+            sections.push(`- إجمالي المصروفات: ${totalExp.toLocaleString("ar-SA")} ر.س (${totalRecords} سجل)`);
+            for (const row of expensesData) {
+              sections.push(`  - ${row.expense_type}: ${Number(row.total_amount).toLocaleString("ar-SA")} ر.س (${row.record_count} سجل)`);
+            }
+          } else {
+            sections.push(`- نطاق المصروفات: ${toRange(totalExp)} ر.س`);
           }
         } else {
-          sections.push(`- نطاق المصروفات: ${toRange(totalExp)} ر.س`);
-          sections.push(`- عدد أنواع المصروفات: ${Object.keys(byExpType).length}`);
+          const totalExp = expensesData.reduce((s, e) => s + Number(e.amount ?? 0), 0);
+          const byType: Record<string, number> = {};
+          for (const e of expensesData) { byType[e.expense_type] = (byType[e.expense_type] || 0) + Number(e.amount ?? 0); }
+          sections.push(`\n### المصروفات للسنة النشطة (${activeFY.label}):`);
+          if (isAdmin) {
+            sections.push(`- إجمالي المصروفات: ${totalExp.toLocaleString("ar-SA")} ر.س (${expensesData.length} سجل)`);
+            for (const [type, amt] of Object.entries(byType)) { sections.push(`  - ${type}: ${amt.toLocaleString("ar-SA")} ر.س`); }
+          } else {
+            sections.push(`- نطاق المصروفات: ${toRange(totalExp)} ر.س`);
+          }
         }
       }
     }
