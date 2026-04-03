@@ -1,4 +1,4 @@
-export { useMobile } from './use-mobile';
+export { useIsMobile } from './use-mobile';
 export { useBfcacheSafeChannel } from './useBfcacheSafeChannel';
 export { useChartReady } from './useChartReady';
 export { useDashboardRealtime } from './useDashboardRealtime';
