@@ -87,7 +87,7 @@ const AdminDashboard = () => {
           <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
         </ErrorBoundary>
 
-        <DeferredRender delay={1500}>
+        <DeferredRender delay={300}>
           <div className="print:hidden">
             <ErrorBoundary>
               <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
           </div>
         </DeferredRender>
 
-        <DeferredRender delay={2000}>
+        <DeferredRender delay={500}>
           <ErrorBoundary>
             <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
               <PendingActionsTable advanceRequests={advanceRequests} paymentInvoices={paymentInvoices} />
@@ -105,7 +105,7 @@ const AdminDashboard = () => {
           </ErrorBoundary>
         </DeferredRender>
 
-        <DeferredRender delay={2500}>
+        <DeferredRender delay={700}>
           <div className="print:hidden">
             <ErrorBoundary>
               <Suspense fallback={<ChartSkeleton />}>
@@ -115,12 +115,12 @@ const AdminDashboard = () => {
           </div>
         </DeferredRender>
 
-        <DeferredRender delay={3000}>
+        <DeferredRender delay={900}>
           <YearComparisonCard allFiscalYears={allFiscalYears} fiscalYearId={fiscalYearId} />
         </DeferredRender>
 
         {role === 'admin' && (
-          <DeferredRender delay={3500}>
+          <DeferredRender delay={1100}>
             <div className="print:hidden">
               <ErrorBoundary>
                 <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>

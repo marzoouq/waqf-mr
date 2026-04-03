@@ -5,8 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Building2, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
 
-// — مكونات inline مستخرجة —
-import { WaqfSettingsTab, AppearanceTab, NotificationsTab, SecurityTab } from '@/components/settings';
+// — مكونات محمّلة كسول (كانت inline سابقاً) —
+const WaqfSettingsTab = lazy(() => import('@/components/settings/WaqfSettingsTab'));
+const AppearanceTab = lazy(() => import('@/components/settings/AppearanceTab'));
+const NotificationsTab = lazy(() => import('@/components/settings/NotificationsTab'));
+const SecurityTab = lazy(() => import('@/components/settings/SecurityTab'));
 
 // — مكونات محملة كسول —
 const LandingPageTab = lazy(() => import('@/components/settings/LandingPageTab'));
@@ -100,12 +103,12 @@ const SettingsPage = () => {
               ))}
             </div>
           )}
-          <TabsContent value="waqf"><WaqfSettingsTab /></TabsContent>
+          <TabsContent value="waqf"><Suspense fallback={LOADING}><WaqfSettingsTab /></Suspense></TabsContent>
           <TabsContent value="landing"><Suspense fallback={LOADING}><LandingPageTab /></Suspense></TabsContent>
           <TabsContent value="permissions"><Suspense fallback={LOADING}><PermissionsControlPanel /></Suspense></TabsContent>
-          <TabsContent value="appearance"><AppearanceTab /></TabsContent>
+          <TabsContent value="appearance"><Suspense fallback={LOADING}><AppearanceTab /></Suspense></TabsContent>
           <TabsContent value="fiscal"><Suspense fallback={LOADING}><FiscalYearManagementTab /></Suspense></TabsContent>
-          <TabsContent value="notifications"><NotificationsTab /></TabsContent>
+          <TabsContent value="notifications"><Suspense fallback={LOADING}><NotificationsTab /></Suspense></TabsContent>
           <TabsContent value="bulk-notify"><Suspense fallback={LOADING}><BulkNotificationsTab /></Suspense></TabsContent>
           <TabsContent value="bulk-message"><Suspense fallback={LOADING}><BulkMessagingTab /></Suspense></TabsContent>
           <TabsContent value="export"><Suspense fallback={LOADING}><DataExportTab /></Suspense></TabsContent>
@@ -114,7 +117,7 @@ const SettingsPage = () => {
           <TabsContent value="biometric"><Suspense fallback={LOADING}><BiometricSettings /></Suspense></TabsContent>
           <TabsContent value="advances"><Suspense fallback={LOADING}><AdvanceSettingsTab /></Suspense></TabsContent>
           <TabsContent value="zatca"><Suspense fallback={LOADING}><ZatcaSettingsTab /></Suspense></TabsContent>
-          <TabsContent value="security"><SecurityTab /></TabsContent>
+          <TabsContent value="security"><Suspense fallback={LOADING}><SecurityTab /></Suspense></TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
