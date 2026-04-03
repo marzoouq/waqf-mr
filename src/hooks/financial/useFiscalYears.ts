@@ -3,14 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { logger } from '@/lib/logger';
-import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { FiscalYear } from '@/types/database';
 
 export type { FiscalYear };
 
 export const useFiscalYears = () => {
-  const { user } = useAuth();
   return useQuery({
     queryKey: ['fiscal_years'],
     staleTime: STALE_FINANCIAL,
