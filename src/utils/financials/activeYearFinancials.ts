@@ -1,0 +1,37 @@
+/**
+ * حساب المؤشرات المالية لسنة نشطة (مفتوحة) مع حساب ختامي موجود
+ * الحصص تُصفّر لأن السنة لم تُقفل بعد
+ */
+import type { FinancialResult } from '@/utils/accountsCalculations';
+
+export interface ActiveYearParams {
+  totalIncome: number;
+  totalExpenses: number;
+  waqfCorpusPrevious: number;
+  vatAmount: number;
+  zakatAmount: number;
+}
+
+export function activeYearFinancials(params: ActiveYearParams): FinancialResult {
+  const { totalIncome, totalExpenses, waqfCorpusPrevious, vatAmount, zakatAmount } = params;
+
+  const grandTotal = totalIncome + waqfCorpusPrevious;
+  const netAfterExpenses = grandTotal - totalExpenses;
+  const netAfterVat = netAfterExpenses - vatAmount;
+  const netAfterZakat = netAfterVat - zakatAmount;
+  const shareBase = Math.max(0, totalIncome - totalExpenses - zakatAmount);
+
+  return {
+    grandTotal,
+    netAfterExpenses,
+    netAfterVat,
+    netAfterZakat,
+    shareBase,
+    adminShare: 0,
+    waqifShare: 0,
+    waqfRevenue: 0,
+    availableAmount: 0,
+    remainingBalance: 0,
+    isDeficit: false,
+  };
+}

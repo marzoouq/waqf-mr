@@ -11,6 +11,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Loader2, CheckCircle, XCircle, Banknote, Clock, AlertTriangle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { safeNumber } from '@/utils/safeNumber';
+import { isFyAll } from '@/constants/fiscalYearIds';
 
 const PAGE_SIZE = 20;
 
@@ -23,7 +24,7 @@ const statusMap: Record<string, { label: string; color: string; icon: typeof Clo
 
 const AdvanceRequestsTab = () => {
   const { fiscalYearId } = useFiscalYear();
-  const fyId = fiscalYearId && fiscalYearId !== 'all' ? fiscalYearId : undefined;
+  const fyId = fiscalYearId && !isFyAll(fiscalYearId) ? fiscalYearId : undefined;
   const [page, setPage] = useState(0);
   const { data: requests = [], isLoading } = useAdvanceRequests(fyId);
   const updateStatus = useUpdateAdvanceStatus();

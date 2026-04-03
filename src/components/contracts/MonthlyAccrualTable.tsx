@@ -13,6 +13,7 @@ import {
   buildFiscalMonthGrid, getCellClasses, fmtNum,
   MobileAccrualCard,
 } from './accrual/AccrualHelpers';
+import { isFySpecific } from '@/constants/fiscalYearIds';
 
 /** واجهة فاتورة الدفعة المُمررة من الخارج */
 interface InvoiceInfo {
@@ -32,7 +33,7 @@ interface MonthlyAccrualTableProps {
 }
 
 const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fiscalYearId, fiscalYear }: MonthlyAccrualTableProps) => {
-  const isSpecificYear = fiscalYearId && fiscalYearId !== 'all' && fiscalYearId !== '__none__';
+  const isSpecificYear = isFySpecific(fiscalYearId);
 
   const activeContracts = useMemo(
     () => isSpecificYear ? contracts : contracts.filter(c => c.status === 'active'),

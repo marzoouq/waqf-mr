@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { useFiscalYears } from '@/hooks/financial/useFiscalYears';
 import { useRawFinancialData } from '@/hooks/financial/useRawFinancialData';
 import { computeTotals } from '@/utils/accountsCalculations';
+import { FY_SKIP, isFyAll } from '@/constants/fiscalYearIds';
 
 interface YoYResult {
   prevTotalIncome: number;
@@ -19,7 +20,7 @@ export const useYoYComparison = (currentFiscalYearId?: string): YoYResult => {
 
   // إيجاد السنة السابقة
   const prevFiscalYear = useMemo(() => {
-    if (!currentFiscalYearId || currentFiscalYearId === 'all') return null;
+    if (!currentFiscalYearId || isFyAll(currentFiscalYearId)) return null;
     const sorted = [...allFiscalYears].sort((a, b) => a.start_date.localeCompare(b.start_date));
     const currentIdx = sorted.findIndex(fy => fy.id === currentFiscalYearId);
     if (currentIdx > 0) return sorted[currentIdx - 1];
@@ -27,7 +28,7 @@ export const useYoYComparison = (currentFiscalYearId?: string): YoYResult => {
   }, [allFiscalYears, currentFiscalYearId]);
 
   const { income: prevIncome, expenses: prevExpenses } = useRawFinancialData(
-    prevFiscalYear?.id || '__skip__',
+    prevFiscalYear?.id || FY_SKIP,
     prevFiscalYear?.label,
   );
 

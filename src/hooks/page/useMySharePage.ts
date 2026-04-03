@@ -15,6 +15,7 @@ import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useNavigate } from 'react-router-dom';
 import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 import { useMySharePdfHandlers } from '@/hooks/page/useMySharePdfHandlers';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 
 export const useMySharePage = () => {
@@ -43,7 +44,7 @@ export const useMySharePage = () => {
 
   // #9: جلب my_share من RPC الخادم
   const { data: dashData } = useBeneficiaryDashboardData(
-    fiscalYearId !== '__none__' ? fiscalYearId : undefined,
+    isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
 
   const { currentBeneficiary, myShare, pctLoading } = useMyShare({

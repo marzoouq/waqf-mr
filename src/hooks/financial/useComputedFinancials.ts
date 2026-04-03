@@ -7,6 +7,9 @@ import {
   groupIncomeBySource,
   groupExpensesByType,
 } from '@/utils/accountsCalculations';
+import { activeYearFinancials } from '@/utils/financials/activeYearFinancials';
+import { closedYearFinancials } from '@/utils/financials/closedYearFinancials';
+import { isFyAll } from '@/constants/fiscalYearIds';
 import { safeNumber, safePercent } from '@/utils/safeNumber';
 
 interface ComputedParams {
@@ -82,64 +85,24 @@ export const useComputedFinancials = ({
   const isClosed = forceClosedMode || fiscalYearStatus === 'closed';
 
   const financials = useMemo(() => {
-  if (currentAccount) {
-      // في السنة النشطة: حساب من البيانات الحية بدلاً من القيم المخزنة
+    if (currentAccount) {
       if (!isClosed) {
-        const grandTotal = totalIncome + waqfCorpusPrevious;
-        // netAfterExpenses يجب أن يشمل waqfCorpusPrevious لتتناسق مع grandTotal
-        const liveNetAfterExpenses = grandTotal - totalExpenses;
-        const liveNetAfterVat = liveNetAfterExpenses - vatAmount;
-        const liveNetAfterZakat = liveNetAfterVat - zakatAmount;
-        return {
-          grandTotal,
-          netAfterExpenses: liveNetAfterExpenses,
-          netAfterVat: liveNetAfterVat,
-          netAfterZakat: liveNetAfterZakat,
-          shareBase: Math.max(0, totalIncome - totalExpenses - zakatAmount),
-          adminShare: 0,
-          waqifShare: 0,
-          waqfRevenue: 0,
-          availableAmount: 0,
-          remainingBalance: 0,
-          isDeficit: false,
-        };
+        // سنة نشطة — حساب حي، الحصص مُصفّرة
+        return activeYearFinancials({
+          totalIncome, totalExpenses, waqfCorpusPrevious, vatAmount, zakatAmount,
+        });
       }
-
-      // ✅ إصلاح #2: في السنة المقفلة — استخدام القيم المخزنة بالكامل لمنع التناقض بين live و stored
-      const storedTotalIncome = safeNumber(currentAccount.total_income);
-      const storedNetAfterVat = safeNumber(currentAccount.net_after_vat);
-      const storedZakat = safeNumber(currentAccount.zakat_amount);
-      const storedAdminShare = safeNumber(currentAccount.admin_share);
-      const storedWaqifShare = safeNumber(currentAccount.waqif_share);
-      const storedWaqfRevenue = safeNumber(currentAccount.waqf_revenue);
-      // ✅ إصلاح #2: grandTotal يعتمد على totalIncome المخزن لا الحي
-      const grandTotal = storedTotalIncome + waqfCorpusPrevious;
-      // ✅ إصلاح #1: Math.max(0) لمنع shareBase السالب عند العجز
-      const shareBase = Math.max(0, storedTotalIncome - safeNumber(currentAccount.total_expenses) - storedZakat);
-      return {
-        grandTotal,
-        netAfterExpenses: safeNumber(currentAccount.net_after_expenses),
-        netAfterVat: storedNetAfterVat,
-        netAfterZakat: storedNetAfterVat - storedZakat,
-        shareBase,
-        adminShare: storedAdminShare,
-        waqifShare: storedWaqifShare,
-        waqfRevenue: storedWaqfRevenue,
-        availableAmount: storedWaqfRevenue - waqfCorpusManual,
-        remainingBalance: storedWaqfRevenue - waqfCorpusManual - distributionsAmount,
-        isDeficit: (storedWaqfRevenue - waqfCorpusManual) < 0 || (storedWaqfRevenue - waqfCorpusManual - distributionsAmount) < 0,
-      };
+      // سنة مقفلة — قراءة القيم المخزنة في الحساب الختامي
+      return closedYearFinancials({
+        account: currentAccount, waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,
+      });
     }
+    // لا يوجد حساب ختامي — حساب كامل من الصفر
     return calculateFinancials({
-      totalIncome,
-      totalExpenses,
-      waqfCorpusPrevious,
-      manualVat: vatAmount,
-      zakatAmount,
-      adminPercent: adminPct,
-      waqifPercent: waqifPct,
-      waqfCorpusManual,
-      manualDistributions: distributionsAmount,
+      totalIncome, totalExpenses, waqfCorpusPrevious,
+      manualVat: vatAmount, zakatAmount,
+      adminPercent: adminPct, waqifPercent: waqifPct,
+      waqfCorpusManual, manualDistributions: distributionsAmount,
       isClosed,
     });
   }, [
@@ -161,7 +124,7 @@ export const useComputedFinancials = ({
   }, [expenses]);
 
   // إذا كانت هناك سنة مالية محددة ولم يُعثر على الحساب الختامي
-  const isAccountMissing = !currentAccount && !!fiscalYearId && fiscalYearId !== 'all';
+  const isAccountMissing = !currentAccount && !!fiscalYearId && !isFyAll(fiscalYearId);
 
   return {
     currentAccount,

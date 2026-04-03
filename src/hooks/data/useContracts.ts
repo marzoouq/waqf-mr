@@ -8,6 +8,7 @@ import { Contract } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 /** أعمدة العقد المطلوبة للواجهة — بدون PII خام */
 const CONTRACT_SELECT_FIELDS = 'id, contract_number, tenant_name, property_id, unit_id, start_date, end_date, rent_amount, payment_type, payment_count, payment_amount, status, fiscal_year_id, notes, tenant_id_number, tenant_id_type, tenant_tax_number, tenant_crn, tenant_street, tenant_district, tenant_city, tenant_postal_code, tenant_building, created_at, updated_at';
@@ -29,17 +30,17 @@ export const useDeleteContract = contractsCrud.useDelete;
 export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['contracts', 'fiscal_year', fiscalYearId],
-    enabled: fiscalYearId !== '__none__' && fiscalYearId !== '__skip__',
+    enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase
         .from('contracts')
         .select(CONTRACT_SELECT_WITH_JOINS)
         .order('start_date', { ascending: false });
-      if (fiscalYearId !== 'all') {
+      if (!isFyAll(fiscalYearId)) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
-      if (fiscalYearId === 'all') {
+      if (isFyAll(fiscalYearId)) {
         query = query.limit(1000);
       }
       const { data, error } = await query;
@@ -56,17 +57,17 @@ export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
 export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['contracts_safe', 'fiscal_year', fiscalYearId],
-    enabled: fiscalYearId !== '__none__' && fiscalYearId !== '__skip__',
+    enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase
         .from('contracts_safe')
         .select('id, contract_number, tenant_name, property_id, unit_id, start_date, end_date, rent_amount, payment_type, payment_count, payment_amount, status, fiscal_year_id, created_at, updated_at, notes')
         .order('start_date', { ascending: false });
-      if (fiscalYearId !== 'all') {
+      if (!isFyAll(fiscalYearId)) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
-      if (fiscalYearId === 'all') {
+      if (isFyAll(fiscalYearId)) {
         query = query.limit(1000);
       }
       const { data, error } = await query;

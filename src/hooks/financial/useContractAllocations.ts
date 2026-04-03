@@ -4,6 +4,7 @@ import { defaultNotify } from '@/hooks/data/mutationNotify';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { FiscalAllocation } from '@/utils/contractAllocation';
+import { isFyAll } from '@/constants/fiscalYearIds';
 
 export interface ContractFiscalAllocation {
   id: string;
@@ -24,7 +25,7 @@ export const useContractAllocations = (fiscalYearId?: string | null) => {
     queryKey: ['contract_fiscal_allocations', fiscalYearId],
     queryFn: async () => {
       let query = fromAllocations().select('id, contract_id, fiscal_year_id, period_start, period_end, allocated_payments, allocated_amount, created_at').limit(500);
-      if (fiscalYearId && fiscalYearId !== 'all') {
+      if (fiscalYearId && !isFyAll(fiscalYearId)) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
       const { data, error } = await query;

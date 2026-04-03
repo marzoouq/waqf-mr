@@ -18,6 +18,7 @@ import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 const LazyFinancialCharts = lazy(() => import('@/components/financial/FinancialChartsInner'));
 
@@ -55,7 +56,7 @@ const FinancialReportsPage = () => {
 
   // #9: جلب my_share من RPC الخادم كمصدر موثوق
   const { data: dashData } = useBeneficiaryDashboardData(
-    fiscalYearId !== '__none__' ? fiscalYearId : undefined,
+    isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
   const { currentBeneficiary, myShare } = useMyShare({
     beneficiaries,

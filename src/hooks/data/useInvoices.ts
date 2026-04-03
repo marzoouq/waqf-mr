@@ -10,6 +10,7 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 // إعادة تصدير أدوات الملفات للتوافق مع الاستيرادات الحالية
 export { uploadInvoiceFile, getInvoiceSignedUrl, ALLOWED_MIME_TYPES, MAX_FILE_SIZE, VALID_EXTENSIONS } from './useInvoiceFileUtils';
+import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 // ---------------------------------------------------------------------------
 // Types & constants
@@ -75,7 +76,7 @@ export const useUpdateInvoice = invoicesCrud.useUpdate;
 export const useInvoicesByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['invoices', 'fiscal_year', fiscalYearId],
-    enabled: fiscalYearId !== '__none__',
+    enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase
@@ -83,7 +84,7 @@ export const useInvoicesByFiscalYear = (fiscalYearId: string | 'all') => {
         .select('*, property:properties(id, property_number, location), contract:contracts(id, contract_number, tenant_name)')
         .order('date', { ascending: false })
         .limit(1000);
-      if (fiscalYearId !== 'all') {
+      if (!isFyAll(fiscalYearId)) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
       const { data, error } = await query;

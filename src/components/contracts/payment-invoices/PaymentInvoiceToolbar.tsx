@@ -9,6 +9,7 @@ import { generateOverdueInvoicesPDF } from '@/utils/pdf';
 import type { FilterStatus } from '@/hooks/page/usePaymentInvoicesTab';
 import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
 import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
+import { isFyAll } from '@/constants/fiscalYearIds';
 
 interface PaymentInvoiceToolbarProps {
   search: string;
@@ -66,7 +67,7 @@ export default function PaymentInvoiceToolbar({
         )}
       </div>
 
-      {!isClosed && fiscalYearId && fiscalYearId !== 'all' && (
+      {!isClosed && fiscalYearId && !isFyAll(fiscalYearId) && (
         <Button variant="outline" size="sm" className="gap-2" onClick={() => generateAll.mutate()} disabled={generateAll.isPending}>
           <Zap className="w-4 h-4" />
           {generateAll.isPending ? 'جاري التوليد...' : 'توليد فواتير جميع العقود'}

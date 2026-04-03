@@ -3,12 +3,14 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { STALE_REALTIME, STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
+import { STALE_REALTIME, STALE_LIVE } from '@/lib/queryStaleTime';
 
 // إعادة تصدير من الوحدات الفرعية للتوافق مع الاستيرادات الحالية
 export { useCreateTicket, useUpdateTicketStatus, useAddTicketReply, useRateTicket } from './useSupportTicketMutations';
 export { useSupportStats, useSupportAnalytics, fetchTicketsForExport } from './useSupportAnalytics';
 export type { SupportAnalyticsData } from './useSupportAnalytics';
+export { useClientErrors } from './useClientErrors';
+export type { ClientError } from './useClientErrors';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -39,16 +41,6 @@ export interface TicketReply {
   content: string;
   is_internal: boolean;
   created_at: string;
-}
-
-export interface ClientError {
-  id: string;
-  event_type: string;
-  target_path: string | null;
-  metadata: Record<string, unknown> | null;
-  created_at: string;
-  user_id: string | null;
-  email: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -100,24 +92,6 @@ export const useTicketReplies = (ticketId?: string) => {
         .limit(500);
       if (error) throw error;
       return (data ?? []) as TicketReply[];
-    },
-  });
-};
-
-/** جلب أخطاء التطبيق من سجل الوصول */
-export const useClientErrors = () => {
-  return useQuery({
-    queryKey: ['client_errors'],
-    staleTime: STALE_MESSAGING,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('access_log')
-        .select('id, event_type, target_path, metadata, created_at, user_id, email')
-        .eq('event_type', 'client_error')
-        .order('created_at', { ascending: false })
-        .limit(100);
-      if (error) throw error;
-      return (data ?? []) as ClientError[];
     },
   });
 };

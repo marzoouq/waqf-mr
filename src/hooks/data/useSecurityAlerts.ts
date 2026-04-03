@@ -11,8 +11,8 @@ import { logger } from '@/lib/logger';
  * تُستخدم للمقارنة بين الأجهزة
  */
 const extractFingerprint = (ua: string): string => {
-  const osMatch = ua.match(/(Windows NT [\d.]+|Mac OS X [\d_.]+|Linux|Android [\d.]+|iPhone OS [\d_]+|iPad)/);
-  const browserMatch = ua.match(/(Chrome\/[\d.]+|Firefox\/[\d.]+|Safari\/[\d.]+|Edge\/[\d.]+|OPR\/[\d.]+)/);
+  const osMatch = ua.match(/(Windows NT|Mac OS X|Linux|Android|iPhone OS|iPad)/);
+  const browserMatch = ua.match(/(Chrome|Firefox|Safari|Edge|OPR)/);
   return `${osMatch?.[1] || 'unknown-os'}|${browserMatch?.[1] || 'unknown-browser'}`;
 };
 

@@ -104,27 +104,27 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
   /** List / fetch all rows — مع دعم التصفح (pagination) */
   const useList = (): PaginatedQueryResult<TData> => {
     const [page, setPage] = useState(0);
+    const [totalCount, setTotalCount] = useState(0);
 
     const rangeFrom = page * limit;
     const rangeTo = rangeFrom + limit - 1;
 
     const query = useQuery({
-      // إضافة الصفحة للـ queryKey لتخزين كل صفحة بشكل مستقل
       queryKey: [queryKey, { page }],
       staleTime,
       queryFn: async () => {
-        const { data, error } = await supabase
+        const { data, error, count } = await supabase
           .from(table)
           .select(select, { count: 'exact' })
           .order(orderBy, { ascending })
           .range(rangeFrom, rangeTo);
 
         if (error) throw error;
-        return data as TData[];
-      },
-      select: (data: TData[]) => {
+        // تخزين العدد الكلي لحساب hasNextPage بدقة
+        if (count !== null) setTotalCount(count);
+
         // تحذير فقط في الصفحة الأولى لتجنب التكرار
-        if (page === 0 && data && data.length === limit) {
+        if (page === 0 && count !== null && count > limit) {
           const key = `limit-warn-${queryKey}`;
           if (!limitWarnShown.has(key)) {
             limitWarnShown.add(key);
@@ -132,11 +132,12 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
             setTimeout(() => { limitWarnShown.delete(key); }, 300_000);
           }
         }
-        return data;
+
+        return data as TData[];
       },
     });
 
-    const hasNextPage = (query.data?.length ?? 0) === limit;
+    const hasNextPage = (page + 1) * limit < totalCount;
     const hasPrevPage = page > 0;
 
     const nextPage = useCallback(() => {
