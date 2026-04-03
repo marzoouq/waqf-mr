@@ -62,7 +62,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
       : (selectedId || activeFY?.id || (isNonAdmin ? (fiscalYears[0]?.id || FY_NONE) : FY_ALL));
 
   const fiscalYear = useMemo(
-    () => (fiscalYearId === 'all' || !isFyReady(fiscalYearId)) ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),
+    () => (isFyAll(fiscalYearId) || !isFyReady(fiscalYearId)) ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),
     [fiscalYears, fiscalYearId, activeFY]
   );
   const isClosed = fiscalYear?.status === 'closed';
