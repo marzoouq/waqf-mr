@@ -88,7 +88,7 @@ describe('createCrudFactory', () => {
       const { result } = renderHook(() => factory.useCreate(), { wrapper: wrapper() });
       const payload: TablesInsert<'properties'> = { property_number: 'W-003', location: 'C', area: 300, property_type: 'فيلا' };
       await result.current.mutateAsync(payload);
-      expect(toast.success).toHaveBeenCalledWith('تم إضافة العقار بنجاح');
+      expect(toast.success).toHaveBeenCalledWith('تم إضافة العقار بنجاح', undefined);
     });
 
     it('shows error toast on failure', async () => {
