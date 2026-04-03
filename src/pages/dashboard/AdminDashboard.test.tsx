@@ -23,7 +23,7 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'u1', email: 'admin@waqf.app', user_metadata: {} }, role: 'admin', signOut: vi.fn() })),
 }));
 
-vi.mock('@/hooks/page/useDashboardSummary', () => ({
+vi.mock('@/hooks/data/useDashboardSummary', () => ({
   useDashboardSummary: vi.fn(() => ({
     properties: [
       { id: 'p1', property_number: '101', property_type: 'عمارة', location: 'الرياض', area: 500 },

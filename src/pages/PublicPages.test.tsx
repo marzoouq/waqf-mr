@@ -7,7 +7,7 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock('@/hooks/page/useAppSettings', () => ({
+vi.mock('@/hooks/data/useAppSettings', () => ({
   useAppSettings: vi.fn(),
   useWaqfInfo: vi.fn(() => ({ data: null })),
 }));

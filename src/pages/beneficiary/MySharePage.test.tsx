@@ -96,7 +96,7 @@ vi.mock('@/hooks/data/useContracts', () => ({
 }));
 
 vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
-vi.mock('@/hooks/page/useAppSettings', () => ({
+vi.mock('@/hooks/data/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: unknown) => d), isLoading: false })),
 }));
 vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({

@@ -10,7 +10,7 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: () => ({ user: { email: 'admin@test.com' }, role: 'admin' }),
 }));
 
-vi.mock('@/hooks/page/useAppSettings', () => ({
+vi.mock('@/hooks/data/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false })),
   useWaqfInfo: vi.fn(() => ({ data: { waqf_name: 'وقف تجريبي', waqf_founder: 'مؤسس', waqf_admin: 'ناظر' }, isLoading: false, error: null })),
 }));

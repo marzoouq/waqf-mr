@@ -62,7 +62,7 @@ vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: () => ({ data: [{ id: 'p1', property_type: 'تجاري' }] }),
 }));
 
-vi.mock('@/hooks/page/useAppSettings', () => ({
+vi.mock('@/hooks/data/useAppSettings', () => ({
   useAppSettings: () => ({
     data: { admin_share_percentage: '10', waqif_share_percentage: '5', vat_percentage: '15', residential_vat_exempt: 'true' },
     updateSetting: { mutateAsync: vi.fn() },

@@ -23,7 +23,7 @@ vi.mock('@/hooks/data/useBylaws', () => ({
   useBylaws: vi.fn(),
 }));
 
-vi.mock('@/hooks/page/useAppSettings', () => ({
+vi.mock('@/hooks/data/useAppSettings', () => ({
   useAppSettings: vi.fn(),
 }));
 
