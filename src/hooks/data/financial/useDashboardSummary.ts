@@ -1,62 +1,168 @@
 /**
- * هوك دمج بيانات لوحة التحكم — طلب واحد بدلاً من ~10 طلبات
+ * هوك دمج بيانات لوحة التحكم — RPC مُجمّعة + 3 استعلامات خفيفة
  */
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { logger } from '@/lib/logger';
-import { useEffect, useMemo, useRef } from 'react';
-import type { Income, Expense, Account, Property, Contract } from '@/types/database';
-import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
-import type { ContractFiscalAllocation } from '@/hooks/financial/useContractAllocations';
-import type { AdvanceRequest } from '@/hooks/financial/useAdvanceRequests';
-import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
+import { useMemo } from 'react';
 import { isFyReady } from '@/constants/fiscalYearIds';
 
-interface ComputedStats {
-  totalIncome: number;
-  totalExpenses: number;
-  monthlyData: Array<{ month: string; income: number; expenses: number }>;
-  expenseTypes: Array<{ name: string; value: number }>;
-  collection: {
-    paidCount: number;
-    partialCount: number;
-    unpaidCount: number;
-    total: number;
-    percentage: number;
-    totalCollected: number;
-    totalExpected: number;
+// ═══ أنواع البيانات المُجمّعة من RPC ═══
+export interface AggregatedTotals {
+  total_income: number;
+  total_expenses: number;
+  net_after_expenses: number;
+  contractual_revenue: number;
+  grand_total: number;
+  vat_amount: number;
+  zakat_amount: number;
+  net_after_vat: number;
+  net_after_zakat: number;
+  admin_share: number;
+  waqif_share: number;
+  waqf_revenue: number;
+  waqf_corpus_manual: number;
+  waqf_corpus_previous: number;
+  distributions_amount: number;
+  available_amount: number;
+  remaining_balance: number;
+  share_base: number;
+}
+
+export interface AggregatedCollection {
+  paid_count: number;
+  partial_count: number;
+  unpaid_count: number;
+  overdue_count: number;
+  total: number;
+  percentage: number;
+  total_collected: number;
+  total_expected: number;
+}
+
+export interface AggregatedOccupancy {
+  rented_units: number;
+  total_units: number;
+  rate: number;
+}
+
+export interface AggregatedCounts {
+  properties: number;
+  active_contracts: number;
+  beneficiaries: number;
+  pending_advances: number;
+  expiring_contracts: number;
+  orphaned_contracts: number;
+  unsubmitted_zatca: number;
+}
+
+export interface AggregatedYoY {
+  prev_fy_id: string | null;
+  prev_label: string | null;
+  prev_income: number;
+  prev_expenses: number;
+  has_prev: boolean;
+}
+
+export interface AggregatedFiscalYear {
+  id: string;
+  label: string;
+  status: string;
+  start_date: string;
+  end_date: string;
+  published: boolean;
+}
+
+export interface AggregatedBeneficiary {
+  id: string;
+  name: string;
+  share_percentage: number;
+  user_id: string | null;
+}
+
+export interface AggregatedData {
+  totals: AggregatedTotals;
+  collection: AggregatedCollection;
+  occupancy: AggregatedOccupancy;
+  counts: AggregatedCounts;
+  monthly_data: Array<{ month: string; income: number; expenses: number }>;
+  expense_types: Array<{ name: string; value: number }>;
+  yoy: AggregatedYoY;
+  fiscal_years: AggregatedFiscalYear[];
+  settings: Record<string, string>;
+  beneficiaries: AggregatedBeneficiary[];
+  fiscal_year_id: string;
+  fiscal_year_status: string;
+  fiscal_year_label: string;
+  is_closed: boolean;
+}
+
+// ═══ أنواع الصفوف الخام المحدودة ═══
+export interface HeatmapInvoice {
+  id: string;
+  contract_id: string;
+  invoice_number: string;
+  payment_number: number;
+  due_date: string;
+  amount: number;
+  status: string;
+  paid_date: string | null;
+  paid_amount: number | null;
+  zatca_status: string | null;
+  fiscal_year_id: string | null;
+  contract?: {
+    contract_number: string;
+    tenant_name: string;
+    property_id: string;
+    payment_count: number;
+    property?: { property_number: string };
   };
 }
 
+export interface PendingAdvance {
+  id: string;
+  beneficiary_id: string;
+  fiscal_year_id: string | null;
+  amount: number;
+  status: string;
+  reason: string | null;
+  created_at: string;
+  approved_at: string | null;
+  paid_at: string | null;
+  rejection_reason: string | null;
+  beneficiary?: { id: string; name: string; share_percentage: number; user_id: string | null };
+  fiscal_year?: { label: string };
+}
+
+export interface RecentContract {
+  id: string;
+  contract_number: string;
+  tenant_name: string;
+  property_id: string;
+  unit_id: string | null;
+  start_date: string;
+  end_date: string;
+  rent_amount: number;
+  payment_type: string;
+  payment_count: number;
+  payment_amount: number | null;
+  status: string;
+  fiscal_year_id: string | null;
+  created_at: string;
+  property?: { id: string; property_number: string };
+  unit?: { id: string; unit_number: string; status: string };
+}
+
 interface DashboardSummaryResponse {
-  properties: Property[];
-  contracts: Contract[];
-  units: Array<{ id: string; property_id: string; unit_number: string; unit_type: string; floor: string | null; area: number | null; status: string; notes: string | null; created_at: string; updated_at: string }>;
-  payment_invoices: PaymentInvoice[];
-  contract_allocations: ContractFiscalAllocation[];
-  advance_requests: AdvanceRequest[];
-  orphaned_contracts: Array<{ id: string; contract_number: string }>;
-  income: Income[];
-  expenses: Expense[];
-  accounts: Account[];
-  beneficiaries: Array<{ id: string; name: string; share_percentage: number; user_id: string | null }>;
-  settings: Record<string, string>;
-  fiscal_years: FiscalYear[];
-  prev_year: {
-    fiscal_year_id: string;
-    label: string;
-    total_income: number;
-    total_expenses: number;
-  } | null;
-  computed?: ComputedStats;
+  aggregated: AggregatedData;
+  heatmap_invoices: HeatmapInvoice[];
+  pending_advances: PendingAdvance[];
+  recent_contracts: RecentContract[];
   fetched_at: string;
 }
 
 export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: string) => {
-  const queryClient = useQueryClient();
-  const primedRef = useRef<string | null>(null);
-
   const query = useQuery<DashboardSummaryResponse>({
     queryKey: ['dashboard-summary', fiscalYearId],
     staleTime: STALE_FINANCIAL,
@@ -73,55 +179,25 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
 
   const data = query.data;
 
-  useEffect(() => {
-    if (!data || primedRef.current === data.fetched_at) return;
-    primedRef.current = data.fetched_at;
-
-    queryClient.setQueryData(['properties'], data.properties);
-    queryClient.setQueryData(['contracts', 'fiscal_year', fiscalYearId], data.contracts);
-    queryClient.setQueryData(['all-units'], data.units);
-    queryClient.setQueryData(['payment_invoices', fiscalYearId], data.payment_invoices);
-    queryClient.setQueryData(['contract_fiscal_allocations', fiscalYearId !== 'all' ? fiscalYearId : undefined], data.contract_allocations);
-    queryClient.setQueryData(['advance_requests', fiscalYearId !== 'all' ? fiscalYearId : 'all'], data.advance_requests);
-    queryClient.setQueryData(['fiscal_years'], data.fiscal_years);
-    queryClient.setQueryData(['income', 'fiscal_year', fiscalYearId], data.income);
-    queryClient.setQueryData(['expenses', 'fiscal_year', fiscalYearId], data.expenses);
-    queryClient.setQueryData(['accounts', 'fiscal_year', fiscalYearId], data.accounts);
-    queryClient.setQueryData(['beneficiaries-safe'], data.beneficiaries);
-    queryClient.setQueryData(['app-settings-all'], data.settings);
-    queryClient.setQueryData(['contracts', 'orphaned'], data.orphaned_contracts);
-
-    logger.info(`[dashboard-summary] تم تعبئة ${Object.keys(data).length - 1} cache في طلب واحد`);
-  }, [data, fiscalYearId, queryClient]);
-
+  // ── YoY من البيانات المُجمّعة ──
   const yoy = useMemo(() => {
-    if (!data?.prev_year) {
+    const y = data?.aggregated?.yoy;
+    if (!y?.has_prev) {
       return { prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0, hasPrevYear: false };
     }
-    const { total_income, total_expenses } = data.prev_year;
     return {
-      prevTotalIncome: total_income,
-      prevTotalExpenses: total_expenses,
-      prevNetAfterExpenses: total_income - total_expenses,
+      prevTotalIncome: y.prev_income,
+      prevTotalExpenses: y.prev_expenses,
+      prevNetAfterExpenses: y.prev_income - y.prev_expenses,
       hasPrevYear: true,
     };
-  }, [data?.prev_year]);
+  }, [data?.aggregated?.yoy]);
 
   return {
-    properties: data?.properties ?? [],
-    contracts: data?.contracts ?? [],
-    allUnits: data?.units ?? [],
-    paymentInvoices: data?.payment_invoices ?? [],
-    contractAllocations: data?.contract_allocations ?? [],
-    advanceRequests: data?.advance_requests ?? [],
-    orphanedContracts: data?.orphaned_contracts ?? [],
-    income: data?.income ?? [],
-    expenses: data?.expenses ?? [],
-    accounts: data?.accounts ?? [],
-    beneficiaries: data?.beneficiaries ?? [],
-    settings: data?.settings ?? null,
-    allFiscalYears: data?.fiscal_years ?? [],
-    computed: data?.computed ?? null,
+    aggregated: data?.aggregated ?? null,
+    heatmapInvoices: data?.heatmap_invoices ?? [],
+    pendingAdvances: data?.pending_advances ?? [],
+    recentContracts: data?.recent_contracts ?? [],
     yoy,
     isLoading: query.isLoading,
     isError: query.isError,

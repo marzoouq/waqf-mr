@@ -44,8 +44,7 @@ const AdminDashboard = () => {
     usingFallbackPct, expiringContracts, orphanedContracts,
     stats, kpis, collectionSummary, collectionColor,
     monthlyData, expenseTypes, greetingText,
-    contracts, paymentInvoices, advanceRequests, allFiscalYears,
-    fiscalYear: fy,
+    allFiscalYears, fiscalYear: fy,
   } = useAdminDashboardData({
     user, role, fiscalYearId, fiscalYear: fiscalYear ?? undefined, isSpecificYear, summary,
   });
@@ -92,7 +91,7 @@ const AdminDashboard = () => {
           <div className="print:hidden">
             <ErrorBoundary>
               <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
-                <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fy?.start_date} fiscalYearEnd={fy?.end_date} />
+                <CollectionHeatmap paymentInvoices={summary.heatmapInvoices} fiscalYearStart={fy?.start_date} fiscalYearEnd={fy?.end_date} />
               </Suspense>
             </ErrorBoundary>
           </div>
@@ -101,7 +100,7 @@ const AdminDashboard = () => {
         <DeferredRender delay={500}>
           <ErrorBoundary>
             <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-              <PendingActionsTable advanceRequests={advanceRequests} paymentInvoices={paymentInvoices} />
+              <PendingActionsTable advanceRequests={summary.pendingAdvances} paymentInvoices={summary.heatmapInvoices} />
             </Suspense>
           </ErrorBoundary>
         </DeferredRender>
@@ -133,7 +132,7 @@ const AdminDashboard = () => {
         )}
 
         <ErrorBoundary>
-          <RecentContractsCard contracts={contracts} isLoading={isLoading} />
+          <RecentContractsCard contracts={summary.recentContracts} isLoading={isLoading} />
         </ErrorBoundary>
       </div>
     </DashboardLayout>
