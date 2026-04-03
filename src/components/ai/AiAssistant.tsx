@@ -108,7 +108,7 @@ const AiAssistant = () => {
               <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-start' : 'justify-end')}>
                 <div className={cn('max-w-[85%] rounded-xl px-3 py-2 text-sm', msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                   {msg.role === 'assistant' ? (
-                    <div className="prose prose-sm max-w-none dark:prose-invert [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0"><ReactMarkdown>{msg.content}</ReactMarkdown></div>
+                    <div className="prose prose-sm max-w-none dark:prose-invert [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0"><Suspense fallback={<span className="animate-pulse">...</span>}><ReactMarkdown>{msg.content}</ReactMarkdown></Suspense></div>
                   ) : <p>{msg.content}</p>}
                 </div>
               </div>

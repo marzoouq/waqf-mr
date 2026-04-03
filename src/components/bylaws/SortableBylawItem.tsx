@@ -1,12 +1,13 @@
 /**
  * مكون بند اللائحة القابل للسحب والترتيب
  */
+import { lazy, Suspense } from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Pencil, Eye, EyeOff, GripVertical, Trash2 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+const ReactMarkdown = lazy(() => import('react-markdown'));
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { BylawEntry } from '@/hooks/data/useBylaws';
@@ -74,7 +75,9 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
         <AccordionContent>
           <div className="pt-2 pb-4 space-y-4">
             <div className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed prose-headings:text-primary prose-strong:text-foreground" dir="rtl">
-              <ReactMarkdown>{item.content}</ReactMarkdown>
+              <Suspense fallback={<div className="animate-pulse h-4 bg-muted rounded" />}>
+                <ReactMarkdown>{item.content}</ReactMarkdown>
+              </Suspense>
             </div>
             <div className="flex items-center justify-between pt-3 border-t print:hidden">
               <div className="flex items-center gap-3">
