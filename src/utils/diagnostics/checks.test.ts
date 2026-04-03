@@ -14,7 +14,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/components/dashboard-layout/constants', () => ({
+vi.mock('@/components/layout/constants', () => ({
   allAdminLinks: [
     { to: '/dashboard', label: 'الرئيسية' },
     { to: '/dashboard/properties', label: 'العقارات' },

@@ -3,7 +3,7 @@
  */
 import {
   allAdminLinks, allBeneficiaryLinks, ROUTE_TITLES,
-} from '@/components/dashboard-layout/constants';
+} from '@/components/layout/constants';
 import type { CheckResult } from '../types';
 
 export async function checkEnvVariables(): Promise<CheckResult> {
