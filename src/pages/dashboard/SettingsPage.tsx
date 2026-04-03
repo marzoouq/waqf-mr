@@ -103,7 +103,7 @@ const SettingsPage = () => {
               ))}
             </div>
           )}
-          <TabsContent value="waqf"><WaqfSettingsTab /></TabsContent>
+          <TabsContent value="waqf"><Suspense fallback={LOADING}><WaqfSettingsTab /></Suspense></TabsContent>
           <TabsContent value="landing"><Suspense fallback={LOADING}><LandingPageTab /></Suspense></TabsContent>
           <TabsContent value="permissions"><Suspense fallback={LOADING}><PermissionsControlPanel /></Suspense></TabsContent>
           <TabsContent value="appearance"><AppearanceTab /></TabsContent>
