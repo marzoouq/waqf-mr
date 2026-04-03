@@ -85,7 +85,7 @@ const WaqfSettingsTab = () => {
 
   return (
     <div className="space-y-6">
-      <LogoManager />
+      
       <Card>
         <CardHeader>
           <CardTitle className="font-display text-lg">بيانات الوقف</CardTitle>

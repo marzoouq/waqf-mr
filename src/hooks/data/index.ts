@@ -29,7 +29,7 @@ export { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome } from './
 export { useIncomeComparison } from './useIncomeComparison';
 export * from './useInvoiceFileUtils';
 export { useInvoicesByFiscalYear, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, useGenerateInvoicePdf } from './useInvoices';
-export { useLogoManager } from './useLogoManager';
+
 export { useMaxAdvanceAmount } from './useMaxAdvanceAmount';
 export * from './useMessaging';
 export { useMyBeneficiaryProfile } from './useMyBeneficiaryProfile';
