@@ -141,8 +141,15 @@ export function usePrefetchPages() {
    * يعيد دالة prefetch المناسبة بناءً على مسار الصفحة
    * يُحمّل المكوّن (JS chunk) + البيانات معاً عند hover
    */
+  // throttle لمنع طلبات متزامنة عند التمرير السريع على القائمة
+  const lastPrefetchRef = useRef<number>(0);
+  const THROTTLE_MS = 300;
+
   const getPrefetchHandler = useCallback((path: string): (() => void) | undefined => {
     const handler = (): void => {
+      const now = Date.now();
+      if (now - lastPrefetchRef.current < THROTTLE_MS) return;
+      lastPrefetchRef.current = now;
       prefetchComponent(path);
 
       if (path.includes('/properties')) prefetchProperties();
