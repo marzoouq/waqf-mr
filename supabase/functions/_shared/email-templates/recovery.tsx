@@ -14,14 +14,18 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
+const FALLBACK_LOGO = 'https://nuzdeamtujezrsxbvpfi.supabase.co/storage/v1/object/public/waqf-assets/email-logo.png?v=1'
+
 interface RecoveryEmailProps {
   siteName: string
   confirmationUrl: string
+  logoUrl?: string
 }
 
 export const RecoveryEmail = ({
   siteName,
   confirmationUrl,
+  logoUrl,
 }: RecoveryEmailProps) => (
   <Html lang="ar" dir="rtl">
     <Head />
@@ -29,7 +33,7 @@ export const RecoveryEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Img
-          src="https://nuzdeamtujezrsxbvpfi.supabase.co/storage/v1/object/public/waqf-assets/email-logo.png?v=1"
+          src={logoUrl || FALLBACK_LOGO}
           alt="شعار نظام إدارة الوقف"
           width="80"
           style={logo}
