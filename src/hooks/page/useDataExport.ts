@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { buildXlsx, downloadXlsx } from '@/utils/xlsx';
+import { fetchTableData } from '@/lib/export/dataFetcher';
 
 export type ExportableTable =
   | 'properties'
