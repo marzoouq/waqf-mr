@@ -2,9 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle } from 'lucide-react';
-import LoginForm from '@/components/auth/LoginForm';
-import SignupForm from '@/components/auth/SignupForm';
-import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
+import { LoginForm, SignupForm, ResetPasswordForm } from '@/components/auth';
 import { useAuthPage } from '@/hooks/page/useAuthPage';
 
 const Auth = () => {
