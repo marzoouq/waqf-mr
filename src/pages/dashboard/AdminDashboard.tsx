@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // هوك البيانات المدمج
-import { useDashboardSummary } from '@/hooks/page/useDashboardSummary';
+import { useDashboardSummary } from '@/hooks/data/useDashboardSummary';
 // هوك الحسابات المستخرج
 import { useAdminDashboardData } from '@/hooks/page/useAdminDashboardData';
 

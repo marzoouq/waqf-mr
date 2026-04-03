@@ -11,7 +11,7 @@ import { useMyDistributions } from '@/hooks/data/useMyDistributions';
 import { safeNumber } from '@/utils/safeNumber';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { toast } from 'sonner';
-import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/data/useBeneficiaryDashboardData';
 import { isFyReady } from '@/constants/fiscalYearIds';
 
 /** تنسيق تاريخ ميلادي بصيغة يوم/شهر/سنة */

@@ -14,7 +14,7 @@ import { fmt } from '@/utils/format';
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 import { useCollectionData, type FilterStatus } from '@/hooks/page/useCollectionData';
-import { useCollectionAlerts } from '@/hooks/page/useCollectionAlerts';
+import { useCollectionAlerts } from '@/hooks/data/useCollectionAlerts';
 import CollectionSummaryCards from './CollectionSummaryCards';
 import CollectionMobileCards from './CollectionMobileCards';
 import CollectionDesktopTable from './CollectionDesktopTable';
