@@ -1,48 +1,63 @@
 
-# خطة إصلاح ESLint وتنظيف المشروع
 
-## المشكلة
-1. `eslint@^10.1.0` غير متوافق مع `eslint-plugin-react-hooks@^7.0.1` (يحتاج ESLint 9)
-2. وجود ملفات وتبعيات قديمة/غير مستخدمة تثقل المشروع
+# تقرير الفحص الأمني الشامل لسياسات RLS
 
----
+## ملخص النتائج
 
-## الخطوات
-
-### 1. إصلاح تعارض ESLint
-تعديل `package.json` — تنزيل ESLint إلى v9:
-- `"eslint": "^10.1.0"` → `"eslint": "^9.27.0"`
-- `"@eslint/js": "^10.0.1"` → `"@eslint/js": "^9.27.0"`
-
-### 2. حذف تبعيات غير مستخدمة من `package.json`
-| الحزمة | السبب |
-|--------|-------|
-| `@vitejs/plugin-react` (v6) | المشروع يستخدم `@vitejs/plugin-react-swc` فقط |
-| `autoprefixer` | غير مطلوب مع Tailwind v4 (`@tailwindcss/postcss` يتولى المهمة) |
-| `@tailwindcss/typography` | غير مستخدم في الكود |
-| `react-is` | غير مستخدم مباشرة |
-
-### 3. تنظيف overrides غير ضرورية
-حذف overrides التي لا تحل مشاكل فعلية:
-- `minimatch`, `lodash`, `dompurify`, `flatted`, `serialize-javascript`, `workbox-build`, `@rollup/plugin-terser`
-
-### 4. حذف ملفات غير ضرورية
-| الملف | السبب |
-|-------|-------|
-| `bun.lock` | المشروع يستخدم npm — والملف في `.gitignore` أصلاً |
-| `tsconfig.app.tsbuildinfo` | ملف كاش مؤقت لا يُرفع |
-| `tsconfig.node.tsbuildinfo` | ملف كاش مؤقت لا يُرفع |
-| `AUDIT_REPORT_2026-03-31.md` | تقرير قديم — المشاكل المذكورة فيه تم حلها |
-
-### 5. إضافة tsbuildinfo إلى .gitignore
-إضافة `*.tsbuildinfo` لمنع رفعها مستقبلاً.
-
-### 6. فحص الجودة
-تشغيل `tsc --noEmit` + `eslint .` + `vite build` للتأكد من سلامة كل شيء بعد التغييرات.
+أُجري فحص أمني كامل باستخدام 3 ماسحات (Supabase Linter + Supabase LOV + Agent Security). إجمالي النتائج: **11 نتيجة** — جميعها **مُعالجة أو مقبولة مسبقاً**.
 
 ---
 
-## الملفات المتأثرة
-- `package.json` — تعديل إصدارات + حذف تبعيات
-- `.gitignore` — إضافة سطر
-- حذف: `bun.lock`, `*.tsbuildinfo`, `AUDIT_REPORT_2026-03-31.md`
+## النتائج حسب الخطورة
+
+### 🔴 أخطاء (Errors) — 7 نتائج، جميعها مُعالجة
+
+| # | النتيجة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| 1 | Security Definer Views (×2) | ✅ مقصود | `beneficiaries_safe` و `contracts_safe` تستخدمان DEFINER + `security_barrier=true` + تقنيع PII عبر `CASE WHEN` — مطلوب معمارياً |
+| 2 | PII مكشوف عبر `beneficiaries_safe` | ✅ محمي | العرض يقنّع national_id و bank_account للأدوار غير الإدارية. `WHERE auth.uid() IS NOT NULL` يمنع الوصول المجهول |
+| 3 | PII مكشوف عبر `contracts_safe` | ✅ محمي | نفس النمط — تقنيع tenant_id_number و tax_number و CRN |
+| 4 | مفتاح خاص ZATCA في جدول | ✅ مشفّر | `private_key` يُشفّر تلقائياً عبر trigger `encrypt_zatca_private_key`. الوصول محصور بـ admin فقط |
+| 5 | Realtime بدون تحكم بالقنوات | ✅ مقبول | المشروع يستخدم `postgres_changes` فقط (لا Broadcast/Presence). RLS الجداول يُطبَّق تلقائياً |
+| 6 | إشعارات عبر Realtime | ✅ مقبول | نفس السبب — لا قنوات مفتوحة، والتغييرات تمر عبر RLS |
+| 7 | ملفات الفواتير — سياسة واسعة | ✅ تم تشديدها سابقاً | سياسة "Authenticated users can view invoices" حُذفت. الوصول الآن لـ admin + accountant فقط |
+
+### 🟡 تحذيرات (Warnings) — 3 نتائج
+
+| # | النتيجة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| 1 | Extension في public schema | ✅ إيجابي كاذب | `pgcrypto` في schema `extensions` وليس `public` |
+| 2 | `has_role()` تقبل user_id خارجي | ✅ مقبول | الدالة تكشف فقط وجود دور (لا بيانات حساسة). تغييرها يكسر 132 سياسة RLS |
+| 3 | bucket `waqf-assets` عام | ✅ مقبول | يحتوي فقط شعارات وخطوط PDF. الملفات الحساسة في bucket `invoices` الخاص |
+
+### ℹ️ معلومات (Info) — 1 نتيجة
+
+| النتيجة | الحالة |
+|---------|--------|
+| مفتاح تشفير PII نُقل إلى Vault | ✅ مكتمل |
+
+---
+
+## تغطية RLS — إحصائيات
+
+| المقياس | القيمة |
+|---------|--------|
+| إجمالي الجداول/العروض | 28+ |
+| سياسات RLS | 132+ |
+| جداول بدون RLS | 0 (العروض الآمنة محمية بآلية مختلفة) |
+| سياسات RESTRICTIVE | نعم — على الجداول المالية + `user_roles` |
+| حماية السنوات غير المنشورة | `is_fiscal_year_accessible()` على كل جدول مالي |
+
+---
+
+## الخلاصة
+
+**لا توجد ثغرات أمنية مفتوحة.** جميع النتائج مُعالجة أو مُوثقة كقرارات معمارية مقصودة. النظام يطبق:
+- RLS تقييدي على كل جدول
+- تشفير AES-256 للبيانات الشخصية
+- تقنيع PII عبر عروض آمنة
+- عزل السنوات المالية غير المنشورة
+- سجلات تدقيق غير قابلة للتعديل
+
+لا حاجة لأي تغييرات في الوقت الحالي.
+
