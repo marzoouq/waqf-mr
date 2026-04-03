@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { fmt } from '@/utils/format';
 import { useExpenseBudgets, useSaveBudget } from '@/hooks/data/useExpenseBudgets';
 import type { BudgetRow } from '@/hooks/data/useExpenseBudgets';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 interface ExpenseBudgetBarProps {
   expenses: Expense[];
@@ -42,7 +43,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
 
   const saveBudget = useSaveBudget(fiscalYearId, budgetMap);
 
-  if (!fiscalYearId || fiscalYearId === 'all' || fiscalYearId === '__none__') return null;
+  if (!fiscalYearId || fiscalYearId === 'all' || !isFyReady(fiscalYearId)) return null;
   if (allTypes.length === 0) return null;
 
   return (

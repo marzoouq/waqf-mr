@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { toast } from 'sonner';
+import { isFySpecific } from '@/constants/fiscalYearIds';
 
 export interface BudgetRow {
   id: string;
@@ -16,7 +17,7 @@ export interface BudgetRow {
 export const useExpenseBudgets = (fiscalYearId: string) => {
   return useQuery({
     queryKey: ['expense_budgets', fiscalYearId],
-    enabled: !!fiscalYearId && fiscalYearId !== 'all' && fiscalYearId !== '__none__',
+    enabled: !!isFySpecific(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase

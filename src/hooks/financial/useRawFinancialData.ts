@@ -3,6 +3,7 @@ import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
 import { useAccountByFiscalYear } from '@/hooks/financial/useAccounts';
 import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { FY_NONE, FY_SKIP, isFyReady } from '@/constants/fiscalYearIds';
 
 /**
  * Fetches all raw financial data (income, expenses, accounts, beneficiaries, settings).
@@ -12,8 +13,8 @@ import { useAppSettings } from '@/hooks/page/useAppSettings';
 export const useRawFinancialData = (fiscalYearId?: string, fiscalYearLabel?: string) => {
   // القيمة الخاصة تحتاج فحصاً صريحاً
   // تحويل __skip__ إلى __none__ لتعطيل الاستعلامات الفرعية
-  const shouldSkip = !fiscalYearId || fiscalYearId === '__none__' || fiscalYearId === '__skip__';
-  const fyFilter = shouldSkip ? '__none__' : fiscalYearId;
+  const shouldSkip = !fiscalYearId || !isFyReady(fiscalYearId) || fiscalYearId === FY_SKIP;
+  const fyFilter = shouldSkip ? FY_NONE : fiscalYearId;
   const { data: income = [], isLoading: incLoading, isError: incError } = useIncomeByFiscalYear(fyFilter);
   const { data: expenses = [], isLoading: expLoading, isError: expError } = useExpensesByFiscalYear(fyFilter);
   // تمرير القيمة المعقّمة لمنع وصول قيمة غير صالحة كـ UUID

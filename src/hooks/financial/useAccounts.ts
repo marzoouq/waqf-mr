@@ -8,6 +8,7 @@ import { Account } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 const accountsCrud = createCrudFactory<'accounts', Account>({
   table: 'accounts',
@@ -32,7 +33,7 @@ export const useAccountByFiscalYear = (
 ) => {
   return useQuery({
     queryKey: ['accounts', 'fiscal_year', fiscalYearId ?? fiscalYearLabel ?? 'all'],
-    enabled: fiscalYearId !== '__none__' && fiscalYearId !== '__skip__',
+    enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     retry: 2,
     queryFn: async () => {

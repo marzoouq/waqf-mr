@@ -10,6 +10,7 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 // إعادة تصدير أدوات الملفات للتوافق مع الاستيرادات الحالية
 export { uploadInvoiceFile, getInvoiceSignedUrl, ALLOWED_MIME_TYPES, MAX_FILE_SIZE, VALID_EXTENSIONS } from './useInvoiceFileUtils';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 // ---------------------------------------------------------------------------
 // Types & constants
@@ -75,7 +76,7 @@ export const useUpdateInvoice = invoicesCrud.useUpdate;
 export const useInvoicesByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['invoices', 'fiscal_year', fiscalYearId],
-    enabled: fiscalYearId !== '__none__',
+    enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
+import { FY_NONE } from '@/constants/fiscalYearIds';
 
 // --- Mocks ---
 const mockFrom = vi.fn();
@@ -43,7 +44,7 @@ function createWrapper() {
 describe('usePaymentInvoices', () => {
   it('معطّل عند __none__', async () => {
     const { usePaymentInvoices } = await import('./usePaymentInvoices');
-    const { result } = renderHook(() => usePaymentInvoices('__none__'), { wrapper: createWrapper() });
+    const { result } = renderHook(() => usePaymentInvoices(FY_NONE), { wrapper: createWrapper() });
     expect(result.current.fetchStatus).toBe('idle');
   });
 

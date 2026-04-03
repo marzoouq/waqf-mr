@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { useFiscalYears } from '@/hooks/financial/useFiscalYears';
 import { useRawFinancialData } from '@/hooks/financial/useRawFinancialData';
 import { computeTotals } from '@/utils/accountsCalculations';
+import { FY_SKIP } from '@/constants/fiscalYearIds';
 
 interface YoYResult {
   prevTotalIncome: number;
@@ -27,7 +28,7 @@ export const useYoYComparison = (currentFiscalYearId?: string): YoYResult => {
   }, [allFiscalYears, currentFiscalYearId]);
 
   const { income: prevIncome, expenses: prevExpenses } = useRawFinancialData(
-    prevFiscalYear?.id || '__skip__',
+    prevFiscalYear?.id || FY_SKIP,
     prevFiscalYear?.label,
   );
 

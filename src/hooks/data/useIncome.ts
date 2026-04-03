@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from './mutationNotify';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 /** أعمدة الإيرادات مع ربط العقار */
 const INCOME_SELECT = 'id, amount, date, source, notes, fiscal_year_id, property_id, contract_id, created_at, property:properties(id, property_number, location)';
@@ -32,7 +33,7 @@ const PER_FY_LIMIT = 2000;
 export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['income', 'fiscal_year', fiscalYearId],
-    enabled: fiscalYearId !== '__none__',
+    enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase.from('income').select(INCOME_SELECT).order('date', { ascending: false });

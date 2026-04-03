@@ -19,6 +19,7 @@ import RequirePublishedYears from '@/components/common/RequirePublishedYears';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
 import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 const AccountsViewPage = () => {
   const queryClient = useQueryClient();
@@ -59,7 +60,7 @@ const AccountsViewPage = () => {
 
   // #9: جلب my_share من RPC الخادم كمصدر موثوق
   const { data: dashData } = useBeneficiaryDashboardData(
-    fiscalYearId !== '__none__' ? fiscalYearId : undefined,
+    isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
   const { currentBeneficiary, myShare } = useMyShare({
     beneficiaries,

@@ -18,6 +18,7 @@ import BeneficiaryQuickLinks from '@/components/beneficiary-dashboard/Beneficiar
 import BeneficiaryRecentDistributions from '@/components/beneficiary-dashboard/BeneficiaryRecentDistributions';
 import BeneficiaryNotificationsCard from '@/components/beneficiary-dashboard/BeneficiaryNotificationsCard';
 import BeneficiaryAdvanceCard from '@/components/beneficiary-dashboard/BeneficiaryAdvanceCard';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 const BeneficiaryDashboard = () => {
   const queryClient = useQueryClient();
@@ -31,7 +32,7 @@ const BeneficiaryDashboard = () => {
 
   // ── RPC الموحد — يجلب كل البيانات في استدعاء واحد ──
   const { data: dashData, isLoading: dashLoading, isError: dashError } = useBeneficiaryDashboardData(
-    fiscalYearId !== '__none__' ? fiscalYearId : undefined,
+    isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
 
   // استخراج البيانات من RPC
@@ -42,7 +43,7 @@ const BeneficiaryDashboard = () => {
   const advanceSettings = dashData?.advance_settings ?? { enabled: true, min_amount: 500, max_percentage: 50 };
   const advanceEnabled = advanceSettings?.enabled ?? true;
 
-  const fyReady = fiscalYearId && fiscalYearId !== '__none__';
+  const fyReady = isFyReady(fiscalYearId);
   const isLoading = authLoading || fyLoading || (!fyReady ? false : dashLoading);
 
   const isClosed = fiscalYear?.status === 'closed';
@@ -174,7 +175,7 @@ const BeneficiaryDashboard = () => {
         )}
 
         {/* بطاقة طلب السُلفة */}
-        {advanceEnabled && role !== 'waqif' && currentBeneficiary && fiscalYearId && fiscalYearId !== '__none__' && (
+        {advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
           <BeneficiaryAdvanceCard
             beneficiaryId={currentBeneficiary.id!}
             fiscalYearId={fiscalYearId}

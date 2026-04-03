@@ -12,6 +12,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 /** تنسيق تاريخ ميلادي بصيغة يوم/شهر/سنة */
 function toGregorianShort(dateStr: string): string {
@@ -50,7 +51,7 @@ export const useDisclosurePage = () => {
 
   // #9: جلب my_share من RPC الخادم كمصدر موثوق
   const { data: dashData } = useBeneficiaryDashboardData(
-    fiscalYearId !== '__none__' ? fiscalYearId : undefined,
+    isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
   const { currentBeneficiary, myShare, pctLoading } = useMyShare({
     beneficiaries,

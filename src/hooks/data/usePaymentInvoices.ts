@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { defaultNotify } from './mutationNotify';
 import { logger } from '@/lib/logger';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 export interface PaymentInvoice {
   id: string;
@@ -38,7 +39,7 @@ export interface PaymentInvoice {
 export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['payment_invoices', fiscalYearId],
-    enabled: fiscalYearId !== '__none__',
+    enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       // #45: جلب الحقول المطلوبة فقط بدل * لتقليل حجم البيانات

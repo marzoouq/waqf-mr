@@ -9,6 +9,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { fmt } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 export interface SearchResult {
   id: string;
@@ -57,18 +58,18 @@ export function useGlobalSearch() {
       const buildContractQuery = () => {
         if (isAdmin) {
           let q = supabase.from('contracts').select(contractSelectFields).or(contractFilter).limit(5);
-          if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
+          if (isFyReady(fiscalYearId)) q = q.eq('fiscal_year_id', fiscalYearId);
           return q.abortSignal(controller.signal);
         } else {
           let q = supabase.from('contracts_safe').select(contractSelectFields).or(contractFilter).limit(5);
-          if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
+          if (isFyReady(fiscalYearId)) q = q.eq('fiscal_year_id', fiscalYearId);
           return q.abortSignal(controller.signal);
         }
       };
 
       const buildExpensesQuery = () => {
         let q = supabase.from('expenses').select('id, expense_type, description, amount, fiscal_year_id').or(`expense_type.ilike.${pattern},description.ilike.${pattern}`).limit(5);
-        if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
+        if (isFyReady(fiscalYearId)) q = q.eq('fiscal_year_id', fiscalYearId);
         return q.abortSignal(controller.signal);
       };
 

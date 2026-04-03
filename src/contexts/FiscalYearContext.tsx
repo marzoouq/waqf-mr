@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { useActiveFiscalYear, FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { logger } from '@/lib/logger';
+import { FY_NONE, isFyReady } from '@/constants/fiscalYearIds';
 
 interface FiscalYearContextType {
   fiscalYearId: string;
@@ -55,17 +56,17 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
   const noPublishedYears = !isLoading && !authLoading && isNonAdmin && fiscalYears.length === 0;
 
   const fiscalYearId = (isLoading || authLoading)
-    ? '__none__'
+    ? FY_NONE
     : noPublishedYears
-      ? '__none__'
-      : (selectedId || activeFY?.id || (isNonAdmin ? (fiscalYears[0]?.id || '__none__') : 'all'));
+      ? FY_NONE
+      : (selectedId || activeFY?.id || (isNonAdmin ? (fiscalYears[0]?.id || FY_NONE) : 'all'));
 
   const fiscalYear = useMemo(
-    () => (fiscalYearId === 'all' || fiscalYearId === '__none__') ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),
+    () => (fiscalYearId === 'all' || !isFyReady(fiscalYearId)) ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),
     [fiscalYears, fiscalYearId, activeFY]
   );
   const isClosed = fiscalYear?.status === 'closed';
-  const isSpecificYear = fiscalYearId !== 'all' && fiscalYearId !== '__none__' && !!fiscalYearId;
+  const isSpecificYear = fiscalYearId !== 'all' && isFyReady(fiscalYearId) && !!fiscalYearId;
 
   const handleSetFiscalYearId = useCallback((id: string) => {
     setSelectedId(id);
@@ -96,7 +97,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
 
 /** قيمة احتياطية آمنة تُستخدم عند فقدان السياق مؤقتاً (تحديث chunk / HMR) */
 const FALLBACK: FiscalYearContextType = {
-  fiscalYearId: '__none__',
+  fiscalYearId: FY_NONE,
   setFiscalYearId: () => {},
   fiscalYear: null,
   fiscalYears: [],

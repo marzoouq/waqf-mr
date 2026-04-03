@@ -12,6 +12,7 @@ import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 import type { ContractFiscalAllocation } from '@/hooks/financial/useContractAllocations';
 import type { AdvanceRequest } from '@/hooks/financial/useAdvanceRequests';
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 interface DashboardSummaryResponse {
   properties: Property[];
@@ -51,7 +52,7 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
       if (data?.error) throw new Error(data.error);
       return data as DashboardSummaryResponse;
     },
-    enabled: !!fiscalYearId && fiscalYearId !== '__none__' && fiscalYearId !== '__skip__',
+    enabled: !!fiscalYearId && isFyReady(fiscalYearId),
   });
 
   const data = query.data;
