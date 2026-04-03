@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Wallet, Filter } from 'lucide-react';
+import EmptyState from '@/components/common/EmptyState';
 import type { CollectionItem, EditData } from './collection/types';
 import CollectionMobileCard from './collection/CollectionMobileCard';
 import CollectionDesktopRow from './collection/CollectionDesktopRow';
