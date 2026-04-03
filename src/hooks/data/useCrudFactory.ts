@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
-import { toast } from 'sonner';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { useState, useCallback, useMemo } from 'react';
 import type { Database } from '@/integrations/supabase/types';
+import { defaultNotify, crudNotifyAdapter } from '@/lib/notify';
+import type { CrudNotifications } from '@/lib/notify';
 
 // سجل تتبع تحذيرات الحد الأقصى — بديل آمن عن تخزين في window
 const limitWarnShown = new Set<string>();
@@ -19,19 +20,7 @@ type Row<T extends TableName> = Tables[T]['Row'];
 type Insert<T extends TableName> = Tables[T]['Insert'];
 type Update<T extends TableName> = Tables[T]['Update'];
 
-/** واجهة إشعارات CRUD — يمكن تمريرها لتخصيص أو إلغاء الرسائل */
-export interface CrudNotifications {
-  onSuccess?: (message: string) => void;
-  onError?: (message: string) => void;
-  onInfo?: (message: string) => void;
-}
-
-/** الإشعارات الافتراضية عبر sonner toast */
-const defaultNotifications: Required<CrudNotifications> = {
-  onSuccess: (msg) => toast.success(msg),
-  onError: (msg) => toast.error(msg),
-  onInfo: (msg) => toast.info(msg),
-};
+export type { CrudNotifications };
 
 /** Configuration for the CRUD factory */
 interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
