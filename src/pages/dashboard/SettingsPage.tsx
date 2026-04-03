@@ -108,7 +108,7 @@ const SettingsPage = () => {
           <TabsContent value="permissions"><Suspense fallback={LOADING}><PermissionsControlPanel /></Suspense></TabsContent>
           <TabsContent value="appearance"><Suspense fallback={LOADING}><AppearanceTab /></Suspense></TabsContent>
           <TabsContent value="fiscal"><Suspense fallback={LOADING}><FiscalYearManagementTab /></Suspense></TabsContent>
-          <TabsContent value="notifications"><NotificationsTab /></TabsContent>
+          <TabsContent value="notifications"><Suspense fallback={LOADING}><NotificationsTab /></Suspense></TabsContent>
           <TabsContent value="bulk-notify"><Suspense fallback={LOADING}><BulkNotificationsTab /></Suspense></TabsContent>
           <TabsContent value="bulk-message"><Suspense fallback={LOADING}><BulkMessagingTab /></Suspense></TabsContent>
           <TabsContent value="export"><Suspense fallback={LOADING}><DataExportTab /></Suspense></TabsContent>
