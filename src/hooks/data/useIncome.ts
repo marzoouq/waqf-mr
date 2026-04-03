@@ -8,7 +8,7 @@ import { Income } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
-import { defaultNotify } from './mutationNotify';
+import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 /** أعمدة الإيرادات مع ربط العقار */
