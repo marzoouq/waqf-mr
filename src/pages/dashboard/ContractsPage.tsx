@@ -2,26 +2,20 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NativeSelect } from '@/components/ui/native-select';
-import { FileText, Lock, Info, RefreshCw, CheckSquare, Square, Plus, CalendarDays, ShieldCheck, Receipt, BarChart3 } from 'lucide-react';
+import { FileText, Plus, CalendarDays, Receipt, BarChart3 } from 'lucide-react';
 import PageHeaderCard from '@/components/layout/PageHeaderCard';
-import ContractAccordionGroup from '@/components/contracts/ContractAccordionGroup';
-import { TableSkeleton } from '@/components/common/SkeletonLoaders';
-import TablePagination from '@/components/common/TablePagination';
 import ExportMenu from '@/components/common/ExportMenu';
 import { generateContractsPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
-import ContractStatsCards from '@/components/contracts/ContractStatsCards';
 import ContractFormDialog from '@/components/contracts/ContractFormDialog';
 import CollectionReport from '@/components/contracts/CollectionReport';
 import PaymentInvoicesTab from '@/components/contracts/PaymentInvoicesTab';
 import MonthlyAccrualTable from '@/components/contracts/MonthlyAccrualTable';
-import ContractsFiltersBar from '@/components/contracts/ContractsFiltersBar';
 import ContractDeleteDialog from '@/components/contracts/ContractDeleteDialog';
 import BulkRenewDialog from '@/components/contracts/BulkRenewDialog';
+import ContractsTabContent from '@/components/contracts/ContractsTabContent';
 import { getPaymentTypeLabel } from '@/utils/contractHelpers';
 import { safeNumber } from '@/utils/safeNumber';
 import { useContractsPage } from '@/hooks/page/useContractsPage';
@@ -76,90 +70,24 @@ const ContractsPage = () => {
             <TabsTrigger value="collection" className="gap-2"><BarChart3 className="w-4 h-4" />تقرير التحصيل</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="contracts" className="space-y-5">
-            <ContractStatsCards stats={stats} isLoading={isLoading} />
-
-            {expiredContracts.length > 0 && (
-              <Alert className="border-destructive/40 bg-destructive/10">
-                <AlertTriangle className="w-4 h-4 text-destructive" />
-                <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-destructive font-medium">
-                    يوجد {expiredContracts.length} عقد منتهي
-                    {selectedForRenewal.size > 0 && <span className="text-foreground mr-1">— تم اختيار {selectedForRenewal.size}</span>}
-                  </span>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={selectedForRenewal.size === expiredContracts.length ? deselectAll : selectAllExpired}>
-                      {selectedForRenewal.size === expiredContracts.length ? <Square className="w-3.5 h-3.5" /> : <CheckSquare className="w-3.5 h-3.5" />}
-                      {selectedForRenewal.size === expiredContracts.length ? 'إلغاء التحديد' : 'تحديد الكل'}
-                    </Button>
-                    {selectedForRenewal.size > 0 && (
-                      <Button size="sm" variant="destructive" className="gap-2 shrink-0" onClick={() => setBulkRenewOpen(true)}>
-                        <RefreshCw className="w-4 h-4" />تجديد المختارة ({selectedForRenewal.size})
-                      </Button>
-                    )}
-                  </div>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <ContractsFiltersBar
+          <TabsContent value="contracts">
+            <ContractsTabContent
+              contracts={contracts} properties={properties} paymentInvoices={paymentInvoices}
+              invoicePaidMap={invoicePaidMap} fiscalYearId={fiscalYearId} fiscalYears={fiscalYears}
+              isClosed={isClosed} role={role} isLoading={isLoading}
+              stats={stats} expiredContracts={expiredContracts} expiredIds={expiredIds}
+              filteredGroups={filteredGroups} statusCounts={statusCounts} allExpanded={allExpanded}
               searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-              statusFilter={statusFilter} setStatusFilter={(v) => setStatusFilter(v as typeof statusFilter)}
+              statusFilter={statusFilter} setStatusFilter={setStatusFilter}
               propertyFilter={propertyFilter} setPropertyFilter={setPropertyFilter}
               paymentTypeFilter={paymentTypeFilter} setPaymentTypeFilter={setPaymentTypeFilter}
-              statusCounts={statusCounts} properties={properties}
-              hasGroups={filteredGroups.length > 0} allExpanded={allExpanded}
-              toggleAllGroups={toggleAllGroups} resetPage={() => setCurrentPage(1)}
+              currentPage={currentPage} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE}
+              selectedForRenewal={selectedForRenewal} expandedGroups={expandedGroups} setExpandedGroups={setExpandedGroups}
+              toggleAllGroups={toggleAllGroups} toggleSelection={toggleSelection}
+              selectAllExpired={selectAllExpired} deselectAll={deselectAll}
+              setBulkRenewOpen={setBulkRenewOpen} setFiscalYearId={setFiscalYearId}
+              setDeleteTarget={setDeleteTarget} handleEdit={handleEdit} handleRenew={handleRenew}
             />
-
-            {isClosed && (
-              role === 'admin' ? (
-                <div className="flex items-center gap-2 p-3 rounded-lg border border-success/30 bg-success/10 text-success text-sm">
-                  <ShieldCheck className="w-4 h-4 shrink-0" /><span>سنة مقفلة — لديك صلاحية التعديل كناظر</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/10 text-warning text-sm">
-                  <Lock className="w-4 h-4 shrink-0" /><span>سنة مقفلة — لا يمكن التعديل</span>
-                </div>
-              )
-            )}
-
-            {isLoading ? (
-              <TableSkeleton rows={5} cols={6} />
-            ) : filteredGroups.length === 0 ? (
-              <div className="py-12 text-center">
-                <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد عقود مسجلة'}</p>
-                {!searchQuery && contracts.length === 0 && fiscalYearId !== 'all' && fiscalYears.length > 1 && (
-                  <div className="mt-4 mx-auto max-w-md flex items-center gap-2 p-3 rounded-lg border border-info/30 bg-info/10 text-info text-sm">
-                    <Info className="w-4 h-4 shrink-0" />
-                    <span>لا توجد عقود في هذه السنة المالية. جرّب التبديل إلى{' '}
-                      <button type="button" className="underline font-semibold hover:opacity-80" onClick={() => setFiscalYearId('all')}>جميع السنوات</button>
-                      {' '}أو اختر سنة مالية أخرى من القائمة أعلاه.</span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredGroups.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map(([baseNumber, group]) => (
-                  <ContractAccordionGroup
-                    key={baseNumber} baseNumber={baseNumber} contracts={group} invoices={paymentInvoices}
-                    invoicePaidMap={invoicePaidMap} expiredIds={expiredIds} selectedForRenewal={selectedForRenewal}
-                    onToggleSelection={toggleSelection} onEdit={handleEdit}
-                    onDelete={(c) => setDeleteTarget({ id: c.id, name: `العقد ${c.contract_number}` })}
-                    onRenew={handleRenew} isClosed={isClosed && role !== 'admin'} open={expandedGroups.has(baseNumber)}
-                    onOpenChange={(isOpen) => {
-                      setExpandedGroups(prev => {
-                        const next = new Set(prev);
-                        if (isOpen) next.add(baseNumber); else next.delete(baseNumber);
-                        return next;
-                      });
-                    }}
-                  />
-                ))}
-                <TablePagination currentPage={currentPage} totalItems={filteredGroups.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-              </div>
-            )}
           </TabsContent>
 
           <TabsContent value="accruals">
