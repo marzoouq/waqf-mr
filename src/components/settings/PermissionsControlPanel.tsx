@@ -127,6 +127,9 @@ const PermissionsControlPanel = () => {
 
   return (
     <div className="space-y-6">
+      {/* ── ملخص صلاحيات الناظر ── */}
+      <AdminCapabilitiesSummary />
+
       {/* ── ملخص الصلاحيات ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {summaries.map(s => (
