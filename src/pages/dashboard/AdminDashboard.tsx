@@ -1,6 +1,7 @@
 
 import { lazy, Suspense } from 'react';
-import { ErrorBoundary, DeferredRender } from '@/components/common';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
+import DeferredRender from '@/components/common/DeferredRender';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { Button } from '@/components/ui/button';
 import { FiscalYearWidget, DashboardAlerts, DashboardStatsGrid, DashboardKpiPanel, CollectionSummaryCard, RecentContractsCard, QuickActionsCard, YearComparisonCard } from '@/components/dashboard';
