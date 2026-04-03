@@ -9,7 +9,6 @@ import { useContractAllocations } from '@/hooks/financial/useContractAllocations
 import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts/contractForm.types';
 import { toast } from 'sonner';
-import { toast } from 'sonner';
 import { useContractsFilters } from './useContractsFilters';
 import { useContractsBulkRenew } from './useContractsBulkRenew';
 
