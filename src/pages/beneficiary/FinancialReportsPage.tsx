@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyShare } from '@/hooks/financial/useMyShare';
-import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/data/useBeneficiaryDashboardData';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { isFyReady } from '@/constants/fiscalYearIds';

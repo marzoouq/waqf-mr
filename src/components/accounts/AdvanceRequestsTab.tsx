@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from '@/hooks/financial/useAdvanceRequests';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Loader2, CheckCircle, XCircle, Banknote, Clock, AlertTriangle, ChevronRight, ChevronLeft } from 'lucide-react';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
 import { safeNumber } from '@/utils/safeNumber';
 import { isFyAll } from '@/constants/fiscalYearIds';
 

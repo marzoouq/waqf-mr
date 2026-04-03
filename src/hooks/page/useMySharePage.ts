@@ -11,9 +11,9 @@ import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useMyDistributions } from '@/hooks/data/useMyDistributions';
 import { useMyShare } from '@/hooks/financial/useMyShare';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
 import { useNavigate } from 'react-router-dom';
-import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/data/useBeneficiaryDashboardData';
 import { useMySharePdfHandlers } from '@/hooks/page/useMySharePdfHandlers';
 import { isFyReady } from '@/constants/fiscalYearIds';
 

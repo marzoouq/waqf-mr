@@ -9,7 +9,7 @@ import { AlertCircle, RefreshCw, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton } from '@/components/common';
-import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/data/useBeneficiaryDashboardData';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary-dashboard/BeneficiaryWelcomeCard';
 import BeneficiaryStatsRow from '@/components/beneficiary-dashboard/BeneficiaryStatsRow';

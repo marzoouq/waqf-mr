@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
 import { toast } from 'sonner';
 
 export const useSecuritySettings = () => {

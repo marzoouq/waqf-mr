@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Banknote, Save } from 'lucide-react';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
 
 const DEFAULT_ADVANCE_SETTINGS = { enabled: true, min_amount: 500, max_percentage: 50 };
 

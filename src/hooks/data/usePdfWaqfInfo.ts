@@ -1,5 +1,5 @@
-import { useWaqfInfo } from '@/hooks/page/useAppSettings';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useWaqfInfo } from '@/hooks/data/useAppSettings';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
 import type { PdfWaqfInfo } from '@/utils/pdf';
 
 export const usePdfWaqfInfo = (): PdfWaqfInfo => {

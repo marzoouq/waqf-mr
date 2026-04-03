@@ -3,7 +3,7 @@
  */
 import { useCallback, lazy, Suspense } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 

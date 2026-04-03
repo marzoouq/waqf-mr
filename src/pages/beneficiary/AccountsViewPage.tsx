@@ -14,7 +14,7 @@ import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
-import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/data/useBeneficiaryDashboardData';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { AccountsViewSummary, AccountsViewMyShare } from '@/components/accounts';
 

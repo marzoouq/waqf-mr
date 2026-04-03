@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calculator, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fmt, fmtInt } from '@/utils/format';
-import { useSetting } from '@/hooks/page/useAppSettings';
+import { useSetting } from '@/hooks/data/useAppSettings';
 
 interface ZakatEstimationReportProps {
   totalIncome: number;

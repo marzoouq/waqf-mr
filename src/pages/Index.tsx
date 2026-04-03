@@ -4,7 +4,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useEffect, useCallback } from 'react';
-import { useAppSettings, useWaqfInfo } from '@/hooks/page/useAppSettings';
+import { useAppSettings, useWaqfInfo } from '@/hooks/data/useAppSettings';
 import { usePublicStats } from '@/hooks/data/usePublicStats';
 import type { LandingPageContent } from '@/components/settings';
 import LandingHero from '@/components/landing/LandingHero';
