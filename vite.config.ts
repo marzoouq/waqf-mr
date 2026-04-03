@@ -122,6 +122,8 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
+      // استبعاد ملفات الاختبار من البناء الإنتاجي
+      external: (id) => /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(id),
       output: {
         manualChunks(id) {
           if (id.includes('node_modules/react-dom')) return 'vendor-react';
