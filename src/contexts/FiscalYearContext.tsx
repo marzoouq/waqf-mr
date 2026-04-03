@@ -66,7 +66,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
     [fiscalYears, fiscalYearId, activeFY]
   );
   const isClosed = fiscalYear?.status === 'closed';
-  const isSpecificYear = fiscalYearId !== 'all' && isFyReady(fiscalYearId) && !!fiscalYearId;
+  const isSpecificYear = !isFyAll(fiscalYearId) && isFyReady(fiscalYearId);
 
   const handleSetFiscalYearId = useCallback((id: string) => {
     setSelectedId(id);
