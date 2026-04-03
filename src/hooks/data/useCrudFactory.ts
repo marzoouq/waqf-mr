@@ -4,7 +4,7 @@ import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { useState, useCallback, useMemo } from 'react';
 import type { Database } from '@/integrations/supabase/types';
-import { defaultNotify, crudNotifyAdapter } from '@/lib/notify';
+import { crudNotifyAdapter } from '@/lib/notify';
 import type { CrudNotifications } from '@/lib/notify';
 
 // سجل تتبع تحذيرات الحد الأقصى — بديل آمن عن تخزين في window
