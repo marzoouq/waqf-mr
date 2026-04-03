@@ -31,7 +31,7 @@ export * from './useInvoiceFileUtils';
 export { useInvoicesByFiscalYear, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, useGenerateInvoicePdf } from './useInvoices';
 export { useLogoManager } from './useLogoManager';
 export { useMaxAdvanceAmount } from './useMaxAdvanceAmount';
-export { useMessaging } from './useMessaging';
+export * from './useMessaging';
 export { useMyBeneficiaryProfile } from './useMyBeneficiaryProfile';
 export { useMyDistributions } from './useMyDistributions';
 export { useNotificationActions } from './useNotificationActions';
