@@ -24,7 +24,7 @@ interface ExpensesMobileCardsProps {
   expenseInvoiceMap: Map<string, number>;
   expandedRow: string | null;
   setExpandedRow: (id: string | null) => void;
-  onEdit: (item: ExpenseItem) => void;
+  onEdit: (item: never) => void;
   onDelete: (target: { id: string; name: string }) => void;
   isLocked: boolean;
 }
