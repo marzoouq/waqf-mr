@@ -45,10 +45,8 @@ const SETTINGS_CATEGORIES = [
   {
     label: 'المستخدمون والأقسام',
     tabs: [
-      { value: 'role-permissions', label: 'صلاحيات الأدوار', icon: Shield },
-      { value: 'sections', label: 'الأقسام', icon: LayoutGrid },
+      { value: 'permissions', label: 'إدارة الصلاحيات', icon: Shield },
       { value: 'menu', label: 'القائمة', icon: LayoutList },
-      { value: 'beneficiary', label: 'واجهة المستفيد', icon: Users },
     ],
   },
   {
