@@ -10,6 +10,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
+import { useMyDistributions } from '@/hooks/data/useMyDistributions';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useNavigate } from 'react-router-dom';
