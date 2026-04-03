@@ -18,7 +18,7 @@ import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { DashboardLayout } from '@/components/layout';
-import { NoPublishedYearsNotice, ExportMenu, DashboardSkeleton } from '@/components/common';
+import { NoPublishedYearsNotice, ExportMenu, DashboardSkeleton, DeferredRender } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Building2, FileText, Users, TrendingUp, BarChart3, Sun, Moon,
@@ -141,37 +141,43 @@ const WaqifDashboard = () => {
         {/* ═══ Overview Stats ═══ */}
         <WaqifOverviewStats stats={overviewStats} />
 
-        <WaqifFinancialSection
-          kpis={kpis}
-          fiscalYearLabel={fiscalYear?.label || ''}
-          totalIncome={totalIncome}
-          totalExpenses={totalExpenses}
-          availableAmount={availableAmount}
-          isFiscalYearActive={fiscalYear?.status === 'active'}
-          activeContractsCount={activeContracts.length}
-          expiredContractsCount={expiredContracts.length}
-          contractualRevenue={contractualRevenue}
-          collectionSummary={collectionSummary}
-        />
+        <DeferredRender delay={800}>
+          <WaqifFinancialSection
+            kpis={kpis}
+            fiscalYearLabel={fiscalYear?.label || ''}
+            totalIncome={totalIncome}
+            totalExpenses={totalExpenses}
+            availableAmount={availableAmount}
+            isFiscalYearActive={fiscalYear?.status === 'active'}
+            activeContractsCount={activeContracts.length}
+            expiredContractsCount={expiredContracts.length}
+            contractualRevenue={contractualRevenue}
+            collectionSummary={collectionSummary}
+          />
+        </DeferredRender>
 
         {/* ═══ Charts ═══ */}
-        {(monthlyData.length > 0 || (expensesByTypeExcludingVat && Object.keys(expensesByTypeExcludingVat).length > 0)) && (
-          <Card className="shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><BarChart3 className="w-5 h-5" /> الرسوم البيانية</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={<Skeleton className="h-[280px] w-full rounded-lg" />}>
-                <LazyWaqifCharts
-                  monthlyData={monthlyData}
-                  expenseData={Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value }))}
-                />
-              </Suspense>
-            </CardContent>
-          </Card>
-        )}
+        <DeferredRender delay={1500}>
+          {(monthlyData.length > 0 || (expensesByTypeExcludingVat && Object.keys(expensesByTypeExcludingVat).length > 0)) && (
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><BarChart3 className="w-5 h-5" /> الرسوم البيانية</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Suspense fallback={<Skeleton className="h-[280px] w-full rounded-lg" />}>
+                  <LazyWaqifCharts
+                    monthlyData={monthlyData}
+                    expenseData={Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value }))}
+                  />
+                </Suspense>
+              </CardContent>
+            </Card>
+          )}
+        </DeferredRender>
 
-        <WaqifQuickLinks />
+        <DeferredRender delay={2000}>
+          <WaqifQuickLinks />
+        </DeferredRender>
       </div>
     </DashboardLayout>
   );

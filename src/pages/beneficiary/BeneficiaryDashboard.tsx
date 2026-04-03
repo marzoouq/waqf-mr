@@ -8,7 +8,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { AlertCircle, RefreshCw, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout';
-import { NoPublishedYearsNotice, DashboardSkeleton } from '@/components/common';
+import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender } from '@/components/common';
 import { useBeneficiaryDashboardData } from '@/hooks/data/useBeneficiaryDashboardData';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary-dashboard/BeneficiaryWelcomeCard';
@@ -175,23 +175,27 @@ const BeneficiaryDashboard = () => {
 
         {/* بطاقة طلب السُلفة */}
         {advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
-          <BeneficiaryAdvanceCard
-            beneficiaryId={currentBeneficiary.id!}
-            fiscalYearId={fiscalYearId}
-            myShare={myShare}
-            isClosed={isClosed}
-            pendingAdvanceCount={pendingAdvanceCount}
-            minAmount={advanceSettings?.min_amount ?? 500}
-            maxPercentage={advanceSettings?.max_percentage ?? 50}
-          />
+          <DeferredRender delay={800}>
+            <BeneficiaryAdvanceCard
+              beneficiaryId={currentBeneficiary.id!}
+              fiscalYearId={fiscalYearId}
+              myShare={myShare}
+              isClosed={isClosed}
+              pendingAdvanceCount={pendingAdvanceCount}
+              minAmount={advanceSettings?.min_amount ?? 500}
+              maxPercentage={advanceSettings?.max_percentage ?? 50}
+            />
+          </DeferredRender>
         )}
 
         <BeneficiaryQuickLinks role={role} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <BeneficiaryRecentDistributions distributions={distributions} />
-          <BeneficiaryNotificationsCard notifications={recentNotifications} unreadCount={unreadCount} />
-        </div>
+        <DeferredRender delay={1200}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <BeneficiaryRecentDistributions distributions={distributions} />
+            <BeneficiaryNotificationsCard notifications={recentNotifications} unreadCount={unreadCount} />
+          </div>
+        </DeferredRender>
       </div>
     </DashboardLayout>
   );
