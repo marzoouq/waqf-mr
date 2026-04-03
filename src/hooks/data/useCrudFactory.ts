@@ -117,7 +117,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
           const key = `limit-warn-${queryKey}`;
           if (!limitWarnShown.has(key)) {
             limitWarnShown.add(key);
-            notify.onInfo(`يتم عرض أول ${limit} سجل من ${label}. استخدم التصفح لمشاهدة المزيد.`);
+            notify.info(`يتم عرض أول ${limit} سجل من ${label}. استخدم التصفح لمشاهدة المزيد.`);
             setTimeout(() => { limitWarnShown.delete(key); }, 300_000);
           }
         }
@@ -171,12 +171,12 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       },
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
-        notify.onSuccess(`تم إضافة ${label} بنجاح`);
+        notify.success(`تم إضافة ${label} بنجاح`);
         onCreateSuccess?.(data);
       },
       onError: (error) => {
         logger.error(`${label} create error:`, error);
-        notify.onError(`حدث خطأ أثناء إضافة ${label}`);
+        notify.error(`حدث خطأ أثناء إضافة ${label}`);
       },
     });
   };
@@ -199,12 +199,12 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       },
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
-        notify.onSuccess(`تم تحديث ${label} بنجاح`);
+        notify.success(`تم تحديث ${label} بنجاح`);
         onUpdateSuccess?.(data);
       },
       onError: (error) => {
         logger.error(`${label} update error:`, error);
-        notify.onError(`حدث خطأ أثناء تحديث ${label}`);
+        notify.error(`حدث خطأ أثناء تحديث ${label}`);
       },
     });
   };
@@ -224,11 +224,11 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
-        notify.onSuccess(`تم حذف ${label} بنجاح`);
+        notify.success(`تم حذف ${label} بنجاح`);
       },
       onError: (error) => {
         logger.error(`${label} delete error:`, error);
-        notify.onError(`حدث خطأ أثناء حذف ${label}`);
+        notify.error(`حدث خطأ أثناء حذف ${label}`);
       },
     });
   };
