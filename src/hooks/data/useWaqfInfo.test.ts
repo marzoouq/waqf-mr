@@ -37,7 +37,7 @@ describe('useWaqfInfo', () => {
       select: vi.fn(() => Promise.resolve({ data: mockData, error: null })),
     } as unknown as SupabaseQueryBuilder);
 
-    const { useWaqfInfo } = await import('@/hooks/page/useAppSettings');
+    const { useWaqfInfo } = await import('@/hooks/data/useAppSettings');
     const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
 
     await waitFor(() => {
@@ -53,7 +53,7 @@ describe('useWaqfInfo', () => {
       select: vi.fn(() => new Promise(() => {})),
     } as unknown as SupabaseQueryBuilder);
 
-    const { useWaqfInfo } = await import('@/hooks/page/useAppSettings');
+    const { useWaqfInfo } = await import('@/hooks/data/useAppSettings');
     const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
 
     expect(result.current.data.waqf_name).toBe('');
@@ -64,7 +64,7 @@ describe('useWaqfInfo', () => {
       select: vi.fn(() => Promise.resolve({ data: [], error: null })),
     } as unknown as SupabaseQueryBuilder);
 
-    const { useWaqfInfo } = await import('@/hooks/page/useAppSettings');
+    const { useWaqfInfo } = await import('@/hooks/data/useAppSettings');
     const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
 
     await waitFor(() => {
@@ -85,7 +85,7 @@ describe('useWaqfInfo', () => {
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(QueryClientProvider, { client: qc }, children);
 
-    const { useWaqfInfo } = await import('@/hooks/page/useAppSettings');
+    const { useWaqfInfo } = await import('@/hooks/data/useAppSettings');
     const { result } = renderHook(() => useWaqfInfo(), { wrapper });
 
     await waitFor(() => {
