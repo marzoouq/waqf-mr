@@ -20,7 +20,7 @@ import AnnualDisclosureTable from '@/components/reports/AnnualDisclosureTable';
 import PropertyPerformanceTable from '@/components/reports/PropertyPerformanceTable';
 import type { TabItem } from '@/components/ui/responsive-tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatPercentage } from '@/lib/utils';
+import { useReportsData } from '@/hooks/page/useReportsData';
 import { useReportsData } from '@/hooks/page/useReportsData';
 
 const LazyReportsCharts = lazy(() => import('@/components/reports/ReportsChartsInner'));
