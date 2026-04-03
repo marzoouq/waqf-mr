@@ -714,6 +714,113 @@ erDiagram
 | `count` | integer | عدد الطلبات |
 | `window_start` | timestamptz | بداية نافذة الحساب |
 
+### 28. `support_tickets` — تذاكر الدعم الفني
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `ticket_number` | text | رقم التذكرة (تلقائي: TKT-YYYYMMDD-XXXX) |
+| `title` | text | عنوان التذكرة |
+| `description` | text | وصف المشكلة |
+| `category` | text | التصنيف: general / technical / financial / other |
+| `priority` | text | الأولوية: low / medium / high / urgent |
+| `status` | text | الحالة: open / in_progress / resolved / closed / cancelled |
+| `created_by` | UUID | منشئ التذكرة |
+| `assigned_to` | UUID | المسؤول المعين (اختياري) |
+| `resolution_notes` | text | ملاحظات الحل (اختياري) |
+| `rating` | smallint | تقييم الخدمة (اختياري) |
+| `rating_comment` | text | تعليق التقييم (اختياري) |
+
+### 29. `support_ticket_replies` — ردود تذاكر الدعم
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `ticket_id` | UUID | التذكرة المرتبطة |
+| `sender_id` | UUID | المرسل |
+| `content` | text | محتوى الرد |
+| `is_internal` | boolean | رد داخلي (مخفي عن المستخدم) |
+
+### 30. `zatca_certificates` — شهادات ZATCA
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `certificate_type` | text | النوع: compliance / production |
+| `certificate` | text | نص الشهادة (Base64) |
+| `private_key` | text | المفتاح الخاص (مشفر بـ AES-256 عبر trigger) |
+| `request_id` | text | معرف الطلب من ZATCA (اختياري) |
+| `zatca_secret` | text | كلمة سر ZATCA (اختياري) |
+| `is_active` | boolean | الشهادة النشطة |
+| `expires_at` | timestamptz | تاريخ انتهاء الصلاحية (اختياري) |
+
+> ⚠️ الناظر فقط يملك صلاحية الوصول. المفتاح الخاص مشفر تلقائياً عبر مشغل `encrypt_zatca_private_key`.
+
+### 31. `zatca_operation_log` — سجل عمليات ZATCA
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `operation_type` | text | نوع العملية: onboard / report / renew / sign |
+| `status` | text | الحالة: success / error / warning |
+| `invoice_id` | UUID | الفاتورة المرتبطة (اختياري) |
+| `user_id` | UUID | المستخدم المنفذ (اختياري) |
+| `error_message` | text | رسالة الخطأ (اختياري) |
+| `request_summary` | jsonb | ملخص الطلب (اختياري) |
+| `response_summary` | jsonb | ملخص الاستجابة (اختياري) |
+
+### 32. `invoice_chain` — سلسلة تكامل الفواتير
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `invoice_id` | UUID | الفاتورة |
+| `icv` | integer | رقم التسلسل (Invoice Counter Value) |
+| `invoice_hash` | text | هاش الفاتورة (SHA-256) |
+| `previous_hash` | text | هاش الفاتورة السابقة (أو '0' للأولى) |
+| `source_table` | text | جدول المصدر: payment_invoices / invoices |
+
+> ⚠️ الناظر والمحاسب فقط. يُستخدم لضمان عدم التلاعب بالفواتير (ZATCA compliance).
+
+### 33. `invoice_items` — بنود الفواتير
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `invoice_id` | UUID | الفاتورة |
+| `invoice_source` | text | جدول المصدر: payment_invoices / invoices |
+| `item_name` | text | اسم البند |
+| `quantity` | numeric | الكمية |
+| `unit_price` | numeric | سعر الوحدة |
+| `vat_rate` | numeric | نسبة الضريبة |
+| `vat_amount` | numeric | مبلغ الضريبة |
+| `line_total` | numeric | إجمالي السطر |
+| `sort_order` | integer | ترتيب العرض |
+
+### 34. `expense_budgets` — الميزانيات التقديرية
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `fiscal_year_id` | UUID | السنة المالية |
+| `expense_type` | text | نوع المصروف |
+| `budget_amount` | numeric | المبلغ المقدر |
+
+### 35. `account_categories` — الشجرة المحاسبية
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `code` | text | رمز الحساب |
+| `name` | text | اسم الحساب |
+| `category_type` | text | النوع: asset / liability / equity / revenue / expense |
+| `parent_id` | UUID | الحساب الأب (اختياري — مرجع ذاتي) |
+| `sort_order` | integer | ترتيب العرض |
+| `is_active` | boolean | نشط / غير نشط |
+
+### 36. `annual_report_items` — بنود التقرير السنوي
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `fiscal_year_id` | UUID | السنة المالية |
+| `property_id` | UUID | العقار المرتبط (اختياري) |
+| `section_type` | text | نوع القسم: achievement / challenge / plan |
+| `title` | text | العنوان |
+| `content` | text | المحتوى |
+| `sort_order` | integer | ترتيب العرض |
+
+### 37. `annual_report_status` — حالة التقرير السنوي
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `fiscal_year_id` | UUID | السنة المالية (فريد — واحد لكل سنة) |
+| `status` | text | الحالة: draft / published |
+| `published_at` | timestamptz | تاريخ النشر (اختياري) |
+
+> ⚠️ المستفيد والواقف يريان فقط التقارير المنشورة (`status = 'published'`).
+
 ---
 
 ## سياسات الأمان (RLS) — 134 سياسة على 39 جدول/عرض
@@ -722,30 +829,43 @@ erDiagram
 
 | الجدول | القراءة | الكتابة |
 |--------|---------|---------|
-| `user_roles` | المستخدم يرى دوره فقط | الناظر فقط |
-| `properties` | جميع الأدوار | الناظر فقط |
-| `units` | جميع الأدوار | الناظر فقط |
-| `contracts` | جميع الأدوار | الناظر فقط |
-| `income` | جميع الأدوار | الناظر فقط |
-| `expenses` | جميع الأدوار | الناظر فقط |
-| `accounts` | جميع الأدوار | الناظر فقط |
-| `beneficiaries` | المستفيد يرى بياناته + الناظر/المحاسب | الناظر فقط |
-| `distributions` | المستفيد يرى توزيعاته + الناظر والواقف | الناظر فقط |
-| `invoices` | جميع الأدوار | الناظر فقط |
+| `user_roles` | المستخدم يرى دوره فقط | الناظر فقط (RESTRICTIVE) |
+| `properties` | جميع الأدوار | الناظر والمحاسب |
+| `units` | جميع الأدوار | الناظر والمحاسب |
+| `contracts` | جميع الأدوار | الناظر والمحاسب |
+| `income` | جميع الأدوار | الناظر والمحاسب |
+| `expenses` | جميع الأدوار | الناظر والمحاسب |
+| `accounts` | جميع الأدوار | الناظر والمحاسب |
+| `beneficiaries` | المستفيد يرى بياناته + الناظر/المحاسب | الناظر والمحاسب |
+| `distributions` | المستفيد يرى توزيعاته + الناظر والواقف | الناظر والمحاسب |
+| `invoices` | جميع الأدوار | الناظر والمحاسب |
 | `fiscal_years` | جميع الأدوار | الناظر فقط |
-| `tenant_payments` | جميع الأدوار | الناظر فقط |
+| `tenant_payments` | الناظر والمحاسب فقط | الناظر والمحاسب |
 | `notifications` | المستخدم يرى إشعاراته | الناظر لكل الإشعارات |
 | `conversations` | المشاركون + الناظر | المشاركون + الناظر |
 | `messages` | المشاركون في المحادثة | المرسل فقط (في محادثته) |
 | `audit_log` | الناظر فقط | لا أحد (triggers فقط) |
 | `access_log` | الناظر فقط | لا أحد (دالة SECURITY DEFINER فقط) |
-| `waqf_bylaws` | جميع الأدوار | الناظر فقط |
-| `app_settings` | جميع الأدوار + `registration_enabled` للعامة | الناظر فقط |
+| `waqf_bylaws` | جميع الأدوار (المرئي فقط) | الناظر فقط |
+| `app_settings` | جميع الأدوار (ما عدا مفاتيح التشفير) + `registration_enabled` للعامة | الناظر فقط |
 | `access_log_archive` | الناظر فقط | لا أحد (أرشفة تلقائية فقط) |
-| `advance_requests` | المستفيد يرى طلباته + الناظر | المستفيد ينشئ (pending فقط) + الناظر |
-| `advance_carryforward` | المستفيد يرى ترحيلاته + الناظر | الناظر فقط |
+| `advance_requests` | المستفيد يرى طلباته + الناظر/المحاسب | المستفيد ينشئ (pending فقط) + الناظر/المحاسب |
+| `advance_carryforward` | المستفيد يرى ترحيلاته + الناظر/المحاسب | الناظر والمحاسب |
 | `webauthn_challenges` | لا أحد (Edge Function فقط) | لا أحد (Edge Function فقط) |
 | `webauthn_credentials` | المستخدم يرى بياناته + الناظر | المستخدم ينشئ/يحذف بياناته فقط |
+| `support_tickets` | المنشئ يرى تذاكره + الناظر/المحاسب (قراءة) | المنشئ (open فقط) + الناظر |
+| `support_ticket_replies` | المنشئ (غير الداخلية) + الناظر | المنشئ (غير داخلية + تذكرة مفتوحة) + الناظر |
+| `zatca_certificates` | الناظر فقط | الناظر فقط |
+| `zatca_operation_log` | الناظر فقط | الناظر فقط |
+| `invoice_chain` | الناظر والمحاسب | الناظر فقط |
+| `invoice_items` | جميع الأدوار (مع تقييد السنة المالية) | الناظر والمحاسب |
+| `expense_budgets` | جميع الأدوار (مع تقييد السنة المالية) | الناظر والمحاسب |
+| `account_categories` | الناظر والمحاسب | الناظر والمحاسب |
+| `annual_report_items` | جميع الأدوار (مع تقييد السنة المالية) | الناظر والمحاسب |
+| `annual_report_status` | المنشور فقط للمستفيد/الواقف + الناظر/المحاسب | الناظر والمحاسب |
+| `payment_invoices` | جميع الأدوار (مع تقييد السنة المالية) | الناظر والمحاسب |
+| `contract_fiscal_allocations` | جميع الأدوار (مع تقييد السنة المالية) | الناظر والمحاسب |
+| `rate_limits` | لا أحد (دوال فقط) | لا أحد (دوال فقط) |
 
 ---
 
