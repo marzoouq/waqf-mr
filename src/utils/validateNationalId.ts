@@ -15,7 +15,7 @@ export function validateSaudiNationalId(id: string): boolean {
   const digits = id.split('').map(Number);
   let sum = 0;
   for (let i = 0; i < digits.length; i++) {
-    let d = digits[i];
+    let d = digits[i] ?? 0;
     // مضاعفة الأرقام في المواقع الزوجية (0-indexed)
     if (i % 2 === 0) {
       d *= 2;
