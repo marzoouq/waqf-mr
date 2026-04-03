@@ -11,8 +11,7 @@ import { runPwaCacheGuard } from "./lib/pwaBootstrap";
 // تهيئة الثيم المحفوظ قبل الرسم
 initThemeFromStorage();
 
-// ربط دالة التنبيه بمراقب الأداء (كان سابقاً في App.tsx)
-setPerformanceToast((msg, opts) => sonnerToast.warning(msg, opts));
+// إشعارات الأداء معطّلة — لا حاجة لربط toast
 
 // Preconnect to backend API — يقلل زمن أول طلب بـ 50-100ms
 const _supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
