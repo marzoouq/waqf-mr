@@ -1,38 +1,29 @@
-import React from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TableSkeleton } from '@/components/common/SkeletonLoaders';
-import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock, ArrowUpDown, ArrowUp, ArrowDown, ShieldCheck } from 'lucide-react';
+import { TrendingDown, Search, Lock, ShieldCheck } from 'lucide-react';
 import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import TablePagination from '@/components/common/TablePagination';
 import ExportMenu from '@/components/common/ExportMenu';
 import { buildCsv, downloadCsv } from '@/utils/csv';
-import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
 import ExpenseSummaryCards from '@/components/expenses/ExpenseSummaryCards';
 import ExpenseFormDialog from '@/components/expenses/ExpenseFormDialog';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import ExpensesPieChart from '@/components/expenses/ExpensesPieChart';
 import ExpenseBudgetBar from '@/components/expenses/ExpenseBudgetBar';
+import ExpensesMobileCards from '@/components/expenses/ExpensesMobileCards';
+import ExpensesDesktopTable from '@/components/expenses/ExpensesDesktopTable';
 import { generateExpensesPDF } from '@/utils/pdf';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { fmt } from '@/utils/format';
-import { useExpensesPage, type SortField } from '@/hooks/page/useExpensesPage';
+import { useExpensesPage } from '@/hooks/page/useExpensesPage';
 
 const ExpensesPage = () => {
   const h = useExpensesPage();
-
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (h.sortField !== field) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
-    return h.sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
-  };
 
   return (
     <DashboardLayout>
@@ -99,104 +90,28 @@ const ExpensesPage = () => {
               <div className="py-12 text-center"><TrendingDown className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{h.searchQuery || h.filters.category || h.filters.propertyId || h.filters.dateFrom ? 'لا توجد نتائج للبحث' : 'لا توجد مصروفات مسجلة'}</p></div>
             ) : (
               <>
-              {/* Mobile Cards */}
-              <div className="space-y-3 md:hidden px-3 py-2">
-                {h.filteredExpenses.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE).map((item) => {
-                  const attachCount = h.expenseInvoiceMap.get(item.id) || 0;
-                  return (
-                    <Card key={item.id} className="shadow-sm">
-                      <CardContent className="p-4 space-y-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-sm">{item.expense_type}</span>
-                              {attachCount > 0 && <Badge variant="secondary" className="gap-1 text-xs"><Paperclip className="w-3 h-3" />{attachCount}</Badge>}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-0.5">{item.date}</p>
-                          </div>
-                          <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => h.handleEdit(item)} disabled={h.isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => h.setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} disabled={h.isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                          <div><p className="text-[11px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-destructive">-{fmt(safeNumber(item.amount))} ر.س</p></div>
-                          <div><p className="text-[11px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{item.property?.property_number || '-'}</p></div>
-                          {item.description && <div className="col-span-2"><p className="text-[11px] text-muted-foreground">الوصف</p><p className="text-sm text-muted-foreground">{item.description}</p></div>}
-                        </div>
-                        {h.expandedRow === item.id && <ExpenseAttachments expenseId={item.id} />}
-                        {attachCount > 0 && (
-                          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => h.setExpandedRow(h.expandedRow === item.id ? null : item.id)}>
-                            {h.expandedRow === item.id ? 'إخفاء المرفقات' : 'عرض المرفقات'}
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-              {/* Desktop Table */}
-               <div className="overflow-x-auto hidden md:block">
-               <Table className="min-w-[700px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right w-8"></TableHead>
-                    <TableHead className="text-right cursor-pointer select-none" onClick={() => h.handleSort('expense_type')}>
-                      <span className="inline-flex items-center gap-1">النوع <SortIcon field="expense_type" /></span>
-                    </TableHead>
-                    <TableHead className="text-right cursor-pointer select-none" onClick={() => h.handleSort('amount')}>
-                      <span className="inline-flex items-center gap-1">المبلغ <SortIcon field="amount" /></span>
-                    </TableHead>
-                    <TableHead className="text-right cursor-pointer select-none" onClick={() => h.handleSort('date')}>
-                      <span className="inline-flex items-center gap-1">التاريخ <SortIcon field="date" /></span>
-                    </TableHead>
-                    <TableHead className="text-right">العقار</TableHead>
-                    <TableHead className="text-right">المرفقات</TableHead>
-                    <TableHead className="text-right">الوصف</TableHead>
-                    <TableHead className="text-right">إجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {h.filteredExpenses.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE).map((item) => {
-                    const attachCount = h.expenseInvoiceMap.get(item.id) || 0;
-                    const isExpanded = h.expandedRow === item.id;
-                    return (
-                      <React.Fragment key={item.id}>
-                        <TableRow className={isExpanded ? 'border-b-0' : ''}>
-                          <TableCell className="p-1">
-                            <Button variant="ghost" size="icon" className="w-6 h-6" onClick={() => h.setExpandedRow(isExpanded ? null : item.id)} aria-label={isExpanded ? 'طي' : 'توسيع'}>
-                              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                            </Button>
-                          </TableCell>
-                          <TableCell className="font-medium">{item.expense_type}</TableCell>
-                          <TableCell className="text-destructive font-medium">-{fmt(safeNumber(item.amount))} ر.س</TableCell>
-                          <TableCell>{item.date}</TableCell>
-                          <TableCell>{item.property?.property_number || '-'}</TableCell>
-                          <TableCell>
-                            {attachCount > 0 ? <Badge variant="secondary" className="gap-1"><Paperclip className="w-3 h-3" />{attachCount}</Badge> : <span className="text-muted-foreground text-xs">—</span>}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{item.description || '-'}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => h.handleEdit(item)} disabled={h.isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => h.setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} disabled={h.isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                        {isExpanded && (
-                          <TableRow>
-                            <TableCell colSpan={8} className="bg-muted/30 p-3 border-b">
-                              <ExpenseAttachments expenseId={item.id} />
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </TableBody>
-               </Table>
-               </div>
-              <TablePagination currentPage={h.currentPage} totalItems={h.filteredExpenses.length} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
+                <ExpensesMobileCards
+                  items={h.filteredExpenses.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE)}
+                  expenseInvoiceMap={h.expenseInvoiceMap}
+                  expandedRow={h.expandedRow}
+                  setExpandedRow={h.setExpandedRow}
+                  onEdit={h.handleEdit}
+                  onDelete={h.setDeleteTarget}
+                  isLocked={h.isLocked}
+                />
+                <ExpensesDesktopTable
+                  items={h.filteredExpenses.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE)}
+                  expenseInvoiceMap={h.expenseInvoiceMap}
+                  expandedRow={h.expandedRow}
+                  setExpandedRow={h.setExpandedRow}
+                  onEdit={h.handleEdit}
+                  onDelete={h.setDeleteTarget}
+                  isLocked={h.isLocked}
+                  sortField={h.sortField}
+                  sortDir={h.sortDir}
+                  onSort={h.handleSort}
+                />
+                <TablePagination currentPage={h.currentPage} totalItems={h.filteredExpenses.length} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
               </>
             )}
           </CardContent>
