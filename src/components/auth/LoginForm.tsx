@@ -18,7 +18,7 @@ interface LoginFormProps {
   idSuffix?: string;
 }
 
-export default function LoginForm({ signIn, loading, onResetPassword, idSuffix = '' }: LoginFormProps) {
+export default function LoginForm({ signIn, loading: _loading, onResetPassword, idSuffix = '' }: LoginFormProps) {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [nationalId, setNationalId] = useState('');
