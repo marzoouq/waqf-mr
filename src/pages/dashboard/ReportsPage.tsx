@@ -1,9 +1,8 @@
-import { fmt } from '@/utils/format';
 import { lazy, Suspense } from 'react';
 const CashFlowReport = lazy(() => import('@/components/reports/CashFlowReport'));
 import { OverdueTenantsReport, BalanceSheetReport, ZakatEstimationReport, BeneficiaryDistributionTable, AnnualDisclosureTable, PropertyPerformanceTable } from '@/components/reports';
+import ReportsSummaryCards from '@/components/reports/ReportsSummaryCards';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
 import { toast } from 'sonner';
@@ -99,21 +98,7 @@ const ReportsPage = () => {
           </>}
         />
 
-        {/* Summary Cards */}
-        {isLoading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="shadow-sm"><CardContent className="p-3 sm:p-4 space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-7 w-32" /></CardContent></Card>
-            ))}
-          </div>
-        ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <Card className="shadow-sm"><CardContent className="p-3 sm:p-4"><p className="text-xs sm:text-sm text-muted-foreground">إجمالي الدخل</p><p className="text-lg sm:text-2xl font-bold text-success tabular-nums truncate">{fmt(totalIncome)} ر.س</p></CardContent></Card>
-          <Card className="shadow-sm"><CardContent className="p-3 sm:p-4"><p className="text-xs sm:text-sm text-muted-foreground">إجمالي المصروفات</p><p className="text-lg sm:text-2xl font-bold text-destructive tabular-nums truncate">{fmt(totalExpenses)} ر.س</p></CardContent></Card>
-          <Card className="shadow-sm"><CardContent className="p-3 sm:p-4"><p className="text-xs sm:text-sm text-muted-foreground">صافي الريع</p><p className="text-lg sm:text-2xl font-bold text-primary tabular-nums truncate">{fmt(netRevenue)} ر.س</p></CardContent></Card>
-          <Card className="shadow-sm"><CardContent className="p-3 sm:p-4"><p className="text-xs sm:text-sm text-muted-foreground">عدد العقارات</p><p className="text-lg sm:text-2xl font-bold tabular-nums">{properties.length}</p></CardContent></Card>
-        </div>
-        )}
+        <ReportsSummaryCards totalIncome={totalIncome} totalExpenses={totalExpenses} netRevenue={netRevenue} propertyCount={properties.length} isLoading={isLoading} />
 
         <ResponsiveTabs
           defaultValue="financial"

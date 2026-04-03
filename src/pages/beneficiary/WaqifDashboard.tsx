@@ -6,7 +6,6 @@ import { fmt } from '@/utils/format';
 import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
@@ -22,17 +21,19 @@ import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, ExportMenu, DashboardSkeleton } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Building2, FileText, Users, TrendingUp, Wallet, BarChart3, BookOpen, Sun, Moon,
+  Building2, FileText, Users, TrendingUp, Wallet, BarChart3, Sun, Moon,
 } from 'lucide-react';
 
 import WaqifWelcomeCard from '@/components/waqif/WaqifWelcomeCard';
 import WaqifFinancialSection from '@/components/waqif/WaqifFinancialSection';
+import WaqifOverviewStats from '@/components/waqif/WaqifOverviewStats';
+import WaqifQuickLinks from '@/components/waqif/WaqifQuickLinks';
 
 const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner'));
 
 const WaqifDashboard = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears, isSpecificYear } = useFiscalYear();
 
   useDashboardRealtime('waqif-dashboard-realtime', ['income', 'expenses', 'payment_invoices']);
@@ -107,13 +108,6 @@ const WaqifDashboard = () => {
     };
   }, [now]);
 
-  const quickLinks = [
-    { title: 'العقارات', icon: Building2, path: '/beneficiary/properties', color: 'bg-primary/10 text-primary' },
-    { title: 'العقود', icon: FileText, path: '/beneficiary/contracts', color: 'bg-accent/10 text-accent-foreground' },
-    { title: 'التقارير المالية', icon: BarChart3, path: '/beneficiary/financial-reports', color: 'bg-muted text-muted-foreground' },
-    { title: 'الحسابات الختامية', icon: Wallet, path: '/beneficiary/accounts', color: 'bg-secondary/10 text-secondary' },
-    { title: 'اللائحة', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-primary/10 text-primary' },
-  ];
 
   const overviewStats = [
     { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
@@ -145,18 +139,7 @@ const WaqifDashboard = () => {
         </div>
 
         {/* ═══ Overview Stats ═══ */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {overviewStats.map((stat, i) => (
-            <Card key={i} className="shadow-sm">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-center gap-3">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${stat.bg}`}><stat.icon className="w-5 h-5" /></div>
-                  <div className="min-w-0"><p className="text-xs text-muted-foreground">{stat.title}</p><p className="text-lg sm:text-xl font-bold truncate tabular-nums">{stat.value}</p></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <WaqifOverviewStats stats={overviewStats} />
 
         <WaqifFinancialSection
           kpis={kpis}
@@ -188,22 +171,7 @@ const WaqifDashboard = () => {
           </Card>
         )}
 
-        {/* ═══ Quick Links ═══ */}
-        <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3">الوصول السريع</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-            {quickLinks.map((link) => (
-              <Card key={link.path} className="shadow-sm cursor-pointer hover:shadow-md transition-shadow group" onClick={() => navigate(link.path)}>
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex flex-col items-center text-center gap-2">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${link.color}`}><link.icon className="w-5 h-5" /></div>
-                    <p className="font-bold text-sm">{link.title}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+        <WaqifQuickLinks />
       </div>
     </DashboardLayout>
   );
