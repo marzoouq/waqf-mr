@@ -33,7 +33,7 @@ interface ContractsTabContentProps {
   searchQuery: string;
   setSearchQuery: (v: string) => void;
   statusFilter: string;
-  setStatusFilter: (v: string) => void;
+  setStatusFilter: (v: StatusFilterValue) => void;
   propertyFilter: string;
   setPropertyFilter: (v: string) => void;
   paymentTypeFilter: string;
