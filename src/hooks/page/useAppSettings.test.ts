@@ -38,7 +38,7 @@ vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }));
 
-import { useAppSettings } from './useAppSettings';
+import { useAppSettings } from '../data/useAppSettings';
 
 describe('useAppSettings', () => {
   it('returns settings hook with getJsonSetting', () => {
