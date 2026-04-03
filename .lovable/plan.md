@@ -1,48 +1,58 @@
 
-## تحليل المكونات الكبيرة واقتراحات التقسيم
+## ملفات كبيرة تحتاج تقسيم وإعادة هيكلة
 
-بناءً على فحص حجم الملفات، إليك المكونات التي تتجاوز 200 سطر (باستثناء ملفات UI/shadcn والاختبارات):
+### 📄 صفحات (Pages) — أولوية عالية
 
-### 🔴 أولوية عالية (> 230 سطر)
+| الملف | الأسطر | اقتراح التقسيم |
+|-------|--------|---------------|
+| `AccountsPage.tsx` | 252 | فصل بطاقات الملخص، جدول التوزيع، وأزرار الإجراءات إلى مكونات فرعية |
+| `AccountsViewPage.tsx` (beneficiary) | 248 | فصل عرض الحسابات للقراءة فقط إلى بطاقات ومخططات مستقلة |
+| `InvoicesPage.tsx` | 246 | فصل الفلاتر والجدول والإحصائيات (مشابه لنمط ContractsPage) |
+| `InvoicesViewPage.tsx` (beneficiary) | 239 | فصل عرض الفواتير للمستفيد إلى فلاتر وجدول |
+| `BeneficiaryMessagesPage.tsx` | 225 | فصل قائمة المحادثات وخيط الرسائل |
+| `ExpensesPage.tsx` | 222 | فصل فلاتر المصروفات والجدول ونموذج الإضافة |
+| `ContractsViewPage.tsx` (beneficiary) | 222 | فصل عرض العقود للمستفيد |
+| `BylawsPage.tsx` | 219 | فصل قائمة اللوائح ونوافذ التحرير |
+| `AnnualReportViewPage.tsx` (beneficiary) | 219 | فصل أقسام التقرير السنوي |
+| `ReportsPage.tsx` | 217 | فصل قائمة التقارير عن محتوى التقرير المعروض |
+| `WaqifDashboard.tsx` | 214 | فصل بطاقات الإحصائيات والمخططات |
+| `AnnualReportPage.tsx` | 207 | فصل نموذج التقرير عن المعاينة |
 
-#### 1. `invoices/templates/ProfessionalTemplate.tsx` — 251 سطر
-- **اقتراح**: فصل رأس الفاتورة (`InvoiceHeader`), جدول البنود (`InvoiceItemsTable`), ملخص المبالغ (`InvoiceTotals`), وتذييل QR/ZATCA (`InvoiceFooter`)
+### 🔧 Hooks — أولوية متوسطة
 
-#### 2. `contracts/CollectionReport.tsx` — 235 سطر
-- **اقتراح**: فصل فلاتر التقرير (`CollectionFilters`), جدول التحصيل (`CollectionTable`), وملخص الإحصائيات (`CollectionSummaryCards`)
+| الملف | الأسطر | اقتراح التقسيم |
+|-------|--------|---------------|
+| `useInvoicesPage.ts` | 235 | فصل منطق الفلترة عن mutations |
+| `useContractsPage.ts` | 235 | فصل منطق الفلترة عن mutations |
+| `usePaymentInvoicesTab.ts` | 231 | فصل استعلامات البيانات عن الإجراءات |
+| `useWebAuthn.ts` | 228 | فصل التسجيل عن المصادقة (register vs authenticate) |
+| `useZatcaManagement.ts` | 210 | فصل إدارة الشهادات عن عمليات الفواتير |
+| `usePropertiesPage.ts` | 209 | فصل منطق الفلترة عن mutations |
+| `useZatcaSettings.ts` | 206 | فصل إعدادات ZATCA عن عمليات التحقق |
+| `useCollectionData.ts` | 205 | فصل حسابات التحصيل عن استعلامات البيانات |
 
-#### 3. `zatca/ZatcaInvoicesTab.tsx` — 229 سطر
-- **اقتراح**: فصل شريط البحث/الفلاتر (`ZatcaInvoiceFilters`), جدول الفواتير (`ZatcaInvoiceTable`), وأزرار الإجراءات (`ZatcaInvoiceActions`)
+### 📊 Utils/PDF — أولوية منخفضة
 
-### 🟡 أولوية متوسطة (200-230 سطر)
+| الملف | الأسطر | اقتراح التقسيم |
+|-------|--------|---------------|
+| `themeDefinitions.ts` | 302 | بيانات فقط — مقبول كما هو |
+| `comprehensiveBeneficiary.ts` | 281 | فصل أقسام PDF إلى دوال مستقلة (الرأس، الجدول، الملخص) |
+| `accounts.ts` (PDF) | 267 | فصل تخطيط الصفحات عن بناء البيانات |
+| `reports.ts` (PDF) | 249 | فصل كل نوع تقرير في ملف مستقل |
+| `forensicAudit.ts` | 233 | فصل أقسام التقرير الرقابي |
+| `xlsx.ts` | 205 | فصل كل نوع تصدير في دالة مستقلة |
 
-#### 4. `reports/MonthlyPerformanceReport.tsx` — 224 سطر
-- **اقتراح**: فصل الرسوم البيانية (`PerformanceCharts`) عن جدول البيانات (`PerformanceTable`)
+### ⚠️ لا تُعدّل
 
-#### 5. `reports/YearOverYearComparison.tsx` — 220 سطر
-- **اقتراح**: فصل الرسم البياني (`YoYChart`) عن جدول المقارنة (`YoYComparisonTable`)
+| الملف | السبب |
+|-------|-------|
+| `AuthContext.tsx` (251) | محمي — لا يُعدّل دون طلب صريح |
+| `useCrudFactory.ts` (237) | مصنع عام — التقسيم غير مُجدٍ |
+| `layout/constants.ts` (209) | بيانات ثابتة فقط |
 
-#### 6. `accounts/AccountsDistributionTable.tsx` — 219 سطر
-- **اقتراح**: فصل صف المستفيد (`DistributionRow`) وملخص التوزيع (`DistributionSummary`)
+### ملخص الأولويات:
+1. **الصفحات** (12 ملف) — الأكثر تأثيراً على تجربة التطوير
+2. **Hooks** (8 ملفات) — تحسين قابلية الاختبار
+3. **PDF/Utils** (6 ملفات) — تحسين تدريجي
 
-#### 7. `reports/CashFlowReport.tsx` — 218 سطر
-- **اقتراح**: فصل الرسم البياني (`CashFlowChart`) عن تفاصيل التدفق (`CashFlowDetails`)
-
-#### 8. `zatca/ZatcaCertificatesTab.tsx` — 207 سطر
-- **اقتراح**: فصل نموذج الشهادة (`CertificateForm`) عن قائمة الشهادات (`CertificatesList`)
-
-#### 9. `auth/LoginForm.tsx` — 206 سطر
-- **اقتراح**: فصل نموذج الهوية الوطنية (`NationalIdLoginSection`) عن نموذج البريد/كلمة المرور (`EmailLoginSection`)
-
-#### 10. `user-management/UsersTable.tsx` — 205 سطر
-- **اقتراح**: فصل صف المستخدم (`UserRow`) وأزرار الإجراءات (`UserActions`)
-
-### ✅ مقبولة حالياً (< 200 سطر)
-الملفات تحت 200 سطر في نطاق معقول ولا تحتاج تقسيم عاجل.
-
-### ملاحظات:
-- ملفات `ui/sidebar.tsx` (637) و `ui/chart.tsx` (305) و `ui/carousel.tsx` (224) هي مكونات shadcn أساسية — **لا يُنصح بتعديلها**
-- التقسيم يجب أن يكون تدريجياً لتجنب كسر الوظائف الحالية
-- الأولوية للملفات التي تخلط بين منطق البيانات وعرض الواجهة
-
-هل تريد البدء بتنفيذ تقسيم محدد؟ أقترح البدء بالأولوية العالية (1-3).
+هل تريد البدء بتنفيذ مجموعة محددة؟
