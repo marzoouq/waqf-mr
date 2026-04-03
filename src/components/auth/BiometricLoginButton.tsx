@@ -8,7 +8,8 @@ export default function BiometricLoginButton() {
   const showBiometric = browserSupportsWebAuthn() && isBiometricEnabled();
   const { biometricLoading, handleBiometricLogin } = useBiometricAuth();
 
-  if (!showBiometric) return null;
+  // مساحة محجوزة ثابتة لمنع القفزات البصرية (CLS) عند ظهور/اختفاء الزر
+  if (!showBiometric) return <div className="min-h-[2.75rem]" aria-hidden />;
 
   return (
     <Button
