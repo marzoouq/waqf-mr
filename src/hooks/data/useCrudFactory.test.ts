@@ -88,7 +88,7 @@ describe('createCrudFactory', () => {
       const { result } = renderHook(() => factory.useCreate(), { wrapper: wrapper() });
       const payload: TablesInsert<'properties'> = { property_number: 'W-003', location: 'C', area: 300, property_type: 'فيلا' };
       await result.current.mutateAsync(payload);
-      expect(toast.success).toHaveBeenCalledWith('تم إضافة العقار بنجاح');
+      expect(toast.success).toHaveBeenCalledWith('تم إضافة العقار بنجاح', undefined);
     });
 
     it('shows error toast on failure', async () => {
@@ -96,7 +96,7 @@ describe('createCrudFactory', () => {
       const { result } = renderHook(() => factory.useCreate(), { wrapper: wrapper() });
       const payload: TablesInsert<'properties'> = { property_number: '', location: '', area: 0, property_type: '' };
       await expect(result.current.mutateAsync(payload)).rejects.toThrow();
-      expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء إضافة العقار');
+      expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء إضافة العقار', undefined);
     });
   });
 
@@ -104,7 +104,7 @@ describe('createCrudFactory', () => {
     it('shows success toast on delete', async () => {
       const { result } = renderHook(() => factory.useDelete(), { wrapper: wrapper() });
       await result.current.mutateAsync('1');
-      expect(toast.success).toHaveBeenCalledWith('تم حذف العقار بنجاح');
+      expect(toast.success).toHaveBeenCalledWith('تم حذف العقار بنجاح', undefined);
     });
   });
 

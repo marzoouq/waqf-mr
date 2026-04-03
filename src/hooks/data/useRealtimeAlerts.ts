@@ -39,7 +39,7 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
           description: `${ticket.ticket_number}: ${ticket.title}`,
           action: {
             label: 'عرض',
-            onClick: () => navigateRef.current ? navigateRef.current('/dashboard/support') : window.location.assign('/dashboard/support'),
+            onClick: () => navigateRef.current?.('/dashboard/support'),
           },
           duration: 8000,
         });
@@ -75,7 +75,7 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
             description: `عقد ${newC.contract_number} (${newC.tenant_name}): ${oldLabel} ← ${newLabel}`,
             action: {
               label: 'عرض',
-              onClick: () => navigateRef.current ? navigateRef.current('/dashboard/contracts') : window.location.assign('/dashboard/contracts'),
+              onClick: () => navigateRef.current?.('/dashboard/contracts'),
             },
             duration: 8000,
           });

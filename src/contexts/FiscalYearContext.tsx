@@ -3,6 +3,7 @@ import { useActiveFiscalYear, FiscalYear } from '@/hooks/financial/useFiscalYear
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { logger } from '@/lib/logger';
 import { FY_NONE, FY_ALL, isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 interface FiscalYearContextType {
   fiscalYearId: string;
@@ -18,7 +19,7 @@ interface FiscalYearContextType {
 
 const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'waqf_selected_fiscal_year';
+const STORAGE_KEY = STORAGE_KEYS.FISCAL_YEAR;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function FiscalYearProvider({ children }: { children: React.ReactNode }) {

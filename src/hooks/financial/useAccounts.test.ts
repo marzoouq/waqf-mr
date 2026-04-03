@@ -87,20 +87,20 @@ describe('useAccounts (CRUD)', () => {
       total_income: 100000,
     };
     await result.current.mutateAsync(payload);
-    expect(toast.success).toHaveBeenCalledWith('تم إضافة الحساب بنجاح');
+    expect(toast.success).toHaveBeenCalledWith('تم إضافة الحساب بنجاح', undefined);
   });
 
   it('updates account and shows success toast', async () => {
     const { result } = renderHook(() => useUpdateAccount(), { wrapper: wrapper() });
     const payload: TablesUpdate<'accounts'> & { id: string } = { id: 'acc-1', total_income: 250000 };
     await result.current.mutateAsync(payload);
-    expect(toast.success).toHaveBeenCalledWith('تم تحديث الحساب بنجاح');
+    expect(toast.success).toHaveBeenCalledWith('تم تحديث الحساب بنجاح', undefined);
   });
 
   it('deletes account and shows success toast', async () => {
     const { result } = renderHook(() => useDeleteAccount(), { wrapper: wrapper() });
     await result.current.mutateAsync('acc-1');
-    expect(toast.success).toHaveBeenCalledWith('تم حذف الحساب بنجاح');
+    expect(toast.success).toHaveBeenCalledWith('تم حذف الحساب بنجاح', undefined);
   });
 
   it('shows error toast on create failure', async () => {
@@ -112,7 +112,7 @@ describe('useAccounts (CRUD)', () => {
     const { result } = renderHook(() => useCreateAccount(), { wrapper: wrapper() });
     const payload: TablesInsert<'accounts'> = { fiscal_year: '1446-1447', fiscal_year_id: 'fy-1' };
     await expect(result.current.mutateAsync(payload)).rejects.toThrow();
-    expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء إضافة الحساب');
+    expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء إضافة الحساب', undefined);
   });
 
   it('shows error toast on delete failure', async () => {
@@ -121,7 +121,7 @@ describe('useAccounts (CRUD)', () => {
     });
     const { result } = renderHook(() => useDeleteAccount(), { wrapper: wrapper() });
     await expect(result.current.mutateAsync('acc-1')).rejects.toThrow();
-    expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء حذف الحساب');
+    expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء حذف الحساب', undefined);
   });
 
   it('handles empty accounts list', async () => {

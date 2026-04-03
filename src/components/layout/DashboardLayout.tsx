@@ -10,6 +10,7 @@ import {
 import { Lock } from 'lucide-react';
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { cn } from '@/lib/utils';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 const PrintHeader = lazy(() => import('@/components/common/PrintHeader'));
@@ -53,13 +54,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const links = useNavLinks();
 
   const [sidebarOpen, setSidebarOpen] = useState(() => {
-    try { return localStorage.getItem('sidebar-open') === 'true'; }
+    try { return localStorage.getItem(STORAGE_KEYS.SIDEBAR_OPEN) === 'true'; }
     catch { return false; }
   });
   const [logoutOpen, setLogoutOpen] = useState(false);
 
   useEffect(() => {
-    try { localStorage.setItem('sidebar-open', String(sidebarOpen)); }
+    try { localStorage.setItem(STORAGE_KEYS.SIDEBAR_OPEN, String(sidebarOpen)); }
     catch { /* ignore */ }
   }, [sidebarOpen]);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
