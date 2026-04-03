@@ -856,7 +856,8 @@ erDiagram
 | `support_tickets` | المنشئ يرى تذاكره + الناظر/المحاسب (قراءة) | المنشئ (open فقط) + الناظر |
 | `support_ticket_replies` | المنشئ (غير الداخلية) + الناظر | المنشئ (غير داخلية + تذكرة مفتوحة) + الناظر |
 | `zatca_certificates` | الناظر فقط | الناظر فقط |
-| `zatca_operation_log` | الناظر فقط | الناظر فقط |
+| `zatca_operation_log` | الناظر فقط | لا أحد (Edge Functions فقط — لا إدخال أو تعديل أو حذف مباشر) |
+| `webauthn_challenges` | لا أحد (`USING(false)`) | لا أحد — Edge Function فقط عبر service_role |
 | `invoice_chain` | الناظر والمحاسب | الناظر فقط |
 | `invoice_items` | جميع الأدوار (مع تقييد السنة المالية) | الناظر والمحاسب |
 | `expense_budgets` | جميع الأدوار (مع تقييد السنة المالية) | الناظر والمحاسب |
