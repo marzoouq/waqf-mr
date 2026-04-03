@@ -1,58 +1,83 @@
 
-## ملفات كبيرة تحتاج تقسيم وإعادة هيكلة
 
-### 📄 صفحات (Pages) — أولوية عالية
+# خطة تحديث الاستيرادات لاستخدام Barrel Exports
 
-| الملف | الأسطر | اقتراح التقسيم |
-|-------|--------|---------------|
-| `AccountsPage.tsx` | 252 | فصل بطاقات الملخص، جدول التوزيع، وأزرار الإجراءات إلى مكونات فرعية |
-| `AccountsViewPage.tsx` (beneficiary) | 248 | فصل عرض الحسابات للقراءة فقط إلى بطاقات ومخططات مستقلة |
-| `InvoicesPage.tsx` | 246 | فصل الفلاتر والجدول والإحصائيات (مشابه لنمط ContractsPage) |
-| `InvoicesViewPage.tsx` (beneficiary) | 239 | فصل عرض الفواتير للمستفيد إلى فلاتر وجدول |
-| `BeneficiaryMessagesPage.tsx` | 225 | فصل قائمة المحادثات وخيط الرسائل |
-| `ExpensesPage.tsx` | 222 | فصل فلاتر المصروفات والجدول ونموذج الإضافة |
-| `ContractsViewPage.tsx` (beneficiary) | 222 | فصل عرض العقود للمستفيد |
-| `BylawsPage.tsx` | 219 | فصل قائمة اللوائح ونوافذ التحرير |
-| `AnnualReportViewPage.tsx` (beneficiary) | 219 | فصل أقسام التقرير السنوي |
-| `ReportsPage.tsx` | 217 | فصل قائمة التقارير عن محتوى التقرير المعروض |
-| `WaqifDashboard.tsx` | 214 | فصل بطاقات الإحصائيات والمخططات |
-| `AnnualReportPage.tsx` | 207 | فصل نموذج التقرير عن المعاينة |
+## ملخص
+تحديث الاستيرادات في ~25 ملف لاستخدام barrel exports بدلاً من المسارات المباشرة، مع إضافة تصديرات أنواع (types) مفقودة إلى ملفات barrel الموجودة.
 
-### 🔧 Hooks — أولوية متوسطة
+**ملاحظة مهمة**: الاستيرادات الكسولة (`lazy(() => import(...))`) ستبقى كما هي لأنها تعتمد على المسارات المباشرة لتقسيم الكود (code splitting).
 
-| الملف | الأسطر | اقتراح التقسيم |
-|-------|--------|---------------|
-| `useInvoicesPage.ts` | 235 | فصل منطق الفلترة عن mutations |
-| `useContractsPage.ts` | 235 | فصل منطق الفلترة عن mutations |
-| `usePaymentInvoicesTab.ts` | 231 | فصل استعلامات البيانات عن الإجراءات |
-| `useWebAuthn.ts` | 228 | فصل التسجيل عن المصادقة (register vs authenticate) |
-| `useZatcaManagement.ts` | 210 | فصل إدارة الشهادات عن عمليات الفواتير |
-| `usePropertiesPage.ts` | 209 | فصل منطق الفلترة عن mutations |
-| `useZatcaSettings.ts` | 206 | فصل إعدادات ZATCA عن عمليات التحقق |
-| `useCollectionData.ts` | 205 | فصل حسابات التحصيل عن استعلامات البيانات |
+---
 
-### 📊 Utils/PDF — أولوية منخفضة
+## المرحلة 1: إضافة تصديرات الأنواع المفقودة
 
-| الملف | الأسطر | اقتراح التقسيم |
-|-------|--------|---------------|
-| `themeDefinitions.ts` | 302 | بيانات فقط — مقبول كما هو |
-| `comprehensiveBeneficiary.ts` | 281 | فصل أقسام PDF إلى دوال مستقلة (الرأس، الجدول، الملخص) |
-| `accounts.ts` (PDF) | 267 | فصل تخطيط الصفحات عن بناء البيانات |
-| `reports.ts` (PDF) | 249 | فصل كل نوع تقرير في ملف مستقل |
-| `forensicAudit.ts` | 233 | فصل أقسام التقرير الرقابي |
-| `xlsx.ts` | 205 | فصل كل نوع تصدير في دالة مستقلة |
+إضافة تصديرات type إلى 4 ملفات barrel:
 
-### ⚠️ لا تُعدّل
+| ملف Barrel | الأنواع المطلوبة |
+|---|---|
+| `components/dashboard/index.ts` | `StatItem`, `KpiItem` |
+| `components/invoices/index.ts` | `InvoicePreviewData` |
+| `components/settings/index.ts` | `LandingPageContent` |
+| `components/beneficiaries/index.ts` | `BeneficiaryFormData` |
 
-| الملف | السبب |
-|-------|-------|
-| `AuthContext.tsx` (251) | محمي — لا يُعدّل دون طلب صريح |
-| `useCrudFactory.ts` (237) | مصنع عام — التقسيم غير مُجدٍ |
-| `layout/constants.ts` (209) | بيانات ثابتة فقط |
+---
 
-### ملخص الأولويات:
-1. **الصفحات** (12 ملف) — الأكثر تأثيراً على تجربة التطوير
-2. **Hooks** (8 ملفات) — تحسين قابلية الاختبار
-3. **PDF/Utils** (6 ملفات) — تحسين تدريجي
+## المرحلة 2: تحديث الاستيرادات في الملفات
 
-هل تريد البدء بتنفيذ مجموعة محددة؟
+### مجلد Dashboard (3 ملفات)
+- **`AdminDashboard.tsx`**: دمج 7 استيرادات مباشرة → `from '@/components/dashboard'` (الـ 4 lazy تبقى)
+- **`useAdminDashboardStats.ts`**: دمج 2 type imports → `from '@/components/dashboard'`
+- **`DashboardStatsGrid.tsx`**: `YoYBadge` → `from '@/components/dashboard'`
+
+### مجلد Invoices (6 ملفات)
+- **`InvoicesPage.tsx`**: دمج 6 استيرادات → `from '@/components/invoices'`
+- **`InvoicesViewPage.tsx`**: دمج 4 استيرادات → `from '@/components/invoices'`
+- **`PaymentInvoicesTab.tsx`**: دمج 2 استيرادات → `from '@/components/invoices'`
+- **`ExpenseAttachments.tsx`**: `InvoiceViewer` → `from '@/components/invoices'`
+- **`usePaymentInvoicesTab.ts`** + **`useInvoicesPage.ts`** + **`useCreateInvoiceForm.ts`**: type imports → barrel
+
+### مجلد Reports (2 ملفات)
+- **`ReportsPage.tsx`**: دمج 5 استيرادات مباشرة → `from '@/components/reports'` (الـ 3 lazy تبقى)
+- **`YearOverYearComparison.tsx`**: `YoYComparisonTable` → `from '@/components/reports'` (الـ lazy يبقى)
+
+### مجلد Accounts (3 ملفات)
+- **`AccountsPage.tsx`**: دمج 11 استيرادات → `from '@/components/accounts'`
+- **`AccountsViewPage.tsx`**: دمج 2 استيرادات → `from '@/components/accounts'`
+- **`BeneficiariesPage.tsx`**: `AdvanceRequestsTab` → `from '@/components/accounts'`
+
+### مجلد Beneficiaries (4 ملفات)
+- **`BeneficiariesPage.tsx`**: دمج 2 استيرادات → `from '@/components/beneficiaries'`
+- **`MySharePage.tsx`**: `AdvanceRequestDialog` → `from '@/components/beneficiaries'`
+- **`BeneficiaryAdvanceCard.tsx`**: `AdvanceRequestDialog` → `from '@/components/beneficiaries'`
+- **`useBeneficiariesPage.ts`**: type import → barrel
+
+### مجلد Properties (1 ملف)
+- **`PropertiesPage.tsx`**: دمج 5 استيرادات → `from '@/components/properties'`
+
+### مجلد Settings (7 ملفات)
+- **`SettingsPage.tsx`**: دمج 6 استيرادات مباشرة → `from '@/components/settings'` (الـ 11 lazy تبقى)
+- **`BeneficiarySettingsPage.tsx`**: دمج 3 استيرادات → `from '@/components/settings'`
+- **`WaqfSettingsTab.tsx`**: `LogoManager` → `from '@/components/settings'`
+- **`Index.tsx`** + **`LandingHero.tsx`** + **`LandingCTA.tsx`** + **`LandingFooter.tsx`** + **`LandingFeatures.tsx`**: type `LandingPageContent` → `from '@/components/settings'`
+
+### مجلد Support (2 ملفات)
+- **`SupportPage.tsx`**: دمج 3 استيرادات → `from '@/components/support'`
+- **`SupportDashboardPage.tsx`**: دمج 6 استيرادات → `from '@/components/support'`
+
+### مجلد Notifications (2 ملفات)
+- **`MobileHeader.tsx`**: `NotificationBell` → `from '@/components/notifications'`
+- **`DesktopTopBar.tsx`**: `NotificationBell` → `from '@/components/notifications'`
+
+---
+
+## المرحلة 3: التحقق
+- تشغيل `npx tsc --noEmit` للتأكد من عدم وجود أخطاء
+- تشغيل الاختبارات المتاحة
+
+---
+
+## ملفات لن تُحدّث (مبرّر)
+- استيرادات `properties/units/` (مسار فرعي غير مشمول في barrel)
+- جميع استيرادات `lazy(() => import(...))` — ضرورية لتقسيم الكود
+- استيرادات داخلية ضمن نفس المجلد (مثل `InvoiceGridView` يستورد `InvoiceViewer` من نفس المجلد)
+
