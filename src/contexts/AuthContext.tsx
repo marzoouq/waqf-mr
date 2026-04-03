@@ -174,7 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
     const { role: newRole, error } = await fetchUserRole(user.id);
     if (error) {
-      toast.error('تعذّر تحديث الدور — يرجى تحديث الصفحة');
+      logger.warn('[Auth] تعذّر تحديث الدور', error);
       return;
     }
     setRoleWithRef(newRole);

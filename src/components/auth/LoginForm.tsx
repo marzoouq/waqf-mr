@@ -71,7 +71,7 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
           metadata: { error_message: 'login_error', login_method: loginMethod },
         });
       } else {
-        toast.success('تم تسجيل الدخول بنجاح');
+        // إشعار الدخول الناجح مُعطّل — الانتقال للوحة التحكم كافٍ
       }
     } catch {
       toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');

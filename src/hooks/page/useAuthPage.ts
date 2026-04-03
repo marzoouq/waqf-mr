@@ -41,7 +41,7 @@ export const useAuthPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('reason') === 'idle') {
-      toast.info('تم تسجيل خروجك تلقائياً بسبب عدم النشاط. يرجى تسجيل الدخول مرة أخرى.');
+      // إشعار الخروج التلقائي مُعطّل — يكفي عرض صفحة تسجيل الدخول
       logAccessEvent({ event_type: 'idle_logout', target_path: '/auth?reason=idle' });
       window.history.replaceState({}, '', '/auth');
     }
