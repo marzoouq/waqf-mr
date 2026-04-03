@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
-import { STALE_STATIC } from '@/lib/queryStaleTime';
+import { useRegistrationEnabled } from '@/hooks/data/useRegistrationEnabled';
 
 type InstallPromptEvent = Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
 
