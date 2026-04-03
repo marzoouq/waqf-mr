@@ -90,7 +90,7 @@ export function useHistoricalComparison() {
   const handleExportPdf = useCallback(async () => {
     if (selectedYears.length < 2) return;
     try {
-      const { generateYearComparisonPDF } = await import('@/utils/pdf/comparison');
+      const { generateYearComparisonPDF } = await import('@/utils/pdf/reports/comparison');
       const d0 = yearData[0]!;
       const d1 = yearData[1]!;
       await generateYearComparisonPDF({
