@@ -11,7 +11,7 @@ export { useAppSettings, useSetting, useWaqfInfo, updateNotificationPrefs } from
 export type { WaqfInfo } from './useAppSettings';
 export { useArchiveLog } from './useArchiveLog';
 export { useAuditLog } from './useAuditLog';
-export { useAuditLogTodayCount, useFetchAuditLogForExport } from './useAuditLogStats';
+export { useAuditLogTodayCount, fetchAuditLogForExport } from './useAuditLogStats';
 export { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from './useBeneficiaries';
 export { useBeneficiaryDashboardData } from './useBeneficiaryDashboardData';
 export type { BeneficiaryDashboardData } from './useBeneficiaryDashboardData';
