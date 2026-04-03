@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
-import LogoManager from './LogoManager';
+
 import { useAppSettings } from '@/hooks/data/useAppSettings';
 
 const waqfFields = [
@@ -85,7 +85,7 @@ const WaqfSettingsTab = () => {
 
   return (
     <div className="space-y-6">
-      <LogoManager />
+      
       <Card>
         <CardHeader>
           <CardTitle className="font-display text-lg">بيانات الوقف</CardTitle>

@@ -12,7 +12,7 @@ export { default as BulkNotificationsTab } from './BulkNotificationsTab';
 export { default as DataExportTab } from './DataExportTab';
 export { default as FiscalYearManagementTab } from './FiscalYearManagementTab';
 export { default as LandingPageTab } from './LandingPageTab';
-export { default as LogoManager } from './LogoManager';
+
 export { default as MenuCustomizationTab } from './MenuCustomizationTab';
 export { default as NotificationsTab } from './NotificationsTab';
 export { default as PasswordTab } from './PasswordTab';

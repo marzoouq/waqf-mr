@@ -6,9 +6,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, Upload, X } from 'lucide-react';
+import { Building2, Upload, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWaqfInfoSave } from '@/hooks/data/useWaqfInfoSave';
+import { resizeImage } from '@/utils/resizeImage';
 
 interface WaqfField {
   key: string;
@@ -38,6 +39,7 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
   const [formData, setFormData] = useState<Record<string, string>>(initialData);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(currentLogoUrl);
+  const [resizing, setResizing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { saving, saveWaqfInfo } = useWaqfInfoSave(() => onOpenChange(false));
@@ -52,7 +54,7 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
     onOpenChange(isOpen);
   };
 
-  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
@@ -68,9 +70,24 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
       toast.error('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت');
       return;
     }
-    setLogoFile(file);
-    if (logoPreview?.startsWith('blob:')) URL.revokeObjectURL(logoPreview);
-    setLogoPreview(URL.createObjectURL(file));
+
+    // تصغير الصورة تلقائياً
+    setResizing(true);
+    try {
+      const result = await resizeImage(file, 512, 0.85);
+      const resizedFile = new File([result.blob], file.name, { type: result.blob.type });
+      setLogoFile(resizedFile);
+      if (logoPreview?.startsWith('blob:')) URL.revokeObjectURL(logoPreview);
+      setLogoPreview(URL.createObjectURL(result.blob));
+
+      if (result.wasResized) {
+        toast.success(`تم تصغير الشعار تلقائياً (${result.originalWidth}×${result.originalHeight} → ${result.newWidth}×${result.newHeight})`);
+      }
+    } catch {
+      toast.error('فشل معالجة الصورة');
+    } finally {
+      setResizing(false);
+    }
   };
 
   const handleSave = () => saveWaqfInfo(fields, formData, logoFile, currentLogoUrl);
@@ -107,9 +124,13 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
                   <Building2 className="w-6 h-6 text-muted-foreground/50" />
                 </div>
               )}
-              <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                <Upload className="w-4 h-4 ml-2" />
-                {logoPreview ? 'تغيير' : 'رفع شعار'}
+              <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={resizing}>
+                {resizing ? (
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4 ml-2" />
+                )}
+                {resizing ? 'جارٍ المعالجة...' : logoPreview ? 'تغيير' : 'رفع شعار'}
               </Button>
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoSelect} />
             </div>
