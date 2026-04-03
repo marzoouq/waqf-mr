@@ -385,6 +385,51 @@ const { data } = await supabase.functions.invoke('zatca-renew', {
 
 ---
 
+## 12. `health-check` — فحص صحة النظام
+
+**الوصف**: يتحقق من حالة الوظائف الخلفية وقاعدة البيانات ومتغيرات البيئة. يُستخدم من مهمة `warmup-edge-functions` المجدولة كل 4 دقائق لمنع خمول الوظائف.
+
+**المصادقة**: لا يتطلب مصادقة (عام) — لا يكشف تفاصيل داخلية.
+
+```typescript
+const { data } = await supabase.functions.invoke('health-check', {
+  body: {}
+});
+// الاستجابة: { status: 'healthy' | 'degraded', timestamp: '...' }
+```
+
+---
+
+## 13. `dashboard-summary` — ملخص لوحة التحكم
+
+**الوصف**: يُرجع ملخصاً إحصائياً لبيانات لوحة تحكم الناظر/المحاسب: إجمالي الدخل، المصروفات، العقود النشطة، الفواتير المعلقة.
+
+**المصادقة**: يتطلب JWT صالح + دور admin أو accountant.
+
+```typescript
+const { data } = await supabase.functions.invoke('dashboard-summary', {
+  body: { fiscal_year_id: 'uuid' }
+});
+// الاستجابة: { total_income, total_expenses, active_contracts, pending_invoices, ... }
+```
+
+---
+
+## 14. `beneficiary-summary` — ملخص بيانات المستفيد
+
+**الوصف**: يُرجع ملخصاً لبيانات المستفيد: حصته، توزيعاته، السلف المعلقة، والترحيلات.
+
+**المصادقة**: يتطلب JWT صالح (المستفيد يرى بياناته فقط، الناظر/المحاسب يرون الكل).
+
+```typescript
+const { data } = await supabase.functions.invoke('beneficiary-summary', {
+  body: { fiscal_year_id: 'uuid' }
+});
+// الاستجابة: { share_percentage, total_distributed, pending_advances, carryforward, ... }
+```
+
+---
+
 ## التحقق من المدخلات
 
 جميع الوظائف تتحقق من:
