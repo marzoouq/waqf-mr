@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Pencil, Trash2 } from 'lucide-react';
+import EmptyState from '@/components/common/EmptyState';
 import type { Contract } from '@/types/database';
 import { safeNumber } from '@/utils/safeNumber';
 
@@ -33,7 +34,7 @@ const AccountsContractsTable = ({
       </CardHeader>
       <CardContent>
         {contracts.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
+          <EmptyState icon={FileText} title="لا توجد عقود مسجلة" description="أضف عقوداً جديدة من صفحة العقود" compact />
         ) : (
           <>
             {/* Mobile cards */}

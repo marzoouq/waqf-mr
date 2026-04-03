@@ -2,6 +2,7 @@ import { fmt } from '@/utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { TrendingUp } from 'lucide-react';
+import EmptyState from '@/components/common/EmptyState';
 
 interface AccountsIncomeTableProps {
   incomeCount: number;
@@ -20,7 +21,7 @@ const AccountsIncomeTable = ({ incomeCount, incomeBySource, totalIncome }: Accou
       </CardHeader>
       <CardContent>
         {incomeCount === 0 ? (
-          <p className="text-center text-muted-foreground py-8">لا توجد إيرادات مسجلة</p>
+          <EmptyState icon={TrendingUp} title="لا توجد إيرادات مسجلة" compact />
         ) : (
           <>
             {/* Mobile cards */}

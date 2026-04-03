@@ -2,6 +2,7 @@ import { fmt } from '@/utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { TrendingDown } from 'lucide-react';
+import EmptyState from '@/components/common/EmptyState';
 
 interface AccountsExpensesTableProps {
   expensesCount: number;
@@ -20,7 +21,7 @@ const AccountsExpensesTable = ({ expensesCount, expensesByType, totalExpenses }:
       </CardHeader>
       <CardContent>
         {expensesCount === 0 ? (
-          <p className="text-center text-muted-foreground py-8">لا توجد مصروفات مسجلة</p>
+          <EmptyState icon={TrendingDown} title="لا توجد مصروفات مسجلة" compact />
         ) : (
           <>
             {/* Mobile cards */}

@@ -29,6 +29,9 @@
 
     <!-- dns-prefetch/preconnect يُحمّل ديناميكياً من JS لعدم كشف Project ID -->
     <!-- Amiri fonts loaded on-demand (PDF/print only) via font-display:swap in index.css -->
+    <!-- Preload critical Tajawal font to prevent FOUT -->
+    <link rel="preload" href="/fonts/Tajawal-Regular-arabic.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Tajawal-Bold-arabic.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="theme-color" content="#1a5c3a" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

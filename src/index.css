@@ -169,7 +169,7 @@
     --secondary: 43 74% 49%;
     --secondary-foreground: 150 30% 15%;
     --muted: 40 20% 94%;
-    --muted-foreground: 150 15% 45%;
+    --muted-foreground: 150 15% 40%;
     --accent: 158 45% 92%;
     --accent-foreground: 158 64% 25%;
     --destructive: 0 84% 60%;
@@ -189,10 +189,10 @@
     --success: 158 64% 40%;
     --success-foreground: 158 64% 25%;
     --success-muted: 158 50% 94%;
-    --warning: 43 90% 55%;
-    --warning-foreground: 43 90% 40%;
+    --warning: 43 90% 50%;
+    --warning-foreground: 30 95% 28%;
     --info: 200 80% 50%;
-    --info-foreground: 200 80% 35%;
+    --info-foreground: 200 80% 28%;
     --info-muted: 200 60% 94%;
     --discount: 145 60% 40%;
     --discount-foreground: 145 60% 28%;
@@ -207,7 +207,7 @@
     --status-special: 270 60% 55%;
     --status-special-foreground: 270 60% 45%;
     --caution: 38 92% 50%;
-    --caution-foreground: 32 95% 40%;
+    --caution-foreground: 28 95% 30%;
     --shadow-sm: 0 1px 2px 0 hsl(150 30% 15% / 0.05);
     --shadow: 0 4px 6px -1px hsl(150 30% 15% / 0.1);
     --shadow-lg: 0 10px 25px -3px hsl(150 30% 15% / 0.15);
