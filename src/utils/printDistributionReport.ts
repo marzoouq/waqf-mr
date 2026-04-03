@@ -1,7 +1,7 @@
 /**
  * طباعة تقرير التوزيع الشامل مباشرة من المتصفح بتنسيق رسمي
+ * ملاحظة: لا يستورد toast — يُرجع false عند فشل فتح النافذة والطبقة المستدعية تتولى الإشعار
  */
-import { toast } from 'sonner';
 import { fmt } from '@/utils/format';
 
 function escapeHtml(str: string): string {
@@ -27,7 +27,10 @@ interface PrintDistributionParams {
   logoUrl?: string;
 }
 
-export function printDistributionReport(params: PrintDistributionParams) {
+/**
+ * @returns true عند النجاح، false إذا تعذر فتح النافذة
+ */
+export function printDistributionReport(params: PrintDistributionParams): boolean {
   const { fiscalYearLabel, availableAmount, distributions, waqfName, deedNumber, logoUrl } = params;
 
   const totalNet = distributions.reduce((s, d) => s + d.net_amount, 0);
@@ -37,8 +40,7 @@ export function printDistributionReport(params: PrintDistributionParams) {
 
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
-    toast.error('يرجى السماح بالنوافذ المنبثقة');
-    return;
+    return false;
   }
 
   const logoHtml = logoUrl
@@ -175,4 +177,5 @@ export function printDistributionReport(params: PrintDistributionParams) {
   setTimeout(() => printWindow.print(), 500);
   // إغلاق النافذة تلقائياً بعد الطباعة أو الإلغاء
   printWindow.onafterprint = () => printWindow.close();
+  return true;
 }

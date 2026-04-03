@@ -77,7 +77,13 @@ export default function PaymentInvoiceToolbar({
         <Button
           variant="outline" size="sm"
           className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
-          onClick={() => generateOverdueInvoicesPDF(invoices, waqfInfo)}
+          onClick={async () => {
+            const exported = await generateOverdueInvoicesPDF(invoices, waqfInfo);
+            if (!exported) {
+              const { toast } = await import('sonner');
+              toast.info('لا توجد فواتير متأخرة للتصدير');
+            }
+          }}
         >
           <AlertTriangle className="w-4 h-4" />
           <FileDown className="w-4 h-4" />

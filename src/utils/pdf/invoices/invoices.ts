@@ -9,7 +9,6 @@ import {
 import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
-import { toast } from 'sonner';
 
 export const generateInvoicesViewPDF = async (invoices: Array<{
   invoice_type: string;
@@ -63,15 +62,15 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
 
 /**
  * تصدير تقرير PDF بالفواتير المتأخرة فقط
+ * @returns false إذا لم تكن هناك فواتير متأخرة (ليست خطأ — تعامل معها الطبقة المستدعية)
  */
 export const generateOverdueInvoicesPDF = async (
   invoices: PaymentInvoice[],
   waqfInfo?: PdfWaqfInfo,
-) => {
+): Promise<boolean> => {
   const overdue = invoices.filter(i => i.status === 'overdue');
   if (overdue.length === 0) {
-    toast.info('لا توجد فواتير متأخرة للتصدير');
-    return;
+    return false;
   }
 
   const { default: autoTable } = await import('jspdf-autotable');
@@ -117,4 +116,5 @@ export const generateOverdueInvoicesPDF = async (
   });
 
   finalizePdf(doc, fontFamily, 'overdue-invoices-report.pdf', waqfInfo);
+  return true;
 };

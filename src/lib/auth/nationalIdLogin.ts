@@ -1,8 +1,10 @@
 /**
  * منطق تسجيل الدخول بالهوية الوطنية — مستخرج من LoginForm لتقليل حجم المكوّن
+ * يستخدم AppNotify بدلاً من toast مباشر لضمان قابلية الاختبار
  */
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
+import type { AppNotify } from '@/lib/notify';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { normalizeArabicDigits } from '@/utils/normalizeDigits';
 
@@ -16,29 +18,30 @@ export async function handleNationalIdLogin(
   nationalId: string,
   password: string,
   state: NidLoginState,
+  notify: AppNotify = defaultNotify,
 ): Promise<boolean> {
   const { nidLockedUntil, setNidLockedUntil, setNidAttemptsRemaining } = state;
 
   if (!nationalId) {
-    toast.error('يرجى إدخال رقم الهوية الوطنية');
+    notify.error('يرجى إدخال رقم الهوية الوطنية');
     return false;
   }
 
   if (nidLockedUntil && Date.now() < nidLockedUntil) {
     const secs = Math.ceil((nidLockedUntil - Date.now()) / 1000);
-    toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${secs} ثانية`);
+    notify.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${secs} ثانية`);
     return false;
   }
 
   if (!password) {
-    toast.error('يرجى إدخال كلمة المرور');
+    notify.error('يرجى إدخال كلمة المرور');
     return false;
   }
 
   const cleanId = normalizeArabicDigits(nationalId);
 
   if (!/^\d{10}$/.test(cleanId)) {
-    toast.error('رقم الهوية يجب أن يكون 10 أرقام');
+    notify.error('رقم الهوية يجب أن يكون 10 أرقام');
     return false;
   }
 
@@ -60,12 +63,12 @@ export async function handleNationalIdLogin(
       setNidLockedUntil(lockTime);
       try { sessionStorage.setItem('nidLockedUntil', String(lockTime)); } catch { /* silent */ }
       setNidAttemptsRemaining(0);
-      toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
+      notify.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
       return false;
     }
 
     if (lookupError) {
-      toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
+      notify.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
       return false;
     }
   }
@@ -75,12 +78,12 @@ export async function handleNationalIdLogin(
   }
 
   if (!data?.found) {
-    toast.error('بيانات الدخول غير صحيحة');
+    notify.error('بيانات الدخول غير صحيحة');
     return false;
   }
 
   if (data?.auth_error) {
-    toast.error(data.auth_error);
+    notify.error(data.auth_error);
     logAccessEvent({
       event_type: 'login_failed',
       metadata: { error_message: 'nid_auth_error', login_method: 'national_id' },
@@ -94,14 +97,14 @@ export async function handleNationalIdLogin(
       refresh_token: data.session.refresh_token,
     });
     if (sessionError) {
-      toast.error('حدث خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.');
+      notify.error('حدث خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.');
       logAccessEvent({
         event_type: 'login_failed',
         metadata: { error_message: 'session_set_error', login_method: 'national_id' },
       });
       return false;
     }
-    toast.success('تم تسجيل الدخول بنجاح');
+    notify.success('تم تسجيل الدخول بنجاح');
     logAccessEvent({
       event_type: 'login_success',
       metadata: { login_method: 'national_id' },
@@ -109,6 +112,6 @@ export async function handleNationalIdLogin(
     return true;
   }
 
-  toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+  notify.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
   return false;
 }

@@ -1,11 +1,11 @@
 /**
  * تصدير فواتير جدول `invoices` — client-side jsPDF
  * يعيد استخدام نفس قوالب paymentInvoice.ts لضمان تطابق المعاينة والتصدير
+ *
+ * ملاحظة: تُرجع { blob, url } — الرفع والتخزين مسؤولية الطبقة المستدعية
  */
-import { supabase } from '@/integrations/supabase/client';
 import { safeNumber } from '@/utils/safeNumber';
 import { logger } from '@/lib/logger';
-import { toast } from 'sonner';
 import {
   generatePaymentInvoicePDF,
   type PaymentInvoicePdfData,
@@ -30,17 +30,22 @@ export interface GenerateInvoicePdfClientOptions {
   propertyNumber?: string;
 }
 
+export interface InvoicePdfResult {
+  blob: Blob;
+  url: string;
+}
+
 /** تحويل اسم القالب من واجهة المعاينة إلى نظام القوالب الداخلي */
 const mapTemplate = (t?: 'professional' | 'simplified'): InvoiceTemplate =>
   t === 'simplified' ? 'compact' : 'tax_professional';
 
 /**
  * توليد PDF لفاتورة من جدول invoices — client-side
- * يستخدم نفس قوالب paymentInvoice.ts لتطابق المعاينة والتصدير
+ * @returns كائن { blob, url } أو null عند الفشل
  */
 export const generateInvoiceClientPDF = async (
   opts: GenerateInvoicePdfClientOptions,
-): Promise<string | null> => {
+): Promise<InvoicePdfResult | null> => {
   try {
     const { invoice, contract, propertyNumber, waqfInfo } = opts;
     const vatAmount = safeNumber(invoice.vat_amount);
@@ -83,26 +88,12 @@ export const generateInvoiceClientPDF = async (
     };
 
     const internalTemplate = mapTemplate(opts.template);
+    const blob = await generatePaymentInvoicePDF(pdfData, waqfInfo, internalTemplate);
+    const url = URL.createObjectURL(blob);
 
-    // generatePaymentInvoicePDF ترفع إلى payment-invoices/ وتحدّث payment_invoices
-    // تحديث payment_invoices لن يجد سجلاً (id مختلف) — لا ضرر
-    const url = await generatePaymentInvoicePDF(pdfData, waqfInfo, internalTemplate);
-
-    // تحديث file_path في جدول invoices الأصلي
-    if (url) {
-      const safeName = (invoice.invoice_number || invoice.id).replace(/[./\\]+/g, '_');
-      const storagePath = `payment-invoices/${safeName}.pdf`;
-      await supabase
-        .from('invoices')
-        .update({ file_path: storagePath })
-        .eq('id', invoice.id);
-    }
-
-    toast.success('تم توليد ملف PDF بنجاح');
-    return url;
+    return { blob, url };
   } catch (err) {
     logger.error('[generateInvoiceClientPDF] Error:', err);
-    toast.error('حدث خطأ أثناء توليد ملف PDF');
     return null;
   }
 };
