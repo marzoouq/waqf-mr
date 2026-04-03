@@ -44,7 +44,7 @@ export function useZatcaManagement() {
     queryKey: ['zatca-certificates'],
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
-      const { data, error } = await supabase.from('zatca_certificates').select('id, certificate_type, is_active, request_id, created_at').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('zatca_certificates').select('id, certificate_type, is_active, request_id, created_at').order('created_at', { ascending: false }).limit(50);
       if (error) throw error;
       return data;
     },
