@@ -110,7 +110,7 @@ const SettingsPage = () => {
           <TabsContent value="bulk-message"><Suspense fallback={LOADING}><BulkMessagingTab /></Suspense></TabsContent>
           <TabsContent value="export"><Suspense fallback={LOADING}><DataExportTab /></Suspense></TabsContent>
           <TabsContent value="banner"><Suspense fallback={LOADING}><BannerSettingsTab /></Suspense></TabsContent>
-          <TabsContent value="role-permissions"><Suspense fallback={LOADING}><RolePermissionsTab /></Suspense></TabsContent>
+          <TabsContent value="menu"><Suspense fallback={LOADING}><MenuCustomizationTab /></Suspense></TabsContent>
           <TabsContent value="biometric"><Suspense fallback={LOADING}><BiometricSettings /></Suspense></TabsContent>
           <TabsContent value="advances"><Suspense fallback={LOADING}><AdvanceSettingsTab /></Suspense></TabsContent>
           <TabsContent value="zatca"><Suspense fallback={LOADING}><ZatcaSettingsTab /></Suspense></TabsContent>
