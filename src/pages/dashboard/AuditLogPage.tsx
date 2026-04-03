@@ -34,21 +34,24 @@ const AuditLogPage = () => {
          />
 
         <Tabs value={h.activeTab} onValueChange={h.setActiveTab} dir="rtl">
-          <div className="mb-4 md:hidden">
-            <Select value={h.activeTab} onValueChange={h.setActiveTab}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="operations">سجل العمليات</SelectItem>
-                <SelectItem value="access">محاولات الوصول</SelectItem>
-                <SelectItem value="archive">الأرشيف</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <TabsList className="mb-4 hidden md:inline-flex">
-            <TabsTrigger value="operations" className="gap-2"><Activity className="w-4 h-4" />سجل العمليات</TabsTrigger>
-            <TabsTrigger value="access" className="gap-2"><ShieldAlert className="w-4 h-4" />محاولات الوصول</TabsTrigger>
-            <TabsTrigger value="archive" className="gap-2"><Archive className="w-4 h-4" />الأرشيف</TabsTrigger>
-          </TabsList>
+          {isMobile ? (
+            <div className="mb-4">
+              <Select value={h.activeTab} onValueChange={h.setActiveTab}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="operations">سجل العمليات</SelectItem>
+                  <SelectItem value="access">محاولات الوصول</SelectItem>
+                  <SelectItem value="archive">الأرشيف</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <TabsList className="mb-4">
+              <TabsTrigger value="operations" className="gap-2"><Activity className="w-4 h-4" />سجل العمليات</TabsTrigger>
+              <TabsTrigger value="access" className="gap-2"><ShieldAlert className="w-4 h-4" />محاولات الوصول</TabsTrigger>
+              <TabsTrigger value="archive" className="gap-2"><Archive className="w-4 h-4" />الأرشيف</TabsTrigger>
+            </TabsList>
+          )}
 
           <TabsContent value="operations">
             <div className="space-y-6">
