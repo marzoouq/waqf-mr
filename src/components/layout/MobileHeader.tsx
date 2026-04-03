@@ -26,7 +26,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLa
     'إدارة الوقف';
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-40 flex items-center justify-between p-3 gradient-hero lg:hidden" role="banner">
+    <header className="fixed top-0 right-0 left-0 z-40 flex items-center justify-between p-3 gradient-hero lg:hidden" role="banner" style={{ willChange: 'transform' }}>
       <Button variant="ghost" size="icon" aria-label="فتح القائمة الجانبية" onClick={onOpenSidebar} className="text-sidebar-foreground">
         <Menu className="w-6 h-6" aria-hidden="true" />
       </Button>

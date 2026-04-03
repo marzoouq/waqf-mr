@@ -69,8 +69,8 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
           </Button>
         </div>
         <div className="mt-16 flex justify-center gap-8 md:gap-16 animate-fade-in" style={{ animationDelay: '500ms' }}>
-          {stats.map((stat, i) => (
-            <div key={i} className="text-center">
+          {stats.map((stat) => (
+            <div key={stat.label} className="text-center">
               {statsLoading ? (
                 <Skeleton className="h-10 w-16 mx-auto mb-1 bg-white/20" />
               ) : (

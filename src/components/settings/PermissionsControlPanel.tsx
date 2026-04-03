@@ -263,7 +263,7 @@ const PermissionsControlPanel = () => {
       </Card>
 
       {/* ── أزرار الحفظ ── */}
-      <div className="flex flex-wrap gap-3 sticky bottom-4 bg-background/95 backdrop-blur p-3 rounded-lg border shadow-sm">
+      <div className="flex flex-wrap gap-3 sticky bottom-4 bg-background/95 p-3 rounded-lg border shadow-sm">
         <Button onClick={handleSave} disabled={saving} className="gap-2">
           <Save className="w-4 h-4" />
           {saving ? 'جارٍ الحفظ...' : 'حفظ جميع الصلاحيات'}

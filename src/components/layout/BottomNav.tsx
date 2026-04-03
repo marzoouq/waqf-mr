@@ -58,7 +58,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar }) => {
     (to !== '/dashboard' && to !== '/beneficiary' && to !== '/waqif' && location.pathname.startsWith(to + '/'));
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-border/50 bg-background/80 backdrop-blur-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-border/50 bg-background/95" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', willChange: 'transform' }}>
       <div className="flex items-center justify-around h-14">
         {navLinks.map((link) => {
           const active = isActive(link.to);
