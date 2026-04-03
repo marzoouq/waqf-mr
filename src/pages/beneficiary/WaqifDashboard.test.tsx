@@ -54,7 +54,7 @@ vi.mock('@/hooks/data/useContracts', () => ({
   }),
 }));
 
-vi.mock('@/hooks/data/useBeneficiaries', () => ({
+vi.mock('@/hooks/data/beneficiaries/useBeneficiaries', () => ({
   useBeneficiariesSafe: () => ({ data: [{ id: 'b1' }, { id: 'b2' }], isLoading: false }),
 }));
 

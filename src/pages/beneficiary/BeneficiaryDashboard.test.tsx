@@ -27,7 +27,7 @@ vi.mock('@/hooks/data/beneficiaries/useBeneficiaryDashboardData', () => ({
   })),
 }));
 
-vi.mock('@/hooks/data/useNotifications', () => ({
+vi.mock('@/hooks/data/notifications/useNotifications', () => ({
   useNotifications: vi.fn(() => ({
     filteredData: [
       { id: 'n1', title: 'إشعار تجريبي', message: 'رسالة تجريبية', is_read: false, created_at: '2024-06-01T00:00:00Z', type: 'info' },

@@ -21,7 +21,7 @@ vi.mock('@/hooks/data/useMessaging', () => ({
   useCreateConversation: vi.fn(() => ({ mutateAsync: vi.fn() })),
 }));
 
-vi.mock('@/hooks/data/useBeneficiaries', () => ({
+vi.mock('@/hooks/data/beneficiaries/useBeneficiaries', () => ({
   useBeneficiaries: vi.fn(() => ({
     data: [
       { id: 'b1', name: 'فهد', user_id: 'user-1', share_percentage: 50 },

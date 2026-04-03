@@ -30,7 +30,7 @@ vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
 
-vi.mock('@/hooks/data/useNotifications', () => ({
+vi.mock('@/hooks/data/notifications/useNotifications', () => ({
   useNotifications: vi.fn(() => ({ data: [], unreadCount: 0 })),
   TONE_OPTIONS: [{ id: 'default', label: 'افتراضي', file: '/sounds/default.mp3' }],
   NOTIFICATION_TONE_KEY: 'waqf_notification_tone',
