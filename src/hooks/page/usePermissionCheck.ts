@@ -11,7 +11,7 @@ import {
   defaultBeneficiarySections,
   ADMIN_SECTION_KEYS,
   BENEFICIARY_SECTION_KEYS,
-} from '@/components/layout';
+} from '@/components/layout/constants';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 
 export function usePermissionCheck() {
