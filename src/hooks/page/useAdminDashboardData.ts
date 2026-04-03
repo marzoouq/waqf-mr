@@ -7,94 +7,43 @@ import { safeNumber } from '@/utils/safeNumber';
 import { computeMonthlyData } from '@/utils/dashboardComputations';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
+import type { Tables } from '@/integrations/supabase/types';
 
-// ── أنواع مخصصة لبيانات الملخص ──
+// ── أنواع مخصصة للملخص — تستخدم أنواع قاعدة البيانات مع مرونة للحقول الجزئية ──
 
-interface SummaryProperty {
-  id: string;
-  property_number: string;
-  location: string;
-  property_type: string;
-  area: number;
-}
+type Property = Tables<'properties'>;
+type Contract = Tables<'contracts'>;
+type Unit = Tables<'units'>;
+type PaymentInvoice = Tables<'payment_invoices'>;
+type IncomeRow = Tables<'income'>;
+type ExpenseRow = Tables<'expenses'>;
+type AccountRow = Tables<'accounts'>;
+type Beneficiary = Tables<'beneficiaries'>;
+type FiscalYear = Tables<'fiscal_years'>;
 
-interface SummaryContract {
-  id: string;
-  status: string;
-  end_date: string;
-  rent_amount: number;
-  start_date: string;
-  contract_number: string;
-  property_id: string;
-}
-
-interface SummaryUnit {
-  id: string;
-  property_id: string;
-  status: string;
-}
-
-interface SummaryPaymentInvoice {
-  id: string;
-  contract_id: string;
-  status: string;
-  due_date: string;
-  amount: number;
-  paid_amount: number;
-}
-
-interface SummaryContractAllocation {
+interface ContractAllocation {
   contract_id: string;
   allocated_amount: number;
   fiscal_year_id: string;
 }
 
-interface SummaryAdvanceRequest {
+interface AdvanceRequest {
   id: string;
   status: string;
   amount: number;
   beneficiary_id: string;
 }
 
-interface SummaryIncomeItem {
+interface OrphanedContract {
   id: string;
-  amount: number;
-  date: string;
-  source: string;
+  contract_number: string;
 }
 
-interface SummaryExpenseItem {
-  id: string;
-  amount: number;
-  date: string;
-  expense_type: string;
-}
-
-interface SummaryAccount {
-  id: string;
-  fiscal_year_id?: string;
-  fiscal_year: string;
-  total_income: number;
-  total_expenses: number;
-}
-
-interface SummaryBeneficiary {
-  id: string;
-  name: string;
-  share_percentage: number;
-}
-
-interface SummaryYoY {
+interface YoYData {
   hasPrevYear: boolean;
   prevTotalIncome: number;
   prevTotalExpenses: number;
   prevNetAfterExpenses: number;
-}
-
-interface SummaryFiscalYear {
-  id: string;
-  label: string;
-  status: string;
 }
 
 interface UseAdminDashboardDataParams {
@@ -104,20 +53,20 @@ interface UseAdminDashboardDataParams {
   fiscalYear: { label: string; status: string; start_date: string; end_date: string } | undefined;
   isSpecificYear: boolean;
   summary: {
-    properties: SummaryProperty[];
-    contracts: SummaryContract[];
-    allUnits: SummaryUnit[];
-    paymentInvoices: SummaryPaymentInvoice[];
-    contractAllocations: SummaryContractAllocation[];
-    advanceRequests: SummaryAdvanceRequest[];
-    orphanedContracts: SummaryContract[];
-    income: SummaryIncomeItem[];
-    expenses: SummaryExpenseItem[];
-    accounts: SummaryAccount[];
-    beneficiaries: SummaryBeneficiary[];
+    properties: Property[];
+    contracts: Contract[];
+    allUnits: Unit[];
+    paymentInvoices: PaymentInvoice[];
+    contractAllocations: ContractAllocation[];
+    advanceRequests: AdvanceRequest[];
+    orphanedContracts: OrphanedContract[];
+    income: IncomeRow[];
+    expenses: ExpenseRow[];
+    accounts: AccountRow[];
+    beneficiaries: Beneficiary[];
     settings: Record<string, string> | null;
-    allFiscalYears: SummaryFiscalYear[];
-    yoy: SummaryYoY;
+    allFiscalYears: FiscalYear[];
+    yoy: YoYData;
   };
 }
 
