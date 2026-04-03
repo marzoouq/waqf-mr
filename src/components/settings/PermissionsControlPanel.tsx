@@ -15,7 +15,7 @@ import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import AdminCapabilitiesSummary from './AdminCapabilitiesSummary';
 const ROLES = [
-  { key: 'accountant', label: 'المحاسب', color: 'text-blue-600 dark:text-blue-400' },
+  { key: 'accountant', label: 'المحاسب', color: 'text-info dark:text-info' },
   { key: 'beneficiary', label: 'المستفيد', color: 'text-emerald-600 dark:text-emerald-400' },
   { key: 'waqif', label: 'الواقف', color: 'text-amber-600 dark:text-amber-400' },
 ];

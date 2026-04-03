@@ -91,8 +91,8 @@ function MobileCardView<T>({
 
             {/* Fields grid */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-              {getFields(item).map((field, i) => (
-                <div key={i} className={field.className}>
+              {getFields(item).map((field, fi) => (
+                <div key={`${field.label}-${fi}`} className={field.className}>
                   <p className="text-[11px] text-muted-foreground">{field.label}</p>
                   <p className="text-sm font-medium truncate tabular-nums">{field.value}</p>
                 </div>

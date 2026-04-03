@@ -49,7 +49,7 @@ const ThemeColorPicker = () => {
               >
                 {activeId === theme.id && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Check className="w-5 h-5 text-white" />
+                    <Check className="w-5 h-5 text-primary-foreground" />
                   </div>
                 )}
               </div>

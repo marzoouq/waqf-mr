@@ -118,7 +118,7 @@ const BannerSettingsTab = () => {
               <div
                 className={`flex items-center justify-center gap-2 ${
                   BANNER_COLORS.find((c) => c.value === form.color)?.className || "bg-warning"
-                } px-4 py-1.5 text-white text-sm font-medium rounded-lg shadow-md`}
+                } px-4 py-1.5 text-primary-foreground text-sm font-medium rounded-lg shadow-md`}
               >
                 <FlaskConical className="h-4 w-4 shrink-0" />
                 <span>{form.text || "نص الشريط"}</span>
