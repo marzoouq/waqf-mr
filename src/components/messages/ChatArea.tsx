@@ -35,7 +35,7 @@ interface ChatAreaProps {
   hasMore: boolean;
   loadMore: () => void;
   isLoadingMore: boolean;
-  messagesEndRef: RefObject<HTMLDivElement>;
+  messagesEndRef: RefObject<HTMLDivElement | null>;
   hidden?: boolean;
 }
 

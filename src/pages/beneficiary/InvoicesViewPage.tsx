@@ -2,7 +2,7 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/useInvoices';
+import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { FileText, Search, LayoutGrid, List, AlertCircle, RefreshCw } from 'lucide-react';
 import { ExportMenu, TablePagination, RequirePublishedYears, TableSkeleton } from '@/components/common';

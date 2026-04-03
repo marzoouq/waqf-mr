@@ -12,6 +12,7 @@ interface Conversation {
   id: string;
   subject: string | null;
   updated_at: string;
+  [key: string]: unknown;
 }
 
 interface ConversationsListProps {
