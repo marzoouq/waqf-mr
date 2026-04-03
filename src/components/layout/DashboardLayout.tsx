@@ -53,7 +53,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const links = useNavLinks();
 
   const [sidebarOpen, setSidebarOpen] = useState(() => {
-    try { return localStorage.getItem('sidebar-open') === 'true'; }
+    try { return localStorage.getItem(STORAGE_KEYS.SIDEBAR_OPEN) === 'true'; }
     catch { return false; }
   });
   const [logoutOpen, setLogoutOpen] = useState(false);
