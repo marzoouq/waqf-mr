@@ -23,6 +23,7 @@ import ContractsViewDesktopTable from '@/components/contracts/ContractsViewDeskt
 const ITEMS_PER_PAGE = 10;
 
 const ContractsViewPage = () => {
+  const isMobile = useIsMobile();
   const { fiscalYearId } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
   const [currentPage, setCurrentPage] = useState(1);
