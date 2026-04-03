@@ -8,6 +8,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useMyShare } from '@/hooks/financial/useMyShare';
+import { useMyDistributions } from '@/hooks/data/useMyDistributions';
 import { safeNumber } from '@/utils/safeNumber';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { toast } from 'sonner';
