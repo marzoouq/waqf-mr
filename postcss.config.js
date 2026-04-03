@@ -3,6 +3,5 @@ export default {
     '@tailwindcss/postcss': {
       config: './tailwind.config.js',
     },
-    autoprefixer: {},
   },
 };
