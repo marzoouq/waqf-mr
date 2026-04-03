@@ -98,7 +98,7 @@ describe('ZatcaManagementPage', () => {
     const complianceCert = [{ id: '1', certificate_type: 'compliance', is_active: true, request_id: 'req1', created_at: '2026-01-01' }];
     setupMockFrom(complianceCert);
     await renderPage();
-    await userEvent.click(screen.getByText('الشهادات'));
+    await userEvent.click(screen.getAllByText('الشهادات')[0]!);
     expect(await screen.findByText('ترقية للإنتاج')).toBeInTheDocument();
   });
 
