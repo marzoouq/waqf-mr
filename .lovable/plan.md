@@ -1,62 +1,69 @@
 
 
-# خطة تنظيف المشروع — تصفية التقرير
+# خطة التحسين الشاملة — التنفيذ
 
-## تصنيف النتائج
+## المحور 1: تقسيم الهوكات الأربعة
 
-### ✅ تم إصلاحه مسبقاً (لا حاجة لعمل)
-| # | المشكلة | الحالة |
-|---|---------|--------|
-| 41 | `@vitejs/plugin-react` مكرر | **حُذف بالفعل** — `devDependencies` يحتوي فقط `plugin-react-swc` |
-| 48 | `AUDIT_REPORT` في الريبو | **حُذف بالفعل** |
+### 1.1 `useInvoices.ts` (272 سطر) → ملفين
+- **`useInvoiceFileUtils.ts`** (جديد ~100 سطر): نقل `FILE_SIGNATURES`, `WEBP_MARKER`, `validateFileSignature`, `uploadInvoiceFile`, `getInvoiceSignedUrl`, `ALLOWED_MIME_TYPES`, `MAX_FILE_SIZE`, `VALID_EXTENSIONS`
+- **`useInvoices.ts`** (يبقى ~170 سطر): Types + CRUD + `useInvoicesByFiscalYear` + `useDeleteInvoice` + `useGenerateInvoicePdf`
+- تحديث imports في `useInvoicesPage.ts`
 
-### ❌ غير قابل للتنفيذ / تصميم مقصود
-| # | المشكلة | السبب |
-|---|---------|-------|
-| 1-20 | Migrations سريعة/مكررة | تاريخية — لا يمكن حذف أو دمج migrations بعد تطبيقها على Live. الملف المكرر (#1/#2) تم تطبيقه بالفعل |
-| 21-35 | سياسات RLS مُعاد كتابتها | تاريخية — النتيجة النهائية صحيحة (تم التحقق في الفحص الأمني) |
-| 36 | `layout/` vs `dashboard-layout/` | **مختلفان**: `layout/` = الهيكل الرئيسي (1293 سطر)، `dashboard-layout/` = مكونات فرعية يستخدمها layout |
-| 37 | `dashboard/` vs `beneficiary-dashboard/` | **مختلفان**: لأدوار مختلفة (admin vs beneficiary) |
-| 38-39 | مجلدات hooks/financial و hooks/auth | **نمط قياسي**: فصل المكونات عن المنطق |
-| 40 | `waqf/` vs `waqif/` | **مفاهيم مختلفة**: waqf = إعدادات الوقف، waqif = لوحة الواقف |
-| 44 | Tailwind v4 + PostCSS | **المشروع يعمل على v4 فعلاً** — `@import "tailwindcss"` في index.css. الذاكرة المحفوظة عن v3 قديمة |
-| 49-50 | أسماء UUID للـ migrations | **نظام Lovable** يُولّدها تلقائياً — لا يمكن تغييرها |
+### 1.2 `useUserManagement.ts` (265 سطر) → 3 ملفات
+- **`useUserManagementData.ts`** (جديد ~80 سطر): `callAdminApi`, `ManagedUser` type, استعلامات (`admin-users`, `registration-enabled`, `orphaned-beneficiaries`, `unlinked-beneficiaries`)
+- **`useUserManagementMutations.ts`** (جديد ~100 سطر): `createUser`, `confirmEmail`, `updateEmail`, `updatePassword`, `setRole`, `deleteUser`, `linkBeneficiary`, `toggleRegistration`
+- **`useUserManagement.ts`** (يبقى ~85 سطر): منظّم يجمع Data + Mutations + حالة UI (dialogs, filters, pagination)
 
-### 🔧 قابل للإصلاح (3 مهام فقط)
+### 1.3 `useSupportTickets.ts` (263 سطر) → 3 ملفات
+- **`useSupportTicketMutations.ts`** (جديد ~90 سطر): `useCreateTicket`, `useUpdateTicketStatus`, `useAddTicketReply`, `useRateTicket`
+- **`useSupportAnalytics.ts`** (جديد ~55 سطر): `useSupportStats`, `useSupportAnalytics`, `SupportAnalyticsData`, `fetchTicketsForExport`
+- **`useSupportTickets.ts`** (يبقى ~120 سطر): Types + `useSupportTickets` + `useTicketReplies` + `useClientErrors` + re-exports من الملفين الآخرين
+- تحديث imports في `useSupportDashboardPage.ts` + ملفات الاختبار
 
----
-
-## الخطوات
-
-### 1. تنظيف قواعد ESLint الوهمية
-ملف: `eslint.config.js`
-
-حذف 6 قواعد غير موجودة في `eslint-plugin-react-hooks@7`:
-- `react-hooks/set-state-in-effect`
-- `react-hooks/static-components`
-- `react-hooks/purity`
-- `react-hooks/refs`
-- `react-hooks/immutability`
-- `react-hooks/preserve-manual-memoization`
-
-هذه القواعد كانت مقترحة في React Compiler ولم تُضف للإصدار الرسمي.
-
-### 2. حذف `autoprefixer` من PostCSS config
-ملف: `postcss.config.js`
-
-الحزمة `autoprefixer` حُذفت من `package.json` في الجلسة السابقة، لكن `postcss.config.js` لا يزال يشير إليها. حذف السطر لمنع خطأ محتمل.
-
-### 3. دمج ملفي Type Definitions
-دمج محتوى `src/vite-pwa.d.ts` في `src/vite-env.d.ts` وحذف الملف المنفصل — كلاهما يخدم نفس الغرض (تعريفات أنواع Vite).
+### 1.4 `useAccountsActions.ts` (275 سطر) → ملفين
+- **`useAccountsSettings.ts`** (جديد ~80 سطر): إدارة النسب (`adminPercent`, `waqifPercent`, `fiscalYear`, `zakatAmount`, `waqfCorpusManual`, إلخ) + `saveSetting` + `handleAdminPercentChange` + `handleWaqifPercentChange` + `handleFiscalYearChange` + useEffect لتحميل الإعدادات
+- **`useAccountsActions.ts`** (يبقى ~120 سطر): `handleCreateAccount`, `handleCloseYear`, `handleExportPdf`, `buildAccountData` — يستورد settings من الهوك الجديد
 
 ---
 
-## ملاحظة عن الملف المكرر (#1)
-الملفان `20260318101512` و `20260318102000` متطابقان بالفعل (SHA واحد). لكن **لا يمكن حذف أي منهما** لأنهما مُسجلان في جدول `supabase_migrations.schema_migrations` على Live. حذف أحدهما يسبب migration drift وفشل النشر.
+## المحور 2: استخراج استعلامات Supabase من 6 مكونات
+
+### 2.1 `AccessLogTab.tsx` → `useAccessLogTab.ts`
+استخراج 3 استعلامات (`access_log`, `access_log_failed_today`, `access_log_unauthorized_today`) + الأنواع + `ITEMS_PER_PAGE` إلى هوك جديد في `src/hooks/data/useAccessLogTab.ts`
+
+### 2.2 `ArchiveLogTab.tsx` → `useArchiveLog.ts`
+استخراج استعلام `access_log_archive` + الأنواع إلى `src/hooks/data/useArchiveLog.ts`
+
+### 2.3 `DistributionHistory.tsx` → `useDistributionHistory.ts`
+استخراج استعلام توزيعات المستفيد إلى `src/hooks/data/useDistributionHistory.ts`
+
+### 2.4 `ExpenseBudgetBar.tsx` → `useExpenseBudgets.ts`
+استخراج استعلام + mutation الميزانيات إلى `src/hooks/data/useExpenseBudgets.ts`
+
+### 2.5 `BulkMessagingTab.tsx` → `useBulkMessaging.ts`
+استخراج استعلام المستفيدين + منطق الإرسال إلى `src/hooks/data/useBulkMessaging.ts`
+
+### 2.6 `ZatcaOperationsLog.tsx` → `useZatcaOperationLog.ts`
+استخراج استعلام سجل العمليات إلى `src/hooks/data/useZatcaOperationLog.ts`
+
+---
+
+## المحور 3: تأجيل react-markdown
+
+تحويل `import ReactMarkdown from 'react-markdown'` إلى `React.lazy` في:
+- `src/pages/beneficiary/BylawsViewPage.tsx`
+- `src/components/ai/AiAssistant.tsx`
+- `src/components/bylaws/SortableBylawItem.tsx`
+
+مع إضافة `<Suspense fallback>` حول كل استخدام.
+
+---
 
 ## الملفات المتأثرة
-- `eslint.config.js` — حذف 6 قواعد
-- `postcss.config.js` — حذف autoprefixer
-- `src/vite-env.d.ts` — دمج تعريفات PWA
-- حذف: `src/vite-pwa.d.ts`
+
+| العملية | الملفات |
+|---------|---------|
+| إنشاء جديد | 10 هوكات: `useInvoiceFileUtils`, `useUserManagementData`, `useUserManagementMutations`, `useSupportTicketMutations`, `useSupportAnalytics`, `useAccountsSettings`, `useAccessLogTab`, `useArchiveLog`, `useDistributionHistory`, `useExpenseBudgets`, `useBulkMessaging`, `useZatcaOperationLog` |
+| تعديل (تقليص) | 4 هوكات أصلية + 6 مكونات UI + 3 ملفات react-markdown |
+| تحديث imports | `useInvoicesPage.ts`, `useSupportDashboardPage.ts`, `ExpensesPage.tsx` |
 
