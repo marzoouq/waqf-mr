@@ -1,122 +1,130 @@
 
 
-# تحليل أداء جنائي عميق — تقرير النتائج وخطة التحسين
+# تقرير التدقيق البنيوي الشامل — الهندسة المعمارية والتنظيم
 
-## ملخص التشخيص
+## التقييم العام
 
-بعد فحص **46+ ملف** في مسار التشغيل الحرج وسلسلة الإقلاع والبيانات ومكونات الواجهة، إليك النتائج مصنفة حسب الخطورة.
+المشروع **جيد البنية** بشكل ملحوظ لحجمه (~78,500 سطر، 498+ ملف). النقاط التالية تحسينات تدريجية مرتبة من الأكثر أهمية.
 
 ---
 
-## 1. النتائج الجنائية — جذور المشاكل
+## النتائج مرتبة حسب الأولوية
 
-### 🔴 عنق زجاجة حرج: Edge Function `dashboard-summary` — 2,073-2,134ms
+### 1. [حرج] Supabase Storage/DB داخل ملفات PDF Utility
 
-من سجلات الوظائف الحافة:
+**الملفات**: `src/utils/pdf/invoices/paymentInvoice.ts` (سطور 49-88)، `src/utils/pdf/invoices/invoice.ts` (سطور 89-98)
+
+**المشكلة**: دوال توليد PDF تقوم بـ:
+- رفع الملف إلى Storage
+- تحديث `file_path` في قاعدة البيانات
+- إظهار toast notifications
+
+هذا يخالف فصل المسؤوليات — `utils/` يجب أن تكون دوال صرفة بدون آثار جانبية.
+
+**التوصية**: دالة PDF تُرجع `Blob` فقط. الرفع والتحديث ينتقلان إلى `lib/services/invoiceStorageService.ts` (موجود أصلاً).
+
+---
+
+### 2. [حرج] Toast مباشر في 6 ملفات utils
+
+**الملفات المتأثرة**:
+- `utils/pdf/core/pdfFonts.ts`
+- `utils/pdf/invoices/invoice.ts`
+- `utils/pdf/invoices/invoices.ts`
+- `utils/pdf/reports/annualReport.ts`
+- `utils/printDistributionReport.ts`
+- `utils/printShareReport.ts`
+
+**المشكلة**: طبقة `utils/` تستورد `toast` من `sonner` مباشرة بدلاً من `lib/notify.ts`. هذا:
+- يكسر قابلية الاختبار (تحتاج mock لـ sonner)
+- يخلق تبعية UI في طبقة المنطق الصرف
+- يتعارض مع نمط `AppNotify` المعتمد في بقية المشروع
+
+**التوصية**: استبدال كل `toast.*` في `utils/` بـ callback أو إرجاع نتيجة (success/error) والسماح للطبقة المستدعية بإظهار الإشعار.
+
+---
+
+### 3. [حرج] Toast مباشر في `lib/auth/nationalIdLogin.ts`
+
+12 استدعاء مباشر لـ `toast.*` في ملف auth logic. رغم وجود `lib/notify.ts` كتجريد موحّد.
+
+**التوصية**: تمرير `AppNotify` كمعامل أو استخدام `defaultNotify` من `lib/notify.ts`.
+
+---
+
+### 4. [متوسط] حسابات في صفحة `AccountsPage.tsx` بدلاً من Hook
+
+**سطور 30-41**: `usePaymentInvoices` + `useAdvanceRequests` + حسابات `useMemo` لـ `unpaidInvoices` و `pendingAdvances` موجودة في الصفحة. يجب أن تكون في `useAccountsPage` أو hook فرعي مخصص.
+
+**التوصية**: نقل هذه الثلاث data hooks + الحسابات إلى `useAccountsPage` وإرجاع `unpaidInvoices` و `pendingAdvances` كخصائص.
+
+---
+
+### 5. [متوسط] Supabase مباشر في diagnostics utils
+
+**الملفات**: `utils/diagnostics/checks/database.ts`، `utils/diagnostics/checks/zatca.ts`
+
+يستوردان Supabase مباشرة. مقبول مؤقتاً لأنها أدوات تشخيص، لكن يخالف نمط المشروع.
+
+**التوصية**: نقل الاستعلامات إلى `lib/services/diagnosticsService.ts` جديد.
+
+---
+
+### 6. [منخفض] `hooks/data/` — 77 ملفاً مسطحاً بدون تقسيم
+
+مجلد واحد يضم كل data hooks. مع نمو المشروع يصعب العثور على الملف.
+
+**التوصية**: تقسيم إلى مجلدات فرعية:
 ```text
-auth+body:            ~950ms
-roles+rateLimit+FY:   ~670ms
-main Promise.all:     ~470ms
-─────────────────────────────
-المجموع:              ~2,100ms
-حجم الاستجابة:        104 KB
+hooks/data/
+  contracts/   → useContracts, useWholePropertyRental
+  invoices/    → useInvoices, usePaymentInvoices, useInvoiceFileUtils
+  messaging/   → useMessaging, useBulkMessaging, useUnreadMessages
+  settings/    → useAppSettings, useNotificationPreferences
+  support/     → useSupportTickets, useSupportAnalytics
+  zatca/       → useZatcaCertificates, useZatcaManagement
 ```
-
-**المشكلة**: المصادقة وحدها تستهلك **~950ms** (45% من الوقت). هذا يعني أن المستخدم ينتظر **ثانيتين كاملتين** قبل أن يرى أي بيانات في لوحة التحكم.
-
-**التوصية**:
-- فصل التحقق من المصادقة عن جلب البيانات باستخدام `Promise.all` حيثما أمكن
-- تخزين نتائج `roles+rateLimit` في ذاكرة مؤقتة مع TTL قصير (30s)
-- إضافة `Cache-Control: private, max-age=30` للاستجابة لتجنب طلبات متكررة خلال التنقل
-
-### 🟠 مشكلة متوسطة: تسلسل الإقلاع (Boot Waterfall)
-
-```text
-1. main.tsx يُنفّذ (theme + query monitoring + PWA guard)
-2. React render → AuthProvider
-3. onAuthStateChange ← ينتظر Supabase SDK
-4. fetchUserRole ← 3 محاولات مع timeout 3s
-5. FiscalYearContext ← ينتظر Auth + يجلب fiscal years
-6. AdminDashboard ← ينتظر FY + يستدعي dashboard-summary
-```
-
-**النتيجة**: سلسلة من 5 طلبات متتابعة قبل أن يرى المستخدم المحتوى. المشكلة ليست في كل خطوة بمفردها بل في **تراكمها التسلسلي**.
-
-**التوصية**:
-- **Prefetch** لبيانات السنة المالية بالتوازي مع جلب الدور بدلاً من الانتظار حتى ينتهي Auth
-- عرض هيكل الصفحة (skeleton) فوراً أثناء انتظار البيانات بدلاً من `<PageLoader />`
-
-### 🟠 مشكلة متوسطة: تحذيرات Recharts المتكررة (width/height = -1)
-
-السجلات تُظهر 3+ تحذيرات متكررة:
-```
-The width(-1) and height(-1) of chart should be greater than 0
-```
-
-رغم وجود `ChartBox` مع `useChartReady`، التحذيرات لا تزال تظهر — مما يعني أن بعض الرسوم البيانية تُعرض قبل أن تأخذ حاويتها أبعاداً صحيحة. هذا يسبب **إعادة رسم مزدوجة** (double render) ويضيف ~50-100ms من الحسابات غير الضرورية.
-
-**التوصية**: التحقق من أن جميع `ResponsiveContainer` مغلفة داخل `ChartBox` وأن `DeferredRender` يؤجل العرض بما يكفي.
-
-### 🟡 مشكلة منخفضة: `DeferredRender` الافتراضي = 3000ms
-
-القيمة الافتراضية لـ `delay` في `DeferredRender` هي **3 ثوانٍ** — وهي محافظة جداً. في `AdminDashboard` تُستخدم قيم مخصصة (300-1100ms) وهي مناسبة، لكن أي استخدام بدون تمرير `delay` سينتظر 3 ثوانٍ كاملة.
-
-**التوصية**: تخفيض القيمة الافتراضية إلى 800ms.
-
-### 🟢 نقاط قوة مؤكدة (لا تحتاج تغيير)
-
-| الجانب | الحالة |
-|--------|--------|
-| Lazy loading لكل الصفحات | ✅ سليم — `lazyWithRetry` في كل مسار |
-| تقسيم الحزم | ✅ ممتاز — المكتبات الثقيلة (jsPDF, Recharts, html2canvas) معزولة |
-| Barrel exports | ✅ محمي — المكونات المؤجلة مستبعدة من `index.ts` |
-| Query caching | ✅ `staleTime: 5min` عالمي + تخصيص حسب نوع البيانات |
-| Realtime debounce | ✅ 500ms debounce قبل إبطال الكاش |
-| `dashboard-summary` يملأ 13 كاش دفعة واحدة | ✅ يمنع N+1 في التنقل بين الصفحات |
-| `refetchOnWindowFocus: false` | ✅ يمنع طلبات غير ضرورية |
+مع barrel `index.ts` في كل مجلد فرعي.
 
 ---
 
-## 2. خطة التحسين المقترحة (6 خطوات)
+### 7. [منخفض] `lib/` vs `utils/` — حدود غير موثّقة
 
-### الخطوة 1: إضافة `Cache-Control` لـ `dashboard-summary` Edge Function
-- إضافة هيدر `Cache-Control: private, max-age=30` للاستجابة
-- يمنع إعادة الطلب عند التنقل ذهاباً وإياباً خلال 30 ثانية
+**القاعدة الضمنية الحالية**:
+- `lib/` = منطق يتفاعل مع خدمات خارجية (Supabase, Auth, Realtime, Monitoring)
+- `utils/` = دوال حسابية صرفة + PDF + تنسيق
 
-### الخطوة 2: Prefetch السنة المالية بالتوازي مع Auth
-- في `FiscalYearContext`: بدء جلب السنوات المالية فوراً دون انتظار اكتمال `authReady`
-- توفير ~500-700ms من وقت الإقلاع
+لكنها غير موثّقة ويوجد تجاوزات (toast + supabase في utils).
 
-### الخطوة 3: عرض Skeleton بدلاً من Spinner
-- استبدال `<PageLoader />` (spinner فارغ) بهيكل صفحة كامل (sidebar + header + content placeholders)
-- يُحسّن LCP بشكل كبير لأن المحتوى المرئي يظهر فوراً
-
-### الخطوة 4: إصلاح تحذيرات Recharts
-- التحقق من أن `YearComparisonCard` و`IncomeMonthlyChart` يستخدمان `ChartBox`
-- إضافة `minWidth={1} minHeight={1}` لأي `ResponsiveContainer` ناقصة
-
-### الخطوة 5: تخفيض `DeferredRender` الافتراضي
-- تغيير القيمة الافتراضية من `3000ms` إلى `800ms`
-
-### الخطوة 6: تحسين `dashboard-summary` Edge Function
-- تشغيل `auth` و`body parsing` بالتوازي مع `roles+rateLimit` حيث لا يوجد تبعية
-- هدف: تقليص الوقت الكلي من ~2100ms إلى ~1200ms
+**التوصية**: توثيق القاعدة في `src/utils/README.md` (موجود) وإضافة `src/lib/README.md`.
 
 ---
 
-## 3. التفاصيل التقنية
+## نقاط القوة المؤكدة ✅
 
-### الملفات المتأثرة
-| الملف | التغيير |
-|-------|---------|
-| `supabase/functions/dashboard-summary/index.ts` | Cache-Control header + parallelization |
-| `src/contexts/FiscalYearContext.tsx` | إزالة شرط `authReady` من جلب FY |
-| `src/components/common/DeferredRender.tsx` | `delay = 800` |
-| `src/App.tsx` | تحسين `PageLoader` → Skeleton layout |
-| `src/components/dashboard/YearComparisonCard.tsx` | تغليف بـ ChartBox |
+| الجانب | التقييم |
+|--------|---------|
+| **صفر Supabase في المكونات** | ممتاز — فصل تام |
+| **TypeScript صارم** (3 `any` فقط، صفر `as any`) | ممتاز |
+| **Lazy loading لكل الصفحات** | ممتاز |
+| **CRUD موحد** (`useCrudFactory`) | ممتاز |
+| **Logger مركزي** (صفر `console.*` مباشر) | ممتاز |
+| **تقسيم الحزم** (jsPDF, Recharts معزولة) | ممتاز |
+| **Financial hooks منظمة** (36 ملف في مجلد مستقل) | جيد جداً |
+| **اختبارات** (test files بجانب الملفات) | جيد |
+| **لا ملف يتجاوز 300 سطر** (خارج types/tests/UI) | جيد جداً |
 
-### الأثر المتوقع
-- **LCP**: تحسن بـ 500-800ms (من ~2.5s إلى ~1.7s)
-- **Boot time**: تقليص ~500ms عبر التوازي
-- **تحذيرات Console**: القضاء على تحذيرات Recharts width/height
+---
+
+## خطة التنفيذ المقترحة
+
+| الترتيب | الوصف | الأثر | الجهد |
+|---------|-------|-------|-------|
+| 1 | استخراج منطق رفع PDF من `paymentInvoice.ts` و `invoice.ts` إلى service | عالي | متوسط |
+| 2 | استبدال `toast` المباشر في 6 ملفات utils بنمط callback/result | عالي | منخفض |
+| 3 | تحويل `nationalIdLogin.ts` لاستخدام `AppNotify` | متوسط | منخفض |
+| 4 | نقل حسابات `unpaidInvoices`/`pendingAdvances` من `AccountsPage` إلى hook | متوسط | منخفض |
+| 5 | نقل استعلامات diagnostics إلى service | منخفض | منخفض |
+| 6 | تقسيم `hooks/data/` إلى مجلدات فرعية | منخفض | متوسط |
+| 7 | توثيق حدود `lib/` vs `utils/` | منخفض | منخفض |
 
