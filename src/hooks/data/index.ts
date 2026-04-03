@@ -19,7 +19,7 @@ export { useBeneficiaryUsers } from './useBeneficiaryUsers';
 export * from './useBulkMessaging';
 export { useCollectionAlerts } from './useCollectionAlerts';
 export { useContracts, useContractsByFiscalYear, useCreateContract, useUpdateContract, useDeleteContract } from './useContracts';
-export { useCrudFactory } from './useCrudFactory';
+export { createCrudFactory } from './useCrudFactory';
 export { useDashboardSummary } from './useDashboardSummary';
 export { usePaidAdvances, useActiveCarryforwards } from './useDistributionAdvances';
 export { useDistributionHistory } from './useDistributionHistory';
