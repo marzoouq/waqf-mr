@@ -13,7 +13,7 @@ import {
 } from '@/hooks/data/usePaymentInvoices';
 import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import type { InvoicePreviewData } from '@/components/invoices/InvoicePreviewDialog';
+import type { InvoicePreviewData } from '@/components/invoices';
 
 export type FilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';
 export type SortKey = 'due_date' | 'amount' | 'status' | 'payment_number';

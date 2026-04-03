@@ -14,7 +14,7 @@ import { TablePagination } from '@/components/common';
 import { InvoiceStepsGuide, InvoicePreviewDialog } from '@/components/invoices';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
-import InvoicePreviewDialog from '@/components/invoices/InvoicePreviewDialog';
+
 import { fmt } from '@/utils/format';
 import { usePaymentInvoicesTab } from '@/hooks/page/usePaymentInvoicesTab';
 import PaymentInvoiceSummaryCards from './payment-invoices/PaymentInvoiceSummaryCards';

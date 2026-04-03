@@ -7,7 +7,7 @@ import { InvoiceUploadDialog, InvoiceViewer, InvoicePreviewDialog, CreateInvoice
 import { TablePagination, MobileCardView, ExportMenu, TableSkeleton } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Search, Eye, LayoutGrid, List, FileDown } from 'lucide-react';
-import InvoicesDesktopTable from '@/components/invoices/InvoicesDesktopTable';
+
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { toast } from 'sonner';

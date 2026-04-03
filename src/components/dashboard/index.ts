@@ -18,3 +18,5 @@ export { default as QuickActionsCard } from './QuickActionsCard';
 export { default as RecentContractsCard } from './RecentContractsCard';
 export { default as YearComparisonCard } from './YearComparisonCard';
 export { default as YoYBadge } from './YoYBadge';
+export type { StatItem } from './DashboardStatsGrid';
+export type { KpiItem } from './DashboardKpiPanel';

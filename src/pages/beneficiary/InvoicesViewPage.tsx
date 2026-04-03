@@ -14,8 +14,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/safeNumber';
-import InvoicesViewMobileCards from '@/components/invoices/InvoicesViewMobileCards';
-import InvoicesViewDesktopTable from '@/components/invoices/InvoicesViewDesktopTable';
 
 const InvoicesViewPage = () => {
   const queryClient = useQueryClient();

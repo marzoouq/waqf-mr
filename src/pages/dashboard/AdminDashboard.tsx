@@ -15,14 +15,6 @@ import { useDashboardSummary } from '@/hooks/page/useDashboardSummary';
 // هوك الحسابات المستخرج
 import { useAdminDashboardData } from '@/hooks/page/useAdminDashboardData';
 
-// مكونات فرعية
-import DashboardAlerts from '@/components/dashboard/DashboardAlerts';
-import DashboardStatsGrid from '@/components/dashboard/DashboardStatsGrid';
-import DashboardKpiPanel from '@/components/dashboard/DashboardKpiPanel';
-import CollectionSummaryCard from '@/components/dashboard/CollectionSummaryCard';
-import RecentContractsCard from '@/components/dashboard/RecentContractsCard';
-import QuickActionsCard from '@/components/dashboard/QuickActionsCard';
-import YearComparisonCard from '@/components/dashboard/YearComparisonCard';
 
 // Lazy-load heavy below-the-fold components
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
