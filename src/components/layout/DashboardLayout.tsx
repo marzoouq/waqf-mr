@@ -26,9 +26,9 @@ import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { useRealtimeAlerts } from '@/hooks/data/useRealtimeAlerts';
 import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
-import { SHOW_ALL_ROUTES } from '@/components/dashboard-layout/constants';
-import MobileHeader from '@/components/dashboard-layout/MobileHeader';
-import DesktopTopBar from '@/components/dashboard-layout/DesktopTopBar';
+import { SHOW_ALL_ROUTES } from '@/components/layout/constants';
+import MobileHeader from '@/components/layout/MobileHeader';
+import DesktopTopBar from '@/components/layout/DesktopTopBar';
 import { useNavLinks } from '@/hooks/page/useNavLinks';
 
 // DiagnosticOverlay — يُحمّل فقط في وضع التطوير

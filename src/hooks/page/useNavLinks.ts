@@ -5,7 +5,7 @@
 import { useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
-import { defaultMenuLabels, type MenuLabels } from '@/types/menuLabels';
+import { defaultMenuLabels, type MenuLabels } from '@/components/layout/menuLabels';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 import {
   linkLabelKeys, allAdminLinks, allBeneficiaryLinks,
@@ -13,7 +13,7 @@ import {
   ACCOUNTANT_EXCLUDED_ROUTES,
   defaultAdminSections, defaultBeneficiarySections,
   ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS,
-} from '@/components/dashboard-layout/constants';
+} from '@/components/layout/constants';
 
 export function useNavLinks() {
   const { role } = useAuth();
