@@ -1,36 +1,33 @@
 
-# خطة إصلاح تصلب الشاشة وتحسين الأداء — مكتملة ✅
+## تحليل البنود العشرة
 
-## المراحل المنجزة:
+### ✅ منجز فعلاً (لا يحتاج تعديل):
+1. **إزالة useEffect من التوجيه** — `RequirePermission` و `ProtectedRoute` يستخدمان `<Navigate />` التصريحي بالفعل. useEffect الموجود فقط للتسجيل (logging) وليس للتوجيه.
+6. **توحيد ErrorBoundary** — لا يوجد إعادة تحميل تلقائي (auto-reload). المستخدم يضغط زراً يدوياً. بعد محاولتين يُعاد للصفحة الرئيسية. آمن من الحلقات.
+7. **QueryClient staleTime** — مضبوط على 5 دقائق مع retry ذكي وrefetchOnWindowFocus: false.
+10. **Session Refresh صامت** — Supabase يتولى ذلك تلقائياً عبر `onAuthStateChange` + `TOKEN_REFRESHED`.
 
-### المرحلة 1 ✅: إصلاح AuthContext — إزالة Safety Timeout
-- إزالة `setTimeout` 3 ثوانٍ الذي يفرض `setLoading(false)` مبكراً
-- `loading` لا يصبح `false` إلا بعد نجاح/فشل جلب الدور نهائياً
+### ❌ يتعارض مع قيود المشروع:
+9. **Zustand/Redux** — قواعد المشروع تمنع ذلك صراحةً: "لا Redux/Zustand". سنستخدم بدائل React المدمجة.
 
-### المرحلة 2 ✅: إصلاح ProtectedRoute — زيادة timeouts
-- زيادة timeout إظهار زر الخروج من 3s → 5s
-- زيادة timeout الخروج التلقائي من 10s → 20s
+### 🔧 قابل للتنفيذ (5 بنود):
 
-### المرحلة 3 ✅: إصلاح RequirePermission — منع التوجيه المبكر
-- استبدال `useEffect` + `navigate` بـ `<Navigate />` تصريحي
-- إضافة حارس `if (!role) return children` لمنع redirect مبكر
+**البند 2: React Router Loaders (createBrowserRouter)**
+- ترحيل من `<BrowserRouter>` + `<Routes>` إلى `createBrowserRouter` + `createRoutesFromElements`
+- نقل فحص الصلاحيات إلى `loader` functions تعمل قبل تحميل المكون
+- يزيل وميض الواجهة (flickering) تماماً
 
-### المرحلة 4 ✅: تثبيت LoginForm — منع القفزات البصرية
-- حجز مساحة `min-h-[1.25rem]` لرسالة المحاولات المتبقية
+**البند 3+4: حقن الدور في JWT Claims**
+- إنشاء Custom Access Token Hook في قاعدة البيانات
+- الدور يُقرأ من `session.access_token` مباشرة بدلاً من استعلام منفصل
+- يلغي الحاجة لـ fetchUserRole() وتأخيراتها
 
-### إضافي 1 ✅: نقل الحسابات المالية للخادم
-- إضافة حقل `computed` في `dashboard-summary` Edge Function
-- يحتوي على: totalIncome, totalExpenses, monthlyData, expenseTypes, collection
-- العميل يستخدم القيم المحسوبة مسبقاً عند توفرها
+**البند 5: إزالة المؤقتات من AuthContext**
+- حذف signInTimeout (8 ثوانٍ) — لم يعد ضرورياً مع JWT Claims
+- حذف retry loop (300ms × 3) — الدور يأتي مع التوكن
 
-### إضافي 2 ✅: تحسين ai-data-fetcher
-- إنشاء دالتي RPC: `get_income_summary_by_source` و `get_expense_summary_by_type`
-- استبدال جلب 500 سجل خام بإحصائيات مُجمّعة مع fallback
+**البند 8: فصل Context الثقيل**
+- فصل AuthContext إلى AuthStateContext (user/session/role) + AuthActionsContext (signIn/signOut)
+- يمنع إعادة تصيير المكونات التي تقرأ الحالة فقط عند تغيير الدوال
 
-### إضافي 3 ✅: تثبيت Layout في LoginForm
-- حجز مساحة ثابتة لمنع CLS عند ظهور تحذير المحاولات
-
-## ما لم يُنفَّذ (وسبب الاستبعاد):
-- **SecurityGuard.tsx**: تعليمات المشروع تمنع التعديل بدون طلب صريح
-- **Route Loaders**: تغيير معماري ضخم يتطلب إعادة كتابة نظام التوجيه
-- **JWT Claims للأدوار**: يتطلب Supabase Pro (Custom Access Token Hook)
+**البند 9 (بديل):** استبدال localStorage بـ `useSyncExternalStore` مخصص بدلاً من Zustand
