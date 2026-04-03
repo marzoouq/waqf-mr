@@ -31,14 +31,14 @@ beforeEach(() => {
 describe('useRealtimeAlerts', () => {
   it('لا يُشترك إذا لم يوجد user', async () => {
     mockUseAuth.mockReturnValue({ user: null, role: null });
-    const { useRealtimeAlerts } = await import('./useRealtimeAlerts');
+    const { useRealtimeAlerts } = await import('@/hooks/ui/useRealtimeAlerts');
     renderHook(() => useRealtimeAlerts());
     expect(mockChannel).not.toHaveBeenCalled();
   });
 
   it('لا يُشترك إذا كان الدور beneficiary', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'u1' }, role: 'beneficiary' });
-    const { useRealtimeAlerts } = await import('./useRealtimeAlerts');
+    const { useRealtimeAlerts } = await import('@/hooks/ui/useRealtimeAlerts');
     renderHook(() => useRealtimeAlerts());
     expect(mockChannel).not.toHaveBeenCalled();
   });
@@ -46,7 +46,7 @@ describe('useRealtimeAlerts', () => {
   it('يُشترك عند admin', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'u1' }, role: 'admin' });
     const mockNavigate = vi.fn();
-    const { useRealtimeAlerts } = await import('./useRealtimeAlerts');
+    const { useRealtimeAlerts } = await import('@/hooks/ui/useRealtimeAlerts');
     renderHook(() => useRealtimeAlerts(mockNavigate));
     expect(mockChannel).toHaveBeenCalledWith('admin-realtime-alerts-u1');
     expect(mockSubscribe).toHaveBeenCalled();
@@ -54,14 +54,14 @@ describe('useRealtimeAlerts', () => {
 
   it('يُشترك عند accountant', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'u2' }, role: 'accountant' });
-    const { useRealtimeAlerts } = await import('./useRealtimeAlerts');
+    const { useRealtimeAlerts } = await import('@/hooks/ui/useRealtimeAlerts');
     renderHook(() => useRealtimeAlerts());
     expect(mockChannel).toHaveBeenCalledWith('admin-realtime-alerts-u2');
   });
 
   it('يُنظّف القناة عند unmount', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'u3' }, role: 'admin' });
-    const { useRealtimeAlerts } = await import('./useRealtimeAlerts');
+    const { useRealtimeAlerts } = await import('@/hooks/ui/useRealtimeAlerts');
     const { unmount } = renderHook(() => useRealtimeAlerts());
     unmount();
     expect(mockRemoveChannel).toHaveBeenCalled();
