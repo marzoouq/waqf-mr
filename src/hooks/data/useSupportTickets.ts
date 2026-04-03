@@ -9,6 +9,8 @@ import { STALE_REALTIME, STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTim
 export { useCreateTicket, useUpdateTicketStatus, useAddTicketReply, useRateTicket } from './useSupportTicketMutations';
 export { useSupportStats, useSupportAnalytics, fetchTicketsForExport } from './useSupportAnalytics';
 export type { SupportAnalyticsData } from './useSupportAnalytics';
+export { useClientErrors } from './useClientErrors';
+export type { ClientError } from './useClientErrors';
 
 // ---------------------------------------------------------------------------
 // Types
