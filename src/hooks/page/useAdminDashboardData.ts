@@ -26,7 +26,7 @@ interface UseAdminDashboardDataParams {
     expenses: any[];
     accounts: any[];
     beneficiaries: any[];
-    settings: Record<string, string>;
+    settings: Record<string, string> | null;
     allFiscalYears: any[];
     yoy: any;
   };
