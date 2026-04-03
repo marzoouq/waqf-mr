@@ -6,7 +6,7 @@ export { default as InvoiceGridView } from './InvoiceGridView';
 export { default as InvoicePreviewDialog } from './InvoicePreviewDialog';
 export { default as InvoiceStepsGuide } from './InvoiceStepsGuide';
 export { default as InvoiceSummaryCards } from './InvoiceSummaryCards';
-export { default as InvoiceTemplates } from './InvoiceTemplates';
+export * from './InvoiceTemplates';
 export { default as InvoiceUploadDialog } from './InvoiceUploadDialog';
 export { default as InvoiceViewer } from './InvoiceViewer';
 export { default as InvoicesDesktopTable } from './InvoicesDesktopTable';
