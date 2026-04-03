@@ -104,6 +104,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
   /** List / fetch all rows — مع دعم التصفح (pagination) */
   const useList = (): PaginatedQueryResult<TData> => {
     const [page, setPage] = useState(0);
+    const [totalCount, setTotalCount] = useState(0);
 
     const rangeFrom = page * limit;
     const rangeTo = rangeFrom + limit - 1;
@@ -119,11 +120,11 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
           .range(rangeFrom, rangeTo);
 
         if (error) throw error;
-        return { rows: data as TData[], totalCount: count ?? 0 };
-      },
-      select: (result: { rows: TData[]; totalCount: number }) => {
+        // تخزين العدد الكلي لحساب hasNextPage بدقة
+        if (count !== null) setTotalCount(count);
+
         // تحذير فقط في الصفحة الأولى لتجنب التكرار
-        if (page === 0 && result.totalCount > limit) {
+        if (page === 0 && count !== null && count > limit) {
           const key = `limit-warn-${queryKey}`;
           if (!limitWarnShown.has(key)) {
             limitWarnShown.add(key);
@@ -131,11 +132,12 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
             setTimeout(() => { limitWarnShown.delete(key); }, 300_000);
           }
         }
-        return result;
+
+        return data as TData[];
       },
     });
 
-    const hasNextPage = (query.data?.length ?? 0) === limit;
+    const hasNextPage = (page + 1) * limit < totalCount;
     const hasPrevPage = page > 0;
 
     const nextPage = useCallback(() => {
