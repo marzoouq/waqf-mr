@@ -1,91 +1,122 @@
 
 
-# خطة الإصلاحات ذات الأولوية القصوى — 3 محاور
+# تحليل أداء جنائي عميق — تقرير النتائج وخطة التحسين
+
+## ملخص التشخيص
+
+بعد فحص **46+ ملف** في مسار التشغيل الحرج وسلسلة الإقلاع والبيانات ومكونات الواجهة، إليك النتائج مصنفة حسب الخطورة.
 
 ---
 
-## المحور 1: إصلاح مشكلة ai_chat_sessions + تحديث INDEX.md + التحقق من pgcrypto
+## 1. النتائج الجنائية — جذور المشاكل
 
-### النتائج الجنائية
+### 🔴 عنق زجاجة حرج: Edge Function `dashboard-summary` — 2,073-2,134ms
 
-| البند | الواقع |
-|-------|--------|
-| `ai_chat_sessions` | أُنشئ في migration ثم حُذف في migration لاحقة. الجدول **غير موجود** لكن الدالة `update_ai_chat_sessions_updated_at` **يتيمة** لا تزال موجودة |
-| `pgcrypto` schema | **مُصحّح فعلاً** — موجود في `extensions` (ليس `public`) |
-| أعداد INDEX.md | قديمة بشكل كبير |
+من سجلات الوظائف الحافة:
+```text
+auth+body:            ~950ms
+roles+rateLimit+FY:   ~670ms
+main Promise.all:     ~470ms
+─────────────────────────────
+المجموع:              ~2,100ms
+حجم الاستجابة:        104 KB
+```
 
-### الأعداد الفعلية مقابل الموثقة
+**المشكلة**: المصادقة وحدها تستهلك **~950ms** (45% من الوقت). هذا يعني أن المستخدم ينتظر **ثانيتين كاملتين** قبل أن يرى أي بيانات في لوحة التحكم.
 
-| البند | INDEX.md | الفعلي | الفرق |
-|-------|----------|--------|-------|
-| جداول/عروض | 38 | 39 | +1 |
-| دوال مخزنة | 36+ | 73 | +37 |
-| مشغلات | 29+ | 53 | +24 |
-| Edge Functions | 11 | 14 | +3 |
-| سياسات RLS | 129 | 134 | +5 |
-| مهام cron | 7 | 8 | +1 |
+**التوصية**:
+- فصل التحقق من المصادقة عن جلب البيانات باستخدام `Promise.all` حيثما أمكن
+- تخزين نتائج `roles+rateLimit` في ذاكرة مؤقتة مع TTL قصير (30s)
+- إضافة `Cache-Control: private, max-age=30` للاستجابة لتجنب طلبات متكررة خلال التنقل
 
-### الإصلاحات المطلوبة
+### 🟠 مشكلة متوسطة: تسلسل الإقلاع (Boot Waterfall)
 
-1. **Migration**: حذف الدالة اليتيمة `update_ai_chat_sessions_updated_at()`
-2. **docs/ADMIN-PAGES.md**: حذف ذكر `ai_chat_sessions` من قسم المساعد الذكي (سطر 393-400) وتوضيح أن المحادثات تُحفظ محلياً فقط
-3. **docs/INDEX.md**: تحديث جميع الأعداد بالقيم الفعلية (39 جدول، 73 دالة، 53 مشغل، 14 وظيفة، 134 سياسة، 8 مهام cron)
+```text
+1. main.tsx يُنفّذ (theme + query monitoring + PWA guard)
+2. React render → AuthProvider
+3. onAuthStateChange ← ينتظر Supabase SDK
+4. fetchUserRole ← 3 محاولات مع timeout 3s
+5. FiscalYearContext ← ينتظر Auth + يجلب fiscal years
+6. AdminDashboard ← ينتظر FY + يستدعي dashboard-summary
+```
 
----
+**النتيجة**: سلسلة من 5 طلبات متتابعة قبل أن يرى المستخدم المحتوى. المشكلة ليست في كل خطوة بمفردها بل في **تراكمها التسلسلي**.
 
-## المحور 2: فحص Edge Functions والتحقق من getUser()
+**التوصية**:
+- **Prefetch** لبيانات السنة المالية بالتوازي مع جلب الدور بدلاً من الانتظار حتى ينتهي Auth
+- عرض هيكل الصفحة (skeleton) فوراً أثناء انتظار البيانات بدلاً من `<PageLoader />`
 
-### نتائج الفحص — كل الوظائف مُؤمّنة
+### 🟠 مشكلة متوسطة: تحذيرات Recharts المتكررة (width/height = -1)
 
-| الوظيفة | المصادقة | ملاحظات |
-|---------|----------|---------|
-| `admin-manage-users` | ✅ `getUser()` | + تحقق admin role |
-| `ai-assistant` | ✅ `getUser()` | + rate limiting |
-| `beneficiary-summary` | ✅ `getUser()` | مُؤمّنة |
-| `check-contract-expiry` | ✅ `getUser()` | + service_role check |
-| `dashboard-summary` | ✅ `getUser()` | مُؤمّنة |
-| `generate-invoice-pdf` | ✅ `getUser()` | مُؤمّنة |
-| `webauthn` | ✅ `getUser()` | + webhook verify |
-| `zatca-onboard` | ✅ `getUser()` (via shared) | مُؤمّنة |
-| `zatca-renew` | ✅ `getUser()` (via shared) | مُؤمّنة |
-| `zatca-report` | ✅ `getUser()` (via shared) | مُؤمّنة |
-| `zatca-signer` | ✅ `getUser()` | مُؤمّنة |
-| `zatca-xml-generator` | ✅ `getUser()` | مُؤمّنة |
-| `guard-signup` | ⚡ عامة (مقصود) | rate limit + لا بيانات حساسة |
-| `health-check` | ⚡ عامة (مقصود) | لا بيانات حساسة |
-| `auth-email-hook` | ⚡ Webhook (مقصود) | Supabase-initiated + webhook verify |
-| `lookup-national-id` | ⚡ عامة (مقصود) | rate limit + تأخير + إخفاء بريد |
+السجلات تُظهر 3+ تحذيرات متكررة:
+```
+The width(-1) and height(-1) of chart should be greater than 0
+```
 
-**الحكم**: ✅ جميع الوظائف مُؤمّنة بشكل صحيح. الوظائف العامة الأربع مُبررة ومحمية بآليات بديلة.
+رغم وجود `ChartBox` مع `useChartReady`، التحذيرات لا تزال تظهر — مما يعني أن بعض الرسوم البيانية تُعرض قبل أن تأخذ حاويتها أبعاداً صحيحة. هذا يسبب **إعادة رسم مزدوجة** (double render) ويضيف ~50-100ms من الحسابات غير الضرورية.
 
-### Linter
+**التوصية**: التحقق من أن جميع `ResponsiveContainer` مغلفة داخل `ChartBox` وأن `DeferredRender` يؤجل العرض بما يكفي.
 
-الـ linter يُظهر خطأين فقط (Security Definer Views) وهما **مقصودان معمارياً** ومُوثّقان في SECURITY-KNOWLEDGE.md — لا إجراء مطلوب.
+### 🟡 مشكلة منخفضة: `DeferredRender` الافتراضي = 3000ms
 
-### إصلاح مطلوب
+القيمة الافتراضية لـ `delay` في `DeferredRender` هي **3 ثوانٍ** — وهي محافظة جداً. في `AdminDashboard` تُستخدم قيم مخصصة (300-1100ms) وهي مناسبة، لكن أي استخدام بدون تمرير `delay` سينتظر 3 ثوانٍ كاملة.
 
-4. **docs/API.md**: إضافة توثيق 3 وظائف مفقودة: `health-check`, `dashboard-summary`, `beneficiary-summary`
+**التوصية**: تخفيض القيمة الافتراضية إلى 800ms.
 
----
+### 🟢 نقاط قوة مؤكدة (لا تحتاج تغيير)
 
-## المحور 3: اختبار سرعة التحميل على الموبايل
-
-هذا يتطلب فتح المعاينة واختبار تفاعلي على viewport موبايل لقياس:
-- سرعة تحميل لوحة المستفيد (`/beneficiary`)
-- سرعة تحميل سجل المراجعة (`/dashboard/audit-log`)
-- Web Vitals (LCP, FID, CLS)
-
-**سيتم التنفيذ بعد الإصلاحات** عبر أدوات المتصفح (performance_profile + profiling).
+| الجانب | الحالة |
+|--------|--------|
+| Lazy loading لكل الصفحات | ✅ سليم — `lazyWithRetry` في كل مسار |
+| تقسيم الحزم | ✅ ممتاز — المكتبات الثقيلة (jsPDF, Recharts, html2canvas) معزولة |
+| Barrel exports | ✅ محمي — المكونات المؤجلة مستبعدة من `index.ts` |
+| Query caching | ✅ `staleTime: 5min` عالمي + تخصيص حسب نوع البيانات |
+| Realtime debounce | ✅ 500ms debounce قبل إبطال الكاش |
+| `dashboard-summary` يملأ 13 كاش دفعة واحدة | ✅ يمنع N+1 في التنقل بين الصفحات |
+| `refetchOnWindowFocus: false` | ✅ يمنع طلبات غير ضرورية |
 
 ---
 
-## ملخص المهام
+## 2. خطة التحسين المقترحة (6 خطوات)
 
-| # | المهمة | النوع |
-|---|--------|-------|
-| 1 | حذف دالة `update_ai_chat_sessions_updated_at` اليتيمة | Migration |
-| 2 | تحديث ADMIN-PAGES.md — إزالة ذكر ai_chat_sessions | توثيق |
-| 3 | تحديث INDEX.md — تصحيح جميع الأعداد | توثيق |
-| 4 | تحديث API.md — إضافة 3 وظائف مفقودة | توثيق |
-| 5 | اختبار أداء الموبايل (لوحة المستفيد + سجل المراجعة) | اختبار تفاعلي |
+### الخطوة 1: إضافة `Cache-Control` لـ `dashboard-summary` Edge Function
+- إضافة هيدر `Cache-Control: private, max-age=30` للاستجابة
+- يمنع إعادة الطلب عند التنقل ذهاباً وإياباً خلال 30 ثانية
+
+### الخطوة 2: Prefetch السنة المالية بالتوازي مع Auth
+- في `FiscalYearContext`: بدء جلب السنوات المالية فوراً دون انتظار اكتمال `authReady`
+- توفير ~500-700ms من وقت الإقلاع
+
+### الخطوة 3: عرض Skeleton بدلاً من Spinner
+- استبدال `<PageLoader />` (spinner فارغ) بهيكل صفحة كامل (sidebar + header + content placeholders)
+- يُحسّن LCP بشكل كبير لأن المحتوى المرئي يظهر فوراً
+
+### الخطوة 4: إصلاح تحذيرات Recharts
+- التحقق من أن `YearComparisonCard` و`IncomeMonthlyChart` يستخدمان `ChartBox`
+- إضافة `minWidth={1} minHeight={1}` لأي `ResponsiveContainer` ناقصة
+
+### الخطوة 5: تخفيض `DeferredRender` الافتراضي
+- تغيير القيمة الافتراضية من `3000ms` إلى `800ms`
+
+### الخطوة 6: تحسين `dashboard-summary` Edge Function
+- تشغيل `auth` و`body parsing` بالتوازي مع `roles+rateLimit` حيث لا يوجد تبعية
+- هدف: تقليص الوقت الكلي من ~2100ms إلى ~1200ms
+
+---
+
+## 3. التفاصيل التقنية
+
+### الملفات المتأثرة
+| الملف | التغيير |
+|-------|---------|
+| `supabase/functions/dashboard-summary/index.ts` | Cache-Control header + parallelization |
+| `src/contexts/FiscalYearContext.tsx` | إزالة شرط `authReady` من جلب FY |
+| `src/components/common/DeferredRender.tsx` | `delay = 800` |
+| `src/App.tsx` | تحسين `PageLoader` → Skeleton layout |
+| `src/components/dashboard/YearComparisonCard.tsx` | تغليف بـ ChartBox |
+
+### الأثر المتوقع
+- **LCP**: تحسن بـ 500-800ms (من ~2.5s إلى ~1.7s)
+- **Boot time**: تقليص ~500ms عبر التوازي
+- **تحذيرات Console**: القضاء على تحذيرات Recharts width/height
 
