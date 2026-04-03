@@ -3,7 +3,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import { BrowserRouter, Routes } from "react-router-dom";
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Route,
+  RouterProvider,
+  Outlet,
+} from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/auth/useAuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
@@ -27,7 +33,7 @@ function PagePerformanceTracker() {
   return null;
 }
 
-// AI Assistant & Security - Lazy loaded
+// تحميل كسول — AI + الأمان + PWA
 const AiAssistant = lazyWithRetry(() => import("./components/ai/AiAssistant"));
 const SecurityGuard = lazyWithRetry(() => import("./components/auth/SecurityGuard"));
 const PwaUpdateNotifier = lazyWithRetry(() => import("./components/pwa/PwaUpdateNotifier"));
@@ -36,7 +42,7 @@ const SwUpdateBanner = lazyWithRetry(() => import("./components/pwa/SwUpdateBann
 function PageLoader() {
   return (
     <div className="min-h-screen flex" dir="rtl">
-      {/* Skeleton sidebar */}
+      {/* هيكل القائمة الجانبية */}
       <div className="hidden md:flex w-64 flex-col bg-muted/30 border-l p-4 gap-4">
         <Skeleton className="h-10 w-3/4 rounded-lg" />
         <div className="flex flex-col gap-2 mt-4">
@@ -45,7 +51,7 @@ function PageLoader() {
           ))}
         </div>
       </div>
-      {/* Skeleton main content */}
+      {/* هيكل المحتوى الرئيسي */}
       <div className="flex-1 flex flex-col">
         <div className="h-16 border-b bg-muted/20 flex items-center px-6 gap-4">
           <Skeleton className="h-8 w-32 rounded-md" />
@@ -79,49 +85,57 @@ function RoleGatedAiAssistant() {
   );
 }
 
+/** التخطيط الجذري — يحتوي على العناصر المشتركة + Outlet للمسارات */
+function RootLayout() {
+  return (
+    <>
+      <ErrorBoundary>
+        <Suspense fallback={null}><SwUpdateBanner /></Suspense>
+      </ErrorBoundary>
+      <PagePerformanceTracker />
+      <Suspense fallback={<PageLoader />}>
+        <Outlet />
+      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={null}><SecurityGuard /></Suspense>
+      </ErrorBoundary>
+      <ErrorBoundary>
+        <Suspense fallback={null}><PwaUpdateNotifier /></Suspense>
+      </ErrorBoundary>
+      <ErrorBoundary>
+        <RoleGatedAiAssistant />
+      </ErrorBoundary>
+    </>
+  );
+}
+
+// === إنشاء الراوتر باستخدام createBrowserRouter ===
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<RootLayout />}>
+      {publicRoutes}
+      {adminRoutes}
+      {beneficiaryRoutes}
+      {waqifRoutes}
+      {catchAllRoute}
+    </Route>
+  )
+);
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider attribute="class" defaultTheme="light" storageKey="waqf-theme">
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <FiscalYearProvider>
-            <TooltipProvider>
-              <Sonner />
-              <BrowserRouter>
-                <ErrorBoundary>
-                  <Suspense fallback={null}>
-                    <SwUpdateBanner />
-                  </Suspense>
-                </ErrorBoundary>
-                <PagePerformanceTracker />
-                <Suspense fallback={<PageLoader />}>
-                  <Routes>
-                    {publicRoutes}
-                    {adminRoutes}
-                    {beneficiaryRoutes}
-                    {waqifRoutes}
-                    {catchAllRoute}
-                  </Routes>
-                </Suspense>
-                <ErrorBoundary>
-                  <Suspense fallback={null}>
-                    <SecurityGuard />
-                  </Suspense>
-                </ErrorBoundary>
-                <ErrorBoundary>
-                  <Suspense fallback={null}>
-                    <PwaUpdateNotifier />
-                  </Suspense>
-                </ErrorBoundary>
-                <ErrorBoundary>
-                  <RoleGatedAiAssistant />
-                </ErrorBoundary>
-              </BrowserRouter>
-            </TooltipProvider>
-          </FiscalYearProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <FiscalYearProvider>
+              <TooltipProvider>
+                <Sonner />
+                <RouterProvider router={router} />
+              </TooltipProvider>
+            </FiscalYearProvider>
+          </AuthProvider>
+        </QueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
