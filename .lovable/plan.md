@@ -1,49 +1,48 @@
 
+## تحليل المكونات الكبيرة واقتراحات التقسيم
 
-# خطة: تشغيل اختبارات PDF + إعادة هيكلة أنواع قاعدة البيانات
+بناءً على فحص حجم الملفات، إليك المكونات التي تتجاوز 200 سطر (باستثناء ملفات UI/shadcn والاختبارات):
 
-## السياق
+### 🔴 أولوية عالية (> 230 سطر)
 
-ملف `src/types/database.ts` يُعيد تصدير الأنواع من Supabase المولّدة تلقائياً مع إضافة أنواع Join (مثل `Contract & { property?: Property }`). يستورد منه **70 ملف** في المشروع.
+#### 1. `invoices/templates/ProfessionalTemplate.tsx` — 251 سطر
+- **اقتراح**: فصل رأس الفاتورة (`InvoiceHeader`), جدول البنود (`InvoiceItemsTable`), ملخص المبالغ (`InvoiceTotals`), وتذييل QR/ZATCA (`InvoiceFooter`)
 
-## المهام
+#### 2. `contracts/CollectionReport.tsx` — 235 سطر
+- **اقتراح**: فصل فلاتر التقرير (`CollectionFilters`), جدول التحصيل (`CollectionTable`), وملخص الإحصائيات (`CollectionSummaryCards`)
 
-### 1. تشغيل اختبارات PDF
-- تشغيل `npx vitest run src/utils/pdf/` للتأكد من نجاح جميع الاختبارات بعد إعادة التنظيم السابقة.
+#### 3. `zatca/ZatcaInvoicesTab.tsx` — 229 سطر
+- **اقتراح**: فصل شريط البحث/الفلاتر (`ZatcaInvoiceFilters`), جدول الفواتير (`ZatcaInvoiceTable`), وأزرار الإجراءات (`ZatcaInvoiceActions`)
 
-### 2. إعادة هيكلة `src/types/database.ts`
+### 🟡 أولوية متوسطة (200-230 سطر)
 
-**الملاحظة المهمة**: الملف حالياً هو بالفعل طبقة رفيعة فوق أنواع Supabase — لا يُعرّف أنواعاً يدوية. لكنه يُضيف قيمة حقيقية:
-- أسماء مختصرة (`Property` بدل `Tables<'properties'>`)
-- أنواع Join مع علاقات اختيارية (`Contract & { property?: Property }`)
+#### 4. `reports/MonthlyPerformanceReport.tsx` — 224 سطر
+- **اقتراح**: فصل الرسوم البيانية (`PerformanceCharts`) عن جدول البيانات (`PerformanceTable`)
 
-**الإستراتيجية**: بدلاً من حذف الملف (مما يتطلب تعديل 70 ملف)، سنُعيد هيكلته إلى ملفين:
+#### 5. `reports/YearOverYearComparison.tsx` — 220 سطر
+- **اقتراح**: فصل الرسم البياني (`YoYChart`) عن جدول المقارنة (`YoYComparisonTable`)
 
-```text
-src/types/
-├── models.ts        ← الأنواع الأساسية (re-exports من Supabase)
-└── relations.ts     ← أنواع Join فقط (Contract, Income, Expense...)
-```
+#### 6. `accounts/AccountsDistributionTable.tsx` — 219 سطر
+- **اقتراح**: فصل صف المستفيد (`DistributionRow`) وملخص التوزيع (`DistributionSummary`)
 
-ثم نُحدّث `database.ts` ليصبح barrel file يُعيد تصدير كل شيء (لتجنب كسر 70 ملف دفعة واحدة).
+#### 7. `reports/CashFlowReport.tsx` — 218 سطر
+- **اقتراح**: فصل الرسم البياني (`CashFlowChart`) عن تفاصيل التدفق (`CashFlowDetails`)
 
-**التفاصيل التقنية**:
+#### 8. `zatca/ZatcaCertificatesTab.tsx` — 207 سطر
+- **اقتراح**: فصل نموذج الشهادة (`CertificateForm`) عن قائمة الشهادات (`CertificatesList`)
 
-| الملف | المحتوى |
-|-------|---------|
-| `models.ts` | `export type Property = Tables<'properties'>` + باقي الأنواع البسيطة (11 نوع) |
-| `relations.ts` | `export type Contract = Tables<'contracts'> & { property?: Property; unit?: Unit }` + Income, Expense, AdvanceRequest, Distribution |
-| `database.ts` | `export * from './models'; export * from './relations';` (barrel — توافق عكسي) |
+#### 9. `auth/LoginForm.tsx` — 206 سطر
+- **اقتراح**: فصل نموذج الهوية الوطنية (`NationalIdLoginSection`) عن نموذج البريد/كلمة المرور (`EmailLoginSection`)
 
-**النتيجة**: لا كسر في أي ملف، والبنية واضحة للمطورين الجدد. يمكن لاحقاً ترحيل الملفات تدريجياً من `database.ts` إلى `models.ts`/`relations.ts` مباشرة.
+#### 10. `user-management/UsersTable.tsx` — 205 سطر
+- **اقتراح**: فصل صف المستخدم (`UserRow`) وأزرار الإجراءات (`UserActions`)
 
-## ملخص التغييرات
+### ✅ مقبولة حالياً (< 200 سطر)
+الملفات تحت 200 سطر في نطاق معقول ولا تحتاج تقسيم عاجل.
 
-| # | الإجراء | الملفات |
-|---|---------|---------|
-| 1 | تشغيل اختبارات PDF | — (تشغيل فقط) |
-| 2 | إنشاء `src/types/models.ts` | ملف جديد |
-| 3 | إنشاء `src/types/relations.ts` | ملف جديد |
-| 4 | تحويل `database.ts` إلى barrel re-export | تعديل ملف واحد |
-| 5 | تشغيل `tsc --noEmit` للتحقق | — (تشغيل فقط) |
+### ملاحظات:
+- ملفات `ui/sidebar.tsx` (637) و `ui/chart.tsx` (305) و `ui/carousel.tsx` (224) هي مكونات shadcn أساسية — **لا يُنصح بتعديلها**
+- التقسيم يجب أن يكون تدريجياً لتجنب كسر الوظائف الحالية
+- الأولوية للملفات التي تخلط بين منطق البيانات وعرض الواجهة
 
+هل تريد البدء بتنفيذ تقسيم محدد؟ أقترح البدء بالأولوية العالية (1-3).
