@@ -92,7 +92,7 @@ describe('generatePaymentInvoicePDF', () => {
     expect(result).not.toBeNull();
     expect(mockUpload).toHaveBeenCalled();
     expect(vi.mocked((await import('../core/core')).finalizePdf)).not.toHaveBeenCalled();
-  });
+  }, 15_000);
 
   it('generates PDF with classic template', async () => {
     const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');

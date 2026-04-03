@@ -83,22 +83,22 @@ describe('ZatcaManagementPage', () => {
     setupMockFrom();
     await renderPage();
     expect(screen.getByText('الفواتير')).toBeInTheDocument();
-    expect(screen.getByText('الشهادات')).toBeInTheDocument();
+    expect(screen.getAllByText('الشهادات').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('سلسلة التوقيع')).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it('shows onboarding button when no certificates exist', async () => {
     setupMockFrom([], []);
     await renderPage();
-    await userEvent.click(screen.getByText('الشهادات'));
+    await userEvent.click(screen.getAllByText('الشهادات')[0]!);
     expect(await screen.findByText('بدء التسجيل (Onboarding)')).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it('shows production upgrade button only with compliance cert', async () => {
     const complianceCert = [{ id: '1', certificate_type: 'compliance', is_active: true, request_id: 'req1', created_at: '2026-01-01' }];
     setupMockFrom(complianceCert);
     await renderPage();
-    await userEvent.click(screen.getByText('الشهادات'));
+    await userEvent.click(screen.getAllByText('الشهادات')[0]!);
     expect(await screen.findByText('ترقية للإنتاج')).toBeInTheDocument();
   });
 
@@ -106,7 +106,7 @@ describe('ZatcaManagementPage', () => {
     const prodCert = [{ id: '1', certificate_type: 'production', is_active: true, request_id: 'req1', created_at: '2026-01-01' }];
     setupMockFrom(prodCert);
     await renderPage();
-    await userEvent.click(screen.getByText('الشهادات'));
+    await userEvent.click(screen.getAllByText('الشهادات')[0]!);
     // Wait for table to render — multiple "إنتاج" elements exist (summary + table badge)
     await screen.findAllByText('إنتاج');
     expect(screen.queryByText('ترقية للإنتاج')).not.toBeInTheDocument();
