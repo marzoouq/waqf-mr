@@ -24,6 +24,7 @@ export async function executeGlobalSearch(
   const searchResults: SearchResult[] = [];
   const pattern = `%${term}%`;
   const { isAdmin, basePath, fiscalYearId } = options;
+  const fyId = fiscalYearId ?? undefined;
 
   const contractSelectFields = 'id, contract_number, tenant_name, status, fiscal_year_id';
   const contractFilter = `contract_number.ilike.${pattern},tenant_name.ilike.${pattern}`;
@@ -31,18 +32,18 @@ export async function executeGlobalSearch(
   const buildContractQuery = () => {
     if (isAdmin) {
       let q = supabase.from('contracts').select(contractSelectFields).or(contractFilter).limit(5);
-      if (isFyReady(fiscalYearId)) q = q.eq('fiscal_year_id', fiscalYearId!);
+      if (isFyReady(fyId)) q = q.eq('fiscal_year_id', fyId!);
       return q.abortSignal(signal);
     } else {
       let q = supabase.from('contracts_safe').select(contractSelectFields).or(contractFilter).limit(5);
-      if (isFyReady(fiscalYearId)) q = q.eq('fiscal_year_id', fiscalYearId!);
+      if (isFyReady(fyId)) q = q.eq('fiscal_year_id', fyId!);
       return q.abortSignal(signal);
     }
   };
 
   const buildExpensesQuery = () => {
     let q = supabase.from('expenses').select('id, expense_type, description, amount, fiscal_year_id').or(`expense_type.ilike.${pattern},description.ilike.${pattern}`).limit(5);
-    if (isFyReady(fiscalYearId)) q = q.eq('fiscal_year_id', fiscalYearId!);
+    if (isFyReady(fyId)) q = q.eq('fiscal_year_id', fyId!);
     return q.abortSignal(signal);
   };
 

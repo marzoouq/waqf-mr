@@ -1,19 +1,14 @@
 /**
- * هوك آمن للـ bfcache — يلف supabase.channel() مع إدارة pagehide/pageshow
- * يفصل WebSocket عند مغادرة الصفحة (يسمح بـ bfcache)
- * ويعيد الاتصال عند العودة من bfcache
- * يدعم إعادة الاتصال التلقائي مع exponential backoff عند فشل القناة
+ * هوك آمن للـ bfcache — يلف قنوات Realtime مع إدارة pagehide/pageshow
  */
 import { useEffect, useCallback, useRef } from 'react';
 import { RealtimeChannel } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { createRealtimeChannel, removeRealtimeChannel, getRealtimeChannels } from '@/lib/realtime/channelFactory';
 import { logger } from '@/lib/logger';
 
 type SubscribeFn = (channel: RealtimeChannel) => void;
 
-/** الحد الأقصى لتأخير إعادة المحاولة (30 ثانية) */
 const MAX_BACKOFF_MS = 30_000;
-/** التأخير الأولي (1 ثانية) */
 const INITIAL_BACKOFF_MS = 1_000;
 
 export const useBfcacheSafeChannel = (
@@ -24,9 +19,7 @@ export const useBfcacheSafeChannel = (
   const channelRef = useRef<RealtimeChannel | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const attemptRef = useRef(0);
-  // معرّف فريد لكل instance لتجنب تصادم topic بين mount/unmount السريع
   const instanceIdRef = useRef(`i${Math.random().toString(36).slice(2, 10)}`);
-  // ref ثابت لمنع إعادة إنشاء القناة عند تغيّر function reference
   const subscribeFnRef = useRef<SubscribeFn>(subscribeFn);
   subscribeFnRef.current = subscribeFn;
   const fallbackChannelName = `${channelName}-${instanceIdRef.current}`;
@@ -39,23 +32,14 @@ export const useBfcacheSafeChannel = (
   }, []);
 
   const removeStaleScopedChannels = useCallback((targetChannelName: string) => {
-    const getChannels = (supabase as unknown as { getChannels?: () => RealtimeChannel[] }).getChannels;
-    if (typeof getChannels !== 'function') return;
-
-    const targetTopic = `realtime:${targetChannelName}`;
-    const channels = (() => {
-      try {
-        return getChannels();
-      } catch {
-        return null;
-      }
-    })();
+    const channels = getRealtimeChannels();
     if (!channels) return;
 
+    const targetTopic = `realtime:${targetChannelName}`;
     channels.forEach((ch) => {
       const topic = (ch as RealtimeChannel & { topic?: string }).topic;
       if (topic === targetTopic) {
-        supabase.removeChannel(ch);
+        removeRealtimeChannel(ch);
       }
     });
   }, []);
@@ -63,7 +47,7 @@ export const useBfcacheSafeChannel = (
   const teardown = useCallback(() => {
     clearRetry();
     if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
+      removeRealtimeChannel(channelRef.current);
       channelRef.current = null;
     }
     removeStaleScopedChannels(channelName);
@@ -71,20 +55,15 @@ export const useBfcacheSafeChannel = (
   }, [clearRetry, removeStaleScopedChannels, channelName, fallbackChannelName]);
 
   const initChannel = useCallback(() => {
-    // تنظيف أي قناة قديمة قبل البدء
     teardown();
-
-    // تنظيف وقائي من قنوات قديمة بنفس الاسم الأساسي
     removeStaleScopedChannels(channelName);
 
     const attachSubscription = (activeChannel: RealtimeChannel, activeName: string) => {
       activeChannel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          // نجاح — إعادة تعيين عدّاد المحاولات
           attemptRef.current = 0;
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           logger.warn(`[BfcacheSafe] Channel ${activeName} ${status}, retrying…`);
-          // حساب التأخير التصاعدي: min(2^attempt * 1s, 30s)
           const delay = Math.min(
             INITIAL_BACKOFF_MS * Math.pow(2, attemptRef.current),
             MAX_BACKOFF_MS,
@@ -99,26 +78,25 @@ export const useBfcacheSafeChannel = (
       channelRef.current = activeChannel;
     };
 
-    const channel = supabase.channel(channelName);
+    const channel = createRealtimeChannel(channelName);
     try {
       subscribeFnRef.current(channel);
       attachSubscription(channel, channelName);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const isSubscribeOrderRace = /after\s*`?subscribe\(\)`?/i.test(errorMessage);
-      supabase.removeChannel(channel);
+      removeRealtimeChannel(channel);
 
       if (isSubscribeOrderRace) {
-        // fallback defensive path: use unique channel topic when base topic is already subscribed elsewhere
         removeStaleScopedChannels(fallbackChannelName);
-        const fallbackChannel = supabase.channel(fallbackChannelName);
+        const fallbackChannel = createRealtimeChannel(fallbackChannelName);
         try {
           subscribeFnRef.current(fallbackChannel);
           attachSubscription(fallbackChannel, fallbackChannelName);
           return;
         } catch (fallbackError) {
           logger.error(`[BfcacheSafe] Failed to register callbacks for fallback ${fallbackChannelName}:`, fallbackError);
-          supabase.removeChannel(fallbackChannel);
+          removeRealtimeChannel(fallbackChannel);
         }
       } else {
         logger.error(`[BfcacheSafe] Failed to register callbacks for ${channelName}:`, error);
@@ -158,7 +136,6 @@ export const useBfcacheSafeChannel = (
     window.addEventListener('pagehide', handlePageHide);
 
     return () => {
-      // Cleanup عند الـ Unmount العادي — منع Memory Leak
       teardown();
       window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('pagehide', handlePageHide);

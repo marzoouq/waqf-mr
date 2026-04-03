@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { useFiscalYears, type FiscalYear } from '@/hooks/financial/useFiscalYears';
+import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY } from '@/lib/services/fiscalYearService';
 
 export function useFiscalYearManagement() {
   const { data: fiscalYears = [], isLoading } = useFiscalYears();
@@ -23,14 +23,7 @@ export function useFiscalYearManagement() {
     }
     setActionLoading('create');
     try {
-      const { error } = await supabase.from('fiscal_years').insert({
-        label: newFY.label,
-        start_date: newFY.start_date,
-        end_date: newFY.end_date,
-        status: 'active',
-        published: false,
-      });
-      if (error) throw error;
+      await createFiscalYear(newFY);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
       toast.success('تم إنشاء السنة المالية (محجوبة عن المستفيدين — يمكنك نشرها لاحقاً)');
       setNewFY({ label: '', start_date: '', end_date: '' });
@@ -53,13 +46,9 @@ export function useFiscalYearManagement() {
   const handleReopen = async (fy: FiscalYear, reason: string) => {
     setActionLoading(fy.id);
     try {
-      const { data, error } = await supabase.rpc('reopen_fiscal_year', {
-        p_fiscal_year_id: fy.id,
-        p_reason: reason,
-      });
-      if (error) throw error;
+      const data = await reopenFiscalYear(fy.id, reason);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      toast.success(`تم إعادة فتح السنة: ${(data as { label: string }).label}`);
+      toast.success(`تم إعادة فتح السنة: ${data.label}`);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'حدث خطأ أثناء إعادة الفتح');
     } finally {
@@ -71,8 +60,7 @@ export function useFiscalYearManagement() {
     const newVal = !fy.published;
     setActionLoading(`pub-${fy.id}`);
     try {
-      const { error } = await supabase.from('fiscal_years').update({ published: newVal }).eq('id', fy.id);
-      if (error) throw error;
+      await toggleFiscalYearPublished(fy.id, newVal);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
       toast.success(newVal ? `تم نشر السنة "${fy.label}" للمستفيدين` : `تم حجب السنة "${fy.label}" عن المستفيدين`);
     } catch {
@@ -89,8 +77,7 @@ export function useFiscalYearManagement() {
     }
     setActionLoading(fy.id);
     try {
-      const { error } = await supabase.from('fiscal_years').delete().eq('id', fy.id);
-      if (error) throw error;
+      await deleteFY(fy.id);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
       toast.success(`تم حذف السنة: ${fy.label}`);
     } catch (err: unknown) {

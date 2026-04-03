@@ -2,9 +2,10 @@
  * هوك إدارة إعدادات ZATCA
  */
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
+import { useZatcaCertificates } from '@/hooks/data/useZatcaCertificates';
+import { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp, saveZatcaSettings } from '@/lib/services/zatcaService';
 import { toast } from 'sonner';
 
 export const ZATCA_KEYS = [
@@ -45,18 +46,10 @@ export const useZatcaSettings = () => {
   const [renewLoading, setRenewLoading] = useState(false);
   const [connectionTest, setConnectionTest] = useState<ConnectionTestResult>({ loading: false, result: null });
 
-  const { data: certificates = [] } = useQuery({
-    queryKey: ['zatca-certificates'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('zatca_certificates').select('id, certificate_type, is_active, request_id, created_at, expires_at').order('created_at', { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: certificates = [] } = useZatcaCertificates();
 
   const activeCert = certificates.find(c => c.is_active);
 
-  // حساب تحذير انتهاء الصلاحية
   const certExpiryWarning = (() => {
     if (!activeCert?.expires_at) return null;
     const expiresAt = new Date(activeCert.expires_at);
@@ -109,8 +102,7 @@ export const useZatcaSettings = () => {
         value: (formData[key] || '').trim(),
         updated_at: now,
       }));
-      const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
-      if (error) throw error;
+      await saveZatcaSettings(rows);
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       toast.success('تم حفظ إعدادات الضريبة بنجاح');
     } catch {
@@ -139,8 +131,7 @@ export const useZatcaSettings = () => {
     setOnboardLoading(true);
     try {
       await handleSave();
-      const { error } = await supabase.functions.invoke('zatca-onboard', { body: { action: 'onboard' } });
-      if (error) throw error;
+      await zatcaOnboard();
       toast.success('تم التسجيل بنجاح في بوابة فاتورة');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
       queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
@@ -148,16 +139,14 @@ export const useZatcaSettings = () => {
       toast.error(e instanceof Error ? e.message : 'فشل التسجيل');
     } finally {
       setOnboardLoading(false);
-      // #41/#54: حذف OTP من قاعدة البيانات بعد أي نتيجة (نجاح أو فشل)
       try {
-        await supabase.rpc('clear_zatca_otp');
+        await clearZatcaOtp();
         setFormData(prev => ({ ...prev, zatca_otp_1: '', zatca_otp_2: '' }));
         queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      } catch { /* صمت — لا نعيق التدفق */ }
+      } catch { /* صمت */ }
     }
   };
 
-  // تجديد شهادة الإنتاج (API #5)
   const handleRenewCertificate = async () => {
     const otp = formData.zatca_otp_2?.trim() || formData.zatca_otp_1?.trim();
     if (!otp) {
@@ -168,8 +157,7 @@ export const useZatcaSettings = () => {
     setRenewLoading(true);
     try {
       await handleSave();
-      const { data, error } = await supabase.functions.invoke('zatca-renew');
-      if (error) throw error;
+      const data = await zatcaRenew();
       if (data?.success) {
         toast.success('تم تجديد شهادة الإنتاج بنجاح');
       } else {
@@ -181,9 +169,8 @@ export const useZatcaSettings = () => {
       toast.error(e instanceof Error ? e.message : 'فشل تجديد الشهادة');
     } finally {
       setRenewLoading(false);
-      // #41/#54: حذف OTP من قاعدة البيانات بعد أي نتيجة
       try {
-        await supabase.rpc('clear_zatca_otp');
+        await clearZatcaOtp();
         setFormData(prev => ({ ...prev, zatca_otp_1: '', zatca_otp_2: '' }));
         queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       } catch { /* صمت */ }
@@ -193,10 +180,7 @@ export const useZatcaSettings = () => {
   const handleTestConnection = async () => {
     setConnectionTest({ loading: true, result: null });
     try {
-      const { data, error } = await supabase.functions.invoke('zatca-onboard', {
-        body: { action: 'test-connection' },
-      });
-      if (error) throw error;
+      const data = await zatcaTestConnection();
       setConnectionTest({ loading: false, result: data });
       queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
       if (data?.connected) {
