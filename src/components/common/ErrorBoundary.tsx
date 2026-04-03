@@ -61,10 +61,10 @@ class ErrorBoundary extends Component<Props, State> {
         try {
           // معرّف جلسة فريد لتجميع الأخطاء حسب الجلسة
           const sessionId = (globalThis as Record<string, unknown>).__ERROR_SESSION_ID ??= crypto.randomUUID();
-          const queue = JSON.parse(localStorage.getItem('error_log_queue') || '[]');
+          const queue = JSON.parse(localStorage.getItem(STORAGE_KEYS.ERROR_LOG_QUEUE) || '[]');
           queue.push({ ...metadata, session_id: sessionId, logged_at: new Date().toISOString() });
           if (queue.length > 20) queue.shift();
-          localStorage.setItem('error_log_queue', JSON.stringify(queue));
+          localStorage.setItem(STORAGE_KEYS.ERROR_LOG_QUEUE, JSON.stringify(queue));
         } catch { /* storage full or unavailable */ }
       });
     } catch { /* silent — don't break the error boundary */ }

@@ -8,8 +8,9 @@ import {
   type ToneId,
   type VolumeLevel,
 } from '@/hooks/data/useNotifications';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
-const NOTIF_SOUND_KEY = 'waqf_notification_sound';
+const NOTIF_SOUND_KEY = STORAGE_KEYS.NOTIFICATION_SOUND;
 
 /**
  * Hook مشترك لإدارة إعدادات صوت الإشعارات

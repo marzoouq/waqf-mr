@@ -9,8 +9,9 @@ import {
   handleAuthenticationError,
   getDeviceName,
 } from './webAuthnErrors';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
-const BIOMETRIC_ENABLED_KEY = 'waqf_biometric_enabled';
+const BIOMETRIC_ENABLED_KEY = STORAGE_KEYS.BIOMETRIC_ENABLED;
 
 interface WebAuthnCredential { id: string; device_name: string; created_at: string; }
 

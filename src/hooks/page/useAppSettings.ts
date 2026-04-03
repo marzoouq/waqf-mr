@@ -133,7 +133,7 @@ export const useSetting = (key: string, fallback = ''): string => {
  */
 export const updateNotificationPrefs = (prefs: Record<string, boolean>) => {
   try {
-    localStorage.setItem('waqf_notification_preferences', JSON.stringify(prefs));
+    localStorage.setItem(STORAGE_KEYS.NOTIFICATION_PREFS, JSON.stringify(prefs));
     window.dispatchEvent(new CustomEvent('notif-prefs-changed'));
   } catch { /* silent */ }
 };

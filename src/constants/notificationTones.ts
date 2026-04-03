@@ -1,8 +1,9 @@
 /** منطق أصوات الإشعارات — ثوابت وبيانات */
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
-export const NOTIFICATION_TONE_KEY = 'waqf_notification_tone';
-export const NOTIFICATION_VOLUME_KEY = 'waqf_notification_volume';
-export const NOTIF_PREFS_KEY = 'waqf_notification_preferences';
+export const NOTIFICATION_TONE_KEY = STORAGE_KEYS.NOTIFICATION_TONE;
+export const NOTIFICATION_VOLUME_KEY = STORAGE_KEYS.NOTIFICATION_VOLUME;
+export const NOTIF_PREFS_KEY = STORAGE_KEYS.NOTIFICATION_PREFS;
 
 export type VolumeLevel = 'high' | 'medium' | 'low';
 export const VOLUME_OPTIONS: { id: VolumeLevel; label: string; gain: number }[] = [
