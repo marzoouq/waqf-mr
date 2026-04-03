@@ -78,10 +78,13 @@ export const uploadInvoiceFile = async (file: File): Promise<{ path: string; nam
     throw new Error('محتوى الملف لا يتطابق مع نوعه المعلن — ملف مزوَّر محتمل');
   }
 
-  const path = `${crypto.randomUUID()}.${ext}`;
+  // ضغط الصور قبل الرفع لتقليل الحجم
+  const processedFile = await compressImageFile(file);
+  const finalExt = processedFile.name.split('.').pop()?.toLowerCase() || ext;
+  const path = `${crypto.randomUUID()}.${finalExt}`;
 
-  const { error } = await supabase.storage.from('invoices').upload(path, file, {
-    contentType: file.type,
+  const { error } = await supabase.storage.from('invoices').upload(path, processedFile, {
+    contentType: processedFile.type,
   });
   if (error) throw error;
 
