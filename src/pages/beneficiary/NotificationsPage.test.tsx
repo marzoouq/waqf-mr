@@ -18,7 +18,7 @@ const mockMarkAllAsRead = { mutate: vi.fn() };
 const mockDeleteRead = { mutate: vi.fn() };
 const mockDeleteOne = { mutate: vi.fn() };
 
-vi.mock('@/hooks/data/useNotifications', () => ({
+vi.mock('@/hooks/data/notifications/useNotifications', () => ({
   useNotifications: vi.fn(() => ({
     data: [
       { id: 'n1', title: 'تم حفظ الحسابات', message: 'تم حفظ الحسابات الختامية', type: 'payment', is_read: false, created_at: new Date().toISOString(), link: null },
@@ -123,7 +123,7 @@ describe('NotificationsPage', () => {
   });
 
   it('shows empty state when no notifications', async () => {
-    const { useNotifications } = await import('@/hooks/data/useNotifications');
+    const { useNotifications } = await import('@/hooks/data/notifications/useNotifications');
     vi.mocked(useNotifications).mockReturnValueOnce({
       data: [],
       filteredData: [],

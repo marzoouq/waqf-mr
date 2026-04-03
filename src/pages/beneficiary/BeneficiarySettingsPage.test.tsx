@@ -6,7 +6,7 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1', email: 'ahmed@test.com' }, role: 'beneficiary' })),
 }));
 
-vi.mock('@/hooks/data/useBeneficiaries', () => ({
+vi.mock('@/hooks/data/beneficiaries/useBeneficiaries', () => ({
   useBeneficiariesSafe: vi.fn(() => ({
     data: [
       { id: 'b1', user_id: 'user-1', name: 'أحمد محمد', share_percentage: 10, phone: '0551234567', email: 'ahmed@test.com', national_id: '1234567890', bank_account: null, notes: null },
@@ -99,7 +99,7 @@ describe('BeneficiarySettingsPage', () => {
   });
 
   it('يعرض حالة الخطأ', async () => {
-    const { useBeneficiariesSafe } = await import('@/hooks/data/useBeneficiaries');
+    const { useBeneficiariesSafe } = await import('@/hooks/data/beneficiaries/useBeneficiaries');
     vi.mocked(useBeneficiariesSafe).mockReturnValueOnce({
       data: [], isLoading: false, isError: true,
     } as unknown as ReturnType<typeof useBeneficiariesSafe>);
@@ -108,7 +108,7 @@ describe('BeneficiarySettingsPage', () => {
   });
 
   it('يعرض حالة التحميل', async () => {
-    const { useBeneficiariesSafe } = await import('@/hooks/data/useBeneficiaries');
+    const { useBeneficiariesSafe } = await import('@/hooks/data/beneficiaries/useBeneficiaries');
     vi.mocked(useBeneficiariesSafe).mockReturnValueOnce({
       data: [], isLoading: true, isError: false,
     } as unknown as ReturnType<typeof useBeneficiariesSafe>);
