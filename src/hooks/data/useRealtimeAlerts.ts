@@ -39,7 +39,7 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
           description: `${ticket.ticket_number}: ${ticket.title}`,
           action: {
             label: 'عرض',
-            onClick: () => navigateRef.current ? navigateRef.current('/dashboard/support') : window.location.assign('/dashboard/support'),
+            onClick: () => navigateRef.current?.('/dashboard/support'),
           },
           duration: 8000,
         });
