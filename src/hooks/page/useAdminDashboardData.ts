@@ -1,15 +1,10 @@
 /**
- * هوك لتحضير بيانات لوحة تحكم الناظر/المحاسب — يفصل منطق الحساب عن العرض
+ * هوك لتحضير بيانات لوحة تحكم الناظر/المحاسب — يقرأ أرقام جاهزة من RPC
  */
 import { useMemo } from 'react';
-import { EXPIRING_SOON_DAYS } from '@/constants';
-import { safeNumber } from '@/utils/safeNumber';
-import { computeMonthlyData } from '@/utils/dashboardComputations';
-import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
 import type { useDashboardSummary } from '@/hooks/data/financial/useDashboardSummary';
 
-/** النوع المُستنتج من هوك الملخص — يضمن التوافق التام بين الهوكين */
 type DashboardSummary = Omit<ReturnType<typeof useDashboardSummary>, 'isLoading' | 'isError'>;
 
 interface UseAdminDashboardDataParams {
@@ -22,91 +17,70 @@ interface UseAdminDashboardDataParams {
 }
 
 export const useAdminDashboardData = ({
-  user, role, fiscalYearId, fiscalYear, isSpecificYear, summary,
+  user, role, fiscalYearId, fiscalYear, isSpecificYear: _isSpecificYear, summary,
 }: UseAdminDashboardDataParams) => {
-  const {
-    properties, contracts, allUnits, paymentInvoices,
-    contractAllocations, advanceRequests, orphanedContracts,
-    income, expenses, accounts, beneficiaries, settings,
-    allFiscalYears, yoy, computed,
-  } = summary;
+  const agg = summary.aggregated;
+  const totals = agg?.totals;
+  const counts = agg?.counts;
 
-  // ── عدد السلف المعلقة ──
-  const pendingAdvancesCount = useMemo(
-    () => advanceRequests.filter((r) => r.status === 'pending').length,
-    [advanceRequests],
-  );
+  // ── قيم مالية جاهزة من RPC ──
+  const totalIncome = totals?.total_income ?? 0;
+  const totalExpenses = totals?.total_expenses ?? 0;
+  const netAfterExpenses = totals?.net_after_expenses ?? 0;
+  const netAfterZakat = totals?.net_after_zakat ?? 0;
+  const adminShare = totals?.admin_share ?? 0;
+  const waqifShare = totals?.waqif_share ?? 0;
+  const waqfRevenue = totals?.waqf_revenue ?? 0;
+  const availableAmount = totals?.available_amount ?? 0;
+  const distributionsAmount = totals?.distributions_amount ?? 0;
+  const contractualRevenue = totals?.contractual_revenue ?? 0;
 
-  // ── الحسابات المالية ──
-  const computedAccounts = useMemo(
-    () => accounts.map((a) => ({ ...a, fiscal_year_id: a.fiscal_year_id ?? '' })),
-    [accounts],
-  );
-  const {
-    totalIncome, totalExpenses, adminShare, waqifShare, waqfRevenue,
-    netAfterExpenses, netAfterZakat, availableAmount,
-    zakatAmount: _zakatAmount, distributionsAmount, usingFallbackPct,
-  } = useComputedFinancials({
-    income, expenses, accounts: computedAccounts, settings,
-    fiscalYearLabel: fiscalYear?.label,
-    fiscalYearId,
-    fiscalYearStatus: fiscalYear?.status,
-  });
-
-  // ── العقود والإيرادات التعاقدية ──
-  const relevantContracts = useMemo(
-    () => isSpecificYear ? contracts : contracts.filter((c) => c.status === 'active'),
-    [contracts, isSpecificYear],
-  );
-  const activeContractsCount = relevantContracts.length;
-
-  const contractualRevenue = useMemo(() => {
-    if (isSpecificYear && contractAllocations.length > 0) {
-      const allocMap = new Map<string, number>();
-      contractAllocations.forEach((a) => {
-        allocMap.set(a.contract_id, (allocMap.get(a.contract_id) ?? 0) + safeNumber(a.allocated_amount));
-      });
-      return relevantContracts.reduce((sum: number, c) => sum + (allocMap.get(c.id) ?? 0), 0);
-    }
-    return relevantContracts.reduce((sum: number, c) => sum + safeNumber(c.rent_amount), 0);
-  }, [relevantContracts, contractAllocations, isSpecificYear]);
-
-  const isYearActive = fiscalYear?.status === 'active';
+  const pendingAdvancesCount = counts?.pending_advances ?? 0;
+  const isYearActive = (agg?.fiscal_year_status ?? fiscalYear?.status) === 'active';
   const sharesNote = isYearActive ? ' *تقديري' : '';
 
-  // ── العقود المنتهية قريباً ──
-  const expiringContracts = useMemo(() =>
-    contracts.filter((c) => {
-      const daysLeft = (new Date(c.end_date).getTime() - Date.now()) / 86_400_000;
-      return c.status === 'active' && daysLeft >= 0 && daysLeft <= EXPIRING_SOON_DAYS;
-    }),
-    [contracts],
-  );
+  // ── تحقق إن كانت الإعدادات تستخدم قيم افتراضية ──
+  const usingFallbackPct = useMemo(() => {
+    const s = agg?.settings;
+    if (!s) return false;
+    return !s.admin_share_percentage || !s.waqif_share_percentage;
+  }, [agg?.settings]);
+
+  // ── العقود المنتهية قريباً (من counts المُجمّعة) ──
+  const expiringContracts = useMemo(() => {
+    // نحتاج مصفوفة وهمية بطول العدد لأن DashboardAlerts يستخدم .length فقط
+    return Array(counts?.expiring_contracts ?? 0).fill(null);
+  }, [counts?.expiring_contracts]);
+
+  const orphanedContracts = useMemo(() => {
+    return Array(counts?.orphaned_contracts ?? 0).fill(null);
+  }, [counts?.orphaned_contracts]);
 
   // ── إحصائيات البطاقات ──
   const { stats, kpis, collectionSummary, collectionColor } = useAdminDashboardStats({
-    properties, activeContractsCount, contractualRevenue,
-    totalIncome, totalExpenses, netAfterExpenses, netAfterZakat,
-    availableAmount, adminShare: adminShare ?? 0, waqifShare: waqifShare ?? 0, waqfRevenue: waqfRevenue ?? 0,
-    distributionsAmount, beneficiaries, isYearActive, sharesNote,
-    yoy, contracts, paymentInvoices, allUnits, isSpecificYear,
+    propertiesCount: counts?.properties ?? 0,
+    activeContractsCount: counts?.active_contracts ?? 0,
+    contractualRevenue,
+    totalIncome,
+    totalExpenses,
+    netAfterExpenses,
+    netAfterZakat,
+    availableAmount,
+    adminShare,
+    waqifShare,
+    waqfRevenue,
+    distributionsAmount,
+    beneficiariesCount: counts?.beneficiaries ?? 0,
+    isYearActive,
+    sharesNote,
+    yoy: summary.yoy,
+    collection: agg?.collection ?? null,
+    occupancy: agg?.occupancy ?? null,
   });
 
-  // ── بيانات الرسوم البيانية (تُستخدم المحسوبة مسبقاً إن توفرت) ──
-  const monthlyData = useMemo(
-    () => computed?.monthlyData ?? computeMonthlyData(income, expenses),
-    [computed?.monthlyData, income, expenses],
-  );
-
-  const expenseTypes = useMemo(() => {
-    if (computed?.expenseTypes) return computed.expenseTypes;
-    const types: Record<string, number> = {};
-    expenses.forEach((item) => {
-      const type = item.expense_type || 'أخرى';
-      types[type] = (types[type] || 0) + safeNumber(item.amount);
-    });
-    return Object.entries(types).map(([name, value]) => ({ name, value }));
-  }, [computed?.expenseTypes, expenses]);
+  // ── بيانات الرسوم البيانية (جاهزة من RPC) ──
+  const monthlyData = agg?.monthly_data ?? [];
+  const expenseTypes = agg?.expense_types ?? [];
 
   // ── نص التحية ──
   const greetingText = useMemo(() => {
@@ -120,11 +94,21 @@ export const useAdminDashboardData = ({
   }, [user, role, fiscalYearId, fiscalYear]);
 
   return {
-    pendingAdvancesCount, totalIncome, contractualRevenue,
-    usingFallbackPct, expiringContracts, orphanedContracts,
-    stats, kpis, collectionSummary, collectionColor,
-    monthlyData, expenseTypes, greetingText,
-    contracts, paymentInvoices, advanceRequests, allFiscalYears,
-    fiscalYear, isYearActive,
+    pendingAdvancesCount,
+    totalIncome,
+    contractualRevenue,
+    usingFallbackPct,
+    expiringContracts,
+    orphanedContracts,
+    stats,
+    kpis,
+    collectionSummary,
+    collectionColor,
+    monthlyData,
+    expenseTypes,
+    greetingText,
+    allFiscalYears: agg?.fiscal_years ?? [],
+    fiscalYear,
+    isYearActive,
   };
 };
