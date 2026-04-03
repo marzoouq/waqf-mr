@@ -109,22 +109,21 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
     const rangeTo = rangeFrom + limit - 1;
 
     const query = useQuery({
-      // إضافة الصفحة للـ queryKey لتخزين كل صفحة بشكل مستقل
       queryKey: [queryKey, { page }],
       staleTime,
       queryFn: async () => {
-        const { data, error } = await supabase
+        const { data, error, count } = await supabase
           .from(table)
           .select(select, { count: 'exact' })
           .order(orderBy, { ascending })
           .range(rangeFrom, rangeTo);
 
         if (error) throw error;
-        return data as TData[];
+        return { rows: data as TData[], totalCount: count ?? 0 };
       },
-      select: (data: TData[]) => {
+      select: (result: { rows: TData[]; totalCount: number }) => {
         // تحذير فقط في الصفحة الأولى لتجنب التكرار
-        if (page === 0 && data && data.length === limit) {
+        if (page === 0 && result.totalCount > limit) {
           const key = `limit-warn-${queryKey}`;
           if (!limitWarnShown.has(key)) {
             limitWarnShown.add(key);
@@ -132,7 +131,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
             setTimeout(() => { limitWarnShown.delete(key); }, 300_000);
           }
         }
-        return data;
+        return result;
       },
     });
 
