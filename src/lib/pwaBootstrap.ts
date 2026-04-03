@@ -6,7 +6,7 @@ import { logger } from './logger';
 
 const APP_BUILD_ID = import.meta.env.VITE_APP_BUILD_ID || import.meta.env.VITE_APP_VERSION || '0.0.0';
 const CACHE_VERSION_KEY = 'pwa_cache_version';
-const PREVIEW_CACHE_KEY = 'preview_cache_cleared_for';
+// PREVIEW_CACHE_KEY لم يعد ضرورياً — المعاينة تمسح دائماً
 
 /** حارس iframe — لا نُسجّل SW داخل إطار */
 const isInIframe = (() => {
