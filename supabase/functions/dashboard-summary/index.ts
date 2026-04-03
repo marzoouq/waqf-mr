@@ -260,6 +260,62 @@ Deno.serve(async (req) => {
       settings[row.key] = row.value;
     });
 
+    // ── حسابات مُجمّعة على الخادم لتخفيف عبء العميل ──
+    const incomeArr = (incomeRes.data || []) as Array<{ amount?: number | null; date?: string | null }>;
+    const expensesArr = (expensesRes.data || []) as Array<{ amount?: number | null; date?: string | null; expense_type?: string | null }>;
+    const contractsArr = (contractsRes.data || []) as Array<{ id?: string; status?: string; rent_amount?: number | null }>;
+    const piArr = (paymentInvoicesRes.data || []) as Array<{ contract_id?: string; status?: string; due_date?: string; amount?: number | null; paid_amount?: number | null }>;
+
+    // إجمالي الدخل والمصروفات
+    const computedTotalIncome = incomeArr.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+    const computedTotalExpenses = expensesArr.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+
+    // بيانات شهرية
+    const monthMap: Record<string, { income: number; expenses: number }> = {};
+    for (const item of incomeArr) {
+      const m = item.date?.substring(0, 7);
+      if (m) { if (!monthMap[m]) monthMap[m] = { income: 0, expenses: 0 }; monthMap[m].income += Number(item.amount) || 0; }
+    }
+    for (const item of expensesArr) {
+      const m = item.date?.substring(0, 7);
+      if (m) { if (!monthMap[m]) monthMap[m] = { income: 0, expenses: 0 }; monthMap[m].expenses += Number(item.amount) || 0; }
+    }
+    const computedMonthlyData = Object.entries(monthMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, data]) => ({ month, income: data.income, expenses: data.expenses }));
+
+    // أنواع المصروفات
+    const expTypeMap: Record<string, number> = {};
+    for (const e of expensesArr) {
+      const t = e.expense_type || "أخرى";
+      expTypeMap[t] = (expTypeMap[t] || 0) + (Number(e.amount) || 0);
+    }
+    const computedExpenseTypes = Object.entries(expTypeMap).map(([name, value]) => ({ name, value }));
+
+    // ملخص التحصيل
+    const activeContractIds = new Set(
+      contractsArr.filter(c => c.status === "active" || c.status === "expired").map(c => c.id)
+    );
+    const nowDate = new Date();
+    const dueInvoices = piArr.filter(
+      inv => activeContractIds.has(inv.contract_id) && new Date(inv.due_date ?? "") <= nowDate
+    );
+    const collTotalExpected = dueInvoices.reduce((s, inv) => s + (Number(inv.amount) || 0), 0);
+    const collTotalCollected = dueInvoices.reduce((s, inv) => {
+      if (inv.status === "paid") return s + (Number(inv.amount) || 0);
+      if (inv.status === "partially_paid") return s + (Number(inv.paid_amount) || 0);
+      return s;
+    }, 0);
+    const computedCollection = {
+      paidCount: dueInvoices.filter(i => i.status === "paid").length,
+      partialCount: dueInvoices.filter(i => i.status === "partially_paid").length,
+      unpaidCount: dueInvoices.length - dueInvoices.filter(i => i.status === "paid").length - dueInvoices.filter(i => i.status === "partially_paid").length,
+      total: dueInvoices.length,
+      percentage: collTotalExpected > 0 ? Math.round((collTotalCollected / collTotalExpected) * 100) : 0,
+      totalCollected: collTotalCollected,
+      totalExpected: collTotalExpected,
+    };
+
     // ── بناء الاستجابة ──
     const result = {
       properties: propertiesRes.data || [],
@@ -276,6 +332,14 @@ Deno.serve(async (req) => {
       settings,
       fiscal_years: allFiscalYears,
       prev_year: prevYear,
+      // حقول مُحسوبة مسبقاً
+      computed: {
+        totalIncome: computedTotalIncome,
+        totalExpenses: computedTotalExpenses,
+        monthlyData: computedMonthlyData,
+        expenseTypes: computedExpenseTypes,
+        collection: computedCollection,
+      },
       fetched_at: new Date().toISOString(),
     };
 
