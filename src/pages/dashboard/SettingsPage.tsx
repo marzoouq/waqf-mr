@@ -102,9 +102,7 @@ const SettingsPage = () => {
           )}
           <TabsContent value="waqf"><WaqfSettingsTab /></TabsContent>
           <TabsContent value="landing"><Suspense fallback={LOADING}><LandingPageTab /></Suspense></TabsContent>
-          <TabsContent value="sections"><SectionsTab /></TabsContent>
-          <TabsContent value="menu"><Suspense fallback={LOADING}><MenuCustomizationTab /></Suspense></TabsContent>
-          <TabsContent value="beneficiary"><BeneficiaryTab /></TabsContent>
+          <TabsContent value="permissions"><Suspense fallback={LOADING}><PermissionsControlPanel /></Suspense></TabsContent>
           <TabsContent value="appearance"><AppearanceTab /></TabsContent>
           <TabsContent value="fiscal"><Suspense fallback={LOADING}><FiscalYearManagementTab /></Suspense></TabsContent>
           <TabsContent value="notifications"><NotificationsTab /></TabsContent>
