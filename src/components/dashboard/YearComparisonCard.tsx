@@ -17,7 +17,7 @@ const ChartSkeleton = () => (
 );
 
 interface YearComparisonCardProps {
-  allFiscalYears: Array<{ id: string; label: string; start_date: string; end_date: string; status: string }>;
+  allFiscalYears: Array<{ id: string; label: string; start_date: string; end_date: string; status: string; published: boolean; created_at: string }>;
   fiscalYearId: string;
 }
 
