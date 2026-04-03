@@ -7,6 +7,7 @@ import { queryClient } from '@/lib/queryClient';
 import { toast } from 'sonner';
 
 const activeTimers = new Map<string, () => void>();
+const MAX_ACTIVE_TIMERS = 50;
 
 export function initQueryMonitoring(): void {
   queryClient.getQueryCache().subscribe((event) => {
@@ -14,7 +15,14 @@ export function initQueryMonitoring(): void {
       const qHash = event.query.queryHash;
       const queryKey = event.query.queryKey;
       const label = Array.isArray(queryKey) ? queryKey.join('/') : String(queryKey);
-      // أوقف المؤقت السابق إن وُجد (لمنع التكرار)
+      // منع تراكم المؤقتات — حذف الأقدم إن تجاوز الحد
+      if (activeTimers.size >= MAX_ACTIVE_TIMERS) {
+        const oldestKey = activeTimers.keys().next().value;
+        if (oldestKey) {
+          activeTimers.get(oldestKey)?.();
+          activeTimers.delete(oldestKey);
+        }
+      }
       activeTimers.get(qHash)?.();
       activeTimers.set(qHash, startPerfTimer(`Query: ${label}`, {
         onSlow: (msg, opts) => toast.warning(msg, opts),
