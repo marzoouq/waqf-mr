@@ -1,6 +1,6 @@
 <div dir="rtl">
 
-# توثيق الوظائف الخلفية (Edge Functions) — 11 وظيفة
+# توثيق الوظائف الخلفية (Edge Functions) — 14 وظيفة
 
 جميع الوظائف تعمل على Lovable Cloud وتُستدعى عبر:
 ```typescript
