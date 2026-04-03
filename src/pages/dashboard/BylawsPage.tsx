@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Accordion } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { BylawAddDialog, BylawEditDialog, BylawDeleteDialog } from '@/components/bylaws/BylawDialogs';
+import BylawsStatsCards from '@/components/bylaws/BylawsStatsCards';
 import SortableBylawItem from '@/components/bylaws/SortableBylawItem';
 import { Loader2, BookOpen, Eye, EyeOff, Search, X, Plus, Globe, Lock, Scale, FileText } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
