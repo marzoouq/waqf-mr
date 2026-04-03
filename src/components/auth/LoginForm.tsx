@@ -5,7 +5,6 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { Mail, IdCard, KeyRound, AlertTriangle, ShieldAlert, Eye, EyeOff } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/normalizeDigits';
@@ -73,13 +72,6 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
         });
       } else {
         toast.success('تم تسجيل الدخول بنجاح');
-        supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
-          logAccessEvent({
-            event_type: 'login_success',
-            email: resolvedEmail,
-            user_id: currentUser?.id,
-          });
-        }).catch(() => { /* silent */ });
       }
     } catch {
       toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
