@@ -68,8 +68,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onTouchStart={swipe.handleTouchStart}
         onTouchMove={swipe.handleTouchMove}
         onTouchEnd={swipe.handleTouchEnd}
-        className="fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden transition-transform duration-300"
-        style={{ transform: `translateX(${swipe.sidebarTranslateX}px)` }}
+        className="fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden"
+        style={{ transform: `translateX(${swipe.sidebarTranslateX}px)`, willChange: 'transform' }}
       >
         <SidebarContent
           links={links}
@@ -84,7 +84,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <aside
         aria-label="القائمة الجانبية"
         className={cn(
-          'fixed inset-y-0 right-0 z-30 hidden lg:flex flex-col gradient-hero transition-all duration-300 shadow-elegant',
+          'fixed inset-y-0 right-0 z-30 hidden lg:flex flex-col gradient-hero transition-[width] duration-300 shadow-elegant',
           sidebarOpen ? 'w-64' : 'w-16'
         )}
       >
@@ -105,7 +105,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onTouchMove={swipe.handleMainTouchMove}
         onTouchEnd={swipe.handleMainTouchEnd}
         className={cn(
-          'flex-1 transition-all duration-300 min-h-screen overflow-y-auto',
+          'flex-1 transition-[margin] duration-300 min-h-screen overflow-y-auto',
           'pt-14 pb-16 lg:pt-0 lg:pb-0',
           sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
         )}

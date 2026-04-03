@@ -104,8 +104,8 @@ const AiAssistant = () => {
             </div>
           )}
           <div className="space-y-3">
-            {messages.map((msg, i) => (
-              <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-start' : 'justify-end')}>
+            {messages.map((msg, idx) => (
+              <div key={`${msg.role}-${idx}-${msg.content.slice(0, 16)}`} className={cn('flex', msg.role === 'user' ? 'justify-start' : 'justify-end')}>
                 <div className={cn('max-w-[85%] rounded-xl px-3 py-2 text-sm', msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                   {msg.role === 'assistant' ? (
                     <div className="prose prose-sm max-w-none dark:prose-invert [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0"><Suspense fallback={<span className="animate-pulse">...</span>}><ReactMarkdown>{msg.content}</ReactMarkdown></Suspense></div>
