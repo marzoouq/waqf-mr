@@ -15,11 +15,12 @@ const id = () => `id-${++seq}`;
 
 const mkIncome = (source: string, amount: number, date = '2024-06-01'): Income => ({
   id: id(), source, amount, date, created_at: date,
+  fiscal_year_id: 'fy1', contract_id: null, notes: null, property_id: null,
 });
 
 const mkExpense = (type: string, amount: number, desc?: string): Expense => ({
   id: id(), expense_type: type, amount, date: '2024-06-01', created_at: '2024-06-01',
-  description: desc ?? undefined,
+  fiscal_year_id: 'fy1', description: desc ?? null, property_id: null,
 });
 
 const mkAccount = (overrides: Partial<Tables<'accounts'>> = {}): Tables<'accounts'> => ({

@@ -10,9 +10,14 @@ const mockToastSuccess = vi.fn();
 vi.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a), success: (...a: unknown[]) => mockToastSuccess(...a), info: vi.fn() } }));
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
 
+const baseContractFields = {
+  notes: null, tenant_id_type: null, tenant_id_number: null, tenant_tax_number: null,
+  tenant_crn: null, tenant_street: null, tenant_building: null, tenant_district: null,
+  tenant_city: null, tenant_postal_code: null,
+};
 const mockContracts = [
-  { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 120000, start_date: '2024-01-01', end_date: '2025-01-01', status: 'active', property_id: 'p1', payment_type: 'annual', payment_count: 1, payment_amount: undefined, unit_id: undefined, fiscal_year_id: 'fy1', created_at: '', updated_at: '' },
-  { id: 'c2', contract_number: 'W-002', tenant_name: 'خالد', rent_amount: 60000, start_date: '2024-01-01', end_date: '2025-01-01', status: 'cancelled', property_id: 'p1', payment_type: 'monthly', payment_count: 12, payment_amount: 5000, unit_id: 'u1', fiscal_year_id: 'fy1', created_at: '', updated_at: '' },
+  { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 120000, start_date: '2024-01-01', end_date: '2025-01-01', status: 'active', property_id: 'p1', payment_type: 'annual', payment_count: 1, payment_amount: null, unit_id: null, fiscal_year_id: 'fy1', created_at: '', updated_at: '', ...baseContractFields },
+  { id: 'c2', contract_number: 'W-002', tenant_name: 'خالد', rent_amount: 60000, start_date: '2024-01-01', end_date: '2025-01-01', status: 'cancelled', property_id: 'p1', payment_type: 'monthly', payment_count: 12, payment_amount: 5000, unit_id: 'u1', fiscal_year_id: 'fy1', created_at: '', updated_at: '', ...baseContractFields },
 ];
 
 const mockFiscalYears = [
