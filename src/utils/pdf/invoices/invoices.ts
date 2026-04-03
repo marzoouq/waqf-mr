@@ -6,7 +6,7 @@ import {
   reshapeArabic as rs, reshapeRow,
   fmtDate,
 } from '../core/core';
-import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
+import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
 

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, Archive, Activity, CalendarDays } from 'lucide-react';
 import { TablePagination, TableSkeleton } from '@/components/common';
 import { fmtDate } from '@/utils/format';
-import { useArchiveLog, ARCHIVE_ITEMS_PER_PAGE } from '@/hooks/data/useArchiveLog';
+import { useArchiveLog, ARCHIVE_ITEMS_PER_PAGE } from '@/hooks/data/audit/useArchiveLog';
 
 const eventConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   login_failed: { label: 'فشل تسجيل الدخول', color: 'bg-destructive/15 text-destructive border-destructive/30', icon: XCircle },

@@ -8,7 +8,7 @@ import { statusColor } from './constants';
 import { getPaymentStatusFromInvoices, getMonthlyRent, getTenantFromContracts, getMonthlyFromContract } from './helpers';
 import { fmt, fmtInt } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
-import type { UnitRow } from '@/hooks/data/useUnits';
+import type { UnitRow } from '@/hooks/data/properties/useUnits';
 import type { Contract } from '@/types/database';
 
 interface PaymentInvoiceLike {

@@ -6,11 +6,11 @@ import { fmt } from '@/utils/format';
 import { usePropertyPerformance } from '@/hooks/financial/usePropertyPerformance';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useProperties } from '@/hooks/data/useProperties';
-import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
-import { useAllUnits } from '@/hooks/data/useUnits';
-import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { useProperties } from '@/hooks/data/properties/useProperties';
+import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
+import { useAllUnits } from '@/hooks/data/properties/useUnits';
+import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import type { ForensicAuditData } from '@/utils/pdf';
 
 export function useReportsData() {

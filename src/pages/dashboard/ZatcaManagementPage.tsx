@@ -12,7 +12,7 @@ import ZatcaInvoicesTab from '@/components/zatca/ZatcaInvoicesTab';
 import ZatcaCertificatesTab from '@/components/zatca/ZatcaCertificatesTab';
 import ZatcaChainTab from '@/components/zatca/ZatcaChainTab';
 import ZatcaComplianceDialog from '@/components/zatca/ZatcaComplianceDialog';
-import { useZatcaManagement } from '@/hooks/data/useZatcaManagement';
+import { useZatcaManagement } from '@/hooks/data/zatca/useZatcaManagement';
 
 interface ComplianceMessage {
   code: string;

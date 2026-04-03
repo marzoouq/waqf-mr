@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // هوك البيانات المدمج
-import { useDashboardSummary } from '@/hooks/data/useDashboardSummary';
+import { useDashboardSummary } from '@/hooks/data/financial/useDashboardSummary';
 // هوك الحسابات المستخرج
 import { useAdminDashboardData } from '@/hooks/page/useAdminDashboardData';
 

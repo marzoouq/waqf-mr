@@ -10,7 +10,7 @@ import { Pencil, Eye, EyeOff, GripVertical, Trash2 } from 'lucide-react';
 const ReactMarkdown = lazy(() => import('react-markdown'));
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import type { BylawEntry } from '@/hooks/data/useBylaws';
+import type { BylawEntry } from '@/hooks/data/content/useBylaws';
 
 interface SortableBylawItemProps {
   item: BylawEntry;

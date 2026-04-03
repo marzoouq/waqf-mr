@@ -6,15 +6,15 @@ import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { generateAccountsPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
-import { useBeneficiaryDashboardData } from '@/hooks/data/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { AccountsViewSummary, AccountsViewMyShare } from '@/components/accounts';
 

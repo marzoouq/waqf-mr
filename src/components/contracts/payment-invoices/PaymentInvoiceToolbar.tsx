@@ -8,7 +8,7 @@ import { Search, Zap, AlertTriangle, FileDown, CalendarDays, X } from 'lucide-re
 import { generateOverdueInvoicesPDF } from '@/utils/pdf';
 import type { FilterStatus } from '@/hooks/page/usePaymentInvoicesTab';
 import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
-import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
+import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 interface PaymentInvoiceToolbarProps {

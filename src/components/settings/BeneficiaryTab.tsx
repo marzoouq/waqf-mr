@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { useAppSettings } from '@/hooks/data/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { BENEFICIARY_SECTION_KEYS, pickLabels, makeDefaults } from '@/constants/sections';
 
 const labels = pickLabels(BENEFICIARY_SECTION_KEYS);

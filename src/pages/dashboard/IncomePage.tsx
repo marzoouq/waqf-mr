@@ -17,7 +17,7 @@ import IncomeDesktopTable from '@/components/income/IncomeDesktopTable';
 import { TablePagination, ExportMenu, TableSkeleton } from '@/components/common';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import { generateIncomePDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import {

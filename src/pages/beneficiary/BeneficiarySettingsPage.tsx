@@ -7,7 +7,7 @@ import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import type { TabItem } from '@/components/ui/responsive-tabs';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
+import { useBeneficiariesSafe } from '@/hooks/data/beneficiaries/useBeneficiaries';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { User, Lock, Bell, Shield, Palette, AlertCircle, RefreshCw } from 'lucide-react';
 import ThemeColorPicker from '@/components/theme/ThemeColorPicker';

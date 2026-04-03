@@ -12,8 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { fmt } from '@/utils/format';
-import { useExpenseBudgets, useSaveBudget } from '@/hooks/data/useExpenseBudgets';
-import type { BudgetRow } from '@/hooks/data/useExpenseBudgets';
+import { useExpenseBudgets, useSaveBudget } from '@/hooks/data/financial/useExpenseBudgets';
+import type { BudgetRow } from '@/hooks/data/financial/useExpenseBudgets';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 interface ExpenseBudgetBarProps {

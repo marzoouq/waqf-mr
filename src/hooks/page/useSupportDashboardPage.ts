@@ -7,7 +7,7 @@ import {
   useSupportTickets, useSupportStats, useSupportAnalytics,
   useClientErrors, fetchTicketsForExport,
   type SupportTicket,
-} from '@/hooks/data/useSupportTickets';
+} from '@/hooks/data/support/useSupportTickets';
 import { toast } from 'sonner';
 import { fmtDate } from '@/utils/format';
 

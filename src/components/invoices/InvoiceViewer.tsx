@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2, FileText } from 'lucide-react';
-import { getInvoiceSignedUrl } from '@/hooks/data/useInvoices';
+import { getInvoiceSignedUrl } from '@/hooks/data/invoices/useInvoices';
 import { toast } from 'sonner';
 
 interface InvoiceViewerProps {

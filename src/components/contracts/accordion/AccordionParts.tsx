@@ -4,7 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Clock, AlertCircle, Check, X, Download, Loader2 } from 'lucide-react';
 import { fmt } from '@/utils/format';
-import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
+import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 
 export const statusConfig: Record<string, { label: string; className: string }> = {
   active: { label: 'نشط', className: 'bg-success/20 text-success border-success/30' },

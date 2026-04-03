@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { History, Eye } from 'lucide-react';
-import { useZatcaOperationLog } from '@/hooks/data/useZatcaOperationLog';
+import { useZatcaOperationLog } from '@/hooks/data/zatca/useZatcaOperationLog';
 
 const OPERATION_TYPE_LABELS: Record<string, string> = {
   'onboard': 'تهيئة وربط',

@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { Mail, IdCard, KeyRound, AlertTriangle, ShieldAlert, Eye, EyeOff } from 'lucide-react';
-import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/normalizeDigits';
 import { handleNationalIdLogin } from '@/lib/auth/nationalIdLogin';

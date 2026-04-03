@@ -9,9 +9,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ROLE_LABELS } from '@/constants/roles';
-import { useWaqfInfo } from '@/hooks/data/useAppSettings';
-import { usePrefetchPages } from '@/hooks/data/usePrefetchPages';
-import { useUnreadMessages } from '@/hooks/data/useUnreadMessages';
+import { useWaqfInfo } from '@/hooks/data/settings/useAppSettings';
+import { usePrefetchPages } from '@/hooks/data/core/usePrefetchPages';
+import { useUnreadMessages } from '@/hooks/data/messaging/useUnreadMessages';
 
 interface SidebarContentProps {
   links: Array<{ to: string; icon: React.ComponentType<{ className?: string }>; label: string }>;

@@ -12,7 +12,7 @@ import {
   type InvoiceTemplate,
 } from './paymentInvoice';
 import type { PdfWaqfInfo } from '../core/core';
-import type { Invoice } from '@/hooks/data/useInvoices';
+import type { Invoice } from '@/hooks/data/invoices/useInvoices';
 
 export interface GenerateInvoicePdfClientOptions {
   invoice: Invoice;

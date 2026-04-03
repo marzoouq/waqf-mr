@@ -3,7 +3,7 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/useInvoices';
+import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
 import { InvoiceViewer, InvoiceGridView, InvoicesViewMobileCards, InvoicesViewDesktopTable } from '@/components/invoices';
 import { FileText, Search, LayoutGrid, List, AlertCircle, RefreshCw } from 'lucide-react';
 import { ExportMenu, TablePagination, RequirePublishedYears, TableSkeleton } from '@/components/common';
@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/safeNumber';
 
 const InvoicesViewPage = () => {

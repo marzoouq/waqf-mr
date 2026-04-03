@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Notification } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { NOTIF_PREFS_KEY } from '@/constants/notificationTones';
-import { useNotificationActions } from '@/hooks/data/useNotificationActions';
+import { useNotificationActions } from '@/hooks/data/notifications/useNotificationActions';
 
 // إعادة تصدير للتوافق
 export type { Notification };

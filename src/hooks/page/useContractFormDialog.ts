@@ -2,7 +2,7 @@
  * هوك منطق نموذج العقد — الحالة والتحقق والخيارات
  */
 import { useState, useMemo } from 'react';
-import { useUnits } from '@/hooks/data/useUnits';
+import { useUnits } from '@/hooks/data/properties/useUnits';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts';

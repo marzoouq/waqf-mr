@@ -12,9 +12,9 @@ import { ExportMenu, TablePagination } from '@/components/common';
 import { fmt } from '@/utils/format';
 
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
-import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
+import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useCollectionData, type FilterStatus } from '@/hooks/page/useCollectionData';
-import { useCollectionAlerts } from '@/hooks/data/useCollectionAlerts';
+import { useCollectionAlerts } from '@/hooks/data/contracts/useCollectionAlerts';
 import CollectionSummaryCards from './CollectionSummaryCards';
 import CollectionMobileCards from './CollectionMobileCards';
 import CollectionDesktopTable from './CollectionDesktopTable';

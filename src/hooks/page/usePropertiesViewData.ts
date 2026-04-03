@@ -2,14 +2,14 @@
  * هوك بيانات وملخصات صفحة عرض العقارات للمستفيد
  */
 import { useMemo, useState } from 'react';
-import { useProperties } from '@/hooks/data/useProperties';
+import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
-import { useAllUnits } from '@/hooks/data/useUnits';
-import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
-import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
+import { useAllUnits } from '@/hooks/data/properties/useUnits';
+import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
+import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/safeNumber';
 
 export function usePropertiesViewData() {

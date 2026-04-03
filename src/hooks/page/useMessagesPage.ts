@@ -3,8 +3,8 @@
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/useMessaging';
-import { useBeneficiaries } from '@/hooks/data/useBeneficiaries';
+import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/messaging/useMessaging';
+import { useBeneficiaries } from '@/hooks/data/beneficiaries/useBeneficiaries';
 
 export function useMessagesPage() {
   const { user, role } = useAuth();

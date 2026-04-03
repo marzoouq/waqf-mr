@@ -3,9 +3,9 @@
  */
 import { useState } from 'react';
 import type { Contract } from '@/types/database';
-import { useUpdateContract, useDeleteContract } from '@/hooks/data/useContracts';
+import { useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
 import { useDeleteAccount } from '@/hooks/financial/useAccounts';
-import { useUpsertTenantPayment } from '@/hooks/data/useTenantPayments';
+import { useUpsertTenantPayment } from '@/hooks/data/contracts/useTenantPayments';
 import { defaultNotify } from '@/lib/notify';
 
 interface CollectionEditData {

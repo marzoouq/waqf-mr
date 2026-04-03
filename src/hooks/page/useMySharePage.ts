@@ -8,12 +8,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
-import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
-import { useMyDistributions } from '@/hooks/data/useMyDistributions';
+import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
+import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { useMyShare } from '@/hooks/financial/useMyShare';
-import { useAppSettings } from '@/hooks/data/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useNavigate } from 'react-router-dom';
-import { useBeneficiaryDashboardData } from '@/hooks/data/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { useMySharePdfHandlers } from '@/hooks/page/useMySharePdfHandlers';
 import { isFyReady } from '@/constants/fiscalYearIds';
 

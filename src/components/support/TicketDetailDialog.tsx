@@ -12,7 +12,7 @@ import { Headset, Send, Loader2, CheckCircle, Clock, Star } from 'lucide-react';
 import {
   useTicketReplies, useUpdateTicketStatus, useAddTicketReply,
   type SupportTicket,
-} from '@/hooks/data/useSupportTickets';
+} from '@/hooks/data/support/useSupportTickets';
 import { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/hooks/page/useSupportDashboardPage';
 
 interface Props {

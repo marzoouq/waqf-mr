@@ -17,12 +17,12 @@ import {
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import {
   useAnnualReportItems, useReportStatus,
-} from '@/hooks/data/useAnnualReport';
-import { useProperties } from '@/hooks/data/useProperties';
-import { useIncomeByFiscalYear } from '@/hooks/data/useIncome';
-import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
-import { useContracts } from '@/hooks/data/useContracts';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+} from '@/hooks/data/content/useAnnualReport';
+import { useProperties } from '@/hooks/data/properties/useProperties';
+import { useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
+import { useContracts } from '@/hooks/data/contracts/useContracts';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import ReportItemCard from '@/components/annual-report/ReportItemCard';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';
 import { buildCsv, downloadCsv } from '@/utils/csv';

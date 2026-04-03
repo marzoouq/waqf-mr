@@ -2,13 +2,13 @@
  * هوك منسّق لإدارة وحدات العقار — يجمع بين الهوكات الفرعية
  */
 import { useState } from 'react';
-import { useUnits } from '@/hooks/data/useUnits';
-import { useTenantPayments } from '@/hooks/data/useTenantPayments';
-import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
+import { useUnits } from '@/hooks/data/properties/useUnits';
+import { useTenantPayments } from '@/hooks/data/contracts/useTenantPayments';
+import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Property, Contract } from '@/types/database';
-import { useUnitMutations } from '@/hooks/data/useUnitMutations';
-import { useWholePropertyRental } from '@/hooks/data/useWholePropertyRental';
+import { useUnitMutations } from '@/hooks/data/properties/useUnitMutations';
+import { useWholePropertyRental } from '@/hooks/data/contracts/useWholePropertyRental';
 
 export function usePropertyUnits(property: Property, contracts: Contract[]) {
   const { data: units = [], isLoading } = useUnits(property.id);

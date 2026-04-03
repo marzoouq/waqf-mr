@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download } from 'lucide-react';
 import { runAllDiagnostics, runCategoryDiagnostics, diagnosticCategories, type CheckResult, type CheckStatus } from '@/utils/diagnostics/checks';
 import { sanitizeDiagnosticOutput } from '@/utils/diagnostics/sanitize';
-import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { logger } from '@/lib/logger';
 

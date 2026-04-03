@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Send, MessageSquarePlus, Loader2, Users } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { useBeneficiariesForMessaging, useBulkMessageSender } from '@/hooks/data/useBulkMessaging';
+import { useBeneficiariesForMessaging, useBulkMessageSender } from '@/hooks/data/messaging/useBulkMessaging';
 
 const BulkMessagingTab = () => {
   const [subject, setSubject] = useState('');

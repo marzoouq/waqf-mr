@@ -7,12 +7,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import { BarChart3 } from 'lucide-react';
 import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyShare } from '@/hooks/financial/useMyShare';
-import { useBeneficiaryDashboardData } from '@/hooks/data/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { isFyReady } from '@/constants/fiscalYearIds';

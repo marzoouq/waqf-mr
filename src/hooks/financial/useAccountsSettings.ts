@@ -2,7 +2,7 @@
  * إعدادات ونسب صفحة الحسابات — adminPercent, waqifPercent, إلخ
  */
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useAppSettings } from '@/hooks/data/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { findAccountByFY } from '@/utils/findAccountByFY';

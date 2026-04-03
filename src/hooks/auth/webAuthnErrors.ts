@@ -3,7 +3,7 @@
  */
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
-import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 
 /** تسجيل حدث بصمة في سجل الوصول */
 export const logBiometricEvent = (

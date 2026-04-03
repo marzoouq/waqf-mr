@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bell, Volume2, Play } from 'lucide-react';
 import { toast } from 'sonner';
-import { TONE_OPTIONS, NOTIF_PREFS_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/data/useNotifications';
-import { useNotificationPreferences } from '@/hooks/data/useNotificationPreferences';
+import { TONE_OPTIONS, NOTIF_PREFS_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/data/notifications/useNotifications';
+import { useNotificationPreferences } from '@/hooks/data/notifications/useNotificationPreferences';
 
 const defaultPrefs = {
   distributions: true,

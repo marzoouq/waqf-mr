@@ -2,10 +2,10 @@
  * هوك منطق صفحة سجل المراجعة
  */
 import { useState, useCallback } from 'react';
-import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/useAuditLog';
-import { useAuditLogTodayCount, fetchAuditLogForExport } from '@/hooks/data/useAuditLogStats';
+import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/audit/useAuditLog';
+import { useAuditLogTodayCount, fetchAuditLogForExport } from '@/hooks/data/audit/useAuditLogStats';
 import { generateAuditLogPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { toast } from 'sonner';
 
 const ITEMS_PER_PAGE = 15;

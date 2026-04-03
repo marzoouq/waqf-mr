@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Save, RotateCcw, Shield, CheckSquare, XSquare } from 'lucide-react';
-import { useAppSettings } from '@/hooks/data/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { toast } from 'sonner';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 import { ROLE_SECTION_DEFS, ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
-import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import AdminCapabilitiesSummary from './AdminCapabilitiesSummary';
 const ROLES = [

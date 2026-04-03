@@ -7,7 +7,7 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { logger } from '@/lib/logger';
 import { useEffect, useMemo, useRef } from 'react';
 import type { Income, Expense, Account, Property, Contract } from '@/types/database';
-import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
+import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 import type { ContractFiscalAllocation } from '@/hooks/financial/useContractAllocations';
 import type { AdvanceRequest } from '@/hooks/financial/useAdvanceRequests';
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';

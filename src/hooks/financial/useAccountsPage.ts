@@ -13,7 +13,7 @@ import { useAccountsSettings } from './useAccountsSettings';
 import { useAccountsCalculations } from './useAccountsCalculations';
 import { useAccountsEditing } from './useAccountsEditing';
 import { useAccountsActions } from './useAccountsActions';
-import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
+import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useAdvanceRequests } from '@/hooks/financial/useAdvanceRequests';
 import { useTotalBeneficiaryPercentage } from '@/hooks/financial/useTotalBeneficiaryPercentage';
 

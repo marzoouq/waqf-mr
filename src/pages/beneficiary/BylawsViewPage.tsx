@@ -1,8 +1,8 @@
 import { useMemo, useState, useCallback, lazy, Suspense } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { useBylaws } from '@/hooks/data/useBylaws';
-import { useAppSettings } from '@/hooks/data/useAppSettings';
+import { useBylaws } from '@/hooks/data/content/useBylaws';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -11,7 +11,7 @@ import { Search, X, Lock, ScrollText, Scale, AlertCircle, RefreshCw } from 'luci
 const ReactMarkdown = lazy(() => import('react-markdown'));
 import { ExportMenu, TableSkeleton } from '@/components/common';
 import { generateBylawsPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { Button } from '@/components/ui/button';
 
 const BylawsViewPage = () => {

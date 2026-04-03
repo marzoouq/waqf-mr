@@ -2,10 +2,10 @@
  * هوك منطق صفحة العقارات — الحالة والفلترة والحسابات
  */
 import { useState, useMemo } from 'react';
-import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/data/useProperties';
-import { useAllUnits } from '@/hooks/data/useUnits';
-import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
-import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
+import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/data/properties/useProperties';
+import { useAllUnits } from '@/hooks/data/properties/useUnits';
+import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
+import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAccountByFiscalYear } from '@/hooks/financial/useAccounts';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';

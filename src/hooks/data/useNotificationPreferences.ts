@@ -7,7 +7,7 @@ import {
   previewTone,
   type ToneId,
   type VolumeLevel,
-} from '@/hooks/data/useNotifications';
+} from '@/hooks/data/notifications/useNotifications';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 const NOTIF_SOUND_KEY = STORAGE_KEYS.NOTIFICATION_SOUND;

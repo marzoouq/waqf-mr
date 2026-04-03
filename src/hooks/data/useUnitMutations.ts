@@ -2,9 +2,9 @@
  * هوك فرعي لعمليات CRUD على الوحدات وإنشاء/تحديث العقود المرتبطة
  */
 import { useState } from 'react';
-import { UnitRow } from '@/hooks/data/useUnits';
-import { useCreateUnit, useUpdateUnit, useDeleteUnit } from '@/hooks/data/useUnits';
-import { useCreateContract, useUpdateContract } from '@/hooks/data/useContracts';
+import { UnitRow } from '@/hooks/data/properties/useUnits';
+import { useCreateUnit, useUpdateUnit, useDeleteUnit } from '@/hooks/data/properties/useUnits';
+import { useCreateContract, useUpdateContract } from '@/hooks/data/contracts/useContracts';
 import { Property, Contract } from '@/types/database';
 import { defaultNotify } from '@/lib/notify';
 import type { UnitFormData } from '@/components/properties/units/UnitFormCard';

@@ -3,14 +3,14 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
-import { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/data/useExpenses';
-import { useInvoicesByFiscalYear } from '@/hooks/data/useInvoices';
-import { useProperties } from '@/hooks/data/useProperties';
+import { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/data/financial/useExpenses';
+import { useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
+import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Expense } from '@/types/database';
 import { EMPTY_FILTERS, type FilterState } from '@/components/filters/advancedFilters.types';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { toast } from 'sonner';
 
 type SortField = 'amount' | 'date' | 'expense_type' | null;

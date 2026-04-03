@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Loader2, Star } from 'lucide-react';
-import { useTicketReplies, useAddTicketReply, useRateTicket, type SupportTicket } from '@/hooks/data/useSupportTickets';
+import { useTicketReplies, useAddTicketReply, useRateTicket, type SupportTicket } from '@/hooks/data/support/useSupportTickets';
 import { fmtDate } from '@/utils/format';
 import { STATUS_MAP } from './supportConstants';
 

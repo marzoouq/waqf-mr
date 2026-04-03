@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getTableNameAr, getOperationNameAr } from '@/hooks/data/useAuditLog';
+import { getTableNameAr, getOperationNameAr } from '@/hooks/data/audit/useAuditLog';
 
 /**
  * اختبارات فلترة سجل المراجعة وخريطة أسماء الجداول والعمليات.

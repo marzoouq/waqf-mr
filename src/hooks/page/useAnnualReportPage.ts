@@ -8,12 +8,12 @@ import {
   useAnnualReportItems, useCreateReportItem, useUpdateReportItem,
   useDeleteReportItem, useReportStatus, useToggleReportPublish,
   type AnnualReportItem, type SectionType,
-} from '@/hooks/data/useAnnualReport';
-import { useProperties } from '@/hooks/data/useProperties';
-import { useIncomeByFiscalYear } from '@/hooks/data/useIncome';
-import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
-import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+} from '@/hooks/data/content/useAnnualReport';
+import { useProperties } from '@/hooks/data/properties/useProperties';
+import { useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
+import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
 import { DollarSign, Receipt, FileText, Building2 } from 'lucide-react';
 

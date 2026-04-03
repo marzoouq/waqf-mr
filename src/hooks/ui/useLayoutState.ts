@@ -9,7 +9,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
 import { useRealtimeAlerts } from '@/hooks/ui/useRealtimeAlerts';
 import { useNavLinks } from '@/hooks/page/useNavLinks';
-import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { SHOW_ALL_ROUTES } from '@/components/layout/constants';
 

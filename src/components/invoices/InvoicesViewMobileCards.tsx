@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, FileText } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
-import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from '@/hooks/data/useInvoices';
+import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from '@/hooks/data/invoices/useInvoices';
 
 interface InvoiceItem {
   id: string;

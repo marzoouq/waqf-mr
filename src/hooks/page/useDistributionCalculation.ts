@@ -3,7 +3,7 @@
  */
 import { useMemo } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
-import { usePaidAdvances, useActiveCarryforwards } from '@/hooks/data/useDistributionAdvances';
+import { usePaidAdvances, useActiveCarryforwards } from '@/hooks/data/financial/useDistributionAdvances';
 
 interface Beneficiary {
   id: string;

@@ -1,7 +1,7 @@
 /**
  * مؤشر مستوى الخدمة (SLA)
  */
-import type { SupportTicket } from '@/hooks/data/useSupportTickets';
+import type { SupportTicket } from '@/hooks/data/support/useSupportTickets';
 import { SLA_HOURS } from './supportConstants';
 
 export default function SlaIndicator({ ticket }: { ticket: SupportTicket }) {

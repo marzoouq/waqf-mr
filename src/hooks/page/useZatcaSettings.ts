@@ -3,8 +3,8 @@
  */
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAppSettings } from '@/hooks/data/useAppSettings';
-import { useZatcaCertificates } from '@/hooks/data/useZatcaCertificates';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useZatcaCertificates } from '@/hooks/data/zatca/useZatcaCertificates';
 import { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp, saveZatcaSettings } from '@/lib/services';
 import { toast } from 'sonner';
 

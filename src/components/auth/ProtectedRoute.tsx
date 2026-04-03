@@ -12,7 +12,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { Button } from '@/components/ui/button';
 import { logger } from '@/lib/logger';
 import type { AppRole } from '@/types/database';

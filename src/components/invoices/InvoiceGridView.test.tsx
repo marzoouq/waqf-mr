@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import InvoiceGridView from './InvoiceGridView';
-import { Invoice } from '@/hooks/data/useInvoices';
+import { Invoice } from '@/hooks/data/invoices/useInvoices';
 
 // Mock InvoiceViewer
 vi.mock('@/components/invoices/InvoiceViewer', () => ({
