@@ -173,10 +173,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     fetchRole();
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
   }, [user, authReady, setRoleWithRef]);
 
   const signIn = async (email: string, password: string) => {
