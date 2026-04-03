@@ -14,7 +14,7 @@ vi.mock('@/hooks/data/useIncome', () => ({ useIncome: () => mockIncome() }));
 vi.mock('@/hooks/data/useExpenses', () => ({ useExpenses: () => mockExpenses() }));
 vi.mock('@/hooks/financial/useAccounts', () => ({ useAccounts: () => mockAccounts() }));
 vi.mock('@/hooks/data/useBeneficiaries', () => ({ useBeneficiaries: () => mockBeneficiaries() }));
-vi.mock('@/hooks/page/useAppSettings', () => ({ useAppSettings: () => mockSettings() }));
+vi.mock('@/hooks/data/useAppSettings', () => ({ useAppSettings: () => mockSettings() }));
 
 // We need to test the hook logic without React rendering — extract the computation logic.
 // Since useFinancialSummary uses useMemo, we test via the underlying pure functions

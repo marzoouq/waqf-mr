@@ -6,7 +6,7 @@ import React from 'react';
 // موك useWaqfInfo و useAppSettings
 const mockUseWaqfInfo = vi.fn();
 const mockUseAppSettings = vi.fn(() => ({ data: undefined }));
-vi.mock('@/hooks/page/useAppSettings', () => ({
+vi.mock('@/hooks/data/useAppSettings', () => ({
   useWaqfInfo: () => mockUseWaqfInfo(),
   useAppSettings: () => mockUseAppSettings(),
 }));

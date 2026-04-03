@@ -21,7 +21,7 @@ vi.mock('@/hooks/financial/useAccounts', () => ({
 vi.mock('@/hooks/data/useBeneficiaries', () => ({
   useBeneficiariesSafe: () => mockBeneficiaries,
 }));
-vi.mock('@/hooks/page/useAppSettings', () => ({
+vi.mock('@/hooks/data/useAppSettings', () => ({
   useAppSettings: () => mockSettings,
 }));
 

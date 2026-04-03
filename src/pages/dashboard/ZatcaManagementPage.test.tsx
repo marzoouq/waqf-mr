@@ -27,7 +27,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-vi.mock('@/hooks/page/useAppSettings', () => ({
+vi.mock('@/hooks/data/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false })),
   useWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', nazirName: 'ناظر' })),
 }));

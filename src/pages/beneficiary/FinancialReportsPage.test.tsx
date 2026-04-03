@@ -21,7 +21,7 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'u1', email: 'ben@waqf.com' }, role: 'beneficiary', signOut: vi.fn() })),
 }));
 
-vi.mock('@/hooks/page/useAppSettings', () => ({
+vi.mock('@/hooks/data/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false })),
 }));
 

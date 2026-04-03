@@ -12,7 +12,7 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   })),
 }));
 
-vi.mock('@/hooks/page/useAppSettings', () => ({
+vi.mock('@/hooks/data/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({
     getJsonSetting: vi.fn((_key: string, def: unknown) => def),
     isLoading: false,
