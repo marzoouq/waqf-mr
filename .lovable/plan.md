@@ -1,26 +1,35 @@
-## الخطة: حذف التكرار في src/types/database.ts
 
-### المشكلة
-الملف `src/types/database.ts` يحتوي 214 سطرًا من أنواع يدوية تكرر ما يولّده Supabase تلقائياً في `types.ts`. أي تغيير في الجداول يتطلب تحديثين.
 
-### الحل
-**استبدال محتوى `database.ts`** (وليس حذفه) بملف رفيع يعيد التصدير من `Tables<>` و `Enums<>`:
+# إصلاح تعليق بيئة التطوير — كاش Vite قديم
 
-1. **الأنواع البسيطة** (Property, Unit, Beneficiary, Account, UserRole, Conversation, Message, Notification, FiscalYear, AuditLog, AccountCategory):
-   → `export type Property = Tables<'properties'>;`
+## التشخيص
 
-2. **الأنواع مع علاقات Join** (Contract, Income, Expense, AdvanceRequest, Distribution):
-   → `export type Contract = Tables<'contracts'> & { property?: Property; unit?: Unit | null; }`
+### ما وجدته
+1. **التطبيق يعمل** — لوحة التحكم تحمّلت بنجاح (مؤكد بالمتصفح)
+2. **سجلات خادم التطوير** تحتوي على أخطاء Pre-transform:
+   ```
+   Failed to load url /src/utils/pdf/core.ts
+   Failed to load url /src/utils/pdf/pdfHelpers.ts
+   ```
+3. **لا أخطاء JS** في وحدة التحكم — فقط تحذيرات postMessage من Lovable (طبيعية)
+4. **كل طلبات الشبكة** تعود بـ 200 (user_roles, fiscal_years, dashboard-summary)
 
-3. **AppRole**:
-   → `export type AppRole = Enums<'app_role'>;`
+### السبب الجذري
+بعد نقل ملفات PDF إلى مجلدات فرعية، بقيت مراجع قديمة في:
+- **`tsconfig.app.tsbuildinfo`** — كاش TypeScript يحتفظ بمسارات الملفات المنقولة
+- **Vite dependency graph** — يحاول تحميل ملفات محذوفة عند HMR
 
-### المزايا
-- **صفر تغييرات** في الملفات الـ 69 المستوردة — نفس أسماء الأنواع ونفس مسار الاستيراد
-- مصدر حقيقة واحد (Supabase auto-generated)
-- أي عمود جديد يظهر تلقائياً
+هذا يسبب بطء التحميل الأولي وأحياناً تعليق مؤقت أثناء التطوير.
 
-### الخطوات
-1. إعادة كتابة `src/types/database.ts` كملف re-export رفيع
-2. التحقق من البناء (npm run build)
-3. تشغيل الاختبارات
+## الخطة
+
+### 1. مسح ملفات الكاش القديمة
+- حذف `tsconfig.app.tsbuildinfo` (يُعاد بناؤه تلقائياً)
+- حذف مجلد `.vite` إن وُجد (كاش Vite)
+
+### 2. التحقق من عدم وجود مراجع متبقية
+- فحص شامل لأي استيراد يشير إلى `@/utils/pdf/core` (بدون `/core.ts`) أو `@/utils/pdf/pdfHelpers`
+- فحص ملف `renderers.ts` الأصلي للتأكد أنه يُعيد التصدير بشكل صحيح
+
+لا تغييرات في الكود — فقط مسح كاش وتحقق.
+
