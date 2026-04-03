@@ -1,7 +1,7 @@
 /**
  * بطاقة 1 — فحوصات قاعدة البيانات (3)
  */
-import { queryTable, getAuthUser, getRealtimeChannels } from '@/lib/services/diagnosticsService';
+import { checkDbConnection, getAuthUser, getRealtimeChannels } from '@/lib/services/diagnosticsService';
 import type { CheckResult } from '../types';
 
 export async function checkSupabaseConnection(): Promise<CheckResult> {
