@@ -1,20 +1,12 @@
 import { safeNumber } from '@/utils/safeNumber';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { TableSkeleton } from '@/components/common/SkeletonLoaders';
+import { TableSkeleton, TablePagination, ExportMenu } from '@/components/common';
 import { TrendingDown, Search, Lock, ShieldCheck } from 'lucide-react';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
-import TablePagination from '@/components/common/TablePagination';
-import ExportMenu from '@/components/common/ExportMenu';
 import { buildCsv, downloadCsv } from '@/utils/csv';
-import ExpenseSummaryCards from '@/components/expenses/ExpenseSummaryCards';
-import ExpenseFormDialog from '@/components/expenses/ExpenseFormDialog';
+import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
-import ExpensesPieChart from '@/components/expenses/ExpensesPieChart';
-import ExpenseBudgetBar from '@/components/expenses/ExpenseBudgetBar';
-import ExpensesMobileCards from '@/components/expenses/ExpensesMobileCards';
-import ExpensesDesktopTable from '@/components/expenses/ExpensesDesktopTable';
 import { generateExpensesPDF } from '@/utils/pdf';
 import { toast } from 'sonner';
 import {

@@ -1,10 +1,9 @@
 /**
  * صفحة مراسلات الناظر/المحاسب
  */
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Plus } from 'lucide-react';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import ConversationList from '@/components/messages/ConversationList';
 import MessageThread from '@/components/messages/MessageThread';
 import NewConversationDialog from '@/components/messages/NewConversationDialog';

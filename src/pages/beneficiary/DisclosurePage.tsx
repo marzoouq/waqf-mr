@@ -1,11 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, AlertCircle, RefreshCw, FileDown, Info } from 'lucide-react';
-import ExportMenu from '@/components/common/ExportMenu';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { DashboardSkeleton } from '@/components/common/SkeletonLoaders';
-import RequirePublishedYears from '@/components/common/RequirePublishedYears';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
+import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import DisclosureSummaryCards from '@/components/disclosure/DisclosureSummaryCards';
 import DisclosureContractsSection from '@/components/disclosure/DisclosureContractsSection';
 import DisclosureFinancialStatement from '@/components/disclosure/DisclosureFinancialStatement';

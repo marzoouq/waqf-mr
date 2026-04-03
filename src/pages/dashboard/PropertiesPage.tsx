@@ -1,14 +1,10 @@
 import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
-import { StatsGridSkeleton } from '@/components/common/SkeletonLoaders';
+import { TablePagination, CrudPagination, ExportMenu, StatsGridSkeleton } from '@/components/common';
 import { Building2, Search } from 'lucide-react';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
-import TablePagination from '@/components/common/TablePagination';
-import CrudPagination from '@/components/common/CrudPagination';
-import ExportMenu from '@/components/common/ExportMenu';
 import { generatePropertiesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import PropertyUnitsDialog from '@/components/properties/PropertyUnitsDialog';

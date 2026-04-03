@@ -5,8 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, Archive, Activity, CalendarDays } from 'lucide-react';
-import TablePagination from '@/components/common/TablePagination';
-import { TableSkeleton } from '@/components/common/SkeletonLoaders';
+import { TablePagination, TableSkeleton } from '@/components/common';
 import { fmtDate } from '@/utils/format';
 import { useArchiveLog, ARCHIVE_ITEMS_PER_PAGE } from '@/hooks/data/useArchiveLog';
 

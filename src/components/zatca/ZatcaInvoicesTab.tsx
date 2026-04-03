@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import TablePagination from '@/components/common/TablePagination';
+import { TablePagination } from '@/components/common';
 import { FileCode, PenTool, Send, RefreshCw, Loader2, ClipboardCheck } from 'lucide-react';
 import { fmt } from '@/utils/format';
 

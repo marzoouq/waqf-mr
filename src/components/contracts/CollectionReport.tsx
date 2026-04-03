@@ -8,8 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CheckCircle2, Search, Bell } from 'lucide-react';
 import { Contract } from '@/types/database';
 
-import ExportMenu from '@/components/common/ExportMenu';
-import TablePagination from '@/components/common/TablePagination';
+import { ExportMenu, TablePagination } from '@/components/common';
 import { fmt } from '@/utils/format';
 
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';

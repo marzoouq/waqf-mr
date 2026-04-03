@@ -2,10 +2,9 @@
  * صفحة إدارة ZATCA — Orchestrator
  */
 import { useState } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShieldCheck, FileText, Link2 } from 'lucide-react';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
 
 import ZatcaSummaryCards from '@/components/zatca/ZatcaSummaryCards';

@@ -4,25 +4,22 @@
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import RequirePublishedYears from '@/components/common/RequirePublishedYears';
-import ExportMenu from '@/components/common/ExportMenu';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
+import { RequirePublishedYears, ExportMenu, TablePagination } from '@/components/common';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, AlertCircle, AlertTriangle, RefreshCw } from 'lucide-react';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useMemo, useCallback, useState, useEffect } from 'react';
-import TablePagination from '@/components/common/TablePagination';
 import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { fmt, fmtDate } from '@/utils/format';
 import { usePropertiesMap } from '@/hooks/data/usePropertiesMap';
 
-import ContractStatsCards from '@/components/contracts/ContractStatsCards';
+import { ContractStatsCards } from '@/components/contracts';
 
 const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   active: { label: 'نشط', variant: 'default' },

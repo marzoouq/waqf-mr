@@ -1,9 +1,7 @@
 /**
  * بطاقة 6 — فحوصات إعدادات التطبيق (3)
  */
-import {
-  allAdminLinks, allBeneficiaryLinks, ROUTE_TITLES,
-} from '@/components/layout/constants';
+import { allAdminLinks, allBeneficiaryLinks, ROUTE_TITLES } from '@/components/layout';
 import type { CheckResult } from '../types';
 
 export async function checkEnvVariables(): Promise<CheckResult> {

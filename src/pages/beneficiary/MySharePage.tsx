@@ -4,11 +4,8 @@
 import { Wallet, AlertCircle, RefreshCw, UserX, FileDown, Info, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { DashboardSkeleton } from '@/components/common/SkeletonLoaders';
-import RequirePublishedYears from '@/components/common/RequirePublishedYears';
-import ExportMenu from '@/components/common/ExportMenu';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
+import { RequirePublishedYears, ExportMenu, DashboardSkeleton } from '@/components/common';
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
 import MyShareSummaryCards from '@/components/my-share/MyShareSummaryCards';
 import DistributionsTable from '@/components/my-share/DistributionsTable';

@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 // أنواع وقيم افتراضية مستخرجة إلى ملف مستقل لتقليل حجم الحزمة
 export type { MenuLabels } from '@/components/layout/menuLabels';
 export { defaultMenuLabels } from '@/components/layout/menuLabels';
-import { defaultMenuLabels } from '@/components/layout/menuLabels';
+import { defaultMenuLabels } from '@/components/layout';
 import type { MenuLabels } from '@/components/layout/menuLabels';
 
 const MenuCustomizationTab = () => {

@@ -18,10 +18,8 @@ import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { DashboardSkeleton } from '@/components/common/SkeletonLoaders';
-import NoPublishedYearsNotice from '@/components/common/NoPublishedYearsNotice';
-import ExportMenu from '@/components/common/ExportMenu';
+import { DashboardLayout } from '@/components/layout';
+import { NoPublishedYearsNotice, ExportMenu, DashboardSkeleton } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Building2, FileText, Users, TrendingUp, Wallet, BarChart3, BookOpen, Sun, Moon,

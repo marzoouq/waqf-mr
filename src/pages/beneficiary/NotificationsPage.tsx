@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNotifications } from '@/hooks/data/useNotifications';
@@ -11,8 +11,7 @@ import { usePushNotifications } from '@/hooks/data/usePushNotifications';
 import { Bell, BellRing, AlertCircle, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { TableSkeleton } from '@/components/common/SkeletonLoaders';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
+import { TableSkeleton } from '@/components/common';
 
 import { NOTIFICATION_CATEGORIES } from './notifications/notificationConstants';
 import NotificationStatsCards from './notifications/NotificationStatsCards';

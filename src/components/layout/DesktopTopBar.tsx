@@ -8,10 +8,9 @@ import { BookOpen, Lock, User } from 'lucide-react';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
 import NotificationBell from '@/components/notifications/NotificationBell';
-import FiscalYearSelector from '@/components/layout/FiscalYearSelector';
+import { FiscalYearSelector, WaqfInfoBar } from '@/components/layout';
 import { lazy, Suspense } from 'react';
 const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
-import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
 import { ROLE_LABELS } from '@/constants/roles';
 
 interface DesktopTopBarProps {

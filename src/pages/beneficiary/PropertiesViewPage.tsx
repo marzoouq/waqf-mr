@@ -2,9 +2,8 @@
  * صفحة عرض العقارات للمستفيد (قراءة فقط)
  */
 import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import RequirePublishedYears from '@/components/common/RequirePublishedYears';
-import ExportMenu from '@/components/common/ExportMenu';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
+import { RequirePublishedYears, ExportMenu } from '@/components/common';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -14,7 +13,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { generatePropertiesPDF } from '@/utils/pdf';
 import { toast } from 'sonner';
-import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import { fmt, fmtInt } from '@/utils/format';
 import { usePropertiesViewData } from '@/hooks/page/usePropertiesViewData';
 

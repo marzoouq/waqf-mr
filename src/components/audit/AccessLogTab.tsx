@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, ShieldAlert, Activity } from 'lucide-react';
-import TablePagination from '@/components/common/TablePagination';
+import { TablePagination } from '@/components/common';
 import { useAccessLogTab, useFailedLoginsToday, useUnauthorizedAccessToday, ACCESS_LOG_ITEMS_PER_PAGE } from '@/hooks/data/useAccessLogTab';
 import type { AccessLogEntry } from '@/hooks/data/useAccessLogTab';
 

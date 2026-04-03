@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Eye, FileText, ImageIcon, Calendar, Building2, Hash, Receipt } from 'lucide-react';
 import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice } from '@/hooks/data/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
-import TablePagination from '@/components/common/TablePagination';
+import { TablePagination } from '@/components/common';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { fmt, fmtDate } from '@/utils/format';
