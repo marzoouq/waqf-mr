@@ -11,7 +11,7 @@ export { useBeneficiarySummary } from './useBeneficiarySummary';
 export { useComputedFinancials } from './useComputedFinancials';
 export { useContractAllocationMap } from './useContractAllocationMap';
 export { useContractAllocations } from './useContractAllocations';
-export { useDistribute } from './useDistribute';
+export { useDistributeShares } from './useDistribute';
 export { useFinancialSummary } from './useFinancialSummary';
 export { useFiscalYears } from './useFiscalYears';
 export { useMyShare } from './useMyShare';
