@@ -19,6 +19,7 @@ import { ADMIN_ROLES } from '@/constants/roles';
 import { publicRoutes, catchAllRoute } from "@/routes/publicRoutes";
 import { adminRoutes } from "@/routes/adminRoutes";
 import { beneficiaryRoutes } from "@/routes/beneficiaryRoutes";
+import { waqifRoutes } from "@/routes/waqifRoutes";
 
 /** مكوّن يتتبع أداء تحميل الصفحات */
 function PagePerformanceTracker() {
