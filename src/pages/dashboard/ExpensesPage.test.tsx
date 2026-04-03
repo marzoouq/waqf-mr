@@ -42,9 +42,19 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
 
 vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/layout', async () => {
+  const actual = await vi.importActual('@/components/layout');
+  return { ...actual, DashboardLayout: ({ children }: any) => <div>{children}</div> };
+});
 vi.mock('@/utils/pdf', () => ({ generateExpensesPDF: vi.fn() }));
-vi.mock('@/components/expenses/ExpenseAttachments', () => ({ default: () => <div>مرفقات</div> }));
-vi.mock('@/components/expenses/ExpenseBudgetBar', () => ({ default: () => <div>ميزانية</div> }));
+vi.mock('@/components/expenses/ExpenseAttachments', () => ({ default: () => <div>مرفقات</div>, ExpenseAttachments: () => <div>مرفقات</div> }));
+vi.mock('@/components/expenses/ExpenseBudgetBar', () => ({ default: () => <div>ميزانية</div>, ExpenseBudgetBar: () => <div>ميزانية</div> }));
+vi.mock('@/components/expenses/ExpensesPieChart', () => ({ default: () => <div>رسم بياني</div>, ExpensesPieChart: () => <div>رسم بياني</div> }));
+
+// Polyfill for test env
+if (typeof globalThis.ResizeObserver === 'undefined') {
+  globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} } as any;
+}
 
 import ExpensesPage from './ExpensesPage';
 
