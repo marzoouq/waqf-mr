@@ -294,6 +294,108 @@ erDiagram
         timestamptz window_start
     }
 
+    support_tickets {
+        uuid id PK
+        text ticket_number
+        text title
+        text description
+        text category
+        text priority
+        text status
+        uuid created_by FK
+        uuid assigned_to "nullable"
+        text resolution_notes "nullable"
+        smallint rating "nullable"
+        text rating_comment "nullable"
+        timestamptz resolved_at "nullable"
+    }
+
+    support_ticket_replies {
+        uuid id PK
+        uuid ticket_id FK
+        uuid sender_id
+        text content
+        boolean is_internal
+    }
+
+    zatca_certificates {
+        uuid id PK
+        text certificate_type
+        text certificate
+        text private_key "مشفر"
+        text request_id "nullable"
+        text zatca_secret "nullable"
+        boolean is_active
+        timestamptz expires_at "nullable"
+    }
+
+    zatca_operation_log {
+        uuid id PK
+        text operation_type
+        text status
+        uuid invoice_id "nullable"
+        uuid user_id "nullable"
+        text error_message "nullable"
+        jsonb request_summary "nullable"
+        jsonb response_summary "nullable"
+    }
+
+    invoice_chain {
+        uuid id PK
+        uuid invoice_id
+        integer icv
+        text invoice_hash
+        text previous_hash
+        text source_table
+    }
+
+    invoice_items {
+        uuid id PK
+        uuid invoice_id
+        text invoice_source
+        text item_name
+        numeric quantity
+        numeric unit_price
+        numeric vat_rate
+        numeric vat_amount
+        numeric line_total
+        integer sort_order
+    }
+
+    expense_budgets {
+        uuid id PK
+        uuid fiscal_year_id FK
+        text expense_type
+        numeric budget_amount
+    }
+
+    account_categories {
+        uuid id PK
+        text code
+        text name
+        text category_type
+        uuid parent_id FK "nullable - self ref"
+        integer sort_order
+        boolean is_active
+    }
+
+    annual_report_items {
+        uuid id PK
+        uuid fiscal_year_id FK
+        uuid property_id FK "nullable"
+        text section_type
+        text title
+        text content
+        integer sort_order
+    }
+
+    annual_report_status {
+        uuid id PK
+        uuid fiscal_year_id FK
+        text status
+        timestamptz published_at "nullable"
+    }
+
     properties ||--o{ units : "تحتوي"
     properties ||--o{ contracts : "مرتبطة"
     units ||--o{ contracts : "مؤجرة"
@@ -302,6 +404,11 @@ erDiagram
     contracts ||--|| tenant_payments : "دفعات"
     contracts ||--o{ payment_invoices : "فواتير دفعات"
     contracts ||--o{ contract_fiscal_allocations : "تخصيص"
+    support_tickets ||--o{ support_ticket_replies : "ردود"
+    fiscal_years ||--o{ expense_budgets : "ميزانيات"
+    fiscal_years ||--o{ annual_report_items : "تقرير سنوي"
+    fiscal_years ||--|| annual_report_status : "حالة التقرير"
+    account_categories ||--o{ account_categories : "فرع من"
     properties ||--o{ income : "دخل"
     properties ||--o{ expenses : "مصروفات"
     expenses ||--o{ invoices : "فاتورة مصروف"
