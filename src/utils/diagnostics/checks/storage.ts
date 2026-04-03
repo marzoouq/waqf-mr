@@ -2,6 +2,7 @@
  * بطاقة 3 — فحوصات التخزين (6)
  */
 import type { CheckResult } from '../types';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 export async function checkLocalStorage(): Promise<CheckResult> {
   const id = 'storage_local';

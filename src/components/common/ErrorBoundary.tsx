@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 interface Props {
   children: ReactNode;
