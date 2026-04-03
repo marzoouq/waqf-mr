@@ -4,7 +4,7 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { defaultNotify } from '@/hooks/data/mutationNotify';
+import { defaultNotify } from '@/lib/notify';
 import { notifyUser } from '@/utils/notifications';
 
 interface DistributionInput {

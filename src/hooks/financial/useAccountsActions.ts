@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
-import { defaultNotify } from '@/hooks/data/mutationNotify';
+import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format';
 import type { Account, Contract, Beneficiary } from '@/types/database';

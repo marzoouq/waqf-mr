@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { generateMySharePDF, generateDistributionsPDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { defaultNotify } from '@/hooks/data/mutationNotify';
+import { defaultNotify } from '@/lib/notify';
 import { printShareReport } from '@/utils/printShareReport';
 
 interface PdfHandlersParams {

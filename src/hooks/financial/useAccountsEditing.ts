@@ -6,7 +6,7 @@ import type { Contract } from '@/types/database';
 import { useUpdateContract, useDeleteContract } from '@/hooks/data/useContracts';
 import { useDeleteAccount } from '@/hooks/financial/useAccounts';
 import { useUpsertTenantPayment } from '@/hooks/data/useTenantPayments';
-import { defaultNotify } from '@/hooks/data/mutationNotify';
+import { defaultNotify } from '@/lib/notify';
 
 interface CollectionEditData {
   contractId: string;
