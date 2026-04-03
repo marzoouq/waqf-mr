@@ -6,7 +6,7 @@
 export { useAccessLogQuery } from './useAccessLog';
 export { useAccessLogTab } from './useAccessLogTab';
 export { useAccountCategories } from './useAccountCategories';
-export { useAnnualReport } from './useAnnualReport';
+export { useAnnualReportItems } from './useAnnualReport';
 export { useAppSettings, useSetting, useWaqfInfo, updateNotificationPrefs } from './useAppSettings';
 export type { WaqfInfo } from './useAppSettings';
 export { useArchiveLog } from './useArchiveLog';
