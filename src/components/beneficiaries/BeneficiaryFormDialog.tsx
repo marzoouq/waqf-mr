@@ -44,7 +44,10 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
     if (!formData.name.trim()) newErrors.name = 'الاسم مطلوب';
     const pct = parseFloat(formData.share_percentage);
     if (!Number.isFinite(pct) || pct <= 0) newErrors.share_percentage = 'النسبة يجب أن تكون أكبر من صفر';
-    if (formData.national_id && !validateNationalId(formData.national_id)) newErrors.national_id = 'رقم الهوية يجب أن يكون 10 أرقام';
+    if (formData.national_id) {
+      const nidErr = getNationalIdError(formData.national_id);
+      if (nidErr) newErrors.national_id = nidErr;
+    }
     if (formData.bank_account && !validateIBAN(formData.bank_account)) newErrors.bank_account = 'صيغة IBAN غير صحيحة (SA + 22 رقم)';
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
