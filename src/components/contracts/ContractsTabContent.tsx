@@ -3,6 +3,7 @@
  */
 import { Button } from '@/components/ui/button';
 import { FileText, Lock, Info, RefreshCw, CheckSquare, Square, ShieldCheck } from 'lucide-react';
+import type { StatusFilterValue } from '@/hooks/page/useContractsFilters';
 import ContractAccordionGroup from '@/components/contracts/ContractAccordionGroup';
 import { TableSkeleton } from '@/components/common/SkeletonLoaders';
 import TablePagination from '@/components/common/TablePagination';
