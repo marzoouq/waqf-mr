@@ -29,7 +29,7 @@ interface ContractsViewMobileCardsProps {
 
 export default function ContractsViewMobileCards({ contracts, isExpiringSoon }: ContractsViewMobileCardsProps) {
   return (
-    <div className="space-y-3 md:hidden">
+    <div className="space-y-3">
       {contracts.map(contract => {
         const st = STATUS_MAP[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
         return (

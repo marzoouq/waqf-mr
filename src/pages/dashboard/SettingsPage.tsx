@@ -1,4 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
+import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -64,41 +65,43 @@ const SETTINGS_CATEGORIES = [
 ];
 
 const SettingsPage = () => {
+  const isMobile = useIsMobile();
   const [activeSettingsTab, setActiveSettingsTab] = useState('waqf');
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
         <PageHeaderCard title="الإعدادات العامة" icon={Settings} description="إدارة جميع إعدادات النظام من مكان واحد" />
         <Tabs defaultValue="waqf" dir="rtl" onValueChange={setActiveSettingsTab} value={activeSettingsTab}>
-          {/* Mobile: Select dropdown مصنّف */}
-          <div className="md:hidden mb-4">
-            <Select value={activeSettingsTab} onValueChange={setActiveSettingsTab}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="اختر القسم..." /></SelectTrigger>
-              <SelectContent>
-                {SETTINGS_CATEGORIES.map((cat) => (
-                  <div key={cat.label}>
-                    <div className="px-2 py-1.5 text-xs font-bold text-muted-foreground border-b border-border">{cat.label}</div>
-                    {cat.tabs.map((tab) => (<SelectItem key={tab.value} value={tab.value}>{tab.label}</SelectItem>))}
-                  </div>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {/* Desktop: TabsList مصنّف في فئات */}
-          <div className="hidden md:flex flex-col gap-2 mb-4">
-            {SETTINGS_CATEGORIES.map((cat) => (
-              <div key={cat.label}>
-                <p className="text-xs font-bold text-muted-foreground mb-1.5 px-1">{cat.label}</p>
-                <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1 rounded-lg">
-                  {cat.tabs.map((tab) => (
-                    <TabsTrigger key={tab.value} value={tab.value} className="gap-1.5 text-xs md:text-sm">
-                      <tab.icon className="w-4 h-4" />{tab.label}
-                    </TabsTrigger>
+          {isMobile ? (
+            <div className="mb-4">
+              <Select value={activeSettingsTab} onValueChange={setActiveSettingsTab}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="اختر القسم..." /></SelectTrigger>
+                <SelectContent>
+                  {SETTINGS_CATEGORIES.map((cat) => (
+                    <div key={cat.label}>
+                      <div className="px-2 py-1.5 text-xs font-bold text-muted-foreground border-b border-border">{cat.label}</div>
+                      {cat.tabs.map((tab) => (<SelectItem key={tab.value} value={tab.value}>{tab.label}</SelectItem>))}
+                    </div>
                   ))}
-                </TabsList>
-              </div>
-            ))}
-          </div>
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 mb-4">
+              {SETTINGS_CATEGORIES.map((cat) => (
+                <div key={cat.label}>
+                  <p className="text-xs font-bold text-muted-foreground mb-1.5 px-1">{cat.label}</p>
+                  <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1 rounded-lg">
+                    {cat.tabs.map((tab) => (
+                      <TabsTrigger key={tab.value} value={tab.value} className="gap-1.5 text-xs md:text-sm">
+                        <tab.icon className="w-4 h-4" />{tab.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
+              ))}
+            </div>
+          )}
           <TabsContent value="waqf"><WaqfSettingsTab /></TabsContent>
           <TabsContent value="landing"><Suspense fallback={LOADING}><LandingPageTab /></Suspense></TabsContent>
           <TabsContent value="sections"><SectionsTab /></TabsContent>

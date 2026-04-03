@@ -1,3 +1,4 @@
+import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/safeNumber';
 
 const InvoicesViewPage = () => {
+  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['invoices'] }), [queryClient]);
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -116,27 +118,27 @@ const InvoicesViewPage = () => {
           isLoading ? <TableSkeleton rows={4} cols={3} /> : <InvoiceGridView invoices={filteredInvoices} readOnly />
         ) : (
           <>
-            <div className="md:hidden">
-              {isLoading ? (
+            {isMobile ? (
+              isLoading ? (
                 <TableSkeleton rows={4} cols={2} />
               ) : (
                 <>
                   <InvoicesViewMobileCards invoices={paginatedInvoices} statusBadgeVariant={statusBadgeVariant} onViewFile={setViewerFile} />
                   <TablePagination currentPage={currentPage} totalItems={filteredInvoices.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
                 </>
-              )}
-            </div>
-
-            <Card className="shadow-sm hidden md:block">
-              <CardContent className="p-0">
-                {isLoading ? (
-                  <div className="p-4"><TableSkeleton rows={5} cols={5} /></div>
-                ) : (
-                  <InvoicesViewDesktopTable invoices={paginatedInvoices} statusBadgeVariant={statusBadgeVariant} onViewFile={setViewerFile} searchQuery={searchQuery} />
-                )}
-                <TablePagination currentPage={currentPage} totalItems={filteredInvoices.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-              </CardContent>
-            </Card>
+              )
+            ) : (
+              <Card className="shadow-sm">
+                <CardContent className="p-0">
+                  {isLoading ? (
+                    <div className="p-4"><TableSkeleton rows={5} cols={5} /></div>
+                  ) : (
+                    <InvoicesViewDesktopTable invoices={paginatedInvoices} statusBadgeVariant={statusBadgeVariant} onViewFile={setViewerFile} searchQuery={searchQuery} />
+                  )}
+                  <TablePagination currentPage={currentPage} totalItems={filteredInvoices.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
         <InvoiceViewer open={!!viewerFile} onOpenChange={(open) => !open && setViewerFile(null)} filePath={viewerFile?.path || null} fileName={viewerFile?.name || null} />

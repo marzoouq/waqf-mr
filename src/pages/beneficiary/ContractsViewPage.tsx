@@ -1,6 +1,7 @@
 /**
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
+import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -22,6 +23,7 @@ import ContractsViewDesktopTable from '@/components/contracts/ContractsViewDeskt
 const ITEMS_PER_PAGE = 10;
 
 const ContractsViewPage = () => {
+  const isMobile = useIsMobile();
   const { fiscalYearId } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
   const [currentPage, setCurrentPage] = useState(1);
@@ -115,12 +117,17 @@ const ContractsViewPage = () => {
             </Card>
           ) : (
             <>
-              <ContractsViewMobileCards contracts={paginatedContracts} isExpiringSoon={isExpiringSoon} />
-              <div className="md:hidden">
-                <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-              </div>
-              <ContractsViewDesktopTable contracts={paginatedContracts} propertiesMap={propertiesMap} isExpiringSoon={isExpiringSoon} />
-              <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+              {isMobile ? (
+                <>
+                  <ContractsViewMobileCards contracts={paginatedContracts} isExpiringSoon={isExpiringSoon} />
+                  <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+                </>
+              ) : (
+                <>
+                  <ContractsViewDesktopTable contracts={paginatedContracts} propertiesMap={propertiesMap} isExpiringSoon={isExpiringSoon} />
+                  <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+                </>
+              )}
             </>
           )}
         </div>
