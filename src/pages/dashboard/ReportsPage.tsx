@@ -2,6 +2,7 @@ import { fmt } from '@/utils/format';
 import { lazy, Suspense } from 'react';
 const CashFlowReport = lazy(() => import('@/components/reports/CashFlowReport'));
 import { OverdueTenantsReport, BalanceSheetReport, ZakatEstimationReport, BeneficiaryDistributionTable, AnnualDisclosureTable, PropertyPerformanceTable } from '@/components/reports';
+import ReportsSummaryCards from '@/components/reports/ReportsSummaryCards';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
