@@ -1,4 +1,7 @@
-import { toast } from 'sonner';
+/**
+ * طباعة تقرير حصة المستفيد
+ * ملاحظة: لا يستورد toast — يُرجع false عند فشل فتح النافذة والطبقة المستدعية تتولى الإشعار
+ */
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt, fmtDate } from '@/utils/format';
 
@@ -21,7 +24,10 @@ interface PrintShareReportParams {
   }>;
 }
 
-export function printShareReport(params: PrintShareReportParams) {
+/**
+ * @returns true عند النجاح، false إذا تعذر فتح النافذة
+ */
+export function printShareReport(params: PrintShareReportParams): boolean {
   const {
     beneficiaryName,
     beneficiariesShare,
@@ -41,8 +47,7 @@ export function printShareReport(params: PrintShareReportParams) {
 
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
-    toast.error('يرجى السماح بالنوافذ المنبثقة');
-    return;
+    return false;
   }
 
   printWindow.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8">
@@ -105,4 +110,5 @@ export function printShareReport(params: PrintShareReportParams) {
   };
   // إغلاق النافذة تلقائياً بعد الطباعة أو الإلغاء
   printWindow.onafterprint = () => printWindow.close();
+  return true;
 }

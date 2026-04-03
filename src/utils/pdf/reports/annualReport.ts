@@ -1,8 +1,8 @@
 /**
  * مولّد PDF للتقرير السنوي للإنجازات
+ * ملاحظة: لا يستورد toast — يُرجع نتيجة نجاح/فشل والطبقة المستدعية تتولى الإشعار
  */
 import { createPdfDocument, finalizePdf, type PdfWaqfInfo, reshapeArabic as rs } from '../core/core';
-import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 
 export interface AnnualReportPdfData {
@@ -14,10 +14,14 @@ export interface AnnualReportPdfData {
   summaryCards?: { label: string; value: string }[];
 }
 
+/**
+ * توليد PDF للتقرير السنوي
+ * @returns true عند النجاح، false عند الفشل
+ */
 export const generateAnnualReportPDF = async (
   data: AnnualReportPdfData,
   waqfInfo?: PdfWaqfInfo,
-) => {
+): Promise<boolean> => {
   try {
     const { doc, fontFamily, startY: headerY } = await createPdfDocument(waqfInfo);
     const pageW = doc.internal.pageSize.width;
@@ -90,9 +94,9 @@ export const generateAnnualReportPDF = async (
     writeSection('الخطط المستقبلية', data.futurePlans, [37, 99, 235]);
 
     finalizePdf(doc, fontFamily, `التقرير_السنوي_${data.fiscalYearLabel}.pdf`, waqfInfo, { skipHeaders: true });
-    toast.success('تم تصدير التقرير السنوي بنجاح');
+    return true;
   } catch (e) {
     logger.error('خطأ في تصدير التقرير السنوي:', e);
-    toast.error('فشل في تصدير التقرير');
+    return false;
   }
 };

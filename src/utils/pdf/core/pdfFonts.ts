@@ -1,8 +1,8 @@
 /**
  * تحميل الخطوط والشعارات لملفات PDF — مستخرج من core.ts
+ * ملاحظة: لا يستورد toast — يُسجّل الخطأ عبر logger فقط، والطبقة المستدعية تتولى الإشعار
  */
 import type jsPDF from 'jspdf';
-import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 
 // كاش الخطوط على مستوى الوحدة — يمنع إعادة الجلب عند كل توليد PDF
@@ -57,7 +57,6 @@ export const loadArabicFont = async (doc: jsPDF) => {
   } catch (e) {
     fontCache = null;
     logger.error('Failed to load Arabic fonts for PDF:', e);
-    toast.error('تعذر تحميل الخطوط العربية — قد يظهر PDF بشكل غير صحيح');
     doc.setFont('helvetica');
     return false;
   }
