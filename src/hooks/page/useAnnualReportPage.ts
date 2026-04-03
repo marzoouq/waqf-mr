@@ -14,7 +14,7 @@ import { useIncomeByFiscalYear } from '@/hooks/data/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
 import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/annualReport';
+import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
 import { DollarSign, Receipt, FileText, Building2 } from 'lucide-react';
 
 const formatCurrency = (v: number) =>

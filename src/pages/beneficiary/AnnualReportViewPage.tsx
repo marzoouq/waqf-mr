@@ -27,7 +27,7 @@ import ReportItemCard from '@/components/annual-report/ReportItemCard';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 const IncomeComparisonChart = lazy(() => import('@/components/annual-report/IncomeComparisonChart'));
-import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/annualReport';
+import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const formatCurrency = (v: number) =>
