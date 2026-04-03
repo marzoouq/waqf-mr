@@ -5,13 +5,15 @@ import App from "./App.tsx";
 import "./index.css";
 import { reportPageLoadMetrics } from "./lib/performanceMonitor";
 import { initThemeFromStorage } from "./lib/theme/themeColor.utils";
+import { initQueryMonitoring } from "./lib/initQueryMonitoring";
 
 import { runPwaCacheGuard } from "./lib/pwaBootstrap";
 
 // تهيئة الثيم المحفوظ قبل الرسم
 initThemeFromStorage();
 
-// إشعارات الأداء معطّلة — لا حاجة لربط toast
+// تهيئة مراقبة أداء React Query
+initQueryMonitoring();
 
 // Preconnect to backend API — يقلل زمن أول طلب بـ 50-100ms
 const _supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
