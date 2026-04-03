@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ROLE_LABELS } from '@/constants';
+import { ROLE_LABELS } from '@/constants/roles';
 import { useWaqfInfo } from '@/hooks/page/useAppSettings';
 import { usePrefetchPages } from '@/hooks/data/usePrefetchPages';
 import { useUnreadMessages } from '@/hooks/ui/useUnreadMessages';

@@ -20,35 +20,32 @@ const WaqifDashboard = lazyWithRetry(() => import("@/pages/beneficiary/WaqifDash
 const BeneficiarySupportPage = lazyWithRetry(() => import("@/pages/beneficiary/SupportPage"));
 const AnnualReportViewPage = lazyWithRetry(() => import("@/pages/beneficiary/AnnualReportViewPage"));
 
-import type { AppRole } from '@/types/database';
 import type { ReactNode } from 'react';
+import type { AppRole } from '@/types/database';
+import { BENEFICIARY_ROLES, ALL_NON_ACCOUNTANT, ALL_ROLES } from '@/constants/roles';
 
 /** دالة مساعدة لتقليل التكرار */
 const pr = (roles: AppRole[], page: ReactNode) =>
   eb(<ProtectedRoute allowedRoles={roles}>{page}</ProtectedRoute>);
 
-const BEN: AppRole[] = ['admin', 'beneficiary'];
-const ALL: AppRole[] = ['admin', 'beneficiary', 'waqif'];
-const ALL_ACC: AppRole[] = ['admin', 'beneficiary', 'waqif', 'accountant'];
-
 /** مسارات المستفيدين والواقف */
 export const beneficiaryRoutes = (
   <>
-    <Route path="/beneficiary" element={pr(BEN, <BeneficiaryDashboard />)} />
+    <Route path="/beneficiary" element={pr(BENEFICIARY_ROLES, <BeneficiaryDashboard />)} />
     <Route path="/waqif" element={pr(['admin', 'waqif'] as AppRole[], <WaqifDashboard />)} />
-    <Route path="/beneficiary/properties" element={pr(ALL, <PropertiesViewPage />)} />
-    <Route path="/beneficiary/contracts" element={pr(ALL, <ContractsViewPage />)} />
-    <Route path="/beneficiary/disclosure" element={pr(BEN, <DisclosurePage />)} />
-    <Route path="/beneficiary/my-share" element={pr(BEN, <MySharePage />)} />
-    <Route path="/beneficiary/financial-reports" element={pr(ALL, <FinancialReportsPage />)} />
-    <Route path="/beneficiary/accounts" element={pr(ALL, <AccountsViewPage />)} />
-    <Route path="/beneficiary/settings" element={pr(ALL, <BeneficiarySettingsPage />)} />
-    <Route path="/beneficiary/messages" element={pr(ALL, <BeneficiaryMessagesPage />)} />
-    <Route path="/beneficiary/invoices" element={pr(ALL, <InvoicesViewPage />)} />
-    <Route path="/beneficiary/notifications" element={pr(ALL, <NotificationsPage />)} />
-    <Route path="/beneficiary/bylaws" element={pr(ALL, <BylawsViewPage />)} />
-    <Route path="/beneficiary/carryforward" element={pr(ALL, <CarryforwardHistoryPage />)} />
-    <Route path="/beneficiary/support" element={pr(ALL_ACC, <BeneficiarySupportPage />)} />
-    <Route path="/beneficiary/annual-report" element={pr(ALL, <AnnualReportViewPage />)} />
+    <Route path="/beneficiary/properties" element={pr(ALL_NON_ACCOUNTANT, <PropertiesViewPage />)} />
+    <Route path="/beneficiary/contracts" element={pr(ALL_NON_ACCOUNTANT, <ContractsViewPage />)} />
+    <Route path="/beneficiary/disclosure" element={pr(BENEFICIARY_ROLES, <DisclosurePage />)} />
+    <Route path="/beneficiary/my-share" element={pr(BENEFICIARY_ROLES, <MySharePage />)} />
+    <Route path="/beneficiary/financial-reports" element={pr(ALL_NON_ACCOUNTANT, <FinancialReportsPage />)} />
+    <Route path="/beneficiary/accounts" element={pr(ALL_NON_ACCOUNTANT, <AccountsViewPage />)} />
+    <Route path="/beneficiary/settings" element={pr(ALL_NON_ACCOUNTANT, <BeneficiarySettingsPage />)} />
+    <Route path="/beneficiary/messages" element={pr(ALL_NON_ACCOUNTANT, <BeneficiaryMessagesPage />)} />
+    <Route path="/beneficiary/invoices" element={pr(ALL_NON_ACCOUNTANT, <InvoicesViewPage />)} />
+    <Route path="/beneficiary/notifications" element={pr(ALL_NON_ACCOUNTANT, <NotificationsPage />)} />
+    <Route path="/beneficiary/bylaws" element={pr(ALL_NON_ACCOUNTANT, <BylawsViewPage />)} />
+    <Route path="/beneficiary/carryforward" element={pr(ALL_NON_ACCOUNTANT, <CarryforwardHistoryPage />)} />
+    <Route path="/beneficiary/support" element={pr(ALL_ROLES, <BeneficiarySupportPage />)} />
+    <Route path="/beneficiary/annual-report" element={pr(ALL_NON_ACCOUNTANT, <AnnualReportViewPage />)} />
   </>
 );
