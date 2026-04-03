@@ -12,6 +12,10 @@ const mkIncome = (overrides: Partial<Income> = {}): Income => ({
   amount: 10000,
   date: '2024-01-01',
   created_at: '2024-01-01',
+  fiscal_year_id: 'fy1',
+  contract_id: null,
+  notes: null,
+  property_id: null,
   ...overrides,
 });
 
@@ -21,6 +25,9 @@ const mkExpense = (overrides: Partial<Expense> = {}): Expense => ({
   amount: 2000,
   date: '2024-01-01',
   created_at: '2024-01-01',
+  fiscal_year_id: 'fy1',
+  description: null,
+  property_id: null,
   ...overrides,
 });
 
