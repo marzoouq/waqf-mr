@@ -1,12 +1,14 @@
 /**
  * Custom hook encapsulating AccountsPage business logic
- * Now a thin composition layer over sub-hooks:
+ * Composition layer over sub-hooks:
  * - useAccountsData: جلب البيانات
+ * - useAccountsSettings: إعدادات النسب والمبالغ
  * - useAccountsCalculations: الحسابات المالية
  * - useAccountsEditing: حالة التحرير
  * - useAccountsActions: العمليات (حفظ، إقفال، تصدير)
  */
 import { useAccountsData } from './useAccountsData';
+import { useAccountsSettings } from './useAccountsSettings';
 import { useAccountsCalculations } from './useAccountsCalculations';
 import { useAccountsEditing } from './useAccountsEditing';
 import { useAccountsActions } from './useAccountsActions';
@@ -16,42 +18,22 @@ export function useAccountsPage() {
   // 1. جلب البيانات
   const data = useAccountsData();
 
-  // 2. العمليات والإعدادات (تحتاج أن تكون قبل الحسابات لأنها تحتوي على state الإعدادات)
-  // ملاحظة: القيم المالية تُمرر كأصفار هنا لكن useAccountsActions يستخدم paramsRef
-  // الذي يُحدّث تلقائياً في كل render بالقيم المحسوبة الفعلية من calc
-  const actions = useAccountsActions({
+  // 2. الإعدادات والنسب — مستخرجة هنا لتمريرها مباشرة للحسابات والعمليات
+  const settings = useAccountsSettings({
     selectedFY: data.selectedFY,
-    fiscalYear: data.selectedFY?.label || '',
-    fiscalYearId: data.fiscalYearId,
     accounts: data.accounts,
-    totalIncome: 0, // سيتم تحديثها عبر paramsRef في render التالي
-    totalExpenses: 0,
-    adminShare: 0,
-    waqifShare: 0,
-    waqfRevenue: 0,
-    netAfterExpenses: 0,
-    netAfterVat: 0,
-    netAfterZakat: 0,
-    grandTotal: 0,
-    availableAmount: 0,
-    remainingBalance: 0,
-    contracts: data.contracts,
-    beneficiaries: data.beneficiaries,
-    incomeBySource: {},
-    expensesByType: {},
-    appSettingsData: data.appSettings.data,
   });
 
-  // 3. الحسابات المالية (تعتمد على الإعدادات من actions)
+  // 3. الحسابات المالية — تعتمد على الإعدادات الحقيقية
   const calc = useAccountsCalculations({
     data,
-    adminPercent: actions.adminPercent,
-    waqifPercent: actions.waqifPercent,
-    zakatAmount: actions.zakatAmount,
-    waqfCorpusManual: actions.waqfCorpusManual,
-    waqfCorpusPrevious: actions.waqfCorpusPrevious,
-    manualVat: actions.manualVat,
-    manualDistributions: actions.manualDistributions,
+    adminPercent: settings.adminPercent,
+    waqifPercent: settings.waqifPercent,
+    zakatAmount: settings.zakatAmount,
+    waqfCorpusManual: settings.waqfCorpusManual,
+    waqfCorpusPrevious: settings.waqfCorpusPrevious,
+    manualVat: settings.manualVat,
+    manualDistributions: settings.manualDistributions,
     isClosed: data.selectedFY?.status === 'closed',
   });
 
@@ -62,10 +44,12 @@ export function useAccountsPage() {
     getExpectedPayments: calc.getExpectedPayments,
   });
 
-  // مزامنة القيم المحسوبة الفعلية من calc إلى paramsRef في useAccountsActions
-  // هذا يضمن أن buildAccountData و handleExportPdf يستخدمان القيم الحقيقية وليس الأصفار الأولية
-  actions.paramsRef.current = {
-    ...actions.paramsRef.current,
+  // 5. العمليات — تستقبل القيم الحقيقية مباشرة (بدون أصفار أو paramsRef خارجي)
+  const actions = useAccountsActions({
+    selectedFY: data.selectedFY,
+    fiscalYear: settings.fiscalYear,
+    fiscalYearId: data.fiscalYearId,
+    accounts: data.accounts,
     totalIncome: calc.totalIncome,
     totalExpenses: calc.totalExpenses,
     adminShare: calc.adminShare,
@@ -77,23 +61,30 @@ export function useAccountsPage() {
     grandTotal: calc.grandTotal,
     availableAmount: calc.availableAmount,
     remainingBalance: calc.remainingBalance,
+    contracts: data.contracts,
+    beneficiaries: data.beneficiaries,
     incomeBySource: calc.incomeBySource,
     expensesByType: calc.expensesByType,
-  };
+    manualVat: settings.manualVat,
+    manualDistributions: settings.manualDistributions,
+    zakatAmount: settings.zakatAmount,
+    waqfCorpusManual: settings.waqfCorpusManual,
+    waqfCorpusPrevious: settings.waqfCorpusPrevious,
+  });
 
   return {
     // Data
     accounts: data.accounts, contracts: data.contracts, beneficiaries: data.beneficiaries,
     income: data.income, expenses: data.expenses, isLoading: data.isLoading,
-    selectedFY: data.selectedFY, fiscalYear: actions.fiscalYear, fiscalYears: data.fiscalYears,
-    fiscalYearId: data.fiscalYearId, isClosed: data.isClosed, currentAccount: actions.currentAccount,
+    selectedFY: data.selectedFY, fiscalYear: settings.fiscalYear, fiscalYears: data.fiscalYears,
+    fiscalYearId: data.fiscalYearId, isClosed: data.isClosed, currentAccount: settings.currentAccount,
     // Settings
-    adminPercent: actions.adminPercent, waqifPercent: actions.waqifPercent,
-    zakatAmount: actions.zakatAmount, waqfCorpusManual: actions.waqfCorpusManual,
-    waqfCorpusPrevious: actions.waqfCorpusPrevious, manualVat: actions.manualVat,
-    manualDistributions: actions.manualDistributions,
+    adminPercent: settings.adminPercent, waqifPercent: settings.waqifPercent,
+    zakatAmount: settings.zakatAmount, waqfCorpusManual: settings.waqfCorpusManual,
+    waqfCorpusPrevious: settings.waqfCorpusPrevious, manualVat: settings.manualVat,
+    manualDistributions: settings.manualDistributions,
     calculatedVat: calc.calculatedVat, commercialRent: calc.commercialRent,
-    vatPercentage: calc.vatPercentage, usingFallbackPct: actions.usingFallbackPct,
+    vatPercentage: calc.vatPercentage, usingFallbackPct: settings.usingFallbackPct,
     // Financials
     totalIncome: calc.totalIncome, totalExpenses: calc.totalExpenses,
     grandTotal: calc.grandTotal, netAfterExpenses: calc.netAfterExpenses,
@@ -111,9 +102,9 @@ export function useAccountsPage() {
     getPaymentPerPeriod: calc.getPaymentPerPeriod, getExpectedPayments: calc.getExpectedPayments,
     statusLabel: calc.statusLabel,
     // State setters
-    setWaqfCorpusPrevious: actions.setWaqfCorpusPrevious, setManualVat: actions.setManualVat,
-    setZakatAmount: actions.setZakatAmount, setWaqfCorpusManual: actions.setWaqfCorpusManual,
-    setManualDistributions: actions.setManualDistributions,
+    setWaqfCorpusPrevious: settings.setWaqfCorpusPrevious, setManualVat: settings.setManualVat,
+    setZakatAmount: settings.setZakatAmount, setWaqfCorpusManual: settings.setWaqfCorpusManual,
+    setManualDistributions: settings.setManualDistributions,
     // Collection editing
     editingIndex: editing.editingIndex, editData: editing.editData, setEditData: editing.setEditData,
     handleStartEdit: editing.handleStartEdit, handleCancelEdit: editing.handleCancelEdit,
@@ -127,9 +118,9 @@ export function useAccountsPage() {
     handleConfirmDelete: editing.handleConfirmDelete,
     // Actions
     handleCreateAccount: actions.handleCreateAccount, handleCloseYear: actions.handleCloseYear,
-    handleExportPdf: actions.handleExportPdf, handleFiscalYearChange: actions.handleFiscalYearChange,
-    handleAdminPercentChange: actions.handleAdminPercentChange,
-    handleWaqifPercentChange: actions.handleWaqifPercentChange,
+    handleExportPdf: actions.handleExportPdf, handleFiscalYearChange: settings.handleFiscalYearChange,
+    handleAdminPercentChange: settings.handleAdminPercentChange,
+    handleWaqifPercentChange: settings.handleWaqifPercentChange,
     // Close year dialog
     closeYearOpen: actions.closeYearOpen, setCloseYearOpen: actions.setCloseYearOpen,
     isClosingYear: actions.isClosingYear,
