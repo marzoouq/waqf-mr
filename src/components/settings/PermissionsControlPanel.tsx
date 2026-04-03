@@ -13,6 +13,7 @@ import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions'
 import { ROLE_SECTION_DEFS, ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { useAuth } from '@/hooks/auth/useAuthContext';
+import AdminCapabilitiesSummary from './AdminCapabilitiesSummary';
 const ROLES = [
   { key: 'accountant', label: 'المحاسب', color: 'text-blue-600 dark:text-blue-400' },
   { key: 'beneficiary', label: 'المستفيد', color: 'text-emerald-600 dark:text-emerald-400' },
