@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { STALE_SETTINGS } from '@/lib/queryStaleTime';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 const jsonSettingCache = new Map<string, { raw: string; parsed: unknown }>();
 
@@ -133,7 +134,7 @@ export const useSetting = (key: string, fallback = ''): string => {
  */
 export const updateNotificationPrefs = (prefs: Record<string, boolean>) => {
   try {
-    localStorage.setItem('waqf_notification_preferences', JSON.stringify(prefs));
+    localStorage.setItem(STORAGE_KEYS.NOTIFICATION_PREFS, JSON.stringify(prefs));
     window.dispatchEvent(new CustomEvent('notif-prefs-changed'));
   } catch { /* silent */ }
 };

@@ -6,7 +6,9 @@ import { themes } from './themeDefinitions';
 export type { ThemeVars, ThemeTemplate };
 export { themes };
 
-const THEME_KEY = 'waqf_theme_color';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
+
+const THEME_KEY = STORAGE_KEYS.THEME_COLOR;
 
 const applyVars = (vars: ThemeVars) => {
   const root = document.documentElement;

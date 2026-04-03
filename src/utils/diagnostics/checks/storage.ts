@@ -2,6 +2,7 @@
  * بطاقة 3 — فحوصات التخزين (6)
  */
 import type { CheckResult } from '../types';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 export async function checkLocalStorage(): Promise<CheckResult> {
   const id = 'storage_local';
@@ -45,7 +46,7 @@ export async function checkServiceWorker(): Promise<CheckResult> {
 export async function checkErrorLogQueue(): Promise<CheckResult> {
   const id = 'storage_errorlog';
   try {
-    const raw = localStorage.getItem('error_log_queue');
+    const raw = localStorage.getItem(STORAGE_KEYS.ERROR_LOG_QUEUE);
     if (!raw) return { id, label: 'طابور الأخطاء', status: 'pass', detail: 'فارغ — لا أخطاء معلّقة' };
     let queue = JSON.parse(raw);
     if (!Array.isArray(queue)) queue = [];
@@ -61,7 +62,7 @@ export async function checkErrorLogQueue(): Promise<CheckResult> {
 
     // حفظ القائمة المنظّفة
     if (filtered.length !== queue.length) {
-      localStorage.setItem('error_log_queue', JSON.stringify(filtered));
+      localStorage.setItem(STORAGE_KEYS.ERROR_LOG_QUEUE, JSON.stringify(filtered));
     }
 
     const count = filtered.length;
