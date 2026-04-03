@@ -10,7 +10,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-import { notifyAllBeneficiaries, notifyAdmins, notifyUser } from './notifications';
+import { notifyAllBeneficiaries, notifyAdmins, notifyUser } from '@/services/notifications';
 
 describe('notifications utilities', () => {
   beforeEach(() => {
