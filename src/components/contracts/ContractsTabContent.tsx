@@ -4,13 +4,10 @@
 import { Button } from '@/components/ui/button';
 import { FileText, Lock, Info, RefreshCw, CheckSquare, Square, ShieldCheck } from 'lucide-react';
 import type { StatusFilterValue } from '@/hooks/page/useContractsFilters';
-import ContractAccordionGroup from '@/components/contracts/ContractAccordionGroup';
-import { TableSkeleton } from '@/components/common/SkeletonLoaders';
-import TablePagination from '@/components/common/TablePagination';
+import { ContractAccordionGroup, ContractStatsCards, ContractsFiltersBar } from '@/components/contracts';
+import { TableSkeleton, TablePagination } from '@/components/common';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
-import ContractStatsCards from '@/components/contracts/ContractStatsCards';
-import ContractsFiltersBar from '@/components/contracts/ContractsFiltersBar';
 import type { Contract } from '@/types/database';
 import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 

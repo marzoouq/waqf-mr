@@ -9,10 +9,10 @@ import {
 import { Lock } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { cn } from '@/lib/utils';
-import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
+import { WaqfInfoBar } from '@/components/layout';
 const PrintHeader = lazy(() => import('@/components/common/PrintHeader'));
 const PrintFooter = lazy(() => import('@/components/common/PrintFooter'));
-import BetaBanner from '@/components/common/BetaBanner';
+import { BetaBanner } from '@/components/common';
 import FiscalYearSelector from '@/components/layout/FiscalYearSelector';
 import SidebarContent from '@/components/layout/Sidebar';
 import BottomNav from '@/components/layout/BottomNav';
