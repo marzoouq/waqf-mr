@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Eye, Edit, Trash2, FileDown } from 'lucide-react';
-import type { Invoice } from '@/hooks/data/useInvoices';
+import type { Invoice } from '@/hooks/data/invoices/useInvoices';
 
 interface InvoicesDesktopTableProps {
   items: Invoice[];

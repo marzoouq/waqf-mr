@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Save, LayoutList, RotateCcw } from 'lucide-react';
-import { useAppSettings } from '@/hooks/data/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useState, useEffect } from 'react';
 
 // أنواع وقيم افتراضية مستخرجة إلى ملف مستقل لتقليل حجم الحزمة

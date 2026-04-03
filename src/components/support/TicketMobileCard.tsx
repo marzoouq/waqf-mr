@@ -4,7 +4,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Star } from 'lucide-react';
-import type { SupportTicket } from '@/hooks/data/useSupportTickets';
+import type { SupportTicket } from '@/hooks/data/support/useSupportTickets';
 import { fmtDate } from '@/utils/format';
 import { STATUS_MAP, PRIORITY_MAP, CATEGORY_MAP } from './supportConstants';
 import SlaIndicator from './SlaIndicator';

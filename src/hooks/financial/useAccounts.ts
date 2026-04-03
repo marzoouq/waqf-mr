@@ -3,7 +3,7 @@
  * يوفر: useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useAccountByFiscalYear
  * الجدول: accounts | يخزن القيم المالية المحسوبة لكل سنة مالية
  */
-import { createCrudFactory } from '@/hooks/data/useCrudFactory';
+import { createCrudFactory } from '@/hooks/data/core/useCrudFactory';
 import { Account } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';

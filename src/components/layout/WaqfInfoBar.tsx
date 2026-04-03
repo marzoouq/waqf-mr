@@ -2,7 +2,7 @@
  * شريط معلومات الوقف — يعرض اسم الوقف مع بيانات تفصيلية عند النقر
  */
 import { useState } from 'react';
-import { useWaqfInfo } from '@/hooks/data/useAppSettings';
+import { useWaqfInfo } from '@/hooks/data/settings/useAppSettings';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';

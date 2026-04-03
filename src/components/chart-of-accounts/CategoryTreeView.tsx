@@ -9,7 +9,7 @@ import {
   Pencil, Trash2, ChevronDown,
   DollarSign, Receipt, Calculator, ArrowDownUp,
 } from 'lucide-react';
-import type { CategoryTreeNode } from '@/hooks/data/useAccountCategories';
+import type { CategoryTreeNode } from '@/hooks/data/financial/useAccountCategories';
 import type { AccountCategory } from '@/types/database';
 
 // ─── ثوابت الألوان والأنواع ───

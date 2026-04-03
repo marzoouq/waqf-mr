@@ -8,7 +8,7 @@ import { FileText, Plus, CalendarDays, Receipt, BarChart3 } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
 import { generateContractsPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/csv';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent } from '@/components/contracts';
 import { getPaymentTypeLabel } from '@/utils/contractHelpers';

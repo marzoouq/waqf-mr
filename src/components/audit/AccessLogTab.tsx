@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, ShieldAlert, Activity } from 'lucide-react';
 import { TablePagination } from '@/components/common';
-import { useAccessLogTab, useFailedLoginsToday, useUnauthorizedAccessToday, ACCESS_LOG_ITEMS_PER_PAGE } from '@/hooks/data/useAccessLogTab';
-import type { AccessLogEntry } from '@/hooks/data/useAccessLogTab';
+import { useAccessLogTab, useFailedLoginsToday, useUnauthorizedAccessToday, ACCESS_LOG_ITEMS_PER_PAGE } from '@/hooks/data/audit/useAccessLogTab';
+import type { AccessLogEntry } from '@/hooks/data/audit/useAccessLogTab';
 
 const eventConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   login_failed: { label: 'فشل تسجيل الدخول', color: 'bg-destructive/15 text-destructive border-destructive/30', icon: XCircle },

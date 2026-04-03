@@ -5,7 +5,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useFiscalYears } from '@/hooks/financial/useFiscalYears';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { toast } from 'sonner';
 
 /** Hook لجلب بيانات سنة واحدة */

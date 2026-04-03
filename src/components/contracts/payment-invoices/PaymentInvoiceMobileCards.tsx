@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CheckCircle2, Clock, AlertTriangle, Check, X, Download, Loader2, Eye } from 'lucide-react';
 import { fmt } from '@/utils/format';
-import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
+import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 
 interface PaymentInvoiceMobileCardsProps {
   groupedPaginated: Map<string, PaymentInvoice[]>;

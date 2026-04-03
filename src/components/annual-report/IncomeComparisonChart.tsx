@@ -3,7 +3,7 @@
  */
 import { lazy, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useIncomeComparison } from '@/hooks/data/useAnnualReport';
+import { useIncomeComparison } from '@/hooks/data/content/useAnnualReport';
 import { Loader2, TrendingUp } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 

@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { getTenantFromContracts, getMonthlyRent, getMonthlyFromContract } from './helpers';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt, fmtInt } from '@/utils/format';
-import type { UnitRow } from '@/hooks/data/useUnits';
+import type { UnitRow } from '@/hooks/data/properties/useUnits';
 import type { Contract } from '@/types/database';
 
 interface MobileSummaryCardProps {

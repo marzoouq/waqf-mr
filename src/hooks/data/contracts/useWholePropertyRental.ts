@@ -1,7 +1,7 @@
 /**
  * هوك فرعي لإدارة تأجير العقار بالكامل (بدون وحدات)
  */
-import { useCreateContract, useUpdateContract } from '@/hooks/data/useContracts';
+import { useCreateContract, useUpdateContract } from './useContracts';
 import { Property, Contract } from '@/types/database';
 import { defaultNotify } from '@/lib/notify';
 import type { WholeRentalForm } from '@/components/properties/units/WholePropertyTab';

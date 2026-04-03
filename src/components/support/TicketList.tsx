@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Eye, Star } from 'lucide-react';
-import type { SupportTicket } from '@/hooks/data/useSupportTickets';
+import type { SupportTicket } from '@/hooks/data/support/useSupportTickets';
 import { fmtDate } from '@/utils/format';
 import { STATUS_MAP } from './supportConstants';
 

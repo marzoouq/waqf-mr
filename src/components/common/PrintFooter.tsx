@@ -1,4 +1,4 @@
-import { useWaqfInfo } from '@/hooks/data/useAppSettings';
+import { useWaqfInfo } from '@/hooks/data/settings/useAppSettings';
 
 const PrintFooter = () => {
   const { data: waqfInfo } = useWaqfInfo();

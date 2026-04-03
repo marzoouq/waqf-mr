@@ -7,12 +7,12 @@ import {
   useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile,
   INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear,
   useGenerateInvoicePdf, ALLOWED_MIME_TYPES, MAX_FILE_SIZE,
-} from '@/hooks/data/useInvoices';
+} from '@/hooks/data/invoices/useInvoices';
 import type { InvoicePreviewData } from '@/components/invoices';
-import { useProperties } from '@/hooks/data/useProperties';
-import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
+import { useProperties } from '@/hooks/data/properties/useProperties';
+import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { removeInvoiceFile } from '@/lib/services';
 

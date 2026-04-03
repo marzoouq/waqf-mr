@@ -3,7 +3,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, ImageIcon, Calendar, Building2, Hash, Receipt } from 'lucide-react';
-import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice } from '@/hooks/data/useInvoices';
+import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice } from '@/hooks/data/invoices/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { TablePagination } from '@/components/common';
 import { useState, useMemo } from 'react';

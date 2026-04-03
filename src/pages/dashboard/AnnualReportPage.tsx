@@ -12,7 +12,7 @@ import {
   Trophy, AlertTriangle, Lightbulb, Building2, FileDown, Printer,
   Send, FileEdit, Loader2, Plus,
 } from 'lucide-react';
-import type { SectionType } from '@/hooks/data/useAnnualReport';
+import type { SectionType } from '@/hooks/data/content/useAnnualReport';
 import ReportItemCard from '@/components/annual-report/ReportItemCard';
 import ReportItemFormDialog from '@/components/annual-report/ReportItemFormDialog';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';

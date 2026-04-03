@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/data/useBeneficiaries';
-import { useBeneficiaryUsers } from '@/hooks/data/useBeneficiaryUsers';
+import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/data/beneficiaries/useBeneficiaries';
+import { useBeneficiaryUsers } from '@/hooks/data/beneficiaries/useBeneficiaryUsers';
 import { Beneficiary } from '@/types/database';
 import { toast } from 'sonner';
 import type { BeneficiaryFormData } from '@/components/beneficiaries';

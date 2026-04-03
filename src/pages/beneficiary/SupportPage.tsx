@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Headset, Loader2, MessageSquare, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { useSupportTickets, type SupportTicket } from '@/hooks/data/useSupportTickets';
+import { useSupportTickets, type SupportTicket } from '@/hooks/data/support/useSupportTickets';
 import { TicketList, TicketViewDialog, NewTicketDialog } from '@/components/support';
 
 const BeneficiarySupportPage = () => {

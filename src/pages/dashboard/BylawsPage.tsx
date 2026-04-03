@@ -10,7 +10,7 @@ import SortableBylawItem from '@/components/bylaws/SortableBylawItem';
 import { Loader2, BookOpen, Search, X, Plus, Lock, Scale } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
 import { generateBylawsPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';

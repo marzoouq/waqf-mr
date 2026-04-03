@@ -8,8 +8,8 @@
  */
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { logAccessEvent } from '@/hooks/data/useAccessLog';
-import { checkNewDeviceLogin } from '@/hooks/data/useSecurityAlerts';
+import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
+import { checkNewDeviceLogin } from '@/hooks/data/audit/useSecurityAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';

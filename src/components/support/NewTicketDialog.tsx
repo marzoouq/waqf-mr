@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { useCreateTicket } from '@/hooks/data/useSupportTickets';
+import { useCreateTicket } from '@/hooks/data/support/useSupportTickets';
 
 interface NewTicketDialogProps {
   open: boolean;

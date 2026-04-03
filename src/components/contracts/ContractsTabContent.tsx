@@ -9,7 +9,7 @@ import { TableSkeleton, TablePagination } from '@/components/common';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import type { Contract } from '@/types/database';
-import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
+import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 
 interface ContractsTabContentProps {
   contracts: Contract[];

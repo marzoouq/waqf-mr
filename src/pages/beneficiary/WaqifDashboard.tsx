@@ -12,11 +12,11 @@ import { useContractAllocations } from '@/hooks/financial/useContractAllocations
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import { useProperties } from '@/hooks/data/useProperties';
-import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
-import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
-import { useAllUnits } from '@/hooks/data/useUnits';
-import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
+import { useProperties } from '@/hooks/data/properties/useProperties';
+import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
+import { useBeneficiariesSafe } from '@/hooks/data/beneficiaries/useBeneficiaries';
+import { useAllUnits } from '@/hooks/data/properties/useUnits';
+import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, ExportMenu, DashboardSkeleton, DeferredRender } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';

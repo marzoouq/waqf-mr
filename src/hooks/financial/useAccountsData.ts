@@ -3,14 +3,14 @@
  */
 import { useMemo } from 'react';
 import { useAccounts } from '@/hooks/financial/useAccounts';
-import { useIncomeByFiscalYear } from '@/hooks/data/useIncome';
-import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
-import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
-import { useBeneficiaries } from '@/hooks/data/useBeneficiaries';
-import { useTenantPayments } from '@/hooks/data/useTenantPayments';
-import { useAllUnits } from '@/hooks/data/useUnits';
-import { useProperties } from '@/hooks/data/useProperties';
-import { useAppSettings } from '@/hooks/data/useAppSettings';
+import { useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
+import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
+import { useBeneficiaries } from '@/hooks/data/beneficiaries/useBeneficiaries';
+import { useTenantPayments } from '@/hooks/data/contracts/useTenantPayments';
+import { useAllUnits } from '@/hooks/data/properties/useUnits';
+import { useProperties } from '@/hooks/data/properties/useProperties';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { isFyAll } from '@/constants/fiscalYearIds';

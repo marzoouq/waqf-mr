@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react';
 import type { Contract } from '@/types/database';
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
-import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
+import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 import { getPaymentCount } from '@/utils/contractHelpers';
 import { safeNumber } from '@/utils/safeNumber';

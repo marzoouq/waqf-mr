@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { useNotificationBeneficiaries } from '@/hooks/data/useNotificationBeneficiaries';
+import { useNotificationBeneficiaries } from '@/hooks/data/notifications/useNotificationBeneficiaries';
 import { notifyAllBeneficiaries, insertNotifications } from '@/lib/services';
 
 interface Beneficiary {

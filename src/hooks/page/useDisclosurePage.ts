@@ -2,16 +2,16 @@
  * هوك بيانات صفحة الإفصاح السنوي
  */
 import { useQueryClient } from '@tanstack/react-query';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useMyShare } from '@/hooks/financial/useMyShare';
-import { useMyDistributions } from '@/hooks/data/useMyDistributions';
+import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { safeNumber } from '@/utils/safeNumber';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { toast } from 'sonner';
-import { useBeneficiaryDashboardData } from '@/hooks/data/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { isFyReady } from '@/constants/fiscalYearIds';
 
 /** تنسيق تاريخ ميلادي بصيغة يوم/شهر/سنة */

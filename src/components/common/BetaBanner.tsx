@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FlaskConical, X } from "lucide-react";
-import { useAppSettings } from "@/hooks/data/useAppSettings";
+import { useAppSettings } from "@/hooks/data/settings/useAppSettings";
 import { DEFAULT_BANNER_SETTINGS, type BannerSettings } from "@/constants";
 
 const BANNER_DISMISS_KEY = 'beta_banner_dismissed';

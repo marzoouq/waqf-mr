@@ -3,13 +3,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useNotifications } from '@/hooks/data/useNotifications';
+import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { AlertCircle, RefreshCw, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender } from '@/components/common';
-import { useBeneficiaryDashboardData } from '@/hooks/data/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary-dashboard/BeneficiaryWelcomeCard';
 import BeneficiaryStatsRow from '@/components/beneficiary-dashboard/BeneficiaryStatsRow';

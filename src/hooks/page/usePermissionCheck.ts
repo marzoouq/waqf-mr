@@ -2,7 +2,7 @@
  * هوك فحص صلاحية الوصول لمسار معين حسب الدور والإعدادات
  */
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useAppSettings } from '@/hooks/data/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import {
   ADMIN_ROUTE_PERM_KEYS,
   BENEFICIARY_ROUTE_PERM_KEYS,

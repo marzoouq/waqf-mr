@@ -7,7 +7,7 @@ import { Edit, Trash2 } from 'lucide-react';
 import { statusColor } from './constants';
 import { getPaymentStatusFromInvoices, getMonthlyRent, type TenantInfo } from './helpers';
 import { fmt, fmtInt } from '@/utils/format';
-import type { UnitRow } from '@/hooks/data/useUnits';
+import type { UnitRow } from '@/hooks/data/properties/useUnits';
 
 interface PaymentInvoiceLike {
   contract_id: string;

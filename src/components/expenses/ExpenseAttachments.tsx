@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, Paperclip } from 'lucide-react';
-import { useInvoices } from '@/hooks/data/useInvoices';
+import { useInvoices } from '@/hooks/data/invoices/useInvoices';
 import { InvoiceViewer } from '@/components/invoices';
 
 interface ExpenseAttachmentsProps {

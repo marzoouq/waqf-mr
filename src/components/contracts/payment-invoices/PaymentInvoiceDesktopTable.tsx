@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { fmt } from '@/utils/format';
 import type { SortKey } from '@/hooks/page/usePaymentInvoicesTab';
-import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
+import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 
 interface PaymentInvoiceDesktopTableProps {
   groupedPaginated: Map<string, PaymentInvoice[]>;

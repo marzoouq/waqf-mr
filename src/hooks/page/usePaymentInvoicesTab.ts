@@ -10,9 +10,9 @@ import {
   useGenerateAllInvoices,
   useMarkInvoicePaid,
   useMarkInvoiceUnpaid,
-} from '@/hooks/data/usePaymentInvoices';
-import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+} from '@/hooks/data/invoices/usePaymentInvoices';
+import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import type { InvoicePreviewData } from '@/components/invoices';
 
 export type FilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';

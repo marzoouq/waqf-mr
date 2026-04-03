@@ -7,7 +7,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { computeMonthlyData } from '@/utils/dashboardComputations';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
-import type { useDashboardSummary } from '@/hooks/data/useDashboardSummary';
+import type { useDashboardSummary } from '@/hooks/data/financial/useDashboardSummary';
 
 /** النوع المُستنتج من هوك الملخص — يضمن التوافق التام بين الهوكين */
 type DashboardSummary = Omit<ReturnType<typeof useDashboardSummary>, 'isLoading' | 'isError'>;

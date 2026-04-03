@@ -3,8 +3,8 @@
  */
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMyBeneficiaryProfile } from '@/hooks/data/useMyBeneficiaryProfile';
-import { usePublishedFiscalYears } from '@/hooks/data/usePublishedFiscalYears';
+import { useMyBeneficiaryProfile } from '@/hooks/data/beneficiaries/useMyBeneficiaryProfile';
+import { usePublishedFiscalYears } from '@/hooks/data/content/usePublishedFiscalYears';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { safeNumber } from '@/utils/safeNumber';
 

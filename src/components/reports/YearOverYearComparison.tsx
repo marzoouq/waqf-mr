@@ -7,7 +7,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { generateYearComparisonPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { fmt } from '@/utils/format';
 const YoYChartsSection = lazy(() => import('@/components/reports/YoYChartsSection'));
 import { YoYComparisonTable } from '@/components/reports';

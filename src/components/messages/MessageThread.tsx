@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageSquare, Send, ArrowRight, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Conversation } from '@/hooks/data/useMessaging';
+import type { Conversation } from '@/hooks/data/messaging/useMessaging';
 import type { RefObject } from 'react';
 
 interface MessageThreadProps {

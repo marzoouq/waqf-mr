@@ -3,10 +3,10 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
-import { useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear } from '@/hooks/data/useIncome';
-import { useProperties } from '@/hooks/data/useProperties';
-import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
-import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
+import { useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
+import { useProperties } from '@/hooks/data/properties/useProperties';
+import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
+import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import type { Income } from '@/types/database';

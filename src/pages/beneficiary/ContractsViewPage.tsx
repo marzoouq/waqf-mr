@@ -3,7 +3,7 @@
  */
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { EXPIRING_SOON_DAYS } from '@/constants';
-import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { RequirePublishedYears, ExportMenu, TablePagination } from '@/components/common';
@@ -13,9 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useMemo, useCallback, useState, useEffect } from 'react';
 import { generateContractsPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { toast } from 'sonner';
-import { usePropertiesMap } from '@/hooks/data/usePropertiesMap';
+import { usePropertiesMap } from '@/hooks/data/properties/usePropertiesMap';
 import { ContractStatsCards } from '@/components/contracts';
 import ContractsViewMobileCards from '@/components/contracts/ContractsViewMobileCards';
 import ContractsViewDesktopTable from '@/components/contracts/ContractsViewDesktopTable';

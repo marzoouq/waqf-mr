@@ -5,7 +5,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import type { AppNotify } from '@/lib/notify';
-import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { normalizeArabicDigits } from '@/utils/normalizeDigits';
 
 interface NidLoginState {

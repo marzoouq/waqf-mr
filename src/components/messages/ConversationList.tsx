@@ -7,7 +7,7 @@ import { MessageSquare, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import type { Conversation } from '@/hooks/data/useMessaging';
+import type { Conversation } from '@/hooks/data/messaging/useMessaging';
 
 interface ConversationListProps {
   conversations: Conversation[];
