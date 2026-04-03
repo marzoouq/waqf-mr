@@ -1,18 +1,21 @@
 /**
  * بطاقة 7 — فحوصات ZATCA والفوترة الإلكترونية (7)
  */
-import { supabase } from '@/integrations/supabase/client';
+import {
+  getActiveCertificate,
+  getInvoiceChainRecords,
+  countPendingChainRecords,
+  countUnsubmittedInvoices,
+  getRequiredSettings,
+  getOtpSettings,
+  getInvoiceChainCompleteness,
+} from '@/lib/services/diagnosticsService';
 import type { CheckResult } from '../types';
 
 export async function checkZatcaCertificateValidity(): Promise<CheckResult> {
   const id = 'zatca_cert';
   try {
-    const { data, error } = await supabase
-      .from('zatca_certificates')
-      .select('certificate_type, is_active, expires_at')
-      .eq('is_active', true)
-      .limit(1)
-      .maybeSingle();
+    const { data, error } = await getActiveCertificate();
 
     if (error) return { id, label: 'شهادة ZATCA', status: 'fail', detail: `خطأ: ${error.message}` };
     if (!data) return { id, label: 'شهادة ZATCA', status: 'warn', detail: 'لا توجد شهادة نشطة — يجب إجراء عملية الربط (Onboard)' };
@@ -41,12 +44,7 @@ export async function checkZatcaCertificateValidity(): Promise<CheckResult> {
 export async function checkInvoiceChainIntegrity(): Promise<CheckResult> {
   const id = 'zatca_chain';
   try {
-    const { data: chainRecords, error } = await supabase
-      .from('invoice_chain')
-      .select('icv, invoice_hash, previous_hash')
-      .neq('invoice_hash', 'PENDING')
-      .order('icv', { ascending: true })
-      .limit(500);
+    const { data: chainRecords, error } = await getInvoiceChainRecords();
 
     if (error) return { id, label: 'تكامل سلسلة الفواتير', status: 'fail', detail: `خطأ: ${error.message}` };
     if (!chainRecords || chainRecords.length === 0) {
@@ -78,10 +76,7 @@ export async function checkInvoiceChainIntegrity(): Promise<CheckResult> {
 export async function checkPendingInvoiceChains(): Promise<CheckResult> {
   const id = 'zatca_pending';
   try {
-    const { count, error } = await supabase
-      .from('invoice_chain')
-      .select('id', { count: 'exact', head: true })
-      .eq('invoice_hash', 'PENDING');
+    const { count, error } = await countPendingChainRecords();
 
     if (error) return { id, label: 'سجلات PENDING في السلسلة', status: 'fail', detail: `خطأ: ${error.message}` };
     const pendingCount = count ?? 0;
@@ -97,11 +92,7 @@ export async function checkPendingInvoiceChains(): Promise<CheckResult> {
 export async function checkUnsubmittedInvoices(): Promise<CheckResult> {
   const id = 'zatca_unsubmitted';
   try {
-    const { count, error } = await supabase
-      .from('payment_invoices')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'paid')
-      .eq('zatca_status', 'not_submitted');
+    const { count, error } = await countUnsubmittedInvoices();
 
     if (error) return { id, label: 'فواتير مدفوعة غير مُبلّغة', status: 'fail', detail: `خطأ: ${error.message}` };
     const unsubCount = count ?? 0;
@@ -121,10 +112,7 @@ export async function checkZatcaSettings(): Promise<CheckResult> {
   const id = 'zatca_settings';
   try {
     const requiredKeys = ['vat_registration_number', 'waqf_name', 'commercial_registration_number'];
-    const { data, error } = await supabase
-      .from('app_settings')
-      .select('key')
-      .in('key', requiredKeys);
+    const { data, error } = await getRequiredSettings(requiredKeys);
 
     if (error) return { id, label: 'إعدادات ZATCA الأساسية', status: 'fail', detail: `خطأ: ${error.message}` };
     const foundKeys = (data || []).map(r => r.key);
@@ -147,10 +135,7 @@ export async function checkZatcaSettings(): Promise<CheckResult> {
 export async function checkStaleOtp(): Promise<CheckResult> {
   const id = 'stale_otp';
   try {
-    const { data, error } = await supabase
-      .from('app_settings')
-      .select('key')
-      .in('key', ['zatca_otp_1', 'zatca_otp_2']);
+    const { data, error } = await getOtpSettings();
 
     if (error) return { id, label: 'OTP متبقٍ في الإعدادات', status: 'info', detail: `تعذر الفحص: ${error.message}` };
 
@@ -167,10 +152,7 @@ export async function checkStaleOtp(): Promise<CheckResult> {
 export async function checkInvoiceChainCompleteness(): Promise<CheckResult> {
   const id = 'invoice_chain_completeness';
   try {
-    const [invoicesRes, chainRes] = await Promise.all([
-      supabase.from('payment_invoices').select('id', { count: 'exact', head: true }).not('icv', 'is', null),
-      supabase.from('invoice_chain').select('id', { count: 'exact', head: true }).eq('source_table', 'payment_invoices'),
-    ]);
+    const { invoicesRes, chainRes } = await getInvoiceChainCompleteness();
 
     if (invoicesRes.error || chainRes.error) {
       return { id, label: 'تطابق الفواتير مع السلسلة', status: 'info', detail: 'تعذر الفحص' };
