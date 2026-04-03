@@ -3,7 +3,7 @@ import { lazy, Suspense } from 'react';
 import { ErrorBoundary, DeferredRender } from '@/components/common';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { Button } from '@/components/ui/button';
-import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
+import { FiscalYearWidget, DashboardAlerts, DashboardStatsGrid, DashboardKpiPanel, CollectionSummaryCard, RecentContractsCard, QuickActionsCard, YearComparisonCard } from '@/components/dashboard';
 import { Printer, Gauge } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
