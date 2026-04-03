@@ -13,6 +13,7 @@ import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions'
 import { ROLE_SECTION_DEFS, ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { useAuth } from '@/hooks/auth/useAuthContext';
+import AdminCapabilitiesSummary from './AdminCapabilitiesSummary';
 const ROLES = [
   { key: 'accountant', label: 'المحاسب', color: 'text-blue-600 dark:text-blue-400' },
   { key: 'beneficiary', label: 'المستفيد', color: 'text-emerald-600 dark:text-emerald-400' },
@@ -126,6 +127,9 @@ const PermissionsControlPanel = () => {
 
   return (
     <div className="space-y-6">
+      {/* ── ملخص صلاحيات الناظر ── */}
+      <AdminCapabilitiesSummary />
+
       {/* ── ملخص الصلاحيات ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {summaries.map(s => (
