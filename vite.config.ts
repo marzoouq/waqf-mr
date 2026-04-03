@@ -121,7 +121,12 @@ export default defineConfig(({ mode }) => ({
     dedupe: ["react", "react-dom", "react/jsx-runtime"],
   },
   build: {
+    modulePreload: { polyfill: true },
     rollupOptions: {
+      // استبعاد ملفات الاختبار من البناء الإنتاجي
+      external: (id) =>
+        /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(id) ||
+        id.includes('__tests__'),
       output: {
         manualChunks(id) {
           if (id.includes('node_modules/react-dom')) return 'vendor-react';
