@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { useActiveFiscalYear, FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { logger } from '@/lib/logger';
-import { FY_NONE, isFyReady } from '@/constants/fiscalYearIds';
+import { FY_NONE, FY_ALL, isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 interface FiscalYearContextType {
   fiscalYearId: string;
