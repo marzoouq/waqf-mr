@@ -105,7 +105,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onTouchMove={swipe.handleMainTouchMove}
         onTouchEnd={swipe.handleMainTouchEnd}
         className={cn(
-          'flex-1 transition-all duration-300 min-h-screen overflow-y-auto',
+          'flex-1 transition-[margin] duration-300 min-h-screen overflow-y-auto',
           'pt-14 pb-16 lg:pt-0 lg:pb-0',
           sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
         )}
