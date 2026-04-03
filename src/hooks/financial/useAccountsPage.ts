@@ -116,7 +116,8 @@ export function useAccountsPage() {
     collectionData: calc.collectionData, totalCollectedAll: calc.totalCollectedAll,
     totalArrearsAll: calc.totalArrearsAll, totalPaidMonths: calc.totalPaidMonths,
     totalExpectedPayments: calc.totalExpectedPayments,
-    totalBeneficiaryPercentage: calc.totalBeneficiaryPercentage,
+    totalBeneficiaryPercentage: totalBenPct,
+    unpaidInvoices, pendingAdvances,
     getPaymentPerPeriod: calc.getPaymentPerPeriod, getExpectedPayments: calc.getExpectedPayments,
     statusLabel: calc.statusLabel,
     // State setters
