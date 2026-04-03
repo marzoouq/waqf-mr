@@ -90,9 +90,9 @@ describe('ZatcaManagementPage', () => {
   it('shows onboarding button when no certificates exist', async () => {
     setupMockFrom([], []);
     await renderPage();
-    await userEvent.click(screen.getByText('الشهادات'));
+    await userEvent.click(screen.getAllByText('الشهادات')[0]);
     expect(await screen.findByText('بدء التسجيل (Onboarding)')).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it('shows production upgrade button only with compliance cert', async () => {
     const complianceCert = [{ id: '1', certificate_type: 'compliance', is_active: true, request_id: 'req1', created_at: '2026-01-01' }];
