@@ -14,20 +14,15 @@ interface PerfEntry {
 
 const recentSlowQueries: PerfEntry[] = [];
 
-// مرجع لدالة التنبيه — يُضبط من App لتجنب الاستيراد الدائري
-let _toastFn: ((msg: string, opts?: { description?: string }) => void) | null = null;
-
-/**
- * يضبط دالة التنبيه (toast) — يُستدعى مرة واحدة من App
- */
-export function setPerformanceToast(fn: (msg: string, opts?: { description?: string }) => void): void {
-  _toastFn = fn;
+/** خيارات اختيارية للتنبيه — تُمرر عند الاستدعاء بدلاً من global state */
+interface PerfTimerOptions {
+  onSlow?: (msg: string, opts?: { description?: string }) => void;
 }
 
 /**
  * يبدأ قياس أداء عملية معينة ويُعيد دالة لإنهائها
  */
-export function startPerfTimer(label: string): () => void {
+export function startPerfTimer(label: string, options?: PerfTimerOptions): () => void {
   const entry: PerfEntry = { label, startTime: performance.now() };
 
   return () => {
@@ -39,8 +34,8 @@ export function startPerfTimer(label: string): () => void {
       logger.warn(`[Perf] عملية بطيئة: "${label}" استغرقت ${Math.round(entry.durationMs)}ms`);
       recentSlowQueries.push(entry);
 
-      // تنبيه المستخدم
-      _toastFn?.('⚠️ عملية بطيئة', {
+      // تنبيه المستخدم عبر callback
+      options?.onSlow?.('⚠️ عملية بطيئة', {
         description: `"${label}" استغرقت ${durationSec} ثانية`,
       });
 
@@ -83,7 +78,6 @@ export function reportPageLoadMetrics(): void {
 
     if (loadTime > SLOW_QUERY_THRESHOLD_MS) {
       logger.warn(`[Perf] تحميل الصفحة بطيء: ${loadTime}ms (DOM interactive: ${domInteractive}ms)`);
-      // إشعار الأداء معطّل — يكفي التسجيل في الـ logger
     }
   };
 
