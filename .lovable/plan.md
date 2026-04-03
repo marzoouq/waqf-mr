@@ -1,33 +1,33 @@
 
-## تحليل البنود العشرة
+## تقييم الوضع الحالي
 
-### ✅ منجز فعلاً (لا يحتاج تعديل):
-1. **إزالة useEffect من التوجيه** — `RequirePermission` و `ProtectedRoute` يستخدمان `<Navigate />` التصريحي بالفعل. useEffect الموجود فقط للتسجيل (logging) وليس للتوجيه.
-6. **توحيد ErrorBoundary** — لا يوجد إعادة تحميل تلقائي (auto-reload). المستخدم يضغط زراً يدوياً. بعد محاولتين يُعاد للصفحة الرئيسية. آمن من الحلقات.
-7. **QueryClient staleTime** — مضبوط على 5 دقائق مع retry ذكي وrefetchOnWindowFocus: false.
-10. **Session Refresh صامت** — Supabase يتولى ذلك تلقائياً عبر `onAuthStateChange` + `TOKEN_REFRESHED`.
+### ✅ نقاط مُنفَّذة مسبقاً (لا تحتاج عمل):
+- **النقطة 6 — Rate Limiting**: موجود فعلاً (`rate_limits` + `check_rate_limit` + `lookup-national-id` يستخدمه)
+- **النقطة 7 — التشفير**: AES-256 عبر `pgcrypto` (`encrypt_pii`/`decrypt_pii`) مع trigger تلقائي على `zatca_certificates`
+- **النقطة 8 — عزل بيانات المستفيدين**: RLS يفرض `user_id = auth.uid()` + عروض آمنة (`beneficiaries_safe`, `contracts_safe`) بـ `security_barrier`
+- **النقطة 10 — سجل التدقيق**: جدول `audit_log` + `access_log` مع triggers ومنع التعديل/الحذف
 
-### ❌ يتعارض مع قيود المشروع:
-9. **Zustand/Redux** — قواعد المشروع تمنع ذلك صراحةً: "لا Redux/Zustand". سنستخدم بدائل React المدمجة.
+### ⚠️ النقطة 1 — استبدال `has_role` بـ JWT claims (93 سياسة):
+**تحذير أمني مهم**: `has_role` يستعلم الجدول مباشرة = إلغاء فوري للصلاحية. JWT claims = تأخر حتى انتهاء التوكن (ساعة).
+**الحل المقترح (هجين)**:
+- سياسات SELECT → JWT claims (أداء أسرع، المخاطرة مقبولة)
+- سياسات INSERT/UPDATE/DELETE → إبقاء `has_role` (أمان الكتابة أولوية)
+- إنشاء دالة مساعدة `jwt_role()` لتبسيط الصياغة
 
-### 🔧 قابل للتنفيذ (5 بنود):
+### 🔧 نقاط تحتاج تنفيذ:
 
-**البند 2: React Router Loaders (createBrowserRouter)**
-- ترحيل من `<BrowserRouter>` + `<Routes>` إلى `createBrowserRouter` + `createRoutesFromElements`
-- نقل فحص الصلاحيات إلى `loader` functions تعمل قبل تحميل المكون
-- يزيل وميض الواجهة (flickering) تماماً
+**النقطة 2 — فهارس FK المفقودة**: فقط 2 من 39:
+- `account_categories.parent_id`
+- `support_tickets.assigned_to`
 
-**البند 3+4: حقن الدور في JWT Claims**
-- إنشاء Custom Access Token Hook في قاعدة البيانات
-- الدور يُقرأ من `session.access_token` مباشرة بدلاً من استعلام منفصل
-- يلغي الحاجة لـ fetchUserRole() وتأخيراتها
+**النقطة 3 — عرض ملخص مالي**:
+- `v_fiscal_year_summary`: إجماليات الإيرادات/المصروفات/التوزيعات لكل سنة مالية
 
-**البند 5: إزالة المؤقتات من AuthContext**
-- حذف signInTimeout (8 ثوانٍ) — لم يعد ضرورياً مع JWT Claims
-- حذف retry loop (300ms × 3) — الدور يأتي مع التوكن
+**النقطة 4 — RPC لمؤشرات الأداء**:
+- `get_dashboard_kpis(p_fiscal_year_id)`: يُعيد KPIs محسوبة server-side
 
-**البند 8: فصل Context الثقيل**
-- فصل AuthContext إلى AuthStateContext (user/session/role) + AuthActionsContext (signIn/signOut)
-- يمنع إعادة تصيير المكونات التي تقرأ الحالة فقط عند تغيير الدوال
+**النقطة 5 — SecurityGuard.tsx**:
+المكون خفيف (4 event listeners فقط على `[data-sensitive]`) ويحمي بيانات حساسة في `BeneficiaryCard.tsx`. **أنصح بإبقائه** لكن القرار لك.
 
-**البند 9 (بديل):** استبدال localStorage بـ `useSyncExternalStore` مخصص بدلاً من Zustand
+**النقطة 9 — منع الاستعلامات المفتوحة**:
+- مراجعة وإضافة `.limit()` لكل استعلام بدون حد

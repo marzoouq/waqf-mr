@@ -193,6 +193,13 @@ export type Database = {
             referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "accounts_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: true
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
         ]
       }
       advance_carryforward: {
@@ -249,11 +256,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "advance_carryforward_from_fiscal_year_id_fkey"
+            columns: ["from_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+          {
             foreignKeyName: "advance_carryforward_to_fiscal_year_id_fkey"
             columns: ["to_fiscal_year_id"]
             isOneToOne: false
             referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_carryforward_to_fiscal_year_id_fkey"
+            columns: ["to_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
           },
         ]
       }
@@ -319,6 +340,13 @@ export type Database = {
             referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "advance_requests_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
         ]
       }
       annual_report_items: {
@@ -364,6 +392,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "annual_report_items_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+          {
             foreignKeyName: "annual_report_items_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -401,6 +436,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "annual_report_status_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: true
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
           },
         ]
       }
@@ -553,6 +595,13 @@ export type Database = {
             referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contract_fiscal_allocations_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
         ]
       }
       contracts: {
@@ -644,6 +693,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
           },
           {
             foreignKeyName: "contracts_property_id_fkey"
@@ -754,6 +810,13 @@ export type Database = {
             referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "distributions_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
         ]
       }
       expense_budgets: {
@@ -788,6 +851,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_budgets_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
           },
         ]
       }
@@ -829,6 +899,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
           },
           {
             foreignKeyName: "expenses_property_id_fkey"
@@ -924,6 +1001,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "income_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
           },
           {
             foreignKeyName: "income_property_id_fkey"
@@ -1112,6 +1196,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "invoices_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+          {
             foreignKeyName: "invoices_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -1282,6 +1373,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_invoices_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
           },
         ]
       }
@@ -1761,6 +1859,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contracts_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+          {
             foreignKeyName: "contracts_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -1775,6 +1880,26 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      v_fiscal_year_summary: {
+        Row: {
+          distribution_count: number | null
+          end_date: string | null
+          expense_count: number | null
+          fiscal_year_id: string | null
+          income_count: number | null
+          label: string | null
+          net_balance: number | null
+          paid_invoices: number | null
+          pending_invoices: number | null
+          start_date: string | null
+          status: string | null
+          total_distributed: number | null
+          total_expenses: number | null
+          total_income: number | null
+          total_invoiced: number | null
+        }
+        Relationships: []
       }
     }
     Functions: {
@@ -1870,6 +1995,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_dashboard_kpis: { Args: { p_fiscal_year_id?: string }; Returns: Json }
       get_expense_summary_by_type: {
         Args: { p_fiscal_year_id: string }
         Returns: {
@@ -1907,6 +2033,7 @@ export type Database = {
         Args: { p_fiscal_year_id: string }
         Returns: boolean
       }
+      jwt_role: { Args: never; Returns: string }
       log_access_event: {
         Args: {
           p_device_info?: string
