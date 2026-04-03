@@ -25,8 +25,8 @@ interface InvoicesPageDialogsProps {
   setPreviewInvoice: (v: InvoicePreviewData | null) => void;
   templateOpen: boolean;
   setTemplateOpen: (v: boolean) => void;
-  contracts: { id: string; tenant_name: string; contract_number: string }[];
-  properties: { id: string; property_number: string }[];
+  contracts: Contract[];
+  properties: { id: string; property_number: string; location: string }[];
   sellerInfo: {
     name: string;
     address: string;
