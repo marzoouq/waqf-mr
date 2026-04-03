@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Building2, LayoutGrid, Users, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
 
 // — مكونات inline مستخرجة —
-import { WaqfSettingsTab, SectionsTab, BeneficiaryTab, AppearanceTab, NotificationsTab, SecurityTab } from '@/components/settings';
+import { WaqfSettingsTab, AppearanceTab, NotificationsTab, SecurityTab } from '@/components/settings';
 
 // — مكونات محملة كسول —
 const LandingPageTab = lazy(() => import('@/components/settings/LandingPageTab'));
