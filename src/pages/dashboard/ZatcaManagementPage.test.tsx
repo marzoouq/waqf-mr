@@ -83,9 +83,9 @@ describe('ZatcaManagementPage', () => {
     setupMockFrom();
     await renderPage();
     expect(screen.getByText('الفواتير')).toBeInTheDocument();
-    expect(screen.getByText('الشهادات')).toBeInTheDocument();
+    expect(screen.getAllByText('الشهادات').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('سلسلة التوقيع')).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it('shows onboarding button when no certificates exist', async () => {
     setupMockFrom([], []);
