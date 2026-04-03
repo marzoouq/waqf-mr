@@ -21,7 +21,7 @@ import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, ExportMenu, DashboardSkeleton } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Building2, FileText, Users, TrendingUp, Wallet, BarChart3, BookOpen, Sun, Moon,
+  Building2, FileText, Users, TrendingUp, Wallet, BarChart3, Sun, Moon,
 } from 'lucide-react';
 
 import WaqifWelcomeCard from '@/components/waqif/WaqifWelcomeCard';
