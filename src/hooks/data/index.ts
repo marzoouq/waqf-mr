@@ -1,0 +1,62 @@
+/**
+ * Barrel exports — hooks/data/
+ * يُسهّل الاستيراد: import { useProperties, useContracts } from '@/hooks/data'
+ */
+
+export { logAccessEvent } from './useAccessLog';
+export { useAccessLogTab } from './useAccessLogTab';
+export { useAccountCategories } from './useAccountCategories';
+export { useAnnualReportItems } from './useAnnualReport';
+export { useAppSettings, useSetting, useWaqfInfo, updateNotificationPrefs } from './useAppSettings';
+export type { WaqfInfo } from './useAppSettings';
+export { useArchiveLog } from './useArchiveLog';
+export { useAuditLog } from './useAuditLog';
+export { useAuditLogTodayCount, fetchAuditLogForExport } from './useAuditLogStats';
+export { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from './useBeneficiaries';
+export { useBeneficiaryDashboardData } from './useBeneficiaryDashboardData';
+export type { BeneficiaryDashboardData } from './useBeneficiaryDashboardData';
+export { useBeneficiaryUsers } from './useBeneficiaryUsers';
+export * from './useBulkMessaging';
+export { useCollectionAlerts } from './useCollectionAlerts';
+export { useContracts, useContractsByFiscalYear, useCreateContract, useUpdateContract, useDeleteContract } from './useContracts';
+export { createCrudFactory } from './useCrudFactory';
+export { useDashboardSummary } from './useDashboardSummary';
+export { usePaidAdvances, useActiveCarryforwards } from './useDistributionAdvances';
+export { useDistributionHistory } from './useDistributionHistory';
+export { useExpenseBudgets } from './useExpenseBudgets';
+export { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from './useExpenses';
+export { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome } from './useIncome';
+export { useIncomeComparison } from './useIncomeComparison';
+export * from './useInvoiceFileUtils';
+export { useInvoicesByFiscalYear, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, useGenerateInvoicePdf } from './useInvoices';
+export { useLogoManager } from './useLogoManager';
+export { useMaxAdvanceAmount } from './useMaxAdvanceAmount';
+export * from './useMessaging';
+export { useMyBeneficiaryProfile } from './useMyBeneficiaryProfile';
+export { useMyDistributions } from './useMyDistributions';
+export { useNotificationActions } from './useNotificationActions';
+export { useNotificationBeneficiaries } from './useNotificationBeneficiaries';
+export { useNotificationPreferences } from './useNotificationPreferences';
+export { useNotifications } from './useNotifications';
+export { usePaymentInvoices } from './usePaymentInvoices';
+export { usePdfWaqfInfo } from './usePdfWaqfInfo';
+export { usePrefetchPages } from './usePrefetchPages';
+export { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from './useProperties';
+export { usePropertiesMap } from './usePropertiesMap';
+export { usePropertyUnits } from './usePropertyUnits';
+export { usePublicStats } from './usePublicStats';
+export { usePublishedFiscalYears } from './usePublishedFiscalYears';
+export { useRegistrationEnabled } from './useRegistrationEnabled';
+export * from './useSecurityAlerts';
+export { useSupportAnalytics } from './useSupportAnalytics';
+export { useSupportTickets } from './useSupportTickets';
+export { useTenantPayments } from './useTenantPayments';
+export { useUnitMutations } from './useUnitMutations';
+export { useUnits } from './useUnits';
+export { useUnreadMessages } from './useUnreadMessages';
+export { useWaqfInfoSave } from './useWaqfInfoSave';
+export { useWholePropertyRental } from './useWholePropertyRental';
+export { useZatcaCertificates } from './useZatcaCertificates';
+export { useZatcaManagement } from './useZatcaManagement';
+export { useZatcaOperationLog } from './useZatcaOperationLog';
+export { useClientErrors } from './useClientErrors';
