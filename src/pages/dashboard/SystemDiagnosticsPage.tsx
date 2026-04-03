@@ -2,7 +2,7 @@
  * صفحة تشخيص النظام — 31 فحصاً في 7 بطاقات
  * متاحة للمسؤولين فقط عبر /dashboard/diagnostics
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,8 @@ import { sanitizeDiagnosticOutput } from '@/utils/diagnostics/sanitize';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { logger } from '@/lib/logger';
+
+const WebVitalsPanel = lazy(() => import('@/components/diagnostics/WebVitalsPanel'));
 
 interface Props {
   autoRun?: boolean;
@@ -152,6 +154,11 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           </Button>
         </div>
       </div>
+
+      {/* لوحة Core Web Vitals */}
+      <Suspense fallback={null}>
+        <WebVitalsPanel />
+      </Suspense>
 
       {/* البطاقات */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

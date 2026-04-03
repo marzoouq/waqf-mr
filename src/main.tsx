@@ -47,3 +47,6 @@ if (splash) {
 
 // مراقبة أداء التحميل
 reportPageLoadMetrics();
+
+// تهيئة Core Web Vitals
+import('./lib/monitoring/webVitals').then(m => m.initWebVitals());
