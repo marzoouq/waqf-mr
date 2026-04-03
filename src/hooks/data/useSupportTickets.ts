@@ -3,7 +3,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { STALE_REALTIME, STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
+import { STALE_REALTIME, STALE_LIVE } from '@/lib/queryStaleTime';
 
 // إعادة تصدير من الوحدات الفرعية للتوافق مع الاستيرادات الحالية
 export { useCreateTicket, useUpdateTicketStatus, useAddTicketReply, useRateTicket } from './useSupportTicketMutations';
