@@ -5,7 +5,7 @@ import { generateForensicAuditPDF, ForensicAuditData } from '../reports/forensic
 vi.mock('jspdf-autotable', () => ({ default: vi.fn() }));
 
 // Mock core utilities
-vi.mock('./core', () => ({
+vi.mock('../core/core', () => ({
   loadArabicFont: vi.fn().mockResolvedValue(false),
   addHeader: vi.fn().mockResolvedValue(30),
   addFooter: vi.fn(),

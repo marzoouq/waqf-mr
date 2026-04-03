@@ -13,7 +13,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 const mockGeneratePaymentInvoicePDF = vi.fn().mockResolvedValue('https://storage.example.com/invoice.pdf');
 
-vi.mock('./paymentInvoice', () => ({
+vi.mock('../invoices/paymentInvoice', () => ({
   generatePaymentInvoicePDF: (...args: unknown[]) => mockGeneratePaymentInvoicePDF(...args),
 }));
 

@@ -11,7 +11,7 @@ vi.mock('jspdf', () => ({
   },
 }));
 vi.mock('jspdf-autotable', () => ({ default: vi.fn() }));
-vi.mock('./core', () => ({
+vi.mock('../core/core', () => ({
   loadArabicFont: vi.fn().mockResolvedValue(false),
   addHeader: vi.fn().mockResolvedValue(30),
   addHeaderToAllPages: vi.fn(), addFooter: vi.fn(),
@@ -21,7 +21,7 @@ vi.mock('./core', () => ({
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})),
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
 }));
-vi.mock('./pdfHelpers', () => ({ getLastAutoTableY: vi.fn(() => 100) }));
+vi.mock('../core/pdfHelpers', () => ({ getLastAutoTableY: vi.fn(() => 100) }));
 
 import { generateMySharePDF, generateDisclosurePDF } from '../entities/beneficiary';
 

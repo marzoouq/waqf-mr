@@ -11,7 +11,7 @@ vi.mock('jspdf', () => ({
   },
 }));
 vi.mock('jspdf-autotable', () => ({ default: vi.fn() }));
-vi.mock('./core', () => ({
+vi.mock('../core/core', () => ({
   loadArabicFont: vi.fn().mockResolvedValue(false),
   addHeader: vi.fn().mockResolvedValue(30),
   addHeaderToAllPages: vi.fn(), addFooter: vi.fn(),

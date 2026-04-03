@@ -33,7 +33,7 @@ vi.mock('jspdf', () => {
 
 vi.mock('jspdf-autotable', () => ({ default: vi.fn() }));
 
-vi.mock('./core', () => ({
+vi.mock('../core/core', () => ({
   loadArabicFont: vi.fn().mockResolvedValue(true),
   addHeader: vi.fn().mockResolvedValue(30),
   addFooter: vi.fn(),
@@ -46,7 +46,7 @@ vi.mock('./core', () => ({
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
 }));
 
-vi.mock('./pdfHelpers', () => ({
+vi.mock('../core/pdfHelpers', () => ({
   getLastAutoTableY: vi.fn(() => 120),
 }));
 

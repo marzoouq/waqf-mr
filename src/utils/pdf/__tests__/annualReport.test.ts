@@ -22,7 +22,7 @@ vi.mock('jspdf', () => {
   return { default: JsPDFMock };
 });
 
-vi.mock('./core', () => ({
+vi.mock('../core/core', () => ({
   createPdfDocument: vi.fn().mockImplementation(async () => {
     const { default: JsPDF } = await import('jspdf');
     return { doc: new JsPDF(), fontFamily: 'Amiri', startY: 40 };
