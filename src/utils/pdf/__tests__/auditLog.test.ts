@@ -37,8 +37,8 @@ describe('generateAuditLogPDF', () => {
         { id: '1', table_name: 'contracts', operation: 'INSERT', created_at: '2024-01-15T10:00:00Z', record_id: 'r1', user_id: 'u1', old_data: null, new_data: { tenant_name: 'أحمد' } },
       ],
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
-    expect(vi.mocked((await import('./core')).finalizePdf).mock.calls[0]?.[2]).toBe('تقرير-سجل-المراجعة.pdf');
+    expect(vi.mocked((await import('../core/core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('../core/core')).finalizePdf).mock.calls[0]?.[2]).toBe('تقرير-سجل-المراجعة.pdf');
   });
 
   it('handles REOPEN operation with reason', async () => {
@@ -47,7 +47,7 @@ describe('generateAuditLogPDF', () => {
         { id: '2', table_name: 'fiscal_years', operation: 'REOPEN', created_at: '2024-06-01T10:00:00Z', record_id: 'fy1', user_id: 'u1', old_data: null, new_data: { reason: 'تصحيح خطأ' } },
       ],
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('../core/core')).finalizePdf)).toHaveBeenCalled();
   });
 
   it('handles UPDATE with changed fields', async () => {
@@ -56,6 +56,6 @@ describe('generateAuditLogPDF', () => {
         { id: '3', table_name: 'contracts', operation: 'UPDATE', created_at: '2024-03-01T10:00:00Z', record_id: 'c1', user_id: 'u1', old_data: { rent_amount: 100000 }, new_data: { rent_amount: 120000 } },
       ],
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('../core/core')).finalizePdf)).toHaveBeenCalled();
   });
 });
