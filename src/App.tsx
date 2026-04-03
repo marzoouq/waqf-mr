@@ -75,6 +75,7 @@ function App() {
                     {publicRoutes}
                     {adminRoutes}
                     {beneficiaryRoutes}
+                    {waqifRoutes}
                     {catchAllRoute}
                   </Routes>
                 </Suspense>

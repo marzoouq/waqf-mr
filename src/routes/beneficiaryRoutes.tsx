@@ -32,7 +32,6 @@ const pr = (roles: AppRole[], page: ReactNode) =>
 export const beneficiaryRoutes = (
   <>
     <Route path="/beneficiary" element={pr(BENEFICIARY_ROLES, <BeneficiaryDashboard />)} />
-    <Route path="/waqif" element={pr(['admin', 'waqif'] as AppRole[], <WaqifDashboard />)} />
     <Route path="/beneficiary/properties" element={pr(ALL_NON_ACCOUNTANT, <PropertiesViewPage />)} />
     <Route path="/beneficiary/contracts" element={pr(ALL_NON_ACCOUNTANT, <ContractsViewPage />)} />
     <Route path="/beneficiary/disclosure" element={pr(BENEFICIARY_ROLES, <DisclosurePage />)} />
