@@ -1,10 +1,11 @@
+import { lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bot, Send, X, Sparkles, Trash2, MessageSquare, BarChart3, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import ReactMarkdown from 'react-markdown';
+const ReactMarkdown = lazy(() => import('react-markdown'));
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAiChat, type ChatMode } from '@/hooks/page/useAiChat';
 
@@ -107,7 +108,7 @@ const AiAssistant = () => {
               <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-start' : 'justify-end')}>
                 <div className={cn('max-w-[85%] rounded-xl px-3 py-2 text-sm', msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                   {msg.role === 'assistant' ? (
-                    <div className="prose prose-sm max-w-none dark:prose-invert [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0"><ReactMarkdown>{msg.content}</ReactMarkdown></div>
+                    <div className="prose prose-sm max-w-none dark:prose-invert [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0"><Suspense fallback={<span className="animate-pulse">...</span>}><ReactMarkdown>{msg.content}</ReactMarkdown></Suspense></div>
                   ) : <p>{msg.content}</p>}
                 </div>
               </div>

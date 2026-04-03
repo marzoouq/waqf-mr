@@ -5,26 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, Archive, Activity, CalendarDays } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { STALE_MESSAGING } from '@/lib/queryStaleTime';
-import { supabase } from '@/integrations/supabase/client';
 import TablePagination from '@/components/common/TablePagination';
 import { TableSkeleton } from '@/components/common/SkeletonLoaders';
 import { fmtDate } from '@/utils/format';
-
-const ITEMS_PER_PAGE = 15;
-
-interface ArchiveLogEntry {
-  id: string;
-  event_type: string;
-  email: string | null;
-  user_id: string | null;
-  device_info: string | null;
-  target_path: string | null;
-  metadata: Record<string, unknown> | null;
-  created_at: string;
-  archived_at: string;
-}
+import { useArchiveLog, ARCHIVE_ITEMS_PER_PAGE } from '@/hooks/data/useArchiveLog';
 
 const eventConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   login_failed: { label: 'فشل تسجيل الدخول', color: 'bg-destructive/15 text-destructive border-destructive/30', icon: XCircle },
@@ -38,33 +22,10 @@ const ArchiveLogTab = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-
-  // Server-side pagination with count (FIX B-02)
-  const { data: rawData, isLoading } = useQuery({
-    queryKey: ['access_log_archive', eventFilter, searchQuery, currentPage],
-    staleTime: STALE_MESSAGING,
-    queryFn: async () => {
-      const from = (currentPage - 1) * ITEMS_PER_PAGE;
-      let query = supabase
-        .from('access_log_archive')
-        .select('id, event_type, email, user_id, device_info, target_path, metadata, created_at, archived_at', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(from, from + ITEMS_PER_PAGE - 1);
-
-      if (eventFilter !== 'all') {
-        query = query.eq('event_type', eventFilter);
-      }
-
-      const { data, error, count } = await query;
-      if (error) throw error;
-      return { logs: (data || []) as unknown as ArchiveLogEntry[], totalCount: count ?? 0 };
-    },
-  });
-
+  const { data: rawData, isLoading } = useArchiveLog(eventFilter, currentPage);
   const logs = useMemo(() => rawData?.logs ?? [], [rawData?.logs]);
   const totalCount = rawData?.totalCount ?? 0;
 
-  // Client-side search on current page only (lightweight)
   const filtered = useMemo(() => {
     if (!searchQuery) return logs;
     const q = searchQuery.toLowerCase();
@@ -77,51 +38,25 @@ const ArchiveLogTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-              <Archive className="w-4 h-4" />إجمالي السجلات المؤرشفة
-            </CardTitle>
-          </CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Archive className="w-4 h-4" />إجمالي السجلات المؤرشفة</CardTitle></CardHeader>
           <CardContent><p className="text-xl sm:text-2xl font-bold">{totalCount}</p></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-              <CalendarDays className="w-4 h-4" />أحدث أرشفة
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm font-medium">
-              {logs[0] ? new Date(logs[0].archived_at).toLocaleString('ar-SA') : '—'}
-            </p>
-          </CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><CalendarDays className="w-4 h-4" />أحدث أرشفة</CardTitle></CardHeader>
+          <CardContent><p className="text-sm font-medium">{logs[0] ? new Date(logs[0].archived_at).toLocaleString('ar-SA') : '—'}</p></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-              <Activity className="w-4 h-4" />الصفحة الحالية
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm font-medium">
-              {currentPage} من {Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE))}
-            </p>
-          </CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4" />الصفحة الحالية</CardTitle></CardHeader>
+          <CardContent><p className="text-sm font-medium">{currentPage} من {Math.max(1, Math.ceil(totalCount / ARCHIVE_ITEMS_PER_PAGE))}</p></CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input name="searchQuery" id="archive-log-tab-field-1" placeholder="بحث بالبريد أو المسار..."
-            value={searchQuery}
-            onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="pr-9"
-          />
+          <Input name="searchQuery" id="archive-log-tab-field-1" placeholder="بحث بالبريد أو المسار..." value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-9" />
         </div>
         <Select value={eventFilter} onValueChange={v => { setEventFilter(v); setCurrentPage(1); }}>
           <SelectTrigger className="w-[180px]"><SelectValue placeholder="نوع الحدث" /></SelectTrigger>
@@ -135,12 +70,9 @@ const ArchiveLogTab = () => {
         </Select>
       </div>
 
-      {/* Table */}
       <Card>
         <CardContent className="p-0">
-          {isLoading ? (
-            <TableSkeleton rows={5} cols={5} />
-          ) : filtered.length === 0 ? (
+          {isLoading ? <TableSkeleton rows={5} cols={5} /> : filtered.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Archive className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />
               <p>لا توجد سجلات مؤرشفة</p>
@@ -148,7 +80,6 @@ const ArchiveLogTab = () => {
             </div>
           ) : (
             <>
-              {/* Mobile cards */}
               <div className="space-y-2 p-3 md:hidden">
                 {filtered.map(log => {
                   const config = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: Activity };
@@ -156,13 +87,8 @@ const ArchiveLogTab = () => {
                   return (
                     <div key={log.id} className="p-3 rounded-lg border bg-card space-y-2">
                       <div className="flex items-center justify-between gap-2">
-                        <Badge className={config.color} variant="outline">
-                          <Icon className="w-3 h-3 ml-1" />
-                          {config.label}
-                        </Badge>
-                        <span className="text-[11px] text-muted-foreground shrink-0">
-                          {new Date(log.created_at).toLocaleString('ar-SA')}
-                        </span>
+                        <Badge className={config.color} variant="outline"><Icon className="w-3 h-3 ml-1" />{config.label}</Badge>
+                        <span className="text-[11px] text-muted-foreground shrink-0">{new Date(log.created_at).toLocaleString('ar-SA')}</span>
                       </div>
                       {log.email && <p className="text-xs font-mono" dir="ltr">{log.email}</p>}
                       {log.target_path && <p className="text-[11px] text-muted-foreground font-mono truncate" dir="ltr">{log.target_path}</p>}
@@ -171,7 +97,6 @@ const ArchiveLogTab = () => {
                   );
                 })}
               </div>
-              {/* Desktop table */}
               <div className="hidden md:block overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -192,29 +117,17 @@ const ArchiveLogTab = () => {
                         <TableRow key={log.id}>
                           <TableCell className="text-sm">{new Date(log.created_at).toLocaleString('ar-SA')}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">{fmtDate(log.archived_at)}</TableCell>
-                          <TableCell>
-                            <Badge className={config.color} variant="outline">
-                              <Icon className="w-3 h-3 ml-1" />
-                              {config.label}
-                            </Badge>
-                          </TableCell>
+                          <TableCell><Badge className={config.color} variant="outline"><Icon className="w-3 h-3 ml-1" />{config.label}</Badge></TableCell>
                           <TableCell className="text-sm font-mono" dir="ltr">{log.email || '—'}</TableCell>
                           <TableCell className="text-sm font-mono" dir="ltr">{log.target_path || '—'}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
-                            {log.metadata ? JSON.stringify(log.metadata) : '—'}
-                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{log.metadata ? JSON.stringify(log.metadata) : '—'}</TableCell>
                         </TableRow>
                       );
                     })}
                   </TableBody>
                 </Table>
               </div>
-              <TablePagination
-                currentPage={currentPage}
-                totalItems={totalCount}
-                itemsPerPage={ITEMS_PER_PAGE}
-                onPageChange={setCurrentPage}
-              />
+              <TablePagination currentPage={currentPage} totalItems={totalCount} itemsPerPage={ARCHIVE_ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
             </>
           )}
         </CardContent>
