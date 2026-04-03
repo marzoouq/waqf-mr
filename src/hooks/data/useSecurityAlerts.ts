@@ -3,7 +3,7 @@
  * يقارن بصمة الجهاز الحالي بسجلات الدخول السابقة
  */
 import { supabase } from '@/integrations/supabase/client';
-import { notifyUser, notifyAdmins } from '@/services/notifications';
+import { notifyUser, notifyAdmins } from '@/lib/services/notificationService';
 import { logger } from '@/lib/logger';
 
 /**
