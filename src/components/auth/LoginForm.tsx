@@ -142,22 +142,25 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
             dir="ltr"
             className="h-11"
           />
-          {nidAttemptsRemaining !== null && nidAttemptsRemaining <= 3 && (
-            <div className={`flex items-center gap-1.5 text-xs mt-1 ${
-              nidAttemptsRemaining === 0 ? 'text-destructive' : 'text-caution-foreground'
-            }`}>
-              {nidAttemptsRemaining === 0 ? (
-                <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
-              ) : (
-                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-              )}
-              <span>
-                {nidAttemptsRemaining === 0
-                  ? 'تم تجاوز حد المحاولات — يرجى الانتظار دقيقتين'
-                  : `المحاولات المتبقية: ${nidAttemptsRemaining}`}
-              </span>
-            </div>
-          )}
+          {/* مساحة محجوزة ثابتة لمنع القفزات البصرية (CLS) */}
+          <div className="min-h-[1.25rem]">
+            {nidAttemptsRemaining !== null && nidAttemptsRemaining <= 3 && (
+              <div className={`flex items-center gap-1.5 text-xs ${
+                nidAttemptsRemaining === 0 ? 'text-destructive' : 'text-caution-foreground'
+              }`}>
+                {nidAttemptsRemaining === 0 ? (
+                  <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                )}
+                <span>
+                  {nidAttemptsRemaining === 0
+                    ? 'تم تجاوز حد المحاولات — يرجى الانتظار دقيقتين'
+                    : `المحاولات المتبقية: ${nidAttemptsRemaining}`}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
