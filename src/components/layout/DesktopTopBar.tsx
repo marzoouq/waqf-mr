@@ -14,6 +14,13 @@ const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
 import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
 import { ROLE_LABELS } from '@/constants/roles';
 
+interface DesktopTopBarProps {
+  fiscalYearId: string;
+  onFiscalYearChange: (id: string) => void;
+  showAll: boolean;
+  isClosed: boolean;
+}
+
 const DesktopTopBar: React.FC<DesktopTopBarProps> = ({
   fiscalYearId, onFiscalYearChange, showAll, isClosed,
 }) => {
