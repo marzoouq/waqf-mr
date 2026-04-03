@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, lazy, Suspense } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useBylaws } from '@/hooks/data/useBylaws';
@@ -9,7 +9,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { Search, X, Lock, ScrollText, Scale, AlertCircle, RefreshCw } from 'lucide-react';
 import PageHeaderCard from '@/components/layout/PageHeaderCard';
-import ReactMarkdown from 'react-markdown';
+const ReactMarkdown = lazy(() => import('react-markdown'));
+import ExportMenu from '@/components/common/ExportMenu';
 import ExportMenu from '@/components/common/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
