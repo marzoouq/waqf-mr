@@ -328,27 +328,50 @@ const { data } = await supabase.functions.invoke('zatca-signer', {
 
 ### 11.1 `zatca-onboard` — التسجيل واختبار الاتصال
 
+**الوصف**: تدير عملية ربط النظام ببوابة فاتورة (ZATCA). تشمل: اختبار الاتصال، الحصول على شهادة الامتثال (CCSID) عبر CSR، والترقية لشهادة الإنتاج (PCSID).
+
+**المصادقة**: يتطلب JWT صالح + دور admin.
+
+**المتطلبات المسبقة** (للربط الفعلي):
+- `zatca_device_serial` — الرقم التسلسلي للجهاز
+- `vat_registration_number` — الرقم الضريبي
+- `waqf_name` — اسم المنشأة
+- `zatca_otp_1` — رمز التفعيل من بوابة ZATCA
+
+**يستخدم**: `@noble/curves` لتوليد مفتاح ECDSA P-256 + بناء CSR يدوياً (ASN.1 DER).
+
 #### `test-connection` — اختبار الاتصال بالبوابة
 ```typescript
 const { data } = await supabase.functions.invoke('zatca-onboard', {
   body: { action: 'test-connection' }
 });
-// الاستجابة: { connected: true, url: '...', status_code: 200, tested_at: '...' }
+// نجاح: { connected: true, url: 'https://gw-fatoora.zatca.gov.sa/...', status_code: 200, tested_at: '2026-04-03T...' }
+// فشل: { connected: false, url: '...', error: 'Network error', tested_at: '...' }
 ```
 
-#### `onboard` — التسجيل في بوابة فاتورة (CCSID + PCSID)
+#### `onboard` — التسجيل في بوابة فاتورة (CCSID)
 ```typescript
 const { data } = await supabase.functions.invoke('zatca-onboard', {
   body: { action: 'onboard' }
 });
+// نجاح: { success: true, request_id: 'REQ-12345', certificate_type: 'compliance' }
+// خطأ: { error: 'رمز التفعيل OTP مطلوب...' }
+// خطأ: { error: 'لا يمكن بدء عملية الربط بدون: zatca_device_serial...' }
 ```
+> عند عدم تحديد `ZATCA_API_URL` (بيئة التطوير)، يُنشأ شهادة وهمية.
+> يُحذف رمز OTP تلقائياً بعد كل محاولة (نجاح أو فشل) عبر `clearOtp()`.
 
-#### `production` — تفعيل شهادة الإنتاج
+#### `production` — ترقية شهادة الامتثال للإنتاج (PCSID)
 ```typescript
 const { data } = await supabase.functions.invoke('zatca-onboard', {
   body: { action: 'production' }
 });
+// نجاح: { success: true, request_id: 'REQ-67890', certificate_type: 'production' }
+// خطأ: { error: 'لا توجد شهادة امتثال نشطة. أكمل Onboarding أولاً.' }
 ```
+> يستخدم `compliance_request_id` من الشهادة النشطة + `Basic Auth` للمصادقة مع البوابة.
+
+**التسجيل**: جميع العمليات تُسجَّل في `zatca_operation_log` مع تفاصيل الطلب والاستجابة.
 
 ### 11.2 `zatca-report` — إرسال الفواتير وفحص الامتثال
 
@@ -373,14 +396,33 @@ const { data } = await supabase.functions.invoke('zatca-report', {
 });
 ```
 
-### 11.3 `zatca-renew` — تجديد الشهادة
+### 11.3 `zatca-renew` — تجديد شهادة الإنتاج
+
+**الوصف**: تُجدّد شهادة الإنتاج (PCSID) المنتهية أو القريبة من الانتهاء. تمر بخطوتين ذريتين: (1) الحصول على CCSID جديد عبر CSR جديد، (2) ترقيته لـ PCSID عبر `PATCH /production/csids`.
+
+**المصادقة**: يتطلب JWT صالح + دور admin.
+
+**المتطلبات المسبقة**:
+- `zatca_otp_2` أو `zatca_otp_1` — رمز تفعيل جديد من بوابة ZATCA
+- نفس الإعدادات المطلوبة في `onboard` (اسم المنشأة، الرقم الضريبي، الرقم التسلسلي)
+
+**الفرق عن `onboard`**:
+- يستخدم `PATCH` بدلاً من `POST` لنقطة `/production/csids`
+- يولّد مفتاح خاص جديد بالكامل (لا يعتمد على المفتاح القديم)
+- يُحدّث تاريخ الانتهاء تلقائياً عبر `parseCertExpiry()` (ASN.1 X.509 parsing)
 
 ```typescript
 const { data } = await supabase.functions.invoke('zatca-renew', {
   body: { action: 'renew' }
 });
+// نجاح: { success: true, request_id: 'REQ-99999', certificate_type: 'production', message: 'تم تجديد شهادة الإنتاج بنجاح' }
+// خطأ: { error: 'رمز التفعيل OTP مطلوب للتجديد...' }
+// خطأ: { error: 'لم يتم تحديد بوابة ZATCA.' }
+// خطأ: { error: 'فشل الحصول على شهادة امتثال للتجديد: ...' }
+// خطأ: { error: 'فشل تجديد شهادة الإنتاج: ...' }
 ```
 
+> يُحذف رمز OTP تلقائياً بعد كل محاولة (نجاح أو فشل).
 > يحدد URL البوابة تلقائياً من إعداد `zatca_platform` في `app_settings` (إنتاج/محاكاة).
 
 ---

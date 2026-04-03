@@ -325,7 +325,7 @@ erDiagram
 
 ---
 
-## الجداول والأعمدة (37 جدول/عرض)
+## الجداول والأعمدة (39 جدول/عرض)
 
 ### 1. `user_roles` — أدوار المستخدمين
 | العمود | النوع | وصف |
@@ -609,7 +609,7 @@ erDiagram
 
 ---
 
-## سياسات الأمان (RLS) — 24 جدول/عرض محمي
+## سياسات الأمان (RLS) — 134 سياسة على 39 جدول/عرض
 
 كل جدول محمي بسياسات:
 
@@ -642,18 +642,23 @@ erDiagram
 
 ---
 
-## المشغلات (Triggers) — 29 مشغل نشط
+## المشغلات (Triggers) — 53 مشغل نشط
 
 | النوع | العدد | الوصف |
 |-------|-------|-------|
-| `audit_trigger` | 10 | تسجيل التغييرات في `audit_log` للجداول المالية والتعاقدية (accounts, income, expenses, contracts, beneficiaries, distributions, properties, units, fiscal_years, waqf_bylaws) |
-| `prevent_closed_fy` | 4 | منع تعديل بيانات السنوات المالية المقفلة (income, expenses, invoices, contracts) |
-| `update_updated_at` | 9 | تحديث حقل `updated_at` تلقائياً عند التعديل |
-| `storage/realtime/cron` | 6 | مشغلات النظام الداخلية (حماية الحذف، تحديث الملفات، تنظيف الاشتراكات) |
+| `audit_trigger` | 10 | تسجيل التغييرات في `audit_log` للجداول المالية والتعاقدية |
+| `prevent_closed_fy` | 4 | منع تعديل بيانات السنوات المالية المقفلة |
+| `update_updated_at` | 12 | تحديث حقل `updated_at` تلقائياً عند التعديل |
+| `encrypt_pii` | 2 | تشفير PII تلقائي (المستفيدين + شهادات ZATCA) |
+| `validate_advance` | 1 | التحقق من صحة مبلغ طلب السلفة |
+| `sync_unit_status` | 1 | مزامنة حالة الوحدة عند تغيير العقد |
+| `enforce_single_fy` | 1 | منع وجود أكثر من سنة مالية نشطة |
+| `invoice_chain_integrity` | 1 | التحقق من سلامة سلسلة الفواتير |
+| `storage/realtime/system` | 21 | مشغلات النظام الداخلية |
 
 ---
 
-## الدوال المخزنة (Functions) — 36+ دالة
+## الدوال المخزنة (Functions) — 72 دالة
 
 | الدالة | الوصف | الصلاحية |
 |--------|-------|----------|
