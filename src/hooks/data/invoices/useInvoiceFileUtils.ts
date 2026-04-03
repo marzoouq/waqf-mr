@@ -2,6 +2,7 @@
  * أدوات ملفات الفواتير — التحقق من التوقيع والرفع والتنزيل
  */
 import { supabase } from '@/integrations/supabase/client';
+import { compressImageFile } from '@/lib/imageCompression';
 
 // ---------------------------------------------------------------------------
 // ثوابت مشتركة
