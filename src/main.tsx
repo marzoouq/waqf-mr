@@ -1,4 +1,4 @@
-// rebuild: 2026-04-03T23:00
+// rebuild: 2026-04-03T23:10
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
@@ -32,15 +32,17 @@ if (_supabaseUrl) {
 }
 
 // ─── PWA/cache guard: آمن ومحدود بمهلة زمنية ───
-try {
-  const { runPwaCacheGuard } = await import("./lib/pwaBootstrap");
-  await Promise.race([
-    runPwaCacheGuard(),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('PWA timeout')), 3000)),
-  ]);
-} catch {
-  // تجاهل — لا نمنع الإقلاع بسبب PWA
-}
+(async () => {
+  try {
+    const { runPwaCacheGuard } = await import("./lib/pwaBootstrap");
+    await Promise.race([
+      runPwaCacheGuard(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('PWA timeout')), 3000)),
+    ]);
+  } catch {
+    // تجاهل — لا نمنع الإقلاع بسبب PWA
+  }
+})();
 
 // ─── React render ───
 try {
