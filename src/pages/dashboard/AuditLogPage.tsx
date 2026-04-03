@@ -16,6 +16,7 @@ import { operationColor, DataDiff } from '@/components/audit/AuditLogHelpers';
 import { useAuditLogPage, getTableNameAr, getOperationNameAr } from '@/hooks/page/useAuditLogPage';
 
 const AuditLogPage = () => {
+  const isMobile = useIsMobile();
   const h = useAuditLogPage();
 
   return (
