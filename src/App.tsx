@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import DeferredRender from '@/components/common/DeferredRender';
+import { ADMIN_ROLES } from '@/constants/roles';
 
 // ملفات المسارات المقسّمة
 import { publicRoutes, catchAllRoute } from "@/routes/publicRoutes";

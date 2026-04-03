@@ -26,13 +26,11 @@ const SystemDiagnosticsPage = lazyWithRetry(() => import("@/pages/dashboard/Syst
 
 import type { AppRole } from '@/types/database';
 import type { ReactNode } from 'react';
+import { ADMIN_ROLES, ADMIN_ONLY } from '@/constants/roles';
 
 /** دالة مساعدة لتقليل التكرار */
 const pr = (roles: AppRole[], page: ReactNode) =>
   eb(<ProtectedRoute allowedRoles={roles}>{page}</ProtectedRoute>);
-
-const ADMIN_ACC: AppRole[] = ['admin', 'accountant'];
-const ADMIN_ONLY: AppRole[] = ['admin'];
 
 /** مسارات لوحة التحكم — admin و accountant */
 export const adminRoutes = (
