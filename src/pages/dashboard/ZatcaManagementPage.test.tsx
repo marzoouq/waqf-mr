@@ -106,7 +106,7 @@ describe('ZatcaManagementPage', () => {
     const prodCert = [{ id: '1', certificate_type: 'production', is_active: true, request_id: 'req1', created_at: '2026-01-01' }];
     setupMockFrom(prodCert);
     await renderPage();
-    await userEvent.click(screen.getByText('الشهادات'));
+    await userEvent.click(screen.getAllByText('الشهادات')[0]!);
     // Wait for table to render — multiple "إنتاج" elements exist (summary + table badge)
     await screen.findAllByText('إنتاج');
     expect(screen.queryByText('ترقية للإنتاج')).not.toBeInTheDocument();
