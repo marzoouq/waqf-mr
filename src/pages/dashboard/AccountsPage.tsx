@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Plus, Lock, Wallet } from 'lucide-react';
-import { ExportMenu } from '@/components/common';
+import { ExportMenu, DeferredRender } from '@/components/common';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { useAccountsPage } from '@/hooks/financial/useAccountsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
