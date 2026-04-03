@@ -1,35 +1,61 @@
 
 
-# إصلاح تعليق بيئة التطوير — كاش Vite قديم
+# تقرير: مكونات UI تستورد Supabase مباشرة
 
-## التشخيص
+## النتائج
 
-### ما وجدته
-1. **التطبيق يعمل** — لوحة التحكم تحمّلت بنجاح (مؤكد بالمتصفح)
-2. **سجلات خادم التطوير** تحتوي على أخطاء Pre-transform:
-   ```
-   Failed to load url /src/utils/pdf/core.ts
-   Failed to load url /src/utils/pdf/pdfHelpers.ts
-   ```
-3. **لا أخطاء JS** في وحدة التحكم — فقط تحذيرات postMessage من Lovable (طبيعية)
-4. **كل طلبات الشبكة** تعود بـ 200 (user_roles, fiscal_years, dashboard-summary)
+وجدت **6 ملفات** في `src/components/` و `src/pages/` تستورد `supabase` مباشرة:
 
-### السبب الجذري
-بعد نقل ملفات PDF إلى مجلدات فرعية، بقيت مراجع قديمة في:
-- **`tsconfig.app.tsbuildinfo`** — كاش TypeScript يحتفظ بمسارات الملفات المنقولة
-- **Vite dependency graph** — يحاول تحميل ملفات محذوفة عند HMR
+### ① ملفات تحتاج نقل المنطق إلى هوكات بيانات
 
-هذا يسبب بطء التحميل الأولي وأحياناً تعليق مؤقت أثناء التطوير.
+| الملف | نوع الاستخدام | الإجراء المقترح |
+|-------|--------------|----------------|
+| **`src/pages/Index.tsx`** | `supabase.rpc('get_public_stats')` داخل `useQuery` مضمّن | إنشاء `src/hooks/data/usePublicStats.ts` ونقل الاستعلام إليه |
+| **`src/pages/ResetPassword.tsx`** | `supabase.auth.onAuthStateChange` + `supabase.auth.updateUser` | إنشاء `src/hooks/auth/useResetPassword.ts` لتغليف منطق الاسترداد |
+| **`src/components/auth/ResetPasswordForm.tsx`** | `supabase.auth.resetPasswordForEmail` داخل onClick | إنشاء `src/hooks/auth/usePasswordResetRequest.ts` |
+| **`src/components/auth/LoginForm.tsx`** | `supabase.auth.signInWithPassword` + `supabase.rpc` | إنشاء `src/hooks/auth/useLoginForm.ts` لفصل منطق تسجيل الدخول |
+| **`src/components/auth/BiometricLoginButton.tsx`** | `supabase.functions.invoke('webauthn')` + `supabase.auth.setSession` | إنشاء `src/hooks/auth/useBiometricAuth.ts` |
 
-## الخطة
+### ② ملف مقبول — لا يحتاج تغيير
 
-### 1. مسح ملفات الكاش القديمة
-- حذف `tsconfig.app.tsbuildinfo` (يُعاد بناؤه تلقائياً)
-- حذف مجلد `.vite` إن وُجد (كاش Vite)
+| الملف | السبب |
+|-------|-------|
+| **`src/components/common/ErrorBoundary.tsx`** | Class Component لا يمكنه استخدام hooks. استخدام `supabase.rpc` هنا للتبليغ عن الأخطاء مقبول معمارياً لأنه fire-and-forget ولا يؤثر على UI state. |
 
-### 2. التحقق من عدم وجود مراجع متبقية
-- فحص شامل لأي استيراد يشير إلى `@/utils/pdf/core` (بدون `/core.ts`) أو `@/utils/pdf/pdfHelpers`
-- فحص ملف `renderers.ts` الأصلي للتأكد أنه يُعيد التصدير بشكل صحيح
+---
 
-لا تغييرات في الكود — فقط مسح كاش وتحقق.
+## خطة التنفيذ (بالترتيب)
+
+### الخطوة 1: `usePublicStats` — نقل من `Index.tsx`
+- إنشاء `src/hooks/data/usePublicStats.ts` يحتوي على `useQuery` + استدعاء `supabase.rpc('get_public_stats')`
+- تحديث `Index.tsx` لاستيراد الهوك بدلاً من supabase
+
+### الخطوة 2: `useResetPassword` — نقل من `ResetPassword.tsx`
+- إنشاء `src/hooks/auth/useResetPassword.ts` يغلّف `onAuthStateChange` + `updateUser`
+- تحديث الصفحة لتصبح UI فقط
+
+### الخطوة 3: `usePasswordResetRequest` — نقل من `ResetPasswordForm.tsx`
+- إنشاء `src/hooks/auth/usePasswordResetRequest.ts` يغلّف `resetPasswordForEmail`
+- تحديث المكون ليستخدم الهوك
+
+### الخطوة 4: `useLoginForm` — نقل من `LoginForm.tsx`
+- إنشاء `src/hooks/auth/useLoginForm.ts` لفصل منطق المصادقة (signIn, NID lookup, rate limiting)
+- تحديث المكون ليصبح عرض فقط
+
+### الخطوة 5: `useBiometricAuth` — نقل من `BiometricLoginButton.tsx`
+- إنشاء `src/hooks/auth/useBiometricAuth.ts` يغلّف WebAuthn flow + setSession
+- تحديث المكون
+
+### الخطوة 6: بناء وتشغيل الاختبارات
+- التأكد من نجاح `npm run build`
+- تشغيل الاختبارات المتعلقة
+
+---
+
+## الملخص
+
+- **5 ملفات** تحتاج إصلاح (نقل supabase إلى hooks)
+- **1 ملف** مقبول (ErrorBoundary — class component)
+- **5 هوكات جديدة** ستُنشأ
+- لا تغيير في السلوك — إعادة هيكلة فقط
 
