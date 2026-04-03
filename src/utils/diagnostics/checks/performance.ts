@@ -1,7 +1,7 @@
 /**
  * بطاقة 2 — فحوصات المتصفح والأداء (7)
  */
-import { getPagePerfSummaries } from '@/lib/pagePerformanceTracker';
+import { getPagePerfSummaries } from '@/lib/monitoring';
 import type { CheckResult, CheckStatus } from '../types';
 
 export async function checkNavigatorLocks(): Promise<CheckResult> {

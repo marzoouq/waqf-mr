@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { defaultNotify } from './mutationNotify';
+import { defaultNotify } from '@/lib/notify';
 import {
   NOTIFICATION_TONE_KEY,
   NOTIFICATION_VOLUME_KEY,

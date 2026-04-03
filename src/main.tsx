@@ -3,7 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { reportPageLoadMetrics } from "./lib/performanceMonitor";
+import { reportPageLoadMetrics } from "./lib/monitoring";
 import { initThemeFromStorage } from "./lib/theme/themeColor.utils";
 import { initQueryMonitoring } from "./lib/initQueryMonitoring";
 

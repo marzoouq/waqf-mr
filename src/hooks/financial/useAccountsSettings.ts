@@ -3,7 +3,7 @@
  */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
-import { defaultNotify } from '@/hooks/data/mutationNotify';
+import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { findAccountByFY } from '@/utils/findAccountByFY';
 import type { Account } from '@/types/database';

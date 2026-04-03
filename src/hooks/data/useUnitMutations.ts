@@ -6,7 +6,7 @@ import { UnitRow } from '@/hooks/data/useUnits';
 import { useCreateUnit, useUpdateUnit, useDeleteUnit } from '@/hooks/data/useUnits';
 import { useCreateContract, useUpdateContract } from '@/hooks/data/useContracts';
 import { Property, Contract } from '@/types/database';
-import { defaultNotify } from '@/hooks/data/mutationNotify';
+import { defaultNotify } from '@/lib/notify';
 import type { UnitFormData } from '@/components/properties/units/UnitFormCard';
 
 const getDefaultForm = (propertyId: string): UnitFormData => ({

@@ -3,7 +3,7 @@
  */
 import { useCreateContract, useUpdateContract } from '@/hooks/data/useContracts';
 import { Property, Contract } from '@/types/database';
-import { defaultNotify } from '@/hooks/data/mutationNotify';
+import { defaultNotify } from '@/lib/notify';
 import type { WholeRentalForm } from '@/components/properties/units/WholePropertyTab';
 
 export function useWholePropertyRental(property: Property, contracts: Contract[]) {

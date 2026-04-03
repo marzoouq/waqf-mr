@@ -4,7 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { defaultNotify } from './mutationNotify';
+import { defaultNotify } from '@/lib/notify';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 export interface PaymentInvoice {

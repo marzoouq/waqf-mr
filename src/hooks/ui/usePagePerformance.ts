@@ -3,7 +3,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { recordPageLoad, notifyPerfUpdate } from '@/lib/pagePerformanceTracker';
+import { recordPageLoad, notifyPerfUpdate } from '@/lib/monitoring';
 import { logger } from '@/lib/logger';
 
 export function usePagePerformance(): void {

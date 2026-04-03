@@ -2,7 +2,7 @@
  * تهيئة مراقبة أداء React Query — تُستدعى مرة واحدة من main.tsx
  * مُستخرجة من queryClient.ts لفصل side effects عن الإنشاء
  */
-import { startPerfTimer } from '@/lib/performanceMonitor';
+import { startPerfTimer } from '@/lib/monitoring';
 import { queryClient } from '@/lib/queryClient';
 import { toast } from 'sonner';
 
