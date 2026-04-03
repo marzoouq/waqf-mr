@@ -75,7 +75,7 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
             description: `عقد ${newC.contract_number} (${newC.tenant_name}): ${oldLabel} ← ${newLabel}`,
             action: {
               label: 'عرض',
-              onClick: () => navigateRef.current ? navigateRef.current('/dashboard/contracts') : window.location.assign('/dashboard/contracts'),
+              onClick: () => navigateRef.current?.('/dashboard/contracts'),
             },
             duration: 8000,
           });
