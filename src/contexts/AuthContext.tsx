@@ -115,20 +115,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const fetchId = ++roleFetchIdRef.current;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     const fetchRole = async () => {
       const startTime = Date.now();
       let attempts = 0;
       logger.info('[Auth] fetchRole started');
-      
-      // Safety timeout: 3 seconds max
-      timeoutId = setTimeout(() => {
-        if (roleFetchIdRef.current === fetchId) {
-          logger.info('[Auth] fetchRole timeout after 3s, forcing loading=false');
-          setLoading(false);
-        }
-      }, 3000);
 
       for (let attempt = 0; attempt <= 2; attempt++) {
         attempts = attempt + 1;
@@ -147,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             logger.info('[Auth] fetchRole success:', result.role, `(${duration}ms, ${attempts} attempts)`);
             setRoleWithRef(result.role);
             setLoading(false);
-            clearTimeout(timeoutId);
+            
             logAccessEvent({
               event_type: 'role_fetch',
               user_id: user.id,
@@ -172,7 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logger.info('[Auth] fetchRole failed after all retries', `(${duration}ms)`);
         setRoleWithRef(null);
         setLoading(false);
-        clearTimeout(timeoutId);
+            
         logAccessEvent({
           event_type: 'role_fetch',
           user_id: user.id,
@@ -182,10 +173,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     fetchRole();
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
   }, [user, authReady, setRoleWithRef]);
 
   const signIn = async (email: string, password: string) => {
