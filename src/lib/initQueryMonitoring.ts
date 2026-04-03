@@ -25,7 +25,7 @@ export function initQueryMonitoring(): void {
       }
       activeTimers.get(qHash)?.();
       activeTimers.set(qHash, startPerfTimer(`Query: ${label}`, {
-        onSlow: (msg, opts) => toast.warning(msg, opts),
+        onSlow: (msg, opts) => defaultNotify.warning(msg, opts),
       }));
     }
 

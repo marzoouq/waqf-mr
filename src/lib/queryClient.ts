@@ -1,5 +1,5 @@
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 
 const queryCache = new QueryCache({
@@ -13,7 +13,7 @@ const queryCache = new QueryCache({
 const mutationCache = new MutationCache({
   onError: (error, _variables, _context, mutation) => {
     if (!mutation.options.onError) {
-      toast.error('حدث خطأ أثناء حفظ البيانات', {
+      defaultNotify.error('حدث خطأ أثناء حفظ البيانات', {
         description: error.message?.slice(0, 120),
       });
     }
