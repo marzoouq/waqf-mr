@@ -41,7 +41,29 @@ export default defineConfig(({ mode }) => ({
           /^\/fonts\//,
         ],
         globPatterns: ['**/*.{html,js,css,ico,png,svg,woff2,ttf}'],
+        // استبعاد الحزم الثقيلة من precache — تُحمّل عند الطلب فقط
+        globIgnores: [
+          '**/vendor-pdf*.js',
+          '**/vendor-pdf-table*.js',
+          '**/vendor-recharts*.js',
+          '**/vendor-d3*.js',
+          '**/vendor-html2canvas*.js',
+          '**/vendor-markdown*.js',
+          '**/vendor-dnd*.js',
+          '**/vendor-webauthn*.js',
+          '**/vendor-qr*.js',
+          '**/vendor-arabic*.js',
+        ],
         runtimeCaching: [
+          // تحميل الحزم المستبعدة عند الطلب مع تخزين مؤقت
+          {
+            urlPattern: /\/assets\/vendor-(?:pdf|pdf-table|recharts|d3|html2canvas|markdown|dnd|webauthn|qr|arabic).+\.js$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'lazy-vendor-chunks',
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
           {
             urlPattern: /\/fonts\/.+\.(?:woff2?|ttf)$/i,
             handler: 'CacheFirst',

@@ -2,7 +2,7 @@
  * هوك تحميل مسبق للصفحات الأكثر زيارة عند تمرير الماوس على روابط Sidebar
  * يُحمّل البيانات الأساسية لكل صفحة مسبقاً لتسريع التنقل
  */
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { prefetchComponent } from '@/lib/componentPrefetch';

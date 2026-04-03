@@ -117,7 +117,7 @@ const SettingsPage = () => {
           <TabsContent value="biometric"><Suspense fallback={LOADING}><BiometricSettings /></Suspense></TabsContent>
           <TabsContent value="advances"><Suspense fallback={LOADING}><AdvanceSettingsTab /></Suspense></TabsContent>
           <TabsContent value="zatca"><Suspense fallback={LOADING}><ZatcaSettingsTab /></Suspense></TabsContent>
-          <TabsContent value="security"><SecurityTab /></TabsContent>
+          <TabsContent value="security"><Suspense fallback={LOADING}><SecurityTab /></Suspense></TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
