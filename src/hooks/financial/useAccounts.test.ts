@@ -87,7 +87,7 @@ describe('useAccounts (CRUD)', () => {
       total_income: 100000,
     };
     await result.current.mutateAsync(payload);
-    expect(toast.success).toHaveBeenCalledWith('تم إضافة الحساب بنجاح');
+    expect(toast.success).toHaveBeenCalledWith('تم إضافة الحساب بنجاح', undefined);
   });
 
   it('updates account and shows success toast', async () => {
