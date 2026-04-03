@@ -9,7 +9,6 @@ import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
-import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 /** أعمدة الإيرادات مع ربط العقار */
 const INCOME_SELECT = 'id, amount, date, source, notes, fiscal_year_id, property_id, contract_id, created_at, property:properties(id, property_number, location)';
