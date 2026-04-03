@@ -3,7 +3,7 @@ import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
+import { Building2, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
 
 // — مكونات inline مستخرجة —
 import { WaqfSettingsTab, AppearanceTab, NotificationsTab, SecurityTab } from '@/components/settings';
