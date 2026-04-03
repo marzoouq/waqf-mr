@@ -67,21 +67,10 @@ export const useDisclosurePage = () => {
     : fiscalYear;
 
   // توزيعات التقرير الشامل
-  const { data: distributions = [] } = useQuery({
-    queryKey: ['my-distributions', currentBeneficiary?.id, fiscalYearId],
-    queryFn: async () => {
-      if (!currentBeneficiary?.id) return [];
-      const { data, error } = await supabase
-        .from('distributions')
-        .select('*, account:accounts(id, fiscal_year, fiscal_year_id)')
-        .eq('beneficiary_id', currentBeneficiary.id)
-        .order('date', { ascending: false })
-        .limit(200);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!currentBeneficiary?.id,
-  });
+  const { data: distributions = [] } = useMyDistributions(
+    currentBeneficiary?.id,
+    fiscalYearId,
+  );
 
   const filteredDistributions = currentAccount
     ? distributions.filter(d => d.account_id === currentAccount.id)

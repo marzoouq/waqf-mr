@@ -54,18 +54,9 @@ export function useAuditLogPage() {
     if (logs.length === 0) { toast.error('لا توجد سجلات للتصدير'); return; }
     setExporting(true);
     try {
-      let exportQuery = supabase
-        .from('audit_log')
-        .select('id, table_name, operation, record_id, old_data, new_data, user_id, created_at')
-        .order('created_at', { ascending: false })
-        .limit(1000);
-      if (tableFilter !== 'all') exportQuery = exportQuery.eq('table_name', tableFilter);
-      if (opFilter !== 'all') exportQuery = exportQuery.eq('operation', opFilter);
-      if (dateFrom) exportQuery = exportQuery.gte('created_at', dateFrom);
-      if (dateTo) exportQuery = exportQuery.lte('created_at', dateTo + 'T23:59:59');
-      const { data: allLogs } = await exportQuery;
+      const allLogs = await fetchAuditLogForExport({ tableFilter, opFilter, dateFrom, dateTo });
       await generateAuditLogPDF({
-        logs: (allLogs as unknown as typeof logs) || logs,
+        logs: allLogs.length > 0 ? allLogs : logs,
         waqfInfo, tableFilter, opFilter,
       });
       toast.success('تم تصدير سجل المراجعة بنجاح');

@@ -70,20 +70,7 @@ export const useAuthPage = () => {
     return () => clearTimeout(timer);
   }, [user, role, loading]);
 
-  // استعلام إعداد التسجيل
-  const { data: registrationEnabled = false } = useQuery({
-    queryKey: ['registration-enabled'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'registration_enabled')
-        .maybeSingle();
-      return data?.value === 'true';
-    },
-    staleTime: STALE_STATIC,
-    gcTime: 30 * 60_000,
-  });
+  const { data: registrationEnabled = false } = useRegistrationEnabled();
 
   // معالجة تثبيت التطبيق
   const handleInstallClick = () => {

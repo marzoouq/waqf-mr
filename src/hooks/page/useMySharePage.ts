@@ -52,23 +52,10 @@ export const useMySharePage = () => {
     beneficiaries, availableAmount, serverMyShare: dashData?.my_share,
   });
 
-  const { data: distributions = [], isLoading: distLoading } = useQuery({
-    queryKey: ['my-distributions', currentBeneficiary?.id, fiscalYearId],
-    queryFn: async () => {
-      if (!currentBeneficiary?.id) return [];
-      let query = supabase
-        .from('distributions')
-        .select('*, account:accounts(id, fiscal_year, fiscal_year_id)')
-        .eq('beneficiary_id', currentBeneficiary.id);
-      if (fiscalYearId && fiscalYearId !== 'all') {
-        query = query.eq('fiscal_year_id', fiscalYearId);
-      }
-      const { data, error } = await query.order('date', { ascending: false }).limit(200);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!currentBeneficiary?.id,
-  });
+  const { data: distributions = [], isLoading: distLoading } = useMyDistributions(
+    currentBeneficiary?.id,
+    fiscalYearId,
+  );
 
   // سُلف وترحيلات المستفيد
   const effectiveFyId = fiscalYearId === 'all' ? undefined : fiscalYearId;
