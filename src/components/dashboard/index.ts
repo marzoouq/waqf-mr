@@ -16,6 +16,5 @@ export { default as YearComparisonCard } from './YearComparisonCard';
 export { default as YoYBadge } from './YoYBadge';
 // ملاحظة: DashboardCharts, DashboardChartsInner, CollectionHeatmap,
 // PendingActionsTable, PagePerformanceCard مُستبعدة عمداً — تُحمّل عبر lazy() فقط
-export { default as YoYBadge } from './YoYBadge';
 export type { StatItem } from './DashboardStatsGrid';
 export type { KpiItem } from './DashboardKpiPanel';
