@@ -21,7 +21,7 @@ const AccountsExpensesTable = ({ expensesCount, expensesByType, totalExpenses }:
       </CardHeader>
       <CardContent>
         {expensesCount === 0 ? (
-          <p className="text-center text-muted-foreground py-8">لا توجد مصروفات مسجلة</p>
+          <EmptyState icon={TrendingDown} title="لا توجد مصروفات مسجلة" compact />
         ) : (
           <>
             {/* Mobile cards */}

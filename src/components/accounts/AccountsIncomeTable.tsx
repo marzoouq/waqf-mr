@@ -21,7 +21,7 @@ const AccountsIncomeTable = ({ incomeCount, incomeBySource, totalIncome }: Accou
       </CardHeader>
       <CardContent>
         {incomeCount === 0 ? (
-          <p className="text-center text-muted-foreground py-8">لا توجد إيرادات مسجلة</p>
+          <EmptyState icon={TrendingUp} title="لا توجد إيرادات مسجلة" compact />
         ) : (
           <>
             {/* Mobile cards */}
