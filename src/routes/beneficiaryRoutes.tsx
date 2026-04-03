@@ -22,14 +22,11 @@ const AnnualReportViewPage = lazyWithRetry(() => import("@/pages/beneficiary/Ann
 
 import type { AppRole } from '@/types/database';
 import type { ReactNode } from 'react';
+import { BENEFICIARY_ROLES, ALL_NON_ACCOUNTANT, ALL_ROLES, ADMIN_ONLY } from '@/constants/roles';
 
 /** دالة مساعدة لتقليل التكرار */
 const pr = (roles: AppRole[], page: ReactNode) =>
   eb(<ProtectedRoute allowedRoles={roles}>{page}</ProtectedRoute>);
-
-const BEN: AppRole[] = ['admin', 'beneficiary'];
-const ALL: AppRole[] = ['admin', 'beneficiary', 'waqif'];
-const ALL_ACC: AppRole[] = ['admin', 'beneficiary', 'waqif', 'accountant'];
 
 /** مسارات المستفيدين والواقف */
 export const beneficiaryRoutes = (
