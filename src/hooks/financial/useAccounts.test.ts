@@ -94,7 +94,7 @@ describe('useAccounts (CRUD)', () => {
     const { result } = renderHook(() => useUpdateAccount(), { wrapper: wrapper() });
     const payload: TablesUpdate<'accounts'> & { id: string } = { id: 'acc-1', total_income: 250000 };
     await result.current.mutateAsync(payload);
-    expect(toast.success).toHaveBeenCalledWith('تم تحديث الحساب بنجاح');
+    expect(toast.success).toHaveBeenCalledWith('تم تحديث الحساب بنجاح', undefined);
   });
 
   it('deletes account and shows success toast', async () => {
