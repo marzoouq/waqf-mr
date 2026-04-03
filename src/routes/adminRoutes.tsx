@@ -1,5 +1,6 @@
 import { Route } from "react-router-dom";
-import ProtectedRoute from "@/components/auth/ProtectedRoute"; // reorganized
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import RequirePermission from "@/components/guards/RequirePermission";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { withRouteErrorBoundary as eb } from "./withRouteErrorBoundary";
 
@@ -28,9 +29,9 @@ import type { AppRole } from '@/types/database';
 import type { ReactNode } from 'react';
 import { ADMIN_ROLES, ADMIN_ONLY } from '@/constants/roles';
 
-/** دالة مساعدة لتقليل التكرار */
+/** دالة مساعدة — حماية دور + حماية صلاحيات */
 const pr = (roles: AppRole[], page: ReactNode) =>
-  eb(<ProtectedRoute allowedRoles={roles}>{page}</ProtectedRoute>);
+  eb(<ProtectedRoute allowedRoles={roles}><RequirePermission>{page}</RequirePermission></ProtectedRoute>);
 
 /** مسارات لوحة التحكم — admin و accountant */
 export const adminRoutes = (
