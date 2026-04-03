@@ -168,6 +168,7 @@ const ReportsPage = () => {
               beneficiariesShare={beneficiariesShare}
               totalPercentage={beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage ?? 0), 0)}
             />
+          </TabsContent>
 
           <TabsContent value="performance" className="space-y-6">
             <PropertyPerformanceTable propertyPerformance={propertyPerformance} perfTotals={perfTotals} />
