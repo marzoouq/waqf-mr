@@ -1,5 +1,6 @@
 /**
  * هوك منطق المساعد الذكي — محادثات في الذاكرة فقط (بدون حفظ في قاعدة البيانات)
+ * يدعم: Streaming، Fallback UI، إعادة المحاولة
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
@@ -21,9 +22,11 @@ export function useAiChat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<ChatMode>('chat');
+  const [error, setError] = useState<string | null>(null);
   const lastSendTimeRef = useRef(0);
   const endRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const lastUserMsgRef = useRef<string>('');
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -41,19 +44,21 @@ export function useAiChat() {
     setMode(newMode as ChatMode);
     setMessages([]);
     setIsLoading(false);
+    setError(null);
   };
 
-  const send = async () => {
-    const trimmed = input.trim().slice(0, 1000);
+  const sendMessage = useCallback(async (messageText: string) => {
+    const trimmed = messageText.trim().slice(0, 1000);
     if (!trimmed || isLoading) return;
 
     const now = Date.now();
     if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) return;
     lastSendTimeRef.current = now;
+    lastUserMsgRef.current = trimmed;
+    setError(null);
 
     if (!AI_URL) {
-      setMessages(prev => [...prev, { role: 'user', content: trimmed }, { role: 'assistant', content: '❌ خطأ في إعداد المساعد الذكي — تعذر الاتصال بالخادم.' }]);
-      setInput('');
+      setError('خطأ في إعداد المساعد الذكي — تعذر الاتصال بالخادم.');
       return;
     }
 
@@ -86,7 +91,15 @@ export function useAiChat() {
 
       if (!resp.ok || !resp.body) {
         const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error || 'فشل الاتصال بالمساعد الذكي');
+        const errMsg = err.error || 'فشل الاتصال بالمساعد الذكي';
+        // رسائل خطأ واضحة حسب حالة HTTP
+        if (resp.status === 429) {
+          const isDaily = err.code === 'DAILY_QUOTA_EXCEEDED';
+          throw new Error(isDaily ? errMsg : 'تم تجاوز حد الطلبات — انتظر قليلاً ثم حاول مجدداً');
+        }
+        if (resp.status === 402) throw new Error('يرجى إضافة رصيد لاستخدام المساعد الذكي');
+        if (resp.status === 503) throw new Error('الخدمة غير متاحة مؤقتاً — حاول لاحقاً');
+        throw new Error(errMsg);
       }
 
       const reader = resp.body.getReader();
@@ -127,12 +140,36 @@ export function useAiChat() {
       }
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') return;
+      const errMessage = e instanceof Error ? e.message : 'حدث خطأ غير متوقع';
       logger.error('خطأ في المساعد الذكي', e);
-      setMessages((prev) => [...prev, { role: 'assistant', content: `❌ ${e instanceof Error ? e.message : 'حدث خطأ'}` }]);
+      setError(errMessage);
+      // إضافة رسالة خطأ في المحادثة أيضاً
+      setMessages((prev) => [...prev, { role: 'assistant', content: `❌ ${errMessage}` }]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [messages, mode, session, isLoading]);
+
+  const send = useCallback(() => {
+    sendMessage(input);
+  }, [input, sendMessage]);
+
+  /** إعادة إرسال آخر رسالة (للـ Fallback UI) */
+  const retryLast = useCallback(() => {
+    setError(null);
+    // حذف آخر رسالة خطأ من المساعد إن وجدت
+    setMessages((prev) => {
+      const last = prev[prev.length - 1];
+      if (last?.role === 'assistant' && last.content.startsWith('❌')) {
+        return prev.slice(0, -1);
+      }
+      return prev;
+    });
+    if (lastUserMsgRef.current) {
+      // إعادة إرسال بدون إضافة رسالة المستخدم مرة أخرى
+      sendMessage(lastUserMsgRef.current);
+    }
+  }, [sendMessage]);
 
   const closePanel = useCallback(() => {
     abortControllerRef.current?.abort();
@@ -141,6 +178,7 @@ export function useAiChat() {
 
   const clearMessages = useCallback(() => {
     setMessages([]);
+    setError(null);
   }, []);
 
   return {
@@ -152,6 +190,7 @@ export function useAiChat() {
     mode, handleModeChange,
     send,
     endRef,
+    error, retryLast,
   };
 }
 
