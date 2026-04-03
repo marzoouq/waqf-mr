@@ -3,7 +3,7 @@
  * يُسهّل الاستيراد: import { useProperties, useContracts } from '@/hooks/data'
  */
 
-export { useAccessLog, useAccessLogCount } from './useAccessLog';
+export { useAccessLogQuery } from './useAccessLog';
 export { useAccessLogTab } from './useAccessLogTab';
 export { useAccountCategories } from './useAccountCategories';
 export { useAnnualReport } from './useAnnualReport';
