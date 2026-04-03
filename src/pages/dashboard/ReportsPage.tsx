@@ -14,7 +14,6 @@ import { Badge } from '@/components/ui/badge';
 const MonthlyPerformanceReport = lazy(() => import('@/components/reports/MonthlyPerformanceReport'));
 import ExportMenu from '@/components/common/ExportMenu';
 import BeneficiaryDistributionTable from '@/components/reports/BeneficiaryDistributionTable';
-import BeneficiaryDistributionTable from '@/components/reports/BeneficiaryDistributionTable';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import AnnualDisclosureTable from '@/components/reports/AnnualDisclosureTable';
 import PropertyPerformanceTable from '@/components/reports/PropertyPerformanceTable';
