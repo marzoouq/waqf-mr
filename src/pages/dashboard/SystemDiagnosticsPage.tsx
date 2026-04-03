@@ -15,6 +15,8 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { logger } from '@/lib/logger';
 
 const WebVitalsPanel = lazy(() => import('@/components/diagnostics/WebVitalsPanel'));
+
+interface Props {
   autoRun?: boolean;
 }
 
