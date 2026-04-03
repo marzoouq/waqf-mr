@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Save, RotateCcw, Shield } from 'lucide-react';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';

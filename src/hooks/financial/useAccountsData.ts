@@ -10,7 +10,7 @@ import { useBeneficiaries } from '@/hooks/data/useBeneficiaries';
 import { useTenantPayments } from '@/hooks/data/useTenantPayments';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { useProperties } from '@/hooks/data/useProperties';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { isFyAll } from '@/constants/fiscalYearIds';

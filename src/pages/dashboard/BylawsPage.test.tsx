@@ -31,7 +31,7 @@ vi.mock('@/hooks/page/useAppSettings', () => ({
 }));
 
 import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws } from '@/hooks/data/useBylaws';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
 import BylawsPage from './BylawsPage';
 
 const mockedUseBylawsList = vi.mocked(useBylawsList);

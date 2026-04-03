@@ -3,7 +3,7 @@
  */
 import { useMemo, useState, useCallback } from 'react';
 import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws, type BylawEntry } from '@/hooks/data/useBylaws';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
 import { toast } from 'sonner';
 import {
   DragEndEvent,

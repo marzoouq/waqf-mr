@@ -2,7 +2,7 @@ import { useIncomeByFiscalYear } from '@/hooks/data/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
 import { useAccountByFiscalYear } from '@/hooks/financial/useAccounts';
 import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { useAppSettings } from '@/hooks/data/useAppSettings';
 import { FY_NONE, FY_SKIP, isFyReady } from '@/constants/fiscalYearIds';
 
 /**
