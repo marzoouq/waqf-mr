@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/auth/useAuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import DeferredRender from '@/components/common/DeferredRender';
@@ -35,8 +35,33 @@ const SwUpdateBanner = lazyWithRetry(() => import("./components/pwa/SwUpdateBann
 
 function PageLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    <div className="min-h-screen flex" dir="rtl">
+      {/* Skeleton sidebar */}
+      <div className="hidden md:flex w-64 flex-col bg-muted/30 border-l p-4 gap-4">
+        <Skeleton className="h-10 w-3/4 rounded-lg" />
+        <div className="flex flex-col gap-2 mt-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-full rounded-md" />
+          ))}
+        </div>
+      </div>
+      {/* Skeleton main content */}
+      <div className="flex-1 flex flex-col">
+        <div className="h-16 border-b bg-muted/20 flex items-center px-6 gap-4">
+          <Skeleton className="h-8 w-32 rounded-md" />
+          <div className="flex-1" />
+          <Skeleton className="h-8 w-8 rounded-full" />
+        </div>
+        <div className="p-6 flex flex-col gap-4">
+          <Skeleton className="h-8 w-48 rounded-md" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-28 w-full rounded-xl" />
+            ))}
+          </div>
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </div>
+      </div>
     </div>
   );
 }

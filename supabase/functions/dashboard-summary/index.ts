@@ -48,9 +48,16 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const [authResult, body] = await Promise.all([
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+    // ── تشغيل المصادقة + body + الدور + rate limit + السنوات المالية بالتوازي ──
+    const [authResult, body, fiscalYearsEarlyRes] = await Promise.all([
       supaAuth.auth.getUser(),
       req.json().catch(() => null),
+      admin.from("fiscal_years")
+        .select("id, label, start_date, end_date, status, published, created_at")
+        .order("start_date", { ascending: false })
+        .limit(50),
     ]);
 
     const {
@@ -63,18 +70,12 @@ Deno.serve(async (req) => {
     }
 
     const t1 = performance.now();
-    console.log(`[timing] auth+body: ${(t1 - t0).toFixed(0)}ms`);
+    console.log(`[timing] auth+body+FY: ${(t1 - t0).toFixed(0)}ms`);
 
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-
-    // التحقق من الدور + rate limit + السنوات المالية المبكرة بالتوازي
-    const [rolesRes, rateLimitRes, fiscalYearsEarlyRes] = await Promise.all([
+    // التحقق من الدور + rate limit (يعتمد على user.id)
+    const [rolesRes, rateLimitRes] = await Promise.all([
       admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "accountant"]),
       admin.rpc("check_rate_limit", { p_key: `dashboard-summary:${user.id}`, p_limit: 30, p_window_seconds: 60 }),
-      admin.from("fiscal_years")
-        .select("id, label, start_date, end_date, status, published, created_at")
-        .order("start_date", { ascending: false })
-        .limit(50),
     ]);
 
     if (!rolesRes.data?.length) {
@@ -86,7 +87,7 @@ Deno.serve(async (req) => {
     }
 
     const t2 = performance.now();
-    console.log(`[timing] roles+rateLimit+fiscalYears: ${(t2 - t1).toFixed(0)}ms`);
+    console.log(`[timing] roles+rateLimit: ${(t2 - t1).toFixed(0)}ms`);
 
     // ── التحقق من المدخلات ──
     const parsed = RequestSchema.safeParse(body);
