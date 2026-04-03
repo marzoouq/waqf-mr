@@ -6,7 +6,6 @@ import "./index.css";
 import { reportPageLoadMetrics } from "./lib/performanceMonitor";
 import { initThemeFromStorage } from "./lib/theme/themeColor.utils";
 import { setPerformanceToast } from "./lib/performanceMonitor";
-import { toast as sonnerToast } from "sonner";
 import { runPwaCacheGuard } from "./lib/pwaBootstrap";
 
 // تهيئة الثيم المحفوظ قبل الرسم
