@@ -25,7 +25,7 @@ const snapshot: VitalsSnapshot = {
 function handleMetric(metric: Metric) {
   const key = metric.name.toLowerCase() as keyof Omit<VitalsSnapshot, 'updatedAt'>;
   if (key in snapshot) {
-    (snapshot as Record<string, number | null>)[key] = Math.round(metric.value * 100) / 100;
+    (snapshot as unknown as Record<string, number | null>)[key] = Math.round(metric.value * 100) / 100;
     snapshot.updatedAt = Date.now();
   }
 }
