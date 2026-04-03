@@ -28,7 +28,7 @@ export const useAdminDashboardData = ({
     properties, contracts, allUnits, paymentInvoices,
     contractAllocations, advanceRequests, orphanedContracts,
     income, expenses, accounts, beneficiaries, settings,
-    allFiscalYears, yoy,
+    allFiscalYears, yoy, computed,
   } = summary;
 
   // ── عدد السلف المعلقة ──
