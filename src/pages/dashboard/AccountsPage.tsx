@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,18 @@ import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useAdvanceRequests } from '@/hooks/financial/useAdvanceRequests';
 import { useTotalBeneficiaryPercentage } from '@/hooks/financial/useTotalBeneficiaryPercentage';
 
-import { AccountsSettingsBar, AccountsSummaryCards, AccountsContractsTable, AccountsCollectionTable, AccountsIncomeTable, AccountsExpensesTable, AccountsDistributionTable, AccountsBeneficiariesTable, AccountsSavedTable, AccountsDialogs, CloseYearDialog } from '@/components/accounts';
+// مكونات أساسية (تُحمّل فوراً)
+import { AccountsSettingsBar, AccountsSummaryCards, AccountsContractsTable, AccountsCollectionTable, AccountsDialogs } from '@/components/accounts';
+
+// مكونات مؤجلة — تُحمّل عند الحاجة فقط
+const AccountsIncomeTable = lazy(() => import('@/components/accounts/AccountsIncomeTable'));
+const AccountsExpensesTable = lazy(() => import('@/components/accounts/AccountsExpensesTable'));
+const AccountsDistributionTable = lazy(() => import('@/components/accounts/AccountsDistributionTable'));
+const AccountsBeneficiariesTable = lazy(() => import('@/components/accounts/AccountsBeneficiariesTable'));
+const AccountsSavedTable = lazy(() => import('@/components/accounts/AccountsSavedTable'));
+const CloseYearDialog = lazy(() => import('@/components/accounts/CloseYearDialog'));
+
+const SectionFallback = () => <Skeleton className="h-32 w-full rounded-lg" />;
 
 const AccountsPage = () => {
   const { role } = useAuth();
