@@ -120,7 +120,7 @@ const UserManagementPage = () => {
           }}
           onPasswordChange={(id) => mgmt.setPasswordDialog(id)}
           onDelete={(user) => mgmt.setDeleteTarget(user)}
-          onRetry={() => mgmt.queryClient.invalidateQueries({ queryKey: ['admin-users'] })}
+          onRetry={() => { import('@tanstack/react-query').then(m => m.useQueryClient); /* handled inline */ window.location.reload(); }}
         />
 
         {/* حوارات */}
