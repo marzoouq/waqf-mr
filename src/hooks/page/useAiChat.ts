@@ -14,7 +14,7 @@ export type ChatMode = 'chat' | 'analysis' | 'report';
 const SEND_COOLDOWN_MS = 2000;
 
 export function useAiChat() {
-  const { user, role } = useAuth();
+  const { user, role, session } = useAuth();
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
