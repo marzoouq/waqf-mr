@@ -70,8 +70,7 @@ export function useAiChat() {
     let assistantContent = '';
 
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
+      if (!session?.access_token) throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
       const accessToken = session.access_token;
 
       const resp = await fetch(AI_URL, {
