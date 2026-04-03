@@ -118,27 +118,27 @@ const InvoicesViewPage = () => {
           isLoading ? <TableSkeleton rows={4} cols={3} /> : <InvoiceGridView invoices={filteredInvoices} readOnly />
         ) : (
           <>
-            <div className="md:hidden">
-              {isLoading ? (
+            {isMobile ? (
+              isLoading ? (
                 <TableSkeleton rows={4} cols={2} />
               ) : (
                 <>
                   <InvoicesViewMobileCards invoices={paginatedInvoices} statusBadgeVariant={statusBadgeVariant} onViewFile={setViewerFile} />
                   <TablePagination currentPage={currentPage} totalItems={filteredInvoices.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
                 </>
-              )}
-            </div>
-
-            <Card className="shadow-sm hidden md:block">
-              <CardContent className="p-0">
-                {isLoading ? (
-                  <div className="p-4"><TableSkeleton rows={5} cols={5} /></div>
-                ) : (
-                  <InvoicesViewDesktopTable invoices={paginatedInvoices} statusBadgeVariant={statusBadgeVariant} onViewFile={setViewerFile} searchQuery={searchQuery} />
-                )}
-                <TablePagination currentPage={currentPage} totalItems={filteredInvoices.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-              </CardContent>
-            </Card>
+              )
+            ) : (
+              <Card className="shadow-sm">
+                <CardContent className="p-0">
+                  {isLoading ? (
+                    <div className="p-4"><TableSkeleton rows={5} cols={5} /></div>
+                  ) : (
+                    <InvoicesViewDesktopTable invoices={paginatedInvoices} statusBadgeVariant={statusBadgeVariant} onViewFile={setViewerFile} searchQuery={searchQuery} />
+                  )}
+                  <TablePagination currentPage={currentPage} totalItems={filteredInvoices.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
         <InvoiceViewer open={!!viewerFile} onOpenChange={(open) => !open && setViewerFile(null)} filePath={viewerFile?.path || null} fileName={viewerFile?.name || null} />

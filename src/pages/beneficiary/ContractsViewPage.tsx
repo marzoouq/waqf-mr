@@ -117,12 +117,17 @@ const ContractsViewPage = () => {
             </Card>
           ) : (
             <>
-              <ContractsViewMobileCards contracts={paginatedContracts} isExpiringSoon={isExpiringSoon} />
-              <div className="md:hidden">
-                <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-              </div>
-              <ContractsViewDesktopTable contracts={paginatedContracts} propertiesMap={propertiesMap} isExpiringSoon={isExpiringSoon} />
-              <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+              {isMobile ? (
+                <>
+                  <ContractsViewMobileCards contracts={paginatedContracts} isExpiringSoon={isExpiringSoon} />
+                  <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+                </>
+              ) : (
+                <>
+                  <ContractsViewDesktopTable contracts={paginatedContracts} propertiesMap={propertiesMap} isExpiringSoon={isExpiringSoon} />
+                  <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+                </>
+              )}
             </>
           )}
         </div>
