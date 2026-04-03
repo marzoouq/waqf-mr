@@ -4,7 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export function useMyDistributions(beneficiaryId?: string, fiscalYearId?: string) {
+export function useMyDistributions(beneficiaryId?: string | null, fiscalYearId?: string | null) {
   return useQuery({
     queryKey: ['my-distributions', beneficiaryId, fiscalYearId],
     queryFn: async () => {
