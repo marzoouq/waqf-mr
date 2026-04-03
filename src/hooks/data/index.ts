@@ -47,7 +47,7 @@ export { usePropertyUnits } from './usePropertyUnits';
 export { usePublicStats } from './usePublicStats';
 export { usePublishedFiscalYears } from './usePublishedFiscalYears';
 export { useRegistrationEnabled } from './useRegistrationEnabled';
-export { useSecurityAlerts } from './useSecurityAlerts';
+export * from './useSecurityAlerts';
 export { useSupportAnalytics } from './useSupportAnalytics';
 export { useSupportTickets } from './useSupportTickets';
 export { useTenantPayments } from './useTenantPayments';
