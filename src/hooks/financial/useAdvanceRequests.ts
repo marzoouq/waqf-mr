@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_REALTIME } from '@/lib/queryStaleTime';
 import { defaultNotify } from '@/lib/notify';
-import { notifyAdmins, notifyUser } from '@/utils/notifications';
+import { notifyAdmins, notifyUser } from '@/services/notifications';
 import { fmt } from '@/utils/format';
 
 // إعادة تصدير الأنواع والهوكات
