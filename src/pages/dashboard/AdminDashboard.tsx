@@ -56,7 +56,7 @@ const AdminDashboard = () => {
     contracts, paymentInvoices, advanceRequests, allFiscalYears,
     fiscalYear: fy,
   } = useAdminDashboardData({
-    user, role, fiscalYearId, fiscalYear, isSpecificYear, summary,
+    user, role, fiscalYearId, fiscalYear: fiscalYear ?? undefined, isSpecificYear, summary,
   });
 
   return (
