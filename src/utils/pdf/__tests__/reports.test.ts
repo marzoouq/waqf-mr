@@ -43,7 +43,7 @@ vi.mock('./core', () => ({
 }));
 vi.mock('./pdfHelpers', () => ({ getLastAutoTableY: vi.fn(() => 100) }));
 
-import { generateAnnualReportPDF, generateBeneficiaryStatementPDF, generateAnnualDisclosurePDF } from './reports';
+import { generateAnnualReportPDF, generateBeneficiaryStatementPDF, generateAnnualDisclosurePDF } from '../reports/reports';
 
 describe('generateAnnualReportPDF', () => {
   beforeEach(() => vi.clearAllMocks());

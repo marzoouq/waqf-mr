@@ -23,7 +23,7 @@ vi.mock('./core', () => ({
 }));
 vi.mock('./pdfHelpers', () => ({ getLastAutoTableY: vi.fn(() => 100) }));
 
-import { generateYearComparisonPDF } from './comparison';
+import { generateYearComparisonPDF } from '../reports/comparison';
 
 describe('generateYearComparisonPDF', () => {
   beforeEach(() => vi.clearAllMocks());

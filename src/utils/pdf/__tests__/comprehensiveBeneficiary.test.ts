@@ -24,7 +24,7 @@ vi.mock('./core', () => ({
 }));
 vi.mock('./pdfHelpers', () => ({ getLastAutoTableY: vi.fn(() => 100) }));
 
-import { generateComprehensiveBeneficiaryPDF } from './comprehensiveBeneficiary';
+import { generateComprehensiveBeneficiaryPDF } from '../reports/comprehensiveBeneficiary';
 
 describe('generateComprehensiveBeneficiaryPDF', () => {
   beforeEach(() => vi.clearAllMocks());

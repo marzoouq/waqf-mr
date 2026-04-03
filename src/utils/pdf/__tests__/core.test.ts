@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
-} from './core';
+} from '../core/core';
 
 describe('PDF Core utilities', () => {
   it('TABLE_HEAD_GREEN هو لون أخضر RGB', () => {

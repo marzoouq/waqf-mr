@@ -2,8 +2,8 @@
  * قالب الفاتورة الكلاسيكي
  */
 import type jsPDF from 'jspdf';
-import { PdfWaqfInfo, TABLE_HEAD_GREEN, baseTableStyles, headStyles, reshapeArabic as rs, reshapeRow } from './core';
-import { getLastAutoTableY } from './pdfHelpers';
+import { PdfWaqfInfo, TABLE_HEAD_GREEN, baseTableStyles, headStyles, reshapeArabic as rs, reshapeRow } from '../core/core';
+import { getLastAutoTableY } from '../core/pdfHelpers';
 import { fmt } from '@/utils/format';
 import {
   type PaymentInvoicePdfData, statusLabel,

@@ -4,8 +4,8 @@ import {
   TABLE_HEAD_GREEN, TABLE_HEAD_RED, TABLE_HEAD_GOLD,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
-} from './core';
-import { getLastAutoTableY } from './pdfHelpers';
+} from '../core/core';
+import { getLastAutoTableY } from '../core/pdfHelpers';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
 

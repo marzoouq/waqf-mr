@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { reshapeArabic, reshapeRow, type AutoTableCellObject } from './arabicReshaper';
+import { reshapeArabic, reshapeRow, type AutoTableCellObject } from '../core/arabicReshaper';
 
 /**
  * اختبارات دالة reshapeArabic و reshapeRow

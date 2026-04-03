@@ -23,7 +23,7 @@ vi.mock('./core', () => ({
 }));
 vi.mock('./pdfHelpers', () => ({ getLastAutoTableY: vi.fn(() => 100) }));
 
-import { generateMySharePDF, generateDisclosurePDF } from './beneficiary';
+import { generateMySharePDF, generateDisclosurePDF } from '../entities/beneficiary';
 
 describe('generateMySharePDF', () => {
   beforeEach(() => vi.clearAllMocks());

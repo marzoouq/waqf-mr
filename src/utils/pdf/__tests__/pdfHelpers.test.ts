@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getLastAutoTableY } from './pdfHelpers';
+import { getLastAutoTableY } from '../core/pdfHelpers';
 
 describe('getLastAutoTableY', () => {
   it('returns finalY from lastAutoTable when present', () => {

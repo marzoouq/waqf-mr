@@ -1,7 +1,7 @@
 /**
  * مولّد PDF للتقرير السنوي للإنجازات
  */
-import { createPdfDocument, finalizePdf, type PdfWaqfInfo, reshapeArabic as rs } from './core';
+import { createPdfDocument, finalizePdf, type PdfWaqfInfo, reshapeArabic as rs } from '../core/core';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 

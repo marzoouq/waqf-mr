@@ -7,7 +7,7 @@ import {
   TABLE_HEAD_GREEN,
   type PdfWaqfInfo,
   reshapeArabic as rs, reshapeRow,
-} from './core';
+} from '../core/core';
 import { getTableNameAr, getOperationNameAr, type AuditLogEntry } from '@/hooks/data/useAuditLog';
 import { fmtDate } from '@/utils/format';
 

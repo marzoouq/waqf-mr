@@ -3,8 +3,8 @@
  * القوالب الفعلية في: paymentInvoiceClassic, paymentInvoiceProfessional, paymentInvoiceCompact
  * الدوال المشتركة في: paymentInvoiceShared
  */
-import { loadArabicFont, addFooter } from './core';
-import type { PdfWaqfInfo } from './core';
+import { loadArabicFont, addFooter } from '../core/core';
+import type { PdfWaqfInfo } from '../core/core';
 import { supabase } from '@/integrations/supabase/client';
 
 // إعادة تصدير الأنواع والدوال المشتركة للتوافق

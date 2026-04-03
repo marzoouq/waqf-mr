@@ -5,7 +5,7 @@ import {
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
   fmtDate,
-} from './core';
+} from '../core/core';
 import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';

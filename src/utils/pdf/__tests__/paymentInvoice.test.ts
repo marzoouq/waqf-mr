@@ -65,7 +65,7 @@ vi.mock('@/utils/zatcaQr', () => ({
   generateQrDataUrl: vi.fn().mockResolvedValue('data:image/png;base64,qr'),
 }));
 
-import type { PaymentInvoicePdfData } from './paymentInvoice';
+import type { PaymentInvoicePdfData } from '../invoices/paymentInvoice';
 
 const makeInvoice = (overrides: Partial<PaymentInvoicePdfData> = {}): PaymentInvoicePdfData => ({
   id: 'inv-1',

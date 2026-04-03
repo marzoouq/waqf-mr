@@ -11,7 +11,7 @@ import {
   type PaymentInvoicePdfData,
   type InvoiceTemplate,
 } from './paymentInvoice';
-import type { PdfWaqfInfo } from './core';
+import type { PdfWaqfInfo } from '../core/core';
 import type { Invoice } from '@/hooks/data/useInvoices';
 
 export interface GenerateInvoicePdfClientOptions {

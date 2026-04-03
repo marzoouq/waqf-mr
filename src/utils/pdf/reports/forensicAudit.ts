@@ -3,8 +3,8 @@ import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
   baseTableStyles, headStyles, TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
   reshapeArabic as rs, reshapeRow,
-} from './core';
-import { getLastAutoTableY } from './pdfHelpers';
+} from '../core/core';
+import { getLastAutoTableY } from '../core/pdfHelpers';
 
 export interface ForensicAuditCategory {
   category: string;

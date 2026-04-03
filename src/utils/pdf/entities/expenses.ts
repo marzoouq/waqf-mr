@@ -5,7 +5,7 @@ import {
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
   fmtDate,
-} from './core';
+} from '../core/core';
 import { fmt } from '@/utils/format';
 
 export const generateIncomePDF = async (income: Array<{ source: string; amount: number; date: string; notes?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo) => {

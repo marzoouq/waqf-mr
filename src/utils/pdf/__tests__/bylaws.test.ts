@@ -28,7 +28,7 @@ vi.mock('./core', () => ({
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
 }));
 
-import { generateBylawsPDF } from './bylaws';
+import { generateBylawsPDF } from '../entities/bylaws';
 
 describe('generateBylawsPDF', () => {
   beforeEach(() => vi.clearAllMocks());

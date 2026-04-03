@@ -24,7 +24,7 @@ vi.mock('./core', () => ({
   fmtDate: (d: string) => d,
 }));
 
-import { generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, generateUnitsPDF } from './entities';
+import { generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, generateUnitsPDF } from '../entities/entities';
 
 describe('entities PDF', () => {
   beforeEach(() => vi.clearAllMocks());

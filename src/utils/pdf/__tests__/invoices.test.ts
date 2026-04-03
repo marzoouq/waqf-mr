@@ -26,7 +26,7 @@ vi.mock('@/utils/safeNumber', () => ({ safeNumber: (n: any) => Number(n) || 0 })
 vi.mock('@/utils/format', () => ({ fmt: (n: number) => String(n) }));
 vi.mock('sonner', () => ({ toast: { info: vi.fn(), success: vi.fn(), error: vi.fn() } }));
 
-import { generateInvoicesViewPDF } from './invoices';
+import { generateInvoicesViewPDF } from '../invoices/invoices';
 
 describe('generateInvoicesViewPDF', () => {
   beforeEach(() => vi.clearAllMocks());

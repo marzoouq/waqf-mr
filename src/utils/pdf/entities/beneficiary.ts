@@ -5,8 +5,8 @@ import {
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
   fmtDate,
-} from './core';
-import { getLastAutoTableY } from './pdfHelpers';
+} from '../core/core';
+import { getLastAutoTableY } from '../core/pdfHelpers';
 import { fmt } from '@/utils/format';
 
 // ترجمة حالات التوزيع

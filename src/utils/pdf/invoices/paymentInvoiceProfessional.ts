@@ -2,8 +2,8 @@
  * القالب الضريبي الاحترافي (مطابق للمرجع + ZATCA)
  */
 import type jsPDF from 'jspdf';
-import { PdfWaqfInfo, loadLogoBase64, reshapeArabic as rs } from './core';
-import { getLastAutoTableY } from './pdfHelpers';
+import { PdfWaqfInfo, loadLogoBase64, reshapeArabic as rs } from '../core/core';
+import { getLastAutoTableY } from '../core/pdfHelpers';
 
 import {
   type PaymentInvoicePdfData, statusLabel,

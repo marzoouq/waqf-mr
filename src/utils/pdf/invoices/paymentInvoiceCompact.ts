@@ -2,8 +2,8 @@
  * القالب المختصر للفاتورة
  */
 import type jsPDF from 'jspdf';
-import { PdfWaqfInfo, TABLE_HEAD_GREEN, baseTableStyles, reshapeArabic as rs } from './core';
-import { getLastAutoTableY } from './pdfHelpers';
+import { PdfWaqfInfo, TABLE_HEAD_GREEN, baseTableStyles, reshapeArabic as rs } from '../core/core';
+import { getLastAutoTableY } from '../core/pdfHelpers';
 import { fmt } from '@/utils/format';
 import {
   type PaymentInvoicePdfData, statusLabel,

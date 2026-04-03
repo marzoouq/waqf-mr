@@ -26,7 +26,7 @@ vi.mock('@/hooks/data/useAuditLog', () => ({
   getOperationNameAr: vi.fn((o: string) => o === 'INSERT' ? 'إضافة' : o),
 }));
 
-import { generateAuditLogPDF } from './auditLog';
+import { generateAuditLogPDF } from '../entities/auditLog';
 
 describe('generateAuditLogPDF', () => {
   beforeEach(() => vi.clearAllMocks());

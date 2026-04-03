@@ -29,7 +29,7 @@ vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-import { generateInvoiceClientPDF } from './invoice';
+import { generateInvoiceClientPDF } from '../invoices/invoice';
 import type { Invoice } from '@/hooks/data/useInvoices';
 
 describe('generateInvoiceClientPDF', () => {

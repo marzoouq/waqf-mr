@@ -7,7 +7,7 @@ import {
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
   fmtDate,
-} from './core';
+} from '../core/core';
 import { fmt, fmtInt } from '@/utils/format';
 
 export const generatePropertiesPDF = async (properties: Array<{ property_number: string; property_type: string; location: string; area: number; description?: string | null }>, waqfInfo?: PdfWaqfInfo) => {

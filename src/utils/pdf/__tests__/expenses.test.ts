@@ -23,7 +23,7 @@ vi.mock('./core', () => ({
 }));
 vi.mock('@/utils/format', () => ({ fmt: (n: number) => String(n) }));
 
-import { generateIncomePDF, generateExpensesPDF } from './expenses';
+import { generateIncomePDF, generateExpensesPDF } from '../entities/expenses';
 
 describe('generateIncomePDF', () => {
   beforeEach(() => vi.clearAllMocks());
