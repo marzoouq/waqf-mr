@@ -51,24 +51,38 @@ export const useMessages = (conversationId: string | null) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  /** مؤشر cursor مركّب: created_at|id — يضمن عدم تكرار أو فقدان رسائل */
+  type Cursor = { created_at: string; id: string } | undefined;
+
   const query = useInfiniteQuery({
     queryKey: ['messages', conversationId],
-    queryFn: async ({ pageParam = 0 }): Promise<Message[]> => {
+    queryFn: async ({ pageParam }: { pageParam: Cursor }): Promise<Message[]> => {
       if (!conversationId) return [];
-      const { data, error } = await supabase
+      let q = supabase
         .from('messages')
         .select('id, conversation_id, sender_id, content, is_read, created_at')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: false })
-        .range(pageParam, pageParam + MESSAGES_PAGE_SIZE - 1);
+        .order('id', { ascending: false })
+        .limit(MESSAGES_PAGE_SIZE);
+
+      if (pageParam) {
+        // جلب رسائل أقدم من المؤشر الحالي
+        q = q.or(`created_at.lt.${pageParam.created_at},and(created_at.eq.${pageParam.created_at},id.lt.${pageParam.id})`);
+      }
+
+      const { data, error } = await q;
       if (error) throw error;
       return ((data || []) as Message[]).reverse();
     },
-    initialPageParam: 0,
+    initialPageParam: undefined as Cursor,
     getNextPageParam: (_lastPage, allPages) => {
-      const lastPage = allPages[allPages.length - 1];
-      if (!lastPage || lastPage.length < MESSAGES_PAGE_SIZE) return undefined;
-      return allPages.reduce((sum, page) => sum + page.length, 0);
+      // أقدم رسالة في أول صفحة (لأن كل صفحة مقلوبة بـ reverse)
+      const oldestPage = allPages[allPages.length - 1];
+      if (!oldestPage || oldestPage.length < MESSAGES_PAGE_SIZE) return undefined;
+      const oldest = oldestPage[0]; // أقدم رسالة بعد الـ reverse
+      if (!oldest) return undefined;
+      return { created_at: oldest.created_at, id: oldest.id };
     },
     enabled: !!user && !!conversationId,
     staleTime: STALE_LIVE,
