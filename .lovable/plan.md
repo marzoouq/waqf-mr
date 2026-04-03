@@ -1,29 +1,69 @@
 
-# خطة تحسين أداء جميع الصفحات — ✅ مكتملة
 
-## التحليل الحالي
+# خطة: إدارة الشعارات الثلاثة مع تقييد الحجم تلقائياً
 
-### ✅ ما هو جيد بالفعل
-- **Lazy loading** مطبق على كل الصفحات عبر `lazyWithRetry`
-- **DeferredRender** مُستخدم في AdminDashboard (5 مكونات مؤجلة)
-- **staleTime** مُعرّف مركزياً عبر `queryStaleTime.ts`
-- **Prefetch** عند hover على روابط Sidebar
-- **Lazy components** داخلية في WaqifDashboard وFinancialReportsPage
-- **useMemo** مُستخدم في الحسابات الثقيلة
+## الوضع الحالي
 
-### 🔴 المشاكل المكتشفة والحلول
+التطبيق يحتوي حالياً على **نظامَي شعار منفصلَين**:
+- **`waqf_logo_url`** — الشعار الفعلي المستخدم في 5 أماكن (Sidebar، شريط معلومات الوقف، صفحة الهبوط، رأس الطباعة، فواتير PDF)
+- **`logo_url`** عبر `LogoManager` — **كود ميت** يظهر في الإعدادات لكنه لا يُعرض في أي مكان
 
-| # | المشكلة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| 1 | BeneficiaryDashboard بدون DeferredRender | ✅ مُنجز مسبقاً | يستخدم DeferredRender (delay 800, 1200) |
-| 2 | WaqifDashboard بدون DeferredRender | ✅ مُنجز مسبقاً | يستخدم DeferredRender (delay 800, 1500, 2000) + lazy charts |
-| 3 | useIsMobile غير مطبق | ✅ مُنجز مسبقاً | مُطبّق في ContractsPage وصفحات أخرى |
-| 4 | vendor-recharts ثقيل (350 KB) | ⏸️ لا يحتاج تدخل | يُحمّل lazy مع الصفحات التي تستخدمه |
-| 5 | html2canvas يُحمّل دون حاجة | ✅ لا مشكلة | مُستورد عبر dynamic import فقط عند الطلب |
-| 6 | AccountsPage (85KB) و ContractsPage (89KB) | ✅ تم تجزئتهما | Accounts: 85→52 KB (-39%) / Contracts: 89→49 KB (-45%) |
+يوجد شعار واحد (`waqf_logo_url`) يظهر في 3 مواقع:
+1. **لوحة التحكم — Sidebar** (10×10 بكسل تقريباً)
+2. **لوحة التحكم — شريط معلومات الوقف** (8×8 بكسل)
+3. **الواجهة العامة — صفحة الهبوط** (24×24 بكسل)
 
-## ملخص النتائج
-- **حزمة ZatcaManagementPage.test**: تم استبعادها من البناء (توفير 67 KB)
-- **AccountsPage**: تجزئة 6 مكونات lazy (توفير 33 KB من الحزمة الرئيسية)
-- **ContractsPage**: تجزئة 3 تبويبات lazy (توفير 40 KB من الحزمة الرئيسية)
-- **إجمالي التوفير في PWA precache**: من 5,539 KB إلى 4,887 KB
+---
+
+## التعديلات المطلوبة
+
+### 1. توحيد نظام الشعارات — إزالة الكود الميت
+- حذف `LogoManager.tsx` و `useLogoManager.ts` (يديران `logo_url` غير المستخدم)
+- إزالة استيرادهما من `WaqfSettingsTab.tsx` و `index.ts`
+
+### 2. ترقية `WaqfInfoEditDialog` بتقييد الحجم تلقائياً
+- إضافة دالة `resizeImage()` تضغط الصورة أثناء الرفع إلى **حد أقصى 512×512 بكسل** وجودة 85%
+- تطبيقها تلقائياً قبل الرفع — المستخدم لا يحتاج لفعل شيء
+- إظهار مؤشر تحميل أثناء المعالجة (spinner أو شريط تقدم)
+- عرض رسالة toast عند تصغير الصورة: "تم تصغير الشعار تلقائياً"
+
+### 3. تحسين واجهة رفع الشعار في إعدادات الوقف
+- عرض الشعار الحالي بوضوح مع معاينة حية بعد الاختيار
+- إظهار حجم الملف الأصلي والمُصَغَّر
+- إبقاء القيود: PNG/JPG/WEBP/SVG، حد 2 ميجابايت قبل التصغير
+
+---
+
+## التفاصيل التقنية
+
+```text
+┌─────────────────────────────────────────┐
+│  WaqfInfoEditDialog                     │
+│  ┌───────────┐                          │
+│  │  رفع شعار │ ← المستخدم يختار صورة   │
+│  └─────┬─────┘                          │
+│        ▼                                │
+│  resizeImage(file, 512, 0.85)           │
+│  - Canvas API لتصغير الأبعاد           │
+│  - تحويل إلى Blob بجودة 85%            │
+│  - عرض toast إذا تم التصغير            │
+│        ▼                                │
+│  معاينة + رفع إلى Storage              │
+│  (waqf_documents/logos/...)              │
+│        ▼                                │
+│  حفظ URL في app_settings               │
+│  key = 'waqf_logo_url'                  │
+└─────────────────────────────────────────┘
+```
+
+### الملفات المتأثرة
+
+| الملف | التغيير |
+|-------|---------|
+| `src/components/settings/LogoManager.tsx` | **حذف** |
+| `src/hooks/data/useLogoManager.ts` | **حذف** |
+| `src/hooks/data/index.ts` | إزالة تصدير `useLogoManager` |
+| `src/components/settings/WaqfSettingsTab.tsx` | إزالة استيراد `LogoManager` |
+| `src/components/waqf/WaqfInfoEditDialog.tsx` | إضافة `resizeImage` + مؤشر تحميل |
+| `src/utils/resizeImage.ts` | **إنشاء** — دالة تصغير عبر Canvas API |
+
