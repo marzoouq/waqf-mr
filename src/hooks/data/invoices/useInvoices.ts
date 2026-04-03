@@ -4,7 +4,7 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
-import { createCrudFactory } from './useCrudFactory';
+import { createCrudFactory } from '../core/useCrudFactory';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 

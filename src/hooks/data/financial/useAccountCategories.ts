@@ -3,7 +3,7 @@
  * يوفر: useAccountCategories, useCreateAccountCategory, useUpdateAccountCategory, useDeleteAccountCategory
  * الجدول: account_categories | الترتيب: حسب sort_order
  */
-import { createCrudFactory } from './useCrudFactory';
+import { createCrudFactory } from '../core/useCrudFactory';
 import { useMemo } from 'react';
 import type { AccountCategory } from '@/types/database';
 
