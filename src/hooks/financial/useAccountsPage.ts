@@ -76,6 +76,20 @@ export function useAccountsPage() {
     waqfCorpusPrevious: settings.waqfCorpusPrevious,
   });
 
+  // 6. بيانات إقفال السنة — فواتير غير مدفوعة وسلف معلّقة
+  const { data: paymentInvoices = [] } = usePaymentInvoices(data.fiscalYearId || 'all');
+  const { data: advanceRequests = [] } = useAdvanceRequests(data.fiscalYearId !== 'all' ? data.fiscalYearId : undefined);
+  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
+
+  const unpaidInvoices = useMemo(() =>
+    paymentInvoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue').length,
+    [paymentInvoices]
+  );
+  const pendingAdvances = useMemo(() =>
+    advanceRequests.filter(r => r.status === 'pending').length,
+    [advanceRequests]
+  );
+
   return {
     // Data
     accounts: data.accounts, contracts: data.contracts, beneficiaries: data.beneficiaries,
