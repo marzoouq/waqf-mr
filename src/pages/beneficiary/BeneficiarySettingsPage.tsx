@@ -12,6 +12,7 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { User, Lock, Bell, Shield, Palette, AlertCircle, RefreshCw } from 'lucide-react';
 import ThemeColorPicker from '@/components/theme/ThemeColorPicker';
 import { BiometricSettings, AccountTab, PasswordTab, NotificationsTab } from '@/components/settings';
+import { TableSkeleton } from '@/components/common';
 
 const BeneficiarySettingsPage = () => {
   const queryClient = useQueryClient();
