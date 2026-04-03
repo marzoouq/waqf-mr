@@ -10,7 +10,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
 import ExpenseAttachments from './ExpenseAttachments';
 
-type SortField = 'expense_type' | 'amount' | 'date';
+type SortField = 'expense_type' | 'amount' | 'date' | null;
 
 interface ExpenseItem {
   id: string;
@@ -19,6 +19,7 @@ interface ExpenseItem {
   date: string;
   description: string | null;
   property?: { property_number: string } | null;
+  [key: string]: unknown;
 }
 
 interface ExpensesDesktopTableProps {

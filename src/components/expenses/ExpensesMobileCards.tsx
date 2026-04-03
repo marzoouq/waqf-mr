@@ -16,6 +16,7 @@ interface ExpenseItem {
   date: string;
   description: string | null;
   property?: { property_number: string } | null;
+  [key: string]: unknown;
 }
 
 interface ExpensesMobileCardsProps {
