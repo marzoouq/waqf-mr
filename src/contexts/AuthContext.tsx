@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             logger.info('[Auth] fetchRole success:', result.role, `(${duration}ms, ${attempts} attempts)`);
             setRoleWithRef(result.role);
             setLoading(false);
-            clearTimeout(timeoutId);
+            
             logAccessEvent({
               event_type: 'role_fetch',
               user_id: user.id,
