@@ -7,6 +7,7 @@ import { queryClient } from '@/lib/queryClient';
 import { toast } from 'sonner';
 
 const activeTimers = new Map<string, () => void>();
+const MAX_ACTIVE_TIMERS = 50;
 
 export function initQueryMonitoring(): void {
   queryClient.getQueryCache().subscribe((event) => {
