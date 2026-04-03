@@ -117,12 +117,13 @@ function VirtualTableInner<T>({
           })}
 
           {/* فراغ سفلي للصفوف غير المرئية */}
-          {virtualizer.getVirtualItems().length > 0 && (
+          {virtualizer.getVirtualItems().length > 0 && (() => {
+            const items = virtualizer.getVirtualItems();
+            const lastItem = items[items.length - 1];
+            return (
             <TableRow
               style={{
-                height:
-                  virtualizer.getTotalSize() -
-                  (virtualizer.getVirtualItems().at(-1)?.end ?? 0),
+                height: virtualizer.getTotalSize() - (lastItem?.end ?? 0),
               }}
               aria-hidden
             >
