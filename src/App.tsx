@@ -42,7 +42,7 @@ function PageLoader() {
 /** يحمّل AiAssistant فقط لأدوار admin/accountant لتوفير JS */
 function RoleGatedAiAssistant() {
   const { role } = useAuth();
-  if (!role || !['admin', 'accountant'].includes(role)) return null;
+  if (!role || !(ADMIN_ROLES as readonly string[]).includes(role)) return null;
   return (
     <DeferredRender>
       <Suspense fallback={null}>
