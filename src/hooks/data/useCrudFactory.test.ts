@@ -104,7 +104,7 @@ describe('createCrudFactory', () => {
     it('shows success toast on delete', async () => {
       const { result } = renderHook(() => factory.useDelete(), { wrapper: wrapper() });
       await result.current.mutateAsync('1');
-      expect(toast.success).toHaveBeenCalledWith('تم حذف العقار بنجاح');
+      expect(toast.success).toHaveBeenCalledWith('تم حذف العقار بنجاح', undefined);
     });
   });
 

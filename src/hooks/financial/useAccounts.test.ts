@@ -121,7 +121,7 @@ describe('useAccounts (CRUD)', () => {
     });
     const { result } = renderHook(() => useDeleteAccount(), { wrapper: wrapper() });
     await expect(result.current.mutateAsync('acc-1')).rejects.toThrow();
-    expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء حذف الحساب');
+    expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء حذف الحساب', undefined);
   });
 
   it('handles empty accounts list', async () => {
