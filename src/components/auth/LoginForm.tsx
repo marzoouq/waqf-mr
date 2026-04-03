@@ -18,7 +18,7 @@ interface LoginFormProps {
   idSuffix?: string;
 }
 
-export default function LoginForm({ signIn, loading, onResetPassword, idSuffix = '' }: LoginFormProps) {
+export default function LoginForm({ signIn, loading: _loading, onResetPassword, idSuffix = '' }: LoginFormProps) {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [nationalId, setNationalId] = useState('');
@@ -199,7 +199,7 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
           نسيت كلمة المرور؟
         </Button>
       </div>
-      <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading || loading}>
+      <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading}>
         {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
       </Button>
 
