@@ -84,7 +84,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <aside
         aria-label="القائمة الجانبية"
         className={cn(
-          'fixed inset-y-0 right-0 z-30 hidden lg:flex flex-col gradient-hero transition-all duration-300 shadow-elegant',
+          'fixed inset-y-0 right-0 z-30 hidden lg:flex flex-col gradient-hero transition-[width] duration-300 shadow-elegant',
           sidebarOpen ? 'w-64' : 'w-16'
         )}
       >
