@@ -74,7 +74,7 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
     // تصغير الصورة تلقائياً
     setResizing(true);
     try {
-      const result = await resizeImage(file, 512, 0.85);
+      const result = await resizeImage(file, 256, 0.85);
       const resizedFile = new File([result.blob], file.name, { type: result.blob.type });
       setLogoFile(resizedFile);
       if (logoPreview?.startsWith('blob:')) URL.revokeObjectURL(logoPreview);
