@@ -90,6 +90,7 @@ function RoleGatedAiAssistant() {
 function RootLayout() {
   return (
     <>
+      <OfflineBanner />
       <ErrorBoundary>
         <Suspense fallback={null}><SwUpdateBanner /></Suspense>
       </ErrorBoundary>

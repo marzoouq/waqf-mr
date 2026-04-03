@@ -10,6 +10,8 @@ function Toaster({ ...props }: ToasterProps) {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      richColors
+      closeButton
       toastOptions={{
         classNames: {
           toast:
@@ -22,6 +24,6 @@ function Toaster({ ...props }: ToasterProps) {
       {...props}
     />
   );
-};
+}
 
 export { Toaster, toast };
