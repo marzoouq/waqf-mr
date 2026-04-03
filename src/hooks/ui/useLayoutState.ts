@@ -20,7 +20,7 @@ export function useLayoutState() {
   const location = useLocation();
   const navigate = useNavigate();
   const showAll = SHOW_ALL_ROUTES.includes(location.pathname);
-  useRealtimeAlerts(navigate);
+  
 
   const links = useNavLinks();
 

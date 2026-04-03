@@ -4,7 +4,6 @@
  */
 import { startPerfTimer } from '@/lib/monitoring';
 import { queryClient } from '@/lib/queryClient';
-import { defaultNotify } from '@/lib/notify';
 
 const activeTimers = new Map<string, () => void>();
 const MAX_ACTIVE_TIMERS = 50;
@@ -24,9 +23,8 @@ export function initQueryMonitoring(): void {
         }
       }
       activeTimers.get(qHash)?.();
-      activeTimers.set(qHash, startPerfTimer(`Query: ${label}`, {
-        onSlow: (msg, opts) => defaultNotify.warning(msg, opts),
-      }));
+      // بدون onSlow — الاستعلامات البطيئة تُسجّل في logger فقط بدون toast
+      activeTimers.set(qHash, startPerfTimer(`Query: ${label}`));
     }
 
     if (
