@@ -10,7 +10,7 @@ import { notifyAdmins, notifyUser } from '@/utils/notifications';
 import { fmt } from '@/utils/format';
 
 // إعادة تصدير الأنواع والهوكات
-export type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
+export type { AdvanceRequest, AdvanceCarryforward } from '@/hooks/financial/advanceTypes';
 export {
   useMyBeneficiaryFinance,
   useMyAdvanceRequests,
