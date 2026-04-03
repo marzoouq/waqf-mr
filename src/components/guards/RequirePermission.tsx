@@ -1,9 +1,10 @@
 /**
  * حارس مسارات — يمنع الوصول المباشر عبر URL إلى أقسام معطّلة
  * الناظر (admin) مُستثنى دائماً
+ * إصلاح: لا يتم التوجيه إذا لم يُجلب الدور بعد (role === null)
  */
-import { type ReactNode, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { type ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { usePermissionCheck } from '@/hooks/page/usePermissionCheck';
 import { toast } from 'sonner';
@@ -15,20 +16,21 @@ interface Props {
 const RequirePermission = ({ children }: Props) => {
   const { role } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const { isRouteAllowed } = usePermissionCheck();
 
-  const allowed = role === 'admin' || isRouteAllowed(location.pathname);
+  // إذا لم يُجلب الدور بعد، اعرض المحتوى (ProtectedRoute الأب يتعامل مع هذه الحالة)
+  if (!role) return <>{children}</>;
 
-  useEffect(() => {
-    if (!allowed) {
-      toast.error('ليس لديك صلاحية للوصول إلى هذا القسم');
-      const fallback = role === 'beneficiary' || role === 'waqif' ? '/beneficiary' : '/dashboard';
-      navigate(fallback, { replace: true });
-    }
-  }, [allowed, navigate, role]);
+  // الناظر مُستثنى دائماً
+  if (role === 'admin') return <>{children}</>;
 
-  if (!allowed) return null;
+  // فحص الصلاحيات
+  if (!isRouteAllowed(location.pathname)) {
+    toast.error('ليس لديك صلاحية للوصول إلى هذا القسم');
+    const fallback = role === 'beneficiary' || role === 'waqif' ? '/beneficiary' : '/dashboard';
+    return <Navigate to={fallback} replace />;
+  }
+
   return <>{children}</>;
 };
 
