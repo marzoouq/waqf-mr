@@ -6,10 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 /* ─── قاعدة البيانات ─── */
 
-export const queryTable = async (table: string, select: string, options?: { limit?: number }) => {
-  const q = supabase.from(table).select(select);
-  if (options?.limit) q.limit(options.limit);
-  return q;
+export const checkDbConnection = async () => {
+  return supabase.from('app_settings').select('key').limit(1);
 };
 
 export const getAuthUser = async () => {

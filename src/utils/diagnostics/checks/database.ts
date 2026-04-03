@@ -8,7 +8,7 @@ export async function checkSupabaseConnection(): Promise<CheckResult> {
   const id = 'db_connection';
   try {
     const start = performance.now();
-    const { error } = await queryTable('app_settings', 'key', { limit: 1 });
+    const { error } = await checkDbConnection();
     const ms = Math.round(performance.now() - start);
     if (error) return { id, label: 'اتصال قاعدة البيانات', status: 'fail', detail: error.message };
     return { id, label: 'اتصال قاعدة البيانات', status: ms > 3000 ? 'warn' : 'pass', detail: `${ms}ms` };
