@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 /**
  * صفحة إدارة المستخدمين — مُفكّكة إلى hook + مكونات فرعية
  */
