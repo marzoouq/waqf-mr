@@ -16,7 +16,7 @@ export { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useU
 export { useBeneficiaryDashboardData } from './useBeneficiaryDashboardData';
 export type { BeneficiaryDashboardData } from './useBeneficiaryDashboardData';
 export { useBeneficiaryUsers } from './useBeneficiaryUsers';
-export { useBulkMessaging } from './useBulkMessaging';
+export * from './useBulkMessaging';
 export { useCollectionAlerts } from './useCollectionAlerts';
 export { useContracts, useContractsByFiscalYear, useCreateContract, useUpdateContract, useDeleteContract } from './useContracts';
 export { useCrudFactory } from './useCrudFactory';
