@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-import { fetchUserRole } from '@/utils/auth/fetchUserRole';
+import { fetchUserRole } from '@/lib/auth/fetchUserRole';
 import { clearSlowQueries, clearPageLoadEntries } from '@/lib/monitoring';
 import { queryClient } from '@/lib/queryClient';
 import { toast } from 'sonner';
