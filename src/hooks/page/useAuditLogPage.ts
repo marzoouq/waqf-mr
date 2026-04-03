@@ -40,18 +40,7 @@ export function useAuditLogPage() {
   const logs = auditData?.logs ?? [];
   const totalCount = auditData?.totalCount ?? 0;
 
-  const { data: todayCount = 0 } = useQuery({
-    queryKey: ['audit_log_today_count'],
-    staleTime: STALE_MESSAGING,
-    queryFn: async () => {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const { count } = await supabase
-        .from('audit_log')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', todayStr);
-      return count ?? 0;
-    },
-  });
+  const { data: todayCount = 0 } = useAuditLogTodayCount();
 
   const toggleRow = useCallback((id: string) => {
     setExpandedRows(prev => {
