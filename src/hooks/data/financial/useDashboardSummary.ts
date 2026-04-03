@@ -13,6 +13,22 @@ import type { AdvanceRequest } from '@/hooks/financial/useAdvanceRequests';
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { isFyReady } from '@/constants/fiscalYearIds';
 
+interface ComputedStats {
+  totalIncome: number;
+  totalExpenses: number;
+  monthlyData: Array<{ month: string; income: number; expenses: number }>;
+  expenseTypes: Array<{ name: string; value: number }>;
+  collection: {
+    paidCount: number;
+    partialCount: number;
+    unpaidCount: number;
+    total: number;
+    percentage: number;
+    totalCollected: number;
+    totalExpected: number;
+  };
+}
+
 interface DashboardSummaryResponse {
   properties: Property[];
   contracts: Contract[];
@@ -33,6 +49,7 @@ interface DashboardSummaryResponse {
     total_income: number;
     total_expenses: number;
   } | null;
+  computed?: ComputedStats;
   fetched_at: string;
 }
 
