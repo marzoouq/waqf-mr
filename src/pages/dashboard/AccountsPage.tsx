@@ -246,9 +246,9 @@ const AccountsPage = () => {
             availableAmount={page.availableAmount}
             distributionsAmount={page.manualDistributions}
             hasAccount={!!page.currentAccount}
-            pendingAdvances={pendingAdvances}
-            unpaidInvoices={unpaidInvoices}
-            beneficiaryPercentage={totalBenPct}
+            pendingAdvances={page.pendingAdvances}
+            unpaidInvoices={page.unpaidInvoices}
+            beneficiaryPercentage={page.totalBeneficiaryPercentage}
           />
         </Suspense>
       </div>
