@@ -1,10 +1,8 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/data/useBeneficiaries';
+import { useBeneficiaryUsers } from '@/hooks/data/useBeneficiaryUsers';
 import { Beneficiary } from '@/types/database';
 import { toast } from 'sonner';
-import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { BeneficiaryFormData } from '@/components/beneficiaries/BeneficiaryFormDialog';
 
 const ITEMS_PER_PAGE = 9;
@@ -27,22 +25,7 @@ export function useBeneficiariesPage() {
   });
 
   // جلب المستخدمين المتاحين للربط
-  const { data: users = [] } = useQuery({
-    queryKey: ['beneficiary-users'],
-    staleTime: STALE_FINANCIAL,
-    enabled: isOpen,
-    queryFn: async () => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("يجب تسجيل الدخول أولاً");
-      const { data, error } = await supabase.functions.invoke('admin-manage-users', {
-        body: { action: 'list_users' },
-      });
-      if (error) throw error;
-      return (data?.users || [])
-        .filter((u: { role?: string }) => u.role === 'beneficiary')
-        .map((u: { id: string; email?: string }) => ({ id: u.id, email: u.email || u.id }));
-    },
-  });
+  const { data: users = [] } = useBeneficiaryUsers(isOpen);
 
   const availableUsers = useMemo(() => {
     const linkedUserIds = new Set(
@@ -101,7 +84,6 @@ export function useBeneficiariesPage() {
     setCurrentPage(1);
   };
 
-  // إحصائيات محسوبة
   const totalPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
   const activeBeneficiaries = beneficiaries.filter(b => Number(b.share_percentage) > 0).length;
   const percentageExceeds = totalPercentage > 100;
@@ -122,7 +104,6 @@ export function useBeneficiariesPage() {
     deleteTarget, setDeleteTarget, handleConfirmDelete,
     searchQuery, setSearchQuery, currentPage, setCurrentPage, ITEMS_PER_PAGE,
     totalPercentage, activeBeneficiaries, percentageExceeds,
-    // صفحات — server-side (من useCrudFactory)
     serverPage: beneficiariesQuery.page,
     serverNextPage: beneficiariesQuery.nextPage,
     serverPrevPage: beneficiariesQuery.prevPage,
