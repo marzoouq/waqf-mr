@@ -62,7 +62,7 @@ export async function checkErrorLogQueue(): Promise<CheckResult> {
 
     // حفظ القائمة المنظّفة
     if (filtered.length !== queue.length) {
-      localStorage.setItem('error_log_queue', JSON.stringify(filtered));
+      localStorage.setItem(STORAGE_KEYS.ERROR_LOG_QUEUE, JSON.stringify(filtered));
     }
 
     const count = filtered.length;
