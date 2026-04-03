@@ -29,7 +29,7 @@ vi.mock('@/components/layout/constants', () => ({
   } as Record<string, string>,
 }));
 
-vi.mock('@/lib/pagePerformanceTracker', () => ({
+vi.mock('@/lib/monitoring', () => ({
   getPagePerfSummaries: vi.fn(() => []),
 }));
 
