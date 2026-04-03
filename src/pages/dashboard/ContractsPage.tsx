@@ -1,10 +1,8 @@
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NativeSelect } from '@/components/ui/native-select';
-import { FileText, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter, CalendarDays, ShieldCheck } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FileText, Lock, Info, RefreshCw, CheckSquare, Square, Plus, CalendarDays, ShieldCheck, Receipt, BarChart3 } from 'lucide-react';
 import PageHeaderCard from '@/components/layout/PageHeaderCard';
 import ContractAccordionGroup from '@/components/contracts/ContractAccordionGroup';
 import { TableSkeleton } from '@/components/common/SkeletonLoaders';
@@ -16,14 +14,14 @@ import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import ContractStatsCards from '@/components/contracts/ContractStatsCards';
 import ContractFormDialog from '@/components/contracts/ContractFormDialog';
 import CollectionReport from '@/components/contracts/CollectionReport';
 import PaymentInvoicesTab from '@/components/contracts/PaymentInvoicesTab';
 import MonthlyAccrualTable from '@/components/contracts/MonthlyAccrualTable';
+import ContractsFiltersBar from '@/components/contracts/ContractsFiltersBar';
+import ContractDeleteDialog from '@/components/contracts/ContractDeleteDialog';
+import BulkRenewDialog from '@/components/contracts/BulkRenewDialog';
 import { getPaymentTypeLabel } from '@/utils/contractHelpers';
 import { safeNumber } from '@/utils/safeNumber';
 import { useContractsPage } from '@/hooks/page/useContractsPage';
@@ -104,44 +102,15 @@ const ContractsPage = () => {
               </Alert>
             )}
 
-            <div className="flex flex-wrap items-start sm:items-center gap-3">
-              <div className="relative w-full sm:max-w-md sm:flex-1">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input name="searchQuery" placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
-              </div>
-              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as typeof statusFilter); setCurrentPage(1); }}>
-                <SelectTrigger className="w-full sm:w-48 shrink-0"><Filter className="w-4 h-4 ml-2" /><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">الكل ({statusCounts.all})</SelectItem>
-                  <SelectItem value="active">نشط ({statusCounts.active})</SelectItem>
-                  <SelectItem value="expired">منتهي ({statusCounts.expired})</SelectItem>
-                  <SelectItem value="cancelled">ملغي ({statusCounts.cancelled})</SelectItem>
-                  <SelectItem value="overdue">متأخر &gt; 30 يوم ({statusCounts.overdue})</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={propertyFilter} onValueChange={(v) => { setPropertyFilter(v); setCurrentPage(1); }}>
-                <SelectTrigger className="w-full sm:w-48 shrink-0"><SelectValue placeholder="كل العقارات" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">كل العقارات</SelectItem>
-                  {properties.map(p => (<SelectItem key={p.id} value={p.id}>{p.property_number} - {p.location}</SelectItem>))}
-                </SelectContent>
-              </Select>
-              <Select value={paymentTypeFilter} onValueChange={(v) => { setPaymentTypeFilter(v); setCurrentPage(1); }}>
-                <SelectTrigger className="w-full sm:w-40 shrink-0"><SelectValue placeholder="نوع الدفع" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">كل الأنواع</SelectItem>
-                  <SelectItem value="monthly">شهري</SelectItem>
-                  <SelectItem value="quarterly">ربع سنوي</SelectItem>
-                  <SelectItem value="semi_annual">نصف سنوي</SelectItem>
-                  <SelectItem value="annual">سنوي</SelectItem>
-                </SelectContent>
-              </Select>
-              {filteredGroups.length > 0 && (
-                <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={toggleAllGroups}>
-                  <ChevronsUpDown className="w-4 h-4" />{allExpanded ? 'طي الكل' : 'توسيع الكل'}
-                </Button>
-              )}
-            </div>
+            <ContractsFiltersBar
+              searchQuery={searchQuery} setSearchQuery={setSearchQuery}
+              statusFilter={statusFilter} setStatusFilter={(v) => setStatusFilter(v as typeof statusFilter)}
+              propertyFilter={propertyFilter} setPropertyFilter={setPropertyFilter}
+              paymentTypeFilter={paymentTypeFilter} setPaymentTypeFilter={setPaymentTypeFilter}
+              statusCounts={statusCounts} properties={properties}
+              hasGroups={filteredGroups.length > 0} allExpanded={allExpanded}
+              toggleAllGroups={toggleAllGroups} resetPage={() => setCurrentPage(1)}
+            />
 
             {isClosed && (
               role === 'admin' ? (
@@ -203,46 +172,13 @@ const ContractsPage = () => {
         <ContractFormDialog open={isOpen} onOpenChange={setIsOpen} editingContract={editingContract} properties={properties}
           activeContracts={contracts} onSubmit={handleFormSubmit} onReset={resetForm} isPending={isPending} initialFormData={formInitialData} />
 
-        <AlertDialog open={bulkRenewOpen} onOpenChange={setBulkRenewOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>تجديد العقود المختارة ({selectedForRenewal.size})</AlertDialogTitle>
-              <AlertDialogDescription asChild>
-                <div className="space-y-3">
-                  <p>سيتم إنشاء عقود جديدة بنفس البيانات مع تواريخ تبدأ من تاريخ انتهاء العقد السابق وبنفس المدة للعقود التالية:</p>
-                  <ul className="max-h-40 overflow-y-auto space-y-1 text-sm pr-2">
-                    {expiredContracts.filter(c => selectedForRenewal.has(c.id)).map(c => (
-                      <li key={c.id} className="flex items-center gap-2 py-1 border-b border-border/50 last:border-0">
-                        <CheckCircle className="w-3.5 h-3.5 text-success shrink-0" />
-                        <span className="font-medium">{c.contract_number}</span>
-                        <span className="text-muted-foreground">— {c.tenant_name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex-row-reverse gap-2">
-              <AlertDialogCancel disabled={bulkRenewing}>إلغاء</AlertDialogCancel>
-              <AlertDialogAction onClick={handleBulkRenew} disabled={bulkRenewing} className="bg-success text-success-foreground hover:bg-success/90 gap-2">
-                {bulkRenewing ? 'جاري التجديد...' : <><RefreshCw className="w-4 h-4" />تأكيد التجديد ({selectedForRenewal.size})</>}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <BulkRenewDialog
+          open={bulkRenewOpen} onOpenChange={setBulkRenewOpen}
+          contracts={expiredContracts} selectedIds={selectedForRenewal}
+          isRenewing={bulkRenewing} onConfirm={handleBulkRenew}
+        />
 
-        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>هل أنت متأكد من الحذف؟</AlertDialogTitle>
-              <AlertDialogDescription>سيتم حذف {deleteTarget?.name} نهائياً ولا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex-row-reverse gap-2">
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">تأكيد الحذف</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ContractDeleteDialog target={deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleConfirmDelete} />
       </div>
     </DashboardLayout>
   );
