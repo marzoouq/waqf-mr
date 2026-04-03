@@ -3,9 +3,9 @@
 // يقلل ~10 طلبات شبكة من العميل إلى طلب واحد
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// @ts-ignore Deno npm specifier is resolved at runtime in Supabase Edge.
+// @ts-expect-error Deno npm specifier is resolved at runtime in Supabase Edge.
 import { createClient } from "npm:@supabase/supabase-js@2";
-// @ts-ignore Deno npm specifier is resolved at runtime in Supabase Edge.
+// @ts-expect-error Deno npm specifier is resolved at runtime in Supabase Edge.
 import { z } from "npm:zod@3";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
