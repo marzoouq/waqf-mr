@@ -36,22 +36,22 @@ const pr = (roles: AppRole[], page: ReactNode) =>
 export const adminRoutes = (
   <>
     {/* Admin & Accountant Routes */}
-    <Route path="/dashboard" element={pr(ADMIN_ACC, <AdminDashboard />)} />
-    <Route path="/dashboard/properties" element={pr(ADMIN_ACC, <PropertiesPage />)} />
-    <Route path="/dashboard/contracts" element={pr(ADMIN_ACC, <ContractsPage />)} />
-    <Route path="/dashboard/income" element={pr(ADMIN_ACC, <IncomePage />)} />
-    <Route path="/dashboard/expenses" element={pr(ADMIN_ACC, <ExpensesPage />)} />
-    <Route path="/dashboard/beneficiaries" element={pr(ADMIN_ACC, <BeneficiariesPage />)} />
-    <Route path="/dashboard/reports" element={pr(ADMIN_ACC, <ReportsPage />)} />
-    <Route path="/dashboard/accounts" element={pr(ADMIN_ACC, <AccountsPage />)} />
-    <Route path="/dashboard/messages" element={pr(ADMIN_ACC, <MessagesPage />)} />
-    <Route path="/dashboard/invoices" element={pr(ADMIN_ACC, <InvoicesPage />)} />
-    <Route path="/dashboard/audit-log" element={pr(ADMIN_ACC, <AuditLogPage />)} />
-    <Route path="/dashboard/bylaws" element={pr(ADMIN_ACC, <BylawsPage />)} />
-    <Route path="/dashboard/support" element={pr(ADMIN_ACC, <SupportDashboardPage />)} />
-    <Route path="/dashboard/annual-report" element={pr(ADMIN_ACC, <AnnualReportPage />)} />
-    <Route path="/dashboard/chart-of-accounts" element={pr(ADMIN_ACC, <ChartOfAccountsPage />)} />
-    <Route path="/dashboard/comparison" element={pr(ADMIN_ACC, <HistoricalComparisonPage />)} />
+    <Route path="/dashboard" element={pr(ADMIN_ROLES, <AdminDashboard />)} />
+    <Route path="/dashboard/properties" element={pr(ADMIN_ROLES, <PropertiesPage />)} />
+    <Route path="/dashboard/contracts" element={pr(ADMIN_ROLES, <ContractsPage />)} />
+    <Route path="/dashboard/income" element={pr(ADMIN_ROLES, <IncomePage />)} />
+    <Route path="/dashboard/expenses" element={pr(ADMIN_ROLES, <ExpensesPage />)} />
+    <Route path="/dashboard/beneficiaries" element={pr(ADMIN_ROLES, <BeneficiariesPage />)} />
+    <Route path="/dashboard/reports" element={pr(ADMIN_ROLES, <ReportsPage />)} />
+    <Route path="/dashboard/accounts" element={pr(ADMIN_ROLES, <AccountsPage />)} />
+    <Route path="/dashboard/messages" element={pr(ADMIN_ROLES, <MessagesPage />)} />
+    <Route path="/dashboard/invoices" element={pr(ADMIN_ROLES, <InvoicesPage />)} />
+    <Route path="/dashboard/audit-log" element={pr(ADMIN_ROLES, <AuditLogPage />)} />
+    <Route path="/dashboard/bylaws" element={pr(ADMIN_ROLES, <BylawsPage />)} />
+    <Route path="/dashboard/support" element={pr(ADMIN_ROLES, <SupportDashboardPage />)} />
+    <Route path="/dashboard/annual-report" element={pr(ADMIN_ROLES, <AnnualReportPage />)} />
+    <Route path="/dashboard/chart-of-accounts" element={pr(ADMIN_ROLES, <ChartOfAccountsPage />)} />
+    <Route path="/dashboard/comparison" element={pr(ADMIN_ROLES, <HistoricalComparisonPage />)} />
 
     {/* Admin Only */}
     <Route path="/dashboard/users" element={pr(ADMIN_ONLY, <UserManagementPage />)} />
