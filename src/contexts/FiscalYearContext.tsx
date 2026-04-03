@@ -18,7 +18,7 @@ interface FiscalYearContextType {
 
 const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'waqf_selected_fiscal_year';
+const STORAGE_KEY = STORAGE_KEYS.FISCAL_YEAR;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
