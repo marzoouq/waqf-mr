@@ -121,6 +121,7 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
     beneficiaries: data?.beneficiaries ?? [],
     settings: data?.settings ?? null,
     allFiscalYears: data?.fiscal_years ?? [],
+    computed: data?.computed ?? null,
     yoy,
     isLoading: query.isLoading,
     isError: query.isError,
