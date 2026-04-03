@@ -88,7 +88,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
     notifications: customNotifications,
   } = config;
 
-  const notify = { ...defaultNotifications, ...customNotifications };
+  const notify = crudNotifyAdapter(customNotifications);
 
   /** List / fetch all rows — مع دعم التصفح (pagination) */
   const useList = (): PaginatedQueryResult<TData> => {
