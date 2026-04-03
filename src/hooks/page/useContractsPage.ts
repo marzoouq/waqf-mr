@@ -7,7 +7,7 @@ import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
 import { Contract } from '@/types/database';
-import { emptyFormData, type ContractFormData } from '@/components/contracts/contractForm.types';
+import { emptyFormData, type ContractFormData } from '@/components/contracts';
 import { toast } from 'sonner';
 import { useContractsFilters } from './useContractsFilters';
 import { useContractsBulkRenew } from './useContractsBulkRenew';
