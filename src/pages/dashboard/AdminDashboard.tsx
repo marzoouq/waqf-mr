@@ -41,7 +41,7 @@ const AdminDashboard = () => {
 
   const {
     pendingAdvancesCount, totalIncome, contractualRevenue,
-    usingFallbackPct, expiringContracts, orphanedContracts,
+    usingFallbackPct, expiringContractsCount, orphanedContractsCount,
     stats, kpis, collectionSummary, collectionColor,
     monthlyData, expenseTypes, greetingText,
     allFiscalYears, fiscalYear: fy,
