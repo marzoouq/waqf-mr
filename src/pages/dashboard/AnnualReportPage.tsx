@@ -24,6 +24,7 @@ import {
 import { useAnnualReportPage } from '@/hooks/page/useAnnualReportPage';
 
 const AnnualReportPage = () => {
+  const isMobile = useIsMobile();
   const r = useAnnualReportPage();
 
   // عرض قسم عادي (إنجازات/تحديات/خطط)
