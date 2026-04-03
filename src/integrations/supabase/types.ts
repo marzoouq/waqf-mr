@@ -1995,6 +1995,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_dashboard_full_summary: {
+        Args: { p_fiscal_year_id?: string }
+        Returns: Json
+      }
       get_dashboard_kpis: { Args: { p_fiscal_year_id?: string }; Returns: Json }
       get_expense_summary_by_type: {
         Args: { p_fiscal_year_id: string }
