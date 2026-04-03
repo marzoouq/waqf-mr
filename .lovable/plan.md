@@ -1,108 +1,49 @@
 
 
-# تدقيق معماري شامل — التقرير المعمق الثاني (تحقق وتوصيات)
+# خطة: تشغيل اختبارات PDF + إعادة هيكلة أنواع قاعدة البيانات
 
-بعد فحص الملفات المذكورة في تقريرك، إليك التحقق من كل نقطة مع خطة تنفيذ مرتبة حسب الأولوية.
+## السياق
 
----
+ملف `src/types/database.ts` يُعيد تصدير الأنواع من Supabase المولّدة تلقائياً مع إضافة أنواع Join (مثل `Contract & { property?: Property }`). يستورد منه **70 ملف** في المشروع.
 
-## ✅ النتائج المؤكدة والمرفوضة
+## المهام
 
-| # | النقطة | الحكم | ملاحظة |
-|---|--------|-------|--------|
-| 26 | `paramsRef` hack | ✅ مؤكد — أخطر نقطة | الأصفار تُمرر فعلاً ثم تُحدّث يدوياً (سطر 67-82) |
-| 27 | 3 مسارات في `useMemo` | ✅ مؤكد | `adminShare: 0` في السنة المفتوحة مقصود لكن المسارات مبهمة |
-| 28 | `__none__` سحرية | ✅ مؤكد — 162 تطابق في 22 ملف | مع `__skip__` أيضاً في بعض الملفات |
-| 29 | Timeout 8s في signIn | ✅ مؤكد | شبكة أمان لكن UX سيئ |
-| 30 | `usePropertyUnits` = 5 مسؤوليات | ✅ مؤكد — 182 سطر | قابل للتقسيم لكن ليس عاجلاً |
-| 31 | `useNotifications` ضخم | ⚠️ جزئي — تم تقسيمه سابقاً | `useNotificationActions` مستخرج بالفعل، الملف الآن 108 سطر فقط |
-| 32 | `queryClientRef` مكرر | ✅ مؤكد لكن ضروري | `useQueryClient()` ثابت لكن الـ ref يحل closure في callback |
-| 33 | إشعار داخل mutation | ✅ مؤكد | `useSendMessage` يجلب بيانات المحادثة ويرسل إشعار |
-| 34 | Arabic strings مكررة | ⚠️ جزئي | `CONTRACT_STATUS_LABELS` موجود فقط في `useRealtimeAlerts.ts` |
-| 35 | toast داخل queryFn | ✅ مؤكد — في `usePaymentInvoices` و `useIncome` و `useExpenses` | |
-| 36 | `hasNextPage` غير دقيق | ✅ مؤكد | `data.length === limit` (سطر 139) |
-| 37 | Page لا يُرست عند تغيير السنة | ✅ مؤكد | لا reset في `useCrudFactory` |
-| 38 | Browser version في fingerprint | ✅ مؤكد | |
-| 39 | `MutationNotify` vs `CrudNotifications` | ✅ مؤكد | واجهتان مختلفتان لنفس الفكرة |
-| 40 | `STALE_LIVE = 5s` مع Realtime | ✅ مؤكد لكن مقبول | يعمل كـ fallback |
-| 41 | `ClientError` في ملف Tickets | ✅ مؤكد | سطر 44 في `useSupportTickets.ts` |
-| 42 | Offset pagination في الرسائل | ✅ مؤكد | سطر 67-71 في `useMessaging.ts` |
-| 43-48 | localStorage keys، UUID regex، `as never`، إلخ | ✅ مؤكدة | تحسينات صغيرة |
+### 1. تشغيل اختبارات PDF
+- تشغيل `npx vitest run src/utils/pdf/` للتأكد من نجاح جميع الاختبارات بعد إعادة التنظيم السابقة.
 
----
+### 2. إعادة هيكلة `src/types/database.ts`
 
-## خطة التنفيذ المرتبة
+**الملاحظة المهمة**: الملف حالياً هو بالفعل طبقة رفيعة فوق أنواع Supabase — لا يُعرّف أنواعاً يدوية. لكنه يُضيف قيمة حقيقية:
+- أسماء مختصرة (`Property` بدل `Tables<'properties'>`)
+- أنواع Join مع علاقات اختيارية (`Contract & { property?: Property }`)
 
-### 🔴 أولوية حرجة
+**الإستراتيجية**: بدلاً من حذف الملف (مما يتطلب تعديل 70 ملف)، سنُعيد هيكلته إلى ملفين:
 
-**الخطوة 1: إصلاح `paramsRef` hack في `useAccountsPage` (#26)**
-- إعادة ترتيب hooks بحيث يُحسب `calc` أولاً ثم يُمرر مباشرة لـ `useAccountsActions`
-- إزالة `paramsRef.current` من خارج الـ hook
-- ملفات: `useAccountsPage.ts`, `useAccountsActions.ts`
+```text
+src/types/
+├── models.ts        ← الأنواع الأساسية (re-exports من Supabase)
+└── relations.ts     ← أنواع Join فقط (Contract, Income, Expense...)
+```
 
-**الخطوة 2: استخراج مسارات حسابية من `useComputedFinancials` (#27)**
-- إنشاء 3 دوال خالصة: `closedYearFinancials`, `activeYearFinancials`, `newYearFinancials`
-- نقلها إلى `src/utils/financials/`
-- ملف: `useComputedFinancials.ts`
+ثم نُحدّث `database.ts` ليصبح barrel file يُعيد تصدير كل شيء (لتجنب كسر 70 ملف دفعة واحدة).
 
-**الخطوة 3: مركزة القيم السحرية `__none__` و `all` (#28)**
-- إنشاء `src/constants/fiscalYearIds.ts` مع `FY_NONE`, `FY_ALL`, `isFyReady()`, `isFyAll()`
-- استبدال 162 تطابق في 22 ملف
+**التفاصيل التقنية**:
 
-### 🟠 أولوية مهمة
+| الملف | المحتوى |
+|-------|---------|
+| `models.ts` | `export type Property = Tables<'properties'>` + باقي الأنواع البسيطة (11 نوع) |
+| `relations.ts` | `export type Contract = Tables<'contracts'> & { property?: Property; unit?: Unit }` + Income, Expense, AdvanceRequest, Distribution |
+| `database.ts` | `export * from './models'; export * from './relations';` (barrel — توافق عكسي) |
 
-**الخطوة 4: نقل toast من `queryFn` إلى `select` أو `onSuccess` (#35)**
-- ملفات: `usePaymentInvoices.ts`, `useIncome.ts`, `useExpenses.ts`
-- استخدام `select` callback مع debounce لمنع التكرار
+**النتيجة**: لا كسر في أي ملف، والبنية واضحة للمطورين الجدد. يمكن لاحقاً ترحيل الملفات تدريجياً من `database.ts` إلى `models.ts`/`relations.ts` مباشرة.
 
-**الخطوة 5: إصلاح `hasNextPage` + reset page عند تغيير السنة (#36, #37)**
-- استخدام `{ count: 'exact' }` في `useCrudFactory`
-- إضافة `useEffect` لـ reset `page` عند تغيير `fiscalYearId`
-- ملف: `useCrudFactory.ts`
+## ملخص التغييرات
 
-**الخطوة 6: تحويل offset إلى cursor pagination في الرسائل (#42)**
-- استبدال `range()` بـ cursor-based (مثل `useNotifications`)
-- ملف: `useMessaging.ts`
-
-**الخطوة 7: نقل `ClientError` من `useSupportTickets` (#41)**
-- إنشاء `useClientErrors.ts` منفصل
-- ملف: `useSupportTickets.ts`
-
-**الخطوة 8: توحيد `MutationNotify` و `CrudNotifications` (#39)**
-- دمجهما في `src/lib/notify.ts`
-- ملفات: `mutationNotify.ts`, `useCrudFactory.ts`
-
-### 🟡 تحسينات
-
-**الخطوة 9: إزالة browser version من fingerprint (#38)**
-- تبسيط regex في `useSecurityAlerts.ts`
-
-**الخطوة 10: مركزة localStorage keys (#43)**
-- إنشاء `src/constants/storageKeys.ts`
-
-**الخطوة 11: تقسيم `usePropertyUnits` (#30)**
-- استخراج `useUnitMutations` و `useWholePropertyRental`
-
-### 🟢 اختيارية
-
-**الخطوة 12: نقل UUID regex (#44)، إصلاح `as never` (#45)، إضافة DB constraint للرسائل (#46)، إزالة `window.location.assign` (#47)**
-
----
-
-## ملاحظات مهمة
-
-- **النقطة 31 (useNotifications)**: تم تقسيمها سابقاً — الملف الآن 108 سطر فقط مع `useNotificationActions` مستخرج. لا حاجة لعمل إضافي.
-- **النقطة 32 (queryClientRef)**: النمط مقبول تقنياً رغم التكرار — `useQueryClient` ثابت لكن الـ ref يحل مشكلة stale closure في Supabase callbacks. أولوية منخفضة.
-- **النقطة 29 (Timeout 8s)**: إصلاح بسيط لكن يمس `AuthContext` المحمي — يحتاج طلب صريح.
-- **النقطة 33 (إشعار في mutation)**: الحل المثالي هو نقله لـ database trigger أو Edge Function، لكن هذا تغيير بنيوي كبير.
-
----
-
-## التقدير الزمني
-
-| المجموعة | عدد الخطوات | التعقيد |
-|-----------|------------|---------|
-| حرجة (1-3) | 3 | متوسط-عالي |
-| مهمة (4-8) | 5 | متوسط |
-| تحسينات (9-12) | 4 | منخفض |
+| # | الإجراء | الملفات |
+|---|---------|---------|
+| 1 | تشغيل اختبارات PDF | — (تشغيل فقط) |
+| 2 | إنشاء `src/types/models.ts` | ملف جديد |
+| 3 | إنشاء `src/types/relations.ts` | ملف جديد |
+| 4 | تحويل `database.ts` إلى barrel re-export | تعديل ملف واحد |
+| 5 | تشغيل `tsc --noEmit` للتحقق | — (تشغيل فقط) |
 
