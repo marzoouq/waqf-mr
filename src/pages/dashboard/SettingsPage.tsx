@@ -5,8 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Building2, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
 
-// — مكونات inline مستخرجة —
-import { WaqfSettingsTab, AppearanceTab, NotificationsTab, SecurityTab } from '@/components/settings';
+// — مكونات محمّلة كسول (كانت inline سابقاً) —
+const WaqfSettingsTab = lazy(() => import('@/components/settings/WaqfSettingsTab'));
+const AppearanceTab = lazy(() => import('@/components/settings/AppearanceTab'));
+const NotificationsTab = lazy(() => import('@/components/settings/NotificationsTab'));
+const SecurityTab = lazy(() => import('@/components/settings/SecurityTab'));
 
 // — مكونات محملة كسول —
 const LandingPageTab = lazy(() => import('@/components/settings/LandingPageTab'));
