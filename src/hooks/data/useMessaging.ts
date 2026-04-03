@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useCallback, useRef } from 'react';
 import { Conversation, Message } from '@/types/database';
-import { notifyUser } from '@/services/notifications';
+import { notifyUser } from '@/lib/services/notificationService';
 import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 import { STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
