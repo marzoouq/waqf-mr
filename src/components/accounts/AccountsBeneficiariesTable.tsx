@@ -57,7 +57,7 @@ const AccountsBeneficiariesTable = ({
       </CardHeader>
       <CardContent>
         {beneficiaries.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">لا يوجد مستفيدون مسجلون</p>
+          <EmptyState icon={Users} title="لا يوجد مستفيدون مسجلون" description="أضف مستفيدين من صفحة إدارة المستفيدين" compact />
         ) : (
           <>
             {/* Mobile cards */}

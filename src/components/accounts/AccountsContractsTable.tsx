@@ -34,7 +34,7 @@ const AccountsContractsTable = ({
       </CardHeader>
       <CardContent>
         {contracts.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
+          <EmptyState icon={FileText} title="لا توجد عقود مسجلة" description="أضف عقوداً جديدة من صفحة العقود" compact />
         ) : (
           <>
             {/* Mobile cards */}

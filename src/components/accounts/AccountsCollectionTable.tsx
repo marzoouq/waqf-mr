@@ -73,7 +73,7 @@ const AccountsCollectionTable = ({
       </CardHeader>
       <CardContent>
         {contracts.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
+          <EmptyState icon={Wallet} title="لا توجد عقود مسجلة" description="أنشئ عقوداً من صفحة العقود لعرض بيانات التحصيل" compact />
         ) : (
           <>
             {/* Mobile cards */}
