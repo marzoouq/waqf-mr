@@ -32,12 +32,7 @@ interface BeneficiaryFormDialogProps {
   onReset: () => void;
 }
 
-const validateNationalId = (v: string) => {
-  if (!v) return true;
-  // فحص Luhn الكامل
-  const { getNationalIdError } = require('@/utils/validateNationalId');
-  return !getNationalIdError(v);
-};
+const validateNationalId = (v: string) => !v || !getNationalIdError(v);
 const validateIBAN = (v: string) => !v || /^SA\d{22}$/.test(v.replace(/\s/g, ''));
 
 const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing, isPending, availableUsers, onSubmit, onReset }: BeneficiaryFormDialogProps) => {
