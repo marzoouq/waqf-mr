@@ -10,23 +10,24 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import ContractStatsCards from '@/components/contracts/ContractStatsCards';
 import ContractsFiltersBar from '@/components/contracts/ContractsFiltersBar';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Contract } from '@/types/database';
+import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 
 interface ContractsTabContentProps {
-  contracts: Tables<'contracts'>[];
-  properties: Tables<'properties'>[];
-  paymentInvoices: Tables<'payment_invoices'>[];
-  invoicePaidMap: Record<string, boolean>;
+  contracts: Contract[];
+  properties: Array<{ id: string; property_number: string; location: string }>;
+  paymentInvoices: PaymentInvoice[];
+  invoicePaidMap: Map<string, number>;
   fiscalYearId: string;
-  fiscalYears: Tables<'fiscal_years'>[];
+  fiscalYears: Array<{ id: string; label: string }>;
   isClosed: boolean;
   role: string | null;
   isLoading: boolean;
-  stats: { total: number; active: number; expired: number; cancelled: number; totalRent: number };
-  expiredContracts: Tables<'contracts'>[];
+  stats: { total: number; active: number; expired: number; cancelled: number; totalRent: number; activePercent: number; activeRent: number; expiringSoon: number };
+  expiredContracts: Contract[];
   expiredIds: Set<string>;
-  filteredGroups: [string, Tables<'contracts'>[]][];
-  statusCounts: Record<string, number>;
+  filteredGroups: [string, Contract[]][];
+  statusCounts: { all: number; active: number; expired: number; cancelled: number; overdue: number };
   allExpanded: boolean;
   searchQuery: string;
   setSearchQuery: (v: string) => void;
@@ -49,8 +50,8 @@ interface ContractsTabContentProps {
   setBulkRenewOpen: (v: boolean) => void;
   setFiscalYearId: (v: string) => void;
   setDeleteTarget: (v: { id: string; name: string } | null) => void;
-  handleEdit: (c: Tables<'contracts'>) => void;
-  handleRenew: (c: Tables<'contracts'>) => void;
+  handleEdit: (c: Contract) => void;
+  handleRenew: (c: Contract) => void;
 }
 
 const ContractsTabContent: React.FC<ContractsTabContentProps> = ({
