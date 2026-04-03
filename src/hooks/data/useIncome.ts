@@ -44,10 +44,13 @@ export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
       }
       const { data, error } = await query;
       if (error) throw error;
-      if (data && data.length >= PER_FY_LIMIT) {
+      return data as Income[];
+    },
+    select: (data: Income[]) => {
+      if (data.length >= PER_FY_LIMIT) {
         defaultNotify.warning('تم عرض أول 2,000 سجل إيرادات — قد توجد سجلات إضافية. يُرجى تضييق الفلترة.');
       }
-      return data as Income[];
+      return data;
     },
   });
 };
