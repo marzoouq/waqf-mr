@@ -26,7 +26,7 @@ export async function reportClientError(metadata: ErrorMetadata): Promise<void> 
       p_event_type: 'client_error',
       p_target_path: metadata.url ?? undefined,
       p_device_info: metadata.user_agent ?? undefined,
-      p_metadata: metadata as unknown as Record<string, unknown>,
+      p_metadata: metadata as unknown as Json,
     });
   } catch {
     // Supabase غير متاح — حفظ محلياً كـ fallback
