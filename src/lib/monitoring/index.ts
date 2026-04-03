@@ -21,3 +21,9 @@ export {
   type PageLoadEntry,
   type PagePerfSummary,
 } from './pageMonitor';
+
+export {
+  initWebVitals,
+  getVitalsSnapshot,
+  type VitalsSnapshot,
+} from './webVitals';
