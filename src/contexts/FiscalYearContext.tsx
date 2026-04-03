@@ -59,7 +59,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
     ? FY_NONE
     : noPublishedYears
       ? FY_NONE
-      : (selectedId || activeFY?.id || (isNonAdmin ? (fiscalYears[0]?.id || FY_NONE) : 'all'));
+      : (selectedId || activeFY?.id || (isNonAdmin ? (fiscalYears[0]?.id || FY_NONE) : FY_ALL));
 
   const fiscalYear = useMemo(
     () => (fiscalYearId === 'all' || !isFyReady(fiscalYearId)) ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),
