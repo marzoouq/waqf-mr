@@ -1,7 +1,7 @@
 /**
  * لوحة إدارة الصلاحيات الموحدة — تدمج صلاحيات الأدوار + الأقسام + واجهة المستفيد
  */
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
