@@ -92,17 +92,21 @@ export const useAdminDashboardData = ({
     yoy, contracts, paymentInvoices, allUnits, isSpecificYear,
   });
 
-  // ── بيانات الرسوم البيانية ──
-  const monthlyData = useMemo(() => computeMonthlyData(income, expenses), [income, expenses]);
+  // ── بيانات الرسوم البيانية (تُستخدم المحسوبة مسبقاً إن توفرت) ──
+  const monthlyData = useMemo(
+    () => computed?.monthlyData ?? computeMonthlyData(income, expenses),
+    [computed?.monthlyData, income, expenses],
+  );
 
   const expenseTypes = useMemo(() => {
+    if (computed?.expenseTypes) return computed.expenseTypes;
     const types: Record<string, number> = {};
     expenses.forEach((item) => {
       const type = item.expense_type || 'أخرى';
       types[type] = (types[type] || 0) + safeNumber(item.amount);
     });
     return Object.entries(types).map(([name, value]) => ({ name, value }));
-  }, [expenses]);
+  }, [computed?.expenseTypes, expenses]);
 
   // ── نص التحية ──
   const greetingText = useMemo(() => {
