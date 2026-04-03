@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/auth/useAuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import DeferredRender from '@/components/common/DeferredRender';

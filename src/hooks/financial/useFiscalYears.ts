@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { logger } from '@/lib/logger';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { FiscalYear } from '@/types/database';
