@@ -112,7 +112,7 @@ describe('useAccounts (CRUD)', () => {
     const { result } = renderHook(() => useCreateAccount(), { wrapper: wrapper() });
     const payload: TablesInsert<'accounts'> = { fiscal_year: '1446-1447', fiscal_year_id: 'fy-1' };
     await expect(result.current.mutateAsync(payload)).rejects.toThrow();
-    expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء إضافة الحساب');
+    expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء إضافة الحساب', undefined);
   });
 
   it('shows error toast on delete failure', async () => {
