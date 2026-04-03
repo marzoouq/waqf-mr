@@ -33,7 +33,7 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const {
-    user, role, links,
+    role, links,
     fiscalYearId, setFiscalYearId, fiscalYear, isClosed, showAll,
     sidebarOpen, setSidebarOpen,
     mobileSidebarOpen, setMobileSidebarOpen,
