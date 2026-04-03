@@ -7,25 +7,17 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { RequirePublishedYears, ExportMenu, TablePagination } from '@/components/common';
 import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { FileText, AlertCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { FileText, AlertCircle, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useMemo, useCallback, useState, useEffect } from 'react';
 import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
-import { fmt, fmtDate } from '@/utils/format';
 import { usePropertiesMap } from '@/hooks/data/usePropertiesMap';
-
 import { ContractStatsCards } from '@/components/contracts';
-
-const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  active: { label: 'نشط', variant: 'default' },
-  expired: { label: 'منتهي', variant: 'destructive' },
-  cancelled: { label: 'ملغي', variant: 'secondary' },
-};
+import ContractsViewMobileCards from '@/components/contracts/ContractsViewMobileCards';
+import ContractsViewDesktopTable from '@/components/contracts/ContractsViewDesktopTable';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -123,90 +115,11 @@ const ContractsViewPage = () => {
             </Card>
           ) : (
             <>
-              {/* بطاقات الجوال */}
-              <div className="space-y-3 md:hidden">
-                {paginatedContracts.map(contract => {
-                  const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
-                  return (
-                    <Card key={contract.id}>
-                      <CardContent className="p-4 space-y-2">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-bold text-foreground">{contract.contract_number ?? ''}</p>
-                            <p className="text-sm text-muted-foreground">{contract.tenant_name ?? ''}</p>
-                          </div>
-                          <div className="flex flex-col items-end gap-1">
-                            <Badge variant={st.variant}>{st.label}</Badge>
-                            {isExpiringSoon(contract) && (
-                              <Badge variant="outline" className="text-warning border-warning text-[11px]">
-                                <AlertTriangle className="w-3 h-3 ml-1" />ينتهي قريباً
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">الإيجار</span>
-                          <span className="font-medium">{fmt(contract.rent_amount ?? 0)} ر.س</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">من</span>
-                          <span>{fmtDate(contract.start_date ?? '')}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">إلى</span>
-                          <span>{fmtDate(contract.end_date ?? '')}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+              <ContractsViewMobileCards contracts={paginatedContracts} isExpiringSoon={isExpiringSoon} />
               <div className="md:hidden">
                 <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
               </div>
-              {/* جدول سطح المكتب */}
-              <Card className="hidden md:block">
-                <CardContent className="p-0 overflow-x-auto">
-                  <Table className="min-w-[700px]">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">رقم العقد</TableHead>
-                        <TableHead className="text-right">المستأجر</TableHead>
-                        <TableHead className="text-right">العقار</TableHead>
-                        <TableHead className="text-right">قيمة الإيجار</TableHead>
-                        <TableHead className="text-right">تاريخ البداية</TableHead>
-                        <TableHead className="text-right">تاريخ النهاية</TableHead>
-                        <TableHead className="text-right">الحالة</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedContracts.map(contract => {
-                        const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
-                        return (
-                          <TableRow key={contract.id}>
-                            <TableCell className="font-medium">{contract.contract_number ?? ''}</TableCell>
-                            <TableCell>{contract.tenant_name ?? ''}</TableCell>
-                            <TableCell>{(contract.property_id && propertiesMap[contract.property_id]) || '-'}</TableCell>
-                            <TableCell>{fmt(contract.rent_amount ?? 0)} ر.س</TableCell>
-                            <TableCell>{fmtDate(contract.start_date ?? '')}</TableCell>
-                            <TableCell>{fmtDate(contract.end_date ?? '')}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1.5">
-                                <Badge variant={st.variant}>{st.label}</Badge>
-                                {isExpiringSoon(contract) && (
-                                  <Badge variant="outline" className="text-warning border-warning text-[11px]">
-                                    <AlertTriangle className="w-3 h-3 ml-1" />قريب
-                                  </Badge>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+              <ContractsViewDesktopTable contracts={paginatedContracts} propertiesMap={propertiesMap} isExpiringSoon={isExpiringSoon} />
               <TablePagination currentPage={currentPage} totalItems={contracts?.length ?? 0} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
             </>
           )}
