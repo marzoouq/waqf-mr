@@ -1,6 +1,7 @@
 /**
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
+import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';

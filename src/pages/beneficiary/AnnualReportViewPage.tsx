@@ -3,6 +3,7 @@
  * تظهر فقط التقارير المنشورة
  */
 import { useMemo, useState, lazy, Suspense } from 'react';
+import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { safeNumber } from '@/utils/safeNumber';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
