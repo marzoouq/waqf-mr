@@ -154,7 +154,7 @@ const DistributeDialog = ({
         )}
 
         <DialogFooter className="gap-2">
-          <Button variant="secondary" onClick={() => printDistributionReport({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions, waqfName: pdfWaqfInfo.waqfName, deedNumber: pdfWaqfInfo.deedNumber, logoUrl: pdfWaqfInfo.logoUrl })} disabled={beneficiaries.length === 0}>
+          <Button variant="secondary" onClick={() => { const ok = printDistributionReport({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions, waqfName: pdfWaqfInfo.waqfName, deedNumber: pdfWaqfInfo.deedNumber, logoUrl: pdfWaqfInfo.logoUrl }); if (!ok) toast.error('يرجى السماح بالنوافذ المنبثقة'); }} disabled={beneficiaries.length === 0}>
             <Printer className="w-4 h-4 ml-2" />طباعة
           </Button>
           <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { toast.error('حدث خطأ أثناء تصدير PDF'); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>

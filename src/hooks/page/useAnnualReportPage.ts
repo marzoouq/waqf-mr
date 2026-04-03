@@ -110,7 +110,10 @@ export function useAnnualReportPage() {
       }),
       summaryCards: summaryCards.map(c => ({ label: c.label, value: c.value })),
     };
-    await generateAnnualReportPDF(pdfData, waqfInfo);
+    const ok = await generateAnnualReportPDF(pdfData, waqfInfo);
+    const { toast } = await import('sonner');
+    if (ok) toast.success('تم تصدير التقرير السنوي بنجاح');
+    else toast.error('فشل في تصدير التقرير');
   }, [fiscalYear, grouped, properties, summaryCards, waqfInfo]);
 
   // طباعة

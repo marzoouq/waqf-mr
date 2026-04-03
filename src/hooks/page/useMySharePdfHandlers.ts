@@ -129,12 +129,13 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
 
   const handlePrintReport = () => {
     if (!params.currentBeneficiary) return;
-    printShareReport({
+    const ok = printShareReport({
       beneficiaryName: params.currentBeneficiary.name ?? 'غير معروف',
       beneficiariesShare: params.beneficiariesShare, myShare: params.myShare,
       paidAdvancesTotal: params.paidAdvancesTotal, carryforwardBalance: params.carryforwardBalance,
       fiscalYearLabel: params.fiscalYearLabel, filteredDistributions: params.filteredDistributions,
     });
+    if (!ok) defaultNotify.error('يرجى السماح بالنوافذ المنبثقة');
   };
 
   return { isPdfLoading, handleDownloadPDF, handleDownloadDistributionsPDF, handleDownloadComprehensivePDF, handlePrintReport };
