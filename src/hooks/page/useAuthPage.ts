@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
-import { STALE_STATIC } from '@/lib/queryStaleTime';
+import { useRegistrationEnabled } from '@/hooks/data/useRegistrationEnabled';
 
 type InstallPromptEvent = Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
 
@@ -72,20 +70,7 @@ export const useAuthPage = () => {
     return () => clearTimeout(timer);
   }, [user, role, loading]);
 
-  // استعلام إعداد التسجيل
-  const { data: registrationEnabled = false } = useQuery({
-    queryKey: ['registration-enabled'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'registration_enabled')
-        .maybeSingle();
-      return data?.value === 'true';
-    },
-    staleTime: STALE_STATIC,
-    gcTime: 30 * 60_000,
-  });
+  const { data: registrationEnabled = false } = useRegistrationEnabled();
 
   // معالجة تثبيت التطبيق
   const handleInstallClick = () => {

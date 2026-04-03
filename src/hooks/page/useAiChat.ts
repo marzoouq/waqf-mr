@@ -3,7 +3,6 @@
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -15,7 +14,7 @@ export type ChatMode = 'chat' | 'analysis' | 'report';
 const SEND_COOLDOWN_MS = 2000;
 
 export function useAiChat() {
-  const { user, role } = useAuth();
+  const { user, role, session } = useAuth();
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -71,8 +70,7 @@ export function useAiChat() {
     let assistantContent = '';
 
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
+      if (!session?.access_token) throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
       const accessToken = session.access_token;
 
       const resp = await fetch(AI_URL, {

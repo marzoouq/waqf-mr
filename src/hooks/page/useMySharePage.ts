@@ -4,12 +4,12 @@
  * #9: يستخدم RPC get_beneficiary_dashboard كمصدر موثوق لـ my_share
  */
 import { safeNumber } from '@/utils/safeNumber';
-import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
+import { useMyDistributions } from '@/hooks/data/useMyDistributions';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useNavigate } from 'react-router-dom';
@@ -51,23 +51,10 @@ export const useMySharePage = () => {
     beneficiaries, availableAmount, serverMyShare: dashData?.my_share,
   });
 
-  const { data: distributions = [], isLoading: distLoading } = useQuery({
-    queryKey: ['my-distributions', currentBeneficiary?.id, fiscalYearId],
-    queryFn: async () => {
-      if (!currentBeneficiary?.id) return [];
-      let query = supabase
-        .from('distributions')
-        .select('*, account:accounts(id, fiscal_year, fiscal_year_id)')
-        .eq('beneficiary_id', currentBeneficiary.id);
-      if (fiscalYearId && fiscalYearId !== 'all') {
-        query = query.eq('fiscal_year_id', fiscalYearId);
-      }
-      const { data, error } = await query.order('date', { ascending: false }).limit(200);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!currentBeneficiary?.id,
-  });
+  const { data: distributions = [], isLoading: distLoading } = useMyDistributions(
+    currentBeneficiary?.id,
+    fiscalYearId,
+  );
 
   // سُلف وترحيلات المستفيد
   const effectiveFyId = fiscalYearId === 'all' ? undefined : fiscalYearId;

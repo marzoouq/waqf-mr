@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, Trash2, ImageIcon } from 'lucide-react';
-import { useLogoManager } from '@/hooks/page/useLogoManager';
+import { useLogoManager } from '@/hooks/data/useLogoManager';
 import { toast } from 'sonner';
 
 const LogoManager = () => {

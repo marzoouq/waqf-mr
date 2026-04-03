@@ -8,7 +8,7 @@ import { Mail, IdCard, KeyRound, AlertTriangle, ShieldAlert, Eye, EyeOff } from 
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/normalizeDigits';
-import { handleNationalIdLogin } from './nationalIdLogin';
+import { handleNationalIdLogin } from '@/lib/auth/nationalIdLogin';
 import BiometricLoginButton from './BiometricLoginButton';
 
 interface LoginFormProps {

@@ -8,7 +8,6 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
 import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts/contractForm.types';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useContractsFilters } from './useContractsFilters';
 import { useContractsBulkRenew } from './useContractsBulkRenew';
@@ -130,7 +129,7 @@ export const useContractsPage = () => {
     const contextFYId = fiscalYearId && fiscalYearId !== 'all' ? fiscalYearId : null;
     let activeFYId = contextFYId;
     if (!activeFYId) {
-      const { data: activeFY } = await supabase.from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
+      const activeFY = fiscalYears?.find(fy => fy.status === 'active');
       activeFYId = activeFY?.id || null;
     }
     const activeFY = activeFYId ? { id: activeFYId } : null;
