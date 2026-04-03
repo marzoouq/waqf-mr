@@ -24,7 +24,7 @@ interface MessageThreadProps {
   onSend: () => void;
   isSending: boolean;
   onBack: () => void;
-  messagesEndRef: RefObject<HTMLDivElement>;
+  messagesEndRef: RefObject<HTMLDivElement | null>;
 }
 
 export default function MessageThread({
