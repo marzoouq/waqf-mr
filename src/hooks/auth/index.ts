@@ -1,8 +1,8 @@
 /**
  * Barrel exports — hooks/auth/
  */
-export { useAuth, AuthContext, fallbackAuthContext } from './useAuthContext';
-export type { AuthContextType } from './useAuthContext';
+export { useAuth, useAuthState, useAuthActions, AuthStateContext, AuthActionsContext, defaultAuthState } from './useAuthContext';
+export type { AuthContextType, AuthState, AuthActions } from './useAuthContext';
 export { useBiometricAuth } from './useBiometricAuth';
 export { useChangePassword } from './useChangePassword';
 export { usePasswordResetRequest } from './usePasswordResetRequest';
