@@ -74,7 +74,7 @@ const BeneficiaryMessagesPage = () => {
           <ConversationsList
             conversations={conversations}
             selectedConvId={selectedConv?.id ?? null}
-            onSelect={setSelectedConv}
+            onSelect={(conv) => setSelectedConv(conv as typeof selectedConv)}
             activeTab={activeTab}
             hidden={!!selectedConv}
           />
