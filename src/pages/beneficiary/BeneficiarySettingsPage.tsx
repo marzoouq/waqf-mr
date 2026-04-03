@@ -11,11 +11,8 @@ import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { User, Lock, Bell, Shield, Palette, AlertCircle, RefreshCw } from 'lucide-react';
 import ThemeColorPicker from '@/components/theme/ThemeColorPicker';
-import BiometricSettings from '@/components/settings/BiometricSettings';
+import { BiometricSettings, AccountTab, PasswordTab, NotificationsTab } from '@/components/settings';
 import { TableSkeleton } from '@/components/common';
-import AccountTab from '@/components/settings/AccountTab';
-import PasswordTab from '@/components/settings/PasswordTab';
-import NotificationsTab from '@/components/settings/NotificationsTab';
 
 const BeneficiarySettingsPage = () => {
   const queryClient = useQueryClient();

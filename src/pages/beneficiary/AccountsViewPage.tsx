@@ -16,8 +16,7 @@ import { useMyShare } from '@/hooks/financial/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
 import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 import { isFyReady } from '@/constants/fiscalYearIds';
-import AccountsViewSummary from '@/components/accounts/AccountsViewSummary';
-import AccountsViewMyShare from '@/components/accounts/AccountsViewMyShare';
+import { AccountsViewSummary, AccountsViewMyShare } from '@/components/accounts';
 
 const AccountsViewPage = () => {
   const queryClient = useQueryClient();

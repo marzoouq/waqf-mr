@@ -3,7 +3,7 @@
  */
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { LandingPageContent } from '@/components/settings/LandingPageTab';
+import type { LandingPageContent } from '@/components/settings';
 
 interface LandingCTAProps {
   content: LandingPageContent;

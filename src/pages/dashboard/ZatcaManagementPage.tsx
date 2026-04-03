@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShieldCheck, FileText, Link2 } from 'lucide-react';
-import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
+import { InvoiceStepsGuide } from '@/components/invoices';
 
 import ZatcaSummaryCards from '@/components/zatca/ZatcaSummaryCards';
 import ZatcaInvoicesTab from '@/components/zatca/ZatcaInvoicesTab';

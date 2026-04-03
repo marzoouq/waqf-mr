@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { RequirePublishedYears, ExportMenu, DashboardSkeleton } from '@/components/common';
-import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
+import { AdvanceRequestDialog } from '@/components/beneficiaries';
 import MyShareSummaryCards from '@/components/my-share/MyShareSummaryCards';
 import DistributionsTable from '@/components/my-share/DistributionsTable';
 import AdvancesTable from '@/components/my-share/AdvancesTable';

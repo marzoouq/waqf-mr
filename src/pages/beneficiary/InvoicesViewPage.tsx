@@ -3,19 +3,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/useInvoices';
-import InvoiceViewer from '@/components/invoices/InvoiceViewer';
+import { InvoiceViewer, InvoiceGridView, InvoicesViewMobileCards, InvoicesViewDesktopTable } from '@/components/invoices';
 import { FileText, Search, LayoutGrid, List, AlertCircle, RefreshCw } from 'lucide-react';
 import { ExportMenu, TablePagination, RequirePublishedYears, TableSkeleton } from '@/components/common';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import InvoiceGridView from '@/components/invoices/InvoiceGridView';
+
 import { toast } from 'sonner';
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/safeNumber';
-import InvoicesViewMobileCards from '@/components/invoices/InvoicesViewMobileCards';
-import InvoicesViewDesktopTable from '@/components/invoices/InvoicesViewDesktopTable';
 
 const InvoicesViewPage = () => {
   const queryClient = useQueryClient();

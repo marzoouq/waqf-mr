@@ -3,7 +3,7 @@ import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useU
 import { useBeneficiaryUsers } from '@/hooks/data/useBeneficiaryUsers';
 import { Beneficiary } from '@/types/database';
 import { toast } from 'sonner';
-import type { BeneficiaryFormData } from '@/components/beneficiaries/BeneficiaryFormDialog';
+import type { BeneficiaryFormData } from '@/components/beneficiaries';
 
 const ITEMS_PER_PAGE = 9;
 

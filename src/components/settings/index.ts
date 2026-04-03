@@ -22,3 +22,4 @@ export { default as SecurityTab } from './SecurityTab';
 export { default as WaqfSettingsTab } from './WaqfSettingsTab';
 export { default as ZatcaOperationsLog } from './ZatcaOperationsLog';
 export { default as ZatcaSettingsTab } from './ZatcaSettingsTab';
+export type { LandingPageContent } from './LandingPageTab';

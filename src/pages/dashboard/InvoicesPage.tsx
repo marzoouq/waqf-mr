@@ -3,16 +3,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import InvoiceUploadDialog from '@/components/invoices/InvoiceUploadDialog';
-import InvoiceViewer from '@/components/invoices/InvoiceViewer';
-import InvoicePreviewDialog from '@/components/invoices/InvoicePreviewDialog';
-import CreateInvoiceFromTemplate from '@/components/invoices/CreateInvoiceFromTemplate';
-import InvoiceGridView from '@/components/invoices/InvoiceGridView';
-import InvoiceSummaryCards from '@/components/invoices/InvoiceSummaryCards';
+import { InvoiceUploadDialog, InvoiceViewer, InvoicePreviewDialog, CreateInvoiceFromTemplate, InvoiceGridView, InvoiceSummaryCards, InvoicesDesktopTable } from '@/components/invoices';
 import { TablePagination, MobileCardView, ExportMenu, TableSkeleton } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Search, Eye, LayoutGrid, List, FileDown } from 'lucide-react';
-import InvoicesDesktopTable from '@/components/invoices/InvoicesDesktopTable';
+
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { toast } from 'sonner';

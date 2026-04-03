@@ -3,7 +3,7 @@
  */
 import { Building2, Users, FileText, BarChart3, Shield, Wallet } from 'lucide-react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { LandingPageContent } from '@/components/settings/LandingPageTab';
+import type { LandingPageContent } from '@/components/settings';
 
 const FEATURES = [
   { icon: Building2, title: 'إدارة العقارات', description: 'تسجيل ومتابعة جميع عقارات الوقف وتفاصيلها' },

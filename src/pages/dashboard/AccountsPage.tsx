@@ -11,17 +11,7 @@ import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useAdvanceRequests } from '@/hooks/financial/useAdvanceRequests';
 import { useTotalBeneficiaryPercentage } from '@/hooks/financial/useTotalBeneficiaryPercentage';
 
-import AccountsSettingsBar from '@/components/accounts/AccountsSettingsBar';
-import AccountsSummaryCards from '@/components/accounts/AccountsSummaryCards';
-import AccountsContractsTable from '@/components/accounts/AccountsContractsTable';
-import AccountsCollectionTable from '@/components/accounts/AccountsCollectionTable';
-import AccountsIncomeTable from '@/components/accounts/AccountsIncomeTable';
-import AccountsExpensesTable from '@/components/accounts/AccountsExpensesTable';
-import AccountsDistributionTable from '@/components/accounts/AccountsDistributionTable';
-import AccountsBeneficiariesTable from '@/components/accounts/AccountsBeneficiariesTable';
-import AccountsSavedTable from '@/components/accounts/AccountsSavedTable';
-import AccountsDialogs from '@/components/accounts/AccountsDialogs';
-import CloseYearDialog from '@/components/accounts/CloseYearDialog';
+import { AccountsSettingsBar, AccountsSummaryCards, AccountsContractsTable, AccountsCollectionTable, AccountsIncomeTable, AccountsExpensesTable, AccountsDistributionTable, AccountsBeneficiariesTable, AccountsSavedTable, AccountsDialogs, CloseYearDialog } from '@/components/accounts';
 
 const AccountsPage = () => {
   const { role } = useAuth();

@@ -7,8 +7,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
 import { calcChangePercent } from '@/hooks/financial/useYoYComparison';
 import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, DollarSign, Landmark, HandCoins, ArrowDownUp, PercentCircle } from 'lucide-react';
-import type { StatItem } from '@/components/dashboard/DashboardStatsGrid';
-import type { KpiItem } from '@/components/dashboard/DashboardKpiPanel';
+import type { StatItem, KpiItem } from '@/components/dashboard';
 
 // دالة مساعدة موحّدة لألوان KPI
 const getKpiColor = (value: number, good: number, warn: number, invert = false) => {

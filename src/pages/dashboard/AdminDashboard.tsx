@@ -3,7 +3,7 @@ import { lazy, Suspense } from 'react';
 import { ErrorBoundary, DeferredRender } from '@/components/common';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { Button } from '@/components/ui/button';
-import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
+import { FiscalYearWidget, DashboardAlerts, DashboardStatsGrid, DashboardKpiPanel, CollectionSummaryCard, RecentContractsCard, QuickActionsCard, YearComparisonCard } from '@/components/dashboard';
 import { Printer, Gauge } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -15,14 +15,6 @@ import { useDashboardSummary } from '@/hooks/page/useDashboardSummary';
 // هوك الحسابات المستخرج
 import { useAdminDashboardData } from '@/hooks/page/useAdminDashboardData';
 
-// مكونات فرعية
-import DashboardAlerts from '@/components/dashboard/DashboardAlerts';
-import DashboardStatsGrid from '@/components/dashboard/DashboardStatsGrid';
-import DashboardKpiPanel from '@/components/dashboard/DashboardKpiPanel';
-import CollectionSummaryCard from '@/components/dashboard/CollectionSummaryCard';
-import RecentContractsCard from '@/components/dashboard/RecentContractsCard';
-import QuickActionsCard from '@/components/dashboard/QuickActionsCard';
-import YearComparisonCard from '@/components/dashboard/YearComparisonCard';
 
 // Lazy-load heavy below-the-fold components
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));

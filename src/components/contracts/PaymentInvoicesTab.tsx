@@ -11,10 +11,10 @@ import {
 import { Receipt, Check, X, Loader2 } from 'lucide-react';
 import { AlertTriangle } from 'lucide-react';
 import { TablePagination } from '@/components/common';
-import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
+import { InvoiceStepsGuide, InvoicePreviewDialog } from '@/components/invoices';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
-import InvoicePreviewDialog from '@/components/invoices/InvoicePreviewDialog';
+
 import { fmt } from '@/utils/format';
 import { usePaymentInvoicesTab } from '@/hooks/page/usePaymentInvoicesTab';
 import PaymentInvoiceSummaryCards from './payment-invoices/PaymentInvoiceSummaryCards';

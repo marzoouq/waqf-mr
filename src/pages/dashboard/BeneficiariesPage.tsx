@@ -12,9 +12,8 @@ import { buildCsv, downloadCsv } from '@/utils/csv';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import BeneficiaryFormDialog from '@/components/beneficiaries/BeneficiaryFormDialog';
-import BeneficiaryCard from '@/components/beneficiaries/BeneficiaryCard';
-import AdvanceRequestsTab from '@/components/accounts/AdvanceRequestsTab';
+import { BeneficiaryFormDialog, BeneficiaryCard } from '@/components/beneficiaries';
+import { AdvanceRequestsTab } from '@/components/accounts';
 import { useBeneficiariesPage } from '@/hooks/page/useBeneficiariesPage';
 
 const BeneficiariesPage = () => {
