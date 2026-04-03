@@ -46,15 +46,9 @@ export const useAdminDashboardData = ({
     return !s.admin_share_percentage || !s.waqif_share_percentage;
   }, [agg?.settings]);
 
-  // ── العقود المنتهية قريباً (من counts المُجمّعة) ──
-  const expiringContracts = useMemo(() => {
-    // نحتاج مصفوفة وهمية بطول العدد لأن DashboardAlerts يستخدم .length فقط
-    return Array(counts?.expiring_contracts ?? 0).fill(null);
-  }, [counts?.expiring_contracts]);
-
-  const orphanedContracts = useMemo(() => {
-    return Array(counts?.orphaned_contracts ?? 0).fill(null);
-  }, [counts?.orphaned_contracts]);
+  // ── أعداد العقود (من counts المُجمّعة) ──
+  const expiringContractsCount = counts?.expiring_contracts ?? 0;
+  const orphanedContractsCount = counts?.orphaned_contracts ?? 0;
 
   // ── إحصائيات البطاقات ──
   const { stats, kpis, collectionSummary, collectionColor } = useAdminDashboardStats({

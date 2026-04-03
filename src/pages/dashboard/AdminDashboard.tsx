@@ -66,8 +66,8 @@ const AdminDashboard = () => {
 
         <DashboardAlerts
           usingFallbackPct={usingFallbackPct}
-          expiringContracts={expiringContracts}
-          orphanedContracts={orphanedContracts}
+          expiringContractsCount={expiringContractsCount}
+          orphanedContractsCount={orphanedContractsCount}
           pendingAdvancesCount={pendingAdvancesCount}
           collectionRate={collectionSummary.percentage}
         />
