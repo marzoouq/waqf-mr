@@ -2,8 +2,7 @@ import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { logger } from '@/lib/logger';
-import { supabase } from '@/integrations/supabase/client';
-import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { reportClientError } from '@/lib/errorReporter';
 
 interface Props {
   children: ReactNode;
@@ -27,7 +26,6 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error('ErrorBoundary caught:', error, errorInfo);
 
-    // Report to server via logAccessEvent RPC + structured metadata
     // تجاهل أخطاء اختبارات الوحدة في الإنتاج
     if (error.message === 'Test explosion') return;
 
@@ -36,37 +34,19 @@ class ErrorBoundary extends Component<Props, State> {
       const sanitizeStack = (stack: string | undefined): string | null => {
         if (!stack) return null;
         if (import.meta.env.PROD) {
-          // الاحتفاظ بأول سطر (رسالة الخطأ) فقط — إزالة مسارات الملفات
           return stack.split('\n').slice(0, 1).join('').slice(0, 200);
         }
         return stack.slice(0, 1000);
       };
 
-      const metadata = {
+      reportClientError({
         error_name: error.name,
         error_message: error.message,
         error_stack: sanitizeStack(error.stack),
-        component_stack: import.meta.env.PROD ? null : errorInfo.componentStack?.slice(0, 500),
+        component_stack: import.meta.env.PROD ? null : errorInfo.componentStack?.slice(0, 500) ?? null,
         url: typeof window !== 'undefined' ? window.location.pathname : null,
         user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 200) : null,
         timestamp: new Date().toISOString(),
-      };
-
-      supabase.rpc('log_access_event', {
-        p_event_type: 'client_error',
-        p_target_path: typeof window !== 'undefined' ? window.location.pathname : undefined,
-        p_device_info: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 500) : undefined,
-        p_metadata: metadata,
-      }).then(() => { /* reported */ }, () => {
-        // Supabase unavailable — persist locally as fallback
-        try {
-          // معرّف جلسة فريد لتجميع الأخطاء حسب الجلسة
-          const sessionId = (globalThis as Record<string, unknown>).__ERROR_SESSION_ID ??= crypto.randomUUID();
-          const queue = JSON.parse(localStorage.getItem(STORAGE_KEYS.ERROR_LOG_QUEUE) || '[]');
-          queue.push({ ...metadata, session_id: sessionId, logged_at: new Date().toISOString() });
-          if (queue.length > 20) queue.shift();
-          localStorage.setItem(STORAGE_KEYS.ERROR_LOG_QUEUE, JSON.stringify(queue));
-        } catch { /* storage full or unavailable */ }
       });
     } catch { /* silent — don't break the error boundary */ }
   }
@@ -98,7 +78,6 @@ class ErrorBoundary extends Component<Props, State> {
       return;
     }
     this.setState({ hasError: false, error: null });
-    // إعادة ضبط العداد بعد 30 ثانية لتجنب الحظر الدائم
     if (this.resetTimerId) clearTimeout(this.resetTimerId);
     this.resetTimerId = setTimeout(() => { this.resetAttempts = 0; this.resetTimerId = null; }, 30_000);
   };
@@ -109,7 +88,6 @@ class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      // واجهة مخصصة لأخطاء تحميل الملفات (تحديث جديد متاح)
       if (this.isChunkError()) {
         return (
           <div className="min-h-screen flex items-center justify-center bg-background p-6" dir="rtl">
@@ -130,7 +108,6 @@ class ErrorBoundary extends Component<Props, State> {
         );
       }
 
-      // الواجهة العامة للأخطاء الأخرى
       return (
         <div className="min-h-screen flex items-center justify-center bg-background p-6" dir="rtl">
           <div className="max-w-md w-full text-center space-y-6">
