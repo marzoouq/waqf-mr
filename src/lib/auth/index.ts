@@ -1,4 +1,4 @@
 /**
  * Barrel exports — lib/auth/
  */
-export { loginWithNationalId } from './nationalIdLogin';
+export { handleNationalIdLogin } from './nationalIdLogin';

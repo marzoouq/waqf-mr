@@ -1,5 +1,5 @@
 /**
  * Barrel exports — lib/theme/
  */
-export { getThemeColor, updateThemeColor } from './themeColor.utils';
-export { themeDefinitions } from './themeDefinitions';
+export { applyTheme, resetTheme, initThemeFromStorage, cleanupThemeObserver, themes, THEME_KEY } from './themeColor.utils';
+export type { ThemeVars, ThemeTemplate } from './themeDefinitions';

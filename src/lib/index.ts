@@ -1,6 +1,5 @@
 /**
  * Barrel exports — lib/
- * يجمع التصديرات العامة من المجلدات الفرعية والملفات المباشرة
  */
 export * from './auth';
 export * from './export';
@@ -11,10 +10,11 @@ export * from './services';
 export * from './theme';
 
 export { prefetchComponent } from './componentPrefetch';
-export { reportError } from './errorReporter';
+export { reportClientError } from './errorReporter';
 export { lazyWithRetry } from './lazyWithRetry';
 export { logger } from './logger';
-export { notify } from './notify';
+export { defaultNotify, crudNotifyAdapter } from './notify';
+export type { AppNotify, CrudNotifications, MutationNotify } from './notify';
 export { queryClient } from './queryClient';
-export { getStaleTime } from './queryStaleTime';
+export { STALE_STATIC, STALE_SETTINGS, STALE_FINANCIAL, STALE_REALTIME, STALE_MESSAGING, STALE_LIVE } from './queryStaleTime';
 export { cn } from './utils';

@@ -1,13 +1,15 @@
 /**
  * Barrel exports — hooks/auth/
  */
-export { useAuthContext } from './useAuthContext';
+export { useAuth, AuthContext, fallbackAuthContext } from './useAuthContext';
+export type { AuthContextType } from './useAuthContext';
 export { useBiometricAuth } from './useBiometricAuth';
 export { useChangePassword } from './useChangePassword';
 export { usePasswordResetRequest } from './usePasswordResetRequest';
 export { useResetPassword } from './useResetPassword';
 export { useUserManagement } from './useUserManagement';
-export { useUserManagementData } from './useUserManagementData';
-export { useUserManagementMutations } from './useUserManagementMutations';
+export { callAdminApi, useRegistrationEnabled, useAdminUsers, useOrphanedBeneficiaries, useUnlinkedBeneficiaries } from './useUserManagementData';
+export type { ManagedUser } from './useUserManagementData';
+export { useCreateUserMutation, useConfirmEmailMutation, useUpdateEmailMutation, useUpdatePasswordMutation, useSetRoleMutation, useDeleteUserMutation, useLinkBeneficiaryMutation, useToggleRegistration } from './useUserManagementMutations';
 export { useWebAuthn } from './useWebAuthn';
-export { WebAuthnErrorCode, getWebAuthnErrorMessage } from './webAuthnErrors';
+export { logBiometricEvent, handleRegistrationError, handleAuthenticationError, getDeviceName } from './webAuthnErrors';
