@@ -29,11 +29,11 @@ interface InvoicesPageDialogsProps {
   properties: { id: string; property_number: string; location: string }[];
   sellerInfo: {
     name: string;
-    address: string;
-    vatNumber: string;
-    commercialReg: string;
-    bankName: string;
-    bankIBAN: string;
+    address?: string;
+    vatNumber?: string;
+    commercialReg?: string;
+    bankName?: string;
+    bankIBAN?: string;
   };
   onSaveTemplate: (data: Record<string, unknown>) => Promise<void>;
   isSaving: boolean;
