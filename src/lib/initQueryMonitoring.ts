@@ -4,7 +4,7 @@
  */
 import { startPerfTimer } from '@/lib/monitoring';
 import { queryClient } from '@/lib/queryClient';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 const activeTimers = new Map<string, () => void>();
 const MAX_ACTIVE_TIMERS = 50;
