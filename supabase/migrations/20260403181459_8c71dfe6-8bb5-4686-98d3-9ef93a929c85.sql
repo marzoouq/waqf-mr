@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.update_ai_chat_sessions_updated_at();
