@@ -3,7 +3,7 @@
  * يوفر: useProperties (جلب), useCreateProperty, useUpdateProperty, useDeleteProperty
  * الجدول: properties | الترتيب: حسب تاريخ الإنشاء (تنازلي)
  */
-import { createCrudFactory } from './useCrudFactory';
+import { createCrudFactory } from '../core/useCrudFactory';
 import { Property } from '@/types/database';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 

@@ -3,7 +3,7 @@
  * يوفر: useContracts (جلب مع ربط العقار والوحدة), useCreateContract, useUpdateContract, useDeleteContract
  * الجدول: contracts | الربط: properties, units
  */
-import { createCrudFactory } from './useCrudFactory';
+import { createCrudFactory } from '../core/useCrudFactory';
 import { Contract } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';

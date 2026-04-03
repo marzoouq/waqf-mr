@@ -13,7 +13,7 @@ const mockSettings = vi.fn(() => ({ data: null }));
 vi.mock('@/hooks/data/useIncome', () => ({ useIncome: () => mockIncome() }));
 vi.mock('@/hooks/data/useExpenses', () => ({ useExpenses: () => mockExpenses() }));
 vi.mock('@/hooks/financial/useAccounts', () => ({ useAccounts: () => mockAccounts() }));
-vi.mock('@/hooks/data/useBeneficiaries', () => ({ useBeneficiaries: () => mockBeneficiaries() }));
+vi.mock('@/hooks/data/beneficiaries/useBeneficiaries', () => ({ useBeneficiaries: () => mockBeneficiaries() }));
 vi.mock('@/hooks/data/useAppSettings', () => ({ useAppSettings: () => mockSettings() }));
 
 // We need to test the hook logic without React rendering — extract the computation logic.

@@ -9,8 +9,8 @@ import { STALE_REALTIME, STALE_LIVE } from '@/lib/queryStaleTime';
 export { useCreateTicket, useUpdateTicketStatus, useAddTicketReply, useRateTicket } from './useSupportTicketMutations';
 export { useSupportStats, useSupportAnalytics, fetchTicketsForExport } from './useSupportAnalytics';
 export type { SupportAnalyticsData } from './useSupportAnalytics';
-export { useClientErrors } from './useClientErrors';
-export type { ClientError } from './useClientErrors';
+export { useClientErrors } from '../audit/useClientErrors';
+export type { ClientError } from '../audit/useClientErrors';
 
 // ---------------------------------------------------------------------------
 // Types

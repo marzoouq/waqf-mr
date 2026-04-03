@@ -45,7 +45,7 @@ vi.mock('@/hooks/data/useContracts', () => ({
   useDeleteContract: () => ({ mutateAsync: vi.fn() }),
 }));
 
-vi.mock('@/hooks/data/useBeneficiaries', () => ({
+vi.mock('@/hooks/data/beneficiaries/useBeneficiaries', () => ({
   useBeneficiaries: () => ({ data: [{ id: 'b1', name: 'محمد', share_percentage: 60 }, { id: 'b2', name: 'علي', share_percentage: 40 }] }),
 }));
 

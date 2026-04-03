@@ -9,7 +9,7 @@ import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 
 // إعادة تصدير للتوافق مع الاستيرادات القائمة
-export { useIncomeComparison, type IncomeComparison } from './useIncomeComparison';
+export { useIncomeComparison, type IncomeComparison } from '../financial/useIncomeComparison';
 
 // ---------------------------------------------------------------------------
 // أنواع البيانات

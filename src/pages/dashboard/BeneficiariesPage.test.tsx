@@ -24,7 +24,7 @@ const mockBeneficiaries = [
   { id: 'b3', name: 'سارة محمد', share_percentage: 10, phone: '0509876543', email: '', bank_account: '', national_id: '', user_id: null, notes: 'ملاحظة', created_at: '', updated_at: '' },
 ];
 
-vi.mock('@/hooks/data/useBeneficiaries', () => ({
+vi.mock('@/hooks/data/beneficiaries/useBeneficiaries', () => ({
   useBeneficiaries: () => ({ data: mockBeneficiaries, isLoading: false }),
   useBeneficiariesDecrypted: () => ({ data: mockBeneficiaries, isLoading: false }),
   useCreateBeneficiary: () => ({ mutateAsync: vi.fn(), isPending: false }),
