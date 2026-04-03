@@ -18,7 +18,7 @@ import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { DashboardLayout } from '@/components/layout';
-import { NoPublishedYearsNotice, ExportMenu, DashboardSkeleton } from '@/components/common';
+import { NoPublishedYearsNotice, ExportMenu, DashboardSkeleton, DeferredRender } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Building2, FileText, Users, TrendingUp, BarChart3, Sun, Moon,
