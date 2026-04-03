@@ -100,7 +100,7 @@ export const useMySharePage = () => {
 
   // PDF handlers — مستخرجة في هوك فرعي
   const pdf = useMySharePdfHandlers({
-    currentBeneficiary, isClosed: !!isClosed, myShare, totalReceived, pendingAmount,
+    currentBeneficiary: currentBeneficiary ?? null, isClosed: !!isClosed, myShare, totalReceived, pendingAmount,
     netAfterZakat, adminShare, waqifShare, beneficiariesShare, paidAdvancesTotal,
     carryforwardBalance, totalIncome, totalExpenses, netAfterExpenses, vatAmount,
     netAfterVat, zakatAmount, waqfRevenue, waqfCorpusManual, incomeBySource,
