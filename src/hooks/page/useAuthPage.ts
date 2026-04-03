@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { toast } from 'sonner';
+
 import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { useRegistrationEnabled } from '@/hooks/data/settings/useRegistrationEnabled';
 
