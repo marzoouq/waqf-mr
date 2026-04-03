@@ -189,10 +189,10 @@
     --success: 158 64% 40%;
     --success-foreground: 158 64% 25%;
     --success-muted: 158 50% 94%;
-    --warning: 43 90% 55%;
-    --warning-foreground: 43 90% 40%;
+    --warning: 43 90% 50%;
+    --warning-foreground: 30 95% 28%;
     --info: 200 80% 50%;
-    --info-foreground: 200 80% 35%;
+    --info-foreground: 200 80% 28%;
     --info-muted: 200 60% 94%;
     --discount: 145 60% 40%;
     --discount-foreground: 145 60% 28%;
