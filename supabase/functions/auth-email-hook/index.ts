@@ -2,6 +2,7 @@ import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { sendLovableEmail, parseEmailWebhookPayload } from 'npm:@lovable.dev/email-js'
 import { WebhookError, verifyWebhookRequest } from 'npm:@lovable.dev/webhooks-js'
+import { createClient } from 'npm:@supabase/supabase-js@2'
 import { SignupEmail } from '../_shared/email-templates/signup.tsx'
 import { InviteEmail } from '../_shared/email-templates/invite.tsx'
 import { MagicLinkEmail } from '../_shared/email-templates/magic-link.tsx'
@@ -43,6 +44,35 @@ const FROM_DOMAIN = "waqf-wise.net" // Domain shown in From address (may be root
 // even if the project's domain has changed since the template was scaffolded.
 const SAMPLE_PROJECT_URL = "https://waqf-mr.lovable.app"
 const SAMPLE_EMAIL = "user@example.test"
+
+// جلب شعار الوقف من app_settings ديناميكياً
+let _cachedLogoUrl: string | null = null
+let _cacheTime = 0
+const CACHE_TTL = 5 * 60 * 1000 // 5 دقائق
+
+async function fetchWaqfLogoUrl(): Promise<string | null> {
+  const now = Date.now()
+  if (_cachedLogoUrl !== null && now - _cacheTime < CACHE_TTL) {
+    return _cachedLogoUrl
+  }
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const sb = createClient(supabaseUrl, serviceKey)
+    const { data } = await sb
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'waqf_logo_url')
+      .maybeSingle()
+    _cachedLogoUrl = data?.value || null
+    _cacheTime = now
+    return _cachedLogoUrl
+  } catch (err) {
+    console.error('Failed to fetch waqf_logo_url', err)
+    return null
+  }
+}
+
 const SAMPLE_DATA: Record<string, object> = {
   signup: {
     siteName: SITE_NAME,
@@ -214,6 +244,9 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
+  // جلب شعار الوقف الديناميكي
+  const logoUrl = await fetchWaqfLogoUrl()
+
   // Build template props from payload.data (HookData structure)
   const templateProps = {
     siteName: SITE_NAME,
@@ -223,6 +256,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     token: payload.data.token,
     email: payload.data.email,
     newEmail: payload.data.new_email,
+    logoUrl: logoUrl || undefined,
   }
 
   // Render React Email to HTML and plain text
