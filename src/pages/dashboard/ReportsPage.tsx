@@ -20,7 +20,6 @@ import PropertyPerformanceTable from '@/components/reports/PropertyPerformanceTa
 import type { TabItem } from '@/components/ui/responsive-tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useReportsData } from '@/hooks/page/useReportsData';
-import { useReportsData } from '@/hooks/page/useReportsData';
 
 const LazyReportsCharts = lazy(() => import('@/components/reports/ReportsChartsInner'));
 
