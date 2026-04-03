@@ -1869,6 +1869,22 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_expense_summary_by_type: {
+        Args: { p_fiscal_year_id: string }
+        Returns: {
+          expense_type: string
+          record_count: number
+          total_amount: number
+        }[]
+      }
+      get_income_summary_by_source: {
+        Args: { p_fiscal_year_id: string }
+        Returns: {
+          record_count: number
+          source: string
+          total_amount: number
+        }[]
+      }
       get_max_advance_amount: {
         Args: { p_beneficiary_id: string; p_fiscal_year_id: string }
         Returns: Json
