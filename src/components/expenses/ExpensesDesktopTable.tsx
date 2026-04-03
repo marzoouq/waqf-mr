@@ -27,7 +27,8 @@ interface ExpensesDesktopTableProps {
   expenseInvoiceMap: Map<string, number>;
   expandedRow: string | null;
   setExpandedRow: (id: string | null) => void;
-  onEdit: (item: never) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onEdit: (item: any) => void;
   onDelete: (target: { id: string; name: string }) => void;
   isLocked: boolean;
   sortField: SortField;
