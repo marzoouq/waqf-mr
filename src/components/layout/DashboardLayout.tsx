@@ -68,8 +68,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onTouchStart={swipe.handleTouchStart}
         onTouchMove={swipe.handleTouchMove}
         onTouchEnd={swipe.handleTouchEnd}
-        className="fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden transition-transform duration-300"
-        style={{ transform: `translateX(${swipe.sidebarTranslateX}px)` }}
+        className="fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden"
+        style={{ transform: `translateX(${swipe.sidebarTranslateX}px)`, willChange: 'transform' }}
       >
         <SidebarContent
           links={links}
