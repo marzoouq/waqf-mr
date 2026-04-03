@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
@@ -7,9 +7,6 @@ import { ExportMenu, DeferredRender } from '@/components/common';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { useAccountsPage } from '@/hooks/financial/useAccountsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
-import { useAdvanceRequests } from '@/hooks/financial/useAdvanceRequests';
-import { useTotalBeneficiaryPercentage } from '@/hooks/financial/useTotalBeneficiaryPercentage';
 
 // مكونات أساسية (تُحمّل فوراً)
 import { AccountsSettingsBar, AccountsSummaryCards, AccountsContractsTable, AccountsCollectionTable, AccountsDialogs } from '@/components/accounts';
@@ -27,18 +24,6 @@ const SectionFallback = () => <Skeleton className="h-32 w-full rounded-lg" />;
 const AccountsPage = () => {
   const { role } = useAuth();
   const page = useAccountsPage();
-  const { data: paymentInvoices = [] } = usePaymentInvoices(page.fiscalYearId || 'all');
-  const { data: advanceRequests = [] } = useAdvanceRequests(page.fiscalYearId !== 'all' ? page.fiscalYearId : undefined);
-  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
-
-  const unpaidInvoices = useMemo(() =>
-    paymentInvoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue').length,
-    [paymentInvoices]
-  );
-  const pendingAdvances = useMemo(() =>
-    advanceRequests.filter(r => r.status === 'pending').length,
-    [advanceRequests]
-  );
 
   return (
     <DashboardLayout>
