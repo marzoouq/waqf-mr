@@ -1,72 +1,19 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
 import { Building2, KeyRound, Loader2, CheckCircle } from 'lucide-react';
-import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
+import { useResetPassword } from '@/hooks/auth/useResetPassword';
 
 const ResetPassword = () => {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRecovery, setIsRecovery] = useState(false);
-  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Listen for PASSWORD_RECOVERY event from Supabase
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsRecovery(true);
-      }
-    });
-
-    // Fallback: check URL hash for type=recovery (legacy implicit flow)
-    const hash = window.location.hash;
-    if (hash.includes('type=recovery')) {
-      setIsRecovery(true);
-    }
-
-    // فحص معاملات URL لدعم تدفق PKCE
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('type') === 'recovery') {
-      setIsRecovery(true);
-    }
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!password || password.length < 8) {
-      toast.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
-      return;
-    }
-    if (password !== confirmPassword) {
-      toast.error('كلمتا المرور غير متطابقتين');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) {
-        toast.error(getSafeErrorMessage(error));
-      } else {
-        setSuccess(true);
-        toast.success('تم تغيير كلمة المرور بنجاح');
-      }
-    } catch {
-      toast.error('حدث خطأ غير متوقع');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    password, setPassword,
+    confirmPassword, setConfirmPassword,
+    isLoading, isRecovery, success,
+    handleSubmit,
+  } = useResetPassword();
 
   if (!isRecovery) {
     return (

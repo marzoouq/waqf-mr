@@ -1,19 +1,14 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-import { normalizeArabicDigits } from '@/utils/normalizeDigits';
+import { usePasswordResetRequest } from '@/hooks/auth/usePasswordResetRequest';
 
 interface ResetPasswordFormProps {
   onBack: () => void;
 }
 
 export default function ResetPasswordForm({ onBack }: ResetPasswordFormProps) {
-  const [resetEmail, setResetEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { resetEmail, setResetEmail, isLoading, handleRequest } = usePasswordResetRequest(onBack);
 
   return (
     <div className="space-y-5">
@@ -33,16 +28,7 @@ export default function ResetPasswordForm({ onBack }: ResetPasswordFormProps) {
       <Button
         className="w-full h-11 gradient-primary"
         disabled={isLoading}
-        onClick={async () => {
-          if (!resetEmail) { toast.error('يرجى إدخال البريد الإلكتروني'); return; }
-          setIsLoading(true);
-          const { error } = await supabase.auth.resetPasswordForEmail(normalizeArabicDigits(resetEmail), {
-            redirectTo: `${window.location.origin}/reset-password`,
-          });
-          setIsLoading(false);
-          if (error) { toast.error(getSafeErrorMessage(error)); }
-          else { toast.success('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني'); onBack(); }
-        }}
+        onClick={handleRequest}
       >
         {isLoading ? 'جاري الإرسال...' : 'إرسال رابط إعادة التعيين'}
       </Button>

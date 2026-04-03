@@ -4,10 +4,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useAppSettings, useWaqfInfo } from '@/hooks/page/useAppSettings';
-import { STALE_STATIC } from '@/lib/queryStaleTime';
+import { usePublicStats } from '@/hooks/data/usePublicStats';
 import type { LandingPageContent } from '@/components/settings/LandingPageTab';
 import LandingHero from '@/components/landing/LandingHero';
 import LandingFeatures from '@/components/landing/LandingFeatures';
@@ -26,18 +24,13 @@ const defaultLanding: LandingPageContent = {
   footer_text: 'نظام إدارة الوقف © {year} — جميع الحقوق محفوظة',
 };
 
-const placeholderStats = [
-  { label: 'عقار مُدار', value: '0' },
-  { label: 'مستفيد', value: '0' },
-  { label: 'تقرير سنوي', value: '0' },
-];
-
 const Index = () => {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
   const { getJsonSetting } = useAppSettings();
   const content = getJsonSetting<LandingPageContent>('landing_page_content', defaultLanding);
   const { data: waqfInfo } = useWaqfInfo();
+  const { stats, statsLoading } = usePublicStats();
 
   useEffect(() => {
     if (!loading && user) {
@@ -50,25 +43,6 @@ const Index = () => {
       }
     }
   }, [user, role, loading, navigate]);
-
-  const { data: statsData, isLoading: statsLoading } = useQuery({
-    queryKey: ['public-stats'],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_public_stats');
-      if (error) throw error;
-      const d = data as { properties: number; beneficiaries: number; fiscal_years: number };
-      return [
-        { label: 'عقار مُدار', value: String(d.properties ?? 0) },
-        { label: 'مستفيد', value: String(d.beneficiaries ?? 0) },
-        { label: 'تقرير سنوي', value: String(d.fiscal_years ?? 0) },
-      ];
-    },
-    staleTime: STALE_STATIC,
-    gcTime: 10 * 60 * 1000,
-    placeholderData: placeholderStats,
-  });
-
-  const stats = statsData ?? placeholderStats;
 
   const handleNavigateAuth = useCallback(() => navigate('/auth'), [navigate]);
 
