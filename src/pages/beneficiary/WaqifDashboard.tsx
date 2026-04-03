@@ -33,7 +33,7 @@ const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner')
 
 const WaqifDashboard = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears, isSpecificYear } = useFiscalYear();
 
   useDashboardRealtime('waqif-dashboard-realtime', ['income', 'expenses', 'payment_invoices']);
