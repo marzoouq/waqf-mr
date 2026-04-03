@@ -5,7 +5,7 @@ import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';
 import BalanceSheetReport from '@/components/reports/BalanceSheetReport';
 import ZakatEstimationReport from '@/components/reports/ZakatEstimationReport';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
 import { toast } from 'sonner';
