@@ -8,7 +8,6 @@ import { Income } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
-import { defaultNotify } from './mutationNotify';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 /** أعمدة الإيرادات مع ربط العقار */
@@ -46,11 +45,6 @@ export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
       if (error) throw error;
       return data as Income[];
     },
-    select: (data: Income[]) => {
-      if (data.length >= PER_FY_LIMIT) {
-        defaultNotify.warning('تم عرض أول 2,000 سجل إيرادات — قد توجد سجلات إضافية. يُرجى تضييق الفلترة.');
-      }
-      return data;
-    },
+    meta: { warnLimit: PER_FY_LIMIT },
   });
 };
