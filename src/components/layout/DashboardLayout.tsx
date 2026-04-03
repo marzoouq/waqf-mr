@@ -24,7 +24,7 @@ const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
 const IdleTimeoutWarning = lazy(() => import('@/components/auth/IdleTimeoutWarning'));
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
-import { useRealtimeAlerts } from '@/hooks/data/useRealtimeAlerts';
+import { useRealtimeAlerts } from '@/hooks/ui/useRealtimeAlerts';
 import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
 import { SHOW_ALL_ROUTES } from '@/components/layout/constants';
 import MobileHeader from '@/components/layout/MobileHeader';

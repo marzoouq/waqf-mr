@@ -1,13 +1,15 @@
 /**
- * هوكات التقرير السنوي — CRUD لعناصر التقرير + حالة النشر + مقارنة الدخل
+ * هوكات التقرير السنوي — CRUD لعناصر التقرير + حالة النشر
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
-import { defaultNotify } from './mutationNotify';
+import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
-import { safeNumber } from '@/utils/safeNumber';
+
+// إعادة تصدير للتوافق مع الاستيرادات القائمة
+export { useIncomeComparison, type IncomeComparison } from './useIncomeComparison';
 
 // ---------------------------------------------------------------------------
 // أنواع البيانات
@@ -157,52 +159,5 @@ export const useToggleReportPublish = () => {
       defaultNotify.success(v.publish ? 'تم نشر التقرير السنوي' : 'تم إرجاع التقرير إلى مسودة');
     },
     onError: () => defaultNotify.error('فشل في تحديث حالة النشر'),
-  });
-};
-
-// ---------------------------------------------------------------------------
-// مقارنة الدخل عبر السنوات المالية
-// ---------------------------------------------------------------------------
-export interface IncomeComparison {
-  label: string;
-  total: number;
-}
-
-export const useIncomeComparison = () => {
-  return useQuery({
-    queryKey: ['income_comparison'],
-    queryFn: async () => {
-      // جلب آخر 4 سنوات مالية
-      const { data: years, error: fyErr } = await supabase
-        .from('fiscal_years')
-        .select('id, label')
-        .order('start_date', { ascending: false })
-        .limit(4);
-      if (fyErr) throw fyErr;
-      if (!years?.length) return [];
-
-      // جلب كل الدخل لهذه السنوات في استعلام واحد (بدلاً من N+1)
-      const yearIds = years.map(y => y.id);
-      const { data: allIncome, error: incErr } = await supabase
-        .from('income')
-        .select('fiscal_year_id, amount')
-        .in('fiscal_year_id', yearIds);
-      if (incErr) throw incErr;
-
-      // تجميع الدخل حسب السنة المالية
-      const totalsMap = new Map<string, number>();
-      for (const row of allIncome || []) {
-        const current = totalsMap.get(row.fiscal_year_id!) || 0;
-        totalsMap.set(row.fiscal_year_id!, current + safeNumber(row.amount));
-      }
-
-      const results: IncomeComparison[] = years.map(fy => ({
-        label: fy.label,
-        total: totalsMap.get(fy.id) || 0,
-      }));
-
-      return results.reverse(); // الأقدم أولاً
-    },
-    staleTime: STALE_STATIC,
   });
 };
