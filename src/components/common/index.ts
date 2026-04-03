@@ -13,5 +13,5 @@ export { default as NoPublishedYearsNotice } from './NoPublishedYearsNotice';
 export { default as PrintFooter } from './PrintFooter';
 export { default as PrintHeader } from './PrintHeader';
 export { default as RequirePublishedYears } from './RequirePublishedYears';
-export { TableSkeleton, DashboardSkeleton, StatsGridSkeleton, FormSkeleton } from './SkeletonLoaders';
+export { TableSkeleton, DashboardSkeleton, StatsGridSkeleton, KpiSkeleton, ChartSkeleton } from './SkeletonLoaders';
 export { default as TablePagination } from './TablePagination';
