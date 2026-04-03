@@ -46,11 +46,6 @@ export const useExpensesByFiscalYear = (fiscalYearId: string | 'all') => {
       if (error) throw error;
       return data as Expense[];
     },
-    select: (data: Expense[]) => {
-      if (data.length >= PER_FY_LIMIT) {
-        defaultNotify.warning('تم عرض أول 2,000 سجل مصروفات — قد توجد سجلات إضافية. يُرجى تضييق الفلترة.');
-      }
-      return data;
-    },
+    meta: { warnLimit: PER_FY_LIMIT },
   });
 };

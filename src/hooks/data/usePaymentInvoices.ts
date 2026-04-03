@@ -54,13 +54,7 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
       if (error) throw error;
       return data as unknown as PaymentInvoice[];
     },
-    select: (data: PaymentInvoice[]) => {
-      if (data.length >= 1000) {
-        logger.warn(`payment_invoices query hit limit (1000) for fiscal year ${fiscalYearId}`);
-        defaultNotify.warning('تم الوصول للحد الأقصى (1000 فاتورة) — قد تكون هناك فواتير إضافية غير معروضة');
-      }
-      return data;
-    },
+    meta: { warnLimit: 1000 },
   });
 };
 
