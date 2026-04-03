@@ -1,20 +1,13 @@
 /**
- * مكون حماية المسارات
- * يمنع الوصول للصفحات المحمية بدون تسجيل دخول أو بدون الدور المناسب.
- * يعتمد بالكامل على AuthContext لمنطق المصادقة وتسجيل الخروج.
- *
- * إصلاح #1: توحيد الـ interface وحذف الكود المكرر الناتج عن merge فاشل
- * إصلاح #2: حذف الكتلة if(allowedRoles && !role) المكررة وغير المنطقية
- * إصلاح #3: حذف استدعاء supabase.auth.signOut() المباشر المكرر (Double Logout)
- * إصلاح #9: إعادة ضبط loggedRef عند تغيير المسار لضمان تسجيل كل حدث وصول غير مصرح
+ * مكون حماية المسارات — مُبسَّط
+ * الدور يُقرأ من JWT فوراً، لذا لا حاجة لمؤقتات أو حلقات انتظار.
+ * Fallback قصير فقط إذا كان الدور غير متاح بعد (حالة نادرة).
  */
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
-import { Button } from '@/components/ui/button';
-import { logger } from '@/lib/logger';
 import type { AppRole } from '@/types/database';
 
 interface ProtectedRouteProps {
@@ -23,25 +16,19 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
-  const { user, role, loading, signOut } = useAuth();
+  const { user, role, loading } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const loggedRef = useRef(false);
-  const [showSignOut, setShowSignOut] = useState(false);
 
-  // إصلاح #9: إعادة ضبط loggedRef عند تغيير المسار
+  // إعادة ضبط loggedRef عند تغيير المسار
   useEffect(() => {
     loggedRef.current = false;
   }, [location.pathname]);
 
-  // إصلاح #1: تعبير موحد نظيف باستخدام AppRole فقط
   const isUnauthorized =
-    !loading &&
-    !!user &&
-    !!allowedRoles &&
-    !!role &&
-    !allowedRoles.includes(role as AppRole);
+    !loading && !!user && !!allowedRoles && !!role && !allowedRoles.includes(role as AppRole);
 
+  // تسجيل محاولات الوصول غير المصرح بها
   useEffect(() => {
     if (isUnauthorized && !loggedRef.current) {
       loggedRef.current = true;
@@ -54,24 +41,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     }
   }, [isUnauthorized, user, role, allowedRoles, location.pathname]);
 
-  // إصلاح #4: إظهار زر الخروج بعد 5 ثوانٍ + timeout نهائي 20 ثانية للخروج التلقائي
-  useEffect(() => {
-    if (allowedRoles && !role && !loading && user) {
-      const showTimer = setTimeout(() => setShowSignOut(true), 5000);
-      const autoLogoutTimer = setTimeout(async () => {
-        logger.warn('[ProtectedRoute] role=null timeout after 20s, auto sign-out');
-        await signOut();
-        navigate('/auth', { replace: true });
-      }, 20000);
-      return () => {
-        clearTimeout(showTimer);
-        clearTimeout(autoLogoutTimer);
-      };
-    }
-    setShowSignOut(false);
-    return undefined;
-  }, [allowedRoles, role, loading, user, signOut, navigate]);
-
+  // جاري التحميل
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -80,35 +50,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     );
   }
 
+  // غير مسجّل الدخول
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  // الدور غير متاح بعد (حالة نادرة: تسجيل أول قبل تشغيل trigger)
   if (allowedRoles && !role) {
-    logger.warn('[ProtectedRoute] loading=false but role=null');
     return (
       <div className="min-h-screen flex items-center justify-center" dir="rtl">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">جاري التحقق من الصلاحيات...</p>
-          {showSignOut && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2"
-              onClick={async () => {
-                await signOut();
-                navigate('/auth', { replace: true });
-              }}
-            >
-              تسجيل الخروج
-            </Button>
-          )}
-        </div>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
+  // غير مصرّح
   if (isUnauthorized) {
     return <Navigate to="/unauthorized" replace />;
   }

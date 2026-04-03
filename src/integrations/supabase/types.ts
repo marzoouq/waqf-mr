@@ -1824,6 +1824,7 @@ export type Database = {
       cron_check_zatca_cert_expiry: { Args: never; Returns: undefined }
       cron_cleanup_old_notifications: { Args: never; Returns: undefined }
       cron_update_overdue_invoices: { Args: never; Returns: undefined }
+      custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       decrypt_pii: { Args: { p_encrypted: string }; Returns: string }
       encrypt_pii: { Args: { p_value: string }; Returns: string }
       execute_distribution:
