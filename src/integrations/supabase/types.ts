@@ -2020,6 +2020,7 @@ export type Database = {
         Args: { p_beneficiary_id: string; p_fiscal_year_id: string }
         Returns: Json
       }
+      get_multi_year_summary: { Args: { p_year_ids: string[] }; Returns: Json }
       get_next_icv: { Args: never; Returns: number }
       get_pii_key: { Args: never; Returns: string }
       get_public_stats: { Args: never; Returns: Json }
