@@ -7,3 +7,7 @@ export * from './contractHelpers';
 export { findAccountByFY } from './findAccountByFY';
 export { computeMonthlyData, computeCollectionSummary, computeOccupancy, type MonthlyDataPoint, type CollectionSummaryResult, type OccupancyResult } from './dashboardComputations';
 export { calcChangePercent } from './calcChangePercent';
+export { activeYearFinancials } from './activeYearFinancials';
+export type { ActiveYearParams } from './activeYearFinancials';
+export { closedYearFinancials } from './closedYearFinancials';
+export type { ClosedYearParams } from './closedYearFinancials';

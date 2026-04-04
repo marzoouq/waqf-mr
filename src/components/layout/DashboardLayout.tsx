@@ -21,6 +21,7 @@ import MobileHeader from '@/components/layout/MobileHeader';
 import DesktopTopBar from '@/components/layout/DesktopTopBar';
 import IdleTimeoutManager from '@/components/layout/IdleTimeoutManager';
 import { useLayoutState } from '@/hooks/ui/useLayoutState';
+import { useUnreadMessages } from '@/hooks/data/messaging/useUnreadMessages';
 
 // DiagnosticOverlay — يُحمّل فقط في وضع التطوير
 const DiagnosticOverlay = import.meta.env.DEV
@@ -41,6 +42,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     swipe,
     handleSignOut, handleSignOutClick,
   } = useLayoutState();
+  const { data: unreadCount = 0 } = useUnreadMessages();
 
   return (
     <div className="min-h-screen flex w-full bg-background" dir="rtl">
@@ -77,6 +79,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           setSidebarOpen={setSidebarOpen}
           setMobileSidebarOpen={setMobileSidebarOpen}
           onSignOut={handleSignOutClick}
+          unreadCount={unreadCount}
         />
       </aside>
 
@@ -94,6 +97,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           setSidebarOpen={setSidebarOpen}
           setMobileSidebarOpen={setMobileSidebarOpen}
           onSignOut={handleSignOutClick}
+          unreadCount={unreadCount}
         />
       </aside>
 
@@ -134,7 +138,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <Suspense fallback={null}><PrintFooter /></Suspense>
       </main>
 
-      <BottomNav onOpenSidebar={() => setMobileSidebarOpen(true)} />
+      <BottomNav onOpenSidebar={() => setMobileSidebarOpen(true)} unreadCount={unreadCount} />
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <AlertDialogContent>

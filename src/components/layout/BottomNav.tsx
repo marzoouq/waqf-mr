@@ -6,10 +6,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Home, Building2, FileText, Wallet, Menu, ClipboardList, Receipt, TrendingUp, TrendingDown, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useUnreadMessages } from '@/hooks/data/messaging/useUnreadMessages';
 
 interface BottomNavProps {
   onOpenSidebar: () => void;
+  unreadCount?: number;
 }
 
 const adminLinks = [
@@ -40,10 +40,9 @@ const waqifLinks = [
   { to: '/beneficiary/accounts', icon: Wallet, label: 'الحسابات' },
 ];
 
-const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar }) => {
+const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 }) => {
   const { role } = useAuth();
   const location = useLocation();
-  const { data: unreadCount = 0 } = useUnreadMessages();
 
   const navLinks = role === 'admin'
     ? adminLinks
