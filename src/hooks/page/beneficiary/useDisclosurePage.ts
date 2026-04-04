@@ -1,7 +1,7 @@
 /**
  * هوك بيانات صفحة الإفصاح السنوي
  */
-import { useQueryClient } from '@tanstack/react-query';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
