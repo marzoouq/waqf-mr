@@ -63,7 +63,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
           <Card
             key={inv.id}
             className={cn(
-              'group hover:shadow-lg transition-all duration-200 overflow-hidden border',
+              'group hover:shadow-lg transition-[transform,box-shadow] duration-200 overflow-hidden border',
               config.border,
               !readOnly && 'cursor-pointer hover:-translate-y-0.5'
             )}
