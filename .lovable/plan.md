@@ -1,95 +1,61 @@
 
 
-# التشخيص الجنائي المؤكد والخطة النهائية
+# خطة تنفيذ توصيات التدقيق — 5 خطوات
 
-## السبب الجذري المؤكد بالدليل
+## الخطوة 1: استخراج hooks لأربع صفحات
 
-فحصت **كلتا البيئتين** (إنتاج + تطوير) وهذه النتيجة:
+| الصفحة (المسار الفعلي) | Hook جديد | ما يُستخرج |
+|---|---|---|
+| `src/pages/beneficiary/ContractsViewPage.tsx` (139 سطر) | `useContractsViewPage.ts` | pagination state, stats memo, isExpiringSoon, paginatedContracts, PDF export, propertiesMap |
+| `src/pages/beneficiary/WaqifDashboard.tsx` (186 سطر) | `useWaqifDashboardPage.ts` | 8 data hooks, contractualRevenue, collectionSummary, kpis, monthlyData, clock/greeting logic, overviewStats |
+| `src/pages/beneficiary/FinancialReportsPage.tsx` (198 سطر) | `useFinancialReportsPage.ts` | queryClient invalidation, chart data memos (incomeVsExpenses, distributionData, etc.), handleDownloadPDF |
+| `src/pages/dashboard/SystemDiagnosticsPage.tsx` (211 سطر) | `useSystemDiagnostics.ts` | results state, run/runSingle/exportResults callbacks, totalChecks/failures/warnings, allCategories |
+
+كل صفحة تتحول إلى UI فقط تستدعي hook واحد. الـ hooks الجديدة تُوضع في `src/hooks/page/` (المجلد الحالي — قبل التقسيم في الخطوة 3).
+
+---
+
+## الخطوة 2: إصلاح `any` types (3 ملفات)
+
+| الملف | الإصلاح |
+|---|---|
+| `src/components/expenses/ExpensesDesktopTable.tsx` سطر 31 | `onEdit: (item: ExpenseItem) => void` بدل `any` — النوع `ExpenseItem` معرّف فعلاً في نفس الملف سطر 15 |
+| `src/components/expenses/ExpensesMobileCards.tsx` سطر 30 | نفس الإصلاح — `onEdit: (item: ExpenseItem) => void` |
+| `src/pages/dashboard/AdminDashboard.tsx` سطر 119 | إزالة `as any` من `allFiscalYears` وتحديد النوع الصحيح من types.ts |
+
+إزالة تعليقات `eslint-disable` المصاحبة بعد الإصلاح.
+
+---
+
+## الخطوة 3: تقسيم `hooks/page/` إلى مجلدات فرعية
 
 ```text
-بيئة الإنتاج:
-  alkayala3@gmail.com → jwt_role = NULL ❌ | db_role = admin ✅
-  alkayala1@gmail.com → jwt_role = NULL ❌ | db_role = accountant ✅
-  جميع المستفيدين    → jwt_role = NULL ❌ | db_role = beneficiary ✅
-
-بيئة التطوير:
-  alkayala3@gmail.com → jwt_role = NULL ❌ | db_role = admin ✅
-  (نفس المشكلة بالضبط!)
+src/hooks/page/
+├── admin/           ← 25 ملف (Dashboard, Contracts, Expenses, Income, Invoices, Properties, etc.)
+├── beneficiary/     ← 8 ملفات (MyShare, Messages, ContractsView, Financial, Waqif, Disclosure, etc.)
+├── shared/          ← 8 ملفات (Auth, GlobalSearch, NavLinks, DataExport, Permission, Security, AiChat)
+└── index.ts         ← barrel يُعيد تصدير الكل (يحافظ على التوافق مع الاستيرادات الحالية)
 ```
 
-**كلتا البيئتين متطابقتان في المشكلة**: المشغل `trg_sync_role_to_auth_meta` موجود ويعمل، لكنه يعمل فقط عند INSERT/UPDATE على `user_roles`. جميع المستخدمين الحاليين أُنشئوا **قبل** إضافة المشغل، لذا `app_metadata.user_role` فارغ لكل المستخدمين.
+**التوافق العكسي**: الـ barrel الرئيسي `index.ts` يُعيد تصدير كل المجلدات الفرعية، فلا حاجة لتعديل أي استيراد في باقي الكود (كلها تستورد من `@/hooks/page`).
 
-## لماذا ينكسر كل شيء
+---
 
-```text
-1. jwt_role() يقرأ حصراً من app_metadata → يُرجع NULL
-2. كل سياسات RLS تعتمد على jwt_role() → ترفض الوصول
-3. الدخول ينجح (signIn OK) → AuthContext يجد الدور من DB fallback
-4. التوجيه إلى /dashboard ينجح
-5. استعلامات البيانات تفشل (RLS ترفض) → [App Error]
-6. React Query يعيد المحاولة → قفل Token → تصلب الشاشة
-```
+## الخطوة 4: استبدال `console.error` في `main.tsx`
 
-## لماذا نجح الاختبار سابقاً في المتصفح؟
+سطر 51 في `src/main.tsx`: استبدال `console.error('[BOOT]...')` بـ `logger.error('[BOOT]...')` مع إزالة تعليق `eslint-disable`.
 
-لأن المتصفح أعاد تحميل الصفحة عدة مرات أثناء الاختبار، والـ DB fallback في AuthContext أعطى الدور للواجهة. لكن **استعلامات البيانات الفعلية** (عقارات، عقود، مستفيدين) تفشل بصمت لأن `jwt_role()` في RLS يُرجع NULL.
+---
 
-## الخطة (3 تغييرات فقط)
+## الخطوة 5: إضافة barrel files
 
-### 1. هجرة SQL: تعبئة `user_role` لجميع المستخدمين الحاليين
-```sql
-UPDATE auth.users u
-SET raw_app_meta_data = 
-  COALESCE(u.raw_app_meta_data, '{}'::jsonb) 
-  || jsonb_build_object('user_role', ur.role::text)
-FROM public.user_roles ur
-WHERE u.id = ur.user_id
-  AND (u.raw_app_meta_data->>'user_role' IS NULL 
-       OR u.raw_app_meta_data->>'user_role' != ur.role::text);
-```
-هذا يحل المشكلة الجذرية: كل المستخدمين سيحصلون على `user_role` في `app_metadata` → `jwt_role()` سيعمل → RLS ستمرر البيانات.
+إنشاء `index.ts` في ~17 مجلد مكونات ناقص (مثل `components/audit/`, `components/zatca/`, `components/financial/`, `components/waqif/`, إلخ). خطوة تدريجية لا تؤثر على الوظائف.
 
-### 2. `src/contexts/AuthContext.tsx` — إصلاح `signIn`
-إضافة `refreshSession()` بعد الدخول إذا التوكن لا يحتوي الدور:
-```typescript
-const signIn = useCallback(async (email: string, password: string) => {
-  setLoading(true);
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) { setLoading(false); return { error }; }
-  
-  // إجبار جلب توكن جديد يحتوي الدور بعد تعبئة app_metadata
-  const jwtRole = getRoleFromSession(data?.session);
-  if (!jwtRole) {
-    await supabase.auth.refreshSession();
-  }
-  return { error: null };
-}, []);
-```
-هذا يضمن أن التوكن الأول بعد الهجرة يحمل الدور، ويحل race condition.
+---
 
-### 3. `src/hooks/page/useAuthPage.ts` — تحصين التوجيه
-```typescript
-useEffect(() => {
-  if (loading) return; // انتظار اكتمال التحميل
-  if (user && role) {
-    // ... نفس منطق التوجيه الحالي
-  }
-}, [user, role, loading, navigate]);
-```
+## ملاحظات
 
-## الملفات المتأثرة
-
-| الملف | التغيير |
-|-------|---------|
-| هجرة SQL جديدة | تعبئة `user_role` في `app_metadata` لكل المستخدمين |
-| `src/contexts/AuthContext.tsx` | تعديل `signIn` — إضافة `refreshSession()` (3 أسطر) |
-| `src/hooks/page/useAuthPage.ts` | إضافة `if (loading) return;` (سطر واحد) |
-
-## ما لن أغيّره
-- لن أعدل `lazyWithRetry.ts` — المشكلة ليست فيه بل في فشل RLS
-- لن أعدل `useFiscalYears.ts` — `enabled: true` صحيح لأن RLS يتكفل بالتصفية (بعد إصلاح jwt_role)
-- لن أعدل `usePublicStats.ts` — الأصفار ستختفي عندما يعمل `jwt_role()` (الدالة `get_public_stats` تعتمد على RLS أيضاً)
-
-## التحقق بعد التنفيذ
-بعد النشر، يجب التحقق من أن `jwt_role` أصبح موجوداً لكل المستخدمين وأن الدخول يعمل بسلاسة.
+- جميع التغييرات refactoring بحت — لا تغيير في السلوك
+- لن يُعدّل أي ملف محمي
+- الخطوة 3 مصممة بحيث لا تكسر أي استيراد قائم بفضل الـ barrel المركزي
 
