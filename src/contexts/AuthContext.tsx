@@ -145,8 +145,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(existingSession.user);
         if (jwtRole) {
           setRoleWithRef(jwtRole);
+          setLoading(false);
+        } else {
+          // لا دور في JWT — يجب جلبه من DB قبل إيقاف التحميل
+          logger.info('[Auth] getSession fallback: no JWT role, fetching from DB');
+          fetchRoleFallback(existingSession.user.id, existingSession.user.email);
         }
-        setLoading(false);
       } else if (!existingSession) {
         // لا جلسة — تأكد من إيقاف التحميل
         setLoading(false);
