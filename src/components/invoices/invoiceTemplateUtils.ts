@@ -3,7 +3,7 @@
  */
 import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
-import { generateZatcaQrTLV } from '@/utils/chart/zatcaQr';
+import { generateZatcaQrTLV } from '@/utils/zatca/zatcaQr';
 
 // ─── الأنواع المشتركة ───
 export interface AllowanceChargeItem {
