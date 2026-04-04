@@ -48,7 +48,7 @@ const AiAssistant = () => {
 
       <div
         className={cn(
-          'fixed inset-0 sm:inset-auto sm:bottom-20 sm:left-4 lg:sm:bottom-4 z-50 sm:w-[400px] sm:h-[560px] sm:rounded-2xl shadow-elegant border border-border bg-card flex flex-col overflow-hidden transition-all duration-300 origin-bottom-left',
+          'fixed inset-0 sm:inset-auto sm:bottom-20 sm:left-4 lg:sm:bottom-4 z-50 sm:w-[400px] sm:h-[560px] sm:rounded-2xl shadow-elegant border border-border bg-card flex flex-col overflow-hidden transition-[transform,opacity] duration-300 origin-bottom-left',
           open ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
         )}
       >
