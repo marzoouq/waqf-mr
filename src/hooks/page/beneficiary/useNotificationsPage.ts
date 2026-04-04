@@ -2,7 +2,6 @@
  * هوك صفحة الإشعارات — يستخرج كل المنطق من NotificationsPage
  */
 import { useState, useMemo, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
