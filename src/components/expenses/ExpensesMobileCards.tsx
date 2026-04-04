@@ -10,25 +10,12 @@ import { fmt } from '@/utils/format';
 import ExpenseAttachments from './ExpenseAttachments';
 import type { Expense } from '@/types/relations';
 
-interface ExpenseItem {
-  id: string;
-  expense_type: string;
-  amount: number;
-  date: string;
-  description: string | null;
-  created_at: string;
-  fiscal_year_id: string;
-  property_id: string | null;
-  property?: { property_number: string; [k: string]: unknown };
-  [key: string]: unknown;
-}
-
 interface ExpensesMobileCardsProps {
-  items: ExpenseItem[];
+  items: Expense[];
   expenseInvoiceMap: Map<string, number>;
   expandedRow: string | null;
   setExpandedRow: (id: string | null) => void;
-  onEdit: (item: ExpenseItem) => void;
+  onEdit: (item: Expense) => void;
   onDelete: (target: { id: string; name: string }) => void;
   isLocked: boolean;
 }
