@@ -49,7 +49,8 @@ export const useAuthPage = () => {
 
   // إعادة توجيه بعد تسجيل الدخول
   useEffect(() => {
-    if (user && !loading && role) {
+    if (loading) return; // انتظار اكتمال التحميل
+    if (user && role) {
       if (role === 'beneficiary') {
         navigate('/beneficiary', { replace: true });
       } else if (role === 'admin' || role === 'accountant') {
