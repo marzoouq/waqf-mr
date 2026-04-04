@@ -1,7 +1,7 @@
 /**
  * تقرير الأداء الشهري — الرسوم البيانية تُحمَّل كسولاً.
  */
-import { useMemo, lazy, Suspense } from 'react';
+import { useMemo, lazy, Suspense, memo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
