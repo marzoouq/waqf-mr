@@ -26,7 +26,8 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 }) => {
   const { user, role } = useAuth();
   const location = useLocation();
-  const { data: waqfInfo } = useWaqfInfo();
+  const waqfName = useSetting('waqf_name', 'إدارة الوقف');
+  const waqfLogoUrl = useSetting('waqf_logo_url');
   const { getPrefetchHandler } = usePrefetchPages();
   const { data: unreadCount = 0 } = useUnreadMessages();
 
