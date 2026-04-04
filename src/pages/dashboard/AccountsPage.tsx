@@ -150,7 +150,7 @@ const AccountsPage = () => {
           isUpsertPending={page.upsertPaymentPending}
         />
 
-        <DeferredRender delay={600}>
+        <DeferredRender delay={100}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsIncomeTable
               incomeCount={page.income.length}
