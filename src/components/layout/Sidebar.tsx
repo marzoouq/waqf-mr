@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils';
 import { ROLE_LABELS } from '@/constants/roles';
 import { useSetting } from '@/hooks/data/settings/useAppSettings';
 import { usePrefetchPages } from '@/hooks/data/core/usePrefetchPages';
-import { useUnreadMessages } from '@/hooks/data/messaging/useUnreadMessages';
 
 interface SidebarContentProps {
   links: Array<{ to: string; icon: React.ComponentType<{ className?: string }>; label: string }>;
@@ -19,6 +18,7 @@ interface SidebarContentProps {
   setSidebarOpen: (v: boolean) => void;
   setMobileSidebarOpen: (v: boolean) => void;
   onSignOut: () => void;
+  unreadCount?: number;
 }
 
 const SidebarContent: React.FC<SidebarContentProps> = ({
