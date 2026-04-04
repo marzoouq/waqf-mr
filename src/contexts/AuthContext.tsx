@@ -158,10 +158,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(async (email: string, password: string) => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setLoading(false);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setLoading(false); return { error }; }
+
+    // إجبار جلب توكن جديد يحتوي الدور بعد تعبئة app_metadata
+    const jwtRole = getRoleFromSession(data?.session);
+    if (!jwtRole) {
+      logger.info('[Auth] role missing from JWT after signIn, refreshing session');
+      await supabase.auth.refreshSession();
+    }
+
     // onAuthStateChange يتولى إيقاف التحميل عند النجاح
-    return { error };
+    return { error: null };
   }, []);
 
   const signUp = useCallback(async (email: string, password: string) => {
