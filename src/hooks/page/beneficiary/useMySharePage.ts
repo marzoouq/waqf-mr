@@ -4,7 +4,7 @@
  * #9: يستخدم RPC get_beneficiary_dashboard كمصدر موثوق لـ my_share
  */
 import { safeNumber } from '@/utils/format/safeNumber';
-import { useQueryClient } from '@tanstack/react-query';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
@@ -19,19 +19,10 @@ import { isFyReady } from '@/constants/fiscalYearIds';
 
 
 export const useMySharePage = () => {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const selectedFY = fiscalYear;
-
-  const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['income'] });
-    queryClient.invalidateQueries({ queryKey: ['expenses'] });
-    queryClient.invalidateQueries({ queryKey: ['accounts'] });
-    queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] });
-    queryClient.invalidateQueries({ queryKey: ['my-distributions'] });
-    queryClient.invalidateQueries({ queryKey: ['total-beneficiary-percentage'] });
-  };
+  const handleRetry = useRetryQueries(['income', 'expenses', 'accounts', 'beneficiaries-safe', 'my-distributions', 'total-beneficiary-percentage']);
 
   const {
     beneficiaries, currentAccount, isAccountMissing,

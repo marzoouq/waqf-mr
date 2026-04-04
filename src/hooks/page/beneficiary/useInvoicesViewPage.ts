@@ -2,21 +2,20 @@
  * هوك صفحة الفواتير — يستخرج كل المنطق من InvoicesViewPage
  */
 import { useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 const ITEMS_PER_PAGE = 10;
 
 export function useInvoicesViewPage() {
   const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['invoices'] }), [queryClient]);
+  const handleRetry = useRetryQueries(['invoices']);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');

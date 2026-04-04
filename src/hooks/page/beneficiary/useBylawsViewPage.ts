@@ -2,15 +2,14 @@
  * هوك صفحة اللائحة التنظيمية — يستخرج كل المنطق من BylawsViewPage
  */
 import { useMemo, useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useBylaws } from '@/hooks/data/content/useBylaws';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { generateBylawsPDF } from '@/utils/pdf';
 
 export function useBylawsViewPage() {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['bylaws'] }), [queryClient]);
+  const handleRetry = useRetryQueries(['bylaws']);
   const { data: bylaws, isLoading, isError } = useBylaws();
   const { data: settings, isLoading: settingsLoading } = useAppSettings();
   const pdfWaqfInfo = usePdfWaqfInfo();

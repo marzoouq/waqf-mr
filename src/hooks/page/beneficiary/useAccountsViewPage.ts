@@ -2,7 +2,6 @@
  * هوك صفحة الحسابات الختامية — يستخرج كل المنطق من AccountsViewPage
  */
 import { useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -14,10 +13,10 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { generateAccountsPDF } from '@/utils/pdf';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyReady } from '@/constants/fiscalYearIds';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 
 export function useAccountsViewPage() {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['accounts'] }), [queryClient]);
+  const handleRetry = useRetryQueries(['accounts']);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const navigate = useNavigate();
 

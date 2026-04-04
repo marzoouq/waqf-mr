@@ -2,16 +2,15 @@
  * هوك صفحة الإشعارات — يستخرج كل المنطق من NotificationsPage
  */
 import { useState, useMemo, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { usePushNotifications } from '@/hooks/data/notifications/usePushNotifications';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { NOTIFICATION_CATEGORIES } from '@/pages/beneficiary/notifications/notificationConstants';
 
 export function useNotificationsPage() {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['notifications'] }), [queryClient]);
+  const handleRetry = useRetryQueries(['notifications']);
   const {
     filteredData: notifications = [], markAsRead, markAllAsRead,
     deleteRead, deleteOne, filteredUnreadCount: unreadCount, isLoading, isError,

@@ -3,13 +3,12 @@
  * يتضمن: إدارة المحادثات، الإرسال، إنشاء محادثة/دعم جديد
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/messaging/useMessaging';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 
 export function useBeneficiaryMessages() {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['conversations'] }), [queryClient]);
+  const handleRetry = useRetryQueries(['conversations']);
   const { user } = useAuth();
   const { data: chatConversations = [], isLoading: chatLoading, isError: chatError } = useConversations('chat');
   const { data: broadcastConversations = [] } = useConversations('broadcast');

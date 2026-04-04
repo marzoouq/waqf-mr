@@ -2,25 +2,19 @@
  * هوك صفحة التقارير المالية للمستفيد — يستخرج البيانات والحسابات
  */
 import { useMemo, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { isFyReady } from '@/constants/fiscalYearIds';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { toast } from 'sonner';
 
 export const useFinancialReportsPage = () => {
-  const queryClient = useQueryClient();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
-
-  const handleRetry = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
-    queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
-    queryClient.invalidateQueries({ queryKey: ['accounts'] });
-  }, [queryClient]);
+  const handleRetry = useRetryQueries(['financial-summary', 'beneficiaries', 'accounts']);
 
   const {
     income, beneficiaries, currentAccount, isAccountMissing,

@@ -1,7 +1,7 @@
 /**
  * E-8: رسم بياني دائري لتوزيع المصروفات حسب النوع.
  */
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, Suspense, useMemo, memo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -49,4 +49,4 @@ const ExpensesPieChart: React.FC<ExpensesPieChartProps> = ({ expenses, isLoading
   );
 };
 
-export default ExpensesPieChart;
+export default memo(ExpensesPieChart);

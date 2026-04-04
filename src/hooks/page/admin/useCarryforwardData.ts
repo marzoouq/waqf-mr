@@ -2,21 +2,15 @@
  * هوك بيانات صفحة تاريخ الترحيلات
  */
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useQueryClient } from '@tanstack/react-query';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { useMyBeneficiaryProfile } from '@/hooks/data/beneficiaries/useMyBeneficiaryProfile';
 import { usePublishedFiscalYears } from '@/hooks/data/content/usePublishedFiscalYears';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 export const useCarryforwardData = () => {
-  const queryClient = useQueryClient();
   const { user } = useAuth();
-
-  const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['advance_carryforward'] });
-    queryClient.invalidateQueries({ queryKey: ['advance_requests'] });
-    queryClient.invalidateQueries({ queryKey: ['my-beneficiary'] });
-  };
+  const handleRetry = useRetryQueries(['advance_carryforward', 'advance_requests', 'my-beneficiary']);
 
   const { data: beneficiary, isLoading: loadingBen, isError: benError } = useMyBeneficiaryProfile(user?.id);
 
