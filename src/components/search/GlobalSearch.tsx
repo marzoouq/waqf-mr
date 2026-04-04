@@ -7,7 +7,7 @@ import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { useGlobalSearch } from '@/hooks/page/useGlobalSearch';
+import { useGlobalSearch } from '@/hooks/page/shared/useGlobalSearch';
 import SearchResults from '@/components/search/SearchResults';
 
 const GlobalSearch = () => {

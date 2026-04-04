@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ContractStatsCards } from '@/components/contracts';
 import ContractsViewMobileCards from '@/components/contracts/ContractsViewMobileCards';
 import ContractsViewDesktopTable from '@/components/contracts/ContractsViewDesktopTable';
-import { useContractsViewPage } from '@/hooks/page/useContractsViewPage';
+import { useContractsViewPage } from '@/hooks/page/beneficiary/useContractsViewPage';
 
 const ContractsViewPage = () => {
   const isMobile = useIsMobile();

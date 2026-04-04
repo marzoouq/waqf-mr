@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // هوك البيانات المدمج
 import { useDashboardSummary } from '@/hooks/data/financial/useDashboardSummary';
 // هوك الحسابات المستخرج
-import { useAdminDashboardData } from '@/hooks/page/useAdminDashboardData';
+import { useAdminDashboardData } from '@/hooks/page/admin/useAdminDashboardData';
 
 
 // Lazy-load heavy below-the-fold components

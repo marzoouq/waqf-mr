@@ -7,7 +7,7 @@ import { MessageSquare, Plus } from 'lucide-react';
 import ConversationList from '@/components/messages/ConversationList';
 import MessageThread from '@/components/messages/MessageThread';
 import NewConversationDialog from '@/components/messages/NewConversationDialog';
-import { useMessagesPage } from '@/hooks/page/useMessagesPage';
+import { useMessagesPage } from '@/hooks/page/beneficiary/useMessagesPage';
 
 const MessagesPage = () => {
   const {

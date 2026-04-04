@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { generatePropertiesPDF } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { fmt, fmtInt } from '@/utils/format';
-import { usePropertiesViewData } from '@/hooks/page/usePropertiesViewData';
+import { usePropertiesViewData } from '@/hooks/page/admin/usePropertiesViewData';
 
 const PropertiesViewPage = () => {
   const {

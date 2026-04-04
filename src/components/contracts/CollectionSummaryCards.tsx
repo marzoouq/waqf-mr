@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Banknote, TrendingUp, TrendingDown, FileWarning } from 'lucide-react';
 import { fmt } from '@/utils/format';
-import type { CollectionSummary } from '@/hooks/page/useCollectionData';
+import type { CollectionSummary } from '@/hooks/page/admin/useCollectionData';
 
 interface CollectionSummaryCardsProps {
   summary: CollectionSummary;

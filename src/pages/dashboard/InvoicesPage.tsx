@@ -13,7 +13,7 @@ import { buildCsv, downloadCsv } from '@/utils/csv';
 import { toast } from 'sonner';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
-import { useInvoicesPage } from '@/hooks/page/useInvoicesPage';
+import { useInvoicesPage } from '@/hooks/page/admin/useInvoicesPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 
 const InvoicesPage = () => {

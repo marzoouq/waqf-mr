@@ -4,7 +4,7 @@
 import { Loader2, Building2, FileText, Users, Receipt } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { SearchResult } from '@/hooks/page/useGlobalSearch';
+import type { SearchResult } from '@/hooks/page/shared/useGlobalSearch';
 
 const TYPE_CONFIG = {
   property: { icon: Building2, label: 'عقار', color: 'bg-primary/10 text-primary' },

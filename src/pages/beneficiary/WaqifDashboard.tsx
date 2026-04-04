@@ -12,7 +12,7 @@ import WaqifWelcomeCard from '@/components/waqif/WaqifWelcomeCard';
 import WaqifFinancialSection from '@/components/waqif/WaqifFinancialSection';
 import WaqifOverviewStats from '@/components/waqif/WaqifOverviewStats';
 import WaqifQuickLinks from '@/components/waqif/WaqifQuickLinks';
-import { useWaqifDashboardPage } from '@/hooks/page/useWaqifDashboardPage';
+import { useWaqifDashboardPage } from '@/hooks/page/beneficiary/useWaqifDashboardPage';
 
 const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner'));
 

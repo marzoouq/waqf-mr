@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { TableHeader, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Edit, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import type { Income } from '@/types/database';
-import type { SortField } from '@/hooks/page/useIncomePage';
+import type { SortField } from '@/hooks/page/admin/useIncomePage';
 import VirtualTable from '@/components/common/VirtualTable';
 
 interface IncomeDesktopTableProps {

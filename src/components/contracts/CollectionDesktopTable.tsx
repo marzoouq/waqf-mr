@@ -7,7 +7,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertTriangle, CheckCircle2, Clock, CalendarRange } from 'lucide-react';
 import { fmt } from '@/utils/format';
-import type { CollectionRow } from '@/hooks/page/useCollectionData';
+import type { CollectionRow } from '@/hooks/page/admin/useCollectionData';
 
 function getStatusBadge(status: CollectionRow['status']) {
   switch (status) {

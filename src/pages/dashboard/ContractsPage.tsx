@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent } from '@/components/contracts';
 import { getPaymentTypeLabel } from '@/utils/contractHelpers';
 import { safeNumber } from '@/utils/safeNumber';
-import { useContractsPage } from '@/hooks/page/useContractsPage';
+import { useContractsPage } from '@/hooks/page/admin/useContractsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 

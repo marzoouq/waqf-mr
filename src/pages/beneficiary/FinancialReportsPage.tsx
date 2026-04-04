@@ -8,7 +8,7 @@ import { AlertCircle, RefreshCw, BarChart3 } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useFinancialReportsPage } from '@/hooks/page/useFinancialReportsPage';
+import { useFinancialReportsPage } from '@/hooks/page/beneficiary/useFinancialReportsPage';
 
 const LazyFinancialCharts = lazy(() => import('@/components/financial/FinancialChartsInner'));
 

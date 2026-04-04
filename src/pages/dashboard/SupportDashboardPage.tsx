@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Headset, Bug, BarChart3 } from 'lucide-react';
 
 import { SupportStatsCards, SupportTicketsTab, SupportErrorsTab, SupportAnalyticsTab, TicketDetailDialog, NewTicketDialog } from '@/components/support';
-import { useSupportDashboardPage } from '@/hooks/page/useSupportDashboardPage';
+import { useSupportDashboardPage } from '@/hooks/page/admin/useSupportDashboardPage';
 
 const SupportDashboardPage = () => {
   const {
