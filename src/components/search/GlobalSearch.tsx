@@ -41,7 +41,7 @@ const GlobalSearch = () => {
           <DialogContent className="max-w-full h-[80dvh] p-0 gap-0 flex flex-col [&>button]:hidden">
             <div className="flex items-center gap-2 p-3 border-b border-border">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-              <Input name="query" id="global-search-field-1" ref={mobileInputRef}
+              <Input name="query-mobile" id={`${baseId}-mobile`} ref={mobileInputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="بحث في العقارات والعقود..."
