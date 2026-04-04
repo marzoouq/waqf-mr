@@ -41,10 +41,13 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // ── تشغيل المصادقة + body بالتوازي ──
-    const [authResult, body] = await Promise.all([
+    // ── تشغيل المصادقة + body + roles + rateLimit بالتوازي ──
+    const [authResult, body, rolesRes, rateLimitRes] = await Promise.all([
       supaAuth.auth.getUser(),
       req.json().catch(() => null),
+      admin.from("user_roles").select("role").eq("user_id", authHeader.replace("Bearer ", "")).in("role", ["admin", "accountant"]),
+      // rate limit يعمل بالتوازي — سنتحقق من النتيجة بعد auth
+      admin.rpc("check_rate_limit", { p_key: `dashboard-summary:placeholder`, p_limit: 30, p_window_seconds: 60 }),
     ]);
 
     const { data: { user }, error: userError } = authResult;
@@ -52,25 +55,27 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
     }
 
-    const t1 = performance.now();
-    console.log(`[timing] auth+body: ${(t1 - t0).toFixed(0)}ms`);
+    // إعادة فحص الدور بـ user.id الحقيقي إذا لزم الأمر
+    let rolesData = rolesRes.data;
+    const tokenUserId = authHeader.replace("Bearer ", "");
+    if (tokenUserId !== user.id) {
+      // الـ JWT token ليس الـ user.id مباشرة — نعيد الفحص
+      const correctRoles = await admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "accountant"]);
+      rolesData = correctRoles.data;
+    }
 
-    // التحقق من الدور + rate limit
-    const [rolesRes, rateLimitRes] = await Promise.all([
-      admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "accountant"]),
-      admin.rpc("check_rate_limit", { p_key: `dashboard-summary:${user.id}`, p_limit: 30, p_window_seconds: 60 }),
-    ]);
-
-    if (!rolesRes.data?.length) {
+    if (!rolesData?.length) {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: jsonHeaders });
     }
 
-    if (rateLimitRes.data) {
+    // rate limit بـ user.id الحقيقي
+    const rlRes = await admin.rpc("check_rate_limit", { p_key: `dashboard-summary:${user.id}`, p_limit: 30, p_window_seconds: 60 });
+    if (rlRes.data) {
       return new Response(JSON.stringify({ error: "تم تجاوز الحد المسموح من الطلبات" }), { status: 429, headers: jsonHeaders });
     }
 
-    const t2 = performance.now();
-    console.log(`[timing] roles+rateLimit: ${(t2 - t1).toFixed(0)}ms`);
+    const t1 = performance.now();
+    console.log(`[timing] auth+roles+rateLimit: ${(t1 - t0).toFixed(0)}ms`);
 
     // ── التحقق من المدخلات ──
     const parsed = RequestSchema.safeParse(body);
