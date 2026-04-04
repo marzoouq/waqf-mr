@@ -48,18 +48,10 @@ export function useAccountsData() {
   // العقود ذات التخصيصات مُضمّنة بالفعل من useContractsByFiscalYear
   // لأن contract_fiscal_allocations يربط العقود بالسنة المالية
 
-  // دمج العقود: العقود الأصلية + العقود ذات التخصيصات
+  // دمج العقود: تصفية الملغاة فقط
   const mergedContracts = useMemo(() => {
-    const activeContracts = contracts.filter(c => c.status !== 'cancelled');
-    if (isFyAll(fiscalYearId) || allocations.length === 0) return activeContracts;
-
-    // إضافة العقود التي لها تخصيصات ولكن ليست في القائمة الأصلية
-    const contractIds = new Set(activeContracts.map(c => c.id));
-    const extraContracts = allocatedContracts.filter(
-      c => c.status !== 'cancelled' && !contractIds.has(c.id) && allocationMap.has(c.id)
-    );
-    return [...activeContracts, ...extraContracts];
-  }, [contracts, allocatedContracts, fiscalYearId, allocationMap, allocations.length]);
+    return contracts.filter(c => c.status !== 'cancelled');
+  }, [contracts]);
 
   const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
