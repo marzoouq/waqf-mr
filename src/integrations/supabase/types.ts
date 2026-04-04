@@ -2026,6 +2026,10 @@ export type Database = {
       get_support_analytics: { Args: never; Returns: Json }
       get_support_stats: { Args: never; Returns: Json }
       get_total_beneficiary_percentage: { Args: never; Returns: number }
+      get_year_comparison_summary: {
+        Args: { p_year1_id: string; p_year2_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
