@@ -106,7 +106,7 @@ const AdminDashboard = () => {
           </ErrorBoundary>
         </DeferredRender>
 
-        <DeferredRender delay={700}>
+        <DeferredRender delay={200}>
           <div className="print:hidden">
             <ErrorBoundary>
               <Suspense fallback={<ChartSkeleton />}>
