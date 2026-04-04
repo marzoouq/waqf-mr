@@ -55,12 +55,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRole(newRole);
   }, []);
 
-  // === مستمع حالة المصادقة — موحّد بدون مؤقتات ===
+  // === مستمع حالة المصادقة — بدون await داخل الـ callback ===
   useEffect(() => {
     let isMounted = true;
 
+    /** Fallback DB — يعمل خارج callback لتجنب قفل GoTrue */
+    const fetchRoleFallback = (userId: string, email?: string | null) => {
+      fetchUserRole(userId).then(result => {
+        if (!isMounted) return;
+        if (result.role) {
+          setRoleWithRef(result.role);
+          logAccessEvent({
+            event_type: 'role_fetch',
+            user_id: userId,
+            metadata: { role: result.role, source: 'db_fallback', status: 'success' },
+          });
+          checkNewDeviceLogin(userId, email);
+        } else {
+          setRoleWithRef(null);
+        }
+        setLoading(false);
+      }).catch(err => {
+        logger.error('[Auth] fetchRole fallback error:', err);
+        if (isMounted) {
+          setRoleWithRef(null);
+          setLoading(false);
+        }
+      });
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
         if (!isMounted) return;
 
         const newUserId = currentSession?.user?.id ?? null;
@@ -85,14 +110,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // === محاولة قراءة الدور من JWT (فوري) ===
+        // === محاولة قراءة الدور من JWT (فوري — لا await) ===
         const jwtRole = getRoleFromSession(currentSession);
         if (jwtRole) {
           logger.info('[Auth] role from JWT:', jwtRole);
           setRoleWithRef(jwtRole);
           setLoading(false);
 
-          // تسجيل الوصول + فحص الجهاز (fire-and-forget)
+          // fire-and-forget
           logAccessEvent({
             event_type: 'role_fetch',
             user_id: currentSession.user.id,
@@ -102,29 +127,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // === Fallback: جلب من قاعدة البيانات (تسجيل أول قبل تشغيل الـ trigger) ===
+        // === Fallback: fire-and-forget — لا await داخل onAuthStateChange ===
         logger.info('[Auth] role not in JWT, DB fallback');
-        try {
-          const result = await fetchUserRole(currentSession.user.id);
-          if (!isMounted) return;
-
-          if (result.role) {
-            setRoleWithRef(result.role);
-            logAccessEvent({
-              event_type: 'role_fetch',
-              user_id: currentSession.user.id,
-              metadata: { role: result.role, source: 'db_fallback', status: 'success' },
-            });
-            checkNewDeviceLogin(currentSession.user.id, currentSession.user.email);
-          } else {
-            setRoleWithRef(null);
-          }
-        } catch (err) {
-          logger.error('[Auth] fetchRole fallback error:', err);
-          if (isMounted) setRoleWithRef(null);
-        } finally {
-          if (isMounted) setLoading(false);
-        }
+        fetchRoleFallback(currentSession.user.id, currentSession.user.email);
       }
     );
 

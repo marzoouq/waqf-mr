@@ -31,18 +31,10 @@ if (_supabaseUrl) {
   document.head.appendChild(link);
 }
 
-// ─── PWA/cache guard: آمن ومحدود بمهلة زمنية ───
-(async () => {
-  try {
-    const { runPwaCacheGuard } = await import("./lib/pwaBootstrap");
-    await Promise.race([
-      runPwaCacheGuard(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('PWA timeout')), 3000)),
-    ]);
-  } catch {
-    // تجاهل — لا نمنع الإقلاع بسبب PWA
-  }
-})();
+// ─── PWA/cache guard: غير معطّل — fire-and-forget بدون race/timeout ───
+import("./lib/pwaBootstrap")
+  .then(m => m.runPwaCacheGuard())
+  .catch(() => { /* تجاهل — لا نمنع الإقلاع بسبب PWA */ });
 
 // ─── React render ───
 try {

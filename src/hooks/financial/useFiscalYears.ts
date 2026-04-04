@@ -3,13 +3,15 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import type { FiscalYear } from '@/types/database';
 
 export type { FiscalYear };
 
 export const useFiscalYears = () => {
+  const { user, role, loading } = useAuth();
   return useQuery({
-    queryKey: ['fiscal_years'],
+    queryKey: ['fiscal_years', user?.id],
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -20,7 +22,8 @@ export const useFiscalYears = () => {
       if (error) throw error;
       return data as FiscalYear[];
     },
-    enabled: true, // نبدأ الجلب فوراً بالتوازي مع Auth — RLS يتكفل بالتصفية
+    // لا نبدأ الجلب حتى يكتمل المصادقة — يمنع قفل الـ Lock 5000ms
+    enabled: !loading && !!user && !!role,
   });
 };
 
