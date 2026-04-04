@@ -1,61 +1,40 @@
 
 
-# خطة تنفيذ توصيات التدقيق — 5 خطوات
+# خطة إصلاح "callback is no longer runnable" — 3 تغييرات في ملف واحد
 
-## الخطوة 1: استخراج hooks لأربع صفحات
+## التشخيص المؤكد
 
-| الصفحة (المسار الفعلي) | Hook جديد | ما يُستخرج |
-|---|---|---|
-| `src/pages/beneficiary/ContractsViewPage.tsx` (139 سطر) | `useContractsViewPage.ts` | pagination state, stats memo, isExpiringSoon, paginatedContracts, PDF export, propertiesMap |
-| `src/pages/beneficiary/WaqifDashboard.tsx` (186 سطر) | `useWaqifDashboardPage.ts` | 8 data hooks, contractualRevenue, collectionSummary, kpis, monthlyData, clock/greeting logic, overviewStats |
-| `src/pages/beneficiary/FinancialReportsPage.tsx` (198 سطر) | `useFinancialReportsPage.ts` | queryClient invalidation, chart data memos (incomeVsExpenses, distributionData, etc.), handleDownloadPDF |
-| `src/pages/dashboard/SystemDiagnosticsPage.tsx` (211 سطر) | `useSystemDiagnostics.ts` | results state, run/runSingle/exportResults callbacks, totalChecks/failures/warnings, allCategories |
+بعد فحص `src/contexts/AuthContext.tsx` الحالي، تأكدت المشاكل الثلاث:
 
-كل صفحة تتحول إلى UI فقط تستدعي hook واحد. الـ hooks الجديدة تُوضع في `src/hooks/page/` (المجلد الحالي — قبل التقسيم في الخطوة 3).
+| # | المشكلة | السطر | التأثير |
+|---|---------|-------|---------|
+| 1 | `setTimeout(() => {...}, 0)` يلف كامل منطق `onAuthStateChange` | سطر 97-142 | macrotask يتعارض مع React scheduler → خطأ "callback is no longer runnable" |
+| 2 | `await supabase.auth.refreshSession()` داخل `signIn` | سطر 189 | يولّد حدث `TOKEN_REFRESHED` ثانٍ يتسابق مع `SIGNED_IN` → قفل 5000ms |
+| 3 | `setLoading(true)` في بداية `signIn` | سطر 179 | يتعارض مع إدارة `loading` في `onAuthStateChange` → وميض UI |
 
----
+## الإصلاح
 
-## الخطوة 2: إصلاح `any` types (3 ملفات)
+**ملف واحد**: `src/contexts/AuthContext.tsx`
 
-| الملف | الإصلاح |
-|---|---|
-| `src/components/expenses/ExpensesDesktopTable.tsx` سطر 31 | `onEdit: (item: ExpenseItem) => void` بدل `any` — النوع `ExpenseItem` معرّف فعلاً في نفس الملف سطر 15 |
-| `src/components/expenses/ExpensesMobileCards.tsx` سطر 30 | نفس الإصلاح — `onEdit: (item: ExpenseItem) => void` |
-| `src/pages/dashboard/AdminDashboard.tsx` سطر 119 | إزالة `as any` من `allFiscalYears` وتحديد النوع الصحيح من types.ts |
+### التغيير 1: إزالة `setTimeout(0)` — تنفيذ مباشر بحراسة `isMounted`
 
-إزالة تعليقات `eslint-disable` المصاحبة بعد الإصلاح.
+إزالة `setTimeout(() => {`, سطر 97) و الإغلاق المقابل (`}, 0);`, سطر 142). المنطق الداخلي يبقى كما هو تماماً لكن يُنفذ مباشرة. Supabase SDK يحرر القفل قبل استدعاء الـ callback فلا حاجة للتأخير.
 
----
+### التغيير 2: إزالة `refreshSession()` من `signIn`
 
-## الخطوة 3: تقسيم `hooks/page/` إلى مجلدات فرعية
+حذف الأسطر 185-194 (كتلة `if (!jwtRole) { refreshSession }` بالكامل). حدث `SIGNED_IN` يصل عبر `onAuthStateChange` ويفعّل DB fallback إذا لم يكن الدور في JWT. لا حاجة لحدث ثانٍ.
 
-```text
-src/hooks/page/
-├── admin/           ← 25 ملف (Dashboard, Contracts, Expenses, Income, Invoices, Properties, etc.)
-├── beneficiary/     ← 8 ملفات (MyShare, Messages, ContractsView, Financial, Waqif, Disclosure, etc.)
-├── shared/          ← 8 ملفات (Auth, GlobalSearch, NavLinks, DataExport, Permission, Security, AiChat)
-└── index.ts         ← barrel يُعيد تصدير الكل (يحافظ على التوافق مع الاستيرادات الحالية)
-```
+### التغيير 3: إزالة `setLoading(true)` من `signIn`
 
-**التوافق العكسي**: الـ barrel الرئيسي `index.ts` يُعيد تصدير كل المجلدات الفرعية، فلا حاجة لتعديل أي استيراد في باقي الكود (كلها تستورد من `@/hooks/page`).
+حذف سطر 179. حالة `loading` تُدار حصرياً عبر `onAuthStateChange`. زر الدخول يستخدم `isLoading` المحلي الخاص به (كما هو موثق في معيار التفاعل).
 
----
+## النتيجة
 
-## الخطوة 4: استبدال `console.error` في `main.tsx`
+- لا macrotasks تتنافس مع React → اختفاء الخطأ
+- حدث مصادقة واحد فقط → لا قفل 5000ms
+- `loading` في مكان واحد → لا وميض
 
-سطر 51 في `src/main.tsx`: استبدال `console.error('[BOOT]...')` بـ `logger.error('[BOOT]...')` مع إزالة تعليق `eslint-disable`.
+## ملاحظة أمان
 
----
-
-## الخطوة 5: إضافة barrel files
-
-إنشاء `index.ts` في ~17 مجلد مكونات ناقص (مثل `components/audit/`, `components/zatca/`, `components/financial/`, `components/waqif/`, إلخ). خطوة تدريجية لا تؤثر على الوظائف.
-
----
-
-## ملاحظات
-
-- جميع التغييرات refactoring بحت — لا تغيير في السلوك
-- لن يُعدّل أي ملف محمي
-- الخطوة 3 مصممة بحيث لا تكسر أي استيراد قائم بفضل الـ barrel المركزي
+هذا التغيير لا يمس منطق RLS أو الأدوار أو التشفير. فقط يُزيل أنماط async مُسببة لتعارضات.
 
