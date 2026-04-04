@@ -60,7 +60,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/utils/zatcaQr', () => ({
+vi.mock('@/utils/zatca/zatcaQr', () => ({
   generateZatcaQrTLV: vi.fn(() => 'base64-tlv-data'),
   generateQrDataUrl: vi.fn().mockResolvedValue('data:image/png;base64,qr'),
 }));
