@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Link } from 'react-router-dom';
-import { fmt } from '@/utils/format';
-import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format/format';
+import { safeNumber } from '@/utils/format/safeNumber';
 
 interface Contract {
   id: string;

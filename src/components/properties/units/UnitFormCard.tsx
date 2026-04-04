@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { UNIT_TYPES, FLOORS, UNIT_STATUSES, PAYMENT_TYPES } from './constants';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import type { UnitInsert } from '@/hooks/data/properties/useUnits';
 
 export interface UnitFormData extends UnitInsert {

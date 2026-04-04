@@ -2,7 +2,7 @@
  * القالب الاحترافي (Standard B2B)
  */
 import { cn } from '@/lib/utils';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import {
   computeInvoiceTotals, generateQR, fmtNum,
   ID_TYPE_LABELS,

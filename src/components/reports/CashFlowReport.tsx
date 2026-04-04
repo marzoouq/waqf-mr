@@ -2,10 +2,10 @@
  * تقرير التدفق النقدي — الرسم البياني يُحمَّل كسولاً.
  */
 import { useMemo, lazy, Suspense } from 'react';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Banknote, TrendingUp, TrendingDown } from 'lucide-react';
-import { fmtInt } from '@/utils/format';
+import { fmtInt } from '@/utils/format/format';
 import { Skeleton } from '@/components/ui/skeleton';
 import CashFlowTable from './CashFlowTable';
 

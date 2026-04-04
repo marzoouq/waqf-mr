@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TablePagination } from '@/components/common';
 import { FileCode, PenTool, Send, RefreshCw, Loader2, ClipboardCheck } from 'lucide-react';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   not_submitted: { label: 'لم تُرسل', variant: 'outline' },

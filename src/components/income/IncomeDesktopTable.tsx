@@ -1,6 +1,6 @@
 /** جدول الدخل للديسكتوب — مع تمرير افتراضي للبيانات الكبيرة */
-import { fmt } from '@/utils/format';
-import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format/format';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { Button } from '@/components/ui/button';
 import { TableHeader, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Edit, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';

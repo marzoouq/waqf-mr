@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ClipboardList, ArrowLeft } from 'lucide-react';
-import { safeNumber } from '@/utils/safeNumber';
-import { fmt } from '@/utils/format';
+import { safeNumber } from '@/utils/format/safeNumber';
+import { fmt } from '@/utils/format/format';
 
 interface PendingAction {
   type: 'advance' | 'zatca';

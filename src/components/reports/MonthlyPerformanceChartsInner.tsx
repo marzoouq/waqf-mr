@@ -6,8 +6,8 @@ import {
   Legend, Area, AreaChart,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { fmt } from '@/utils/format';
-import { tooltipStyleRtl } from '@/utils/chartHelpers';
+import { fmt } from '@/utils/format/format';
+import { tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
 interface MonthData {

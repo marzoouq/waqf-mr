@@ -4,7 +4,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle } from 'lucide-react';
-import { fmt, fmtDate } from '@/utils/format';
+import { fmt, fmtDate } from '@/utils/format/format';
 
 interface ContractItem {
   id: string | null;

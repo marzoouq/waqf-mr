@@ -2,7 +2,7 @@
  * هوك منطق صفحة التقرير السنوي
  */
 import { useState, useMemo, useCallback } from 'react';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import {
   useAnnualReportItems, useCreateReportItem, useUpdateReportItem,

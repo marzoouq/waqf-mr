@@ -5,7 +5,7 @@
 import { useMemo } from 'react';
 import { useFiscalYears } from '@/hooks/financial/useFiscalYears';
 import { useRawFinancialData } from '@/hooks/financial/useRawFinancialData';
-import { computeTotals } from '@/utils/accountsCalculations';
+import { computeTotals } from '@/utils/financial/accountsCalculations';
 import { FY_SKIP, isFyAll } from '@/constants/fiscalYearIds';
 
 interface YoYResult {

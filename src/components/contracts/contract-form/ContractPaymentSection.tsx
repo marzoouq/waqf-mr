@@ -8,8 +8,8 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
 import { type ContractFormData } from '../contractForm.types';
-import { fmt } from '@/utils/format';
-import { getContractSpanInfo } from '@/utils/contractAllocation';
+import { fmt } from '@/utils/format/format';
+import { getContractSpanInfo } from '@/utils/financial/contractAllocation';
 
 import type { FiscalYear } from '@/types/database';
 

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Fingerprint, Smartphone, Trash2, Plus, Loader2, ShieldCheck, Info, Globe } from 'lucide-react';
 import { useWebAuthn } from '@/hooks/auth/useWebAuthn';
-import { fmtDate } from '@/utils/format';
+import { fmtDate } from '@/utils/format/format';
 
 const SUPPORTED_BROWSERS = [
   { name: 'Chrome / Edge', version: '67+' },

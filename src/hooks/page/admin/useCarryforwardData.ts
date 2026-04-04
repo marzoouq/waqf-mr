@@ -6,7 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useMyBeneficiaryProfile } from '@/hooks/data/beneficiaries/useMyBeneficiaryProfile';
 import { usePublishedFiscalYears } from '@/hooks/data/content/usePublishedFiscalYears';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 
 export const useCarryforwardData = () => {
   const queryClient = useQueryClient();

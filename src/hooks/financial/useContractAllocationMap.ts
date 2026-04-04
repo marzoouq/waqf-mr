@@ -4,7 +4,7 @@
  */
 import { useMemo } from 'react';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
+import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 interface ContractLike {

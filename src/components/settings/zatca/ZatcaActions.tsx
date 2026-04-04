@@ -6,7 +6,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Save, ShieldCheck, CheckCircle, Loader2, RefreshCw } from 'lucide-react';
-import { fmtDate } from '@/utils/format';
+import { fmtDate } from '@/utils/format/format';
 
 interface ActiveCert {
   certificate_type: string;

@@ -5,9 +5,9 @@ import { useMemo, useState } from 'react';
 import type { Contract } from '@/types/database';
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
-import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
-import { getPaymentCount } from '@/utils/contractHelpers';
-import { safeNumber } from '@/utils/safeNumber';
+import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
+import { getPaymentCount } from '@/utils/financial/contractHelpers';
+import { safeNumber } from '@/utils/format/safeNumber';
 
 // ─── الأنواع ───
 export type FilterStatus = 'all' | 'overdue' | 'partial' | 'complete';

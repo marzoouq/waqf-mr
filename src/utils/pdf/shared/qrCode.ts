@@ -2,7 +2,7 @@
  * رسم QR Code في مستند PDF مع retry + fallback مرئي
  */
 import type jsPDF from 'jspdf';
-import { generateZatcaQrTLV, generateQrDataUrl } from '@/utils/zatcaQr';
+import { generateZatcaQrTLV, generateQrDataUrl } from '@/utils/zatca/zatcaQr';
 import { logger } from '@/lib/logger';
 import type { PdfWaqfInfo } from '../core/core';
 import type { PaymentInvoicePdfData } from './types';

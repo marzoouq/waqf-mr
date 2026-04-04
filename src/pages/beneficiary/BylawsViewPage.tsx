@@ -1,8 +1,5 @@
-import { useMemo, useState, useCallback, lazy, Suspense } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { lazy, Suspense } from 'react';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { useBylaws } from '@/hooks/data/content/useBylaws';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -10,32 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import { Search, X, Lock, ScrollText, Scale, AlertCircle, RefreshCw } from 'lucide-react';
 const ReactMarkdown = lazy(() => import('react-markdown'));
 import { ExportMenu, TableSkeleton } from '@/components/common';
-import { generateBylawsPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { Button } from '@/components/ui/button';
+import { useBylawsViewPage } from '@/hooks/page/beneficiary';
 
 const BylawsViewPage = () => {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['bylaws'] }), [queryClient]);
-  const { data: bylaws, isLoading, isError } = useBylaws();
-  const { data: settings, isLoading: settingsLoading } = useAppSettings();
-  const pdfWaqfInfo = usePdfWaqfInfo();
-  const [search, setSearch] = useState('');
-
-  const isPublished = settings?.bylaws_published === 'true';
-
-  const allVisible = useMemo(() => (bylaws || []).filter((b) => b.is_visible), [bylaws]);
-
-  const visibleBylaws = useMemo(() => {
-    if (!search.trim()) return allVisible;
-    const q = search.trim().toLowerCase();
-    return allVisible.filter(
-      (b) =>
-        b.part_title.toLowerCase().includes(q) ||
-        (b.chapter_title && b.chapter_title.toLowerCase().includes(q)) ||
-        b.content.toLowerCase().includes(q),
-    );
-  }, [allVisible, search]);
+  const {
+    isLoading, isError, isPublished,
+    search, setSearch,
+    visibleBylaws, groupedByPart, partNumbers,
+    handleRetry, handleExportPdf,
+  } = useBylawsViewPage();
 
   if (isError) {
     return (
@@ -51,7 +32,7 @@ const BylawsViewPage = () => {
     );
   }
 
-  if (isLoading || settingsLoading) {
+  if (isLoading) {
     return (
       <DashboardLayout>
         <div className="p-4 md:p-6 space-y-6">
@@ -79,16 +60,6 @@ const BylawsViewPage = () => {
     );
   }
 
-  // Group bylaws by part
-  const groupedByPart = visibleBylaws.reduce((acc, item) => {
-    const key = item.part_number;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(item);
-    return acc;
-  }, {} as Record<number, typeof visibleBylaws>);
-
-  const partNumbers = Object.keys(groupedByPart).map(Number).sort((a, b) => a - b);
-
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
@@ -96,12 +67,10 @@ const BylawsViewPage = () => {
           title="اللائحة التنظيمية"
           description={`لائحة تنظيم أعمال الوقف والنظارة • ${visibleBylaws.length} بند`}
           icon={Scale}
-          actions={
-            <ExportMenu onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)} />
-          }
+          actions={<ExportMenu onExportPdf={handleExportPdf} />}
         />
 
-        {/* Search */}
+        {/* البحث */}
         <div className="relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input name="search" placeholder="ابحث في بنود اللائحة..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-9 pl-9" dir="rtl" />
@@ -112,7 +81,7 @@ const BylawsViewPage = () => {
           )}
         </div>
 
-        {/* Table of Contents */}
+        {/* فهرس اللائحة */}
         <Card className="border-primary/20">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -136,7 +105,7 @@ const BylawsViewPage = () => {
           </CardContent>
         </Card>
 
-        {/* Bylaws Content */}
+        {/* محتوى اللائحة */}
         {partNumbers.map((partNum) => {
           const items = groupedByPart[partNum] ?? [];
           const partTitle = partNum === 0 ? 'المقدمة' : items[0]?.part_title || `الجزء ${partNum}`;

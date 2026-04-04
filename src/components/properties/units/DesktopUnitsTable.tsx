@@ -6,8 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Edit, Trash2 } from 'lucide-react';
 import { statusColor } from './constants';
 import { getPaymentStatusFromInvoices, getMonthlyRent, getTenantFromContracts, getMonthlyFromContract } from './helpers';
-import { fmt, fmtInt } from '@/utils/format';
-import { safeNumber } from '@/utils/safeNumber';
+import { fmt, fmtInt } from '@/utils/format/format';
+import { safeNumber } from '@/utils/format/safeNumber';
 import type { UnitRow } from '@/hooks/data/properties/useUnits';
 import type { Contract } from '@/types/database';
 

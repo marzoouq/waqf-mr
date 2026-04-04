@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Building2, Upload, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWaqfInfoSave } from '@/hooks/data/settings/useWaqfInfoSave';
-import { resizeImage } from '@/utils/resizeImage';
+import { resizeImage } from '@/utils/image/resizeImage';
 
 interface WaqfField {
   key: string;

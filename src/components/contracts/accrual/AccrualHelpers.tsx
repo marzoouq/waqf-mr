@@ -3,7 +3,7 @@
  */
 import { useState } from 'react';
 import { Contract } from '@/types/database';
-import { fmtInt } from '@/utils/format';
+import { fmtInt } from '@/utils/format/format';
 import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronUp } from 'lucide-react';

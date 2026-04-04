@@ -4,8 +4,8 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-import { normalizeArabicDigits } from '@/utils/normalizeDigits';
+import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
+import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 
 export function usePasswordResetRequest(onSuccess?: () => void) {
   const [resetEmail, setResetEmail] = useState('');

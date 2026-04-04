@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, ImageIcon, Calendar, Building2, Hash, Receipt } from 'lucide-react';
@@ -8,7 +8,7 @@ import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { TablePagination } from '@/components/common';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { fmt, fmtDate } from '@/utils/format';
+import { fmt, fmtDate } from '@/utils/format/format';
 
 interface InvoiceGridViewProps {
   invoices: Invoice[];

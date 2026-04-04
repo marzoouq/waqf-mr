@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, Archive, Activity, CalendarDays } from 'lucide-react';
 import { TablePagination, TableSkeleton } from '@/components/common';
-import { fmtDate } from '@/utils/format';
+import { fmtDate } from '@/utils/format/format';
 import { useArchiveLog, ARCHIVE_ITEMS_PER_PAGE } from '@/hooks/data/audit/useArchiveLog';
 
 const eventConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {

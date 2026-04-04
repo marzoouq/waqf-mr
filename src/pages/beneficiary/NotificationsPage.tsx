@@ -1,83 +1,27 @@
 /**
  * صفحة الإشعارات — المكوّن الرئيسي المجمّع
  */
-import { useState, useMemo, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useNotifications } from '@/hooks/data/notifications/useNotifications';
-import { usePushNotifications } from '@/hooks/data/notifications/usePushNotifications';
 import { Bell, BellRing, AlertCircle, RefreshCw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { TableSkeleton } from '@/components/common';
 
-import { NOTIFICATION_CATEGORIES } from './notifications/notificationConstants';
 import NotificationStatsCards from './notifications/NotificationStatsCards';
 import NotificationFiltersBar from './notifications/NotificationFiltersBar';
 import NotificationsList from './notifications/NotificationsList';
+import { useNotificationsPage } from '@/hooks/page/beneficiary';
 
 const NotificationsPage = () => {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['notifications'] }), [queryClient]);
-  const { data: _allNotifications = [], filteredData: notifications = [], markAsRead, markAllAsRead, deleteRead, deleteOne, filteredUnreadCount: unreadCount, isLoading, isError } = useNotifications();
-  const { isSupported, permission, requestPermission } = usePushNotifications();
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const navigate = useNavigate();
-
-  // فلترة بالتصنيف أولاً، ثم بالنوع
-  const categoryTypes = categoryFilter === 'all'
-    ? null
-    : NOTIFICATION_CATEGORIES.find(c => c.id === categoryFilter)?.types ?? null;
-
-  const filtered = notifications.filter((n) => {
-    if (categoryTypes && !categoryTypes.includes(n.type)) return false;
-    if (typeFilter !== 'all' && n.type !== typeFilter) return false;
-    return true;
-  });
-  const readCount = notifications.filter((n) => n.is_read).length;
-  const uniqueTypes = [...new Set(notifications.map((n) => n.type))];
-
-  const handleClick = (notification: typeof notifications[0]) => {
-    if (!notification.is_read) {
-      markAsRead.mutate(notification.id);
-    }
-    if (notification.link) {
-      navigate(notification.link);
-    }
-  };
-
-  const handleEnablePush = async () => {
-    const result = await requestPermission();
-    if (result === 'granted') {
-      toast.success('تم تفعيل الإشعارات المنبثقة بنجاح');
-    } else if (result === 'denied') {
-      toast.error('تم رفض الإشعارات المنبثقة. يمكنك تغييرها من إعدادات المتصفح');
-    }
-  };
-
-  // تجميع الإشعارات حسب التاريخ
-  const groupedNotifications = useMemo(() => filtered.reduce((groups, n) => {
-    const date = new Date(n.created_at);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    let key: string;
-    if (date.toDateString() === today.toDateString()) {
-      key = 'اليوم';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      key = 'أمس';
-    } else {
-      key = date.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
-    }
-
-    if (!groups[key]) groups[key] = [];
-    groups[key]!.push(n);
-    return groups;
-  }, {} as Record<string, typeof notifications>), [filtered]);
+  const {
+    isLoading, isError,
+    notifications, filtered, unreadCount, readCount, uniqueTypes,
+    groupedNotifications,
+    categoryFilter, setCategoryFilter, typeFilter, setTypeFilter,
+    isSupported, permission,
+    markAllAsRead, deleteRead, deleteOne,
+    handleRetry, handleClick, handleEnablePush,
+  } = useNotificationsPage();
 
   if (isError) {
     return (

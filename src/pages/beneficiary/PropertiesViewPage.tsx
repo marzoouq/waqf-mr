@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { generatePropertiesPDF } from '@/utils/pdf';
 import { toast } from 'sonner';
-import { fmt, fmtInt } from '@/utils/format';
+import { fmt, fmtInt } from '@/utils/format/format';
 import { usePropertiesViewData } from '@/hooks/page/admin/usePropertiesViewData';
 
 const PropertiesViewPage = () => {

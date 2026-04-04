@@ -1,9 +1,9 @@
 /**
  * أنواع ودوال مشتركة لقوالب الفواتير
  */
-import { safeNumber } from '@/utils/safeNumber';
-import { fmt } from '@/utils/format';
-import { generateZatcaQrTLV } from '@/utils/zatcaQr';
+import { safeNumber } from '@/utils/format/safeNumber';
+import { fmt } from '@/utils/format/format';
+import { generateZatcaQrTLV } from '@/utils/zatca/zatcaQr';
 
 // ─── الأنواع المشتركة ───
 export interface AllowanceChargeItem {

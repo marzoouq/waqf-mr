@@ -2,7 +2,7 @@
  * هوك بيانات صفحة التقارير — يستخرج المنطق المالي والتدقيقي
  */
 import { useMemo } from 'react';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import { usePropertyPerformance } from '@/hooks/financial/usePropertyPerformance';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';

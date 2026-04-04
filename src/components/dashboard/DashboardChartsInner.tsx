@@ -1,5 +1,5 @@
-import { fmt } from '@/utils/format';
-import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chartHelpers';
+import { fmt } from '@/utils/format/format';
+import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 /**
  * مكوّن الرسوم البيانية الداخلي — يُحمّل بشكل كسول (lazy)
  * يحتوي على: رسم الدخل/المصروفات الشهري + توزيع المصروفات الدائري

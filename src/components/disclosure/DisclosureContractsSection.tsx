@@ -3,8 +3,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FileText } from 'lucide-react';
-import { fmt } from '@/utils/format';
-import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format/format';
+import { safeNumber } from '@/utils/format/safeNumber';
 
 interface Contract {
   id?: string | null;

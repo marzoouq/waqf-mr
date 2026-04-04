@@ -6,7 +6,7 @@ export { reshapeArabic, reshapeRow } from './arabicReshaper';
 export { toBase64, fetchFontWithRetry, loadArabicFont, isValidLogoUrl, loadLogoBase64 } from './pdfFonts';
 export { addHeader, addHeaderToAllPages, addPageBorder, addFooter } from './pdfLayout';
 import { addHeaderToAllPages, addFooter } from './pdfLayout';
-export { fmtDate } from '@/utils/format';
+export { fmtDate } from '@/utils/format/format';
 
 // Waqf info passed optionally to PDF generators
 export interface PdfWaqfInfo {

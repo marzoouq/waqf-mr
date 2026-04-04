@@ -2,7 +2,7 @@
  * هوك منطق صفحة الفواتير — state + form + handlers
  */
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import {
   useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile,
   INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear,

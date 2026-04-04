@@ -6,7 +6,7 @@ import { lazy, Suspense, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp } from 'lucide-react';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { logger } from '@/lib/logger';
 
 const IncomeMonthlyChartInner = lazy(() => import('./IncomeMonthlyChartInner'));

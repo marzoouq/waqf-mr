@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Gauge, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { KpiSkeleton } from '@/components/common';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 export interface KpiItem {
   label: string;

@@ -1,4 +1,4 @@
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FileText, CheckCircle, XCircle, DollarSign, AlertTriangle } from 'lucide-react';

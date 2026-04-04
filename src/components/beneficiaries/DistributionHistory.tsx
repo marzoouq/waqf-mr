@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { History, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Beneficiary } from '@/types/database';
-import { fmt as fmtNum } from '@/utils/format';
+import { fmt as fmtNum } from '@/utils/format/format';
 import { useDistributionHistory } from '@/hooks/data/financial/useDistributionHistory';
 
 interface Props {

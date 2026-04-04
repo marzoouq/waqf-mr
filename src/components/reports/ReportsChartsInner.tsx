@@ -2,8 +2,8 @@
  * رسوم بيانية لصفحة التقارير — يُحمَّل كسولاً لتجنب تحميل recharts في الحزمة الأولية.
  */
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { fmt } from '@/utils/format';
-import { tooltipStyleRtl } from '@/utils/chartHelpers';
+import { fmt } from '@/utils/format/format';
+import { tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
 const REPORT_COLORS = [

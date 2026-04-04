@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { computeCollectionSummary } from '@/utils/dashboardComputations';
+import { computeCollectionSummary } from '@/utils/financial/dashboardComputations';
 
 describe('computeCollectionSummary', () => {
   beforeEach(() => {

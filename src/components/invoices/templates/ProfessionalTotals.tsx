@@ -1,7 +1,7 @@
 /**
  * قسم الإجماليات + QR + بيانات بنكية — القالب الاحترافي
  */
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { fmtNum, type InvoiceTemplateData } from '../invoiceTemplateUtils';
 import { QrImage } from './SharedComponents';
 

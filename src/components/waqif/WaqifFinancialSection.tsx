@@ -1,8 +1,8 @@
 /**
  * بطاقة KPI + الملخص المالي + حالة العقود في لوحة الواقف
  */
-import { fmt } from '@/utils/format';
-import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format/format';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';

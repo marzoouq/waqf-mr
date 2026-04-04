@@ -2,9 +2,9 @@
  * هوك لوحة تحكم الواقف — يستخرج كل البيانات والحسابات من الصفحة
  */
 import { useState, useEffect, useMemo } from 'react';
-import { fmt } from '@/utils/format';
-import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
-import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format/format';
+import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/financial/dashboardComputations';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';

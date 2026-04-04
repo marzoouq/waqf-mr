@@ -2,8 +2,8 @@
  * هوك حساب إحصائيات ومؤشرات لوحة التحكم الرئيسية — يقرأ أرقام جاهزة من RPC
  */
 import { useMemo } from 'react';
-import { fmtInt } from '@/utils/format';
-import { safeNumber } from '@/utils/safeNumber';
+import { fmtInt } from '@/utils/format/format';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { calcChangePercent } from '@/hooks/financial/useYoYComparison';
 import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, DollarSign, Landmark, HandCoins, ArrowDownUp, PercentCircle } from 'lucide-react';
 import type { StatItem, KpiItem } from '@/components/dashboard';

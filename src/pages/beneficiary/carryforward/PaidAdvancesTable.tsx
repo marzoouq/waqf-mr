@@ -4,8 +4,8 @@
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { fmt, fmtDate } from '@/utils/format';
-import { safeNumber } from '@/utils/safeNumber';
+import { fmt, fmtDate } from '@/utils/format/format';
+import { safeNumber } from '@/utils/format/safeNumber';
 
 interface Advance {
   id: string;

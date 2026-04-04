@@ -3,7 +3,7 @@
  */
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Clock, AlertCircle, Check, X, Download, Loader2 } from 'lucide-react';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 
 export const statusConfig: Record<string, { label: string; className: string }> = {

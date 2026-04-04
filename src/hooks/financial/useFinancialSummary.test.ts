@@ -24,7 +24,7 @@ import {
   computeTotals,
   groupIncomeBySource,
   groupExpensesByType,
-} from '@/utils/accountsCalculations';
+} from '@/utils/financial/accountsCalculations';
 
 // ---------------------------------------------------------------------------
 // أنواع مساعدة للاختبار

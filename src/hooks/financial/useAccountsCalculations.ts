@@ -2,7 +2,7 @@
  * حسابات صفحة الحسابات — VAT، إيجارات، تحصيل، ملخصات مالية
  */
 import { useMemo, useCallback } from 'react';
-import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/accountsCalculations';
+import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/financial/accountsCalculations';
 import type { useAccountsData } from './useAccountsData';
 
 type AccountsData = ReturnType<typeof useAccountsData>;

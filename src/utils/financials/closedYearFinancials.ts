@@ -1,8 +1,8 @@
 /**
  * حساب المؤشرات المالية لسنة مقفلة — يقرأ القيم المخزنة في الحساب الختامي
  */
-import { safeNumber } from '@/utils/safeNumber';
-import type { FinancialResult } from '@/utils/accountsCalculations';
+import { safeNumber } from '@/utils/format/safeNumber';
+import type { FinancialResult } from '@/utils/financial/accountsCalculations';
 import type { Tables } from '@/integrations/supabase/types';
 
 export interface ClosedYearParams {

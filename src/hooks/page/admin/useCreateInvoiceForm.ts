@@ -2,7 +2,7 @@
  * هوك إدارة حالة نموذج إنشاء فاتورة من قالب
  */
 import { useState, useMemo } from 'react';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import type { Contract } from '@/types/database';
 import type { AllowanceChargeItem } from '@/components/invoices';
 

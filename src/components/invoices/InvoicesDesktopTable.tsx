@@ -1,6 +1,6 @@
 /** جدول الفواتير للديسكتوب */
-import { fmt } from '@/utils/format';
-import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format/format';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';

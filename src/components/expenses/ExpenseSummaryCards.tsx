@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingDown, Paperclip, Calculator, Star } from 'lucide-react';
 import { Expense } from '@/types/database';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 interface ExpenseSummaryCardsProps {
   expenses: Expense[];

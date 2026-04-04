@@ -2,11 +2,11 @@
  * تقرير الأداء الشهري — الرسوم البيانية تُحمَّل كسولاً.
  */
 import { useMemo, lazy, Suspense } from 'react';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const MonthlyPerformanceChartsInner = lazy(() => import('./MonthlyPerformanceChartsInner'));

@@ -2,8 +2,8 @@
  * رسوم بيانية لصفحة التقارير المالية للمستفيد — يُحمَّل كسولاً.
  */
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { fmt } from '@/utils/format';
-import { formatArabicMonth, tooltipStyleRtl } from '@/utils/chartHelpers';
+import { fmt } from '@/utils/format/format';
+import { formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
 const FINANCIAL_COLORS = [

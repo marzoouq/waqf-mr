@@ -9,7 +9,7 @@ import { CheckCircle2, Search, Bell } from 'lucide-react';
 import { Contract } from '@/types/database';
 
 import { ExportMenu, TablePagination } from '@/components/common';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';

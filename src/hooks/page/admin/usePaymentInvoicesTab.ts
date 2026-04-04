@@ -2,7 +2,7 @@
  * هوك إدارة حالة تبويب فواتير الدفعات
  */
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { toast } from 'sonner';
 import {
   PaymentInvoice,

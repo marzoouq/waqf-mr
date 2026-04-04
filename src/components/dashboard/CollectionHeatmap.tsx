@@ -4,11 +4,11 @@
  * تستخدم paymentInvoices (تحصيل فعلي) وfiscalYear لتحديد الأشهر المعروضة
  */
 import { useMemo } from 'react';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Flame } from 'lucide-react';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 interface PaymentInvoice {
   paid_date?: string | null;

@@ -2,8 +2,8 @@
  * رسوم بيانية للوحة الواقف — يُحمَّل كسولاً.
  */
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { fmt } from '@/utils/format';
-import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chartHelpers';
+import { fmt } from '@/utils/format/format';
+import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
 interface MonthlyItem { month: string; income: number; expenses: number }

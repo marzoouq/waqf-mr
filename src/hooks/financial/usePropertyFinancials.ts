@@ -2,7 +2,7 @@
  * حساب المؤشرات المالية لكل عقار — hook مشترك بين صفحتي الناظر والمستفيد
  * يوحّد منطق: الإشغال، الدخل النشط، الشهري، المصروفات، الصافي
  */
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 
 interface Contract {
   id?: string | null;

@@ -3,7 +3,7 @@
  * يجمع: البيانات المالية، التوزيعات، السُلف، الفروق المرحّلة، PDF handlers
  * #9: يستخدم RPC get_beneficiary_dashboard كمصدر موثوق لـ my_share
  */
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';

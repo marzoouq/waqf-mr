@@ -1,15 +1,9 @@
-import { useCallback, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useNotifications } from '@/hooks/data/notifications/useNotifications';
-import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { AlertCircle, RefreshCw, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender } from '@/components/common';
-import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary-dashboard/BeneficiaryWelcomeCard';
 import BeneficiaryStatsRow from '@/components/beneficiary-dashboard/BeneficiaryStatsRow';
@@ -17,77 +11,17 @@ import BeneficiaryQuickLinks from '@/components/beneficiary-dashboard/Beneficiar
 import BeneficiaryRecentDistributions from '@/components/beneficiary-dashboard/BeneficiaryRecentDistributions';
 import BeneficiaryNotificationsCard from '@/components/beneficiary-dashboard/BeneficiaryNotificationsCard';
 import BeneficiaryAdvanceCard from '@/components/beneficiary-dashboard/BeneficiaryAdvanceCard';
-import { isFyReady } from '@/constants/fiscalYearIds';
+import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 
 const BeneficiaryDashboard = () => {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
-  }, [queryClient]);
-
-  const { role, loading: authLoading } = useAuth();
-  const { filteredData: notifications = [], filteredUnreadCount: unreadCount } = useNotifications();
-  const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
-
-  // ── RPC الموحد — يجلب كل البيانات في استدعاء واحد ──
-  const { data: dashData, isLoading: dashLoading, isError: dashError } = useBeneficiaryDashboardData(
-    isFyReady(fiscalYearId) ? fiscalYearId : undefined,
-  );
-
-  // استخراج البيانات من RPC
-  const currentBeneficiary = dashData?.beneficiary ?? null;
-  const myShare = dashData?.my_share ?? 0;
-  const distributions = dashData?.recent_distributions ?? [];
-  const pendingAdvanceCount = dashData?.pending_advance_count ?? 0;
-  const advanceSettings = dashData?.advance_settings ?? { enabled: true, min_amount: 500, max_percentage: 50 };
-  const advanceEnabled = advanceSettings?.enabled ?? true;
-
-  const fyReady = isFyReady(fiscalYearId);
-  const isLoading = authLoading || fyLoading || (!fyReady ? false : dashLoading);
-
-  const isClosed = fiscalYear?.status === 'closed';
-  const fyProgress = (() => {
-    if (!fiscalYear) return { percent: 0, daysLeft: 0 };
-    if (isClosed) return { percent: 100, daysLeft: 0 };
-    const start = new Date(fiscalYear.start_date).getTime();
-    const end = new Date(fiscalYear.end_date).getTime();
-    const total = end - start;
-    const elapsed = Date.now() - start;
-    const percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
-    const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
-    return { percent, daysLeft };
-  })();
-
-  const displayName = currentBeneficiary?.name || (role === 'admin' ? 'الناظر' : role === 'waqif' ? 'الواقف' : 'مستفيد');
-  const roleLabel = role === 'admin' ? 'واجهة معاينة المستفيد' : 'واجهة المستفيد';
-
-  // Realtime invalidation — bfcache safe
-  const beneficiaryId = currentBeneficiary?.id ?? '';
-  const qcRef = useRef(queryClient);
-  qcRef.current = queryClient;
-
-  const distSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
-    channel.on('postgres_changes', {
-      event: '*', schema: 'public', table: 'distributions',
-      filter: `beneficiary_id=eq.${beneficiaryId}`,
-    }, () => {
-      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
-      qcRef.current.invalidateQueries({ queryKey: ['my-distributions'] });
-    });
-    channel.on('postgres_changes', {
-      event: '*', schema: 'public', table: 'accounts',
-    }, () => {
-      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
-    });
-  }, [beneficiaryId]);
-
-  useBfcacheSafeChannel(
-    `beneficiary-dist-${beneficiaryId}`,
-    distSubscribeFn,
-    !!currentBeneficiary?.id,
-  );
-
-  const recentNotifications = notifications.slice(0, 3);
+  const {
+    isLoading, dashError, dashLoading, noPublishedYears,
+    currentBeneficiary, myShare, distributions, role, fiscalYearId,
+    fiscalYear, isClosed, fyProgress,
+    displayName, roleLabel, recentNotifications, unreadCount,
+    advanceEnabled, pendingAdvanceCount, advanceSettings,
+    handleRetry,
+  } = useBeneficiaryDashboardPage();
 
   // ── Guards ──
   if (isLoading) {

@@ -3,7 +3,7 @@
  */
 import { Card, CardContent } from '@/components/ui/card';
 import { Wallet, TrendingDown, CheckCircle, Clock } from 'lucide-react';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 interface Props {
   totalPaidAdvances: number;

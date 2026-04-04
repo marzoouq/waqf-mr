@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { EXPIRING_SOON_DAYS } from '@/constants';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';

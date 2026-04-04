@@ -4,7 +4,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
+import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { callAdminApi } from './useUserManagementData';
 
 export const useCreateUserMutation = (onSuccess?: () => void) => {

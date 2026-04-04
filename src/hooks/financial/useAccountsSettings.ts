@@ -5,7 +5,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
-import { findAccountByFY } from '@/utils/findAccountByFY';
+import { findAccountByFY } from '@/utils/financial/findAccountByFY';
 import type { Account } from '@/types/database';
 
 interface SettingsParams {

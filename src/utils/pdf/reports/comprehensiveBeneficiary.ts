@@ -7,7 +7,7 @@ import {
   reshapeArabic as rs, reshapeRow,
 } from '../core/core';
 import { getLastAutoTableY } from '../core/pdfHelpers';
-import { fmt, fmtInt } from '@/utils/format';
+import { fmt, fmtInt } from '@/utils/format/format';
 
 export interface ComprehensiveBeneficiaryData {
   beneficiaryName: string;

@@ -14,7 +14,7 @@ import { checkNewDeviceLogin } from '@/hooks/data/audit/useSecurityAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
-import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
+import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { fetchUserRole } from '@/lib/auth/fetchUserRole';
 import { clearSlowQueries, clearPageLoadEntries } from '@/lib/monitoring';
 import { queryClient } from '@/lib/queryClient';

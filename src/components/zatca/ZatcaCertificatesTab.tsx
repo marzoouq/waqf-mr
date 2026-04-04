@@ -10,7 +10,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { ShieldCheck, CheckCircle, AlertTriangle, Loader2, ArrowUpCircle, ClipboardCheck } from 'lucide-react';
-import { fmtDate } from '@/utils/format';
+import { fmtDate } from '@/utils/format/format';
 
 interface Certificate {
   id: string;

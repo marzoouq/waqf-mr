@@ -1,4 +1,4 @@
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { useDistributeShares } from '@/hooks/financial/useDistribute';
 import { Loader2, AlertTriangle, ArrowLeftRight, FileDown, Printer } from 'lucide-react';
 import { generateDistributionsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { printDistributionReport } from '@/utils/printDistributionReport';
+import { printDistributionReport } from '@/utils/export/printDistributionReport';
 import { toast } from 'sonner';
 import { useDistributionCalculation } from '@/hooks/page/admin/useDistributionCalculation';
 

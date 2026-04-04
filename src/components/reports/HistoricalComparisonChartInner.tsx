@@ -2,7 +2,7 @@
  * رسم بياني للمقارنة التاريخية — يُحمَّل كسولاً.
  */
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { fmt, fmtSAR } from '@/utils/format';
+import { fmt, fmtSAR } from '@/utils/format/format';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
 const YEAR_COLORS = [

@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Link, IdCard } from 'lucide-react';
-import { getNationalIdError } from '@/utils/validateNationalId';
+import { getNationalIdError } from '@/utils/format/validateNationalId';
 
 export interface BeneficiaryFormData {
   name: string;
