@@ -2,7 +2,6 @@
  * هوك صفحة الحسابات الختامية — يستخرج كل المنطق من AccountsViewPage
  */
 import { useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
