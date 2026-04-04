@@ -83,7 +83,7 @@ const BeneficiaryStatsRow = ({ myShare, isClosed, distributions, fiscalYearLabel
             <Badge variant="outline" className="text-[11px]">{fiscalYearLabel || '—'}</Badge>
           </div>
           <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-            <div className="h-full bg-primary rounded-full <div className="h-full bg-primary rounded-full transition-[width] duration-500" style={{ width: `${fyProgress.percent}%` }} />" style={{ width: `${fyProgress.percent}%` }} />
+            <div <div className="h-full bg-primary rounded-full transition-[width] duration-500" style={{ width: `${fyProgress.percent}%` }} />
           </div>
           <p className="text-[11px] text-muted-foreground text-center">
             {isClosed ? 'مُقفلة' : `متبقي ${fyProgress.daysLeft} يوم`}
