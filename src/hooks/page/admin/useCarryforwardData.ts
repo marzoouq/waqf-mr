@@ -2,7 +2,7 @@
  * هوك بيانات صفحة تاريخ الترحيلات
  */
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useQueryClient } from '@tanstack/react-query';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { useMyBeneficiaryProfile } from '@/hooks/data/beneficiaries/useMyBeneficiaryProfile';
 import { usePublishedFiscalYears } from '@/hooks/data/content/usePublishedFiscalYears';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
