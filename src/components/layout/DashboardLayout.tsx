@@ -97,6 +97,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           setSidebarOpen={setSidebarOpen}
           setMobileSidebarOpen={setMobileSidebarOpen}
           onSignOut={handleSignOutClick}
+          unreadCount={unreadCount}
         />
       </aside>
 
