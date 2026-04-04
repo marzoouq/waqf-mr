@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { startAuthentication } from '@simplewebauthn/browser';
-import { useIsMountedRef } from '@/hooks/useIsMountedRef';
+import { useIsMountedRef } from '@/hooks/ui/useIsMountedRef';
 
 export function useBiometricAuth() {
   const [biometricLoading, setBiometricLoading] = useState(false);

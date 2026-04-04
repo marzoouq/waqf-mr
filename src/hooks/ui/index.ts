@@ -7,3 +7,4 @@ export { useLayoutState } from './useLayoutState';
 export { usePagePerformance } from './usePagePerformance';
 export { useRealtimeAlerts } from './useRealtimeAlerts';
 export { useSidebarSwipe } from './useSidebarSwipe';
+export { useIsMountedRef } from './useIsMountedRef';
