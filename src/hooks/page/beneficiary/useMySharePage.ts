@@ -1,12 +1,11 @@
 /**
  * هوك بيانات صفحة "حصتي من الريع"
- * يجمع: البيانات المالية، التوزيعات، السُلف، الفروق المرحّلة، PDF handlers
- * #9: يستخدم RPC get_beneficiary_dashboard كمصدر موثوق لـ my_share
+ * محسّن: يعتمد على RPC المستفيد بدل useFinancialSummary
  */
+import { useMemo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
@@ -17,29 +16,59 @@ import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBenef
 import { useMySharePdfHandlers } from '@/hooks/page/beneficiary/useMySharePdfHandlers';
 import { isFyReady } from '@/constants/fiscalYearIds';
 
+/** تحويل مصفوفة source/total إلى Record */
+function toSourceRecord(arr: Array<{ source: string; total: number }>): Record<string, number> {
+  const rec: Record<string, number> = {};
+  for (const item of arr) rec[item.source] = safeNumber(item.total);
+  return rec;
+}
+
+/** تحويل مصفوفة expense_type/total إلى Record */
+function toExpenseRecord(arr: Array<{ expense_type: string; total: number }>): Record<string, number> {
+  const rec: Record<string, number> = {};
+  for (const item of arr) rec[item.expense_type] = safeNumber(item.total);
+  return rec;
+}
 
 export const useMySharePage = () => {
   const navigate = useNavigate();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const selectedFY = fiscalYear;
-  const handleRetry = useRetryQueries(['income', 'expenses', 'accounts', 'beneficiaries-safe', 'my-distributions', 'total-beneficiary-percentage']);
+  const handleRetry = useRetryQueries(['beneficiary-dashboard', 'my-distributions']);
 
-  const {
-    beneficiaries, currentAccount, isAccountMissing,
-    totalIncome, totalExpenses, netAfterVat, netAfterZakat,
-    adminShare, waqifShare, waqfRevenue, waqfCorpusManual,
-    vatAmount, zakatAmount, netAfterExpenses, availableAmount,
-    incomeBySource, expensesByTypeExcludingVat,
-    isLoading: finLoading, isError: finError,
-  } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
-
-  // #9: جلب my_share من RPC الخادم
-  const { data: dashData } = useBeneficiaryDashboardData(
+  // RPC واحد بدل useFinancialSummary (5 استعلامات)
+  const { data: dashData, isLoading: finLoading, isError: finError } = useBeneficiaryDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
 
+  const account = dashData?.account;
+  const currentAccount = account ? { id: 'rpc', fiscal_year: selectedFY?.label || '' } : null;
+  const isAccountMissing = !account && !!fiscalYearId && fiscalYearId !== 'all';
+  const totalIncome = safeNumber(dashData?.total_income);
+  const totalExpenses = safeNumber(dashData?.total_expenses);
+  const netAfterExpenses = safeNumber(account?.net_after_expenses);
+  const vatAmount = safeNumber(account?.vat_amount);
+  const netAfterVat = safeNumber(account?.net_after_vat);
+  const zakatAmount = safeNumber(account?.zakat_amount);
+  const netAfterZakat = netAfterVat - zakatAmount;
+  const adminShare = safeNumber(account?.admin_share);
+  const waqifShare = safeNumber(account?.waqif_share);
+  const waqfRevenue = safeNumber(account?.waqf_revenue);
+  const waqfCorpusManual = safeNumber(account?.waqf_corpus_manual);
+  const availableAmount = safeNumber(dashData?.available_amount);
+
+  const incomeBySource = useMemo(() => toSourceRecord(dashData?.income_by_source ?? []), [dashData?.income_by_source]);
+  const expensesByTypeExcludingVat = useMemo(() => toExpenseRecord(dashData?.expenses_by_type_excluding_vat ?? []), [dashData?.expenses_by_type_excluding_vat]);
+
+  const beneficiaries = useMemo(() => {
+    if (!dashData?.beneficiary) return [];
+    return [dashData.beneficiary];
+  }, [dashData?.beneficiary]);
+
   const { currentBeneficiary, myShare, pctLoading } = useMyShare({
-    beneficiaries, availableAmount, serverMyShare: dashData?.my_share,
+    beneficiaries: beneficiaries as Array<{ id: string; name: string; share_percentage: number; user_id?: string | null }>,
+    availableAmount,
+    serverMyShare: dashData?.my_share,
   });
 
   const { data: distributions = [], isLoading: distLoading } = useMyDistributions(
@@ -64,7 +93,7 @@ export const useMySharePage = () => {
 
   // فلترة التوزيعات
   const filteredDistributions = currentAccount
-    ? distributions.filter(d => d.account_id === currentAccount.id)
+    ? distributions
     : (fiscalYearId && fiscalYearId !== 'all'
         ? distributions.filter(d => d.fiscal_year_id === fiscalYearId)
         : distributions);
@@ -77,7 +106,7 @@ export const useMySharePage = () => {
     .filter(d => d.status === 'pending')
     .reduce((sum, d) => sum + safeNumber(d.amount), 0);
 
-  // PDF handlers — مستخرجة في هوك فرعي
+  // PDF handlers
   const pdf = useMySharePdfHandlers({
     currentBeneficiary: currentBeneficiary ?? null, isClosed: !!isClosed, myShare, totalReceived, pendingAmount,
     netAfterZakat, adminShare, waqifShare, beneficiariesShare, paidAdvancesTotal,

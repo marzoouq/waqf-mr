@@ -1,33 +1,64 @@
 /**
- * هوك صفحة التقارير المالية للمستفيد — يستخرج البيانات والحسابات
+ * هوك صفحة التقارير المالية للمستفيد — محسّن: يعتمد على RPC المستفيد
  */
 import { useMemo, useCallback } from 'react';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { toast } from 'sonner';
+import { safeNumber } from '@/utils/format/safeNumber';
+
+/** تحويل مصفوفة source/total إلى Record */
+function toSourceRecord(arr: Array<{ source: string; total: number }>): Record<string, number> {
+  const rec: Record<string, number> = {};
+  for (const item of arr) rec[item.source] = safeNumber(item.total);
+  return rec;
+}
+
+/** تحويل مصفوفة expense_type/total إلى Record */
+function toExpenseRecord(arr: Array<{ expense_type: string; total: number }>): Record<string, number> {
+  const rec: Record<string, number> = {};
+  for (const item of arr) rec[item.expense_type] = safeNumber(item.total);
+  return rec;
+}
 
 export const useFinancialReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
-  const handleRetry = useRetryQueries(['financial-summary', 'beneficiaries', 'accounts']);
+  const handleRetry = useRetryQueries(['beneficiary-dashboard']);
 
-  const {
-    income, beneficiaries, currentAccount, isAccountMissing,
-    totalIncome, totalExpenses, netAfterZakat, adminShare, waqifShare, waqfRevenue,
-    availableAmount, incomeBySource, expensesByTypeExcludingVat,
-    isLoading, isError,
-  } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
-
-  const { data: dashData } = useBeneficiaryDashboardData(
+  // RPC واحد بدل useFinancialSummary (5 استعلامات)
+  const { data: dashData, isLoading, isError } = useBeneficiaryDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
+
+  const account = dashData?.account;
+  const isAccountMissing = !account && !!fiscalYearId && fiscalYearId !== 'all';
+  const totalIncome = safeNumber(dashData?.total_income);
+  const totalExpenses = safeNumber(dashData?.total_expenses);
+  const adminShare = safeNumber(account?.admin_share);
+  const waqifShare = safeNumber(account?.waqif_share);
+  const waqfRevenue = safeNumber(account?.waqf_revenue);
+  const netAfterVat = safeNumber(account?.net_after_vat);
+  const zakatAmount = safeNumber(account?.zakat_amount);
+  const netAfterZakat = netAfterVat - zakatAmount;
+  const availableAmount = safeNumber(dashData?.available_amount);
+
+  const incomeBySource = useMemo(() => toSourceRecord(dashData?.income_by_source ?? []), [dashData?.income_by_source]);
+  const expensesByTypeExcludingVat = useMemo(() => toExpenseRecord(dashData?.expenses_by_type_excluding_vat ?? []), [dashData?.expenses_by_type_excluding_vat]);
+
+  const beneficiaries = useMemo(() => {
+    if (!dashData?.beneficiary) return [];
+    return [dashData.beneficiary];
+  }, [dashData?.beneficiary]);
+
   const { currentBeneficiary, myShare } = useMyShare({
-    beneficiaries, availableAmount, serverMyShare: dashData?.my_share,
+    beneficiaries: beneficiaries as Array<{ id: string; name: string; share_percentage: number; user_id?: string | null }>,
+    availableAmount,
+    serverMyShare: dashData?.my_share,
   });
   const beneficiariesShare = availableAmount;
 
@@ -44,20 +75,20 @@ export const useFinancialReportsPage = () => {
     { name: 'باقي المستفيدين', value: Math.max(0, beneficiariesShare - myShare), fill: 'hsl(var(--info))' },
   ], [myShare, beneficiariesShare]);
 
-  const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
+  const fiscalYear = selectedFY?.label || '';
 
+  // استخدام monthly_income من الـ RPC بدل جلب income[] الخام
   const monthlyData = useMemo(() => {
-    const months: Record<string, number> = {};
-    income.forEach(item => {
-      const month = item.date?.substring(0, 7);
-      if (month) {
-        months[month] = (months[month] || 0) + Number(item.amount);
-      }
-    });
-    return Object.entries(months)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, total]) => ({ month, income: total }));
-  }, [income]);
+    const monthNames = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+    return (dashData?.monthly_income ?? [])
+      .map(item => {
+        const fy = dashData?.fiscal_year;
+        const year = fy?.start_date?.substring(0, 4) || '';
+        const monthStr = monthNames[item.month - 1] || String(item.month).padStart(2, '0');
+        return { month: `${year}-${monthStr}`, income: safeNumber(item.total) };
+      })
+      .sort((a, b) => a.month.localeCompare(b.month));
+  }, [dashData?.monthly_income, dashData?.fiscal_year]);
 
   const handleDownloadPDF = useCallback(async () => {
     try {

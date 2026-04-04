@@ -48,6 +48,9 @@ export interface BeneficiaryDashboardData {
     min_amount?: number;
     max_percentage?: number;
   } | null;
+  income_by_source: Array<{ source: string; total: number }>;
+  expenses_by_type_excluding_vat: Array<{ expense_type: string; total: number }>;
+  monthly_income: Array<{ month: number; total: number }>;
 }
 
 /**
