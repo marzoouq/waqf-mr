@@ -2,7 +2,6 @@
  * هوك صفحة اللائحة التنظيمية — يستخرج كل المنطق من BylawsViewPage
  */
 import { useMemo, useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useBylaws } from '@/hooks/data/content/useBylaws';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
