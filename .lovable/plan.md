@@ -1,108 +1,82 @@
 
+# خطة تحسين أداء التطبيق — 3 خطوات
 
-# خطة إصلاح أخطاء البناء — 7 إصلاحات
+## الخطوة 1: تغليف القيمة المُرجعة من `useComputedFinancials` بـ `useMemo`
 
-## المشكلة
-4 barrel files تُصدّر أسماء غير موجودة في الملفات المصدرية + 3 ملفات تستورد من مسارات قديمة.
+**الملف:** `src/hooks/financial/useComputedFinancials.ts`
+
+السطر 129-146 يُرجع كائن جديد كل render. التعديل: تغليف بـ `useMemo` نهائي:
+
+```ts
+return useMemo(() => ({
+  currentAccount, isAccountMissing, usingFallbackPct,
+  adminPct, waqifPct, totalIncome, totalExpenses,
+  zakatAmount, vatAmount, waqfCorpusPrevious, waqfCorpusManual,
+  distributionsAmount, ...financials,
+  incomeBySource, expensesByType, expensesByTypeExcludingVat,
+}), [
+  currentAccount, isAccountMissing, usingFallbackPct,
+  adminPct, waqifPct, totalIncome, totalExpenses,
+  zakatAmount, vatAmount, waqfCorpusPrevious, waqfCorpusManual,
+  distributionsAmount, financials, incomeBySource, expensesByType, expensesByTypeExcludingVat,
+]);
+```
+
+## الخطوة 2: إضافة `memo()` لـ 6 مكونات ثقيلة
+
+لكل مكون: إضافة `import { memo } from 'react'` وتغيير `export default` إلى `export default memo(ComponentName)`:
+
+| الملف | السطر الحالي | التغيير |
+|-------|-------------|---------|
+| `AccountsBeneficiariesTable.tsx` | `export default AccountsBeneficiariesTable` (133) | `export default memo(AccountsBeneficiariesTable)` |
+| `AccountsContractsTable.tsx` | `export default AccountsContractsTable` (152) | `export default memo(AccountsContractsTable)` |
+| `MonthlyPerformanceReport.tsx` | `export default MonthlyPerformanceReport` (224) | `export default memo(MonthlyPerformanceReport)` |
+| `CashFlowReport.tsx` | `export default CashFlowReport` (آخر سطر) | `export default memo(CashFlowReport)` |
+| `MonthlyAccrualTable.tsx` | `export default MonthlyAccrualTable` (193) | `export default memo(MonthlyAccrualTable)` |
+| `ExpensesPieChart.tsx` | `export default ExpensesPieChart` (آخر سطر) | `export default memo(ExpensesPieChart)` |
+
+## الخطوة 3: استخراج `useRetryQueries` hook مشترك
+
+**ملف جديد:** `src/hooks/ui/useRetryQueries.ts`
+
+```ts
+import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+
+export function useRetryQueries(queryKeys: string[]) {
+  const queryClient = useQueryClient();
+  const handleRetry = useCallback(() => {
+    queryKeys.forEach(key => queryClient.invalidateQueries({ queryKey: [key] }));
+  }, [queryClient, queryKeys]);
+  return handleRetry;
+}
+```
+
+**تحديث 10 ملفات** — حذف `useQueryClient` و `handleRetry` اليدوي واستبداله:
+
+| الملف | query keys |
+|-------|-----------|
+| `useAccountsViewPage` | `['accounts']` |
+| `useInvoicesViewPage` | `['invoices']` |
+| `useNotificationsPage` | `['notifications']` |
+| `useBylawsViewPage` | `['bylaws']` |
+| `useBeneficiaryMessages` | `['conversations']` |
+| `useBeneficiaryDashboardPage` | `['beneficiary-dashboard']` |
+| `useFinancialReportsPage` | `['financial-summary', 'beneficiaries']` |
+| `useDisclosurePage` | `['income', 'expenses', 'accounts', 'beneficiaries', 'app-settings']` |
+| `useMySharePage` | `['income', 'expenses', 'accounts', 'beneficiaries', 'app-settings']` |
+| `useCarryforwardData` | `['advance_carryforward', 'advance_requests', 'my-beneficiary']` |
+
+ملاحظة: إذا كان الملف لا يزال يستخدم `queryClient` لأغراض أخرى، يبقى الاستيراد.
 
 ---
 
-## الإصلاحات
+## الملخص
 
-### 1. `src/utils/format/index.ts` — إعادة كتابة التصديرات
+| # | الإجراء | الملفات | الأثر |
+|---|---------|---------|-------|
+| 1 | memoize return في `useComputedFinancials` | 1 | **عالي** |
+| 2 | إضافة `memo()` لـ 6 مكونات | 6 | **متوسط** |
+| 3 | استخراج `useRetryQueries` + تحديث 10 ملفات | 11 | **تنظيف** |
 
-**الحالي (خطأ):**
-```ts
-export { formatCurrency, formatDate, formatNumber, formatPercent } from './format';
-export { safeErrorMessage } from './safeErrorMessage';
-export { validateNationalId } from './validateNationalId';
-```
-
-**الصحيح:**
-```ts
-export { fmt, fmtInt, fmtSAR, fmtPct, fmtDate, fmtDateHijri } from './format';
-export { normalizeArabicDigits } from './normalizeDigits';
-export { maskBankAccount, maskNationalId } from './maskData';
-export { safeNumber } from './safeNumber';
-export { getSafeErrorMessage } from './safeErrorMessage';
-export { validateSaudiNationalId, getNationalIdError } from './validateNationalId';
-```
-
-### 2. `src/utils/financial/index.ts` — إعادة كتابة التصديرات
-
-**الصحيح:**
-```ts
-export { calculateFinancials, groupIncomeBySource, groupExpensesByType, computeTotals,
-         type FinancialParams, type FinancialResult } from './accountsCalculations';
-export { allocateContractToFiscalYears, getContractSpanInfo, generatePaymentDueDates,
-         type FiscalAllocation } from './contractAllocation';
-export * from './contractHelpers';
-export { findAccountByFY } from './findAccountByFY';
-export { computeMonthlyData, computeCollectionSummary, computeOccupancy,
-         type MonthlyDataPoint, type CollectionSummaryResult, type OccupancyResult } from './dashboardComputations';
-```
-
-### 3. `src/utils/export/index.ts` — إصلاح xlsx
-
-**الصحيح:**
-```ts
-export { buildCsv, buildCsvFromRows, downloadCsv } from './csv';
-export { buildXlsx, downloadXlsx } from './xlsx';
-export { printDistributionReport } from './printDistributionReport';
-export { printShareReport } from './printShareReport';
-```
-
-### 4. `src/utils/zatca/index.ts` — إصلاح الاسم
-
-**الصحيح:**
-```ts
-export { generateZatcaQrTLV, generateQrDataUrl } from './zatcaQr';
-```
-
-### 5. `src/hooks/page/admin/useSupportDashboardPage.ts` سطر 33
-
-تغيير:
-```ts
-const { buildCsvFromRows, downloadCsv } = await import('@/utils/csv');
-```
-إلى:
-```ts
-const { buildCsvFromRows, downloadCsv } = await import('@/utils/export/csv');
-```
-
-### 6. `src/test/regressionFixes.test.ts` سطر 8
-
-تغيير:
-```ts
-import { ... } from "@/utils/contractAllocation";
-```
-إلى:
-```ts
-import { ... } from "@/utils/financial/contractAllocation";
-```
-
-### 7. `src/utils/pdf/__tests__/paymentInvoice.test.ts` أسطر 63, 111, 144
-
-تغيير كل `@/utils/zatcaQr` إلى `@/utils/zatca/zatcaQr`
-
----
-
-## أيضاً: `src/hooks/financial/useAccountsPage.test.ts` سطر 91
-
-يحتوي على `vi.mock('@/utils/contractAllocation', ...)` — يجب تحديثه إلى `@/utils/financial/contractAllocation`
-
----
-
-## الملخص: 8 ملفات تُعدّل، صفر تغيير معماري
-
-| # | الملف | نوع التغيير |
-|---|-------|-------------|
-| 1 | `src/utils/format/index.ts` | إعادة كتابة barrel |
-| 2 | `src/utils/financial/index.ts` | إعادة كتابة barrel |
-| 3 | `src/utils/export/index.ts` | إعادة كتابة barrel |
-| 4 | `src/utils/zatca/index.ts` | إعادة كتابة barrel |
-| 5 | `useSupportDashboardPage.ts` | إصلاح مسار import |
-| 6 | `regressionFixes.test.ts` | إصلاح مسار import |
-| 7 | `paymentInvoice.test.ts` | إصلاح 3 مسارات import |
-| 8 | `useAccountsPage.test.ts` | إصلاح مسار mock |
-
+**إجمالي:** 18 ملف، صفر تغيير معماري، صفر تغيير في قاعدة البيانات.
