@@ -2,7 +2,6 @@
  * هوك صفحة الفواتير — يستخرج كل المنطق من InvoicesViewPage
  */
 import { useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
