@@ -86,14 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        /**
-         * حرج: نفصل تحديثات React عن قفل GoTrue الحصري باستخدام setTimeout(0).
-         * بدون ذلك، React 19 يحاول جدولة تحديثات داخل القفل مما يسبب:
-         * - "The provided callback is no longer runnable"
-         * - تعليق القفل 5000ms
-         * هذا هو نفس النمط المستخدم داخلياً في supabase-js.
-         * @see https://github.com/supabase/supabase-js/pull/2014
-         */
+        // تحديثات React مباشرة — Supabase يحرر القفل قبل استدعاء الـ callback
         if (!isMounted) return;
 
         const newUserId = currentSession?.user?.id ?? null;
