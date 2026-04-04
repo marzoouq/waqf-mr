@@ -116,7 +116,7 @@ const AdminDashboard = () => {
         </DeferredRender>
 
         <DeferredRender delay={900}>
-          <YearComparisonCard allFiscalYears={allFiscalYears as any} fiscalYearId={fiscalYearId} />
+          <YearComparisonCard allFiscalYears={allFiscalYears as FiscalYear[]} fiscalYearId={fiscalYearId} />
         </DeferredRender>
 
         {role === 'admin' && (
