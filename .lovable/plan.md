@@ -1,40 +1,74 @@
 
 
-# خطة إصلاح "callback is no longer runnable" — 3 تغييرات في ملف واحد
+# خطة تحسين LCP — التنفيذ النهائي (4 تغييرات)
 
-## التشخيص المؤكد
+## التغييرات
 
-بعد فحص `src/contexts/AuthContext.tsx` الحالي، تأكدت المشاكل الثلاث:
+### 1. تقليل DeferredRender delays في AdminDashboard
+**الملف**: `src/pages/dashboard/AdminDashboard.tsx`
 
-| # | المشكلة | السطر | التأثير |
-|---|---------|-------|---------|
-| 1 | `setTimeout(() => {...}, 0)` يلف كامل منطق `onAuthStateChange` | سطر 97-142 | macrotask يتعارض مع React scheduler → خطأ "callback is no longer runnable" |
-| 2 | `await supabase.auth.refreshSession()` داخل `signIn` | سطر 189 | يولّد حدث `TOKEN_REFRESHED` ثانٍ يتسابق مع `SIGNED_IN` → قفل 5000ms |
-| 3 | `setLoading(true)` في بداية `signIn` | سطر 179 | يتعارض مع إدارة `loading` في `onAuthStateChange` → وميض UI |
+5 تعديلات بسيطة:
+- سطر 91: `delay={300}` → `delay={0}`
+- سطر 101: `delay={500}` → `delay={100}`
+- سطر 109: `delay={700}` → `delay={200}`
+- سطر 119: `delay={900}` → `delay={300}`
+- سطر 124: `delay={1100}` → `delay={400}`
 
-## الإصلاح
+### 2. Early return للمستخدمين المسجّلين في Index.tsx
+**الملف**: `src/pages/Index.tsx`
 
-**ملف واحد**: `src/contexts/AuthContext.tsx`
+إضافة early return بعد الـ hooks وقبل JSX الرئيسي — إذا المستخدم مسجّل وليس في حالة تحميل، نعرض spinner بسيط بدل رندر كامل Landing Page:
+```tsx
+if (!loading && user) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    </div>
+  );
+}
+```
+يتطلب إضافة `import { Loader2 } from 'lucide-react'`.
 
-### التغيير 1: إزالة `setTimeout(0)` — تنفيذ مباشر بحراسة `isMounted`
+### 3. Prefetch بيانات dashboard-summary في FiscalYearContext
+**الملف**: `src/contexts/FiscalYearContext.tsx`
 
-إزالة `setTimeout(() => {`, سطر 97) و الإغلاق المقابل (`}, 0);`, سطر 142). المنطق الداخلي يبقى كما هو تماماً لكن يُنفذ مباشرة. Supabase SDK يحرر القفل قبل استدعاء الـ callback فلا حاجة للتأخير.
+إضافة `useEffect` بعد حساب `fiscalYearId` (سطر ~63) يستدعي `queryClient.prefetchQuery` فور جاهزية السنة المالية. سيستخدم نفس `queryKey` و `queryFn` الموجودة في `useDashboardSummary` لضمان cache hit عند وصول الـ Dashboard:
 
-### التغيير 2: إزالة `refreshSession()` من `signIn`
+```tsx
+const queryClient = useQueryClient();
 
-حذف الأسطر 185-194 (كتلة `if (!jwtRole) { refreshSession }` بالكامل). حدث `SIGNED_IN` يصل عبر `onAuthStateChange` ويفعّل DB fallback إذا لم يكن الدور في JWT. لا حاجة لحدث ثانٍ.
+useEffect(() => {
+  if (isFyReady(fiscalYearId) && !isFyAll(fiscalYearId)) {
+    const fy = fiscalYears.find(f => f.id === fiscalYearId);
+    queryClient.prefetchQuery({
+      queryKey: ['dashboard-summary', fiscalYearId],
+      queryFn: async () => {
+        const { data, error } = await supabase.functions.invoke('dashboard-summary', {
+          body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fy?.label },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        return data;
+      },
+      staleTime: 2 * 60 * 1000,
+    });
+  }
+}, [fiscalYearId, fiscalYears, queryClient]);
+```
 
-### التغيير 3: إزالة `setLoading(true)` من `signIn`
+Imports المطلوبة: `useQueryClient` من tanstack، `supabase` من client.
 
-حذف سطر 179. حالة `loading` تُدار حصرياً عبر `onAuthStateChange`. زر الدخول يستخدم `isLoading` المحلي الخاص به (كما هو موثق في معيار التفاعل).
+### 4. تقليل delay الـ AiAssistant في App.tsx
+**الملف**: `src/App.tsx` سطر ~59
 
-## النتيجة
+تغيير `<DeferredRender>` إلى `<DeferredRender delay={200}>` في `RoleGatedAiAssistant`.
 
-- لا macrotasks تتنافس مع React → اختفاء الخطأ
-- حدث مصادقة واحد فقط → لا قفل 5000ms
-- `loading` في مكان واحد → لا وميض
+## الملفات المتأثرة
+1. `src/pages/dashboard/AdminDashboard.tsx` — تعديل 5 قيم delay
+2. `src/pages/Index.tsx` — إضافة early return + import
+3. `src/contexts/FiscalYearContext.tsx` — إضافة prefetch useEffect + imports
+4. `src/App.tsx` — إضافة `delay={200}`
 
-## ملاحظة أمان
-
-هذا التغيير لا يمس منطق RLS أو الأدوار أو التشفير. فقط يُزيل أنماط async مُسببة لتعارضات.
+## النتيجة المتوقعة
+LCP: ~3300ms → ~1800-2000ms
 
