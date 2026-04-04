@@ -108,7 +108,7 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
           </label>
           <label
             htmlFor={`method-id${idSuffix}`}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-colors ${
               loginMethod === 'national_id'
                 ? 'border-primary bg-accent shadow-sm'
                 : 'border-border hover:border-primary/30'

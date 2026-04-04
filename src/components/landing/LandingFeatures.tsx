@@ -36,7 +36,7 @@ const LandingFeatures: React.FC<LandingFeaturesProps> = ({ content }) => (
         {FEATURES.map((feature, index) => (
           <Card
             key={index}
-            className="group border border-border/60 bg-card hover:shadow-card-hover transition-all duration-500 hover:-translate-y-2 animate-fade-in rounded-2xl overflow-hidden"
+            className="group border border-border/60 bg-card hover:shadow-card-hover transition-[transform,box-shadow] duration-500 hover:-translate-y-2 animate-fade-in rounded-2xl overflow-hidden"
             style={{ animationDelay: `${index * 100 + 200}ms` }}
           >
             <CardHeader className="p-6 md:p-8">

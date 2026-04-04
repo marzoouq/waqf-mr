@@ -107,7 +107,7 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
                 <div className="mt-2 w-full h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
                     className={cn(
-                      'h-full rounded-full transition-all duration-500',
+                      'h-full rounded-full transition-[width] duration-500',
                       collectionRate >= 70 ? 'bg-success' : collectionRate >= 40 ? 'bg-warning' : 'bg-destructive'
                     )}
                     style={{ width: `${collectionRate}%` }}
