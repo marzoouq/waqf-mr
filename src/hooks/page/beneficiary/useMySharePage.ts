@@ -19,19 +19,7 @@ import { isFyReady } from '@/constants/fiscalYearIds';
 
 
 export const useMySharePage = () => {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const { fiscalYearId, fiscalYear } = useFiscalYear();
-  const selectedFY = fiscalYear;
-
-  const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['income'] });
-    queryClient.invalidateQueries({ queryKey: ['expenses'] });
-    queryClient.invalidateQueries({ queryKey: ['accounts'] });
-    queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] });
-    queryClient.invalidateQueries({ queryKey: ['my-distributions'] });
-    queryClient.invalidateQueries({ queryKey: ['total-beneficiary-percentage'] });
-  };
+  const handleRetry = useRetryQueries(['income', 'expenses', 'accounts', 'beneficiaries-safe', 'my-distributions', 'total-beneficiary-percentage']);
 
   const {
     beneficiaries, currentAccount, isAccountMissing,

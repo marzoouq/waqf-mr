@@ -14,8 +14,7 @@ const ITEMS_PER_PAGE = 10;
 
 export function useInvoicesViewPage() {
   const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['invoices'] }), [queryClient]);
+  const handleRetry = useRetryQueries(['invoices']);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');

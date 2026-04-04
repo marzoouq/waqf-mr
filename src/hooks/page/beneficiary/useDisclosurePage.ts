@@ -26,18 +26,7 @@ function toGregorianShort(dateStr: string): string {
 }
 
 export const useDisclosurePage = () => {
-  const queryClient = useQueryClient();
-  const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
-
-  const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['income'] });
-    queryClient.invalidateQueries({ queryKey: ['expenses'] });
-    queryClient.invalidateQueries({ queryKey: ['accounts'] });
-    queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] });
-    queryClient.invalidateQueries({ queryKey: ['my-distributions'] });
-    queryClient.invalidateQueries({ queryKey: ['total-beneficiary-percentage'] });
-  };
+  const handleRetry = useRetryQueries(['income', 'expenses', 'accounts', 'beneficiaries-safe', 'my-distributions', 'total-beneficiary-percentage']);
 
   const {
     beneficiaries, totalIncome, totalExpenses, currentAccount, isAccountMissing,

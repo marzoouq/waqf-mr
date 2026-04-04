@@ -13,9 +13,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export function useBeneficiaryDashboardPage() {
   const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
-  }, [queryClient]);
+  const handleRetry = useRetryQueries(['beneficiary-dashboard']);
 
   const { role, loading: authLoading } = useAuth();
   const { filteredData: notifications = [], filteredUnreadCount: unreadCount } = useNotifications();

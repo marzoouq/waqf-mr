@@ -8,8 +8,7 @@ import { useConversations, useMessages, useSendMessage, useCreateConversation, C
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 
 export function useBeneficiaryMessages() {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['conversations'] }), [queryClient]);
+  const handleRetry = useRetryQueries(['conversations']);
   const { user } = useAuth();
   const { data: chatConversations = [], isLoading: chatLoading, isError: chatError } = useConversations('chat');
   const { data: broadcastConversations = [] } = useConversations('broadcast');

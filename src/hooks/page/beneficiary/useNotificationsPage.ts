@@ -10,8 +10,7 @@ import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { NOTIFICATION_CATEGORIES } from '@/pages/beneficiary/notifications/notificationConstants';
 
 export function useNotificationsPage() {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['notifications'] }), [queryClient]);
+  const handleRetry = useRetryQueries(['notifications']);
   const {
     filteredData: notifications = [], markAsRead, markAllAsRead,
     deleteRead, deleteOne, filteredUnreadCount: unreadCount, isLoading, isError,

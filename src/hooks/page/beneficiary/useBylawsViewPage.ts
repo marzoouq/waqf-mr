@@ -9,8 +9,7 @@ import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { generateBylawsPDF } from '@/utils/pdf';
 
 export function useBylawsViewPage() {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['bylaws'] }), [queryClient]);
+  const handleRetry = useRetryQueries(['bylaws']);
   const { data: bylaws, isLoading, isError } = useBylaws();
   const { data: settings, isLoading: settingsLoading } = useAppSettings();
   const pdfWaqfInfo = usePdfWaqfInfo();
