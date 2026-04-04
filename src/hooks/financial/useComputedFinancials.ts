@@ -126,7 +126,7 @@ export const useComputedFinancials = ({
   // إذا كانت هناك سنة مالية محددة ولم يُعثر على الحساب الختامي
   const isAccountMissing = !currentAccount && !!fiscalYearId && !isFyAll(fiscalYearId);
 
-  return {
+  return useMemo(() => ({
     currentAccount,
     isAccountMissing,
     usingFallbackPct,
@@ -143,5 +143,10 @@ export const useComputedFinancials = ({
     incomeBySource,
     expensesByType,
     expensesByTypeExcludingVat,
-  };
+  }), [
+    currentAccount, isAccountMissing, usingFallbackPct,
+    adminPct, waqifPct, totalIncome, totalExpenses,
+    zakatAmount, vatAmount, waqfCorpusPrevious, waqfCorpusManual,
+    distributionsAmount, financials, incomeBySource, expensesByType, expensesByTypeExcludingVat,
+  ]);
 };

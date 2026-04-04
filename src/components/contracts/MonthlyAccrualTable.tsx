@@ -190,4 +190,4 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
   );
 };
 
-export default MonthlyAccrualTable;
+export default memo(MonthlyAccrualTable);

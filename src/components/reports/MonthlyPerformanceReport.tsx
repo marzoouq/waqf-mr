@@ -221,4 +221,4 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
   );
 };
 
-export default MonthlyPerformanceReport;
+export default memo(MonthlyPerformanceReport);

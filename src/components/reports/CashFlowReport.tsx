@@ -103,4 +103,4 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
   );
 };
 
-export default CashFlowReport;
+export default memo(CashFlowReport);

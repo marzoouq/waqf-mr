@@ -130,4 +130,4 @@ const AccountsBeneficiariesTable = ({
   );
 };
 
-export default AccountsBeneficiariesTable;
+export default memo(AccountsBeneficiariesTable);

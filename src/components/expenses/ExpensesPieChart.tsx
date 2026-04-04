@@ -49,4 +49,4 @@ const ExpensesPieChart: React.FC<ExpensesPieChartProps> = ({ expenses, isLoading
   );
 };
 
-export default ExpensesPieChart;
+export default memo(ExpensesPieChart);

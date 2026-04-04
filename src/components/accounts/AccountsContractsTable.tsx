@@ -149,4 +149,5 @@ const AccountsContractsTable = ({
   );
 };
 
-export default AccountsContractsTable;
+import { memo } from 'react';
+export default memo(AccountsContractsTable);
