@@ -37,7 +37,7 @@ const ThemeColorPicker = () => {
               key={theme.id}
               onClick={() => handleSelect(theme)}
               className={cn(
-                'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all hover:shadow-md',
+                'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-[border-color,box-shadow] hover:shadow-md',
                 activeId === theme.id
                   ? 'border-primary bg-primary/5 shadow-sm'
                   : 'border-transparent bg-muted/30 hover:border-muted-foreground/20'

@@ -12,11 +12,11 @@ export const STALE_SETTINGS = 5 * 60_000;
 /** بيانات مالية — حسابات، سنوات مالية، تخصيصات، عقود */
 export const STALE_FINANCIAL = 60_000;
 
-/** بيانات حساسة للوقت — سلف، تذاكر دعم */
-export const STALE_REALTIME = 10_000;
+/** بيانات حساسة للوقت — سلف، تذاكر دعم (Realtime يُبطل الكاش عند التغيير الفعلي) */
+export const STALE_REALTIME = 60_000;
 
 /** رسائل، سجلات مراجعة، إحصائيات دعم */
 export const STALE_MESSAGING = 30_000;
 
-/** ردود تذاكر، رسائل محادثة فردية */
-export const STALE_LIVE = 5_000;
+/** ردود تذاكر، رسائل محادثة فردية (Realtime يتولى الإبطال الفوري) */
+export const STALE_LIVE = 15_000;
