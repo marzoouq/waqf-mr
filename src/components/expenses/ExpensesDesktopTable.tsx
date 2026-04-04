@@ -9,6 +9,7 @@ import { Trash2, Edit, Paperclip, ChevronDown, ChevronUp, ArrowUpDown, ArrowUp, 
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
 import ExpenseAttachments from './ExpenseAttachments';
+import type { Expense } from '@/types/relations';
 
 type SortField = 'expense_type' | 'amount' | 'date' | null;
 
