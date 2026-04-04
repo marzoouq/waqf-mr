@@ -116,7 +116,7 @@ const AdminDashboard = () => {
           </div>
         </DeferredRender>
 
-        <DeferredRender delay={900}>
+        <DeferredRender delay={300}>
           <YearComparisonCard allFiscalYears={allFiscalYears as FiscalYear[]} fiscalYearId={fiscalYearId} />
         </DeferredRender>
 
