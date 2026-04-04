@@ -3,7 +3,6 @@
  * يتضمن: إدارة المحادثات، الإرسال، إنشاء محادثة/دعم جديد
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/messaging/useMessaging';
 
