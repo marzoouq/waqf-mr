@@ -3,12 +3,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowUpDown, TrendingUp, TrendingDown, Minus, FileDown } from 'lucide-react';
-import { safeNumber } from '@/utils/format/safeNumber';
-import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { generateYearComparisonPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { fmt } from '@/utils/format/format';
+import { useYearComparisonData } from '@/hooks/financial/useYearComparisonData';
 const YoYChartsSection = lazy(() => import('@/components/reports/YoYChartsSection'));
 import { YoYComparisonTable } from '@/components/reports';
 
@@ -21,16 +20,6 @@ const MONTH_NAMES = [
   'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
   'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
 ];
-
-function buildMonthlyMap(items: Array<{ date: string; amount: number }>) {
-  const map = new Map<number, number>();
-  for (const item of items) {
-    const d = new Date(item.date);
-    const month = d.getMonth();
-    map.set(month, (map.get(month) || 0) + safeNumber(item.amount));
-  }
-  return map;
-}
 
 const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYearComparisonProps) => {
   const waqfInfo = usePdfWaqfInfo();
@@ -47,44 +36,37 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
 
   const year1Label = fiscalYears.find(fy => fy.id === year1Id)?.label || '';
   const year2Label = fiscalYears.find(fy => fy.id === year2Id)?.label || '';
-  const year1Status = fiscalYears.find(fy => fy.id === year1Id)?.status;
-  const year2Status = fiscalYears.find(fy => fy.id === year2Id)?.status;
 
-  const summary1 = useFinancialSummary(year1Id || undefined, year1Label, { fiscalYearStatus: year1Status });
-  const summary2 = useFinancialSummary(year2Id || undefined, year2Label, { fiscalYearStatus: year2Status });
+  // استدعاء RPC واحد بدل 10 استعلامات
+  const { year1Monthly, year2Monthly, totals, expensesByType } = useYearComparisonData(year1Id, year2Id);
 
   const comparisonData = useMemo(() => {
-    const incomeMap1 = buildMonthlyMap(summary1.income);
-    const expenseMap1 = buildMonthlyMap(summary1.expenses);
-    const incomeMap2 = buildMonthlyMap(summary2.income);
-    const expenseMap2 = buildMonthlyMap(summary2.expenses);
-
     return MONTH_NAMES.map((name, idx) => ({
       month: name,
-      [`دخل ${year1Label}`]: incomeMap1.get(idx) || 0,
-      [`دخل ${year2Label}`]: incomeMap2.get(idx) || 0,
-      [`مصروفات ${year1Label}`]: expenseMap1.get(idx) || 0,
-      [`مصروفات ${year2Label}`]: expenseMap2.get(idx) || 0,
-      net1: (incomeMap1.get(idx) || 0) - (expenseMap1.get(idx) || 0),
-      net2: (incomeMap2.get(idx) || 0) - (expenseMap2.get(idx) || 0),
+      [`دخل ${year1Label}`]: year1Monthly.income.get(idx) || 0,
+      [`دخل ${year2Label}`]: year2Monthly.income.get(idx) || 0,
+      [`مصروفات ${year1Label}`]: year1Monthly.expenses.get(idx) || 0,
+      [`مصروفات ${year2Label}`]: year2Monthly.expenses.get(idx) || 0,
+      net1: (year1Monthly.income.get(idx) || 0) - (year1Monthly.expenses.get(idx) || 0),
+      net2: (year2Monthly.income.get(idx) || 0) - (year2Monthly.expenses.get(idx) || 0),
     })).filter(d => {
       const keys = Object.keys(d).filter(k => k !== 'month');
       return keys.some(k => (d as Record<string, unknown>)[k] !== 0);
     });
-  }, [summary1.income, summary1.expenses, summary2.income, summary2.expenses, year1Label, year2Label]);
+  }, [year1Monthly, year2Monthly, year1Label, year2Label]);
 
   const expensesByType1 = useMemo(() =>
-    Object.entries(summary1.expensesByType).map(([name, value]) => ({ name, value })),
-    [summary1.expensesByType]);
+    Object.entries(expensesByType.year1).map(([name, value]) => ({ name, value })),
+    [expensesByType.year1]);
 
   const expensesByType2 = useMemo(() =>
-    Object.entries(summary2.expensesByType).map(([name, value]) => ({ name, value })),
-    [summary2.expensesByType]);
+    Object.entries(expensesByType.year2).map(([name, value]) => ({ name, value })),
+    [expensesByType.year2]);
 
   const yearTotals = useMemo(() => ({
-    year1: { income: summary1.totalIncome, expenses: summary1.totalExpenses, net: summary1.totalIncome - summary1.totalExpenses },
-    year2: { income: summary2.totalIncome, expenses: summary2.totalExpenses, net: summary2.totalIncome - summary2.totalExpenses },
-  }), [summary1.totalIncome, summary1.totalExpenses, summary2.totalIncome, summary2.totalExpenses]);
+    year1: { income: totals.year1.totalIncome, expenses: totals.year1.totalExpenses, net: totals.year1.totalIncome - totals.year1.totalExpenses },
+    year2: { income: totals.year2.totalIncome, expenses: totals.year2.totalExpenses, net: totals.year2.totalIncome - totals.year2.totalExpenses },
+  }), [totals]);
 
   const incomeChange = yearTotals.year1.income > 0
     ? ((yearTotals.year2.income - yearTotals.year1.income) / yearTotals.year1.income * 100) : 0;
@@ -94,17 +76,12 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
     ? ((yearTotals.year2.net - yearTotals.year1.net) / Math.abs(yearTotals.year1.net) * 100) : 0;
 
   const handleExportPDF = async () => {
-    const incomeMap1 = buildMonthlyMap(summary1.income);
-    const expenseMap1 = buildMonthlyMap(summary1.expenses);
-    const incomeMap2 = buildMonthlyMap(summary2.income);
-    const expenseMap2 = buildMonthlyMap(summary2.expenses);
-
     const monthlyPdfData = MONTH_NAMES.map((name, idx) => ({
       month: name,
-      income1: incomeMap1.get(idx) || 0, expenses1: expenseMap1.get(idx) || 0,
-      net1: (incomeMap1.get(idx) || 0) - (expenseMap1.get(idx) || 0),
-      income2: incomeMap2.get(idx) || 0, expenses2: expenseMap2.get(idx) || 0,
-      net2: (incomeMap2.get(idx) || 0) - (expenseMap2.get(idx) || 0),
+      income1: year1Monthly.income.get(idx) || 0, expenses1: year1Monthly.expenses.get(idx) || 0,
+      net1: (year1Monthly.income.get(idx) || 0) - (year1Monthly.expenses.get(idx) || 0),
+      income2: year2Monthly.income.get(idx) || 0, expenses2: year2Monthly.expenses.get(idx) || 0,
+      net2: (year2Monthly.income.get(idx) || 0) - (year2Monthly.expenses.get(idx) || 0),
     })).filter(m => m.income1 || m.expenses1 || m.income2 || m.expenses2);
 
     await generateYearComparisonPDF({

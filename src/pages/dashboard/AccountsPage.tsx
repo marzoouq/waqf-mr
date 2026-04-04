@@ -150,7 +150,7 @@ const AccountsPage = () => {
           isUpsertPending={page.upsertPaymentPending}
         />
 
-        <DeferredRender delay={600}>
+        <DeferredRender delay={100}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsIncomeTable
               incomeCount={page.income.length}
@@ -160,7 +160,7 @@ const AccountsPage = () => {
           </Suspense>
         </DeferredRender>
 
-        <DeferredRender delay={900}>
+        <DeferredRender delay={200}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsExpensesTable
               expensesCount={page.expenses.length}
@@ -170,7 +170,7 @@ const AccountsPage = () => {
           </Suspense>
         </DeferredRender>
 
-        <DeferredRender delay={1200}>
+        <DeferredRender delay={300}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsDistributionTable
               waqfCorpusPrevious={page.waqfCorpusPrevious}
@@ -196,7 +196,7 @@ const AccountsPage = () => {
           </Suspense>
         </DeferredRender>
 
-        <DeferredRender delay={1500}>
+        <DeferredRender delay={400}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsBeneficiariesTable
               beneficiaries={page.beneficiaries}
@@ -210,7 +210,7 @@ const AccountsPage = () => {
           </Suspense>
         </DeferredRender>
 
-        <DeferredRender delay={1800}>
+        <DeferredRender delay={500}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsSavedTable
               accounts={page.accounts}

@@ -66,7 +66,7 @@ const BannerSettingsTab = () => {
                 <button
                   key={c.value}
                   onClick={() => save({ color: c.value })}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 transition-all text-sm ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 transition-colors text-sm ${
                     form.color === c.value
                       ? "border-foreground shadow-md scale-105"
                       : "border-transparent opacity-70 hover:opacity-100"
@@ -85,7 +85,7 @@ const BannerSettingsTab = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => save({ position: "top" })}
-                className={`px-4 py-2 rounded-lg border-2 text-sm transition-all ${
+                className={`px-4 py-2 rounded-lg border-2 text-sm transition-colors ${
                   form.position === "top" ? "border-foreground bg-muted" : "border-transparent hover:bg-muted/50"
                 }`}
               >
@@ -93,7 +93,7 @@ const BannerSettingsTab = () => {
               </button>
               <button
                 onClick={() => save({ position: "bottom" })}
-                className={`px-4 py-2 rounded-lg border-2 text-sm transition-all ${
+                className={`px-4 py-2 rounded-lg border-2 text-sm transition-colors ${
                   form.position === "bottom" ? "border-foreground bg-muted" : "border-transparent hover:bg-muted/50"
                 }`}
               >

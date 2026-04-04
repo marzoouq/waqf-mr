@@ -51,7 +51,7 @@ const WaqifDashboard = () => {
 
         <WaqifOverviewStats stats={overviewStats} />
 
-        <DeferredRender delay={800}>
+        <DeferredRender delay={200}>
           <WaqifFinancialSection
             kpis={kpis}
             fiscalYearLabel={fiscalYear?.label || ''}
@@ -66,7 +66,7 @@ const WaqifDashboard = () => {
           />
         </DeferredRender>
 
-        <DeferredRender delay={1500}>
+        <DeferredRender delay={400}>
           {(monthlyData.length > 0 || expenseData.length > 0) && (
             <Card className="shadow-sm">
               <CardHeader className="pb-3">
@@ -81,7 +81,7 @@ const WaqifDashboard = () => {
           )}
         </DeferredRender>
 
-        <DeferredRender delay={2000}>
+        <DeferredRender delay={600}>
           <WaqifQuickLinks />
         </DeferredRender>
       </div>
