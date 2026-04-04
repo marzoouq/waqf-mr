@@ -21,6 +21,7 @@ import MobileHeader from '@/components/layout/MobileHeader';
 import DesktopTopBar from '@/components/layout/DesktopTopBar';
 import IdleTimeoutManager from '@/components/layout/IdleTimeoutManager';
 import { useLayoutState } from '@/hooks/ui/useLayoutState';
+import { useUnreadMessages } from '@/hooks/data/messaging/useUnreadMessages';
 
 // DiagnosticOverlay — يُحمّل فقط في وضع التطوير
 const DiagnosticOverlay = import.meta.env.DEV
