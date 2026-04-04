@@ -163,18 +163,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(async (email: string, password: string) => {
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { setLoading(false); return { error }; }
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) { setLoading(false); return { error }; }
 
-    // إجبار جلب توكن جديد يحتوي الدور بعد تعبئة app_metadata
-    const jwtRole = getRoleFromSession(data?.session);
-    if (!jwtRole) {
-      logger.info('[Auth] role missing from JWT after signIn, refreshing session');
-      await supabase.auth.refreshSession();
+      // إجبار جلب توكن جديد يحتوي الدور بعد تعبئة app_metadata
+      const jwtRole = getRoleFromSession(data?.session);
+      if (!jwtRole) {
+        logger.info('[Auth] role missing from JWT after signIn, refreshing session');
+        try {
+          await supabase.auth.refreshSession();
+        } catch (refreshErr) {
+          // لا نوقف تسجيل الدخول — onAuthStateChange سيتولى الدور عبر DB fallback
+          logger.warn('[Auth] refreshSession failed, falling back to onAuthStateChange', refreshErr);
+        }
+      }
+
+      // onAuthStateChange يتولى إيقاف التحميل عند النجاح
+      return { error: null };
+    } catch (err) {
+      setLoading(false);
+      logger.warn('[Auth] signIn unexpected error:', err);
+      return { error: err instanceof Error ? err : new Error('حدث خطأ غير متوقع أثناء تسجيل الدخول') };
     }
-
-    // onAuthStateChange يتولى إيقاف التحميل عند النجاح
-    return { error: null };
   }, []);
 
   const signUp = useCallback(async (email: string, password: string) => {
