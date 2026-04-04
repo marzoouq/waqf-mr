@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             user_id: userId,
             metadata: { role: result.role, source: 'db_fallback', status: 'success' },
           });
-          checkNewDeviceLogin(userId, email);
+          checkNewDeviceLogin(userId, email ?? undefined);
         } else {
           setRoleWithRef(null);
         }
