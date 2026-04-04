@@ -42,6 +42,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     swipe,
     handleSignOut, handleSignOutClick,
   } = useLayoutState();
+  const { data: unreadCount = 0 } = useUnreadMessages();
 
   return (
     <div className="min-h-screen flex w-full bg-background" dir="rtl">
