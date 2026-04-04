@@ -4,7 +4,7 @@
  * #9: يستخدم RPC get_beneficiary_dashboard كمصدر موثوق لـ my_share
  */
 import { safeNumber } from '@/utils/format/safeNumber';
-import { useQueryClient } from '@tanstack/react-query';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
