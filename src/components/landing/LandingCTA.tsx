@@ -23,7 +23,7 @@ const LandingCTA: React.FC<LandingCTAProps> = ({ content, onNavigateAuth }) => (
       <Button
         onClick={onNavigateAuth}
         size="lg"
-        className="gradient-gold text-primary-foreground gap-2 shadow-gold hover:scale-105 transition-all duration-300 rounded-xl font-bold px-8"
+        className="gradient-gold text-primary-foreground gap-2 shadow-gold hover:scale-105 transition-transform duration-300 rounded-xl font-bold px-8"
       >
         <ArrowRight className="w-5 h-5" />
         {content.cta_text}

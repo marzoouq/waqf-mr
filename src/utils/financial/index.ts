@@ -6,3 +6,4 @@ export { allocateContractToFiscalYears, getContractSpanInfo, generatePaymentDueD
 export * from './contractHelpers';
 export { findAccountByFY } from './findAccountByFY';
 export { computeMonthlyData, computeCollectionSummary, computeOccupancy, type MonthlyDataPoint, type CollectionSummaryResult, type OccupancyResult } from './dashboardComputations';
+export { calcChangePercent } from './calcChangePercent';

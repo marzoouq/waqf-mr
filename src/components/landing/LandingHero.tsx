@@ -62,7 +62,7 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
           <Button
             onClick={onNavigateAuth}
             size="lg"
-            className="gradient-gold text-primary-foreground gap-3 shadow-gold hover:scale-105 transition-all duration-300 text-lg px-10 py-6 rounded-2xl font-bold"
+            className="gradient-gold text-primary-foreground gap-3 shadow-gold hover:scale-105 transition-transform duration-300 text-lg px-10 py-6 rounded-2xl font-bold"
           >
             <ArrowRight className="w-5 h-5" />
             {content.cta_text}
