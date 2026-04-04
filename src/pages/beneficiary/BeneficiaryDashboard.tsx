@@ -124,7 +124,7 @@ const BeneficiaryDashboard = () => {
 
         <BeneficiaryQuickLinks role={role} />
 
-        <DeferredRender delay={1200}>
+        <DeferredRender delay={500}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <BeneficiaryRecentDistributions distributions={distributions} />
             <BeneficiaryNotificationsCard notifications={recentNotifications} unreadCount={unreadCount} />

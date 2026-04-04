@@ -20,7 +20,7 @@ export function usePropertiesViewData() {
   const isClosed = fiscalYear?.status === 'closed';
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
-  const { accounts } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
+  const { data: accounts = [] } = useAccountByFiscalYear(fiscalYear?.label, fiscalYearId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const allocationMap = useContractAllocationMap(contracts);

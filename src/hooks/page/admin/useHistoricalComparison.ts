@@ -4,17 +4,9 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { useFiscalYears } from '@/hooks/financial/useFiscalYears';
-import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
+import { useMultiYearSummary, type YearSummaryEntry } from '@/hooks/financial/useMultiYearSummary';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { toast } from 'sonner';
-
-/** Hook لجلب بيانات سنة واحدة */
-function useYearData(fiscalYearId?: string, fiscalYearLabel?: string, status?: string) {
-  return useFinancialSummary(fiscalYearId, fiscalYearLabel, {
-    forceClosedMode: status === 'closed',
-    fiscalYearStatus: status,
-  });
-}
 
 export function useHistoricalComparison() {
   const { data: fiscalYears = [], isLoading: fyLoading } = useFiscalYears();
@@ -29,14 +21,18 @@ export function useHistoricalComparison() {
     [fiscalYears, selectedIds],
   );
 
-  // جلب بيانات كل سنة مختارة (حتى 4)
-  const y0 = useYearData(selectedYears[0]?.id, selectedYears[0]?.label, selectedYears[0]?.status);
-  const y1 = useYearData(selectedYears[1]?.id, selectedYears[1]?.label, selectedYears[1]?.status);
-  const y2 = useYearData(selectedYears[2]?.id, selectedYears[2]?.label, selectedYears[2]?.status);
-  const y3 = useYearData(selectedYears[3]?.id, selectedYears[3]?.label, selectedYears[3]?.status);
-  const yearData = [y0, y1, y2, y3].slice(0, selectedYears.length);
+  // جلب بيانات كل السنوات المختارة في استدعاء RPC واحد
+  const selectedYearIds = useMemo(() => selectedYears.map(fy => fy.id), [selectedYears]);
+  const { data: multiYearData = [], isLoading: multiLoading } = useMultiYearSummary(selectedYearIds);
 
-  const isAnyLoading = yearData.some(y => y.isLoading);
+  // ترتيب البيانات بنفس ترتيب السنوات المختارة
+  const yearData = useMemo(() => {
+    return selectedYears.map(fy => {
+      return multiYearData.find(d => d.yearId === fy.id) ?? null;
+    });
+  }, [selectedYears, multiYearData]);
+
+  const isAnyLoading = multiLoading;
 
   // إضافة / إزالة سنة
   const toggleYear = useCallback((fyId: string) => {
@@ -74,15 +70,15 @@ export function useHistoricalComparison() {
   const comparisonRows = useMemo(() => {
     if (selectedYears.length < 2) return [];
     return [
-      { label: 'إجمالي الدخل', key: 'totalIncome', getValue: (d: typeof y0) => d.totalIncome },
-      { label: 'إجمالي المصروفات', key: 'totalExpenses', getValue: (d: typeof y0) => d.totalExpenses },
-      { label: 'صافي بعد المصروفات', key: 'netAfterExpenses', getValue: (d: typeof y0) => d.netAfterExpenses ?? 0 },
-      { label: 'الضريبة', key: 'vatAmount', getValue: (d: typeof y0) => d.vatAmount },
-      { label: 'الزكاة', key: 'zakatAmount', getValue: (d: typeof y0) => d.zakatAmount },
-      { label: 'حصة الناظر', key: 'adminShare', getValue: (d: typeof y0) => d.adminShare ?? 0 },
-      { label: 'حصة الواقف', key: 'waqifShare', getValue: (d: typeof y0) => d.waqifShare ?? 0 },
-      { label: 'ريع الوقف', key: 'waqfRevenue', getValue: (d: typeof y0) => d.waqfRevenue ?? 0 },
-      { label: 'المتاح للتوزيع', key: 'availableAmount', getValue: (d: typeof y0) => d.availableAmount ?? 0 },
+      { label: 'إجمالي الدخل', key: 'totalIncome', getValue: (d: YearSummaryEntry | null) => d?.totalIncome ?? 0 },
+      { label: 'إجمالي المصروفات', key: 'totalExpenses', getValue: (d: YearSummaryEntry | null) => d?.totalExpenses ?? 0 },
+      { label: 'صافي بعد المصروفات', key: 'netAfterExpenses', getValue: (d: YearSummaryEntry | null) => d?.netAfterExpenses ?? 0 },
+      { label: 'الضريبة', key: 'vatAmount', getValue: (d: YearSummaryEntry | null) => d?.vatAmount ?? 0 },
+      { label: 'الزكاة', key: 'zakatAmount', getValue: (d: YearSummaryEntry | null) => d?.zakatAmount ?? 0 },
+      { label: 'حصة الناظر', key: 'adminShare', getValue: (d: YearSummaryEntry | null) => d?.adminShare ?? 0 },
+      { label: 'حصة الواقف', key: 'waqifShare', getValue: (d: YearSummaryEntry | null) => d?.waqifShare ?? 0 },
+      { label: 'ريع الوقف', key: 'waqfRevenue', getValue: (d: YearSummaryEntry | null) => d?.waqfRevenue ?? 0 },
+      { label: 'المتاح للتوزيع', key: 'availableAmount', getValue: (d: YearSummaryEntry | null) => d?.availableAmount ?? 0 },
     ];
   }, [selectedYears.length]);
 
