@@ -1,53 +1,69 @@
+# خطة إعادة الهيكلة المعمارية — 4 مراحل
 
-# إصلاح `lazyWithRetry.ts` — إزالة AbortController
+## المرحلة 1: استخراج Page Hooks لصفحات المستفيدين (8 hooks جديدة)
 
-## التغيير
+إنشاء hook مخصص لكل صفحة يستخرج كل المنطق (state, effects, callbacks, data fetching). الصفحة تبقى UI فقط.
 
-**ملف واحد**: `src/lib/lazyWithRetry.ts`
+| الصفحة | Hook جديد | ما يُستخرج |
+|--------|-----------|-----------|
+| `AccountsViewPage.tsx` (145 سطر) | `useAccountsViewPage` | 7 hooks + handleExportPdf + guards logic |
+| `BeneficiaryDashboard.tsx` (204 سطر) | `useBeneficiaryDashboardPage` | realtime subscription + fyProgress calc + guards |
+| `AnnualReportViewPage.tsx` (225 سطر) | `useAnnualReportViewPage` | 6 data hooks + grouped items + PDF/CSV export |
+| `BylawsViewPage.tsx` (189 سطر) | `useBylawsViewPage` | search + grouping + PDF export |
+| `NotificationsPage.tsx` (163 سطر) | `useNotificationsPage` | filters + grouping + push permission |
+| `InvoicesViewPage.tsx` (151 سطر) | `useInvoicesViewPage` | search + pagination + PDF + viewMode |
+| `SupportPage.tsx` (65 سطر) | `useSupportPage` | useState for ticket/dialog |
+| `BeneficiarySettingsPage.tsx` (113 سطر) | `useBeneficiarySettingsPage` | fetch beneficiaries + maskedId + retry |
 
-استبدال كامل المحتوى بنسخة مبسّطة:
+**تحديث** `src/hooks/page/beneficiary/index.ts` لإضافة التصديرات الـ 8 الجديدة.
 
-- **إزالة**: `AbortController`، `signal.aborted` checks، `(loadPromise as any).__abort`
-- **إبقاء**: منطق chunk retry (sessionStorage + reload + `caches.delete`)
-- **إضافة**: generic type `<T extends ComponentType<any>>` لنوعية أفضل
+---
 
-```typescript
-import { lazy, type ComponentType } from 'react';
+## المرحلة 2: تصنيف ملفات `src/utils/` الجذرية (17 ملف + اختباراتهم)
 
-export function lazyWithRetry<T extends ComponentType<any>>(
-  importFn: () => Promise<{ default: T }>
-) {
-  return lazy(async () => {
-    try {
-      const mod = await importFn();
-      sessionStorage.removeItem('chunk_retry');
-      return mod;
-    } catch (error: any) {
-      const isChunkError =
-        error?.message?.includes('Failed to fetch dynamically imported module') ||
-        error?.message?.includes('Loading chunk') ||
-        error?.message?.includes('error loading dynamically imported module');
+نقل الملفات إلى مجلدات فرعية مع إنشاء barrel files:
 
-      if (isChunkError) {
-        const retried = sessionStorage.getItem('chunk_retry');
-        if (!retried) {
-          sessionStorage.setItem('chunk_retry', '1');
-          try { await caches.delete('static-assets'); } catch (_) {}
-          window.location.reload();
-          return new Promise<{ default: T }>(() => {});
-        }
-        sessionStorage.removeItem('chunk_retry');
-      }
-      throw error;
-    }
-  });
-}
+```
+src/utils/
+├── financial/    ← accountsCalculations, contractAllocation, contractHelpers, findAccountByFY, dashboardComputations + tests
+├── format/       ← format, normalizeDigits, maskData, safeNumber, safeErrorMessage, validateNationalId + tests
+├── export/       ← csv, xlsx, printDistributionReport, printShareReport + tests
+├── chart/        ← chartHelpers + test
+├── zatca/        ← zatcaQr + test
+├── image/        ← resizeImage
+├── fonts/        ← loadAmiriFonts + test
 ```
 
-## السبب
+**تحديث جميع الاستيرادات** — مثلاً `safeNumber` مستورد في 73 ملف، سيتحول من `@/utils/safeNumber` إلى `@/utils/format/safeNumber` (أو عبر barrel `@/utils/format`).
 
-`AbortController` + `__abort` يتعارض مع React 18 Suspense ويسبب `callback is no longer runnable`. النسخة المبسّطة تترك لـ React التحكم الكامل.
+---
 
-## الملفات المتأثرة
+## المرحلة 3: نقل `useIsMountedRef` إلى `hooks/ui/`
 
-1. `src/lib/lazyWithRetry.ts` — استبدال كامل
+- نقل `src/hooks/useIsMountedRef.ts` → `src/hooks/ui/useIsMountedRef.ts`
+- تحديث `src/hooks/ui/index.ts` لتصديره
+- تحديث الاستيرادات في `LoginForm.tsx` و `useBiometricAuth.ts`
+
+---
+
+## المرحلة 4: تنظيف Type Safety في `pdfHelpers.ts`
+
+إضافة interface صريح بدلاً من `as unknown as`:
+
+```typescript
+interface JsPDFWithAutoTable extends jsPDF {
+  lastAutoTable?: { finalY: number };
+}
+
+export const getLastAutoTableY = (doc: jsPDF, fallback = 90): number =>
+  (doc as JsPDFWithAutoTable).lastAutoTable?.finalY ?? fallback;
+```
+
+---
+
+## الترتيب: المرحلة 1 → 2 → 3 → 4
+
+**ملاحظات:**
+- لن يتم تعديل أي ملف محمي
+- المرحلة 2 هي الأكثر تأثيراً على الاستيرادات (73+ ملف لـ safeNumber وحده)
+- كل الاستيرادات تستخدم `@/`
