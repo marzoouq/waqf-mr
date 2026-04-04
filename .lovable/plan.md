@@ -1,106 +1,116 @@
 
 
-# خطة تحسين الأداء — المرحلة الثانية
+# خطة تحسين الأداء — المرحلة الثالثة
 
 ## نظرة عامة
-5 تحسينات مستقلة: 2 تحسين في قاعدة البيانات (RPCs)، و3 تحسينات في الكود فقط.
+6 تحسينات: 2 تغييرات في قاعدة البيانات (migration واحد)، و6 تعديلات كود.
 
 ---
 
-## الخطوة 1: إنشاء RPC لمقارنة السنوات
+## الخطوة 1: RPC متعدد السنوات — `get_multi_year_summary` (20 → 1)
 
-**قاعدة بيانات — Migration جديد:**
+**Migration:** إنشاء دالة `get_multi_year_summary(p_year_ids uuid[])` تُرجع `jsonb`.
 
-إنشاء دالة `get_year_comparison_summary(p_year1_id uuid, p_year2_id uuid)` تُرجع jsonb:
-- لكل سنة: `total_income`, `total_expenses`, `vat_amount`, `zakat_amount`, `admin_share`, `waqif_share`, `waqf_revenue`, `distributions_amount`, `net_after_expenses`, `net_after_vat`
-- `monthly_income` و `monthly_expenses` لكل سنة (تجميع حسب `EXTRACT(MONTH FROM date)`)
-- `expenses_by_type` لكل سنة (تجميع حسب `expense_type`)
+المنطق: تكرار عبر `UNNEST(p_year_ids)` وبناء مصفوفة jsonb لكل سنة تحتوي:
+- `year_id`, `label`, `status` (من `fiscal_years`)
+- `total_income`, `total_expenses` (من `income`/`expenses`)
+- بيانات الحساب المُقفل من `accounts` (إن وُجد): `vat_amount`, `zakat_amount`, `admin_share`, `waqif_share`, `waqf_revenue`, `net_after_expenses`, `net_after_vat`, `distributions_amount`
+- `expenses_by_type`: تجميع من `expenses` حسب `expense_type`
 
-**كود — ملفان:**
-1. **ملف جديد:** `src/hooks/financial/useYearComparisonData.ts` — hook يستدعي الـ RPC ويُرجع البيانات بتنسيق متوافق مع المكون الحالي
-2. **تعديل:** `src/components/reports/YearOverYearComparison.tsx` — استبدال `useFinancialSummary` × 2 بالـ hook الجديد، مع الحفاظ على نفس واجهة `comparisonData` و `yearTotals` و `expensesByType`
+النمط مُستلهم من `get_year_comparison_summary` الموجود.
 
-**النتيجة:** 10 استعلامات ← 1 RPC
+**ملف جديد:** `src/hooks/financial/useMultiYearSummary.ts`
+- يستدعي `supabase.rpc('get_multi_year_summary', { p_year_ids: yearIds })`
+- يُحوّل النتيجة إلى مصفوفة بنفس واجهة `useFinancialSummary` (الحقول: `totalIncome`, `totalExpenses`, `expensesByType`, `vatAmount`, `zakatAmount`, `adminShare`, `waqifShare`, `waqfRevenue`, `netAfterExpenses`, `availableAmount`)
+
+**تعديل:** `src/hooks/page/admin/useHistoricalComparison.ts`
+- حذف `useYearData()` × 4 وحذف استيراد `useFinancialSummary`
+- استدعاء `useMultiYearSummary(selectedYearIds)` 
+- بناء `yearData` من النتيجة مع الحفاظ على نفس الواجهة (`totalIncome`, `totalExpenses`, `waqfRevenue`, `expensesByType` كـ `Record<string,number>` إلخ)
 
 ---
 
-## الخطوة 2: توسيع RPC المستفيد
+## الخطوة 2: إضافة `monthly_expenses` إلى RPC المستفيد + تحسين `useWaqifDashboardPage`
 
-**قاعدة بيانات — Migration جديد:**
-
-تعديل `get_beneficiary_dashboard` لإضافة:
+**Migration (نفس الملف):** تعديل `get_beneficiary_dashboard` لإضافة حقل `monthly_expenses` — نفس نمط `monthly_income`:
 ```sql
--- تجميع الإيرادات حسب المصدر
-'income_by_source', (SELECT COALESCE(jsonb_agg(...), '[]') FROM (
-  SELECT source, SUM(amount) as total FROM income WHERE fiscal_year_id = v_fy.id GROUP BY source
-) ...)
-
--- تجميع المصروفات حسب النوع (باستبعاد الضريبة)
-'expenses_by_type_excluding_vat', (SELECT COALESCE(jsonb_agg(...), '[]') FROM (
-  SELECT expense_type, SUM(amount) as total FROM expenses
-  WHERE fiscal_year_id = v_fy.id AND expense_type NOT IN ('ضريبة القيمة المضافة','vat','ضريبة قيمة مضافة')
-  GROUP BY expense_type
-) ...)
+SELECT EXTRACT(MONTH FROM date)::int AS m, SUM(amount) AS t
+FROM expenses WHERE fiscal_year_id = v_fy.id GROUP BY 1
 ```
 
-**كود — 5 ملفات:**
+**تعديل واجهة:** `useBeneficiaryDashboardData.ts` — إضافة `monthly_expenses: Array<{ month: number; total: number }>` إلى `BeneficiaryDashboardData`.
 
-1. **تحديث واجهة:** `BeneficiaryDashboardData` في `useBeneficiaryDashboardData.ts` — إضافة `income_by_source` و `expenses_by_type_excluding_vat`
-
-2. **تعديل 4 صفحات** لاستخدام بيانات الـ RPC بدل `useFinancialSummary`:
-   - `useDisclosurePage.ts` — يحتاج `incomeBySource`, `expensesByTypeExcludingVat`, وبيانات مالية أساسية. كلها متاحة الآن من الـ RPC
-   - `useAccountsViewPage.ts` — نفس الشيء
-   - `useMySharePage.ts` — يحتاج أيضاً بيانات مالية تفصيلية + `incomeBySource`/`expensesByTypeExcludingVat`
-   - `useFinancialReportsPage.ts` — يحتاج `income[]` الخام لحساب `monthlyData`. **ملاحظة:** الـ RPC لا يُرجع الإيرادات الخام. خياران:
-     - (أ) إضافة `monthly_income` مُجمّع في الـ RPC (أفضل)
-     - (ب) إبقاء `useIncomeByFiscalYear` فقط لهذه الصفحة
-
-   سنستخدم الخيار (أ): إضافة `monthly_income` إلى الـ RPC (مصفوفة `[{month, total}]`).
-
-**النتيجة:** أول زيارة لصفحة مستفيد: 6 طلبات ← 1 RPC
+**تعديل:** `src/hooks/page/beneficiary/useWaqifDashboardPage.ts`
+- استبدال `useFinancialSummary` بـ `useBeneficiaryDashboardData(fiscalYearId)`
+- استخراج `totalIncome`, `totalExpenses`, `availableAmount`, `expensesByTypeExcludingVat` من بيانات الـ RPC
+- بناء `monthlyData` من `monthly_income` + `monthly_expenses` (بدل `computeMonthlyData(income, expenses)`)
+- حذف `useBeneficiariesSafe` (عدد المستفيدين متاح من `total_beneficiary_percentage` — أو يمكن إبقاء العدد ثابتاً في `overviewStats`)
+- الاحتفاظ بـ: `useProperties`, `useContractsSafeByFiscalYear`, `useAllUnits`, `usePaymentInvoices`, `useContractAllocations`
+- النتيجة: 5-6 طلبات بدل 11
 
 ---
 
-## الخطوة 3: تقليل delays في DeferredRender
+## الخطوة 3: `usePropertiesViewData` — استبدال `useFinancialSummary` بـ `useAccountByFiscalYear`
 
-**ملفان:**
-- `src/pages/dashboard/AccountsPage.tsx`: تغيير (600, 900, 1200, 1500, 1800) → (100, 200, 300, 400, 500)
-- `src/pages/beneficiary/WaqifDashboard.tsx`: تغيير (800, 1500, 2000) → (200, 400, 600)
-
----
-
-## الخطوة 4: استبدال `transition-all` في المكونات المخصصة
-
-**3 ملفات:**
-- `src/pages/beneficiary/notifications/NotificationsList.tsx`: `transition-all` → `transition-colors`
-- `src/components/layout/Sidebar.tsx`: `transition-all duration-200` → `transition-colors duration-200`
-- `src/components/settings/BannerSettingsTab.tsx`: 3 مواقع `transition-all` → `transition-colors`
+**تعديل:** `src/hooks/page/admin/usePropertiesViewData.ts` سطر 11, 23
+- حذف استيراد `useFinancialSummary`
+- إضافة استيراد `useAccountByFiscalYear` من `@/hooks/financial/useAccounts`
+- استبدال: `const { accounts } = useFinancialSummary(...)` بـ `const { data: accounts = [] } = useAccountByFiscalYear(fiscalYear?.label, fiscalYearId)`
+- باقي الكود يبقى كما هو (يستخدم `accounts?.[0]`)
 
 ---
 
-## الخطوة 5: تحسين جلب العقود في `useAccountsData`
+## الخطوة 4: تعزيز prefetch التقارير
 
-**تعديل:** `src/hooks/financial/useAccountsData.ts`
+**تعديل:** `src/hooks/data/core/usePrefetchPages.ts`
 
-حالياً: `useContractsByFiscalYear('all')` يجلب كل العقود (حتى 1000+) ثم يبني `allocationMap` في العميل.
+إضافة prefetch لـ `units` و `payment_invoices` داخل `prefetchReports`:
+```typescript
+const prefetchReports = useCallback(() => {
+  prefetchProperties();
+  prefetchFiscalYears();
+  prefetchAccounts();
+  // جديد: تحميل مسبق للوحدات والفواتير
+  queryClient.prefetchQuery({
+    queryKey: ['units'],
+    staleTime: PREFETCH_STALE,
+    queryFn: async () => { /* select from units */ },
+  });
+  queryClient.prefetchQuery({
+    queryKey: ['payment_invoices', 'all'],
+    staleTime: PREFETCH_STALE,
+    queryFn: async () => { /* select from payment_invoices */ },
+  });
+}, [...]);
+```
 
-**التغيير:**
-- استبدال `useContractsByFiscalYear('all')` بـ `useContractsByFiscalYear(fiscalYearId)` (العقود المرتبطة بالسنة المحددة فقط)
-- استخدام `useContractAllocations(fiscalYearId)` الموجود فعلاً في `src/hooks/financial/useContractAllocations.ts` لجلب التخصيصات من جدول `contract_fiscal_allocations` مباشرة — بدل حسابها في العميل
-- بناء `allocationMap` من بيانات `contract_fiscal_allocations` بدل `useContractAllocationMap`
-- العقود التي لها تخصيصات ولكن `fiscal_year_id` مختلف ستظهر عبر الـ join مع `contract_fiscal_allocations`
+---
+
+## الخطوة 5: تقليل DeferredRender في `BeneficiaryDashboard`
+
+**تعديل:** `src/pages/beneficiary/BeneficiaryDashboard.tsx`
+- سطر 112: `delay={800}` → `delay={300}`
+- سطر 127: `delay={1200}` → `delay={500}`
+
+---
+
+## الخطوة 6: رفع `STALE_SETTINGS` إلى 5 دقائق
+
+**تعديل:** `src/lib/queryStaleTime.ts` سطر 10:
+- `export const STALE_SETTINGS = 60_000;` → `export const STALE_SETTINGS = 5 * 60_000;`
 
 ---
 
 ## ملخص التنفيذ
 
-| # | الإجراء | النوع | الملفات |
-|---|---------|-------|---------|
-| 1 | RPC مقارنة السنوات | migration + 2 ملف | **عالي** |
-| 2 | توسيع RPC المستفيد | migration + 5 ملفات | **عالي** |
-| 3 | تقليل DeferredRender delays | 2 ملف | **متوسط** |
-| 4 | استبدال transition-all | 3 ملفات | **منخفض** |
-| 5 | تحسين جلب العقود | 1-2 ملف | **متوسط** |
+| # | الإجراء | الملفات | الأثر |
+|---|---------|---------|-------|
+| 1 | RPC متعدد السنوات + hook + تعديل useHistoricalComparison | 1 migration + 2 ملف | **عالي** |
+| 2 | monthly_expenses في RPC + تحسين useWaqifDashboardPage | نفس migration + 2 ملف | **عالي** |
+| 3 | usePropertiesViewData → useAccountByFiscalYear | 1 ملف | **متوسط** |
+| 4 | تعزيز prefetch التقارير | 1 ملف | **متوسط** |
+| 5 | تقليل DeferredRender | 1 ملف | **منخفض** |
+| 6 | رفع STALE_SETTINGS | 1 ملف | **منخفض** |
 
-**إجمالي:** 2 migrations + ~13 ملف كود
+**إجمالي:** 1 migration + ~8 ملفات كود
 
