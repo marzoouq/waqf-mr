@@ -18,6 +18,9 @@ interface ExpenseItem {
   amount: number;
   date: string;
   description: string | null;
+  created_at: string;
+  fiscal_year_id: string;
+  property_id: string | null;
   property?: { property_number: string } | null;
   [key: string]: unknown;
 }
