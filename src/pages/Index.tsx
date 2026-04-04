@@ -47,6 +47,15 @@ const Index = () => {
 
   const handleNavigateAuth = useCallback(() => navigate('/auth'), [navigate]);
 
+  // المستخدم المسجّل سيُعاد توجيهه — لا داعي لرندر Landing Page الثقيلة
+  if (!loading && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   const siteUrl = window.location.origin;
   const jsonLd = {
     "@context": "https://schema.org",

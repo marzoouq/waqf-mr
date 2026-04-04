@@ -121,7 +121,7 @@ const AdminDashboard = () => {
         </DeferredRender>
 
         {role === 'admin' && (
-          <DeferredRender delay={1100}>
+          <DeferredRender delay={400}>
             <div className="print:hidden">
               <ErrorBoundary>
                 <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
