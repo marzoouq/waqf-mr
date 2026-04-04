@@ -108,7 +108,7 @@ describe('generatePaymentInvoicePDF', () => {
 
   it('generates PDF with VAT and adds QR code', async () => {
     const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
-    const { generateZatcaQrTLV } = await import('@/utils/zatcaQr');
+    const { generateZatcaQrTLV } = await import('@/utils/zatca/zatcaQr');
     const result = await generatePaymentInvoicePDF(
       makeInvoice({ vatRate: 15, vatAmount: 1500, amount: 11500 }),
       { waqfName: 'وقف تجريبي', vatNumber: '300000000000003' },
