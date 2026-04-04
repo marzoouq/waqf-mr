@@ -8,7 +8,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
-import { safeNumber } from '@/utils/format/safeNumber';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 
 const ITEMS_PER_PAGE = 10;
 
