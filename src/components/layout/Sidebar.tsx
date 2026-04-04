@@ -22,14 +22,13 @@ interface SidebarContentProps {
 }
 
 const SidebarContent: React.FC<SidebarContentProps> = ({
-  links, sidebarOpen, setSidebarOpen, setMobileSidebarOpen, onSignOut,
+  links, sidebarOpen, setSidebarOpen, setMobileSidebarOpen, onSignOut, unreadCount = 0,
 }) => {
   const { user, role } = useAuth();
   const location = useLocation();
   const waqfName = useSetting('waqf_name', 'إدارة الوقف');
   const waqfLogoUrl = useSetting('waqf_logo_url');
   const { getPrefetchHandler } = usePrefetchPages();
-  const { data: unreadCount = 0 } = useUnreadMessages();
 
   return (
     <>

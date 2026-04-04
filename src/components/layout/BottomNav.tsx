@@ -40,10 +40,9 @@ const waqifLinks = [
   { to: '/beneficiary/accounts', icon: Wallet, label: 'الحسابات' },
 ];
 
-const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar }) => {
+const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 }) => {
   const { role } = useAuth();
   const location = useLocation();
-  const { data: unreadCount = 0 } = useUnreadMessages();
 
   const navLinks = role === 'admin'
     ? adminLinks
