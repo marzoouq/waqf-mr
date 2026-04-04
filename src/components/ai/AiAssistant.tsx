@@ -38,7 +38,7 @@ const AiAssistant = () => {
       <Button
         onClick={() => setOpen(true)}
         className={cn(
-          'fixed bottom-20 left-4 lg:bottom-4 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg gradient-primary hover:opacity-90 transition-all duration-300 origin-bottom-left',
+          'fixed bottom-20 left-4 lg:bottom-4 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg gradient-primary hover:opacity-90 transition-[transform,opacity] duration-300 origin-bottom-left',
           open ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
         )}
         size="icon"
