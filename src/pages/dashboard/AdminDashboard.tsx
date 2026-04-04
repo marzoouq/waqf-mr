@@ -98,7 +98,7 @@ const AdminDashboard = () => {
           </div>
         </DeferredRender>
 
-        <DeferredRender delay={500}>
+        <DeferredRender delay={100}>
           <ErrorBoundary>
             <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
               <PendingActionsTable advanceRequests={summary.pendingAdvances} paymentInvoices={summary.heatmapInvoices} />
