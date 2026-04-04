@@ -56,7 +56,7 @@ function RoleGatedAiAssistant() {
   const { role } = useAuth();
   if (!role || !(ADMIN_ROLES as readonly string[]).includes(role)) return null;
   return (
-    <DeferredRender>
+    <DeferredRender delay={200}>
       <Suspense fallback={null}>
         <AiAssistant />
       </Suspense>

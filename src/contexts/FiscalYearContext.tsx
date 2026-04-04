@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useActiveFiscalYear, FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { FY_NONE, FY_ALL, isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
@@ -68,6 +70,26 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
   );
   const isClosed = fiscalYear?.status === 'closed';
   const isSpecificYear = !isFyAll(fiscalYearId) && isFyReady(fiscalYearId);
+
+  // جلب مسبق لبيانات لوحة التحكم بالتوازي مع تحميل chunk الصفحة
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (isFyReady(fiscalYearId) && !isFyAll(fiscalYearId)) {
+      const fy = fiscalYears.find(f => f.id === fiscalYearId);
+      queryClient.prefetchQuery({
+        queryKey: ['dashboard-summary', fiscalYearId],
+        queryFn: async () => {
+          const { data, error } = await supabase.functions.invoke('dashboard-summary', {
+            body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fy?.label },
+          });
+          if (error) throw error;
+          if (data?.error) throw new Error(data.error);
+          return data;
+        },
+        staleTime: 2 * 60 * 1000,
+      });
+    }
+  }, [fiscalYearId, fiscalYears, queryClient]);
 
   const handleSetFiscalYearId = useCallback((id: string) => {
     setSelectedId(id);

@@ -4,6 +4,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useEffect, useCallback } from 'react';
+import { Loader2 } from 'lucide-react';
 import { useAppSettings, useWaqfInfo } from '@/hooks/data/settings/useAppSettings';
 import { usePublicStats } from '@/hooks/data/content/usePublicStats';
 import type { LandingPageContent } from '@/components/settings';
@@ -45,6 +46,15 @@ const Index = () => {
   }, [user, role, loading, navigate]);
 
   const handleNavigateAuth = useCallback(() => navigate('/auth'), [navigate]);
+
+  // المستخدم المسجّل سيُعاد توجيهه — لا داعي لرندر Landing Page الثقيلة
+  if (!loading && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const siteUrl = window.location.origin;
   const jsonLd = {
