@@ -2,7 +2,6 @@
  * هوك صفحة التقارير المالية للمستفيد — يستخرج البيانات والحسابات
  */
 import { useMemo, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
