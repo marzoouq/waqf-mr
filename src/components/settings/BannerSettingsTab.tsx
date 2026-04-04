@@ -85,7 +85,7 @@ const BannerSettingsTab = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => save({ position: "top" })}
-                className={`px-4 py-2 rounded-lg border-2 text-sm transition-all ${
+                className={`px-4 py-2 rounded-lg border-2 text-sm transition-colors ${
                   form.position === "top" ? "border-foreground bg-muted" : "border-transparent hover:bg-muted/50"
                 }`}
               >
