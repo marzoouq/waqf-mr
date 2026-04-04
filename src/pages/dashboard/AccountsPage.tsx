@@ -170,7 +170,7 @@ const AccountsPage = () => {
           </Suspense>
         </DeferredRender>
 
-        <DeferredRender delay={1200}>
+        <DeferredRender delay={300}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsDistributionTable
               waqfCorpusPrevious={page.waqfCorpusPrevious}
