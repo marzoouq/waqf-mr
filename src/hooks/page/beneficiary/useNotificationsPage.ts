@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { usePushNotifications } from '@/hooks/data/notifications/usePushNotifications';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { NOTIFICATION_CATEGORIES } from '@/pages/beneficiary/notifications/notificationConstants';
 
 export function useNotificationsPage() {
