@@ -1,33 +1,95 @@
 
 
-## نتائج اختبار بيئة الإنتاج
+# التشخيص الجنائي المؤكد والخطة النهائية
 
-### ما تم اختباره
+## السبب الجذري المؤكد بالدليل
 
-1. **تسجيل الدخول بـ `test-role-check@waqf-test.app`**: فشل — هذا الحساب موجود فقط في بيئة الاختبار (Test) ولا يوجد في الإنتاج (Live). هذا سلوك طبيعي ومتوقع لأن البيانات لا تتزامن بين البيئتين.
+فحصت **كلتا البيئتين** (إنتاج + تطوير) وهذه النتيجة:
 
-2. **تسجيل الدخول بـ `alkayala3@gmail.com`**: نجح في الإنتاج (status 200) مع توجيه صحيح إلى `/dashboard` (دور admin).
+```text
+بيئة الإنتاج:
+  alkayala3@gmail.com → jwt_role = NULL ❌ | db_role = admin ✅
+  alkayala1@gmail.com → jwt_role = NULL ❌ | db_role = accountant ✅
+  جميع المستفيدين    → jwt_role = NULL ❌ | db_role = beneficiary ✅
 
-3. **سجلات المصادقة**: لا توجد أخطاء في الإنتاج باستثناء محاولة الدخول بحساب الاختبار.
+بيئة التطوير:
+  alkayala3@gmail.com → jwt_role = NULL ❌ | db_role = admin ✅
+  (نفس المشكلة بالضبط!)
+```
 
-### الوضع الحالي
+**كلتا البيئتين متطابقتان في المشكلة**: المشغل `trg_sync_role_to_auth_meta` موجود ويعمل، لكنه يعمل فقط عند INSERT/UPDATE على `user_roles`. جميع المستخدمين الحاليين أُنشئوا **قبل** إضافة المشغل، لذا `app_metadata.user_role` فارغ لكل المستخدمين.
 
-| العنصر | الحالة |
-|--------|--------|
-| صفحة `/auth` في الإنتاج | تعمل بشكل صحيح |
-| تسجيل دخول admin | يعمل ويوجّه إلى `/dashboard` |
-| JWT role sync | يعمل (`user_role: admin` في JWT) |
-| RLS policies | تعمل (كل الطلبات 200) |
+## لماذا ينكسر كل شيء
 
-### الخطوة التالية
+```text
+1. jwt_role() يقرأ حصراً من app_metadata → يُرجع NULL
+2. كل سياسات RLS تعتمد على jwt_role() → ترفض الوصول
+3. الدخول ينجح (signIn OK) → AuthContext يجد الدور من DB fallback
+4. التوجيه إلى /dashboard ينجح
+5. استعلامات البيانات تفشل (RLS ترفض) → [App Error]
+6. React Query يعيد المحاولة → قفل Token → تصلب الشاشة
+```
 
-الخطة المعتمدة سابقاً لا تزال صالحة للتنفيذ:
+## لماذا نجح الاختبار سابقاً في المتصفح؟
 
-1. **إضافة `getSession()` في `AuthContext.tsx`** — لحل حالة التعليق (race condition) التي تحدث أحياناً
-2. **تبسيط `PageLoader`** — spinner بدلاً من هيكل لوحة التحكم
-3. **إنشاء جدول `email_send_state`** — لإيقاف أخطاء DB المتكررة
+لأن المتصفح أعاد تحميل الصفحة عدة مرات أثناء الاختبار، والـ DB fallback في AuthContext أعطى الدور للواجهة. لكن **استعلامات البيانات الفعلية** (عقارات، عقود، مستفيدين) تفشل بصمت لأن `jwt_role()` في RLS يُرجع NULL.
 
-### ملاحظة عن الاختبار
+## الخطة (3 تغييرات فقط)
 
-لاختبار التوجيه لأدوار أخرى (beneficiary/waqif) في الإنتاج، يجب استخدام حسابات موجودة فعلاً في بيئة الإنتاج (مثل `alkayala15@gmail.com` للمستفيدين).
+### 1. هجرة SQL: تعبئة `user_role` لجميع المستخدمين الحاليين
+```sql
+UPDATE auth.users u
+SET raw_app_meta_data = 
+  COALESCE(u.raw_app_meta_data, '{}'::jsonb) 
+  || jsonb_build_object('user_role', ur.role::text)
+FROM public.user_roles ur
+WHERE u.id = ur.user_id
+  AND (u.raw_app_meta_data->>'user_role' IS NULL 
+       OR u.raw_app_meta_data->>'user_role' != ur.role::text);
+```
+هذا يحل المشكلة الجذرية: كل المستخدمين سيحصلون على `user_role` في `app_metadata` → `jwt_role()` سيعمل → RLS ستمرر البيانات.
+
+### 2. `src/contexts/AuthContext.tsx` — إصلاح `signIn`
+إضافة `refreshSession()` بعد الدخول إذا التوكن لا يحتوي الدور:
+```typescript
+const signIn = useCallback(async (email: string, password: string) => {
+  setLoading(true);
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) { setLoading(false); return { error }; }
+  
+  // إجبار جلب توكن جديد يحتوي الدور بعد تعبئة app_metadata
+  const jwtRole = getRoleFromSession(data?.session);
+  if (!jwtRole) {
+    await supabase.auth.refreshSession();
+  }
+  return { error: null };
+}, []);
+```
+هذا يضمن أن التوكن الأول بعد الهجرة يحمل الدور، ويحل race condition.
+
+### 3. `src/hooks/page/useAuthPage.ts` — تحصين التوجيه
+```typescript
+useEffect(() => {
+  if (loading) return; // انتظار اكتمال التحميل
+  if (user && role) {
+    // ... نفس منطق التوجيه الحالي
+  }
+}, [user, role, loading, navigate]);
+```
+
+## الملفات المتأثرة
+
+| الملف | التغيير |
+|-------|---------|
+| هجرة SQL جديدة | تعبئة `user_role` في `app_metadata` لكل المستخدمين |
+| `src/contexts/AuthContext.tsx` | تعديل `signIn` — إضافة `refreshSession()` (3 أسطر) |
+| `src/hooks/page/useAuthPage.ts` | إضافة `if (loading) return;` (سطر واحد) |
+
+## ما لن أغيّره
+- لن أعدل `lazyWithRetry.ts` — المشكلة ليست فيه بل في فشل RLS
+- لن أعدل `useFiscalYears.ts` — `enabled: true` صحيح لأن RLS يتكفل بالتصفية (بعد إصلاح jwt_role)
+- لن أعدل `usePublicStats.ts` — الأصفار ستختفي عندما يعمل `jwt_role()` (الدالة `get_public_stats` تعتمد على RLS أيضاً)
+
+## التحقق بعد التنفيذ
+بعد النشر، يجب التحقق من أن `jwt_role` أصبح موجوداً لكل المستخدمين وأن الدخول يعمل بسلاسة.
 
