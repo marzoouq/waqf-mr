@@ -136,9 +136,11 @@ const AdminDashboard = () => {
           </ViewportRender>
         )}
 
-        <ErrorBoundary>
-          <RecentContractsCard contracts={secondary.recentContracts} isLoading={secondary.isLoading} />
-        </ErrorBoundary>
+        <ViewportRender minHeight={200}>
+          <ErrorBoundary>
+            <RecentContractsCard contracts={secondary.recentContracts} isLoading={secondary.isLoading} />
+          </ErrorBoundary>
+        </ViewportRender>
       </div>
     </DashboardLayout>
   );
