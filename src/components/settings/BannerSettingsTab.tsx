@@ -66,7 +66,7 @@ const BannerSettingsTab = () => {
                 <button
                   key={c.value}
                   onClick={() => save({ color: c.value })}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 transition-all text-sm ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 transition-colors text-sm ${
                     form.color === c.value
                       ? "border-foreground shadow-md scale-105"
                       : "border-transparent opacity-70 hover:opacity-100"
