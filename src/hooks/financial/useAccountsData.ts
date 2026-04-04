@@ -45,11 +45,8 @@ export function useAccountsData() {
     return map;
   }, [allocations, fiscalYearId]);
 
-  // جلب العقود ذات التخصيصات أيضاً (عقود من سنوات أخرى لكن لها تخصيص في السنة الحالية)
-  const { data: allocatedContracts = [] } = useContractsByFiscalYear(
-    // لا حاجة لجلب إضافي إذا كانت "كل السنوات" أو لا توجد تخصيصات
-    allocations.length > 0 && !isFyAll(fiscalYearId) ? fiscalYearId : undefined,
-  );
+  // العقود ذات التخصيصات مُضمّنة بالفعل من useContractsByFiscalYear
+  // لأن contract_fiscal_allocations يربط العقود بالسنة المالية
 
   // دمج العقود: العقود الأصلية + العقود ذات التخصيصات
   const mergedContracts = useMemo(() => {
