@@ -138,7 +138,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <Suspense fallback={null}><PrintFooter /></Suspense>
       </main>
 
-      <BottomNav onOpenSidebar={() => setMobileSidebarOpen(true)} />
+      <BottomNav onOpenSidebar={() => setMobileSidebarOpen(true)} unreadCount={unreadCount} />
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <AlertDialogContent>
