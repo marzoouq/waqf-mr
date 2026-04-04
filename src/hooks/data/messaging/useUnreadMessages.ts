@@ -1,5 +1,6 @@
 /**
  * هوك لعد الرسائل غير المقروءة للمستخدم الحالي.
+ * يعتمد على Realtime invalidation بدلاً من polling.
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +26,6 @@ export const useUnreadMessages = () => {
     },
     enabled: !!user,
     staleTime: STALE_MESSAGING,
-    refetchInterval: 60_000,
+    retry: false,
   });
 };
