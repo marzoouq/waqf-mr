@@ -4,6 +4,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useEffect, useCallback } from 'react';
+import { Loader2 } from 'lucide-react';
 import { useAppSettings, useWaqfInfo } from '@/hooks/data/settings/useAppSettings';
 import { usePublicStats } from '@/hooks/data/content/usePublicStats';
 import type { LandingPageContent } from '@/components/settings';
