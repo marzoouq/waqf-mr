@@ -1,46 +1,37 @@
 
-# خطة تحسين الأداء — المرحلة الرابعة
 
-## الوضع الحالي
-
-بعد التحقق من الكود، تبيّن أن:
-- **`useYoYComparison` كود ميت فعلياً** — الـ hook لا يُستدعى في أي مكان. فقط `calcChangePercent` (دالة حسابية بحتة) مستوردة منه. بيانات YoY **موجودة مسبقاً** في `get_dashboard_full_summary` RPC (سطور 263-273) وتُستهلك عبر `useDashboardSummary`.
-- **لا حاجة لـ migration** — البيانات موجودة.
-
----
+# خطة تحسين الأداء — المرحلة الخامسة
 
 ## التغييرات المطلوبة
 
-### 1. حذف الكود الميت — `useYoYComparison` (لا أثر على الأداء، تنظيف)
-
-| الملف | الإجراء |
-|--------|---------|
-| `src/hooks/financial/useYoYComparison.ts` | نقل `calcChangePercent` إلى ملف مستقل `src/utils/financial/calcChangePercent.ts`، ثم حذف الملف |
-| `src/hooks/financial/index.ts` | حذف تصدير `useYoYComparison` |
-| `src/hooks/page/admin/useAdminDashboardStats.ts` | تغيير مصدر استيراد `calcChangePercent` إلى المسار الجديد |
-
-### 2. استبدال `transition-all` في 6 مكونات (تحسين paint/layout)
+### 1. استبدال `transition-all` في 7 مكونات مخصصة
 
 | الملف | الحالي | البديل |
 |--------|--------|--------|
-| `DashboardStatsGrid.tsx` | `transition-all hover:scale-[1.02]` | `transition-[transform,box-shadow] hover:scale-[1.02]` |
-| `LandingHero.tsx` | `transition-all duration-300` | `transition-transform duration-300` |
-| `LandingFeatures.tsx` | `transition-all duration-500` | `transition-[transform,box-shadow] duration-500` |
-| `LandingCTA.tsx` | `transition-all duration-300` | `transition-transform duration-300` |
-| `InvoiceSummaryCards.tsx` | `transition-all duration-500` | `transition-[width] duration-500` |
-| `LoginForm.tsx` | `transition-all` | `transition-colors` |
+| `AiAssistant.tsx` (2 مواقع) | `transition-all` | `transition-[transform,opacity]` |
+| `InvoiceGridView.tsx` | `transition-all` | `transition-[transform,box-shadow]` |
+| `BeneficiaryStatsRow.tsx` | `transition-all` | `transition-[width]` |
+| `BetaBanner.tsx` | `transition-all` | `transition-[height,padding]` |
+| `ThemeToggle.tsx` (2 مواقع) | `transition-all` | `transition-transform` |
+| `ThemeColorPicker.tsx` | `transition-all` | `transition-[border-color,box-shadow]` |
+| `ZatcaPhasePlatform.tsx` | `transition-all` | `transition-[border-color,box-shadow]` |
 
-### 3. تحسين `useReportsData` — لا تغيير
+### 2. رفع staleTime للبيانات الحية
 
-`useReportsData` يستخدم كل حقول `useFinancialSummary` فعلاً (income, expenses, beneficiaries, currentAccount, + كل الحقول المحسوبة). استبداله لن يقلل الاستعلامات. والـ prefetch من المرحلة 3 يغطي الحالة الغالبة. **لا حاجة لتغيير.**
+**تعديل:** `src/lib/queryStaleTime.ts`
+- `STALE_REALTIME`: `10_000` → `60_000`
+- `STALE_LIVE`: `5_000` → `15_000`
+
+المبرر: Postgres Realtime يُبطل الكاش تلقائياً عند التغيير الفعلي، فلا حاجة لإعادة جلب عدوانية عند التنقل.
 
 ---
 
-## ملخص التنفيذ
+## ملخص
 
 | # | الإجراء | الملفات | الأثر |
 |---|---------|---------|-------|
-| 1 | حذف `useYoYComparison` ونقل `calcChangePercent` | 3 ملفات + 1 جديد | تنظيف |
-| 2 | استبدال `transition-all` في 6 مكونات | 6 ملفات | منخفض-متوسط (أجهزة محمولة) |
+| 1 | استبدال `transition-all` | 7 ملفات | منخفض |
+| 2 | رفع staleTime | 1 ملف | منخفض |
 
-**إجمالي:** 0 migrations، ~9 ملفات كود. تغييرات خفيفة وآمنة.
+**إجمالي:** 0 migrations، 8 ملفات. تغييرات آمنة وتجميلية.
+
