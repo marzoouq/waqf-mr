@@ -2,6 +2,7 @@
 import { lazy, Suspense } from 'react';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import DeferredRender from '@/components/common/DeferredRender';
+import ViewportRender from '@/components/common/ViewportRender';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { Button } from '@/components/ui/button';
 import { FiscalYearWidget, DashboardAlerts, DashboardStatsGrid, DashboardKpiPanel, CollectionSummaryCard, RecentContractsCard, QuickActionsCard, YearComparisonCard } from '@/components/dashboard';
@@ -13,7 +14,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // هوك البيانات المدمج
-import { useDashboardSummary } from '@/hooks/data/financial/useDashboardSummary';
+import { useDashboardSummary, useDashboardSecondary } from '@/hooks/data/financial/useDashboardSummary';
 // هوك الحسابات المستخرج
 import { useAdminDashboardData } from '@/hooks/page/admin/useAdminDashboardData';
 
@@ -35,10 +36,13 @@ const AdminDashboard = () => {
   const { role, user } = useAuth();
   const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
 
-  useDashboardRealtime('admin-dashboard-realtime', ['income', 'expenses', 'accounts', 'payment_invoices']);
+  useDashboardRealtime('admin-dashboard-realtime', ['income', 'expenses', 'accounts', 'payment_invoices', 'messages'], true, [['dashboard-summary'], ['dashboard-heatmap'], ['dashboard-recent-contracts'], ['unread-messages-count']]);
 
   const summary = useDashboardSummary(fiscalYearId, fiscalYear?.label);
   const isLoading = summary.isLoading;
+
+  // هوك ثانوي — يجلب heatmap و recent_contracts بعد تحميل KPIs
+  const secondary = useDashboardSecondary(fiscalYearId, !summary.isLoading);
 
   const {
     pendingAdvancesCount, totalIncome, contractualRevenue,
@@ -88,25 +92,25 @@ const AdminDashboard = () => {
           <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
         </ErrorBoundary>
 
-        <DeferredRender delay={0}>
+        <ViewportRender minHeight={160}>
           <div className="print:hidden">
             <ErrorBoundary>
               <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
-                <CollectionHeatmap paymentInvoices={summary.heatmapInvoices} fiscalYearStart={fy?.start_date} fiscalYearEnd={fy?.end_date} />
+                <CollectionHeatmap paymentInvoices={secondary.heatmapInvoices} fiscalYearStart={fy?.start_date} fiscalYearEnd={fy?.end_date} />
               </Suspense>
             </ErrorBoundary>
           </div>
-        </DeferredRender>
+        </ViewportRender>
 
         <DeferredRender delay={100}>
           <ErrorBoundary>
             <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-              <PendingActionsTable advanceRequests={summary.pendingAdvances} paymentInvoices={summary.heatmapInvoices} />
+              <PendingActionsTable advanceRequests={summary.pendingAdvances} paymentInvoices={secondary.heatmapInvoices} />
             </Suspense>
           </ErrorBoundary>
         </DeferredRender>
 
-        <DeferredRender delay={200}>
+        <ViewportRender minHeight={300}>
           <div className="print:hidden">
             <ErrorBoundary>
               <Suspense fallback={<ChartSkeleton />}>
@@ -114,14 +118,14 @@ const AdminDashboard = () => {
               </Suspense>
             </ErrorBoundary>
           </div>
-        </DeferredRender>
+        </ViewportRender>
 
-        <DeferredRender delay={300}>
+        <ViewportRender minHeight={200}>
           <YearComparisonCard allFiscalYears={allFiscalYears as FiscalYear[]} fiscalYearId={fiscalYearId} />
-        </DeferredRender>
+        </ViewportRender>
 
         {role === 'admin' && (
-          <DeferredRender delay={400}>
+          <ViewportRender minHeight={200}>
             <div className="print:hidden">
               <ErrorBoundary>
                 <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
@@ -129,11 +133,11 @@ const AdminDashboard = () => {
                 </Suspense>
               </ErrorBoundary>
             </div>
-          </DeferredRender>
+          </ViewportRender>
         )}
 
         <ErrorBoundary>
-          <RecentContractsCard contracts={summary.recentContracts} isLoading={isLoading} />
+          <RecentContractsCard contracts={secondary.recentContracts} isLoading={secondary.isLoading} />
         </ErrorBoundary>
       </div>
     </DashboardLayout>
