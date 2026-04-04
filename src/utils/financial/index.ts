@@ -1,8 +1,8 @@
 /**
  * Barrel file — دوال مالية
  */
-export { accountsCalculations, type AccountCalcResult } from './accountsCalculations';
-export { contractAllocation, type AllocationResult } from './contractAllocation';
+export { calculateFinancials, groupIncomeBySource, groupExpensesByType, computeTotals, type FinancialParams, type FinancialResult } from './accountsCalculations';
+export { allocateContractToFiscalYears, getContractSpanInfo, generatePaymentDueDates, type FiscalAllocation } from './contractAllocation';
 export * from './contractHelpers';
 export { findAccountByFY } from './findAccountByFY';
-export { computeDashboardMetrics, type DashboardMetrics } from './dashboardComputations';
+export { computeMonthlyData, computeCollectionSummary, computeOccupancy, type MonthlyDataPoint, type CollectionSummaryResult, type OccupancyResult } from './dashboardComputations';

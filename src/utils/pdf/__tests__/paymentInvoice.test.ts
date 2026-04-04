@@ -141,7 +141,7 @@ describe('generatePaymentInvoicePDF', () => {
 
   it('generates QR even without vatNumber (uses empty string)', async () => {
     const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
-    const { generateZatcaQrTLV } = await import('@/utils/zatcaQr');
+    const { generateZatcaQrTLV } = await import('@/utils/zatca/zatcaQr');
     await generatePaymentInvoicePDF(
       makeInvoice({ vatRate: 15, vatAmount: 1500 }),
       { waqfName: 'وقف' },

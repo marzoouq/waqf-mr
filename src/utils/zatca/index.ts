@@ -1,4 +1,4 @@
 /**
  * Barrel file — دوال زاتكا
  */
-export { generateZatcaQR } from './zatcaQr';
+export { generateZatcaQrTLV, generateQrDataUrl } from './zatcaQr';

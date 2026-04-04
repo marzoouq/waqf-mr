@@ -5,7 +5,7 @@
  * #3 - contractAllocation recognizes both semi_annual and semi-annual
  */
 import { describe, it, expect } from "vitest";
-import { generatePaymentDueDates, allocateContractToFiscalYears } from "@/utils/contractAllocation";
+import { generatePaymentDueDates, allocateContractToFiscalYears } from "@/utils/financial/contractAllocation";
 
 // ── #3: semi-annual vs semi_annual ──
 
