@@ -66,7 +66,7 @@ const WaqifDashboard = () => {
           />
         </DeferredRender>
 
-        <DeferredRender delay={1500}>
+        <DeferredRender delay={400}>
           {(monthlyData.length > 0 || expenseData.length > 0) && (
             <Card className="shadow-sm">
               <CardHeader className="pb-3">
