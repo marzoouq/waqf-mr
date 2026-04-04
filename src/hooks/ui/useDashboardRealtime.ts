@@ -14,11 +14,13 @@ const DEBOUNCE_MS = 500;
  * @param channelName اسم فريد للقناة
  * @param tables أسماء الجداول المراد مراقبتها
  * @param enabled تفعيل/تعطيل الاشتراك
+ * @param extraKeys مفاتيح إضافية تُبطل عند أي تغيير (مثل ['dashboard-summary'])
  */
 export const useDashboardRealtime = (
   channelName: string,
   tables: readonly string[],
   enabled: boolean = true,
+  extraKeys: readonly (readonly string[])[] = [],
 ) => {
   const queryClient = useQueryClient();
 
@@ -26,6 +28,11 @@ export const useDashboardRealtime = (
   const tablesKey = JSON.stringify(tables);
   const tablesRef = useRef(tables);
   tablesRef.current = tables;
+
+  // تثبيت مرجع المفاتيح الإضافية
+  const extraKeysKey = JSON.stringify(extraKeys);
+  const extraKeysRef = useRef(extraKeys);
+  extraKeysRef.current = extraKeys;
 
   // مرجع لتجميع الجداول المتغيرة مع debounce
   const pendingTablesRef = useRef<Set<string>>(new Set());
@@ -37,6 +44,10 @@ export const useDashboardRealtime = (
     // إبطال كاش الجداول المتغيرة دفعة واحدة
     pending.forEach((table) => {
       queryClient.invalidateQueries({ queryKey: [table], exact: false });
+    });
+    // إبطال المفاتيح الإضافية
+    extraKeysRef.current.forEach((key) => {
+      queryClient.invalidateQueries({ queryKey: [...key], exact: false });
     });
     pending.clear();
   }, [queryClient]);
@@ -58,7 +69,7 @@ export const useDashboardRealtime = (
     },
     // tablesKey يتغير فقط عند تغيّر محتوى المصفوفة فعلياً
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [queryClient, tablesKey, flushInvalidations],
+    [queryClient, tablesKey, extraKeysKey, flushInvalidations],
   );
 
   useBfcacheSafeChannel(channelName, subscribeFn, enabled);

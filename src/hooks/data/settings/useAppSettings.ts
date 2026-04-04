@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -142,7 +143,7 @@ export const updateNotificationPrefs = (prefs: Record<string, boolean>) => {
 export const useWaqfInfo = () => {
   const { data: settings, isLoading, error } = useAppSettings();
 
-  const info: WaqfInfo = {
+  const info: WaqfInfo = useMemo(() => ({
     waqf_name: settings?.waqf_name || '',
     waqf_founder: settings?.waqf_founder || '',
     waqf_admin: settings?.waqf_admin || '',
@@ -153,7 +154,7 @@ export const useWaqfInfo = () => {
     waqf_court: settings?.waqf_court || '',
     waqf_logo_url: settings?.waqf_logo_url || '',
     vat_registration_number: settings?.vat_registration_number || '',
-  };
+  }), [settings]);
 
   return { data: info, isLoading, error };
 };
