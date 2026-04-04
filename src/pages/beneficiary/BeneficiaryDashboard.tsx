@@ -109,7 +109,7 @@ const BeneficiaryDashboard = () => {
 
         {/* بطاقة طلب السُلفة */}
         {advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
-          <DeferredRender delay={800}>
+          <DeferredRender delay={300}>
             <BeneficiaryAdvanceCard
               beneficiaryId={currentBeneficiary.id!}
               fiscalYearId={fiscalYearId}
@@ -124,7 +124,7 @@ const BeneficiaryDashboard = () => {
 
         <BeneficiaryQuickLinks role={role} />
 
-        <DeferredRender delay={1200}>
+        <DeferredRender delay={500}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <BeneficiaryRecentDistributions distributions={distributions} />
             <BeneficiaryNotificationsCard notifications={recentNotifications} unreadCount={unreadCount} />

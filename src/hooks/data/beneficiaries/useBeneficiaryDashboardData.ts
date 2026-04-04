@@ -51,6 +51,7 @@ export interface BeneficiaryDashboardData {
   income_by_source: Array<{ source: string; total: number }>;
   expenses_by_type_excluding_vat: Array<{ expense_type: string; total: number }>;
   monthly_income: Array<{ month: number; total: number }>;
+  monthly_expenses: Array<{ month: number; total: number }>;
 }
 
 /**

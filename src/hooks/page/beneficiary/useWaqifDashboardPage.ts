@@ -1,21 +1,42 @@
 /**
  * هوك لوحة تحكم الواقف — يستخرج كل البيانات والحسابات من الصفحة
+ * محسّن: يستخدم RPC المستفيد المجمّع بدل useFinancialSummary (5 استعلامات → 1)
  */
 import { useState, useEffect, useMemo } from 'react';
 import { fmt } from '@/utils/format/format';
-import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/financial/dashboardComputations';
+import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/dashboardComputations';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
+import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
-import { useBeneficiariesSafe } from '@/hooks/data/beneficiaries/useBeneficiaries';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { Building2, FileText, Users, TrendingUp, Sun, Moon } from 'lucide-react';
+
+/** تحويل بيانات شهرية من RPC إلى تنسيق الرسم البياني */
+function buildMonthlyData(
+  monthlyIncome: Array<{ month: number; total: number }>,
+  monthlyExpenses: Array<{ month: number; total: number }>,
+) {
+  const map: Record<string, { income: number; expenses: number }> = {};
+  (monthlyIncome ?? []).forEach(({ month, total }) => {
+    const key = String(month).padStart(2, '0');
+    if (!map[key]) map[key] = { income: 0, expenses: 0 };
+    map[key].income += total;
+  });
+  (monthlyExpenses ?? []).forEach(({ month, total }) => {
+    const key = String(month).padStart(2, '0');
+    if (!map[key]) map[key] = { income: 0, expenses: 0 };
+    map[key].expenses += total;
+  });
+  return Object.entries(map)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, data]) => ({ month, income: data.income, expenses: data.expenses }));
+}
 
 export const useWaqifDashboardPage = () => {
   const { user } = useAuth();
@@ -23,25 +44,39 @@ export const useWaqifDashboardPage = () => {
 
   useDashboardRealtime('waqif-dashboard-realtime', ['income', 'expenses', 'payment_invoices']);
 
-  const {
-    totalIncome, totalExpenses, availableAmount, income, expenses, expensesByTypeExcludingVat, isLoading: finLoading,
-  } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
+  // RPC مجمّع بدل useFinancialSummary (5 استعلامات → 1)
+  const { data: dashData, isLoading: dashLoading } = useBeneficiaryDashboardData(fiscalYearId);
+
+  const totalIncome = dashData?.total_income ?? 0;
+  const totalExpenses = dashData?.total_expenses ?? 0;
+  const availableAmount = dashData?.available_amount ?? 0;
+  const expensesByTypeExcludingVat = useMemo(() => {
+    const result: Record<string, number> = {};
+    (dashData?.expenses_by_type_excluding_vat ?? []).forEach(e => {
+      result[e.expense_type] = e.total;
+    });
+    return result;
+  }, [dashData?.expenses_by_type_excluding_vat]);
 
   const { data: properties = [], isLoading: propLoading } = useProperties();
   const { data: contracts = [], isLoading: contLoading } = useContractsSafeByFiscalYear(fiscalYearId);
-  const { data: allBeneficiaries = [], isLoading: benLoading } = useBeneficiariesSafe();
   const { data: allUnits = [] } = useAllUnits();
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || 'all');
   const { data: contractAllocations = [] } = useContractAllocations(
     (fiscalYearId !== 'all' && !!fiscalYearId) ? fiscalYearId : undefined
   );
 
-  const isLoading = fyLoading || finLoading || propLoading || contLoading || benLoading;
+  const isLoading = fyLoading || dashLoading || propLoading || contLoading;
   const displayName = user?.email?.split('@')[0] || 'الواقف';
 
   const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
   const activeContracts = contracts.filter(c => c.status === 'active');
   const expiredContracts = contracts.filter(c => c.status === 'expired');
+
+  // عدد المستفيدين من RPC
+  const beneficiaryCount = dashData?.total_beneficiary_percentage
+    ? Math.round(dashData.total_beneficiary_percentage / (dashData.beneficiary?.share_percentage || 1))
+    : 0;
 
   const contractualRevenue = useMemo(() => {
     if (isSpecificYear && contractAllocations.length > 0) {
@@ -70,7 +105,11 @@ export const useWaqifDashboardPage = () => {
     ];
   }, [collectionSummary.percentage, collectionSummary.total, totalIncome, totalExpenses, allUnits, contracts, isSpecificYear]);
 
-  const monthlyData = useMemo(() => computeMonthlyData(income, expenses), [income, expenses]);
+  // بناء monthlyData من RPC بدل computeMonthlyData(income, expenses)
+  const monthlyData = useMemo(
+    () => buildMonthlyData(dashData?.monthly_income ?? [], dashData?.monthly_expenses ?? []),
+    [dashData?.monthly_income, dashData?.monthly_expenses],
+  );
 
   /* ── Live clock ── */
   const [now, setNow] = useState(new Date());
@@ -98,7 +137,7 @@ export const useWaqifDashboardPage = () => {
   const overviewStats = [
     { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
     { title: 'العقود النشطة', value: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
-    { title: 'المستفيدون', value: allBeneficiaries.length, icon: Users, bg: 'bg-secondary/10 text-secondary' },
+    { title: 'المستفيدون', value: beneficiaryCount || '—', icon: Users, bg: 'bg-secondary/10 text-secondary' },
     { title: 'القابل للتوزيع', value: fiscalYear?.status === 'active' ? 'تُحسب عند الإقفال' : `${fmt(safeNumber(availableAmount))} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
   ];
 

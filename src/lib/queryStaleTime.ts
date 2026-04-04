@@ -7,7 +7,7 @@
 export const STALE_STATIC = 5 * 60_000;
 
 /** إعدادات التطبيق — تؤثر على حسابات مالية (حصة ناظر، سقف سلف) */
-export const STALE_SETTINGS = 60_000;
+export const STALE_SETTINGS = 5 * 60_000;
 
 /** بيانات مالية — حسابات، سنوات مالية، تخصيصات، عقود */
 export const STALE_FINANCIAL = 60_000;

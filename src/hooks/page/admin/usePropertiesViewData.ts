@@ -8,7 +8,7 @@ import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
+import { useAccountByFiscalYear } from '@/hooks/financial/useAccounts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
 
@@ -20,7 +20,7 @@ export function usePropertiesViewData() {
   const isClosed = fiscalYear?.status === 'closed';
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
-  const { accounts } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
+  const { data: accounts = [] } = useAccountByFiscalYear(fiscalYear?.label, fiscalYearId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const allocationMap = useContractAllocationMap(contracts);

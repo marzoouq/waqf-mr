@@ -96,12 +96,48 @@ export function usePrefetchPages() {
    * يعيد دالة prefetch المناسبة بناءً على مسار الصفحة
    * يُحمّل المكوّن (JS chunk) + البيانات معاً عند hover
    */
+  /** تحميل مسبق: الوحدات */
+  const prefetchUnits = useCallback(() => {
+    queryClient.prefetchQuery({
+      queryKey: ['units'],
+      staleTime: PREFETCH_STALE,
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from('units')
+          .select('id, unit_number, unit_type, floor, area, status, property_id, notes, created_at, updated_at')
+          .order('created_at', { ascending: false })
+          .limit(500);
+        if (error) throw error;
+        return data;
+      },
+    });
+  }, [queryClient]);
+
+  /** تحميل مسبق: فواتير الدفعات */
+  const prefetchPaymentInvoices = useCallback(() => {
+    queryClient.prefetchQuery({
+      queryKey: ['payment_invoices', 'all'],
+      staleTime: PREFETCH_STALE,
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from('payment_invoices')
+          .select('id, contract_id, fiscal_year_id, payment_number, due_date, amount, paid_date, paid_amount, status, invoice_number, vat_rate, vat_amount, notes, created_at, updated_at')
+          .order('due_date', { ascending: false })
+          .limit(1000);
+        if (error) throw error;
+        return data;
+      },
+    });
+  }, [queryClient]);
+
   /** تحميل مسبق: التقارير */
   const prefetchReports = useCallback(() => {
     prefetchProperties();
     prefetchFiscalYears();
     prefetchAccounts();
-  }, [prefetchProperties, prefetchFiscalYears, prefetchAccounts]);
+    prefetchUnits();
+    prefetchPaymentInvoices();
+  }, [prefetchProperties, prefetchFiscalYears, prefetchAccounts, prefetchUnits, prefetchPaymentInvoices]);
 
   /** تحميل مسبق: سجل المراجعة */
   const prefetchAuditLog = useCallback(() => {
