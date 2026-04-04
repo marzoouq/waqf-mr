@@ -60,7 +60,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/utils/zatcaQr', () => ({
+vi.mock('@/utils/zatca/zatcaQr', () => ({
   generateZatcaQrTLV: vi.fn(() => 'base64-tlv-data'),
   generateQrDataUrl: vi.fn().mockResolvedValue('data:image/png;base64,qr'),
 }));
@@ -108,7 +108,7 @@ describe('generatePaymentInvoicePDF', () => {
 
   it('generates PDF with VAT and adds QR code', async () => {
     const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
-    const { generateZatcaQrTLV } = await import('@/utils/zatcaQr');
+    const { generateZatcaQrTLV } = await import('@/utils/zatca/zatcaQr');
     const result = await generatePaymentInvoicePDF(
       makeInvoice({ vatRate: 15, vatAmount: 1500, amount: 11500 }),
       { waqfName: 'وقف تجريبي', vatNumber: '300000000000003' },
@@ -141,7 +141,7 @@ describe('generatePaymentInvoicePDF', () => {
 
   it('generates QR even without vatNumber (uses empty string)', async () => {
     const { generatePaymentInvoicePDF } = await import('../invoices/paymentInvoice');
-    const { generateZatcaQrTLV } = await import('@/utils/zatcaQr');
+    const { generateZatcaQrTLV } = await import('@/utils/zatca/zatcaQr');
     await generatePaymentInvoicePDF(
       makeInvoice({ vatRate: 15, vatAmount: 1500 }),
       { waqfName: 'وقف' },

@@ -30,7 +30,7 @@ const CATEGORY_MAP: Record<string, string> = {
 };
 
 async function exportToCsv(filename: string, headers: string[], rows: string[][]) {
-  const { buildCsvFromRows, downloadCsv } = await import('@/utils/csv');
+  const { buildCsvFromRows, downloadCsv } = await import('@/utils/export/csv');
   const csv = buildCsvFromRows(headers, rows);
   downloadCsv(csv, filename);
   toast.success(`تم تصدير ${rows.length} سجل`);

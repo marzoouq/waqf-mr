@@ -88,7 +88,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 vi.mock('@/utils/notifications', () => ({ notifyAllBeneficiaries: vi.fn() }));
 
-vi.mock('@/utils/contractAllocation', () => ({
+vi.mock('@/utils/financial/contractAllocation', () => ({
   allocateContractToFiscalYears: vi.fn(() => [
     { fiscal_year_id: 'fy1', allocated_payments: 1, allocated_amount: 120000 },
   ]),
