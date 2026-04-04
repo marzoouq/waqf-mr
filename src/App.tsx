@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/auth/useAuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import DeferredRender from '@/components/common/DeferredRender';
@@ -42,32 +42,10 @@ const SwUpdateBanner = lazyWithRetry(() => import("./components/pwa/SwUpdateBann
 
 function PageLoader() {
   return (
-    <div className="min-h-screen flex" dir="rtl">
-      {/* هيكل القائمة الجانبية */}
-      <div className="hidden md:flex w-64 flex-col bg-muted/30 border-l p-4 gap-4">
-        <Skeleton className="h-10 w-3/4 rounded-lg" />
-        <div className="flex flex-col gap-2 mt-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-8 w-full rounded-md" />
-          ))}
-        </div>
-      </div>
-      {/* هيكل المحتوى الرئيسي */}
-      <div className="flex-1 flex flex-col">
-        <div className="h-16 border-b bg-muted/20 flex items-center px-6 gap-4">
-          <Skeleton className="h-8 w-32 rounded-md" />
-          <div className="flex-1" />
-          <Skeleton className="h-8 w-8 rounded-full" />
-        </div>
-        <div className="p-6 flex flex-col gap-4">
-          <Skeleton className="h-8 w-48 rounded-md" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 w-full rounded-xl" />
-            ))}
-          </div>
-          <Skeleton className="h-64 w-full rounded-xl" />
-        </div>
+    <div className="min-h-screen flex items-center justify-center" dir="rtl">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground">جارٍ التحميل...</p>
       </div>
     </div>
   );

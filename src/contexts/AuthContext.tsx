@@ -128,6 +128,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
+    // === Fallback: إذا لم يصدر INITIAL_SESSION (race condition) ===
+    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+      if (!isMounted) return;
+      // إذا لا يزال loading ولم يتم تعيين مستخدم، فالحدث لم يصدر
+      if (!lastUserIdRef.current && existingSession?.user) {
+        logger.info('[Auth] getSession fallback triggered');
+        const jwtRole = getRoleFromSession(existingSession);
+        lastUserIdRef.current = existingSession.user.id;
+        setSession(existingSession);
+        setUser(existingSession.user);
+        if (jwtRole) {
+          setRoleWithRef(jwtRole);
+        }
+        setLoading(false);
+      } else if (!existingSession) {
+        // لا جلسة — تأكد من إيقاف التحميل
+        setLoading(false);
+      }
+    });
+
     return () => {
       isMounted = false;
       subscription.unsubscribe();
