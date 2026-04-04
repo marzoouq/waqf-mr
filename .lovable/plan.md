@@ -1,69 +1,56 @@
-# خطة إعادة الهيكلة المعمارية — 4 مراحل
 
-## المرحلة 1: استخراج Page Hooks لصفحات المستفيدين (8 hooks جديدة)
 
-إنشاء hook مخصص لكل صفحة يستخرج كل المنطق (state, effects, callbacks, data fetching). الصفحة تبقى UI فقط.
+# خطة إعادة الهيكلة المُصحّحة — 4 مراحل
 
-| الصفحة | Hook جديد | ما يُستخرج |
-|--------|-----------|-----------|
-| `AccountsViewPage.tsx` (145 سطر) | `useAccountsViewPage` | 7 hooks + handleExportPdf + guards logic |
-| `BeneficiaryDashboard.tsx` (204 سطر) | `useBeneficiaryDashboardPage` | realtime subscription + fyProgress calc + guards |
-| `AnnualReportViewPage.tsx` (225 سطر) | `useAnnualReportViewPage` | 6 data hooks + grouped items + PDF/CSV export |
-| `BylawsViewPage.tsx` (189 سطر) | `useBylawsViewPage` | search + grouping + PDF export |
-| `NotificationsPage.tsx` (163 سطر) | `useNotificationsPage` | filters + grouping + push permission |
-| `InvoicesViewPage.tsx` (151 سطر) | `useInvoicesViewPage` | search + pagination + PDF + viewMode |
-| `SupportPage.tsx` (65 سطر) | `useSupportPage` | useState for ticket/dialog |
-| `BeneficiarySettingsPage.tsx` (113 سطر) | `useBeneficiarySettingsPage` | fetch beneficiaries + maskedId + retry |
+## المرحلة 1: استخراج 6 Page Hooks إلزامية
 
-**تحديث** `src/hooks/page/beneficiary/index.ts` لإضافة التصديرات الـ 8 الجديدة.
+إنشاء hook لكل صفحة في `src/hooks/page/beneficiary/` يستخرج كل المنطق. الصفحة تبقى JSX فقط.
+
+| الصفحة | Hook جديد |
+|--------|-----------|
+| `AccountsViewPage.tsx` (145 سطر) | `useAccountsViewPage` |
+| `BeneficiaryDashboard.tsx` (204 سطر) | `useBeneficiaryDashboardPage` |
+| `AnnualReportViewPage.tsx` (225 سطر) | `useAnnualReportViewPage` |
+| `BylawsViewPage.tsx` (189 سطر) | `useBylawsViewPage` |
+| `NotificationsPage.tsx` (163 سطر) | `useNotificationsPage` |
+| `InvoicesViewPage.tsx` (151 سطر) | `useInvoicesViewPage` |
+
+**مستبعدة:** `SupportPage` (65 سطر) و `BeneficiarySettingsPage` (113 سطر — اختيارية)
+
+تحديث `src/hooks/page/beneficiary/index.ts` لتصدير الـ 6 hooks الجديدة.
 
 ---
 
-## المرحلة 2: تصنيف ملفات `src/utils/` الجذرية (17 ملف + اختباراتهم)
+## المرحلة 2: تصنيف 19 ملف utils في 7 مجلدات فرعية
 
-نقل الملفات إلى مجلدات فرعية مع إنشاء barrel files:
+| المجلد | الملفات |
+|--------|---------|
+| `utils/financial/` | accountsCalculations, contractAllocation, contractHelpers, findAccountByFY, dashboardComputations |
+| `utils/format/` | format, normalizeDigits, maskData, safeNumber, safeErrorMessage, validateNationalId |
+| `utils/export/` | csv, xlsx, printDistributionReport, printShareReport |
+| `utils/chart/` | chartHelpers |
+| `utils/zatca/` | zatcaQr |
+| `utils/image/` | resizeImage |
+| `utils/fonts/` | loadAmiriFonts |
 
-```
-src/utils/
-├── financial/    ← accountsCalculations, contractAllocation, contractHelpers, findAccountByFY, dashboardComputations + tests
-├── format/       ← format, normalizeDigits, maskData, safeNumber, safeErrorMessage, validateNationalId + tests
-├── export/       ← csv, xlsx, printDistributionReport, printShareReport + tests
-├── chart/        ← chartHelpers + test
-├── zatca/        ← zatcaQr + test
-├── image/        ← resizeImage
-├── fonts/        ← loadAmiriFonts + test
-```
-
-**تحديث جميع الاستيرادات** — مثلاً `safeNumber` مستورد في 73 ملف، سيتحول من `@/utils/safeNumber` إلى `@/utils/format/safeNumber` (أو عبر barrel `@/utils/format`).
+لكل مجلد: barrel file + تحديث جميع الاستيرادات (~100 ملف).
 
 ---
 
 ## المرحلة 3: نقل `useIsMountedRef` إلى `hooks/ui/`
 
-- نقل `src/hooks/useIsMountedRef.ts` → `src/hooks/ui/useIsMountedRef.ts`
-- تحديث `src/hooks/ui/index.ts` لتصديره
-- تحديث الاستيرادات في `LoginForm.tsx` و `useBiometricAuth.ts`
+نقل الملف + تحديث barrel file + تحديث استيرادات `LoginForm.tsx` و `useBiometricAuth.ts`.
 
 ---
 
-## المرحلة 4: تنظيف Type Safety في `pdfHelpers.ts`
+## المرحلة 4: تحسين Type Safety في `pdfHelpers.ts`
 
-إضافة interface صريح بدلاً من `as unknown as`:
-
-```typescript
-interface JsPDFWithAutoTable extends jsPDF {
-  lastAutoTable?: { finalY: number };
-}
-
-export const getLastAutoTableY = (doc: jsPDF, fallback = 90): number =>
-  (doc as JsPDFWithAutoTable).lastAutoTable?.finalY ?? fallback;
-```
+إضافة `interface JsPDFWithAutoTable` بدلاً من `as unknown as` المباشر.
 
 ---
 
-## الترتيب: المرحلة 1 → 2 → 3 → 4
+## ترتيب التنفيذ: 1 → 2 → 3 → 4
 
-**ملاحظات:**
 - لن يتم تعديل أي ملف محمي
-- المرحلة 2 هي الأكثر تأثيراً على الاستيرادات (73+ ملف لـ safeNumber وحده)
-- كل الاستيرادات تستخدم `@/`
+- المرحلة 2 هي الأكثر تأثيراً على عدد الاستيرادات
+
