@@ -1,124 +1,28 @@
-import { useMemo, lazy, Suspense } from 'react';
+/**
+ * صفحة التقارير المالية للمستفيد
+ */
+import { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-
 import { Button } from '@/components/ui/button';
-import { AlertCircle, RefreshCw } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+import { AlertCircle, RefreshCw, BarChart3 } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
-import { BarChart3 } from 'lucide-react';
 import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { toast } from 'sonner';
-import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import { useMyShare } from '@/hooks/financial/useMyShare';
-import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
-
 import { Skeleton } from '@/components/ui/skeleton';
-import { isFyReady } from '@/constants/fiscalYearIds';
+import { useFinancialReportsPage } from '@/hooks/page/useFinancialReportsPage';
 
 const LazyFinancialCharts = lazy(() => import('@/components/financial/FinancialChartsInner'));
 
 const FinancialReportsPage = () => {
-  const queryClient = useQueryClient();
-  const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
-    queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
-    queryClient.invalidateQueries({ queryKey: ['accounts'] });
-  };
-  const pdfWaqfInfo = usePdfWaqfInfo();
-  
-
-  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
-
   const {
-    income,
-    beneficiaries,
-    currentAccount,
-    isAccountMissing,
-    totalIncome,
-    totalExpenses,
-    netAfterZakat,
-    adminShare,
-    waqifShare,
-    waqfRevenue,
-    waqfCorpusManual: _wcm,
-    availableAmount,
-    zakatAmount: _za,
-    incomeBySource,
-    expensesByTypeExcludingVat,
-    isLoading,
-    isError,
-  } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
-
-  // #9: جلب my_share من RPC الخادم كمصدر موثوق
-  const { data: dashData } = useBeneficiaryDashboardData(
-    isFyReady(fiscalYearId) ? fiscalYearId : undefined,
-  );
-  const { currentBeneficiary, myShare } = useMyShare({
-    beneficiaries,
-    availableAmount,
-    serverMyShare: dashData?.my_share,
-  });
-  const beneficiariesShare = availableAmount;
-
-  const incomeVsExpenses = useMemo(() => [
-    { name: 'الإيرادات', value: totalIncome, fill: 'hsl(var(--success))' },
-    { name: 'المصروفات', value: totalExpenses, fill: 'hsl(var(--destructive))' },
-  ], [totalIncome, totalExpenses]);
-
-  const expensesPieData = useMemo(() => Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value })), [expensesByTypeExcludingVat]);
-  const incomePieData = useMemo(() => Object.entries(incomeBySource).map(([name, value]) => ({ name, value })), [incomeBySource]);
-
-  const distributionData = useMemo(() => [
-    { name: 'حصتي', value: myShare, fill: 'hsl(var(--primary))' },
-    { name: 'باقي المستفيدين', value: Math.max(0, beneficiariesShare - myShare), fill: 'hsl(var(--info))' },
-  ], [myShare, beneficiariesShare]);
-
-  const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
-
-  const monthlyData = useMemo(() => {
-    const months: Record<string, number> = {};
-    income.forEach(item => {
-      const month = item.date?.substring(0, 7);
-      if (month) {
-        months[month] = (months[month] || 0) + Number(item.amount);
-      }
-    });
-    return Object.entries(months)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, total]) => ({ month, income: total }));
-  }, [income]);
-
-  const handleDownloadPDF = async () => {
-    try {
-      const { generateAnnualReportPDF } = await import('@/utils/pdf');
-      await generateAnnualReportPDF({
-        fiscalYear,
-        totalIncome,
-        totalExpenses,
-        netRevenue: netAfterZakat,
-        adminShare,
-        waqifShare,
-        waqfRevenue,
-        expensesByType: Object.entries(expensesByTypeExcludingVat).map(([type, amount]) => ({ type, amount })),
-        incomeBySource: Object.entries(incomeBySource).map(([source, amount]) => ({ source, amount })),
-        beneficiaries: currentBeneficiary ? [{
-          name: currentBeneficiary.name ?? 'غير معروف',
-          percentage: Number(currentBeneficiary.share_percentage ?? 0),
-          amount: myShare,
-        }] : [],
-      }, pdfWaqfInfo);
-      toast.success('تم تحميل ملف PDF بنجاح');
-    } catch {
-      toast.error('حدث خطأ أثناء تصدير PDF');
-    }
-  };
+    isLoading, isError, handleRetry,
+    isAccountMissing, selectedFY, currentBeneficiary,
+    incomeVsExpenses, distributionData, incomePieData, expensesPieData, monthlyData,
+    handleDownloadPDF,
+  } = useFinancialReportsPage();
 
   if (isLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
-
 
   if (isError) {
     return (
@@ -166,12 +70,10 @@ const FinancialReportsPage = () => {
     <RequirePublishedYears title="التقارير المالية" icon={BarChart3}>
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        {/* Header */}
         <PageHeaderCard title="التقارير المالية" icon={BarChart3} description="عرض وتحليل البيانات المالية للوقف" actions={
           <ExportMenu onExportPdf={handleDownloadPDF} />
         } />
 
-        {/* Subtitle */}
         <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 text-center">
           التحليل البياني للبيانات المالية — للأرقام التفصيلية راجع{' '}
           <Link to="/beneficiary/disclosure" className="text-sm text-primary hover:underline px-1">
@@ -179,7 +81,6 @@ const FinancialReportsPage = () => {
           </Link>
         </p>
 
-        {/* Charts */}
         <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
           <LazyFinancialCharts
             incomeVsExpenses={incomeVsExpenses}
