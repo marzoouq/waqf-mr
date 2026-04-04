@@ -88,7 +88,7 @@ const AdminDashboard = () => {
           <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
         </ErrorBoundary>
 
-        <DeferredRender delay={300}>
+        <DeferredRender delay={0}>
           <div className="print:hidden">
             <ErrorBoundary>
               <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
