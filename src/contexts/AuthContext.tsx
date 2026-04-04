@@ -86,50 +86,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        if (!isMounted) return;
+        /**
+         * حرج: نفصل تحديثات React عن قفل GoTrue الحصري باستخدام setTimeout(0).
+         * بدون ذلك، React 19 يحاول جدولة تحديثات داخل القفل مما يسبب:
+         * - "The provided callback is no longer runnable"
+         * - تعليق القفل 5000ms
+         * هذا هو نفس النمط المستخدم داخلياً في supabase-js.
+         * @see https://github.com/supabase/supabase-js/pull/2014
+         */
+        setTimeout(() => {
+          if (!isMounted) return;
 
-        const newUserId = currentSession?.user?.id ?? null;
+          const newUserId = currentSession?.user?.id ?? null;
 
-        // تجاهل الأحداث المتكررة لنفس المستخدم
-        if (
-          (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') &&
-          newUserId && newUserId === lastUserIdRef.current && roleRef.current
-        ) {
-          logger.info('[Auth] duplicate event ignored:', event);
-          return;
-        }
+          // تجاهل الأحداث المتكررة لنفس المستخدم
+          if (
+            (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') &&
+            newUserId && newUserId === lastUserIdRef.current && roleRef.current
+          ) {
+            logger.info('[Auth] duplicate event ignored:', event);
+            return;
+          }
 
-        logger.info('[Auth] onAuthStateChange:', event);
-        lastUserIdRef.current = newUserId;
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
+          logger.info('[Auth] onAuthStateChange:', event);
+          lastUserIdRef.current = newUserId;
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
 
-        if (!currentSession?.user) {
-          setRoleWithRef(null);
-          setLoading(false);
-          return;
-        }
+          if (!currentSession?.user) {
+            setRoleWithRef(null);
+            setLoading(false);
+            return;
+          }
 
-        // === محاولة قراءة الدور من JWT (فوري — لا await) ===
-        const jwtRole = getRoleFromSession(currentSession);
-        if (jwtRole) {
-          logger.info('[Auth] role from JWT:', jwtRole);
-          setRoleWithRef(jwtRole);
-          setLoading(false);
+          // === محاولة قراءة الدور من JWT (فوري — لا await) ===
+          const jwtRole = getRoleFromSession(currentSession);
+          if (jwtRole) {
+            logger.info('[Auth] role from JWT:', jwtRole);
+            setRoleWithRef(jwtRole);
+            setLoading(false);
 
-          // fire-and-forget
-          logAccessEvent({
-            event_type: 'role_fetch',
-            user_id: currentSession.user.id,
-            metadata: { role: jwtRole, source: 'jwt', status: 'success' },
-          });
-          checkNewDeviceLogin(currentSession.user.id, currentSession.user.email);
-          return;
-        }
+            // fire-and-forget
+            logAccessEvent({
+              event_type: 'role_fetch',
+              user_id: currentSession.user.id,
+              metadata: { role: jwtRole, source: 'jwt', status: 'success' },
+            });
+            checkNewDeviceLogin(currentSession.user.id, currentSession.user.email);
+            return;
+          }
 
-        // === Fallback: fire-and-forget — لا await داخل onAuthStateChange ===
-        logger.info('[Auth] role not in JWT, DB fallback');
-        fetchRoleFallback(currentSession.user.id, currentSession.user.email);
+          // === Fallback: fire-and-forget — لا await داخل onAuthStateChange ===
+          logger.info('[Auth] role not in JWT, DB fallback');
+          fetchRoleFallback(currentSession.user.id, currentSession.user.email);
+        }, 0);
       }
     );
 
