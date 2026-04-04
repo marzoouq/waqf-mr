@@ -3,6 +3,7 @@
  * يتيح البحث عبر العقارات والعقود والمستفيدين والمصروفات
  * يعمل كحقل بحث على الشاشات الكبيرة وكأيقونة + Dialog على الجوال
  */
+import { useId } from 'react';
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
