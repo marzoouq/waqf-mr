@@ -5,9 +5,11 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { startAuthentication } from '@simplewebauthn/browser';
+import { useIsMountedRef } from '@/hooks/useIsMountedRef';
 
 export function useBiometricAuth() {
   const [biometricLoading, setBiometricLoading] = useState(false);
+  const isMountedRef = useIsMountedRef();
 
   const handleBiometricLogin = async () => {
     setBiometricLoading(true);
@@ -57,7 +59,9 @@ export function useBiometricAuth() {
         toast.error('حدث خطأ أثناء المصادقة بالبصمة. أعد المحاولة أو سجّل الدخول بكلمة المرور');
       }
     } finally {
-      setBiometricLoading(false);
+      if (isMountedRef.current) {
+        setBiometricLoading(false);
+      }
     }
   };
 

@@ -9,6 +9,7 @@ import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/normalizeDigits';
 import { handleNationalIdLogin } from '@/lib/auth/nationalIdLogin';
+import { useIsMountedRef } from '@/hooks/useIsMountedRef';
 import BiometricLoginButton from './BiometricLoginButton';
 
 interface LoginFormProps {
@@ -26,6 +27,7 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [nidAttemptsRemaining, setNidAttemptsRemaining] = useState<number | null>(null);
+  const isMountedRef = useIsMountedRef();
   const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(() => {
     try {
       const stored = sessionStorage.getItem('nidLockedUntil');
@@ -76,7 +78,9 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
     } catch {
       toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
