@@ -10,6 +10,7 @@ export interface BeneficiaryDashboardData {
     id: string;
     name: string;
     share_percentage: number;
+    user_id: string;
   } | null;
   error?: string;
   total_beneficiary_percentage: number;
