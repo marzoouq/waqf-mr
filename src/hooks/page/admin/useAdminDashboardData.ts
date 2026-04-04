@@ -2,7 +2,7 @@
  * هوك لتحضير بيانات لوحة تحكم الناظر/المحاسب — يقرأ أرقام جاهزة من RPC
  */
 import { useMemo } from 'react';
-import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
+import { useAdminDashboardStats } from '@/hooks/page/admin/useAdminDashboardStats';
 import type { useDashboardSummary } from '@/hooks/data/financial/useDashboardSummary';
 
 type DashboardSummary = Omit<ReturnType<typeof useDashboardSummary>, 'isLoading' | 'isError'>;
