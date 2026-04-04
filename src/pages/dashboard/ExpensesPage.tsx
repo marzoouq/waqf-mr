@@ -1,10 +1,10 @@
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { TableSkeleton, TablePagination, ExportMenu } from '@/components/common';
 import { TrendingDown, Search, Lock, ShieldCheck } from 'lucide-react';
-import { buildCsv, downloadCsv } from '@/utils/csv';
+import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import { generateExpensesPDF } from '@/utils/pdf';

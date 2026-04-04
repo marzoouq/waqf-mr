@@ -11,8 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ChevronDown, Edit, Trash2, RefreshCw, Receipt } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { getPaymentCount, getPaymentTypeLabel } from '@/utils/contractHelpers';
-import { fmt } from '@/utils/format';
+import { getPaymentCount, getPaymentTypeLabel } from '@/utils/financial/contractHelpers';
+import { fmt } from '@/utils/format/format';
 import { statusConfig, InvoiceCard } from './accordion/AccordionParts';
 
 interface ContractAccordionGroupProps {

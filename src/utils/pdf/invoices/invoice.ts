@@ -4,7 +4,7 @@
  *
  * ملاحظة: تُرجع { blob, url } — الرفع والتخزين مسؤولية الطبقة المستدعية
  */
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { logger } from '@/lib/logger';
 import {
   generatePaymentInvoicePDF,

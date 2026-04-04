@@ -1,8 +1,8 @@
 /** ملخص الإجماليات على الجوال */
 import { Card, CardContent } from '@/components/ui/card';
 import { getTenantFromContracts, getMonthlyRent, getMonthlyFromContract } from './helpers';
-import { safeNumber } from '@/utils/safeNumber';
-import { fmt, fmtInt } from '@/utils/format';
+import { safeNumber } from '@/utils/format/safeNumber';
+import { fmt, fmtInt } from '@/utils/format/format';
 import type { UnitRow } from '@/hooks/data/properties/useUnits';
 import type { Contract } from '@/types/database';
 

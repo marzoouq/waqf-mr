@@ -3,7 +3,7 @@
  */
 import { useMemo, useState } from 'react';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAnnualReportItems, useReportStatus } from '@/hooks/data/content/useAnnualReport';
 import { useProperties } from '@/hooks/data/properties/useProperties';
@@ -11,7 +11,7 @@ import { useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useContracts } from '@/hooks/data/contracts/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { buildCsv, downloadCsv } from '@/utils/csv';
+import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
 import { DollarSign, Receipt, FileText, Building2 } from 'lucide-react';
 

@@ -2,7 +2,7 @@
  * طباعة تقرير التوزيع الشامل مباشرة من المتصفح بتنسيق رسمي
  * ملاحظة: لا يستورد toast — يُرجع false عند فشل فتح النافذة والطبقة المستدعية تتولى الإشعار
  */
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

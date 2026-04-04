@@ -2,7 +2,7 @@
  * جدول تفصيل التحصيل والمتأخرات — المكون الرئيسي
  */
 import { useState, useMemo } from 'react';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';

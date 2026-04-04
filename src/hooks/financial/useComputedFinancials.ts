@@ -6,11 +6,11 @@ import {
   calculateFinancials,
   groupIncomeBySource,
   groupExpensesByType,
-} from '@/utils/accountsCalculations';
+} from '@/utils/financial/accountsCalculations';
 import { activeYearFinancials } from '@/utils/financials/activeYearFinancials';
 import { closedYearFinancials } from '@/utils/financials/closedYearFinancials';
 import { isFyAll } from '@/constants/fiscalYearIds';
-import { safeNumber, safePercent } from '@/utils/safeNumber';
+import { safeNumber, safePercent } from '@/utils/format/safeNumber';
 
 interface ComputedParams {
   income: Income[];

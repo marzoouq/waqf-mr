@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateSaudiNationalId, getNationalIdError } from '@/utils/validateNationalId';
+import { validateSaudiNationalId, getNationalIdError } from '@/utils/format/validateNationalId';
 
 describe('validateSaudiNationalId — خوارزمية Luhn', () => {
   it('يرفض رقم أقل من 10 أرقام', () => {

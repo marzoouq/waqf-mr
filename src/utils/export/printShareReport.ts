@@ -2,8 +2,8 @@
  * طباعة تقرير حصة المستفيد
  * ملاحظة: لا يستورد toast — يُرجع false عند فشل فتح النافذة والطبقة المستدعية تتولى الإشعار
  */
-import { safeNumber } from '@/utils/safeNumber';
-import { fmt, fmtDate } from '@/utils/format';
+import { safeNumber } from '@/utils/format/safeNumber';
+import { fmt, fmtDate } from '@/utils/format/format';
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

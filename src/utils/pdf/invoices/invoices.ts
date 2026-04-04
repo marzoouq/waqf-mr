@@ -7,8 +7,8 @@ import {
   fmtDate,
 } from '../core/core';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
-import { safeNumber } from '@/utils/safeNumber';
-import { fmt } from '@/utils/format';
+import { safeNumber } from '@/utils/format/safeNumber';
+import { fmt } from '@/utils/format/format';
 
 export const generateInvoicesViewPDF = async (invoices: Array<{
   invoice_type: string;

@@ -7,7 +7,7 @@ import {
   fmtDate,
 } from '../core/core';
 import { getLastAutoTableY } from '../core/pdfHelpers';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 // ترجمة حالات التوزيع
 const distributionStatusLabel = (s: string): string => {

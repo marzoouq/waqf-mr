@@ -3,7 +3,7 @@
  */
 import { Card, CardContent } from '@/components/ui/card';
 import { Wallet, Clock, CheckCircle, Banknote, PieChart } from 'lucide-react';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 interface Props {
   sharePercentage: number;

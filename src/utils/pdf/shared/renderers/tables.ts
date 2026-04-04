@@ -8,7 +8,7 @@ import {
   reshapeArabic as rs, reshapeRow,
 } from '../../core/core';
 import { getLastAutoTableY } from '../../core/pdfHelpers';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import type { PaymentInvoicePdfData } from '../types';
 
 /** رسم جدول البنود (8 أعمدة) — يدعم بنوداً متعددة */

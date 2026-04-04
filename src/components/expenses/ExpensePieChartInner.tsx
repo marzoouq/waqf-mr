@@ -2,7 +2,7 @@
  * المكون الداخلي للرسم الدائري — يُحمَّل كسولاً لتجنب تحميل recharts في الحزمة الأولية.
  */
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
 const COLORS = [

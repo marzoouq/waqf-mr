@@ -2,7 +2,7 @@
  * دوال مشتركة لحسابات لوحات التحكم — تُستخدم في AdminDashboard وWaqifDashboard وPropertiesPage
  * لتوحيد المنطق وتجنب التكرار والتناقض
  */
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 
 // ═══ monthlyData ═══
 interface DateAmountItem {

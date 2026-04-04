@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Trash2, Edit, Paperclip, ChevronDown, ChevronUp, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { safeNumber } from '@/utils/safeNumber';
-import { fmt } from '@/utils/format';
+import { safeNumber } from '@/utils/format/safeNumber';
+import { fmt } from '@/utils/format/format';
 import ExpenseAttachments from './ExpenseAttachments';
 import type { Expense } from '@/types/relations';
 

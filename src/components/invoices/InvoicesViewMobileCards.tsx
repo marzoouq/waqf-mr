@@ -5,8 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Eye, FileText } from 'lucide-react';
-import { fmt, fmtDate } from '@/utils/format';
-import { safeNumber } from '@/utils/safeNumber';
+import { fmt, fmtDate } from '@/utils/format/format';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from '@/hooks/data/invoices/useInvoices';
 
 interface InvoiceItem {

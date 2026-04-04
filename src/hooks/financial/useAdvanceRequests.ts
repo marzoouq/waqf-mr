@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { STALE_REALTIME } from '@/lib/queryStaleTime';
 import { defaultNotify } from '@/lib/notify';
 import { notifyAdmins, notifyUser } from '@/lib/services';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 // إعادة تصدير الأنواع والهوكات
 export type { AdvanceRequest, AdvanceCarryforward } from '@/hooks/financial/advanceTypes';

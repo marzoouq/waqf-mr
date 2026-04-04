@@ -9,7 +9,7 @@ import {
   type SupportTicket,
 } from '@/hooks/data/support/useSupportTickets';
 import { toast } from 'sonner';
-import { fmtDate } from '@/utils/format';
+import { fmtDate } from '@/utils/format/format';
 
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   low: { label: 'منخفض', color: 'bg-muted text-muted-foreground' },

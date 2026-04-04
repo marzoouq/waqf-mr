@@ -8,7 +8,7 @@ import { generateBeneficiariesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { ExportMenu, TablePagination, CrudPagination } from '@/components/common';
-import { buildCsv, downloadCsv } from '@/utils/csv';
+import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';

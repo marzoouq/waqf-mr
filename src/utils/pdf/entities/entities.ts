@@ -1,6 +1,6 @@
 // autoTable is dynamically imported inside each function
-import { maskBankAccount, maskNationalId } from '@/utils/maskData';
-import { safeNumber } from '@/utils/safeNumber';
+import { maskBankAccount, maskNationalId } from '@/utils/format/maskData';
+import { safeNumber } from '@/utils/format/safeNumber';
 import {
   PdfWaqfInfo, UnitPdfRow, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
@@ -8,7 +8,7 @@ import {
   reshapeArabic as rs, reshapeRow,
   fmtDate,
 } from '../core/core';
-import { fmt, fmtInt } from '@/utils/format';
+import { fmt, fmtInt } from '@/utils/format/format';
 
 export const generatePropertiesPDF = async (properties: Array<{ property_number: string; property_type: string; location: string; area: number; description?: string | null }>, waqfInfo?: PdfWaqfInfo) => {
   const { default: autoTable } = await import('jspdf-autotable');

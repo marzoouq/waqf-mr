@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import type { FiscalAllocation } from '@/utils/contractAllocation';
+import type { FiscalAllocation } from '@/utils/financial/contractAllocation';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 export interface ContractFiscalAllocation {

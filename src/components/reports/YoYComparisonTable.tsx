@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 interface YoYComparisonTableProps {
   comparisonData: Record<string, unknown>[];

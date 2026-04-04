@@ -1,7 +1,7 @@
 /**
  * القالب المبسط (Simplified B2C)
  */
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import {
   computeInvoiceTotals, generateQR, fmtNum,
   type InvoiceTemplateData,

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { Edit, Trash2, Building2, MapPin, Ruler, Home, DoorOpen, AlertTriangle } from 'lucide-react';
-import { fmt, fmtInt } from '@/utils/format';
+import { fmt, fmtInt } from '@/utils/format/format';
 import type { Property } from '@/types/database';
 
 interface PropertyFinancials {

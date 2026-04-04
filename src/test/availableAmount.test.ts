@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateFinancials } from '@/utils/accountsCalculations';
+import { calculateFinancials } from '@/utils/financial/accountsCalculations';
 
 /**
  * اختبارات توحيد حساب availableAmount عبر صفحات المستفيد.

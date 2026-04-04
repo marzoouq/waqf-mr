@@ -6,8 +6,8 @@ import {
   reshapeArabic as rs, reshapeRow,
 } from '../core/core';
 import { getLastAutoTableY } from '../core/pdfHelpers';
-import { safeNumber } from '@/utils/safeNumber';
-import { fmt } from '@/utils/format';
+import { safeNumber } from '@/utils/format/safeNumber';
+import { fmt } from '@/utils/format/format';
 
 /* ───── تقرير توزيع الحصص ───── */
 export const generateDistributionsPDF = async (data: {

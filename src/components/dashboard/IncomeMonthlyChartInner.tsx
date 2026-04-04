@@ -2,7 +2,7 @@
  * مكوّن الرسم البياني الداخلي للدخل الشهري — يُحمّل بشكل كسول (lazy)
  */
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
 interface IncomeMonthlyChartInnerProps {

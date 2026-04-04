@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useTotalBeneficiaryPercentage } from './useTotalBeneficiaryPercentage';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 
 interface BeneficiaryLike {
   user_id?: string | null;

@@ -10,7 +10,7 @@ import {
   Check, X, Download, Loader2,
   ArrowUpDown, ArrowUp, ArrowDown, Eye,
 } from 'lucide-react';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import type { SortKey } from '@/hooks/page/admin/usePaymentInvoicesTab';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 

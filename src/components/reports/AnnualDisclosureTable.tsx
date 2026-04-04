@@ -1,7 +1,7 @@
 /**
  * جدول الإفصاح السنوي — مُستخرج من ReportsPage
  */
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText } from 'lucide-react';
 

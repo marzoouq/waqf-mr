@@ -4,7 +4,7 @@
  */
 
 import { Income, Expense } from '@/types/database';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 
 export interface FinancialParams {
   totalIncome: number;

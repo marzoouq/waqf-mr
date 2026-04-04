@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Building2, Edit, Plus } from 'lucide-react';
 import { PAYMENT_TYPES } from './constants';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import type { Contract } from '@/types/database';
 
 interface WholePropertyTabProps {

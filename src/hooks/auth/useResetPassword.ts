@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
+import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 
 export function useResetPassword() {
   const [password, setPassword] = useState('');

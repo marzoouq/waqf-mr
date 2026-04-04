@@ -2,7 +2,7 @@
  * هوك حسابات التوزيع على المستفيدين
  */
 import { useMemo } from 'react';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { usePaidAdvances, useActiveCarryforwards } from '@/hooks/data/financial/useDistributionAdvances';
 
 interface Beneficiary {

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useCreateAdvanceRequest } from '@/hooks/financial/useAdvanceRequests';
 import { Banknote, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import { useMaxAdvanceAmount } from '@/hooks/data/financial/useMaxAdvanceAmount';
 
 interface AdvanceRequestDialogProps {

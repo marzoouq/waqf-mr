@@ -6,7 +6,7 @@ import {
   reshapeArabic as rs, reshapeRow,
   fmtDate,
 } from '../core/core';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 export const generateIncomePDF = async (income: Array<{ source: string; amount: number; date: string; notes?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo) => {
   const { default: autoTable } = await import('jspdf-autotable');

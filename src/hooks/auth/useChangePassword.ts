@@ -3,7 +3,7 @@
  */
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
+import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { toast } from 'sonner';
 
 export const useChangePassword = () => {

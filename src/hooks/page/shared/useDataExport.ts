@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { buildCsv, downloadCsv } from '@/utils/csv';
-import { buildXlsx, downloadXlsx } from '@/utils/xlsx';
+import { buildCsv, downloadCsv } from '@/utils/export/csv';
+import { buildXlsx, downloadXlsx } from '@/utils/export/xlsx';
 import { fetchTableData } from '@/lib/export/dataFetcher';
 
 export type ExportableTable =

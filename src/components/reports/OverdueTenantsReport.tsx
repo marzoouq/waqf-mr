@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Clock } from 'lucide-react';
-import { fmt, fmtDate } from '@/utils/format';
+import { fmt, fmtDate } from '@/utils/format/format';
 
 interface OverdueTenantsReportProps {
   contracts: Array<{

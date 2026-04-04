@@ -4,7 +4,7 @@
 import type jsPDF from 'jspdf';
 import { PdfWaqfInfo, TABLE_HEAD_GREEN, baseTableStyles, reshapeArabic as rs } from '../core/core';
 import { getLastAutoTableY } from '../core/pdfHelpers';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import {
   type PaymentInvoicePdfData, statusLabel,
   computePdfTotals, renderAllowanceChargeTable, renderQrCode,

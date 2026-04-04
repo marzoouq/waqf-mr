@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Building2, CheckSquare } from 'lucide-react';
 import { type ContractFormData, type PricingMode, type RentalMode } from '../contractForm.types';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import type { Contract } from '@/types/database';
 
 import type { Unit } from '@/types/database';

@@ -4,7 +4,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Receipt, TrendingUp, TrendingDown, FileWarning } from 'lucide-react';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 interface SummaryData {
   total: number;

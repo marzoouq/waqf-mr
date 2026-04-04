@@ -2,7 +2,7 @@
  * حساب المؤشرات المالية لسنة نشطة (مفتوحة) مع حساب ختامي موجود
  * الحصص تُصفّر لأن السنة لم تُقفل بعد
  */
-import type { FinancialResult } from '@/utils/accountsCalculations';
+import type { FinancialResult } from '@/utils/financial/accountsCalculations';
 
 export interface ActiveYearParams {
   totalIncome: number;

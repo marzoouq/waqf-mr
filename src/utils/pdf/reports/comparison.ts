@@ -6,7 +6,7 @@ import {
   reshapeArabic as rs, reshapeRow,
 } from '../core/core';
 import { getLastAutoTableY } from '../core/pdfHelpers';
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 
 export interface YearComparisonPdfData {
   year1Label: string;

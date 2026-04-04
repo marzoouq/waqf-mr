@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MessageSquare, Search, Filter, Download, Eye, Loader2, Star } from 'lucide-react';
 import type { SupportTicket } from '@/hooks/data/support/useSupportTickets';
-import { fmtDate } from '@/utils/format';
+import { fmtDate } from '@/utils/format/format';
 import { STATUS_MAP, PRIORITY_MAP, CATEGORY_MAP } from './supportConstants';
 import SlaIndicator from './SlaIndicator';
 import TicketMobileCard from './TicketMobileCard';

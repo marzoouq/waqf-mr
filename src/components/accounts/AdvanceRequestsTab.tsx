@@ -1,4 +1,4 @@
-import { fmt, fmtDate } from '@/utils/format';
+import { fmt, fmtDate } from '@/utils/format/format';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -10,7 +10,7 @@ import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from 
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Loader2, CheckCircle, XCircle, Banknote, Clock, AlertTriangle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { safeNumber } from '@/utils/safeNumber';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 const PAGE_SIZE = 20;

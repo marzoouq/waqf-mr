@@ -2,8 +2,8 @@
  * دوال البحث الشامل — مستخرجة من useGlobalSearch
  */
 import { supabase } from '@/integrations/supabase/client';
-import { fmt } from '@/utils/format';
-import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format/format';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyReady } from '@/constants/fiscalYearIds';
 
 export interface SearchResult {

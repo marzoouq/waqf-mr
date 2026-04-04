@@ -1,4 +1,4 @@
-import { fmt } from '@/utils/format';
+import { fmt } from '@/utils/format/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { TrendingDown } from 'lucide-react';

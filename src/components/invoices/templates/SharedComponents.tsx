@@ -3,7 +3,7 @@
  */
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { generateQrDataUrl } from '@/utils/zatcaQr';
+import { generateQrDataUrl } from '@/utils/chart/zatcaQr';
 
 /** مكوّن QR موحّد */
 export function QrImage({ data, size, className }: { data: string; size: number; className?: string }) {
