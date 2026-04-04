@@ -20,5 +20,5 @@ export type { PropertyFinancials } from './usePropertyFinancials';
 export { usePropertyPerformance } from './usePropertyPerformance';
 export { useRawFinancialData } from './useRawFinancialData';
 export { useTotalBeneficiaryPercentage } from './useTotalBeneficiaryPercentage';
-export { useYoYComparison } from './useYoYComparison';
+
 export type { AdvanceRequest, AdvanceCarryforward } from './advanceTypes';
