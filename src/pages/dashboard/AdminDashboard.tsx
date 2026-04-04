@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { FiscalYearWidget, DashboardAlerts, DashboardStatsGrid, DashboardKpiPanel, CollectionSummaryCard, RecentContractsCard, QuickActionsCard, YearComparisonCard } from '@/components/dashboard';
 import { Printer, Gauge } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
+import type { FiscalYear } from '@/types/database';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // هوك البيانات المدمج
 import { useDashboardSummary } from '@/hooks/data/financial/useDashboardSummary';
 // هوك الحسابات المستخرج
-import { useAdminDashboardData } from '@/hooks/page/useAdminDashboardData';
+import { useAdminDashboardData } from '@/hooks/page/admin/useAdminDashboardData';
 
 
 // Lazy-load heavy below-the-fold components
@@ -116,7 +117,7 @@ const AdminDashboard = () => {
         </DeferredRender>
 
         <DeferredRender delay={900}>
-          <YearComparisonCard allFiscalYears={allFiscalYears as any} fiscalYearId={fiscalYearId} />
+          <YearComparisonCard allFiscalYears={allFiscalYears as FiscalYear[]} fiscalYearId={fiscalYearId} />
         </DeferredRender>
 
         {role === 'admin' && (

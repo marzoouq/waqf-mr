@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { BeneficiaryFormDialog, BeneficiaryCard } from '@/components/beneficiaries';
 import { AdvanceRequestsTab } from '@/components/accounts';
-import { useBeneficiariesPage } from '@/hooks/page/useBeneficiariesPage';
+import { useBeneficiariesPage } from '@/hooks/page/admin/useBeneficiariesPage';
 
 const BeneficiariesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();

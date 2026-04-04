@@ -7,7 +7,7 @@ import { Bot, Send, X, Sparkles, Trash2, MessageSquare, BarChart3, FileText, Wif
 import { cn } from '@/lib/utils';
 const ReactMarkdown = lazy(() => import('react-markdown'));
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useAiChat, type ChatMode } from '@/hooks/page/useAiChat';
+import { useAiChat, type ChatMode } from '@/hooks/page/shared/useAiChat';
 
 const MODE_CONFIG: Record<ChatMode, { label: string; icon: typeof Bot; placeholder: string; welcome: string }> = {
   chat: { label: 'محادثة', icon: MessageSquare, placeholder: 'اسأل المساعد الذكي...', welcome: 'اسألني عن أي شيء يتعلق بالوقف' },

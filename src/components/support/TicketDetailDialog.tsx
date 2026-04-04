@@ -13,7 +13,7 @@ import {
   useTicketReplies, useUpdateTicketStatus, useAddTicketReply,
   type SupportTicket,
 } from '@/hooks/data/support/useSupportTickets';
-import { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/hooks/page/useSupportDashboardPage';
+import { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/hooks/page/admin/useSupportDashboardPage';
 
 interface Props {
   ticket: SupportTicket;

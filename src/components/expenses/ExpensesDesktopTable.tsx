@@ -9,26 +9,16 @@ import { Trash2, Edit, Paperclip, ChevronDown, ChevronUp, ArrowUpDown, ArrowUp, 
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
 import ExpenseAttachments from './ExpenseAttachments';
+import type { Expense } from '@/types/relations';
 
 type SortField = 'expense_type' | 'amount' | 'date' | null;
 
-interface ExpenseItem {
-  id: string;
-  expense_type: string;
-  amount: number;
-  date: string;
-  description: string | null;
-  property?: { property_number: string } | null;
-  [key: string]: unknown;
-}
-
 interface ExpensesDesktopTableProps {
-  items: ExpenseItem[];
+  items: Expense[];
   expenseInvoiceMap: Map<string, number>;
   expandedRow: string | null;
   setExpandedRow: (id: string | null) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onEdit: (item: any) => void;
+  onEdit: (item: Expense) => void;
   onDelete: (target: { id: string; name: string }) => void;
   isLocked: boolean;
   sortField: SortField;

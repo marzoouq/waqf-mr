@@ -13,7 +13,7 @@ import { TablePagination, TableSkeleton } from '@/components/common';
 import AccessLogTab from '@/components/audit/AccessLogTab';
 import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 import { operationColor, DataDiff } from '@/components/audit/AuditLogHelpers';
-import { useAuditLogPage, getTableNameAr, getOperationNameAr } from '@/hooks/page/useAuditLogPage';
+import { useAuditLogPage, getTableNameAr, getOperationNameAr } from '@/hooks/page/admin/useAuditLogPage';
 
 const AuditLogPage = () => {
   const isMobile = useIsMobile();

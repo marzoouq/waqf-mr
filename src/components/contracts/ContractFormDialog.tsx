@@ -7,7 +7,7 @@ import { Contract } from '@/types/database';
 
 import ContractTenantIdSection from './ContractTenantIdSection';
 import { type ContractFormData } from './contractForm.types';
-import { useContractFormDialog } from '@/hooks/page/useContractFormDialog';
+import { useContractFormDialog } from '@/hooks/page/admin/useContractFormDialog';
 import ContractRentalModeSection from './contract-form/ContractRentalModeSection';
 import ContractPaymentSection from './contract-form/ContractPaymentSection';
 

@@ -14,7 +14,7 @@ import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useNavigate } from 'react-router-dom';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
-import { useMySharePdfHandlers } from '@/hooks/page/useMySharePdfHandlers';
+import { useMySharePdfHandlers } from '@/hooks/page/beneficiary/useMySharePdfHandlers';
 import { isFyReady } from '@/constants/fiscalYearIds';
 
 

@@ -6,6 +6,7 @@ import "./index.css";
 import { reportPageLoadMetrics } from "./lib/monitoring";
 import { initThemeFromStorage } from "./lib/theme/themeColor.utils";
 import { initQueryMonitoring } from "./lib/initQueryMonitoring";
+import { logger } from "./lib/logger";
 
 /** إزالة شاشة البداية بأمان */
 function removeSplash() {
@@ -47,8 +48,7 @@ try {
     </StrictMode>
   );
 } catch (error) {
-  // eslint-disable-next-line no-console
-  console.error('[BOOT] فشل الإقلاع:', error);
+  logger.error('[BOOT] فشل الإقلاع:', error);
 } finally {
   removeSplash();
 }

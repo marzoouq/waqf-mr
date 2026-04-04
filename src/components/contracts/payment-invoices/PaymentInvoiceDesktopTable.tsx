@@ -11,7 +11,7 @@ import {
   ArrowUpDown, ArrowUp, ArrowDown, Eye,
 } from 'lucide-react';
 import { fmt } from '@/utils/format';
-import type { SortKey } from '@/hooks/page/usePaymentInvoicesTab';
+import type { SortKey } from '@/hooks/page/admin/usePaymentInvoicesTab';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 
 interface PaymentInvoiceDesktopTableProps {

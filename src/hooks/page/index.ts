@@ -1,38 +1,6 @@
-export { useAdminDashboardData } from './useAdminDashboardData';
-export { useAdminDashboardStats } from './useAdminDashboardStats';
-export { useAiChat } from './useAiChat';
-export { useAnnualReportPage } from './useAnnualReportPage';
-export { useAuditLogPage } from './useAuditLogPage';
-export { useAuthPage } from './useAuthPage';
-export { useBeneficiariesPage } from './useBeneficiariesPage';
-export { useBeneficiaryMessages } from './useBeneficiaryMessages';
-export { useBulkNotifications } from './useBulkNotifications';
-export { useBylawsPage } from './useBylawsPage';
-export { useCarryforwardData } from './useCarryforwardData';
-export { useChartOfAccountsPage } from './useChartOfAccountsPage';
-export { useCollectionData } from './useCollectionData';
-export { useContractFormDialog } from './useContractFormDialog';
-export { useContractsBulkRenew } from './useContractsBulkRenew';
-export { useContractsFilters } from './useContractsFilters';
-export { useContractsPage } from './useContractsPage';
-export { useCreateInvoiceForm } from './useCreateInvoiceForm';
-export { useDataExport } from './useDataExport';
-export { useDisclosurePage } from './useDisclosurePage';
-export { useDistributionCalculation } from './useDistributionCalculation';
-export { useExpensesPage } from './useExpensesPage';
-export { useFiscalYearManagement } from './useFiscalYearManagement';
-export { useGlobalSearch } from './useGlobalSearch';
-export { useHistoricalComparison } from './useHistoricalComparison';
-export { useIncomePage } from './useIncomePage';
-export { useInvoicesPage } from './useInvoicesPage';
-export { useMessagesPage } from './useMessagesPage';
-export { useMySharePage } from './useMySharePage';
-export { useMySharePdfHandlers } from './useMySharePdfHandlers';
-export { useNavLinks } from './useNavLinks';
-export { usePaymentInvoicesTab } from './usePaymentInvoicesTab';
-export { usePropertiesPage } from './usePropertiesPage';
-export { usePropertiesViewData } from './usePropertiesViewData';
-export { useReportsData } from './useReportsData';
-export { useSecuritySettings } from './useSecuritySettings';
-export { useSupportDashboardPage } from './useSupportDashboardPage';
-export { useZatcaSettings } from './useZatcaSettings';
+/**
+ * تصدير مركزي لكل هوكات الصفحات — يحافظ على التوافق العكسي
+ */
+export * from './admin';
+export * from './beneficiary';
+export * from './shared';

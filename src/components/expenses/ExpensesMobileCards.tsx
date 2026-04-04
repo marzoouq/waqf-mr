@@ -8,24 +8,14 @@ import { Trash2, Edit, Paperclip } from 'lucide-react';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
 import ExpenseAttachments from './ExpenseAttachments';
-
-interface ExpenseItem {
-  id: string;
-  expense_type: string;
-  amount: number;
-  date: string;
-  description: string | null;
-  property?: { property_number: string } | null;
-  [key: string]: unknown;
-}
+import type { Expense } from '@/types/relations';
 
 interface ExpensesMobileCardsProps {
-  items: ExpenseItem[];
+  items: Expense[];
   expenseInvoiceMap: Map<string, number>;
   expandedRow: string | null;
   setExpandedRow: (id: string | null) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onEdit: (item: any) => void;
+  onEdit: (item: Expense) => void;
   onDelete: (target: { id: string; name: string }) => void;
   isLocked: boolean;
 }

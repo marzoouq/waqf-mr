@@ -21,7 +21,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useAnnualReportPage } from '@/hooks/page/useAnnualReportPage';
+import { useAnnualReportPage } from '@/hooks/page/admin/useAnnualReportPage';
 
 const AnnualReportPage = () => {
   const isMobile = useIsMobile();

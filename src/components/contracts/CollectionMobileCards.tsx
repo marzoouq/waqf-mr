@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 import { fmt } from '@/utils/format';
-import type { CollectionRow } from '@/hooks/page/useCollectionData';
+import type { CollectionRow } from '@/hooks/page/admin/useCollectionData';
 
 function getStatusBadge(status: CollectionRow['status']) {
   switch (status) {

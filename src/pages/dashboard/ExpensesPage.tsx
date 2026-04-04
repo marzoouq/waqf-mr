@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useExpensesPage } from '@/hooks/page/useExpensesPage';
+import { useExpensesPage } from '@/hooks/page/admin/useExpensesPage';
 
 const ExpensesPage = () => {
   const h = useExpensesPage();
