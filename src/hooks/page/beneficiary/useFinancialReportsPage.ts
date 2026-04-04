@@ -8,6 +8,7 @@ import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { isFyReady } from '@/constants/fiscalYearIds';
+import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { toast } from 'sonner';
 
 export const useFinancialReportsPage = () => {
