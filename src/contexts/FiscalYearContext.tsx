@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useActiveFiscalYear, FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { FY_NONE, FY_ALL, isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
