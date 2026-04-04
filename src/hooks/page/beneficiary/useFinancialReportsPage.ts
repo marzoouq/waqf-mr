@@ -12,6 +12,8 @@ import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { toast } from 'sonner';
 
 export const useFinancialReportsPage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
+  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
   const handleRetry = useRetryQueries(['financial-summary', 'beneficiaries', 'accounts']);
 
   const {

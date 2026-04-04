@@ -19,6 +19,9 @@ import { isFyReady } from '@/constants/fiscalYearIds';
 
 
 export const useMySharePage = () => {
+  const navigate = useNavigate();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const selectedFY = fiscalYear;
   const handleRetry = useRetryQueries(['income', 'expenses', 'accounts', 'beneficiaries-safe', 'my-distributions', 'total-beneficiary-percentage']);
 
   const {

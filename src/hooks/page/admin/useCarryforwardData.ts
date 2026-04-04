@@ -9,6 +9,7 @@ import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 export const useCarryforwardData = () => {
+  const { user } = useAuth();
   const handleRetry = useRetryQueries(['advance_carryforward', 'advance_requests', 'my-beneficiary']);
 
   const { data: beneficiary, isLoading: loadingBen, isError: benError } = useMyBeneficiaryProfile(user?.id);

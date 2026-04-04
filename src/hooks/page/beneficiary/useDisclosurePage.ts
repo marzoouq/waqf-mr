@@ -26,6 +26,8 @@ function toGregorianShort(dateStr: string): string {
 }
 
 export const useDisclosurePage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
+  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
   const handleRetry = useRetryQueries(['income', 'expenses', 'accounts', 'beneficiaries-safe', 'my-distributions', 'total-beneficiary-percentage']);
 
   const {

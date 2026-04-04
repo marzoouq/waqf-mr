@@ -2,6 +2,7 @@
  * هوك لوحة تحكم المستفيد — يستخرج كل المنطق من BeneficiaryDashboard
  */
 import { useCallback, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
