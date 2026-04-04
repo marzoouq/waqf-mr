@@ -210,7 +210,7 @@ const AccountsPage = () => {
           </Suspense>
         </DeferredRender>
 
-        <DeferredRender delay={1800}>
+        <DeferredRender delay={500}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsSavedTable
               accounts={page.accounts}

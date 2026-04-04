@@ -52,7 +52,7 @@ const NotificationsList = ({ groupedNotifications, isEmpty, onClickNotification,
                   <div
                     key={n.id}
                     className={cn(
-                      'group relative flex items-start gap-3 p-4 transition-all cursor-pointer',
+                      'group relative flex items-start gap-3 p-4 transition-colors cursor-pointer',
                       'hover:bg-muted/50',
                       !n.is_read && 'bg-primary/3'
                     )}

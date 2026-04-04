@@ -81,7 +81,7 @@ const WaqifDashboard = () => {
           )}
         </DeferredRender>
 
-        <DeferredRender delay={2000}>
+        <DeferredRender delay={600}>
           <WaqifQuickLinks />
         </DeferredRender>
       </div>

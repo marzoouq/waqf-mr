@@ -93,7 +93,7 @@ const BannerSettingsTab = () => {
               </button>
               <button
                 onClick={() => save({ position: "bottom" })}
-                className={`px-4 py-2 rounded-lg border-2 text-sm transition-all ${
+                className={`px-4 py-2 rounded-lg border-2 text-sm transition-colors ${
                   form.position === "bottom" ? "border-foreground bg-muted" : "border-transparent hover:bg-muted/50"
                 }`}
               >

@@ -83,7 +83,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               onClick={() => setMobileSidebarOpen(false)}
               onMouseEnter={() => getPrefetchHandler(link.to)?.()}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200',
                 isActive
                   ? 'bg-sidebar-accent text-sidebar-primary'
                   : 'text-sidebar-foreground hover:bg-sidebar-accent/50',
