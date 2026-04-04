@@ -12,6 +12,7 @@ import { useGlobalSearch } from '@/hooks/page/shared/useGlobalSearch';
 import SearchResults from '@/components/search/SearchResults';
 
 const GlobalSearch = () => {
+  const baseId = useId();
   const {
     query, setQuery,
     results, isLoading,
