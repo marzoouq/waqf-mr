@@ -109,7 +109,7 @@ const BeneficiaryDashboard = () => {
 
         {/* بطاقة طلب السُلفة */}
         {advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
-          <DeferredRender delay={800}>
+          <DeferredRender delay={300}>
             <BeneficiaryAdvanceCard
               beneficiaryId={currentBeneficiary.id!}
               fiscalYearId={fiscalYearId}
