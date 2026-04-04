@@ -51,7 +51,7 @@ const WaqifDashboard = () => {
 
         <WaqifOverviewStats stats={overviewStats} />
 
-        <DeferredRender delay={800}>
+        <DeferredRender delay={200}>
           <WaqifFinancialSection
             kpis={kpis}
             fiscalYearLabel={fiscalYear?.label || ''}
