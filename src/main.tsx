@@ -47,8 +47,7 @@ try {
     </StrictMode>
   );
 } catch (error) {
-  // eslint-disable-next-line no-console
-  console.error('[BOOT] فشل الإقلاع:', error);
+  logger.error('[BOOT] فشل الإقلاع:', error);
 } finally {
   removeSplash();
 }
