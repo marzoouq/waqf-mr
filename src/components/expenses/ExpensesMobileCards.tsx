@@ -8,6 +8,7 @@ import { Trash2, Edit, Paperclip } from 'lucide-react';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
 import ExpenseAttachments from './ExpenseAttachments';
+import type { Expense } from '@/types/relations';
 
 interface ExpenseItem {
   id: string;
