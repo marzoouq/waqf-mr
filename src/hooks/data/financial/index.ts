@@ -12,3 +12,4 @@ export { useIncomeComparison } from './useIncomeComparison';
 export type { IncomeComparison } from './useIncomeComparison';
 export { useMaxAdvanceAmount } from './useMaxAdvanceAmount';
 export type { ServerAdvanceData } from './useMaxAdvanceAmount';
+export { useCloseFiscalYear } from './useCloseFiscalYear';

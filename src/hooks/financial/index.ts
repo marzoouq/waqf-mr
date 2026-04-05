@@ -1,24 +1,25 @@
-export { useAccounts } from './useAccounts';
-export { useAccountsActions } from './useAccountsActions';
-export { useAccountsCalculations } from './useAccountsCalculations';
-export { useAccountsData } from './useAccountsData';
-export { useAccountsEditing } from './useAccountsEditing';
-export { useAccountsPage } from './useAccountsPage';
-export { useAccountsSettings } from './useAccountsSettings';
-export { useMyBeneficiaryFinance, useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards, useAllCarryforwards } from './useAdvanceQueries';
-export { useAdvanceRequests } from './useAdvanceRequests';
-export { useBeneficiarySummary } from './useBeneficiarySummary';
-export { useComputedFinancials } from './useComputedFinancials';
-export { useContractAllocationMap } from './useContractAllocationMap';
-export { useContractAllocations } from './useContractAllocations';
-export { useDistributeShares } from './useDistribute';
-export { useFinancialSummary } from './useFinancialSummary';
-export { useFiscalYears } from './useFiscalYears';
-export { useMyShare } from './useMyShare';
-export { computePropertyFinancials } from './usePropertyFinancials';
-export type { PropertyFinancials } from './usePropertyFinancials';
-export { usePropertyPerformance } from './usePropertyPerformance';
-export { useRawFinancialData } from './useRawFinancialData';
-export { useTotalBeneficiaryPercentage } from './useTotalBeneficiaryPercentage';
+/**
+ * تصدير مركزي — hooks/financial/
+ * مُنظّم في مجلدات فرعية حسب النطاق
+ */
 
-export type { AdvanceRequest, AdvanceCarryforward } from './advanceTypes';
+// الحسابات الختامية
+export * from './accounts';
+
+// السُلف والترحيل
+export * from './advances';
+
+// السنوات المالية والحسابات المحسوبة
+export * from './fiscal-years';
+
+// التوزيع والحصص
+export * from './distributions';
+
+// العقارات المالية
+export * from './properties';
+
+// تخصيص العقود
+export * from './contracts';
+
+// المقارنة بين السنوات
+export * from './comparison';
