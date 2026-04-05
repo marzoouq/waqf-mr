@@ -4,9 +4,8 @@
  */
 import { useState, useRef } from 'react';
 import { useCreateAccount } from '@/hooks/financial/useAccounts';
+import { useCloseFiscalYear } from '@/hooks/data/financial/useCloseFiscalYear';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
 import { notifyAllBeneficiaries } from '@/lib/services';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
@@ -43,15 +42,14 @@ interface ActionsParams {
 
 export function useAccountsActions(params: ActionsParams) {
   const { role } = useAuth();
-  const queryClient = useQueryClient();
   const createAccount = useCreateAccount();
+  const closeFiscalYear = useCloseFiscalYear();
 
   // مرجع داخلي يُحدّث تلقائياً في كل render — يُستخدم في callbacks غير متزامنة
   const paramsRef = useRef(params);
   paramsRef.current = params;
 
   const [closeYearOpen, setCloseYearOpen] = useState(false);
-  const [isClosingYear, setIsClosingYear] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   const buildAccountData = () => {
@@ -103,23 +101,13 @@ export function useAccountsActions(params: ActionsParams) {
       defaultNotify.error('فقط الناظر يمكنه إقفال السنة المالية');
       return;
     }
-    setIsClosingYear(true);
     try {
       const accountData = buildAccountData();
-      const { data: result, error } = await supabase.rpc('close_fiscal_year', {
-        p_fiscal_year_id: p.selectedFY.id,
-        p_account_data: JSON.parse(JSON.stringify(accountData)),
-        p_waqf_corpus_manual: p.waqfCorpusManual,
+      const rpcResult = await closeFiscalYear.mutateAsync({
+        fiscalYearId: p.selectedFY.id,
+        accountData,
+        waqfCorpusManual: p.waqfCorpusManual,
       });
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['income'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['contracts'] });
-      queryClient.invalidateQueries({ queryKey: ['tenant_payments'] });
-      queryClient.invalidateQueries({ queryKey: ['payment_invoices'] });
 
       notifyAllBeneficiaries(
         'إقفال السنة المالية',
@@ -127,7 +115,6 @@ export function useAccountsActions(params: ActionsParams) {
         'info', '/beneficiary/accounts',
       );
 
-      const rpcResult = result as { closed_label?: string; next_label?: string; warnings?: string[] } | null;
       if (rpcResult?.warnings && rpcResult.warnings.length > 0) {
         for (const w of rpcResult.warnings) {
           defaultNotify.warning(w, { duration: 10000 });
@@ -139,8 +126,6 @@ export function useAccountsActions(params: ActionsParams) {
     } catch (err) {
       logger.error('خطأ في إقفال السنة:', err instanceof Error ? err.message : err);
       defaultNotify.error('خطأ في إقفال السنة المالية');
-    } finally {
-      setIsClosingYear(false);
     }
   };
 
@@ -181,7 +166,7 @@ export function useAccountsActions(params: ActionsParams) {
   return {
     isExportingPdf,
     handleCreateAccount, handleCloseYear, handleExportPdf,
-    closeYearOpen, setCloseYearOpen, isClosingYear,
+    closeYearOpen, setCloseYearOpen, isClosingYear: closeFiscalYear.isPending,
     createAccountPending: createAccount.isPending,
   };
 }
