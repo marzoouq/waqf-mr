@@ -21,6 +21,23 @@ const CloseYearDialog = lazy(() => import('@/components/accounts/CloseYearDialog
 
 const SectionFallback = () => <Skeleton className="h-32 w-full rounded-lg" />;
 
+const handleExportCsv = (page: ReturnType<typeof useAccountsPage>) => {
+  const csv = buildCsv([{
+    'السنة المالية': page.selectedFY?.label || '-',
+    'إجمالي الإيرادات': page.totalIncome,
+    'إجمالي المصروفات': page.totalExpenses,
+    'صافي بعد المصروفات': page.netAfterExpenses,
+    'الضريبة': page.manualVat,
+    'الزكاة': page.zakatAmount,
+    'حصة الناظر': page.adminShare,
+    'حصة الواقف': page.waqifShare,
+    'ريع الوقف': page.waqfRevenue,
+    'رقبة الوقف': page.waqfCorpusManual,
+    'المتاح للتوزيع': page.availableAmount,
+  }]);
+  downloadCsv(csv, `حسابات-${page.selectedFY?.label || 'عام'}.csv`);
+};
+
 const AccountsPage = () => {
   const { role } = useAuth();
   const page = useAccountsPage();
@@ -38,22 +55,7 @@ const AccountsPage = () => {
                 <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية إدارية
               </span>
             )}
-            <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={() => {
-              const csv = buildCsv([{
-                'السنة المالية': page.selectedFY?.label || '-',
-                'إجمالي الإيرادات': page.totalIncome,
-                'إجمالي المصروفات': page.totalExpenses,
-                'صافي بعد المصروفات': page.netAfterExpenses,
-                'الضريبة': page.manualVat,
-                'الزكاة': page.zakatAmount,
-                'حصة الناظر': page.adminShare,
-                'حصة الواقف': page.waqifShare,
-                'ريع الوقف': page.waqfRevenue,
-                'رقبة الوقف': page.waqfCorpusManual,
-                'المتاح للتوزيع': page.availableAmount,
-              }]);
-              downloadCsv(csv, `حسابات-${page.selectedFY?.label || 'عام'}.csv`);
-            }} />
+            <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={() => handleExportCsv(page)} />
             <Button onClick={page.handleCreateAccount} className="gradient-primary gap-2" disabled={page.createAccountPending}>
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">إنشاء حساب ختامي</span>
@@ -68,25 +70,14 @@ const AccountsPage = () => {
         />
 
         <AccountsSettingsBar
-          fiscalYear={page.fiscalYear}
-          adminPercent={page.adminPercent}
-          waqifPercent={page.waqifPercent}
-          waqfCorpusPrevious={page.waqfCorpusPrevious}
-          manualVat={page.manualVat}
-          zakatAmount={page.zakatAmount}
-          waqfCorpusManual={page.waqfCorpusManual}
-          manualDistributions={page.manualDistributions}
-          calculatedVat={page.calculatedVat}
-          commercialRent={page.commercialRent}
-          vatPercentage={page.vatPercentage}
-          onFiscalYearChange={page.handleFiscalYearChange}
-          onAdminPercentChange={page.handleAdminPercentChange}
-          onWaqifPercentChange={page.handleWaqifPercentChange}
-          onWaqfCorpusPreviousChange={page.setWaqfCorpusPrevious}
-          onManualVatChange={page.setManualVat}
-          onZakatAmountChange={page.setZakatAmount}
-          onWaqfCorpusManualChange={page.setWaqfCorpusManual}
-          onManualDistributionsChange={page.setManualDistributions}
+          fiscalYear={page.fiscalYear} adminPercent={page.adminPercent} waqifPercent={page.waqifPercent}
+          waqfCorpusPrevious={page.waqfCorpusPrevious} manualVat={page.manualVat} zakatAmount={page.zakatAmount}
+          waqfCorpusManual={page.waqfCorpusManual} manualDistributions={page.manualDistributions}
+          calculatedVat={page.calculatedVat} commercialRent={page.commercialRent} vatPercentage={page.vatPercentage}
+          onFiscalYearChange={page.handleFiscalYearChange} onAdminPercentChange={page.handleAdminPercentChange}
+          onWaqifPercentChange={page.handleWaqifPercentChange} onWaqfCorpusPreviousChange={page.setWaqfCorpusPrevious}
+          onManualVatChange={page.setManualVat} onZakatAmountChange={page.setZakatAmount}
+          onWaqfCorpusManualChange={page.setWaqfCorpusManual} onManualDistributionsChange={page.setManualDistributions}
         />
 
         {page.isLoading ? (
@@ -99,99 +90,56 @@ const AccountsPage = () => {
             ))}
           </div>
         ) : (
-        <AccountsSummaryCards
-          waqfCorpusPrevious={page.waqfCorpusPrevious}
-          totalIncome={page.totalIncome}
-          grandTotal={page.grandTotal}
-          totalExpenses={page.totalExpenses}
-          netAfterExpenses={page.netAfterExpenses}
-          manualVat={page.manualVat}
-          netAfterVat={page.netAfterVat}
-          zakatAmount={page.zakatAmount}
-          netAfterZakat={page.netAfterZakat}
-          adminPercent={page.adminPercent}
-          adminShare={page.adminShare}
-          waqifPercent={page.waqifPercent}
-          waqifShare={page.waqifShare}
-          waqfRevenue={page.waqfRevenue}
-          waqfCorpusManual={page.waqfCorpusManual}
-          manualDistributions={page.manualDistributions}
-          remainingBalance={page.remainingBalance}
-          isClosed={page.isClosed}
-          usingFallbackPct={page.usingFallbackPct}
-        />
+          <AccountsSummaryCards
+            waqfCorpusPrevious={page.waqfCorpusPrevious} totalIncome={page.totalIncome}
+            grandTotal={page.grandTotal} totalExpenses={page.totalExpenses} netAfterExpenses={page.netAfterExpenses}
+            manualVat={page.manualVat} netAfterVat={page.netAfterVat} zakatAmount={page.zakatAmount}
+            netAfterZakat={page.netAfterZakat} adminPercent={page.adminPercent} adminShare={page.adminShare}
+            waqifPercent={page.waqifPercent} waqifShare={page.waqifShare} waqfRevenue={page.waqfRevenue}
+            waqfCorpusManual={page.waqfCorpusManual} manualDistributions={page.manualDistributions}
+            remainingBalance={page.remainingBalance} isClosed={page.isClosed} usingFallbackPct={page.usingFallbackPct}
+          />
         )}
 
         <AccountsContractsTable
-          contracts={page.contracts}
-          getPaymentPerPeriod={page.getPaymentPerPeriod}
-          getExpectedPayments={page.getExpectedPayments}
-          totalPaymentPerPeriod={page.totalPaymentPerPeriod}
-          totalAnnualRent={page.totalAnnualRent}
-          statusLabel={page.statusLabel}
+          contracts={page.contracts} getPaymentPerPeriod={page.getPaymentPerPeriod}
+          getExpectedPayments={page.getExpectedPayments} totalPaymentPerPeriod={page.totalPaymentPerPeriod}
+          totalAnnualRent={page.totalAnnualRent} statusLabel={page.statusLabel}
           onEditContract={page.handleOpenContractEdit}
           onDeleteContract={(id, name) => page.setDeleteTarget({ type: 'contract', id, name })}
         />
 
         <AccountsCollectionTable
-          contracts={page.contracts}
-          collectionData={page.collectionData}
-          editingIndex={page.editingIndex}
-          editData={page.editData}
-          setEditData={page.setEditData}
-          onStartEdit={page.handleStartEdit}
-          onCancelEdit={page.handleCancelEdit}
-          onSaveEdit={page.handleSaveEdit}
-          totalExpectedPayments={page.totalExpectedPayments}
-          totalPaidMonths={page.totalPaidMonths}
-          totalCollectedAll={page.totalCollectedAll}
-          totalArrearsAll={page.totalArrearsAll}
-          isUpdatePending={page.updateContractPending}
-          isUpsertPending={page.upsertPaymentPending}
+          contracts={page.contracts} collectionData={page.collectionData}
+          editingIndex={page.editingIndex} editData={page.editData} setEditData={page.setEditData}
+          onStartEdit={page.handleStartEdit} onCancelEdit={page.handleCancelEdit} onSaveEdit={page.handleSaveEdit}
+          totalExpectedPayments={page.totalExpectedPayments} totalPaidMonths={page.totalPaidMonths}
+          totalCollectedAll={page.totalCollectedAll} totalArrearsAll={page.totalArrearsAll}
+          isUpdatePending={page.updateContractPending} isUpsertPending={page.upsertPaymentPending}
         />
 
         <DeferredRender delay={100}>
           <Suspense fallback={<SectionFallback />}>
-            <AccountsIncomeTable
-              incomeCount={page.income.length}
-              incomeBySource={page.incomeBySource}
-              totalIncome={page.totalIncome}
-            />
+            <AccountsIncomeTable incomeCount={page.income.length} incomeBySource={page.incomeBySource} totalIncome={page.totalIncome} />
           </Suspense>
         </DeferredRender>
 
         <DeferredRender delay={200}>
           <Suspense fallback={<SectionFallback />}>
-            <AccountsExpensesTable
-              expensesCount={page.expenses.length}
-              expensesByType={page.expensesByType}
-              totalExpenses={page.totalExpenses}
-            />
+            <AccountsExpensesTable expensesCount={page.expenses.length} expensesByType={page.expensesByType} totalExpenses={page.totalExpenses} />
           </Suspense>
         </DeferredRender>
 
         <DeferredRender delay={300}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsDistributionTable
-              waqfCorpusPrevious={page.waqfCorpusPrevious}
-              totalIncome={page.totalIncome}
-              grandTotal={page.grandTotal}
-              totalExpenses={page.totalExpenses}
-              netAfterExpenses={page.netAfterExpenses}
-              manualVat={page.manualVat}
-              netAfterVat={page.netAfterVat}
-              zakatAmount={page.zakatAmount}
-              netAfterZakat={page.netAfterZakat}
-              adminPercent={page.adminPercent}
-              adminShare={page.adminShare}
-              waqifPercent={page.waqifPercent}
-              waqifShare={page.waqifShare}
-              waqfRevenue={page.waqfRevenue}
-              waqfCorpusManual={page.waqfCorpusManual}
-              availableAmount={page.availableAmount}
-              manualDistributions={page.manualDistributions}
-              remainingBalance={page.remainingBalance}
-              isClosed={page.isClosed}
+              waqfCorpusPrevious={page.waqfCorpusPrevious} totalIncome={page.totalIncome} grandTotal={page.grandTotal}
+              totalExpenses={page.totalExpenses} netAfterExpenses={page.netAfterExpenses} manualVat={page.manualVat}
+              netAfterVat={page.netAfterVat} zakatAmount={page.zakatAmount} netAfterZakat={page.netAfterZakat}
+              adminPercent={page.adminPercent} adminShare={page.adminShare} waqifPercent={page.waqifPercent}
+              waqifShare={page.waqifShare} waqfRevenue={page.waqfRevenue} waqfCorpusManual={page.waqfCorpusManual}
+              availableAmount={page.availableAmount} manualDistributions={page.manualDistributions}
+              remainingBalance={page.remainingBalance} isClosed={page.isClosed}
             />
           </Suspense>
         </DeferredRender>
@@ -199,10 +147,8 @@ const AccountsPage = () => {
         <DeferredRender delay={400}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsBeneficiariesTable
-              beneficiaries={page.beneficiaries}
-              manualDistributions={page.manualDistributions}
-              totalBeneficiaryPercentage={page.totalBeneficiaryPercentage}
-              availableAmount={page.availableAmount}
+              beneficiaries={page.beneficiaries} manualDistributions={page.manualDistributions}
+              totalBeneficiaryPercentage={page.totalBeneficiaryPercentage} availableAmount={page.availableAmount}
               accountId={page.currentAccount?.id}
               fiscalYearId={page.fiscalYearId === 'all' ? undefined : page.fiscalYearId}
               fiscalYearLabel={page.selectedFY?.label}
@@ -213,41 +159,29 @@ const AccountsPage = () => {
         <DeferredRender delay={500}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsSavedTable
-              accounts={page.accounts}
-              isLoading={page.isLoading}
+              accounts={page.accounts} isLoading={page.isLoading}
               onDeleteAccount={(id, name) => page.setDeleteTarget({ type: 'account', id, name })}
             />
           </Suspense>
         </DeferredRender>
 
         <AccountsDialogs
-          deleteTarget={page.deleteTarget}
-          setDeleteTarget={page.setDeleteTarget}
-          onConfirmDelete={page.handleConfirmDelete}
-          contractEditOpen={page.contractEditOpen}
-          setContractEditOpen={page.setContractEditOpen}
-          editingContractData={page.editingContractData}
-          setEditingContractData={page.setEditingContractData}
-          onSaveContractEdit={page.handleSaveContractEdit}
+          deleteTarget={page.deleteTarget} setDeleteTarget={page.setDeleteTarget}
+          onConfirmDelete={page.handleConfirmDelete} contractEditOpen={page.contractEditOpen}
+          setContractEditOpen={page.setContractEditOpen} editingContractData={page.editingContractData}
+          setEditingContractData={page.setEditingContractData} onSaveContractEdit={page.handleSaveContractEdit}
           isUpdatePending={page.updateContractPending}
         />
 
         <Suspense fallback={null}>
           <CloseYearDialog
-            open={page.closeYearOpen}
-            onOpenChange={page.setCloseYearOpen}
-            onConfirm={page.handleCloseYear}
-            isClosing={page.isClosingYear}
-            fyLabel={page.selectedFY?.label}
-            waqfCorpusManual={page.waqfCorpusManual}
-            totalIncome={page.totalIncome}
-            totalExpenses={page.totalExpenses}
-            netAfterExpenses={page.netAfterExpenses}
-            availableAmount={page.availableAmount}
-            distributionsAmount={page.manualDistributions}
-            hasAccount={!!page.currentAccount}
-            pendingAdvances={page.pendingAdvances}
-            unpaidInvoices={page.unpaidInvoices}
+            open={page.closeYearOpen} onOpenChange={page.setCloseYearOpen}
+            onConfirm={page.handleCloseYear} isClosing={page.isClosingYear}
+            fyLabel={page.selectedFY?.label} waqfCorpusManual={page.waqfCorpusManual}
+            totalIncome={page.totalIncome} totalExpenses={page.totalExpenses}
+            netAfterExpenses={page.netAfterExpenses} availableAmount={page.availableAmount}
+            distributionsAmount={page.manualDistributions} hasAccount={!!page.currentAccount}
+            pendingAdvances={page.pendingAdvances} unpaidInvoices={page.unpaidInvoices}
             beneficiaryPercentage={page.totalBeneficiaryPercentage}
           />
         </Suspense>
