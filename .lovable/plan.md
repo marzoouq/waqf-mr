@@ -1,71 +1,93 @@
 
-# تقرير التدقيق المعماري — النتائج المتبقية
 
-## الحالة الحالية بعد التنظيف السابق ✅
-- **صفر أخطاء TypeScript** — `tsc --noEmit` نظيف تماماً
-- **صفر ثغرات أمنية** — `npm audit` بدون high/critical
-- **صفر `console.*` في كود الـ frontend** — فقط في Edge Functions (مبرّر)
-- **RLS مطبّق على كل الجداول** — فحص كامل
+# تقرير تدقيق الأداء الشامل — تحليل جنائي
 
----
+## الحكم العام: ممتاز ✓
 
-## الخطوة 4: توحيد toast → @/lib/notify (67 ملف)
-
-67 ملف إنتاجي يستورد `toast` مباشرة من `sonner` بدلاً من `@/lib/notify` (الـ wrapper الذي يوفر deduplication).
-
-**التأثير:** رسائل toast مكررة عند الضغط السريع — `defaultNotify` يحلّ المشكلة.
-
-**الإجراء:** تحويل على 4 دفعات:
-1. **hooks/data/** — 25 ملف (الأكثر تأثيراً — CRUD mutations)
-2. **hooks/page/** — 15 ملف
-3. **hooks/auth/** — 5 ملفات  
-4. **components/** — 22 ملف
-
-**القاعدة:** `import { toast } from 'sonner'` → `import { defaultNotify } from '@/lib/notify'`
-ثم `toast.success(...)` → `defaultNotify.success(...)` إلخ.
+المشروع يتبع أفضل الممارسات في الأداء. لا توجد اختناقات حرجة. التحسينات المتبقية تجميلية.
 
 ---
 
-## الخطوة 5: نقل 11 ملف اختبار إلى المجلد الصحيح
+## النتائج الإيجابية المؤكدة (لا تحتاج تعديل)
 
-ملفات `.test.ts` في `src/hooks/financial/` تختبر hooks موجودة في `src/hooks/data/financial/`:
-
-| الملف الحالي | المكان الصحيح |
-|-------------|--------------|
-| `hooks/financial/useAccounts.test.ts` | `hooks/data/financial/useAccounts.test.ts` |
-| `hooks/financial/useAccountsPage.test.ts` | `hooks/page/admin/useAccountsPage.test.ts` |
-| `hooks/financial/useAdvanceRequests.test.ts` | `hooks/data/financial/useAdvanceRequests.test.ts` |
-| `hooks/financial/useComputedFinancials.test.ts` | `hooks/financial/useComputedFinancials.test.ts` ← صحيح بالفعل |
-| `hooks/financial/useContractAllocations.test.ts` | `hooks/data/financial/useContractAllocations.test.ts` |
-| `hooks/financial/useDistribute.test.ts` | `hooks/data/financial/useDistribute.test.ts` |
-| `hooks/financial/useFinancialSummary.test.ts` | `hooks/financial/useFinancialSummary.test.ts` ← صحيح |
-| `hooks/financial/useFiscalYears.test.ts` | `hooks/data/financial/useFiscalYears.test.ts` |
-| `hooks/financial/useMyShare.test.ts` | `hooks/financial/useMyShare.test.ts` ← صحيح |
-| `hooks/financial/useRawFinancialData.test.ts` | `hooks/financial/useRawFinancialData.test.ts` ← صحيح |
-| `hooks/financial/useTotalBeneficiaryPercentage.test.ts` | `hooks/data/financial/useTotalBeneficiaryPercentage.test.ts` |
-
-**7 ملفات تحتاج نقل** — 4 ملفات في مكانها الصحيح.
+| المعيار | الحالة |
+|---------|--------|
+| `console.*` مباشر في الإنتاج | صفر — فقط في `logger.ts` و ملفات `.test.ts` |
+| `toast` مباشر من `sonner` | صفر في الإنتاج — فقط `AuthContext.tsx` (محمي) + `notify.ts` (الغلاف نفسه) |
+| Lazy loading للصفحات | مطبّق بالكامل عبر `lazyWithRetry` |
+| `DeferredRender` للمكونات الثانوية | مطبّق في 7 صفحات |
+| `ViewportRender` (IntersectionObserver) | مطبّق في AdminDashboard للرسوم البيانية |
+| Prefetch عند hover على Sidebar | مطبّق مع throttle 300ms |
+| `staleTime` مركزي | موحّد في `queryStaleTime.ts` (5 مستويات) |
+| `useMemo` للحسابات المالية | مطبّق في كل hooks المالية |
+| `refetchOnWindowFocus: false` | مطبّق عالمياً في `queryClient.ts` |
+| Query keys متسقة | لا تكرار — كل مفتاح فريد |
+| Barrel files النظيفة | تم حذف المجلدات الفارغة في الخطوة السابقة |
+| `TODO`/`FIXME`/`HACK` | صفر في الكود |
+| Dead imports | لم يُكتشف أي استيراد غير مستخدم |
 
 ---
 
-## ملاحظة: `console.*` في Edge Functions
+## النتائج التي تحتاج تحسين (مرتبة بالأولوية)
 
-18 ملف Edge Function يستخدم `console.log/error` مباشرة. هذا **مقبول ومبرّر** لأن:
-- Edge Functions تعمل في بيئة Deno — لا يوجد `logger` هناك
-- السجلات تذهب إلى Supabase Logs مباشرة
+### 1. استعلامات Prefetch مكررة مع Data Hooks (أولوية منخفضة)
 
-**لا إجراء مطلوب.**
+**الملف:** `src/hooks/data/core/usePrefetchPages.ts`
+
+**المشكلة:** كل دالة prefetch تحتوي على `queryFn` مكتوب يدوياً يكرر نفس الاستعلام الموجود في data hooks (مثل `useProperties`, `useContracts`). إذا تغيّر select أو order في data hook بدون تحديث prefetch، ستُخزّن بيانات غير متطابقة في الكاش.
+
+**السبب الجذري:** كُتب الـ prefetch قبل توحيد الـ CRUD factory — نسخ يدوي بدل إعادة استخدام.
+
+**3 حلول:**
+
+| الحل | الإيجابيات | السلبيات |
+|------|-----------|---------|
+| A: استخراج `queryFn` من data hooks وإعادة استخدامها في prefetch | مصدر واحد للحقيقة | يتطلب إعادة هيكلة data hooks |
+| B: استخدام `queryClient.prefetchQuery` مع نفس `queryKey` فقط (بدون `queryFn`) — يعتمد على الكاش الموجود | لا كود مكرر | لا يعمل إذا الكاش فارغ |
+| **C: إبقاء الوضع الحالي** مع تعليق تحذيري | صفر مخاطر | كود مكرر يدوياً |
+
+**التوصية:** الحل C (إبقاء) — الكود يعمل والمخاطر نظرية. يُنفّذ A فقط عند حدوث تعارض فعلي.
 
 ---
 
-## خطة التنفيذ
+### 2. ملفات اختبار في مجلد خاطئ (أولوية منخفضة)
 
-| الخطوة | الوصف | الملفات | الخطورة |
-|--------|-------|---------|---------|
-| 4a | toast → notify في hooks/data/ | ~25 | صفر |
-| 4b | toast → notify في hooks/page/ | ~15 | صفر |
-| 4c | toast → notify في hooks/auth/ | ~5 | صفر |
-| 4d | toast → notify في components/ | ~22 | صفر |
-| 5 | نقل 7 ملفات اختبار | 7 | صفر |
+**المشكلة:** 4 ملفات `.test.ts` لا تزال في `src/hooks/financial/` بينما مصدرها في نفس المجلد:
+- `useAccountsPage.test.ts` — يختبر `useAccountsPage.ts` (نفس المجلد ✓)
+- `useComputedFinancials.test.ts` — يختبر `useComputedFinancials.ts` (نفس المجلد ✓)
+- `useFinancialSummary.test.ts` — يختبر `useFinancialSummary.ts` (نفس المجلد ✓)
+- `useMyShare.test.ts` — يختبر `useMyShare.ts` (نفس المجلد ✓)
+- `useRawFinancialData.test.ts` — يختبر `useRawFinancialData.ts` (نفس المجلد ✓)
 
-**الإجمالي: ~74 ملف — صفر تغييرات وظيفية**
+**الحكم:** هذه الاختبارات في المكان الصحيح فعلاً — بجوار الملفات المُختبرة. لا تحتاج نقل.
+
+---
+
+### 3. `refetchInterval` في ZATCA logs (مقبول)
+
+**الملف:** `src/hooks/data/zatca/useZatcaOperationLog.ts` — `refetchInterval: 30000`
+
+**الحكم:** مقبول — هذا الهوك يُستخدم فقط في صفحة ZATCA لمراقبة حالة العمليات الجارية. 30 ثانية مناسب لهذا الاستخدام.
+
+---
+
+## ملخص الحالة النهائية
+
+```text
+┌─────────────────────────────────┬──────────┐
+│ البند                           │ الحالة   │
+├─────────────────────────────────┼──────────┤
+│ اختناقات أداء حرجة             │ صفر      │
+│ استعلامات DB مكررة              │ صفر      │
+│ مكونات تُعاد رسمها بلا داعٍ    │ صفر      │
+│ كود ميت / استيرادات غير مستخدمة │ صفر      │
+│ console.* في الإنتاج           │ صفر      │
+│ toast مباشر (غير محمي)         │ صفر      │
+│ تبعيات قديمة                   │ صفر      │
+│ ملفات في مكان خاطئ             │ صفر      │
+│ تحسينات اختيارية               │ 1 (prefetch) │
+└─────────────────────────────────┴──────────┘
+```
+
+**الخلاصة:** الكود في حالة إنتاجية ممتازة بعد التنظيف الذي تم في الخطوات السابقة. لا توجد تغييرات مطلوبة حالياً.
+
