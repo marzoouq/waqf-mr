@@ -181,6 +181,17 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
         {renderChangeCard('التغير في الصافي', netChange, yearTotals.year1.net, yearTotals.year2.net)}
       </div>
 
+      {/* ملخصات إضافية من العرض */}
+      <Suspense fallback={null}>
+        <YoYSummaryCards
+          year1={viewYear1}
+          year2={viewYear2}
+          year1Label={year1Label}
+          year2Label={year2Label}
+          isLoading={summariesLoading}
+        />
+      </Suspense>
+
       {/* الرسوم البيانية */}
       <Suspense fallback={null}>
         <YoYChartsSection
