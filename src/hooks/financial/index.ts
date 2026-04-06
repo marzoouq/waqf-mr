@@ -1,22 +1,29 @@
 /**
  * تصدير مركزي — hooks/financial/
- * مُنظّم في مجلدات فرعية حسب النطاق (business logic فقط)
+ * Business logic فقط — لا استدعاءات Supabase مباشرة
  */
 
 // الحسابات الختامية
-export * from './accounts';
-
-// أنواع السُلف
-export * from './advances';
+export { useAccountsActions } from './useAccountsActions';
+export { useAccountsCalculations } from './useAccountsCalculations';
+export { useAccountsData } from './useAccountsData';
+export { useAccountsEditing } from './useAccountsEditing';
+export { useAccountsPage } from './useAccountsPage';
+export { useAccountsSettings } from './useAccountsSettings';
 
 // الحسابات المحسوبة
-export * from './fiscal-years';
+export { useComputedFinancials } from './useComputedFinancials';
+export { useRawFinancialData } from './useRawFinancialData';
+export { useFinancialSummary } from './useFinancialSummary';
 
 // حصة المستفيد
-export * from './distributions';
-
-// العقارات المالية
-export * from './properties';
+export { useMyShare } from './useMyShare';
 
 // تخصيص العقود
-export * from './contracts';
+export { useContractAllocationMap } from './useContractAllocationMap';
+
+// العقارات المالية
+export { computePropertyFinancials } from './usePropertyFinancials';
+export type { PropertyFinancials } from './usePropertyFinancials';
+export { usePropertyPerformance } from './usePropertyPerformance';
+export type { PropertyPerformanceItem, PropertyPerformanceTotals } from './usePropertyPerformance';
