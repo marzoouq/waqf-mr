@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { defaultNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
+import PasswordStrengthBar from './PasswordStrengthBar';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface SignupFormProps {
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -17,16 +20,39 @@ export default function SignupForm({ signUp }: SignupFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // أخطاء محلية أسفل الحقول
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+
+  const clearFieldError = (field: keyof typeof fieldErrors) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const validateEmailFormat = (value: string) => {
+    if (value && !EMAIL_REGEX.test(value)) {
+      setFieldErrors((prev) => ({ ...prev, email: 'صيغة البريد الإلكتروني غير صحيحة' }));
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signupEmail || !signupPassword) {
-      defaultNotify.error('يرجى إدخال البريد الإلكتروني وكلمة المرور');
+
+    // تحقق محلي
+    const errors: typeof fieldErrors = {};
+    if (!signupEmail) errors.email = 'يرجى إدخال البريد الإلكتروني';
+    else if (!EMAIL_REGEX.test(signupEmail)) errors.email = 'صيغة البريد الإلكتروني غير صحيحة';
+    if (!signupPassword) errors.password = 'يرجى إدخال كلمة المرور';
+    else if (signupPassword.length < 8) errors.password = 'كلمة المرور يجب أن تكون ٨ أحرف على الأقل';
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
-    if (signupPassword.length < 8) {
-      defaultNotify.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
-      return;
-    }
+
     setIsLoading(true);
     const { error } = await signUp(normalizeArabicDigits(signupEmail), signupPassword);
     setIsLoading(false);
@@ -45,12 +71,24 @@ export default function SignupForm({ signUp }: SignupFormProps) {
           id="signup-email"
           type="email"
           value={signupEmail}
-          onChange={(e) => setSignupEmail(e.target.value)}
+          onChange={(e) => { setSignupEmail(e.target.value); clearFieldError('email'); }}
+          onBlur={() => validateEmailFormat(signupEmail)}
           placeholder="example@email.com"
           dir="ltr"
           autoComplete="email"
           className="h-11"
+          disabled={isLoading}
+          aria-invalid={!!fieldErrors.email}
+          aria-describedby={fieldErrors.email ? 'signup-email-error' : undefined}
         />
+        <div className="min-h-[1.25rem]">
+          {fieldErrors.email && (
+            <p id="signup-email-error" role="alert" className="flex items-center gap-1 text-xs text-destructive">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              {fieldErrors.email}
+            </p>
+          )}
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="signup-password">كلمة المرور</Label>
@@ -59,11 +97,14 @@ export default function SignupForm({ signUp }: SignupFormProps) {
             id="signup-password"
             type={showPassword ? 'text' : 'password'}
             value={signupPassword}
-            onChange={(e) => setSignupPassword(e.target.value)}
+            onChange={(e) => { setSignupPassword(e.target.value); clearFieldError('password'); }}
             placeholder="••••••••"
             dir="ltr"
             autoComplete="new-password"
             className="h-11 pe-10"
+            disabled={isLoading}
+            aria-invalid={!!fieldErrors.password}
+            aria-describedby={fieldErrors.password ? 'signup-password-error' : 'signup-password-strength'}
           />
           <button
             type="button"
@@ -75,12 +116,28 @@ export default function SignupForm({ signUp }: SignupFormProps) {
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
+        <div className="min-h-[1.25rem]">
+          {fieldErrors.password && (
+            <p id="signup-password-error" role="alert" className="flex items-center gap-1 text-xs text-destructive">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              {fieldErrors.password}
+            </p>
+          )}
+        </div>
+        <div id="signup-password-strength">
+          <PasswordStrengthBar password={signupPassword} />
+        </div>
       </div>
       <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 text-center leading-relaxed">
         سيتم إنشاء حسابك كـ<strong>مستفيد</strong> ويحتاج تفعيل من ناظر الوقف قبل استخدامه.
       </p>
       <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading}>
-        {isLoading ? 'جاري التسجيل...' : 'إنشاء حساب'}
+        {isLoading ? (
+          <span className="flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            جاري التسجيل...
+          </span>
+        ) : 'إنشاء حساب'}
       </Button>
     </form>
   );

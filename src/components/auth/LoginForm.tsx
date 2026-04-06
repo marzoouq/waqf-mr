@@ -4,13 +4,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { defaultNotify } from '@/lib/notify';
-import { Mail, IdCard, KeyRound, AlertTriangle, ShieldAlert, Eye, EyeOff } from 'lucide-react';
+import { Mail, IdCard, KeyRound, AlertTriangle, ShieldAlert, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 import { handleNationalIdLogin } from '@/lib/auth/nationalIdLogin';
 import { useIsMountedRef } from '@/hooks/ui/useIsMountedRef';
 import BiometricLoginButton from './BiometricLoginButton';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface LoginFormProps {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -39,8 +41,43 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
     return null;
   });
 
+  // أخطاء محلية أسفل الحقول
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; nationalId?: string }>({});
+
+  const clearFieldError = (field: keyof typeof fieldErrors) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const validateEmailFormat = (value: string) => {
+    if (value && !EMAIL_REGEX.test(value)) {
+      setFieldErrors((prev) => ({ ...prev, email: 'صيغة البريد الإلكتروني غير صحيحة' }));
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // تحقق محلي
+    const errors: typeof fieldErrors = {};
+    if (loginMethod === 'email') {
+      if (!loginEmail) errors.email = 'يرجى إدخال البريد الإلكتروني';
+      else if (!EMAIL_REGEX.test(loginEmail)) errors.email = 'صيغة البريد الإلكتروني غير صحيحة';
+      if (!loginPassword) errors.password = 'يرجى إدخال كلمة المرور';
+    } else {
+      if (!nationalId) errors.nationalId = 'يرجى إدخال رقم الهوية';
+      if (!loginPassword) errors.password = 'يرجى إدخال كلمة المرور';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -54,15 +91,6 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
       }
 
       const resolvedEmail = normalizeArabicDigits(loginEmail);
-      if (!resolvedEmail) {
-        defaultNotify.error('يرجى إدخال البريد الإلكتروني');
-        return;
-      }
-
-      if (!loginPassword) {
-        defaultNotify.error('يرجى إدخال كلمة المرور');
-        return;
-      }
 
       const { error } = await signIn(resolvedEmail, loginPassword);
       if (error) {
@@ -72,8 +100,6 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
           email: resolvedEmail,
           metadata: { error_message: 'login_error', login_method: loginMethod },
         });
-      } else {
-        // إشعار الدخول الناجح مُعطّل — الانتقال للوحة التحكم كافٍ
       }
     } catch {
       defaultNotify.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
@@ -93,6 +119,7 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
           onValueChange={(v) => setLoginMethod(v as 'email' | 'national_id')}
           className="flex flex-wrap gap-3"
           dir="rtl"
+          disabled={isLoading}
         >
           <label
             htmlFor={`method-email${idSuffix}`}
@@ -100,7 +127,7 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
               loginMethod === 'email'
                 ? 'border-primary bg-accent shadow-sm'
                 : 'border-border hover:border-primary/30'
-            }`}
+            } ${isLoading ? 'opacity-60 pointer-events-none' : ''}`}
           >
             <RadioGroupItem value="email" id={`method-email${idSuffix}`} />
             <Mail className="w-4 h-4" />
@@ -112,7 +139,7 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
               loginMethod === 'national_id'
                 ? 'border-primary bg-accent shadow-sm'
                 : 'border-border hover:border-primary/30'
-            }`}
+            } ${isLoading ? 'opacity-60 pointer-events-none' : ''}`}
           >
             <RadioGroupItem value="national_id" id={`method-id${idSuffix}`} />
             <IdCard className="w-4 h-4" />
@@ -128,11 +155,23 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
             id={`signin-email${idSuffix}`}
             type="email"
             value={loginEmail}
-            onChange={(e) => setLoginEmail(e.target.value)}
+            onChange={(e) => { setLoginEmail(e.target.value); clearFieldError('email'); }}
+            onBlur={() => validateEmailFormat(loginEmail)}
             placeholder="example@email.com"
             dir="ltr"
             className="h-11"
+            disabled={isLoading}
+            aria-invalid={!!fieldErrors.email}
+            aria-describedby={fieldErrors.email ? `signin-email-error${idSuffix}` : undefined}
           />
+          <div className="min-h-[1.25rem]">
+            {fieldErrors.email && (
+              <p id={`signin-email-error${idSuffix}`} role="alert" className="flex items-center gap-1 text-xs text-destructive">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                {fieldErrors.email}
+              </p>
+            )}
+          </div>
         </div>
       ) : (
         <div className="space-y-2">
@@ -141,14 +180,23 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
             id={`signin-national-id${idSuffix}`}
             type="text"
             value={nationalId}
-            onChange={(e) => setNationalId(e.target.value)}
+            onChange={(e) => { setNationalId(e.target.value); clearFieldError('nationalId'); }}
             placeholder="1234567890"
             dir="ltr"
             className="h-11"
+            disabled={isLoading}
+            aria-invalid={!!fieldErrors.nationalId}
+            aria-describedby={fieldErrors.nationalId ? `signin-nid-error${idSuffix}` : undefined}
           />
           {/* مساحة محجوزة ثابتة لمنع القفزات البصرية (CLS) */}
           <div className="min-h-[1.25rem]">
-            {nidAttemptsRemaining !== null && nidAttemptsRemaining <= 3 && (
+            {fieldErrors.nationalId && (
+              <p id={`signin-nid-error${idSuffix}`} role="alert" className="flex items-center gap-1 text-xs text-destructive">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                {fieldErrors.nationalId}
+              </p>
+            )}
+            {!fieldErrors.nationalId && nidAttemptsRemaining !== null && nidAttemptsRemaining <= 3 && (
               <div className={`flex items-center gap-1.5 text-xs ${
                 nidAttemptsRemaining === 0 ? 'text-destructive' : 'text-caution-foreground'
               }`}>
@@ -175,11 +223,14 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
             id={`signin-password${idSuffix}`}
             type={showPassword ? 'text' : 'password'}
             value={loginPassword}
-            onChange={(e) => setLoginPassword(e.target.value)}
+            onChange={(e) => { setLoginPassword(e.target.value); clearFieldError('password'); }}
             placeholder="••••••••"
             dir="ltr"
             autoComplete="current-password"
             className="h-11 pe-10"
+            disabled={isLoading}
+            aria-invalid={!!fieldErrors.password}
+            aria-describedby={fieldErrors.password ? `signin-password-error${idSuffix}` : undefined}
           />
           <button
             type="button"
@@ -190,6 +241,14 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
           >
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
+        </div>
+        <div className="min-h-[1.25rem]">
+          {fieldErrors.password && (
+            <p id={`signin-password-error${idSuffix}`} role="alert" className="flex items-center gap-1 text-xs text-destructive">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              {fieldErrors.password}
+            </p>
+          )}
         </div>
       </div>
       <div className="flex justify-center">
@@ -204,7 +263,12 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
         </Button>
       </div>
       <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading}>
-        {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+        {isLoading ? (
+          <span className="flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            جاري تسجيل الدخول...
+          </span>
+        ) : 'تسجيل الدخول'}
       </Button>
 
       <BiometricLoginButton />
