@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUser } from '@/lib/services';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { useState, useCallback } from 'react';
 
@@ -87,13 +87,13 @@ export const useBulkMessageSender = () => {
       }
 
       if (successCount > 0) {
-        toast.success(`تم إرسال الرسالة لـ ${successCount} مستفيد`);
+        defaultNotify.success(`تم إرسال الرسالة لـ ${successCount} مستفيد`);
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
       } else {
-        toast.error('فشل إرسال الرسالة لجميع المستفيدين');
+        defaultNotify.error('فشل إرسال الرسالة لجميع المستفيدين');
       }
     } catch {
-      toast.error('حدث خطأ أثناء إرسال الرسائل');
+      defaultNotify.error('حدث خطأ أثناء إرسال الرسائل');
     } finally {
       setSending(false);
     }

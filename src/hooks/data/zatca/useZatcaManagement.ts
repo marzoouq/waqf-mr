@@ -4,7 +4,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
@@ -90,10 +90,10 @@ export function useZatcaManagement() {
       if (error) throw error;
       if (data && data.length >= limit) {
         logger.warn(`invoice_chain query hit limit (${limit})`);
-        toast.warning('تم الوصول للحد الأقصى (1000 سجل) — قد تكون هناك سجلات سلسلة إضافية غير معروضة');
+        defaultNotify.warning('تم الوصول للحد الأقصى (1000 سجل) — قد تكون هناك سجلات سلسلة إضافية غير معروضة');
       } else if (data && data.length >= 900) {
         logger.warn(`invoice_chain approaching limit: ${data.length}/${limit}`);
-        toast.info(`عدد سجلات السلسلة (${data.length}) يقترب من الحد الأقصى (1000)`);
+        defaultNotify.info(`عدد سجلات السلسلة (${data.length}) يقترب من الحد الأقصى (1000)`);
       }
       return data;
     },
@@ -114,8 +114,8 @@ export function useZatcaManagement() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => { toast.success('تم توليد XML بنجاح'); invalidateInvoices(); },
-    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
+    onSuccess: () => { defaultNotify.success('تم توليد XML بنجاح'); invalidateInvoices(); },
+    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
@@ -126,8 +126,8 @@ export function useZatcaManagement() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => { toast.success('تم التوقيع بنجاح'); invalidateInvoices(); queryClient.invalidateQueries({ queryKey: ['invoice-chain'] }); },
-    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
+    onSuccess: () => { defaultNotify.success('تم التوقيع بنجاح'); invalidateInvoices(); queryClient.invalidateQueries({ queryKey: ['invoice-chain'] }); },
+    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
@@ -138,8 +138,8 @@ export function useZatcaManagement() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => { toast.success('تم الإرسال لـ ZATCA'); invalidateInvoices(); },
-    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
+    onSuccess: () => { defaultNotify.success('تم الإرسال لـ ZATCA'); invalidateInvoices(); },
+    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
@@ -151,13 +151,13 @@ export function useZatcaManagement() {
       return data;
     },
     onSuccess: (data) => {
-      if (data?.validationResults?.status === 'PASS') toast.success('✅ اجتاز فحص الامتثال');
-      else if (data?.validationResults?.status === 'WARNING') toast.warning('⚠️ اجتاز مع تحذيرات');
-      else toast.error('❌ لم يجتز فحص الامتثال');
+      if (data?.validationResults?.status === 'PASS') defaultNotify.success('✅ اجتاز فحص الامتثال');
+      else if (data?.validationResults?.status === 'WARNING') defaultNotify.warning('⚠️ اجتاز مع تحذيرات');
+      else defaultNotify.error('❌ لم يجتز فحص الامتثال');
       invalidateInvoices();
       return data;
     },
-    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
+    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
@@ -166,10 +166,10 @@ export function useZatcaManagement() {
     try {
       const { error } = await supabase.functions.invoke('zatca-onboard', { body: { action: 'onboard' } });
       if (error) throw error;
-      toast.success('تم إرسال طلب التسجيل');
+      defaultNotify.success('تم إرسال طلب التسجيل');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'فشل التسجيل');
+      defaultNotify.error(e instanceof Error ? e.message : 'فشل التسجيل');
     } finally {
       setOnboardLoading(false);
     }
@@ -180,10 +180,10 @@ export function useZatcaManagement() {
     try {
       const { error } = await supabase.functions.invoke('zatca-onboard', { body: { action: 'production' } });
       if (error) throw error;
-      toast.success('✅ تمت الترقية لشهادة الإنتاج بنجاح');
+      defaultNotify.success('✅ تمت الترقية لشهادة الإنتاج بنجاح');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'فشلت الترقية للإنتاج');
+      defaultNotify.error(e instanceof Error ? e.message : 'فشلت الترقية للإنتاج');
     } finally {
       setProductionLoading(false);
     }

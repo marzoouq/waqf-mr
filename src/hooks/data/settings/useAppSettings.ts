@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { STALE_SETTINGS } from '@/lib/queryStaleTime';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 
@@ -50,7 +50,7 @@ export const useAppSettings = () => {
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
     },
     onError: () => {
-      toast.error('حدث خطأ أثناء حفظ الإعداد');
+      defaultNotify.error('حدث خطأ أثناء حفظ الإعداد');
     },
   });
 
@@ -72,7 +72,7 @@ export const useAppSettings = () => {
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
     },
     onError: () => {
-      toast.error('حدث خطأ أثناء حفظ الإعدادات');
+      defaultNotify.error('حدث خطأ أثناء حفظ الإعدادات');
     },
   });
 
@@ -100,7 +100,7 @@ export const useAppSettings = () => {
   const updateJsonSetting = async (key: string, value: object) => {
     try {
       await updateSetting.mutateAsync({ key, value: JSON.stringify(value) });
-      toast.success('تم حفظ الإعدادات بنجاح');
+      defaultNotify.success('تم حفظ الإعدادات بنجاح');
     } catch {
       // onError في useMutation يتكفل بعرض الخطأ — منع double toast
     }
