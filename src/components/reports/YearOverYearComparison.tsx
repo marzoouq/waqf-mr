@@ -8,7 +8,9 @@ import { generateYearComparisonPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { fmt } from '@/utils/format/format';
 import { useYearComparisonData } from '@/hooks/data/financial/useYearComparisonData';
+import { useFiscalYearSummaries } from '@/hooks/data/financial/useFiscalYearSummary';
 const YoYChartsSection = lazy(() => import('@/components/reports/YoYChartsSection'));
+const YoYSummaryCards = lazy(() => import('@/components/reports/YoYSummaryCards'));
 import { YoYComparisonTable } from '@/components/reports';
 
 interface YearOverYearComparisonProps {
