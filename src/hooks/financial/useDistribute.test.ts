@@ -8,7 +8,7 @@ vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useDistributeShares } from './useDistribute';
+import { useDistributeShares } from '@/hooks/data/financial/useDistribute';
 import { supabase } from '@/integrations/supabase/client';
 import React from 'react';
 

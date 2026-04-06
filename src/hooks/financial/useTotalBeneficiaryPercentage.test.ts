@@ -6,7 +6,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useTotalBeneficiaryPercentage } from './useTotalBeneficiaryPercentage';
+import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/useTotalBeneficiaryPercentage';
 import { supabase } from '@/integrations/supabase/client';
 import React from 'react';
 

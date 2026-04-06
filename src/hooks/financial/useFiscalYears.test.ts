@@ -22,7 +22,7 @@ vi.mock('@tanstack/react-query', () => ({
   },
 }));
 
-import { useActiveFiscalYear } from './useFiscalYears';
+import { useActiveFiscalYear } from '@/hooks/data/financial/useFiscalYears';
 
 describe('useActiveFiscalYear', () => {
   it('returns active fiscal year from list', () => {

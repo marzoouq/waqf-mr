@@ -13,7 +13,7 @@ vi.mock('@/hooks/financial/useFiscalYears', () => ({
 }));
 
 // Need to get the mock reference for per-test overrides
-import { useFiscalYears } from '@/hooks/financial/useFiscalYears';
+import { useFiscalYears } from '@/hooks/data/financial/useFiscalYears';
 const mockedUseFiscalYears = vi.mocked(useFiscalYears);
 
 describe('FiscalYearSelector', () => {
