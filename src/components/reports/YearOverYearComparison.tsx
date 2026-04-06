@@ -8,7 +8,9 @@ import { generateYearComparisonPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { fmt } from '@/utils/format/format';
 import { useYearComparisonData } from '@/hooks/data/financial/useYearComparisonData';
+import { useFiscalYearSummaries } from '@/hooks/data/financial/useFiscalYearSummary';
 const YoYChartsSection = lazy(() => import('@/components/reports/YoYChartsSection'));
+const YoYSummaryCards = lazy(() => import('@/components/reports/YoYSummaryCards'));
 import { YoYComparisonTable } from '@/components/reports';
 
 interface YearOverYearComparisonProps {
@@ -39,6 +41,13 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
 
   // استدعاء RPC واحد بدل 10 استعلامات
   const { year1Monthly, year2Monthly, totals, expensesByType } = useYearComparisonData(year1Id, year2Id);
+
+  // ملخصات إضافية من العرض v_fiscal_year_summary (عدد السجلات + فوترة)
+  const { data: viewSummaries, isLoading: summariesLoading } = useFiscalYearSummaries(
+    year1Id && year2Id && year1Id !== year2Id ? [year1Id, year2Id] : []
+  );
+  const viewYear1 = viewSummaries?.find(s => s.fiscalYearId === year1Id);
+  const viewYear2 = viewSummaries?.find(s => s.fiscalYearId === year2Id);
 
   const comparisonData = useMemo(() => {
     return MONTH_NAMES.map((name, idx) => ({
@@ -171,6 +180,17 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
         {renderChangeCard('التغير في المصروفات', expenseChange, yearTotals.year1.expenses, yearTotals.year2.expenses, true)}
         {renderChangeCard('التغير في الصافي', netChange, yearTotals.year1.net, yearTotals.year2.net)}
       </div>
+
+      {/* ملخصات إضافية من العرض */}
+      <Suspense fallback={null}>
+        <YoYSummaryCards
+          year1={viewYear1}
+          year2={viewYear2}
+          year1Label={year1Label}
+          year2Label={year2Label}
+          isLoading={summariesLoading}
+        />
+      </Suspense>
 
       {/* الرسوم البيانية */}
       <Suspense fallback={null}>
