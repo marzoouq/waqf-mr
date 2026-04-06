@@ -1,112 +1,71 @@
 
+# تقرير التدقيق المعماري — النتائج المتبقية
 
-# تقرير التدقيق المعماري الشامل
-
-## الحالة العامة: جيدة جداً ✓
-
-المشروع مُنظّم بشكل ممتاز مع فصل واضح بين الطبقات. لا توجد مشكلات حرجة أو ثغرات أمنية معمارية.
-
----
-
-## النتائج مرتّبة بالأولوية
-
-### 1. حزم غير مستخدمة في package.json (أولوية عالية)
-
-تم حذف 12 مكون UI في الخطوة السابقة، لكن الحزم المرتبطة **لا تزال في package.json**:
-
-| الحزمة | الحالة |
-|--------|--------|
-| `@radix-ui/react-context-menu` | لا مكون يستخدمها |
-| `@radix-ui/react-hover-card` | لا مكون يستخدمها |
-| `@radix-ui/react-menubar` | لا مكون يستخدمها |
-| `@radix-ui/react-navigation-menu` | لا مكون يستخدمها |
-| `@radix-ui/react-aspect-ratio` | لا مكون يستخدمها |
-| `@radix-ui/react-slider` | لا مكون يستخدمها |
-| `@radix-ui/react-toggle` | لا مكون يستخدمها |
-| `@radix-ui/react-toggle-group` | لا مكون يستخدمها |
-| `@radix-ui/react-toast` | المشروع يستخدم sonner |
-| `embla-carousel-react` | لا مكون يستخدمها |
-| `react-resizable-panels` | لا مكون يستخدمها |
-| `input-otp` | لا مكون يستخدمها |
-
-**الإجراء:** إزالة 12 حزمة من dependencies في package.json — يُقلّص حجم node_modules.
+## الحالة الحالية بعد التنظيف السابق ✅
+- **صفر أخطاء TypeScript** — `tsc --noEmit` نظيف تماماً
+- **صفر ثغرات أمنية** — `npm audit` بدون high/critical
+- **صفر `console.*` في كود الـ frontend** — فقط في Edge Functions (مبرّر)
+- **RLS مطبّق على كل الجداول** — فحص كامل
 
 ---
 
-### 2. نقل computePropertyFinancials إلى page hooks (أولوية متوسطة)
+## الخطوة 4: توحيد toast → @/lib/notify (67 ملف)
 
-صفحتان تستدعيان دالة حسابية مباشرة داخل JSX — يخالف نمط "الصفحة تعرض بيانات جاهزة فقط":
+67 ملف إنتاجي يستورد `toast` مباشرة من `sonner` بدلاً من `@/lib/notify` (الـ wrapper الذي يوفر deduplication).
 
-- `src/pages/dashboard/PropertiesPage.tsx` — تستورد وتستدعي `computePropertyFinancials` داخل `.map()`
-- `src/pages/beneficiary/PropertiesViewPage.tsx` — نفس النمط
+**التأثير:** رسائل toast مكررة عند الضغط السريع — `defaultNotify` يحلّ المشكلة.
 
-**الإجراء:**
-1. نقل الاستدعاء إلى `usePropertiesPage.ts` و `usePropertiesViewData.ts` داخل `useMemo`
-2. الصفحتان تستهلكان بيانات جاهزة فقط
+**الإجراء:** تحويل على 4 دفعات:
+1. **hooks/data/** — 25 ملف (الأكثر تأثيراً — CRUD mutations)
+2. **hooks/page/** — 15 ملف
+3. **hooks/auth/** — 5 ملفات  
+4. **components/** — 22 ملف
 
----
-
-### 3. تنظيف barrel files الفارغة (أولوية متوسطة)
-
-6 مجلدات فرعية في `hooks/financial/` تحتوي فقط على `index.ts` يعيد التصدير — **ولا أحد يستوردها**:
-
-```text
-hooks/financial/accounts/      ← 0 مستهلكين
-hooks/financial/advances/      ← 0 مستهلكين  
-hooks/financial/contracts/     ← 0 مستهلكين
-hooks/financial/distributions/ ← 0 مستهلكين
-hooks/financial/fiscal-years/  ← 0 مستهلكين
-hooks/financial/properties/    ← 0 مستهلكين
-```
-
-كل الملفات تستورد مباشرة من `@/hooks/financial/useXxx`. هذه المجلدات dead code.
-
-**الإجراء:** حذف المجلدات الـ 6 + تبسيط `hooks/financial/index.ts`
+**القاعدة:** `import { toast } from 'sonner'` → `import { defaultNotify } from '@/lib/notify'`
+ثم `toast.success(...)` → `defaultNotify.success(...)` إلخ.
 
 ---
 
-### 4. توحيد استخدام toast → notify (أولوية منخفضة)
+## الخطوة 5: نقل 11 ملف اختبار إلى المجلد الصحيح
 
-42 ملف يستورد `toast` مباشرة من `sonner` بينما يوجد wrapper في `@/lib/notify` يوفر deduplication. التحويل تدريجي وآمن.
+ملفات `.test.ts` في `src/hooks/financial/` تختبر hooks موجودة في `src/hooks/data/financial/`:
 
-**الإجراء:** تحويل 42 ملف لاستخدام `@/lib/notify` — يُنفّذ على دفعات.
+| الملف الحالي | المكان الصحيح |
+|-------------|--------------|
+| `hooks/financial/useAccounts.test.ts` | `hooks/data/financial/useAccounts.test.ts` |
+| `hooks/financial/useAccountsPage.test.ts` | `hooks/page/admin/useAccountsPage.test.ts` |
+| `hooks/financial/useAdvanceRequests.test.ts` | `hooks/data/financial/useAdvanceRequests.test.ts` |
+| `hooks/financial/useComputedFinancials.test.ts` | `hooks/financial/useComputedFinancials.test.ts` ← صحيح بالفعل |
+| `hooks/financial/useContractAllocations.test.ts` | `hooks/data/financial/useContractAllocations.test.ts` |
+| `hooks/financial/useDistribute.test.ts` | `hooks/data/financial/useDistribute.test.ts` |
+| `hooks/financial/useFinancialSummary.test.ts` | `hooks/financial/useFinancialSummary.test.ts` ← صحيح |
+| `hooks/financial/useFiscalYears.test.ts` | `hooks/data/financial/useFiscalYears.test.ts` |
+| `hooks/financial/useMyShare.test.ts` | `hooks/financial/useMyShare.test.ts` ← صحيح |
+| `hooks/financial/useRawFinancialData.test.ts` | `hooks/financial/useRawFinancialData.test.ts` ← صحيح |
+| `hooks/financial/useTotalBeneficiaryPercentage.test.ts` | `hooks/data/financial/useTotalBeneficiaryPercentage.test.ts` |
 
----
-
-### 5. اختبارات في مجلد خاطئ (أولوية منخفضة)
-
-ملفات `.test.ts` في `hooks/financial/` تختبر hooks موجودة في `hooks/data/financial/`:
-- `useAccounts.test.ts`, `useAdvanceRequests.test.ts`, `useComputedFinancials.test.ts`, etc.
-
-هذا لا يُسبب خطأ (الاستيرادات تستخدم `@/`) لكنه مُربك تنظيمياً.
-
-**الإجراء:** نقل ملفات الاختبار بجوار الملفات المُختبرة.
-
----
-
-## نتائج إيجابية (لا تحتاج تعديل)
-
-| المعيار | الحالة |
-|---------|--------|
-| فصل الاهتمامات (data vs UI vs state) | ممتاز — لا استدعاءات Supabase في مكونات UI |
-| Type safety — `any` | صفر في الكود الإنتاجي (حالة واحدة مبرّرة في chart.tsx) |
-| `console.*` مباشر | صفر — كل شيء عبر `logger` |
-| Lazy loading للصفحات | مطبّق بالكامل |
-| `useMemo` للحسابات المالية الثقيلة | مطبّق |
-| Page hooks pattern | مطبّق — كل صفحة لها hook مخصص |
-| التبعيات محدّثة | React 19, TanStack Query 5, TypeScript 6, Vite 5 — كلها حديثة |
+**7 ملفات تحتاج نقل** — 4 ملفات في مكانها الصحيح.
 
 ---
 
-## خطة التنفيذ المقترحة
+## ملاحظة: `console.*` في Edge Functions
 
-| الخطوة | الوصف | الملفات المتأثرة | الخطورة |
-|--------|-------|-----------------|---------|
-| 1 | إزالة 12 حزمة غير مستخدمة من package.json | 1 ملف | صفر |
-| 2 | نقل computePropertyFinancials إلى page hooks | 4 ملفات | منخفضة |
-| 3 | حذف 6 مجلدات barrel فارغة | 7 ملفات | صفر |
-| 4 | توحيد toast → notify (اختياري) | 42 ملف | منخفضة |
-| 5 | نقل ملفات الاختبار (اختياري) | 8 ملفات | صفر |
+18 ملف Edge Function يستخدم `console.log/error` مباشرة. هذا **مقبول ومبرّر** لأن:
+- Edge Functions تعمل في بيئة Deno — لا يوجد `logger` هناك
+- السجلات تذهب إلى Supabase Logs مباشرة
 
-**الإجمالي: ~62 ملف — صفر تغييرات وظيفية**
+**لا إجراء مطلوب.**
 
+---
+
+## خطة التنفيذ
+
+| الخطوة | الوصف | الملفات | الخطورة |
+|--------|-------|---------|---------|
+| 4a | toast → notify في hooks/data/ | ~25 | صفر |
+| 4b | toast → notify في hooks/page/ | ~15 | صفر |
+| 4c | toast → notify في hooks/auth/ | ~5 | صفر |
+| 4d | toast → notify في components/ | ~22 | صفر |
+| 5 | نقل 7 ملفات اختبار | 7 | صفر |
+
+**الإجمالي: ~74 ملف — صفر تغييرات وظيفية**
