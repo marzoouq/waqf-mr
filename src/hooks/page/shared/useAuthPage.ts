@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 
 import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
@@ -5,7 +6,6 @@ import { useRegistrationEnabled } from '@/hooks/data/settings/useRegistrationEna
 import { usePwaInstall } from '@/hooks/ui/usePwaInstall';
 import { useOfflineDetect } from '@/hooks/ui/useOfflineDetect';
 import { useRoleRedirect } from '@/hooks/ui/useRoleRedirect';
-import { useEffect } from 'react';
 
 export const useAuthPage = () => {
   const { signIn, signUp, user, role, loading, signOut } = useAuth();
@@ -16,7 +16,7 @@ export const useAuthPage = () => {
   const { roleWaitTimeout } = useRoleRedirect(user, role, loading);
 
   // حالات الواجهة
-  const [resetMode, setResetMode] = __import_useState(false);
+  const [resetMode, setResetMode] = useState(false);
 
   // رسالة تسجيل الخروج بسبب عدم النشاط
   useEffect(() => {
