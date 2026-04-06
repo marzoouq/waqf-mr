@@ -13,3 +13,20 @@ export type { IncomeComparison } from './useIncomeComparison';
 export { useMaxAdvanceAmount } from './useMaxAdvanceAmount';
 export type { ServerAdvanceData } from './useMaxAdvanceAmount';
 export { useCloseFiscalYear } from './useCloseFiscalYear';
+
+// --- هوكات منقولة من hooks/financial/ ---
+export { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useAccountByFiscalYear } from './useAccounts';
+export { useMyBeneficiaryFinance, useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards, useAllCarryforwards } from './useAdvanceQueries';
+export type { AdvanceRequest, AdvanceCarryforward } from './useAdvanceQueries';
+export { useAdvanceRequests, useCreateAdvanceRequest, useUpdateAdvanceStatus } from './useAdvanceRequests';
+export { useBeneficiarySummary } from './useBeneficiarySummary';
+export type { BeneficiarySummaryData } from './useBeneficiarySummary';
+export { useContractAllocations, useUpsertContractAllocations } from './useContractAllocations';
+export type { ContractFiscalAllocation } from './useContractAllocations';
+export { useDistributeShares } from './useDistribute';
+export { useFiscalYears, useActiveFiscalYear } from './useFiscalYears';
+export type { FiscalYear } from './useFiscalYears';
+export { useMultiYearSummary } from './useMultiYearSummary';
+export type { YearSummaryEntry } from './useMultiYearSummary';
+export { useTotalBeneficiaryPercentage } from './useTotalBeneficiaryPercentage';
+export { useYearComparisonData } from './useYearComparisonData';
