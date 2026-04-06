@@ -20,7 +20,7 @@ const PropertiesViewPage = () => {
   const {
     properties, units, contracts, isLoading, isError,
     refetchProps, refetchUnits,
-    isClosed, isSpecificYear,
+    isClosed,
     expandedId, setExpandedId,
     pdfWaqfInfo,
     totalUnits, occupiedUnits,
