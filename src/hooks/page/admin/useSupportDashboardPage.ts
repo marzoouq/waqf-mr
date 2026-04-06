@@ -8,7 +8,7 @@ import {
   useClientErrors, fetchTicketsForExport,
   type SupportTicket,
 } from '@/hooks/data/support/useSupportTickets';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { fmtDate } from '@/utils/format/format';
 
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
@@ -33,7 +33,7 @@ async function exportToCsv(filename: string, headers: string[], rows: string[][]
   const { buildCsvFromRows, downloadCsv } = await import('@/utils/export/csv');
   const csv = buildCsvFromRows(headers, rows);
   downloadCsv(csv, filename);
-  toast.success(`تم تصدير ${rows.length} سجل`);
+  defaultNotify.success(`تم تصدير ${rows.length} سجل`);
 }
 
 export function useSupportDashboardPage() {
@@ -81,7 +81,7 @@ export function useSupportDashboardPage() {
       ]);
       await exportToCsv('support-tickets.csv', headers, csvRows);
     } catch {
-      toast.error('فشل تصدير التذاكر');
+      defaultNotify.error('فشل تصدير التذاكر');
     }
   }, []);
 

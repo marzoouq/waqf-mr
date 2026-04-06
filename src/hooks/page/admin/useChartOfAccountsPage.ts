@@ -2,7 +2,7 @@
  * هوك منطق صفحة الشجرة المحاسبية
  */
 import { useState, useMemo } from 'react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import {
   useAccountCategoryTree,
   useCreateAccountCategory,
@@ -100,7 +100,7 @@ export function useChartOfAccountsPage() {
 
   const handleSave = () => {
     if (!form.code.trim() || !form.name.trim()) {
-      toast.error('يرجى تعبئة الكود والاسم');
+      defaultNotify.error('يرجى تعبئة الكود والاسم');
       return;
     }
     const payload = {

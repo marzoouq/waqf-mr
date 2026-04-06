@@ -6,7 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useZatcaCertificates } from '@/hooks/data/zatca/useZatcaCertificates';
 import { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp, saveZatcaSettings } from '@/lib/services';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 export const ZATCA_KEYS = [
   'vat_registration_number',
@@ -79,18 +79,18 @@ export const useZatcaSettings = () => {
     const vatNum = formData.vat_registration_number?.trim();
     if (vatNum && vatNum.length > 0) {
       if (!/^\d{15}$/.test(vatNum)) {
-        toast.error('الرقم الضريبي يجب أن يكون 15 رقماً');
+        defaultNotify.error('الرقم الضريبي يجب أن يكون 15 رقماً');
         return;
       }
       if (!vatNum.startsWith('3') || !vatNum.endsWith('3')) {
-        toast.error('الرقم الضريبي يجب أن يبدأ وينتهي بالرقم 3');
+        defaultNotify.error('الرقم الضريبي يجب أن يبدأ وينتهي بالرقم 3');
         return;
       }
     }
 
     const serial = formData.zatca_device_serial?.trim();
     if (serial && serial.length > 0 && !DEVICE_SERIAL_REGEX.test(serial)) {
-      toast.error('صيغة معرّف الجهاز غير صحيحة. الصيغة المطلوبة: 1-XXX|2-YYY|3-ZZZ');
+      defaultNotify.error('صيغة معرّف الجهاز غير صحيحة. الصيغة المطلوبة: 1-XXX|2-YYY|3-ZZZ');
       return;
     }
 
@@ -104,9 +104,9 @@ export const useZatcaSettings = () => {
       }));
       await saveZatcaSettings(rows);
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      toast.success('تم حفظ إعدادات الضريبة بنجاح');
+      defaultNotify.success('تم حفظ إعدادات الضريبة بنجاح');
     } catch {
-      toast.error('حدث خطأ أثناء الحفظ');
+      defaultNotify.error('حدث خطأ أثناء الحفظ');
     } finally {
       setSaving(false);
     }
@@ -119,12 +119,12 @@ export const useZatcaSettings = () => {
     ];
     const missing = requiredFields.filter(f => !formData[f.key]?.trim());
     if (missing.length > 0) {
-      toast.error(`يجب تعيين: ${missing.map(f => f.label).join('، ')}`);
+      defaultNotify.error(`يجب تعيين: ${missing.map(f => f.label).join('، ')}`);
       return;
     }
     const otp1 = formData.zatca_otp_1?.trim();
     if (!otp1) {
-      toast.error('رمز التفعيل OTP الأول مطلوب لبدء التهيئة');
+      defaultNotify.error('رمز التفعيل OTP الأول مطلوب لبدء التهيئة');
       return;
     }
 
@@ -132,11 +132,11 @@ export const useZatcaSettings = () => {
     try {
       await handleSave();
       await zatcaOnboard();
-      toast.success('تم التسجيل بنجاح في بوابة فاتورة');
+      defaultNotify.success('تم التسجيل بنجاح في بوابة فاتورة');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
       queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'فشل التسجيل');
+      defaultNotify.error(e instanceof Error ? e.message : 'فشل التسجيل');
     } finally {
       setOnboardLoading(false);
       try {
@@ -150,7 +150,7 @@ export const useZatcaSettings = () => {
   const handleRenewCertificate = async () => {
     const otp = formData.zatca_otp_2?.trim() || formData.zatca_otp_1?.trim();
     if (!otp) {
-      toast.error('رمز التفعيل OTP مطلوب للتجديد');
+      defaultNotify.error('رمز التفعيل OTP مطلوب للتجديد');
       return;
     }
 
@@ -159,14 +159,14 @@ export const useZatcaSettings = () => {
       await handleSave();
       const data = await zatcaRenew();
       if (data?.success) {
-        toast.success('تم تجديد شهادة الإنتاج بنجاح');
+        defaultNotify.success('تم تجديد شهادة الإنتاج بنجاح');
       } else {
         throw new Error(data?.error || 'فشل التجديد');
       }
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
       queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'فشل تجديد الشهادة');
+      defaultNotify.error(e instanceof Error ? e.message : 'فشل تجديد الشهادة');
     } finally {
       setRenewLoading(false);
       try {
@@ -184,16 +184,16 @@ export const useZatcaSettings = () => {
       setConnectionTest({ loading: false, result: data });
       queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
       if (data?.connected) {
-        toast.success('✅ الاتصال ببوابة فاتورة ناجح');
+        defaultNotify.success('✅ الاتصال ببوابة فاتورة ناجح');
       } else {
-        toast.error('❌ تعذّر الاتصال ببوابة فاتورة');
+        defaultNotify.error('❌ تعذّر الاتصال ببوابة فاتورة');
       }
     } catch (e) {
       setConnectionTest({
         loading: false,
         result: { connected: false, error: e instanceof Error ? e.message : 'خطأ غير معروف' },
       });
-      toast.error('فشل اختبار الاتصال');
+      defaultNotify.error('فشل اختبار الاتصال');
     }
   };
 

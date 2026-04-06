@@ -6,7 +6,7 @@ import { useUnits } from '@/hooks/data/properties/useUnits';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 interface UseContractFormDialogParams {
   editingContract: Contract | null;
@@ -48,26 +48,26 @@ export function useContractFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.contract_number || !formData.property_id || !formData.tenant_name || !formData.start_date || !formData.end_date) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      defaultNotify.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     if (formData.rental_mode === 'multi') {
       if (formData.selected_unit_ids.length === 0) {
-        toast.error('يرجى اختيار وحدة واحدة على الأقل');
+        defaultNotify.error('يرجى اختيار وحدة واحدة على الأقل');
         return;
       }
       if (formData.pricing_mode === 'per_unit') {
         const allFilled = formData.selected_unit_ids.every(id => parseFloat(formData.rent_per_unit[id] ?? '0') > 0);
         if (!allFilled) {
-          toast.error('يرجى تحديد قيمة الإيجار لكل وحدة');
+          defaultNotify.error('يرجى تحديد قيمة الإيجار لكل وحدة');
           return;
         }
       } else if (!formData.rent_amount || parseFloat(formData.rent_amount) <= 0) {
-        toast.error('يرجى إدخال قيمة الإيجار الإجمالي');
+        defaultNotify.error('يرجى إدخال قيمة الإيجار الإجمالي');
         return;
       }
     } else if (!formData.rent_amount) {
-      toast.error('يرجى إدخال قيمة الإيجار');
+      defaultNotify.error('يرجى إدخال قيمة الإيجار');
       return;
     }
     await onSubmit(formData, !!editingContract);

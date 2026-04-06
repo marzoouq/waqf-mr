@@ -3,7 +3,7 @@
  */
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 
@@ -13,7 +13,7 @@ export function usePasswordResetRequest(onSuccess?: () => void) {
 
   const handleRequest = async () => {
     if (!resetEmail) {
-      toast.error('يرجى إدخال البريد الإلكتروني');
+      defaultNotify.error('يرجى إدخال البريد الإلكتروني');
       return;
     }
     setIsLoading(true);
@@ -22,9 +22,9 @@ export function usePasswordResetRequest(onSuccess?: () => void) {
     });
     setIsLoading(false);
     if (error) {
-      toast.error(getSafeErrorMessage(error));
+      defaultNotify.error(getSafeErrorMessage(error));
     } else {
-      toast.success('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني');
+      defaultNotify.success('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني');
       onSuccess?.();
     }
   };

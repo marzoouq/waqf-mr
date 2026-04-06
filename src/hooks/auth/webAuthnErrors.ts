@@ -1,7 +1,7 @@
 /**
  * منطق معالجة أخطاء WebAuthn — مستخرج من useWebAuthn لتقليل حجم الملف
  */
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 
@@ -29,30 +29,30 @@ export const handleRegistrationError = (
   if (name === 'NotAllowedError') {
     if (errMessage.toLowerCase().includes('timeout')) {
       logBiometricEvent('login_failed', 'register', { reason: 'timeout' });
-      toast.error('انتهت مهلة تسجيل البصمة. أعد المحاولة وثبّت الإصبع/الوجه حتى الاكتمال', {
+      defaultNotify.error('انتهت مهلة تسجيل البصمة. أعد المحاولة وثبّت الإصبع/الوجه حتى الاكتمال', {
         action: retryFn ? { label: 'إعادة المحاولة', onClick: retryFn } : undefined,
       });
     } else {
       logBiometricEvent('login_failed', 'register', { reason: 'not_allowed' });
-      toast.error('تعذّر إكمال تسجيل البصمة. تأكد من:\n• تفعيل البصمة/الوجه في إعدادات جهازك\n• السماح للمتصفح بالوصول للمستشعر البيومتري');
+      defaultNotify.error('تعذّر إكمال تسجيل البصمة. تأكد من:\n• تفعيل البصمة/الوجه في إعدادات جهازك\n• السماح للمتصفح بالوصول للمستشعر البيومتري');
     }
   } else if (name === 'SecurityError') {
     logBiometricEvent('login_failed', 'register', { reason: 'security_error' });
-    toast.error('خطأ أمني: تأكد من استخدام اتصال آمن (HTTPS)');
+    defaultNotify.error('خطأ أمني: تأكد من استخدام اتصال آمن (HTTPS)');
   } else if (name === 'InvalidStateError') {
     logBiometricEvent('login_failed', 'register', { reason: 'already_registered' });
-    toast.error('هذا الجهاز مسجل مسبقاً');
+    defaultNotify.error('هذا الجهاز مسجل مسبقاً');
   } else if (name === 'AbortError') {
     logBiometricEvent('login_failed', 'register', { reason: 'aborted' });
-    toast.error('تم إلغاء عملية تسجيل البصمة');
+    defaultNotify.error('تم إلغاء عملية تسجيل البصمة');
   } else if (errMessage.toLowerCase().includes('network') || errMessage.toLowerCase().includes('fetch')) {
     logBiometricEvent('login_failed', 'register', { reason: 'network_error' });
-    toast.error('خطأ في الاتصال بالخادم. تحقق من اتصالك بالإنترنت وأعد المحاولة', {
+    defaultNotify.error('خطأ في الاتصال بالخادم. تحقق من اتصالك بالإنترنت وأعد المحاولة', {
       action: retryFn ? { label: 'إعادة المحاولة', onClick: retryFn } : undefined,
     });
   } else {
     logBiometricEvent('login_failed', 'register', { reason: 'unknown', error_name: name });
-    toast.error('حدث خطأ أثناء تسجيل البصمة. أعد المحاولة أو تواصل مع الدعم الفني');
+    defaultNotify.error('حدث خطأ أثناء تسجيل البصمة. أعد المحاولة أو تواصل مع الدعم الفني');
   }
 };
 
@@ -64,20 +64,20 @@ export const handleAuthenticationError = (err: unknown) => {
   if (name === 'NotAllowedError') {
     if (errMessage.toLowerCase().includes('timeout')) {
       logBiometricEvent('login_failed', 'authenticate', { reason: 'timeout' });
-      toast.error('انتهت مهلة المصادقة بالبصمة. أعد المحاولة');
+      defaultNotify.error('انتهت مهلة المصادقة بالبصمة. أعد المحاولة');
     } else {
       logBiometricEvent('login_failed', 'authenticate', { reason: 'cancelled' });
-      toast.error('تم إلغاء عملية البصمة');
+      defaultNotify.error('تم إلغاء عملية البصمة');
     }
   } else if (name === 'AbortError') {
     logBiometricEvent('login_failed', 'authenticate', { reason: 'aborted' });
-    toast.error('تم إلغاء عملية المصادقة بالبصمة');
+    defaultNotify.error('تم إلغاء عملية المصادقة بالبصمة');
   } else if (errMessage.toLowerCase().includes('network') || errMessage.toLowerCase().includes('fetch')) {
     logBiometricEvent('login_failed', 'authenticate', { reason: 'network_error' });
-    toast.error('خطأ في الاتصال. تحقق من الإنترنت وأعد المحاولة');
+    defaultNotify.error('خطأ في الاتصال. تحقق من الإنترنت وأعد المحاولة');
   } else {
     logBiometricEvent('login_failed', 'authenticate', { reason: 'unknown', error_name: name });
-    toast.error('حدث خطأ أثناء المصادقة بالبصمة. أعد المحاولة أو سجّل الدخول بكلمة المرور');
+    defaultNotify.error('حدث خطأ أثناء المصادقة بالبصمة. أعد المحاولة أو سجّل الدخول بكلمة المرور');
   }
 };
 

@@ -6,7 +6,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useFiscalYears } from '@/hooks/data/financial/useFiscalYears';
 import { useMultiYearSummary, type YearSummaryEntry } from '@/hooks/data/financial/useMultiYearSummary';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 export function useHistoricalComparison() {
   const { data: fiscalYears = [], isLoading: fyLoading } = useFiscalYears();
@@ -39,7 +39,7 @@ export function useHistoricalComparison() {
     setSelectedIds(prev => {
       if (prev.includes(fyId)) return prev.filter(id => id !== fyId);
       if (prev.length >= 4) {
-        toast.warning('الحد الأقصى 4 سنوات للمقارنة');
+        defaultNotify.warning('الحد الأقصى 4 سنوات للمقارنة');
         return prev;
       }
       return [...prev, fyId];
@@ -105,9 +105,9 @@ export function useHistoricalComparison() {
         expensesByType2: Object.entries(d1.expensesByType).map(([name, value]) => ({ name, value })),
         monthlyData: [],
       }, waqfInfo ?? undefined);
-      toast.success('تم تصدير PDF بنجاح');
+      defaultNotify.success('تم تصدير PDF بنجاح');
     } catch {
-      toast.error('فشل تصدير PDF');
+      defaultNotify.error('فشل تصدير PDF');
     }
   }, [selectedYears, yearData, waqfInfo]);
 

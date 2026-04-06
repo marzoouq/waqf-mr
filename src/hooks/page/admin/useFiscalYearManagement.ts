@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { useFiscalYears, type FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY } from '@/lib/services';
 
@@ -18,17 +18,17 @@ export function useFiscalYearManagement() {
 
   const handleCreate = async () => {
     if (!newFY.label || !newFY.start_date || !newFY.end_date) {
-      toast.error('يرجى تعبئة جميع الحقول');
+      defaultNotify.error('يرجى تعبئة جميع الحقول');
       return;
     }
     setActionLoading('create');
     try {
       await createFiscalYear(newFY);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      toast.success('تم إنشاء السنة المالية (محجوبة عن المستفيدين — يمكنك نشرها لاحقاً)');
+      defaultNotify.success('تم إنشاء السنة المالية (محجوبة عن المستفيدين — يمكنك نشرها لاحقاً)');
       setNewFY({ label: '', start_date: '', end_date: '' });
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'حدث خطأ أثناء الإنشاء');
+      defaultNotify.error(err instanceof Error ? err.message : 'حدث خطأ أثناء الإنشاء');
     } finally {
       setActionLoading(null);
       setCreating(false);
@@ -37,7 +37,7 @@ export function useFiscalYearManagement() {
 
   const handleClose = async (fy: FiscalYear) => {
     if (fy.status !== 'active') return;
-    toast.warning('لإقفال السنة المالية بشكل صحيح مع حفظ الحساب الختامي وترحيل الرصيد، يرجى استخدام صفحة "الحسابات الختامية".', {
+    defaultNotify.warning('لإقفال السنة المالية بشكل صحيح مع حفظ الحساب الختامي وترحيل الرصيد، يرجى استخدام صفحة "الحسابات الختامية".', {
       duration: 6000,
       action: { label: 'فتح الحسابات', onClick: () => navigate('/dashboard/accounts') },
     });
@@ -48,9 +48,9 @@ export function useFiscalYearManagement() {
     try {
       const data = await reopenFiscalYear(fy.id, reason);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      toast.success(`تم إعادة فتح السنة: ${data.label}`);
+      defaultNotify.success(`تم إعادة فتح السنة: ${data.label}`);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'حدث خطأ أثناء إعادة الفتح');
+      defaultNotify.error(err instanceof Error ? err.message : 'حدث خطأ أثناء إعادة الفتح');
     } finally {
       setActionLoading(null);
     }
@@ -62,9 +62,9 @@ export function useFiscalYearManagement() {
     try {
       await toggleFiscalYearPublished(fy.id, newVal);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      toast.success(newVal ? `تم نشر السنة "${fy.label}" للمستفيدين` : `تم حجب السنة "${fy.label}" عن المستفيدين`);
+      defaultNotify.success(newVal ? `تم نشر السنة "${fy.label}" للمستفيدين` : `تم حجب السنة "${fy.label}" عن المستفيدين`);
     } catch {
-      toast.error('حدث خطأ أثناء تحديث حالة النشر');
+      defaultNotify.error('حدث خطأ أثناء تحديث حالة النشر');
     } finally {
       setActionLoading(null);
     }
@@ -72,16 +72,16 @@ export function useFiscalYearManagement() {
 
   const handleDelete = async (fy: FiscalYear) => {
     if (fy.status === 'active') {
-      toast.error('لا يمكن حذف سنة نشطة — أقفلها أولاً قبل الحذف');
+      defaultNotify.error('لا يمكن حذف سنة نشطة — أقفلها أولاً قبل الحذف');
       return;
     }
     setActionLoading(fy.id);
     try {
       await deleteFY(fy.id);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      toast.success(`تم حذف السنة: ${fy.label}`);
+      defaultNotify.success(`تم حذف السنة: ${fy.label}`);
     } catch (err: unknown) {
-      toast.error(
+      defaultNotify.error(
         err instanceof Error && err.message?.includes('violates foreign key')
           ? 'لا يمكن حذف سنة مرتبطة ببيانات مالية'
           : 'حدث خطأ أثناء الحذف',

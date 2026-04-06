@@ -11,7 +11,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import type { Income } from '@/types/database';
 import { EMPTY_FILTERS, type FilterState } from '@/components/filters/advancedFilters.types';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 export type SortField = 'amount' | 'date' | 'source' | null;
 type SortDir = 'asc' | 'desc';
@@ -50,16 +50,16 @@ export function useIncomePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.source || !formData.amount || !formData.date) { toast.error('يرجى ملء جميع الحقول المطلوبة'); return; }
+    if (!formData.source || !formData.amount || !formData.date) { defaultNotify.error('يرجى ملء جميع الحقول المطلوبة'); return; }
     const amount = parseFloat(formData.amount);
-    if (!Number.isFinite(amount) || amount <= 0 || amount > 999_999_999) { toast.error('المبلغ يجب أن يكون رقماً موجباً ولا يتجاوز 999,999,999'); return; }
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 999_999_999) { defaultNotify.error('المبلغ يجب أن يكون رقماً موجباً ولا يتجاوز 999,999,999'); return; }
     const incomeData: Record<string, unknown> = {
       source: formData.source, amount, date: formData.date,
       property_id: formData.property_id || undefined, notes: formData.notes || undefined,
     };
     if (!editingIncome) {
       if (!fiscalYear?.id) {
-        toast.error('يرجى اختيار سنة مالية محددة لإضافة سجل دخل');
+        defaultNotify.error('يرجى اختيار سنة مالية محددة لإضافة سجل دخل');
         return;
       }
       incomeData.fiscal_year_id = fiscalYear.id;

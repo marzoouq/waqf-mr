@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/data/beneficiaries/useBeneficiaries';
 import { useBeneficiaryUsers } from '@/hooks/data/beneficiaries/useBeneficiaryUsers';
 import { Beneficiary } from '@/types/database';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import type { BeneficiaryFormData } from '@/components/beneficiaries';
 
 const ITEMS_PER_PAGE = 9;
@@ -41,12 +41,12 @@ export function useBeneficiariesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.share_percentage) { toast.error('يرجى ملء جميع الحقول المطلوبة'); return; }
+    if (!formData.name || !formData.share_percentage) { defaultNotify.error('يرجى ملء جميع الحقول المطلوبة'); return; }
     const newPercentage = parseFloat(formData.share_percentage);
     const currentTotal = beneficiaries
       .filter(b => b.id !== editingBeneficiary?.id)
       .reduce((sum, b) => sum + Number(b.share_percentage), 0);
-    if (currentTotal + newPercentage > 100) { toast.error('مجموع نسب المستفيدين يتجاوز 100%'); return; }
+    if (currentTotal + newPercentage > 100) { defaultNotify.error('مجموع نسب المستفيدين يتجاوز 100%'); return; }
     const beneficiaryData = {
       name: formData.name, share_percentage: parseFloat(formData.share_percentage),
       phone: formData.phone || undefined, email: formData.email || undefined,

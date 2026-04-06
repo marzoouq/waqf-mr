@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { startRegistration, startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import {
   logBiometricEvent,
@@ -68,7 +68,7 @@ export function useWebAuthn() {
 
     if (error) {
       logger.error('Failed to fetch credentials:', error.message);
-      toast.error('تعذر جلب بيانات الاعتماد');
+      defaultNotify.error('تعذر جلب بيانات الاعتماد');
       return [];
     }
 
@@ -82,7 +82,7 @@ export function useWebAuthn() {
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
-        toast.error('يرجى تسجيل الدخول أولاً');
+        defaultNotify.error('يرجى تسجيل الدخول أولاً');
         return false;
       }
 
@@ -93,14 +93,14 @@ export function useWebAuthn() {
       if (optErr || !options) {
         logger.error('WebAuthn register-options error:', optErr);
         logBiometricEvent('login_failed', 'register-options', { reason: 'server_error' });
-        toast.error('فشل في بدء عملية التسجيل. تحقق من اتصالك بالإنترنت وأعد المحاولة');
+        defaultNotify.error('فشل في بدء عملية التسجيل. تحقق من اتصالك بالإنترنت وأعد المحاولة');
         return false;
       }
 
       if (options.error) {
         logger.error('WebAuthn register-options server error');
         logBiometricEvent('login_failed', 'register-options', { reason: options.error });
-        toast.error(options.error || 'فشل في بدء عملية التسجيل');
+        defaultNotify.error(options.error || 'فشل في بدء عملية التسجيل');
         return false;
       }
 
@@ -112,14 +112,14 @@ export function useWebAuthn() {
 
       if (verErr || !result?.verified) {
         logBiometricEvent('login_failed', 'register-verify', { reason: 'verification_failed' });
-        toast.error('فشل في تسجيل البصمة');
+        defaultNotify.error('فشل في تسجيل البصمة');
         return false;
       }
 
       localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
       setIsEnabled(true);
       await fetchCredentials();
-      toast.success('تم تسجيل البصمة بنجاح! يمكنك الآن تسجيل الدخول بها');
+      defaultNotify.success('تم تسجيل البصمة بنجاح! يمكنك الآن تسجيل الدخول بها');
       return true;
     } catch (err: unknown) {
       handleRegistrationError(err, () => registerBiometric(deviceName));
@@ -138,7 +138,7 @@ export function useWebAuthn() {
 
       if (optErr || !options) {
         logBiometricEvent('login_failed', 'auth-options', { reason: 'server_error' });
-        toast.error('فشل في بدء عملية المصادقة. تحقق من اتصالك بالإنترنت');
+        defaultNotify.error('فشل في بدء عملية المصادقة. تحقق من اتصالك بالإنترنت');
         return false;
       }
 
@@ -150,13 +150,13 @@ export function useWebAuthn() {
 
       if (verErr || !result?.verified) {
         logBiometricEvent('login_failed', 'auth-verify', { reason: 'verification_failed' });
-        toast.error('فشل في التحقق من البصمة');
+        defaultNotify.error('فشل في التحقق من البصمة');
         return false;
       }
 
       if (!result.access_token || !result.refresh_token) {
         logBiometricEvent('login_failed', 'auth-session', { reason: 'no_tokens' });
-        toast.error('لم يتم استلام بيانات الجلسة. أعد المحاولة');
+        defaultNotify.error('لم يتم استلام بيانات الجلسة. أعد المحاولة');
         return false;
       }
 
@@ -167,12 +167,12 @@ export function useWebAuthn() {
 
       if (sessionError) {
         logBiometricEvent('login_failed', 'auth-session', { reason: 'session_set_error' });
-        toast.error('فشل في إنشاء الجلسة');
+        defaultNotify.error('فشل في إنشاء الجلسة');
         return false;
       }
 
       logBiometricEvent('login_success', 'authenticate', {});
-      toast.success('تم تسجيل الدخول بالبصمة بنجاح');
+      defaultNotify.success('تم تسجيل الدخول بالبصمة بنجاح');
       return true;
     } catch (err: unknown) {
       handleAuthenticationError(err);
@@ -185,7 +185,7 @@ export function useWebAuthn() {
   const removeCredential = useCallback(async (credentialId: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      toast.error('يجب تسجيل الدخول أولاً');
+      defaultNotify.error('يجب تسجيل الدخول أولاً');
       return false;
     }
     const { error } = await supabase
@@ -195,7 +195,7 @@ export function useWebAuthn() {
       .eq('user_id', user.id);
 
     if (error) {
-      toast.error('فشل في حذف البصمة');
+      defaultNotify.error('فشل في حذف البصمة');
       return false;
     }
 
@@ -205,7 +205,7 @@ export function useWebAuthn() {
       setIsEnabled(false);
     }
 
-    toast.success('تم حذف البصمة بنجاح');
+    defaultNotify.success('تم حذف البصمة بنجاح');
     return true;
   }, [fetchCredentials]);
 

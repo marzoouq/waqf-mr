@@ -3,7 +3,7 @@
  */
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import {
   PaymentInvoice,
   usePaymentInvoices,
@@ -141,7 +141,7 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
     }
     setBulkPaying(false);
     setSelectedIds(new Set());
-    toast.success(`تم تسديد ${done} فاتورة من ${ids.length}`);
+    defaultNotify.success(`تم تسديد ${done} فاتورة من ${ids.length}`);
   }, [selectedIds, markPaid]);
 
   const openPayDialog = (inv: PaymentInvoice) => {
@@ -152,7 +152,7 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
   const handlePay = () => {
     if (!payDialog) return;
     const amount = parseFloat(payAmount);
-    if (!(amount > 0)) { toast.error('يرجى إدخال مبلغ صحيح'); return; }
+    if (!(amount > 0)) { defaultNotify.error('يرجى إدخال مبلغ صحيح'); return; }
     const inv = payDialog.inv;
     setPayingInvoiceId(inv.id);
     setPayDialog(null);

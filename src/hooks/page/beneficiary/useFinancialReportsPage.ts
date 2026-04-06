@@ -8,7 +8,7 @@ import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 /** تحويل مصفوفة source/total إلى Record */
@@ -105,9 +105,9 @@ export const useFinancialReportsPage = () => {
           amount: myShare,
         }] : [],
       }, pdfWaqfInfo);
-      toast.success('تم تحميل ملف PDF بنجاح');
+      defaultNotify.success('تم تحميل ملف PDF بنجاح');
     } catch {
-      toast.error('حدث خطأ أثناء تصدير PDF');
+      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
     }
   }, [fiscalYear, totalIncome, totalExpenses, netAfterZakat, adminShare, waqifShare, waqfRevenue, expensesByTypeExcludingVat, incomeBySource, currentBeneficiary, myShare, pdfWaqfInfo]);
 

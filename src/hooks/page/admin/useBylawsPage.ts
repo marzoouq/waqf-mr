@@ -4,7 +4,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws, type BylawEntry } from '@/hooks/data/content/useBylaws';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import {
   DragEndEvent,
   PointerSensor,
@@ -107,9 +107,9 @@ export function useBylawsPage() {
     const newValue = isPublished ? 'false' : 'true';
     try {
       await updateSetting.mutateAsync({ key: 'bylaws_published', value: newValue });
-      toast.success(newValue === 'true' ? 'تم نشر اللائحة للمستفيدين' : 'تم حجب اللائحة عن المستفيدين');
+      defaultNotify.success(newValue === 'true' ? 'تم نشر اللائحة للمستفيدين' : 'تم حجب اللائحة عن المستفيدين');
     } catch {
-      toast.error('حدث خطأ أثناء تحديث حالة النشر');
+      defaultNotify.error('حدث خطأ أثناء تحديث حالة النشر');
     }
   };
 
