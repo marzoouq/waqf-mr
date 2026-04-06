@@ -2,6 +2,7 @@
  * هوك منطق صفحة العقارات — الحالة والفلترة والحسابات
  */
 import { useState, useMemo } from 'react';
+import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/data/properties/useProperties';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
