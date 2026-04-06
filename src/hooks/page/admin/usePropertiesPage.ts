@@ -179,10 +179,24 @@ export function usePropertiesPage() {
     return true;
   });
 
+  // --- حساب المؤشرات المالية لكل عقار (مرة واحدة بدلاً من داخل JSX) ---
+  const propertyFinancialsMap = useMemo(() => {
+    const map = new Map<string, PropertyFinancials>();
+    for (const p of properties) {
+      map.set(p.id, computePropertyFinancials({
+        propertyId: p.id, contracts, expenses, units: allUnits,
+        isSpecificYear, allocationMap,
+      }));
+    }
+    return map;
+  }, [properties, contracts, expenses, allUnits, isSpecificYear, allocationMap]);
+
   return {
     // بيانات
-    properties, isLoading, contracts, allUnits, expenses, isSpecificYear,
-    allocationMap, summaryLoading, summary,
+    properties, isLoading, contracts, isSpecificYear,
+    summaryLoading, summary,
+    // المؤشرات المالية الجاهزة لكل عقار
+    propertyFinancialsMap,
     // حالة النموذج
     isOpen, setIsOpen, editingProperty, formData, setFormData,
     resetForm, handleEdit, handleSubmit,
