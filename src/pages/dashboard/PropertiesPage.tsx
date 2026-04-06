@@ -1,4 +1,4 @@
-import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
+
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,8 +13,8 @@ import { usePropertiesPage } from '@/hooks/page/admin/usePropertiesPage';
 const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const {
-    properties, isLoading, contracts, allUnits, expenses, isSpecificYear,
-    allocationMap, summaryLoading, summary,
+    properties, isLoading, contracts, isSpecificYear,
+    summaryLoading, summary, propertyFinancialsMap,
     isOpen, setIsOpen, editingProperty, formData, setFormData,
     resetForm, handleEdit, handleSubmit,
     createPending, updatePending,
@@ -86,21 +86,14 @@ const PropertiesPage = () => {
           <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => {
-              const pf = computePropertyFinancials({
-                propertyId: property.id,
-                contracts,
-                expenses,
-                units: allUnits,
-                isSpecificYear,
-                allocationMap,
-              });
+              const pf = propertyFinancialsMap.get(property.id);
               const hasActiveContracts = contracts.some(c => c.property_id === property.id && (isSpecificYear || c.status === 'active'));
 
               return (
                 <PropertyCard
                   key={property.id}
                   property={property}
-                  financials={pf}
+                  financials={pf!}
                   hasActiveContracts={hasActiveContracts}
                   onSelect={setSelectedProperty}
                   onEdit={handleEdit}

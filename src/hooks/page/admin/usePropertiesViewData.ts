@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
+import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
@@ -77,6 +78,18 @@ export function usePropertiesViewData() {
     return { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor };
   }, [properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap]);
 
+  // --- حساب المؤشرات المالية لكل عقار (مرة واحدة) ---
+  const propertyFinancialsMap = useMemo(() => {
+    const map = new Map<string, PropertyFinancials>();
+    for (const p of (properties ?? [])) {
+      map.set(p.id, computePropertyFinancials({
+        propertyId: p.id, contracts, expenses, units: units ?? [],
+        isSpecificYear, allocationMap,
+      }));
+    }
+    return map;
+  }, [properties, contracts, expenses, units, isSpecificYear, allocationMap]);
+
   return {
     properties, units, contracts, expenses, isLoading, isError,
     refetchProps, refetchUnits,
@@ -85,5 +98,6 @@ export function usePropertiesViewData() {
     pdfWaqfInfo, allocationMap,
     totalUnits, occupiedUnits, rentedUnitIds, wholePropertyIds,
     summaryData,
+    propertyFinancialsMap,
   };
 }

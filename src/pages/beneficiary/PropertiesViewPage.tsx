@@ -1,7 +1,7 @@
 /**
  * صفحة عرض العقارات للمستفيد (قراءة فقط)
  */
-import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
+
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { RequirePublishedYears, ExportMenu } from '@/components/common';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,13 +18,14 @@ import { usePropertiesViewData } from '@/hooks/page/admin/usePropertiesViewData'
 
 const PropertiesViewPage = () => {
   const {
-    properties, units, contracts, expenses, isLoading, isError,
+    properties, units, contracts, isLoading, isError,
     refetchProps, refetchUnits,
-    isClosed, isSpecificYear,
+    isClosed,
     expandedId, setExpandedId,
-    pdfWaqfInfo, allocationMap,
+    pdfWaqfInfo,
     totalUnits, occupiedUnits,
     summaryData,
+    propertyFinancialsMap,
   } = usePropertiesViewData();
 
   const { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor } = summaryData;
@@ -104,7 +105,7 @@ const PropertiesViewPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {properties.map((property) => {
-              const pf = computePropertyFinancials({ propertyId: property.id, contracts, expenses, units: units ?? [], isSpecificYear, allocationMap });
+              const pf = propertyFinancialsMap.get(property.id)!;
               const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses: propExpenses, netIncome: propNet, contractualRevenue: propContractual } = pf;
               const propertyUnits = (units ?? []).filter(u => u.property_id === property.id);
               const total = propertyUnits.length;
