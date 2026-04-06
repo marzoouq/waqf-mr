@@ -1,18 +1,18 @@
 /**
  * تصدير مركزي — hooks/financial/
- * مُنظّم في مجلدات فرعية حسب النطاق
+ * مُنظّم في مجلدات فرعية حسب النطاق (business logic فقط)
  */
 
 // الحسابات الختامية
 export * from './accounts';
 
-// السُلف والترحيل
+// أنواع السُلف
 export * from './advances';
 
-// السنوات المالية والحسابات المحسوبة
+// الحسابات المحسوبة
 export * from './fiscal-years';
 
-// التوزيع والحصص
+// حصة المستفيد
 export * from './distributions';
 
 // العقارات المالية
@@ -20,6 +20,3 @@ export * from './properties';
 
 // تخصيص العقود
 export * from './contracts';
-
-// المقارنة بين السنوات
-export * from './comparison';

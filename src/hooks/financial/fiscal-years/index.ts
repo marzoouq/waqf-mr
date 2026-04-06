@@ -1,8 +1,6 @@
 /**
- * تصدير مركزي — هوكات السنوات المالية والحسابات المحسوبة
+ * تصدير مركزي — هوكات الحسابات المحسوبة (business logic فقط)
  */
-export { useFiscalYears, useActiveFiscalYear } from '../useFiscalYears';
-export type { FiscalYear } from '../useFiscalYears';
 export { useComputedFinancials } from '../useComputedFinancials';
 export { useRawFinancialData } from '../useRawFinancialData';
 export { useFinancialSummary } from '../useFinancialSummary';

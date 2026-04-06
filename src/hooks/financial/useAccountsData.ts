@@ -13,7 +13,7 @@ import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
+import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 export function useAccountsData() {

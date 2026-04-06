@@ -14,8 +14,8 @@ import { useAccountsCalculations } from './useAccountsCalculations';
 import { useAccountsEditing } from './useAccountsEditing';
 import { useAccountsActions } from './useAccountsActions';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
-import { useAdvanceRequests } from '@/hooks/financial/useAdvanceRequests';
-import { useTotalBeneficiaryPercentage } from '@/hooks/financial/useTotalBeneficiaryPercentage';
+import { useAdvanceRequests } from '@/hooks/data/financial/useAdvanceRequests';
+import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/useTotalBeneficiaryPercentage';
 
 
 export function useAccountsPage() {

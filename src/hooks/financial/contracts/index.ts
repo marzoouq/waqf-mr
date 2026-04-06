@@ -1,6 +1,4 @@
 /**
- * تصدير مركزي — هوكات تخصيص العقود
+ * تصدير مركزي — هوك خريطة تخصيص العقود (business logic فقط)
  */
-export { useContractAllocations, useUpsertContractAllocations } from '../useContractAllocations';
-export type { ContractFiscalAllocation } from '../useContractAllocations';
 export { useContractAllocationMap } from '../useContractAllocationMap';

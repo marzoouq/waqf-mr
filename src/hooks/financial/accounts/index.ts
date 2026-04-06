@@ -1,7 +1,6 @@
 /**
- * تصدير مركزي — هوكات الحسابات الختامية
+ * تصدير مركزي — هوكات الحسابات الختامية (business logic فقط)
  */
-export { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useAccountByFiscalYear } from '../useAccounts';
 export { useAccountsActions } from '../useAccountsActions';
 export { useAccountsCalculations } from '../useAccountsCalculations';
 export { useAccountsData } from '../useAccountsData';

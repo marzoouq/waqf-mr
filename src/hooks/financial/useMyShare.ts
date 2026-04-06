@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useTotalBeneficiaryPercentage } from './useTotalBeneficiaryPercentage';
+import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/useTotalBeneficiaryPercentage';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 interface BeneficiaryLike {

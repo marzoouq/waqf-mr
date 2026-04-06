@@ -8,7 +8,7 @@ import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/da
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
-import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
+import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { useProperties } from '@/hooks/data/properties/useProperties';

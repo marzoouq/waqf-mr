@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_REALTIME } from '@/lib/queryStaleTime';
 import { logger } from '@/lib/logger';
-import type { AdvanceRequest, AdvanceCarryforward } from '@/hooks/financial/advanceTypes';
+import type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 export interface BeneficiarySummaryData {

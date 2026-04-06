@@ -1,7 +1,7 @@
 import { lazy, type ComponentType } from 'react';
 
 // ─── تعافي تلقائي آمن عند فشل تحميل chunk قديم ───
-export function lazyWithRetry<T extends ComponentType<any>>(
+export function lazyWithRetry<T extends ComponentType<Record<string, unknown>>>(
   importFn: () => Promise<{ default: T }>
 ) {
   return lazy(async () => {
@@ -9,17 +9,19 @@ export function lazyWithRetry<T extends ComponentType<any>>(
       const mod = await importFn();
       sessionStorage.removeItem('chunk_retry');
       return mod;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const isChunkError =
-        error?.message?.includes('Failed to fetch dynamically imported module') ||
-        error?.message?.includes('Loading chunk') ||
-        error?.message?.includes('error loading dynamically imported module');
+        error instanceof Error && (
+          error.message.includes('Failed to fetch dynamically imported module') ||
+          error.message.includes('Loading chunk') ||
+          error.message.includes('error loading dynamically imported module')
+        );
 
       if (isChunkError) {
         const retried = sessionStorage.getItem('chunk_retry');
         if (!retried) {
           sessionStorage.setItem('chunk_retry', '1');
-          try { await caches.delete('static-assets'); } catch (_) {}
+          try { await caches.delete('static-assets'); } catch (_) { /* تجاهل */ }
           window.location.reload();
           return new Promise<{ default: T }>(() => {});
         }

@@ -1,8 +1,4 @@
 /**
- * تصدير مركزي — هوكات التوزيع والحصص
+ * تصدير مركزي — هوك حصة المستفيد (business logic فقط)
  */
-export { useDistributeShares } from '../useDistribute';
-export { useBeneficiarySummary } from '../useBeneficiarySummary';
-export type { BeneficiarySummaryData } from '../useBeneficiarySummary';
 export { useMyShare } from '../useMyShare';
-export { useTotalBeneficiaryPercentage } from '../useTotalBeneficiaryPercentage';
