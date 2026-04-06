@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { Mail, IdCard, KeyRound, AlertTriangle, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
@@ -55,18 +55,18 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
 
       const resolvedEmail = normalizeArabicDigits(loginEmail);
       if (!resolvedEmail) {
-        toast.error('يرجى إدخال البريد الإلكتروني');
+        defaultNotify.error('يرجى إدخال البريد الإلكتروني');
         return;
       }
 
       if (!loginPassword) {
-        toast.error('يرجى إدخال كلمة المرور');
+        defaultNotify.error('يرجى إدخال كلمة المرور');
         return;
       }
 
       const { error } = await signIn(resolvedEmail, loginPassword);
       if (error) {
-        toast.error(getSafeErrorMessage(error));
+        defaultNotify.error(getSafeErrorMessage(error));
         logAccessEvent({
           event_type: 'login_failed',
           email: resolvedEmail,
@@ -76,7 +76,7 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
         // إشعار الدخول الناجح مُعطّل — الانتقال للوحة التحكم كافٍ
       }
     } catch {
-      toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+      defaultNotify.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
     } finally {
       if (isMountedRef.current) {
         setIsLoading(false);

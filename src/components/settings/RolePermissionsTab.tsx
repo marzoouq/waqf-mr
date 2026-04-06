@@ -4,7 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Save, RotateCcw, Shield } from 'lucide-react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 import { ROLE_SECTION_DEFS } from '@/constants/sections';
 
@@ -49,7 +49,7 @@ const RolePermissionsTab = () => {
 
   const handleReset = () => {
     setPerms(DEFAULT_ROLE_PERMS);
-    toast.info('تم استعادة الإعدادات الافتراضية - اضغط حفظ للتطبيق');
+    defaultNotify.info('تم استعادة الإعدادات الافتراضية - اضغط حفظ للتطبيق');
   };
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;

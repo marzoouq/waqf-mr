@@ -10,7 +10,7 @@ import { Loader2, AlertTriangle, ArrowLeftRight, FileDown, Printer } from 'lucid
 import { generateDistributionsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { printDistributionReport } from '@/utils/export/printDistributionReport';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { useDistributionCalculation } from '@/hooks/page/admin/useDistributionCalculation';
 
 interface Beneficiary {
@@ -154,10 +154,10 @@ const DistributeDialog = ({
         )}
 
         <DialogFooter className="gap-2">
-          <Button variant="secondary" onClick={() => { const ok = printDistributionReport({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions, waqfName: pdfWaqfInfo.waqfName, deedNumber: pdfWaqfInfo.deedNumber, logoUrl: pdfWaqfInfo.logoUrl }); if (!ok) toast.error('يرجى السماح بالنوافذ المنبثقة'); }} disabled={beneficiaries.length === 0}>
+          <Button variant="secondary" onClick={() => { const ok = printDistributionReport({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions, waqfName: pdfWaqfInfo.waqfName, deedNumber: pdfWaqfInfo.deedNumber, logoUrl: pdfWaqfInfo.logoUrl }); if (!ok) defaultNotify.error('يرجى السماح بالنوافذ المنبثقة'); }} disabled={beneficiaries.length === 0}>
             <Printer className="w-4 h-4 ml-2" />طباعة
           </Button>
-          <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { toast.error('حدث خطأ أثناء تصدير PDF'); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>
+          <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { defaultNotify.error('حدث خطأ أثناء تصدير PDF'); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>
             {pdfLoading ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <FileDown className="w-4 h-4 ml-2" />}تصدير PDF
           </Button>
           <div className="flex-1" />

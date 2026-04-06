@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 
@@ -20,20 +20,20 @@ export default function SignupForm({ signUp }: SignupFormProps) {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signupEmail || !signupPassword) {
-      toast.error('يرجى إدخال البريد الإلكتروني وكلمة المرور');
+      defaultNotify.error('يرجى إدخال البريد الإلكتروني وكلمة المرور');
       return;
     }
     if (signupPassword.length < 8) {
-      toast.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+      defaultNotify.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
       return;
     }
     setIsLoading(true);
     const { error } = await signUp(normalizeArabicDigits(signupEmail), signupPassword);
     setIsLoading(false);
     if (error) {
-      toast.error(getSafeErrorMessage(error));
+      defaultNotify.error(getSafeErrorMessage(error));
     } else {
-      toast.success('تم التسجيل بنجاح! يرجى تأكيد بريدك الإلكتروني. سيتم إنشاء حسابك كمستفيد ويحتاج تفعيل من ناظر الوقف.');
+      defaultNotify.success('تم التسجيل بنجاح! يرجى تأكيد بريدك الإلكتروني. سيتم إنشاء حسابك كمستفيد ويحتاج تفعيل من ناظر الوقف.');
     }
   };
 

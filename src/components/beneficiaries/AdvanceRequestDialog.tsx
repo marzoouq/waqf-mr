@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useCreateAdvanceRequest } from '@/hooks/data/financial/useAdvanceRequests';
 import { Banknote, Loader2, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { fmt } from '@/utils/format/format';
 import { useMaxAdvanceAmount } from '@/hooks/data/financial/useMaxAdvanceAmount';
 
@@ -42,7 +42,7 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
 
   const handleSubmit = async () => {
     if (!fiscalYearId) {
-      toast.error('يجب تحديد السنة المالية قبل طلب السلفة');
+      defaultNotify.error('يجب تحديد السنة المالية قبل طلب السلفة');
       return;
     }
     const numAmount = parseFloat(amount);

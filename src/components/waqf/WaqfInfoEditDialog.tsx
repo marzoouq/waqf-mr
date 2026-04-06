@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Building2, Upload, X, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { useWaqfInfoSave } from '@/hooks/data/settings/useWaqfInfoSave';
 import { resizeImage } from '@/utils/image/resizeImage';
 
@@ -58,16 +58,16 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
     if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
-      toast.error('نوع الملف غير مسموح. الأنواع المسموحة: JPG, PNG, WEBP, SVG');
+      defaultNotify.error('نوع الملف غير مسموح. الأنواع المسموحة: JPG, PNG, WEBP, SVG');
       return;
     }
     const ext = file.name.split('.').pop()?.toLowerCase();
     if (!ext || !VALID_LOGO_EXT[file.type]?.includes(ext)) {
-      toast.error('امتداد الملف لا يتطابق مع نوعه');
+      defaultNotify.error('امتداد الملف لا يتطابق مع نوعه');
       return;
     }
     if (file.size > MAX_LOGO_SIZE) {
-      toast.error('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت');
+      defaultNotify.error('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت');
       return;
     }
 
@@ -81,10 +81,10 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
       setLogoPreview(URL.createObjectURL(result.blob));
 
       if (result.wasResized) {
-        toast.success(`تم تصغير الشعار تلقائياً (${result.originalWidth}×${result.originalHeight} → ${result.newWidth}×${result.newHeight})`);
+        defaultNotify.success(`تم تصغير الشعار تلقائياً (${result.originalWidth}×${result.originalHeight} → ${result.newWidth}×${result.newHeight})`);
       }
     } catch {
-      toast.error('فشل معالجة الصورة');
+      defaultNotify.error('فشل معالجة الصورة');
     } finally {
       setResizing(false);
     }

@@ -4,7 +4,7 @@
  */
 import { useState, useEffect, useMemo } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 import { ROLE_SECTION_DEFS, ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
 import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
@@ -82,9 +82,9 @@ const PermissionsControlPanel = () => {
         user_id: user?.id ?? undefined,
         metadata: { action: 'permissions_updated', role_permissions: perms, admin_sections: adminSections, beneficiary_sections: beneficiarySections },
       });
-      toast.success('تم حفظ الصلاحيات بنجاح');
+      defaultNotify.success('تم حفظ الصلاحيات بنجاح');
     } catch {
-      toast.error('حدث خطأ أثناء حفظ الصلاحيات');
+      defaultNotify.error('حدث خطأ أثناء حفظ الصلاحيات');
     } finally {
       setSaving(false);
     }
@@ -94,7 +94,7 @@ const PermissionsControlPanel = () => {
     setPerms(DEFAULT_ROLE_PERMS);
     setAdminSections(defaultAdminSections);
     setBeneficiarySections(defaultBeneficiarySections);
-    toast.info('تم استعادة الإعدادات الافتراضية — اضغط حفظ للتطبيق');
+    defaultNotify.info('تم استعادة الإعدادات الافتراضية — اضغط حفظ للتطبيق');
   };
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
