@@ -13,8 +13,8 @@ import { usePropertiesPage } from '@/hooks/page/admin/usePropertiesPage';
 const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const {
-    properties, isLoading, contracts, allUnits, expenses, isSpecificYear,
-    allocationMap, summaryLoading, summary,
+    properties, isLoading, contracts, isSpecificYear,
+    summaryLoading, summary, propertyFinancialsMap,
     isOpen, setIsOpen, editingProperty, formData, setFormData,
     resetForm, handleEdit, handleSubmit,
     createPending, updatePending,
