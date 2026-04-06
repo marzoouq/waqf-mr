@@ -86,21 +86,14 @@ const PropertiesPage = () => {
           <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => {
-              const pf = computePropertyFinancials({
-                propertyId: property.id,
-                contracts,
-                expenses,
-                units: allUnits,
-                isSpecificYear,
-                allocationMap,
-              });
+              const pf = propertyFinancialsMap.get(property.id);
               const hasActiveContracts = contracts.some(c => c.property_id === property.id && (isSpecificYear || c.status === 'active'));
 
               return (
                 <PropertyCard
                   key={property.id}
                   property={property}
-                  financials={pf}
+                  financials={pf!}
                   hasActiveContracts={hasActiveContracts}
                   onSelect={setSelectedProperty}
                   onEdit={handleEdit}
