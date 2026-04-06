@@ -42,6 +42,13 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
   // استدعاء RPC واحد بدل 10 استعلامات
   const { year1Monthly, year2Monthly, totals, expensesByType } = useYearComparisonData(year1Id, year2Id);
 
+  // ملخصات إضافية من العرض v_fiscal_year_summary (عدد السجلات + فوترة)
+  const { data: viewSummaries, isLoading: summariesLoading } = useFiscalYearSummaries(
+    year1Id && year2Id && year1Id !== year2Id ? [year1Id, year2Id] : []
+  );
+  const viewYear1 = viewSummaries?.find(s => s.fiscalYearId === year1Id);
+  const viewYear2 = viewSummaries?.find(s => s.fiscalYearId === year2Id);
+
   const comparisonData = useMemo(() => {
     return MONTH_NAMES.map((name, idx) => ({
       month: name,
