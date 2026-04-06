@@ -1,83 +1,47 @@
 
+# تقرير تدقيق الكود — النظافة والتكرارات والكود الميت
 
-# تقرير تحليل شامل وخطة تحسين تدريجية — نظام إدارة الوقف
+## ✅ نقاط قوة (لا تغيير مطلوب)
 
-## الوضع الحالي
-
-المشروع ناضج تقنياً بشكل ملحوظ. صفحة تسجيل الدخول تحتوي بالفعل على: حالات تحميل، أخطاء مضمّنة، تحقق من البريد، شريط قوة كلمة المرور، تسجيل بيومتري، حجز مساحة CLS، ودعم ARIA. البنية التحتية تستخدم lazy loading، DeferredRender، فصل Auth Context إلى State/Actions، وQueryClient مُعدّ بشكل جيد.
-
----
-
-## ١. تحسينات صفحة تسجيل الدخول (UX Bricks)
-
-### طوبة 1: تحسين تجربة الخطأ من الخادم
-**الحالة الحالية**: أخطاء الخادم تُعرض عبر toast فقط — قد تُفوّت على المستخدم.
-**التحسين**: عرض خطأ الخادم كـ alert بارز أعلى النموذج (بالإضافة للـ toast)، مع رسائل عربية أوضح للأخطاء الشائعة (بريد غير مسجل، كلمة مرور خاطئة، حساب معطّل).
-**الملفات**: `LoginForm.tsx`, `SignupForm.tsx`
-
-### طوبة 2: تحسين Skeleton/Loading للصفحة الرئيسية
-**الحالة الحالية**: عند فتح `/auth` يظهر spinner عام أثناء lazy load.
-**التحسين**: إضافة skeleton مخصص لصفحة Auth يحاكي شكل البطاقة (الشعار + الحقول) بدلاً من spinner فارغ.
-**الملفات**: `Auth.tsx` أو fallback جديد
-
-### طوبة 3: تحسين إمكانية الوصول (a11y) المتقدم
-**الحالة الحالية**: دعم ARIA أساسي موجود.
-**التحسين**: إضافة `aria-live="polite"` لمنطقة الأخطاء، `aria-busy` للنموذج أثناء التحميل، وتحسين focus management (إرجاع التركيز للحقل الخاطئ).
-**الملفات**: `LoginForm.tsx`, `SignupForm.tsx`, `ResetPasswordForm.tsx`
+1. **EMAIL_REGEX موحّد** — تم توحيده في `src/utils/validation.ts` ويُستورد من 3 ملفات ✅
+2. **لا يوجد TODO/FIXME/HACK** في الكود ✅
+3. **لا يوجد console.log أو debugger** متروك ✅
+4. **لا تكرار مكونات** — كل مكون له دور واضح ✅
 
 ---
 
-## ٢. تحليل الأداء — نقاط الاختناق
+## 🗑️ كود ميت — ملفات غير مستخدمة (9 ملفات)
 
-| النقطة | التفصيل | الأولوية |
-|--------|---------|----------|
-| **QueryClient staleTime** | مضبوط على 5 دقائق عام — مناسب. لا تغيير مطلوب. | ✅ جيد |
-| **Lazy loading** | كل الصفحات lazy مع `lazyWithRetry`. | ✅ جيد |
-| **DeferredRender** | مستخدم للـ AI Assistant بـ 200ms. | ✅ جيد |
-| **Auth Context splitting** | مفصول إلى State + Actions — ممتاز. | ✅ جيد |
-| **refetchOnWindowFocus** | معطّل — مناسب لنظام إداري. | ✅ جيد |
-| **useIdleTimeout event listeners** | يسجّل 10 أحداث DOM — يمكن تحسينه بـ throttle | ⚠️ منخفض |
-| **Auth page decorative orbs** | عنصران بـ `blur-3xl` يستهلكان GPU — `contain: strict` موجود | ✅ مقبول |
+### مكونات UI غير مستخدمة (3)
+| الملف | السبب |
+|-------|-------|
+| `src/components/ui/avatar.tsx` | لا يُستورد من أي مكان |
+| `src/components/ui/command.tsx` | لا يُستورد من أي مكان |
+| `src/components/ui/drawer.tsx` | لا يُستورد من أي مكان |
 
-**الخلاصة**: لا توجد اختناقات أداء حرجة. النظام محسّن بشكل جيد.
-
----
-
-## ٣. تدقيق البنية — تقرير مرتّب بالأولوية
-
-### أ. بنية ممتازة (لا تغيير)
-- فصل Auth إلى State/Actions contexts
-- `useCrudFactory` للعمليات القياسية
-- فصل المسارات إلى ملفات مستقلة (public/admin/beneficiary/waqif)
-- ErrorBoundary شامل مع route-level error handling
-- فصل hooks إلى مجلدات واضحة (auth/data/ui/page)
-
-### ب. تحسينات مقترحة (أولوية منخفضة-متوسطة)
-
-| # | الملاحظة | التفصيل | الأولوية |
-|---|---------|---------|----------|
-| 1 | **useAuthPage طويل** | يخلط PWA + offline + role redirect + registration check في hook واحد | متوسطة |
-| 2 | **تكرار EMAIL_REGEX** | معرّف في 3 ملفات auth — يجب توحيده في `@/utils/validation` | منخفضة |
-| 3 | **تكرار نمط fieldErrors** | LoginForm وSignupForm يكرران نفس منطق clearFieldError/validate — يمكن استخراجه لـ hook | منخفضة |
-| 4 | **SecurityGuard كمكوّن** | يسجّل 4 أحداث DOM — يمكن تحويله لـ hook بدون JSX | منخفضة |
+### Hooks غير مستخدمة (5)
+| الملف | السبب |
+|-------|-------|
+| `src/hooks/ui/useFieldErrors.ts` | أُنشئ في الطوبة ٣ لكن لم يُدمج بعد في LoginForm/SignupForm |
+| `src/hooks/ui/useDebounce.ts` | لا يُستورد من أي مكون |
+| `src/hooks/ui/useSafeStorage.ts` | لا يُستورد من أي مكون |
+| `src/hooks/ui/useStableCallback.ts` | لا يُستورد من أي مكون |
+| `src/hooks/data/financial/useDashboardKpis.ts` | لا يُستورد — ربما استُبدل بـ `get_dashboard_kpis` RPC مباشر |
+| `src/hooks/data/financial/useFiscalYearSummary.ts` | لا يُستورد — ربما استُبدل بـ view |
 
 ---
 
-## ٤. خطة التنفيذ التدريجية (Bricks)
+## 📋 خطة التنفيذ المقترحة
 
-```text
-الطوبة ١ → تحسين عرض أخطاء الخادم في Login/Signup
-الطوبة ٢ → Skeleton مخصص لصفحة Auth
-الطوبة ٣ → توحيد EMAIL_REGEX + استخراج useFieldErrors hook
-الطوبة ٤ → تفكيك useAuthPage إلى hooks أصغر
-الطوبة ٥ → تحسينات a11y متقدمة (focus management + aria-live)
-```
+### المرحلة 1: حذف الكود الميت الآمن (بدون أثر جانبي)
+- حذف `avatar.tsx`, `command.tsx`, `drawer.tsx` (مكونات UI غير مستخدمة)
+- حذف `useDebounce.ts`, `useSafeStorage.ts`, `useStableCallback.ts` (hooks يتيمة)
+- حذف `useDashboardKpis.ts`, `useFiscalYearSummary.ts` (hooks مالية بديلة موجودة)
 
-كل طوبة مستقلة ويمكن تنفيذها واختبارها بشكل منفصل دون التأثير على باقي النظام.
+### المرحلة 2: قرار بشأن useFieldErrors
+- **خيار أ**: دمجه في LoginForm/SignupForm (إكمال الطوبة ٣)
+- **خيار ب**: حذفه إذا لم يعد مطلوباً
 
----
-
-## التوصية
-
-النظام في حالة ناضجة جداً. أنصح بالبدء بـ **الطوبة ١** (تحسين عرض أخطاء الخادم) لأنها الأكثر تأثيراً على تجربة المستخدم اليومية، ثم الانتقال تدريجياً.
-
+### ⚠️ ملاحظة
+- لن نحذف أي ملف يُصدّر عبر `index.ts` (barrel export) دون التحقق أنه لا يُستورد عبره
+- لن نمس أي ملف يعمل حالياً
