@@ -16,7 +16,7 @@ const ResetPassword = lazyWithRetry(() => import("@/pages/ResetPassword"));
 export const publicRoutes = (
   <>
     <Route path="/" element={eb(<Index />)} />
-    <Route path="/auth" element={eb(<Auth />)} />
+    <Route path="/auth" element={eb(<Suspense fallback={<AuthSkeleton />}><Auth /></Suspense>)} />
     <Route path="/unauthorized" element={eb(<Unauthorized />)} />
     <Route path="/privacy" element={eb(<PrivacyPolicy />)} />
     <Route path="/terms" element={eb(<TermsOfUse />)} />
