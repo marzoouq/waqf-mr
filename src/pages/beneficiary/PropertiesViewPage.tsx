@@ -1,7 +1,7 @@
 /**
  * صفحة عرض العقارات للمستفيد (قراءة فقط)
  */
-import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
+
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { RequirePublishedYears, ExportMenu } from '@/components/common';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
