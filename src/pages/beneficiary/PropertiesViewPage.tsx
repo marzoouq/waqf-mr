@@ -18,13 +18,14 @@ import { usePropertiesViewData } from '@/hooks/page/admin/usePropertiesViewData'
 
 const PropertiesViewPage = () => {
   const {
-    properties, units, contracts, expenses, isLoading, isError,
+    properties, units, contracts, isLoading, isError,
     refetchProps, refetchUnits,
     isClosed, isSpecificYear,
     expandedId, setExpandedId,
-    pdfWaqfInfo, allocationMap,
+    pdfWaqfInfo,
     totalUnits, occupiedUnits,
     summaryData,
+    propertyFinancialsMap,
   } = usePropertiesViewData();
 
   const { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor } = summaryData;
