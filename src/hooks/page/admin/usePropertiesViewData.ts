@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
+import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
