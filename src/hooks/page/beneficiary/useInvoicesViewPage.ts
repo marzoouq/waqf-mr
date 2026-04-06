@@ -2,7 +2,7 @@
  * هوك صفحة الفواتير — يستخرج كل المنطق من InvoicesViewPage
  */
 import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
@@ -47,7 +47,7 @@ export function useInvoicesViewPage() {
   const handleDownloadPDF = useCallback(async () => {
     try {
       if (searchQuery) {
-        toast.info(`سيتم تصدير ${filteredInvoices.length} فاتورة مفلترة فقط`);
+        defaultNotify.info(`سيتم تصدير ${filteredInvoices.length} فاتورة مفلترة فقط`);
       }
       const fiscalYearLabel = fiscalYear?.label || undefined;
       await generateInvoicesViewPDF(
@@ -62,9 +62,9 @@ export function useInvoicesViewPage() {
         pdfWaqfInfo,
         fiscalYearLabel
       );
-      toast.success('تم تحميل ملف PDF بنجاح');
+      defaultNotify.success('تم تحميل ملف PDF بنجاح');
     } catch {
-      toast.error('حدث خطأ أثناء تصدير PDF');
+      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
     }
   }, [searchQuery, filteredInvoices, fiscalYear, pdfWaqfInfo]);
 

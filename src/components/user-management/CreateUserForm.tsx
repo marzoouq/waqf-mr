@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { UserPlus } from 'lucide-react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 interface CreateForm {
   email: string;
@@ -43,11 +43,11 @@ const CreateUserForm = ({ open, onOpenChange, form, setForm, onSubmit, isPending
         onSubmit={(e) => {
           e.preventDefault();
           if (!/^\d{10}$/.test(form.nationalId)) {
-            toast.error('رقم الهوية يجب أن يتكون من 10 أرقام بالضبط');
+            defaultNotify.error('رقم الهوية يجب أن يتكون من 10 أرقام بالضبط');
             return;
           }
           if (form.password.length < 8) {
-            toast.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+            defaultNotify.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
             return;
           }
           onSubmit(form);

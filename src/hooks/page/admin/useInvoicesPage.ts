@@ -13,7 +13,7 @@ import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { removeInvoiceFile } from '@/lib/services';
 
 // تعقيم الوصف ضد CSV Injection
@@ -142,9 +142,9 @@ export const useInvoicesPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.invoice_type || !formData.date) { toast.error('يرجى ملء الحقول المطلوبة'); return; }
-    if (!editingInvoice && !selectedFile) { toast.error('يرجى رفع ملف الفاتورة'); return; }
-    if (!(parseFloat(formData.amount) > 0)) { toast.error('يرجى إدخال مبلغ أكبر من صفر'); return; }
+    if (!formData.invoice_type || !formData.date) { defaultNotify.error('يرجى ملء الحقول المطلوبة'); return; }
+    if (!editingInvoice && !selectedFile) { defaultNotify.error('يرجى رفع ملف الفاتورة'); return; }
+    if (!(parseFloat(formData.amount) > 0)) { defaultNotify.error('يرجى إدخال مبلغ أكبر من صفر'); return; }
 
     try {
       setUploading(true);
@@ -180,12 +180,12 @@ export const useInvoicesPage = () => {
       const viewablePath = filePath || editingInvoice?.file_path;
       const viewableName = fileName || editingInvoice?.file_name;
       if (viewablePath) {
-        toast.success(editingInvoice ? 'تم تحديث الفاتورة بنجاح' : 'تم رفع الفاتورة بنجاح', {
+        defaultNotify.success(editingInvoice ? 'تم تحديث الفاتورة بنجاح' : 'تم رفع الفاتورة بنجاح', {
           action: { label: 'عرض', onClick: () => setViewerFile({ path: viewablePath, name: viewableName || null }) },
         });
       }
     } catch {
-      toast.error('حدث خطأ أثناء حفظ الفاتورة');
+      defaultNotify.error('حدث خطأ أثناء حفظ الفاتورة');
     } finally {
       setUploading(false);
     }

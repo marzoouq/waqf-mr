@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { useNotificationBeneficiaries } from '@/hooks/data/notifications/useNotificationBeneficiaries';
 import { notifyAllBeneficiaries, insertNotifications } from '@/lib/services';
 
@@ -38,7 +38,7 @@ export const useBulkNotifications = () => {
     isAll: boolean
   ) => {
     if (!message.trim()) {
-      toast.error('الرسالة مطلوبة');
+      defaultNotify.error('الرسالة مطلوبة');
       return;
     }
     setSending(true);
@@ -64,7 +64,7 @@ export const useBulkNotifications = () => {
           }))
         );
       }
-      toast.success(
+      defaultNotify.success(
         isAll
           ? `تم إرسال الإشعار لجميع المستفيدين`
           : `تم إرسال الإشعار لـ ${selectedBeneficiaries.length} مستفيد`
@@ -73,7 +73,7 @@ export const useBulkNotifications = () => {
       setSelectedBeneficiaries([]);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'حدث خطأ أثناء إرسال الإخطارات';
-      toast.error(errorMessage);
+      defaultNotify.error(errorMessage);
     } finally {
       setSending(false);
     }

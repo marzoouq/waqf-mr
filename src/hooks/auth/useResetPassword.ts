@@ -3,7 +3,7 @@
  */
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 
 export function useResetPassword() {
@@ -40,11 +40,11 @@ export function useResetPassword() {
     e.preventDefault();
 
     if (!password || password.length < 8) {
-      toast.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+      defaultNotify.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
       return;
     }
     if (password !== confirmPassword) {
-      toast.error('كلمتا المرور غير متطابقتين');
+      defaultNotify.error('كلمتا المرور غير متطابقتين');
       return;
     }
 
@@ -52,13 +52,13 @@ export function useResetPassword() {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
-        toast.error(getSafeErrorMessage(error));
+        defaultNotify.error(getSafeErrorMessage(error));
       } else {
         setSuccess(true);
-        toast.success('تم تغيير كلمة المرور بنجاح');
+        defaultNotify.success('تم تغيير كلمة المرور بنجاح');
       }
     } catch {
-      toast.error('حدث خطأ غير متوقع');
+      defaultNotify.error('حدث خطأ غير متوقع');
     } finally {
       setIsLoading(false);
     }

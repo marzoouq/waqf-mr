@@ -3,7 +3,7 @@
  */
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 export interface ServerAdvanceData {
   estimated_share: number;
@@ -38,7 +38,7 @@ export const useMaxAdvanceAmount = (
     }).catch(() => {
       if (!cancelled) {
         setLoading(false);
-        toast.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
+        defaultNotify.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
       }
     });
     return () => { cancelled = true; };

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Send, Megaphone, Loader2, Users } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { useBulkNotifications } from '@/hooks/page/admin/useBulkNotifications';
 
 const BulkNotificationsTab = () => {
@@ -32,7 +32,7 @@ const BulkNotificationsTab = () => {
 
   const handleSend = async () => {
     if (!title.trim() || !message.trim()) {
-      toast.error('يرجى كتابة العنوان والرسالة');
+      defaultNotify.error('يرجى كتابة العنوان والرسالة');
       return;
     }
 

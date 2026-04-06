@@ -18,7 +18,7 @@ import { TablePagination, ExportMenu, TableSkeleton } from '@/components/common'
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -59,7 +59,7 @@ const IncomePage = () => {
                 'ملاحظات': item.notes || '-',
               })));
               downloadCsv(csv, 'دخل.csv');
-              toast.success('تم تصدير الدخل بنجاح');
+              defaultNotify.success('تم تصدير الدخل بنجاح');
             }} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isLocked}><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة دخل</span></Button></DialogTrigger>

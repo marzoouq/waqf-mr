@@ -9,7 +9,7 @@ import { ExportMenu } from '@/components/common';
 import { generateContractsPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent } from '@/components/contracts';
 import { getPaymentTypeLabel } from '@/utils/financial/contractHelpers';
 import { safeNumber } from '@/utils/format/safeNumber';
@@ -56,7 +56,7 @@ const ContractsPage = () => {
                 'الحالة': c.status === 'active' ? 'ساري' : c.status === 'cancelled' ? 'ملغي' : 'منتهي',
               })));
               downloadCsv(csv, 'عقود.csv');
-              toast.success('تم تصدير العقود بنجاح');
+              defaultNotify.success('تم تصدير العقود بنجاح');
             }} />
             <Button className="gradient-primary gap-2" onClick={() => { resetForm(); setIsOpen(true); }}><Plus className="w-4 h-4" />إضافة عقد</Button>
           </>}

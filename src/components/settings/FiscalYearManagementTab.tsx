@@ -14,7 +14,7 @@ import {
 import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
 import { type FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { useFiscalYearManagement } from '@/hooks/page/admin/useFiscalYearManagement';
 
 // ── ReopenDialog ──
@@ -23,7 +23,7 @@ const ReopenDialog = ({ fy, onConfirm, loading }: { fy: FiscalYear; onConfirm: (
   const [reason, setReason] = useState('');
 
   const handleConfirm = () => {
-    if (reason.trim().length < 10) { toast.error('يجب ذكر سبب واضح لإعادة الفتح (10 أحرف على الأقل)'); return; }
+    if (reason.trim().length < 10) { defaultNotify.error('يجب ذكر سبب واضح لإعادة الفتح (10 أحرف على الأقل)'); return; }
     onConfirm(reason.trim());
     setOpen(false);
     setReason('');

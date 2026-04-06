@@ -3,7 +3,7 @@
  */
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useMyShare } from '@/hooks/financial/useMyShare';
@@ -89,9 +89,9 @@ export function useAccountsViewPage() {
         netAfterExpenses, netAfterVat, waqfCorpusManual,
         distributionsAmount, availableAmount, remainingBalance,
       }, pdfWaqfInfo);
-      toast.success('تم تصدير الحسابات الختامية بنجاح');
+      defaultNotify.success('تم تصدير الحسابات الختامية بنجاح');
     } catch {
-      toast.error('حدث خطأ أثناء تصدير PDF');
+      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
     }
   }, [contracts, incomeBySource, expensesByTypeExcludingVat, totalIncome, totalExpenses, netAfterZakat, adminShare, waqifShare, waqfRevenue, beneficiaries, vatAmount, zakatAmount, waqfCorpusPrevious, grandTotal, netAfterExpenses, netAfterVat, waqfCorpusManual, distributionsAmount, availableAmount, remainingBalance, pdfWaqfInfo]);
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { buildXlsx, downloadXlsx } from '@/utils/export/xlsx';
 import { fetchTableData } from '@/lib/export/dataFetcher';
@@ -54,18 +54,18 @@ export const useDataExport = () => {
       const { data, error } = await fetchTableData(table);
       if (error) throw error;
       if (!data || data.length === 0) {
-        toast.info(`لا توجد بيانات في جدول ${label}`);
+        defaultNotify.info(`لا توجد بيانات في جدول ${label}`);
         return;
       }
       if (data.length >= 5000) {
-        toast.warning(`تنبيه: تم تصدير 5000 سجل فقط من ${label}. قد توجد بيانات إضافية لم تُصدَّر.`);
+        defaultNotify.warning(`تنبيه: تم تصدير 5000 سجل فقط من ${label}. قد توجد بيانات إضافية لم تُصدَّر.`);
       }
       const date = new Date().toISOString().slice(0, 10);
       const ext = format === 'xlsx' ? 'xlsx' : 'csv';
       exportData(data, `${table}_${date}.${ext}`);
-      toast.success(`تم تصدير ${data.length} سجل من ${label}`);
+      defaultNotify.success(`تم تصدير ${data.length} سجل من ${label}`);
     } catch {
-      toast.error(`حدث خطأ أثناء تصدير ${label}`);
+      defaultNotify.error(`حدث خطأ أثناء تصدير ${label}`);
     } finally {
       setExporting(null);
     }
@@ -88,12 +88,12 @@ export const useDataExport = () => {
         }
       }
       if (failedTables.length > 0) {
-        toast.warning(`تعذر تصدير: ${failedTables.join('، ')}`);
+        defaultNotify.warning(`تعذر تصدير: ${failedTables.join('، ')}`);
       } else {
-        toast.success('تم تصدير جميع البيانات بنجاح');
+        defaultNotify.success('تم تصدير جميع البيانات بنجاح');
       }
     } catch {
-      toast.error('حدث خطأ أثناء التصدير الشامل');
+      defaultNotify.error('حدث خطأ أثناء التصدير الشامل');
     } finally {
       setExporting(null);
     }

@@ -5,7 +5,7 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { ExportMenu, DashboardSkeleton } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { ArrowDownUp, AlertTriangle, RefreshCw, ArrowRight } from 'lucide-react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { useNavigate } from 'react-router-dom';
 
 import { useCarryforwardData } from '@/hooks/page/admin/useCarryforwardData';
@@ -72,7 +72,7 @@ const CarryforwardHistoryPage = () => {
                 رجوع
               </Button>
               <ExportMenu onExportPdf={() => {
-                toast.info('جاري تجهيز الطباعة...');
+                defaultNotify.info('جاري تجهيز الطباعة...');
                 setTimeout(() => { window.print(); }, 300);
               }} />
             </div>

@@ -11,7 +11,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { Property } from '@/types/database';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 export function usePropertiesPage() {
   const propertiesQuery = useProperties();
@@ -98,7 +98,7 @@ export function usePropertiesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.property_number || !formData.property_type || !formData.location || !formData.area) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      defaultNotify.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     const propertyData = {

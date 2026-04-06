@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Download, Printer, Loader2 } from 'lucide-react';
 import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector, type InvoiceTemplateData } from './InvoiceTemplates';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 
 export type InvoicePreviewData = InvoiceTemplateData;
@@ -72,10 +72,10 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
 
       const safeName = (invoice.invoiceNumber || 'invoice').replace(/[./\\]+/g, '_');
       pdf.save(`فاتورة-${safeName}.pdf`);
-      toast.success('تم تحميل الفاتورة بنجاح');
+      defaultNotify.success('تم تحميل الفاتورة بنجاح');
     } catch (err) {
       logger.error('[InvoicePreviewDialog] PDF download error:', err);
-      toast.error('حدث خطأ أثناء تحميل الفاتورة');
+      defaultNotify.error('حدث خطأ أثناء تحميل الفاتورة');
     } finally {
       setDownloading(false);
     }

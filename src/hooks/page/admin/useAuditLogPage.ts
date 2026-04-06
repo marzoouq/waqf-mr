@@ -6,7 +6,7 @@ import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/au
 import { useAuditLogTodayCount, fetchAuditLogForExport } from '@/hooks/data/audit/useAuditLogStats';
 import { generateAuditLogPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -50,7 +50,7 @@ export function useAuditLogPage() {
   }, []);
 
   const handleExportPdf = async () => {
-    if (logs.length === 0) { toast.error('لا توجد سجلات للتصدير'); return; }
+    if (logs.length === 0) { defaultNotify.error('لا توجد سجلات للتصدير'); return; }
     setExporting(true);
     try {
       const allLogs = await fetchAuditLogForExport({ tableFilter, opFilter, dateFrom, dateTo });
@@ -58,9 +58,9 @@ export function useAuditLogPage() {
         logs: allLogs.length > 0 ? allLogs : logs,
         waqfInfo, tableFilter, opFilter,
       });
-      toast.success('تم تصدير سجل المراجعة بنجاح');
+      defaultNotify.success('تم تصدير سجل المراجعة بنجاح');
     } catch {
-      toast.error('حدث خطأ أثناء تصدير التقرير');
+      defaultNotify.error('حدث خطأ أثناء تصدير التقرير');
     } finally {
       setExporting(false);
     }

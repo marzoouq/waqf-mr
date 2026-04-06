@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 interface WaqfField {
   key: string;
@@ -42,7 +42,7 @@ export const useWaqfInfoSave = (onSuccess: () => void) => {
       for (const field of fields) {
         const value = (formData[field.key] || '').trim();
         if (value.length > 500) {
-          toast.error(`الحقل "${field.label}" طويل جداً`);
+          defaultNotify.error(`الحقل "${field.label}" طويل جداً`);
           setSaving(false);
           return;
         }
@@ -52,10 +52,10 @@ export const useWaqfInfoSave = (onSuccess: () => void) => {
         if (error) throw error;
       }
       await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      toast.success('تم حفظ بيانات الوقف بنجاح');
+      defaultNotify.success('تم حفظ بيانات الوقف بنجاح');
       onSuccess();
     } catch {
-      toast.error('حدث خطأ أثناء الحفظ');
+      defaultNotify.error('حدث خطأ أثناء الحفظ');
     } finally {
       setSaving(false);
     }

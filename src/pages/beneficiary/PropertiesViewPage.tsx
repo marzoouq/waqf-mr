@@ -12,7 +12,7 @@ import { Building2, MapPin, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Rule
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { generatePropertiesPDF } from '@/utils/pdf';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { fmt, fmtInt } from '@/utils/format/format';
 import { usePropertiesViewData } from '@/hooks/page/admin/usePropertiesViewData';
 
@@ -67,8 +67,8 @@ const PropertiesViewPage = () => {
                   })),
                   pdfWaqfInfo
                 );
-                toast.success('تم تصدير العقارات بنجاح');
-              } catch { toast.error('حدث خطأ أثناء تصدير PDF'); }
+                defaultNotify.success('تم تصدير العقارات بنجاح');
+              } catch { defaultNotify.error('حدث خطأ أثناء تصدير PDF'); }
             }} />
           }
         />

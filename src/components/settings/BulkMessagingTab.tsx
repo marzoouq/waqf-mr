@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Send, MessageSquarePlus, Loader2, Users } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { useBeneficiariesForMessaging, useBulkMessageSender } from '@/hooks/data/messaging/useBulkMessaging';
 
 const BulkMessagingTab = () => {
@@ -26,13 +26,13 @@ const BulkMessagingTab = () => {
   };
 
   const handleSend = async () => {
-    if (!message.trim()) { toast.error('يرجى كتابة نص الرسالة'); return; }
+    if (!message.trim()) { defaultNotify.error('يرجى كتابة نص الرسالة'); return; }
 
     const recipients = target === 'all'
       ? beneficiaries
       : beneficiaries.filter(b => selectedIds.includes(b.id));
 
-    if (recipients.length === 0) { toast.error('يرجى اختيار مستفيد واحد على الأقل'); return; }
+    if (recipients.length === 0) { defaultNotify.error('يرجى اختيار مستفيد واحد على الأقل'); return; }
 
     const successCount = await sendBulkMessage(recipients, subject, message);
     if (successCount > 0) {

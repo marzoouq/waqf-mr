@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Download, Loader2, FileText } from 'lucide-react';
 import { getInvoiceSignedUrl } from '@/hooks/data/invoices/useInvoices';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 interface InvoiceViewerProps {
   open: boolean;
@@ -50,7 +50,7 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
         }
       })
       .catch(() => {
-        if (!abortController.signal.aborted) toast.error('فشل في تحميل الملف');
+        if (!abortController.signal.aborted) defaultNotify.error('فشل في تحميل الملف');
       })
       .finally(() => {
         if (!abortController.signal.aborted) setLoading(false);

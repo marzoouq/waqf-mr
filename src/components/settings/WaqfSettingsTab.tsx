@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -42,7 +42,7 @@ const WaqfSettingsTab = () => {
     if (value.trim() === '' || value.trim() === '0') return true;
     const num = parseFloat(value);
     if (!Number.isFinite(num) || num < 0 || num > 100) {
-      toast.error(`${label}: يجب إدخال رقم بين 0 و 100`);
+      defaultNotify.error(`${label}: يجب إدخال رقم بين 0 و 100`);
       return false;
     }
     return true;
@@ -57,7 +57,7 @@ const WaqfSettingsTab = () => {
       const adminVal = parseFloat(formData['admin_share_percentage'] || '0') || 0;
       const waqifVal = parseFloat(formData['waqif_share_percentage'] || '0') || 0;
       if (adminVal + waqifVal > 100) {
-        toast.error('مجموع نسبة الناظر والواقف يتجاوز 100%');
+        defaultNotify.error('مجموع نسبة الناظر والواقف يتجاوز 100%');
         setSaving(false);
         return;
       }
@@ -67,18 +67,18 @@ const WaqfSettingsTab = () => {
       const rows: { key: string; value: string; updated_at: string }[] = [];
       for (const field of allFields) {
         const value = (formData[field.key] || '').trim();
-        if (value.length > 500) { toast.error(`${field.label} طويل جداً`); setSaving(false); return; }
+        if (value.length > 500) { defaultNotify.error(`${field.label} طويل جداً`); setSaving(false); return; }
         if (!validatePercentage(field.key, field.label, value)) { setSaving(false); return; }
         rows.push({ key: field.key, value, updated_at: now });
       }
       await updateSettingsBatch.mutateAsync(rows);
       
       if (failedFields.length > 0) {
-        toast.error(`فشل حفظ: ${failedFields.join('، ')}`);
+        defaultNotify.error(`فشل حفظ: ${failedFields.join('، ')}`);
       } else {
-        toast.success('تم حفظ البيانات بنجاح');
+        defaultNotify.success('تم حفظ البيانات بنجاح');
       }
-    } catch { toast.error('حدث خطأ أثناء الحفظ'); } finally { setSaving(false); }
+    } catch { defaultNotify.error('حدث خطأ أثناء الحفظ'); } finally { setSaving(false); }
   };
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;

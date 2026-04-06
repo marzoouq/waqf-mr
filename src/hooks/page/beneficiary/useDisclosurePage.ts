@@ -11,7 +11,7 @@ import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { isFyReady } from '@/constants/fiscalYearIds';
 
@@ -120,9 +120,9 @@ export const useDisclosurePage = () => {
         adminShare, waqifShare, adminPct, waqifPct, beneficiariesShare,
         incomeBySource, expensesByType: expensesByTypeExcludingVat,
       }, pdfWaqfInfo);
-      toast.success('تم تحميل ملف PDF بنجاح');
+      defaultNotify.success('تم تحميل ملف PDF بنجاح');
     } catch {
-      toast.error('حدث خطأ أثناء تصدير PDF');
+      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
     }
   };
 
@@ -148,9 +148,9 @@ export const useDisclosurePage = () => {
           status: d.status,
         })),
       }, pdfWaqfInfo);
-      toast.success('تم تحميل التقرير الشامل بنجاح');
+      defaultNotify.success('تم تحميل التقرير الشامل بنجاح');
     } catch {
-      toast.error('حدث خطأ أثناء تصدير التقرير الشامل');
+      defaultNotify.error('حدث خطأ أثناء تصدير التقرير الشامل');
     }
   };
 

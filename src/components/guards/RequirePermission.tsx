@@ -7,7 +7,7 @@ import { type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { usePermissionCheck } from '@/hooks/page/shared/usePermissionCheck';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 interface Props {
   children: ReactNode;
@@ -26,7 +26,7 @@ const RequirePermission = ({ children }: Props) => {
 
   // فحص الصلاحيات
   if (!isRouteAllowed(location.pathname)) {
-    toast.error('ليس لديك صلاحية للوصول إلى هذا القسم');
+    defaultNotify.error('ليس لديك صلاحية للوصول إلى هذا القسم');
     const fallback = role === 'beneficiary' || role === 'waqif' ? '/beneficiary' : '/dashboard';
     return <Navigate to={fallback} replace />;
   }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 
 export const useSecuritySettings = () => {
   const { data: settings, updateSetting, isLoading } = useAppSettings();
@@ -20,9 +20,9 @@ export const useSecuritySettings = () => {
         key: 'idle_timeout_minutes',
         value: idleMinutes,
       });
-      toast.success('تم حفظ إعدادات الأمان');
+      defaultNotify.success('تم حفظ إعدادات الأمان');
     } catch {
-      toast.error('حدث خطأ أثناء الحفظ');
+      defaultNotify.error('حدث خطأ أثناء الحفظ');
     } finally {
       setSaving(false);
     }

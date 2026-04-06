@@ -5,7 +5,7 @@ import ReportsSummaryCards from '@/components/reports/ReportsSummaryCards';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { Badge } from '@/components/ui/badge';
 const MonthlyPerformanceReport = lazy(() => import('@/components/reports/MonthlyPerformanceReport'));
 import { ExportMenu } from '@/components/common';
@@ -86,9 +86,9 @@ const ReportsPage = () => {
               try {
                 const { generateForensicAuditPDF } = await import('@/utils/pdf');
                 await generateForensicAuditPDF(forensicAuditData, pdfWaqfInfo);
-                toast.success('تم تصدير الفحص الجنائي بنجاح');
+                defaultNotify.success('تم تصدير الفحص الجنائي بنجاح');
               } catch {
-                toast.error('حدث خطأ أثناء تصدير الفحص الجنائي');
+                defaultNotify.error('حدث خطأ أثناء تصدير الفحص الجنائي');
               }
             }} variant="outline" className="gap-2">
               <ShieldCheck className="w-4 h-4" />
