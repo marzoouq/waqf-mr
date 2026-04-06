@@ -105,7 +105,7 @@ const PropertiesViewPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {properties.map((property) => {
-              const pf = computePropertyFinancials({ propertyId: property.id, contracts, expenses, units: units ?? [], isSpecificYear, allocationMap });
+              const pf = propertyFinancialsMap.get(property.id)!;
               const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses: propExpenses, netIncome: propNet, contractualRevenue: propContractual } = pf;
               const propertyUnits = (units ?? []).filter(u => u.property_id === property.id);
               const total = propertyUnits.length;
