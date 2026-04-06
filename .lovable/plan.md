@@ -1,106 +1,112 @@
 
-# تقرير التدقيق الشامل — معمارية المشروع
 
-## الحالة العامة: جيدة جداً مع 6 مجالات تحسين
+# تقرير التدقيق المعماري الشامل
 
-المعمارية متينة وتتبع فصل المسؤوليات بشكل ممتاز. لا توجد مشكلات حرجة تؤثر على الاستقرار.
+## الحالة العامة: جيدة جداً ✓
 
----
-
-## النتائج الإيجابية المؤكدة
-
-| المعيار | النتيجة |
-|---------|---------|
-| صفر استدعاءات Supabase في components/ أو pages/ | ✅ |
-| صفر `console.*` في الكود الإنتاجي | ✅ |
-| صفر `toast` في utils/ | ✅ |
-| صفر `react-router-dom` في utils/ | ✅ |
-| صفر `any` في الكود الإنتاجي (عدا shadcn) | ✅ |
-| فصل واضح: data hooks → business hooks → page hooks → components | ✅ |
+المشروع مُنظّم بشكل ممتاز مع فصل واضح بين الطبقات. لا توجد مشكلات حرجة أو ثغرات أمنية معمارية.
 
 ---
 
-## المشكلات المكتشفة (مرتبة بالأولوية)
+## النتائج مرتّبة بالأولوية
 
-### 1. 🔴 مكونات UI غير مستخدمة (8 مكونات + 1 حزمة npm)
+### 1. حزم غير مستخدمة في package.json (أولوية عالية)
 
-**مكونات shadcn/ui موجودة لكن لا تُستورد في أي مكان:**
+تم حذف 12 مكون UI في الخطوة السابقة، لكن الحزم المرتبطة **لا تزال في package.json**:
 
-| المكون | الحزمة المرتبطة |
-|--------|----------------|
-| `context-menu.tsx` | `@radix-ui/react-context-menu` |
-| `hover-card.tsx` | `@radix-ui/react-hover-card` |
-| `menubar.tsx` | `@radix-ui/react-menubar` |
-| `navigation-menu.tsx` | `@radix-ui/react-navigation-menu` |
-| `aspect-ratio.tsx` | `@radix-ui/react-aspect-ratio` |
-| `slider.tsx` | `@radix-ui/react-slider` |
-| `toggle.tsx` + `toggle-group.tsx` | `@radix-ui/react-toggle` + `react-toggle-group` |
-| `carousel.tsx` | `embla-carousel-react` |
-| `resizable.tsx` | `react-resizable-panels` |
-| `input-otp.tsx` | `input-otp` |
-| `breadcrumb.tsx` | — (لا حزمة إضافية) |
+| الحزمة | الحالة |
+|--------|--------|
+| `@radix-ui/react-context-menu` | لا مكون يستخدمها |
+| `@radix-ui/react-hover-card` | لا مكون يستخدمها |
+| `@radix-ui/react-menubar` | لا مكون يستخدمها |
+| `@radix-ui/react-navigation-menu` | لا مكون يستخدمها |
+| `@radix-ui/react-aspect-ratio` | لا مكون يستخدمها |
+| `@radix-ui/react-slider` | لا مكون يستخدمها |
+| `@radix-ui/react-toggle` | لا مكون يستخدمها |
+| `@radix-ui/react-toggle-group` | لا مكون يستخدمها |
+| `@radix-ui/react-toast` | المشروع يستخدم sonner |
+| `embla-carousel-react` | لا مكون يستخدمها |
+| `react-resizable-panels` | لا مكون يستخدمها |
+| `input-otp` | لا مكون يستخدمها |
 
-**حزمة npm غير مستخدمة:**
-- `@radix-ui/react-toast` — المشروع يستخدم `sonner` حصرياً ولا يوجد ملف `toast.tsx`
-
-**الأثر:** ~200KB+ من الحزم غير المستخدمة في `node_modules` (لا تؤثر على حجم البناء بفضل tree-shaking، لكنها تبطئ `npm install` وتضيف ضوضاء).
-
-**الإجراء:** حذف الملفات + إزالة الحزم من `package.json`.
+**الإجراء:** إزالة 12 حزمة من dependencies في package.json — يُقلّص حجم node_modules.
 
 ---
 
-### 2. 🟡 صفحتان تستوردان `computePropertyFinancials` مباشرة
+### 2. نقل computePropertyFinancials إلى page hooks (أولوية متوسطة)
 
-- `src/pages/dashboard/PropertiesPage.tsx` (سطر 1)
-- `src/pages/beneficiary/PropertiesViewPage.tsx` (سطر 4)
+صفحتان تستدعيان دالة حسابية مباشرة داخل JSX — يخالف نمط "الصفحة تعرض بيانات جاهزة فقط":
 
-كلتا الصفحتين تستورد دالة حسابية مباشرة من `@/hooks/financial/usePropertyFinancials` وتستدعيانها داخل JSX. هذا يخالف نمط "Page Hook يتولى كل المنطق".
+- `src/pages/dashboard/PropertiesPage.tsx` — تستورد وتستدعي `computePropertyFinancials` داخل `.map()`
+- `src/pages/beneficiary/PropertiesViewPage.tsx` — نفس النمط
 
-**الإجراء:** نقل استدعاءات `computePropertyFinancials` إلى `usePropertiesPage` و `usePropertiesViewData` بحيث تبقى الصفحات تعرض بيانات جاهزة فقط.
-
----
-
-### 3. 🟡 39 ملف hook يستورد `toast` مباشرة من `sonner`
-
-المشروع لديه `@/lib/notify` كطبقة توحيد للإشعارات مع حماية dedup. لكن 39 ملف hook يستورد `toast` مباشرة من `sonner` متجاوزاً هذه الطبقة.
-
-**ملاحظة:** هذا ليس خطأ وظيفياً — `toast` يعمل بشكل صحيح. لكنه يفوّت حماية dedup ويجعل التغيير المستقبلي (مثلاً استبدال sonner) أصعب.
-
-**الأولوية:** منخفضة-متوسطة. يمكن تحويلها تدريجياً.
+**الإجراء:**
+1. نقل الاستدعاء إلى `usePropertiesPage.ts` و `usePropertiesViewData.ts` داخل `useMemo`
+2. الصفحتان تستهلكان بيانات جاهزة فقط
 
 ---
 
-### 4. 🟡 مجلدات barrel فارغة وظيفياً في `hooks/financial/`
+### 3. تنظيف barrel files الفارغة (أولوية متوسطة)
 
-بعد التنظيف السابق، بقيت 6 مجلدات فرعية (`accounts/`, `advances/`, `contracts/`, `distributions/`, `fiscal-years/`, `properties/`) كل منها يحتوي فقط على `index.ts` يعيد تصدير من الملفات الأصلية في المجلد الأب.
+6 مجلدات فرعية في `hooks/financial/` تحتوي فقط على `index.ts` يعيد التصدير — **ولا أحد يستوردها**:
 
-**المشكلة:** طبقة indirection غير ضرورية — المستهلكون يستوردون من `@/hooks/financial/<hookName>` مباشرة وليس من المجلدات الفرعية.
+```text
+hooks/financial/accounts/      ← 0 مستهلكين
+hooks/financial/advances/      ← 0 مستهلكين  
+hooks/financial/contracts/     ← 0 مستهلكين
+hooks/financial/distributions/ ← 0 مستهلكين
+hooks/financial/fiscal-years/  ← 0 مستهلكين
+hooks/financial/properties/    ← 0 مستهلكين
+```
 
-**الإجراء:** التحقق من وجود مستهلكين يستوردون من `@/hooks/financial/accounts` (إلخ). إذا لم يوجد، يمكن حذف المجلدات وتبسيط `hooks/financial/index.ts`.
+كل الملفات تستورد مباشرة من `@/hooks/financial/useXxx`. هذه المجلدات dead code.
+
+**الإجراء:** حذف المجلدات الـ 6 + تبسيط `hooks/financial/index.ts`
 
 ---
 
-### 5. 🟢 اختياري — توحيد مسارات الاستيراد
+### 4. توحيد استخدام toast → notify (أولوية منخفضة)
 
-بعض الملفات تستورد من `@/hooks/financial/usePropertyFinancials` (مسار مباشر) بينما أخرى من `@/hooks/financial` (barrel). التوحيد على نمط واحد يحسن القراءة.
+42 ملف يستورد `toast` مباشرة من `sonner` بينما يوجد wrapper في `@/lib/notify` يوفر deduplication. التحويل تدريجي وآمن.
+
+**الإجراء:** تحويل 42 ملف لاستخدام `@/lib/notify` — يُنفّذ على دفعات.
 
 ---
 
-### 6. 🟢 اختياري — اختبارات في مجلد خاطئ
+### 5. اختبارات في مجلد خاطئ (أولوية منخفضة)
 
-ملفات الاختبار في `src/hooks/financial/` (مثل `useAccounts.test.ts`, `useAdvanceRequests.test.ts`) تختبر hooks موجودة في `src/hooks/data/financial/`. الاختبارات يجب أن تكون بجانب الكود المُختبر أو في مجلد `__tests__/` مخصص.
+ملفات `.test.ts` في `hooks/financial/` تختبر hooks موجودة في `hooks/data/financial/`:
+- `useAccounts.test.ts`, `useAdvanceRequests.test.ts`, `useComputedFinancials.test.ts`, etc.
+
+هذا لا يُسبب خطأ (الاستيرادات تستخدم `@/`) لكنه مُربك تنظيمياً.
+
+**الإجراء:** نقل ملفات الاختبار بجوار الملفات المُختبرة.
+
+---
+
+## نتائج إيجابية (لا تحتاج تعديل)
+
+| المعيار | الحالة |
+|---------|--------|
+| فصل الاهتمامات (data vs UI vs state) | ممتاز — لا استدعاءات Supabase في مكونات UI |
+| Type safety — `any` | صفر في الكود الإنتاجي (حالة واحدة مبرّرة في chart.tsx) |
+| `console.*` مباشر | صفر — كل شيء عبر `logger` |
+| Lazy loading للصفحات | مطبّق بالكامل |
+| `useMemo` للحسابات المالية الثقيلة | مطبّق |
+| Page hooks pattern | مطبّق — كل صفحة لها hook مخصص |
+| التبعيات محدّثة | React 19, TanStack Query 5, TypeScript 6, Vite 5 — كلها حديثة |
 
 ---
 
 ## خطة التنفيذ المقترحة
 
-| الخطوة | الأولوية | الملفات | الوصف |
-|--------|---------|---------|-------|
-| 1 | عالية | ~13 ملف + package.json | حذف مكونات UI غير المستخدمة وحزمها |
-| 2 | متوسطة | 4 ملفات | نقل `computePropertyFinancials` إلى page hooks |
-| 3 | متوسطة | 7 ملفات | تنظيف barrel files الفارغة في hooks/financial/ |
-| 4 | منخفضة | ~10 ملفات اختبار | نقل الاختبارات بجانب الكود المُختبر |
-| 5 | منخفضة | تدريجي | توحيد `toast` → `notify` في hooks |
-| 6 | اختياري | — | توحيد أنماط الاستيراد |
+| الخطوة | الوصف | الملفات المتأثرة | الخطورة |
+|--------|-------|-----------------|---------|
+| 1 | إزالة 12 حزمة غير مستخدمة من package.json | 1 ملف | صفر |
+| 2 | نقل computePropertyFinancials إلى page hooks | 4 ملفات | منخفضة |
+| 3 | حذف 6 مجلدات barrel فارغة | 7 ملفات | صفر |
+| 4 | توحيد toast → notify (اختياري) | 42 ملف | منخفضة |
+| 5 | نقل ملفات الاختبار (اختياري) | 8 ملفات | صفر |
 
-**الإجمالي المقدّر: ~35 ملف — صفر تغييرات وظيفية**
+**الإجمالي: ~62 ملف — صفر تغييرات وظيفية**
+
