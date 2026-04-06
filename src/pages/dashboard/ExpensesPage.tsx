@@ -8,7 +8,7 @@ import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import { generateExpensesPDF } from '@/utils/pdf';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
@@ -31,7 +31,7 @@ const ExpensesPage = () => {
                 'العقار': item.property?.property_number || '-', 'الوصف': item.description || '-',
               })));
               downloadCsv(csv, 'مصروفات.csv');
-              toast.success('تم تصدير المصروفات بنجاح');
+              defaultNotify.success('تم تصدير المصروفات بنجاح');
             }} />
             <ExpenseFormDialog
               isOpen={h.isOpen} setIsOpen={h.setIsOpen} formData={h.formData} setFormData={h.setFormData}

@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Percent, Search, AlertTriangle, Wallet, UserCheck } from 'lucide-react';
 import { generateBeneficiariesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { ExportMenu, TablePagination, CrudPagination } from '@/components/common';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import {
@@ -37,7 +37,7 @@ const BeneficiariesPage = () => {
                 'ملاحظات': b.notes || '-',
               })));
               downloadCsv(csv, 'مستفيدين.csv');
-              toast.success('تم تصدير المستفيدين بنجاح');
+              defaultNotify.success('تم تصدير المستفيدين بنجاح');
             }} />
             <BeneficiaryFormDialog
               isOpen={h.isOpen} setIsOpen={h.setIsOpen} formData={h.formData} setFormData={h.setFormData}

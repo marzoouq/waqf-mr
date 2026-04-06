@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Search, Eye, LayoutGrid, List, FileDown, ShieldCheck, Lock } from 'lucide-react';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
-import { toast } from 'sonner';
+import { defaultNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
 import { useInvoicesPage } from '@/hooks/page/admin/useInvoicesPage';
@@ -41,7 +41,7 @@ const InvoicesPage = () => {
               ) : null;
             })()}
             <ExportMenu onExportPdf={async () => {
-              if (!h.fiscalYearId || h.fiscalYearId === 'all') toast.warning('⚠️ أنت تصدّر فواتير جميع السنوات المالية.');
+              if (!h.fiscalYearId || h.fiscalYearId === 'all') defaultNotify.warning('⚠️ أنت تصدّر فواتير جميع السنوات المالية.');
               try {
                 const fyLabel = h.fiscalYear?.label || (h.fiscalYearId ? '' : 'جميع السنوات');
                 await generateInvoicesViewPDF(h.filteredInvoices.map(inv => ({
@@ -49,8 +49,8 @@ const InvoicesPage = () => {
                   invoice_number: inv.invoice_number, amount: safeNumber(inv.amount), date: inv.date,
                   property_number: inv.property?.property_number || '-', status: inv.status,
                 })), h.pdfWaqfInfo, fyLabel);
-                toast.success('تم تحميل ملف PDF بنجاح');
-              } catch { toast.error('حدث خطأ أثناء تصدير PDF'); }
+                defaultNotify.success('تم تحميل ملف PDF بنجاح');
+              } catch { defaultNotify.error('حدث خطأ أثناء تصدير PDF'); }
             }} onExportCsv={() => {
               const fyLabel = h.fiscalYear?.label || 'جميع-السنوات';
               const csv = buildCsv(h.filteredInvoices.map(inv => ({
@@ -60,7 +60,7 @@ const InvoicesPage = () => {
                 'الحالة': h.INVOICE_STATUS_LABELS[inv.status] || inv.status,
               })));
               downloadCsv(csv, `فواتير-${fyLabel}.csv`);
-              toast.success('تم تصدير الفواتير بنجاح');
+              defaultNotify.success('تم تصدير الفواتير بنجاح');
             }} />
             <InvoiceUploadDialog
               open={h.isOpen} onOpenChange={h.setIsOpen} isEditing={!!h.editingInvoice} isLocked={isLocked}
@@ -175,7 +175,7 @@ const InvoicesPage = () => {
           onSaveTemplate={async (data) => {
             await h.createInvoice.mutateAsync({ ...data, fiscal_year_id: h.fiscalYear?.id } as unknown as Parameters<typeof h.createInvoice.mutateAsync>[0]);
             h.setTemplateOpen(false);
-            toast.success('تم إنشاء الفاتورة بنجاح');
+            defaultNotify.success('تم إنشاء الفاتورة بنجاح');
           }}
           isSaving={h.createInvoice.isPending}
         />
