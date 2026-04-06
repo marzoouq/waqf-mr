@@ -10,7 +10,7 @@ import { notifyAdmins, notifyUser } from '@/lib/services';
 import { fmt } from '@/utils/format/format';
 
 // إعادة تصدير الأنواع والهوكات
-export type { AdvanceRequest, AdvanceCarryforward } from '@/hooks/financial/advanceTypes';
+export type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 export {
   useMyBeneficiaryFinance,
   useMyAdvanceRequests,
@@ -38,7 +38,7 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
       }
       const { data, error } = await query;
       if (error) throw error;
-      return (data ?? []) as unknown as import('@/hooks/financial/advanceTypes').AdvanceRequest[];
+      return (data ?? []) as unknown as import('@/types/advance').AdvanceRequest[];
     },
   });
 };

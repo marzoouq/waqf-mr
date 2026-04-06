@@ -4,11 +4,9 @@
  */
 import { useRef, useCallback } from 'react';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useStableCallback<T extends (...args: any[]) => any>(callback: T): T {
+export function useStableCallback<T extends (...args: never[]) => unknown>(callback: T): T {
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return useCallback((...args: any[]) => callbackRef.current(...args), []) as T;
+  return useCallback((...args: never[]) => callbackRef.current(...args), []) as T;
 }

@@ -5,10 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_REALTIME } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/format/safeNumber';
-import type { AdvanceRequest, AdvanceCarryforward } from '@/hooks/financial/advanceTypes';
+import type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 
 // إعادة تصدير الأنواع للتوافقية
-export type { AdvanceRequest, AdvanceCarryforward } from '@/hooks/financial/advanceTypes';
+export type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 
 // ---------------------------------------------------------------------------
 // هوك مدمج لبيانات المستفيد: سُلف + ترحيلات في استعلامين متوازيين

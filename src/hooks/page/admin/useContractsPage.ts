@@ -5,7 +5,7 @@ import { useCreateContract, useUpdateContract, useDeleteContract, useContractsBy
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
+import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
 import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts';
 import { toast } from 'sonner';

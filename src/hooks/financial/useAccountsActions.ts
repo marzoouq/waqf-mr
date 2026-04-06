@@ -3,7 +3,7 @@
  * يستقبل القيم المحسوبة الحقيقية مباشرة — بدون أصفار أو paramsRef خارجي
  */
 import { useState, useRef } from 'react';
-import { useCreateAccount } from '@/hooks/financial/useAccounts';
+import { useCreateAccount } from '@/hooks/data/financial/useAccounts';
 import { useCloseFiscalYear } from '@/hooks/data/financial/useCloseFiscalYear';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { notifyAllBeneficiaries } from '@/lib/services';

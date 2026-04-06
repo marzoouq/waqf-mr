@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
+import { useMyBeneficiaryFinance } from '@/hooks/data/financial/useAdvanceRequests';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { useMyShare } from '@/hooks/financial/useMyShare';

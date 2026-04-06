@@ -47,14 +47,14 @@ function createWrapper() {
 
 describe('useAdvanceRequests', () => {
   it('يجلب بيانات طلبات السلف', async () => {
-    const { useAdvanceRequests } = await import('./useAdvanceRequests');
+    const { useAdvanceRequests } = await import('@/hooks/data/financial/useAdvanceRequests');
     const { result } = renderHook(() => useAdvanceRequests(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess || result.current.isError).toBe(true));
     expect(result.current).not.toBeNull();
   });
 
   it('يفلتر بالسنة المالية', async () => {
-    const { useAdvanceRequests } = await import('./useAdvanceRequests');
+    const { useAdvanceRequests } = await import('@/hooks/data/financial/useAdvanceRequests');
     const { result } = renderHook(() => useAdvanceRequests('fy-123'), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess || result.current.isError).toBe(true));
     expect(result.current).not.toBeNull();
@@ -63,13 +63,13 @@ describe('useAdvanceRequests', () => {
 
 describe('useMyAdvanceRequests', () => {
   it('معطّل بدون beneficiaryId', async () => {
-    const { useMyAdvanceRequests } = await import('./useAdvanceRequests');
+    const { useMyAdvanceRequests } = await import('@/hooks/data/financial/useAdvanceRequests');
     const { result } = renderHook(() => useMyAdvanceRequests(undefined), { wrapper: createWrapper() });
     expect(result.current.fetchStatus).toBe('idle');
   });
 
   it('يجلب بيانات عند وجود beneficiaryId', async () => {
-    const { useMyAdvanceRequests } = await import('./useAdvanceRequests');
+    const { useMyAdvanceRequests } = await import('@/hooks/data/financial/useAdvanceRequests');
     const { result } = renderHook(() => useMyAdvanceRequests('ben-1'), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess || result.current.isError).toBe(true));
     expect(result.current).not.toBeNull();
@@ -78,14 +78,14 @@ describe('useMyAdvanceRequests', () => {
 
 describe('usePaidAdvancesTotal', () => {
   it('معطّل بدون beneficiaryId', async () => {
-    const { usePaidAdvancesTotal } = await import('./useAdvanceRequests');
+    const { usePaidAdvancesTotal } = await import('@/hooks/data/financial/useAdvanceRequests');
     const { result } = renderHook(() => usePaidAdvancesTotal(undefined), { wrapper: createWrapper() });
     expect(result.current.fetchStatus).toBe('idle');
   });
 
   it('يحسب المجموع', async () => {
     mockLimit.mockResolvedValue({ data: [{ amount: 100, status: 'paid' }, { amount: 200, status: 'paid' }], error: null });
-    const { usePaidAdvancesTotal } = await import('./useAdvanceRequests');
+    const { usePaidAdvancesTotal } = await import('@/hooks/data/financial/useAdvanceRequests');
     const { result } = renderHook(() => usePaidAdvancesTotal('ben-1'), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toBe(300);
@@ -94,7 +94,7 @@ describe('usePaidAdvancesTotal', () => {
 
 describe('useCarryforwardBalance', () => {
   it('معطّل بدون beneficiaryId', async () => {
-    const { useCarryforwardBalance } = await import('./useAdvanceRequests');
+    const { useCarryforwardBalance } = await import('@/hooks/data/financial/useAdvanceRequests');
     const { result } = renderHook(() => useCarryforwardBalance(undefined), { wrapper: createWrapper() });
     expect(result.current.fetchStatus).toBe('idle');
   });
@@ -107,7 +107,7 @@ describe('useCarryforwardBalance', () => {
       ],
       error: null,
     });
-    const { useCarryforwardBalance } = await import('./useAdvanceRequests');
+    const { useCarryforwardBalance } = await import('@/hooks/data/financial/useAdvanceRequests');
     const { result } = renderHook(() => useCarryforwardBalance('ben-1', 'fy-1'), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toBe(800);
@@ -116,7 +116,7 @@ describe('useCarryforwardBalance', () => {
 
 describe('useCreateAdvanceRequest', () => {
   it('يرندر بدون خطأ', async () => {
-    const { useCreateAdvanceRequest } = await import('./useAdvanceRequests');
+    const { useCreateAdvanceRequest } = await import('@/hooks/data/financial/useAdvanceRequests');
     const { result } = renderHook(() => useCreateAdvanceRequest(), { wrapper: createWrapper() });
     expect(result.current.mutateAsync).toBeDefined();
   });
@@ -124,7 +124,7 @@ describe('useCreateAdvanceRequest', () => {
 
 describe('useUpdateAdvanceStatus', () => {
   it('يرندر بدون خطأ', async () => {
-    const { useUpdateAdvanceStatus } = await import('./useAdvanceRequests');
+    const { useUpdateAdvanceStatus } = await import('@/hooks/data/financial/useAdvanceRequests');
     const { result } = renderHook(() => useUpdateAdvanceStatus(), { wrapper: createWrapper() });
     expect(result.current.mutateAsync).toBeDefined();
   });

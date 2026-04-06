@@ -3,11 +3,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowUpDown, TrendingUp, TrendingDown, Minus, FileDown } from 'lucide-react';
-import { FiscalYear } from '@/hooks/financial/useFiscalYears';
+import { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import { generateYearComparisonPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { fmt } from '@/utils/format/format';
-import { useYearComparisonData } from '@/hooks/financial/useYearComparisonData';
+import { useYearComparisonData } from '@/hooks/data/financial/useYearComparisonData';
 const YoYChartsSection = lazy(() => import('@/components/reports/YoYChartsSection'));
 import { YoYComparisonTable } from '@/components/reports';
 

@@ -11,7 +11,7 @@ import { Contract } from '@/types/database';
 import { ExportMenu, TablePagination } from '@/components/common';
 import { fmt } from '@/utils/format/format';
 
-import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
+import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useCollectionData, type FilterStatus } from '@/hooks/page/admin/useCollectionData';
 import { useCollectionAlerts } from '@/hooks/data/contracts/useCollectionAlerts';

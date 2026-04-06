@@ -8,7 +8,7 @@ import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useAccountByFiscalYear } from '@/hooks/financial/useAccounts';
+import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
 

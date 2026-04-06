@@ -26,7 +26,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 
-import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from './useAccounts';
+import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from '@/hooks/data/financial/useAccounts';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 

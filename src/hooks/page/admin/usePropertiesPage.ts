@@ -7,7 +7,7 @@ import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useAccountByFiscalYear } from '@/hooks/financial/useAccounts';
+import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { Property } from '@/types/database';
 import { toast } from 'sonner';

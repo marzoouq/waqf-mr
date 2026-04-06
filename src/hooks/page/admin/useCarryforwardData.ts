@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { useMyBeneficiaryProfile } from '@/hooks/data/beneficiaries/useMyBeneficiaryProfile';
 import { usePublishedFiscalYears } from '@/hooks/data/content/usePublishedFiscalYears';
-import { useMyBeneficiaryFinance } from '@/hooks/financial/useAdvanceRequests';
+import { useMyBeneficiaryFinance } from '@/hooks/data/financial/useAdvanceRequests';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 export const useCarryforwardData = () => {

@@ -18,7 +18,7 @@ vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useUpsertContractAllocations } from './useContractAllocations';
+import { useUpsertContractAllocations } from '@/hooks/data/financial/useContractAllocations';
 import { supabase } from '@/integrations/supabase/client';
 import React from 'react';
 

@@ -3,7 +3,7 @@
  * محسّن: يجلب العقود للسنة المحددة فقط + التخصيصات من جدول contract_fiscal_allocations مباشرة
  */
 import { useMemo } from 'react';
-import { useAccounts } from '@/hooks/financial/useAccounts';
+import { useAccounts } from '@/hooks/data/financial/useAccounts';
 import { useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
@@ -13,7 +13,7 @@ import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
+import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 export function useAccountsData() {

@@ -1,5 +1,5 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useFiscalYears } from '@/hooks/financial/useFiscalYears';
+import { useFiscalYears } from '@/hooks/data/financial/useFiscalYears';
 import { Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
