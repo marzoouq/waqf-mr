@@ -1,105 +1,83 @@
 
 
-# تقرير التدقيق الشامل المُحدّث — نظام إدارة وقف الثبيتي
+# تقرير تحليل شامل وخطة تحسين تدريجية — نظام إدارة الوقف
 
-## ملخص تنفيذي
+## الوضع الحالي
 
-المشروع ناضج (877 ملف، ~80K سطر) مع بنية نظيفة ومنظمة. لا توجد مشاكل هيكلية كبرى. التقرير يحدد إصلاحاً أمنياً واحداً ذا أولوية قصوى + تحديثات توثيقية للنتائج المقبولة.
-
----
-
-## الجزء الأول: الأمان — 4 نتائج error + 4 نتائج warn
-
-### 1.1 ⚠️ أولوية قصوى: jwt_role() في 32 سياسة SELECT
-**المستوى:** error (من الماسح الأمني)
-**المشكلة:** 32 سياسة SELECT عبر 22 جدولاً تستخدم `jwt_role()` (من JWT مخزّن مؤقتاً حتى ساعة)، بينما كل سياسات الكتابة تستخدم `has_role()` (فحص حي).
-
-**الجداول المتأثرة:** access_log, access_log_archive, account_categories, accounts, annual_report_items, annual_report_status, app_settings, audit_log, beneficiaries, contract_fiscal_allocations, contracts, conversations, distributions, expense_budgets, expenses, fiscal_years, income, invoice_chain, invoice_items, invoices, messages, payment_invoices, properties, support_ticket_replies, support_tickets, tenant_payments, units, waqf_bylaws, webauthn_credentials, zatca_operation_log
-
-**الحل:** Migration واحدة — DROP + CREATE POLICY لكل سياسة متأثرة، استبدال `jwt_role() = 'X'` بـ `has_role(auth.uid(), 'X'::app_role)`. لا تغيير في الكود.
-
-**ملاحظة أداء:** `has_role()` هي `SECURITY DEFINER` + `STABLE` — Postgres يُخزّنها مؤقتاً داخل المعاملة. التأثير ضئيل لنظام <20 مستخدم.
-
-### 1.2 ✅ سياسة التخزين القديمة — محلولة فعلاً
-تم التحقق من قاعدة البيانات مباشرة: السياسة `Authenticated users can view invoices` **غير موجودة**. فقط `Role-based users can view invoices` + سياسات role-specific متبقية. النتيجة `invoice_storage_broad` في الماسح خاطئة — يجب حذفها.
-
-### 1.3 ℹ️ zatca_certificates — مخاطرة مقبولة
-- المفاتيح مشفرة عبر trigger + الكود لا يجلبها + RLS admin فقط
-- نقل إلى Vault يضيف تعقيداً بدون مكسب عملي
-
-### 1.4 ℹ️ Realtime — مخاطرة مقبولة
-- لا يوجد Broadcast/Presence — فقط `postgres_changes` المحمي بـ RLS
-- لا يمكن تعديل `realtime.messages` (مخطط محجوز)
-
-### 1.5 ℹ️ Security Definer Views — مقصود بالتصميم
-- `beneficiaries_safe` و `contracts_safe` — محمية بـ `security_barrier` + `CASE WHEN` + `WHERE auth.uid() IS NOT NULL`
+المشروع ناضج تقنياً بشكل ملحوظ. صفحة تسجيل الدخول تحتوي بالفعل على: حالات تحميل، أخطاء مضمّنة، تحقق من البريد، شريط قوة كلمة المرور، تسجيل بيومتري، حجز مساحة CLS، ودعم ARIA. البنية التحتية تستخدم lazy loading، DeferredRender، فصل Auth Context إلى State/Actions، وQueryClient مُعدّ بشكل جيد.
 
 ---
 
-## الجزء الثاني: البنية والهيكل
+## ١. تحسينات صفحة تسجيل الدخول (UX Bricks)
 
-| المعيار | التقييم | ملاحظات |
-|---------|---------|---------|
-| فصل المسؤوليات | ممتاز ✅ | 0 استدعاءات Supabase في `src/components/` |
-| TypeScript strict | ممتاز ✅ | 0 `any` غير مبرر |
-| Logger موحّد | ممتاز ✅ | `console.*` فقط في Edge Functions (مقبول) و logger |
-| Barrel files | منتظم ✅ | `index.ts` في كل مجلد رئيسي |
-| حجم الملفات | مقبول ✅ | أكبر ملف: `LoginForm.tsx` (277 سطر) — تحت الحد |
-| تكرار مكونات | لا يوجد ✅ | — |
-| كود ميت | لم يُكتشف ✅ | — |
+### طوبة 1: تحسين تجربة الخطأ من الخادم
+**الحالة الحالية**: أخطاء الخادم تُعرض عبر toast فقط — قد تُفوّت على المستخدم.
+**التحسين**: عرض خطأ الخادم كـ alert بارز أعلى النموذج (بالإضافة للـ toast)، مع رسائل عربية أوضح للأخطاء الشائعة (بريد غير مسجل، كلمة مرور خاطئة، حساب معطّل).
+**الملفات**: `LoginForm.tsx`, `SignupForm.tsx`
 
----
+### طوبة 2: تحسين Skeleton/Loading للصفحة الرئيسية
+**الحالة الحالية**: عند فتح `/auth` يظهر spinner عام أثناء lazy load.
+**التحسين**: إضافة skeleton مخصص لصفحة Auth يحاكي شكل البطاقة (الشعار + الحقول) بدلاً من spinner فارغ.
+**الملفات**: `Auth.tsx` أو fallback جديد
 
-## الجزء الثالث: الأداء
-
-| المعيار | التقييم |
-|---------|---------|
-| استعلامات مكررة | لا توجد ✅ — TanStack Query يدير التخزين المؤقت |
-| useEffect | 25 مكوّن — معقول ✅ |
-| Lazy loading | كل الصفحات + `ViewportRender` للمكونات الثانوية ✅ |
-| PWA + Precache | محسّن ✅ |
+### طوبة 3: تحسين إمكانية الوصول (a11y) المتقدم
+**الحالة الحالية**: دعم ARIA أساسي موجود.
+**التحسين**: إضافة `aria-live="polite"` لمنطقة الأخطاء، `aria-busy` للنموذج أثناء التحميل، وتحسين focus management (إرجاع التركيز للحقل الخاطئ).
+**الملفات**: `LoginForm.tsx`, `SignupForm.tsx`, `ResetPasswordForm.tsx`
 
 ---
 
-## الجزء الرابع: التبعيات
+## ٢. تحليل الأداء — نقاط الاختناق
 
-| التبعية | الإصدار الحالي | الحالة |
-|---------|---------------|--------|
-| React | 19.2.4 | محدّث ✅ |
-| TypeScript | 6.0.2 | محدّث ✅ |
-| Vite | 5.4.21 | محدّث ✅ |
-| TanStack Query | 5.96.2 | محدّث ✅ |
-| Supabase JS | 2.101.0 | محدّث ✅ |
-| Zod | 4.3.6 | محدّث ✅ |
-| React Router | 7.14.0 | محدّث ✅ |
+| النقطة | التفصيل | الأولوية |
+|--------|---------|----------|
+| **QueryClient staleTime** | مضبوط على 5 دقائق عام — مناسب. لا تغيير مطلوب. | ✅ جيد |
+| **Lazy loading** | كل الصفحات lazy مع `lazyWithRetry`. | ✅ جيد |
+| **DeferredRender** | مستخدم للـ AI Assistant بـ 200ms. | ✅ جيد |
+| **Auth Context splitting** | مفصول إلى State + Actions — ممتاز. | ✅ جيد |
+| **refetchOnWindowFocus** | معطّل — مناسب لنظام إداري. | ✅ جيد |
+| **useIdleTimeout event listeners** | يسجّل 10 أحداث DOM — يمكن تحسينه بـ throttle | ⚠️ منخفض |
+| **Auth page decorative orbs** | عنصران بـ `blur-3xl` يستهلكان GPU — `contain: strict` موجود | ✅ مقبول |
 
-لا توجد تبعيات قديمة تحتاج تحديث.
-
----
-
-## خطة التنفيذ المقترحة (بالأولوية)
-
-### الأولوية 1: إصلاح أمني — Migration واحدة
-استبدال `jwt_role()` بـ `has_role(auth.uid(), 'X'::app_role)` في جميع 32 سياسة SELECT.
-- لا تغيير في الكود
-- كل سياسة: `DROP POLICY IF EXISTS` → `CREATE POLICY` بنفس الاسم والمنطق مع `has_role()` بدل `jwt_role()`
-- السياسات التي تحتوي على شروط إضافية (مثل `published = true` في `annual_report_status`) تُحافظ على شروطها
-
-### الأولوية 2: تحديث نتائج الماسح الأمني
-- حذف `invoice_storage_broad` (محلول ومؤكد من DB)
-- حذف `invoices_bucket_authenticated_users` (نفس المشكلة — محلولة)
-- تحديث `jwt_role_stale` و `jwt_role_vs_has_role_inconsistency` إلى "محلول" بعد تنفيذ الأولوية 1
-- تحديث `zatca_certificates_private_key_exposure` و `realtime_messages_no_rls_policies` كمخاطر مقبولة مع التبرير
-
-### الأولوية 3: تحسينات اختيارية مستقبلية (بدون تغيير الآن)
-- إضافة `custom_access_token_hook` لمزامنة الأدوار فورياً في JWT (يلغي الحاجة للأولوية 1 مستقبلاً)
-- تقسيم `LoginForm.tsx` إذا نمى فوق 300 سطر
+**الخلاصة**: لا توجد اختناقات أداء حرجة. النظام محسّن بشكل جيد.
 
 ---
 
-## القيود المُلزمة
-- لا تعديل على الكود — فقط migration قاعدة بيانات + تحديث نتائج الماسح
-- لا تعديل على: `AuthContext.tsx`, `SecurityGuard.tsx`, `ProtectedRoute.tsx`, `config.toml`, `client.ts`, `types.ts`, `.env`
-- الحفاظ على كل الميزات العاملة كأنظمة مقفلة
-- لا تعديل على المخطط المحجوز `realtime`
+## ٣. تدقيق البنية — تقرير مرتّب بالأولوية
+
+### أ. بنية ممتازة (لا تغيير)
+- فصل Auth إلى State/Actions contexts
+- `useCrudFactory` للعمليات القياسية
+- فصل المسارات إلى ملفات مستقلة (public/admin/beneficiary/waqif)
+- ErrorBoundary شامل مع route-level error handling
+- فصل hooks إلى مجلدات واضحة (auth/data/ui/page)
+
+### ب. تحسينات مقترحة (أولوية منخفضة-متوسطة)
+
+| # | الملاحظة | التفصيل | الأولوية |
+|---|---------|---------|----------|
+| 1 | **useAuthPage طويل** | يخلط PWA + offline + role redirect + registration check في hook واحد | متوسطة |
+| 2 | **تكرار EMAIL_REGEX** | معرّف في 3 ملفات auth — يجب توحيده في `@/utils/validation` | منخفضة |
+| 3 | **تكرار نمط fieldErrors** | LoginForm وSignupForm يكرران نفس منطق clearFieldError/validate — يمكن استخراجه لـ hook | منخفضة |
+| 4 | **SecurityGuard كمكوّن** | يسجّل 4 أحداث DOM — يمكن تحويله لـ hook بدون JSX | منخفضة |
+
+---
+
+## ٤. خطة التنفيذ التدريجية (Bricks)
+
+```text
+الطوبة ١ → تحسين عرض أخطاء الخادم في Login/Signup
+الطوبة ٢ → Skeleton مخصص لصفحة Auth
+الطوبة ٣ → توحيد EMAIL_REGEX + استخراج useFieldErrors hook
+الطوبة ٤ → تفكيك useAuthPage إلى hooks أصغر
+الطوبة ٥ → تحسينات a11y متقدمة (focus management + aria-live)
+```
+
+كل طوبة مستقلة ويمكن تنفيذها واختبارها بشكل منفصل دون التأثير على باقي النظام.
+
+---
+
+## التوصية
+
+النظام في حالة ناضجة جداً. أنصح بالبدء بـ **الطوبة ١** (تحسين عرض أخطاء الخادم) لأنها الأكثر تأثيراً على تجربة المستخدم اليومية، ثم الانتقال تدريجياً.
 
