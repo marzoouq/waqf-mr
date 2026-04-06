@@ -4,8 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { usePasswordResetRequest } from '@/hooks/auth/usePasswordResetRequest';
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { EMAIL_REGEX } from '@/utils/validation';
 
 interface ResetPasswordFormProps {
   onBack: () => void;
@@ -54,7 +53,7 @@ export default function ResetPasswordForm({ onBack }: ResetPasswordFormProps) {
           aria-invalid={!!emailError}
           aria-describedby={emailError ? 'reset-email-error' : undefined}
         />
-        <div className="min-h-[1.25rem]">
+        <div className="min-h-[1.25rem]" aria-live="polite">
           {emailError && (
             <p id="reset-email-error" role="alert" className="flex items-center gap-1 text-xs text-destructive">
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
