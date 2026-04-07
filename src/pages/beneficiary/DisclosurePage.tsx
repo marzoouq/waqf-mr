@@ -38,7 +38,7 @@ const DisclosurePage = () => {
     );
   }
 
-  if (!currentBeneficiary && !finLoading) {
+  if (!currentBeneficiary && !isLoading) {
     return (
       <DashboardLayout>
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
