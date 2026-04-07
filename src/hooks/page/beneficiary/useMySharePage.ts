@@ -4,6 +4,7 @@
  */
 import { useMemo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { toSourceRecord, toExpenseRecord } from '@/utils/financial/recordConverters';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useMyBeneficiaryFinance } from '@/hooks/data/financial/useAdvanceRequests';
