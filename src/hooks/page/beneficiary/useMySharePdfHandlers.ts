@@ -139,15 +139,7 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
     } catch { defaultNotify.error('حدث خطأ أثناء تصدير التقرير الشامل'); }
   });
 
-  // #B4 — تثبيت مرجع withPdfLoading عبر useCallback
-  const stableWithPdfLoading = useCallback(
-    (fn: () => Promise<void>) => async () => {
-      if (isPdfLoading) return;
-      setIsPdfLoading(true);
-      try { await fn(); } finally { setIsPdfLoading(false); }
-    },
-    [isPdfLoading],
-  );
+
 
   const handlePrintReport = () => {
     if (!params.currentBeneficiary) return;
