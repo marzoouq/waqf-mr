@@ -15,3 +15,6 @@ export const SA_VAT_REGEX = /^3\d{13}3$/;
 
 /** رقم الآيبان السعودي — SA متبوعاً بـ 22 رقماً */
 export const IBAN_SA_REGEX = /^SA\d{22}$/;
+
+/** معرّف جهاز ZATCA — الصيغة: 1-XXX|2-YYY|3-ZZZ */
+export const DEVICE_SERIAL_REGEX = /^1-.+\|2-.+\|3-.+$/;

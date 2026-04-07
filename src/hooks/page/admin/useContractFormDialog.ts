@@ -7,6 +7,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts';
 import { defaultNotify } from '@/lib/notify';
+import { SAUDI_NATIONAL_ID_REGEX, SA_VAT_REGEX } from '@/utils/validation';
 
 interface UseContractFormDialogParams {
   editingContract: Contract | null;
@@ -68,6 +69,14 @@ export function useContractFormDialog({
       }
     } else if (!formData.rent_amount) {
       defaultNotify.error('يرجى إدخال قيمة الإيجار');
+      return;
+    }
+    if (formData.tenant_id_number && formData.tenant_id_type === 'NAT' && !SAUDI_NATIONAL_ID_REGEX.test(formData.tenant_id_number)) {
+      defaultNotify.error('رقم الهوية يجب أن يكون 10 أرقام ويبدأ بـ 1 أو 2');
+      return;
+    }
+    if (formData.tenant_tax_number && !SA_VAT_REGEX.test(formData.tenant_tax_number)) {
+      defaultNotify.error('الرقم الضريبي يجب أن يكون 15 رقماً ويبدأ وينتهي بـ 3');
       return;
     }
     await onSubmit(formData, !!editingContract);

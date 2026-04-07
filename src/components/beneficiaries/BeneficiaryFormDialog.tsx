@@ -6,6 +6,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Link, IdCard } from 'lucide-react';
 import { getNationalIdError } from '@/utils/format/validateNationalId';
+import { IBAN_SA_REGEX, SAUDI_PHONE_REGEX } from '@/utils/validation';
 
 export interface BeneficiaryFormData {
   name: string;
@@ -32,8 +33,7 @@ interface BeneficiaryFormDialogProps {
   onReset: () => void;
 }
 
-// validateNationalId مُستبدلة بـ getNationalIdError المباشرة في handleSubmit
-const validateIBAN = (v: string) => !v || /^SA\d{22}$/.test(v.replace(/\s/g, ''));
+const validateIBAN = (v: string) => !v || IBAN_SA_REGEX.test(v.replace(/\s/g, ''));
 
 const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing, isPending, availableUsers, onSubmit, onReset }: BeneficiaryFormDialogProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -49,6 +49,7 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
       if (nidErr) newErrors.national_id = nidErr;
     }
     if (formData.bank_account && !validateIBAN(formData.bank_account)) newErrors.bank_account = 'صيغة IBAN غير صحيحة (SA + 22 رقم)';
+    if (formData.phone && !SAUDI_PHONE_REGEX.test(formData.phone.trim())) newErrors.phone = 'رقم الهاتف يجب أن يبدأ بـ 05 ويتكون من 10 أرقام';
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
     onSubmit(e);
@@ -75,7 +76,11 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
             <Input name="share_percentage" id="beneficiary-form-dialog-field-2" type="number" step="0.01" min="0.01" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="7.14" />
             {errors.share_percentage && <p className="text-xs text-destructive">{errors.share_percentage}</p>}
           </div>
-          <div className="space-y-2"><Label htmlFor="beneficiary-form-dialog-field-3">رقم الهاتف</Label><Input name="phone" id="beneficiary-form-dialog-field-3" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="05xxxxxxxx" dir="ltr" maxLength={15} /></div>
+          <div className="space-y-2">
+            <Label htmlFor="beneficiary-form-dialog-field-3">رقم الهاتف</Label>
+            <Input name="phone" id="beneficiary-form-dialog-field-3" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="05xxxxxxxx" dir="ltr" maxLength={15} />
+            {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+          </div>
           <div className="space-y-2"><Label htmlFor="beneficiary-form-dialog-field-4">البريد الإلكتروني</Label><Input name="email" id="beneficiary-form-dialog-field-4" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" dir="ltr" maxLength={255} /></div>
           <div className="space-y-2">
             <Label htmlFor="beneficiary-form-dialog-field-5">رقم الحساب البنكي (IBAN)</Label>
