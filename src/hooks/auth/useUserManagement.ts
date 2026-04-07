@@ -94,6 +94,7 @@ export const useUserManagement = () => {
   return {
     users, totalUsers, nextPage, isLoading, isError, error,
     orphanedBeneficiaries, unlinkedBeneficiaries,
+    showAdvanced, setShowAdvanced,
     registrationEnabled, toggling: toggleRegistrationMut.isPending,
     isCreateOpen, setIsCreateOpen,
     editingUser, setEditingUser,

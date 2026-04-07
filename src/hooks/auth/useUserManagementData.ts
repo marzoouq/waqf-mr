@@ -62,7 +62,7 @@ export const useAdminUsers = (currentPage: number) => {
   });
 };
 
-export const useOrphanedBeneficiaries = () => {
+export const useOrphanedBeneficiaries = (enabled = true) => {
   const { user: currentUser } = useAuth();
   return useQuery({
     queryKey: ['orphaned-beneficiaries'],
@@ -71,14 +71,15 @@ export const useOrphanedBeneficiaries = () => {
       const { data } = await supabase
         .from('beneficiaries')
         .select('id, name, email, user_id')
-        .or('email.is.null,email.eq.,user_id.is.null');
+        .or('email.is.null,email.eq."",user_id.is.null');
       return data || [];
     },
-    enabled: !!currentUser,
+    // #19: enabled مشروط + #38: إصلاح email.eq. الفارغة
+    enabled: enabled && !!currentUser,
   });
 };
 
-export const useUnlinkedBeneficiaries = () => {
+export const useUnlinkedBeneficiaries = (enabled = true) => {
   const { user: currentUser } = useAuth();
   return useQuery({
     queryKey: ['unlinked-beneficiaries'],
@@ -90,6 +91,7 @@ export const useUnlinkedBeneficiaries = () => {
         .is('user_id', null);
       return data || [];
     },
-    enabled: !!currentUser,
+    // #19: enabled مشروط
+    enabled: enabled && !!currentUser,
   });
 };

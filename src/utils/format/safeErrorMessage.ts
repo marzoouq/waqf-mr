@@ -7,7 +7,12 @@ import { logger } from '@/lib/logger';
 export function getSafeErrorMessage(error: unknown): string {
   const msg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
 
+  // تكرار بيانات (duplicate key / unique constraint)
   if (msg.includes('already registered') || msg.includes('duplicate') || msg.includes('unique')) {
+    // #80: التمييز بين أنواع التكرار
+    if (msg.includes('contract') || msg.includes('عقد')) return 'يوجد عقد بنفس البيانات بالفعل';
+    if (msg.includes('invoice') || msg.includes('فاتورة')) return 'يوجد فاتورة بنفس الرقم بالفعل';
+    if (msg.includes('property') || msg.includes('عقار')) return 'يوجد عقار بنفس الرقم بالفعل';
     return 'هذا البريد الإلكتروني مسجل بالفعل';
   }
   if (msg.includes('invalid login') || msg.includes('invalid credentials')) {
@@ -37,6 +42,18 @@ export function getSafeErrorMessage(error: unknown): string {
   }
   if (msg.includes('foreign key') || msg.includes('violates foreign key')) {
     return 'لا يمكن حذف هذا العنصر لارتباطه ببيانات أخرى';
+  }
+  // #81: أخطاء check constraint
+  if (msg.includes('check constraint') || msg.includes('violates check')) {
+    return 'القيمة المُدخلة غير صالحة. تحقق من البيانات وأعد المحاولة';
+  }
+  // حجم البيانات
+  if (msg.includes('payload too large') || msg.includes('too large') || msg.includes('413')) {
+    return 'حجم البيانات المُرسلة كبير جداً';
+  }
+  // خطأ خادم عام
+  if (msg.includes('500') || msg.includes('internal server')) {
+    return 'خطأ في الخادم. يرجى المحاولة لاحقاً أو التواصل مع الدعم';
   }
 
   // رسالة افتراضية آمنة — التفاصيل تبقى في logger فقط
