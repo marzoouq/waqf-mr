@@ -7,9 +7,12 @@ import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { defaultNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 import { ROLE_SECTION_DEFS, ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
+import { BENEFICIARY_WIDGET_KEYS, BENEFICIARY_WIDGET_LABELS, makeWidgetDefaults } from '@/constants/beneficiaryWidgets';
 import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import AdminCapabilitiesSummary from './AdminCapabilitiesSummary';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   PermissionsSummaryCards,
   RolePermissionsMatrix,
@@ -25,6 +28,7 @@ const ROLES = [
 
 const defaultAdminSections = makeDefaults(ADMIN_SECTION_KEYS);
 const defaultBeneficiarySections = makeDefaults(BENEFICIARY_SECTION_KEYS);
+const defaultWidgets = makeWidgetDefaults();
 
 const PermissionsControlPanel = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
@@ -33,10 +37,11 @@ const PermissionsControlPanel = () => {
   const savedRolePerms = getJsonSetting<RolePerms>('role_permissions', DEFAULT_ROLE_PERMS);
   const savedAdminSections = getJsonSetting<Record<string, boolean>>('sections_visibility', defaultAdminSections);
   const savedBeneficiarySections = getJsonSetting<Record<string, boolean>>('beneficiary_sections', defaultBeneficiarySections);
-
+  const savedWidgets = getJsonSetting<Record<string, boolean>>('beneficiary_widgets', defaultWidgets);
   const [perms, setPerms] = useState<RolePerms>(DEFAULT_ROLE_PERMS);
   const [adminSections, setAdminSections] = useState<Record<string, boolean>>(defaultAdminSections);
   const [beneficiarySections, setBeneficiarySections] = useState<Record<string, boolean>>(defaultBeneficiarySections);
+  const [widgets, setWidgets] = useState<Record<string, boolean>>(defaultWidgets);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -47,7 +52,8 @@ const PermissionsControlPanel = () => {
     setPerms(merged);
     setAdminSections({ ...defaultAdminSections, ...savedAdminSections });
     setBeneficiarySections({ ...defaultBeneficiarySections, ...savedBeneficiarySections });
-  }, [savedRolePerms, savedAdminSections, savedBeneficiarySections]);
+    setWidgets({ ...defaultWidgets, ...savedWidgets });
+  }, [savedRolePerms, savedAdminSections, savedBeneficiarySections, savedWidgets]);
 
   const toggleRolePerm = (role: string, section: string) => {
     setPerms(prev => ({ ...prev, [role]: { ...prev[role], [section]: !prev[role]?.[section] } }));
@@ -76,6 +82,7 @@ const PermissionsControlPanel = () => {
         updateJsonSetting('role_permissions', perms),
         updateJsonSetting('sections_visibility', adminSections),
         updateJsonSetting('beneficiary_sections', beneficiarySections),
+        updateJsonSetting('beneficiary_widgets', widgets),
       ]);
       logAccessEvent({
         event_type: 'diagnostics_run',
@@ -94,6 +101,7 @@ const PermissionsControlPanel = () => {
     setPerms(DEFAULT_ROLE_PERMS);
     setAdminSections(defaultAdminSections);
     setBeneficiarySections(defaultBeneficiarySections);
+    setWidgets(defaultWidgets);
     defaultNotify.info('تم استعادة الإعدادات الافتراضية — اضغط حفظ للتطبيق');
   };
 
@@ -118,6 +126,20 @@ const PermissionsControlPanel = () => {
         values={beneficiarySections}
         onToggle={key => setBeneficiarySections(prev => ({ ...prev, [key]: !prev[key] }))}
       />
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-base">عناصر لوحة المستفيد</CardTitle>
+          <CardDescription>التحكم بإظهار/إخفاء بطاقات وعناصر الصفحة الرئيسية للمستفيد</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {BENEFICIARY_WIDGET_KEYS.map(key => (
+            <label key={key} className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted/40 cursor-pointer transition-colors">
+              <Checkbox checked={widgets[key] ?? true} onCheckedChange={() => setWidgets(prev => ({ ...prev, [key]: !prev[key] }))} />
+              <span className="text-sm">{BENEFICIARY_WIDGET_LABELS[key]}</span>
+            </label>
+          ))}
+        </CardContent>
+      </Card>
       <PermissionsActionBar saving={saving} onSave={handleSave} onReset={handleReset} />
     </div>
   );
