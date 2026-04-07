@@ -2,10 +2,20 @@
  * هوك لتحضير بيانات لوحة تحكم الناظر/المحاسب — يقرأ أرقام جاهزة من RPC
  */
 import { useMemo } from 'react';
+import { isFyAll } from '@/constants/fiscalYearIds';
 import { useAdminDashboardStats } from '@/hooks/page/admin/useAdminDashboardStats';
 import type { useDashboardSummary } from '@/hooks/data/financial/useDashboardSummary';
 
-type DashboardSummary = Omit<ReturnType<typeof useDashboardSummary>, 'isLoading' | 'isError'>;
+type DashboardSummary = Omit<ReturnType<typeof useDashboardSummary>, 'isLoading'>;
+
+/** أنواع السنة المالية المُعادة للـ UI — مفصولة عن بنية RPC */
+export type DashboardFiscalYear = {
+  id: string;
+  label: string;
+  status: string;
+  start_date: string;
+  end_date: string;
+};
 
 interface UseAdminDashboardDataParams {
   user: { user_metadata?: { full_name?: string }; email?: string } | null;
@@ -15,6 +25,14 @@ interface UseAdminDashboardDataParams {
   isSpecificYear: boolean;
   summary: DashboardSummary;
 }
+
+/** خريطة الأسماء الافتراضية حسب الدور */
+const ROLE_DEFAULT_NAME: Record<string, string> = {
+  admin: 'ناظر الوقف',
+  accountant: 'المحاسب',
+  waqif: 'الواقف',
+  beneficiary: 'المستفيد',
+};
 
 export const useAdminDashboardData = ({
   user, role, fiscalYearId, fiscalYear, isSpecificYear: _isSpecificYear, summary,
@@ -36,19 +54,23 @@ export const useAdminDashboardData = ({
   const contractualRevenue = totals?.contractual_revenue ?? 0;
 
   const pendingAdvancesCount = counts?.pending_advances ?? 0;
-  const isYearActive = (agg?.fiscal_year_status ?? fiscalYear?.status) === 'active';
+  // agg له الأولوية لأنه يأتي من Edge Function المحدّثة
+  const isYearActive = (agg?.fiscal_year_status ?? fiscalYear?.status ?? '') === 'active';
   const sharesNote = isYearActive ? ' *تقديري' : '';
 
-  // ── تحقق إن كانت الإعدادات تستخدم قيم افتراضية ──
+  // ── تحقق إن كانت الإعدادات تستخدم قيم افتراضية — يشمل waqf_corpus_percentage ──
   const usingFallbackPct = useMemo(() => {
     const s = agg?.settings;
     if (!s) return false;
-    return !s.admin_share_percentage || !s.waqif_share_percentage;
+    return !s.admin_share_percentage || !s.waqif_share_percentage || !s.waqf_corpus_percentage;
   }, [agg?.settings]);
 
   // ── أعداد العقود (من counts المُجمّعة) ──
   const expiringContractsCount = counts?.expiring_contracts ?? 0;
   const orphanedContractsCount = counts?.orphaned_contracts ?? 0;
+
+  // ── نسبة المصروفات (لتمريرها للتنبيهات) ──
+  const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
   // ── إحصائيات البطاقات ──
   const { stats, kpis, collectionSummary, collectionColor } = useAdminDashboardStats({
@@ -80,11 +102,12 @@ export const useAdminDashboardData = ({
   const greetingText = useMemo(() => {
     const displayName = user?.user_metadata?.full_name
       || user?.email?.split('@')[0]
-      || (role === 'accountant' ? 'المحاسب' : 'ناظر الوقف');
+      || ROLE_DEFAULT_NAME[role ?? '']
+      || 'المستخدم';
     const base = role === 'accountant'
       ? `مرحباً بك، ${displayName} — يمكنك إدارة الحسابات والعمليات المالية`
       : `مرحباً بك، ${displayName}`;
-    return base + (fiscalYearId === 'all' ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '');
+    return base + (isFyAll(fiscalYearId) ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '');
   }, [user, role, fiscalYearId, fiscalYear]);
 
   return {
@@ -94,6 +117,7 @@ export const useAdminDashboardData = ({
     usingFallbackPct,
     expiringContractsCount,
     orphanedContractsCount,
+    expenseRatio,
     stats,
     kpis,
     collectionSummary,
@@ -101,8 +125,9 @@ export const useAdminDashboardData = ({
     monthlyData,
     expenseTypes,
     greetingText,
-    allFiscalYears: agg?.fiscal_years ?? [],
+    allFiscalYears: (agg?.fiscal_years ?? []) as DashboardFiscalYear[],
     fiscalYear,
     isYearActive,
+    isError: summary.isError,
   };
 };

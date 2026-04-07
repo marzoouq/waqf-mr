@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ClipboardList, ArrowLeft } from 'lucide-react';
-import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
 
 interface PendingAction {
@@ -25,10 +24,10 @@ interface PendingActionsTableProps {
 }
 
 const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingActionsTableProps) => {
-  // حساب العدد الكلي للفواتير غير المُرسلة قبل القطع
+  // حساب العدد الكلي للفواتير غير المُرسلة — فقط not_submitted الصريح
   const unsubmittedZatcaTotal = useMemo(() => {
     return paymentInvoices.filter(
-      inv => inv.zatca_status === 'not_submitted' || !inv.zatca_status
+      inv => inv.zatca_status === 'not_submitted'
     ).length;
   }, [paymentInvoices]);
 
@@ -37,7 +36,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
   const actions = useMemo<PendingAction[]>(() => {
     const items: PendingAction[] = [];
 
-    // سُلف معلقة
+    // سُلف معلقة — تصفية مُسبقة
     advanceRequests
       .filter(r => r.status === 'pending')
       .forEach(r => {
@@ -45,21 +44,21 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
           type: 'advance',
           label: 'طلب سُلفة معلق',
           detail: r.reason || '—',
-          amount: safeNumber(r.amount),
+          amount: r.amount,
           link: '/dashboard/accounts',
         });
       });
 
-    // فواتير ZATCA غير مُرسلة (أول 10 فقط)
+    // فواتير ZATCA غير مُرسلة (أول 10 فقط) — فقط not_submitted الصريح
     paymentInvoices
-      .filter(inv => inv.zatca_status === 'not_submitted' || !inv.zatca_status)
+      .filter(inv => inv.zatca_status === 'not_submitted')
       .slice(0, 10)
       .forEach(inv => {
         items.push({
           type: 'zatca',
           label: 'فاتورة غير مُرسلة لـ ZATCA',
           detail: inv.invoice_number,
-          amount: safeNumber(inv.amount),
+          amount: inv.amount,
           link: '/dashboard/zatca',
         });
       });
@@ -96,7 +95,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
                 ) : null}
               </div>
               <Link to={action.link}>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title="الانتقال للإجراء" aria-label="الانتقال للإجراء">
                   <ArrowLeft className="w-4 h-4" />
                 </Button>
               </Link>
@@ -137,7 +136,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
                   </TableCell>
                   <TableCell className="text-center">
                     <Link to={action.link}>
-                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" title="الانتقال للإجراء" aria-label="الانتقال للإجراء">
                         <ArrowLeft className="w-4 h-4" />
                       </Button>
                     </Link>

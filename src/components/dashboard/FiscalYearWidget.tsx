@@ -1,14 +1,22 @@
 /**
  * D-3: ويدجت السنة المالية — أيام متبقية + نسبة إنجاز زمني + مالي.
+ * يعرض معلومات مختلفة حسب حالة السنة (نشطة/مقفلة).
  */
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, TrendingUp, CheckCircle2 } from 'lucide-react';
-import type { FiscalYear } from '@/types/database';
+import { Calendar, Clock, TrendingUp, CheckCircle2, Lock } from 'lucide-react';
+
+interface FiscalYearInfo {
+  label: string;
+  status: string;
+  start_date: string;
+  end_date: string;
+}
 
 interface FiscalYearWidgetProps {
-  fiscalYear: FiscalYear | null;
+  fiscalYear: FiscalYearInfo | null;
   totalIncome: number;
   contractualRevenue: number;
 }
@@ -18,23 +26,54 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
   totalIncome,
   contractualRevenue,
 }) => {
-  if (!fiscalYear || fiscalYear.status !== 'active') return null;
+  if (!fiscalYear) return null;
 
-  const now = new Date();
-  const start = new Date(fiscalYear.start_date);
-  const end = new Date(fiscalYear.end_date);
+  // عرض مُبسّط للسنة المقفلة/المسودة
+  if (fiscalYear.status !== 'active') {
+    const statusLabel = fiscalYear.status === 'closed' ? 'مُقفلة' : 'مسودة';
+    return (
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Lock className="w-5 h-5 text-muted-foreground" />
+            السنة المالية: {fiscalYear.label}
+            <Badge variant="outline" className="text-xs">{statusLabel}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            من {new Date(fiscalYear.start_date).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' })}
+            {' '}إلى {new Date(fiscalYear.end_date).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / 86_400_000));
-  const elapsedDays = Math.max(0, Math.ceil((now.getTime() - start.getTime()) / 86_400_000));
-  const remainingDays = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / 86_400_000));
-  const timeProgress = Math.min(100, Math.round((elapsedDays / totalDays) * 100));
+  // السنة النشطة — عرض كامل مع تقدم زمني ومالي
+  return <ActiveFiscalYearWidget fiscalYear={fiscalYear} totalIncome={totalIncome} contractualRevenue={contractualRevenue} />;
+};
+
+/** ويدجت السنة النشطة — حسابات التواريخ مُحسّنة بـ useMemo */
+const ActiveFiscalYearWidget: React.FC<{ fiscalYear: FiscalYearInfo; totalIncome: number; contractualRevenue: number }> = ({
+  fiscalYear, totalIncome, contractualRevenue,
+}) => {
+  const { totalDays, remainingDays, timeProgress } = useMemo(() => {
+    const now = Date.now();
+    const start = new Date(fiscalYear.start_date).getTime();
+    const end = new Date(fiscalYear.end_date).getTime();
+    const total = Math.max(1, Math.ceil((end - start) / 86_400_000));
+    const elapsed = Math.max(0, Math.ceil((now - start) / 86_400_000));
+    const remaining = Math.max(0, Math.ceil((end - now) / 86_400_000));
+    const progress = Math.min(100, Math.round((elapsed / total) * 100));
+    return { totalDays: total, elapsedDays: elapsed, remainingDays: remaining, timeProgress: progress };
+  }, [fiscalYear.start_date, fiscalYear.end_date]);
 
   // نسبة الإنجاز المالي = الدخل الفعلي / الإيرادات التعاقدية
-  const rawFinancialProgress = contractualRevenue > 0
-    ? Math.round((totalIncome / contractualRevenue) * 100)
-    : 0;
-  const exceededTarget = rawFinancialProgress > 100;
-  const financialProgress = Math.min(100, rawFinancialProgress);
+  const { rawFinancialProgress, exceededTarget, financialProgress } = useMemo(() => {
+    const raw = contractualRevenue > 0 ? Math.round((totalIncome / contractualRevenue) * 100) : 0;
+    return { rawFinancialProgress: raw, exceededTarget: raw > 100, financialProgress: Math.min(100, raw) };
+  }, [totalIncome, contractualRevenue]);
 
   return (
     <Card className="shadow-sm">
