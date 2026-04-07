@@ -104,6 +104,13 @@ const AdminDashboard = () => {
 
         <QuickActionsCard role={role} />
 
+        {/* عرض مخصص للمحاسب — بطاقات تشغيلية */}
+        {isAccountant && (
+          <ErrorBoundary>
+            <AccountantDashboardView metrics={accountantMetrics} isLoading={isLoading || secondary.isLoading} />
+          </ErrorBoundary>
+        )}
+
         <ErrorBoundary>
           <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
         </ErrorBoundary>
