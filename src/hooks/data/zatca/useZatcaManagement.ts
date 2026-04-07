@@ -150,7 +150,6 @@ export function useZatcaManagement() {
       else if (data?.validationResults?.status === 'WARNING') defaultNotify.warning('⚠️ اجتاز مع تحذيرات');
       else defaultNotify.error('❌ لم يجتز فحص الامتثال');
       invalidateInvoices();
-      return data;
     },
     onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
