@@ -126,6 +126,20 @@ const PermissionsControlPanel = () => {
         values={beneficiarySections}
         onToggle={key => setBeneficiarySections(prev => ({ ...prev, [key]: !prev[key] }))}
       />
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-base">عناصر لوحة المستفيد</CardTitle>
+          <CardDescription>التحكم بإظهار/إخفاء بطاقات وعناصر الصفحة الرئيسية للمستفيد</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {BENEFICIARY_WIDGET_KEYS.map(key => (
+            <label key={key} className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted/40 cursor-pointer transition-colors">
+              <Checkbox checked={widgets[key] ?? true} onCheckedChange={() => setWidgets(prev => ({ ...prev, [key]: !prev[key] }))} />
+              <span className="text-sm">{BENEFICIARY_WIDGET_LABELS[key]}</span>
+            </label>
+          ))}
+        </CardContent>
+      </Card>
       <PermissionsActionBar saving={saving} onSave={handleSave} onReset={handleReset} />
     </div>
   );
