@@ -17,20 +17,20 @@ import { useContractAllocations } from '@/hooks/data/financial/useContractAlloca
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 export function useAccountsData() {
-  const { data: accounts = [], isLoading } = useAccounts();
-  const { data: beneficiaries = [] } = useBeneficiaries();
-  const { data: tenantPayments = [] } = useTenantPayments();
-  const { data: allUnits = [] } = useAllUnits();
-  const { data: properties = [] } = useProperties();
+  const { data: accounts = [], isLoading: accLoading } = useAccounts();
+  const { data: beneficiaries = [], isLoading: benLoading } = useBeneficiaries();
+  const { data: tenantPayments = [], isLoading: tpLoading } = useTenantPayments();
+  const { data: allUnits = [], isLoading: unitLoading } = useAllUnits();
+  const { data: properties = [], isLoading: propLoading } = useProperties();
   const appSettings = useAppSettings();
 
   const { fiscalYearId, fiscalYear: selectedFY, fiscalYears, isClosed } = useFiscalYear();
 
   // جلب العقود للسنة المحددة فقط (بدل كل العقود)
-  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
+  const { data: contracts = [], isLoading: contLoading } = useContractsByFiscalYear(fiscalYearId);
 
   // جلب التخصيصات من جدول contract_fiscal_allocations مباشرة
-  const { data: allocations = [] } = useContractAllocations(fiscalYearId);
+  const { data: allocations = [], isLoading: allocLoading } = useContractAllocations(fiscalYearId);
 
   // بناء allocationMap من التخصيصات المجلوبة
   const allocationMap = useMemo(() => {
@@ -53,8 +53,11 @@ export function useAccountsData() {
     return contracts.filter(c => c.status !== 'cancelled');
   }, [contracts]);
 
-  const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId);
-  const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
+  const { data: income = [], isLoading: incLoading } = useIncomeByFiscalYear(fiscalYearId);
+  const { data: expenses = [], isLoading: expLoading } = useExpensesByFiscalYear(fiscalYearId);
+
+  // توحيد حالة التحميل من جميع الاستعلامات الفرعية
+  const isLoading = accLoading || benLoading || tpLoading || unitLoading || propLoading || contLoading || allocLoading || incLoading || expLoading;
 
   const paymentMap = useMemo(() => tenantPayments.reduce((acc, p) => {
     acc[p.contract_id] = p;

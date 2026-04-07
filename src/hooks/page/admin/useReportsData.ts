@@ -9,7 +9,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
-import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
+
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import type { ForensicAuditData } from '@/utils/pdf';
 
@@ -19,7 +19,7 @@ export function useReportsData() {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
-  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || 'all');
+  
 
   const selectedFiscalYearLabel = fiscalYear?.label;
 
@@ -140,7 +140,7 @@ export function useReportsData() {
 
   return {
     pdfWaqfInfo, fiscalYear, fiscalYearId,
-    properties, contracts, allUnits, paymentInvoices,
+    properties, contracts, allUnits,
     income, expenses, beneficiaries, currentAccount,
     totalIncome, totalExpenses, adminPct, waqifPct,
     zakatAmount, vatAmount, waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,

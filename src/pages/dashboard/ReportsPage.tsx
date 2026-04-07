@@ -20,7 +20,7 @@ const LazyReportsCharts = lazy(() => import('@/components/reports/ReportsChartsI
 const ReportsPage = () => {
   const {
     pdfWaqfInfo, fiscalYear,
-    properties, contracts, paymentInvoices,
+    properties, contracts,
     income, expenses, beneficiaries, currentAccount,
     totalIncome, totalExpenses, adminPct, waqifPct,
     zakatAmount, vatAmount, waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,
@@ -177,7 +177,7 @@ const ReportsPage = () => {
           </TabsContent>
 
           <TabsContent value="overdue" className="space-y-6">
-            <OverdueTenantsReport contracts={contracts} paymentInvoices={paymentInvoices} properties={properties} />
+            <OverdueTenantsReport contracts={contracts} properties={properties} />
           </TabsContent>
 
           <TabsContent value="zakat" className="space-y-6">
