@@ -57,6 +57,12 @@ const AdminDashboard = () => {
   return (
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+        {isError && (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center text-sm text-destructive">
+            حدث خطأ أثناء تحميل بيانات اللوحة. يُرجى المحاولة مرة أخرى.
+          </div>
+        )}
+
         <PageHeaderCard
           title="لوحة التحكم"
           icon={Gauge}
@@ -75,6 +81,7 @@ const AdminDashboard = () => {
           orphanedContractsCount={orphanedContractsCount}
           pendingAdvancesCount={pendingAdvancesCount}
           collectionRate={collectionSummary.percentage}
+          expenseRatio={expenseRatio}
         />
 
         <DashboardStatsGrid stats={stats} isLoading={isLoading} />
