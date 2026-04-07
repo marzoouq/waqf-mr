@@ -1,12 +1,9 @@
-import { lazy, Suspense } from 'react';
-import { ErrorBoundary } from '@/components/common';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Banknote, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
-
-const CollectionSummaryChart = lazy(() => import('@/components/dashboard/CollectionSummaryChart'));
+import { Banknote, CheckCircle, Clock, AlertTriangle, Inbox } from 'lucide-react';
+import { ErrorBoundary } from '@/components/common';
+import CollectionSummaryChart from '@/components/dashboard/CollectionSummaryChart';
 
 interface CollectionSummaryCardProps {
   collectionSummary: {
@@ -22,7 +19,16 @@ interface CollectionSummaryCardProps {
 }
 
 const CollectionSummaryCard = ({ collectionSummary, collectionColor }: CollectionSummaryCardProps) => {
-  if (collectionSummary.total <= 0) return null;
+  if (collectionSummary.total <= 0) {
+    return (
+      <Card className="shadow-sm">
+        <CardContent className="py-8 text-center">
+          <Inbox className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
+          <p className="text-sm text-muted-foreground">لا توجد فواتير دفع لهذه السنة المالية</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-sm">
@@ -35,9 +41,7 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
       <CardContent>
         <div className="flex flex-col md:flex-row items-center gap-6">
           <ErrorBoundary>
-            <Suspense fallback={<div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center"><Skeleton className="w-[140px] h-[140px] rounded-full" /></div>}>
-              <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount} partial={collectionSummary.partialCount} />
-            </Suspense>
+            <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount} partial={collectionSummary.partialCount} />
           </ErrorBoundary>
 
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
@@ -50,16 +54,15 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
               <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">فاتورة</Badge>
             </div>
 
-            {collectionSummary.partialCount > 0 && (
-              <div className="text-center p-2 sm:p-4 rounded-lg bg-muted/30 space-y-2">
-                <div className="flex items-center justify-center gap-2">
-                  <Clock className="w-5 h-5 text-warning" />
-                  <span className="text-sm text-muted-foreground">محصّل جزئياً</span>
-                </div>
-                <p className="text-xl sm:text-3xl font-bold text-warning">{collectionSummary.partialCount}</p>
-                <Badge className="bg-warning/20 text-warning border-warning/30 hover:bg-warning/30">فاتورة</Badge>
+            {/* عمود ثابت — يمنع Layout Shift عند ظهور/اختفاء العدد */}
+            <div className="text-center p-2 sm:p-4 rounded-lg bg-muted/30 space-y-2">
+              <div className="flex items-center justify-center gap-2">
+                <Clock className="w-5 h-5 text-warning" />
+                <span className="text-sm text-muted-foreground">محصّل جزئياً</span>
               </div>
-            )}
+              <p className="text-xl sm:text-3xl font-bold text-warning">{collectionSummary.partialCount}</p>
+              <Badge className="bg-warning/20 text-warning border-warning/30 hover:bg-warning/30">فاتورة</Badge>
+            </div>
 
             <div className="text-center p-2 sm:p-4 rounded-lg bg-muted/30 space-y-2">
               <div className="flex items-center justify-center gap-2">

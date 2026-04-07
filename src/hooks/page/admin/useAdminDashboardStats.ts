@@ -71,8 +71,9 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
     const netChange = yoy.hasPrevYear ? calcChangePercent(netAfterExpenses, yoy.prevNetAfterExpenses) : null;
 
     const netCashFlow = safeNumber(waqfRevenue);
-    const distributable = isYearActive ? 0 : safeNumber(availableAmount);
-    const distributionRatio = isYearActive ? 0 : (distributable > 0 ? Math.round((safeNumber(distributionsAmount) / distributable) * 100) : 0);
+    // عرض المبلغ التقديري حتى في السنة النشطة — مع علامة تقديرية
+    const distributable = safeNumber(availableAmount);
+    const distributionRatio = distributable > 0 ? Math.round((safeNumber(distributionsAmount) / distributable) * 100) : 0;
 
     return [
       { title: 'إجمالي العقارات', value: propertiesCount, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
@@ -87,16 +88,19 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
       { title: 'ريع الوقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqfRevenue)} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
       { title: 'المستفيدون النشطون', value: beneficiariesCount, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
       { title: `التدفق النقدي الصافي${sharesNote}`, value: isYearActive ? 'يُحسب عند الإقفال' : `${fmtInt(netCashFlow)} ر.س`, icon: ArrowDownUp, color: netCashFlow >= 0 ? 'bg-success' : 'bg-destructive', link: '/dashboard/accounts' },
-      { title: 'نسبة التوزيع الفعلي', value: isYearActive ? '—' : `${distributionRatio}%`, icon: PercentCircle, color: 'bg-accent', link: '/dashboard/beneficiaries' },
+      { title: 'نسبة التوزيع الفعلي', value: isYearActive ? '—' : `${distributionRatio}%${isYearActive ? ' *تقديري' : ''}`, icon: PercentCircle, color: 'bg-accent', link: '/dashboard/beneficiaries' },
     ];
   }, [propertiesCount, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, distributionsAmount, beneficiariesCount, isYearActive, sharesNote, yoy]);
 
   const kpis: KpiItem[] = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
     const occupancyRate = occupancy?.rate ?? 0;
-    const avgRent = activeContractsCount > 0 ? Math.round(contractualRevenue / activeContractsCount) : 0;
+    const avgRent = activeContractsCount > 0 && contractualRevenue > 0
+      ? Math.round(contractualRevenue / activeContractsCount)
+      : 0;
     const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
+    // memo الألوان ضمنياً — getKpiColor تُعيد object جديد لكن useMemo الخارجي يحمي من re-render
     const colColor = getKpiColor(collectionRate, 80, 50);
     const occColor = getKpiColor(occupancyRate, 80, 50);
     const expColor = getKpiColor(expenseRatio, 20, 40, true);
