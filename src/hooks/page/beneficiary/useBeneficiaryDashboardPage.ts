@@ -38,7 +38,7 @@ export function useBeneficiaryDashboardPage() {
 
   // #8 — useMemo بدل IIFE، #24 — إضافة isClosed للنتيجة
   const fyProgress = useMemo(() => {
-    if (!fiscalYear) return { percent: 0, daysLeft: 0, isClosed: false };
+    if (!fiscalYear) return { percent: 0, daysLeft: 0, isClosed: false, notStarted: false };
     if (isClosed) return { percent: 100, daysLeft: 0, isClosed: true, notStarted: false };
     const start = new Date(fiscalYear.start_date).getTime();
     const end = new Date(fiscalYear.end_date).getTime();
