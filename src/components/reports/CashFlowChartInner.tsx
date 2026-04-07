@@ -18,7 +18,7 @@ interface CashFlowChartInnerProps {
   fmt: (v: number) => string;
 }
 
-const CashFlowChartInner: React.FC<CashFlowChartInnerProps> = ({ monthlyData, fmt }) => {
+const CashFlowChartInner: React.FC<CashFlowChartInnerProps> = memo(({ monthlyData, fmt }) => {
   const { ref, ready } = useChartReady();
 
   return (
