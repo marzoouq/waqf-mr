@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { isFyReady } from '@/constants/fiscalYearIds';
+import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 /** شكل البيانات المُرجعة من RPC */
 export interface BeneficiaryDashboardData {
@@ -63,8 +63,8 @@ export const useBeneficiaryDashboardData = (fiscalYearId?: string) => {
   const fyReady = isFyReady(fiscalYearId);
 
   return useQuery<BeneficiaryDashboardData>({
-    queryKey: ['beneficiary-dashboard', fiscalYearId],
-    enabled: !!user && fyReady,
+    queryKey: ['beneficiary-dashboard', user?.id, fiscalYearId],
+    enabled: !!user && fyReady && !isFyAll(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
     queryFn: async () => {

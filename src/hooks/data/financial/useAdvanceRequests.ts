@@ -4,7 +4,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { STALE_REALTIME } from '@/lib/queryStaleTime';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { defaultNotify } from '@/lib/notify';
 import { notifyAdmins, notifyUser } from '@/lib/services';
 import { fmt } from '@/utils/format/format';
@@ -26,7 +26,7 @@ export {
 export const useAdvanceRequests = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', fiscalYearId ?? 'all'],
-    staleTime: STALE_REALTIME,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase
       .from('advance_requests')

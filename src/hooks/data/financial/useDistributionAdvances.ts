@@ -3,6 +3,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 export const usePaidAdvances = (fiscalYearId: string | undefined, enabled: boolean) => {
   return useQuery({
@@ -18,6 +19,7 @@ export const usePaidAdvances = (fiscalYearId: string | undefined, enabled: boole
       return (data ?? []) as { beneficiary_id: string; amount: number }[];
     },
     enabled: enabled && !!fiscalYearId,
+    staleTime: STALE_FINANCIAL,
   });
 };
 
@@ -37,5 +39,6 @@ export const useActiveCarryforwards = (fiscalYearId: string | undefined, enabled
       return (data ?? []) as { beneficiary_id: string; amount: number }[];
     },
     enabled,
+    staleTime: STALE_FINANCIAL,
   });
 };
