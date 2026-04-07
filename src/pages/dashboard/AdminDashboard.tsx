@@ -55,6 +55,13 @@ const AdminDashboard = () => {
     user, role, fiscalYearId, fiscalYear: fiscalYear ?? undefined, isSpecificYear, summary,
   });
 
+  // هوك بيانات المحاسب المخصصة
+  const isAccountant = role === 'accountant';
+  const accountantMetrics = useAccountantDashboardData({
+    aggregated: summary.aggregated,
+    heatmapInvoices: secondary.heatmapInvoices,
+  });
+
   return (
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
