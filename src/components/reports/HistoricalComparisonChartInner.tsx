@@ -47,6 +47,7 @@ const HistoricalComparisonChartInner: React.FC<Props> = memo(({ chartData, yearL
       )}
     </div>
   );
-};
+});
 
+HistoricalComparisonChartInner.displayName = 'HistoricalComparisonChartInner';
 export default HistoricalComparisonChartInner;

@@ -49,6 +49,7 @@ const CashFlowChartInner: React.FC<CashFlowChartInnerProps> = memo(({ monthlyDat
       )}
     </div>
   );
-};
+});
 
+CashFlowChartInner.displayName = 'CashFlowChartInner';
 export default CashFlowChartInner;

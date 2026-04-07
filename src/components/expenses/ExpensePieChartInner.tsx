@@ -59,6 +59,7 @@ const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = memo(({ data }) => 
       )}
     </div>
   );
-};
+});
 
+ExpensePieChartInner.displayName = 'ExpensePieChartInner';
 export default ExpensePieChartInner;

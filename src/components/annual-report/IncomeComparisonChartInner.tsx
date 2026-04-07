@@ -33,6 +33,7 @@ const IncomeComparisonChartInner: React.FC<IncomeComparisonChartInnerProps> = me
       )}
     </div>
   );
-};
+});
 
+IncomeComparisonChartInner.displayName = 'IncomeComparisonChartInner';
 export default IncomeComparisonChartInner;
