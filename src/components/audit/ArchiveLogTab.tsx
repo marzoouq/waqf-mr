@@ -4,17 +4,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, Archive, Activity, CalendarDays } from 'lucide-react';
+import { Search, Archive, Activity, CalendarDays } from 'lucide-react';
 import { TablePagination, TableSkeleton } from '@/components/common';
 import { fmtDate } from '@/utils/format/format';
 import { useArchiveLog, ARCHIVE_ITEMS_PER_PAGE } from '@/hooks/data/audit/useArchiveLog';
-
-const eventConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  login_failed: { label: 'فشل تسجيل الدخول', color: 'bg-destructive/15 text-destructive border-destructive/30', icon: XCircle },
-  login_success: { label: 'تسجيل دخول ناجح', color: 'bg-success/15 text-success border-success/30', icon: CheckCircle },
-  unauthorized_access: { label: 'وصول غير مصرح', color: 'bg-warning/15 text-warning border-warning/30', icon: AlertTriangle },
-  idle_logout: { label: 'خروج تلقائي', color: 'bg-info/15 text-info border-info/30', icon: LogOut },
-};
+import { eventConfig } from './auditEventConfig';
 
 const ArchiveLogTab = () => {
   const [eventFilter, setEventFilter] = useState('all');

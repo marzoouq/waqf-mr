@@ -12,19 +12,6 @@ import { defaultNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { toSourceRecord, toExpenseRecord } from '@/utils/financial/recordConverters';
 
-/** تحويل مصفوفة source/total إلى Record */
-function toSourceRecord(arr: Array<{ source: string; total: number }>): Record<string, number> {
-  const rec: Record<string, number> = {};
-  for (const item of arr) rec[item.source] = safeNumber(item.total);
-  return rec;
-}
-
-/** تحويل مصفوفة expense_type/total إلى Record */
-function toExpenseRecord(arr: Array<{ expense_type: string; total: number }>): Record<string, number> {
-  const rec: Record<string, number> = {};
-  for (const item of arr) rec[item.expense_type] = safeNumber(item.total);
-  return rec;
-}
 
 export const useFinancialReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();

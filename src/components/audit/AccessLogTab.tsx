@@ -4,17 +4,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, ShieldAlert, Activity } from 'lucide-react';
+import { Search, ShieldAlert, Activity } from 'lucide-react';
 import { TablePagination } from '@/components/common';
 import { useAccessLogTab, useFailedLoginsToday, useUnauthorizedAccessToday, ACCESS_LOG_ITEMS_PER_PAGE } from '@/hooks/data/audit/useAccessLogTab';
 import type { AccessLogEntry } from '@/hooks/data/audit/useAccessLogTab';
-
-const eventConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  login_failed: { label: 'فشل تسجيل الدخول', color: 'bg-destructive/15 text-destructive border-destructive/30', icon: XCircle },
-  login_success: { label: 'تسجيل دخول ناجح', color: 'bg-success/15 text-success border-success/30', icon: CheckCircle },
-  unauthorized_access: { label: 'وصول غير مصرح', color: 'bg-warning/15 text-warning border-warning/30', icon: AlertTriangle },
-  idle_logout: { label: 'خروج تلقائي', color: 'bg-info/15 text-info border-info/30', icon: LogOut },
-};
+import { eventConfig } from './auditEventConfig';
 
 const AccessLogTab = () => {
   const [eventFilter, setEventFilter] = useState('all');
