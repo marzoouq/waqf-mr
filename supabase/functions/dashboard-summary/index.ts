@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "private, max-age=60" };
-  const t0 = performance.now();
+  
 
   try {
     // ── المصادقة ──
@@ -65,8 +65,6 @@ Deno.serve(async (req) => {
     const isAll = fiscal_year_id === "all";
     const rpcParam = isAll ? null : fiscal_year_id;
 
-    const t1 = performance.now();
-    console.log(`[timing] auth+body: ${(t1 - t0).toFixed(0)}ms`);
 
     // ── المرحلة 2: roles + rateLimit + RPC + pending_advances بالتوازي ──
     const [rolesRes, rateLimitRes, rpcRes, pendingRes] = await Promise.all([
@@ -89,12 +87,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "تم تجاوز الحد المسموح من الطلبات" }), { status: 429, headers: jsonHeaders });
     }
 
-    const t2 = performance.now();
-    console.log(`[timing] roles+rateLimit+RPC+pending: ${(t2 - t1).toFixed(0)}ms`);
 
     if (rpcRes.error) {
-      console.error("RPC error:", rpcRes.error);
-      return new Response(JSON.stringify({ error: rpcRes.error.message }), { status: 500, headers: jsonHeaders });
+      console.error("RPC error");
+      return new Response(JSON.stringify({ error: "خطأ في استعلام البيانات" }), { status: 500, headers: jsonHeaders });
     }
 
     // ── بناء الاستجابة (بدون heatmap_invoices و recent_contracts) ──
@@ -104,9 +100,7 @@ Deno.serve(async (req) => {
       fetched_at: new Date().toISOString(),
     };
 
-    const tEnd = performance.now();
     const responseStr = JSON.stringify(result);
-    console.log(`[timing] total: ${(tEnd - t0).toFixed(0)}ms | response size: ${responseStr.length} bytes`);
 
     return new Response(responseStr, { headers: jsonHeaders });
   } catch (e) {
