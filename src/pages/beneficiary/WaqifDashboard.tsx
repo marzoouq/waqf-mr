@@ -43,7 +43,7 @@ const WaqifDashboard = () => {
   return (
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
-        <WaqifWelcomeCard displayName={displayName} greeting={greeting} GreetingIcon={GreetingIcon} hijriDate={hijriDate} gregorianDate={gregorianDate} timeStr={timeStr} />
+        <WaqifWelcomeCard displayName={displayName} greeting={greeting} greetingIconName={greetingIconName} hijriDate={hijriDate} gregorianDate={gregorianDate} timeStr={timeStr} />
 
         <div className="flex items-center justify-end gap-2">
           <ExportMenu hidePdf />

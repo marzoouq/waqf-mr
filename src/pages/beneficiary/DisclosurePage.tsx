@@ -10,7 +10,7 @@ import { useDisclosurePage } from '@/hooks/page/beneficiary/useDisclosurePage';
 
 const DisclosurePage = () => {
   const {
-    finLoading, finError, pctLoading, contractsLoading, isAccountMissing,
+    isLoading, isError, isAccountMissing,
     selectedFY, handleRetry,
     totalIncome, totalExpenses, vatAmount, zakatAmount, waqfCorpusManual,
     waqfCorpusPrevious, grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
@@ -21,7 +21,7 @@ const DisclosurePage = () => {
     handleDownloadPDF, handleDownloadComprehensivePDF,
   } = useDisclosurePage();
 
-  if (finLoading || pctLoading) {
+  if (isLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
