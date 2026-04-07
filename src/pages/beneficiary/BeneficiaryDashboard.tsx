@@ -95,18 +95,22 @@ const BeneficiaryDashboard = () => {
   return (
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
-        <BeneficiaryWelcomeCard displayName={displayName} roleLabel={roleLabel} />
+        {(w.welcome_card ?? true) && (
+          <BeneficiaryWelcomeCard displayName={displayName} roleLabel={roleLabel} />
+        )}
 
-        <BeneficiaryStatsRow
-          myShare={myShare}
-          isClosed={isClosed}
-          distributions={distributions}
-          fiscalYearLabel={fiscalYear?.label || ''}
-          fyProgress={fyProgress}
-        />
+        {(w.stats_row ?? true) && (
+          <BeneficiaryStatsRow
+            myShare={myShare}
+            isClosed={isClosed}
+            distributions={distributions}
+            fiscalYearLabel={fiscalYear?.label || ''}
+            fyProgress={fyProgress}
+          />
+        )}
 
         {/* تنبيه السنة غير المقفلة */}
-        {fiscalYear && !isClosed && (
+        {(w.fiscal_year_notice ?? true) && fiscalYear && !isClosed && (
           <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/5 text-sm text-muted-foreground">
             <AlertCircle className="w-4 h-4 text-warning shrink-0" />
             <span>الأرقام النهائية (حصص الريع والتوزيعات) ستتوفر بعد إقفال السنة المالية.</span>
@@ -114,7 +118,7 @@ const BeneficiaryDashboard = () => {
         )}
 
         {/* بطاقة طلب السُلفة */}
-        {advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
+        {(w.advance_card ?? true) && advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
           <DeferredRender delay={300}>
             <BeneficiaryAdvanceCard
               beneficiaryId={currentBeneficiary.id!}
@@ -128,12 +132,18 @@ const BeneficiaryDashboard = () => {
           </DeferredRender>
         )}
 
-        <BeneficiaryQuickLinks role={role} />
+        {(w.quick_links ?? true) && (
+          <BeneficiaryQuickLinks role={role} />
+        )}
 
         <DeferredRender delay={500}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <BeneficiaryRecentDistributions distributions={distributions} />
-            <BeneficiaryNotificationsCard notifications={recentNotifications} unreadCount={unreadCount} />
+            {(w.recent_distributions ?? true) && (
+              <BeneficiaryRecentDistributions distributions={distributions} />
+            )}
+            {(w.notifications_card ?? true) && (
+              <BeneficiaryNotificationsCard notifications={recentNotifications} unreadCount={unreadCount} />
+            )}
           </div>
         </DeferredRender>
       </div>
