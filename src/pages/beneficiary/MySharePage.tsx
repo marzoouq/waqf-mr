@@ -2,7 +2,7 @@
  * صفحة حصتي من الريع — مُفكّكة إلى hook + مكونات فرعية
  */
 import { useNavigate } from 'react-router-dom';
-import { Wallet, AlertCircle, RefreshCw, UserX, FileDown, Info, FileText } from 'lucide-react';
+import { Wallet, AlertCircle, RefreshCw, UserX, FileDown, Info, FileText, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
