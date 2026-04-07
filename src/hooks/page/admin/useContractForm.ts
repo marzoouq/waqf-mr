@@ -7,6 +7,7 @@ import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts';
 import { defaultNotify } from '@/lib/notify';
 import { useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
+import { getPaymentCount } from '@/utils/financial/contractHelpers';
 
 interface UseContractFormParams {
   fiscalYearId: string;
@@ -78,7 +79,7 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
       defaultNotify.error('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
       return;
     }
-    const paymentCount = formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'quarterly' ? 4 : formData.payment_type === 'semi_annual' ? 2 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
+    const paymentCount = getPaymentCount({ payment_type: formData.payment_type, payment_count: parseInt(formData.payment_count) || 1 });
 
     if (isEditing && editingContract) {
       const rentAmount = parseFloat(formData.rent_amount);
@@ -166,6 +167,6 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
     deleteTarget, setDeleteTarget,
     formInitialData,
     resetForm, handleRenew, handleEdit, handleFormSubmit, handleConfirmDelete,
-    isPending: createContract.isPending || updateContract.isPending,
+    isPending: createContract.isPending || updateContract.isPending || deleteContract.isPending,
   };
 }

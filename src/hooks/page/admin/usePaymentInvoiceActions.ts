@@ -54,15 +54,17 @@ export function usePaymentInvoiceActions() {
     setBulkPaying(true);
     const ids = [...selectedIds];
     let done = 0;
+    const failed: string[] = [];
     for (const id of ids) {
       try {
         await markPaid.mutateAsync({ invoiceId: id });
         done++;
-      } catch { /* يتابع */ }
+      } catch { failed.push(id); }
     }
     setBulkPaying(false);
     setSelectedIds(new Set());
-    defaultNotify.success(`تم تسديد ${done} فاتورة من ${ids.length}`);
+    if (done > 0) defaultNotify.success(`تم تسديد ${done} فاتورة من ${ids.length}`);
+    if (failed.length > 0) defaultNotify.error(`فشل تسديد ${failed.length} فاتورة — يرجى المحاولة مرة أخرى`);
   }, [selectedIds, markPaid]);
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
