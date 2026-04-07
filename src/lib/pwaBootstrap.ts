@@ -56,6 +56,16 @@ export async function runPwaCacheGuard(): Promise<void> {
       } catch (error) {
         logger.warn('[PWA] تعذر حفظ علم التحديث', error);
       }
+
+      // حارس ضد حلقات reload لا نهائية — مهلة 10 ثوانٍ
+      const RELOAD_GUARD = 'pwa_reload_guard';
+      const lastReload = sessionStorage.getItem(RELOAD_GUARD);
+      if (lastReload && Date.now() - Number(lastReload) < 10_000) {
+        logger.warn('[PWA] تم منع reload متكرر خلال 10 ثوانٍ');
+        return;
+      }
+      sessionStorage.setItem(RELOAD_GUARD, String(Date.now()));
+
       window.location.reload();
       return;
     }
