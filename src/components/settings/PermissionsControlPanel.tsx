@@ -41,6 +41,7 @@ const PermissionsControlPanel = () => {
   const [perms, setPerms] = useState<RolePerms>(DEFAULT_ROLE_PERMS);
   const [adminSections, setAdminSections] = useState<Record<string, boolean>>(defaultAdminSections);
   const [beneficiarySections, setBeneficiarySections] = useState<Record<string, boolean>>(defaultBeneficiarySections);
+  const [widgets, setWidgets] = useState<Record<string, boolean>>(defaultWidgets);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
