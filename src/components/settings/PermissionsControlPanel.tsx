@@ -82,6 +82,7 @@ const PermissionsControlPanel = () => {
         updateJsonSetting('role_permissions', perms),
         updateJsonSetting('sections_visibility', adminSections),
         updateJsonSetting('beneficiary_sections', beneficiarySections),
+        updateJsonSetting('beneficiary_widgets', widgets),
       ]);
       logAccessEvent({
         event_type: 'diagnostics_run',
