@@ -19,10 +19,9 @@ const MySharePage = () => {
   const {
     isLoading, isError, handleRetry,
     currentBeneficiary, isAccountMissing, isClosed,
-    myShare, totalReceived, pendingAmount, paidAdvancesTotal, carryforwardBalance,
+    myShare, myShareIsEstimated, totalReceived, pendingAmount, paidAdvancesTotal, carryforwardBalance,
     filteredDistributions, myAdvances, myCarryforwards,
     advancesEnabled, advanceSettings, fiscalYearId, selectedFY,
-    // isPdfLoading متاح في hook لكن لا يُستخدم مباشرة هنا
     handleDownloadPDF, handleDownloadDistributionsPDF, handleDownloadComprehensivePDF, handlePrintReport,
   } = useMySharePage();
   const navigate = useNavigate();
