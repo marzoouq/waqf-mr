@@ -61,58 +61,7 @@ describe('useAdvanceRequests', () => {
   });
 });
 
-describe('useMyAdvanceRequests', () => {
-  it('معطّل بدون beneficiaryId', async () => {
-    const { useMyAdvanceRequests } = await import('@/hooks/data/financial/useAdvanceRequests');
-    const { result } = renderHook(() => useMyAdvanceRequests(undefined), { wrapper: createWrapper() });
-    expect(result.current.fetchStatus).toBe('idle');
-  });
-
-  it('يجلب بيانات عند وجود beneficiaryId', async () => {
-    const { useMyAdvanceRequests } = await import('@/hooks/data/financial/useAdvanceRequests');
-    const { result } = renderHook(() => useMyAdvanceRequests('ben-1'), { wrapper: createWrapper() });
-    await waitFor(() => expect(result.current.isSuccess || result.current.isError).toBe(true));
-    expect(result.current).not.toBeNull();
-  });
-});
-
-describe('usePaidAdvancesTotal', () => {
-  it('معطّل بدون beneficiaryId', async () => {
-    const { usePaidAdvancesTotal } = await import('@/hooks/data/financial/useAdvanceRequests');
-    const { result } = renderHook(() => usePaidAdvancesTotal(undefined), { wrapper: createWrapper() });
-    expect(result.current.fetchStatus).toBe('idle');
-  });
-
-  it('يحسب المجموع', async () => {
-    mockLimit.mockResolvedValue({ data: [{ amount: 100, status: 'paid' }, { amount: 200, status: 'paid' }], error: null });
-    const { usePaidAdvancesTotal } = await import('@/hooks/data/financial/useAdvanceRequests');
-    const { result } = renderHook(() => usePaidAdvancesTotal('ben-1'), { wrapper: createWrapper() });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toBe(300);
-  });
-});
-
-describe('useCarryforwardBalance', () => {
-  it('معطّل بدون beneficiaryId', async () => {
-    const { useCarryforwardBalance } = await import('@/hooks/data/financial/useAdvanceRequests');
-    const { result } = renderHook(() => useCarryforwardBalance(undefined), { wrapper: createWrapper() });
-    expect(result.current.fetchStatus).toBe('idle');
-  });
-
-  it('يحسب المرحّلات النشطة', async () => {
-    mockLimit.mockResolvedValue({
-      data: [
-        { amount: 500, status: 'active', to_fiscal_year_id: 'fy-1' },
-        { amount: 300, status: 'active', to_fiscal_year_id: null },
-      ],
-      error: null,
-    });
-    const { useCarryforwardBalance } = await import('@/hooks/data/financial/useAdvanceRequests');
-    const { result } = renderHook(() => useCarryforwardBalance('ben-1', 'fy-1'), { wrapper: createWrapper() });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toBe(800);
-  });
-});
+// تم حذف اختبارات الهوكات المهملة (useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance)
 
 describe('useCreateAdvanceRequest', () => {
   it('يرندر بدون خطأ', async () => {
