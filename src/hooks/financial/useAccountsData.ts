@@ -17,20 +17,19 @@ import { useContractAllocations } from '@/hooks/data/financial/useContractAlloca
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 export function useAccountsData() {
-  const { data: accounts = [], isLoading } = useAccounts();
-  const { data: beneficiaries = [] } = useBeneficiaries();
-  const { data: tenantPayments = [] } = useTenantPayments();
-  const { data: allUnits = [] } = useAllUnits();
-  const { data: properties = [] } = useProperties();
-  const appSettings = useAppSettings();
+  const { data: accounts = [], isLoading: accLoading } = useAccounts();
+  const { data: beneficiaries = [], isLoading: benLoading } = useBeneficiaries();
+  const { data: tenantPayments = [], isLoading: tpLoading } = useTenantPayments();
+  const { data: allUnits = [], isLoading: unitLoading } = useAllUnits();
+  const { data: properties = [], isLoading: propLoading } = useProperties();
 
   const { fiscalYearId, fiscalYear: selectedFY, fiscalYears, isClosed } = useFiscalYear();
 
   // جلب العقود للسنة المحددة فقط (بدل كل العقود)
-  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
+  const { data: contracts = [], isLoading: contLoading } = useContractsByFiscalYear(fiscalYearId);
 
   // جلب التخصيصات من جدول contract_fiscal_allocations مباشرة
-  const { data: allocations = [] } = useContractAllocations(fiscalYearId);
+  const { data: allocations = [], isLoading: allocLoading } = useContractAllocations(fiscalYearId);
 
   // بناء allocationMap من التخصيصات المجلوبة
   const allocationMap = useMemo(() => {
