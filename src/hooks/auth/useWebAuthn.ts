@@ -36,18 +36,21 @@ export function useWebAuthn() {
         .from('webauthn_credentials')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id);
+      // #16: فحص cancelled بين كل await
       if (cancelled) return;
       const dbEnabled = (count ?? 0) > 0;
       setIsEnabled(dbEnabled);
       if (dbEnabled) {
         localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
+        if (cancelled) return;
         const { data: creds } = await supabase
           .from('webauthn_credentials')
           .select('id, device_name, created_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(20);
-        if (!cancelled && creds) setCredentials(creds.map(c => ({ ...c, device_name: c.device_name ?? '' })));
+        if (cancelled) return;
+        if (creds) setCredentials(creds.map(c => ({ ...c, device_name: c.device_name ?? '' })));
       } else {
         localStorage.removeItem(BIOMETRIC_ENABLED_KEY);
       }

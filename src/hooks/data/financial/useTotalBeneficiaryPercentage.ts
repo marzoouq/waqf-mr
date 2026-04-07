@@ -2,11 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { defaultNotify } from '@/lib/notify';
+import { logger } from '@/lib/logger';
 
 /**
  * Returns the global sum of all beneficiary share percentages
  * using a SECURITY DEFINER function that bypasses RLS.
+ *
+ * #90: أُزيل defaultNotify من queryFn لمنع side effects أثناء الجلب.
+ * التحذير يُسجَّل في logger فقط — المكوّن المستخدِم يمكنه عرض تحذير UI.
  */
 export const useTotalBeneficiaryPercentage = () => {
   return useQuery({
@@ -17,7 +20,7 @@ export const useTotalBeneficiaryPercentage = () => {
       const result = safeNumber(data);
       if (result <= 0) return 0;
       if (result > 200) {
-        defaultNotify.warning(`مجموع نسب المستفيدين غير طبيعي (${result}%) — يرجى مراجعة النسب`, { id: 'share-warning' });
+        logger.warn(`[BeneficiaryPercentage] مجموع غير طبيعي: ${result}%`);
       }
       return result;
     },

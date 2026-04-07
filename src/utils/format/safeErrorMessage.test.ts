@@ -12,8 +12,20 @@ describe('getSafeErrorMessage', () => {
     expect(getSafeErrorMessage(new Error('User already registered'))).toBe('هذا البريد الإلكتروني مسجل بالفعل');
   });
 
-  it('returns duplicate message for "duplicate"', () => {
+  it('returns generic duplicate message for "duplicate"', () => {
     expect(getSafeErrorMessage('duplicate key violation')).toBe('هذا البريد الإلكتروني مسجل بالفعل');
+  });
+
+  it('returns contract-specific duplicate message', () => {
+    expect(getSafeErrorMessage('duplicate key violation on contract')).toBe('يوجد عقد بنفس البيانات بالفعل');
+  });
+
+  it('returns invoice-specific duplicate message', () => {
+    expect(getSafeErrorMessage('duplicate invoice number')).toBe('يوجد فاتورة بنفس الرقم بالفعل');
+  });
+
+  it('returns property-specific duplicate message', () => {
+    expect(getSafeErrorMessage('unique constraint on property')).toBe('يوجد عقار بنفس الرقم بالفعل');
   });
 
   it('returns duplicate message for "unique"', () => {
@@ -78,5 +90,17 @@ describe('getSafeErrorMessage', () => {
     vi.mocked(logger.error).mockClear();
     expect(getSafeErrorMessage(42)).toBe('حدث خطأ غير متوقع. يرجى المحاولة لاحقاً');
     expect(logger.error).toHaveBeenCalled();
+  });
+
+  it('returns check constraint message', () => {
+    expect(getSafeErrorMessage(new Error('violates check constraint'))).toBe('القيمة المُدخلة غير صالحة. تحقق من البيانات وأعد المحاولة');
+  });
+
+  it('returns payload too large message', () => {
+    expect(getSafeErrorMessage(new Error('payload too large'))).toBe('حجم البيانات المُرسلة كبير جداً');
+  });
+
+  it('returns internal server error message', () => {
+    expect(getSafeErrorMessage(new Error('500 internal server error'))).toBe('خطأ في الخادم. يرجى المحاولة لاحقاً أو التواصل مع الدعم');
   });
 });

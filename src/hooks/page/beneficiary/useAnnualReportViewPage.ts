@@ -1,7 +1,7 @@
 /**
  * هوك صفحة التقرير السنوي — يستخرج كل المنطق من AnnualReportViewPage
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -50,7 +50,8 @@ export function useAnnualReportViewPage() {
     { label: 'عدد العقارات', value: String(properties.length), icon: Building2, color: 'text-warning' },
   ];
 
-  const handleExportPdf = async () => {
+  // #22: useCallback لتثبيت مرجع الدالة
+  const handleExportPdf = useCallback(async () => {
     const pdfData: AnnualReportPdfData = {
       fiscalYearLabel: fiscalYear?.label || '',
       achievements: grouped.achievement.map(i => ({ title: i.title, content: i.content })),
@@ -63,10 +64,10 @@ export function useAnnualReportViewPage() {
       summaryCards: summaryCards.map(c => ({ label: c.label, value: c.value })),
     };
     const ok = await generateAnnualReportPDF(pdfData, waqfInfo);
-    const { toast } = await import('sonner');
-    if (ok) toast.success('تم تصدير التقرير السنوي بنجاح');
-    else toast.error('فشل في تصدير التقرير');
-  };
+    const { defaultNotify } = await import('@/lib/notify');
+    if (ok) defaultNotify.success('تم تصدير التقرير السنوي بنجاح');
+    else defaultNotify.error('فشل في تصدير التقرير');
+  }, [fiscalYear?.label, grouped, properties, summaryCards, waqfInfo]);
 
   const handleExportCsv = () => {
     const rows: Record<string, string>[] = [];
