@@ -1,7 +1,7 @@
 /**
  * هوك صفحة الفواتير — يستخرج كل المنطق من InvoicesViewPage
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { defaultNotify } from '@/lib/notify';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -10,8 +10,8 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { safeNumber } from '@/utils/format/safeNumber';
-
-const ITEMS_PER_PAGE = 10;
+import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 
 export function useInvoicesViewPage() {
   const isMobile = useIsMobile();
