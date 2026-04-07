@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
