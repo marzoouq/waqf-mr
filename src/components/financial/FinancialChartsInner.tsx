@@ -66,7 +66,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
 
     {/* Charts Row 2 */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <ChartBox>
+      <ChartBox height={250} className="px-2 sm:px-0">
         {incomePieData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
