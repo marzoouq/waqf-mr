@@ -1,53 +1,74 @@
 
 
-# خطة إصلاح نتائج التدقيق الجنائي — 3 مهام مؤكدة
+# خطة تنفيذ 8 مهام متبقية من التدقيق الجنائي
 
-## الملخص
+## المرحلة أ — أمان (3 مهام)
 
-3 مشكلات مؤكدة من أصل 6، كلها بتأثير محدود (minimal diff) وبدون تغيير في الميزات العاملة.
+### المهمة 1: حذف console.log في admin-manage-users
+**الملف:** `supabase/functions/admin-manage-users/index.ts`
+- حذف سطر 182: `console.log("update_password: success")`
+- حذف سطر 215: `console.log("update_password: verified")`
+- إبقاء `console.error` في سطور 175, 198
 
----
+### المهمة 2: حذف console.log في auth-email-hook
+**الملف:** `supabase/functions/auth-email-hook/index.ts`
+- حذف سطر 236: `console.log('Received auth event', ...)`
+- حذف سطر 304: `console.log('Email sent successfully', ...)`
+- إبقاء `console.error` في سطور 240, 273, 297
 
-## المهمة 1: تنظيف console.log في dashboard-summary
-
+### المهمة 3: تعليق توضيحي لاستخدام admin في dashboard-summary
 **الملف:** `supabase/functions/dashboard-summary/index.ts`
-
-**التغييرات:**
-- حذف 3 سطور `console.log` للتوقيت (سطور 69, 93, 109) — تكشف أداء النظام وحجم الاستجابة
-- حذف متغيرات التوقيت غير المستخدمة بعد ذلك (`t1`, `t2`, `tEnd`)
-- إبقاء `console.error` في سطري 96 و 114 — ضرورية لتشخيص الأخطاء الفعلية في الإنتاج
-- تعقيم رسالة الخطأ في سطر 96: استبدال `rpcRes.error` الكامل بنص عام
+- إضافة تعليق قبل سطر استعلام user_roles يوضح أن admin مقصود لأن RLS RESTRICTIVE يمنع القراءة المباشرة
 
 ---
 
-## المهمة 2: إضافة EmptyState إلى barrel export
+## المرحلة ب — بنية (4 مهام)
 
-**الملف:** `src/components/common/index.ts`
+### المهمة 4: نقل fetchTableData من lib/export إلى utils/export
+- نقل `src/lib/export/dataFetcher.ts` إلى `src/utils/export/dataFetcher.ts`
+- تحديث barrel export في `src/utils/export/index.ts` لتصدير `fetchTableData`
+- تحديث الاستيراد الوحيد في `src/hooks/page/shared/useDataExport.ts`
+- حذف `src/lib/export/` (المجلد بأكمله)
 
-**التغيير:** إضافة سطر واحد:
-```typescript
-export { default as EmptyState } from './EmptyState';
-```
+### المهمة 5: استخدام EmptyState في PropertiesViewPage
+**الملف:** `src/pages/beneficiary/PropertiesViewPage.tsx`
+- البحث عن inline empty state JSX واستبداله بـ `<EmptyState>` من `@/components/common`
+- **ملاحظة:** الصفحة لا تحتوي على حالة فراغ ظاهرة — الـ properties تُعرض مباشرة بعد التحميل. سأتحقق من وجود `!properties?.length` في الملف وأطبق EmptyState إذا وُجد
 
-**ملاحظة:** الملفات الـ 6 التي تستخدمه حالياً تستورده مباشرة — يعمل بدون مشاكل. تحديث الاستيرادات لاستخدام barrel import اختياري ولن يُنفذ لتقليل حجم التغيير.
+### المهمة 6: مركزة toSourceRecord / toExpenseRecord
+- الدوال مكررة حرفياً في **4 ملفات**: `useMySharePage.ts`, `useAccountsViewPage.ts`, `useDisclosurePage.ts`, `useFinancialReportsPage.ts` + نسخة مشابهة في `useYearComparisonData.ts`
+- إنشاء `src/utils/financial/recordConverters.ts` يصدّر `toSourceRecord` و `toExpenseRecord`
+- تحديث الملفات الأربعة لاستيرادها من المسار الجديد
+- `useYearComparisonData.ts` له توقيع مختلف (`ExpenseTypeEntry[]`) — يبقى كما هو
+
+### المهمة 7: استخراج eventConfig المشترك
+- `eventConfig` مكرر حرفياً في `AccessLogTab.tsx` و `ArchiveLogTab.tsx`
+- إنشاء `src/components/audit/auditEventConfig.ts` يصدّر `eventConfig`
+- تحديث الملفين لاستيراده بدل تعريفه محلياً
 
 ---
 
-## المهمة 3: حذف migration مكرر
+## المرحلة ج — توثيق (مهمة واحدة)
 
-**الملف:** `supabase/migrations/20260318102000_fix_safe_views_remove_security_invoker.sql`
-
-**التحقق:** MD5 متطابق (`0d8474fc`) مع `20260318101512_29652d94...sql` — نسخة حرفية.
-
-**الإجراء:** حذف الملف الأحدث. الأقدم هو الأصل ومسجّل في قاعدة البيانات.
+### المهمة 8: إضافة README لمجلدات غير موثّقة
+إنشاء README.md قصير (3-5 أسطر) لكل من:
+- `src/components/waqif/` — مكونات واجهة الواقف (الشخص المانح)
+- `src/components/waqf/` — مكونات إدارة الوقف (الكيان)
+- `src/lib/realtime/` — اشتراكات Supabase Realtime
+- `src/lib/monitoring/` — رصد الأداء والاستعلامات
+- `src/lib/services/` — خدمات البيانات (تخزين، تشخيص)
+- `src/components/disclosure/` — صفحة الإفصاح المالي للمستفيدين
 
 ---
 
-## التفاصيل التقنية
+## ملخص التأثير
 
-| المهمة | الملفات المتأثرة | نوع التغيير | خطر التراجع |
-|--------|-----------------|-------------|-------------|
-| 1 | 1 edge function | حذف سطور | صفر |
-| 2 | 1 barrel export | إضافة سطر | صفر |
-| 3 | 1 migration file | حذف ملف | منخفض — يجب التأكد من عدم تسجيله في supabase_migrations |
+| المرحلة | الملفات المُعدَّلة | الملفات الجديدة | الملفات المحذوفة |
+|---------|-------------------|----------------|-----------------|
+| أ | 3 edge functions | 0 | 0 |
+| ب | 6 hooks + 2 audit | 2 (recordConverters + auditEventConfig) | 2 (lib/export/) |
+| ج | 0 | 6 README | 0 |
+| **المجموع** | **11** | **8** | **2** |
+
+صفر تأثير على الميزات. كل التغييرات refactoring وتنظيف.
 
