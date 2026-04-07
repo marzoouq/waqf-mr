@@ -45,13 +45,13 @@ export function useExpensesPage() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [formData, setFormData] = useState(EMPTY_EXPENSE_FORM);
 
-  const resetForm = () => { setFormData(EMPTY_EXPENSE_FORM); setEditingExpense(null); };
+  const resetForm = useCallback(() => { setFormData(EMPTY_EXPENSE_FORM); setEditingExpense(null); }, []);
 
-  const handleEdit = (item: Expense) => {
+  const handleEdit = useCallback((item: Expense) => {
     setEditingExpense(item);
     setFormData({ expense_type: item.expense_type, amount: item.amount.toString(), date: item.date, property_id: item.property_id || '', description: item.description || '' });
     setIsOpen(true);
-  };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

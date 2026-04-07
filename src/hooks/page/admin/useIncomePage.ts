@@ -44,13 +44,13 @@ export function useIncomePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState(EMPTY_INCOME_FORM);
 
-  const resetForm = () => { setFormData(EMPTY_INCOME_FORM); setEditingIncome(null); };
+  const resetForm = useCallback(() => { setFormData(EMPTY_INCOME_FORM); setEditingIncome(null); }, []);
 
-  const handleEdit = (item: Income) => {
+  const handleEdit = useCallback((item: Income) => {
     setEditingIncome(item);
     setFormData({ source: item.source, amount: item.amount.toString(), date: item.date, property_id: item.property_id || '', notes: item.notes || '' });
     setIsOpen(true);
-  };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

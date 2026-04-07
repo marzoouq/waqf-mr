@@ -141,14 +141,14 @@ export function useChartOfAccountsPage() {
     });
   };
 
-  const handleToggle = (id: string, active: boolean) => {
+  const handleToggle = useCallback((id: string, active: boolean) => {
     updateMutation.mutate({ id, is_active: active });
-  };
+  }, [updateMutation]);
 
-  const confirmDelete = (cat: AccountCategory) => {
+  const confirmDelete = useCallback((cat: AccountCategory) => {
     setDeletingCategory(cat);
     setDeleteDialogOpen(true);
-  };
+  }, []);
 
   return {
     isLoading,
