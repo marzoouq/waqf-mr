@@ -140,7 +140,7 @@ export function useReportsData() {
 
   return {
     pdfWaqfInfo, fiscalYear, fiscalYearId,
-    properties, contracts, allUnits, paymentInvoices,
+    properties, contracts, allUnits,
     income, expenses, beneficiaries, currentAccount,
     totalIncome, totalExpenses, adminPct, waqifPct,
     zakatAmount, vatAmount, waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,
