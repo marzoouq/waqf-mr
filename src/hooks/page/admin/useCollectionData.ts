@@ -38,7 +38,7 @@ export interface CollectionSummary {
 }
 
 /**
- * @deprecated تُستخدم فقط كـ fallback عند عرض "جميع السنوات".
+ * تحسب عدد الدفعات المتوقعة كـ fallback عند عرض "جميع السنوات".
  */
 function getExpectedPaymentsFallback(contract: Contract): number {
   const start = new Date(contract.start_date);
