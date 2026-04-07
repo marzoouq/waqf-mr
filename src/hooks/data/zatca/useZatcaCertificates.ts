@@ -9,7 +9,7 @@ export const useZatcaCertificates = () => {
     queryKey: ['zatca-certificates'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('zatca_certificates')
+        .from('zatca_certificates_safe' as any)
         .select('id, certificate_type, is_active, request_id, created_at, expires_at')
         .order('created_at', { ascending: false });
       if (error) throw error;

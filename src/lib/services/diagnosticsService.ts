@@ -22,7 +22,7 @@ export const getRealtimeChannels = () => {
 
 export const getActiveCertificate = async () => {
   return supabase
-    .from('zatca_certificates')
+    .from('zatca_certificates_safe' as any)
     .select('certificate_type, is_active, expires_at')
     .eq('is_active', true)
     .limit(1)
