@@ -89,8 +89,8 @@ Deno.serve(async (req) => {
 
 
     if (rpcRes.error) {
-      console.error("RPC error:", rpcRes.error);
-      return new Response(JSON.stringify({ error: rpcRes.error.message }), { status: 500, headers: jsonHeaders });
+      console.error("RPC error");
+      return new Response(JSON.stringify({ error: "خطأ في استعلام البيانات" }), { status: 500, headers: jsonHeaders });
     }
 
     // ── بناء الاستجابة (بدون heatmap_invoices و recent_contracts) ──
