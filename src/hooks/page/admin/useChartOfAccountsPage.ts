@@ -79,13 +79,13 @@ export function useChartOfAccountsPage() {
     return categories.filter(c => !excludeIds.has(c.id));
   }, [categories, editingCategory]);
 
-  const openCreateDialog = () => {
+  const openCreateDialog = useCallback(() => {
     setEditingCategory(null);
     setForm(emptyForm);
     setDialogOpen(true);
-  };
+  }, []);
 
-  const openEditDialog = (cat: AccountCategory) => {
+  const openEditDialog = useCallback((cat: AccountCategory) => {
     setEditingCategory(cat);
     setForm({
       code: cat.code,
@@ -96,7 +96,7 @@ export function useChartOfAccountsPage() {
       is_active: cat.is_active,
     });
     setDialogOpen(true);
-  };
+  }, []);
 
   const handleSave = () => {
     if (!form.code.trim() || !form.name.trim()) {
