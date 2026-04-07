@@ -1,6 +1,6 @@
 /**
  * تبويب إعدادات الواجهة الرئيسية (Landing Page)
- * يتيح للناظر تعديل نصوص وعناوين الواجهة الرئيسية ديناميكياً
+ * يتيح للناظر تعديل نصوص وعناوين الواجهة الرئيسية ديناميكياً + شعار مستقل
  */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Save, Globe } from 'lucide-react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings, useSetting } from '@/hooks/data/settings/useAppSettings';
 import { useState, useEffect } from 'react';
+import LogoUploadCard from './LogoUploadCard';
 
 export interface LandingPageContent {
   hero_title: string;
@@ -37,6 +38,7 @@ const defaults: LandingPageContent = {
 
 const LandingPageTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
+  const landingLogoUrl = useSetting('landing_logo_url');
   const content = getJsonSetting<LandingPageContent>('landing_page_content', defaults);
   const [form, setForm] = useState<LandingPageContent>(content);
 
