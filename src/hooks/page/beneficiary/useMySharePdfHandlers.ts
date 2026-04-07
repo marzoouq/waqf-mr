@@ -32,6 +32,8 @@ interface PdfHandlersParams {
   filteredDistributions: Array<{ date: string; amount: number; status: string; account?: { fiscal_year?: string } | null }>;
   contracts: Array<{ contract_number: string | null; tenant_name: string | null; rent_amount: number | null; status: string | null }>;
   fiscalYearLabel?: string;
+  /** #21 — دالة جلب العقود عند الحاجة (lazy fetch) */
+  fetchContracts?: () => Promise<Array<{ contract_number: string | null; tenant_name: string | null; rent_amount: number | null; status: string | null }>>;
 }
 
 export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
