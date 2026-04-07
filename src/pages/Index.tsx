@@ -88,7 +88,7 @@ const Index = () => {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }} />
       <LandingHero
         content={content}
-        waqfLogoUrl={waqfInfo?.waqf_logo_url}
+        waqfLogoUrl={landingLogoUrl || waqfInfo?.waqf_logo_url}
         stats={stats}
         statsLoading={statsLoading}
         onNavigateAuth={handleNavigateAuth}
