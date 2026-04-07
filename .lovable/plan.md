@@ -1,47 +1,53 @@
 
-# تقرير تدقيق الكود — النظافة والتكرارات والكود الميت
 
-## ✅ نقاط قوة (لا تغيير مطلوب)
+# خطة إصلاح نتائج التدقيق الجنائي — 3 مهام مؤكدة
 
-1. **EMAIL_REGEX موحّد** — تم توحيده في `src/utils/validation.ts` ويُستورد من 3 ملفات ✅
-2. **لا يوجد TODO/FIXME/HACK** في الكود ✅
-3. **لا يوجد console.log أو debugger** متروك ✅
-4. **لا تكرار مكونات** — كل مكون له دور واضح ✅
+## الملخص
+
+3 مشكلات مؤكدة من أصل 6، كلها بتأثير محدود (minimal diff) وبدون تغيير في الميزات العاملة.
 
 ---
 
-## 🗑️ كود ميت — ملفات غير مستخدمة (9 ملفات)
+## المهمة 1: تنظيف console.log في dashboard-summary
 
-### مكونات UI غير مستخدمة (3)
-| الملف | السبب |
-|-------|-------|
-| `src/components/ui/avatar.tsx` | لا يُستورد من أي مكان |
-| `src/components/ui/command.tsx` | لا يُستورد من أي مكان |
-| `src/components/ui/drawer.tsx` | لا يُستورد من أي مكان |
+**الملف:** `supabase/functions/dashboard-summary/index.ts`
 
-### Hooks غير مستخدمة (5)
-| الملف | السبب |
-|-------|-------|
-| `src/hooks/ui/useFieldErrors.ts` | أُنشئ في الطوبة ٣ لكن لم يُدمج بعد في LoginForm/SignupForm |
-| `src/hooks/ui/useDebounce.ts` | لا يُستورد من أي مكون |
-| `src/hooks/ui/useSafeStorage.ts` | لا يُستورد من أي مكون |
-| `src/hooks/ui/useStableCallback.ts` | لا يُستورد من أي مكون |
-| `src/hooks/data/financial/useDashboardKpis.ts` | لا يُستورد — ربما استُبدل بـ `get_dashboard_kpis` RPC مباشر |
-| `src/hooks/data/financial/useFiscalYearSummary.ts` | لا يُستورد — ربما استُبدل بـ view |
+**التغييرات:**
+- حذف 3 سطور `console.log` للتوقيت (سطور 69, 93, 109) — تكشف أداء النظام وحجم الاستجابة
+- حذف متغيرات التوقيت غير المستخدمة بعد ذلك (`t1`, `t2`, `tEnd`)
+- إبقاء `console.error` في سطري 96 و 114 — ضرورية لتشخيص الأخطاء الفعلية في الإنتاج
+- تعقيم رسالة الخطأ في سطر 96: استبدال `rpcRes.error` الكامل بنص عام
 
 ---
 
-## 📋 خطة التنفيذ المقترحة
+## المهمة 2: إضافة EmptyState إلى barrel export
 
-### المرحلة 1: حذف الكود الميت الآمن (بدون أثر جانبي)
-- حذف `avatar.tsx`, `command.tsx`, `drawer.tsx` (مكونات UI غير مستخدمة)
-- حذف `useDebounce.ts`, `useSafeStorage.ts`, `useStableCallback.ts` (hooks يتيمة)
-- حذف `useDashboardKpis.ts`, `useFiscalYearSummary.ts` (hooks مالية بديلة موجودة)
+**الملف:** `src/components/common/index.ts`
 
-### المرحلة 2: قرار بشأن useFieldErrors
-- **خيار أ**: دمجه في LoginForm/SignupForm (إكمال الطوبة ٣)
-- **خيار ب**: حذفه إذا لم يعد مطلوباً
+**التغيير:** إضافة سطر واحد:
+```typescript
+export { default as EmptyState } from './EmptyState';
+```
 
-### ⚠️ ملاحظة
-- لن نحذف أي ملف يُصدّر عبر `index.ts` (barrel export) دون التحقق أنه لا يُستورد عبره
-- لن نمس أي ملف يعمل حالياً
+**ملاحظة:** الملفات الـ 6 التي تستخدمه حالياً تستورده مباشرة — يعمل بدون مشاكل. تحديث الاستيرادات لاستخدام barrel import اختياري ولن يُنفذ لتقليل حجم التغيير.
+
+---
+
+## المهمة 3: حذف migration مكرر
+
+**الملف:** `supabase/migrations/20260318102000_fix_safe_views_remove_security_invoker.sql`
+
+**التحقق:** MD5 متطابق (`0d8474fc`) مع `20260318101512_29652d94...sql` — نسخة حرفية.
+
+**الإجراء:** حذف الملف الأحدث. الأقدم هو الأصل ومسجّل في قاعدة البيانات.
+
+---
+
+## التفاصيل التقنية
+
+| المهمة | الملفات المتأثرة | نوع التغيير | خطر التراجع |
+|--------|-----------------|-------------|-------------|
+| 1 | 1 edge function | حذف سطور | صفر |
+| 2 | 1 barrel export | إضافة سطر | صفر |
+| 3 | 1 migration file | حذف ملف | منخفض — يجب التأكد من عدم تسجيله في supabase_migrations |
+
