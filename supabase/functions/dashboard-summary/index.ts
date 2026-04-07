@@ -87,8 +87,6 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "تم تجاوز الحد المسموح من الطلبات" }), { status: 429, headers: jsonHeaders });
     }
 
-    const t2 = performance.now();
-    console.log(`[timing] roles+rateLimit+RPC+pending: ${(t2 - t1).toFixed(0)}ms`);
 
     if (rpcRes.error) {
       console.error("RPC error:", rpcRes.error);
