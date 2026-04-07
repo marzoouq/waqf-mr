@@ -20,6 +20,7 @@ import { clearSlowQueries, clearPageLoadEntries } from '@/lib/monitoring';
 import { queryClient } from '@/lib/queryClient';
 import { toast } from 'sonner';
 import { AuthStateContext, AuthActionsContext } from '@/hooks/auth/useAuthContext';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 // إعادة تصدير للتوافقية مع الاستيراد القديم
 export { useAuth, useAuthState, useAuthActions } from '@/hooks/auth/useAuthContext';
