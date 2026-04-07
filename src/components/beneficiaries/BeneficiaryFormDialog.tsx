@@ -49,6 +49,7 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
       if (nidErr) newErrors.national_id = nidErr;
     }
     if (formData.bank_account && !validateIBAN(formData.bank_account)) newErrors.bank_account = 'صيغة IBAN غير صحيحة (SA + 22 رقم)';
+    if (formData.phone && !SAUDI_PHONE_REGEX.test(formData.phone.trim())) newErrors.phone = 'رقم الهاتف يجب أن يبدأ بـ 05 ويتكون من 10 أرقام';
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
     onSubmit(e);
