@@ -94,7 +94,7 @@ export function useAccountsSettings(params: SettingsParams) {
   };
 
   const currentAccount = findAccountByFY(params.accounts, params.selectedFY);
-  const usingFallbackPct = !appSettings.data?.['admin_share_percentage'] || !appSettings.data?.['waqif_share_percentage'];
+  const usingFallbackPct = appSettings.data?.['admin_share_percentage'] == null || appSettings.data?.['waqif_share_percentage'] == null;
 
   return {
     adminPercent, waqifPercent, zakatAmount, waqfCorpusManual, waqfCorpusPrevious,

@@ -166,6 +166,6 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
     deleteTarget, setDeleteTarget,
     formInitialData,
     resetForm, handleRenew, handleEdit, handleFormSubmit, handleConfirmDelete,
-    isPending: createContract.isPending || updateContract.isPending,
+    isPending: createContract.isPending || updateContract.isPending || deleteContract.isPending,
   };
 }
