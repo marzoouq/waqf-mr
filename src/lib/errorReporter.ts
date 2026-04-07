@@ -4,7 +4,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
-import type { Json } from '@/integrations/supabase/types';
+
 
 interface ErrorMetadata {
   error_name: string;
