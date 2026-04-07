@@ -52,7 +52,8 @@ const PermissionsControlPanel = () => {
     setPerms(merged);
     setAdminSections({ ...defaultAdminSections, ...savedAdminSections });
     setBeneficiarySections({ ...defaultBeneficiarySections, ...savedBeneficiarySections });
-  }, [savedRolePerms, savedAdminSections, savedBeneficiarySections]);
+    setWidgets({ ...defaultWidgets, ...savedWidgets });
+  }, [savedRolePerms, savedAdminSections, savedBeneficiarySections, savedWidgets]);
 
   const toggleRolePerm = (role: string, section: string) => {
     setPerms(prev => ({ ...prev, [role]: { ...prev[role], [section]: !prev[role]?.[section] } }));
