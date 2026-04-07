@@ -138,9 +138,11 @@ const ReportsPage = () => {
               remainingBalance={remainingBalance}
             />
 
-            <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
-              <LazyReportsCharts incomeSourceData={incomeSourceData} expenseTypeData={expenseTypeData} />
-            </Suspense>
+            <ViewportRender minHeight={300}>
+              <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
+                <LazyReportsCharts incomeSourceData={incomeSourceData} expenseTypeData={expenseTypeData} />
+              </Suspense>
+            </ViewportRender>
 
             <BeneficiaryDistributionTable
               distributionData={distributionData}
