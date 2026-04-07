@@ -1,7 +1,7 @@
 /**
  * هوك منطق صفحة الشجرة المحاسبية
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { defaultNotify } from '@/lib/notify';
 import {
   useAccountCategoryTree,
