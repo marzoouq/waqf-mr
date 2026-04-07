@@ -164,7 +164,7 @@ interface DashboardSummaryResponse {
 
 export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: string) => {
   const query = useQuery<DashboardSummaryResponse>({
-    queryKey: ['dashboard-summary', fiscalYearId],
+    queryKey: ['dashboard-summary', fiscalYearId, fiscalYearLabel ?? ''],
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('dashboard-summary', {
