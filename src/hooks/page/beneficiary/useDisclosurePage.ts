@@ -10,6 +10,7 @@ import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContract
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { toSourceRecord, toExpenseRecord } from '@/utils/financial/recordConverters';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { defaultNotify } from '@/lib/notify';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
