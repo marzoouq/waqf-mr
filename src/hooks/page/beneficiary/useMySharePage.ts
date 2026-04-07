@@ -1,6 +1,6 @@
 /**
- * هوك بيانات صفحة "حصتي من الريع"
- * محسّن: يعتمد على useBeneficiaryFinancials المشترك + بيانات السُلف من RPC (#16)
+ * هوك بيانات صفحة حصتي من الريع
+ * محسّن: يعتمد على useBeneficiaryFinancials المشترك + بيانات السُلف من RPC
  */
 import { useCallback, useMemo } from 'react';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
@@ -26,7 +26,6 @@ export const useMySharePage = () => {
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
 
-  // هوك مشترك بدل ~20 سطر مكرر
   const fin = useBeneficiaryFinancials(dashData, fiscalYearId);
 
   const { currentBeneficiary, myShare, pctLoading } = useMyShare({
@@ -40,7 +39,6 @@ export const useMySharePage = () => {
     fiscalYearId,
   );
 
-  // #16 — سُلف وترحيلات من RPC مباشرة بدل useMyBeneficiaryFinance
   const myAdvances = useMemo(
     () => (dashData?.my_advances ?? []) as unknown as AdvanceRequest[],
     [dashData?.my_advances],
@@ -52,17 +50,19 @@ export const useMySharePage = () => {
     [dashData?.my_carryforwards],
   );
 
-  // إعدادات السُلف من RPC مباشرة — بدون useAppSettings (#38)
   const advanceSettings = dashData?.advance_settings ?? { enabled: true, min_amount: 500, max_percentage: 50 };
-  const advancesEnabled = advanceSettings.enabled ?? true;
+  // #64 fix: default false instead of true to prevent advances without settings
+  const advancesEnabled = advanceSettings.enabled ?? false;
   const beneficiariesShare = fin.availableAmount;
   const isClosed = selectedFY?.status === 'closed';
+  // #12: is share estimated (active year)
+  const myShareIsEstimated = dashData?.my_share_is_estimated ?? false;
 
-  // فلترة التوزيعات عبر دالة مشتركة (#3, #4)
+  // filter distributions via shared function (#2, #3, #4)
   const filteredDistributions = filterDistributionsByFiscalYear(distributions, !!fin.account, fiscalYearId);
   const { totalReceived, pendingAmount } = summarizeDistributions(filteredDistributions);
 
-  // #21 — جلب العقود عند طلب PDF فقط (lazy fetch)
+  // #21 - fetch contracts lazily when needed for PDF
   const fetchContracts = useCallback(async () => {
     const { data } = await supabase
       .from('contracts')
@@ -71,7 +71,6 @@ export const useMySharePage = () => {
     return data ?? [];
   }, []);
 
-  // PDF handlers
   const pdf = useMySharePdfHandlers({
     currentBeneficiary: currentBeneficiary ?? null, isClosed: !!isClosed, myShare, totalReceived, pendingAmount,
     netAfterZakat: fin.netAfterZakat, adminShare: fin.adminShare, waqifShare: fin.waqifShare,
@@ -81,18 +80,18 @@ export const useMySharePage = () => {
     netAfterVat: fin.netAfterVat, zakatAmount: fin.zakatAmount, waqfRevenue: fin.waqfRevenue,
     waqfCorpusManual: fin.waqfCorpusManual, incomeBySource: fin.incomeBySource,
     expensesByTypeExcludingVat: fin.expensesByTypeExcludingVat, filteredDistributions,
-    contracts: [], // يُجلب lazily عند الحاجة
+    contracts: [],
     fiscalYearLabel: selectedFY?.label,
-    fetchContracts, // #21
+    fetchContracts,
   });
 
   return {
-    // تحسين isLoading: تجاهل pctLoading عند وجود serverMyShare (#40)
-    isLoading: finLoading || distLoading || (!dashData?.my_share && pctLoading),
+    // #63 fix: check undefined instead of falsy to handle my_share = 0 on active year
+    isLoading: finLoading || distLoading || (dashData?.my_share === undefined && pctLoading),
     isError: finError,
     handleRetry,
     currentBeneficiary, isAccountMissing: fin.isAccountMissing, isClosed,
-    myShare, totalReceived, pendingAmount, paidAdvancesTotal,
+    myShare, myShareIsEstimated, totalReceived, pendingAmount, paidAdvancesTotal,
     carryforwardBalance, beneficiariesShare,
     filteredDistributions, myAdvances, myCarryforwards,
     advancesEnabled, advanceSettings, fiscalYearId, selectedFY,
