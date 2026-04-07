@@ -4,6 +4,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { canModifyFiscalYear } from '@/utils/permissions';
 import { useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
@@ -13,35 +14,38 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import type { Income } from '@/types/database';
 import { EMPTY_FILTERS, type FilterState } from '@/components/filters/advancedFilters.types';
 import { defaultNotify } from '@/lib/notify';
+import { useTableSort } from '@/hooks/ui/useTableSort';
 
-export type SortField = 'amount' | 'date' | 'source' | null;
-type SortDir = 'asc' | 'desc';
+export type SortField = 'amount' | 'date' | 'source';
+
+const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
+
+const EMPTY_INCOME_FORM = { source: '', amount: '', date: '', property_id: '', notes: '' };
 
 export function useIncomePage() {
   const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const { role } = useAuth();
-  const isLocked = isClosed && role !== 'admin' && role !== 'accountant';
+  const isLocked = !canModifyFiscalYear(role, isClosed);
 
   const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
-  const { data: properties = [] } = useProperties();
-  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
+  // تُجلب العقارات والعقود والفواتير عند فتح الـ dialog فقط — #36
+  const [isOpen, setIsOpen] = useState(false);
+  const { data: properties = [] } = useProperties({ enabled: isOpen });
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId, { enabled: isOpen });
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
   const createIncome = useCreateIncome();
   const updateIncome = useUpdateIncome();
   const deleteIncome = useDeleteIncome();
 
-  const [isOpen, setIsOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
-  const [sortField, setSortField] = useState<SortField>(null);
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const { sortField, sortDir, handleSort } = useTableSort<SortField>();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
-  const [formData, setFormData] = useState({ source: '', amount: '', date: '', property_id: '', notes: '' });
+  const [formData, setFormData] = useState(EMPTY_INCOME_FORM);
 
-  const resetForm = () => { setFormData({ source: '', amount: '', date: '', property_id: '', notes: '' }); setEditingIncome(null); };
+  const resetForm = () => { setFormData(EMPTY_INCOME_FORM); setEditingIncome(null); };
 
   const handleEdit = (item: Income) => {
     setEditingIncome(item);
@@ -79,21 +83,14 @@ export function useIncomePage() {
     try {
       await deleteIncome.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
-      setCurrentPage(1);
+      // #17 — البقاء في الصفحة الحالية ما لم تصبح فارغة
+      const totalAfterDelete = income.length - 1;
+      const maxPage = Math.ceil(totalAfterDelete / ITEMS_PER_PAGE);
+      if (currentPage > maxPage) setCurrentPage(Math.max(1, maxPage));
     } catch {
       // handled by mutation
     }
   };
-
-  const handleSort = useCallback((field: SortField) => {
-    if (sortField === field) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortDir('desc');
-    }
-    setCurrentPage(1);
-  }, [sortField]);
 
   const totalIncome = useMemo(() => income.reduce((sum, item) => sum + safeNumber(item.amount), 0), [income]);
 
@@ -155,10 +152,13 @@ export function useIncomePage() {
     return result;
   }, [income, searchQuery, filters, sortField, sortDir]);
 
+  /** هل السنة المالية محددة ويمكن الإضافة؟ — #14 */
+  const canAdd = !!fiscalYear?.id && !isLocked;
+
   return {
     // بيانات
     income, isLoading, properties, contracts, paymentInvoices,
-    fiscalYearId, fiscalYear, isClosed, role, isLocked,
+    fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,
     // حالة النموذج
     isOpen, setIsOpen, editingIncome, formData, setFormData,
     resetForm, handleEdit, handleSubmit,
@@ -168,7 +168,7 @@ export function useIncomePage() {
     deleteTarget, setDeleteTarget, handleConfirmDelete,
     // ترتيب
     sortField, sortDir, handleSort,
-    // فلاتر
+    // فلاتر — تبقى مُطبّقة بعد إغلاق form (سلوك مقصود)
     searchQuery, setSearchQuery, filters, setFilters,
     // صفحات
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
@@ -176,5 +176,3 @@ export function useIncomePage() {
     totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome,
   };
 }
-
-
