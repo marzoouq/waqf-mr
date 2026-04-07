@@ -55,14 +55,14 @@ export function useWebAuthn() {
     return () => { cancelled = true; };
   }, []);
 
-  const fetchCredentials = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setCredentials([]); return []; }
+  const fetchCredentials = useCallback(async (knownUserId?: string) => {
+    const uid = knownUserId ?? (await supabase.auth.getUser()).data.user?.id;
+    if (!uid) { setCredentials([]); return []; }
 
     const { data, error } = await supabase
       .from('webauthn_credentials')
       .select('id, device_name, created_at')
-      .eq('user_id', user.id)
+      .eq('user_id', uid)
       .order('created_at', { ascending: false })
       .limit(20);
 
