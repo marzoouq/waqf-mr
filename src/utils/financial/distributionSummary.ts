@@ -10,7 +10,9 @@ interface DistributionLike {
   fiscal_year_id?: string;
 }
 
-/** تصفية التوزيعات حسب وجود حساب أو سنة مالية */
+/** تصفية التوزيعات حسب وجود حساب أو سنة مالية
+ * #2 إصلاح: عند عدم وجود حساب وعدم تحديد سنة مالية — إعادة مصفوفة فارغة بدلاً من كل التوزيعات
+ */
 export function filterDistributionsByFiscalYear<T extends DistributionLike>(
   distributions: T[],
   hasAccount: boolean,
@@ -20,7 +22,8 @@ export function filterDistributionsByFiscalYear<T extends DistributionLike>(
   if (fiscalYearId && fiscalYearId !== 'all') {
     return distributions.filter(d => d.fiscal_year_id === fiscalYearId);
   }
-  return distributions;
+  // #2 إصلاح: لا يوجد حساب ولا fiscalYearId محدد — أعد مصفوفة فارغة لتجنب جمع كل السنوات
+  return [];
 }
 
 /** تلخيص المبالغ المدفوعة والمعلقة */
