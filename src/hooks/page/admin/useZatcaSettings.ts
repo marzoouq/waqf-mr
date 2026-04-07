@@ -31,8 +31,6 @@ export const ZATCA_KEYS = [
   'waqf_bank_iban',
 ] as const;
 
-const DEVICE_SERIAL_REGEX = /^1-.+\|2-.+\|3-.+$/;
-
 export type ConnectionTestResult = {
   loading: boolean;
   result: null | { connected: boolean; url?: string; error?: string; tested_at?: string; status_code?: number };
