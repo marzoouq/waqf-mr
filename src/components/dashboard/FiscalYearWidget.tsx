@@ -58,7 +58,7 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
 const ActiveFiscalYearWidget: React.FC<{ fiscalYear: FiscalYearInfo; totalIncome: number; contractualRevenue: number }> = ({
   fiscalYear, totalIncome, contractualRevenue,
 }) => {
-  const { totalDays, elapsedDays, remainingDays, timeProgress } = useMemo(() => {
+  const { totalDays, remainingDays, timeProgress } = useMemo(() => {
     const now = Date.now();
     const start = new Date(fiscalYear.start_date).getTime();
     const end = new Date(fiscalYear.end_date).getTime();
