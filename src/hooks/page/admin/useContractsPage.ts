@@ -27,15 +27,21 @@ export const useContractsPage = () => {
   // هوك CRUD النموذج — مُستخرج (#29)
   const form = useContractForm({ fiscalYearId, fiscalYears });
 
-  // بناء خريطة الدفعات المسددة من الفواتير
-  const invoicePaidMap = useMemo(() => {
-    const map = new Map<string, number>();
+  // #A10 — دمج loops: بناء invoicePaidMap و overdueContractIds في loop واحدة
+  const { invoicePaidMap, overdueContractIds } = useMemo(() => {
+    const paidMap = new Map<string, number>();
+    const overdueIds = new Set<string>();
+    const now = Date.now();
+    const thirtyDays = 30 * 24 * 3600 * 1000;
     for (const inv of paymentInvoices) {
       if (inv.status === 'paid') {
-        map.set(inv.contract_id, (map.get(inv.contract_id) ?? 0) + 1);
+        paidMap.set(inv.contract_id, (paidMap.get(inv.contract_id) ?? 0) + 1);
+      }
+      if (inv.status === 'overdue' || (inv.status === 'pending' && new Date(inv.due_date).getTime() + thirtyDays < now)) {
+        overdueIds.add(inv.contract_id);
       }
     }
-    return map;
+    return { invoicePaidMap: paidMap, overdueContractIds: overdueIds };
   }, [paymentInvoices]);
 
   // التصفية والتجميع
