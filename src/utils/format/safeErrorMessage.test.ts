@@ -12,8 +12,20 @@ describe('getSafeErrorMessage', () => {
     expect(getSafeErrorMessage(new Error('User already registered'))).toBe('هذا البريد الإلكتروني مسجل بالفعل');
   });
 
-  it('returns duplicate message for "duplicate"', () => {
+  it('returns generic duplicate message for "duplicate"', () => {
     expect(getSafeErrorMessage('duplicate key violation')).toBe('هذا البريد الإلكتروني مسجل بالفعل');
+  });
+
+  it('returns contract-specific duplicate message', () => {
+    expect(getSafeErrorMessage('duplicate key violation on contract')).toBe('يوجد عقد بنفس البيانات بالفعل');
+  });
+
+  it('returns invoice-specific duplicate message', () => {
+    expect(getSafeErrorMessage('duplicate invoice number')).toBe('يوجد فاتورة بنفس الرقم بالفعل');
+  });
+
+  it('returns property-specific duplicate message', () => {
+    expect(getSafeErrorMessage('unique constraint on property')).toBe('يوجد عقار بنفس الرقم بالفعل');
   });
 
   it('returns duplicate message for "unique"', () => {
