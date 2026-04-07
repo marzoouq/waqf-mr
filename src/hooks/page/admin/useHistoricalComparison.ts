@@ -80,7 +80,7 @@ export function useHistoricalComparison() {
       { label: 'ريع الوقف', key: 'waqfRevenue', getValue: (d: YearSummaryEntry | null) => d?.waqfRevenue ?? 0 },
       { label: 'المتاح للتوزيع', key: 'availableAmount', getValue: (d: YearSummaryEntry | null) => d?.availableAmount ?? 0 },
     ];
-  }, [selectedYears.length]);
+  }, [selectedYears]);
 
   // تصدير PDF
   const handleExportPdf = useCallback(async () => {
