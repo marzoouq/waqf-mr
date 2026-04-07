@@ -79,7 +79,7 @@ export function useInvoicesViewPage() {
     ITEMS_PER_PAGE,
     // بيانات الفواتير
     filteredInvoices, paginatedInvoices,
-    statusBadgeVariant,
+    statusBadgeVariant: invoiceStatusBadgeVariant,
     // عارض الملفات
     viewerFile, setViewerFile,
     // دوال الإجراءات
