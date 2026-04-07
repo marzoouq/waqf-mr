@@ -7,16 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyAll } from '@/constants/fiscalYearIds';
-
-interface MonthlyEntry {
-  month: number;
-  total: number;
-}
-
-interface ExpenseTypeEntry {
-  expense_type: string;
-  total: number;
-}
+import { toMonthMap, toExpenseRecord, type MonthlyEntry, type ExpenseTypeEntry } from './yearComparisonHelpers';
 
 interface YearSummary {
   total_income: number;
@@ -39,25 +30,6 @@ interface YearSummary {
 interface ComparisonRpcResult {
   year1: YearSummary;
   year2: YearSummary;
-}
-
-/** بناء خريطة شهرية من مصفوفة month/total */
-function toMonthMap(entries: MonthlyEntry[]): Map<number, number> {
-  const map = new Map<number, number>();
-  for (const e of entries) {
-    // تحويل 1-12 → 0-11 للتوافق مع JS Date.getMonth()
-    map.set(e.month - 1, safeNumber(e.total));
-  }
-  return map;
-}
-
-/** تحويل مصفوفة expense_type/total إلى Record */
-function toExpenseRecord(entries: ExpenseTypeEntry[]): Record<string, number> {
-  const rec: Record<string, number> = {};
-  for (const e of entries) {
-    rec[e.expense_type] = safeNumber(e.total);
-  }
-  return rec;
 }
 
 export function useYearComparisonData(year1Id: string, year2Id: string) {
