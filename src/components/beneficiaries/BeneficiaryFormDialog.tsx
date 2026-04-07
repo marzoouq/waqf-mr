@@ -6,6 +6,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Link, IdCard } from 'lucide-react';
 import { getNationalIdError } from '@/utils/format/validateNationalId';
+import { IBAN_SA_REGEX, SAUDI_PHONE_REGEX } from '@/utils/validation';
 
 export interface BeneficiaryFormData {
   name: string;
