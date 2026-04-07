@@ -7,6 +7,7 @@ import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts';
 import { defaultNotify } from '@/lib/notify';
 import { useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
+import { getPaymentCount } from '@/utils/financial/contractHelpers';
 
 interface UseContractFormParams {
   fiscalYearId: string;
