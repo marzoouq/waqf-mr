@@ -52,6 +52,13 @@ const LandingPageTab = () => {
 
   return (
     <div className="space-y-6">
+      <LogoUploadCard
+        title="شعار صفحة الهبوط"
+        description="شعار مستقل يظهر في الواجهة الرئيسية فقط. إن لم يُحدد، يُستخدم شعار الوقف."
+        settingKey="landing_logo_url"
+        storagePath="landing-logo"
+        currentUrl={landingLogoUrl}
+      />
       <Card>
         <CardHeader>
           <CardTitle className="font-display text-lg flex items-center gap-2">
