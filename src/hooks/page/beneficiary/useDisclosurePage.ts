@@ -13,7 +13,6 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { defaultNotify } from '@/lib/notify';
-import { supabase } from '@/integrations/supabase/client';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiaryFinancials';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
