@@ -1,91 +1,124 @@
 
-# تنفيذ الدورة الرابعة — 18 مهمة مُحققة
 
-## التحقق المكتمل
+# خطة تنفيذ المهام المتبقية — 4 دورات (23 مهمة فعلية)
 
-جميع النقاط الـ 18 **مؤكدة بالكود الفعلي**:
-- `useDistributionAdvances.ts`: لا `staleTime` (سطر 8, 25)
-- `useAdvanceRequests.ts`: `STALE_REALTIME` (سطر 29)
-- `useExpenses.ts`: `.limit(1000)` في `all` vs `PER_FY_LIMIT` (2000) في `useIncome.ts`
-- `useBeneficiaryDashboardData.ts`: queryKey بدون `user.id` (سطر 66)، لا فحص `isFyAll` (سطر 67)
-- `useRegistrationEnabled`: نسختان بـ `staleTime` مختلف (`STALE_STATIC` vs `STALE_SETTINGS`)
+## مهام مُكتشف أنها مُنفَّذة بالفعل (إزالة من الخطة)
+
+- **#16** — `check_rate_limit` race condition: مُصلح في migration `20260314030137` — يستخدم `ON CONFLICT DO UPDATE SET count = rate_limits.count + 1` ويُعيد قراءة العداد بعد الإدراج
+- **#38** — deficit في UI: مُنفَّذ في `DistributeDialog.tsx`
 
 ---
 
-## الأسبوع 1 — إصلاحات Hooks (6 مهام)
+## الدورة 1 — إصلاحات كود فورية (8 ملفات، خطر صفري)
 
-### 1. توحيد حد `useExpenses` (#35)
-**ملف:** `src/hooks/data/financial/useExpenses.ts` سطر 42
-- تغيير `.limit(1000)` → `.limit(PER_FY_LIMIT)`
+### 1. `useDistributionHistory.ts` (#27 + #76)
+- تغيير `accounts!inner(fiscal_year)` → `accounts(fiscal_year)` (left join)
+- تعريف interface `DistributionJoinRow` بدل `Record<string, unknown>` مع fallback `'-'` عند عدم وجود حساب
 
-### 2. إضافة `staleTime` لـ distribution hooks (#26)
-**ملف:** `src/hooks/data/financial/useDistributionAdvances.ts`
-- إضافة `staleTime: STALE_FINANCIAL` لكلا الهوكين
+### 2. `useBeneficiaryDashboardData.ts` (#36)
+- تحسين رسالة الخطأ: `` `استجابة غير متوقعة: ${typeof data}` ``
 
-### 3. تغيير `STALE_REALTIME` → `STALE_FINANCIAL` (#32)
-**ملف:** `src/hooks/data/financial/useAdvanceRequests.ts` سطر 29
+### 3. `useAccounts.ts` (#44)
+- تغيير `retry: 2` → smart retry يتجاهل أخطاء 401/unauthorized (متوافق مع نمط المشروع الموثّق في الذاكرة)
 
-### 4. إضافة `user.id` لـ queryKey (#41)
-**ملف:** `src/hooks/data/beneficiaries/useBeneficiaryDashboardData.ts` سطر 66
-- `queryKey: ['beneficiary-dashboard', user?.id, fiscalYearId]`
+### 4. `useYearComparisonData.ts` (#46 + #31 + #47)
+- إضافة `!isFyAll(year1Id) && !isFyAll(year2Id)` في `enabled`
+- تبسيط `useMemo` dependencies → الاعتماد على `data` كاملاً
+- إضافة comment `// تحويل 1-12 → 0-11 للتوافق مع JS Date.getMonth()` على سطر 47
 
-### 5. توحيد `useRegistrationEnabled` (#43+#100)
-- حذف النسخة من `src/hooks/auth/useUserManagementData.ts` (سطور 27-39)
-- تحديث imports في `useUserManagement.ts` و `auth/index.ts` لتستورد من `@/hooks/data/settings`
+### 5. `useContractAllocations.ts` (#50 + #55 + #83)
+- حذف `fromAllocations` helper → `supabase.from('contract_fiscal_allocations')` مباشرة
+- إزالة `JSON.parse(JSON.stringify(rows))` → تمرير `rows` مباشرة (سطر 53)
+- إضافة `enabled: !!fiscalYearId || fiscalYearId === null` لمنع الجلب قبل تحديد السنة
 
-### 6. إضافة فحص `isFyAll` (#54)
-**ملف:** `src/hooks/data/beneficiaries/useBeneficiaryDashboardData.ts` سطر 67
-- `enabled: !!user && fyReady && !isFyAll(fiscalYearId)`
+### 6. `useMultiYearSummary.ts` (#45)
+- إضافة comment سطر 70: `// المبلغ المتاح للتوزيع = ريع الوقف − رقبة الوقف المُخصصة يدوياً`
+
+### 7. `useHistoricalComparison.ts` (#52)
+- استخراج `isError` و `error` من `useMultiYearSummary` وإعادتهما في النتيجة
+
+### 8. `useContractAllocations.ts` (#28)
+- إضافة `logger.warn` عند وصول النتائج لحد 500 سجل
 
 ---
 
-## الأسبوع 2 — إصلاحات DB (6 مهام) — migrations
+## الدورة 2 — تحسينات وتوثيق (4 ملفات)
 
-### 7. تقريب عدد المستفيدين في `get_public_stats` (#4)
+### 9. `useAdvanceRequests.ts` (#33 + #39)
+- تمرير `beneficiaryName` كـ parameter اختياري في `useCreateAdvanceRequest` بدل جلبه من `beneficiaries_safe`
+- تحديد أعمدة صريحة في `.select()` سطر 33 بدل `*`
+
+### 10-12. `distributionCalcPure.ts` + `useDistributionCalculation.ts` + `useDistribute.ts` (#49)
+- **لن يُنفَّذ**: `beneficiary_user_id` مطلوب في `useDistribute.ts` لإرسال الإشعارات، والكود الحالي يمرره من `calculateDistributions` → `useDistributionCalculation` → `useDistribute`. إزالته يكسر سلسلة الإشعارات. **القرار: إبقاء كما هو** — التصميم الحالي صحيح ومُختبر.
+
+**المتبقي في الدورة 2: مهمتان فقط (#33 + #39)**
+
+---
+
+## الدورة 3 — DB Migration (migration واحد)
+
+### 13. تحسين `ticket_number` (#63)
 ```sql
-'beneficiaries', (SELECT floor(count(*)::numeric / 10) * 10 FROM public.beneficiaries)
+CREATE SEQUENCE IF NOT EXISTS public.ticket_number_seq START 1;
+ALTER TABLE support_tickets 
+  ALTER COLUMN ticket_number SET DEFAULT 
+    'TKT-' || to_char(now(), 'YYYYMMDD') || '-' || lpad(nextval('ticket_number_seq')::text, 6, '0');
 ```
 
-### 8. حد لـ `ai_chat_sessions` (#11+#12)
-- حد messages: trigger يمنع تجاوز 500 رسالة
-- حد جلسات: trigger يحذف الأقدم عند تجاوز 50 جلسة
+### 14-16. Validation triggers لـ `support_tickets` (#64-66)
+- استخدام validation trigger (وفقاً لقواعد المشروع — لا CHECK constraints للتحقق الزمني):
+```sql
+CREATE FUNCTION validate_support_ticket() RETURNS trigger ...
+-- يتحقق من: status IN ('open','in_progress','resolved','closed','cancelled')
+-- priority IN ('low','medium','high','critical')
+-- category IN ('general','technical','financial','billing')
+```
 
-### 9. منع تداخل السنوات المالية (#73)
-- trigger يفحص `daterange` overlap قبل INSERT/UPDATE
+### 17. حد طول `content` في replies (#67)
+```sql
+CREATE FUNCTION validate_reply_content() RETURNS trigger ...
+-- length(content) <= 10000
+```
 
-### 10. منع circular reference في `account_categories` (#61)
-- trigger يتتبع سلسلة `parent_id` ويمنع الدورات
-
-### 11. فحص `paid_amount` عند حذف الفواتير (#2)
-- إضافة `AND (paid_amount IS NULL OR paid_amount = 0)` في `generate_contract_invoices`
-
-### 12. تغيير `TO public` → `TO authenticated` (#13)
-- تحديث policies في `account_categories`
-
----
-
-## الأسبوع 3 — اختبارات (6 مهام)
-
-### 13. اختبارات Penny Allocation (#37)
-**ملف جديد:** `src/hooks/page/admin/useDistributionCalculation.test.ts`
-- 1000 ÷ 3 مستفيدين (33.33%)
-- مبلغ صفر
-- مستفيد واحد
-- مبلغ 999.99
-
-### 14-18. اختبارات هوكات مالية أخرى
-- `useYearComparisonData` transforms
-- `useMultiYearSummary` mapEntry
-- `useBeneficiaryDashboardData` response validation
-- `useDistributionHistory` casting
-- `usePaidAdvances`/`useActiveCarryforwards`
+### 18. إصلاح `generate_contract_invoices` (#3)
+- إضافة متغير `v_prev_due_date` وتخطي التكرار عند تطابق التواريخ:
+```sql
+IF v_due_date = v_prev_due_date THEN CONTINUE; END IF;
+v_prev_due_date := v_due_date;
+```
 
 ---
 
-## ملخص التأثير
+## الدورة 4 — اختبارات (ملفات جديدة)
 
-| الأسبوع | الملفات | خطر الكسر |
-|---------|---------|----------|
-| 1 | 5 ملفات (حذف جزء من 1) | صفر — تغييرات داخلية |
-| 2 | 1 migration جديد | منخفض — DB triggers دفاعية |
-| 3 | 6 ملفات اختبار جديدة | صفر — اختبارات فقط |
+### 19. استخراج واختبار `toMonthMap` و `toExpenseRecord` (#85)
+- ملف جديد: `src/hooks/data/financial/yearComparisonHelpers.ts` — نقل الدوال المساعدة
+- ملف اختبار: `src/hooks/data/financial/yearComparisonHelpers.test.ts`
+- تحديث imports في `useYearComparisonData.ts`
+
+### 20. استخراج واختبار `mapEntry` (#86)
+- ملف جديد: `src/hooks/data/financial/multiYearHelpers.ts`
+- ملف اختبار: `src/hooks/data/financial/multiYearHelpers.test.ts`
+- تحديث imports في `useMultiYearSummary.ts`
+
+---
+
+## ملخص نهائي
+
+| الدورة | الملفات | المهام | الخطورة |
+|--------|---------|--------|---------|
+| 1 | 8 ملفات | 8 | صفر — تغييرات داخلية |
+| 2 | 1 ملف | 2 | منخفض — تغيير API |
+| 3 | 1 migration | 6 | منخفض — triggers دفاعية |
+| 4 | 4 ملفات جديدة + 2 تحديث | 2 | صفر — اختبارات |
+
+**إجمالي: 18 مهمة فعلية** (بعد إزالة #16 المُنفَّذ و #49 غير المُستحسن)
+
+## مهام مؤجلة
+
+| # | السبب |
+|---|-------|
+| #11/#12 | `ai_chat_sessions` غير موجود بعد |
+| #49 | التصميم الحالي صحيح — `beneficiary_user_id` مطلوب لسلسلة الإشعارات |
+| #92 | تغيير معماري كبير (Zod validation) |
+
