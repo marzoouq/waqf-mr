@@ -32,6 +32,8 @@ interface PdfHandlersParams {
   filteredDistributions: Array<{ date: string; amount: number; status: string; account?: { fiscal_year?: string } | null }>;
   contracts: Array<{ contract_number: string | null; tenant_name: string | null; rent_amount: number | null; status: string | null }>;
   fiscalYearLabel?: string;
+  /** #21 — دالة جلب العقود عند الحاجة (lazy fetch) */
+  fetchContracts?: () => Promise<Array<{ contract_number: string | null; tenant_name: string | null; rent_amount: number | null; status: string | null }>>;
 }
 
 export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
@@ -102,6 +104,12 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
     if (!params.currentBeneficiary) return;
     if (!params.isClosed) { defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
     try {
+      // #21 — جلب العقود lazily إذا لم تكن متاحة
+      const contractsData = params.contracts.length > 0
+        ? params.contracts
+        : params.fetchContracts
+          ? await params.fetchContracts()
+          : [];
       await generateComprehensiveBeneficiaryPDF({
         beneficiaryName: params.currentBeneficiary.name ?? 'غير معروف',
         fiscalYear: params.fiscalYearLabel || '',
@@ -114,7 +122,7 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
         availableAmount: params.beneficiariesShare, myShare: params.myShare,
         totalReceived: params.totalReceived, pendingAmount: params.pendingAmount,
         incomeBySource: params.incomeBySource, expensesByType: params.expensesByTypeExcludingVat,
-        contracts: params.contracts.map(c => ({
+        contracts: contractsData.map(c => ({
           contract_number: c.contract_number ?? '', tenant_name: c.tenant_name ?? '',
           rent_amount: Number(c.rent_amount), status: c.status ?? '',
         })),

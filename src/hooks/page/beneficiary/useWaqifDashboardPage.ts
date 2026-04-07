@@ -52,9 +52,8 @@ export const useWaqifDashboardPage = () => {
   const activeContracts = contracts.filter(c => c.status === 'active');
   const expiredContracts = contracts.filter(c => c.status === 'expired');
 
-  const beneficiaryCount = dashData?.total_beneficiary_percentage
-    ? Math.round(dashData.total_beneficiary_percentage / (dashData.beneficiary?.share_percentage || 1))
-    : 0;
+  // #12 — عدد المستفيدين الفعلي من RPC بدل الحساب التقريبي
+  const beneficiaryCount = dashData?.beneficiary_count ?? 0;
 
   const contractualRevenue = useMemo(() => {
     if (isSpecificYear && contractAllocations.length > 0) {
