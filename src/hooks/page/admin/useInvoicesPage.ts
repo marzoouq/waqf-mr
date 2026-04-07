@@ -228,6 +228,8 @@ export const useInvoicesPage = () => {
     validateAndSetFile, resetForm, handleEdit, handleSubmit, handleConfirmDelete,
     buildPreviewData, statusBadgeVariant,
     createInvoice, updateInvoice, generatePdf,
+    isSaving: createInvoice.isPending || updateInvoice.isPending,
+    isGeneratingPdf: generatePdf.isPending,
     ITEMS_PER_PAGE, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS,
   };
 };

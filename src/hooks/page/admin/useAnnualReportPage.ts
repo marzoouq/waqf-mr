@@ -1,7 +1,8 @@
 /**
  * هوك منطق صفحة التقرير السنوي
  */
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
+import { defaultNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import {
@@ -82,18 +83,25 @@ export function useAnnualReportPage() {
     }
   }, [fiscalYearId, editingItem, grouped, createItem, updateItem]);
 
-  // إعادة الترتيب
+  // إعادة الترتيب — مع حماية من النقر المتكرر (#A13)
+  const isReordering = useRef(false);
   const handleReorder = useCallback(async (id: string, direction: 'up' | 'down') => {
+    if (isReordering.current) return;
     const sectionItems = grouped[activeTab as keyof typeof grouped];
     if (!sectionItems) return;
     const idx = sectionItems.findIndex(i => i.id === id);
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
     if (swapIdx < 0 || swapIdx >= sectionItems.length) return;
+    isReordering.current = true;
     try {
-      await updateItem.mutateAsync({ id: sectionItems[idx]!.id, sort_order: sectionItems[swapIdx]!.sort_order });
-      await updateItem.mutateAsync({ id: sectionItems[swapIdx]!.id, sort_order: sectionItems[idx]!.sort_order });
+      await Promise.all([
+        updateItem.mutateAsync({ id: sectionItems[idx]!.id, sort_order: sectionItems[swapIdx]!.sort_order }),
+        updateItem.mutateAsync({ id: sectionItems[swapIdx]!.id, sort_order: sectionItems[idx]!.sort_order }),
+      ]);
     } catch {
-      // خطأ يُعالج في onError
+      defaultNotify.error('فشل إعادة الترتيب');
+    } finally {
+      isReordering.current = false;
     }
   }, [grouped, activeTab, updateItem]);
 
