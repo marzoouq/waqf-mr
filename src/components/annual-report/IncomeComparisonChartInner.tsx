@@ -1,6 +1,7 @@
 /**
  * رسم مقارنة الدخل عبر السنوات المالية — يُحمَّل كسولاً لتجنب تحميل recharts في الحزمة الأولية.
  */
+import { memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
