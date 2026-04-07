@@ -4,7 +4,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { fmt } from '@/utils/format/format';
 import { formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/chartHelpers';
-import { useChartReady } from '@/hooks/ui/useChartReady';
+import ChartBox from '@/components/common/ChartBox';
 
 const FINANCIAL_COLORS = [
   'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))',
@@ -22,16 +22,6 @@ interface FinancialChartsInnerProps {
   expensesPieData: DataItem[];
   monthlyData: MonthlyItem[];
 }
-
-/** مكون فرعي لحاوية رسم بياني مع useChartReady */
-const ChartBox: React.FC<{ height?: number; children: React.ReactNode; fallback?: string }> = ({ height = 250, children, fallback }) => {
-  const { ref, ready } = useChartReady();
-  return (
-    <div ref={ref} className="min-w-0 min-h-[1px] px-2 sm:px-0" style={{ height }}>
-      {ready ? children : (fallback ? <div className="h-full flex items-center justify-center text-muted-foreground">{fallback}</div> : null)}
-    </div>
-  );
-};
 
 const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
   incomeVsExpenses, distributionData, incomePieData, expensesPieData, monthlyData,

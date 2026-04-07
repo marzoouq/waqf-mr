@@ -6,22 +6,12 @@ import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/
  */
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useChartReady } from '@/hooks/ui/useChartReady';
+import ChartBox from '@/components/common/ChartBox';
 
 interface DashboardChartsInnerProps {
   monthlyData: Array<{ month: string; income: number; expenses: number }>;
   expenseTypes: Array<{ name: string; value: number }>;
 }
-
-/** حاوية رسم بياني مع useChartReady */
-const ChartBox: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { ref, ready } = useChartReady();
-  return (
-    <div ref={ref} className="h-[300px] min-w-0 min-h-[1px]">
-      {ready && children}
-    </div>
-  );
-};
 
 const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInnerProps) => {
   return (

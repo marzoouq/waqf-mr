@@ -4,7 +4,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { fmt } from '@/utils/format/format';
 import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/chartHelpers';
-import { useChartReady } from '@/hooks/ui/useChartReady';
+import ChartBox from '@/components/common/ChartBox';
 
 interface MonthlyItem { month: string; income: number; expenses: number }
 interface ExpenseItem { name: string; value: number }
@@ -13,16 +13,6 @@ interface WaqifChartsInnerProps {
   monthlyData: MonthlyItem[];
   expenseData: ExpenseItem[];
 }
-
-/** مكون فرعي لحاوية رسم بياني مع useChartReady */
-const ChartBox: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { ref, ready } = useChartReady();
-  return (
-    <div ref={ref} className="h-[280px] min-w-0 min-h-[1px]">
-      {ready && children}
-    </div>
-  );
-};
 
 const WaqifChartsInner: React.FC<WaqifChartsInnerProps> = ({ monthlyData, expenseData }) => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

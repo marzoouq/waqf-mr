@@ -8,7 +8,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fmt } from '@/utils/format/format';
 import { tooltipStyleRtl } from '@/utils/chart/chartHelpers';
-import { useChartReady } from '@/hooks/ui/useChartReady';
+import ChartBox from '@/components/common/ChartBox';
 
 interface MonthData {
   label: string;
@@ -20,16 +20,6 @@ interface MonthData {
 interface MonthlyPerformanceChartsInnerProps {
   monthlyData: MonthData[];
 }
-
-/** حاوية رسم بياني مع useChartReady */
-const ChartBox: React.FC<{ height: string; children: React.ReactNode }> = ({ height, children }) => {
-  const { ref, ready } = useChartReady();
-  return (
-    <div ref={ref} className={`${height} min-w-0 min-h-[1px]`}>
-      {ready && children}
-    </div>
-  );
-};
 
 const MonthlyPerformanceChartsInner: React.FC<MonthlyPerformanceChartsInnerProps> = ({ monthlyData }) => (
   <>

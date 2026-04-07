@@ -9,23 +9,13 @@ import { fmt } from '@/utils/format/format';
 import { tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useChartReady } from '@/hooks/ui/useChartReady';
+import ChartBox from '@/components/common/ChartBox';
 
 const COLORS = [
   'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
   'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
   'hsl(var(--accent))', 'hsl(var(--chart-4))',
 ];
-
-/** حاوية رسم بياني مع useChartReady */
-const ChartBox: React.FC<{ height?: number | string; children: React.ReactNode }> = ({ height = 300, children }) => {
-  const { ref, ready } = useChartReady();
-  return (
-    <div ref={ref} className="min-w-0 min-h-[1px]" style={{ height }}>
-      {ready && children}
-    </div>
-  );
-};
 
 export interface YoYChartsSectionProps {
   comparisonData: Record<string, unknown>[];
