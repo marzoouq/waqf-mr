@@ -135,6 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     // === Fallback: إذا لم يصدر INITIAL_SESSION (race condition) ===
+    // NOTE: getSession مسموح هنا — client-side fallback فقط. القاعدة تحظره في Edge Functions حصراً
     supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
       if (!isMounted) return;
       // إذا لا يزال loading ولم يتم تعيين مستخدم، فالحدث لم يصدر

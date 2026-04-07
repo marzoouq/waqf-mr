@@ -95,9 +95,9 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
     setSelectedId(id);
     try {
       if (id) {
-        localStorage.setItem(STORAGE_KEY, id);
+        sessionStorage.setItem(STORAGE_KEY, id);
       } else {
-        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(STORAGE_KEY);
       }
     } catch { /* storage unavailable */ }
   }, []);
