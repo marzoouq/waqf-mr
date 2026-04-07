@@ -1,104 +1,60 @@
 
-# تقرير التدقيق الشامل المحدّث — بعد التنظيف
 
-**التاريخ:** أبريل 2026 | **نطاق الفحص:** 899 ملف مصدر | 183 هوك | 297 مكون
-**حالة البناء:** TypeScript `--noEmit` ✅ | Production build ✅ | 3.9 MB assets
+# خطة تنفيذ توصيات الفحص الجنائي النهائي
 
----
+## التغييرات المُعتمدة (5 بنود)
 
-## ✅ نتائج التنظيف السابق
+### 1. استخراج `ChartBox` كمكون مشترك
+**ملف جديد:** `src/components/common/ChartBox.tsx`
 
-| الإجراء | الحالة |
-|---------|--------|
-| حذف 10 تبعيات ميتة | ✅ تم — صفر استيرادات في `package.json` |
-| حذف 4 هوكات `@deprecated` | ✅ تم |
-| حذف `renderers.ts` المهمل | ✅ تم |
-| TypeScript build | ✅ نظيف — صفر أخطاء |
-| واجهة التطبيق (Landing page) | ✅ تعمل بشكل صحيح |
+مكون موحّد يدعم جميع الحالات الست:
+```typescript
+interface ChartBoxProps {
+  height?: number | string;  // default: 300
+  className?: string;
+  fallback?: string;
+  children: React.ReactNode;
+}
+```
 
----
+- `height: number` → يُطبّق كـ `style={{ height }}`
+- `height: string` → يُطبّق كـ `className` (مثل `h-[280px]`)
+- `fallback` → نص بديل أثناء التحميل (مستخدم في `FinancialChartsInner` فقط)
 
-## 📊 الحالة الحالية للمشروع
+**الملفات المُعدَّلة (6):**
+| الملف | التغيير |
+|-------|---------|
+| `DashboardChartsInner.tsx` | حذف ChartBox المحلي، استيراد من common |
+| `WaqifChartsInner.tsx` | حذف ChartBox المحلي، استيراد من common |
+| `ReportsChartsInner.tsx` | حذف ChartBox المحلي، استيراد من common |
+| `MonthlyPerformanceChartsInner.tsx` | حذف ChartBox المحلي، استيراد من common (height string → className) |
+| `FinancialChartsInner.tsx` | حذف ChartBox المحلي، استيراد من common |
+| `YoYChartsSectionInner.tsx` | حذف ChartBox المحلي، استيراد من common |
 
-| المقياس | القيمة | الحكم |
-|---------|--------|-------|
-| `any` في production | **1 حالة** | ✅ ممتاز |
-| `console.*` مباشر | **0** | ✅ مثالي |
-| Supabase في UI/Pages | **0** | ✅ SoC كامل |
-| أسماء مكونات مكررة | **0** | ✅ |
-| `@deprecated` متبقي | **1** (`useCollectionData`) | ⚠️ يحتاج مراجعة |
-| ثغرات أمنية (npm audit) | **0** | ✅ |
+### 2. حذف `html2canvas`
+حذف السطر من `package.json` dependencies. لا يوجد أي استيراد في الكود.
 
----
+### 3. تطبيق `ViewportRender` على صفحة التقارير
+**الملف:** `src/pages/dashboard/ReportsPage.tsx`
 
-## 🔴 الأولوية 1 — خطأ RLS على `get_public_stats`
+لف تبويبات التقارير الثقيلة (المخططات، التقرير السنوي) بـ `ViewportRender` لتأجيل رسمها حتى تظهر في نافذة العرض.
 
-**المشكلة:** دالة `get_public_stats` ترجع `permission denied` للمستخدم غير المسجل — مما يعني أن الصفحة الرئيسية لا تعرض الإحصائيات العامة.
+### 4. تطبيق `VirtualTable` على جدول العقود
+**الملف:** المكون الذي يعرض جدول العقود (desktop) — استبدال `<table>` بـ `VirtualTable` عند تجاوز 50 صف.
 
-**السبب:** الدالة تحتاج إما:
-- سياسة `GRANT EXECUTE ON FUNCTION get_public_stats TO anon` 
-- أو أن تكون `SECURITY DEFINER`
-
-**الإجراء:** migration لإضافة صلاحيات التنفيذ لدور `anon`.
-
----
-
-## 🟡 الأولوية 2 — ملفات ضخمة (>250 سطر) — مرشحة للتقسيم
-
-| الملف | الأسطر | ملاحظة |
-|-------|--------|--------|
-| `sidebar.tsx` | 637 | مكون shadcn/ui — لا يُعدّل |
-| `chart.tsx` | 305 | مكون shadcn/ui — لا يُعدّل |
-| `LoginForm.tsx` | 304 | مرشح للتقسيم (WebAuthn + OTP + Password) |
-| `themeDefinitions.ts` | 302 | تعريفات ثيمات — مقبول كملف بيانات |
-| `comprehensiveBeneficiary.ts` | 281 | PDF report — مقبول |
-| `useDashboardSummary.ts` | 249 | أثقل data hook — مرشح لاستخراج computations |
-| `AuthContext.tsx` | 238 | محمي — لا يُعدّل |
-| `useInvoicesPage.ts` | 233 | مرشح لاستخراج actions |
+### 5. دمج `useFinancialSummary` في `useReportsData`
+**الملفات:**
+- `useReportsData.ts` — استبدال `useFinancialSummary(...)` باستدعاء `useRawFinancialData` + `useComputedFinancials` مباشرة
+- `useFinancialSummary.ts` — حذف الملف (لم يعد مُستخدماً)
+- `useFinancialSummary.test.ts` — نقل الاختبارات إلى `useComputedFinancials.test.ts` أو حذفها
+- `src/hooks/financial/index.ts` — حذف تصدير `useFinancialSummary`
 
 ---
 
-## 🟡 الأولوية 3 — `useEffect` (59 ملف)
+## ترتيب التنفيذ
+1. **ChartBox** — استخراج المكون المشترك + تحديث 6 ملفات
+2. **html2canvas** — حذف من package.json
+3. **useFinancialSummary** — دمج + حذف
+4. **ViewportRender** — صفحة التقارير
+5. **VirtualTable** — جدول العقود
 
-رقم ثابت — لا تغيير عن الفحص السابق. معظمها مبرر (subscriptions, auth listeners, sync). مراجعة انتقائية ممكنة لكن ليست عاجلة.
-
----
-
-## 🟡 الأولوية 4 — حجم الـ Bundle
-
-| Chunk | الحجم | ملاحظة |
-|-------|-------|--------|
-| `vendor-pdf` | 530 KB | ضروري — lazy loaded |
-| `vendor-recharts` | 342 KB | ضروري |
-| `vendor-html2canvas` | 198 KB | ملف واحد — بديل أخف ممكن |
-| `vendor-radix` | 153 KB | ✅ انخفض بعد حذف 5 حزم radix |
-
-**ملاحظة:** حجم `vendor-radix` كان ~153 KB — لن ينخفض فوراً لأن الـ dist القديم لم يُعاد بناؤه بعد التنظيف. بناء جديد سيُظهر الفرق.
-
----
-
-## 🟢 نقاط القوة — لا تحتاج تغيير
-
-- ✅ فصل مسؤوليات مثالي (صفر Supabase في UI)
-- ✅ TypeScript صارم (1 `any` فقط)
-- ✅ صفر `console.*` في production
-- ✅ Lazy loading شامل
-- ✅ Barrel files منظمة (74)
-- ✅ صفر مكونات مكررة الأسماء
-- ✅ صفر ثغرات أمنية
-- ✅ تبعيات محدّثة (React 19, TS 6, RQ 5)
-
----
-
-## 📋 التوصيات (بدون تغيير كود)
-
-### عاجل:
-1. **إصلاح `get_public_stats` RLS** — الصفحة الرئيسية لا تعرض إحصائيات
-
-### مؤجل (اختياري):
-2. تقسيم `LoginForm.tsx` (304 سطر)
-3. استخراج computations من `useDashboardSummary.ts`
-4. دراسة بديل لـ `html2canvas` (198 KB لملف واحد)
-5. ترقية Vite 5 → 6
-
-**⚠️ لا تغيير في الكود — هذا تقرير تحليلي فقط.**
