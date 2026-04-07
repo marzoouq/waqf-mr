@@ -98,7 +98,7 @@ export const useInvoicesPage = () => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
   }, [previewUrl]);
 
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
   const validateAndSetFile = (file: File) => {
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
