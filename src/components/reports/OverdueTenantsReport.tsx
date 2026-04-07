@@ -91,6 +91,16 @@ const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportPro
     }
   };
 
+  if (invoicesLoading) {
+    return (
+      <Card className="shadow-sm">
+        <CardContent className="py-12 text-center">
+          <p className="text-muted-foreground">جاري تحميل بيانات الفواتير...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (overdueData.length === 0) {
     return (
       <Card className="shadow-sm">
