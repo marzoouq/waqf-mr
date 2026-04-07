@@ -87,8 +87,15 @@ export function useHistoricalComparison() {
     if (selectedYears.length < 2) return;
     try {
       const { generateYearComparisonPDF } = await import('@/utils/pdf/reports/comparison');
-      const d0 = yearData[0]!;
-      const d1 = yearData[1]!;
+      const d0 = yearData[0];
+      const d1 = yearData[1];
+      if (!d0 || !d1) {
+        defaultNotify.error('بيانات السنوات غير مكتملة');
+        return;
+      }
+      const y0 = selectedYears[0];
+      const y1 = selectedYears[1];
+      if (!y0 || !y1) return;
       await generateYearComparisonPDF({
         year1Label: selectedYears[0]!.label,
         year2Label: selectedYears[1]!.label,
