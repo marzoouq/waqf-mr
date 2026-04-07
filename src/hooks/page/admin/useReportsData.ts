@@ -4,7 +4,8 @@
 import { useMemo } from 'react';
 import { fmt } from '@/utils/format/format';
 import { usePropertyPerformance } from '@/hooks/financial/usePropertyPerformance';
-import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
+import { useRawFinancialData } from '@/hooks/financial/useRawFinancialData';
+import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
@@ -19,22 +20,32 @@ export function useReportsData() {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
-  
+
 
   const selectedFiscalYearLabel = fiscalYear?.label;
 
-  const financial = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel, { fiscalYearStatus: fiscalYear?.status });
+  const { income, expenses, accounts, beneficiaries, settings, isLoading, isError: _isError } =
+    useRawFinancialData(fiscalYearId || undefined, selectedFiscalYearLabel);
+
+  const computed = useComputedFinancials({
+    income,
+    expenses,
+    accounts,
+    settings,
+    fiscalYearLabel: selectedFiscalYearLabel,
+    fiscalYearId: fiscalYearId || undefined,
+    fiscalYearStatus: fiscalYear?.status,
+  });
 
   const {
-    income, expenses, beneficiaries, currentAccount,
+    currentAccount,
     totalIncome, totalExpenses, adminPct, waqifPct,
     zakatAmount, vatAmount, waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,
     grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
     adminShare, waqifShare, waqfRevenue,
     availableAmount, remainingBalance,
     incomeBySource, expensesByTypeExcludingVat,
-    isLoading,
-  } = financial;
+  } = computed;
 
   const beneficiariesShare = availableAmount;
   const netRevenue = netAfterZakat;

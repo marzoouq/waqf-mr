@@ -4,23 +4,13 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { fmt } from '@/utils/format/format';
 import { tooltipStyleRtl } from '@/utils/chart/chartHelpers';
-import { useChartReady } from '@/hooks/ui/useChartReady';
+import ChartBox from '@/components/common/ChartBox';
 
 const REPORT_COLORS = [
   'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
   'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
   'hsl(var(--accent))', 'hsl(var(--chart-4))',
 ];
-
-/** حاوية رسم بياني مع useChartReady */
-const ChartBox: React.FC<{ height?: number; children: React.ReactNode }> = ({ height = 300, children }) => {
-  const { ref, ready } = useChartReady();
-  return (
-    <div ref={ref} className="min-w-0 min-h-[1px]" style={{ height }}>
-      {ready && children}
-    </div>
-  );
-};
 
 interface DataItem { name: string; value: number }
 

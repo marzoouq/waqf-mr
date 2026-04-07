@@ -4,7 +4,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { fmt } from '@/utils/format/format';
 import { formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/chartHelpers';
-import { useChartReady } from '@/hooks/ui/useChartReady';
+import ChartBox from '@/components/common/ChartBox';
 
 const FINANCIAL_COLORS = [
   'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))',
@@ -23,23 +23,13 @@ interface FinancialChartsInnerProps {
   monthlyData: MonthlyItem[];
 }
 
-/** مكون فرعي لحاوية رسم بياني مع useChartReady */
-const ChartBox: React.FC<{ height?: number; children: React.ReactNode; fallback?: string }> = ({ height = 250, children, fallback }) => {
-  const { ref, ready } = useChartReady();
-  return (
-    <div ref={ref} className="min-w-0 min-h-[1px] px-2 sm:px-0" style={{ height }}>
-      {ready ? children : (fallback ? <div className="h-full flex items-center justify-center text-muted-foreground">{fallback}</div> : null)}
-    </div>
-  );
-};
-
 const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
   incomeVsExpenses, distributionData, incomePieData, expensesPieData, monthlyData,
 }) => (
   <>
     {/* Charts Row 1 */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <ChartBox>
+      <ChartBox height={250} className="px-2 sm:px-0">
         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <BarChart data={incomeVsExpenses}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -55,7 +45,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
         </ResponsiveContainer>
       </ChartBox>
 
-      <ChartBox>
+      <ChartBox height={250} className="px-2 sm:px-0">
         {distributionData.some(d => d.value > 0) ? (
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
@@ -76,7 +66,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
 
     {/* Charts Row 2 */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <ChartBox>
+      <ChartBox height={250} className="px-2 sm:px-0">
         {incomePieData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
@@ -94,7 +84,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
         )}
       </ChartBox>
 
-      <ChartBox>
+      <ChartBox height={250} className="px-2 sm:px-0">
         {expensesPieData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
@@ -114,7 +104,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
     </div>
 
     {/* Monthly Trend */}
-    <ChartBox>
+    <ChartBox height={250} className="px-2 sm:px-0">
       {monthlyData.length > 0 ? (
         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <BarChart data={monthlyData}>
