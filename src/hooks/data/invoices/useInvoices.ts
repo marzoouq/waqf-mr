@@ -144,8 +144,7 @@ export const useGenerateInvoicePdf = () => {
         ? { invoice_ids: options }
         : options;
 
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) throw new Error('يجب تسجيل الدخول أولاً');
+      // المصادقة تتم تلقائياً عبر JWT في Edge Function
 
       const body: Record<string, unknown> = { invoice_ids: opts.invoice_ids };
       if (opts.template) body.template = opts.template;

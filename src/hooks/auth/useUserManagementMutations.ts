@@ -68,6 +68,8 @@ export const useSetRoleMutation = (onSuccess?: () => void) => {
       callAdminApi({ action: 'set_role', ...data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['orphaned-beneficiaries'] });
+      queryClient.invalidateQueries({ queryKey: ['unlinked-beneficiaries'] });
       defaultNotify.success('تم تحديث الدور');
       onSuccess?.();
     },

@@ -4,7 +4,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { STALE_REALTIME } from '@/lib/queryStaleTime';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { logger } from '@/lib/logger';
 import type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 import { isFyAll } from '@/constants/fiscalYearIds';
@@ -42,7 +42,7 @@ export const useBeneficiarySummary = (fiscalYearId?: string) => {
 
   return useQuery<BeneficiarySummaryData>({
     queryKey: ['beneficiary-summary', effectiveFyId ?? 'all'],
-    staleTime: STALE_REALTIME,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('beneficiary-summary', {
         body: { fiscal_year_id: effectiveFyId },

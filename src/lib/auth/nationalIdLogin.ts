@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import type { AppNotify } from '@/lib/notify';
 import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 
 interface NidLoginState {
@@ -61,7 +62,7 @@ export async function handleNationalIdLogin(
       const retryAfter = data?.retry_after || 180;
       const lockTime = Date.now() + retryAfter * 1000;
       setNidLockedUntil(lockTime);
-      try { sessionStorage.setItem('nidLockedUntil', String(lockTime)); } catch { /* silent */ }
+      try { sessionStorage.setItem(STORAGE_KEYS.NID_LOCKED_UNTIL, String(lockTime)); } catch { /* silent */ }
       setNidAttemptsRemaining(0);
       notify.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
       return false;

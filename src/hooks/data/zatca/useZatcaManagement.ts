@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { logger } from '@/lib/logger';
+import { zatcaOnboard } from '@/lib/services/zatcaService';
 import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useZatcaCertificates } from './useZatcaCertificates';
@@ -149,7 +150,6 @@ export function useZatcaManagement() {
       else if (data?.validationResults?.status === 'WARNING') defaultNotify.warning('⚠️ اجتاز مع تحذيرات');
       else defaultNotify.error('❌ لم يجتز فحص الامتثال');
       invalidateInvoices();
-      return data;
     },
     onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
@@ -158,8 +158,7 @@ export function useZatcaManagement() {
   const handleOnboard = useCallback(async () => {
     setOnboardLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('zatca-onboard', { body: { action: 'onboard' } });
-      if (error) throw error;
+      await zatcaOnboard();
       defaultNotify.success('تم إرسال طلب التسجيل');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
     } catch (e) {

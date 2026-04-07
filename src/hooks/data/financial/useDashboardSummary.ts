@@ -186,9 +186,9 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
       return { prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0, hasPrevYear: false };
     }
     return {
-      prevTotalIncome: y.prev_income,
-      prevTotalExpenses: y.prev_expenses,
-      prevNetAfterExpenses: y.prev_income - y.prev_expenses,
+      prevTotalIncome: y.prev_income ?? 0,
+      prevTotalExpenses: y.prev_expenses ?? 0,
+      prevNetAfterExpenses: (y.prev_income ?? 0) - (y.prev_expenses ?? 0),
       hasPrevYear: true,
     };
   }, [data?.aggregated?.yoy]);

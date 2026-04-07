@@ -33,6 +33,8 @@ export const STORAGE_KEYS = {
   NOTIFICATION_PREFS: 'waqf_notification_preferences',
   /** طابور الأخطاء غير المرسلة */
   ERROR_LOG_QUEUE: 'error_log_queue',
+  /** قفل محاولات الهوية الوطنية */
+  NID_LOCKED_UNTIL: 'nidLockedUntil',
 } as const;
 
 /** جميع المفاتيح القابلة للمسح عند تسجيل الخروج */

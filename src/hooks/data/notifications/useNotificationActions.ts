@@ -4,9 +4,10 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { Notification } from '@/types/database';
+import type { Notification as AppNotification } from '@/types/database';
 import { NOTIFICATION_TONE_KEY, type ToneId, getVolumeGain, playTone } from '@/constants/notificationTones';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 export const useNotificationActions = (userId: string, hasUser: boolean, disabledTypes: Set<string>) => {
   const queryClient = useQueryClient();
@@ -44,7 +45,8 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
     mutationFn: async () => {
       let query = supabase.from('notifications').delete().eq('user_id', userId).eq('is_read', true);
       if (disabledTypes.size > 0) {
-        query = query.not('type', 'in', `(${[...disabledTypes].join(',')})`);
+        const typesArray = [...disabledTypes];
+        query = query.not('type', 'in', `("${typesArray.join('","')}")`);
       }
       const { error } = await query;
       if (error) throw error;
@@ -73,15 +75,15 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
       filter: `user_id=eq.${userId}`,
     }, (payload) => {
       qcRef.current.invalidateQueries({ queryKey: ['notifications', userId] });
-      const newNotif = payload.new as Notification;
+      const newNotif = payload.new as AppNotification;
       let soundEnabled = true;
-      try { soundEnabled = localStorage.getItem('waqf_notification_sound') !== 'false'; } catch { /* safe */ }
+      try { soundEnabled = localStorage.getItem(STORAGE_KEYS.NOTIFICATION_SOUND) !== 'false'; } catch { /* safe */ }
       if (soundEnabled) playSoundRef.current();
       if ('Notification' in window && window.Notification.permission === 'granted') {
         if (lastNotifIdRef.current !== newNotif.id) {
           lastNotifIdRef.current = newNotif.id;
           try {
-            new window.Notification(newNotif.title, {
+            new window.Notification(newNotif.title || 'إشعار جديد', {
               body: newNotif.message, icon: '/favicon.ico', dir: 'rtl', lang: 'ar', tag: newNotif.id,
             });
           } catch { /* silent */ }

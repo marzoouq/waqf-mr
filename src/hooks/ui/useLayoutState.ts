@@ -51,9 +51,8 @@ export function useLayoutState() {
   const handleSignOut = useCallback(async () => {
     setLogoutOpen(false);
     setMobileSidebarOpen(false);
-    await logAccessEvent({ event_type: 'logout', user_id: user?.id });
-    await signOut();
-    navigate('/auth', { replace: true });
+    await logAccessEvent({ event_type: 'logout', user_id: user?.id }).catch(() => {});
+    try { await signOut(); } finally { navigate('/auth', { replace: true }); }
   }, [navigate, signOut, user?.id]);
 
   const handleSignOutClick = useCallback(() => {

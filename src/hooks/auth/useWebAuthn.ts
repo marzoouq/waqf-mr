@@ -55,14 +55,14 @@ export function useWebAuthn() {
     return () => { cancelled = true; };
   }, []);
 
-  const fetchCredentials = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setCredentials([]); return []; }
+  const fetchCredentials = useCallback(async (knownUserId?: string) => {
+    const uid = knownUserId ?? (await supabase.auth.getUser()).data.user?.id;
+    if (!uid) { setCredentials([]); return []; }
 
     const { data, error } = await supabase
       .from('webauthn_credentials')
       .select('id, device_name, created_at')
-      .eq('user_id', user.id)
+      .eq('user_id', uid)
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -107,7 +107,7 @@ export function useWebAuthn() {
       const credential = await startRegistration({ optionsJSON: options });
 
       const { data: result, error: verErr } = await supabase.functions.invoke('webauthn', {
-        body: { action: 'register-verify', credential, deviceName: deviceName || getDeviceName(), challenge_id: options.challenge_id },
+        body: { action: 'register-verify', credential, deviceName: (deviceName || getDeviceName()).slice(0, 100), challenge_id: options.challenge_id },
       });
 
       if (verErr || !result?.verified) {
@@ -118,11 +118,11 @@ export function useWebAuthn() {
 
       localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
       setIsEnabled(true);
-      await fetchCredentials();
+      await fetchCredentials(user.id);
       defaultNotify.success('تم تسجيل البصمة بنجاح! يمكنك الآن تسجيل الدخول بها');
       return true;
     } catch (err: unknown) {
-      handleRegistrationError(err, () => registerBiometric(deviceName));
+      handleRegistrationError(err);
       return false;
     } finally {
       setIsLoading(false);

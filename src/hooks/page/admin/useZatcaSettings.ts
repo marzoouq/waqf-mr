@@ -95,11 +95,9 @@ export const useZatcaSettings = () => {
 
     setSaving(true);
     try {
-      const now = new Date().toISOString();
       const rows = ZATCA_KEYS.map((key) => ({
         key,
         value: (formData[key] || '').trim(),
-        updated_at: now,
       }));
       await saveZatcaSettings(rows);
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });

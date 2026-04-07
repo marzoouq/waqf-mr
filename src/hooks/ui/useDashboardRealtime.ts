@@ -3,7 +3,7 @@
  * يستخدم useBfcacheSafeChannel لضمان التوافق مع bfcache
  * يضيف debounce لتجميع التغييرات المتزامنة في إبطال واحد
  */
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 
@@ -25,18 +25,25 @@ export const useDashboardRealtime = (
   const queryClient = useQueryClient();
 
   // تثبيت مرجع الجداول لمنع إعادة الاشتراك عند تغيّر مرجع المصفوفة
-  const tablesKey = JSON.stringify(tables);
+  const tablesKey = useMemo(() => JSON.stringify(tables), [tables]);
   const tablesRef = useRef(tables);
   tablesRef.current = tables;
 
   // تثبيت مرجع المفاتيح الإضافية
-  const extraKeysKey = JSON.stringify(extraKeys);
+  const extraKeysKey = useMemo(() => JSON.stringify(extraKeys), [extraKeys]);
   const extraKeysRef = useRef(extraKeys);
   extraKeysRef.current = extraKeys;
 
   // مرجع لتجميع الجداول المتغيرة مع debounce
   const pendingTablesRef = useRef<Set<string>>(new Set());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // تنظيف timer عند unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const flushInvalidations = useCallback(() => {
     const pending = pendingTablesRef.current;
