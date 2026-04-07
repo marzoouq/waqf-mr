@@ -10,7 +10,7 @@ import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiar
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { defaultNotify } from '@/lib/notify';
-import { safeNumber } from '@/utils/format/safeNumber';
+import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
 
 
 export const useFinancialReportsPage = () => {
@@ -47,17 +47,11 @@ export const useFinancialReportsPage = () => {
 
   const fiscalYear = selectedFY?.label || '';
 
-  const monthlyData = useMemo(() => {
-    const monthNames = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-    return (dashData?.monthly_income ?? [])
-      .map(item => {
-        const fy = dashData?.fiscal_year;
-        const year = fy?.start_date?.substring(0, 4) || '';
-        const monthStr = monthNames[item.month - 1] || String(item.month).padStart(2, '0');
-        return { month: `${year}-${monthStr}`, income: safeNumber(item.total) };
-      })
-      .sort((a, b) => a.month.localeCompare(b.month));
-  }, [dashData?.monthly_income, dashData?.fiscal_year]);
+  // #B1 — استخدام buildMonthlyData المشتركة لتشمل income + expenses
+  const monthlyData = useMemo(
+    () => buildMonthlyData(dashData?.monthly_income ?? [], dashData?.monthly_expenses ?? []),
+    [dashData?.monthly_income, dashData?.monthly_expenses],
+  );
 
   const handleDownloadPDF = useCallback(async () => {
     try {

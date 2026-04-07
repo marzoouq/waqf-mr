@@ -1,7 +1,7 @@
 /**
  * هوك PDF handlers لصفحة حصتي — مستخرج من useMySharePage
  */
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { generateMySharePDF, generateDistributionsPDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
@@ -40,11 +40,15 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const pdfWaqfInfo = usePdfWaqfInfo();
 
-  const withPdfLoading = (fn: () => Promise<void>) => async () => {
-    if (isPdfLoading) return;
-    setIsPdfLoading(true);
-    try { await fn(); } finally { setIsPdfLoading(false); }
-  };
+  // #B4 — useCallback لتثبيت مرجع withPdfLoading
+  const withPdfLoading = useCallback(
+    (fn: () => Promise<void>) => async () => {
+      if (isPdfLoading) return;
+      setIsPdfLoading(true);
+      try { await fn(); } finally { setIsPdfLoading(false); }
+    },
+    [isPdfLoading],
+  );
 
   const handleDownloadPDF = withPdfLoading(async () => {
     if (!params.currentBeneficiary) return;
@@ -135,8 +139,12 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
     } catch { defaultNotify.error('حدث خطأ أثناء تصدير التقرير الشامل'); }
   });
 
+
+
   const handlePrintReport = () => {
     if (!params.currentBeneficiary) return;
+    // #B3 — تحذير عند السنة النشطة
+    if (!params.isClosed) defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية');
     const ok = printShareReport({
       beneficiaryName: params.currentBeneficiary.name ?? 'غير معروف',
       beneficiariesShare: params.beneficiariesShare, myShare: params.myShare,

@@ -38,15 +38,17 @@ export function useBeneficiaryDashboardPage() {
 
   // #8 — useMemo بدل IIFE، #24 — إضافة isClosed للنتيجة
   const fyProgress = useMemo(() => {
-    if (!fiscalYear) return { percent: 0, daysLeft: 0, isClosed: false };
-    if (isClosed) return { percent: 100, daysLeft: 0, isClosed: true };
+    if (!fiscalYear) return { percent: 0, daysLeft: 0, isClosed: false, notStarted: false };
+    if (isClosed) return { percent: 100, daysLeft: 0, isClosed: true, notStarted: false };
     const start = new Date(fiscalYear.start_date).getTime();
     const end = new Date(fiscalYear.end_date).getTime();
     const total = end - start;
     const elapsed = Date.now() - start;
-    const percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
     const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
-    return { percent, daysLeft, isClosed: false };
+    // #B6 — السنة المستقبلية
+    if (Date.now() < start) return { percent: 0, daysLeft, isClosed: false, notStarted: true };
+    const percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+    return { percent, daysLeft, isClosed: false, notStarted: false };
   }, [fiscalYear, isClosed]);
 
   // #22 — تحسين displayName بـ user metadata
@@ -71,6 +73,25 @@ export function useBeneficiaryDashboardPage() {
     });
     channel.on('postgres_changes', {
       event: '*', schema: 'public', table: 'accounts',
+    }, () => {
+      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+    });
+    // #D1 — Realtime لـ advance_requests
+    channel.on('postgres_changes', {
+      event: '*', schema: 'public', table: 'advance_requests',
+      filter: `beneficiary_id=eq.${beneficiaryId}`,
+    }, () => {
+      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+    });
+    // #D2 — Realtime لـ fiscal_years (كشف النشر)
+    channel.on('postgres_changes', {
+      event: 'UPDATE', schema: 'public', table: 'fiscal_years',
+    }, () => {
+      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+    });
+    // #D4 — Realtime لـ app_settings
+    channel.on('postgres_changes', {
+      event: '*', schema: 'public', table: 'app_settings',
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });

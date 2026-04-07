@@ -17,7 +17,7 @@ export function useBeneficiaryFinancials(dashData: BeneficiaryDashboardData | un
   const vatAmount = safeNumber(account?.vat_amount);
   const netAfterVat = safeNumber(account?.net_after_vat);
   const zakatAmount = safeNumber(account?.zakat_amount);
-  const netAfterZakat = netAfterVat - zakatAmount;
+  const netAfterZakat = Math.max(0, netAfterVat - zakatAmount);
   const adminShare = safeNumber(account?.admin_share);
   const waqifShare = safeNumber(account?.waqif_share);
   const waqfRevenue = safeNumber(account?.waqf_revenue);

@@ -2,7 +2,7 @@
  * صفحة حصتي من الريع — مُفكّكة إلى hook + مكونات فرعية
  */
 import { useNavigate } from 'react-router-dom';
-import { Wallet, AlertCircle, RefreshCw, UserX, FileDown, Info, FileText } from 'lucide-react';
+import { Wallet, AlertCircle, RefreshCw, UserX, FileDown, Info, FileText, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
@@ -19,10 +19,9 @@ const MySharePage = () => {
   const {
     isLoading, isError, handleRetry,
     currentBeneficiary, isAccountMissing, isClosed,
-    myShare, totalReceived, pendingAmount, paidAdvancesTotal, carryforwardBalance,
+    myShare, myShareIsEstimated, totalReceived, pendingAmount, paidAdvancesTotal, carryforwardBalance,
     filteredDistributions, myAdvances, myCarryforwards,
     advancesEnabled, advanceSettings, fiscalYearId, selectedFY,
-    // isPdfLoading متاح في hook لكن لا يُستخدم مباشرة هنا
     handleDownloadPDF, handleDownloadDistributionsPDF, handleDownloadComprehensivePDF, handlePrintReport,
   } = useMySharePage();
   const navigate = useNavigate();
@@ -115,6 +114,14 @@ const MySharePage = () => {
               </div>
             }
           />
+
+          {/* #C1 — badge تقديري */}
+          {myShareIsEstimated && !isClosed && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-warning/10 border border-warning/30 text-warning text-sm w-fit">
+              <Clock className="w-4 h-4" />
+              <span className="font-medium">الحصة المعروضة تقديرية — ستتأكد بعد إقفال السنة</span>
+            </div>
+          )}
 
           {/* بطاقات الملخص */}
           <MyShareSummaryCards
