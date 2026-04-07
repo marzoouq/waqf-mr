@@ -104,7 +104,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
     </div>
 
     {/* Monthly Trend */}
-    <ChartBox>
+    <ChartBox height={250} className="px-2 sm:px-0">
       {monthlyData.length > 0 ? (
         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <BarChart data={monthlyData}>
