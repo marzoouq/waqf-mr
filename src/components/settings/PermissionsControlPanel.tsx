@@ -37,7 +37,7 @@ const PermissionsControlPanel = () => {
   const savedRolePerms = getJsonSetting<RolePerms>('role_permissions', DEFAULT_ROLE_PERMS);
   const savedAdminSections = getJsonSetting<Record<string, boolean>>('sections_visibility', defaultAdminSections);
   const savedBeneficiarySections = getJsonSetting<Record<string, boolean>>('beneficiary_sections', defaultBeneficiarySections);
-
+  const savedWidgets = getJsonSetting<Record<string, boolean>>('beneficiary_widgets', defaultWidgets);
   const [perms, setPerms] = useState<RolePerms>(DEFAULT_ROLE_PERMS);
   const [adminSections, setAdminSections] = useState<Record<string, boolean>>(defaultAdminSections);
   const [beneficiarySections, setBeneficiarySections] = useState<Record<string, boolean>>(defaultBeneficiarySections);
