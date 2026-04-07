@@ -53,7 +53,12 @@ export const useAdminUsers = (currentPage: number) => {
       };
     },
     enabled: !!currentUser,
-    retry: 2,
+    // smart retry: لا إعادة محاولة عند فشل المصادقة (#10)
+    retry: (count, error) => {
+      const msg = (error as Error)?.message ?? '';
+      if (msg.includes('يجب تسجيل') || msg.includes('unauthorized')) return false;
+      return count < 2;
+    },
   });
 };
 
