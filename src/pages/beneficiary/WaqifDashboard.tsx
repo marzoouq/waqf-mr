@@ -33,7 +33,7 @@ const WaqifDashboard = () => {
     return (
       <DashboardLayout>
         <div className="p-3 sm:p-6 space-y-4">
-          <WaqifWelcomeCard displayName={displayName} greeting={greeting} GreetingIcon={GreetingIcon} hijriDate={hijriDate} gregorianDate={gregorianDate} timeStr={timeStr} />
+          <WaqifWelcomeCard displayName={displayName} greeting={greeting} greetingIconName={greetingIconName} hijriDate={hijriDate} gregorianDate={gregorianDate} timeStr={timeStr} />
           <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
