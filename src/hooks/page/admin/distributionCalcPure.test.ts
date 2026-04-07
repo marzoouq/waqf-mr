@@ -65,9 +65,9 @@ describe('calculateDistributions — Penny Allocation', () => {
     const advances = { a: 200 };
     const carry = { a: 100 };
     const result = calculateDistributions(bens, 1000, advances, carry);
-    expect(result[0].share_amount).toBe(1000);
-    expect(result[0].net_amount).toBe(700);
-    expect(result[0].deficit).toBe(0);
+    expect(result[0]!.share_amount).toBe(1000);
+    expect(result[0]!.net_amount).toBe(700);
+    expect(result[0]!.deficit).toBe(0);
   });
 
   it('يتعامل مع نسب صفرية لجميع المستفيدين', () => {
