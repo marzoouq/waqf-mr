@@ -22,7 +22,7 @@ interface DataItem {
   value: number;
 }
 
-const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = ({ data }) => {
+const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = memo(({ data }) => {
   const { ref, ready } = useChartReady();
 
   return (
