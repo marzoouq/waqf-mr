@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
           }
           throw updError;
         }
-        console.log("update_password: success");
+        
 
         // 2) تحقق تجريبي: محاولة تسجيل دخول بالبيانات الجديدة
         const userEmail = updResult?.user?.email;
@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
               },
             }).catch(() => { /* تجاهل أخطاء تسجيل الخروج */ });
           }
-          console.log("update_password: verified");
+          
         }
 
         return new Response(JSON.stringify({ success: true, verified: !!userEmail }), {

@@ -67,6 +67,8 @@ Deno.serve(async (req) => {
 
 
     // ── المرحلة 2: roles + rateLimit + RPC + pending_advances بالتوازي ──
+    // NOTE: admin client مقصود هنا — جدول user_roles محمي بـ RLS RESTRICTIVE
+    // ولا يسمح للمستخدم بقراءة دوره مباشرة عبر الـ anon/user client
     const [rolesRes, rateLimitRes, rpcRes, pendingRes] = await Promise.all([
       admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "accountant"]),
       admin.rpc("check_rate_limit", { p_key: `dashboard-summary:${user.id}`, p_limit: 30, p_window_seconds: 60 }),

@@ -3,7 +3,7 @@
  */
 
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { RequirePublishedYears, ExportMenu } from '@/components/common';
+import { RequirePublishedYears, ExportMenu, EmptyState } from '@/components/common';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -101,7 +101,7 @@ const PropertiesViewPage = () => {
         </div>
 
         {!properties?.length ? (
-          <Card><CardContent className="py-12 text-center"><Building2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">لا توجد عقارات مسجلة</p></CardContent></Card>
+          <EmptyState icon={Building2} title="لا توجد عقارات مسجلة" />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {properties.map((property) => {
