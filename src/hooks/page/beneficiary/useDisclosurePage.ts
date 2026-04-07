@@ -44,6 +44,9 @@ export const useDisclosurePage = () => {
   });
   const beneficiariesShare = fin.availableAmount;
 
+  // العقود مطلوبة لـ DisclosureContractsSection في الـ UI
+  const { data: contracts = [], isLoading: contractsLoading } = useContractsSafeByFiscalYear(fiscalYearId);
+
   const fiscalYear = selectedFY?.label || '';
   const gregorianFiscalYear = selectedFY
     ? `${toGregorianShort(selectedFY.start_date)}م — ${toGregorianShort(selectedFY.end_date)}م`
