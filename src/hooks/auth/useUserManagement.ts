@@ -3,7 +3,8 @@
  */
 import { useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useRegistrationEnabled, useAdminUsers, useOrphanedBeneficiaries, useUnlinkedBeneficiaries } from './useUserManagementData';
+import { useAdminUsers, useOrphanedBeneficiaries, useUnlinkedBeneficiaries } from './useUserManagementData';
+import { useRegistrationEnabled } from '@/hooks/data/settings';
 import type { ManagedUser } from './useUserManagementData';
 import {
   useCreateUserMutation, useConfirmEmailMutation, useUpdateEmailMutation,

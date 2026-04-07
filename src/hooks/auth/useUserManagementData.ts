@@ -24,20 +24,6 @@ export const callAdminApi = async (body: Record<string, unknown>) => {
   return res.data;
 };
 
-export const useRegistrationEnabled = () => {
-  return useQuery({
-    queryKey: ['registration-enabled'],
-    staleTime: STALE_SETTINGS,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'registration_enabled')
-        .maybeSingle();
-      return data?.value === 'true';
-    },
-  });
-};
 
 export const useAdminUsers = (currentPage: number) => {
   const { user: currentUser } = useAuth();

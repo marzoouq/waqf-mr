@@ -8,7 +8,8 @@ export { useChangePassword } from './useChangePassword';
 export { usePasswordResetRequest } from './usePasswordResetRequest';
 export { useResetPassword } from './useResetPassword';
 export { useUserManagement } from './useUserManagement';
-export { callAdminApi, useRegistrationEnabled, useAdminUsers, useOrphanedBeneficiaries, useUnlinkedBeneficiaries } from './useUserManagementData';
+export { callAdminApi, useAdminUsers, useOrphanedBeneficiaries, useUnlinkedBeneficiaries } from './useUserManagementData';
+export { useRegistrationEnabled } from '@/hooks/data/settings';
 export type { ManagedUser } from './useUserManagementData';
 export { useCreateUserMutation, useConfirmEmailMutation, useUpdateEmailMutation, useUpdatePasswordMutation, useSetRoleMutation, useDeleteUserMutation, useLinkBeneficiaryMutation, useToggleRegistration } from './useUserManagementMutations';
 
