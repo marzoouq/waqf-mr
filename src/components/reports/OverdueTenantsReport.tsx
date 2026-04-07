@@ -5,6 +5,9 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Clock } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format/format';
+import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface OverdueTenantsReportProps {
   contracts: Array<{
@@ -15,21 +18,17 @@ interface OverdueTenantsReportProps {
     property_id: string;
     status: string;
   }>;
-  paymentInvoices: Array<{
-    id: string;
-    contract_id: string;
-    due_date: string;
-    amount: number;
-    status: string;
-    payment_number: number;
-  }>;
   properties: Array<{ id: string; property_number: string }>;
 }
 
 /**
  * R-8: تقرير تفصيلي للمستأجرين المتأخرين عن السداد
+ * يجلب الفواتير ذاتياً عند عرض المكون (lazy loading)
  */
-const OverdueTenantsReport = ({ contracts, paymentInvoices, properties }: OverdueTenantsReportProps) => {
+const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportProps) => {
+  const { fiscalYearId } = useFiscalYear();
+  const { data: paymentInvoices = [], isLoading: invoicesLoading } = usePaymentInvoices(fiscalYearId ?? 'all');
+
   const overdueData = useMemo(() => {
     const now = Date.now();
     const propertyMap = new Map(properties.map(p => [p.id, p.property_number]));

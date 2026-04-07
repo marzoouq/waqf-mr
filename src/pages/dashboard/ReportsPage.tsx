@@ -177,7 +177,7 @@ const ReportsPage = () => {
           </TabsContent>
 
           <TabsContent value="overdue" className="space-y-6">
-            <OverdueTenantsReport contracts={contracts} paymentInvoices={paymentInvoices} properties={properties} />
+            <OverdueTenantsReport contracts={contracts} properties={properties} />
           </TabsContent>
 
           <TabsContent value="zakat" className="space-y-6">
