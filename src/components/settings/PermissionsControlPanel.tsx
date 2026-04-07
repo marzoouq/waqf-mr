@@ -101,6 +101,7 @@ const PermissionsControlPanel = () => {
     setPerms(DEFAULT_ROLE_PERMS);
     setAdminSections(defaultAdminSections);
     setBeneficiarySections(defaultBeneficiarySections);
+    setWidgets(defaultWidgets);
     defaultNotify.info('تم استعادة الإعدادات الافتراضية — اضغط حفظ للتطبيق');
   };
 
