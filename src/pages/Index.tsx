@@ -31,6 +31,7 @@ const Index = () => {
   const { getJsonSetting } = useAppSettings();
   const content = getJsonSetting<LandingPageContent>('landing_page_content', defaultLanding);
   const { data: waqfInfo } = useWaqfInfo();
+  const landingLogoUrl = useSetting('landing_logo_url');
   const { stats, statsLoading } = usePublicStats();
 
   useEffect(() => {
