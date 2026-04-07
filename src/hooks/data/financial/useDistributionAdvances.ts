@@ -39,5 +39,6 @@ export const useActiveCarryforwards = (fiscalYearId: string | undefined, enabled
       return (data ?? []) as { beneficiary_id: string; amount: number }[];
     },
     enabled,
+    staleTime: STALE_FINANCIAL,
   });
 };

@@ -26,7 +26,7 @@ export {
 export const useAdvanceRequests = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', fiscalYearId ?? 'all'],
-    staleTime: STALE_REALTIME,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase
       .from('advance_requests')
