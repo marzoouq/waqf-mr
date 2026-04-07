@@ -37,8 +37,8 @@ describe('calculateDistributions — Penny Allocation', () => {
   it('يُعطي المبلغ كاملاً لمستفيد واحد بنسبة 100%', () => {
     const bens = [makeBen('a', 100)];
     const result = calculateDistributions(bens, 5000);
-    expect(result[0].share_amount).toBe(5000);
-    expect(result[0].net_amount).toBe(5000);
+    expect(result[0]!.share_amount).toBe(5000);
+    expect(result[0]!.net_amount).toBe(5000);
   });
 
   it('يوزّع 999.99 على 3 متساويين بدون فقدان', () => {
