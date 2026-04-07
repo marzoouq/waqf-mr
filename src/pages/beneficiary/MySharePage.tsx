@@ -115,6 +115,14 @@ const MySharePage = () => {
             }
           />
 
+          {/* #C1 — badge تقديري */}
+          {myShareIsEstimated && !isClosed && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-warning/10 border border-warning/30 text-warning text-sm w-fit">
+              <Clock className="w-4 h-4" />
+              <span className="font-medium">الحصة المعروضة تقديرية — ستتأكد بعد إقفال السنة</span>
+            </div>
+          )}
+
           {/* بطاقات الملخص */}
           <MyShareSummaryCards
             sharePercentage={currentBeneficiary.share_percentage ?? 0}

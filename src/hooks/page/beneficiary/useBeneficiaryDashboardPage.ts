@@ -76,6 +76,25 @@ export function useBeneficiaryDashboardPage() {
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });
+    // #D1 — Realtime لـ advance_requests
+    channel.on('postgres_changes', {
+      event: '*', schema: 'public', table: 'advance_requests',
+      filter: `beneficiary_id=eq.${beneficiaryId}`,
+    }, () => {
+      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+    });
+    // #D2 — Realtime لـ fiscal_years (كشف النشر)
+    channel.on('postgres_changes', {
+      event: 'UPDATE', schema: 'public', table: 'fiscal_years',
+    }, () => {
+      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+    });
+    // #D4 — Realtime لـ app_settings
+    channel.on('postgres_changes', {
+      event: '*', schema: 'public', table: 'app_settings',
+    }, () => {
+      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+    });
   }, [beneficiaryId]);
 
   useBfcacheSafeChannel(

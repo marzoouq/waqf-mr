@@ -30,7 +30,7 @@ export function useAccountsViewPage() {
 
   // هوك مشترك بدل ~20 سطر مكرر (#1)
   const fin = useBeneficiaryFinancials(dashData, fiscalYearId);
-  const remainingBalance = fin.availableAmount - fin.distributionsAmount;
+  const remainingBalance = Math.max(0, fin.availableAmount - fin.distributionsAmount);
 
   const { currentBeneficiary, myShare } = useMyShare({
     beneficiaries: fin.beneficiaries as Array<{ id: string; name: string; share_percentage: number; user_id?: string | null }>,

@@ -5,11 +5,15 @@ updates:
     schedule:
       interval: "weekly"
       day: "sunday"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 10
     labels:
       - "dependencies"
     commit-message:
       prefix: "chore(deps):"
+    ignore:
+      - dependency-name: "typescript"
+        versions:
+          - ">= 6.0.0"
     groups:
       prod-minor-and-patch:
         dependency-type: "production"

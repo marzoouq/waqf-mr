@@ -70,7 +70,8 @@ export function useAnnualReportViewPage() {
     else defaultNotify.error('فشل في تصدير التقرير');
   }, [fiscalYear?.label, grouped, properties, summaryCards, waqfInfo]);
 
-  const handleExportCsv = () => {
+  // #B5 — useCallback لتثبيت المرجع
+  const handleExportCsv = useCallback(() => {
     const rows: Record<string, string>[] = [];
     summaryCards.forEach(c => rows.push({ القسم: 'ملخص', العنوان: c.label, المحتوى: c.value }));
     const sectionLabels: Record<string, string> = {
@@ -81,7 +82,7 @@ export function useAnnualReportViewPage() {
     });
     const csv = buildCsv(rows, ['القسم', 'العنوان', 'المحتوى']);
     downloadCsv(csv, `تقرير-سنوي-${fiscalYear?.label || ''}.csv`);
-  };
+  }, [summaryCards, items, fiscalYear?.label]);
 
   return {
     // حالات التحميل
