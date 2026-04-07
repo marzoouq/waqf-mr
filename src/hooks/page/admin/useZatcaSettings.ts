@@ -76,15 +76,15 @@ export const useZatcaSettings = () => {
 
   const handleSave = async () => {
     const vatNum = formData.vat_registration_number?.trim();
-    if (vatNum && vatNum.length > 0) {
-      if (!/^\d{15}$/.test(vatNum)) {
-        defaultNotify.error('الرقم الضريبي يجب أن يكون 15 رقماً');
-        return;
-      }
-      if (!vatNum.startsWith('3') || !vatNum.endsWith('3')) {
-        defaultNotify.error('الرقم الضريبي يجب أن يبدأ وينتهي بالرقم 3');
-        return;
-      }
+    if (vatNum && !SA_VAT_REGEX.test(vatNum)) {
+      defaultNotify.error('الرقم الضريبي يجب أن يكون 15 رقماً ويبدأ وينتهي بـ 3');
+      return;
+    }
+
+    const iban = formData.waqf_bank_iban?.trim().replace(/\s/g, '');
+    if (iban && !IBAN_SA_REGEX.test(iban)) {
+      defaultNotify.error('صيغة IBAN غير صحيحة (SA + 22 رقم)');
+      return;
     }
 
     const serial = formData.zatca_device_serial?.trim();

@@ -71,6 +71,14 @@ export function useContractFormDialog({
       defaultNotify.error('يرجى إدخال قيمة الإيجار');
       return;
     }
+    if (formData.tenant_id_number && formData.tenant_id_type === 'NAT' && !SAUDI_NATIONAL_ID_REGEX.test(formData.tenant_id_number)) {
+      defaultNotify.error('رقم الهوية يجب أن يكون 10 أرقام ويبدأ بـ 1 أو 2');
+      return;
+    }
+    if (formData.tenant_tax_number && !SA_VAT_REGEX.test(formData.tenant_tax_number)) {
+      defaultNotify.error('الرقم الضريبي يجب أن يكون 15 رقماً ويبدأ وينتهي بـ 3');
+      return;
+    }
     await onSubmit(formData, !!editingContract);
     onOpenChange(false);
     setFormData(emptyFormData);
