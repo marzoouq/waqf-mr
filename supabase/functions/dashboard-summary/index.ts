@@ -65,8 +65,6 @@ Deno.serve(async (req) => {
     const isAll = fiscal_year_id === "all";
     const rpcParam = isAll ? null : fiscal_year_id;
 
-    const t1 = performance.now();
-    console.log(`[timing] auth+body: ${(t1 - t0).toFixed(0)}ms`);
 
     // ── المرحلة 2: roles + rateLimit + RPC + pending_advances بالتوازي ──
     const [rolesRes, rateLimitRes, rpcRes, pendingRes] = await Promise.all([
