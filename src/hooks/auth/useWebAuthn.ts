@@ -107,7 +107,7 @@ export function useWebAuthn() {
       const credential = await startRegistration({ optionsJSON: options });
 
       const { data: result, error: verErr } = await supabase.functions.invoke('webauthn', {
-        body: { action: 'register-verify', credential, deviceName: deviceName || getDeviceName(), challenge_id: options.challenge_id },
+        body: { action: 'register-verify', credential, deviceName: (deviceName || getDeviceName()).slice(0, 100), challenge_id: options.challenge_id },
       });
 
       if (verErr || !result?.verified) {
