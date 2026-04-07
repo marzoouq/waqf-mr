@@ -214,11 +214,7 @@ export const useInvoicesPage = () => {
     });
   }, [invoices, filterType, filterStatus, searchQuery]);
 
-  const statusBadgeVariant = (status: string) => {
-    if (status === 'paid') return 'default' as const;
-    if (status === 'cancelled') return 'destructive' as const;
-    return 'secondary' as const;
-  };
+  const statusBadgeVariant = invoiceStatusBadgeVariant;
 
   return {
     invoices, filteredInvoices, properties, contracts, isLoading, isClosed,

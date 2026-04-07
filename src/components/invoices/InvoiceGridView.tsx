@@ -35,11 +35,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
     return invoices.slice(start, start + ITEMS_PER_PAGE);
   }, [invoices, currentPage]);
 
-  const statusBadgeVariant = (status: string) => {
-    if (status === 'paid') return 'default' as const;
-    if (status === 'cancelled') return 'destructive' as const;
-    return 'secondary' as const;
-  };
+  const statusBadgeVariant = invoiceStatusBadgeVariant;
 
   const isImage = (fileName: string | null) => {
     if (!fileName) return false;
