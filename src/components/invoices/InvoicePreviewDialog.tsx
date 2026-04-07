@@ -40,14 +40,12 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
 
     setDownloading(true);
     try {
-      const html2canvas = (await import('html2canvas')).default;
+      const { domToCanvas } = await import('modern-screenshot');
       const { jsPDF } = await import('jspdf');
 
-      const canvas = await html2canvas(element, {
+      const canvas = await domToCanvas(element, {
         scale: 2,
-        useCORS: true,
         backgroundColor: '#ffffff',
-        logging: false,
       });
 
       const imgData = canvas.toDataURL('image/png');
