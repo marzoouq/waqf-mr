@@ -116,7 +116,6 @@ export function useAccountantDashboardData({ aggregated, heatmapInvoices }: UseA
   const totalExpected = aggregated?.collection?.total_expected ?? 0;
 
   // تقديري: نسبة المصروفات الموثقة (لها فواتير) — نعرض عدد المصروفات بدون فواتير
-  const totalExpenses = aggregated?.expense_types?.reduce((s, e) => s + e.value, 0) ?? 0;
   const expenseTypeCount = aggregated?.expense_types?.length ?? 0;
   // documentationRate غير متاحة مباشرة — نُقدّر بناءً على وجود expense_types
   const documentationRate = expenseTypeCount > 0 ? 100 : 0;

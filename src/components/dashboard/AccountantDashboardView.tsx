@@ -9,8 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import {
   AlertTriangle, CalendarClock, FileWarning, Receipt,
-  TrendingUp, TrendingDown, Banknote, CheckCircle, Clock,
-  FileText, Link as LinkIcon,
+  Banknote, CheckCircle, Clock, Link as LinkIcon,
 } from 'lucide-react';
 import { fmtInt } from '@/utils/format/format';
 import type { AccountantMetrics } from '@/hooks/page/admin/useAccountantDashboardData';
