@@ -1,9 +1,10 @@
 /**
  * هوك منطق صفحة المصروفات
  */
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { canModifyFiscalYear } from '@/utils/permissions';
 import { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/data/financial/useExpenses';
 import { useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
 import { useProperties } from '@/hooks/data/properties/useProperties';
@@ -13,15 +14,19 @@ import { Expense } from '@/types/database';
 import { EMPTY_FILTERS, type FilterState } from '@/components/filters/advancedFilters.types';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
+import { useTableSort } from '@/hooks/ui/useTableSort';
 
-type SortField = 'amount' | 'date' | 'expense_type' | null;
-type SortDir = 'asc' | 'desc';
+export type SortField = 'amount' | 'date' | 'expense_type' | null;
+
+const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
+
+const EMPTY_EXPENSE_FORM = { expense_type: '', amount: '', date: '', property_id: '', description: '' };
 
 export function useExpensesPage() {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const { role } = useAuth();
-  const isLocked = isClosed && role !== 'admin' && role !== 'accountant';
+  const isLocked = !canModifyFiscalYear(role, isClosed);
 
   const { data: expenses = [], isLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: allInvoices = [] } = useInvoicesByFiscalYear(fiscalYearId);
@@ -34,15 +39,13 @@ export function useExpensesPage() {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
-  const [sortField, setSortField] = useState<SortField>(null);
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const { sortField, sortDir, handleSort } = useTableSort<'amount' | 'date' | 'expense_type'>();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
-  const [formData, setFormData] = useState({ expense_type: '', amount: '', date: '', property_id: '', description: '' });
+  const [formData, setFormData] = useState(EMPTY_EXPENSE_FORM);
 
-  const resetForm = () => { setFormData({ expense_type: '', amount: '', date: '', property_id: '', description: '' }); setEditingExpense(null); };
+  const resetForm = () => { setFormData(EMPTY_EXPENSE_FORM); setEditingExpense(null); };
 
   const handleEdit = (item: Expense) => {
     setEditingExpense(item);
@@ -77,21 +80,14 @@ export function useExpensesPage() {
     try {
       await deleteExpense.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
-      setCurrentPage(1);
+      // #17 — البقاء في الصفحة الحالية ما لم تصبح فارغة
+      const totalAfterDelete = expenses.length - 1;
+      const maxPage = Math.ceil(totalAfterDelete / ITEMS_PER_PAGE);
+      if (currentPage > maxPage) setCurrentPage(Math.max(1, maxPage));
     } catch {
       // onError in the mutation already shows a toast
     }
   };
-
-  const handleSort = useCallback((field: SortField) => {
-    if (sortField === field) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortDir('desc');
-    }
-    setCurrentPage(1);
-  }, [sortField]);
 
   const totalExpenses = useMemo(() => expenses.reduce((sum, item) => sum + safeNumber(item.amount), 0), [expenses]);
 
@@ -100,6 +96,7 @@ export function useExpensesPage() {
     return Array.from(types).sort();
   }, [expenses]);
 
+  // نسبة التوثيق: مصروف يُعتبر "موثقاً" إذا ارتبط بفاتورة واحدة على الأقل — قرار تجاري مقبول (#20)
   const { expenseInvoiceMap, documentedCount, documentationRate } = useMemo(() => {
     const map = new Map<string, number>();
     allInvoices.forEach((inv) => {
@@ -138,14 +135,18 @@ export function useExpensesPage() {
     return result;
   }, [expenses, searchQuery, filters, sortField, sortDir]);
 
+  /** هل السنة المالية محددة ويمكن الإضافة؟ — #15 */
+  const canAdd = !!fiscalYear?.id && !isLocked;
+
   return {
-    pdfWaqfInfo, fiscalYearId, fiscalYear, isClosed, role, isLocked,
+    pdfWaqfInfo, fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,
     expenses, isLoading, properties,
     createExpense, updateExpense,
     isOpen, setIsOpen, editingExpense,
+    // فلاتر — تبقى مُطبّقة بعد إغلاق form (سلوك مقصود)
     searchQuery, setSearchQuery,
     filters, setFilters,
-    sortField, sortDir, handleSort,
+    sortField: sortField as SortField, sortDir, handleSort: handleSort as (field: SortField) => void,
     deleteTarget, setDeleteTarget,
     currentPage, setCurrentPage,
     expandedRow, setExpandedRow,
@@ -157,5 +158,3 @@ export function useExpensesPage() {
     filteredExpenses,
   };
 }
-
-export type { SortField };

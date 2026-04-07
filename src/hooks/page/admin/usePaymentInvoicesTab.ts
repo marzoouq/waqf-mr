@@ -1,19 +1,18 @@
 /**
- * هوك إدارة حالة تبويب فواتير الدفعات
+ * هوك إدارة حالة تبويب فواتير الدفعات — orchestrator
+ * تم استخراج إجراءات الدفع إلى usePaymentInvoiceActions (#22)
  */
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { defaultNotify } from '@/lib/notify';
 import {
-  PaymentInvoice,
+  type PaymentInvoice,
   usePaymentInvoices,
   useGenerateAllInvoices,
-  useMarkInvoicePaid,
-  useMarkInvoiceUnpaid,
 } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import type { InvoicePreviewData } from '@/components/invoices';
+import { usePaymentInvoiceActions } from './usePaymentInvoiceActions';
 
 export type FilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';
 export type SortKey = 'due_date' | 'amount' | 'status' | 'payment_number';
@@ -21,29 +20,25 @@ export type SortDir = 'asc' | 'desc';
 
 const statusOrder: Record<string, number> = { overdue: 0, pending: 1, partially_paid: 2, paid: 3 };
 
+const ITEMS_PER_PAGE = 15;
+
 export const usePaymentInvoicesTab = (fiscalYearId: string) => {
   const { data: invoices = [], isLoading } = usePaymentInvoices(fiscalYearId);
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const generateAll = useGenerateAllInvoices();
-  const markPaid = useMarkInvoicePaid();
-  const markUnpaid = useMarkInvoiceUnpaid();
   const waqfInfo = usePdfWaqfInfo();
+
+  // إجراءات الدفع — مُستخرجة (#22)
+  const actions = usePaymentInvoiceActions();
 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
-  const [payDialog, setPayDialog] = useState<{ inv: PaymentInvoice } | null>(null);
-  const [payAmount, setPayAmount] = useState('');
   const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('due_date');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkPaying, setBulkPaying] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-
-  const ITEMS_PER_PAGE = 15;
 
   useEffect(() => { setCurrentPage(1); }, [filter, search, dateFrom, dateTo]);
 
@@ -118,49 +113,6 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
   };
 
   const unpaidFiltered = useMemo(() => sorted.filter(i => i.status !== 'paid'), [sorted]);
-  const toggleSelect = (id: string) => setSelectedIds(prev => {
-    const next = new Set(prev);
-    if (next.has(id)) next.delete(id); else next.add(id);
-    return next;
-  });
-  const toggleSelectAll = () => {
-    if (selectedIds.size === unpaidFiltered.length) setSelectedIds(new Set());
-    else setSelectedIds(new Set(unpaidFiltered.map(i => i.id)));
-  };
-
-  const handleBulkPay = useCallback(async () => {
-    if (selectedIds.size === 0) return;
-    setBulkPaying(true);
-    const ids = [...selectedIds];
-    let done = 0;
-    for (const id of ids) {
-      try {
-        await markPaid.mutateAsync({ invoiceId: id });
-        done++;
-      } catch { /* يتابع */ }
-    }
-    setBulkPaying(false);
-    setSelectedIds(new Set());
-    defaultNotify.success(`تم تسديد ${done} فاتورة من ${ids.length}`);
-  }, [selectedIds, markPaid]);
-
-  const openPayDialog = (inv: PaymentInvoice) => {
-    setPayDialog({ inv });
-    setPayAmount(String(safeNumber(inv.amount)));
-  };
-
-  const handlePay = () => {
-    if (!payDialog) return;
-    const amount = parseFloat(payAmount);
-    if (!(amount > 0)) { defaultNotify.error('يرجى إدخال مبلغ صحيح'); return; }
-    const inv = payDialog.inv;
-    setPayingInvoiceId(inv.id);
-    setPayDialog(null);
-    markPaid.mutate(
-      { invoiceId: inv.id, paidAmount: amount },
-      { onSettled: () => setPayingInvoiceId(null) },
-    );
-  };
 
   const buildPaymentPreviewData = (inv: PaymentInvoice): InvoicePreviewData => {
     const fullContract = contracts.find(c => c.id === inv.contract_id);
@@ -208,9 +160,6 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
     setPreviewInvoice(buildPaymentPreviewData(inv));
   };
 
-  // دالة مساعدة لإلغاء التحديد
-  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
-
   return {
     isLoading, invoices, summary, sorted, groupedPaginated, ITEMS_PER_PAGE,
     // فلترة وبحث
@@ -219,13 +168,25 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
     sortKey, sortDir, toggleSort,
     // تصفح
     currentPage, setCurrentPage,
-    // تحديد جماعي
-    selectedIds, unpaidFiltered, toggleSelect, toggleSelectAll, bulkPaying, handleBulkPay, clearSelection,
+    // تحديد جماعي وتسديد — من usePaymentInvoiceActions
+    selectedIds: actions.selectedIds,
+    unpaidFiltered,
+    toggleSelect: actions.toggleSelect,
+    toggleSelectAll: () => actions.toggleSelectAll(unpaidFiltered.map(i => i.id)),
+    bulkPaying: actions.bulkPaying,
+    handleBulkPay: actions.handleBulkPay,
+    clearSelection: actions.clearSelection,
     // تسديد
-    payingInvoiceId, payDialog, setPayDialog, payAmount, setPayAmount, openPayDialog, handlePay,
+    payingInvoiceId: actions.payingInvoiceId,
+    payDialog: actions.payDialog,
+    setPayDialog: actions.setPayDialog,
+    payAmount: actions.payAmount,
+    setPayAmount: actions.setPayAmount,
+    openPayDialog: actions.openPayDialog,
+    handlePay: actions.handlePay,
     // معاينة
     previewInvoice, setPreviewInvoice, handlePreviewTemplate,
     // أخرى
-    generateAll, markUnpaid, waqfInfo,
+    generateAll, markUnpaid: actions.markUnpaid, waqfInfo,
   };
 };

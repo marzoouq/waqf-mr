@@ -82,6 +82,7 @@ const AdminDashboard = () => {
           pendingAdvancesCount={pendingAdvancesCount}
           collectionRate={collectionSummary.percentage}
           expenseRatio={expenseRatio}
+          role={role}
         />
 
         <DashboardStatsGrid stats={stats} isLoading={isLoading} />

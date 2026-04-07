@@ -92,6 +92,7 @@ export const useAdminDashboardData = ({
     yoy: summary.yoy,
     collection: agg?.collection ?? null,
     occupancy: agg?.occupancy ?? null,
+    role,
   });
 
   // ── بيانات الرسوم البيانية (جاهزة من RPC) ──

@@ -12,9 +12,13 @@ interface DashboardAlertsProps {
   pendingAdvancesCount?: number;
   collectionRate?: number;
   expenseRatio?: number;
+  /** دور المستخدم الحالي — يُستخدم لتخصيص رسائل التنبيه */
+  role?: string | null;
 }
 
-const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedContractsCount, pendingAdvancesCount = 0, collectionRate, expenseRatio = 0 }: DashboardAlertsProps) => {
+const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedContractsCount, pendingAdvancesCount = 0, collectionRate, expenseRatio = 0, role }: DashboardAlertsProps) => {
+  const isAdmin = role === 'admin';
+
   return (
     <>
       {/* 1. عجز مالي — أعلى أولوية */}
@@ -62,16 +66,20 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
         </Alert>
       )}
 
-      {/* 4. سُلف معلقة */}
+      {/* 4. سُلف معلقة — الموافقة حصراً للناظر */}
       {pendingAdvancesCount > 0 && (
         <Alert className="animate-fade-in border-warning/50">
           <Banknote className="h-4 w-4" />
           <AlertTitle>سُلف بانتظار الموافقة</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span>يوجد {pendingAdvancesCount} طلب سُلفة معلق بانتظار المراجعة والموافقة.</span>
-            <Link to="/dashboard/accounts">
-              <Button variant="outline" size="sm" className="shrink-0">مراجعة الطلبات</Button>
-            </Link>
+            {isAdmin ? (
+              <Link to="/dashboard/accounts">
+                <Button variant="outline" size="sm" className="shrink-0">مراجعة الطلبات</Button>
+              </Link>
+            ) : (
+              <span className="text-xs text-muted-foreground">تحتاج موافقة الناظر</span>
+            )}
           </AlertDescription>
         </Alert>
       )}
@@ -90,16 +98,20 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
         </Alert>
       )}
 
-      {/* 6. نسب افتراضية */}
+      {/* 6. نسب افتراضية — ضبطها حصراً للناظر */}
       {usingFallbackPct && (
         <Alert className="animate-fade-in">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>نسب افتراضية مُستخدمة</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span>يتم استخدام النسب الافتراضية (ناظر 10%، واقف 5%) لأنه لم يتم إعدادها في الحسابات الختامية.</span>
-            <Link to="/dashboard/accounts">
-              <Button variant="outline" size="sm" className="shrink-0">ضبط النسب</Button>
-            </Link>
+            {isAdmin ? (
+              <Link to="/dashboard/accounts">
+                <Button variant="outline" size="sm" className="shrink-0">ضبط النسب</Button>
+              </Link>
+            ) : (
+              <span className="text-xs text-muted-foreground">يرجى إبلاغ الناظر لضبط النسب</span>
+            )}
           </AlertDescription>
         </Alert>
       )}
