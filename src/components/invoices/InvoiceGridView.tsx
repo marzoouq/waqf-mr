@@ -9,6 +9,7 @@ import { TablePagination } from '@/components/common';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { fmt, fmtDate } from '@/utils/format/format';
+import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
 
 interface InvoiceGridViewProps {
   invoices: Invoice[];
