@@ -3,6 +3,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 export const usePaidAdvances = (fiscalYearId: string | undefined, enabled: boolean) => {
   return useQuery({
