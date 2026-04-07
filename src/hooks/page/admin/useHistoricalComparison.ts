@@ -23,7 +23,7 @@ export function useHistoricalComparison() {
 
   // جلب بيانات كل السنوات المختارة في استدعاء RPC واحد
   const selectedYearIds = useMemo(() => selectedYears.map(fy => fy.id), [selectedYears]);
-  const { data: multiYearData = [], isLoading: multiLoading } = useMultiYearSummary(selectedYearIds);
+  const { data: multiYearData = [], isLoading: multiLoading, isError: multiError, error: multiErrorObj } = useMultiYearSummary(selectedYearIds);
 
   // ترتيب البيانات بنفس ترتيب السنوات المختارة
   const yearData = useMemo(() => {

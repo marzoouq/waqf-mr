@@ -73,7 +73,7 @@ export const useBeneficiaryDashboardData = (fiscalYearId?: string) => {
       });
       if (error) throw error;
       if (!data || typeof data !== 'object' || Array.isArray(data)) {
-        throw new Error('استجابة غير متوقعة من خادم لوحة المستفيد');
+        throw new Error(`استجابة غير متوقعة: ${typeof data} بدلاً من object`);
       }
       return data as unknown as BeneficiaryDashboardData;
     },

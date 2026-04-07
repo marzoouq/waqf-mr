@@ -35,7 +35,12 @@ export const useAccountByFiscalYear = (
     queryKey: ['accounts', 'fiscal_year', fiscalYearId ?? fiscalYearLabel ?? 'all'],
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    retry: 2,
+    // smart retry: تجاهل أخطاء المصادقة لعدم استنزاف الشبكة
+    retry: (count, err) => {
+      const msg = (err as Error)?.message ?? '';
+      if (msg.includes('401') || msg.toLowerCase().includes('unauthorized')) return false;
+      return count < 2;
+    },
     queryFn: async () => {
       let query = supabase
         .from('accounts')

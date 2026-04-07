@@ -17,19 +17,29 @@ export interface ContractFiscalAllocation {
   created_at: string;
 }
 
-const fromAllocations = () => supabase.from('contract_fiscal_allocations');
+const ALLOCATION_LIMIT = 500;
 
 export const useContractAllocations = (fiscalYearId?: string | null) => {
   return useQuery({
     queryKey: ['contract_fiscal_allocations', fiscalYearId],
+    // منع الجلب قبل تحديد السنة المالية (#83)
+    enabled: fiscalYearId !== undefined,
     queryFn: async () => {
-      let query = fromAllocations().select('id, contract_id, fiscal_year_id, period_start, period_end, allocated_payments, allocated_amount, created_at').limit(500);
+      let query = supabase
+        .from('contract_fiscal_allocations')
+        .select('id, contract_id, fiscal_year_id, period_start, period_end, allocated_payments, allocated_amount, created_at')
+        .limit(ALLOCATION_LIMIT);
       if (fiscalYearId && !isFyAll(fiscalYearId)) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
       const { data, error } = await query;
       if (error) throw error;
-      return (data ?? []) as ContractFiscalAllocation[];
+      const results = (data ?? []) as ContractFiscalAllocation[];
+      // تحذير عند الوصول لحد السجلات (#28)
+      if (results.length >= ALLOCATION_LIMIT) {
+        logger.warn(`تخصيصات العقود وصلت للحد الأقصى (${ALLOCATION_LIMIT}) — قد تكون بيانات مفقودة`);
+      }
+      return results;
     },
     staleTime: STALE_FINANCIAL,
   });
@@ -48,9 +58,10 @@ export const useUpsertContractAllocations = () => {
         allocated_payments: a.allocated_payments,
         allocated_amount: a.allocated_amount,
       }));
+      // تمرير rows مباشرة — Supabase JS client يتعامل مع objects (#55)
       const { error } = await supabase.rpc('upsert_contract_allocations', {
         p_contract_id: contractId,
-        p_allocations: JSON.parse(JSON.stringify(rows)),
+        p_allocations: rows as unknown as import('@/integrations/supabase/types').Json,
       });
       if (error) throw error;
     },

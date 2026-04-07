@@ -67,6 +67,7 @@ function mapEntry(raw: RpcYearEntry): YearSummaryEntry {
     waqfRevenue,
     netAfterExpenses: acct?.net_after_expenses ?? 0,
     netAfterVat: acct?.net_after_vat ?? 0,
+    // المبلغ المتاح للتوزيع = ريع الوقف − رقبة الوقف المُخصصة يدوياً
     availableAmount: waqfRevenue - corpusManual,
     distributionsAmount: acct?.distributions_amount ?? 0,
     expensesByType,
