@@ -9,8 +9,9 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { usePropertiesMap } from '@/hooks/data/properties/usePropertiesMap';
 import { generateContractsPDF } from '@/utils/pdf';
 import { defaultNotify } from '@/lib/notify';
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
 export const useContractsViewPage = () => {
   const { fiscalYearId } = useFiscalYear();

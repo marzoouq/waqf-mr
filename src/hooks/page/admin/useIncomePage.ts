@@ -38,7 +38,7 @@ export function useIncomePage() {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
   const [formData, setFormData] = useState({ source: '', amount: '', date: '', property_id: '', notes: '' });
 
   const resetForm = () => { setFormData({ source: '', amount: '', date: '', property_id: '', notes: '' }); setEditingIncome(null); };

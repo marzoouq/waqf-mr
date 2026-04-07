@@ -51,7 +51,7 @@ export const useContractsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
   const [activeTab, setActiveTab] = useState('contracts');
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
   const resetForm = useCallback(() => {
     setEditingContract(null);
