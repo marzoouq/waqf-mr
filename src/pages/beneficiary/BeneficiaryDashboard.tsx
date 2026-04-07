@@ -18,6 +18,8 @@ import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 const defaultWidgets = makeWidgetDefaults();
 
 const BeneficiaryDashboard = () => {
+  const { getJsonSetting } = useAppSettings();
+  const w = getJsonSetting<Record<string, boolean>>('beneficiary_widgets', defaultWidgets);
   const {
     isLoading, dashError, dashLoading, noPublishedYears,
     currentBeneficiary, myShare, distributions, role, fiscalYearId,
