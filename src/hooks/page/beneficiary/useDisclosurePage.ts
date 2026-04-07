@@ -61,15 +61,6 @@ export const useDisclosurePage = () => {
   const filteredDistributions = filterDistributionsByFiscalYear(distributions, !!fin.account, fiscalYearId);
   const { totalReceived, pendingAmount } = summarizeDistributions(filteredDistributions);
 
-  // #21 — جلب العقود عند طلب PDF فقط (lazy fetch)
-  const fetchContracts = useCallback(async () => {
-    const { data } = await supabase
-      .from('contracts')
-      .select('contract_number, tenant_name, rent_amount, status')
-      .order('created_at', { ascending: false });
-    return data ?? [];
-  }, []);
-
   // لف بـ useCallback (#17)
   const handleDownloadPDF = useCallback(async () => {
     try {
