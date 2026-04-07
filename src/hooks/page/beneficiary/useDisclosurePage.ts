@@ -80,9 +80,6 @@ export const useDisclosurePage = () => {
 
   const handleDownloadComprehensivePDF = useCallback(async () => {
     try {
-      // #21 — جلب العقود عند الحاجة فقط
-      const contracts = await fetchContracts();
-
       await generateComprehensiveBeneficiaryPDF({
         beneficiaryName: currentBeneficiary?.name || '',
         fiscalYear: gregorianFiscalYear, totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
@@ -109,7 +106,7 @@ export const useDisclosurePage = () => {
     } catch {
       defaultNotify.error('حدث خطأ أثناء تصدير التقرير الشامل');
     }
-  }, [currentBeneficiary, gregorianFiscalYear, fin, adminPct, waqifPct, beneficiariesShare, myShare, totalReceived, pendingAmount, filteredDistributions, pdfWaqfInfo, fetchContracts]);
+  }, [currentBeneficiary, gregorianFiscalYear, fin, adminPct, waqifPct, beneficiariesShare, myShare, totalReceived, pendingAmount, contracts, filteredDistributions, pdfWaqfInfo]);
 
   return {
     // توحيد loading states (#37)
