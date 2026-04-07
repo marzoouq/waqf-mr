@@ -1,7 +1,7 @@
 /**
  * هوك إدارة المستخدمين — منظّم يجمع البيانات + العمليات + حالة UI
  */
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useRegistrationEnabled, useAdminUsers, useOrphanedBeneficiaries, useUnlinkedBeneficiaries } from './useUserManagementData';
 import type { ManagedUser } from './useUserManagementData';
