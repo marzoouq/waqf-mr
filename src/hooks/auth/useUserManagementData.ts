@@ -3,7 +3,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { STALE_SETTINGS, STALE_MESSAGING } from '@/lib/queryStaleTime';
+import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 
 export interface ManagedUser {
