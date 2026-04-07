@@ -22,6 +22,7 @@ export function useAccountsData() {
   const { data: tenantPayments = [], isLoading: tpLoading } = useTenantPayments();
   const { data: allUnits = [], isLoading: unitLoading } = useAllUnits();
   const { data: properties = [], isLoading: propLoading } = useProperties();
+  const appSettings = useAppSettings();
 
   const { fiscalYearId, fiscalYear: selectedFY, fiscalYears, isClosed } = useFiscalYear();
 
