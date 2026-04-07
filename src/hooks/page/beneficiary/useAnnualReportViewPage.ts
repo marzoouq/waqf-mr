@@ -43,12 +43,13 @@ export function useAnnualReportViewPage() {
   const totalExpenses = useMemo(() => expenses.reduce((s, r) => s + safeNumber(r.amount), 0), [expenses]);
   const activeContracts = useMemo(() => contracts.filter(c => c.status === 'active').length, [contracts]);
 
-  const summaryCards = [
+  // #B5 — useMemo لمنع إعادة الحساب
+  const summaryCards = useMemo(() => [
     { label: 'إجمالي الدخل', value: formatCurrency(totalIncome) + ' ر.س', icon: DollarSign, color: 'text-success' },
     { label: 'إجمالي المصروفات', value: formatCurrency(totalExpenses) + ' ر.س', icon: Receipt, color: 'text-destructive' },
     { label: 'العقود النشطة', value: String(activeContracts), icon: FileText, color: 'text-info' },
     { label: 'عدد العقارات', value: String(properties.length), icon: Building2, color: 'text-warning' },
-  ];
+  ], [totalIncome, totalExpenses, activeContracts, properties.length]);
 
   // #22: useCallback لتثبيت مرجع الدالة
   const handleExportPdf = useCallback(async () => {
