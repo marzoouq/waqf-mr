@@ -19,7 +19,7 @@ const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner')
 const WaqifDashboard = () => {
   const {
     isLoading, noPublishedYears,
-    displayName, greeting, GreetingIcon, hijriDate, gregorianDate, timeStr,
+    displayName, greeting, greetingIconName, hijriDate, gregorianDate, timeStr,
     overviewStats, kpis,
     fiscalYear, totalIncome, totalExpenses, availableAmount,
     activeContracts, expiredContracts,
