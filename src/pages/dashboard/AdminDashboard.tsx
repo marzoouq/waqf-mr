@@ -6,6 +6,7 @@ import ViewportRender from '@/components/common/ViewportRender';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { Button } from '@/components/ui/button';
 import { FiscalYearWidget, DashboardAlerts, DashboardStatsGrid, DashboardKpiPanel, CollectionSummaryCard, RecentContractsCard, QuickActionsCard, YearComparisonCard } from '@/components/dashboard';
+import AccountantDashboardView from '@/components/dashboard/AccountantDashboardView';
 import { Printer, Gauge } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import type { FiscalYear } from '@/types/database';
@@ -17,7 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useDashboardSummary, useDashboardSecondary } from '@/hooks/data/financial/useDashboardSummary';
 // هوك الحسابات المستخرج
 import { useAdminDashboardData } from '@/hooks/page/admin/useAdminDashboardData';
-
+import { useAccountantDashboardData } from '@/hooks/page/admin/useAccountantDashboardData';
 
 // Lazy-load heavy below-the-fold components
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
