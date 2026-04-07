@@ -11,6 +11,8 @@ import { BENEFICIARY_WIDGET_KEYS, BENEFICIARY_WIDGET_LABELS, makeWidgetDefaults 
 import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import AdminCapabilitiesSummary from './AdminCapabilitiesSummary';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   PermissionsSummaryCards,
   RolePermissionsMatrix,
