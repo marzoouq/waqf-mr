@@ -45,7 +45,8 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
     mutationFn: async () => {
       let query = supabase.from('notifications').delete().eq('user_id', userId).eq('is_read', true);
       if (disabledTypes.size > 0) {
-        query = query.not('type', 'in', `(${[...disabledTypes].join(',')})`);
+        const typesArray = [...disabledTypes];
+        query = query.not('type', 'in', `("${typesArray.join('","')}")`);
       }
       const { error } = await query;
       if (error) throw error;
