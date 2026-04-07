@@ -86,7 +86,13 @@ const WaqfSettingsTab = () => {
 
   return (
     <div className="space-y-6">
-      
+      <LogoUploadCard
+        title="شعار الوقف"
+        description="يظهر في لوحة التحكم والقائمة الجانبية ورأس الطباعة"
+        settingKey="waqf_logo_url"
+        storagePath="logo"
+        currentUrl={waqfLogoUrl}
+      />
       <Card>
         <CardHeader>
           <CardTitle className="font-display text-lg">بيانات الوقف</CardTitle>
