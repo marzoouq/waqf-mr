@@ -125,6 +125,8 @@ export function useHistoricalComparison() {
     selectedYears,
     yearData,
     isAnyLoading,
+    isError: multiError,
+    error: multiErrorObj,
     toggleYear,
     chartData,
     comparisonRows,
