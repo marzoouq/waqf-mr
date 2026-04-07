@@ -19,6 +19,7 @@ export const usePaidAdvances = (fiscalYearId: string | undefined, enabled: boole
       return (data ?? []) as { beneficiary_id: string; amount: number }[];
     },
     enabled: enabled && !!fiscalYearId,
+    staleTime: STALE_FINANCIAL,
   });
 };
 
