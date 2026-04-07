@@ -227,7 +227,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
   });
 
   const recentQuery = useQuery<RecentContract[]>({
-    queryKey: ['dashboard-recent-contracts'],
+    queryKey: ['dashboard-recent-contracts', fiscalYearId],
     staleTime: STALE_FINANCIAL,
     enabled: !!fiscalYearId && enabled,
     queryFn: async () => {

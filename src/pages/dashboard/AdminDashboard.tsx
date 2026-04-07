@@ -47,9 +47,9 @@ const AdminDashboard = () => {
   const {
     pendingAdvancesCount, totalIncome, contractualRevenue,
     usingFallbackPct, expiringContractsCount, orphanedContractsCount,
-    stats, kpis, collectionSummary, collectionColor,
+    expenseRatio, stats, kpis, collectionSummary, collectionColor,
     monthlyData, expenseTypes, greetingText,
-    allFiscalYears, fiscalYear: fy,
+    allFiscalYears, fiscalYear: fy, isError,
   } = useAdminDashboardData({
     user, role, fiscalYearId, fiscalYear: fiscalYear ?? undefined, isSpecificYear, summary,
   });
