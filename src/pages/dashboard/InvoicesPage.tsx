@@ -15,11 +15,12 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
 import { useInvoicesPage } from '@/hooks/page/admin/useInvoicesPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
+import { canModifyFiscalYear } from '@/utils/permissions';
 
 const InvoicesPage = () => {
   const h = useInvoicesPage();
   const { role } = useAuth();
-  const isLocked = h.isClosed && role !== 'admin';
+  const isLocked = !canModifyFiscalYear(role, h.isClosed);
 
   return (
     <DashboardLayout>

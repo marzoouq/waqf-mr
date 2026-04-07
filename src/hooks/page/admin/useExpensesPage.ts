@@ -1,7 +1,7 @@
 /**
  * هوك منطق صفحة المصروفات
  */
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/permissions';
@@ -16,38 +16,30 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 
-type SortField = 'amount' | 'date' | 'expense_type';
+export type SortField = 'amount' | 'date' | 'expense_type' | null;
 
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
 const EMPTY_EXPENSE_FORM = { expense_type: '', amount: '', date: '', property_id: '', description: '' };
 
 export function useExpensesPage() {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const { role } = useAuth();
   const isLocked = !canModifyFiscalYear(role, isClosed);
 
   const { data: expenses = [], isLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: allInvoices = [] } = useInvoicesByFiscalYear(fiscalYearId);
-
-  // تُجلب العقارات عند فتح الـ dialog فقط — #36
-  const [isOpen, setIsOpen] = useState(false);
-  const { data: properties = [] } = useProperties({ enabled: isOpen });
-
-  // تُجلب بيانات PDF عند الطلب فقط — #37
-  const [pdfRequested, setPdfRequested] = useState(false);
-  const pdfWaqfInfo = usePdfWaqfInfo({ enabled: pdfRequested });
-  /** يُستدعى عند الضغط على زر تصدير PDF */
-  const requestPdfExport = useCallback(() => setPdfRequested(true), []);
-
+  const { data: properties = [] } = useProperties();
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
 
+  const [isOpen, setIsOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
-  const { sortField, sortDir, handleSort } = useTableSort<SortField>();
+  const { sortField, sortDir, handleSort } = useTableSort<'amount' | 'date' | 'expense_type'>();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
@@ -147,15 +139,14 @@ export function useExpensesPage() {
   const canAdd = !!fiscalYear?.id && !isLocked;
 
   return {
-    pdfWaqfInfo, requestPdfExport, pdfRequested,
-    fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,
+    pdfWaqfInfo, fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,
     expenses, isLoading, properties,
     createExpense, updateExpense,
     isOpen, setIsOpen, editingExpense,
     // فلاتر — تبقى مُطبّقة بعد إغلاق form (سلوك مقصود)
     searchQuery, setSearchQuery,
     filters, setFilters,
-    sortField, sortDir, handleSort,
+    sortField: sortField as SortField, sortDir, handleSort: handleSort as (field: SortField) => void,
     deleteTarget, setDeleteTarget,
     currentPage, setCurrentPage,
     expandedRow, setExpandedRow,
@@ -167,5 +158,3 @@ export function useExpensesPage() {
     filteredExpenses,
   };
 }
-
-export type { SortField };

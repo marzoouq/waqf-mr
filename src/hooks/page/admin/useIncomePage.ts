@@ -1,7 +1,7 @@
 /**
  * هوك منطق صفحة الدخل — الحالة والفلترة والترتيب
  */
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/permissions';
@@ -16,7 +16,7 @@ import { EMPTY_FILTERS, type FilterState } from '@/components/filters/advancedFi
 import { defaultNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 
-export type SortField = 'amount' | 'date' | 'source';
+export type SortField = 'amount' | 'date' | 'source' | null;
 
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
@@ -28,19 +28,18 @@ export function useIncomePage() {
   const isLocked = !canModifyFiscalYear(role, isClosed);
 
   const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
-  // تُجلب العقارات والعقود والفواتير عند فتح الـ dialog فقط — #36
-  const [isOpen, setIsOpen] = useState(false);
-  const { data: properties = [] } = useProperties({ enabled: isOpen });
-  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId, { enabled: isOpen });
+  const { data: properties = [] } = useProperties();
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
   const createIncome = useCreateIncome();
   const updateIncome = useUpdateIncome();
   const deleteIncome = useDeleteIncome();
 
+  const [isOpen, setIsOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
-  const { sortField, sortDir, handleSort } = useTableSort<SortField>();
+  const { sortField, sortDir, handleSort } = useTableSort<'amount' | 'date' | 'source'>();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState(EMPTY_INCOME_FORM);
@@ -166,8 +165,8 @@ export function useIncomePage() {
     updatePending: updateIncome.isPending,
     // حذف
     deleteTarget, setDeleteTarget, handleConfirmDelete,
-    // ترتيب
-    sortField, sortDir, handleSort,
+    // ترتيب — sortField قد يكون null
+    sortField: sortField as SortField, sortDir, handleSort: handleSort as (field: SortField) => void,
     // فلاتر — تبقى مُطبّقة بعد إغلاق form (سلوك مقصود)
     searchQuery, setSearchQuery, filters, setFilters,
     // صفحات
