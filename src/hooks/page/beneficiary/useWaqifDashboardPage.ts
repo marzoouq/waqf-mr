@@ -1,11 +1,12 @@
 /**
  * هوك لوحة تحكم الواقف — يستخرج كل البيانات والحسابات من الصفحة
- * محسّن: يستخدم RPC المستفيد المجمّع بدل useFinancialSummary (5 استعلامات → 1)
+ * محسّن: يستخدم RPC المستفيد المجمّع + utility مشتركة
  */
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { fmt } from '@/utils/format/format';
 import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/dashboardComputations';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
@@ -15,28 +16,7 @@ import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
-import { Building2, FileText, Users, TrendingUp, Sun, Moon } from 'lucide-react';
-
-/** تحويل بيانات شهرية من RPC إلى تنسيق الرسم البياني */
-function buildMonthlyData(
-  monthlyIncome: Array<{ month: number; total: number }>,
-  monthlyExpenses: Array<{ month: number; total: number }>,
-) {
-  const map: Record<string, { income: number; expenses: number }> = {};
-  (monthlyIncome ?? []).forEach(({ month, total }) => {
-    const key = String(month).padStart(2, '0');
-    if (!map[key]) map[key] = { income: 0, expenses: 0 };
-    map[key].income += total;
-  });
-  (monthlyExpenses ?? []).forEach(({ month, total }) => {
-    const key = String(month).padStart(2, '0');
-    if (!map[key]) map[key] = { income: 0, expenses: 0 };
-    map[key].expenses += total;
-  });
-  return Object.entries(map)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, data]) => ({ month, income: data.income, expenses: data.expenses }));
-}
+import { Building2, FileText, Users, TrendingUp } from 'lucide-react';
 
 export const useWaqifDashboardPage = () => {
   const { user } = useAuth();
@@ -44,7 +24,6 @@ export const useWaqifDashboardPage = () => {
 
   useDashboardRealtime('waqif-dashboard-realtime', ['income', 'expenses', 'payment_invoices']);
 
-  // RPC مجمّع بدل useFinancialSummary (5 استعلامات → 1)
   const { data: dashData, isLoading: dashLoading } = useBeneficiaryDashboardData(fiscalYearId);
 
   const totalIncome = dashData?.total_income ?? 0;
@@ -73,7 +52,6 @@ export const useWaqifDashboardPage = () => {
   const activeContracts = contracts.filter(c => c.status === 'active');
   const expiredContracts = contracts.filter(c => c.status === 'expired');
 
-  // عدد المستفيدين من RPC
   const beneficiaryCount = dashData?.total_beneficiary_percentage
     ? Math.round(dashData.total_beneficiary_percentage / (dashData.beneficiary?.share_percentage || 1))
     : 0;
@@ -105,34 +83,24 @@ export const useWaqifDashboardPage = () => {
     ];
   }, [collectionSummary.percentage, collectionSummary.total, totalIncome, totalExpenses, allUnits, contracts, isSpecificYear]);
 
-  // بناء monthlyData من RPC بدل computeMonthlyData(income, expenses)
+  // بناء monthlyData من utility مشتركة (#11)
   const monthlyData = useMemo(
     () => buildMonthlyData(dashData?.monthly_income ?? [], dashData?.monthly_expenses ?? []),
     [dashData?.monthly_income, dashData?.monthly_expenses],
   );
 
-  /* ── Live clock ── */
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    let id: ReturnType<typeof setInterval> | undefined;
-    const start = () => { id = setInterval(() => setNow(new Date()), 60_000); };
-    const stop = () => { if (id) { clearInterval(id); id = undefined; } };
-    const onVisibility = () => { if (document.hidden) stop(); else { setNow(new Date()); start(); } };
-    start();
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
-  }, []);
-
-  const { greeting, GreetingIcon, hijriDate, gregorianDate, timeStr } = useMemo(() => {
+  /* ── التحية والتاريخ — #36: إعادة greetingIconName بدل GreetingIcon component ── */
+  const { greeting, greetingIconName, hijriDate, gregorianDate, timeStr } = useMemo(() => {
+    const now = new Date();
     const h = now.getHours();
     return {
       greeting: h < 12 ? 'صباح الخير' : 'مساء الخير',
-      GreetingIcon: h < 12 ? Sun : Moon,
+      greetingIconName: h < 12 ? 'sun' : 'moon' as 'sun' | 'moon',
       hijriDate: now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
       gregorianDate: now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
       timeStr: now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
     };
-  }, [now]);
+  }, []);
 
   const overviewStats = [
     { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
@@ -148,7 +116,7 @@ export const useWaqifDashboardPage = () => {
 
   return {
     isLoading, noPublishedYears,
-    displayName, greeting, GreetingIcon, hijriDate, gregorianDate, timeStr,
+    displayName, greeting, greetingIconName, hijriDate, gregorianDate, timeStr,
     overviewStats, kpis,
     fiscalYear, totalIncome, totalExpenses, availableAmount,
     activeContracts, expiredContracts,

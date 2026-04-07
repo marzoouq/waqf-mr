@@ -1,16 +1,16 @@
 /**
- * هوك صفحة التقارير المالية للمستفيد — محسّن: يعتمد على RPC المستفيد
+ * هوك صفحة التقارير المالية للمستفيد — محسّن: يستخدم useBeneficiaryFinancials المشترك
  */
 import { useMemo, useCallback } from 'react';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
+import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiaryFinancials';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { defaultNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { toSourceRecord, toExpenseRecord } from '@/utils/financial/recordConverters';
 
 
 export const useFinancialReportsPage = () => {
@@ -18,45 +18,27 @@ export const useFinancialReportsPage = () => {
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
   const handleRetry = useRetryQueries(['beneficiary-dashboard']);
 
-  // RPC واحد بدل useFinancialSummary (5 استعلامات)
   const { data: dashData, isLoading, isError } = useBeneficiaryDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
 
-  const account = dashData?.account;
-  const isAccountMissing = !account && !!fiscalYearId && fiscalYearId !== 'all';
-  const totalIncome = safeNumber(dashData?.total_income);
-  const totalExpenses = safeNumber(dashData?.total_expenses);
-  const adminShare = safeNumber(account?.admin_share);
-  const waqifShare = safeNumber(account?.waqif_share);
-  const waqfRevenue = safeNumber(account?.waqf_revenue);
-  const netAfterVat = safeNumber(account?.net_after_vat);
-  const zakatAmount = safeNumber(account?.zakat_amount);
-  const netAfterZakat = netAfterVat - zakatAmount;
-  const availableAmount = safeNumber(dashData?.available_amount);
-
-  const incomeBySource = useMemo(() => toSourceRecord(dashData?.income_by_source ?? []), [dashData?.income_by_source]);
-  const expensesByTypeExcludingVat = useMemo(() => toExpenseRecord(dashData?.expenses_by_type_excluding_vat ?? []), [dashData?.expenses_by_type_excluding_vat]);
-
-  const beneficiaries = useMemo(() => {
-    if (!dashData?.beneficiary) return [];
-    return [dashData.beneficiary];
-  }, [dashData?.beneficiary]);
+  // هوك مشترك (#1)
+  const fin = useBeneficiaryFinancials(dashData, fiscalYearId);
 
   const { currentBeneficiary, myShare } = useMyShare({
-    beneficiaries: beneficiaries as Array<{ id: string; name: string; share_percentage: number; user_id?: string | null }>,
-    availableAmount,
+    beneficiaries: fin.beneficiaries as Array<{ id: string; name: string; share_percentage: number; user_id?: string | null }>,
+    availableAmount: fin.availableAmount,
     serverMyShare: dashData?.my_share,
   });
-  const beneficiariesShare = availableAmount;
+  const beneficiariesShare = fin.availableAmount;
 
   const incomeVsExpenses = useMemo(() => [
-    { name: 'الإيرادات', value: totalIncome, fill: 'hsl(var(--success))' },
-    { name: 'المصروفات', value: totalExpenses, fill: 'hsl(var(--destructive))' },
-  ], [totalIncome, totalExpenses]);
+    { name: 'الإيرادات', value: fin.totalIncome, fill: 'hsl(var(--success))' },
+    { name: 'المصروفات', value: fin.totalExpenses, fill: 'hsl(var(--destructive))' },
+  ], [fin.totalIncome, fin.totalExpenses]);
 
-  const expensesPieData = useMemo(() => Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value })), [expensesByTypeExcludingVat]);
-  const incomePieData = useMemo(() => Object.entries(incomeBySource).map(([name, value]) => ({ name, value })), [incomeBySource]);
+  const expensesPieData = useMemo(() => Object.entries(fin.expensesByTypeExcludingVat).map(([name, value]) => ({ name, value })), [fin.expensesByTypeExcludingVat]);
+  const incomePieData = useMemo(() => Object.entries(fin.incomeBySource).map(([name, value]) => ({ name, value })), [fin.incomeBySource]);
 
   const distributionData = useMemo(() => [
     { name: 'حصتي', value: myShare, fill: 'hsl(var(--primary))' },
@@ -65,7 +47,6 @@ export const useFinancialReportsPage = () => {
 
   const fiscalYear = selectedFY?.label || '';
 
-  // استخدام monthly_income من الـ RPC بدل جلب income[] الخام
   const monthlyData = useMemo(() => {
     const monthNames = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
     return (dashData?.monthly_income ?? [])
@@ -83,10 +64,11 @@ export const useFinancialReportsPage = () => {
       const { generateAnnualReportPDF } = await import('@/utils/pdf');
       await generateAnnualReportPDF({
         fiscalYear,
-        totalIncome, totalExpenses,
-        netRevenue: netAfterZakat, adminShare, waqifShare, waqfRevenue,
-        expensesByType: Object.entries(expensesByTypeExcludingVat).map(([type, amount]) => ({ type, amount })),
-        incomeBySource: Object.entries(incomeBySource).map(([source, amount]) => ({ source, amount })),
+        totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
+        netRevenue: fin.netAfterZakat, adminShare: fin.adminShare, waqifShare: fin.waqifShare,
+        waqfRevenue: fin.waqfRevenue,
+        expensesByType: Object.entries(fin.expensesByTypeExcludingVat).map(([type, amount]) => ({ type, amount })),
+        incomeBySource: Object.entries(fin.incomeBySource).map(([source, amount]) => ({ source, amount })),
         beneficiaries: currentBeneficiary ? [{
           name: currentBeneficiary.name ?? 'غير معروف',
           percentage: Number(currentBeneficiary.share_percentage ?? 0),
@@ -97,11 +79,11 @@ export const useFinancialReportsPage = () => {
     } catch {
       defaultNotify.error('حدث خطأ أثناء تصدير PDF');
     }
-  }, [fiscalYear, totalIncome, totalExpenses, netAfterZakat, adminShare, waqifShare, waqfRevenue, expensesByTypeExcludingVat, incomeBySource, currentBeneficiary, myShare, pdfWaqfInfo]);
+  }, [fiscalYear, fin, currentBeneficiary, myShare, pdfWaqfInfo]);
 
   return {
     isLoading, isError, handleRetry,
-    isAccountMissing, selectedFY, currentBeneficiary,
+    isAccountMissing: fin.isAccountMissing, selectedFY, currentBeneficiary,
     incomeVsExpenses, distributionData, incomePieData, expensesPieData, monthlyData,
     handleDownloadPDF,
   };
