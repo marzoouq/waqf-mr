@@ -91,4 +91,16 @@ describe('getSafeErrorMessage', () => {
     expect(getSafeErrorMessage(42)).toBe('حدث خطأ غير متوقع. يرجى المحاولة لاحقاً');
     expect(logger.error).toHaveBeenCalled();
   });
+
+  it('returns check constraint message', () => {
+    expect(getSafeErrorMessage(new Error('violates check constraint'))).toBe('القيمة المُدخلة غير صالحة. تحقق من البيانات وأعد المحاولة');
+  });
+
+  it('returns payload too large message', () => {
+    expect(getSafeErrorMessage(new Error('payload too large'))).toBe('حجم البيانات المُرسلة كبير جداً');
+  });
+
+  it('returns internal server error message', () => {
+    expect(getSafeErrorMessage(new Error('500 internal server error'))).toBe('خطأ في الخادم. يرجى المحاولة لاحقاً أو التواصل مع الدعم');
+  });
 });
