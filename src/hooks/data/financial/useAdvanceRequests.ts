@@ -22,6 +22,7 @@ export {
 
 /**
  * جلب طلبات السُلف — للناظر: الكل، للمستفيد: طلباته فقط (RLS تتكفل)
+ * أعمدة صريحة بدل select('*') لتجنب تسريب حقول مستقبلية (#39)
  */
 export const useAdvanceRequests = (fiscalYearId?: string) => {
   return useQuery({
@@ -30,7 +31,7 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
     queryFn: async () => {
       let query = supabase
       .from('advance_requests')
-        .select('*, beneficiary:beneficiaries(id, name, share_percentage, user_id), fiscal_year:fiscal_years(label)')
+        .select('id, beneficiary_id, fiscal_year_id, amount, reason, status, rejection_reason, approved_by, approved_at, paid_at, created_at, beneficiary:beneficiaries(id, name, share_percentage, user_id), fiscal_year:fiscal_years(label)')
         .order('created_at', { ascending: false })
         .limit(100);
       if (fiscalYearId) {
@@ -45,29 +46,26 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
 
 /**
  * إنشاء طلب سلفة جديد (من المستفيد)
+ * beneficiaryName يُمرَّر مباشرة لتجنب طلب شبكة إضافي (#33)
  */
 export const useCreateAdvanceRequest = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (req: { beneficiary_id: string; fiscal_year_id?: string; amount: number; reason?: string }) => {
+    mutationFn: async (req: {
+      beneficiary_id: string;
+      fiscal_year_id?: string;
+      amount: number;
+      reason?: string;
+      beneficiaryName?: string;
+    }) => {
+      const { beneficiaryName, ...insertData } = req;
       const { data, error } = await supabase
         .from('advance_requests')
-        .insert({ ...req, status: 'pending' })
+        .insert({ ...insertData, status: 'pending' })
         .select()
         .single();
       if (error) throw error;
-      let beneficiaryName: string | null = null;
-      try {
-        const { data: ben, error: benError } = await supabase
-          .from('beneficiaries_safe')
-          .select('name')
-          .eq('id', req.beneficiary_id)
-          .single();
-        if (!benError && ben) beneficiaryName = ben.name;
-      } catch {
-        // Non-critical
-      }
-      return { ...data, _beneficiaryName: beneficiaryName };
+      return { ...data, _beneficiaryName: beneficiaryName ?? null };
     },
     onSuccess: (result, vars) => {
       qc.invalidateQueries({ queryKey: ['advance_requests'] });
