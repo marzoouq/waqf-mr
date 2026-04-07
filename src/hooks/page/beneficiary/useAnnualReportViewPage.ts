@@ -1,7 +1,7 @@
 /**
  * هوك صفحة التقرير السنوي — يستخرج كل المنطق من AnnualReportViewPage
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
