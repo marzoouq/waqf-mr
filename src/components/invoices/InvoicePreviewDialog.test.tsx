@@ -1,15 +1,15 @@
 /**
- * اختبار تدفق تحميل PDF من المعاينة (html2canvas → jsPDF)
+ * اختبار تدفق تحميل PDF من المعاينة (modern-screenshot → jsPDF)
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import InvoicePreviewDialog from './InvoicePreviewDialog';
 import type { InvoicePreviewData } from './InvoicePreviewDialog';
 
-// Mock html2canvas
+// Mock modern-screenshot
 const mockToDataURL = vi.fn(() => 'data:image/png;base64,mock');
-vi.mock('html2canvas', () => ({
-  default: vi.fn(() => Promise.resolve({
+vi.mock('modern-screenshot', () => ({
+  domToCanvas: vi.fn(() => Promise.resolve({
     toDataURL: mockToDataURL,
     width: 800,
     height: 1200,
