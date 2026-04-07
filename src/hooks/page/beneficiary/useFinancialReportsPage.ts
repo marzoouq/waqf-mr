@@ -10,6 +10,7 @@ import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { defaultNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { toSourceRecord, toExpenseRecord } from '@/utils/financial/recordConverters';
 
 /** تحويل مصفوفة source/total إلى Record */
 function toSourceRecord(arr: Array<{ source: string; total: number }>): Record<string, number> {
