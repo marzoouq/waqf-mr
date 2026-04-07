@@ -2,6 +2,7 @@
  * تصدير المكونات المشتركة
  */
 export { default as BetaBanner } from './BetaBanner';
+export { default as EmptyState } from './EmptyState';
 export { default as CrudPagination } from './CrudPagination';
 export { default as DeferredRender } from './DeferredRender';
 export { default as DiagnosticOverlay } from './DiagnosticOverlay';

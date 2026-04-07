@@ -100,9 +100,7 @@ Deno.serve(async (req) => {
       fetched_at: new Date().toISOString(),
     };
 
-    const tEnd = performance.now();
     const responseStr = JSON.stringify(result);
-    console.log(`[timing] total: ${(tEnd - t0).toFixed(0)}ms | response size: ${responseStr.length} bytes`);
 
     return new Response(responseStr, { headers: jsonHeaders });
   } catch (e) {
