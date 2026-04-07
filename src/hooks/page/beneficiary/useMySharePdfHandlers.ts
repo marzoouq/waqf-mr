@@ -135,8 +135,20 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
     } catch { defaultNotify.error('حدث خطأ أثناء تصدير التقرير الشامل'); }
   });
 
+  // #B4 — تثبيت مرجع withPdfLoading عبر useCallback
+  const stableWithPdfLoading = useCallback(
+    (fn: () => Promise<void>) => async () => {
+      if (isPdfLoading) return;
+      setIsPdfLoading(true);
+      try { await fn(); } finally { setIsPdfLoading(false); }
+    },
+    [isPdfLoading],
+  );
+
   const handlePrintReport = () => {
     if (!params.currentBeneficiary) return;
+    // #B3 — تحذير عند السنة النشطة
+    if (!params.isClosed) defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية');
     const ok = printShareReport({
       beneficiaryName: params.currentBeneficiary.name ?? 'غير معروف',
       beneficiariesShare: params.beneficiariesShare, myShare: params.myShare,
