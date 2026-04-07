@@ -10,7 +10,7 @@ import { useDisclosurePage } from '@/hooks/page/beneficiary/useDisclosurePage';
 
 const DisclosurePage = () => {
   const {
-    finLoading, finError, pctLoading, contractsLoading, isAccountMissing,
+    isLoading, isError, isAccountMissing,
     selectedFY, handleRetry,
     totalIncome, totalExpenses, vatAmount, zakatAmount, waqfCorpusManual,
     waqfCorpusPrevious, grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
@@ -21,11 +21,11 @@ const DisclosurePage = () => {
     handleDownloadPDF, handleDownloadComprehensivePDF,
   } = useDisclosurePage();
 
-  if (finLoading || pctLoading) {
+  if (isLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
-  if (finError) {
+  if (isError) {
     return (
       <DashboardLayout>
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
@@ -38,7 +38,7 @@ const DisclosurePage = () => {
     );
   }
 
-  if (!currentBeneficiary && !finLoading) {
+  if (!currentBeneficiary && !isLoading) {
     return (
       <DashboardLayout>
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
@@ -103,7 +103,7 @@ const DisclosurePage = () => {
             </Card>
           )}
 
-          <DisclosureContractsSection contracts={contracts} isLoading={contractsLoading} />
+          <DisclosureContractsSection contracts={contracts} isLoading={isLoading} />
 
           <DisclosureFinancialStatement
             incomeBySource={incomeBySource}

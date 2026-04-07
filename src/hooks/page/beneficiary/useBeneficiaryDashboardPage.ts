@@ -1,7 +1,7 @@
 /**
  * هوك لوحة تحكم المستفيد — يستخرج كل المنطق من BeneficiaryDashboard
  */
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 import { useAuth } from '@/hooks/auth/useAuthContext';
@@ -16,7 +16,7 @@ export function useBeneficiaryDashboardPage() {
   const queryClient = useQueryClient();
   const handleRetry = useRetryQueries(['beneficiary-dashboard']);
 
-  const { role, loading: authLoading } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const { filteredData: notifications = [], filteredUnreadCount: unreadCount } = useNotifications();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
 
@@ -35,19 +35,25 @@ export function useBeneficiaryDashboardPage() {
   const isLoading = authLoading || fyLoading || (!fyReady ? false : dashLoading);
 
   const isClosed = fiscalYear?.status === 'closed';
-  const fyProgress = (() => {
-    if (!fiscalYear) return { percent: 0, daysLeft: 0 };
-    if (isClosed) return { percent: 100, daysLeft: 0 };
+
+  // #8 — useMemo بدل IIFE، #24 — إضافة isClosed للنتيجة
+  const fyProgress = useMemo(() => {
+    if (!fiscalYear) return { percent: 0, daysLeft: 0, isClosed: false };
+    if (isClosed) return { percent: 100, daysLeft: 0, isClosed: true };
     const start = new Date(fiscalYear.start_date).getTime();
     const end = new Date(fiscalYear.end_date).getTime();
     const total = end - start;
     const elapsed = Date.now() - start;
     const percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
     const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
-    return { percent, daysLeft };
-  })();
+    return { percent, daysLeft, isClosed: false };
+  }, [fiscalYear, isClosed]);
 
-  const displayName = currentBeneficiary?.name || (role === 'admin' ? 'الناظر' : role === 'waqif' ? 'الواقف' : 'مستفيد');
+  // #22 — تحسين displayName بـ user metadata
+  const displayName = currentBeneficiary?.name
+    || user?.user_metadata?.full_name
+    || user?.email?.split('@')[0]
+    || (role === 'admin' ? 'الناظر' : role === 'waqif' ? 'الواقف' : 'مستفيد');
   const roleLabel = role === 'admin' ? 'واجهة معاينة المستفيد' : 'واجهة المستفيد';
 
   // Realtime invalidation — bfcache safe
@@ -71,7 +77,7 @@ export function useBeneficiaryDashboardPage() {
   }, [beneficiaryId]);
 
   useBfcacheSafeChannel(
-    `beneficiary-dist-${beneficiaryId}`,
+    `beneficiary-dist-${beneficiaryId || 'none'}`,
     distSubscribeFn,
     !!currentBeneficiary?.id,
   );

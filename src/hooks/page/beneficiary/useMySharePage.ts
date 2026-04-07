@@ -1,61 +1,35 @@
 /**
  * هوك بيانات صفحة "حصتي من الريع"
- * محسّن: يعتمد على RPC المستفيد بدل useFinancialSummary
+ * محسّن: يعتمد على useBeneficiaryFinancials المشترك
  */
-import { useMemo } from 'react';
-import { safeNumber } from '@/utils/format/safeNumber';
-import { toSourceRecord, toExpenseRecord } from '@/utils/financial/recordConverters';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useMyBeneficiaryFinance } from '@/hooks/data/financial/useAdvanceRequests';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { useMyShare } from '@/hooks/financial/useMyShare';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { useNavigate } from 'react-router-dom';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { useMySharePdfHandlers } from '@/hooks/page/beneficiary/useMySharePdfHandlers';
+import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiaryFinancials';
+import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { isFyReady } from '@/constants/fiscalYearIds';
 
 
 export const useMySharePage = () => {
-  const navigate = useNavigate();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const selectedFY = fiscalYear;
   const handleRetry = useRetryQueries(['beneficiary-dashboard', 'my-distributions']);
 
-  // RPC واحد بدل useFinancialSummary (5 استعلامات)
   const { data: dashData, isLoading: finLoading, isError: finError } = useBeneficiaryDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
 
-  const account = dashData?.account;
-  const currentAccount = account ? { id: 'rpc', fiscal_year: selectedFY?.label || '' } : null;
-  const isAccountMissing = !account && !!fiscalYearId && fiscalYearId !== 'all';
-  const totalIncome = safeNumber(dashData?.total_income);
-  const totalExpenses = safeNumber(dashData?.total_expenses);
-  const netAfterExpenses = safeNumber(account?.net_after_expenses);
-  const vatAmount = safeNumber(account?.vat_amount);
-  const netAfterVat = safeNumber(account?.net_after_vat);
-  const zakatAmount = safeNumber(account?.zakat_amount);
-  const netAfterZakat = netAfterVat - zakatAmount;
-  const adminShare = safeNumber(account?.admin_share);
-  const waqifShare = safeNumber(account?.waqif_share);
-  const waqfRevenue = safeNumber(account?.waqf_revenue);
-  const waqfCorpusManual = safeNumber(account?.waqf_corpus_manual);
-  const availableAmount = safeNumber(dashData?.available_amount);
-
-  const incomeBySource = useMemo(() => toSourceRecord(dashData?.income_by_source ?? []), [dashData?.income_by_source]);
-  const expensesByTypeExcludingVat = useMemo(() => toExpenseRecord(dashData?.expenses_by_type_excluding_vat ?? []), [dashData?.expenses_by_type_excluding_vat]);
-
-  const beneficiaries = useMemo(() => {
-    if (!dashData?.beneficiary) return [];
-    return [dashData.beneficiary];
-  }, [dashData?.beneficiary]);
+  // هوك مشترك بدل ~20 سطر مكرر
+  const fin = useBeneficiaryFinancials(dashData, fiscalYearId);
 
   const { currentBeneficiary, myShare, pctLoading } = useMyShare({
-    beneficiaries: beneficiaries as Array<{ id: string; name: string; share_percentage: number; user_id?: string | null }>,
-    availableAmount,
+    beneficiaries: fin.beneficiaries as Array<{ id: string; name: string; share_percentage: number; user_id?: string | null }>,
+    availableAmount: fin.availableAmount,
     serverMyShare: dashData?.my_share,
   });
 
@@ -73,47 +47,39 @@ export const useMySharePage = () => {
   const myCarryforwards = benFinance?.myCarryforwards ?? [];
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
 
-  const { getJsonSetting } = useAppSettings();
-  const advanceSettings = getJsonSetting('advance_settings', { enabled: true, min_amount: 500, max_percentage: 50 });
-  const advancesEnabled = advanceSettings.enabled;
-  const beneficiariesShare = availableAmount;
+  // إعدادات السُلف من RPC مباشرة — بدون useAppSettings (#38)
+  const advanceSettings = dashData?.advance_settings ?? { enabled: true, min_amount: 500, max_percentage: 50 };
+  const advancesEnabled = advanceSettings.enabled ?? true;
+  const beneficiariesShare = fin.availableAmount;
   const isClosed = selectedFY?.status === 'closed';
 
-  // فلترة التوزيعات
-  const filteredDistributions = currentAccount
-    ? distributions
-    : (fiscalYearId && fiscalYearId !== 'all'
-        ? distributions.filter(d => d.fiscal_year_id === fiscalYearId)
-        : distributions);
-
-  const totalReceived = filteredDistributions
-    .filter(d => d.status === 'paid')
-    .reduce((sum, d) => sum + safeNumber(d.amount), 0);
-
-  const pendingAmount = filteredDistributions
-    .filter(d => d.status === 'pending')
-    .reduce((sum, d) => sum + safeNumber(d.amount), 0);
+  // فلترة التوزيعات عبر دالة مشتركة (#3, #4)
+  const filteredDistributions = filterDistributionsByFiscalYear(distributions, !!fin.account, fiscalYearId);
+  const { totalReceived, pendingAmount } = summarizeDistributions(filteredDistributions);
 
   // PDF handlers
   const pdf = useMySharePdfHandlers({
     currentBeneficiary: currentBeneficiary ?? null, isClosed: !!isClosed, myShare, totalReceived, pendingAmount,
-    netAfterZakat, adminShare, waqifShare, beneficiariesShare, paidAdvancesTotal,
-    carryforwardBalance, totalIncome, totalExpenses, netAfterExpenses, vatAmount,
-    netAfterVat, zakatAmount, waqfRevenue, waqfCorpusManual, incomeBySource,
-    expensesByTypeExcludingVat, filteredDistributions, contracts,
+    netAfterZakat: fin.netAfterZakat, adminShare: fin.adminShare, waqifShare: fin.waqifShare,
+    beneficiariesShare, paidAdvancesTotal,
+    carryforwardBalance, totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
+    netAfterExpenses: fin.netAfterExpenses, vatAmount: fin.vatAmount,
+    netAfterVat: fin.netAfterVat, zakatAmount: fin.zakatAmount, waqfRevenue: fin.waqfRevenue,
+    waqfCorpusManual: fin.waqfCorpusManual, incomeBySource: fin.incomeBySource,
+    expensesByTypeExcludingVat: fin.expensesByTypeExcludingVat, filteredDistributions, contracts,
     fiscalYearLabel: selectedFY?.label,
   });
 
   return {
-    isLoading: finLoading || distLoading || pctLoading,
+    // تحسين isLoading: تجاهل pctLoading عند وجود serverMyShare (#40)
+    isLoading: finLoading || distLoading || (!dashData?.my_share && pctLoading),
     isError: finError,
     handleRetry,
-    currentBeneficiary, isAccountMissing, isClosed,
+    currentBeneficiary, isAccountMissing: fin.isAccountMissing, isClosed,
     myShare, totalReceived, pendingAmount, paidAdvancesTotal,
     carryforwardBalance, beneficiariesShare,
     filteredDistributions, myAdvances, myCarryforwards,
     advancesEnabled, advanceSettings, fiscalYearId, selectedFY,
     ...pdf,
-    navigate,
   };
 };
