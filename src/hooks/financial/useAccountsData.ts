@@ -52,8 +52,11 @@ export function useAccountsData() {
     return contracts.filter(c => c.status !== 'cancelled');
   }, [contracts]);
 
-  const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId);
-  const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
+  const { data: income = [], isLoading: incLoading } = useIncomeByFiscalYear(fiscalYearId);
+  const { data: expenses = [], isLoading: expLoading } = useExpensesByFiscalYear(fiscalYearId);
+
+  // توحيد حالة التحميل من جميع الاستعلامات الفرعية
+  const isLoading = accLoading || benLoading || tpLoading || unitLoading || propLoading || contLoading || allocLoading || incLoading || expLoading;
 
   const paymentMap = useMemo(() => tenantPayments.reduce((acc, p) => {
     acc[p.contract_id] = p;

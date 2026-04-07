@@ -82,6 +82,8 @@ export function useAccountsCalculations({
     return Number(contract.rent_amount) / count;
   }, [allocationMap]);
 
+  // ⚠️ يختلف عن getPaymentCount — هذا يحسب من مدة العقد الفعلية
+  // وليس القيم الثابتة (12/4/2/1) لأن العقد قد لا يغطي سنة كاملة
   const getExpectedPayments = useCallback((contract: typeof contracts[0]) => {
     const allocation = allocationMap.get(contract.id);
     if (allocation) return allocation.allocated_payments;

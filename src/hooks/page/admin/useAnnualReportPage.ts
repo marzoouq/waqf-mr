@@ -25,9 +25,9 @@ export function useAnnualReportPage() {
   const { data: items = [], isLoading } = useAnnualReportItems(fiscalYearId || undefined);
   const { data: reportStatus } = useReportStatus(fiscalYearId || undefined);
   const { data: properties = [] } = useProperties();
-  const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId || 'all');
-  const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId || 'all');
-  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
+  const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId ?? 'all');
+  const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId ?? 'all');
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId ?? 'all');
   const waqfInfo = usePdfWaqfInfo();
 
   const createItem = useCreateReportItem();
