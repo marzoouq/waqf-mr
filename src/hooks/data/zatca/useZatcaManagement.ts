@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { logger } from '@/lib/logger';
+import { zatcaOnboard } from '@/lib/services/zatcaService';
 import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useZatcaCertificates } from './useZatcaCertificates';
