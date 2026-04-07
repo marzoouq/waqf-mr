@@ -104,6 +104,12 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
     if (!params.currentBeneficiary) return;
     if (!params.isClosed) { defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
     try {
+      // #21 — جلب العقود lazily إذا لم تكن متاحة
+      const contractsData = params.contracts.length > 0
+        ? params.contracts
+        : params.fetchContracts
+          ? await params.fetchContracts()
+          : [];
       await generateComprehensiveBeneficiaryPDF({
         beneficiaryName: params.currentBeneficiary.name ?? 'غير معروف',
         fiscalYear: params.fiscalYearLabel || '',
@@ -116,7 +122,7 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
         availableAmount: params.beneficiariesShare, myShare: params.myShare,
         totalReceived: params.totalReceived, pendingAmount: params.pendingAmount,
         incomeBySource: params.incomeBySource, expensesByType: params.expensesByTypeExcludingVat,
-        contracts: params.contracts.map(c => ({
+        contracts: contractsData.map(c => ({
           contract_number: c.contract_number ?? '', tenant_name: c.tenant_name ?? '',
           rent_amount: Number(c.rent_amount), status: c.status ?? '',
         })),
