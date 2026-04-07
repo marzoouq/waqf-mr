@@ -158,8 +158,7 @@ export function useZatcaManagement() {
   const handleOnboard = useCallback(async () => {
     setOnboardLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('zatca-onboard', { body: { action: 'onboard' } });
-      if (error) throw error;
+      await zatcaOnboard();
       defaultNotify.success('تم إرسال طلب التسجيل');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
     } catch (e) {

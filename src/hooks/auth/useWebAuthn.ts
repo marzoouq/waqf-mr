@@ -118,11 +118,11 @@ export function useWebAuthn() {
 
       localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
       setIsEnabled(true);
-      await fetchCredentials();
+      await fetchCredentials(user.id);
       defaultNotify.success('تم تسجيل البصمة بنجاح! يمكنك الآن تسجيل الدخول بها');
       return true;
     } catch (err: unknown) {
-      handleRegistrationError(err, () => registerBiometric(deviceName));
+      handleRegistrationError(err);
       return false;
     } finally {
       setIsLoading(false);

@@ -42,7 +42,7 @@ export const useBeneficiarySummary = (fiscalYearId?: string) => {
 
   return useQuery<BeneficiarySummaryData>({
     queryKey: ['beneficiary-summary', effectiveFyId ?? 'all'],
-    staleTime: STALE_REALTIME,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('beneficiary-summary', {
         body: { fiscal_year_id: effectiveFyId },

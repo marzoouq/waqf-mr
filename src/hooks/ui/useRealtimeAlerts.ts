@@ -31,7 +31,7 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
         table: 'support_tickets',
       }, (payload) => {
         const ticket = payload.new as { ticket_number?: string; title?: string; priority?: string; created_by?: string };
-        if (ticket.created_by === userId) return;
+        if (userId && ticket.created_by === userId) return;
         const priorityLabel = ticket.priority === 'critical' ? '🔴 حرج' : ticket.priority === 'high' ? '🟠 عالي' : '';
         defaultNotify.info(`تذكرة دعم جديدة ${priorityLabel}`, {
           description: `${ticket.ticket_number}: ${ticket.title}`,

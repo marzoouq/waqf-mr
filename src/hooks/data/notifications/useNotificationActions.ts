@@ -75,15 +75,15 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
       filter: `user_id=eq.${userId}`,
     }, (payload) => {
       qcRef.current.invalidateQueries({ queryKey: ['notifications', userId] });
-      const newNotif = payload.new as Notification;
+      const newNotif = payload.new as AppNotification;
       let soundEnabled = true;
-      try { soundEnabled = localStorage.getItem('waqf_notification_sound') !== 'false'; } catch { /* safe */ }
+      try { soundEnabled = localStorage.getItem(STORAGE_KEYS.NOTIFICATION_SOUND) !== 'false'; } catch { /* safe */ }
       if (soundEnabled) playSoundRef.current();
       if ('Notification' in window && window.Notification.permission === 'granted') {
         if (lastNotifIdRef.current !== newNotif.id) {
           lastNotifIdRef.current = newNotif.id;
           try {
-            new window.Notification(newNotif.title, {
+            new window.Notification(newNotif.title || 'إشعار جديد', {
               body: newNotif.message, icon: '/favicon.ico', dir: 'rtl', lang: 'ar', tag: newNotif.id,
             });
           } catch { /* silent */ }

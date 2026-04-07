@@ -12,6 +12,7 @@ export function useBiometricAuth() {
   const isMountedRef = useIsMountedRef();
 
   const handleBiometricLogin = async () => {
+    if (biometricLoading) return;
     setBiometricLoading(true);
     try {
       const { data: options, error: optErr } = await supabase.functions.invoke('webauthn', {
