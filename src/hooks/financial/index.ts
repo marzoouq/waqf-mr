@@ -11,10 +11,8 @@ export { useAccountsEditing } from './useAccountsEditing';
 export { useAccountsPage } from './useAccountsPage';
 export { useAccountsSettings } from './useAccountsSettings';
 
-// الحسابات المحسوبة
 export { useComputedFinancials } from './useComputedFinancials';
 export { useRawFinancialData } from './useRawFinancialData';
-export { useFinancialSummary } from './useFinancialSummary';
 
 // حصة المستفيد
 export { useMyShare } from './useMyShare';

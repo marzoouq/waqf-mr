@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import ViewportRender from '@/components/common/ViewportRender';
 const CashFlowReport = lazy(() => import('@/components/reports/CashFlowReport'));
 import { OverdueTenantsReport, BalanceSheetReport, ZakatEstimationReport, BeneficiaryDistributionTable, AnnualDisclosureTable, PropertyPerformanceTable } from '@/components/reports';
 import ReportsSummaryCards from '@/components/reports/ReportsSummaryCards';
