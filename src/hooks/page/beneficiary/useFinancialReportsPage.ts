@@ -10,7 +10,7 @@ import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiar
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { defaultNotify } from '@/lib/notify';
-import { safeNumber } from '@/utils/format/safeNumber';
+import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
 
 
 export const useFinancialReportsPage = () => {
