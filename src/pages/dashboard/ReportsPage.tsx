@@ -20,7 +20,7 @@ const LazyReportsCharts = lazy(() => import('@/components/reports/ReportsChartsI
 const ReportsPage = () => {
   const {
     pdfWaqfInfo, fiscalYear,
-    properties, contracts, paymentInvoices,
+    properties, contracts,
     income, expenses, beneficiaries, currentAccount,
     totalIncome, totalExpenses, adminPct, waqifPct,
     zakatAmount, vatAmount, waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,
