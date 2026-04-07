@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender } from '@/components/common';
 import { isFyReady } from '@/constants/fiscalYearIds';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { makeWidgetDefaults } from '@/constants/beneficiaryWidgets';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary-dashboard/BeneficiaryWelcomeCard';
 import BeneficiaryStatsRow from '@/components/beneficiary-dashboard/BeneficiaryStatsRow';
@@ -12,6 +14,8 @@ import BeneficiaryRecentDistributions from '@/components/beneficiary-dashboard/B
 import BeneficiaryNotificationsCard from '@/components/beneficiary-dashboard/BeneficiaryNotificationsCard';
 import BeneficiaryAdvanceCard from '@/components/beneficiary-dashboard/BeneficiaryAdvanceCard';
 import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
+
+const defaultWidgets = makeWidgetDefaults();
 
 const BeneficiaryDashboard = () => {
   const {
