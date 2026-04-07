@@ -1,6 +1,7 @@
 /**
  * المكون الداخلي للرسم الدائري — يُحمَّل كسولاً لتجنب تحميل recharts في الحزمة الأولية.
  */
+import { memo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { fmt } from '@/utils/format/format';
 import { useChartReady } from '@/hooks/ui/useChartReady';
@@ -21,7 +22,7 @@ interface DataItem {
   value: number;
 }
 
-const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = ({ data }) => {
+const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = memo(({ data }) => {
   const { ref, ready } = useChartReady();
 
   return (
@@ -58,6 +59,7 @@ const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = ({ data }) => {
       )}
     </div>
   );
-};
+});
 
+ExpensePieChartInner.displayName = 'ExpensePieChartInner';
 export default ExpensePieChartInner;

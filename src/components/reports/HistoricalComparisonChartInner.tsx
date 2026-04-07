@@ -1,6 +1,7 @@
 /**
  * رسم بياني للمقارنة التاريخية — يُحمَّل كسولاً.
  */
+import { memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { fmt, fmtSAR } from '@/utils/format/format';
 import { useChartReady } from '@/hooks/ui/useChartReady';
@@ -17,7 +18,7 @@ interface Props {
   yearLabels: string[];
 }
 
-const HistoricalComparisonChartInner: React.FC<Props> = ({ chartData, yearLabels }) => {
+const HistoricalComparisonChartInner: React.FC<Props> = memo(({ chartData, yearLabels }) => {
   const { ref, ready } = useChartReady();
 
   return (
@@ -46,6 +47,7 @@ const HistoricalComparisonChartInner: React.FC<Props> = ({ chartData, yearLabels
       )}
     </div>
   );
-};
+});
 
+HistoricalComparisonChartInner.displayName = 'HistoricalComparisonChartInner';
 export default HistoricalComparisonChartInner;

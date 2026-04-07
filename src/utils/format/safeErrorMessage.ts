@@ -55,6 +55,30 @@ export function getSafeErrorMessage(error: unknown): string {
   if (msg.includes('500') || msg.includes('internal server')) {
     return 'خطأ في الخادم. يرجى المحاولة لاحقاً أو التواصل مع الدعم';
   }
+  // خطأ صيانة / عدم توفر الخدمة
+  if (msg.includes('503') || msg.includes('service unavailable') || msg.includes('maintenance')) {
+    return 'الخدمة غير متاحة حالياً. يرجى المحاولة بعد قليل';
+  }
+  // طلب غير صحيح
+  if (msg.includes('400') || msg.includes('bad request') || msg.includes('invalid input') || msg.includes('malformed')) {
+    return 'البيانات المُرسلة غير صحيحة. يرجى مراجعة الحقول والمحاولة مرة أخرى';
+  }
+  // انتهاء صلاحية OTP أو رمز التحقق
+  if (msg.includes('otp') || msg.includes('expired') || msg.includes('verification')) {
+    return 'انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد';
+  }
+  // عدم تطابق كلمة المرور أو ضعفها
+  if (msg.includes('password') && (msg.includes('weak') || msg.includes('short') || msg.includes('mismatch'))) {
+    return 'كلمة المرور ضعيفة أو غير متطابقة. يرجى استخدام كلمة مرور أقوى';
+  }
+  // تخزين الملفات
+  if (msg.includes('storage') || msg.includes('bucket') || msg.includes('upload failed')) {
+    return 'فشل رفع الملف. تحقق من الحجم والصيغة وأعد المحاولة';
+  }
+  // حقل مطلوب مفقود (not-null violation)
+  if (msg.includes('not-null') || msg.includes('null value') || msg.includes('violates not-null')) {
+    return 'يوجد حقل مطلوب غير مُعبّأ. يرجى مراجعة النموذج';
+  }
 
   // رسالة افتراضية آمنة — التفاصيل تبقى في logger فقط
   logger.error('[App Error]', error);

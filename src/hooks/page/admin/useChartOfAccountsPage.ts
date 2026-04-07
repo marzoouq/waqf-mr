@@ -1,7 +1,7 @@
 /**
  * هوك منطق صفحة الشجرة المحاسبية
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { defaultNotify } from '@/lib/notify';
 import {
   useAccountCategoryTree,
@@ -79,13 +79,13 @@ export function useChartOfAccountsPage() {
     return categories.filter(c => !excludeIds.has(c.id));
   }, [categories, editingCategory]);
 
-  const openCreateDialog = () => {
+  const openCreateDialog = useCallback(() => {
     setEditingCategory(null);
     setForm(emptyForm);
     setDialogOpen(true);
-  };
+  }, []);
 
-  const openEditDialog = (cat: AccountCategory) => {
+  const openEditDialog = useCallback((cat: AccountCategory) => {
     setEditingCategory(cat);
     setForm({
       code: cat.code,
@@ -96,7 +96,7 @@ export function useChartOfAccountsPage() {
       is_active: cat.is_active,
     });
     setDialogOpen(true);
-  };
+  }, []);
 
   const handleSave = () => {
     if (!form.code.trim() || !form.name.trim()) {
@@ -141,14 +141,14 @@ export function useChartOfAccountsPage() {
     });
   };
 
-  const handleToggle = (id: string, active: boolean) => {
+  const handleToggle = useCallback((id: string, active: boolean) => {
     updateMutation.mutate({ id, is_active: active });
-  };
+  }, [updateMutation]);
 
-  const confirmDelete = (cat: AccountCategory) => {
+  const confirmDelete = useCallback((cat: AccountCategory) => {
     setDeletingCategory(cat);
     setDeleteDialogOpen(true);
-  };
+  }, []);
 
   return {
     isLoading,

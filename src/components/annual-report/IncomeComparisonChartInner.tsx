@@ -1,6 +1,7 @@
 /**
  * رسم مقارنة الدخل عبر السنوات المالية — يُحمَّل كسولاً لتجنب تحميل recharts في الحزمة الأولية.
  */
+import { memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
@@ -11,7 +12,7 @@ interface IncomeComparisonChartInnerProps {
   data: Array<{ label: string; total: number }>;
 }
 
-const IncomeComparisonChartInner: React.FC<IncomeComparisonChartInnerProps> = ({ data }) => {
+const IncomeComparisonChartInner: React.FC<IncomeComparisonChartInnerProps> = memo(({ data }) => {
   const { ref, ready } = useChartReady();
 
   return (
@@ -32,6 +33,7 @@ const IncomeComparisonChartInner: React.FC<IncomeComparisonChartInnerProps> = ({
       )}
     </div>
   );
-};
+});
 
+IncomeComparisonChartInner.displayName = 'IncomeComparisonChartInner';
 export default IncomeComparisonChartInner;

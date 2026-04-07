@@ -1,6 +1,7 @@
 /**
  * رسم التدفق النقدي الشهري — يُحمَّل كسولاً لتجنب تحميل recharts في الحزمة الأولية.
  */
+import { memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
@@ -17,7 +18,7 @@ interface CashFlowChartInnerProps {
   fmt: (v: number) => string;
 }
 
-const CashFlowChartInner: React.FC<CashFlowChartInnerProps> = ({ monthlyData, fmt }) => {
+const CashFlowChartInner: React.FC<CashFlowChartInnerProps> = memo(({ monthlyData, fmt }) => {
   const { ref, ready } = useChartReady();
 
   return (
@@ -48,6 +49,7 @@ const CashFlowChartInner: React.FC<CashFlowChartInnerProps> = ({ monthlyData, fm
       )}
     </div>
   );
-};
+});
 
+CashFlowChartInner.displayName = 'CashFlowChartInner';
 export default CashFlowChartInner;

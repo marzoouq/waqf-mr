@@ -103,4 +103,28 @@ describe('getSafeErrorMessage', () => {
   it('returns internal server error message', () => {
     expect(getSafeErrorMessage(new Error('500 internal server error'))).toBe('خطأ في الخادم. يرجى المحاولة لاحقاً أو التواصل مع الدعم');
   });
+
+  it('returns service unavailable message', () => {
+    expect(getSafeErrorMessage(new Error('503 service unavailable'))).toBe('الخدمة غير متاحة حالياً. يرجى المحاولة بعد قليل');
+  });
+
+  it('returns bad request message', () => {
+    expect(getSafeErrorMessage(new Error('400 bad request'))).toBe('البيانات المُرسلة غير صحيحة. يرجى مراجعة الحقول والمحاولة مرة أخرى');
+  });
+
+  it('returns OTP expired message', () => {
+    expect(getSafeErrorMessage(new Error('otp has expired'))).toBe('انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد');
+  });
+
+  it('returns weak password message', () => {
+    expect(getSafeErrorMessage(new Error('password is too weak'))).toBe('كلمة المرور ضعيفة أو غير متطابقة. يرجى استخدام كلمة مرور أقوى');
+  });
+
+  it('returns storage upload error message', () => {
+    expect(getSafeErrorMessage(new Error('upload failed for bucket'))).toBe('فشل رفع الملف. تحقق من الحجم والصيغة وأعد المحاولة');
+  });
+
+  it('returns not-null violation message', () => {
+    expect(getSafeErrorMessage(new Error('null value in column violates not-null constraint'))).toBe('يوجد حقل مطلوب غير مُعبّأ. يرجى مراجعة النموذج');
+  });
 });
