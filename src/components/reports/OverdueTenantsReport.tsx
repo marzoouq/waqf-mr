@@ -7,7 +7,7 @@ import { AlertTriangle, Clock } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format/format';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { Skeleton } from '@/components/ui/skeleton';
+
 
 interface OverdueTenantsReportProps {
   contracts: Array<{
