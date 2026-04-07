@@ -19,22 +19,32 @@ export function useReportsData() {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
-  
+
 
   const selectedFiscalYearLabel = fiscalYear?.label;
 
-  const financial = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel, { fiscalYearStatus: fiscalYear?.status });
+  const { income, expenses, accounts, beneficiaries, settings, isLoading, isError: _isError } =
+    useRawFinancialData(fiscalYearId || undefined, selectedFiscalYearLabel);
+
+  const computed = useComputedFinancials({
+    income,
+    expenses,
+    accounts,
+    settings,
+    fiscalYearLabel: selectedFiscalYearLabel,
+    fiscalYearId: fiscalYearId || undefined,
+    fiscalYearStatus: fiscalYear?.status,
+  });
 
   const {
-    income, expenses, beneficiaries, currentAccount,
+    currentAccount,
     totalIncome, totalExpenses, adminPct, waqifPct,
     zakatAmount, vatAmount, waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,
     grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
     adminShare, waqifShare, waqfRevenue,
     availableAmount, remainingBalance,
     incomeBySource, expensesByTypeExcludingVat,
-    isLoading,
-  } = financial;
+  } = computed;
 
   const beneficiariesShare = availableAmount;
   const netRevenue = netAfterZakat;
