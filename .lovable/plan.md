@@ -1,120 +1,84 @@
 
+# تنفيذ الدورة الرابعة — 18 مهمة مُحققة
 
-# خطة تنفيذ نتائج الدورة الثالثة — 21 مهمة مؤكدة
+## التحقق المكتمل
 
-## التحقق الجنائي
-
-تم التحقق من كل الملفات المذكورة. جميع النقاط الـ 21 **مؤكدة بالكود الفعلي**:
-
-- **#20+#98**: `useLayoutState.ts` سطر 54-56 — `await logAccessEvent(...)` ثم `await signOut()` بدون catch/finally
-- **#18**: `useBiometricAuth.ts` سطر 14 — لا guard ضد double-submit
-- **#51**: `useNotificationActions.ts` سطر 47 — string concatenation لبناء SQL filter
-- **#47**: `useDashboardRealtime.ts` — لا cleanup لـ `timerRef` عند unmount
-- **#15**: `useUserManagementMutations.ts` سطر 70 — `setRole` يُبطل `admin-users` فقط
-- **#7**: `useBiometricAuth.ts` يكرر `useWebAuthn.authenticateWithBiometric` بالكامل
-- **#4**: `useNotificationActions.ts` سطر 78 — `'waqf_notification_sound'` hardcoded
-- **#3**: `nationalIdLogin.ts` سطر 64 — `'nidLockedUntil'` hardcoded
-- **#30**: `zatcaService.ts` سطر 26 — `clearZatcaOtp` بدون error handling
-- **#31**: `zatcaService.ts` سطر 29 — `updated_at` من العميل
-- **#21**: `useZatcaManagement.ts` سطر 158+ يكرر `zatcaService.zatcaOnboard`
-- **#23**: `useBeneficiarySummary.ts` سطر 45 — `STALE_REALTIME` لـ Edge Function
-- **#34**: `useZatcaManagement.ts` سطر 152 — `return data` في onSuccess
-- **#29**: `useDashboardSummary.ts` سطر 189 — `y.prev_income` بدون `?? 0`
-- **#41**: `useDashboardRealtime.ts` سطر 28,33 — `JSON.stringify` بدون `useMemo`
-- **#44**: `useRealtimeAlerts.ts` سطر 34 — `ticket.created_by === userId` بدون guard لـ `''`
-- **#48**: `useNotificationActions.ts` سطر 7,76 — `Notification` type يتعارض مع Web API
-- **#52**: `useWebAuthn.ts` سطر 110 — `deviceName` بدون truncation
-- **#95**: `useWebAuthn.ts` سطر 125 — `handleRegistrationError(err, () => registerBiometric(...))` بدون maxRetries
-- **#25**: `useInvoices.ts` سطر 147 — `getUser()` زائد في mutationFn
-- **#6**: `useWebAuthn.ts` سطر 59,83 — `getUser()` مرتين في registerBiometric
+جميع النقاط الـ 18 **مؤكدة بالكود الفعلي**:
+- `useDistributionAdvances.ts`: لا `staleTime` (سطر 8, 25)
+- `useAdvanceRequests.ts`: `STALE_REALTIME` (سطر 29)
+- `useExpenses.ts`: `.limit(1000)` في `all` vs `PER_FY_LIMIT` (2000) في `useIncome.ts`
+- `useBeneficiaryDashboardData.ts`: queryKey بدون `user.id` (سطر 66)، لا فحص `isFyAll` (سطر 67)
+- `useRegistrationEnabled`: نسختان بـ `staleTime` مختلف (`STALE_STATIC` vs `STALE_SETTINGS`)
 
 ---
 
-## الأسبوع 1 — أمان حرج (6 مهام)
+## الأسبوع 1 — إصلاحات Hooks (6 مهام)
 
-### 1. إصلاح `handleSignOut` (#20+#98)
-**ملف:** `src/hooks/ui/useLayoutState.ts`
-```typescript
-const handleSignOut = useCallback(async () => {
-  setLogoutOpen(false);
-  setMobileSidebarOpen(false);
-  await logAccessEvent({ event_type: 'logout', user_id: user?.id }).catch(() => {});
-  try { await signOut(); } finally { navigate('/auth', { replace: true }); }
-}, [navigate, signOut, user?.id]);
+### 1. توحيد حد `useExpenses` (#35)
+**ملف:** `src/hooks/data/financial/useExpenses.ts` سطر 42
+- تغيير `.limit(1000)` → `.limit(PER_FY_LIMIT)`
+
+### 2. إضافة `staleTime` لـ distribution hooks (#26)
+**ملف:** `src/hooks/data/financial/useDistributionAdvances.ts`
+- إضافة `staleTime: STALE_FINANCIAL` لكلا الهوكين
+
+### 3. تغيير `STALE_REALTIME` → `STALE_FINANCIAL` (#32)
+**ملف:** `src/hooks/data/financial/useAdvanceRequests.ts` سطر 29
+
+### 4. إضافة `user.id` لـ queryKey (#41)
+**ملف:** `src/hooks/data/beneficiaries/useBeneficiaryDashboardData.ts` سطر 66
+- `queryKey: ['beneficiary-dashboard', user?.id, fiscalYearId]`
+
+### 5. توحيد `useRegistrationEnabled` (#43+#100)
+- حذف النسخة من `src/hooks/auth/useUserManagementData.ts` (سطور 27-39)
+- تحديث imports في `useUserManagement.ts` و `auth/index.ts` لتستورد من `@/hooks/data/settings`
+
+### 6. إضافة فحص `isFyAll` (#54)
+**ملف:** `src/hooks/data/beneficiaries/useBeneficiaryDashboardData.ts` سطر 67
+- `enabled: !!user && fyReady && !isFyAll(fiscalYearId)`
+
+---
+
+## الأسبوع 2 — إصلاحات DB (6 مهام) — migrations
+
+### 7. تقريب عدد المستفيدين في `get_public_stats` (#4)
+```sql
+'beneficiaries', (SELECT floor(count(*)::numeric / 10) * 10 FROM public.beneficiaries)
 ```
 
-### 2. Double-submit guard (#18)
-**ملف:** `src/hooks/auth/useBiometricAuth.ts`
-إضافة `if (biometricLoading) return;` كأول سطر في `handleBiometricLogin`.
+### 8. حد لـ `ai_chat_sessions` (#11+#12)
+- حد messages: trigger يمنع تجاوز 500 رسالة
+- حد جلسات: trigger يحذف الأقدم عند تجاوز 50 جلسة
 
-### 3. إصلاح SQL injection في `deleteRead` (#51)
-**ملف:** `src/hooks/data/notifications/useNotificationActions.ts` — سطر 47
-استبدال `\`(${[...disabledTypes].join(',')})\`` بمصفوفة Supabase filter مناسبة.
+### 9. منع تداخل السنوات المالية (#73)
+- trigger يفحص `daterange` overlap قبل INSERT/UPDATE
 
-### 4. Cleanup لـ `timerRef` (#47)
-**ملف:** `src/hooks/ui/useDashboardRealtime.ts`
-إضافة `useEffect` cleanup يُلغي timer عند unmount.
+### 10. منع circular reference في `account_categories` (#61)
+- trigger يتتبع سلسلة `parent_id` ويمنع الدورات
 
-### 5. إضافة invalidation في `useSetRoleMutation` (#15)
-**ملف:** `src/hooks/auth/useUserManagementMutations.ts` — سطر 70
-إضافة invalidation لـ `orphaned-beneficiaries` و`unlinked-beneficiaries`.
+### 11. فحص `paid_amount` عند حذف الفواتير (#2)
+- إضافة `AND (paid_amount IS NULL OR paid_amount = 0)` في `generate_contract_invoices`
 
-### 6. حذف `useBiometricAuth` وتوحيده مع `useWebAuthn` (#7)
-- تحديث `BiometricLoginButton.tsx` لاستخدام `useWebAuthn().authenticateWithBiometric` مباشرة
-- حذف `src/hooks/auth/useBiometricAuth.ts`
+### 12. تغيير `TO public` → `TO authenticated` (#13)
+- تحديث policies في `account_categories`
 
 ---
 
-## الأسبوع 2 — تنظيف وأداء (9 مهام)
+## الأسبوع 3 — اختبارات (6 مهام)
 
-### 7. إصلاح hardcoded storage key (#4)
-**ملف:** `useNotificationActions.ts` سطر 78 — استبدال `'waqf_notification_sound'` بـ `STORAGE_KEYS.NOTIFICATION_SOUND`
+### 13. اختبارات Penny Allocation (#37)
+**ملف جديد:** `src/hooks/page/admin/useDistributionCalculation.test.ts`
+- 1000 ÷ 3 مستفيدين (33.33%)
+- مبلغ صفر
+- مستفيد واحد
+- مبلغ 999.99
 
-### 8. إضافة `NID_LOCKED_UNTIL` لـ `STORAGE_KEYS` (#3)
-**ملف:** `storageKeys.ts` + `nationalIdLogin.ts`
-
-### 9. Error handling لـ `clearZatcaOtp` (#30)
-**ملف:** `zatcaService.ts` — فحص error وتسجيله بـ logger
-
-### 10. حذف `updated_at` من `saveZatcaSettings` (#31)
-**ملف:** `zatcaService.ts` — تغيير type إلى `{ key: string; value: string }` فقط
-
-### 11. توحيد `handleOnboard` مع service (#21)
-**ملف:** `useZatcaManagement.ts` — استدعاء `zatcaOnboard()` من `zatcaService`
-
-### 12. تغيير `STALE_REALTIME` → `STALE_FINANCIAL` (#23)
-**ملف:** `useBeneficiarySummary.ts` سطر 45
-
-### 13. حذف `return data` من onSuccess (#34)
-**ملف:** `useZatcaManagement.ts` سطر 152
-
-### 14. إضافة `?? 0` لقيم `yoy` (#29)
-**ملف:** `useDashboardSummary.ts` سطر 189-191
-
-### 15. تغليف بـ `useMemo` (#41)
-**ملف:** `useDashboardRealtime.ts` سطور 28,33
-
----
-
-## الأسبوع 3 — تحسينات (6 مهام)
-
-### 16. إصلاح guard userId (#44)
-**ملف:** `useRealtimeAlerts.ts` سطر 34 — `if (userId && ticket.created_by === userId) return;`
-
-### 17. إعادة تسمية Notification type (#48)
-**ملف:** `useNotificationActions.ts` — تعريف `AppNotification` واستخدامه
-
-### 18. Truncate deviceName (#52)
-**ملف:** `useWebAuthn.ts` سطر 110 — `.slice(0, 100)`
-
-### 19. maxRetries لـ `handleRegistrationError` (#95)
-**ملف:** `webAuthnErrors.ts` + `useWebAuthn.ts` — إضافة counter يمنع recursion لانهائي
-
-### 20. إزالة `getUser()` الزائد (#25)
-**ملف:** `useInvoices.ts` سطور 147-148 — Edge Function تحمي بـ JWT تلقائياً
-
-### 21. تمرير user لـ fetchCredentials (#6)
-**ملف:** `useWebAuthn.ts` — تعديل `fetchCredentials` لقبول `userId` parameter اختياري
+### 14-18. اختبارات هوكات مالية أخرى
+- `useYearComparisonData` transforms
+- `useMultiYearSummary` mapEntry
+- `useBeneficiaryDashboardData` response validation
+- `useDistributionHistory` casting
+- `usePaidAdvances`/`useActiveCarryforwards`
 
 ---
 
@@ -122,9 +86,6 @@ const handleSignOut = useCallback(async () => {
 
 | الأسبوع | الملفات | خطر الكسر |
 |---------|---------|----------|
-| 1 | 6 ملفات (حذف 1) | منخفض — نفس API الخارجي |
-| 2 | 7 ملفات | صفر — تغييرات داخلية |
-| 3 | 4 ملفات | صفر — تحسينات دفاعية |
-
-**17 ملف متأثر، صفر كسر متوقع، تحسين كبير في الأمان والاستقرار.**
-
+| 1 | 5 ملفات (حذف جزء من 1) | صفر — تغييرات داخلية |
+| 2 | 1 migration جديد | منخفض — DB triggers دفاعية |
+| 3 | 6 ملفات اختبار جديدة | صفر — اختبارات فقط |
