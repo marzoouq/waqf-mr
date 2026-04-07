@@ -43,22 +43,26 @@ export interface BeneficiaryDashboardData {
   } | null;
   available_amount: number;
   my_share: number;
+  /** #12 — هل my_share تقديري (سنة نشطة) أم نهائي (سنة مغلقة) */
+  my_share_is_estimated: boolean;
+  /** #4 — إجمالي المبالغ المستلمة (paid) للسنة المحددة من RPC */
+  total_received: number;
   recent_distributions: Array<{
     id: string;
     amount: number;
     date: string;
     status: string;
-  }>;
+  }>; 
   pending_advance_count: number;
   advance_settings: {
     enabled?: boolean;
     min_amount?: number;
     max_percentage?: number;
   } | null;
-  income_by_source: Array<{ source: string; total: number }>;
-  expenses_by_type_excluding_vat: Array<{ expense_type: string; total: number }>;
-  monthly_income: Array<{ month: number; total: number }>;
-  monthly_expenses: Array<{ month: number; total: number }>;
+  income_by_source: Array<{ source: string; total: number }>; 
+  expenses_by_type_excluding_vat: Array<{ expense_type: string; total: number }>; 
+  monthly_income: Array<{ month: number; total: number }>; 
+  monthly_expenses: Array<{ month: number; total: number }>; 
   /** #16 — طلبات السُلف الخاصة بالمستفيد */
   my_advances: Array<{
     id: string;
@@ -72,7 +76,7 @@ export interface BeneficiaryDashboardData {
     approved_at: string | null;
     paid_at: string | null;
     created_at: string;
-  }>;
+  }>; 
   /** #16 — إجمالي السُلف المدفوعة */
   paid_advances_total: number;
   /** #16 — ترحيلات المستفيد */
@@ -85,7 +89,7 @@ export interface BeneficiaryDashboardData {
     status: string;
     notes: string | null;
     created_at: string;
-  }>;
+  }>; 
   /** #16 — رصيد الترحيل النشط */
   carryforward_balance: number;
 }
