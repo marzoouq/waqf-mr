@@ -28,6 +28,7 @@ const financialFields = [
 
 const WaqfSettingsTab = () => {
   const { data: settings, isLoading, updateSettingsBatch } = useAppSettings();
+  const waqfLogoUrl = useSetting('waqf_logo_url');
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
