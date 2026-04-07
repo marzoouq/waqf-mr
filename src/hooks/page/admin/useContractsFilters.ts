@@ -8,10 +8,10 @@ export type StatusFilterValue = 'all' | 'active' | 'expired' | 'cancelled' | 'ov
 
 interface UseContractsFiltersParams {
   contracts: Contract[];
-  paymentInvoices: { status: string; due_date: string; contract_id: string }[];
+  overdueContractIds: Set<string>;
 }
 
-export const useContractsFilters = ({ contracts, paymentInvoices }: UseContractsFiltersParams) => {
+export const useContractsFilters = ({ contracts, overdueContractIds }: UseContractsFiltersParams) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
@@ -35,19 +35,6 @@ export const useContractsFilters = ({ contracts, paymentInvoices }: UseContracts
       return latestB - latestA;
     });
   }, [contracts]);
-
-  // العقود المتأخرة عن السداد > 30 يوم
-  const overdueContractIds = useMemo(() => {
-    const ids = new Set<string>();
-    const now = Date.now();
-    const thirtyDays = 30 * 24 * 3600 * 1000;
-    for (const inv of paymentInvoices) {
-      if (inv.status === 'overdue' || (inv.status === 'pending' && new Date(inv.due_date).getTime() + thirtyDays < now)) {
-        ids.add(inv.contract_id);
-      }
-    }
-    return ids;
-  }, [paymentInvoices]);
 
   const statusCounts = useMemo(() => {
     let active = 0, expired = 0, cancelled = 0;
