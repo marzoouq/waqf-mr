@@ -23,8 +23,8 @@ const MySharePage = () => {
     advancesEnabled, advanceSettings, fiscalYearId, selectedFY,
     // isPdfLoading متاح في hook لكن لا يُستخدم مباشرة هنا
     handleDownloadPDF, handleDownloadDistributionsPDF, handleDownloadComprehensivePDF, handlePrintReport,
-    navigate,
   } = useMySharePage();
+  const navigate = useNavigate();
 
   // حالة التحميل
   if (isLoading) {

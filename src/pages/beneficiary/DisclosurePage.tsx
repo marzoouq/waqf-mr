@@ -103,7 +103,7 @@ const DisclosurePage = () => {
             </Card>
           )}
 
-          <DisclosureContractsSection contracts={contracts} isLoading={contractsLoading} />
+          <DisclosureContractsSection contracts={contracts} isLoading={isLoading} />
 
           <DisclosureFinancialStatement
             incomeBySource={incomeBySource}
