@@ -1,7 +1,7 @@
 /**
  * هوك صفحة الفواتير — يستخرج كل المنطق من InvoicesViewPage
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { defaultNotify } from '@/lib/notify';
 import { useIsMobile } from '@/hooks/ui/use-mobile';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -10,8 +10,8 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { safeNumber } from '@/utils/format/safeNumber';
-
-const ITEMS_PER_PAGE = 10;
+import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 
 export function useInvoicesViewPage() {
   const isMobile = useIsMobile();
@@ -26,7 +26,7 @@ export function useInvoicesViewPage() {
 
   const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
 
-  const filteredInvoices = invoices.filter((item) => {
+  const filteredInvoices = useMemo(() => invoices.filter((item) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -34,13 +34,9 @@ export function useInvoicesViewPage() {
       (INVOICE_TYPE_LABELS[item.invoice_type] || '').includes(q) ||
       item.date.includes(q)
     );
-  });
+  }), [invoices, searchQuery]);
 
-  const statusBadgeVariant = (status: string): 'default' | 'destructive' | 'secondary' | 'outline' => {
-    if (status === 'paid') return 'default';
-    if (status === 'cancelled' || status === 'overdue') return 'destructive';
-    return 'secondary';
-  };
+  const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
   const paginatedInvoices = filteredInvoices.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -83,7 +79,7 @@ export function useInvoicesViewPage() {
     ITEMS_PER_PAGE,
     // بيانات الفواتير
     filteredInvoices, paginatedInvoices,
-    statusBadgeVariant,
+    statusBadgeVariant: invoiceStatusBadgeVariant,
     // عارض الملفات
     viewerFile, setViewerFile,
     // دوال الإجراءات

@@ -1,7 +1,7 @@
 /**
- * هوك جلب الحد الأقصى للسلفة من الخادم — مستخرج من AdvanceRequestDialog
+ * هوك جلب الحد الأقصى للسلفة من الخادم — يستخدم useQuery بدل useEffect
  */
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 
@@ -19,32 +19,28 @@ export const useMaxAdvanceAmount = (
   fiscalYearId: string | undefined,
   enabled: boolean,
 ) => {
-  const [serverData, setServerData] = useState<ServerAdvanceData | null>(null);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!enabled || !beneficiaryId || !fiscalYearId) return;
-    let cancelled = false;
-    setLoading(true);
-    Promise.resolve(supabase.rpc('get_max_advance_amount', {
-      p_beneficiary_id: beneficiaryId,
-      p_fiscal_year_id: fiscalYearId,
-    })).then(({ data, error }) => {
-      if (cancelled) return;
-      if (!error && data && !(data as Record<string, unknown>).error) {
-        setServerData(data as unknown as ServerAdvanceData);
-      }
-      setLoading(false);
-    }).catch(() => {
-      if (!cancelled) {
-        setLoading(false);
+  const { data: serverData = null, isLoading: loading } = useQuery<ServerAdvanceData | null>({
+    queryKey: ['max-advance', beneficiaryId, fiscalYearId],
+    enabled: enabled && !!beneficiaryId && !!fiscalYearId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_max_advance_amount', {
+        p_beneficiary_id: beneficiaryId,
+        p_fiscal_year_id: fiscalYearId!,
+      });
+      if (error) {
         defaultNotify.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
+        throw error;
       }
-    });
-    return () => { cancelled = true; };
-  }, [enabled, beneficiaryId, fiscalYearId]);
+      return data as unknown as ServerAdvanceData;
+    },
+  });
 
-  const reset = () => setServerData(null);
+  const reset = () => {
+    queryClient.removeQueries({ queryKey: ['max-advance', beneficiaryId, fiscalYearId] });
+  };
 
   return { serverData, loading, reset };
 };

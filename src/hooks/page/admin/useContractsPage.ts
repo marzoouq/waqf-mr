@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
@@ -50,7 +51,7 @@ export const useContractsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
   const [activeTab, setActiveTab] = useState('contracts');
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
   const resetForm = useCallback(() => {
     setEditingContract(null);

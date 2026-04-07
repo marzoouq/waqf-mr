@@ -2,6 +2,8 @@
  * هوك منطق صفحة الفواتير — state + form + handlers
  */
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { safeNumber } from '@/utils/format/safeNumber';
 import {
   useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile,
@@ -96,7 +98,7 @@ export const useInvoicesPage = () => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
   }, [previewUrl]);
 
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
   const validateAndSetFile = (file: File) => {
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
@@ -212,11 +214,7 @@ export const useInvoicesPage = () => {
     });
   }, [invoices, filterType, filterStatus, searchQuery]);
 
-  const statusBadgeVariant = (status: string) => {
-    if (status === 'paid') return 'default' as const;
-    if (status === 'cancelled') return 'destructive' as const;
-    return 'secondary' as const;
-  };
+  const statusBadgeVariant = invoiceStatusBadgeVariant;
 
   return {
     invoices, filteredInvoices, properties, contracts, isLoading, isClosed,

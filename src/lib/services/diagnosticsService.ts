@@ -3,6 +3,7 @@
  * تُستخدم من utils/diagnostics/checks/ بدلاً من استيراد Supabase مباشرة
  */
 import { supabase } from '@/integrations/supabase/client';
+import { fromView } from '@/integrations/supabase/viewHelper';
 
 /* ─── قاعدة البيانات ─── */
 
@@ -21,8 +22,7 @@ export const getRealtimeChannels = () => {
 /* ─── ZATCA ─── */
 
 export const getActiveCertificate = async () => {
-  const { data, error } = await supabase
-    .from('zatca_certificates_safe' as any)
+  const { data, error } = await fromView('zatca_certificates_safe')
     .select('certificate_type, is_active, expires_at')
     .eq('is_active', true)
     .limit(1)

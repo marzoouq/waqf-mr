@@ -22,10 +22,13 @@ const snapshot: VitalsSnapshot = {
   updatedAt: 0,
 };
 
+const vitalsKeys = ['lcp', 'cls', 'inp', 'fcp', 'ttfb'] as const;
+type VitalKey = typeof vitalsKeys[number];
+
 function handleMetric(metric: Metric) {
-  const key = metric.name.toLowerCase() as keyof Omit<VitalsSnapshot, 'updatedAt'>;
-  if (key in snapshot) {
-    (snapshot as unknown as Record<string, number | null>)[key] = Math.round(metric.value * 100) / 100;
+  const key = metric.name.toLowerCase() as string;
+  if (vitalsKeys.includes(key as VitalKey)) {
+    snapshot[key as VitalKey] = Math.round(metric.value * 100) / 100;
     snapshot.updatedAt = Date.now();
   }
 }

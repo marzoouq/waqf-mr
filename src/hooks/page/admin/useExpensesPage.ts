@@ -2,6 +2,7 @@
  * هوك منطق صفحة المصروفات
  */
 import { useState, useMemo, useCallback } from 'react';
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/data/financial/useExpenses';
 import { useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
@@ -38,7 +39,7 @@ export function useExpensesPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
   const [formData, setFormData] = useState({ expense_type: '', amount: '', date: '', property_id: '', description: '' });
 
   const resetForm = () => { setFormData({ expense_type: '', amount: '', date: '', property_id: '', description: '' }); setEditingExpense(null); };
