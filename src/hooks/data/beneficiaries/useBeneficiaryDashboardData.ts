@@ -14,6 +14,12 @@ export interface BeneficiaryDashboardData {
   } | null;
   error?: string;
   total_beneficiary_percentage: number;
+  /** #12 — عدد المستفيدين الفعلي من DB */
+  beneficiary_count: number;
+  /** #13 — نسبة حصة الناظر من app_settings */
+  admin_share_pct: number;
+  /** #13 — نسبة حصة الواقف من app_settings */
+  waqif_share_pct: number;
   fiscal_year: {
     id: string;
     label: string;
@@ -53,6 +59,35 @@ export interface BeneficiaryDashboardData {
   expenses_by_type_excluding_vat: Array<{ expense_type: string; total: number }>;
   monthly_income: Array<{ month: number; total: number }>;
   monthly_expenses: Array<{ month: number; total: number }>;
+  /** #16 — طلبات السُلف الخاصة بالمستفيد */
+  my_advances: Array<{
+    id: string;
+    beneficiary_id: string;
+    fiscal_year_id: string | null;
+    amount: number;
+    reason: string | null;
+    status: string;
+    rejection_reason: string | null;
+    approved_by: string | null;
+    approved_at: string | null;
+    paid_at: string | null;
+    created_at: string;
+  }>;
+  /** #16 — إجمالي السُلف المدفوعة */
+  paid_advances_total: number;
+  /** #16 — ترحيلات المستفيد */
+  my_carryforwards: Array<{
+    id: string;
+    beneficiary_id: string;
+    from_fiscal_year_id: string;
+    to_fiscal_year_id: string | null;
+    amount: number;
+    status: string;
+    notes: string | null;
+    created_at: string;
+  }>;
+  /** #16 — رصيد الترحيل النشط */
+  carryforward_balance: number;
 }
 
 /**

@@ -1,17 +1,18 @@
 /**
  * هوك بيانات صفحة الإفصاح السنوي
  * محسّن: يستخدم useBeneficiaryFinancials المشترك + useCallback للـ PDF
+ * #13 — نسب الحصص من RPC | #21 — lazy fetch للعقود
  */
 import { useCallback } from 'react';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { defaultNotify } from '@/lib/notify';
+import { supabase } from '@/integrations/supabase/client';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiaryFinancials';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
@@ -30,8 +31,10 @@ export const useDisclosurePage = () => {
 
   // هوك مشترك (#1)
   const fin = useBeneficiaryFinancials(dashData, fiscalYearId);
-  const adminPct = fin.totalIncome > 0 ? Math.round((fin.adminShare / fin.netAfterZakat) * 100) : 0;
-  const waqifPct = fin.totalIncome > 0 ? Math.round((fin.waqifShare / fin.netAfterZakat) * 100) : 0;
+
+  // #13 — نسب الحصص من RPC بدل الحساب المحلي
+  const adminPct = safeNumber(dashData?.admin_share_pct);
+  const waqifPct = safeNumber(dashData?.waqif_share_pct);
 
   const { currentBeneficiary, myShare, pctLoading } = useMyShare({
     beneficiaries: fin.beneficiaries as Array<{ id: string; name: string; share_percentage: number; user_id?: string | null }>,
@@ -39,8 +42,6 @@ export const useDisclosurePage = () => {
     serverMyShare: dashData?.my_share,
   });
   const beneficiariesShare = fin.availableAmount;
-
-  const { data: contracts = [], isLoading: contractsLoading } = useContractsSafeByFiscalYear(fiscalYearId);
 
   const fiscalYear = selectedFY?.label || '';
   const gregorianFiscalYear = selectedFY
@@ -55,6 +56,15 @@ export const useDisclosurePage = () => {
   // دوال مشتركة (#3, #4)
   const filteredDistributions = filterDistributionsByFiscalYear(distributions, !!fin.account, fiscalYearId);
   const { totalReceived, pendingAmount } = summarizeDistributions(filteredDistributions);
+
+  // #21 — جلب العقود عند طلب PDF فقط (lazy fetch)
+  const fetchContracts = useCallback(async () => {
+    const { data } = await supabase
+      .from('contracts')
+      .select('contract_number, tenant_name, rent_amount, status')
+      .order('created_at', { ascending: false });
+    return data ?? [];
+  }, []);
 
   // لف بـ useCallback (#17)
   const handleDownloadPDF = useCallback(async () => {
@@ -76,6 +86,9 @@ export const useDisclosurePage = () => {
 
   const handleDownloadComprehensivePDF = useCallback(async () => {
     try {
+      // #21 — جلب العقود عند الحاجة فقط
+      const contracts = await fetchContracts();
+
       await generateComprehensiveBeneficiaryPDF({
         beneficiaryName: currentBeneficiary?.name || '',
         fiscalYear: gregorianFiscalYear, totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
@@ -102,11 +115,11 @@ export const useDisclosurePage = () => {
     } catch {
       defaultNotify.error('حدث خطأ أثناء تصدير التقرير الشامل');
     }
-  }, [currentBeneficiary, gregorianFiscalYear, fin, adminPct, waqifPct, beneficiariesShare, myShare, totalReceived, pendingAmount, contracts, filteredDistributions, pdfWaqfInfo]);
+  }, [currentBeneficiary, gregorianFiscalYear, fin, adminPct, waqifPct, beneficiariesShare, myShare, totalReceived, pendingAmount, filteredDistributions, pdfWaqfInfo, fetchContracts]);
 
   return {
     // توحيد loading states (#37)
-    isLoading: finLoading || pctLoading || contractsLoading,
+    isLoading: finLoading || pctLoading,
     isError: finError, isAccountMissing: fin.isAccountMissing,
     selectedFY, handleRetry,
     totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
@@ -116,7 +129,6 @@ export const useDisclosurePage = () => {
     adminShare: fin.adminShare, waqifShare: fin.waqifShare, adminPct, waqifPct, beneficiariesShare,
     incomeBySource: fin.incomeBySource, expensesByTypeExcludingVat: fin.expensesByTypeExcludingVat,
     currentBeneficiary, myShare, totalReceived, pendingAmount, gregorianFiscalYear,
-    contracts,
     handleDownloadPDF, handleDownloadComprehensivePDF,
   };
 };

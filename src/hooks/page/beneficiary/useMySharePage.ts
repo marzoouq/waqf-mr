@@ -1,11 +1,10 @@
 /**
  * هوك بيانات صفحة "حصتي من الريع"
- * محسّن: يعتمد على useBeneficiaryFinancials المشترك
+ * محسّن: يعتمد على useBeneficiaryFinancials المشترك + بيانات السُلف من RPC (#16)
  */
+import { useCallback, useMemo } from 'react';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useMyBeneficiaryFinance } from '@/hooks/data/financial/useAdvanceRequests';
-import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
@@ -13,6 +12,9 @@ import { useMySharePdfHandlers } from '@/hooks/page/beneficiary/useMySharePdfHan
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiaryFinancials';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { isFyReady } from '@/constants/fiscalYearIds';
+import { supabase } from '@/integrations/supabase/client';
+import { safeNumber } from '@/utils/format/safeNumber';
+import type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 
 
 export const useMySharePage = () => {
@@ -38,14 +40,17 @@ export const useMySharePage = () => {
     fiscalYearId,
   );
 
-  // سُلف وترحيلات المستفيد
-  const effectiveFyId = fiscalYearId === 'all' ? undefined : fiscalYearId;
-  const { data: benFinance } = useMyBeneficiaryFinance(currentBeneficiary?.id ?? undefined, effectiveFyId);
-  const myAdvances = benFinance?.myAdvances ?? [];
-  const paidAdvancesTotal = benFinance?.paidAdvancesTotal ?? 0;
-  const carryforwardBalance = benFinance?.carryforwardBalance ?? 0;
-  const myCarryforwards = benFinance?.myCarryforwards ?? [];
-  const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
+  // #16 — سُلف وترحيلات من RPC مباشرة بدل useMyBeneficiaryFinance
+  const myAdvances = useMemo(
+    () => (dashData?.my_advances ?? []) as unknown as AdvanceRequest[],
+    [dashData?.my_advances],
+  );
+  const paidAdvancesTotal = safeNumber(dashData?.paid_advances_total);
+  const carryforwardBalance = safeNumber(dashData?.carryforward_balance);
+  const myCarryforwards = useMemo(
+    () => (dashData?.my_carryforwards ?? []) as unknown as AdvanceCarryforward[],
+    [dashData?.my_carryforwards],
+  );
 
   // إعدادات السُلف من RPC مباشرة — بدون useAppSettings (#38)
   const advanceSettings = dashData?.advance_settings ?? { enabled: true, min_amount: 500, max_percentage: 50 };
@@ -57,6 +62,15 @@ export const useMySharePage = () => {
   const filteredDistributions = filterDistributionsByFiscalYear(distributions, !!fin.account, fiscalYearId);
   const { totalReceived, pendingAmount } = summarizeDistributions(filteredDistributions);
 
+  // #21 — جلب العقود عند طلب PDF فقط (lazy fetch)
+  const fetchContracts = useCallback(async () => {
+    const { data } = await supabase
+      .from('contracts')
+      .select('contract_number, tenant_name, rent_amount, status')
+      .order('created_at', { ascending: false });
+    return data ?? [];
+  }, []);
+
   // PDF handlers
   const pdf = useMySharePdfHandlers({
     currentBeneficiary: currentBeneficiary ?? null, isClosed: !!isClosed, myShare, totalReceived, pendingAmount,
@@ -66,8 +80,10 @@ export const useMySharePage = () => {
     netAfterExpenses: fin.netAfterExpenses, vatAmount: fin.vatAmount,
     netAfterVat: fin.netAfterVat, zakatAmount: fin.zakatAmount, waqfRevenue: fin.waqfRevenue,
     waqfCorpusManual: fin.waqfCorpusManual, incomeBySource: fin.incomeBySource,
-    expensesByTypeExcludingVat: fin.expensesByTypeExcludingVat, filteredDistributions, contracts,
+    expensesByTypeExcludingVat: fin.expensesByTypeExcludingVat, filteredDistributions,
+    contracts: [], // يُجلب lazily عند الحاجة
     fiscalYearLabel: selectedFY?.label,
+    fetchContracts, // #21
   });
 
   return {
