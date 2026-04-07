@@ -45,7 +45,7 @@ export const useContractsPage = () => {
   }, [paymentInvoices]);
 
   // التصفية والتجميع
-  const filters = useContractsFilters({ contracts, paymentInvoices });
+  const filters = useContractsFilters({ contracts, overdueContractIds });
 
   // التجديد الجماعي
   const bulkRenew = useContractsBulkRenew({
