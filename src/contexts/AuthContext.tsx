@@ -199,7 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setRoleWithRef(null);
       queryClient.clear();
       try { CLEARABLE_STORAGE_KEYS.forEach(key => localStorage.removeItem(key)); } catch {}
-      try { sessionStorage.removeItem('nidLockedUntil'); } catch {}
+      try { sessionStorage.removeItem(STORAGE_KEYS.NID_LOCKED_UNTIL); } catch {}
       clearSlowQueries();
       clearPageLoadEntries();
       toast.dismiss();

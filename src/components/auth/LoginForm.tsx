@@ -35,7 +35,7 @@ export default function LoginForm({ signIn, loading: _loading, onResetPassword, 
   const formRef = useRef<HTMLFormElement>(null);
   const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(() => {
     try {
-      const stored = sessionStorage.getItem('nidLockedUntil');
+      const stored = sessionStorage.getItem(STORAGE_KEYS.NID_LOCKED_UNTIL);
       if (stored) {
         const val = Number(stored);
         return val > Date.now() ? val : null;
