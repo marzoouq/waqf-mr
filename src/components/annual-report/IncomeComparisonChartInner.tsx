@@ -12,7 +12,7 @@ interface IncomeComparisonChartInnerProps {
   data: Array<{ label: string; total: number }>;
 }
 
-const IncomeComparisonChartInner: React.FC<IncomeComparisonChartInnerProps> = ({ data }) => {
+const IncomeComparisonChartInner: React.FC<IncomeComparisonChartInnerProps> = memo(({ data }) => {
   const { ref, ready } = useChartReady();
 
   return (
