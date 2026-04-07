@@ -9,6 +9,7 @@ import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useZatcaCertificates } from './useZatcaCertificates';
 
 const INVOICES_PER_PAGE = 20;
 
@@ -40,15 +41,8 @@ export function useZatcaManagement() {
   ];
   const canOnboard = missingSettings.length === 0;
 
-  const { data: certificates = [], isLoading: certsLoading } = useQuery({
-    queryKey: ['zatca-certificates'],
-    staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
-      const { data, error } = await supabase.from('zatca_certificates_safe' as any).select('id, certificate_type, is_active, request_id, created_at').order('created_at', { ascending: false }).limit(50);
-      if (error) throw error;
-      return (data ?? []) as unknown as { id: string; certificate_type: string; is_active: boolean | null; request_id: string | null; created_at: string }[];
-    },
-  });
+  // استخدام الهوك الموحّد بدل تعريف query مكرر
+  const { data: certificates = [], isLoading: certsLoading } = useZatcaCertificates();
 
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
     queryKey: ['zatca-invoices', statusFilter, fiscalYearId],
