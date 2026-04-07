@@ -11,8 +11,16 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { typeConfig } from './notificationConstants';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type NotificationItem = any;
+interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  is_read: boolean;
+  link: string | null;
+  created_at: string;
+  user_id: string;
+}
 
 interface Props {
   groupedNotifications: Record<string, NotificationItem[]>;
