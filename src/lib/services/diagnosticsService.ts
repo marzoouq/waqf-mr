@@ -21,12 +21,13 @@ export const getRealtimeChannels = () => {
 /* ─── ZATCA ─── */
 
 export const getActiveCertificate = async () => {
-  return supabase
-    .from('zatca_certificates')
+  const { data, error } = await supabase
+    .from('zatca_certificates_safe' as any)
     .select('certificate_type, is_active, expires_at')
     .eq('is_active', true)
     .limit(1)
     .maybeSingle();
+  return { data: data as { certificate_type: string; is_active: boolean; expires_at: string | null } | null, error };
 };
 
 export const getInvoiceChainRecords = async (limit = 500) => {

@@ -1901,6 +1901,33 @@ export type Database = {
         }
         Relationships: []
       }
+      zatca_certificates_safe: {
+        Row: {
+          certificate_type: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string | null
+          is_active: boolean | null
+          request_id: string | null
+        }
+        Insert: {
+          certificate_type?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          request_id?: string | null
+        }
+        Update: {
+          certificate_type?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          request_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       allocate_icv_and_chain:
