@@ -19,7 +19,7 @@ export function useReportsData() {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
-  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || 'all');
+  
 
   const selectedFiscalYearLabel = fiscalYear?.label;
 
