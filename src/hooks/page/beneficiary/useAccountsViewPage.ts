@@ -11,6 +11,7 @@ import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBenef
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { generateAccountsPDF } from '@/utils/pdf';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { toSourceRecord, toExpenseRecord } from '@/utils/financial/recordConverters';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 
