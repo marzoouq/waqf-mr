@@ -40,11 +40,15 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const pdfWaqfInfo = usePdfWaqfInfo();
 
-  const withPdfLoading = (fn: () => Promise<void>) => async () => {
-    if (isPdfLoading) return;
-    setIsPdfLoading(true);
-    try { await fn(); } finally { setIsPdfLoading(false); }
-  };
+  // #B4 — useCallback لتثبيت مرجع withPdfLoading
+  const withPdfLoading = useCallback(
+    (fn: () => Promise<void>) => async () => {
+      if (isPdfLoading) return;
+      setIsPdfLoading(true);
+      try { await fn(); } finally { setIsPdfLoading(false); }
+    },
+    [isPdfLoading],
+  );
 
   const handleDownloadPDF = withPdfLoading(async () => {
     if (!params.currentBeneficiary) return;
