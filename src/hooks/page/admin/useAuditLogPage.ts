@@ -24,7 +24,8 @@ export function useAuditLogPage() {
   const waqfInfo = usePdfWaqfInfo();
   const hasDateFilter = dateFrom !== '' || dateTo !== '';
 
-  const clearDateFilters = () => { setDateFrom(''); setDateTo(''); setCurrentPage(1); };
+  // #22: useCallback لمنع إعادة إنشاء الدالة عند كل render
+  const clearDateFilters = useCallback(() => { setDateFrom(''); setDateTo(''); setCurrentPage(1); }, []);
 
   const { data: auditData, isLoading } = useAuditLog({
     tableName: tableFilter !== 'all' ? tableFilter : undefined,
