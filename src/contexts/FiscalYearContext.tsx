@@ -71,10 +71,11 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
   const isClosed = fiscalYear?.status === 'closed';
   const isSpecificYear = !isFyAll(fiscalYearId) && isFyReady(fiscalYearId);
 
-  // جلب مسبق لبيانات لوحة التحكم بالتوازي مع تحميل chunk الصفحة
+  // جلب مسبق لبيانات لوحة التحكم — فقط للناظر والمحاسب
+  const isAdminOrAccountant = role === 'admin' || role === 'accountant';
   const queryClient = useQueryClient();
   useEffect(() => {
-    if (isFyReady(fiscalYearId) && !isFyAll(fiscalYearId)) {
+    if (isAdminOrAccountant && isFyReady(fiscalYearId) && !isFyAll(fiscalYearId)) {
       const fy = fiscalYears.find(f => f.id === fiscalYearId);
       queryClient.prefetchQuery({
         queryKey: ['dashboard-summary', fiscalYearId],
@@ -89,7 +90,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
         staleTime: 2 * 60 * 1000,
       });
     }
-  }, [fiscalYearId, fiscalYears, queryClient]);
+  }, [fiscalYearId, fiscalYears, queryClient, isAdminOrAccountant]);
 
   const handleSetFiscalYearId = useCallback((id: string) => {
     setSelectedId(id);
