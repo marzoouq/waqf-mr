@@ -52,11 +52,12 @@ describe('calculateDistributions — Penny Allocation', () => {
     const bens = [makeBen('a', 50), makeBen('b', 50)];
     const advances = { a: 600 };
     const result = calculateDistributions(bens, 1000, advances);
-    const a = result.find(r => r.beneficiary_id === 'a')!;
-    expect(a.share_amount).toBe(500);
-    expect(a.advances_paid).toBe(600);
-    expect(a.net_amount).toBe(0);
-    expect(a.deficit).toBe(100);
+    const a = result.find(r => r.beneficiary_id === 'a');
+    expect(a).toBeDefined();
+    expect(a!.share_amount).toBe(500);
+    expect(a!.advances_paid).toBe(600);
+    expect(a!.net_amount).toBe(0);
+    expect(a!.deficit).toBe(100);
   });
 
   it('يخصم السلف والترحيل معاً', () => {
