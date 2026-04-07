@@ -123,9 +123,9 @@ export const useDisclosurePage = () => {
 
   return {
     // توحيد loading states (#37)
-    isLoading: finLoading || pctLoading,
+    isLoading: finLoading || pctLoading || contractsLoading,
     isError: finError, isAccountMissing: fin.isAccountMissing,
-    selectedFY, handleRetry,
+    selectedFY, handleRetry, contracts,
     totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
     vatAmount: fin.vatAmount, zakatAmount: fin.zakatAmount, waqfCorpusManual: fin.waqfCorpusManual,
     waqfCorpusPrevious: fin.waqfCorpusPrevious, grandTotal: fin.grandTotal,
