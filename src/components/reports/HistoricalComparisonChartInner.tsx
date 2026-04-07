@@ -18,7 +18,7 @@ interface Props {
   yearLabels: string[];
 }
 
-const HistoricalComparisonChartInner: React.FC<Props> = ({ chartData, yearLabels }) => {
+const HistoricalComparisonChartInner: React.FC<Props> = memo(({ chartData, yearLabels }) => {
   const { ref, ready } = useChartReady();
 
   return (
