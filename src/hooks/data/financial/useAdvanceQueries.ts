@@ -63,27 +63,6 @@ export const useMyBeneficiaryFinance = (beneficiaryId?: string, fiscalYearId?: s
   });
 };
 
-// ─── Backward-compatible aliases ───
-/** @deprecated استخدم useMyBeneficiaryFinance بدلاً منه */
-export const useMyAdvanceRequests = (beneficiaryId?: string) => {
-  const q = useMyBeneficiaryFinance(beneficiaryId);
-  return { ...q, data: q.data?.myAdvances ?? [] };
-};
-/** @deprecated استخدم useMyBeneficiaryFinance بدلاً منه */
-export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: string) => {
-  const q = useMyBeneficiaryFinance(beneficiaryId, fiscalYearId);
-  return { ...q, data: q.data?.paidAdvancesTotal ?? 0 };
-};
-/** @deprecated استخدم useMyBeneficiaryFinance بدلاً منه */
-export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: string) => {
-  const q = useMyBeneficiaryFinance(beneficiaryId, fiscalYearId);
-  return { ...q, data: q.data?.carryforwardBalance ?? 0 };
-};
-/** @deprecated استخدم useMyBeneficiaryFinance بدلاً منه */
-export const useMyCarryforwards = (beneficiaryId?: string) => {
-  const q = useMyBeneficiaryFinance(beneficiaryId);
-  return { ...q, data: q.data?.myCarryforwards ?? [] };
-};
 
 /**
  * M-01 fix: جلب كل المرحّلات النشطة (للناظر) — يُفلتر بـ to_fiscal_year_id

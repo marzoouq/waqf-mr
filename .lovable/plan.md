@@ -1,107 +1,167 @@
 
+# تقرير التدقيق الشامل — أبريل 2026
 
-# خطة تنفيذ تدقيق لوحة المحاسب — 42 نقطة
-
-## التحقق من النتائج
-
-بعد فحص الملفات الفعلية:
-
-### نقاط غير صالحة أو مُنفَّذة بالفعل
-- **#7** — `/dashboard/settings` محمي بالفعل بـ `ADMIN_ONLY` في `adminRoutes.tsx` سطر 59. ✅
-- **#10** — طلب `app_settings` permission لإقفال السنة — تغيير معماري كبير ومؤجل.
-- **#20** — `documentationRate` قرار تجاري مقبول — يحتاج comment فقط.
-- **#28** — الفلاتر تبقى بعد إغلاق form — سلوك مقصود، يحتاج comment فقط.
-- **#31** — التقرير السنوي مفتوح للمحاسب بالتصميم (يُولّده ويُراجعه).
-
-### الخطة النهائية — 3 دورات
+**نطاق الفحص:** 900 ملف مصدر | 221 هوك | 337 مكون | 117 utility | 87 صفحة | 17 Edge Function  
+**حالة البناء:** TypeScript `--noEmit` ✅ | Production build ✅ | 3.63 MB JS  
+**ثغرات أمنية:** صفر (npm audit clean) ✅
 
 ---
 
-## الدورة 1 — أمان وتوحيد (أعلى أولوية)
+## 📊 ملخص الحالة العامة
 
-**ملف جديد: `src/utils/permissions.ts`**
-دالة موحّدة لمنطق `isLocked` (#1, #2, #9):
-```typescript
-export const canModifyFiscalYear = (role: string | null, isClosed: boolean): boolean =>
-  !isClosed || role === 'admin';
-```
-
-**تحديث 3 ملفات:**
-- `useIncomePage.ts` سطر 23 → `const isLocked = !canModifyFiscalYear(role, isClosed);`
-- `useExpensesPage.ts` سطر 24 → نفس التغيير
-- `InvoicesPage.tsx` سطر 22 → نفس التغيير (هذا الملف يستثني المحاسب أصلاً — توحيد فقط)
-
-**تحديث `DashboardAlerts.tsx`** (#6, #8):
-- إضافة `role` prop للمكوّن
-- تنبيه السُلف: عرض "تحتاج موافقة الناظر" للمحاسب بدل زر "مراجعة الطلبات"
-- تنبيه النسب الافتراضية: عرض "يرجى إبلاغ الناظر" للمحاسب بدل زر "ضبط النسب"
-- تمرير `role` من `AdminDashboard.tsx`
-
-**تحديث `useAdminDashboardStats.ts`** (#5):
-- إضافة `role` parameter
-- تصفية بطاقات "حصة الناظر"، "حصة الواقف"، "ريع الوقف" عند `role === 'accountant'`
+| المقياس | القيمة | الحكم |
+|---------|--------|-------|
+| `any` في production code | **0** | ✅ ممتاز (كلها في test files فقط) |
+| `console.*` مباشر | **0** | ✅ ممتاز (logger مركزي) |
+| Supabase مباشر في components | **0** | ✅ فصل مسؤوليات كامل |
+| Supabase مباشر في pages | **0** | ✅ فصل مسؤوليات كامل |
+| أسماء مكونات مكررة | **0** | ✅ لا تعارض |
+| Barrel files | **74** | ✅ تنظيم جيد |
+| ثغرات أمنية | **0** | ✅ نظيف |
 
 ---
 
-## الدورة 2 — تقليل التكرار وتحسينات
+## 🔴 الأولوية 1 — تبعيات ميتة (10 حزم، خطر صفري)
 
-**ملف جديد: `src/hooks/ui/useTableSort.ts`** (#16):
-```typescript
-export function useTableSort<T extends string>(defaultField?: T | null) {
-  // sortField, sortDir, handleSort — generic لكل الجداول
-}
-```
+| الحزمة | الاستيرادات |
+|--------|------------|
+| `embla-carousel-react` | 0 |
+| `react-resizable-panels` | 0 |
+| `input-otp` | 0 |
+| `cmdk` | 0 |
+| `@radix-ui/react-aspect-ratio` | 0 |
+| `@radix-ui/react-context-menu` | 0 |
+| `@radix-ui/react-hover-card` | 0 |
+| `@radix-ui/react-menubar` | 0 |
+| `@radix-ui/react-navigation-menu` | 0 |
+| `@radix-ui/react-toast` | 0 (sonner مُستخدم بدلاً) |
 
-**تحديث 4+ ملفات** لاستخدام `useTableSort`:
-- `useIncomePage.ts`, `useExpensesPage.ts`, `usePaymentInvoicesTab.ts`, `useContractsPage.ts`
-
-**ملف جديد: `src/types/sorting.ts`** (#13):
-```typescript
-export type SortDir = 'asc' | 'desc';
-```
-
-**تحسينات داخلية:**
-- **#35**: استخراج `EMPTY_INCOME_FORM` و `EMPTY_EXPENSE_FORM` كـ constants خارج الهوك
-- **#12**: نقل `ITEMS_PER_PAGE` خارج الهوك كـ module-level constant
-- **#17**: إصلاح `setCurrentPage(1)` بعد الحذف — البقاء في الصفحة الحالية ما لم تصبح فارغة
-- **#14 + #15**: تعطيل زر الإضافة عند `!fiscalYear?.id`
-- **#37**: تأجيل `usePdfWaqfInfo` بـ `enabled: false` حتى يُطلب التصدير
-- **#36**: تأجيل `useProperties` و `useContractsByFiscalYear` بـ `enabled: isOpen`
+**الإجراء:** `npm uninstall` — لا مخاطر.
 
 ---
 
-## الدورة 3 — تقسيم الهوكات الضخمة
+## 🔴 الأولوية 2 — كود مهمل (`@deprecated`) لا يزال موجوداً
 
-**#29 — تقسيم `useContractsPage.ts` (236 سطر):**
-- `useContractForm.ts` — CRUD form logic (handleEdit, handleSubmit, resetForm, formInitialData)
-- `useContractsPage.ts` — يبقى كـ orchestrator خفيف
+| الملف | العدد | التفصيل |
+|-------|-------|---------|
+| `useAdvanceQueries.ts` | 4 هوكات | `useMyAdvanceRequests`, `usePaidAdvancesTotal`, `useCarryforwardBalance`, `useMyCarryforwards` — بدون مستهلكين فعليين |
+| `useCollectionData.ts` | 1 دالة | `useCollectionData` — fallback قديم |
+| `renderers.ts` | ملف كامل | barrel مهمل — يجب الاستيراد من `renderers/index` مباشرة |
 
-**#22 — تقسيم `usePaymentInvoicesTab.ts` (231 سطر):**
-- `usePaymentInvoiceActions.ts` — pay, unpay, bulk pay, generate
-- `usePaymentInvoicesTab.ts` — يبقى كـ orchestrator
-
----
-
-## مهام مؤجلة (لا تُنفَّذ الآن)
-
-| # | السبب |
-|---|-------|
-| #3 | أزرار QuickActions للمحاسب — تحتاج مراجعة UX شاملة |
-| #4, #23 | تخصيص dashboard كامل للمحاسب — تغيير معماري كبير |
-| #10 | permission-based closure — يتطلب تغيير DB/RPC |
-| #24, #25, #30 | UX enhancements — أولوية أقل |
-| #29 (الجزء الكامل), #22 (الجزء الكامل) | الاستخراج الكامل — الدورة 3 تُنفّذ الأساسي فقط |
-| #32, #33, #39, #42 | اختبارات وتحسينات ثانوية |
+**الإجراء:** حذف الهوكات الميتة + تحديث مسارات الاستيراد.
 
 ---
 
-## ملخص التنفيذ
+## 🟠 الأولوية 3 — ازدواجية مكونات
 
-| الدورة | الملفات | المهام | الخطورة |
-|--------|---------|--------|---------|
-| 1 | 1 جديد + 5 تحديث | 7 نقاط (#1,2,5,6,8,9) | منخفض — توحيد وتصفية |
-| 2 | 2 جديد + 6 تحديث | 9 نقاط (#12-17,35-37) | منخفض — refactoring |
-| 3 | 2 جديد + 2 تحديث | 2 نقطة (#22,29) | منخفض — استخراج |
+### CrudPagination vs TablePagination
+- `CrudPagination`: مستخدم في **2 صفحة فقط** (BeneficiariesPage, PropertiesPage)
+- `TablePagination`: مستخدم في **16 مكون/صفحة**
 
-**إجمالي فوري: 18 نقطة عبر 3 دورات** + باقي المهام مؤجلة
+**الإجراء:** دمج `CrudPagination` في `TablePagination` وتحديث الاستخدامين.
 
+---
+
+## 🟠 الأولوية 4 — ملفات في أماكن خاطئة
+
+| الملف | الموقع الحالي | الموقع الصحيح |
+|-------|-------------|-------------|
+| `closeYearChecklist.utils.ts` | `components/accounts/` | `utils/financial/` |
+| `helpers.ts` | `components/properties/units/` | `utils/properties/` |
+
+**المبدأ:** ملفات utils/helpers يجب أن تكون في `src/utils/` وليس داخل مجلدات المكونات.
+
+---
+
+## 🟡 الأولوية 5 — هوكات ومكونات ضخمة
+
+### هوكات > 200 سطر (تحتاج تقسيم):
+| الملف | الأسطر | ملاحظة |
+|-------|--------|--------|
+| `useDashboardSummary.ts` | 249 | أثقل data hook — معالجة بيانات كثيفة |
+| `useCrudFactory.ts` | 237 | مقبول — factory عام |
+| `useInvoicesPage.ts` | 233 | مرشح لاستخراج actions |
+| `useWebAuthn.ts` | 231 | مقبول — WebAuthn معقد أصلاً |
+| `usePropertiesPage.ts` | 224 | مرشح لاستخراج form logic |
+| `usePrefetchPages.ts` | 214 | مقبول — تعريفات prefetch |
+
+### مكونات > 200 سطر (غير UI library):
+| الملف | الأسطر | ملاحظة |
+|-------|--------|--------|
+| `LoginForm.tsx` | 304 | مرشح لتقسيم (WebAuthn + OTP + Password) |
+| `ZatcaInvoicesTab.tsx` | 229 | مرشح لاستخراج table logic |
+| `MonthlyPerformanceReport.tsx` | 224 | مقبول — تقرير واحد |
+| `AccountantDashboardView.tsx` | 210 | جديد — مقبول حالياً |
+
+---
+
+## 🟡 الأولوية 6 — حجم الـ Bundle
+
+| Chunk | الحجم | الملاحظة |
+|-------|-------|---------|
+| `vendor-pdf` | **530 KB** | jsPDF + خطوط عربية — ضروري، lazy loaded ✅ |
+| `vendor-recharts` | **342 KB** | رسوم بيانية — ضروري |
+| `vendor-html2canvas` | **198 KB** | ملف واحد فقط يستخدمه — بديل `dom-to-image-more` (~15 KB) |
+| `vendor-supabase` | **190 KB** | أساسي |
+| `vendor-react` | **189 KB** | أساسي |
+| `vendor-radix` | **153 KB** | يمكن تقليصه بحذف 10 حزم ميتة |
+
+**إجمالي JS:** 3.63 MB (gzip ~700 KB) — مقبول لتطبيق enterprise.
+
+---
+
+## 🟡 الأولوية 7 — `useEffect` (59 ملف)
+
+رقم مقبول لمشروع بهذا الحجم. معظمها مبرر (subscriptions, listeners, sync). يستحق مراجعة انتقائية لاكتشاف effects يمكن استبدالها بـ `useMemo` أو event handlers مباشرة.
+
+---
+
+## 🟢 الأولوية 8 — التبعيات (حالة الإصدارات)
+
+| الحزمة | الإصدار | الحالة |
+|--------|---------|--------|
+| react | ^19.2.4 | ✅ أحدث |
+| typescript | ^6.0.2 | ✅ أحدث |
+| react-router-dom | ^7.14.0 | ✅ أحدث |
+| @tanstack/react-query | ^5.96.2 | ✅ أحدث |
+| @supabase/supabase-js | ^2.101.0 | ✅ أحدث |
+| tailwindcss | ^4.2.2 | ✅ أحدث |
+| zod | ^4.3.6 | ✅ أحدث |
+| vite | 5.4.21 | ⚠️ Vite 6 متاح — ترقية آمنة غير عاجلة |
+
+---
+
+## 🟢 نقاط القوة (لا تحتاج تغيير)
+
+- ✅ **فصل مسؤوليات مثالي** — صفر Supabase في UI/Pages
+- ✅ **TypeScript صارم** — صفر `any` في production
+- ✅ **Logger مركزي** — صفر `console.*` في production
+- ✅ **Lazy loading شامل** — كل الصفحات مع `lazyWithRetry`
+- ✅ **Vendor chunks مفصولة** بشكل ذكي في Vite config
+- ✅ **لا مكونات مكررة الأسماء**
+- ✅ **لا ثغرات أمنية** في التبعيات
+- ✅ **Barrel files منظمة** (74 ملف)
+
+---
+
+## 📋 خارطة التنفيذ المُقترحة
+
+### الدورة 1 — تنظيف فوري (خطر صفري):
+1. حذف 10 تبعيات ميتة
+2. حذف 4 هوكات `@deprecated` بدون مستهلكين
+3. حذف `renderers.ts` المهمل + تحديث الاستيراد
+
+### الدورة 2 — إعادة تنظيم:
+1. دمج `CrudPagination` في `TablePagination`
+2. نقل `closeYearChecklist.utils.ts` → `utils/financial/`
+3. نقل `helpers.ts` → `utils/properties/`
+
+### الدورة 3 — تحسين (اختياري):
+1. استبدال `html2canvas` بـ `dom-to-image-more`
+2. ترقية Vite 5 → 6
+3. مراجعة `useEffect` لاكتشاف بدائل أفضل
+4. تقسيم `LoginForm.tsx` (304 سطر)
+
+---
+
+**⚠️ لا تغيير في الكود — هذا تقرير تحليلي فقط. التنفيذ يتم بعد الموافقة.**

@@ -13,10 +13,6 @@ import { fmt } from '@/utils/format/format';
 export type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 export {
   useMyBeneficiaryFinance,
-  useMyAdvanceRequests,
-  usePaidAdvancesTotal,
-  useCarryforwardBalance,
-  useMyCarryforwards,
   useAllCarryforwards,
 } from './useAdvanceQueries';
 

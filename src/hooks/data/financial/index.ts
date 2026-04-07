@@ -16,7 +16,7 @@ export { useCloseFiscalYear } from './useCloseFiscalYear';
 
 // --- هوكات منقولة من hooks/financial/ ---
 export { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useAccountByFiscalYear } from './useAccounts';
-export { useMyBeneficiaryFinance, useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards, useAllCarryforwards } from './useAdvanceQueries';
+export { useMyBeneficiaryFinance, useAllCarryforwards } from './useAdvanceQueries';
 export type { AdvanceRequest, AdvanceCarryforward } from './useAdvanceQueries';
 export { useAdvanceRequests, useCreateAdvanceRequest, useUpdateAdvanceStatus } from './useAdvanceRequests';
 export { useBeneficiarySummary } from './useBeneficiarySummary';
