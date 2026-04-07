@@ -29,7 +29,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
   const { role, loading: authLoading } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY) || '';
+      const stored = sessionStorage.getItem(STORAGE_KEY) || '';
       return UUID_RE.test(stored) ? stored : '';
     } catch { return ''; }
   });
