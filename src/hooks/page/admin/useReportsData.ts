@@ -3,6 +3,7 @@
  */
 import { useMemo } from 'react';
 import { fmt } from '@/utils/format/format';
+import { usePropertyPerformance } from '@/hooks/financial/usePropertyPerformance';
 import { useRawFinancialData } from '@/hooks/financial/useRawFinancialData';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
