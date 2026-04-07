@@ -9,5 +9,5 @@ export {
   renderSellerInfo, renderBuyerInfo, renderInvoiceMeta,
   renderLineItemsTable, renderAllowanceChargeTable,
   renderVatSummary, renderBankDetails,
-} from '../shared/renderers';
+} from '../shared/renderers/index';
 export { renderQrCode, drawQrPlaceholder } from '../shared/qrCode';
