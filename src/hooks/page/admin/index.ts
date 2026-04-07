@@ -11,6 +11,7 @@ export { useBylawsPage } from './useBylawsPage';
 export { useCarryforwardData } from './useCarryforwardData';
 export { useChartOfAccountsPage } from './useChartOfAccountsPage';
 export { useCollectionData } from './useCollectionData';
+export { useContractForm } from './useContractForm';
 export { useContractFormDialog } from './useContractFormDialog';
 export { useContractsBulkRenew } from './useContractsBulkRenew';
 export { useContractsFilters } from './useContractsFilters';
