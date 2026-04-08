@@ -34,7 +34,7 @@ const MetricCard = memo(function MetricCard({
     <Card className="shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-4 flex items-center gap-4">
         <div className={`p-3 rounded-xl ${color}`}>
-          <Icon className="w-5 h-5 text-white" />
+          <Icon className="w-5 h-5 text-primary-foreground" />
         </div>
         <div className="min-w-0">
           <p className="text-sm text-muted-foreground truncate">{title}</p>

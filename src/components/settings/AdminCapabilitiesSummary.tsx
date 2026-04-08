@@ -18,18 +18,21 @@ interface CapabilityItem {
 
 interface CapabilityGroup {
   title: string;
-  color: string;
-  bgColor: string;
-  borderColor: string;
+  /** CSS class for text color — يستخدم متغيرات CSS */
+  colorClass: string;
+  /** CSS class for background */
+  bgClass: string;
+  /** CSS class for border */
+  borderClass: string;
   items: CapabilityItem[];
 }
 
 const CAPABILITY_GROUPS: CapabilityGroup[] = [
   {
     title: 'إدارة العقارات والعقود',
-    color: 'text-blue-700 dark:text-blue-300',
-    bgColor: 'bg-blue-50 dark:bg-blue-950/40',
-    borderColor: 'border-blue-200 dark:border-blue-800',
+    colorClass: 'text-primary',
+    bgClass: 'bg-primary/5',
+    borderClass: 'border-primary/20',
     items: [
       { icon: Building2, label: 'العقارات', details: 'إضافة، تعديل، حذف، عرض جميع العقارات والوحدات' },
       { icon: FileText, label: 'العقود', details: 'إنشاء عقود جديدة، تعديل، إنهاء، تجديد' },
@@ -38,9 +41,9 @@ const CAPABILITY_GROUPS: CapabilityGroup[] = [
   },
   {
     title: 'الإدارة المالية',
-    color: 'text-emerald-700 dark:text-emerald-300',
-    bgColor: 'bg-emerald-50 dark:bg-emerald-950/40',
-    borderColor: 'border-emerald-200 dark:border-emerald-800',
+    colorClass: 'text-success',
+    bgClass: 'bg-success/5',
+    borderClass: 'border-success/20',
     items: [
       { icon: DollarSign, label: 'الدخل', details: 'تسجيل إيرادات، ربط بعقود وعقارات' },
       { icon: Receipt, label: 'المصروفات', details: 'تسجيل مصروفات، ميزانيات، تصنيف' },
@@ -52,9 +55,9 @@ const CAPABILITY_GROUPS: CapabilityGroup[] = [
   },
   {
     title: 'المستخدمون والصلاحيات',
-    color: 'text-purple-700 dark:text-purple-300',
-    bgColor: 'bg-purple-50 dark:bg-purple-950/40',
-    borderColor: 'border-purple-200 dark:border-purple-800',
+    colorClass: 'text-[hsl(var(--chart-4))]',
+    bgClass: 'bg-[hsl(var(--chart-4)/0.05)]',
+    borderClass: 'border-[hsl(var(--chart-4)/0.2)]',
     items: [
       { icon: UserCog, label: 'إدارة المستخدمين', details: 'إضافة مستخدمين، تعيين أدوار، تعطيل حسابات' },
       { icon: Users, label: 'المستفيدين', details: 'إضافة مستفيدين، تعديل حصص، ربط حسابات' },
@@ -64,9 +67,9 @@ const CAPABILITY_GROUPS: CapabilityGroup[] = [
   },
   {
     title: 'المظهر والتخصيص',
-    color: 'text-amber-700 dark:text-amber-300',
-    bgColor: 'bg-amber-50 dark:bg-amber-950/40',
-    borderColor: 'border-amber-200 dark:border-amber-800',
+    colorClass: 'text-warning',
+    bgClass: 'bg-warning/5',
+    borderClass: 'border-warning/20',
     items: [
       { icon: Palette, label: 'المظهر والألوان', details: 'تغيير الثيم، الألوان، الوضع الليلي' },
       { icon: Globe, label: 'الواجهة الرئيسية', details: 'تخصيص صفحة الهبوط، النصوص، الصور' },
@@ -77,9 +80,9 @@ const CAPABILITY_GROUPS: CapabilityGroup[] = [
   },
   {
     title: 'المراقبة والتقارير',
-    color: 'text-rose-700 dark:text-rose-300',
-    bgColor: 'bg-rose-50 dark:bg-rose-950/40',
-    borderColor: 'border-rose-200 dark:border-rose-800',
+    colorClass: 'text-destructive',
+    bgClass: 'bg-destructive/5',
+    borderClass: 'border-destructive/20',
     items: [
       { icon: ShieldCheck, label: 'سجل المراجعة', details: 'عرض كل العمليات على النظام بالتفصيل' },
       { icon: BarChart3, label: 'التقارير', details: 'تقارير مالية، مقارنات تاريخية، تصدير' },
@@ -90,9 +93,9 @@ const CAPABILITY_GROUPS: CapabilityGroup[] = [
   },
   {
     title: 'التواصل والدعم',
-    color: 'text-cyan-700 dark:text-cyan-300',
-    bgColor: 'bg-cyan-50 dark:bg-cyan-950/40',
-    borderColor: 'border-cyan-200 dark:border-cyan-800',
+    colorClass: 'text-info',
+    bgClass: 'bg-info/5',
+    borderClass: 'border-info/20',
     items: [
       { icon: MessageSquare, label: 'المراسلات', details: 'إرسال رسائل فردية وجماعية لجميع المستخدمين' },
       { icon: Bell, label: 'الإشعارات', details: 'إرسال إشعارات فردية وجماعية' },
@@ -102,9 +105,9 @@ const CAPABILITY_GROUPS: CapabilityGroup[] = [
   },
   {
     title: 'التكاملات',
-    color: 'text-indigo-700 dark:text-indigo-300',
-    bgColor: 'bg-indigo-50 dark:bg-indigo-950/40',
-    borderColor: 'border-indigo-200 dark:border-indigo-800',
+    colorClass: 'text-[hsl(var(--chart-1))]',
+    bgClass: 'bg-[hsl(var(--chart-1)/0.05)]',
+    borderClass: 'border-[hsl(var(--chart-1)/0.2)]',
     items: [
       { icon: Lock, label: 'ZATCA / الضريبة', details: 'إدارة شهادات ZATCA، إرسال الفواتير للهيئة' },
     ],
@@ -129,12 +132,12 @@ const AdminCapabilitiesSummary = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {CAPABILITY_GROUPS.map(group => (
-          <div key={group.title} className={`rounded-lg border p-3 ${group.bgColor} ${group.borderColor}`}>
-            <h3 className={`font-semibold text-sm mb-2 ${group.color}`}>{group.title}</h3>
+          <div key={group.title} className={`rounded-lg border p-3 ${group.bgClass} ${group.borderClass}`}>
+            <h3 className={`font-semibold text-sm mb-2 ${group.colorClass}`}>{group.title}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {group.items.map(item => (
                 <div key={item.label} className="flex items-start gap-2 bg-background/60 rounded-md p-2">
-                  <item.icon className={`w-4 h-4 mt-0.5 shrink-0 ${group.color}`} />
+                  <item.icon className={`w-4 h-4 mt-0.5 shrink-0 ${group.colorClass}`} />
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground leading-tight">{item.label}</p>
                     <p className="text-xs text-muted-foreground leading-snug mt-0.5">{item.details}</p>
