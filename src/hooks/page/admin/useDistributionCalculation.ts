@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { usePaidAdvances, useActiveCarryforwards } from '@/hooks/data/financial/useDistributionAdvances';
-import { calculateDistributions } from './distributionCalcPure';
+import { calculateDistributions } from '@/utils/financial/distributionCalcPure';
 
 interface Beneficiary {
   id: string;

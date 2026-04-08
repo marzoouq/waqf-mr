@@ -11,3 +11,5 @@ export { activeYearFinancials } from './activeYearFinancials';
 export type { ActiveYearParams } from './activeYearFinancials';
 export { closedYearFinancials } from './closedYearFinancials';
 export type { ClosedYearParams } from './closedYearFinancials';
+export { calculateDistributions } from './distributionCalcPure';
+export type { DistributionRow } from './distributionCalcPure';
