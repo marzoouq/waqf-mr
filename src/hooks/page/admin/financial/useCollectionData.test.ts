@@ -63,12 +63,8 @@ const makeInvoice = (overrides: Partial<PaymentInvoice> = {}): PaymentInvoice =>
   notes: null,
   file_path: null,
   fiscal_year_id: 'fy1',
-  
-  icv: null,
-  invoice_hash: null,
   zatca_status: '',
   zatca_uuid: null,
-  zatca_xml: null,
   created_at: '2025-01-01',
   updated_at: '2025-01-01',
   ...overrides,
