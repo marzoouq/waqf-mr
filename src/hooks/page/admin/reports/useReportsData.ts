@@ -11,7 +11,6 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
-import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
 
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import type { ForensicAuditData } from '@/utils/pdf';
