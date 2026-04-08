@@ -53,7 +53,7 @@ describe('logAccessEvent', () => {
 
   it('لا يرمي خطأ عند فشل RPC (silent fail)', async () => {
     mockRpc.mockRejectedValue(new Error('RPC failed'));
-    const { logAccessEvent } = await import('./useAccessLog');
+    const { logAccessEvent } = await importModule();
 
     // يجب أن لا يرمي
     await expect(logAccessEvent({ event_type: 'login_failed' })).resolves.toBeUndefined();

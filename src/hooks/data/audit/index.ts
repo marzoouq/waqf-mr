@@ -1,4 +1,4 @@
-export { logAccessEvent } from './useAccessLog';
+export { logAccessEvent } from '@/lib/services/accessLogService';
 export { ACCESS_LOG_ITEMS_PER_PAGE, useAccessLogTab, useFailedLoginsToday, useUnauthorizedAccessToday } from './useAccessLogTab';
 export type { AccessLogEntry } from './useAccessLogTab';
 export { ARCHIVE_ITEMS_PER_PAGE, useArchiveLog } from './useArchiveLog';
