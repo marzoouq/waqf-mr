@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Lock, Wallet } from 'lucide-react';
 import { ExportMenu, DeferredRender } from '@/components/common';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
-import { useAccountsPage } from '@/hooks/financial/useAccountsPage';
+import { useAccountsPage } from '@/hooks/page/admin/financial/useAccountsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 
 // مكونات أساسية (تُحمّل فوراً)

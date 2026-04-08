@@ -26,9 +26,6 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error('ErrorBoundary caught:', error, errorInfo);
 
-    // تجاهل أخطاء اختبارات الوحدة في الإنتاج
-    if (error.message === 'Test explosion') return;
-
     try {
       // في الإنتاج: إرسال رسالة الخطأ فقط بدون مسارات الملفات الداخلية
       const sanitizeStack = (stack: string | undefined): string | null => {
