@@ -38,7 +38,7 @@ describe('logAccessEvent', () => {
 
   it('يمرر metadata فارغة عند عدم التحديد', async () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
-    const { logAccessEvent } = await import('./useAccessLog');
+    const { logAccessEvent } = await importModule();
 
     await logAccessEvent({ event_type: 'logout' });
 
