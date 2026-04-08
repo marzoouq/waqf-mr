@@ -121,13 +121,7 @@ export function useAccountsCalculations({
     const start = new Date(contract.start_date);
     const end = new Date(contract.end_date);
     const totalMonths = Math.max(1, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()));
-    let totalContractPayments: number;
-    if (contract.payment_type === 'monthly') totalContractPayments = totalMonths;
-    else if (contract.payment_type === 'quarterly') totalContractPayments = Math.max(1, Math.ceil(totalMonths / 3));
-    else if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') totalContractPayments = Math.max(1, Math.ceil(totalMonths / 6));
-    else if (contract.payment_type === 'annual') totalContractPayments = Math.max(1, Math.ceil(totalMonths / 12));
-    else if (contract.payment_type === 'multi') totalContractPayments = contract.payment_count || 1;
-    else totalContractPayments = 1;
+    const totalContractPayments = getPaymentCountFromMonths(contract.payment_type, totalMonths, contract.payment_count);
 
     const spansMultipleYears = allocationMap.has(contract.id) && expectedPayments < totalContractPayments;
     const allocatedToOtherYears = spansMultipleYears ? totalContractPayments - expectedPayments : 0;
