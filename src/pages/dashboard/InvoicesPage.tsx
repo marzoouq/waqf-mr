@@ -13,7 +13,7 @@ import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { defaultNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
-import { useInvoicesPage } from '@/hooks/page/admin/useInvoicesPage';
+import { useInvoicesPage } from '@/hooks/page/admin/financial/useInvoicesPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 

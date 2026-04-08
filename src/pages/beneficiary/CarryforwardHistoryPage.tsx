@@ -8,7 +8,7 @@ import { ArrowDownUp, AlertTriangle, RefreshCw, ArrowRight } from 'lucide-react'
 import { defaultNotify } from '@/lib/notify';
 import { useNavigate } from 'react-router-dom';
 
-import { useCarryforwardData } from '@/hooks/page/admin/useCarryforwardData';
+import { useCarryforwardData } from '@/hooks/page/admin/financial/useCarryforwardData';
 import CarryforwardSummaryCards from './carryforward/CarryforwardSummaryCards';
 import CarryforwardsRecordTable from './carryforward/CarryforwardsRecordTable';
 import PaidAdvancesTable from './carryforward/PaidAdvancesTable';

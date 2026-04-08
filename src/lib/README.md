@@ -13,8 +13,14 @@
 - منطق المصادقة (auth/)
 
 ## الفرق عن `src/utils/`
-- **`lib/`**: بنية تحتية، قد تحتفظ بحالة (state)، تتفاعل مع خدمات خارجية (Supabase, Auth, Storage)
-- **`utils/`**: دوال مساعدة نقية (pure functions)، بدون حالة، بدون آثار جانبية، قابلة للاختبار بسهولة
+
+| الخاصية | `lib/` | `utils/` |
+|---------|--------|----------|
+| **النوع** | بنية تحتية ذات حالة | دوال نقية (pure functions) |
+| **الحالة** | قد تحتفظ بحالة (stateful) | بدون حالة (stateless) |
+| **الآثار الجانبية** | مسموحة (Supabase, Auth, Storage) | ممنوعة |
+| **الاختبار** | يحتاج mocks للخدمات الخارجية | سهل — مدخلات ومخرجات |
+| **أمثلة** | `logger`, `queryClient`, `supabase client` | `format()`, `calculateDistributions()` |
 
 ## `lib/services/`
 خدمات تتفاعل مع قاعدة البيانات والتخزين:
@@ -23,3 +29,4 @@
 - `fiscalYearService.ts` — عمليات السنة المالية
 - `notificationService.ts` — إشعارات المستخدمين
 - `zatcaService.ts` — عمليات ZATCA
+- `dataFetcher.ts` — جلب بيانات الجداول للتصدير (Supabase مباشر)

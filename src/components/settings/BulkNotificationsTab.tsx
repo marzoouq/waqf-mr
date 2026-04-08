@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Send, Megaphone, Loader2, Users } from 'lucide-react';
 import { useState } from 'react';
 import { defaultNotify } from '@/lib/notify';
-import { useBulkNotifications } from '@/hooks/page/admin/useBulkNotifications';
+import { useBulkNotifications } from '@/hooks/page/admin/settings/useBulkNotifications';
 
 const BulkNotificationsTab = () => {
   const [title, setTitle] = useState('');

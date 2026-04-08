@@ -14,7 +14,7 @@ import { ExportMenu } from '@/components/common';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import type { TabItem } from '@/components/ui/responsive-tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useReportsData } from '@/hooks/page/admin/useReportsData';
+import { useReportsData } from '@/hooks/page/admin/reports/useReportsData';
 
 const LazyReportsCharts = lazy(() => import('@/components/reports/ReportsChartsInner'));
 

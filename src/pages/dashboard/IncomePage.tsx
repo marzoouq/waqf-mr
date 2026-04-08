@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useIncomePage } from '@/hooks/page/admin/useIncomePage';
+import { useIncomePage } from '@/hooks/page/admin/financial/useIncomePage';
 
 const IncomePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();

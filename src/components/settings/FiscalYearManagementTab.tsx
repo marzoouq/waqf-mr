@@ -15,7 +15,7 @@ import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'luci
 import { type FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import { useState } from 'react';
 import { defaultNotify } from '@/lib/notify';
-import { useFiscalYearManagement } from '@/hooks/page/admin/useFiscalYearManagement';
+import { useFiscalYearManagement } from '@/hooks/page/admin/financial/useFiscalYearManagement';
 
 // ── ReopenDialog ──
 const ReopenDialog = ({ fy, onConfirm, loading }: { fy: FiscalYear; onConfirm: (reason: string) => void; loading: boolean }) => {

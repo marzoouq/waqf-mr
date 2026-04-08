@@ -3,7 +3,7 @@
  */
 import { Button } from '@/components/ui/button';
 import { FileText, Lock, Info, RefreshCw, CheckSquare, Square, ShieldCheck } from 'lucide-react';
-import type { StatusFilterValue } from '@/hooks/page/admin/useContractsFilters';
+import type { StatusFilterValue } from '@/hooks/page/admin/contracts/useContractsFilters';
 import { ContractAccordionGroup, ContractStatsCards, ContractsFiltersBar } from '@/components/contracts';
 import { TableSkeleton, TablePagination } from '@/components/common';
 import { Alert, AlertDescription } from '@/components/ui/alert';
