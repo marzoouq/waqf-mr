@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => ({
           '**/vendor-pdf-table*.js',
           '**/vendor-recharts*.js',
           '**/vendor-d3*.js',
-          '**/vendor-html2canvas*.js',
+          
           '**/vendor-markdown*.js',
           '**/vendor-dnd*.js',
           '**/vendor-webauthn*.js',
