@@ -7,6 +7,8 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
+const importModule = () => import('@/lib/services/accessLogService');
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
