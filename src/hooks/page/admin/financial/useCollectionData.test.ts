@@ -58,7 +58,7 @@ const makeInvoice = (overrides: Partial<PaymentInvoice> = {}): PaymentInvoice =>
   due_date: '2025-02-01',
   status: 'paid',
   payment_number: 1,
-  paid_amount: null,
+  paid_amount: 0,
   paid_date: null,
   notes: null,
   file_path: null,
