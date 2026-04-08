@@ -1,7 +1,7 @@
 /**
  * هوك منطق صفحة الفواتير — state + form + handlers
  */
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { safeNumber } from '@/utils/format/safeNumber';
@@ -17,6 +17,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 import { removeInvoiceFile } from '@/lib/services';
+import { useInvoicesFilters } from './useInvoicesFilters';
 
 // تعقيم الوصف ضد CSV Injection
 const sanitizeDescription = (value: string): string => {
@@ -37,11 +38,16 @@ export const useInvoicesPage = () => {
   const deleteInvoice = useDeleteInvoice();
   const generatePdf = useGenerateInvoicePdf();
 
+  // فلترة مُستخرجة
+  const {
+    searchQuery, setSearchQuery,
+    filterType, setFilterType,
+    filterStatus, setFilterStatus,
+    filteredInvoices,
+  } = useInvoicesFilters(invoices);
+
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; file_path?: string | null } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [uploading, setUploading] = useState(false);
@@ -200,19 +206,6 @@ export const useInvoicesPage = () => {
       setDeleteTarget(null);
     } catch { /* mutation handles toast */ }
   };
-
-  const filteredInvoices = useMemo(() => {
-    return invoices.filter((item) => {
-      if (filterType !== 'all' && item.invoice_type !== filterType) return false;
-      if (filterStatus !== 'all' && item.status !== filterStatus) return false;
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        return (item.invoice_number || '').toLowerCase().includes(q) || (INVOICE_TYPE_LABELS[item.invoice_type] || '').includes(q) ||
-          (item.description || '').toLowerCase().includes(q) || (item.file_name || '').toLowerCase().includes(q) || item.date.includes(q);
-      }
-      return true;
-    });
-  }, [invoices, filterType, filterStatus, searchQuery]);
 
   const statusBadgeVariant = invoiceStatusBadgeVariant;
 
