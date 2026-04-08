@@ -8,9 +8,9 @@ import ReportItemCard from './ReportItemCard';
 
 interface ReportSectionListProps {
   type: SectionType;
-  items: ReportSectionItem[];
+  items: AnnualReportItem[];
   onAdd: () => void;
-  onEdit: (item: ReportSectionItem) => void;
+  onEdit: (item: AnnualReportItem) => void;
   onDelete: (id: string) => void;
   onReorder: (id: string, direction: 'up' | 'down') => void;
 }
