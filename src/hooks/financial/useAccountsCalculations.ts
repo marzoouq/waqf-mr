@@ -104,12 +104,7 @@ export function useAccountsCalculations({
     const start = new Date(contract.start_date);
     const end = new Date(contract.end_date);
     const months = Math.max(1, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()));
-    if (contract.payment_type === 'monthly') return months;
-    if (contract.payment_type === 'quarterly') return Math.max(1, Math.ceil(months / 3));
-    if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') return Math.max(1, Math.ceil(months / 6));
-    if (contract.payment_type === 'annual') return Math.max(1, Math.ceil(months / 12));
-    if (contract.payment_type === 'multi') return contract.payment_count || 1;
-    return 1;
+    return getPaymentCountFromMonths(contract.payment_type, months, contract.payment_count);
   }, [allocationMap]);
 
   const totalPaymentPerPeriod = useMemo(() => contracts.reduce((sum, c) => sum + getPaymentPerPeriod(c), 0), [contracts, getPaymentPerPeriod]);
