@@ -73,7 +73,7 @@ export function useReportsData() {
 
   // أداء العقارات
   const { propertyPerformance, perfTotals } = usePropertyPerformance(
-    properties, contracts, expenses, allUnits, isSpecificYear
+    properties, contracts, expenses, allUnits, isSpecificYear, allocationMap
   );
 
   // الفحص الجنائي
