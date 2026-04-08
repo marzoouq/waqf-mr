@@ -16,7 +16,7 @@ beforeEach(() => {
 describe('logAccessEvent', () => {
   it('يستدعي supabase.rpc بالبارامترات الصحيحة', async () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
-    const { logAccessEvent } = await import('./useAccessLog');
+    const { logAccessEvent } = await importModule();
 
     await logAccessEvent({
       event_type: 'login_success',
