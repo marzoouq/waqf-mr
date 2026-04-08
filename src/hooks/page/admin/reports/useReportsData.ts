@@ -21,7 +21,7 @@ export function useReportsData() {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
-
+  const allocationMap = useContractAllocationMap(contracts);
 
   const selectedFiscalYearLabel = fiscalYear?.label;
 
