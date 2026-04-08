@@ -1,34 +1,45 @@
 
 
-# خطة تنفيذ توصيات الفحص الجنائي — الحالة النهائية
+# خطة إضافة الاختبارات — 3 ملفات (مُحدَّثة)
 
-## ✅ تم التنفيذ
+## ما تم حذفه من الخطة الأصلية
 
-| # | البند | الحالة |
-|---|-------|--------|
-| 1 | استخراج `ChartBox` كمكون مشترك | ✅ |
-| 2 | حذف `html2canvas` | ✅ |
-| 3 | دمج `useFinancialSummary` في `useReportsData` | ✅ |
-| 4 | تطبيق `ViewportRender` على صفحة التقارير | ✅ |
-| 5 | A4 — حماية `netAfterZakat` بـ `Math.max(0,...)` | ✅ |
-| 6 | B2 — حماية `remainingBalance` بـ `Math.max(0,...)` | ✅ |
-| 7 | B1 — إضافة المصروفات الشهرية للرسم البياني | ✅ |
-| 8 | B3 — تحذير الطباعة عند السنة النشطة | ✅ |
-| 9 | D1+D2+D4 — Realtime لـ advance_requests + fiscal_years + app_settings | ✅ |
-| 10 | C1 — badge "تقديري" في صفحة حصتي | ✅ |
-| 11 | B4 — `useCallback` لـ `withPdfLoading` | ✅ |
-| 12 | B5 — `useMemo` لـ `summaryCards` + `useCallback` لـ `handleExportCsv` | ✅ |
-| 13 | B6 — إضافة `notStarted` لـ `fyProgress` | ✅ |
-| 14 | TypeScript downgrade من `^6.0.2` إلى `~5.8.3` | ✅ |
-| 15 | Dependabot — رفع الحد + تجميد TS6 | ✅ |
-| 16 | إضافة `^` لـ vite و plugin-react-swc | ✅ |
+- **`safeNumber.test.ts`**: موجود فعلاً في `src/utils/format/safeNumber.test.ts` بتغطية كاملة (13 حالة). لا حاجة لإنشائه.
 
-| 17 | تنظيف مراجع `html2canvas` من `vite.config.ts` | ✅ |
-| 18 | تنظيف mocks `useFinancialSummary` من 10 ملفات اختبار | ✅ |
-| 19 | توثيق 4 نتائج أمنية كمخاطر مقبولة | ✅ |
+## الملفات المطلوب إنشاؤها
 
-## ⏭️ لم يُنفَّذ (بالتصميم)
+### 1. `src/test/distributionSummary.test.ts`
 
-| # | البند | السبب |
-|---|-------|-------|
-| VirtualTable لجدول العقود | البنية المجمّعة غير متوافقة مع VirtualTable |
+اختبار `filterDistributionsByFiscalYear` (9 حالات) و `summarizeDistributions` (5 حالات):
+
+**filter:**
+- `hasAccount=true` → الكل (3 حالات فرعية: بدون FY، مع FY، مع 'all')
+- `hasAccount=false, fiscalYearId='fy-1'` → 2 فقط
+- `hasAccount=false, fiscalYearId='fy-2'` → 1 فقط
+- `hasAccount=false, fiscalYearId='fy-999'` → `[]`
+- `hasAccount=false, fiscalYearId=undefined` → `[]` (الإصلاح #2)
+- `hasAccount=false, fiscalYearId=null` → `[]` (الإصلاح #2)
+- `hasAccount=false, fiscalYearId='all'` → `[]` (السلوك الحالي — 'all' لا يمر من الشرط)
+- مصفوفة فارغة → `[]`
+
+**summarize:**
+- paid فقط → `totalReceived`
+- pending فقط → `pendingAmount`
+- حالات أخرى (other/cancelled) → تُتجاهل
+- مصفوفة فارغة → أصفار
+- قيم `null`/`NaN` في amount → تُعامل كـ 0 عبر `safeNumber`
+
+### 2. `src/test/fiscalYearIds.test.ts`
+
+15 حالة اختبار لـ `isFyReady` (6)، `isFyAll` (4)، `isFySpecific` (5).
+
+### 3. إضافة حالة regression إلى `src/test/regressionFixes.test.ts`
+
+إضافة `describe` جديد في نهاية الملف يوثّق إصلاح #2 لـ `filterDistributionsByFiscalYear`:
+- `hasAccount=false, undefined` → `[]`
+- `hasAccount=false, 'all'` → `[]`
+
+### 4. تشغيل الاختبارات والتحقق
+
+`npx vitest run --reporter=verbose` للتأكد من نجاح جميع الاختبارات.
+
