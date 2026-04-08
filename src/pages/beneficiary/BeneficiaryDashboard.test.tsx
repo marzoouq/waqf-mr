@@ -7,7 +7,7 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary', loading: false })),
 }));
 
-vi.mock('@/hooks/data/beneficiaries/useBeneficiaryDashboardData', () => ({
+vi.mock('@/hooks/page/beneficiary/useBeneficiaryDashboardData', () => ({
   useBeneficiaryDashboardData: vi.fn(() => ({
     data: {
       beneficiary: { id: 'b1', name: 'محمد أحمد', share_percentage: 10 },
