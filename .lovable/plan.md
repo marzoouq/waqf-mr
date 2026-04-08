@@ -1,65 +1,37 @@
 
-# نتائج التحقق من تقرير التدقيق المعماري — 25 ادعاء مقابل الكود الفعلي
 
-## البنود المرفوضة (أُصلحت أو غير صحيحة) — 15 بند
+# التحقق من حجم Precache الفعلي
 
-| # | الادعاء | الحقيقة |
-|---|---------|---------|
-| 1 | `timingSafeEqual` محلي في `check-contract-expiry` | **خطأ** — موجودة فقط في `_shared/auth.ts` (9 مطابقات، ملف واحد). صفر نسخ محلية |
-| 2 | `logger.ts` يستورد من hooks | **أُصلح سابقاً** — يستورد فقط من `@/lib/errorReporter` |
-| 3 | ازدواجية `payment_type` switch | **أُصلح** — دالة `getPaymentCountFromMonths` مشتركة (سطر 11-18) تُستخدم في كلا المكانين (سطر 117 و 134) |
-| 4 | `useRoleRedirect` في `hooks/ui/` | **أُصلح** — في `src/hooks/auth/useRoleRedirect.ts` ومُصدَّر من `hooks/auth/index.ts` سطر 17 |
-| 6 | `TABLE_NAMES_AR` مدفونة في hook | **أُصلح** — نُقلت إلى `utils/format/auditLabels.ts`. الـ hook يُعيد تصديرها فقط (سطر 6) |
-| 7 | `statusLabel` غير مغلّفة بـ `useCallback` | **أُصلح** — مستخرجة كدالة module-level ثابتة (سطر 21-28) خارج الـ hook |
-| 8 | `formatDate` wrapper زائد في `auditLog.ts` | **أُصلح** — الملف يستخدم `fmtDate` مباشرة (سطر 12)، لا وجود لـ `formatDate` wrapper |
-| 9 | `useCloseFiscalYear` يلتهم أخطاء صامتاً | **أُصلح** — `defaultNotify.error(...)` موجود في `onError` (سطر 46) |
-| 16 | `ErrorBoundary` يحتوي على `Test explosion` guard | **أُصلح** — `componentDidCatch` لا يحتوي على أي شرط تجاهل |
-| 17 | `PwaUpdateNotifier` يستخدم `toast.success` | **أُصلح** — يستخدم `defaultNotify.success` (سطر 73) |
-| 18 | `VAT_KEYWORDS` dead code | **خطأ** — مستخدمة فعلاً في سطر 121 لفلترة مصروفات الضريبة |
-| 23 | `totalBeneficiaryPercentage` غير مغلّف بـ `useMemo` | **أُصلح** — مغلّف بـ `useMemo` (سطر 160) |
-| 5 | `useDashboardRealtime`/`useRealtimeAlerts` في `hooks/ui/` | **مقبول** — تُشغّل toasts و invalidation (وظيفة UI-facing). تستورد من `lib/realtime/` |
-| 10 | `useIdleTimeout` في `hooks/ui/` | **مقبول** — hook UI بحت (timers + DOM events)، لا يحتوي على منطق auth |
-| 11 | `useIncomeComparison` بدون `enabled` | **مقبول** — يُستخدم فقط في مكوّن واحد (صفحة التقرير السنوي) لذا `enabled` غير ضرورية |
+## الحالة الحالية
 
----
+إعدادات `vite.config.ts` صحيحة تماماً:
 
-## البنود الحقيقية المتبقية — 3 بنود فقط
+- **`globIgnores`** (سطر 48-59): يستبعد 9 حزم ثقيلة من precache:
+  `vendor-pdf`, `vendor-pdf-table`, `vendor-recharts`, `vendor-d3`, `vendor-markdown`, `vendor-dnd`, `vendor-webauthn`, `vendor-qr`, `vendor-arabic`
 
-### 🟠 1. `useDistributionHistory` بدون `enabled` flag
-**الملف:** `src/hooks/data/financial/useDistributionHistory.ts` سطر 24
+- **`runtimeCaching`** (سطر 60-68): يلتقط هذه الحزم عند الطلب عبر `StaleWhileRevalidate` مع cache لمدة 30 يوم
 
-يستقبل `beneficiaryId: string` بدون guard. المستدعي (`DistributionHistory.tsx` سطر 16) يمرر `beneficiary.id` الذي قد يكون سلسلة فارغة نظرياً. إضافة `enabled: !!beneficiaryId` تمنع استعلام فارغ.
+## خطة التحقق
 
-**التعديل:** سطر واحد — إضافة `enabled: !!beneficiaryId` بعد `staleTime`.
+### الخطوة الوحيدة: بناء إنتاجي + فحص `sw.js`
 
----
+1. تنفيذ `npx vite build` لتوليد ملفات الإنتاج
+2. فحص ملف `dist/sw.js` والبحث عن أي ذكر لـ `vendor-pdf` أو `vendor-recharts` أو أي حزمة مستبعدة في قائمة precache
+3. حساب الحجم الإجمالي لملفات precache (عدد الملفات + الحجم الكلي)
+4. مقارنة النتيجة بالتقدير السابق (~4MB) للتأكد من التقليص
 
-### 🟠 2. `usePropertyPerformance` لا يمرر `allocationMap`
-**الملف:** `src/hooks/financial/usePropertyPerformance.ts` سطر 63-69
+### النتيجة المتوقعة
 
-`computePropertyFinancials` تقبل `allocationMap` اختيارياً (سطر 65 في `usePropertyFinancials.ts`). صفحة `usePropertiesPage` تمررها، لكن `usePropertyPerformance` لا يمررها — مما يعني أن أداء العقارات يُحسب من `rent_amount` الكامل بدلاً من المبلغ المخصص للسنة.
+- قائمة precache في `sw.js` يجب ألا تحتوي على أي ملف يبدأ بـ `vendor-pdf` أو `vendor-recharts` أو أي من الحزم التسع المستبعدة
+- الحجم المتوقع بعد الاستبعاد: ~3MB بدلاً من ~4MB (توفير ~900KB)
 
-**التعديل:** إضافة `allocationMap` كمعامل اختياري لـ `usePropertyPerformance` وتمريره إلى `computePropertyFinancials`.
+### التفاصيل التقنية
 
----
+```text
+الأمر:
+  npx vite build && grep -oP '"url":"[^"]*vendor-[^"]*"' dist/sw.js
 
-### 🟡 3. `advancedFilters.types.ts` داخل `components/`
-**الملف:** `src/components/filters/advancedFilters.types.ts`
+إذا أعاد نتائج → الاستبعاد لم يعمل
+إذا أعاد فارغاً → الاستبعاد يعمل بشكل صحيح
+```
 
-أنواع `FilterState` و `EMPTY_FILTERS` هي domain types لا تنتمي لمجلد components. النقل إلى `src/types/filters.ts` يُحسّن التنظيم.
-
-**التعديل:** نقل الملف + تحديث الاستيرادات.
-
----
-
-## ملخص التنفيذ
-
-| # | المشكلة | الأولوية | الملفات |
-|---|---------|---------|---------|
-| 1 | إضافة `enabled` guard لـ `useDistributionHistory` | 🟠 | 1 |
-| 2 | تمرير `allocationMap` في `usePropertyPerformance` | 🟠 | 1 (+المستدعين) |
-| 3 | نقل `advancedFilters.types.ts` إلى `src/types/` | 🟡 | 2-3 |
-
-**من أصل 25 ادعاء: 15 أُصلحت/خاطئة، 7 مقبولة معمارياً، 3 حقيقية.**
-
-المشروع في حالة إنتاجية نظيفة. التحسينات المتبقية محلية وبسيطة.
