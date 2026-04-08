@@ -6,6 +6,7 @@ import { fmt } from '@/utils/format/format';
 import { usePropertyPerformance } from '@/hooks/financial/usePropertyPerformance';
 import { useRawFinancialData } from '@/hooks/financial/useRawFinancialData';
 import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
+import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
@@ -20,7 +21,7 @@ export function useReportsData() {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
-
+  const allocationMap = useContractAllocationMap(contracts);
 
   const selectedFiscalYearLabel = fiscalYear?.label;
 
@@ -72,7 +73,7 @@ export function useReportsData() {
 
   // أداء العقارات
   const { propertyPerformance, perfTotals } = usePropertyPerformance(
-    properties, contracts, expenses, allUnits, isSpecificYear
+    properties, contracts, expenses, allUnits, isSpecificYear, allocationMap
   );
 
   // الفحص الجنائي
