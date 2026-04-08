@@ -38,7 +38,7 @@ export default function PasswordStrengthBar({ password }: PasswordStrengthBarPro
       {/* قائمة المعايير */}
       <div className="flex flex-wrap gap-x-3 gap-y-0.5">
         {checks.map((c) => (
-          <span key={c.label} className={`flex items-center gap-1 text-[11px] ${c.pass ? 'text-green-600' : 'text-muted-foreground'}`}>
+          <span key={c.label} className={`flex items-center gap-1 text-[11px] ${c.pass ? 'text-success' : 'text-muted-foreground'}`}>
             {c.pass ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
             {c.label}
           </span>
