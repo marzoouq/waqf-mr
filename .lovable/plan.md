@@ -1,36 +1,95 @@
 
 
-# ترقية GitHub Actions من Node 20 إلى Node 22
+# خطة تنفيذ توصيات تقرير التدقيق
 
-## السياق
+## الخطوة 1: إصلاح الألوان الثابتة — 4 ملفات 🔴
 
-GitHub أعلنت أن Node 20 ستنتهي صلاحيته في أبريل 2026، وسيبدأ الإجبار على Node 24 في يونيو 2026. حالياً جميع الـ workflows الأربعة تستخدم `node-version: '20'`.
+التوكنات `--success`, `--warning`, `--info` موجودة بالفعل في `index.css`.
 
-**ملاحظة**: الترقية المباشرة إلى Node 24 غير مستحسنة لأنه لا يزال في مرحلة preview. الخيار الأفضل هو Node 22 LTS (مدعوم حتى أبريل 2027).
+| الملف | قبل | بعد |
+|-------|------|------|
+| `PasswordStrengthBar.tsx` | `bg-orange-500` | `bg-warning` |
+| | `bg-yellow-500` | `bg-warning/70` |
+| | `bg-green-500`, `text-green-600` | `bg-success`, `text-success` |
+| `AccountantDashboardView.tsx` | `text-white` (سطر 37) | `text-primary-foreground` |
+| `AdminCapabilitiesSummary.tsx` | 7 مجموعات بألوان ثابتة (`text-blue-700`, `bg-blue-50`, إلخ) | استبدال بتدرجات `primary/muted/accent` أو ألوان من CSS tokens (`chart-1..5`, `success`, `warning`, `info`) |
+| `LandingHero.tsx` | `text-white` × 4 | **استثناء مقبول** — الخلفية `gradient-hero` ثابتة، `text-white` هو الخيار الصحيح هنا. لا تغيير. |
 
-## التغييرات المطلوبة
+**ملفات متأثرة**: 3 (LandingHero مستثنى)
 
-### تحديث `node-version` في 4 ملفات
+---
 
-| الملف | التغيير |
-|-------|---------|
-| `.github/workflows/ci.yml` سطر 19 | `'20'` → `'22'` |
-| `.github/workflows/test.yml` سطر 20 | `'20'` → `'22'` |
-| `.github/workflows/auto-version.yml` سطر 32 | `20` → `22` |
-| `.github/workflows/changelog.yml` | لا يستخدم `setup-node` — لا تغيير مطلوب |
+## الخطوة 2: حذف 5 barrel files ميتة 🟡
 
-**3 ملفات فقط** تحتاج تعديل سطر واحد في كل منها.
+تأكدنا أن **صفر ملفات** تستورد من هذه المسارات:
 
-### لماذا Node 22 وليس Node 24؟
+- `src/hooks/data/index.ts` — حذف
+- `src/hooks/page/index.ts` — حذف
+- `src/hooks/page/admin/index.ts` — حذف
+- `src/hooks/financial/index.ts` — حذف
+- `src/hooks/data/financial/index.ts` — حذف
 
-- Node 22 هو LTS الحالي (مدعوم حتى أبريل 2027)
-- Node 24 لا يزال Current/Preview — غير مستحسن للإنتاج بعد
-- جميع التبعيات في المشروع متوافقة مع Node 22
-- عند صدور Node 24 LTS لاحقاً يمكن الترقية بنفس الطريقة
+**ملفات متأثرة**: 5 حذف، صفر تعديل
 
-## التأثير
+---
 
-- **صفر** تغييرات في الكود المصدري
-- **صفر** تأثير على البناء أو الاختبارات
-- حماية من انقطاع CI بعد يونيو 2026
+## الخطوة 3: تقسيم `themeDefinitions.ts` (302 سطر) 🟡
+
+الملف عبارة عن مصفوفة من 6 ثيمات × (light + dark). يُقسم إلى:
+
+```
+src/lib/theme/themes/
+  islamicGreen.ts
+  royalBlue.ts
+  ... (ملف لكل ثيم)
+  index.ts  ← يجمعها في مصفوفة themes[]
+```
+
+`themeDefinitions.ts` يحتفظ بـ `ThemeVars` و `ThemeTemplate` types فقط.
+
+**ملفات متأثرة**: 1 → ~8 ملفات جديدة، صفر تعديل في المستهلكين (التصدير عبر `lib/theme/index.ts` لا يتغير)
+
+---
+
+## الخطوة 4: إضافة README لـ `hooks/financial/` و `hooks/data/financial/` 🟡
+
+ملفا توثيق قصيران يشرحان:
+- `hooks/financial/` = منطق أعمال بحت (حسابات، تجميع، أداء) — لا Supabase
+- `hooks/data/financial/` = استعلامات بيانات (useQuery/useMutation) — Supabase فقط
+
+**ملفات متأثرة**: 2 ملف README جديد
+
+---
+
+## الخطوة 5: تقسيم ملفات PDF الكبيرة 🟢
+
+- `comprehensiveBeneficiary.ts` (281 سطر) → استخراج أقسام التقرير إلى helpers
+- `accounts.ts` (267 سطر) → استخراج بناء الجداول
+- `forensicAudit.ts` (233 سطر) → استخراج أقسام التقرير
+
+**ملفات متأثرة**: 3 → ~9 ملفات
+
+---
+
+## الخطوة 6: فصل فلترة/حسابات `useInvoicesPage.ts` 🟢
+
+تقسيم إلى:
+- `useInvoicesPage.ts` — orchestrator
+- `useInvoicesFilters.ts` — فلترة وبحث
+
+**ملفات متأثرة**: 1 → 2
+
+---
+
+## ملخص التأثير
+
+| الخطوة | ملفات جديدة | ملفات محذوفة | ملفات معدّلة |
+|--------|-------------|-------------|-------------|
+| 1 | 0 | 0 | 3 |
+| 2 | 0 | 5 | 0 |
+| 3 | ~8 | 0 | 1 |
+| 4 | 2 | 0 | 0 |
+| 5 | ~6 | 0 | 3 |
+| 6 | 1 | 0 | 1 |
+| **المجموع** | **~17** | **5** | **8** |
 
