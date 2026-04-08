@@ -15,7 +15,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
 import { useInvoicesPage } from '@/hooks/page/admin/useInvoicesPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { canModifyFiscalYear } from '@/utils/permissions';
+import { canModifyFiscalYear } from '@/utils/auth/permissions';
 
 const InvoicesPage = () => {
   const h = useInvoicesPage();

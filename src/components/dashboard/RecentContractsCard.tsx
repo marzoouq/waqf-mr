@@ -5,7 +5,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Link } from 'react-router-dom';
 import { fmt } from '@/utils/format/format';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { getContractStatusInfo } from '@/utils/contracts';
+import { getContractStatusInfo } from '@/utils/contracts/index';
 
 interface Contract {
   id: string;

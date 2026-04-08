@@ -7,7 +7,7 @@ import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useZatcaCertificates } from '@/hooks/data/zatca/useZatcaCertificates';
 import { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp, saveZatcaSettings } from '@/lib/services';
 import { defaultNotify } from '@/lib/notify';
-import { SA_VAT_REGEX, IBAN_SA_REGEX, DEVICE_SERIAL_REGEX } from '@/utils/validation';
+import { SA_VAT_REGEX, IBAN_SA_REGEX, DEVICE_SERIAL_REGEX } from '@/utils/validation/index';
 
 export const ZATCA_KEYS = [
   'vat_registration_number',

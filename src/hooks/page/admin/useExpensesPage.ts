@@ -4,7 +4,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { canModifyFiscalYear } from '@/utils/permissions';
+import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/data/financial/useExpenses';
 import { useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
 import { useProperties } from '@/hooks/data/properties/useProperties';

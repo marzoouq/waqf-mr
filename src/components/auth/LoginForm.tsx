@@ -8,7 +8,7 @@ import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { handleNationalIdLogin } from '@/lib/auth/nationalIdLogin';
 import { useIsMountedRef } from '@/hooks/ui/useIsMountedRef';
-import { EMAIL_REGEX } from '@/utils/validation';
+import { EMAIL_REGEX } from '@/utils/validation/index';
 import BiometricLoginButton from './BiometricLoginButton';
 import ServerErrorAlert from './ServerErrorAlert';
 import LoginMethodSelector from './login/LoginMethodSelector';
