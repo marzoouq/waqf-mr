@@ -106,10 +106,6 @@ describe('WaqifDashboard', () => {
       fiscalYear: { id: '1', label: '2025-2026', status: 'active', published: true },
       fiscalYearId: '1', isLoading: false, noPublishedYears: false, isSpecificYear: true,
     });
-    mockUseFinancialSummary.mockReturnValue({
-      totalIncome: 500000, totalExpenses: 100000, availableAmount: 350000,
-      income: [], expenses: [], expensesByTypeExcludingVat: {}, isLoading: false,
-    });
   });
 
   it('renders without crashing', async () => {
