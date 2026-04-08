@@ -3,7 +3,7 @@
  */
 import { useState, useCallback, useMemo } from 'react';
 import { defaultNotify } from '@/lib/notify';
-import { useIsMobile } from '@/hooks/ui/use-mobile';
+import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';

@@ -6,7 +6,7 @@ import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { defaultNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
-import { EMAIL_REGEX } from '@/utils/validation';
+import { EMAIL_REGEX } from '@/utils/validation/index';
 import PasswordStrengthBar from './PasswordStrengthBar';
 import ServerErrorAlert from './ServerErrorAlert';
 

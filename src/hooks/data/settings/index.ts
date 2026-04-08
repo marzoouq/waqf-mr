@@ -3,3 +3,4 @@ export type { WaqfInfo } from './useAppSettings';
 export { usePdfWaqfInfo } from './usePdfWaqfInfo';
 export { useRegistrationEnabled } from './useRegistrationEnabled';
 export { useWaqfInfoSave } from './useWaqfInfoSave';
+export { useLogoUpload } from './useLogoUpload';

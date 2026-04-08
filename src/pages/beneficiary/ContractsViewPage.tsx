@@ -1,7 +1,7 @@
 /**
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
-import { useIsMobile } from '@/hooks/ui/use-mobile';
+import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { RequirePublishedYears, ExportMenu, TablePagination } from '@/components/common';
 import { Card, CardContent } from '@/components/ui/card';

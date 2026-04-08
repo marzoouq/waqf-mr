@@ -7,7 +7,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts';
 import { defaultNotify } from '@/lib/notify';
-import { SAUDI_NATIONAL_ID_REGEX, SA_VAT_REGEX } from '@/utils/validation';
+import { SAUDI_NATIONAL_ID_REGEX, SA_VAT_REGEX } from '@/utils/validation/index';
 
 interface UseContractFormDialogParams {
   editingContract: Contract | null;

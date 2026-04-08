@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText, Cpu, Landmark, Radio } from 'lucide-react';
-import { DEVICE_SERIAL_REGEX } from '@/utils/validation';
+import { DEVICE_SERIAL_REGEX } from '@/utils/validation/index';
 
 interface ZatcaFormCardsProps {
   formData: Record<string, string>;
