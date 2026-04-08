@@ -1,127 +1,62 @@
 
 
-# خطة إعادة هيكلة hooks/page/admin — النسخة المحدّثة
+# الخطة القادمة — المرحلة الثانية من إعادة الهيكلة
 
-تم دمج ملاحظات المراجعة الأربع في الخطة.
+## ما تم إنجازه ✅
+- تقسيم `hooks/page/admin/` إلى 5 مجلدات فرعية مع 32 proxy مؤقت
+- نقل `distributionCalcPure.ts` إلى `utils/financial/`
+- إضافة 8 اختبارات تغطية متقدمة
 
----
+## ما تبقّى — مرتّب حسب الأولوية
 
-## التغييرات عن الخطة السابقة
-
-| الملاحظة | القرار |
-|----------|--------|
-| re-exports مؤقتة بدل تحديث 38 ملف | **مقبول** — ملفات proxy مؤقتة في الجذر |
-| تسمية `distributionCalc` | **مقبول** — يبقى `distributionCalcPure.ts` للحفاظ على الدلالة |
-| `useSupportDashboardPage` في dashboard؟ | **نعم** — هو لوحة تحكم دعم فني للأدمن، ينتمي لـ `dashboard/` |
-| أداء barrel في dev | Vite يتعامل جيداً — نراقب لاحقاً |
-
----
-
-## الخطوة 1: نقل `distributionCalcPure.ts`
-
-| من | إلى |
-|----|-----|
-| `hooks/page/admin/distributionCalcPure.ts` | `utils/financial/distributionCalcPure.ts` |
-| `hooks/page/admin/distributionCalcPure.test.ts` | `utils/financial/distributionCalcPure.test.ts` |
-
-- تحديث استيراد `useDistributionCalculation.ts`: `from '@/utils/financial/distributionCalcPure'`
-- إضافة export في `utils/financial/index.ts`
-
-**ملفات متأثرة**: 3 فقط
-
----
-
-## الخطوة 2: إنشاء 5 مجلدات فرعية ونقل الملفات
-
-```text
-hooks/page/admin/
-├── dashboard/   (4 hooks + 1 test)
-│   ├── useAccountantDashboardData.ts
-│   ├── useAdminDashboardData.ts
-│   ├── useAdminDashboardStats.ts
-│   ├── useSupportDashboardPage.ts
-│   ├── useSupportDashboardPage.test.ts
-│   └── index.ts
-├── financial/   (10 hooks)
-│   ├── useCarryforwardData.ts
-│   ├── useCollectionData.ts
-│   ├── useCreateInvoiceForm.ts
-│   ├── useDistributionCalculation.ts
-│   ├── useExpensesPage.ts
-│   ├── useFiscalYearManagement.ts
-│   ├── useIncomePage.ts
-│   ├── useInvoicesPage.ts
-│   ├── usePaymentInvoiceActions.ts
-│   ├── usePaymentInvoicesTab.ts
-│   └── index.ts
-├── contracts/   (5 hooks)
-│   ├── useContractForm.ts
-│   ├── useContractFormDialog.ts
-│   ├── useContractsBulkRenew.ts
-│   ├── useContractsFilters.ts
-│   ├── useContractsPage.ts
-│   └── index.ts
-├── reports/     (3 hooks)
-│   ├── useAnnualReportPage.ts
-│   ├── useHistoricalComparison.ts
-│   ├── useReportsData.ts
-│   └── index.ts
-├── settings/    (9 hooks)
-│   ├── useAuditLogPage.ts
-│   ├── useBeneficiariesPage.ts
-│   ├── useBulkNotifications.ts
-│   ├── useBylawsPage.ts
-│   ├── useChartOfAccountsPage.ts
-│   ├── usePropertiesPage.ts
-│   ├── usePropertiesViewData.ts
-│   ├── useSystemDiagnostics.ts
-│   ├── useZatcaSettings.ts
-│   └── index.ts
-└── index.ts  ← barrel يعيد تصدير المجلدات الفرعية
-```
-
----
-
-## الخطوة 3: ملفات re-export مؤقتة (بدلاً من تحديث 38 ملف)
-
-بدلاً من تحديث كل ملف مستهلك، يُنشأ ملف proxy في الجذر لكل hook منقول:
-
+### الخطوة 1: إصلاح مسار mock خاطئ في اختبار MySharePage
+ملف `src/pages/beneficiary/MySharePage.test.tsx` سطر 102 يستخدم:
 ```typescript
-// hooks/page/admin/useContractForm.ts (proxy مؤقت)
-export { useContractForm } from './contracts/useContractForm';
+vi.mock('@/hooks/page/useMySharePage', ...)
+```
+بينما المسار الصحيح هو `@/hooks/page/beneficiary/useMySharePage`. هذا خطأ فعلي قد يُفشل الاختبار عند إزالة الـ proxies.
+
+**ملفات متأثرة**: 1
+
+---
+
+### الخطوة 2: إزالة ملفات proxy المؤقتة تدريجياً
+يوجد حالياً **32 ملف proxy** في جذر `hooks/page/admin/` بالصيغة:
+```typescript
+/** @deprecated proxy */ export * from './contracts/useContractForm';
 ```
 
-هذا يعني:
-- **صفر** ملفات خارجية تحتاج تحديث
-- **صفر** merge conflicts محتملة
-- يمكن إزالة الـ proxies لاحقاً تدريجياً في PRs مستقلة
+الإزالة تتطلب تحديث كل ملف مستهلك ليستورد من المسار الجديد مباشرة. يمكن تنفيذها على دفعات:
+- **دفعة 1**: contracts (5 proxies → ~8 ملفات مستهلكة)
+- **دفعة 2**: dashboard (4 proxies → ~5 ملفات)
+- **دفعة 3**: settings (9 proxies → ~12 ملف)
+- **دفعة 4**: financial (10 proxies → ~15 ملف)
+- **دفعة 5**: reports (3 proxies → ~5 ملفات)
+
+**ملفات متأثرة**: ~45 ملف إجمالي
 
 ---
 
-## الخطوة 4: تحديث الاستيرادات الداخلية فقط
+### الخطوة 3: نقل `dataFetcher.ts` من utils إلى hooks/data
+ملف `src/utils/export/dataFetcher.ts` يستدعي Supabase مباشرة — ينتهك مبدأ أن `utils/` للدوال البحتة. يُنقل إلى `src/hooks/data/export/` أو يبقى مع تعليق واضح أنه استثناء مقصود (لأنه async function وليس hook).
 
-الملفات داخل نفس المجلد الفرعي التي تستورد من بعضها:
-- `useContractsPage` ← `useContractForm`, `useContractsFilters`, `useContractsBulkRenew` (كلها في `contracts/` → مسار نسبي `./`)
-- `usePaymentInvoicesTab` ← `usePaymentInvoiceActions` (كلاها في `financial/` → `./`)
-- `useAdminDashboardData` ← `useAdminDashboardStats` (كلاهما في `dashboard/` → `./`)
+**ملفات متأثرة**: 2-3
 
 ---
 
-## التحقق
+### الخطوة 4: توثيق الفرق بين `lib/` و `utils/`
+- `lib/` = بنية تحتية للتطبيق (logger, queryClient, errorReporter, lazyWithRetry, PWA)
+- `utils/` = دوال أعمال بحتة (مالية, تصدير, PDF, تنسيق)
 
-- `tsc --noEmit` — صفر أخطاء
-- `vitest run distributionCalcPure` — 18 اختبار ناجح
-- `vitest run useSupportDashboardPage` — اختبار ناجح
+إضافة تعليق توثيقي في `README.md` لكل مجلد.
+
+**ملفات متأثرة**: 2
 
 ---
 
-## ملخص التأثير
+## التوصية
 
-| المقياس | قبل | بعد |
-|---------|-----|-----|
-| ملفات حقيقية في الجذر | 33 | ~33 proxy (مؤقتة) + `index.ts` |
-| مجلدات فرعية | 0 | 5 |
-| ملفات خارجية تحتاج تعديل | — | **0** (بفضل proxies) |
-| `distributionCalcPure` في hooks | نعم | لا → `utils/financial/` |
-| التوافق العكسي | — | ✅ كامل |
+أنصح بتنفيذ **الخطوة 1 فوراً** (إصلاح خطأ فعلي)، ثم **الخطوة 2 على دفعات** لإزالة الـ proxies. الخطوتان 3 و4 اختيارية ويمكن تأجيلها.
+
+هل تريد البدء بخطوة محددة أو تنفيذ الكل؟
 
