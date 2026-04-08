@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { defaultNotify } from "@/lib/notify";
 import {
   Dialog,
   DialogContent,
