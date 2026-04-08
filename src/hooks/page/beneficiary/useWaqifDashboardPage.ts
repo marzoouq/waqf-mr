@@ -27,16 +27,9 @@ export const useWaqifDashboardPage = () => {
 
   const { data: dashData, isLoading: dashLoading } = useBeneficiaryDashboardData(fiscalYearId);
 
-  const totalIncome = dashData?.total_income ?? 0;
-  const totalExpenses = dashData?.total_expenses ?? 0;
-  const availableAmount = dashData?.available_amount ?? 0;
-  const expensesByTypeExcludingVat = useMemo(() => {
-    const result: Record<string, number> = {};
-    (dashData?.expenses_by_type_excluding_vat ?? []).forEach(e => {
-      result[e.expense_type] = e.total;
-    });
-    return result;
-  }, [dashData?.expenses_by_type_excluding_vat]);
+  // استخدام الهوك المشترك بدلاً من الاستخراج اليدوي
+  const fin = useBeneficiaryFinancials(dashData, fiscalYearId);
+  const { totalIncome, totalExpenses, availableAmount, expensesByTypeExcludingVat } = fin;
 
   const { data: properties = [], isLoading: propLoading } = useProperties();
   const { data: contracts = [], isLoading: contLoading } = useContractsSafeByFiscalYear(fiscalYearId);
