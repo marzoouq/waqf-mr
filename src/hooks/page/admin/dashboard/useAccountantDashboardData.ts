@@ -55,7 +55,7 @@ export function useAccountantDashboardData({ aggregated, heatmapInvoices }: UseA
     if (!heatmapInvoices.length) return [];
     const now = new Date();
     return heatmapInvoices
-      .filter(inv => inv.status === 'pending' && inv.due_date < today)
+      .filter(inv => inv.status === 'overdue' || (inv.status === 'pending' && inv.due_date < today))
       .map(inv => {
         const dueDate = new Date(inv.due_date);
         const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / 86_400_000);

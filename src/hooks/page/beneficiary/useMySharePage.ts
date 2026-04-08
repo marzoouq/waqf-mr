@@ -64,12 +64,16 @@ export const useMySharePage = () => {
 
   // #21 - fetch contracts lazily when needed for PDF
   const fetchContracts = useCallback(async () => {
-    const { data } = await supabase
+    let query = supabase
       .from('contracts')
       .select('contract_number, tenant_name, rent_amount, status')
       .order('created_at', { ascending: false });
+    if (fiscalYearId && fiscalYearId !== 'all') {
+      query = query.eq('fiscal_year_id', fiscalYearId);
+    }
+    const { data } = await query;
     return data ?? [];
-  }, []);
+  }, [fiscalYearId]);
 
   const pdf = useMySharePdfHandlers({
     currentBeneficiary: currentBeneficiary ?? null, isClosed: !!isClosed, myShare, totalReceived, pendingAmount,

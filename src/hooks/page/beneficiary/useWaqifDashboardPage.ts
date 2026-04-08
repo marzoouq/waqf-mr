@@ -83,17 +83,14 @@ export const useWaqifDashboardPage = () => {
   );
 
   /* ── التحية والتاريخ — #36: إعادة greetingIconName بدل GreetingIcon component ── */
-  const { greeting, greetingIconName, hijriDate, gregorianDate, timeStr } = useMemo(() => {
-    const now = new Date();
-    const h = now.getHours();
-    return {
-      greeting: h < 12 ? 'صباح الخير' : 'مساء الخير',
-      greetingIconName: h < 12 ? 'sun' : 'moon' as 'sun' | 'moon',
-      hijriDate: now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-      gregorianDate: now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
-      timeStr: now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
-    };
-  }, []);
+  // حساب التحية والتاريخ بدون useMemo — خفيف ويتحدث مع كل render
+  const now = new Date();
+  const h = now.getHours();
+  const greeting = h < 12 ? 'صباح الخير' : 'مساء الخير';
+  const greetingIconName: 'sun' | 'moon' = h < 12 ? 'sun' : 'moon';
+  const hijriDate = now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const gregorianDate = now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
 
   const overviewStats = [
     { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
