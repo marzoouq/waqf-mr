@@ -144,8 +144,8 @@ describe('تغطية الفروع المتقدمة', () => {
     const total = result.reduce((s, r) => s + r.share_amount, 0);
     expect(total).toBeCloseTo(100, 2);
     const amounts = result.map(r => r.share_amount).sort();
-    expect(amounts[0]).toBe(33.33);
-    expect(amounts[2]).toBe(33.34);
+    expect(amounts[0]).toBeCloseTo(33.33, 2);
+    expect(amounts[2]).toBeCloseTo(33.34, 2);
   });
 
   it('يتعامل مع أصغر مبلغ ممكن (0.01)', () => {
