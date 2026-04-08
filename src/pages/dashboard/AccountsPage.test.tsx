@@ -13,7 +13,7 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'u1' }, role: 'admin', signOut: vi.fn() })),
 }));
 
-vi.mock('@/hooks/financial/useAccountsPage', () => ({
+vi.mock('@/hooks/page/admin/financial/useAccountsPage', () => ({
   useAccountsPage: vi.fn(() => ({
     accounts: [],
     contracts: [

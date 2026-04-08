@@ -14,3 +14,4 @@ export type { SortField as IncomeSortField } from './useIncomePage';
 export { useInvoicesPage } from './useInvoicesPage';
 export { usePaymentInvoiceActions } from './usePaymentInvoiceActions';
 export { usePaymentInvoicesTab } from './usePaymentInvoicesTab';
+export { useAccountsPage } from './useAccountsPage';

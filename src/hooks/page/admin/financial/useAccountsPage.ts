@@ -8,11 +8,11 @@
  * - useAccountsActions: العمليات (حفظ، إقفال، تصدير)
  */
 import { useMemo } from 'react';
-import { useAccountsData } from './useAccountsData';
-import { useAccountsSettings } from './useAccountsSettings';
-import { useAccountsCalculations } from './useAccountsCalculations';
-import { useAccountsEditing } from './useAccountsEditing';
-import { useAccountsActions } from './useAccountsActions';
+import { useAccountsData } from '@/hooks/financial/useAccountsData';
+import { useAccountsSettings } from '@/hooks/financial/useAccountsSettings';
+import { useAccountsCalculations } from '@/hooks/financial/useAccountsCalculations';
+import { useAccountsEditing } from '@/hooks/financial/useAccountsEditing';
+import { useAccountsActions } from '@/hooks/financial/useAccountsActions';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useAdvanceRequests } from '@/hooks/data/financial/useAdvanceRequests';
 import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/useTotalBeneficiaryPercentage';
