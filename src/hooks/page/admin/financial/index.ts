@@ -12,6 +12,5 @@ export { useFiscalYearManagement } from './useFiscalYearManagement';
 export { useIncomePage } from './useIncomePage';
 export type { SortField as IncomeSortField } from './useIncomePage';
 export { useInvoicesPage } from './useInvoicesPage';
-export type { FilterStatus as InvoiceFilterStatus } from './useInvoicesPage';
 export { usePaymentInvoiceActions } from './usePaymentInvoiceActions';
 export { usePaymentInvoicesTab } from './usePaymentInvoicesTab';
