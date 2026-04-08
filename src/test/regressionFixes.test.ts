@@ -60,3 +60,26 @@ describe("PDF payment denominator calculation", () => {
   it("custom with payment_count=3 → 3", () => expect(getDenominator("custom", 3)).toBe(3));
   it("unknown without count → fallback 12", () => expect(getDenominator(undefined)).toBe(12));
 });
+
+// ── #2 regression: filterDistributionsByFiscalYear إصلاح المصفوفة الفارغة ──
+
+import { filterDistributionsByFiscalYear } from '@/utils/financial/distributionSummary';
+
+describe("[regression #2] filterDistributionsByFiscalYear — لا حساب ولا سنة محددة → []", () => {
+  const dists = [
+    { status: 'paid', amount: 100, fiscal_year_id: 'fy-1' },
+    { status: 'pending', amount: 200, fiscal_year_id: 'fy-2' },
+  ];
+
+  it("hasAccount=false, undefined → مصفوفة فارغة", () => {
+    expect(filterDistributionsByFiscalYear(dists, false, undefined)).toHaveLength(0);
+  });
+
+  it("hasAccount=false, 'all' → مصفوفة فارغة", () => {
+    expect(filterDistributionsByFiscalYear(dists, false, 'all')).toHaveLength(0);
+  });
+
+  it("hasAccount=false, null → مصفوفة فارغة", () => {
+    expect(filterDistributionsByFiscalYear(dists, false, null)).toHaveLength(0);
+  });
+});
