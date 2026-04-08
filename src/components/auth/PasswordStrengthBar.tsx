@@ -19,7 +19,7 @@ export default function PasswordStrengthBar({ password }: PasswordStrengthBarPro
   if (!password) return <div className="min-h-[3.5rem]" />;
 
   const strengthLabel = score <= 1 ? 'ضعيفة' : score <= 2 ? 'متوسطة' : score <= 3 ? 'جيدة' : 'قوية';
-  const strengthColor = score <= 1 ? 'bg-destructive' : score <= 2 ? 'bg-orange-500' : score <= 3 ? 'bg-yellow-500' : 'bg-green-500';
+  const strengthColor = score <= 1 ? 'bg-destructive' : score <= 2 ? 'bg-warning' : score <= 3 ? 'bg-warning/70' : 'bg-success';
 
   return (
     <div className="space-y-2 min-h-[3.5rem]">
