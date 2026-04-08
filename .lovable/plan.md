@@ -1,95 +1,114 @@
 
 
-# خطة تنفيذ توصيات تقرير التدقيق
+# خطة إصلاح المشاكل المعمارية المؤكدة — 7 خطوات
 
-## الخطوة 1: إصلاح الألوان الثابتة — 4 ملفات 🔴
-
-التوكنات `--success`, `--warning`, `--info` موجودة بالفعل في `index.css`.
-
-| الملف | قبل | بعد |
-|-------|------|------|
-| `PasswordStrengthBar.tsx` | `bg-orange-500` | `bg-warning` |
-| | `bg-yellow-500` | `bg-warning/70` |
-| | `bg-green-500`, `text-green-600` | `bg-success`, `text-success` |
-| `AccountantDashboardView.tsx` | `text-white` (سطر 37) | `text-primary-foreground` |
-| `AdminCapabilitiesSummary.tsx` | 7 مجموعات بألوان ثابتة (`text-blue-700`, `bg-blue-50`, إلخ) | استبدال بتدرجات `primary/muted/accent` أو ألوان من CSS tokens (`chart-1..5`, `success`, `warning`, `info`) |
-| `LandingHero.tsx` | `text-white` × 4 | **استثناء مقبول** — الخلفية `gradient-hero` ثابتة، `text-white` هو الخيار الصحيح هنا. لا تغيير. |
-
-**ملفات متأثرة**: 3 (LandingHero مستثنى)
+## ملخص
+7 مشاكل مؤكدة، ~15 ملف متأثر، صفر تغيير في السلوك الخارجي.
 
 ---
 
-## الخطوة 2: حذف 5 barrel files ميتة 🟡
+## الخطوة 1: حذف الملف الشارد 🔴
+حذف `/useMySharePage.ts` من جذر المشروع — نسخة مكررة من `src/hooks/page/beneficiary/useMySharePage.ts`.
 
-تأكدنا أن **صفر ملفات** تستورد من هذه المسارات:
-
-- `src/hooks/data/index.ts` — حذف
-- `src/hooks/page/index.ts` — حذف
-- `src/hooks/page/admin/index.ts` — حذف
-- `src/hooks/financial/index.ts` — حذف
-- `src/hooks/data/financial/index.ts` — حذف
-
-**ملفات متأثرة**: 5 حذف، صفر تعديل
+| ملف | إجراء |
+|-----|-------|
+| `useMySharePage.ts` (جذر) | حذف |
 
 ---
 
-## الخطوة 3: تقسيم `themeDefinitions.ts` (302 سطر) 🟡
+## الخطوة 2: فك انعكاس `logger.ts` ← `hooks/data/` 🔴
 
-الملف عبارة عن مصفوفة من 6 ثيمات × (light + dark). يُقسم إلى:
+**المشكلة**: `lib/logger.ts` يستورد `logAccessEvent` من `hooks/data/audit/useAccessLog` — طبقة البنية التحتية تعتمد على طبقة البيانات.
 
-```
-src/lib/theme/themes/
-  islamicGreen.ts
-  royalBlue.ts
-  ... (ملف لكل ثيم)
-  index.ts  ← يجمعها في مصفوفة themes[]
-```
+**الحل**: نقل دالة `logAccessEvent` من `useAccessLog.ts` إلى `src/lib/services/accessLogService.ts` (ملف جديد). تحديث الاستيرادات في `logger.ts` و `useAccessLog.ts`.
 
-`themeDefinitions.ts` يحتفظ بـ `ThemeVars` و `ThemeTemplate` types فقط.
-
-**ملفات متأثرة**: 1 → ~8 ملفات جديدة، صفر تعديل في المستهلكين (التصدير عبر `lib/theme/index.ts` لا يتغير)
+| ملف | إجراء |
+|-----|-------|
+| `src/lib/services/accessLogService.ts` | إنشاء — نقل `logAccessEvent` هنا |
+| `src/lib/logger.ts` | تعديل — استيراد من `lib/services/` |
+| `src/hooks/data/audit/useAccessLog.ts` | تعديل — إعادة تصدير من `lib/services/` للتوافق |
 
 ---
 
-## الخطوة 4: إضافة README لـ `hooks/financial/` و `hooks/data/financial/` 🟡
+## الخطوة 3: مركزة `timingSafeEqual` 🟠
 
-ملفا توثيق قصيران يشرحان:
-- `hooks/financial/` = منطق أعمال بحت (حسابات، تجميع، أداء) — لا Supabase
-- `hooks/data/financial/` = استعلامات بيانات (useQuery/useMutation) — Supabase فقط
+**المشكلة**: التنفيذ مكرر inline في `check-contract-expiry/index.ts` فقط.
 
-**ملفات متأثرة**: 2 ملف README جديد
+**الحل**: إنشاء `supabase/functions/_shared/auth.ts` ونقل الدالة إليه.
 
----
-
-## الخطوة 5: تقسيم ملفات PDF الكبيرة 🟢
-
-- `comprehensiveBeneficiary.ts` (281 سطر) → استخراج أقسام التقرير إلى helpers
-- `accounts.ts` (267 سطر) → استخراج بناء الجداول
-- `forensicAudit.ts` (233 سطر) → استخراج أقسام التقرير
-
-**ملفات متأثرة**: 3 → ~9 ملفات
+| ملف | إجراء |
+|-----|-------|
+| `supabase/functions/_shared/auth.ts` | إنشاء — `timingSafeEqual` + تصدير |
+| `supabase/functions/check-contract-expiry/index.ts` | تعديل — استيراد من `_shared/auth.ts` |
 
 ---
 
-## الخطوة 6: فصل فلترة/حسابات `useInvoicesPage.ts` 🟢
+## الخطوة 4: استخراج قواميس التدقيق من hook إلى utils 🟠
 
-تقسيم إلى:
-- `useInvoicesPage.ts` — orchestrator
-- `useInvoicesFilters.ts` — فلترة وبحث
+**المشكلة**: `utils/pdf/entities/auditLog.ts` يستورد `getTableNameAr`/`getOperationNameAr`/`AuditLogEntry` من hook.
 
-**ملفات متأثرة**: 1 → 2
+**الحل**: إنشاء `src/utils/format/auditLabels.ts` بالقواميس والأنواع. تحديث المستوردين.
+
+| ملف | إجراء |
+|-----|-------|
+| `src/utils/format/auditLabels.ts` | إنشاء — القواميس + الدوال + `AuditLogEntry` type |
+| `src/hooks/data/audit/useAuditLog.ts` | تعديل — استيراد وإعادة تصدير من `auditLabels.ts` |
+| `src/utils/pdf/entities/auditLog.ts` | تعديل — استيراد من `utils/format/auditLabels` |
+| `src/utils/format/index.ts` | تعديل — إضافة تصدير `auditLabels` |
+
+---
+
+## الخطوة 5: نقل `useBeneficiaryDashboardData` للطبقة الصحيحة 🟠
+
+**المشكلة**: Hook يجمع بيانات لوحة التحكم (orchestration) موجود في `hooks/data/` بدلاً من `hooks/page/`.
+
+**الحل**: نقل إلى `src/hooks/page/beneficiary/useBeneficiaryDashboardData.ts`. تحديث 7 مستوردين.
+
+| ملف | إجراء |
+|-----|-------|
+| `src/hooks/page/beneficiary/useBeneficiaryDashboardData.ts` | إنشاء (نقل) |
+| `src/hooks/data/beneficiaries/useBeneficiaryDashboardData.ts` | حذف |
+| `src/hooks/data/beneficiaries/index.ts` | تعديل — إزالة التصدير |
+| 7 ملفات في `hooks/page/beneficiary/` | تعديل مسار الاستيراد |
+
+---
+
+## الخطوة 6: توحيد pipeline الأخطاء 🟡
+
+**المشكلة**: `logger.ts` يستدعي `logAccessEvent` مباشرة، و `errorReporter.ts` يستدعي `supabase.rpc` مباشرة — مساران متوازيان.
+
+**الحل**: جعل `logger.error` في production يستدعي `reportClientError` من `errorReporter.ts` فقط (الذي يتعامل بالفعل مع fallback محلي). إزالة الاستدعاء المباشر لـ `logAccessEvent` من logger.
+
+| ملف | إجراء |
+|-----|-------|
+| `src/lib/logger.ts` | تعديل — استبدال `logAccessEvent` بـ `reportClientError` |
+
+*ملاحظة*: هذه الخطوة تعتمد على الخطوة 2 — بعد نقل `logAccessEvent`، يصبح logger يعتمد فقط على `errorReporter`.
+
+---
+
+## الخطوة 7: إضافة اختبار `distributionSummary.test.ts` 🟡
+
+إنشاء `src/utils/financial/distributionSummary.test.ts` يغطي:
+- `filterDistributionsByFiscalYear` — 4 حالات (مع حساب، بدون حساب + سنة محددة، بدون حساب + "all"، بدون حساب + بدون سنة)
+- `summarizeDistributions` — 2 حالة (مزيج paid/pending، مصفوفة فارغة)
+
+| ملف | إجراء |
+|-----|-------|
+| `src/utils/financial/distributionSummary.test.ts` | إنشاء |
 
 ---
 
 ## ملخص التأثير
 
-| الخطوة | ملفات جديدة | ملفات محذوفة | ملفات معدّلة |
-|--------|-------------|-------------|-------------|
-| 1 | 0 | 0 | 3 |
-| 2 | 0 | 5 | 0 |
-| 3 | ~8 | 0 | 1 |
-| 4 | 2 | 0 | 0 |
-| 5 | ~6 | 0 | 3 |
-| 6 | 1 | 0 | 1 |
-| **المجموع** | **~17** | **5** | **8** |
+| الخطوة | جديد | حذف | تعديل |
+|--------|------|-----|-------|
+| 1 | 0 | 1 | 0 |
+| 2 | 1 | 0 | 2 |
+| 3 | 1 | 0 | 1 |
+| 4 | 1 | 0 | 3 |
+| 5 | 1 | 1 | 8 |
+| 6 | 0 | 0 | 1 |
+| 7 | 1 | 0 | 0 |
+| **المجموع** | **5** | **2** | **15** |
 
