@@ -160,14 +160,6 @@ export function useAccountsCalculations({
 
   const totalBeneficiaryPercentage = data.beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
 
-  const statusLabel = (status: string) => {
-    switch (status) {
-      case 'active': return 'نشط';
-      case 'expired': return 'منتهي';
-      case 'cancelled': return 'ملغي';
-      default: return status;
-    }
-  };
 
   return {
     totalIncome, totalExpenses, ...financials,
