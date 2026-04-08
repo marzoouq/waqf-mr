@@ -1,4 +1,4 @@
-import { useIsMobile } from '@/hooks/ui/use-mobile';
+import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';

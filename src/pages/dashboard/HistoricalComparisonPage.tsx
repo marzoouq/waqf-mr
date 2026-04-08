@@ -2,7 +2,7 @@
  * صفحة المقارنة التاريخية — مقارنة 2-4 سنوات مالية جنباً إلى جنب
  */
 import { lazy, Suspense } from 'react';
-import { useIsMobile } from '@/hooks/ui/use-mobile';
+import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

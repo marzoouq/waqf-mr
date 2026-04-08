@@ -1,7 +1,7 @@
 /**
  * جدول سجل الفروق المرحّلة — موبايل + سطح مكتب
  */
-import { useIsMobile } from '@/hooks/ui/use-mobile';
+import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
