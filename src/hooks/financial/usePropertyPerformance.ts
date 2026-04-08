@@ -56,7 +56,8 @@ export function usePropertyPerformance(
   contracts: Contract[],
   expenses: Expense[],
   allUnits: Unit[],
-  isSpecificYear: boolean
+  isSpecificYear: boolean,
+  allocationMap?: Map<string, { allocated_amount: number }>,
 ) {
   const propertyPerformance = useMemo(() =>
     properties.map((property) => {
@@ -66,6 +67,7 @@ export function usePropertyPerformance(
         expenses,
         units: allUnits,
         isSpecificYear,
+        allocationMap,
       });
 
       return {
