@@ -43,14 +43,6 @@ vi.mock('@/hooks/data/useExpenses', () => ({
   useExpensesByFiscalYear: vi.fn(() => ({ data: [] })),
 }));
 
-vi.mock('@/hooks/financial/useFinancialSummary', () => ({
-  useFinancialSummary: vi.fn(() => ({
-    accounts: [], totalIncome: 0, totalExpenses: 0, availableAmount: 0,
-    income: [], expenses: [], expensesByTypeExcludingVat: {},
-    isLoading: false, isError: false,
-  })),
-}));
-
 vi.mock('@/hooks/data/useTenantPayments', () => ({
   useTenantPayments: vi.fn(() => ({ data: [] })),
   useUpsertTenantPayment: vi.fn(() => mockMutate),

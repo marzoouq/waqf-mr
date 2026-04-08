@@ -173,34 +173,6 @@ vi.mock('@/hooks/data/usePaymentInvoices', () => ({
   })),
 }));
 
-vi.mock('@/hooks/financial/useFinancialSummary', () => ({
-  useFinancialSummary: vi.fn(() => ({
-    income: [{ id: 'i1', amount: 30000, date: '2024-03-15', source: 'إيجار' }],
-    expenses: [{ id: 'e1', amount: 5000, date: '2024-03-20', expense_type: 'صيانة' }],
-    beneficiaries: [{ id: 'b1', name: 'فهد', share_percentage: 50 }, { id: 'b2', name: 'سارة', share_percentage: 50 }],
-    totalIncome: 30000,
-    totalExpenses: 5000,
-    adminShare: 2500,
-    waqifShare: 2500,
-    waqfRevenue: 20000,
-    netAfterExpenses: 25000,
-    netAfterVat: 25000,
-    netAfterZakat: 25000,
-    vatAmount: 0,
-    zakatAmount: 0,
-    waqfCorpusPrevious: 0,
-    waqfCorpusManual: 0,
-    distributionsAmount: 0,
-    grandTotal: 25000,
-    availableAmount: 20000,
-    remainingBalance: 20000,
-    incomeBySource: { 'إيجار': 30000 },
-    expensesByType: { 'صيانة': 5000 },
-    expensesByTypeExcludingVat: { 'صيانة': 5000 },
-    isLoading: false, isError: false, isAccountMissing: false,
-  })),
-}));
-
 import AdminDashboard from './AdminDashboard';
 
 const renderPage = () => {

@@ -28,15 +28,6 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-const mockUseFinancialSummary = vi.fn(() => ({
-  totalIncome: 500000, totalExpenses: 100000, availableAmount: 350000,
-  income: [], expenses: [], expensesByTypeExcludingVat: {},
-  isLoading: false,
-}));
-
-vi.mock('@/hooks/financial/useFinancialSummary', () => ({
-  useFinancialSummary: () => mockUseFinancialSummary(),
-}));
 
 vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: () => ({ data: [{ id: 'p1' }, { id: 'p2' }], isLoading: false }),

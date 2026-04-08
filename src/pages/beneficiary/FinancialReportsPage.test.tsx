@@ -42,29 +42,6 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/financial/useFinancialSummary', () => ({
-  useFinancialSummary: vi.fn(() => ({
-    income: [{ date: '2024-01-15', amount: 5000, source: 'إيجار' }],
-    beneficiaries: [{ user_id: 'u1', name: 'مستفيد', share_percentage: 10 }],
-    currentAccount: { fiscal_year: '1446-1447' },
-    isAccountMissing: false,
-    totalIncome: 100000,
-    totalExpenses: 20000,
-    netAfterVat: 77000,
-    netAfterZakat: 70000,
-    adminShare: 7700,
-    waqifShare: 3850,
-    waqfRevenue: 63950,
-    waqfCorpusManual: 5000,
-    availableAmount: 58950,
-    zakatAmount: 1500,
-    incomeBySource: { 'إيجار': 80000, 'متأخرات': 20000 },
-    expensesByTypeExcludingVat: { 'كهرباء': 10000, 'صيانة': 10000 },
-    isLoading: false,
-    isError: false,
-  })),
-}));
-
 vi.mock('@/hooks/financial/useMyShare', () => ({
   useMyShare: vi.fn(() => ({
     currentBeneficiary: { user_id: 'u1', name: 'مستفيد', share_percentage: 10 },

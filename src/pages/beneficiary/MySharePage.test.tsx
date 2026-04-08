@@ -61,9 +61,6 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-vi.mock('@/hooks/financial/useFinancialSummary', () => ({
-  useFinancialSummary: () => mockUseFinancialSummary(),
-}));
 
 vi.mock('@/hooks/financial/useMyShare', () => ({
   useMyShare: () => mockUseMyShare(),
