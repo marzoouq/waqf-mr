@@ -10,10 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Trophy, AlertTriangle, Lightbulb, Building2, FileDown, Printer,
-  Send, FileEdit, Loader2, Plus,
+  Send, FileEdit, Loader2,
 } from 'lucide-react';
-import type { SectionType } from '@/hooks/data/content/useAnnualReport';
-import ReportItemCard from '@/components/annual-report/ReportItemCard';
+import ReportSectionList from '@/components/annual-report/ReportSectionList';
 import ReportItemFormDialog from '@/components/annual-report/ReportItemFormDialog';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';
 const IncomeComparisonChart = lazy(() => import('@/components/annual-report/IncomeComparisonChart'));
@@ -22,41 +21,13 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useAnnualReportPage } from '@/hooks/page/admin/useAnnualReportPage';
+import type { SectionType } from '@/hooks/data/content/useAnnualReport';
 
 const AnnualReportPage = () => {
   const isMobile = useIsMobile();
   const r = useAnnualReportPage();
 
-  // عرض قسم عادي (إنجازات/تحديات/خطط)
-  const renderSection = (type: SectionType) => {
-    const sectionItems = r.grouped[type] || [];
-    return (
-      <div className="space-y-3">
-        <Button
-          variant="outline" size="sm" className="gap-1.5"
-          onClick={() => { r.setEditingItem(null); r.setDialogOpen(true); }}
-        >
-          <Plus className="h-4 w-4" />
-          إضافة {type === 'achievement' ? 'إنجاز' : type === 'challenge' ? 'تحدي' : 'خطة'}
-        </Button>
-        {sectionItems.length === 0 && (
-          <p className="text-muted-foreground text-center py-8">لا توجد عناصر بعد</p>
-        )}
-        {sectionItems.map((item, idx) => (
-          <ReportItemCard
-            key={item.id}
-            item={item}
-            isFirst={idx === 0}
-            isLast={idx === sectionItems.length - 1}
-            onEdit={() => { r.setEditingItem(item); r.setDialogOpen(true); }}
-            onDelete={() => r.setDeleteTarget(item.id)}
-            onMoveUp={() => r.handleReorder(item.id, 'up')}
-            onMoveDown={() => r.handleReorder(item.id, 'down')}
-          />
-        ))}
-      </div>
-    );
-  };
+  const openAddDialog = () => { r.setEditingItem(null); r.setDialogOpen(true); };
 
   return (
     <DashboardLayout>
@@ -162,15 +133,21 @@ const AnnualReportPage = () => {
               <PropertyStatusSection
                 items={r.grouped.property_status}
                 properties={r.propertiesList}
-                onAdd={() => { r.setEditingItem(null); r.setDialogOpen(true); }}
+                onAdd={openAddDialog}
                 onEdit={(item) => { r.setEditingItem(item); r.setDialogOpen(true); }}
                 onDelete={(id) => r.setDeleteTarget(id)}
                 onReorder={r.handleReorder}
               />
             </TabsContent>
-            <TabsContent value="achievement">{renderSection('achievement')}</TabsContent>
-            <TabsContent value="challenge">{renderSection('challenge')}</TabsContent>
-            <TabsContent value="future_plan">{renderSection('future_plan')}</TabsContent>
+            <TabsContent value="achievement">
+              <ReportSectionList type="achievement" items={r.grouped.achievement} onAdd={openAddDialog} onEdit={(item) => { r.setEditingItem(item); r.setDialogOpen(true); }} onDelete={(id) => r.setDeleteTarget(id)} onReorder={r.handleReorder} />
+            </TabsContent>
+            <TabsContent value="challenge">
+              <ReportSectionList type="challenge" items={r.grouped.challenge} onAdd={openAddDialog} onEdit={(item) => { r.setEditingItem(item); r.setDialogOpen(true); }} onDelete={(id) => r.setDeleteTarget(id)} onReorder={r.handleReorder} />
+            </TabsContent>
+            <TabsContent value="future_plan">
+              <ReportSectionList type="future_plan" items={r.grouped.future_plan} onAdd={openAddDialog} onEdit={(item) => { r.setEditingItem(item); r.setDialogOpen(true); }} onDelete={(id) => r.setDeleteTarget(id)} onReorder={r.handleReorder} />
+            </TabsContent>
           </Tabs>
         )}
 
