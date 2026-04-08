@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
 
 import { fmt } from '@/utils/format/format';
-import { usePaymentInvoicesTab } from '@/hooks/page/admin/usePaymentInvoicesTab';
+import { usePaymentInvoicesTab } from '@/hooks/page/admin/financial/usePaymentInvoicesTab';
 import PaymentInvoiceSummaryCards from './payment-invoices/PaymentInvoiceSummaryCards';
 import PaymentInvoiceToolbar from './payment-invoices/PaymentInvoiceToolbar';
 import PaymentInvoiceMobileCards from './payment-invoices/PaymentInvoiceMobileCards';

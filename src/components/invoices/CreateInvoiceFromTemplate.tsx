@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Eye, Save } from 'lucide-react';
 import type { Contract } from '@/types/database';
 import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector } from './InvoiceTemplates';
-import { useCreateInvoiceForm, INVOICE_TYPES } from '@/hooks/page/admin/useCreateInvoiceForm';
+import { useCreateInvoiceForm, INVOICE_TYPES } from '@/hooks/page/admin/financial/useCreateInvoiceForm';
 import InvoiceFormFields from './create-invoice/InvoiceFormFields';
 import InvoiceItemsTable from './create-invoice/InvoiceItemsTable';
 

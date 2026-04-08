@@ -13,7 +13,7 @@ import { fmt } from '@/utils/format/format';
 
 import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
-import { useCollectionData, type FilterStatus } from '@/hooks/page/admin/useCollectionData';
+import { useCollectionData, type FilterStatus } from '@/hooks/page/admin/financial/useCollectionData';
 import { useCollectionAlerts } from '@/hooks/data/contracts/useCollectionAlerts';
 import CollectionSummaryCards from './CollectionSummaryCards';
 import CollectionMobileCards from './CollectionMobileCards';

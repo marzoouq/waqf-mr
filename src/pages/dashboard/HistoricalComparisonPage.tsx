@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { fmtSAR } from '@/utils/format/format';
 import { GitCompareArrows, TrendingUp, TrendingDown, Minus, FileDown, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useHistoricalComparison } from '@/hooks/page/admin/useHistoricalComparison';
+import { useHistoricalComparison } from '@/hooks/page/admin/reports/useHistoricalComparison';
 
 const LazyHistoricalChart = lazy(() => import('@/components/reports/HistoricalComparisonChartInner'));
 

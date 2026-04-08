@@ -20,7 +20,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useAnnualReportPage } from '@/hooks/page/admin/useAnnualReportPage';
+import { useAnnualReportPage } from '@/hooks/page/admin/reports/useAnnualReportPage';
 import type { SectionType } from '@/hooks/data/content/useAnnualReport';
 
 const AnnualReportPage = () => {

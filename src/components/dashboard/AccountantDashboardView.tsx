@@ -12,7 +12,7 @@ import {
   Banknote, CheckCircle, Clock, Link as LinkIcon,
 } from 'lucide-react';
 import { fmtInt } from '@/utils/format/format';
-import type { AccountantMetrics } from '@/hooks/page/admin/useAccountantDashboardData';
+import type { AccountantMetrics } from '@/hooks/page/admin/dashboard/useAccountantDashboardData';
 
 interface AccountantDashboardViewProps {
   metrics: AccountantMetrics;

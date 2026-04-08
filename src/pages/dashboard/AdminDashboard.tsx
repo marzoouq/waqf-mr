@@ -17,8 +17,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 // هوك البيانات المدمج
 import { useDashboardSummary, useDashboardSecondary } from '@/hooks/data/financial/useDashboardSummary';
 // هوك الحسابات المستخرج
-import { useAdminDashboardData } from '@/hooks/page/admin/useAdminDashboardData';
-import { useAccountantDashboardData } from '@/hooks/page/admin/useAccountantDashboardData';
+import { useAdminDashboardData } from '@/hooks/page/admin/dashboard/useAdminDashboardData';
+import { useAccountantDashboardData } from '@/hooks/page/admin/dashboard/useAccountantDashboardData';
 
 // Lazy-load heavy below-the-fold components
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));

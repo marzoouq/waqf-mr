@@ -12,7 +12,7 @@ import { defaultNotify } from '@/lib/notify';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useExpensesPage } from '@/hooks/page/admin/useExpensesPage';
+import { useExpensesPage } from '@/hooks/page/admin/financial/useExpensesPage';
 
 const ExpensesPage = () => {
   const h = useExpensesPage();

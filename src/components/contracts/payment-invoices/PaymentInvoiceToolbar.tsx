@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Zap, AlertTriangle, FileDown, CalendarDays, X } from 'lucide-react';
 import { generateOverdueInvoicesPDF } from '@/utils/pdf';
-import type { FilterStatus } from '@/hooks/page/admin/usePaymentInvoicesTab';
+import type { FilterStatus } from '@/hooks/page/admin/financial/usePaymentInvoicesTab';
 import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 import { isFyAll } from '@/constants/fiscalYearIds';

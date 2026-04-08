@@ -11,7 +11,7 @@ import { generateDistributionsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { printDistributionReport } from '@/utils/export/printDistributionReport';
 import { defaultNotify } from '@/lib/notify';
-import { useDistributionCalculation } from '@/hooks/page/admin/useDistributionCalculation';
+import { useDistributionCalculation } from '@/hooks/page/admin/financial/useDistributionCalculation';
 
 interface Beneficiary {
   id: string;

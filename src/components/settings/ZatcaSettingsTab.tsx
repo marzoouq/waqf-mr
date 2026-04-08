@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShieldCheck, History } from 'lucide-react';
-import { useZatcaSettings } from '@/hooks/page/admin/useZatcaSettings';
+import { useZatcaSettings } from '@/hooks/page/admin/settings/useZatcaSettings';
 import ZatcaOperationsLog from './ZatcaOperationsLog';
 import ZatcaCertExpiryWarning from './zatca/ZatcaCertExpiryWarning';
 import ZatcaPhasePlatform from './zatca/ZatcaPhasePlatform';
