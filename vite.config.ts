@@ -60,7 +60,7 @@ export default defineConfig(({ mode }) => ({
         runtimeCaching: [
           // تحميل الحزم المستبعدة عند الطلب مع تخزين مؤقت
           {
-            urlPattern: /\/assets\/vendor-(?:pdf|pdf-table|recharts|d3|html2canvas|markdown|dnd|webauthn|qr|arabic).+\.js$/i,
+            urlPattern: /\/assets\/vendor-(?:pdf|pdf-table|recharts|d3|markdown|dnd|webauthn|qr|arabic).+\.js$/i,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'lazy-vendor-chunks',
