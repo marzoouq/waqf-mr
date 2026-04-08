@@ -19,7 +19,7 @@ Deno.serve(async (req: Request) => {
     const isServiceRoleToken = checkServiceRole(token);
 
     // Only allow service_role (for cron) or verified admin users
-    if (!isServiceRole) {
+    if (!isServiceRoleToken) {
       if (!authHeader.startsWith("Bearer ") || !token) {
         return new Response(
           JSON.stringify({ error: "Unauthorized" }),
