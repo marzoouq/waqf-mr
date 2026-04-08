@@ -34,7 +34,7 @@ export const useWaqifDashboardPage = () => {
   const { data: properties = [], isLoading: propLoading } = useProperties();
   const { data: contracts = [], isLoading: contLoading } = useContractsSafeByFiscalYear(fiscalYearId);
   const { data: allUnits = [] } = useAllUnits();
-  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || 'all');
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId ?? undefined);
   const { data: contractAllocations = [] } = useContractAllocations(
     (fiscalYearId !== 'all' && !!fiscalYearId) ? fiscalYearId : undefined
   );
