@@ -1,96 +1,76 @@
 
 
-# خطة الإصلاح المعماري — الجولة 4
+# تقرير التدقيق المعماري — الجولة 6 (تحقق نهائي)
 
-## التحقق من الادعاءات
+## الادعاءات المرفوضة (أُصلحت أو غير صحيحة)
 
-جميع الادعاءات الخمسة **مؤكدة** بعد فحص الكود الفعلي:
-
-| # | الادعاء | النتيجة |
+| # الأصلي | الادعاء | الحالة |
 |---|---------|--------|
-| 1 | `logAccessEvent` يُستورد من re-export في 10 ملفات | ✅ مؤكد — 10 ملفات تستورد من `@/hooks/data/audit/useAccessLog` |
-| 2 | `useRoleRedirect` في `hooks/ui/` | ✅ مؤكد — مستخدم فقط من `useAuthPage.ts` |
-| 3 | بحث AccessLog على الصفحة فقط | ✅ مؤكد — `logs.filter()` على المصفوفة المحمّلة في كلا الملفين |
-| 4 | `useBfcacheSafeChannel` في `hooks/ui/` | ✅ مؤكد — 5 مستوردين، يعتمد على `lib/realtime/channelFactory` |
-| 5 | `fiscalYearIds` خارج barrel | ✅ مؤكد — `constants/index.ts` لا يحتويه |
+| 1, 10, 24 | `logger.ts` / `logAccessEvent` في طبقة خاطئة | **أُصلح** — لا ملف يستورد من المسار القديم |
+| 3, 57 | `timingSafeEqual` مكررة | **أُصلح** — في `_shared/auth.ts` فقط |
+| 4 | `useRoleRedirect` في `hooks/ui/` | **أُصلح** — في `hooks/auth/` |
+| 17 | `ErrorBoundary` يتجاهل `Test explosion` | **أُصلح** |
+| 43 | `useBfcacheSafeChannel` في `hooks/ui/` | **أُصلح** — في `lib/realtime/` |
+| 26, 65 | `fiscalYearIds` خارج barrel | **أُصلح** |
+| 13 | `useIncomeComparison` N+1 | **غير صحيح** — استعلام واحد بـ `.in()` |
+| 16 | `errorReporter.ts` يستخدم مفتاح مُشفَّر | **أُصلح** — يستخدم `STORAGE_KEYS.ERROR_LOG_QUEUE` (سطر 43) |
 
 ---
 
-## الخطوات
+## المشاكل الحقيقية المتبقية
 
-### الخطوة 1: توحيد استيراد `logAccessEvent` 🟠
+### 🟠 1. `properties.find()` و `allUnits.find()` — O(N×M) في `useAccountsCalculations`
 
-تحديث 10 ملفات لاستيراد مباشر من `@/lib/services/accessLogService` بدلاً من `@/hooks/data/audit/useAccessLog`. ثم حذف ملف `useAccessLog.ts` (bridge).
+**السطر**: 40, 43 — داخل `useCallback` يُستدعى لكل عقد عبر `collectionData` useMemo.
 
-| ملف | إجراء |
-|-----|-------|
-| `src/contexts/AuthContext.tsx` | تعديل import |
-| `src/components/auth/ProtectedRoute.tsx` | تعديل import |
-| `src/components/auth/LoginForm.tsx` | تعديل import |
-| `src/components/settings/PermissionsControlPanel.tsx` | تعديل import |
-| `src/components/layout/IdleTimeoutManager.tsx` | تعديل import |
-| `src/hooks/page/shared/useAuthPage.ts` | تعديل import |
-| `src/hooks/page/admin/settings/useSystemDiagnostics.ts` | تعديل import |
-| `src/hooks/ui/useLayoutState.ts` | تعديل import |
-| `src/hooks/auth/webAuthnErrors.ts` | تعديل import |
-| `src/lib/auth/nationalIdLogin.ts` | تعديل import |
-| `src/hooks/data/audit/useAccessLog.ts` | حذف |
+**الإصلاح**: بناء `Map<string, Property>` و `Map<string, Unit>` في `useMemo` مرة واحدة، ثم استخدام `.get()` بدلاً من `.find()`.
+
+**ملفات**: 1 تعديل
 
 ---
 
-### الخطوة 2: نقل `useRoleRedirect` إلى `hooks/auth/` 🟠
+### 🟠 2. `statusLabel` دالة عادية داخل hook تُعاد إنشاؤها كل render
 
-| ملف | إجراء |
-|-----|-------|
-| `src/hooks/ui/useRoleRedirect.ts` → `src/hooks/auth/useRoleRedirect.ts` | نقل |
-| `src/hooks/page/shared/useAuthPage.ts` | تعديل import |
-| `src/hooks/auth/index.ts` | إضافة تصدير |
+**السطر**: 149-156 — دالة بسيطة بدون أي تبعية على state أو props.
 
----
+**الإصلاح**: نقلها خارج الـ hook كدالة module-level.
 
-### الخطوة 3: إصلاح بحث AccessLog/ArchiveLog 🟡
-
-إضافة توضيح نصي بجانب صندوق البحث يوضح أن البحث محدود بالصفحة الحالية. هذا الحل الأخف — تحويل البحث لاستعلام قاعدة بيانات يتطلب تغييرات أكبر في hooks البيانات.
-
-| ملف | إجراء |
-|-----|-------|
-| `src/components/audit/AccessLogTab.tsx` | إضافة tooltip/نص توضيحي |
-| `src/components/audit/ArchiveLogTab.tsx` | إضافة tooltip/نص توضيحي |
+**ملفات**: 1 تعديل (نفس الملف)
 
 ---
 
-### الخطوة 4: نقل `useBfcacheSafeChannel` إلى `lib/realtime/` 🟡
+### 🟡 3. `onError` غير متسق بين hooks
 
-| ملف | إجراء |
-|-----|-------|
-| `src/hooks/ui/useBfcacheSafeChannel.ts` → `src/lib/realtime/bfcacheSafeChannel.ts` | نقل |
-| `src/hooks/ui/useDashboardRealtime.ts` | تعديل import |
-| `src/hooks/page/beneficiary/useBeneficiaryDashboardPage.ts` | تعديل import |
-| `src/hooks/data/notifications/useNotificationActions.ts` | تعديل import |
-| `src/hooks/data/messaging/useMessaging.ts` | تعديل import |
-| `src/hooks/ui/useRealtimeAlerts.ts` | تعديل import |
-| `src/hooks/ui/index.ts` | إزالة تصدير |
+- `useCloseFiscalYear` (سطر 43): `logger.error` فقط — **لا يُبلغ المستخدم**
+- `useCrudFactory`: `logger.error` + `notify.error` (صحيح)
+- `useUserManagementMutations`: `defaultNotify.error` فقط (مقبول)
+
+**الإصلاح**: إضافة `defaultNotify.error` في `useCloseFiscalYear.onError` — عملية إقفال السنة المالية فشلها يجب أن يراه المستخدم.
+
+**ملفات**: 1 تعديل
 
 ---
 
-### الخطوة 5: إضافة `fiscalYearIds` لـ barrel 🟢
+### 🟡 4. `getSafeErrorMessage` — fallback يُسجّل كل خطأ غير معروف عبر `logger.error`
 
-| ملف | إجراء |
-|-----|-------|
-| `src/constants/index.ts` | إضافة تصدير |
+**السطر 84**: `logger.error('[App Error]', error)` — يُشغَّل لكل خطأ لا يطابق أي نمط. إذا كان المستدعي يُسجّل الخطأ أيضاً (مثل `useCrudFactory`)، يحدث تسجيل مزدوج.
+
+**الإصلاح**: إزالة `logger.error` من `getSafeErrorMessage` — المسؤولية على المستدعي. أو إضافة parameter `{ silent?: boolean }`.
+
+**ملفات**: 1 تعديل
 
 ---
 
-## ملخص التأثير
+## ملخص
 
-| الخطوة | نقل | حذف | تعديل |
-|--------|-----|-----|-------|
-| 1 | 0 | 1 | 10 |
-| 2 | 1 | 0 | 2 |
-| 3 | 0 | 0 | 2 |
-| 4 | 1 | 0 | 6 |
-| 5 | 0 | 0 | 1 |
-| **المجموع** | **2** | **1** | **21** |
+| # | المشكلة | الأولوية | الجهد |
+|---|---------|---------|-------|
+| 1 | Map بدلاً من find() في useAccountsCalculations | 🟠 | صغير |
+| 2 | نقل statusLabel خارج الـ hook | 🟠 | تافه |
+| 3 | إضافة notify في useCloseFiscalYear.onError | 🟡 | تافه |
+| 4 | إزالة logger.error من getSafeErrorMessage | 🟡 | تافه |
 
-صفر تغيير في السلوك الخارجي.
+**إجمالي**: 3 ملفات متأثرة. صفر تغيير في السلوك الخارجي (باستثناء #3: المستخدم سيرى toast عند فشل إقفال السنة).
+
+**خلاصة**: المشروع في حالة نظيفة جداً. الـ 100 ادعاء الأصلية أُصلح أو رُفض 96 منها. المتبقي 4 تحسينات محلية — لا مشاكل معمارية هيكلية.
 
