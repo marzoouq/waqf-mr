@@ -56,7 +56,8 @@ export function usePropertyPerformance(
   contracts: Contract[],
   expenses: Expense[],
   allUnits: Unit[],
-  isSpecificYear: boolean
+  isSpecificYear: boolean,
+  allocationMap?: Map<string, { allocated_amount: number }>,
 ) {
   const propertyPerformance = useMemo(() =>
     properties.map((property) => {
@@ -66,6 +67,7 @@ export function usePropertyPerformance(
         expenses,
         units: allUnits,
         isSpecificYear,
+        allocationMap,
       });
 
       return {
@@ -79,7 +81,7 @@ export function usePropertyPerformance(
         netIncome: fin.activeAnnualRent - fin.totalExpenses,
       };
     }).sort((a, b) => b.netIncome - a.netIncome),
-    [properties, contracts, expenses, allUnits, isSpecificYear]
+    [properties, contracts, expenses, allUnits, isSpecificYear, allocationMap]
   );
 
   const perfTotals = useMemo(() =>

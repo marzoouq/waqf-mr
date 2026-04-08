@@ -25,6 +25,7 @@ export const useDistributionHistory = (beneficiaryId: string) => {
   return useQuery({
     queryKey: ['beneficiary-distribution-history', beneficiaryId],
     staleTime: STALE_FINANCIAL,
+    enabled: !!beneficiaryId,
     queryFn: async () => {
       // left join — لا يُخفي توزيعات بدون حساب (#27)
       const { data, error } = await supabase

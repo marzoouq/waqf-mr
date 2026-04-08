@@ -11,7 +11,7 @@ import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Expense } from '@/types/database';
-import { EMPTY_FILTERS, type FilterState } from '@/components/filters/advancedFilters.types';
+import { EMPTY_FILTERS, type FilterState } from '@/types/filters';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
