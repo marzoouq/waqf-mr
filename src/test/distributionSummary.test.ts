@@ -35,7 +35,7 @@ describe('filterDistributionsByFiscalYear', () => {
   it('hasAccount=false مع fiscalYearId="fy-2" → توزيعات fy-2 فقط', () => {
     const result = filterDistributionsByFiscalYear(list, false, 'fy-2');
     expect(result).toHaveLength(1);
-    expect(result[0].amount).toBe(300);
+    expect(result[0]?.amount).toBe(300);
   });
 
   it('hasAccount=false مع fiscalYearId="fy-999" → مصفوفة فارغة', () => {
