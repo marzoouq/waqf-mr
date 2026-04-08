@@ -20,7 +20,7 @@ vi.mock('sonner', () => ({
   },
 }));
 
-vi.mock('@/hooks/data/useAccessLog', () => ({
+vi.mock('@/lib/services/accessLogService', () => ({
   logAccessEvent: vi.fn(),
 }));
 

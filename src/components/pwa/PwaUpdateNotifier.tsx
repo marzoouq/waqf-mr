@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { defaultNotify } from "@/lib/notify";
 import {
   Dialog,
   DialogContent,
@@ -70,7 +70,7 @@ const PwaUpdateNotifier = () => {
           const entries = filtered.length > 0 ? filtered : fallback ? [fallback] : [];
           setNewEntries(entries);
 
-          toast.success("تم تحديث التطبيق بنجاح ✨", {
+          defaultNotify.success("تم تحديث التطبيق بنجاح ✨", {
             description: "اضغط لعرض سجل التحديثات",
             duration: 6000,
             action: {

@@ -19,13 +19,6 @@ export interface AuditLogPdfOptions {
   opFilter?: string;
 }
 
-const formatDate = (iso: string) => {
-  try {
-    return fmtDate(iso);
-  } catch {
-    return iso;
-  }
-};
 
 const summarizeData = (data: Record<string, unknown> | null): string => {
   if (!data) return '—';
@@ -103,7 +96,7 @@ export const generateAuditLogPDF = async (options: AuditLogPdfOptions) => {
 
   // Table
   const tableData = logs.map(log => reshapeRow([
-    formatDate(log.created_at),
+    fmtDate(log.created_at),
     getTableNameAr(log.table_name),
     getOperationNameAr(log.operation),
     getSummary(log),

@@ -11,7 +11,7 @@ vi.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => mockToastError(.
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), log: vi.fn() } }));
 
 const mockLogAccessEvent = vi.fn();
-vi.mock('@/hooks/data/useAccessLog', () => ({ logAccessEvent: (...a: unknown[]) => mockLogAccessEvent(...a) }));
+vi.mock('@/lib/services/accessLogService', () => ({ logAccessEvent: (...a: unknown[]) => mockLogAccessEvent(...a) }));
 
 const mockBrowserSupports = vi.fn(() => false);
 const mockStartRegistration = vi.fn();
