@@ -7,6 +7,16 @@ import type { useAccountsData } from './useAccountsData';
 
 type AccountsData = ReturnType<typeof useAccountsData>;
 
+/** تسمية حالة العقد — ثابتة لا تعتمد على state */
+const statusLabel = (status: string) => {
+  switch (status) {
+    case 'active': return 'نشط';
+    case 'expired': return 'منتهي';
+    case 'cancelled': return 'ملغي';
+    default: return status;
+  }
+};
+
 interface CalcParams {
   data: AccountsData;
   adminPercent: number;
@@ -35,18 +45,22 @@ export function useAccountsCalculations({
   const vatPercentage = Number(appSettings.data?.['vat_percentage'] || '15');
   const residentialVatExempt = (appSettings.data?.['residential_vat_exempt'] || 'true') === 'true';
 
+  // خرائط بحث O(1) بدلاً من find() المكرر
+  const propertyMap = useMemo(() => new Map(properties.map(p => [p.id, p])), [properties]);
+  const unitMap = useMemo(() => new Map(allUnits.map(u => [u.id, u])), [allUnits]);
+
   const isCommercialContract = useCallback((contract: typeof contracts[0]) => {
     if (!residentialVatExempt) return true;
-    const property = properties.find(p => p.id === contract.property_id);
+    const property = propertyMap.get(contract.property_id);
     if (property?.vat_exempt) return false;
     if (contract.unit_id) {
-      const unit = allUnits.find(u => u.id === contract.unit_id);
+      const unit = unitMap.get(contract.unit_id);
       if (unit?.unit_type === 'محل') return true;
       if (unit?.unit_type === 'شقة') return false;
     }
     if (property?.property_type === 'تجاري') return true;
     return false;
-  }, [residentialVatExempt, properties, allUnits]);
+  }, [residentialVatExempt, propertyMap, unitMap]);
 
   const commercialRent = useMemo(() => contracts
     .filter(c => isCommercialContract(c))
