@@ -3,7 +3,7 @@
  */
 import { useMemo } from 'react';
 import { isFyAll } from '@/constants/fiscalYearIds';
-import { useAdminDashboardStats } from '@/hooks/page/admin/useAdminDashboardStats';
+import { useAdminDashboardStats } from './useAdminDashboardStats';
 import type { useDashboardSummary } from '@/hooks/data/financial/useDashboardSummary';
 
 type DashboardSummary = Omit<ReturnType<typeof useDashboardSummary>, 'isLoading'>;
