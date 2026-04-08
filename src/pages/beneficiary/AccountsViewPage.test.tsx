@@ -29,35 +29,6 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/financial/useFinancialSummary', () => ({
-  useFinancialSummary: vi.fn(() => ({
-    income: [],
-    beneficiaries: [{ user_id: 'u1', name: 'مستفيد', share_percentage: 20 }],
-    currentAccount: { fiscal_year: '1446-1447' },
-    totalIncome: 100000,
-    totalExpenses: 20000,
-    netAfterExpenses: 80000,
-    waqfCorpusPrevious: 0,
-    vatAmount: 3000,
-    netAfterVat: 77000,
-    netAfterZakat: 75500,
-    zakatAmount: 1500,
-    adminShare: 7700,
-    waqifShare: 3850,
-    waqfRevenue: 65450,
-    waqfCorpusManual: 5000,
-    distributionsAmount: 0,
-    grandTotal: 77000,
-    availableAmount: 60000,
-    remainingBalance: 60000,
-    incomeBySource: { 'إيجار': 100000 },
-    expensesByType: { 'كهرباء': 10000, 'صيانة': 10000 },
-    expensesByTypeExcludingVat: { 'كهرباء': 10000, 'صيانة': 10000 },
-    isLoading: false,
-    isError: false,
-    isAccountMissing: false,
-  })),
-}));
 
 vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/components/common/ExportMenu', () => ({ default: (_props: any) => <button data-testid="export-menu">تصدير</button> }));

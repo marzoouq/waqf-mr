@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => ({
           '**/vendor-pdf-table*.js',
           '**/vendor-recharts*.js',
           '**/vendor-d3*.js',
-          '**/vendor-html2canvas*.js',
+          
           '**/vendor-markdown*.js',
           '**/vendor-dnd*.js',
           '**/vendor-webauthn*.js',
@@ -60,7 +60,7 @@ export default defineConfig(({ mode }) => ({
         runtimeCaching: [
           // تحميل الحزم المستبعدة عند الطلب مع تخزين مؤقت
           {
-            urlPattern: /\/assets\/vendor-(?:pdf|pdf-table|recharts|d3|html2canvas|markdown|dnd|webauthn|qr|arabic).+\.js$/i,
+            urlPattern: /\/assets\/vendor-(?:pdf|pdf-table|recharts|d3|markdown|dnd|webauthn|qr|arabic).+\.js$/i,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'lazy-vendor-chunks',
@@ -167,7 +167,7 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/@dnd-kit/')) return 'vendor-dnd';
           if (id.includes('node_modules/jspdf-autotable')) return 'vendor-pdf-table';
           if (id.includes('node_modules/jspdf') || id.includes('node_modules/canvg') || id.includes('node_modules/rgbcolor') || id.includes('node_modules/stackblur-canvas')) return 'vendor-pdf';
-          if (id.includes('node_modules/html2canvas') || id.includes('node_modules/css-line-break')) return 'vendor-html2canvas';
+          
           if (id.includes('node_modules/recharts')) return 'vendor-recharts';
           if (id.includes('node_modules/victory-vendor') || id.includes('node_modules/d3-')) return 'vendor-d3';
           if (id.includes('node_modules/react-markdown') || id.includes('node_modules/remark-') || id.includes('node_modules/rehype-') || id.includes('node_modules/unified') || id.includes('node_modules/mdast-') || id.includes('node_modules/micromark') || id.includes('node_modules/hast-') || id.includes('node_modules/unist-')) return 'vendor-markdown';

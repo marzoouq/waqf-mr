@@ -3,19 +3,6 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const mockUseFinancialSummary = vi.fn(() => ({
-  beneficiaries: [{ id: 'b1', user_id: 'user-1', name: 'محمد أحمد', share_percentage: 10 }],
-  currentAccount: null,
-  isAccountMissing: false,
-  totalIncome: 200000, totalExpenses: 50000, netAfterVat: 180000,
-  netAfterZakat: 170000,
-  adminShare: 18000, waqifShare: 9000, waqfRevenue: 153000,
-  waqfCorpusManual: 0, vatAmount: 20000, zakatAmount: 0,
-  netAfterExpenses: 150000, availableAmount: 100000,
-  incomeBySource: {}, expensesByTypeExcludingVat: {},
-  remainingBalance: 0, grandTotal: 0,
-  isLoading: false, isError: false,
-}));
 
 const mockUseMyShare = vi.fn(() => ({
   currentBeneficiary: { id: 'b1', user_id: 'user-1', name: 'محمد أحمد', share_percentage: 10 },
@@ -74,9 +61,6 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-vi.mock('@/hooks/financial/useFinancialSummary', () => ({
-  useFinancialSummary: () => mockUseFinancialSummary(),
-}));
 
 vi.mock('@/hooks/financial/useMyShare', () => ({
   useMyShare: () => mockUseMyShare(),
@@ -134,16 +118,6 @@ describe('MySharePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseMySharePage.mockReturnValue({ ...baseMySharePageState });
-    mockUseFinancialSummary.mockReturnValue({
-      beneficiaries: [{ id: 'b1', user_id: 'user-1', name: 'محمد أحمد', share_percentage: 10 }],
-      currentAccount: null, isAccountMissing: false,
-      totalIncome: 200000, totalExpenses: 50000, netAfterVat: 180000,
-      netAfterZakat: 170000, adminShare: 18000, waqifShare: 9000, waqfRevenue: 153000,
-      waqfCorpusManual: 0, vatAmount: 20000, zakatAmount: 0,
-      netAfterExpenses: 150000, availableAmount: 100000,
-      incomeBySource: {}, expensesByTypeExcludingVat: {},
-      remainingBalance: 0, grandTotal: 0, isLoading: false, isError: false,
-    });
     mockUseMyShare.mockReturnValue({
       currentBeneficiary: { id: 'b1', user_id: 'user-1', name: 'محمد أحمد', share_percentage: 10 },
       myShare: 100000, totalBenPct: 10, pctLoading: false,

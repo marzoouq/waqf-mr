@@ -31,35 +31,6 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/financial/useFinancialSummary', () => ({
-  useFinancialSummary: vi.fn(() => ({
-    beneficiaries: [{ id: 'b1', user_id: 'user-1', name: 'أحمد علي', share_percentage: 15 }],
-    totalIncome: 200000,
-    totalExpenses: 50000,
-    currentAccount: { fiscal_year: '1446-1447' },
-    vatAmount: 10000,
-    zakatAmount: 5000,
-    waqfCorpusManual: 3000,
-    waqfCorpusPrevious: 0,
-    netAfterExpenses: 150000,
-    netAfterVat: 140000,
-    netAfterZakat: 135000,
-    adminShare: 15000,
-    waqifShare: 10000,
-    waqfRevenue: 110000,
-    grandTotal: 140000,
-    distributionsAmount: 0,
-    incomeBySource: { 'إيجارات': 180000, 'أخرى': 20000 },
-    expensesByType: { 'صيانة': 30000, 'كهرباء': 20000 },
-    expensesByTypeExcludingVat: { 'صيانة': 30000, 'كهرباء': 20000 },
-    availableAmount: 107000,
-    remainingBalance: 107000,
-    isLoading: false,
-    isError: false,
-    isAccountMissing: false,
-  })),
-}));
-
 vi.mock('@/hooks/data/useContracts', () => ({
   useContractsByFiscalYear: vi.fn(() => ({
     data: [

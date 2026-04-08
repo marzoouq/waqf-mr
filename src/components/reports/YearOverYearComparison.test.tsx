@@ -20,17 +20,6 @@ vi.mock('recharts', () => ({
   Cell: () => null,
 }));
 
-// Mock useFinancialSummary
-vi.mock('@/hooks/financial/useFinancialSummary', () => ({
-  useFinancialSummary: () => ({
-    income: [],
-    expenses: [],
-    totalIncome: 0,
-    totalExpenses: 0,
-    expensesByType: {},
-  }),
-}));
-
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>
 );

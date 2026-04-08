@@ -45,25 +45,6 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/financial/useFinancialSummary', () => ({
-  useFinancialSummary: vi.fn(() => ({
-    income: [], expenses: [],
-    beneficiaries: [{ id: 'b1', name: 'محمد', share_percentage: 50 }, { id: 'b2', name: 'أحمد', share_percentage: 50 }],
-    currentAccount: null,
-    totalIncome: 80000, totalExpenses: 20000,
-    adminPct: 10, waqifPct: 5,
-    zakatAmount: 0, vatAmount: 12000,
-    waqfCorpusPrevious: 0, waqfCorpusManual: 0, distributionsAmount: 0,
-    grandTotal: 80000, netAfterExpenses: 60000, netAfterVat: 48000, netAfterZakat: 48000,
-    adminShare: 4800, waqifShare: 2400, waqfRevenue: 40800,
-    availableAmount: 40800, remainingBalance: 40800,
-    incomeBySource: { 'إيجارات': 70000, 'أخرى': 10000 },
-    expensesByType: { 'صيانة': 15000, 'كهرباء': 5000 },
-    expensesByTypeExcludingVat: { 'صيانة': 15000, 'كهرباء': 5000 },
-    isLoading: false, isError: false, isAccountMissing: false,
-  })),
-}));
-
 vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/utils/pdf', () => ({
   generateAnnualReportPDF: vi.fn(),
