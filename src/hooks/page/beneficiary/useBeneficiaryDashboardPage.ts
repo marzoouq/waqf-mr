@@ -7,7 +7,7 @@ import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/useBeneficiaryDashboardData';
 import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import type { RealtimeChannel } from '@supabase/supabase-js';

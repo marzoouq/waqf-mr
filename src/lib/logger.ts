@@ -1,9 +1,9 @@
 /**
  * Production-safe logger
- * في production: يُسكت كل شيء ما عدا الأخطاء الحرجة التي تُسجَّل في access_log
+ * في production: يُسكت كل شيء ما عدا الأخطاء الحرجة التي تُسجَّل عبر errorReporter
  * في development: يطبع كالمعتاد
  */
-import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
+import { reportClientError } from '@/lib/errorReporter';
 
 const isDev = import.meta.env.DEV;
 
@@ -14,15 +14,17 @@ export const logger = {
       console.error(...args);
     } else {
       console.error('[App Error]');
-      // Record client error in access_log for monitoring
+      // توحيد pipeline الأخطاء: logger → errorReporter → access_log
       const errObj = args.find(a => a instanceof Error) as Error | undefined;
       const message = errObj?.message || (typeof args[0] === 'string' ? args[0] : String(args[0] ?? 'unknown'));
-      logAccessEvent({
-        event_type: 'client_error',
-        metadata: {
-          message: message.substring(0, 500),
-          error_name: errObj?.name,
-        },
+      reportClientError({
+        error_name: errObj?.name ?? 'UnknownError',
+        error_message: message.substring(0, 500),
+        error_stack: errObj?.stack?.substring(0, 1000) ?? null,
+        component_stack: null,
+        url: window.location?.href ?? null,
+        user_agent: navigator.userAgent?.substring(0, 500) ?? null,
+        timestamp: new Date().toISOString(),
       }).catch(() => {});
     }
   },

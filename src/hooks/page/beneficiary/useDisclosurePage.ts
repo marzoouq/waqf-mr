@@ -13,7 +13,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { defaultNotify } from '@/lib/notify';
-import { useBeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/useBeneficiaryDashboardData';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiaryFinancials';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { toGregorianShort } from '@/utils/format/date';

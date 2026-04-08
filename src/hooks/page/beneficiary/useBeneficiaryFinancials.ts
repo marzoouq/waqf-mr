@@ -5,7 +5,7 @@
 import { useMemo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { toSourceRecord, toExpenseRecord } from '@/utils/financial/recordConverters';
-import type { BeneficiaryDashboardData } from '@/hooks/data/beneficiaries/useBeneficiaryDashboardData';
+import type { BeneficiaryDashboardData } from '@/hooks/page/beneficiary/useBeneficiaryDashboardData';
 
 export function useBeneficiaryFinancials(dashData: BeneficiaryDashboardData | undefined, fiscalYearId?: string | null) {
   const account = dashData?.account;
