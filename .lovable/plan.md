@@ -1,25 +1,127 @@
 
 
-# خطة إضافة 8 اختبارات تغطية لـ `distributionCalcPure.ts`
+# خطة إعادة هيكلة hooks/page/admin — النسخة المحدّثة
 
-## الملف المُعدَّل
+تم دمج ملاحظات المراجعة الأربع في الخطة.
 
-`src/hooks/page/admin/distributionCalcPure.test.ts` — إضافة `describe('تغطية الفروع المتقدمة', ...)` بعد الـ describe الحالي.
+---
 
-## الحالات الثمانية مع القيم المتوقعة
+## التغييرات عن الخطة السابقة
 
-| # | الحالة | المدخلات | المتوقع |
-|---|--------|----------|---------|
-| 1 | `user_id` ينتقل للنتيجة | `{id:'a', user_id:'uid-1'}` + `{id:'b', user_id:null}`, 1000, 50/50 | `result[0].beneficiary_user_id === 'uid-1'`, `result[1].beneficiary_user_id === null` |
-| 2 | نسب لا تساوي 100% | 20% + 40% (مجموع 60%), مبلغ 600 | a=200, b=400 (⅓ و⅔ نسبياً) |
-| 3 | ترحيل أكبر من المتبقي بعد السلف | حصة=500, سلف=400, ترحيل=300 | `carryforward_deducted=100` (لأن المتبقي بعد السلف=100), `net=0`, `deficit=200` |
-| 4 | عجز من سلف + ترحيل | حصة=500, سلف=600, ترحيل=200 | `afterAdvances=0`, `carryforward_deducted=0`, `net=0`, `deficit=300` |
-| 5 | 0% + 100% | مستفيدان, مبلغ=1000 | a(0%)=0, b(100%)=1000 |
-| 6 | penny allocation: 100÷3 | 3 متساويين 33.33%, مبلغ=100 | مجموع=100 بالضبط, أحدهم 33.34 والباقي 33.33 |
-| 7 | أصغر مبلغ (0.01) | مستفيد واحد 100%, مبلغ=0.01 | `share_amount=0.01`, `net=0.01` |
-| 8 | سلف = الحصة بالضبط | حصة=500, سلف=500 | `net=0`, `deficit=0` |
+| الملاحظة | القرار |
+|----------|--------|
+| re-exports مؤقتة بدل تحديث 38 ملف | **مقبول** — ملفات proxy مؤقتة في الجذر |
+| تسمية `distributionCalc` | **مقبول** — يبقى `distributionCalcPure.ts` للحفاظ على الدلالة |
+| `useSupportDashboardPage` في dashboard؟ | **نعم** — هو لوحة تحكم دعم فني للأدمن، ينتمي لـ `dashboard/` |
+| أداء barrel في dev | Vite يتعامل جيداً — نراقب لاحقاً |
+
+---
+
+## الخطوة 1: نقل `distributionCalcPure.ts`
+
+| من | إلى |
+|----|-----|
+| `hooks/page/admin/distributionCalcPure.ts` | `utils/financial/distributionCalcPure.ts` |
+| `hooks/page/admin/distributionCalcPure.test.ts` | `utils/financial/distributionCalcPure.test.ts` |
+
+- تحديث استيراد `useDistributionCalculation.ts`: `from '@/utils/financial/distributionCalcPure'`
+- إضافة export في `utils/financial/index.ts`
+
+**ملفات متأثرة**: 3 فقط
+
+---
+
+## الخطوة 2: إنشاء 5 مجلدات فرعية ونقل الملفات
+
+```text
+hooks/page/admin/
+├── dashboard/   (4 hooks + 1 test)
+│   ├── useAccountantDashboardData.ts
+│   ├── useAdminDashboardData.ts
+│   ├── useAdminDashboardStats.ts
+│   ├── useSupportDashboardPage.ts
+│   ├── useSupportDashboardPage.test.ts
+│   └── index.ts
+├── financial/   (10 hooks)
+│   ├── useCarryforwardData.ts
+│   ├── useCollectionData.ts
+│   ├── useCreateInvoiceForm.ts
+│   ├── useDistributionCalculation.ts
+│   ├── useExpensesPage.ts
+│   ├── useFiscalYearManagement.ts
+│   ├── useIncomePage.ts
+│   ├── useInvoicesPage.ts
+│   ├── usePaymentInvoiceActions.ts
+│   ├── usePaymentInvoicesTab.ts
+│   └── index.ts
+├── contracts/   (5 hooks)
+│   ├── useContractForm.ts
+│   ├── useContractFormDialog.ts
+│   ├── useContractsBulkRenew.ts
+│   ├── useContractsFilters.ts
+│   ├── useContractsPage.ts
+│   └── index.ts
+├── reports/     (3 hooks)
+│   ├── useAnnualReportPage.ts
+│   ├── useHistoricalComparison.ts
+│   ├── useReportsData.ts
+│   └── index.ts
+├── settings/    (9 hooks)
+│   ├── useAuditLogPage.ts
+│   ├── useBeneficiariesPage.ts
+│   ├── useBulkNotifications.ts
+│   ├── useBylawsPage.ts
+│   ├── useChartOfAccountsPage.ts
+│   ├── usePropertiesPage.ts
+│   ├── usePropertiesViewData.ts
+│   ├── useSystemDiagnostics.ts
+│   ├── useZatcaSettings.ts
+│   └── index.ts
+└── index.ts  ← barrel يعيد تصدير المجلدات الفرعية
+```
+
+---
+
+## الخطوة 3: ملفات re-export مؤقتة (بدلاً من تحديث 38 ملف)
+
+بدلاً من تحديث كل ملف مستهلك، يُنشأ ملف proxy في الجذر لكل hook منقول:
+
+```typescript
+// hooks/page/admin/useContractForm.ts (proxy مؤقت)
+export { useContractForm } from './contracts/useContractForm';
+```
+
+هذا يعني:
+- **صفر** ملفات خارجية تحتاج تحديث
+- **صفر** merge conflicts محتملة
+- يمكن إزالة الـ proxies لاحقاً تدريجياً في PRs مستقلة
+
+---
+
+## الخطوة 4: تحديث الاستيرادات الداخلية فقط
+
+الملفات داخل نفس المجلد الفرعي التي تستورد من بعضها:
+- `useContractsPage` ← `useContractForm`, `useContractsFilters`, `useContractsBulkRenew` (كلها في `contracts/` → مسار نسبي `./`)
+- `usePaymentInvoicesTab` ← `usePaymentInvoiceActions` (كلاها في `financial/` → `./`)
+- `useAdminDashboardData` ← `useAdminDashboardStats` (كلاهما في `dashboard/` → `./`)
+
+---
 
 ## التحقق
 
-تشغيل `npx vitest run src/hooks/page/admin/distributionCalcPure.test.ts --reporter=verbose` — 18 حالة ناجحة.
+- `tsc --noEmit` — صفر أخطاء
+- `vitest run distributionCalcPure` — 18 اختبار ناجح
+- `vitest run useSupportDashboardPage` — اختبار ناجح
+
+---
+
+## ملخص التأثير
+
+| المقياس | قبل | بعد |
+|---------|-----|-----|
+| ملفات حقيقية في الجذر | 33 | ~33 proxy (مؤقتة) + `index.ts` |
+| مجلدات فرعية | 0 | 5 |
+| ملفات خارجية تحتاج تعديل | — | **0** (بفضل proxies) |
+| `distributionCalcPure` في hooks | نعم | لا → `utils/financial/` |
+| التوافق العكسي | — | ✅ كامل |
 
