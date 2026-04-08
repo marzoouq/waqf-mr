@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Notification as AppNotification } from '@/types/database';
 import { NOTIFICATION_TONE_KEY, type ToneId, getVolumeGain, playTone } from '@/constants/notificationTones';
-import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
+import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 export const useNotificationActions = (userId: string, hasUser: boolean, disabledTypes: Set<string>) => {

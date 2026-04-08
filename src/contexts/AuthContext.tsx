@@ -9,7 +9,7 @@
  */
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
+import { logAccessEvent } from '@/lib/services/accessLogService';
 import { checkNewDeviceLogin } from '@/hooks/data/audit/useSecurityAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';

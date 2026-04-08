@@ -66,7 +66,7 @@ const AccessLogTab = () => {
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input name="searchQuery" id="access-log-tab-field-1" placeholder="بحث بالبريد أو المسار..." value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-9" />
+          <Input name="searchQuery" id="access-log-tab-field-1" placeholder="بحث في الصفحة الحالية..." title="البحث يشمل السجلات المعروضة في هذه الصفحة فقط" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-9" />
         </div>
         <Select value={eventFilter} onValueChange={v => { setEventFilter(v); setCurrentPage(1); }}>
           <SelectTrigger className="w-[180px]"><SelectValue placeholder="نوع الحدث" /></SelectTrigger>

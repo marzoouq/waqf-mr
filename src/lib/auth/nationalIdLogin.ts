@@ -5,7 +5,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import type { AppNotify } from '@/lib/notify';
-import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
+import { logAccessEvent } from '@/lib/services/accessLogService';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 

@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { defaultNotify } from '@/lib/notify';
 import { Loader2 } from 'lucide-react';
-import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
+import { logAccessEvent } from '@/lib/services/accessLogService';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 import { STORAGE_KEYS } from '@/constants/storageKeys';

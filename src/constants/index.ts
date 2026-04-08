@@ -7,3 +7,5 @@ export type { ExpenseType, PropertyType } from './entities';
 export { BANNER_COLORS, BANNER_COLOR_CLASSES, DEFAULT_BANNER_SETTINGS } from './ui';
 export type { BannerSettings } from './ui';
 export { ROLE_LABELS } from './roles';
+export { FY_NONE, FY_ALL, FY_SKIP, isFyReady, isFyAll, isFySpecific } from './fiscalYearIds';
+export type { FiscalYearSentinel } from './fiscalYearIds';

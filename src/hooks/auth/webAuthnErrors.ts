@@ -3,7 +3,7 @@
  */
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
-import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
+import { logAccessEvent } from '@/lib/services/accessLogService';
 
 /** تسجيل حدث بصمة في سجل الوصول */
 export const logBiometricEvent = (

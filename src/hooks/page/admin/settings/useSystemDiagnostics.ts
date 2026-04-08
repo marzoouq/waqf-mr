@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { runAllDiagnostics, runCategoryDiagnostics, diagnosticCategories, type CheckResult } from '@/utils/diagnostics/checks';
 import { sanitizeDiagnosticOutput } from '@/utils/diagnostics/sanitize';
-import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
+import { logAccessEvent } from '@/lib/services/accessLogService';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { logger } from '@/lib/logger';
 

@@ -5,7 +5,7 @@ import { logAccessEvent } from '@/lib/services/accessLogService';
 import { useRegistrationEnabled } from '@/hooks/data/settings/useRegistrationEnabled';
 import { usePwaInstall } from '@/hooks/ui/usePwaInstall';
 import { useOfflineDetect } from '@/hooks/ui/useOfflineDetect';
-import { useRoleRedirect } from '@/hooks/ui/useRoleRedirect';
+import { useRoleRedirect } from '@/hooks/auth/useRoleRedirect';
 
 export const useAuthPage = () => {
   const { signIn, signUp, user, role, loading, signOut } = useAuth();

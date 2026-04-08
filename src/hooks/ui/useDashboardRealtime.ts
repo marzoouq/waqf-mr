@@ -5,7 +5,7 @@
  */
 import { useCallback, useRef, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
+import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 
 const DEBOUNCE_MS = 500;
 

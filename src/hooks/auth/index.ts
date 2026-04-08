@@ -14,3 +14,4 @@ export type { ManagedUser } from './useUserManagementData';
 export { useCreateUserMutation, useConfirmEmailMutation, useUpdateEmailMutation, useUpdatePasswordMutation, useSetRoleMutation, useDeleteUserMutation, useLinkBeneficiaryMutation, useToggleRegistration } from './useUserManagementMutations';
 
 export { logBiometricEvent, handleRegistrationError, handleAuthenticationError, getDeviceName } from './webAuthnErrors';
+export { useRoleRedirect } from './useRoleRedirect';

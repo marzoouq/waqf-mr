@@ -3,7 +3,7 @@
  */
 import { useCallback, useRef, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
+import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
