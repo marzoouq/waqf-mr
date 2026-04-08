@@ -5,7 +5,7 @@ import { useCallback, lazy, Suspense } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
-import { logAccessEvent } from '@/hooks/data/audit/useAccessLog';
+import { logAccessEvent } from '@/lib/services/accessLogService';
 
 const IdleTimeoutWarning = lazy(() => import('@/components/auth/IdleTimeoutWarning'));
 

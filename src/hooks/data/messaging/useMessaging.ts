@@ -5,7 +5,7 @@ import { useCallback, useRef } from 'react';
 import { Conversation, Message } from '@/types/database';
 import { notifyUser } from '@/lib/services';
 import { logger } from '@/lib/logger';
-import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
+import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
 
 export type { Conversation, Message };

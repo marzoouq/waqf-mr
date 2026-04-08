@@ -7,6 +7,8 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
+const importModule = () => import('@/lib/services/accessLogService');
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -14,7 +16,7 @@ beforeEach(() => {
 describe('logAccessEvent', () => {
   it('يستدعي supabase.rpc بالبارامترات الصحيحة', async () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
-    const { logAccessEvent } = await import('./useAccessLog');
+    const { logAccessEvent } = await importModule();
 
     await logAccessEvent({
       event_type: 'login_success',
@@ -36,7 +38,7 @@ describe('logAccessEvent', () => {
 
   it('يمرر metadata فارغة عند عدم التحديد', async () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
-    const { logAccessEvent } = await import('./useAccessLog');
+    const { logAccessEvent } = await importModule();
 
     await logAccessEvent({ event_type: 'logout' });
 
@@ -51,7 +53,7 @@ describe('logAccessEvent', () => {
 
   it('لا يرمي خطأ عند فشل RPC (silent fail)', async () => {
     mockRpc.mockRejectedValue(new Error('RPC failed'));
-    const { logAccessEvent } = await import('./useAccessLog');
+    const { logAccessEvent } = await importModule();
 
     // يجب أن لا يرمي
     await expect(logAccessEvent({ event_type: 'login_failed' })).resolves.toBeUndefined();

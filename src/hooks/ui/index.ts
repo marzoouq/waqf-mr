@@ -1,5 +1,5 @@
 export { useIsMobile } from './useIsMobile';
-export { useBfcacheSafeChannel } from './useBfcacheSafeChannel';
+export { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 export { useChartReady } from './useChartReady';
 export { useDashboardRealtime } from './useDashboardRealtime';
 export { useIdleTimeout } from './useIdleTimeout';
