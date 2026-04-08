@@ -1,4 +1,4 @@
-import { logger } from '@/lib/logger';
+
 
 /**
  * يحوّل رسائل الخطأ التقنية إلى رسائل آمنة للمستخدم
@@ -80,7 +80,6 @@ export function getSafeErrorMessage(error: unknown): string {
     return 'يوجد حقل مطلوب غير مُعبّأ. يرجى مراجعة النموذج';
   }
 
-  // رسالة افتراضية آمنة — التفاصيل تبقى في logger فقط
-  logger.error('[App Error]', error);
+  // رسالة افتراضية آمنة — مسؤولية التسجيل على المستدعي
   return 'حدث خطأ غير متوقع. يرجى المحاولة لاحقاً';
 }
