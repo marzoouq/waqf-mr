@@ -92,3 +92,75 @@ describe('calculateDistributions — Penny Allocation', () => {
     result.forEach(r => expect(r.share_amount).toBe(250000));
   });
 });
+
+describe('تغطية الفروع المتقدمة', () => {
+  it('ينقل user_id للنتيجة (موجود و null)', () => {
+    const bens = [
+      { id: 'a', name: 'أحمد', share_percentage: 50, user_id: 'uid-1' },
+      { id: 'b', name: 'سعد', share_percentage: 50, user_id: null },
+    ];
+    const result = calculateDistributions(bens, 1000);
+    expect(result[0]!.beneficiary_user_id).toBe('uid-1');
+    expect(result[1]!.beneficiary_user_id).toBeNull();
+  });
+
+  it('يوزّع نسبياً عندما المجموع لا يساوي 100%', () => {
+    const bens = [makeBen('a', 20), makeBen('b', 40)];
+    const result = calculateDistributions(bens, 600);
+    expect(result.find(r => r.beneficiary_id === 'a')!.share_amount).toBeCloseTo(200, 2);
+    expect(result.find(r => r.beneficiary_id === 'b')!.share_amount).toBeCloseTo(400, 2);
+  });
+
+  it('يحدّ الترحيل بالمتبقي بعد السلف', () => {
+    const bens = [makeBen('a', 100)];
+    const result = calculateDistributions(bens, 500, { a: 400 }, { a: 300 });
+    const a = result[0]!;
+    expect(a.share_amount).toBe(500);
+    expect(a.advances_paid).toBe(400);
+    expect(a.carryforward_deducted).toBe(100);
+    expect(a.net_amount).toBe(0);
+    expect(a.deficit).toBe(200);
+  });
+
+  it('يحسب العجز عندما السلف + الترحيل أكبر من الحصة', () => {
+    const bens = [makeBen('a', 100)];
+    const result = calculateDistributions(bens, 500, { a: 600 }, { a: 200 });
+    const a = result[0]!;
+    expect(a.carryforward_deducted).toBe(0);
+    expect(a.net_amount).toBe(0);
+    expect(a.deficit).toBe(300);
+  });
+
+  it('يعطي صفر لمستفيد بنسبة 0% وكامل المبلغ لنسبة 100%', () => {
+    const bens = [makeBen('a', 0), makeBen('b', 100)];
+    const result = calculateDistributions(bens, 1000);
+    expect(result.find(r => r.beneficiary_id === 'a')!.share_amount).toBe(0);
+    expect(result.find(r => r.beneficiary_id === 'b')!.share_amount).toBe(1000);
+  });
+
+  it('penny allocation: 100 على 3 متساويين = 100 بالضبط', () => {
+    const bens = [makeBen('a', 33.33), makeBen('b', 33.33), makeBen('c', 33.33)];
+    const result = calculateDistributions(bens, 100);
+    const total = result.reduce((s, r) => s + r.share_amount, 0);
+    expect(total).toBeCloseTo(100, 2);
+    const amounts = result.map(r => r.share_amount).sort();
+    expect(amounts[0]).toBeCloseTo(33.33, 2);
+    expect(amounts[2]).toBeCloseTo(33.34, 2);
+  });
+
+  it('يتعامل مع أصغر مبلغ ممكن (0.01)', () => {
+    const bens = [makeBen('a', 100)];
+    const result = calculateDistributions(bens, 0.01);
+    expect(result[0]!.share_amount).toBe(0.01);
+    expect(result[0]!.net_amount).toBe(0.01);
+  });
+
+  it('سلف = الحصة بالضبط → net=0, deficit=0', () => {
+    const bens = [makeBen('a', 100)];
+    const result = calculateDistributions(bens, 500, { a: 500 });
+    const a = result[0]!;
+    expect(a.share_amount).toBe(500);
+    expect(a.net_amount).toBe(0);
+    expect(a.deficit).toBe(0);
+  });
+});
