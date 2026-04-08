@@ -157,7 +157,7 @@ export function useAccountsCalculations({
   const totalPaidMonths = collectionData.reduce((sum, d) => sum + d.paidMonths, 0);
   const totalExpectedPayments = collectionData.reduce((sum, d) => sum + d.expectedPayments, 0);
 
-  const totalBeneficiaryPercentage = data.beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
+  const totalBeneficiaryPercentage = useMemo(() => data.beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0), [data.beneficiaries]);
 
 
   return {

@@ -96,7 +96,7 @@ export const generateAuditLogPDF = async (options: AuditLogPdfOptions) => {
 
   // Table
   const tableData = logs.map(log => reshapeRow([
-    formatDate(log.created_at),
+    fmtDate(log.created_at),
     getTableNameAr(log.table_name),
     getOperationNameAr(log.operation),
     getSummary(log),

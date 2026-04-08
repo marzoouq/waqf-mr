@@ -18,7 +18,7 @@ vi.mock('@/integrations/supabase/client', () => ({
     from: () => ({ select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) }) }),
   },
 }));
-vi.mock('@/hooks/data/useAccessLog', () => ({ logAccessEvent: vi.fn() }));
+vi.mock('@/lib/services/accessLogService', () => ({ logAccessEvent: vi.fn() }));
 vi.mock('sonner', () => ({ toast: { info: vi.fn(), error: vi.fn(), success: vi.fn() } }));
 
 import Auth from './Auth';
