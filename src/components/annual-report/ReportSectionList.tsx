@@ -3,17 +3,8 @@
  */
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import type { SectionType } from '@/hooks/data/content/useAnnualReport';
+import type { SectionType, AnnualReportItem } from '@/hooks/data/content/useAnnualReport';
 import ReportItemCard from './ReportItemCard';
-
-interface ReportSectionItem {
-  id: string;
-  title: string;
-  content: string;
-  sort_order: number;
-  section_type: string;
-  property_id: string | null;
-}
 
 interface ReportSectionListProps {
   type: SectionType;
