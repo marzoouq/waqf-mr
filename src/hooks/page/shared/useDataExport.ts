@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { defaultNotify } from '@/lib/notify';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { buildXlsx, downloadXlsx } from '@/utils/export/xlsx';
-import { fetchTableData } from '@/utils/export/dataFetcher';
+import { fetchTableData } from '@/lib/services/dataFetcher';
 
 export type ExportableTable =
   | 'properties'
