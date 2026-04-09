@@ -14,9 +14,10 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import type { InvoicePreviewData } from '@/types/invoices';
 import { usePaymentInvoiceActions } from './usePaymentInvoiceActions';
 
-export type FilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';
+import type { SortDir } from '@/types/sorting';
+
+export type InvoiceFilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';
 export type SortKey = 'due_date' | 'amount' | 'status' | 'payment_number';
-export type SortDir = 'asc' | 'desc';
 
 const statusOrder: Record<string, number> = { overdue: 0, pending: 1, partially_paid: 2, paid: 3 };
 
@@ -32,7 +33,7 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
   const actions = usePaymentInvoiceActions();
 
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<FilterStatus>('all');
+  const [filter, setFilter] = useState<InvoiceFilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('due_date');

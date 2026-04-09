@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Zap, AlertTriangle, FileDown, CalendarDays, X } from 'lucide-react';
 import { generateOverdueInvoicesPDF } from '@/utils/pdf';
-import type { FilterStatus } from '@/hooks/page/admin/financial/usePaymentInvoicesTab';
+import type { InvoiceFilterStatus } from '@/hooks/page/admin/financial/usePaymentInvoicesTab';
 import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 import { isFyAll } from '@/constants/fiscalYearIds';
@@ -14,8 +14,8 @@ import { isFyAll } from '@/constants/fiscalYearIds';
 interface PaymentInvoiceToolbarProps {
   search: string;
   setSearch: (v: string) => void;
-  filter: FilterStatus;
-  setFilter: (v: FilterStatus) => void;
+  filter: InvoiceFilterStatus;
+  setFilter: (v: InvoiceFilterStatus) => void;
   dateFrom: string;
   setDateFrom: (v: string) => void;
   dateTo: string;
@@ -42,7 +42,7 @@ export default function PaymentInvoiceToolbar({
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input name="search" id="payment-invoices-tab-field-1" placeholder="بحث بالفاتورة أو المستأجر..." value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
       </div>
-      <Select value={filter} onValueChange={v => setFilter(v as FilterStatus)}>
+      <Select value={filter} onValueChange={v => setFilter(v as InvoiceFilterStatus)}>
         <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
         <SelectContent>
           <SelectItem value="all">الكل ({invoicesCount})</SelectItem>

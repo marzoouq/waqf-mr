@@ -10,7 +10,7 @@ import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 // ─── الأنواع ───
-export type FilterStatus = 'all' | 'overdue' | 'partial' | 'complete';
+export type CollectionFilterStatus = 'all' | 'overdue' | 'partial' | 'complete';
 
 export interface CollectionRow {
   contract: Contract;
@@ -76,7 +76,7 @@ interface UseCollectionDataParams {
 
 export function useCollectionData({ contracts, paymentInvoices, fiscalYears, fiscalYearId }: UseCollectionDataParams) {
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<FilterStatus>('all');
+  const [filter, setFilter] = useState<CollectionFilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
   const useDynamicAllocation = fiscalYearId !== 'all' && fiscalYears.length > 0;

@@ -3,7 +3,7 @@
  */
 export { useCarryforwardData } from './useCarryforwardData';
 export { useCollectionData } from './useCollectionData';
-export type { CollectionRow, FilterStatus as CollectionFilterStatus } from './useCollectionData';
+export type { CollectionRow, CollectionFilterStatus } from './useCollectionData';
 export { useCreateInvoiceForm } from './useCreateInvoiceForm';
 export { useDistributionCalculation } from './useDistributionCalculation';
 export { useExpensesPage } from './useExpensesPage';

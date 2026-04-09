@@ -13,7 +13,7 @@ import { fmt } from '@/utils/format/format';
 
 import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
-import { useCollectionData, type FilterStatus } from '@/hooks/page/admin/financial/useCollectionData';
+import { useCollectionData, type CollectionFilterStatus } from '@/hooks/page/admin/financial/useCollectionData';
 import { useCollectionAlerts } from '@/hooks/data/contracts/useCollectionAlerts';
 import CollectionSummaryCards from './CollectionSummaryCards';
 import CollectionMobileCards from './CollectionMobileCards';
@@ -59,7 +59,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input name="search" id="collection-report-field-1" placeholder="بحث بالعقد أو المستأجر..." value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
         </div>
-        <Select value={filter} onValueChange={(v) => setFilter(v as FilterStatus)}>
+        <Select value={filter} onValueChange={(v) => setFilter(v as CollectionFilterStatus)}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">الكل ({rows.length})</SelectItem>
