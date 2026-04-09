@@ -16,7 +16,7 @@ import BeneficiaryNotificationsCard from '@/components/beneficiary-dashboard/Ben
 import BeneficiaryAdvanceCard from '@/components/beneficiary-dashboard/BeneficiaryAdvanceCard';
 import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 
-const defaultWidgets = makeWidgetDefaults();
+const defaultWidgets = makeDefaults(BENEFICIARY_WIDGET_KEYS);
 
 const BeneficiaryDashboard = () => {
   const { getJsonSetting } = useAppSettings();
