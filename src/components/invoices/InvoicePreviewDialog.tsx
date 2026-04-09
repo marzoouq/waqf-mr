@@ -46,7 +46,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
 
       const canvas = await domToCanvas(element, {
         scale: 2,
-        backgroundColor: '#ffffff',
+        backgroundColor: CANVAS_BG_COLOR,
       });
 
       const imgData = canvas.toDataURL('image/png');
