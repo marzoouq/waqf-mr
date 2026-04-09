@@ -1,20 +1,23 @@
 /**
  * تصدير مركزي — financial data hooks
  */
-export { useAccountCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from './useAccountCategories';
+export { useAccountCategories, useCreateAccountCategory, useUpdateAccountCategory, useDeleteAccountCategory, useAccountCategoryTree, buildCategoryTree } from './useAccountCategories';
+export type { CategoryTreeNode } from './useAccountCategories';
 export { useAccounts, useCreateAccount, useUpdateAccount } from './useAccounts';
-export { useAdvanceRequests, useCreateAdvanceRequest, useApproveAdvance, useRejectAdvance, usePayAdvance } from './useAdvanceRequests';
-export { useAdvanceQueries } from './useAdvanceQueries';
+export { useAdvanceRequests, useCreateAdvanceRequest, useUpdateAdvanceStatus } from './useAdvanceRequests';
+export type { AdvanceRequest, AdvanceCarryforward } from './useAdvanceRequests';
+export { useMyBeneficiaryFinance, useAllCarryforwards } from './useAdvanceQueries';
 export { useBeneficiarySummary } from './useBeneficiarySummary';
 export { useCloseFiscalYear } from './useCloseFiscalYear';
 export { useContractAllocations, useUpsertContractAllocations } from './useContractAllocations';
 export { useDashboardSummary } from './useDashboardSummary';
-export { useDistribute } from './useDistribute';
-export { useDistributionAdvances } from './useDistributionAdvances';
+export { useDistributeShares } from './useDistribute';
+export { usePaidAdvances, useActiveCarryforwards } from './useDistributionAdvances';
 export { useDistributionHistory } from './useDistributionHistory';
-export { useExpenseBudgets, useUpsertExpenseBudget } from './useExpenseBudgets';
+export { useExpenseBudgets, useSaveBudget } from './useExpenseBudgets';
+export type { BudgetRow } from './useExpenseBudgets';
 export { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteExpense } from './useExpenses';
-export { useFiscalYears, useCreateFiscalYear, useUpdateFiscalYear } from './useFiscalYears';
+export { useFiscalYears, useActiveFiscalYear } from './useFiscalYears';
 export type { FiscalYear } from './useFiscalYears';
 export { useFiscalYearSummary } from './useFiscalYearSummary';
 export { useIncomeByFiscalYear, useCreateIncome, useUpdateIncome, useDeleteIncome } from './useIncome';
