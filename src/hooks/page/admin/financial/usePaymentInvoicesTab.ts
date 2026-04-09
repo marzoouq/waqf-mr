@@ -11,7 +11,7 @@ import {
 } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import type { InvoicePreviewData } from '@/components/invoices';
+import type { InvoicePreviewData } from '@/types/invoices';
 import { usePaymentInvoiceActions } from './usePaymentInvoiceActions';
 
 export type FilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';

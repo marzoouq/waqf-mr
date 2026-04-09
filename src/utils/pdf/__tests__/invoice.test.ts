@@ -30,7 +30,7 @@ vi.mock('sonner', () => ({
 }));
 
 import { generateInvoiceClientPDF } from '../invoices/invoice';
-import type { Invoice } from '@/hooks/data/invoices/useInvoices';
+import type { Invoice } from '@/types/invoices';
 
 describe('generateInvoiceClientPDF', () => {
   beforeEach(() => vi.clearAllMocks());

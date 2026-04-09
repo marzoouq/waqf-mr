@@ -11,7 +11,8 @@ import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector, type Invoic
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 
-export type InvoicePreviewData = InvoiceTemplateData;
+export type { InvoicePreviewData } from '@/types/invoices';
+type InvoicePreviewData = InvoiceTemplateData;
 
 interface InvoicePreviewDialogProps {
   open: boolean;
