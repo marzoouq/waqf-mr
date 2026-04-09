@@ -3,7 +3,7 @@
  */
 import { Loader2, Building2, FileText, Users, Receipt } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import type { SearchResult } from '@/hooks/page/shared/useGlobalSearch';
 
 const TYPE_CONFIG = {

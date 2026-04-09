@@ -5,7 +5,7 @@ import * as React from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { NativeSelect, type NativeSelectOption } from '@/components/ui/native-select';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 interface TabItem {
   value: string;

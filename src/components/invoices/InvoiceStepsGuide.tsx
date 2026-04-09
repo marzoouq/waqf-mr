@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, FileText, Receipt, PenTool, Send, ShieldCheck, Download } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 
 const STORAGE_KEY = 'invoice-steps-guide-open';

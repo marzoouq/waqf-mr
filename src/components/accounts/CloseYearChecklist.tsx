@@ -3,7 +3,7 @@
  * تتحقق من اكتمال العمليات الأساسية قبل السماح بالإقفال.
  */
 import { CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import type { ChecklistItem } from './closeYearChecklist.utils';
 
 interface CloseYearChecklistProps {

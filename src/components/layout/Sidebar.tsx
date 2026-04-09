@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { ROLE_LABELS } from '@/constants/roles';
 import { useSetting } from '@/hooks/data/settings/useAppSettings';
 import { usePrefetchPages } from '@/hooks/data/core/usePrefetchPages';

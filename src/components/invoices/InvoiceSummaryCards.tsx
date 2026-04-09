@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { FileText, CheckCircle2, Clock, AlertTriangle, Ban, TrendingUp } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { fmt } from '@/utils/format/format';
 
 interface InvoiceSummaryCardsProps {
