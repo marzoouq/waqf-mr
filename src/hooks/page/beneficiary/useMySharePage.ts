@@ -40,6 +40,7 @@ export const useMySharePage = () => {
   );
 
   const myAdvances = useMemo(
+    // RPC dashboard response — cast مبرر، النوع يأتي من BeneficiaryDashboardData
     () => (dashData?.my_advances ?? []) as unknown as AdvanceRequest[],
     [dashData?.my_advances],
   );
