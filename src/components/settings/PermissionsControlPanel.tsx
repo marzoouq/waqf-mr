@@ -7,7 +7,7 @@ import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { defaultNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 import { ROLE_SECTION_DEFS, ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
-import { BENEFICIARY_WIDGET_KEYS, BENEFICIARY_WIDGET_LABELS, makeWidgetDefaults } from '@/constants/beneficiaryWidgets';
+import { BENEFICIARY_WIDGET_KEYS, BENEFICIARY_WIDGET_LABELS } from '@/constants/beneficiaryWidgets';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import AdminCapabilitiesSummary from './AdminCapabilitiesSummary';
