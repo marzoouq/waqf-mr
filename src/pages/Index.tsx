@@ -48,17 +48,8 @@ const Index = () => {
 
   const handleNavigateAuth = useCallback(() => navigate('/auth'), [navigate]);
 
-  // المستخدم المسجّل سيُعاد توجيهه — لا داعي لرندر Landing Page الثقيلة
-  if (!loading && user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   const siteUrl = window.location.origin;
-  const waqfName = waqfInfo?.name ?? 'نظام إدارة الوقف';
+  const waqfName = waqfInfo?.waqf_name ?? 'نظام إدارة الوقف';
 
   const jsonLd = useMemo(() => ({
     "@context": "https://schema.org",
@@ -83,6 +74,15 @@ const Index = () => {
     inLanguage: "ar",
     offers: { "@type": "Offer", price: "0", priceCurrency: "SAR" },
   }), [waqfName, siteUrl]);
+
+  // المستخدم المسجّل سيُعاد توجيهه — لا داعي لرندر Landing Page الثقيلة
+  if (!loading && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <main dir="rtl" className="min-h-screen bg-background">
