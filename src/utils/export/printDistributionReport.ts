@@ -4,6 +4,37 @@
  */
 import { fmt } from '@/utils/format/format';
 
+/** ألوان تقرير الطباعة — مركزية لتسهيل التعديل */
+const PRINT_COLORS = {
+  text: '#1a1a2e',
+  background: '#fff',
+  heading: '#2c3e50',
+  subheading: '#7f8c8d',
+  muted: '#95a5a6',
+  metaBg: '#f8f9fa',
+  metaBorder: '#e9ecef',
+  tableBorder: '#dee2e6',
+  tableHeaderBg: '#2c3e50',
+  tableHeaderText: '#fff',
+  evenRowBg: '#f8f9fa',
+  totalRowBg: '#f1f3f5',
+  success: '#27ae60',
+  danger: '#c0392b',
+  warning: '#e67e22',
+  info: '#2980b9',
+  deficitBg: '#fff5f5',
+  primaryCardBg: '#e8f5e9',
+  primaryCardBorder: '#a5d6a7',
+  dangerCardBg: '#ffebee',
+  dangerCardBorder: '#ef9a9a',
+  warningCardBg: '#fff8e1',
+  warningCardBorder: '#ffe082',
+  infoCardBg: '#e3f2fd',
+  infoCardBorder: '#90caf9',
+  footerText: '#adb5bd',
+  labelText: '#666',
+} as const;
+
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
