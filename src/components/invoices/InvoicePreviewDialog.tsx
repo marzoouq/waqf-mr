@@ -11,6 +11,9 @@ import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector, type Invoic
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 
+/** لون خلفية Canvas عند تحويل المعاينة إلى صورة */
+const CANVAS_BG_COLOR = '#ffffff';
+
 export type { InvoicePreviewData } from '@/types/invoices';
 type InvoicePreviewData = InvoiceTemplateData;
 
@@ -46,7 +49,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
 
       const canvas = await domToCanvas(element, {
         scale: 2,
-        backgroundColor: '#ffffff',
+        backgroundColor: CANVAS_BG_COLOR,
       });
 
       const imgData = canvas.toDataURL('image/png');

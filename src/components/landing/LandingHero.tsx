@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { LandingPageContent } from '@/components/settings';
 
+/** لون النقش الإسلامي الذهبي في خلفية البطل */
+const GOLD_PATTERN_COLOR = '#d4af37';
+
 interface LandingHeroProps {
   content: LandingPageContent;
   waqfLogoUrl?: string;
@@ -20,10 +23,10 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
       <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
         <defs>
           <pattern id="islamicPattern" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
-            <path d="M60 0L120 60L60 120L0 60Z" fill="none" stroke="#d4af37" strokeWidth="0.8"/>
-            <path d="M60 15L105 60L60 105L15 60Z" fill="none" stroke="#d4af37" strokeWidth="0.5"/>
-            <path d="M60 30L90 60L60 90L30 60Z" fill="none" stroke="#d4af37" strokeWidth="0.4"/>
-            <circle cx="60" cy="60" r="10" fill="none" stroke="#d4af37" strokeWidth="0.4"/>
+            <path d="M60 0L120 60L60 120L0 60Z" fill="none" stroke={GOLD_PATTERN_COLOR} strokeWidth="0.8"/>
+            <path d="M60 15L105 60L60 105L15 60Z" fill="none" stroke={GOLD_PATTERN_COLOR} strokeWidth="0.5"/>
+            <path d="M60 30L90 60L60 90L30 60Z" fill="none" stroke={GOLD_PATTERN_COLOR} strokeWidth="0.4"/>
+            <circle cx="60" cy="60" r="10" fill="none" stroke={GOLD_PATTERN_COLOR} strokeWidth="0.4"/>
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#islamicPattern)"/>
