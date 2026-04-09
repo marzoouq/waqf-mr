@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { TENANT_ID_TYPES } from '@/constants';
-import type { ContractFormData } from './contractForm.types';
+import type { ContractFormData } from '@/types/forms/contract';
 
 interface Props {
   formData: ContractFormData;

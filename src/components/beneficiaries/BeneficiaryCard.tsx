@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Phone, Mail, CreditCard, Percent, UserCheck, IdCard, History } from 'lucide-react';
 import { maskNationalId, maskBankAccount, maskPhone, maskEmail } from '@/utils/format/maskData';
-import { formatPercentage } from '@/lib/utils';
+import { formatPercentage } from '@/utils/format';
 import { Beneficiary } from '@/types/database';
 import DistributionHistory from './DistributionHistory';
 

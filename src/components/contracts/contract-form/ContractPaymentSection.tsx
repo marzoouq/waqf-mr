@@ -7,7 +7,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
-import { type ContractFormData } from '../contractForm.types';
+import { type ContractFormData } from '@/types/forms/contract';
 import { fmt } from '@/utils/format/format';
 import { getContractSpanInfo } from '@/utils/financial/contractAllocation';
 

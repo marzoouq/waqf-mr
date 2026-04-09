@@ -15,4 +15,4 @@ export { default as ContractsFiltersBar } from './ContractsFiltersBar';
 export { default as ContractsTabContent } from './ContractsTabContent';
 export { default as MonthlyAccrualTable } from './MonthlyAccrualTable';
 export { default as PaymentInvoicesTab } from './PaymentInvoicesTab';
-export { emptyFormData, type ContractFormData } from './contractForm.types';
+export { emptyFormData, type ContractFormData } from '@/types/forms/contract';

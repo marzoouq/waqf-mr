@@ -4,8 +4,3 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
-/** Format a percentage value to 2 decimal places with a % suffix. */
-export function formatPercentage(value: number): string {
-  return `${(Number.isFinite(value) ? value : 0).toFixed(2)}%`;
-}

@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Building2, CheckSquare } from 'lucide-react';
-import { type ContractFormData, type PricingMode, type RentalMode } from '../contractForm.types';
+import { type ContractFormData, type PricingMode, type RentalMode } from '@/types/forms/contract';
 import { fmt } from '@/utils/format/format';
 import type { Contract } from '@/types/database';
 
