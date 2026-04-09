@@ -5,7 +5,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { useBylaws } from '@/hooks/data/content/useBylaws';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
+import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { generateBylawsPDF } from '@/utils/pdf';
 
 export function useBylawsViewPage() {

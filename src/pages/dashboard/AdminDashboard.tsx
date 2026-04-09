@@ -3,7 +3,7 @@ import { lazy, Suspense } from 'react';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import DeferredRender from '@/components/common/DeferredRender';
 import ViewportRender from '@/components/common/ViewportRender';
-import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { Button } from '@/components/ui/button';
 import { FiscalYearWidget, DashboardAlerts, DashboardStatsGrid, DashboardKpiPanel, CollectionSummaryCard, RecentContractsCard, QuickActionsCard, YearComparisonCard } from '@/components/dashboard';
 import AccountantDashboardView from '@/components/dashboard/AccountantDashboardView';

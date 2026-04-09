@@ -4,7 +4,7 @@
  * #13 — نسب الحصص من RPC | #21 — lazy fetch للعقود
  */
 import { useCallback } from 'react';
-import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
+import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useMyShare } from '@/hooks/financial/useMyShare';

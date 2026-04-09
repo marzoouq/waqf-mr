@@ -5,7 +5,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/messaging/useMessaging';
-import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
+import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 
 export function useBeneficiaryMessages() {
   const handleRetry = useRetryQueries(['conversations']);

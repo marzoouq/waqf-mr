@@ -2,7 +2,7 @@
  * هوك بيانات صفحة تاريخ الترحيلات
  */
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
+import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { useMyBeneficiaryProfile } from '@/hooks/data/beneficiaries/useMyBeneficiaryProfile';
 import { usePublishedFiscalYears } from '@/hooks/data/content/usePublishedFiscalYears';
 import { useMyBeneficiaryFinance } from '@/hooks/data/financial/useAdvanceRequests';

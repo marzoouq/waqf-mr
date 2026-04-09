@@ -7,3 +7,4 @@ export { notifyAdmins, notifyAllBeneficiaries, insertNotifications, notifyUser, 
 export { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp, saveZatcaSettings } from './zatcaService';
 export { logAccessEvent } from './accessLogService';
 export type { AccessEventType } from './accessLogService';
+export { checkNewDeviceLogin } from './securityService';

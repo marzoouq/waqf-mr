@@ -56,7 +56,7 @@ vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
 }));
 
-vi.mock('@/hooks/ui/useBfcacheSafeChannel', () => ({
+vi.mock('@/lib/realtime/bfcacheSafeChannel', () => ({
   useBfcacheSafeChannel: vi.fn(() => null),
 }));
 

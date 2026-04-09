@@ -9,7 +9,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiaryFinancials';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/useBeneficiaryDashboardData';

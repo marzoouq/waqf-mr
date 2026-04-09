@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { defaultNotify } from '@/lib/notify';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { usePushNotifications } from '@/hooks/data/notifications/usePushNotifications';
-import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
+import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { NOTIFICATION_CATEGORIES } from '@/pages/beneficiary/notifications/notificationConstants';
 
 export function useNotificationsPage() {

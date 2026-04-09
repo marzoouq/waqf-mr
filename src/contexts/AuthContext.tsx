@@ -10,7 +10,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { logAccessEvent } from '@/lib/services/accessLogService';
-import { checkNewDeviceLogin } from '@/hooks/data/audit/useSecurityAlerts';
+import { checkNewDeviceLogin } from '@/lib/services/securityService';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
