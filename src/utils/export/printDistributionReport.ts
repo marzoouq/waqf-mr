@@ -181,21 +181,21 @@ export function printDistributionReport(params: PrintDistributionParams): boolea
   <div class="summary">
     <div class="summary-card primary">
       <div class="label">صافي المبلغ المطلوب صرفه</div>
-      <div class="value" style="color:#27ae60">${fmt(totalNet)} ر.س</div>
+      <div class="value" style="color:${PRINT_COLORS.success}">${fmt(totalNet)} ر.س</div>
     </div>
     <div class="summary-card info">
       <div class="label">إجمالي التوزيع (شامل الخصومات)</div>
-      <div class="value" style="color:#2980b9">${fmt(totalNet + totalAdvances + totalCarryforward)} ر.س</div>
+      <div class="value" style="color:${PRINT_COLORS.info}">${fmt(totalNet + totalAdvances + totalCarryforward)} ر.س</div>
     </div>
     ${totalAdvances > 0 ? `
     <div class="summary-card danger">
       <div class="label">إجمالي السُلف المخصومة</div>
-      <div class="value" style="color:#c0392b">-${fmt(totalAdvances)} ر.س</div>
+      <div class="value" style="color:${PRINT_COLORS.danger}">-${fmt(totalAdvances)} ر.س</div>
     </div>` : ''}
     ${totalDeficit > 0 ? `
     <div class="summary-card warning">
       <div class="label">فروق مرحّلة للسنة القادمة (${distributions.filter(d => d.deficit > 0).length} مستفيد)</div>
-      <div class="value" style="color:#e67e22">${fmt(totalDeficit)} ر.س</div>
+      <div class="value" style="color:${PRINT_COLORS.warning}">${fmt(totalDeficit)} ر.س</div>
     </div>` : ''}
   </div>
 
