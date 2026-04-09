@@ -1,96 +1,80 @@
 
 
-# خطة التنفيذ — الدفعة الأولى (خطوات 2-5, 7-9)
+# خطة تنفيذ البنود المتبقية من التقرير المعماري
 
 ## نظرة عامة
 
-تنفيذ 7 تحسينات معمارية مرتّبة في دفعة واحدة. كل خطوة مستقلة ولا تكسر وظائف قائمة.
+3 خطوات: إعادة تسمية مجلد، استخراج مكون، وتصنيف/تحسين `as unknown as`. لا تغييرات وظيفية.
 
 ---
 
-## الخطوة 1 — استخراج منطق الأعمال من `useAdvanceRequests`
+## الخطوة 1 — إعادة تسمية `hooks/page/admin/settings/` → `management/`
 
-**الهدف**: فصل FSM transitions والإشعارات عن طبقة البيانات.
+إنشاء `src/hooks/page/admin/management/` ونقل 11 ملفاً إليه، ثم تحديث 9 مستوردين:
 
-- إنشاء `src/lib/services/advanceService.ts` يحتوي على:
-  - `VALID_TRANSITIONS_TO` (جدول انتقالات الحالة)
-  - `buildStatusUpdates(status, rejection_reason)` — بناء كائن التحديث
-  - `validateTransition(status)` — التحقق من صحة الانتقال
-  - `notifyOnCreate(result, amount)` — إشعار الإنشاء (يستدعي `notifyAdmins` + `notifyUser`)
-  - `notifyOnStatusChange(vars)` — إشعار تغيير الحالة
-- تعديل `useAdvanceRequests.ts` لاستيراد من `advanceService` بدلاً من تضمين المنطق
-
-**الملفات**: `src/lib/services/advanceService.ts` (جديد)، `src/hooks/data/financial/useAdvanceRequests.ts`
-
----
-
-## الخطوة 2 — نقل ثوابت التنقل إلى `src/constants/navigation.ts`
-
-**الهدف**: كسر الاعتماد المعكوس (Hook ← Component folder).
-
-- إنشاء `src/constants/navigation.ts` ونقل إليه: `linkLabelKeys`, `allAdminLinks`, `allBeneficiaryLinks`, `SHOW_ALL_ROUTES`, `ADMIN_ROUTE_PERM_KEYS`, `BENEFICIARY_ROUTE_PERM_KEYS`, `ACCOUNTANT_EXCLUDED_ROUTES`, `defaultAdminSections`, `defaultBeneficiarySections`, `ADMIN_SECTION_KEYS`, `BENEFICIARY_SECTION_KEYS`, `ROUTE_TITLES`
-- إبقاء re-exports مؤقتة في `components/layout/constants.ts` لمنع كسر أي مستورد غير مكتشف
-- تحديث 4 مستوردين مباشرين: `useNavLinks.ts`, `useLayoutState.ts`, `usePermissionCheck.ts`, `MobileHeader.tsx`
-
-**الملفات**: `src/constants/navigation.ts` (جديد)، `src/components/layout/constants.ts`، + 4 ملفات مستوردة
+| الملف المستورد | الهوك المستخدم |
+|---------------|---------------|
+| `pages/dashboard/BylawsPage.tsx` | `useBylawsPage` |
+| `pages/dashboard/PropertiesPage.tsx` | `usePropertiesPage` |
+| `pages/beneficiary/PropertiesViewPage.tsx` | `usePropertiesViewData` |
+| `pages/dashboard/AuditLogPage.tsx` | `useAuditLogPage` |
+| `pages/dashboard/ChartOfAccountsPage.tsx` | `useChartOfAccountsPage` |
+| `pages/dashboard/SystemDiagnosticsPage.tsx` | `useSystemDiagnostics` |
+| `pages/dashboard/BeneficiariesPage.tsx` | `useBeneficiariesPage` |
+| `components/settings/ZatcaSettingsTab.tsx` | `useZatcaSettings` |
+| `components/settings/BulkNotificationsTab.tsx` | `useBulkNotifications` |
 
 ---
 
-## الخطوة 3 — دمج `unreadCount` في `useLayoutState`
+## الخطوة 2 — نقل `PageLoader` إلى `components/common/`
 
-**الهدف**: إزالة اقتران `DashboardLayout` بطبقة بيانات المراسلات.
-
-- نقل `useUnreadMessages()` من `DashboardLayout.tsx` إلى `useLayoutState.ts`
-- إضافة `unreadCount` إلى القيم المُرجعة من `useLayoutState`
-- حذف الاستيراد من `DashboardLayout.tsx`
-
-**الملفات**: `src/hooks/ui/useLayoutState.ts`، `src/components/layout/DashboardLayout.tsx`
+- إنشاء `src/components/common/PageLoader.tsx` بنفس المحتوى (سطر 43-51 من App.tsx)
+- استبدال التعريف المحلي في `App.tsx` باستيراد
 
 ---
 
-## الخطوة 4 — توحيد `FALLBACK_LOGO` في Edge Functions
+## الخطوة 3 — تحسين `as unknown as` (تصنيف + إصلاح ما يمكن)
 
-**الهدف**: DRY — مصدر واحد لـ URL الشعار.
+بعد الفحص، الحالات تنقسم إلى 3 فئات:
 
-- إنشاء `supabase/functions/_shared/constants.ts` مع `FALLBACK_LOGO`
-- تحديث 6 ملفات email template لاستيراده بدلاً من تعريفه محلياً
-- نشر `auth-email-hook` بعد التعديل
+### (أ) مبرر — RPC responses (لا يمكن حله بدون Zod)
+إضافة تعليق `// RPC — cast مبرر، يحتاج Zod validation لاحقاً`:
+- `useYearComparisonData.ts` — `ComparisonRpcResult`
+- `useMultiYearSummary.ts` — `RpcYearEntry[]`
+- `useMaxAdvanceAmount.ts` — `ServerAdvanceData`
+- `useSupportAnalytics.ts` — `SupportAnalyticsData`
+- `useBeneficiaryDashboardData.ts` — `BeneficiaryDashboardData`
 
-**الملفات**: `supabase/functions/_shared/constants.ts` (جديد)، 6 ملفات في `_shared/email-templates/`
+### (ب) مبرر — Supabase JSON parameter / null parameter
+- `useContractAllocations.ts` — cast لـ `Json` (ضروري لأن Supabase يتوقع `Json`)
+- `useBeneficiaries.ts` — `null as unknown as string` (RPC parameter)
 
----
+### (ج) قابل للتحسين — select types يمكن تدقيقها
+هذه الملفات تستخدم `.select()` عادي (ليس RPC) لكن الأنواع المولّدة لا تطابق الـ interface المحلي. الحل: تعريف الـ interface ليطابق ما يُرجعه Supabase بدلاً من cast:
+- `useAdvanceQueries.ts` — 3 casts على `.select()` عادي
+- `usePaymentInvoices.ts` — 1 cast
+- `useArchiveLog.ts` — 1 cast
+- `useAccessLogTab.ts` — 1 cast
+- `useZatcaCertificates.ts` — 1 cast
+- `useDashboardSummary.ts` — 2 casts (heatmap + recent contracts)
+- `useAdvanceRequests.ts` — 1 cast
+- `useAuditLogStats.ts` — 1 cast
 
-## الخطوة 5 — حذف `makeWidgetDefaults` المكررة
+**المنهج لفئة (ج)**: فحص نوع الاستجابة الفعلي عبر LSP hover، وإذا كان النوع المولّد متوافقاً مع الـ interface → حذف `as unknown as` واستخدام type assertion مباشر `as T[]` أو إزالة الـ cast كلياً. إذا لم يتوافق → إبقاء cast مع تعليق.
 
-**الهدف**: إزالة دالة مكررة.
-
-- حذف `makeWidgetDefaults` من `src/constants/beneficiaryWidgets.ts`
-- تحديث المستوردين (ملفين) لاستخدام `makeDefaults(BENEFICIARY_WIDGET_KEYS)` من `@/constants/sections`
-
-**الملفات**: `src/constants/beneficiaryWidgets.ts`، `src/pages/beneficiary/BeneficiaryDashboard.tsx`، `src/components/settings/PermissionsControlPanel.tsx`
-
----
-
-## الخطوة 6 — JSON-LD ديناميكي في `Index.tsx`
-
-**الهدف**: استبدال الاسم الثابت بقيمة ديناميكية + `useMemo`.
-
-- استبدال `"وقف مرزوق بن علي الثبيتي"` بـ `waqfInfo?.name ?? 'نظام إدارة الوقف'`
-- لف `jsonLd` و `webAppJsonLd` بـ `useMemo` مع اعتماد `waqfInfo?.name` و `siteUrl`
-
-**الملفات**: `src/pages/Index.tsx`
-
----
-
-## الخطوة 7 — حذف تعليق `rebuild:` من `main.tsx`
-
-حذف السطر `// rebuild: 2026-04-03T23:10` من أول الملف.
-
-**الملفات**: `src/main.tsx`
+**ملاحظة**: الـ casts في `hooks/page/` (مثل `useContractForm`, `useInvoicesPage`, `useExpensesPage`) تستخدم `as unknown as Parameters<typeof mutateAsync>[0]` — هذه مبررة لأن الـ CRUD factory ينتج أنواعاً عامة. ستُوثَّق بتعليق فقط.
 
 ---
 
-## التحقق النهائي
+## التحقق
 
-تشغيل `npx tsc --noEmit` للتأكد من خلو المشروع من أخطاء TypeScript بعد جميع التعديلات.
+`npx tsc --noEmit` بعد كل خطوة.
+
+## ملخص التأثير
+
+| الخطوة | ملفات جديدة | ملفات معدّلة |
+|--------|------------|-------------|
+| 1: إعادة تسمية settings/ | 11 (منقولة) | 9 |
+| 2: نقل PageLoader | 1 | 1 |
+| 3: تحسين as unknown as | 0 | ~15 |
 
