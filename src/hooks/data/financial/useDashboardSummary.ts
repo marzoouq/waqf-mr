@@ -77,6 +77,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
       if (!isAll) q = q.eq('fiscal_year_id', fiscalYearId);
       const { data, error } = await q;
       if (error) throw error;
+      // nested join contract→property — cast مطلوب للعلاقة المتداخلة
       return (data || []) as unknown as HeatmapInvoice[];
     },
   });
