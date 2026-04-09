@@ -10,7 +10,7 @@ import {
   INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear,
   useGenerateInvoicePdf, ALLOWED_MIME_TYPES, MAX_FILE_SIZE,
 } from '@/hooks/data/invoices/useInvoices';
-import type { InvoicePreviewData } from '@/components/invoices';
+import type { InvoicePreviewData } from '@/types/invoices';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';

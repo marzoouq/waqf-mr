@@ -55,6 +55,9 @@ export interface PaymentInvoice {
   };
 }
 
+/** بيانات معاينة الفاتورة — مُعاد تصديرها من invoiceTemplateUtils */
+export type { InvoiceTemplateData as InvoicePreviewData } from '@/components/invoices/invoiceTemplateUtils';
+
 /** خصم أو رسوم إضافية */
 export interface AllowanceChargeItem {
   reason: string;
