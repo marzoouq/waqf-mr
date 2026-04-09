@@ -15,7 +15,7 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
-const FALLBACK_LOGO = 'https://nuzdeamtujezrsxbvpfi.supabase.co/storage/v1/object/public/waqf-assets/email-logo.png?v=1'
+import { FALLBACK_LOGO } from '../email-constants.ts'
 
 interface EmailChangeEmailProps {
   siteName: string
