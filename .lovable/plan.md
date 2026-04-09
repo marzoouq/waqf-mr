@@ -1,70 +1,54 @@
 
 
-# خطة تنفيذ تحسينات هيكل المشروع + إصلاح خطأ 401
+# تدقيق شامل لهيكل المشروع — التقرير النهائي
 
 ## الخلاصة
-6 خطوات مرتبة حسب الأهمية: إصلاح خطأ اللوحة أولاً، ثم تنظيف الملفات المهملة، ثم نقل الدالة المفقودة.
+
+المشروع في حالة ممتازة معمارياً. لا توجد مشاكل هيكلية حرجة. التوصيات التالية تحسينية فقط.
 
 ---
 
-## الخطوات
+## نتائج إيجابية (لا تحتاج تغيير)
 
-### 1. إصلاح خطأ 401 في `dashboard-summary` (عاجل)
-
-**المشكلة**: عند انتهاء صلاحية الجلسة، يُرسل `supabase.functions.invoke` توكن منتهي الصلاحية → 401 → رسالة خطأ عامة للمستخدم.
-
-**الإصلاح**:
-- **في `useDashboardSummary.ts`**: إضافة كشف خطأ 401 — عند حدوثه، استدعاء `supabase.auth.signOut()` لتنظيف الجلسة الميتة وتوجيه المستخدم لتسجيل الدخول بدلاً من عرض رسالة خطأ عامة.
-- **في `FiscalYearContext.tsx`**: إضافة نفس المعالجة في `prefetchQuery` — التقاط 401 وتسجيل خروج تلقائي.
-- **في Edge Function**: تحويل المصادقة من `getUser()` إلى `getClaims()` لتقليل زمن الاستجابة (يتحقق من JWT محلياً بدلاً من استدعاء الخادم).
-
-### 2. حذف `menuLabels.ts` (لا مستوردين)
-
-- حذف `src/components/layout/menuLabels.ts` — الملف مهمل ولا يوجد أي استيراد له.
-
-### 3. تحديث مستوردي `contractForm.types.ts` ثم حذفه
-
-- تحديث 5 ملفات لاستيراد من `@/types/forms/contract` مباشرة:
-  - `ContractRentalModeSection.tsx`
-  - `ContractPaymentSection.tsx`
-  - `ContractTenantIdSection.tsx`
-  - `ContractFormDialog.tsx`
-  - `src/components/contracts/index.ts`
-- حذف `src/components/contracts/contractForm.types.ts`
-
-### 4. نقل `formatPercentage` من `lib/utils.ts` إلى `utils/format/`
-
-- إضافة `formatPercentage` إلى `src/utils/format/format.ts`
-- تصديرها من `src/utils/format/index.ts`
-- تحديث 4 ملفات مستوردة:
-  - `BeneficiaryCard.tsx`
-  - `BeneficiaryDistributionTable.tsx`
-  - `DistributeDialog.tsx`
-  - `AccountsBeneficiariesTable.tsx`
-- حذف `formatPercentage` من `src/lib/utils.ts`
-
-### 5. التحقق بـ `npx tsc --noEmit`
-
-- تشغيل TypeScript للتأكد من عدم وجود أخطاء بعد كل التعديلات.
-
-### 6. (اختياري — بعد الموافقة) تقسيم `useWebAuthn.ts`
-
-- تقسيم إلى 3 هوكات: `useWebAuthnRegister`, `useWebAuthnAuth`, `useWebAuthnManage`
-- هوك رئيسي يجمعها
+- **صفر** استيراد مباشر لـ Supabase في المكونات أو الصفحات
+- **صفر** `console.*` خارج `logger.ts`
+- **صفر** `any` خارج استثناء واحد مبرر في `chart.tsx`
+- **صفر** ملفات `@deprecated` (تم تنظيفها في الجولة السابقة)
+- فصل طبقات واضح: `types → constants → lib → hooks → components → pages`
+- خدمات المكونات تستورد من `lib/services` فقط عبر الهوكات (باستثناء 3 حالات مبررة: `ProtectedRoute`, `IdleTimeoutManager`, `PermissionsControlPanel`)
+- أحجام ملفات معقولة — فقط ملف واحد غير مكتبة فوق 250 سطر
 
 ---
 
-## التفاصيل التقنية
+## التوصيات (من الأهم إلى الاختياري)
 
-| الملف | التغيير |
-|-------|---------|
-| `supabase/functions/dashboard-summary/index.ts` | `getUser()` → `getClaims()` |
-| `src/hooks/data/financial/useDashboardSummary.ts` | معالجة 401 → signOut |
-| `src/contexts/FiscalYearContext.tsx` | معالجة 401 في prefetch |
-| `src/components/layout/menuLabels.ts` | **حذف** |
-| `src/components/contracts/contractForm.types.ts` | **حذف** بعد تحديث 5 ملفات |
-| `src/utils/format/format.ts` | إضافة `formatPercentage` |
-| `src/utils/format/index.ts` | تصدير `formatPercentage` |
-| `src/lib/utils.ts` | حذف `formatPercentage` |
-| 4 ملفات مكونات | تحديث مسار استيراد `formatPercentage` |
+### 1. تقسيم `comprehensiveBeneficiary.ts` (281 سطر)
+الملف الوحيد غير المكتبي الذي يتجاوز حد 250 سطر. يمكن فصل بناء الجداول (income table, expenses table, distribution table) إلى دوال مساعدة في ملف منفصل.
+
+**الملفات**: `src/utils/pdf/reports/comprehensiveBeneficiary.ts` → تقسيم إلى `comprehensiveBeneficiaryTables.ts`
+
+### 2. تقسيم `useWebAuthn.ts` (231 سطر)
+كما أُوصي في التدقيق السابق — تقسيم إلى 3 هوكات فرعية:
+- `useWebAuthnRegister` — تسجيل بيانات بيومترية جديدة
+- `useWebAuthnAuth` — مصادقة بالبيومتري
+- `useWebAuthnManage` — إدارة/حذف بيانات الاعتماد
+
+**الملفات**: `src/hooks/auth/useWebAuthn.ts` → 3 ملفات + هوك رئيسي مجمّع
+
+### 3. إعادة تسمية `lib/utils.ts` → `lib/cn.ts`
+بعد نقل `formatPercentage` في الجولة السابقة، الملف يحتوي فقط على دالة `cn()`. الاسم الحالي مضلل.
+
+**الملفات**: `src/lib/utils.ts` → `src/lib/cn.ts` + تحديث ~40 استيراد
+
+### 4. (اختياري) توحيد موقع الاختبارات
+بعض الاختبارات في `src/test/` وبعضها بجانب الملف (`.test.ts`). كلا النمطين موجود — التوحيد يُسهّل الصيانة. الأفضل: الاختبارات بجانب الملف الذي تختبره.
+
+### 5. (اختياري) قاعدة ESLint لمنع barrel imports في المسارات الحرجة
+81 ملف barrel موجود. رغم أن السياسة الحالية (استيراد مباشر في `App.tsx` والهوكات) مطبقة يدوياً، إضافة قاعدة `no-restricted-imports` تحميها آلياً.
+
+---
+
+## ملاحظة حول خطأ اللوحة
+
+المستخدم على صفحة `/auth` حالياً. خطأ "حدث خطأ أثناء تحميل بيانات اللوحة" المذكور سابقاً تم معالجته في الجولة السابقة بإصلاح 401 في Edge Function. يجب تسجيل الدخول والتحقق من أن الإصلاح فعّال.
 
