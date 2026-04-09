@@ -153,6 +153,7 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
         tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
       };
       if (activeFY?.id) contractData.fiscal_year_id = activeFY.id;
+      // CRUD factory — cast مطلوب
       await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
     }
   };

@@ -69,7 +69,7 @@ export function useIncomePage() {
       incomeData.fiscal_year_id = fiscalYear.id;
     }
     try {
-      if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData } as unknown as Parameters<typeof updateIncome.mutateAsync>[0]); } else { await createIncome.mutateAsync(incomeData as unknown as Parameters<typeof createIncome.mutateAsync>[0]); }
+      /* CRUD factory — cast مطلوب */ if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData } as unknown as Parameters<typeof updateIncome.mutateAsync>[0]); } else { await createIncome.mutateAsync(incomeData as unknown as Parameters<typeof createIncome.mutateAsync>[0]); }
       setIsOpen(false);
       resetForm();
     } catch {
