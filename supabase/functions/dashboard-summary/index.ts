@@ -73,8 +73,8 @@ Deno.serve(async (req) => {
     // NOTE: admin client مقصود هنا — جدول user_roles محمي بـ RLS RESTRICTIVE
     // ولا يسمح للمستخدم بقراءة دوره مباشرة عبر الـ anon/user client
     const [rolesRes, rateLimitRes, rpcRes, pendingRes] = await Promise.all([
-      admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "accountant"]),
-      admin.rpc("check_rate_limit", { p_key: `dashboard-summary:${user.id}`, p_limit: 30, p_window_seconds: 60 }),
+      admin.from("user_roles").select("role").eq("user_id", userId).in("role", ["admin", "accountant"]),
+      admin.rpc("check_rate_limit", { p_key: `dashboard-summary:${userId}`, p_limit: 30, p_window_seconds: 60 }),
       admin.rpc("get_dashboard_full_summary", { p_fiscal_year_id: rpcParam }),
       admin.from("advance_requests")
         .select("id, beneficiary_id, fiscal_year_id, amount, status, reason, created_at, approved_at, paid_at, rejection_reason, beneficiary:beneficiaries(id, name, share_percentage, user_id), fiscal_year:fiscal_years(label)")
