@@ -13,7 +13,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { generateAccountsPDF } from '@/utils/pdf';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyReady } from '@/constants/fiscalYearIds';
-import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
+import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 
 
 export function useAccountsViewPage() {

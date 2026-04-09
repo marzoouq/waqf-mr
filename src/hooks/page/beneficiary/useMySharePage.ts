@@ -3,7 +3,7 @@
  * محسّن: يعتمد على useBeneficiaryFinancials المشترك + بيانات السُلف من RPC
  */
 import { useCallback, useMemo } from 'react';
-import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
+import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { useMyShare } from '@/hooks/financial/useMyShare';

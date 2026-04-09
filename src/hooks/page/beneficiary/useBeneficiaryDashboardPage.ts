@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/useBeneficiaryDashboardData';
-import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
+import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 

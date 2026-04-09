@@ -8,7 +8,7 @@ import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/useBeneficiaryDashboardData';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiaryFinancials';
 import { isFyReady } from '@/constants/fiscalYearIds';
-import { useRetryQueries } from '@/hooks/ui/useRetryQueries';
+import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { defaultNotify } from '@/lib/notify';
 import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
 
