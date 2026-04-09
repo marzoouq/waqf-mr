@@ -60,8 +60,11 @@ export function useLayoutState() {
     setLogoutOpen(true);
   }, []);
 
+  // ─── Unread messages ───
+  const { data: unreadCount = 0 } = useUnreadMessages();
+
   return {
-    user, role, links,
+    user, role, links, unreadCount,
     fiscalYearId, setFiscalYearId, fiscalYear, isClosed, showAll,
     sidebarOpen, setSidebarOpen,
     mobileSidebarOpen, setMobileSidebarOpen,
