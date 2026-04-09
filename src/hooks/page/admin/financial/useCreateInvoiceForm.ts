@@ -115,6 +115,7 @@ export function useCreateInvoiceForm({ contracts, onSave }: UseCreateInvoiceForm
     if (grandTotal <= 0) return;
 
     await onSave({
+      // حقل nullable لكن الـ type يتوقع string — cast ضروري
       invoice_number: invoiceNumber || null as unknown as string,
       invoice_type: invoiceType,
       amount: grandTotal,

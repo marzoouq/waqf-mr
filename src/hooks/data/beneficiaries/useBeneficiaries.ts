@@ -50,6 +50,7 @@ export const useBeneficiariesDecrypted = () => {
     queryFn: async () => {
       if (!isAuthorized) return [];
       const { data, error } = await supabase.rpc('get_beneficiary_decrypted', {
+        // RPC يتوقع string لكن null يعني "جلب الكل" — cast ضروري
         p_beneficiary_id: null as unknown as string,
       });
       if (error) {

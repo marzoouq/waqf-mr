@@ -51,6 +51,7 @@ export const useContractsPage = () => {
   const bulkRenew = useContractsBulkRenew({
     contracts,
     fiscalYearId,
+    // CRUD factory — cast مطلوب لأنواع عامة
     createContractAsync: (data) => form.createContract.mutateAsync(data as unknown as Parameters<typeof form.createContract.mutateAsync>[0]),
   });
 

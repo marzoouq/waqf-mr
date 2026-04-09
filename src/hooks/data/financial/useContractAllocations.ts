@@ -61,6 +61,7 @@ export const useUpsertContractAllocations = () => {
       // تمرير rows مباشرة — Supabase JS client يتعامل مع objects (#55)
       const { error } = await supabase.rpc('upsert_contract_allocations', {
         p_contract_id: contractId,
+        // Supabase JSON parameter — cast ضروري لأن RPC يتوقع Json
         p_allocations: rows as unknown as import('@/integrations/supabase/types').Json,
       });
       if (error) throw error;

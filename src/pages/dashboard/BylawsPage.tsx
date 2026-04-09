@@ -14,7 +14,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useBylawsPage } from '@/hooks/page/admin/settings/useBylawsPage';
+import { useBylawsPage } from '@/hooks/page/admin/management/useBylawsPage';
 
 const BylawsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();

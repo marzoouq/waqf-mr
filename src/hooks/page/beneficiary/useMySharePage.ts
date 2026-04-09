@@ -40,12 +40,14 @@ export const useMySharePage = () => {
   );
 
   const myAdvances = useMemo(
+    // RPC dashboard response — cast مبرر، النوع يأتي من BeneficiaryDashboardData
     () => (dashData?.my_advances ?? []) as unknown as AdvanceRequest[],
     [dashData?.my_advances],
   );
   const paidAdvancesTotal = safeNumber(dashData?.paid_advances_total);
   const carryforwardBalance = safeNumber(dashData?.carryforward_balance);
   const myCarryforwards = useMemo(
+    // RPC dashboard response — cast مبرر
     () => (dashData?.my_carryforwards ?? []) as unknown as AdvanceCarryforward[],
     [dashData?.my_carryforwards],
   );

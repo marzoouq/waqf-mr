@@ -45,5 +45,6 @@ export async function fetchAuditLogForExport(filters: {
   if (filters.dateTo) query = query.lte('created_at', filters.dateTo + 'T23:59:59');
 
   const { data } = await query;
+  // select() → old_data/new_data: Json ≠ Record — يحتاج Zod validation لاحقاً
   return (data as unknown as AuditLogEntry[]) || [];
 }

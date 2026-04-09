@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download } from 'lucide-react';
 import { sanitizeDiagnosticOutput } from '@/utils/diagnostics/sanitize';
 import type { CheckResult, CheckStatus } from '@/utils/diagnostics/types';
-import { useSystemDiagnostics } from '@/hooks/page/admin/settings/useSystemDiagnostics';
+import { useSystemDiagnostics } from '@/hooks/page/admin/management/useSystemDiagnostics';
 
 const WebVitalsPanel = lazy(() => import('@/components/diagnostics/WebVitalsPanel'));
 

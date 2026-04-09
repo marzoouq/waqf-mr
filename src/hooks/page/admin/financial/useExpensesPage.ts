@@ -67,7 +67,7 @@ export function useExpensesPage() {
       expenseData.fiscal_year_id = fiscalYear.id;
     }
     try {
-      if (editingExpense) { await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as unknown as Parameters<typeof updateExpense.mutateAsync>[0]); } else { await createExpense.mutateAsync(expenseData as unknown as Parameters<typeof createExpense.mutateAsync>[0]); }
+      /* CRUD factory — cast مطلوب */ if (editingExpense) { await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as unknown as Parameters<typeof updateExpense.mutateAsync>[0]); } else { await createExpense.mutateAsync(expenseData as unknown as Parameters<typeof createExpense.mutateAsync>[0]); }
       setIsOpen(false);
       resetForm();
     } catch {

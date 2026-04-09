@@ -45,6 +45,7 @@ export const useSupportAnalytics = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_support_analytics');
       if (error) throw error;
+      // RPC — cast مبرر، يحتاج Zod validation لاحقاً
       return data as unknown as SupportAnalyticsData;
     },
   });

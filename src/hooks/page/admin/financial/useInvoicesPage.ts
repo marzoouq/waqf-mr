@@ -177,8 +177,10 @@ export const useInvoicesPage = () => {
       const fileName = invoiceData.file_name as string | undefined;
 
       if (editingInvoice) {
+        // CRUD factory — cast مطلوب لأنواع عامة
         await updateInvoice.mutateAsync({ id: editingInvoice.id, ...invoiceData } as unknown as Parameters<typeof updateInvoice.mutateAsync>[0]);
       } else {
+        // CRUD factory — cast مطلوب
         await createInvoice.mutateAsync(invoiceData as unknown as Parameters<typeof createInvoice.mutateAsync>[0]);
       }
 
