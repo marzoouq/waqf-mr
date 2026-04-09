@@ -41,7 +41,7 @@ const SecurityGuard = lazyWithRetry(() => import("./components/auth/SecurityGuar
 const PwaUpdateNotifier = lazyWithRetry(() => import("./components/pwa/PwaUpdateNotifier"));
 const SwUpdateBanner = lazyWithRetry(() => import("./components/pwa/SwUpdateBanner"));
 
-// تم نقل PageLoader إلى components/common/PageLoader.tsx
+
 
 /** يحمّل AiAssistant فقط لأدوار admin/accountant لتوفير JS */
 function RoleGatedAiAssistant() {
