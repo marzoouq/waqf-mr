@@ -2,8 +2,7 @@
  * هوك مشترك لمنطق الفرز في الجداول — يُغني عن تكرار handleSort في كل صفحة
  */
 import { useState, useCallback } from 'react';
-
-export type SortDir = 'asc' | 'desc';
+import type { SortDir } from '@/types/sorting';
 
 export function useTableSort<T extends string>(defaultField?: T | null, defaultDir: SortDir = 'desc') {
   const [sortField, setSortField] = useState<T | null>(defaultField ?? null);

@@ -10,7 +10,7 @@ import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 // ─── الأنواع ───
-export type FilterStatus = 'all' | 'overdue' | 'partial' | 'complete';
+export type CollectionFilterStatus = 'all' | 'overdue' | 'partial' | 'complete';
 
 export interface CollectionRow {
   contract: Contract;

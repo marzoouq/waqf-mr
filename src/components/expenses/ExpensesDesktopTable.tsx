@@ -10,8 +10,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
 import ExpenseAttachments from './ExpenseAttachments';
 import type { Expense } from '@/types/relations';
-
-type SortField = 'expense_type' | 'amount' | 'date' | null;
+import type { SortField } from '@/hooks/page/admin/financial/useExpensesPage';
 
 interface ExpensesDesktopTableProps {
   items: Expense[];
