@@ -8,7 +8,7 @@ import { Building2, Search } from 'lucide-react';
 import { generatePropertiesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { PropertyUnitsDialog, PropertySummaryCards, PropertyFormDialog, PropertyCard, PropertyDeleteDialog } from '@/components/properties';
-import { usePropertiesPage } from '@/hooks/page/admin/settings/usePropertiesPage';
+import { usePropertiesPage } from '@/hooks/page/admin/management/usePropertiesPage';
 
 const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();

@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { generatePropertiesPDF } from '@/utils/pdf';
 import { defaultNotify } from '@/lib/notify';
 import { fmt, fmtInt } from '@/utils/format/format';
-import { usePropertiesViewData } from '@/hooks/page/admin/settings/usePropertiesViewData';
+import { usePropertiesViewData } from '@/hooks/page/admin/management/usePropertiesViewData';
 
 const PropertiesViewPage = () => {
   const {

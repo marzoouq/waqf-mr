@@ -1,5 +1,5 @@
 /**
- * تصدير مركزي — settings hooks
+ * تصدير مركزي — management hooks (عقارات، مستفيدون، سجل مراجعة، إلخ)
  */
 export * from './useAuditLogPage';
 export * from './useBeneficiariesPage';

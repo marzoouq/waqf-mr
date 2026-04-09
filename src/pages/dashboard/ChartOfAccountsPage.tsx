@@ -11,7 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GitBranch, Plus, Search, X, Loader2, FolderTree } from 'lucide-react';
 import { TreeBranch } from '@/components/chart-of-accounts/CategoryTreeView';
-import { useChartOfAccountsPage } from '@/hooks/page/admin/settings/useChartOfAccountsPage';
+import { useChartOfAccountsPage } from '@/hooks/page/admin/management/useChartOfAccountsPage';
 
 const ChartOfAccountsPage = () => {
   const {
