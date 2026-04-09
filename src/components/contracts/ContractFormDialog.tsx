@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Contract } from '@/types/database';
 
 import ContractTenantIdSection from './ContractTenantIdSection';
-import { type ContractFormData } from './contractForm.types';
+import { type ContractFormData } from '@/types/forms/contract';
 import { useContractFormDialog } from '@/hooks/page/admin/contracts/useContractFormDialog';
 import ContractRentalModeSection from './contract-form/ContractRentalModeSection';
 import ContractPaymentSection from './contract-form/ContractPaymentSection';

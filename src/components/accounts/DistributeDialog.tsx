@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { formatPercentage } from '@/lib/utils';
+import { formatPercentage } from '@/utils/format';
 import { useDistributeShares } from '@/hooks/data/financial/useDistribute';
 import { Loader2, AlertTriangle, ArrowLeftRight, FileDown, Printer } from 'lucide-react';
 import { generateDistributionsPDF } from '@/utils/pdf';

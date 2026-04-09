@@ -5,7 +5,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Button } from '@/components/ui/button';
 import { Users, Banknote } from 'lucide-react';
 import EmptyState from '@/components/common/EmptyState';
-import { formatPercentage } from '@/lib/utils';
+import { formatPercentage } from '@/utils/format';
 import DistributeDialog from './DistributeDialog';
 import { isFyAll } from '@/constants/fiscalYearIds';
 

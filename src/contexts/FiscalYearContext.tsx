@@ -83,6 +83,11 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
           const { data, error } = await supabase.functions.invoke('dashboard-summary', {
             body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fy?.label },
           });
+          // كشف جلسة منتهية — تسجيل خروج تلقائي
+          if (error?.message?.includes('401') || data?.error === 'Unauthorized') {
+            await supabase.auth.signOut();
+            throw new Error('انتهت الجلسة');
+          }
           if (error) throw error;
           if (data?.error) throw new Error(data.error);
           return data;

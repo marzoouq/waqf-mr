@@ -61,3 +61,10 @@ export const fmtDateHijri = (date: string | Date | null | undefined): string => 
   });
 };
 
+/**
+ * تنسيق نسبة مئوية — بمنزلتين عشريتين ورمز %
+ * @example formatPercentage(16.666) → "16.67%"
+ */
+export const formatPercentage = (value: number): string =>
+  `${(Number.isFinite(value) ? value : 0).toFixed(2)}%`;
+

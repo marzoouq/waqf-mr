@@ -41,16 +41,19 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // ── المرحلة 1: المصادقة + قراءة body بالتوازي ──
-    const [authResult, body] = await Promise.all([
-      supaAuth.auth.getUser(),
+    // ── المرحلة 1: المصادقة (getClaims — محلي بدون استدعاء شبكة) + قراءة body بالتوازي ──
+    const token = authHeader.replace("Bearer ", "");
+    const [claimsResult, body] = await Promise.all([
+      supaAuth.auth.getClaims(token),
       req.json().catch(() => null),
     ]);
 
-    const { data: { user }, error: userError } = authResult;
-    if (userError || !user) {
+    const { data: claimsData, error: claimsError } = claimsResult;
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
     }
+
+    const userId = claimsData.claims.sub as string;
 
     // ── التحقق من المدخلات (لا يحتاج شبكة — فوري) ──
     const parsed = RequestSchema.safeParse(body);
@@ -70,8 +73,8 @@ Deno.serve(async (req) => {
     // NOTE: admin client مقصود هنا — جدول user_roles محمي بـ RLS RESTRICTIVE
     // ولا يسمح للمستخدم بقراءة دوره مباشرة عبر الـ anon/user client
     const [rolesRes, rateLimitRes, rpcRes, pendingRes] = await Promise.all([
-      admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "accountant"]),
-      admin.rpc("check_rate_limit", { p_key: `dashboard-summary:${user.id}`, p_limit: 30, p_window_seconds: 60 }),
+      admin.from("user_roles").select("role").eq("user_id", userId).in("role", ["admin", "accountant"]),
+      admin.rpc("check_rate_limit", { p_key: `dashboard-summary:${userId}`, p_limit: 30, p_window_seconds: 60 }),
       admin.rpc("get_dashboard_full_summary", { p_fiscal_year_id: rpcParam }),
       admin.from("advance_requests")
         .select("id, beneficiary_id, fiscal_year_id, amount, status, reason, created_at, approved_at, paid_at, rejection_reason, beneficiary:beneficiaries(id, name, share_percentage, user_id), fiscal_year:fiscal_years(label)")
