@@ -4,8 +4,8 @@ import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { buildXlsx, downloadXlsx } from '@/utils/export/xlsx';
 import { fetchTableData } from '@/lib/services/dataFetcher';
 
-// Re-export from canonical location
 export type { ExportableTable } from '@/types/export';
+import type { ExportableTable } from '@/types/export';
 
 export type ExportFormat = 'csv' | 'xlsx';
 

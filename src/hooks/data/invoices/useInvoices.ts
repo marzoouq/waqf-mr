@@ -16,8 +16,8 @@ import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 // Types & constants
 // ---------------------------------------------------------------------------
 
-// Re-export Invoice type from canonical location
 export type { Invoice } from '@/types/invoices';
+import type { Invoice } from '@/types/invoices';
 
 export const INVOICE_TYPE_LABELS: Record<string, string> = {
   utilities: 'خدمات (كهرباء/مياه)',

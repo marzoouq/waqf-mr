@@ -7,8 +7,8 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { defaultNotify } from '@/lib/notify';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
-// Re-export PaymentInvoice type from canonical location
 export type { PaymentInvoice } from '@/types/invoices';
+import type { PaymentInvoice } from '@/types/invoices';
 
 export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
   return useQuery({
