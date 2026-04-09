@@ -1,80 +1,112 @@
 
 
-# خطة تنفيذ البنود المتبقية من التقرير المعماري
+# خطة تنفيذ التحسينات المعمارية — الدورة الرابعة
 
 ## نظرة عامة
 
-3 خطوات: إعادة تسمية مجلد، استخراج مكون، وتصنيف/تحسين `as unknown as`. لا تغييرات وظيفية.
+إصلاح 14 اعتماداً معكوساً عبر نقل الأنواع المشتركة إلى `src/types/`. لا تغييرات وظيفية.
 
 ---
 
-## الخطوة 1 — إعادة تسمية `hooks/page/admin/settings/` → `management/`
+## الدفعة الأولى — إصلاح الاعتمادات المعكوسة الهيكلية (~13 ملف)
 
-إنشاء `src/hooks/page/admin/management/` ونقل 11 ملفاً إليه، ثم تحديث 9 مستوردين:
+### الخطوة 1: نقل `MenuLabels` إلى `src/types/navigation.ts`
 
-| الملف المستورد | الهوك المستخدم |
-|---------------|---------------|
-| `pages/dashboard/BylawsPage.tsx` | `useBylawsPage` |
-| `pages/dashboard/PropertiesPage.tsx` | `usePropertiesPage` |
-| `pages/beneficiary/PropertiesViewPage.tsx` | `usePropertiesViewData` |
-| `pages/dashboard/AuditLogPage.tsx` | `useAuditLogPage` |
-| `pages/dashboard/ChartOfAccountsPage.tsx` | `useChartOfAccountsPage` |
-| `pages/dashboard/SystemDiagnosticsPage.tsx` | `useSystemDiagnostics` |
-| `pages/dashboard/BeneficiariesPage.tsx` | `useBeneficiariesPage` |
-| `components/settings/ZatcaSettingsTab.tsx` | `useZatcaSettings` |
-| `components/settings/BulkNotificationsTab.tsx` | `useBulkNotifications` |
+إنشاء `src/types/navigation.ts` يحتوي `MenuLabels` interface + `defaultMenuLabels`. تحديث:
+- `constants/navigation.ts` ← استيراد من `@/types/navigation`
+- `hooks/page/shared/useNavLinks.ts` ← استيراد من `@/types/navigation`
+- `components/settings/MenuCustomizationTab.tsx` ← استيراد من `@/types/navigation`
+- `components/layout/menuLabels.ts` ← تحويل إلى re-export (توافق عكسي)
 
----
+### الخطوة 2: نقل `Invoice` إلى `src/types/invoices.ts`
 
-## الخطوة 2 — نقل `PageLoader` إلى `components/common/`
+إنشاء `src/types/invoices.ts`. نقل `Invoice` interface من `useInvoices.ts` و `PaymentInvoice` interface من `usePaymentInvoices.ts`. تحديث:
+- `hooks/data/invoices/useInvoices.ts` ← re-export `Invoice` من `@/types/invoices`
+- `hooks/data/invoices/usePaymentInvoices.ts` ← re-export `PaymentInvoice` من `@/types/invoices`
+- `utils/pdf/invoices/invoice.ts` ← استيراد من `@/types/invoices`
+- `utils/pdf/invoices/invoices.ts` ← استيراد من `@/types/invoices`
 
-- إنشاء `src/components/common/PageLoader.tsx` بنفس المحتوى (سطر 43-51 من App.tsx)
-- استبدال التعريف المحلي في `App.tsx` باستيراد
+**ملاحظة**: 28 ملف آخر يستورد هذه الأنواع من hooks — لن تتأثر لأن hooks ستُعيد تصديرها.
 
----
+### الخطوة 3: نقل `ExportableTable` إلى `src/types/export.ts`
 
-## الخطوة 3 — تحسين `as unknown as` (تصنيف + إصلاح ما يمكن)
+إنشاء `src/types/export.ts`. تحديث:
+- `hooks/page/shared/useDataExport.ts` ← re-export
+- `lib/services/dataFetcher.ts` ← استيراد من `@/types/export`
 
-بعد الفحص، الحالات تنقسم إلى 3 فئات:
+### الخطوة 4: تحديث `appSettings.ts` + حذف `layout/constants.ts`
 
-### (أ) مبرر — RPC responses (لا يمكن حله بدون Zod)
-إضافة تعليق `// RPC — cast مبرر، يحتاج Zod validation لاحقاً`:
-- `useYearComparisonData.ts` — `ComparisonRpcResult`
-- `useMultiYearSummary.ts` — `RpcYearEntry[]`
-- `useMaxAdvanceAmount.ts` — `ServerAdvanceData`
-- `useSupportAnalytics.ts` — `SupportAnalyticsData`
-- `useBeneficiaryDashboardData.ts` — `BeneficiaryDashboardData`
-
-### (ب) مبرر — Supabase JSON parameter / null parameter
-- `useContractAllocations.ts` — cast لـ `Json` (ضروري لأن Supabase يتوقع `Json`)
-- `useBeneficiaries.ts` — `null as unknown as string` (RPC parameter)
-
-### (ج) قابل للتحسين — select types يمكن تدقيقها
-هذه الملفات تستخدم `.select()` عادي (ليس RPC) لكن الأنواع المولّدة لا تطابق الـ interface المحلي. الحل: تعريف الـ interface ليطابق ما يُرجعه Supabase بدلاً من cast:
-- `useAdvanceQueries.ts` — 3 casts على `.select()` عادي
-- `usePaymentInvoices.ts` — 1 cast
-- `useArchiveLog.ts` — 1 cast
-- `useAccessLogTab.ts` — 1 cast
-- `useZatcaCertificates.ts` — 1 cast
-- `useDashboardSummary.ts` — 2 casts (heatmap + recent contracts)
-- `useAdvanceRequests.ts` — 1 cast
-- `useAuditLogStats.ts` — 1 cast
-
-**المنهج لفئة (ج)**: فحص نوع الاستجابة الفعلي عبر LSP hover، وإذا كان النوع المولّد متوافقاً مع الـ interface → حذف `as unknown as` واستخدام type assertion مباشر `as T[]` أو إزالة الـ cast كلياً. إذا لم يتوافق → إبقاء cast مع تعليق.
-
-**ملاحظة**: الـ casts في `hooks/page/` (مثل `useContractForm`, `useInvoicesPage`, `useExpensesPage`) تستخدم `as unknown as Parameters<typeof mutateAsync>[0]` — هذه مبررة لأن الـ CRUD factory ينتج أنواعاً عامة. ستُوثَّق بتعليق فقط.
+- `utils/diagnostics/checks/appSettings.ts` ← استيراد من `@/constants/navigation` مباشرة
+- `components/layout/index.ts` ← تغيير re-export الثوابت من `'./constants'` إلى `'@/constants/navigation'` مباشرة
+- حذف `components/layout/constants.ts` (أصبح وسيطاً بلا قيمة)
 
 ---
 
-## التحقق
+## الدفعة الثانية — نقل أنواع النماذج من Components إلى Types (~15 ملف)
 
-`npx tsc --noEmit` بعد كل خطوة.
+### الخطوة 5: `ContractFormData` → `src/types/forms/contract.ts`
+
+نقل من `components/contracts/contractForm.types.ts`. تحديث:
+- `hooks/page/admin/contracts/useContractForm.ts`
+- `hooks/page/admin/contracts/useContractFormDialog.ts`
+- `components/contracts/contractForm.types.ts` ← re-export
+- 3 مكونات داخلية تستورد من `../contractForm.types` (تبقى كما هي عبر re-export)
+
+### الخطوة 6: `BeneficiaryFormData` → `src/types/forms/beneficiary.ts`
+
+نقل من `components/beneficiaries/`. تحديث:
+- `hooks/page/admin/management/useBeneficiariesPage.ts`
+- barrel المكونات ← re-export
+
+### الخطوة 7: `StatItem` + `KpiItem` → `src/types/dashboard.ts`
+
+نقل من `components/dashboard/`. تحديث:
+- `hooks/page/admin/dashboard/useAdminDashboardStats.ts`
+- barrel المكونات ← re-export
+
+### الخطوة 8: `AllowanceChargeItem` + `InvoicePreviewData` → `src/types/invoices.ts` (ملحق)
+
+إضافة إلى `src/types/invoices.ts` الموجود. تحديث:
+- `hooks/page/admin/financial/useCreateInvoiceForm.ts`
+- `hooks/page/admin/financial/usePaymentInvoicesTab.ts`
+- `hooks/page/admin/financial/useInvoicesPage.ts`
+- barrel المكونات ← re-export
+
+### الخطوة 9: `UnitFormData` + `WholeRentalForm` → `src/types/forms/property.ts`
+
+نقل من `components/properties/units/`. تحديث:
+- `hooks/data/properties/useUnitMutations.ts`
+- `hooks/data/contracts/useWholePropertyRental.ts`
+- المكونات الأصلية ← re-export
+
+---
+
+## الدفعة الثالثة — اختيارية
+
+### الخطوة 10: استخراج `useLoginForm` hook
+تجميع 10 `useState` من `LoginForm.tsx` في hook مخصص بـ `src/hooks/auth/useLoginForm.ts`.
+
+### الخطوة 11: تبسيط `AccountsDistributionTable` props
+تجميع 15+ prop في كائن config واحد.
+
+---
+
+## التفاصيل التقنية
+
+**نمط النقل**: لكل نوع يُنقل:
+1. إنشاء الملف الجديد في `src/types/`
+2. تحويل الملف الأصلي إلى re-export (`export { X } from '@/types/...'`)
+3. تحديث hooks/utils فقط ليستوردوا من `@/types/` مباشرة
+4. المكونات التي تستورد من الملف الأصلي لا تتأثر (re-export يحمي التوافق)
+
+**التحقق**: `npx tsc --noEmit` بعد كل دفعة.
 
 ## ملخص التأثير
 
-| الخطوة | ملفات جديدة | ملفات معدّلة |
+| الدفعة | ملفات جديدة | ملفات معدّلة |
 |--------|------------|-------------|
-| 1: إعادة تسمية settings/ | 11 (منقولة) | 9 |
-| 2: نقل PageLoader | 1 | 1 |
-| 3: تحسين as unknown as | 0 | ~15 |
+| 1: اعتمادات هيكلية | 3 (`types/navigation.ts`, `types/invoices.ts`, `types/export.ts`) | ~10 |
+| 2: أنواع النماذج | 3 (`types/forms/contract.ts`, `forms/beneficiary.ts`, `forms/property.ts`, `types/dashboard.ts`) | ~12 |
+| 3: اختيارية | 1 | 2 |
+| **المجموع** | **~7** | **~24** |
 
