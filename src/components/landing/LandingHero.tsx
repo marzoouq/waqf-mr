@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { LandingPageContent } from '@/components/settings';
 
+/** لون النقش الإسلامي الذهبي في خلفية البطل */
+const GOLD_PATTERN_COLOR = '#d4af37';
+
 interface LandingHeroProps {
   content: LandingPageContent;
   waqfLogoUrl?: string;
