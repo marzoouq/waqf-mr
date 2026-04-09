@@ -28,7 +28,7 @@ const ROLES = [
 
 const defaultAdminSections = makeDefaults(ADMIN_SECTION_KEYS);
 const defaultBeneficiarySections = makeDefaults(BENEFICIARY_SECTION_KEYS);
-const defaultWidgets = makeWidgetDefaults();
+const defaultWidgets = makeDefaults(BENEFICIARY_WIDGET_KEYS);
 
 const PermissionsControlPanel = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
