@@ -58,29 +58,31 @@ const Index = () => {
   }
 
   const siteUrl = window.location.origin;
-  const jsonLd = {
+  const waqfName = waqfInfo?.name ?? 'نظام إدارة الوقف';
+
+  const jsonLd = useMemo(() => ({
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "وقف مرزوق بن علي الثبيتي",
-    description: "نظام إلكتروني شامل لإدارة أوقاف مرزوق بن علي الثبيتي",
+    name: waqfName,
+    description: `نظام إلكتروني شامل لإدارة أوقاف ${waqfName}`,
     url: siteUrl,
     logo: `${siteUrl}/favicon.ico`,
     foundingDate: "2024",
     areaServed: { "@type": "Country", name: "SA" },
     knowsAbout: ["إدارة الأوقاف", "العقارات", "توزيع الريع", "الحسابات الختامية"],
-  };
+  }), [waqfName, siteUrl]);
 
-  const webAppJsonLd = {
+  const webAppJsonLd = useMemo(() => ({
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "نظام إدارة الوقف",
+    name: waqfName,
     description: "منصة متكاملة لإدارة أملاك الوقف وتوزيع الريع على المستفيدين",
     url: siteUrl,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     inLanguage: "ar",
     offers: { "@type": "Offer", price: "0", priceCurrency: "SAR" },
-  };
+  }), [waqfName, siteUrl]);
 
   return (
     <main dir="rtl" className="min-h-screen bg-background">
