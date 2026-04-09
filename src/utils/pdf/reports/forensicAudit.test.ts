@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { generateForensicAuditPDF, ForensicAuditData } from '../reports/forensicAudit';
+import { generateForensicAuditPDF, ForensicAuditData } from './forensicAudit';
 
 // Mock jspdf-autotable
 vi.mock('jspdf-autotable', () => ({ default: vi.fn() }));
