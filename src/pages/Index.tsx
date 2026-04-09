@@ -3,7 +3,7 @@
  */
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useAppSettings, useWaqfInfo, useSetting } from '@/hooks/data/settings/useAppSettings';
 import { usePublicStats } from '@/hooks/data/content/usePublicStats';
@@ -48,6 +48,33 @@ const Index = () => {
 
   const handleNavigateAuth = useCallback(() => navigate('/auth'), [navigate]);
 
+  const siteUrl = window.location.origin;
+  const waqfName = waqfInfo?.waqf_name ?? 'نظام إدارة الوقف';
+
+  const jsonLd = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: waqfName,
+    description: `نظام إلكتروني شامل لإدارة أوقاف ${waqfName}`,
+    url: siteUrl,
+    logo: `${siteUrl}/favicon.ico`,
+    foundingDate: "2024",
+    areaServed: { "@type": "Country", name: "SA" },
+    knowsAbout: ["إدارة الأوقاف", "العقارات", "توزيع الريع", "الحسابات الختامية"],
+  }), [waqfName, siteUrl]);
+
+  const webAppJsonLd = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: waqfName,
+    description: "منصة متكاملة لإدارة أملاك الوقف وتوزيع الريع على المستفيدين",
+    url: siteUrl,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    inLanguage: "ar",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "SAR" },
+  }), [waqfName, siteUrl]);
+
   // المستخدم المسجّل سيُعاد توجيهه — لا داعي لرندر Landing Page الثقيلة
   if (!loading && user) {
     return (
@@ -56,31 +83,6 @@ const Index = () => {
       </div>
     );
   }
-
-  const siteUrl = window.location.origin;
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "وقف مرزوق بن علي الثبيتي",
-    description: "نظام إلكتروني شامل لإدارة أوقاف مرزوق بن علي الثبيتي",
-    url: siteUrl,
-    logo: `${siteUrl}/favicon.ico`,
-    foundingDate: "2024",
-    areaServed: { "@type": "Country", name: "SA" },
-    knowsAbout: ["إدارة الأوقاف", "العقارات", "توزيع الريع", "الحسابات الختامية"],
-  };
-
-  const webAppJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "نظام إدارة الوقف",
-    description: "منصة متكاملة لإدارة أملاك الوقف وتوزيع الريع على المستفيدين",
-    url: siteUrl,
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
-    inLanguage: "ar",
-    offers: { "@type": "Offer", price: "0", priceCurrency: "SAR" },
-  };
 
   return (
     <main dir="rtl" className="min-h-screen bg-background">

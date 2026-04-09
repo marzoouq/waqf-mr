@@ -5,7 +5,8 @@ import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender } from '@/components/common';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { makeWidgetDefaults } from '@/constants/beneficiaryWidgets';
+import { BENEFICIARY_WIDGET_KEYS } from '@/constants/beneficiaryWidgets';
+import { makeDefaults } from '@/constants/sections';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary-dashboard/BeneficiaryWelcomeCard';
 import BeneficiaryStatsRow from '@/components/beneficiary-dashboard/BeneficiaryStatsRow';
@@ -15,7 +16,7 @@ import BeneficiaryNotificationsCard from '@/components/beneficiary-dashboard/Ben
 import BeneficiaryAdvanceCard from '@/components/beneficiary-dashboard/BeneficiaryAdvanceCard';
 import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 
-const defaultWidgets = makeWidgetDefaults();
+const defaultWidgets = makeDefaults(BENEFICIARY_WIDGET_KEYS);
 
 const BeneficiaryDashboard = () => {
   const { getJsonSetting } = useAppSettings();

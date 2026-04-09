@@ -8,9 +8,10 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
 import { useNavLinks } from '@/hooks/page/shared/useNavLinks';
+import { useUnreadMessages } from '@/hooks/data/messaging/useUnreadMessages';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
-import { SHOW_ALL_ROUTES } from '@/components/layout/constants';
+import { SHOW_ALL_ROUTES } from '@/constants/navigation';
 
 const SIDEBAR_W = 256;
 
@@ -59,8 +60,11 @@ export function useLayoutState() {
     setLogoutOpen(true);
   }, []);
 
+  // ─── Unread messages ───
+  const { data: unreadCount = 0 } = useUnreadMessages();
+
   return {
-    user, role, links,
+    user, role, links, unreadCount,
     fiscalYearId, setFiscalYearId, fiscalYear, isClosed, showAll,
     sidebarOpen, setSidebarOpen,
     mobileSidebarOpen, setMobileSidebarOpen,

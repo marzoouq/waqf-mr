@@ -21,5 +21,3 @@ export const BENEFICIARY_WIDGET_LABELS: Record<string, string> = {
   notifications_card: 'بطاقة الإشعارات',
 };
 
-export const makeWidgetDefaults = (): Record<string, boolean> =>
-  Object.fromEntries(BENEFICIARY_WIDGET_KEYS.map(k => [k, true]));

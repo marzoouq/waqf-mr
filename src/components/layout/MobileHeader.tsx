@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { BookOpen, Menu } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications';
 import ThemeToggle from '@/components/theme/ThemeToggle';
-import { ROUTE_TITLES } from '@/components/layout/constants';
+import { ROUTE_TITLES } from '@/constants/navigation';
 
 interface MobileHeaderProps {
   onOpenSidebar: () => void;
