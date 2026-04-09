@@ -17,14 +17,8 @@ interface WholePropertyTabProps {
   isPending: boolean;
 }
 
-export interface WholeRentalForm {
-  tenant_name: string;
-  rent_amount: string;
-  payment_type: string;
-  payment_count: string;
-  start_date: string;
-  end_date: string;
-}
+export type { WholeRentalForm } from '@/types/forms/property';
+import type { WholeRentalForm } from '@/types/forms/property';
 
 const WholePropertyTab = ({ wholePropertyContract, onSave, isPending }: WholePropertyTabProps) => {
   const [isFormOpen, setIsFormOpen] = useState(false);

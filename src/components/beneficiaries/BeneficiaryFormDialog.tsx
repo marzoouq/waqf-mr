@@ -8,16 +8,8 @@ import { Plus, Link, IdCard } from 'lucide-react';
 import { getNationalIdError } from '@/utils/format/validateNationalId';
 import { IBAN_SA_REGEX, SAUDI_PHONE_REGEX } from '@/utils/validation/index';
 
-export interface BeneficiaryFormData {
-  name: string;
-  share_percentage: string;
-  phone: string;
-  email: string;
-  bank_account: string;
-  notes: string;
-  user_id: string;
-  national_id: string;
-}
+export type { BeneficiaryFormData } from '@/types/forms/beneficiary';
+import type { BeneficiaryFormData } from '@/types/forms/beneficiary';
 
 interface AuthUser { id: string; email: string; }
 

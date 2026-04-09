@@ -6,11 +6,8 @@ import { fmt } from '@/utils/format/format';
 import { generateZatcaQrTLV } from '@/utils/zatca/zatcaQr';
 
 // ─── الأنواع المشتركة ───
-export interface AllowanceChargeItem {
-  reason: string;
-  amount: number;
-  vatRate: number;
-}
+export type { AllowanceChargeItem } from '@/types/invoices';
+import type { AllowanceChargeItem } from '@/types/invoices';
 
 export interface InvoiceTemplateData {
   id?: string;

@@ -5,15 +5,8 @@ import { StatsGridSkeleton } from '@/components/common';
 import YoYBadge from './YoYBadge';
 import type { LucideIcon } from 'lucide-react';
 
-export interface StatItem {
-  title: string;
-  value: string | number;
-  icon: LucideIcon;
-  color: string;
-  link: string;
-  yoyChange?: number | null;
-  invertColor?: boolean;
-}
+export type { StatItem } from '@/types/dashboard';
+import type { StatItem } from '@/types/dashboard';
 
 interface DashboardStatsGridProps {
   stats: StatItem[];
