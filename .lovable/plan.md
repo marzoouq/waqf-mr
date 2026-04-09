@@ -1,71 +1,48 @@
 
 
-# تقرير تدقيق البنية المعمارية — الجولة الثالثة
+# خطة تنفيذ تحسينات الجولة الخامسة
 
-## التقييم العام: 4.9 / 5
-
-بعد تنفيذ تحسينات الجولتين السابقتين، البنية نظيفة جداً. 940 ملف TypeScript/TSX، صفر انتهاكات طبقية.
-
----
-
-## نتائج الفحص الآلي
-
-| المعيار | النتيجة |
-|---------|---------|
-| استيراد Supabase في المكونات | 0 |
-| استيرادات عكسية (hooks←components) | 0 |
-| انتهاك طبقي (utils←hooks أو lib←hooks) | 0 |
-| `console.*` في الإنتاج | 0 |
-| `: any` في الإنتاج | 1 — `chart.tsx` (shadcn مولّد) |
-| ألوان ثابتة | 0 |
-| أنواع مكررة خطيرة | 0 |
-| مجلدات مكونات بدون barrel | 0 (عدا `ui/` — مقصود) |
-| مجلدات هوكات بدون barrel | 1 — `hooks/financial/` |
+## الملخص
+4 إجراءات على 7 ملفات — حذف كود ميت + توحيد تصديرات barrel file.
 
 ---
 
-## الإجراء الوحيد المتبقي
+## الخطوات
 
-### إضافة barrel file لـ `src/hooks/financial/`
+### 1. حذف `useBeneficiarySummary` (كود ميت)
+- حذف ملف `src/hooks/data/financial/useBeneficiarySummary.ts`
+- إزالة سطر التصدير (السطر 10) من `src/hooks/data/financial/index.ts`
 
-المجلد يحتوي على 11 هوك (+ 3 ملفات اختبار) بدون `index.ts`. هو المجلد الوحيد في طبقة الهوكات بدون تصدير مركزي.
+### 2. حذف `useRealtimeAlerts` (كود ميت)
+- حذف ملف `src/hooks/data/notifications/useRealtimeAlerts.ts`
+- حذف ملف الاختبار `src/hooks/data/notifications/useRealtimeAlerts.test.ts`
+- إزالة سطر التصدير (السطر 6) من `src/hooks/data/notifications/index.ts`
 
-الملفات المطلوب تصديرها:
-- `useAccountsActions`
-- `useAccountsCalculations`
-- `useAccountsData`
-- `useAccountsEditing`
-- `useAccountsSettings`
-- `useComputedFinancials`
-- `useContractAllocationMap`
-- `useMyShare`
-- `usePropertyFinancials`
-- `usePropertyPerformance`
-- `useRawFinancialData`
+### 3. إكمال barrel file لـ `src/utils/format/index.ts`
+إضافة 4 تصديرات مفقودة:
+- `toGregorianShort` من `./date`
+- `maskPhone`, `maskEmail` من `./maskData`
+- `safePercent` من `./safeNumber`
 
-**التنفيذ**: إنشاء `src/hooks/financial/index.ts` — ملف واحد جديد، صفر تعديلات.
+### 4. حذف `useSecurityAlerts.ts` (re-export shim غير مستهلك)
+- حذف ملف `src/hooks/data/audit/useSecurityAlerts.ts`
+- إزالة سطر التصدير (السطر 11) من `src/hooks/data/audit/index.ts`
+- لا حاجة لتحديث أي مستهلك — `AuthContext` يستورد مباشرة من `securityService`
 
----
-
-## ملاحظات المراقبة (لا إجراء فوري)
-
-| الملف | الأسطر | ملاحظة |
-|-------|--------|--------|
-| `comprehensiveBeneficiary.ts` | 281 | PDF — مبرر |
-| `forensicAudit.ts` | 233 | PDF — مبرر |
-| `useInvoicesPage.ts` | 230 | قريب من الحد |
-| `ZatcaInvoicesTab.tsx` | 229 | قريب من الحد |
-
-`SortField` في `useExpensesPage` و `useIncomePage` لهما قيم مختلفة — مبرر ولا يحتاج توحيد.
+### 5. التحقق
+- `npx tsc --noEmit` للتأكد من صفر أخطاء
 
 ---
-
-## الخلاصة
-
-المشروع وصل لدرجة نضج عالية. الإجراء الوحيد المتبقي هو barrel file واحد. باقي النقاط مراقبة فقط عند توسيع الملفات.
 
 ## التفاصيل التقنية
 
-- إنشاء `src/hooks/financial/index.ts` يعيد تصدير الـ 11 هوك
-- التحقق: `npx tsc --noEmit`
+| الإجراء | ملفات محذوفة | ملفات معدّلة |
+|---------|-------------|-------------|
+| حذف useBeneficiarySummary | 1 | 1 (barrel) |
+| حذف useRealtimeAlerts | 2 (+ test) | 1 (barrel) |
+| إكمال format barrel | 0 | 1 |
+| حذف useSecurityAlerts | 1 | 1 (barrel) |
+| **المجموع** | **4** | **4** |
+
+صفر تأثير وظيفي — كل الملفات المحذوفة غير مستهلكة.
 
