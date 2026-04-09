@@ -24,5 +24,5 @@ export {
   ADMIN_SECTION_KEYS,
   BENEFICIARY_SECTION_KEYS,
   ROUTE_TITLES,
-} from './constants';
-export { defaultMenuLabels, type MenuLabels } from './menuLabels';
+} from '@/constants/navigation';
+export { defaultMenuLabels, type MenuLabels } from '@/types/navigation';

@@ -4,7 +4,7 @@
 import { useCreateContract, useUpdateContract } from './useContracts';
 import { Property, Contract } from '@/types/database';
 import { defaultNotify } from '@/lib/notify';
-import type { WholeRentalForm } from '@/components/properties/units/WholePropertyTab';
+import type { WholeRentalForm } from '@/types/forms/property';
 
 export function useWholePropertyRental(property: Property, contracts: Contract[]) {
   const createContract = useCreateContract();

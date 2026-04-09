@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import type { Contract } from '@/types/database';
-import type { AllowanceChargeItem } from '@/components/invoices';
+import type { AllowanceChargeItem } from '@/types/invoices';
 
 export const INVOICE_TYPES = [
   { value: 'rent', label: 'إيجار' },

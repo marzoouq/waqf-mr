@@ -3,7 +3,7 @@ import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useU
 import { useBeneficiaryUsers } from '@/hooks/data/beneficiaries/useBeneficiaryUsers';
 import { Beneficiary } from '@/types/database';
 import { defaultNotify } from '@/lib/notify';
-import type { BeneficiaryFormData } from '@/components/beneficiaries';
+import type { BeneficiaryFormData } from '@/types/forms/beneficiary';
 
 const ITEMS_PER_PAGE = 9;
 

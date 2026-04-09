@@ -16,30 +16,8 @@ import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 // Types & constants
 // ---------------------------------------------------------------------------
 
-export interface Invoice {
-  id: string;
-  invoice_number: string | null;
-  invoice_type: string;
-  amount: number;
-  date: string;
-  property_id: string | null;
-  contract_id: string | null;
-  expense_id: string | null;
-  description: string | null;
-  file_path: string | null;
-  file_name: string | null;
-  status: string;
-  fiscal_year_id: string | null;
-  vat_rate: number;
-  vat_amount: number;
-  amount_excluding_vat: number | null;
-  zatca_uuid: string | null;
-  zatca_status: string;
-  created_at: string;
-  updated_at: string;
-  property?: { id: string; property_number: string; location: string } | null;
-  contract?: { id: string; contract_number: string; tenant_name: string } | null;
-}
+// Re-export Invoice type from canonical location
+export type { Invoice } from '@/types/invoices';
 
 export const INVOICE_TYPE_LABELS: Record<string, string> = {
   utilities: 'خدمات (كهرباء/مياه)',
