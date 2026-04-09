@@ -19,9 +19,6 @@ export type Expense = Tables<'expenses'> & {
   property?: Property;
 };
 
-export type AdvanceRequest = Tables<'advance_requests'> & {
-  beneficiary?: Beneficiary;
-};
 
 export type Distribution = Tables<'distributions'> & {
   beneficiary?: Beneficiary;
