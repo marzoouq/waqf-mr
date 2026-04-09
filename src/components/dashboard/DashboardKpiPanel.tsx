@@ -5,17 +5,8 @@ import { Gauge, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { KpiSkeleton } from '@/components/common';
 import { fmt } from '@/utils/format/format';
 
-export interface KpiItem {
-  label: string;
-  value: number;
-  suffix: string;
-  color: string;
-  progressColor: string;
-  /** نسبة التغيير سنة بسنة (YoY) */
-  yoyChange?: number | null;
-  /** عكس اللون: ارتفاع = سيئ (مثل المصروفات) */
-  invertColor?: boolean;
-}
+export type { KpiItem } from '@/types/dashboard';
+import type { KpiItem } from '@/types/dashboard';
 
 interface DashboardKpiPanelProps {
   kpis: KpiItem[];

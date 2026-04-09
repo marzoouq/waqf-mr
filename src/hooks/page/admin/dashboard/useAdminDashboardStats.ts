@@ -6,7 +6,7 @@ import { fmtInt } from '@/utils/format/format';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { calcChangePercent } from '@/utils/financial/calcChangePercent';
 import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, DollarSign, Landmark, HandCoins, ArrowDownUp, PercentCircle } from 'lucide-react';
-import type { StatItem, KpiItem } from '@/components/dashboard';
+import type { StatItem, KpiItem } from '@/types/dashboard';
 import type { AggregatedCollection, AggregatedOccupancy } from '@/hooks/data/financial/useDashboardSummary';
 
 const getKpiColor = (value: number, good: number, warn: number, invert = false) => {

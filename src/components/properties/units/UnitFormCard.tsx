@@ -6,16 +6,8 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { UNIT_TYPES, FLOORS, UNIT_STATUSES, PAYMENT_TYPES } from './constants';
 import { fmt } from '@/utils/format/format';
-import type { UnitInsert } from '@/hooks/data/properties/useUnits';
-
-export interface UnitFormData extends UnitInsert {
-  tenant_name?: string;
-  rent_amount?: string;
-  payment_type?: string;
-  payment_count?: string;
-  contract_start_date?: string;
-  contract_end_date?: string;
-}
+export type { UnitFormData } from '@/types/forms/property';
+import type { UnitFormData } from '@/types/forms/property';
 
 interface UnitFormCardProps {
   form: UnitFormData;

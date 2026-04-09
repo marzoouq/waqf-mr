@@ -4,18 +4,8 @@ import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { buildXlsx, downloadXlsx } from '@/utils/export/xlsx';
 import { fetchTableData } from '@/lib/services/dataFetcher';
 
-export type ExportableTable =
-  | 'properties'
-  | 'contracts'
-  | 'income'
-  | 'expenses'
-  | 'beneficiaries'
-  | 'accounts'
-  | 'invoices'
-  | 'distributions'
-  | 'units'
-  | 'fiscal_years'
-  | 'tenant_payments';
+export type { ExportableTable } from '@/types/export';
+import type { ExportableTable } from '@/types/export';
 
 export type ExportFormat = 'csv' | 'xlsx';
 

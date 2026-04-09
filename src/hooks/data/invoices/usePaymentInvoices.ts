@@ -7,33 +7,8 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { defaultNotify } from '@/lib/notify';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
-export interface PaymentInvoice {
-  id: string;
-  contract_id: string;
-  fiscal_year_id: string | null;
-  invoice_number: string;
-  payment_number: number;
-  due_date: string;
-  amount: number;
-  status: 'pending' | 'paid' | 'overdue' | 'partially_paid';
-  paid_date: string | null;
-  paid_amount: number;
-  notes: string | null;
-  vat_rate: number;
-  vat_amount: number;
-  zatca_uuid: string | null;
-  zatca_status: string;
-  file_path: string | null;
-  created_at: string;
-  updated_at: string;
-  contract?: {
-    contract_number: string;
-    tenant_name: string;
-    property_id: string;
-    payment_count: number;
-    property?: { property_number: string } | null;
-  };
-}
+export type { PaymentInvoice } from '@/types/invoices';
+import type { PaymentInvoice } from '@/types/invoices';
 
 export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
   return useQuery({

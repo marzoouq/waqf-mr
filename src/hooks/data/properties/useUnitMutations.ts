@@ -7,7 +7,7 @@ import { useCreateUnit, useUpdateUnit, useDeleteUnit } from './useUnits';
 import { useCreateContract, useUpdateContract } from '@/hooks/data/contracts/useContracts';
 import { Property, Contract } from '@/types/database';
 import { defaultNotify } from '@/lib/notify';
-import type { UnitFormData } from '@/components/properties/units/UnitFormCard';
+import type { UnitFormData } from '@/types/forms/property';
 
 const getDefaultForm = (propertyId: string): UnitFormData => ({
   property_id: propertyId, unit_number: '', unit_type: 'شقة', floor: '', area: undefined, status: 'شاغرة', notes: '',
