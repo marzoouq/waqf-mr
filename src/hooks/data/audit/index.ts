@@ -8,4 +8,4 @@ export type { AuditLogEntry } from './useAuditLog';
 export { useAuditLogTodayCount, fetchAuditLogForExport } from './useAuditLogStats';
 export { useClientErrors } from './useClientErrors';
 export type { ClientError } from './useClientErrors';
-export { checkNewDeviceLogin } from './useSecurityAlerts';
+

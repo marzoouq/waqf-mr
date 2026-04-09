@@ -7,7 +7,7 @@ export { useAccounts, useCreateAccount, useUpdateAccount } from './useAccounts';
 export { useAdvanceRequests, useCreateAdvanceRequest, useUpdateAdvanceStatus } from './useAdvanceRequests';
 export type { AdvanceRequest, AdvanceCarryforward } from './useAdvanceRequests';
 export { useMyBeneficiaryFinance, useAllCarryforwards } from './useAdvanceQueries';
-export { useBeneficiarySummary } from './useBeneficiarySummary';
+
 export { useCloseFiscalYear } from './useCloseFiscalYear';
 export { useContractAllocations, useUpsertContractAllocations } from './useContractAllocations';
 export { useDashboardSummary } from './useDashboardSummary';
