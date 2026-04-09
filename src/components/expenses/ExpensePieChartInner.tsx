@@ -5,17 +5,7 @@ import { memo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { fmt } from '@/utils/format/format';
 import { useChartReady } from '@/hooks/ui/useChartReady';
-
-const COLORS = [
-  'hsl(var(--primary))',
-  'hsl(var(--destructive))',
-  'hsl(var(--secondary))',
-  'hsl(142 76% 36%)',     // أخضر
-  'hsl(38 92% 50%)',      // برتقالي
-  'hsl(280 65% 60%)',     // بنفسجي
-  'hsl(190 90% 40%)',     // تركواز
-  'hsl(350 80% 55%)',     // وردي
-];
+import { CHART_COLORS } from '@/utils/chart/chartHelpers';
 
 interface DataItem {
   name: string;
@@ -43,7 +33,7 @@ const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = memo(({ data }) => 
               labelLine={false}
             >
               {data.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
               ))}
             </Pie>
             <Tooltip
