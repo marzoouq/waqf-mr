@@ -1,42 +1,21 @@
 
 
-# خطة التحسينات المتبقية — الدورة الخامسة
+# حذف 3 سياسات Storage مكررة
 
-## نظرة عامة
+## الإجراء
 
-3 تحسينات بسيطة فقط. لا تغييرات وظيفية. المشروع أنظف مما كان متوقعاً — استخدامات `: any` في كود الإنتاج = **1 فقط** (في `chart.tsx` من shadcn — لا يُعدّل).
+Migration واحدة تحذف السياسات الثلاث المكررة على `storage.objects`:
 
----
+```sql
+DROP POLICY IF EXISTS "Admins can read invoices" ON storage.objects;
+DROP POLICY IF EXISTS "Accountants can read invoices" ON storage.objects;
+DROP POLICY IF EXISTS "Admin and accountant can view invoices" ON storage.objects;
+```
 
-## الخطوة 1: تصحيح استيراد الاختبار (ملف واحد)
+## التفاصيل
 
-`src/utils/pdf/__tests__/invoice.test.ts` سطر 36 يستورد `Invoice` من `@/hooks/data/invoices/useInvoices` — تغييره إلى `@/types/invoices`.
-
-## الخطوة 2: نقل `InvoicePreviewData` إلى `src/types/invoices.ts` (4 ملفات)
-
-- **المصدر الحالي**: `InvoicePreviewData` = type alias لـ `InvoiceTemplateData` في `components/invoices/InvoicePreviewDialog.tsx`
-- **الإجراء**:
-  1. إضافة `export type InvoicePreviewData = InvoiceTemplateData` إلى `src/types/invoices.ts` (مع استيراد `InvoiceTemplateData` من `invoiceTemplateUtils`)
-  2. تحويل التصدير في `InvoicePreviewDialog.tsx` إلى re-export من `@/types/invoices`
-  3. تحديث `useInvoicesPage.ts` ← استيراد من `@/types/invoices`
-  4. تحديث `usePaymentInvoicesTab.ts` ← استيراد من `@/types/invoices`
-  5. `components/invoices/index.ts` يبقى re-export (التوافق العكسي للمكونات)
-
-## الخطوة 3: تنظيف `: any` في ملفات الاختبار (اختياري)
-
-الـ 76 استخدام كلها تقريباً في ملفات `.test.ts/.test.tsx` — وهي مقبولة في mocks. كود الإنتاج **نظيف تماماً** (الاستخدام الوحيد في `chart.tsx` من shadcn لا يُعدّل). **لا إجراء مطلوب**.
-
----
-
-## ملخص التأثير
-
-| الخطوة | ملفات معدّلة |
-|--------|-------------|
-| 1: تصحيح استيراد الاختبار | 1 |
-| 2: نقل `InvoicePreviewData` | 4 |
-| **المجموع** | **5 ملفات** |
-
-## التحقق
-
-`npx tsc --noEmit` بعد التنفيذ.
+- استخدام `IF EXISTS` لتجنب فشل الـ migration إذا حُذفت سياسة مسبقاً
+- السياسة الشاملة `Role-based users can view invoices` تبقى كما هي وتغطي جميع الأدوار
+- صفر تغييرات في كود التطبيق
+- بعد التنفيذ: تحديث نتائج الفحص الأمني عبر `security--manage_security_finding`
 
