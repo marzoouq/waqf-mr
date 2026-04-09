@@ -4,7 +4,7 @@
  */
 import { useState, useCallback } from 'react';
 import { Contract } from '@/types/database';
-import { emptyFormData, type ContractFormData } from '@/components/contracts';
+import { emptyFormData, type ContractFormData } from '@/types/forms/contract';
 import { defaultNotify } from '@/lib/notify';
 import { useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
