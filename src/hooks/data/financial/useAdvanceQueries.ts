@@ -38,6 +38,7 @@ export const useMyBeneficiaryFinance = (beneficiaryId?: string, fiscalYearId?: s
       if (advRes.error) throw advRes.error;
       if (cfRes.error) throw cfRes.error;
 
+      // select() أعمدة صريحة — cast مطلوب لأن الأنواع المولّدة لا تطابق الـ interface المحلي
       return {
         advances: (advRes.data ?? []) as unknown as AdvanceRequest[],
         carryforwards: (cfRes.data ?? []) as unknown as AdvanceCarryforward[],
