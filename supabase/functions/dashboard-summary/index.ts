@@ -41,16 +41,19 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // ── المرحلة 1: المصادقة + قراءة body بالتوازي ──
-    const [authResult, body] = await Promise.all([
-      supaAuth.auth.getUser(),
+    // ── المرحلة 1: المصادقة (getClaims — محلي بدون استدعاء شبكة) + قراءة body بالتوازي ──
+    const token = authHeader.replace("Bearer ", "");
+    const [claimsResult, body] = await Promise.all([
+      supaAuth.auth.getClaims(token),
       req.json().catch(() => null),
     ]);
 
-    const { data: { user }, error: userError } = authResult;
-    if (userError || !user) {
+    const { data: claimsData, error: claimsError } = claimsResult;
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
     }
+
+    const userId = claimsData.claims.sub as string;
 
     // ── التحقق من المدخلات (لا يحتاج شبكة — فوري) ──
     const parsed = RequestSchema.safeParse(body);

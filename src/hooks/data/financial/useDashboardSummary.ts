@@ -25,6 +25,11 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
       const { data, error } = await supabase.functions.invoke('dashboard-summary', {
         body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fiscalYearLabel },
       });
+      // كشف جلسة منتهية — تسجيل خروج تلقائي بدلاً من رسالة خطأ عامة
+      if (error?.message?.includes('401') || data?.error === 'Unauthorized') {
+        await supabase.auth.signOut();
+        throw new Error('انتهت الجلسة — يُرجى تسجيل الدخول مجدداً');
+      }
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       return data as DashboardSummaryResponse;
