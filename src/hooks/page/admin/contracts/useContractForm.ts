@@ -94,6 +94,7 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
         tenant_street: formData.tenant_street || null, tenant_building: formData.tenant_building || null,
         tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
       };
+      // CRUD factory — cast مطلوب لأنواع عامة من createCrudFactory
       await updateContract.mutateAsync({ id: editingContract.id, ...contractData } as unknown as Parameters<typeof updateContract.mutateAsync>[0]);
       return;
     }
