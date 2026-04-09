@@ -21,7 +21,6 @@ import MobileHeader from '@/components/layout/MobileHeader';
 import DesktopTopBar from '@/components/layout/DesktopTopBar';
 import IdleTimeoutManager from '@/components/layout/IdleTimeoutManager';
 import { useLayoutState } from '@/hooks/ui/useLayoutState';
-import { useUnreadMessages } from '@/hooks/data/messaging/useUnreadMessages';
 
 // DiagnosticOverlay — يُحمّل فقط في وضع التطوير
 const DiagnosticOverlay = import.meta.env.DEV
@@ -34,7 +33,7 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const {
-    role, links,
+    role, links, unreadCount,
     fiscalYearId, setFiscalYearId, fiscalYear, isClosed, showAll,
     sidebarOpen, setSidebarOpen,
     mobileSidebarOpen, setMobileSidebarOpen,
@@ -42,7 +41,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     swipe,
     handleSignOut, handleSignOutClick,
   } = useLayoutState();
-  const { data: unreadCount = 0 } = useUnreadMessages();
 
   return (
     <div className="min-h-screen flex w-full bg-background" dir="rtl">
