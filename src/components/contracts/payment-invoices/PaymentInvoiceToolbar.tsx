@@ -14,8 +14,8 @@ import { isFyAll } from '@/constants/fiscalYearIds';
 interface PaymentInvoiceToolbarProps {
   search: string;
   setSearch: (v: string) => void;
-  filter: FilterStatus;
-  setFilter: (v: FilterStatus) => void;
+  filter: InvoiceFilterStatus;
+  setFilter: (v: InvoiceFilterStatus) => void;
   dateFrom: string;
   setDateFrom: (v: string) => void;
   dateTo: string;
