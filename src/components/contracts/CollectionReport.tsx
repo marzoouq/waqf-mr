@@ -59,7 +59,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input name="search" id="collection-report-field-1" placeholder="بحث بالعقد أو المستأجر..." value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
         </div>
-        <Select value={filter} onValueChange={(v) => setFilter(v as FilterStatus)}>
+        <Select value={filter} onValueChange={(v) => setFilter(v as CollectionFilterStatus)}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">الكل ({rows.length})</SelectItem>

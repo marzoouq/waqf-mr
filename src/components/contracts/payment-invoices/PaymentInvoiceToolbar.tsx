@@ -42,7 +42,7 @@ export default function PaymentInvoiceToolbar({
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input name="search" id="payment-invoices-tab-field-1" placeholder="بحث بالفاتورة أو المستأجر..." value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
       </div>
-      <Select value={filter} onValueChange={v => setFilter(v as FilterStatus)}>
+      <Select value={filter} onValueChange={v => setFilter(v as InvoiceFilterStatus)}>
         <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
         <SelectContent>
           <SelectItem value="all">الكل ({invoicesCount})</SelectItem>
