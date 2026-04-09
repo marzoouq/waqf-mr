@@ -33,7 +33,7 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
   const actions = usePaymentInvoiceActions();
 
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<FilterStatus>('all');
+  const [filter, setFilter] = useState<InvoiceFilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('due_date');
