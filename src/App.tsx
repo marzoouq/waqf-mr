@@ -1,3 +1,4 @@
+import PageLoader from "@/components/common/PageLoader";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
