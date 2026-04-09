@@ -59,7 +59,7 @@ const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInne
                     labelLine={true}
                     label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
                     outerRadius={90}
-                    fill="#8884d8"
+                    fill="hsl(var(--primary))"
                     dataKey="value"
                     style={{ fontSize: '12px' }}
                   >
