@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Lock } from 'lucide-react';
 import { lazy, Suspense } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
 const PrintHeader = lazy(() => import('@/components/common/PrintHeader'));
 const PrintFooter = lazy(() => import('@/components/common/PrintFooter'));

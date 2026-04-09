@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Loader2, Wifi, WifiOff } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 interface ConnectionTestResult {
   connected: boolean;

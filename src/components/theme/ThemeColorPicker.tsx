@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { Check, Palette } from 'lucide-react';
 import { defaultNotify } from '@/lib/notify';
 import { THEME_KEY, applyTheme, resetTheme, themes, type ThemeTemplate } from '@/lib/theme/themeColor.utils';

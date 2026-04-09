@@ -4,7 +4,7 @@
  */
 import type { ReactNode } from 'react';
 import { useChartReady } from '@/hooks/ui/useChartReady';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 interface ChartBoxProps {
   /** ارتفاع الحاوية — رقم (px) أو سلسلة نصية (CSS class أو clamp) */

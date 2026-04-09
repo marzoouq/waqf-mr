@@ -4,7 +4,7 @@
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageSquare, Users } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import type { Conversation } from '@/hooks/data/messaging/useMessaging';

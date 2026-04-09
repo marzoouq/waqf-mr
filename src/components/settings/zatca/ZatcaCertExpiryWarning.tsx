@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 interface CertExpiryWarning {
   level: 'expired' | 'critical' | 'warning';

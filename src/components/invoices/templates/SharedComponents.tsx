@@ -2,7 +2,7 @@
  * مكونات مشتركة لقوالب الفواتير
  */
 import { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { generateQrDataUrl } from '@/utils/zatca/zatcaQr';
 
 /** مكوّن QR موحّد */
