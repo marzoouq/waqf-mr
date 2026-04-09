@@ -2,7 +2,7 @@
  * جالب بيانات التصدير — مستخرج من useDataExport لفصل طبقة البيانات
  */
 import { supabase } from '@/integrations/supabase/client';
-import type { ExportableTable } from '@/hooks/page/shared/useDataExport';
+import type { ExportableTable } from '@/types/export';
 
 export async function fetchTableData(table: ExportableTable) {
   if (table === 'beneficiaries') {

@@ -10,9 +10,8 @@ import { Save, LayoutList, RotateCcw } from 'lucide-react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useState, useEffect } from 'react';
 
-// استيراد مباشر بدل barrel لمنع الاعتماديات الدائرية
-import { defaultMenuLabels } from '@/components/layout/menuLabels';
-import type { MenuLabels } from '@/components/layout/menuLabels';
+// استيراد مباشر من types/ لمنع الاعتماديات الدائرية
+import { defaultMenuLabels, type MenuLabels } from '@/types/navigation';
 
 export type { MenuLabels };
 export { defaultMenuLabels };
