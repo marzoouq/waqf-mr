@@ -98,39 +98,39 @@ export function printDistributionReport(params: PrintDistributionParams): boolea
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Amiri', serif; padding: 32px 40px; color: #1a1a2e; direction: rtl; background: #fff; }
+    body { font-family: 'Amiri', serif; padding: 32px 40px; color: ${PRINT_COLORS.text}; direction: rtl; background: ${PRINT_COLORS.background}; }
     
-    .header { text-align: center; margin-bottom: 24px; border-bottom: 3px double #2c3e50; padding-bottom: 16px; }
-    .header h1 { font-size: 24px; color: #2c3e50; margin-bottom: 4px; }
-    .header h2 { font-size: 16px; color: #7f8c8d; font-weight: normal; }
-    .header .deed { font-size: 13px; color: #95a5a6; margin-top: 2px; }
+    .header { text-align: center; margin-bottom: 24px; border-bottom: 3px double ${PRINT_COLORS.heading}; padding-bottom: 16px; }
+    .header h1 { font-size: 24px; color: ${PRINT_COLORS.heading}; margin-bottom: 4px; }
+    .header h2 { font-size: 16px; color: ${PRINT_COLORS.subheading}; font-weight: normal; }
+    .header .deed { font-size: 13px; color: ${PRINT_COLORS.muted}; margin-top: 2px; }
     
-    .meta { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 12px 16px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef; }
+    .meta { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 12px 16px; background: ${PRINT_COLORS.metaBg}; border-radius: 6px; border: 1px solid ${PRINT_COLORS.metaBorder}; }
     .meta span { font-size: 14px; }
-    .meta strong { color: #2c3e50; }
+    .meta strong { color: ${PRINT_COLORS.heading}; }
     
     table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
-    th { background: #2c3e50; color: #fff; padding: 10px 12px; text-align: right; font-weight: 700; }
-    td { border: 1px solid #dee2e6; padding: 8px 12px; text-align: right; }
-    tr:nth-child(even) { background: #f8f9fa; }
-    .deficit-row { background: #fff5f5 !important; }
-    .deficit-row td { color: #c0392b; }
+    th { background: ${PRINT_COLORS.tableHeaderBg}; color: ${PRINT_COLORS.tableHeaderText}; padding: 10px 12px; text-align: right; font-weight: 700; }
+    td { border: 1px solid ${PRINT_COLORS.tableBorder}; padding: 8px 12px; text-align: right; }
+    tr:nth-child(even) { background: ${PRINT_COLORS.evenRowBg}; }
+    .deficit-row { background: ${PRINT_COLORS.deficitBg} !important; }
+    .deficit-row td { color: ${PRINT_COLORS.danger}; }
     .name-cell { font-weight: 700; }
-    .net-cell { font-weight: 700; color: #27ae60; }
-    .deficit-row .net-cell { color: #c0392b; }
+    .net-cell { font-weight: 700; color: ${PRINT_COLORS.success}; }
+    .deficit-row .net-cell { color: ${PRINT_COLORS.danger}; }
     
-    .total-row td { border-top: 3px double #2c3e50; font-weight: 700; font-size: 14px; background: #f1f3f5 !important; }
+    .total-row td { border-top: 3px double ${PRINT_COLORS.heading}; font-weight: 700; font-size: 14px; background: ${PRINT_COLORS.totalRowBg} !important; }
     
     .summary { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .summary-card { padding: 12px 16px; border-radius: 6px; border: 1px solid #e9ecef; }
-    .summary-card.primary { background: #e8f5e9; border-color: #a5d6a7; }
-    .summary-card.danger { background: #ffebee; border-color: #ef9a9a; }
-    .summary-card.warning { background: #fff8e1; border-color: #ffe082; }
-    .summary-card.info { background: #e3f2fd; border-color: #90caf9; }
-    .summary-card .label { font-size: 12px; color: #666; }
+    .summary-card { padding: 12px 16px; border-radius: 6px; border: 1px solid ${PRINT_COLORS.metaBorder}; }
+    .summary-card.primary { background: ${PRINT_COLORS.primaryCardBg}; border-color: ${PRINT_COLORS.primaryCardBorder}; }
+    .summary-card.danger { background: ${PRINT_COLORS.dangerCardBg}; border-color: ${PRINT_COLORS.dangerCardBorder}; }
+    .summary-card.warning { background: ${PRINT_COLORS.warningCardBg}; border-color: ${PRINT_COLORS.warningCardBorder}; }
+    .summary-card.info { background: ${PRINT_COLORS.infoCardBg}; border-color: ${PRINT_COLORS.infoCardBorder}; }
+    .summary-card .label { font-size: 12px; color: ${PRINT_COLORS.labelText}; }
     .summary-card .value { font-size: 18px; font-weight: 700; margin-top: 2px; }
     
-    .footer { margin-top: 32px; text-align: center; color: #adb5bd; font-size: 11px; border-top: 1px solid #e9ecef; padding-top: 12px; }
+    .footer { margin-top: 32px; text-align: center; color: ${PRINT_COLORS.footerText}; font-size: 11px; border-top: 1px solid ${PRINT_COLORS.metaBorder}; padding-top: 12px; }
     
     @media print {
       body { padding: 16px; }
