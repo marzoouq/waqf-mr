@@ -93,6 +93,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
         .order('created_at', { ascending: false })
         .limit(5);
       if (error) throw error;
+      // nested join property+unit — cast مطلوب للعلاقة المتداخلة
       return (data || []) as unknown as RecentContract[];
     },
   });

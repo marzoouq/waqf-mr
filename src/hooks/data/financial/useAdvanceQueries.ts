@@ -82,6 +82,7 @@ export const useAllCarryforwards = (fiscalYearId?: string) => {
       }
       const { data, error } = await query.limit(500);
       if (error) throw error;
+      // nested join beneficiary:beneficiaries — cast مطلوب للعلاقة
       return (data ?? []) as unknown as (AdvanceCarryforward & { beneficiary?: { id: string; name: string } })[];
     },
   });

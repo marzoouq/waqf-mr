@@ -48,6 +48,7 @@ export function useYearComparisonData(year1Id: string, year2Id: string) {
         p_year2_id: year2Id,
       });
       if (error) throw error;
+      // RPC — cast مبرر، يحتاج Zod validation لاحقاً
       return result as unknown as ComparisonRpcResult;
     },
   });

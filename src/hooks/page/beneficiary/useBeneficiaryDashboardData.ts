@@ -114,6 +114,7 @@ export const useBeneficiaryDashboardData = (fiscalYearId?: string) => {
       if (!data || typeof data !== 'object' || Array.isArray(data)) {
         throw new Error(`استجابة غير متوقعة: ${typeof data} بدلاً من object`);
       }
+      // RPC — cast مبرر، يحتاج Zod validation لاحقاً
       return data as unknown as BeneficiaryDashboardData;
     },
   });

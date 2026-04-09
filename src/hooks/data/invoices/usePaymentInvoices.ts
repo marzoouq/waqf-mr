@@ -51,6 +51,7 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
       }
       const { data, error } = await query;
       if (error) throw error;
+      // nested join contract→property — cast مطلوب للعلاقة المتداخلة
       return data as unknown as PaymentInvoice[];
     },
     meta: { warnLimit: 1000 },

@@ -34,6 +34,7 @@ export const useMaxAdvanceAmount = (
         defaultNotify.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
         throw error;
       }
+      // RPC — cast مبرر، يحتاج Zod validation لاحقاً
       return data as unknown as ServerAdvanceData;
     },
   });

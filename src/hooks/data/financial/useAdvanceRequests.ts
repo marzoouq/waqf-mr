@@ -40,6 +40,7 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
       }
       const { data, error } = await query;
       if (error) throw error;
+      // nested join beneficiary+fiscal_year — cast مطلوب للعلاقة المتداخلة
       return (data ?? []) as unknown as import('@/types/advance').AdvanceRequest[];
     },
   });

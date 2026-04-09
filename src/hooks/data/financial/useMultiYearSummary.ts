@@ -38,6 +38,7 @@ export function useMultiYearSummary(yearIds: string[]) {
         p_year_ids: sortedIds,
       });
       if (error) throw error;
+      // RPC — cast مبرر، يحتاج Zod validation لاحقاً
       const arr = data as unknown as RpcYearEntry[];
       return (arr ?? []).map(mapEntry);
     },

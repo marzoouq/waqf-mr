@@ -23,6 +23,7 @@ export const useZatcaCertificates = () => {
         .select('id, certificate_type, is_active, request_id, created_at, expires_at')
         .order('created_at', { ascending: false });
       if (error) throw error;
+      // fromView → أنواع nullable بالكامل — cast مطلوب
       return (data ?? []) as unknown as ZatcaCertificateSafe[];
     },
   });

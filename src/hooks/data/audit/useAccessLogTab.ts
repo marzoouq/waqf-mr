@@ -34,6 +34,7 @@ export const useAccessLogTab = (eventFilter: string, currentPage: number) => {
       }
       const { data, error, count } = await query;
       if (error) throw error;
+      // select() → metadata: Json ≠ Record<string,unknown> — يحتاج Zod validation لاحقاً
       return { logs: (data || []) as unknown as AccessLogEntry[], totalCount: count ?? 0 };
     },
   });
