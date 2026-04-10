@@ -1,49 +1,91 @@
 
 
-# خطة: استخراج `useFieldErrors` كـ hook مشترك
+# خطة التنفيذ — تنظيف معماري شامل (6 خطوات)
 
-## المنطق المكرر (مطابق حرفياً)
+## الخطوة 1: نقل مكونات UI من `pages/` إلى `components/`
 
-| المنطق | `useLoginForm.ts` (سطر) | `SignupForm.tsx` (سطر) |
-|--------|-------------------------|------------------------|
-| `useState<FieldErrors>({})` | 30 | 25 |
-| `clearFieldError` | 48-55 | 31-38 |
-| `validateEmailFormat` | 57-61 | 40-44 |
+### Carryforward (3 ملفات)
+- نقل `src/pages/beneficiary/carryforward/` → `src/components/carryforward/`
+- تحديث imports في `CarryforwardHistoryPage.tsx`:
+  - `'./carryforward/...'` → `'@/components/carryforward/...'`
 
-## الملفات والتغييرات
+### Notifications (4 ملفات)
+- نقل `src/pages/beneficiary/notifications/` → `src/components/notifications/` (دمج مع المجلد الموجود)
+- تحديث imports في `NotificationsPage.tsx`:
+  - `'./notifications/...'` → `'@/components/notifications/...'`
+- تحديث `src/components/notifications/index.ts` لتصدير المكونات الجديدة
 
-### 1. إنشاء `src/hooks/auth/useFieldErrors.ts` (جديد)
+**الملفات المتأثرة**: 9 ملفات (7 نقل + 2 تحديث imports)
 
-```typescript
-export type FieldErrors<K extends string> = Partial<Record<K, string>>;
+---
 
-export function useFieldErrors<K extends string>() {
-  // fieldErrors state
-  // clearFieldError(field: K) — حذف خطأ حقل
-  // setFieldError(field: K, msg: string) — تعيين خطأ حقل
-  // setErrors(errors: FieldErrors<K>) — تعيين أخطاء متعددة
-  // hasErrors — boolean محسوب
-  // validateEmailFormat(value: string, field: K) — تحقق + تعيين خطأ
-}
-```
+## الخطوة 2: إصلاح `useGreeting` — نقله قبل early returns
 
-### 2. تحديث `src/hooks/auth/useLoginForm.ts`
-- حذف: `useState<FieldErrors>` (سطر 30)، `clearFieldError` (48-55)، `validateEmailFormat` (57-61)
-- إضافة: `const { fieldErrors, clearFieldError, setErrors, validateEmailFormat } = useFieldErrors<'email' | 'password' | 'nationalId'>()`
-- استبدال `setFieldErrors(errors)` بـ `setErrors(errors)` في `handleSignIn`
-- `focusFirstError` يبقى محلياً (يعتمد على refs خاصة)
+في `BeneficiaryDashboard.tsx`:
+- دمج `useGreeting()` داخل `useBeneficiaryDashboardPage` hook (إضافة `greetingData` للقيم المُرجعة)
+- حذف استدعاء `useGreeting()` من السطر 72 وتعليق `eslint-disable`
+- حذف import `useGreeting` من الصفحة
 
-### 3. تحديث `src/components/auth/SignupForm.tsx`
-- حذف: `useState<{email?; password?}>` (سطر 25)، `clearFieldError` (31-38)، `validateEmailFormat` (40-44)
-- إضافة: `const { fieldErrors, clearFieldError, setErrors, validateEmailFormat } = useFieldErrors<'email' | 'password'>()`
-- استبدال `setFieldErrors(errors)` بـ `setErrors(errors)` في `handleSignUp`
-- `focusFirstError` يبقى محلياً
+**الملفات المتأثرة**: 2 (`BeneficiaryDashboard.tsx` + `useBeneficiaryDashboardPage.ts`)
 
-### 4. فحص TypeScript
-- تشغيل `npx tsc --noEmit` للتأكد من عدم وجود أخطاء
+---
 
-## ما لن يتغير
-- سلوك النماذج الحالي (صفر تغيير وظيفي)
-- ملفات محمية (`AuthContext`, `client.ts`, `types.ts`)
-- اختبارات `SignupForm.test.tsx` ستعمل بدون تعديل
+## الخطوة 3: فصل `AuditLogHelpers.tsx`
+
+- إنشاء `src/utils/format/auditLabels.ts` ← نقل `operationColor`, `formatValue`, `getFieldLabel`, `FIELD_LABELS`
+- إنشاء `src/components/audit/DataDiff.tsx` ← نقل مكوّن `DataDiff` مع import من الملف الجديد
+- حذف `AuditLogHelpers.tsx` الأصلي
+- تحديث `src/components/audit/index.ts` وأي ملفات تستورد من `AuditLogHelpers`
+
+**الملفات المتأثرة**: ~5 ملفات
+
+---
+
+## الخطوة 4: إزالة منطق العرض من `useBeneficiarySettingsPage`
+
+- نقل مصفوفة `tabItems` (مع أيقونات Lucide و `createElement`) إلى `BeneficiarySettingsPage.tsx` مباشرة
+- إبقاء Hook للبيانات فقط: `user`, `currentBeneficiary`, `maskedId`, `benLoading`, `benError`, `handleRetry`
+- حذف imports: `TabItem`, `createElement`, أيقونات Lucide من الـ hook
+
+**الملفات المتأثرة**: 2 (`useBeneficiarySettingsPage.ts` + `BeneficiarySettingsPage.tsx`)
+
+---
+
+## الخطوة 5: استخراج `useInstallAppPage` hook
+
+- إنشاء `src/hooks/page/useInstallAppPage.ts` ← نقل:
+  - `deferredPrompt` state + `beforeinstallprompt` listener
+  - `isInstalled` state + `appinstalled` listener
+  - `isIOS` detection
+  - `handleInstall` callback
+- تبسيط `InstallApp.tsx` ليصبح UI فقط
+
+**الملفات المتأثرة**: 2 (جديد + تحديث)
+
+---
+
+## الخطوة 6: توحيد `ComplianceResult` types
+
+- إنشاء `src/types/zatca.ts` ← نقل `ComplianceResult` و `ComplianceMessage`
+- تحديث imports في:
+  - `ZatcaManagementPage.tsx` — حذف التعريف المحلي + import من `@/types/zatca`
+  - `ZatcaComplianceDialog.tsx` — حذف التعريف المكرر + import من `@/types/zatca`
+
+**الملفات المتأثرة**: 3 (جديد + 2 تحديث)
+
+---
+
+## ملخص
+
+| الخطوة | الملفات | الخطر |
+|--------|---------|-------|
+| 1. نقل مكونات UI | 9 | منخفض |
+| 2. إصلاح useGreeting | 2 | منخفض |
+| 3. فصل AuditLogHelpers | 5 | منخفض |
+| 4. تنظيف Settings hook | 2 | منخفض |
+| 5. استخراج InstallApp hook | 2 | منخفض |
+| 6. توحيد ComplianceResult | 3 | منخفض |
+| **المجموع** | **~23 ملف** | **صفر تغيير سلوكي** |
+
+كل الخطوات إعادة تنظيم بحتة — لا تغيير في السلوك أو الواجهة.
 
