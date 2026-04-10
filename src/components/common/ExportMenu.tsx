@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { usePrint } from '@/hooks/ui/usePrint';
 import {
   DropdownMenu,
   DropdownMenuContent,

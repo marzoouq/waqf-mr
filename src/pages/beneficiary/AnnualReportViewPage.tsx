@@ -2,6 +2,7 @@
  * صفحة التقرير السنوي — المستفيد (قراءة + طباعة + تصدير فقط)
  */
 import { lazy, Suspense } from 'react';
+import { usePrint } from '@/hooks/ui/usePrint';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';

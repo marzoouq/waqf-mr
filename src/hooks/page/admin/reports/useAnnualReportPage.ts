@@ -3,6 +3,7 @@
  */
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { defaultNotify } from '@/lib/notify';
+import { usePrint } from '@/hooks/ui/usePrint';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import {

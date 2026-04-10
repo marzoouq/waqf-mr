@@ -1,5 +1,6 @@
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useCallback } from 'react';
+import { usePrint } from '@/hooks/ui/usePrint';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import DeferredRender from '@/components/common/DeferredRender';
 import ViewportRender from '@/components/common/ViewportRender';
