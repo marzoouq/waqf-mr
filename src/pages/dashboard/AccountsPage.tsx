@@ -133,13 +133,16 @@ const AccountsPage = () => {
         <DeferredRender delay={300}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsDistributionTable
-              waqfCorpusPrevious={page.waqfCorpusPrevious} totalIncome={page.totalIncome} grandTotal={page.grandTotal}
-              totalExpenses={page.totalExpenses} netAfterExpenses={page.netAfterExpenses} manualVat={page.manualVat}
-              netAfterVat={page.netAfterVat} zakatAmount={page.zakatAmount} netAfterZakat={page.netAfterZakat}
-              adminPercent={page.adminPercent} adminShare={page.adminShare} waqifPercent={page.waqifPercent}
-              waqifShare={page.waqifShare} waqfRevenue={page.waqfRevenue} waqfCorpusManual={page.waqfCorpusManual}
-              availableAmount={page.availableAmount} manualDistributions={page.manualDistributions}
-              remainingBalance={page.remainingBalance} isClosed={page.isClosed}
+              summary={{
+                waqfCorpusPrevious: page.waqfCorpusPrevious, totalIncome: page.totalIncome, grandTotal: page.grandTotal,
+                totalExpenses: page.totalExpenses, netAfterExpenses: page.netAfterExpenses, manualVat: page.manualVat,
+                netAfterVat: page.netAfterVat, zakatAmount: page.zakatAmount, netAfterZakat: page.netAfterZakat,
+                adminPercent: page.adminPercent, adminShare: page.adminShare, waqifPercent: page.waqifPercent,
+                waqifShare: page.waqifShare, waqfRevenue: page.waqfRevenue, waqfCorpusManual: page.waqfCorpusManual,
+                availableAmount: page.availableAmount, manualDistributions: page.manualDistributions,
+                remainingBalance: page.remainingBalance,
+              }}
+              isClosed={page.isClosed}
             />
           </Suspense>
         </DeferredRender>

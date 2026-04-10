@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import AccountsDistributionTable from './AccountsDistributionTable';
+import type { DistributionSummary } from './AccountsDistributionTable';
 
-const defaultProps = {
+const defaultSummary: DistributionSummary = {
   waqfCorpusPrevious: 0,
   totalIncome: 100000,
   grandTotal: 100000,
@@ -25,50 +26,50 @@ const defaultProps = {
 
 describe('AccountsDistributionTable', () => {
   it('renders title', () => {
-    render(<AccountsDistributionTable {...defaultProps} />);
+    render(<AccountsDistributionTable summary={defaultSummary} />);
     expect(screen.getByText('التوزيع والحصص')).toBeInTheDocument();
   });
 
   it('shows income row', () => {
-    render(<AccountsDistributionTable {...defaultProps} />);
+    render(<AccountsDistributionTable summary={defaultSummary} />);
     expect(screen.getAllByText('إجمالي الدخل').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows expenses row', () => {
-    render(<AccountsDistributionTable {...defaultProps} />);
+    render(<AccountsDistributionTable summary={defaultSummary} />);
     expect(screen.getAllByText(/المصروفات التشغيلية/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows admin share with percentage', () => {
-    render(<AccountsDistributionTable {...defaultProps} />);
+    render(<AccountsDistributionTable summary={defaultSummary} />);
     expect(screen.getAllByText('10%').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/حصة الناظر/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows waqif share with percentage', () => {
-    render(<AccountsDistributionTable {...defaultProps} />);
+    render(<AccountsDistributionTable summary={defaultSummary} />);
     expect(screen.getAllByText('5%').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/حصة الواقف/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows remaining balance', () => {
-    render(<AccountsDistributionTable {...defaultProps} />);
+    render(<AccountsDistributionTable summary={defaultSummary} />);
     expect(screen.getAllByText('الرصيد المتبقي').length).toBeGreaterThanOrEqual(1);
   });
 
   it('hides previous corpus row when zero', () => {
-    render(<AccountsDistributionTable {...defaultProps} />);
+    render(<AccountsDistributionTable summary={defaultSummary} />);
     expect(screen.queryByText('رقبة الوقف المرحلة من العام السابق')).not.toBeInTheDocument();
   });
 
   it('shows previous corpus row when > 0', () => {
-    render(<AccountsDistributionTable {...defaultProps} waqfCorpusPrevious={5000} grandTotal={105000} />);
+    render(<AccountsDistributionTable summary={{ ...defaultSummary, waqfCorpusPrevious: 5000, grandTotal: 105000 }} />);
     expect(screen.getAllByText('رقبة الوقف المرحلة من العام السابق').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('الإجمالي الشامل').length).toBeGreaterThanOrEqual(1);
   });
 
   it('applies destructive color for negative balance', () => {
-    const { container } = render(<AccountsDistributionTable {...defaultProps} remainingBalance={-500} />);
+    const { container } = render(<AccountsDistributionTable summary={{ ...defaultSummary, remainingBalance: -500 }} />);
     const balanceCell = container.querySelector('.text-destructive.text-lg');
     expect(balanceCell).toBeInTheDocument();
   });
