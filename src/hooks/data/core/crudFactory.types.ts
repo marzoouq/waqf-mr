@@ -1,7 +1,7 @@
 /**
  * أنواع مصنع CRUD — مفصولة لتحسين القراءة
  */
-import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
 import type { Database } from '@/integrations/supabase/types';
 import type { CrudNotifications } from '@/lib/notify';
 
