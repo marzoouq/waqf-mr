@@ -28,7 +28,7 @@ export function useLoginForm({ signIn }: UseLoginFormParams) {
   const [isLoading, setIsLoading] = useState(false);
   const [nidAttemptsRemaining, setNidAttemptsRemaining] = useState<number | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
-  const { fieldErrors, clearFieldError, setFieldError, setErrors, validateEmailFormat } = useFieldErrors<LoginFieldKey>();
+  const { fieldErrors, clearFieldError, setErrors, validateEmailFormat } = useFieldErrors<LoginFieldKey>();
   const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEYS.NID_LOCKED_UNTIL);
