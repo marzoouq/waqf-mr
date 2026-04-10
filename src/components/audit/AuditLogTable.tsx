@@ -18,8 +18,8 @@ interface AuditLog {
   record_id: string | null;
   user_id: string | null;
   created_at: string;
-  old_data: unknown;
-  new_data: unknown;
+  old_data: Record<string, unknown> | null;
+  new_data: Record<string, unknown> | null;
 }
 
 interface AuditLogTableProps {
