@@ -15,3 +15,5 @@ export { useBeneficiaryDashboardPage } from './useBeneficiaryDashboardPage';
 export { useBylawsViewPage } from './useBylawsViewPage';
 export { useInvoicesViewPage } from './useInvoicesViewPage';
 export { useNotificationsPage } from './useNotificationsPage';
+export { useSupportPage } from './useSupportPage';
+export { useBeneficiarySettingsPage } from './useBeneficiarySettingsPage';
