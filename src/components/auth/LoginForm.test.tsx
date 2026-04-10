@@ -3,8 +3,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import LoginForm from './LoginForm';
 
-// Mock defaultNotify بدلاً من sonner — لأن الكود يستخدم defaultNotify
-const mockNotify = { error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn() };
+// vi.hoisted لحل مشكلة الرفع — المتغير يُنشأ قبل vi.mock
+const mockNotify = vi.hoisted(() => ({
+  error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn(),
+}));
 vi.mock('@/lib/notify', () => ({ defaultNotify: mockNotify }));
 
 vi.mock('@/integrations/supabase/client', () => ({
