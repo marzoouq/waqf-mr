@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockUseAuth } from '@/test/setup';
 
-vi.mock('./useTotalBeneficiaryPercentage', () => ({
+vi.mock('@/hooks/data/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 100, isLoading: false })),
 }));
 
