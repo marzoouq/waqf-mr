@@ -3,10 +3,10 @@ import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
-// موك useWaqfInfo و useAppSettings
+// موك useWaqfInfo و useAppSettings — المسار الصحيح
 const mockUseWaqfInfo = vi.fn();
 const mockUseAppSettings = vi.fn(() => ({ data: undefined }));
-vi.mock('@/hooks/data/useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/useAppSettings', () => ({
   useWaqfInfo: () => mockUseWaqfInfo(),
   useAppSettings: () => mockUseAppSettings(),
 }));

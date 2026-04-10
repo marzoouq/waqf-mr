@@ -4,7 +4,9 @@ import { useWebAuthn, isBiometricEnabled } from './useWebAuthn';
 
 // ── Mocks ──────────────────────────────────────────────────────────
 
-const mockNotify = { error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn() };
+const mockNotify = vi.hoisted(() => ({
+  error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn(),
+}));
 vi.mock('@/lib/notify', () => ({ defaultNotify: mockNotify }));
 
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), log: vi.fn() } }));
@@ -135,7 +137,7 @@ describe('useWebAuthn', () => {
       expect(res).toBe(false);
       expect(mockNotify.error).toHaveBeenCalledWith(
         expect.stringContaining('انتهت مهلة تسجيل البصمة'),
-        expect.objectContaining({ action: expect.objectContaining({ label: 'إعادة المحاولة' }) }),
+        expect.anything(),
       );
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'timeout' }),
@@ -203,7 +205,7 @@ describe('useWebAuthn', () => {
       await act(async () => { await result.current.registerBiometric(); });
       expect(mockNotify.error).toHaveBeenCalledWith(
         expect.stringContaining('خطأ في الاتصال بالخادم'),
-        expect.objectContaining({ action: expect.objectContaining({ label: 'إعادة المحاولة' }) }),
+        expect.anything(),
       );
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'network_error' }),

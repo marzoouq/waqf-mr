@@ -15,7 +15,7 @@ vi.mock('@/hooks/data/financial/useIncome', () => ({
 vi.mock('@/hooks/data/financial/useExpenses', () => ({
   useExpensesByFiscalYear: () => mockExpenses,
 }));
-vi.mock('@/hooks/financial/useAccounts', () => ({
+vi.mock('@/hooks/data/financial/useAccounts', () => ({
   useAccounts: () => mockAccounts,
   useAccountByFiscalYear: () => mockAccounts,
 }));

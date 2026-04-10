@@ -3,8 +3,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import LoginForm from './LoginForm';
 
-// Mock defaultNotify بدلاً من sonner — لأن الكود يستخدم defaultNotify
-const mockNotify = { error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn() };
+// vi.hoisted لحل مشكلة الرفع — المتغير يُنشأ قبل vi.mock
+const mockNotify = vi.hoisted(() => ({
+  error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn(),
+}));
 vi.mock('@/lib/notify', () => ({ defaultNotify: mockNotify }));
 
 vi.mock('@/integrations/supabase/client', () => ({
@@ -90,7 +92,7 @@ describe('LoginForm', () => {
     await userEvent.type(screen.getByPlaceholderText('••••••••'), 'password123');
     fireEvent.submit(screen.getByRole('button', { name: 'تسجيل الدخول' }));
     await waitFor(() => {
-      expect(mockNotify.error).toHaveBeenCalledWith('يرجى إدخال البريد الإلكتروني');
+      expect(screen.getByText('يرجى إدخال البريد الإلكتروني')).toBeInTheDocument();
     });
   });
 
@@ -99,7 +101,7 @@ describe('LoginForm', () => {
     await userEvent.type(screen.getByPlaceholderText('example@email.com'), 'test@example.com');
     fireEvent.submit(screen.getByRole('button', { name: 'تسجيل الدخول' }));
     await waitFor(() => {
-      expect(mockNotify.error).toHaveBeenCalledWith('يرجى إدخال كلمة المرور');
+      expect(screen.getByText('يرجى إدخال كلمة المرور')).toBeInTheDocument();
     });
   });
 
@@ -137,7 +139,7 @@ describe('LoginForm', () => {
     await userEvent.type(screen.getByPlaceholderText('••••••••'), 'pass');
     fireEvent.submit(screen.getByRole('button', { name: 'تسجيل الدخول' }));
     await waitFor(() => {
-      expect(mockNotify.error).toHaveBeenCalledWith('يرجى إدخال رقم الهوية الوطنية');
+      expect(screen.getByText('يرجى إدخال رقم الهوية')).toBeInTheDocument();
     });
   });
 
