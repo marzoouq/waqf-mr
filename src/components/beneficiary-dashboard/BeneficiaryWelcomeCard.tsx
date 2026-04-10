@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Clock, Sun, Moon } from 'lucide-react';
-import { useState, useEffect, useMemo } from 'react';
+import { useGreeting } from '@/hooks/ui/useGreeting';
 
 interface BeneficiaryWelcomeCardProps {
   displayName: string;
@@ -8,27 +8,8 @@ interface BeneficiaryWelcomeCardProps {
 }
 
 const BeneficiaryWelcomeCard = ({ displayName, roleLabel }: BeneficiaryWelcomeCardProps) => {
-  const [now, setNow] = useState(new Date());
-
-  useEffect(() => {
-    let id: ReturnType<typeof setInterval> | undefined;
-    const start = () => { id = setInterval(() => setNow(new Date()), 60_000); };
-    const stop = () => { if (id) { clearInterval(id); id = undefined; } };
-    const onVisibility = () => { if (document.hidden) { stop(); } else { setNow(new Date()); start(); } };
-    start();
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
-  }, []);
-
-  const hour = now.getHours();
-  const greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
-  const GreetingIcon = hour < 12 ? Sun : Moon;
-
-  const { hijriDate, gregorianDate, timeStr } = useMemo(() => ({
-    hijriDate: now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-    gregorianDate: now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
-    timeStr: now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
-  }), [now]);
+  const { greeting, greetingIconName, hijriDate, gregorianDate, timeStr } = useGreeting();
+  const GreetingIcon = greetingIconName === 'sun' ? Sun : Moon;
 
   return (
     <Card className="overflow-hidden border-0 shadow-lg gradient-primary text-primary-foreground animate-slide-up">
