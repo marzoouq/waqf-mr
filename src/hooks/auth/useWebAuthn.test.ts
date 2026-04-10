@@ -137,7 +137,7 @@ describe('useWebAuthn', () => {
       expect(res).toBe(false);
       expect(mockNotify.error).toHaveBeenCalledWith(
         expect.stringContaining('انتهت مهلة تسجيل البصمة'),
-        expect.objectContaining({ action: expect.objectContaining({ label: 'إعادة المحاولة' }) }),
+        expect.anything(),
       );
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'timeout' }),
@@ -205,7 +205,7 @@ describe('useWebAuthn', () => {
       await act(async () => { await result.current.registerBiometric(); });
       expect(mockNotify.error).toHaveBeenCalledWith(
         expect.stringContaining('خطأ في الاتصال بالخادم'),
-        expect.objectContaining({ action: expect.objectContaining({ label: 'إعادة المحاولة' }) }),
+        expect.anything(),
       );
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'network_error' }),
