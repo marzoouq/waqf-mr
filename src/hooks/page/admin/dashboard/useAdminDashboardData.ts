@@ -4,6 +4,7 @@
 import { useMemo } from 'react';
 import { isFyAll } from '@/constants/fiscalYearIds';
 import { useAdminDashboardStats } from './useAdminDashboardStats';
+import { ROLE_LABELS } from '@/constants/roles';
 import type { useDashboardSummary } from '@/hooks/data/financial/useDashboardSummary';
 
 type DashboardSummary = Omit<ReturnType<typeof useDashboardSummary>, 'isLoading'>;
@@ -26,13 +27,6 @@ interface UseAdminDashboardDataParams {
   summary: DashboardSummary;
 }
 
-/** خريطة الأسماء الافتراضية حسب الدور */
-const ROLE_DEFAULT_NAME: Record<string, string> = {
-  admin: 'ناظر الوقف',
-  accountant: 'المحاسب',
-  waqif: 'الواقف',
-  beneficiary: 'المستفيد',
-};
 
 export const useAdminDashboardData = ({
   user, role, fiscalYearId, fiscalYear, isSpecificYear: _isSpecificYear, summary,
@@ -103,7 +97,7 @@ export const useAdminDashboardData = ({
   const greetingText = useMemo(() => {
     const displayName = user?.user_metadata?.full_name
       || user?.email?.split('@')[0]
-      || ROLE_DEFAULT_NAME[role ?? '']
+      || ROLE_LABELS[role ?? '']
       || 'المستخدم';
     const base = role === 'accountant'
       ? `مرحباً بك، ${displayName} — يمكنك إدارة الحسابات والعمليات المالية`

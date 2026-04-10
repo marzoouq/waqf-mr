@@ -1,7 +1,7 @@
 /**
  * إجراءات سريعة مركزة حسب الدور
  */
-import { FileText, TrendingUp, TrendingDown, Users, Wallet, Printer, Gauge, ArrowUpDown, Landmark, GitBranch, Receipt, BarChart3 } from 'lucide-react';
+import { FileText, TrendingUp, TrendingDown, Users, Printer, Gauge, ArrowUpDown, Landmark, GitBranch, Receipt, BarChart3 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface QuickActionItem {
