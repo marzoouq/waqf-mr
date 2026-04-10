@@ -1,66 +1,41 @@
 /**
  * هوك تحميل مسبق للصفحات الأكثر زيارة عند تمرير الماوس على روابط Sidebar
  * يُحمّل البيانات الأساسية لكل صفحة مسبقاً لتسريع التنقل
+ *
+ * يعيد استخدام queryOptions من CRUD hooks لتجنب تكرار select/order/limit
  */
 import { useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { prefetchComponent } from '@/lib/componentPrefetch';
+import { propertiesQueryOptions } from '@/hooks/data/properties/useProperties';
+import { contractsQueryOptions } from '@/hooks/data/contracts/useContracts';
+import { accountsQueryOptions } from '@/hooks/data/financial/useAccounts';
+import { unitsQueryOptions } from '@/hooks/data/properties/useUnits';
 
 const PREFETCH_STALE = 2 * 60_000; // دقيقتان — لتجنب إعادة التحميل المتكررة عند hover
 
 export function usePrefetchPages() {
   const queryClient = useQueryClient();
 
-  /** تحميل مسبق: العقارات */
+  /** تحميل مسبق: العقارات — من CRUD factory */
   const prefetchProperties = useCallback(() => {
-    queryClient.prefetchQuery({
-      queryKey: ['properties'],
-      staleTime: PREFETCH_STALE,
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from('properties')
-          .select('id, property_number, property_type, location, area, vat_exempt, description, created_at, updated_at')
-          .order('created_at', { ascending: false })
-          .limit(500);
-        if (error) throw error;
-        return data;
-      },
-    });
+    const opts = propertiesQueryOptions(0);
+    queryClient.prefetchQuery({ ...opts, staleTime: PREFETCH_STALE });
   }, [queryClient]);
 
-  /** تحميل مسبق: العقود (كل السنوات) */
+  /** تحميل مسبق: العقود — من CRUD factory */
   const prefetchContracts = useCallback(() => {
-    queryClient.prefetchQuery({
-      queryKey: ['contracts', 'fiscal_year', 'all'],
-      staleTime: PREFETCH_STALE,
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from('contracts')
-          .select('id, contract_number, tenant_name, property_id, unit_id, start_date, end_date, rent_amount, payment_type, payment_count, payment_amount, status, fiscal_year_id, notes, tenant_id_number, tenant_id_type, tenant_tax_number, tenant_crn, tenant_street, tenant_district, tenant_city, tenant_postal_code, tenant_building, created_at, updated_at, property:properties(id, property_number, property_type, location), unit:units(id, unit_number, unit_type, floor, status)')
-          .order('start_date', { ascending: false })
-          .limit(1000);
-        if (error) throw error;
-        return data;
-      },
-    });
+    const opts = contractsQueryOptions(0);
+    queryClient.prefetchQuery({ ...opts, staleTime: PREFETCH_STALE });
   }, [queryClient]);
 
   /** تحميل مسبق: الحسابات + المستفيدين */
   const prefetchAccounts = useCallback(() => {
-    queryClient.prefetchQuery({
-      queryKey: ['accounts'],
-      staleTime: PREFETCH_STALE,
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from('accounts')
-          .select('id, fiscal_year, fiscal_year_id, total_income, total_expenses, net_after_expenses, vat_amount, net_after_vat, zakat_amount, admin_share, waqif_share, waqf_revenue, waqf_corpus_manual, waqf_corpus_previous, distributions_amount, created_at, updated_at')
-          .order('fiscal_year', { ascending: false })
-          .limit(100);
-        if (error) throw error;
-        return data;
-      },
-    });
+    const opts = accountsQueryOptions(0);
+    queryClient.prefetchQuery({ ...opts, staleTime: PREFETCH_STALE });
+
+    // المستفيدين — من view آمنة (لا CRUD factory)
     queryClient.prefetchQuery({
       queryKey: ['beneficiaries'],
       staleTime: PREFETCH_STALE,
@@ -75,7 +50,7 @@ export function usePrefetchPages() {
     });
   }, [queryClient]);
 
-  /** تحميل مسبق: السنوات المالية */
+  /** تحميل مسبق: السنوات المالية (لا CRUD factory — استعلام خاص) */
   const prefetchFiscalYears = useCallback(() => {
     queryClient.prefetchQuery({
       queryKey: ['fiscal_years'],
@@ -92,28 +67,13 @@ export function usePrefetchPages() {
     });
   }, [queryClient]);
 
-  /**
-   * يعيد دالة prefetch المناسبة بناءً على مسار الصفحة
-   * يُحمّل المكوّن (JS chunk) + البيانات معاً عند hover
-   */
-  /** تحميل مسبق: الوحدات */
+  /** تحميل مسبق: الوحدات — من CRUD factory */
   const prefetchUnits = useCallback(() => {
-    queryClient.prefetchQuery({
-      queryKey: ['units'],
-      staleTime: PREFETCH_STALE,
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from('units')
-          .select('id, unit_number, unit_type, floor, area, status, property_id, notes, created_at, updated_at')
-          .order('created_at', { ascending: false })
-          .limit(500);
-        if (error) throw error;
-        return data;
-      },
-    });
+    const opts = unitsQueryOptions(0);
+    queryClient.prefetchQuery({ ...opts, staleTime: PREFETCH_STALE });
   }, [queryClient]);
 
-  /** تحميل مسبق: فواتير الدفعات */
+  /** تحميل مسبق: فواتير الدفعات (لا CRUD factory — استعلام مخصص) */
   const prefetchPaymentInvoices = useCallback(() => {
     queryClient.prefetchQuery({
       queryKey: ['payment_invoices', 'all'],
@@ -173,10 +133,6 @@ export function usePrefetchPages() {
     });
   }, [queryClient]);
 
-  /**
-   * يعيد دالة prefetch المناسبة بناءً على مسار الصفحة
-   * يُحمّل المكوّن (JS chunk) + البيانات معاً عند hover
-   */
   // throttle لمنع طلبات متزامنة عند التمرير السريع على القائمة
   const lastPrefetchRef = useRef<number>(0);
   const THROTTLE_MS = 300;
@@ -211,4 +167,3 @@ export function usePrefetchPages() {
 
   return { getPrefetchHandler, prefetchAccounts };
 }
-
