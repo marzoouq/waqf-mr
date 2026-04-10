@@ -1,10 +1,11 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ShieldX, Home, ArrowRight, Building2 } from 'lucide-react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 
 const Unauthorized = () => {
   const { role } = useAuth();
+  const navigate = useNavigate();
 
   const homePath =
     role === 'admin' || role === 'accountant' ? '/dashboard'
@@ -44,7 +45,7 @@ const Unauthorized = () => {
                 العودة للرئيسية
               </Button>
             </Link>
-            <Button variant="outline" className="gap-2 rounded-xl px-6" onClick={() => window.history.back()}>
+            <Button variant="outline" className="gap-2 rounded-xl px-6" onClick={() => window.history.length > 1 ? navigate(-1) : navigate(homePath)}>
               <ArrowRight className="w-4 h-4" />
               الصفحة السابقة
             </Button>

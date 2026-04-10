@@ -32,6 +32,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
             <Link
               key={link.to}
               to={link.to}
+              aria-label={link.label}
               className={cn(
                 'flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors',
                 active ? 'text-primary' : 'text-muted-foreground'
@@ -51,6 +52,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
         })}
         <button
           onClick={onOpenSidebar}
+          aria-label="المزيد"
           className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-muted-foreground transition-colors active:text-primary"
         >
           <Menu className="w-5 h-5" />
