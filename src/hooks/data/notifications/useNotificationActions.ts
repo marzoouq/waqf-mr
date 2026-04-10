@@ -77,7 +77,7 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
     }, (payload) => {
       qcRef.current.invalidateQueries({ queryKey: ['notifications', userId] });
       const newNotif = payload.new as AppNotification;
-      const soundEnabled = safeGet(STORAGE_KEYS.NOTIFICATION_SOUND, 'true') !== 'false';
+      const soundEnabled = safeGet<string>(STORAGE_KEYS.NOTIFICATION_SOUND, 'true') !== 'false';
       if (soundEnabled) playSoundRef.current();
       if ('Notification' in window && window.Notification.permission === 'granted') {
         if (lastNotifIdRef.current !== newNotif.id) {

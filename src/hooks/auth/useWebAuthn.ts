@@ -37,5 +37,5 @@ export function useWebAuthn() {
 }
 
 export function isBiometricEnabled(): boolean {
-  return safeGet(BIOMETRIC_ENABLED_KEY, 'false') === 'true';
+  return safeGet<string>(BIOMETRIC_ENABLED_KEY, 'false') === 'true';
 }
