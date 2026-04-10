@@ -3,12 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle } from 'lucide-react';
 import { LoginForm, SignupForm, ResetPasswordForm } from '@/components/auth';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useSetting } from '@/hooks/data/settings/useAppSettings';
 import { useAuthPage } from '@/hooks/page/shared/useAuthPage';
 
 const Auth = () => {
-  const { getSetting } = useAppSettings();
-  const waqfLogoUrl = getSetting('waqf_logo_url');
+  const waqfLogoUrl = useSetting('waqf_logo_url');
   
   const {
     resetMode, setResetMode, isOffline, isAppInstalled, roleWaitTimeout,
