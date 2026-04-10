@@ -3,6 +3,7 @@
  * مُستخرج من DashboardLayout لفصل المسؤوليات
  */
 import { useState, useEffect, useCallback } from 'react';
+import { safeGet, safeSet } from '@/lib/storage';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -26,16 +27,12 @@ export function useLayoutState() {
   const links = useNavLinks();
 
   // ─── Sidebar State ───
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    try { return localStorage.getItem(STORAGE_KEYS.SIDEBAR_OPEN) === 'true'; }
-    catch { return false; }
-  });
+  const [sidebarOpen, setSidebarOpen] = useState(() => safeGet<string>(STORAGE_KEYS.SIDEBAR_OPEN, 'false') === 'true');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEYS.SIDEBAR_OPEN, String(sidebarOpen)); }
-    catch { /* ignore */ }
+    safeSet(STORAGE_KEYS.SIDEBAR_OPEN, String(sidebarOpen));
   }, [sidebarOpen]);
 
   useEffect(() => {

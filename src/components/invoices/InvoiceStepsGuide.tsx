@@ -3,6 +3,7 @@
  * يعرض 6 خطوات كـ stepper أفقي (desktop) أو عمودي (mobile)
  */
 import { useState, useEffect } from 'react';
+import { safeGet, safeSet } from '@/lib/storage';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, FileText, Receipt, PenTool, Send, ShieldCheck, Download } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -46,18 +47,12 @@ const STEPS = [
 export default function InvoiceStepsGuide() {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored === null ? true : stored === 'true';
-    } catch {
-      return true;
-    }
+    const stored = safeGet<string>(STORAGE_KEY, '');
+    return stored === '' ? true : stored === 'true';
   });
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, String(isOpen));
-    } catch { /* تجاهل أخطاء التخزين */ }
+    safeSet(STORAGE_KEY, String(isOpen));
   }, [isOpen]);
 
   return (

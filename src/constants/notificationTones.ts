@@ -1,5 +1,6 @@
 /** منطق أصوات الإشعارات — ثوابت وبيانات */
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeGet } from '@/lib/storage';
 
 export const NOTIFICATION_TONE_KEY = STORAGE_KEYS.NOTIFICATION_TONE;
 export const NOTIFICATION_VOLUME_KEY = STORAGE_KEYS.NOTIFICATION_VOLUME;
@@ -28,10 +29,8 @@ export const TONE_OPTIONS: ToneOption[] = [
 ];
 
 export const getVolumeGain = (): number => {
-  try {
-    const level = (localStorage.getItem(NOTIFICATION_VOLUME_KEY) || 'medium') as VolumeLevel;
-    return VOLUME_OPTIONS.find(v => v.id === level)?.gain ?? 0.5;
-  } catch { return 0.5; }
+  const level = safeGet<string>(NOTIFICATION_VOLUME_KEY, 'medium') as VolumeLevel;
+  return VOLUME_OPTIONS.find(v => v.id === level)?.gain ?? 0.5;
 };
 
 export const playTone = (ctx: AudioContext, tone: ToneId, volumeMultiplier = 1.0) => {
