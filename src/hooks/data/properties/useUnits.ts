@@ -34,6 +34,7 @@ const unitsCrud = createCrudFactory<'units', Unit>({
 export const useAllUnits = unitsCrud.useList;
 export const useCreateUnit = unitsCrud.useCreate;
 export const useUpdateUnit = unitsCrud.useUpdate;
+export const unitsQueryOptions = unitsCrud.getQueryOptions;
 
 // ---------------------------------------------------------------------------
 // Custom hooks that need special behavior
