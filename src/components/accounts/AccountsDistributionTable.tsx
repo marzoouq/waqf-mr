@@ -4,7 +4,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { PieChart, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-interface AccountsDistributionTableProps {
+/** ملخص التوزيع — كائن واحد بدلاً من 25+ prop */
+export interface DistributionSummary {
   waqfCorpusPrevious: number;
   totalIncome: number;
   grandTotal: number;
@@ -23,6 +24,10 @@ interface AccountsDistributionTableProps {
   availableAmount: number;
   manualDistributions: number;
   remainingBalance: number;
+}
+
+interface AccountsDistributionTableProps {
+  summary: DistributionSummary;
   /** Whether the fiscal year is closed */
   isClosed?: boolean;
 }
@@ -38,33 +43,26 @@ interface DistItem {
   show?: boolean;
 }
 
-const AccountsDistributionTable = ({
-  waqfCorpusPrevious, totalIncome, grandTotal, totalExpenses,
-  netAfterExpenses, manualVat, netAfterVat, zakatAmount, netAfterZakat,
-  adminPercent, adminShare, waqifPercent, waqifShare,
-  waqfRevenue, waqfCorpusManual, availableAmount,
-  manualDistributions, remainingBalance,
-  isClosed = false,
-}: AccountsDistributionTableProps) => {
+const AccountsDistributionTable = ({ summary: s, isClosed = false }: AccountsDistributionTableProps) => {
 
   // بناء قائمة البنود
   const items: DistItem[] = [
-    { label: 'رقبة الوقف المرحلة من العام السابق', amount: fmt(waqfCorpusPrevious), amountClass: 'text-success', show: waqfCorpusPrevious > 0 },
-    { label: 'إجمالي الدخل', amount: fmt(totalIncome), amountClass: 'text-success', highlight: 'subtle', bold: true },
-    { label: 'الإجمالي الشامل', amount: fmt(grandTotal), amountClass: 'text-success', highlight: 'subtle', bold: true, show: waqfCorpusPrevious > 0 },
-    { label: '(-) المصروفات التشغيلية', amount: fmt(totalExpenses), amountClass: 'text-destructive' },
-    { label: 'الصافي بعد المصاريف', amount: fmt(netAfterExpenses), highlight: 'subtle', bold: true },
-    { label: '(-) ضريبة القيمة المضافة', amount: fmt(manualVat), amountClass: 'text-destructive' },
-    { label: 'الصافي بعد الضريبة', amount: fmt(netAfterVat), highlight: 'subtle', bold: true },
-    { label: '(-) الزكاة', amount: fmt(zakatAmount), amountClass: 'text-destructive' },
-    { label: 'الصافي بعد الزكاة', amount: fmt(netAfterZakat), highlight: 'subtle', bold: true },
-    { label: '(-) حصة الناظر', pct: `${adminPercent}%`, amount: fmt(adminShare) },
-    { label: '(-) حصة الواقف', pct: `${waqifPercent}%`, amount: fmt(waqifShare) },
-    { label: 'ريع الوقف (الإجمالي القابل للتوزيع)', amount: fmt(waqfRevenue), amountClass: 'text-primary', highlight: 'primary', bold: true },
-    { label: '(-) رقبة الوقف للعام الحالي', amount: fmt(waqfCorpusManual) },
-    { label: 'المبلغ المتاح', amount: fmt(availableAmount), amountClass: 'text-primary', highlight: 'primary', bold: true },
-    { label: '(-) التوزيعات', amount: fmt(manualDistributions) },
-    { label: 'الرصيد المتبقي', amount: fmt(remainingBalance), amountClass: remainingBalance >= 0 ? 'text-success' : 'text-destructive', highlight: 'accent', bold: true },
+    { label: 'رقبة الوقف المرحلة من العام السابق', amount: fmt(s.waqfCorpusPrevious), amountClass: 'text-success', show: s.waqfCorpusPrevious > 0 },
+    { label: 'إجمالي الدخل', amount: fmt(s.totalIncome), amountClass: 'text-success', highlight: 'subtle', bold: true },
+    { label: 'الإجمالي الشامل', amount: fmt(s.grandTotal), amountClass: 'text-success', highlight: 'subtle', bold: true, show: s.waqfCorpusPrevious > 0 },
+    { label: '(-) المصروفات التشغيلية', amount: fmt(s.totalExpenses), amountClass: 'text-destructive' },
+    { label: 'الصافي بعد المصاريف', amount: fmt(s.netAfterExpenses), highlight: 'subtle', bold: true },
+    { label: '(-) ضريبة القيمة المضافة', amount: fmt(s.manualVat), amountClass: 'text-destructive' },
+    { label: 'الصافي بعد الضريبة', amount: fmt(s.netAfterVat), highlight: 'subtle', bold: true },
+    { label: '(-) الزكاة', amount: fmt(s.zakatAmount), amountClass: 'text-destructive' },
+    { label: 'الصافي بعد الزكاة', amount: fmt(s.netAfterZakat), highlight: 'subtle', bold: true },
+    { label: '(-) حصة الناظر', pct: `${s.adminPercent}%`, amount: fmt(s.adminShare) },
+    { label: '(-) حصة الواقف', pct: `${s.waqifPercent}%`, amount: fmt(s.waqifShare) },
+    { label: 'ريع الوقف (الإجمالي القابل للتوزيع)', amount: fmt(s.waqfRevenue), amountClass: 'text-primary', highlight: 'primary', bold: true },
+    { label: '(-) رقبة الوقف للعام الحالي', amount: fmt(s.waqfCorpusManual) },
+    { label: 'المبلغ المتاح', amount: fmt(s.availableAmount), amountClass: 'text-primary', highlight: 'primary', bold: true },
+    { label: '(-) التوزيعات', amount: fmt(s.manualDistributions) },
+    { label: 'الرصيد المتبقي', amount: fmt(s.remainingBalance), amountClass: s.remainingBalance >= 0 ? 'text-success' : 'text-destructive', highlight: 'accent', bold: true },
   ];
 
   const visibleItems = items.filter(i => i.show !== false);
@@ -124,89 +122,89 @@ const AccountsDistributionTable = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {waqfCorpusPrevious > 0 && (
+              {s.waqfCorpusPrevious > 0 && (
                 <TableRow>
                   <TableCell className="font-medium">رقبة الوقف المرحلة من العام السابق</TableCell>
                   <TableCell>-</TableCell>
-                  <TableCell className="font-bold text-success">{fmt(waqfCorpusPrevious)}</TableCell>
+                  <TableCell className="font-bold text-success">{fmt(s.waqfCorpusPrevious)}</TableCell>
                 </TableRow>
               )}
               <TableRow className="bg-success/10">
                 <TableCell className="font-medium">إجمالي الدخل</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className="font-bold text-success">{fmt(totalIncome)}</TableCell>
+                <TableCell className="font-bold text-success">{fmt(s.totalIncome)}</TableCell>
               </TableRow>
-              {waqfCorpusPrevious > 0 && (
+              {s.waqfCorpusPrevious > 0 && (
                 <TableRow className="bg-success/20 font-semibold">
                   <TableCell className="font-bold">الإجمالي الشامل</TableCell>
                   <TableCell>-</TableCell>
-                  <TableCell className="font-bold text-success">{fmt(grandTotal)}</TableCell>
+                  <TableCell className="font-bold text-success">{fmt(s.grandTotal)}</TableCell>
                 </TableRow>
               )}
               <TableRow>
                 <TableCell className="font-medium">(-) المصروفات التشغيلية</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className="text-destructive">{fmt(totalExpenses)}</TableCell>
+                <TableCell className="text-destructive">{fmt(s.totalExpenses)}</TableCell>
               </TableRow>
               <TableRow className="bg-muted/30 font-semibold">
                 <TableCell className="font-bold">الصافي بعد المصاريف</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className="font-bold">{fmt(netAfterExpenses)}</TableCell>
+                <TableCell className="font-bold">{fmt(s.netAfterExpenses)}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">(-) ضريبة القيمة المضافة</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className="text-destructive">{fmt(manualVat)}</TableCell>
+                <TableCell className="text-destructive">{fmt(s.manualVat)}</TableCell>
               </TableRow>
               <TableRow className="bg-muted/30 font-semibold">
                 <TableCell className="font-bold">الصافي بعد الضريبة</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className="font-bold">{fmt(netAfterVat)}</TableCell>
+                <TableCell className="font-bold">{fmt(s.netAfterVat)}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">(-) الزكاة</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className="text-destructive">{fmt(zakatAmount)}</TableCell>
+                <TableCell className="text-destructive">{fmt(s.zakatAmount)}</TableCell>
               </TableRow>
               <TableRow className="bg-muted/30 font-semibold">
                 <TableCell className="font-bold">الصافي بعد الزكاة</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className="font-bold">{fmt(netAfterZakat)}</TableCell>
+                <TableCell className="font-bold">{fmt(s.netAfterZakat)}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">(-) حصة الناظر</TableCell>
-                <TableCell>{adminPercent}%</TableCell>
-                <TableCell>{fmt(adminShare)}</TableCell>
+                <TableCell>{s.adminPercent}%</TableCell>
+                <TableCell>{fmt(s.adminShare)}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">(-) حصة الواقف</TableCell>
-                <TableCell>{waqifPercent}%</TableCell>
-                <TableCell>{fmt(waqifShare)}</TableCell>
+                <TableCell>{s.waqifPercent}%</TableCell>
+                <TableCell>{fmt(s.waqifShare)}</TableCell>
               </TableRow>
               <TableRow className="bg-primary/10 font-bold">
                 <TableCell className="font-bold">ريع الوقف (الإجمالي القابل للتوزيع)</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className="text-primary font-bold">{fmt(waqfRevenue)}</TableCell>
+                <TableCell className="text-primary font-bold">{fmt(s.waqfRevenue)}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">(-) رقبة الوقف للعام الحالي</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell>{fmt(waqfCorpusManual)}</TableCell>
+                <TableCell>{fmt(s.waqfCorpusManual)}</TableCell>
               </TableRow>
               <TableRow className="bg-primary/5 font-bold">
                 <TableCell className="font-bold">المبلغ المتاح</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className="text-primary font-bold">{fmt(availableAmount)}</TableCell>
+                <TableCell className="text-primary font-bold">{fmt(s.availableAmount)}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">(-) التوزيعات</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell>{fmt(manualDistributions)}</TableCell>
+                <TableCell>{fmt(s.manualDistributions)}</TableCell>
               </TableRow>
               <TableRow className="bg-accent/20 font-bold">
                 <TableCell className="font-bold text-lg">الرصيد المتبقي</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className={`font-bold text-lg ${remainingBalance >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(remainingBalance)}</TableCell>
+                <TableCell className={`font-bold text-lg ${s.remainingBalance >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(s.remainingBalance)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>

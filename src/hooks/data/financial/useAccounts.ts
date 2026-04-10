@@ -22,6 +22,7 @@ export const useAccounts = accountsCrud.useList;
 export const useCreateAccount = accountsCrud.useCreate;
 export const useUpdateAccount = accountsCrud.useUpdate;
 export const useDeleteAccount = accountsCrud.useDelete;
+export const accountsQueryOptions = accountsCrud.getQueryOptions;
 
 /**
  * جلب الحسابات مع فلترة server-side بالسنة المالية (label).

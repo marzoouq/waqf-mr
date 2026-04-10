@@ -1,71 +1,19 @@
-import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseMutationResult } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { useState, useCallback, useMemo } from 'react';
-import type { Database } from '@/integrations/supabase/types';
 import { crudNotifyAdapter } from '@/lib/notify';
-import type { CrudNotifications } from '@/lib/notify';
+import type {
+  TableName, Row, Insert, Update,
+  CrudFactoryConfig, PaginatedQueryResult, CrudQueryOptions,
+} from './crudFactory.types';
+
+// إعادة تصدير الأنواع للتوافق
+export type { CrudNotifications } from './crudFactory.types';
 
 // سجل تتبع تحذيرات الحد الأقصى — بديل آمن عن تخزين في window
 const limitWarnShown = new Set<string>();
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-type Tables = Database['public']['Tables'];
-type TableName = keyof Tables;
-type Row<T extends TableName> = Tables[T]['Row'];
-type Insert<T extends TableName> = Tables[T]['Insert'];
-type Update<T extends TableName> = Tables[T]['Update'];
-
-export type { CrudNotifications };
-
-/** Configuration for the CRUD factory */
-interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
-  /** Supabase table name */
-  table: T;
-  /** React-query cache key */
-  queryKey: string;
-  /** Custom select string (e.g. '*, property:properties(*)') – defaults to '*' */
-  select?: string;
-  /** Column to order by – defaults to 'created_at' */
-  orderBy?: string;
-  /** Order direction – defaults to descending */
-  ascending?: boolean;
-  /** Max rows per page – defaults to 500 */
-  limit?: number;
-  /** Arabic entity label for toast messages (e.g. 'العقار') */
-  label: string;
-  /** Callback after successful create – receives the created row */
-  onCreateSuccess?: (data: TData) => void;
-  /** Callback after successful update */
-  onUpdateSuccess?: (data: TData) => void;
-  /** ms before data is considered stale — defaults to 60 000 (1 min) */
-  staleTime?: number;
-  /** تخصيص إشعارات — إذا لم يُحدد يُستخدم toast الافتراضي */
-  notifications?: CrudNotifications;
-}
-
-/** نتيجة useList مع دعم التصفح */
-interface PaginatedQueryResult<TData> extends Omit<UseQueryResult<TData[]>, 'data'> {
-  data: TData[] | undefined;
-  /** رقم الصفحة الحالية (يبدأ من 0) */
-  page: number;
-  /** الانتقال إلى الصفحة التالية */
-  nextPage: () => void;
-  /** الانتقال إلى الصفحة السابقة */
-  prevPage: () => void;
-  /** الانتقال إلى صفحة محددة */
-  goToPage: (p: number) => void;
-  /** هل توجد صفحة تالية */
-  hasNextPage: boolean;
-  /** هل توجد صفحة سابقة */
-  hasPrevPage: boolean;
-  /** حجم الصفحة */
-  pageSize: number;
-}
 
 // ---------------------------------------------------------------------------
 // Factory
@@ -89,6 +37,29 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
   } = config;
 
   const notify = crudNotifyAdapter(customNotifications);
+
+  // ---------------------------------------------------------------------------
+  // Query options — قابلة لإعادة الاستخدام في prefetch
+  // ---------------------------------------------------------------------------
+
+  /** إرجاع query options لصفحة محددة — مفيد لـ prefetchQuery */
+  const getQueryOptions = (page = 0): CrudQueryOptions => {
+    const rangeFrom = page * limit;
+    const rangeTo = rangeFrom + limit - 1;
+    return {
+      queryKey: [queryKey, { page }],
+      staleTime,
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from(table)
+          .select(select, { count: 'exact' })
+          .order(orderBy, { ascending })
+          .range(rangeFrom, rangeTo);
+        if (error) throw error;
+        return data as TData[];
+      },
+    };
+  };
 
   /** List / fetch all rows — مع دعم التصفح (pagination) */
   const useList = (): PaginatedQueryResult<TData> => {
@@ -161,7 +132,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       mutationFn: async (payload: Insert<T>) => {
         const { data, error } = await supabase
           .from(table)
-          .insert(payload as never) // generic T can't be resolved at compile-time
+          .insert(payload as never)
           .select()
           .maybeSingle();
 
@@ -189,7 +160,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       mutationFn: async ({ id, ...payload }: Update<T> & { id: string }) => {
         const { data, error } = await supabase
           .from(table)
-          .update(payload as never) // generic T can't be resolved at compile-time
+          .update(payload as never)
           .eq('id' as never, id)
           .select()
           .single();
@@ -233,5 +204,5 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
     });
   };
 
-  return { useList, useCreate, useUpdate, useDelete };
+  return { useList, useCreate, useUpdate, useDelete, getQueryOptions };
 }

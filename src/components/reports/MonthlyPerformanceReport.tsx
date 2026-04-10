@@ -2,12 +2,12 @@
  * تقرير الأداء الشهري — الرسوم البيانية تُحمَّل كسولاً.
  */
 import { useMemo, lazy, Suspense, memo } from 'react';
-import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 import { Skeleton } from '@/components/ui/skeleton';
+import { aggregateMonthlyData, calcMonthlyTotals, findBestMonth, findWorstMonth } from '@/utils/reports/monthlyPerformanceCalc';
 
 const MonthlyPerformanceChartsInner = lazy(() => import('./MonthlyPerformanceChartsInner'));
 
@@ -17,61 +17,11 @@ interface MonthlyPerformanceReportProps {
   fiscalYear?: string;
 }
 
-const MONTH_NAMES = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
-];
-
 const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReportProps) => {
-  const monthlyData = useMemo(() => {
-    const monthMap = new Map<string, { income: number; expenses: number; month: number; year: number }>();
-
-    for (const item of income) {
-      const d = new Date(item.date);
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
-      const existing = monthMap.get(key) || { income: 0, expenses: 0, month: d.getMonth(), year: d.getFullYear() };
-      existing.income += safeNumber(item.amount);
-      monthMap.set(key, existing);
-    }
-
-    for (const item of expenses) {
-      const d = new Date(item.date);
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
-      const existing = monthMap.get(key) || { income: 0, expenses: 0, month: d.getMonth(), year: d.getFullYear() };
-      existing.expenses += safeNumber(item.amount);
-      monthMap.set(key, existing);
-    }
-
-    return Array.from(monthMap.values())
-      .sort((a, b) => a.year - b.year || a.month - b.month)
-      .map(item => ({
-        ...item,
-        name: MONTH_NAMES[item.month]!,
-        net: item.income - item.expenses,
-        label: `${MONTH_NAMES[item.month]!} ${item.year}`,
-      }));
-  }, [income, expenses]);
-
-  const totals = useMemo(() => {
-    return monthlyData.reduce(
-      (acc, m) => ({
-        income: acc.income + m.income,
-        expenses: acc.expenses + m.expenses,
-        net: acc.net + m.net,
-      }),
-      { income: 0, expenses: 0, net: 0 }
-    );
-  }, [monthlyData]);
-
-  const bestMonth = useMemo(() => {
-    if (monthlyData.length === 0) return null;
-    return monthlyData.reduce((best, m) => m.net > best.net ? m : best, monthlyData[0]!);
-  }, [monthlyData]);
-
-  const worstMonth = useMemo(() => {
-    if (monthlyData.length === 0) return null;
-    return monthlyData.reduce((worst, m) => m.net < worst.net ? m : worst, monthlyData[0]!);
-  }, [monthlyData]);
+  const monthlyData = useMemo(() => aggregateMonthlyData(income, expenses), [income, expenses]);
+  const totals = useMemo(() => calcMonthlyTotals(monthlyData), [monthlyData]);
+  const bestMonth = useMemo(() => findBestMonth(monthlyData), [monthlyData]);
+  const worstMonth = useMemo(() => findWorstMonth(monthlyData), [monthlyData]);
 
   const avgMonthlyIncome = monthlyData.length > 0 ? totals.income / monthlyData.length : 0;
   const avgMonthlyExpenses = monthlyData.length > 0 ? totals.expenses / monthlyData.length : 0;

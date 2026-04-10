@@ -19,3 +19,5 @@ export const useProperties = propertiesCrud.useList;
 export const useCreateProperty = propertiesCrud.useCreate;
 export const useUpdateProperty = propertiesCrud.useUpdate;
 export const useDeleteProperty = propertiesCrud.useDelete;
+/** Query options لإعادة الاستخدام في prefetch */
+export const propertiesQueryOptions = propertiesCrud.getQueryOptions;

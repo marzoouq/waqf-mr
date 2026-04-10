@@ -25,6 +25,7 @@ export const useContracts = contractsCrud.useList;
 export const useCreateContract = contractsCrud.useCreate;
 export const useUpdateContract = contractsCrud.useUpdate;
 export const useDeleteContract = contractsCrud.useDelete;
+export const contractsQueryOptions = contractsCrud.getQueryOptions;
 
 /** Contracts filtered by fiscal year */
 export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
