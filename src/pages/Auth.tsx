@@ -3,9 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle } from 'lucide-react';
 import { LoginForm, SignupForm, ResetPasswordForm } from '@/components/auth';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useAuthPage } from '@/hooks/page/shared/useAuthPage';
 
 const Auth = () => {
+  const { getSetting } = useAppSettings();
+  const waqfLogoUrl = getSetting('waqf_logo_url');
+  
   const {
     resetMode, setResetMode, isOffline, isAppInstalled, roleWaitTimeout,
     registrationEnabled, user, role, loading, signIn, signUp, signOut,
@@ -51,9 +55,15 @@ const Auth = () => {
         )}
         <Card className="shadow-elegant animate-slide-up border-border/50 backdrop-blur-xs bg-card/95">
           <CardHeader className="text-center space-y-5 pb-2">
-            <div className="mx-auto w-20 h-20 gradient-gold rounded-2xl flex items-center justify-center shadow-gold animate-glow">
-              <Building2 className="w-10 h-10 text-primary-foreground" />
-            </div>
+            {waqfLogoUrl ? (
+              <div className="mx-auto w-20 h-20 rounded-2xl overflow-hidden shadow-gold animate-glow bg-white/10 backdrop-blur-xs flex items-center justify-center">
+                <img src={waqfLogoUrl} alt="شعار الوقف" className="w-16 h-16 object-contain" loading="eager" />
+              </div>
+            ) : (
+              <div className="mx-auto w-20 h-20 gradient-gold rounded-2xl flex items-center justify-center shadow-gold animate-glow">
+                <Building2 className="w-10 h-10 text-primary-foreground" />
+              </div>
+            )}
             <div className="space-y-2">
               <CardTitle className="text-3xl font-display font-bold tracking-wide">
                 نظام إدارة الوقف

@@ -17,7 +17,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
   const { role } = useAuth();
   const location = useLocation();
 
-  const navLinks = BOTTOM_NAV_LINKS[role ?? 'beneficiary'] ?? BOTTOM_NAV_LINKS.beneficiary;
+  const navLinks = BOTTOM_NAV_LINKS[role ?? 'beneficiary'] ?? BOTTOM_NAV_LINKS.beneficiary!;
 
   const isActive = (to: string) =>
     location.pathname === to ||

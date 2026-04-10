@@ -13,6 +13,7 @@ import type { FiscalYear } from '@/types/database';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import ChartSkeleton from '@/components/common/ChartSkeleton';
 
 // هوك البيانات المدمج
 import { useDashboardSummary, useDashboardSecondary } from '@/hooks/data/financial/useDashboardSummary';
@@ -26,12 +27,6 @@ const CollectionHeatmap = lazy(() => import('@/components/dashboard/CollectionHe
 const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingActionsTable'));
 const PagePerformanceCard = lazy(() => import('@/components/dashboard/PagePerformanceCard'));
 
-const ChartSkeleton = () => (
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <Skeleton className="h-[300px] w-full rounded-lg" />
-    <Skeleton className="h-[300px] w-full rounded-lg" />
-  </div>
-);
 
 const AdminDashboard = () => {
   const { role, user } = useAuth();
