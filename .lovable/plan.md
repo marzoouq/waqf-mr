@@ -1,65 +1,49 @@
 
 
-# تحليل الخطة — ما تم تنفيذه وما تبقى
+# خطة: استخراج `useFieldErrors` كـ hook مشترك
 
-## النتيجة: ~90% من الخطة مُنفَّذ بالفعل
+## المنطق المكرر (مطابق حرفياً)
 
-بعد فحص الكود الفعلي، معظم بنود هذه الخطة **تم تنفيذها في جلسات سابقة**:
+| المنطق | `useLoginForm.ts` (سطر) | `SignupForm.tsx` (سطر) |
+|--------|-------------------------|------------------------|
+| `useState<FieldErrors>({})` | 30 | 25 |
+| `clearFieldError` | 48-55 | 31-38 |
+| `validateEmailFormat` | 57-61 | 40-44 |
 
-| المرحلة | البند | الحالة |
-|---------|-------|--------|
-| 1 | `useAccountsViewPage` | ✅ موجود |
-| 1 | `useBeneficiaryDashboardPage` | ✅ موجود |
-| 1 | `useAnnualReportViewPage` | ✅ موجود |
-| 1 | `useBylawsViewPage` | ✅ موجود |
-| 1 | `useNotificationsPage` | ✅ موجود |
-| 1 | `useInvoicesViewPage` | ✅ موجود |
-| 1 | **`useSupportPage`** | ❌ غير موجود |
-| 1 | **`useBeneficiarySettingsPage`** | ❌ غير موجود |
-| 2 | تصنيف utils إلى مجلدات فرعية | ✅ مُنفَّذ (14 مجلد فرعي) |
-| 3 | نقل `useIsMountedRef` إلى `hooks/ui/` | ✅ موجود في المسار الصحيح |
-| 4 | interface `JsPDFWithAutoTable` في `pdfHelpers.ts` | ✅ مُنفَّذ بالفعل |
+## الملفات والتغييرات
 
----
+### 1. إنشاء `src/hooks/auth/useFieldErrors.ts` (جديد)
 
-## ما تبقى: هوكان فقط
+```typescript
+export type FieldErrors<K extends string> = Partial<Record<K, string>>;
 
-### 1. إنشاء `useSupportPage` hook
-**الملف الجديد:** `src/hooks/page/beneficiary/useSupportPage.ts`
+export function useFieldErrors<K extends string>() {
+  // fieldErrors state
+  // clearFieldError(field: K) — حذف خطأ حقل
+  // setFieldError(field: K, msg: string) — تعيين خطأ حقل
+  // setErrors(errors: FieldErrors<K>) — تعيين أخطاء متعددة
+  // hasErrors — boolean محسوب
+  // validateEmailFormat(value: string, field: K) — تحقق + تعيين خطأ
+}
+```
 
-استخراج من `SupportPage.tsx` (63 سطر):
-- `useState<SupportTicket | null>` للتذكرة المحددة
-- `useState<boolean>` لنافذة التذكرة الجديدة
-- `useSupportTickets()` لجلب البيانات
-- إرجاع: `{ tickets, isLoading, selectedTicket, setSelectedTicket, showNewTicket, setShowNewTicket }`
+### 2. تحديث `src/hooks/auth/useLoginForm.ts`
+- حذف: `useState<FieldErrors>` (سطر 30)، `clearFieldError` (48-55)، `validateEmailFormat` (57-61)
+- إضافة: `const { fieldErrors, clearFieldError, setErrors, validateEmailFormat } = useFieldErrors<'email' | 'password' | 'nationalId'>()`
+- استبدال `setFieldErrors(errors)` بـ `setErrors(errors)` في `handleSignIn`
+- `focusFirstError` يبقى محلياً (يعتمد على refs خاصة)
 
-الصفحة تصبح JSX فقط.
+### 3. تحديث `src/components/auth/SignupForm.tsx`
+- حذف: `useState<{email?; password?}>` (سطر 25)، `clearFieldError` (31-38)، `validateEmailFormat` (40-44)
+- إضافة: `const { fieldErrors, clearFieldError, setErrors, validateEmailFormat } = useFieldErrors<'email' | 'password'>()`
+- استبدال `setFieldErrors(errors)` بـ `setErrors(errors)` في `handleSignUp`
+- `focusFirstError` يبقى محلياً
 
-### 2. إنشاء `useBeneficiarySettingsPage` hook
-**الملف الجديد:** `src/hooks/page/beneficiary/useBeneficiarySettingsPage.ts`
+### 4. فحص TypeScript
+- تشغيل `npx tsc --noEmit` للتأكد من عدم وجود أخطاء
 
-استخراج من `BeneficiarySettingsPage.tsx` (113 سطر):
-- `useQueryClient` + `handleRetry`
-- `useAuth` → `user`
-- `useBeneficiariesSafe` → `currentBeneficiary`
-- حساب `maskedId`
-- `tabItems` array
-- إرجاع: `{ user, currentBeneficiary, maskedId, benLoading, benError, handleRetry, tabItems }`
-
-### 3. تحديث barrel file
-إضافة التصديرين الجديدين إلى `src/hooks/page/beneficiary/index.ts`.
-
----
-
-## الملفات المتأثرة
-
-| ملف | تغيير |
-|-----|-------|
-| `src/hooks/page/beneficiary/useSupportPage.ts` | **جديد** |
-| `src/hooks/page/beneficiary/useBeneficiarySettingsPage.ts` | **جديد** |
-| `src/hooks/page/beneficiary/index.ts` | إضافة تصديرين |
-| `src/pages/beneficiary/SupportPage.tsx` | تبسيط — استخدام hook |
-| `src/pages/beneficiary/BeneficiarySettingsPage.tsx` | تبسيط — استخدام hook |
-
-صفر تغيير على backend أو ملفات محمية.
+## ما لن يتغير
+- سلوك النماذج الحالي (صفر تغيير وظيفي)
+- ملفات محمية (`AuthContext`, `client.ts`, `types.ts`)
+- اختبارات `SignupForm.test.tsx` ستعمل بدون تعديل
 
