@@ -8,6 +8,7 @@ import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { logBiometricEvent, handleRegistrationError, getDeviceName } from './webAuthnErrors';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeSet } from '@/lib/storage';
 
 const BIOMETRIC_ENABLED_KEY = STORAGE_KEYS.BIOMETRIC_ENABLED;
 
@@ -57,7 +58,7 @@ export function useWebAuthnRegister({ setIsLoading, setIsEnabled, fetchCredentia
         return false;
       }
 
-      localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
+      safeSet(BIOMETRIC_ENABLED_KEY, 'true');
       setIsEnabled(true);
       await fetchCredentials(user.id);
       defaultNotify.success('تم تسجيل البصمة بنجاح! يمكنك الآن تسجيل الدخول بها');
