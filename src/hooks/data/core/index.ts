@@ -1,4 +1,5 @@
 export { createCrudFactory } from './useCrudFactory';
+export type { CrudNotifications, CrudQueryOptions, TableName, CrudFactoryConfig } from './crudFactory.types';
 export { useDashboardRealtime } from './useDashboardRealtime';
 export { usePrefetchPages } from './usePrefetchPages';
 export { useRetryQueries } from './useRetryQueries';
