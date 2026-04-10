@@ -11,9 +11,10 @@ import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { handleNationalIdLogin } from '@/lib/auth/nationalIdLogin';
 import { useIsMountedRef } from '@/hooks/ui/useIsMountedRef';
 import { EMAIL_REGEX } from '@/utils/validation/index';
+import { useFieldErrors, type FieldErrors } from '@/hooks/auth/useFieldErrors';
 
 type LoginMethod = 'email' | 'national_id';
-type FieldErrors = { email?: string; password?: string; nationalId?: string };
+type LoginFieldKey = 'email' | 'password' | 'nationalId';
 
 interface UseLoginFormParams {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -27,7 +28,7 @@ export function useLoginForm({ signIn }: UseLoginFormParams) {
   const [isLoading, setIsLoading] = useState(false);
   const [nidAttemptsRemaining, setNidAttemptsRemaining] = useState<number | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const { fieldErrors, clearFieldError, setErrors, validateEmailFormat } = useFieldErrors<LoginFieldKey>();
   const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEYS.NID_LOCKED_UNTIL);
@@ -45,22 +46,7 @@ export function useLoginForm({ signIn }: UseLoginFormParams) {
   const passwordRef = useRef<HTMLInputElement>(null);
   const nidRef = useRef<HTMLInputElement>(null);
 
-  const clearFieldError = useCallback((field: keyof FieldErrors) => {
-    setFieldErrors((prev) => {
-      if (!prev[field]) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  }, []);
-
-  const validateEmailFormat = useCallback((value: string) => {
-    if (value && !EMAIL_REGEX.test(value)) {
-      setFieldErrors((prev) => ({ ...prev, email: 'صيغة البريد الإلكتروني غير صحيحة' }));
-    }
-  }, []);
-
-  const focusFirstError = useCallback((errors: FieldErrors) => {
+  const focusFirstError = useCallback((errors: FieldErrors<LoginFieldKey>) => {
     if (errors.email) emailRef.current?.focus();
     else if (errors.nationalId) nidRef.current?.focus();
     else if (errors.password) passwordRef.current?.focus();
@@ -70,7 +56,7 @@ export function useLoginForm({ signIn }: UseLoginFormParams) {
     e.preventDefault();
     setServerError(null);
 
-    const errors: FieldErrors = {};
+    const errors: FieldErrors<LoginFieldKey> = {};
     if (loginMethod === 'email') {
       if (!loginEmail) errors.email = 'يرجى إدخال البريد الإلكتروني';
       else if (!EMAIL_REGEX.test(loginEmail)) errors.email = 'صيغة البريد الإلكتروني غير صحيحة';
@@ -81,7 +67,7 @@ export function useLoginForm({ signIn }: UseLoginFormParams) {
     }
 
     if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
+      setErrors(errors);
       focusFirstError(errors);
       return;
     }

@@ -9,6 +9,7 @@ import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 import { EMAIL_REGEX } from '@/utils/validation/index';
 import PasswordStrengthBar from './PasswordStrengthBar';
 import ServerErrorAlert from './ServerErrorAlert';
+import { useFieldErrors, type FieldErrors } from '@/hooks/auth/useFieldErrors';
 
 interface SignupFormProps {
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -22,28 +23,13 @@ export default function SignupForm({ signUp }: SignupFormProps) {
   const [serverError, setServerError] = useState<string | null>(null);
 
   // أخطاء محلية أسفل الحقول
-  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const { fieldErrors, clearFieldError, setErrors, validateEmailFormat } = useFieldErrors<'email' | 'password'>();
 
   // مراجع الحقول لإدارة التركيز
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
-  const clearFieldError = (field: keyof typeof fieldErrors) => {
-    setFieldErrors((prev) => {
-      if (!prev[field]) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  };
-
-  const validateEmailFormat = (value: string) => {
-    if (value && !EMAIL_REGEX.test(value)) {
-      setFieldErrors((prev) => ({ ...prev, email: 'صيغة البريد الإلكتروني غير صحيحة' }));
-    }
-  };
-
-  const focusFirstError = (errors: typeof fieldErrors) => {
+  const focusFirstError = (errors: FieldErrors<'email' | 'password'>) => {
     if (errors.email) emailRef.current?.focus();
     else if (errors.password) passwordRef.current?.focus();
   };
@@ -53,14 +39,14 @@ export default function SignupForm({ signUp }: SignupFormProps) {
     setServerError(null);
 
     // تحقق محلي
-    const errors: typeof fieldErrors = {};
+    const errors: FieldErrors<'email' | 'password'> = {};
     if (!signupEmail) errors.email = 'يرجى إدخال البريد الإلكتروني';
     else if (!EMAIL_REGEX.test(signupEmail)) errors.email = 'صيغة البريد الإلكتروني غير صحيحة';
     if (!signupPassword) errors.password = 'يرجى إدخال كلمة المرور';
     else if (signupPassword.length < 8) errors.password = 'كلمة المرور يجب أن تكون ٨ أحرف على الأقل';
 
     if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
+      setErrors(errors);
       focusFirstError(errors);
       return;
     }
