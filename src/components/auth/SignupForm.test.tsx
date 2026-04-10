@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import SignupForm from './SignupForm';
 
-// Mock sonner
 vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 describe('SignupForm', () => {
@@ -21,13 +20,14 @@ describe('SignupForm', () => {
 
   it('يعرض زر الإرسال', () => {
     render(<SignupForm signUp={mockSignUp} />);
-    const btn = screen.getByRole('button');
+    const btn = screen.getByRole('button', { name: /إنشاء حساب|تسجيل/ });
     expect(btn).not.toBeNull();
   });
 
   it('يمنع الإرسال بدون بيانات', async () => {
     render(<SignupForm signUp={mockSignUp} />);
-    fireEvent.submit(screen.getByRole('button').closest('form')!);
+    const btn = screen.getByRole('button', { name: /إنشاء حساب|تسجيل/ });
+    fireEvent.submit(btn.closest('form')!);
     expect(mockSignUp).not.toHaveBeenCalled();
   });
 });

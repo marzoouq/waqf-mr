@@ -1,9 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-vi.mock('sonner', () => ({ toast: { error: vi.fn() } }));
-
 import { printDistributionReport } from './printDistributionReport';
-import { toast } from 'sonner';
 
 describe('printDistributionReport', () => {
   let mockWrite: ReturnType<typeof vi.fn>;
@@ -44,10 +40,10 @@ describe('printDistributionReport', () => {
     expect(html).toContain('2024-2025');
   });
 
-  it('shows toast when popup is blocked', () => {
+  it('returns false when popup is blocked', () => {
     vi.spyOn(window, 'open').mockReturnValue(null);
-    printDistributionReport(baseParams);
-    expect(toast.error).toHaveBeenCalledWith('يرجى السماح بالنوافذ المنبثقة');
+    const result = printDistributionReport(baseParams);
+    expect(result).toBe(false);
   });
 
   it('renders deficit rows correctly', () => {

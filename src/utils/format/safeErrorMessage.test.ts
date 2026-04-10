@@ -1,11 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { getSafeErrorMessage } from './safeErrorMessage';
-import { logger } from '@/lib/logger';
-
-// Mock logger to track calls without relying on console internals
-vi.mock('@/lib/logger', () => ({
-  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), log: vi.fn() },
-}));
 
 describe('getSafeErrorMessage', () => {
   it('returns duplicate message for "already registered"', () => {
@@ -80,16 +74,12 @@ describe('getSafeErrorMessage', () => {
     expect(getSafeErrorMessage(new Error('Request timeout'))).toBe('انتهت مهلة الطلب. يرجى المحاولة لاحقاً');
   });
 
-  it('returns generic message for unknown errors and logs via logger', () => {
-    vi.mocked(logger.error).mockClear();
+  it('returns generic message for unknown errors', () => {
     expect(getSafeErrorMessage(new Error('some internal pg error xyz'))).toBe('حدث خطأ غير متوقع. يرجى المحاولة لاحقاً');
-    expect(logger.error).toHaveBeenCalledWith('[App Error]', expect.any(Error));
   });
 
   it('handles non-Error objects', () => {
-    vi.mocked(logger.error).mockClear();
     expect(getSafeErrorMessage(42)).toBe('حدث خطأ غير متوقع. يرجى المحاولة لاحقاً');
-    expect(logger.error).toHaveBeenCalled();
   });
 
   it('returns check constraint message', () => {

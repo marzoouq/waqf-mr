@@ -1,9 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-vi.mock('sonner', () => ({ toast: { error: vi.fn() } }));
-
 import { printShareReport } from './printShareReport';
-import { toast } from 'sonner';
 
 describe('printShareReport', () => {
   let mockWrite: ReturnType<typeof vi.fn>;
@@ -41,7 +37,6 @@ describe('printShareReport', () => {
   it('calculates net correctly (share - advances - carryforward)', () => {
     printShareReport(baseParams);
     const html = mockWrite.mock.calls[0]![0] as string;
-    // net = 100000 - 10000 - 5000 = 85000
     expect(html).toContain('85,000');
   });
 
@@ -49,15 +44,14 @@ describe('printShareReport', () => {
     const params = { ...baseParams, paidAdvancesTotal: 120000, carryforwardBalance: 0 };
     printShareReport(params);
     const html = mockWrite.mock.calls[0]![0] as string;
-    // deficit = |100000 - 120000| = 20000
     expect(html).toContain('فرق مرحّل');
     expect(html).toContain('20,000');
   });
 
-  it('shows toast when popup is blocked', () => {
+  it('returns false when popup is blocked', () => {
     vi.spyOn(window, 'open').mockReturnValue(null);
-    printShareReport(baseParams);
-    expect(toast.error).toHaveBeenCalled();
+    const result = printShareReport(baseParams);
+    expect(result).toBe(false);
   });
 
   it('renders distributions table when present', () => {
