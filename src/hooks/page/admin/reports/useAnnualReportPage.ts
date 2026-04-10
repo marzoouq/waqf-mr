@@ -126,13 +126,14 @@ export function useAnnualReportPage() {
   }, [fiscalYear, grouped, properties, summaryCards, waqfInfo]);
 
   // طباعة
+  const fallbackPrint = usePrint();
   const handlePrint = useCallback(async () => {
     try {
       await handleExportPdf();
     } catch {
-      window.print();
+      fallbackPrint();
     }
-  }, [handleExportPdf]);
+  }, [handleExportPdf, fallbackPrint]);
 
   // نشر/إلغاء نشر
   const handleTogglePublish = useCallback(() => {
