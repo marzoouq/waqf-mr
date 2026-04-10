@@ -2,6 +2,7 @@ import { useRegisterSW } from "virtual:pwa-register/react";
 import { useState, useEffect, useCallback } from "react";
 import { RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { safeSet } from '@/lib/storage';
 
 const SNOOZE_MS = 30 * 60 * 1000; // 30 دقيقة
 
@@ -35,7 +36,7 @@ const SwUpdateBanner = () => {
 
   const handleUpdate = useCallback(() => {
     // تخزين علامة التحديث لعرض سجل التغييرات بعد إعادة التحميل
-    try { localStorage.setItem("pwa_just_updated", JSON.stringify({ ts: Date.now() })); } catch { /* ignored */ }
+    safeSet("pwa_just_updated", { ts: Date.now() });
     updateServiceWorker(true);
   }, [updateServiceWorker]);
 

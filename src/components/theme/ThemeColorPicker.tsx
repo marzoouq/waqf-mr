@@ -3,16 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/cn';
 import { Check, Palette } from 'lucide-react';
 import { defaultNotify } from '@/lib/notify';
+import { safeGet, safeSet } from '@/lib/storage';
 import { THEME_KEY, applyTheme, resetTheme, themes, type ThemeTemplate } from '@/lib/theme/themeColor.utils';
 
 const ThemeColorPicker = () => {
-  const [activeId, setActiveId] = useState(() => {
-    try { return localStorage.getItem(THEME_KEY) || 'islamic-green'; } catch { return 'islamic-green'; }
-  });
+  const [activeId, setActiveId] = useState(() => safeGet(THEME_KEY, 'islamic-green'));
 
   const handleSelect = (theme: ThemeTemplate) => {
     setActiveId(theme.id);
-    try { localStorage.setItem(THEME_KEY, theme.id); } catch { /* ignored */ }
+    safeSet(THEME_KEY, theme.id);
     if (theme.id === 'islamic-green') {
       resetTheme();
     } else {
