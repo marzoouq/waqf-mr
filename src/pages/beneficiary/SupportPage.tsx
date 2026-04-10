@@ -5,15 +5,18 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Headset, Loader2, MessageSquare, Plus } from 'lucide-react';
-import { useState } from 'react';
-import { useSupportTickets, type SupportTicket } from '@/hooks/data/support/useSupportTickets';
 import { TicketList, TicketViewDialog, NewTicketDialog } from '@/components/support';
+import { useSupportPage } from '@/hooks/page/beneficiary/useSupportPage';
 
 const BeneficiarySupportPage = () => {
-  const { data, isLoading } = useSupportTickets();
-  const tickets = data?.tickets ?? [];
-  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
-  const [showNewTicket, setShowNewTicket] = useState(false);
+  const {
+    tickets,
+    isLoading,
+    selectedTicket,
+    setSelectedTicket,
+    showNewTicket,
+    setShowNewTicket,
+  } = useSupportPage();
 
   return (
     <DashboardLayout>
