@@ -14,7 +14,7 @@ const mockPct = vi.mocked(useTotalBeneficiaryPercentage);
 describe('useMyShare', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseAuth.mockReturnValue({ user: { id: 'user-1' }, session: null, role: null, loading: false, signIn: vi.fn(async () => ({ error: null })), signUp: vi.fn(async () => ({ error: null })), signOut: vi.fn(async () => {}), refreshRole: vi.fn(async () => {}) });
+    mockUseAuth.mockReturnValue({  user: { id: 'user-1' }, session: null, role: null, loading: false, signIn: vi.fn(async () => ({ error: null })), signUp: vi.fn(async () => ({ error: null })), signOut: vi.fn(async () => {}), refreshRole: vi.fn(async () => {}) } as any);
     mockPct.mockReturnValue({ data: 100, isLoading: false } as any);
   });
 
@@ -30,7 +30,7 @@ describe('useMyShare', () => {
   });
 
   it('يُعيد 0 عند عدم وجود مستفيد مطابق', () => {
-    mockUseAuth.mockReturnValue({ user: { id: 'user-999' }, session: null, role: null, loading: false, signIn: vi.fn(async () => ({ error: null })), signUp: vi.fn(async () => ({ error: null })), signOut: vi.fn(async () => {}), refreshRole: vi.fn(async () => {}) });
+    mockUseAuth.mockReturnValue({  user: { id: 'user-999' }, session: null, role: null, loading: false, signIn: vi.fn(async () => ({ error: null })), signUp: vi.fn(async () => ({ error: null })), signOut: vi.fn(async () => {}), refreshRole: vi.fn(async () => {}) } as any);
     const { result } = renderHook(() => useMyShare({
       beneficiaries: [{ user_id: 'user-1', share_percentage: 30 }],
       availableAmount: 10000,
