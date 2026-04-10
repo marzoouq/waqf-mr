@@ -1,6 +1,8 @@
 /**
- * معالج النص العربي لـ jsPDF
+ * معالج النص العربي لـ jsPDF (Client-side)
  * يحل مشكلة الحروف المنفصلة وترتيب RTL
+ * ⚠️ نسخة مشابهة في supabase/functions/_shared/arabic-reshaper.ts لبيئة Deno Edge —
+ *    التكرار مقصود لأن npm package (arabic-reshaper) غير متوفر في Deno.
  * 
  * jsPDF لا يدعم Arabic Shaping أصلاً — هذا الملف يحوّل النص العربي
  * إلى Arabic Presentation Forms B (أشكال متصلة) ثم يعكس ترتيب الأحرف

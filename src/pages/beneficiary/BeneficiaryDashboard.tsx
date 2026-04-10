@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, RefreshCw, Sun, Moon } from 'lucide-react';
+import { useGreeting } from '@/hooks/ui/useGreeting';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender } from '@/components/common';
@@ -67,10 +68,10 @@ const BeneficiaryDashboard = () => {
     );
   }
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- guard يسبق العرض الرئيسي فقط
+  const greetingData = useGreeting();
   if (noPublishedYears) {
-    const hour = new Date().getHours();
-    const GreetingIcon = hour < 12 ? Sun : Moon;
-    const greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
+    const GreetingIcon = greetingData.greetingIconName === 'sun' ? Sun : Moon;
     return (
       <DashboardLayout>
         <div className="p-3 sm:p-6 space-y-4">
@@ -81,7 +82,7 @@ const BeneficiaryDashboard = () => {
                   <GreetingIcon className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm text-primary-foreground/80">{greeting}</p>
+                  <p className="text-sm text-primary-foreground/80">{greetingData.greeting}</p>
                   <h1 className="text-xl sm:text-2xl font-bold font-display">{displayName}</h1>
                 </div>
               </div>

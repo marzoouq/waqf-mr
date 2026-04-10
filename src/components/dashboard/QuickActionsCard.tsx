@@ -2,7 +2,8 @@ import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { FileText, TrendingUp, TrendingDown, Users, Wallet, Printer, Gauge, ArrowUpDown, Landmark, GitBranch, Receipt, BarChart3 } from 'lucide-react';
+import { Wallet } from 'lucide-react';
+import { QUICK_ACTIONS } from '@/constants/quickActions';
 
 interface QuickActionsCardProps {
   role: string | null;
@@ -10,7 +11,8 @@ interface QuickActionsCardProps {
 
 /** بطاقة الإجراءات السريعة في لوحة التحكم */
 const QuickActionsCard = ({ role }: QuickActionsCardProps) => {
-  if (role !== 'accountant' && role !== 'admin') return null;
+  const actions = QUICK_ACTIONS[role ?? ''];
+  if (!actions) return null;
 
   return (
     <Card className="shadow-sm">
@@ -22,29 +24,9 @@ const QuickActionsCard = ({ role }: QuickActionsCardProps) => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {role === 'accountant' ? (
-            <>
-              <QuickAction to="/dashboard/income" icon={<TrendingUp className="w-5 h-5 text-success" />} label="تسجيل دخل" />
-              <QuickAction to="/dashboard/expenses" icon={<TrendingDown className="w-5 h-5 text-destructive" />} label="تسجيل مصروف" />
-              <QuickAction to="/dashboard/accounts" icon={<FileText className="w-5 h-5 text-primary" />} label="الحسابات الختامية" />
-              <QuickAction to="/dashboard/invoices" icon={<FileText className="w-5 h-5 text-secondary" />} label="إدارة الفواتير" />
-              <QuickAction to="/dashboard/chart-of-accounts" icon={<GitBranch className="w-5 h-5 text-accent-foreground" />} label="الشجرة المحاسبية" />
-              <QuickAction to="/dashboard/comparison" icon={<ArrowUpDown className="w-5 h-5 text-muted-foreground" />} label="المقارنة التاريخية" />
-              <QuickAction to="/dashboard/annual-report" icon={<Printer className="w-5 h-5 text-primary" />} label="التقرير السنوي" />
-              <QuickAction to="/dashboard/reports" icon={<Gauge className="w-5 h-5 text-secondary" />} label="التقارير المالية" />
-            </>
-          ) : (
-            <>
-              <QuickAction to="/dashboard/contracts" icon={<FileText className="w-5 h-5 text-primary" />} label="مراجعة العقود" />
-              <QuickAction to="/dashboard/beneficiaries" icon={<Users className="w-5 h-5 text-success" />} label="إدارة المستفيدين" />
-              <QuickAction to="/dashboard/accounts" icon={<Landmark className="w-5 h-5 text-secondary" />} label="الحسابات الختامية" />
-              <QuickAction to="/dashboard/zatca" icon={<Receipt className="w-5 h-5 text-warning" />} label="ZATCA" />
-              <QuickAction to="/dashboard/comparison" icon={<ArrowUpDown className="w-5 h-5 text-accent-foreground" />} label="المقارنة التاريخية" />
-              <QuickAction to="/dashboard/annual-report" icon={<Printer className="w-5 h-5 text-primary" />} label="التقرير السنوي" />
-              <QuickAction to="/dashboard/reports" icon={<BarChart3 className="w-5 h-5 text-muted-foreground" />} label="التقارير" />
-              <QuickAction to="/dashboard/settings" icon={<Gauge className="w-5 h-5 text-foreground" />} label="الإعدادات" />
-            </>
-          )}
+          {actions.map((action) => (
+            <QuickAction key={action.to} to={action.to} icon={<action.icon className={`w-5 h-5 ${action.iconClass}`} />} label={action.label} />
+          ))}
         </div>
       </CardContent>
     </Card>

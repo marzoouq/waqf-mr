@@ -15,4 +15,5 @@ export { default as PrintFooter } from './PrintFooter';
 export { default as PrintHeader } from './PrintHeader';
 export { default as RequirePublishedYears } from './RequirePublishedYears';
 export { TableSkeleton, DashboardSkeleton, StatsGridSkeleton, KpiSkeleton, ChartSkeleton } from './SkeletonLoaders';
+export { default as ChartSkeletonCard } from './ChartSkeleton';
 export { default as TablePagination } from './TablePagination';

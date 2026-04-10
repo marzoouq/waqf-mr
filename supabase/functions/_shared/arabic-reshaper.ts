@@ -1,5 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Arabic Reshaper المشترك — يُستورد من أي وظيفة حافة تحتاج معالجة نص عربي
+// ⚠️ تنفيذ يدوي لأن npm arabic-reshaper غير متوفر في بيئة Deno Edge.
+//    النسخة المقابلة للعميل في src/utils/pdf/core/arabicReshaper.ts تستخدم npm package.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Maps Unicode code-points → contextual Presentation Forms-B glyphs

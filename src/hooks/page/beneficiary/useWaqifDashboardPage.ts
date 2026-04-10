@@ -3,6 +3,7 @@
  * محسّن: يستخدم RPC المستفيد المجمّع + utility مشتركة
  */
 import { useMemo } from 'react';
+import { useGreeting } from '@/hooks/ui/useGreeting';
 import { fmt } from '@/utils/format/format';
 import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/dashboardComputations';
 import { safeNumber } from '@/utils/format/safeNumber';
@@ -82,15 +83,8 @@ export const useWaqifDashboardPage = () => {
     [dashData?.monthly_income, dashData?.monthly_expenses],
   );
 
-  /* ── التحية والتاريخ — #36: إعادة greetingIconName بدل GreetingIcon component ── */
-  // حساب التحية والتاريخ بدون useMemo — خفيف ويتحدث مع كل render
-  const now = new Date();
-  const h = now.getHours();
-  const greeting = h < 12 ? 'صباح الخير' : 'مساء الخير';
-  const greetingIconName: 'sun' | 'moon' = h < 12 ? 'sun' : 'moon';
-  const hijriDate = now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const gregorianDate = now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+  /* ── التحية والتاريخ — هوك مشترك ── */
+  const { greeting, greetingIconName, hijriDate, gregorianDate, timeStr } = useGreeting();
 
   const overviewStats = [
     { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },

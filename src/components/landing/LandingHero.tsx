@@ -85,9 +85,13 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
         </div>
       </div>
     </div>
-    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce" aria-hidden="true">
+    <button
+      className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce cursor-pointer bg-transparent border-0"
+      aria-label="انتقل لقسم الميزات"
+      onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+    >
       <ChevronDown className="w-6 h-6 text-white/40" />
-    </div>
+    </button>
   </header>
 );
 

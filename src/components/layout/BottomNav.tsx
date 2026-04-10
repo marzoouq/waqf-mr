@@ -4,53 +4,20 @@
  */
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { Home, Building2, FileText, Wallet, Menu, ClipboardList, Receipt, TrendingUp, TrendingDown, MessageSquare } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { BOTTOM_NAV_LINKS } from '@/constants/bottomNavLinks';
 
 interface BottomNavProps {
   onOpenSidebar: () => void;
   unreadCount?: number;
 }
 
-const adminLinks = [
-  { to: '/dashboard', icon: Home, label: 'الرئيسية' },
-  { to: '/dashboard/properties', icon: Building2, label: 'العقارات' },
-  { to: '/dashboard/contracts', icon: FileText, label: 'العقود' },
-  { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات' },
-];
-
-const accountantLinks = [
-  { to: '/dashboard', icon: Home, label: 'الرئيسية' },
-  { to: '/dashboard/income', icon: TrendingUp, label: 'الدخل' },
-  { to: '/dashboard/expenses', icon: TrendingDown, label: 'المصروفات' },
-  { to: '/dashboard/invoices', icon: Receipt, label: 'الفواتير' },
-];
-
-const beneficiaryLinks = [
-  { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
-  { to: '/beneficiary/my-share', icon: Wallet, label: 'حصتي' },
-  { to: '/beneficiary/disclosure', icon: ClipboardList, label: 'الإفصاح' },
-  { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
-];
-
-const waqifLinks = [
-  { to: '/waqif', icon: Home, label: 'الرئيسية' },
-  { to: '/beneficiary/properties', icon: Building2, label: 'العقارات' },
-  { to: '/beneficiary/contracts', icon: FileText, label: 'العقود' },
-  { to: '/beneficiary/accounts', icon: Wallet, label: 'الحسابات' },
-];
-
 const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 }) => {
   const { role } = useAuth();
   const location = useLocation();
 
-  const navLinks = role === 'admin'
-    ? adminLinks
-    : role === 'accountant'
-      ? accountantLinks
-      : role === 'waqif'
-        ? waqifLinks
-        : beneficiaryLinks;
+  const navLinks = BOTTOM_NAV_LINKS[role ?? 'beneficiary'] ?? BOTTOM_NAV_LINKS.beneficiary!;
 
   const isActive = (to: string) =>
     location.pathname === to ||
