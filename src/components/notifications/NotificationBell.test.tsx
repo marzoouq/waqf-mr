@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import NotificationBell from './NotificationBell';
 
 const baseMock = {
@@ -10,7 +11,7 @@ const baseMock = {
   deleteRead: { mutate: vi.fn() },
 };
 
-vi.mock('@/hooks/data/useNotifications', () => ({
+vi.mock('@/hooks/data/notifications/useNotifications', () => ({
   useNotifications: vi.fn(() => ({
     data: [],
     filteredData: [],
@@ -39,8 +40,14 @@ vi.mock('@/hooks/data/useNotifications', () => ({
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 const mockedUseNotifications = vi.mocked(useNotifications);
 
+const qc = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
 describe('NotificationBell', () => {
-  const renderBell = () => render(<MemoryRouter><NotificationBell /></MemoryRouter>);
+  const renderBell = () => render(
+    <QueryClientProvider client={qc()}>
+      <MemoryRouter><NotificationBell /></MemoryRouter>
+    </QueryClientProvider>
+  );
 
   it('renders bell icon', () => {
     renderBell();

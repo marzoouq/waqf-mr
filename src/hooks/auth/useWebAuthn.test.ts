@@ -4,9 +4,8 @@ import { useWebAuthn, isBiometricEnabled } from './useWebAuthn';
 
 // ── Mocks ──────────────────────────────────────────────────────────
 
-const mockToastError = vi.fn();
-const mockToastSuccess = vi.fn();
-vi.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a), success: (...a: unknown[]) => mockToastSuccess(...a) } }));
+const mockNotify = { error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn() };
+vi.mock('@/lib/notify', () => ({ defaultNotify: mockNotify }));
 
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), log: vi.fn() } }));
 
@@ -57,8 +56,6 @@ const fakeUser = { id: 'u1' };
 const fakeSession = { user: { id: 'u1' }, access_token: 'tok', refresh_token: 'ref' };
 
 function makeDOMException(name: string, message = '') {
-  // jsdom's DOMException may not preserve message in .message getter,
-  // so we create a plain Error and override .name for reliable testing
   const err = new Error(message);
   err.name = name;
   return err;
@@ -98,7 +95,7 @@ describe('useWebAuthn', () => {
       let res: boolean | undefined;
       await act(async () => { res = await result.current.registerBiometric(); });
       expect(res).toBe(false);
-      expect(mockToastError).toHaveBeenCalledWith('يرجى تسجيل الدخول أولاً');
+      expect(mockNotify.error).toHaveBeenCalledWith('يرجى تسجيل الدخول أولاً');
     });
 
     it('handles server error on register-options', async () => {
@@ -109,7 +106,7 @@ describe('useWebAuthn', () => {
       let res: boolean | undefined;
       await act(async () => { res = await result.current.registerBiometric(); });
       expect(res).toBe(false);
-      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('فشل في بدء عملية التسجيل'));
+      expect(mockNotify.error).toHaveBeenCalledWith(expect.stringContaining('فشل في بدء عملية التسجيل'));
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         event_type: 'login_failed',
         metadata: expect.objectContaining({ action: 'register-options', reason: 'server_error' }),
@@ -124,7 +121,7 @@ describe('useWebAuthn', () => {
       let res: boolean | undefined;
       await act(async () => { res = await result.current.registerBiometric(); });
       expect(res).toBe(false);
-      expect(mockToastError).toHaveBeenCalledWith('مشكلة مخصصة');
+      expect(mockNotify.error).toHaveBeenCalledWith('مشكلة مخصصة');
     });
 
     it('handles NotAllowedError with timeout message', async () => {
@@ -136,7 +133,7 @@ describe('useWebAuthn', () => {
       let res: boolean | undefined;
       await act(async () => { res = await result.current.registerBiometric(); });
       expect(res).toBe(false);
-      expect(mockToastError).toHaveBeenCalledWith(
+      expect(mockNotify.error).toHaveBeenCalledWith(
         expect.stringContaining('انتهت مهلة تسجيل البصمة'),
         expect.objectContaining({ action: expect.objectContaining({ label: 'إعادة المحاولة' }) }),
       );
@@ -152,7 +149,7 @@ describe('useWebAuthn', () => {
       mockStartRegistration.mockRejectedValue(makeDOMException('NotAllowedError', 'User denied'));
       const { result } = renderHook(() => useWebAuthn());
       await act(async () => { await result.current.registerBiometric(); });
-      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('تعذّر إكمال تسجيل البصمة'));
+      expect(mockNotify.error).toHaveBeenCalledWith(expect.stringContaining('تعذّر إكمال تسجيل البصمة'));
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'not_allowed' }),
       }));
@@ -165,7 +162,7 @@ describe('useWebAuthn', () => {
       mockStartRegistration.mockRejectedValue(makeDOMException('SecurityError'));
       const { result } = renderHook(() => useWebAuthn());
       await act(async () => { await result.current.registerBiometric(); });
-      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('HTTPS'));
+      expect(mockNotify.error).toHaveBeenCalledWith(expect.stringContaining('HTTPS'));
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'security_error' }),
       }));
@@ -178,7 +175,7 @@ describe('useWebAuthn', () => {
       mockStartRegistration.mockRejectedValue(makeDOMException('InvalidStateError'));
       const { result } = renderHook(() => useWebAuthn());
       await act(async () => { await result.current.registerBiometric(); });
-      expect(mockToastError).toHaveBeenCalledWith('هذا الجهاز مسجل مسبقاً');
+      expect(mockNotify.error).toHaveBeenCalledWith('هذا الجهاز مسجل مسبقاً');
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'already_registered' }),
       }));
@@ -191,7 +188,7 @@ describe('useWebAuthn', () => {
       mockStartRegistration.mockRejectedValue(makeDOMException('AbortError'));
       const { result } = renderHook(() => useWebAuthn());
       await act(async () => { await result.current.registerBiometric(); });
-      expect(mockToastError).toHaveBeenCalledWith('تم إلغاء عملية تسجيل البصمة');
+      expect(mockNotify.error).toHaveBeenCalledWith('تم إلغاء عملية تسجيل البصمة');
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'aborted' }),
       }));
@@ -204,7 +201,7 @@ describe('useWebAuthn', () => {
       mockStartRegistration.mockRejectedValue(new Error('Failed to fetch'));
       const { result } = renderHook(() => useWebAuthn());
       await act(async () => { await result.current.registerBiometric(); });
-      expect(mockToastError).toHaveBeenCalledWith(
+      expect(mockNotify.error).toHaveBeenCalledWith(
         expect.stringContaining('خطأ في الاتصال بالخادم'),
         expect.objectContaining({ action: expect.objectContaining({ label: 'إعادة المحاولة' }) }),
       );
@@ -220,7 +217,7 @@ describe('useWebAuthn', () => {
       mockStartRegistration.mockRejectedValue(new Error('something weird'));
       const { result } = renderHook(() => useWebAuthn());
       await act(async () => { await result.current.registerBiometric(); });
-      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('حدث خطأ أثناء تسجيل البصمة'));
+      expect(mockNotify.error).toHaveBeenCalledWith(expect.stringContaining('حدث خطأ أثناء تسجيل البصمة'));
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'unknown' }),
       }));
@@ -237,7 +234,7 @@ describe('useWebAuthn', () => {
       let res: boolean | undefined;
       await act(async () => { res = await result.current.registerBiometric(); });
       expect(res).toBe(false);
-      expect(mockToastError).toHaveBeenCalledWith('فشل في تسجيل البصمة');
+      expect(mockNotify.error).toHaveBeenCalledWith('فشل في تسجيل البصمة');
     });
   });
 
@@ -250,7 +247,7 @@ describe('useWebAuthn', () => {
       let res: boolean | undefined;
       await act(async () => { res = await result.current.authenticateWithBiometric(); });
       expect(res).toBe(false);
-      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('فشل في بدء عملية المصادقة'));
+      expect(mockNotify.error).toHaveBeenCalledWith(expect.stringContaining('فشل في بدء عملية المصادقة'));
     });
 
     it('handles NotAllowedError with timeout', async () => {
@@ -258,7 +255,7 @@ describe('useWebAuthn', () => {
       mockStartAuthentication.mockRejectedValue(makeDOMException('NotAllowedError', 'timeout'));
       const { result } = renderHook(() => useWebAuthn());
       await act(async () => { await result.current.authenticateWithBiometric(); });
-      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('انتهت مهلة المصادقة'));
+      expect(mockNotify.error).toHaveBeenCalledWith(expect.stringContaining('انتهت مهلة المصادقة'));
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'timeout' }),
       }));
@@ -269,7 +266,7 @@ describe('useWebAuthn', () => {
       mockStartAuthentication.mockRejectedValue(makeDOMException('NotAllowedError', 'user cancelled'));
       const { result } = renderHook(() => useWebAuthn());
       await act(async () => { await result.current.authenticateWithBiometric(); });
-      expect(mockToastError).toHaveBeenCalledWith('تم إلغاء عملية البصمة');
+      expect(mockNotify.error).toHaveBeenCalledWith('تم إلغاء عملية البصمة');
     });
 
     it('handles AbortError', async () => {
@@ -277,7 +274,7 @@ describe('useWebAuthn', () => {
       mockStartAuthentication.mockRejectedValue(makeDOMException('AbortError'));
       const { result } = renderHook(() => useWebAuthn());
       await act(async () => { await result.current.authenticateWithBiometric(); });
-      expect(mockToastError).toHaveBeenCalledWith('تم إلغاء عملية المصادقة بالبصمة');
+      expect(mockNotify.error).toHaveBeenCalledWith('تم إلغاء عملية المصادقة بالبصمة');
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'aborted' }),
       }));
@@ -288,7 +285,7 @@ describe('useWebAuthn', () => {
       mockStartAuthentication.mockRejectedValue(new Error('network error'));
       const { result } = renderHook(() => useWebAuthn());
       await act(async () => { await result.current.authenticateWithBiometric(); });
-      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('خطأ في الاتصال'));
+      expect(mockNotify.error).toHaveBeenCalledWith(expect.stringContaining('خطأ في الاتصال'));
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         metadata: expect.objectContaining({ reason: 'network_error' }),
       }));
@@ -299,7 +296,7 @@ describe('useWebAuthn', () => {
       mockStartAuthentication.mockRejectedValue(new Error('weird'));
       const { result } = renderHook(() => useWebAuthn());
       await act(async () => { await result.current.authenticateWithBiometric(); });
-      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('حدث خطأ أثناء المصادقة بالبصمة'));
+      expect(mockNotify.error).toHaveBeenCalledWith(expect.stringContaining('حدث خطأ أثناء المصادقة بالبصمة'));
     });
 
     it('handles verification failure', async () => {
@@ -311,7 +308,7 @@ describe('useWebAuthn', () => {
       let res: boolean | undefined;
       await act(async () => { res = await result.current.authenticateWithBiometric(); });
       expect(res).toBe(false);
-      expect(mockToastError).toHaveBeenCalledWith('فشل في التحقق من البصمة');
+      expect(mockNotify.error).toHaveBeenCalledWith('فشل في التحقق من البصمة');
     });
 
     it('handles missing tokens in response', async () => {
@@ -323,7 +320,7 @@ describe('useWebAuthn', () => {
       let res: boolean | undefined;
       await act(async () => { res = await result.current.authenticateWithBiometric(); });
       expect(res).toBe(false);
-      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('لم يتم استلام بيانات الجلسة'));
+      expect(mockNotify.error).toHaveBeenCalledWith(expect.stringContaining('لم يتم استلام بيانات الجلسة'));
     });
 
     it('handles session set error', async () => {
@@ -336,7 +333,7 @@ describe('useWebAuthn', () => {
       let res: boolean | undefined;
       await act(async () => { res = await result.current.authenticateWithBiometric(); });
       expect(res).toBe(false);
-      expect(mockToastError).toHaveBeenCalledWith('فشل في إنشاء الجلسة');
+      expect(mockNotify.error).toHaveBeenCalledWith('فشل في إنشاء الجلسة');
     });
 
     it('succeeds with valid tokens', async () => {
@@ -349,7 +346,7 @@ describe('useWebAuthn', () => {
       let res: boolean | undefined;
       await act(async () => { res = await result.current.authenticateWithBiometric(); });
       expect(res).toBe(true);
-      expect(mockToastSuccess).toHaveBeenCalledWith('تم تسجيل الدخول بالبصمة بنجاح');
+      expect(mockNotify.success).toHaveBeenCalledWith('تم تسجيل الدخول بالبصمة بنجاح');
       expect(mockLogAccessEvent).toHaveBeenCalledWith(expect.objectContaining({
         event_type: 'login_success',
       }));
@@ -380,11 +377,8 @@ describe('useWebAuthn', () => {
         await result.current.removeCredential('cred-xyz');
       });
 
-      // التحقق من استدعاء from('webauthn_credentials')
       expect(mockFrom).toHaveBeenCalledWith('webauthn_credentials');
-      // التحقق من استدعاء delete
       expect(chain.delete).toHaveBeenCalled();
-      // التحقق الحرج: فلتر id + user_id معاً
       expect(chain.eq).toHaveBeenCalledWith('id', 'cred-xyz');
       expect(chain.eq).toHaveBeenCalledWith('user_id', fakeUser.id);
     });
@@ -401,8 +395,7 @@ describe('useWebAuthn', () => {
       });
 
       expect(success).toBe(false);
-      expect(mockToastError).toHaveBeenCalledWith('يجب تسجيل الدخول أولاً');
-      // لا يجب استدعاء delete أصلاً
+      expect(mockNotify.error).toHaveBeenCalledWith('يجب تسجيل الدخول أولاً');
       expect(chain.delete).not.toHaveBeenCalled();
     });
   });

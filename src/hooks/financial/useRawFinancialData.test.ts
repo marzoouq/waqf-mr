@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
+import { createTestWrapper } from '@/test/setup';
 
 // ─── Mock all sub-hooks ───
 const mockIncome = { data: undefined as unknown[] | undefined, isLoading: false, isError: false };
@@ -8,10 +9,10 @@ const mockAccounts = { data: undefined as unknown[] | undefined, isLoading: fals
 const mockBeneficiaries = { data: undefined as unknown[] | undefined, isLoading: false, isError: false };
 const mockSettings = { data: undefined as Record<string, string> | undefined };
 
-vi.mock('@/hooks/data/useIncome', () => ({
+vi.mock('@/hooks/data/financial/useIncome', () => ({
   useIncomeByFiscalYear: () => mockIncome,
 }));
-vi.mock('@/hooks/data/useExpenses', () => ({
+vi.mock('@/hooks/data/financial/useExpenses', () => ({
   useExpensesByFiscalYear: () => mockExpenses,
 }));
 vi.mock('@/hooks/financial/useAccounts', () => ({
@@ -21,7 +22,7 @@ vi.mock('@/hooks/financial/useAccounts', () => ({
 vi.mock('@/hooks/data/beneficiaries/useBeneficiaries', () => ({
   useBeneficiariesSafe: () => mockBeneficiaries,
 }));
-vi.mock('@/hooks/data/useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/useAppSettings', () => ({
   useAppSettings: () => mockSettings,
 }));
 
@@ -45,7 +46,7 @@ beforeEach(() => {
 
 describe('useRawFinancialData', () => {
   it('defaults arrays to empty when data is undefined', () => {
-    const { result } = renderHook(() => useRawFinancialData());
+    const { result } = renderHook(() => useRawFinancialData(), { wrapper: createTestWrapper() });
     expect(result.current.income).toEqual([]);
     expect(result.current.expenses).toEqual([]);
     expect(result.current.accounts).toEqual([]);
@@ -55,43 +56,42 @@ describe('useRawFinancialData', () => {
   it('returns actual data when available', () => {
     mockIncome.data = [{ id: '1', amount: 100 }];
     mockAccounts.data = [{ id: 'a1' }];
-    const { result } = renderHook(() => useRawFinancialData('fy-1'));
-
+    const { result } = renderHook(() => useRawFinancialData('fy-1'), { wrapper: createTestWrapper() });
     expect(result.current.income).toHaveLength(1);
     expect(result.current.accounts).toHaveLength(1);
   });
 
   it('isLoading is true when any sub-hook is loading', () => {
     mockIncome.isLoading = true;
-    const { result } = renderHook(() => useRawFinancialData());
+    const { result } = renderHook(() => useRawFinancialData(), { wrapper: createTestWrapper() });
     expect(result.current.isLoading).toBe(true);
   });
 
   it('isLoading is false when all sub-hooks are done', () => {
-    const { result } = renderHook(() => useRawFinancialData());
+    const { result } = renderHook(() => useRawFinancialData(), { wrapper: createTestWrapper() });
     expect(result.current.isLoading).toBe(false);
   });
 
   it('isError is true when income fetch fails', () => {
     mockIncome.isError = true;
-    const { result } = renderHook(() => useRawFinancialData());
+    const { result } = renderHook(() => useRawFinancialData(), { wrapper: createTestWrapper() });
     expect(result.current.isError).toBe(true);
   });
 
   it('isError is true when expenses fetch fails', () => {
     mockExpenses.isError = true;
-    const { result } = renderHook(() => useRawFinancialData());
+    const { result } = renderHook(() => useRawFinancialData(), { wrapper: createTestWrapper() });
     expect(result.current.isError).toBe(true);
   });
 
   it('isError is false when no fetch errors', () => {
-    const { result } = renderHook(() => useRawFinancialData());
+    const { result } = renderHook(() => useRawFinancialData(), { wrapper: createTestWrapper() });
     expect(result.current.isError).toBe(false);
   });
 
   it('passes settings through', () => {
     mockSettings.data = { admin_share_percentage: '12' };
-    const { result } = renderHook(() => useRawFinancialData());
+    const { result } = renderHook(() => useRawFinancialData(), { wrapper: createTestWrapper() });
     expect(result.current.settings).toEqual({ admin_share_percentage: '12' });
   });
 });
