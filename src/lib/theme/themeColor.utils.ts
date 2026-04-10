@@ -31,26 +31,23 @@ export const resetTheme = () => {
 let themeObserver: MutationObserver | null = null;
 
 export const initThemeFromStorage = () => {
-  try {
-    const savedId = localStorage.getItem(THEME_KEY);
-    if (savedId && savedId !== 'islamic-green') {
-      const theme = themes.find((item) => item.id === savedId);
-      if (theme) applyTheme(theme);
-    }
-  } catch {
-    return;
+  // استيراد ديناميكي لتجنب دورة الاستيراد — themeColor.utils يُحمّل مبكراً جداً
+  const getThemeId = (): string | null => {
+    try { return localStorage.getItem(THEME_KEY); } catch { return null; }
+  };
+
+  const savedId = getThemeId();
+  if (savedId && savedId !== 'islamic-green') {
+    const theme = themes.find((item) => item.id === savedId);
+    if (theme) applyTheme(theme);
   }
 
   themeObserver?.disconnect();
   themeObserver = new MutationObserver(() => {
-    try {
-      const savedId = localStorage.getItem(THEME_KEY);
-      if (savedId && savedId !== 'islamic-green') {
-        const theme = themes.find((item) => item.id === savedId);
-        if (theme) applyTheme(theme);
-      }
-    } catch {
-      // ignore storage failures
+    const id = getThemeId();
+    if (id && id !== 'islamic-green') {
+      const theme = themes.find((item) => item.id === id);
+      if (theme) applyTheme(theme);
     }
   });
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
