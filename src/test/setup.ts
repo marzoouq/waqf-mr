@@ -1,5 +1,7 @@
 import "@testing-library/jest-dom";
 import { vi } from 'vitest';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // ─── قمع تحذيرات معروفة في بيئة الاختبار ───
 
@@ -20,7 +22,16 @@ console.warn = (...args: unknown[]) => { if (!shouldSuppress(args)) originalWarn
 const originalError = console.error;
 console.error = (...args: unknown[]) => { if (!shouldSuppress(args)) originalError(...args); };
 
-// ─── موك افتراضي لـ useAuth لمنع تحذير "useAuth called outside AuthProvider" ───
+// ─── ResizeObserver polyfill ───
+if (typeof globalThis.ResizeObserver === 'undefined') {
+  globalThis.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+}
+
+// ─── موك افتراضي لـ useAuth — قابل للتجاوز بـ mockReturnValue ───
 const defaultAuthMock = {
   user: null,
   session: null,
@@ -32,14 +43,14 @@ const defaultAuthMock = {
   refreshRole: vi.fn(async () => {}),
 };
 
-vi.mock('@/hooks/auth/useAuthContext', async (importOriginal) => {
-  const original = await importOriginal<typeof import('@/hooks/auth/useAuthContext')>();
-  return {
-    ...original,
-    useAuth: () => defaultAuthMock,
-  };
-});
+/** دالة useAuth العالمية — يمكن تجاوزها في أي اختبار عبر mockReturnValue */
+export const mockUseAuth = vi.fn(() => defaultAuthMock);
 
+vi.mock('@/hooks/auth/useAuthContext', () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
+// ─── matchMedia polyfill ───
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: (query: string) => ({
@@ -53,3 +64,22 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => {},
   }),
 });
+
+// ─── Test helpers ───
+
+/** إنشاء QueryClient للاختبارات بدون retry */
+export function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
+}
+
+/** wrapper يوفر QueryClientProvider + MemoryRouter */
+export function createTestWrapper({
+  queryClient,
+}: { queryClient?: QueryClient } = {}) {
+  const qc = queryClient ?? createTestQueryClient();
+  return function TestWrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(QueryClientProvider, { client: qc }, children);
+  };
+}
