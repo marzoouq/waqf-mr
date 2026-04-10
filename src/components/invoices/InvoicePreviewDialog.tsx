@@ -86,7 +86,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
 
   if (!invoice) return null;
 
-  const handlePrint = () => window.print();
+  const handlePrint = usePrint();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

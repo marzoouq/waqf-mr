@@ -5,7 +5,7 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { ExportMenu, DashboardSkeleton } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { ArrowDownUp, AlertTriangle, RefreshCw, ArrowRight } from 'lucide-react';
-import { defaultNotify } from '@/lib/notify';
+import { usePrint } from '@/hooks/ui/usePrint';
 import { useNavigate } from 'react-router-dom';
 
 import { useCarryforwardData } from '@/hooks/page/admin/financial/useCarryforwardData';
@@ -15,6 +15,7 @@ import PaidAdvancesTable from './carryforward/PaidAdvancesTable';
 
 const CarryforwardHistoryPage = () => {
   const navigate = useNavigate();
+  const print = usePrint();
   const {
     beneficiary,
     loadingBen,
@@ -71,10 +72,7 @@ const CarryforwardHistoryPage = () => {
                 <ArrowRight className="w-4 h-4" />
                 رجوع
               </Button>
-              <ExportMenu onExportPdf={() => {
-                defaultNotify.info('جاري تجهيز الطباعة...');
-                setTimeout(() => { window.print(); }, 300);
-              }} />
+              <ExportMenu onExportPdf={print} />
             </div>
           }
         />
