@@ -1,13 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { mockUseAuth } from "@/test/setup";
 import ProtectedRoute from "./ProtectedRoute";
-
-// Mock AuthContext
-const mockUseAuth = vi.fn();
-vi.mock("@/hooks/auth/useAuthContext", () => ({
-  useAuth: () => mockUseAuth(),
-}));
 
 // Capture Navigate props
 const mockNavigate = vi.fn();
@@ -28,7 +23,7 @@ describe("ProtectedRoute", () => {
   });
 
   it("shows loading spinner while auth is loading", () => {
-    mockUseAuth.mockReturnValue({ user: null, role: null, loading: true });
+    mockUseAuth.mockReturnValue({  user: null, role: null, loading: true, session: null, signIn: vi.fn(), signUp: vi.fn(), signOut: vi.fn(), refreshRole: vi.fn() } as any);
     render(
       <MemoryRouter>
         <ProtectedRoute><div>محتوى</div></ProtectedRoute>
@@ -39,7 +34,7 @@ describe("ProtectedRoute", () => {
   });
 
   it("redirects to /auth when user is not logged in", () => {
-    mockUseAuth.mockReturnValue({ user: null, role: null, loading: false });
+    mockUseAuth.mockReturnValue({  user: null, role: null, loading: false, session: null, signIn: vi.fn(), signUp: vi.fn(), signOut: vi.fn(), refreshRole: vi.fn() } as any);
     render(
       <MemoryRouter>
         <ProtectedRoute><div>محتوى</div></ProtectedRoute>
@@ -49,7 +44,7 @@ describe("ProtectedRoute", () => {
   });
 
   it("renders children when user is logged in without role restriction", () => {
-    mockUseAuth.mockReturnValue({ user: { id: "1" }, role: "admin", loading: false });
+    mockUseAuth.mockReturnValue({  user: { id: "1" }, role: "admin", loading: false, session: null, signIn: vi.fn(), signUp: vi.fn(), signOut: vi.fn(), refreshRole: vi.fn() } as any);
     render(
       <MemoryRouter>
         <ProtectedRoute><div>محتوى محمي</div></ProtectedRoute>
@@ -59,7 +54,7 @@ describe("ProtectedRoute", () => {
   });
 
   it("renders children when user has allowed role", () => {
-    mockUseAuth.mockReturnValue({ user: { id: "1" }, role: "beneficiary", loading: false });
+    mockUseAuth.mockReturnValue({  user: { id: "1" }, role: "beneficiary", loading: false, session: null, signIn: vi.fn(), signUp: vi.fn(), signOut: vi.fn(), refreshRole: vi.fn() } as any);
     render(
       <MemoryRouter>
         <ProtectedRoute allowedRoles={["admin", "beneficiary"]}>
@@ -71,7 +66,7 @@ describe("ProtectedRoute", () => {
   });
 
   it("redirects to /unauthorized when user role is not allowed", () => {
-    mockUseAuth.mockReturnValue({ user: { id: "1" }, role: "waqif", loading: false });
+    mockUseAuth.mockReturnValue({  user: { id: "1" }, role: "waqif", loading: false, session: null, signIn: vi.fn(), signUp: vi.fn(), signOut: vi.fn(), refreshRole: vi.fn() } as any);
     render(
       <MemoryRouter>
         <ProtectedRoute allowedRoles={["admin"]}>
@@ -82,8 +77,8 @@ describe("ProtectedRoute", () => {
     expect(screen.getByTestId("navigate")).toHaveAttribute("data-to", "/unauthorized");
   });
 
-  it("shows verification spinner when loading is done but role is null", () => {
-    mockUseAuth.mockReturnValue({ user: { id: "1" }, role: null, loading: false, signOut: vi.fn() });
+  it("shows spinner when loading is done but role is null (waiting for role)", () => {
+    mockUseAuth.mockReturnValue({  user: { id: "1" }, role: null, loading: false, session: null, signIn: vi.fn(), signUp: vi.fn(), signOut: vi.fn(), refreshRole: vi.fn() } as any);
     render(
       <MemoryRouter>
         <ProtectedRoute allowedRoles={["admin"]}>
@@ -91,14 +86,13 @@ describe("ProtectedRoute", () => {
         </ProtectedRoute>
       </MemoryRouter>
     );
-    // loading=false + role=null → shows verification spinner
-    expect(screen.getByText('جاري التحقق من الصلاحيات...')).toBeInTheDocument();
-    // Sign out button appears after 5s timeout, not immediately
-    expect(screen.queryByText('تسجيل الخروج')).not.toBeInTheDocument();
+    // الآن يعرض spinner فقط بدلاً من نص "جاري التحقق"
+    expect(document.querySelector(".animate-spin")).toBeInTheDocument();
+    expect(screen.queryByText("محتوى")).not.toBeInTheDocument();
   });
 
   it("shows loading spinner when role is loading", () => {
-    mockUseAuth.mockReturnValue({ user: { id: "1" }, role: null, loading: true });
+    mockUseAuth.mockReturnValue({  user: { id: "1" }, role: null, loading: true, session: null, signIn: vi.fn(), signUp: vi.fn(), signOut: vi.fn(), refreshRole: vi.fn() } as any);
     render(
       <MemoryRouter>
         <ProtectedRoute allowedRoles={["admin"]}>
@@ -110,7 +104,7 @@ describe("ProtectedRoute", () => {
   });
 
   it("admin can access admin-only routes", () => {
-    mockUseAuth.mockReturnValue({ user: { id: "1" }, role: "admin", loading: false });
+    mockUseAuth.mockReturnValue({  user: { id: "1" }, role: "admin", loading: false, session: null, signIn: vi.fn(), signUp: vi.fn(), signOut: vi.fn(), refreshRole: vi.fn() } as any);
     render(
       <MemoryRouter>
         <ProtectedRoute allowedRoles={["admin"]}>
@@ -122,7 +116,7 @@ describe("ProtectedRoute", () => {
   });
 
   it("beneficiary cannot access admin routes", () => {
-    mockUseAuth.mockReturnValue({ user: { id: "1" }, role: "beneficiary", loading: false });
+    mockUseAuth.mockReturnValue({  user: { id: "1" }, role: "beneficiary", loading: false, session: null, signIn: vi.fn(), signUp: vi.fn(), signOut: vi.fn(), refreshRole: vi.fn() } as any);
     render(
       <MemoryRouter>
         <ProtectedRoute allowedRoles={["admin"]}>
