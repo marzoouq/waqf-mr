@@ -7,9 +7,10 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock('@/hooks/data/useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/useAppSettings', () => ({
   useAppSettings: vi.fn(),
   useWaqfInfo: vi.fn(() => ({ data: null })),
+  useSetting: vi.fn(() => undefined),
 }));
 
 vi.mock('sonner', () => ({
@@ -83,6 +84,8 @@ describe('Public pages smoke tests', () => {
     } as unknown as ReturnType<typeof useAuth>);
 
     mockedUseAppSettings.mockReturnValue({
+      data: undefined,
+      isLoading: false,
       getJsonSetting: vi.fn((_key: string, fallback: unknown) => fallback),
     } as unknown as ReturnType<typeof useAppSettings>);
 

@@ -4,7 +4,9 @@ import { useWebAuthn, isBiometricEnabled } from './useWebAuthn';
 
 // ── Mocks ──────────────────────────────────────────────────────────
 
-const mockNotify = { error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn() };
+const mockNotify = vi.hoisted(() => ({
+  error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn(),
+}));
 vi.mock('@/lib/notify', () => ({ defaultNotify: mockNotify }));
 
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), log: vi.fn() } }));

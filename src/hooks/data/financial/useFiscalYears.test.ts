@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 
-
 const mockFiscalYears = [
   { id: 'fy-1', label: '1446-1447', status: 'active', published: true, start_date: '2024-10-01', end_date: '2025-10-01', created_at: '' },
   { id: 'fy-2', label: '1445-1446', status: 'closed', published: true, start_date: '2023-10-01', end_date: '2024-10-01', created_at: '' },
@@ -12,11 +11,11 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 vi.mock('@/hooks/auth/useAuthContext', () => ({
-  useAuth: () => ({ user: { id: 'user-1' } }),
+  useAuth: () => ({ user: { id: 'user-1' }, role: 'admin', loading: false }),
 }));
 
 vi.mock('@tanstack/react-query', () => ({
-  useQuery: ({ enabled }: { queryFn: () => Promise<unknown>; enabled: boolean }) => {
+  useQuery: ({ queryFn, enabled }: { queryFn: () => Promise<unknown>; enabled: boolean }) => {
     if (!enabled) return { data: undefined, isLoading: false };
     return { data: mockFiscalYears, isLoading: false };
   },

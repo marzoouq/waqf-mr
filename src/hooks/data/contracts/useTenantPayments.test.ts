@@ -17,11 +17,13 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+// الكود يستخدم defaultNotify — نموكه بدل sonner
+const mockNotify = vi.hoisted(() => ({
+  success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn(),
+}));
+vi.mock('@/lib/notify', () => ({ defaultNotify: mockNotify }));
 
 import { useTenantPayments, useUpsertTenantPayment } from './useTenantPayments';
-import { toast } from 'sonner';
-
 
 const wrapper = () => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -36,13 +38,9 @@ const samplePayments = [
 
 beforeEach(() => {
   vi.clearAllMocks();
-
-  // Default: select returns payments list (for useTenantPayments query)
   mockSelect.mockReturnValue({
     limit: vi.fn().mockResolvedValue({ data: samplePayments, error: null }),
   });
-
-  // Default: rpc resolves successfully
   mockRpc.mockResolvedValue({ data: { success: true }, error: null });
 });
 
@@ -79,7 +77,7 @@ describe('useUpsertTenantPayment', () => {
       p_contract_id: 'c-1',
       p_paid_months: 8,
     }));
-    expect(toast.success).toHaveBeenCalledWith('تم حفظ بيانات التحصيل', undefined);
+    expect(mockNotify.success).toHaveBeenCalled();
   });
 
   it('passes notes as undefined when not provided', async () => {
@@ -96,7 +94,7 @@ describe('useUpsertTenantPayment', () => {
     expect(mockRpc).toHaveBeenCalledWith('upsert_tenant_payment', expect.objectContaining({
       p_notes: 'مسدد',
     }));
-    expect(toast.success).toHaveBeenCalledWith('تم حفظ بيانات التحصيل', undefined);
+    expect(mockNotify.success).toHaveBeenCalled();
   });
 
   it('calls upsert_tenant_payment RPC', async () => {
@@ -109,12 +107,12 @@ describe('useUpsertTenantPayment', () => {
     mockRpc.mockResolvedValue({ data: null, error: { message: 'rls denied' } });
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await expect(result.current.mutateAsync({ contract_id: 'c-1', paid_months: 5 })).rejects.toThrow();
-    expect(toast.error).toHaveBeenCalledWith('خطأ في حفظ بيانات التحصيل', undefined);
+    expect(mockNotify.error).toHaveBeenCalled();
   });
 
   it('handles zero paid_months', async () => {
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await result.current.mutateAsync({ contract_id: 'c-1', paid_months: 0 });
-    expect(toast.success).toHaveBeenCalled();
+    expect(mockNotify.success).toHaveBeenCalled();
   });
 });
