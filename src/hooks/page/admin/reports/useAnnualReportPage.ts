@@ -3,6 +3,7 @@
  */
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { defaultNotify } from '@/lib/notify';
+import { usePrint } from '@/hooks/ui/usePrint';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import {
@@ -125,13 +126,14 @@ export function useAnnualReportPage() {
   }, [fiscalYear, grouped, properties, summaryCards, waqfInfo]);
 
   // طباعة
+  const fallbackPrint = usePrint();
   const handlePrint = useCallback(async () => {
     try {
       await handleExportPdf();
     } catch {
-      window.print();
+      fallbackPrint();
     }
-  }, [handleExportPdf]);
+  }, [handleExportPdf, fallbackPrint]);
 
   // نشر/إلغاء نشر
   const handleTogglePublish = useCallback(() => {

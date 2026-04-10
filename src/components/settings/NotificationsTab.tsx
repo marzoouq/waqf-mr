@@ -2,6 +2,7 @@
  * تبويب تفضيلات الإشعارات
  */
 import { useState } from 'react';
+import { safeGet, safeSet } from '@/lib/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -19,12 +20,8 @@ const defaultPrefs = {
 
 const NotificationsTab = () => {
   const [prefs, setPrefs] = useState(() => {
-    try {
-      const stored = localStorage.getItem(NOTIF_PREFS_KEY);
-      return stored ? { ...defaultPrefs, ...JSON.parse(stored) } : defaultPrefs;
-    } catch {
-      return defaultPrefs;
-    }
+    const stored = safeGet<string>(NOTIF_PREFS_KEY, '');
+    return stored ? { ...defaultPrefs, ...JSON.parse(stored) } : defaultPrefs;
   });
 
   const { soundEnabled, selectedTone, volume, handleSoundChange, handleToneChange, handleVolumeChange } = useNotificationPreferences();
@@ -32,7 +29,7 @@ const NotificationsTab = () => {
   const handlePrefChange = (key: keyof typeof defaultPrefs, value: boolean) => {
     const updated = { ...prefs, [key]: value };
     setPrefs(updated);
-    try { localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(updated)); } catch { /* ignored */ }
+    safeSet(NOTIF_PREFS_KEY, updated);
     defaultNotify.success('تم حفظ التفضيلات');
   };
 

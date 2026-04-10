@@ -5,6 +5,7 @@ import { useWebAuthnManage } from './useWebAuthnManage';
 import { useWebAuthnRegister } from './useWebAuthnRegister';
 import { useWebAuthnAuth } from './useWebAuthnAuth';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeGet } from '@/lib/storage';
 
 const BIOMETRIC_ENABLED_KEY = STORAGE_KEYS.BIOMETRIC_ENABLED;
 
@@ -36,7 +37,5 @@ export function useWebAuthn() {
 }
 
 export function isBiometricEnabled(): boolean {
-  try {
-    return localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true';
-  } catch { return false; }
+  return safeGet<string>(BIOMETRIC_ENABLED_KEY, 'false') === 'true';
 }

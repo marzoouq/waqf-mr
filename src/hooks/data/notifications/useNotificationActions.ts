@@ -8,6 +8,7 @@ import type { Notification as AppNotification } from '@/types/database';
 import { NOTIFICATION_TONE_KEY, type ToneId, getVolumeGain, playTone } from '@/constants/notificationTones';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeGet } from '@/lib/storage';
 
 export const useNotificationActions = (userId: string, hasUser: boolean, disabledTypes: Set<string>) => {
   const queryClient = useQueryClient();
@@ -17,7 +18,7 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
   const playNotificationSound = useCallback(() => {
     try {
       if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
-      const tone = (localStorage.getItem(NOTIFICATION_TONE_KEY) || 'chime') as ToneId;
+      const tone = safeGet(NOTIFICATION_TONE_KEY, 'chime') as ToneId;
       playTone(audioCtxRef.current, tone, getVolumeGain());
     } catch { /* silent */ }
   }, []);
@@ -76,8 +77,7 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
     }, (payload) => {
       qcRef.current.invalidateQueries({ queryKey: ['notifications', userId] });
       const newNotif = payload.new as AppNotification;
-      let soundEnabled = true;
-      try { soundEnabled = localStorage.getItem(STORAGE_KEYS.NOTIFICATION_SOUND) !== 'false'; } catch { /* safe */ }
+      const soundEnabled = safeGet<string>(STORAGE_KEYS.NOTIFICATION_SOUND, 'true') !== 'false';
       if (soundEnabled) playSoundRef.current();
       if ('Notification' in window && window.Notification.permission === 'granted') {
         if (lastNotifIdRef.current !== newNotif.id) {

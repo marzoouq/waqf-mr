@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { usePrint } from '@/hooks/ui/usePrint';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,11 +27,12 @@ interface ExportMenuProps {
 }
 
 const ExportMenu = ({ onPrint, onExportPdf, onExportCsv, hidePrint, hidePdf, extraItems }: ExportMenuProps) => {
+  const defaultPrint = usePrint();
   const handlePrint = () => {
     if (onPrint) {
       onPrint();
     } else {
-      window.print();
+      defaultPrint();
     }
   };
 

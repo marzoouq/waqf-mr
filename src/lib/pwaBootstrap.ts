@@ -3,6 +3,7 @@
  * مُستخرج من main.tsx لفصل المسؤوليات
  */
 import { logger } from './logger';
+import { safeGet, safeSet } from './storage';
 
 const APP_BUILD_ID = import.meta.env.VITE_APP_BUILD_ID || import.meta.env.VITE_APP_VERSION || '0.0.0';
 const CACHE_VERSION_KEY = 'pwa_cache_version';
@@ -37,7 +38,7 @@ export async function runPwaCacheGuard(): Promise<void> {
 
   // بيئة الإنتاج فقط
   try {
-    const stored = localStorage.getItem(CACHE_VERSION_KEY);
+    const stored = safeGet<string>(CACHE_VERSION_KEY, '');
     if (stored && stored !== APP_BUILD_ID) {
       const names = await caches.keys();
       await Promise.all(names.map(name => caches.delete(name)));
@@ -47,15 +48,8 @@ export async function runPwaCacheGuard(): Promise<void> {
         await Promise.all(registrations.map(r => r.update()));
       }
 
-      localStorage.setItem(CACHE_VERSION_KEY, APP_BUILD_ID);
-      try {
-        localStorage.setItem('pwa_just_updated', JSON.stringify({
-          version: APP_BUILD_ID,
-          ts: Date.now(),
-        }));
-      } catch (error) {
-        logger.warn('[PWA] تعذر حفظ علم التحديث', error);
-      }
+      safeSet(CACHE_VERSION_KEY, APP_BUILD_ID);
+      safeSet('pwa_just_updated', { version: APP_BUILD_ID, ts: Date.now() });
 
       // حارس ضد حلقات reload لا نهائية — مهلة 10 ثوانٍ
       const RELOAD_GUARD = 'pwa_reload_guard';
@@ -70,7 +64,7 @@ export async function runPwaCacheGuard(): Promise<void> {
       return;
     }
 
-    localStorage.setItem(CACHE_VERSION_KEY, APP_BUILD_ID);
+    safeSet(CACHE_VERSION_KEY, APP_BUILD_ID);
   } catch (error) {
     logger.warn('[PWA] تعذر تنفيذ حماية الكاش', error);
   }

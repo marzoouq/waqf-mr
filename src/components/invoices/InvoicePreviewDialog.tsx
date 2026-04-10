@@ -4,6 +4,7 @@
  * تحميل PDF يأخذ لقطة من المعاينة مباشرة (WYSIWYG)
  */
 import { useState, useEffect, useCallback } from 'react';
+import { usePrint } from '@/hooks/ui/usePrint';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, Printer, Loader2 } from 'lucide-react';
@@ -85,7 +86,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
 
   if (!invoice) return null;
 
-  const handlePrint = () => window.print();
+  const handlePrint = usePrint();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

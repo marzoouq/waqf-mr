@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { defaultNotify } from "@/lib/notify";
+import { safeGet, safeRemove, safeSet } from '@/lib/storage';
 import {
   Dialog,
   DialogContent,
@@ -49,10 +50,10 @@ const PwaUpdateNotifier = () => {
   useEffect(() => {
     const controller = new AbortController();
     try {
-      const raw = localStorage.getItem(UPDATE_FLAG_KEY);
+      const raw = safeGet(UPDATE_FLAG_KEY, '');
       if (!raw) return;
 
-      localStorage.removeItem(UPDATE_FLAG_KEY);
+      safeRemove(UPDATE_FLAG_KEY);
       const { ts } = JSON.parse(raw);
       if (Date.now() - ts >= UPDATE_TTL) return;
 
@@ -64,7 +65,7 @@ const PwaUpdateNotifier = () => {
         .then(res => res.json())
         .then((changelog: ChangelogEntry[]) => {
           if (controller.signal.aborted) return;
-          const lastSeen = localStorage.getItem(LAST_SEEN_KEY) || '0.0.0';
+          const lastSeen = safeGet(LAST_SEEN_KEY, '0.0.0');
           const filtered = changelog.filter(e => compareSemver(e.version, lastSeen) > 0);
           const fallback = changelog[0];
           const entries = filtered.length > 0 ? filtered : fallback ? [fallback] : [];
@@ -80,7 +81,7 @@ const PwaUpdateNotifier = () => {
           });
 
           if (changelog[0]) {
-            localStorage.setItem(LAST_SEEN_KEY, changelog[0].version);
+            safeSet(LAST_SEEN_KEY, changelog[0].version);
           }
         })
         .catch((error: unknown) => {

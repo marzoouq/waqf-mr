@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useEffect, useMemo, useState } from 'react';
 import type { Notification } from '@/types/database';
 import { logger } from '@/lib/logger';
+import { safeGet } from '@/lib/storage';
 import { NOTIF_PREFS_KEY } from '@/constants/notificationTones';
 import { useNotificationActions } from './useNotificationActions';
 
@@ -25,7 +26,7 @@ const PREF_TYPE_MAP: Record<string, string> = {
 /** Returns set of notification types disabled by beneficiary prefs */
 const getDisabledTypes = (): Set<string> => {
   try {
-    const stored = localStorage.getItem(NOTIF_PREFS_KEY);
+    const stored = safeGet<string>(NOTIF_PREFS_KEY, '');
     if (!stored) return new Set();
     const prefs = JSON.parse(stored);
     const disabled = new Set<string>();

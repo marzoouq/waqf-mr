@@ -2,6 +2,7 @@
  * تقرير التحصيل — يجمع الفلاتر والبطاقات والجداول
  */
 import { Card, CardContent } from '@/components/ui/card';
+import { usePrint } from '@/hooks/ui/usePrint';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -31,6 +32,7 @@ const ITEMS_PER_PAGE = 15;
 
 export default function CollectionReport({ contracts, paymentInvoices, isLoading, fiscalYears = [], fiscalYearId = 'all' }: CollectionReportProps) {
   const { sendingAlerts, sendLatePaymentAlerts } = useCollectionAlerts();
+  const print = usePrint();
 
   const {
     rows, filteredRows, summary,
@@ -72,7 +74,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
           <Bell className="w-4 h-4" />
           {sendingAlerts ? 'جاري الإرسال...' : 'إرسال تنبيهات التأخير'}
         </Button>
-        <ExportMenu hidePdf onPrint={() => window.print()} />
+        <ExportMenu hidePdf onPrint={print} />
       </div>
 
       {/* الجدول */}

@@ -2,6 +2,7 @@
  * صفحة التقرير السنوي — المستفيد (قراءة + طباعة + تصدير فقط)
  */
 import { lazy, Suspense } from 'react';
+import { usePrint } from '@/hooks/ui/usePrint';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,6 +26,7 @@ const AnnualReportViewPage = () => {
     fiscalYear,
     handleExportPdf, handleExportCsv,
   } = useAnnualReportViewPage();
+  const print = usePrint();
 
   if (isLoading) {
     return (
@@ -67,7 +69,7 @@ const AnnualReportViewPage = () => {
             <Button variant="outline" size="sm" onClick={handleExportCsv} className="gap-1.5">
               <FileSpreadsheet className="h-4 w-4" />CSV
             </Button>
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5">
+            <Button variant="outline" size="sm" onClick={print} className="gap-1.5">
               <Printer className="h-4 w-4" />طباعة
             </Button>
           </div>

@@ -1,5 +1,6 @@
 
 import { lazy, Suspense } from 'react';
+import { usePrint } from '@/hooks/ui/usePrint';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import DeferredRender from '@/components/common/DeferredRender';
 import ViewportRender from '@/components/common/ViewportRender';
@@ -31,6 +32,7 @@ const PagePerformanceCard = lazy(() => import('@/components/dashboard/PagePerfor
 const AdminDashboard = () => {
   const { role, user } = useAuth();
   const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
+  const print = usePrint();
 
   useDashboardRealtime('admin-dashboard-realtime', ['income', 'expenses', 'accounts', 'payment_invoices', 'messages'], true, [['dashboard-summary'], ['dashboard-heatmap'], ['dashboard-recent-contracts'], ['unread-messages-count']]);
 
@@ -71,7 +73,7 @@ const AdminDashboard = () => {
           icon={Gauge}
           description={greetingText}
           actions={
-            <Button variant="outline" onClick={() => window.print()} className="gap-2">
+            <Button variant="outline" onClick={print} className="gap-2">
               <Printer className="w-4 h-4" />
               <span className="hidden sm:inline">طباعة</span>
             </Button>

@@ -4,6 +4,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeGet, safeSet } from '@/lib/storage';
 
 
 interface ErrorMetadata {
@@ -40,10 +41,10 @@ export async function reportClientError(metadata: ErrorMetadata): Promise<void> 
     // Supabase غير متاح — حفظ محلياً كـ fallback
     try {
       const sessionId = (globalThis as Record<string, unknown>).__ERROR_SESSION_ID ??= crypto.randomUUID();
-      const queue = JSON.parse(localStorage.getItem(STORAGE_KEYS.ERROR_LOG_QUEUE) || '[]');
+      const queue: unknown[] = safeGet(STORAGE_KEYS.ERROR_LOG_QUEUE, [] as unknown[]);
       queue.push({ ...metadata, session_id: sessionId, logged_at: new Date().toISOString() });
       if (queue.length > 20) queue.shift();
-      localStorage.setItem(STORAGE_KEYS.ERROR_LOG_QUEUE, JSON.stringify(queue));
+      safeSet(STORAGE_KEYS.ERROR_LOG_QUEUE, queue);
     } catch { /* التخزين ممتلئ أو غير متاح */ }
   }
 }
