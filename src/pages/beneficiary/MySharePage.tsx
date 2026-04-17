@@ -135,6 +135,14 @@ const MySharePage = () => {
             advancesEnabled={advancesEnabled}
           />
 
+          {/* بطاقة تفسير الخصومات (عند وجود سُلف أو فروق في سنة مقفلة) */}
+          <DeductionsExplanationCard
+            myShare={myShare}
+            paidAdvancesTotal={paidAdvancesTotal}
+            carryforwardBalance={carryforwardBalance}
+            isClosed={isClosed}
+          />
+
           {/* تنبيه السنة النشطة */}
           {!isClosed && (
             <Card className="shadow-sm border-info/30 bg-info/5">
