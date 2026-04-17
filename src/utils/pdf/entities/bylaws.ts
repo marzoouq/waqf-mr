@@ -64,6 +64,7 @@ export const generateBylawsPDF = async (
   });
 
   // Content pages
+  const themeColors = getPdfThemeColors();
   for (const entry of entries) {
     doc.addPage();
     let y = 22;
@@ -73,7 +74,7 @@ export const generateBylawsPDF = async (
     doc.setFontSize(13);
     const badge = entry.part_number === 0 ? 'المقدمة' : `الجزء ${entry.part_number}: ${entry.part_title}`;
     const rsBadge = rs(badge);
-    doc.setFillColor(22, 101, 52);
+    doc.setFillColor(...themeColors.primary);
     doc.setTextColor(255, 255, 255);
     const badgeW = doc.getTextWidth(rsBadge) + 12;
     doc.roundedRect(pageW / 2 - badgeW / 2, y - 5, badgeW, 9, 2, 2, 'F');
@@ -90,7 +91,7 @@ export const generateBylawsPDF = async (
     }
 
     // Separator
-    doc.setDrawColor(202, 138, 4);
+    doc.setDrawColor(...themeColors.secondary);
     doc.setLineWidth(0.5);
     doc.line(margin, y, pageW - margin, y);
     y += 8;
