@@ -48,11 +48,14 @@ export const useDashboardRealtime = (
   const flushInvalidations = useCallback(() => {
     const pending = pendingTablesRef.current;
     if (pending.size === 0) return;
-    // إبطال كاش الجداول المتغيرة دفعة واحدة
+    // #3 perf: predicate دقيق — يبطل فقط queries التي تحوي اسم الجدول كأول مفتاح
+    // بدلاً من invalidateQueries({ queryKey: [table], exact: false }) الذي يطابق أي شيء يبدأ بـ [table]
     pending.forEach((table) => {
-      queryClient.invalidateQueries({ queryKey: [table], exact: false });
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === table,
+      });
     });
-    // إبطال المفاتيح الإضافية
+    // إبطال المفاتيح الإضافية (مثل dashboard-summary)
     extraKeysRef.current.forEach((key) => {
       queryClient.invalidateQueries({ queryKey: [...key], exact: false });
     });

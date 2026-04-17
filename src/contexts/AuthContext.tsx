@@ -16,7 +16,7 @@ import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { fetchUserRole } from '@/lib/auth/fetchUserRole';
-import { clearSlowQueries, clearPageLoadEntries } from '@/lib/monitoring';
+// #15 perf: monitoring يُستورد ديناميكياً داخل signOut() لتقليل initial bundle
 import { queryClient } from '@/lib/queryClient';
 import { toast } from 'sonner';
 import { AuthStateContext, AuthActionsContext } from '@/hooks/auth/useAuthContext';
@@ -198,8 +198,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // مسح مفاتيح sessionStorage الحساسة
       safeSessionRemove(STORAGE_KEYS.FISCAL_YEAR);
       safeSessionRemove(STORAGE_KEYS.NID_LOCKED_UNTIL);
-      clearSlowQueries();
-      clearPageLoadEntries();
+      // #15: dynamic import — monitoring لا يحتاج في initial bundle
+      import('@/lib/monitoring').then(m => {
+        m.clearSlowQueries();
+        m.clearPageLoadEntries();
+      }).catch(() => { /* silent */ });
       toast.dismiss();
     }
   }, [setRoleWithRef]);
