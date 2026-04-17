@@ -1,55 +1,81 @@
 
-# خطة معالجة الفحص العميق #16-#100
+# خطة موجة الأداء — تقرير 100 + 3 مهام كبرى
 
-## التصنيف
+## التصنيف الواقعي
 
-**مستبعد:** #1-15 (نقاط قوة)، #19 (محمي)، #26/#29/#30/#33-38/#48-50/#41-42/#85-87/#89/#97 (مُعالجة سابقاً أو قرارات مقبولة)
+**أخطاء كود مؤكدة:** #1, #2, #3, #4, #5, #6, #7, #8, #9, #14, #20, #29, #35, #61, #62, #63, #64, #89
+**عالية الأثر:** #50 (LockedYearBanner), #99 (تأكيد CSV)
+**مؤجَّل:** #36, #46-#54, #57, #86-#88, #90-#95
+**مستبعد:** #11-13, #16-19, #21-28, #30-34, #37-45, #55-60, #65-85, #91-98, #100
 
-**مُؤجَّل لموجات منفصلة:** #43/#44/#77/#78/#80 (تقسيم hooks)، #51-65/#92-96 (اختبارات)
+---
 
-## المُنفَّذ (16 إصلاح + 7 توثيقات)
+## المهام الثلاث الكبرى
 
-### 🔴 حرجة (4)
-| # | الإصلاح |
-|---|---------|
-| #16 | `import type { FormEvent, MouseEvent } from 'react'` بدل `React.*` |
-| #17 | لف `filteredProperties` بـ `useMemo` |
-| #21 | استخدام `PROPERTIES_PAGE_SIZE` من `constants/pagination.ts` |
-| #22 | فصل أيقونات Lucide إلى `navigationIcons.ts` جديد |
+### A — Bundle Analyzer
+- إضافة `rollup-plugin-visualizer` كـ devDep
+- تفعيل شرطي في `vite.config.ts` عند `mode === 'analyze'`
+- تشغيل build وتحليل أكبر 5 chunks
+- إنتاج `stats.html` في `/mnt/documents/`
 
-### 🟠 بنيوية (5)
-| # | الإصلاح |
-|---|---------|
-| #23/#69 | `routeRegistry.ts` يدمج 4 maps في `Record<route, RouteMeta>` + re-exports |
-| #24 | مفتاح `carryforward` صريح بدل خلط مع `share` |
-| #26/#76 | `setTimeout` دوري كل 5ث لتنظيف `recentToasts` |
-| #71 | `isError` + `error` في return من `useSupportPage` |
-| #74 | `activeContractsFilter.ts` يستخرج المنطق من inline |
+### B — تقسيم `app-settings-all`
+- إبقاء `['app-settings-all']` كـ legacy
+- 3 مفاتيح فرعية: `['app-settings', 'zatca' | 'banner' | 'general']`
+- `getCategoryFromKey(key)` للتصنيف حسب prefix
+- `useZatcaSettings` يستخدم `'zatca'` فقط
+- `useWaqfInfoSave`/`useLogoUpload` → `'general'`
 
-### 🟡 توثيقات JSDoc (7)
-- `usePropertiesPage.ts` (#18, #25) — pagination strategy + سبب 3 useMemos
-- `useWebAuthn.ts` (#27/#28) — تغطية الاختبار
-- `waqf/README.md` + `waqif/README.md` (#31/#32)
-- `AuthContext.tsx` (#70) — JSDoc على `CLEARABLE_STORAGE_KEYS`
-- `src/hooks/README.md` (#91) — جديد
-- `useMySharePdfHandlers.ts` (#99) — تبرير المكان
+### C — Performance Profile قبل/بعد على /dashboard
+- baseline → تنفيذ → بعد
+- جدول مقارنة (heap, DOM nodes, scripts duration)
 
-## الملفات (10)
+---
+
+## إصلاحات الكود
+
+### 🔴 أخطاء (8)
+| # | الملف | الإصلاح |
+|---|------|---------|
+| #1 | `IncomePage.tsx` | `lazy()` بعد imports |
+| #2,#29,#35 | `ReportsPage.tsx` | تجميع lazy + import موحد |
+| #3,#4,#20,#61 | `PropertiesViewPage.tsx` | useMemo، إزالة `!`، رفع TooltipProvider |
+| #6,#7,#63 | `InvoicesPage.tsx` + hook | استخراج IIFE، useMemo، useCallback |
+| #5,#62 | `BeneficiariesPage.tsx` + hook | إزالة pagination مزدوج |
+| #8,#89 | `MessagesPage.tsx` | hook في `admin/management/` |
+| #9 | `BeneficiaryMessagesPage.tsx` | `ml-1` → `ms-1` |
+| #14 | `SettingsPage.tsx` | إزالة `defaultValue` |
+
+### 🟠 توحيد
+- #50 → `LockedYearBanner.tsx` جديد + 3 صفحات
+- #64 → `useExpensesPage` يُرجع `paginatedItems`
+
+---
+
+## الملفات (19)
 ```
-src/hooks/page/admin/management/usePropertiesPage.ts
-src/constants/navigation.ts
-src/constants/navigationIcons.ts          [جديد]
-src/constants/routeRegistry.ts            [جديد]
-src/lib/notify.ts
-src/hooks/page/beneficiary/useSupportPage.ts
-src/hooks/page/admin/activeContractsFilter.ts  [جديد]
-src/contexts/AuthContext.tsx              [JSDoc فقط]
-src/hooks/README.md                       [جديد]
-src/components/waqf/README.md + waqif/README.md  [جديد]
+vite.config.ts, package.json                            [A]
+src/hooks/data/settings/useAppSettings.ts               [B]
+src/hooks/data/settings/useWaqfInfoSave.ts              [B]
+src/hooks/data/settings/useLogoUpload.ts                [B]
+src/hooks/page/admin/management/useZatcaSettings.ts     [B]
+src/hooks/page/admin/management/useMessagesPage.ts      [جديد #8]
+src/pages/dashboard/IncomePage.tsx                      [#1]
+src/pages/dashboard/ReportsPage.tsx                     [#2,#29,#35]
+src/pages/dashboard/PropertiesViewPage.tsx              [#3,#4,#20,#61]
+src/pages/dashboard/InvoicesPage.tsx                    [#6,#7,#63]
+src/pages/dashboard/BeneficiariesPage.tsx               [#5,#62]
+src/pages/dashboard/MessagesPage.tsx                    [#8]
+src/pages/dashboard/SettingsPage.tsx                    [#14]
+src/pages/beneficiary/BeneficiaryMessagesPage.tsx       [#9]
+src/components/common/LockedYearBanner.tsx              [جديد #50]
+src/hooks/page/admin/financial/useInvoicesPage.ts       [#6]
+src/hooks/page/admin/financial/useBeneficiariesPage.ts  [#62]
+src/hooks/page/admin/financial/useExpensesPage.ts       [#64]
 ```
 
 ## الضمانات
-- صفر تغيير سلوكي — re-exports محفوظة لكل المسارات القديمة
-- AuthContext: JSDoc فقط (لا منطق)
-- لا مساس بملفات Supabase المحمية
+- صفر تغيير سلوكي — `app-settings-all` legacy محفوظ
+- لا مساس بملفات المصادقة
 - `npx tsc --noEmit` بعد التنفيذ
+- profile قبل/بعد لقياس فعلي
+- `stats.html` يُسلَّم في `/mnt/documents/`
