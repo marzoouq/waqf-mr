@@ -4,6 +4,7 @@ import {
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
 } from '../core/core';
+import { getPdfThemeColors } from '../core/themeColors';
 // autoTable يُحمّل ديناميكياً داخل الدالة لمنع تحميل vendor-pdf مبكراً
 
 export interface BylawPdfEntry {
