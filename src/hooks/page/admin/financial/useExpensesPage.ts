@@ -135,6 +135,12 @@ export function useExpensesPage() {
     return result;
   }, [expenses, searchQuery, filters, sortField, sortDir]);
 
+  // #64 — حساب paginatedItems في hook بدل slice مكرر في JSX
+  const paginatedExpenses = useMemo(
+    () => filteredExpenses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [filteredExpenses, currentPage]
+  );
+
   /** هل السنة المالية محددة ويمكن الإضافة؟ — #15 */
   const canAdd = !!fiscalYear?.id && !isLocked;
 
@@ -155,6 +161,6 @@ export function useExpensesPage() {
     resetForm, handleEdit, handleSubmit, handleConfirmDelete,
     totalExpenses, uniqueTypes,
     expenseInvoiceMap, documentedCount, documentationRate,
-    filteredExpenses,
+    filteredExpenses, paginatedExpenses,
   };
 }
