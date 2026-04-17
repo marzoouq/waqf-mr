@@ -34,9 +34,9 @@ export function hslStringToRgb(hslStr: string | undefined | null): RgbTuple | nu
   const parts = cleaned.split(/\s+/).filter(Boolean);
   if (parts.length < 3) return null;
 
-  const h = parseFloat(parts[0]);
-  const s = parseFloat(parts[1]) / 100;
-  const l = parseFloat(parts[2]) / 100;
+  const h = parseFloat(parts[0] ?? '');
+  const s = parseFloat(parts[1] ?? '') / 100;
+  const l = parseFloat(parts[2] ?? '') / 100;
 
   if (Number.isNaN(h) || Number.isNaN(s) || Number.isNaN(l)) return null;
 
