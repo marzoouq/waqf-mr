@@ -3,6 +3,7 @@ import { FlaskConical, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppSettings } from "@/hooks/data/settings/useAppSettings";
 import { DEFAULT_BANNER_SETTINGS, type BannerSettings } from "@/constants";
+import { safeSessionGet, safeSessionSet } from "@/lib/storage";
 
 const BANNER_DISMISS_KEY = 'beta_banner_dismissed';
 
@@ -23,7 +24,7 @@ const BANNER_HOVER: Record<string, string> = {
 };
 
 const BetaBanner = () => {
-  const [dismissed, setDismissed] = useState(() => sessionStorage.getItem(BANNER_DISMISS_KEY) === '1');
+  const [dismissed, setDismissed] = useState(() => safeSessionGet<string>(BANNER_DISMISS_KEY, '') === '1');
   const { getJsonSetting, isLoading } = useAppSettings();
 
   const settings = getJsonSetting<BannerSettings>("beta_banner_settings", DEFAULT_BANNER_SETTINGS);
@@ -48,7 +49,7 @@ const BetaBanner = () => {
       <span>{settings.text}</span>
       {settings.dismissible && (
         <button
-          onClick={() => { setDismissed(true); sessionStorage.setItem(BANNER_DISMISS_KEY, '1'); }}
+          onClick={() => { setDismissed(true); safeSessionSet(BANNER_DISMISS_KEY, '1'); }}
           className={cn("ms-2 rounded p-0.5 transition-colors", hoverClass)}
           aria-label="إغلاق"
         >
