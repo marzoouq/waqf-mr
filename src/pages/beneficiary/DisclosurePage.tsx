@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, AlertCircle, FileDown, Info } from 'lucide-react';
+import { FileText, FileDown, Info } from 'lucide-react';
 import { ExportMenu, RequirePublishedYears, DashboardSkeleton, ErrorState } from '@/components/common';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import DisclosureSummaryCards from '@/components/disclosure/DisclosureSummaryCards';
