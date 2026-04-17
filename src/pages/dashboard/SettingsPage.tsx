@@ -3,7 +3,9 @@ import { useSettingsPage } from '@/hooks/page/admin/management/useSettingsPage';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
+import { Settings } from 'lucide-react';
+import PageLoader from '@/components/common/PageLoader';
+import { SETTINGS_CATEGORIES } from '@/constants/settingsCategories';
 
 // — مكونات محمّلة كسول (كانت inline سابقاً) —
 const WaqfSettingsTab = lazy(() => import('@/components/settings/WaqfSettingsTab'));
@@ -24,46 +26,7 @@ const BiometricSettings = lazy(() => import('@/components/settings/BiometricSett
 const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
 const ZatcaSettingsTab = lazy(() => import('@/components/settings/ZatcaSettingsTab'));
 
-const LOADING = <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
-
-// === تصنيف التبويبات في فئات ===
-const SETTINGS_CATEGORIES = [
-  {
-    label: 'الهوية والمظهر',
-    tabs: [
-      { value: 'waqf', label: 'بيانات الوقف', icon: Building2 },
-      { value: 'landing', label: 'الواجهة الرئيسية', icon: Globe },
-      { value: 'appearance', label: 'المظهر', icon: Palette },
-      { value: 'banner', label: 'شريط التنبيه', icon: FlaskConical },
-    ],
-  },
-  {
-    label: 'المالية',
-    tabs: [
-      { value: 'fiscal', label: 'السنوات المالية', icon: Calendar },
-      { value: 'advances', label: 'السُلف', icon: Banknote },
-      { value: 'zatca', label: 'الضريبة (ZATCA)', icon: FileText },
-    ],
-  },
-  {
-    label: 'المستخدمون والأقسام',
-    tabs: [
-      { value: 'permissions', label: 'إدارة الصلاحيات', icon: Shield },
-      { value: 'menu', label: 'القائمة', icon: LayoutList },
-    ],
-  },
-  {
-    label: 'النظام',
-    tabs: [
-      { value: 'notifications', label: 'الإشعارات', icon: Bell },
-      { value: 'bulk-notify', label: 'إشعارات جماعية', icon: Megaphone },
-      { value: 'bulk-message', label: 'رسائل جماعية', icon: MessageSquare },
-      { value: 'export', label: 'تصدير البيانات', icon: Download },
-      { value: 'biometric', label: 'البصمة', icon: Fingerprint },
-      { value: 'security', label: 'الأمان', icon: ShieldCheck },
-    ],
-  },
-];
+const LOADING = <PageLoader />;
 
 const SettingsPage = () => {
   const { activeTab: activeSettingsTab, setActiveTab: setActiveSettingsTab, isMobile } = useSettingsPage('waqf');

@@ -18,3 +18,5 @@ export { TableSkeleton, DashboardSkeleton, StatsGridSkeleton, KpiSkeleton, Chart
 export { default as ChartSkeletonCard } from './ChartSkeleton';
 export { default as TablePagination } from './TablePagination';
 export { default as LockedYearBanner } from './LockedYearBanner';
+export { ErrorState, EmptyPageState } from './PageStateGuards';
+export { default as ConfirmDeleteDialog } from './ConfirmDeleteDialog';

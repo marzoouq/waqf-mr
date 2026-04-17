@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, AlertCircle, RefreshCw, FileDown, Info } from 'lucide-react';
-import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
+import { FileText, FileDown, Info } from 'lucide-react';
+import { ExportMenu, RequirePublishedYears, DashboardSkeleton, ErrorState } from '@/components/common';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import DisclosureSummaryCards from '@/components/disclosure/DisclosureSummaryCards';
 import DisclosureContractsSection from '@/components/disclosure/DisclosureContractsSection';
@@ -27,39 +27,32 @@ const DisclosurePage = () => {
 
   if (isError) {
     return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <p className="text-muted-foreground text-center max-w-md">يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.</p>
-          <Button onClick={handleRetry} className="gap-2"><RefreshCw className="w-4 h-4" /> إعادة المحاولة</Button>
-        </div>
-      </DashboardLayout>
+      <ErrorState
+        onRetry={handleRetry}
+        description="يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى."
+      />
     );
   }
 
-  if (!currentBeneficiary && !isLoading) {
+  if (!currentBeneficiary) {
     return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-warning" />
-          <h2 className="text-xl font-bold text-foreground">حسابك غير مرتبط</h2>
-          <p className="text-muted-foreground text-center max-w-md">حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف.</p>
-        </div>
-      </DashboardLayout>
+      <ErrorState
+        variant="warning"
+        message="حسابك غير مرتبط"
+        description="حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف."
+      />
     );
   }
 
   if (isAccountMissing && selectedFY?.status === 'closed') {
     return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-warning" />
-          <h2 className="text-xl font-bold">لم يتم العثور على الحساب الختامي</h2>
-          <p className="text-muted-foreground text-center max-w-md">لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد.</p>
-          <Button onClick={handleRetry} className="gap-2"><RefreshCw className="w-4 h-4" /> إعادة تحميل</Button>
-        </div>
-      </DashboardLayout>
+      <ErrorState
+        variant="warning"
+        message="لم يتم العثور على الحساب الختامي"
+        description="لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد."
+        onRetry={handleRetry}
+        retryLabel="إعادة تحميل"
+      />
     );
   }
 

@@ -2,11 +2,11 @@
  * صفحة حصتي من الريع — مُفكّكة إلى hook + مكونات فرعية
  */
 import { useNavigate } from 'react-router-dom';
-import { Wallet, AlertCircle, RefreshCw, UserX, FileDown, Info, FileText, Clock } from 'lucide-react';
+import { Wallet, AlertCircle, UserX, FileDown, Info, FileText, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { RequirePublishedYears, ExportMenu, DashboardSkeleton } from '@/components/common';
+import { RequirePublishedYears, ExportMenu, DashboardSkeleton, ErrorState, EmptyPageState } from '@/components/common';
 import { AdvanceRequestDialog } from '@/components/beneficiaries';
 import MyShareSummaryCards from '@/components/my-share/MyShareSummaryCards';
 import DistributionsTable from '@/components/my-share/DistributionsTable';
@@ -38,47 +38,30 @@ const MySharePage = () => {
 
   // حالة الخطأ
   if (isError) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={handleRetry} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
+    return <ErrorState onRetry={handleRetry} />;
   }
 
   // مستفيد غير موجود
   if (!currentBeneficiary) {
     return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <UserX className="w-16 h-16 text-muted-foreground" />
-          <h2 className="text-xl font-bold">لم يتم العثور على سجل المستفيد</h2>
-          <p className="text-muted-foreground text-center">حسابك غير مرتبط بسجل مستفيد. يرجى التواصل مع ناظر الوقف.</p>
-        </div>
-      </DashboardLayout>
+      <EmptyPageState
+        icon={UserX}
+        title="لم يتم العثور على سجل المستفيد"
+        description="حسابك غير مرتبط بسجل مستفيد. يرجى التواصل مع ناظر الوقف."
+      />
     );
   }
 
   // حساب ختامي مفقود في سنة مقفلة
   if (isAccountMissing && isClosed) {
     return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-warning" />
-          <h2 className="text-xl font-bold">لم يتم العثور على الحساب الختامي</h2>
-          <p className="text-muted-foreground text-center max-w-md">
-            لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد. يرجى التواصل مع ناظر الوقف أو المحاولة لاحقاً.
-          </p>
-          <Button onClick={handleRetry} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> إعادة تحميل
-          </Button>
-        </div>
-      </DashboardLayout>
+      <ErrorState
+        variant="warning"
+        message="لم يتم العثور على الحساب الختامي"
+        description="لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد. يرجى التواصل مع ناظر الوقف أو المحاولة لاحقاً."
+        onRetry={handleRetry}
+        retryLabel="إعادة تحميل"
+      />
     );
   }
 

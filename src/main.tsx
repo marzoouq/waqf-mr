@@ -47,6 +47,11 @@ try {
   );
 } catch (error) {
   logger.error('[BOOT] فشل الإقلاع:', error);
+  // عرض fallback HTML داخل #root قبل إزالة splash لمنع شاشة فارغة
+  const rootEl = document.getElementById("root");
+  if (rootEl && !rootEl.hasChildNodes()) {
+    rootEl.innerHTML = `<div style="padding:2rem;text-align:center;font-family:sans-serif;direction:rtl"><h1>تعذّر تحميل التطبيق</h1><p>يرجى تحديث الصفحة. إذا استمرت المشكلة، تواصل مع الدعم.</p><button onclick="location.reload()" style="padding:0.5rem 1rem;cursor:pointer;margin-top:1rem">تحديث</button></div>`;
+  }
 } finally {
   removeSplash();
 }

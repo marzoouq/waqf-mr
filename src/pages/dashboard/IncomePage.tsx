@@ -13,14 +13,12 @@ import { Plus, TrendingUp, Search, AlertTriangle } from 'lucide-react';
 import IncomeSummaryCards from '@/components/income/IncomeSummaryCards';
 import IncomeMobileCards from '@/components/income/IncomeMobileCards';
 import IncomeDesktopTable from '@/components/income/IncomeDesktopTable';
-import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner } from '@/components/common';
+import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner, ConfirmDeleteDialog } from '@/components/common';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
+import { logger } from '@/lib/logger';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { useIncomePage } from '@/hooks/page/admin/financial/useIncomePage';
 
 // #1 — lazy() بعد كل imports
@@ -51,7 +49,15 @@ const IncomePage = () => {
           icon={TrendingUp}
           description="تسجيل ومتابعة مصادر الدخل"
           actions={<>
-            <ExportMenu onExportPdf={async () => { const { generateIncomePDF } = await import('@/utils/pdf'); return generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo); }} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => {
+              try {
+                const { generateIncomePDF } = await import('@/utils/pdf');
+                await generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo);
+              } catch (e) {
+                logger.error('PDF Income failed:', e);
+                defaultNotify.error('تعذّر توليد ملف PDF');
+              }
+            }} onExportCsv={() => {
               const csv = buildCsv(filteredIncome.map(item => ({
                 'المصدر': item.source,
                 'المبلغ': safeNumber(item.amount),
@@ -151,18 +157,12 @@ const IncomePage = () => {
           </CardContent>
         </Card>
 
-        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>هل أنت متأكد من الحذف؟</AlertDialogTitle>
-              <AlertDialogDescription>سيتم حذف {deleteTarget?.name} نهائياً ولا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex-row-reverse gap-2">
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">تأكيد الحذف</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmDeleteDialog
+          open={!!deleteTarget}
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+          targetName={deleteTarget?.name}
+          onConfirm={handleConfirmDelete}
+        />
       </div>
     </DashboardLayout>
   );
