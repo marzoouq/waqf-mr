@@ -6,6 +6,9 @@
  * #28/#29 من تقرير الفحص: dedup يمنع تكرار نفس الرسالة خلال DEDUP_MS.
  * القيمة 2000ms مختارة عمداً لتغطية batch operations دون قمع رسائل مشروعة.
  * للاختبارات: استخدم __resetNotifyDedup() لمسح الذاكرة بين الـ specs.
+ *
+ * #26/#76 من الفحص العميق: تنظيف دوري كل CLEANUP_MS بدلاً من الاعتماد على
+ * عتبة `size > 20`، لضمان عدم تراكم الإدخالات في حالات الـ batch الطويلة.
  */
 import { toast } from 'sonner';
 import type { ExternalToast } from 'sonner';
@@ -21,6 +24,21 @@ export interface AppNotify {
 /** منع التكرار — يحفظ آخر رسالة مع وقتها */
 const recentToasts = new Map<string, number>();
 const DEDUP_MS = 2000; // 2 ثانية — يكفي لـ batch operations دون قمع رسائل مشروعة
+const CLEANUP_MS = 5000; // تنظيف دوري كل 5 ثوانٍ
+
+let cleanupTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleCleanup() {
+  if (cleanupTimer || typeof window === 'undefined') return;
+  cleanupTimer = setTimeout(() => {
+    const now = Date.now();
+    for (const [key, time] of recentToasts) {
+      if (now - time > DEDUP_MS) recentToasts.delete(key);
+    }
+    cleanupTimer = null;
+    if (recentToasts.size > 0) scheduleCleanup();
+  }, CLEANUP_MS);
+}
 
 function dedupToast(
   fn: (msg: string, opts?: ExternalToast) => string | number,
@@ -31,18 +49,17 @@ function dedupToast(
   const lastTime = recentToasts.get(msg);
   if (lastTime && now - lastTime < DEDUP_MS) return;
   recentToasts.set(msg, now);
-  // تنظيف الذاكرة
-  if (recentToasts.size > 20) {
-    for (const [key, time] of recentToasts) {
-      if (now - time > DEDUP_MS) recentToasts.delete(key);
-    }
-  }
+  scheduleCleanup();
   fn(msg, opts);
 }
 
 /** test helper: مسح ذاكرة dedup بين الاختبارات (لا يُستخدم في الإنتاج) */
 export function __resetNotifyDedup(): void {
   recentToasts.clear();
+  if (cleanupTimer) {
+    clearTimeout(cleanupTimer);
+    cleanupTimer = null;
+  }
 }
 
 /** الإشعارات الافتراضية عبر sonner — مع حماية من التكرار */

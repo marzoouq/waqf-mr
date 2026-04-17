@@ -4,39 +4,32 @@
  *
  * #26 من تقرير الفحص: مسار `/waqif` مُستخدم فعلياً في BottomNav, Sidebar,
  * useRoleRedirect, Index, Unauthorized. الادعاء بأنه "يتيم" غير دقيق — إبقاؤه إلزامي.
+ *
+ * #22/#23/#69 من الفحص العميق: تم نقل الأيقونات إلى `navigationIcons.ts`،
+ * وإعادة بناء جميع maps المسارات (titles/labels/perms/sections) من
+ * `routeRegistry.ts` الموحّد. الـ exports القديمة محفوظة بالكامل للتوافق العكسي.
  */
 import {
   Building2, Home, FileText, Wallet, Users, BarChart3,
   DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
   ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity,
-} from 'lucide-react';
-import type { MenuLabels } from '@/types/navigation';
+} from '@/constants/navigationIcons';
 import { ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
+import {
+  ADMIN_ROUTES,
+  BENEFICIARY_ROUTES,
+  ALL_ROUTES,
+  buildLabelKeys,
+  buildPermKeys,
+  buildSectionKeys,
+  buildTitles,
+} from '@/constants/routeRegistry';
 
-// ─── Map link keys to menu_labels keys ───
-export const linkLabelKeys: Record<string, keyof MenuLabels> = {
-  '/dashboard': 'home',
-  '/dashboard/properties': 'properties',
-  '/dashboard/contracts': 'contracts',
-  '/dashboard/income': 'income',
-  '/dashboard/expenses': 'expenses',
-  '/dashboard/beneficiaries': 'beneficiaries',
-  '/dashboard/reports': 'reports',
-  '/dashboard/accounts': 'accounts',
-  '/dashboard/users': 'users',
-  '/dashboard/settings': 'settings',
-  '/dashboard/messages': 'messages',
-  '/dashboard/invoices': 'invoices',
-  '/dashboard/audit-log': 'audit_log',
-  '/dashboard/bylaws': 'bylaws',
-  '/dashboard/chart-of-accounts': 'chart_of_accounts',
-  '/dashboard/zatca': 'zatca',
-  '/dashboard/support': 'support',
-  '/dashboard/annual-report': 'annual_report',
-  '/dashboard/comparison': 'comparison',
-  '/dashboard/diagnostics': 'diagnostics',
-  '/beneficiary': 'beneficiary_view',
+// ─── Map link keys to menu_labels keys (مبني من السجل الموحّد) ───
+export const linkLabelKeys = {
+  ...buildLabelKeys(ADMIN_ROUTES),
+  ...buildLabelKeys(BENEFICIARY_ROUTES),
 };
 
 // ─── Navigation links ───
@@ -92,44 +85,15 @@ export const SHOW_ALL_ROUTES = [
   '/dashboard/audit-log',
 ];
 
-// ─── Permission maps ───
-export const ADMIN_ROUTE_PERM_KEYS: Record<string, string> = {
-  '/dashboard/properties': 'properties',
-  '/dashboard/contracts': 'contracts',
-  '/dashboard/income': 'income',
-  '/dashboard/expenses': 'expenses',
-  '/dashboard/beneficiaries': 'beneficiaries',
-  '/dashboard/reports': 'reports',
-  '/dashboard/accounts': 'accounts',
-  '/dashboard/invoices': 'invoices',
-  '/dashboard/bylaws': 'bylaws',
-  '/dashboard/messages': 'messages',
-  '/dashboard/audit-log': 'audit_log',
-  '/dashboard/annual-report': 'annual_report',
-  '/dashboard/support': 'support',
-  '/dashboard/chart-of-accounts': 'chart_of_accounts',
-};
+// ─── Permission maps (مبنية من السجل الموحّد #23) ───
+export const ADMIN_ROUTE_PERM_KEYS: Record<string, string> = buildPermKeys(ADMIN_ROUTES);
 
 /**
  * BENEFICIARY_ROUTE_PERM_KEYS — خريطة المسارات إلى مفاتيح الصلاحيات.
- * ملاحظة (#25 من تقرير الفحص): مساران (`/my-share` و `/carryforward`) يشتركان في مفتاح `share`
- * بشكل مقصود — التنزيلات والترحيلات جزء منتجي من "حصة المستفيد"، يُتحكم بها معاً.
+ * #24 من الفحص العميق: `/my-share` و `/carryforward` لهما الآن مفتاحان مستقلان
+ * (`share` و `carryforward`) بدلاً من المشاركة في مفتاح واحد، لإتاحة تحكم مستقل.
  */
-export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
-  '/beneficiary/properties': 'properties',
-  '/beneficiary/contracts': 'contracts',
-  '/beneficiary/disclosure': 'disclosure',
-  '/beneficiary/my-share': 'share',
-  '/beneficiary/carryforward': 'share',
-  '/beneficiary/financial-reports': 'reports',
-  '/beneficiary/accounts': 'accounts',
-  '/beneficiary/invoices': 'invoices',
-  '/beneficiary/bylaws': 'bylaws',
-  '/beneficiary/messages': 'messages',
-  '/beneficiary/notifications': 'notifications',
-  '/beneficiary/annual-report': 'annual_report',
-  '/beneficiary/support': 'support',
-};
+export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = buildPermKeys(BENEFICIARY_ROUTES);
 
 // ─── Routes accountant can never access ───
 export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/beneficiary'];
@@ -138,84 +102,11 @@ export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/setti
 export const defaultAdminSections: Record<string, boolean> = makeDefaults(ADMIN_SECTION_KEYS);
 export const defaultBeneficiarySections: Record<string, boolean> = makeDefaults(BENEFICIARY_SECTION_KEYS);
 
-/**
- * خريطة من المسار إلى مفتاح القسم — للوحة الناظر/المحاسب
- * (مُعاد تسميتها من ADMIN_SECTION_KEYS لتجنب تضارب التسمية مع المصفوفة في sections.ts)
- */
-export const ADMIN_ROUTE_TO_SECTION: Record<string, string> = {
-  '/dashboard/properties': 'properties',
-  '/dashboard/contracts': 'contracts',
-  '/dashboard/income': 'income',
-  '/dashboard/expenses': 'expenses',
-  '/dashboard/beneficiaries': 'beneficiaries',
-  '/dashboard/reports': 'reports',
-  '/dashboard/accounts': 'accounts',
-  '/dashboard/users': 'users',
-  '/dashboard/invoices': 'invoices',
-  '/dashboard/bylaws': 'bylaws',
-  '/dashboard/messages': 'messages',
-  '/dashboard/audit-log': 'audit_log',
-  '/dashboard/annual-report': 'annual_report',
-  '/dashboard/support': 'support',
-  '/dashboard/chart-of-accounts': 'chart_of_accounts',
-};
+/** خريطة من المسار إلى مفتاح القسم — للوحة الناظر/المحاسب (مبنية من السجل) */
+export const ADMIN_ROUTE_TO_SECTION: Record<string, string> = buildSectionKeys(ADMIN_ROUTES);
 
-/**
- * خريطة من المسار إلى مفتاح القسم — لواجهة المستفيد/الواقف
- * (مُعاد تسميتها من BENEFICIARY_SECTION_KEYS لتجنب تضارب التسمية مع المصفوفة في sections.ts)
- */
-export const BENEFICIARY_ROUTE_TO_SECTION: Record<string, string> = {
-  '/beneficiary/properties': 'properties',
-  '/beneficiary/contracts': 'contracts',
-  '/beneficiary/disclosure': 'disclosure',
-  '/beneficiary/my-share': 'share',
-  '/beneficiary/carryforward': 'share',
-  '/beneficiary/accounts': 'accounts',
-  '/beneficiary/financial-reports': 'reports',
-  '/beneficiary/invoices': 'invoices',
-  '/beneficiary/bylaws': 'bylaws',
-  '/beneficiary/messages': 'messages',
-  '/beneficiary/notifications': 'notifications',
-  '/beneficiary/annual-report': 'annual_report',
-  '/beneficiary/support': 'support',
-};
+/** خريطة من المسار إلى مفتاح القسم — لواجهة المستفيد/الواقف (مبنية من السجل) */
+export const BENEFICIARY_ROUTE_TO_SECTION: Record<string, string> = buildSectionKeys(BENEFICIARY_ROUTES);
 
-// ─── Dynamic mobile header titles ───
-export const ROUTE_TITLES: Record<string, string> = {
-  '/dashboard': 'الرئيسية',
-  '/dashboard/properties': 'العقارات',
-  '/dashboard/contracts': 'العقود',
-  '/dashboard/income': 'الدخل',
-  '/dashboard/expenses': 'المصروفات',
-  '/dashboard/beneficiaries': 'المستفيدين',
-  '/dashboard/reports': 'التقارير',
-  '/dashboard/accounts': 'الحسابات',
-  '/dashboard/users': 'إدارة المستخدمين',
-  '/dashboard/settings': 'الإعدادات',
-  '/dashboard/messages': 'المراسلات',
-  '/dashboard/invoices': 'الفواتير',
-  '/dashboard/audit-log': 'سجل المراجعة',
-  '/dashboard/bylaws': 'اللائحة التنظيمية',
-  '/dashboard/zatca': 'إدارة ZATCA',
-  '/dashboard/annual-report': 'التقرير السنوي',
-  '/dashboard/support': 'الدعم الفني',
-  '/dashboard/chart-of-accounts': 'الشجرة المحاسبية',
-  '/dashboard/comparison': 'المقارنة التاريخية',
-  '/dashboard/diagnostics': 'تشخيص النظام',
-  '/beneficiary': 'الرئيسية',
-  '/beneficiary/properties': 'العقارات',
-  '/beneficiary/contracts': 'العقود',
-  '/beneficiary/disclosure': 'الإفصاح السنوي',
-  '/beneficiary/my-share': 'حصتي من الريع',
-  '/beneficiary/carryforward': 'الترحيلات والخصومات',
-  '/beneficiary/financial-reports': 'التقارير المالية',
-  '/beneficiary/accounts': 'الحسابات الختامية',
-  '/beneficiary/messages': 'المراسلات',
-  '/beneficiary/notifications': 'سجل الإشعارات',
-  '/beneficiary/invoices': 'الفواتير',
-  '/beneficiary/bylaws': 'اللائحة التنظيمية',
-  '/beneficiary/settings': 'الإعدادات',
-  '/beneficiary/support': 'الدعم الفني',
-  '/beneficiary/annual-report': 'التقرير السنوي',
-  '/waqif': 'لوحة الواقف',
-};
+// ─── Dynamic mobile header titles (مبنية من السجل الموحّد) ───
+export const ROUTE_TITLES: Record<string, string> = buildTitles(ALL_ROUTES);
