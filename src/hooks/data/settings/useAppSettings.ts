@@ -21,18 +21,46 @@ export interface WaqfInfo {
   vat_registration_number: string;
 }
 
+/**
+ * المهمة B — تصنيف مفاتيح الإعدادات إلى فئات للحدّ من re-fetches غير الضرورية.
+ * `getCategoryFromKey` يُستخدم في `updateSetting`/`updateSettingsBatch` لإبطال
+ * الفئة المعنية فقط بدلاً من إبطال جميع الإعدادات.
+ *
+ * الفئات:
+ *  - `zatca`: مفاتيح ZATCA + الحساب البنكي للوقف (مرتبط بإعداد فاتورة)
+ *  - `banner`: شريط التنبيه
+ *  - `general`: بقية الإعدادات (بيانات الوقف، المظهر، الإشعارات...)
+ *
+ * `app-settings-all` يبقى كـ legacy key للتوافق مع `useSetting` و`useWaqfInfo`
+ * والمستهلكين الذين يقرؤون أي مفتاح من الإعدادات.
+ */
+export type SettingsCategory = 'zatca' | 'banner' | 'general';
+
+export const getCategoryFromKey = (key: string): SettingsCategory => {
+  if (key.startsWith('zatca_') || key.startsWith('business_address_') || key.startsWith('waqf_bank_') ||
+      key === 'vat_registration_number' || key === 'commercial_registration_number' || key === 'default_vat_rate') {
+    return 'zatca';
+  }
+  if (key.startsWith('banner_') || key === 'beta_banner_enabled' || key === 'beta_banner_message') {
+    return 'banner';
+  }
+  return 'general';
+};
+
+const settingsQueryFn = async () => {
+  const { data, error } = await supabase.from('app_settings').select('key, value');
+  if (error) throw error;
+  const settings: Record<string, string> = {};
+  data?.forEach((row) => { settings[row.key] = row.value; });
+  return settings;
+};
+
 export const useAppSettings = () => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: ['app-settings-all'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('app_settings').select('key, value');
-      if (error) throw error;
-      const settings: Record<string, string> = {};
-      data?.forEach((row) => { settings[row.key] = row.value; });
-      return settings;
-    },
+    queryFn: settingsQueryFn,
     staleTime: STALE_SETTINGS,
     retry: 2,
     retryDelay: 1500,
@@ -40,15 +68,27 @@ export const useAppSettings = () => {
     placeholderData: {} as Record<string, string>,
   });
 
+  /**
+   * يبطل الفئة المعنية + legacy key للتوافق
+   */
+  const invalidateCategories = (keys: string[]) => {
+    const categories = new Set(keys.map(getCategoryFromKey));
+    categories.forEach((cat) => {
+      queryClient.invalidateQueries({ queryKey: ['app-settings', cat] });
+    });
+    queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+  };
+
   const updateSetting = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: string }) => {
       const { error } = await supabase
         .from('app_settings')
         .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
       if (error) throw error;
+      return key;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+    onSuccess: (key) => {
+      invalidateCategories([key]);
     },
     onError: () => {
       defaultNotify.error('حدث خطأ أثناء حفظ الإعداد');
@@ -68,9 +108,10 @@ export const useAppSettings = () => {
         .upsert(payload, { onConflict: 'key' });
 
       if (error) throw error;
+      return rows.map((r) => r.key);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+    onSuccess: (keys) => {
+      invalidateCategories(keys);
     },
     onError: () => {
       defaultNotify.error('حدث خطأ أثناء حفظ الإعدادات');
@@ -111,19 +152,39 @@ export const useAppSettings = () => {
 };
 
 /**
+ * المهمة B — هوك مُحسَّن يقرأ فئة محددة فقط.
+ * يستخدم نفس استعلام `app-settings-all` لكن مع query key مختلف للسماح
+ * بإبطال انتقائي. `select` يضمن أن المكون يُعاد تصييره فقط عند تغير
+ * المفاتيح ذات الصلة بالفئة.
+ *
+ * مثال: `useSettingsCategory('zatca')` لن يُبطل عند حفظ banner أو general.
+ */
+export const useSettingsCategory = (category: SettingsCategory) => {
+  return useQuery({
+    queryKey: ['app-settings', category],
+    queryFn: settingsQueryFn,
+    staleTime: STALE_SETTINGS,
+    gcTime: 1000 * 60 * 30,
+    select: (settings) => {
+      const filtered: Record<string, string> = {};
+      for (const [key, value] of Object.entries(settings)) {
+        if (getCategoryFromKey(key) === category) {
+          filtered[key] = value;
+        }
+      }
+      return filtered;
+    },
+  });
+};
+
+/**
  * #50/#60: هوك مُحسَّن لجلب إعداد واحد فقط — يمنع re-renders غير ضرورية
  * عبر select في useQuery الذي يُقارن القيمة المُرجعة بالمرجعية
  */
 export const useSetting = (key: string, fallback = ''): string => {
   const { data } = useQuery({
     queryKey: ['app-settings-all'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('app_settings').select('key, value');
-      if (error) throw error;
-      const settings: Record<string, string> = {};
-      data?.forEach((row) => { settings[row.key] = row.value; });
-      return settings;
-    },
+    queryFn: settingsQueryFn,
     staleTime: STALE_SETTINGS,
     gcTime: 1000 * 60 * 30,
     select: (settings) => settings[key] ?? fallback,
