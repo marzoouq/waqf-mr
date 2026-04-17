@@ -1,5 +1,10 @@
 /**
  * صفحة عرض العقارات للمستفيد (قراءة فقط)
+ *
+ * #3/#4/#20/#61 — تحسينات أداء:
+ * - الخرائط المسبقة من usePropertiesViewData (لا filter داخل .map)
+ * - TooltipProvider مرفوع لمستوى الصفحة (مرة واحدة)
+ * - إزالة non-null assertion (!)
  */
 
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
@@ -18,7 +23,7 @@ import { usePropertiesViewData } from '@/hooks/page/admin/management/useProperti
 
 const PropertiesViewPage = () => {
   const {
-    properties, units, contracts, isLoading, isError,
+    properties, isLoading, isError,
     refetchProps, refetchUnits,
     isClosed,
     expandedId, setExpandedId,
@@ -26,6 +31,10 @@ const PropertiesViewPage = () => {
     totalUnits, occupiedUnits,
     summaryData,
     propertyFinancialsMap,
+    propertyContractsMap,
+    propertyUnitsMap,
+    wholePropertyRentedSet,
+    rentedUnitIdsByPropertyMap,
   } = usePropertiesViewData();
 
   const { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor } = summaryData;
@@ -52,139 +61,150 @@ const PropertiesViewPage = () => {
   return (
     <RequirePublishedYears title="العقارات" icon={Building2} description="عرض العقارات والوحدات">
     <DashboardLayout>
-      <div className="p-4 md:p-6 space-y-6">
-        <PageHeaderCard
-          title="العقارات"
-          description="عرض العقارات والوحدات والمؤشرات التشغيلية"
-          icon={Building2}
-          actions={
-            <ExportMenu onExportPdf={async () => {
-              try {
-                await generatePropertiesPDF(
-                  (properties ?? []).map(p => ({
-                    property_number: p.property_number, property_type: p.property_type,
-                    location: p.location, area: p.area, description: p.description,
-                  })),
-                  pdfWaqfInfo
-                );
-                defaultNotify.success('تم تصدير العقارات بنجاح');
-              } catch { defaultNotify.error('حدث خطأ أثناء تصدير PDF'); }
-            }} />
-          }
-        />
+      {/* #20: TooltipProvider مرة واحدة فقط لكل الصفحة */}
+      <TooltipProvider>
+        <div className="p-4 md:p-6 space-y-6">
+          <PageHeaderCard
+            title="العقارات"
+            description="عرض العقارات والوحدات والمؤشرات التشغيلية"
+            icon={Building2}
+            actions={
+              <ExportMenu onExportPdf={async () => {
+                try {
+                  await generatePropertiesPDF(
+                    (properties ?? []).map(p => ({
+                      property_number: p.property_number, property_type: p.property_type,
+                      location: p.location, area: p.area, description: p.description,
+                    })),
+                    pdfWaqfInfo
+                  );
+                  defaultNotify.success('تم تصدير العقارات بنجاح');
+                } catch { defaultNotify.error('حدث خطأ أثناء تصدير PDF'); }
+              }} />
+            }
+          />
 
-        {/* بطاقات الملخص الإجمالية */}
-        <div className="space-y-4 animate-slide-up">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-primary/10"><Building2 className="w-5 h-5 text-primary" /></div><div><p className="text-xs text-muted-foreground">إجمالي العقارات</p><p className="text-xl font-bold">{totalProperties}</p></div></CardContent></Card>
-            <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-accent/50"><Layers className="w-5 h-5 text-accent-foreground" /></div><div><p className="text-xs text-muted-foreground">إجمالي الوحدات</p><p className="text-xl font-bold">{totalUnits}</p></div></CardContent></Card>
-            <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-success/10"><div className="w-5 h-5 rounded-full bg-success" /></div><div><p className="text-xs text-muted-foreground">مؤجرة</p><p className="text-xl font-bold text-success">{occupiedUnits}</p></div></CardContent></Card>
-            <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-warning/10"><div className="w-5 h-5 rounded-full bg-warning" /></div><div><p className="text-xs text-muted-foreground">شاغرة</p><p className="text-xl font-bold text-warning">{totalVacant}</p></div></CardContent></Card>
+          {/* بطاقات الملخص الإجمالية */}
+          <div className="space-y-4 animate-slide-up">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-primary/10"><Building2 className="w-5 h-5 text-primary" /></div><div><p className="text-xs text-muted-foreground">إجمالي العقارات</p><p className="text-xl font-bold">{totalProperties}</p></div></CardContent></Card>
+              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-accent/50"><Layers className="w-5 h-5 text-accent-foreground" /></div><div><p className="text-xs text-muted-foreground">إجمالي الوحدات</p><p className="text-xl font-bold">{totalUnits}</p></div></CardContent></Card>
+              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-success/10"><div className="w-5 h-5 rounded-full bg-success" /></div><div><p className="text-xs text-muted-foreground">مؤجرة</p><p className="text-xl font-bold text-success">{occupiedUnits}</p></div></CardContent></Card>
+              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-warning/10"><div className="w-5 h-5 rounded-full bg-warning" /></div><div><p className="text-xs text-muted-foreground">شاغرة</p><p className="text-xl font-bold text-warning">{totalVacant}</p></div></CardContent></Card>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-primary/10"><TrendingUp className="w-5 h-5 text-primary" /></div><div><p className="text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-lg font-bold">{fmt(contractualRevenue)} <span className="text-xs font-normal">ريال</span></p></div></CardContent></Card>
+              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-success/10"><CircleDollarSign className="w-5 h-5 text-success" /></div><div><p className="text-xs text-muted-foreground">{isClosed ? 'دخل السنة' : 'الدخل النشط'}</p><p className="text-lg font-bold text-success">{fmt(activeIncome)} <span className="text-xs font-normal">ريال</span></p></div></CardContent></Card>
+              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-destructive/10"><Receipt className="w-5 h-5 text-destructive" /></div><div><p className="text-xs text-muted-foreground">المصروفات</p><p className="text-lg font-bold">{fmt(totalExpensesAll)} <span className="text-xs font-normal">ريال</span></p></div></CardContent></Card>
+              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-muted"><Wallet className="w-5 h-5 text-foreground" /></div><div><p className="text-xs text-muted-foreground">صافي الدخل</p><p className={`text-lg font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(netIncome)} <span className="text-xs font-normal">ريال</span></p></div></CardContent></Card>
+            </div>
+
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">نسبة الإشغال الإجمالية</span>
+                  <span className={`text-sm font-bold ${occColor}`}>{overallOccupancy}%</span>
+                </div>
+                <Tooltip><TooltipTrigger asChild><div className="cursor-help"><Progress value={overallOccupancy} className={`h-3 ${occBarColor}`} /></div></TooltipTrigger><TooltipContent>مؤجرة: {occupiedUnits} من {totalUnits} وحدة | شاغرة: {totalVacant}</TooltipContent></Tooltip>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-primary/10"><TrendingUp className="w-5 h-5 text-primary" /></div><div><p className="text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-lg font-bold">{fmt(contractualRevenue)} <span className="text-xs font-normal">ريال</span></p></div></CardContent></Card>
-            <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-success/10"><CircleDollarSign className="w-5 h-5 text-success" /></div><div><p className="text-xs text-muted-foreground">{isClosed ? 'دخل السنة' : 'الدخل النشط'}</p><p className="text-lg font-bold text-success">{fmt(activeIncome)} <span className="text-xs font-normal">ريال</span></p></div></CardContent></Card>
-            <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-destructive/10"><Receipt className="w-5 h-5 text-destructive" /></div><div><p className="text-xs text-muted-foreground">المصروفات</p><p className="text-lg font-bold">{fmt(totalExpensesAll)} <span className="text-xs font-normal">ريال</span></p></div></CardContent></Card>
-            <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-muted"><Wallet className="w-5 h-5 text-foreground" /></div><div><p className="text-xs text-muted-foreground">صافي الدخل</p><p className={`text-lg font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(netIncome)} <span className="text-xs font-normal">ريال</span></p></div></CardContent></Card>
-          </div>
+          {!properties?.length ? (
+            <EmptyState icon={Building2} title="لا توجد عقارات مسجلة" />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {properties.map((property) => {
+                // #4: optional + early return بدل non-null assertion
+                const pf = propertyFinancialsMap.get(property.id);
+                if (!pf) return null;
+                const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses: propExpenses, netIncome: propNet, contractualRevenue: propContractual } = pf;
 
-          <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">نسبة الإشغال الإجمالية</span>
-                <span className={`text-sm font-bold ${occColor}`}>{overallOccupancy}%</span>
-              </div>
-              <TooltipProvider><Tooltip><TooltipTrigger asChild><div className="cursor-help"><Progress value={overallOccupancy} className={`h-3 ${occBarColor}`} /></div></TooltipTrigger><TooltipContent>مؤجرة: {occupiedUnits} من {totalUnits} وحدة | شاغرة: {totalVacant}</TooltipContent></Tooltip></TooltipProvider>
-            </CardContent>
-          </Card>
-        </div>
+                // #3/#61: استخدام الخرائط المسبقة بدل filter جديد لكل عقار
+                const propertyUnits = propertyUnitsMap.get(property.id) ?? [];
+                const total = propertyUnits.length;
+                const propertyContracts = propertyContractsMap.get(property.id) ?? [];
+                const rentedUnitIdsForProp = rentedUnitIdsByPropertyMap.get(property.id) ?? new Set<string>();
+                const isWholePropertyRented = wholePropertyRentedSet.has(property.id);
+                const hasAnyContract = propertyContracts.length > 0;
+                const isExpanded = expandedId === property.id;
 
-        {!properties?.length ? (
-          <EmptyState icon={Building2} title="لا توجد عقارات مسجلة" />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {properties.map((property) => {
-              const pf = propertyFinancialsMap.get(property.id)!;
-              const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses: propExpenses, netIncome: propNet, contractualRevenue: propContractual } = pf;
-              const propertyUnits = (units ?? []).filter(u => u.property_id === property.id);
-              const total = propertyUnits.length;
-              const propertyContracts = contracts.filter(c => c.property_id === property.id);
-              const rentedUnitIdsForProp = new Set(propertyContracts.filter(c => c.unit_id).map(c => c.unit_id));
-              const isWholePropertyRented = total === 0 && propertyContracts.some(c => !c.unit_id);
-              const isExpanded = expandedId === property.id;
+                return (
+                  <Card key={property.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : property.id)}>
+                    <CardHeader className="pb-2"><CardTitle className="text-lg">{property.property_number}</CardTitle></CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                        <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" />{property.property_type}</span>
+                        <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{property.location}</span>
+                        <span className="flex items-center gap-1"><Ruler className="w-3.5 h-3.5" />{property.area} م²</span>
+                      </div>
 
-              return (
-                <Card key={property.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : property.id)}>
-                  <CardHeader className="pb-2"><CardTitle className="text-lg">{property.property_number}</CardTitle></CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                      <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" />{property.property_type}</span>
-                      <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{property.location}</span>
-                      <span className="flex items-center gap-1"><Ruler className="w-3.5 h-3.5" />{property.area} م²</span>
-                    </div>
-
-                    <div className="border-t pt-3 space-y-2">
-                      {total > 0 ? (
-                        <>
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex gap-3 flex-wrap">
-                              <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5 text-success" />مؤجرة: <strong>{rented}</strong></span>
-                              <span className="flex items-center gap-1"><DoorOpen className="w-3.5 h-3.5 text-muted-foreground" />شاغرة: <strong>{vacant}</strong></span>
-                              {maintenance > 0 && <span className="flex items-center gap-1 text-destructive">صيانة: <strong>{maintenance}</strong></span>}
-                            </div>
-                          </div>
-                          <TooltipProvider><Tooltip><TooltipTrigger asChild><div className="flex items-center gap-2 cursor-help"><Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} /><span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span></div></TooltipTrigger><TooltipContent>مؤجرة: {rented} من {total} وحدة | شاغرة: {vacant}</TooltipContent></Tooltip></TooltipProvider>
-                        </>
-                      ) : contracts.some(c => c.property_id === property.id) ? (
-                        <>
-                          <div className="flex items-center gap-2 text-sm"><Home className="w-3.5 h-3.5 text-success" /><span className="font-medium text-success">مؤجر بالكامل</span></div>
-                          <TooltipProvider><Tooltip><TooltipTrigger asChild><div className="flex items-center gap-2 cursor-help"><Progress value={100} className="h-2 flex-1 [&>div]:bg-success" /><span className="text-xs font-semibold text-success">100%</span></div></TooltipTrigger><TooltipContent>العقار مؤجر بالكامل</TooltipContent></Tooltip></TooltipProvider>
-                        </>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">لا توجد وحدات مسجلة</div>
-                      )}
-                    </div>
-
-                    <div className="border-t pt-3 space-y-1 text-sm">
-                      <div className="flex justify-between"><span className="text-muted-foreground">الإيرادات التعاقدية:</span><span className="font-semibold">{fmt(propContractual)} ريال</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">الدخل النشط:</span><span className="font-medium text-success">{fmt(activeAnnualRent)} ريال</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">الاستحقاق الشهري:</span><span className="font-medium">{fmtInt(monthlyRent)} ريال</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">المصروفات:</span><span className="font-medium">{fmt(propExpenses)} ريال</span></div>
-                      <div className="flex justify-between border-t pt-1 mt-1"><span className="text-muted-foreground">الصافي:</span><span className={`font-bold ${propNet >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(propNet)} ريال</span></div>
-                    </div>
-
-                    {isExpanded && propertyUnits.length > 0 && (
                       <div className="border-t pt-3 space-y-2">
-                        <p className="text-sm font-semibold text-foreground flex items-center gap-1"><DoorOpen className="w-3.5 h-3.5" /> الوحدات ({propertyUnits.length})</p>
-                        {propertyUnits.map(unit => (
-                          <div key={unit.id} className="flex justify-between items-center text-sm bg-muted/50 rounded p-2">
-                            <div>
-                              <span className="font-medium">{unit.unit_number}</span>
-                              <span className="text-muted-foreground mr-2">- {unit.unit_type}</span>
-                              {unit.floor && <span className="text-muted-foreground mr-2">| {unit.floor}</span>}
-                              {unit.area && <span className="text-muted-foreground mr-2">| {unit.area} م²</span>}
+                        {total > 0 ? (
+                          <>
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex gap-3 flex-wrap">
+                                <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5 text-success" />مؤجرة: <strong>{rented}</strong></span>
+                                <span className="flex items-center gap-1"><DoorOpen className="w-3.5 h-3.5 text-muted-foreground" />شاغرة: <strong>{vacant}</strong></span>
+                                {maintenance > 0 && <span className="flex items-center gap-1 text-destructive">صيانة: <strong>{maintenance}</strong></span>}
+                              </div>
                             </div>
-                            <Badge variant={(rentedUnitIdsForProp.has(unit.id) || isWholePropertyRented) ? 'default' : unit.status === 'صيانة' ? 'destructive' : 'secondary'}>
-                              {(rentedUnitIdsForProp.has(unit.id) || isWholePropertyRented) ? 'مؤجرة' : unit.status}
-                            </Badge>
-                          </div>
-                        ))}
+                            <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-2 cursor-help"><Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} /><span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span></div></TooltipTrigger><TooltipContent>مؤجرة: {rented} من {total} وحدة | شاغرة: {vacant}</TooltipContent></Tooltip>
+                          </>
+                        ) : hasAnyContract ? (
+                          <>
+                            <div className="flex items-center gap-2 text-sm"><Home className="w-3.5 h-3.5 text-success" /><span className="font-medium text-success">مؤجر بالكامل</span></div>
+                            <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-2 cursor-help"><Progress value={100} className="h-2 flex-1 [&>div]:bg-success" /><span className="text-xs font-semibold text-success">100%</span></div></TooltipTrigger><TooltipContent>العقار مؤجر بالكامل</TooltipContent></Tooltip>
+                          </>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">لا توجد وحدات مسجلة</div>
+                        )}
                       </div>
-                    )}
 
-                    {propertyUnits.length > 0 && (
-                      <div className="border-t pt-2 mt-1 flex items-center gap-2 text-xs text-primary">
-                        <DoorOpen className="w-3.5 h-3.5" /><span>اضغط لعرض الوحدات ({propertyUnits.length})</span>
+                      <div className="border-t pt-3 space-y-1 text-sm">
+                        <div className="flex justify-between"><span className="text-muted-foreground">الإيرادات التعاقدية:</span><span className="font-semibold">{fmt(propContractual)} ريال</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">الدخل النشط:</span><span className="font-medium text-success">{fmt(activeAnnualRent)} ريال</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">الاستحقاق الشهري:</span><span className="font-medium">{fmtInt(monthlyRent)} ريال</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">المصروفات:</span><span className="font-medium">{fmt(propExpenses)} ريال</span></div>
+                        <div className="flex justify-between border-t pt-1 mt-1"><span className="text-muted-foreground">الصافي:</span><span className={`font-bold ${propNet >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(propNet)} ريال</span></div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </div>
+
+                      {isExpanded && propertyUnits.length > 0 && (
+                        <div className="border-t pt-3 space-y-2">
+                          <p className="text-sm font-semibold text-foreground flex items-center gap-1"><DoorOpen className="w-3.5 h-3.5" /> الوحدات ({propertyUnits.length})</p>
+                          {propertyUnits.map(unit => {
+                            const isUnitRented = rentedUnitIdsForProp.has(unit.id) || isWholePropertyRented;
+                            return (
+                              <div key={unit.id} className="flex justify-between items-center text-sm bg-muted/50 rounded p-2">
+                                <div>
+                                  <span className="font-medium">{unit.unit_number}</span>
+                                  <span className="text-muted-foreground mr-2">- {unit.unit_type}</span>
+                                  {unit.floor && <span className="text-muted-foreground mr-2">| {unit.floor}</span>}
+                                  {unit.area && <span className="text-muted-foreground mr-2">| {unit.area} م²</span>}
+                                </div>
+                                <Badge variant={isUnitRented ? 'default' : unit.status === 'صيانة' ? 'destructive' : 'secondary'}>
+                                  {isUnitRented ? 'مؤجرة' : unit.status}
+                                </Badge>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {propertyUnits.length > 0 && (
+                        <div className="border-t pt-2 mt-1 flex items-center gap-2 text-xs text-primary">
+                          <DoorOpen className="w-3.5 h-3.5" /><span>اضغط لعرض الوحدات ({propertyUnits.length})</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </TooltipProvider>
     </DashboardLayout>
     </RequirePublishedYears>
   );
