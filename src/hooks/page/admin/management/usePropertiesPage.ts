@@ -1,7 +1,22 @@
 /**
  * هوك منطق صفحة العقارات — الحالة والفلترة والحسابات
+ *
+ * #18 من الفحص العميق — استراتيجية التصفّح (Pagination):
+ *   - `currentPage` + `ITEMS_PER_PAGE` = تصفّح **client-side** للقائمة المفلترة.
+ *     يُستخدم في صفحة العرض الرئيسية لأن الفلترة (`searchQuery`, `typeFilter`,
+ *     `occupancyFilter`) تتم محلياً على المصفوفة الكاملة.
+ *   - `serverPage`/`serverNextPage`/... = تصفّح **server-side** قادم من
+ *     `useCrudFactory`، متاح للسيناريوهات التي لا تحتاج فلترة محلية (مثل
+ *     ملحقات admin أو exports). لا يُستخدمان معاً في نفس الـ view.
+ *
+ * #25 من الفحص العميق — لماذا 3 useMemos منفصلة:
+ *   - `summary` يعتمد على `accounts` و`isClosed` (يتحدث مع تغيّر السنة).
+ *   - `propertyOccupancy` لا يحتاج accounts — أخف وأكثر تكراراً.
+ *   - `propertyFinancialsMap` يعتمد على computePropertyFinancials المكلِف.
+ *   دمجها سيُجبر إعادة الحساب الكامل عند أي تغيير، فالفصل أكثر كفاءة.
  */
 import { useState, useMemo } from 'react';
+import type { FormEvent, MouseEvent } from 'react';
 import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/data/properties/useProperties';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
@@ -12,6 +27,7 @@ import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { Property } from '@/types/database';
 import { defaultNotify } from '@/lib/notify';
+import { PROPERTIES_PAGE_SIZE } from '@/constants/pagination';
 
 export function usePropertiesPage() {
   const propertiesQuery = useProperties();
@@ -35,7 +51,8 @@ export function usePropertiesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [occupancyFilter, setOccupancyFilter] = useState<string>('all');
-  const ITEMS_PER_PAGE = 9;
+  // #21 — استخدام الثابت المركزي بدل التعريف المحلي
+  const ITEMS_PER_PAGE = PROPERTIES_PAGE_SIZE;
   const [formData, setFormData] = useState({
     property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false,
   });
@@ -95,7 +112,7 @@ export function usePropertiesPage() {
     setEditingProperty(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!formData.property_number || !formData.property_type || !formData.location || !formData.area) {
       defaultNotify.error('يرجى ملء جميع الحقول المطلوبة');
@@ -119,7 +136,7 @@ export function usePropertiesPage() {
     }
   };
 
-  const handleEdit = (property: Property, e: React.MouseEvent) => {
+  const handleEdit = (property: Property, e: MouseEvent) => {
     e.stopPropagation();
     setEditingProperty(property);
     setFormData({
@@ -163,21 +180,24 @@ export function usePropertiesPage() {
     return map;
   }, [properties, allUnits, contracts, isSpecificYear]);
 
-  const filteredProperties = properties.filter((p) => {
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      if (!p.property_number.toLowerCase().includes(q) && !p.property_type.toLowerCase().includes(q) &&
-        !p.location.toLowerCase().includes(q) && !(p.description || '').toLowerCase().includes(q)) return false;
-    }
-    if (typeFilter !== 'all' && p.property_type !== typeFilter) return false;
-    if (occupancyFilter !== 'all') {
-      const occ = propertyOccupancy.get(p.id) ?? 0;
-      if (occupancyFilter === 'full' && occ < 100) return false;
-      if (occupancyFilter === 'partial' && (occ <= 0 || occ >= 100)) return false;
-      if (occupancyFilter === 'empty' && occ > 0) return false;
-    }
-    return true;
-  });
+  // #17 — useMemo لتجنّب إعادة الفلترة في كل render (المصفوفة قد تكون كبيرة)
+  const filteredProperties = useMemo(() => {
+    return properties.filter((p) => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (!p.property_number.toLowerCase().includes(q) && !p.property_type.toLowerCase().includes(q) &&
+          !p.location.toLowerCase().includes(q) && !(p.description || '').toLowerCase().includes(q)) return false;
+      }
+      if (typeFilter !== 'all' && p.property_type !== typeFilter) return false;
+      if (occupancyFilter !== 'all') {
+        const occ = propertyOccupancy.get(p.id) ?? 0;
+        if (occupancyFilter === 'full' && occ < 100) return false;
+        if (occupancyFilter === 'partial' && (occ <= 0 || occ >= 100)) return false;
+        if (occupancyFilter === 'empty' && occ > 0) return false;
+      }
+      return true;
+    });
+  }, [properties, searchQuery, typeFilter, occupancyFilter, propertyOccupancy]);
 
   // --- حساب المؤشرات المالية لكل عقار (مرة واحدة بدلاً من داخل JSX) ---
   const propertyFinancialsMap = useMemo(() => {
