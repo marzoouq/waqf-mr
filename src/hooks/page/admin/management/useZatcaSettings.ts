@@ -100,6 +100,8 @@ export const useZatcaSettings = () => {
         value: (formData[key] || '').trim(),
       }));
       await saveZatcaSettings(rows);
+      // المهمة B — إبطال فئة zatca فقط + legacy
+      queryClient.invalidateQueries({ queryKey: ['app-settings', 'zatca'] });
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       defaultNotify.success('تم حفظ إعدادات الضريبة بنجاح');
     } catch {
@@ -139,6 +141,7 @@ export const useZatcaSettings = () => {
       try {
         await clearZatcaOtp();
         setFormData(prev => ({ ...prev, zatca_otp_1: '', zatca_otp_2: '' }));
+        queryClient.invalidateQueries({ queryKey: ['app-settings', 'zatca'] });
         queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       } catch { /* صمت */ }
     }
@@ -169,6 +172,7 @@ export const useZatcaSettings = () => {
       try {
         await clearZatcaOtp();
         setFormData(prev => ({ ...prev, zatca_otp_1: '', zatca_otp_2: '' }));
+        queryClient.invalidateQueries({ queryKey: ['app-settings', 'zatca'] });
         queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       } catch { /* صمت */ }
     }
