@@ -1,6 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, RefreshCw, Sun, Moon } from 'lucide-react';
-import { useGreeting } from '@/hooks/ui/useGreeting';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender } from '@/components/common';
@@ -26,7 +25,7 @@ const BeneficiaryDashboard = () => {
     isLoading, dashError, dashLoading, noPublishedYears,
     currentBeneficiary, myShare, distributions, role, fiscalYearId,
     fiscalYear, isClosed, fyProgress,
-    displayName, roleLabel, recentNotifications, unreadCount,
+    displayName, roleLabel, recentNotifications, unreadCount, greetingData,
     advanceEnabled, pendingAdvanceCount, advanceSettings,
     handleRetry,
   } = useBeneficiaryDashboardPage();
@@ -68,8 +67,6 @@ const BeneficiaryDashboard = () => {
     );
   }
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- guard يسبق العرض الرئيسي فقط
-  const greetingData = useGreeting();
   if (noPublishedYears) {
     const GreetingIcon = greetingData.greetingIconName === 'sun' ? Sun : Moon;
     return (
