@@ -9,6 +9,7 @@ import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/useBeneficiaryDashboardData';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
+import { useGreeting } from '@/hooks/ui/useGreeting';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -104,6 +105,7 @@ export function useBeneficiaryDashboardPage() {
   );
 
   const recentNotifications = notifications.slice(0, 3);
+  const greetingData = useGreeting();
 
   return {
     // حالات التحميل والخطأ
@@ -113,7 +115,7 @@ export function useBeneficiaryDashboardPage() {
     // بيانات السنة المالية
     fiscalYear, isClosed, fyProgress,
     // بيانات العرض
-    displayName, roleLabel, recentNotifications, unreadCount,
+    displayName, roleLabel, recentNotifications, unreadCount, greetingData,
     // بيانات السُلفة
     advanceEnabled, pendingAdvanceCount, advanceSettings,
     // دوال الإجراءات

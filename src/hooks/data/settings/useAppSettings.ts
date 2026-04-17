@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import { STALE_SETTINGS } from '@/lib/queryStaleTime';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeSet } from '@/lib/storage';
 
 const jsonSettingCache = new Map<string, { raw: string; parsed: unknown }>();
 
@@ -134,10 +135,8 @@ export const useSetting = (key: string, fallback = ''): string => {
  * #46: تحديث التفضيلات مع إطلاق حدث مخصص للنافذة الحالية
  */
 export const updateNotificationPrefs = (prefs: Record<string, boolean>) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.NOTIFICATION_PREFS, JSON.stringify(prefs));
-    window.dispatchEvent(new CustomEvent('notif-prefs-changed'));
-  } catch { /* silent */ }
+  safeSet(STORAGE_KEYS.NOTIFICATION_PREFS, prefs);
+  try { window.dispatchEvent(new CustomEvent('notif-prefs-changed')); } catch { /* silent */ }
 };
 
 export const useWaqfInfo = () => {

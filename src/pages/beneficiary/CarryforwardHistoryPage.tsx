@@ -9,9 +9,7 @@ import { usePrint } from '@/hooks/ui/usePrint';
 import { useNavigate } from 'react-router-dom';
 
 import { useCarryforwardData } from '@/hooks/page/admin/financial/useCarryforwardData';
-import CarryforwardSummaryCards from './carryforward/CarryforwardSummaryCards';
-import CarryforwardsRecordTable from './carryforward/CarryforwardsRecordTable';
-import PaidAdvancesTable from './carryforward/PaidAdvancesTable';
+import { CarryforwardSummaryCards, CarryforwardsRecordTable, PaidAdvancesTable } from '@/components/carryforward';
 
 const CarryforwardHistoryPage = () => {
   const navigate = useNavigate();

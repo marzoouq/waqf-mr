@@ -7,7 +7,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { operationColor, DataDiff } from '@/components/audit/AuditLogHelpers';
+import { DataDiff } from '@/components/audit/DataDiff';
+import { operationColor } from '@/utils/format/auditLabels';
 import { getTableNameAr, getOperationNameAr } from '@/hooks/page/admin/management/useAuditLogPage';
 import { TablePagination, TableSkeleton } from '@/components/common';
 

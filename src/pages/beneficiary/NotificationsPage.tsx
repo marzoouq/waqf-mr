@@ -7,9 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Bell, BellRing, AlertCircle, RefreshCw } from 'lucide-react';
 import { TableSkeleton } from '@/components/common';
 
-import NotificationStatsCards from './notifications/NotificationStatsCards';
-import NotificationFiltersBar from './notifications/NotificationFiltersBar';
-import NotificationsList from './notifications/NotificationsList';
+import { NotificationStatsCards, NotificationFiltersBar, NotificationsList } from '@/components/notifications';
 import { useNotificationsPage } from '@/hooks/page/beneficiary';
 
 const NotificationsPage = () => {

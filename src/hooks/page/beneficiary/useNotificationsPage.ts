@@ -7,7 +7,7 @@ import { defaultNotify } from '@/lib/notify';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { usePushNotifications } from '@/hooks/data/notifications/usePushNotifications';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
-import { NOTIFICATION_CATEGORIES } from '@/pages/beneficiary/notifications/notificationConstants';
+import { NOTIFICATION_CATEGORIES } from '@/components/notifications/notificationConstants';
 
 export function useNotificationsPage() {
   const handleRetry = useRetryQueries(['notifications']);
