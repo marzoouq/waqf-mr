@@ -11,7 +11,7 @@ import ZatcaInvoicesTab from '@/components/zatca/ZatcaInvoicesTab';
 import ZatcaCertificatesTab from '@/components/zatca/ZatcaCertificatesTab';
 import ZatcaChainTab from '@/components/zatca/ZatcaChainTab';
 import ZatcaComplianceDialog from '@/components/zatca/ZatcaComplianceDialog';
-import { useZatcaManagementPage } from '@/hooks/page/admin/useZatcaManagementPage';
+import { useZatcaManagementPage } from '@/hooks/page/admin/management/useZatcaManagementPage';
 
 function ZatcaManagementPage() {
   const { z, complianceResult, runComplianceCheck, clearComplianceResult } = useZatcaManagementPage();
