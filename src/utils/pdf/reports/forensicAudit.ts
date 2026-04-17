@@ -4,6 +4,7 @@ import {
   baseTableStyles, headStyles, TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
   reshapeArabic as rs, reshapeRow,
 } from '../core/core';
+import { getPdfThemeColors } from '../core/themeColors';
 import { getLastAutoTableY } from '../core/pdfHelpers';
 
 export interface ForensicAuditCategory {
@@ -31,20 +32,21 @@ export interface ForensicAuditData {
   securityFindings: ForensicSecurityFinding[];
 }
 
-const STATUS_COLORS: Record<string, [number, number, number]> = {
-  'سليم': [22, 101, 52],
-  'مُصحح': [202, 138, 4],
-  'ملاحظة': [180, 40, 40],
-  'مُعالج': [22, 101, 52],
+// خرائط ألوان الحالة — تُولَّد ديناميكياً من الثيم النشط
+const buildStatusColors = (theme: ReturnType<typeof getPdfThemeColors>): Record<string, [number, number, number]> => ({
+  'سليم': theme.primary,
+  'مُصحح': theme.secondary,
+  'ملاحظة': theme.destructive,
+  'مُعالج': theme.primary,
   'مُتجاهل': [100, 100, 100],
-  'معلق': [180, 40, 40],
-};
+  'معلق': theme.destructive,
+});
 
-const SEVERITY_COLORS: Record<string, [number, number, number]> = {
-  'خطأ': [180, 40, 40],
-  'تحذير': [202, 138, 4],
+const buildSeverityColors = (theme: ReturnType<typeof getPdfThemeColors>): Record<string, [number, number, number]> => ({
+  'خطأ': theme.destructive,
+  'تحذير': theme.secondary,
   'معلومة': [59, 130, 246],
-};
+});
 
 export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo?: PdfWaqfInfo) => {
   const { default: autoTable } = await import('jspdf-autotable');
