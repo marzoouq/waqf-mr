@@ -18,6 +18,12 @@ export interface MenuLabels {
   bylaws: string;
   beneficiary_view: string;
   chart_of_accounts: string;
+  // مسارات إضافية متاحة للناظر/المحاسب (#13 من تقرير الفحص)
+  zatca: string;
+  support: string;
+  annual_report: string;
+  comparison: string;
+  diagnostics: string;
 }
 
 export const defaultMenuLabels: MenuLabels = {
@@ -37,4 +43,9 @@ export const defaultMenuLabels: MenuLabels = {
   bylaws: 'اللائحة التنظيمية',
   beneficiary_view: 'واجهة المستفيد',
   chart_of_accounts: 'الشجرة المحاسبية',
+  zatca: 'إدارة ZATCA',
+  support: 'الدعم الفني',
+  annual_report: 'التقرير السنوي',
+  comparison: 'المقارنة التاريخية',
+  diagnostics: 'تشخيص النظام',
 };

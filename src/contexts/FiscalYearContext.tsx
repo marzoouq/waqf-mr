@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useActiveFiscalYear, FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useDashboardPrefetch } from '@/hooks/data/dashboard/useDashboardPrefetch';
 import { logger } from '@/lib/logger';
 import { FY_NONE, FY_ALL, isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
@@ -26,7 +25,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
   const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
-  const { role, loading: authLoading, signOut } = useAuth();
+  const { role, loading: authLoading } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY) || '';
@@ -71,31 +70,8 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
   const isClosed = fiscalYear?.status === 'closed';
   const isSpecificYear = !isFyAll(fiscalYearId) && isFyReady(fiscalYearId);
 
-  // جلب مسبق لبيانات لوحة التحكم — فقط للناظر والمحاسب
-  const isAdminOrAccountant = role === 'admin' || role === 'accountant';
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    if (isAdminOrAccountant && isFyReady(fiscalYearId) && !isFyAll(fiscalYearId)) {
-      const fy = fiscalYears.find(f => f.id === fiscalYearId);
-      queryClient.prefetchQuery({
-        queryKey: ['dashboard-summary', fiscalYearId],
-        queryFn: async () => {
-          const { data, error } = await supabase.functions.invoke('dashboard-summary', {
-            body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fy?.label },
-          });
-          // كشف جلسة منتهية — تسجيل خروج تلقائي عبر AuthContext لضمان cleanup كامل
-          if (error?.message?.includes('401') || data?.error === 'Unauthorized') {
-            await signOut();
-            throw new Error('انتهت الجلسة');
-          }
-          if (error) throw error;
-          if (data?.error) throw new Error(data.error);
-          return data;
-        },
-        staleTime: 2 * 60 * 1000,
-      });
-    }
-  }, [fiscalYearId, fiscalYears, queryClient, isAdminOrAccountant]);
+  // جلب مسبق لبيانات لوحة التحكم — منقول إلى hook منفصل (#24)
+  useDashboardPrefetch({ fiscalYearId, fiscalYears });
 
   const handleSetFiscalYearId = useCallback((id: string) => {
     setSelectedId(id);
