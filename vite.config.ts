@@ -155,7 +155,19 @@ export default defineConfig(({ mode }) => ({
     dedupe: ["react", "react-dom", "react/jsx-runtime"],
   },
   build: {
-    modulePreload: { polyfill: true },
+    modulePreload: {
+      polyfill: true,
+      // استثناء حزم PDF/html2canvas الثقيلة من modulepreload
+      // تُحمَّل فقط عند أول dynamic import فعلي (زر تصدير)
+      resolveDependencies: (_filename, deps) => {
+        return deps.filter(
+          (dep) =>
+            !dep.includes('vendor-pdf') &&
+            !dep.includes('vendor-pdf-table') &&
+            !dep.includes('html2canvas'),
+        );
+      },
+    },
     rollupOptions: {
       // استبعاد ملفات الاختبار من البناء الإنتاجي
       external: (id) =>
