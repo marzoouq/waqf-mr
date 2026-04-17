@@ -15,3 +15,4 @@ export { useCreateUserMutation, useConfirmEmailMutation, useUpdateEmailMutation,
 
 export { logBiometricEvent, handleRegistrationError, handleAuthenticationError, getDeviceName } from './webAuthnErrors';
 export { useRoleRedirect } from './useRoleRedirect';
+export { useLogoutFlow } from './useLogoutFlow';
