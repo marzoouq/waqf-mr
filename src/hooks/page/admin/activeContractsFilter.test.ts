@@ -1,16 +1,11 @@
 import { describe, it, expect } from 'vitest';
+import { filterRelevantContracts } from './activeContractsFilter';
 
 /**
  * منطق فلترة العقود — مطابق لـ AdminDashboard و WaqifDashboard
  * isSpecificYear = true → كل العقود (نشطة + منتهية + مسودة)
  * isSpecificYear = false → العقود النشطة فقط
  */
-function filterRelevantContracts(
-  contracts: Array<{ id: string; status: string }>,
-  isSpecificYear: boolean
-) {
-  return isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
-}
 
 const testContracts = [
   { id: 'c1', status: 'active' },
