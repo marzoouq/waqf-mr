@@ -96,19 +96,19 @@ export function useBeneficiariesPage() {
     );
   }, [beneficiaries, searchQuery]);
 
+  // #62 — حساب paginatedItems في hook بدل slice مكرر في JSX
+  const paginatedBeneficiaries = useMemo(
+    () => filteredBeneficiaries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [filteredBeneficiaries, currentPage]
+  );
+
   return {
-    beneficiaries, isLoading, filteredBeneficiaries,
+    beneficiaries, isLoading, filteredBeneficiaries, paginatedBeneficiaries,
     isOpen, setIsOpen, editingBeneficiary, formData, setFormData,
     availableUsers, resetForm, handleSubmit, handleEdit,
     isPending: createBeneficiary.isPending || updateBeneficiary.isPending,
     deleteTarget, setDeleteTarget, handleConfirmDelete,
     searchQuery, setSearchQuery, currentPage, setCurrentPage, ITEMS_PER_PAGE,
     totalPercentage, activeBeneficiaries, percentageExceeds,
-    serverPage: beneficiariesQuery.page,
-    serverNextPage: beneficiariesQuery.nextPage,
-    serverPrevPage: beneficiariesQuery.prevPage,
-    serverHasNextPage: beneficiariesQuery.hasNextPage,
-    serverHasPrevPage: beneficiariesQuery.hasPrevPage,
-    serverPageSize: beneficiariesQuery.pageSize,
   };
 }
