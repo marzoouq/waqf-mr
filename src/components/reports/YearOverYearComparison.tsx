@@ -11,7 +11,7 @@ import { useYearComparisonData } from '@/hooks/data/financial/useYearComparisonD
 import { useFiscalYearSummaries } from '@/hooks/data/financial/useFiscalYearSummary';
 const YoYChartsSection = lazy(() => import('@/components/reports/YoYChartsSection'));
 const YoYSummaryCards = lazy(() => import('@/components/reports/YoYSummaryCards'));
-import { YoYComparisonTable } from '@/components/reports';
+import YoYComparisonTable from '@/components/reports/YoYComparisonTable';
 
 interface YearOverYearComparisonProps {
   fiscalYears: FiscalYear[];
