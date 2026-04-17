@@ -1,6 +1,7 @@
 /**
  * تتبع أوقات تحميل الصفحات — يُسجّل وقت كل انتقال بين المسارات
  */
+import { safeSessionGet, safeSessionSet, safeSessionRemove } from '@/lib/storage';
 
 export interface PageLoadEntry {
   path: string;
@@ -52,12 +53,7 @@ function getPageLabel(path: string): string {
 
 /** جلب السجلات المحفوظة */
 export function getStoredEntries(): PageLoadEntry[] {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  return safeSessionGet<PageLoadEntry[]>(STORAGE_KEY, []);
 }
 
 /** حفظ سجل جديد */
@@ -72,16 +68,12 @@ export function recordPageLoad(path: string, durationMs: number): void {
 
   while (entries.length > MAX_ENTRIES) entries.shift();
 
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  } catch {
-    // تجاوز
-  }
+  safeSessionSet(STORAGE_KEY, entries);
 }
 
 /** مسح السجلات */
 export function clearPageLoadEntries(): void {
-  sessionStorage.removeItem(STORAGE_KEY);
+  safeSessionRemove(STORAGE_KEY);
 }
 
 /** ملخص إحصائي مجمّع حسب المسار */

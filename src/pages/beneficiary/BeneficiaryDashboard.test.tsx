@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -150,8 +150,11 @@ describe('BeneficiaryDashboard', () => {
     expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
   });
 
-  it('shows recent notifications', () => {
+  it('shows recent notifications', async () => {
     renderWithRouter(<BeneficiaryDashboard />);
-    expect(screen.getByText('إشعار تجريبي')).toBeInTheDocument();
+    await waitFor(
+      () => expect(screen.getByText('إشعار تجريبي')).toBeInTheDocument(),
+      { timeout: 1000 }
+    );
   });
 });

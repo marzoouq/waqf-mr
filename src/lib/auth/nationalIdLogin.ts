@@ -8,6 +8,7 @@ import type { AppNotify } from '@/lib/notify';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
+import { safeSessionSet } from '@/lib/storage';
 
 interface NidLoginState {
   nidLockedUntil: number | null;
@@ -62,7 +63,7 @@ export async function handleNationalIdLogin(
       const retryAfter = data?.retry_after || 180;
       const lockTime = Date.now() + retryAfter * 1000;
       setNidLockedUntil(lockTime);
-      try { sessionStorage.setItem(STORAGE_KEYS.NID_LOCKED_UNTIL, String(lockTime)); } catch { /* silent */ }
+      safeSessionSet(STORAGE_KEYS.NID_LOCKED_UNTIL, String(lockTime));
       setNidAttemptsRemaining(0);
       notify.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
       return false;
