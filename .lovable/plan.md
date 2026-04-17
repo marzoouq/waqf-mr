@@ -1,47 +1,75 @@
 
-# الموجة الثالثة — تنفيذ المهام المؤجلة (#36, #46-#54, #57)
+# الموجة الرابعة — خطة تنفيذ مُحقَّقة بالأرقام
 
-## استكشاف مطلوب أولاً
-أحتاج لقراءة الملفات المعنية لفهم النطاق الفعلي قبل التنفيذ:
-- `AccountsPage.tsx` + `useAccountsData.ts` (#36)
-- `ReportsPage.tsx` + مكونات التقارير الفرعية (#46-#54)
-- `AdminDashboard.tsx` (#57)
+## الحقائق المؤكدة (تم التحقق منها للتو)
 
-## المهام
+| البند | التأكيد |
+|------|---------|
+| `vendor-pdf` في modulepreload | ✅ مؤكد في `dist/index.html` |
+| `lucide-react@1.7.0` | ✅ `npm ls` يؤكد (نسخة 2017) |
+| ملفات تستورد `@/utils/pdf` | **21** (وليس 23) — منها **2 type-only** و **19 value** |
 
-### #36 — useMemo في `AccountsPage`
-- مراجعة الحسابات المُكررة في render واستخراجها إلى `useMemo`
-- نقل أي تجميع/تصفية ثقيل إلى `useAccountsData` hook
+## النطاق الحقيقي للتعديل: **19 ملف فقط**
 
-### #46-#54 — Refactor `ReportsPage`
-المتوقع (يحتاج تأكيد بعد القراءة):
-- استخراج كل تقرير فرعي إلى مكون مستقل lazy-loaded
-- توحيد منطق التصدير (PDF/Excel/CSV) في hook مشترك
-- تقسيم الـ tabs بحيث لا يُحمَّل إلا التقرير النشط
-- نقل الحسابات المُشتركة إلى `useReportsData`
+### Type-only (لا تُلمس — آمنة بالفعل)
+- `src/hooks/data/settings/usePdfWaqfInfo.ts`
+- `src/utils/pdf/index.ts` re-exports
 
-### #57 — تقسيم `AdminDashboard`
-- مراجعة المكونات المُحمَّلة eagerly
-- تحويل البطاقات الثانوية إلى `lazy()` + `Suspense`
-- تأجيل المخططات غير الحرجة عبر `DeferredRender`
+### Value imports (تُحوَّل إلى dynamic) — 19 ملف
+**Pages (8):** ContractsPage, ExpensesPage, IncomePage, InvoicesPage, PropertiesPage, BeneficiariesPage, BylawsPage, beneficiary/PropertiesViewPage
+**Hooks (8):** useAccountsViewPage, useBylawsViewPage, useContractsViewPage, useDisclosurePage, useInvoicesViewPage, useMySharePdfHandlers, useAuditLogPage, useReportsData
+**Components (3):** DistributeDialog, PaymentInvoiceToolbar, PropertyUnitsDialog, YearOverYearComparison
 
-## الخطوات
-1. **استكشاف**: قراءة الملفات الثلاث الرئيسية + hooks المرتبطة
-2. **تأكيد النطاق**: عرض النتائج مع خطة تنفيذ مُحدَّثة
-3. **تنفيذ**: الإصلاحات بالترتيب (#36 → #57 → #46-54)
-4. **تحقق**: `tsc --noEmit` + `vite build --mode analyze` لقياس الفرق
-5. **مقارنة**: جدول chunks قبل/بعد + performance profile جديد
+## الخيار المختار: **(أ)** — تنفيذ A فقط
 
-## المخرجات
-- `/mnt/documents/stats-v3.html` (bundle visualizer جديد)
-- جدول مقارنة chunks
-- نتائج performance profile
+سبب الاختيار:
+- **(ب)** و **(ج)** يحتاجان قرار منفصل لأن ترقية lucide-react من 1.7→0.544 تكسر API بالكامل (تغيّرت أسماء أيقونات كثيرة بين النسختين). تستحق موجة منفصلة بحقها.
+- **(أ)** المكسب الأكبر بأقل مخاطرة: −179KB gzip من initial load.
+
+## النمط الموحَّد للتحويل
+
+```ts
+// قبل
+import { generateContractsPDF } from '@/utils/pdf';
+const handleExport = () => generateContractsPDF(data, waqfInfo);
+
+// بعد
+const handleExport = async () => {
+  const { generateContractsPDF } = await import('@/utils/pdf');
+  await generateContractsPDF(data, waqfInfo);
+};
+```
+
+ملاحظات:
+- `import type { PdfWaqfInfo }` يبقى ثابتاً (TypeScript يحذفه عند build)
+- في hooks: handlers تصبح `async` — التواقيع الخارجية لا تتغير
+- toast/notify يبقى كما هو حول الـ await
+
+## خطوات التنفيذ
+
+1. تحويل 19 ملف على نمط dynamic import (تعديل آلي متَّسق)
+2. `npx tsc --noEmit` — تأكيد عدم وجود أخطاء أنواع
+3. `npx vite build` — التحقق من أن `vendor-pdf` لم يعد في `<link rel="modulepreload">` ضمن `dist/index.html`
+4. توليد `/mnt/documents/stats-v4.html`
+5. جدول مقارنة قبل/بعد لـ initial load
+
+## الملفات
+```
+19 ملف (تحويل static→dynamic import فقط — handlers)
+0 ملف بنية (لا vite.config.ts، لا package.json)
+```
 
 ## الضمانات
-- صفر تغيير سلوكي
+- **صفر تغيير سلوكي** — نفس الدوال، نفس النتائج، نفس الـ UX (تأخير ميلي ثانية واحدة عند أول ضغطة على زر تصدير)
 - لا مساس بملفات المصادقة
-- `tsc --noEmit` نظيف بعد كل مهمة
-- المهام مستقلة — يمكن إيقاف التنفيذ بعد أي منها
+- لا مساس بـ `vite.config.ts` أو `package.json`
+- `tsc --noEmit` نظيف
+- إن فشل tsc بعد التحويل، سأرجع كل ملف لحالته الأصلية وأبلِّغك
 
-## ملاحظة
-خطة #46-#54 مبدئية — سأعرض تفاصيل دقيقة بعد قراءة `ReportsPage.tsx` الفعلية في بداية التنفيذ. إن وجدت تعقيداً غير متوقع، سأتوقف وأطلب مراجعتك قبل المتابعة.
+## النتيجة المتوقعة
+- vendor-pdf يخرج من `<link rel="modulepreload">` ✅
+- **−179KB gzip** من initial load كل صفحة
+- يُحمَّل فقط عند أول ضغطة على زر تصدير PDF فعلي
+
+## المؤجَّل لموجة قادمة (موافقة منفصلة)
+- **B/C:** lucide-react@1.7.0 → 0.544.x — يتطلب fix breaking changes في أسماء أيقونات (Trash2, Pencil, إلخ قد تختلف). موجة مستقلة.
