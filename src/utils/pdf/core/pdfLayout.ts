@@ -4,6 +4,7 @@
 import type jsPDF from 'jspdf';
 import { reshapeArabic as rs } from './arabicReshaper';
 import { loadLogoBase64 } from './pdfFonts';
+import { getPdfThemeColors } from './themeColors';
 import type { PdfWaqfInfo } from './core';
 
 // ترويسة احترافية مع شعار واسم الوقف وخط ذهبي فاصل
@@ -48,7 +49,8 @@ export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWa
     currentY += 7;
   }
 
-  doc.setDrawColor(202, 138, 4);
+  const themeColors = getPdfThemeColors();
+  doc.setDrawColor(...themeColors.secondary);
   doc.setLineWidth(0.8);
   doc.line(margin, currentY + 2, pageW - margin, currentY + 2);
   currentY += 8;
@@ -60,6 +62,7 @@ export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWa
 export const addHeaderToAllPages = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo) => {
   if (!waqfInfo?.waqfName) return;
 
+  const themeColors = getPdfThemeColors();
   const pageCount = doc.getNumberOfPages();
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
@@ -69,7 +72,7 @@ export const addHeaderToAllPages = (doc: jsPDF, fontFamily: string, waqfInfo?: P
     doc.setFont(fontFamily, 'bold');
     doc.setFontSize(11);
     doc.text(rs(waqfInfo.waqfName), pageW / 2, 12, { align: 'center' });
-    doc.setDrawColor(202, 138, 4);
+    doc.setDrawColor(...themeColors.secondary);
     doc.setLineWidth(0.5);
     doc.line(margin, 16, pageW - margin, 16);
   }
@@ -77,18 +80,19 @@ export const addHeaderToAllPages = (doc: jsPDF, fontFamily: string, waqfInfo?: P
 
 // حدود زخرفية: إطار ذهبي خارجي + إطار أخضر داخلي + زخارف الأركان
 export const addPageBorder = (doc: jsPDF) => {
+  const themeColors = getPdfThemeColors();
   const pageW = doc.internal.pageSize.width;
   const pageH = doc.internal.pageSize.height;
 
-  doc.setDrawColor(202, 138, 4);
+  doc.setDrawColor(...themeColors.secondary);
   doc.setLineWidth(1.5);
   doc.rect(8, 8, pageW - 16, pageH - 16);
 
-  doc.setDrawColor(22, 101, 52);
+  doc.setDrawColor(...themeColors.primary);
   doc.setLineWidth(0.5);
   doc.rect(11, 11, pageW - 22, pageH - 22);
 
-  doc.setFillColor(202, 138, 4);
+  doc.setFillColor(...themeColors.secondary);
   const cs = 3;
   doc.rect(8, 8, cs, cs, 'F');
   doc.rect(pageW - 8 - cs, 8, cs, cs, 'F');

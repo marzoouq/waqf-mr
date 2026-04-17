@@ -3,6 +3,7 @@
  */
 import type jsPDF from 'jspdf';
 import { PdfWaqfInfo, TABLE_HEAD_GREEN, baseTableStyles, reshapeArabic as rs } from '../core/core';
+import { getPdfThemeColors } from '../core/themeColors';
 import { getLastAutoTableY } from '../core/pdfHelpers';
 import { fmt } from '@/utils/format/format';
 import {
@@ -14,6 +15,7 @@ export const renderCompact = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   waqfInfo?: PdfWaqfInfo,
 ) => {
+  const themeColors = getPdfThemeColors();
   const pageW = doc.internal.pageSize.width;
   const margin = 14;
   let y = 12;
@@ -32,7 +34,7 @@ export const renderCompact = async (
   doc.text(isVat ? rs('فاتورة ضريبية مبسّطة') : rs('فاتورة'), pageW / 2, y, { align: 'center' });
   y += 4;
 
-  doc.setDrawColor(22, 101, 52);
+  doc.setDrawColor(...themeColors.primary);
   doc.setLineWidth(0.5);
   doc.line(margin, y, pageW - margin, y);
   y += 5;

@@ -4,6 +4,7 @@ import {
   baseTableStyles, headStyles, TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
   reshapeArabic as rs, reshapeRow,
 } from '../core/core';
+import { getPdfThemeColors } from '../core/themeColors';
 import { getLastAutoTableY } from '../core/pdfHelpers';
 
 export interface ForensicAuditCategory {
@@ -31,24 +32,28 @@ export interface ForensicAuditData {
   securityFindings: ForensicSecurityFinding[];
 }
 
-const STATUS_COLORS: Record<string, [number, number, number]> = {
-  'سليم': [22, 101, 52],
-  'مُصحح': [202, 138, 4],
-  'ملاحظة': [180, 40, 40],
-  'مُعالج': [22, 101, 52],
+// خرائط ألوان الحالة — تُولَّد ديناميكياً من الثيم النشط
+const buildStatusColors = (theme: ReturnType<typeof getPdfThemeColors>): Record<string, [number, number, number]> => ({
+  'سليم': theme.primary,
+  'مُصحح': theme.secondary,
+  'ملاحظة': theme.destructive,
+  'مُعالج': theme.primary,
   'مُتجاهل': [100, 100, 100],
-  'معلق': [180, 40, 40],
-};
+  'معلق': theme.destructive,
+});
 
-const SEVERITY_COLORS: Record<string, [number, number, number]> = {
-  'خطأ': [180, 40, 40],
-  'تحذير': [202, 138, 4],
+const buildSeverityColors = (theme: ReturnType<typeof getPdfThemeColors>): Record<string, [number, number, number]> => ({
+  'خطأ': theme.destructive,
+  'تحذير': theme.secondary,
   'معلومة': [59, 130, 246],
-};
+});
 
 export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo?: PdfWaqfInfo) => {
   const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily: font, startY: headerY } = await createPdfDocument(waqfInfo, 'portrait');
+  const themeColors = getPdfThemeColors();
+  const STATUS_COLORS = buildStatusColors(themeColors);
+  const SEVERITY_COLORS = buildSeverityColors(themeColors);
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
 
@@ -57,7 +62,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   // ─── Title ───
   doc.setFont(font, 'bold');
   doc.setFontSize(18);
-  doc.setTextColor(22, 101, 52);
+  doc.setTextColor(...themeColors.primary);
   doc.text(rs('تقرير الفحص الجنائي'), pageW / 2, y + 2, { align: 'center' });
   y += 8;
   doc.setFontSize(11);
@@ -66,14 +71,14 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   y += 10;
 
   // ─── Executive Summary ───
-  doc.setDrawColor(22, 101, 52);
+  doc.setDrawColor(...themeColors.primary);
   doc.setLineWidth(0.8);
   doc.line(margin, y, pageW - margin, y);
   y += 6;
 
   doc.setFont(font, 'bold');
   doc.setFontSize(13);
-  doc.setTextColor(22, 101, 52);
+  doc.setTextColor(...themeColors.primary);
   doc.text(rs('الملخص التنفيذي'), pageW - margin, y, { align: 'right' });
   y += 8;
 
@@ -98,7 +103,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
 
   // ─── Score visual ───
   const scoreX = pageW / 2;
-  doc.setFillColor(22, 101, 52);
+  doc.setFillColor(...themeColors.primary);
   doc.circle(scoreX, y + 8, 10, 'F');
   doc.setFont(font, 'bold');
   doc.setFontSize(14);
@@ -111,7 +116,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   // ─── Categories Table ───
   doc.setFont(font, 'bold');
   doc.setFontSize(13);
-  doc.setTextColor(22, 101, 52);
+  doc.setTextColor(...themeColors.primary);
   doc.text(rs('نتائج الفحص حسب المجال'), pageW - margin, y, { align: 'right' });
   y += 4;
 
@@ -144,7 +149,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
 
   doc.setFont(font, 'bold');
   doc.setFontSize(13);
-  doc.setTextColor(202, 138, 4);
+  doc.setTextColor(...themeColors.secondary);
   doc.text(rs('نتائج الفحص الأمني'), pageW - margin, y, { align: 'right' });
   y += 4;
 
@@ -215,7 +220,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   const stampY = y + 22;
   const stampR = 11;
 
-  doc.setDrawColor(22, 101, 52);
+  doc.setDrawColor(...themeColors.primary);
   doc.setLineWidth(1.5);
   doc.circle(stampX, stampY, stampR, 'S');
   doc.setLineWidth(0.5);
@@ -223,7 +228,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
 
   doc.setFont(font, 'bold');
   doc.setFontSize(12);
-  doc.setTextColor(22, 101, 52);
+  doc.setTextColor(...themeColors.primary);
   doc.text(rs('مُعتمد'), stampX, stampY + 1, { align: 'center' });
 
   doc.setFontSize(5);

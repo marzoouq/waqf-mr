@@ -3,7 +3,7 @@
  */
 import { Link } from 'react-router-dom';
 import { Smartphone } from 'lucide-react';
-import type { LandingPageContent } from '@/components/settings';
+import type { LandingPageContent } from '@/types/landing';
 
 interface LandingFooterProps {
   content: LandingPageContent;

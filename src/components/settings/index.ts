@@ -22,4 +22,5 @@ export { default as SecurityTab } from './SecurityTab';
 export { default as WaqfSettingsTab } from './WaqfSettingsTab';
 export { default as ZatcaOperationsLog } from './ZatcaOperationsLog';
 export { default as ZatcaSettingsTab } from './ZatcaSettingsTab';
-export type { LandingPageContent } from './LandingPageTab';
+// LandingPageContent type تم نقله إلى @/types/landing — يبقى هذا re-export للتوافق العكسي
+export type { LandingPageContent } from '@/types/landing';
