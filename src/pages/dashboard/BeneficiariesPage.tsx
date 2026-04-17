@@ -6,11 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Percent, Search, AlertTriangle, Wallet, UserCheck } from 'lucide-react';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
-import { ExportMenu, TablePagination } from '@/components/common';
+import { ExportMenu, TablePagination, ConfirmDeleteDialog } from '@/components/common';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { BeneficiaryFormDialog, BeneficiaryCard } from '@/components/beneficiaries';
 import { AdvanceRequestsTab } from '@/components/accounts';
 import { useBeneficiariesPage } from '@/hooks/page/admin/management/useBeneficiariesPage';
@@ -146,18 +143,12 @@ const BeneficiariesPage = () => {
           </TabsContent>
         </Tabs>
 
-        <AlertDialog open={!!h.deleteTarget} onOpenChange={(open) => !open && h.setDeleteTarget(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>هل أنت متأكد من الحذف؟</AlertDialogTitle>
-              <AlertDialogDescription>سيتم حذف {h.deleteTarget?.name} نهائياً ولا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex-row-reverse gap-2">
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
-              <AlertDialogAction onClick={h.handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">تأكيد الحذف</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmDeleteDialog
+          open={!!h.deleteTarget}
+          onOpenChange={(open) => !open && h.setDeleteTarget(null)}
+          targetName={h.deleteTarget?.name}
+          onConfirm={h.handleConfirmDelete}
+        />
       </div>
     </DashboardLayout>
   );
