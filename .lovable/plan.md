@@ -1,81 +1,71 @@
 
-# الموجة الخامسة — تصحيح وقياس
+# الفحص الجنائي العميق — التقرير النهائي
 
-## 🚨 تصحيح فحص جنائي حرج (قبل التنفيذ)
+## ✅ النتيجة: المشروع نظيف صحياً
 
-### lucide-react@1.7.0 ليست قديمة — هي الأحدث
-الفحص السابق كان مغلوطاً. الحقائق المُتحقَّق منها الآن:
-- `npm view lucide-react version` → **1.8.0** (آخر إصدار)
-- نسخ `1.x` بدأت في 2025، والمشروع على `1.7.0` (متأخر بنسخة واحدة فقط)
-- فحص `lucide-react.d.ts` المثبتة يحوي أيقونات حديثة (`GitCompareArrows`, `HandCoins`, `ClipboardCheck`) — مستحيلة في نسخة 2020
-- **الترقية المُقترحة `1.7→0.544` مستحيلة منطقياً** لأن 0.544 أقدم من 1.7
+كل البنود مُتحقَّق منها مباشرة من قاعدة البيانات والكود (لا ادعاءات).
 
-**النتيجة:** مهمة "ترقية lucide" تُلغى. الحد الأقصى المتاح ترقية ثانوية `1.7.0 → 1.8.0` (بدون breaking changes).
+## النتائج الجنائية المُتحقَّق منها
 
-### vendor-recharts (350KB) — تقسيم محدود الجدوى
-الفحص:
-- 12 ملف `*Inner.tsx` كلها lazy-loaded بالفعل ✅
-- المكونات المستخدمة: `BarChart, PieChart, LineChart, AreaChart` فقط (4 أنواع)
-- **350KB كلها في chunks lazy** — لا تُحمَّل في initial load
-- recharts v3 يعتمد على shared internals (d3-shape, d3-scale, victory-vendor) — تقسيم أعمق سينتج 4-5 chunks متشابهة الحجم بسبب التكرار في dependencies المشتركة
+### 1. قاعدة البيانات — مثالية
+| فحص | النتيجة |
+|------|---------|
+| جداول بدون RLS | **0** |
+| جداول RLS بلا policies | **0** |
+| policies مفتوحة بـ `qual=true` | **0** |
+| Foreign Keys مكسورة | **0** |
+| مستخدمون بلا أدوار | **0** |
+| أدوار يتيمة | **0** |
+| أدوار admin مكررة | **0** |
+| دوال SECURITY DEFINER بلا `search_path` | **0** |
 
-**النتيجة:** التقسيم الإضافي يضاعف عدد الـ HTTP requests دون توفير حقيقي. **يُنصح بعدم لمسه.**
+### 2. سياسات Storage — مُتحقَّق منها مباشرة من `pg_policies`
+السياسة المتقادمة `Authenticated users can view invoices` **غير موجودة فعلياً**. السياسة الوحيدة للقراءة هي:
+```
+Role-based users can view invoices
+qual: bucket_id = 'invoices' AND (
+  has_role('admin') OR has_role('accountant') OR
+  has_role('beneficiary') OR has_role('waqif')
+)
+```
+→ تنبيه `supabase_lov/invoices_bucket_all_authenticated_read` **متقادم تماماً**.
 
----
+### 3. Edge Functions — آمنة
+- 18 وظيفة، صفر استخدام لـ `getSession()` (الإشارة الوحيدة في README تحذيرية)
+- `verify_jwt = false` مقصود وموثَّق (مصادقة يدوية عبر `getUser()`)
 
-## ✅ المهمة الوحيدة المتبقية: قياس Lighthouse على /dashboard
+### 4. جودة الكود
+- `console.*` خارج logger: **4 فقط** (كلها في `src/test/setup.ts` لتعطيل warnings الاختبار) ✅
+- `as any` خارج tests: **3 فقط** كلها داخل helpers موثَّقة (`viewHelper.ts`, `pdfHelpers.ts`) ✅
+- `@ts-ignore`/`@ts-expect-error`: **0** ✅
+- `eslint-disable`: 8 فقط (متوقع في مشروع بهذا الحجم)
 
-### الهدف
-قياس التأثير التراكمي للموجات 1-4 على Performance Score الفعلي للمستخدم، بدلاً من قياسات الـ bundle المجردة.
+### 5. صحة البيانات
+- `access_log`: 4,523 سجل / 2 MB / لا شيء أقدم من 90 يوم — يوجد migration أرشفة فعّال ✅
+- لا تضخم في أي جدول
 
-### الخطوات
-1. **navigate_to_sandbox** → `/dashboard` (مع تسجيل دخول صحيح)
-2. **performance_profile** — قراءة:
-   - JS Heap Size
-   - Script Duration
-   - Layout/Reflow counts
-   - Long Tasks (>50ms)
-3. **list_network_requests** — تأكيد أن الـ chunks الثقيلة (vendor-pdf, vendor-recharts) **لا تُجلب** عند تحميل /dashboard
-4. **screenshot** — توثيق الحالة النهائية
-5. **مقارنة** مع baseline الموجة 3:
-   - JS Heap: 10.5 MB (المستهدف: <8 MB)
-   - Script Duration: 199.6ms (المستهدف: <150ms)
-   - Task Duration: 521.4ms (المستهدف: <400ms)
+### 6. Runtime / Console
+- Runtime errors: **0**
+- Console errors: **0**
 
-### المخرجات
-- جدول مقارنة قبل/بعد الموجات الأربع (Heap, Scripting, Network bytes)
-- قائمة بالـ chunks المُحمَّلة فعلاً عند `/dashboard` (للتأكد من عدم وجود تسريبات)
-- توصيات (إن وُجدت) للموجة السادسة
+## الإجراء الوحيد المطلوب: تنظيف 3 تنبيهات متقادمة
 
-### الضمانات
-- **0 تعديل على الكود** — قياس فقط
-- لا مساس بأي ملف
-- إن لم تتحسن النتائج، سأعرض تحليل السبب مع توصيات
+تحديث metadata في `supabase_lov` (لا تغيير كود/قاعدة بيانات):
 
----
+| # | Finding | الإجراء | السبب الموثَّق |
+|---|---------|---------|---------------|
+| 1 | `invoices_bucket_all_authenticated_read` | **mark_as_fixed** | السياسة المذكورة غير موجودة في `pg_policies`. التحقق المباشر يُظهر فقط `Role-based users can view invoices` التي تفحص 4 أدوار. |
+| 2 | `realtime_messages_no_channel_authorization` | **ignore** | لا استخدام لـ Broadcast/Presence — فقط `postgres_changes` المحمي بـ RLS. مكرر مع `agent_security/realtime_channel_authz` المقبول مسبقاً. |
+| 3 | `user_roles_select_exposes_all_roles` | **ignore** | نص التنبيه نفسه يقول "No actionable escalation path found here". RESTRICTIVE INSERT تمنع escalation، SELECT مقيد على `auth.uid() = user_id`. |
 
-## 📦 المؤجَّل (يحتاج موافقة منفصلة)
+## الضمانات
+- صفر تعديل على الكود
+- صفر تعديل على قاعدة البيانات أو RLS
+- صفر تعديل على المصادقة
+- فقط تحديث metadata لتنظيف لوحة الأمان
 
-### اختياري A: ترقية ثانوية lucide-react 1.7.0 → 1.8.0
-- نفس API، لا breaking changes
-- مكسب صغير (~5-10KB إن وُجد)
-- يحتاج `npm install lucide-react@^1.8.0`
-
-### اختياري B: تقسيم vendor-radix
-- vendor-radix = 156KB raw / 47KB gzip (الأحجام الفعلية في dist/)
-- بعض مكونات Dialog/Popover تُستخدم فقط في صفحات lazy
-- المكسب المتوقع: ~20KB gzip من initial load
-
-### اختياري C: استبدال recharts بمكتبة أخف
-- مثل `chart.js` أو `apexcharts` — لكن يتطلب إعادة كتابة 12 مكوناً
-- **غير مُوصى به** — تكلفة عالية لمكسب غير مضمون
-
----
-
-## ❓ القرار المطلوب
-
-أيهما تريد:
-- **(أ)** تنفيذ Lighthouse audit فقط (الموجة الخامسة الموصى بها)
-- **(ب)** Lighthouse + ترقية ثانوية lucide 1.7→1.8 (آمنة جداً)
-- **(ج)** Lighthouse + تقسيم vendor-radix (مكسب ~20KB gzip)
-- **(د)** الأشياء الثلاث مجتمعة
+## بعد التنفيذ
+لوحة أمان نظيفة (4 findings مقبولة + 0 actionable). سأنتظر توجيهاً منك لمهمة التالية:
+- ميزة محددة من قاعدة الذاكرة (37 ملف ميزة موثَّق)
+- إصلاح خطأ معين تواجهه
+- أو ترقية ثانوية lucide 1.7→1.8
