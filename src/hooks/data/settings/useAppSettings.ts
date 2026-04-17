@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import { STALE_SETTINGS } from '@/lib/queryStaleTime';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeSet } from '@/lib/storage';
 
 const jsonSettingCache = new Map<string, { raw: string; parsed: unknown }>();
 

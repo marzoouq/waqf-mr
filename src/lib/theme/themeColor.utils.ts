@@ -32,9 +32,7 @@ let themeObserver: MutationObserver | null = null;
 
 export const initThemeFromStorage = () => {
   // استيراد ديناميكي لتجنب دورة الاستيراد — themeColor.utils يُحمّل مبكراً جداً
-  const getThemeId = (): string | null => {
-    try { return localStorage.getItem(THEME_KEY); } catch { return null; }
-  };
+  const getThemeId = (): string | null => safeGet<string | null>(THEME_KEY, null);
 
   const savedId = getThemeId();
   if (savedId && savedId !== 'islamic-green') {
