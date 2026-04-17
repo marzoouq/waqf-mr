@@ -11,18 +11,10 @@ import { Save, Globe } from 'lucide-react';
 import { useAppSettings, useSetting } from '@/hooks/data/settings/useAppSettings';
 import { useState, useEffect } from 'react';
 import LogoUploadCard from './LogoUploadCard';
+import type { LandingPageContent } from '@/types/landing';
 
-export interface LandingPageContent {
-  hero_title: string;
-  hero_subtitle: string;
-  hero_tagline: string;
-  cta_text: string;
-  features_title: string;
-  features_subtitle: string;
-  cta_section_title: string;
-  cta_section_subtitle: string;
-  footer_text: string;
-}
+// إعادة تصدير للتوافق العكسي مع المستوردين القدامى
+export type { LandingPageContent };
 
 const defaults: LandingPageContent = {
   hero_title: 'نظام إدارة الوقف',
