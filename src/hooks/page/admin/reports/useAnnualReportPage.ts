@@ -16,7 +16,7 @@ import { useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
+import type { AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
 import { DollarSign, Receipt, FileText, Building2 } from 'lucide-react';
 
 const formatCurrency = (v: number) =>
@@ -119,6 +119,7 @@ export function useAnnualReportPage() {
       }),
       summaryCards: summaryCards.map(c => ({ label: c.label, value: c.value })),
     };
+    const { generateAnnualReportPDF } = await import('@/utils/pdf/reports/annualReport');
     const ok = await generateAnnualReportPDF(pdfData, waqfInfo);
     const { toast } = await import('sonner');
     if (ok) toast.success('تم تصدير التقرير السنوي بنجاح');
