@@ -8,5 +8,7 @@ export * from './useBylawsPage';
 export * from './useChartOfAccountsPage';
 export * from './usePropertiesPage';
 export * from './usePropertiesViewData';
+export * from './useSettingsPage';
 export * from './useSystemDiagnostics';
+export * from './useZatcaManagementPage';
 export * from './useZatcaSettings';
