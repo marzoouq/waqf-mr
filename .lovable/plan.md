@@ -1,91 +1,74 @@
 
 
-# خطة التنفيذ — تنظيف معماري شامل (6 خطوات)
+# خطة التنفيذ — تنظيف معماري شامل + تحقق من الآثار الجانبية
 
-## الخطوة 1: نقل مكونات UI من `pages/` إلى `components/`
+## السياق
 
-### Carryforward (3 ملفات)
-- نقل `src/pages/beneficiary/carryforward/` → `src/components/carryforward/`
-- تحديث imports في `CarryforwardHistoryPage.tsx`:
-  - `'./carryforward/...'` → `'@/components/carryforward/...'`
+المستخدم وافق على الخطوات الست للتنظيف المعماري، وأضاف طلباً مهماً:
+> **"تحقق من عمل الطباعة وتبديل القوالب وإشعارات التحديث بعد استبدال `window.print` و `localStorage`"**
 
-### Notifications (4 ملفات)
-- نقل `src/pages/beneficiary/notifications/` → `src/components/notifications/` (دمج مع المجلد الموجود)
-- تحديث imports في `NotificationsPage.tsx`:
-  - `'./notifications/...'` → `'@/components/notifications/...'`
-- تحديث `src/components/notifications/index.ts` لتصدير المكونات الجديدة
+هذا الطلب يشير إلى الالتزام بمعايير v7 (استخدام `usePrint` و `safeStorage` بدلاً من الاستدعاء المباشر). سأضيف **خطوة 7: تدقيق وتحقق** بعد التنظيف.
 
-**الملفات المتأثرة**: 9 ملفات (7 نقل + 2 تحديث imports)
+## الخطوات 1-6 (كما تم الاتفاق سابقاً)
 
----
+| # | الخطوة | الملفات |
+|---|--------|---------|
+| 1 | نقل `pages/beneficiary/carryforward/` و `notifications/` → `components/` | 9 |
+| 2 | دمج `useGreeting` داخل `useBeneficiaryDashboardPage` | 2 |
+| 3 | فصل `AuditLogHelpers.tsx` → `utils/format/auditLabels.ts` + `components/audit/DataDiff.tsx` | 5 |
+| 4 | نقل `tabItems` من `useBeneficiarySettingsPage` إلى الصفحة | 2 |
+| 5 | استخراج `useInstallAppPage` hook | 2 |
+| 6 | إنشاء `src/types/zatca.ts` لتوحيد `ComplianceResult` | 3 |
 
-## الخطوة 2: إصلاح `useGreeting` — نقله قبل early returns
+## الخطوة 7 (جديدة) — تدقيق `window.print` و `localStorage` المباشر
 
-في `BeneficiaryDashboard.tsx`:
-- دمج `useGreeting()` داخل `useBeneficiaryDashboardPage` hook (إضافة `greetingData` للقيم المُرجعة)
-- حذف استدعاء `useGreeting()` من السطر 72 وتعليق `eslint-disable`
-- حذف import `useGreeting` من الصفحة
+سأبحث في الكود الإنتاجي عن:
 
-**الملفات المتأثرة**: 2 (`BeneficiaryDashboard.tsx` + `useBeneficiaryDashboardPage.ts`)
+### أ. `window.print` المباشر
+- يجب أن يستخدم كل الكود `usePrint` من `@/hooks/ui/usePrint` (معيار v7)
+- إذا وُجد استخدام مباشر → استبداله بـ `usePrint`
+- التحقق من زر الطباعة في:
+  - تقارير المستفيد (PDF reports)
+  - فواتير ZATCA
+  - أي صفحة تطبع
 
----
+### ب. `localStorage` / `sessionStorage` المباشر
+- يجب أن يستخدم كل الكود `safeStorage` من `@/lib/storage` (معيار v7)
+- المواضع الحرجة المتوقعة:
+  - **تبديل القوالب** (theme toggle) — `localStorage.setItem('theme', ...)`
+  - **إشعارات التحديث** (notification preferences) — `NOTIF_PREFS_KEY`, `NOTIFICATION_TONE_KEY`, `NOTIFICATION_VOLUME_KEY`
+  - **PWA install dismissal**
+- إذا وُجد استخدام مباشر → استبداله بـ `safeStorage`
 
-## الخطوة 3: فصل `AuditLogHelpers.tsx`
+### ج. تحقق وظيفي بعد التغييرات
+- تشغيل `npm test` للتأكد من الاختبارات
+- فحص يدوي مقترح في رسالة الإنجاز:
+  - زر الطباعة في صفحة تقرير
+  - تبديل المظهر (light/dark)
+  - حفظ تفضيلات الإشعارات وإعادة تحميل الصفحة
 
-- إنشاء `src/utils/format/auditLabels.ts` ← نقل `operationColor`, `formatValue`, `getFieldLabel`, `FIELD_LABELS`
-- إنشاء `src/components/audit/DataDiff.tsx` ← نقل مكوّن `DataDiff` مع import من الملف الجديد
-- حذف `AuditLogHelpers.tsx` الأصلي
-- تحديث `src/components/audit/index.ts` وأي ملفات تستورد من `AuditLogHelpers`
+## ترتيب التنفيذ
 
-**الملفات المتأثرة**: ~5 ملفات
+```text
+الخطوات 1→6 (تنظيف معماري) 
+       ↓
+الخطوة 7 (بحث + استبدال window.print/localStorage إن وُجد)
+       ↓
+تشغيل tsc --noEmit + npm test
+       ↓
+تقرير نهائي بقائمة الملفات المُعدّلة + توصيات اختبار يدوي
+```
 
----
+## ضمانات
 
-## الخطوة 4: إزالة منطق العرض من `useBeneficiarySettingsPage`
+- **صفر تغيير سلوكي**: كل الاستبدالات (usePrint, safeStorage) تحافظ على نفس الواجهة الخارجية
+- **ملفات محمية**: لن أمس `AuthContext`, `ProtectedRoute`, `client.ts`, `types.ts`, `config.toml`, `.env`
+- **اختبارات SignupForm**: ستبقى تعمل (لا تغيير في `useFieldErrors`)
+- **التحقق النهائي**: `npx tsc --noEmit` + تشغيل اختبارات الوحدة
 
-- نقل مصفوفة `tabItems` (مع أيقونات Lucide و `createElement`) إلى `BeneficiarySettingsPage.tsx` مباشرة
-- إبقاء Hook للبيانات فقط: `user`, `currentBeneficiary`, `maskedId`, `benLoading`, `benError`, `handleRetry`
-- حذف imports: `TabItem`, `createElement`, أيقونات Lucide من الـ hook
+## الملفات المتوقع تأثرها
 
-**الملفات المتأثرة**: 2 (`useBeneficiarySettingsPage.ts` + `BeneficiarySettingsPage.tsx`)
-
----
-
-## الخطوة 5: استخراج `useInstallAppPage` hook
-
-- إنشاء `src/hooks/page/useInstallAppPage.ts` ← نقل:
-  - `deferredPrompt` state + `beforeinstallprompt` listener
-  - `isInstalled` state + `appinstalled` listener
-  - `isIOS` detection
-  - `handleInstall` callback
-- تبسيط `InstallApp.tsx` ليصبح UI فقط
-
-**الملفات المتأثرة**: 2 (جديد + تحديث)
-
----
-
-## الخطوة 6: توحيد `ComplianceResult` types
-
-- إنشاء `src/types/zatca.ts` ← نقل `ComplianceResult` و `ComplianceMessage`
-- تحديث imports في:
-  - `ZatcaManagementPage.tsx` — حذف التعريف المحلي + import من `@/types/zatca`
-  - `ZatcaComplianceDialog.tsx` — حذف التعريف المكرر + import من `@/types/zatca`
-
-**الملفات المتأثرة**: 3 (جديد + 2 تحديث)
-
----
-
-## ملخص
-
-| الخطوة | الملفات | الخطر |
-|--------|---------|-------|
-| 1. نقل مكونات UI | 9 | منخفض |
-| 2. إصلاح useGreeting | 2 | منخفض |
-| 3. فصل AuditLogHelpers | 5 | منخفض |
-| 4. تنظيف Settings hook | 2 | منخفض |
-| 5. استخراج InstallApp hook | 2 | منخفض |
-| 6. توحيد ComplianceResult | 3 | منخفض |
-| **المجموع** | **~23 ملف** | **صفر تغيير سلوكي** |
-
-كل الخطوات إعادة تنظيم بحتة — لا تغيير في السلوك أو الواجهة.
+- 23 ملف من الخطوات 1-6
+- + 0-5 ملفات إضافية من الخطوة 7 (حسب نتيجة البحث)
+- **الإجمالي المتوقع**: 23-28 ملف
 
