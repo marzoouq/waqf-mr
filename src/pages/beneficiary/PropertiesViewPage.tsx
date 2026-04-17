@@ -16,7 +16,6 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { Building2, MapPin, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler, TrendingUp, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { generatePropertiesPDF } from '@/utils/pdf';
 import { defaultNotify } from '@/lib/notify';
 import { fmt, fmtInt } from '@/utils/format/format';
 import { usePropertiesViewData } from '@/hooks/page/admin/management/usePropertiesViewData';
@@ -71,6 +70,7 @@ const PropertiesViewPage = () => {
             actions={
               <ExportMenu onExportPdf={async () => {
                 try {
+                  const { generatePropertiesPDF } = await import('@/utils/pdf');
                   await generatePropertiesPDF(
                     (properties ?? []).map(p => ({
                       property_number: p.property_number, property_type: p.property_type,

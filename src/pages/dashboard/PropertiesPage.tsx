@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { TablePagination, CrudPagination, ExportMenu, StatsGridSkeleton } from '@/components/common';
 import { Building2, Search } from 'lucide-react';
-import { generatePropertiesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { PropertyUnitsDialog, PropertySummaryCards, PropertyFormDialog, PropertyCard, PropertyDeleteDialog } from '@/components/properties';
 import { usePropertiesPage } from '@/hooks/page/admin/management/usePropertiesPage';
@@ -35,7 +34,7 @@ const PropertiesPage = () => {
           icon={Building2}
           description="عرض وإدارة جميع عقارات الوقف"
           actions={<>
-            <ExportMenu onExportPdf={() => generatePropertiesPDF(properties, pdfWaqfInfo)} />
+            <ExportMenu onExportPdf={async () => { const { generatePropertiesPDF } = await import('@/utils/pdf'); return generatePropertiesPDF(properties, pdfWaqfInfo); }} />
             <PropertyFormDialog
               isOpen={isOpen} setIsOpen={setIsOpen} editingProperty={editingProperty}
               formData={formData} setFormData={setFormData} resetForm={resetForm}

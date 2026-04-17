@@ -10,7 +10,6 @@ import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/useBeneficiaryDashboardData';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiaryFinancials';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { generateAccountsPDF } from '@/utils/pdf';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
@@ -40,6 +39,7 @@ export function useAccountsViewPage() {
 
   const handleExportPdf = useCallback(async () => {
     try {
+      const { generateAccountsPDF } = await import('@/utils/pdf');
       await generateAccountsPDF({
         contracts: contracts.filter(c => c.status === 'active').map(c => ({
           contract_number: c.contract_number ?? '', tenant_name: c.tenant_name ?? '',

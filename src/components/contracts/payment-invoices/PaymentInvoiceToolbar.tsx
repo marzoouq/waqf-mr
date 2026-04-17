@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Zap, AlertTriangle, FileDown, CalendarDays, X } from 'lucide-react';
-import { generateOverdueInvoicesPDF } from '@/utils/pdf';
 import type { InvoiceFilterStatus } from '@/hooks/page/admin/financial/usePaymentInvoicesTab';
 import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
@@ -78,6 +77,7 @@ export default function PaymentInvoiceToolbar({
           variant="outline" size="sm"
           className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
           onClick={async () => {
+            const { generateOverdueInvoicesPDF } = await import('@/utils/pdf');
             const exported = await generateOverdueInvoicesPDF(invoices, waqfInfo);
             if (!exported) {
               const { toast } = await import('sonner');

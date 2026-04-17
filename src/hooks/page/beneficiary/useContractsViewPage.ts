@@ -7,7 +7,6 @@ import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContract
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { usePropertiesMap } from '@/hooks/data/properties/usePropertiesMap';
-import { generateContractsPDF } from '@/utils/pdf';
 import { defaultNotify } from '@/lib/notify';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 
@@ -58,6 +57,7 @@ export const useContractsViewPage = () => {
 
   const handleExportPdf = useCallback(async () => {
     try {
+      const { generateContractsPDF } = await import('@/utils/pdf');
       await generateContractsPDF(
         (contracts ?? []).map(c => ({
           contract_number: c.contract_number ?? '', tenant_name: c.tenant_name ?? '',

@@ -9,7 +9,6 @@ import BylawsStatsCards from '@/components/bylaws/BylawsStatsCards';
 import SortableBylawItem from '@/components/bylaws/SortableBylawItem';
 import { Loader2, BookOpen, Search, X, Plus, Lock, Scale } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
-import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 
 import { DndContext, closestCenter } from '@dnd-kit/core';
@@ -60,7 +59,7 @@ const BylawsPage = () => {
                 <span className="hidden sm:inline">إضافة بند</span>
               </Button>
               <ExportMenu
-                onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
+                onExportPdf={async () => { const { generateBylawsPDF } = await import('@/utils/pdf'); return generateBylawsPDF(visibleBylaws, pdfWaqfInfo); }}
               />
             </div>
           }

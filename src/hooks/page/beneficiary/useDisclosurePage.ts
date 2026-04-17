@@ -11,7 +11,6 @@ import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
-import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { defaultNotify } from '@/lib/notify';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/useBeneficiaryDashboardData';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiaryFinancials';
@@ -63,6 +62,7 @@ export const useDisclosurePage = () => {
   // لف بـ useCallback (#17)
   const handleDownloadPDF = useCallback(async () => {
     try {
+      const { generateDisclosurePDF } = await import('@/utils/pdf');
       await generateDisclosurePDF({
         fiscalYear: gregorianFiscalYear,
         beneficiaryName: currentBeneficiary?.name || '',
@@ -80,6 +80,7 @@ export const useDisclosurePage = () => {
 
   const handleDownloadComprehensivePDF = useCallback(async () => {
     try {
+      const { generateComprehensiveBeneficiaryPDF } = await import('@/utils/pdf');
       await generateComprehensiveBeneficiaryPDF({
         beneficiaryName: currentBeneficiary?.name || '',
         fiscalYear: gregorianFiscalYear, totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
