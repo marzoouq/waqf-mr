@@ -1,8 +1,6 @@
 import { Route } from "react-router-dom";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import RequirePermission from "@/components/guards/RequirePermission";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
-import { withRouteErrorBoundary as eb } from "./withRouteErrorBoundary";
+import { pr } from "./protectedRoute";
 
 const AdminDashboard = lazyWithRetry(() => import("@/pages/dashboard/AdminDashboard"));
 const PropertiesPage = lazyWithRetry(() => import("@/pages/dashboard/PropertiesPage"));
@@ -25,13 +23,7 @@ const ChartOfAccountsPage = lazyWithRetry(() => import("@/pages/dashboard/ChartO
 const HistoricalComparisonPage = lazyWithRetry(() => import("@/pages/dashboard/HistoricalComparisonPage"));
 const SystemDiagnosticsPage = lazyWithRetry(() => import("@/pages/dashboard/SystemDiagnosticsPage"));
 
-import type { AppRole } from '@/types/database';
-import type { ReactNode } from 'react';
 import { ADMIN_ROLES, ADMIN_ONLY } from '@/constants/roles';
-
-/** دالة مساعدة — حماية دور + حماية صلاحيات */
-const pr = (roles: AppRole[], page: ReactNode) =>
-  eb(<ProtectedRoute allowedRoles={roles}><RequirePermission>{page}</RequirePermission></ProtectedRoute>);
 
 /** مسارات لوحة التحكم — admin و accountant */
 export const adminRoutes = (
