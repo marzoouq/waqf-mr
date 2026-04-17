@@ -9,8 +9,8 @@ import {
   ACCOUNTANT_EXCLUDED_ROUTES,
   defaultAdminSections,
   defaultBeneficiarySections,
-  ADMIN_SECTION_KEYS,
-  BENEFICIARY_SECTION_KEYS,
+  ADMIN_ROUTE_TO_SECTION,
+  BENEFICIARY_ROUTE_TO_SECTION,
 } from '@/constants/navigation';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 
@@ -29,7 +29,7 @@ export function usePermissionCheck() {
     // المحاسب
     if (role === 'accountant') {
       if (ACCOUNTANT_EXCLUDED_ROUTES.includes(path)) return false;
-      const sectionKey = ADMIN_SECTION_KEYS[path];
+      const sectionKey = ADMIN_ROUTE_TO_SECTION[path];
       if (sectionKey && sectionsVisibility[sectionKey] === false) return false;
       const permKey = ADMIN_ROUTE_PERM_KEYS[path];
       if (permKey) {
@@ -41,7 +41,7 @@ export function usePermissionCheck() {
 
     // المستفيد والواقف
     if (role === 'beneficiary' || role === 'waqif') {
-      const bsKey = BENEFICIARY_SECTION_KEYS[path];
+      const bsKey = BENEFICIARY_ROUTE_TO_SECTION[path];
       if (bsKey && beneficiarySections[bsKey] === false) return false;
       const permKey = BENEFICIARY_ROUTE_PERM_KEYS[path];
       if (permKey) {

@@ -134,7 +134,11 @@ export const defaultBeneficiarySections = {
   messages: true, notifications: true, annual_report: true, support: true,
 };
 
-export const ADMIN_SECTION_KEYS: Record<string, string> = {
+/**
+ * خريطة من المسار إلى مفتاح القسم — للوحة الناظر/المحاسب
+ * (مُعاد تسميتها من ADMIN_SECTION_KEYS لتجنب تضارب التسمية مع المصفوفة في sections.ts)
+ */
+export const ADMIN_ROUTE_TO_SECTION: Record<string, string> = {
   '/dashboard/properties': 'properties',
   '/dashboard/contracts': 'contracts',
   '/dashboard/income': 'income',
@@ -152,7 +156,11 @@ export const ADMIN_SECTION_KEYS: Record<string, string> = {
   '/dashboard/chart-of-accounts': 'chart_of_accounts',
 };
 
-export const BENEFICIARY_SECTION_KEYS: Record<string, string> = {
+/**
+ * خريطة من المسار إلى مفتاح القسم — لواجهة المستفيد/الواقف
+ * (مُعاد تسميتها من BENEFICIARY_SECTION_KEYS لتجنب تضارب التسمية مع المصفوفة في sections.ts)
+ */
+export const BENEFICIARY_ROUTE_TO_SECTION: Record<string, string> = {
   '/beneficiary/properties': 'properties',
   '/beneficiary/contracts': 'contracts',
   '/beneficiary/disclosure': 'disclosure',

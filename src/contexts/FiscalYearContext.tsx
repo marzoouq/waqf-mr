@@ -26,7 +26,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
   const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
-  const { role, loading: authLoading } = useAuth();
+  const { role, loading: authLoading, signOut } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY) || '';
@@ -83,9 +83,9 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
           const { data, error } = await supabase.functions.invoke('dashboard-summary', {
             body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fy?.label },
           });
-          // كشف جلسة منتهية — تسجيل خروج تلقائي
+          // كشف جلسة منتهية — تسجيل خروج تلقائي عبر AuthContext لضمان cleanup كامل
           if (error?.message?.includes('401') || data?.error === 'Unauthorized') {
-            await supabase.auth.signOut();
+            await signOut();
             throw new Error('انتهت الجلسة');
           }
           if (error) throw error;
