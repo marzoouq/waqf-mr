@@ -1,9 +1,13 @@
+import { lazy, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Banknote, CheckCircle, Clock, AlertTriangle, Inbox } from 'lucide-react';
 import { ErrorBoundary } from '@/components/common';
-import CollectionSummaryChart from '@/components/dashboard/CollectionSummaryChart';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// recharts يُحمَّل lazily لاستبعاده من حزمة AdminDashboard الأولية
+const CollectionSummaryChart = lazy(() => import('@/components/dashboard/CollectionSummaryChart'));
 
 interface CollectionSummaryCardProps {
   collectionSummary: {
@@ -41,7 +45,9 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
       <CardContent>
         <div className="flex flex-col md:flex-row items-center gap-6">
           <ErrorBoundary>
-            <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount} partial={collectionSummary.partialCount} />
+            <Suspense fallback={<Skeleton className="w-[180px] h-[180px] rounded-full shrink-0" />}>
+              <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount} partial={collectionSummary.partialCount} />
+            </Suspense>
           </ErrorBoundary>
 
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">

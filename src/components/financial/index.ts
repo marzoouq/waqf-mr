@@ -1,1 +1,3 @@
-export { default as FinancialChartsInner } from './FinancialChartsInner';
+// FinancialChartsInner مُستبعد عمداً — يُحمَّل lazily فقط عبر
+// import('@/components/financial/FinancialChartsInner') في FinancialReportsPage
+export {};
