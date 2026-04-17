@@ -2,7 +2,13 @@ import { useWaqfInfo } from '@/hooks/data/settings/useAppSettings';
 import { useEffect } from 'react';
 import { loadAmiriFonts } from '@/utils/fonts/loadAmiriFonts';
 const PrintHeader = () => {
-  useEffect(() => { loadAmiriFonts(); }, []);
+  // #13 perf: تحميل الخط فقط عند نية الطباعة (beforeprint) بدلاً من mount
+  // — يوفر تحميل ~150KB من خطوط Amiri لمعظم الجلسات التي لا تطبع
+  useEffect(() => {
+    const handler = () => loadAmiriFonts();
+    window.addEventListener('beforeprint', handler);
+    return () => window.removeEventListener('beforeprint', handler);
+  }, []);
   const { data: waqfInfo } = useWaqfInfo();
   const waqfName = waqfInfo?.waqf_name || 'الوقف';
   const waqfAdmin = waqfInfo?.waqf_admin || '';
