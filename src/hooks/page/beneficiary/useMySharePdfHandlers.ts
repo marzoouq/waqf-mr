@@ -1,5 +1,14 @@
 /**
  * هوك PDF handlers لصفحة حصتي — مستخرج من useMySharePage
+ *
+ * #99 من الفحص العميق — لماذا الـ handler هنا وليس في `src/utils/pdf/`:
+ *   `src/utils/pdf/` يحتوي على **مولّدات PDF نقية** (تأخذ بيانات وتُرجع Blob).
+ *   هذا الملف هو **handler طبقة الصفحة** يربط بين:
+ *     - بيانات الهوك (currentBeneficiary, myShare, totalReceived, ...)
+ *     - مولّدات utils/pdf النقية
+ *     - إشعارات defaultNotify (toast نجاح/فشل)
+ *     - usePdfWaqfInfo (شعار وبيانات الوقف)
+ *   الفصل صحيح: utils/pdf لا يستهلك hooks ولا notify (قاعدة `src/utils/`).
  */
 import { useState, useCallback } from 'react';
 import { generateMySharePDF, generateDistributionsPDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
