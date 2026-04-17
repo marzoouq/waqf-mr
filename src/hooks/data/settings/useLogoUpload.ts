@@ -58,6 +58,8 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
         .from('app_settings')
         .upsert({ key: settingKey, value: logoUrl, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 
+      // المهمة B — إبطال فئة general + legacy
+      await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
       await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       setPreview(logoUrl);
       defaultNotify.success('تم رفع الشعار بنجاح');
@@ -75,6 +77,7 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
       await supabase
         .from('app_settings')
         .upsert({ key: settingKey, value: '', updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
       await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       setPreview('');
       defaultNotify.success('تم إزالة الشعار');

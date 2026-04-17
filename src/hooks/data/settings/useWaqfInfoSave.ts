@@ -51,6 +51,8 @@ export const useWaqfInfoSave = (onSuccess: () => void) => {
           .upsert({ key: field.key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
         if (error) throw error;
       }
+      // المهمة B — إبطال فئة general (waqf_*) + legacy
+      await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
       await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       defaultNotify.success('تم حفظ بيانات الوقف بنجاح');
       onSuccess();
