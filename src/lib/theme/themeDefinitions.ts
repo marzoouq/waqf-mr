@@ -36,6 +36,26 @@ export interface ThemeVars {
   'success-muted': string;
   warning: string;
   'warning-foreground': string;
+  // ── معلوماتية ──
+  info: string;
+  'info-foreground': string;
+  'info-muted': string;
+  // ── خصومات ورسوم ──
+  discount: string;
+  'discount-foreground': string;
+  'discount-muted': string;
+  surcharge: string;
+  'surcharge-foreground': string;
+  'surcharge-muted': string;
+  // ── حالات وتقييمات ──
+  'star-rating': string;
+  'star-rating-foreground': string;
+  'status-approved': string;
+  'status-approved-foreground': string;
+  'status-special': string;
+  'status-special-foreground': string;
+  caution: string;
+  'caution-foreground': string;
   // ── المخططات ──
   'chart-1': string;
   'chart-2': string;
