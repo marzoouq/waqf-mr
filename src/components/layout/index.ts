@@ -21,8 +21,8 @@ export {
   ACCOUNTANT_EXCLUDED_ROUTES,
   defaultAdminSections,
   defaultBeneficiarySections,
-  ADMIN_SECTION_KEYS,
-  BENEFICIARY_SECTION_KEYS,
+  ADMIN_ROUTE_TO_SECTION,
+  BENEFICIARY_ROUTE_TO_SECTION,
   ROUTE_TITLES,
 } from '@/constants/navigation';
 export { defaultMenuLabels, type MenuLabels } from '@/types/navigation';

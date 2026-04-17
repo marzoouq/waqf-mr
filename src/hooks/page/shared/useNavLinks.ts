@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { defaultMenuLabels, type MenuLabels } from '@/types/navigation';
-import { linkLabelKeys, allAdminLinks, allBeneficiaryLinks, ADMIN_ROUTE_PERM_KEYS, BENEFICIARY_ROUTE_PERM_KEYS, ACCOUNTANT_EXCLUDED_ROUTES, defaultAdminSections, defaultBeneficiarySections, ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS } from '@/constants/navigation';
+import { linkLabelKeys, allAdminLinks, allBeneficiaryLinks, ADMIN_ROUTE_PERM_KEYS, BENEFICIARY_ROUTE_PERM_KEYS, ACCOUNTANT_EXCLUDED_ROUTES, defaultAdminSections, defaultBeneficiarySections, ADMIN_ROUTE_TO_SECTION, BENEFICIARY_ROUTE_TO_SECTION } from '@/constants/navigation';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 
 export function useNavLinks() {
@@ -28,7 +28,7 @@ export function useNavLinks() {
     if (role === 'admin') {
       return allAdminLinks
         .filter(link => {
-          const sectionKey = ADMIN_SECTION_KEYS[link.to];
+          const sectionKey = ADMIN_ROUTE_TO_SECTION[link.to];
           return !sectionKey || (sectionsVisibility as Record<string, boolean>)[sectionKey] !== false;
         })
         .map(link => {
@@ -42,7 +42,7 @@ export function useNavLinks() {
       return allAdminLinks
         .filter(link => !ACCOUNTANT_EXCLUDED_ROUTES.includes(link.to))
         .filter(link => {
-          const sectionKey = ADMIN_SECTION_KEYS[link.to];
+          const sectionKey = ADMIN_ROUTE_TO_SECTION[link.to];
           if (sectionKey && (sectionsVisibility as Record<string, boolean>)[sectionKey] === false) return false;
           const key = ADMIN_ROUTE_PERM_KEYS[link.to];
           return !key || perms?.[key] !== false;
@@ -63,7 +63,7 @@ export function useNavLinks() {
         return link;
       })
       .filter(link => {
-        const bsKey = BENEFICIARY_SECTION_KEYS[link.to];
+        const bsKey = BENEFICIARY_ROUTE_TO_SECTION[link.to];
         if (bsKey && (beneficiarySections as Record<string, boolean>)[bsKey] === false) return false;
         const key = BENEFICIARY_ROUTE_PERM_KEYS[link.to];
         return !key || perms[key] !== false;
