@@ -2,7 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { reportPageLoadMetrics } from "./lib/monitoring";
 import { initThemeFromStorage } from "./lib/theme/themeColor.utils";
 import { initQueryMonitoring } from "./lib/initQueryMonitoring";
 import { logger } from "./lib/logger";
@@ -52,8 +51,13 @@ try {
   removeSplash();
 }
 
-// مراقبة أداء التحميل
-reportPageLoadMetrics();
+// #14 perf: تأجيل أدوات المراقبة إلى وقت الخمول لتحرير main thread أثناء الإقلاع
+const idle: (cb: () => void) => void =
+  typeof window !== 'undefined' && 'requestIdleCallback' in window
+    ? (cb) => (window as Window & { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(cb)
+    : (cb) => setTimeout(cb, 1500);
 
-// تهيئة Core Web Vitals
-import('./lib/monitoring/webVitals').then(m => m.initWebVitals());
+idle(() => {
+  import('./lib/monitoring').then(m => m.reportPageLoadMetrics());
+  import('./lib/monitoring/webVitals').then(m => m.initWebVitals());
+});
