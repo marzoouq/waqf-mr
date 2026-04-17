@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeGet, safeSet, safeRemove } from '@/lib/storage';
 
 const BIOMETRIC_ENABLED_KEY = STORAGE_KEYS.BIOMETRIC_ENABLED;
 
@@ -24,10 +25,8 @@ export function useWebAuthnManage() {
 
   useEffect(() => {
     setIsSupported(browserSupportsWebAuthn());
-    try {
-      const localEnabled = localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true';
-      setIsEnabled(localEnabled);
-    } catch { setIsEnabled(false); }
+    const localEnabled = safeGet<string>(BIOMETRIC_ENABLED_KEY, 'false') === 'true';
+    setIsEnabled(localEnabled);
 
     let cancelled = false;
     (async () => {
@@ -41,7 +40,7 @@ export function useWebAuthnManage() {
       const dbEnabled = (count ?? 0) > 0;
       setIsEnabled(dbEnabled);
       if (dbEnabled) {
-        localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
+        safeSet(BIOMETRIC_ENABLED_KEY, 'true');
         if (cancelled) return;
         const { data: creds } = await supabase
           .from('webauthn_credentials')
@@ -52,7 +51,7 @@ export function useWebAuthnManage() {
         if (cancelled) return;
         if (creds) setCredentials(creds.map(c => ({ ...c, device_name: c.device_name ?? '' })));
       } else {
-        localStorage.removeItem(BIOMETRIC_ENABLED_KEY);
+        safeRemove(BIOMETRIC_ENABLED_KEY);
       }
     })();
     return () => { cancelled = true; };
@@ -99,7 +98,7 @@ export function useWebAuthnManage() {
 
     const remaining = await fetchCredentials();
     if (remaining.length === 0) {
-      localStorage.removeItem(BIOMETRIC_ENABLED_KEY);
+      safeRemove(BIOMETRIC_ENABLED_KEY);
       setIsEnabled(false);
     }
 
