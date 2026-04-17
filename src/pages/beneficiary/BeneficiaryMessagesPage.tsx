@@ -63,10 +63,10 @@ const BeneficiaryMessagesPage = () => {
 
         <div className="flex gap-2 mb-4">
           <Button variant={activeTab === 'chat' ? 'default' : 'outline'} size="sm" onClick={() => { setActiveTab('chat'); setSelectedConv(null); }}>
-            <MessageSquare className="w-4 h-4 ml-1" /> المحادثات
+            <MessageSquare className="w-4 h-4 ms-1" /> المحادثات
           </Button>
           <Button variant={activeTab === 'support' ? 'default' : 'outline'} size="sm" onClick={() => { setActiveTab('support'); setSelectedConv(null); }}>
-            <Headphones className="w-4 h-4 ml-1" /> الدعم الفني
+            <Headphones className="w-4 h-4 ms-1" /> الدعم الفني
           </Button>
         </div>
 

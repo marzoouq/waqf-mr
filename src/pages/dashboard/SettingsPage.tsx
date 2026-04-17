@@ -71,7 +71,7 @@ const SettingsPage = () => {
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
         <PageHeaderCard title="الإعدادات العامة" icon={Settings} description="إدارة جميع إعدادات النظام من مكان واحد" />
-        <Tabs defaultValue="waqf" dir="rtl" onValueChange={setActiveSettingsTab} value={activeSettingsTab}>
+        <Tabs dir="rtl" onValueChange={setActiveSettingsTab} value={activeSettingsTab}>
           {isMobile ? (
             <div className="mb-4">
               <Select value={activeSettingsTab} onValueChange={setActiveSettingsTab}>
