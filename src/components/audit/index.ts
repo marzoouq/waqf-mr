@@ -1,3 +1,4 @@
 export { default as AccessLogTab } from './AccessLogTab';
 export { default as ArchiveLogTab } from './ArchiveLogTab';
-export * from './AuditLogHelpers';
+export { DataDiff } from './DataDiff';
+export { operationColor, formatValue, getFieldLabel } from '@/utils/format/auditLabels';

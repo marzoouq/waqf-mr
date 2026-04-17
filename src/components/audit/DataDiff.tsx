@@ -1,51 +1,15 @@
 /**
- * مكونات ودوال مساعدة لسجل المراجعة — DataDiff + ثوابت
+ * مكوّن عرض الفروقات بين البيانات قبل/بعد العملية
  */
+import { getFieldLabel, formatValue } from '@/utils/format/auditLabels';
 
-
-// ─── ألوان العمليات ───
-// eslint-disable-next-line react-refresh/only-export-components
-export const operationColor = (op: string) => {
-  switch (op) {
-    case 'INSERT': return 'bg-success/15 text-success border-success/30';
-    case 'UPDATE': return 'bg-warning/15 text-warning border-warning/30';
-    case 'DELETE': return 'bg-destructive/15 text-destructive border-destructive/30';
-    case 'REOPEN': return 'bg-info/15 text-info border-info/30';
-    case 'CLOSE': return 'bg-status-special/15 text-status-special-foreground border-status-special/30';
-    default: return '';
-  }
-};
-
-// ─── تنسيق القيم ───
-// eslint-disable-next-line react-refresh/only-export-components
-export const formatValue = (val: unknown): string => {
-  if (val === null || val === undefined) return '—';
-  if (typeof val === 'object') return JSON.stringify(val, null, 2);
-  return String(val);
-};
-
-// ─── تسميات الحقول ───
-const FIELD_LABELS: Record<string, string> = {
-  amount: 'المبلغ', source: 'المصدر', date: 'التاريخ', description: 'الوصف',
-  expense_type: 'نوع المصروف', notes: 'ملاحظات', property_id: 'العقار',
-  fiscal_year_id: 'السنة المالية', contract_id: 'العقد', created_at: 'تاريخ الإنشاء',
-  updated_at: 'تاريخ التحديث', id: 'المعرف', total_income: 'إجمالي الدخل',
-  total_expenses: 'إجمالي المصروفات', admin_share: 'حصة الناظر',
-  waqif_share: 'حصة الواقف', waqf_revenue: 'ريع الوقف',
-  name: 'الاسم', share_percentage: 'نسبة الحصة', status: 'الحالة',
-  beneficiary_id: 'المستفيد', account_id: 'الحساب',
-  reason: 'السبب', label: 'التسمية',
-};
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const getFieldLabel = (key: string) => FIELD_LABELS[key] || key;
-
-// ─── مكوّن عرض الفروقات ───
-export function DataDiff({ oldData, newData, operation }: {
+interface DataDiffProps {
   oldData: Record<string, unknown> | null;
   newData: Record<string, unknown> | null;
   operation: string;
-}) {
+}
+
+export function DataDiff({ oldData, newData, operation }: DataDiffProps) {
   if (operation === 'REOPEN' && newData) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
@@ -112,3 +76,5 @@ export function DataDiff({ oldData, newData, operation }: {
 
   return <p className="text-sm text-muted-foreground">لا توجد بيانات</p>;
 }
+
+export default DataDiff;
