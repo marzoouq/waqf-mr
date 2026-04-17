@@ -37,11 +37,11 @@ export default function ZatcaHealthPanel({ activeCert, chain, pendingInvoices }:
   }, [activeCert?.expires_at]);
 
   const chainHealth = useMemo(() => {
-    if (!chain || chain.length === 0) {
+    const last = chain?.[0];
+    if (!last) {
       return { lastIcv: 0, lastHash: null as string | null, count: 0 };
     }
     // chain مرتب تنازلياً حسب icv
-    const last = chain[0];
     return {
       lastIcv: last.icv,
       lastHash: last.invoice_hash,
