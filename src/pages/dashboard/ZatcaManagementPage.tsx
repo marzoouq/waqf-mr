@@ -13,23 +13,7 @@ import ZatcaCertificatesTab from '@/components/zatca/ZatcaCertificatesTab';
 import ZatcaChainTab from '@/components/zatca/ZatcaChainTab';
 import ZatcaComplianceDialog from '@/components/zatca/ZatcaComplianceDialog';
 import { useZatcaManagement } from '@/hooks/data/zatca/useZatcaManagement';
-
-interface ComplianceMessage {
-  code: string;
-  message: string;
-}
-
-interface ComplianceResult {
-  warningMessages?: ComplianceMessage[];
-  errorMessages?: ComplianceMessage[];
-  infoMessages?: ComplianceMessage[];
-  validationResults?: {
-    status?: string;
-    warningMessages?: ComplianceMessage[];
-    errorMessages?: ComplianceMessage[];
-    infoMessages?: ComplianceMessage[];
-  };
-}
+import type { ComplianceResult } from '@/types/zatca';
 
 function ZatcaManagementPage() {
   const z = useZatcaManagement();

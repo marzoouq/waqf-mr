@@ -5,23 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ClipboardCheck } from 'lucide-react';
-
-interface ComplianceMessage {
-  code: string;
-  message: string;
-}
-
-interface ComplianceResult {
-  warningMessages?: ComplianceMessage[];
-  errorMessages?: ComplianceMessage[];
-  infoMessages?: ComplianceMessage[];
-  validationResults?: {
-    status?: string;
-    warningMessages?: ComplianceMessage[];
-    errorMessages?: ComplianceMessage[];
-    infoMessages?: ComplianceMessage[];
-  };
-}
+import type { ComplianceResult } from '@/types/zatca';
 
 interface ZatcaComplianceDialogProps {
   result: ComplianceResult | null;
