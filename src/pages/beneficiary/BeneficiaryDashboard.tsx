@@ -1,8 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle, RefreshCw, Sun, Moon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AlertCircle, Sun, Moon } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
-import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender } from '@/components/common';
+import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender, ErrorState } from '@/components/common';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { BENEFICIARY_WIDGET_KEYS } from '@/constants/beneficiaryWidgets';
@@ -36,17 +35,7 @@ const BeneficiaryDashboard = () => {
   }
 
   if (dashError) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={handleRetry} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
+    return <ErrorState onRetry={handleRetry} />;
   }
 
   if (!currentBeneficiary && !dashLoading) {
