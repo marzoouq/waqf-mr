@@ -2,8 +2,8 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { TableSkeleton, TablePagination, ExportMenu } from '@/components/common';
-import { TrendingDown, Search, Lock, ShieldCheck } from 'lucide-react';
+import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner } from '@/components/common';
+import { TrendingDown, Search } from 'lucide-react';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
@@ -41,19 +41,8 @@ const ExpensesPage = () => {
           </>}
         />
 
-        {h.isClosed && (
-          <div className="flex flex-wrap items-center gap-4">
-            {h.role === 'admin' ? (
-              <span className="text-sm text-success font-medium flex items-center gap-1 bg-success/10 px-3 py-1 rounded-md border border-success/30">
-                <ShieldCheck className="w-3 h-3" /> سنة مقفلة — لديك صلاحية التعديل كناظر
-              </span>
-            ) : (
-              <span className="text-sm text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
-                <Lock className="w-3 h-3" /> سنة مقفلة — لا يمكن التعديل
-              </span>
-            )}
-          </div>
-        )}
+        <LockedYearBanner isClosed={h.isClosed} role={h.role} />
+
 
         <ExpenseSummaryCards expenses={h.expenses} totalExpenses={h.totalExpenses} documentedCount={h.documentedCount} documentationRate={h.documentationRate} isLoading={h.isLoading} />
         <ExpensesPieChart expenses={h.expenses} isLoading={h.isLoading} />
@@ -83,7 +72,7 @@ const ExpensesPage = () => {
             ) : (
               <>
                 <ExpensesMobileCards
-                  items={h.filteredExpenses.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE)}
+                  items={h.paginatedExpenses}
                   expenseInvoiceMap={h.expenseInvoiceMap}
                   expandedRow={h.expandedRow}
                   setExpandedRow={h.setExpandedRow}
@@ -92,7 +81,7 @@ const ExpensesPage = () => {
                   isLocked={h.isLocked}
                 />
                 <ExpensesDesktopTable
-                  items={h.filteredExpenses.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE)}
+                  items={h.paginatedExpenses}
                   expenseInvoiceMap={h.expenseInvoiceMap}
                   expandedRow={h.expandedRow}
                   setExpandedRow={h.setExpandedRow}

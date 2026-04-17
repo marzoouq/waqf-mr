@@ -7,7 +7,7 @@ import { Users, Percent, Search, AlertTriangle, Wallet, UserCheck } from 'lucide
 import { generateBeneficiariesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
-import { ExportMenu, TablePagination, CrudPagination } from '@/components/common';
+import { ExportMenu, TablePagination } from '@/components/common';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -128,7 +128,7 @@ const BeneficiariesPage = () => {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {h.filteredBeneficiaries.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE).map((beneficiary) => (
+                  {h.paginatedBeneficiaries.map((beneficiary) => (
                     <BeneficiaryCard
                       key={beneficiary.id}
                       beneficiary={beneficiary}
@@ -138,16 +138,6 @@ const BeneficiariesPage = () => {
                   ))}
                 </div>
                 <TablePagination currentPage={h.currentPage} totalItems={h.filteredBeneficiaries.length} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
-                <CrudPagination
-                  page={h.serverPage}
-                  pageSize={h.serverPageSize}
-                  currentCount={h.beneficiaries.length}
-                  hasNextPage={h.serverHasNextPage}
-                  hasPrevPage={h.serverHasPrevPage}
-                  nextPage={h.serverNextPage}
-                  prevPage={h.serverPrevPage}
-                  isLoading={h.isLoading}
-                />
               </>
             )}
           </TabsContent>

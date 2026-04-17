@@ -5,9 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InvoiceUploadDialog, InvoiceGridView, InvoiceSummaryCards, InvoicesDesktopTable } from '@/components/invoices';
 import InvoicesPageDialogs from '@/components/invoices/InvoicesPageDialogs';
-import { TablePagination, MobileCardView, ExportMenu, TableSkeleton } from '@/components/common';
+import { TablePagination, MobileCardView, ExportMenu, TableSkeleton, LockedYearBanner } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Search, Eye, LayoutGrid, List, FileDown, ShieldCheck, Lock } from 'lucide-react';
+import { FileText, Search, Eye, LayoutGrid, List, FileDown } from 'lucide-react';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { defaultNotify } from '@/lib/notify';
@@ -17,10 +17,38 @@ import { useInvoicesPage } from '@/hooks/page/admin/financial/useInvoicesPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 
+import { useMemo, useCallback } from 'react';
+
 const InvoicesPage = () => {
   const h = useInvoicesPage();
   const { role } = useAuth();
   const isLocked = !canModifyFiscalYear(role, h.isClosed);
+
+  // #6 — استخراج IIFE من JSX
+  const invoicesWithoutFiles = useMemo(
+    () => h.invoices.filter(inv => !inv.file_path),
+    [h.invoices]
+  );
+
+  // #7 — useCallback لتجنب إنشاء async جديد في كل render
+  const handleExportPdf = useCallback(async () => {
+    if (!h.fiscalYearId || h.fiscalYearId === 'all') defaultNotify.warning('⚠️ أنت تصدّر فواتير جميع السنوات المالية.');
+    try {
+      const fyLabel = h.fiscalYear?.label || (h.fiscalYearId ? '' : 'جميع السنوات');
+      await generateInvoicesViewPDF(h.filteredInvoices.map(inv => ({
+        invoice_type: h.INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
+        invoice_number: inv.invoice_number, amount: safeNumber(inv.amount), date: inv.date,
+        property_number: inv.property?.property_number || '-', status: inv.status,
+      })), h.pdfWaqfInfo, fyLabel);
+      defaultNotify.success('تم تحميل ملف PDF بنجاح');
+    } catch { defaultNotify.error('حدث خطأ أثناء تصدير PDF'); }
+  }, [h.fiscalYearId, h.fiscalYear, h.filteredInvoices, h.INVOICE_TYPE_LABELS, h.pdfWaqfInfo]);
+
+  // #63 — حساب paginated مرة واحدة بدل slice مزدوج
+  const paginatedInvoices = useMemo(
+    () => h.filteredInvoices.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE),
+    [h.filteredInvoices, h.currentPage, h.ITEMS_PER_PAGE]
+  );
 
   return (
     <DashboardLayout>
@@ -33,26 +61,12 @@ const InvoicesPage = () => {
             <Button variant="outline" className="gap-2" onClick={() => h.setTemplateOpen(true)} disabled={isLocked}>
               <FileText className="w-4 h-4" />إنشاء من قالب
             </Button>
-            {(() => {
-              const withoutFiles = h.invoices.filter(inv => !inv.file_path);
-              return withoutFiles.length > 0 ? (
-                <Button variant="outline" className="gap-2" disabled={h.generatePdf.isPending || isLocked} onClick={() => h.generatePdf.mutate(withoutFiles.map(inv => inv.id))}>
-                  <FileDown className="w-4 h-4" />{h.generatePdf.isPending ? 'جاري التوليد...' : `توليد PDF (${withoutFiles.length})`}
-                </Button>
-              ) : null;
-            })()}
-            <ExportMenu onExportPdf={async () => {
-              if (!h.fiscalYearId || h.fiscalYearId === 'all') defaultNotify.warning('⚠️ أنت تصدّر فواتير جميع السنوات المالية.');
-              try {
-                const fyLabel = h.fiscalYear?.label || (h.fiscalYearId ? '' : 'جميع السنوات');
-                await generateInvoicesViewPDF(h.filteredInvoices.map(inv => ({
-                  invoice_type: h.INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
-                  invoice_number: inv.invoice_number, amount: safeNumber(inv.amount), date: inv.date,
-                  property_number: inv.property?.property_number || '-', status: inv.status,
-                })), h.pdfWaqfInfo, fyLabel);
-                defaultNotify.success('تم تحميل ملف PDF بنجاح');
-              } catch { defaultNotify.error('حدث خطأ أثناء تصدير PDF'); }
-            }} onExportCsv={() => {
+            {invoicesWithoutFiles.length > 0 && (
+              <Button variant="outline" className="gap-2" disabled={h.generatePdf.isPending || isLocked} onClick={() => h.generatePdf.mutate(invoicesWithoutFiles.map(inv => inv.id))}>
+                <FileDown className="w-4 h-4" />{h.generatePdf.isPending ? 'جاري التوليد...' : `توليد PDF (${invoicesWithoutFiles.length})`}
+              </Button>
+            )}
+            <ExportMenu onExportPdf={handleExportPdf} onExportCsv={() => {
               const fyLabel = h.fiscalYear?.label || 'جميع-السنوات';
               const csv = buildCsv(h.filteredInvoices.map(inv => ({
                 'النوع': h.INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
@@ -74,19 +88,8 @@ const InvoicesPage = () => {
           </>}
         />
 
-        {h.isClosed && (
-          <div className="flex flex-wrap items-center gap-4">
-            {role === 'admin' ? (
-              <span className="text-sm text-success font-medium flex items-center gap-1 bg-success/10 px-3 py-1 rounded-md border border-success/30">
-                <ShieldCheck className="w-4 h-4" /> سنة مقفلة — لديك صلاحية التعديل كناظر
-              </span>
-            ) : (
-              <span className="text-sm text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
-                <Lock className="w-4 h-4" /> سنة مقفلة — لا يمكن التعديل
-              </span>
-            )}
-          </div>
-        )}
+        <LockedYearBanner isClosed={h.isClosed} role={role} iconSize="md" />
+
 
         <InvoiceSummaryCards invoices={h.invoices} isLoading={h.isLoading} />
 
@@ -132,7 +135,7 @@ const InvoicesPage = () => {
               ) : (
                 <>
                   <MobileCardView
-                    items={h.filteredInvoices.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE)}
+                    items={paginatedInvoices}
                     getKey={(item) => item.id} getTitle={(item) => h.INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}
                     getSubtitle={(item) => item.invoice_number || undefined}
                     getBadge={(item) => <Badge variant={h.statusBadgeVariant(item.status)}>{h.INVOICE_STATUS_LABELS[item.status] || item.status}</Badge>}
@@ -148,7 +151,7 @@ const InvoicesPage = () => {
                     ) : null}
                   />
                   <InvoicesDesktopTable
-                    items={h.filteredInvoices.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE)}
+                    items={paginatedInvoices}
                     isLocked={isLocked} generatePdfPending={h.generatePdf.isPending}
                     typeLabels={h.INVOICE_TYPE_LABELS} statusLabels={h.INVOICE_STATUS_LABELS} statusBadgeVariant={h.statusBadgeVariant}
                     onViewFile={h.setViewerFile} onGeneratePdf={(ids) => h.generatePdf.mutate(ids)}

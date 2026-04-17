@@ -2,7 +2,6 @@ import { fmt } from '@/utils/format/format';
 import { lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
-const IncomeMonthlyChart = lazy(() => import('@/components/dashboard/IncomeMonthlyChart'));
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,11 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, TrendingUp, Search, Lock, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Plus, TrendingUp, Search, AlertTriangle } from 'lucide-react';
 import IncomeSummaryCards from '@/components/income/IncomeSummaryCards';
 import IncomeMobileCards from '@/components/income/IncomeMobileCards';
 import IncomeDesktopTable from '@/components/income/IncomeDesktopTable';
-import { TablePagination, ExportMenu, TableSkeleton } from '@/components/common';
+import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner } from '@/components/common';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
@@ -24,6 +23,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useIncomePage } from '@/hooks/page/admin/financial/useIncomePage';
+
+// #1 — lazy() بعد كل imports
+const IncomeMonthlyChart = lazy(() => import('@/components/dashboard/IncomeMonthlyChart'));
 
 const IncomePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -84,19 +86,8 @@ const IncomePage = () => {
           </>}
         />
 
-        {isClosed && (
-          <div className="flex flex-wrap items-center gap-4">
-            {role === 'admin' ? (
-              <span className="text-sm text-success font-medium flex items-center gap-1 bg-success/10 px-3 py-1 rounded-md border border-success/30">
-                <ShieldCheck className="w-3 h-3" /> سنة مقفلة — لديك صلاحية التعديل كناظر
-              </span>
-            ) : (
-              <span className="text-sm text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
-                <Lock className="w-3 h-3" /> سنة مقفلة — لا يمكن التعديل
-              </span>
-            )}
-          </div>
-        )}
+        <LockedYearBanner isClosed={isClosed} role={role} />
+
 
         <IncomeSummaryCards isLoading={isLoading} totalIncome={totalIncome} summaryCards={summaryCards} />
 
