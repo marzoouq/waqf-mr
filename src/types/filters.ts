@@ -1,13 +1,6 @@
-export interface FilterState {
-  category: string;
-  propertyId: string;
-  dateFrom: string;
-  dateTo: string;
-}
-
-export const EMPTY_FILTERS: FilterState = {
-  category: '',
-  propertyId: '',
-  dateFrom: '',
-  dateTo: '',
-};
+/**
+ * @deprecated استورد من `@/types/ui` بدلاً من ذلك.
+ * هذا الملف يبقى كـ re-export للتوافق العكسي.
+ */
+export type { FilterState } from './ui';
+export { EMPTY_FILTERS } from './ui';

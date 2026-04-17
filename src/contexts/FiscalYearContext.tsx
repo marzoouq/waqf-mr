@@ -33,6 +33,9 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
     } catch { return ''; }
   });
 
+  // #34: المحاسب يُعامَل كأنه ليس "non-admin" لأنه يحتاج وصولاً تشغيلياً
+  // لكل السنوات (لإدخال قيود/تسديد فواتير في أي سنة مفتوحة). فقط المستفيد/الواقف
+  // مقيّدان بالسنوات المنشورة عبر هذا الفلاغ.
   const isNonAdmin = role === 'beneficiary' || role === 'waqif';
 
   // Once fiscal years load, validate stored selection

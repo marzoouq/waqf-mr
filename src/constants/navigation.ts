@@ -1,6 +1,9 @@
 /**
  * ثوابت التنقل والصلاحيات — مصدر واحد للحقيقة
  * منقول من components/layout/constants.ts لكسر الاعتماد المعكوس
+ *
+ * #26 من تقرير الفحص: مسار `/waqif` مُستخدم فعلياً في BottomNav, Sidebar,
+ * useRoleRedirect, Index, Unauthorized. الادعاء بأنه "يتيم" غير دقيق — إبقاؤه إلزامي.
  */
 import {
   Building2, Home, FileText, Wallet, Users, BarChart3,

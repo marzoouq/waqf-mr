@@ -1,15 +1,5 @@
 /**
- * أنواع التصدير المشتركة
+ * @deprecated استورد من `@/types/ui` بدلاً من ذلك.
+ * هذا الملف يبقى كـ re-export للتوافق العكسي.
  */
-export type ExportableTable =
-  | 'properties'
-  | 'contracts'
-  | 'income'
-  | 'expenses'
-  | 'beneficiaries'
-  | 'accounts'
-  | 'invoices'
-  | 'distributions'
-  | 'units'
-  | 'fiscal_years'
-  | 'tenant_payments';
+export type { ExportableTable } from './ui';
