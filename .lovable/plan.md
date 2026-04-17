@@ -1,75 +1,63 @@
 
-# الموجة الرابعة — خطة تنفيذ مُحقَّقة بالأرقام
+# الموجة الرابعة — استكمال: إزالة vendor-pdf من modulepreload فعلياً
 
-## الحقائق المؤكدة (تم التحقق منها للتو)
+## الوضع الحالي
+بعد تحويل 19 ملف إلى dynamic imports في الجولة السابقة، اكتُشف أن `vendor-pdf` **لا يزال** في `<link rel="modulepreload">` ضمن `dist/index.html`. السبب: Vite يُنشئ modulepreload لجميع chunks المُعرَّفة في `manualChunks` بشكل افتراضي حتى لو كانت dynamic.
 
-| البند | التأكيد |
-|------|---------|
-| `vendor-pdf` في modulepreload | ✅ مؤكد في `dist/index.html` |
-| `lucide-react@1.7.0` | ✅ `npm ls` يؤكد (نسخة 2017) |
-| ملفات تستورد `@/utils/pdf` | **21** (وليس 23) — منها **2 type-only** و **19 value** |
+## المهمة الوحيدة المتبقية
 
-## النطاق الحقيقي للتعديل: **19 ملف فقط**
+### إضافة `experimental.renderBuiltUrl` أو تعديل `modulePreload` في `vite.config.ts`
 
-### Type-only (لا تُلمس — آمنة بالفعل)
-- `src/hooks/data/settings/usePdfWaqfInfo.ts`
-- `src/utils/pdf/index.ts` re-exports
-
-### Value imports (تُحوَّل إلى dynamic) — 19 ملف
-**Pages (8):** ContractsPage, ExpensesPage, IncomePage, InvoicesPage, PropertiesPage, BeneficiariesPage, BylawsPage, beneficiary/PropertiesViewPage
-**Hooks (8):** useAccountsViewPage, useBylawsViewPage, useContractsViewPage, useDisclosurePage, useInvoicesViewPage, useMySharePdfHandlers, useAuditLogPage, useReportsData
-**Components (3):** DistributeDialog, PaymentInvoiceToolbar, PropertyUnitsDialog, YearOverYearComparison
-
-## الخيار المختار: **(أ)** — تنفيذ A فقط
-
-سبب الاختيار:
-- **(ب)** و **(ج)** يحتاجان قرار منفصل لأن ترقية lucide-react من 1.7→0.544 تكسر API بالكامل (تغيّرت أسماء أيقونات كثيرة بين النسختين). تستحق موجة منفصلة بحقها.
-- **(أ)** المكسب الأكبر بأقل مخاطرة: −179KB gzip من initial load.
-
-## النمط الموحَّد للتحويل
+**الحل المختار:** استخدام `build.modulePreload.resolveDependencies` لاستثناء chunks الـ pdf/html2canvas من preload:
 
 ```ts
-// قبل
-import { generateContractsPDF } from '@/utils/pdf';
-const handleExport = () => generateContractsPDF(data, waqfInfo);
-
-// بعد
-const handleExport = async () => {
-  const { generateContractsPDF } = await import('@/utils/pdf');
-  await generateContractsPDF(data, waqfInfo);
-};
+build: {
+  modulePreload: {
+    resolveDependencies: (filename, deps) => {
+      return deps.filter(dep => 
+        !dep.includes('vendor-pdf') && 
+        !dep.includes('vendor-pdf-table') &&
+        !dep.includes('html2canvas')
+      );
+    },
+  },
+  // ... باقي الإعدادات
+}
 ```
 
-ملاحظات:
-- `import type { PdfWaqfInfo }` يبقى ثابتاً (TypeScript يحذفه عند build)
-- في hooks: handlers تصبح `async` — التواقيع الخارجية لا تتغير
-- toast/notify يبقى كما هو حول الـ await
+هذا يمنع Vite من إضافة `<link rel="modulepreload">` لهذه الـ chunks، فتُحمَّل **فقط** عند أول `await import('@/utils/pdf')` فعلي.
 
 ## خطوات التنفيذ
 
-1. تحويل 19 ملف على نمط dynamic import (تعديل آلي متَّسق)
-2. `npx tsc --noEmit` — تأكيد عدم وجود أخطاء أنواع
-3. `npx vite build` — التحقق من أن `vendor-pdf` لم يعد في `<link rel="modulepreload">` ضمن `dist/index.html`
-4. توليد `/mnt/documents/stats-v4.html`
-5. جدول مقارنة قبل/بعد لـ initial load
+1. قراءة `vite.config.ts` الحالي للتحقق من بنية `build`
+2. إضافة `modulePreload.resolveDependencies` filter
+3. `npx vite build` — التحقق من `dist/index.html`:
+   - ✅ لا يحتوي على `vendor-pdf-*.js` في modulepreload
+   - ✅ لا يحتوي على `html2canvas-*.js` في modulepreload
+4. `npx tsc --noEmit` — تأكيد سلامة الأنواع
+5. توليد `/mnt/documents/stats-v4-final.html`
+6. اختبار يدوي مختصر: تأكيد أن chunk `vendor-pdf` يُجلب بنجاح عند أول استيراد ديناميكي (Network tab)
 
 ## الملفات
 ```
-19 ملف (تحويل static→dynamic import فقط — handlers)
-0 ملف بنية (لا vite.config.ts، لا package.json)
+vite.config.ts  (تعديل واحد — إضافة modulePreload.resolveDependencies)
 ```
 
-## الضمانات
-- **صفر تغيير سلوكي** — نفس الدوال، نفس النتائج، نفس الـ UX (تأخير ميلي ثانية واحدة عند أول ضغطة على زر تصدير)
-- لا مساس بملفات المصادقة
-- لا مساس بـ `vite.config.ts` أو `package.json`
-- `tsc --noEmit` نظيف
-- إن فشل tsc بعد التحويل، سأرجع كل ملف لحالته الأصلية وأبلِّغك
-
 ## النتيجة المتوقعة
-- vendor-pdf يخرج من `<link rel="modulepreload">` ✅
-- **−179KB gzip** من initial load كل صفحة
-- يُحمَّل فقط عند أول ضغطة على زر تصدير PDF فعلي
+| Chunk | قبل | بعد |
+|-------|-----|-----|
+| vendor-pdf في modulepreload | ✅ موجود (179KB gzip) | ❌ مُستثنى |
+| html2canvas في modulepreload | ✅ موجود (47KB gzip) | ❌ مُستثنى |
+| **التوفير في initial load** | — | **−226KB gzip** |
 
-## المؤجَّل لموجة قادمة (موافقة منفصلة)
-- **B/C:** lucide-react@1.7.0 → 0.544.x — يتطلب fix breaking changes في أسماء أيقونات (Trash2, Pencil, إلخ قد تختلف). موجة مستقلة.
+السلوك: عند الضغط على زر تصدير PDF لأول مرة، يحدث download إضافي للـ chunk (~ميلي ثانية واحدة على اتصال جيد، ~200ms على 4G بطيء) ثم يعمل التصدير طبيعياً.
+
+## الضمانات
+- تعديل واحد فقط في `vite.config.ts`
+- صفر تغيير في كود التطبيق
+- صفر تغيير سلوكي (نفس الـ UX الذي يراه المستخدم)
+- لا مساس بملفات المصادقة أو الملفات المحمية
+- إن لم يوفّر Vite الـ API المطلوب في النسخة الحالية، سأبحث عن بديل (مثل `transformIndexHtml` plugin) وأعرضه قبل التطبيق
+
+## المؤجَّل (موجة منفصلة)
+- ترقية `lucide-react@1.7.0` → `0.544.x` — تتطلب تحقق من breaking changes في أسماء الأيقونات
