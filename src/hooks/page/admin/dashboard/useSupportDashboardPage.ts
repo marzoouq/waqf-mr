@@ -10,24 +10,7 @@ import {
 } from '@/hooks/data/support/useSupportTickets';
 import { defaultNotify } from '@/lib/notify';
 import { fmtDate } from '@/utils/format/format';
-
-const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
-  low: { label: 'منخفض', color: 'bg-muted text-muted-foreground' },
-  medium: { label: 'متوسط', color: 'bg-warning/20 text-warning' },
-  high: { label: 'عالي', color: 'bg-caution/20 text-caution-foreground' },
-  critical: { label: 'حرج', color: 'bg-destructive/20 text-destructive' },
-};
-
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  open: { label: 'مفتوح', color: 'bg-status-approved/20 text-status-approved-foreground' },
-  in_progress: { label: 'قيد المعالجة', color: 'bg-warning/20 text-warning' },
-  resolved: { label: 'تم الحل', color: 'bg-success/20 text-success' },
-  closed: { label: 'مغلق', color: 'bg-muted text-muted-foreground' },
-};
-
-const CATEGORY_MAP: Record<string, string> = {
-  general: 'عام', technical: 'تقني', financial: 'مالي', account: 'حساب', suggestion: 'اقتراح',
-};
+import { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/constants/support';
 
 async function exportToCsv(filename: string, headers: string[], rows: string[][]) {
   const { buildCsvFromRows, downloadCsv } = await import('@/utils/export/csv');
@@ -151,4 +134,5 @@ export function useSupportDashboardPage() {
   };
 }
 
-export { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP };
+// إعادة تصدير للتوافق العكسي مع المستوردين القدامى
+export { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/constants/support';

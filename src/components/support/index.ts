@@ -11,4 +11,4 @@ export { default as TicketDetailDialog } from './TicketDetailDialog';
 export { default as TicketList } from './TicketList';
 export { default as TicketMobileCard } from './TicketMobileCard';
 export { default as TicketViewDialog } from './TicketViewDialog';
-export * from './supportConstants';
+export * from '@/constants/support';
