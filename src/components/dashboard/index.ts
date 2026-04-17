@@ -3,7 +3,7 @@
  */
 // مكونات مُستخدمة مباشرة (غير lazy)
 export { default as CollectionSummaryCard } from './CollectionSummaryCard';
-export { default as CollectionSummaryChart } from './CollectionSummaryChart';
+// CollectionSummaryChart مُستبعد عمداً — يُحمَّل lazily من داخل CollectionSummaryCard
 export { default as DashboardAlerts } from './DashboardAlerts';
 export { default as DashboardKpiPanel } from './DashboardKpiPanel';
 export { default as DashboardStatsGrid } from './DashboardStatsGrid';
