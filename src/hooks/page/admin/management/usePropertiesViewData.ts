@@ -90,6 +90,46 @@ export function usePropertiesViewData() {
     return map;
   }, [properties, contracts, expenses, units, isSpecificYear, allocationMap]);
 
+  // --- #3/#61: خرائط مُسبقة الحساب لتفادي filter داخل .map JSX ---
+  const propertyContractsMap = useMemo(() => {
+    const map = new Map<string, typeof contracts>();
+    for (const c of (contracts ?? [])) {
+      if (!c.property_id) continue;
+      const arr = map.get(c.property_id);
+      if (arr) arr.push(c); else map.set(c.property_id, [c]);
+    }
+    return map;
+  }, [contracts]);
+
+  const propertyUnitsMap = useMemo(() => {
+    const map = new Map<string, NonNullable<typeof units>>();
+    for (const u of (units ?? [])) {
+      const arr = map.get(u.property_id);
+      if (arr) arr.push(u); else map.set(u.property_id, [u]);
+    }
+    return map;
+  }, [units]);
+
+  /** عقارات مؤجرة كاملة (عقد بدون unit_id) */
+  const wholePropertyRentedSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const c of (contracts ?? [])) {
+      if (c.property_id && !c.unit_id) s.add(c.property_id);
+    }
+    return s;
+  }, [contracts]);
+
+  /** خريطة معرفات الوحدات المؤجرة لكل عقار */
+  const rentedUnitIdsByPropertyMap = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const [pid, pcontracts] of propertyContractsMap.entries()) {
+      const set = new Set<string>();
+      for (const c of pcontracts) if (c.unit_id) set.add(c.unit_id);
+      map.set(pid, set);
+    }
+    return map;
+  }, [propertyContractsMap]);
+
   return {
     properties, units, contracts, expenses, isLoading, isError,
     refetchProps, refetchUnits,
@@ -99,5 +139,9 @@ export function usePropertiesViewData() {
     totalUnits, occupiedUnits, rentedUnitIds, wholePropertyIds,
     summaryData,
     propertyFinancialsMap,
+    propertyContractsMap,
+    propertyUnitsMap,
+    wholePropertyRentedSet,
+    rentedUnitIdsByPropertyMap,
   };
 }

@@ -1,22 +1,38 @@
+/**
+ * #2/#29/#35 — تنظيم imports:
+ * - imports ثابتة في الأعلى أولاً
+ * - lazy() مجمّعة في كتلة واحدة بعدها
+ * - loadPdfModule() واحد لتحميل @/utils/pdf مرة واحدة (cache طبيعي للـ dynamic import)
+ */
 import { lazy, Suspense } from 'react';
 import ViewportRender from '@/components/common/ViewportRender';
-const CashFlowReport = lazy(() => import('@/components/reports/CashFlowReport'));
-import { OverdueTenantsReport, BalanceSheetReport, ZakatEstimationReport, BeneficiaryDistributionTable, AnnualDisclosureTable, PropertyPerformanceTable } from '@/components/reports';
+import {
+  OverdueTenantsReport,
+  BalanceSheetReport,
+  ZakatEstimationReport,
+  BeneficiaryDistributionTable,
+  AnnualDisclosureTable,
+  PropertyPerformanceTable,
+} from '@/components/reports';
 import ReportsSummaryCards from '@/components/reports/ReportsSummaryCards';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
 import { defaultNotify } from '@/lib/notify';
 import { Badge } from '@/components/ui/badge';
-const MonthlyPerformanceReport = lazy(() => import('@/components/reports/MonthlyPerformanceReport'));
 import { ExportMenu } from '@/components/common';
-
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import type { TabItem } from '@/components/ui/responsive-tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useReportsData } from '@/hooks/page/admin/reports/useReportsData';
 
+// --- lazy components (مجمّعة) ---
+const CashFlowReport = lazy(() => import('@/components/reports/CashFlowReport'));
+const MonthlyPerformanceReport = lazy(() => import('@/components/reports/MonthlyPerformanceReport'));
 const LazyReportsCharts = lazy(() => import('@/components/reports/ReportsChartsInner'));
+
+// --- مُحمِّل موحد لوحدة PDF (الاستيراد الثاني/الثالث يأتي من cache المتصفح) ---
+const loadPdfModule = () => import('@/utils/pdf');
 
 const ReportsPage = () => {
   const {
@@ -34,7 +50,7 @@ const ReportsPage = () => {
   } = useReportsData();
 
   const handleExportPDF = async () => {
-    const { generateAnnualReportPDF } = await import('@/utils/pdf');
+    const { generateAnnualReportPDF } = await loadPdfModule();
     await generateAnnualReportPDF({
       fiscalYear: currentAccount?.fiscal_year || fiscalYear?.label || '',
       totalIncome,
@@ -53,6 +69,35 @@ const ReportsPage = () => {
     }, pdfWaqfInfo);
   };
 
+  const handleExportDisclosure = async () => {
+    const { generateAnnualDisclosurePDF } = await loadPdfModule();
+    await generateAnnualDisclosurePDF({
+      fiscalYear: currentAccount?.fiscal_year || fiscalYear?.label || '',
+      totalIncome, totalExpenses, waqfCorpusPrevious, grandTotal,
+      netAfterExpenses, vatAmount, netAfterVat, zakatAmount, netAfterZakat,
+      adminShare, waqifShare, waqfRevenue, waqfCorpusManual,
+      availableAmount, distributionsAmount, remainingBalance,
+      incomeBySource: Object.fromEntries(incomeSourceData.map(d => [d.name, d.value])),
+      expensesByType: Object.fromEntries(expenseTypeData.map(d => [d.name, d.value])),
+      beneficiaries: distributionData.map(d => ({
+        name: d.name ?? 'غير معروف',
+        share_percentage: d.percentage ?? 0,
+        amount: d.amount,
+      })),
+      adminPct, waqifPct,
+    }, pdfWaqfInfo);
+  };
+
+  const handleExportForensic = async () => {
+    try {
+      const { generateForensicAuditPDF } = await loadPdfModule();
+      await generateForensicAuditPDF(forensicAuditData, pdfWaqfInfo);
+      defaultNotify.success('تم تصدير الفحص الجنائي بنجاح');
+    } catch {
+      defaultNotify.error('حدث خطأ أثناء تصدير الفحص الجنائي');
+    }
+  };
+
   return (
     <DashboardLayout>
        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
@@ -62,36 +107,11 @@ const ReportsPage = () => {
           description="عرض التقارير والإحصائيات"
           badge={fiscalYear ? <Badge variant="secondary" className="text-xs">{fiscalYear.label}</Badge> : undefined}
           actions={<>
-            <Button onClick={async () => {
-              const { generateAnnualDisclosurePDF } = await import('@/utils/pdf');
-              await generateAnnualDisclosurePDF({
-                fiscalYear: currentAccount?.fiscal_year || fiscalYear?.label || '',
-                totalIncome, totalExpenses, waqfCorpusPrevious, grandTotal,
-                netAfterExpenses, vatAmount, netAfterVat, zakatAmount, netAfterZakat,
-                adminShare, waqifShare, waqfRevenue, waqfCorpusManual,
-                availableAmount, distributionsAmount, remainingBalance,
-                incomeBySource: Object.fromEntries(incomeSourceData.map(d => [d.name, d.value])),
-                expensesByType: Object.fromEntries(expenseTypeData.map(d => [d.name, d.value])),
-                beneficiaries: distributionData.map(d => ({
-                  name: d.name ?? 'غير معروف',
-                  share_percentage: d.percentage ?? 0,
-                  amount: d.amount,
-                })),
-                adminPct, waqifPct,
-              }, pdfWaqfInfo);
-            }} variant="outline" className="gap-2">
+            <Button onClick={handleExportDisclosure} variant="outline" className="gap-2">
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">الإفصاح السنوي PDF</span>
             </Button>
-            <Button onClick={async () => {
-              try {
-                const { generateForensicAuditPDF } = await import('@/utils/pdf');
-                await generateForensicAuditPDF(forensicAuditData, pdfWaqfInfo);
-                defaultNotify.success('تم تصدير الفحص الجنائي بنجاح');
-              } catch {
-                defaultNotify.error('حدث خطأ أثناء تصدير الفحص الجنائي');
-              }
-            }} variant="outline" className="gap-2">
+            <Button onClick={handleExportForensic} variant="outline" className="gap-2">
               <ShieldCheck className="w-4 h-4" />
               <span className="hidden sm:inline">الفحص الجنائي PDF</span>
             </Button>
