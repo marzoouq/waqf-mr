@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowUpDown, TrendingUp, TrendingDown, Minus, FileDown } from 'lucide-react';
 import { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
-import { generateYearComparisonPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { fmt } from '@/utils/format/format';
 import { useYearComparisonData } from '@/hooks/data/financial/useYearComparisonData';
@@ -93,6 +92,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
       net2: (year2Monthly.income.get(idx) || 0) - (year2Monthly.expenses.get(idx) || 0),
     })).filter(m => m.income1 || m.expenses1 || m.income2 || m.expenses2);
 
+    const { generateYearComparisonPDF } = await import('@/utils/pdf');
     await generateYearComparisonPDF({
       year1Label, year2Label,
       year1: yearTotals.year1, year2: yearTotals.year2,

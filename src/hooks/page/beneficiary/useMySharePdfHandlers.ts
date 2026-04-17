@@ -11,7 +11,6 @@
  *   الفصل صحيح: utils/pdf لا يستهلك hooks ولا notify (قاعدة `src/utils/`).
  */
 import { useState, useCallback } from 'react';
-import { generateMySharePDF, generateDistributionsPDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 import { printShareReport } from '@/utils/export/printShareReport';
@@ -66,6 +65,7 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
       const advAmt = params.paidAdvancesTotal;
       const afterAdv = Math.max(0, params.myShare - advAmt);
       const actualCf = Math.min(params.carryforwardBalance, afterAdv);
+      const { generateMySharePDF } = await import('@/utils/pdf');
       await generateMySharePDF({
         beneficiaryName: params.currentBeneficiary.name ?? 'غير معروف',
         sharePercentage: params.currentBeneficiary.share_percentage ?? 0,
@@ -98,6 +98,7 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
       const rawNet = params.myShare - advances - actualCarryforward;
       const net = Math.max(0, rawNet);
       const deficit = rawNet < 0 ? Math.round(Math.abs(rawNet) * 100) / 100 : 0;
+      const { generateDistributionsPDF } = await import('@/utils/pdf');
       await generateDistributionsPDF({
         fiscalYearLabel: params.fiscalYearLabel || '',
         availableAmount: params.myShare,
@@ -123,6 +124,7 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
         : params.fetchContracts
           ? await params.fetchContracts()
           : [];
+      const { generateComprehensiveBeneficiaryPDF } = await import('@/utils/pdf');
       await generateComprehensiveBeneficiaryPDF({
         beneficiaryName: params.currentBeneficiary.name ?? 'غير معروف',
         fiscalYear: params.fiscalYearLabel || '',

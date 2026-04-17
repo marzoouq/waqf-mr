@@ -4,7 +4,6 @@
 import { useState, useCallback } from 'react';
 import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/audit/useAuditLog';
 import { useAuditLogTodayCount, fetchAuditLogForExport } from '@/hooks/data/audit/useAuditLogStats';
-import { generateAuditLogPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 
@@ -56,6 +55,7 @@ export function useAuditLogPage() {
     setExporting(true);
     try {
       const allLogs = await fetchAuditLogForExport({ tableFilter, opFilter, dateFrom, dateTo });
+      const { generateAuditLogPDF } = await import('@/utils/pdf');
       await generateAuditLogPDF({
         logs: allLogs.length > 0 ? allLogs : logs,
         waqfInfo, tableFilter, opFilter,

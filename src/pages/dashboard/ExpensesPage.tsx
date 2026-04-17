@@ -7,7 +7,6 @@ import { TrendingDown, Search } from 'lucide-react';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
-import { generateExpensesPDF } from '@/utils/pdf';
 import { defaultNotify } from '@/lib/notify';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -25,7 +24,7 @@ const ExpensesPage = () => {
           icon={TrendingDown}
           description="تسجيل ومتابعة المصروفات"
           actions={<>
-            <ExportMenu onExportPdf={() => generateExpensesPDF(h.filteredExpenses, h.totalExpenses, h.pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => { const { generateExpensesPDF } = await import('@/utils/pdf'); return generateExpensesPDF(h.filteredExpenses, h.totalExpenses, h.pdfWaqfInfo); }} onExportCsv={() => {
               const csv = buildCsv(h.filteredExpenses.map(item => ({
                 'النوع': item.expense_type, 'المبلغ': safeNumber(item.amount), 'التاريخ': item.date,
                 'العقار': item.property?.property_number || '-', 'الوصف': item.description || '-',

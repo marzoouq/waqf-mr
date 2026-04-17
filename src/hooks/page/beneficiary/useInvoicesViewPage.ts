@@ -7,7 +7,6 @@ import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
@@ -46,6 +45,7 @@ export function useInvoicesViewPage() {
         defaultNotify.info(`سيتم تصدير ${filteredInvoices.length} فاتورة مفلترة فقط`);
       }
       const fiscalYearLabel = fiscalYear?.label || undefined;
+      const { generateInvoicesViewPDF } = await import('@/utils/pdf');
       await generateInvoicesViewPDF(
         filteredInvoices.map(inv => ({
           invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,

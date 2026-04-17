@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NativeSelect } from '@/components/ui/native-select';
 import { FileText, Plus, CalendarDays, Receipt, BarChart3 } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
-import { generateContractsPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
@@ -48,7 +47,7 @@ const ContractsPage = () => {
         <PageHeaderCard
           title="إدارة العقود" icon={FileText} description="عرض وإدارة عقود الإيجار"
           actions={<>
-            <ExportMenu onExportPdf={() => generateContractsPDF(contracts, pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => { const { generateContractsPDF } = await import('@/utils/pdf'); return generateContractsPDF(contracts, pdfWaqfInfo); }} onExportCsv={() => {
               const csv = buildCsv(contracts.map(c => ({
                 'رقم العقد': c.contract_number, 'المستأجر': c.tenant_name,
                 'الإيجار السنوي': safeNumber(c.rent_amount), 'تاريخ البداية': c.start_date,

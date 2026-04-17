@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Property, Contract } from '@/types/database';
 import { Plus, Building2, Home, DoorOpen } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
-import { generateUnitsPDF, UnitPdfRow } from '@/utils/pdf';
+import type { UnitPdfRow } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { usePropertyUnits } from '@/hooks/data/properties/usePropertyUnits';
 import { getTenantFromContracts } from './units/helpers';
@@ -77,7 +77,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
               <div className="flex justify-between items-center flex-wrap gap-2">
                 <h3 className="font-semibold">الوحدات السكنية</h3>
                 <div className="flex gap-2 flex-wrap print:hidden">
-                  <ExportMenu onExportPdf={() => {
+                  <ExportMenu onExportPdf={async () => {
                     const pdfRows: UnitPdfRow[] = pu.units.map(u => {
                       const tenant = getTenantFromContracts(u.id, contracts);
                       return {
@@ -87,7 +87,8 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         payment_type: tenant?.payment_type, payment_count: tenant?.payment_count,
                       };
                     });
-                    generateUnitsPDF(property.property_number, property.location, pdfRows, pdfWaqfInfo);
+                    const { generateUnitsPDF } = await import('@/utils/pdf');
+                    await generateUnitsPDF(property.property_number, property.location, pdfRows, pdfWaqfInfo);
                   }} />
                   <Button size="sm" className="gap-1" onClick={() => { pu.resetUnitForm(); pu.setIsUnitFormOpen(true); }}>
                     <Plus className="w-4 h-4" /> إضافة وحدة

@@ -15,7 +15,6 @@ import IncomeMobileCards from '@/components/income/IncomeMobileCards';
 import IncomeDesktopTable from '@/components/income/IncomeDesktopTable';
 import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner } from '@/components/common';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
-import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -52,7 +51,7 @@ const IncomePage = () => {
           icon={TrendingUp}
           description="تسجيل ومتابعة مصادر الدخل"
           actions={<>
-            <ExportMenu onExportPdf={() => generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => { const { generateIncomePDF } = await import('@/utils/pdf'); return generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo); }} onExportCsv={() => {
               const csv = buildCsv(filteredIncome.map(item => ({
                 'المصدر': item.source,
                 'المبلغ': safeNumber(item.amount),

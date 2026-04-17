@@ -6,7 +6,6 @@ import { useBylaws } from '@/hooks/data/content/useBylaws';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
-import { generateBylawsPDF } from '@/utils/pdf';
 
 export function useBylawsViewPage() {
   const handleRetry = useRetryQueries(['bylaws']);
@@ -46,7 +45,10 @@ export function useBylawsViewPage() {
   );
 
   const handleExportPdf = useCallback(
-    () => generateBylawsPDF(visibleBylaws, pdfWaqfInfo),
+    async () => {
+      const { generateBylawsPDF } = await import('@/utils/pdf');
+      return generateBylawsPDF(visibleBylaws, pdfWaqfInfo);
+    },
     [visibleBylaws, pdfWaqfInfo],
   );
 
