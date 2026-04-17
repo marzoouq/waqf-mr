@@ -7,6 +7,7 @@ export type { ThemeVars, ThemeTemplate };
 export { themes };
 
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeGet } from '@/lib/storage';
 
 const THEME_KEY = STORAGE_KEYS.THEME_COLOR;
 

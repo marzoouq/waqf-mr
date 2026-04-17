@@ -135,10 +135,8 @@ export const useSetting = (key: string, fallback = ''): string => {
  * #46: تحديث التفضيلات مع إطلاق حدث مخصص للنافذة الحالية
  */
 export const updateNotificationPrefs = (prefs: Record<string, boolean>) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.NOTIFICATION_PREFS, JSON.stringify(prefs));
-    window.dispatchEvent(new CustomEvent('notif-prefs-changed'));
-  } catch { /* silent */ }
+  safeSet(STORAGE_KEYS.NOTIFICATION_PREFS, prefs);
+  try { window.dispatchEvent(new CustomEvent('notif-prefs-changed')); } catch { /* silent */ }
 };
 
 export const useWaqfInfo = () => {
