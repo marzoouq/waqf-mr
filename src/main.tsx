@@ -23,11 +23,11 @@ initThemeFromStorage();
 initQueryMonitoring();
 
 // Preconnect to backend API — يقلل زمن أول طلب بـ 50-100ms
-const _supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-if (_supabaseUrl) {
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+if (supabaseUrl) {
   const link = document.createElement('link');
   link.rel = 'preconnect';
-  link.href = _supabaseUrl;
+  link.href = supabaseUrl;
   document.head.appendChild(link);
 }
 

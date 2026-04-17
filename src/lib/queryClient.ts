@@ -25,7 +25,9 @@ export const queryClient = new QueryClient({
   mutationCache,
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      // #33: تخفيض الافتراضي من 5د إلى 60ث — أرضية آمنة لـ realtime/UI sync.
+      // queries محددة (مثل البيانات الثابتة) تستخدم STALE_STATIC = 5د عبر تمرير صريح.
+      staleTime: 60 * 1000,
       gcTime: 30 * 60 * 1000,
       retry: (failureCount, error) => {
         const status = (error as { status?: number })?.status;

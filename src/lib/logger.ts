@@ -1,7 +1,13 @@
 /**
  * Production-safe logger
- * في production: يُسكت كل شيء ما عدا الأخطاء الحرجة التي تُسجَّل عبر errorReporter
- * في development: يطبع كالمعتاد
+ *
+ * #31/#32 من تقرير الفحص — السلوك المقصود:
+ *   - production: warn/info/log تُسكَت تماماً (لا ضوضاء في console للمستخدم)
+ *   - production: error → errorReporter → access_log (pipeline موحّد للمراقبة)
+ *   - development: كل المستويات تُطبع طبيعياً عبر console.*
+ *
+ * هذا تصميم متعمَّد: نريد قناة واحدة فقط للأخطاء في الإنتاج (errorReporter)
+ * لتجنب تسرّب معلومات حسّاسة عبر console في متصفح المستخدم.
  */
 import { reportClientError } from '@/lib/errorReporter';
 

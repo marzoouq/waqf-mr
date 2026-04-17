@@ -1,5 +1,8 @@
 /**
  * أنواع بيانات السُلف والترحيل
+ *
+ * #38 من تقرير الفحص: تحوي حقولاً محسوبة (beneficiary_name من join) غير موجودة
+ * في Database types المولّدة. الفصل مقصود — لا تستبدلها بـ Tables<'advance_requests'>.
  */
 
 export interface AdvanceRequest {
