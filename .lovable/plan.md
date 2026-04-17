@@ -1,81 +1,47 @@
 
-# خطة موجة الأداء — تقرير 100 + 3 مهام كبرى
+# الموجة الثالثة — تنفيذ المهام المؤجلة (#36, #46-#54, #57)
 
-## التصنيف الواقعي
+## استكشاف مطلوب أولاً
+أحتاج لقراءة الملفات المعنية لفهم النطاق الفعلي قبل التنفيذ:
+- `AccountsPage.tsx` + `useAccountsData.ts` (#36)
+- `ReportsPage.tsx` + مكونات التقارير الفرعية (#46-#54)
+- `AdminDashboard.tsx` (#57)
 
-**أخطاء كود مؤكدة:** #1, #2, #3, #4, #5, #6, #7, #8, #9, #14, #20, #29, #35, #61, #62, #63, #64, #89
-**عالية الأثر:** #50 (LockedYearBanner), #99 (تأكيد CSV)
-**مؤجَّل:** #36, #46-#54, #57, #86-#88, #90-#95
-**مستبعد:** #11-13, #16-19, #21-28, #30-34, #37-45, #55-60, #65-85, #91-98, #100
+## المهام
 
----
+### #36 — useMemo في `AccountsPage`
+- مراجعة الحسابات المُكررة في render واستخراجها إلى `useMemo`
+- نقل أي تجميع/تصفية ثقيل إلى `useAccountsData` hook
 
-## المهام الثلاث الكبرى
+### #46-#54 — Refactor `ReportsPage`
+المتوقع (يحتاج تأكيد بعد القراءة):
+- استخراج كل تقرير فرعي إلى مكون مستقل lazy-loaded
+- توحيد منطق التصدير (PDF/Excel/CSV) في hook مشترك
+- تقسيم الـ tabs بحيث لا يُحمَّل إلا التقرير النشط
+- نقل الحسابات المُشتركة إلى `useReportsData`
 
-### A — Bundle Analyzer
-- إضافة `rollup-plugin-visualizer` كـ devDep
-- تفعيل شرطي في `vite.config.ts` عند `mode === 'analyze'`
-- تشغيل build وتحليل أكبر 5 chunks
-- إنتاج `stats.html` في `/mnt/documents/`
+### #57 — تقسيم `AdminDashboard`
+- مراجعة المكونات المُحمَّلة eagerly
+- تحويل البطاقات الثانوية إلى `lazy()` + `Suspense`
+- تأجيل المخططات غير الحرجة عبر `DeferredRender`
 
-### B — تقسيم `app-settings-all`
-- إبقاء `['app-settings-all']` كـ legacy
-- 3 مفاتيح فرعية: `['app-settings', 'zatca' | 'banner' | 'general']`
-- `getCategoryFromKey(key)` للتصنيف حسب prefix
-- `useZatcaSettings` يستخدم `'zatca'` فقط
-- `useWaqfInfoSave`/`useLogoUpload` → `'general'`
+## الخطوات
+1. **استكشاف**: قراءة الملفات الثلاث الرئيسية + hooks المرتبطة
+2. **تأكيد النطاق**: عرض النتائج مع خطة تنفيذ مُحدَّثة
+3. **تنفيذ**: الإصلاحات بالترتيب (#36 → #57 → #46-54)
+4. **تحقق**: `tsc --noEmit` + `vite build --mode analyze` لقياس الفرق
+5. **مقارنة**: جدول chunks قبل/بعد + performance profile جديد
 
-### C — Performance Profile قبل/بعد على /dashboard
-- baseline → تنفيذ → بعد
-- جدول مقارنة (heap, DOM nodes, scripts duration)
-
----
-
-## إصلاحات الكود
-
-### 🔴 أخطاء (8)
-| # | الملف | الإصلاح |
-|---|------|---------|
-| #1 | `IncomePage.tsx` | `lazy()` بعد imports |
-| #2,#29,#35 | `ReportsPage.tsx` | تجميع lazy + import موحد |
-| #3,#4,#20,#61 | `PropertiesViewPage.tsx` | useMemo، إزالة `!`، رفع TooltipProvider |
-| #6,#7,#63 | `InvoicesPage.tsx` + hook | استخراج IIFE، useMemo، useCallback |
-| #5,#62 | `BeneficiariesPage.tsx` + hook | إزالة pagination مزدوج |
-| #8,#89 | `MessagesPage.tsx` | hook في `admin/management/` |
-| #9 | `BeneficiaryMessagesPage.tsx` | `ml-1` → `ms-1` |
-| #14 | `SettingsPage.tsx` | إزالة `defaultValue` |
-
-### 🟠 توحيد
-- #50 → `LockedYearBanner.tsx` جديد + 3 صفحات
-- #64 → `useExpensesPage` يُرجع `paginatedItems`
-
----
-
-## الملفات (19)
-```
-vite.config.ts, package.json                            [A]
-src/hooks/data/settings/useAppSettings.ts               [B]
-src/hooks/data/settings/useWaqfInfoSave.ts              [B]
-src/hooks/data/settings/useLogoUpload.ts                [B]
-src/hooks/page/admin/management/useZatcaSettings.ts     [B]
-src/hooks/page/admin/management/useMessagesPage.ts      [جديد #8]
-src/pages/dashboard/IncomePage.tsx                      [#1]
-src/pages/dashboard/ReportsPage.tsx                     [#2,#29,#35]
-src/pages/dashboard/PropertiesViewPage.tsx              [#3,#4,#20,#61]
-src/pages/dashboard/InvoicesPage.tsx                    [#6,#7,#63]
-src/pages/dashboard/BeneficiariesPage.tsx               [#5,#62]
-src/pages/dashboard/MessagesPage.tsx                    [#8]
-src/pages/dashboard/SettingsPage.tsx                    [#14]
-src/pages/beneficiary/BeneficiaryMessagesPage.tsx       [#9]
-src/components/common/LockedYearBanner.tsx              [جديد #50]
-src/hooks/page/admin/financial/useInvoicesPage.ts       [#6]
-src/hooks/page/admin/financial/useBeneficiariesPage.ts  [#62]
-src/hooks/page/admin/financial/useExpensesPage.ts       [#64]
-```
+## المخرجات
+- `/mnt/documents/stats-v3.html` (bundle visualizer جديد)
+- جدول مقارنة chunks
+- نتائج performance profile
 
 ## الضمانات
-- صفر تغيير سلوكي — `app-settings-all` legacy محفوظ
+- صفر تغيير سلوكي
 - لا مساس بملفات المصادقة
-- `npx tsc --noEmit` بعد التنفيذ
-- profile قبل/بعد لقياس فعلي
-- `stats.html` يُسلَّم في `/mnt/documents/`
+- `tsc --noEmit` نظيف بعد كل مهمة
+- المهام مستقلة — يمكن إيقاف التنفيذ بعد أي منها
+
+## ملاحظة
+خطة #46-#54 مبدئية — سأعرض تفاصيل دقيقة بعد قراءة `ReportsPage.tsx` الفعلية في بداية التنفيذ. إن وجدت تعقيداً غير متوقع، سأتوقف وأطلب مراجعتك قبل المتابعة.
