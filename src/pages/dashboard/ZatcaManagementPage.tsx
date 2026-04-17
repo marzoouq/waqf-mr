@@ -7,6 +7,7 @@ import { ShieldCheck, FileText, Link2 } from 'lucide-react';
 import { InvoiceStepsGuide } from '@/components/invoices';
 
 import ZatcaSummaryCards from '@/components/zatca/ZatcaSummaryCards';
+import ZatcaHealthPanel from '@/components/zatca/ZatcaHealthPanel';
 import ZatcaInvoicesTab from '@/components/zatca/ZatcaInvoicesTab';
 import ZatcaCertificatesTab from '@/components/zatca/ZatcaCertificatesTab';
 import ZatcaChainTab from '@/components/zatca/ZatcaChainTab';
@@ -34,6 +35,12 @@ function ZatcaManagementPage() {
           pending={z.pending}
           rejected={z.rejected}
           activeCertType={z.activeCert ? (z.isProductionCert ? 'production' : 'compliance') : null}
+        />
+
+        <ZatcaHealthPanel
+          activeCert={z.activeCert}
+          chain={z.chain}
+          pendingInvoices={z.pending}
         />
 
         <Tabs defaultValue="invoices" className="space-y-4">
