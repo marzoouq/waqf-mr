@@ -8,7 +8,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Eye, Star } from 'lucide-react';
 import type { SupportTicket } from '@/hooks/data/support/useSupportTickets';
 import { fmtDate } from '@/utils/format/format';
-import { STATUS_MAP } from './supportConstants';
+import { STATUS_MAP } from '@/constants/support';
 
 interface TicketListProps {
   tickets: SupportTicket[];
