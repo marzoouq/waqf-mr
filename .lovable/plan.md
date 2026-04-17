@@ -1,74 +1,56 @@
 
 
-# خطة التنفيذ — تنظيف معماري شامل + تحقق من الآثار الجانبية
+# خطة الإكمال — التحقق الجنائي النهائي
 
-## السياق
+## ما تم إنجازه (الخطوات 1-7)
+✅ نقل المكونات، دمج useGreeting، فصل AuditLogHelpers، تنظيف Settings hook، استخراج useInstallAppPage، توحيد ZATCA types، استبدال localStorage بـ safeStorage.
 
-المستخدم وافق على الخطوات الست للتنظيف المعماري، وأضاف طلباً مهماً:
-> **"تحقق من عمل الطباعة وتبديل القوالب وإشعارات التحديث بعد استبدال `window.print` و `localStorage`"**
+## ما تبقى — التحقق الجنائي (Forensic Verification)
 
-هذا الطلب يشير إلى الالتزام بمعايير v7 (استخدام `usePrint` و `safeStorage` بدلاً من الاستدعاء المباشر). سأضيف **خطوة 7: تدقيق وتحقق** بعد التنظيف.
+### المرحلة أ: فحص الاستيرادات اليتيمة
+بحث شامل عن أي import لا يزال يشير إلى المسارات القديمة المحذوفة:
+- `pages/beneficiary/carryforward/*` 
+- `pages/beneficiary/notifications/*` (المكونات المنقولة)
+- `components/audit/AuditLogHelpers`
 
-## الخطوات 1-6 (كما تم الاتفاق سابقاً)
+### المرحلة ب: فحص `window.print` المباشر
+بحث في `src/**/*.{ts,tsx}` (باستثناء `usePrint.ts` نفسه) عن أي استدعاء مباشر لـ `window.print()` واستبداله بـ `usePrint`.
 
-| # | الخطوة | الملفات |
-|---|--------|---------|
-| 1 | نقل `pages/beneficiary/carryforward/` و `notifications/` → `components/` | 9 |
-| 2 | دمج `useGreeting` داخل `useBeneficiaryDashboardPage` | 2 |
-| 3 | فصل `AuditLogHelpers.tsx` → `utils/format/auditLabels.ts` + `components/audit/DataDiff.tsx` | 5 |
-| 4 | نقل `tabItems` من `useBeneficiarySettingsPage` إلى الصفحة | 2 |
-| 5 | استخراج `useInstallAppPage` hook | 2 |
-| 6 | إنشاء `src/types/zatca.ts` لتوحيد `ComplianceResult` | 3 |
+### المرحلة ج: فحص `localStorage`/`sessionStorage` المتبقي
+بحث شامل عن أي استدعاء مباشر متبقي لـ:
+- `localStorage.getItem/setItem/removeItem`
+- `sessionStorage.*`
 
-## الخطوة 7 (جديدة) — تدقيق `window.print` و `localStorage` المباشر
+استثناءات مقبولة: `src/lib/storage.ts` نفسه، ملفات الاختبار (`*.test.*`).
 
-سأبحث في الكود الإنتاجي عن:
+### المرحلة د: التحقق من سلامة الملفات المنقولة
+- التأكد من وجود `index.ts` صحيح في `src/components/carryforward/` و `src/components/notifications/`
+- التحقق من أن `useInstallAppPage` مُستخدم فعلياً في `InstallApp.tsx`
+- التحقق من أن `BeneficiaryDashboard.tsx` يستخدم `greetingData` من Page Hook
 
-### أ. `window.print` المباشر
-- يجب أن يستخدم كل الكود `usePrint` من `@/hooks/ui/usePrint` (معيار v7)
-- إذا وُجد استخدام مباشر → استبداله بـ `usePrint`
-- التحقق من زر الطباعة في:
-  - تقارير المستفيد (PDF reports)
-  - فواتير ZATCA
-  - أي صفحة تطبع
+### المرحلة هـ: فحص TypeScript + الاختبارات
+- `npx tsc --noEmit` للتحقق من خلو الكود من أخطاء النوع
+- `npm test` للتأكد من نجاح كل الاختبارات (خصوصاً `SignupForm.test.tsx`)
 
-### ب. `localStorage` / `sessionStorage` المباشر
-- يجب أن يستخدم كل الكود `safeStorage` من `@/lib/storage` (معيار v7)
-- المواضع الحرجة المتوقعة:
-  - **تبديل القوالب** (theme toggle) — `localStorage.setItem('theme', ...)`
-  - **إشعارات التحديث** (notification preferences) — `NOTIF_PREFS_KEY`, `NOTIFICATION_TONE_KEY`, `NOTIFICATION_VOLUME_KEY`
-  - **PWA install dismissal**
-- إذا وُجد استخدام مباشر → استبداله بـ `safeStorage`
+### المرحلة و: تقرير جنائي نهائي
+جدول يحتوي على:
+| الفحص | الحالة | الملفات المتأثرة |
+|-------|--------|------------------|
+| استيرادات يتيمة | ✅/❌ | ... |
+| window.print مباشر | ✅/❌ | ... |
+| localStorage مباشر | ✅/❌ | ... |
+| TypeScript | ✅/❌ | ... |
+| Unit Tests | ✅/❌ | ... |
 
-### ج. تحقق وظيفي بعد التغييرات
-- تشغيل `npm test` للتأكد من الاختبارات
-- فحص يدوي مقترح في رسالة الإنجاز:
-  - زر الطباعة في صفحة تقرير
-  - تبديل المظهر (light/dark)
-  - حفظ تفضيلات الإشعارات وإعادة تحميل الصفحة
-
-## ترتيب التنفيذ
-
-```text
-الخطوات 1→6 (تنظيف معماري) 
-       ↓
-الخطوة 7 (بحث + استبدال window.print/localStorage إن وُجد)
-       ↓
-تشغيل tsc --noEmit + npm test
-       ↓
-تقرير نهائي بقائمة الملفات المُعدّلة + توصيات اختبار يدوي
-```
++ توصيات اختبار يدوي:
+1. فتح صفحة تقرير → ضغط زر طباعة → التأكد من ظهور إشعار "جاري تجهيز الطباعة..."
+2. تبديل الثيم (light/dark) → إعادة تحميل → التأكد من بقاء الاختيار
+3. تعديل تفضيلات الإشعارات → إعادة تحميل → التأكد من بقاء الإعدادات
+4. فتح لوحة المستفيد → التأكد من ظهور التحية بشكل طبيعي
+5. فتح صفحة تثبيت التطبيق → التأكد من زر التثبيت يعمل
 
 ## ضمانات
-
-- **صفر تغيير سلوكي**: كل الاستبدالات (usePrint, safeStorage) تحافظ على نفس الواجهة الخارجية
-- **ملفات محمية**: لن أمس `AuthContext`, `ProtectedRoute`, `client.ts`, `types.ts`, `config.toml`, `.env`
-- **اختبارات SignupForm**: ستبقى تعمل (لا تغيير في `useFieldErrors`)
-- **التحقق النهائي**: `npx tsc --noEmit` + تشغيل اختبارات الوحدة
-
-## الملفات المتوقع تأثرها
-
-- 23 ملف من الخطوات 1-6
-- + 0-5 ملفات إضافية من الخطوة 7 (حسب نتيجة البحث)
-- **الإجمالي المتوقع**: 23-28 ملف
+- **قراءة فقط حتى الموافقة** — لن أعدّل أي ملف في هذه الجولة قبل الموافقة
+- إذا اكتُشف استدعاء `window.print` أو `localStorage` مباشر → سأطلب الموافقة على استبدالها قبل التنفيذ
+- صفر تغيير سلوكي
 
