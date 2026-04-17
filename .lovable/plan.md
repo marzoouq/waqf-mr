@@ -1,61 +1,57 @@
 
 
-# خطة إصلاح أعلى 3 أولويات من تقرير الـ 100 ملاحظة
+# خطة معالجة المشاكل المعمارية #11-#25
 
-## الإصلاحات الثلاثة
+## الفحص قبل التخطيط
+- `maybeSingle.ts` غير موجود لكن `maybeSingle.test.ts` موجود (#18) — اختبار يتيم
+- `src/hooks/page/admin/` لا يحتوي `index.ts` (#19)
+- `STALE_STATIC === STALE_SETTINGS` (#12)
+- `pickLabels` يستخدم `?? key` (#15 صحيح في pickLabels لكن `ROLE_SECTION_DEFS` يستخدم `?? ''`)
 
-### 🔴 #1 — توحيد `CLEARABLE_STORAGE_KEYS` (ملاحظة #3, #23)
-**المشكلة:** `AuthContext.tsx` يحتوي مصفوفة hardcoded بـ 9 مفاتيح، بينما `storageKeys.ts` يصدّر 17. مفاتيح حساسة (`BIOMETRIC_ENABLED`, `WEBAUTHN_LAST_CHECK`, `PWA_*`) **لا تُحذف عند logout** — خطر أمني.
+## الإصلاحات (15 ملاحظة)
 
-**الحل:** حذف المصفوفة المحلية، استيراد `CLEARABLE_STORAGE_KEYS` من `@/constants/storageKeys`، استخدامها مع `safeRemove`.
+### مجموعة A — تنقية constants (#11, #12, #14, #15, #16, #17, #25)
+1. **#12** دمج `STALE_SETTINGS` ليُشير لـ `STALE_STATIC` (`export const STALE_SETTINGS = STALE_STATIC`)
+2. **#15** تغيير `?? ''` إلى `?? key` في `ROLE_SECTION_DEFS` لكشف المفاتيح المفقودة
+3. **#16/#17** استبدال `defaultAdminSections`/`defaultBeneficiarySections` المُكرَّرة في `navigation.ts` بـ `makeDefaults(ADMIN_SECTION_KEYS)` من `sections.ts` — مصدر واحد للحقيقة
+4. **#14** إضافة `chart_of_accounts` إلى `ROLE_SECTION_DEFS` (مفقود رغم وجوده في كل المصادر الأخرى)
+5. **#13** إضافة المسارات المفقودة (`zatca`, `support`, `annual-report`, `comparison`, `diagnostics`) إلى `MenuLabels` و `linkLabelKeys` — مع توسعة `MenuLabels` interface
+6. **#11** نقل الأيقونات من `navigation.ts` إلى مجموعة منفصلة لتمكين tree-shaking أفضل — **سأتركها كما هي**: أيقونات Lucide تُستخدم في القائمة الجانبية للجميع (admin/beneficiary/waqif) بدون استثناء، ولا توجد استيرادات ذرية لباقي الثوابت بدون الأيقونات. التحسين سيكون نظري فقط بدون فائدة قابلة للقياس.
+7. **#25** `BENEFICIARY_ROUTE_PERM_KEYS` يعيّن `share` لمسارين — **لن أغيّره**: هذا قرار منتجي مقصود (carryforward جزء من حصة المستفيد). توثيق فقط بتعليق.
 
-**نطاق محدود:** فقط داخل `signOut()` — لا مساس بـ login/session/role.
+### مجموعة B — تنظيف ملفات (#18, #19, #21, #22)
+8. **#18** حذف `src/lib/maybeSingle.test.ts` (يتيم، لا يوجد source)
+9. **#19** إنشاء `src/hooks/page/admin/index.ts` barrel للاتساق مع `beneficiary/index.ts`
+10. **#21, #22** **توثيق فقط** — `bottomNavLinks.ts` و `quickActions.ts` انفصالها مقصود (مكونات UI مختلفة). إضافة تعليق في كل منهما يشير لـ `navigation.ts` كمصدر للحقيقة.
 
----
+### مجموعة C — FiscalYearContext (#24)
+11. **#24** نقل منطق Prefetch من `FiscalYearContext` إلى hook منفصل `useDashboardPrefetch`
+    - **حساس** — سأحافظ على نفس السلوك بالضبط
+    - الـ hook الجديد يُستهلك في `FiscalYearProvider` (مكان واحد) لإبقاء التأثير محصوراً
+    - فائدة: مسؤولية واحدة + قابلية اختبار + يمكن تعطيله مستقبلاً بسهولة
 
-### 🔴 #2 — مسح `fiscal_year_id` من sessionStorage عند logout (ملاحظة #1, #2)
-**المشكلتان:**
-1. `signOut()` يمسح localStorage فقط — يترك `fiscal_year_id` في sessionStorage → بعد login بمستخدم آخر تظل السنة القديمة
-2. `FiscalYearContext` يستدعي `supabase.auth.signOut()` مباشرة → يتجاوز cleanup الكامل
-
-**الحل:**
-- في `AuthContext.signOut()`: إضافة `safeSessionRemove('fiscal_year_id')`
-- في `FiscalYearContext`: استبدال الاستدعاء المباشر بـ `signOut()` من `useAuth()`
-
-**يحترم الذاكرة:** `fiscal_year_id` يبقى في sessionStorage، يُمسح فقط عند logout.
-
----
-
-### 🟠 #3 — حل تضارب التسمية (ملاحظة #4, #5)
-**المشكلة:** نفس الاسم بنوعين في ملفين:
-- `navigation.ts` → `Record<string, string>` (route→key)
-- `sections.ts` → `readonly string[]`
-
-**الحل:** إعادة تسمية في `navigation.ts`:
-- `ADMIN_SECTION_KEYS` → `ADMIN_ROUTE_TO_SECTION`
-- `BENEFICIARY_SECTION_KEYS` → `BENEFICIARY_ROUTE_TO_SECTION`
-
-ثم تحديث المستوردين بناءً على الاستخدام الفعلي (Record vs Array) عبر بحث شامل.
-
----
+### مجموعة D — تخطي (#20, #23)
+- **#20** `lib/theme/` و `components/theme/` — تقسيم سليم (logic vs UI)، لا تغيير
+- **#23** سبق إصلاحه في الجولة السابقة ✅
 
 ## الملفات المتأثرة
 
 | ملف | إجراء |
 |-----|------|
-| `src/contexts/AuthContext.tsx` | استخدام `CLEARABLE_STORAGE_KEYS` + `safeSessionRemove('fiscal_year_id')` |
-| `src/contexts/FiscalYearContext.tsx` | استبدال `supabase.auth.signOut()` بـ `useAuth().signOut()` |
-| `src/constants/navigation.ts` | إعادة تسمية المتغيرين |
-| مستوردو الـ Record | تحديث الاسم في كل موقع استخدام |
-
-## التحقق
-- `npx tsc --noEmit` بعد كل إصلاح
-- بحث شامل لاستيرادات الأسماء القديمة
-- مراجعة يدوية لـ `signOut()` للتأكد من عدم لمس منطق session/role
+| `src/lib/queryStaleTime.ts` | #12 دمج STALE_SETTINGS |
+| `src/constants/sections.ts` | #15 `?? key`، #14 إضافة chart_of_accounts |
+| `src/constants/navigation.ts` | #16/#17 استبدال defaults، #13 توسعة linkLabelKeys، #25 تعليق توثيقي |
+| `src/types/navigation.ts` | #13 توسعة MenuLabels |
+| `src/lib/maybeSingle.test.ts` | #18 حذف |
+| `src/hooks/page/admin/index.ts` | #19 إنشاء barrel |
+| `src/constants/bottomNavLinks.ts` | #21 تعليق توثيقي |
+| `src/constants/quickActions.ts` | #22 تعليق توثيقي |
+| `src/hooks/data/dashboard/useDashboardPrefetch.ts` | #24 إنشاء hook جديد |
+| `src/contexts/FiscalYearContext.tsx` | #24 استبدال useEffect بـ hook |
 
 ## الضمانات
-- صفر تغيير على منطق المصادقة الفعلي (login/onAuthStateChange/role)
-- صفر تغيير على FiscalYearContext logic — فقط مصدر signOut
-- إعادة التسمية لا تغيّر السلوك
-- محترم لقواعد الذاكرة: `fiscal_year_id` في sessionStorage حصراً
+- صفر تغيير سلوكي — كل الإصلاحات إعادة تنظيم
+- `defaultAdminSections` ستبقى exported بنفس الاسم (للتوافقية) لكن مشتقة من `makeDefaults`
+- منطق Prefetch ينتقل حرفياً بدون تعديل (نفس queryKey, queryFn, staleTime, شروط التشغيل)
+- TypeScript check بعد كل خطوة
 
