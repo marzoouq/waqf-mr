@@ -20,19 +20,13 @@ import { clearSlowQueries, clearPageLoadEntries } from '@/lib/monitoring';
 import { queryClient } from '@/lib/queryClient';
 import { toast } from 'sonner';
 import { AuthStateContext, AuthActionsContext } from '@/hooks/auth/useAuthContext';
-import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { STORAGE_KEYS, CLEARABLE_STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeRemove, safeSessionRemove } from '@/lib/storage';
 
 // إعادة تصدير للتوافقية مع الاستيراد القديم
 export { useAuth, useAuthState, useAuthActions } from '@/hooks/auth/useAuthContext';
 
 const VALID_ROLES: AppRole[] = ['admin', 'beneficiary', 'waqif', 'accountant'];
-
-const CLEARABLE_STORAGE_KEYS = [
-  'waqf_selected_fiscal_year', 'sidebar-open', 'pwa_last_seen_version',
-  'waqf_theme_color', 'waqf_notification_tone', 'waqf_notification_volume',
-  'waqf_notification_preferences', 'error_log_queue', 'waqf_notification_sound',
-  'page_perf_entries',
-] as const;
 
 /** قراءة الدور من JWT app_metadata */
 function getRoleFromSession(session: Session | null): AppRole | null {
@@ -199,8 +193,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setRoleWithRef(null);
       queryClient.clear();
-      try { CLEARABLE_STORAGE_KEYS.forEach(key => localStorage.removeItem(key)); } catch {}
-      try { sessionStorage.removeItem(STORAGE_KEYS.NID_LOCKED_UNTIL); } catch {}
+      // مسح كل مفاتيح localStorage المعروفة (مصدر واحد للحقيقة من storageKeys.ts)
+      CLEARABLE_STORAGE_KEYS.forEach(key => safeRemove(key));
+      // مسح مفاتيح sessionStorage الحساسة
+      safeSessionRemove(STORAGE_KEYS.FISCAL_YEAR);
+      safeSessionRemove(STORAGE_KEYS.NID_LOCKED_UNTIL);
       clearSlowQueries();
       clearPageLoadEntries();
       toast.dismiss();
