@@ -7,7 +7,7 @@ import { useEffect, useCallback, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useAppSettings, useWaqfInfo, useSetting } from '@/hooks/data/settings/useAppSettings';
 import { usePublicStats } from '@/hooks/data/content/usePublicStats';
-import type { LandingPageContent } from '@/components/settings';
+import type { LandingPageContent } from '@/types/landing';
 import LandingHero from '@/components/landing/LandingHero';
 import LandingFeatures from '@/components/landing/LandingFeatures';
 import LandingCTA from '@/components/landing/LandingCTA';
