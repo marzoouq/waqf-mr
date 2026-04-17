@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Property, Contract } from '@/types/database';
 import { Plus, Building2, Home, DoorOpen } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
-import type { UnitPdfRow } from '@/utils/pdf';
+import type { UnitPdfRow } from '@/utils/pdf/core/core';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { usePropertyUnits } from '@/hooks/data/properties/usePropertyUnits';
 import { getTenantFromContracts } from './units/helpers';
