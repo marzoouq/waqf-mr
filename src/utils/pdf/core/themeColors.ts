@@ -28,7 +28,7 @@ export const DEFAULT_PDF_COLORS: PdfThemeColors = {
  * يحوّل قيمة HSL نصية ("142 71% 24%") إلى RGB tuple
  * يدعم كلا الصيغتين: مفصول بمسافات (Tailwind v4) أو فاصلات
  */
-export function hslStringToRgb(hslStr: string): RgbTuple | null {
+export function hslStringToRgb(hslStr: string | undefined | null): RgbTuple | null {
   if (!hslStr) return null;
   const cleaned = hslStr.trim().replace(/,/g, ' ').replace(/%/g, '');
   const parts = cleaned.split(/\s+/).filter(Boolean);
