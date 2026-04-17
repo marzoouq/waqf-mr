@@ -1,71 +1,48 @@
 
-# الفحص الجنائي العميق — التقرير النهائي
 
-## ✅ النتيجة: المشروع نظيف صحياً
+# الفحص الجنائي العميق — تصحيح القائمة المقترحة
 
-كل البنود مُتحقَّق منها مباشرة من قاعدة البيانات والكود (لا ادعاءات).
+## 🚨 5 من أصل 5 ادعاءات كانت مغلوطة أو ناقصة
 
-## النتائج الجنائية المُتحقَّق منها
+| # | الادعاء الأصلي | الواقع المُتحقَّق | الحالة |
+|---|---------------|------------------|--------|
+| 3 | لا توجد لوحة `/admin/support` | ✅ **موجودة فعلياً** في `src/pages/dashboard/SupportDashboardPage.tsx` مع 3 تبويبات (تذاكر/أخطاء/إحصائيات)، فلاتر حالة وفئة، `avgResolutionTime`, `avgRating`, إحصائيات SLA كاملة | **مكتمل ~95%** |
+| 5 | لا توجد تنبيهات ZATCA لانتهاء الشهادة | ✅ **موجودة فعلياً**: migration `20260325115715` ينشئ `cron_check_zatca_cert_expiry` + cron job نشط `check-zatca-cert-expiry-daily` يعمل يومياً 7 صباحاً، يرسل إشعاراً عند ≤14 يوم | **مكتمل 100%** |
+| 1 | البحث في access_log محلي فقط | ✅ صحيح جزئياً — `AccessLogTab` و `ArchiveLogTab` فعلاً محليان. **لكن** `AuditLogPage` (التبويب الرئيسي) يستخدم `useAuditLog` بـ server-side `ilike` بالفعل | **محلي فقط للتبويبين الفرعيين** |
+| 2 | مشكلة `PER_FY_LIMIT=2000` | ✅ موجود الحد، لكن البيانات الفعلية: `income=39`, `expenses=14`, `invoices=111`, `audit_log=519` — **0% من السقف**. مشكلة نظرية بحتة | **غير مُلِحّ** |
+| 4 | لا تنبيهات سلف/عجز | ✅ صحيح — لا يوجد أي notification trigger مرتبط بـ `rawNet ≤ 0` أو `actualCarryforward > 0` | **فجوة حقيقية** |
 
-### 1. قاعدة البيانات — مثالية
-| فحص | النتيجة |
-|------|---------|
-| جداول بدون RLS | **0** |
-| جداول RLS بلا policies | **0** |
-| policies مفتوحة بـ `qual=true` | **0** |
-| Foreign Keys مكسورة | **0** |
-| مستخدمون بلا أدوار | **0** |
-| أدوار يتيمة | **0** |
-| أدوار admin مكررة | **0** |
-| دوال SECURITY DEFINER بلا `search_path` | **0** |
+## ✅ القائمة المُصحَّحة (مرتَّبة حسب الواقع)
 
-### 2. سياسات Storage — مُتحقَّق منها مباشرة من `pg_policies`
-السياسة المتقادمة `Authenticated users can view invoices` **غير موجودة فعلياً**. السياسة الوحيدة للقراءة هي:
-```
-Role-based users can view invoices
-qual: bucket_id = 'invoices' AND (
-  has_role('admin') OR has_role('accountant') OR
-  has_role('beneficiary') OR has_role('waqif')
-)
-```
-→ تنبيه `supabase_lov/invoices_bucket_all_authenticated_read` **متقادم تماماً**.
+### 🟢 الوحيد المؤهَّل من القائمة الأصلية: تنبيهات السلف/العجز
+- **الفجوة الحقيقية:** المستفيد يُفاجأ بحصة صفرية بعد التوزيع بدون تفسير استباقي
+- **التنفيذ:** trigger على `distributions` يُرسل notification + بطاقة تفسير في `/beneficiary/dashboard`
 
-### 3. Edge Functions — آمنة
-- 18 وظيفة، صفر استخدام لـ `getSession()` (الإشارة الوحيدة في README تحذيرية)
-- `verify_jwt = false` مقصود وموثَّق (مصادقة يدوية عبر `getUser()`)
+### 🟢 تحسين فرعي صغير: server-side search لتبويبَي AccessLog/ArchiveLog فقط
+- النطاق محدود (تبويبان فرعيان من 4)، فائدة بسيطة (4523 سجل access_log فقط)
 
-### 4. جودة الكود
-- `console.*` خارج logger: **4 فقط** (كلها في `src/test/setup.ts` لتعطيل warnings الاختبار) ✅
-- `as any` خارج tests: **3 فقط** كلها داخل helpers موثَّقة (`viewHelper.ts`, `pdfHelpers.ts`) ✅
-- `@ts-ignore`/`@ts-expect-error`: **0** ✅
-- `eslint-disable`: 8 فقط (متوقع في مشروع بهذا الحجم)
+### 🟢 فرص جديدة اكتُشفت أثناء الفحص (لم تكن في القائمة الأصلية)
 
-### 5. صحة البيانات
-- `access_log`: 4,523 سجل / 2 MB / لا شيء أقدم من 90 يوم — يوجد migration أرشفة فعّال ✅
-- لا تضخم في أي جدول
+#### أ) لوحة عرض حالة شهادة ZATCA للناظر (`/dashboard/zatca-management`)
+- التنبيهات تعمل، لكن لا توجد **لوحة قراءة بصرية** تُظهر:
+  - أيام متبقية حتى انتهاء الشهادة
+  - حالة سلسلة ICV (آخر hash، عدد فواتير معلَّقة)
+  - حالة آخر cron run
+- ملاحظة: `ZatcaManagementPage` موجودة لكن لم أتحقق من محتواها بعد — يحتاج فحص إضافي
 
-### 6. Runtime / Console
-- Runtime errors: **0**
-- Console errors: **0**
+#### ب) تحسين `SupportDashboardPage` الموجودة (مكاسب صغيرة)
+- إضافة widget في `/dashboard` للتذاكر المفتوحة منذ >24h (لا يوجد حالياً)
+- لا يوجد سوى **تذكرة واحدة مفتوحة** في النظام حالياً — أولوية منخفضة
 
-## الإجراء الوحيد المطلوب: تنظيف 3 تنبيهات متقادمة
+## ❓ القرار المطلوب
 
-تحديث metadata في `supabase_lov` (لا تغيير كود/قاعدة بيانات):
+بناءً على الفحص الجنائي، الفجوات الحقيقية القابلة للتنفيذ هي:
 
-| # | Finding | الإجراء | السبب الموثَّق |
-|---|---------|---------|---------------|
-| 1 | `invoices_bucket_all_authenticated_read` | **mark_as_fixed** | السياسة المذكورة غير موجودة في `pg_policies`. التحقق المباشر يُظهر فقط `Role-based users can view invoices` التي تفحص 4 أدوار. |
-| 2 | `realtime_messages_no_channel_authorization` | **ignore** | لا استخدام لـ Broadcast/Presence — فقط `postgres_changes` المحمي بـ RLS. مكرر مع `agent_security/realtime_channel_authz` المقبول مسبقاً. |
-| 3 | `user_roles_select_exposes_all_roles` | **ignore** | نص التنبيه نفسه يقول "No actionable escalation path found here". RESTRICTIVE INSERT تمنع escalation، SELECT مقيد على `auth.uid() = user_id`. |
+- **(أ)** بناء **تنبيهات السلف والعجز للمستفيد** (الفجوة الوحيدة الحقيقية من القائمة الأصلية) — قيمة عالية
+- **(ب)** فحص `ZatcaManagementPage` الحالية واقتراح تحسينات بصرية لحالة الشهادة + سلسلة ICV — قيمة متوسطة
+- **(ج)** server-side search لتبويبَي AccessLog/ArchiveLog — قيمة منخفضة (تحسين تجميلي)
+- **(د)** تحديث `mem://business-logic/audit/search-scope-limitation` و `mem://features/zatca/...` لتعكس الواقع المُكتشَف، ثم انتظار توجيه جديد منك
+- **(هـ)** اقترح أنت ميزة/خطأ محدد تواجهه فعلياً
 
-## الضمانات
-- صفر تعديل على الكود
-- صفر تعديل على قاعدة البيانات أو RLS
-- صفر تعديل على المصادقة
-- فقط تحديث metadata لتنظيف لوحة الأمان
+أيها تريد؟
 
-## بعد التنفيذ
-لوحة أمان نظيفة (4 findings مقبولة + 0 actionable). سأنتظر توجيهاً منك لمهمة التالية:
-- ميزة محددة من قاعدة الذاكرة (37 ملف ميزة موثَّق)
-- إصلاح خطأ معين تواجهه
-- أو ترقية ثانوية lucide 1.7→1.8
