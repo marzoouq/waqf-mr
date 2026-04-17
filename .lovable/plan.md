@@ -1,57 +1,29 @@
 
 
-# خطة معالجة المشاكل المعمارية #11-#25
+# خطة معالجة ملاحظات الجودة #26–#40
 
 ## الفحص قبل التخطيط
-- `maybeSingle.ts` غير موجود لكن `maybeSingle.test.ts` موجود (#18) — اختبار يتيم
-- `src/hooks/page/admin/` لا يحتوي `index.ts` (#19)
-- `STALE_STATIC === STALE_SETTINGS` (#12)
-- `pickLabels` يستخدم `?? key` (#15 صحيح في pickLabels لكن `ROLE_SECTION_DEFS` يستخدم `?? ''`)
+- **#26** `/waqif` ليس يتيماً فعلياً (مستخدم في 9+ مواضع) → **توثيق فقط**
+- **#28, #29** `DEDUP_MS = 2000` قرار منتجي → **توثيق + `__resetDedup`** للاختبارات
+- **#31, #32** سلوك `logger` في Production مقصود → **توثيق فقط**
+- **#34** `accountant` يُعامَل كـ admin في FiscalYearContext → **توثيق فقط**
+- **#37, #38** أنواع `invoices.ts`/`advance.ts` المركّبة مفصولة بشكل مقصود → **توثيق فقط**
 
-## الإصلاحات (15 ملاحظة)
+## الإصلاحات الفعلية
 
-### مجموعة A — تنقية constants (#11, #12, #14, #15, #16, #17, #25)
-1. **#12** دمج `STALE_SETTINGS` ليُشير لـ `STALE_STATIC` (`export const STALE_SETTINGS = STALE_STATIC`)
-2. **#15** تغيير `?? ''` إلى `?? key` في `ROLE_SECTION_DEFS` لكشف المفاتيح المفقودة
-3. **#16/#17** استبدال `defaultAdminSections`/`defaultBeneficiarySections` المُكرَّرة في `navigation.ts` بـ `makeDefaults(ADMIN_SECTION_KEYS)` من `sections.ts` — مصدر واحد للحقيقة
-4. **#14** إضافة `chart_of_accounts` إلى `ROLE_SECTION_DEFS` (مفقود رغم وجوده في كل المصادر الأخرى)
-5. **#13** إضافة المسارات المفقودة (`zatca`, `support`, `annual-report`, `comparison`, `diagnostics`) إلى `MenuLabels` و `linkLabelKeys` — مع توسعة `MenuLabels` interface
-6. **#11** نقل الأيقونات من `navigation.ts` إلى مجموعة منفصلة لتمكين tree-shaking أفضل — **سأتركها كما هي**: أيقونات Lucide تُستخدم في القائمة الجانبية للجميع (admin/beneficiary/waqif) بدون استثناء، ولا توجد استيرادات ذرية لباقي الثوابت بدون الأيقونات. التحسين سيكون نظري فقط بدون فائدة قابلة للقياس.
-7. **#25** `BENEFICIARY_ROUTE_PERM_KEYS` يعيّن `share` لمسارين — **لن أغيّره**: هذا قرار منتجي مقصود (carryforward جزء من حصة المستفيد). توثيق فقط بتعليق.
-
-### مجموعة B — تنظيف ملفات (#18, #19, #21, #22)
-8. **#18** حذف `src/lib/maybeSingle.test.ts` (يتيم، لا يوجد source)
-9. **#19** إنشاء `src/hooks/page/admin/index.ts` barrel للاتساق مع `beneficiary/index.ts`
-10. **#21, #22** **توثيق فقط** — `bottomNavLinks.ts` و `quickActions.ts` انفصالها مقصود (مكونات UI مختلفة). إضافة تعليق في كل منهما يشير لـ `navigation.ts` كمصدر للحقيقة.
-
-### مجموعة C — FiscalYearContext (#24)
-11. **#24** نقل منطق Prefetch من `FiscalYearContext` إلى hook منفصل `useDashboardPrefetch`
-    - **حساس** — سأحافظ على نفس السلوك بالضبط
-    - الـ hook الجديد يُستهلك في `FiscalYearProvider` (مكان واحد) لإبقاء التأثير محصوراً
-    - فائدة: مسؤولية واحدة + قابلية اختبار + يمكن تعطيله مستقبلاً بسهولة
-
-### مجموعة D — تخطي (#20, #23)
-- **#20** `lib/theme/` و `components/theme/` — تقسيم سليم (logic vs UI)، لا تغيير
-- **#23** سبق إصلاحه في الجولة السابقة ✅
-
-## الملفات المتأثرة
-
-| ملف | إجراء |
-|-----|------|
-| `src/lib/queryStaleTime.ts` | #12 دمج STALE_SETTINGS |
-| `src/constants/sections.ts` | #15 `?? key`، #14 إضافة chart_of_accounts |
-| `src/constants/navigation.ts` | #16/#17 استبدال defaults، #13 توسعة linkLabelKeys، #25 تعليق توثيقي |
-| `src/types/navigation.ts` | #13 توسعة MenuLabels |
-| `src/lib/maybeSingle.test.ts` | #18 حذف |
-| `src/hooks/page/admin/index.ts` | #19 إنشاء barrel |
-| `src/constants/bottomNavLinks.ts` | #21 تعليق توثيقي |
-| `src/constants/quickActions.ts` | #22 تعليق توثيقي |
-| `src/hooks/data/dashboard/useDashboardPrefetch.ts` | #24 إنشاء hook جديد |
-| `src/contexts/FiscalYearContext.tsx` | #24 استبدال useEffect بـ hook |
+| # | إصلاح | ملف |
+|---|------|-----|
+| #27 | إعادة تسمية `_supabaseUrl` → `supabaseUrl` | `main.tsx` |
+| #30 | إضافة `onWarning` إلى `CrudNotifications` + `__resetDedup` | `lib/notify.ts` |
+| #33 | تقليل default `staleTime` من 5د إلى 60ث | `lib/queryClient.ts` |
+| #35 | تصدير `*Insert`/`*Update` لكل النماذج | `types/models.ts` |
+| #36 | توسعة barrel ليشمل invoices/advance/zatca/... | `types/database.ts` |
+| #39/#40 | دمج sorting+filters+export في `ui.ts` (re-exports للتوافق) | `types/ui.ts` (جديد) + 3 ملفات |
+| 📝 | تعليقات توثيقية | 6 ملفات (انظر أعلاه) |
 
 ## الضمانات
-- صفر تغيير سلوكي — كل الإصلاحات إعادة تنظيم
-- `defaultAdminSections` ستبقى exported بنفس الاسم (للتوافقية) لكن مشتقة من `makeDefaults`
-- منطق Prefetch ينتقل حرفياً بدون تعديل (نفس queryKey, queryFn, staleTime, شروط التشغيل)
-- TypeScript check بعد كل خطوة
+- صفر تغيير سلوكي على API عام — الـ re-exports تحافظ على الاستيرادات القديمة
+- staleTime ↓: queries بـ `STALE_STATIC` تتجاوز الافتراضي وتحتفظ بـ 5د
+- `npx tsc --noEmit` بعد التنفيذ
+- لا مساس بملفات المصادقة المحمية
 
