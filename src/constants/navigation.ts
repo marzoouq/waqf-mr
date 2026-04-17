@@ -9,6 +9,7 @@ import {
   ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity,
 } from 'lucide-react';
 import type { MenuLabels } from '@/types/navigation';
+import { ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
 
 // ─── Map link keys to menu_labels keys ───
 export const linkLabelKeys: Record<string, keyof MenuLabels> = {
@@ -27,6 +28,11 @@ export const linkLabelKeys: Record<string, keyof MenuLabels> = {
   '/dashboard/audit-log': 'audit_log',
   '/dashboard/bylaws': 'bylaws',
   '/dashboard/chart-of-accounts': 'chart_of_accounts',
+  '/dashboard/zatca': 'zatca',
+  '/dashboard/support': 'support',
+  '/dashboard/annual-report': 'annual_report',
+  '/dashboard/comparison': 'comparison',
+  '/dashboard/diagnostics': 'diagnostics',
   '/beneficiary': 'beneficiary_view',
 };
 
@@ -101,6 +107,11 @@ export const ADMIN_ROUTE_PERM_KEYS: Record<string, string> = {
   '/dashboard/chart-of-accounts': 'chart_of_accounts',
 };
 
+/**
+ * BENEFICIARY_ROUTE_PERM_KEYS — خريطة المسارات إلى مفاتيح الصلاحيات.
+ * ملاحظة (#25 من تقرير الفحص): مساران (`/my-share` و `/carryforward`) يشتركان في مفتاح `share`
+ * بشكل مقصود — التنزيلات والترحيلات جزء منتجي من "حصة المستفيد"، يُتحكم بها معاً.
+ */
 export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
   '/beneficiary/properties': 'properties',
   '/beneficiary/contracts': 'contracts',
@@ -120,19 +131,9 @@ export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
 // ─── Routes accountant can never access ───
 export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/beneficiary'];
 
-// ─── Section visibility defaults ───
-export const defaultAdminSections = {
-  properties: true, contracts: true, income: true, expenses: true,
-  beneficiaries: true, reports: true, accounts: true, users: true,
-  invoices: true, bylaws: true, messages: true, audit_log: true,
-  annual_report: true, support: true, chart_of_accounts: true,
-};
-
-export const defaultBeneficiarySections = {
-  properties: true, contracts: true, disclosure: true, share: true,
-  accounts: true, reports: true, invoices: true, bylaws: true,
-  messages: true, notifications: true, annual_report: true, support: true,
-};
+// ─── Section visibility defaults (مشتقة من sections.ts — مصدر واحد للحقيقة #16/#17) ───
+export const defaultAdminSections: Record<string, boolean> = makeDefaults(ADMIN_SECTION_KEYS);
+export const defaultBeneficiarySections: Record<string, boolean> = makeDefaults(BENEFICIARY_SECTION_KEYS);
 
 /**
  * خريطة من المسار إلى مفتاح القسم — للوحة الناظر/المحاسب

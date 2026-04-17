@@ -1,5 +1,8 @@
 /**
- * روابط التنقل السفلي — مركزة حسب الدور
+ * روابط التنقل السفلي — مركزة حسب الدور.
+ * ملاحظة (#21): الفصل عن `navigation.ts` مقصود — هذه قائمة مختصرة (4 عناصر فقط)
+ * للهاتف، بينما `allAdminLinks`/`allBeneficiaryLinks` في navigation.ts قوائم
+ * كاملة للقائمة الجانبية. مصدر الحقيقة للمسارات يبقى `navigation.ts`.
  */
 import { Home, Building2, FileText, Wallet, ClipboardList, Receipt, TrendingUp, TrendingDown, MessageSquare } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
