@@ -19,9 +19,9 @@ export interface ArchiveLogEntry {
   archived_at: string;
 }
 
-export const useArchiveLog = (eventFilter: string, currentPage: number) => {
+export const useArchiveLog = (eventFilter: string, currentPage: number, searchQuery = '') => {
   return useQuery({
-    queryKey: ['access_log_archive', eventFilter, currentPage],
+    queryKey: ['access_log_archive', eventFilter, currentPage, searchQuery],
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const from = (currentPage - 1) * ARCHIVE_ITEMS_PER_PAGE;
@@ -33,6 +33,14 @@ export const useArchiveLog = (eventFilter: string, currentPage: number) => {
 
       if (eventFilter !== 'all') {
         query = query.eq('event_type', eventFilter);
+      }
+
+      const q = searchQuery.trim();
+      if (q.length > 0) {
+        const safe = q.replace(/[%_]/g, (m) => `\\${m}`);
+        query = query.or(
+          `email.ilike.%${safe}%,target_path.ilike.%${safe}%,device_info.ilike.%${safe}%`,
+        );
       }
 
       const { data, error, count } = await query;

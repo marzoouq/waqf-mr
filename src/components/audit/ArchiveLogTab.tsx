@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -8,26 +8,22 @@ import { Search, Archive, Activity, CalendarDays } from 'lucide-react';
 import { TablePagination, TableSkeleton } from '@/components/common';
 import { fmtDate } from '@/utils/format/format';
 import { useArchiveLog, ARCHIVE_ITEMS_PER_PAGE } from '@/hooks/data/audit/useArchiveLog';
+import { useDebouncedValue } from '@/hooks/ui/useDebouncedValue';
 import { eventConfig } from './auditEventConfig';
 
 const ArchiveLogTab = () => {
   const [eventFilter, setEventFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
-  const { data: rawData, isLoading } = useArchiveLog(eventFilter, currentPage);
+  useEffect(() => { setCurrentPage(1); }, [debouncedSearch]);
+
+  const { data: rawData, isLoading } = useArchiveLog(eventFilter, currentPage, debouncedSearch);
   const logs = useMemo(() => rawData?.logs ?? [], [rawData?.logs]);
   const totalCount = rawData?.totalCount ?? 0;
 
-  const filtered = useMemo(() => {
-    if (!searchQuery) return logs;
-    const q = searchQuery.toLowerCase();
-    return logs.filter(l =>
-      (l.email && l.email.toLowerCase().includes(q)) ||
-      (l.target_path && l.target_path.toLowerCase().includes(q)) ||
-      (l.device_info && l.device_info.toLowerCase().includes(q))
-    );
-  }, [logs, searchQuery]);
+  const filtered = logs;
 
   return (
     <div className="space-y-6">
@@ -49,7 +45,7 @@ const ArchiveLogTab = () => {
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input name="searchQuery" id="archive-log-tab-field-1" placeholder="بحث في الصفحة الحالية..." title="البحث يشمل السجلات المعروضة في هذه الصفحة فقط" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-9" />
+          <Input name="searchQuery" id="archive-log-tab-field-1" placeholder="بحث في كامل الأرشيف (بريد، مسار، جهاز)..." title="بحث خادمي عبر كل السجلات المؤرشفة — يُؤجَّل 300ms أثناء الكتابة" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pr-9" />
         </div>
         <Select value={eventFilter} onValueChange={v => { setEventFilter(v); setCurrentPage(1); }}>
           <SelectTrigger className="w-[180px]"><SelectValue placeholder="نوع الحدث" /></SelectTrigger>

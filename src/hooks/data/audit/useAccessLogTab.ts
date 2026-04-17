@@ -18,9 +18,9 @@ export interface AccessLogEntry {
   created_at: string;
 }
 
-export const useAccessLogTab = (eventFilter: string, currentPage: number) => {
+export const useAccessLogTab = (eventFilter: string, currentPage: number, searchQuery = '') => {
   return useQuery({
-    queryKey: ['access_log', eventFilter, currentPage],
+    queryKey: ['access_log', eventFilter, currentPage, searchQuery],
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const from = (currentPage - 1) * ACCESS_LOG_ITEMS_PER_PAGE;
@@ -31,6 +31,14 @@ export const useAccessLogTab = (eventFilter: string, currentPage: number) => {
         .range(from, from + ACCESS_LOG_ITEMS_PER_PAGE - 1);
       if (eventFilter !== 'all') {
         query = query.eq('event_type', eventFilter);
+      }
+      const q = searchQuery.trim();
+      if (q.length > 0) {
+        // تنظيف % و _ لمنع wildcards غير مقصودة
+        const safe = q.replace(/[%_]/g, (m) => `\\${m}`);
+        query = query.or(
+          `email.ilike.%${safe}%,target_path.ilike.%${safe}%,device_info.ilike.%${safe}%`,
+        );
       }
       const { data, error, count } = await query;
       if (error) throw error;

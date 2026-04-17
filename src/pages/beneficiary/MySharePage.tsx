@@ -12,6 +12,7 @@ import MyShareSummaryCards from '@/components/my-share/MyShareSummaryCards';
 import DistributionsTable from '@/components/my-share/DistributionsTable';
 import AdvancesTable from '@/components/my-share/AdvancesTable';
 import CarryforwardsTable from '@/components/my-share/CarryforwardsTable';
+import DeductionsExplanationCard from '@/components/my-share/DeductionsExplanationCard';
 import { useMySharePage } from '@/hooks/page/beneficiary/useMySharePage';
 import { fmt } from '@/utils/format/format';
 
@@ -132,6 +133,14 @@ const MySharePage = () => {
             paidAdvancesTotal={paidAdvancesTotal}
             isClosed={isClosed}
             advancesEnabled={advancesEnabled}
+          />
+
+          {/* بطاقة تفسير الخصومات (عند وجود سُلف أو فروق في سنة مقفلة) */}
+          <DeductionsExplanationCard
+            myShare={myShare}
+            paidAdvancesTotal={paidAdvancesTotal}
+            carryforwardBalance={carryforwardBalance}
+            isClosed={isClosed}
           />
 
           {/* تنبيه السنة النشطة */}
