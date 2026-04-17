@@ -13,7 +13,7 @@ import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import type { ForensicAuditData } from '@/utils/pdf';
+import type { ForensicAuditData } from '@/utils/pdf/reports/forensicAudit';
 
 export function useReportsData() {
   const pdfWaqfInfo = usePdfWaqfInfo();
