@@ -1,5 +1,5 @@
-import { useState, lazy, Suspense } from 'react';
-import { useIsMobile } from '@/hooks/ui/useIsMobile';
+import { lazy, Suspense } from 'react';
+import { useSettingsPage } from '@/hooks/page/admin/useSettingsPage';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -66,8 +66,7 @@ const SETTINGS_CATEGORIES = [
 ];
 
 const SettingsPage = () => {
-  const isMobile = useIsMobile();
-  const [activeSettingsTab, setActiveSettingsTab] = useState('waqf');
+  const { activeTab: activeSettingsTab, setActiveTab: setActiveSettingsTab, isMobile } = useSettingsPage('waqf');
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
