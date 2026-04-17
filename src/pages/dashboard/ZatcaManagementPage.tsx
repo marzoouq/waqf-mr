@@ -1,7 +1,6 @@
 /**
  * صفحة إدارة ZATCA — Orchestrator
  */
-import { useState } from 'react';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShieldCheck, FileText, Link2 } from 'lucide-react';
@@ -12,12 +11,10 @@ import ZatcaInvoicesTab from '@/components/zatca/ZatcaInvoicesTab';
 import ZatcaCertificatesTab from '@/components/zatca/ZatcaCertificatesTab';
 import ZatcaChainTab from '@/components/zatca/ZatcaChainTab';
 import ZatcaComplianceDialog from '@/components/zatca/ZatcaComplianceDialog';
-import { useZatcaManagement } from '@/hooks/data/zatca/useZatcaManagement';
-import type { ComplianceResult } from '@/types/zatca';
+import { useZatcaManagementPage } from '@/hooks/page/admin/useZatcaManagementPage';
 
 function ZatcaManagementPage() {
-  const z = useZatcaManagement();
-  const [complianceResult, setComplianceResult] = useState<ComplianceResult | null>(null);
+  const { z, complianceResult, runComplianceCheck, clearComplianceResult } = useZatcaManagementPage();
 
   return (
     <DashboardLayout>
@@ -62,11 +59,7 @@ function ZatcaManagementPage() {
               onGenerateXml={(id, table) => z.generateXml.mutate({ invoiceId: id, table })}
               onSignInvoice={(id, table) => z.signInvoice.mutate({ invoiceId: id, table })}
               onSubmitToZatca={(id, table, action) => z.submitToZatca.mutate({ invoiceId: id, table, action })}
-              onComplianceCheck={(id, table) => {
-                z.complianceCheck.mutate({ invoiceId: id, table }, {
-                  onSuccess: (data) => setComplianceResult(data),
-                });
-              }}
+              onComplianceCheck={runComplianceCheck}
             />
           </TabsContent>
 
@@ -92,7 +85,7 @@ function ZatcaManagementPage() {
         </Tabs>
       </div>
 
-      <ZatcaComplianceDialog result={complianceResult} onClose={() => setComplianceResult(null)} />
+      <ZatcaComplianceDialog result={complianceResult} onClose={clearComplianceResult} />
     </DashboardLayout>
   );
 }
