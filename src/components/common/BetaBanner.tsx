@@ -24,7 +24,7 @@ const BANNER_HOVER: Record<string, string> = {
 };
 
 const BetaBanner = () => {
-  const [dismissed, setDismissed] = useState(() => safeSessionGet(BANNER_DISMISS_KEY, '') === '1');
+  const [dismissed, setDismissed] = useState(() => safeSessionGet<string>(BANNER_DISMISS_KEY, '') === '1');
   const { getJsonSetting, isLoading } = useAppSettings();
 
   const settings = getJsonSetting<BannerSettings>("beta_banner_settings", DEFAULT_BANNER_SETTINGS);
