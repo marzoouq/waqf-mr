@@ -3,8 +3,10 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
+import { MAX_FINANCIAL_AMOUNT, MAX_FINANCIAL_AMOUNT_MESSAGE } from '@/constants/limits';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
+import type { SortFieldOf } from '@/types/sorting';
 import { useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
@@ -16,7 +18,7 @@ import { EMPTY_FILTERS, type FilterState } from '@/types/filters';
 import { defaultNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 
-export type SortField = 'amount' | 'date' | 'source' | null;
+export type SortField = SortFieldOf<'amount' | 'date' | 'source'>;
 
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
@@ -56,7 +58,7 @@ export function useIncomePage() {
     e.preventDefault();
     if (!formData.source || !formData.amount || !formData.date) { defaultNotify.error('يرجى ملء جميع الحقول المطلوبة'); return; }
     const amount = parseFloat(formData.amount);
-    if (!Number.isFinite(amount) || amount <= 0 || amount > 999_999_999) { defaultNotify.error('المبلغ يجب أن يكون رقماً موجباً ولا يتجاوز 999,999,999'); return; }
+    if (!Number.isFinite(amount) || amount <= 0 || amount > MAX_FINANCIAL_AMOUNT) { defaultNotify.error(MAX_FINANCIAL_AMOUNT_MESSAGE); return; }
     const incomeData: Record<string, unknown> = {
       source: formData.source, amount, date: formData.date,
       property_id: formData.property_id || undefined, notes: formData.notes || undefined,
