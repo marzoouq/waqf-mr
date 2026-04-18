@@ -60,6 +60,6 @@ export function useDashboardPrefetch({ fiscalYearId, fiscalYears }: UseDashboard
     return () => {
       controller.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- signOut/queryFn مستقران؛ تشغيل عند تغيُّر السنة/الدور فقط
   }, [fiscalYearId, fiscalYears, queryClient, isAdminOrAccountant]);
 }

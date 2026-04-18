@@ -29,8 +29,8 @@ const PagePerformanceCard = () => {
   const rev = useSyncExternalStore(subscribePerfUpdates, getPerfRevision);
   const [showAll, setShowAll] = useState(false);
 
-  const summaries = useMemo(() => getPagePerfSummaries(), [rev]); // eslint-disable-line react-hooks/exhaustive-deps
-  const totalEntries = useMemo(() => getStoredEntries().length, [rev]); // eslint-disable-line react-hooks/exhaustive-deps
+  const summaries = useMemo(() => getPagePerfSummaries(), [rev]); // eslint-disable-line react-hooks/exhaustive-deps -- rev (revision من useSyncExternalStore) هو إشارة التحديث الوحيدة
+  const totalEntries = useMemo(() => getStoredEntries().length, [rev]); // eslint-disable-line react-hooks/exhaustive-deps -- نفس المبرر
 
   const displayed: PagePerfSummary[] = showAll ? summaries : summaries.slice(0, 6);
 
