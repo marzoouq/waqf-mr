@@ -3,8 +3,9 @@ import { useActiveFiscalYear, FiscalYear } from '@/hooks/data/financial/useFisca
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useDashboardPrefetch } from '@/hooks/data/dashboard/useDashboardPrefetch';
 import { logger } from '@/lib/logger';
-import { FY_NONE, FY_ALL, isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+import { FY_NONE, isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { resolveFiscalYearId } from '@/utils/fiscalYear/resolveFiscalYearId';
 
 interface FiscalYearContextType {
   fiscalYearId: string;
@@ -60,11 +61,15 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
   // If no fiscal years are available (all unpublished), don't fallback to 'all'.
   const noPublishedYears = !isLoading && !authLoading && isNonAdmin && fiscalYears.length === 0;
 
-  const fiscalYearId = (isLoading || authLoading)
-    ? FY_NONE
-    : noPublishedYears
-      ? FY_NONE
-      : (selectedId || activeFY?.id || (isNonAdmin ? (fiscalYears[0]?.id || FY_NONE) : FY_ALL));
+  const fiscalYearId = resolveFiscalYearId({
+    isLoading,
+    authLoading,
+    noPublishedYears,
+    selectedId,
+    activeFyId: activeFY?.id,
+    isNonAdmin,
+    firstYearId: fiscalYears[0]?.id,
+  });
 
   const fiscalYear = useMemo(
     () => (isFyAll(fiscalYearId) || !isFyReady(fiscalYearId)) ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),
