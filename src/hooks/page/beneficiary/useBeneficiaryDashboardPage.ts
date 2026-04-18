@@ -29,8 +29,9 @@ export function useBeneficiaryDashboardPage() {
   const myShare = dashData?.my_share ?? 0;
   const distributions = dashData?.recent_distributions ?? [];
   const pendingAdvanceCount = dashData?.pending_advance_count ?? 0;
-  const advanceSettings = dashData?.advance_settings ?? { enabled: true, min_amount: 500, max_percentage: 50 };
-  const advanceEnabled = advanceSettings?.enabled ?? true;
+  const advanceSettings = dashData?.advance_settings ?? { enabled: false, min_amount: 500, max_percentage: 50 };
+  // #65 — fallback آمن: false (يخفي الزر حتى تُحمّل الإعدادات الفعلية بدلاً من إظهاره خطأً)
+  const advanceEnabled = advanceSettings?.enabled ?? false;
 
   const fyReady = isFyReady(fiscalYearId);
   const isLoading = authLoading || fyLoading || (!fyReady ? false : dashLoading);
