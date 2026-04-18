@@ -1,52 +1,82 @@
 
-## خطة الموجة 12 — إصلاح بقات التشخيص الحقيقية
+## خطة الموجة 13 — مُنقَّحة بعد الفحص الجنائي
 
-### السياق
-بعد فحص جنائي، تأكدت 11+ بق حقيقي في نظام التشخيص. أبرزها شرط رياضي مقلوب يجعل حالة `fail` مستحيلة التنفيذ.
+### نتائج التحقق الجنائي
 
-### البق المؤكَّد رياضياً
-```typescript
-// performance.ts — الفرع الثالث ميت
-const status = count > 3000 ? 'warn' : count > 5000 ? 'fail' : 'pass';
-```
-عند `count = 6000` → ينطبق `>3000` فيُعطي `warn`، والفرع `>5000` لا يُنفَّذ أبداً.
+#### ادعاءات كاذبة مُفنَّدة
+| # | الادعاء | الواقع |
+|---|--------|-------|
+| 56 | `.env` في git tracking | **كاذب** — `.gitignore` سطر 22 يتجاهل `.env` و `.env.*` صراحةً |
+| 25 | `useDashboardPrefetch` لكل المستخدمين | **كاذب** — الـ hook يفلتر داخلياً: `if (!isAdminOrAccountant) return` |
+| المسارات | `src/pages/admin/*` | **كاذب** — الصفحات في `src/pages/dashboard/*` (أسطر التقرير مغلوطة لكن المحتوى صحيح للملفات الصحيحة) |
 
-### مصفوفة الإصلاحات
+#### ادعاءات صحيحة مؤكَّدة بالكود
+| # | الادعاء | الموقع الفعلي |
+|---|--------|--------------|
+| 1 | `as unknown as` في 3 hooks | `useIncomePage:72`, `useExpensesPage:70`, `useInvoicesPage:121,124` ✓ |
+| 2 | `AlertDialog` inline | `dashboard/ExpensesPage.tsx:101-112` ✓ |
+| 6 | Banner inline في AccountsPage | `dashboard/AccountsPage.tsx:53-57` ✓ |
+| 65 | `?? true` خطير | `useBeneficiaryDashboardPage.ts:33` ✓ |
+| 5 | `slice` في JSX | `dashboard/PropertiesPage.tsx:87` ✓ |
+| 13 | Skeleton inline (14 مربع) | `dashboard/AccountsPage.tsx:83-92` ✓ |
+| 14 | `handleExportCsv` خارج المكوّن | `dashboard/AccountsPage.tsx:24-39` ✓ |
+| 23 | `isClosed && role !== 'admin'` يدوياً | `dashboard/ContractsPage.tsx:104` ✓ — يجب استخدام `!canModifyFiscalYear` |
+| 4 | Guards inline | `BeneficiarySettingsPage.tsx:31-67` ✓ |
+| 41-45 | لا اختبارات لـ permissions أو sanitizeDescription | مؤكَّد — الملفان غير موجودَين |
 
-| # | الملف · الفحص | الإصلاح |
-|---|---|---|
-| 1 | `performance.ts` `checkDomNodesCount` | عكس الشروط: `>5000?'fail':>3000?'warn':'pass'` |
-| 2 | `performance.ts` `checkWcagContrast` | حساب فعلي لنسبة التباين (HSL→RGB→luminance→ratio). pass≥4.5، warn≥3، fail<3 |
-| 3 | `performance.ts` `checkPagePerformance` | رسالة أوضح: "سيتوفر بعد التنقل بين الصفحات" |
-| 4 | `performance.ts` | حذف `checkNavigatorLocks` و `checkWebAssembly` (بلا قيمة) |
-| 5 | `database.ts` `checkRealtimeChannels` | 0 قنوات → `info` صريح، >0 → `pass` مع العدد |
-| 6 | `storage.ts` `checkErrorLogQueue` | فصل التنظيف: قراءة فقط داخل الفحص (anti-pattern fix) |
-| 7 | `ui.ts` `checkCSP` | محاولة `fetch HEAD` لقراءة header، fallback للـ meta |
-| 8 | `security.ts` | حذف `checkCryptoAPI` (دائماً pass) و `checkWindowOnError` (دائماً info) |
-| 9 | `security.ts` `checkNotificationPermission` | `denied`→`warn`، `default`→`info`، `granted`→`pass` |
-| 10 | `zatca.ts` `checkUnsubmittedInvoices` | تشديد: `>0`→`warn`، `>10`→`fail` |
-| 11 | `zatca.ts` `checkZatcaCertificateValidity` | تمييز أخطاء الشبكة: `catch`→`info` بدل `fail` كاذب |
-| 12 | `appSettings.ts` `checkRegisteredRoutes` | فحص ضد `routeRegistry` للتأكد من وجود component فعلي |
+#### ادعاءات جزئية الصحة
+| # | التفاصيل |
+|---|---------|
+| 10 | `paginatedItems` slice موجود في `IncomePage:42` لكن **خارج JSX** — يمكن نقله إلى hook (تحسين معماري لا بق) |
+| 24 | Realtime على `app_settings` بلا `filter` — صحيح لكن `app_settings` جدول صغير global، الفلترة صعبة (لا `beneficiary_id`) |
 
-### الملفات المُعدَّلة (7)
-- `src/utils/diagnostics/checks/performance.ts`
-- `src/utils/diagnostics/checks/database.ts`
-- `src/utils/diagnostics/checks/storage.ts`
-- `src/utils/diagnostics/checks/ui.ts`
-- `src/utils/diagnostics/checks/security.ts`
-- `src/utils/diagnostics/checks/zatca.ts`
-- `src/utils/diagnostics/checks/appSettings.ts`
-- ربما `src/utils/diagnostics/index.ts` (تحديث قائمة الفحوصات بعد الحذف)
+### الإصلاحات المُعتمَدة (12 إصلاح حقيقي)
+
+#### حرجة (4)
+1. **#1** — إزالة `as unknown as` بتعريف types صحيحة من CRUD factory في 3 ملفات
+2. **#2** — استبدال `AlertDialog` inline في `ExpensesPage` بـ `<ConfirmDeleteDialog />`
+3. **#6** — استبدال banner inline في `AccountsPage:53-57` بـ `<LockedYearBanner isClosed={page.isClosed} role={role} />`
+4. **#65** — تغيير `advanceEnabled = advanceSettings?.enabled ?? true` إلى `?? false` (آمن افتراضياً)
+
+#### عالية (8)
+5. **#4 + #37** — `BeneficiarySettingsPage`: استخدام `ErrorState` و `EmptyPageState` + تصحيح ترتيب guards (تحميل قبل خطأ)
+6. **#5** — `PropertiesPage`: نقل `slice` إلى `useMemo`
+7. **#10** — `IncomePage`: نقل `paginatedItems` إلى `useIncomePage` hook
+8. **#13** — `AccountsPage`: استبدال 14 مربع skeleton inline بـ `<StatsGridSkeleton count={14} />` (إنشاؤه إن لم يوجد)
+9. **#14** — `AccountsPage`: نقل `handleExportCsv` داخل المكوّن كـ `useCallback` أو لـ hook
+10. **#23** — `ContractsPage:104`: استبدال `isClosed && role !== 'admin'` بـ `!canModifyFiscalYear(role, isClosed)`
+11. **#41** — إنشاء `src/utils/auth/permissions.test.ts` (حالات: admin مع closed، beneficiary مع open، إلخ)
+12. **#45** — إنشاء `useInvoicesPage.test.ts` يختبر `sanitizeDescription` (HTML/whitespace/XSS payloads)
+
+### ادعاءات مرفوضة (لن تُنفَّذ)
+- **#56** `.env` في git → كاذب، `.gitignore` يتجاهله بالفعل
+- **#25** `useDashboardPrefetch` للكل → كاذب، الفلترة موجودة
+- **#24** filter لـ realtime على `app_settings` → غير عملي (جدول global)
+
+### الملفات المُعدَّلة (10 + 2 جديدة)
+1. `src/hooks/page/admin/financial/useIncomePage.ts`
+2. `src/hooks/page/admin/financial/useExpensesPage.ts`
+3. `src/hooks/page/admin/financial/useInvoicesPage.ts`
+4. `src/pages/dashboard/ExpensesPage.tsx`
+5. `src/pages/dashboard/AccountsPage.tsx`
+6. `src/pages/dashboard/IncomePage.tsx`
+7. `src/pages/dashboard/PropertiesPage.tsx`
+8. `src/pages/dashboard/ContractsPage.tsx`
+9. `src/pages/beneficiary/BeneficiarySettingsPage.tsx`
+10. `src/hooks/page/beneficiary/useBeneficiaryDashboardPage.ts`
+11. **جديد:** `src/utils/auth/permissions.test.ts`
+12. **جديد:** `src/hooks/page/admin/financial/useInvoicesPage.test.ts`
+13. ربما `src/components/common/StatsGridSkeleton.tsx` (إن لم يوجد) + تصديره
 
 ### الضمانات
-- صفر تغيير في: schema، RLS، Auth، Edge Functions، UI الرئيسية
-- التشخيص محصور بـ `ADMIN_ONLY` — لا تأثير على المستخدمين
-- 33 → ~30 فحص (حذف 3 بلا قيمة)
-- لا migrations، لا تغييرات أمنية
+- صفر تغيير: schema، RLS، Auth، Edge Functions، migrations
+- التغيير السلوكي الوحيد: `advanceEnabled` افتراضياً `false` بدل `true` — قد يُخفي زر السلف لحظياً قبل تحميل الإعدادات (آمن)
+- لا تنبيه أمني للمستخدم بشأن `.env` (كاذب)
 
-### التحقق بعد التنفيذ
-1. `/dashboard/diagnostics` كـ admin
-2. تشغيل جميع الفحوصات
-3. التأكد من حساب التباين رقمياً (نسبة فعلية)
-4. التأكد من تشديد عتبة ZATCA
-5. التأكد من اختفاء الفحوصات المحذوفة
+### النطاق
+| العملية | العدد |
+|--------|-------|
+| ملفات مُعدَّلة | 10 |
+| ملفات جديدة | 2-3 |
+| migrations | 0 |
+| ادعاءات مرفوضة | 3 |
