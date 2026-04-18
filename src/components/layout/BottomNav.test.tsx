@@ -16,6 +16,11 @@ vi.mock('@/hooks/data/useUnreadMessages', () => ({
   useUnreadMessages: () => ({ data: 0 }),
 }));
 
+const mockGetJsonSetting = vi.fn((_key: string, fallback: unknown) => fallback);
+vi.mock('@/hooks/data/settings/useAppSettings', () => ({
+  useAppSettings: () => ({ getJsonSetting: mockGetJsonSetting }),
+}));
+
 vi.mock('react-router-dom', () => ({
   Link: ({ children, to, className }: { children: React.ReactNode; to: string; className?: string }) =>
     React.createElement('a', { href: to, className, 'data-testid': `link-${to}` }, children),

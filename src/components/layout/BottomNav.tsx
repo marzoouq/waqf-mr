@@ -1,13 +1,25 @@
 /**
  * شريط التنقل السفلي للجوال — يظهر فقط على الشاشات الصغيرة.
- * يعرض 5 روابط رئيسية حسب دور المستخدم مع زر "المزيد" لفتح القائمة الجانبية.
+ * يعرض حتى 4 روابط رئيسية حسب دور المستخدم مع زر "المزيد" لفتح القائمة الجانبية.
+ *
+ * يطبّق `filterLinksBySectionVisibility` لإخفاء أي رابط عُطّل قسمه من
+ * إعدادات الرؤية — بنفس منطق `Sidebar` (مصدر واحد للحقيقة).
  */
+import { useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { BOTTOM_NAV_LINKS } from '@/constants/bottomNavLinks';
+import {
+  ADMIN_ROUTE_TO_SECTION,
+  BENEFICIARY_ROUTE_TO_SECTION,
+  defaultAdminSections,
+  defaultBeneficiarySections,
+} from '@/constants/navigation';
 import { isActiveLink } from '@/lib/navigation/isActiveLink';
+import { filterLinksBySectionVisibility } from '@/lib/permissions/filterByVisibility';
 
 interface BottomNavProps {
   onOpenSidebar: () => void;
@@ -17,13 +29,31 @@ interface BottomNavProps {
 const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 }) => {
   const { role } = useAuth();
   const location = useLocation();
+  const { getJsonSetting } = useAppSettings();
 
   const navLinks = BOTTOM_NAV_LINKS[role ?? 'beneficiary'] ?? BOTTOM_NAV_LINKS.beneficiary!;
+
+  const isAdminLike = role === 'admin' || role === 'accountant';
+
+  const sectionsVisibility = useMemo(
+    () => ({ ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) }),
+    [getJsonSetting],
+  );
+  const beneficiarySections = useMemo(
+    () => ({ ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) }),
+    [getJsonSetting],
+  );
+
+  const visibleLinks = useMemo(() => {
+    const routeToSection = isAdminLike ? ADMIN_ROUTE_TO_SECTION : BENEFICIARY_ROUTE_TO_SECTION;
+    const visibility = isAdminLike ? sectionsVisibility : beneficiarySections;
+    return filterLinksBySectionVisibility(navLinks, routeToSection, visibility);
+  }, [navLinks, isAdminLike, sectionsVisibility, beneficiarySections]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-border/50 bg-background/95" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', willChange: 'transform' }}>
       <div className="flex items-center justify-around h-14">
-        {navLinks.map((link) => {
+        {visibleLinks.map((link) => {
           const active = isActiveLink(location.pathname, link.to);
           return (
             <Link
