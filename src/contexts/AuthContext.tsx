@@ -11,13 +11,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { fetchUserRole } from '@/lib/auth/fetchUserRole';
-// #15 perf: monitoring يُستورد ديناميكياً داخل signOut() لتقليل initial bundle
-import { queryClient } from '@/lib/queryClient';
-import { toast } from 'sonner';
 import { AuthStateContext, AuthActionsContext } from '@/hooks/auth/useAuthContext';
 import { useAuthListener } from '@/hooks/auth/useAuthListener';
-import { STORAGE_KEYS, CLEARABLE_STORAGE_KEYS } from '@/constants/storageKeys';
-import { safeRemove, safeSessionRemove } from '@/lib/storage';
+import { useAuthCleanup } from '@/hooks/auth/useAuthCleanup';
 
 // إعادة تصدير للتوافقية مع الاستيراد القديم
 export { useAuth, useAuthState, useAuthActions } from '@/hooks/auth/useAuthContext';
