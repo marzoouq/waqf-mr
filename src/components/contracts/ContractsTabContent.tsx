@@ -8,7 +8,7 @@ import { ContractAccordionGroup, ContractStatsCards, ContractsFiltersBar } from 
 import { TableSkeleton, TablePagination } from '@/components/common';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
-import { useContractsContext } from '@/contexts/ContractsContext';
+import { useContractsContext } from '@/contexts/useContractsContext';
 
 const ContractsTabContent: React.FC = () => {
   const {

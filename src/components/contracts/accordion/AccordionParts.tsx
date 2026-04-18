@@ -8,8 +8,6 @@ import { fmt } from '@/utils/format/format';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 import { invoiceStatusIcon, invoiceStatusLabel } from './accordionConstants';
 
-export { statusConfig, invoiceStatusIcon, invoiceStatusLabel } from './accordionConstants';
-
 interface InvoiceCardProps {
   inv: PaymentInvoice;
   onDownloadInvoice?: (inv: PaymentInvoice) => void;

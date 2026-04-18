@@ -8,10 +8,6 @@
 import type { ReactNode } from 'react';
 import { ContractsContext, type ContractsContextValue } from './ContractsContextValue';
 
-// إعادة تصدير للحفاظ على التوافق العكسي
-export { useContractsContext } from './useContractsContext';
-export type { ContractsContextValue } from './ContractsContextValue';
-
 export const ContractsProvider = ({ value, children }: { value: ContractsContextValue; children: ReactNode }) => (
   <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>
 );

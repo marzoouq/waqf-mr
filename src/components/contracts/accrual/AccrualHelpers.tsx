@@ -9,17 +9,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { fmtNum, getCellClasses, type CellData, type MonthCell } from './accrualUtils';
 
-// إعادة تصدير للحفاظ على التوافق العكسي
-export {
-  MONTH_NAMES,
-  fmtNum,
-  buildFiscalMonthGrid,
-  getCellClasses,
-  type MonthCell,
-  type CellData,
-  type CellStatus,
-} from './accrualUtils';
-
 /** بطاقة عقد واحد للجوال */
 export const MobileAccrualCard = ({ contract, cells, total, grid }: {
   contract: Contract;
