@@ -43,6 +43,11 @@ export async function checkServiceWorker(): Promise<CheckResult> {
   return { id, label: 'Service Worker', status: regs.length > 0 ? 'pass' : 'info', detail: `${regs.length} مسجّل` };
 }
 
+/**
+ * فحص قراءة فقط — لا يعدّل البيانات (anti-pattern fix).
+ * يحسب الأخطاء الحديثة (آخر 24 ساعة) ويتجاهل أخطاء الاختبارات في العدّ،
+ * لكن لا يكتب على localStorage داخل دالة الفحص.
+ */
 export async function checkErrorLogQueue(): Promise<CheckResult> {
   const id = 'storage_errorlog';
   try {
@@ -51,22 +56,16 @@ export async function checkErrorLogQueue(): Promise<CheckResult> {
     let queue = JSON.parse(raw);
     if (!Array.isArray(queue)) queue = [];
 
-    // تنظيف تلقائي: حذف السجلات الأقدم من 24 ساعة + أخطاء اختبارات الوحدة
     const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-    const filtered = queue.filter((entry: { logged_at?: string; error_message?: string; timestamp?: string }) => {
+    const recent = queue.filter((entry: { logged_at?: string; error_message?: string; timestamp?: string }) => {
       const ts = entry.logged_at || entry.timestamp;
       if (ts && new Date(ts).getTime() < cutoff) return false;
       if (entry.error_message === 'Test explosion') return false;
       return true;
     });
 
-    // حفظ القائمة المنظّفة
-    if (filtered.length !== queue.length) {
-      localStorage.setItem(STORAGE_KEYS.ERROR_LOG_QUEUE, JSON.stringify(filtered));
-    }
-
-    const count = filtered.length;
-    return { id, label: 'طابور الأخطاء', status: count > 0 ? 'warn' : 'pass', detail: count > 0 ? `${count} خطأ معلّق` : 'فارغ — لا أخطاء معلّقة' };
+    const count = recent.length;
+    return { id, label: 'طابور الأخطاء', status: count > 0 ? 'warn' : 'pass', detail: count > 0 ? `${count} خطأ معلّق (آخر 24 ساعة)` : 'فارغ — لا أخطاء معلّقة' };
   } catch {
     return { id, label: 'طابور الأخطاء', status: 'info', detail: 'تعذر القراءة' };
   }

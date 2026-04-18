@@ -21,7 +21,9 @@ export async function checkRealtimeChannels(): Promise<CheckResult> {
   const id = 'db_realtime';
   try {
     const channels = getRealtimeChannels();
-    return { id, label: 'قنوات Realtime', status: 'info', detail: `${channels.length} قناة نشطة` };
+    const count = channels.length;
+    if (count === 0) return { id, label: 'قنوات Realtime', status: 'info', detail: 'لا توجد قنوات نشطة' };
+    return { id, label: 'قنوات Realtime', status: 'pass', detail: `${count} قناة نشطة` };
   } catch {
     return { id, label: 'قنوات Realtime', status: 'warn', detail: 'تعذر الفحص' };
   }

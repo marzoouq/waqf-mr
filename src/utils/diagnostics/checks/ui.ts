@@ -31,5 +31,15 @@ export async function checkFontsLoaded(): Promise<CheckResult> {
 export async function checkCSP(): Promise<CheckResult> {
   const id = 'ui_csp';
   const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-  return { id, label: 'Content Security Policy', status: meta ? 'pass' : 'info', detail: meta ? 'موجود في meta tag' : 'غير مضبوط عبر meta — قد يكون عبر header' };
+  if (meta) return { id, label: 'Content Security Policy', status: 'pass', detail: 'موجود في meta tag' };
+
+  // محاولة قراءة CSP عبر HTTP header (HEAD request للصفحة الحالية)
+  try {
+    const res = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
+    const cspHeader = res.headers.get('content-security-policy') || res.headers.get('content-security-policy-report-only');
+    if (cspHeader) return { id, label: 'Content Security Policy', status: 'pass', detail: 'مضبوط عبر HTTP header' };
+    return { id, label: 'Content Security Policy', status: 'warn', detail: 'غير مضبوط لا في meta ولا في header' };
+  } catch {
+    return { id, label: 'Content Security Policy', status: 'info', detail: 'تعذر التحقق من header — تحقق يدوي مطلوب' };
+  }
 }
