@@ -106,21 +106,7 @@ export function useIncomePage() {
     return Array.from(sources).sort();
   }, [income]);
 
-  const lowIncomeMonths = useMemo(() => {
-    if (income.length < 3) return [];
-    const monthMap = new Map<string, number>();
-    income.forEach((i) => {
-      const month = i.date.slice(0, 7);
-      monthMap.set(month, (monthMap.get(month) || 0) + safeNumber(i.amount));
-    });
-    if (monthMap.size < 2) return [];
-    const values = Array.from(monthMap.values());
-    const avg = values.reduce((s, v) => s + v, 0) / values.length;
-    const threshold = avg * 0.2;
-    return Array.from(monthMap.entries())
-      .filter(([, amount]) => amount < threshold)
-      .map(([month, amount]) => ({ month, amount, avg: Math.round(avg) }));
-  }, [income]);
+  const lowIncomeMonths = useMemo(() => computeLowIncomeMonths(income), [income]);
 
   const summaryCards = useMemo(() => {
     const count = income.length;

@@ -104,18 +104,12 @@ export function useExpensesPage() {
     return Array.from(types).sort();
   }, [expenses]);
 
-  // نسبة التوثيق: مصروف يُعتبر "موثقاً" إذا ارتبط بفاتورة واحدة على الأقل — قرار تجاري مقبول (#20)
-  const { expenseInvoiceMap, documentedCount, documentationRate } = useMemo(() => {
-    const map = new Map<string, number>();
-    allInvoices.forEach((inv) => {
-      if (inv.expense_id) {
-        map.set(inv.expense_id, (map.get(inv.expense_id) || 0) + 1);
-      }
-    });
-    const documented = expenses.filter((e) => map.has(e.id)).length;
-    const rate = expenses.length > 0 ? Math.round((documented / expenses.length) * 100) : 0;
-    return { expenseInvoiceMap: map, documentedCount: documented, documentationRate: rate };
-  }, [allInvoices, expenses]);
+  // نسبة التوثيق: مصروف يُعتبر "موثقاً" إذا ارتبط بفاتورة واحدة على الأقل (#20)
+  // المنطق مُستخرج إلى utils/financial/documentationRate.ts (موجة 18)
+  const { expenseInvoiceMap, documentedCount, documentationRate } = useMemo(
+    () => computeDocumentationStats(expenses, allInvoices),
+    [allInvoices, expenses],
+  );
 
   const filteredExpenses = useMemo(() => {
     let result = expenses.filter((item) => {
