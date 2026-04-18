@@ -1,51 +1,52 @@
 
-## خطة الموجة 11 — تنفيذ الإصلاحات المطلوبة من تقرير 100 (الجولة الثانية)
+## خطة الموجة 12 — إصلاح بقات التشخيص الحقيقية
 
-### المرجع
-بناءً على نتائج الفحص الجنائي للتقرير الثاني، تأكد أن **97% من الادعاءات كاذبة أو سياقية**. تبقّت **3 إصلاحات حقيقية فقط** قابلة للتنفيذ.
+### السياق
+بعد فحص جنائي، تأكدت 11+ بق حقيقي في نظام التشخيص. أبرزها شرط رياضي مقلوب يجعل حالة `fail` مستحيلة التنفيذ.
 
-### الإصلاحات المُحدَّدة
+### البق المؤكَّد رياضياً
+```typescript
+// performance.ts — الفرع الثالث ميت
+const status = count > 3000 ? 'warn' : count > 5000 ? 'fail' : 'pass';
+```
+عند `count = 6000` → ينطبق `>3000` فيُعطي `warn`، والفرع `>5000` لا يُنفَّذ أبداً.
 
-#### 1. حذف migration المكرر (#9, #61) — مؤكَّد بـ MD5 مرتين
-- **الملفان**: 
-  - `supabase/migrations/20260318101512_29652d94-*.sql` (الأقدم، اسم UUID غير وصفي)
-  - `supabase/migrations/20260318102000_fix_safe_views_remove_security_invoker.sql` (الأحدث، اسم وصفي)
-- **MD5 متطابق**: `0d8474fc83b2c3eae81d50187696aa60`
-- **الإجراء**: محاولة حذف الأقدم. ملاحظة: الموجة 10 ذكرت أنه "محمي". سأحاول `rm` فعلياً وإن فشل سأطلب من المستخدم حذفه يدوياً.
+### مصفوفة الإصلاحات
 
-#### 2. توثيق GitHub Actions في README (#42, #46-50)
-- **المشكلة الحقيقية**: `health-check.yml` أُضيف توّاً، لكن لا يوجد توثيق لـ workflows في README.
-- **الإجراء**: إضافة قسم "## CI/CD & Monitoring" إلى `README.md` يوثّق الـ 5 workflows (`ci.yml`, `test.yml`, `health-check.yml`, إلخ).
-- **الفائدة**: يمنع تقارير كاذبة مستقبلية تدّعي "لا CI/CD".
+| # | الملف · الفحص | الإصلاح |
+|---|---|---|
+| 1 | `performance.ts` `checkDomNodesCount` | عكس الشروط: `>5000?'fail':>3000?'warn':'pass'` |
+| 2 | `performance.ts` `checkWcagContrast` | حساب فعلي لنسبة التباين (HSL→RGB→luminance→ratio). pass≥4.5، warn≥3، fail<3 |
+| 3 | `performance.ts` `checkPagePerformance` | رسالة أوضح: "سيتوفر بعد التنقل بين الصفحات" |
+| 4 | `performance.ts` | حذف `checkNavigatorLocks` و `checkWebAssembly` (بلا قيمة) |
+| 5 | `database.ts` `checkRealtimeChannels` | 0 قنوات → `info` صريح، >0 → `pass` مع العدد |
+| 6 | `storage.ts` `checkErrorLogQueue` | فصل التنظيف: قراءة فقط داخل الفحص (anti-pattern fix) |
+| 7 | `ui.ts` `checkCSP` | محاولة `fetch HEAD` لقراءة header، fallback للـ meta |
+| 8 | `security.ts` | حذف `checkCryptoAPI` (دائماً pass) و `checkWindowOnError` (دائماً info) |
+| 9 | `security.ts` `checkNotificationPermission` | `denied`→`warn`، `default`→`info`، `granted`→`pass` |
+| 10 | `zatca.ts` `checkUnsubmittedInvoices` | تشديد: `>0`→`warn`، `>10`→`fail` |
+| 11 | `zatca.ts` `checkZatcaCertificateValidity` | تمييز أخطاء الشبكة: `catch`→`info` بدل `fail` كاذب |
+| 12 | `appSettings.ts` `checkRegisteredRoutes` | فحص ضد `routeRegistry` للتأكد من وجود component فعلي |
 
-#### 3. توثيق إحصائيات الجودة (#48, #93, #97)
-- **المشكلة**: التقارير المتكررة تدّعي "لا اختبارات" بينما يوجد 186 ملف اختبار.
-- **الإجراء**: إضافة قسم "## Quality Metrics" إلى `README.md` يوثّق:
-  - 186 ملف اختبار (Vitest)
-  - 48 lazy-loaded route
-  - 5 GitHub workflows نشطة
-  - 298 migration (سلوك Lovable Cloud المعتاد)
-
-### الإصلاحات المُؤجَّلة (لا تُنفَّذ)
-- **#99 Unauthorized.tsx** — مُنفَّذ في الموجة السابقة ✅
-- **#10 cron** — مُنفَّذ في الموجة 10 ✅
-- **#69 PasswordReset hooks** — مُوثَّق ✅
+### الملفات المُعدَّلة (7)
+- `src/utils/diagnostics/checks/performance.ts`
+- `src/utils/diagnostics/checks/database.ts`
+- `src/utils/diagnostics/checks/storage.ts`
+- `src/utils/diagnostics/checks/ui.ts`
+- `src/utils/diagnostics/checks/security.ts`
+- `src/utils/diagnostics/checks/zatca.ts`
+- `src/utils/diagnostics/checks/appSettings.ts`
+- ربما `src/utils/diagnostics/index.ts` (تحديث قائمة الفحوصات بعد الحذف)
 
 ### الضمانات
-- **صفر تغيير** في: schema, RLS, Auth, UI, Edge Functions, types
-- **ملفات معدَّلة**: `README.md` فقط (+ محاولة حذف migration مكرر)
-- **لا migrations جديدة**
-- **لا تأثير على الإنتاج**
+- صفر تغيير في: schema، RLS، Auth، Edge Functions، UI الرئيسية
+- التشخيص محصور بـ `ADMIN_ONLY` — لا تأثير على المستخدمين
+- 33 → ~30 فحص (حذف 3 بلا قيمة)
+- لا migrations، لا تغييرات أمنية
 
-### النطاق الفعلي
-| العملية | العدد |
-|--------|-------|
-| ملفات تُحذف | 0-1 (محاولة) |
-| ملفات تُعدَّل | 1 (`README.md`) |
-| migrations | 0 |
-| تغيير في الكود | 0 |
-
-### التسليم
-1. محاولة حذف migration المكرر
-2. تحديث `README.md` بقسمين: CI/CD + Quality Metrics
-3. تقرير ختامي يُغلق دورة المراجعة (الموجات 1→11)
+### التحقق بعد التنفيذ
+1. `/dashboard/diagnostics` كـ admin
+2. تشغيل جميع الفحوصات
+3. التأكد من حساب التباين رقمياً (نسبة فعلية)
+4. التأكد من تشديد عتبة ZATCA
+5. التأكد من اختفاء الفحوصات المحذوفة
