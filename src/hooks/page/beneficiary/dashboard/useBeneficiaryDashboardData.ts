@@ -1,8 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/auth/useAuthContext';
-import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+/**
+ * Page hook layer — يعيد تصدير بيانات لوحة المستفيد من طبقة الـ data.
+ * تم نقل استدعاء supabase.rpc إلى `hooks/data/dashboard/useBeneficiaryDashboardRpc`
+ * التزاماً بـ v7 Layered Architecture (page hooks لا تستدعي supabase مباشرة).
+ */
+import { useBeneficiaryDashboardRpc } from '@/hooks/data/dashboard/useBeneficiaryDashboardRpc';
 
 /** شكل البيانات المُرجعة من RPC */
 export interface BeneficiaryDashboardData {
@@ -52,17 +53,17 @@ export interface BeneficiaryDashboardData {
     amount: number;
     date: string;
     status: string;
-  }>; 
+  }>;
   pending_advance_count: number;
   advance_settings: {
     enabled?: boolean;
     min_amount?: number;
     max_percentage?: number;
   } | null;
-  income_by_source: Array<{ source: string; total: number }>; 
-  expenses_by_type_excluding_vat: Array<{ expense_type: string; total: number }>; 
-  monthly_income: Array<{ month: number; total: number }>; 
-  monthly_expenses: Array<{ month: number; total: number }>; 
+  income_by_source: Array<{ source: string; total: number }>;
+  expenses_by_type_excluding_vat: Array<{ expense_type: string; total: number }>;
+  monthly_income: Array<{ month: number; total: number }>;
+  monthly_expenses: Array<{ month: number; total: number }>;
   /** #16 — طلبات السُلف الخاصة بالمستفيد */
   my_advances: Array<{
     id: string;
@@ -76,7 +77,7 @@ export interface BeneficiaryDashboardData {
     approved_at: string | null;
     paid_at: string | null;
     created_at: string;
-  }>; 
+  }>;
   /** #16 — إجمالي السُلف المدفوعة */
   paid_advances_total: number;
   /** #16 — ترحيلات المستفيد */
@@ -89,33 +90,14 @@ export interface BeneficiaryDashboardData {
     status: string;
     notes: string | null;
     created_at: string;
-  }>; 
+  }>;
   /** #16 — رصيد الترحيل النشط */
   carryforward_balance: number;
 }
 
 /**
  * هوك موحّد يجلب جميع بيانات داشبورد المستفيد في استدعاء RPC واحد.
+ * يفوّض الجلب الفعلي لطبقة data (`useBeneficiaryDashboardRpc`).
  */
-export const useBeneficiaryDashboardData = (fiscalYearId?: string) => {
-  const { user } = useAuth();
-  const fyReady = isFyReady(fiscalYearId);
-
-  return useQuery<BeneficiaryDashboardData>({
-    queryKey: ['beneficiary-dashboard', user?.id, fiscalYearId],
-    enabled: !!user && fyReady && !isFyAll(fiscalYearId),
-    staleTime: STALE_FINANCIAL,
-    gcTime: 5 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_beneficiary_dashboard', {
-        p_fiscal_year_id: fiscalYearId!,
-      });
-      if (error) throw error;
-      if (!data || typeof data !== 'object' || Array.isArray(data)) {
-        throw new Error(`استجابة غير متوقعة: ${typeof data} بدلاً من object`);
-      }
-      // RPC — cast مبرر، يحتاج Zod validation لاحقاً
-      return data as unknown as BeneficiaryDashboardData;
-    },
-  });
-};
+export const useBeneficiaryDashboardData = (fiscalYearId?: string) =>
+  useBeneficiaryDashboardRpc(fiscalYearId);
