@@ -1,70 +1,59 @@
 
-## الهدف
-إنشاء hook مشترك `useSectionsVisibility` يُغلِّف منطق قراءة `sections_visibility` و `beneficiary_sections` من `app_settings` ودمجهما مع القيم الافتراضية، لإزالة التكرار من 3 ملفات.
+## الخطة الجنائية الشاملة — 8 مهام مرتَّبة
 
-## المنطق المُكرَّر حالياً
-نفس الكتلة (4 أسطر) موجودة حرفياً في:
-- `src/components/layout/BottomNav.tsx` (سطر 38-45)
-- `src/hooks/page/shared/useNavLinks.ts` (سطر 22-29)
-- `src/hooks/page/shared/usePermissionCheck.ts` (سطر 22-23)
+أنا حالياً في وضع القراءة فقط. عند موافقتك، سأنتقل إلى وضع التنفيذ وأطبّق المهام بالترتيب 1→8 مع تقرير موجز بعد كل مهمة (ملفات معدَّلة + `tsc` + الاختبارات). إذا فشل اختبار، أتوقف وأبلغك قبل المتابعة.
 
-```ts
-{ ...defaultAdminSections, ...getJsonSetting('sections_visibility', {}) }
-{ ...defaultBeneficiarySections, ...getJsonSetting('beneficiary_sections', {}) }
+### المهمة 1 — إصلاح PermissionsControlPanel 🔴
+- حذف `defaultAdminSections`/`defaultBeneficiarySections` المحلية
+- استيراد من `@/constants/navigation` + استخدام `useSectionsVisibility()`
+
+### المهمة 2 — `useRolePermissions` hook موحَّد
+- جديد: `src/hooks/data/settings/useRolePermissions.ts` + test
+- يدمج `role_permissions` فوق `DEFAULT_ROLE_PERMS` مع `useMemo`
+- تحديث المستهلكين (سأحددهم بـ `code--search_files`)
+
+### المهمة 3 — تفكيك `usePropertiesPage` (244 LOC)
+- 3 hooks فرعية في `src/hooks/page/admin/properties/`: filters / form / summary
+- `usePropertiesPage` يبقى orchestrator نحيف بنفس public API
+- صفر تغيير في `PropertiesPage.tsx`
+
+### المهمة 4 — نقل `useMessagesPage` إلى shared
+- النقل + تحديث imports عبر admin/beneficiary
+
+### المهمة 5 — إعادة تجميع مجلدات المستفيد
 ```
-
-## التغييرات المقترحة
-
-### 1) إنشاء `src/hooks/data/settings/useSectionsVisibility.ts`
-hook نقي يُرجع الكائنين بشكل ثابت (`useMemo`) لتجنّب re-renders:
-
-```ts
-export function useSectionsVisibility() {
-  const { getJsonSetting } = useAppSettings();
-  
-  const adminSections = useMemo(
-    () => ({ ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) }),
-    [getJsonSetting]
-  );
-  
-  const beneficiarySections = useMemo(
-    () => ({ ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) }),
-    [getJsonSetting]
-  );
-  
-  return { adminSections, beneficiarySections };
-}
+beneficiaries/        → admin/beneficiaries/
+beneficiary-dashboard/ → beneficiary/dashboard/
+my-share/             → beneficiary/my-share/
+disclosure/           → beneficiary/disclosure/
+carryforward/         → beneficiary/carryforward/
+waqf/                 → waqf-info/
 ```
+imports فقط، صفر منطق. `waqif/` يبقى.
 
-**ملاحظة مهمة:** `usePermissionCheck` حالياً لا يستخدم `useMemo` (يحسب في كل render). الـ hook الجديد سيُحسِّن هذا تلقائياً — تحسين جانبي مقبول.
+### المهمة 6 — تقسيم 4 components > 200 LOC
+- `ZatcaInvoicesTab` → `ZatcaInvoiceRow` + `ZatcaInvoiceFilters`
+- `AccountsDistributionTable` → `DistributionRow` + edit dialog
+- `UsersTable` → `UserRow` + actions menu
+- `OverdueTenantsReport` → `OverdueRow` + summary header
 
-### 2) تحديث المستهلكين الثلاثة
-- **`BottomNav.tsx`:** حذف `useMemo` المحلي، استبدال بـ `const { adminSections, beneficiarySections } = useSectionsVisibility();` ثم `const visibility = isAdminLike ? adminSections : beneficiarySections;`
-- **`useNavLinks.ts`:** نفس الاستبدال، الاحتفاظ بنفس أسماء المتغيرات داخلياً (`sectionsVisibility = adminSections`).
-- **`usePermissionCheck.ts`:** نفس الاستبدال (مع المكسب الجانبي للـ memoization).
+### المهمة 7 — Hooks إعدادات متخصصة
+- `useBannerSettings`, `useAppearanceSettings`, `useBeneficiaryWidgets` + tests
+- تحديث المستهلكين (سأحددهم بدقة)
 
-### 3) اختبار وحدة `useSectionsVisibility.test.ts`
-- يُرجع defaults عند عدم وجود إعدادات.
-- يدمج إعدادات المستخدم فوق defaults بشكل صحيح.
-- مرجع ثابت بين renders عند ثبات الإدخال (memoization check).
+### المهمة 8 — مراجعة 8 `eslint-disable`
+- تقييم لكل موقع: مشروع/يُصلح/يُوثَّق
 
-### 4) التحقق
-- تشغيل `npx tsc --noEmit`.
-- تشغيل اختبارات `BottomNav` + `useNavLinks` (إن وُجدت) + الجديد.
-- لا تغيير في API الخارجي لأي من الـ hooks الثلاثة.
+---
 
-## الملفات المتأثرة
-| الملف | الإجراء |
-|---|---|
-| `src/hooks/data/settings/useSectionsVisibility.ts` | جديد |
-| `src/hooks/data/settings/useSectionsVisibility.test.ts` | جديد |
-| `src/components/layout/BottomNav.tsx` | معدّل |
-| `src/hooks/page/shared/useNavLinks.ts` | معدّل |
-| `src/hooks/page/shared/usePermissionCheck.ts` | معدّل |
+## الضمانات الجنائية
+- صفر تغيير في DB/RLS/Auth/Edge Functions/Migrations
+- صفر تغيير في APIs الخارجية ولا تغيير بصري
+- لا تُعدَّل: ملفات المصادقة، `components/ui/sidebar.tsx`، الملفات المحمية
+- بعد كل مهمة: `tsc --noEmit` + اختبارات ذات صلة
+- في النهاية: `npm test` كامل + ملخص شامل
+- إعادة استخدام البنية المنشأة في الموجات السابقة (`useSectionsVisibility`, `filterLinksBySectionVisibility`, `isActiveLink`)
 
-## الضمانات
-- صفر تغيير في DB/RLS/Auth/Edge Functions.
-- صفر تغيير في APIs العامة للـ hooks الثلاثة (`isRouteAllowed`, `links`, render output).
-- صفر تغيير بصري.
-- `BottomNav.test.tsx` الموجود يجب أن يستمر بالنجاح دون تعديل (mock لـ `getJsonSetting` يعمل عبر الطبقة الجديدة).
-- مكسب جانبي: memoization صحيح في `usePermissionCheck`.
+## النطاق المتوقع
+- **جديد:** ~12 ملف (4 hooks + 3 hooks خصائص + 4 subcomponents + نقل messaging)
+- **معدَّل:** ~40-60 ملف (معظمها imports من المهمة 5)
