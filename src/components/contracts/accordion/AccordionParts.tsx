@@ -1,30 +1,14 @@
 /**
- * مكوّنات فرعية لمجموعة العقود — صف الفاتورة وثوابت الحالة
+ * مكوّنات فرعية لمجموعة العقود — صف الفاتورة
+ * (الثوابت تم نقلها إلى accordionConstants.tsx لتفعيل Fast Refresh)
  */
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Clock, AlertCircle, Check, X, Download, Loader2 } from 'lucide-react';
+import { Clock, Check, X, Download, Loader2 } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
+import { invoiceStatusIcon, invoiceStatusLabel } from './accordionConstants';
 
-export const statusConfig: Record<string, { label: string; className: string }> = {
-  active: { label: 'نشط', className: 'bg-success/20 text-success border-success/30' },
-  expired: { label: 'منتهي', className: 'bg-destructive/20 text-destructive border-destructive/30' },
-  pending: { label: 'معلق', className: 'bg-warning/20 text-warning border-warning/30' },
-};
-
-export const invoiceStatusIcon: Record<string, React.ReactNode> = {
-  paid: <CheckCircle className="w-3.5 h-3.5 text-success" />,
-  pending: <Clock className="w-3.5 h-3.5 text-warning" />,
-  overdue: <AlertCircle className="w-3.5 h-3.5 text-destructive" />,
-  partially_paid: <Clock className="w-3.5 h-3.5 text-info" />,
-};
-
-export const invoiceStatusLabel: Record<string, string> = {
-  paid: 'مسددة',
-  pending: 'معلقة',
-  overdue: 'متأخرة',
-  partially_paid: 'جزئية',
-};
+export { statusConfig, invoiceStatusIcon, invoiceStatusLabel } from './accordionConstants';
 
 interface InvoiceCardProps {
   inv: PaymentInvoice;

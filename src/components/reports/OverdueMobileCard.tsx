@@ -3,7 +3,8 @@
  */
 import { Card, CardContent } from '@/components/ui/card';
 import { fmt, fmtDate } from '@/utils/format/format';
-import { type OverdueRowData, getSeverityBadge } from './OverdueRow';
+import SeverityBadge from './SeverityBadge';
+import type { OverdueRowData } from './overdueTypes';
 
 interface Props { row: OverdueRowData }
 
@@ -13,7 +14,7 @@ export default function OverdueMobileCard({ row }: Props) {
       <CardContent className="p-3 space-y-2">
         <div className="flex items-center justify-between">
           <span className="font-bold text-sm">{row.tenantName}</span>
-          {getSeverityBadge(row.severity)}
+          <SeverityBadge severity={row.severity} />
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
           <div>

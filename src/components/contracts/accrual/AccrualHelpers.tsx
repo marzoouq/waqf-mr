@@ -1,55 +1,24 @@
 /**
- * مكوّنات وثوابت مساعدة لجدول الاستحقاقات الشهري
+ * مكوّنات جدول الاستحقاقات الشهري — بطاقة الجوال
+ * (الثوابت/الأنواع/الدوال نُقلت إلى accrualUtils.ts لتفعيل Fast Refresh)
  */
 import { useState } from 'react';
 import { Contract } from '@/types/database';
-import { fmtInt } from '@/utils/format/format';
 import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { fmtNum, getCellClasses, type CellData, type MonthCell } from './accrualUtils';
 
-export const MONTH_NAMES = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
-];
-
-export interface MonthCell {
-  label: string;
-  month: number;
-  year: number;
-}
-
-export interface CellData {
-  amount: number;
-  status: CellStatus;
-}
-
-export type CellStatus = 'paid' | 'overdue' | 'pending' | 'empty';
-
-export const fmtNum = (v: number) => fmtInt(v);
-
-/** بناء شبكة 12 شهر ديناميكية تبدأ من شهر بداية السنة المالية */
-export const buildFiscalMonthGrid = (fiscalYear?: { start_date: string; end_date: string } | null): MonthCell[] => {
-  const startDate = fiscalYear?.start_date ? new Date(fiscalYear.start_date) : new Date();
-  const startMonth = startDate.getMonth();
-  const startYear = startDate.getFullYear();
-
-  return Array.from({ length: 12 }, (_, i) => {
-    const m = (startMonth + i) % 12;
-    const y = startYear + Math.floor((startMonth + i) / 12);
-    return { label: MONTH_NAMES[m]!, month: m, year: y };
-  });
-};
-
-/** تحديد لون الخلية حسب حالة الفاتورة */
-export const getCellClasses = (status: CellStatus): string => {
-  switch (status) {
-    case 'paid': return 'bg-success/10 text-success font-medium';
-    case 'overdue': return 'bg-destructive/10 text-destructive font-medium';
-    case 'pending': return 'text-foreground font-medium';
-    case 'empty': return 'text-muted-foreground/40';
-  }
-};
+// إعادة تصدير للحفاظ على التوافق العكسي
+export {
+  MONTH_NAMES,
+  fmtNum,
+  buildFiscalMonthGrid,
+  getCellClasses,
+  type MonthCell,
+  type CellData,
+  type CellStatus,
+} from './accrualUtils';
 
 /** بطاقة عقد واحد للجوال */
 export const MobileAccrualCard = ({ contract, cells, total, grid }: {
