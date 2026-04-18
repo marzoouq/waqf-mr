@@ -157,6 +157,12 @@ export function useIncomePage() {
     return result;
   }, [income, searchQuery, filters, sortField, sortDir]);
 
+  // #10 — paginatedItems داخل hook بدل slice في JSX
+  const paginatedItems = useMemo(
+    () => filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [filteredIncome, currentPage],
+  );
+
   /** هل السنة المالية محددة ويمكن الإضافة؟ — #14 */
   const canAdd = !!fiscalYear?.id && !isLocked;
 
@@ -178,6 +184,6 @@ export function useIncomePage() {
     // صفحات
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
     // حسابات
-    totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome,
+    totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome, paginatedItems,
   };
 }
