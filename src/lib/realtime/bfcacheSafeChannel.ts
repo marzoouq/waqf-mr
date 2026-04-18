@@ -58,6 +58,9 @@ export const useBfcacheSafeChannel = (
     removeStaleScopedChannels(fallbackChannelName);
   }, [clearRetry, removeStaleScopedChannels, channelName, fallbackChannelName]);
 
+  // ref يكسر التبعية الدائرية: setTimeout يستدعي initChannel من داخل تعريفه
+  const initChannelRef = useRef<(() => void) | null>(null);
+
   const initChannel = useCallback(() => {
     teardown();
     removeStaleScopedChannels(channelName);
@@ -75,7 +78,7 @@ export const useBfcacheSafeChannel = (
           attemptRef.current += 1;
           clearRetry();
           retryRef.current = setTimeout(() => {
-            initChannel();
+            initChannelRef.current?.();
           }, delay);
         }
       });
@@ -113,11 +116,14 @@ export const useBfcacheSafeChannel = (
       attemptRef.current += 1;
       clearRetry();
       retryRef.current = setTimeout(() => {
-        initChannel();
+        initChannelRef.current?.();
       }, delay);
       return;
     }
   }, [teardown, removeStaleScopedChannels, channelName, fallbackChannelName, clearRetry]);
+
+  // إبقاء الـ ref محدّثاً بأحدث نسخة من initChannel
+  initChannelRef.current = initChannel;
 
   useEffect(() => {
     if (!enabled) return;
