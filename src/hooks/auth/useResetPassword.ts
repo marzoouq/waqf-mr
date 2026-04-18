@@ -1,5 +1,8 @@
 /**
- * هوك لإدارة تدفق إعادة تعيين كلمة المرور (صفحة الاسترداد)
+ * هوك إعادة تعيين كلمة المرور — **الخطوة 2/2**: تنفيذ التغيير
+ *
+ * يُستخدم في صفحة `/reset-password` بعد أن يفتح المستخدم رابط الاسترداد المُرسَل من `usePasswordResetRequest`.
+ * يستمع لحدث `PASSWORD_RECOVERY` من Supabase + يدعم تدفقات implicit و PKCE.
  */
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
