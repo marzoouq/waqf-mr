@@ -2,11 +2,9 @@
  * ثوابت/أنواع/دوال جدول الاستحقاقات الشهري — مُستخرَجة لتفعيل Fast Refresh
  */
 import { fmtInt } from '@/utils/format/format';
+import { MONTH_NAMES } from '@/constants/calendar';
 
-export const MONTH_NAMES = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
-];
+export { MONTH_NAMES };
 
 export interface MonthCell {
   label: string;

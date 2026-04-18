@@ -8,10 +8,9 @@ import { Banknote, TrendingUp, TrendingDown } from 'lucide-react';
 import { fmtInt } from '@/utils/format/format';
 import { Skeleton } from '@/components/ui/skeleton';
 import CashFlowTable from './CashFlowTable';
+import { MONTH_NAMES } from '@/constants/calendar';
 
 const CashFlowChartInner = lazy(() => import('./CashFlowChartInner'));
-
-const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
 interface CashFlowReportProps {
   income: Array<{ date: string; amount: number }>;
