@@ -8,6 +8,7 @@ import { emptyFormData, type ContractFormData } from '@/types/forms/contract';
 import { defaultNotify } from '@/lib/notify';
 import { useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
+import { asMutationArg } from '@/hooks/data/core';
 
 interface UseContractFormParams {
   fiscalYearId: string;
@@ -94,8 +95,8 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
         tenant_street: formData.tenant_street || null, tenant_building: formData.tenant_building || null,
         tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
       };
-      // CRUD factory — cast مطلوب لأنواع عامة من createCrudFactory
-      await updateContract.mutateAsync({ id: editingContract.id, ...contractData } as unknown as Parameters<typeof updateContract.mutateAsync>[0]);
+      // CRUD factory — استخدام asMutationArg لتأمين النوع (موجة 15)
+      await updateContract.mutateAsync(asMutationArg(updateContract, { id: editingContract.id, ...contractData }));
       return;
     }
 
@@ -132,8 +133,8 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
           tenant_street: formData.tenant_street || null, tenant_building: formData.tenant_building || null,
           tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
         };
-        // CRUD factory — cast مطلوب
-        await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
+        // CRUD factory — موجة 15
+        await createContract.mutateAsync(asMutationArg(createContract, contractData));
         created++;
       }
       defaultNotify.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
@@ -153,8 +154,8 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
         tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
       };
       if (activeFY?.id) contractData.fiscal_year_id = activeFY.id;
-      // CRUD factory — cast مطلوب
-      await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
+      // CRUD factory — موجة 15
+      await createContract.mutateAsync(asMutationArg(createContract, contractData));
     }
   };
 
