@@ -5,18 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import ThemeColorPicker from '@/components/theme/ThemeColorPicker';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppearanceSettings, type AppearanceSettings } from '@/hooks/data/settings/useAppearanceSettings';
 
 const AppearanceTab = () => {
-  const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
-  const defaults = { system_name: 'إدارة الوقف' };
-  const appearance = getJsonSetting('appearance_settings', defaults);
-  const [form, setForm] = useState(appearance);
+  const { settings, isLoading, save } = useAppearanceSettings();
+  const [form, setForm] = useState<AppearanceSettings>(settings);
 
   useEffect(() => {
-    const next = JSON.stringify(appearance);
-    setForm((prev: typeof appearance) => JSON.stringify(prev) === next ? prev : appearance);
-  }, [appearance]);
+    setForm(settings);
+  }, [settings]);
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
@@ -30,9 +27,9 @@ const AppearanceTab = () => {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="appearance-tab-field-1">اسم النظام</Label>
-            <Input name="system_name" id="appearance-tab-field-1" value={form.system_name} onChange={(e) => setForm((p: typeof form) => ({ ...p, system_name: e.target.value }))} maxLength={100} />
+            <Input name="system_name" id="appearance-tab-field-1" value={form.system_name} onChange={(e) => setForm((p) => ({ ...p, system_name: e.target.value }))} maxLength={100} />
           </div>
-          <Button onClick={() => updateJsonSetting('appearance_settings', form)} className="gap-2">
+          <Button onClick={() => save({ system_name: form.system_name })} className="gap-2">
             <Save className="w-4 h-4" />
             حفظ الاسم
           </Button>

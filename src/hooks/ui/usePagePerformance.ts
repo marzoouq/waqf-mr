@@ -41,6 +41,6 @@ export function usePagePerformance(): void {
     // تأجيل القياس قليلاً
     const timer = setTimeout(measureInitial, 1500);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- قياس مرة واحدة عند mount لكل صفحة فقط
   }, []);
 }
