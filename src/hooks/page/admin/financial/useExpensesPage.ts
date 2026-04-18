@@ -17,6 +17,7 @@ import { EMPTY_FILTERS, type FilterState } from '@/types/filters';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
+import { computeDocumentationStats } from '@/utils/financial/documentationRate';
 
 export type SortField = SortFieldOf<'amount' | 'date' | 'expense_type'>;
 

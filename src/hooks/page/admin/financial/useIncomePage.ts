@@ -17,6 +17,7 @@ import type { Income } from '@/types/database';
 import { EMPTY_FILTERS, type FilterState } from '@/types/filters';
 import { defaultNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
+import { computeLowIncomeMonths } from '@/utils/financial/incomeAnomalies';
 
 export type SortField = SortFieldOf<'amount' | 'date' | 'source'>;
 
