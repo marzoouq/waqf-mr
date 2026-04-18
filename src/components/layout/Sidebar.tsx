@@ -11,6 +11,7 @@ import { cn } from '@/lib/cn';
 import { ROLE_LABELS } from '@/constants/roles';
 import { useSetting } from '@/hooks/data/settings/useAppSettings';
 import { usePrefetchPages } from '@/hooks/data/core/usePrefetchPages';
+import { isActiveLink } from '@/lib/navigation/isActiveLink';
 
 interface SidebarContentProps {
   links: Array<{ to: string; icon: React.ComponentType<{ className?: string }>; label: string }>;
@@ -72,9 +73,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       <nav aria-label="القائمة الرئيسية" role="navigation" className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
        <TooltipProvider delayDuration={0}>
         {links.map((link) => {
-          const isActive = location.pathname === link.to ||
-            (link.to !== '/dashboard' && link.to !== '/beneficiary' && link.to !== '/waqif' &&
-             location.pathname.startsWith(link.to + '/'));
+          const isActive = isActiveLink(location.pathname, link.to);
           const linkContent = (
             <Link
               key={link.to}
