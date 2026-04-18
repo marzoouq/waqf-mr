@@ -21,23 +21,25 @@ describe('useRolePermissions', () => {
     getJsonSettingMock.mockImplementation((_k: string, fb: unknown) => fb);
     const { result } = renderHook(() => useRolePermissions());
     for (const role of Object.keys(DEFAULT_ROLE_PERMS)) {
-      expect(result.current.rolePermissions[role]).toMatchObject(DEFAULT_ROLE_PERMS[role]);
+      const defaults = DEFAULT_ROLE_PERMS[role] || {};
+      expect(result.current.rolePermissions[role]).toMatchObject(defaults);
     }
   });
 
   it('merges saved overrides on top of defaults', () => {
     getJsonSettingMock.mockImplementation(() => ({ accountant: { properties: false } }));
     const { result } = renderHook(() => useRolePermissions());
-    expect(result.current.rolePermissions.accountant.properties).toBe(false);
-    // defaults still merged for other keys
-    expect(result.current.rolePermissions.accountant.contracts).toBe(DEFAULT_ROLE_PERMS.accountant.contracts);
+    const accountant = result.current.rolePermissions.accountant!;
+    const defaults = DEFAULT_ROLE_PERMS.accountant!;
+    expect(accountant.properties).toBe(false);
+    expect(accountant.contracts).toBe(defaults.contracts);
   });
 
   it('getPermissionsForRole returns fallback for unknown role', () => {
     getJsonSettingMock.mockImplementation((_k: string, fb: unknown) => fb);
     const { result } = renderHook(() => useRolePermissions());
     expect(result.current.getPermissionsForRole('nonexistent_role')).toEqual({});
-    expect(result.current.getPermissionsForRole('accountant')).toMatchObject(DEFAULT_ROLE_PERMS.accountant);
+    expect(result.current.getPermissionsForRole('accountant')).toMatchObject(DEFAULT_ROLE_PERMS.accountant || {});
   });
 
   it('returns stable reference between renders', () => {

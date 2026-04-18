@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Save, RotateCcw, Shield } from 'lucide-react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
 import { useState, useEffect } from 'react';
 import { defaultNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
@@ -17,18 +18,14 @@ const ROLES = [
 ];
 
 const RolePermissionsTab = () => {
-  const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
-  const saved = getJsonSetting<RolePerms>('role_permissions', DEFAULT_ROLE_PERMS);
+  const { updateJsonSetting, isLoading } = useAppSettings();
+  const { rolePermissions: saved } = useRolePermissions();
   const [perms, setPerms] = useState<RolePerms>(DEFAULT_ROLE_PERMS);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // Merge saved with defaults to handle new sections
-    const merged: RolePerms = {};
-    for (const role of ROLES) {
-      merged[role.key] = { ...DEFAULT_ROLE_PERMS[role.key], ...saved[role.key] };
-    }
-    setPerms(merged);
+    // saved is already merged with defaults via useRolePermissions
+    setPerms(saved);
   }, [saved]);
 
   const toggle = (role: string, section: string) => {
