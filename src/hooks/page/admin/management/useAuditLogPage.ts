@@ -24,7 +24,6 @@ export function useAuditLogPage() {
   const waqfInfo = usePdfWaqfInfo();
   const hasDateFilter = dateFrom !== '' || dateTo !== '';
 
-  // #22: useCallback لمنع إعادة إنشاء الدالة عند كل render
   const clearDateFilters = useCallback(() => { setDateFrom(''); setDateTo(''); setCurrentPage(1); }, []);
 
   const { data: auditData, isLoading } = useAuditLog({
@@ -50,7 +49,6 @@ export function useAuditLogPage() {
     });
   }, []);
 
-  // #22: useCallback لتثبيت مرجع الدالة
   const handleExportPdf = useCallback(async () => {
     if (logs.length === 0) { defaultNotify.error('لا توجد سجلات للتصدير'); return; }
     setExporting(true);

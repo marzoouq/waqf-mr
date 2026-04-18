@@ -30,7 +30,7 @@ export function useBeneficiaryDashboardPage() {
   const distributions = dashData?.recent_distributions ?? [];
   const pendingAdvanceCount = dashData?.pending_advance_count ?? 0;
   const advanceSettings = dashData?.advance_settings ?? { enabled: false, min_amount: 500, max_percentage: 50 };
-  // #65 — fallback آمن: false (يخفي الزر حتى تُحمّل الإعدادات الفعلية بدلاً من إظهاره خطأً)
+  // fallback آمن: false (يخفي الزر حتى تُحمّل الإعدادات الفعلية بدلاً من إظهاره خطأً)
   const advanceEnabled = advanceSettings?.enabled ?? false;
 
   const fyReady = isFyReady(fiscalYearId);
@@ -38,7 +38,6 @@ export function useBeneficiaryDashboardPage() {
 
   const isClosed = fiscalYear?.status === 'closed';
 
-  // #8 — useMemo بدل IIFE، #24 — إضافة isClosed للنتيجة
   const fyProgress = useMemo(() => {
     if (!fiscalYear) return { percent: 0, daysLeft: 0, isClosed: false, notStarted: false };
     if (isClosed) return { percent: 100, daysLeft: 0, isClosed: true, notStarted: false };
@@ -47,13 +46,12 @@ export function useBeneficiaryDashboardPage() {
     const total = end - start;
     const elapsed = Date.now() - start;
     const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
-    // #B6 — السنة المستقبلية
+    // السنة المستقبلية لم تبدأ بعد
     if (Date.now() < start) return { percent: 0, daysLeft, isClosed: false, notStarted: true };
     const percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
     return { percent, daysLeft, isClosed: false, notStarted: false };
   }, [fiscalYear, isClosed]);
 
-  // #22 — تحسين displayName بـ user metadata
   const displayName = currentBeneficiary?.name
     || user?.user_metadata?.full_name
     || user?.email?.split('@')[0]
@@ -78,20 +76,20 @@ export function useBeneficiaryDashboardPage() {
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });
-    // #D1 — Realtime لـ advance_requests
+    // Realtime: طلبات السلف الخاصة بهذا المستفيد
     channel.on('postgres_changes', {
       event: '*', schema: 'public', table: 'advance_requests',
       filter: `beneficiary_id=eq.${beneficiaryId}`,
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });
-    // #D2 — Realtime لـ fiscal_years (كشف النشر)
+    // Realtime: حالة السنة المالية (كشف النشر)
     channel.on('postgres_changes', {
       event: 'UPDATE', schema: 'public', table: 'fiscal_years',
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });
-    // #D4 — Realtime لـ app_settings
+    // Realtime: تحديث إعدادات التطبيق
     channel.on('postgres_changes', {
       event: '*', schema: 'public', table: 'app_settings',
     }, () => {

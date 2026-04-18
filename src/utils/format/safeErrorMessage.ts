@@ -9,7 +9,7 @@ export function getSafeErrorMessage(error: unknown): string {
 
   // تكرار بيانات (duplicate key / unique constraint)
   if (msg.includes('already registered') || msg.includes('duplicate') || msg.includes('unique')) {
-    // #80: التمييز بين أنواع التكرار
+    // التمييز بين أنواع التكرار حسب اسم الجدول/المفهوم في الرسالة
     if (msg.includes('contract') || msg.includes('عقد')) return 'يوجد عقد بنفس البيانات بالفعل';
     if (msg.includes('invoice') || msg.includes('فاتورة')) return 'يوجد فاتورة بنفس الرقم بالفعل';
     if (msg.includes('property') || msg.includes('عقار')) return 'يوجد عقار بنفس الرقم بالفعل';
@@ -43,7 +43,7 @@ export function getSafeErrorMessage(error: unknown): string {
   if (msg.includes('foreign key') || msg.includes('violates foreign key')) {
     return 'لا يمكن حذف هذا العنصر لارتباطه ببيانات أخرى';
   }
-  // #81: أخطاء check constraint
+  // أخطاء check constraint من Postgres
   if (msg.includes('check constraint') || msg.includes('violates check')) {
     return 'القيمة المُدخلة غير صالحة. تحقق من البيانات وأعد المحاولة';
   }

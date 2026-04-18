@@ -47,7 +47,6 @@ export const useFinancialReportsPage = () => {
 
   const fiscalYear = selectedFY?.label || '';
 
-  // #B1 — استخدام buildMonthlyData المشتركة لتشمل income + expenses
   const monthlyData = useMemo(
     () => buildMonthlyData(dashData?.monthly_income ?? [], dashData?.monthly_expenses ?? []),
     [dashData?.monthly_income, dashData?.monthly_expenses],

@@ -48,7 +48,6 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const pdfWaqfInfo = usePdfWaqfInfo();
 
-  // #B4 — useCallback لتثبيت مرجع withPdfLoading
   const withPdfLoading = useCallback(
     (fn: () => Promise<void>) => async () => {
       if (isPdfLoading) return;
@@ -118,7 +117,7 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
     if (!params.currentBeneficiary) return;
     if (!params.isClosed) { defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
     try {
-      // #21 — جلب العقود lazily إذا لم تكن متاحة
+      // جلب العقود lazily إذا لم تكن متاحة
       const contractsData = params.contracts.length > 0
         ? params.contracts
         : params.fetchContracts

@@ -125,7 +125,7 @@ export function useChartOfAccountsPage() {
 
   const handleDelete = () => {
     if (!deletingCategory) return;
-    // #B7 — فحص وجود حسابات فرعية قبل الحذف
+    // فحص وجود حسابات فرعية قبل الحذف
     const hasChildren = categories.some(c => c.parent_id === deletingCategory.id);
     if (hasChildren) {
       defaultNotify.error('لا يمكن حذف حساب يحتوي على حسابات فرعية — احذف الفروع أولاً');

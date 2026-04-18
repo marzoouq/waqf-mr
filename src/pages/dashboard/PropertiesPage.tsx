@@ -27,7 +27,6 @@ const PropertiesPage = () => {
     filteredProperties,
   } = usePropertiesPage();
 
-  // #5 — slice في useMemo بدل JSX
   const paginatedProperties = useMemo(
     () => filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
     [filteredProperties, currentPage, ITEMS_PER_PAGE],

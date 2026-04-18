@@ -116,12 +116,11 @@ const PropertiesViewPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {properties.map((property) => {
-                // #4: optional + early return بدل non-null assertion
                 const pf = propertyFinancialsMap.get(property.id);
                 if (!pf) return null;
                 const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses: propExpenses, netIncome: propNet, contractualRevenue: propContractual } = pf;
 
-                // #3/#61: استخدام الخرائط المسبقة بدل filter جديد لكل عقار
+                // استخدام الخرائط المسبقة بدل filter جديد لكل عقار (perf O(n) بدل O(n²))
                 const propertyUnits = propertyUnitsMap.get(property.id) ?? [];
                 const total = propertyUnits.length;
                 const propertyContracts = propertyContractsMap.get(property.id) ?? [];

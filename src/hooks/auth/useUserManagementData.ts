@@ -60,7 +60,6 @@ export const useOrphanedBeneficiaries = (enabled = true) => {
         .or('email.is.null,email.eq."",user_id.is.null');
       return data || [];
     },
-    // #19: enabled مشروط + #38: إصلاح email.eq. الفارغة
     enabled: enabled && !!currentUser,
   });
 };
@@ -77,7 +76,6 @@ export const useUnlinkedBeneficiaries = (enabled = true) => {
         .is('user_id', null);
       return data || [];
     },
-    // #19: enabled مشروط
     enabled: enabled && !!currentUser,
   });
 };

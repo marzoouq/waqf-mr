@@ -25,7 +25,6 @@ const AccountsPage = () => {
   const { role } = useAuth();
   const page = useAccountsPage();
 
-  // #14 — handleExportCsv داخل المكوّن كـ useCallback (كان دالة module-scope)
   const handleExportCsv = useCallback(() => {
     const csv = buildCsv([{
       'السنة المالية': page.selectedFY?.label || '-',

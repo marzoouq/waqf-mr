@@ -38,7 +38,7 @@ export const useUserManagement = () => {
   // استعلامات البيانات
   const { data: registrationEnabled = false } = useRegistrationEnabled();
   const { data: usersResult = { users: [] as ManagedUser[], total: 0, nextPage: null as number | null }, isLoading, isError, error } = useAdminUsers(currentPage);
-  // #19: لا تجلب بيانات المستفيدين إلا عند الحاجة (الصفحة مفتوحة فعلاً)
+  // لا تجلب بيانات المستفيدين إلا عند الحاجة (الصفحة مفتوحة فعلاً)
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { data: orphanedBeneficiaries = [] } = useOrphanedBeneficiaries(showAdvanced);
   const { data: unlinkedBeneficiaries = [] } = useUnlinkedBeneficiaries(showAdvanced);

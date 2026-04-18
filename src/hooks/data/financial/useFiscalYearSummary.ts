@@ -53,7 +53,7 @@ export function useFiscalYearSummary(fiscalYearId: string | undefined) {
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
     queryFn: async () => {
-      // #2 perf: أعمدة صريحة بدلاً من select('*') — يقلل JSON المنقول 30-50%
+      // perf: أعمدة صريحة بدلاً من select('*') — يقلل JSON المنقول 30-50%
       const { data, error } = await supabase
         .from('v_fiscal_year_summary')
         .select('fiscal_year_id, label, status, start_date, end_date, total_income, total_expenses, total_distributed, total_invoiced, net_balance, income_count, expense_count, distribution_count, paid_invoices, pending_invoices')
@@ -76,7 +76,6 @@ export function useFiscalYearSummaries(fiscalYearIds: string[]) {
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
     queryFn: async () => {
-      // #2 perf: أعمدة صريحة
       const { data, error } = await supabase
         .from('v_fiscal_year_summary')
         .select('fiscal_year_id, label, status, start_date, end_date, total_income, total_expenses, total_distributed, total_invoiced, net_balance, income_count, expense_count, distribution_count, paid_invoices, pending_invoices')

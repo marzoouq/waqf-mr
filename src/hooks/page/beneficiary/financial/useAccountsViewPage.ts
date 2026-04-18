@@ -65,7 +65,7 @@ export function useAccountsViewPage() {
     isAccountMissing: fin.isAccountMissing, selectedFY, currentBeneficiary,
     totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
     netAfterZakat: fin.netAfterZakat, availableAmount: fin.availableAmount, myShare,
-    remainingBalance, // #28 — إضافة للـ return
-    handleRetry, handleExportPdf, navigate, // #35 — handleRetry مُعاد الآن
+    remainingBalance,
+    handleRetry, handleExportPdf, navigate,
   };
 }

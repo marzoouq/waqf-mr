@@ -24,13 +24,11 @@ const InvoicesPage = () => {
   const { role } = useAuth();
   const isLocked = !canModifyFiscalYear(role, h.isClosed);
 
-  // #6 — استخراج IIFE من JSX
   const invoicesWithoutFiles = useMemo(
     () => h.invoices.filter(inv => !inv.file_path),
     [h.invoices]
   );
 
-  // #7 — useCallback لتجنب إنشاء async جديد في كل render
   const handleExportPdf = useCallback(async () => {
     if (!h.fiscalYearId || h.fiscalYearId === 'all') defaultNotify.warning('⚠️ أنت تصدّر فواتير جميع السنوات المالية.');
     try {
@@ -45,7 +43,6 @@ const InvoicesPage = () => {
     } catch { defaultNotify.error('حدث خطأ أثناء تصدير PDF'); }
   }, [h.fiscalYearId, h.fiscalYear, h.filteredInvoices, h.INVOICE_TYPE_LABELS, h.pdfWaqfInfo]);
 
-  // #63 — حساب paginated مرة واحدة بدل slice مزدوج
   const paginatedInvoices = useMemo(
     () => h.filteredInvoices.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE),
     [h.filteredInvoices, h.currentPage, h.ITEMS_PER_PAGE]
