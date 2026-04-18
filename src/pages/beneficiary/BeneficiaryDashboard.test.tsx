@@ -113,7 +113,7 @@ describe('BeneficiaryDashboard', () => {
       isClosed: true, isLoading: false, noPublishedYears: false,
     } as unknown as ReturnType<typeof useFiscalYear>);
 
-    const { useBeneficiaryDashboardData } = await import('@/hooks/page/beneficiary/useBeneficiaryDashboardData');
+    const { useBeneficiaryDashboardData } = await import('@/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardData');
     vi.mocked(useBeneficiaryDashboardData).mockReturnValue({
       data: {
         beneficiary: { id: 'b1', name: 'محمد أحمد', share_percentage: 10 },
