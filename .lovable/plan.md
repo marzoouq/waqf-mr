@@ -1,92 +1,130 @@
 
-## التدقيق المعماري الشامل — تقرير ما بعد موجة P0
+
+## التدقيق الجنائي العميق — تقرير ما بعد موجة P0 (الجولة الثالثة)
 
 ### الحالة العامة: ممتازة ✅
-المعمارية v7 محترمة بشكل شبه كامل. التحسينات السابقة (P0 hooks, P3 docs, refactors) أعطت نتائج ملموسة.
+البنية v7 صلبة. مقارنة بالتدقيق السابق: **#3 (RPC نقل) أُنجز** ✅ — لكن `useMySharePage.ts` ما زال يستورد supabase. الباقي ثابت.
 
-### المؤشرات الإيجابية
-| المؤشر | الحالة |
-|--------|--------|
-| `console.*` خارج logger | **0** ✅ |
-| `utils/` يستورد `sonner`/`supabase` | **0** ✅ (الذكر الوحيد في README كمثال) |
-| Pages تستورد supabase مباشرة | **0** ✅ |
-| Components تستورد supabase مباشرة | **0** ✅ |
-| `toast` مباشر خارج `lib/notify` | **0** ✅ |
-| TODO/FIXME/HACK | **1** فقط |
-| استخدامات `any` خام | **3** فقط |
+### المؤشرات الكمية (مُحدّثة)
+| المؤشر | القيمة | الحالة |
+|--------|--------|--------|
+| إجمالي مشاكل ESLint | **53** (34 خطأ + 19 تحذير) | ⚠️ |
+| `react-hooks/refs` | **14** (10 منها في DashboardLayout) | 🔴 P0 |
+| `react-hooks/purity` (Date.now/Math.random) | **10** | 🔴 P0 |
+| `react-hooks/static-components` | **4** (PaymentInvoiceDesktopTable) | 🔴 P0 |
+| `react-hooks/incompatible-library` | **1** (VirtualTable — react-virtual) | 🟡 معلوماتي |
+| `react-hooks/preserve-manual-memoization` | **1** (useBeneficiaryFinancials) | 🟠 P1 |
+| `eqeqeq` | **5** | 🟠 P1 |
+| `react-refresh/only-export-components` | **9** | 🟠 P1 |
+| `exhaustive-deps` | **1** (useAuditLogPage) | 🟠 P1 |
+| Page hooks تستورد supabase مباشرة | **1** (`useMySharePage.ts`) | 🟠 P1 |
+| `sonner` مباشر خارج lib/notify | **1** (`useAuthCleanup.ts` — `toast.dismiss()`) | 🟢 مبرر |
+| `console.*` خارج logger | **0** | ✅ |
+| `any` خام | **1** | ✅ |
+| TODO/FIXME | **3** | ✅ |
 
-### الانتهاكات المتبقية (مرتبة بالأولوية)
+---
 
-#### 🔴 P0 — أخطاء حرجة
+### 🔴 الانتهاكات الحرجة (P0)
 
-**1. `lib/realtime/bfcacheSafeChannel.ts:22` — `Math.random()` في render**
-```ts
-const instanceIdRef = useRef(`i${Math.random().toString(36).slice(2, 10)}`);
-```
-React Compiler يرفضها (impure). الحل: `useRef<string|null>(null)` ثم تعيين lazy في first render أو `crypto.randomUUID()` داخل `useState(() => ...)`.
+#### 1. `react-hooks/refs` — `ref.current = X` في render body (14 موضع)
 
-**2. `useBeneficiaryMessages.ts:45,55,72` — `preserve-manual-memoization` (×4)**
-useCallback dependencies غير متطابقة مع inferred deps من Compiler — `setSelectedConv`, `setActiveTab`, `setChatDialogOpen`, `setChatSubject` مفقودة. الحل: إضافتها أو إزالة `useCallback` (Compiler سيحسّن تلقائياً).
+**المصدر الرئيسي**: `DashboardLayout.tsx` يصل لـ `swipe.overlayRef`, `swipe.sidebarRef`, `swipe.handleTouchStart/Move/End`, `swipe.overlayOpacity`, `swipe.sidebarTranslateX` مباشرة في render. **التشخيص الفعلي**: `useSidebarSwipe` يُعيد refs مباشرة كقيم — Compiler يعتبر قراءة `.current` في render انتهاكاً.
 
-#### 🟠 P1 — انتهاكات معمارية
+**الحل**: إعادة هيكلة `useSidebarSwipe` ليُعيد:
+- `overlayProps`, `sidebarProps` (objects تحوي ref + handlers + style مُحسوب)
+- بدلاً من تعريض refs خام للـ caller
 
-**3. تبعية معكوسة: page hooks تستدعي `supabase` مباشرة**
-- `hooks/page/beneficiary/dashboard/useBeneficiaryDashboardData.ts:110` → `supabase.rpc('get_beneficiary_dashboard')`
-- يجب نقل الاستدعاء إلى `hooks/data/` (مثل `useBeneficiaryDashboardRpc`) ثم استهلاكه من page hook.
+**أنماط أخرى**:
+- `useRetryQueries.ts:11` — `keysRef.current = queryKeys` → استبدل بـ `useEffect`
+- `useMessaging.ts:33,92` — نمط `queryClientRef.current = queryClient` (مرتين) → استخراج `useStableRef(value)` helper
+- `useAccountsSettings.ts:56` — `updateSettingRef.current = ...` → نفس النمط
 
-**4. `set-state-in-effect` متبقية (5 أخطاء + 16 effect issues)**
-ملفات: `DashboardLayout.tsx` (8 مواضع)، `OverdueTenantsReport.tsx`، `TicketDetailDialog.tsx`، `SlaIndicator.tsx`، `FiscalYearWidget.tsx`، `VirtualTable.tsx`، `PaymentInvoiceDesktopTable.tsx` (5 مواضع).
+#### 2. `react-hooks/purity` — `Date.now()` في render (10 مواضع)
 
-**5. `eqeqeq` (5 مواضع)**
-`==` بدلاً من `===` — إصلاح آلي تقريباً.
+كلها داخل `useMemo` لكن **dep array لا يحوي قيمة زمنية** → Compiler يعتبره impure. ملفات:
+- `SlaIndicator.tsx:13`, `TicketDetailDialog.tsx:43`, `OverdueTenantsReport.tsx:33`, `ZatcaHealthPanel.tsx:31`, `FiscalYearWidget.tsx:62`, `useContractsPage.ts:41`, `useBeneficiaryDashboardPage.ts:47-50` (×3)
+- `sidebar.tsx:536` — `Math.random()` في skeleton
 
-**6. `react-refresh/only-export-components` (9 تحذيرات)**
-ملفات تصدّر مكونات + ثوابت/types معاً → يكسر HMR. الحل: نقل non-component exports إلى ملف منفصل.
+**أنماط الحل**:
+- **عرض زمني (SLA, overdue)**: `useState(() => Date.now())` + `useEffect` بـ `setInterval` كل دقيقة
+- **حساب لحظي one-shot**: نقل لـ `useEffect` يُحدّث state
+- **sidebar skeleton**: استخدم `useId()` + hash بدل `Math.random()`
 
-#### 🟡 P2 — تحسينات هيكلية
+#### 3. `react-hooks/static-components` — `SortIcon` داخل `PaymentInvoiceDesktopTable` (4 مواضع)
 
-**7. `useAppSettings.ts` (220 سطر) — مرشح للتقسيم**
-يخلط: read query + write mutations + cache management + category logic + WaqfInfo helpers.
-**اقتراح**: 
-- `useAppSettings.ts` (read-only)
-- `useUpdateSettings.ts` (mutations)
-- `utils/settings/category.ts` (`getCategoryFromKey` pure)
-- `useWaqfInfo.ts` (helper مستقل)
+تعريف مكوّن داخل المكوّن الأب → state reset كل render. **الحل**: نقل خارج المكوّن، تمرير props.
 
-**8. `ReportsPage.tsx` (220 سطر)** — يحتوي عدد كبير من lazy imports + tab orchestration. مرشح لاستخراج `useReportsTabs()` + مكوّن `ReportsTabsRenderer`.
+---
 
-**9. `useCrudFactory.ts` (208 سطر)** — معقد لكن مبرر (factory مركزي). تركه كما هو، فقط إضافة JSDoc أكثر.
+### 🟠 الانتهاكات المعمارية (P1)
 
-#### 🟢 P3 — تحسينات اختيارية
+#### 4. `useMySharePage.ts` يستورد supabase مباشرة
+استدعاء `supabase.from('contracts').select(...)` في `fetchContracts` (lazy للـ PDF). **الحل**: استخراج لـ `hooks/data/contracts/useContractsForPdf.ts` يُعيد `fetchContractsByFY(fyId)` async function.
 
-**10. `lib/lazyWithRetry.ts:24` — متغير غير مستخدم `_`** — حذف بسيط.
+#### 5. `useBeneficiaryFinancials.ts:40` — `preserve-manual-memoization`
+Compiler يفشل بتحسين useMemo. الحل: مراجعة deps أو إزالة manual memo.
 
-**11. `lib/realtime/bfcacheSafeChannel.ts:57,74` — set-state-in-effect إضافية** — معالجة مع البند #1.
+#### 6. 5 أخطاء `eqeqeq`
+- `useAccountsSettings.ts:97` — `appSettings.data?.['x'] == null` (×2) — هذا **مقصود** للتحقق من null+undefined معاً → إصلاح ليكون `=== null || === undefined` أو `eslint-disable-next-line` مع تبرير
+- `useAdminDashboardData.ts:59` — نفس النمط (×3)
 
-**12. `viewHelper.ts:14,16` — `any` غير مبرر + توجيه eslint-disable غير مستخدم** — تنظيف.
+#### 7. 9 تحذيرات `react-refresh/only-export-components`
+`AccrualHelpers.tsx`, `AccordionParts.tsx`, `OverdueRow.tsx`, `ContractsContext.tsx`. الحل: استخراج constants/hooks/types لملف منفصل.
 
-**13. `useRetryQueries.ts:11`, `useMessaging.ts:33,92`, `useAccountsSettings.ts:56`, `useContractsPage.ts:41`, `useBeneficiaryDashboardPage.ts:47-50`, `useBeneficiaryFinancials.ts:40`** — تحذيرات effects/refs/purity متفرقة.
+#### 8. `useAuditLogPage.ts:39` — `exhaustive-deps`
+useCallback dep يحوي logical expression متغيرة → مراجعة dep array.
 
-### خارطة الطريق المقترحة (مرتّبة)
+---
 
-| # | الإجراء | الأولوية | الجهد |
-|---|---------|----------|-------|
-| 1 | إصلاح `bfcacheSafeChannel.ts` (`Math.random` + 2 effects) | 🔴 P0 | XS |
-| 2 | إصلاح 4 أخطاء `preserve-manual-memoization` في `useBeneficiaryMessages.ts` | 🔴 P0 | XS |
-| 3 | نقل `get_beneficiary_dashboard` RPC من page hook إلى data hook جديد | 🟠 P1 | S |
-| 4 | إصلاح 5 أخطاء `eqeqeq` | 🟠 P1 | XS |
-| 5 | إصلاح موجة `set-state-in-effect` المتبقية (`DashboardLayout` وغيره) | 🟠 P1 | M |
-| 6 | معالجة 9 تحذيرات `react-refresh/only-export-components` | 🟠 P1 | S |
-| 7 | تقسيم `useAppSettings.ts` لـ read/write/utils | 🟡 P2 | S |
-| 8 | استخراج `useReportsTabs` من `ReportsPage.tsx` | 🟡 P2 | S |
-| 9 | تنظيف `viewHelper.ts` + `lazyWithRetry.ts` (تحذيرات بسيطة) | 🟢 P3 | XS |
-| 10 | إصلاح التحذيرات المتفرقة (effects/refs) | 🟢 P3 | M |
+### 🟡 ملاحظات مبررة (لا تعديل)
+
+- **`useAuthCleanup.ts` يستورد `sonner`** — لـ `toast.dismiss()` فقط. مبرر لأن `lib/notify` يلف `toast` لكن لا يصدّر `dismiss`. **توصية**: إضافة `notify.dismissAll()` في `lib/notify` ثم تنظيف هذا الملف.
+- **`VirtualTable.tsx:91` — `incompatible-library`** — `@tanstack/react-virtual` غير متوافق مع Compiler. لا حل من جانبنا، انتظر تحديث المكتبة.
+- **`useAccountsSettings.ts:97` `== null`** — نمط TS صحيح للـ nullish check؛ يحتاج تبرير eslint-disable.
+
+---
+
+### 🟡 تحسينات هيكلية (P2) — بدون تغيير من السابق
+
+- `useAppSettings.ts` (220) → split لـ read/write/utils + `useWaqfInfo`
+- `useMessaging.ts` (185) → استخراج `useStableQueryClient` يحل البنود ref تلقائياً
+- `DashboardLayout.tsx` (162) → جزء من إصلاح #1
+- `ReportsPage.tsx` (220) → استخراج `useReportsTabs`
+
+---
+
+### 🟢 P3 — تنظيفات بسيطة
+- `lazyWithRetry.ts:24` — حذف `_` غير مستخدم
+- `viewHelper.ts:14,16` — `any` + توجيه مهجور
+- 4 توجيهات `eslint-disable` مهجورة في `FiscalYearContext`, `ContractsContext`, `useBeneficiaryDashboardPage`
+
+---
+
+### خارطة الطريق المقترحة (مرتّبة بالأثر/الجهد)
+
+| # | الإجراء | الأولوية | الجهد | الأثر |
+|---|---------|----------|-------|-------|
+| 1 | استخراج `useStableRef<T>(value)` في `lib/hooks` + استبداله في `useRetryQueries`, `useMessaging` (×2), `useAccountsSettings`, `useBeneficiaryDashboardPage` | 🔴 P0 | S | يحل 5 من 14 خطأ ref |
+| 2 | إعادة هيكلة `useSidebarSwipe` ليُعيد `overlayProps`/`sidebarProps` بدل refs خام | 🔴 P0 | M | يحل 10 أخطاء refs في DashboardLayout |
+| 3 | إصلاح 10 أخطاء `purity`: نمط ساعة (`useState+useInterval` للـ SLA/overdue، `useEffect→setState` للحسابات اللحظية، `useId()` لـ sidebar skeleton) | 🔴 P0 | S | توافق Compiler |
+| 4 | نقل `SortIcon` خارج `PaymentInvoiceDesktopTable` | 🔴 P0 | XS | أداء |
+| 5 | استخراج `fetchContracts` من `useMySharePage` لـ `hooks/data/contracts/useContractsForPdf.ts` | 🟠 P1 | S | التزام v7 |
+| 6 | إضافة `notify.dismissAll()` في `lib/notify` + تنظيف `useAuthCleanup` | 🟠 P1 | XS | إغلاق نقطة sonner مباشرة |
+| 7 | إصلاح 5 أخطاء `eqeqeq` (تحويل لـ `=== null \|\| === undefined`) | 🟠 P1 | XS | best practice |
+| 8 | حل 9 تحذيرات `react-refresh` (استخراج constants/types) | 🟠 P1 | S | تحسين HMR |
+| 9 | تقسيم `useAppSettings.ts` لـ read/write/utils + `useWaqfInfo` | 🟡 P2 | S | فصل اهتمامات |
+| 10 | تنظيف `lazyWithRetry`, `viewHelper`, و 4 توجيهات eslint-disable مهجورة | 🟢 P3 | XS | نظافة |
+
+---
 
 ### توصية المسار التالي
-البدء بـ **#1 + #2** (P0 — حماية runtime + توافق React Compiler) ثم **#3** (انتهاك معماري واضح). هذه الثلاثة معاً تستحق موجة واحدة قصيرة قبل الانتقال لـ P1.
+**موجة واحدة P0 ثلاثية**: #1 → #2 → #4 → #3 (بهذا الترتيب تحديداً، لأن #1 ينشئ helper يستفيد منه #2). متوقع: من **34 خطأ → 5 أخطاء** (يبقى فقط incompatible-library + memoization). ثم #5 يُنهي انتهاك v7 الوحيد المتبقي.
 
-### ملاحظات إيجابية
-- لا انتهاكات للحدود الأمنية (RLS, auth files, types.ts)
-- الفصل بين `lib/` و `utils/` نظيف 100%
-- نمط Page Hook مطبق بشكل ممتاز (استثناء واحد فقط: البند #3)
-- الاختبارات co-located بكثافة عالية (الملفات الكبرى في القائمة هي اختبارات، إشارة صحية)
+### ملاحظات إيجابية ثابتة
+- ✅ صفر انتهاكات أمنية (RLS, auth files, types)
+- ✅ صفر `console.*` خارج logger
+- ✅ صفر supabase في pages/components
+- ✅ Page Hook Pattern مطبق 99% (انتهاك #5 فقط)
+- ✅ `lib/` vs `utils/` فصل نظيف 100%
+- ✅ موجة P0 السابقة (bfcache + RPC + memoization) ثابتة بدون انحدار
