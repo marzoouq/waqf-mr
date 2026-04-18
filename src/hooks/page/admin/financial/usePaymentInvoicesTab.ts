@@ -13,6 +13,7 @@ import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import type { InvoicePreviewData } from '@/types/invoices';
 import { usePaymentInvoiceActions } from './usePaymentInvoiceActions';
+import { PAGE_SIZE_LIST } from '@/constants/pagination';
 
 import type { SortDir } from '@/types/sorting';
 
@@ -21,7 +22,7 @@ export type SortKey = 'due_date' | 'amount' | 'status' | 'payment_number';
 
 const statusOrder: Record<string, number> = { overdue: 0, pending: 1, partially_paid: 2, paid: 3 };
 
-const ITEMS_PER_PAGE = 15;
+const ITEMS_PER_PAGE = PAGE_SIZE_LIST;
 
 export const usePaymentInvoicesTab = (fiscalYearId: string) => {
   const { data: invoices = [], isLoading } = usePaymentInvoices(fiscalYearId);

@@ -3,3 +3,4 @@ export type { CrudNotifications, CrudQueryOptions, TableName, CrudFactoryConfig 
 export { useDashboardRealtime } from './useDashboardRealtime';
 export { usePrefetchPages } from './usePrefetchPages';
 export { useRetryQueries } from './useRetryQueries';
+export { asMutationArg, inferMutationArg } from './inferMutationArg';

@@ -11,6 +11,7 @@ import { Contract } from '@/types/database';
 
 import { ExportMenu, TablePagination } from '@/components/common';
 import { fmt } from '@/utils/format/format';
+import { PAGE_SIZE_LIST } from '@/constants/pagination';
 
 import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
@@ -28,7 +29,7 @@ interface CollectionReportProps {
   fiscalYearId?: string;
 }
 
-const ITEMS_PER_PAGE = 15;
+const ITEMS_PER_PAGE = PAGE_SIZE_LIST;
 
 export default function CollectionReport({ contracts, paymentInvoices, isLoading, fiscalYears = [], fiscalYearId = 'all' }: CollectionReportProps) {
   const { sendingAlerts, sendLatePaymentAlerts } = useCollectionAlerts();

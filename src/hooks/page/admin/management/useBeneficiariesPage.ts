@@ -4,8 +4,9 @@ import { useBeneficiaryUsers } from '@/hooks/data/beneficiaries/useBeneficiaryUs
 import { Beneficiary } from '@/types/database';
 import { defaultNotify } from '@/lib/notify';
 import type { BeneficiaryFormData } from '@/types/forms/beneficiary';
+import { PAGE_SIZE_BENEFICIARIES } from '@/constants/pagination';
 
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = PAGE_SIZE_BENEFICIARIES;
 
 export function useBeneficiariesPage() {
   const beneficiariesQuery = useBeneficiaries();

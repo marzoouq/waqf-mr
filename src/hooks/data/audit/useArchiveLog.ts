@@ -4,8 +4,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
+import { PAGE_SIZE_AUDIT } from '@/constants/pagination';
 
-export const ARCHIVE_ITEMS_PER_PAGE = 15;
+export const ARCHIVE_ITEMS_PER_PAGE = PAGE_SIZE_AUDIT;
 
 export interface ArchiveLogEntry {
   id: string;

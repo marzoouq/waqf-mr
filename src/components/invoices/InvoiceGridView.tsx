@@ -10,6 +10,7 @@ import { useState, useMemo } from 'react';
 import { cn } from '@/lib/cn';
 import { fmt, fmtDate } from '@/utils/format/format';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
+import { PAGE_SIZE_GRID } from '@/constants/pagination';
 
 interface InvoiceGridViewProps {
   invoices: Invoice[];
@@ -17,7 +18,7 @@ interface InvoiceGridViewProps {
   readOnly?: boolean;
 }
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = PAGE_SIZE_GRID;
 
 const statusConfig: Record<string, { color: string; bg: string; border: string }> = {
   paid: { color: 'text-success', bg: 'bg-success/10', border: 'border-success/30' },

@@ -15,6 +15,7 @@ import { fmt } from '@/utils/format/format';
 import { useInvoicesPage } from '@/hooks/page/admin/financial/useInvoicesPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
+import { asMutationArg } from '@/hooks/data/core';
 
 import { useMemo, useCallback } from 'react';
 
@@ -177,7 +178,7 @@ const InvoicesPage = () => {
             commercialReg: h.pdfWaqfInfo.commercialReg, bankName: h.pdfWaqfInfo.bankName, bankIBAN: h.pdfWaqfInfo.bankIBAN,
           }}
           onSaveTemplate={async (data) => {
-            await h.createInvoice.mutateAsync({ ...data, fiscal_year_id: h.fiscalYear?.id } as unknown as Parameters<typeof h.createInvoice.mutateAsync>[0]);
+            await h.createInvoice.mutateAsync(asMutationArg(h.createInvoice, { ...data, fiscal_year_id: h.fiscalYear?.id }));
             h.setTemplateOpen(false);
             defaultNotify.success('تم إنشاء الفاتورة بنجاح');
           }}

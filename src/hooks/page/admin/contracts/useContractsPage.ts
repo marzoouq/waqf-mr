@@ -14,6 +14,7 @@ import { useContractAllocations } from '@/hooks/data/financial/useContractAlloca
 import { useContractsFilters } from './useContractsFilters';
 import { useContractsBulkRenew } from './useContractsBulkRenew';
 import { useContractForm } from './useContractForm';
+import { asMutationArg } from '@/hooks/data/core';
 
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
@@ -51,8 +52,8 @@ export const useContractsPage = () => {
   const bulkRenew = useContractsBulkRenew({
     contracts,
     fiscalYearId,
-    // CRUD factory — cast مطلوب لأنواع عامة
-    createContractAsync: (data) => form.createContract.mutateAsync(data as unknown as Parameters<typeof form.createContract.mutateAsync>[0]),
+    // CRUD factory — استخدام asMutationArg (موجة 15)
+    createContractAsync: (data) => form.createContract.mutateAsync(asMutationArg(form.createContract, data)),
   });
 
   // State
