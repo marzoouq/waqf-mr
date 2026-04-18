@@ -61,26 +61,14 @@ const IncomePage = () => {
               downloadCsv(csv, 'دخل.csv');
               defaultNotify.success('تم تصدير الدخل بنجاح');
             }} />
-            <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isLocked}><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة دخل</span></Button></DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader><DialogTitle>{editingIncome ? 'تعديل الدخل' : 'إضافة دخل جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل دخل</DialogDescription></DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2"><Label htmlFor="income-source">المصدر *</Label><Input id="income-source" name="income-source" value={formData.source} onChange={(e) => setFormData({ ...formData, source: e.target.value })} placeholder="إيجار، استثمار، تبرع..." /></div>
-                  <div className="space-y-2"><Label htmlFor="income-amount">المبلغ (ر.س) *</Label><Input id="income-amount" name="income-amount" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="10000" /></div>
-                  <div className="space-y-2"><Label htmlFor="income-date">التاريخ *</Label><Input id="income-date" name="income-date" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
-                  <div className="space-y-2">
-                    <Label htmlFor="income-property">العقار (اختياري)</Label>
-                    <NativeSelect id="income-property" value={formData.property_id} onValueChange={(value) => setFormData({ ...formData, property_id: value })} placeholder="اختر العقار" options={properties.map((p) => ({ value: p.id, label: `${p.property_number} - ${p.location}` }))} />
-                  </div>
-                  <div className="space-y-2"><Label htmlFor="income-notes">ملاحظات</Label><Input id="income-notes" name="income-notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
-                  <div className="flex gap-2 pt-4">
-                    <Button type="submit" className="flex-1 gradient-primary" disabled={createPending || updatePending}>{editingIncome ? 'تحديث' : 'إضافة'}</Button>
-                    <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>إلغاء</Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <IncomeFormDialog
+              open={isOpen} onOpenChange={setIsOpen}
+              editingIncome={editingIncome}
+              formData={formData} setFormData={setFormData}
+              onSubmit={handleSubmit} onReset={resetForm}
+              isPending={createPending || updatePending}
+              isLocked={isLocked} properties={properties}
+            />
           </>}
         />
 
