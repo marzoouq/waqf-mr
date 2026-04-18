@@ -218,16 +218,16 @@ describe('checks — التخزين', () => {
 // ════════════════════════════════════════════════
 
 describe('checks — الأمان', () => {
-  it('checkCryptoAPI يُرجع pass عند وجود Web Crypto', async () => {
-    const { checkCryptoAPI } = await import('./checks');
-    const result = await checkCryptoAPI();
-    expect(result.status).toBe('pass');
+  it('checkClipboardAPI يُرجع pass/info', async () => {
+    const { checkClipboardAPI } = await import('./checks');
+    const result = await checkClipboardAPI();
+    expect(['pass', 'info']).toContain(result.status);
   });
 
-  it('checkWindowOnError يُرجع info', async () => {
-    const { checkWindowOnError } = await import('./checks');
-    const result = await checkWindowOnError();
-    expect(result.status).toBe('info');
+  it('checkNotificationPermission يُرجع نتيجة', async () => {
+    const { checkNotificationPermission } = await import('./checks');
+    const result = await checkNotificationPermission();
+    expect(['pass', 'warn', 'info']).toContain(result.status);
   });
 });
 
@@ -254,11 +254,11 @@ describe('checks — إعدادات التطبيق', () => {
 // ════════════════════════════════════════════════
 
 describe('diagnosticCategories', () => {
-  it('يحتوي 7 بطاقات و33 فحص', async () => {
+  it('يحتوي 7 بطاقات و29 فحصاً (بعد الموجة 12)', async () => {
     const { diagnosticCategories } = await import('./checks');
     expect(diagnosticCategories).toHaveLength(7);
     const totalChecks = diagnosticCategories.reduce((sum, cat) => sum + cat.checks.length, 0);
-    expect(totalChecks).toBe(33);
+    expect(totalChecks).toBe(29);
   });
 
   it('كل بطاقة لها عنوان وفحوصات', async () => {
