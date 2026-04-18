@@ -19,6 +19,8 @@ export interface AppNotify {
   error: (msg: string, opts?: ExternalToast) => void;
   info: (msg: string, opts?: ExternalToast) => void;
   warning: (msg: string, opts?: ExternalToast) => void;
+  /** إغلاق توست محدد أو جميع التوستات النشطة (#9 من تقرير P3) */
+  dismissAll: (toastId?: string | number) => void;
 }
 
 /** منع التكرار — يحفظ آخر رسالة مع وقتها */
@@ -68,6 +70,7 @@ export const defaultNotify: AppNotify = {
   error: (msg, opts) => dedupToast(toast.error, msg, opts),
   info: (msg, opts) => dedupToast(toast.info, msg, opts),
   warning: (msg, opts) => dedupToast(toast.warning, msg, opts),
+  dismissAll: (toastId) => toast.dismiss(toastId),
 };
 
 /**
@@ -88,6 +91,7 @@ export function crudNotifyAdapter(custom?: CrudNotifications): AppNotify {
     error: custom?.onError ?? defaultNotify.error,
     info: custom?.onInfo ?? defaultNotify.info,
     warning: custom?.onWarning ?? defaultNotify.warning,
+    dismissAll: defaultNotify.dismissAll,
   };
 }
 

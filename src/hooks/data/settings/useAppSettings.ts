@@ -1,63 +1,20 @@
-import { useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { defaultNotify } from '@/lib/notify';
-import { STALE_SETTINGS } from '@/lib/queryStaleTime';
-import { STORAGE_KEYS } from '@/constants/storageKeys';
-import { safeSet } from '@/lib/storage';
-
-const jsonSettingCache = new Map<string, { raw: string; parsed: unknown }>();
-
-export interface WaqfInfo {
-  waqf_name: string;
-  waqf_founder: string;
-  waqf_admin: string;
-  waqf_deed_number: string;
-  waqf_deed_date: string;
-  waqf_nazara_number: string;
-  waqf_nazara_date: string;
-  waqf_court: string;
-  waqf_logo_url: string;
-  vat_registration_number: string;
-}
-
 /**
- * المهمة B — تصنيف مفاتيح الإعدادات إلى فئات للحدّ من re-fetches غير الضرورية.
- * `getCategoryFromKey` يُستخدم في `updateSetting`/`updateSettingsBatch` لإبطال
- * الفئة المعنية فقط بدلاً من إبطال جميع الإعدادات.
+ * useAppSettings — facade مُوحَّد للقراءة + الكتابة
  *
- * الفئات:
- *  - `zatca`: مفاتيح ZATCA + الحساب البنكي للوقف (مرتبط بإعداد فاتورة)
- *  - `banner`: شريط التنبيه
- *  - `general`: بقية الإعدادات (بيانات الوقف، المظهر، الإشعارات...)
+ * بعد موجة P3 الختامية: تم تقسيم الملف إلى:
+ *  - appSettingsUtils.ts → helpers خالصة (categories, prefs)
+ *  - useAppSettingsRead.ts → useQuery hooks (settingsQueryFn, useSetting, useSettingsCategory)
+ *  - useAppSettingsWrite.ts → mutations (updateSetting, updateSettingsBatch, getJsonSetting, updateJsonSetting)
+ *  - useWaqfInfo.ts → هوك معلومات الوقف
  *
- * `app-settings-all` يبقى كـ legacy key للتوافق مع `useSetting` و`useWaqfInfo`
- * والمستهلكين الذين يقرؤون أي مفتاح من الإعدادات.
+ * هذا الملف يبقى كـ barrel/facade للحفاظ على API السطحي والتوافق الخلفي.
  */
-export type SettingsCategory = 'zatca' | 'banner' | 'general';
-
-export const getCategoryFromKey = (key: string): SettingsCategory => {
-  if (key.startsWith('zatca_') || key.startsWith('business_address_') || key.startsWith('waqf_bank_') ||
-      key === 'vat_registration_number' || key === 'commercial_registration_number' || key === 'default_vat_rate') {
-    return 'zatca';
-  }
-  if (key.startsWith('banner_') || key === 'beta_banner_enabled' || key === 'beta_banner_message') {
-    return 'banner';
-  }
-  return 'general';
-};
-
-const settingsQueryFn = async () => {
-  const { data, error } = await supabase.from('app_settings').select('key, value');
-  if (error) throw error;
-  const settings: Record<string, string> = {};
-  data?.forEach((row) => { settings[row.key] = row.value; });
-  return settings;
-};
+import { useQuery } from '@tanstack/react-query';
+import { STALE_SETTINGS } from '@/lib/queryStaleTime';
+import { settingsQueryFn } from './useAppSettingsRead';
+import { useAppSettingsWrite } from './useAppSettingsWrite';
 
 export const useAppSettings = () => {
-  const queryClient = useQueryClient();
-
   const query = useQuery({
     queryKey: ['app-settings-all'],
     queryFn: settingsQueryFn,
@@ -68,153 +25,11 @@ export const useAppSettings = () => {
     placeholderData: {} as Record<string, string>,
   });
 
-  /**
-   * يبطل الفئة المعنية + legacy key للتوافق
-   */
-  const invalidateCategories = (keys: string[]) => {
-    const categories = new Set(keys.map(getCategoryFromKey));
-    categories.forEach((cat) => {
-      queryClient.invalidateQueries({ queryKey: ['app-settings', cat] });
-    });
-    queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-  };
-
-  const updateSetting = useMutation({
-    mutationFn: async ({ key, value }: { key: string; value: string }) => {
-      const { error } = await supabase
-        .from('app_settings')
-        .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-      if (error) throw error;
-      return key;
-    },
-    onSuccess: (key) => {
-      invalidateCategories([key]);
-    },
-    onError: () => {
-      defaultNotify.error('حدث خطأ أثناء حفظ الإعداد');
-    },
-  });
-
-  const updateSettingsBatch = useMutation({
-    mutationFn: async (rows: Array<{ key: string; value: string; updated_at?: string }>) => {
-      const payload = rows.map((row) => ({
-        key: row.key,
-        value: row.value,
-        updated_at: row.updated_at ?? new Date().toISOString(),
-      }));
-
-      const { error } = await supabase
-        .from('app_settings')
-        .upsert(payload, { onConflict: 'key' });
-
-      if (error) throw error;
-      return rows.map((r) => r.key);
-    },
-    onSuccess: (keys) => {
-      invalidateCategories(keys);
-    },
-    onError: () => {
-      defaultNotify.error('حدث خطأ أثناء حفظ الإعدادات');
-    },
-  });
-
-  const getJsonSetting = <T>(key: string, fallback: T): T => {
-    const raw = query.data?.[key];
-
-    if (raw === undefined || raw === null) {
-      return fallback;
-    }
-
-    const cached = jsonSettingCache.get(key);
-    if (cached && cached.raw === raw) {
-      return cached.parsed as T;
-    }
-
-    try {
-      const parsed = JSON.parse(raw) as T;
-      jsonSettingCache.set(key, { raw, parsed });
-      return parsed;
-    } catch {
-      return fallback;
-    }
-  };
-
-  const updateJsonSetting = async (key: string, value: object) => {
-    try {
-      await updateSetting.mutateAsync({ key, value: JSON.stringify(value) });
-      defaultNotify.success('تم حفظ الإعدادات بنجاح');
-    } catch {
-      // onError في useMutation يتكفل بعرض الخطأ — منع double toast
-    }
-  };
-
-  return { ...query, updateSetting, updateSettingsBatch, getJsonSetting, updateJsonSetting };
+  const writes = useAppSettingsWrite(query.data);
+  return { ...query, ...writes };
 };
 
-/**
- * المهمة B — هوك مُحسَّن يقرأ فئة محددة فقط.
- * يستخدم نفس استعلام `app-settings-all` لكن مع query key مختلف للسماح
- * بإبطال انتقائي. `select` يضمن أن المكون يُعاد تصييره فقط عند تغير
- * المفاتيح ذات الصلة بالفئة.
- *
- * مثال: `useSettingsCategory('zatca')` لن يُبطل عند حفظ banner أو general.
- */
-export const useSettingsCategory = (category: SettingsCategory) => {
-  return useQuery({
-    queryKey: ['app-settings', category],
-    queryFn: settingsQueryFn,
-    staleTime: STALE_SETTINGS,
-    gcTime: 1000 * 60 * 30,
-    select: (settings) => {
-      const filtered: Record<string, string> = {};
-      for (const [key, value] of Object.entries(settings)) {
-        if (getCategoryFromKey(key) === category) {
-          filtered[key] = value;
-        }
-      }
-      return filtered;
-    },
-  });
-};
-
-/**
- * #50/#60: هوك مُحسَّن لجلب إعداد واحد فقط — يمنع re-renders غير ضرورية
- * عبر select في useQuery الذي يُقارن القيمة المُرجعة بالمرجعية
- */
-export const useSetting = (key: string, fallback = ''): string => {
-  const { data } = useQuery({
-    queryKey: ['app-settings-all'],
-    queryFn: settingsQueryFn,
-    staleTime: STALE_SETTINGS,
-    gcTime: 1000 * 60 * 30,
-    select: (settings) => settings[key] ?? fallback,
-  });
-  return data ?? fallback;
-};
-
-/**
- * #46: تحديث التفضيلات مع إطلاق حدث مخصص للنافذة الحالية
- */
-export const updateNotificationPrefs = (prefs: Record<string, boolean>) => {
-  safeSet(STORAGE_KEYS.NOTIFICATION_PREFS, prefs);
-  try { window.dispatchEvent(new CustomEvent('notif-prefs-changed')); } catch { /* silent */ }
-};
-
-export const useWaqfInfo = () => {
-  const { data: settings, isLoading, error } = useAppSettings();
-
-  const info: WaqfInfo = useMemo(() => ({
-    waqf_name: settings?.waqf_name || '',
-    waqf_founder: settings?.waqf_founder || '',
-    waqf_admin: settings?.waqf_admin || '',
-    waqf_deed_number: settings?.waqf_deed_number || '',
-    waqf_deed_date: settings?.waqf_deed_date || '',
-    waqf_nazara_number: settings?.waqf_nazara_number || '',
-    waqf_nazara_date: settings?.waqf_nazara_date || '',
-    waqf_court: settings?.waqf_court || '',
-    waqf_logo_url: settings?.waqf_logo_url || '',
-    vat_registration_number: settings?.vat_registration_number || '',
-  }), [settings]);
-
-  return { data: info, isLoading, error };
-};
+// Re-exports للتوافق الخلفي مع الاستيرادات القائمة
+export { useSetting, useSettingsCategory } from './useAppSettingsRead';
+export { useWaqfInfo, type WaqfInfo } from './useWaqfInfo';
+export { getCategoryFromKey, updateNotificationPrefs, type SettingsCategory } from './appSettingsUtils';
