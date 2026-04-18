@@ -66,18 +66,18 @@ export default function PaymentInvoiceDesktopTable({
             <TableHead className="text-right">المستأجر</TableHead>
             <TableHead className="text-right">العقار</TableHead>
             <TableHead className="text-center cursor-pointer select-none" onClick={() => toggleSort('payment_number')}>
-              <span className="inline-flex items-center gap-1">رقم الدفعة <SortIcon field="payment_number" /></span>
+              <span className="inline-flex items-center gap-1">رقم الدفعة <SortIcon field="payment_number" sortKey={sortKey} sortDir={sortDir} /></span>
             </TableHead>
             <TableHead className="text-right cursor-pointer select-none" onClick={() => toggleSort('due_date')}>
-              <span className="inline-flex items-center gap-1">تاريخ الاستحقاق <SortIcon field="due_date" /></span>
+              <span className="inline-flex items-center gap-1">تاريخ الاستحقاق <SortIcon field="due_date" sortKey={sortKey} sortDir={sortDir} /></span>
             </TableHead>
             <TableHead className="text-right cursor-pointer select-none" onClick={() => toggleSort('amount')}>
-              <span className="inline-flex items-center gap-1">المبلغ <SortIcon field="amount" /></span>
+              <span className="inline-flex items-center gap-1">المبلغ <SortIcon field="amount" sortKey={sortKey} sortDir={sortDir} /></span>
             </TableHead>
             <TableHead className="text-right">الضريبة</TableHead>
             <TableHead className="text-right">تاريخ السداد</TableHead>
             <TableHead className="text-center cursor-pointer select-none" onClick={() => toggleSort('status')}>
-              <span className="inline-flex items-center gap-1">الحالة <SortIcon field="status" /></span>
+              <span className="inline-flex items-center gap-1">الحالة <SortIcon field="status" sortKey={sortKey} sortDir={sortDir} /></span>
             </TableHead>
             <TableHead className="text-center">إجراء</TableHead>
           </TableRow>
