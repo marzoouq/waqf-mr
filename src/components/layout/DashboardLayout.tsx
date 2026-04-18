@@ -52,24 +52,19 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Mobile Sidebar Overlay */}
       <div
-        ref={swipe.overlayRef}
+        {...swipe.overlayProps}
         className={cn(
           'fixed inset-0 z-45 lg:hidden',
           mobileSidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'
         )}
-        style={{ backgroundColor: `rgba(0,0,0,${swipe.overlayOpacity})` }}
         onClick={() => setMobileSidebarOpen(false)}
       />
 
       {/* Sidebar - Mobile */}
       <aside
         aria-label="القائمة الجانبية"
-        ref={swipe.sidebarRef}
-        onTouchStart={swipe.handleTouchStart}
-        onTouchMove={swipe.handleTouchMove}
-        onTouchEnd={swipe.handleTouchEnd}
+        {...swipe.sidebarProps}
         className="fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden"
-        style={{ transform: `translateX(${swipe.sidebarTranslateX}px)`, willChange: 'transform' }}
       >
         <SidebarContent
           links={links}
@@ -103,9 +98,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <main
         role="main"
         aria-label="المحتوى الرئيسي"
-        onTouchStart={swipe.handleMainTouchStart}
-        onTouchMove={swipe.handleMainTouchMove}
-        onTouchEnd={swipe.handleMainTouchEnd}
+        {...swipe.mainTouchProps}
         className={cn(
           'flex-1 transition-[margin] duration-300 min-h-screen overflow-y-auto',
           'pt-14 pb-16 lg:pt-0 lg:pb-0',
