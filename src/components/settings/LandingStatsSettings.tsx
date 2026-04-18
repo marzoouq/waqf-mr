@@ -57,8 +57,12 @@ const LandingStatsSettings = () => {
     setForms(next);
   }, [data]);
 
-  const handleChange = (key: string, field: keyof StatState, value: string) => {
-    setForms(prev => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
+  const handleChange = <K extends keyof StatState>(key: string, field: K, value: StatState[K]) => {
+    setForms(prev => {
+      const current = prev[key];
+      if (!current) return prev;
+      return { ...prev, [key]: { ...current, [field]: value } };
+    });
   };
 
   const handleSave = async () => {
