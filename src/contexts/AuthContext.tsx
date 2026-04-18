@@ -11,13 +11,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { fetchUserRole } from '@/lib/auth/fetchUserRole';
-// #15 perf: monitoring يُستورد ديناميكياً داخل signOut() لتقليل initial bundle
-import { queryClient } from '@/lib/queryClient';
-import { toast } from 'sonner';
 import { AuthStateContext, AuthActionsContext } from '@/hooks/auth/useAuthContext';
 import { useAuthListener } from '@/hooks/auth/useAuthListener';
-import { STORAGE_KEYS, CLEARABLE_STORAGE_KEYS } from '@/constants/storageKeys';
-import { safeRemove, safeSessionRemove } from '@/lib/storage';
+import { useAuthCleanup } from '@/hooks/auth/useAuthCleanup';
 
 // إعادة تصدير للتوافقية مع الاستيراد القديم
 export { useAuth, useAuthState, useAuthActions } from '@/hooks/auth/useAuthContext';
@@ -28,6 +24,8 @@ void _logAccessEvent;
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   // === State + listener (مُستخرج إلى hook منفصل في الموجة 18) ===
   const { user, session, role, loading, setRole } = useAuthListener();
+  // === منطق التنظيف الجانبي (مُستخرج في موجة Auth Cleanup) ===
+  const { performCleanup } = useAuthCleanup();
 
   // === إجراءات المصادقة (مراجع مستقرة) ===
 
@@ -60,20 +58,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logger.error('[Auth] signOut error:', err);
     } finally {
       setRole(null);
-      queryClient.clear();
-      // مسح كل مفاتيح localStorage المعروفة (مصدر واحد للحقيقة من storageKeys.ts)
-      CLEARABLE_STORAGE_KEYS.forEach(key => safeRemove(key));
-      // مسح مفاتيح sessionStorage الحساسة
-      safeSessionRemove(STORAGE_KEYS.FISCAL_YEAR);
-      safeSessionRemove(STORAGE_KEYS.NID_LOCKED_UNTIL);
-      // #15: dynamic import — monitoring لا يحتاج في initial bundle
-      import('@/lib/monitoring').then(m => {
-        m.clearSlowQueries();
-        m.clearPageLoadEntries();
-      }).catch(() => { /* silent */ });
-      toast.dismiss();
+      performCleanup();
     }
-  }, [setRole]);
+  }, [setRole, performCleanup]);
 
   const refreshRole = useCallback(async () => {
     if (!user) return;
