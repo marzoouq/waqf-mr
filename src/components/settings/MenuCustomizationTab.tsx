@@ -24,6 +24,7 @@ const MenuCustomizationTab = () => {
   // FIX: استقرار المرجع لمنع إعادة الضبط المتكررة
   useEffect(() => {
     const next = JSON.stringify(labels);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync local form with remote settings only when content changes
     setForm((prev) => JSON.stringify(prev) === next ? prev : labels);
   }, [labels]);
 

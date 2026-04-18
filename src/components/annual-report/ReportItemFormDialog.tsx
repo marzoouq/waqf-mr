@@ -44,10 +44,12 @@ const ReportItemFormDialog: React.FC<Props> = ({
 
   useEffect(() => {
     if (item) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync form fields with selected item prop on open
       setTitle(item.title);
       setContent(item.content);
       setPropertyId(item.property_id || '');
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset form fields when no item
       setTitle('');
       setContent('');
       setPropertyId('');

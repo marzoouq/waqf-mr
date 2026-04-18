@@ -39,6 +39,7 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
     }
 
     const abortController = new AbortController();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync loading state with async fetch lifecycle
     setLoading(true);
     getInvoiceSignedUrl(filePath)
       .then((url) => {

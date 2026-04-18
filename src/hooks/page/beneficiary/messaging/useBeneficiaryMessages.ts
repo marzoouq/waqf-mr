@@ -38,6 +38,7 @@ export function useBeneficiaryMessages() {
 
   // إعادة التعيين عند تبديل التبويب
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clear selection when switching tabs
     setSelectedConv(null);
   }, [activeTab]);
 

@@ -27,9 +27,11 @@ const SwUpdateBanner = () => {
     if (!dismissed || !snoozedUntil) return;
     const remaining = snoozedUntil - Date.now();
     if (remaining <= 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- snooze period already expired on mount
       setDismissed(false);
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- timer-based UI re-show after snooze duration
     const timer = setTimeout(() => setDismissed(false), remaining);
     return () => clearTimeout(timer);
   }, [dismissed, snoozedUntil]);

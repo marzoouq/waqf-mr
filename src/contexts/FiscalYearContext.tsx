@@ -45,11 +45,13 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
     if (!isLoading && selectedId) {
       if (fiscalYears.length === 0) {
         // No fiscal years available (e.g. beneficiary with no published years)
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- invalidate stale selection when remote list loads
         setSelectedId('');
         try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignored */ }
       } else {
         const exists = fiscalYears.some(fy => fy.id === selectedId);
         if (!exists) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- invalidate stale selection no longer in remote list
           setSelectedId('');
           try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignored */ }
         }

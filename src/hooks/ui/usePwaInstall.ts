@@ -13,6 +13,7 @@ export function usePwaInstall() {
 
   useEffect(() => {
     if (window.matchMedia('(display-mode: standalone)').matches) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time platform detection on mount
       setIsAppInstalled(true);
     }
     const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e as InstallPromptEvent); };

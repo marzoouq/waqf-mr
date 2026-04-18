@@ -35,6 +35,7 @@ export function useLayoutState() {
   }, [sidebarOpen]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- close mobile sidebar on route change
     setMobileSidebarOpen(false);
   }, [location.pathname]);
 
