@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead } from '@/components/ui/table';
 import { AlertTriangle, Clock } from 'lucide-react';
-import { fmt, fmtDate } from '@/utils/format/format';
+import { fmt } from '@/utils/format/format';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-
+import OverdueRow, { type OverdueRowData } from './OverdueRow';
+import OverdueMobileCard from './OverdueMobileCard';
 
 interface OverdueTenantsReportProps {
   contracts: Array<{
@@ -29,11 +29,9 @@ const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportPro
   const { fiscalYearId } = useFiscalYear();
   const { data: paymentInvoices = [], isLoading: invoicesLoading } = usePaymentInvoices(fiscalYearId ?? 'all');
 
-  const overdueData = useMemo(() => {
+  const overdueData: OverdueRowData[] = useMemo(() => {
     const now = Date.now();
     const propertyMap = new Map(properties.map(p => [p.id, p.property_number]));
-
-    // تجميع الفواتير المتأخرة حسب العقد
     const contractOverdue = new Map<string, { count: number; totalAmount: number; oldestDue: string; maxDays: number }>();
 
     for (const inv of paymentInvoices) {
@@ -59,8 +57,7 @@ const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportPro
       }
     }
 
-    // بناء الجدول
-    const rows = contracts
+    return contracts
       .filter(c => contractOverdue.has(c.id))
       .map(c => {
         const overdue = contractOverdue.get(c.id)!;
@@ -76,20 +73,9 @@ const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportPro
         };
       })
       .sort((a, b) => b.maxDays - a.maxDays);
-
-    return rows;
   }, [contracts, paymentInvoices, properties]);
 
   const totalOverdueAmount = overdueData.reduce((s, r) => s + r.totalOverdue, 0);
-
-  const getSeverityBadge = (severity: string) => {
-    switch (severity) {
-      case 'critical': return <Badge variant="destructive">حرج (&gt;90 يوم)</Badge>;
-      case 'high': return <Badge className="bg-destructive/60 text-destructive-foreground">عالي (&gt;60 يوم)</Badge>;
-      case 'medium': return <Badge className="bg-warning/20 text-warning">متوسط (&gt;30 يوم)</Badge>;
-      default: return <Badge variant="outline">منخفض</Badge>;
-    }
-  };
 
   if (invoicesLoading) {
     return (
@@ -129,40 +115,7 @@ const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportPro
         {/* عرض بطاقات الجوال */}
         <div className="md:hidden space-y-3">
           {overdueData.map((row) => (
-            <Card key={row.contractNumber} className="border">
-              <CardContent className="p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm">{row.tenantName}</span>
-                  {getSeverityBadge(row.severity)}
-                </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-                  <div>
-                    <span className="text-muted-foreground text-xs">رقم العقد</span>
-                    <p dir="ltr" className="font-medium">{row.contractNumber}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground text-xs">العقار</span>
-                    <p className="font-medium">{row.propertyNumber}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground text-xs">فواتير متأخرة</span>
-                    <p className="font-medium">{row.overdueCount}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground text-xs">الأيام</span>
-                    <p className="font-bold">{row.maxDays} يوم</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground text-xs">أقدم استحقاق</span>
-                    <p className="font-medium">{fmtDate(row.oldestDue)}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground text-xs">إجمالي المتأخر</span>
-                    <p className="font-medium text-destructive">{fmt(row.totalOverdue)} ر.س</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <OverdueMobileCard key={row.contractNumber} row={row} />
           ))}
         </div>
 
@@ -183,18 +136,7 @@ const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportPro
             </TableHeader>
             <TableBody>
               {overdueData.map((row) => (
-                <TableRow key={row.contractNumber}>
-                  <TableCell className="font-medium">{row.tenantName}</TableCell>
-                  <TableCell dir="ltr" className="text-sm">{row.contractNumber}</TableCell>
-                  <TableCell>{row.propertyNumber}</TableCell>
-                  <TableCell className="text-center">{row.overdueCount}</TableCell>
-                  <TableCell className="text-destructive font-medium">
-                    {fmt(row.totalOverdue)} ر.س
-                  </TableCell>
-                  <TableCell>{fmtDate(row.oldestDue)}</TableCell>
-                  <TableCell className="font-bold">{row.maxDays}</TableCell>
-                  <TableCell>{getSeverityBadge(row.severity)}</TableCell>
-                </TableRow>
+                <OverdueRow key={row.contractNumber} row={row} />
               ))}
             </TableBody>
           </Table>
