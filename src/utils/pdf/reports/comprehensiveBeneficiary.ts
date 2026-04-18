@@ -5,6 +5,7 @@ import {
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
 } from '../core/core';
+import { getPdfThemeColors } from '../core/themeColors';
 import { fmt } from '@/utils/format/format';
 import {
   renderContractsTable,
@@ -58,6 +59,7 @@ export const generateComprehensiveBeneficiaryPDF = async (
 ) => {
   const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily: f, startY } = await createPdfDocument(waqfInfo);
+  const themeColors = getPdfThemeColors();
 
   // ═══ Title ═══
   doc.setFont(f, 'bold');
@@ -72,7 +74,7 @@ export const generateComprehensiveBeneficiaryPDF = async (
   let disclaimerOffset = 0;
   if (data.isFiscalYearActive) {
     doc.setFontSize(9);
-    doc.setTextColor(200, 100, 0);
+    doc.setTextColor(...themeColors.secondary);
     doc.text(rs('⚠ الأرقام تقديرية — السنة المالية لم تُقفل بعد'), 105, startY + 32, { align: 'center' });
     doc.setTextColor(0, 0, 0);
     disclaimerOffset = 10;

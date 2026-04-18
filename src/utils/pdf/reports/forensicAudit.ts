@@ -192,12 +192,12 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
 
   // Signature box
   const boxH = 42;
-  doc.setDrawColor(22, 101, 52);
+  doc.setDrawColor(...themeColors.primary);
   doc.setLineWidth(1);
   doc.roundedRect(margin, y, pageW - 2 * margin, boxH, 3, 3, 'S');
 
   // Inner dashed line
-  doc.setDrawColor(202, 138, 4);
+  doc.setDrawColor(...themeColors.secondary);
   doc.setLineWidth(0.3);
   doc.setLineDashPattern([2, 2], 0);
   doc.roundedRect(margin + 2, y + 2, pageW - 2 * margin - 4, boxH - 4, 2, 2, 'S');
@@ -205,7 +205,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
 
   doc.setFont(font, 'bold');
   doc.setFontSize(11);
-  doc.setTextColor(22, 101, 52);
+  doc.setTextColor(...themeColors.primary);
   doc.text(rs('التوقيع الرقمي والاعتماد'), pageW / 2, y + 8, { align: 'center' });
 
   doc.setFont(font, 'normal');
