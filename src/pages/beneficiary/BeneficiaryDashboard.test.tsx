@@ -7,7 +7,7 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary', loading: false })),
 }));
 
-vi.mock('@/hooks/page/beneficiary/useBeneficiaryDashboardData', () => ({
+vi.mock('@/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardData', () => ({
   useBeneficiaryDashboardData: vi.fn(() => ({
     data: {
       beneficiary: { id: 'b1', name: 'محمد أحمد', share_percentage: 10 },
@@ -113,7 +113,7 @@ describe('BeneficiaryDashboard', () => {
       isClosed: true, isLoading: false, noPublishedYears: false,
     } as unknown as ReturnType<typeof useFiscalYear>);
 
-    const { useBeneficiaryDashboardData } = await import('@/hooks/page/beneficiary/useBeneficiaryDashboardData');
+    const { useBeneficiaryDashboardData } = await import('@/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardData');
     vi.mocked(useBeneficiaryDashboardData).mockReturnValue({
       data: {
         beneficiary: { id: 'b1', name: 'محمد أحمد', share_percentage: 10 },

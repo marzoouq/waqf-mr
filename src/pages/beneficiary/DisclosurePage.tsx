@@ -6,7 +6,7 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import DisclosureSummaryCards from '@/components/beneficiary/disclosure/DisclosureSummaryCards';
 import DisclosureContractsSection from '@/components/beneficiary/disclosure/DisclosureContractsSection';
 import DisclosureFinancialStatement from '@/components/beneficiary/disclosure/DisclosureFinancialStatement';
-import { useDisclosurePage } from '@/hooks/page/beneficiary/useDisclosurePage';
+import { useDisclosurePage } from '@/hooks/page/beneficiary';
 
 const DisclosurePage = () => {
   const {

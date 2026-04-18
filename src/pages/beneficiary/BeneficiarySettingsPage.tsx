@@ -7,7 +7,7 @@ import { User, Lock, Bell, Shield, Palette, AlertCircle } from 'lucide-react';
 import ThemeColorPicker from '@/components/theme/ThemeColorPicker';
 import { BiometricSettings, AccountTab, PasswordTab, NotificationsTab } from '@/components/settings';
 import { TableSkeleton, ErrorState, EmptyPageState } from '@/components/common';
-import { useBeneficiarySettingsPage } from '@/hooks/page/beneficiary/useBeneficiarySettingsPage';
+import { useBeneficiarySettingsPage } from '@/hooks/page/beneficiary';
 
 const tabItems: TabItem[] = [
   { value: 'account', label: 'الحساب', icon: <User className="w-4 h-4" /> },

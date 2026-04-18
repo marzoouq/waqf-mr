@@ -1,19 +1,10 @@
 /**
- * تصدير مركزي لهوكات صفحات المستفيد
+ * تصدير مركزي لهوكات صفحات المستفيد (موجة 16)
+ * مُقسَّم إلى مجلدات فرعية للتماثل مع admin/.
  */
-export { useBeneficiaryMessages } from './useBeneficiaryMessages';
-export { useContractsViewPage } from './useContractsViewPage';
-export { useDisclosurePage } from './useDisclosurePage';
-export { useFinancialReportsPage } from './useFinancialReportsPage';
-export { useMessagesPage } from './useMessagesPage';
-export { useMySharePage } from './useMySharePage';
-export { useMySharePdfHandlers } from './useMySharePdfHandlers';
-export { useWaqifDashboardPage } from './useWaqifDashboardPage';
-export { useAccountsViewPage } from './useAccountsViewPage';
-export { useAnnualReportViewPage } from './useAnnualReportViewPage';
-export { useBeneficiaryDashboardPage } from './useBeneficiaryDashboardPage';
-export { useBylawsViewPage } from './useBylawsViewPage';
-export { useInvoicesViewPage } from './useInvoicesViewPage';
-export { useNotificationsPage } from './useNotificationsPage';
-export { useSupportPage } from './useSupportPage';
-export { useBeneficiarySettingsPage } from './useBeneficiarySettingsPage';
+export * from './dashboard';
+export * from './financial';
+export * from './views';
+export * from './messaging';
+export * from './notifications';
+export * from './settings';

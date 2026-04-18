@@ -6,8 +6,7 @@ import DeferredRender from '@/components/common/DeferredRender';
 import ViewportRender from '@/components/common/ViewportRender';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { Button } from '@/components/ui/button';
-import { FiscalYearWidget, DashboardAlerts, DashboardStatsGrid, DashboardKpiPanel, CollectionSummaryCard, RecentContractsCard, QuickActionsCard, YearComparisonCard } from '@/components/dashboard';
-import AccountantDashboardView from '@/components/dashboard/AccountantDashboardView';
+import { FiscalYearWidget, DashboardAlerts, DashboardStatsGrid, DashboardKpiPanel, CollectionSummaryCard, RecentContractsCard, QuickActionsCard, YearComparisonCard, AccountantDashboardView } from '@/components/dashboard';
 import { Printer, Gauge } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import type { FiscalYear } from '@/types/database';
@@ -22,11 +21,11 @@ import { useDashboardSummary, useDashboardSecondary } from '@/hooks/data/financi
 import { useAdminDashboardData } from '@/hooks/page/admin/dashboard/useAdminDashboardData';
 import { useAccountantDashboardData } from '@/hooks/page/admin/dashboard/useAccountantDashboardData';
 
-// Lazy-load heavy below-the-fold components
-const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
-const CollectionHeatmap = lazy(() => import('@/components/dashboard/CollectionHeatmap'));
-const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingActionsTable'));
-const PagePerformanceCard = lazy(() => import('@/components/dashboard/PagePerformanceCard'));
+// Lazy-load heavy below-the-fold components (موجة 16: مسارات subfolder)
+const DashboardCharts = lazy(() => import('@/components/dashboard/charts/DashboardCharts'));
+const CollectionHeatmap = lazy(() => import('@/components/dashboard/charts/CollectionHeatmap'));
+const PendingActionsTable = lazy(() => import('@/components/dashboard/widgets/PendingActionsTable'));
+const PagePerformanceCard = lazy(() => import('@/components/dashboard/views/PagePerformanceCard'));
 
 
 const AdminDashboard = () => {
