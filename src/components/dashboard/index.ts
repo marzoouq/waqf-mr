@@ -1,20 +1,8 @@
 /**
- * تصدير مكونات لوحة التحكم
+ * تصدير مركزي لمكونات لوحة التحكم (موجة 16)
+ * مُقسَّم إلى kpi/charts/widgets/views للتماثل المعماري.
  */
-// مكونات مُستخدمة مباشرة (غير lazy)
-export { default as CollectionSummaryCard } from './CollectionSummaryCard';
-// CollectionSummaryChart مُستبعد عمداً — يُحمَّل lazily من داخل CollectionSummaryCard
-export { default as DashboardAlerts } from './DashboardAlerts';
-export { default as DashboardKpiPanel } from './DashboardKpiPanel';
-export { default as DashboardStatsGrid } from './DashboardStatsGrid';
-export { default as FiscalYearWidget } from './FiscalYearWidget';
-export { default as IncomeMonthlyChart } from './IncomeMonthlyChart';
-export { default as IncomeMonthlyChartInner } from './IncomeMonthlyChartInner';
-export { default as QuickActionsCard } from './QuickActionsCard';
-export { default as RecentContractsCard } from './RecentContractsCard';
-export { default as YearComparisonCard } from './YearComparisonCard';
-export { default as YoYBadge } from './YoYBadge';
-// ملاحظة: DashboardCharts, DashboardChartsInner, CollectionHeatmap,
-// PendingActionsTable, PagePerformanceCard مُستبعدة عمداً — تُحمّل عبر lazy() فقط
-export type { StatItem } from './DashboardStatsGrid';
-export type { KpiItem } from './DashboardKpiPanel';
+export * from './kpi';
+export * from './charts';
+export * from './widgets';
+export * from './views';
