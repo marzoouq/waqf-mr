@@ -6,6 +6,7 @@ import { AlertTriangle, Clock } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useNowClock } from '@/lib/hooks/useNowClock';
 import OverdueRow, { type OverdueRowData } from './OverdueRow';
 import OverdueMobileCard from './OverdueMobileCard';
 
@@ -28,9 +29,9 @@ interface OverdueTenantsReportProps {
 const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportProps) => {
   const { fiscalYearId } = useFiscalYear();
   const { data: paymentInvoices = [], isLoading: invoicesLoading } = usePaymentInvoices(fiscalYearId ?? 'all');
+  const now = useNowClock();
 
   const overdueData: OverdueRowData[] = useMemo(() => {
-    const now = Date.now();
     const propertyMap = new Map(properties.map(p => [p.id, p.property_number]));
     const contractOverdue = new Map<string, { count: number; totalAmount: number; oldestDue: string; maxDays: number }>();
 
