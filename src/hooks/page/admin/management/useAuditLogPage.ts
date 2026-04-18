@@ -6,8 +6,9 @@ import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/au
 import { useAuditLogTodayCount, fetchAuditLogForExport } from '@/hooks/data/audit/useAuditLogStats';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
+import { PAGE_SIZE_AUDIT } from '@/constants/pagination';
 
-const ITEMS_PER_PAGE = 15;
+const ITEMS_PER_PAGE = PAGE_SIZE_AUDIT;
 
 export function useAuditLogPage() {
   const [tableFilter, setTableFilter] = useState<string>('all');
