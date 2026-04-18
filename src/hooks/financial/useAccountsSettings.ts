@@ -26,6 +26,8 @@ export function useAccountsSettings(params: SettingsParams) {
   const [manualVat, setManualVat] = useState(0);
   const [manualDistributions, setManualDistributions] = useState(0);
 
+  // مزامنة من إعدادات الخادم — مطلوبة للحفاظ على state محلي قابل للتحرير في النماذج
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync of editable form state from server settings on initial load / change
   useEffect(() => {
     if (appSettings.data) {
       const settings = appSettings.data;
@@ -35,6 +37,8 @@ export function useAccountsSettings(params: SettingsParams) {
     }
   }, [appSettings.data]);
 
+  // مزامنة من حساب السنة المختارة — قيم قابلة للتحرير في صفحة الحسابات
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync of editable form state from selected fiscal year account
   useEffect(() => {
     const matchingAccount = findAccountByFY(params.accounts, params.selectedFY);
     if (matchingAccount) {
@@ -94,7 +98,11 @@ export function useAccountsSettings(params: SettingsParams) {
   };
 
   const currentAccount = findAccountByFY(params.accounts, params.selectedFY);
-  const usingFallbackPct = appSettings.data?.['admin_share_percentage'] == null || appSettings.data?.['waqif_share_percentage'] == null;
+  const adminPctSetting = appSettings.data?.['admin_share_percentage'];
+  const waqifPctSetting = appSettings.data?.['waqif_share_percentage'];
+  const usingFallbackPct =
+    adminPctSetting === null || adminPctSetting === undefined ||
+    waqifPctSetting === null || waqifPctSetting === undefined;
 
   return {
     adminPercent, waqifPercent, zakatAmount, waqfCorpusManual, waqfCorpusPrevious,

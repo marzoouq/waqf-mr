@@ -56,7 +56,14 @@ export const useAdminDashboardData = ({
   const usingFallbackPct = useMemo(() => {
     const s = agg?.settings;
     if (!s) return false;
-    return s.admin_share_percentage == null || s.waqif_share_percentage == null || s.waqf_corpus_percentage == null;
+    const adminPct = s.admin_share_percentage;
+    const waqifPct = s.waqif_share_percentage;
+    const corpusPct = s.waqf_corpus_percentage;
+    return (
+      adminPct === null || adminPct === undefined ||
+      waqifPct === null || waqifPct === undefined ||
+      corpusPct === null || corpusPct === undefined
+    );
   }, [agg?.settings]);
 
   // ── أعداد العقود (من counts المُجمّعة) ──

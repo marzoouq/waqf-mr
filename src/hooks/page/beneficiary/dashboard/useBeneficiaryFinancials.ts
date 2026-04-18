@@ -37,10 +37,11 @@ export function useBeneficiaryFinancials(dashData: BeneficiaryDashboardData | un
     [dashData?.expenses_by_type_excluding_vat],
   );
 
-  const beneficiaries = useMemo(() => {
-    if (!dashData?.beneficiary) return [];
-    return [dashData.beneficiary];
-  }, [dashData?.beneficiary]);
+  const beneficiary = dashData?.beneficiary;
+  const beneficiaries = useMemo(
+    () => (beneficiary ? [beneficiary] : []),
+    [beneficiary],
+  );
 
   return {
     account, isAccountMissing,

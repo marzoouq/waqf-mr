@@ -26,17 +26,18 @@ interface ZatcaHealthPanelProps {
 
 export default function ZatcaHealthPanel({ activeCert, chain, pendingInvoices }: ZatcaHealthPanelProps) {
   const now = useNowClock(60_000);
+  const expiresAt = activeCert?.expires_at;
   const certHealth = useMemo(() => {
-    if (!activeCert?.expires_at) {
+    if (!expiresAt) {
       return { daysLeft: null as number | null, tone: 'muted' as const, label: 'غير متوفر' };
     }
-    const ms = new Date(activeCert.expires_at).getTime() - now;
+    const ms = new Date(expiresAt).getTime() - now;
     const days = Math.ceil(ms / 86_400_000);
     if (days < 0) return { daysLeft: days, tone: 'destructive' as const, label: 'منتهية' };
     if (days <= 14) return { daysLeft: days, tone: 'destructive' as const, label: 'حرج' };
     if (days <= 30) return { daysLeft: days, tone: 'warning' as const, label: 'يُستحسن التجديد' };
     return { daysLeft: days, tone: 'success' as const, label: 'سليمة' };
-  }, [activeCert?.expires_at, now]);
+  }, [expiresAt, now]);
 
   const chainHealth = useMemo(() => {
     const last = chain?.[0];

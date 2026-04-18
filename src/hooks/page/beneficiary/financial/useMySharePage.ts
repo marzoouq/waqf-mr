@@ -6,13 +6,13 @@ import { useCallback, useMemo } from 'react';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
+import { useContractsForPdf } from '@/hooks/data/contracts';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
 import { useMySharePdfHandlers } from '@/hooks/page/beneficiary';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { isFyReady } from '@/constants/fiscalYearIds';
-import { supabase } from '@/integrations/supabase/client';
 import { safeNumber } from '@/utils/format/safeNumber';
 import type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 
@@ -64,18 +64,12 @@ export const useMySharePage = () => {
   const filteredDistributions = filterDistributionsByFiscalYear(distributions, !!fin.account, fiscalYearId);
   const { totalReceived, pendingAmount } = summarizeDistributions(filteredDistributions);
 
-  // جلب العقود lazily فقط عند الحاجة لتصدير PDF
-  const fetchContracts = useCallback(async () => {
-    let query = supabase
-      .from('contracts')
-      .select('contract_number, tenant_name, rent_amount, status')
-      .order('created_at', { ascending: false });
-    if (fiscalYearId && fiscalYearId !== 'all') {
-      query = query.eq('fiscal_year_id', fiscalYearId);
-    }
-    const { data } = await query;
-    return data ?? [];
-  }, [fiscalYearId]);
+  // جلب العقود lazily فقط عند الحاجة لتصدير PDF — عبر data hook (التزام v7)
+  const fetchContractsForPdf = useContractsForPdf();
+  const fetchContracts = useCallback(
+    () => fetchContractsForPdf(fiscalYearId),
+    [fetchContractsForPdf, fiscalYearId],
+  );
 
   const pdf = useMySharePdfHandlers({
     currentBeneficiary: currentBeneficiary ?? null, isClosed: !!isClosed, myShare, totalReceived, pendingAmount,
