@@ -1,0 +1,38 @@
+name: Health Check
+
+# مراقبة دورية لـ Edge Function: health-check
+# يتحقق من سلامة الـ Edge Functions واتصال قاعدة البيانات
+# يعمل كل 30 دقيقة + يدوياً عند الحاجة
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # كل 30 دقيقة
+  workflow_dispatch:        # تشغيل يدوي
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping health-check function
+        id: ping
+        run: |
+          URL="https://nuzdeamtujezrsxbvpfi.supabase.co/functions/v1/health-check"
+          echo "Pinging $URL"
+          HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" \
+            -H "Content-Type: application/json" \
+            "$URL")
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response:"
+          cat response.json
+          echo ""
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Health check failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+          STATUS=$(cat response.json | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+          if [ "$STATUS" != "healthy" ]; then
+            echo "::error::Service degraded — status: $STATUS"
+            exit 1
+          fi
+          echo "✅ Service is healthy"
