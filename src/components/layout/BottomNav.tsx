@@ -8,15 +8,13 @@
 import { useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { BOTTOM_NAV_LINKS } from '@/constants/bottomNavLinks';
 import {
   ADMIN_ROUTE_TO_SECTION,
   BENEFICIARY_ROUTE_TO_SECTION,
-  defaultAdminSections,
-  defaultBeneficiarySections,
 } from '@/constants/navigation';
 import { isActiveLink } from '@/lib/navigation/isActiveLink';
 import { filterLinksBySectionVisibility } from '@/lib/permissions/filterByVisibility';
@@ -29,26 +27,17 @@ interface BottomNavProps {
 const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 }) => {
   const { role } = useAuth();
   const location = useLocation();
-  const { getJsonSetting } = useAppSettings();
+  const { adminSections, beneficiarySections } = useSectionsVisibility();
 
   const navLinks = BOTTOM_NAV_LINKS[role ?? 'beneficiary'] ?? BOTTOM_NAV_LINKS.beneficiary!;
 
   const isAdminLike = role === 'admin' || role === 'accountant';
 
-  const sectionsVisibility = useMemo(
-    () => ({ ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) }),
-    [getJsonSetting],
-  );
-  const beneficiarySections = useMemo(
-    () => ({ ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) }),
-    [getJsonSetting],
-  );
-
   const visibleLinks = useMemo(() => {
     const routeToSection = isAdminLike ? ADMIN_ROUTE_TO_SECTION : BENEFICIARY_ROUTE_TO_SECTION;
-    const visibility = isAdminLike ? sectionsVisibility : beneficiarySections;
+    const visibility = isAdminLike ? adminSections : beneficiarySections;
     return filterLinksBySectionVisibility(navLinks, routeToSection, visibility);
-  }, [navLinks, isAdminLike, sectionsVisibility, beneficiarySections]);
+  }, [navLinks, isAdminLike, adminSections, beneficiarySections]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-border/50 bg-background/95" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', willChange: 'transform' }}>

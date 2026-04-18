@@ -3,12 +3,11 @@
  */
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
 import {
   ADMIN_ROUTE_PERM_KEYS,
   BENEFICIARY_ROUTE_PERM_KEYS,
   ACCOUNTANT_EXCLUDED_ROUTES,
-  defaultAdminSections,
-  defaultBeneficiarySections,
   ADMIN_ROUTE_TO_SECTION,
   BENEFICIARY_ROUTE_TO_SECTION,
 } from '@/constants/navigation';
@@ -17,10 +16,9 @@ import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 export function usePermissionCheck() {
   const { role } = useAuth();
   const { getJsonSetting } = useAppSettings();
+  const { adminSections: sectionsVisibility, beneficiarySections } = useSectionsVisibility();
 
   const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
-  const sectionsVisibility: Record<string, boolean> = { ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) };
-  const beneficiarySections: Record<string, boolean> = { ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) };
 
   const isRouteAllowed = (path: string): boolean => {
     // الناظر يرى كل شيء
