@@ -1,9 +1,9 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useCallback } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Plus, Lock, Wallet } from 'lucide-react';
-import { ExportMenu, DeferredRender } from '@/components/common';
+import { ExportMenu, DeferredRender, StatsGridSkeleton, LockedYearBanner } from '@/components/common';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { useAccountsPage } from '@/hooks/page/admin/financial/useAccountsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
@@ -21,26 +21,31 @@ const CloseYearDialog = lazy(() => import('@/components/accounts/CloseYearDialog
 
 const SectionFallback = () => <Skeleton className="h-32 w-full rounded-lg" />;
 
-const handleExportCsv = (page: ReturnType<typeof useAccountsPage>) => {
-  const csv = buildCsv([{
-    'السنة المالية': page.selectedFY?.label || '-',
-    'إجمالي الإيرادات': page.totalIncome,
-    'إجمالي المصروفات': page.totalExpenses,
-    'صافي بعد المصروفات': page.netAfterExpenses,
-    'الضريبة': page.manualVat,
-    'الزكاة': page.zakatAmount,
-    'حصة الناظر': page.adminShare,
-    'حصة الواقف': page.waqifShare,
-    'ريع الوقف': page.waqfRevenue,
-    'رقبة الوقف': page.waqfCorpusManual,
-    'المتاح للتوزيع': page.availableAmount,
-  }]);
-  downloadCsv(csv, `حسابات-${page.selectedFY?.label || 'عام'}.csv`);
-};
-
 const AccountsPage = () => {
   const { role } = useAuth();
   const page = useAccountsPage();
+
+  // #14 — handleExportCsv داخل المكوّن كـ useCallback (كان دالة module-scope)
+  const handleExportCsv = useCallback(() => {
+    const csv = buildCsv([{
+      'السنة المالية': page.selectedFY?.label || '-',
+      'إجمالي الإيرادات': page.totalIncome,
+      'إجمالي المصروفات': page.totalExpenses,
+      'صافي بعد المصروفات': page.netAfterExpenses,
+      'الضريبة': page.manualVat,
+      'الزكاة': page.zakatAmount,
+      'حصة الناظر': page.adminShare,
+      'حصة الواقف': page.waqifShare,
+      'ريع الوقف': page.waqfRevenue,
+      'رقبة الوقف': page.waqfCorpusManual,
+      'المتاح للتوزيع': page.availableAmount,
+    }]);
+    downloadCsv(csv, `حسابات-${page.selectedFY?.label || 'عام'}.csv`);
+  }, [
+    page.selectedFY, page.totalIncome, page.totalExpenses, page.netAfterExpenses,
+    page.manualVat, page.zakatAmount, page.adminShare, page.waqifShare,
+    page.waqfRevenue, page.waqfCorpusManual, page.availableAmount,
+  ]);
 
   return (
     <DashboardLayout>
@@ -50,12 +55,9 @@ const AccountsPage = () => {
           icon={Wallet}
           description="إدارة ومتابعة الحسابات السنوية"
           actions={<>
-            {page.isClosed && (
-              <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
-                <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية إدارية
-              </span>
-            )}
-            <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={() => handleExportCsv(page)} />
+            {/* #6 — استخدام LockedYearBanner بدل span inline */}
+            <LockedYearBanner isClosed={page.isClosed} role={role} />
+            <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={handleExportCsv} />
             <Button onClick={page.handleCreateAccount} className="gradient-primary gap-2" disabled={page.createAccountPending}>
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">إنشاء حساب ختامي</span>
@@ -80,15 +82,9 @@ const AccountsPage = () => {
           onWaqfCorpusManualChange={page.setWaqfCorpusManual} onManualDistributionsChange={page.setManualDistributions}
         />
 
+        {/* #13 — استخدام StatsGridSkeleton بدل skeleton inline */}
         {page.isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {Array.from({ length: 14 }).map((_, i) => (
-              <div key={i} className="p-4 rounded-lg bg-muted/30 space-y-2">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-6 w-24" />
-              </div>
-            ))}
-          </div>
+          <StatsGridSkeleton count={14} />
         ) : (
           <AccountsSummaryCards
             waqfCorpusPrevious={page.waqfCorpusPrevious} totalIncome={page.totalIncome}
