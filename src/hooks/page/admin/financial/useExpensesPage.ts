@@ -89,7 +89,7 @@ export function useExpensesPage() {
     try {
       await deleteExpense.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
-      // #17 — البقاء في الصفحة الحالية ما لم تصبح فارغة
+      // البقاء في الصفحة الحالية ما لم تصبح فارغة
       const totalAfterDelete = expenses.length - 1;
       const maxPage = Math.ceil(totalAfterDelete / ITEMS_PER_PAGE);
       if (currentPage > maxPage) setCurrentPage(Math.max(1, maxPage));
@@ -105,8 +105,7 @@ export function useExpensesPage() {
     return Array.from(types).sort();
   }, [expenses]);
 
-  // نسبة التوثيق: مصروف يُعتبر "موثقاً" إذا ارتبط بفاتورة واحدة على الأقل (#20)
-  // المنطق مُستخرج إلى utils/financial/documentationRate.ts (موجة 18)
+  // نسبة التوثيق: مصروف يُعتبر "موثقاً" إذا ارتبط بفاتورة واحدة على الأقل
   const { expenseInvoiceMap, documentedCount, documentationRate } = useMemo(
     () => computeDocumentationStats(expenses, allInvoices),
     [allInvoices, expenses],
@@ -138,7 +137,6 @@ export function useExpensesPage() {
     return result;
   }, [expenses, searchQuery, filters, sortField, sortDir]);
 
-  // #64 — حساب paginatedItems في hook بدل slice مكرر في JSX
   const paginatedExpenses = useMemo(
     () => filteredExpenses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
     [filteredExpenses, currentPage]

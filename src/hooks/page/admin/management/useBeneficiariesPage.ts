@@ -97,7 +97,6 @@ export function useBeneficiariesPage() {
     );
   }, [beneficiaries, searchQuery]);
 
-  // #62 — حساب paginatedItems في hook بدل slice مكرر في JSX
   const paginatedBeneficiaries = useMemo(
     () => filteredBeneficiaries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
     [filteredBeneficiaries, currentPage]

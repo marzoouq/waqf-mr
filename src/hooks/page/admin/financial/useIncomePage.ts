@@ -91,7 +91,7 @@ export function useIncomePage() {
     try {
       await deleteIncome.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
-      // #17 — البقاء في الصفحة الحالية ما لم تصبح فارغة
+      // البقاء في الصفحة الحالية ما لم تصبح فارغة
       const totalAfterDelete = income.length - 1;
       const maxPage = Math.ceil(totalAfterDelete / ITEMS_PER_PAGE);
       if (currentPage > maxPage) setCurrentPage(Math.max(1, maxPage));
@@ -146,7 +146,6 @@ export function useIncomePage() {
     return result;
   }, [income, searchQuery, filters, sortField, sortDir]);
 
-  // #10 — paginatedItems داخل hook بدل slice في JSX
   const paginatedItems = useMemo(
     () => filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
     [filteredIncome, currentPage],

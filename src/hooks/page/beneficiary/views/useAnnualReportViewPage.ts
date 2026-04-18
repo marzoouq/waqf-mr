@@ -43,7 +43,6 @@ export function useAnnualReportViewPage() {
   const totalExpenses = useMemo(() => expenses.reduce((s, r) => s + safeNumber(r.amount), 0), [expenses]);
   const activeContracts = useMemo(() => contracts.filter(c => c.status === 'active').length, [contracts]);
 
-  // #B5 — useMemo لمنع إعادة الحساب
   const summaryCards = useMemo(() => [
     { label: 'إجمالي الدخل', value: formatCurrency(totalIncome) + ' ر.س', icon: DollarSign, color: 'text-success' },
     { label: 'إجمالي المصروفات', value: formatCurrency(totalExpenses) + ' ر.س', icon: Receipt, color: 'text-destructive' },
@@ -51,7 +50,6 @@ export function useAnnualReportViewPage() {
     { label: 'عدد العقارات', value: String(properties.length), icon: Building2, color: 'text-warning' },
   ], [totalIncome, totalExpenses, activeContracts, properties.length]);
 
-  // #22: useCallback لتثبيت مرجع الدالة
   const handleExportPdf = useCallback(async () => {
     const pdfData: AnnualReportPdfData = {
       fiscalYearLabel: fiscalYear?.label || '',
@@ -71,7 +69,6 @@ export function useAnnualReportViewPage() {
     else defaultNotify.error('فشل في تصدير التقرير');
   }, [fiscalYear?.label, grouped, properties, summaryCards, waqfInfo]);
 
-  // #B5 — useCallback لتثبيت المرجع
   const handleExportCsv = useCallback(() => {
     const rows: Record<string, string>[] = [];
     summaryCards.forEach(c => rows.push({ القسم: 'ملخص', العنوان: c.label, المحتوى: c.value }));

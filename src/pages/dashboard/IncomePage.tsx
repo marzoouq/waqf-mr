@@ -15,7 +15,6 @@ import { logger } from '@/lib/logger';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIncomePage } from '@/hooks/page/admin/financial/useIncomePage';
 
-// #1 — lazy() بعد كل imports
 const IncomeMonthlyChart = lazy(() => import('@/components/dashboard/charts/IncomeMonthlyChart'));
 
 const IncomePage = () => {

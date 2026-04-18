@@ -27,7 +27,7 @@ const BeneficiarySettingsPage = () => {
     handleRetry,
   } = useBeneficiarySettingsPage();
 
-  // #37 — التحميل أولاً، ثم الخطأ، ثم البيانات الفارغة
+  // ترتيب الحالات: التحميل أولاً، ثم الخطأ، ثم البيانات الفارغة
   if (benLoading) {
     return (
       <DashboardLayout>

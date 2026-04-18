@@ -31,7 +31,7 @@ export function useDashboardPrefetch({ fiscalYearId, fiscalYears }: UseDashboard
   useEffect(() => {
     if (!isAdminOrAccountant || !isFyReady(fiscalYearId) || isFyAll(fiscalYearId)) return;
 
-    // #10: ألغِ أي prefetch سابق قبل بدء واحد جديد
+    // ألغِ أي prefetch سابق قبل بدء واحد جديد (يمنع race conditions عند تبديل السنة بسرعة)
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;

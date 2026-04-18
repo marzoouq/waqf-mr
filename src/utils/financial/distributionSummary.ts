@@ -22,7 +22,7 @@ export function filterDistributionsByFiscalYear<T extends DistributionLike>(
   if (fiscalYearId && fiscalYearId !== 'all') {
     return distributions.filter(d => d.fiscal_year_id === fiscalYearId);
   }
-  // #2 إصلاح: لا يوجد حساب ولا fiscalYearId محدد — أعد مصفوفة فارغة لتجنب جمع كل السنوات
+  // لا يوجد حساب ولا fiscalYearId محدد — أعد مصفوفة فارغة لتجنب جمع كل السنوات
   return [];
 }
 

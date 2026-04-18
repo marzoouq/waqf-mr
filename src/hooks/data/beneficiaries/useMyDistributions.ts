@@ -8,11 +8,10 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 export function useMyDistributions(beneficiaryId?: string | null, fiscalYearId?: string | null) {
   return useQuery({
     queryKey: ['my-distributions', beneficiaryId, fiscalYearId],
-    // #6 — staleTime: التوزيعات لا تتغير كثيراً
+    // التوزيعات لا تتغير كثيراً — staleTime مالي مرتفع
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       if (!beneficiaryId) return [];
-      // #9 — تحديد أعمدة صريحة بدل *
       let query = supabase
         .from('distributions')
         .select('id, amount, date, status, fiscal_year_id, beneficiary_id, account:accounts(id, fiscal_year, fiscal_year_id)')

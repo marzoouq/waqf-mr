@@ -60,11 +60,11 @@ export const useMySharePage = () => {
   // #12: is share estimated (active year)
   const myShareIsEstimated = dashData?.my_share_is_estimated ?? false;
 
-  // filter distributions via shared function (#2, #3, #4)
+  // تصفية التوزيعات عبر الدالة المشتركة (تحترم وجود الحساب والسنة المحددة)
   const filteredDistributions = filterDistributionsByFiscalYear(distributions, !!fin.account, fiscalYearId);
   const { totalReceived, pendingAmount } = summarizeDistributions(filteredDistributions);
 
-  // #21 - fetch contracts lazily when needed for PDF
+  // جلب العقود lazily فقط عند الحاجة لتصدير PDF
   const fetchContracts = useCallback(async () => {
     let query = supabase
       .from('contracts')
