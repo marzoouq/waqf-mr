@@ -2,15 +2,12 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner } from '@/components/common';
+import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner, ConfirmDeleteDialog } from '@/components/common';
 import { TrendingDown, Search } from 'lucide-react';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import { defaultNotify } from '@/lib/notify';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { useExpensesPage } from '@/hooks/page/admin/financial/useExpensesPage';
 
 const ExpensesPage = () => {
@@ -98,18 +95,12 @@ const ExpensesPage = () => {
         </Card>
       </div>
 
-      <AlertDialog open={!!h.deleteTarget} onOpenChange={(open) => !open && h.setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
-            <AlertDialogDescription>هل أنت متأكد من حذف "{h.deleteTarget?.name}"؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={h.handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDeleteDialog
+        open={!!h.deleteTarget}
+        onOpenChange={(open) => !open && h.setDeleteTarget(null)}
+        targetName={h.deleteTarget?.name}
+        onConfirm={h.handleConfirmDelete}
+      />
     </DashboardLayout>
   );
 };

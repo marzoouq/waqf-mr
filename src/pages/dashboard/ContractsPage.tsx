@@ -12,6 +12,7 @@ import { defaultNotify } from '@/lib/notify';
 import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent } from '@/components/contracts';
 import { getPaymentTypeLabel } from '@/utils/financial/contractHelpers';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import { useContractsPage } from '@/hooks/page/admin/contracts/useContractsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -101,7 +102,7 @@ const ContractsPage = () => {
               <MonthlyAccrualTable contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYearId={fiscalYearId} fiscalYear={fiscalYears?.find(fy => fy.id === fiscalYearId) ?? null} />
             </Suspense>
           </TabsContent>
-          <TabsContent value="invoices"><Suspense fallback={<TabFallback />}><PaymentInvoicesTab fiscalYearId={fiscalYearId} isClosed={isClosed && role !== 'admin'} /></Suspense></TabsContent>
+          <TabsContent value="invoices"><Suspense fallback={<TabFallback />}><PaymentInvoicesTab fiscalYearId={fiscalYearId} isClosed={!canModifyFiscalYear(role, isClosed)} /></Suspense></TabsContent>
           <TabsContent value="collection"><Suspense fallback={<TabFallback />}><CollectionReport contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYears={fiscalYears} fiscalYearId={fiscalYearId} /></Suspense></TabsContent>
         </Tabs>
 

@@ -69,7 +69,13 @@ export function useIncomePage() {
       incomeData.fiscal_year_id = fiscalYear.id;
     }
     try {
-      /* CRUD factory — cast مطلوب */ if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData } as unknown as Parameters<typeof updateIncome.mutateAsync>[0]); } else { await createIncome.mutateAsync(incomeData as unknown as Parameters<typeof createIncome.mutateAsync>[0]); }
+      if (editingIncome) {
+        type UpdateArg = Parameters<typeof updateIncome.mutateAsync>[0];
+        await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData } as UpdateArg);
+      } else {
+        type CreateArg = Parameters<typeof createIncome.mutateAsync>[0];
+        await createIncome.mutateAsync(incomeData as CreateArg);
+      }
       setIsOpen(false);
       resetForm();
     } catch {
@@ -151,6 +157,12 @@ export function useIncomePage() {
     return result;
   }, [income, searchQuery, filters, sortField, sortDir]);
 
+  // #10 — paginatedItems داخل hook بدل slice في JSX
+  const paginatedItems = useMemo(
+    () => filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [filteredIncome, currentPage],
+  );
+
   /** هل السنة المالية محددة ويمكن الإضافة؟ — #14 */
   const canAdd = !!fiscalYear?.id && !isLocked;
 
@@ -172,6 +184,6 @@ export function useIncomePage() {
     // صفحات
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
     // حسابات
-    totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome,
+    totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome, paginatedItems,
   };
 }
