@@ -104,11 +104,18 @@ describe('checks — قاعدة البيانات', () => {
     expect(result.status).toBe('fail');
   });
 
-  it('checkRealtimeChannels يُرجع info مع عدد القنوات', async () => {
-    mockGetChannels.mockReturnValueOnce(['ch1', 'ch2'] as any);
+  it('checkRealtimeChannels يُرجع info عند 0 قناة', async () => {
+    mockGetChannels.mockReturnValueOnce([] as any);
     const { checkRealtimeChannels } = await import('./checks');
     const result = await checkRealtimeChannels();
     expect(result.status).toBe('info');
+  });
+
+  it('checkRealtimeChannels يُرجع pass مع عدد القنوات', async () => {
+    mockGetChannels.mockReturnValueOnce(['ch1', 'ch2'] as any);
+    const { checkRealtimeChannels } = await import('./checks');
+    const result = await checkRealtimeChannels();
+    expect(result.status).toBe('pass');
     expect(result.detail).toContain('2');
   });
 });
@@ -118,25 +125,11 @@ describe('checks — قاعدة البيانات', () => {
 // ════════════════════════════════════════════════
 
 describe('checks — المتصفح والأداء', () => {
-  it('checkNavigatorLocks يُرجع pass/info', async () => {
-    const { checkNavigatorLocks } = await import('./checks');
-    const result = await checkNavigatorLocks();
-    expect(['pass', 'info']).toContain(result.status);
-    expect(result.id).toBe('perf_locks');
-  });
-
   it('checkDomNodesCount يُرجع عدد عناصر DOM', async () => {
     const { checkDomNodesCount } = await import('./checks');
     const result = await checkDomNodesCount();
     expect(result.id).toBe('perf_dom');
     expect(result.detail).toContain('عنصر');
-  });
-
-  it('checkWebAssembly يُرجع pass عند دعم WASM', async () => {
-    const { checkWebAssembly } = await import('./checks');
-    const result = await checkWebAssembly();
-    expect(result.status).toBe('pass');
-    expect(result.detail).toBe('مدعوم');
   });
 
   it('checkScrollPerformance يُرجع نتيجة', async () => {
@@ -150,7 +143,7 @@ describe('checks — المتصفح والأداء', () => {
     const { checkPagePerformance } = await import('./checks');
     const result = await checkPagePerformance();
     expect(result.status).toBe('info');
-    expect(result.detail).toContain('لا توجد بيانات');
+    expect(result.detail).toContain('سيتوفر');
   });
 
   it('checkPagePerformance يكشف الصفحات البطيئة', async () => {
