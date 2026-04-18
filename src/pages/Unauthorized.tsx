@@ -1,7 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShieldX, Home, ArrowRight, Building2 } from 'lucide-react';
+import { ShieldX, Home, ArrowRight, Building2, UserCog } from 'lucide-react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: 'ناظر الوقف',
+  accountant: 'محاسب',
+  beneficiary: 'مستفيد',
+  waqif: 'واقف',
+};
 
 const Unauthorized = () => {
   const { role } = useAuth();
@@ -12,6 +19,8 @@ const Unauthorized = () => {
     : role === 'beneficiary' ? '/beneficiary'
     : role === 'waqif' ? '/waqif'
     : '/';
+
+  const currentRoleLabel = role ? ROLE_LABELS[role] ?? role : null;
 
   return (
     <main dir="rtl" className="min-h-screen bg-background flex flex-col">
@@ -34,10 +43,17 @@ const Unauthorized = () => {
             <ShieldX className="w-12 h-12 text-destructive" />
           </div>
           <h1 className="text-3xl font-display font-bold text-foreground mb-3">غير مصرح بالدخول</h1>
-          <p className="text-muted-foreground mb-8 text-sm leading-relaxed">
+          <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
             عذراً، ليس لديك الصلاحية اللازمة للوصول إلى هذه الصفحة.
             إذا كنت تعتقد أن هذا خطأ، تواصل مع ناظر الوقف.
           </p>
+          {currentRoleLabel && (
+            <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 bg-muted/50 border rounded-xl text-sm">
+              <UserCog className="w-4 h-4 text-muted-foreground" />
+              <span className="text-muted-foreground">دورك الحالي:</span>
+              <span className="font-semibold text-foreground">{currentRoleLabel}</span>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link to={homePath}>
               <Button className="gradient-primary gap-2 rounded-xl px-6">
