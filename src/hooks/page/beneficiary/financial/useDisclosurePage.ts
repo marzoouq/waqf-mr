@@ -12,8 +12,8 @@ import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistribution
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { defaultNotify } from '@/lib/notify';
-import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/useBeneficiaryDashboardData';
-import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/useBeneficiaryFinancials';
+import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
+import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { toGregorianShort } from '@/utils/format/date';
 import { isFyReady } from '@/constants/fiscalYearIds';

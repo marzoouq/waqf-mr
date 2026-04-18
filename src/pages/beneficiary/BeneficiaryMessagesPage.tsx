@@ -2,7 +2,7 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Headphones, AlertCircle, RefreshCw } from 'lucide-react';
 import { TableSkeleton } from '@/components/common';
-import { useBeneficiaryMessages } from '@/hooks/page/beneficiary/useBeneficiaryMessages';
+import { useBeneficiaryMessages } from '@/hooks/page/beneficiary';
 import ConversationsList from '@/components/messages/ConversationsList';
 import ChatArea from '@/components/messages/ChatArea';
 import MessageDialogs from '@/components/messages/MessageDialogs';

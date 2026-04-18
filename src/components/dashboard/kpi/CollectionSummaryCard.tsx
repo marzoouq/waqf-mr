@@ -7,7 +7,7 @@ import { ErrorBoundary } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // recharts يُحمَّل lazily لاستبعاده من حزمة AdminDashboard الأولية
-const CollectionSummaryChart = lazy(() => import('@/components/dashboard/CollectionSummaryChart'));
+const CollectionSummaryChart = lazy(() => import('@/components/dashboard/kpi/CollectionSummaryChart'));
 
 interface CollectionSummaryCardProps {
   collectionSummary: {

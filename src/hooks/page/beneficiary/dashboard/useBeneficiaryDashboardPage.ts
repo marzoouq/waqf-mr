@@ -7,7 +7,7 @@ import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { useGreeting } from '@/hooks/ui/useGreeting';
 import { isFyReady } from '@/constants/fiscalYearIds';

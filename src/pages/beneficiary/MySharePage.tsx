@@ -13,7 +13,7 @@ import DistributionsTable from '@/components/beneficiary/my-share/DistributionsT
 import AdvancesTable from '@/components/beneficiary/my-share/AdvancesTable';
 import CarryforwardsTable from '@/components/beneficiary/my-share/CarryforwardsTable';
 import DeductionsExplanationCard from '@/components/beneficiary/my-share/DeductionsExplanationCard';
-import { useMySharePage } from '@/hooks/page/beneficiary/useMySharePage';
+import { useMySharePage } from '@/hooks/page/beneficiary';
 import { fmt } from '@/utils/format/format';
 
 const MySharePage = () => {
