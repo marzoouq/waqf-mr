@@ -7,12 +7,12 @@ import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { BENEFICIARY_WIDGET_KEYS } from '@/constants/beneficiaryWidgets';
 import { makeDefaults } from '@/constants/sections';
 
-import BeneficiaryWelcomeCard from '@/components/beneficiary-dashboard/BeneficiaryWelcomeCard';
-import BeneficiaryStatsRow from '@/components/beneficiary-dashboard/BeneficiaryStatsRow';
-import BeneficiaryQuickLinks from '@/components/beneficiary-dashboard/BeneficiaryQuickLinks';
-import BeneficiaryRecentDistributions from '@/components/beneficiary-dashboard/BeneficiaryRecentDistributions';
-import BeneficiaryNotificationsCard from '@/components/beneficiary-dashboard/BeneficiaryNotificationsCard';
-import BeneficiaryAdvanceCard from '@/components/beneficiary-dashboard/BeneficiaryAdvanceCard';
+import BeneficiaryWelcomeCard from '@/components/beneficiary/dashboard/BeneficiaryWelcomeCard';
+import BeneficiaryStatsRow from '@/components/beneficiary/dashboard/BeneficiaryStatsRow';
+import BeneficiaryQuickLinks from '@/components/beneficiary/dashboard/BeneficiaryQuickLinks';
+import BeneficiaryRecentDistributions from '@/components/beneficiary/dashboard/BeneficiaryRecentDistributions';
+import BeneficiaryNotificationsCard from '@/components/beneficiary/dashboard/BeneficiaryNotificationsCard';
+import BeneficiaryAdvanceCard from '@/components/beneficiary/dashboard/BeneficiaryAdvanceCard';
 import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 
 const defaultWidgets = makeDefaults(BENEFICIARY_WIDGET_KEYS);

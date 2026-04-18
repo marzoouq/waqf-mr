@@ -3,9 +3,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FileText, FileDown, Info } from 'lucide-react';
 import { ExportMenu, RequirePublishedYears, DashboardSkeleton, ErrorState } from '@/components/common';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import DisclosureSummaryCards from '@/components/disclosure/DisclosureSummaryCards';
-import DisclosureContractsSection from '@/components/disclosure/DisclosureContractsSection';
-import DisclosureFinancialStatement from '@/components/disclosure/DisclosureFinancialStatement';
+import DisclosureSummaryCards from '@/components/beneficiary/disclosure/DisclosureSummaryCards';
+import DisclosureContractsSection from '@/components/beneficiary/disclosure/DisclosureContractsSection';
+import DisclosureFinancialStatement from '@/components/beneficiary/disclosure/DisclosureFinancialStatement';
 import { useDisclosurePage } from '@/hooks/page/beneficiary/useDisclosurePage';
 
 const DisclosurePage = () => {
