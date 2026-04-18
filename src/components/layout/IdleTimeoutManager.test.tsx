@@ -120,8 +120,10 @@ describe('IdleTimeoutManager', () => {
       user_id: 'u1',
     });
     // ترتيب: log قبل signOut
-    expect(logAccessEventMock.mock.invocationCallOrder[0])
-      .toBeLessThan(signOutMock.mock.invocationCallOrder[0]);
+    const logOrder = logAccessEventMock.mock.invocationCallOrder[0] ?? 0;
+    const signOutOrder = signOutMock.mock.invocationCallOrder[0] ?? 0;
+    expect(logOrder).toBeLessThan(signOutOrder);
+    expect(logOrder).toBeGreaterThan(0);
   });
 
   it('بدون مستخدم: يُرجع null ولا يَرسم IdleTimeoutWarning', () => {
