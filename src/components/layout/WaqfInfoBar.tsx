@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Building2, ScrollText, User, Landmark, Info, Pencil } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import WaqfInfoEditDialog from '@/components/waqf/WaqfInfoEditDialog';
+import WaqfInfoEditDialog from '@/components/waqf-info/WaqfInfoEditDialog';
 
 const FIELDS = [
   { key: 'waqf_name', label: 'اسم الوقف', icon: Building2 },

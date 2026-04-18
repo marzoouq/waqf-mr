@@ -4,9 +4,12 @@
  */
 import { useState, useEffect, useMemo } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
+import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
 import { defaultNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 import { ROLE_SECTION_DEFS, ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
+import { defaultAdminSections, defaultBeneficiarySections } from '@/constants/navigation';
 import { BENEFICIARY_WIDGET_KEYS, BENEFICIARY_WIDGET_LABELS } from '@/constants/beneficiaryWidgets';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { useAuth } from '@/hooks/auth/useAuthContext';
@@ -26,17 +29,14 @@ const ROLES = [
   { key: 'waqif', label: 'الواقف', color: 'text-warning' },
 ];
 
-const defaultAdminSections = makeDefaults(ADMIN_SECTION_KEYS);
-const defaultBeneficiarySections = makeDefaults(BENEFICIARY_SECTION_KEYS);
 const defaultWidgets = makeDefaults(BENEFICIARY_WIDGET_KEYS);
 
 const PermissionsControlPanel = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
+  const { rolePermissions: savedRolePerms } = useRolePermissions();
+  const { adminSections: savedAdminSections, beneficiarySections: savedBeneficiarySections } = useSectionsVisibility();
   const { user } = useAuth();
 
-  const savedRolePerms = getJsonSetting<RolePerms>('role_permissions', DEFAULT_ROLE_PERMS);
-  const savedAdminSections = getJsonSetting<Record<string, boolean>>('sections_visibility', defaultAdminSections);
-  const savedBeneficiarySections = getJsonSetting<Record<string, boolean>>('beneficiary_sections', defaultBeneficiarySections);
   const savedWidgets = getJsonSetting<Record<string, boolean>>('beneficiary_widgets', defaultWidgets);
   const [perms, setPerms] = useState<RolePerms>(DEFAULT_ROLE_PERMS);
   const [adminSections, setAdminSections] = useState<Record<string, boolean>>(defaultAdminSections);
@@ -45,13 +45,10 @@ const PermissionsControlPanel = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const merged: RolePerms = {};
-    for (const role of ROLES) {
-      merged[role.key] = { ...DEFAULT_ROLE_PERMS[role.key], ...savedRolePerms[role.key] };
-    }
-    setPerms(merged);
-    setAdminSections({ ...defaultAdminSections, ...savedAdminSections });
-    setBeneficiarySections({ ...defaultBeneficiarySections, ...savedBeneficiarySections });
+    // savedRolePerms مدموج مسبقاً مع defaults عبر useRolePermissions
+    setPerms(savedRolePerms);
+    setAdminSections(savedAdminSections);
+    setBeneficiarySections(savedBeneficiarySections);
     setWidgets({ ...defaultWidgets, ...savedWidgets });
   }, [savedRolePerms, savedAdminSections, savedBeneficiarySections, savedWidgets]);
 

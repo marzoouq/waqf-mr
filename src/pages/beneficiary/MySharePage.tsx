@@ -7,12 +7,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { RequirePublishedYears, ExportMenu, DashboardSkeleton, ErrorState, EmptyPageState } from '@/components/common';
-import { AdvanceRequestDialog } from '@/components/beneficiaries';
-import MyShareSummaryCards from '@/components/my-share/MyShareSummaryCards';
-import DistributionsTable from '@/components/my-share/DistributionsTable';
-import AdvancesTable from '@/components/my-share/AdvancesTable';
-import CarryforwardsTable from '@/components/my-share/CarryforwardsTable';
-import DeductionsExplanationCard from '@/components/my-share/DeductionsExplanationCard';
+import { AdvanceRequestDialog } from '@/components/admin/beneficiaries';
+import MyShareSummaryCards from '@/components/beneficiary/my-share/MyShareSummaryCards';
+import DistributionsTable from '@/components/beneficiary/my-share/DistributionsTable';
+import AdvancesTable from '@/components/beneficiary/my-share/AdvancesTable';
+import CarryforwardsTable from '@/components/beneficiary/my-share/CarryforwardsTable';
+import DeductionsExplanationCard from '@/components/beneficiary/my-share/DeductionsExplanationCard';
 import { useMySharePage } from '@/hooks/page/beneficiary/useMySharePage';
 import { fmt } from '@/utils/format/format';
 

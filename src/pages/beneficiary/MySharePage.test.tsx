@@ -94,7 +94,7 @@ vi.mock('@/components/RequirePublishedYears', () => ({ default: ({ children }: {
 vi.mock('@/components/layout/PageHeaderCard', () => ({ default: ({ title }: { title: string }) => <div>{title}</div> }));
 vi.mock('@/utils/pdf', () => ({ generateMySharePDF: vi.fn(), generateDistributionsPDF: vi.fn(), generateComprehensiveBeneficiaryPDF: vi.fn() }));
 vi.mock('@/utils/printShareReport', () => ({ printShareReport: vi.fn() }));
-vi.mock('@/components/beneficiaries/AdvanceRequestDialog', () => ({ default: () => null }));
+vi.mock('@/components/admin/beneficiaries/AdvanceRequestDialog', () => ({ default: () => null }));
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: () => ({ select: () => ({ eq: () => ({ order: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }) }) }) }) },
 }));
