@@ -37,9 +37,8 @@ const IncomePage = () => {
     searchQuery, setSearchQuery, filters, setFilters,
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
     totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome,
+    paginatedItems,
   } = useIncomePage();
-
-  const paginatedItems = filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
     <DashboardLayout>
