@@ -31,6 +31,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
     invoice?.type === 'standard' ? 'professional' : 'simplified'
   );
   const [downloading, setDownloading] = useState(false);
+  const handlePrint = usePrint();
 
   useEffect(() => {
     if (invoice) {
@@ -85,8 +86,6 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
   }, [invoice]);
 
   if (!invoice) return null;
-
-  const handlePrint = usePrint();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
