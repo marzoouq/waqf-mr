@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, TrendingUp, CheckCircle2, Lock } from 'lucide-react';
+import { useNowClock } from '@/lib/hooks/useNowClock';
 
 interface FiscalYearInfo {
   label: string;
@@ -58,8 +59,8 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
 const ActiveFiscalYearWidget: React.FC<{ fiscalYear: FiscalYearInfo; totalIncome: number; contractualRevenue: number }> = ({
   fiscalYear, totalIncome, contractualRevenue,
 }) => {
+  const now = useNowClock();
   const { totalDays, remainingDays, timeProgress } = useMemo(() => {
-    const now = Date.now();
     const start = new Date(fiscalYear.start_date).getTime();
     const end = new Date(fiscalYear.end_date).getTime();
     const total = Math.max(1, Math.ceil((end - start) / 86_400_000));
@@ -67,7 +68,7 @@ const ActiveFiscalYearWidget: React.FC<{ fiscalYear: FiscalYearInfo; totalIncome
     const remaining = Math.max(0, Math.ceil((end - now) / 86_400_000));
     const progress = Math.min(100, Math.round((elapsed / total) * 100));
     return { totalDays: total, elapsedDays: elapsed, remainingDays: remaining, timeProgress: progress };
-  }, [fiscalYear.start_date, fiscalYear.end_date]);
+  }, [fiscalYear.start_date, fiscalYear.end_date, now]);
 
   // نسبة الإنجاز المالي = الدخل الفعلي / الإيرادات التعاقدية
   const { rawFinancialProgress, exceededTarget, financialProgress } = useMemo(() => {

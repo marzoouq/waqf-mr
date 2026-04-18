@@ -3,6 +3,7 @@
  * تم استخراج CRUD form إلى useContractForm (#29)
  */
 import { useState, useMemo } from 'react';
+import { useNowClock } from '@/lib/hooks/useNowClock';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { safeNumber } from '@/utils/format/safeNumber';
@@ -34,11 +35,11 @@ export const useContractsPage = () => {
   // هوك CRUD النموذج — مُستخرج (#29)
   const form = useContractForm({ fiscalYearId, fiscalYears });
 
+  const now = useNowClock();
   // #A10 — دمج loops: بناء invoicePaidMap و overdueContractIds في loop واحدة
   const { invoicePaidMap, overdueContractIds } = useMemo(() => {
     const paidMap = new Map<string, number>();
     const overdueIds = new Set<string>();
-    const now = Date.now();
     const thirtyDays = 30 * 24 * 3600 * 1000;
     for (const inv of paymentInvoices) {
       if (inv.status === 'paid') {
@@ -49,7 +50,7 @@ export const useContractsPage = () => {
       }
     }
     return { invoicePaidMap: paidMap, overdueContractIds: overdueIds };
-  }, [paymentInvoices]);
+  }, [paymentInvoices, now]);
 
   // التصفية والتجميع
   const filters = useContractsFilters({ contracts, overdueContractIds });

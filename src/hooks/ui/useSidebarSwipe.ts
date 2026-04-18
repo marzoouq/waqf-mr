@@ -1,7 +1,12 @@
 /**
  * هوك إدارة حركة السحب للشريط الجانبي (swipe-to-close/open)
+ *
+ * ⚠️ معماري: لا يُعرّض refs خام للـ caller — بل يُغلّفها داخل
+ * `sidebarProps` و `overlayProps` (jsx-spread-friendly objects).
+ * هذا يمنع `react-hooks/refs` violations الناتجة عن قراءة `ref.current`
+ * في render body من المستهلك.
  */
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useMemo } from 'react';
 
 interface UseSidebarSwipeParams {
   sidebarWidth?: number;
@@ -109,22 +114,29 @@ export function useSidebarSwipe({
     edgeDragRef.current = 0;
   }, [clearInlineStyles, closeThreshold, setMobileSidebarOpen]);
 
-  const overlayOpacity = mobileSidebarOpen ? 0.5 : 0;
-  const sidebarTranslateX = mobileSidebarOpen ? 0 : sidebarWidth;
+  // ✅ Props-bundles: نُغلّف refs+handlers+style كأشياء قابلة للـ spread.
+  // المستهلك يستخدم `<aside {...sidebarProps}>` بدلاً من قراءة .current في render.
+  const overlayProps = useMemo(() => ({
+    ref: overlayRef,
+    style: { backgroundColor: `rgba(0,0,0,${mobileSidebarOpen ? 0.5 : 0})` },
+  }), [mobileSidebarOpen]);
 
-  return {
-    sidebarRef,
-    overlayRef,
-    // Sidebar swipe handlers
-    handleTouchStart,
-    handleTouchMove,
-    handleTouchEnd,
-    // Main area edge swipe handlers
-    handleMainTouchStart,
-    handleMainTouchMove,
-    handleMainTouchEnd,
-    // Computed values
-    overlayOpacity,
-    sidebarTranslateX,
-  };
+  const sidebarProps = useMemo(() => ({
+    ref: sidebarRef,
+    onTouchStart: handleTouchStart,
+    onTouchMove: handleTouchMove,
+    onTouchEnd: handleTouchEnd,
+    style: {
+      transform: `translateX(${mobileSidebarOpen ? 0 : sidebarWidth}px)`,
+      willChange: 'transform' as const,
+    },
+  }), [handleTouchStart, handleTouchMove, handleTouchEnd, mobileSidebarOpen, sidebarWidth]);
+
+  const mainTouchProps = useMemo(() => ({
+    onTouchStart: handleMainTouchStart,
+    onTouchMove: handleMainTouchMove,
+    onTouchEnd: handleMainTouchEnd,
+  }), [handleMainTouchStart, handleMainTouchMove, handleMainTouchEnd]);
+
+  return { overlayProps, sidebarProps, mainTouchProps };
 }

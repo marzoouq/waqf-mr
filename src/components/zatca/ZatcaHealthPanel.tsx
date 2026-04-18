@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarClock, Link2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { useNowClock } from '@/lib/hooks/useNowClock';
 import type { ZatcaCertificateSafe } from '@/hooks/data/zatca/useZatcaCertificates';
 
 interface ChainRecord {
@@ -24,17 +25,18 @@ interface ZatcaHealthPanelProps {
 }
 
 export default function ZatcaHealthPanel({ activeCert, chain, pendingInvoices }: ZatcaHealthPanelProps) {
+  const now = useNowClock(60_000);
   const certHealth = useMemo(() => {
     if (!activeCert?.expires_at) {
       return { daysLeft: null as number | null, tone: 'muted' as const, label: 'غير متوفر' };
     }
-    const ms = new Date(activeCert.expires_at).getTime() - Date.now();
+    const ms = new Date(activeCert.expires_at).getTime() - now;
     const days = Math.ceil(ms / 86_400_000);
     if (days < 0) return { daysLeft: days, tone: 'destructive' as const, label: 'منتهية' };
     if (days <= 14) return { daysLeft: days, tone: 'destructive' as const, label: 'حرج' };
     if (days <= 30) return { daysLeft: days, tone: 'warning' as const, label: 'يُستحسن التجديد' };
     return { daysLeft: days, tone: 'success' as const, label: 'سليمة' };
-  }, [activeCert?.expires_at]);
+  }, [activeCert?.expires_at, now]);
 
   const chainHealth = useMemo(() => {
     const last = chain?.[0];
