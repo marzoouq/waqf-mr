@@ -1,55 +1,55 @@
 
-## الموجة 9 — موجة التنظيف النهائية (دمج #4 + #5 + #6 + #7)
+## الموجة 10 — تنفيذ الإصلاحات الثلاث (د: كل ما سبق)
 
-سأدمج المهام الصغيرة في موجة واحدة منسقة بمنهج جنائي: **فحص أولاً، إصلاح فقط عند ثبوت الحاجة**.
+بناءً على نتائج الفحص الجنائي العميق المعتمد، سأنفذ المسارات الثلاثة بترتيب الخطورة (الأقل أولاً).
 
-### المرحلة A — فحص جنائي (read-only)
+### المرحلة 1 — الإلزامي: حذف migration المكرر
 
-| # | الفحص | الأداة |
-|---|------|--------|
-| #4 | قراءة `src/components/search/` + البحث عن أنماط `useState('')` + `filter()` المتكررة | `code--search_files` + `code--view` |
-| #5 | مقارنة exports في `models.ts` ↔ `database.ts` ↔ `index.ts` الجديد | `code--view` |
-| #6 | قراءة `usePasswordResetRequest` + `useResetPassword` للتأكد من فصل الخطوات | `code--view` |
-| #7 | قراءة `PublicPages.test.tsx` + قياس الحجم/التغطية | `code--view` |
+**الدليل**: ملفان متطابقان MD5 (`0d8474fc...`) في `supabase/migrations/`.
 
-### المرحلة B — إصلاحات مشروطة
+- **حذف**: `supabase/migrations/20260318101512_29652d94-*.sql` (الأقدم، اسم غير وصفي)
+- **الإبقاء**: `supabase/migrations/20260318102000_fix_safe_views_remove_security_invoker.sql` (الأحدث، اسم وصفي)
+- **الخطر**: صفر — الملف الباقي يحتوي SQL متطابق بايت ببايت
 
-بناءً على نتائج الفحص:
+### المرحلة 2 — تنظيف models.ts
 
-**#4 — useSearch موحَّد** (إن ثبت تكرار ≥ 2 مكونات):
-- إنشاء `src/hooks/ui/useSearch.ts` بـ debounce + filter generic
-- اختبار `useSearch.test.ts`
-- تحديث المستهلكين (إن وُجدوا فعلاً)
+**الدليل**: 0 ملف يستورد من `@/types/models` مباشرة. كل الاستيرادات عبر `@/types` (barrel) أو `@/types/database` (deprecated shim).
 
-**#5 — تنظيف models.ts/database.ts**:
-- إن كان `models.ts` فارغاً أو مكرراً → تعليق deprecation + توجيه لـ `@/types`
-- إن كان يحتوي types فريدة → نقلها إلى `src/types/` المنظم
+- **تعديل**: `src/types/models.ts` — إضافة JSDoc `@internal` يوضح أنه طبقة داخلية لـ `index.ts` فقط
+- **لا حذف**: لأن `index.ts` يُعيد التصدير منه عبر `export * from './models'`
+- **لا تغيير في الاستيرادات الخارجية**
 
-**#6 — توثيق فقط** (مرجَّح):
-- إضافة JSDoc في رأس كل hook يوضح الخطوة (طلب vs تنفيذ)
-- لا تغيير منطقي
+### المرحلة 3 — قرار تشغيلي: إعادة جدولة cron
 
-**#7 — تقسيم اختياري**:
-- إن كان `PublicPages.test.tsx` > 200 سطر → تقسيم حسب الصفحة
-- وإلا → إبقاء كما هو
+**الدليل**: `cron_check_contract_expiry()` موجودة كـ SQL function لكن غير مجدولة. README يؤكد التعطيل.
 
-### الضمانات الجنائية
-- صفر تغيير في DB/RLS/Auth/Edge Functions
-- صفر تغيير بصري
-- لا تُعدَّل ملفات المصادقة
-- `npx tsc --noEmit` نهائي + اختبارات جديدة تمر
-- كل إصلاح مشروط بدليل فعلي من الفحص
+**الخيار المختار**: استخدام `cron_check_contract_expiry()` SQL مباشرة (لا edge function) — أبسط وأكثر أماناً.
 
-### النطاق المتوقع
-- **محتمل جديد:** 1-2 ملف (`useSearch.ts` + test)
-- **محتمل معدَّل:** 2-4 ملفات (مستهلكو search + JSDoc + barrel)
-- **محتمل محذوف/مهجور:** 0-1 (`models.ts` إن ثبت تكراره)
+- **SQL عبر insert tool** (ليس migration — لأنه يحتوي مفاتيح بيئة محددة):
+  ```sql
+  SELECT cron.schedule(
+    'check-contract-expiry-daily',
+    '0 6 * * *',  -- 6 صباحاً UTC = 9 صباحاً بتوقيت السعودية
+    $$ SELECT public.cron_check_contract_expiry(); $$
+  );
+  ```
+- **تحديث README**: `supabase/functions/check-contract-expiry/README.md` — توضيح أن الجدولة عادت عبر SQL function داخلية (لا edge function)
 
-### القرار المطلوب لاحقاً (خارج هذه الموجة)
-- **#10 (cron)**: يحتاج SQL مباشر عبر `pg_cron` — قرار منفصل
-- **#8 (Realtime)**: موجة مستقلة لأنه يمس performance
-- **#2 (useContractsPage)**: مُنجَز فعلياً (فحصته في الرسالة الأولى — orchestrator نظيف)
-- **#9**: تجميلي، يؤجل
+### الضمانات
+- **صفر تغيير** في: schema, RLS, Auth, UI, Edge Functions, types المستخدمة فعلياً
+- **TypeScript**: لا تغيير في الأنواع المُستهلكَة → لا حاجة لـ `tsc` (مجرد JSDoc)
+- **DB**: استدعاء SQL واحد عبر `cron.schedule` — قابل للتراجع بـ `cron.unschedule`
+- **التحقق بعد التنفيذ**: استعلام `SELECT * FROM cron.job WHERE jobname='check-contract-expiry-daily'`
+
+### النطاق الفعلي
+- **محذوف**: 1 ملف migration
+- **معدَّل**: 2 ملف (`models.ts` JSDoc + README)
+- **SQL**: 1 استدعاء `cron.schedule`
 
 ### التسليم
-تقرير ختامي: نتائج الفحص لكل نقطة + قائمة الملفات المتغيرة + نتيجة `tsc` + الاختبارات.
+1. حذف migration المكرر
+2. تحديث `models.ts` بـ JSDoc
+3. تحديث `README.md` للـ cron
+4. استدعاء SQL عبر insert tool لجدولة cron
+5. تأكيد بـ `SELECT FROM cron.job`
+6. تقرير ختامي مختصر يُغلق الموجات 1→10
