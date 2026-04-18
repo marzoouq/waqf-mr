@@ -27,6 +27,12 @@ const PropertiesPage = () => {
     filteredProperties,
   } = usePropertiesPage();
 
+  // #5 — slice في useMemo بدل JSX
+  const paginatedProperties = useMemo(
+    () => filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [filteredProperties, currentPage, ITEMS_PER_PAGE],
+  );
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
