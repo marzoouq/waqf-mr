@@ -15,11 +15,7 @@ import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useYearComparisonData } from '@/hooks/data/financial/useYearComparisonData';
 import { useFiscalYearSummaries } from '@/hooks/data/financial/useFiscalYearSummary';
-
-export const MONTH_NAMES = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
-] as const;
+import { MONTH_NAMES } from '@/constants/calendar';
 
 interface UseYearComparisonStateArgs {
   fiscalYears: FiscalYear[];

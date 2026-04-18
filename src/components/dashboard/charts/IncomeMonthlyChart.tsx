@@ -9,9 +9,9 @@ import { TrendingUp } from 'lucide-react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { logger } from '@/lib/logger';
 
-const IncomeMonthlyChartInner = lazy(() => import('./IncomeMonthlyChartInner'));
+import { MONTH_NAMES } from '@/constants/calendar';
 
-const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+const IncomeMonthlyChartInner = lazy(() => import('./IncomeMonthlyChartInner'));
 
 interface PaymentInvoiceLike {
   due_date: string;

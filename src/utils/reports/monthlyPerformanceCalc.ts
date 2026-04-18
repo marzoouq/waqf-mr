@@ -2,11 +2,7 @@
  * حسابات الأداء الشهري — pure utility لاستخراج المنطق من المكوّن
  */
 import { safeNumber } from '@/utils/format/safeNumber';
-
-const MONTH_NAMES = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
-];
+import { MONTH_NAMES } from '@/constants/calendar';
 
 export interface MonthlyEntry {
   income: number;
@@ -83,4 +79,4 @@ export function findWorstMonth(data: MonthlyEntry[]): MonthlyEntry | null {
   return data.reduce((worst, m) => m.net < worst.net ? m : worst, data[0]!);
 }
 
-export { MONTH_NAMES };
+
