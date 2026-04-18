@@ -1,8 +1,4 @@
 /**
- * #8/#89 — hook منطق صفحة مراسلات الناظر/المحاسب
- *
- * نُقل من `src/hooks/page/beneficiary/useMessagesPage.ts` لأن صفحة `MessagesPage` في
- * `src/pages/dashboard/` تخدم أدوار الناظر والمحاسب وليس المستفيد. الإبقاء على
- * المسار القديم كـ re-export للتوافق مع أي مستهلكين خارجيين.
+ * Re-export للتوافق العكسي. المنطق الكامل في `@/hooks/page/shared/messaging/useMessagesPage`.
  */
-export { useMessagesPage } from '@/hooks/page/beneficiary/useMessagesPage';
+export { useMessagesPage } from '@/hooks/page/shared/messaging/useMessagesPage';
