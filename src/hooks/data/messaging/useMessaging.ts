@@ -6,6 +6,7 @@ import { Conversation, Message } from '@/types/database';
 import { notifyUser } from '@/lib/services';
 import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
+import { useStableRef } from '@/lib/hooks/useStableRef';
 import { STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
 
 export type { Conversation, Message };
@@ -29,14 +30,13 @@ export const useConversations = (type?: string) => {
     staleTime: STALE_MESSAGING,
   });
 
-  const queryClientRef = useRef(queryClient);
-  queryClientRef.current = queryClient;
+  const queryClientRef = useStableRef(queryClient);
 
   const convSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
     channel.on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
       queryClientRef.current.invalidateQueries({ queryKey: ['conversations'] });
     });
-  }, []);
+  }, [queryClientRef]);
 
   useBfcacheSafeChannel(
     `chat-conv-${user?.id ?? 'none'}-${type || 'all'}`,
@@ -88,14 +88,13 @@ export const useMessages = (conversationId: string | null) => {
     staleTime: STALE_LIVE,
   });
 
-  const queryClientRef = useRef(queryClient);
-  queryClientRef.current = queryClient;
+  const queryClientRef = useStableRef(queryClient);
 
   const msgSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
     channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, () => {
       queryClientRef.current.invalidateQueries({ queryKey: ['messages', conversationId] });
     });
-  }, [conversationId]);
+  }, [conversationId, queryClientRef]);
 
   useBfcacheSafeChannel(
     `chat-msg-${conversationId ?? 'none'}`,

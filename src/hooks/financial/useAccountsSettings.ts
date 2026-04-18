@@ -5,6 +5,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
+import { useStableRef } from '@/lib/hooks/useStableRef';
 import { findAccountByFY } from '@/utils/financial/findAccountByFY';
 import type { Account } from '@/types/database';
 
@@ -52,8 +53,7 @@ export function useAccountsSettings(params: SettingsParams) {
   }, [params.accounts, params.selectedFY]);
 
   const saveSettingTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-  const updateSettingRef = useRef(appSettings.updateSetting.mutateAsync);
-  updateSettingRef.current = appSettings.updateSetting.mutateAsync;
+  const updateSettingRef = useStableRef(appSettings.updateSetting.mutateAsync);
 
   const saveSetting = useCallback(async (key: string, value: string) => {
     if (saveSettingTimeouts.current[key]) clearTimeout(saveSettingTimeouts.current[key]);
@@ -66,7 +66,7 @@ export function useAccountsSettings(params: SettingsParams) {
         defaultNotify.error('خطأ في حفظ الإعداد');
       }
     }, 500);
-  }, []);
+  }, [updateSettingRef]);
 
   const handleAdminPercentChange = (val: string) => {
     const num = parseFloat(val);
