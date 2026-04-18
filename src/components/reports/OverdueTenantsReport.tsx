@@ -74,7 +74,7 @@ const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportPro
         };
       })
       .sort((a, b) => b.maxDays - a.maxDays);
-  }, [contracts, paymentInvoices, properties]);
+  }, [contracts, paymentInvoices, properties, now]);
 
   const totalOverdueAmount = overdueData.reduce((s, r) => s + r.totalOverdue, 0);
 
