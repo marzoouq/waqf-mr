@@ -76,5 +76,3 @@ export function DataDiff({ oldData, newData, operation }: DataDiffProps) {
 
   return <p className="text-sm text-muted-foreground">لا توجد بيانات</p>;
 }
-
-export default DataDiff;

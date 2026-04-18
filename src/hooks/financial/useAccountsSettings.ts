@@ -27,20 +27,21 @@ export function useAccountsSettings(params: SettingsParams) {
   const [manualDistributions, setManualDistributions] = useState(0);
 
   // مزامنة من إعدادات الخادم — مطلوبة للحفاظ على state محلي قابل للتحرير في النماذج
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync of editable form state from server settings on initial load / change
   useEffect(() => {
     if (appSettings.data) {
       const settings = appSettings.data;
+      /* eslint-disable react-hooks/set-state-in-effect -- intentional sync of editable form state from server settings on initial load / change */
       if (settings['admin_share_percentage']) setAdminPercent(Number(settings['admin_share_percentage']));
       if (settings['waqif_share_percentage']) setWaqifPercent(Number(settings['waqif_share_percentage']));
       if (settings['fiscal_year']) setFiscalYear(settings['fiscal_year']);
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [appSettings.data]);
 
   // مزامنة من حساب السنة المختارة — قيم قابلة للتحرير في صفحة الحسابات
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync of editable form state from selected fiscal year account
   useEffect(() => {
     const matchingAccount = findAccountByFY(params.accounts, params.selectedFY);
+    /* eslint-disable react-hooks/set-state-in-effect -- intentional sync of editable form state from selected fiscal year account */
     if (matchingAccount) {
       if (matchingAccount.zakat_amount !== undefined) setZakatAmount(Number(matchingAccount.zakat_amount));
       if (matchingAccount.waqf_corpus_manual !== undefined) setWaqfCorpusManual(Number(matchingAccount.waqf_corpus_manual));
@@ -54,6 +55,7 @@ export function useAccountsSettings(params: SettingsParams) {
       setManualVat(0);
       setManualDistributions(0);
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [params.accounts, params.selectedFY]);
 
   const saveSettingTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
