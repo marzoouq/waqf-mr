@@ -1,49 +1,70 @@
 
 ## الهدف
-تطبيق `filterLinksBySectionVisibility` على `BOTTOM_NAV_LINKS` في `BottomNav` بحيث يختفي أي رابط في الشريط السفلي إذا تم تعطيل قسمه من إعدادات الرؤية — بنفس منطق `Sidebar`.
+إنشاء hook مشترك `useSectionsVisibility` يُغلِّف منطق قراءة `sections_visibility` و `beneficiary_sections` من `app_settings` ودمجهما مع القيم الافتراضية، لإزالة التكرار من 3 ملفات.
 
-## الفحص المطلوب قبل التنفيذ
-- مراجعة `useNavLinks.ts` لمعرفة كيف يحصل على `sectionsVisibility` و`routeToSection` map.
-- فحص `constants/sections.ts` و`navigation.ts` للتأكد من توفر خريطة `route → sectionKey` قابلة لإعادة الاستخدام.
-- التأكد أن الأقسام الأربعة الظاهرة في BottomNav (الرئيسية/العقارات/العقود/الحسابات...) لها مفاتيح أقسام معرّفة.
+## المنطق المُكرَّر حالياً
+نفس الكتلة (4 أسطر) موجودة حرفياً في:
+- `src/components/layout/BottomNav.tsx` (سطر 38-45)
+- `src/hooks/page/shared/useNavLinks.ts` (سطر 22-29)
+- `src/hooks/page/shared/usePermissionCheck.ts` (سطر 22-23)
+
+```ts
+{ ...defaultAdminSections, ...getJsonSetting('sections_visibility', {}) }
+{ ...defaultBeneficiarySections, ...getJsonSetting('beneficiary_sections', {}) }
+```
 
 ## التغييرات المقترحة
 
-### 1) استخراج/إعادة استخدام خريطة `routeToSection`
-- إذا كانت معرّفة داخل `useNavLinks`، أنقلها إلى `src/constants/navigation.ts` (أو ملف مساعد `routeMaps.ts`) كـ `export const ROUTE_TO_SECTION` لتُشارَك بين Sidebar و BottomNav.
-- لا تغيير في السلوك — فقط نقل + export.
+### 1) إنشاء `src/hooks/data/settings/useSectionsVisibility.ts`
+hook نقي يُرجع الكائنين بشكل ثابت (`useMemo`) لتجنّب re-renders:
 
-### 2) `BottomNav.tsx`
-- استيراد `useSectionsVisibility` (أو الـ hook الحالي الذي يقرأ `app_settings.sectionsVisibility` / `beneficiarySections`).
-- استيراد `filterLinksBySectionVisibility` و `ROUTE_TO_SECTION`.
-- اختيار خريطة الرؤية المناسبة حسب الدور:
-  - admin/accountant → `sectionsVisibility`
-  - beneficiary/waqif → `beneficiarySections`
-- تطبيق:
-  ```ts
-  const visibleLinks = useMemo(
-    () => filterLinksBySectionVisibility(navLinks, ROUTE_TO_SECTION, visibilityMap),
-    [navLinks, visibilityMap]
+```ts
+export function useSectionsVisibility() {
+  const { getJsonSetting } = useAppSettings();
+  
+  const adminSections = useMemo(
+    () => ({ ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) }),
+    [getJsonSetting]
   );
-  ```
-- استخدام `visibleLinks.map(...)` بدل `navLinks.map(...)`.
+  
+  const beneficiarySections = useMemo(
+    () => ({ ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) }),
+    [getJsonSetting]
+  );
+  
+  return { adminSections, beneficiarySections };
+}
+```
 
-### 3) معالجة حالة الحافة
-- إذا فُلتِرت كل الروابط (نظرياً مستحيل لأن `/dashboard` و`/beneficiary` دائماً مرئيان)، يبقى زر "المزيد" فقط — مقبول.
-- لا تغيير في التصميم/التخطيط.
+**ملاحظة مهمة:** `usePermissionCheck` حالياً لا يستخدم `useMemo` (يحسب في كل render). الـ hook الجديد سيُحسِّن هذا تلقائياً — تحسين جانبي مقبول.
 
-### 4) اختبارات
-- إضافة اختبار في `BottomNav.test.tsx` (إن وُجد) أو إنشاؤه:
-  - عند `sectionsVisibility.properties = false`، لا يظهر رابط `/dashboard/properties`.
-  - عند تفعيل كل الأقسام، تظهر الروابط الأربعة + المزيد.
+### 2) تحديث المستهلكين الثلاثة
+- **`BottomNav.tsx`:** حذف `useMemo` المحلي، استبدال بـ `const { adminSections, beneficiarySections } = useSectionsVisibility();` ثم `const visibility = isAdminLike ? adminSections : beneficiarySections;`
+- **`useNavLinks.ts`:** نفس الاستبدال، الاحتفاظ بنفس أسماء المتغيرات داخلياً (`sectionsVisibility = adminSections`).
+- **`usePermissionCheck.ts`:** نفس الاستبدال (مع المكسب الجانبي للـ memoization).
+
+### 3) اختبار وحدة `useSectionsVisibility.test.ts`
+- يُرجع defaults عند عدم وجود إعدادات.
+- يدمج إعدادات المستخدم فوق defaults بشكل صحيح.
+- مرجع ثابت بين renders عند ثبات الإدخال (memoization check).
+
+### 4) التحقق
+- تشغيل `npx tsc --noEmit`.
+- تشغيل اختبارات `BottomNav` + `useNavLinks` (إن وُجدت) + الجديد.
+- لا تغيير في API الخارجي لأي من الـ hooks الثلاثة.
 
 ## الملفات المتأثرة
-- **معدّل:** `src/components/layout/BottomNav.tsx`
-- **معدّل (نقل export فقط):** `src/hooks/page/shared/useNavLinks.ts` + `src/constants/navigation.ts` (أو ملف جديد `src/constants/routeMaps.ts`)
-- **معدّل/مُنشأ:** `src/components/layout/BottomNav.test.tsx`
+| الملف | الإجراء |
+|---|---|
+| `src/hooks/data/settings/useSectionsVisibility.ts` | جديد |
+| `src/hooks/data/settings/useSectionsVisibility.test.ts` | جديد |
+| `src/components/layout/BottomNav.tsx` | معدّل |
+| `src/hooks/page/shared/useNavLinks.ts` | معدّل |
+| `src/hooks/page/shared/usePermissionCheck.ts` | معدّل |
 
 ## الضمانات
-- صفر تغيير في API الخارجي للمكونات.
-- صفر تغيير في DB/RLS/Auth.
-- المنطق نقي وقابل للاختبار (يعيد استخدام الدالة المختبَرة في الموجة 3).
-- توافق كامل: إن لم يكن هناك مفتاح قسم لرابط ما، يبقى ظاهراً (افتراض آمن من `filterLinksBySectionVisibility`).
+- صفر تغيير في DB/RLS/Auth/Edge Functions.
+- صفر تغيير في APIs العامة للـ hooks الثلاثة (`isRouteAllowed`, `links`, render output).
+- صفر تغيير بصري.
+- `BottomNav.test.tsx` الموجود يجب أن يستمر بالنجاح دون تعديل (mock لـ `getJsonSetting` يعمل عبر الطبقة الجديدة).
+- مكسب جانبي: memoization صحيح في `usePermissionCheck`.
