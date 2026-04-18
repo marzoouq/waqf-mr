@@ -1,82 +1,48 @@
 
-## خطة P3 — تحسينات اختيارية (تحديث README + توثيق lib vs utils)
+## خطة P0 — إصلاح أخطاء React Hooks الحرجة
 
-### نطاق العمل (3 ملفات README + 1 ذاكرة)
+### المرحلة 1: استكشاف الأخطاء
+تشغيل ESLint للحصول على القائمة الدقيقة للأخطاء وأماكنها قبل البدء بأي إصلاح.
 
-#### 1) `src/hooks/README.md` — تحديث ليعكس v7
-**الحالة**: موجود ويصف الهيكل العام (auth/data/financial/page/ui).
-**الإضافات المقترحة**:
-- إضافة قسم "v7 Layered Architecture" يربط صراحة بـ `mem://technical/architecture/core-modularization-standard-v7`
-- توضيح اتجاه التبعيات (data → financial → page) مع منع التبعية العكسية
-- إضافة قاعدة "page hooks لا تستورد supabase مباشرة"
-- إضافة مرجع إلى `useAuthCleanup` كنموذج لاستخراج side-effects من Context
+### المرحلة 2: إصلاح `rules-of-hooks` (الخطأ الواحد)
+هذا أعلى أولوية — يكسر runtime مباشرة. عادةً يكون hook مُستدعى داخل condition أو callback.
 
-#### 2) `src/lib/README.md` — تأكيد قاعدة lib vs utils
-**الحالة**: موجود ويحتوي جدول مقارنة جيد.
-**الإضافات المقترحة**:
-- قسم "متى أضع الكود هنا؟" — قائمة قرار (decision tree):
-  - يحتفظ بحالة؟ → `lib/`
-  - يستدعي Supabase/Storage/Auth؟ → `lib/`
-  - يحتاج singleton أو initialization؟ → `lib/`
-  - دالة نقية مدخل/مخرج؟ → `utils/`
-- قسم "lib/services/ vs lib/realtime/ vs lib/auth/" — توضيح متى يُستخدم كل منها
-- إضافة `notify.ts` كنمط الإشعارات الموحّد (بدلاً من toast مباشر في utils)
+**نمط الإصلاح**:
+```ts
+// ❌ خطأ
+if (cond) {
+  const x = useFoo();
+}
 
-#### 3) `src/utils/README.md` — تأكيد ممنوعات
-**الحالة**: موجود وواضح مع جدول مقارنة وممنوعات.
-**الإضافات المقترحة**:
-- توسيع قسم "ممنوعات" بمثال كود قبل/بعد لـ "إرجاع نتيجة بدلاً من toast"
-- إضافة قاعدة "barrel exports": متى يُنشأ `index.ts` (مجلد ≥3 ملفات مرتبطة وظيفياً)
-- مرجع إلى `utils/auth/index.ts` و `utils/export/index.ts` كأمثلة معتمدة
-
-#### 4) ملف ذاكرة جديد — `mem://technical/architecture/lib-vs-utils-boundary`
-**الغرض**: منع الانحدار المعماري المستقبلي بقاعدة قابلة للاستشهاد.
-
-```
----
-name: lib-vs-utils-boundary
-description: قاعدة فصل lib (stateful infrastructure) عن utils (pure functions) — قرار شجري مع أمثلة
-type: preference
----
-lib/ = بنية تحتية ذات حالة وآثار جانبية مسموحة (Supabase, Storage, Auth, queryClient, logger, monitoring).
-utils/ = دوال نقية بدون حالة وبدون آثار جانبية (format, calc, csv/xlsx builders, pdf generators).
-
-قرار سريع:
-- يستورد supabase/auth/storage → lib/
-- يستدعي toast → lib/ (أو يُرجع نتيجة من utils/)
-- singleton/initialization → lib/
-- مدخل ثابت يعطي مخرج ثابت → utils/
-
-ممنوعات utils/:
-- import { toast } from 'sonner'
-- import { supabase }
-- import.meta side effects
-
-نماذج معتمدة: utils/format, utils/distributionCalcPure, lib/queryClient, lib/services/invoiceStorageService.
+// ✅ صحيح
+const x = useFoo();
+if (cond) { /* use x */ }
 ```
 
-**ثم تحديث `mem://index.md`**: إضافة سطر تحت Memories:
-```
-- [lib vs utils Boundary](mem://technical/architecture/lib-vs-utils-boundary) — Decision tree to prevent stateful code in utils/ and pure functions in lib/
-```
+### المرحلة 3: إصلاح `set-state-in-effect` (16 خطأ — موجة DashboardLayout + useBeneficiaryMessages)
 
-### الملفات المتأثرة
-| ملف | عملية |
-|-----|--------|
-| `src/hooks/README.md` | تحديث |
-| `src/lib/README.md` | تحديث |
-| `src/utils/README.md` | تحديث |
-| `mem://technical/architecture/lib-vs-utils-boundary` | إنشاء |
-| `mem://index.md` | تحديث (إضافة سطر واحد) |
+السبب: React Compiler يرفض `setState` داخل `useEffect` بدون مبرر — يسبب re-render إضافي وأحياناً loops.
 
-### ضمانات السلامة
-- ✅ لا تعديل على أي كود إنتاجي (.ts/.tsx)
-- ✅ لا تأثير على bundle size أو runtime
-- ✅ لا تأثير على الاختبارات
-- ✅ التغييرات وثائقية بحتة (markdown فقط)
-- ✅ ملف الذاكرة الجديد يستشهد به في المراجعات المستقبلية لمنع الانحدار
+**أنماط الإصلاح المتاحة** (حسب الحالة):
 
-### القياس
-- README files: ~+30 سطر كل ملف (decision trees + أمثلة)
-- ذاكرة جديدة: قاعدة قابلة للاستشهاد عند code review لمنع وضع toast/supabase في utils/
-- onboarding: مطوّر جديد يفهم القاعدة في <60 ثانية بدون قراءة مذكرة v7 الكاملة
+| النمط | متى | الحل |
+|-------|-----|------|
+| **مشتق من props/state** | القيمة محسوبة من inputs | `useMemo` بدلاً من `useState + useEffect` |
+| **sync مع external store** | اشتراك realtime/event | `useSyncExternalStore` أو callback ref |
+| **initialization من prop** | تعيين أولي فقط | lazy initial state: `useState(() => derive(prop))` |
+| **derived + reset key** | يعتمد على prop يتغير | إعادة mount عبر `key=` بدل effect |
+| **حقاً يحتاج side-effect** | لا بديل | `useEffectEvent` أو dependency cleanup |
+
+### المرحلة 4: التحقق
+- `npx eslint` على الملفات المتأثرة → 0 أخطاء P0
+- `vitest run` على الاختبارات المتأثرة (DashboardLayout, useBeneficiaryMessages) → اخضر
+- لا تغيير في السلوك المرئي
+
+### الضمانات
+- ✅ لا تعديل على ملفات الإنتاج خارج الأخطاء المُحددة
+- ✅ كل إصلاح يحافظ على نفس السلوك (no behavioral changes)
+- ✅ التزام بـ logger بدلاً من console
+- ✅ لا تعديل على ملفات المصادقة أو الملفات المحمية
+
+### الخطوة التالية
+بعد المسح، سأعرض القائمة الدقيقة (file:line + نوع الخطأ) ثم أبدأ الإصلاح ملف-بـ-ملف بشكل متوازي حيث آمن.
