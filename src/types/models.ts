@@ -1,5 +1,13 @@
 /**
- * أنواع الجداول الأساسية — إعادة تصدير مختصرة من الأنواع المولّدة تلقائياً
+ * @internal
+ * طبقة داخلية مُعاد تصديرها عبر `src/types/index.ts` (barrel).
+ *
+ * ⚠️ لا تستورد من `@/types/models` مباشرة — استخدم:
+ *   `import type { ... } from '@/types';`
+ *
+ * هذا الملف موجود فقط لتنظيم تعريفات الجداول الأساسية (Row/Insert/Update)
+ * في مكان واحد قبل تجميعها في الـbarrel الرئيسي.
+ *
  * لكل جدول: نوع الصف (Row) + نوع الإدراج (Insert) + نوع التحديث (Update)
  */
 import type { Tables, TablesInsert, TablesUpdate, Enums } from '@/integrations/supabase/types';

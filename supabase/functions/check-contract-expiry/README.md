@@ -3,20 +3,35 @@
 دالة فحص العقود المنتهية أو القاربة على الانتهاء وإرسال إشعارات للناظر.
 
 ## الحالة الحالية
-⚠️ **cron job معطَّل** — تم إلغاء الجدولة التلقائية في migration `20260306023216_*.sql`
-(الجدولة الأصلية كانت `check-contract-expiry-daily` يومياً).
+✅ **مُجدوَل يومياً عبر `pg_cron`** — يُنفَّذ الساعة 6:00 UTC (9:00 صباحاً بتوقيت السعودية)
+عبر استدعاء دالة SQL داخلية `public.cron_check_contract_expiry()` مباشرةً
+(بدون الحاجة لاستدعاء edge function — أبسط وأكثر أماناً).
 
-## الاستدعاء الحالي
-- **يدوي**: من لوحة الناظر عند الحاجة
+اسم الـjob: `check-contract-expiry-daily`
+
+## الاستدعاءات
+- **تلقائي يومي**: عبر `pg_cron` → `cron_check_contract_expiry()` SQL function
+- **يدوي**: من لوحة الناظر عبر استدعاء هذه الـedge function عند الحاجة
 - **عند فتح صفحة العقود**: فحص خفيف على العميل عبر `useContractExpiry`
 
-## إعادة التفعيل (إن لزم)
-لإعادة جدولة الفحص اليومي عبر `pg_cron` + `pg_net`:
+## التحقق من الجدولة
+```sql
+SELECT jobname, schedule, active
+FROM cron.job
+WHERE jobname = 'check-contract-expiry-daily';
+```
 
+## إيقاف الجدولة (إن لزم)
+```sql
+SELECT cron.unschedule('check-contract-expiry-daily');
+```
+
+## بديل: استخدام edge function بدلاً من SQL function
+لو أُريد لاحقاً استبدال SQL function بـedge function:
 ```sql
 SELECT cron.schedule(
   'check-contract-expiry-daily',
-  '0 6 * * *',  -- يومياً 6 صباحاً بتوقيت UTC
+  '0 6 * * *',
   $$
   SELECT net.http_post(
     url := 'https://<project>.supabase.co/functions/v1/check-contract-expiry',
@@ -26,9 +41,6 @@ SELECT cron.schedule(
 );
 ```
 
-## بدائل
-- `cron_check_contract_expiry()` — دالة SQL تعمل داخل `pg_cron` مباشرة بدون edge function
-  (موجودة بالفعل في الـschema، يمكن جدولتها مباشرة)
-
 ## الأمان
-يتحقق من المستخدم عبر `getUser()` ويفرض دور `admin` قبل التنفيذ اليدوي.
+- **الجدولة التلقائية**: تعمل بصلاحيات `pg_cron` (postgres role) — تتجاوز RLS بأمان
+- **الاستدعاء اليدوي**: يتحقق من المستخدم عبر `getUser()` ويفرض دور `admin`
