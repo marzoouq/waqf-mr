@@ -1,4 +1,6 @@
 /**
- * Barrel file — دوال الصلاحيات والمصادقة
+ * Barrel — دوال الصلاحيات والمصادقة
  */
 export { canModifyFiscalYear } from './permissions';
+export { filterLinksBySectionVisibility, filterLinksByPermissions } from './filterByVisibility';
+export type { RouteLink } from './filterByVisibility';

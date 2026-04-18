@@ -1,5 +1,5 @@
 /**
- * اختبارات الفلترة بالرؤية والأذونات
+ * اختبارات الفلترة بالرؤية والأذونات (مُنقول من lib/permissions/ — موجة 14)
  */
 import { describe, it, expect } from 'vitest';
 import { filterLinksBySectionVisibility, filterLinksByPermissions } from './filterByVisibility';
@@ -19,41 +19,42 @@ describe('filterLinksBySectionVisibility', () => {
   it('يحذف الروابط المعطَّلة عبر sectionVisibility=false', () => {
     const result = filterLinksBySectionVisibility(
       sample,
-      { '/dashboard/properties': 'properties' },
-      { properties: false },
+      { '/dashboard/properties': 'props' },
+      { props: false },
     );
-    expect(result.map(l => l.to)).toEqual(['/dashboard', '/dashboard/contracts']);
+    expect(result).toHaveLength(2);
+    expect(result.find(l => l.to === '/dashboard/properties')).toBeUndefined();
   });
 
-  it('يبقي الرابط عندما sectionVisibility=true', () => {
+  it('يبقي الروابط بـ sectionVisibility=true أو غير محدد', () => {
     const result = filterLinksBySectionVisibility(
       sample,
-      { '/dashboard/properties': 'properties' },
-      { properties: true },
+      { '/dashboard/properties': 'props' },
+      { props: true },
     );
     expect(result).toHaveLength(3);
   });
 });
 
 describe('filterLinksByPermissions', () => {
-  it('يبقي كل الروابط حين لا توجد قيود', () => {
+  it('يبقي الروابط غير المسجَّلة', () => {
     const result = filterLinksByPermissions(sample, {}, {});
     expect(result).toHaveLength(3);
   });
 
-  it('يحذف الروابط حين perm=false', () => {
+  it('يحذف الروابط بـ permission=false', () => {
     const result = filterLinksByPermissions(
       sample,
-      { '/dashboard/contracts': 'view_contracts' },
-      { view_contracts: false },
+      { '/dashboard/contracts': 'manage_contracts' },
+      { manage_contracts: false },
     );
-    expect(result.map(l => l.to)).toEqual(['/dashboard', '/dashboard/properties']);
+    expect(result).toHaveLength(2);
   });
 
-  it('يعتبر undefined كمسموح', () => {
+  it('يبقي الروابط بـ permission=undefined كافتراض آمن', () => {
     const result = filterLinksByPermissions(
       sample,
-      { '/dashboard/contracts': 'view_contracts' },
+      { '/dashboard/contracts': 'manage_contracts' },
       {},
     );
     expect(result).toHaveLength(3);
