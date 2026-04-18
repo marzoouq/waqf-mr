@@ -88,6 +88,37 @@ npm run dev
 
 ---
 
+## CI/CD والمراقبة
+
+يحتوي المستودع على **5 GitHub Actions workflows** نشطة:
+
+| Workflow | الغرض | التشغيل |
+|----------|-------|---------|
+| `ci.yml` | فحص TypeScript + ESLint + بناء | عند كل push/PR |
+| `test.yml` | تشغيل Vitest مع تغطية Codecov | عند كل push/PR |
+| `health-check.yml` | ping دوري لـ Edge Function `health-check` | كل 30 دقيقة + يدوي |
+| `auto-version.yml` | تحديث رقم الإصدار تلقائياً | عند merge إلى main |
+| `changelog.yml` | توليد سجل التغييرات | عند merge إلى main |
+
+بالإضافة إلى `dependabot.yml` لتحديث التبعيات أسبوعياً.
+
+---
+
+## مقاييس الجودة
+
+| المقياس | القيمة |
+|---------|--------|
+| ملفات الاختبار (Vitest) | **186 ملف** — موزّعة بنمط co-location مع الكود |
+| Lazy-loaded routes | **48 route** عبر `lazyWithRetry` |
+| GitHub Actions نشطة | **5 workflows** |
+| Database migrations | **298+ migration** (سلوك معتاد لـ Lovable Cloud) |
+| Edge Functions | **11 function** بمصادقة يدوية عبر `getUser()` |
+| RLS coverage | **100%** على الجداول الحساسة |
+
+استراتيجية الاختبارات موثّقة في `mem://testing/automated-test-suite-strategy`.
+
+---
+
 ## النشر
 
 يتم النشر مباشرة عبر منصة [Lovable](https://lovable.dev) → Share → Publish.
