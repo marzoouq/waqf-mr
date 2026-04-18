@@ -5,6 +5,7 @@ import {
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
 } from '../core/core';
+import { getPdfThemeColors } from '../core/themeColors';
 import { fmt } from '@/utils/format/format';
 import {
   renderContractsTable,

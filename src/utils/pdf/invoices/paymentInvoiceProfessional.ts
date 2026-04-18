@@ -29,7 +29,7 @@ export const renderTaxProfessional = async (
       doc.setTextColor(0, 0, 0);
       doc.text(`${label} : ${value}`, xPos, yPos, { align: 'right' });
     } else {
-      doc.setTextColor(180, 60, 60);
+      doc.setTextColor(...themeColors.destructive);
       doc.text(`${label} : ${missingText}`, xPos, yPos, { align: 'right' });
       doc.setTextColor(0, 0, 0);
     }
