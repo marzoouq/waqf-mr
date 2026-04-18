@@ -1,7 +1,8 @@
 /**
- * بطاقة 6 — فحوصات إعدادات التطبيق (3)
+ * بطاقة 6 — فحوصات إعدادات التطبيق
  */
 import { allAdminLinks, allBeneficiaryLinks, ROUTE_TITLES } from '@/constants/navigation';
+import { ALL_ROUTES } from '@/constants/routeRegistry';
 import type { CheckResult } from '../types';
 
 export async function checkEnvVariables(): Promise<CheckResult> {
@@ -15,14 +16,28 @@ export async function checkEnvVariables(): Promise<CheckResult> {
 export async function checkRegisteredRoutes(): Promise<CheckResult> {
   const id = 'app_routes';
   const allLinks = [...allAdminLinks, ...allBeneficiaryLinks];
-  const missing = allLinks
-    .map(l => l.to)
-    .filter(path => !ROUTE_TITLES[path]);
 
-  if (missing.length > 0) {
-    return { id, label: 'تطابق المسارات', status: 'warn', detail: `${missing.length} مسار بدون عنوان: ${missing.slice(0, 3).join('، ')}` };
+  // فحصان: (1) المسار له عنوان، (2) المسار مُسجَّل فعلياً في routeRegistry
+  const missingTitles = allLinks.map(l => l.to).filter(path => !ROUTE_TITLES[path]);
+  const missingInRegistry = allLinks.map(l => l.to).filter(path => !ALL_ROUTES[path]);
+
+  if (missingInRegistry.length > 0) {
+    return {
+      id,
+      label: 'تطابق المسارات',
+      status: 'fail',
+      detail: `${missingInRegistry.length} مسار غير مُسجَّل في routeRegistry: ${missingInRegistry.slice(0, 3).join('، ')}`,
+    };
   }
-  return { id, label: 'تطابق المسارات', status: 'pass', detail: `${allLinks.length} رابط مسجّل — الكل متطابق مع ROUTE_TITLES` };
+  if (missingTitles.length > 0) {
+    return {
+      id,
+      label: 'تطابق المسارات',
+      status: 'warn',
+      detail: `${missingTitles.length} مسار بدون عنوان: ${missingTitles.slice(0, 3).join('، ')}`,
+    };
+  }
+  return { id, label: 'تطابق المسارات', status: 'pass', detail: `${allLinks.length} رابط — كلها مُسجَّلة في routeRegistry ولها عناوين` };
 }
 
 export async function checkOnlineStatus(): Promise<CheckResult> {
