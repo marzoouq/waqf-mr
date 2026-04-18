@@ -1,12 +1,7 @@
 /**
- * ملف Barrel — يُعيد تصدير جميع الأنواع للتوافق العكسي
- * #36 من تقرير الفحص: توسعة لتشمل جميع الفئات الفرعية
+ * @deprecated استخدم `import type { ... } from '@/types';` بدلاً من هذا الملف.
+ *
+ * يُبقى للتوافق العكسي مع الاستيرادات الحالية من `@/types/database`.
+ * المصدر الموحَّد المعتمد الآن هو `src/types/index.ts`.
  */
-export * from './models';
-export * from './relations';
-export * from './ui';
-export * from './invoices';
-export * from './advance';
-export * from './zatca';
-export * from './dashboard';
-export * from './navigation';
+export * from './index';
