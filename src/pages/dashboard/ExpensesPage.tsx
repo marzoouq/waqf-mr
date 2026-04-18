@@ -95,18 +95,12 @@ const ExpensesPage = () => {
         </Card>
       </div>
 
-      <AlertDialog open={!!h.deleteTarget} onOpenChange={(open) => !open && h.setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
-            <AlertDialogDescription>هل أنت متأكد من حذف "{h.deleteTarget?.name}"؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={h.handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDeleteDialog
+        open={!!h.deleteTarget}
+        onOpenChange={(open) => !open && h.setDeleteTarget(null)}
+        targetName={h.deleteTarget?.name}
+        onConfirm={h.handleConfirmDelete}
+      />
     </DashboardLayout>
   );
 };
