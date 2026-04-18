@@ -182,7 +182,7 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/@supabase/')) return 'vendor-supabase';
           if (id.includes('node_modules/@tanstack/')) return 'vendor-query';
           if (id.includes('node_modules/lucide-react')) return 'vendor-icons';
-          if (id.includes('node_modules/react-hook-form') || id.includes('node_modules/@hookform/') || id.includes('node_modules/zod')) return 'vendor-form';
+          if (id.includes('node_modules/zod')) return 'vendor-form';
           if (id.includes('node_modules/date-fns')) return 'vendor-date';
           if (id.includes('node_modules/sonner')) return 'vendor-sonner';
           if (id.includes('node_modules/@dnd-kit/')) return 'vendor-dnd';
