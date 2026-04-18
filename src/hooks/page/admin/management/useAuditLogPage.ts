@@ -1,7 +1,7 @@
 /**
  * هوك منطق صفحة سجل المراجعة
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/audit/useAuditLog';
 import { useAuditLogTodayCount, fetchAuditLogForExport } from '@/hooks/data/audit/useAuditLogStats';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
@@ -36,7 +36,7 @@ export function useAuditLogPage() {
     pageSize: ITEMS_PER_PAGE,
   });
 
-  const logs = auditData?.logs ?? [];
+  const logs = useMemo(() => auditData?.logs ?? [], [auditData?.logs]);
   const totalCount = auditData?.totalCount ?? 0;
 
   const { data: todayCount = 0 } = useAuditLogTodayCount();
