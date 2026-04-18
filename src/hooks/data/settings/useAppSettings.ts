@@ -18,7 +18,7 @@ export const useAppSettings = () => {
   const query = useQuery({
     queryKey: ['app-settings-all'],
     queryFn: settingsQueryFn,
-    staleTime: STALE_SETTINGS,
+    staleTime: STALE_STATIC,
     retry: 2,
     retryDelay: 1500,
     gcTime: 1000 * 60 * 30,

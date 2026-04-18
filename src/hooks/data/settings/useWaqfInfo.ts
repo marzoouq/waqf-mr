@@ -26,7 +26,7 @@ export const useWaqfInfo = () => {
   const { data: settings, isLoading, error } = useQuery({
     queryKey: ['app-settings-all'],
     queryFn: settingsQueryFn,
-    staleTime: STALE_SETTINGS,
+    staleTime: STALE_STATIC,
     gcTime: 1000 * 60 * 30,
   });
 
