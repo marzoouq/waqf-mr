@@ -103,7 +103,7 @@ export function useBeneficiaryDashboardPage() {
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });
-  }, [beneficiaryId]);
+  }, [beneficiaryId, qcRef]);
 
   useBfcacheSafeChannel(
     `beneficiary-dist-${beneficiaryId || 'none'}`,
