@@ -28,8 +28,8 @@ describe('computeLowIncomeMonths', () => {
       { date: '2024-03-15', amount: 500 },
     ]);
     expect(result).toHaveLength(1);
-    expect(result[0]).toMatchObject({ month: '2024-03', amount: 500 });
-    expect(result[0].avg).toBe(6500);
+    expect(result[0]!).toMatchObject({ month: '2024-03', amount: 500 });
+    expect(result[0]!.avg).toBe(6500);
   });
 
   it('handles string amounts via safeNumber', () => {
@@ -39,7 +39,7 @@ describe('computeLowIncomeMonths', () => {
       { date: '2024-03-15', amount: '500' as unknown as number },
     ]);
     expect(result).toHaveLength(1);
-    expect(result[0].month).toBe('2024-03');
+    expect(result[0]!.month).toBe('2024-03');
   });
 
   it('returns empty when no month is below threshold', () => {
@@ -60,6 +60,6 @@ describe('computeLowIncomeMonths', () => {
       { date: '2024-03-15', amount: 500 },
     ]);
     expect(result).toHaveLength(1);
-    expect(result[0].month).toBe('2024-03');
+    expect(result[0]!.month).toBe('2024-03');
   });
 });
