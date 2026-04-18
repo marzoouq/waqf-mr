@@ -1,41 +1,77 @@
 
-المستخدم أعاد لصق نفس تقرير الجولة الرابعة. لكن الموجات السابقة (P1 + P2) تم تنفيذها فعلياً بعد هذا التقرير. الوضع الحالي الفعلي:
 
-- ✅ #1 useAccountsSettings: تم (eslint-disable مع تبرير)
-- ✅ #2 eqeqeq: تم (5/5)
-- ✅ #3 preserve-manual-memoization: تم (2/2)
-- ✅ #4 useContractsForPdf: تم
-- ✅ #5 eslint-disable المهجورة: تم (5/5)
-- ✅ #6 react-refresh: تم (9/9)
-- ✅ #7 useAuditLogPage useMemo: تم
-- ✅ #8 viewHelper + lazyWithRetry: تم
-- ⏳ #9 defaultNotify.dismissAll: لم يُنفذ
-- ⏳ #10 تقسيم useAppSettings.ts: لم يُنفذ
+## موجة P4 المؤسسية — التنفيذ المُتحقَّق منه جنائياً
 
-التقرير قديم. سأقترح تنفيذ البندين المتبقيين فقط (#9 + #10) كموجة P3 ختامية، مع تأكيد أن باقي البنود مغلقة.
+### المؤكَّد بعد التحقق الجنائي
+| البند | عدد فعلي | الإجراء |
+|---|---|---|
+| Barrels يتيمة | **71** (من 96) | حذف بدفعات آمنة |
+| Re-export shims | 2 (`useMessagesPage` ×2) | حذف |
+| Routes barrel | 1 (`routes/index.ts`) | حذف |
+| `DataDiff` default export مكرر | 1 سطر | حذف السطر 80 |
+| `BENEFICIARIES_PAGE_SIZE` re-export ميت | 1 token | حذف من `constants/index.ts` |
+| ESLint disable في موضع خاطئ | 2 توجيهات | نقل لداخل جسم `useEffect` |
 
-## موجة P3 الختامية — إغلاق آخر بندين
+### ما **لن** يُحذف (أُسقط من التقرير الأصلي بعد التحقق)
+- ❌ `STALE_SETTINGS` — مستخدم في 3 ملفات
+- ❌ `filterByVisibility` shim — مستخدم في `BottomNav` + `useNavLinks`
+- ❌ diagnostics `check*` — مستهلكة في `useSystemDiagnostics`
+- ❌ توحيد `MONTH_NAMES` (5 ملفات) — يحتاج موجة منفصلة بفحص دلالي لكل استخدام
 
-### #9 — إضافة `dismissAll()` لـ lib/notify
-- إضافة `dismissAll: (toastId?: string | number) => toast.dismiss(toastId)` إلى `defaultNotify` في `src/lib/notify.ts`
-- تحديث `useAuthCleanup.ts` ليستخدم `notify.dismissAll()` بدل `toast.dismiss()` المباشر
-- النتيجة: إغلاق نقطة `sonner` المباشرة الوحيدة المتبقية
+---
 
-### #10 — تقسيم `useAppSettings.ts` (220 سطر)
-الخطة:
-- قراءة الملف الحالي + كل consumers لتحديد API السطحي
-- تقسيم إلى:
-  - `useAppSettingsRead.ts` — استعلامات القراءة (useQuery)
-  - `useAppSettingsWrite.ts` — mutations (upsert/delete)
-  - `useWaqfInfo.ts` — hook متخصص لمعلومات الوقف (logo, name, etc.)
-  - `appSettingsUtils.ts` — helpers خالصة (parsing, defaults)
-- الإبقاء على `useAppSettings.ts` كـ barrel/facade للتوافق الخلفي (re-export)
-- لا تغيير سلوكي — فقط فصل اهتمامات
+### #1 إصلاح ESLint في `useAccountsSettings.ts` (P0)
+**السبب الجذري المتحقَّق**: `eslint-disable-next-line` على السطر 30/41 يستهدف فقط السطر التالي (`useEffect(() => {`)، لكن الخطأ يُرفع داخل جسم الإيفكت على السطور 34/45.
 
-### الضمانات
-- لا لمس لملفات المصادقة/المحمية
-- التوافق الخلفي محفوظ عبر facade
-- التحقق بـ `tsc --noEmit` بعد كل تغيير
+**الإصلاح**: نقل التوجيه ليكون داخل جسم كل `useEffect`:
+```ts
+useEffect(() => {
+  /* eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync ... */
+  if (settings['admin_share_percentage']) setAdminPercent(...);
+  // ... + توجيه قبل كل setState
+}, [...]);
+```
+البديل الأنظف: `useMemo` لاشتقاق القيم — مرفوض هنا لأن state قابل للتحرير في النموذج (تغيير سلوكي).
 
-### ملاحظة للمستخدم
-كل البنود الأخرى في التقرير (#1-#8) منفذة بالفعل في الموجات السابقة. هل تريد تنفيذ #9 + #10 معاً، أو الاكتفاء بأحدهما؟
+**النتيجة**: 0 أخطاء ESLint (من 2) + إزالة تحذيري "unused directive".
+
+### #2 حذف 3 ملفات يتيمة مؤكَّدة (P1)
+- `src/routes/index.ts`
+- `src/hooks/page/admin/management/useMessagesPage.ts`
+- `src/hooks/page/beneficiary/messaging/useMessagesPage.ts`
+
+### #3 تنظيف ازدواج DataDiff (P2)
+- `src/components/audit/DataDiff.tsx` السطر 80: حذف `export default DataDiff;`
+
+### #4 تنظيف re-export يتيم (P2)
+- `src/constants/index.ts` السطر 13: إزالة `BENEFICIARIES_PAGE_SIZE` فقط من قائمة re-exports (الإبقاء على `DEFAULT_PAGE_SIZE, PROPERTIES_PAGE_SIZE`). الملف الأصلي `pagination.ts` لا يُلمس.
+
+### #5 حذف 68 barrel يتيم إضافي (P1 — دفعات آمنة)
+بعد تأكيد grep بـ 0 مستهلك لكل واحد، حذف 68 ملف barrel متبقياً (71 إجمالي − 3 محذوفة في #2):
+
+**components** (23): `ai, annual-report, audit, beneficiary/{dashboard,disclosure,my-share}, bylaws, chart-of-accounts, dashboard/{charts,kpi,views,widgets}, diagnostics, filters, financial, guards, landing, messages, pwa, search, settings/permissions, theme, user-management, waqf-info, waqif, zatca`
+
+**hooks** (28): `auth, data/{audit,beneficiaries,content,dashboard,financial,invoices,messaging,notifications,properties,support,zatca}, financial, page/admin/{contracts,dashboard,financial,management,properties,reports}, page/admin (root), page/beneficiary/{dashboard,financial,messaging,notifications,settings,views}, page/shared, ui`
+
+**lib** (5): `auth, realtime, search, theme, theme/themes`
+
+**utils** (12): `auth, chart, contracts, export, financial, fonts, image, pdf, pdf/shared/renderers, validation, zatca`
+
+### #6 فحص ما بعد الحذف
+- `tsc --noEmit` على المشروع كاملاً
+- `npx eslint src` — توقع 0 أخطاء
+- اختبار build: `npm run build`
+
+---
+
+### الضمانات المؤسسية
+- ✅ كل ملف يُحذف موثَّق بنتيجة `grep` صفرية على مسار `@/<dir>`
+- ✅ لا لمس لـ `AuthContext`, `ProtectedRoute`, `SecurityGuard`, `supabase/client.ts`, `types.ts`, `config.toml`, `.env`
+- ✅ لا تغيير سلوكي — كل الحذف على ملفات يتيمة فعلياً
+- ✅ تحقق نهائي بـ `tsc + eslint + build`
+
+### النتيجة المتوقعة
+- **0 أخطاء ESLint** (baseline تاريخي للمرة الأولى)
+- **−74 ملف ميت** (3 + 1 توحيد + 68 barrel + 2 cleanup)
+- لا انحدار سلوكي
+
