@@ -6,6 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
 import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
+import { useBeneficiaryWidgets } from '@/hooks/data/settings/useBeneficiaryWidgets';
 import { defaultNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 import { ROLE_SECTION_DEFS, ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
@@ -32,12 +33,12 @@ const ROLES = [
 const defaultWidgets = makeDefaults(BENEFICIARY_WIDGET_KEYS);
 
 const PermissionsControlPanel = () => {
-  const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
+  const { updateJsonSetting, isLoading } = useAppSettings();
   const { rolePermissions: savedRolePerms } = useRolePermissions();
   const { adminSections: savedAdminSections, beneficiarySections: savedBeneficiarySections } = useSectionsVisibility();
+  const { widgets: savedWidgets } = useBeneficiaryWidgets();
   const { user } = useAuth();
 
-  const savedWidgets = getJsonSetting<Record<string, boolean>>('beneficiary_widgets', defaultWidgets);
   const [perms, setPerms] = useState<RolePerms>(DEFAULT_ROLE_PERMS);
   const [adminSections, setAdminSections] = useState<Record<string, boolean>>(defaultAdminSections);
   const [beneficiarySections, setBeneficiarySections] = useState<Record<string, boolean>>(defaultBeneficiarySections);
@@ -45,11 +46,11 @@ const PermissionsControlPanel = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // savedRolePerms مدموج مسبقاً مع defaults عبر useRolePermissions
+    // جميع المصادر مدموجة مسبقاً مع defaults عبر hooks متخصصة
     setPerms(savedRolePerms);
     setAdminSections(savedAdminSections);
     setBeneficiarySections(savedBeneficiarySections);
-    setWidgets({ ...defaultWidgets, ...savedWidgets });
+    setWidgets(savedWidgets);
   }, [savedRolePerms, savedAdminSections, savedBeneficiarySections, savedWidgets]);
 
   const toggleRolePerm = (role: string, section: string) => {
