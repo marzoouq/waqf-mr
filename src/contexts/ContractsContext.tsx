@@ -1,22 +1,13 @@
 /**
- * ContractsContext — يلغي props drilling بين ContractsPage و ContractsTabContent
+ * ContractsProvider — يلغي props drilling بين ContractsPage و ContractsTabContent
  * (موجة 17 — decoupling)
  *
  * يُغلِّف القيمة المُعادة من useContractsPage ويوفّرها للأبناء عبر hook واحد.
+ * الـ context value و hook المستهلك في ملفات منفصلة لتفعيل Fast Refresh.
  */
-import { createContext, useContext, type ReactNode } from 'react';
-import type { useContractsPage } from '@/hooks/page/admin/contracts/useContractsPage';
-
-export type ContractsContextValue = ReturnType<typeof useContractsPage>;
-
-const ContractsContext = createContext<ContractsContextValue | null>(null);
+import type { ReactNode } from 'react';
+import { ContractsContext, type ContractsContextValue } from './ContractsContextValue';
 
 export const ContractsProvider = ({ value, children }: { value: ContractsContextValue; children: ReactNode }) => (
   <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>
 );
-
-export const useContractsContext = (): ContractsContextValue => {
-  const ctx = useContext(ContractsContext);
-  if (!ctx) throw new Error('useContractsContext must be used within ContractsProvider');
-  return ctx;
-};

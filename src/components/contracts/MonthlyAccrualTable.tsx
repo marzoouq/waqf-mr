@@ -11,8 +11,8 @@ import { CalendarDays } from 'lucide-react';
 import {
   type CellData, type CellStatus,
   buildFiscalMonthGrid, getCellClasses, fmtNum,
-  MobileAccrualCard,
-} from './accrual/AccrualHelpers';
+} from './accrual/accrualUtils';
+import { MobileAccrualCard } from './accrual/AccrualHelpers';
 import { isFySpecific } from '@/constants/fiscalYearIds';
 
 /** واجهة فاتورة الدفعة المُمررة من الخارج */
