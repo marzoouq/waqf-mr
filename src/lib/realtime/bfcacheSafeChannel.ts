@@ -19,10 +19,10 @@ export const useBfcacheSafeChannel = (
   const channelRef = useRef<RealtimeChannel | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const attemptRef = useRef(0);
-  // lazy init — يتجنب استدعاء Math.random() في كل render (متوافق مع React Compiler)
+  // lazy init — يتجنب الاستدعاءات النجسة (impure) في كل render (متوافق مع React Compiler)
   const instanceIdRef = useRef<string | null>(null);
   if (instanceIdRef.current === null) {
-    instanceIdRef.current = `i${Math.random().toString(36).slice(2, 10)}`;
+    instanceIdRef.current = `i${crypto.randomUUID().slice(0, 8)}`;
   }
   const subscribeFnRef = useRef<SubscribeFn>(subscribeFn);
   subscribeFnRef.current = subscribeFn;
