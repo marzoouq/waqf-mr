@@ -1,5 +1,5 @@
 /**
- * محتوى تبويب العقود — مُستخرج من ContractsPage لتقليل حجم الصفحة
+ * محتوى تبويب العقود — يستهلك ContractsContext (موجة 17 — لا props drilling)
  */
 import { Button } from '@/components/ui/button';
 import { FileText, Lock, Info, RefreshCw, CheckSquare, Square, ShieldCheck } from 'lucide-react';
@@ -8,61 +8,21 @@ import { ContractAccordionGroup, ContractStatsCards, ContractsFiltersBar } from 
 import { TableSkeleton, TablePagination } from '@/components/common';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
-import type { Contract } from '@/types/database';
-import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
+import { useContractsContext } from '@/contexts/ContractsContext';
 
-interface ContractsTabContentProps {
-  contracts: Contract[];
-  properties: Array<{ id: string; property_number: string; location: string }>;
-  paymentInvoices: PaymentInvoice[];
-  invoicePaidMap: Map<string, number>;
-  fiscalYearId: string;
-  fiscalYears: Array<{ id: string; label: string }>;
-  isClosed: boolean;
-  role: string | null;
-  isLoading: boolean;
-  stats: { total: number; active: number; expired: number; totalRent: number; activePercent: number; activeRent: number; expiringSoon: number };
-  expiredContracts: Contract[];
-  expiredIds: Set<string>;
-  filteredGroups: [string, Contract[]][];
-  statusCounts: { all: number; active: number; expired: number; cancelled: number; overdue: number };
-  allExpanded: boolean;
-  searchQuery: string;
-  setSearchQuery: (v: string) => void;
-  statusFilter: string;
-  setStatusFilter: (v: StatusFilterValue) => void;
-  propertyFilter: string;
-  setPropertyFilter: (v: string) => void;
-  paymentTypeFilter: string;
-  setPaymentTypeFilter: (v: string) => void;
-  currentPage: number;
-  setCurrentPage: (v: number) => void;
-  ITEMS_PER_PAGE: number;
-  selectedForRenewal: Set<string>;
-  expandedGroups: Set<string>;
-  setExpandedGroups: React.Dispatch<React.SetStateAction<Set<string>>>;
-  toggleAllGroups: () => void;
-  toggleSelection: (id: string) => void;
-  selectAllExpired: () => void;
-  deselectAll: () => void;
-  setBulkRenewOpen: (v: boolean) => void;
-  setFiscalYearId: (v: string) => void;
-  setDeleteTarget: (v: { id: string; name: string } | null) => void;
-  handleEdit: (c: Contract) => void;
-  handleRenew: (c: Contract) => void;
-}
+const ContractsTabContent: React.FC = () => {
+  const {
+    contracts, properties, paymentInvoices, invoicePaidMap,
+    fiscalYearId, fiscalYears, isClosed, role, isLoading,
+    stats, expiredContracts, expiredIds, filteredGroups, statusCounts, allExpanded,
+    searchQuery, setSearchQuery, statusFilter, setStatusFilter,
+    propertyFilter, setPropertyFilter, paymentTypeFilter, setPaymentTypeFilter,
+    currentPage, setCurrentPage, ITEMS_PER_PAGE,
+    selectedForRenewal, expandedGroups, setExpandedGroups,
+    toggleAllGroups, toggleSelection, selectAllExpired, deselectAll,
+    setBulkRenewOpen, setFiscalYearId, setDeleteTarget, handleEdit, handleRenew,
+  } = useContractsContext();
 
-const ContractsTabContent: React.FC<ContractsTabContentProps> = ({
-  contracts, properties, paymentInvoices, invoicePaidMap,
-  fiscalYearId, fiscalYears, isClosed, role, isLoading,
-  stats, expiredContracts, expiredIds, filteredGroups, statusCounts, allExpanded,
-  searchQuery, setSearchQuery, statusFilter, setStatusFilter,
-  propertyFilter, setPropertyFilter, paymentTypeFilter, setPaymentTypeFilter,
-  currentPage, setCurrentPage, ITEMS_PER_PAGE,
-  selectedForRenewal, expandedGroups, setExpandedGroups,
-  toggleAllGroups, toggleSelection, selectAllExpired, deselectAll,
-  setBulkRenewOpen, setFiscalYearId, setDeleteTarget, handleEdit, handleRenew,
-}) => {
   return (
     <div className="space-y-5">
       <ContractStatsCards stats={stats} isLoading={isLoading} />

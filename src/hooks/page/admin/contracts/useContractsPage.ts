@@ -11,6 +11,9 @@ import { useProperties } from '@/hooks/data/properties/useProperties';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
+import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useIsMobile } from '@/hooks/ui/useIsMobile';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useContractsFilters } from './useContractsFilters';
 import { useContractsBulkRenew } from './useContractsBulkRenew';
 import { useContractForm } from './useContractForm';
@@ -20,6 +23,9 @@ const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
 export const useContractsPage = () => {
   const { fiscalYearId, fiscalYears, isClosed, setFiscalYearId, isSpecificYear } = useFiscalYear();
+  const { role } = useAuth();
+  const isMobile = useIsMobile();
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: contracts = [], isLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
@@ -90,6 +96,8 @@ export const useContractsPage = () => {
     contracts, properties, paymentInvoices, invoicePaidMap, contractAllocations,
     fiscalYearId, fiscalYears, isClosed, isSpecificYear, setFiscalYearId,
     isLoading, isPending: form.isPending,
+    // Side-effect hooks (موجة 17 — نُقلت من ContractsPage)
+    role, isMobile, pdfWaqfInfo,
     // Computed
     stats,
     ...filters,
