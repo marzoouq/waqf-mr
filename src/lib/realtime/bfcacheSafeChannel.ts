@@ -19,7 +19,11 @@ export const useBfcacheSafeChannel = (
   const channelRef = useRef<RealtimeChannel | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const attemptRef = useRef(0);
-  const instanceIdRef = useRef(`i${Math.random().toString(36).slice(2, 10)}`);
+  // lazy init — يتجنب استدعاء Math.random() في كل render (متوافق مع React Compiler)
+  const instanceIdRef = useRef<string | null>(null);
+  if (instanceIdRef.current === null) {
+    instanceIdRef.current = `i${Math.random().toString(36).slice(2, 10)}`;
+  }
   const subscribeFnRef = useRef<SubscribeFn>(subscribeFn);
   subscribeFnRef.current = subscribeFn;
   const fallbackChannelName = `${channelName}-${instanceIdRef.current}`;

@@ -42,6 +42,8 @@ export function useBeneficiaryMessages() {
     setSelectedConv(null);
   }, [activeTab]);
 
+  // ملاحظة: setState setters من React مستقرة بطبيعتها، لكن React Compiler يطلب
+  // تضمينها صراحةً في deps لمطابقة الـ inferred dependencies.
   const handleSend = useCallback(async () => {
     if (!newMessage.trim() || !selectedConv || !user) return;
     try {
@@ -50,7 +52,7 @@ export function useBeneficiaryMessages() {
     } catch {
       // onError in the mutation already shows a toast
     }
-  }, [newMessage, selectedConv, user, sendMessage]);
+  }, [newMessage, selectedConv, user, sendMessage, setNewMessage]);
 
   const handleNewSupport = useCallback(async () => {
     if (!user) return;
@@ -67,7 +69,7 @@ export function useBeneficiaryMessages() {
     } catch {
       // onError in the mutation already shows a toast
     }
-  }, [user, supportSubject, createConversation]);
+  }, [user, supportSubject, createConversation, setSelectedConv, setActiveTab, setSupportDialogOpen, setSupportSubject]);
 
   const handleNewChat = useCallback(async () => {
     if (!user) return;
@@ -84,7 +86,7 @@ export function useBeneficiaryMessages() {
     } catch {
       // onError in the mutation already shows a toast
     }
-  }, [user, chatSubject, createConversation]);
+  }, [user, chatSubject, createConversation, setSelectedConv, setActiveTab, setChatDialogOpen, setChatSubject]);
 
   return {
     user,
