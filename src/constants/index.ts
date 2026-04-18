@@ -10,4 +10,4 @@ export { ROLE_LABELS } from './roles';
 export { FY_NONE, FY_ALL, FY_SKIP, isFyReady, isFyAll, isFySpecific } from './fiscalYearIds';
 export type { FiscalYearSentinel } from './fiscalYearIds';
 export { MAX_FINANCIAL_AMOUNT, MAX_FINANCIAL_AMOUNT_MESSAGE } from './limits';
-export { DEFAULT_PAGE_SIZE, PROPERTIES_PAGE_SIZE, BENEFICIARIES_PAGE_SIZE } from './pagination';
+export { DEFAULT_PAGE_SIZE, PROPERTIES_PAGE_SIZE } from './pagination';
