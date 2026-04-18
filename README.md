@@ -75,6 +75,36 @@
 
 📖 راجع [فهرس التوثيق](docs/INDEX.md) للوصول لجميع ملفات التوثيق التفصيلية.
 
+📑 راجع [دليل التعليقات المرجعية](docs/CHANGELOG-REFS.md) لفهم معنى تعليقات `// #N` المنتشرة في الكود.
+
+---
+
+## معمارية المجلدات: `src/lib/` مقابل `src/utils/`
+
+يفصل المشروع بين نوعين من الكود الداعم وفق قاعدة صارمة:
+
+| الخاصية | `src/lib/` | `src/utils/` |
+|---------|------------|--------------|
+| **النوع** | بنية تحتية وخدمات مشتركة | دوال نقية (pure functions) |
+| **الحالة** | قد تحتفظ بحالة (stateful) | بدون حالة (stateless) |
+| **الآثار الجانبية** | مسموحة (Supabase, Auth, Storage, fetch) | ممنوعة |
+| **الاختبار** | يحتاج mocks للخدمات الخارجية | اختبار سهل — مدخلات/مخرجات |
+| **أمثلة** | `logger`, `queryClient`, `services/`, `realtime/`, `auth/` | `format()`, `calculateDistributions()`, `pdf/`, `csv/` |
+| **يستورد `supabase`؟** | ✅ نعم | ❌ لا — استخدم `lib/services/` بديلاً |
+| **يستورد `toast`؟** | ✅ نعم (`lib/notify.ts`) | ❌ لا — أعِد result واترك UI يُشعر |
+
+### قاعدة قرار سريعة
+
+اسأل نفسك: **"هل يحتاج هذا الكود إلى mock للاختبار؟"**
+- لا → ضعه في `utils/`
+- نعم → ضعه في `lib/`
+
+تفاصيل أكثر:
+- [`src/lib/README.md`](src/lib/README.md)
+- [`src/utils/README.md`](src/utils/README.md)
+- [`src/hooks/README.md`](src/hooks/README.md) — تنظيم الهوكات
+- معمارية كاملة: `mem://technical/architecture/core-modularization-standard-v7`
+
 ---
 
 ## التشغيل المحلي
