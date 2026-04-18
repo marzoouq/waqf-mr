@@ -33,7 +33,7 @@ export const useSettingsCategory = (category: SettingsCategory) => {
   return useQuery({
     queryKey: ['app-settings', category],
     queryFn: settingsQueryFn,
-    staleTime: STALE_SETTINGS,
+    staleTime: STALE_STATIC,
     gcTime: 1000 * 60 * 30,
     select: (settings) => {
       const filtered: Record<string, string> = {};
@@ -55,7 +55,7 @@ export const useSetting = (key: string, fallback = ''): string => {
   const { data } = useQuery({
     queryKey: ['app-settings-all'],
     queryFn: settingsQueryFn,
-    staleTime: STALE_SETTINGS,
+    staleTime: STALE_STATIC,
     gcTime: 1000 * 60 * 30,
     select: (settings) => settings[key] ?? fallback,
   });

@@ -6,9 +6,7 @@
 /** بيانات نادرة التغيّر — عقارات، وحدات، لوائح */
 export const STALE_STATIC = 5 * 60_000;
 
-/** إعدادات التطبيق — تؤثر على حسابات مالية (حصة ناظر، سقف سلف).
- *  مُوحَّد مع STALE_STATIC لتجنب التكرار (#12 من تقرير الفحص). */
-export const STALE_SETTINGS = STALE_STATIC;
+/** ملاحظة: إعدادات التطبوق تستخدم STALE_STATIC مباشرةً (تم حذف alias STALE_SETTINGS في P7). */
 
 /** بيانات مالية — حسابات، سنوات مالية، تخصيصات، عقود */
 export const STALE_FINANCIAL = 60_000;
