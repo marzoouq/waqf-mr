@@ -1,7 +1,7 @@
 /**
  * هوك آمن للـ bfcache — يلف قنوات Realtime مع إدارة pagehide/pageshow
  */
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { createRealtimeChannel, removeRealtimeChannel, getRealtimeChannels } from '@/lib/realtime/channelFactory';
 import { logger } from '@/lib/logger';
@@ -19,14 +19,16 @@ export const useBfcacheSafeChannel = (
   const channelRef = useRef<RealtimeChannel | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const attemptRef = useRef(0);
-  // lazy init — يتجنب الاستدعاءات النجسة (impure) في كل render (متوافق مع React Compiler)
-  const instanceIdRef = useRef<string | null>(null);
-  if (instanceIdRef.current === null) {
-    instanceIdRef.current = `i${crypto.randomUUID().slice(0, 8)}`;
-  }
   const subscribeFnRef = useRef<SubscribeFn>(subscribeFn);
-  subscribeFnRef.current = subscribeFn;
-  const fallbackChannelName = `${channelName}-${instanceIdRef.current}`;
+  // تحديث المرجع عبر effect — لا تحدّث refs أثناء الـ render (React Compiler)
+  useEffect(() => {
+    subscribeFnRef.current = subscribeFn;
+  }, [subscribeFn]);
+
+  // معرّف فريد ثابت لطول حياة الـ hook — مولّد مرة واحدة عبر useMemo
+  // لا نستخدم Math.random() لأن الـ Compiler يعتبرها impure حتى داخل lazy-init
+  const instanceId = useMemo(() => `i${crypto.randomUUID().slice(0, 8)}`, []);
+  const fallbackChannelName = `${channelName}-${instanceId}`;
 
   const clearRetry = useCallback(() => {
     if (retryRef.current) {
@@ -122,8 +124,10 @@ export const useBfcacheSafeChannel = (
     }
   }, [teardown, removeStaleScopedChannels, channelName, fallbackChannelName, clearRetry]);
 
-  // إبقاء الـ ref محدّثاً بأحدث نسخة من initChannel
-  initChannelRef.current = initChannel;
+  // إبقاء الـ ref محدّثاً بأحدث نسخة من initChannel — في effect، ليس أثناء render
+  useEffect(() => {
+    initChannelRef.current = initChannel;
+  }, [initChannel]);
 
   useEffect(() => {
     if (!enabled) return;
