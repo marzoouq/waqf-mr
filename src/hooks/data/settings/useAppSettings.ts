@@ -10,7 +10,7 @@
  * هذا الملف يبقى كـ barrel/facade للحفاظ على API السطحي والتوافق الخلفي.
  */
 import { useQuery } from '@tanstack/react-query';
-import { STALE_SETTINGS } from '@/lib/queryStaleTime';
+import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { settingsQueryFn } from './useAppSettingsRead';
 import { useAppSettingsWrite } from './useAppSettingsWrite';
 
@@ -18,7 +18,7 @@ export const useAppSettings = () => {
   const query = useQuery({
     queryKey: ['app-settings-all'],
     queryFn: settingsQueryFn,
-    staleTime: STALE_SETTINGS,
+    staleTime: STALE_STATIC,
     retry: 2,
     retryDelay: 1500,
     gcTime: 1000 * 60 * 30,

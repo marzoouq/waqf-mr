@@ -25,4 +25,3 @@ export const PAGE_SIZE_AUDIT = 15;
 
 // أسماء قديمة للتوافق
 export const PROPERTIES_PAGE_SIZE = 9;
-export const BENEFICIARIES_PAGE_SIZE = PAGE_SIZE_BENEFICIARIES;

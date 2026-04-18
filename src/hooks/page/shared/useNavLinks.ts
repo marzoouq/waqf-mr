@@ -2,7 +2,7 @@
  * هوك فلترة وبناء روابط القائمة الجانبية حسب الدور والصلاحيات
  * مُستخرج من DashboardLayout لفصل المسؤوليات
  *
- * تم تبسيطه عبر استخدام `lib/permissions/filterByVisibility` كمصدر موحَّد
+ * تم تبسيطه عبر استخدام `utils/auth/filterByVisibility` كمصدر موحَّد
  * لقواعد الفلترة، تُشاركها BottomNav أيضاً.
  */
 import { useMemo } from 'react';
@@ -12,7 +12,7 @@ import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibili
 import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
 import { defaultMenuLabels, type MenuLabels } from '@/types/navigation';
 import { linkLabelKeys, allAdminLinks, allBeneficiaryLinks, ADMIN_ROUTE_PERM_KEYS, BENEFICIARY_ROUTE_PERM_KEYS, ACCOUNTANT_EXCLUDED_ROUTES, ADMIN_ROUTE_TO_SECTION, BENEFICIARY_ROUTE_TO_SECTION } from '@/constants/navigation';
-import { filterLinksBySectionVisibility, filterLinksByPermissions } from '@/lib/permissions/filterByVisibility';
+import { filterLinksBySectionVisibility, filterLinksByPermissions } from '@/utils/auth/filterByVisibility';
 
 export function useNavLinks() {
   const { role } = useAuth();

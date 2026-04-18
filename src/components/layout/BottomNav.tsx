@@ -17,7 +17,7 @@ import {
   BENEFICIARY_ROUTE_TO_SECTION,
 } from '@/constants/navigation';
 import { isActiveLink } from '@/lib/navigation/isActiveLink';
-import { filterLinksBySectionVisibility } from '@/lib/permissions/filterByVisibility';
+import { filterLinksBySectionVisibility } from '@/utils/auth/filterByVisibility';
 
 interface BottomNavProps {
   onOpenSidebar: () => void;
