@@ -2,12 +2,11 @@
  * صفحة إعدادات المستفيد — مقسّمة إلى تبويبات فرعية
  */
 import { ResponsiveTabs, TabsContent, type TabItem } from '@/components/ui/responsive-tabs';
-import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { User, Lock, Bell, Shield, Palette, AlertCircle, RefreshCw } from 'lucide-react';
+import { User, Lock, Bell, Shield, Palette, AlertCircle } from 'lucide-react';
 import ThemeColorPicker from '@/components/theme/ThemeColorPicker';
 import { BiometricSettings, AccountTab, PasswordTab, NotificationsTab } from '@/components/settings';
-import { TableSkeleton } from '@/components/common';
+import { TableSkeleton, ErrorState, EmptyPageState } from '@/components/common';
 import { useBeneficiarySettingsPage } from '@/hooks/page/beneficiary/useBeneficiarySettingsPage';
 
 const tabItems: TabItem[] = [
@@ -28,20 +27,7 @@ const BeneficiarySettingsPage = () => {
     handleRetry,
   } = useBeneficiarySettingsPage();
 
-  if (benError) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={handleRetry} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
+  // #37 — التحميل أولاً، ثم الخطأ، ثم البيانات الفارغة
   if (benLoading) {
     return (
       <DashboardLayout>
@@ -52,17 +38,22 @@ const BeneficiarySettingsPage = () => {
     );
   }
 
+  if (benError) {
+    return (
+      <ErrorState
+        message="حدث خطأ أثناء تحميل البيانات"
+        onRetry={handleRetry}
+      />
+    );
+  }
+
   if (!currentBeneficiary) {
     return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-warning" />
-          <h2 className="text-xl font-bold">حسابك غير مرتبط</h2>
-          <p className="text-muted-foreground text-center max-w-md">
-            حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف.
-          </p>
-        </div>
-      </DashboardLayout>
+      <EmptyPageState
+        icon={AlertCircle}
+        title="حسابك غير مرتبط"
+        description="حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف."
+      />
     );
   }
 
