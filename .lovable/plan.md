@@ -1,51 +1,58 @@
 
+## خطة: اختبار وحدة لـ IdleTimeoutManager
 
-## موجة Auth Cleanup — استخراج `useAuthCleanup` (تحقيق جنائي)
+### الهدف
+اختبار co-located يتحقق أن `performCleanup` يُستدعى عند فشل `signOut` داخل `handleIdleLogout`.
 
-### نتائج التحقيق
+### الملف الجديد
+`src/components/layout/IdleTimeoutManager.test.tsx`
 
-| فحص | نتيجة |
-|-----|-------|
-| مستهلكو `signOut` | `useLogoutFlow`, `useDashboardPrefetch`, `useDashboardSummary` (الأخير يستخدم `supabase.auth.signOut` مباشرة — خارج النطاق) + mock في `AdminDashboard.test.tsx` |
-| توقيع `signOut` | `() => Promise<void>` — **سيبقى كما هو** ✅ |
-| `CLEARABLE_STORAGE_KEYS` | يُستهلك حصراً في `AuthContext.tsx` ✅ |
-| `clearSlowQueries` / `clearPageLoadEntries` | تُستهلك أيضاً في `PagePerformanceCard.tsx` (لا تأثير على الاستخراج) ✅ |
-| نمط الاختبارات | co-located (`useWebAuthn.test.ts`) — لا يوجد `__tests__/` |
-| `useAuthListener` | منفصل بالفعل — لا تداخل |
+### استراتيجية الـ Mocking
 
-### التغييرات
+| Module | Mock |
+|--------|------|
+| `@/hooks/auth/useAuthContext` | `useAuth` يُرجع `{ user: { id: 'u1' }, signOut: vi.fn() }` |
+| `@/hooks/auth/useAuthCleanup` | `useAuthCleanup` يُرجع `{ performCleanup: vi.fn() }` |
+| `@/hooks/data/settings/useAppSettings` | `useAppSettings` يُرجع `{ getJsonSetting: () => 15 }` |
+| `@/hooks/ui/useIdleTimeout` | يلتقط `onIdle` ويعرضه عبر متغيّر خارجي للاستدعاء اليدوي في الاختبار |
+| `@/lib/services/accessLogService` | `logAccessEvent: vi.fn().mockResolvedValue(undefined)` |
+| `@/lib/logger` | `logger.error: vi.fn()` |
+| `@/components/auth/IdleTimeoutWarning` | mock بسيط (lazy import) — يُرجع `null` |
 
-**1) ملف جديد** `src/hooks/auth/useAuthCleanup.ts`
-- يُصدّر `useAuthCleanup()` بـ `performCleanup` ثابت المرجع (`useCallback` بدون deps)
-- يحوي: `queryClient.clear()` → مسح localStorage عبر `CLEARABLE_STORAGE_KEYS` → مسح sessionStorage (`FISCAL_YEAR`, `NID_LOCKED_UNTIL`) → dynamic import للـ monitoring مع silent catch → `toast.dismiss()`
-- لا يلمس `setRole` (يبقى مسؤولية `AuthContext`)
+### حماية window.location
+```ts
+const originalLocation = window.location;
+beforeEach(() => {
+  delete (window as any).location;
+  (window as any).location = { href: '' };
+});
+afterEach(() => {
+  (window as any).location = originalLocation;
+});
+```
 
-**2) ملف اختبار جديد** `src/hooks/auth/useAuthCleanup.test.ts` (co-located — مطابق للنمط)
-- mocks: `@/lib/queryClient`, `@/lib/storage`, `@/lib/monitoring`, `sonner`
-- اختبارات:
-  - يستدعي `queryClient.clear()` مرة واحدة
-  - يستدعي `safeRemove` لكل مفتاح في `CLEARABLE_STORAGE_KEYS`
-  - يستدعي `safeSessionRemove` للمفتاحين الحساسين
-  - dynamic import الفاشل لا يُسبب رمي خطأ
-  - `toast.dismiss()` يُنفَّذ
+### الاختبارات (4)
 
-**3) تعديل** `src/contexts/AuthContext.tsx`
-- إزالة الاستيرادات: `queryClient`, `toast`, `STORAGE_KEYS`, `CLEARABLE_STORAGE_KEYS`, `safeRemove`, `safeSessionRemove`
-- إضافة استيراد: `useAuthCleanup`
-- استدعاء `const { performCleanup } = useAuthCleanup()` داخل `AuthProvider`
-- تبسيط `signOut` finally إلى: `setRole(null); performCleanup();`
-- تحديث deps: `[setRole, performCleanup]`
-- تحديث التعليق المرجعي رقم 14 (تعليق `// #15 perf`) → ينتقل إلى `useAuthCleanup.ts` بدلاً من `AuthContext`
+1. **مسار النجاح**: `signOut` ينجح → `performCleanup` لا يُستدعى → `window.location.href === '/auth?reason=idle'`
+2. **مسار الفشل (الحرج)**: `signOut.mockRejectedValue(new Error('boom'))` → `performCleanup` يُستدعى مرة واحدة → `logger.error` يُستدعى → التوجيه يحدث رغم الفشل
+3. **logAccessEvent يُستدعى دائماً** قبل `signOut` بـ `event_type: 'idle_logout'` و `user_id: 'u1'`
+4. **بدون مستخدم**: `useAuth` يُرجع `{ user: null }` → المكوّن يُرجع `null` (لا renders)
 
-### ضمانات السلامة
+### نمط استدعاء onIdle
+```ts
+let capturedOnIdle: (() => Promise<void>) | null = null;
+vi.mock('@/hooks/ui/useIdleTimeout', () => ({
+  useIdleTimeout: (opts: any) => {
+    capturedOnIdle = opts.onIdle;
+    return { showWarning: false, remaining: 0, stayActive: vi.fn() };
+  },
+}));
+// في الاختبار:
+render(<IdleTimeoutManager />);
+await act(async () => { await capturedOnIdle!(); });
+```
 
-- ✅ توقيع `signOut` العام لم يتغيّر — `useLogoutFlow`, `useDashboardPrefetch`, mocks الاختبار تعمل بدون تعديل
-- ✅ ترتيب التنفيذ محفوظ (queryClient → localStorage → sessionStorage → monitoring → toast)
-- ✅ `setRole(null)` يبقى داخل `AuthContext` (state مرتبط بالـ context)
-- ✅ القاعدة الذهبية: لا تعديل على `useAuthListener` ولا على ملفات الحماية الأخرى
-- ✅ إعادة الاستخدام المستقبلية: hook متاح لـ session-expiry handlers بدون coupling مع AuthContext
-
-### القياس
-- AuthContext: ~106 → ~92 سطر (-14)
-- منطق التنظيف معزول وقابل للاختبار منعزلاً (5 اختبارات وحدة)
-
+### ضمانات
+- لا تعديل على ملفات الإنتاج
+- co-located مع الملف المُختبَر (مطابق لنمط `useAuthCleanup.test.ts`)
+- يحمي ضد الانحدار: إن أُزيل try/catch مستقبلاً، اختبار #2 سيفشل
