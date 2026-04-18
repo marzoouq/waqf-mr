@@ -11,7 +11,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { STALE_SETTINGS } from '@/lib/queryStaleTime';
+import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { getCategoryFromKey, type SettingsCategory } from './appSettingsUtils';
 
 /** ذاكرة مؤقتة لقيم JSON المُحلَّلة — مُشتركة بين read/write */

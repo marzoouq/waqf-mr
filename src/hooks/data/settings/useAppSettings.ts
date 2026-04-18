@@ -10,7 +10,7 @@
  * هذا الملف يبقى كـ barrel/facade للحفاظ على API السطحي والتوافق الخلفي.
  */
 import { useQuery } from '@tanstack/react-query';
-import { STALE_SETTINGS } from '@/lib/queryStaleTime';
+import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { settingsQueryFn } from './useAppSettingsRead';
 import { useAppSettingsWrite } from './useAppSettingsWrite';
 

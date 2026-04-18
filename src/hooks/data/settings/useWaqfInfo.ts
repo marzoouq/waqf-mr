@@ -6,7 +6,7 @@
  */
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { STALE_SETTINGS } from '@/lib/queryStaleTime';
+import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { settingsQueryFn } from './useAppSettingsRead';
 
 export interface WaqfInfo {
