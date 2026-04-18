@@ -31,7 +31,6 @@ const SwUpdateBanner = () => {
       setDismissed(false);
       return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- timer-based UI re-show after snooze duration
     const timer = setTimeout(() => setDismissed(false), remaining);
     return () => clearTimeout(timer);
   }, [dismissed, snoozedUntil]);

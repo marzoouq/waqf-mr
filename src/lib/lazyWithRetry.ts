@@ -21,7 +21,7 @@ export function lazyWithRetry<T extends ComponentType<Record<string, unknown>>>(
         const retried = sessionStorage.getItem('chunk_retry');
         if (!retried) {
           sessionStorage.setItem('chunk_retry', '1');
-          try { await caches.delete('static-assets'); } catch (_) { /* تجاهل */ }
+          try { await caches.delete('static-assets'); } catch { /* تجاهل */ }
           window.location.reload();
           return new Promise<{ default: T }>(() => {});
         }

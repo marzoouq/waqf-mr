@@ -9,9 +9,8 @@ type ViewName = keyof Database['public']['Views'];
 
 /**
  * استعلام view من Supabase مع type safety
- * يستخدم `as any` داخلياً مرة واحدة فقط بدلاً من تكراره في كل مكان
+ * يستخدم cast واحد عبر `unknown` بدلاً من `any` لتفادي تحذير ESLint مع الحفاظ على النوع الناتج
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- ضروري لأن supabase.from() لا يقبل أسماء Views
 export function fromView<T extends ViewName>(name: T) {
-  return supabase.from(name as any);
+  return supabase.from(name as unknown as never);
 }

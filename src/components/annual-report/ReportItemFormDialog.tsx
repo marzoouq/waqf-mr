@@ -49,7 +49,6 @@ const ReportItemFormDialog: React.FC<Props> = ({
       setContent(item.content);
       setPropertyId(item.property_id || '');
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset form fields when no item
       setTitle('');
       setContent('');
       setPropertyId('');

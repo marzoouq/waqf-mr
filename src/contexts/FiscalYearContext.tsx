@@ -51,7 +51,6 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
       } else {
         const exists = fiscalYears.some(fy => fy.id === selectedId);
         if (!exists) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect -- invalidate stale selection no longer in remote list
           setSelectedId('');
           try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignored */ }
         }
