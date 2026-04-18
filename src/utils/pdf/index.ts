@@ -10,6 +10,9 @@ export { generateBylawsPDF } from './entities/bylaws';
 export { generateDisclosurePDF, generateMySharePDF } from './entities/beneficiary';
 export { generateExpensesPDF, generateIncomePDF } from './entities/expenses';
 export { generateInvoicesViewPDF, generateOverdueInvoicesPDF } from './invoices/invoices';
-export { generateAnnualReportPDF } from './reports/annualReport';
 export { generateComprehensiveBeneficiaryPDF } from './reports/comprehensiveBeneficiary';
 export { generateYearComparisonPDF } from './reports/comparison';
+export { generateForensicAuditPDF } from './reports/forensicAudit';
+// ملاحظة: generateAnnualReportPDF و generateAnnualDisclosurePDF تأتي من reports.ts (وليس annualReport.ts)
+// لأن المستهلكين يستخدمون شكل البيانات ذو الحقل `fiscalYear`.
+export { generateAnnualReportPDF, generateAnnualDisclosurePDF } from './reports/reports';
