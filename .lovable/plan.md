@@ -1,77 +1,101 @@
 
 
-## التحقق الجنائي الحقيقي — كل المؤجَّلات بأرقام مُتحقَّقة
+## خطة موجة P10 — إصلاح إحصائيات الهبوط + نسب المستحقين + تدقيق توزيع المستفيدين
 
-### ✅ الادعاءات المُتحقَّقة بالأرقام الفعلية
+سأقسم الطلب إلى 3 مهام مستقلة بعد فحص الكود الفعلي.
 
-| البند | الادعاء | المُتحقَّق فعلياً | الحالة |
-|---|---|---|---|
-| P10 — `@/types/database` | 76 ملف | **76 ملف** (grep فعلي) | ✅ صحيح 100% |
-| P12 — ملفات 200-249 سطر | 13 ملف | **13 ملف** بنفس الأسطر بالضبط | ✅ صحيح 100% |
-| P9 #1 — Views | 4 views محتاجة `security_invoker` | **الـ 4 الآن `security_invoker=on`** | ✅ مُصلَح فعلاً |
-| P9 #3 — realtime.messages | محتاج policy | **policy موجود + يقصر على admin/accountant** | ✅ مُصلَح فعلاً |
-| P9 #4 — access_log roles | محتاج تحويل لـ authenticated | **8/8 سياسات على `{authenticated}`** | ✅ مُصلَح فعلاً |
-| P9 #2 — zatca_certificates | سياسة واحدة `SELECT USING(false)` | **مُتحقَّق: السياسة الوحيدة هي `false`** | ✅ صحيح — مقصود |
+---
 
-### 🔍 اكتشافات جديدة من الفحص العميق
+### 🔍 الفحص المطلوب قبل التنفيذ
 
-**1. `beneficiaries_safe` و `contracts_safe` — حماية مزدوجة قوية ✅**
-- Views تحوي `CASE WHEN is_privileged THEN ... ELSE NULL/'***'`
-- مع `security_invoker=on` الآن، RLS على الجدول الأساسي يعمل أيضاً
-- **النتيجة**: المستفيد/الواقف لن يرى أي PII حتى لو وصل للـ view
+سأفحص:
+1. `get_public_stats` RPC + `usePublicStats.ts` + مكون عرض الإحصائيات في الهبوط
+2. مدخلات `share_percentage` في نماذج إضافة/تعديل المستفيد (هل تقبل عشرية؟)
+3. حساب توزيع "عبدالله" في السنة المقفلة + مقارنة `distributions.amount` مع `share_percentage * net_after_zakat`
 
-**2. `v_fiscal_year_summary` — لا يحوي `is_fiscal_year_accessible` filter داخلياً**
-- يعتمد كلياً على `security_invoker=on` (مُفعَّل ✅) لتطبيق RLS من الجداول الأساسية
-- الجداول الأساسية (income, expenses, distributions, payment_invoices, fiscal_years) كلها تحوي `is_fiscal_year_accessible` RESTRICTIVE
-- **النتيجة**: محمي بشكل صحيح بعد P9
+---
 
-**3. `contract_fiscal_allocations` — اكتشاف مهم 🟠**
-- `useContractAllocations.ts` يستخدم `.from('contract_fiscal_allocations')` **مباشرة** (لا join مع contracts)
-- يجلب فقط: `id, contract_id, fiscal_year_id, period_start, period_end, allocated_payments, allocated_amount`
-- **لا PII مكشوف** — فقط `contract_id` (UUID) + بيانات مالية مجمعة
-- المستفيد يستطيع رؤية UUIDs لكن لا يستطيع join مع `contracts` (RLS يحجب)
-- **النتيجة**: P9 #6 ليس مشكلة فعلية — تأكيد
+### المهمة 1 — إحصائيات الهبوط (أرقام واقعية + تحكم ناظر)
 
-**4. `useAccountsData.ts` — مسار آمن**
-- يستخدم `useContractsByFiscalYear` (يستهدف `contracts` مباشرة)
-- المستفيد/الواقف لا يستطيعون استدعاء هذا الhook (RLS على `contracts` يحجبهم — `Admin and accountant can view contracts` فقط)
-- **النتيجة**: لا تسريب
+**المشكلة الحالية حسب memory `mem://security/privacy/public-stats-anonymization`:**
+- `get_public_stats` يُقرّب عدد المستفيدين لأقرب 10 (لذا يظهر 10 بدلاً من العدد الفعلي)
+- لا يوجد تحكم بالناظر بالإخفاء أو override
 
-**5. Linter Warning جديد — `Public Bucket Allows Listing`**
-- `waqf-assets` bucket عام (موثَّق كمقصود في memory)
-- يسمح بـ listing كل الملفات
-- **القرار الحالي**: مقبول للـ logos + email templates
-- **توصية**: راجع المحتوى الفعلي للـ bucket — لا تخزّن ملفات حساسة فيه
+**الحل:**
 
-### 📊 إحصائيات فعلية مُتحقَّقة
+أ) **تعديل `get_public_stats` RPC**:
+- إضافة قراءة من `app_settings` لمفاتيح:
+  - `public_stat_properties_mode`: `auto` | `manual` | `hidden` (افتراضي `auto`)
+  - `public_stat_properties_value`: رقم يدوي (عند `manual`)
+  - نفس المفاتيح لـ `beneficiaries` و `fiscal_years`
+- عند `auto` للمستفيدين: **إرجاع العدد الحقيقي بدون تقريب** (الناظر يقرر الإخفاء بدلاً من التقريب الإجباري)
+- عند `hidden`: إخراج البطاقة من الـ payload
+- بنية الإرجاع الجديدة: `{ stats: [{key, label, value, visible}] }`
 
-| المجال | الرقم الحقيقي |
-|---|---|
-| Stored procedures | **88** دالة (أكثر بكثير من ادعاء "32") |
-| Triggers (information_schema) | 0 ظاهرة لـ user (مُخفية بالـ permissions) |
-| Total exports في src/ | **1,695** export (الادعاء "241 unused" يحتاج knip للتحقق) |
-| ملفات `@/types/database` | 76 ✅ |
+ب) **تحديث `usePublicStats.ts`**: التكيف مع البنية الجديدة + فلترة المخفي
 
-### 🎯 التقييم النهائي للنشر
+ج) **قسم جديد في صفحة إعدادات الناظر**: "إحصائيات صفحة الهبوط"
+- 3 بطاقات (واحدة لكل إحصائية) تحوي:
+  - Radio: تلقائي / مخصص / مخفي
+  - Input للرقم (يظهر عند مخصص)
+  - معاينة فورية
+- حفظ عبر upsert في `app_settings`
 
-| الحالة | التقييم |
-|---|---|
-| **P9 (الأمنية الحرجة)** | ✅ **مُنفَّذ بنجاح** — كل الإصلاحات مُتحقَّقة في DB |
-| **P10-P13 (فنية)** | 🟡 ديون حقيقية لكن بدون أثر سلوكي |
-| **P9 #2 و #6** | ✅ ليست مشاكل فعلية — تصميم مقصود وآمن |
-| **Linter warning** | 🟡 معترف به ومقصود (waqf-assets) |
-| **88 stored procedure** | ⚪ غير مفحوص — قد يحوي منطق غير آمن (مجهول الأثر) |
+د) **تحديث memory** `mem://security/privacy/public-stats-anonymization` لعكس السلوك الجديد
 
-### 🟢 الخلاصة الجنائية الصادقة
+---
 
-**التنفيذ حقيقي ومُتحقَّق:**
-- ✅ كل إصلاحات P9 مُطبَّقة فعلياً في قاعدة البيانات (verified بـ pg_class + pg_policies)
-- ✅ كل أرقام المؤجَّلات صحيحة 100% (76, 13, 4)
-- ✅ الادعاء "0 تسريب فعلي" مُتحقَّق بفحص الـ view definitions + query patterns
+### المهمة 2 — قبول النسب العشرية للمستفيدين (10.28% مثلاً)
 
-**الفجوة الوحيدة الحقيقية المتبقية**: 
-- 88 stored procedure (الادعاء كان 32 — رقم غير دقيق) لم تُفحَص داخلياً
-- هذه هي المنطقة الوحيدة "مجهولة الأثر" — توصية: فحصها في موجة P11 بعد النشر
+**الفحص المطلوب**: 
+- نموذج إضافة/تعديل المستفيد (BeneficiaryForm)
+- التحقق من `step` و `min/max` على input النسبة
+- التحقق من validation schema (Zod)
+- التأكد أن `distributions` تستخدم النسبة العشرية في حساباتها (server-side في `execute_distribution`)
 
-**التوصية**: النشر آمن. المؤجَّلات الفنية (P10-P13) لا تمنع النشر، والديون الأمنية (P9 #2, #6) تحققت كقرارات تصميم مقصودة وليست ثغرات.
+**الحل المتوقع**:
+- تغيير `step="1"` → `step="0.01"` على input النسبة
+- تحديث Zod schema لقبول decimals (`.multipleOf(0.01)`)
+- التأكد من validation أن المجموع ≤ 100% بدقة عشرية
+- DB: `share_percentage` بالفعل `numeric` (يدعم العشرية ✅)
+
+---
+
+### المهمة 3 — تدقيق توزيع "عبدالله" في السنة المقفلة
+
+**خطوات التحقيق الجنائي**:
+1. استعلام `beneficiaries` للعثور على ID عبدالله + نسبته
+2. استعلام `distributions` للسنة المقفلة لحساب ما استلمه فعلياً
+3. استعلام `accounts` للسنة المقفلة لمعرفة `net_after_zakat` و `distributions_amount`
+4. حساب الحصة المتوقعة = `share_percentage × (net_after_zakat - admin_share - waqif_share)`
+5. مقارنة المتوقع مع الفعلي + فحص:
+   - هل توجد `advance_carryforward` تم خصمها؟
+   - هل توجد `advance_requests` مدفوعة؟
+   - هل هناك خطأ في `largest remainder method` (memory `distribution-calculation-method`)?
+
+**النتيجة**: تقرير تشخيصي بسبب الفرق + إصلاح إن وُجد bug فعلي. **لن أعدّل بيانات السنة المقفلة بدون موافقة صريحة** (memory `overseer-closed-year-access`).
+
+---
+
+### الترتيب التنفيذي
+1. **أولاً**: تشخيص توزيع عبدالله (read-only) لأنه قد يكشف bug يجب إصلاحه قبل أي شيء آخر
+2. **ثانياً**: إصلاح نسب عشرية (تغييرات frontend + validation)
+3. **ثالثاً**: إحصائيات الهبوط (RPC + UI إعدادات)
+
+### الملفات المتأثرة (متوقعة)
+- migration: تحديث `get_public_stats`
+- `src/hooks/data/content/usePublicStats.ts`
+- `src/components/landing/...` (مكون الإحصائيات)
+- `src/pages/admin/settings/...` أو إنشاء `LandingStatsSettings.tsx`
+- `src/components/admin/beneficiaries/BeneficiaryForm.tsx` (نسب عشرية)
+- Zod schema للمستفيد
+
+### الضمانات
+- ✅ لا تعديل لبيانات السنة المقفلة دون موافقة
+- ✅ القيم الافتراضية للإحصائيات = `auto` (لا انكسار للسلوك)
+- ✅ نسب عشرية متوافقة مع `numeric` في DB
+- ✅ RLS موجود على `app_settings` (admin only للكتابة)
+
+### سؤال قبل التنفيذ
+بخصوص إحصائية المستفيدين: حسب memory الحالي، الـ RPC يُقرّب لأقرب 10 لحماية الخصوصية. الآن ستُكشف الأرقام الحقيقية للزوار غير المسجلين عند `auto`. هل توافق على إزالة التقريب التلقائي والاكتفاء بآلية الإخفاء/override الجديدة؟
 
