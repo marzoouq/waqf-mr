@@ -3,9 +3,7 @@ import { AlertCircle, Sun, Moon } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender, ErrorState } from '@/components/common';
 import { isFyReady } from '@/constants/fiscalYearIds';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { BENEFICIARY_WIDGET_KEYS } from '@/constants/beneficiaryWidgets';
-import { makeDefaults } from '@/constants/sections';
+import { useBeneficiaryWidgets } from '@/hooks/data/settings/useBeneficiaryWidgets';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary/dashboard/BeneficiaryWelcomeCard';
 import BeneficiaryStatsRow from '@/components/beneficiary/dashboard/BeneficiaryStatsRow';
@@ -15,11 +13,8 @@ import BeneficiaryNotificationsCard from '@/components/beneficiary/dashboard/Ben
 import BeneficiaryAdvanceCard from '@/components/beneficiary/dashboard/BeneficiaryAdvanceCard';
 import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 
-const defaultWidgets = makeDefaults(BENEFICIARY_WIDGET_KEYS);
-
 const BeneficiaryDashboard = () => {
-  const { getJsonSetting } = useAppSettings();
-  const w = getJsonSetting<Record<string, boolean>>('beneficiary_widgets', defaultWidgets);
+  const { isVisible } = useBeneficiaryWidgets();
   const {
     isLoading, dashError, dashLoading, noPublishedYears,
     currentBeneficiary, myShare, distributions, role, fiscalYearId,

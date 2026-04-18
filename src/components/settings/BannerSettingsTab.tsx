@@ -2,16 +2,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { useAppSettings } from "@/hooks/data/settings/useAppSettings";
-import { useState, useEffect, useMemo } from "react";
+import { useBannerSettings } from "@/hooks/data/settings/useBannerSettings";
+import { useState, useEffect } from "react";
 import { FlaskConical } from "lucide-react";
-import { BANNER_COLORS, DEFAULT_BANNER_SETTINGS, type BannerSettings } from "@/constants";
+import { BANNER_COLORS, type BannerSettings } from "@/constants";
 
 const BannerSettingsTab = () => {
-  const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
-  const rawSettings = getJsonSetting<BannerSettings>("beta_banner_settings", DEFAULT_BANNER_SETTINGS);
-  const rawSettingsKey = JSON.stringify(rawSettings);
-  const settings = useMemo(() => JSON.parse(rawSettingsKey) as BannerSettings, [rawSettingsKey]);
+  const { settings, isLoading, save: saveSettings } = useBannerSettings();
   const [form, setForm] = useState<BannerSettings>(settings);
 
   useEffect(() => {
@@ -21,7 +18,7 @@ const BannerSettingsTab = () => {
   const save = (patch: Partial<BannerSettings>) => {
     const updated = { ...form, ...patch };
     setForm(updated);
-    updateJsonSetting("beta_banner_settings", updated);
+    saveSettings(patch);
   };
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;

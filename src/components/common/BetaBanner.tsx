@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { FlaskConical, X } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { useAppSettings } from "@/hooks/data/settings/useAppSettings";
-import { DEFAULT_BANNER_SETTINGS, type BannerSettings } from "@/constants";
+import { useBannerSettings } from "@/hooks/data/settings/useBannerSettings";
 import { safeSessionGet, safeSessionSet } from "@/lib/storage";
 
 const BANNER_DISMISS_KEY = 'beta_banner_dismissed';
@@ -25,9 +24,7 @@ const BANNER_HOVER: Record<string, string> = {
 
 const BetaBanner = () => {
   const [dismissed, setDismissed] = useState(() => safeSessionGet<string>(BANNER_DISMISS_KEY, '') === '1');
-  const { getJsonSetting, isLoading } = useAppSettings();
-
-  const settings = getJsonSetting<BannerSettings>("beta_banner_settings", DEFAULT_BANNER_SETTINGS);
+  const { settings, isLoading } = useBannerSettings();
 
   const bgClass = BANNER_BG[settings.color] ?? 'bg-warning';
   const hoverClass = BANNER_HOVER[settings.color] ?? 'hover:bg-warning/90';
