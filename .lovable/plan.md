@@ -1,82 +1,78 @@
 
-## خطة الموجة 13 — مُنقَّحة بعد الفحص الجنائي
+## تقرير المراجعة المعمارية الشامل — حالة الكودبيس
 
-### نتائج التحقق الجنائي
+### الإحصائيات المؤكَّدة (forensic)
+- **815 ملف مصدر** + **188 ملف اختبار** = 1003
+- **84 موقع `as unknown as`** (الرقم السابق 27 كان أقل بكثير من الواقع)
+- **AuthContext = 238 سطر** | **types.ts = 2288 سطر** (auto-gen، يُتجاهل)
+- **92 تعليق مرجعي** (#1, #B6, #D1...) بدون وثيقة
 
-#### ادعاءات كاذبة مُفنَّدة
-| # | الادعاء | الواقع |
-|---|--------|-------|
-| 56 | `.env` في git tracking | **كاذب** — `.gitignore` سطر 22 يتجاهل `.env` و `.env.*` صراحةً |
-| 25 | `useDashboardPrefetch` لكل المستخدمين | **كاذب** — الـ hook يفلتر داخلياً: `if (!isAdminOrAccountant) return` |
-| المسارات | `src/pages/admin/*` | **كاذب** — الصفحات في `src/pages/dashboard/*` (أسطر التقرير مغلوطة لكن المحتوى صحيح للملفات الصحيحة) |
+---
 
-#### ادعاءات صحيحة مؤكَّدة بالكود
-| # | الادعاء | الموقع الفعلي |
-|---|--------|--------------|
-| 1 | `as unknown as` في 3 hooks | `useIncomePage:72`, `useExpensesPage:70`, `useInvoicesPage:121,124` ✓ |
-| 2 | `AlertDialog` inline | `dashboard/ExpensesPage.tsx:101-112` ✓ |
-| 6 | Banner inline في AccountsPage | `dashboard/AccountsPage.tsx:53-57` ✓ |
-| 65 | `?? true` خطير | `useBeneficiaryDashboardPage.ts:33` ✓ |
-| 5 | `slice` في JSX | `dashboard/PropertiesPage.tsx:87` ✓ |
-| 13 | Skeleton inline (14 مربع) | `dashboard/AccountsPage.tsx:83-92` ✓ |
-| 14 | `handleExportCsv` خارج المكوّن | `dashboard/AccountsPage.tsx:24-39` ✓ |
-| 23 | `isClosed && role !== 'admin'` يدوياً | `dashboard/ContractsPage.tsx:104` ✓ — يجب استخدام `!canModifyFiscalYear` |
-| 4 | Guards inline | `BeneficiarySettingsPage.tsx:31-67` ✓ |
-| 41-45 | لا اختبارات لـ permissions أو sanitizeDescription | مؤكَّد — الملفان غير موجودَين |
+### 🔴 أولوية قصوى (critical)
 
-#### ادعاءات جزئية الصحة
-| # | التفاصيل |
-|---|---------|
-| 10 | `paginatedItems` slice موجود في `IncomePage:42` لكن **خارج JSX** — يمكن نقله إلى hook (تحسين معماري لا بق) |
-| 24 | Realtime على `app_settings` بلا `filter` — صحيح لكن `app_settings` جدول صغير global، الفلترة صعبة (لا `beneficiary_id`) |
+| # | المشكلة | الدليل |
+|---|---------|--------|
+| **1** | **84 موقع `as unknown as`** — أعلى بكثير من المُدَّعى | معظمها في `hooks/data/` لـ RPC results (مبرَّر جزئياً) لكن `useContractForm:98,136,157`، `useContractsPage:55`، `useAccessLogTab:46`، `useArchiveLog:49` تكرّر النمط نفسه ويمكن استخراج helper |
+| **2** | **`ITEMS_PER_PAGE` مُكرَّر في 14 ملفاً** — أعلى من المُدَّعى (4+) | بقيم متباينة: 9, 12, 15, `DEFAULT_PAGE_SIZE`. لا مصدر حقيقة واحد |
+| **3** | **تكرار `permissions` في موقعين** (`utils/auth/` و `lib/permissions/`) | كلاهما دوال نقية — لا مبرر للتقسيم |
+| **4** | **Barrel exports ناقصة** | `admin/index.ts` لا يصدّر `financial/` ولا `properties/`. مجلد `properties/` ليس له `index.ts` أصلاً |
 
-### الإصلاحات المُعتمَدة (12 إصلاح حقيقي)
+---
 
-#### حرجة (4)
-1. **#1** — إزالة `as unknown as` بتعريف types صحيحة من CRUD factory في 3 ملفات
-2. **#2** — استبدال `AlertDialog` inline في `ExpensesPage` بـ `<ConfirmDeleteDialog />`
-3. **#6** — استبدال banner inline في `AccountsPage:53-57` بـ `<LockedYearBanner isClosed={page.isClosed} role={role} />`
-4. **#65** — تغيير `advanceEnabled = advanceSettings?.enabled ?? true` إلى `?? false` (آمن افتراضياً)
+### 🟠 أولوية عالية (coupling)
 
-#### عالية (8)
-5. **#4 + #37** — `BeneficiarySettingsPage`: استخدام `ErrorState` و `EmptyPageState` + تصحيح ترتيب guards (تحميل قبل خطأ)
-6. **#5** — `PropertiesPage`: نقل `slice` إلى `useMemo`
-7. **#10** — `IncomePage`: نقل `paginatedItems` إلى `useIncomePage` hook
-8. **#13** — `AccountsPage`: استبدال 14 مربع skeleton inline بـ `<StatsGridSkeleton count={14} />` (إنشاؤه إن لم يوجد)
-9. **#14** — `AccountsPage`: نقل `handleExportCsv` داخل المكوّن كـ `useCallback` أو لـ hook
-10. **#23** — `ContractsPage:104`: استبدال `isClosed && role !== 'admin'` بـ `!canModifyFiscalYear(role, isClosed)`
-11. **#41** — إنشاء `src/utils/auth/permissions.test.ts` (حالات: admin مع closed، beneficiary مع open، إلخ)
-12. **#45** — إنشاء `useInvoicesPage.test.ts` يختبر `sanitizeDescription` (HTML/whitespace/XSS payloads)
+| # | المشكلة | الدليل |
+|---|---------|--------|
+| **5** | **`ContractsPage` يمرّر 50+ خاصية لـ `ContractsTabContent`** (تأكَّد: ~52 prop) | سطر 80-96 — extreme props drilling |
+| **6** | **`ContractsPage` يستدعي `useIsMobile`، `usePdfWaqfInfo`، `useAuth` خارج page hook** | يخالف Page Hook Pattern |
+| **7** | **`SortField` مكرَّر بنيتَين مختلفتَين** (income/expense) — barrel يُصدِّرهما باسمين مختلفين كحل التفاف | `useIncomePage:19`، `useExpensesPage:19` |
+| **8** | **`999_999_999` hardcoded في ملفَين** | يستحق `MAX_FINANCIAL_AMOUNT` في `constants/limits.ts` |
+| **9** | **`beneficiary/` حوي 19 ملف flat** بينما `admin/` مُقسَّم لـ 6 مجلدات | عدم تماثل واضح |
+| **10** | **`IncomePage` يحوي `<Dialog>` كامل inline** (سطر 70-89) | يخالف نمط `ContractFormDialog` |
 
-### ادعاءات مرفوضة (لن تُنفَّذ)
-- **#56** `.env` في git → كاذب، `.gitignore` يتجاهله بالفعل
-- **#25** `useDashboardPrefetch` للكل → كاذب، الفلترة موجودة
-- **#24** filter لـ realtime على `app_settings` → غير عملي (جدول global)
+---
 
-### الملفات المُعدَّلة (10 + 2 جديدة)
-1. `src/hooks/page/admin/financial/useIncomePage.ts`
-2. `src/hooks/page/admin/financial/useExpensesPage.ts`
-3. `src/hooks/page/admin/financial/useInvoicesPage.ts`
-4. `src/pages/dashboard/ExpensesPage.tsx`
-5. `src/pages/dashboard/AccountsPage.tsx`
-6. `src/pages/dashboard/IncomePage.tsx`
-7. `src/pages/dashboard/PropertiesPage.tsx`
-8. `src/pages/dashboard/ContractsPage.tsx`
-9. `src/pages/beneficiary/BeneficiarySettingsPage.tsx`
-10. `src/hooks/page/beneficiary/useBeneficiaryDashboardPage.ts`
-11. **جديد:** `src/utils/auth/permissions.test.ts`
-12. **جديد:** `src/hooks/page/admin/financial/useInvoicesPage.test.ts`
-13. ربما `src/components/common/StatsGridSkeleton.tsx` (إن لم يوجد) + تصديره
+### 🟡 أولوية متوسطة
 
-### الضمانات
-- صفر تغيير: schema، RLS، Auth، Edge Functions، migrations
-- التغيير السلوكي الوحيد: `advanceEnabled` افتراضياً `false` بدل `true` — قد يُخفي زر السلف لحظياً قبل تحميل الإعدادات (آمن)
-- لا تنبيه أمني للمستخدم بشأن `.env` (كاذب)
+| # | المشكلة | التوصية |
+|---|---------|---------|
+| **11** | `AuthContext.tsx` 238 سطر بـ 5+ مسؤوليات | استخراج `useAuthListener`, `useAuthCleanup` |
+| **12** | `useReportsData` يُرجع 30+ قيمة | تجميع في `summary/distribution/performance` |
+| **13** | `components/dashboard/` يخلط KPIs/Charts/Heatmap (18 ملف) | تقسيم لـ `kpi/`, `charts/`, `widgets/` |
+| **14** | لا اختبارات لـ `lowIncomeMonths` و `documentationRate` | استخراج إلى `utils/financial/` |
+| **15** | 92 تعليق مرجعي (`#1, #D1...`) بدون وثيقة | إنشاء `docs/CHANGELOG-REFS.md` |
+| **16** | `FiscalYearContext:63-67` ternary ثلاثي متداخل | استخراج `resolveFiscalYearId()` |
+| **17** | حدود `lib/` vs `utils/` غير واضحة (services, monitoring, navigation في lib؛ بقية utilities في utils) | اعتماد قاعدة: `lib/` = side-effects/services، `utils/` = pure functions |
 
-### النطاق
-| العملية | العدد |
-|--------|-------|
-| ملفات مُعدَّلة | 10 |
-| ملفات جديدة | 2-3 |
-| migrations | 0 |
-| ادعاءات مرفوضة | 3 |
+---
+
+### 🟢 اختياري
+
+| # | المشكلة | التوصية |
+|---|---------|---------|
+| **18** | `fyProgress` يعتمد على `Date.now()` بدون timer | توثيق أو `useInterval` |
+| **19** | لا E2E tests | موجة Playwright منفصلة |
+| **20** | `useDashboardSummary.types.ts` نمط جيد غير مُعمَّم | تطبيق على hooks كبيرة أخرى |
+
+---
+
+### خارطة الموجات المقترحة
+
+| موجة | المحتوى | مخاطر | تأثير |
+|------|---------|-------|-------|
+| **14** | تنظيف هيكلي: توحيد `permissions` تحت `utils/auth/` + إكمال barrels (`properties/index.ts`, `admin/index.ts` للـ financial/properties) + استخراج `MAX_FINANCIAL_AMOUNT` و `ITEMS_PER_PAGE` كثوابت مركزية + `SortField<T>` generic | منخفض | نظافة فورية |
+| **15** | helper `inferMutationArg<T>()` في `hooks/data/core/` + تطبيقه على 7 مواقع `useContractForm`, `useContractsPage`, `useAccessLogTab`, `useArchiveLog` | منخفض | type safety |
+| **16** | إعادة تنظيم `beneficiary/` لمجلدات (`dashboard/`, `financial/`, `views/`, `messaging/`) | متوسط (imports) | تماثل |
+| **17** | فك coupling: `ContractsContext` لإلغاء 50-prop drilling + نقل `useIsMobile/useAuth/usePdfWaqfInfo` لداخل page hooks (Contracts/Income/Expenses) + استخراج `IncomeFormDialog` | متوسط-عالي | maintainability |
+| **18** | استخراج `lowIncomeMonths` و `documentationRate` لـ pure utils + اختبارات + تقسيم `AuthContext` لـ sub-hooks + استخراج `resolveFiscalYearId` | متوسط | جودة |
+| **19** | تقسيم `components/dashboard/` لمجلدات + توحيد `lib/` vs `utils/` boundary + `docs/CHANGELOG-REFS.md` | منخفض | maintainability |
+| **20** | E2E tests (Playwright): تسجيل دخول، إقفال سنة، توزيع، طلب سلفة | عالي (إعداد جديد) | ثقة |
+
+---
+
+### الخلاصة
+- المشروع في **حالة معمارية صحية** — لا bugs أمنية أو بنيوية حرجة
+- العدد الفعلي لـ `as unknown as` (84) أعلى بثلاثة أضعاف من التقدير السابق (27) — يستحق موجة مخصَّصة
+- العدد الفعلي لـ `ITEMS_PER_PAGE` (14) أعلى من التقدير (4) — توحيدها يُلغي 13 سطر تكرار
+- **التوصية**: تنفيذ الموجات بالترتيب 14→15→17 أولاً (تأثير فوري ومنخفض المخاطر)، تأجيل 16 و 20 لمرحلة لاحقة
