@@ -13,6 +13,24 @@ hooks/
 └── ui/          — هوكات UI عامة (toast, debounce, media query, ...)
 ```
 
+## v7 Layered Architecture
+
+المرجع الرسمي: `mem://technical/architecture/core-modularization-standard-v7`.
+
+### اتجاه التبعيات (one-way)
+
+```
+pages/  →  hooks/page/  →  hooks/financial/  →  hooks/data/  →  lib/services/  →  supabase
+                       ↘  hooks/auth/      ↗
+                       ↘  hooks/ui/
+```
+
+**ممنوع** أي تبعية عكسية:
+- ❌ `hooks/data/` يستورد من `hooks/page/`
+- ❌ `hooks/financial/` يستورد `supabase` مباشرة
+- ❌ `hooks/page/` يستدعي `supabase.from(...)` — يجب أن يمرّ عبر `hooks/data/`
+- ❌ `pages/` تحتوي على منطق أعمال — يجب أن تكون logic-less
+
 ## القواعد
 
 | المجلد | المسؤولية | يستهلك | لا يستهلك |
@@ -20,7 +38,7 @@ hooks/
 | `auth/` | جلسات وأدوار | Supabase, AuthContext | UI components |
 | `data/` | استعلامات DB | Supabase, queryClient | UI state, navigation |
 | `financial/` | حسابات مشتقة | `data/` | استعلامات DB مباشرة |
-| `page/` | منطق صفحة كامل | `data/`, `financial/`, `auth/` | DOM، `document.*` |
+| `page/` | منطق صفحة كامل | `data/`, `financial/`, `auth/` | DOM، `document.*`، `supabase` مباشرة |
 | `ui/` | تأثيرات DOM | React, browser APIs | Supabase |
 
 ## نمط Page Hook
@@ -36,7 +54,15 @@ export default function PropertiesPage() {
 }
 ```
 
-انظر `mem://technical/architecture/core-modularization-standard-v7` لتفاصيل المعمارية.
+## استخراج Side-Effects من Context
+
+عند الحاجة لمنطق تنظيف مشترك (signOut, idle logout, session expiry)، استخرج إلى hook مخصّص بدل تكرار الكود في Context.
+
+**نموذج معتمد**: `hooks/auth/useAuthCleanup.ts` — يوفّر `performCleanup()` يُستخدم في:
+- `AuthContext.signOut()` كمسار افتراضي
+- `IdleTimeoutManager` عند فشل `signOut` (دفاعياً)
+
+هذا يضمن سلوكاً موحّداً ويسهّل الاختبار (mock واحد بدل اثنين).
 
 ## الاختبارات
 
