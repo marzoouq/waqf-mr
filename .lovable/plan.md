@@ -1,28 +1,37 @@
 
-## موجة P7 — تنظيف 3 shims P1 آمن (مُتحقَّق جنائياً)
+## موجة P8 — تنظيف 2 shim + توحيد MONTH_NAMES (مُتحقَّق جنائياً)
 
-### التحقق المُنجَز
-| البند | الحالة |
-|---|---|
-| `filterByVisibility` shim | مستهلَك في `BottomNav.tsx` + `useNavLinks.ts` فقط |
-| `BENEFICIARIES_PAGE_SIZE` alias | يحتاج فحص grep قبل الحذف |
-| `STALE_SETTINGS` alias | مستهلَك في 4 ملفات (useAppSettings + Read + Write + useWaqfInfo) |
+### نتائج الفحص الفعلي
+
+| البند | الاستهلاك الحقيقي | ملاحظات |
+|---|---|---|
+| `types/export.ts` | ملفان: `dataFetcher.ts` + `useDataExport.ts` | ✅ آمن للحذف بعد الهجرة |
+| `types/filters.ts` | 3 ملفات: `AdvancedFiltersBar.tsx` + `useIncomePage.ts` + `useExpensesPage.ts` | ✅ آمن للحذف بعد الهجرة |
+| `MONTH_NAMES` | معرَّف في 5 ملفات بنفس المحتوى الحرفي | ✅ مرشّح لتوحيد كامل |
+
+**اكتشاف مهم**: `MONTH_NAMES` المُعاد تصديره من `monthlyPerformanceCalc.ts` و `useYearComparisonState.ts` غير مستهلك من أي ملف خارجي (فقط داخلي) → الحذف آمن بعد استبدال الاستخدامات الداخلية.
 
 ### الخطوات
 
-**1. هجرة `filterByVisibility` shim:**
-- تحديث `BottomNav.tsx`: `from '@/lib/permissions/filterByVisibility'` → `from '@/utils/auth/filterByVisibility'`
-- تحديث `useNavLinks.ts`: نفس التغيير
-- حذف `src/lib/permissions/filterByVisibility.ts`
+**1. هجرة `types/export.ts` shim:**
+- تحديث `src/lib/services/dataFetcher.ts`: `from '@/types/export'` → `from '@/types/ui'`
+- تحديث `src/hooks/page/shared/useDataExport.ts`: نفس التغيير (سطرَين)
+- حذف `src/types/export.ts`
 
-**2. حذف `BENEFICIARIES_PAGE_SIZE` alias:**
-- فحص جميع الاستهلاكات بـ grep
-- استبدال كل `BENEFICIARIES_PAGE_SIZE` → `PAGE_SIZE_BENEFICIARIES`
-- حذف السطر `export const BENEFICIARIES_PAGE_SIZE = PAGE_SIZE_BENEFICIARIES;` من `src/constants/pagination.ts`
+**2. هجرة `types/filters.ts` shim:**
+- تحديث `src/components/filters/AdvancedFiltersBar.tsx`: `from '@/types/filters'` → `from '@/types/ui'`
+- تحديث `src/hooks/page/admin/financial/useIncomePage.ts`: نفس التغيير
+- تحديث `src/hooks/page/admin/financial/useExpensesPage.ts`: نفس التغيير
+- حذف `src/types/filters.ts`
 
-**3. حذف `STALE_SETTINGS` alias:**
-- استبدال كل `STALE_SETTINGS` → `STALE_STATIC` في 4 ملفات
-- حذف السطر `export const STALE_SETTINGS = STALE_STATIC;` من `src/lib/queryStaleTime.ts`
+**3. توحيد `MONTH_NAMES`:**
+- إنشاء `src/constants/calendar.ts` يصدِّر `MONTH_NAMES` (مصدر وحيد)
+- تحديث 5 ملفات لاستيراد الثابت من المصدر الموحَّد:
+  - `src/utils/reports/monthlyPerformanceCalc.ts` (حذف التعريف المحلي + حذف `export { MONTH_NAMES }`)
+  - `src/components/contracts/accrual/accrualUtils.ts` (حذف التعريف، استيراد + إعادة تصدير للحفاظ على التوافق)
+  - `src/components/reports/CashFlowReport.tsx` (استبدال التعريف باستيراد)
+  - `src/components/dashboard/charts/IncomeMonthlyChart.tsx` (استبدال التعريف باستيراد)
+  - `src/hooks/page/admin/reports/useYearComparisonState.ts` (حذف التعريف + الاستيراد، الحفاظ على إعادة التصدير الحالية إن لزم)
 
 **4. التحقق النهائي:**
 - `npx tsc --noEmit` → 0 أخطاء
@@ -31,19 +40,18 @@
 
 ### الضمانات
 - ✅ لا لمس لـ AuthContext / ProtectedRoute / SecurityGuard / supabase files
-- ✅ لا تغيير سلوكي — كل الاستبدالات alias-to-canonical (مرادفات حرفية)
-- ✅ ملفات `@/types/database` (78 ملف) **لا تُلمس** — مؤجَّلة لـ P10
-- ✅ PDF helpers + MONTH_NAMES + diagnostics **لا تُلمس** — مؤجَّلة لموجات لاحقة
+- ✅ كل التغييرات alias-to-canonical (مرادفات حرفية مطابقة 100%)
+- ✅ ملفات `@/types/database` (76 ملف) **لا تُلمس** — مؤجَّلة لـ P10
+- ✅ PDF re-exports + diagnostics + ملفات > 200 سطر **لا تُلمس** — مؤجَّلة
 
 ### النتيجة المتوقعة
-- −1 ملف (`filterByVisibility.ts` shim)
-- −2 سطر alias مكرر
+- −2 ملف shim (`types/export.ts`, `types/filters.ts`)
+- −4 تعريفات `MONTH_NAMES` مكررة (يبقى مصدر وحيد + ملف ثوابت جديد)
 - 0 انحدار سلوكي
 - baseline `0 ESLint / 0 TS / build pass` محفوظ
 
 ### مؤجَّل (لا يُنفَّذ الآن)
-- P8: توحيد `MONTH_NAMES` في `constants/calendar.ts`
 - P9: تنقية PDF re-exports غير المستهلكة
-- P10: هجرة 78 ملف من `@/types/database` → `@/types`
+- P10: هجرة 76 ملف من `@/types/database` → `@/types`
 - P11: فحص backend الجنائي (RLS + Edge Functions)
 - P12: تقسيم ملفات > 200 سطر
