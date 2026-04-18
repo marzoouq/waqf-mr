@@ -16,6 +16,11 @@ vi.mock('@/hooks/data/useUnreadMessages', () => ({
   useUnreadMessages: () => ({ data: 0 }),
 }));
 
+const mockGetJsonSetting = vi.fn((_key: string, fallback: unknown) => fallback);
+vi.mock('@/hooks/data/settings/useAppSettings', () => ({
+  useAppSettings: () => ({ getJsonSetting: mockGetJsonSetting }),
+}));
+
 vi.mock('react-router-dom', () => ({
   Link: ({ children, to, className }: { children: React.ReactNode; to: string; className?: string }) =>
     React.createElement('a', { href: to, className, 'data-testid': `link-${to}` }, children),
@@ -73,8 +78,36 @@ describe('BottomNav', () => {
 
   it('يعرض 5 عناصر (4 روابط + زر المزيد)', () => {
     mockUseAuth.mockReturnValue({ role: 'admin' });
+    mockGetJsonSetting.mockImplementation((_key: string, fallback: unknown) => fallback);
     const { container } = renderWithProviders(<BottomNav onOpenSidebar={onOpenSidebar} />);
     const navItems = container.querySelectorAll('a, button');
     expect(navItems.length).toBe(5);
   });
+
+  it('يخفي رابط العقارات عند تعطيل قسم properties في الإعدادات', () => {
+    mockUseAuth.mockReturnValue({ role: 'admin' });
+    mockGetJsonSetting.mockImplementation((key: string, fallback: unknown) => {
+      if (key === 'sections_visibility') return { properties: false };
+      return fallback;
+    });
+    renderWithProviders(<BottomNav onOpenSidebar={onOpenSidebar} />);
+    expect(screen.queryByText('العقارات')).not.toBeInTheDocument();
+    // باقي الروابط الافتراضية تبقى
+    expect(screen.getByText('الرئيسية')).toBeInTheDocument();
+    expect(screen.getByText('العقود')).toBeInTheDocument();
+    expect(screen.getByText('الحسابات')).toBeInTheDocument();
+    expect(screen.getByText('المزيد')).toBeInTheDocument();
+  });
+
+  it('يخفي رابط الإفصاح للمستفيد عند تعطيل beneficiary_sections.disclosure', () => {
+    mockUseAuth.mockReturnValue({ role: 'beneficiary' });
+    mockGetJsonSetting.mockImplementation((key: string, fallback: unknown) => {
+      if (key === 'beneficiary_sections') return { disclosure: false };
+      return fallback;
+    });
+    renderWithProviders(<BottomNav onOpenSidebar={onOpenSidebar} />);
+    expect(screen.queryByText('الإفصاح')).not.toBeInTheDocument();
+    expect(screen.getByText('حصتي')).toBeInTheDocument();
+  });
 });
+
