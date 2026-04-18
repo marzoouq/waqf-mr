@@ -1,32 +1,28 @@
 
+## موجة P7 — تنظيف 3 shims P1 آمن (مُتحقَّق جنائياً)
 
-## موجة P6 — تنظيف ميت مؤكَّد (تم التحقق جنائياً)
+### التحقق المُنجَز
+| البند | الحالة |
+|---|---|
+| `filterByVisibility` shim | مستهلَك في `BottomNav.tsx` + `useNavLinks.ts` فقط |
+| `BENEFICIARIES_PAGE_SIZE` alias | يحتاج فحص grep قبل الحذف |
+| `STALE_SETTINGS` alias | مستهلَك في 4 ملفات (useAppSettings + Read + Write + useWaqfInfo) |
 
-### التحقق المُنجَز قبل الخطة
-| الملف | المستهلكون الحقيقيون | حالة |
-|---|---|---|
-| `src/components/ui/form.tsx` | 0 | ✅ ميت |
-| `src/components/ui/pagination.tsx` | 0 | ✅ ميت |
-| `src/components/ui/sidebar.tsx` | 0 | ✅ ميت (641 سطراً) |
-| `src/components/ui/sheet.tsx` | فقط `sidebar.tsx` (الميت نفسه) | ✅ ميت بعد حذف sidebar |
-| `react-hook-form` | فقط داخل `form.tsx` + إشارة chunking في `vite.config.ts` | ✅ يمكن إزالته |
-| `src/hooks/data/dashboard/index.ts` | 0 | ✅ ميت |
+### الخطوات
 
-### الخطوات (بالترتيب)
+**1. هجرة `filterByVisibility` shim:**
+- تحديث `BottomNav.tsx`: `from '@/lib/permissions/filterByVisibility'` → `from '@/utils/auth/filterByVisibility'`
+- تحديث `useNavLinks.ts`: نفس التغيير
+- حذف `src/lib/permissions/filterByVisibility.ts`
 
-**1. حذف 5 ملفات يتيمة مؤكَّدة:**
-- `src/components/ui/form.tsx`
-- `src/components/ui/pagination.tsx`
-- `src/components/ui/sidebar.tsx`
-- `src/components/ui/sheet.tsx` (بعد حذف sidebar الذي يستهلكه)
-- `src/hooks/data/dashboard/index.ts`
+**2. حذف `BENEFICIARIES_PAGE_SIZE` alias:**
+- فحص جميع الاستهلاكات بـ grep
+- استبدال كل `BENEFICIARIES_PAGE_SIZE` → `PAGE_SIZE_BENEFICIARIES`
+- حذف السطر `export const BENEFICIARIES_PAGE_SIZE = PAGE_SIZE_BENEFICIARIES;` من `src/constants/pagination.ts`
 
-**2. تنظيف `vite.config.ts` (السطر 185):**
-- إزالة `react-hook-form` و `@hookform/` من قاعدة chunking `vendor-form` (الإبقاء على `zod` فقط أو دمج zod في chunk آخر)
-
-**3. إزالة التبعيات من `package.json`:**
-- `react-hook-form`
-- `@hookform/resolvers` (إذا كان موجوداً)
+**3. حذف `STALE_SETTINGS` alias:**
+- استبدال كل `STALE_SETTINGS` → `STALE_STATIC` في 4 ملفات
+- حذف السطر `export const STALE_SETTINGS = STALE_STATIC;` من `src/lib/queryStaleTime.ts`
 
 **4. التحقق النهائي:**
 - `npx tsc --noEmit` → 0 أخطاء
@@ -35,18 +31,19 @@
 
 ### الضمانات
 - ✅ لا لمس لـ AuthContext / ProtectedRoute / SecurityGuard / supabase files
-- ✅ لا تغيير سلوكي — كل الحذف على ملفات بـ 0 مستهلك حقيقي
-- ✅ ملفات `@/types/database` (78 ملف) **لا تُلمس** في هذه الموجة — مؤجَّلة لـ P7 منفصلة
+- ✅ لا تغيير سلوكي — كل الاستبدالات alias-to-canonical (مرادفات حرفية)
+- ✅ ملفات `@/types/database` (78 ملف) **لا تُلمس** — مؤجَّلة لـ P10
+- ✅ PDF helpers + MONTH_NAMES + diagnostics **لا تُلمس** — مؤجَّلة لموجات لاحقة
 
 ### النتيجة المتوقعة
-- −5 ملفات مصدر
-- −52KB من bundle (`react-hook-form` + `@hookform/resolvers`)
+- −1 ملف (`filterByVisibility.ts` shim)
+- −2 سطر alias مكرر
 - 0 انحدار سلوكي
 - baseline `0 ESLint / 0 TS / build pass` محفوظ
 
-### ما **لن** يُنفَّذ في هذه الموجة (مؤجَّل)
-- P7: هجرة 78 ملف من `@/types/database` → `@/types` ثم حذف الـ shim
-- P8: توحيد `MONTH_NAMES` + تنقية PDF helpers المكررة
-- P9: تقسيم ملفات > 200 سطر
-- P10: فحص backend الجنائي (RLS + Edge Functions)
-
+### مؤجَّل (لا يُنفَّذ الآن)
+- P8: توحيد `MONTH_NAMES` في `constants/calendar.ts`
+- P9: تنقية PDF re-exports غير المستهلكة
+- P10: هجرة 78 ملف من `@/types/database` → `@/types`
+- P11: فحص backend الجنائي (RLS + Edge Functions)
+- P12: تقسيم ملفات > 200 سطر
