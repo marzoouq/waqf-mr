@@ -10,8 +10,8 @@
 
 export interface RouteLink {
   to: string;
-  [key: string]: unknown;
 }
+
 
 /**
  * يفلتر الروابط بناءً على خريطة (route → sectionKey) وحالة الرؤية.
