@@ -1,7 +1,7 @@
 /**
  * هوك لوحة تحكم المستفيد — يستخرج كل المنطق من BeneficiaryDashboard
  */
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { useAuth } from '@/hooks/auth/useAuthContext';
@@ -39,19 +39,27 @@ export function useBeneficiaryDashboardPage() {
 
   const isClosed = fiscalYear?.status === 'closed';
 
+  // ساعة دقيقة لتحديث نسبة التقدم — تتجنب Date.now() في render body (purity)
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (isClosed || !fiscalYear) return;
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, [isClosed, fiscalYear]);
+
   const fyProgress = useMemo(() => {
     if (!fiscalYear) return { percent: 0, daysLeft: 0, isClosed: false, notStarted: false };
     if (isClosed) return { percent: 100, daysLeft: 0, isClosed: true, notStarted: false };
     const start = new Date(fiscalYear.start_date).getTime();
     const end = new Date(fiscalYear.end_date).getTime();
     const total = end - start;
-    const elapsed = Date.now() - start;
-    const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
+    const elapsed = now - start;
+    const daysLeft = Math.max(0, Math.ceil((end - now) / 86_400_000));
     // السنة المستقبلية لم تبدأ بعد
-    if (Date.now() < start) return { percent: 0, daysLeft, isClosed: false, notStarted: true };
+    if (now < start) return { percent: 0, daysLeft, isClosed: false, notStarted: true };
     const percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
     return { percent, daysLeft, isClosed: false, notStarted: false };
-  }, [fiscalYear, isClosed]);
+  }, [fiscalYear, isClosed, now]);
 
   const displayName = currentBeneficiary?.name
     || user?.user_metadata?.full_name
@@ -61,8 +69,7 @@ export function useBeneficiaryDashboardPage() {
 
   // Realtime invalidation — bfcache safe
   const beneficiaryId = currentBeneficiary?.id ?? '';
-  const qcRef = useRef(queryClient);
-  qcRef.current = queryClient;
+  const qcRef = useStableRef(queryClient);
 
   const distSubscribeFn = useCallback((channel: RealtimeChannel) => {
     channel.on('postgres_changes', {
