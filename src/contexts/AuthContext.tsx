@@ -1,18 +1,13 @@
 /**
- * سياق المصادقة (AuthContext)
- * 
- * تحسينات معمارية:
- * 1. قراءة الدور من JWT (app_metadata.user_role) — فوري بدون استعلام
- * 2. فصل Context إلى State + Actions لتقليل إعادة التصيير
- * 3. إزالة المؤقتات الوهمية (Safety Timeouts) و retry loops
- * 4. Fallback إلى DB فقط إذا JWT لا يحتوي الدور (تسجيل أول)
+ * سياق المصادقة (AuthContext) — مُبسَّط في الموجة 18
+ *
+ * البنية:
+ * - useAuthListener (sub-hook) يدير: state + onAuthStateChange + getSession fallback + JWT/DB role
+ * - هذا الملف يدير: actions (signIn/signUp/signOut/refreshRole) + memoized contexts
  */
-import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { logAccessEvent } from '@/lib/services/accessLogService';
-import { checkNewDeviceLogin } from '@/lib/services/securityService';
+import React, { useCallback, useMemo } from 'react';
+import { logAccessEvent as _logAccessEvent } from '@/lib/services/accessLogService';
 import { supabase } from '@/integrations/supabase/client';
-import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { fetchUserRole } from '@/lib/auth/fetchUserRole';
@@ -20,145 +15,19 @@ import { fetchUserRole } from '@/lib/auth/fetchUserRole';
 import { queryClient } from '@/lib/queryClient';
 import { toast } from 'sonner';
 import { AuthStateContext, AuthActionsContext } from '@/hooks/auth/useAuthContext';
+import { useAuthListener } from '@/hooks/auth/useAuthListener';
 import { STORAGE_KEYS, CLEARABLE_STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeRemove, safeSessionRemove } from '@/lib/storage';
 
 // إعادة تصدير للتوافقية مع الاستيراد القديم
 export { useAuth, useAuthState, useAuthActions } from '@/hooks/auth/useAuthContext';
 
-const VALID_ROLES: AppRole[] = ['admin', 'beneficiary', 'waqif', 'accountant'];
-
-/** قراءة الدور من JWT app_metadata */
-function getRoleFromSession(session: Session | null): AppRole | null {
-  const metaRole = session?.user?.app_metadata?.user_role;
-  if (metaRole && VALID_ROLES.includes(metaRole as AppRole)) {
-    return metaRole as AppRole;
-  }
-  return null;
-}
+// تجنّب unused-import warning (الدالة كانت مستخدمة سابقاً مباشرة هنا)
+void _logAccessEvent;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [role, setRole] = useState<AppRole | null>(null);
-  const [loading, setLoading] = useState(true);
-  const roleRef = useRef<AppRole | null>(null);
-  const lastUserIdRef = useRef<string | null>(null);
-
-  const setRoleWithRef = useCallback((newRole: AppRole | null) => {
-    roleRef.current = newRole;
-    setRole(newRole);
-  }, []);
-
-  // === مستمع حالة المصادقة — بدون await داخل الـ callback ===
-  useEffect(() => {
-    let isMounted = true;
-
-    /** Fallback DB — يعمل خارج callback لتجنب قفل GoTrue */
-    const fetchRoleFallback = (userId: string, email?: string | null) => {
-      fetchUserRole(userId).then(result => {
-        if (!isMounted) return;
-        if (result.role) {
-          setRoleWithRef(result.role);
-          logAccessEvent({
-            event_type: 'role_fetch',
-            user_id: userId,
-            metadata: { role: result.role, source: 'db_fallback', status: 'success' },
-          });
-          checkNewDeviceLogin(userId, email ?? undefined);
-        } else {
-          setRoleWithRef(null);
-        }
-        setLoading(false);
-      }).catch(err => {
-        logger.error('[Auth] fetchRole fallback error:', err);
-        if (isMounted) {
-          setRoleWithRef(null);
-          setLoading(false);
-        }
-      });
-    };
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        // تحديثات React مباشرة — Supabase يحرر القفل قبل استدعاء الـ callback
-        if (!isMounted) return;
-
-        const newUserId = currentSession?.user?.id ?? null;
-
-        // تجاهل الأحداث المتكررة لنفس المستخدم
-        if (
-          (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') &&
-          newUserId && newUserId === lastUserIdRef.current && roleRef.current
-        ) {
-          logger.info('[Auth] duplicate event ignored:', event);
-          return;
-        }
-
-        logger.info('[Auth] onAuthStateChange:', event);
-        lastUserIdRef.current = newUserId;
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-
-        if (!currentSession?.user) {
-          setRoleWithRef(null);
-          setLoading(false);
-          return;
-        }
-
-        // === محاولة قراءة الدور من JWT (فوري — لا await) ===
-        const jwtRole = getRoleFromSession(currentSession);
-        if (jwtRole) {
-          logger.info('[Auth] role from JWT:', jwtRole);
-          setRoleWithRef(jwtRole);
-          setLoading(false);
-
-          // fire-and-forget
-          logAccessEvent({
-            event_type: 'role_fetch',
-            user_id: currentSession.user.id,
-            metadata: { role: jwtRole, source: 'jwt', status: 'success' },
-          });
-          checkNewDeviceLogin(currentSession.user.id, currentSession.user.email);
-          return;
-        }
-
-        // === Fallback: fire-and-forget — لا await داخل onAuthStateChange ===
-        logger.info('[Auth] role not in JWT, DB fallback');
-        fetchRoleFallback(currentSession.user.id, currentSession.user.email);
-      }
-    );
-
-    // === Fallback: إذا لم يصدر INITIAL_SESSION (race condition) ===
-    // NOTE: getSession مسموح هنا — client-side fallback فقط. القاعدة تحظره في Edge Functions حصراً
-    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
-      if (!isMounted) return;
-      // إذا لا يزال loading ولم يتم تعيين مستخدم، فالحدث لم يصدر
-      if (!lastUserIdRef.current && existingSession?.user) {
-        logger.info('[Auth] getSession fallback triggered');
-        const jwtRole = getRoleFromSession(existingSession);
-        lastUserIdRef.current = existingSession.user.id;
-        setSession(existingSession);
-        setUser(existingSession.user);
-        if (jwtRole) {
-          setRoleWithRef(jwtRole);
-          setLoading(false);
-        } else {
-          // لا دور في JWT — يجب جلبه من DB قبل إيقاف التحميل
-          logger.info('[Auth] getSession fallback: no JWT role, fetching from DB');
-          fetchRoleFallback(existingSession.user.id, existingSession.user.email);
-        }
-      } else if (!existingSession) {
-        // لا جلسة — تأكد من إيقاف التحميل
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, [setRoleWithRef]);
+  // === State + listener (مُستخرج إلى hook منفصل في الموجة 18) ===
+  const { user, session, role, loading, setRole } = useAuthListener();
 
   // === إجراءات المصادقة (مراجع مستقرة) ===
 
@@ -166,7 +35,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error };
-
       // onAuthStateChange يتولى تحديث الحالة وإيقاف التحميل
       return { error: null };
     } catch (err) {
@@ -191,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       logger.error('[Auth] signOut error:', err);
     } finally {
-      setRoleWithRef(null);
+      setRole(null);
       queryClient.clear();
       // مسح كل مفاتيح localStorage المعروفة (مصدر واحد للحقيقة من storageKeys.ts)
       CLEARABLE_STORAGE_KEYS.forEach(key => safeRemove(key));
@@ -205,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }).catch(() => { /* silent */ });
       toast.dismiss();
     }
-  }, [setRoleWithRef]);
+  }, [setRole]);
 
   const refreshRole = useCallback(async () => {
     if (!user) return;
@@ -214,8 +82,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logger.warn('[Auth] تعذّر تحديث الدور', error);
       return;
     }
-    setRoleWithRef(newRole);
-  }, [user, setRoleWithRef]);
+    setRole(newRole);
+  }, [user, setRole]);
 
   // === Memoize contexts لمنع إعادة التصيير غير الضرورية ===
   const stateValue = useMemo(
