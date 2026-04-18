@@ -26,6 +26,7 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
       if (blobUrlRef.current) {
         URL.revokeObjectURL(blobUrlRef.current);
         blobUrlRef.current = null;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- clear preview URL when dialog closes or file removed
         setBlobUrl(null);
       }
       return;
@@ -35,6 +36,7 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
     if (blobUrlRef.current) {
       URL.revokeObjectURL(blobUrlRef.current);
       blobUrlRef.current = null;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset preview URL before fetching a new one
       setBlobUrl(null);
     }
 
