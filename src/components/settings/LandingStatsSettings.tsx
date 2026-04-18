@@ -116,7 +116,7 @@ const LandingStatsSettings = () => {
                 <Label className="text-sm">وضع العرض</Label>
                 <RadioGroup
                   value={f.mode}
-                  onValueChange={(v) => handleChange(stat.key, 'mode', v)}
+                  onValueChange={(v) => handleChange(stat.key, 'mode', v as StatMode)}
                   className="grid grid-cols-3 gap-2"
                 >
                   <Label
