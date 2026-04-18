@@ -1,33 +1,41 @@
 
-الخطة معتمدة بالفعل من المستخدم. سأنفذ موجة P1 الخاطفة بالتوازي الآمن.
+المستخدم أعاد لصق نفس تقرير الجولة الرابعة. لكن الموجات السابقة (P1 + P2) تم تنفيذها فعلياً بعد هذا التقرير. الوضع الحالي الفعلي:
 
-## موجة P1 — تصفير الأخطاء
+- ✅ #1 useAccountsSettings: تم (eslint-disable مع تبرير)
+- ✅ #2 eqeqeq: تم (5/5)
+- ✅ #3 preserve-manual-memoization: تم (2/2)
+- ✅ #4 useContractsForPdf: تم
+- ✅ #5 eslint-disable المهجورة: تم (5/5)
+- ✅ #6 react-refresh: تم (9/9)
+- ✅ #7 useAuditLogPage useMemo: تم
+- ✅ #8 viewHelper + lazyWithRetry: تم
+- ⏳ #9 defaultNotify.dismissAll: لم يُنفذ
+- ⏳ #10 تقسيم useAppSettings.ts: لم يُنفذ
 
-### #1 `useAccountsSettings.ts` — state→useMemo
-- حذف 5 `useState` للقيم المشتقة من `appSettings.data` و `currentAccount`
-- استبدال `useEffect` للنسخ بـ `useMemo` يشتق مباشرة
-- الإبقاء على setters كـ no-op stubs لأن المستخدمين الخارجيين قد يستهلكونها (تحقق سريع قبل الحذف)
+التقرير قديم. سأقترح تنفيذ البندين المتبقيين فقط (#9 + #10) كموجة P3 ختامية، مع تأكيد أن باقي البنود مغلقة.
 
-### #2 `eqeqeq` — 5 مواضع
-- `useAccountsSettings.ts:97` (×2): استخراج متغير محلي + `=== null || === undefined`
-- `useAdminDashboardData.ts:59` (×3): نفس النمط
+## موجة P3 الختامية — إغلاق آخر بندين
 
-### #3 `preserve-manual-memoization` — 2 مواضع
-- `ZatcaHealthPanel.tsx`: استخراج `expiresAt` محلياً قبل `useMemo`
-- `useBeneficiaryFinancials.ts`: استخراج `beneficiary` محلياً قبل `useMemo`
+### #9 — إضافة `dismissAll()` لـ lib/notify
+- إضافة `dismissAll: (toastId?: string | number) => toast.dismiss(toastId)` إلى `defaultNotify` في `src/lib/notify.ts`
+- تحديث `useAuthCleanup.ts` ليستخدم `notify.dismissAll()` بدل `toast.dismiss()` المباشر
+- النتيجة: إغلاق نقطة `sonner` المباشرة الوحيدة المتبقية
 
-### #4 `useMySharePage.ts` — استخراج data hook
-- إنشاء `src/hooks/data/contracts/useContractsForPdf.ts` يُصدّر function تأخذ `fiscalYearId`
-- تحديث `useMySharePage.ts` لاستهلاكه + حذف import supabase
-- تحديث `src/hooks/data/contracts/index.ts` (إن وجد)
+### #10 — تقسيم `useAppSettings.ts` (220 سطر)
+الخطة:
+- قراءة الملف الحالي + كل consumers لتحديد API السطحي
+- تقسيم إلى:
+  - `useAppSettingsRead.ts` — استعلامات القراءة (useQuery)
+  - `useAppSettingsWrite.ts` — mutations (upsert/delete)
+  - `useWaqfInfo.ts` — hook متخصص لمعلومات الوقف (logo, name, etc.)
+  - `appSettingsUtils.ts` — helpers خالصة (parsing, defaults)
+- الإبقاء على `useAppSettings.ts` كـ barrel/facade للتوافق الخلفي (re-export)
+- لا تغيير سلوكي — فقط فصل اهتمامات
 
-## التحقق
-- قراءة الملفات المتأثرة قبل التعديل لتأكيد الأنماط الفعلية
-- فحص consumers لـ `useAccountsSettings` للتأكد من أن setters غير مستخدمة فعلياً قبل حذفها
-- بعد التنفيذ: ESLint على الملفات المعدلة فقط
+### الضمانات
+- لا لمس لملفات المصادقة/المحمية
+- التوافق الخلفي محفوظ عبر facade
+- التحقق بـ `tsc --noEmit` بعد كل تغيير
 
-## الضمانات
-- لا تغيير سلوكي — كل القيم المشتقة تبقى متطابقة
-- لا لمس لملفات المصادقة أو المحمية
-- التزام بـ logger و lib/notify
-- توازي آمن: الملفات الأربعة مستقلة
+### ملاحظة للمستخدم
+كل البنود الأخرى في التقرير (#1-#8) منفذة بالفعل في الموجات السابقة. هل تريد تنفيذ #9 + #10 معاً، أو الاكتفاء بأحدهما؟
