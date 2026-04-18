@@ -10,21 +10,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 
-// ---- Mocks ----
-const signOutMock = vi.fn();
-const performCleanupMock = vi.fn();
-const logAccessEventMock = vi.fn().mockResolvedValue(undefined);
-const loggerErrorMock = vi.fn();
-
-let capturedOnIdle: (() => Promise<void>) | null = null;
-let mockUser: { id: string } | null = { id: 'u1' };
+const h = vi.hoisted(() => ({
+  signOutMock: vi.fn(),
+  performCleanupMock: vi.fn(),
+  logAccessEventMock: vi.fn().mockResolvedValue(undefined),
+  loggerErrorMock: vi.fn(),
+  capturedOnIdle: null as null | (() => Promise<void>),
+  mockUser: { id: 'u1' } as { id: string } | null,
+}));
 
 vi.mock('@/hooks/auth/useAuthContext', () => ({
-  useAuth: () => ({ user: mockUser, signOut: signOutMock }),
+  useAuth: () => ({ user: h.mockUser, signOut: h.signOutMock }),
 }));
 
 vi.mock('@/hooks/auth/useAuthCleanup', () => ({
-  useAuthCleanup: () => ({ performCleanup: performCleanupMock }),
+  useAuthCleanup: () => ({ performCleanup: h.performCleanupMock }),
 }));
 
 vi.mock('@/hooks/data/settings/useAppSettings', () => ({
@@ -35,33 +35,35 @@ vi.mock('@/hooks/data/settings/useAppSettings', () => ({
 
 vi.mock('@/hooks/ui/useIdleTimeout', () => ({
   useIdleTimeout: (opts: { onIdle: () => Promise<void> }) => {
-    capturedOnIdle = opts.onIdle;
+    h.capturedOnIdle = opts.onIdle;
     return { showWarning: false, remaining: 0, stayActive: vi.fn() };
   },
 }));
 
 vi.mock('@/lib/services/accessLogService', () => ({
-  logAccessEvent: logAccessEventMock,
+  logAccessEvent: h.logAccessEventMock,
 }));
 
 vi.mock('@/lib/logger', () => ({
-  logger: { error: loggerErrorMock, warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
+  logger: { error: h.loggerErrorMock, warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
 vi.mock('@/components/auth/IdleTimeoutWarning', () => ({
   default: () => null,
 }));
 
-// Import after mocks
 import IdleTimeoutManager from './IdleTimeoutManager';
 
 describe('IdleTimeoutManager', () => {
   let originalLocation: Location;
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    capturedOnIdle = null;
-    mockUser = { id: 'u1' };
+    h.signOutMock.mockReset();
+    h.performCleanupMock.mockReset();
+    h.logAccessEventMock.mockReset().mockResolvedValue(undefined);
+    h.loggerErrorMock.mockReset();
+    h.capturedOnIdle = null;
+    h.mockUser = { id: 'u1' };
     originalLocation = window.location;
     // @ts-expect-error - test override
     delete window.location;
@@ -75,31 +77,31 @@ describe('IdleTimeoutManager', () => {
   });
 
   it('عند نجاح signOut: لا يستدعي performCleanup ويوجّه إلى /auth?reason=idle', async () => {
-    signOutMock.mockResolvedValueOnce(undefined);
+    h.signOutMock.mockResolvedValueOnce(undefined);
     render(<IdleTimeoutManager />);
 
-    expect(capturedOnIdle).toBeTruthy();
+    expect(h.capturedOnIdle).toBeTruthy();
     await act(async () => {
-      await capturedOnIdle!();
+      await h.capturedOnIdle!();
     });
 
-    expect(signOutMock).toHaveBeenCalledTimes(1);
-    expect(performCleanupMock).not.toHaveBeenCalled();
+    expect(h.signOutMock).toHaveBeenCalledTimes(1);
+    expect(h.performCleanupMock).not.toHaveBeenCalled();
     expect(window.location.href).toBe('/auth?reason=idle');
   });
 
   it('عند فشل signOut: يستدعي performCleanup + logger.error ويُكمل التوجيه', async () => {
     const err = new Error('boom');
-    signOutMock.mockRejectedValueOnce(err);
+    h.signOutMock.mockRejectedValueOnce(err);
     render(<IdleTimeoutManager />);
 
     await act(async () => {
-      await capturedOnIdle!();
+      await h.capturedOnIdle!();
     });
 
-    expect(signOutMock).toHaveBeenCalledTimes(1);
-    expect(performCleanupMock).toHaveBeenCalledTimes(1);
-    expect(loggerErrorMock).toHaveBeenCalledWith(
+    expect(h.signOutMock).toHaveBeenCalledTimes(1);
+    expect(h.performCleanupMock).toHaveBeenCalledTimes(1);
+    expect(h.loggerErrorMock).toHaveBeenCalledWith(
       expect.stringContaining('[IdleTimeout]'),
       err,
     );
@@ -107,27 +109,26 @@ describe('IdleTimeoutManager', () => {
   });
 
   it('يستدعي logAccessEvent بـ event_type=idle_logout قبل signOut', async () => {
-    signOutMock.mockResolvedValueOnce(undefined);
+    h.signOutMock.mockResolvedValueOnce(undefined);
     render(<IdleTimeoutManager />);
 
     await act(async () => {
-      await capturedOnIdle!();
+      await h.capturedOnIdle!();
     });
 
-    expect(logAccessEventMock).toHaveBeenCalledTimes(1);
-    expect(logAccessEventMock).toHaveBeenCalledWith({
+    expect(h.logAccessEventMock).toHaveBeenCalledTimes(1);
+    expect(h.logAccessEventMock).toHaveBeenCalledWith({
       event_type: 'idle_logout',
       user_id: 'u1',
     });
-    // ترتيب: log قبل signOut
-    const logOrder = logAccessEventMock.mock.invocationCallOrder[0] ?? 0;
-    const signOutOrder = signOutMock.mock.invocationCallOrder[0] ?? 0;
-    expect(logOrder).toBeLessThan(signOutOrder);
+    const logOrder = h.logAccessEventMock.mock.invocationCallOrder[0] ?? 0;
+    const signOutOrder = h.signOutMock.mock.invocationCallOrder[0] ?? 0;
     expect(logOrder).toBeGreaterThan(0);
+    expect(logOrder).toBeLessThan(signOutOrder);
   });
 
-  it('بدون مستخدم: يُرجع null ولا يَرسم IdleTimeoutWarning', () => {
-    mockUser = null;
+  it('بدون مستخدم: يُرجع null', () => {
+    h.mockUser = null;
     const { container } = render(<IdleTimeoutManager />);
     expect(container.firstChild).toBeNull();
   });
