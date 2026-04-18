@@ -64,7 +64,9 @@ function parseHsl(value: string): [number, number, number] | null {
   // يقبل صيغة tailwind: "220 20% 10%" أو "220, 20%, 10%"
   const match = value.trim().match(/^(\d+(?:\.\d+)?)\s*[, ]\s*(\d+(?:\.\d+)?)%?\s*[, ]\s*(\d+(?:\.\d+)?)%?$/);
   if (!match) return null;
-  return [parseFloat(match[1]), parseFloat(match[2]), parseFloat(match[3])];
+  const [, h, s, l] = match;
+  if (!h || !s || !l) return null;
+  return [parseFloat(h), parseFloat(s), parseFloat(l)];
 }
 
 function relativeLuminance([r, g, b]: [number, number, number]): number {
