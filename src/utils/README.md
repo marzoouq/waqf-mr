@@ -21,6 +21,50 @@
 | **أمثلة** | `format()`, `calculateDistributions()` | `logger`, `queryClient`, `supabase client` |
 
 ## ممنوعات في هذا المجلد
-- ❌ استيراد `toast` من `sonner` — أرجع نتيجة (success/error) واترك الطبقة المستدعية تُشعر المستخدم
+
+- ❌ استيراد `toast` من `sonner`
 - ❌ استيراد `supabase` مباشرة — استخدم `lib/services/` للاستعلامات
 - ❌ تعديل قاعدة البيانات أو رفع ملفات — هذه مسؤولية `lib/services/`
+- ❌ `import.meta` مع آثار جانبية (initialization)
+- ❌ singletons أو module-level state يتغيّر
+
+### مثال: إرجاع نتيجة بدلاً من toast
+
+```ts
+// ❌ خطأ — utils/ تستدعي toast
+import { toast } from 'sonner';
+export function generateReport(data: Row[]) {
+  if (!data.length) {
+    toast.error('لا توجد بيانات');
+    return null;
+  }
+  return buildPdf(data);
+}
+
+// ✅ صحيح — utils/ تُرجع نتيجة، الطبقة المستدعية تُشعر
+export type ReportResult =
+  | { ok: true; blob: Blob }
+  | { ok: false; reason: 'empty' | 'invalid' };
+
+export function generateReport(data: Row[]): ReportResult {
+  if (!data.length) return { ok: false, reason: 'empty' };
+  return { ok: true, blob: buildPdf(data) };
+}
+
+// في hooks/page/ — هنا يحدث الإشعار
+const result = generateReport(rows);
+if (!result.ok) notify.error('لا توجد بيانات');
+```
+
+## Barrel exports (`index.ts`)
+
+أنشئ `index.ts` لمجلد فرعي عندما:
+- يحتوي **3 ملفات أو أكثر** مرتبطة وظيفياً
+- يُستهلك من **3 مواقع مختلفة أو أكثر** خارج المجلد
+- المسارات الطويلة تتكرر (`utils/auth/permissions/canModifyFiscalYear`)
+
+نماذج معتمدة:
+- `utils/auth/index.ts` — يصدّر `canModifyFiscalYear`, `filterLinksBySectionVisibility`, `RouteLink`
+- `utils/export/index.ts` — يصدّر helpers تصدير CSV/XLSX
+
+تجنّب barrel لمجلد فيه ملف واحد أو ملفان — يضيف indirection بلا فائدة.
