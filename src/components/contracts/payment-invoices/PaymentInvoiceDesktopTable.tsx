@@ -40,15 +40,17 @@ const getStatusBadge = (status: string) => {
   }
 };
 
+/** أيقونة الفرز — مُستخرجة خارج المكوّن الأب (تجنّب react-hooks/static-components) */
+const SortIcon = ({ field, sortKey, sortDir }: { field: SortKey; sortKey: SortKey; sortDir: 'asc' | 'desc' }) => {
+  if (sortKey !== field) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+  return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
+};
+
 export default function PaymentInvoiceDesktopTable({
   groupedPaginated, isClosed, selectedIds, unpaidFiltered,
   toggleSelect, toggleSelectAll, sortKey, sortDir, toggleSort,
   payingInvoiceId, openPayDialog, handlePreviewTemplate, markUnpaid,
 }: PaymentInvoiceDesktopTableProps) {
-  const SortIcon = ({ field }: { field: SortKey }) => {
-    if (sortKey !== field) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
-    return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
-  };
 
   return (
     <div className="overflow-x-auto hidden md:block">

@@ -531,10 +531,14 @@ const SidebarMenuSkeleton = React.forwardRef<
     showIcon?: boolean;
   }
 >(({ className, showIcon = false, ...props }, ref) => {
-  // Random width between 50 to 90%.
+  // عرض ثابت بناءً على معرف العنصر — يتجنب Math.random() في render (purity)
+  const reactId = React.useId();
   const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`;
-  }, []);
+    // hash بسيط من useId → عرض بين 50% و 90%
+    let hash = 0;
+    for (let i = 0; i < reactId.length; i++) hash = (hash * 31 + reactId.charCodeAt(i)) | 0;
+    return `${50 + (Math.abs(hash) % 41)}%`;
+  }, [reactId]);
 
   return (
     <div
