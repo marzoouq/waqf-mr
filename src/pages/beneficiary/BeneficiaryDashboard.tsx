@@ -78,11 +78,11 @@ const BeneficiaryDashboard = () => {
   return (
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
-        {(w.welcome_card ?? true) && (
+        {isVisible('welcome_card') && (
           <BeneficiaryWelcomeCard displayName={displayName} roleLabel={roleLabel} />
         )}
 
-        {(w.stats_row ?? true) && (
+        {isVisible('stats_row') && (
           <BeneficiaryStatsRow
             myShare={myShare}
             isClosed={isClosed}
@@ -93,7 +93,7 @@ const BeneficiaryDashboard = () => {
         )}
 
         {/* تنبيه السنة غير المقفلة */}
-        {(w.fiscal_year_notice ?? true) && fiscalYear && !isClosed && (
+        {isVisible('fiscal_year_notice') && fiscalYear && !isClosed && (
           <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/5 text-sm text-muted-foreground">
             <AlertCircle className="w-4 h-4 text-warning shrink-0" />
             <span>الأرقام النهائية (حصص الريع والتوزيعات) ستتوفر بعد إقفال السنة المالية.</span>
@@ -101,7 +101,7 @@ const BeneficiaryDashboard = () => {
         )}
 
         {/* بطاقة طلب السُلفة */}
-        {(w.advance_card ?? true) && advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
+        {isVisible('advance_card') && advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
           <DeferredRender delay={300}>
             <BeneficiaryAdvanceCard
               beneficiaryId={currentBeneficiary.id!}
@@ -115,16 +115,16 @@ const BeneficiaryDashboard = () => {
           </DeferredRender>
         )}
 
-        {(w.quick_links ?? true) && (
+        {isVisible('quick_links') && (
           <BeneficiaryQuickLinks role={role} />
         )}
 
         <DeferredRender delay={500}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {(w.recent_distributions ?? true) && (
+            {isVisible('recent_distributions') && (
               <BeneficiaryRecentDistributions distributions={distributions} />
             )}
-            {(w.notifications_card ?? true) && (
+            {isVisible('notifications_card') && (
               <BeneficiaryNotificationsCard notifications={recentNotifications} unreadCount={unreadCount} />
             )}
           </div>
