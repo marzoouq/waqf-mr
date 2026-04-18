@@ -12,6 +12,7 @@ import { defaultNotify } from '@/lib/notify';
 import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent } from '@/components/contracts';
 import { getPaymentTypeLabel } from '@/utils/financial/contractHelpers';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import { useContractsPage } from '@/hooks/page/admin/contracts/useContractsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
