@@ -14,6 +14,7 @@ import {
   type SupportTicket,
 } from '@/hooks/data/support/useSupportTickets';
 import { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/constants/support';
+import { useNowClock } from '@/lib/hooks/useNowClock';
 
 interface Props {
   ticket: SupportTicket;
@@ -40,7 +41,8 @@ export default function TicketDetailDialog({ ticket, onClose, isAdmin }: Props) 
 
   const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
   const p = PRIORITY_MAP[ticket.priority] ?? PRIORITY_MAP.medium!;
-  const ageMs = Date.now() - new Date(ticket.created_at).getTime();
+  const now = useNowClock();
+  const ageMs = now - new Date(ticket.created_at).getTime();
   const ageHours = ageMs / (1000 * 60 * 60);
   const ageLabel = ageHours < 1 ? `${Math.round(ageHours * 60)} دقيقة` : ageHours < 24 ? `${Math.round(ageHours)} ساعة` : `${Math.round(ageHours / 24)} يوم`;
 
