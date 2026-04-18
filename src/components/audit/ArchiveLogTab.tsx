@@ -17,6 +17,7 @@ const ArchiveLogTab = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset pagination when debounced search changes
   useEffect(() => { setCurrentPage(1); }, [debouncedSearch]);
 
   const { data: rawData, isLoading } = useArchiveLog(eventFilter, currentPage, debouncedSearch);

@@ -17,6 +17,7 @@ export function useInstallAppPage() {
   useEffect(() => {
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent)
       || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time platform detection on mount
     setIsIOS(isIOSDevice);
 
     if (window.matchMedia('(display-mode: standalone)').matches) {

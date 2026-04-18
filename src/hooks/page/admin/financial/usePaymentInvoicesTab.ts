@@ -42,6 +42,7 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset pagination when filters/search change
   useEffect(() => { setCurrentPage(1); }, [filter, search, dateFrom, dateTo]);
 
   const summary = useMemo(() => {

@@ -17,6 +17,7 @@ const AccessLogTab = () => {
   const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
   // إعادة تعيين الصفحة عند تغير البحث المُؤجَّل
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset pagination when debounced search changes
   useEffect(() => { setCurrentPage(1); }, [debouncedSearch]);
 
   const { data: rawData, isLoading } = useAccessLogTab(eventFilter, currentPage, debouncedSearch);

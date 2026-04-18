@@ -22,6 +22,7 @@ const ViewportRender = ({
 
     // إذا كان المتصفح لا يدعم IntersectionObserver — نعرض مباشرة
     if (!('IntersectionObserver' in window)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- fallback for browsers without IntersectionObserver
       setVisible(true);
       return;
     }

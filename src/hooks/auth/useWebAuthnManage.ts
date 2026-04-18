@@ -24,6 +24,7 @@ export function useWebAuthnManage() {
   const [credentials, setCredentials] = useState<WebAuthnCredential[]>([]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync of WebAuthn support + DB credential state on mount
     setIsSupported(browserSupportsWebAuthn());
     const localEnabled = safeGet<string>(BIOMETRIC_ENABLED_KEY, 'false') === 'true';
     setIsEnabled(localEnabled);

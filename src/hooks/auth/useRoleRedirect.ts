@@ -29,6 +29,7 @@ export function useRoleRedirect(
   // مهلة انتظار الصلاحيات
   useEffect(() => {
     if (!user || loading || role) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset timeout flag when state preconditions change
       setRoleWaitTimeout(false);
       return;
     }

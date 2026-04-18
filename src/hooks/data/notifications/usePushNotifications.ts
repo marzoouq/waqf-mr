@@ -8,6 +8,7 @@ export const usePushNotifications = () => {
 
   useEffect(() => {
     if (!isSupported) return undefined;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync with browser Notification.permission on mount
     setPermission(Notification.permission);
 
     if ('permissions' in navigator) {
