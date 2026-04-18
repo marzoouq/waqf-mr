@@ -11,6 +11,7 @@ import { Save, Globe } from 'lucide-react';
 import { useAppSettings, useSetting } from '@/hooks/data/settings/useAppSettings';
 import { useState, useEffect } from 'react';
 import LogoUploadCard from './LogoUploadCard';
+import LandingStatsSettings from './LandingStatsSettings';
 import type { LandingPageContent } from '@/types/landing';
 
 // إعادة تصدير للتوافق العكسي مع المستوردين القدامى
@@ -119,6 +120,8 @@ const LandingPageTab = () => {
         <Save className="w-4 h-4" />
         حفظ محتوى الواجهة الرئيسية
       </Button>
+
+      <LandingStatsSettings />
     </div>
   );
 };
