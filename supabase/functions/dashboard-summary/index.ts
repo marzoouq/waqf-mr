@@ -109,8 +109,11 @@ Deno.serve(async (req) => {
 
     return new Response(responseStr, { headers: jsonHeaders });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "خطأ غير متوقع";
-    console.error("dashboard-summary error:", msg);
-    return new Response(JSON.stringify({ error: msg }), { status: 500, headers: jsonHeaders });
+    // سجّل التفاصيل في السيرفر، أعد رسالة عامة للعميل
+    console.error("dashboard-summary error:", e instanceof Error ? e.message : e);
+    return new Response(
+      JSON.stringify({ error: "خطأ داخلي في الخادم، يرجى المحاولة لاحقاً" }),
+      { status: 500, headers: jsonHeaders },
+    );
   }
 });

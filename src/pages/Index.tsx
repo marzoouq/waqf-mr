@@ -75,6 +75,13 @@ const Index = () => {
     offers: { "@type": "Offer", price: "0", priceCurrency: "SAR" },
   }), [waqfName, siteUrl]);
 
+  // تأمين JSON-LD ضد XSS عبر تهريب < > & — JSON.stringify لا يهرّب </script>
+  const safeJsonLdString = (obj: unknown) =>
+    JSON.stringify(obj)
+      .replace(/</g, '\\u003c')
+      .replace(/>/g, '\\u003e')
+      .replace(/&/g, '\\u0026');
+
   // المستخدم المسجّل سيُعاد توجيهه — لا داعي لرندر Landing Page الثقيلة
   if (!loading && user) {
     return (
@@ -86,8 +93,8 @@ const Index = () => {
 
   return (
     <main dir="rtl" className="min-h-screen bg-background">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLdString(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLdString(webAppJsonLd) }} />
       <LandingHero
         content={content}
         waqfLogoUrl={landingLogoUrl || waqfInfo?.waqf_logo_url}
