@@ -180,9 +180,10 @@ Deno.serve(async (req) => {
       { status: 200, headers: jsonHeaders },
     );
   } catch (err) {
-    const message = err instanceof Error ? err.message : "خطأ غير متوقع";
+    // سجّل التفاصيل الكاملة في السيرفر فقط — لا تكشفها للعميل
+    console.error("beneficiary-summary error:", err instanceof Error ? err.message : err);
     return new Response(
-      JSON.stringify({ error: message }),
+      JSON.stringify({ error: "خطأ داخلي في الخادم، يرجى المحاولة لاحقاً" }),
       { status: 500, headers: jsonHeaders },
     );
   }
