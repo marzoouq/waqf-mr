@@ -36,6 +36,7 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
     if (!formData.name.trim()) newErrors.name = 'الاسم مطلوب';
     const pct = parseFloat(formData.share_percentage);
     if (!Number.isFinite(pct) || pct <= 0) newErrors.share_percentage = 'النسبة يجب أن تكون أكبر من صفر';
+    else if (pct > 100) newErrors.share_percentage = 'النسبة لا يمكن أن تتجاوز 100%';
     if (formData.national_id) {
       const nidErr = getNationalIdError(formData.national_id);
       if (nidErr) newErrors.national_id = nidErr;
@@ -65,7 +66,8 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
           </div>
           <div className="space-y-2">
             <Label htmlFor="beneficiary-form-dialog-field-2">نسبة الحصة (%) *</Label>
-            <Input name="share_percentage" id="beneficiary-form-dialog-field-2" type="number" step="0.01" min="0.01" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="7.14" />
+            <Input name="share_percentage" id="beneficiary-form-dialog-field-2" type="number" step="0.000001" min="0.000001" max="100" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="10.294118" />
+            <p className="text-xs text-muted-foreground">يقبل حتى 6 منازل عشرية (مثال: 10.294118)</p>
             {errors.share_percentage && <p className="text-xs text-destructive">{errors.share_percentage}</p>}
           </div>
           <div className="space-y-2">
