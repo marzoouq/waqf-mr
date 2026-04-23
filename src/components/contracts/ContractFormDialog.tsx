@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Contract } from '@/types/database';
+import { Contract } from '@/types';
 
 import ContractTenantIdSection from './ContractTenantIdSection';
 import { type ContractFormData } from '@/types/forms/contract';

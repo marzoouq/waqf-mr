@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { useUnits } from '@/hooks/data/properties/useUnits';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { Contract } from '@/types/database';
+import { Contract } from '@/types';
 import { emptyFormData, type ContractFormData } from '@/types/forms/contract';
 import { defaultNotify } from '@/lib/notify';
 import { SAUDI_NATIONAL_ID_REGEX, SA_VAT_REGEX } from '@/utils/validation/index';

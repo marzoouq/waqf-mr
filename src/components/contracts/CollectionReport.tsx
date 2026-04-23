@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle2, Search, Bell } from 'lucide-react';
-import { Contract } from '@/types/database';
+import { Contract } from '@/types';
 
 import { ExportMenu, TablePagination } from '@/components/common';
 import { fmt } from '@/utils/format/format';

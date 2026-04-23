@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Target } from 'lucide-react';
-import { Expense } from '@/types/database';
+import { Expense } from '@/types';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

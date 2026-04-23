@@ -10,7 +10,7 @@ import { notifyAllBeneficiaries } from '@/lib/services';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format/format';
-import type { Account, Contract, Beneficiary } from '@/types/database';
+import type { Account, Contract, Beneficiary } from '@/types';
 
 interface ActionsParams {
   selectedFY: { id: string; label: string; status: string } | null;

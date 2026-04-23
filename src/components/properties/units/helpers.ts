@@ -1,5 +1,5 @@
 /** دوال مساعدة لمنطق الوحدات والتحصيل */
-import { Contract } from '@/types/database';
+import { Contract } from '@/types';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 export interface TenantInfo {

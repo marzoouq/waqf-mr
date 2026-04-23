@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { logAccessEvent } from '@/lib/services/accessLogService';
-import type { AppRole } from '@/types/database';
+import type { AppRole } from '@/types';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

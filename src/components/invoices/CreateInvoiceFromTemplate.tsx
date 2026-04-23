@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Eye, Save } from 'lucide-react';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector } from './InvoiceTemplates';
 import { useCreateInvoiceForm, INVOICE_TYPES } from '@/hooks/page/admin/financial/useCreateInvoiceForm';
 import InvoiceFormFields from './create-invoice/InvoiceFormFields';

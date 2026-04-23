@@ -3,7 +3,7 @@
  * تُستخدم في كلٍ من fetchRole (عند التهيئة) و refreshRole (عند التحديث)
  */
 import { supabase } from '@/integrations/supabase/client';
-import type { AppRole } from '@/types/database';
+import type { AppRole } from '@/types';
 
 export interface FetchUserRoleResult {
   role: AppRole | null;

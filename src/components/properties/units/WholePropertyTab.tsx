@@ -9,7 +9,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Building2, Edit, Plus } from 'lucide-react';
 import { PAYMENT_TYPES } from './constants';
 import { fmt } from '@/utils/format/format';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 
 interface WholePropertyTabProps {
   wholePropertyContract: Contract | null;

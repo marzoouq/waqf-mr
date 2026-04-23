@@ -16,7 +16,7 @@ import { logger } from '@/lib/logger';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { checkNewDeviceLogin } from '@/lib/services/securityService';
 import { fetchUserRole } from '@/lib/auth/fetchUserRole';
-import type { AppRole } from '@/types/database';
+import type { AppRole } from '@/types';
 
 const VALID_ROLES: AppRole[] = ['admin', 'beneficiary', 'waqif', 'accountant'];
 

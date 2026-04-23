@@ -13,7 +13,7 @@ import {
 } from '@/components/dashboard';
 import { Printer, Gauge } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
-import type { FiscalYear } from '@/types/database';
+import type { FiscalYear } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import ChartSkeleton from '@/components/common/ChartSkeleton';
 import { useAdminDashboardPage } from '@/hooks/page/admin/dashboard/useAdminDashboardPage';

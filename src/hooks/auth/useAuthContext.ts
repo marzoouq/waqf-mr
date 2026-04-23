@@ -6,7 +6,7 @@
  */
 import { useContext, createContext } from 'react';
 import type { User, Session, AuthError } from '@supabase/supabase-js';
-import type { AppRole } from '@/types/database';
+import type { AppRole } from '@/types';
 import { logger } from '@/lib/logger';
 
 // === State Context ===

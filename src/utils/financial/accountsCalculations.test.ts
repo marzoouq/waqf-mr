@@ -5,7 +5,7 @@ import {
   groupExpensesByType,
   computeTotals,
 } from './accountsCalculations';
-import { Income, Expense } from '@/types/database';
+import { Income, Expense } from '@/types';
 
 // Helper to create minimal Income/Expense records
 const mkIncome = (amount: number, source = 'إيجارات'): Income =>

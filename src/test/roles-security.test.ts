@@ -3,7 +3,7 @@
  * يتحقق من أن منطق التحقق من الأدوار يعمل بشكل صحيح
  */
 import { describe, it, expect } from "vitest";
-import { AppRole } from "@/types/database";
+import { AppRole } from "@/types";
 
 // Simulates the role-checking logic used in ProtectedRoute
 function isAllowed(userRole: AppRole | null, allowedRoles?: AppRole[]): boolean {

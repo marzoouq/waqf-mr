@@ -5,7 +5,7 @@
  */
 import { createCrudFactory } from '../core/useCrudFactory';
 import { useMemo } from 'react';
-import type { AccountCategory } from '@/types/database';
+import type { AccountCategory } from '@/types';
 
 const categoryCrud = createCrudFactory<'account_categories', AccountCategory>({
   table: 'account_categories',

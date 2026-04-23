@@ -10,9 +10,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Building2, CheckSquare } from 'lucide-react';
 import { type ContractFormData, type PricingMode, type RentalMode } from '@/types/forms/contract';
 import { fmt } from '@/utils/format/format';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 
-import type { Unit } from '@/types/database';
+import type { Unit } from '@/types';
 
 interface ContractRentalModeSectionProps {
   formData: ContractFormData;

@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useCollectionData } from './useCollectionData';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 

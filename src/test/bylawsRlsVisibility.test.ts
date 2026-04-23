@@ -3,7 +3,7 @@
  * يتحقق من أن الأنظمة المخفية (is_visible = false) محجوبة عن الأدوار غير الإدارية
  */
 import { describe, it, expect } from "vitest";
-import { AppRole } from "@/types/database";
+import { AppRole } from "@/types";
 
 interface Bylaw {
   id: string;

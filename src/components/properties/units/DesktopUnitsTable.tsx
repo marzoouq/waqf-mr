@@ -9,7 +9,7 @@ import { getPaymentStatusFromInvoices, getMonthlyRent, getTenantFromContracts, g
 import { fmt, fmtInt } from '@/utils/format/format';
 import { safeNumber } from '@/utils/format/safeNumber';
 import type { UnitRow } from '@/hooks/data/properties/useUnits';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 
 interface PaymentInvoiceLike {
   contract_id: string;

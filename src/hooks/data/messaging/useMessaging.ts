@@ -2,7 +2,7 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tansta
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useCallback, useRef } from 'react';
-import { Conversation, Message } from '@/types/database';
+import { Conversation, Message } from '@/types';
 import { notifyUser } from '@/lib/services';
 import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';

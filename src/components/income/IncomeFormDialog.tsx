@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus } from 'lucide-react';
-import type { Income } from '@/types/database';
+import type { Income } from '@/types';
 
 interface Property { id: string; property_number: string; location: string; }
 

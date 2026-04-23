@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import type { FiscalYear } from '@/types/database';
+import type { FiscalYear } from '@/types';
 
 export type { FiscalYear };
 

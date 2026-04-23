@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
-import { Unit } from '@/types/database';
+import { Unit } from '@/types';
 
 // Re-export types for backward compatibility
 export type UnitRow = Unit;

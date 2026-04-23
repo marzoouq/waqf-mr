@@ -13,7 +13,7 @@ import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import type { Income } from '@/types/database';
+import type { Income } from '@/types';
 import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
 import { defaultNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';

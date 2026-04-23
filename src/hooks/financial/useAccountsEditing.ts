@@ -2,7 +2,7 @@
  * حالة التحرير في صفحة الحسابات — collection editing + contract editing + delete
  */
 import { useState } from 'react';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 import { useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
 import { useDeleteAccount } from '@/hooks/data/financial/useAccounts';
 import { useUpsertTenantPayment } from '@/hooks/data/contracts/useTenantPayments';

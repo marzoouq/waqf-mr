@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import AccountsContractsTable from './AccountsContractsTable';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 
 const mockContract: Contract = {
   id: '1',

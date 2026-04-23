@@ -10,7 +10,7 @@ import {
   DollarSign, Receipt, Calculator, ArrowDownUp,
 } from 'lucide-react';
 import type { CategoryTreeNode } from '@/hooks/data/financial/useAccountCategories';
-import type { AccountCategory } from '@/types/database';
+import type { AccountCategory } from '@/types';
 
 // ─── ثوابت الألوان والأنواع ───
 // eslint-disable-next-line react-refresh/only-export-components

@@ -4,7 +4,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { Button } from '@/components/ui/button';
 import { TableHeader, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Edit, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
-import type { Income } from '@/types/database';
+import type { Income } from '@/types';
 import type { SortField } from '@/hooks/page/admin/financial/useIncomePage';
 import VirtualTable from '@/components/common/VirtualTable';
 
