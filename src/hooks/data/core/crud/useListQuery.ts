@@ -8,13 +8,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { crudNotifyAdapter } from '@/lib/notify';
 import type { CrudNotifications } from '@/lib/notify';
 import type {
-  TableName, CrudFactoryConfig, PaginatedQueryResult, CrudQueryOptions,
+  TableName, PaginatedQueryResult, CrudQueryOptions,
 } from '../crudFactory.types';
 
 // سجل تتبع تحذيرات الحد الأقصى — بديل آمن عن التخزين في window
 const limitWarnShown = new Set<string>();
 
-interface BuildListOptions<T extends TableName, TData> {
+interface BuildListOptions<T extends TableName> {
   table: T;
   queryKey: string;
   select: string;
@@ -27,7 +27,7 @@ interface BuildListOptions<T extends TableName, TData> {
 }
 
 export function buildListHelpers<T extends TableName, TData>(
-  config: Required<Pick<CrudFactoryConfig<T, TData>, 'table' | 'queryKey' | 'label'>> & BuildListOptions<T, TData>,
+  config: BuildListOptions<T>,
 ) {
   const { table, queryKey, select, orderBy, ascending, limit, label, staleTime, notifications } = config;
   const notify = crudNotifyAdapter(notifications);
