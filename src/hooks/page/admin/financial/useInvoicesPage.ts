@@ -154,6 +154,71 @@ export const useInvoicesPage = () => {
 
   const statusBadgeVariant = invoiceStatusBadgeVariant;
 
+  // ===== مشتقات + إجراءات منقولة من InvoicesPage.tsx =====
+  const invoicesWithoutFiles = useMemo(
+    () => invoices.filter(inv => !inv.file_path),
+    [invoices]
+  );
+
+  const paginatedInvoices = useMemo(
+    () => filteredInvoices.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [filteredInvoices, currentPage, ITEMS_PER_PAGE]
+  );
+
+  const handleExportPdf = useCallback(async () => {
+    if (!fiscalYearId || fiscalYearId === 'all') {
+      defaultNotify.warning('⚠️ أنت تصدّر فواتير جميع السنوات المالية.');
+    }
+    try {
+      const fyLabel = fiscalYear?.label || (fiscalYearId ? '' : 'جميع السنوات');
+      const { generateInvoicesViewPDF } = await import('@/utils/pdf');
+      await generateInvoicesViewPDF(
+        filteredInvoices.map(inv => ({
+          invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
+          invoice_number: inv.invoice_number,
+          amount: safeNumber(inv.amount),
+          date: inv.date,
+          property_number: inv.property?.property_number || '-',
+          status: inv.status,
+        })),
+        pdfWaqfInfo,
+        fyLabel,
+      );
+      defaultNotify.success('تم تحميل ملف PDF بنجاح');
+    } catch {
+      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
+    }
+  }, [fiscalYearId, fiscalYear, filteredInvoices, pdfWaqfInfo]);
+
+  const handleExportCsv = useCallback(() => {
+    const fyLabel = fiscalYear?.label || 'جميع-السنوات';
+    const csv = buildCsv(
+      filteredInvoices.map(inv => ({
+        'النوع': INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
+        'رقم الفاتورة': inv.invoice_number || '-',
+        'المبلغ': safeNumber(inv.amount),
+        'التاريخ': inv.date,
+        'العقار': inv.property?.property_number || '-',
+        'الحالة': INVOICE_STATUS_LABELS[inv.status] || inv.status,
+      })),
+    );
+    downloadCsv(csv, `فواتير-${fyLabel}.csv`);
+    defaultNotify.success('تم تصدير الفواتير بنجاح');
+  }, [fiscalYear, filteredInvoices]);
+
+  const handleSaveTemplate = useCallback(async (data: Record<string, unknown>) => {
+    type CreateArg = Parameters<typeof createInvoice.mutateAsync>[0];
+    await createInvoice.mutateAsync(
+      asMutationArg(createInvoice, { ...data, fiscal_year_id: fiscalYear?.id } as unknown as CreateArg),
+    );
+    setTemplateOpen(false);
+    defaultNotify.success('تم إنشاء الفاتورة بنجاح');
+  }, [createInvoice, fiscalYear]);
+
+  const handleGeneratePdfForMissing = useCallback(() => {
+    generatePdf.mutate(invoicesWithoutFiles.map(inv => inv.id));
+  }, [generatePdf, invoicesWithoutFiles]);
+
   return {
     invoices, filteredInvoices, properties, contracts, isLoading, isClosed,
     fiscalYear, fiscalYearId, pdfWaqfInfo,
@@ -169,5 +234,8 @@ export const useInvoicesPage = () => {
     isSaving: createInvoice.isPending || updateInvoice.isPending,
     isGeneratingPdf: generatePdf.isPending,
     ITEMS_PER_PAGE, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS,
+    // مشتقات وإجراءات منقولة من الصفحة
+    invoicesWithoutFiles, paginatedInvoices,
+    handleExportPdf, handleExportCsv, handleSaveTemplate, handleGeneratePdfForMissing,
   };
 };
