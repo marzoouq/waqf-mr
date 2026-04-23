@@ -12,7 +12,7 @@ import { sanitizeDiagnosticOutput } from '@/utils/diagnostics/sanitize';
 import type { CheckResult, CheckStatus } from '@/utils/diagnostics/types';
 import { useSystemDiagnostics } from '@/hooks/page/admin/management/useSystemDiagnostics';
 
-const WebVitalsPanel = lazy(() => import('@/components/diagnostics/WebVitalsPanel'));
+const WebVitalsPanel = lazy(() => import('@/components/common/WebVitalsPanel'));
 
 interface Props {
   autoRun?: boolean;
