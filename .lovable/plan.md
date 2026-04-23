@@ -1,33 +1,83 @@
 
 
-سأفحص بيئة الإنتاج (Live) للتحقق من أن كل تحديثات بيئة التطوير (Test) تم نشرها بنجاح.
+# خطة تنفيذ التحسينات المعمارية
 
-## خطة الفحص
+سأنفّذ **كامل المراحل الأربع** من تقرير الفحص المعماري، بترتيب من الأكثر حرجاً إلى الاختياري، مع التحقق بعد كل مرحلة.
 
-### 1. فحص قاعدة بيانات الإنتاج
-- التحقق من وجود دالة `get_public_stats` المحدثة (الإصدار الجديد الذي يدعم `app_settings`)
-- التحقق من وجود مفاتيح `landing_stats_*` في `app_settings`
-- التحقق من نسب المستفيدين (هل تم تصحيح عبدالله وهدى؟)
-- مقارنة عدد الجداول/الدوال بين Test و Live
+## المرحلة 1 — إصلاحات حرجة
 
-### 2. فحص Edge Functions في الإنتاج
-- التحقق من نشر `dashboard-summary` و `beneficiary-summary` بإصلاحات تسرب الأخطاء
-- فحص آخر deployment_id لكل دالة
+### 1.1 إصلاح انتهاك اتجاه الطبقات (A1)
+- إنشاء `src/hooks/data/dashboard/types.ts` يحتوي تعريف `BeneficiaryDashboardData`
+- تعديل `useBeneficiaryDashboardRpc.ts` لاستيراد النوع من المصدر الجديد
+- تعديل `useBeneficiaryDashboardData.ts` (في `hooks/page/`) لإعادة تصدير النوع من نفس المصدر للحفاظ على التوافق الخلفي
 
-### 3. فحص الواجهة المنشورة
-- زيارة `https://waqf-wise.net/` والتحقق من:
-  - ظهور الإحصائيات بأرقام حقيقية (ليس صفر)
-  - JSON-LD محمي من XSS
-  - استجابة Edge Functions
+### 1.2 إصلاح Tailwind Interpolation (A4)
+- في `src/components/dashboard/views/AccountantDashboardView.tsx:146`:
+  - استبدال `[&>div]:${color}` بـ map ثابت: `bg-success` / `bg-warning` / `bg-destructive`
+  - استخدام `cn()` من `@/lib/utils` للدمج
 
-### 4. تقرير مفصل
-سأقدم جدول مقارنة Test vs Live يوضح:
-- ✅ ما تم نشره بنجاح
-- ⚠️ ما لم يُنشر بعد (ويحتاج Publish)
-- ❌ بيانات تحتاج تنفيذ يدوي على Live (مثل تصحيح نسب المستفيدين)
+## المرحلة 2 — توحيد نمط Page Hook
 
-### 5. توصيات
-- إن كانت هناك تحديثات في Test لم تصل Live → اطلب الضغط على زر **Publish**
-- إن كانت تصحيحات بيانات (نسب المستفيدين) → سأقدم SQL جاهز للتنفيذ على Live
-- إن كان كل شيء متطابقاً → تأكيد جاهزية الإنتاج
+### 2.1 استخراج منطق `AdminDashboard` (A2)
+- إنشاء `src/hooks/page/admin/dashboard/useAdminDashboardPage.ts`
+- نقل تنسيق الهوكات الأربعة (`useDashboardSummary`, `useDashboardSecondary`, `useAdminDashboardData`, `useAccountantDashboardData`)
+- إرجاع كائن `ctx` موحّد
+- تبسيط `AdminDashboard.tsx` ليصبح `<View {...ctx} />`
+
+### 2.2 فحص الصفحات الثلاث الأخرى (A3)
+- مراجعة `ReportsPage.tsx` (220 سطر) — الأولوية
+- مراجعة `HistoricalComparisonPage.tsx`, `SystemDiagnosticsPage.tsx`, `UserManagementPage.tsx`
+- استخراج page hook فقط للصفحات التي تحوي ≥5 متغيرات/handlers
+
+### 2.3 فحص لوحات المستفيد/الواقف
+- التحقق من `BeneficiaryDashboard.tsx` و `WaqifDashboard.tsx`
+- تطبيق نفس النمط إذا لزم
+
+## المرحلة 3 — تنظيف بنيوي
+
+### 3.1 دمج `components/admin/beneficiaries` (A5)
+- نقل المكونات من `src/components/admin/beneficiaries/` إلى `src/components/beneficiary/admin/`
+- تحديث جميع الاستيرادات
+- حذف المجلد الفارغ `components/admin/`
+
+### 3.2 نقل `components/financial` (A6)
+- نقل `FinancialChartsInner.tsx` إلى `src/components/dashboard/charts/`
+- تحديث استيراد `LazyFinancialCharts` (إن وجد)
+- حذف المجلد الفارغ
+
+### 3.3 تدقيق `utils/*` (A7)
+- بحث عن أي `import { supabase }` متخفّي في `utils/zatca/`, `utils/reports/`, `utils/pdf/`
+- إذا وُجد، نقل الجزء المتعلق إلى `lib/services/` المناسب
+
+## المرحلة 4 — تحسينات اختيارية
+
+### 4.1 مراجعة `index.ts` barrels (A8)
+- تحديد barrels ذات مستهلك واحد فقط
+- إزالتها واستبدالها باستيرادات مباشرة
+
+### 4.2 إزالة `ContractsContext` إن كان غلافاً رفيعاً (A10)
+- التحقق من محتواه (13 سطراً)
+- إذا كان مجرد wrapper، استبداله باستهلاك hook مباشر في المستهلكين
+
+### 4.3 توحيد تسمية ملفات `routes/` (A11)
+- إعادة تسمية `protectedRoute.tsx` → `ProtectedRoute.tsx`
+- تحديث الاستيرادات
+
+## القيود والضمانات
+
+- **لن أمسّ** ملفات المصادقة (`AuthContext`, `ProtectedRoute` المنطق نفسه — فقط اسم الملف في 4.3)
+- **لن أمسّ** الملفات المحمية (`config.toml`, `client.ts`, `types.ts`, `.env`)
+- **لن أمسّ** أي منطق مالي أو RLS
+- كل تغيير = نقل/إعادة تنظيم فقط، **بدون تغيير سلوك**
+- اختبار TypeScript بعد كل مرحلة عبر قراءة الأخطاء
+
+## ما لن أفعله في هذه الخطة
+
+- لن أُجري إصلاحات بصرية من تقرير الفحص البصري السابق (مشكلة منفصلة)
+- لن أُضيف ميزات جديدة
+- لن أُعدّل قواعد البيانات أو RLS
+
+## ترتيب التسليم
+
+سأنفّذ المراحل بالتسلسل (1 → 2 → 3 → 4) وأُبلغك بعد كل مرحلة بالملفات المتأثرة لتتمكن من المراجعة قبل المتابعة. إذا فضّلت تنفيذ مراحل محددة فقط، أخبرني الآن قبل البدء.
 
