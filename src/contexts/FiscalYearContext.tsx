@@ -24,16 +24,13 @@ interface FiscalYearContextType {
 const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undefined);
 
 const STORAGE_KEY = STORAGE_KEYS.FISCAL_YEAR;
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
   const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
   const { role, loading: authLoading } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(() => {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEY) || '';
-      return UUID_RE.test(stored) ? stored : '';
-    } catch { return ''; }
+    const stored = safeSessionGet(STORAGE_KEY, '');
+    return UUID_REGEX.test(stored) ? stored : '';
   });
 
   // #34: المحاسب يُعامَل كأنه ليس "non-admin" لأنه يحتاج وصولاً تشغيلياً
