@@ -1,83 +1,108 @@
 
 
-# خطة تنفيذ التحسينات المعمارية
+# الخطة النهائية بعد الفحص الجنائي العميق
 
-سأنفّذ **كامل المراحل الأربع** من تقرير الفحص المعماري، بترتيب من الأكثر حرجاً إلى الاختياري، مع التحقق بعد كل مرحلة.
+## النتائج المحسومة بأدلة الكود
 
-## المرحلة 1 — إصلاحات حرجة
+| الادعاء | الحكم | الدليل |
+|---|---|---|
+| #1 `.env` على GitHub | ✅ صحيح | ملف موجود محلياً، لكن ANON publishable |
+| #2 تكرار `(error as { status?: number })` | ✅ صحيح | `queryClient.ts` السطور 7, 16, 38 |
+| #3 `void _logAccessEvent` | ❌ خاطئ | `grep` أرجع صفر — تم تنظيفه فعلاً |
+| #4 `useDashboardPrefetch` في Context | ✅ صحيح | السطر 83 |
+| #9 `allContracts` و`contracts` مكررة | ✅ صحيح | `useAccountsData.ts` السطر 68 |
+| #10–#14 utilities/types في hooks/ | ✅ صحيح | 3 ملفات pure + 2 functions داخل hook |
+| #15 `UUID_RE` inline | ✅ صحيح | `FiscalYearContext.tsx` السطر 25 |
+| #26 ألوان hex | ❌ خاطئ | `hsl(var(--primary))` متغيرات CSS |
+| #30 hardcoded waqf name | ✅ أسوأ | **6 مواضع** (وليس 4): InvoicesPage, PrintFooter, usePaymentInvoicesTab, useInvoicePreviewBuilder, PrivacyPolicy, TermsOfUse |
+| #56–#60 hooks في wrong folder | ❌ خاطئ | لا queries supabase، types فقط |
+| #95 `60 * 1000` literal | ✅ صحيح | `STALE_FINANCIAL = 60_000` متاح وغير مستخدم |
+| #96 `sessionStorage` مباشر | ✅ صحيح | `safeSessionGet/Set/Remove` متاحة في `lib/storage.ts` لكن غير مستخدمة في 4 مواضع |
 
-### 1.1 إصلاح انتهاك اتجاه الطبقات (A1)
-- إنشاء `src/hooks/data/dashboard/types.ts` يحتوي تعريف `BeneficiaryDashboardData`
-- تعديل `useBeneficiaryDashboardRpc.ts` لاستيراد النوع من المصدر الجديد
-- تعديل `useBeneficiaryDashboardData.ts` (في `hooks/page/`) لإعادة تصدير النوع من نفس المصدر للحفاظ على التوافق الخلفي
+## نطاق التنفيذ المقترح: **B = P0 (موثَّق فقط) + P1 + P2**
 
-### 1.2 إصلاح Tailwind Interpolation (A4)
-- في `src/components/dashboard/views/AccountantDashboardView.tsx:146`:
-  - استبدال `[&>div]:${color}` بـ map ثابت: `bg-success` / `bg-warning` / `bg-destructive`
-  - استخدام `cn()` من `@/lib/utils` للدمج
+### 🔴 P0 — أمان (توثيق فقط، لا git history rewrite)
+1. **توثيق في README الجذر**: ملاحظة أن `.env` يحوي ANON_KEY فقط (publishable عمداً) — لا أسرار. **لا أقترح `git filter-repo`** لأن المخاطر (كسر شراكات/PRs/forks) أكبر من الفائدة لمفتاح publishable.
 
-## المرحلة 2 — توحيد نمط Page Hook
+### 🟠 P1 — تنظيف فوري (5 إصلاحات)
+2. إنشاء `src/utils/error/getErrorStatus.ts`:
+   ```ts
+   export const getErrorStatus = (error: unknown): number | undefined =>
+     (error as { status?: number })?.status;
+   ```
+3. استبدال 3 مواضع في `queryClient.ts` (السطور 7, 16, 38) باستخدام `getErrorStatus`.
+4. استيراد `STALE_FINANCIAL` في `queryClient.ts` واستبدال `60 * 1000` (السطر 33) به.
+5. حذف `allContracts: mergedContracts` المكرر من return في `useAccountsData.ts` السطر 68 — والإبقاء على `contracts` فقط. **تحقق أولاً من المستهلكين**: البحث في `src/` عن استخدام `.allContracts` لاستبدالها بـ`.contracts`.
 
-### 2.1 استخراج منطق `AdminDashboard` (A2)
-- إنشاء `src/hooks/page/admin/dashboard/useAdminDashboardPage.ts`
-- نقل تنسيق الهوكات الأربعة (`useDashboardSummary`, `useDashboardSecondary`, `useAdminDashboardData`, `useAccountantDashboardData`)
-- إرجاع كائن `ctx` موحّد
-- تبسيط `AdminDashboard.tsx` ليصبح `<View {...ctx} />`
+### 🟡 P2 — توحيد الحدود (4 نقلات)
+6. **نقل pure functions** من `useAccountsCalculations.ts` (السطور 11–28: `getPaymentCountFromMonths`, `statusLabel`) إلى `src/utils/financial/contractHelpers.ts` (الملف موجود). تحديث الاستيراد.
+7. **نقل ملفات helpers** من `src/hooks/data/financial/` إلى `src/utils/financial/`:
+   - `multiYearHelpers.ts` + `multiYearHelpers.test.ts`
+   - `yearComparisonHelpers.ts` + `yearComparisonHelpers.test.ts`
+   - تحديث جميع الـ imports.
+8. **نقل types**: `useDashboardSummary.types.ts` → `src/types/financial/dashboard.ts` (إنشاء المجلد). تحديث استيراد `useDashboardSummary.ts`.
+9. **توحيد sessionStorage** في `FiscalYearContext.tsx`:
+   - السطر 32: استبدال `sessionStorage.getItem` بـ `safeSessionGet`.
+   - السطور 50, 55, 91: استبدال `sessionStorage.removeItem` بـ `safeSessionRemove`.
+   - السطر 89: استبدال `sessionStorage.setItem` بـ `safeSessionSet`.
+   - حذف `try/catch` المكرر — `lib/storage.ts` يتولى ذلك.
+10. **نقل `UUID_RE`** من `FiscalYearContext.tsx` السطر 25 إلى `src/utils/validation/regexPatterns.ts` كـ `export const UUID_REGEX`.
 
-### 2.2 فحص الصفحات الثلاث الأخرى (A3)
-- مراجعة `ReportsPage.tsx` (220 سطر) — الأولوية
-- مراجعة `HistoricalComparisonPage.tsx`, `SystemDiagnosticsPage.tsx`, `UserManagementPage.tsx`
-- استخراج page hook فقط للصفحات التي تحوي ≥5 متغيرات/handlers
+## ما يُرفض صراحةً
 
-### 2.3 فحص لوحات المستفيد/الواقف
-- التحقق من `BeneficiaryDashboard.tsx` و `WaqifDashboard.tsx`
-- تطبيق نفس النمط إذا لزم
+- **#3** `_logAccessEvent` — غير موجود في الكود.
+- **#7, #18** README موجود فعلاً.
+- **#21** `lucide-react` بدون `^` — قرار صحيح.
+- **#26** ألوان CSS variables — مطابقة للذاكرة.
+- **#56–#60** hooks في "المجلد الخاطئ" — types فقط، الفصل سليم.
+- **#90** FiscalYear "مكرر" — re-export فقط.
+- **#92–#93** `engines`/`sideEffects` — غير ملائمة لـ Lovable.
+- **P3 (نقل منطق InvoicesPage إلى hook)** — يُؤجَّل: تغيير ضخم (8 دوال + إعادة هيكلة hook بـ400+ سطر) يستحق موجة منفصلة بعد اعتماد P1+P2.
+- **P0 git filter-repo** — يُرفض: مخاطره > فوائده لمفتاح publishable.
 
-## المرحلة 3 — تنظيف بنيوي
+## ملفات ستُعدَّل (10 ملفات + 2 ملف جديد)
 
-### 3.1 دمج `components/admin/beneficiaries` (A5)
-- نقل المكونات من `src/components/admin/beneficiaries/` إلى `src/components/beneficiary/admin/`
-- تحديث جميع الاستيرادات
-- حذف المجلد الفارغ `components/admin/`
+**جديدة:**
+- `src/utils/error/getErrorStatus.ts`
+- `src/types/financial/dashboard.ts`
 
-### 3.2 نقل `components/financial` (A6)
-- نقل `FinancialChartsInner.tsx` إلى `src/components/dashboard/charts/`
-- تحديث استيراد `LazyFinancialCharts` (إن وجد)
-- حذف المجلد الفارغ
+**ستُنقل:**
+- `src/hooks/data/financial/multiYearHelpers.{ts,test.ts}` → `src/utils/financial/`
+- `src/hooks/data/financial/yearComparisonHelpers.{ts,test.ts}` → `src/utils/financial/`
+- `src/hooks/data/financial/useDashboardSummary.types.ts` → `src/types/financial/dashboard.ts`
 
-### 3.3 تدقيق `utils/*` (A7)
-- بحث عن أي `import { supabase }` متخفّي في `utils/zatca/`, `utils/reports/`, `utils/pdf/`
-- إذا وُجد، نقل الجزء المتعلق إلى `lib/services/` المناسب
+**ستُعدَّل:**
+- `src/lib/queryClient.ts` (3 casts + staleTime)
+- `src/hooks/financial/useAccountsData.ts` (حذف allContracts المكرر)
+- `src/hooks/financial/useAccountsCalculations.ts` (حذف pure functions + استيراد)
+- `src/utils/financial/contractHelpers.ts` (إضافة الدوال المنقولة)
+- `src/contexts/FiscalYearContext.tsx` (sessionStorage + UUID_RE)
+- `src/utils/validation/regexPatterns.ts` (إضافة UUID_REGEX)
+- `src/hooks/data/financial/useDashboardSummary.ts` (تحديث استيراد types)
+- مستهلكو `multiYearHelpers`/`yearComparisonHelpers` (تحديث imports)
 
-## المرحلة 4 — تحسينات اختيارية
+## التحقق بعد التنفيذ
 
-### 4.1 مراجعة `index.ts` barrels (A8)
-- تحديد barrels ذات مستهلك واحد فقط
-- إزالتها واستبدالها باستيرادات مباشرة
+- `grep -rn "(error as { status" src/` → يجب أن يظهر فقط في `getErrorStatus.ts`
+- `grep -rn "60 \* 1000" src/lib/queryClient.ts` → صفر نتائج
+- `grep -rn "\.allContracts" src/` → صفر نتائج
+- `grep -rn "sessionStorage\." src/contexts/FiscalYearContext.tsx` → صفر نتائج
+- `grep -rn "from '@/hooks/data/financial/multiYearHelpers'" src/` → صفر نتائج (مُنقَل)
+- `npx tsc --noEmit` → صفر أخطاء
 
-### 4.2 إزالة `ContractsContext` إن كان غلافاً رفيعاً (A10)
-- التحقق من محتواه (13 سطراً)
-- إذا كان مجرد wrapper، استبداله باستهلاك hook مباشر في المستهلكين
+## الزمن المتوقع
 
-### 4.3 توحيد تسمية ملفات `routes/` (A11)
-- إعادة تسمية `protectedRoute.tsx` → `ProtectedRoute.tsx`
-- تحديث الاستيرادات
+- P0 توثيق: 2 دقيقة
+- P1 (3 إصلاحات): 8 دقائق
+- P2 (4 نقلات): 20 دقيقة
+- **المجموع: ~30 دقيقة**
 
-## القيود والضمانات
+## المخاطر
 
-- **لن أمسّ** ملفات المصادقة (`AuthContext`, `ProtectedRoute` المنطق نفسه — فقط اسم الملف في 4.3)
-- **لن أمسّ** الملفات المحمية (`config.toml`, `client.ts`, `types.ts`, `.env`)
-- **لن أمسّ** أي منطق مالي أو RLS
-- كل تغيير = نقل/إعادة تنظيم فقط، **بدون تغيير سلوك**
-- اختبار TypeScript بعد كل مرحلة عبر قراءة الأخطاء
-
-## ما لن أفعله في هذه الخطة
-
-- لن أُجري إصلاحات بصرية من تقرير الفحص البصري السابق (مشكلة منفصلة)
-- لن أُضيف ميزات جديدة
-- لن أُعدّل قواعد البيانات أو RLS
-
-## ترتيب التسليم
-
-سأنفّذ المراحل بالتسلسل (1 → 2 → 3 → 4) وأُبلغك بعد كل مرحلة بالملفات المتأثرة لتتمكن من المراجعة قبل المتابعة. إذا فضّلت تنفيذ مراحل محددة فقط، أخبرني الآن قبل البدء.
+| العملية | المخاطر | التخفيف |
+|---|---|---|
+| حذف `allContracts` | مستهلكون قد يكسرون | grep قبل الحذف + استبدال |
+| نقل helpers | imports كثيرة | استبدال شامل + tsc check |
+| sessionStorage abstraction | تغيير semantic للمفاتيح | safeSessionGet يحاكي السلوك بدقة |
+| نقل types | tsc errors محتملة | tsc بعد كل نقلة |
 
