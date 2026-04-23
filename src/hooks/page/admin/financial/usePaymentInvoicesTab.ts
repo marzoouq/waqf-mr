@@ -13,6 +13,7 @@ import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import type { InvoicePreviewData } from '@/types/invoices';
 import { usePaymentInvoiceActions } from './usePaymentInvoiceActions';
+import { DEFAULT_WAQF_NAME } from '@/constants/waqf';
 import { PAGE_SIZE_LIST } from '@/constants/pagination';
 
 import type { SortDir } from '@/types/sorting';
@@ -129,7 +130,7 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
       invoiceNumber: inv.invoice_number,
       date: inv.due_date,
       type: (hasVat && hasBuyerTax) ? 'standard' : 'simplified',
-      sellerName: waqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
+      sellerName: waqfInfo.waqfName || DEFAULT_WAQF_NAME,
       sellerAddress: waqfInfo.address,
       sellerVatNumber: waqfInfo.vatNumber,
       sellerCR: waqfInfo.commercialReg,

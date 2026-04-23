@@ -7,6 +7,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { INVOICE_TYPE_LABELS, type Invoice } from '@/hooks/data/invoices/useInvoices';
 import type { InvoicePreviewData } from '@/types/invoices';
 import type { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { DEFAULT_WAQF_NAME } from '@/constants/waqf';
 
 type PdfWaqfInfo = ReturnType<typeof usePdfWaqfInfo>;
 type ContractLite = {
@@ -36,7 +37,7 @@ export function useInvoicePreviewBuilder(
       invoiceNumber: inv.invoice_number || `INV-${inv.id.slice(0, 6)}`,
       date: inv.date,
       type: (hasVat && hasBuyerTax) ? 'standard' : 'simplified',
-      sellerName: pdfWaqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
+      sellerName: pdfWaqfInfo.waqfName || DEFAULT_WAQF_NAME,
       sellerAddress: pdfWaqfInfo.address,
       sellerVatNumber: pdfWaqfInfo.vatNumber,
       sellerCR: pdfWaqfInfo.commercialReg,
