@@ -13,7 +13,7 @@ import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
 
-export function usePropertiesViewData() {
+export function usePropertiesViewPage() {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
   const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
   const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
