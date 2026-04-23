@@ -2,9 +2,9 @@
  * رسم ملخص الضريبة وبيانات الدفع (البنك) في PDF
  */
 import type jsPDF from 'jspdf';
-import { PdfWaqfInfo, reshapeArabic as rs } from '../../core/core';
+import { PdfWaqfInfo, reshapeArabic as rs } from '@/utils/pdf/core/core';
 import { fmt } from '@/utils/format/format';
-import type { PaymentInvoicePdfData } from '../types';
+import type { PaymentInvoicePdfData } from '@/utils/pdf/shared/types';
 import { computePdfTotals } from '../computations';
 
 /** رسم ملخص الضريبة — يدعم الخصومات والرسوم */

@@ -8,6 +8,7 @@ import { logAccessEvent } from '@/lib/services/accessLogService';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeSessionGet } from '@/lib/storage';
 import { handleNationalIdLogin } from '@/lib/auth/nationalIdLogin';
 import { useIsMountedRef } from '@/hooks/ui/useIsMountedRef';
 import { EMAIL_REGEX } from '@/utils/validation/index';
@@ -30,13 +31,11 @@ export function useLoginForm({ signIn }: UseLoginFormParams) {
   const [serverError, setServerError] = useState<string | null>(null);
   const { fieldErrors, clearFieldError, setErrors, validateEmailFormat } = useFieldErrors<LoginFieldKey>();
   const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(() => {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEYS.NID_LOCKED_UNTIL);
-      if (stored) {
-        const val = Number(stored);
-        return val > Date.now() ? val : null;
-      }
-    } catch { /* silent */ }
+    const stored = safeSessionGet<string>(STORAGE_KEYS.NID_LOCKED_UNTIL, '');
+    if (stored) {
+      const val = Number(stored);
+      return val > Date.now() ? val : null;
+    }
     return null;
   });
 

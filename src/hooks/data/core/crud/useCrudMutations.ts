@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { crudNotifyAdapter } from '@/lib/notify';
 import type { CrudNotifications } from '@/lib/notify';
-import type { TableName, Insert, Update, CrudFactoryConfig } from '../crudFactory.types';
+import type { TableName, Insert, Update, CrudFactoryConfig } from '@/types/data/crudFactory';
 
 interface BuildMutationOptions<T extends TableName, TData> {
   table: T;

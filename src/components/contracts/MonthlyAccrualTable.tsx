@@ -146,8 +146,8 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="text-right sticky right-0 bg-muted/50 z-10 min-w-[160px]">العقد / المستأجر</TableHead>
-                {monthGrid.map((cell, i) => (
-                  <TableHead key={i} className="text-center text-xs min-w-[85px]">{cell.label}</TableHead>
+                {monthGrid.map((cell) => (
+                  <TableHead key={cell.label} className="text-center text-xs min-w-[85px]">{cell.label}</TableHead>
                 ))}
                 <TableHead className="text-center font-bold min-w-[100px]">الإجمالي</TableHead>
               </TableRow>
@@ -162,7 +162,7 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
                     </div>
                   </TableCell>
                   {cells.map((cell, i) => (
-                    <TableCell key={i} className={`text-center text-xs tabular-nums ${getCellClasses(cell.status)}`}>
+                    <TableCell key={`${contract.id}-${monthGrid[i]?.label ?? i}`} className={`text-center text-xs tabular-nums ${getCellClasses(cell.status)}`}>
                       {cell.amount > 0 ? fmtNum(cell.amount) : '—'}
                     </TableCell>
                   ))}
@@ -174,7 +174,7 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
               <TableRow className="bg-primary/5 font-bold border-t-2 border-primary/20">
                 <TableCell className="sticky right-0 bg-primary/5 z-10 text-primary">الإجمالي</TableCell>
                 {monthlyTotals.map((total, i) => (
-                  <TableCell key={i} className="text-center text-xs tabular-nums text-primary">
+                  <TableCell key={`total-${monthGrid[i]?.label ?? i}`} className="text-center text-xs tabular-nums text-primary">
                     {total > 0 ? fmtNum(total) : '—'}
                   </TableCell>
                 ))}

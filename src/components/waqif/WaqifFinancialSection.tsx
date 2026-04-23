@@ -77,7 +77,7 @@ const WaqifFinancialSection = ({
             { label: 'إجمالي المصروفات', value: totalExpenses, cls: 'text-destructive' },
             { label: 'الريع القابل للتوزيع', value: availableAmount, cls: 'font-bold text-lg' },
           ].map((row, i) => (
-            <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${i === 2 ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30'}`}>
+            <div key={row.label} className={`flex items-center justify-between p-3 rounded-lg ${i === 2 ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30'}`}>
               <span className="text-sm text-muted-foreground">{row.label}</span>
               <span className={`font-bold ${row.cls}`}>
                 {i === 2 && isFiscalYearActive ? 'تُحسب عند الإقفال' : `${fmt(safeNumber(row.value))} ر.س`}
