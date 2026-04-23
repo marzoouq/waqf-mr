@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
-import type { BeneficiaryDashboardData } from '@/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardData';
+import type { BeneficiaryDashboardData } from './types';
 
 export const useBeneficiaryDashboardRpc = (fiscalYearId?: string) => {
   const { user } = useAuth();
