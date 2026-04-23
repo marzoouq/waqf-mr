@@ -4,7 +4,7 @@
  */
 import { useState } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
-import type { Property } from '@/types/database';
+import type { Property } from '@/types';
 import { useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/data/properties/useProperties';
 import { defaultNotify } from '@/lib/notify';
 

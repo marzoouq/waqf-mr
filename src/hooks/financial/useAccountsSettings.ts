@@ -7,7 +7,7 @@ import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { useStableRef } from '@/lib/hooks/useStableRef';
 import { findAccountByFY } from '@/utils/financial/findAccountByFY';
-import type { Account } from '@/types/database';
+import type { Account } from '@/types';
 
 interface SettingsParams {
   selectedFY: { id: string; label: string; status: string } | null;

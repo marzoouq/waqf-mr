@@ -4,7 +4,7 @@
  * الجدول: contracts | الربط: properties, units
  */
 import { createCrudFactory } from '../core/useCrudFactory';
-import { Contract } from '@/types/database';
+import { Contract } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';

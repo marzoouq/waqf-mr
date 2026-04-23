@@ -3,7 +3,7 @@
  * Follows the financial hierarchy: Income → Expenses → VAT → Zakat → Shares → Revenue → Distributions
  */
 
-import { Income, Expense } from '@/types/database';
+import { Income, Expense } from '@/types';
 import { safeNumber } from '@/utils/format/safeNumber';
 import type { FinancialParams, FinancialResult } from '@/types/financial';
 

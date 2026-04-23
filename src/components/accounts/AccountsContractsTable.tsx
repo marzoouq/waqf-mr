@@ -5,7 +5,7 @@ import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableC
 import { Badge } from '@/components/ui/badge';
 import { FileText, Pencil, Trash2 } from 'lucide-react';
 import EmptyState from '@/components/common/EmptyState';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 interface AccountsContractsTableProps {

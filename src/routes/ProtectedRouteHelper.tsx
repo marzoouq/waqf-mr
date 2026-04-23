@@ -4,7 +4,7 @@
  * مع احترام أن waqifRoutes لا يستخدم RequirePermission
  */
 import type { ReactNode } from 'react';
-import type { AppRole } from '@/types/database';
+import type { AppRole } from '@/types';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import RequirePermission from '@/components/auth/RequirePermission';
 import { withRouteErrorBoundary as eb } from './withRouteErrorBoundary';

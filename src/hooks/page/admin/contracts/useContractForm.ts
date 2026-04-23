@@ -3,7 +3,7 @@
  * مُستخرج من useContractsPage لتقليل حجم الملف الأصلي (#29)
  */
 import { useState, useCallback } from 'react';
-import { Contract } from '@/types/database';
+import { Contract } from '@/types';
 import { emptyFormData, type ContractFormData } from '@/types/forms/contract';
 import { defaultNotify } from '@/lib/notify';
 import { useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';

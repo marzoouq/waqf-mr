@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { UnitRow } from './useUnits';
 import { useCreateUnit, useUpdateUnit, useDeleteUnit } from './useUnits';
 import { useCreateContract, useUpdateContract } from '@/hooks/data/contracts/useContracts';
-import { Property, Contract } from '@/types/database';
+import { Property, Contract } from '@/types';
 import { defaultNotify } from '@/lib/notify';
 import type { UnitFormData } from '@/types/forms/property';
 

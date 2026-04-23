@@ -3,7 +3,7 @@
  * مُستخرَج من usePropertiesPage لفصل المسؤوليات.
  */
 import { useState, useMemo } from 'react';
-import type { Property } from '@/types/database';
+import type { Property } from '@/types';
 import { PROPERTIES_PAGE_SIZE } from '@/constants/pagination';
 
 interface Args {

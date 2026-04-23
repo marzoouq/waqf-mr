@@ -6,7 +6,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PieChart as PieChartIcon } from 'lucide-react';
-import type { Expense } from '@/types/database';
+import type { Expense } from '@/types';
 
 const LazyPieChart = lazy(() => import('./ExpensePieChartInner'));
 

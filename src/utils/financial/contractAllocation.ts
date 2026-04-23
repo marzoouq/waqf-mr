@@ -5,7 +5,7 @@
  * Each payment is assigned to the fiscal year in which its due date falls.
  */
 
-import type { FiscalYear } from '@/types/database';
+import type { FiscalYear } from '@/types';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 interface ContractInfo {

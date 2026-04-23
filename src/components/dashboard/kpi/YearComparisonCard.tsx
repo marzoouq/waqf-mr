@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowUpDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorBoundary } from '@/components/common';
-import type { FiscalYear } from '@/types/database';
+import type { FiscalYear } from '@/types';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));

@@ -4,7 +4,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';
-import type { Income } from '@/types/database';
+import type { Income } from '@/types';
 
 interface IncomeMobileCardsProps {
   items: Income[];

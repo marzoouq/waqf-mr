@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/data/beneficiaries/useBeneficiaries';
 import { useBeneficiaryUsers } from '@/hooks/data/beneficiaries/useBeneficiaryUsers';
-import { Beneficiary } from '@/types/database';
+import { Beneficiary } from '@/types';
 import { defaultNotify } from '@/lib/notify';
 import type { BeneficiaryFormData } from '@/types/forms/beneficiary';
 import { PAGE_SIZE_BENEFICIARIES } from '@/constants/pagination';

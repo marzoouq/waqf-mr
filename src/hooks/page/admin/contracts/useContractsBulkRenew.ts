@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { Contract } from '@/types/database';
+import { Contract } from '@/types';
 import { defaultNotify } from '@/lib/notify';
 import { fetchActiveFiscalYear, notifyAdmins, notifyAllBeneficiaries } from '@/lib/services';
 

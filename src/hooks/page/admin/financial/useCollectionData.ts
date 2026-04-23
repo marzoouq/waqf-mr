@@ -2,7 +2,7 @@
  * هوك حساب بيانات تقرير التحصيل — الصفوف والملخص والفلترة
  */
 import { useMemo, useState } from 'react';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';

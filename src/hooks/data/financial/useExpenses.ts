@@ -4,7 +4,7 @@
  * الجدول: expenses | الربط: properties | الترتيب: حسب التاريخ
  */
 import { createCrudFactory } from '../core/useCrudFactory';
-import { Expense } from '@/types/database';
+import { Expense } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';

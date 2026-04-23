@@ -9,8 +9,8 @@ import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import type { Property } from '@/types/database';
-import type { Contract } from '@/types/database';
+import type { Property } from '@/types';
+import type { Contract } from '@/types';
 
 interface Args {
   properties: Property[];

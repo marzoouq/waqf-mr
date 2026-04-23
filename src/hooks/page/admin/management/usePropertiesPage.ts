@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import type { Property } from '@/types/database';
+import type { Property } from '@/types';
 import { usePropertiesFilters } from '../properties/usePropertiesFilters';
 import { usePropertiesForm } from '../properties/usePropertiesForm';
 import { usePropertiesSummary } from '../properties/usePropertiesSummary';

@@ -4,7 +4,7 @@
  * الجدول: income | الربط: properties | الترتيب: حسب التاريخ
  */
 import { createCrudFactory } from '../core/useCrudFactory';
-import { Income } from '@/types/database';
+import { Income } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';

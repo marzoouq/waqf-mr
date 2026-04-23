@@ -6,7 +6,7 @@ import { useUnits } from './useUnits';
 import { useTenantPayments } from '@/hooks/data/contracts/useTenantPayments';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { Property, Contract } from '@/types/database';
+import { Property, Contract } from '@/types';
 import { useUnitMutations } from './useUnitMutations';
 import { useWholePropertyRental } from '@/hooks/data/contracts/useWholePropertyRental';
 

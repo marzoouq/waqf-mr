@@ -11,7 +11,7 @@ import { type ContractFormData } from '@/types/forms/contract';
 import { fmt } from '@/utils/format/format';
 import { getContractSpanInfo } from '@/utils/financial/contractAllocation';
 
-import type { FiscalYear } from '@/types/database';
+import type { FiscalYear } from '@/types';
 
 interface ContractPaymentSectionProps {
   formData: ContractFormData;

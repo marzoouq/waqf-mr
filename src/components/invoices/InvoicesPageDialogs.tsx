@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { InvoiceViewer, InvoicePreviewDialog, CreateInvoiceFromTemplate } from '@/components/invoices';
 import type { InvoicePreviewData } from '@/components/invoices';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 
 interface DeleteTarget {
   id: string;

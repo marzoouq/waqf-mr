@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingDown, Paperclip, Calculator, Star } from 'lucide-react';
-import { Expense } from '@/types/database';
+import { Expense } from '@/types';
 import { fmt } from '@/utils/format/format';
 
 interface ExpenseSummaryCardsProps {

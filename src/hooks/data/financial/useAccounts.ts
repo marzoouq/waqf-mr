@@ -4,7 +4,7 @@
  * الجدول: accounts | يخزن القيم المالية المحسوبة لكل سنة مالية
  */
 import { createCrudFactory } from '@/hooks/data/core/useCrudFactory';
-import { Account } from '@/types/database';
+import { Account } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';

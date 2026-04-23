@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useContractsFilters } from './useContractsFilters';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 
 // عقود وهمية
 const makeContract = (overrides: Partial<Contract> = {}): Contract => ({

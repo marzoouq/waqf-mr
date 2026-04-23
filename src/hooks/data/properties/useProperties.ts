@@ -4,7 +4,7 @@
  * الجدول: properties | الترتيب: حسب تاريخ الإنشاء (تنازلي)
  */
 import { createCrudFactory } from '../core/useCrudFactory';
-import { Property } from '@/types/database';
+import { Property } from '@/types';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 
 const propertiesCrud = createCrudFactory<'properties', Property>({

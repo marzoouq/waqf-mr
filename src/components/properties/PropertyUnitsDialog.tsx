@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Property, Contract } from '@/types/database';
+import { Property, Contract } from '@/types';
 import { Plus, Building2, Home, DoorOpen } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
 import type { UnitPdfRow } from '@/utils/pdf/core/core';

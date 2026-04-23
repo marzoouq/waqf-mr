@@ -4,7 +4,7 @@ import { getTenantFromContracts, getMonthlyRent, getMonthlyFromContract } from '
 import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt, fmtInt } from '@/utils/format/format';
 import type { UnitRow } from '@/hooks/data/properties/useUnits';
-import type { Contract } from '@/types/database';
+import type { Contract } from '@/types';
 
 interface MobileSummaryCardProps {
   units: UnitRow[];
