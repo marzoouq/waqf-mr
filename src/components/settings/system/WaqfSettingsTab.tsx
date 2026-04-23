@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import { useAppSettings, useSetting } from '@/hooks/data/settings/useAppSettings';
-import LogoUploadCard from './LogoUploadCard';
+import LogoUploadCard from '../landing/LogoUploadCard';
 
 const waqfFields = [
   { key: 'waqf_name', label: 'اسم الوقف' },

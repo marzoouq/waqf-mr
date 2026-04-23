@@ -1,5 +1,10 @@
 /**
- * واجهة مراقبة الأداء الموحّدة
+ * Barrel — lib/monitoring
+ *
+ * واجهة موحَّدة لمراقبة الأداء:
+ *   - queryMonitor : قياس بطء الاستعلامات + reportPageLoadMetrics
+ *   - pageMonitor  : تجميع وتلخيص بيانات تحميل الصفحات + اشتراكات live
+ *   - webVitals    : مؤشرات Core Web Vitals (LCP/FCP/INP/CLS/TTFB)
  */
 export {
   startPerfTimer,

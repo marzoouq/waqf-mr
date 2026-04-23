@@ -9,25 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { fmtSAR } from '@/utils/format/format';
-import { GitCompareArrows, TrendingUp, TrendingDown, Minus, FileDown, Loader2 } from 'lucide-react';
+import { GitCompareArrows, FileDown, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useHistoricalComparison } from '@/hooks/page/admin/reports/useHistoricalComparison';
+import { ChangeIndicator } from '@/components/reports/ChangeIndicator';
 
 const LazyHistoricalChart = lazy(() => import('@/components/reports/HistoricalComparisonChartInner'));
-
-/** مؤشر نسبة التغيير */
-function ChangeIndicator({ current, previous }: { current: number; previous: number }) {
-  if (previous === 0 && current === 0) return <Minus className="w-4 h-4 text-muted-foreground" />;
-  if (previous === 0) return <TrendingUp className="w-4 h-4 text-success" />;
-  const pct = ((current - previous) / Math.abs(previous)) * 100;
-  if (Math.abs(pct) < 0.5) return <Minus className="w-4 h-4 text-muted-foreground" />;
-  return (
-    <span className={`flex items-center gap-1 text-sm font-medium ${pct > 0 ? 'text-success' : 'text-destructive'}`}>
-      {pct > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-      {pct > 0 ? '+' : ''}{pct.toFixed(1)}%
-    </span>
-  );
-}
 
 function HistoricalComparisonPage() {
   const isMobile = useIsMobile();

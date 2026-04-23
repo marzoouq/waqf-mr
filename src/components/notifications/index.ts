@@ -1,5 +1,8 @@
 /**
- * تصدير مكونات الإشعارات
+ * Barrel — components/notifications
+ *
+ * مكونات صفحة الإشعارات: الجرس العلوي، بطاقات إحصائية،
+ * شريط فلترة، قائمة الإشعارات، وثوابت الفئات/الأنواع.
  */
 export { default as NotificationBell } from './NotificationBell';
 export { default as NotificationStatsCards } from './NotificationStatsCards';

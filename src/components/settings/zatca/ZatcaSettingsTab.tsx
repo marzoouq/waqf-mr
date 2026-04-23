@@ -8,11 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShieldCheck, History } from 'lucide-react';
 import { useZatcaSettings } from '@/hooks/page/admin/management/useZatcaSettings';
 import ZatcaOperationsLog from './ZatcaOperationsLog';
-import ZatcaCertExpiryWarning from './zatca/ZatcaCertExpiryWarning';
-import ZatcaPhasePlatform from './zatca/ZatcaPhasePlatform';
-import ZatcaConnectionStatus from './zatca/ZatcaConnectionStatus';
-import ZatcaFormCards from './zatca/ZatcaFormCards';
-import ZatcaActions from './zatca/ZatcaActions';
+import ZatcaCertExpiryWarning from './ZatcaCertExpiryWarning';
+import ZatcaPhasePlatform from './ZatcaPhasePlatform';
+import ZatcaConnectionStatus from './ZatcaConnectionStatus';
+import ZatcaFormCards from './ZatcaFormCards';
+import ZatcaActions from './ZatcaActions';
 
 const ZatcaSettingsTab = () => {
   const {
