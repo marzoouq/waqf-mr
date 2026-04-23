@@ -6,7 +6,8 @@ import { BrowserRouter } from "react-router-dom";
 // إلغاء الموك العام لـ useAuthContext لاختبار AuthContext الحقيقي
 vi.unmock('@/hooks/auth/useAuthContext');
 
-import { AuthProvider, useAuth } from "./AuthContext";
+import { AuthProvider } from "./AuthContext";
+import { useAuth } from "@/hooks/auth/useAuthContext";
 
 // Mock supabase client
 const mockOnAuthStateChange = vi.fn();

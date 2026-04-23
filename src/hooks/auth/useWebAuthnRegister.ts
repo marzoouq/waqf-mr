@@ -6,7 +6,7 @@ import { startRegistration } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
-import { logBiometricEvent, handleRegistrationError, getDeviceName } from './webAuthnErrors';
+import { logBiometricEvent, handleRegistrationError, getDeviceName } from '@/utils/auth/webAuthnErrors';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeSet } from '@/lib/storage';
 
