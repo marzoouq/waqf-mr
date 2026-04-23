@@ -140,8 +140,8 @@ const AccountsDistributionTable = ({ summary: s, isClosed = false }: AccountsDis
                 { label: 'المبلغ المتاح', amount: s.availableAmount, amountClass: 'text-primary', rowClass: 'bg-primary/5 font-bold', bold: true },
                 { label: '(-) التوزيعات', amount: s.manualDistributions },
                 { label: 'الرصيد المتبقي', amount: s.remainingBalance, amountClass: s.remainingBalance >= 0 ? 'text-success text-lg' : 'text-destructive text-lg', rowClass: 'bg-accent/20 font-bold', bold: true },
-              ].map((r, i) => (
-                <AccountsDistributionRow key={i} row={r} />
+              ].map((r) => (
+                <AccountsDistributionRow key={r.label} row={r} />
               ))}
             </TableBody>
           </Table>
