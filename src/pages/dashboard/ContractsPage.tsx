@@ -5,11 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NativeSelect } from '@/components/ui/native-select';
 import { FileText, Plus, CalendarDays, Receipt, BarChart3 } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
-import { buildCsv, downloadCsv } from '@/utils/export/csv';
-import { defaultNotify } from '@/lib/notify';
 import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent } from '@/components/contracts';
-import { getPaymentTypeLabel } from '@/utils/financial/contractHelpers';
-import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import { useContractsPage } from '@/hooks/page/admin/contracts/useContractsPage';
 import { ContractsProvider } from '@/contexts/ContractsContext';
@@ -32,6 +28,7 @@ const ContractsPage = () => {
     bulkRenewOpen, setBulkRenewOpen, bulkRenewing, expiredContracts, selectedForRenewal,
     formInitialData, activeTab, setActiveTab,
     resetForm, handleFormSubmit, handleConfirmDelete, handleBulkRenew,
+    handleExportPdf, handleExportCsv,
   } = ctx;
 
   return (
@@ -41,16 +38,7 @@ const ContractsPage = () => {
           <PageHeaderCard
             title="إدارة العقود" icon={FileText} description="عرض وإدارة عقود الإيجار"
             actions={<>
-              <ExportMenu onExportPdf={async () => { const { generateContractsPDF } = await import('@/utils/pdf'); return generateContractsPDF(contracts, pdfWaqfInfo); }} onExportCsv={() => {
-                const csv = buildCsv(contracts.map(c => ({
-                  'رقم العقد': c.contract_number, 'المستأجر': c.tenant_name,
-                  'الإيجار السنوي': safeNumber(c.rent_amount), 'تاريخ البداية': c.start_date,
-                  'تاريخ النهاية': c.end_date, 'نوع الدفع': getPaymentTypeLabel(c.payment_type),
-                  'الحالة': c.status === 'active' ? 'ساري' : c.status === 'cancelled' ? 'ملغي' : 'منتهي',
-                })));
-                downloadCsv(csv, 'عقود.csv');
-                defaultNotify.success('تم تصدير العقود بنجاح');
-              }} />
+              <ExportMenu onExportPdf={handleExportPdf} onExportCsv={handleExportCsv} />
               <Button className="gradient-primary gap-2" onClick={() => { resetForm(); setIsOpen(true); }}><Plus className="w-4 h-4" />إضافة عقد</Button>
             </>}
           />

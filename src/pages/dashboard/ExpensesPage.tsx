@@ -1,13 +1,10 @@
-import { safeNumber } from '@/utils/format/safeNumber';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner, ConfirmDeleteDialog } from '@/components/common';
 import { TrendingDown, Search } from 'lucide-react';
-import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
 import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
-import { defaultNotify } from '@/lib/notify';
 import { useExpensesPage } from '@/hooks/page/admin/financial/useExpensesPage';
 
 const ExpensesPage = () => {
@@ -21,14 +18,7 @@ const ExpensesPage = () => {
           icon={TrendingDown}
           description="تسجيل ومتابعة المصروفات"
           actions={<>
-            <ExportMenu onExportPdf={async () => { const { generateExpensesPDF } = await import('@/utils/pdf'); return generateExpensesPDF(h.filteredExpenses, h.totalExpenses, h.pdfWaqfInfo); }} onExportCsv={() => {
-              const csv = buildCsv(h.filteredExpenses.map(item => ({
-                'النوع': item.expense_type, 'المبلغ': safeNumber(item.amount), 'التاريخ': item.date,
-                'العقار': item.property?.property_number || '-', 'الوصف': item.description || '-',
-              })));
-              downloadCsv(csv, 'مصروفات.csv');
-              defaultNotify.success('تم تصدير المصروفات بنجاح');
-            }} />
+            <ExportMenu onExportPdf={h.handleExportPdf} onExportCsv={h.handleExportCsv} />
             <ExpenseFormDialog
               isOpen={h.isOpen} setIsOpen={h.setIsOpen} formData={h.formData} setFormData={h.setFormData}
               isEditing={!!h.editingExpense} isPending={h.createExpense.isPending || h.updateExpense.isPending}

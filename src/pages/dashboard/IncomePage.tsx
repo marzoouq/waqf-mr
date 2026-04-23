@@ -1,7 +1,6 @@
 import { fmt } from '@/utils/format/format';
 import { lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,8 +8,6 @@ import { TrendingUp, Search, AlertTriangle } from 'lucide-react';
 import { IncomeSummaryCards, IncomeMobileCards, IncomeDesktopTable, IncomeFormDialog } from '@/components/income';
 import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner, ConfirmDeleteDialog } from '@/components/common';
 import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
-import { defaultNotify } from '@/lib/notify';
-import { logger } from '@/lib/logger';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIncomePage } from '@/hooks/page/admin/financial/useIncomePage';
 
@@ -29,7 +26,7 @@ const IncomePage = () => {
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
     totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome,
     paginatedItems,
-    pdfWaqfInfo,
+    handleExportPdf, handleExportCsv,
   } = useIncomePage();
 
   return (
@@ -40,25 +37,7 @@ const IncomePage = () => {
           icon={TrendingUp}
           description="تسجيل ومتابعة مصادر الدخل"
           actions={<>
-            <ExportMenu onExportPdf={async () => {
-              try {
-                const { generateIncomePDF } = await import('@/utils/pdf');
-                await generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo);
-              } catch (e) {
-                logger.error('PDF Income failed:', e);
-                defaultNotify.error('تعذّر توليد ملف PDF');
-              }
-            }} onExportCsv={() => {
-              const csv = buildCsv(filteredIncome.map(item => ({
-                'المصدر': item.source,
-                'المبلغ': safeNumber(item.amount),
-                'التاريخ': item.date,
-                'العقار': item.property?.property_number || '-',
-                'ملاحظات': item.notes || '-',
-              })));
-              downloadCsv(csv, 'دخل.csv');
-              defaultNotify.success('تم تصدير الدخل بنجاح');
-            }} />
+            <ExportMenu onExportPdf={handleExportPdf} onExportCsv={handleExportCsv} />
             <IncomeFormDialog
               open={isOpen} onOpenChange={setIsOpen}
               editingIncome={editingIncome}
