@@ -13,9 +13,9 @@ export type {
   AggregatedTotals, AggregatedCollection, AggregatedOccupancy, AggregatedCounts,
   AggregatedYoY, AggregatedFiscalYear, AggregatedBeneficiary, AggregatedData,
   HeatmapInvoice, PendingAdvance, RecentContract, DashboardSummaryResponse,
-} from './useDashboardSummary.types';
+} from '@/types/financial/dashboard';
 
-import type { DashboardSummaryResponse, HeatmapInvoice, RecentContract } from './useDashboardSummary.types';
+import type { DashboardSummaryResponse, HeatmapInvoice, RecentContract } from '@/types/financial/dashboard';
 
 export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: string) => {
   const query = useQuery<DashboardSummaryResponse>({

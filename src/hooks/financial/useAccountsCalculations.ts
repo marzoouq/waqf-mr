@@ -3,29 +3,10 @@
  */
 import { useMemo, useCallback } from 'react';
 import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/financial/accountsCalculations';
+import { getPaymentCountFromMonths, getContractStatusLabel } from '@/utils/financial/contractHelpers';
 import type { useAccountsData } from './useAccountsData';
 
 type AccountsData = ReturnType<typeof useAccountsData>;
-
-/** حساب عدد الدفعات المتوقعة من نوع الدفع ومدة العقد بالأشهر */
-const getPaymentCountFromMonths = (paymentType: string, months: number, paymentCount?: number | null): number => {
-  if (paymentType === 'monthly') return months;
-  if (paymentType === 'quarterly') return Math.max(1, Math.ceil(months / 3));
-  if (paymentType === 'semi_annual' || paymentType === 'semi-annual') return Math.max(1, Math.ceil(months / 6));
-  if (paymentType === 'annual') return Math.max(1, Math.ceil(months / 12));
-  if (paymentType === 'multi') return paymentCount || 1;
-  return 1;
-};
-
-/** تسمية حالة العقد — ثابتة لا تعتمد على state */
-const statusLabel = (status: string) => {
-  switch (status) {
-    case 'active': return 'نشط';
-    case 'expired': return 'منتهي';
-    case 'cancelled': return 'ملغي';
-    default: return status;
-  }
-};
 
 interface CalcParams {
   data: AccountsData;
@@ -168,6 +149,6 @@ export function useAccountsCalculations({
     collectionData, totalCollectedAll, totalArrearsAll,
     totalPaidMonths, totalExpectedPayments,
     totalBeneficiaryPercentage,
-    getPaymentPerPeriod, getExpectedPayments, statusLabel,
+    getPaymentPerPeriod, getExpectedPayments, statusLabel: getContractStatusLabel,
   };
 }

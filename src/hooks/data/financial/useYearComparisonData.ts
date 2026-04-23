@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyAll } from '@/constants/fiscalYearIds';
-import { toMonthMap, toExpenseRecord, type MonthlyEntry, type ExpenseTypeEntry } from './yearComparisonHelpers';
+import { toMonthMap, toExpenseRecord, type MonthlyEntry, type ExpenseTypeEntry } from '@/utils/financial/yearComparisonHelpers';
 
 interface YearSummary {
   total_income: number;
