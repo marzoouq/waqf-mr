@@ -2,8 +2,11 @@
  * هوك إدارة صفحة العقود — orchestrator يجمع بين الهوكات الفرعية
  * تم استخراج CRUD form إلى useContractForm (#29)
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNowClock } from '@/lib/hooks/useNowClock';
+import { defaultNotify } from '@/lib/notify';
+import { buildCsv, downloadCsv } from '@/utils/export/csv';
+import { getPaymentTypeLabel } from '@/utils/financial/contractHelpers';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { safeNumber } from '@/utils/format/safeNumber';
@@ -92,25 +95,41 @@ export const useContractsPage = () => {
     return { total: contracts.length, active: active.length, activePercent, expired: expired.length, totalRent, activeRent, expiringSoon: soon.length };
   }, [contracts, contractAllocations, isSpecificYear]);
 
+  const handleExportPdf = useCallback(async () => {
+    const { generateContractsPDF } = await import('@/utils/pdf');
+    return generateContractsPDF(contracts, pdfWaqfInfo);
+  }, [contracts, pdfWaqfInfo]);
+
+  const handleExportCsv = useCallback(() => {
+    const csv = buildCsv(contracts.map(c => ({
+      'رقم العقد': c.contract_number,
+      'المستأجر': c.tenant_name,
+      'الإيجار السنوي': safeNumber(c.rent_amount),
+      'تاريخ البداية': c.start_date,
+      'تاريخ النهاية': c.end_date,
+      'نوع الدفع': getPaymentTypeLabel(c.payment_type),
+      'الحالة': c.status === 'active' ? 'ساري' : c.status === 'cancelled' ? 'ملغي' : 'منتهي',
+    })));
+    downloadCsv(csv, 'عقود.csv');
+    defaultNotify.success('تم تصدير العقود بنجاح');
+  }, [contracts]);
+
   return {
     // Data
     contracts, properties, paymentInvoices, invoicePaidMap, contractAllocations,
     fiscalYearId, fiscalYears, isClosed, isSpecificYear, setFiscalYearId,
     isLoading, isPending: form.isPending,
-    // Side-effect hooks (موجة 17 — نُقلت من ContractsPage)
     role, isMobile, pdfWaqfInfo,
-    // Computed
     stats,
     ...filters,
     ...bulkRenew,
-    // Form — من useContractForm
     isOpen: form.isOpen, setIsOpen: form.setIsOpen, editingContract: form.editingContract,
     deleteTarget: form.deleteTarget, setDeleteTarget: form.setDeleteTarget,
     formInitialData: form.formInitialData,
     resetForm: form.resetForm, handleRenew: form.handleRenew, handleEdit: form.handleEdit,
     handleFormSubmit: form.handleFormSubmit, handleConfirmDelete: form.handleConfirmDelete,
-    // Pagination
     currentPage, setCurrentPage,
     activeTab, setActiveTab, ITEMS_PER_PAGE,
+    handleExportPdf, handleExportCsv,
   };
 };

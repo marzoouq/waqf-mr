@@ -1,8 +1,9 @@
 import { useWaqfInfo } from '@/hooks/data/settings/useAppSettings';
+import { DEFAULT_WAQF_NAME } from '@/constants/waqf';
 
 const PrintFooter = () => {
   const { data: waqfInfo } = useWaqfInfo();
-  const waqfName = waqfInfo?.waqf_name || 'وقف مرزوق بن علي الثبيتي';
+  const waqfName = waqfInfo?.waqf_name || DEFAULT_WAQF_NAME;
 
   return (
     <div className="hidden print:block print-footer">
