@@ -1,6 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 /**
  * صفحة إدارة المستخدمين — مُفكّكة إلى hook + مكونات فرعية
+ *
+ * ملاحظة معمارية: يستخدم `useUserManagement` من `hooks/auth/` (وليس `hooks/page/admin/management/`)
+ * لأنه يشكّل ثلاثية متماسكة مع `useUserManagementData` و `useUserManagementMutations` —
+ * طبيعتها الأمنية الخاصة (إدارة الأدوار) تجعل تموضعها في `auth/` متسقاً مع باقي الحراس الأمنية،
+ * ونقلها يكسر بنية فرعية صحية بدون مكسب معماري.
  */
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';

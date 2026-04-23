@@ -14,6 +14,7 @@ import type { Property } from '@/types';
 import { usePropertiesFilters } from '../properties/usePropertiesFilters';
 import { usePropertiesForm } from '../properties/usePropertiesForm';
 import { usePropertiesSummary } from '../properties/usePropertiesSummary';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 
 export function usePropertiesPage() {
   const propertiesQuery = useProperties();
@@ -26,6 +27,7 @@ export function usePropertiesPage() {
   const summary = usePropertiesSummary({ properties, contracts, propertiesLoading: isLoading, contractsLoading });
   const filters = usePropertiesFilters({ properties, propertyOccupancy: summary.propertyOccupancy });
   const form = usePropertiesForm();
+  const pdfWaqfInfo = usePdfWaqfInfo();
 
   return {
     // بيانات
@@ -59,5 +61,7 @@ export function usePropertiesPage() {
     serverPageSize: propertiesQuery.pageSize,
     // عقار مختار
     selectedProperty, setSelectedProperty,
+    // PDF
+    pdfWaqfInfo,
   };
 }

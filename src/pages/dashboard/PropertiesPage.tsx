@@ -6,12 +6,10 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { TablePagination, CrudPagination, ExportMenu, StatsGridSkeleton } from '@/components/common';
 import { Building2, Search } from 'lucide-react';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { PropertyUnitsDialog, PropertySummaryCards, PropertyFormDialog, PropertyCard, PropertyDeleteDialog } from '@/components/properties';
 import { usePropertiesPage } from '@/hooks/page/admin/management/usePropertiesPage';
 
 const PropertiesPage = () => {
-  const pdfWaqfInfo = usePdfWaqfInfo();
   const {
     properties, isLoading, contracts, isSpecificYear,
     summaryLoading, summary, propertyFinancialsMap,
@@ -25,6 +23,7 @@ const PropertiesPage = () => {
     serverPage, serverNextPage, serverPrevPage, serverHasNextPage, serverHasPrevPage, serverPageSize,
     selectedProperty, setSelectedProperty,
     filteredProperties,
+    pdfWaqfInfo,
   } = usePropertiesPage();
 
   const paginatedProperties = useMemo(

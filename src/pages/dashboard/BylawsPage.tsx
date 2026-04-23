@@ -9,14 +9,12 @@ import BylawsStatsCards from '@/components/bylaws/BylawsStatsCards';
 import SortableBylawItem from '@/components/bylaws/SortableBylawItem';
 import { Loader2, BookOpen, Search, X, Plus, Lock, Scale } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useBylawsPage } from '@/hooks/page/admin/management/useBylawsPage';
 
 const BylawsPage = () => {
-  const pdfWaqfInfo = usePdfWaqfInfo();
   const {
     isLoading, visibleBylaws, isSearching, stats, isPublished,
     sensors, handleDragEnd,
@@ -33,6 +31,7 @@ const BylawsPage = () => {
     deleteItem, setDeleteItem, handleDelete, deleteBylawPending,
     toggleVisibility, togglePublish,
     reorderPending,
+    pdfWaqfInfo,
   } = useBylawsPage();
 
   if (isLoading) {

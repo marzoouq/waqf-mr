@@ -5,6 +5,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws, type BylawEntry } from '@/hooks/data/content/useBylaws';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { defaultNotify } from '@/lib/notify';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import {
   DragEndEvent,
   PointerSensor,
@@ -21,6 +22,7 @@ export function useBylawsPage() {
   const deleteBylaw = useDeleteBylaw();
   const reorderBylaws = useReorderBylaws();
   const { data: settings, updateSetting } = useAppSettings();
+  const pdfWaqfInfo = usePdfWaqfInfo();
 
   const [editItem, setEditItem] = useState<BylawEntry | null>(null);
   const [editContent, setEditContent] = useState('');
@@ -172,5 +174,7 @@ export function useBylawsPage() {
     togglePublish,
     // ترتيب
     reorderPending: reorderBylaws.isPending,
+    // PDF
+    pdfWaqfInfo,
   };
 }
