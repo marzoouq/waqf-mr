@@ -9,7 +9,7 @@ import { crudNotifyAdapter } from '@/lib/notify';
 import type { CrudNotifications } from '@/lib/notify';
 import type {
   TableName, PaginatedQueryResult, CrudQueryOptions,
-} from '../crudFactory.types';
+} from '@/types/data/crudFactory';
 
 // سجل تتبع تحذيرات الحد الأقصى — بديل آمن عن التخزين في window
 const limitWarnShown = new Set<string>();

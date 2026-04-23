@@ -11,12 +11,12 @@
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type {
   TableName, Row, CrudFactoryConfig,
-} from './crudFactory.types';
+} from '@/types/data/crudFactory';
 import { buildListHelpers } from './crud/useListQuery';
 import { buildMutationHelpers } from './crud/useCrudMutations';
 
 // إعادة تصدير الأنواع للتوافق
-export type { CrudNotifications } from './crudFactory.types';
+export type { CrudNotifications } from '@/types/data/crudFactory';
 
 export function createCrudFactory<T extends TableName, TData = Row<T>>(
   config: CrudFactoryConfig<T, TData>,
