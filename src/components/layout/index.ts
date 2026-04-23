@@ -1,5 +1,9 @@
 /**
- * تصدير مكونات التخطيط
+ * Barrel — components/layout
+ *
+ * مكونات هيكل الصفحة: DashboardLayout، Sidebar، MobileHeader،
+ * NavLinks، PageHeaderCard، ومُحدد السنة المالية وإدارة Idle Timeout.
+ * يُعيد تصدير ثوابت navigation للتوافق العكسي.
  */
 export { default as BottomNav } from './BottomNav';
 export { default as DashboardLayout } from './DashboardLayout';

@@ -1,5 +1,9 @@
 /**
- * تصدير المكونات المشتركة
+ * Barrel — components/common
+ *
+ * مكونات قابلة لإعادة الاستخدام عبر التطبيق:
+ * أعمدة حالة، حوارات تأكيد، skeletons، pagination، print headers،
+ * بانرات وتنبيهات، ولوحة تشخيص الأداء (WebVitalsPanel).
  */
 export { default as BetaBanner } from './BetaBanner';
 export { default as EmptyState } from './EmptyState';
@@ -20,3 +24,4 @@ export { default as TablePagination } from './TablePagination';
 export { default as LockedYearBanner } from './LockedYearBanner';
 export { ErrorState, EmptyPageState } from './PageStateGuards';
 export { default as ConfirmDeleteDialog } from './ConfirmDeleteDialog';
+export { default as WebVitalsPanel } from './WebVitalsPanel';
