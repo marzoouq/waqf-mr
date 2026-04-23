@@ -2090,6 +2090,7 @@ export type Database = {
       mask_audit_fields:
         | { Args: { p_data: Json }; Returns: Json }
         | { Args: { p_data: Json; p_table_name?: string }; Returns: Json }
+      mask_sensitive_app_setting: { Args: { p_data: Json }; Returns: Json }
       notify_admins: {
         Args: {
           p_link?: string

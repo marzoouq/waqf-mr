@@ -5,7 +5,7 @@
 import {
   Building2, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar,
   Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText,
-  MessageSquare, type LucideIcon,
+  MessageSquare, ServerCog, type LucideIcon,
 } from 'lucide-react';
 
 export interface SettingsTab {
@@ -53,6 +53,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
       { value: 'export', label: 'تصدير البيانات', icon: Download },
       { value: 'biometric', label: 'البصمة', icon: Fingerprint },
       { value: 'security', label: 'الأمان', icon: ShieldCheck },
+      { value: 'system', label: 'إعدادات متقدمة', icon: ServerCog },
     ],
   },
 ];
