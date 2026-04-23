@@ -22,7 +22,7 @@ import {
   RolePermissionsMatrix,
   SectionVisibilityCard,
   PermissionsActionBar,
-} from './permissions';
+} from '../permissions';
 
 const ROLES = [
   { key: 'accountant', label: 'المحاسب', color: 'text-info dark:text-info' },

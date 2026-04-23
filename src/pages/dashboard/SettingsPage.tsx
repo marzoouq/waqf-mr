@@ -7,25 +7,23 @@ import { Settings } from 'lucide-react';
 import PageLoader from '@/components/common/PageLoader';
 import { SETTINGS_CATEGORIES } from '@/constants/settingsCategories';
 
-// — مكونات محمّلة كسول (كانت inline سابقاً) —
-const WaqfSettingsTab = lazy(() => import('@/components/settings/WaqfSettingsTab'));
-const AppearanceTab = lazy(() => import('@/components/settings/AppearanceTab'));
-const NotificationsTab = lazy(() => import('@/components/settings/NotificationsTab'));
-const SecurityTab = lazy(() => import('@/components/settings/SecurityTab'));
-
-// — مكونات محملة كسول —
-const LandingPageTab = lazy(() => import('@/components/settings/LandingPageTab'));
-const DataExportTab = lazy(() => import('@/components/settings/DataExportTab'));
-const FiscalYearManagementTab = lazy(() => import('@/components/settings/FiscalYearManagementTab'));
-const BulkNotificationsTab = lazy(() => import('@/components/settings/BulkNotificationsTab'));
-const MenuCustomizationTab = lazy(() => import('@/components/settings/MenuCustomizationTab'));
-const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSettingsTab'));
-const BulkMessagingTab = lazy(() => import('@/components/settings/BulkMessagingTab'));
-const PermissionsControlPanel = lazy(() => import('@/components/settings/PermissionsControlPanel'));
-const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
-const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
-const ZatcaSettingsTab = lazy(() => import('@/components/settings/ZatcaSettingsTab'));
-const SystemSettingsTab = lazy(() => import('@/components/settings/SystemSettingsTab'));
+// — مكونات محمّلة كسول مُجمّعة حسب المجال —
+const WaqfSettingsTab = lazy(() => import('@/components/settings/system/WaqfSettingsTab'));
+const AppearanceTab = lazy(() => import('@/components/settings/system/AppearanceTab'));
+const NotificationsTab = lazy(() => import('@/components/settings/messaging/NotificationsTab'));
+const SecurityTab = lazy(() => import('@/components/settings/security/SecurityTab'));
+const LandingPageTab = lazy(() => import('@/components/settings/landing/LandingPageTab'));
+const DataExportTab = lazy(() => import('@/components/settings/system/DataExportTab'));
+const FiscalYearManagementTab = lazy(() => import('@/components/settings/fiscal-year/FiscalYearManagementTab'));
+const BulkNotificationsTab = lazy(() => import('@/components/settings/messaging/BulkNotificationsTab'));
+const MenuCustomizationTab = lazy(() => import('@/components/settings/system/MenuCustomizationTab'));
+const BannerSettingsTab = lazy(() => import('@/components/settings/landing/BannerSettingsTab'));
+const BulkMessagingTab = lazy(() => import('@/components/settings/messaging/BulkMessagingTab'));
+const PermissionsControlPanel = lazy(() => import('@/components/settings/security/PermissionsControlPanel'));
+const BiometricSettings = lazy(() => import('@/components/settings/security/BiometricSettings'));
+const AdvanceSettingsTab = lazy(() => import('@/components/settings/fiscal-year/AdvanceSettingsTab'));
+const ZatcaSettingsTab = lazy(() => import('@/components/settings/zatca/ZatcaSettingsTab'));
+const SystemSettingsTab = lazy(() => import('@/components/settings/system/SystemSettingsTab'));
 
 const LOADING = <PageLoader />;
 
