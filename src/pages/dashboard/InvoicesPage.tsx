@@ -16,6 +16,7 @@ import { useInvoicesPage } from '@/hooks/page/admin/financial/useInvoicesPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import { asMutationArg } from '@/hooks/data/core';
+import { DEFAULT_WAQF_NAME } from '@/constants/waqf';
 
 import { useMemo, useCallback } from 'react';
 
@@ -170,7 +171,7 @@ const InvoicesPage = () => {
           templateOpen={h.templateOpen} setTemplateOpen={h.setTemplateOpen}
           contracts={h.contracts} properties={h.properties}
           sellerInfo={{
-            name: h.pdfWaqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
+            name: h.pdfWaqfInfo.waqfName || DEFAULT_WAQF_NAME,
             address: h.pdfWaqfInfo.address, vatNumber: h.pdfWaqfInfo.vatNumber,
             commercialReg: h.pdfWaqfInfo.commercialReg, bankName: h.pdfWaqfInfo.bankName, bankIBAN: h.pdfWaqfInfo.bankIBAN,
           }}
