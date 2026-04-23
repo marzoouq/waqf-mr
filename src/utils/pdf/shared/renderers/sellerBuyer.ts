@@ -2,8 +2,8 @@
  * رسم بيانات البائع والمشتري في PDF
  */
 import type jsPDF from 'jspdf';
-import { PdfWaqfInfo, reshapeArabic as rs } from '../../core/core';
-import type { PaymentInvoicePdfData } from '../types';
+import { PdfWaqfInfo, reshapeArabic as rs } from '@/utils/pdf/core/core';
+import type { PaymentInvoicePdfData } from '@/utils/pdf/shared/types';
 
 /** رسم بيانات البائع */
 export const renderSellerInfo = (
