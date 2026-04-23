@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/data/beneficiaries/useBeneficiaries';
 import { useBeneficiaryUsers } from '@/hooks/data/beneficiaries/useBeneficiaryUsers';
 import { Beneficiary } from '@/types';
@@ -6,6 +6,7 @@ import { defaultNotify } from '@/lib/notify';
 import type { BeneficiaryFormData } from '@/types/forms/beneficiary';
 import { PAGE_SIZE_BENEFICIARIES } from '@/constants/pagination';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { buildCsv, downloadCsv } from '@/utils/export/csv';
 
 const ITEMS_PER_PAGE = PAGE_SIZE_BENEFICIARIES;
 
@@ -104,6 +105,23 @@ export function useBeneficiariesPage() {
     [filteredBeneficiaries, currentPage]
   );
 
+  const handleExportPdf = useCallback(async () => {
+    const { generateBeneficiariesPDF } = await import('@/utils/pdf');
+    return generateBeneficiariesPDF(filteredBeneficiaries, pdfWaqfInfo);
+  }, [filteredBeneficiaries, pdfWaqfInfo]);
+
+  const handleExportCsv = useCallback(() => {
+    const csv = buildCsv(filteredBeneficiaries.map(b => ({
+      'الاسم': b.name,
+      'النسبة %': Number(b.share_percentage),
+      'البريد': b.email || '-',
+      'الهاتف': b.phone || '-',
+      'ملاحظات': b.notes || '-',
+    })));
+    downloadCsv(csv, 'مستفيدين.csv');
+    defaultNotify.success('تم تصدير المستفيدين بنجاح');
+  }, [filteredBeneficiaries]);
+
   return {
     beneficiaries, isLoading, filteredBeneficiaries, paginatedBeneficiaries,
     isOpen, setIsOpen, editingBeneficiary, formData, setFormData,
@@ -113,5 +131,6 @@ export function useBeneficiariesPage() {
     searchQuery, setSearchQuery, currentPage, setCurrentPage, ITEMS_PER_PAGE,
     totalPercentage, activeBeneficiaries, percentageExceeds,
     pdfWaqfInfo,
+    handleExportPdf, handleExportCsv,
   };
 }
