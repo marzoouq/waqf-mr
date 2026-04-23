@@ -25,6 +25,7 @@ const PermissionsControlPanel = lazy(() => import('@/components/settings/Permiss
 const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
 const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
 const ZatcaSettingsTab = lazy(() => import('@/components/settings/ZatcaSettingsTab'));
+const SystemSettingsTab = lazy(() => import('@/components/settings/SystemSettingsTab'));
 
 const LOADING = <PageLoader />;
 
@@ -80,6 +81,7 @@ const SettingsPage = () => {
           <TabsContent value="advances"><Suspense fallback={LOADING}><AdvanceSettingsTab /></Suspense></TabsContent>
           <TabsContent value="zatca"><Suspense fallback={LOADING}><ZatcaSettingsTab /></Suspense></TabsContent>
           <TabsContent value="security"><Suspense fallback={LOADING}><SecurityTab /></Suspense></TabsContent>
+          <TabsContent value="system"><Suspense fallback={LOADING}><SystemSettingsTab /></Suspense></TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
