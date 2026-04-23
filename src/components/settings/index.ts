@@ -19,6 +19,7 @@ export { default as PasswordTab } from './PasswordTab';
 export { default as RolePermissionsTab } from './RolePermissionsTab';
 export { default as SectionsTab } from './SectionsTab';
 export { default as SecurityTab } from './SecurityTab';
+export { default as SystemSettingsTab } from './SystemSettingsTab';
 export { default as WaqfSettingsTab } from './WaqfSettingsTab';
 export { default as ZatcaOperationsLog } from './ZatcaOperationsLog';
 export { default as ZatcaSettingsTab } from './ZatcaSettingsTab';
