@@ -18,3 +18,6 @@ export const IBAN_SA_REGEX = /^SA\d{22}$/;
 
 /** معرّف جهاز ZATCA — الصيغة: 1-XXX|2-YYY|3-ZZZ */
 export const DEVICE_SERIAL_REGEX = /^1-.+\|2-.+\|3-.+$/;
+
+/** UUID v4-style identifier (case-insensitive) */
+export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
