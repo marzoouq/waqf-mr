@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+import { PER_FY_LIMIT } from '@/constants/pagination';
 
 /** أعمدة المصروفات مع ربط العقار */
 const EXPENSE_SELECT = 'id, amount, date, description, expense_type, fiscal_year_id, property_id, created_at, property:properties(id, property_number, location)';
@@ -25,8 +26,6 @@ export const useExpenses = expensesCrud.useList;
 export const useCreateExpense = expensesCrud.useCreate;
 export const useUpdateExpense = expensesCrud.useUpdate;
 export const useDeleteExpense = expensesCrud.useDelete;
-
-const PER_FY_LIMIT = 2000;
 
 /** Expenses filtered by fiscal year */
 export const useExpensesByFiscalYear = (fiscalYearId: string | 'all') => {

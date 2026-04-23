@@ -18,7 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { defaultNotify } from '@/lib/notify';
 import { fmt, fmtInt } from '@/utils/format/format';
-import { usePropertiesViewData } from '@/hooks/page/admin/management/usePropertiesViewData';
+import { usePropertiesViewPage } from '@/hooks/page/beneficiary/views/usePropertiesViewPage';
 
 const PropertiesViewPage = () => {
   const {
@@ -34,7 +34,7 @@ const PropertiesViewPage = () => {
     propertyUnitsMap,
     wholePropertyRentedSet,
     rentedUnitIdsByPropertyMap,
-  } = usePropertiesViewData();
+  } = usePropertiesViewPage();
 
   const { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor } = summaryData;
 

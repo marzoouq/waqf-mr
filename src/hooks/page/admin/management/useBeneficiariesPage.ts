@@ -5,6 +5,7 @@ import { Beneficiary } from '@/types';
 import { defaultNotify } from '@/lib/notify';
 import type { BeneficiaryFormData } from '@/types/forms/beneficiary';
 import { PAGE_SIZE_BENEFICIARIES } from '@/constants/pagination';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 
 const ITEMS_PER_PAGE = PAGE_SIZE_BENEFICIARIES;
 
@@ -15,6 +16,7 @@ export function useBeneficiariesPage() {
   const createBeneficiary = useCreateBeneficiary();
   const updateBeneficiary = useUpdateBeneficiary();
   const deleteBeneficiary = useDeleteBeneficiary();
+  const pdfWaqfInfo = usePdfWaqfInfo();
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingBeneficiary, setEditingBeneficiary] = useState<Beneficiary | null>(null);
@@ -110,5 +112,6 @@ export function useBeneficiariesPage() {
     deleteTarget, setDeleteTarget, handleConfirmDelete,
     searchQuery, setSearchQuery, currentPage, setCurrentPage, ITEMS_PER_PAGE,
     totalPercentage, activeBeneficiaries, percentageExceeds,
+    pdfWaqfInfo,
   };
 }

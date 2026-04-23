@@ -4,3 +4,4 @@
 export { useContractsViewPage } from './useContractsViewPage';
 export { useAnnualReportViewPage } from './useAnnualReportViewPage';
 export { useBylawsViewPage } from './useBylawsViewPage';
+export { usePropertiesViewPage } from './usePropertiesViewPage';

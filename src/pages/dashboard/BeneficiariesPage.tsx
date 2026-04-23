@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Percent, Search, AlertTriangle, Wallet, UserCheck } from 'lucide-react';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 import { ExportMenu, TablePagination, ConfirmDeleteDialog } from '@/components/common';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
@@ -13,7 +12,6 @@ import { AdvanceRequestsTab } from '@/components/accounts';
 import { useBeneficiariesPage } from '@/hooks/page/admin/management/useBeneficiariesPage';
 
 const BeneficiariesPage = () => {
-  const pdfWaqfInfo = usePdfWaqfInfo();
   const h = useBeneficiariesPage();
 
   return (
@@ -24,7 +22,7 @@ const BeneficiariesPage = () => {
           icon={Users}
           description="عرض وإدارة المستفيدين من الوقف"
           actions={<>
-            <ExportMenu onExportPdf={async () => { const { generateBeneficiariesPDF } = await import('@/utils/pdf'); return generateBeneficiariesPDF(h.filteredBeneficiaries, pdfWaqfInfo); }} onExportCsv={() => {
+            <ExportMenu onExportPdf={async () => { const { generateBeneficiariesPDF } = await import('@/utils/pdf'); return generateBeneficiariesPDF(h.filteredBeneficiaries, h.pdfWaqfInfo); }} onExportCsv={() => {
               const csv = buildCsv(h.filteredBeneficiaries.map(b => ({
                 'الاسم': b.name,
                 'النسبة %': Number(b.share_percentage),

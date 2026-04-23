@@ -18,6 +18,7 @@ import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
 import { defaultNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 import { computeLowIncomeMonths } from '@/utils/financial/incomeAnomalies';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 
 export type SortField = SortFieldOf<'amount' | 'date' | 'source'>;
 
@@ -37,6 +38,7 @@ export function useIncomePage() {
   const createIncome = useCreateIncome();
   const updateIncome = useUpdateIncome();
   const deleteIncome = useDeleteIncome();
+  const pdfWaqfInfo = usePdfWaqfInfo();
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
@@ -173,5 +175,7 @@ export function useIncomePage() {
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
     // حسابات
     totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome, paginatedItems,
+    // PDF
+    pdfWaqfInfo,
   };
 }

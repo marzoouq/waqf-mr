@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+import { PER_FY_LIMIT } from '@/constants/pagination';
 
 /** أعمدة الإيرادات مع ربط العقار */
 const INCOME_SELECT = 'id, amount, date, source, notes, fiscal_year_id, property_id, contract_id, created_at, property:properties(id, property_number, location)';
@@ -25,8 +26,6 @@ export const useIncome = incomeCrud.useList;
 export const useCreateIncome = incomeCrud.useCreate;
 export const useUpdateIncome = incomeCrud.useUpdate;
 export const useDeleteIncome = incomeCrud.useDelete;
-
-const PER_FY_LIMIT = 2000;
 
 /** Income filtered by fiscal year */
 export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {

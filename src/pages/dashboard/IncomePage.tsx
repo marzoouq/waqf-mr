@@ -9,7 +9,6 @@ import { TrendingUp, Search, AlertTriangle } from 'lucide-react';
 import { IncomeSummaryCards, IncomeMobileCards, IncomeDesktopTable, IncomeFormDialog } from '@/components/income';
 import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner, ConfirmDeleteDialog } from '@/components/common';
 import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,7 +17,6 @@ import { useIncomePage } from '@/hooks/page/admin/financial/useIncomePage';
 const IncomeMonthlyChart = lazy(() => import('@/components/dashboard/charts/IncomeMonthlyChart'));
 
 const IncomePage = () => {
-  const pdfWaqfInfo = usePdfWaqfInfo();
   const {
     income, isLoading, properties, contracts, paymentInvoices,
     fiscalYearId, fiscalYear, isClosed, role, isLocked,
@@ -31,6 +29,7 @@ const IncomePage = () => {
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
     totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome,
     paginatedItems,
+    pdfWaqfInfo,
   } = useIncomePage();
 
   return (
