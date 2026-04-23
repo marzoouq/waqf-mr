@@ -4,9 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Percent, Search, AlertTriangle, Wallet, UserCheck } from 'lucide-react';
-import { defaultNotify } from '@/lib/notify';
 import { ExportMenu, TablePagination, ConfirmDeleteDialog } from '@/components/common';
-import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { BeneficiaryFormDialog, BeneficiaryCard } from '@/components/beneficiary/admin';
 import { AdvanceRequestsTab } from '@/components/accounts';
 import { useBeneficiariesPage } from '@/hooks/page/admin/management/useBeneficiariesPage';
@@ -22,17 +20,7 @@ const BeneficiariesPage = () => {
           icon={Users}
           description="عرض وإدارة المستفيدين من الوقف"
           actions={<>
-            <ExportMenu onExportPdf={async () => { const { generateBeneficiariesPDF } = await import('@/utils/pdf'); return generateBeneficiariesPDF(h.filteredBeneficiaries, h.pdfWaqfInfo); }} onExportCsv={() => {
-              const csv = buildCsv(h.filteredBeneficiaries.map(b => ({
-                'الاسم': b.name,
-                'النسبة %': Number(b.share_percentage),
-                'البريد': b.email || '-',
-                'الهاتف': b.phone || '-',
-                'ملاحظات': b.notes || '-',
-              })));
-              downloadCsv(csv, 'مستفيدين.csv');
-              defaultNotify.success('تم تصدير المستفيدين بنجاح');
-            }} />
+            <ExportMenu onExportPdf={h.handleExportPdf} onExportCsv={h.handleExportCsv} />
             <BeneficiaryFormDialog
               isOpen={h.isOpen} setIsOpen={h.setIsOpen} formData={h.formData} setFormData={h.setFormData}
               isEditing={!!h.editingBeneficiary} isPending={h.isPending}
