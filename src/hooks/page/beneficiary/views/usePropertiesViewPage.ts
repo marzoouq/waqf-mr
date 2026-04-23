@@ -1,7 +1,7 @@
 /**
  * هوك بيانات وملخصات صفحة عرض العقارات للمستفيد
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
@@ -12,6 +12,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { defaultNotify } from '@/lib/notify';
 
 export function usePropertiesViewPage() {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
@@ -130,6 +131,22 @@ export function usePropertiesViewPage() {
     return map;
   }, [propertyContractsMap]);
 
+  const handleExportPdf = useCallback(async () => {
+    try {
+      const { generatePropertiesPDF } = await import('@/utils/pdf');
+      await generatePropertiesPDF(
+        (properties ?? []).map(p => ({
+          property_number: p.property_number, property_type: p.property_type,
+          location: p.location, area: p.area, description: p.description,
+        })),
+        pdfWaqfInfo,
+      );
+      defaultNotify.success('تم تصدير العقارات بنجاح');
+    } catch {
+      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
+    }
+  }, [properties, pdfWaqfInfo]);
+
   return {
     properties, units, contracts, expenses, isLoading, isError,
     refetchProps, refetchUnits,
@@ -143,5 +160,6 @@ export function usePropertiesViewPage() {
     propertyUnitsMap,
     wholePropertyRentedSet,
     rentedUnitIdsByPropertyMap,
+    handleExportPdf,
   };
 }

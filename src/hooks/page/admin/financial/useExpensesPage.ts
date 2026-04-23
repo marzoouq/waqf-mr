@@ -18,6 +18,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 import { computeDocumentationStats } from '@/utils/financial/documentationRate';
+import { buildCsv, downloadCsv } from '@/utils/export/csv';
 
 export type SortField = SortFieldOf<'amount' | 'date' | 'expense_type'>;
 
@@ -145,12 +146,28 @@ export function useExpensesPage() {
   /** هل السنة المالية محددة ويمكن الإضافة؟ — #15 */
   const canAdd = !!fiscalYear?.id && !isLocked;
 
+  const handleExportPdf = useCallback(async () => {
+    const { generateExpensesPDF } = await import('@/utils/pdf');
+    return generateExpensesPDF(filteredExpenses, totalExpenses, pdfWaqfInfo);
+  }, [filteredExpenses, totalExpenses, pdfWaqfInfo]);
+
+  const handleExportCsv = useCallback(() => {
+    const csv = buildCsv(filteredExpenses.map(item => ({
+      'النوع': item.expense_type,
+      'المبلغ': safeNumber(item.amount),
+      'التاريخ': item.date,
+      'العقار': item.property?.property_number || '-',
+      'الوصف': item.description || '-',
+    })));
+    downloadCsv(csv, 'مصروفات.csv');
+    defaultNotify.success('تم تصدير المصروفات بنجاح');
+  }, [filteredExpenses]);
+
   return {
     pdfWaqfInfo, fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,
     expenses, isLoading, properties,
     createExpense, updateExpense,
     isOpen, setIsOpen, editingExpense,
-    // فلاتر — تبقى مُطبّقة بعد إغلاق form (سلوك مقصود)
     searchQuery, setSearchQuery,
     filters, setFilters,
     sortField: sortField as SortField, sortDir, handleSort: handleSort as (field: SortField) => void,
@@ -163,5 +180,6 @@ export function useExpensesPage() {
     totalExpenses, uniqueTypes,
     expenseInvoiceMap, documentedCount, documentationRate,
     filteredExpenses, paginatedExpenses,
+    handleExportPdf, handleExportCsv,
   };
 }

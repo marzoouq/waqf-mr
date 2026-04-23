@@ -19,6 +19,8 @@ import { defaultNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 import { computeLowIncomeMonths } from '@/utils/financial/incomeAnomalies';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { buildCsv, downloadCsv } from '@/utils/export/csv';
+import { logger } from '@/lib/logger';
 
 export type SortField = SortFieldOf<'amount' | 'date' | 'source'>;
 
@@ -156,26 +158,41 @@ export function useIncomePage() {
   /** هل السنة المالية محددة ويمكن الإضافة؟ — #14 */
   const canAdd = !!fiscalYear?.id && !isLocked;
 
+  const handleExportPdf = useCallback(async () => {
+    try {
+      const { generateIncomePDF } = await import('@/utils/pdf');
+      await generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo);
+    } catch (e) {
+      logger.error('PDF Income failed:', e);
+      defaultNotify.error('تعذّر توليد ملف PDF');
+    }
+  }, [filteredIncome, totalIncome, pdfWaqfInfo]);
+
+  const handleExportCsv = useCallback(() => {
+    const csv = buildCsv(filteredIncome.map(item => ({
+      'المصدر': item.source,
+      'المبلغ': safeNumber(item.amount),
+      'التاريخ': item.date,
+      'العقار': item.property?.property_number || '-',
+      'ملاحظات': item.notes || '-',
+    })));
+    downloadCsv(csv, 'دخل.csv');
+    defaultNotify.success('تم تصدير الدخل بنجاح');
+  }, [filteredIncome]);
+
   return {
-    // بيانات
     income, isLoading, properties, contracts, paymentInvoices,
     fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,
-    // حالة النموذج
     isOpen, setIsOpen, editingIncome, formData, setFormData,
     resetForm, handleEdit, handleSubmit,
     createPending: createIncome.isPending,
     updatePending: updateIncome.isPending,
-    // حذف
     deleteTarget, setDeleteTarget, handleConfirmDelete,
-    // ترتيب — sortField قد يكون null
     sortField: sortField as SortField, sortDir, handleSort: handleSort as (field: SortField) => void,
-    // فلاتر — تبقى مُطبّقة بعد إغلاق form (سلوك مقصود)
     searchQuery, setSearchQuery, filters, setFilters,
-    // صفحات
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
-    // حسابات
     totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome, paginatedItems,
-    // PDF
     pdfWaqfInfo,
+    handleExportPdf, handleExportCsv,
   };
 }
