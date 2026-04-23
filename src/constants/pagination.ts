@@ -23,5 +23,13 @@ export const PAGE_SIZE_BENEFICIARIES = 9;
 /** سجل المراجعة وسجلات الوصول */
 export const PAGE_SIZE_AUDIT = 15;
 
+/**
+ * الحد الأقصى لجلب السجلات المالية ضمن سنة مالية واحدة
+ * (الإيرادات/المصروفات/الفواتير) — يضمن دقة الحسابات المحلية
+ * بدلاً من الاعتماد على Supabase default 1000.
+ * موثّق في memory: invoice-pagination-strategy.
+ */
+export const PER_FY_LIMIT = 2000;
+
 // أسماء قديمة للتوافق
 export const PROPERTIES_PAGE_SIZE = 9;
