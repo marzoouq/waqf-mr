@@ -8,46 +8,17 @@ import InvoicesPageDialogs from '@/components/invoices/InvoicesPageDialogs';
 import { TablePagination, MobileCardView, ExportMenu, TableSkeleton, LockedYearBanner } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Search, Eye, LayoutGrid, List, FileDown } from 'lucide-react';
-import { buildCsv, downloadCsv } from '@/utils/export/csv';
-import { defaultNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
 import { useInvoicesPage } from '@/hooks/page/admin/financial/useInvoicesPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
-import { asMutationArg } from '@/hooks/data/core';
 import { DEFAULT_WAQF_NAME } from '@/constants/waqf';
-
-import { useMemo, useCallback } from 'react';
 
 const InvoicesPage = () => {
   const h = useInvoicesPage();
   const { role } = useAuth();
   const isLocked = !canModifyFiscalYear(role, h.isClosed);
-
-  const invoicesWithoutFiles = useMemo(
-    () => h.invoices.filter(inv => !inv.file_path),
-    [h.invoices]
-  );
-
-  const handleExportPdf = useCallback(async () => {
-    if (!h.fiscalYearId || h.fiscalYearId === 'all') defaultNotify.warning('⚠️ أنت تصدّر فواتير جميع السنوات المالية.');
-    try {
-      const fyLabel = h.fiscalYear?.label || (h.fiscalYearId ? '' : 'جميع السنوات');
-      const { generateInvoicesViewPDF } = await import('@/utils/pdf');
-      await generateInvoicesViewPDF(h.filteredInvoices.map(inv => ({
-        invoice_type: h.INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
-        invoice_number: inv.invoice_number, amount: safeNumber(inv.amount), date: inv.date,
-        property_number: inv.property?.property_number || '-', status: inv.status,
-      })), h.pdfWaqfInfo, fyLabel);
-      defaultNotify.success('تم تحميل ملف PDF بنجاح');
-    } catch { defaultNotify.error('حدث خطأ أثناء تصدير PDF'); }
-  }, [h.fiscalYearId, h.fiscalYear, h.filteredInvoices, h.INVOICE_TYPE_LABELS, h.pdfWaqfInfo]);
-
-  const paginatedInvoices = useMemo(
-    () => h.filteredInvoices.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE),
-    [h.filteredInvoices, h.currentPage, h.ITEMS_PER_PAGE]
-  );
 
   return (
     <DashboardLayout>
@@ -60,22 +31,12 @@ const InvoicesPage = () => {
             <Button variant="outline" className="gap-2" onClick={() => h.setTemplateOpen(true)} disabled={isLocked}>
               <FileText className="w-4 h-4" />إنشاء من قالب
             </Button>
-            {invoicesWithoutFiles.length > 0 && (
-              <Button variant="outline" className="gap-2" disabled={h.generatePdf.isPending || isLocked} onClick={() => h.generatePdf.mutate(invoicesWithoutFiles.map(inv => inv.id))}>
-                <FileDown className="w-4 h-4" />{h.generatePdf.isPending ? 'جاري التوليد...' : `توليد PDF (${invoicesWithoutFiles.length})`}
+            {h.invoicesWithoutFiles.length > 0 && (
+              <Button variant="outline" className="gap-2" disabled={h.generatePdf.isPending || isLocked} onClick={h.handleGeneratePdfForMissing}>
+                <FileDown className="w-4 h-4" />{h.generatePdf.isPending ? 'جاري التوليد...' : `توليد PDF (${h.invoicesWithoutFiles.length})`}
               </Button>
             )}
-            <ExportMenu onExportPdf={handleExportPdf} onExportCsv={() => {
-              const fyLabel = h.fiscalYear?.label || 'جميع-السنوات';
-              const csv = buildCsv(h.filteredInvoices.map(inv => ({
-                'النوع': h.INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
-                'رقم الفاتورة': inv.invoice_number || '-', 'المبلغ': safeNumber(inv.amount),
-                'التاريخ': inv.date, 'العقار': inv.property?.property_number || '-',
-                'الحالة': h.INVOICE_STATUS_LABELS[inv.status] || inv.status,
-              })));
-              downloadCsv(csv, `فواتير-${fyLabel}.csv`);
-              defaultNotify.success('تم تصدير الفواتير بنجاح');
-            }} />
+            <ExportMenu onExportPdf={h.handleExportPdf} onExportCsv={h.handleExportCsv} />
             <InvoiceUploadDialog
               open={h.isOpen} onOpenChange={h.setIsOpen} isEditing={!!h.editingInvoice} isLocked={isLocked}
               formData={h.formData} setFormData={h.setFormData} onSubmit={h.handleSubmit} onReset={h.resetForm}
@@ -134,7 +95,7 @@ const InvoicesPage = () => {
               ) : (
                 <>
                   <MobileCardView
-                    items={paginatedInvoices}
+                    items={h.paginatedInvoices}
                     getKey={(item) => item.id} getTitle={(item) => h.INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}
                     getSubtitle={(item) => item.invoice_number || undefined}
                     getBadge={(item) => <Badge variant={h.statusBadgeVariant(item.status)}>{h.INVOICE_STATUS_LABELS[item.status] || item.status}</Badge>}
@@ -150,7 +111,7 @@ const InvoicesPage = () => {
                     ) : null}
                   />
                   <InvoicesDesktopTable
-                    items={paginatedInvoices}
+                    items={h.paginatedInvoices}
                     isLocked={isLocked} generatePdfPending={h.generatePdf.isPending}
                     typeLabels={h.INVOICE_TYPE_LABELS} statusLabels={h.INVOICE_STATUS_LABELS} statusBadgeVariant={h.statusBadgeVariant}
                     onViewFile={h.setViewerFile} onGeneratePdf={(ids) => h.generatePdf.mutate(ids)}
@@ -175,11 +136,7 @@ const InvoicesPage = () => {
             address: h.pdfWaqfInfo.address, vatNumber: h.pdfWaqfInfo.vatNumber,
             commercialReg: h.pdfWaqfInfo.commercialReg, bankName: h.pdfWaqfInfo.bankName, bankIBAN: h.pdfWaqfInfo.bankIBAN,
           }}
-          onSaveTemplate={async (data) => {
-            await h.createInvoice.mutateAsync(asMutationArg(h.createInvoice, { ...data, fiscal_year_id: h.fiscalYear?.id }));
-            h.setTemplateOpen(false);
-            defaultNotify.success('تم إنشاء الفاتورة بنجاح');
-          }}
+          onSaveTemplate={h.handleSaveTemplate}
           isSaving={h.createInvoice.isPending}
         />
       </div>
