@@ -6,7 +6,7 @@ import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner, ConfirmDe
 import { TrendingDown, Search } from 'lucide-react';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
-import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
+import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
 import { defaultNotify } from '@/lib/notify';
 import { useExpensesPage } from '@/hooks/page/admin/financial/useExpensesPage';
 

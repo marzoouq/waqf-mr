@@ -6,7 +6,7 @@
 import type { ReactNode } from 'react';
 import type { AppRole } from '@/types/database';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import RequirePermission from '@/components/guards/RequirePermission';
+import RequirePermission from '@/components/auth/RequirePermission';
 import { withRouteErrorBoundary as eb } from './withRouteErrorBoundary';
 
 /**

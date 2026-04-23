@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { TrendingUp, Search, AlertTriangle } from 'lucide-react';
 import { IncomeSummaryCards, IncomeMobileCards, IncomeDesktopTable, IncomeFormDialog } from '@/components/income';
 import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner, ConfirmDeleteDialog } from '@/components/common';
-import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
+import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';

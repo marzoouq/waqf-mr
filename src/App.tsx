@@ -36,7 +36,7 @@ function PagePerformanceTracker() {
 }
 
 // تحميل كسول — AI + الأمان + PWA
-const AiAssistant = lazyWithRetry(() => import("./components/ai/AiAssistant"));
+const AiAssistant = lazyWithRetry(() => import("./components/dashboard/AiAssistant"));
 const SecurityGuard = lazyWithRetry(() => import("./components/auth/SecurityGuard"));
 const PwaUpdateNotifier = lazyWithRetry(() => import("./components/pwa/PwaUpdateNotifier"));
 const SwUpdateBanner = lazyWithRetry(() => import("./components/pwa/SwUpdateBanner"));
