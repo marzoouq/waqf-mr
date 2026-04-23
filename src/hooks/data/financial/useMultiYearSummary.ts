@@ -4,7 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { mapEntry, type RpcYearEntry } from './multiYearHelpers';
+import { mapEntry, type RpcYearEntry } from '@/utils/financial/multiYearHelpers';
 
 /** شكل البيانات لكل سنة — متوافق مع واجهة useFinancialSummary */
 export interface YearSummaryEntry {

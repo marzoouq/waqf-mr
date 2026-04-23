@@ -2,7 +2,7 @@
  * دوال مساعدة لتحويل بيانات الملخص متعدد السنوات
  * مُستخرجة من useMultiYearSummary لسهولة الاختبار
  */
-import type { YearSummaryEntry } from './useMultiYearSummary';
+import type { YearSummaryEntry } from '@/hooks/data/financial/useMultiYearSummary';
 
 export interface RpcYearEntry {
   year_id: string;

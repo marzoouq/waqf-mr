@@ -6,6 +6,8 @@ import { logger } from '@/lib/logger';
 import { FY_NONE, isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { resolveFiscalYearId } from '@/utils/fiscalYear/resolveFiscalYearId';
+import { safeSessionGet, safeSessionSet, safeSessionRemove } from '@/lib/storage';
+import { UUID_REGEX } from '@/utils/validation/regexPatterns';
 
 interface FiscalYearContextType {
   fiscalYearId: string;
@@ -22,16 +24,13 @@ interface FiscalYearContextType {
 const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undefined);
 
 const STORAGE_KEY = STORAGE_KEYS.FISCAL_YEAR;
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
   const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
   const { role, loading: authLoading } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(() => {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEY) || '';
-      return UUID_RE.test(stored) ? stored : '';
-    } catch { return ''; }
+    const stored = safeSessionGet(STORAGE_KEY, '');
+    return UUID_REGEX.test(stored) ? stored : '';
   });
 
   // #34: المحاسب يُعامَل كأنه ليس "non-admin" لأنه يحتاج وصولاً تشغيلياً
@@ -47,12 +46,12 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
         // No fiscal years available (e.g. beneficiary with no published years)
         // eslint-disable-next-line react-hooks/set-state-in-effect -- invalidate stale selection when remote list loads
         setSelectedId('');
-        try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignored */ }
+        safeSessionRemove(STORAGE_KEY);
       } else {
         const exists = fiscalYears.some(fy => fy.id === selectedId);
         if (!exists) {
           setSelectedId('');
-          try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignored */ }
+          safeSessionRemove(STORAGE_KEY);
         }
       }
     }
@@ -84,13 +83,11 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
 
   const handleSetFiscalYearId = useCallback((id: string) => {
     setSelectedId(id);
-    try {
-      if (id) {
-        sessionStorage.setItem(STORAGE_KEY, id);
-      } else {
-        sessionStorage.removeItem(STORAGE_KEY);
-      }
-    } catch { /* storage unavailable */ }
+    if (id) {
+      safeSessionSet(STORAGE_KEY, id);
+    } else {
+      safeSessionRemove(STORAGE_KEY);
+    }
   }, []);
 
   return (

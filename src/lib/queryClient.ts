@@ -1,10 +1,12 @@
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
+import { getErrorStatus } from '@/utils/error/getErrorStatus';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 const queryCache = new QueryCache({
   onError: (error) => {
-    const status = (error as { status?: number })?.status;
+    const status = getErrorStatus(error);
     if (status === 401 || status === 403) return;
     logger.error('[QueryCache] خطأ في جلب البيانات:', error.message);
   },
@@ -13,7 +15,7 @@ const queryCache = new QueryCache({
 const mutationCache = new MutationCache({
   onError: (error, _variables, _context, mutation) => {
     // #11 perf: تجاهل أخطاء auth — يعرضها AuthContext/ProtectedRoute بشكل أنسب
-    const status = (error as { status?: number })?.status;
+    const status = getErrorStatus(error);
     if (status === 401 || status === 403) return;
     if (!mutation.options.onError) {
       defaultNotify.error('حدث خطأ أثناء حفظ البيانات', {
@@ -30,12 +32,12 @@ export const queryClient = new QueryClient({
     queries: {
       // #33: تخفيض الافتراضي من 5د إلى 60ث — أرضية آمنة لـ realtime/UI sync.
       // queries محددة (مثل البيانات الثابتة) تستخدم STALE_STATIC = 5د عبر تمرير صريح.
-      staleTime: 60 * 1000,
+      staleTime: STALE_FINANCIAL,
       // #12 perf: تخفيض من 30د إلى 10د — توازن أفضل لذاكرة الجوال
       // (الأكثر استخداماً يُعاد جلبه بسرعة، النادر يتحرر للذاكرة)
       gcTime: 10 * 60 * 1000,
       retry: (failureCount, error) => {
-        const status = (error as { status?: number })?.status;
+        const status = getErrorStatus(error);
         if (status && status >= 400 && status < 500) return false;
         return failureCount < 2;
       },

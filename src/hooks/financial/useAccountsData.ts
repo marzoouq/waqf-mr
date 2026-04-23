@@ -65,7 +65,7 @@ export function useAccountsData() {
   }, {} as Record<string, typeof tenantPayments[0]>), [tenantPayments]);
 
   return {
-    accounts, isLoading, allContracts: mergedContracts, contracts: mergedContracts, beneficiaries,
+    accounts, isLoading, contracts: mergedContracts, beneficiaries,
     tenantPayments, allUnits, properties, appSettings,
     income, expenses, allocationMap, paymentMap,
     selectedFY, fiscalYears, fiscalYearId, isClosed,
