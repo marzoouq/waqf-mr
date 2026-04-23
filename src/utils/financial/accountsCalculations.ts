@@ -5,35 +5,10 @@
 
 import { Income, Expense } from '@/types/database';
 import { safeNumber } from '@/utils/format/safeNumber';
+import type { FinancialParams, FinancialResult } from '@/types/financial';
 
-export interface FinancialParams {
-  totalIncome: number;
-  totalExpenses: number;
-  waqfCorpusPrevious: number;
-  manualVat: number;
-  zakatAmount: number;
-  adminPercent: number;
-  waqifPercent: number;
-  waqfCorpusManual: number;
-  manualDistributions: number;
-  /** When false (active year), shares and corpus are zeroed out */
-  isClosed?: boolean;
-}
-
-export interface FinancialResult {
-  grandTotal: number;
-  netAfterExpenses: number;
-  netAfterVat: number;
-  netAfterZakat: number;
-  shareBase: number;
-  adminShare: number;
-  waqifShare: number;
-  waqfRevenue: number;
-  availableAmount: number;
-  remainingBalance: number;
-  /** true when availableAmount is negative (expenses exceed revenue) */
-  isDeficit: boolean;
-}
+// Re-export للتوافق العكسي — المصدر الرسمي: @/types/financial
+export type { FinancialParams, FinancialResult };
 
 /**
  * Core financial hierarchy calculation.

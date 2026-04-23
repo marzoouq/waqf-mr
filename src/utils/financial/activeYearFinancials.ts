@@ -2,15 +2,9 @@
  * حساب المؤشرات المالية لسنة نشطة (مفتوحة) مع حساب ختامي موجود
  * الحصص تُصفّر لأن السنة لم تُقفل بعد
  */
-import type { FinancialResult } from '@/utils/financial/accountsCalculations';
+import type { ActiveYearParams, FinancialResult } from '@/types/financial';
 
-export interface ActiveYearParams {
-  totalIncome: number;
-  totalExpenses: number;
-  waqfCorpusPrevious: number;
-  vatAmount: number;
-  zakatAmount: number;
-}
+export type { ActiveYearParams };
 
 export function activeYearFinancials(params: ActiveYearParams): FinancialResult {
   const { totalIncome, totalExpenses, waqfCorpusPrevious, vatAmount, zakatAmount } = params;

@@ -2,15 +2,9 @@
  * حساب المؤشرات المالية لسنة مقفلة — يقرأ القيم المخزنة في الحساب الختامي
  */
 import { safeNumber } from '@/utils/format/safeNumber';
-import type { FinancialResult } from '@/utils/financial/accountsCalculations';
-import type { Tables } from '@/integrations/supabase/types';
+import type { ClosedYearParams, FinancialResult } from '@/types/financial';
 
-export interface ClosedYearParams {
-  account: Tables<'accounts'>;
-  waqfCorpusPrevious: number;
-  waqfCorpusManual: number;
-  distributionsAmount: number;
-}
+export type { ClosedYearParams };
 
 export function closedYearFinancials(params: ClosedYearParams): FinancialResult {
   const { account, waqfCorpusPrevious, waqfCorpusManual, distributionsAmount } = params;
