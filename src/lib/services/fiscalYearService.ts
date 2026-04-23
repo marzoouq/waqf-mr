@@ -34,11 +34,12 @@ export const deleteFiscalYear = async (fiscalYearId: string) => {
 };
 
 export const fetchActiveFiscalYear = async () => {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('fiscal_years')
     .select('id')
     .eq('status', 'active')
     .limit(1)
     .maybeSingle();
+  if (error) throw error;
   return data;
 };
