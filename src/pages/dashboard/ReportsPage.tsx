@@ -2,7 +2,7 @@
  * #2/#29/#35 — تنظيم imports:
  * - imports ثابتة في الأعلى أولاً
  * - lazy() مجمّعة في كتلة واحدة بعدها
- * - loadPdfModule() واحد لتحميل @/utils/pdf مرة واحدة (cache طبيعي للـ dynamic import)
+ * - منطق التصدير مفصول في useReportsExport (موجة 17)
  */
 import { lazy, Suspense } from 'react';
 import ViewportRender from '@/components/common/ViewportRender';
@@ -18,21 +18,18 @@ import ReportsSummaryCards from '@/components/reports/ReportsSummaryCards';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
-import { defaultNotify } from '@/lib/notify';
 import { Badge } from '@/components/ui/badge';
 import { ExportMenu } from '@/components/common';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import type { TabItem } from '@/components/ui/responsive-tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useReportsData } from '@/hooks/page/admin/reports/useReportsData';
+import { useReportsExport } from '@/hooks/page/admin/reports/useReportsExport';
 
 // --- lazy components (مجمّعة) ---
 const CashFlowReport = lazy(() => import('@/components/reports/CashFlowReport'));
 const MonthlyPerformanceReport = lazy(() => import('@/components/reports/MonthlyPerformanceReport'));
 const LazyReportsCharts = lazy(() => import('@/components/reports/ReportsChartsInner'));
-
-// --- مُحمِّل موحد لوحدة PDF (الاستيراد الثاني/الثالث يأتي من cache المتصفح) ---
-const loadPdfModule = () => import('@/utils/pdf');
 
 const ReportsPage = () => {
   const {
@@ -49,54 +46,19 @@ const ReportsPage = () => {
     forensicAuditData, isLoading,
   } = useReportsData();
 
-  const handleExportPDF = async () => {
-    const { generateAnnualReportPDF } = await loadPdfModule();
-    await generateAnnualReportPDF({
-      fiscalYear: currentAccount?.fiscal_year || fiscalYear?.label || '',
-      totalIncome,
-      totalExpenses,
-      netRevenue,
-      adminShare,
-      waqifShare,
-      waqfRevenue,
-      expensesByType: expenseTypeData.map(d => ({ type: d.name, amount: d.value })),
-      incomeBySource: incomeSourceData.map(d => ({ source: d.name, amount: d.value })),
-      beneficiaries: distributionData.map(d => ({
-        name: d.name ?? 'غير معروف',
-        percentage: d.percentage ?? 0,
-        amount: d.amount,
-      })),
-    }, pdfWaqfInfo);
-  };
+  const fiscalYearLabel = currentAccount?.fiscal_year || fiscalYear?.label || '';
 
-  const handleExportDisclosure = async () => {
-    const { generateAnnualDisclosurePDF } = await loadPdfModule();
-    await generateAnnualDisclosurePDF({
-      fiscalYear: currentAccount?.fiscal_year || fiscalYear?.label || '',
-      totalIncome, totalExpenses, waqfCorpusPrevious, grandTotal,
-      netAfterExpenses, vatAmount, netAfterVat, zakatAmount, netAfterZakat,
-      adminShare, waqifShare, waqfRevenue, waqfCorpusManual,
-      availableAmount, distributionsAmount, remainingBalance,
-      incomeBySource: Object.fromEntries(incomeSourceData.map(d => [d.name, d.value])),
-      expensesByType: Object.fromEntries(expenseTypeData.map(d => [d.name, d.value])),
-      beneficiaries: distributionData.map(d => ({
-        name: d.name ?? 'غير معروف',
-        share_percentage: d.percentage ?? 0,
-        amount: d.amount,
-      })),
-      adminPct, waqifPct,
-    }, pdfWaqfInfo);
-  };
-
-  const handleExportForensic = async () => {
-    try {
-      const { generateForensicAuditPDF } = await loadPdfModule();
-      await generateForensicAuditPDF(forensicAuditData, pdfWaqfInfo);
-      defaultNotify.success('تم تصدير الفحص الجنائي بنجاح');
-    } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير الفحص الجنائي');
-    }
-  };
+  const { handleExportPDF, handleExportDisclosure, handleExportForensic } = useReportsExport({
+    pdfWaqfInfo, fiscalYearLabel,
+    totalIncome, totalExpenses, netRevenue,
+    adminShare, waqifShare, waqfRevenue,
+    waqfCorpusPrevious, grandTotal, netAfterExpenses,
+    vatAmount, netAfterVat, zakatAmount, netAfterZakat,
+    waqfCorpusManual, availableAmount, distributionsAmount, remainingBalance,
+    adminPct, waqifPct,
+    incomeSourceData, expenseTypeData, distributionData,
+    forensicAuditData,
+  });
 
   return (
     <DashboardLayout>
