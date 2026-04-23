@@ -25,7 +25,7 @@ const PropertiesViewPage = () => {
     refetchProps, refetchUnits,
     isClosed,
     expandedId, setExpandedId,
-    pdfWaqfInfo,
+    
     totalUnits, occupiedUnits,
     summaryData,
     propertyFinancialsMap,

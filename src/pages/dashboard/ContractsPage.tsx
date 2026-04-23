@@ -23,7 +23,7 @@ const ContractsPage = () => {
   const ctx = useContractsPage();
   const {
     contracts, properties, paymentInvoices, fiscalYearId, fiscalYears, isClosed,
-    isLoading, isPending, role, isMobile, pdfWaqfInfo,
+    isLoading, isPending, role, isMobile,
     isOpen, setIsOpen, editingContract, deleteTarget, setDeleteTarget,
     bulkRenewOpen, setBulkRenewOpen, bulkRenewing, expiredContracts, selectedForRenewal,
     formInitialData, activeTab, setActiveTab,
