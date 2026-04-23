@@ -1,6 +1,6 @@
 import { Route } from "react-router-dom";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
-import { pr } from "./protectedRoute";
+import { pr } from "./ProtectedRouteHelper";
 
 const AdminDashboard = lazyWithRetry(() => import("@/pages/dashboard/AdminDashboard"));
 const PropertiesPage = lazyWithRetry(() => import("@/pages/dashboard/PropertiesPage"));

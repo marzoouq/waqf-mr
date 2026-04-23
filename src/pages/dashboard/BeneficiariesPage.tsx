@@ -8,7 +8,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
 import { ExportMenu, TablePagination, ConfirmDeleteDialog } from '@/components/common';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
-import { BeneficiaryFormDialog, BeneficiaryCard } from '@/components/admin/beneficiaries';
+import { BeneficiaryFormDialog, BeneficiaryCard } from '@/components/beneficiary/admin';
 import { AdvanceRequestsTab } from '@/components/accounts';
 import { useBeneficiariesPage } from '@/hooks/page/admin/management/useBeneficiariesPage';
 

@@ -12,7 +12,21 @@ import {
   Banknote, CheckCircle, Clock, Link as LinkIcon,
 } from 'lucide-react';
 import { fmtInt } from '@/utils/format/format';
+import { cn } from '@/lib/cn';
 import type { AccountantMetrics } from '@/hooks/page/admin/dashboard/useAccountantDashboardData';
+
+/**
+ * #A4 — Tailwind JIT لا يكتشف classes مُولّدة عبر interpolation.
+ * يجب استخدام classes كاملة ثابتة حتى يلتقطها الـ scanner.
+ */
+const PROGRESS_BAR_CLASS = {
+  success: '[&>div]:bg-success',
+  warning: '[&>div]:bg-warning',
+  destructive: '[&>div]:bg-destructive',
+} as const;
+
+const getProgressTone = (rate: number): keyof typeof PROGRESS_BAR_CLASS =>
+  rate >= 80 ? 'success' : rate >= 50 ? 'warning' : 'destructive';
 
 interface AccountantDashboardViewProps {
   metrics: AccountantMetrics;
@@ -130,8 +144,9 @@ const MonthlyCollectionCard = memo(function MonthlyCollectionCard({
       <CardContent>
         <div className="space-y-3">
           {recent.map(item => {
-            const color = item.rate >= 80 ? 'bg-success' : item.rate >= 50 ? 'bg-warning' : 'bg-destructive';
-            const textColor = item.rate >= 80 ? 'text-success' : item.rate >= 50 ? 'text-warning' : 'text-destructive';
+            const tone = getProgressTone(item.rate);
+            const textColor =
+              tone === 'success' ? 'text-success' : tone === 'warning' ? 'text-warning' : 'text-destructive';
             return (
               <div key={item.month} className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
@@ -143,7 +158,7 @@ const MonthlyCollectionCard = memo(function MonthlyCollectionCard({
                     <span className={`font-bold ${textColor}`}>{item.rate}%</span>
                   </div>
                 </div>
-                <Progress value={item.rate} className={`h-2 [&>div]:${color}`} />
+                <Progress value={item.rate} className={cn('h-2', PROGRESS_BAR_CLASS[tone])} />
               </div>
             );
           })}

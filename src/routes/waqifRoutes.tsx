@@ -1,6 +1,6 @@
 import { Route } from "react-router-dom";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
-import { pr } from "./protectedRoute";
+import { pr } from "./ProtectedRouteHelper";
 
 import type { AppRole } from '@/types/database';
 
