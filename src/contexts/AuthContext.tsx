@@ -15,9 +15,6 @@ import { AuthStateContext, AuthActionsContext } from '@/hooks/auth/useAuthContex
 import { useAuthListener } from '@/hooks/auth/useAuthListener';
 import { useAuthCleanup } from '@/hooks/auth/useAuthCleanup';
 
-// إعادة تصدير للتوافقية مع الاستيراد القديم
-export { useAuth, useAuthState, useAuthActions } from '@/hooks/auth/useAuthContext';
-
 // تجنّب unused-import warning (الدالة كانت مستخدمة سابقاً مباشرة هنا)
 void _logAccessEvent;
 
