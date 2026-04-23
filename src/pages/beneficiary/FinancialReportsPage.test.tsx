@@ -65,7 +65,7 @@ vi.mock('@/utils/pdf', () => ({ generateAnnualReportPDF: vi.fn().mockResolvedVal
 vi.mock('@/components/layout/PageHeaderCard', () => ({ default: ({ title, actions }: any) => <div>{title}{actions}</div> }));
 
 // Mock the lazy-loaded charts component
-vi.mock('@/components/financial/FinancialChartsInner', () => ({
+vi.mock('@/components/dashboard/charts/FinancialChartsInner', () => ({
   default: () => (
     <div>
       <h3>مقارنة الإيرادات والمصروفات</h3>

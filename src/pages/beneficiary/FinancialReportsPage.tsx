@@ -10,7 +10,7 @@ import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/componen
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFinancialReportsPage } from '@/hooks/page/beneficiary';
 
-const LazyFinancialCharts = lazy(() => import('@/components/financial/FinancialChartsInner'));
+const LazyFinancialCharts = lazy(() => import('@/components/dashboard/charts/FinancialChartsInner'));
 
 const FinancialReportsPage = () => {
   const {
