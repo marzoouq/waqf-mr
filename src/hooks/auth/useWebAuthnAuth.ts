@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { startAuthentication } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
-import { logBiometricEvent, handleAuthenticationError } from './webAuthnErrors';
+import { logBiometricEvent, handleAuthenticationError } from '@/utils/auth/webAuthnErrors';
 
 interface UseWebAuthnAuthArgs {
   setIsLoading: (v: boolean) => void;
