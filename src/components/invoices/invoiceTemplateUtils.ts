@@ -7,7 +7,7 @@ import { generateZatcaQrTLV } from '@/utils/zatca/zatcaQr';
 
 // ─── الأنواع المشتركة (المصدر: src/types/invoices.ts) ───
 export type { AllowanceChargeItem, InvoiceTemplateData } from '@/types/invoices';
-import type { AllowanceChargeItem, InvoiceTemplateData } from '@/types/invoices';
+import type { InvoiceTemplateData } from '@/types/invoices';
 
 // ─── حسابات مشتركة ───
 export function computeInvoiceTotals(data: InvoiceTemplateData) {
