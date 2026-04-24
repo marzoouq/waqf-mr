@@ -37,7 +37,7 @@ const ExpensesDesktopTable = ({ items, expenseInvoiceMap, expandedRow, setExpand
         <TableRow className="bg-muted/50">
           <TableHead className="text-right w-8"></TableHead>
           <TableHead className="text-right cursor-pointer select-none" onClick={() => onSort('expense_type')}>
-            <span className="inline-flex items-center gap-1">النوع <SortIcon field="expense_type" sortField={sortField} sortDir={sortDir} /></span>
+            <span className="inline-flex items-center gap-1">البيان / النوع <SortIcon field="expense_type" sortField={sortField} sortDir={sortDir} /></span>
           </TableHead>
           <TableHead className="text-right cursor-pointer select-none" onClick={() => onSort('amount')}>
             <span className="inline-flex items-center gap-1">المبلغ <SortIcon field="amount" sortField={sortField} sortDir={sortDir} /></span>
@@ -47,7 +47,6 @@ const ExpensesDesktopTable = ({ items, expenseInvoiceMap, expandedRow, setExpand
           </TableHead>
           <TableHead className="text-right">العقار</TableHead>
           <TableHead className="text-right">المرفقات</TableHead>
-          <TableHead className="text-right">الوصف</TableHead>
           <TableHead className="text-right">إجراءات</TableHead>
         </TableRow>
       </TableHeader>
@@ -63,14 +62,20 @@ const ExpensesDesktopTable = ({ items, expenseInvoiceMap, expandedRow, setExpand
                     {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                   </Button>
                 </TableCell>
-                <TableCell className="font-medium">{item.expense_type}</TableCell>
+                <TableCell className="max-w-[280px]">
+                  <div className="font-semibold text-foreground truncate" title={item.description || item.expense_type}>
+                    {item.description || item.expense_type}
+                  </div>
+                  {item.description && (
+                    <Badge variant="outline" className="mt-1 text-[10px] font-normal">{item.expense_type}</Badge>
+                  )}
+                </TableCell>
                 <TableCell className="text-destructive font-medium">-{fmt(safeNumber(item.amount))} ر.س</TableCell>
                 <TableCell>{item.date}</TableCell>
                 <TableCell>{item.property?.property_number || '-'}</TableCell>
                 <TableCell>
                   {attachCount > 0 ? <Badge variant="secondary" className="gap-1"><Paperclip className="w-3 h-3" />{attachCount}</Badge> : <span className="text-muted-foreground text-xs">—</span>}
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{item.description || '-'}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
@@ -80,7 +85,7 @@ const ExpensesDesktopTable = ({ items, expenseInvoiceMap, expandedRow, setExpand
               </TableRow>
               {isExpanded && (
                 <TableRow>
-                  <TableCell colSpan={8} className="bg-muted/30 p-3 border-b">
+                  <TableCell colSpan={7} className="bg-muted/30 p-3 border-b">
                     <ExpenseAttachments expenseId={item.id} />
                   </TableCell>
                 </TableRow>
