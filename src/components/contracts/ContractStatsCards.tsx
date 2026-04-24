@@ -16,13 +16,19 @@ interface ContractStats {
 interface ContractStatsCardsProps {
   stats: ContractStats;
   isLoading: boolean;
+  /** 'admin' = جميع البطاقات (5)، 'beneficiary' = إخفاء المنتهية والقاربة (3) */
+  variant?: 'admin' | 'beneficiary';
 }
 
-const ContractStatsCards = ({ stats, isLoading }: ContractStatsCardsProps) => {
+const ContractStatsCards = ({ stats, isLoading, variant = 'admin' }: ContractStatsCardsProps) => {
+  const isBeneficiary = variant === 'beneficiary';
+  const skeletonCount = isBeneficiary ? 3 : 5;
+  const gridCols = isBeneficiary ? 'sm:grid-cols-3 lg:grid-cols-3' : 'sm:grid-cols-3 lg:grid-cols-5';
+
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-        {Array.from({ length: 5 }).map((_, i) => (
+      <div className={`grid grid-cols-2 ${gridCols} gap-3 sm:gap-4`}>
+        {Array.from({ length: skeletonCount }).map((_, i) => (
           <Card key={i} className="shadow-sm">
             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
               <Skeleton className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg" />
@@ -38,7 +44,7 @@ const ContractStatsCards = ({ stats, isLoading }: ContractStatsCardsProps) => {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+    <div className={`grid grid-cols-2 ${gridCols} gap-3 sm:gap-4`}>
       <Card className="border-info/30 bg-info/5">
         <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 sm:p-2 rounded-lg bg-info/15 text-info"><FileText className="w-4 h-4 sm:w-5 sm:h-5" /></div>
@@ -51,24 +57,28 @@ const ContractStatsCards = ({ stats, isLoading }: ContractStatsCardsProps) => {
           <div className="min-w-0"><p className="text-[11px] sm:text-xs text-muted-foreground">العقود النشطة</p><p className="text-lg sm:text-xl font-bold tabular-nums">{stats.active} <span className="text-[11px] sm:text-xs font-normal text-muted-foreground">({stats.activePercent}%)</span></p></div>
         </CardContent>
       </Card>
-      <Card className="border-destructive/30 bg-destructive/5">
-        <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-          <div className="p-1.5 sm:p-2 rounded-lg bg-destructive/15 text-destructive"><XCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-          <div className="min-w-0"><p className="text-[11px] sm:text-xs text-muted-foreground">العقود المنتهية</p><p className="text-lg sm:text-xl font-bold tabular-nums">{stats.expired}</p></div>
-        </CardContent>
-      </Card>
+      {!isBeneficiary && (
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-destructive/15 text-destructive"><XCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+            <div className="min-w-0"><p className="text-[11px] sm:text-xs text-muted-foreground">العقود المنتهية</p><p className="text-lg sm:text-xl font-bold tabular-nums">{stats.expired}</p></div>
+          </CardContent>
+        </Card>
+      )}
       <Card className="border-accent/30 bg-accent/5">
         <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 sm:p-2 rounded-lg bg-accent/15 text-accent-foreground"><DollarSign className="w-4 h-4 sm:w-5 sm:h-5" /></div>
           <div className="min-w-0"><p className="text-[11px] sm:text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-base sm:text-lg font-bold tabular-nums truncate">{fmt(stats.totalRent)} <span className="text-[11px] sm:text-xs font-normal">ر.س</span></p><p className="text-[11px] text-muted-foreground tabular-nums">نشط: {fmt(stats.activeRent)}</p></div>
         </CardContent>
       </Card>
-      <Card className={`${stats.expiringSoon > 0 ? 'border-warning/40 bg-warning/10' : 'border-warning/20 bg-warning/5'}`}>
-        <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-          <div className={`p-1.5 sm:p-2 rounded-lg ${stats.expiringSoon > 0 ? 'bg-warning/20 text-warning' : 'bg-warning/10 text-warning/60'}`}><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-          <div className="min-w-0"><p className="text-[11px] sm:text-xs text-muted-foreground">تنتهي خلال 3 أشهر</p><p className="text-lg sm:text-xl font-bold tabular-nums">{stats.expiringSoon}</p></div>
-        </CardContent>
-      </Card>
+      {!isBeneficiary && (
+        <Card className={`${stats.expiringSoon > 0 ? 'border-warning/40 bg-warning/10' : 'border-warning/20 bg-warning/5'}`}>
+          <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+            <div className={`p-1.5 sm:p-2 rounded-lg ${stats.expiringSoon > 0 ? 'bg-warning/20 text-warning' : 'bg-warning/10 text-warning/60'}`}><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+            <div className="min-w-0"><p className="text-[11px] sm:text-xs text-muted-foreground">تنتهي خلال 3 أشهر</p><p className="text-lg sm:text-xl font-bold tabular-nums">{stats.expiringSoon}</p></div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

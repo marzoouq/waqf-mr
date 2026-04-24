@@ -7,6 +7,7 @@ import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
 import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
 import { useBeneficiaryWidgets } from '@/hooks/data/settings/useBeneficiaryWidgets';
+import { useNotificationSettings, type NotificationSettings } from '@/hooks/data/settings/useNotificationSettings';
 import { defaultNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 import { ROLE_SECTION_DEFS, ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
@@ -37,6 +38,7 @@ const PermissionsControlPanel = () => {
   const { rolePermissions: savedRolePerms } = useRolePermissions();
   const { adminSections: savedAdminSections, beneficiarySections: savedBeneficiarySections } = useSectionsVisibility();
   const { widgets: savedWidgets } = useBeneficiaryWidgets();
+  const { notificationSettings: savedNotifSettings } = useNotificationSettings();
   const { user } = useAuth();
   const logAccess = useLogAccessEvent();
 
@@ -44,6 +46,7 @@ const PermissionsControlPanel = () => {
   const [adminSections, setAdminSections] = useState<Record<string, boolean>>(defaultAdminSections);
   const [beneficiarySections, setBeneficiarySections] = useState<Record<string, boolean>>(defaultBeneficiarySections);
   const [widgets, setWidgets] = useState<Record<string, boolean>>(defaultWidgets);
+  const [notifSettings, setNotifSettings] = useState<NotificationSettings>(savedNotifSettings);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -52,7 +55,8 @@ const PermissionsControlPanel = () => {
     setAdminSections(savedAdminSections);
     setBeneficiarySections(savedBeneficiarySections);
     setWidgets(savedWidgets);
-  }, [savedRolePerms, savedAdminSections, savedBeneficiarySections, savedWidgets]);
+    setNotifSettings(savedNotifSettings);
+  }, [savedRolePerms, savedAdminSections, savedBeneficiarySections, savedWidgets, savedNotifSettings]);
 
   const toggleRolePerm = (role: string, section: string) => {
     setPerms(prev => ({ ...prev, [role]: { ...prev[role], [section]: !prev[role]?.[section] } }));
@@ -82,6 +86,7 @@ const PermissionsControlPanel = () => {
         updateJsonSetting('sections_visibility', adminSections),
         updateJsonSetting('beneficiary_sections', beneficiarySections),
         updateJsonSetting('beneficiary_widgets', widgets),
+        updateJsonSetting('notification_settings', notifSettings),
       ]);
       logAccess({
         event_type: 'diagnostics_run',
@@ -101,6 +106,11 @@ const PermissionsControlPanel = () => {
     setAdminSections(defaultAdminSections);
     setBeneficiarySections(defaultBeneficiarySections);
     setWidgets(defaultWidgets);
+    setNotifSettings({
+      ...notifSettings,
+      notify_beneficiary_contract_expiry: false,
+      notify_beneficiary_expired_contracts: false,
+    });
     defaultNotify.info('تم استعادة الإعدادات الافتراضية — اضغط حفظ للتطبيق');
   };
 
@@ -137,6 +147,44 @@ const PermissionsControlPanel = () => {
               <span className="text-sm">{BENEFICIARY_WIDGET_LABELS[key]}</span>
             </label>
           ))}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-base">إشعارات المستفيدين</CardTitle>
+          <CardDescription>
+            تحكّم بإرسال إشعارات العقود إلى المستفيدين. الناظر يستمر باستلامها دائماً.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <label className="flex items-start gap-2 py-2 px-2 rounded hover:bg-muted/40 cursor-pointer transition-colors">
+            <Checkbox
+              checked={notifSettings.notify_beneficiary_contract_expiry}
+              onCheckedChange={() => setNotifSettings(prev => ({
+                ...prev,
+                notify_beneficiary_contract_expiry: !prev.notify_beneficiary_contract_expiry,
+              }))}
+              className="mt-0.5"
+            />
+            <div className="space-y-0.5">
+              <span className="text-sm font-medium">إشعار المستفيدين عند اقتراب انتهاء العقد</span>
+              <p className="text-xs text-muted-foreground">يُفضّل إيقافه لأن المستفيد لا يملك صلاحية التجديد.</p>
+            </div>
+          </label>
+          <label className="flex items-start gap-2 py-2 px-2 rounded hover:bg-muted/40 cursor-pointer transition-colors">
+            <Checkbox
+              checked={notifSettings.notify_beneficiary_expired_contracts}
+              onCheckedChange={() => setNotifSettings(prev => ({
+                ...prev,
+                notify_beneficiary_expired_contracts: !prev.notify_beneficiary_expired_contracts,
+              }))}
+              className="mt-0.5"
+            />
+            <div className="space-y-0.5">
+              <span className="text-sm font-medium">تذكير أسبوعي للمستفيدين بالعقود المنتهية</span>
+              <p className="text-xs text-muted-foreground">يُرسل أيام الأحد فقط عند وجود عقود منتهية.</p>
+            </div>
+          </label>
         </CardContent>
       </Card>
       <PermissionsActionBar saving={saving} onSave={handleSave} onReset={handleReset} />

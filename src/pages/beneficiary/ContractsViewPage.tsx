@@ -49,7 +49,7 @@ const ContractsViewPage = () => {
             <ExportMenu onExportPdf={handleExportPdf} />
           } />
 
-          <ContractStatsCards stats={stats} isLoading={!!isLoading} />
+          <ContractStatsCards stats={stats} isLoading={!!isLoading} variant="beneficiary" />
 
           {isLoading ? (
             <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
