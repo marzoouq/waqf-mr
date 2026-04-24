@@ -24,7 +24,7 @@ const mockFiscalYears = [
   { id: 'fy1', label: '2024-2025', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01', published: true },
 ];
 
-vi.mock('@/hooks/financial/useAccounts', () => ({
+vi.mock('@/hooks/computed/useAccounts', () => ({
   useAccounts: () => ({ data: [], isLoading: false }),
   useCreateAccount: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateAccount: () => ({ mutateAsync: vi.fn() }),

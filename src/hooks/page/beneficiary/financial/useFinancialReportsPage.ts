@@ -4,7 +4,7 @@
 import { useMemo, useCallback } from 'react';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useMyShare } from '@/hooks/financial/useMyShare';
+import { useMyShare } from '@/hooks/computed/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
 import { isFyReady } from '@/constants/fiscalYearIds';

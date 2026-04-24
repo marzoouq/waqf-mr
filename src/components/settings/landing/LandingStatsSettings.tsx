@@ -1,84 +1,23 @@
 /**
- * LandingStatsSettings — تحكم الناظر في إحصائيات صفحة الهبوط
+ * LandingStatsSettings — تحكم الناظر في إحصائيات صفحة الهبوط (UI خالص)
  *
  * لكل إحصائية (عقارات/مستفيدين/سنوات منشورة):
  *  - وضع العرض: تلقائي (الرقم الحقيقي) | مخصص (رقم يدوي) | مخفي
  *  - تسمية مخصصة (اختيارية — تبقى الافتراضية إن فارغة)
  *  - رقم مخصص (يظهر فقط عند اختيار "مخصص")
  *
- * الحفظ يُنفَّذ دفعة واحدة عبر updateSettingsBatch ثم يُبطل cache `public-stats`.
+ * منطق الحفظ والتحميل في useLandingStatsSettings.
  */
-import { useState, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Save, BarChart3, Eye, EyeOff, Pencil, RefreshCw } from 'lucide-react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-
-type StatMode = 'auto' | 'manual' | 'hidden';
-
-interface StatConfig {
-  key: 'properties' | 'beneficiaries' | 'fiscal_years';
-  defaultLabel: string;
-  description: string;
-}
-
-const STATS: StatConfig[] = [
-  { key: 'properties',    defaultLabel: 'عقار مُدار', description: 'إجمالي العقارات في النظام' },
-  { key: 'beneficiaries', defaultLabel: 'مستفيد',     description: 'العدد الفعلي للمستفيدين المسجَّلين' },
-  { key: 'fiscal_years',  defaultLabel: 'تقرير سنوي', description: 'عدد التقارير السنوية المنشورة' },
-];
-
-interface StatState {
-  mode: StatMode;
-  value: string;
-  label: string;
-}
+import { useLandingStatsSettings, type StatMode } from '@/hooks/page/admin/settings/useLandingStatsSettings';
 
 const LandingStatsSettings = () => {
-  const { data, updateSettingsBatch, isLoading } = useAppSettings();
-  const queryClient = useQueryClient();
-  const [forms, setForms] = useState<Record<string, StatState>>({});
-
-  // تحميل الإعدادات الحالية من app_settings
-  useEffect(() => {
-    if (!data) return;
-    const next: Record<string, StatState> = {};
-    for (const s of STATS) {
-      next[s.key] = {
-        mode: (data[`public_stat_${s.key}_mode`] as StatMode) ?? 'auto',
-        value: data[`public_stat_${s.key}_value`] ?? '',
-        label: data[`public_stat_${s.key}_label`] ?? '',
-      };
-    }
-    setForms(next);
-  }, [data]);
-
-  const handleChange = <K extends keyof StatState>(key: string, field: K, value: StatState[K]) => {
-    setForms(prev => {
-      const current = prev[key];
-      if (!current) return prev;
-      return { ...prev, [key]: { ...current, [field]: value } };
-    });
-  };
-
-  const handleSave = async () => {
-    const rows = STATS.flatMap(s => {
-      const f = forms[s.key];
-      if (!f) return [];
-      return [
-        { key: `public_stat_${s.key}_mode`,  value: f.mode },
-        { key: `public_stat_${s.key}_value`, value: f.value.trim() },
-        { key: `public_stat_${s.key}_label`, value: f.label.trim() },
-      ];
-    });
-    await updateSettingsBatch.mutateAsync(rows);
-    // إبطال cache الإحصائيات العامة فوراً
-    queryClient.invalidateQueries({ queryKey: ['public-stats'] });
-  };
+  const { forms, isLoading, isPending, handleChange, handleSave, stats } = useLandingStatsSettings();
 
   if (isLoading || Object.keys(forms).length === 0) {
     return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
@@ -97,7 +36,7 @@ const LandingStatsSettings = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {STATS.map(stat => {
+        {stats.map(stat => {
           const f = forms[stat.key];
           if (!f) return null;
           return (
@@ -197,11 +136,11 @@ const LandingStatsSettings = () => {
 
         <Button
           onClick={handleSave}
-          disabled={updateSettingsBatch.isPending}
+          disabled={isPending}
           className="gap-2"
         >
           <Save className="w-4 h-4" />
-          {updateSettingsBatch.isPending ? 'جارٍ الحفظ...' : 'حفظ إعدادات الإحصائيات'}
+          {isPending ? 'جارٍ الحفظ...' : 'حفظ إعدادات الإحصائيات'}
         </Button>
       </CardContent>
     </Card>

@@ -3,7 +3,7 @@
  * يعتمد على computePropertyFinancials الموجود مسبقاً
  */
 import { useMemo } from 'react';
-import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
+import { computePropertyFinancials } from '@/hooks/computed/usePropertyFinancials';
 
 interface Property {
   id: string;

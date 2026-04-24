@@ -13,7 +13,7 @@ vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: vi.fn(() => ({})),
 }));
 
-vi.mock('@/hooks/financial/useFiscalYears', () => ({
+vi.mock('@/hooks/computed/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({
     data: { id: 'fy1', label: '1446-1447', status: 'active' },
     fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }],
@@ -46,7 +46,7 @@ vi.mock('@/hooks/data/useContracts', () => ({
   })),
 }));
 
-vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
+vi.mock('@/hooks/computed/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 15, isLoading: false })),
 }));
 vi.mock('@/components/common/ExportMenu', () => ({ default: (_props: any) => <button data-testid="export-menu">تصدير</button> }));

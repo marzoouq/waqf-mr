@@ -1,203 +1,56 @@
 /**
- * هوك إدارة بيانات ومنطق ZATCA
+ * useZatcaManagement — Facade يجمع 4 hooks فرعية ويحافظ على نفس API السطحي
+ * - useZatcaSettings: إعدادات ZATCA + missingSettings + canOnboard
+ * - useZatcaInvoices: فواتير + سلسلة + pagination + counters
+ * - useZatcaInvoiceActions: 5 mutations + pendingIds
+ * - useZatcaOnboarding: handleOnboard + handleProductionUpgrade
  */
-import { useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { defaultNotify } from '@/lib/notify';
-import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
-import { logger } from '@/lib/logger';
-import { zatcaOnboard } from '@/lib/services/zatcaService';
-import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
-import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useZatcaCertificates } from './useZatcaCertificates';
-
-const INVOICES_PER_PAGE = 20;
+import { useZatcaSettings } from './useZatcaSettings';
+import { useZatcaInvoices } from './useZatcaInvoices';
+import { useZatcaInvoiceActions } from './useZatcaInvoiceActions';
+import { useZatcaOnboarding } from './useZatcaOnboarding';
 
 export function useZatcaManagement() {
-  const { fiscalYearId } = useFiscalYear();
-  const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
-  const [onboardLoading, setOnboardLoading] = useState(false);
-  const [productionLoading, setProductionLoading] = useState(false);
-  const [invoicePage, setInvoicePage] = useState(1);
-
-  const { data: zatcaSettings } = useQuery({
-    queryKey: ['zatca-required-settings'],
-    staleTime: STALE_STATIC,
-    queryFn: async () => {
-      const { data } = await supabase.from('app_settings').select('key, value')
-        .in('key', ['waqf_name', 'vat_registration_number', 'zatca_device_serial']);
-      const map: Record<string, string> = {};
-      (data || []).forEach(s => { map[s.key] = s.value; });
-      return map;
-    },
-  });
-
-  const missingSettings = [
-    ...(!zatcaSettings?.zatca_device_serial ? ['الرقم التسلسلي للجهاز'] : []),
-    ...(!zatcaSettings?.vat_registration_number ? ['الرقم الضريبي'] : []),
-    ...(!zatcaSettings?.waqf_name ? ['اسم المنشأة'] : []),
-  ];
-  const canOnboard = missingSettings.length === 0;
-
-  // استخدام الهوك الموحّد بدل تعريف query مكرر
   const { data: certificates = [], isLoading: certsLoading } = useZatcaCertificates();
+  const { missingSettings, canOnboard } = useZatcaSettings();
+  const invoices = useZatcaInvoices();
+  const actions = useZatcaInvoiceActions();
+  const onboarding = useZatcaOnboarding();
 
-  const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
-    queryKey: ['zatca-invoices', statusFilter, fiscalYearId],
-    staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
-      let q = supabase.from('invoices').select('id, invoice_number, invoice_type, amount, vat_amount, vat_rate, date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, fiscal_year_id').order('date', { ascending: false }).limit(1000);
-      if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);
-      if (fiscalYearId && fiscalYearId !== 'all') q = q.eq('fiscal_year_id', fiscalYearId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data || []).map(i => ({ ...i, source: 'invoices' as const }));
-    },
-  });
-
-  const { data: paymentInvoices = [] } = useQuery({
-    queryKey: ['zatca-payment-invoices', statusFilter, fiscalYearId],
-    staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
-      let q = supabase.from('payment_invoices').select('id, invoice_number, amount, vat_amount, vat_rate, due_date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, invoice_type, fiscal_year_id').order('due_date', { ascending: false }).limit(1000);
-      if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);
-      if (fiscalYearId && fiscalYearId !== 'all') q = q.eq('fiscal_year_id', fiscalYearId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data || []).map(i => ({ ...i, source: 'payment_invoices' as const, date: i.due_date }));
-    },
-  });
-
-  const allInvoices = useMemo(() => [...invoices, ...paymentInvoices], [invoices, paymentInvoices]);
-  const paginatedInvoices = useMemo(() => {
-    const start = (invoicePage - 1) * INVOICES_PER_PAGE;
-    return allInvoices.slice(start, start + INVOICES_PER_PAGE);
-  }, [allInvoices, invoicePage]);
-
-  const { data: chain = [], isLoading: chainLoading } = useQuery({
-    queryKey: ['invoice-chain'],
-    staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
-      const limit = 1000;
-      const { data, error } = await supabase.from('invoice_chain').select('id, invoice_id, icv, previous_hash, invoice_hash, source_table, created_at').order('icv', { ascending: false }).limit(limit);
-      if (error) throw error;
-      if (data && data.length >= limit) {
-        logger.warn(`invoice_chain query hit limit (${limit})`);
-      } else if (data && data.length >= 900) {
-        logger.warn(`invoice_chain approaching limit: ${data.length}/${limit}`);
-      }
-      return { records: data, limitReached: (data?.length ?? 0) >= limit, approachingLimit: (data?.length ?? 0) >= 900 };
-    },
-    select: (result) => result.records,
-  });
-
-  const invalidateInvoices = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['zatca-invoices'] });
-    queryClient.invalidateQueries({ queryKey: ['zatca-payment-invoices'] });
-  }, [queryClient]);
-
-  const addPending = (id: string) => setPendingIds(prev => new Set(prev).add(id));
-  const removePending = (id: string) => setPendingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
-
-  const generateXml = useMutation({
-    mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
-      addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-xml-generator', { body: { invoice_id: invoiceId, table } });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => { defaultNotify.success('تم توليد XML بنجاح'); invalidateInvoices(); },
-    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
-    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
-  });
-
-  const signInvoice = useMutation({
-    mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
-      addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-signer', { body: { invoice_id: invoiceId, table } });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => { defaultNotify.success('تم التوقيع بنجاح'); invalidateInvoices(); queryClient.invalidateQueries({ queryKey: ['invoice-chain'] }); },
-    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
-    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
-  });
-
-  const submitToZatca = useMutation({
-    mutationFn: async ({ invoiceId, table, action }: { invoiceId: string; table: string; action: 'report' | 'clearance' }) => {
-      addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-report', { body: { action, invoice_id: invoiceId, table } });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => { defaultNotify.success('تم الإرسال لـ ZATCA'); invalidateInvoices(); },
-    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
-    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
-  });
-
-  const complianceCheck = useMutation({
-    mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
-      addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-report', { body: { action: 'compliance-check', invoice_id: invoiceId, table } });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      if (data?.validationResults?.status === 'PASS') defaultNotify.success('✅ اجتاز فحص الامتثال');
-      else if (data?.validationResults?.status === 'WARNING') defaultNotify.warning('⚠️ اجتاز مع تحذيرات');
-      else defaultNotify.error('❌ لم يجتز فحص الامتثال');
-      invalidateInvoices();
-    },
-    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
-    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
-  });
-
-  const handleOnboard = useCallback(async () => {
-    setOnboardLoading(true);
-    try {
-      await zatcaOnboard();
-      defaultNotify.success('تم إرسال طلب التسجيل');
-      queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
-    } catch (e) {
-      defaultNotify.error(e instanceof Error ? e.message : 'فشل التسجيل');
-    } finally {
-      setOnboardLoading(false);
-    }
-  }, [queryClient]);
-
-  const handleProductionUpgrade = useCallback(async () => {
-    setProductionLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke('zatca-onboard', { body: { action: 'production' } });
-      if (error) throw error;
-      defaultNotify.success('✅ تمت الترقية لشهادة الإنتاج بنجاح');
-      queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
-    } catch (e) {
-      defaultNotify.error(e instanceof Error ? e.message : 'فشلت الترقية للإنتاج');
-    } finally {
-      setProductionLoading(false);
-    }
-  }, [queryClient]);
-
-  const submitted = allInvoices.filter(i => ['submitted', 'reported', 'cleared', 'compliance_passed'].includes(i.zatca_status || '')).length;
-  const pending = allInvoices.filter(i => i.zatca_status === 'not_submitted' || !i.zatca_status).length;
-  const rejected = allInvoices.filter(i => i.zatca_status === 'rejected').length;
   const activeCert = certificates.find(c => c.is_active);
   const isComplianceCert = activeCert?.certificate_type === 'compliance';
   const isProductionCert = activeCert?.certificate_type === 'production';
 
   return {
-    certificates, certsLoading, allInvoices, paginatedInvoices, invoicesLoading,
-    chain, chainLoading, activeCert, isComplianceCert, isProductionCert,
-    submitted, pending, rejected,
-    statusFilter, setStatusFilter, invoicePage, setInvoicePage,
-    pendingIds, onboardLoading, productionLoading,
+    // certificates
+    certificates, certsLoading, activeCert, isComplianceCert, isProductionCert,
+    // settings
     canOnboard, missingSettings,
-    generateXml, signInvoice, submitToZatca, complianceCheck,
-    handleOnboard, handleProductionUpgrade,
-    INVOICES_PER_PAGE,
+    // invoices
+    allInvoices: invoices.allInvoices,
+    paginatedInvoices: invoices.paginatedInvoices,
+    invoicesLoading: invoices.invoicesLoading,
+    chain: invoices.chain,
+    chainLoading: invoices.chainLoading,
+    submitted: invoices.submitted,
+    pending: invoices.pending,
+    rejected: invoices.rejected,
+    statusFilter: invoices.statusFilter,
+    setStatusFilter: invoices.setStatusFilter,
+    invoicePage: invoices.invoicePage,
+    setInvoicePage: invoices.setInvoicePage,
+    INVOICES_PER_PAGE: invoices.INVOICES_PER_PAGE,
+    // actions
+    pendingIds: actions.pendingIds,
+    generateXml: actions.generateXml,
+    signInvoice: actions.signInvoice,
+    submitToZatca: actions.submitToZatca,
+    complianceCheck: actions.complianceCheck,
+    // onboarding
+    onboardLoading: onboarding.onboardLoading,
+    productionLoading: onboarding.productionLoading,
+    handleOnboard: onboarding.handleOnboard,
+    handleProductionUpgrade: onboarding.handleProductionUpgrade,
   };
 }

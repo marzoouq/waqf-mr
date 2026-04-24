@@ -51,7 +51,7 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary' })),
 }));
 
-vi.mock('@/hooks/financial/useFiscalYears', () => ({
+vi.mock('@/hooks/computed/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
@@ -62,11 +62,11 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
 }));
 
 
-vi.mock('@/hooks/financial/useMyShare', () => ({
+vi.mock('@/hooks/computed/useMyShare', () => ({
   useMyShare: () => mockUseMyShare(),
 }));
 
-vi.mock('@/hooks/financial/useAdvanceRequests', () => ({
+vi.mock('@/hooks/computed/useAdvanceRequests', () => ({
   useMyBeneficiaryFinance: vi.fn(() => ({ data: { myAdvances: [], myCarryforwards: [], paidAdvancesTotal: 0, carryforwardBalance: 0 } })),
   useMyAdvanceRequests: vi.fn(() => ({ data: [] })),
   usePaidAdvancesTotal: vi.fn(() => ({ data: 0 })),
@@ -83,7 +83,7 @@ vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})
 vi.mock('@/hooks/data/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: unknown) => d), isLoading: false })),
 }));
-vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
+vi.mock('@/hooks/computed/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
 }));
 
