@@ -1,88 +1,115 @@
 
 
-# خطة إصلاح نهائية — إيقاف إشعارات العقود عن المستفيد في الإنتاج
+# تقرير مراجعة معمارية شامل (1019 ملف TypeScript)
 
-## التشخيص
-
-ثلاث طبقات تحتاج إصلاحاً متزامناً:
-
-1. **بيانات قديمة:** ~357 إشعار عقد مخزّن للمستفيدين في `notifications`
-2. **إعدادات ناقصة:** `app_settings.notification_settings` لا يحتوي المفاتيح الجديدة في الإنتاج
-3. **لا طبقة حماية UI:** `useNotifications` يقرأ كل شيء كما هو
+## ملخص تنفيذي
+المشروع في حالة معمارية **ممتازة**. الفصل بين الطبقات محترم بصرامة، ولا توجد مكونات تستدعي `supabase` مباشرة (0/410)، ولا استخدام لـ `console.*` خارج `logger.ts` و ملفات الاختبار، ولا ألوان hex ثابتة في المكونات. هذه نتيجة استثنائية.
+الملاحظات أدناه **تحسينات صقل** وليست ديوناً تقنية حرجة.
 
 ---
 
-## التنفيذ
+## النتائج التفصيلية
 
-### 1) Migration — تثبيت الإعدادات في الإنتاج
+### ✅ نقاط القوة المؤكدة
+| الفحص | النتيجة |
+|---|---|
+| مكونات تستورد `supabase/client` مباشرة | **0 / 410** |
+| مكونات تستورد `sonner` toast مباشرة | 0 |
+| استخدامات `console.*` خارج logger | 0 (فقط داخل `logger.ts` نفسه) |
+| ألوان hex ثابتة في `components/` و `pages/` | 0 |
+| `hooks/` تستورد من `pages/` أو `components/` | 1 فقط (مبررة جزئياً) |
+| `hooks/data/` تعتمد على `hooks/page/` | 0 (الاتجاه صحيح) |
+| تعليقات TODO/FIXME/HACK | 3 فقط |
+| Edge Functions | 16 وظيفة منظمة + `_shared` |
 
-دمج المفاتيح الجديدة داخل `app_settings.notification_settings` (JSONB merge آمن):
-- `notify_beneficiary_contract_expiry = false`
-- `notify_beneficiary_expired_contracts = false`
+### 🟡 مشاكل واضحة يجب معالجتها
 
-يحافظ على المفاتيح القديمة (`contract_expiry`, `payment_delays`, …) دون مساس.
+**1. انتهاك طبقات حقيقي واحد** (`utils → hooks`)
+```
+src/utils/financial/multiYearHelpers.ts:5
+  import type { YearSummaryEntry } from '@/hooks/data/financial/useMultiYearSummary';
+```
+`utils/` يجب ألا يعرف بوجود `hooks/`. النوع يجب أن ينتقل إلى `src/types/financial/`.
 
-### 2) Migration — تنظيف الإشعارات القديمة
+**2. ثوابت غير-UI داخل `components/`**
+```
+src/components/notifications/notificationConstants.ts
+```
+يُستخدم من `hooks/page/beneficiary/notifications/useNotificationsPage.ts` — هذا يجبر طبقة hooks على الاستيراد من components. الجزء النصي (`NOTIFICATION_CATEGORIES`) يجب أن يكون في `src/lib/notifications/` (حيث يوجد بالفعل `beneficiaryNotificationVisibility.ts`)، بينما `typeConfig` (يحوي أيقونات Lucide) يبقى في components.
 
-حذف موجّه ودقيق:
-```sql
-DELETE FROM notifications
-WHERE user_id IN (SELECT user_id FROM beneficiaries WHERE user_id IS NOT NULL)
-  AND (
-    title ILIKE '%عقد قارب%'
-    OR title ILIKE '%عقود منتهية%'
-    OR message ILIKE '%قارب على الانتهاء%'
-    OR message ILIKE '%عقود منتهية بحاجة%'
-  );
+**3. ملفات اختبار ناقصة على كود حرج**
+- `src/lib/realtime/bfcacheSafeChannel.ts` — مهم لاستقرار الاتصال
+- `src/utils/diagnostics/checks/zatca.ts` — 177 سطر، لا اختبار
+- `src/utils/pdf/invoices/paymentInvoiceProfessional.ts` — 180 سطر، لا اختبار
+- `src/lib/notifications/beneficiaryNotificationVisibility.ts` — جديد، حساس، بدون اختبار
+
+**4. تسرب أنواع من hooks (97 export type/interface)**
+معظمها مقبول، لكن أنواع البيانات الأساسية (`YearSummaryEntry`, `AccessLogEntry`, `AnnualReportItem`, `ContractForPdf`) يجب أن تنتقل إلى `src/types/<domain>/` لمنع التسرب وتسهيل إعادة الاستخدام.
+
+### 🟢 ملاحظات تنظيمية (اختيارية)
+
+**5. كثافة `hooks/page/admin/financial/` (20 ملف في مجلد واحد)**
+يمكن تقسيمه إلى مجلدات فرعية أنظف:
+```
+hooks/page/admin/financial/
+  ├── invoices/      (useInvoicesPage, useCreateInvoiceForm, useInvoiceFormState, …)
+  ├── accounts/      (useAccountsPage, useDistributionCalculation, useCarryforwardData)
+  ├── income/        (useIncomePage, useCollectionData)
+  └── expenses/      (useExpensesPage, useFiscalYearManagement)
 ```
 
-لا يمس إشعارات الناظر، ولا الإشعارات الأخرى للمستفيد.
+**6. `lib/services/` — فلسفة مختلطة**
+ملفات مثل `notificationService.ts` و `zatcaService.ts` يجب أن تُدمج داخل مجلداتها المتخصصة:
+- `notificationService.ts` → `lib/notifications/notificationService.ts`
+- `zatcaService.ts` → اختياري: `lib/zatca/`
+- النواة (`dataFetcher`, `accessLogService`, `securityService`) تبقى في `lib/services/`.
 
-### 3) طبقة حماية UI — helper + فلتر في `useNotifications`
-
-**ملف جديد:** `src/lib/notifications/beneficiaryNotificationVisibility.ts`
-- `isAdminContractNotification(n)` — يتعرف على إشعارات انتهاء/قارب على الانتهاء عبر العنوان والرسالة
-- `shouldHideForBeneficiary(n, settings)` — يطبّق المنطق على إشعار واحد
-
-**تعديل:** `src/hooks/data/notifications/useNotifications.ts`
-- استدعاء `useNotificationSettings()` و `useUserRole()` (أو ما يكافئها)
-- إذا كان المستخدم `beneficiary` و الإعدادان `false` → فلترة الإشعارات الإدارية من النتائج قبل تمريرها للـ UI
-
-أثره الفوري:
-- `BeneficiaryNotificationsCard` (لوحة المستفيد) → نظيفة
-- `NotificationsPage` (سجل المستفيد) → نظيفة
-- العداد `unreadCount` يُحتسب بعد الفلترة
-
-### 4) لا تغيير في:
-- `cron_check_contract_expiry()` — يبقى يرسل للناظر دائماً
-- `useNotificationSettings.ts` — defaults صحيحة بالفعل
-- `PermissionsControlPanel.tsx` — يحفظ JSON عبر `updateJsonSetting` (تم سابقاً)
+**7. `src/utils/README.md` تحتوي مثال خاطئ**
+السطر 35 يحوي `import { toast } from 'sonner'` كمثال لـ "ما لا يجب فعله". بسبب تعليقات Markdown المضمَّنة، يلتقطه فحص grep كاحتياطي. الحل: تغليفه في كتلة كود محايدة أو نقله لمستند منفصل.
 
 ---
 
-## الملفات
+## خطة عمل مرتبة (الأكثر أهمية أولاً)
 
-### جديد (1)
-- `src/lib/notifications/beneficiaryNotificationVisibility.ts`
+### P0 — حرج (يجب إصلاحه)
+1. **نقل `YearSummaryEntry`** من `hooks/data/financial/useMultiYearSummary.ts` إلى `src/types/financial/multiYear.ts`، وتحديث الاستيرادات في الملفين (`useMultiYearSummary.ts` + `multiYearHelpers.ts`).
 
-### معدّل (1)
-- `src/hooks/data/notifications/useNotifications.ts` — فلترة حسب الدور والإعدادات
+### P1 — مهم (تحسين بنيوي)
+2. **تقسيم `notificationConstants.ts`**:
+   - نقل `NOTIFICATION_CATEGORIES` (نص فقط) → `src/lib/notifications/notificationCategories.ts`
+   - إبقاء `typeConfig` (يحوي أيقونات JSX) في `components/notifications/`
+   - تحديث الاستيراد في `useNotificationsPage.ts`
 
-### Migrations (2)
-- تحديث `app_settings.notification_settings` (JSONB merge)
-- تنظيف `notifications` القديمة للمستفيدين
+3. **إضافة اختبارات للملفات الحرجة الأربعة**:
+   - `bfcacheSafeChannel.test.ts` (lifecycle, mock supabase channel)
+   - `checks/zatca.test.ts` (سيناريوهات الشهادة المنتهية / غير المُهيأة)
+   - `paymentInvoiceProfessional.test.ts` (snapshot للحسابات الرئيسية)
+   - `beneficiaryNotificationVisibility.test.ts` (مصفوفة الحالات: 4 تركيبات إعدادات × 3 أنواع إشعارات)
+
+### P2 — تحسين (تنظيم)
+4. **استخراج أنواع البيانات الأساسية من hooks/data إلى types/**: ركّز على الأكثر استهلاكاً عبر القاعدة (`AccessLogEntry`, `ContractForPdf`, `BeneficiaryDashboardData`, `AnnualReportItem`).
+
+5. **إعادة هيكلة `hooks/page/admin/financial/` إلى 4 مجلدات فرعية** (invoices/accounts/income/expenses) مع تحديث الاستيرادات.
+
+6. **توحيد `lib/services/` حسب الدومين**: نقل `notificationService.ts` إلى `lib/notifications/`، وتحديث `lib/services/index.ts`.
+
+### P3 — صقل (اختياري)
+7. **تنظيف `src/utils/README.md`** — تغليف أمثلة "الممنوع" بحيث لا يلتقطها فحص grep لانتهاكات الطبقات.
+
+8. **مراجعة الـ 6 صفحات بدون page hooks** للتأكد من بقائها بسيطة فعلاً (`UserManagementPage` آمنة، تستخدم `useUserManagement` من `hooks/auth/` بمبرر موثَّق).
+
+9. **توثيق نمط `*ContextValue.ts` المنفصل** (المستخدم في `ContractsContextValue.ts`) كقاعدة في `core-modularization-standard-v7` — لتفعيل Fast Refresh.
 
 ---
 
-## التحقق بعد النشر
+## التقدير الزمني
+- **P0**: ~10 دقائق (نقل نوع واحد)
+- **P1**: ~45 دقيقة (تقسيم + 4 ملفات اختبار)
+- **P2**: ~30 دقيقة
+- **P3**: ~15 دقيقة
 
-1. `SELECT value FROM app_settings WHERE key='notification_settings'` يحتوي المفاتيح الجديدة
-2. `SELECT COUNT(*) FROM notifications WHERE …` يرجع 0 لإشعارات العقود للمستفيدين
-3. `/beneficiary` بطاقة الإشعارات لا تعرض رسائل العقود
-4. `/beneficiary/notifications` السجل لا يعرضها
+**الإجمالي:** ~100 دقيقة لتحسين كامل، أو ~10 دقائق فقط للنقطة P0 الحرجة وحدها.
 
-## ضمانات
-- لا تغيير على schema أو RLS
-- إشعارات الناظر تبقى كاملة
-- حتى لو أُنشئت إشعارات مماثلة بالخطأ مستقبلاً، طبقة UI تحجبها
+## التوصية
+ابدأ بـ **P0 + P1** فقط. النقاط P2/P3 مفيدة لكن المشروع يعمل بصحة معمارية ممتازة الآن، ولا داعي لإعادة تنظيم واسعة. هل تريد المتابعة بـ P0+P1، أو P0 فقط؟
 
