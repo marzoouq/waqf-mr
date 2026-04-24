@@ -59,12 +59,58 @@ export interface PaymentInvoice {
   };
 }
 
-/** بيانات معاينة الفاتورة — مُعاد تصديرها من invoiceTemplateUtils */
-export type { InvoiceTemplateData as InvoicePreviewData } from '@/components/invoices/invoiceTemplateUtils';
-
 /** خصم أو رسوم إضافية */
 export interface AllowanceChargeItem {
   reason: string;
   amount: number;
   vatRate: number;
 }
+
+/**
+ * بيانات قالب/معاينة الفاتورة
+ *
+ * مصدر الحقيقة لتعريف بيانات قوالب الفواتير ومعاينتها.
+ * كانت سابقاً في `components/invoices/invoiceTemplateUtils.ts` ونُقلت إلى طبقة types
+ * لمنع طبقة types من الاعتماد على طبقة components (Dependency Direction).
+ */
+export interface InvoiceTemplateData {
+  id?: string;
+  invoiceNumber: string;
+  date: string;
+  type: 'simplified' | 'standard';
+  sellerName: string;
+  sellerAddress?: string;
+  sellerVatNumber?: string;
+  sellerCR?: string;
+  sellerLogo?: string;
+  buyerName: string;
+  buyerAddress?: string;
+  buyerVatNumber?: string;
+  buyerCR?: string;
+  buyerIdType?: string;
+  buyerIdNumber?: string;
+  buyerStreet?: string;
+  buyerDistrict?: string;
+  buyerCity?: string;
+  buyerPostalCode?: string;
+  buyerBuilding?: string;
+  items: Array<{
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    vatRate: number;
+  }>;
+  allowances?: AllowanceChargeItem[];
+  charges?: AllowanceChargeItem[];
+  notes?: string;
+  status: string;
+  bankName?: string;
+  bankIBAN?: string;
+  zatcaUuid?: string;
+  icv?: number;
+  zatcaStatus?: string;
+  qrTlvBase64?: string;
+}
+
+/** اسم بديل للتوافق العكسي مع الاستخدامات السابقة */
+export type InvoicePreviewData = InvoiceTemplateData;

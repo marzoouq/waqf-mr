@@ -5,48 +5,9 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
 import { generateZatcaQrTLV } from '@/utils/zatca/zatcaQr';
 
-// ─── الأنواع المشتركة ───
-export type { AllowanceChargeItem } from '@/types/invoices';
-import type { AllowanceChargeItem } from '@/types/invoices';
-
-export interface InvoiceTemplateData {
-  id?: string;
-  invoiceNumber: string;
-  date: string;
-  type: 'simplified' | 'standard';
-  sellerName: string;
-  sellerAddress?: string;
-  sellerVatNumber?: string;
-  sellerCR?: string;
-  sellerLogo?: string;
-  buyerName: string;
-  buyerAddress?: string;
-  buyerVatNumber?: string;
-  buyerCR?: string;
-  buyerIdType?: string;
-  buyerIdNumber?: string;
-  buyerStreet?: string;
-  buyerDistrict?: string;
-  buyerCity?: string;
-  buyerPostalCode?: string;
-  buyerBuilding?: string;
-  items: Array<{
-    description: string;
-    quantity: number;
-    unitPrice: number;
-    vatRate: number;
-  }>;
-  allowances?: AllowanceChargeItem[];
-  charges?: AllowanceChargeItem[];
-  notes?: string;
-  status: string;
-  bankName?: string;
-  bankIBAN?: string;
-  zatcaUuid?: string;
-  icv?: number;
-  zatcaStatus?: string;
-  qrTlvBase64?: string;
-}
+// ─── الأنواع المشتركة (المصدر: src/types/invoices.ts) ───
+export type { AllowanceChargeItem, InvoiceTemplateData } from '@/types/invoices';
+import type { AllowanceChargeItem, InvoiceTemplateData } from '@/types/invoices';
 
 // ─── حسابات مشتركة ───
 export function computeInvoiceTotals(data: InvoiceTemplateData) {
