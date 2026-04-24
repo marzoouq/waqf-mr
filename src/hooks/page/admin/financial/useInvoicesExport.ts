@@ -15,7 +15,7 @@ import {
   useCreateInvoice,
   useGenerateInvoicePdf,
 } from '@/hooks/data/invoices/useInvoices';
-import type { PdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
 
 interface UseInvoicesExportArgs {
   filteredInvoices: Invoice[];
