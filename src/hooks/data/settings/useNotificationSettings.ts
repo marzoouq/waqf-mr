@@ -26,13 +26,13 @@ const DEFAULTS: NotificationSettings = {
 };
 
 export const useNotificationSettings = () => {
-  const { settings, updateJsonSetting, isLoading } = useAppSettings();
+  const { getJsonSetting, updateJsonSetting, isLoading, data } = useAppSettings();
 
   const notificationSettings: NotificationSettings = useMemo(() => {
-    const raw = settings.notification_settings;
-    if (!raw || typeof raw !== 'object') return DEFAULTS;
-    return { ...DEFAULTS, ...(raw as Partial<NotificationSettings>) };
-  }, [settings]);
+    const raw = getJsonSetting<Partial<NotificationSettings>>('notification_settings', {});
+    return { ...DEFAULTS, ...raw };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   const updateNotificationSettings = async (next: Partial<NotificationSettings>) => {
     const merged = { ...notificationSettings, ...next };
