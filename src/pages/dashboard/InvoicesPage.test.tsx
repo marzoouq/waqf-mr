@@ -31,7 +31,7 @@ vi.mock('@/hooks/data/useContracts', () => ({
   useContractsByFiscalYear: vi.fn(() => ({ data: [] })),
 }));
 
-vi.mock('@/hooks/financial/useFiscalYears', () => ({
+vi.mock('@/hooks/computed/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));

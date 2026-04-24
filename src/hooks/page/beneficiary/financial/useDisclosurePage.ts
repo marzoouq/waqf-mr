@@ -7,7 +7,7 @@ import { useCallback } from 'react';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useMyShare } from '@/hooks/financial/useMyShare';
+import { useMyShare } from '@/hooks/computed/useMyShare';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';

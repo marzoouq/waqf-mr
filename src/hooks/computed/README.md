@@ -18,5 +18,5 @@
 ## سياسة الاستيراد
 استخدم المسارات المباشرة دائماً:
 ```ts
-import { useMyShare } from '@/hooks/financial/useMyShare';
+import { useMyShare } from '@/hooks/computed/useMyShare';
 ```

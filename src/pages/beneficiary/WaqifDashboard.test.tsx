@@ -57,7 +57,7 @@ vi.mock('@/hooks/data/usePaymentInvoices', () => ({
   usePaymentInvoices: () => ({ data: [], isLoading: false }),
 }));
 
-vi.mock('@/hooks/financial/useContractAllocations', () => ({
+vi.mock('@/hooks/computed/useContractAllocations', () => ({
   useContractAllocations: () => ({ data: [] }),
 }));
 
