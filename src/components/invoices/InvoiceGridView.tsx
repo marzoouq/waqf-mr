@@ -80,7 +80,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
               config.border,
               !readOnly && 'cursor-pointer hover:-translate-y-0.5'
             )}
-            onClick={() => !readOnly && onEdit?.(inv)}
+            onClick={() => !readOnly && onEdit?.(inv as unknown as Invoice)}
           >
             {/* شريط الحالة العلوي */}
             <div className={cn('h-1', config.bg.replace('/10', ''))} />
@@ -149,7 +149,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
                     <span className="truncate">عقار: {inv.property.property_number}</span>
                   </div>
                 )}
-                {inv.vat_amount > 0 && (
+                {inv.vat_amount !== undefined && inv.vat_amount > 0 && (
                   <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                     <Hash className="w-3 h-3 shrink-0" />
                     <span>ضريبة: {fmt(safeNumber(inv.vat_amount))} ر.س</span>
