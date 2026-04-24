@@ -106,6 +106,11 @@ const PermissionsControlPanel = () => {
     setAdminSections(defaultAdminSections);
     setBeneficiarySections(defaultBeneficiarySections);
     setWidgets(defaultWidgets);
+    setNotifSettings({
+      ...notifSettings,
+      notify_beneficiary_contract_expiry: false,
+      notify_beneficiary_expired_contracts: false,
+    });
     defaultNotify.info('تم استعادة الإعدادات الافتراضية — اضغط حفظ للتطبيق');
   };
 
