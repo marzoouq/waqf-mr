@@ -12,8 +12,23 @@ import { fmt, fmtDate } from '@/utils/format/format';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
 import { PAGE_SIZE_GRID } from '@/constants/pagination';
 
+/** الحد الأدنى من الحقول المطلوبة لعرض الشبكة — يقبل Invoice و UnifiedInvoiceItem */
+export interface GridInvoiceItem {
+  id: string;
+  invoice_type: string;
+  invoice_number: string | null;
+  amount: number;
+  date: string;
+  status: string;
+  file_path: string | null;
+  file_name: string | null;
+  property?: { property_number: string } | null;
+  vat_amount?: number;
+  source?: 'expense' | 'rent';
+}
+
 interface InvoiceGridViewProps {
-  invoices: Invoice[];
+  invoices: GridInvoiceItem[];
   onEdit?: (invoice: Invoice) => void;
   readOnly?: boolean;
 }
