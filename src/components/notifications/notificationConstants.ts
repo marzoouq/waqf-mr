@@ -1,15 +1,13 @@
 /**
- * ثوابت وإعدادات أنواع الإشعارات
+ * إعدادات عرض أنواع الإشعارات (UI — يحوي أيقونات Lucide)
+ *
+ * ملاحظة: قائمة الفئات النصية `NOTIFICATION_CATEGORIES` نُقلت إلى
+ * `@/lib/notifications/notificationCategories` لاستخدامها من طبقة hooks.
+ * يُعاد تصديرها من هنا للتوافق العكسي.
  */
 import { Bell, CheckCheck, Mail, Wallet, Info, AlertTriangle, AlertCircle, FileText } from 'lucide-react';
 
-export const NOTIFICATION_CATEGORIES: { id: string; label: string; types: string[] }[] = [
-  { id: 'all', label: 'الكل', types: [] },
-  { id: 'financial', label: 'مالية', types: ['payment', 'distribution', 'success'] },
-  { id: 'contracts', label: 'عقود', types: ['contract', 'warning'] },
-  { id: 'system', label: 'نظام', types: ['system', 'error', 'info'] },
-  { id: 'messages', label: 'رسائل', types: ['message'] },
-];
+export { NOTIFICATION_CATEGORIES } from '@/lib/notifications/notificationCategories';
 
 export const typeConfig: Record<string, { label: string; icon: React.ElementType; color: string; bg: string; category: string }> = {
   info: { label: 'معلومات', icon: Info, color: 'text-info', bg: 'bg-info/10', category: 'system' },
