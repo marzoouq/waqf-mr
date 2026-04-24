@@ -2,6 +2,7 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InvoiceViewer, InvoiceGridView, InvoicesViewMobileCards, InvoicesViewDesktopTable } from '@/components/invoices';
 import { FileText, Search, LayoutGrid, List, AlertCircle, RefreshCw } from 'lucide-react';
 import { ExportMenu, TablePagination, RequirePublishedYears, TableSkeleton } from '@/components/common';
@@ -12,6 +13,7 @@ const InvoicesViewPage = () => {
     isLoading, isError, isMobile,
     viewMode, setViewMode,
     searchQuery, handleSearchChange,
+    sourceFilter, handleSourceFilterChange,
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
     filteredInvoices, paginatedInvoices,
     statusBadgeVariant,
@@ -55,9 +57,18 @@ const InvoicesViewPage = () => {
           </div>
         </div>
 
-        <div className="relative max-w-md">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input name="searchQuery" placeholder="بحث في الفواتير..." value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} className="pr-10" />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <Tabs value={sourceFilter} onValueChange={(v) => handleSourceFilterChange(v as 'all' | 'expense' | 'rent')}>
+            <TabsList>
+              <TabsTrigger value="all">الكل</TabsTrigger>
+              <TabsTrigger value="rent">فواتير الإيجار</TabsTrigger>
+              <TabsTrigger value="expense">فواتير الشراء</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input name="searchQuery" placeholder="بحث في الفواتير..." value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} className="pr-10" />
+          </div>
         </div>
 
         {viewMode === 'grid' ? (
