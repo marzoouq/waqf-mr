@@ -55,24 +55,6 @@ function dedupToast(
   fn(msg, opts);
 }
 
-/**
- * test helper: مسح ذاكرة dedup بين الاختبارات (لا يُستخدم في الإنتاج)
- *
- * في production تصبح no-op ليُزال جسمها عبر tree-shaking ولا يُستدعى من المتصفح.
- */
-export const __resetNotifyDedup: () => void =
-  import.meta.env.DEV || import.meta.env.MODE === 'test'
-    ? () => {
-        recentToasts.clear();
-        if (cleanupTimer) {
-          clearTimeout(cleanupTimer);
-          cleanupTimer = null;
-        }
-      }
-    : () => {
-        /* no-op in production */
-      };
-
 /** الإشعارات الافتراضية عبر sonner — مع حماية من التكرار */
 export const defaultNotify: AppNotify = {
   success: (msg, opts) => dedupToast(toast.success, msg, opts),
