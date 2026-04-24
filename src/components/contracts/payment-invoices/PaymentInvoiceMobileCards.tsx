@@ -2,12 +2,12 @@
  * عرض فواتير الدفعات كبطاقات للجوال
  */
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CheckCircle2, Clock, AlertTriangle, Check, X, Download, Loader2, Eye } from 'lucide-react';
+import { Check, X, Download, Loader2, Eye } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
-import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
+import type { PaymentInvoice } from '@/types';
+import { PaymentStatusBadge } from './paymentStatusBadge';
 
 interface PaymentInvoiceMobileCardsProps {
   groupedPaginated: Map<string, PaymentInvoice[]>;
@@ -19,16 +19,6 @@ interface PaymentInvoiceMobileCardsProps {
   handlePreviewTemplate: (inv: PaymentInvoice) => void;
   markUnpaid: { mutate: (id: string) => void; isPending: boolean };
 }
-
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case 'paid': return <Badge className="bg-success/20 text-success border-0 gap-1"><CheckCircle2 className="w-3 h-3" />مسددة</Badge>;
-    case 'overdue': return <Badge className="bg-destructive/20 text-destructive border-0 gap-1"><AlertTriangle className="w-3 h-3" />متأخرة</Badge>;
-    case 'pending': return <Badge className="bg-warning/20 text-warning border-0 gap-1"><Clock className="w-3 h-3" />قيد الانتظار</Badge>;
-    case 'partially_paid': return <Badge className="bg-accent/20 text-accent-foreground border-0 gap-1"><Clock className="w-3 h-3" />جزئية</Badge>;
-    default: return <Badge className="bg-muted text-muted-foreground border-0">{status}</Badge>;
-  }
-};
 
 export default function PaymentInvoiceMobileCards({
   groupedPaginated, isClosed, selectedIds, toggleSelect,
@@ -58,7 +48,7 @@ export default function PaymentInvoiceMobileCards({
                       )}
                       <span className="font-mono text-xs font-medium">{inv.invoice_number}</span>
                     </div>
-                    {getStatusBadge(inv.status)}
+                    <PaymentStatusBadge status={inv.status} />
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div><span className="text-muted-foreground text-xs">تاريخ الاستحقاق</span><p className="font-medium">{inv.due_date}</p></div>

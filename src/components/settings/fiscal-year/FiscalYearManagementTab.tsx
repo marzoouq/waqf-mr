@@ -12,7 +12,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
-import { type FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import type { FiscalYear } from '@/types';
 import { useState } from 'react';
 import { defaultNotify } from '@/lib/notify';
 import { useFiscalYearManagement } from '@/hooks/page/admin/financial/useFiscalYearManagement';

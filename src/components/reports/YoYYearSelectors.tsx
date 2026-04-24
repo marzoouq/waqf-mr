@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowUpDown, FileDown } from 'lucide-react';
-import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import type { FiscalYear } from '@/types';
 
 interface YoYYearSelectorsProps {
   fiscalYears: FiscalYear[];

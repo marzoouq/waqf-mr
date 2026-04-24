@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { FiscalYear } from '@/types';
 import { useYearComparisonState } from '@/hooks/page/admin/reports/useYearComparisonState';
 import YoYYearSelectors from '@/components/reports/YoYYearSelectors';
 import YoYChangeCards from '@/components/reports/YoYChangeCards';
@@ -47,7 +48,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
         netChange={ctx.netChange}
       />
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<Skeleton className="h-32 w-full" />}>
         <YoYSummaryCards
           year1={ctx.viewYear1}
           year2={ctx.viewYear2}
@@ -57,7 +58,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
         />
       </Suspense>
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
         <YoYChartsSection
           comparisonData={ctx.comparisonData}
           year1Label={ctx.year1Label}

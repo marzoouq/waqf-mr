@@ -13,8 +13,7 @@ import { ExportMenu, TablePagination } from '@/components/common';
 import { fmt } from '@/utils/format/format';
 import { PAGE_SIZE_LIST } from '@/constants/pagination';
 
-import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
-import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
+import type { FiscalYear, PaymentInvoice } from '@/types';
 import { useCollectionData, type CollectionFilterStatus } from '@/hooks/page/admin/financial/useCollectionData';
 import { useCollectionAlerts } from '@/hooks/data/contracts/useCollectionAlerts';
 import CollectionSummaryCards from './CollectionSummaryCards';
