@@ -24,8 +24,6 @@ const ArchiveLogTab = () => {
   const logs = useMemo(() => rawData?.logs ?? [], [rawData?.logs]);
   const totalCount = rawData?.totalCount ?? 0;
 
-  const filtered = logs;
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -62,7 +60,7 @@ const ArchiveLogTab = () => {
 
       <Card>
         <CardContent className="p-0">
-          {isLoading ? <TableSkeleton rows={5} cols={5} /> : filtered.length === 0 ? (
+          {isLoading ? <TableSkeleton rows={5} cols={5} /> : logs.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Archive className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />
               <p>لا توجد سجلات مؤرشفة</p>
@@ -71,7 +69,7 @@ const ArchiveLogTab = () => {
           ) : (
             <>
               <div className="space-y-2 p-3 md:hidden">
-                {filtered.map(log => {
+                {logs.map(log => {
                   const config = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: Activity };
                   const Icon = config.icon;
                   return (
@@ -100,7 +98,7 @@ const ArchiveLogTab = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map(log => {
+                    {logs.map(log => {
                       const config = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: Activity };
                       const Icon = config.icon;
                       return (

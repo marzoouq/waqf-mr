@@ -91,4 +91,3 @@ export function useAuditLogPage() {
   };
 }
 
-export { getTableNameAr, getOperationNameAr };

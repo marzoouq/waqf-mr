@@ -8,8 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { DataDiff } from '@/components/audit/DataDiff';
-import { operationColor } from '@/utils/format/auditLabels';
-import { getTableNameAr, getOperationNameAr } from '@/hooks/page/admin/management/useAuditLogPage';
+import { operationColor, getTableNameAr, getOperationNameAr } from '@/utils/format/auditLabels';
 import { TablePagination, TableSkeleton } from '@/components/common';
 
 interface AuditLog {

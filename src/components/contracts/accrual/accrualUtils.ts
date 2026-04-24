@@ -4,8 +4,6 @@
 import { fmtInt } from '@/utils/format/format';
 import { MONTH_NAMES } from '@/constants/calendar';
 
-export { MONTH_NAMES };
-
 export interface MonthCell {
   label: string;
   month: number;

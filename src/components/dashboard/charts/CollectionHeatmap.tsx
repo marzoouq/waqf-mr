@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Flame } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
+import { MONTH_NAMES } from '@/constants/calendar';
 
 interface PaymentInvoice {
   paid_date?: string | null;
@@ -24,11 +25,6 @@ interface CollectionHeatmapProps {
   /** نهاية السنة المالية */
   fiscalYearEnd?: string | null;
 }
-
-const MONTH_LABELS = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
-];
 
 /** حساب كثافة اللون (0-4) بناءً على النسبة من الحد الأقصى */
 const getIntensity = (value: number, max: number): number => {
@@ -109,7 +105,7 @@ const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: 
       <CardContent>
         <TooltipProvider>
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-12 gap-2">
-            {MONTH_LABELS.map((label, i) => {
+            {MONTH_NAMES.map((label, i) => {
               const amount = monthlyAmounts[i];
               const intensity = getIntensity(amount, maxAmount);
               // تمييز الشهر الحالي بحلقة بارزة

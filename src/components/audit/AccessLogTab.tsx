@@ -27,9 +27,6 @@ const AccessLogTab = () => {
   const logs = useMemo(() => rawData?.logs ?? [], [rawData?.logs]);
   const totalCount = rawData?.totalCount ?? 0;
 
-  const filtered = logs;
-  const paginated = filtered;
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -80,12 +77,12 @@ const AccessLogTab = () => {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-8 text-center text-muted-foreground">جاري التحميل...</div>
-          ) : filtered.length === 0 ? (
+          ) : logs.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">لا توجد سجلات</div>
           ) : (
             <>
               <div className="space-y-2 p-3 md:hidden">
-                {paginated.map(log => {
+                {logs.map(log => {
                   const config = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: Activity };
                   const Icon = config.icon;
                   return (
@@ -112,7 +109,7 @@ const AccessLogTab = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginated.map(log => {
+                    {logs.map(log => {
                       const config = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: Activity };
                       const Icon = config.icon;
                       return (
