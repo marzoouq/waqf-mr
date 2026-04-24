@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Zap, AlertTriangle, FileDown, CalendarDays, X } from 'lucide-react';
 import type { InvoiceFilterStatus } from '@/hooks/page/admin/financial/usePaymentInvoicesTab';
 import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
-import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
+import type { PaymentInvoice } from '@/types';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 interface PaymentInvoiceToolbarProps {

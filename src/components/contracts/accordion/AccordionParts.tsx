@@ -5,7 +5,7 @@
 import { Button } from '@/components/ui/button';
 import { Clock, Check, X, Download, Loader2 } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
-import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
+import type { PaymentInvoice } from '@/types';
 import { invoiceStatusIcon, invoiceStatusLabel } from './accordionConstants';
 
 interface InvoiceCardProps {

@@ -3,8 +3,7 @@
  * يعرض: الصف الرئيسي (آخر عقد) → ينسدل ← تاريخ الإصدارات + الدفعات مع أزرار إجراء
  */
 import { useMemo } from 'react';
-import { Contract } from '@/types';
-import { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
+import { Contract, type PaymentInvoice } from '@/types';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

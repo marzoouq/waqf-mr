@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { FiscalYear } from '@/types';
 import { useYearComparisonState } from '@/hooks/page/admin/reports/useYearComparisonState';
 import YoYYearSelectors from '@/components/reports/YoYYearSelectors';
 import YoYChangeCards from '@/components/reports/YoYChangeCards';

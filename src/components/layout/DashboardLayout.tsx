@@ -54,7 +54,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <div
         {...swipe.overlayProps}
         className={cn(
-          'fixed inset-0 z-45 lg:hidden',
+          'fixed inset-0 z-40 lg:hidden',
           mobileSidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'
         )}
         onClick={() => setMobileSidebarOpen(false)}
