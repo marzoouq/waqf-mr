@@ -1,95 +1,88 @@
 
 
-# خطة الإصلاح — توضيح المسميات وعرض كافة الفواتير في لوحة المستفيد
+# خطة إصلاح نهائية — إيقاف إشعارات العقود عن المستفيد في الإنتاج
 
-## 🔍 تشخيص دقيق (مستند على بيانات DB الفعلية)
+## التشخيص
 
-### المشكلة 1: "مسميات متشابهة" مثل "أخرى" متكرر و"صيانة" متكرر
+ثلاث طبقات تحتاج إصلاحاً متزامناً:
 
-**السبب الجذري:** صفحة المصروفات للناظر تعرض كل سجل في صف منفصل، والعمود الرئيسي هو `expense_type` (نوع عام: "أخرى"، "صيانة"، "كهرباء"). البيانات الفعلية:
-- **"أخرى" × 3 سجلات** → في الواقع: "مكتب تدقيق محاسبي 2024" / "مكتب تدقيق محاسبي 2025" / "فواتير مصاريف متنوعة"
-- **"صيانة" × 4 سجلات** → "أعمال جبس" / "أعمال سباكة" / "صيانة سباكة - مؤسسة الثبيتي" / "صيانة كهرباء - شركة الجنوب"
-- **"كهرباء" × 2** → "أعمال كهرباء" / "سداد فواتير الكهرباء الشهرية"
-
-التمييز موجود في عمود `description` لكنه **غير بارز** أو مخفي في عرض الجدول.
-
-### المشكلة 2: الفواتير لا تظهر في لوحة المستفيد
-
-**سببان مستقلان:**
-
-**(أ) فواتير بدون رقم:** من 16 فاتورة في DB، **10 فواتير `invoice_number = NULL`** و**`file_path = NULL`** — هذه فواتير "هيكلية" أُنشئت مع المصروف لكن لم يُولَّد لها PDF/ZATCA رسمي. تظهر فعلياً في القائمة لكن بصف فارغ في عمود الرقم → تبدو كأنها "غير موجودة".
-
-**(ب) صفحة المستفيد لا تعرض فواتير الإيجار:** `useInvoicesViewPage` يستدعي `useInvoicesByFiscalYear` (جدول `invoices` فقط — فواتير الشراء/المصروفات). فواتير الإيجار في جدول منفصل `payment_invoices` ولا تُعرض إطلاقاً للمستفيد.
+1. **بيانات قديمة:** ~357 إشعار عقد مخزّن للمستفيدين في `notifications`
+2. **إعدادات ناقصة:** `app_settings.notification_settings` لا يحتوي المفاتيح الجديدة في الإنتاج
+3. **لا طبقة حماية UI:** `useNotifications` يقرأ كل شيء كما هو
 
 ---
 
-## 🎯 الحل (3 إصلاحات)
+## التنفيذ
 
-### الإصلاح 1: إبراز الوصف في صفحة المصروفات (للناظر)
+### 1) Migration — تثبيت الإعدادات في الإنتاج
 
-**الملف:** `src/components/expenses/ExpensesTable.tsx` (و `ExpensesMobileCards.tsx` إن وُجد)
+دمج المفاتيح الجديدة داخل `app_settings.notification_settings` (JSONB merge آمن):
+- `notify_beneficiary_contract_expiry = false`
+- `notify_beneficiary_expired_contracts = false`
 
-- العرض الحالي: عمود "النوع" بارز فقط
-- العرض الجديد: 
-  - السطر الأول: `description` بخط عريض (هو المعرّف الفعلي للسجل)
-  - السطر الثاني: `expense_type` كـ Badge صغير ملوّن
-- النتيجة: المستخدم يميز بين "مكتب تدقيق 2024" و"مكتب تدقيق 2025" بدلاً من رؤية "أخرى/أخرى"
+يحافظ على المفاتيح القديمة (`contract_expiry`, `payment_delays`, …) دون مساس.
 
-### الإصلاح 2: توليد أرقام الفواتير الناقصة + توليد PDF
+### 2) Migration — تنظيف الإشعارات القديمة
 
-**أداة موجودة بالفعل:** `useGenerateInvoicePdf` في `useInvoices.ts` تولّد الـ PDF للفواتير الناقصة عبر Edge Function `generate-invoice-pdf`.
+حذف موجّه ودقيق:
+```sql
+DELETE FROM notifications
+WHERE user_id IN (SELECT user_id FROM beneficiaries WHERE user_id IS NOT NULL)
+  AND (
+    title ILIKE '%عقد قارب%'
+    OR title ILIKE '%عقود منتهية%'
+    OR message ILIKE '%قارب على الانتهاء%'
+    OR message ILIKE '%عقود منتهية بحاجة%'
+  );
+```
 
-**المطلوب:**
-- إضافة زر **"توليد الفواتير الناقصة"** في صفحة الفواتير للناظر (`/dashboard/invoices`)
-- يحدد تلقائياً الفواتير حيث `invoice_number IS NULL OR file_path IS NULL`
-- ينادي `useGenerateInvoicePdf` على دفعات
-- بعد التوليد: الفواتير ستظهر للمستفيد برقم وملف PDF صالح
+لا يمس إشعارات الناظر، ولا الإشعارات الأخرى للمستفيد.
 
-**Migration بسيطة (اختياري):** Backfill `invoice_number` للفواتير القديمة بنمط `INV-YYYY-NNN` بناءً على `created_at`.
+### 3) طبقة حماية UI — helper + فلتر في `useNotifications`
 
-### الإصلاح 3: إظهار فواتير الإيجار في لوحة المستفيد
+**ملف جديد:** `src/lib/notifications/beneficiaryNotificationVisibility.ts`
+- `isAdminContractNotification(n)` — يتعرف على إشعارات انتهاء/قارب على الانتهاء عبر العنوان والرسالة
+- `shouldHideForBeneficiary(n, settings)` — يطبّق المنطق على إشعار واحد
 
-**الملف:** `src/hooks/page/beneficiary/financial/useInvoicesViewPage.ts`
+**تعديل:** `src/hooks/data/notifications/useNotifications.ts`
+- استدعاء `useNotificationSettings()` و `useUserRole()` (أو ما يكافئها)
+- إذا كان المستخدم `beneficiary` و الإعدادان `false` → فلترة الإشعارات الإدارية من النتائج قبل تمريرها للـ UI
 
-- إضافة استدعاء `usePaymentInvoicesByFiscalYear` (موجود في `hooks/data/invoices/`)
-- دمج النتائج مع `invoices` في قائمة موحدة مع علامة `source: 'expense' | 'rent'`
-- إضافة فلتر تبويبي: "الكل / فواتير شراء / فواتير إيجار"
+أثره الفوري:
+- `BeneficiaryNotificationsCard` (لوحة المستفيد) → نظيفة
+- `NotificationsPage` (سجل المستفيد) → نظيفة
+- العداد `unreadCount` يُحتسب بعد الفلترة
 
-**الملف:** `src/components/invoices/InvoicesViewDesktopTable.tsx` و `InvoicesViewMobileCards.tsx`
-- إضافة عمود/شارة "نوع المصدر" (شراء/إيجار)
-
----
-
-## 📋 الملفات المتأثرة
-
-### معدّلة (5)
-- `src/components/expenses/ExpensesTable.tsx` — إبراز description كعنوان
-- `src/components/expenses/ExpensesMobileCards.tsx` — نفس التحسين للموبايل
-- `src/pages/dashboard/InvoicesPage.tsx` — زر "توليد الفواتير الناقصة"
-- `src/hooks/page/beneficiary/financial/useInvoicesViewPage.ts` — دمج payment_invoices
-- `src/components/invoices/InvoicesViewDesktopTable.tsx` + `InvoicesViewMobileCards.tsx` — عمود المصدر
-
-### Migration اختيارية (1)
-- Backfill `invoice_number` للفواتير القديمة الـ 10 ذات `invoice_number IS NULL`
-
-### بدون تغييرات
-- RPC داشبورد المستفيد (`expenses_by_type_excluding_vat`) — التجميع حسب `expense_type` صحيح ومقصود في القوائم المختصرة (الإفصاح/التقرير المالي)
-- الـ schema و RLS لا تتغيّر
+### 4) لا تغيير في:
+- `cron_check_contract_expiry()` — يبقى يرسل للناظر دائماً
+- `useNotificationSettings.ts` — defaults صحيحة بالفعل
+- `PermissionsControlPanel.tsx` — يحفظ JSON عبر `updateJsonSetting` (تم سابقاً)
 
 ---
 
-## ✅ النتيجة المتوقعة
+## الملفات
 
-| قبل | بعد |
-|---|---|
-| "أخرى / أخرى / أخرى" بدون تمييز | "مكتب تدقيق 2024" / "مكتب تدقيق 2025" / "مصاريف متنوعة" + Badge "أخرى" |
-| 10 فواتير بصفوف فارغة بلا رقم | كل الفواتير لها رقم INV-YYYY-NNN وملف PDF |
-| المستفيد يرى 16 فاتورة شراء فقط | المستفيد يرى فواتير الشراء **+** فواتير الإيجار مع فلتر |
+### جديد (1)
+- `src/lib/notifications/beneficiaryNotificationVisibility.ts`
 
-## ⏱️ الزمن المتوقع: ~20 دقيقة
+### معدّل (1)
+- `src/hooks/data/notifications/useNotifications.ts` — فلترة حسب الدور والإعدادات
 
-## 🔒 ضمانات
-- لا تغيير على البيانات الفعلية (المصروفات أو الفواتير القديمة لا تُحذف)
-- توليد PDF عبر Edge Function معتمدة (موجودة ومُختبرة)
-- التغييرات في الواجهة فقط + تحسينات عرض
+### Migrations (2)
+- تحديث `app_settings.notification_settings` (JSONB merge)
+- تنظيف `notifications` القديمة للمستفيدين
+
+---
+
+## التحقق بعد النشر
+
+1. `SELECT value FROM app_settings WHERE key='notification_settings'` يحتوي المفاتيح الجديدة
+2. `SELECT COUNT(*) FROM notifications WHERE …` يرجع 0 لإشعارات العقود للمستفيدين
+3. `/beneficiary` بطاقة الإشعارات لا تعرض رسائل العقود
+4. `/beneficiary/notifications` السجل لا يعرضها
+
+## ضمانات
+- لا تغيير على schema أو RLS
+- إشعارات الناظر تبقى كاملة
+- حتى لو أُنشئت إشعارات مماثلة بالخطأ مستقبلاً، طبقة UI تحجبها
 
