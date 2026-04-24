@@ -4,440 +4,27 @@
  * Flow:
  *  1. Allocate ICV atomically first
  *  2. Inject ICV into XML → Strip UBLExtensions + cac:Signature → C14N → SHA-256 → invoiceDigest
- *  3. Build xades:SignedProperties (cert hash, signing time, X509IssuerSerial from cert) → C14N → SHA-256 → propsDigest
- *  4. Build ds:SignedInfo (invoiceDigest + propsDigest) → C14N → SHA-256 → sign ECDSA
+ *  3. Build xades:SignedProperties → SHA-256 → propsDigest
+ *  4. Build ds:SignedInfo → SHA-256 → sign ECDSA
  *  5. Assemble full ds:Signature block → inject into UBLExtensions
  *  6. Inject QR TLV (with TaxInclusiveAmount) → save
+ *
+ * Modular layout:
+ *   - x509-parser.ts     — ASN.1 DER parsing (issuer, serial, public key)
+ *   - xmldsig-builder.ts — SignedInfo + SignedProperties + ECDSA crypto helpers
+ *   - qr-tlv.ts          — ZATCA QR TLV (BER) encoding for Phase 2
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { p256 } from "npm:@noble/curves@1.4.0/p256";
-import { sha256 } from "npm:@noble/hashes@1.4.0/sha256";
-
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { c14n } from "../_shared/xml-c14n.ts";
+
+import { extractCertSignatureAndPublicKey } from "./x509-parser.ts";
+import { buildXmlDsig, sha256Base64, sha256BytesBase64, hexToBytes } from "./xmldsig-builder.ts";
+import { generateZatcaQrTLV } from "./qr-tlv.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-// ═══════════════════════════════════════════════════════════════
-// XML Canonicalization (مستورد من _shared)
-// ═══════════════════════════════════════════════════════════════
-import { c14n } from "../_shared/xml-c14n.ts";
-
-// ═══════════════════════════════════════════════════════════════
-// Cryptographic Helpers
-// ═══════════════════════════════════════════════════════════════
-
-/** SHA-256 → base64 */
-async function sha256Base64(text: string): Promise<string> {
-  const data = new TextEncoder().encode(text);
-  const hash = await crypto.subtle.digest("SHA-256", data);
-  return btoa(String.fromCharCode(...new Uint8Array(hash)));
-}
-
-/** SHA-256 → Uint8Array (for ECDSA signing) */
-function sha256Bytes(data: Uint8Array): Uint8Array {
-  return sha256(data);
-}
-
-/** SHA-256 of raw bytes → base64 */
-async function sha256BytesBase64(data: Uint8Array): Promise<string> {
-  const hash = await crypto.subtle.digest("SHA-256", data);
-  return btoa(String.fromCharCode(...new Uint8Array(hash)));
-}
-
-/** Sign hash with ECDSA P-256 (prime256v1) → base64 DER */
-function signEcdsa(messageHash: Uint8Array, privateKeyRaw: Uint8Array): string {
-  const sig = p256.sign(messageHash, privateKeyRaw);
-  return btoa(String.fromCharCode(...sig.toDERRawBytes()));
-}
-
-function hexToBytes(hex: string): Uint8Array {
-  let clean = hex.replace(/-----[A-Z ]+-----/g, "").replace(/\s/g, "");
-
-  // Base64 (PEM body) → decode and extract last 32 bytes
-  if (/^[A-Za-z0-9+/=]+$/.test(clean) && clean.length > 64) {
-    try {
-      const bin = atob(clean);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      return bytes.length > 32 ? bytes.slice(bytes.length - 32) : bytes;
-    } catch { /* not base64 */ }
-  }
-
-  if (clean.startsWith("0x")) clean = clean.slice(2);
-  const bytes = new Uint8Array(clean.length / 2);
-  for (let i = 0; i < clean.length; i += 2) {
-    bytes[i / 2] = parseInt(clean.substr(i, 2), 16);
-  }
-  return bytes;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// X.509 Certificate Parsing (extract IssuerName + SerialNumber)
-// ═══════════════════════════════════════════════════════════════
-
-/**
- * Parse a base64-encoded X.509 certificate to extract Issuer DN and Serial Number.
- * Uses lightweight ASN.1 DER parsing (no external library needed).
- */
-function parseX509IssuerSerial(certBase64: string): { issuerName: string; serialNumber: string } {
-  const defaultResult = { issuerName: "CN=ZATCA-SubCA", serialNumber: "0" };
-  
-  try {
-    const certDer = Uint8Array.from(atob(certBase64), c => c.charCodeAt(0));
-    
-    // ASN.1 DER parsing helpers
-    function readTag(data: Uint8Array, offset: number): { tag: number; length: number; valueOffset: number; totalLength: number } {
-      if (offset >= data.length) throw new Error("EOF");
-      const tag = data[offset];
-      const lenOffset = offset + 1;
-      let length = data[lenOffset];
-      let valueOffset: number;
-      
-      if (length & 0x80) {
-        const numBytes = length & 0x7f;
-        length = 0;
-        for (let i = 0; i < numBytes; i++) {
-          length = (length << 8) | data[lenOffset + 1 + i];
-        }
-        valueOffset = lenOffset + 1 + numBytes;
-      } else {
-        valueOffset = lenOffset + 1;
-      }
-      
-      return { tag, length, valueOffset, totalLength: valueOffset - offset + length };
-    }
-    
-    // Navigate: SEQUENCE (Certificate) → SEQUENCE (TBSCertificate)
-    const cert = readTag(certDer, 0);
-    if (cert.tag !== 0x30) return defaultResult;
-    
-    const tbs = readTag(certDer, cert.valueOffset);
-    if (tbs.tag !== 0x30) return defaultResult;
-    
-    let pos = tbs.valueOffset;
-    
-    // Skip version if present (context tag [0])
-    let field = readTag(certDer, pos);
-    if (field.tag === 0xa0) {
-      pos += field.totalLength;
-      field = readTag(certDer, pos);
-    }
-    
-    // Serial Number (INTEGER)
-    if (field.tag !== 0x02) return defaultResult;
-    const serialBytes = certDer.slice(field.valueOffset, field.valueOffset + field.length);
-    // Convert to decimal string
-    let serialBigInt = 0n;
-    for (let i = 0; i < serialBytes.length; i++) {
-      serialBigInt = (serialBigInt << 8n) | BigInt(serialBytes[i]);
-    }
-    const serialNumber = serialBigInt.toString();
-    pos += field.totalLength;
-    
-    // Skip Algorithm Identifier (SEQUENCE)
-    field = readTag(certDer, pos);
-    pos += field.totalLength;
-    
-    // Issuer (SEQUENCE of SETs of SEQUENCE of OID + value)
-    field = readTag(certDer, pos);
-    if (field.tag !== 0x30) return { issuerName: defaultResult.issuerName, serialNumber };
-    
-    const issuerEnd = field.valueOffset + field.length;
-    let issuerPos = field.valueOffset;
-    const rdns: string[] = [];
-    
-    // OID to name mapping
-    const oidNames: Record<string, string> = {
-      "2.5.4.3": "CN",
-      "2.5.4.6": "C",
-      "2.5.4.7": "L",
-      "2.5.4.8": "ST",
-      "2.5.4.10": "O",
-      "2.5.4.11": "OU",
-      "2.5.4.5": "SERIALNUMBER",
-      "1.2.840.113549.1.9.1": "E",
-    };
-    
-    while (issuerPos < issuerEnd) {
-      const set = readTag(certDer, issuerPos);
-      if (set.tag !== 0x31) break;
-      
-      const seq = readTag(certDer, set.valueOffset);
-      if (seq.tag !== 0x30) { issuerPos += set.totalLength; continue; }
-      
-      // OID
-      const oid = readTag(certDer, seq.valueOffset);
-      if (oid.tag !== 0x06) { issuerPos += set.totalLength; continue; }
-      
-      // Decode OID
-      const oidBytes = certDer.slice(oid.valueOffset, oid.valueOffset + oid.length);
-      const oidParts: number[] = [Math.floor(oidBytes[0] / 40), oidBytes[0] % 40];
-      let val = 0;
-      for (let i = 1; i < oidBytes.length; i++) {
-        val = (val << 7) | (oidBytes[i] & 0x7f);
-        if (!(oidBytes[i] & 0x80)) { oidParts.push(val); val = 0; }
-      }
-      const oidStr = oidParts.join(".");
-      
-      // Value (UTF8String, PrintableString, etc.)
-      const valField = readTag(certDer, oid.valueOffset + oid.totalLength);
-      const decoder = new TextDecoder();
-      const valStr = decoder.decode(certDer.slice(valField.valueOffset, valField.valueOffset + valField.length));
-      
-      const name = oidNames[oidStr] || oidStr;
-      rdns.push(`${name}=${valStr}`);
-      
-      issuerPos += set.totalLength;
-    }
-    
-    const issuerName = rdns.join(", ");
-    return { issuerName: issuerName || defaultResult.issuerName, serialNumber };
-    
-  } catch (e) {
-    console.error("X.509 parse error (using defaults):", e);
-    return defaultResult;
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// XMLDSig Builder
-// ═══════════════════════════════════════════════════════════════
-
-/**
- * Build the complete XMLDSig Signature block per ZATCA spec.
- *
- * @param invoiceDigest  Base64 SHA-256 of canonicalized invoice body
- * @param certBase64     Base64-encoded X.509 certificate (binarySecurityToken)
- * @param certDigest     Base64 SHA-256 of the raw certificate bytes
- * @param signingTime    ISO 8601 timestamp
- * @param privateKey     Raw 32-byte private key
- */
-async function buildXmlDsig(
-  invoiceDigest: string,
-  certBase64: string,
-  certDigest: string,
-  signingTime: string,
-  privateKey: Uint8Array,
-): Promise<string> {
-  // Extract real IssuerName and SerialNumber from certificate
-  const { issuerName, serialNumber } = parseX509IssuerSerial(certBase64);
-
-  // ── 1. Build SignedProperties ──
-  const signedProperties = `<xades:SignedProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Id="xadesSignedProperties">
-<xades:SignedSignatureProperties>
-<xades:SigningTime>${signingTime}</xades:SigningTime>
-<xades:SigningCertificate>
-<xades:Cert>
-<xades:CertDigest>
-<ds:DigestMethod xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></ds:DigestMethod>
-<ds:DigestValue xmlns:ds="http://www.w3.org/2000/09/xmldsig#">${certDigest}</ds:DigestValue>
-</xades:CertDigest>
-<xades:IssuerSerial>
-<ds:X509IssuerName xmlns:ds="http://www.w3.org/2000/09/xmldsig#">${issuerName}</ds:X509IssuerName>
-<ds:X509SerialNumber xmlns:ds="http://www.w3.org/2000/09/xmldsig#">${serialNumber}</ds:X509SerialNumber>
-</xades:IssuerSerial>
-</xades:Cert>
-</xades:SigningCertificate>
-</xades:SignedSignatureProperties>
-</xades:SignedProperties>`;
-
-  // ── 2. Hash SignedProperties ──
-  const propsCanon = c14n(signedProperties);
-  const propsDigest = await sha256Base64(propsCanon);
-
-  // ── 3. Build SignedInfo ──
-  const signedInfo = `<ds:SignedInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
-<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2006/12/xml-c14n11"></ds:CanonicalizationMethod>
-<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256"></ds:SignatureMethod>
-<ds:Reference Id="invoiceSignedData" URI="">
-<ds:Transforms>
-<ds:Transform Algorithm="http://www.w3.org/TR/1999/REC-xpath-19991116">
-<ds:XPath>not(//ancestor-or-self::ext:UBLExtensions)</ds:XPath>
-</ds:Transform>
-<ds:Transform Algorithm="http://www.w3.org/TR/1999/REC-xpath-19991116">
-<ds:XPath>not(//ancestor-or-self::cac:Signature)</ds:XPath>
-</ds:Transform>
-<ds:Transform Algorithm="http://www.w3.org/TR/1999/REC-xpath-19991116">
-<ds:XPath>not(//ancestor-or-self::cac:AdditionalDocumentReference[cbc:ID='QR'])</ds:XPath>
-</ds:Transform>
-<ds:Transform Algorithm="http://www.w3.org/2006/12/xml-c14n11"></ds:Transform>
-</ds:Transforms>
-<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></ds:DigestMethod>
-<ds:DigestValue>${invoiceDigest}</ds:DigestValue>
-</ds:Reference>
-<ds:Reference Type="http://www.w3.org/2000/09/xmldsig#SignatureProperties" URI="#xadesSignedProperties">
-<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></ds:DigestMethod>
-<ds:DigestValue>${propsDigest}</ds:DigestValue>
-</ds:Reference>
-</ds:SignedInfo>`;
-
-  // ── 4. Sign canonicalized SignedInfo with ECDSA ──
-  const signedInfoCanon = c14n(signedInfo);
-  const signedInfoHash = sha256Bytes(new TextEncoder().encode(signedInfoCanon));
-  const signatureValue = signEcdsa(signedInfoHash, privateKey);
-
-  // ── 5. Assemble full ds:Signature ──
-  return `<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Id="signature">
-${signedInfo}
-<ds:SignatureValue>${signatureValue}</ds:SignatureValue>
-<ds:KeyInfo>
-<ds:X509Data>
-<ds:X509Certificate>${certBase64}</ds:X509Certificate>
-</ds:X509Data>
-</ds:KeyInfo>
-<ds:Object>
-<xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Target="signature">
-${signedProperties}
-</xades:QualifyingProperties>
-</ds:Object>
-</ds:Signature>`;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// ZATCA QR TLV (GAP-5 + GAP-10)
-// ═══════════════════════════════════════════════════════════════
-
-function berLength(len: number): Uint8Array {
-  if (len < 128) return new Uint8Array([len]);
-  if (len < 256) return new Uint8Array([0x81, len]);
-  return new Uint8Array([0x82, (len >> 8) & 0xff, len & 0xff]);
-}
-
-function encodeTLV(tag: number, value: string): Uint8Array {
-  const valueBytes = new TextEncoder().encode(value);
-  const lenBytes = berLength(valueBytes.length);
-  const tlv = new Uint8Array(1 + lenBytes.length + valueBytes.length);
-  tlv[0] = tag;
-  tlv.set(lenBytes, 1);
-  tlv.set(valueBytes, 1 + lenBytes.length);
-  return tlv;
-}
-
-function encodeTLVBytes(tag: number, value: Uint8Array): Uint8Array {
-  const lenBytes = berLength(value.length);
-  const tlv = new Uint8Array(1 + lenBytes.length + value.length);
-  tlv[0] = tag;
-  tlv.set(lenBytes, 1);
-  tlv.set(value, 1 + lenBytes.length);
-  return tlv;
-}
-
-function generateZatcaQrTLV(
-  sellerName: string, vatNumber: string, timestamp: string,
-  totalWithVat: number, vatAmount: number,
-  signatureBytes?: Uint8Array, publicKeyBytes?: Uint8Array,
-  certSignatureBytes?: Uint8Array, certPublicKeyBytes?: Uint8Array,
-): string {
-  const entries = [
-    encodeTLV(1, sellerName), encodeTLV(2, vatNumber),
-    encodeTLV(3, timestamp), encodeTLV(4, totalWithVat.toFixed(2)),
-    encodeTLV(5, vatAmount.toFixed(2)),
-  ];
-
-  // Tags 6-9 for Standard invoices (Phase 2)
-  if (signatureBytes) entries.push(encodeTLVBytes(6, signatureBytes));
-  if (publicKeyBytes) entries.push(encodeTLVBytes(7, publicKeyBytes));
-  if (certSignatureBytes) entries.push(encodeTLVBytes(8, certSignatureBytes));
-  if (certPublicKeyBytes) entries.push(encodeTLVBytes(9, certPublicKeyBytes));
-
-  const total = entries.reduce((s, e) => s + e.length, 0);
-  const buf = new Uint8Array(total);
-  let off = 0;
-  for (const e of entries) { buf.set(e, off); off += e.length; }
-  let bin = "";
-  for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
-  return btoa(bin);
-}
-
-// ═══════════════════════════════════════════════════════════════
-// Certificate DER Parsing — Extract Signature + SubjectPublicKey
-// ═══════════════════════════════════════════════════════════════
-
-/**
- * Extract the signatureValue and subjectPublicKeyInfo from an X.509 DER certificate.
- * - Tag 8 (certSignature): The raw signature bytes (last BitString in cert)
- * - Tag 9 (certPublicKey): The SubjectPublicKeyInfo bytes from tbsCertificate
- */
-function extractCertSignatureAndPublicKey(certDer: Uint8Array): { signature: Uint8Array; publicKey: Uint8Array } {
-  // ASN.1 DER reader
-  function readTlv(data: Uint8Array, offset: number): { tag: number; length: number; valueOffset: number; totalLength: number } {
-    const tag = data[offset];
-    const lenOffset = offset + 1;
-    let length = data[lenOffset];
-    let valueOffset: number;
-    if (length & 0x80) {
-      const numBytes = length & 0x7f;
-      length = 0;
-      for (let i = 0; i < numBytes; i++) {
-        length = (length << 8) | data[lenOffset + 1 + i];
-      }
-      valueOffset = lenOffset + 1 + numBytes;
-    } else {
-      valueOffset = lenOffset + 1;
-    }
-    return { tag, length, valueOffset, totalLength: valueOffset - offset + length };
-  }
-
-  try {
-    // Certificate = SEQUENCE { tbsCertificate, signatureAlgorithm, signatureValue }
-    const cert = readTlv(certDer, 0); // outer SEQUENCE
-    let pos = cert.valueOffset;
-
-    // tbsCertificate (SEQUENCE)
-    const tbs = readTlv(certDer, pos);
-    pos += tbs.totalLength;
-
-    // signatureAlgorithm (SEQUENCE) — skip
-    const sigAlg = readTlv(certDer, pos);
-    pos += sigAlg.totalLength;
-
-    // signatureValue (BIT STRING)
-    const sigBitString = readTlv(certDer, pos);
-    // Skip the first byte (unused bits indicator) of BitString
-    const signatureBytes = certDer.slice(sigBitString.valueOffset + 1, sigBitString.valueOffset + sigBitString.length);
-
-    // Now extract SubjectPublicKeyInfo from tbsCertificate
-    let tbsPos = tbs.valueOffset;
-
-    // Skip version [0] if present
-    let field = readTlv(certDer, tbsPos);
-    if (field.tag === 0xa0) { tbsPos += field.totalLength; field = readTlv(certDer, tbsPos); }
-
-    // Skip serialNumber (INTEGER)
-    tbsPos += field.totalLength;
-
-    // Skip signature algorithm (SEQUENCE)
-    field = readTlv(certDer, tbsPos);
-    tbsPos += field.totalLength;
-
-    // Skip issuer (SEQUENCE)
-    field = readTlv(certDer, tbsPos);
-    tbsPos += field.totalLength;
-
-    // Skip validity (SEQUENCE)
-    field = readTlv(certDer, tbsPos);
-    tbsPos += field.totalLength;
-
-    // Skip subject (SEQUENCE)
-    field = readTlv(certDer, tbsPos);
-    tbsPos += field.totalLength;
-
-    // SubjectPublicKeyInfo (SEQUENCE) — this is what we need for Tag 9
-    field = readTlv(certDer, tbsPos);
-    const publicKeyInfoBytes = certDer.slice(tbsPos, tbsPos + field.totalLength);
-
-    return { signature: signatureBytes, publicKey: publicKeyInfoBytes };
-  } catch (e) {
-    console.error("extractCertSignatureAndPublicKey error:", e);
-    // Fallback: return empty arrays
-    return { signature: new Uint8Array(0), publicKey: new Uint8Array(0) };
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// Main Handler
-// ═══════════════════════════════════════════════════════════════
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -492,12 +79,10 @@ Deno.serve(async (req) => {
     // ════════════════════════════════════════════════════════════
     const validationErrors: string[] = [];
 
-    // 1. Required fields
     if (!inv.amount && inv.amount !== 0) validationErrors.push("مبلغ الفاتورة مطلوب");
     if (inv.vat_amount === null || inv.vat_amount === undefined) validationErrors.push("مبلغ الضريبة مطلوب");
     if (!inv.zatca_uuid) validationErrors.push("معرّف UUID للفاتورة مطلوب");
 
-    // 2. Amount consistency: TaxInclusive = TaxExclusive + VAT
     const amountExclVat = Number(inv.amount_excluding_vat ?? inv.amount) || 0;
     const vatAmt = Number(inv.vat_amount) || 0;
     const totalAmt = Number(inv.amount) || 0;
@@ -505,7 +90,6 @@ Deno.serve(async (req) => {
       validationErrors.push(`عدم اتساق المبالغ: المبلغ بدون ضريبة (${amountExclVat}) + الضريبة (${vatAmt}) ≠ الإجمالي (${totalAmt})`);
     }
 
-    // 3. XML has required ZATCA elements
     if (!xml.includes("<cbc:ID>ICV</cbc:ID>")) validationErrors.push("XML يفتقر لعنصر ICV");
     if (!xml.includes("<ext:UBLExtensions>")) validationErrors.push("XML يفتقر لعنصر UBLExtensions");
 
@@ -526,7 +110,6 @@ Deno.serve(async (req) => {
     const icv = chainResult.icv;
     const previousHash = chainResult.previous_hash;
 
-    // Wrap signing in try/catch — rollback invoice_chain on failure
     try {
       // ════════════════════════════════════════════════════════════
       // Step 2: Inject new ICV into XML before hashing
@@ -542,7 +125,6 @@ Deno.serve(async (req) => {
       let xmlForHash = xml;
       xmlForHash = xmlForHash.replace(/<ext:UBLExtensions>[\s\S]*?<\/ext:UBLExtensions>/g, "");
       xmlForHash = xmlForHash.replace(/<cac:Signature>[\s\S]*?<\/cac:Signature>/g, "");
-      // GAP: Also strip QR AdditionalDocumentReference (matches 3rd XPath Transform)
       xmlForHash = xmlForHash.replace(
         /<cac:AdditionalDocumentReference>\s*<cbc:ID>QR<\/cbc:ID>[\s\S]*?<\/cac:AdditionalDocumentReference>/g, ""
       );
@@ -564,9 +146,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Block signing without a real certificate
       if (!privateKeyRaw || !certificate || certificate.startsWith("PLACEHOLDER")) {
-        // No chain record to rollback — reserve_icv only allocated sequence number
         return json({ error: "لا توجد شهادة ZATCA نشطة حقيقية. أكمل عملية الربط (Onboarding) أولاً." }, 400, corsHeaders);
       }
 
@@ -576,16 +156,13 @@ Deno.serve(async (req) => {
       let signedXml = xml;
       const signingTime = new Date().toISOString();
 
-      // Certificate digest: SHA-256 of raw cert bytes
       const certBytes = Uint8Array.from(atob(certificate), c => c.charCodeAt(0));
       const certDigest = await sha256BytesBase64(certBytes);
 
-      // Build complete XMLDSig block (with dynamic X509IssuerSerial from cert)
       const dsigBlock = await buildXmlDsig(
         invoiceDigest, certificate, certDigest, signingTime, privateKeyRaw,
       );
 
-      // Inject into UBLExtensions placeholder
       signedXml = signedXml.replace(
         /(<ext:ExtensionContent>)\s*(?:<!--[\s\S]*?-->)?\s*(<\/ext:ExtensionContent>)/,
         `$1\n${dsigBlock}\n$2`,
@@ -602,7 +179,6 @@ Deno.serve(async (req) => {
 
         const taxInclusiveAmount = (Number(inv.amount) || 0) + (Number(inv.vat_amount) || 0);
 
-        // Determine if Standard invoice → include Tags 6-9
         const invoiceType = inv.invoice_type || "simplified";
         const isStandard = invoiceType === "standard" || invoiceType === "388";
 
@@ -613,16 +189,13 @@ Deno.serve(async (req) => {
 
         if (isStandard && certificate && privateKeyRaw) {
           try {
-            // Tag 7: Public key from our keypair
             pubKeyBytes = p256.getPublicKey(privateKeyRaw, false);
 
-            // Tag 6: Digital signature (from signed XML)
             const signedInfoMatch = signedXml.match(/<ds:SignatureValue>([^<]+)<\/ds:SignatureValue>/);
             if (signedInfoMatch) {
               sigBytes = Uint8Array.from(atob(signedInfoMatch[1]), c => c.charCodeAt(0));
             }
 
-            // Tags 8-9: Extract from certificate DER structure
             const extracted = extractCertSignatureAndPublicKey(certBytes);
             certSigBytes = extracted.signature;
             certPubKeyBytes = extracted.publicKey;
@@ -631,7 +204,6 @@ Deno.serve(async (req) => {
           }
         }
 
-        // QR Tag 3: Use invoice issue date + time (not created_at) per ZATCA spec
         const issueDate = inv.date || inv.due_date || new Date().toISOString().split("T")[0];
         const issueCreatedAt = inv.created_at ? new Date(String(inv.created_at)) : new Date();
         const issueTime = issueCreatedAt.toISOString().split("T")[1]?.split(".")[0] || "00:00:00";
@@ -684,7 +256,6 @@ Deno.serve(async (req) => {
       }, 200, corsHeaders);
 
     } catch (signErr) {
-      // No chain record to rollback — commit_icv_chain only inserts on success
       console.error("Signing failed:", signErr);
       return json({ error: "فشل التوقيع الإلكتروني. يرجى المحاولة لاحقاً أو التواصل مع الدعم." }, 500, corsHeaders);
     }
