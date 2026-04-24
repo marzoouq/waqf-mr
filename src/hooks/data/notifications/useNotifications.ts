@@ -7,6 +7,8 @@ import { logger } from '@/lib/logger';
 import { safeGet } from '@/lib/storage';
 import { NOTIF_PREFS_KEY } from '@/constants/notificationTones';
 import { useNotificationActions } from './useNotificationActions';
+import { useNotificationSettings } from '@/hooks/data/settings/useNotificationSettings';
+import { shouldHideForBeneficiary } from '@/lib/notifications/beneficiaryNotificationVisibility';
 
 // إعادة تصدير للتوافق
 export type { Notification };
@@ -42,7 +44,8 @@ const getDisabledTypes = (): Set<string> => {
 const PAGE_SIZE = 50;
 
 export const useNotifications = () => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const { notificationSettings } = useNotificationSettings();
   const [disabledTypes, setDisabledTypes] = useState<Set<string>>(() => getDisabledTypes());
 
   // الاستماع لتغييرات localStorage
@@ -87,7 +90,14 @@ export const useNotifications = () => {
     enabled: !!user && userId.length > 0,
   });
 
-  const allNotifications = useMemo(() => (infiniteQuery.data?.pages ?? []).flat(), [infiniteQuery.data]);
+  const allNotificationsRaw = useMemo(() => (infiniteQuery.data?.pages ?? []).flat(), [infiniteQuery.data]);
+
+  // طبقة حماية: إخفاء إشعارات العقود الإدارية عن المستفيد إن عُطِّلت في الإعدادات
+  const allNotifications = useMemo(() => {
+    if (role !== 'beneficiary') return allNotificationsRaw;
+    return allNotificationsRaw.filter(n => !shouldHideForBeneficiary(n, notificationSettings));
+  }, [allNotificationsRaw, role, notificationSettings]);
+
   const unreadCount = useMemo(() => allNotifications.filter(n => !n.is_read).length, [allNotifications]);
   const filteredData = useMemo(() => allNotifications.filter(n => !disabledTypes.has(n.type)), [allNotifications, disabledTypes]);
   const filteredUnreadCount = useMemo(() => filteredData.filter(n => !n.is_read).length, [filteredData]);
