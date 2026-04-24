@@ -6,8 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { notifyAdmins, notifyUser } from '@/lib/services';
 import { fmt } from '@/utils/format/format';
 
-/** انتقالات الحالة المسموحة — FSM */
-export const VALID_TRANSITIONS_TO: Record<string, string[]> = {
+/** انتقالات الحالة المسموحة — FSM (داخلي) */
+const VALID_TRANSITIONS_TO: Record<string, string[]> = {
   approved: ['pending'],
   rejected: ['pending', 'approved'],
   paid: ['approved'],

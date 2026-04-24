@@ -12,7 +12,7 @@ import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions'
 import { ROLE_SECTION_DEFS, ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
 import { defaultAdminSections, defaultBeneficiarySections } from '@/constants/navigation';
 import { BENEFICIARY_WIDGET_KEYS, BENEFICIARY_WIDGET_LABELS } from '@/constants/beneficiaryWidgets';
-import { logAccessEvent } from '@/lib/services/accessLogService';
+import { useLogAccessEvent } from '@/hooks/data/audit/useLogAccessEvent';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import AdminCapabilitiesSummary from './AdminCapabilitiesSummary';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -38,6 +38,7 @@ const PermissionsControlPanel = () => {
   const { adminSections: savedAdminSections, beneficiarySections: savedBeneficiarySections } = useSectionsVisibility();
   const { widgets: savedWidgets } = useBeneficiaryWidgets();
   const { user } = useAuth();
+  const logAccess = useLogAccessEvent();
 
   const [perms, setPerms] = useState<RolePerms>(DEFAULT_ROLE_PERMS);
   const [adminSections, setAdminSections] = useState<Record<string, boolean>>(defaultAdminSections);
@@ -82,7 +83,7 @@ const PermissionsControlPanel = () => {
         updateJsonSetting('beneficiary_sections', beneficiarySections),
         updateJsonSetting('beneficiary_widgets', widgets),
       ]);
-      logAccessEvent({
+      logAccess({
         event_type: 'diagnostics_run',
         user_id: user?.id ?? undefined,
         metadata: { action: 'permissions_updated', role_permissions: perms, admin_sections: adminSections, beneficiary_sections: beneficiarySections },
