@@ -19,6 +19,7 @@ interface InvoiceItem {
   file_path: string | null;
   file_name: string | null;
   property?: { property_number: string } | null;
+  source?: 'expense' | 'rent';
 }
 
 interface InvoicesViewDesktopTableProps {
@@ -43,6 +44,7 @@ export default function InvoicesViewDesktopTable({ invoices, statusBadgeVariant,
       <Table className="min-w-[700px]">
         <TableHeader>
           <TableRow className="bg-muted/50">
+            <TableHead className="text-right">المصدر</TableHead>
             <TableHead className="text-right">النوع</TableHead>
             <TableHead className="text-right">رقم الفاتورة</TableHead>
             <TableHead className="text-right">المبلغ</TableHead>
@@ -54,9 +56,16 @@ export default function InvoicesViewDesktopTable({ invoices, statusBadgeVariant,
         </TableHeader>
         <TableBody>
           {invoices.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="font-medium">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
-              <TableCell>{item.invoice_number || '-'}</TableCell>
+            <TableRow key={`${item.source || 'expense'}-${item.id}`}>
+              <TableCell>
+                <Badge variant={item.source === 'rent' ? 'default' : 'outline'} className="text-[11px]">
+                  {item.source === 'rent' ? 'إيجار' : 'شراء'}
+                </Badge>
+              </TableCell>
+              <TableCell className="font-medium">
+                {item.source === 'rent' ? 'فاتورة إيجار' : (INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type)}
+              </TableCell>
+              <TableCell className="font-mono text-xs">{item.invoice_number || '-'}</TableCell>
               <TableCell className="font-medium">{fmt(safeNumber(item.amount))} ر.س</TableCell>
               <TableCell>{fmtDate(item.date)}</TableCell>
               <TableCell>{item.property?.property_number || '-'}</TableCell>

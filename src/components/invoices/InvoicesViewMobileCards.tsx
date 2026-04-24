@@ -19,6 +19,7 @@ interface InvoiceItem {
   file_path: string | null;
   file_name: string | null;
   property?: { property_number: string } | null;
+  source?: 'expense' | 'rent';
 }
 
 interface InvoicesViewMobileCardsProps {
@@ -40,10 +41,17 @@ export default function InvoicesViewMobileCards({ invoices, statusBadgeVariant, 
   return (
     <div className="space-y-3">
       {invoices.map((item) => (
-        <Card key={item.id} className="shadow-sm">
+        <Card key={`${item.source || 'expense'}-${item.id}`} className="shadow-sm">
           <CardContent className="p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-sm">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</span>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Badge variant={item.source === 'rent' ? 'default' : 'outline'} className="text-[10px] shrink-0">
+                  {item.source === 'rent' ? 'إيجار' : 'شراء'}
+                </Badge>
+                <span className="font-bold text-sm truncate">
+                  {item.source === 'rent' ? 'فاتورة إيجار' : (INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type)}
+                </span>
+              </div>
               <Badge variant={statusBadgeVariant(item.status)}>
                 {INVOICE_STATUS_LABELS[item.status] || item.status}
               </Badge>

@@ -29,11 +29,14 @@ const ExpensesMobileCards = ({ items, expenseInvoiceMap, expandedRow, setExpande
           <CardContent className="p-4 space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-sm">{item.expense_type}</span>
+                <div className="font-bold text-sm text-foreground" title={item.description || item.expense_type}>
+                  {item.description || item.expense_type}
+                </div>
+                <div className="flex items-center gap-2 flex-wrap mt-1">
+                  {item.description && <Badge variant="outline" className="text-[10px] font-normal">{item.expense_type}</Badge>}
                   {attachCount > 0 && <Badge variant="secondary" className="gap-1 text-xs"><Paperclip className="w-3 h-3" />{attachCount}</Badge>}
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5">{item.date}</p>
+                <p className="text-xs text-muted-foreground mt-1">{item.date}</p>
               </div>
               <div className="flex gap-1 shrink-0">
                 <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
@@ -43,7 +46,6 @@ const ExpensesMobileCards = ({ items, expenseInvoiceMap, expandedRow, setExpande
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
               <div><p className="text-[11px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-destructive">-{fmt(safeNumber(item.amount))} ر.س</p></div>
               <div><p className="text-[11px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{item.property?.property_number || '-'}</p></div>
-              {item.description && <div className="col-span-2"><p className="text-[11px] text-muted-foreground">الوصف</p><p className="text-sm text-muted-foreground">{item.description}</p></div>}
             </div>
             {expandedRow === item.id && <ExpenseAttachments expenseId={item.id} />}
             {attachCount > 0 && (
