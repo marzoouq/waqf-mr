@@ -5,7 +5,7 @@
  * - useInvoiceFileUpload: حالة الملف + معاينة
  * - useInvoicePreviewBuilder: بناء بيانات معاينة PDF
  */
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import {
