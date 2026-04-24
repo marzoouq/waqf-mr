@@ -2,7 +2,7 @@
  * هوك منطق صفحة سجل المراجعة
  */
 import { useState, useCallback, useMemo } from 'react';
-import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/audit/useAuditLog';
+import { useAuditLog, getTableNameAr } from '@/hooks/data/audit/useAuditLog';
 import { useAuditLogTodayCount, fetchAuditLogForExport } from '@/hooks/data/audit/useAuditLogStats';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { defaultNotify } from '@/lib/notify';
