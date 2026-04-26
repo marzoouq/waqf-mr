@@ -13,11 +13,21 @@ import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import type { ForensicAuditData } from '@/utils/pdf/reports/forensicAudit';
 
 export function useReportsData() {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
+
+  // Realtime: تحديث فوري لتقارير الناظر/المحاسب عند تعديل أي بيانات مالية
+  useDashboardRealtime(
+    'reports-data-realtime',
+    ['accounts', 'income', 'expenses', 'distributions', 'contracts', 'properties', 'fiscal_years'],
+    true,
+    [['reports-data']],
+  );
+
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();

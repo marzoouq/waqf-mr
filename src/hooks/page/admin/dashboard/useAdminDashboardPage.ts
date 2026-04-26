@@ -22,7 +22,8 @@ export const useAdminDashboardPage = () => {
 
   useDashboardRealtime(
     'admin-dashboard-realtime',
-    ['income', 'expenses', 'accounts', 'payment_invoices', 'messages'],
+    ['income', 'expenses', 'accounts', 'payment_invoices', 'messages',
+     'properties', 'contracts', 'beneficiaries', 'distributions', 'advance_requests'],
     true,
     [
       ['dashboard-summary'],

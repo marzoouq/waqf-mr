@@ -7,6 +7,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { defaultNotify } from '@/lib/notify';
@@ -17,6 +18,14 @@ export const useFinancialReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
   const handleRetry = useRetryQueries(['beneficiary-dashboard']);
+
+  // Realtime: تحديث فوري للتقارير المالية عند تعديل البيانات الإدارية
+  useDashboardRealtime(
+    'financial-reports-realtime',
+    ['income', 'expenses', 'accounts', 'distributions', 'payment_invoices', 'fiscal_years'],
+    true,
+    [['financial-reports'], ['beneficiary-dashboard']],
+  );
 
   const { data: dashData, isLoading, isError } = useBeneficiaryDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,

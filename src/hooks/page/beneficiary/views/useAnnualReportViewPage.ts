@@ -12,6 +12,7 @@ import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useContracts } from '@/hooks/data/contracts/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import type { AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
 import { DollarSign, Receipt, FileText, Building2 } from 'lucide-react';
 
@@ -22,6 +23,15 @@ export function useAnnualReportViewPage() {
   const isMobile = useIsMobile();
   const [viewTab, setViewTab] = useState('property_status');
   const { fiscalYearId, fiscalYear } = useFiscalYear();
+
+  // Realtime: انعكاس فوري لتعديلات التقرير السنوي وحالته
+  useDashboardRealtime(
+    'annual-report-view-realtime',
+    ['annual_report_items', 'annual_report_status'],
+    true,
+    [['annual-report-items'], ['annual-report-status']],
+  );
+
   const { data: items = [], isLoading } = useAnnualReportItems(fiscalYearId || undefined);
   const { data: reportStatus, isLoading: statusLoading } = useReportStatus(fiscalYearId || undefined);
   const { data: properties = [] } = useProperties();
