@@ -1,11 +1,15 @@
 /**
- * useZatcaSettings — قراءة إعدادات ZATCA المطلوبة + حساب الجاهزية للـ onboarding
+ * useZatcaOnboardingReadiness — قراءة الإعدادات الحرجة الثلاث المطلوبة
+ * لبدء onboarding مع ZATCA، وحساب قائمة الناقص + علامة الجاهزية.
+ *
+ * ملاحظة: هذا hook بيانات خفيف (read-only). لإدارة شاشة الإعدادات الكاملة
+ * استعمل `useZatcaSettings` من `@/hooks/page/admin/management/useZatcaSettings`.
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 
-export function useZatcaSettings() {
+export function useZatcaOnboardingReadiness() {
   const { data: zatcaSettings } = useQuery({
     queryKey: ['zatca-required-settings'],
     staleTime: STALE_STATIC,
