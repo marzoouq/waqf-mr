@@ -2,6 +2,10 @@
  * خريطة التحميل المسبق للمكوّنات — يُحمّل ملفات JS عند تمرير الماوس
  * يستخدم import.meta.glob لتجنب تكرار قائمة المسارات يدوياً
  */
+import {
+  COMPONENT_PREFETCH_FALLBACK_MS,
+  COMPONENT_PREFETCH_IDLE_TIMEOUT_MS,
+} from '@/constants/timing';
 
 /** خريطة مسار ← دالة import ديناميكي — مُولَّدة تلقائياً من هيكل الصفحات */
 const dashboardModules = import.meta.glob('/src/pages/dashboard/*.tsx');
