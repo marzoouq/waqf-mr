@@ -4,17 +4,10 @@
  */
 import { useMemo } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import type { NotificationSettings } from '@/types/notifications';
 
-export interface NotificationSettings {
-  contract_expiry: boolean;
-  contract_expiry_days: number;
-  payment_delays: boolean;
-  email_notifications: boolean;
-  /** إرسال إشعار للمستفيد عند اقتراب انتهاء العقد (افتراضي: false) */
-  notify_beneficiary_contract_expiry: boolean;
-  /** إرسال تذكير أسبوعي للمستفيد بالعقود المنتهية (افتراضي: false) */
-  notify_beneficiary_expired_contracts: boolean;
-}
+// إعادة تصدير للحفاظ على التوافق الخلفي مع الاستيرادات القائمة
+export type { NotificationSettings } from '@/types/notifications';
 
 const DEFAULTS: NotificationSettings = {
   contract_expiry: true,
