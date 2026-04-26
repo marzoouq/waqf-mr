@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ROLE_RESOLUTION_TIMEOUT_MS } from '@/constants/timing';
 
 /**
  * Hook لإعادة توجيه المستخدم بناءً على دوره بعد تسجيل الدخول
@@ -33,7 +34,7 @@ export function useRoleRedirect(
       setRoleWaitTimeout(false);
       return;
     }
-    const timer = setTimeout(() => setRoleWaitTimeout(true), 5000);
+    const timer = setTimeout(() => setRoleWaitTimeout(true), ROLE_RESOLUTION_TIMEOUT_MS);
     return () => clearTimeout(timer);
   }, [user, role, loading]);
 

@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { executeGlobalSearch, type SearchResult } from '@/lib/search/globalSearchFn';
+import { SEARCH_DEBOUNCE_MS } from '@/constants/timing';
 
 export type { SearchResult };
 
@@ -52,7 +53,7 @@ export function useGlobalSearch() {
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(query), 300);
+    debounceRef.current = setTimeout(() => search(query), SEARCH_DEBOUNCE_MS);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query, search]);
 
