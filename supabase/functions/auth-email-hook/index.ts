@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "waqf-wise-net"
+const SITE_NAME = "وقف مرزوق بن علي الثبيتي"
 const SENDER_DOMAIN = "notify.waqf-wise.net"
 const ROOT_DOMAIN = "waqf-wise.net"
 const FROM_DOMAIN = "waqf-wise.net" // Domain shown in From address (may be root or sender subdomain)
