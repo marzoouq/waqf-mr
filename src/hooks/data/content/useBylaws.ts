@@ -2,13 +2,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import { createCrudFactory } from '@/hooks/data/core/useCrudFactory';
-import type { Tables } from '@/integrations/supabase/types';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
+import type { BylawEntry } from '@/types/bylaws';
 
 // ---------------------------------------------------------------------------
-// النوع العام — يُصدَّر للاستخدام في الصفحات
+// إعادة تصدير النوع — للتوافق مع المستهلكين الذين يستوردونه من هنا
 // ---------------------------------------------------------------------------
-export type BylawEntry = Tables<'waqf_bylaws'>;
+export type { BylawEntry } from '@/types/bylaws';
 
 // ---------------------------------------------------------------------------
 // Factory — CRUD أساسي عبر النمط الموحّد

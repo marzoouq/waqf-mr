@@ -6,7 +6,7 @@
  * حتى لو وُجدت بيانات قديمة في `notifications`.
  */
 import type { Notification } from '@/types';
-import type { NotificationSettings } from '@/hooks/data/settings/useNotificationSettings';
+import type { NotificationSettings } from '@/types/notifications';
 
 /** يطابق إشعار "اقتراب انتهاء عقد" — عبر العنوان أو الرسالة */
 const isContractExpiringSoon = (n: Pick<Notification, 'title' | 'message'>): boolean => {

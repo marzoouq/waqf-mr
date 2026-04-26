@@ -4,15 +4,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { fromView } from '@/integrations/supabase/viewHelper';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import type { ZatcaCertificateSafe } from '@/types/zatca';
 
-export interface ZatcaCertificateSafe {
-  id: string;
-  certificate_type: string;
-  is_active: boolean | null;
-  request_id: string | null;
-  created_at: string | null;
-  expires_at: string | null;
-}
+// إعادة تصدير للتوافق مع الاستيرادات القائمة من نفس الملف
+export type { ZatcaCertificateSafe } from '@/types/zatca';
 
 export const useZatcaCertificates = () => {
   return useQuery<ZatcaCertificateSafe[]>({
