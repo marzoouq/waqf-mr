@@ -9,53 +9,43 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
-import { FALLBACK_LOGO } from '../email-constants.ts'
-
 interface InviteEmailProps {
   siteName: string
   siteUrl: string
   confirmationUrl: string
-  logoUrl?: string
 }
 
 export const InviteEmail = ({
   siteName,
   siteUrl,
   confirmationUrl,
-  logoUrl,
 }: InviteEmailProps) => (
-  <Html lang="ar" dir="rtl">
+  <Html lang="en" dir="ltr">
     <Head />
-    <Preview>دعوة للانضمام إلى {siteName}</Preview>
+    <Preview>You've been invited to join {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img
-          src={logoUrl || FALLBACK_LOGO}
-          alt="شعار نظام إدارة الوقف"
-          width="80"
-          style={logo}
-        />
-        <Heading style={h1}>دعوة للانضمام</Heading>
+        <Heading style={h1}>You've been invited</Heading>
         <Text style={text}>
-          تمت دعوتك للانضمام إلى{' '}
+          You've been invited to join{' '}
           <Link href={siteUrl} style={link}>
             <strong>{siteName}</strong>
           </Link>
-          . اضغط على الزر أدناه لقبول الدعوة وإنشاء حسابك.
+          . Click the button below to accept the invitation and create your
+          account.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          قبول الدعوة
+          Accept Invitation
         </Button>
         <Text style={footer}>
-          إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذا البريد بأمان.
+          If you weren't expecting this invitation, you can safely ignore this
+          email.
         </Text>
-        <Text style={divider}>❖</Text>
       </Container>
     </Body>
   </Html>
@@ -63,34 +53,27 @@ export const InviteEmail = ({
 
 export default InviteEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'Tajawal', 'Segoe UI', Tahoma, sans-serif" }
-const container = { padding: '30px 25px', textAlign: 'center' as const }
-const logo = { margin: '0 auto 20px', borderRadius: '12px' }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
 const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: 'hsl(150, 30%, 15%)',
+  color: '#000000',
   margin: '0 0 20px',
-  fontFamily: "'Amiri', 'Times New Roman', serif",
 }
 const text = {
-  fontSize: '15px',
-  color: 'hsl(150, 15%, 45%)',
-  lineHeight: '1.7',
-  margin: '0 0 20px',
-  textAlign: 'right' as const,
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
 }
-const link = { color: 'hsl(158, 64%, 25%)', textDecoration: 'underline' }
+const link = { color: 'inherit', textDecoration: 'underline' }
 const button = {
-  backgroundColor: 'hsl(158, 64%, 25%)',
-  color: 'hsl(40, 30%, 98%)',
-  fontSize: '15px',
-  fontWeight: 'bold' as const,
-  borderRadius: '12px',
-  padding: '14px 28px',
+  backgroundColor: '#000000',
+  color: '#ffffff',
+  fontSize: '14px',
+  borderRadius: '8px',
+  padding: '12px 20px',
   textDecoration: 'none',
-  display: 'inline-block' as const,
-  margin: '8px 0 24px',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '20px 0 0', textAlign: 'right' as const }
-const divider = { fontSize: '18px', color: 'hsl(43, 74%, 49%)', margin: '16px 0 0', letterSpacing: '4px' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }

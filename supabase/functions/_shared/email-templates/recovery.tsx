@@ -9,46 +9,36 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Preview,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
-import { FALLBACK_LOGO } from '../email-constants.ts'
-
 interface RecoveryEmailProps {
   siteName: string
   confirmationUrl: string
-  logoUrl?: string
 }
 
 export const RecoveryEmail = ({
   siteName,
   confirmationUrl,
-  logoUrl,
 }: RecoveryEmailProps) => (
-  <Html lang="ar" dir="rtl">
+  <Html lang="en" dir="ltr">
     <Head />
-    <Preview>إعادة تعيين كلمة المرور — {siteName}</Preview>
+    <Preview>Reset your password for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img
-          src={logoUrl || FALLBACK_LOGO}
-          alt="شعار نظام إدارة الوقف"
-          width="80"
-          style={logo}
-        />
-        <Heading style={h1}>إعادة تعيين كلمة المرور</Heading>
+        <Heading style={h1}>Reset your password</Heading>
         <Text style={text}>
-          وصلنا طلب لإعادة تعيين كلمة المرور لحسابك في {siteName}. اضغط على الزر أدناه لاختيار كلمة مرور جديدة.
+          We received a request to reset your password for {siteName}. Click
+          the button below to choose a new password.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          إعادة تعيين كلمة المرور
+          Reset Password
         </Button>
         <Text style={footer}>
-          إذا لم تطلب إعادة التعيين، يمكنك تجاهل هذا البريد. لن يتم تغيير كلمة المرور.
+          If you didn't request a password reset, you can safely ignore this
+          email. Your password will not be changed.
         </Text>
-        <Text style={divider}>❖</Text>
       </Container>
     </Body>
   </Html>
@@ -56,33 +46,26 @@ export const RecoveryEmail = ({
 
 export default RecoveryEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'Tajawal', 'Segoe UI', Tahoma, sans-serif" }
-const container = { padding: '30px 25px', textAlign: 'center' as const }
-const logo = { margin: '0 auto 20px', borderRadius: '12px' }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
 const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: 'hsl(150, 30%, 15%)',
+  color: '#000000',
   margin: '0 0 20px',
-  fontFamily: "'Amiri', 'Times New Roman', serif",
 }
 const text = {
-  fontSize: '15px',
-  color: 'hsl(150, 15%, 45%)',
-  lineHeight: '1.7',
-  margin: '0 0 20px',
-  textAlign: 'right' as const,
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
 }
 const button = {
-  backgroundColor: 'hsl(158, 64%, 25%)',
-  color: 'hsl(40, 30%, 98%)',
-  fontSize: '15px',
-  fontWeight: 'bold' as const,
-  borderRadius: '12px',
-  padding: '14px 28px',
+  backgroundColor: '#000000',
+  color: '#ffffff',
+  fontSize: '14px',
+  borderRadius: '8px',
+  padding: '12px 20px',
   textDecoration: 'none',
-  display: 'inline-block' as const,
-  margin: '8px 0 24px',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '20px 0 0', textAlign: 'right' as const }
-const divider = { fontSize: '18px', color: 'hsl(43, 74%, 49%)', margin: '16px 0 0', letterSpacing: '4px' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }

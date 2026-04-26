@@ -1,80 +1,120 @@
-# خطة ربط البيانات الإدارية بالواجهات في الزمن الحقيقي
+# خطة التنفيذ — إصلاح بنية البريد + تحسينات قاعدة البيانات والأداء
 
-## الهدف
-ضمان أن أي تعديل يقوم به الناظر/المحاسب على العقارات أو العقود أو الدخل أو المصروفات أو المستفيدين ينعكس **فوراً** على:
-- صفحات المستفيد (حصتي، الإفصاح، التقارير المالية، عرض العقارات/العقود)
-- صفحات الواقف (لوحة التحكم، التقارير)
-- توليد التقارير وحساب الحصص
+## النطاق المختار: **الخيار C — كل البنود (P1 → P4)**
 
-دون المساس بأي مكون آخر (UI/منطق محاسبي/RLS/مصادقة).
+سيتم التنفيذ بالترتيب أدناه دون المساس بأي مكون آخر (UI/منطق محاسبي/RLS/مصادقة).
 
 ---
 
-## الوضع الحالي (تشخيص)
+## P1 — استكمال بنية البريد الإلكتروني (الأكثر إلحاحاً)
 
-**جداول مفعّلة في Realtime حالياً:**
-`income, expenses, accounts, payment_invoices, contracts, distributions, advance_requests, fiscal_years, app_settings, support_tickets, support_ticket_replies`
+**المشكلة:** خطأ متكرر كل ~5 ثوانٍ في لوغ Postgres:
+`relation "public.email_send_state" does not exist`
+السبب: cron job نشط يستدعي `process-email-queue` بينما البنية غير منشورة.
 
-**جداول غير مفعّلة (الفجوة):**
-`properties, beneficiaries, units, tenant_payments, expense_budgets, annual_report_items, annual_report_status, advance_carryforward, invoices, invoice_items`
+**الإجراءات:**
+1. تشغيل أداة `setup_email_infra` (آمنة/idempotent) — تُنشئ تلقائياً:
+   - الجداول: `email_send_log`, `email_send_state`, `suppressed_emails`, `email_unsubscribe_tokens`
+   - طوابير pgmq: `auth_emails`, `transactional_emails`
+   - دوال RPC: `enqueue_email`, `read_email_batch`, `delete_email`, `move_to_dlq`
+   - Edge function: `process-email-queue`
+   - Vault secret: `email_queue_service_role_key`
+   - إعادة جدولة cron job بالمفتاح الصحيح
+2. فحص `auth-email-hook` الحالي:
+   - إذا كان يستخدم النمط القديم (`@lovable.dev/email-js` + استدعاء مباشر) → إعادة سقالته عبر `scaffold_auth_email_templates` مع `confirm_overwrite: true` ثم نشره
+   - إذا كان يستخدم `enqueue_email` → لا يُلمس
+3. نشر `auth-email-hook` عبر `deploy_edge_functions` لضمان السريان
 
-**هوكات الصفحات بدون اشتراك Realtime:**
-- `useMySharePage` — حصة المستفيد
-- `useDisclosurePage` — الإفصاح
-- `useFinancialReportsPage` — التقارير المالية
-- `useAnnualReportPage` + `useReportsData` — التقارير السنوية
-- `useAnnualReportViewPage`, `usePropertiesViewPage`, `useContractsViewPage` — عروض المستفيد
-
----
-
-## الخطوات (3 بنود فقط)
-
-### 1) ترقية النشر في قاعدة البيانات (Migration)
-إضافة الجداول الناقصة إلى `supabase_realtime` مع ضبط `REPLICA IDENTITY FULL`. لا تغيير على RLS أو دوال أو مشغّلات. السياسات الحالية (المقيِّدة للسنوات غير المنشورة) تبقى تحكم البث.
-
-### 2) إضافة اشتراكات Realtime لهوكات الصفحات
-استخدام الهوك الموحّد `useDashboardRealtime` فقط (نفس النمط المعتمد) — لا منطق جديد، فقط استدعاء واحد في كل هوك:
-
-| الهوك | الجداول المراقبة | المفاتيح الإضافية |
-|---|---|---|
-| `useMySharePage` | `accounts, distributions, advance_requests, advance_carryforward, beneficiaries, fiscal_years` | `['my-share']` |
-| `useDisclosurePage` | `accounts, income, expenses, distributions, fiscal_years` | `['disclosure']` |
-| `useFinancialReportsPage` | `income, expenses, accounts, distributions, payment_invoices, fiscal_years` | `['financial-reports']` |
-| `useAnnualReportPage` | `annual_report_items, annual_report_status, accounts, fiscal_years` | `['annual-report']` |
-| `useReportsData` | `accounts, income, expenses, distributions, fiscal_years` | `['reports-data']` |
-| `usePropertiesViewPage` | `properties, units` | — |
-| `useContractsViewPage` | `contracts, properties, payment_invoices` | — |
-| `useAnnualReportViewPage` | `annual_report_items, annual_report_status` | — |
-
-### 3) توسيع اشتراك لوحة الإدارة
-إضافة الجداول التشغيلية المفقودة إلى `useAdminDashboardPage` ليرى الناظر تغييرات الفِرَق الأخرى مباشرة:
-- من: `['income','expenses','accounts','payment_invoices','messages']`
-- إلى: `['income','expenses','accounts','payment_invoices','messages','properties','contracts','beneficiaries','distributions','advance_requests']`
+**النتيجة:** يتوقف تلوث اللوغ فوراً + auth emails تعمل عبر الطابور مع retry/DLQ.
 
 ---
 
-## ما لن يُلمس (ضمانات عدم الإضرار)
-- لا تعديل على: `AuthContext`, `ProtectedRoute`, `client.ts`, `types.ts`, `config.toml`, `.env`.
-- لا تعديل على RLS، دوال SQL، مشغّلات، أو منطق محاسبي (المحرك المالي الموحّد، حساب الحصص، السنوات المقفلة).
-- لا تعديل على مكونات UI — فقط استدعاء هوك واحد داخل page hooks.
-- لا تعديل على edge functions أو ZATCA أو سلسلة الفواتير.
-- لا تغيير في تواقيع الدوال أو في `createCrudFactory`.
+## P2 — إضافة مشغّل `update_updated_at_column` لـ 5 جداول
+
+**الجداول الناقصة:** `app_settings`, `expense_budgets`, `support_tickets`, `annual_report_items`, `account_categories`
+
+**الإجراء:** مايغريشن واحد بسيط:
+```sql
+CREATE TRIGGER update_<table>_updated_at
+  BEFORE UPDATE ON public.<table>
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+```
+(يُكرر للجداول الخمسة)
+
+**ملاحظة:** الدالة `update_updated_at_column()` موجودة بالفعل. الإضافة آمنة 100% ولا تؤثر على أي بيانات أو سياسات.
 
 ---
 
-## النتيجة المتوقعة
-- تعديل عقار/عقد/دخل/مصروف من جلسة الناظر ⇒ يظهر فوراً (≤500ms debounce) في شاشات المستفيد ولوحة الإدارة وعروض العقارات/العقود.
-- توليد التقارير يعتمد على نفس الكاش المُبطَل ⇒ بيانات محدّثة تلقائياً عند الفتح.
-- صفر تغيير سلوكي للسنوات المقفلة/غير المنشورة (محجوبة بالـRLS الحالية).
+## P3 — توسيع lazy loading لمولّدات PDF
 
-## الملفات المتأثرة
-- `supabase/migrations/<timestamp>_realtime_publication_extension.sql` (جديد)
-- `src/hooks/page/admin/dashboard/useAdminDashboardPage.ts`
-- `src/hooks/page/beneficiary/financial/useMySharePage.ts`
-- `src/hooks/page/beneficiary/financial/useDisclosurePage.ts`
-- `src/hooks/page/beneficiary/financial/useFinancialReportsPage.ts`
-- `src/hooks/page/admin/reports/useAnnualReportPage.ts`
-- `src/hooks/page/admin/reports/useReportsData.ts`
-- `src/hooks/page/beneficiary/views/usePropertiesViewPage.ts`
-- `src/hooks/page/beneficiary/views/useContractsViewPage.ts`
-- `src/hooks/page/beneficiary/views/useAnnualReportViewPage.ts`
+**الفائدة:** تأجيل 542KB (179KB gzipped) من البندل الأولي حتى أول طلب PDF.
+
+**الإجراء:** فحص جميع `import` المباشرة من `@/utils/pdf` (أو ما يماثلها) واستبدالها بـ `await import(...)` في مواقع الاستدعاء فقط.
+
+**نمط التحويل:**
+```ts
+// قبل
+import { generateAnnualReportPDF } from '@/utils/pdf';
+const handleExport = () => generateAnnualReportPDF(data);
+
+// بعد
+const handleExport = async () => {
+  const { generateAnnualReportPDF } = await import('@/utils/pdf');
+  generateAnnualReportPDF(data);
+};
+```
+
+**ضمانات:**
+- لا يُلمس منطق توليد PDF نفسه
+- لا تُغيّر التواقيع أو الواجهات
+- يُحدّث فقط نقاط الاستيراد في معالجات الأحداث (handlers)
+
+---
+
+## P4 — توحيد عرض الحقول المالية (تنظيمي)
+
+**المشكلة:** قراءة الحقول المالية (`waqf_revenue`, `admin_share`, `waqif_share`, `zakat_amount`) منتشرة في 7 ملفات عرض.
+
+**الإجراء:**
+1. إنشاء هوك صغير `useDisplayFinancials(account)` في `src/hooks/finance/`:
+   - يقرأ الحقول من المصدر الموحد
+   - يُرجع قيماً مهيّأة للعرض فقط
+2. استبدال القراءات المباشرة في الملفات السبعة بالهوك الجديد:
+   - `AccountsBeneficiariesTable.tsx`
+   - `ReportsPage.tsx`
+   - `DisclosurePage.tsx`
+   - (و4 ملفات أخرى يتم تحديدها بالفحص)
+
+**ضمانات:**
+- لا تغيير في القيم المعروضة (نفس الحسابات)
+- لا تغيير في المحرك المالي (`financial-engine`)
+- لا تغيير في RLS أو الاستعلامات
+
+---
+
+## P5 — مراجعة الفهارس غير المستخدمة
+
+**مؤجّل 30 يوماً** — لا إجراء الآن. تذكير فقط لمراجعة `pg_stat_user_indexes` لاحقاً.
+
+---
+
+## ضوابط السلامة (تطبق على كل البنود)
+
+- ✅ لا تعديل على `AuthContext`, `ProtectedRoute`, `SecurityGuard`
+- ✅ لا تعديل على `supabase/config.toml`, `client.ts`, `types.ts`, `.env`
+- ✅ لا تغيير في سياسات RLS الموجودة
+- ✅ لا تغيير في المنطق المحاسبي أو محرك التوزيع
+- ✅ كل تغيير قابل للتراجع (idempotent migrations + lazy imports)
+
+---
+
+## التحقق بعد التنفيذ
+
+1. **P1:** فحص لوغ Postgres — يجب أن يتوقف خطأ `email_send_state` خلال دقيقة
+2. **P2:** تحديث صف في أحد الجداول الخمسة والتحقق من تحديث `updated_at`
+3. **P3:** بناء المشروع والتحقق من تقلّص حجم الـ initial chunk
+4. **P4:** تشغيل `tsc --noEmit` و`eslint` — يجب أن يبقى صفر أخطاء/تحذيرات
+
+---
+
+## الوقت المقدّر: ~20 دقيقة
