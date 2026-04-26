@@ -1,19 +1,19 @@
 /**
  * useZatcaManagement — Facade يجمع 4 hooks فرعية ويحافظ على نفس API السطحي
- * - useZatcaSettings: إعدادات ZATCA + missingSettings + canOnboard
+ * - useZatcaOnboardingReadiness: إعدادات ZATCA + missingSettings + canOnboard
  * - useZatcaInvoices: فواتير + سلسلة + pagination + counters
  * - useZatcaInvoiceActions: 5 mutations + pendingIds
  * - useZatcaOnboarding: handleOnboard + handleProductionUpgrade
  */
 import { useZatcaCertificates } from './useZatcaCertificates';
-import { useZatcaSettings } from './useZatcaSettings';
+import { useZatcaOnboardingReadiness } from './useZatcaOnboardingReadiness';
 import { useZatcaInvoices } from './useZatcaInvoices';
 import { useZatcaInvoiceActions } from './useZatcaInvoiceActions';
 import { useZatcaOnboarding } from './useZatcaOnboarding';
 
 export function useZatcaManagement() {
   const { data: certificates = [], isLoading: certsLoading } = useZatcaCertificates();
-  const { missingSettings, canOnboard } = useZatcaSettings();
+  const { missingSettings, canOnboard } = useZatcaOnboardingReadiness();
   const invoices = useZatcaInvoices();
   const actions = useZatcaInvoiceActions();
   const onboarding = useZatcaOnboarding();
