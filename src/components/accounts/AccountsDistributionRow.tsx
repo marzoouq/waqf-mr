@@ -1,6 +1,8 @@
 /**
  * صف واحد في جدول التوزيع المحاسبي — مُستخرَج من AccountsDistributionTable
+ * مُغلَّف بـ memo لتقليل re-renders عند تحديث الجدول.
  */
+import { memo } from 'react';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { fmt } from '@/utils/format/format';
 
@@ -15,7 +17,7 @@ export interface DistRow {
 
 interface Props { row: DistRow }
 
-export default function AccountsDistributionRow({ row }: Props) {
+const AccountsDistributionRow = memo(function AccountsDistributionRow({ row }: Props) {
   return (
     <TableRow className={row.rowClass}>
       <TableCell className={row.bold ? 'font-bold' : 'font-medium'}>{row.label}</TableCell>
@@ -23,4 +25,6 @@ export default function AccountsDistributionRow({ row }: Props) {
       <TableCell className={`${row.bold ? 'font-bold' : ''} ${row.amountClass ?? ''}`}>{fmt(row.amount)}</TableCell>
     </TableRow>
   );
-}
+});
+
+export default AccountsDistributionRow;

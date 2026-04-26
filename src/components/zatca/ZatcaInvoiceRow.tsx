@@ -1,6 +1,8 @@
 /**
  * صف واحد لفاتورة ZATCA — مُستخرَج من ZatcaInvoicesTab
+ * مُغلَّف بـ memo لتقليل re-renders في جدول الفواتير الكبير.
  */
+import { memo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TableCell, TableRow } from '@/components/ui/table';
@@ -45,7 +47,7 @@ interface Props {
   onComplianceCheck: (invoiceId: string, table: string) => void;
 }
 
-export default function ZatcaInvoiceRow({
+const ZatcaInvoiceRow = memo(function ZatcaInvoiceRow({
   inv, rowBusy, isComplianceCert, isProductionCert,
   onGenerateXml, onSignInvoice, onSubmitToZatca, onComplianceCheck,
 }: Props) {
@@ -160,4 +162,6 @@ export default function ZatcaInvoiceRow({
       </TableCell>
     </TableRow>
   );
-}
+});
+
+export default ZatcaInvoiceRow;

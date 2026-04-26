@@ -1,6 +1,8 @@
 /**
  * صف واحد لمستأجر متأخر — مُستخرَج من OverdueTenantsReport
+ * مُغلَّف بـ memo لتقليل re-renders في الجداول الكبيرة.
  */
+import { memo } from 'react';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { fmt, fmtDate } from '@/utils/format/format';
 import SeverityBadge from './SeverityBadge';
@@ -13,7 +15,7 @@ interface Props {
   row: OverdueRowData;
 }
 
-export default function OverdueRow({ row }: Props) {
+const OverdueRow = memo(function OverdueRow({ row }: Props) {
   return (
     <TableRow>
       <TableCell className="font-medium">{row.tenantName}</TableCell>
@@ -28,4 +30,6 @@ export default function OverdueRow({ row }: Props) {
       <TableCell><SeverityBadge severity={row.severity} /></TableCell>
     </TableRow>
   );
-}
+});
+
+export default OverdueRow;
