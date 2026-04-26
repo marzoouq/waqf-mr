@@ -10,11 +10,8 @@ import { Save, LayoutList, RotateCcw } from 'lucide-react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useState, useEffect } from 'react';
 
-// استيراد مباشر من types/ لمنع الاعتماديات الدائرية
+// مصدر الأنواع: types/navigation — لا re-export من هنا (لتفعيل Fast Refresh)
 import { defaultMenuLabels, type MenuLabels } from '@/types/navigation';
-
-export type { MenuLabels };
-export { defaultMenuLabels };
 
 const MenuCustomizationTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();

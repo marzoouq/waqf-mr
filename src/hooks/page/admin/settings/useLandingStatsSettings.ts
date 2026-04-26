@@ -1,8 +1,15 @@
 /**
  * useLandingStatsSettings — page hook لإعدادات إحصائيات صفحة الهبوط
  * يفصل state + load + save + invalidation عن مكون UI
+ *
+ * نمط الحالة: uncontrolled-with-overrides
+ * - `data` من useAppSettings هو مصدر الحقيقة (remote)
+ * - `overrides` يخزّن تعديلات المستخدم المحلية فقط حتى الحفظ
+ * - `forms` المعروضة = merge(remote, overrides) عبر useMemo
+ * - يتجنّب نمط setState داخل useEffect ويمنع cascading renders
+ * - يصلح bug خفي: قبل التعديل كان refetch يدوس على تعديلات المستخدم
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 
@@ -26,31 +33,39 @@ export const STATS: StatConfig[] = [
   { key: 'fiscal_years',  defaultLabel: 'تقرير سنوي', description: 'عدد التقارير السنوية المنشورة' },
 ];
 
+type Overrides = Partial<Record<string, Partial<StatState>>>;
+
 export function useLandingStatsSettings() {
   const { data, updateSettingsBatch, isLoading } = useAppSettings();
   const queryClient = useQueryClient();
-  const [forms, setForms] = useState<Record<string, StatState>>({});
 
-  // تحميل الإعدادات الحالية من app_settings
-  useEffect(() => {
-    if (!data) return;
-    const next: Record<string, StatState> = {};
+  // تخزين تعديلات المستخدم المحلية فقط — لا تتأثر بإعادة جلب data
+  const [overrides, setOverrides] = useState<Overrides>({});
+
+  // القيم المعروضة = remote (data) ↳ تُغمر بالتعديلات المحلية
+  const forms = useMemo<Record<string, StatState>>(() => {
+    const merged: Record<string, StatState> = {};
     for (const s of STATS) {
-      next[s.key] = {
-        mode: (data[`public_stat_${s.key}_mode`] as StatMode) ?? 'auto',
-        value: data[`public_stat_${s.key}_value`] ?? '',
-        label: data[`public_stat_${s.key}_label`] ?? '',
+      const remote: StatState = {
+        mode: (data?.[`public_stat_${s.key}_mode`] as StatMode) ?? 'auto',
+        value: data?.[`public_stat_${s.key}_value`] ?? '',
+        label: data?.[`public_stat_${s.key}_label`] ?? '',
       };
+      const local = overrides[s.key];
+      merged[s.key] = local ? { ...remote, ...local } : remote;
     }
-    setForms(next);
-  }, [data]);
+    return merged;
+  }, [data, overrides]);
 
-  const handleChange = useCallback(<K extends keyof StatState>(key: string, field: K, value: StatState[K]) => {
-    setForms(prev => {
-      const current = prev[key];
-      if (!current) return prev;
-      return { ...prev, [key]: { ...current, [field]: value } };
-    });
+  const handleChange = useCallback(<K extends keyof StatState>(
+    key: string,
+    field: K,
+    value: StatState[K],
+  ) => {
+    setOverrides(prev => ({
+      ...prev,
+      [key]: { ...(prev[key] ?? {}), [field]: value },
+    }));
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -66,6 +81,8 @@ export function useLandingStatsSettings() {
     await updateSettingsBatch.mutateAsync(rows);
     // إبطال cache الإحصائيات العامة فوراً
     queryClient.invalidateQueries({ queryKey: ['public-stats'] });
+    // تنظيف التعديلات المحلية بعد نجاح الحفظ — تصبح القيم الجديدة هي remote
+    setOverrides({});
   }, [forms, updateSettingsBatch, queryClient]);
 
   return {

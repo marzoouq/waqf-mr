@@ -88,6 +88,10 @@ function VirtualTableInner<T>({
 }: Omit<VirtualTableProps<T>, 'threshold'> & {
   parentRef: React.RefObject<HTMLDivElement | null>;
 }) {
+  // TanStack Virtual يُرجع دوال حية لا يمكن memoize بأمان (مثل getVirtualItems)؛
+  // React Compiler يتخطّى المكوّن نتيجةً لذلك. هذا متوقّع وآمن لأن الـvirtualizer
+  // مغلَّف داخل مكوّن داخلي معزول (parentRef محلي) ولا تُمرَّر دواله للأبناء memoized.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: data.length,
     getScrollElement: () => parentRef.current,
