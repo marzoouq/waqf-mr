@@ -1,45 +1,60 @@
-# خطة تنفيذ — إصلاح اتجاه التبعية في `types/`
+# تصحيح التقرير + خطة معدّلة
 
-تنفيذ البندَين الوحيدَين الفعليَين المُكتشَفَين في الفحص الجنائي. لا تغييرات أخرى.
+## 🔴 اعتراف بخطأ في التقرير السابق
 
-## التغييرات
+عند التحقق الفعلي من الكود قبل التنفيذ، تبيّن أن **البندين 1 و 2 من التقرير السابق غير صحيحين**:
 
-### 1. نقل `UnitInsert` إلى `types/forms/property.ts`
+### البند 1 — "ملفات > 400 سطر"
+بالفحص الفعلي (`wc -l` على كامل `src/`):
 
-**الحالي:** `types/forms/property.ts:4` يستورد `UnitInsert` من `hooks/data/properties/useUnits` ← انتهاك اتجاه (types ← hooks).
+| الملف | عدد الأسطر |
+|---|---|
+| `forensicAudit.ts` | 238 |
+| `comprehensiveBeneficiaryTables.ts` | 213 |
+| `printDistributionReport.ts` | 212 |
+| `useZatcaSettings.ts` | 207 |
+| `ZatcaCertificatesTab.tsx` | 207 |
 
-**الإصلاح:**
-- اجعل `types/forms/property.ts` المصدر الأساسي لـ `UnitInsert` (تعريف interface كامل).
-- `hooks/data/properties/useUnits.ts` يستورد `UnitInsert` من `@/types/forms/property` ويُعيد تصديره للتوافق العكسي.
+**أكبر ملف مصدر فعلي = 238 سطر** (باستثناء `types.ts` المُولَّد تلقائياً وملفات الاختبار). **لا يوجد أي ملف > 400 سطر.** التوصية الأصلية بـ"تقسيم 4-5 ملفات" كانت غير دقيقة.
 
-### 2. نقل `CrudNotifications` إلى `types/data/crudFactory.ts`
+### البند 2 — "state-heavy components"
+أعلى استخدام لـ `useState` في ملف واحد = **9 استدعاءات**، وكلها في **hooks مخصصة** بالفعل (`useUserManagement.ts`, `useAccountsSettings.ts`...) وليست داخل مكوّنات UI. النمط المعماري الموثّق في `mem://technical/architecture/core-modularization-standard-v7` (صفحات UI فقط + Page Hooks للحالة) **مُطبَّق بالكامل**.
 
-**الحالي:** `types/data/crudFactory.ts:6` يستورد `CrudNotifications` من `@/lib/notify` ← انتهاك اتجاه (types ← lib).
+---
 
-**الإصلاح:**
-- نقل تعريف interface `CrudNotifications` إلى `types/data/crudFactory.ts` كمصدر أساسي.
-- `lib/notify.ts` يستورد `CrudNotifications` من `@/types/data/crudFactory` ويُعيد تصديره للتوافق.
-- `crudNotifyAdapter` يبقى في `lib/notify.ts` (لأنه دالة، ليس نوعاً).
+## ✅ النتيجة الحقيقية
 
-## الملفات المُعدَّلة (4 فقط)
+المعمارية نظيفة. **البندان 1 و 2 لا ينطبقان على هذا المشروع** — لا توجد ملفات ضخمة لتقسيمها، ولا حالة متناثرة في مكوّنات لاستخراجها.
 
-- `src/types/forms/property.ts` — إضافة تعريف `UnitInsert`
-- `src/hooks/data/properties/useUnits.ts` — استيراد + re-export
-- `src/types/data/crudFactory.ts` — إضافة تعريف `CrudNotifications`
-- `src/lib/notify.ts` — استيراد + re-export
+تنفيذ "تقسيم وهمي" أو "إعادة تنظيم بلا داعٍ" سيُدخِل تعقيداً دون فائدة، ويخالف القاعدة في `project-knowledge`: «لا تحذف/تعدّل كود موجود دون سبب واضح ومبرّر».
 
-## ضمانات السلامة
+---
 
-- **توافق عكسي 100%:** كل re-exports محفوظة، لا استيراد قديم سينكسر
-- **لا تغيير منطق:** فقط نقل تعريفات أنواع
-- **لا تأثير على runtime:** types-only changes
-- **لا تعديل ملفات محمية:** `client.ts`, `types.ts`, `config.toml`, `.env`
+## 🎯 الخيارات الواقعية المتاحة
 
-## التحقق
+### خيار A (موصى به) — لا تنفيذ، الانتقال لميزات جديدة
+المعمارية في حالة ممتازة. لا حاجة لأي عمل تجميلي. الوقت أفضل في ميزات أو إصلاح أخطاء فعلية.
 
-```bash
-npx tsc --noEmit
-```
+### خيار B — تنفيذ بنود P3 الصغيرة فقط (~30 دقيقة، تأثير حقيقي)
+هذه البنود **حقيقية** ولها قيمة قابلة للقياس:
 
-## التقدير
-~5 دقائق فعلية.
+1. **استخراج الأرقام السحرية إلى `src/constants/timing.ts`** (~10 د)
+   - `setTimeout(..., 300)` للـ debounce، `5000` لـ toast duration، إلخ.
+   - فحص سريع: `rg "setTimeout\(.*,\s*\d+\)" src` لتحديد المرشحين الفعليين.
+
+2. **توثيق قاعدة "barrel لا يستورد من barrel" في memory** (~5 د)
+   - حفظ `mem://technical/architecture/barrel-import-rule` لمنع الانحدارات المستقبلية.
+
+3. **مراجعة سريعة لمسارات `hooks/page/admin/management/` العميقة** (~15 د)
+   - تقرير فقط: هل التداخل ضروري أم يمكن تسطيحه؟ بدون تنفيذ ما لم تكن الفائدة واضحة.
+
+### خيار C — إعادة فتح التقرير
+إذا كنت تريد أن أبحث بمعايير أخرى (تكرار، coupling فعلي، dead code، imports دائرية)، أُجري فحصاً جديداً وأعود بنتائج موثّقة بأرقام حقيقية.
+
+---
+
+## 📋 توصيتي الصريحة
+
+**خيار A**. لا تستثمر وقتاً في إعادة هيكلة لا تحتاجها. إن أردت تحسيناً حقيقياً، اختر **خيار B** للأرقام السحرية + توثيق قاعدة memory — هاتان مهمتان صغيرتان لكن لهما أثر صيانة طويل المدى.
+
+أي خيار تفضّل؟

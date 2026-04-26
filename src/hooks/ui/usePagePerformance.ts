@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { recordPageLoad, notifyPerfUpdate } from '@/lib/monitoring';
 import { logger } from '@/lib/logger';
+import { PAGE_PERF_INITIAL_MEASURE_DELAY_MS } from '@/constants/timing';
 
 export function usePagePerformance(): void {
   const { pathname } = useLocation();
@@ -39,7 +40,7 @@ export function usePagePerformance(): void {
     };
 
     // تأجيل القياس قليلاً
-    const timer = setTimeout(measureInitial, 1500);
+    const timer = setTimeout(measureInitial, PAGE_PERF_INITIAL_MEASURE_DELAY_MS);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- قياس مرة واحدة عند mount لكل صفحة فقط
   }, []);

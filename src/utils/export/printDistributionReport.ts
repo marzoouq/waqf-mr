@@ -3,6 +3,7 @@
  * ملاحظة: لا يستورد toast — يُرجع false عند فشل فتح النافذة والطبقة المستدعية تتولى الإشعار
  */
 import { fmt } from '@/utils/format/format';
+import { PRINT_WINDOW_RENDER_DELAY_MS } from '@/constants/timing';
 
 /** ألوان تقرير الطباعة — مركزية لتسهيل التعديل */
 const PRINT_COLORS = {
@@ -205,7 +206,7 @@ export function printDistributionReport(params: PrintDistributionParams): boolea
 
   printWindow.document.close();
   printWindow.focus();
-  setTimeout(() => printWindow.print(), 500);
+  setTimeout(() => printWindow.print(), PRINT_WINDOW_RENDER_DELAY_MS);
   // إغلاق النافذة تلقائياً بعد الطباعة أو الإلغاء
   printWindow.onafterprint = () => printWindow.close();
   return true;
