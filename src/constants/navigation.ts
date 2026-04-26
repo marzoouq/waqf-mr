@@ -97,7 +97,7 @@ export const ADMIN_ROUTE_PERM_KEYS: Record<string, string> = buildPermKeys(ADMIN
 export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = buildPermKeys(BENEFICIARY_ROUTES);
 
 // ─── Routes accountant can never access ───
-export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/beneficiary'];
+export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/dashboard/email-monitor', '/beneficiary'];
 
 // ─── Section visibility defaults (مشتقة من sections.ts — مصدر واحد للحقيقة #16/#17) ───
 export const defaultAdminSections: Record<string, boolean> = makeDefaults(ADMIN_SECTION_KEYS);

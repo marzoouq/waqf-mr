@@ -43,6 +43,7 @@ export const ADMIN_ROUTES: Record<string, RouteMeta> = {
   '/dashboard/chart-of-accounts': { title: 'الشجرة المحاسبية', labelKey: 'chart_of_accounts', permKey: 'chart_of_accounts', sectionKey: 'chart_of_accounts' },
   '/dashboard/comparison': { title: 'المقارنة التاريخية', labelKey: 'comparison' },
   '/dashboard/diagnostics': { title: 'تشخيص النظام', labelKey: 'diagnostics' },
+  '/dashboard/email-monitor': { title: 'مراقبة البريد', labelKey: 'email_monitor' },
 };
 
 /**
