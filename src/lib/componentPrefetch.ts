@@ -54,8 +54,8 @@ export function prefetchComponent(path: string): void {
   };
 
   if ('requestIdleCallback' in window) {
-    requestIdleCallback(load, { timeout: 1500 });
+    requestIdleCallback(load, { timeout: COMPONENT_PREFETCH_IDLE_TIMEOUT_MS });
   } else {
-    setTimeout(load, 100);
+    setTimeout(load, COMPONENT_PREFETCH_FALLBACK_MS);
   }
 }
