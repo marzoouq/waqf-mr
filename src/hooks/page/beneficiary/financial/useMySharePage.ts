@@ -11,6 +11,7 @@ import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
 import { useMySharePdfHandlers } from '@/hooks/page/beneficiary';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { safeNumber } from '@/utils/format/safeNumber';
@@ -21,6 +22,14 @@ export const useMySharePage = () => {
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const selectedFY = fiscalYear;
   const handleRetry = useRetryQueries(['beneficiary-dashboard', 'my-distributions']);
+
+  // Realtime: انعكاس فوري لتعديلات الناظر/المحاسب على حصة المستفيد
+  useDashboardRealtime(
+    'my-share-realtime',
+    ['accounts', 'distributions', 'advance_requests', 'advance_carryforward', 'beneficiaries', 'fiscal_years'],
+    true,
+    [['my-share'], ['beneficiary-dashboard'], ['my-distributions']],
+  );
 
   const { data: dashData, isLoading: finLoading, isError: finError } = useBeneficiaryDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
