@@ -4,18 +4,11 @@ import { defaultNotify } from '@/lib/notify';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { Unit } from '@/types';
+import type { UnitInsert } from '@/types/models';
 
 // Re-export types for backward compatibility
 export type UnitRow = Unit;
-export type UnitInsert = {
-  property_id: string;
-  unit_number: string;
-  unit_type?: string;
-  floor?: string;
-  area?: number;
-  status?: string;
-  notes?: string;
-};
+export type { UnitInsert };
 
 // ---------------------------------------------------------------------------
 // Factory-based CRUD (all units, no filter)

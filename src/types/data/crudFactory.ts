@@ -3,9 +3,17 @@
  */
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { Database } from '@/integrations/supabase/types';
-import type { CrudNotifications } from '@/lib/notify';
 
-export type { CrudNotifications };
+/**
+ * واجهة مبسّطة لـ createCrudFactory — مصدر الحقيقة لنوع إشعارات CRUD.
+ * يُعاد تصديرها من lib/notify.ts للتوافق مع الاستيرادات القائمة.
+ */
+export interface CrudNotifications {
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
+  onInfo?: (message: string) => void;
+  onWarning?: (message: string) => void;
+}
 
 // ---------------------------------------------------------------------------
 // Database helpers

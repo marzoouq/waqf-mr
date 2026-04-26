@@ -12,6 +12,10 @@
  */
 import { toast } from 'sonner';
 import type { ExternalToast } from 'sonner';
+import type { CrudNotifications } from '@/types/data/crudFactory';
+
+// re-export للتوافق العكسي مع الاستيرادات من '@/lib/notify'
+export type { CrudNotifications };
 
 /** واجهة الإشعارات الموحّدة — تدعم كلاً من الاستخدام البسيط والمتقدم */
 export interface AppNotify {
@@ -65,15 +69,9 @@ export const defaultNotify: AppNotify = {
 };
 
 /**
- * واجهة مبسّطة لـ createCrudFactory — متوافقة مع AppNotify
- * تُستخدم لتمرير إشعارات مخصصة لكل factory
+ * واجهة مبسّطة لـ createCrudFactory — مصدر النوع في @/types/data/crudFactory
+ * يُعاد تصديره أعلاه للتوافق العكسي.
  */
-export interface CrudNotifications {
-  onSuccess?: (message: string) => void;
-  onError?: (message: string) => void;
-  onInfo?: (message: string) => void;
-  onWarning?: (message: string) => void;
-}
 
 /** تحويل CrudNotifications إلى AppNotify كامل (مع fallback) */
 export function crudNotifyAdapter(custom?: CrudNotifications): AppNotify {

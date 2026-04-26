@@ -1,7 +1,10 @@
 /**
  * أنواع نماذج العقارات والوحدات
+ *
+ * UnitInsert يأتي من types/models.ts (مولّد من schema قاعدة البيانات).
+ * هذا الملف لا يُكرّر التعريف بل يستهلكه.
  */
-import type { UnitInsert } from '@/hooks/data/properties/useUnits';
+import type { UnitInsert } from '@/types/models';
 
 export interface UnitFormData extends UnitInsert {
   tenant_name?: string;
