@@ -12,6 +12,10 @@
  */
 import { toast } from 'sonner';
 import type { ExternalToast } from 'sonner';
+import type { CrudNotifications } from '@/types/data/crudFactory';
+
+// re-export للتوافق العكسي مع الاستيرادات من '@/lib/notify'
+export type { CrudNotifications };
 
 /** واجهة الإشعارات الموحّدة — تدعم كلاً من الاستخدام البسيط والمتقدم */
 export interface AppNotify {
