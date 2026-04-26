@@ -24,6 +24,7 @@ export interface MenuLabels {
   annual_report: string;
   comparison: string;
   diagnostics: string;
+  email_monitor: string;
 }
 
 export const defaultMenuLabels: MenuLabels = {
@@ -48,4 +49,5 @@ export const defaultMenuLabels: MenuLabels = {
   annual_report: 'التقرير السنوي',
   comparison: 'المقارنة التاريخية',
   diagnostics: 'تشخيص النظام',
+  email_monitor: 'مراقبة البريد',
 };

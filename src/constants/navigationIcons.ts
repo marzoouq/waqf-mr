@@ -13,5 +13,5 @@ export {
   Building2, Home, FileText, Wallet, Users, BarChart3,
   DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
-  ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity,
+  ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity, Mail,
 } from 'lucide-react';
