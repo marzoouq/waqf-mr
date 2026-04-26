@@ -3,10 +3,10 @@
  */
 import { useMemo } from 'react';
 import { fmt } from '@/utils/format/format';
-import { usePropertyPerformance } from '@/hooks/computed/usePropertyPerformance';
-import { useRawFinancialData } from '@/hooks/computed/useRawFinancialData';
-import { useComputedFinancials } from '@/hooks/computed/useComputedFinancials';
-import { useContractAllocationMap } from '@/hooks/computed/useContractAllocationMap';
+import { usePropertyPerformance } from '@/hooks/financial/usePropertyPerformance';
+import { useRawFinancialData } from '@/hooks/financial/useRawFinancialData';
+import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
+import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';

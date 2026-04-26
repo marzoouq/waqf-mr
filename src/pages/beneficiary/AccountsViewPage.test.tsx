@@ -14,7 +14,7 @@ vi.mock('@/hooks/data/useAppSettings', () => ({
 
 vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({ name: 'وقف' })) }));
 
-vi.mock('@/hooks/computed/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447' }, fiscalYears: [{ id: 'fy1', label: '1446-1447' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447' }] })),
 }));

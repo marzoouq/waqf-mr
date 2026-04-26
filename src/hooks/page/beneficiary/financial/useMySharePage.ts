@@ -7,7 +7,7 @@ import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { useContractsForPdf } from '@/hooks/data/contracts';
-import { useMyShare } from '@/hooks/computed/useMyShare';
+import { useMyShare } from '@/hooks/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
 import { useMySharePdfHandlers } from '@/hooks/page/beneficiary';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';

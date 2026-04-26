@@ -37,7 +37,7 @@ vi.mock('@/hooks/data/notifications/useNotifications', () => ({
   })),
 }));
 
-vi.mock('@/hooks/computed/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
@@ -52,7 +52,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-vi.mock('@/hooks/computed/useTotalBeneficiaryPercentage', () => ({
+vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
 }));
 

@@ -52,7 +52,7 @@ vi.mock('@/hooks/data/useDashboardSummary', () => ({
   })),
 }));
 
-vi.mock('@/hooks/computed/useComputedFinancials', () => ({
+vi.mock('@/hooks/financial/useComputedFinancials', () => ({
   useComputedFinancials: vi.fn(() => ({
     totalIncome: 30000,
     totalExpenses: 5000,
@@ -68,7 +68,7 @@ vi.mock('@/hooks/computed/useComputedFinancials', () => ({
   })),
 }));
 
-vi.mock('@/hooks/computed/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({
     data: { id: 'fy-1', label: '1446-1447هـ' },
     fiscalYears: [{ id: 'fy-1', label: '1446-1447هـ' }],
@@ -88,12 +88,12 @@ vi.mock('@/components/reports/YearOverYearComparison', () => ({
   default: () => <div data-testid="year-comparison">YearOverYearComparison</div>,
 }));
 
-vi.mock('@/hooks/computed/useYoYComparison', () => ({
+vi.mock('@/hooks/financial/useYoYComparison', () => ({
   useYoYComparison: vi.fn(() => ({ hasPrevYear: false, prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0 })),
   calcChangePercent: vi.fn(() => null),
 }));
 
-vi.mock('@/hooks/computed/useAdvanceRequests', () => ({
+vi.mock('@/hooks/financial/useAdvanceRequests', () => ({
   useAdvanceRequests: vi.fn(() => ({ data: [], isLoading: false })),
 }));
 
