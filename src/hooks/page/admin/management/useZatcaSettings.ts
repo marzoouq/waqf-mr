@@ -7,7 +7,7 @@ import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useZatcaCertificates } from '@/hooks/data/zatca/useZatcaCertificates';
 import { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp, saveZatcaSettings } from '@/lib/services';
 import { defaultNotify } from '@/lib/notify';
-import { SA_VAT_REGEX, IBAN_SA_REGEX, DEVICE_SERIAL_REGEX } from '@/utils/validation/index';
+import { validateZatcaSettingsForm } from '@/utils/zatca/validateZatcaForm';
 
 export const ZATCA_KEYS = [
   'vat_registration_number',
@@ -75,21 +75,9 @@ export const useZatcaSettings = () => {
   }, [settings]);
 
   const handleSave = async () => {
-    const vatNum = formData.vat_registration_number?.trim();
-    if (vatNum && !SA_VAT_REGEX.test(vatNum)) {
-      defaultNotify.error('الرقم الضريبي يجب أن يكون 15 رقماً ويبدأ وينتهي بـ 3');
-      return;
-    }
-
-    const iban = formData.waqf_bank_iban?.trim().replace(/\s/g, '');
-    if (iban && !IBAN_SA_REGEX.test(iban)) {
-      defaultNotify.error('صيغة IBAN غير صحيحة (SA + 22 رقم)');
-      return;
-    }
-
-    const serial = formData.zatca_device_serial?.trim();
-    if (serial && serial.length > 0 && !DEVICE_SERIAL_REGEX.test(serial)) {
-      defaultNotify.error('صيغة معرّف الجهاز غير صحيحة. الصيغة المطلوبة: 1-XXX|2-YYY|3-ZZZ');
+    const validation = validateZatcaSettingsForm(formData);
+    if (!validation.ok) {
+      defaultNotify.error(validation.reason);
       return;
     }
 
