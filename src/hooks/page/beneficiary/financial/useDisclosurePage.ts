@@ -14,6 +14,7 @@ import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContract
 import { defaultNotify } from '@/lib/notify';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { toGregorianShort } from '@/utils/format/date';
 import { isFyReady } from '@/constants/fiscalYearIds';
@@ -23,6 +24,14 @@ export const useDisclosurePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
   const handleRetry = useRetryQueries(['beneficiary-dashboard', 'my-distributions']);
+
+  // Realtime: انعكاس فوري لتعديلات بيانات الإفصاح
+  useDashboardRealtime(
+    'disclosure-realtime',
+    ['accounts', 'income', 'expenses', 'distributions', 'fiscal_years'],
+    true,
+    [['disclosure'], ['beneficiary-dashboard']],
+  );
 
   const { data: dashData, isLoading: finLoading, isError: finError } = useBeneficiaryDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
