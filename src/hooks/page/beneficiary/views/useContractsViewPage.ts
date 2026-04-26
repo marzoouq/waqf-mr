@@ -9,11 +9,20 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { usePropertiesMap } from '@/hooks/data/properties/usePropertiesMap';
 import { defaultNotify } from '@/lib/notify';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
 export const useContractsViewPage = () => {
   const { fiscalYearId } = useFiscalYear();
+
+  // Realtime: انعكاس فوري لتعديلات العقود وفواتير الدفعات
+  useDashboardRealtime(
+    'contracts-view-realtime',
+    ['contracts', 'properties', 'payment_invoices'],
+    true,
+  );
+
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
   const [currentPage, setCurrentPage] = useState(1);
 
