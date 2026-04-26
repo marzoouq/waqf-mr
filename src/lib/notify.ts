@@ -69,15 +69,9 @@ export const defaultNotify: AppNotify = {
 };
 
 /**
- * واجهة مبسّطة لـ createCrudFactory — متوافقة مع AppNotify
- * تُستخدم لتمرير إشعارات مخصصة لكل factory
+ * واجهة مبسّطة لـ createCrudFactory — مصدر النوع في @/types/data/crudFactory
+ * يُعاد تصديره أعلاه للتوافق العكسي.
  */
-export interface CrudNotifications {
-  onSuccess?: (message: string) => void;
-  onError?: (message: string) => void;
-  onInfo?: (message: string) => void;
-  onWarning?: (message: string) => void;
-}
 
 /** تحويل CrudNotifications إلى AppNotify كامل (مع fallback) */
 export function crudNotifyAdapter(custom?: CrudNotifications): AppNotify {

@@ -4,7 +4,7 @@ import { defaultNotify } from '@/lib/notify';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { Unit } from '@/types';
-import type { UnitInsert } from '@/types/forms/property';
+import type { UnitInsert } from '@/types/models';
 
 // Re-export types for backward compatibility
 export type UnitRow = Unit;
