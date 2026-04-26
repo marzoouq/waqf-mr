@@ -1,60 +1,73 @@
-# تصحيح التقرير + خطة معدّلة
+# تقرير تدقيق المعمارية (Read-Only Audit)
 
-## 🔴 اعتراف بخطأ في التقرير السابق
+## الخلاصة التنفيذية
+الصحة المعمارية: **9.6/10** — المشروع نظيف ومُنظّم بشكل ممتاز بعد جولات P1/P2/P3 السابقة. لا توجد مشاكل حرجة. ما تبقى تحسينات صغيرة معظمها استكمال لخطة سابقة لم تكتمل تنفيذياً.
 
-عند التحقق الفعلي من الكود قبل التنفيذ، تبيّن أن **البندين 1 و 2 من التقرير السابق غير صحيحين**:
+## ما هو نظيف بالفعل (موثَّق بالفحص)
+- **حدود utils/lib محترمة**: لا ملف داخل `src/utils/` يستورد `sonner` أو `supabase/client` (طبقاً لـ `lib-vs-utils-boundary`).
+- **لا `console.*` ولا `: any` في كود الإنتاج** — الـ logger مُعتمد كلياً.
+- **لا TODO/FIXME/HACK** في الشجرة.
+- **لا "صفحات إله"** — أكبر صفحة 198 سطر، ولا صفحة تتعدى 20 import.
+- **لا "مودولات إله"** — لا ملف يستورد >25 شيء.
+- **طبقة `hooks/data/` منظمة بـ 14 نطاق** (financial, contracts, invoices, ...) وكلها تمر عبر `createCrudFactory`.
+- **طبقة `lib/services/` موثّقة** في README مع جدول واضح للمسؤوليات.
+- **`hooks/financial/` (المُعاد تسميته)** موجود بـ 16 ملف ومستخدم في 11 مكان بالمسار الجديد.
 
-### البند 1 — "ملفات > 400 سطر"
-بالفحص الفعلي (`wc -l` على كامل `src/`):
+## النتائج (من الأهم إلى الاختياري)
 
-| الملف | عدد الأسطر |
-|---|---|
-| `forensicAudit.ts` | 238 |
-| `comprehensiveBeneficiaryTables.ts` | 213 |
-| `printDistributionReport.ts` | 212 |
-| `useZatcaSettings.ts` | 207 |
-| `ZatcaCertificatesTab.tsx` | 207 |
+### P1 — لا شيء حرج ✅
 
-**أكبر ملف مصدر فعلي = 238 سطر** (باستثناء `types.ts` المُولَّد تلقائياً وملفات الاختبار). **لا يوجد أي ملف > 400 سطر.** التوصية الأصلية بـ"تقسيم 4-5 ملفات" كانت غير دقيقة.
+### P2 — استكمال غير مكتمل من الجولة السابقة
+1. **`src/hooks/financial/README.md` لا يزال يقول `# hooks/computed/`** على السطر الأول، ويشرح بأنه "أُعيد تسميته إلى computed" — بينما الواقع عكس ذلك (computed → financial). توثيق مضلِّل تماماً.
 
-### البند 2 — "state-heavy components"
-أعلى استخدام لـ `useState` في ملف واحد = **9 استدعاءات**، وكلها في **hooks مخصصة** بالفعل (`useUserManagement.ts`, `useAccountsSettings.ts`...) وليست داخل مكوّنات UI. النمط المعماري الموثّق في `mem://technical/architecture/core-modularization-standard-v7` (صفحات UI فقط + Page Hooks للحالة) **مُطبَّق بالكامل**.
+### P3 — كسر طبقي بسيط (مؤكَّد)
+2. **`src/lib/notifications/beneficiaryNotificationVisibility.ts:9`** يستورد:
+   ```
+   import type { NotificationSettings } from '@/hooks/data/settings/useNotificationSettings';
+   ```
+   `lib/` لا يجب أن يعتمد على `hooks/`. حلّه: نقل interface `NotificationSettings` إلى `src/types/notifications.ts` وتحديث المستوردَين (lib + hook).
 
----
+### P4 — تسرّب أنواع نطاق (Domain types) داخل ملفات hooks
+3. **`BylawEntry`** مُعرَّف داخل `src/hooks/data/content/useBylaws.ts`. مستخدم أيضاً في `useBylawsPage.ts`.
+4. **`ZatcaCertificateSafe`** مُعرَّف داخل `src/hooks/data/zatca/useZatcaCertificates.ts`.
+   - يفضّل نقلهما إلى `src/types/` (مثلاً `src/types/bylaws.ts`، وضمّ الثاني إلى `src/types/zatca.ts` الموجود) مع `export type` احتياطي من ملفات الـhook لضمان توافق المستهلكين.
 
-## ✅ النتيجة الحقيقية
+### P5 — ملاحظات اختيارية (تحسين، ليس مشكلة)
+5. **نمط `components → hooks/page`** مُستعمل في 28 مكوّن. هذا قرار معماري معتمد لمكوّنات "Container/Tab" (مثل `PaymentInvoicesTab`، `CollectionReport`) وليس انتهاكاً، لكنه يستحق توثيقاً صريحاً في `src/components/README.md` (إن لم يكن موجوداً) لمنع الالتباس مستقبلاً.
+6. **أكبر 5 ملفات utils PDF** (>200 سطر) مرشّحة لتقسيم تجميلي:
+   - `utils/pdf/reports/forensicAudit.ts` (238)
+   - `utils/pdf/reports/comprehensiveBeneficiaryTables.ts` (213)
+   - `utils/export/printDistributionReport.ts` (213)
+   - `utils/export/xlsx.ts` (205)
+   - ليست مشكلة عاجلة (دوال PDF/XLSX طبيعي أن تكون طويلة)، لكن يمكن استخراج helpers مشتركة لو احتجنا تكرار النمط.
 
-المعمارية نظيفة. **البندان 1 و 2 لا ينطبقان على هذا المشروع** — لا توجد ملفات ضخمة لتقسيمها، ولا حالة متناثرة في مكوّنات لاستخراجها.
+## خطة التنفيذ المقترحة (مرتّبة بالأولوية)
 
-تنفيذ "تقسيم وهمي" أو "إعادة تنظيم بلا داعٍ" سيُدخِل تعقيداً دون فائدة، ويخالف القاعدة في `project-knowledge`: «لا تحذف/تعدّل كود موجود دون سبب واضح ومبرّر».
+| # | البند | الحجم | مخاطرة |
+|---|-------|-------|--------|
+| 1 | إصلاح `hooks/financial/README.md` (P2) | ملف واحد | صفر |
+| 2 | نقل `NotificationSettings` إلى `src/types/notifications.ts` (P3) | 3 ملفات | منخفضة |
+| 3 | نقل `BylawEntry` و `ZatcaCertificateSafe` إلى `src/types/` (P4) | 4-5 ملفات + re-exports | منخفضة |
+| 4 | (اختياري) إضافة قسم في `src/components/README.md` يوثّق نمط Container/Tab | ملف توثيق | صفر |
+| 5 | (اختياري ومؤجَّل) تقسيم ملفات PDF/XLSX الكبيرة | 4-5 ملفات | متوسطة (يحتاج اختبارات) |
 
----
+## الخيارات للموافقة
 
-## 🎯 الخيارات الواقعية المتاحة
+- **خيار A (موصى به)**: تنفيذ البنود 1+2+3 — استكمال نظيف لخطة P2/P3/P4 السابقة، صفر تغيير سلوكي، تأثير مباشر على نظافة المعمارية.
+- **خيار B**: تنفيذ البند 1 فقط (إصلاح README) — أصغر حركة ممكنة.
+- **خيار C**: تنفيذ A + البند 4 (توثيق نمط Container/Tab).
+- **خيار D**: لا تغييرات — الحالة الحالية مقبولة (الانحرافات صغيرة جداً).
 
-### خيار A (موصى به) — لا تنفيذ، الانتقال لميزات جديدة
-المعمارية في حالة ممتازة. لا حاجة لأي عمل تجميلي. الوقت أفضل في ميزات أو إصلاح أخطاء فعلية.
+## تفاصيل تقنية للبنود 1-3
 
-### خيار B — تنفيذ بنود P3 الصغيرة فقط (~30 دقيقة، تأثير حقيقي)
-هذه البنود **حقيقية** ولها قيمة قابلة للقياس:
+**البند 1**: استبدال السطر 1 من `src/hooks/financial/README.md` ليصبح `# hooks/financial/ — منطق الأعمال المالي المحسوب`، وتحديث الجدول والملاحظة الأخيرة لتعكس أن `computed` كان الاسم القديم.
 
-1. **استخراج الأرقام السحرية إلى `src/constants/timing.ts`** (~10 د)
-   - `setTimeout(..., 300)` للـ debounce، `5000` لـ toast duration، إلخ.
-   - فحص سريع: `rg "setTimeout\(.*,\s*\d+\)" src` لتحديد المرشحين الفعليين.
+**البند 2**: 
+- إنشاء `src/types/notifications.ts` يحتوي `export interface NotificationSettings { ... }`.
+- تعديل `src/hooks/data/settings/useNotificationSettings.ts` ليستورد منه ويعيد تصديره (`export type { NotificationSettings } from '@/types/notifications'`).
+- تعديل `src/lib/notifications/beneficiaryNotificationVisibility.ts` ليستورد من `@/types/notifications`.
 
-2. **توثيق قاعدة "barrel لا يستورد من barrel" في memory** (~5 د)
-   - حفظ `mem://technical/architecture/barrel-import-rule` لمنع الانحدارات المستقبلية.
-
-3. **مراجعة سريعة لمسارات `hooks/page/admin/management/` العميقة** (~15 د)
-   - تقرير فقط: هل التداخل ضروري أم يمكن تسطيحه؟ بدون تنفيذ ما لم تكن الفائدة واضحة.
-
-### خيار C — إعادة فتح التقرير
-إذا كنت تريد أن أبحث بمعايير أخرى (تكرار، coupling فعلي، dead code، imports دائرية)، أُجري فحصاً جديداً وأعود بنتائج موثّقة بأرقام حقيقية.
-
----
-
-## 📋 توصيتي الصريحة
-
-**خيار A**. لا تستثمر وقتاً في إعادة هيكلة لا تحتاجها. إن أردت تحسيناً حقيقياً، اختر **خيار B** للأرقام السحرية + توثيق قاعدة memory — هاتان مهمتان صغيرتان لكن لهما أثر صيانة طويل المدى.
-
-أي خيار تفضّل؟
+**البند 3**:
+- نقل `BylawEntry` من `useBylaws.ts` إلى `src/types/bylaws.ts` + re-export.
+- نقل `ZatcaCertificateSafe` من `useZatcaCertificates.ts` إلى `src/types/zatca.ts` (موجود) + re-export.
+- لا يُمسّ أي مستهلك آخر.
