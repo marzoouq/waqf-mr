@@ -1,53 +1,80 @@
-# تنفيذ خيار A — تنظيف ESLint + إزالة dependency غير مستخدمة
+# خطة ربط البيانات الإدارية بالواجهات في الزمن الحقيقي
 
-## السياق
-بعد تدقيق المعمارية، الحالة 9.7/10 — لا مشاكل بنيوية. هذه الخطة تنفّذ الخيار A المعتمد:
-- بند 1 (P1): إصلاح خطأ react-hooks في `useLandingStatsSettings`
-- بند 2 (P2): تنظيف re-exports زائدة في `MenuCustomizationTab`
-- بند 3 (P2): كتم تحذير React Compiler في `VirtualTable`
-- بند 4 (P4): إزالة `tailwindcss-animate` (✅ مُنفَّذ بالفعل عبر `bun remove`)
+## الهدف
+ضمان أن أي تعديل يقوم به الناظر/المحاسب على العقارات أو العقود أو الدخل أو المصروفات أو المستفيدين ينعكس **فوراً** على:
+- صفحات المستفيد (حصتي، الإفصاح، التقارير المالية، عرض العقارات/العقود)
+- صفحات الواقف (لوحة التحكم، التقارير)
+- توليد التقارير وحساب الحصص
 
-## نتائج الاستكشاف الجديدة
+دون المساس بأي مكون آخر (UI/منطق محاسبي/RLS/مصادقة).
 
-**بند 2 يحتاج تعديلاً جوهرياً عن الخطة الأصلية**: `MenuLabels` و`defaultMenuLabels` **موجودان أصلاً في `@/types/navigation`** (السطر 14 من الملف). السطران 16-17 مجرد re-exports احتفظت بها قديماً، وفحص المستهلكين أكّد أن **لا أحد يستوردهما من `MenuCustomizationTab`** — يكفي حذف الـre-exports فقط (لا حاجة لإنشاء `constants/menuLabels.ts`).
+---
 
-**بند 4 آمن**: `tailwind.config.ts` لديه `plugins: []` — لم يكن يستخدم `tailwindcss-animate`. الإزالة لا تكسر شيئاً.
+## الوضع الحالي (تشخيص)
 
-## التغييرات المطلوبة
+**جداول مفعّلة في Realtime حالياً:**
+`income, expenses, accounts, payment_invoices, contracts, distributions, advance_requests, fiscal_years, app_settings, support_tickets, support_ticket_replies`
 
-### 1. `src/hooks/page/admin/settings/useLandingStatsSettings.ts` (إعادة كتابة)
-استبدال نمط `useState + useEffect([data]) → setForms` بنمط **uncontrolled-with-overrides**:
-- `forms` المعروضة = `useMemo(merge(remote_data, local_overrides))`
-- `overrides` = `useState<Partial>` يحتفظ بتعديلات المستخدم فقط
-- `handleSave` يمسح `overrides` بعد النجاح فتصبح القيم الجديدة هي remote
-- يحذف الخطأ ويقلّل re-renders + يصلح bug خفي: قبل التعديل كان `useEffect` يعيد كتابة `forms` عند كل refetch ويفقد تعديلات المستخدم
+**جداول غير مفعّلة (الفجوة):**
+`properties, beneficiaries, units, tenant_payments, expense_budgets, annual_report_items, annual_report_status, advance_carryforward, invoices, invoice_items`
 
-### 2. `src/components/settings/system/MenuCustomizationTab.tsx` (تعديل صغير)
-حذف السطرين 16-17:
-```ts
-export type { MenuLabels };
-export { defaultMenuLabels };
-```
-لأن المصدر الصحيح هو `@/types/navigation` ولا مستهلك يعتمد على الـre-exports.
+**هوكات الصفحات بدون اشتراك Realtime:**
+- `useMySharePage` — حصة المستفيد
+- `useDisclosurePage` — الإفصاح
+- `useFinancialReportsPage` — التقارير المالية
+- `useAnnualReportPage` + `useReportsData` — التقارير السنوية
+- `useAnnualReportViewPage`, `usePropertiesViewPage`, `useContractsViewPage` — عروض المستفيد
 
-### 3. `src/components/common/VirtualTable.tsx:91` (تعليق + disable)
-إضافة تعليق توضيحي + `// eslint-disable-next-line react-hooks/incompatible-library` فوق `useVirtualizer`.
+---
 
-### 4. `tailwindcss-animate` (✅ مُنفَّذ)
-أُزيلت من `package.json` عبر `bun remove`.
+## الخطوات (3 بنود فقط)
 
-## التحقق بعد التنفيذ
-- `npx tsc --noEmit` (يجب أن يكون نظيفاً)
-- `npx eslint src --ext .ts,.tsx` (يجب أن يختفي خطأ P1 ويبقى تحذير `MenuCustomizationTab` و`VirtualTable` فقط — وهذان سيُصلَحان أيضاً)
+### 1) ترقية النشر في قاعدة البيانات (Migration)
+إضافة الجداول الناقصة إلى `supabase_realtime` مع ضبط `REPLICA IDENTITY FULL`. لا تغيير على RLS أو دوال أو مشغّلات. السياسات الحالية (المقيِّدة للسنوات غير المنشورة) تبقى تحكم البث.
 
-## ما لن أمسّه
-- لا تغييرات على API السطحي لأي hook (التواقيع محفوظة).
-- لا تغييرات على المستهلكين (صفر ملف خارج الثلاثة أعلاه).
-- لا تغييرات على ملفات الكود المحمية.
+### 2) إضافة اشتراكات Realtime لهوكات الصفحات
+استخدام الهوك الموحّد `useDashboardRealtime` فقط (نفس النمط المعتمد) — لا منطق جديد، فقط استدعاء واحد في كل هوك:
 
-## الأثر
-- يحذف خطأ ESLint الوحيد + تحذيرين.
-- يقلّل re-renders في صفحة إعدادات الهبوط.
-- يصلح bug خفي (فقدان تعديلات المستخدم عند refetch خلفي).
-- يقلّل bundle بإزالة dependency غير مستخدمة.
-- صفر مخاطرة سلوكية.
+| الهوك | الجداول المراقبة | المفاتيح الإضافية |
+|---|---|---|
+| `useMySharePage` | `accounts, distributions, advance_requests, advance_carryforward, beneficiaries, fiscal_years` | `['my-share']` |
+| `useDisclosurePage` | `accounts, income, expenses, distributions, fiscal_years` | `['disclosure']` |
+| `useFinancialReportsPage` | `income, expenses, accounts, distributions, payment_invoices, fiscal_years` | `['financial-reports']` |
+| `useAnnualReportPage` | `annual_report_items, annual_report_status, accounts, fiscal_years` | `['annual-report']` |
+| `useReportsData` | `accounts, income, expenses, distributions, fiscal_years` | `['reports-data']` |
+| `usePropertiesViewPage` | `properties, units` | — |
+| `useContractsViewPage` | `contracts, properties, payment_invoices` | — |
+| `useAnnualReportViewPage` | `annual_report_items, annual_report_status` | — |
+
+### 3) توسيع اشتراك لوحة الإدارة
+إضافة الجداول التشغيلية المفقودة إلى `useAdminDashboardPage` ليرى الناظر تغييرات الفِرَق الأخرى مباشرة:
+- من: `['income','expenses','accounts','payment_invoices','messages']`
+- إلى: `['income','expenses','accounts','payment_invoices','messages','properties','contracts','beneficiaries','distributions','advance_requests']`
+
+---
+
+## ما لن يُلمس (ضمانات عدم الإضرار)
+- لا تعديل على: `AuthContext`, `ProtectedRoute`, `client.ts`, `types.ts`, `config.toml`, `.env`.
+- لا تعديل على RLS، دوال SQL، مشغّلات، أو منطق محاسبي (المحرك المالي الموحّد، حساب الحصص، السنوات المقفلة).
+- لا تعديل على مكونات UI — فقط استدعاء هوك واحد داخل page hooks.
+- لا تعديل على edge functions أو ZATCA أو سلسلة الفواتير.
+- لا تغيير في تواقيع الدوال أو في `createCrudFactory`.
+
+---
+
+## النتيجة المتوقعة
+- تعديل عقار/عقد/دخل/مصروف من جلسة الناظر ⇒ يظهر فوراً (≤500ms debounce) في شاشات المستفيد ولوحة الإدارة وعروض العقارات/العقود.
+- توليد التقارير يعتمد على نفس الكاش المُبطَل ⇒ بيانات محدّثة تلقائياً عند الفتح.
+- صفر تغيير سلوكي للسنوات المقفلة/غير المنشورة (محجوبة بالـRLS الحالية).
+
+## الملفات المتأثرة
+- `supabase/migrations/<timestamp>_realtime_publication_extension.sql` (جديد)
+- `src/hooks/page/admin/dashboard/useAdminDashboardPage.ts`
+- `src/hooks/page/beneficiary/financial/useMySharePage.ts`
+- `src/hooks/page/beneficiary/financial/useDisclosurePage.ts`
+- `src/hooks/page/beneficiary/financial/useFinancialReportsPage.ts`
+- `src/hooks/page/admin/reports/useAnnualReportPage.ts`
+- `src/hooks/page/admin/reports/useReportsData.ts`
+- `src/hooks/page/beneficiary/views/usePropertiesViewPage.ts`
+- `src/hooks/page/beneficiary/views/useContractsViewPage.ts`
+- `src/hooks/page/beneficiary/views/useAnnualReportViewPage.ts`
