@@ -27,7 +27,7 @@ vi.mock('@/hooks/data/useAppSettings', () => ({
 
 vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({ name: 'وقف' })) }));
 
-vi.mock('@/hooks/computed/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447' }, fiscalYears: [{ id: 'fy1', label: '1446-1447' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447' }] })),
 }));
@@ -42,7 +42,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/computed/useMyShare', () => ({
+vi.mock('@/hooks/financial/useMyShare', () => ({
   useMyShare: vi.fn(() => ({
     currentBeneficiary: { user_id: 'u1', name: 'مستفيد', share_percentage: 10 },
     myShare: 58950,
@@ -51,7 +51,7 @@ vi.mock('@/hooks/computed/useMyShare', () => ({
   })),
 }));
 
-vi.mock('@/hooks/computed/useTotalBeneficiaryPercentage', () => ({
+vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
 }));
 

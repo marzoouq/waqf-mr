@@ -26,7 +26,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/hooks/computed/useDistribute', () => ({
+vi.mock('@/hooks/financial/useDistribute', () => ({
   useDistributeShares: () => ({
     mutateAsync: vi.fn(),
     isPending: false,

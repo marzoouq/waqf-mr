@@ -3,11 +3,11 @@
  * مُستخرَج من usePropertiesPage. الفصل بين 3 useMemos مقصود (راجع #25 في الفحص العميق).
  */
 import { useMemo } from 'react';
-import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/computed/usePropertyFinancials';
+import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
-import { useContractAllocationMap } from '@/hooks/computed/useContractAllocationMap';
+import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import type { Property } from '@/types';
 import type { Contract } from '@/types';
