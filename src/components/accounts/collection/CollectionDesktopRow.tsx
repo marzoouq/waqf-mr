@@ -1,6 +1,8 @@
 /**
  * صف جدول التحصيل — سطح المكتب
+ * مُغلَّف بـ memo لتقليل re-renders عند تعديل صف واحد فقط.
  */
+import { memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,11 +12,11 @@ import { Pencil, Check, X, CalendarRange } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 import type { CollectionRowProps } from './types';
 
-const CollectionDesktopRow = ({
+const CollectionDesktopRow = memo(function CollectionDesktopRow({
   item, isEditing, editData, setEditData,
   onStartEdit, onCancelEdit, onSaveEdit,
   isUpdatePending, isUpsertPending,
-}: CollectionRowProps) => {
+}: CollectionRowProps) {
   const editRent = editData?.monthlyRent ?? item.paymentPerPeriod;
   const editPaid = editData?.paidMonths ?? item.paidMonths;
   const editTotal = editRent * editPaid;
@@ -113,6 +115,6 @@ const CollectionDesktopRow = ({
       </TableCell>
     </TableRow>
   );
-};
+});
 
 export default CollectionDesktopRow;

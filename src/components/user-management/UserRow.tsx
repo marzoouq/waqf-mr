@@ -1,6 +1,8 @@
 /**
  * صف مستخدم واحد (سطح المكتب فقط) — مُستخرَج من UsersTable
+ * مُغلَّف بـ memo لتقليل re-renders في جدول المستخدمين.
  */
+import { memo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TableCell, TableRow } from '@/components/ui/table';
@@ -28,7 +30,7 @@ interface Props {
   onDelete: (user: { id: string; email: string }) => void;
 }
 
-export default function UserRow({
+const UserRow = memo(function UserRow({
   user, isSelf, pendingConfirmId, isOrphaned,
   onConfirmEmail, onEdit, onPasswordChange, onDelete,
 }: Props) {
@@ -72,4 +74,6 @@ export default function UserRow({
       </TableCell>
     </TableRow>
   );
-}
+});
+
+export default UserRow;
