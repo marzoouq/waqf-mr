@@ -21,7 +21,7 @@ import { c14n } from "../_shared/xml-c14n.ts";
 
 import { extractCertSignatureAndPublicKey } from "./x509-parser.ts";
 import { buildXmlDsig, sha256Base64, sha256BytesBase64, hexToBytes } from "./xmldsig-builder.ts";
-import { generateZatcaQrTLV } from "./qr-tlv.ts";
+import { generateZatcaQrTLV } from "../_shared/zatca-qr-tlv.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

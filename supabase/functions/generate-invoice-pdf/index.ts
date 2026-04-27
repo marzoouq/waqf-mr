@@ -81,45 +81,8 @@ interface InvoiceData {
   amount_excluding_vat: number | null;
 }
 
-// ─── ZATCA TLV Encoding (GAP-10 FIX: multi-byte BER length) ────
-function berLength(len: number): Uint8Array {
-  if (len < 128) return new Uint8Array([len]);
-  if (len < 256) return new Uint8Array([0x81, len]);
-  return new Uint8Array([0x82, (len >> 8) & 0xff, len & 0xff]);
-}
-
-function encodeTLV(tag: number, value: string): Uint8Array {
-  const encoder = new TextEncoder();
-  const valueBytes = encoder.encode(value);
-  const lenBytes = berLength(valueBytes.length);
-  const tlv = new Uint8Array(1 + lenBytes.length + valueBytes.length);
-  tlv[0] = tag;
-  tlv.set(lenBytes, 1);
-  tlv.set(valueBytes, 1 + lenBytes.length);
-  return tlv;
-}
-
-function generateZatcaQrTLV(sellerName: string, vatNumber: string, timestamp: string, totalWithVat: number, vatAmount: number): string {
-  const entries = [
-    encodeTLV(1, sellerName),
-    encodeTLV(2, vatNumber),
-    encodeTLV(3, timestamp),
-    encodeTLV(4, totalWithVat.toFixed(2)),
-    encodeTLV(5, vatAmount.toFixed(2)),
-  ];
-  const totalLength = entries.reduce((sum, e) => sum + e.length, 0);
-  const result = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const entry of entries) {
-    result.set(entry, offset);
-    offset += entry.length;
-  }
-  let binary = '';
-  for (let i = 0; i < result.length; i++) {
-    binary += String.fromCharCode(result[i]);
-  }
-  return btoa(binary);
-}
+// ─── ZATCA QR TLV (shared single source of truth) ────────────────
+import { generateZatcaQrTLV } from "../_shared/zatca-qr-tlv.ts";
 
 interface WaqfSettings {
   waqf_name: string;
