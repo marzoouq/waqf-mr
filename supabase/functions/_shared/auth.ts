@@ -145,3 +145,30 @@ export function authenticateAdmin(
     rateLimitWindowSeconds: 60,
   });
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// JWT Helpers — تُستخدم من cron jobs و process-email-queue
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** يفك ترميز ادعاءات JWT بدون تحقق التوقيع (استخدمها فقط بعد التحقق على بوابة Supabase). */
+export function parseJwtClaims(token: string): Record<string, unknown> | null {
+  const parts = token.split(".");
+  if (parts.length < 2) return null;
+  try {
+    const payload = parts[1]
+      .replaceAll("-", "+")
+      .replaceAll("_", "/")
+      .padEnd(Math.ceil(parts[1].length / 4) * 4, "=");
+    return JSON.parse(atob(payload)) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+/** يتحقق ما إذا كان الـ JWT ينتمي لدور service_role (يستخدم في cron jobs). */
+export function isServiceRole(token: string): boolean {
+  if (!token) return false;
+  const claims = parseJwtClaims(token);
+  return claims?.role === "service_role";
+}
+
