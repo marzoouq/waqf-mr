@@ -4,7 +4,6 @@
  * - تعرض: آخر تشغيل، إحصاءات (sent/failed/dlq/suppressed)، قائمة الرسائل، زر إعادة محاولة DLQ
  * - فلاتر: نطاق زمني (24h/7d/30d/custom)، نوع القالب، الحالة
  */
-import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,7 +65,6 @@ function formatDateTime(iso: string | null) {
 
 export default function EmailMonitorPage() {
   const h = useEmailMonitorPage();
-  const [showCustom, setShowCustom] = useState(false);
 
   const lastRunLabel = h.adminStats?.last_log_at ? formatDateTime(h.adminStats.last_log_at) : 'لا يوجد';
   const rateLimitedUntil = h.adminStats?.rate_limited_until;
