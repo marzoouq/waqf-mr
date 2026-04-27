@@ -215,8 +215,8 @@ export async function logZatcaOperation(
 // deno-lint-ignore no-explicit-any
 type AdminClient = ReturnType<typeof createClient<any, any, any>>;
 export type AuthResult =
-  | { error: Response; user?: undefined; admin?: undefined }
-  | { error?: undefined; user: { id: string; email?: string | null }; admin: AdminClient };
+  | { error: Response }
+  | { user: { id: string; email?: string | null }; admin: AdminClient };
 
 export async function authenticateAdmin(req: Request, corsHeaders: Record<string, string>, rateLimitKey: string): Promise<AuthResult> {
   const authHeader = req.headers.get("authorization") || "";
