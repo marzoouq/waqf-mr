@@ -209,42 +209,11 @@ export async function logZatcaOperation(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Auth & Rate Limiting المشتركة
+// Auth & Rate Limiting — مُوحَّدة في _shared/auth.ts
+// ───────────────────────────────────────────────────────────────────────────────
+// نُعيد التصدير للحفاظ على التوافق مع المستوردين القُدامى (zatca-onboard/renew/report).
+// الأكواد الجديدة يفضّل أن تستورد مباشرة من ../_shared/auth.ts.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// deno-lint-ignore no-explicit-any
-type AdminClient = ReturnType<typeof createClient<any, any, any>>;
-export type AuthResult =
-  | { error: Response }
-  | { user: { id: string; email?: string | null }; admin: AdminClient };
+export { authenticateAdmin, authenticate, type AuthResult, type AuthOptions, type AdminClient } from "./auth.ts";
 
-export async function authenticateAdmin(req: Request, corsHeaders: Record<string, string>, rateLimitKey: string): Promise<AuthResult> {
-  const authHeader = req.headers.get("authorization") || "";
-  if (!authHeader.startsWith("Bearer ")) {
-    return { error: new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }) };
-  }
-
-  const supaAuth = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
-    global: { headers: { Authorization: authHeader } },
-  });
-  const { data: { user }, error: userError } = await supaAuth.auth.getUser();
-  if (userError || !user) {
-    return { error: new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }) };
-  }
-
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY) as AdminClient;
-
-  const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin"]);
-  if (!roles?.length) {
-    return { error: new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }) };
-  }
-
-  const { data: isLimited } = await admin.rpc('check_rate_limit', {
-    p_key: `${rateLimitKey}:${user.id}`, p_limit: 30, p_window_seconds: 60
-  });
-  if (isLimited) {
-    return { error: new Response(JSON.stringify({ error: "تم تجاوز الحد المسموح من الطلبات. حاول بعد دقيقة." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }) };
-  }
-
-  return { user, admin };
-}
