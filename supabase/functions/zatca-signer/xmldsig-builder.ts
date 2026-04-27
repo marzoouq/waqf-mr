@@ -24,7 +24,10 @@ export function sha256Bytes(data: Uint8Array): Uint8Array {
 
 /** SHA-256 of raw bytes → base64 */
 export async function sha256BytesBase64(data: Uint8Array): Promise<string> {
-  const hash = await crypto.subtle.digest("SHA-256", data);
+  // Cast to BufferSource via ArrayBuffer slice — TS lib.dom is strict about
+  // ArrayBufferLike vs ArrayBuffer when SharedArrayBuffer is in scope.
+  const buf = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
+  const hash = await crypto.subtle.digest("SHA-256", buf);
   return btoa(String.fromCharCode(...new Uint8Array(hash)));
 }
 
