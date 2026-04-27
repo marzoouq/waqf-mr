@@ -133,31 +133,38 @@ export async function fetchWaqfData(
 
     type PromiseResult = { data: unknown[] | null; error: unknown } | { count: number | null; error: unknown };
 
+    // Wrap each query in Promise.resolve to normalize PostgrestFilterBuilder (Thenable) into Promise.
     const batch2Promises: Promise<PromiseResult>[] = [
       // 0: الحسابات المالية
-      client.from("accounts")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(3),
+      Promise.resolve(
+        client.from("accounts")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(3)
+      ) as Promise<PromiseResult>,
       // 1: العقود النشطة (admin) أو عدد فقط (non-admin)
-      isAdmin
-        ? client.from("contracts")
-            .select("contract_number, rent_amount, start_date, end_date, status, payment_type")
-            .eq("status", "active")
-            .limit(30)
-        : client.from("contracts")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "active"),
+      Promise.resolve(
+        isAdmin
+          ? client.from("contracts")
+              .select("contract_number, rent_amount, start_date, end_date, status, payment_type")
+              .eq("status", "active")
+              .limit(30)
+          : client.from("contracts")
+              .select("id", { count: "exact", head: true })
+              .eq("status", "active")
+      ) as Promise<PromiseResult>,
       // 2: التوزيعات (admin) أو توزيعات المستفيد
       isAdmin
-        ? client.from("distributions")
-            .select("amount, date, status")
-            .order("date", { ascending: false })
-            .limit(20)
-        : (async () => {
+        ? (Promise.resolve(
+            client.from("distributions")
+              .select("amount, date, status")
+              .order("date", { ascending: false })
+              .limit(20)
+          ) as Promise<PromiseResult>)
+        : (async (): Promise<PromiseResult> => {
             const { data: myBen } = await client.from("beneficiaries").select("id").eq("user_id", userId).single();
             if (!myBen) return { data: [], error: null };
-            return client.from("distributions")
+            return await client.from("distributions")
               .select("amount, date, status")
               .eq("beneficiary_id", myBen.id)
               .order("date", { ascending: false })
@@ -169,38 +176,43 @@ export async function fetchWaqfData(
     if (activeFY && (isAdmin || activeFY.published)) {
       // 3: إجماليات الدخل حسب المصدر (مُجمّعة بدلاً من 500 سجل)
       batch2Promises.push(
-        client.rpc("get_income_summary_by_source", { p_fiscal_year_id: activeFY.id })
-          .then((res: { data: unknown[] | null; error: unknown }) => res)
-          .catch(() => {
-            // fallback: جلب سجلات محدودة إذا لم تكن الدالة موجودة
-            return client.from("income")
-              .select("source, amount")
-              .eq("fiscal_year_id", activeFY.id)
-              .limit(100);
-          })
+        Promise.resolve(client.rpc("get_income_summary_by_source", { p_fiscal_year_id: activeFY.id }))
+          .then(
+            (res) => res as PromiseResult,
+            () => Promise.resolve(
+              client.from("income")
+                .select("source, amount")
+                .eq("fiscal_year_id", activeFY.id)
+                .limit(100)
+            ) as Promise<PromiseResult>
+          )
       );
       // 4: إجماليات المصروفات حسب النوع (مُجمّعة)
       batch2Promises.push(
-        client.rpc("get_expense_summary_by_type", { p_fiscal_year_id: activeFY.id })
-          .then((res: { data: unknown[] | null; error: unknown }) => res)
-          .catch(() => {
-            return client.from("expenses")
-              .select("expense_type, amount")
-              .eq("fiscal_year_id", activeFY.id)
-              .limit(100);
-          })
+        Promise.resolve(client.rpc("get_expense_summary_by_type", { p_fiscal_year_id: activeFY.id }))
+          .then(
+            (res) => res as PromiseResult,
+            () => Promise.resolve(
+              client.from("expenses")
+                .select("expense_type, amount")
+                .eq("fiscal_year_id", activeFY.id)
+                .limit(100)
+            ) as Promise<PromiseResult>
+          )
       );
     }
 
     // 5: العقود المنتهية قريباً (admin فقط)
     if (isAdmin) {
       batch2Promises.push(
-        client.from("contracts")
-          .select("contract_number, end_date, rent_amount")
-          .eq("status", "active")
-          .lte("end_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
-          .order("end_date", { ascending: true })
-          .limit(10)
+        Promise.resolve(
+          client.from("contracts")
+            .select("contract_number, end_date, rent_amount")
+            .eq("status", "active")
+            .lte("end_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
+            .order("end_date", { ascending: true })
+            .limit(10)
+        ) as Promise<PromiseResult>
       );
     }
 

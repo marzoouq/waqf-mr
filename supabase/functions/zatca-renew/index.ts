@@ -20,7 +20,7 @@ import {
   sha256Async,
 } from "../_shared/zatca-shared.ts";
 
-Deno.serve(async (req) => {
+Deno.serve(async (req): Promise<Response> => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -94,7 +94,9 @@ Deno.serve(async (req) => {
     }
 
     // دالة مساعدة لحذف OTP بعد أي نتيجة
-    const clearOtp = () => admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"]).catch(() => {});
+    const clearOtp = async () => {
+      try { await admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"]); } catch { /* ignore */ }
+    };
 
     try {
       // الخطوة 2: الحصول على Compliance CSID جديد

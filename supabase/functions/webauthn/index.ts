@@ -164,7 +164,8 @@ Deno.serve(async (req: Request) => {
 
       const toBase64 = (arr: Uint8Array) =>
         btoa(Array.from(arr, (b) => String.fromCharCode(b)).join(''));
-      const credIdBase64 = toBase64(regCred.id);
+      // In @simplewebauthn/types@11, regCred.id is already a Base64URLString.
+      const credIdBase64 = regCred.id;
       const pubKeyBase64 = toBase64(regCred.publicKey);
 
       await admin.from("webauthn_credentials").insert({
@@ -273,7 +274,6 @@ Deno.serve(async (req: Request) => {
 
       // تحويل المفتاح العام من base64 إلى Uint8Array
       const pubKeyBytes = Uint8Array.from(atob(storedCred.public_key), c => c.charCodeAt(0));
-      const credIdBytes = Uint8Array.from(atob(storedCred.credential_id), c => c.charCodeAt(0));
 
       const verification = await verifyAuthenticationResponse({
         response: credential,
@@ -281,7 +281,8 @@ Deno.serve(async (req: Request) => {
         expectedOrigin: rp.origin,
         expectedRPID: rp.rpID,
         credential: {
-          id: credIdBytes,
+          // @simplewebauthn/types@11 expects Base64URLString here.
+          id: storedCred.credential_id,
           publicKey: pubKeyBytes,
           counter: Number(storedCred.counter),
           transports: storedCred.transports || [],

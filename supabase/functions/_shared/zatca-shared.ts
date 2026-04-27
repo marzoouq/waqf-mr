@@ -212,7 +212,13 @@ export async function logZatcaOperation(
 // Auth & Rate Limiting المشتركة
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function authenticateAdmin(req: Request, corsHeaders: Record<string, string>, rateLimitKey: string) {
+// deno-lint-ignore no-explicit-any
+type AdminClient = ReturnType<typeof createClient<any, any, any>>;
+export type AuthResult =
+  | { error: Response }
+  | { user: { id: string; email?: string | null }; admin: AdminClient };
+
+export async function authenticateAdmin(req: Request, corsHeaders: Record<string, string>, rateLimitKey: string): Promise<AuthResult> {
   const authHeader = req.headers.get("authorization") || "";
   if (!authHeader.startsWith("Bearer ")) {
     return { error: new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }) };
@@ -226,7 +232,7 @@ export async function authenticateAdmin(req: Request, corsHeaders: Record<string
     return { error: new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }) };
   }
 
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY) as AdminClient;
 
   const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin"]);
   if (!roles?.length) {
