@@ -4,7 +4,6 @@
  * - تعرض: آخر تشغيل، إحصاءات (sent/failed/dlq/suppressed)، قائمة الرسائل، زر إعادة محاولة DLQ
  * - فلاتر: نطاق زمني (24h/7d/30d/custom)، نوع القالب، الحالة
  */
-import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,7 +65,6 @@ function formatDateTime(iso: string | null) {
 
 export default function EmailMonitorPage() {
   const h = useEmailMonitorPage();
-  const [showCustom, setShowCustom] = useState(false);
 
   const lastRunLabel = h.adminStats?.last_log_at ? formatDateTime(h.adminStats.last_log_at) : 'لا يوجد';
   const rateLimitedUntil = h.adminStats?.rate_limited_until;
@@ -166,7 +164,7 @@ export default function EmailMonitorPage() {
                   key={r}
                   size="sm"
                   variant={h.range === r ? 'default' : 'outline'}
-                  onClick={() => { h.setRange(r); setShowCustom(false); }}
+                  onClick={() => { h.setRange(r); h.setShowCustom(false); }}
                 >
                   {r === '24h' ? 'آخر 24 ساعة' : r === '7d' ? 'آخر 7 أيام' : 'آخر 30 يوم'}
                 </Button>
@@ -174,13 +172,13 @@ export default function EmailMonitorPage() {
               <Button
                 size="sm"
                 variant={h.range === 'custom' ? 'default' : 'outline'}
-                onClick={() => { h.setRange('custom'); setShowCustom(true); }}
+                onClick={() => { h.setRange('custom'); h.setShowCustom(true); }}
               >
                 نطاق مخصص
               </Button>
             </div>
 
-            {showCustom && (
+            {h.showCustom && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">من</label>

@@ -1,10 +1,9 @@
-import { lazy, Suspense, useCallback } from 'react';
+import { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Plus, Lock, Wallet } from 'lucide-react';
 import { ExportMenu, DeferredRender, StatsGridSkeleton, LockedYearBanner } from '@/components/common';
-import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { useAccountsPage } from '@/hooks/page/admin/financial/useAccountsPage';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 
@@ -25,26 +24,6 @@ const AccountsPage = () => {
   const { role } = useAuth();
   const page = useAccountsPage();
 
-  const handleExportCsv = useCallback(() => {
-    const csv = buildCsv([{
-      'السنة المالية': page.selectedFY?.label || '-',
-      'إجمالي الإيرادات': page.totalIncome,
-      'إجمالي المصروفات': page.totalExpenses,
-      'صافي بعد المصروفات': page.netAfterExpenses,
-      'الضريبة': page.manualVat,
-      'الزكاة': page.zakatAmount,
-      'حصة الناظر': page.adminShare,
-      'حصة الواقف': page.waqifShare,
-      'ريع الوقف': page.waqfRevenue,
-      'رقبة الوقف': page.waqfCorpusManual,
-      'المتاح للتوزيع': page.availableAmount,
-    }]);
-    downloadCsv(csv, `حسابات-${page.selectedFY?.label || 'عام'}.csv`);
-  }, [
-    page.selectedFY, page.totalIncome, page.totalExpenses, page.netAfterExpenses,
-    page.manualVat, page.zakatAmount, page.adminShare, page.waqifShare,
-    page.waqfRevenue, page.waqfCorpusManual, page.availableAmount,
-  ]);
 
   return (
     <DashboardLayout>
@@ -56,7 +35,7 @@ const AccountsPage = () => {
           actions={<>
             {/* #6 — استخدام LockedYearBanner بدل span inline */}
             <LockedYearBanner isClosed={page.isClosed} role={role} />
-            <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={handleExportCsv} />
+            <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={page.handleExportCsv} />
             <Button onClick={page.handleCreateAccount} className="gradient-primary gap-2" disabled={page.createAccountPending}>
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">إنشاء حساب ختامي</span>

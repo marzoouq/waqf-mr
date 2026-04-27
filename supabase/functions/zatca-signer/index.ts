@@ -10,9 +10,9 @@
  *  6. Inject QR TLV (with TaxInclusiveAmount) → save
  *
  * Modular layout:
- *   - x509-parser.ts     — ASN.1 DER parsing (issuer, serial, public key)
- *   - xmldsig-builder.ts — SignedInfo + SignedProperties + ECDSA crypto helpers
- *   - qr-tlv.ts          — ZATCA QR TLV (BER) encoding for Phase 2
+ *   - x509-parser.ts                — ASN.1 DER parsing (issuer, serial, public key)
+ *   - xmldsig-builder.ts            — SignedInfo + SignedProperties + ECDSA crypto helpers
+ *   - ../_shared/zatca-qr-tlv.ts    — ZATCA QR TLV (BER) encoding for Phase 2 (shared)
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { p256 } from "npm:@noble/curves@1.4.0/p256";
@@ -21,7 +21,7 @@ import { c14n } from "../_shared/xml-c14n.ts";
 
 import { extractCertSignatureAndPublicKey } from "./x509-parser.ts";
 import { buildXmlDsig, sha256Base64, sha256BytesBase64, hexToBytes } from "./xmldsig-builder.ts";
-import { generateZatcaQrTLV } from "./qr-tlv.ts";
+import { generateZatcaQrTLV } from "../_shared/zatca-qr-tlv.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

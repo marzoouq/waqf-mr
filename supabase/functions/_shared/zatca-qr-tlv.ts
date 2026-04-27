@@ -1,14 +1,22 @@
 /**
- * QR TLV builder (ZATCA Phase 2 — supports tags 6-9 for Standard invoices)
+ * Shared ZATCA Phase 2 QR TLV builder.
+ *
+ * Single source of truth for TLV encoding (BER lengths) used by:
+ *   - supabase/functions/zatca-signer/index.ts        (Phase 2 — tags 1-9)
+ *   - supabase/functions/generate-invoice-pdf/index.ts (Phase 1 — tags 1-5)
+ *   - supabase/functions/zatca-signer/index.test.ts   (unit tests)
+ *
+ * Tags 6-9 (signature / public key / cert signature / cert public key)
+ * are required for Standard (Phase 2) invoices and optional otherwise.
  */
 
-function berLength(len: number): Uint8Array {
+export function berLength(len: number): Uint8Array {
   if (len < 128) return new Uint8Array([len]);
   if (len < 256) return new Uint8Array([0x81, len]);
   return new Uint8Array([0x82, (len >> 8) & 0xff, len & 0xff]);
 }
 
-function encodeTLV(tag: number, value: string): Uint8Array {
+export function encodeTLV(tag: number, value: string): Uint8Array {
   const valueBytes = new TextEncoder().encode(value);
   const lenBytes = berLength(valueBytes.length);
   const tlv = new Uint8Array(1 + lenBytes.length + valueBytes.length);
@@ -18,7 +26,7 @@ function encodeTLV(tag: number, value: string): Uint8Array {
   return tlv;
 }
 
-function encodeTLVBytes(tag: number, value: Uint8Array): Uint8Array {
+export function encodeTLVBytes(tag: number, value: Uint8Array): Uint8Array {
   const lenBytes = berLength(value.length);
   const tlv = new Uint8Array(1 + lenBytes.length + value.length);
   tlv[0] = tag;
@@ -28,14 +36,21 @@ function encodeTLVBytes(tag: number, value: Uint8Array): Uint8Array {
 }
 
 export function generateZatcaQrTLV(
-  sellerName: string, vatNumber: string, timestamp: string,
-  totalWithVat: number, vatAmount: number,
-  signatureBytes?: Uint8Array, publicKeyBytes?: Uint8Array,
-  certSignatureBytes?: Uint8Array, certPublicKeyBytes?: Uint8Array,
+  sellerName: string,
+  vatNumber: string,
+  timestamp: string,
+  totalWithVat: number,
+  vatAmount: number,
+  signatureBytes?: Uint8Array,
+  publicKeyBytes?: Uint8Array,
+  certSignatureBytes?: Uint8Array,
+  certPublicKeyBytes?: Uint8Array,
 ): string {
   const entries = [
-    encodeTLV(1, sellerName), encodeTLV(2, vatNumber),
-    encodeTLV(3, timestamp), encodeTLV(4, totalWithVat.toFixed(2)),
+    encodeTLV(1, sellerName),
+    encodeTLV(2, vatNumber),
+    encodeTLV(3, timestamp),
+    encodeTLV(4, totalWithVat.toFixed(2)),
     encodeTLV(5, vatAmount.toFixed(2)),
   ];
 
@@ -48,7 +63,10 @@ export function generateZatcaQrTLV(
   const total = entries.reduce((s, e) => s + e.length, 0);
   const buf = new Uint8Array(total);
   let off = 0;
-  for (const e of entries) { buf.set(e, off); off += e.length; }
+  for (const e of entries) {
+    buf.set(e, off);
+    off += e.length;
+  }
   let bin = "";
   for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
   return btoa(bin);

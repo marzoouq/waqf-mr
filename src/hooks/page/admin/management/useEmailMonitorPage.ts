@@ -57,6 +57,7 @@ export function useEmailMonitorPage() {
   const [range, setRange] = useState<EmailRange>('7d');
   const [customStart, setCustomStart] = useState<string>('');
   const [customEnd, setCustomEnd] = useState<string>('');
+  const [showCustom, setShowCustom] = useState(false);
   const [templateFilter, setTemplateFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<EmailStatusFilter>('all');
   const [page, setPage] = useState(0);
@@ -186,6 +187,7 @@ export function useEmailMonitorPage() {
     range, setRange,
     customStart, setCustomStart,
     customEnd, setCustomEnd,
+    showCustom, setShowCustom,
     templateFilter, setTemplateFilter,
     statusFilter, setStatusFilter,
     page, setPage,

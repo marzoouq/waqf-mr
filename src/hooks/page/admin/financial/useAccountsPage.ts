@@ -7,7 +7,7 @@
  * - useAccountsEditing: حالة التحرير
  * - useAccountsActions: العمليات (حفظ، إقفال، تصدير)
  */
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useAccountsData } from '@/hooks/financial/useAccountsData';
 import { useAccountsSettings } from '@/hooks/financial/useAccountsSettings';
 import { useAccountsCalculations } from '@/hooks/financial/useAccountsCalculations';
@@ -16,6 +16,7 @@ import { useAccountsActions } from '@/hooks/financial/useAccountsActions';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useAdvanceRequests } from '@/hooks/data/financial/useAdvanceRequests';
 import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/useTotalBeneficiaryPercentage';
+import { buildCsv, downloadCsv } from '@/utils/export/csv';
 
 
 export function useAccountsPage() {
@@ -90,6 +91,29 @@ export function useAccountsPage() {
     [advanceRequests]
   );
 
+  // 7. تصدير CSV — قياس واحد للحقول المالية الموزعة عبر الصفحة
+  const handleExportCsv = useCallback(() => {
+    const csv = buildCsv([{
+      'السنة المالية': data.selectedFY?.label || '-',
+      'إجمالي الإيرادات': calc.totalIncome,
+      'إجمالي المصروفات': calc.totalExpenses,
+      'صافي بعد المصروفات': calc.netAfterExpenses,
+      'الضريبة': settings.manualVat,
+      'الزكاة': settings.zakatAmount,
+      'حصة الناظر': calc.adminShare,
+      'حصة الواقف': calc.waqifShare,
+      'ريع الوقف': calc.waqfRevenue,
+      'رقبة الوقف': settings.waqfCorpusManual,
+      'المتاح للتوزيع': calc.availableAmount,
+    }]);
+    downloadCsv(csv, `حسابات-${data.selectedFY?.label || 'عام'}.csv`);
+  }, [
+    data.selectedFY,
+    calc.totalIncome, calc.totalExpenses, calc.netAfterExpenses,
+    calc.adminShare, calc.waqifShare, calc.waqfRevenue, calc.availableAmount,
+    settings.manualVat, settings.zakatAmount, settings.waqfCorpusManual,
+  ]);
+
   return {
     // Data
     accounts: data.accounts, contracts: data.contracts, beneficiaries: data.beneficiaries,
@@ -137,7 +161,9 @@ export function useAccountsPage() {
     handleConfirmDelete: editing.handleConfirmDelete,
     // Actions
     handleCreateAccount: actions.handleCreateAccount, handleCloseYear: actions.handleCloseYear,
-    handleExportPdf: actions.handleExportPdf, handleFiscalYearChange: settings.handleFiscalYearChange,
+    handleExportPdf: actions.handleExportPdf,
+    handleExportCsv,
+    handleFiscalYearChange: settings.handleFiscalYearChange,
     handleAdminPercentChange: settings.handleAdminPercentChange,
     handleWaqifPercentChange: settings.handleWaqifPercentChange,
     // Close year dialog
