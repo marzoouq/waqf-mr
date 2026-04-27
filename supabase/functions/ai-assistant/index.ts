@@ -1,13 +1,16 @@
 /**
  * المساعد الذكي — نقطة الدخول الرئيسية
  * المنطق مقسّم إلى:
- *   _shared/ai-prompts.ts    → قوالب System Prompt
- *   _shared/ai-data-fetcher.ts → جلب بيانات الوقف + Cache
+ *   _shared/ai-prompts.ts → قوالب System Prompt
+ *   ./fetcher.ts          → جلب بيانات الوقف بالتوازي
+ *   ./simple-cache.ts     → Cache في الذاكرة
+ *   ./privacy-ranges.ts   → نطاقات إخفاء المبالغ للمستخدمين غير الإداريين
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { buildSystemPrompt, ALLOWED_MODES, type AllowedMode } from "../_shared/ai-prompts.ts";
-import { fetchWaqfData, dataCache } from "../_shared/ai-data-fetcher.ts";
+import { fetchWaqfData } from "./fetcher.ts";
+import { dataCache } from "./simple-cache.ts";
 
 /** حد الاستخدام اليومي لكل مستخدم */
 const DAILY_QUOTA = 100;

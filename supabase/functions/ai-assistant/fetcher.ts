@@ -1,52 +1,9 @@
 /**
  * جلب بيانات الوقف من قاعدة البيانات للمساعد الذكي
- * مفصول عن index.ts لسهولة الصيانة والاختبار
  * مُحسَّن: جميع الاستعلامات تُنفَّذ بالتوازي بدلاً من التسلسل
  */
 import { SupabaseClient } from "npm:@supabase/supabase-js@2";
-
-// ─── تحويل المبالغ إلى نطاقات مجمّعة لحماية الخصوصية ───
-function toRange(amount: number): string {
-  if (amount <= 0) return "0";
-  if (amount < 10_000) return "أقل من 10,000";
-  if (amount < 50_000) return "10,000 - 50,000";
-  if (amount < 100_000) return "50,000 - 100,000";
-  if (amount < 500_000) return "100,000 - 500,000";
-  if (amount < 1_000_000) return "500,000 - مليون";
-  return "أكثر من مليون";
-}
-
-// ─── Cache بسيط في الذاكرة لتقليل استعلامات DB المتكررة ───
-class SimpleCache {
-  private cache = new Map<string, { data: string; ts: number }>();
-  private readonly ttl: number;
-  private readonly maxSize: number;
-
-  constructor(ttlMs = 60_000, maxSize = 50) {
-    this.ttl = ttlMs;
-    this.maxSize = maxSize;
-  }
-
-  get(key: string): string | null {
-    const entry = this.cache.get(key);
-    if (!entry) return null;
-    if (Date.now() - entry.ts > this.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-    return entry.data;
-  }
-
-  set(key: string, data: string): void {
-    if (this.cache.size >= this.maxSize) {
-      const oldest = this.cache.keys().next().value;
-      if (oldest) this.cache.delete(oldest);
-    }
-    this.cache.set(key, { data, ts: Date.now() });
-  }
-}
-
-export const dataCache = new SimpleCache();
+import { toRange } from "./privacy-ranges.ts";
 
 /**
  * جلب بيانات الوقف حسب دور المستخدم
@@ -133,34 +90,31 @@ export async function fetchWaqfData(
 
     type PromiseResult = { data: unknown[] | null; error: unknown } | { count: number | null; error: unknown };
 
-    // Wrap each query in Promise.resolve to normalize PostgrestFilterBuilder (Thenable) into Promise.
-    const batch2Promises: Promise<PromiseResult>[] = [
+    // PostgrestFilterBuilder هو Thenable (PromiseLike)؛ نُبقي النوع PromiseLike للسماح بالاستخدامين.
+    const batch2Promises: PromiseLike<PromiseResult>[] = [
       // 0: الحسابات المالية
-      Promise.resolve(
-        client.from("accounts")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(3)
-      ) as Promise<PromiseResult>,
+      client.from("accounts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(3)
+        .then((r) => r as PromiseResult),
       // 1: العقود النشطة (admin) أو عدد فقط (non-admin)
-      Promise.resolve(
-        isAdmin
-          ? client.from("contracts")
-              .select("contract_number, rent_amount, start_date, end_date, status, payment_type")
-              .eq("status", "active")
-              .limit(30)
-          : client.from("contracts")
-              .select("id", { count: "exact", head: true })
-              .eq("status", "active")
-      ) as Promise<PromiseResult>,
+      (isAdmin
+        ? client.from("contracts")
+            .select("contract_number, rent_amount, start_date, end_date, status, payment_type")
+            .eq("status", "active")
+            .limit(30)
+        : client.from("contracts")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "active")
+      ).then((r) => r as PromiseResult),
       // 2: التوزيعات (admin) أو توزيعات المستفيد
       isAdmin
-        ? (Promise.resolve(
-            client.from("distributions")
-              .select("amount, date, status")
-              .order("date", { ascending: false })
-              .limit(20)
-          ) as Promise<PromiseResult>)
+        ? client.from("distributions")
+            .select("amount, date, status")
+            .order("date", { ascending: false })
+            .limit(20)
+            .then((r) => r as PromiseResult)
         : (async (): Promise<PromiseResult> => {
             const { data: myBen } = await client.from("beneficiaries").select("id").eq("user_id", userId).single();
             if (!myBen) return { data: [], error: null };
@@ -174,30 +128,28 @@ export async function fetchWaqfData(
 
     // إضافة استعلامات مُجمّعة للسنة النشطة بدل السجلات الخام
     if (activeFY && (isAdmin || activeFY.published)) {
-      // 3: إجماليات الدخل حسب المصدر (مُجمّعة بدلاً من 500 سجل)
+      // 3: إجماليات الدخل حسب المصدر
       batch2Promises.push(
         Promise.resolve(client.rpc("get_income_summary_by_source", { p_fiscal_year_id: activeFY.id }))
           .then(
             (res) => res as PromiseResult,
-            () => Promise.resolve(
-              client.from("income")
-                .select("source, amount")
-                .eq("fiscal_year_id", activeFY.id)
-                .limit(100)
-            ) as Promise<PromiseResult>
+            () => client.from("income")
+              .select("source, amount")
+              .eq("fiscal_year_id", activeFY.id)
+              .limit(100)
+              .then((r) => r as PromiseResult),
           )
       );
-      // 4: إجماليات المصروفات حسب النوع (مُجمّعة)
+      // 4: إجماليات المصروفات حسب النوع
       batch2Promises.push(
         Promise.resolve(client.rpc("get_expense_summary_by_type", { p_fiscal_year_id: activeFY.id }))
           .then(
             (res) => res as PromiseResult,
-            () => Promise.resolve(
-              client.from("expenses")
-                .select("expense_type, amount")
-                .eq("fiscal_year_id", activeFY.id)
-                .limit(100)
-            ) as Promise<PromiseResult>
+            () => client.from("expenses")
+              .select("expense_type, amount")
+              .eq("fiscal_year_id", activeFY.id)
+              .limit(100)
+              .then((r) => r as PromiseResult),
           )
       );
     }
@@ -205,14 +157,13 @@ export async function fetchWaqfData(
     // 5: العقود المنتهية قريباً (admin فقط)
     if (isAdmin) {
       batch2Promises.push(
-        Promise.resolve(
-          client.from("contracts")
-            .select("contract_number, end_date, rent_amount")
-            .eq("status", "active")
-            .lte("end_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
-            .order("end_date", { ascending: true })
-            .limit(10)
-        ) as Promise<PromiseResult>
+        client.from("contracts")
+          .select("contract_number, end_date, rent_amount")
+          .eq("status", "active")
+          .lte("end_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
+          .order("end_date", { ascending: true })
+          .limit(10)
+          .then((r) => r as PromiseResult),
       );
     }
 
@@ -303,7 +254,6 @@ export async function fetchWaqfData(
       batchIdx++;
       const incomeData = incomeRes?.data;
       if (incomeData?.length) {
-        // تحديد إن كانت البيانات مُجمّعة (من RPC) أو خام (fallback)
         const isAggregated = incomeData[0]?.total_amount !== undefined;
         if (isAggregated) {
           const totalIncome = incomeData.reduce((s, i) => s + Number(i.total_amount ?? 0), 0);
@@ -319,7 +269,6 @@ export async function fetchWaqfData(
             sections.push(`- عدد مصادر الدخل: ${incomeData.length}`);
           }
         } else {
-          // fallback: بيانات خام
           const totalIncome = incomeData.reduce((s, i) => s + Number(i.amount ?? 0), 0);
           const bySrc: Record<string, number> = {};
           for (const i of incomeData) { bySrc[i.source] = (bySrc[i.source] || 0) + Number(i.amount ?? 0); }
