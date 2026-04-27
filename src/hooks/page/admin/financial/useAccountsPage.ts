@@ -161,7 +161,9 @@ export function useAccountsPage() {
     handleConfirmDelete: editing.handleConfirmDelete,
     // Actions
     handleCreateAccount: actions.handleCreateAccount, handleCloseYear: actions.handleCloseYear,
-    handleExportPdf: actions.handleExportPdf, handleFiscalYearChange: settings.handleFiscalYearChange,
+    handleExportPdf: actions.handleExportPdf,
+    handleExportCsv,
+    handleFiscalYearChange: settings.handleFiscalYearChange,
     handleAdminPercentChange: settings.handleAdminPercentChange,
     handleWaqifPercentChange: settings.handleWaqifPercentChange,
     // Close year dialog
