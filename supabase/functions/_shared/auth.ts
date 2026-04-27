@@ -88,18 +88,23 @@ export async function authenticate(
 
   if (allowedRoles.length > 0) {
     roleIdx = promises.length;
+    // Promise.resolve() لتحويل PostgrestFilterBuilder إلى Promise قابل للاستخدام في Promise.all
     promises.push(
-      admin.from("user_roles").select("role").eq("user_id", user.id).in("role", allowedRoles),
+      Promise.resolve(
+        admin.from("user_roles").select("role").eq("user_id", user.id).in("role", allowedRoles),
+      ),
     );
   }
   if (rateLimitKey) {
     rlIdx = promises.length;
     promises.push(
-      admin.rpc("check_rate_limit", {
-        p_key: `${rateLimitKey}:${user.id}`,
-        p_limit: rateLimit,
-        p_window_seconds: rateLimitWindowSeconds,
-      }),
+      Promise.resolve(
+        admin.rpc("check_rate_limit", {
+          p_key: `${rateLimitKey}:${user.id}`,
+          p_limit: rateLimit,
+          p_window_seconds: rateLimitWindowSeconds,
+        }),
+      ),
     );
   }
 
