@@ -164,7 +164,7 @@ export default function EmailMonitorPage() {
                   key={r}
                   size="sm"
                   variant={h.range === r ? 'default' : 'outline'}
-                  onClick={() => { h.setRange(r); setShowCustom(false); }}
+                  onClick={() => { h.setRange(r); h.setShowCustom(false); }}
                 >
                   {r === '24h' ? 'آخر 24 ساعة' : r === '7d' ? 'آخر 7 أيام' : 'آخر 30 يوم'}
                 </Button>
@@ -172,13 +172,13 @@ export default function EmailMonitorPage() {
               <Button
                 size="sm"
                 variant={h.range === 'custom' ? 'default' : 'outline'}
-                onClick={() => { h.setRange('custom'); setShowCustom(true); }}
+                onClick={() => { h.setRange('custom'); h.setShowCustom(true); }}
               >
                 نطاق مخصص
               </Button>
             </div>
 
-            {showCustom && (
+            {h.showCustom && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">من</label>
