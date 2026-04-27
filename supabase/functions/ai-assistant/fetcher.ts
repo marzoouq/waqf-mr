@@ -90,8 +90,8 @@ export async function fetchWaqfData(
 
     type PromiseResult = { data: unknown[] | null; error: unknown } | { count: number | null; error: unknown };
 
-    // تطبيع PostgrestFilterBuilder (Thenable) إلى Promise عبر .then(r => r) لتجنب أخطاء الأنواع.
-    const batch2Promises: Promise<PromiseResult>[] = [
+    // PostgrestFilterBuilder هو Thenable (PromiseLike)؛ نُبقي النوع PromiseLike للسماح بالاستخدامين.
+    const batch2Promises: PromiseLike<PromiseResult>[] = [
       // 0: الحسابات المالية
       client.from("accounts")
         .select("*")
