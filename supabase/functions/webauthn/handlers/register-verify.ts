@@ -2,12 +2,12 @@ import { verifyRegistrationResponse } from "npm:@simplewebauthn/server@11";
 import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { getAuthUser, RpInfo, toBase64 } from "../helpers.ts";
 
+// credential يأتي من client كـ JSON خام؛ نمرره مباشرةً للمكتبة كما في النسخة الأصلية.
+// deno-lint-ignore no-explicit-any
+type WebAuthnCredential = any;
+
 interface RegisterVerifyBody {
-  credential: {
-    id: string;
-    response?: { transports?: string[] };
-    [key: string]: unknown;
-  };
+  credential: WebAuthnCredential;
   deviceName?: string;
   challenge_id?: string;
 }
@@ -41,7 +41,7 @@ export async function handleRegisterVerify(
   }
 
   const verification = await verifyRegistrationResponse({
-    response: credential as Parameters<typeof verifyRegistrationResponse>[0]["response"],
+    response: credential,
     expectedChallenge: challengeRow.challenge,
     expectedOrigin: rp.origin,
     expectedRPID: rp.rpID,

@@ -2,11 +2,12 @@ import { verifyAuthenticationResponse } from "npm:@simplewebauthn/server@11";
 import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { RpInfo, fromBase64 } from "../helpers.ts";
 
+// credential يأتي من client كـ JSON خام؛ نمرره مباشرةً للمكتبة كما في النسخة الأصلية.
+// deno-lint-ignore no-explicit-any
+type WebAuthnCredential = any;
+
 interface AuthVerifyBody {
-  credential: {
-    id: string;
-    [key: string]: unknown;
-  };
+  credential: WebAuthnCredential;
   challenge_id?: string;
 }
 
@@ -58,7 +59,7 @@ export async function handleAuthVerify(
   const pubKeyBytes = fromBase64(storedCred.public_key);
 
   const verification = await verifyAuthenticationResponse({
-    response: credential as Parameters<typeof verifyAuthenticationResponse>[0]["response"],
+    response: credential,
     expectedChallenge: challengeRow.challenge,
     expectedOrigin: rp.origin,
     expectedRPID: rp.rpID,
