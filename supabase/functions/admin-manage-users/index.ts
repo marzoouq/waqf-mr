@@ -1,15 +1,41 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+// ═══════════════════════════════════════════════════════════════════════════════
+// admin-manage-users — إدارة المستخدمين والأدوار (admin فقط)
+// ───────────────────────────────────────────────────────────────────────────────
+// الهيكل:
+//   - index.ts          ← HTTP handler + dispatch
+//   - validators.ts     ← تحقق المدخلات
+//   - handlers/*.ts     ← منطق كل إجراء (action) منفصل
+// ═══════════════════════════════════════════════════════════════════════════════
+
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { authenticate } from "../_shared/auth.ts";
+import { ALLOWED_ACTIONS, type AdminAction } from "./validators.ts";
+import { json, type HandlerContext } from "./handlers/types.ts";
+import { toggleRegistration } from "./handlers/toggle-registration.ts";
+import { listUsers } from "./handlers/list-users.ts";
+import { updateEmail } from "./handlers/update-email.ts";
+import { updatePassword } from "./handlers/update-password.ts";
+import { confirmEmail } from "./handlers/confirm-email.ts";
+import { setRole } from "./handlers/set-role.ts";
+import { deleteUser } from "./handlers/delete-user.ts";
+import { createUser } from "./handlers/create-user.ts";
+import { bulkCreateUsers } from "./handlers/bulk-create-users.ts";
 
-const ALLOWED_ACTIONS = [
-  "toggle_registration", "list_users", "update_email", "update_password",
-  "confirm_email", "set_role", "delete_user", "create_user", "bulk_create_users",
-];
+type Handler = (ctx: HandlerContext) => Promise<Response>;
 
-/** Sanitize user-provided name to prevent injection in notification messages */
-const safeName = (name: string) => name.substring(0, 100).replace(/[<>&"']/g, '');
+const handlers: Record<AdminAction, Handler> = {
+  toggle_registration: toggleRegistration,
+  list_users: listUsers,
+  update_email: updateEmail,
+  update_password: updatePassword,
+  confirm_email: confirmEmail,
+  set_role: setRole,
+  delete_user: deleteUser,
+  create_user: createUser,
+  bulk_create_users: bulkCreateUsers,
+};
 
-Deno.serve(async (req) => {
+Deno.serve(async (req): Promise<Response> => {
   const corsHeaders = getCorsHeaders(req);
 
   if (req.method === "OPTIONS") {
@@ -17,460 +43,28 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "No authorization header" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-    // Verify the caller using getUser (reliable across all versions)
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    // جلب المستخدم + تحليل الجسم بالتوازي
-    const [authResult, body] = await Promise.all([
-      userClient.auth.getUser(),
+    // 1) المصادقة + تحليل الجسم بالتوازي
+    const [auth, body] = await Promise.all([
+      authenticate(req, corsHeaders, {
+        allowedRoles: ["admin"],
+        rateLimitKey: "admin-manage",
+        rateLimit: 60,
+        rateLimitWindowSeconds: 60,
+      }),
       req.json().catch(() => ({})),
     ]);
-    const { data: userData, error: userError } = authResult;
-    if (userError || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if ("error" in auth) return auth.error;
+    const { user, admin } = auth;
+
+    // 2) Validate action
+    const action = body.action as string | undefined;
+    if (!action || !ALLOWED_ACTIONS.includes(action as AdminAction)) {
+      return json({ error: "إجراء غير صالح" }, 400, corsHeaders);
     }
 
-    const callerId = userData.user.id;
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
-
-    // التحقق من الدور + Rate limiting بالتوازي
-    const [rlRes, roleRes] = await Promise.all([
-      adminClient.rpc('check_rate_limit', {
-        p_key: `admin-manage:${callerId}`,
-        p_limit: 60,
-        p_window_seconds: 60,
-      }),
-      adminClient.from("user_roles")
-        .select("role")
-        .eq("user_id", callerId)
-        .eq("role", "admin")
-        .maybeSingle(),
-    ]);
-
-    if (rlRes.error) {
-      console.error("admin-manage: rate limit check failed");
-      return new Response(JSON.stringify({ error: "خطأ مؤقت في الخادم" }), {
-        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (rlRes.data) {
-      return new Response(JSON.stringify({ error: "تم تجاوز حد الطلبات، يرجى الانتظار" }), {
-        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!roleRes.data) {
-      return new Response(JSON.stringify({ error: "Forbidden: Admin only" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const { action, userId, email, password } = body;
-
-    // Validate action against whitelist
-    if (!action || !ALLOWED_ACTIONS.includes(action)) {
-      return new Response(JSON.stringify({ error: "إجراء غير صالح" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Input validation helpers
-    const validateEmail = (e: string) => {
-      if (!e || typeof e !== "string" || e.length > 255) throw new Error("بريد إلكتروني غير صالح");
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new Error("صيغة البريد الإلكتروني غير صالحة");
-    };
-    const validatePassword = (p: string) => {
-      if (!p || typeof p !== "string" || p.length < 8 || p.length > 128) throw new Error("كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
-    };
-    const validateUuid = (id: string) => {
-      if (!id || typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new Error("معرف غير صالح");
-    };
-    const validateRole = (r: string) => {
-      if (!["admin", "beneficiary", "waqif", "accountant"].includes(r)) throw new Error("دور غير صالح");
-    };
-    const validateNationalId = (nid: string | undefined) => {
-      if (nid && (typeof nid !== "string" || !/^\d{10}$/.test(nid))) throw new Error("رقم الهوية يجب أن يكون 10 أرقام");
-    };
-
-    switch (action) {
-      case "toggle_registration": {
-        const enabled = body.enabled ? "true" : "false";
-        const { error } = await adminClient
-          .from("app_settings")
-          .update({ value: enabled, updated_at: new Date().toISOString() })
-          .eq("key", "registration_enabled");
-        if (error) throw error;
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      case "list_users": {
-        const page = body.page || 1;
-        const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 50 });
-        if (error) throw error;
-
-        const userIds = data.users.map((u) => u.id);
-        const { data: roles } = await adminClient
-          .from("user_roles")
-          .select("*")
-          .in("user_id", userIds);
-
-        const users = data.users.map((u) => ({
-          id: u.id,
-          email: u.email,
-          email_confirmed_at: u.email_confirmed_at,
-          created_at: u.created_at,
-          last_sign_in_at: u.last_sign_in_at,
-          role: roles?.find((r) => r.user_id === u.id)?.role || null,
-        }));
-
-        return new Response(JSON.stringify({
-          users,
-          total: data.total ?? users.length,
-          page,
-          nextPage: users.length === 50 ? page + 1 : null,
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      case "update_email": {
-        validateUuid(userId);
-        validateEmail(email);
-        if (!userId || !email) throw new Error("userId and email required");
-        const { error } = await adminClient.auth.admin.updateUserById(userId, { email });
-        if (error) throw error;
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      case "update_password": {
-        validateUuid(userId);
-        validatePassword(password);
-        if (!userId || !password) throw new Error("userId and password required");
-
-        // 1) تحديث كلمة المرور
-        const { data: updResult, error: updError } = await adminClient.auth.admin.updateUserById(userId, { password });
-        if (updError) {
-          console.error("update_password: operation failed");
-          // رسالة واضحة إذا رُفضت كلمة المرور
-          if (updError.message?.includes("banned") || updError.message?.includes("pwned") || updError.message?.includes("compromised")) {
-            throw new Error("كلمة المرور مرفوضة لأنها شائعة أو مُسربة — اختر كلمة مرور أقوى");
-          }
-          throw updError;
-        }
-        
-
-        // 2) تحقق تجريبي: محاولة تسجيل دخول بالبيانات الجديدة
-        const userEmail = updResult?.user?.email;
-        if (userEmail) {
-          const verifyRes = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "apikey": anonKey,
-            },
-            body: JSON.stringify({ email: userEmail, password }),
-          });
-
-          if (!verifyRes.ok) {
-            await verifyRes.text(); // استهلاك الجسم
-            console.error("update_password: verification failed", verifyRes.status);
-            // كلمة المرور لم تتغير فعلياً
-            throw new Error("فشل تحديث كلمة المرور — قد تكون كلمة المرور مرفوضة من نظام الحماية. جرّب كلمة مرور أطول وأكثر تعقيداً");
-          }
-
-          // تسجيل خروج فوري للجلسة التجريبية
-          const verifyData = await verifyRes.json();
-          if (verifyData.access_token) {
-            await fetch(`${supabaseUrl}/auth/v1/logout`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "apikey": anonKey,
-                "Authorization": `Bearer ${verifyData.access_token}`,
-              },
-            }).catch(() => { /* تجاهل أخطاء تسجيل الخروج */ });
-          }
-          
-        }
-
-        return new Response(JSON.stringify({ success: true, verified: !!userEmail }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      case "confirm_email": {
-        validateUuid(userId);
-        const { error } = await adminClient.auth.admin.updateUserById(userId, {
-          email_confirm: true,
-        });
-        if (error) throw error;
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      case "set_role": {
-        validateUuid(userId);
-        validateRole(body.role);
-        if (userId === callerId) {
-          return new Response(JSON.stringify({ error: "لا يمكنك تغيير دورك بنفسك" }), {
-            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        if (!userId || !body.role) throw new Error("userId and role required");
-        // حذف الدور القديم ثم إدراج الجديد (القيد الفريد على user_id+role وليس user_id وحده)
-        const { error: delError } = await adminClient.from("user_roles").delete().eq("user_id", userId);
-        if (delError) throw delError;
-        const { error } = await adminClient.from("user_roles").insert({
-          user_id: userId,
-          role: body.role,
-        });
-        if (error) throw error;
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      case "delete_user": {
-        validateUuid(userId);
-        if (userId === callerId) {
-          return new Response(JSON.stringify({ error: "لا يمكنك حذف حسابك الخاص" }), {
-            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-
-        // حماية البيانات المالية: فحص وجود توزيعات تاريخية مرتبطة بالمستفيد
-        const { data: beneficiary } = await adminClient
-          .from("beneficiaries")
-          .select("id")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (beneficiary) {
-          const { count } = await adminClient
-            .from("distributions")
-            .select("id", { count: "exact", head: true })
-            .eq("beneficiary_id", beneficiary.id);
-
-          if (count && count > 0) {
-            // فصل المستفيد عن حساب المستخدم بدلاً من حذفه (soft-delete)
-            await adminClient
-              .from("beneficiaries")
-              .update({ user_id: null })
-              .eq("id", beneficiary.id);
-          } else {
-            await adminClient.from("beneficiaries").delete().eq("user_id", userId);
-          }
-        }
-
-        await adminClient.from("user_roles").delete().eq("user_id", userId);
-        const { error } = await adminClient.auth.admin.deleteUser(userId);
-        if (error) throw error;
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      case "create_user": {
-        validateEmail(email);
-        validatePassword(password);
-        if (body.role) validateRole(body.role);
-        if (body.nationalId) validateNationalId(body.nationalId);
-        if (!email || !password) throw new Error("email and password required");
-        const { data: newUser, error } = await adminClient.auth.admin.createUser({
-          email,
-          password,
-          email_confirm: true,
-        });
-        if (error) throw error;
-
-        if (body.role) {
-          const { error: roleError } = await adminClient.from("user_roles").insert({
-            user_id: newUser.user.id,
-            role: body.role,
-          });
-          if (roleError) {
-            await adminClient.auth.admin.deleteUser(newUser.user.id);
-            throw new Error("فشل تعيين الدور");
-          }
-        }
-
-        if (body.role === "beneficiary") {
-          const { data: existingBeneficiary } = await adminClient
-            .from("beneficiaries")
-            .select("id")
-            .eq("email", email)
-            .maybeSingle();
-
-          if (existingBeneficiary) {
-            const updateData: Record<string, unknown> = { user_id: newUser.user.id };
-            if (body.nationalId) updateData.national_id = body.nationalId;
-            if (body.name) updateData.name = body.name;
-            const { error: benError } = await adminClient
-              .from("beneficiaries")
-              .update(updateData)
-              .eq("id", existingBeneficiary.id);
-            if (benError) {
-              await adminClient.from("user_roles").delete().eq("user_id", newUser.user.id);
-              await adminClient.auth.admin.deleteUser(newUser.user.id);
-              throw new Error("فشل تحديث بيانات المستفيد");
-            }
-          } else {
-            const { error: benError } = await adminClient.from("beneficiaries").insert({
-              name: body.name || email.split("@")[0],
-              email: email,
-              share_percentage: 0,
-              user_id: newUser.user.id,
-              national_id: body.nationalId || null,
-            });
-            if (benError) {
-              await adminClient.from("user_roles").delete().eq("user_id", newUser.user.id);
-              await adminClient.auth.admin.deleteUser(newUser.user.id);
-              throw new Error("فشل إنشاء المستفيد");
-            }
-          }
-        } else if (body.nationalId) {
-          const { data: beneficiary } = await adminClient
-            .from("beneficiaries")
-            .select("id")
-            .eq("email", email)
-            .maybeSingle();
-          if (beneficiary) {
-            await adminClient
-              .from("beneficiaries")
-              .update({ national_id: body.nationalId, user_id: newUser.user.id })
-              .eq("id", beneficiary.id);
-          }
-        }
-
-        if (body.role === "beneficiary") {
-          try { await adminClient.rpc('notify_admins', {
-            p_title: 'مستفيد جديد',
-            p_message: `تم تسجيل مستفيد جديد: ${safeName(body.name || email)}`,
-            p_type: 'info',
-            p_link: '/dashboard/beneficiaries',
-          }); } catch { /* إشعار فشل — غير حرج */ }
-        }
-
-        return new Response(JSON.stringify({ success: true, user: { id: newUser.user.id, email: newUser.user.email } }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      case "bulk_create_users": {
-        const { users } = body;
-        if (!users || !Array.isArray(users) || users.length === 0) {
-          throw new Error("users array is required");
-        }
-        if (users.length > 50) {
-          throw new Error("Maximum 50 users at a time");
-        }
-
-        const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const results = [];
-        const errors = [];
-
-        for (const u of users) {
-          if (!u.email || typeof u.email !== "string" || !EMAIL_RE.test(u.email) || u.email.length > 255) {
-            errors.push({ email: u.email || "missing", error: "Invalid or missing email" });
-            continue;
-          }
-          if (!u.password || typeof u.password !== "string" || u.password.length < 8 || u.password.length > 128) {
-            errors.push({ email: u.email, error: "كلمة المرور يجب أن تكون بين 8 و128 حرفاً" });
-            continue;
-          }
-          if (!u.name || typeof u.name !== "string" || u.name.trim().length === 0 || u.name.length > 200) {
-            errors.push({ email: u.email, error: "Invalid or missing name" });
-            continue;
-          }
-
-          try {
-            const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-              email: u.email,
-              password: u.password,
-              email_confirm: true,
-            });
-            if (createError) {
-              errors.push({ email: u.email, error: "فشل إنشاء المستخدم" });
-              continue;
-            }
-
-            const { error: roleError } = await adminClient.from("user_roles").insert({
-              user_id: newUser.user.id,
-              role: "beneficiary",
-            });
-            if (roleError) {
-              await adminClient.auth.admin.deleteUser(newUser.user.id);
-              errors.push({ email: u.email, error: "فشل تعيين الدور" });
-              continue;
-            }
-
-            const { error: benError } = await adminClient.from("beneficiaries").insert({
-              name: u.name,
-              email: u.email,
-              share_percentage: 0,
-              user_id: newUser.user.id,
-              national_id: u.national_id || null,
-            });
-            if (benError) {
-              await adminClient.from("user_roles").delete().eq("user_id", newUser.user.id);
-              await adminClient.auth.admin.deleteUser(newUser.user.id);
-              errors.push({ email: u.email, error: "فشل إنشاء المستفيد" });
-              continue;
-            }
-
-            try { await adminClient.rpc('notify_admins', {
-              p_title: 'مستفيد جديد',
-              p_message: `تم تسجيل مستفيد جديد: ${safeName(u.name)}`,
-              p_type: 'info',
-              p_link: '/dashboard/beneficiaries',
-            }); } catch { /* إشعار فشل — غير حرج */ }
-
-            results.push({ email: u.email, userId: newUser.user.id, success: true });
-          } catch {
-            errors.push({ email: u.email, error: "خطأ غير متوقع" });
-          }
-        }
-
-        return new Response(JSON.stringify({
-          success: true,
-          created: results.length,
-          failed: errors.length,
-          results,
-          errors
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      default:
-        return new Response(JSON.stringify({ error: "إجراء غير صالح" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-    }
+    // 3) Dispatch
+    const handler = handlers[action as AdminAction];
+    return await handler({ admin, callerId: user.id, body, corsHeaders });
   } catch (error) {
     const msg = (error as Error).message;
     console.error("admin-manage-users: request failed");
@@ -483,9 +77,6 @@ Deno.serve(async (req) => {
     };
     const safeMsg = safeMessages[msg]
       || (msg.startsWith("دور غير صالح") || msg.startsWith("لا يمكنك") || msg.startsWith("البريد") || msg.startsWith("كلمة المرور") || msg.startsWith("رقم الهوية") || msg.startsWith("فشل تحديث كلمة") ? msg : "حدث خطأ في العملية");
-    return new Response(JSON.stringify({ error: safeMsg }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: safeMsg }, 400, corsHeaders);
   }
 });
