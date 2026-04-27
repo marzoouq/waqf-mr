@@ -1,5 +1,17 @@
 import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2'
+
+// Permissive client type for service-role operations against tables/RPCs
+// not present in the generated Database type (pgmq, dynamic logging).
+// deno-lint-ignore no-explicit-any
+type AnyClient = SupabaseClient<any, any, any, any, any>
+type QueueMessage = {
+  msg_id: number
+  // deno-lint-ignore no-explicit-any
+  message: Record<string, any>
+  read_ct?: number
+  enqueued_at?: string
+}
 
 const MAX_RETRIES = 5
 const DEFAULT_BATCH_SIZE = 10
@@ -54,9 +66,9 @@ function parseJwtClaims(token: string): Record<string, unknown> | null {
 
 // Move a message to the dead letter queue and log the reason.
 async function moveToDlq(
-  supabase: ReturnType<typeof createClient>,
+  supabase: AnyClient,
   queue: string,
-  msg: { msg_id: number; message: Record<string, unknown> },
+  msg: QueueMessage,
   reason: string
 ): Promise<void> {
   const payload = msg.message
