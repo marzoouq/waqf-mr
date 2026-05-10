@@ -29,13 +29,37 @@ const typeLabel = {
   improvement: "تحسين",
 };
 
-/** Compare semver strings, returns >0 if a > b */
+/** يستخرج أول عدد صحيح من بداية المقطع، ويعيد 0 إن لم يوجد أو نتج NaN */
+function parsePart(s: string | undefined): number {
+  const m = /^(\d+)/.exec(s ?? '');
+  const n = m ? Number(m[1]) : 0;
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** هل يحتوي الإصدار على لاحقة pre-release (مثل -beta أو -rc.1)؟ */
+function hasPrerelease(v: string | undefined): boolean {
+  return /-/.test(v ?? '');
+}
+
+/**
+ * مقارنة semver محصّنة ضد:
+ *  - اللواحق: "1.2.3-beta" → يُعامَل كأقل من "1.2.3"
+ *  - NaN: أي مقطع غير رقمي يُعامَل كـ 0 بدل تخريب المقارنة
+ *  - مدخلات فارغة/null/undefined: تُعامَل كـ "0.0.0"
+ * يعيد >0 إذا a > b، <0 إذا a < b، 0 إذا متساويان.
+ */
 function compareSemver(a: string, b: string): number {
-  const pa = a.split('.').map(Number);
-  const pb = b.split('.').map(Number);
+  const sa = (a || '0.0.0').split('.');
+  const sb = (b || '0.0.0').split('.');
   for (let i = 0; i < 3; i++) {
-    if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0);
+    const diff = parsePart(sa[i]) - parsePart(sb[i]);
+    if (diff !== 0) return diff;
   }
+  // أرقام متساوية → النظيف أكبر من نظيره الـ pre-release
+  const pa = hasPrerelease(a);
+  const pb = hasPrerelease(b);
+  if (pa && !pb) return -1;
+  if (!pa && pb) return 1;
   return 0;
 }
 
