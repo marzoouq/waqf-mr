@@ -39,7 +39,7 @@ export const ADMIN_SECTION_KEYS = [
 export const BENEFICIARY_SECTION_KEYS = [
   'properties', 'contracts', 'disclosure', 'share', 'carryforward',
   'financial_reports', 'accounts', 'reports', 'invoices', 'bylaws',
-  'messages', 'notifications', 'annual_report', 'support', 'settings',
+  'messages', 'notifications', 'annual_report', 'support',
 ] as const;
 
 /** تعريف الأقسام مع الأدوار المؤهلة لمصفوفة الصلاحيات.
