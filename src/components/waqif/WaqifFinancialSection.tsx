@@ -108,15 +108,19 @@ const WaqifFinancialSection = ({
           {collectionSummary.total > 0 && (
             <>
               <div className="flex items-center justify-between p-3 rounded-lg bg-success/5 border border-success/20">
-                <span className="text-sm">تحصيل منتظم</span>
+                <span className="text-sm">مسددة (كاملاً أو جزئياً)</span>
                 <span className="font-bold text-success">{collectionSummary.onTime} فاتورة</span>
               </div>
               {collectionSummary.late > 0 && (
                 <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-destructive/20">
-                  <span className="text-sm">تحصيل متأخر</span>
+                  <span className="text-sm">متأخرة</span>
                   <span className="font-bold text-destructive">{collectionSummary.late} فاتورة</span>
                 </div>
               )}
+              <p className="flex items-start gap-2 text-xs text-muted-foreground border-t pt-3">
+                <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+                <span>{COLLECTION_SUMMARY_RULE_AR}</span>
+              </p>
             </>
           )}
         </CardContent>
