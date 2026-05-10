@@ -55,6 +55,7 @@ export interface PaymentInvoice {
     tenant_name: string;
     property_id: string;
     payment_count: number;
+    status?: string | null;
     property?: { property_number: string } | null;
   };
 }
