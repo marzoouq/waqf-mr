@@ -2,9 +2,10 @@ import { lazy, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Banknote, CheckCircle, Clock, AlertTriangle, Inbox } from 'lucide-react';
+import { Banknote, CheckCircle, Clock, AlertTriangle, Inbox, Info } from 'lucide-react';
 import { ErrorBoundary } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';
+import { COLLECTION_SUMMARY_RULE_AR } from '@/constants/collectionRules';
 
 // recharts يُحمَّل lazily لاستبعاده من حزمة AdminDashboard الأولية
 const CollectionSummaryChart = lazy(() => import('@/components/dashboard/kpi/CollectionSummaryChart'));
@@ -14,6 +15,7 @@ interface CollectionSummaryCardProps {
     paidCount: number;
     partialCount: number;
     unpaidCount: number;
+    paidLikeCount?: number;
     total: number;
     percentage: number;
     totalCollected: number;
@@ -91,6 +93,10 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
             </div>
           </div>
         </div>
+        <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground border-t pt-3">
+          <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+          <span>{COLLECTION_SUMMARY_RULE_AR}</span>
+        </p>
       </CardContent>
     </Card>
   );

@@ -58,15 +58,21 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
   } = params;
 
   // ── ملخص التحصيل (جاهز من RPC) ──
-  const collectionSummary = useMemo(() => ({
-    paidCount: collection?.paid_count ?? 0,
-    partialCount: collection?.partial_count ?? 0,
-    unpaidCount: collection?.unpaid_count ?? 0,
-    total: collection?.total ?? 0,
-    percentage: collection?.percentage ?? 0,
-    totalCollected: collection?.total_collected ?? 0,
-    totalExpected: collection?.total_expected ?? 0,
-  }), [collection]);
+  // paidLikeCount = paid + partially_paid (تعريف موحّد مع لوحة المستفيد)
+  const collectionSummary = useMemo(() => {
+    const paidCount = collection?.paid_count ?? 0;
+    const partialCount = collection?.partial_count ?? 0;
+    return {
+      paidCount,
+      partialCount,
+      unpaidCount: collection?.unpaid_count ?? 0,
+      paidLikeCount: paidCount + partialCount,
+      total: collection?.total ?? 0,
+      percentage: collection?.percentage ?? 0,
+      totalCollected: collection?.total_collected ?? 0,
+      totalExpected: collection?.total_expected ?? 0,
+    };
+  }, [collection]);
 
   const collectionColor = useMemo(() => getKpiColor(collectionSummary.percentage, 80, 50), [collectionSummary.percentage]);
 
