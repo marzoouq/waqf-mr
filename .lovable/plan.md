@@ -1,53 +1,64 @@
-## السياق
-
-- 14 مستفيد ثابت، لا تسجيل جديد. السياسة: **شفافية كاملة** افتراضياً.
-- المشكلة الحالية: العقود (وما يتفرع عنها من بيانات تاريخية) مخفية عن المستفيد/الواقف لأن جدول `contracts` لا يملك سياسة `SELECT` لهذين الدورين، فيرجع `contracts_safe` فارغاً.
-- البنية موجودة: `app_settings.beneficiary_sections` + `BeneficiaryTab` يسمحان للناظر بتشغيل/إطفاء أقسام واجهة المستفيد. لكنها ناقصة بعض المفاتيح.
+# توحيد منطق حساب التحصيل بين لوحة الناظر ولوحة المستفيد
 
 ## الهدف
+1. إزالة فقدان الفواتير عابرة السنوات في لوحة المستفيد (الفاتورة سنتها X وعقدها سنته Y).
+2. تعريف موحّد لـ "مسددة" = `paid` ∪ `partially_paid`، وتعريف موحّد لـ "متأخرة" = كل ما عداها (مع شرط `due_date ≤ today`).
+3. عرض شفاف لقاعدة العدّ بجانب البطاقة.
 
-1. فتح قراءة العقود (مع إخفاء PII عبر `contracts_safe` فقط) للمستفيد والواقف.
-2. ضمان أن جميع الجداول التي تُغذّي صفحات المستفيد لديها سياسات قراءة (الأغلبية موجود — تحقق فقط).
-3. توسيع لوحة "واجهة المستفيد" لدى الناظر لتشمل كل المفاتيح بحيث يكون له **التحكم الكامل** بما يظهر/يخفى.
+## السبب الجذري
+`computeCollectionSummary` يبني `relevantContractIds` من قائمة `contracts` التي يجلبها العميل بفلتر `contract.fiscal_year_id = السنة`. لو كانت الفاتورة في السنة الحالية لكن عقدها مسجّل في سنة أخرى → يُسقطها الفلتر. الناظر يستخدم RPC على السيرفر يربط `payment_invoices ⨝ contracts` مباشرةً ولا يتأثر.
 
 ## التغييرات
 
-### 1) Migration — سياسة SELECT للعقود
+### 1) `src/utils/financial/dashboardComputations.ts`
+- اعتماد حالة العقد المضمّنة في الفاتورة (`inv.contract?.status`) بدلاً من البحث في مصفوفة `contracts`.
+- توقيع جديد: `computeCollectionSummary(paymentInvoices)` — حذف معامل `contracts` غير الضروري.
+- الفلتر الموحّد المطابق لـ RPC الناظر:
+  ```
+  contract.status ∈ {active, expired}  AND  due_date ≤ today
+  ```
+- الإخراج يحتفظ بالحقول الحالية (`paidCount`, `partialCount`, `unpaidCount`, `total`, `percentage`, `totalCollected`, `totalExpected`) مع توضيح: `paidCount` و `partialCount` كلاهما يدخل في حساب المسدد، `unpaidCount = total - paidCount - partialCount`.
+- تحديث `computeCollectionSummary.test.ts` للتوقيع الجديد + سيناريو "فاتورة عقدها بسنة مختلفة" يجب أن تُحتسب.
 
-```sql
-CREATE POLICY "Beneficiaries and waqif can view contracts"
-ON public.contracts FOR SELECT TO authenticated
-USING (
-  has_role(auth.uid(),'beneficiary'::app_role)
-  OR has_role(auth.uid(),'waqif'::app_role)
-);
-```
+### 2) `src/hooks/data/invoices/usePaymentInvoices.ts`
+- التأكد من أن الـ `select` يجلب `contract:contracts(status, ...)` (موجود فعلاً، فقط نضيف `status` لو لم يكن).
 
-السياسة التقييدية `Restrict unpublished fiscal year data on contracts` تبقى كما هي → السنوات غير المنشورة محجوبة، والمنشورة (بما فيها المقفلة) تظهر. PII محجوب لأن الواجهة تستخدم `contracts_safe` (security_invoker=on) ولا تختار الأعمدة الحساسة.
+### 3) `src/hooks/page/beneficiary/dashboard/useWaqifDashboardPage.ts`
+- استدعاء `computeCollectionSummary(paymentInvoices)` فقط.
+- توحيد التعريف في `collectionSummary` المُمرَّر للواجهة:
+  ```
+  onTime  = paidCount + partialCount     // المسدد كلياً أو جزئياً
+  late    = unpaidCount
+  total   = paidCount + partialCount + unpaidCount
+  ```
 
-### 2) لا حاجة لسياسات إضافية
+### 4) `src/hooks/page/admin/dashboard/useAdminDashboardStats.ts`
+- لا تغيير في مصدر البيانات (تبقى من RPC).
+- لا تغيير في الحقول لكن نضيف حقل مساعد للعرض: `paidLikeCount = paidCount + partialCount` ليُستخدم في تلميح الشفافية.
 
-- `units`, `contract_fiscal_allocations`, `payment_invoices`, `accounts`, `expenses`, `income`, `properties` — كلها تملك بالفعل سياسات SELECT لـ beneficiary/waqif. ✅
+### 5) RPC `get_dashboard_full_summary` (هجرة)
+- لا تغيير في الفلتر (هو المرجع الموحّد).
+- إضافة تعليق توثيقي يوضح القاعدة الموحّدة، لتسهيل المراجعة المستقبلية.
 
-### 3) توسيع تحكم الناظر بأقسام واجهة المستفيد
+### 6) عرض منطق العدّ للمستخدم
+- في `CollectionSummaryCard` (الناظر) و `WaqifFinancialSection` (المستفيد): إضافة Tooltip/سطر شرح صغير أسفل البطاقة:
+  > "يشمل الفواتير التي حلّ تاريخ استحقاقها فقط، وعقودها نشطة أو منتهية. المسدد = مدفوعة كاملة أو جزئية."
+- نص ثابت من `src/constants/` (مفتاح: `COLLECTION_SUMMARY_RULE_AR`) لتفادي التكرار.
 
-- إضافة المفاتيح الناقصة إلى `BENEFICIARY_SECTION_KEYS` و `SECTION_LABELS` في `src/constants/sections.ts` لتغطية كامل قائمة `allBeneficiaryLinks`:
-  - `carryforward` (الترحيلات والخصومات)
-  - `financial_reports` (التقارير المالية — منفصل عن `reports`)
-  - `settings` (إعدادات الحساب — اختياري للإطفاء)
-- لا تغيير على شكل `BeneficiaryTab` — يقرأ المفاتيح تلقائياً.
-- `useNavLinks` و route guards يستخدمان `beneficiarySections` بالفعل، لذلك المفاتيح الجديدة ستفعِّل/تطفِّء روابط المستفيد فوراً.
+### 7) ملاحظة فرق العرض الحالي
+- `WaqifFinancialSection` يعرض خانتين فقط (مسدد/متأخر). يبقى كما هو لكن `onTime` الآن دقيق.
+- `CollectionSummaryCard` يعرض ثلاث خانات (مسدد/جزئي/متأخر). يبقى كما هو.
+- المجموع والنسبة سيتطابقان بين اللوحتين لنفس السنة المالية.
 
-### 4) لا تغييرات على واجهة المستفيد نفسها
+## ما لن يتغير
+- لا تعديل على RLS أو سياسة `is_fiscal_year_accessible`.
+- لا تعديل على `get_beneficiary_dashboard` (لأنه لا يحسب التحصيل أصلاً).
+- لا تغيير في طريقة جلب العقود لأي شاشة أخرى.
 
-العقود ستظهر تلقائياً بمجرد تطبيق السياسة لأن الصفحات والـ hooks جاهزة وتستخدم `contracts_safe`.
+## التحقق بعد التنفيذ
+- اختبار الوحدة: فاتورة سنتها A، عقدها سنته B بحالة expired → تُحتسب عند الاستعلام بسنة A.
+- مطابقة يدوية: لنفس السنة المالية، نسبة التحصيل وعدد الفواتير في بطاقة الناظر = (مسدد+جزئي / إجمالي) × 100 = نفس القيمة في بطاقة المستفيد.
+- اختبار الانحدار: `computeCollectionSummary.test.ts` يمر.
 
-## التحقق بعد التطبيق
-
-1. الدخول كمستفيد → `/beneficiary/contracts` يعرض العقود (بما فيها العقود في السنة المقفلة 2024-2025) بدون أرقام هوية/سجلات تجارية.
-2. الناظر في `الإعدادات → واجهة المستفيد` يرى مفاتيح إضافية ويمكنه إطفاء أي قسم → القسم يختفي من قائمة المستفيد فوراً.
-3. السنة غير المنشورة لا تزال محجوبة (سياسة RESTRICTIVE).
-
-## خارج النطاق
-
-- لم يُطلب: تعديل قواعد سنوات مقفلة، تغيير منطق فواتير متأخرة، تشديد `validate_fiscal_year_closure`. تُترك كما هي.
+## مخاطر
+- أي مستهلك حالي لـ `computeCollectionSummary` يمرّر `contracts` كمعامل أول سيكسر. سأبحث عن كل المستدعين قبل التغيير وأحدّثهم في نفس التعديل (حالياً معروف: `useWaqifDashboardPage`، `WaqifFinancialSection` غير المباشر، الاختبار).
