@@ -8,6 +8,7 @@ import { fmt } from '@/utils/format/format';
 import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/dashboardComputations';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
+import { computeContractualRevenue } from '@/utils/financial/computeContractualRevenue';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
