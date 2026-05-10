@@ -23,6 +23,9 @@ export const SECTION_LABELS: Record<string, string> = {
   disclosure: 'الإفصاح السنوي',
   share: 'حصتي من الريع',
   notifications: 'سجل الإشعارات',
+  carryforward: 'الترحيلات والخصومات',
+  financial_reports: 'التقارير المالية',
+  settings: 'إعدادات الحساب',
 };
 
 /** مفاتيح أقسام لوحة تحكم الناظر/المحاسب */
