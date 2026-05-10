@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.get_dashboard_full_summary(uuid) TO authenticated, service_role;
