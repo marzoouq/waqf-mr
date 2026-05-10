@@ -62,9 +62,10 @@ export const useWaqifDashboardPage = () => {
   }, [relevantContracts, contractAllocations, isSpecificYear]);
 
   const collectionSummary = useMemo(() => {
-    const result = computeCollectionSummary(activeContracts, paymentInvoices);
+    // توحيد مع لوحة الناظر: العقود active + expired معاً (الـ util يفلتر داخلياً)
+    const result = computeCollectionSummary(contracts, paymentInvoices);
     return { onTime: result.paidCount + result.partialCount, late: result.unpaidCount, total: result.total, percentage: result.percentage };
-  }, [activeContracts, paymentInvoices]);
+  }, [contracts, paymentInvoices]);
 
   const kpis = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
