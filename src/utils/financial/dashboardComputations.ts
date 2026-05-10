@@ -41,23 +41,27 @@ export function computeMonthlyData(
 }
 
 // ═══ collectionSummary ═══
-interface ContractLike {
-  id?: string | null;
-  status?: string | null;
-}
-
+// قاعدة موحّدة مع RPC `get_dashboard_full_summary` على السيرفر:
+//   - الفاتورة تُحتسب إذا: حالة عقدها (active أو expired) و due_date ≤ today.
+//   - "مسددة" = paid ∪ partially_paid (paidLikeCount).
+//   - الفلتر يعتمد على حالة العقد المضمّنة في الفاتورة (inv.contract.status)
+//     وليس على قائمة عقود مفلترة بسنة مالية — هذا يمنع إسقاط الفواتير
+//     عابرة السنوات (فاتورة سنتها X وعقدها مسجّل في سنة Y).
 interface InvoiceLike {
   contract_id?: string | null;
   due_date?: string | null;
   amount?: number | null;
   paid_amount?: number | null;
   status?: string | null;
+  contract?: { status?: string | null } | null;
 }
 
 export interface CollectionSummaryResult {
   paidCount: number;
   partialCount: number;
   unpaidCount: number;
+  /** المسدد كلياً أو جزئياً = paidCount + partialCount */
+  paidLikeCount: number;
   total: number;
   percentage: number;
   totalCollected: number;
@@ -65,18 +69,16 @@ export interface CollectionSummaryResult {
 }
 
 export function computeCollectionSummary(
-  contracts: ContractLike[],
   paymentInvoices: InvoiceLike[]
 ): CollectionSummaryResult {
-  const relevantContractIds = new Set(
-    contracts
-      .filter(c => c.status === 'active' || c.status === 'expired')
-      .map(c => c.id)
-  );
   const nowDate = new Date();
-  const dueInvoices = paymentInvoices.filter(
-    inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date ?? '') <= nowDate
-  );
+  const dueInvoices = paymentInvoices.filter(inv => {
+    const cStatus = inv.contract?.status;
+    const eligibleContract = cStatus === 'active' || cStatus === 'expired';
+    if (!eligibleContract) return false;
+    if (!inv.due_date) return false;
+    return new Date(inv.due_date) <= nowDate;
+  });
   const totalExpected = dueInvoices.reduce((sum, inv) => sum + safeNumber(inv.amount), 0);
   const totalCollected = dueInvoices.reduce((sum, inv) => {
     if (inv.status === 'paid') return sum + safeNumber(inv.amount);
@@ -85,10 +87,11 @@ export function computeCollectionSummary(
   }, 0);
   const paidCount = dueInvoices.filter(inv => inv.status === 'paid').length;
   const partialCount = dueInvoices.filter(inv => inv.status === 'partially_paid').length;
-  const unpaidCount = dueInvoices.length - paidCount - partialCount;
+  const paidLikeCount = paidCount + partialCount;
+  const unpaidCount = dueInvoices.length - paidLikeCount;
   const percentage = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
 
-  return { paidCount, partialCount, unpaidCount, total: dueInvoices.length, percentage, totalCollected, totalExpected };
+  return { paidCount, partialCount, unpaidCount, paidLikeCount, total: dueInvoices.length, percentage, totalCollected, totalExpected };
 }
 
 // ═══ occupancy ═══
