@@ -6,7 +6,8 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Gauge, Wallet, FileText, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Gauge, Wallet, FileText, CheckCircle, AlertTriangle, Info } from 'lucide-react';
+import { COLLECTION_SUMMARY_RULE_AR } from '@/constants/collectionRules';
 
 interface KpiItem {
   label: string;
