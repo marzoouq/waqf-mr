@@ -50,14 +50,18 @@ export const useWaqifDashboardPage = () => {
   // #12 — عدد المستفيدين الفعلي من RPC بدل الحساب التقريبي
   const beneficiaryCount = dashData?.beneficiary_count ?? 0;
 
+  // قاعدة موحّدة مع لوحة الناظر (get_dashboard_full_summary):
+  // - الأولوية 1: مجموع المخصصات (contract_fiscal_allocations) لهذه السنة المحددة.
+  // - الأولوية 2 (Fallback): مجموع rent_amount للعقود المرتبطة بهذه السنة (fiscal_year_id = v_fy_id).
+  // لا يُخلط بين السنوات أبداً.
   const contractualRevenue = useMemo(() => {
-    if (isSpecificYear && contractAllocations.length > 0) {
-      const allocMap = new Map<string, number>();
-      contractAllocations.forEach(a => {
-        allocMap.set(a.contract_id, (allocMap.get(a.contract_id) ?? 0) + safeNumber(a.allocated_amount));
-      });
-      return relevantContracts.reduce((s, c) => s + (allocMap.get(c.id ?? '') ?? 0), 0);
+    if (isSpecificYear) {
+      const allocSum = contractAllocations.reduce((s, a) => s + safeNumber(a.allocated_amount), 0);
+      if (allocSum > 0) return allocSum;
+      // relevantContracts في وضع isSpecificYear = عقود السنة المختارة فقط
+      return relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
     }
+    // وضع "كل السنوات" — نعرض إجمالي العقود النشطة فقط
     return relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
   }, [relevantContracts, contractAllocations, isSpecificYear]);
 
