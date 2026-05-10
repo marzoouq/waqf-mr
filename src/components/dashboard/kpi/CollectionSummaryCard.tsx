@@ -15,6 +15,7 @@ interface CollectionSummaryCardProps {
     paidCount: number;
     partialCount: number;
     unpaidCount: number;
+    paidLikeCount?: number;
     total: number;
     percentage: number;
     totalCollected: number;
