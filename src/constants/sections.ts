@@ -23,6 +23,9 @@ export const SECTION_LABELS: Record<string, string> = {
   disclosure: 'الإفصاح السنوي',
   share: 'حصتي من الريع',
   notifications: 'سجل الإشعارات',
+  carryforward: 'الترحيلات والخصومات',
+  financial_reports: 'التقارير المالية',
+  settings: 'إعدادات الحساب',
 };
 
 /** مفاتيح أقسام لوحة تحكم الناظر/المحاسب */
@@ -34,9 +37,9 @@ export const ADMIN_SECTION_KEYS = [
 
 /** مفاتيح أقسام واجهة المستفيد */
 export const BENEFICIARY_SECTION_KEYS = [
-  'properties', 'contracts', 'disclosure', 'share', 'accounts',
-  'reports', 'invoices', 'bylaws', 'messages', 'notifications',
-  'annual_report', 'support',
+  'properties', 'contracts', 'disclosure', 'share', 'carryforward',
+  'financial_reports', 'accounts', 'reports', 'invoices', 'bylaws',
+  'messages', 'notifications', 'annual_report', 'support',
 ] as const;
 
 /** تعريف الأقسام مع الأدوار المؤهلة لمصفوفة الصلاحيات.

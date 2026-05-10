@@ -1,80 +1,53 @@
+## السياق
 
-# خطة إصلاح الخطأين الأمنيين الحرجين قبل النشر
+- 14 مستفيد ثابت، لا تسجيل جديد. السياسة: **شفافية كاملة** افتراضياً.
+- المشكلة الحالية: العقود (وما يتفرع عنها من بيانات تاريخية) مخفية عن المستفيد/الواقف لأن جدول `contracts` لا يملك سياسة `SELECT` لهذين الدورين، فيرجع `contracts_safe` فارغاً.
+- البنية موجودة: `app_settings.beneficiary_sections` + `BeneficiaryTab` يسمحان للناظر بتشغيل/إطفاء أقسام واجهة المستفيد. لكنها ناقصة بعض المفاتيح.
 
-## ملاحظة مهمة بعد التحقق الفعلي من السياسات الحالية
+## الهدف
 
-عند فحص قاعدة البيانات مباشرة وجدت الواقع مختلف قليلاً عمّا أظهره الـ scanner:
+1. فتح قراءة العقود (مع إخفاء PII عبر `contracts_safe` فقط) للمستفيد والواقف.
+2. ضمان أن جميع الجداول التي تُغذّي صفحات المستفيد لديها سياسات قراءة (الأغلبية موجود — تحقق فقط).
+3. توسيع لوحة "واجهة المستفيد" لدى الناظر لتشمل كل المفاتيح بحيث يكون له **التحكم الكامل** بما يظهر/يخفى.
 
-### 1) ملفات الفواتير (`storage.objects` / bucket `invoices`)
-السياسة الفعلية القائمة اسمها **`Role-based users can view invoices`** وتسمح للأدوار الأربعة (`admin`, `accountant`, `beneficiary`, `waqif`) بقراءة **كل** الملفات في الـ bucket بدون أي تقييد بالملكية.
+## التغييرات
 
-⚠️ هذا يكشف ملفات PDF + XML الخاصة بـ ZATCA (تحوي PII، أرقام ضريبية، بيانات مستأجرين) لجميع المستفيدين والواقفين — وهذا هو الخطر الفعلي.
-
-### 2) `realtime.messages`
-يوجد بالفعل سياسة واحدة **`Authorized realtime subscriptions`** تقصر الاشتراك على `admin` و `accountant` فقط. لكن:
-- لا يوجد RLS مفصّل يمنع باقي المستخدمين بشكل صريح
-- المستفيد/الواقف الآن **لا يستطيع** استقبال إشعاراته اللحظية الخاصة (مشكلة وظيفية)
-- الـ scanner ما زال يُصنّفها كثغرة لأن السياسة الوحيدة لا تُقيّد قنوات الإدمن بشكل واضح
-
-## الإصلاحان المقترحان
-
-### الإصلاح 1 — تقييد قراءة ملفات الفواتير
-
-استبدال `Role-based users can view invoices` بسياسة تقصر القراءة المباشرة على `admin` و `accountant` فقط.
-
-المستفيد/الواقف لا يحتاجون وصولاً مباشراً للـ bucket — تطبيقهم يقرأ بيانات الفاتورة من جدول `payment_invoices` (محمي بـ RLS صحيح)، وأي تنزيل PDF يجب أن يمرّ عبر Edge Function `generate-invoice-pdf` التي تتحقق من الصلاحية والملكية.
+### 1) Migration — سياسة SELECT للعقود
 
 ```sql
-DROP POLICY IF EXISTS "Role-based users can view invoices" ON storage.objects;
-
-CREATE POLICY "Admin and accountant can view invoice files"
-ON storage.objects FOR SELECT TO authenticated
+CREATE POLICY "Beneficiaries and waqif can view contracts"
+ON public.contracts FOR SELECT TO authenticated
 USING (
-  bucket_id = 'invoices'
-  AND (has_role(auth.uid(), 'admin'::app_role)
-    OR has_role(auth.uid(), 'accountant'::app_role))
+  has_role(auth.uid(),'beneficiary'::app_role)
+  OR has_role(auth.uid(),'waqif'::app_role)
 );
 ```
 
-### الإصلاح 2 — ضبط سياسات `realtime.messages` بدقة
+السياسة التقييدية `Restrict unpublished fiscal year data on contracts` تبقى كما هي → السنوات غير المنشورة محجوبة، والمنشورة (بما فيها المقفلة) تظهر. PII محجوب لأن الواجهة تستخدم `contracts_safe` (security_invoker=on) ولا تختار الأعمدة الحساسة.
 
-استبدال السياسة العامّة الوحيدة بسياستين مفصّلتين:
+### 2) لا حاجة لسياسات إضافية
 
-```sql
-DROP POLICY IF EXISTS "Authorized realtime subscriptions" ON realtime.messages;
+- `units`, `contract_fiscal_allocations`, `payment_invoices`, `accounts`, `expenses`, `income`, `properties` — كلها تملك بالفعل سياسات SELECT لـ beneficiary/waqif. ✅
 
--- (أ) admin/accountant يصلون لكل القنوات
-CREATE POLICY "Admins and accountants full realtime"
-ON realtime.messages FOR SELECT TO authenticated
-USING (
-  has_role(auth.uid(), 'admin'::app_role)
-  OR has_role(auth.uid(), 'accountant'::app_role)
-);
+### 3) توسيع تحكم الناظر بأقسام واجهة المستفيد
 
--- (ب) باقي المستخدمين فقط للقنوات المرتبطة بـ user_id الخاص بهم
--- (notifications, conversations, support tickets…)
-CREATE POLICY "Users can subscribe to own scoped topics"
-ON realtime.messages FOR SELECT TO authenticated
-USING (
-  realtime.topic() LIKE 'user:' || auth.uid()::text || ':%'
-  OR realtime.topic() = 'notifications:' || auth.uid()::text
-);
-```
+- إضافة المفاتيح الناقصة إلى `BENEFICIARY_SECTION_KEYS` و `SECTION_LABELS` في `src/constants/sections.ts` لتغطية كامل قائمة `allBeneficiaryLinks`:
+  - `carryforward` (الترحيلات والخصومات)
+  - `financial_reports` (التقارير المالية — منفصل عن `reports`)
+  - `settings` (إعدادات الحساب — اختياري للإطفاء)
+- لا تغيير على شكل `BeneficiaryTab` — يقرأ المفاتيح تلقائياً.
+- `useNavLinks` و route guards يستخدمان `beneficiarySections` بالفعل، لذلك المفاتيح الجديدة ستفعِّل/تطفِّء روابط المستفيد فوراً.
 
-> سيُنشأ كل ذلك في **migration واحدة** عبر `supabase--migration`.
+### 4) لا تغييرات على واجهة المستفيد نفسها
 
-## بعد التنفيذ
+العقود ستظهر تلقائياً بمجرد تطبيق السياسة لأن الصفحات والـ hooks جاهزة وتستخدم `contracts_safe`.
 
-1. تحديث الـ frontend (إن لزم) لاستخدام أسماء topics بصيغة `notifications:<uid>` أو `user:<uid>:*` — سأفحص الكود الحالي ثم أُجري التعديلات الضرورية فقط.
-2. إعادة تشغيل `security--run_security_scan` للتأكد من اختفاء الخطأين الـ ERROR.
-3. التحقق يدوياً: تسجيل دخول كمستفيد → محاولة فتح ملف فاتورة بالمسار المباشر يجب أن تفشل (403) → الإشعارات اللحظية تصل طبيعياً.
+## التحقق بعد التطبيق
 
-## ما هو خارج نطاق هذه الخطة
+1. الدخول كمستفيد → `/beneficiary/contracts` يعرض العقود (بما فيها العقود في السنة المقفلة 2024-2025) بدون أرقام هوية/سجلات تجارية.
+2. الناظر في `الإعدادات → واجهة المستفيد` يرى مفاتيح إضافية ويمكنه إطفاء أي قسم → القسم يختفي من قائمة المستفيد فوراً.
+3. السنة غير المنشورة لا تزال محجوبة (سياسة RESTRICTIVE).
 
-- 72 تحذير `SECURITY DEFINER` (مقصودة للـ has_role pattern) — لا تُغيَّر.
-- bucket `waqf-assets` العام (مقصود — ذاكرة `waqf-assets-public-bucket-rationale`).
-- صفحة الهبوط البحرية / دور designer (مُلغاة سابقاً).
+## خارج النطاق
 
-## النتيجة المتوقعة
-
-بعد التنفيذ: **0 ERROR** في security scan، وجاهزية كاملة للنشر.
+- لم يُطلب: تعديل قواعد سنوات مقفلة، تغيير منطق فواتير متأخرة، تشديد `validate_fiscal_year_closure`. تُترك كما هي.

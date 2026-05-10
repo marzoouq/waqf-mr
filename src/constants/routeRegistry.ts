@@ -60,7 +60,7 @@ export const BENEFICIARY_ROUTES: Record<string, RouteMeta> = {
   '/beneficiary/disclosure': { title: 'الإفصاح السنوي', permKey: 'disclosure', sectionKey: 'disclosure' },
   '/beneficiary/my-share': { title: 'حصتي من الريع', permKey: 'share', sectionKey: 'share' },
   '/beneficiary/carryforward': { title: 'الترحيلات والخصومات', permKey: 'carryforward', sectionKey: 'carryforward' },
-  '/beneficiary/financial-reports': { title: 'التقارير المالية', permKey: 'reports', sectionKey: 'reports' },
+  '/beneficiary/financial-reports': { title: 'التقارير المالية', permKey: 'financial_reports', sectionKey: 'financial_reports' },
   '/beneficiary/accounts': { title: 'الحسابات الختامية', permKey: 'accounts', sectionKey: 'accounts' },
   '/beneficiary/messages': { title: 'المراسلات', permKey: 'messages', sectionKey: 'messages' },
   '/beneficiary/notifications': { title: 'سجل الإشعارات', permKey: 'notifications', sectionKey: 'notifications' },
