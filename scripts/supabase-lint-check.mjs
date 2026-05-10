@@ -18,8 +18,8 @@ const TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
 const REF = process.env.SUPABASE_PROJECT_REF;
 
 if (!TOKEN || !REF) {
-  console.error('❌ SUPABASE_ACCESS_TOKEN و SUPABASE_PROJECT_REF مطلوبان.');
-  process.exit(2);
+  console.warn('⚠️ SUPABASE_ACCESS_TOKEN أو SUPABASE_PROJECT_REF غير مضبوط — تخطّي فحص Supabase Linter.');
+  process.exit(0);
 }
 
 // قائمة دوال SECURITY DEFINER المسموح لها بالاستدعاء من المستخدمين المسجلين.
