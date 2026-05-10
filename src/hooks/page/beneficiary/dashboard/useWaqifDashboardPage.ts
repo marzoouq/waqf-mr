@@ -8,6 +8,7 @@ import { fmt } from '@/utils/format/format';
 import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/dashboardComputations';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
+import { computeContractualRevenue } from '@/utils/financial/computeContractualRevenue';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
@@ -50,14 +51,14 @@ export const useWaqifDashboardPage = () => {
   // #12 — عدد المستفيدين الفعلي من RPC بدل الحساب التقريبي
   const beneficiaryCount = dashData?.beneficiary_count ?? 0;
 
+  // قاعدة موحّدة مع لوحة الناظر (get_dashboard_full_summary):
+  // - الأولوية 1: مجموع المخصصات (contract_fiscal_allocations) لهذه السنة المحددة.
+  // - الأولوية 2 (Fallback): مجموع rent_amount لعقود السنة المختارة فقط.
   const contractualRevenue = useMemo(() => {
-    if (isSpecificYear && contractAllocations.length > 0) {
-      const allocMap = new Map<string, number>();
-      contractAllocations.forEach(a => {
-        allocMap.set(a.contract_id, (allocMap.get(a.contract_id) ?? 0) + safeNumber(a.allocated_amount));
-      });
-      return relevantContracts.reduce((s, c) => s + (allocMap.get(c.id ?? '') ?? 0), 0);
+    if (isSpecificYear) {
+      return computeContractualRevenue(relevantContracts, contractAllocations);
     }
+    // وضع "كل السنوات" — نعرض إجمالي العقود النشطة
     return relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
   }, [relevantContracts, contractAllocations, isSpecificYear]);
 

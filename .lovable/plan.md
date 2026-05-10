@@ -1,64 +1,47 @@
-# توحيد منطق حساب التحصيل بين لوحة الناظر ولوحة المستفيد
-
 ## الهدف
-1. إزالة فقدان الفواتير عابرة السنوات في لوحة المستفيد (الفاتورة سنتها X وعقدها سنته Y).
-2. تعريف موحّد لـ "مسددة" = `paid` ∪ `partially_paid`، وتعريف موحّد لـ "متأخرة" = كل ما عداها (مع شرط `due_date ≤ today`).
-3. عرض شفاف لقاعدة العدّ بجانب البطاقة.
+تصحيح بطاقة "الإيرادات التعاقدية" في لوحة الناظر بحيث ترتبط حصراً بالسنة المالية المختارة، دون المساس بسجلات الدخل/المصروفات/التوزيعات أو اللقطات المخزّنة (snapshots) للسنوات المقفلة.
 
-## السبب الجذري
-`computeCollectionSummary` يبني `relevantContractIds` من قائمة `contracts` التي يجلبها العميل بفلتر `contract.fiscal_year_id = السنة`. لو كانت الفاتورة في السنة الحالية لكن عقدها مسجّل في سنة أخرى → يُسقطها الفلتر. الناظر يستخدم RPC على السيرفر يربط `payment_invoices ⨝ contracts` مباشرةً ولا يتأثر.
+## المشكلة المؤكدة
+دالة `get_dashboard_full_summary` تحسب `contractual_revenue` بجمع `rent_amount` لكل العقود ذات الحالة `active` بغض النظر عن السنة المختارة، فتظهر:
+- السنة المقفلة 2024-2025: `2,228,822` بدلاً من `1,259,422` (تسرّب 14 عقد active من 2025-2026 بقيمة 969,400)
+- السنة النشطة 2025-2026: مبالغ غير منضبطة بنفس السبب
 
-## التغييرات
+## التعديلات المطلوبة
 
-### 1) `src/utils/financial/dashboardComputations.ts`
-- اعتماد حالة العقد المضمّنة في الفاتورة (`inv.contract?.status`) بدلاً من البحث في مصفوفة `contracts`.
-- توقيع جديد: `computeCollectionSummary(paymentInvoices)` — حذف معامل `contracts` غير الضروري.
-- الفلتر الموحّد المطابق لـ RPC الناظر:
-  ```
-  contract.status ∈ {active, expired}  AND  due_date ≤ today
-  ```
-- الإخراج يحتفظ بالحقول الحالية (`paidCount`, `partialCount`, `unpaidCount`, `total`, `percentage`, `totalCollected`, `totalExpected`) مع توضيح: `paidCount` و `partialCount` كلاهما يدخل في حساب المسدد، `unpaidCount = total - paidCount - partialCount`.
-- تحديث `computeCollectionSummary.test.ts` للتوقيع الجديد + سيناريو "فاتورة عقدها بسنة مختلفة" يجب أن تُحتسب.
+### 1) تعديل دالة قاعدة البيانات `get_dashboard_full_summary` (Migration)
+تغيير منطق احتساب `contractual_revenue` فقط:
 
-### 2) `src/hooks/data/invoices/usePaymentInvoices.ts`
-- التأكد من أن الـ `select` يجلب `contract:contracts(status, ...)` (موجود فعلاً، فقط نضيف `status` لو لم يكن).
+- **الأولوية 1**: جمع `allocated_amount` من `contract_fiscal_allocations WHERE fiscal_year_id = v_fy_id`.
+- **الأولوية 2 (Fallback)**: عند غياب التخصيصات، جمع `rent_amount` من `contracts WHERE fiscal_year_id = v_fy_id` (بدون شرط `status = 'active'`).
+- إزالة أي شرط `c.status = 'active'` يتسبّب في خلط السنوات.
+- باقي حقول الدالة (الدخل، المصروفات، التوزيعات، الحصص، VAT، الزكاة) تبقى كما هي دون أي تغيير.
 
-### 3) `src/hooks/page/beneficiary/dashboard/useWaqifDashboardPage.ts`
-- استدعاء `computeCollectionSummary(paymentInvoices)` فقط.
-- توحيد التعريف في `collectionSummary` المُمرَّر للواجهة:
-  ```
-  onTime  = paidCount + partialCount     // المسدد كلياً أو جزئياً
-  late    = unpaidCount
-  total   = paidCount + partialCount + unpaidCount
-  ```
+### 2) مزامنة لوحة المستفيد
+في `src/hooks/page/beneficiary/dashboard/useWaqifDashboardPage.ts`:
+- استخدام نفس قاعدة الاحتساب (مخصصات السنة → fallback عقود السنة) لضمان توافق رقم الإيرادات التعاقدية بين لوحتي الناظر والمستفيد.
+- لا تغيير في حسابات الحصص الشخصية للمستفيد.
 
-### 4) `src/hooks/page/admin/dashboard/useAdminDashboardStats.ts`
-- لا تغيير في مصدر البيانات (تبقى من RPC).
-- لا تغيير في الحقول لكن نضيف حقل مساعد للعرض: `paidLikeCount = paidCount + partialCount` ليُستخدم في تلميح الشفافية.
+### 3) KPIs المشتقّة (تلقائياً)
+- "متوسط الإيجار" و"نسبة التحصيل المالي" يستخدمان `contractual_revenue` كمقام؛ سيُصحّحان تلقائياً بمجرد تصحيح المصدر. لا تعديل إضافي مطلوب في الواجهة.
 
-### 5) RPC `get_dashboard_full_summary` (هجرة)
-- لا تغيير في الفلتر (هو المرجع الموحّد).
-- إضافة تعليق توثيقي يوضح القاعدة الموحّدة، لتسهيل المراجعة المستقبلية.
+### 4) اختبار تحقّق
+إضافة حالة في `src/utils/financial/computeCollectionSummary.test.ts` (أو ملف اختبار مجاور) تتحقق:
+- عند عرض سنة مقفلة، لا تدخل عقود من سنة أخرى في `contractual_revenue`.
+- توافق الإيراد التعاقدي بين الأدمن والمستفيد لنفس السنة.
 
-### 6) عرض منطق العدّ للمستخدم
-- في `CollectionSummaryCard` (الناظر) و `WaqifFinancialSection` (المستفيد): إضافة Tooltip/سطر شرح صغير أسفل البطاقة:
-  > "يشمل الفواتير التي حلّ تاريخ استحقاقها فقط، وعقودها نشطة أو منتهية. المسدد = مدفوعة كاملة أو جزئية."
-- نص ثابت من `src/constants/` (مفتاح: `COLLECTION_SUMMARY_RULE_AR`) لتفادي التكرار.
+### 5) ما لن يُمَس
+- جدول `income`, `expenses`, `distributions` — لا تعديل.
+- جدول `accounts` (snapshots السنوات المقفلة) — لا تعديل.
+- منطق إقفال السنة، الحصص، VAT، الزكاة، الرقبة — لا تعديل.
+- دالة `get_year_comparison_summary` — لا تستخدم contractual_revenue، لا حاجة لتعديلها.
 
-### 7) ملاحظة فرق العرض الحالي
-- `WaqifFinancialSection` يعرض خانتين فقط (مسدد/متأخر). يبقى كما هو لكن `onTime` الآن دقيق.
-- `CollectionSummaryCard` يعرض ثلاث خانات (مسدد/جزئي/متأخر). يبقى كما هو.
-- المجموع والنسبة سيتطابقان بين اللوحتين لنفس السنة المالية.
+## النتيجة المتوقعة بعد التنفيذ
+- سنة 2024-2025 (مقفلة): الإيرادات التعاقدية = `1,259,422.00`
+- سنة 2025-2026 (نشطة): الإيرادات التعاقدية = مجموع عقود/تخصيصات هذه السنة فقط
+- بقية الأرقام المالية للسنة المقفلة تبقى مطابقة للـ snapshots كما تم التحقق منها.
 
-## ما لن يتغير
-- لا تعديل على RLS أو سياسة `is_fiscal_year_accessible`.
-- لا تعديل على `get_beneficiary_dashboard` (لأنه لا يحسب التحصيل أصلاً).
-- لا تغيير في طريقة جلب العقود لأي شاشة أخرى.
-
-## التحقق بعد التنفيذ
-- اختبار الوحدة: فاتورة سنتها A، عقدها سنته B بحالة expired → تُحتسب عند الاستعلام بسنة A.
-- مطابقة يدوية: لنفس السنة المالية، نسبة التحصيل وعدد الفواتير في بطاقة الناظر = (مسدد+جزئي / إجمالي) × 100 = نفس القيمة في بطاقة المستفيد.
-- اختبار الانحدار: `computeCollectionSummary.test.ts` يمر.
-
-## مخاطر
-- أي مستهلك حالي لـ `computeCollectionSummary` يمرّر `contracts` كمعامل أول سيكسر. سأبحث عن كل المستدعين قبل التغيير وأحدّثهم في نفس التعديل (حالياً معروف: `useWaqifDashboardPage`، `WaqifFinancialSection` غير المباشر، الاختبار).
+## ترتيب التنفيذ
+1. Migration لتعديل `get_dashboard_full_summary` (يتطلب موافقتك).
+2. تعديل `useWaqifDashboardPage.ts` لمزامنة منطق الإيراد التعاقدي.
+3. تحديث ملف الاختبار.
+4. التحقق من الأرقام في الواجهة بعد التطبيق.
