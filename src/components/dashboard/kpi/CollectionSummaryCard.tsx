@@ -92,6 +92,10 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
             </div>
           </div>
         </div>
+        <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground border-t pt-3">
+          <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+          <span>{COLLECTION_SUMMARY_RULE_AR}</span>
+        </p>
       </CardContent>
     </Card>
   );
