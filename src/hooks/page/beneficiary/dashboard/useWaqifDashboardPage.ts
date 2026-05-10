@@ -52,16 +52,12 @@ export const useWaqifDashboardPage = () => {
 
   // قاعدة موحّدة مع لوحة الناظر (get_dashboard_full_summary):
   // - الأولوية 1: مجموع المخصصات (contract_fiscal_allocations) لهذه السنة المحددة.
-  // - الأولوية 2 (Fallback): مجموع rent_amount للعقود المرتبطة بهذه السنة (fiscal_year_id = v_fy_id).
-  // لا يُخلط بين السنوات أبداً.
+  // - الأولوية 2 (Fallback): مجموع rent_amount لعقود السنة المختارة فقط.
   const contractualRevenue = useMemo(() => {
     if (isSpecificYear) {
-      const allocSum = contractAllocations.reduce((s, a) => s + safeNumber(a.allocated_amount), 0);
-      if (allocSum > 0) return allocSum;
-      // relevantContracts في وضع isSpecificYear = عقود السنة المختارة فقط
-      return relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+      return computeContractualRevenue(relevantContracts, contractAllocations);
     }
-    // وضع "كل السنوات" — نعرض إجمالي العقود النشطة فقط
+    // وضع "كل السنوات" — نعرض إجمالي العقود النشطة
     return relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
   }, [relevantContracts, contractAllocations, isSpecificYear]);
 
