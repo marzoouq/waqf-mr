@@ -116,3 +116,41 @@ Edge Functions موجودة فعلاً (لا support-analytics ولا execute-di
 الاجابة   
   
 **جولة منفصله بعد التحقق من القرا**ر 
+---
+
+## التنفيذ الفعلي — جولة C Version D (مكتملة)
+
+### المرحلة 7 — ترحيل 7 ملفات ✅
+- `useBeneficiaryUsers.ts` ✅
+- `useUserManagementData.ts` (callAdminApi يحافظ على عقد throw/payload) ✅
+- `useEmailMonitorPage.ts` (نداءان منفصلان) ✅
+- `useInvoices.ts` (PDF mutation — `{results}`) ✅
+- `useZatcaOnboarding.ts` (`maxAttempts:1`) ✅
+- `useDashboardPrefetch.ts` (`onAuthError` + إبقاء aborted checks) ✅
+- `nationalIdLogin.ts` (`maxAttempts:1` + `treatDataErrorAsFailure:false` + try/catch) ✅
+
+### المرحلة 8 — Zod schemas ✅
+- `src/lib/api/schemas/dashboardSummary.ts`
+- `src/lib/api/schemas/supportAnalytics.ts`
+- `src/lib/api/schemas/index.ts` (parseOrThrow helper)
+- مُلغى: `executeDistributionSchema` (لا توجد دالة بهذا الاسم)
+- اختبارات: 6 تمر
+
+### المرحلة 9 — CORS verified ✅
+3 functions × 4 origins (3 مسموحة + 1 خبيث). كل المسموحة تعكس Origin؛ الخبيث
+يتلقى header فارغاً (المتصفح يرفض). راجع `docs/api/edge-functions.md`.
+
+### المرحلة 10 — Caching invariants ✅
+جدول كامل لكل دومين في `docs/api/README.md`. لا تغييرات سلوكية على
+`queryClient.ts`.
+
+### المرحلة 11 — اختبار + توثيق ✅
+- `bunx vitest run src/lib/api`: **23 passed**.
+- توثيق drift `generate-invoice-pdf` مُصلَح.
+
+### الاستثناءات النهائية
+- `AuthContext.tsx`, `errorReporter.ts` (تركت عمداً).
+
+### مخاطر معروفة قائمة (لم تُفاقَم)
+- `nationalIdLogin`: rate-limit body قد لا يصل في `data` إن أعاد Edge 429 بدلاً
+  من 200+error. هشاشة قائمة قبل الترحيل، الـ catch الجديد يلتقطها كخطأ اتصال.
