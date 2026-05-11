@@ -492,6 +492,43 @@ const { data } = await supabase.functions.invoke('beneficiary-summary', {
 
 ---
 
+---
+
+## 15. `email-admin` — إدارة طابور البريد
+
+**الوصف**: قراءة إحصاءات طابور البريد وإعادة محاولة عناصر DLQ. يُستخدم في صفحة "مراقبة البريد".
+
+**المصادقة**: يتطلب JWT صالح + دور admin (مصادقة يدوية محلية — لا يستخدم `_shared/auth.ts`).
+
+```typescript
+// إحصاءات
+const { data } = await supabase.functions.invoke('email-admin', {
+  body: { action: 'get_stats' }
+});
+// الاستجابة: { sent, failed, dlq, suppressed, last_run, auth_dlq_count, transactional_dlq_count, rate_limited_until }
+
+// إعادة محاولة DLQ
+const { data } = await supabase.functions.invoke('email-admin', {
+  body: { action: 'retry_dlq', queueName: 'auth_emails' } // أو 'transactional_emails'
+});
+// الاستجابة: { moved: number }
+```
+
+---
+
+## 16. `process-email-queue` — معالجة طابور البريد (cron-only)
+
+**الوصف**: يستهلك العناصر المُعلَّقة من `auth_emails` و`transactional_emails` ويرسلها عبر مزود البريد. يعمل عبر `pg_cron` فقط.
+
+**المصادقة**: `verify_jwt = true` في `supabase/config.toml` (الاستثناء الوحيد) — البوابة ترفض أي طلب بدون `service_role` JWT قبل الوصول للكود. ثم `isServiceRole()` من `_shared/auth.ts` يتحقق ثانياً (defense-in-depth).
+
+```typescript
+// لا يُستدعى من المتصفح — cron فقط عبر pg_net.
+// الاستجابة: { processed: number, failed: number }
+```
+
+---
+
 ## التحقق من المدخلات
 
 جميع الوظائف تتحقق من:
