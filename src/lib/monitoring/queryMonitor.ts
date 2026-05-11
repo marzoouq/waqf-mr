@@ -30,7 +30,7 @@ export function startPerfTimer(label: string, options?: PerfTimerOptions): () =>
 
     if (entry.durationMs > SLOW_QUERY_THRESHOLD_MS) {
       const durationSec = (entry.durationMs / 1000).toFixed(1);
-      logger.warn(`[Perf] عملية بطيئة: "${label}" استغرقت ${Math.round(entry.durationMs)}ms`);
+      logger.error(`[Perf] عملية بطيئة جداً: "${label}" استغرقت ${Math.round(entry.durationMs)}ms`);
       recentSlowQueries.push(entry);
 
       options?.onSlow?.('⚠️ عملية بطيئة', {
@@ -38,6 +38,8 @@ export function startPerfTimer(label: string, options?: PerfTimerOptions): () =>
       });
 
       if (recentSlowQueries.length > 50) recentSlowQueries.shift();
+    } else if (entry.durationMs > WARN_QUERY_THRESHOLD_MS) {
+      logger.warn(`[Perf] عملية بطيئة: "${label}" استغرقت ${Math.round(entry.durationMs)}ms`);
     }
   };
 }
