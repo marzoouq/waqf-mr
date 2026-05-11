@@ -86,3 +86,24 @@
 **إنشاء:** لا شيء
 
 **صفر تعديلات على Edge Functions أو كود تشغيلي. الجولة F توثيقية بالكامل، تستجيب فقط للـ drift المؤكد بدليل مباشر من كود الـ functions نفسها.**
+
+---
+
+## Version F — منفّذ (2026-05-11)
+
+### ما تم تنفيذه
+- ✅ `docs/api/edge-functions.md` — تصحيح 3 endpoints (`email-admin`, `guard-signup`, `lookup-national-id`) بناءً على فحص جنائي مباشر للكود.
+- ✅ `docs/api/network-inventory.md` — إضافة قسم "Auth Abstraction Adoption Matrix" يوثّق 17 function بالحالة الفعلية + سبب كل استثناء.
+- ℹ️ `docs/API.md` — لا يحتاج تعديلاً: أقسام `lookup-national-id` و`guard-signup` فيه دقيقة فعلاً (التقرير قاسهما على `docs/api/edge-functions.md` فقط).
+
+### نتائج الفحص الجنائي للتقرير الخارجي
+- ✅ صحيح: drift في 3 endpoints بـ `docs/api/edge-functions.md` فقط.
+- ✅ صحيح: 4/17 functions فقط تستخدم `_shared/auth.ts` (`admin-manage-users`, `generate-invoice-pdf`, `process-email-queue`, `check-contract-expiry`).
+- ❌ خاطئ: ادعاء `generate-invoice-pdf` drift — مُصحَّح في Version E.
+- ❌ خاطئ: ادعاء غياب "policy override matrix" — موجود في `docs/api/README.md` منذ Version E.
+- 🟡 صحيح هندسياً لكن خارج النطاق: refactoring auth في functions حسّاسة محظور بقاعدة AGENTS.md.
+
+### نتائج
+- 0 تعديلات على Edge Functions أو كود تشغيلي.
+- 2 ملفات توثيقية محدّثة.
+- 17 Edge Function موثّقة الآن بحالة auth الفعلية.
