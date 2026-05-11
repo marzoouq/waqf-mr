@@ -83,3 +83,32 @@
 **صفر تعديلات على:** Edge Functions، ملفات المصادقة، `_shared/*`، wrappers (`invoke`/`rpc`)، types، client.ts، config.toml.
 
 تغييرات الكود **معزولة وآمنة**: لا تغيّر public signatures ولا UX، فقط تكشف failures كانت صامتة.
+
+---
+
+## Version G — السجل التنفيذي (2026-05-11)
+
+### النتائج المؤكدة بأدلة مباشرة
+
+1. **`auth-email-hook /preview`** — يستخدم CORS مفتوح `*` بحماية `LOVABLE_API_KEY` (وليس JWT مستخدم). استثناء intentional موثّق الآن.
+2. **`invoiceStorageService`** — كان يبتلع أخطاء `update file_path` بصمت في 3 مواقع. تم إضافة فحص `error` + `logger.warn` مع الحفاظ على blob URL.
+3. **`advanceService.notifyOnCreate`** — كان يستخدم Promise `.then()` بدون `.catch()`. تم تحويله إلى async/try-catch مع تسجيل الأخطاء.
+
+### التغييرات الفعلية
+
+- `src/lib/services/invoiceStorageService.ts` — error logging على primary update + retry update + `updateInvoiceFilePath`.
+- `src/lib/services/advanceService.ts` — async/try-catch + `logger.warn`.
+- `docs/api/network-inventory.md` — قسم §7 "CORS Exceptions" + قسم §8 "استثناءات services إضافية" (يضيف `dataFetcher`, `fiscalYearService`, `securityService`, `invoiceStorageService`, `advanceService`).
+- `docs/api/cors-verification.md` — قسم استثناءات يصف `/preview`.
+
+### مؤجَّل (قرارات أوسع، غير مرفوضة بصياغة قاطعة)
+
+- توحيد adoption لـ `_shared/auth.ts` على functions إضافية (`ai-assistant`, `zatca-signer`, `zatca-xml-generator`) — refactor معماري واسع، يحتاج جولة مخصصة.
+- contract tests شاملة لكل response shape + runtime validation موسّع على endpoints مستقرة.
+- إعادة كتابة `src/lib/services/*` لتوحيد wrappers — ليست ضرورية لمعالجة findings الحالية.
+
+### تصحيحات منهجية مقابل المراجعة
+
+- **تم تصحيح:** الادعاء بأن `/preview` يستخدم "admin JWT" → الواقع `LOVABLE_API_KEY`.
+- **تم التحقق المباشر:** `network-inventory.md` و`edge-functions.md` يحتويان فعلاً مدخلات Version E/F (تم قراءة الملفات قبل الادعاء).
+- **تم سدّ فجوة:** `dataFetcher`/`fiscalYearService`/`securityService` لم تكن مذكورة بالاسم في جدول الاستثناءات سابقاً — أُضيفت في §8.
