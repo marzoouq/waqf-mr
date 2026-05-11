@@ -1,94 +1,85 @@
-# خطة إكمال M2.4 + M2.5 + M2.6 + M3
+## السياق
 
-## الحالة الحالية (تحقق فعلي)
+الفحص الفعلي يُظهر أن الصفحات الست (إدارية + عرض) موجودة ومُسجَّلة في المسارات وتستخدم هوكات بيانات حقيقية مرتبطة بـ `useFiscalYear()`. لا توجد بيانات وهمية. لذلك "التفعيل" المطلوب يُترجم عمليًا إلى **تحقّق وتشغيل آمن** للجلب-حسب-السنة-المالية + إصلاح أي ثغرات في إعادة الجلب وعرض المحدد + إزالة الحواجز التي قد تجعل الصفحة تظهر فارغة.
 
-**المتبقي في `src/hooks/data/`** — 14 مكالمة `supabase.from()` في 6 ملفات:
+## الصفحات المعنية
 
-| الملف | المكالمات | الخدمة |
-|------|----------|--------|
-| `notifications/useNotificationActions.ts` | 4 | `notificationsCrudService` (موجود) |
-| `messaging/useMessaging.ts` | 4 | `messagingService` (موجود) |
-| `support/useSupportTicketMutations.ts` | 1 | `supportService` (موجود) |
-| `zatca/useZatcaInvoices.ts` | 3 | `zatcaInvoicesService` (موجود) |
-| `zatca/useZatcaOnboardingReadiness.ts` | 1 | يُضاف لـ `zatcaInvoicesService` |
-| `content/useAnnualReport.ts` | 1 | `annualReportService` (موجود) |
+| المنطقة | الصفحة | المسار | الهوك |
+|---|---|---|---|
+| إدارية | الحسابات الختامية | `/dashboard/accounts` | `useAccountsPage` |
+| إدارية | التقرير السنوي (إفصاح) | `/dashboard/annual-report` | `useAnnualReportPage` |
+| إدارية | التقارير + توزيع الحصص | `/dashboard/reports` | `useReportsData` |
+| عرض | الإفصاح السنوي | `/beneficiary/disclosure` | `useDisclosurePage` |
+| عرض | الحسابات الختامية | `/beneficiary/accounts` | `useAccountsViewPage` |
+| عرض | التقرير السنوي | `/beneficiary/annual-report` | `useAnnualReportViewPage` |
 
-**استثناءات مقصودة (تبقى)**: `useFiscalYears.ts` (وصول مباشر لتجنّب دائرية)، أي `.rpc()` يبقى كما هو.
+## الخطوات
 
----
+### 1) تدقيق `queryKey` لكل هوك بيانات تستهلكه الصفحات الثلاث
+- التحقق أن كل `useQuery` يعتمد بيانات FY يحتوي `fiscalYearId` ضمن المفتاح (income/expenses/accounts/contracts/distributions/annual_report_items/annual_report_status).
+- إصلاح أي مفتاح ثابت لا يعيد الجلب عند تغيير السنة.
 
-## M2.4 — Notifications + Support (PR صغير)
-- ربط `useNotificationActions.ts` بـ `notificationsCrudService` (4 مكالمات: list/markRead/markAllRead/delete)
-- ربط `useSupportTicketMutations.ts` بـ `supportService` (1 مكالمة: create ticket مع توليد TKT-YYYYMMDD)
-- نفس `queryKey` بالضبط — لا تغيير على الواجهة
+### 2) ضمان وجود مُحدِّد سنة مالية مرئي في كل صفحة
+- `AccountsPage`: يحتوي `AccountsSettingsBar` مع `onFiscalYearChange` — تأكيد أنه يحدّث الـ Context (لا state محلي فقط).
+- `AnnualReportPage` و`ReportsPage`: لا يحتويان مُحدِّد محلي — يعتمدان على `DashboardLayout`. التحقق أن `DashboardLayout` يعرض `FiscalYearSelector` للأدوار الإدارية، وإلا إضافة Badge مع زر تغيير سريع في الـ `PageHeaderCard` لكل صفحة.
+- صفحات العرض (beneficiary/waqif): التأكد أن `RequirePublishedYears` لا يحجب الصفحة إذا كانت هناك سنة منشورة، وأن الـ FY المعروض = ما يختاره المستفيد.
 
-## M2.5 — Messaging
-- ربط `useMessaging.ts` بـ `messagingService` (4 مكالمات: fetchThreads/fetchMessages/sendMessage/markRead)
-- الحفاظ على منطق Realtime channel كما هو في الـ hook (لا يُنقل)
+### 3) إزالة الحواجز التي تُظهر "فارغ" خطأً
+- `useDisclosurePage` و`useAccountsViewPage`: حالة "السنة النشطة لم تُغلق" — تأكيد عرض القيم الديناميكية (المحسوبة من income/expenses) بدل صفر، طبقًا لقاعدة الذاكرة *Active fiscal year balances are calculated dynamically*.
+- منع إعادة `isAccountMissing` كحاجز نهائي على السنة النشطة؛ يجب عرض الأرقام المحسوبة وإخفاء فقط حقول الحصص.
 
-## M2.6 — ZATCA + Annual Report
-- ربط `useZatcaInvoices.ts` بـ `zatcaInvoicesService` (3 مكالمات)
-- ربط `useZatcaOnboardingReadiness.ts` بـ نفس الخدمة (1 مكالمة)
-- ربط `useAnnualReport.ts` بـ `annualReportService` (1 مكالمة)
+### 4) ربط حقيقي لتقرير توزيع الحصص داخل صفحتين
+- داخل `ReportsPage` (تبويب "المالية"): التأكد أن `BeneficiaryDistributionTable` يستهلك `distributionData` المحسوب فعليًا من `availableAmount × share_percentage / totalPct` (مُؤكَّد في `useReportsData`).
+- داخل `AccountsPage`: التأكد أن `AccountsDistributionTable` يستهلك ملخص `useAccountsPage` للسنة المختارة.
+- في صفحة المستفيد: `DisclosureFinancialStatement` يعرض `myShare` و`beneficiariesShare` للسنة المعروضة.
 
-**معيار قبول M2**: `rg "supabase\.from\(" src/hooks/data/ | wc -l` ≤ 1 (فقط `useFiscalYears.ts`).
+### 5) Realtime + إبطال
+- التأكد أن `useDashboardRealtime` يُبطل مفاتيح: `['income']`, `['expenses']`, `['accounts']`, `['distributions']`, `['contracts']`, `['annual_report_items']`, `['annual_report_status']` عند أي تغيير في الجداول، وأن الإبطال يستخدم `exact: false` ليشمل كل سنوات الكاش.
 
----
+### 6) قبول/تحقق يدوي بعد التنفيذ
+- تبديل السنة من الواجهة → الصفحات الثلاث الإدارية والعرضية تُعيد الجلب وتعرض أرقام السنة الجديدة خلال ثانيتين.
+- إنشاء حساب ختامي / تعديل دخل في السنة → ينعكس فورًا في الإفصاح وتوزيع الحصص.
+- نشر التقرير السنوي من `/dashboard/annual-report` → يظهر للمستفيد مباشرة في `/beneficiary/annual-report`.
+- صفر بيانات تجريبية/Placeholder.
 
-## M3.1 — تحسين `_shared/auth.ts` (إضافة فقط، لا breaking)
+## التفاصيل التقنية
 
-أضف خيارَين جديدَين لدالة `authenticate()` الحالية دون تغيير توقيعها:
-
-```ts
-export interface AuthOptions {
-  // ... الموجود
-  /** استخدم getClaims() المحلي بدل getUser() (أسرع، لا round-trip). */
-  useClaims?: boolean;
-  /** parse JSON body بالتوازي مع المصادقة. */
-  parseJsonBody?: boolean;
-}
-
-export type AuthSuccess = {
-  user: { id: string; email?: string | null };
-  admin: AdminClient;
-  body?: unknown; // إذا parseJsonBody = true
-};
+```text
+FY Source of Truth
+───────────────────
+sessionStorage(fiscal_year_id)
+        │
+useFiscalYearPersistence ──► useResolvedFiscalYear ──► FiscalYearContext
+        │                                                       │
+        └──────────────► every page hook reads fiscalYearId ◄────┘
+                                    │
+                ┌───────────────────┼─────────────────────┐
+                ▼                   ▼                     ▼
+         useIncomeBy…      useExpensesBy…        useAnnualReportItems
+         queryKey:         queryKey:             queryKey:
+         ['income',fy]     ['expenses',fy]       ['annual_report_items',fy]
 ```
 
-- `useClaims: true` → يستخدم `supabase.auth.getClaims(token)` بدل `getUser()` (لا شبكة).
-- `parseJsonBody: true` → يبدأ `req.json()` بالتوازي مع المصادقة عبر `Promise.all`.
-- التوقيع الحالي يبقى يعمل (الخيارات اختيارية).
+### ملفات سيتم لمسها (تقدير مبدئي)
 
-## M3.2 — اعتماد في 3 وظائف Category A (الأبسط)
-- `email-admin` → `authenticate(req, cors, { allowedRoles: ["admin"] })`
-- `beneficiary-summary` → نفس النمط مع أدوار أوسع
-- `dashboard-summary` → يستخدم `useClaims: true` + `parseJsonBody: true` (للحفاظ على pipeline متوازي حالي)
+- `src/hooks/financial/useRawFinancialData.ts` — تأكيد عدم تجاوز السنة النشطة وعرض القيم الديناميكية.
+- `src/hooks/page/admin/financial/useAccountsPage.ts` — التحقق من `fiscalYearId` بدل `'all'` عند الحساب.
+- `src/hooks/page/admin/reports/useReportsData.ts` — تأكيد إبطال الكاش للسنة المختارة.
+- `src/hooks/page/admin/reports/useAnnualReportPage.ts` — استبدال `?? 'all'` بـ `?? FY_NONE` لمنع جلب كل السنوات.
+- `src/hooks/page/beneficiary/financial/useDisclosurePage.ts` — رفع حاجز `isAccountMissing` للسنة النشطة.
+- `src/hooks/page/beneficiary/financial/useAccountsViewPage.ts` — نفس الإصلاح.
+- `src/components/layout/DashboardLayout.tsx` — تأكيد ظهور `FiscalYearSelector` لأدوار العرض، وإضافة Badge موحّدة في الـ Header.
 
-## M3.3 — Category B (ZATCA) — اختياري، واحد في كل مرة
-لاحقًا (PR منفصل): `zatca-onboard`, `zatca-report`, `zatca-renew`, `zatca-clearance`, `zatca-status`.
+### معايير القبول
 
-## M3.4 — توثيق الاستثناءات
-في `supabase/functions/README.md` نُوثّق صراحةً الـ8 وظائف التي **لا** تستخدم `_shared/auth` ولماذا (HMAC/anon/public/service-role/streaming).
+1. `rg "queryKey:.*'income'" src/` — كل ظهور يحتوي `fiscalYearId`.
+2. تبديل السنة → DevTools يُظهر استعلامات جديدة بمفاتيح FY الجديدة.
+3. لا توجد قيمة مُهَيَّأة بصفر لو كان هناك income/expenses فعلي للسنة.
+4. كل الاختبارات الموجودة (`*.test.ts(x)` للصفحات الست) تمرّ.
+5. لا تعديل على: `client.ts`, `types.ts`, `config.toml`, `.env`، ولا تغييرات RLS.
 
-## M3.5 — قواعد ESLint (no-restricted-syntax)
-- `warn` على `supabase.from(` داخل `src/hooks/data/**` (تحذير، ليس خطأ — للسماح بالاستثناءات الموثقة).
-- `error` على `supabase.from(` و `supabase.auth.` داخل `src/pages/**` و `src/components/**`.
+### خارج النطاق
 
----
-
-## معايير القبول النهائية
-
-- `rg "supabase\.from\(" src/hooks/data/ | wc -l` ≤ 1
-- `_shared/auth.ts` يدعم `useClaims` و `parseJsonBody` بدون كسر التوقيع
-- 3 وظائف Category A تستخدم `authenticate()`
-- ESLint rules مفعّلة
-- جميع الاختبارات (11) تمر
-- **0 تغيير على**: `config.toml`, `client.ts`, `types.ts`, `.env`, RLS, schema, query keys, API contracts
-
----
-
-## ترتيب التنفيذ
-
-`M2.4` → `M2.5` → `M2.6` → اختبار → `M3.1` → `M3.2` (3 وظائف بالتوازي) → `M3.4` (توثيق) → `M3.5` (ESLint) → اختبار نهائي.
-
-M3.3 (ZATCA) يُؤجّل لـ PR لاحق منفصل لتقليل المخاطر.
+- إعادة تصميم الـ UI أو إضافة تبويبات جديدة.
+- تغييرات في منطق الإقفال السنوي أو معادلة التوزيع.
+- إنشاء صفحة `/reports/distribution` مستقلة (يبقى التوزيع داخل ReportsPage و AccountsPage).
