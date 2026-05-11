@@ -81,3 +81,57 @@
 2. `docs/API.md`
 3. `docs/api/network-inventory.md`
 4. `.lovable/plan.md`
+
+---
+
+## Version H — إقفال drift التوثيق (2026-05-11)
+
+### الهدف
+مزامنة `docs/API.md` و`docs/api/edge-functions.md` و`docs/api/network-inventory.md` مع المصدر الفعلي بعد التحقق الجنائي العميق. **0 تغييرات كود.**
+
+### التصحيحات المنفّذة
+
+**`docs/api/edge-functions.md`:**
+- استُبدل ادعاء "`verify_jwt = false` متعمَّد لكل الدوال" بجدول استثناءات صريح يُظهر `process-email-queue = true`، الباقي `false`.
+- `check-contract-expiry`: تصحيح Auth إلى `service_role JWT (cron)` أو `admin user (متصفح)`. حُذف ذكر `cron_secret` (لم يكن موجوداً في الكود).
+- `health-check`: تصحيح Response من `{ status: 'ok', uptime_ms }` إلى `{ status: 'healthy' \| 'degraded', timestamp }` + HTTP `200/503`.
+- `process-email-queue`: تصحيح Auth من `cron_secret` إلى `service_role JWT (verify_jwt=true بوابة + isServiceRole كود)`.
+- جدول التصنيف: تحديث ملاحظة `check-contract-expiry`.
+
+**`docs/API.md`:**
+- §3 `check-contract-expiry`: تصحيح وصف المصادقة (service_role JWT عبر `isServiceRole()` بدلاً من مقارنة token مباشرة).
+- §4 `lookup-national-id`: تصحيح rate limit من `5/120s` إلى الفعلي `3/300s`. توثيق concealment المتعمَّد كقرار أمني (`{ found: true, masked_email: '***@***.com' }` عند عدم الوجود).
+- §5 `guard-signup`: تصحيح شكل النجاح من `{ user: { id, email, ... } }` إلى الفعلي `{ success: true, message: string }`.
+- §12 `health-check`: تصحيح Response shape + HTTP status.
+- §13 `dashboard-summary`: تصحيح Response من المسطّح `{ total_income, ... }` إلى الفعلي `{ aggregated, pending_advances, fetched_at }`.
+
+**`docs/api/network-inventory.md`:**
+- §1: تحديث صف `check-contract-expiry` Auth من "service" إلى "service_role JWT (cron) أو admin user (متصفح)".
+- §6 Adoption Matrix: تمييز ثلاث حالات بدل اثنتين:
+  - **Full** (`authenticate()`): `admin-manage-users`, `generate-invoice-pdf` فقط (2/17).
+  - **Partial** (`isServiceRole` helper فقط): `process-email-queue`, `check-contract-expiry` (2/17).
+  - **None**: 13/17 — مع التبرير الموجود.
+- صفّا `process-email-queue` و`check-contract-expiry` انتقلا من ✅ Full إلى Partial — تصحيح drift كان قائماً في الإصدارات السابقة.
+
+### تحفّظات مسجَّلة
+
+- **CORS field verification:** الجدول في `edge-functions.md` و`cors-verification.md` موثَّق نظرياً فقط. لا يوجد CI script ولا artifact runnable داخل المستودع يُثبت إعادة تشغيله. وُسم كـ "موثّق نظرياً" — يحتاج CI script في جولة لاحقة.
+- **`dashboardSummarySchema` runtime validation:** ادعاء وجوده في `useDashboardSummary` لم يُتحقَّق منه مباشرةً في هذه الجولة. الادعاء الوحيد المُثبَت هو `supportAnalyticsSchema` في `useSupportAnalytics`. يحتاج فحص لاحق لـ `src/hooks/data/dashboard/useDashboardSummary.ts`.
+
+### Open Items (لم تتغيَّر)
+
+- توحيد `_shared/auth.ts` على functions إضافية (`ai-assistant`, `zatca-signer`, `zatca-xml-generator`, ربما `zatca-report`) — refactor معماري مؤجل.
+- تحويل CORS field verification إلى CI script قابل للتشغيل.
+- التحقق من بقية schemas الحرجة قبل أي ادعاء اكتمال (`dashboardSummarySchema`, إلخ).
+- مراجعة `dispatcher` functions (`dashboard-summary`, `beneficiary-summary`, `email-admin`) لتقييم إمكانية توحيد جزئي.
+
+### الملفات المُعدَّلة
+
+| الملف | نوع التغيير |
+|---|---|
+| `docs/api/edge-functions.md` | جدول `verify_jwt` + 4 إصلاحات Auth/Response |
+| `docs/API.md` | 5 إصلاحات Response/Auth/Rate-limit |
+| `docs/api/network-inventory.md` | تصحيح Adoption Matrix (Full/Partial/None) + صف `check-contract-expiry` |
+| `.lovable/plan.md` | هذا السجل (Version H) |
+
+**صفر تعديلات على:** Edge Functions، `_shared/*`، `config.toml`، wrappers، client.ts، types.ts، أي ملف مصادقة. **صفر مخاطر runtime/UX/أمن.**
