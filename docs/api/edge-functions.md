@@ -22,9 +22,14 @@
 
 ## نمط المصادقة
 
-`verify_jwt = false` متعمَّد لكل الدوال (Lovable Cloud signing-keys).
-المصادقة يدوية داخل كل function عبر `supabase.auth.getUser(jwt)`. لا تستخدم
-`getSession()` ولا `SUPABASE_SERVICE_ROLE_KEY` كبديل عن مصادقة المستخدم.
+`verify_jwt` افتراضياً `false` لكل الدوال (Lovable Cloud signing-keys) مع استثناء واحد موثّق:
+
+| Function | `verify_jwt` | المصدر |
+|---|:-:|---|
+| `process-email-queue` | **`true`** | `supabase/config.toml` — يضمن أن البوابة ترفض الطلبات بدون service_role JWT قبل الوصول للكود |
+| كل الدوال الأخرى (16 دالة) | `false` | المصادقة يدوية في الكود |
+
+المصادقة الفعلية تُجرى يدوياً داخل كل function — إما عبر `supabase.auth.getUser(jwt)` (مستخدمون عاديون) أو عبر `isServiceRole(token)` من `_shared/auth.ts` (cron / service_role). لا تستخدم `getSession()` ولا `SUPABASE_SERVICE_ROLE_KEY` كبديل عن مصادقة المستخدم.
 
 ## تصنيف الوظائف بحسب نمط الاستدعاء
 
@@ -34,7 +39,7 @@
 | `ai-assistant` | متصفح (auth) | shared | — |
 | `auth-email-hook` | Supabase Auth Hook (server-to-server) + Lovable preview tool | shared للـ webhook، `*` لمسار `/preview` فقط | الـ webhook يتطلب `x-lovable-signature`/`x-lovable-timestamp` |
 | `beneficiary-summary` | متصفح (auth) | shared | — |
-| `check-contract-expiry` | cron + متصفح (admin) | shared | — |
+| `check-contract-expiry` | cron (service_role JWT) + متصفح (admin user) | shared | يقبل المسارين عبر `isServiceRole()` أو فحص دور admin |
 | `dashboard-summary` | متصفح (auth) | shared | — |
 | `email-admin` | متصفح (admin) | shared | — |
 | `generate-invoice-pdf` | متصفح (auth) | shared | — |
@@ -96,7 +101,7 @@
 
 ### 5. `check-contract-expiry`
 - **الغرض:** فحص العقود المنتهية قريباً (cron + يدوي للناظر).
-- **Method:** POST · **Auth:** admin أو `cron_secret` header.
+- **Method:** POST · **Auth:** `service_role` JWT (cron — يُتحقَّق منه عبر `isServiceRole()` في الكود) **أو** مستخدم مصادَق له دور `admin` في `user_roles` (متصفح). لا يوجد `cron_secret` header.
 - **Body:** `{}` أو `{ days_ahead?: number }`
 - **Response:** `{ checked: number, notified: number }`
 
@@ -128,9 +133,9 @@
 - **Response (فشل):** `{ error: string }` — رسالة عربية موحّدة.
 
 ### 10. `health-check`
-- **الغرض:** فحص حياة المنصة (uptime).
+- **الغرض:** فحص حياة المنصة + اتصال قاعدة البيانات + متغيرات البيئة.
 - **Method:** GET · **Auth:** none.
-- **Response:** `{ status: 'ok', uptime_ms: number }`
+- **Response:** `{ status: 'healthy' \| 'degraded', timestamp: string }` — HTTP `200` عند `healthy`، `503` عند `degraded`. لا يكشف تفاصيل داخلية.
 
 ### 11. `lookup-national-id`
 - **الغرض:** البحث عن مستخدم برقم الهوية الوطنية + (اختيارياً) تسجيل دخول مباشر عند تمرير كلمة المرور.
@@ -142,7 +147,7 @@
 
 ### 12. `process-email-queue`
 - **الغرض:** معالجة طابور البريد (cron فقط).
-- **Method:** POST · **Auth:** `cron_secret`.
+- **Method:** POST · **Auth:** `service_role` JWT — يتحقق منه أولاً بوابة Supabase (`verify_jwt = true` في `config.toml`) ثم الكود عبر `isServiceRole(token)` من `_shared/auth.ts`. لا يوجد `cron_secret` header.
 - **Body:** `{}`
 - **Response:** `{ processed: number, failed: number }`
 

@@ -139,10 +139,10 @@ const response = await supabase.functions.invoke('ai-assistant', {
 **الوصف**: يبحث عن العقود التي ستنتهي خلال 30 يوماً ويرسل إشعارات تحذيرية للناظر والمستفيدين.
 
 **المصادقة**: مصادقة مزدوجة — يقبل أحد الخيارين:
-1. **service_role key**: للمهام المجدولة (Cron Jobs) — يُقارن التوكن مباشرة بمتغير البيئة `SUPABASE_SERVICE_ROLE_KEY`
-2. **JWT admin**: للاستدعاء اليدوي — يتحقق عبر `getClaims()` ثم يفحص دور `admin` في جدول `user_roles`
+1. **service_role JWT**: للمهام المجدولة (Cron Jobs) — يُستخرج من `Authorization: Bearer ...` ويُتحقَّق منه عبر `isServiceRole()` من `_shared/auth.ts` (يفك ادعاءات الـ JWT ويتأكد أن `role === 'service_role'`).
+2. **JWT مستخدم admin**: للاستدعاء اليدوي من المتصفح — يتحقق عبر `getUser()` ثم يفحص دور `admin` في جدول `user_roles`.
 
-> ⚠️ ملاحظة: `verify_jwt = false` في `config.toml` — قرار واعٍ لتسهيل استدعاء Cron مع التحقق اليدوي في الكود.
+> ⚠️ ملاحظة: `verify_jwt = false` في `config.toml` لهذه الدالة — البوابة لا تتحقق، لكن الكود يفعل (`isServiceRole` أو `getUser` + role check). لا يوجد `cron_secret` header — المسارَين كلاهما يعتمد على JWT.
 
 ```typescript
 const { data } = await supabase.functions.invoke('check-contract-expiry', {
@@ -161,23 +161,25 @@ const { data } = await supabase.functions.invoke('check-contract-expiry', {
 
 **المصادقة**: لا يتطلب مصادقة (عام).
 
-**حماية**: Rate limiting — 5 طلبات كل 120 ثانية لكل IP + Fail-closed + Timing-safe response (300ms ثابتة).
+**حماية**: Rate limiting — **3 محاولات كل 300 ثانية** لكل IP (مفتاح `lookup_nid:${ip}`، عبر RPC `check_rate_limit`) + Fail-closed على فشل rate-limit + Timing-safe response (تأخير ثابت 300ms يتدرج مع المحاولات لمنع enumeration الزمني).
+
+**قرار أمني — concealment متعمَّد:** عند عدم وجود الهوية، تُعاد **نفس بنية** "تم العثور" (`{ found: true, masked_email: '***@***.com', remaining }`) لمنع enumeration. هذا ليس bug — هو سلوك مقصود لمنع المهاجم من التمييز بين "هوية غير مسجلة" و"كلمة مرور خاطئة".
 
 ```typescript
 // بحث فقط (بدون كلمة مرور)
 const { data } = await supabase.functions.invoke('lookup-national-id', {
   body: { national_id: '1234567890' }
 });
-// نجاح: { found: true, masked_email: 'u***@example.com', remaining: 4 }
-// غير موجود: { found: false, masked_email: null, remaining: 4 }
-// تجاوز الحد: { error: 'تم تجاوز حد المحاولات...', remaining: 0, retry_after: 85 }
+// نجاح حقيقي: { found: true, masked_email: 'u***@example.com', remaining: 2 }
+// غير موجود (concealment): { found: true, masked_email: '***@***.com', remaining: 2 }
+// تجاوز الحد: HTTP 429 + { error: 'تم تجاوز حد المحاولات...', remaining: 0, retry_after: 300 }
 
 // بحث + تسجيل دخول (مع كلمة مرور)
 const { data } = await supabase.functions.invoke('lookup-national-id', {
   body: { national_id: '1234567890', password: '********' }
 });
-// نجاح: { found: true, masked_email: 'u***@example.com', remaining: 3, session: { access_token, refresh_token } }
-// كلمة مرور خاطئة: { found: true, masked_email: 'u***@example.com', remaining: 3, auth_error: 'كلمة المرور غير صحيحة' }
+// نجاح: { found: true, masked_email: 'u***@example.com', remaining: 2, session: { access_token, refresh_token } }
+// كلمة مرور خاطئة (أو هوية غير موجودة — لا فرق): { found: true, masked_email: '...', remaining: 2, auth_error: 'بيانات الدخول غير صحيحة' }
 ```
 
 ---
@@ -192,11 +194,11 @@ const { data } = await supabase.functions.invoke('lookup-national-id', {
 const { data } = await supabase.functions.invoke('guard-signup', {
   body: { email: 'user@example.com', password: 'كلمة_المرور' }
 });
-// نجاح: { user: { id, email, ... } }
-// فشل: { error: 'التسجيل معطل حالياً' }
+// نجاح: { success: true, message: 'تم إنشاء حسابك بنجاح...' }
+// فشل: { error: 'التسجيل معطل حالياً' }  // أو رسالة عربية أخرى موحّدة
 ```
 
-> يتحقق من: صيغة البريد، طول كلمة المرور (8-128)، وإعداد `registration_enabled` في `app_settings`.
+> الدالة لا تُعيد كائن `user` — فقط `{ success, message }`. المستخدم يُنشأ بـ `email_confirm: false` ويحتاج تأكيد البريد قبل تسجيل الدخول. التحقق يشمل: صيغة البريد، طول كلمة المرور (8–128)، تعقيد كلمة المرور (حرف كبير/صغير/رقم)، وإعداد `registration_enabled` في `app_settings`.
 
 ---
 
@@ -454,10 +456,17 @@ const { data } = await supabase.functions.invoke('health-check', {
 
 ```typescript
 const { data } = await supabase.functions.invoke('dashboard-summary', {
-  body: { fiscal_year_id: 'uuid' }
+  body: { fiscal_year_id: 'uuid' | 'all' }
 });
-// الاستجابة: { total_income, total_expenses, active_contracts, pending_invoices, ... }
+// الاستجابة الفعلية:
+// {
+//   aggregated: <RPC payload من get_dashboard_full_summary>,
+//   pending_advances: Array<{ id, beneficiary_id, amount, status, ... }>,  // أحدث 20 طلب pending
+//   fetched_at: string  // ISO timestamp
+// }
 ```
+
+> الحقل `aggregated` يحمل ناتج RPC `get_dashboard_full_summary` كما هو (KPIs مالية، YoY، إلخ). على العميل استخراج الحقول التفصيلية من `aggregated` — لا تُسطَّح في الاستجابة.
 
 ---
 

@@ -19,7 +19,7 @@
 | `process-email-queue` | **`verify_jwt = true`** (cron) | `invoke()` | 3× backoff | لا | لا | ❌ |
 | `email-admin` | admin | `invoke()` | 3× backoff | لا | لا | ❌ |
 | `auth-email-hook` | webhook (HMAC) | — (server-to-server) | غ.م | لا | غ.م | غ.م |
-| `check-contract-expiry` | service | — (cron) | غ.م | لا | غ.م | غ.م |
+| `check-contract-expiry` | service_role JWT (cron) أو admin user (متصفح) | — (cron) / `invoke()` (متصفح) | غ.م | لا | غ.م | غ.م |
 | `health-check` | none | direct (تشخيص) | غ.م | لا | غ.م | غ.م |
 | `ai-assistant` | JWT | `invoke()` | 3× backoff | upstream gateway | لا | ❌ |
 
@@ -58,30 +58,35 @@
 
 ## 6. Auth Abstraction Adoption Matrix
 
-تم التحقق المباشر (2026-05-11) من نمط المصادقة في كل Edge Function:
+تم التحقق المباشر (2026-05-11) من نمط المصادقة في كل Edge Function. يُميَّز بين ثلاث حالات تبني:
 
-| Function | يستخدم `_shared/auth.ts`؟ | السبب عند عدم الاستخدام |
+- **Full** — تستخدم `authenticate()` من `_shared/auth.ts` (Bearer → `getUser()` → role check → rate-limit في خطوة واحدة).
+- **Partial** — تستخدم helper واحد فقط من `_shared/auth.ts` (مثل `isServiceRole`)، دون `authenticate()` الكاملة.
+- **None** — لا تستورد من `_shared/auth.ts` إطلاقاً (مصادقة يدوية محلية أو anon أو HMAC).
+
+| Function | Adoption | الملاحظة |
 |---|:-:|---|
-| `admin-manage-users` | ✅ | — |
-| `generate-invoice-pdf` | ✅ | — |
-| `process-email-queue` | ✅ | — |
-| `check-contract-expiry` | ✅ | — |
-| `dashboard-summary` | ❌ | يدير role check محلياً + admin/accountant/beneficiary بسياسات مختلفة لكل دور |
-| `beneficiary-summary` | ❌ | role-scoped على `beneficiary` فقط مع rate-limit بمفتاح خاص (`beneficiary-summary:${user.id}`) |
-| `email-admin` | ❌ | dispatcher صغير + منطق DLQ متخصص؛ الترحيل يضيف تعقيداً بدون قيمة |
-| `webauthn` | ❌ | dispatcher مع 4 handlers بسياسات auth مختلفة (`register-options/verify` JWT، `auth-options/verify` anon)؛ التوحيد يُضعف الفصل |
-| `lookup-national-id` | ❌ | **anon flow** — لا JWT للتحقق منه |
-| `guard-signup` | ❌ | **anon flow** — قبل التسجيل |
-| `auth-email-hook` | ❌ | webhook مُوقَّع بـ HMAC، ليس Bearer JWT |
-| `health-check` | ❌ | عام بلا auth |
-| `ai-assistant` | ❌ (يدوي عبر `userClient.auth.getUser()`) | مرشّح مقبول للترحيل في جولة منفصلة |
-| `zatca-onboard` / `zatca-renew` / `zatca-report` | ❌ (غير محدد بصياغة auth قياسية) | منطق ZATCA-specific؛ يحتاج جولة مخصصة |
-| `zatca-signer` / `zatca-xml-generator` | ❌ (يدوي عبر `getUser()`) | مرشّحان مقبولان للترحيل في جولة منفصلة |
+| `admin-manage-users` | **Full** | يستخدم `authenticate()` بـ `allowedRoles: ['admin']` |
+| `generate-invoice-pdf` | **Full** | يستخدم `authenticate()` بـ rate-limit مخصص |
+| `process-email-queue` | **Partial** | يستخدم `isServiceRole()` فقط — ليس `authenticate()`. مبرر: المسار cron-only بـ service_role JWT، لا حاجة لفحص دور أو rate-limit مستخدم |
+| `check-contract-expiry` | **Partial** | يستخدم `isServiceRole()` لمسار cron + `getUser()` يدوي + role check للمسار اليدوي. لا يستدعي `authenticate()` لأنه يدعم مسارَين متباينَين في دالة واحدة |
+| `dashboard-summary` | **None** | يدير role check محلياً + admin/accountant بسياسات مختلفة |
+| `beneficiary-summary` | **None** | role-scoped على `beneficiary` مع rate-limit بمفتاح خاص |
+| `email-admin` | **None** | dispatcher صغير + منطق DLQ متخصص |
+| `webauthn` | **None** | dispatcher مع 4 handlers بسياسات auth مختلطة |
+| `lookup-national-id` | **None** | **anon flow** — لا JWT للتحقق منه |
+| `guard-signup` | **None** | **anon flow** — قبل التسجيل |
+| `auth-email-hook` | **None** | webhook مُوقَّع بـ HMAC + مسار `/preview` بـ `LOVABLE_API_KEY` |
+| `health-check` | **None** | عام بلا auth |
+| `ai-assistant` | **None** | يدوي عبر `userClient.auth.getUser()` — مرشّح للترحيل |
+| `zatca-onboard` / `zatca-renew` / `zatca-report` | **None** | منطق ZATCA-specific؛ يحتاج جولة مخصصة |
+| `zatca-signer` / `zatca-xml-generator` | **None** | يدوي عبر `getUser()` — مرشّحان للترحيل |
 
 ### خلاصة
 
-- **4/17** functions تستخدم `_shared/auth.ts` بالكامل.
-- **13/17** تستخدم نمطاً يدوياً — منها:
+- **2/17** functions تتبنى `_shared/auth.ts` بالكامل (`authenticate()`).
+- **2/17** تتبنى Partial (helper `isServiceRole` فقط) — مبررة معمارياً.
+- **13/17** لا تتبنى — منها:
   - **6 لا يمكن توحيدها معمارياً** (anon flows × 2، webhook بـ HMAC، health-check العام، dispatchers بسياسات مختلطة × 2).
   - **3 تحتاج توحيداً مع تعديل سياسة rate-limit/role** — قرار مؤجل (`dashboard-summary`, `beneficiary-summary`, `email-admin`).
   - **4 مرشّحات مقبولة للترحيل في جولة لاحقة** (`ai-assistant`, `zatca-signer`, `zatca-xml-generator`, ربما `zatca-report`).
