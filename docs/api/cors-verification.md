@@ -49,3 +49,16 @@ done
 ```
 
 أعِد التشغيل بعد أي تعديل على `_shared/cors.ts` أو `ALLOWED_ORIGINS`/`ALLOWED_ORIGIN_PATTERNS`.
+
+---
+
+## استثناءات CORS موثّقة
+
+### `auth-email-hook /preview`
+
+- **CORS:** `Access-Control-Allow-Origin: *` (لا يستخدم `_shared/cors.ts`).
+- **الحماية:** `Authorization: Bearer ${LOVABLE_API_KEY}` — **ليست JWT مستخدم** ولا توقيع HMAC.
+- **المبرر:** معاينة قوالب البريد من بيئات تطوير متعددة. الحماية على طبقة Authorization بالمفتاح السري، فتقييد origin غير ضروري.
+- **المسار الأساسي `POST /`:** يستخدم `getCorsHeaders(req)` المركزي + توقيع HMAC من Supabase Auth Hooks (السلوك القياسي).
+
+راجع `docs/api/network-inventory.md` §7 للتفاصيل الكاملة.
