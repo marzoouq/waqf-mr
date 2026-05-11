@@ -2,7 +2,7 @@
  * خدمة تسجيل أحداث الوصول — طبقة البنية التحتية
  * مستخرجة من useAccessLog لفك الاعتماد الدائري (lib → hooks)
  */
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import type { Json } from '@/integrations/supabase/types';
 
 export type AccessEventType =
@@ -23,7 +23,7 @@ export const logAccessEvent = async (event: {
   metadata?: Record<string, unknown>;
 }) => {
   try {
-    await supabase.rpc('log_access_event', {
+    await rpc('log_access_event', {
       p_event_type: event.event_type,
       p_email: event.email ?? undefined,
       p_user_id: event.user_id ?? undefined,
