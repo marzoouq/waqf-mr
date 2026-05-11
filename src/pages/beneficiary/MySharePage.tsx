@@ -21,7 +21,7 @@ const MySharePage = () => {
   const {
     isLoading, isError, handleRetry,
     currentBeneficiary, isAccountMissing, isClosed,
-    myShare, myShareIsEstimated, totalReceived, pendingAmount, paidAdvancesTotal, carryforwardBalance,
+    myShare, totalReceived, pendingAmount, paidAdvancesTotal, carryforwardBalance,
     filteredDistributions, myAdvances, myCarryforwards,
     advancesEnabled, advanceSettings, fiscalYearId, selectedFY,
     handleDownloadPDF, handleDownloadDistributionsPDF, handleDownloadComprehensivePDF, handlePrintReport,
