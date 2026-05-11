@@ -26,14 +26,33 @@
 المصادقة يدوية داخل كل function عبر `supabase.auth.getUser(jwt)`. لا تستخدم
 `getSession()` ولا `SUPABASE_SERVICE_ROLE_KEY` كبديل عن مصادقة المستخدم.
 
-## القائمة
+## تصنيف الوظائف بحسب نمط الاستدعاء
 
-| Function | الغرض | تتطلب JWT؟ |
-|----------|-------|-----------|
-| `dashboard-summary` | لوحات قيادة admin/accountant | نعم |
-| `guard-signup` | تقييد التسجيل | لا (anon) |
-| `webauthn-*` | المصادقة الحيوية | جزئي |
-| `zatca-*` | تقارير ZATCA + ECDSA | نعم (admin) |
-| `send-email-*` | بريد المعاملات | نعم (admin) |
+| Function | المستدعي | CORS | ملاحظات |
+|----------|---------|------|--------|
+| `admin-manage-users` | متصفح (admin) | shared | — |
+| `ai-assistant` | متصفح (auth) | shared | — |
+| `auth-email-hook` | Supabase Auth Hook (server-to-server) + Lovable preview tool | shared للـ webhook، `*` لمسار `/preview` فقط | الـ webhook يتطلب `x-lovable-signature`/`x-lovable-timestamp` |
+| `beneficiary-summary` | متصفح (auth) | shared | — |
+| `check-contract-expiry` | cron + متصفح (admin) | shared | — |
+| `dashboard-summary` | متصفح (auth) | shared | — |
+| `email-admin` | متصفح (admin) | shared | — |
+| `generate-invoice-pdf` | متصفح (auth) | shared | — |
+| `guard-signup` | متصفح (anon) | shared | — |
+| `health-check` | uptime/monitoring | shared | — |
+| `lookup-national-id` | متصفح (anon قبل التسجيل) | shared | — |
+| `process-email-queue` | **cron-only** (pg_cron عبر pg_net) | shared (دفاع عميق) | لا متصفحات |
+| `webauthn` | متصفح (auth) | shared | — |
+| `zatca-onboard` / `zatca-renew` / `zatca-report` / `zatca-signer` / `zatca-xml-generator` | متصفح (admin) | shared | — |
 
-> راجع المجلدات تحت `supabase/functions/` لأحدث قائمة فعلية.
+### قاعدة `Vary: Origin`
+
+ضرورية لأن `Access-Control-Allow-Origin` يتغيّر حسب الـ origin المطلوب.
+بدونها قد يُخزّن CDN/المتصفح استجابة لـ origin معيّن ويعيدها لـ origin آخر،
+مما يُفشل CORS بشكل متقطع.
+
+### استدعاءات السيرفر-إلى-سيرفر
+
+`getCorsHeaders` يُرجع `ALLOWED_ORIGINS[0]` افتراضياً عند غياب `Origin` header.
+هذا يدعم Auth Hooks وcron jobs دون فتح ثغرات (المتصفحات دائماً ترسل `Origin`).
+
