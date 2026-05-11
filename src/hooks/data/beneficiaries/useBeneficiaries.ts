@@ -50,14 +50,16 @@ export const useBeneficiariesDecrypted = () => {
     staleTime: STALE_STATIC,
     queryFn: async () => {
       if (!isAuthorized) return [];
-      const { data, error } = await supabase.rpc('get_beneficiary_decrypted', {
-        // RPC يتوقع string لكن null يعني "جلب الكل" — cast ضروري
-        p_beneficiary_id: null as unknown as string,
-      });
-      if (error) {
+      try {
+        const data = await rpc<Beneficiary[]>('get_beneficiary_decrypted', {
+          // RPC يتوقع string لكن null يعني "جلب الكل" — cast ضروري
+          p_beneficiary_id: null as unknown as string,
+        });
+        return (data || []) as Beneficiary[];
+      } catch (e) {
         // fallback to regular query if RPC fails
-        logger.warn('فك التشفير غير متاح، عرض البيانات المشفرة:', error.message);
-      const { data: fallback, error: fbError } = await supabase
+        logger.warn('فك التشفير غير متاح، عرض البيانات المشفرة:', e instanceof Error ? e.message : e);
+        const { data: fallback, error: fbError } = await supabase
           .from('beneficiaries_safe')
           .select('id, name, share_percentage, email, phone, notes, user_id, created_at, updated_at')
           .order('name', { ascending: true })
@@ -65,7 +67,6 @@ export const useBeneficiariesDecrypted = () => {
         if (fbError) throw fbError;
         return fallback as Beneficiary[];
       }
-      return (data || []) as Beneficiary[];
     },
   });
 };
