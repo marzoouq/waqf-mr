@@ -24,13 +24,12 @@ export function useCloseFiscalYear() {
 
   return useMutation({
     mutationFn: async ({ fiscalYearId, accountData, waqfCorpusManual }: CloseYearInput) => {
-      const { data: result, error } = await supabase.rpc('close_fiscal_year', {
+      const result = await rpc<CloseYearResult | null>('close_fiscal_year', {
         p_fiscal_year_id: fiscalYearId,
         p_account_data: JSON.parse(JSON.stringify(accountData)),
         p_waqf_corpus_manual: waqfCorpusManual,
       });
-      if (error) throw error;
-      return result as CloseYearResult | null;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
