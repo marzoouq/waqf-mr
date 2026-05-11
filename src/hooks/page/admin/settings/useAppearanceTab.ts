@@ -1,16 +1,12 @@
 /**
  * Page hook: AppearanceTab
  */
-import { useState, useEffect } from 'react';
 import { useAppearanceSettings, type AppearanceSettings } from '@/hooks/data/settings/useAppearanceSettings';
+import { useSyncedFormState } from '@/hooks/ui/useSyncedFormState';
 
 export const useAppearanceTab = () => {
   const { settings, isLoading, save } = useAppearanceSettings();
-  const [form, setForm] = useState<AppearanceSettings>(settings);
-
-  useEffect(() => {
-    setForm(settings);
-  }, [settings]);
+  const [form, setForm] = useSyncedFormState<AppearanceSettings>(settings);
 
   const onSystemNameChange = (value: string) => {
     setForm((p) => ({ ...p, system_name: value }));

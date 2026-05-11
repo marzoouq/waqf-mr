@@ -1,17 +1,13 @@
 /**
  * Page hook: BannerSettingsTab
  */
-import { useState, useEffect } from 'react';
 import { useBannerSettings } from '@/hooks/data/settings/useBannerSettings';
+import { useSyncedFormState } from '@/hooks/ui/useSyncedFormState';
 import type { BannerSettings } from '@/constants';
 
 export const useBannerSettingsTab = () => {
   const { settings, isLoading, save: saveSettings } = useBannerSettings();
-  const [form, setForm] = useState<BannerSettings>(settings);
-
-  useEffect(() => {
-    setForm(settings);
-  }, [settings]);
+  const [form, setForm] = useSyncedFormState<BannerSettings>(settings);
 
   const save = (patch: Partial<BannerSettings>) => {
     setForm((prev) => ({ ...prev, ...patch }));
