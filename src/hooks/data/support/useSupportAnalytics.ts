@@ -42,10 +42,11 @@ export const useSupportAnalytics = () => {
   return useQuery({
     queryKey: ['support_analytics'],
     staleTime: STALE_MESSAGING,
-    queryFn: async () => {
+    queryFn: async (): Promise<SupportAnalyticsData> => {
       const data = await rpc('get_support_analytics');
-      // RPC — cast مبرر، يحتاج Zod validation لاحقاً
-      return data as unknown as SupportAnalyticsData;
+      // Zod: استبدال `as unknown as` السابق بتحقق فعلي من الشكل
+      const { supportAnalyticsSchema, parseOrThrow } = await import('@/lib/api/schemas');
+      return parseOrThrow(supportAnalyticsSchema, data, 'get_support_analytics');
     },
   });
 };

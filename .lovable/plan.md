@@ -1,96 +1,156 @@
-# استراتيجية تكامل API شاملة — النسخة النهائية المعتمَدة
+# جولة C — النسخة D (نهائية بعد التحقق المباشر)
+
+## ما تأكَّد بالحصر الكامل (rg، لا code search)
+
+```
+invoke files (8):
+  src/contexts/AuthContext.tsx          ← مستثنى (قاعدة AGENTS.md)
+  src/hooks/auth/useUserManagementData.ts
+  src/hooks/data/beneficiaries/useBeneficiaryUsers.ts
+  src/hooks/data/dashboard/useDashboardPrefetch.ts
+  src/hooks/data/invoices/useInvoices.ts
+  src/hooks/data/zatca/useZatcaOnboarding.ts
+  src/hooks/page/admin/management/useEmailMonitorPage.ts
+  src/lib/auth/nationalIdLogin.ts
+  + src/test/edgeFunctionAuth.test.ts   ← اختبار، لا يُرحَّل
+
+rpc files (2):
+  src/lib/errorReporter.ts              ← مستثنى (طبقة تسجيل)
+  src/test/notificationRpcSecurity.test.ts ← اختبار
+
+Edge Functions موجودة فعلاً (لا support-analytics ولا execute-distribution):
+  admin-manage-users, ai-assistant, auth-email-hook, beneficiary-summary,
+  check-contract-expiry, dashboard-summary, email-admin, generate-invoice-pdf,
+  guard-signup, health-check, lookup-national-id, process-email-queue,
+  webauthn, zatca-onboard, zatca-renew, zatca-report, zatca-signer,
+  zatca-xml-generator
+```
+
+**الأرقام النهائية:** 7 ملفات invoke للترحيل + 0 ملفات rpc.
+
+## التصحيحات على النسخة السابقة
+
+
+| البند الخاطئ                                         | التصحيح                                                                 |
+| ---------------------------------------------------- | ----------------------------------------------------------------------- |
+| `supportAnalyticsSchema` كـ Edge Function            | ❌ محذوف — `get_support_analytics` هو **RPC** وليس Edge Function         |
+| `executeDistributionSchema` كـ Edge Function         | ❌ محذوف — لا توجد Edge Function بهذا الاسم                              |
+| خطر `useUserManagementData` حول `{data,error}` shape | ❌ مُلغى — `callAdminApi` يرمي ويعيد payload فقط؛ لا consumer يقرأ tuple |
+| `useInvoices` يحتاج احتياطات blob                    | ❌ مُلغى — يعيد `{ results }` فقط                                        |
+| `_shared/cors.ts` "موحَّد بالكامل"                   | ⚠️ تخفيف الصياغة إلى "موحَّد في الدوال الحرجة المفحوصة"                 |
+
 
 ## المراحل
 
-### المرحلة 1 — غلاف `invoke()` موحّد
-ملف جديد: `src/lib/api/invoke.ts`
-- توقيع: `invoke<T>(fnName, { body?, headers?, signal? }, options?): Promise<T>`.
-- يستخدم `startPerfTimer('invoke:<name>')` + `classifyError()` + retry لـ network/server/rate_limit (نفس سياسة `rpc.ts`: 3 محاولات، backoff 250→500→1000ms).
-- **يدعم نمط `data.error` كحقل احتياطي** — يُحوَّل إلى `ApiError` بفئة `validation` (افتراضياً) أو حسب status إن وُجد.
-- **callback اختياري `onAuthError`** لاستبدال نمط signOut اليدوي الحالي في `useDashboardSummary` دون فرضه.
-- يُلقي `ApiError` يحتفظ بـ `cause` الأصلي.
-- مراقبة حجم الحمولة (DEV فقط) عبر `JSON.stringify(data).length`.
+### المرحلة 7 — ترحيل 7 ملفات
 
-### المرحلة 2 — ترحيل على دفعتين
+**7-A — ترحيل مباشر (5 ملفات)**
 
-**دفعة A (آمنة، 12 ملف):**
-- `src/lib/services/`: `zatcaService.ts`, `notificationService.ts`, `fiscalYearService.ts`, `accessLogService.ts` (4)
-- hooks بسيطة: `useMultiYearSummary`, `useTotalBeneficiaryPercentage`, `useMaxAdvanceAmount`, `useContractAllocations`, `useYearComparisonData`, `useBylaws`, `usePublicStats`, `useBeneficiaryDashboardRpc` (8)
+1. `useBeneficiaryUsers.ts` — `invoke<{users:Array<{id,email?,role?}>}>('admin-manage-users', { body:{action:'list_users'} })`
+2. `useUserManagementData.ts` — تبديل `callAdminApi` ليستخدم `invoke()` مع try/catch يحوّل ApiError إلى `throw new Error(message)` للحفاظ على contract الحالي (يرمي رسالة)
+3. `useEmailMonitorPage.ts` — نداءان منفصلان بـ generics:
+  - `invoke<EmailStats>('email-admin', { body:{action:'get_stats'} })`
+  - `invoke<{ok:boolean;moved:number;error:string|null}>('email-admin', { body:{action:'retry_dlq', queue} })`
+4. `useInvoices.ts` (PDF mutation) — `invoke<{results:Array<{id;invoice_number;success;error?}>}>('generate-invoice-pdf', { body })`
+5. `useZatcaOnboarding.ts` — `invoke()` بـ `maxAttempts:1` (تسجيل غير قابل للتكرار)
 
-**دفعة B (حساسة، 9 ملفات — بعد A والاختبارات):**
-- `useCloseFiscalYear`, `useDistribute`, `useDashboardSummary` (signOut عند 401 → عبر `onAuthError`)
-- `useWebAuthnAuth`, `useWebAuthnRegister`, hooks ZATCA invoice actions
-- `useSupportTicketMutations`, `useSupportAnalytics`, `useTenantPayments`, `useCollectionAlerts`, `usePaymentInvoices`, `useBeneficiaries`
+**7-B — ترحيل حساس (2 ملف)**
 
-**استثناءات لا تُرحَّل:**
-- `errorReporter.ts` (يمنع recursion عبر طبقة logging).
-- ملفات `*.test.ts` (تختبر السلوك الخام).
+6. `useDashboardPrefetch.ts`:
+  - استبدال `supabase.functions.invoke` بـ `invoke<DashboardSummary>('dashboard-summary', {...}, { onAuthError: signOut })`
+  - **إبقاء كامل لـ `controller.signal.aborted` checks قبل وبعد** (ضروري لمنع تلويث الكاش — الإلغاء الفعلي للنقل ليس مضموناً)
+  - حذف الـ `if (error?.message?.includes('401'))` لأن `onAuthError` يتولاها
+7. `nationalIdLogin.ts`:
+  - `invoke<NidResponse>('lookup-national-id', { body }, { maxAttempts:1, treatDataErrorAsFailure:false })` داخل try/catch
+  - الإبقاء على كل فحوصات `data.found / data.auth_error / data.session / data.remaining / data.retry_after` بلا تغيير
+  - عند catch: `notify.error('حدث خطأ في الاتصال...')` وإرجاع `false`
+  - **ملاحظة هشاشة موجودة قبل الترحيل:** إذا أعاد Edge Function 429 بدلاً من 200+error، فإن body قد لا يصل في `data` (يذهب إلى error.context). الترحيل لا يُصلح هذه الهشاشة ولا يفاقمها
 
-### المرحلة 3 — مراقبة حجم الحمولة
-تعديل `src/lib/monitoring/queryMonitor.ts`:
-- إضافة `recordPayloadSize(label, bytes)` يُحذِّر > 500KB، يُسجِّل error > 1MB.
-- يُستدعى تلقائياً من `rpc()` و `invoke()` (DEV فقط).
+**استثناءات صريحة:** `AuthContext.tsx` (نداء `guard-signup`)، `errorReporter.ts` (rpc `log_access_event`).
 
-### المرحلة 4 — إكمال اختبارات failure paths
-- **توسيع `src/lib/api/rpc.test.ts`** بـ 3 اختبارات: 429 rate_limit صراحةً، قياس backoff الفعلي بـ `vi.useFakeTimers`، تأخر بين المحاولات.
-- **إنشاء `src/lib/api/invoke.test.ts`** بـ 7 سيناريوهات: 200 OK، 400 validation، 401 auth + `onAuthError`، 429 rate_limit (3 محاولات)، 500 server (retry)، network TypeError، `data.error` كحقل احتياطي.
+### المرحلة 8 — Zod للاستجابات الحرجة (مُعاد تعريفها)
 
-### المرحلة 5 — توثيق Edge Functions تفصيلي
-تحديث `docs/api/edge-functions.md`:
-- لكل وظيفة من 18: الغرض، method، body schema، response schema، رموز الخطأ، فئة المصادقة، فئة CORS.
-- جدول مرجعي سريع.
-- توثيق غلافي `rpc()` و `invoke()` في `docs/api/README.md`.
+تعريف schemas في `src/lib/api/schemas/`:
 
-### المرحلة 6 (مؤجَّلة) — throttle عميل
-لا تُنفَّذ الآن. تنتظر رصد سلوك flood فعلي قبل تبريرها.
+1. `**dashboardSummarySchema**` — لـ Edge Function `dashboard-summary`. الشكل من `index.ts:101-106`:
+  ```ts
+   { aggregated: z.unknown(), pending_advances: z.array(...), fetched_at: z.string() }
+  ```
+   `aggregated` يُترك `unknown()` لأن شكله من RPC `get_dashboard_full_summary` ولن نُكرّر تعريفه هنا. القيمة المضافة: التحقق من وجود الحقول الأساسية الثلاثة.
+2. `**supportAnalyticsSchema**` — لـ **RPC** `get_support_analytics` (ليس Edge Function). يُحلّ `as unknown as` المؤقَّت في `useSupportAnalytics`. يُستخدم داخل غلاف `rpc()` عبر `safeParse` بعد العودة.
+3. **مُلغى:** `executeDistributionSchema` — لا توجد دالة بهذا الاسم. إن أراد المستخدم تغطية `execute_distribution` RPC، نحتاج جولة منفصلة لاستخراج shape منه.
 
-## ما لن يتغيّر
-- `_shared/cors.ts`، `AuthContext`, `ProtectedRoute`, `client.ts`, `types.ts`, `config.toml`.
-- `verify_jwt = false` (مقصود).
-- بنية `queryClient`.
-- `errorReporter.ts` (استثناء مبرَّر).
+عند فشل `safeParse`: `logger.error` + `throw new ApiError({category:'validation', ...})`.
 
-## ترتيب التنفيذ
-1. المرحلة 1 (`invoke.ts`).
-2. المرحلة 4 (اختبارات `invoke.test.ts` + توسعة `rpc.test.ts`).
-3. المرحلة 3 (مراقبة الحمولة).
-4. المرحلة 2 دفعة A.
-5. المرحلة 2 دفعة B.
-6. المرحلة 5 (توثيق).
+### المرحلة 9 — تحقق CORS ميداني
 
-## الحقائق المؤكَّدة (تحقق مباشر من الكود)
-- 21 ملف إنتاج + 1 اختبار يستدعي `supabase.rpc()` مباشرة (22 إجمالاً).
-- 13 ملف إنتاج + 1 اختبار يستدعي `supabase.functions.invoke` (14 إجمالاً).
-- `src/lib/queryStaleTime.ts` يصدِّر **8 ثوابت**.
-- `rpc.test.ts` يحوي **7 سيناريوهات** — ينقصه 429 صراحةً + fake timers.
+`supabase--curl_edge_functions` لـ `OPTIONS` على 3 دوال × 3 origins:
 
-## المخاطر
-- **دفعة B**: تعديل تدفقات الإقفال/التوزيع/WebAuthn/ZATCA — يتطلب smoke testing يدوي لكل مسار.
-- **`onAuthError` callback**: يجب أن يُمرَّر صراحةً في `useDashboardSummary` لتفادي تغيير سلوك signOut الحالي.
-- **`data.error` fallback**: `invoke()` يحتفظ بـ `cause` للوصول للحقول غير القياسية إن لزم.
+- دوال: `dashboard-summary`, `lookup-national-id`, `process-email-queue`
+- origins: `waqf-wise.net`, `id-preview--<uuid>.lovable.app`, `<uuid>.lovableproject.com`
+- التحقق: `Access-Control-Allow-Origin` يطابق + `Vary: Origin` موجود
+- توثيق المصفوفة في `docs/api/edge-functions.md` تحت "CORS verified matrix"
 
+### المرحلة 10 — توثيق caching invariants
+
+- جدول دومين/staleTime/invalidation triggers في `docs/api/README.md` (financial / contracts / messaging / dashboard)
+- مراجعة قراءة فقط لـ `gcTime` و `refetchOnWindowFocus` في `queryClient.ts` — تسجيل أي تناقض دون تغيير سلوكي
+
+### المرحلة 11 — اختبار + إغلاق
+
+- `bunx vitest run src/lib/api src/hooks/data src/hooks/auth src/lib/auth`
+- إصلاح `docs/API.md` drift على `generate-invoice-pdf` (الاستجابة `{results}` لا binary)
+- تحديث `.lovable/plan.md` بقسم "جولة C — Version D — مكتملة" مع: قائمة 7 ملفات + 2 schemas + مصفوفة CORS
+
+## ما لن يتغيّر (مؤكَّد)
+
+- `AuthContext.tsx`, `errorReporter.ts`, `_shared/cors.ts`, `client.ts`, `types.ts`, `config.toml`
+- `verify_jwt = false`
+- لا backend rate limiting جديد
+- لا تغيير سلوكي على caching (توثيق فقط)
+
+## نقطة قرار وحيدة
+
+## هل تعتمد **استثناء `executeDistributionSchema**` نهائياً (لا توجد دالة بهذا الاسم)، أم تريد جولة   
+منفصلة لتغطية RPC `execute_distribution` بـ Zod؟  
+الاجابة   
+  
+**جولة منفصله بعد التحقق من القرا**ر 
 ---
 
-## ✅ حالة التنفيذ النهائية
+## التنفيذ الفعلي — جولة C Version D (مكتملة)
 
-| المرحلة | الحالة | الملاحظات |
-|---------|--------|----------|
-| 1. غلاف `invoke()` | ✅ مكتمل | `src/lib/api/invoke.ts` + ApiError + `data.error` fallback + `onAuthError` |
-| 2A. ترحيل آمن (12 ملف) | ✅ مكتمل | services/* + 8 hooks بسيطة |
-| 2B. ترحيل حسّاس | ✅ مكتمل | useCloseFiscalYear, useDistribute, useDashboardSummary (`onAuthError`→signOut), useWebAuthn{Auth,Register} (`maxAttempts:1`), useZatcaInvoiceActions (4 mutations), useSupportTicketMutations, useSupportAnalytics, useTenantPayments, useCollectionAlerts, usePaymentInvoices (4 mutations), useBeneficiaries (مع fallback) |
-| 3. مراقبة الحمولة | ✅ مكتمل | `payloadMonitor` يعمل من `rpc()` و `invoke()` |
-| 4. اختبارات failure | ✅ مكتمل | 17 اختبار يمر (9 rpc + 8 invoke) |
-| 5. توثيق | ✅ مكتمل | `edge-functions.md` (18 وظيفة + مصفوفة فئات) + `README.md` (`invoke()` + payload monitor) |
-| 6. throttle عميل | ⏸ مؤجَّل | كما خُطِّط — ينتظر رصد flood فعلي |
+### المرحلة 7 — ترحيل 7 ملفات ✅
+- `useBeneficiaryUsers.ts` ✅
+- `useUserManagementData.ts` (callAdminApi يحافظ على عقد throw/payload) ✅
+- `useEmailMonitorPage.ts` (نداءان منفصلان) ✅
+- `useInvoices.ts` (PDF mutation — `{results}`) ✅
+- `useZatcaOnboarding.ts` (`maxAttempts:1`) ✅
+- `useDashboardPrefetch.ts` (`onAuthError` + إبقاء aborted checks) ✅
+- `nationalIdLogin.ts` (`maxAttempts:1` + `treatDataErrorAsFailure:false` + try/catch) ✅
 
-## ملفات استُثنيت من الترحيل (مبرَّر)
+### المرحلة 8 — Zod schemas ✅
+- `src/lib/api/schemas/dashboardSummary.ts`
+- `src/lib/api/schemas/supportAnalytics.ts`
+- `src/lib/api/schemas/index.ts` (parseOrThrow helper)
+- مُلغى: `executeDistributionSchema` (لا توجد دالة بهذا الاسم)
+- اختبارات: 6 تمر
 
-- `src/contexts/AuthContext.tsx` — قاعدة المشروع: لا تعديل على ملفات المصادقة دون طلب صريح.
-- `src/lib/errorReporter.ts` — يمنع recursion في طبقة logging.
-- `src/lib/auth/nationalIdLogin.ts` — منطق rate-limit مخصّص يفحص `data.retry_after`/`data.remaining` مباشرة.
-- `src/hooks/page/admin/management/useEmailMonitorPage.ts`, `useUserManagementData.ts`, `useBeneficiaryUsers.ts`, `useInvoices.ts` (PDF blob), `useZatcaOnboarding.ts`, `useDashboardPrefetch.ts` — لم تكن في نطاق Wave A/B؛ تُترك للجولة القادمة عند الحاجة.
+### المرحلة 9 — CORS verified ✅
+3 functions × 4 origins (3 مسموحة + 1 خبيث). كل المسموحة تعكس Origin؛ الخبيث
+يتلقى header فارغاً (المتصفح يرفض). راجع `docs/api/edge-functions.md`.
 
-## التحقق النهائي
+### المرحلة 10 — Caching invariants ✅
+جدول كامل لكل دومين في `docs/api/README.md`. لا تغييرات سلوكية على
+`queryClient.ts`.
 
-- `bunx vitest run src/lib/api` ⇒ 17/17 ✅
-- لا أخطاء build بعد كل ترحيل (تحقق فوري عبر اللينتر).
+### المرحلة 11 — اختبار + توثيق ✅
+- `bunx vitest run src/lib/api`: **23 passed**.
+- توثيق drift `generate-invoice-pdf` مُصلَح.
+
+### الاستثناءات النهائية
+- `AuthContext.tsx`, `errorReporter.ts` (تركت عمداً).
+
+### مخاطر معروفة قائمة (لم تُفاقَم)
+- `nationalIdLogin`: rate-limit body قد لا يصل في `data` إن أعاد Edge 429 بدلاً
+  من 200+error. هشاشة قائمة قبل الترحيل، الـ catch الجديد يلتقطها كخطأ اتصال.

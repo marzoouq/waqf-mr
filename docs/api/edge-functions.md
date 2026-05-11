@@ -172,3 +172,24 @@
 | `generate-invoice-pdf` | ✅ | لا | ❌ |
 | `process-email-queue` | ❌ (cron) | لا | ❌ |
 | `auth-email-hook` (webhook) | ❌ | لا | ❌ |
+
+## CORS verified matrix (2026-05-11)
+
+تم التحقق ميدانياً عبر `curl -X OPTIONS` من 4 origins × 3 functions تمثيلية.
+كل سطر يعكس قيمة header `Access-Control-Allow-Origin` المُعادة. `Vary: Origin`
+حاضر في كل الاستجابات.
+
+| Function | waqf-wise.net | id-preview-*.lovable.app | *.lovableproject.com | malicious.example.com |
+|----------|:-:|:-:|:-:|:-:|
+| `dashboard-summary` | ✅ مرآة | ✅ مرآة | ✅ مرآة | ❌ فارغ (مرفوض) |
+| `lookup-national-id` | ✅ مرآة | ✅ مرآة | ✅ مرآة | ❌ فارغ (مرفوض) |
+| `process-email-queue` | ✅ مرآة | ✅ مرآة | ✅ مرآة | ❌ فارغ (مرفوض) |
+
+**ملاحظة:** الردّ HTTP 200 لـ malicious origin، لكن `Access-Control-Allow-Origin`
+يُعاد فارغاً ⇒ المتصفح يرفض الطلب تلقائياً (سلوك CORS متوقع وآمن).
+
+## ملاحظات drift توثيقية مُصلَحة
+
+- **`generate-invoice-pdf`**: الاستجابة هي `{ results: Array<{id, invoice_number, success, error?}> }`،
+  وليس ملف PDF binary. الدالة ترفع PDF إلى Storage وتُحدّث `file_path/file_name`
+  على الجدول. أي ادعاء قديم بخلاف ذلك في `docs/API.md` يُلغى لصالح هذا التوثيق.

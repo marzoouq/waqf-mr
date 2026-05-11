@@ -23,7 +23,7 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
     queryKey: ['dashboard-summary', fiscalYearId, fiscalYearLabel ?? ''],
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
-      return await invoke<DashboardSummaryResponse>(
+      const raw = await invoke<DashboardSummaryResponse>(
         'dashboard-summary',
         { body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fiscalYearLabel } },
         {
@@ -33,6 +33,10 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
           },
         },
       );
+      // Zod: تحقق من الحقول الأساسية فقط (aggregated يبقى unknown — يأتي من RPC)
+      const { dashboardSummarySchema, parseOrThrow } = await import('@/lib/api/schemas');
+      parseOrThrow(dashboardSummarySchema, raw, 'dashboard-summary');
+      return raw;
     },
     enabled: !!fiscalYearId && isFyReady(fiscalYearId),
   });
