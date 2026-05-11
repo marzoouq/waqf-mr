@@ -1,96 +1,94 @@
-# تدقيق شامل للوحة المستفيد (view-only) + إصلاحات
+# تدقيق معماري شامل لمكونات الواجهة
 
-## النتيجة العامة
+## النتيجة المختصرة
 
-**الكود مُنضبط جداً.** فحص 15 صفحة + ~10 مكوّنات + ~12 hook لم يكشف أي خرق view-only ولا تسرّب PII ولا أزرار CRUD مخفية. المشاكل الحقيقية محدودة في 3 بنود.
-
----
-
-## ما تم التحقق منه (سليم — لا يحتاج تعديل)
-
-| الفحص | النتيجة |
-|---|---|
-| `console.*` في pages/components/hooks المستفيد | 0 |
-| `as any` / `@ts-ignore` | 0 |
-| `supabase.from(...)` مباشر في `pages/beneficiary/` | 0 |
-| ألوان hex خارج Canvas/SVG | 0 |
-| نمط Page Hook (لا useState/useEffect في الصفحات) | 15/15 |
-| حالات `isLoading`/`isError` صريحة | 15/15 |
-| استخدام `contracts_safe` بدلاً من `contracts` | في `useContractsViewPage` |
-| `InvoiceGridView` يدعم `readOnly` ويُمرَّر من المستفيد | نعم |
-| لا تسرّب PII (tenant_id_number/tax/CRN/address) في جداول العقود | مؤكد |
-| RLS تمنع الكتابة ضمنياً (الكتابات المسموحة فقط: طلب سُلفة شخصية، تذكرة دعم خاصة، رد على محادثاته، تعليم/حذف إشعار) | مؤكد |
+البنية **سليمة بنيوياً** (Page Hook Pattern مُطبّق، لا `supabase.from` ولا `useQuery` في المكونات، routes lazy، فصل واضح بين `pages/components/hooks/contexts`). المشاكل الموجودة **متوسطة وموضعية** — لا تستدعي إعادة هيكلة جذرية، بل تنظيفات مستهدفة.
 
 ---
 
-## المشاكل المكتشفة (3 إصلاحات)
+## مرحلة 1 — التدقيق (لا كود)
 
-### #1 — `CarryforwardHistoryPage` بدون `RequirePublishedYears` (أولوية عالية)
+سيتم إنتاج **تقرير ARCHITECTURE_AUDIT.md** في `/mnt/documents/` يغطي:
 
-**الملف:** `src/pages/beneficiary/CarryforwardHistoryPage.tsx`
+### 1. خريطة شجرة المكونات
+- Mermaid diagram لأشجار المكونات الثلاث الكبرى:
+  - شجرة Admin Dashboard (الأكثر تعقيداً)
+  - شجرة Contracts (تحتوي accordion + form + accrual)
+  - شجرة Beneficiary Dashboard
+- كل عقدة موسومة بـ **Container (ذكي)** أو **Presentational (بسيط)** أو **Hybrid**.
 
-كل الصفحات المالية الأخرى محاطة بـ `RequirePublishedYears` لعرض رسالة واضحة عند عدم نشر سنة. هذه الصفحة تتخطّاه → قد تعرض جدولاً فارغاً أو خطأ مُربك.
+### 2. مصفوفة النتائج (مرتّبة بالخطورة)
 
-**الإصلاح:** تغليف JSX الرئيسي بـ `<RequirePublishedYears>...</RequirePublishedYears>` بنفس نمط `MySharePage`/`DisclosurePage`.
+| # | البند | الخطورة | الملفات |
+|---|---|---|---|
+| 1 | **مكونات Hybrid: عرض + جلب إعدادات** — `Sidebar`, `WaqfSettingsTab`, `MenuCustomizationTab` تستدعي `useSetting`/`useEffect` مباشرة بدل تمرير القيم من page hook | عالية | 11 مكوّن في `settings/` |
+| 2 | **prop drilling مؤكّد** — `WaqifWelcomeCard` يستقبل 6 props وصفية تُجمَّع في كائن واحد | متوسطة | `pages/waqif/WaqifDashboard.tsx` |
+| 3 | **مكونات > 180 سطر** بمسؤوليات متعددة: `EmailMonitorPage` (286), `ZatcaCertificatesTab` (207), `Sidebar` (201), `BalanceSheetReport` (197), `PermissionsControlPanel` (195), `ContractRentalModeSection` (195), `MonthlyAccrualTable` (193), `MySharePage` (191), `SystemSettingsTab` (189), `BylawDialogs` (183) | متوسطة | 10 ملفات |
+| 4 | **Page Hooks > 180 سطر** (god-hook smell): `useEmailMonitorPage` (210), `useCollectionData` (205), `useInvoicesPage` (199), `useIncomePage` (198), `useAiChat` (197), `usePaymentInvoicesTab` (196), `useZatcaSettings` (195), `useExpensesPage` (185) | متوسطة | 8 hooks |
+| 5 | **استخدام شبه معدوم لـ `React.memo`** (0 ملف) و`useCallback` (5 فقط) — جداول كبيرة (`InvoiceGridView`, `MonthlyAccrualTable`, `ContractAccordionGroup`, `IncomeDesktopTable`) تُعيد render كاملاً عند أي تغيير في الأب | منخفضة–متوسطة | جداول العرض |
+| 6 | **Context قاصر** — `ContractsContext` موجود لكن غير مستخدم خارج طبقة محدودة، ولا يوجد context لـ Settings رغم تكرار جلب نفس البيانات في كل tab | منخفضة | settings tabs |
+| 7 | **`useEffect` في مكونات إعدادات** (10 ملفات) — معظمها لمزامنة form state من server، يمكن استبداله بـ `useForm({ values })` أو `key` reset | منخفضة | settings/* |
 
----
-
-### #2 — ربط معماري معكوس في `CarryforwardHistoryPage`
-
-**الملف:** `src/pages/beneficiary/CarryforwardHistoryPage.tsx:16`
-
-```ts
-import { useCarryforwardData } from '@/hooks/page/admin/financial/useCarryforwardData';
-```
-
-صفحة مستفيد تستورد من مجلد admin → كسر الحدود المعمارية. الـ hook نفسه عام (يقرأ بيانات مستفيد واحد).
-
-**الإصلاح:**
-- فحص المستهلكين عبر `rg -l "useCarryforwardData" src`.
-- نقل الملف إلى `src/hooks/page/shared/financial/` (إن استخدمه admin أيضاً) أو `src/hooks/page/beneficiary/financial/` (إن لم يستخدمه أحد غير المستفيد).
-- تحديث جميع الاستيرادات.
-- تشغيل الاختبارات الحالية.
-
----
-
-### #3 — مجلد `components/beneficiary/admin/` مضلِّل
-
-**الموقع:** `src/components/beneficiary/admin/`
-
-يحتوي:
-- `BeneficiaryFormDialog.tsx` — يستخدمه الناظر فقط.
-- `DistributionHistory.tsx` — يستخدمه الناظر.
-- `AdvanceRequestDialog.tsx` — الوحيد الخاص بالمستفيد.
-
-**الإصلاح:**
-- نقل `BeneficiaryFormDialog.tsx` و`DistributionHistory.tsx` إلى `src/components/admin/beneficiaries/`.
-- نقل `AdvanceRequestDialog.tsx` إلى `src/components/beneficiary/my-share/`.
-- حذف المجلد الفارغ بعد تحديث جميع الاستيرادات.
+### 3. قواعد للتوثيق (كنتيجة)
+يتضمن التقرير قسم "Rules" يُكتب أيضاً في الذاكرة (`mem://`):
+- **Container vs Presentational**: تعريف رسمي + قائمة فحص.
+- **حدود استدعاء `useSetting`/`useQuery`/`useMutation`**: داخل page hooks فقط.
+- **حد أقصى للسطور**: مكوّن > 200 يُقسَّم؛ page hook > 180 يُجزَّأ إلى sub-hooks.
+- **Props > 5**: علامة على ضرورة التجميع في كائن semantic أو رفع state إلى context.
+- **memoization**: إلزامي على صفوف الجداول ومعالجات `onSort/onEdit/onDelete` المُمرَّرة لأطفال متعددين.
 
 ---
 
-## خارج النطاق (للتوثيق)
+## مرحلة 2 — التنفيذ بترتيب الخطورة (دفعات منفصلة)
 
-- صفحات الواقف (`pages/waqif/`) — طلب منفصل إن لزم.
-- لوحة المحاسب — محكومة بقاعدة محفوظة.
-- لا تعديل على RLS (تأكيد المستخدم).
+### دفعة A — إصلاح Hybrid في settings/* (البند 1)
+- نقل كل `useSetting`/`useEffect` من 11 مكوّن settings إلى sub-hooks لكل tab.
+- المكونات تتحول إلى presentational (تستقبل value + onChange).
+- اختبارات Vitest لكل sub-hook.
+
+### دفعة B — تقسيم المكونات الضخمة (البند 3)
+- `EmailMonitorPage` → `EmailMonitorFilters` + `EmailMonitorStats` + `EmailMonitorTable` + `DlqRetryPanel`.
+- `Sidebar` → `SidebarHeader` + `SidebarNav` + `SidebarFooter` + `MobileSidebarTrigger`.
+- `MonthlyAccrualTable` → استخراج صفّ memoized + header منفصل.
+- `BylawDialogs` → dialog واحد لكل نوع.
+- باقي الـ 6 ملفات بنفس النمط.
+
+### دفعة C — تجزئة god-hooks (البند 4)
+- مثال `useInvoicesPage` → `useInvoicesFilters` + `useInvoicesMutations` + `useInvoicesDerived` ثم composite hook رفيع.
+- نفس النمط لـ 8 hooks.
+
+### دفعة D — معالجة prop drilling (البند 2)
+- `WaqifWelcomeCard`: تجميع الـ 6 props في `welcomeData: WelcomeData`.
+- مراجعة المواقع الأخرى التي تمرر >5 props.
+
+### دفعة E — memoization مُستهدف (البند 5)
+- `React.memo` + `useCallback` على صفوف الجداول الكبيرة فقط (لا memoization عشوائي).
+
+### دفعة F — تنظيف useEffect في settings (البند 7)
+- استبدال `useEffect(setForm, [data])` بـ `useForm({ values })` أو `key={data?.id}`.
+
+### دفعة G — توسعة الـ contexts عند الحاجة (البند 6)
+- إضافة `SettingsContext` فقط إن أثبتت الدفعة A تكرار جلب فعلي.
 
 ---
 
-## ترتيب التنفيذ
+## التفاصيل التقنية
 
-1. **#1** — تعديل واحد آمن.
-2. **#2** — نقل ملف + تحديث استيرادات.
-3. **#3** — إعادة تنظيم 3 ملفات.
+**خارج النطاق:**
+- `AuthContext`, `ProtectedRoute`, `SecurityGuard` (محظور تعديلها).
+- `src/components/ui/` (shadcn — لا تُلمس).
+- منطق العمل المالي/الضريبي (تدقيق UI فقط).
+- RLS، Edge Functions، migrations.
 
-كل بند مستقل.
+**معايير القبول لكل دفعة:**
+- build نظيف + الاختبارات الحالية تمر.
+- لا تغيّر في سلوك المستخدم ظاهرياً.
+- نفس DOM tree ونفس CSS classes.
 
-## ملخص تقني
+**المخرجات النهائية:**
+- `/mnt/documents/ARCHITECTURE_AUDIT.md` (التقرير الكامل).
+- `/mnt/documents/component-trees.mmd` (Mermaid).
+- تحديث `mem://technical/architecture/` بقواعد container/presentational وحدود السطور.
+- (حسب الموافقة) تنفيذ الدفعات A→G لاحقاً.
 
-| الملف | نوع التعديل |
-|---|---|
-| `CarryforwardHistoryPage.tsx` | تغليف JSX (~5 أسطر) |
-| `useCarryforwardData.ts` | نقل + تحديث استيراد |
-| `components/beneficiary/admin/*` | نقل 3 ملفات + تحديث 3-5 استيرادات |
-
-**لا تعديل على:** RLS، Edge Functions، types، client.ts، migrations.
+**يبدأ التنفيذ بإنتاج تقرير المرحلة 1 فقط** — لا تعديلات كود حتى مراجعته والموافقة على دفعة.
