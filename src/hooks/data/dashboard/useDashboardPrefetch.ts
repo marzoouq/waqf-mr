@@ -12,7 +12,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/api/invoke';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
@@ -41,17 +41,14 @@ export function useDashboardPrefetch({ fiscalYearId, fiscalYears }: UseDashboard
       queryKey: ['dashboard-summary', fiscalYearId],
       queryFn: async () => {
         if (controller.signal.aborted) throw new Error('aborted');
-        const { data, error } = await supabase.functions.invoke('dashboard-summary', {
-          body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fy?.label },
-        });
+        // ملاحظة: invoke() لا يدعم signal فعلياً (Supabase SDK v2 لا يلغي النقل)
+        // لذا نُبقي فحوص aborted يدوياً قبل/بعد لمنع تلويث الكاش عند تغيير سريع للسنة.
+        const data = await invoke<unknown>(
+          'dashboard-summary',
+          { body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fy?.label } },
+          { onAuthError: async () => { await signOut(); } },
+        );
         if (controller.signal.aborted) throw new Error('aborted');
-        // كشف جلسة منتهية — تسجيل خروج تلقائي عبر AuthContext لضمان cleanup كامل
-        if (error?.message?.includes('401') || data?.error === 'Unauthorized') {
-          await signOut();
-          throw new Error('انتهت الجلسة');
-        }
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
         return data;
       },
       staleTime: 2 * 60 * 1000,

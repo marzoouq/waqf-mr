@@ -3,12 +3,24 @@
  * يستخدم AppNotify بدلاً من toast مباشر لضمان قابلية الاختبار
  */
 import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/api/invoke';
+import { ApiError } from '@/lib/api/rpc';
 import { defaultNotify } from '@/lib/notify';
 import type { AppNotify } from '@/lib/notify';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 import { safeSessionSet } from '@/lib/storage';
+
+interface NidResponse {
+  error?: string;
+  remaining?: number;
+  retry_after?: number;
+  found?: boolean;
+  masked_email?: string;
+  auth_error?: string;
+  session?: { access_token: string; refresh_token: string };
+}
 
 interface NidLoginState {
   nidLockedUntil: number | null;
@@ -47,17 +59,38 @@ export async function handleNationalIdLogin(
     return false;
   }
 
-  const { data, error: lookupError } = await supabase.functions.invoke('lookup-national-id', {
-    body: { national_id: cleanId, password },
-  });
+  // invoke() مع treatDataErrorAsFailure:false للحفاظ على نمط Edge Function الذي
+  // يعيد 200 + { error, retry_after, remaining } في حالات rate-limit/validation.
+  // maxAttempts:1 — endpoint حساس مع rate limiting، لا يجوز إعادة المحاولة تلقائياً.
+  let data: NidResponse;
+  try {
+    data = await invoke<NidResponse>(
+      'lookup-national-id',
+      { body: { national_id: cleanId, password } },
+      { maxAttempts: 1, treatDataErrorAsFailure: false },
+    );
+  } catch (e) {
+    // أخطاء النقل/الشبكة. ملاحظة: 429 من Edge قد لا يصل body في data
+    // (يذهب إلى error.context). هذه هشاشة قائمة قبل الترحيل.
+    const msg = e instanceof ApiError ? e.message : '';
+    if (msg.includes('تم تجاوز حد المحاولات')) {
+      const lockTime = Date.now() + 180 * 1000;
+      setNidLockedUntil(lockTime);
+      safeSessionSet(STORAGE_KEYS.NID_LOCKED_UNTIL, String(lockTime));
+      setNidAttemptsRemaining(0);
+      notify.error('تم تجاوز حد المحاولات. يرجى الانتظار 180 ثانية');
+      return false;
+    }
+    notify.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
+    return false;
+  }
 
-  // معالجة أخطاء Rate Limit و أخطاء الاتصال
-  if (lookupError || data?.error) {
+  // معالجة rate-limit ضمن الجسم (200 + error + retry_after)
+  if (data?.error) {
     const isRateLimited =
       data?.remaining === 0 ||
-      data?.retry_after ||
-      String(data?.error || '').includes('تم تجاوز حد المحاولات') ||
-      String(lookupError?.message || '').includes('تم تجاوز حد المحاولات');
+      !!data?.retry_after ||
+      String(data?.error || '').includes('تم تجاوز حد المحاولات');
 
     if (isRateLimited) {
       const retryAfter = data?.retry_after || 180;
@@ -66,11 +99,6 @@ export async function handleNationalIdLogin(
       safeSessionSet(STORAGE_KEYS.NID_LOCKED_UNTIL, String(lockTime));
       setNidAttemptsRemaining(0);
       notify.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
-      return false;
-    }
-
-    if (lookupError) {
-      notify.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
       return false;
     }
   }
