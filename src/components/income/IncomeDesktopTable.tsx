@@ -1,5 +1,5 @@
 /** جدول الدخل للديسكتوب — مع تمرير افتراضي للبيانات الكبيرة */
-import { Button } from '@/components/ui/button';
+
 import { TableHeader, TableRow, TableHead } from '@/components/ui/table';
 import { ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import type { Income } from '@/types';
