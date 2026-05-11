@@ -12,7 +12,9 @@ export const ALLOWED_ORIGIN_PATTERNS = [
 
 function getAllowedOrigin(req?: Request): string {
   if (!req) return ALLOWED_ORIGINS[0];
-  const origin = req.headers.get("origin") || "";
+  const origin = req.headers.get("origin");
+  // استدعاءات السيرفر-إلى-سيرفر (Auth Hooks، pg_cron عبر pg_net) لا ترسل Origin header — نسمح بها.
+  if (!origin) return ALLOWED_ORIGINS[0];
   if (
     ALLOWED_ORIGINS.includes(origin) ||
     ALLOWED_ORIGIN_PATTERNS.some((p) => p.test(origin))
@@ -26,7 +28,7 @@ export function getCorsHeaders(req?: Request) {
   return {
     "Access-Control-Allow-Origin": getAllowedOrigin(req),
     "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+      "authorization, x-client-info, apikey, content-type, x-lovable-signature, x-lovable-timestamp, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE",
     "Vary": "Origin",
   };
