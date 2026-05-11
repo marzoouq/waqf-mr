@@ -207,10 +207,14 @@ const { data } = await supabase.functions.invoke('guard-signup', {
 **المصادقة**: يتطلب JWT صالح.
 
 ```typescript
-const { data } = await supabase.functions.invoke('generate-invoice-pdf', {
-  body: { invoiceId: 'uuid' }
-});
-// الاستجابة: ملف PDF (binary)
+import { invoke } from '@/lib/api/invoke';
+
+const data = await invoke<{ results: Array<{ id: string; invoice_number?: string; success: boolean; error?: string }> }>(
+  'generate-invoice-pdf',
+  { invoice_ids: ['uuid-1', 'uuid-2'], table: 'payment_invoices' },
+);
+// الاستجابة: { results: [{ id, invoice_number, success, error? }, ...] }
+// الـ PDF يُرفع إلى Storage ويُحدَّث file_path/file_name على الجدول — لا يُعاد binary.
 ```
 
 ---

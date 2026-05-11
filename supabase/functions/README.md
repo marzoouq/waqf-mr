@@ -2,8 +2,10 @@
 
 ## Authentication Policy
 
-All Edge Functions in this project use `verify_jwt = false` in `supabase/config.toml`.
+Almost all Edge Functions in this project use `verify_jwt = false` in `supabase/config.toml`.
 This is **intentional** — Lovable Cloud uses a signing-keys system where the default `verify_jwt = true` doesn't work. Authentication is performed manually inside each function.
+
+**Exception:** `process-email-queue` uses `verify_jwt = true` because it is invoked exclusively by `pg_cron` via `pg_net` with a service-role JWT — there is no end-user request path, so the platform-level JWT check is sufficient and no manual `getUser()` validation is required.
 
 ### Required Pattern for Every New Function
 

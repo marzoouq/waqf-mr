@@ -115,8 +115,8 @@
 ### 8. `generate-invoice-pdf`
 - **الغرض:** توليد PDF للفاتورة بالعربية (jsPDF + Amiri).
 - **Method:** POST · **Auth:** admin/accountant/المستفيد المعني.
-- **Body:** `{ invoice_id: string, table?: 'payment_invoices'|'invoices' }`
-- **Response:** `{ pdf_base64: string, file_name: string }`
+- **Body:** `{ invoice_ids: string[], table?: 'payment_invoices'|'invoices' }`
+- **Response:** `{ results: Array<{ id: string, invoice_number?: string, success: boolean, error?: string }> }` — يرفع الـ PDF إلى Storage ويُحدّث `file_path/file_name` على الجدول؛ لا يُعيد binary مباشرة.
 
 ### 9. `guard-signup`
 - **الغرض:** ضبط تسجيل المستخدمين الجدد (whitelist، captcha).
