@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { rpc } from '@/lib/api/rpc';
 import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import { createCrudFactory } from '@/hooks/data/core/useCrudFactory';
@@ -39,10 +40,9 @@ export const useReorderBylaws = () => {
 
   return useMutation({
     mutationFn: async (items: { id: string; sort_order: number }[]) => {
-      const { error } = await supabase.rpc('reorder_bylaws', {
+      await rpc('reorder_bylaws', {
         items: JSON.stringify(items),
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waqf_bylaws'] });

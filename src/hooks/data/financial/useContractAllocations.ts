@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
@@ -59,12 +60,11 @@ export const useUpsertContractAllocations = () => {
         allocated_amount: a.allocated_amount,
       }));
       // تمرير rows مباشرة — Supabase JS client يتعامل مع objects (#55)
-      const { error } = await supabase.rpc('upsert_contract_allocations', {
+      await rpc('upsert_contract_allocations', {
         p_contract_id: contractId,
         // Supabase JSON parameter — cast ضروري لأن RPC يتوقع Json
         p_allocations: rows as unknown as import('@/integrations/supabase/types').Json,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contract_fiscal_allocations'] });

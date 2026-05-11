@@ -2,6 +2,7 @@
  * خدمة العمليات على السنوات المالية
  */
 import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 
 export const createFiscalYear = async (data: { label: string; start_date: string; end_date: string }) => {
   const { error } = await supabase.from('fiscal_years').insert({
@@ -15,12 +16,10 @@ export const createFiscalYear = async (data: { label: string; start_date: string
 };
 
 export const reopenFiscalYear = async (fiscalYearId: string, reason: string) => {
-  const { data, error } = await supabase.rpc('reopen_fiscal_year', {
+  return await rpc<{ label: string }>('reopen_fiscal_year', {
     p_fiscal_year_id: fiscalYearId,
     p_reason: reason,
   });
-  if (error) throw error;
-  return data as { label: string };
 };
 
 export const toggleFiscalYearPublished = async (fiscalYearId: string, published: boolean) => {

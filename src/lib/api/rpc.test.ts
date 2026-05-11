@@ -58,4 +58,31 @@ describe('rpc()', () => {
     });
     await expect(rpc('any', undefined, { maxAttempts: 1 })).rejects.toMatchObject({ category: 'network' });
   });
+
+  it('retries 3 times on 429 rate_limit then throws', async () => {
+    vi.useFakeTimers();
+    rpcMock.mockResolvedValue({ data: null, error: { status: 429, message: 'too many' } });
+    const promise = rpc('any', undefined, { maxAttempts: 3 });
+    promise.catch(() => {});
+    await vi.runAllTimersAsync();
+    await expect(promise).rejects.toMatchObject({ category: 'rate_limit' });
+    expect(rpcMock).toHaveBeenCalledTimes(3);
+    vi.useRealTimers();
+  });
+
+  it('applies exponential backoff between retries (250ms, 500ms)', async () => {
+    vi.useFakeTimers();
+    rpcMock
+      .mockResolvedValueOnce({ data: null, error: { status: 500, message: 'a' } })
+      .mockResolvedValueOnce({ data: null, error: { status: 500, message: 'b' } })
+      .mockResolvedValueOnce({ data: 'ok', error: null });
+    const promise = rpc('any', undefined, { maxAttempts: 3 });
+    promise.catch(() => {});
+    await vi.advanceTimersByTimeAsync(250);
+    expect(rpcMock).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(500);
+    await expect(promise).resolves.toBe('ok');
+    expect(rpcMock).toHaveBeenCalledTimes(3);
+    vi.useRealTimers();
+  });
 });

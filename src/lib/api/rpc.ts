@@ -11,6 +11,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { classifyError, type ClassifiedError, isRetryableCategory } from '@/utils/error/getErrorStatus';
 import { startPerfTimer } from '@/lib/monitoring/queryMonitor';
+import { recordPayloadSize } from '@/lib/monitoring/payloadMonitor';
 import { logger } from '@/lib/logger';
 
 /** كائن الخطأ الموحّد المُلقى من rpc() */
@@ -59,7 +60,12 @@ export async function rpc<T = unknown>(
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.rpc as any)(fnName, params);
-      if (!error) return data as T;
+      if (!error) {
+        if (import.meta.env.DEV && data !== null && data !== undefined) {
+          try { recordPayloadSize(`rpc:${fnName}:response`, JSON.stringify(data).length); } catch { /* noop */ }
+        }
+        return data as T;
+      }
 
       lastError = error;
       const classified = classifyError(error);

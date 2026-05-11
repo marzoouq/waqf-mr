@@ -6,7 +6,7 @@
  * من الواجهات مباشرةً (التزاماً بـ v7 Layered Architecture).
  */
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
@@ -22,10 +22,9 @@ export const useBeneficiaryDashboardRpc = (fiscalYearId?: string) => {
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_beneficiary_dashboard', {
+      const data = await rpc('get_beneficiary_dashboard', {
         p_fiscal_year_id: fiscalYearId!,
       });
-      if (error) throw error;
       if (!data || typeof data !== 'object' || Array.isArray(data)) {
         throw new Error(`استجابة غير متوقعة: ${typeof data} بدلاً من object`);
       }
