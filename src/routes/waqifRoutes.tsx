@@ -4,7 +4,7 @@ import { pr } from "./ProtectedRouteHelper";
 
 import type { AppRole } from '@/types';
 
-const WaqifDashboard = lazyWithRetry(() => import("@/pages/beneficiary/WaqifDashboard"));
+const WaqifDashboard = lazyWithRetry(() => import("@/pages/waqif/WaqifDashboard"));
 
 /** مسارات الواقف — بدون RequirePermission (withPermission=false) */
 export const waqifRoutes = (
