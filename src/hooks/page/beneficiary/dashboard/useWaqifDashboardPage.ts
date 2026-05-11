@@ -87,7 +87,7 @@ export const useWaqifDashboardPage = () => {
   );
 
   /* ── التحية والتاريخ — هوك مشترك ── */
-  const { greeting, greetingIconName, hijriDate, gregorianDate, timeStr } = useGreeting();
+  const welcome = useGreeting();
 
   const overviewStats = [
     { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
@@ -103,7 +103,7 @@ export const useWaqifDashboardPage = () => {
 
   return {
     isLoading, noPublishedYears,
-    displayName, greeting, greetingIconName, hijriDate, gregorianDate, timeStr,
+    displayName, welcome,
     overviewStats, kpis,
     fiscalYear, totalIncome, totalExpenses, availableAmount,
     activeContracts, expiredContracts,

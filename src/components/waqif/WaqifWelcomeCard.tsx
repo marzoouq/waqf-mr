@@ -4,8 +4,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Clock, Sun, Moon } from 'lucide-react';
 
-interface WaqifWelcomeCardProps {
-  displayName: string;
+export interface WelcomeData {
   greeting: string;
   greetingIconName: 'sun' | 'moon';
   hijriDate: string;
@@ -13,9 +12,15 @@ interface WaqifWelcomeCardProps {
   timeStr: string;
 }
 
+interface WaqifWelcomeCardProps {
+  displayName: string;
+  welcome: WelcomeData;
+}
+
 const iconMap = { sun: Sun, moon: Moon } as const;
 
-const WaqifWelcomeCard = ({ displayName, greeting, greetingIconName, hijriDate, gregorianDate, timeStr }: WaqifWelcomeCardProps) => {
+const WaqifWelcomeCard = ({ displayName, welcome }: WaqifWelcomeCardProps) => {
+  const { greeting, greetingIconName, hijriDate, gregorianDate, timeStr } = welcome;
   const GreetingIcon = iconMap[greetingIconName];
   return (
     <Card className="overflow-hidden border-0 shadow-lg gradient-primary text-primary-foreground animate-slide-up">
