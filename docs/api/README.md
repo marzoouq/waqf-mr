@@ -1,5 +1,12 @@
 # API Integration Reference
 
+> **مصادر الحقيقة الموزعة** (لا توجد ازدواجية — كل ملف يملك نطاقه):
+> - **هذا الملف:** سياسات `rpc()` / `invoke()` / staleTime / retry / cache.
+> - **`edge-functions.md`:** عقود تفصيلية لكل Edge Function (request/response/auth/CORS).
+> - **`network-inventory.md`:** الجرد الشامل (Edge + RPCs + استثناءات معمارية).
+> - **`cors-verification.md`:** مصفوفة التحقق الميداني لـ CORS.
+> - **`docs/API.md`:** مرجع المطور بأمثلة استدعاء عملية (يشير لما سبق عند التعارض).
+
 تنظّم هذه الوثيقة كل استدعاءات الـ RPC وEdge Functions المستخدمة في الواجهة، مع
 سياسة retry/cache/throttle لكل فئة.
 
