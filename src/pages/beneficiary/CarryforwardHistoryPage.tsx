@@ -2,13 +2,13 @@
  * صفحة تاريخ الترحيلات والفروق المخصومة من حصة المستفيد
  */
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { ExportMenu, DashboardSkeleton } from '@/components/common';
+import { ExportMenu, DashboardSkeleton, RequirePublishedYears } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { ArrowDownUp, AlertTriangle, RefreshCw, ArrowRight } from 'lucide-react';
 import { usePrint } from '@/hooks/ui/usePrint';
 import { useNavigate } from 'react-router-dom';
 
-import { useCarryforwardData } from '@/hooks/page/admin/financial/useCarryforwardData';
+import { useCarryforwardData } from '@/hooks/page/beneficiary/financial/useCarryforwardData';
 import { CarryforwardSummaryCards, CarryforwardsRecordTable, PaidAdvancesTable } from '@/components/beneficiary/carryforward';
 
 const CarryforwardHistoryPage = () => {
@@ -59,33 +59,35 @@ const CarryforwardHistoryPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-6 space-y-6">
-        <PageHeaderCard
-          title="تاريخ الترحيلات والخصومات"
-          description="سجل تفصيلي للسُلف المصروفة والفروق المرحّلة والمبالغ المخصومة من حصتك"
-          icon={ArrowDownUp}
-          actions={
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1">
-                <ArrowRight className="w-4 h-4" />
-                رجوع
-              </Button>
-              <ExportMenu onExportPdf={print} />
-            </div>
-          }
-        />
+      <RequirePublishedYears title="تاريخ الترحيلات والخصومات" icon={ArrowDownUp}>
+        <div className="p-4 md:p-6 space-y-6">
+          <PageHeaderCard
+            title="تاريخ الترحيلات والخصومات"
+            description="سجل تفصيلي للسُلف المصروفة والفروق المرحّلة والمبالغ المخصومة من حصتك"
+            icon={ArrowDownUp}
+            actions={
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1">
+                  <ArrowRight className="w-4 h-4" />
+                  رجوع
+                </Button>
+                <ExportMenu onExportPdf={print} />
+              </div>
+            }
+          />
 
-        <CarryforwardSummaryCards
-          totalPaidAdvances={totalPaidAdvances}
-          activeBalance={activeBalance}
-          totalSettled={totalSettled}
-          paidAdvancesCount={paidAdvances.length}
-        />
+          <CarryforwardSummaryCards
+            totalPaidAdvances={totalPaidAdvances}
+            activeBalance={activeBalance}
+            totalSettled={totalSettled}
+            paidAdvancesCount={paidAdvances.length}
+          />
 
-        <CarryforwardsRecordTable carryforwards={carryforwards} fyLabel={fyLabel} />
+          <CarryforwardsRecordTable carryforwards={carryforwards} fyLabel={fyLabel} />
 
-        <PaidAdvancesTable paidAdvances={paidAdvances} />
-      </div>
+          <PaidAdvancesTable paidAdvances={paidAdvances} />
+        </div>
+      </RequirePublishedYears>
     </DashboardLayout>
   );
 };
