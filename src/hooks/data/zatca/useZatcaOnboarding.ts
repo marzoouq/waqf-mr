@@ -3,7 +3,7 @@
  */
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/api/invoke';
 import { defaultNotify } from '@/lib/notify';
 import { zatcaOnboard } from '@/lib/services/zatcaService';
 
@@ -28,8 +28,8 @@ export function useZatcaOnboarding() {
   const handleProductionUpgrade = useCallback(async () => {
     setProductionLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('zatca-onboard', { body: { action: 'production' } });
-      if (error) throw error;
+      // maxAttempts:1 — تسجيل/ترقية شهادة لا يجوز تكرارها تلقائياً
+      await invoke('zatca-onboard', { body: { action: 'production' } }, { maxAttempts: 1 });
       defaultNotify.success('✅ تمت الترقية لشهادة الإنتاج بنجاح');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
     } catch (e) {

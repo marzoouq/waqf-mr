@@ -3,6 +3,7 @@
  */
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/api/invoke';
 import { defaultNotify } from '@/lib/notify';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { logger } from '@/lib/logger';
@@ -129,11 +130,10 @@ export const useGenerateInvoicePdf = () => {
       if (opts.forceRegenerate) body.force_regenerate = true;
       if (opts.table) body.table = opts.table;
 
-      const { data, error } = await supabase.functions.invoke('generate-invoice-pdf', {
-        body,
-      });
-      if (error) throw error;
-      return data as { results: { id: string; invoice_number: string | null; success: boolean; error?: string }[] };
+      return await invoke<{ results: { id: string; invoice_number: string | null; success: boolean; error?: string }[] }>(
+        'generate-invoice-pdf',
+        { body },
+      );
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });

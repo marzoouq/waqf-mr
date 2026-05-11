@@ -3,6 +3,8 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/api/invoke';
+import { ApiError } from '@/lib/api/rpc';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 
@@ -15,13 +17,16 @@ export interface ManagedUser {
   role: string | null;
 }
 
+// callAdminApi يحافظ على عقد "throw Error مع رسالة، يعيد payload" — لا tuple shape
 export const callAdminApi = async (body: Record<string, unknown>) => {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) throw new Error("يجب تسجيل الدخول أولاً");
-  const res = await supabase.functions.invoke('admin-manage-users', { body });
-  if (res.error) throw new Error(res.error.message);
-  if (res.data?.error) throw new Error(res.data.error);
-  return res.data;
+  try {
+    return await invoke<Record<string, unknown>>('admin-manage-users', { body });
+  } catch (e) {
+    if (e instanceof ApiError) throw new Error(e.message);
+    throw e;
+  }
 };
 
 

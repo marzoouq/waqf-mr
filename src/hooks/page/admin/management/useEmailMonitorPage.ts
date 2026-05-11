@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { invoke } from '@/lib/api/invoke';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 
@@ -88,10 +89,9 @@ export function useEmailMonitorPage() {
   const adminStatsQuery = useQuery({
     queryKey: ['email-admin-stats'],
     queryFn: async (): Promise<EmailAdminStats> => {
-      const { data, error } = await supabase.functions.invoke('email-admin', {
+      const data = await invoke<Partial<EmailAdminStats>>('email-admin', {
         body: { action: 'get_stats' },
       });
-      if (error) throw error;
       return {
         last_log_at: data?.last_log_at ?? null,
         auth_dlq_count: data?.auth_dlq_count ?? 0,
@@ -156,11 +156,10 @@ export function useEmailMonitorPage() {
   // إعادة محاولة DLQ
   const retryMutation = useMutation({
     mutationFn: async (queue: 'auth_emails' | 'transactional_emails') => {
-      const { data, error } = await supabase.functions.invoke('email-admin', {
-        body: { action: 'retry_dlq', queue },
-      });
-      if (error) throw error;
-      return data as { ok: boolean; moved: number; error: string | null };
+      return await invoke<{ ok: boolean; moved: number; error: string | null }>(
+        'email-admin',
+        { body: { action: 'retry_dlq', queue } },
+      );
     },
     onSuccess: (data, queue) => {
       if (data.error) {
