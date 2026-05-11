@@ -69,6 +69,14 @@ const ALLOWLIST_0029 = new Set([
   'clear_zatca_otp',
 ]);
 
+// قائمة الدوال العامة (anon-callable) المسموح استدعاؤها بدون تسجيل دخول.
+// كل دالة هنا موسومة في DB بـ COMMENT يحمل '[anon-callable]'، والـ event trigger
+// auto_revoke_anon_execute يحترم هذا الوسم ولا يسحب EXECUTE من anon.
+const ALLOWLIST_ANON = new Set([
+  'get_public_stats',     // إحصائيات صفحة الهبوط (مفلترة بـ app_settings)
+  'log_access_event',     // تسجيل أخطاء العميل قبل تسجيل الدخول
+]);
+
 // نوع تحذير Supabase Linter — راجع docs/security/security-definer-allowlist.md
 const FAIL_LINTS = new Set([
   '0028_anon_security_definer_function_executable',
