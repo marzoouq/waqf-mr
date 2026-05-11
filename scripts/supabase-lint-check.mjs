@@ -69,6 +69,14 @@ const ALLOWLIST_0029 = new Set([
   'clear_zatca_otp',
 ]);
 
+// قائمة الدوال العامة (anon-callable) المسموح استدعاؤها بدون تسجيل دخول.
+// كل دالة هنا موسومة في DB بـ COMMENT يحمل '[anon-callable]'، والـ event trigger
+// auto_revoke_anon_execute يحترم هذا الوسم ولا يسحب EXECUTE من anon.
+const ALLOWLIST_ANON = new Set([
+  'get_public_stats',     // إحصائيات صفحة الهبوط (مفلترة بـ app_settings)
+  'log_access_event',     // تسجيل أخطاء العميل قبل تسجيل الدخول
+]);
+
 // نوع تحذير Supabase Linter — راجع docs/security/security-definer-allowlist.md
 const FAIL_LINTS = new Set([
   '0028_anon_security_definer_function_executable',
@@ -102,8 +110,47 @@ for (const lint of lints) {
   if (name.startsWith('0029') && fnName && ALLOWLIST_0029.has(fnName)) {
     continue; // مسموح وموثّق
   }
+  if (name.startsWith('0028') && fnName && ALLOWLIST_ANON.has(fnName)) {
+    continue; // anon-callable موثّق ومُعلَّم بـ [anon-callable]
+  }
 
   offenders.push({ lint: name, fn: fnName, detail: lint.detail });
+}
+
+// فحص تكميلي: التأكد من أن الدوال anon-callable لم تفقد صلاحية EXECUTE من anon
+// (يمنع تكرار انحدار 42501 الذي حدث بعد REVOKE الجماعي السابق)
+try {
+  const sqlUrl = `https://api.supabase.com/v1/projects/${REF}/database/query`;
+  const sqlRes = await fetch(sqlUrl, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: `
+        SELECT p.proname,
+               has_function_privilege('anon', p.oid, 'EXECUTE') AS anon_can_execute
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE n.nspname = 'public'
+          AND p.proname = ANY(ARRAY[${[...ALLOWLIST_ANON].map((n) => `'${n}'`).join(',')}]);
+      `,
+    }),
+  });
+  if (sqlRes.ok) {
+    const rows = await sqlRes.json();
+    for (const row of rows) {
+      if (!row.anon_can_execute) {
+        offenders.push({
+          lint: 'anon-callable-missing-grant',
+          fn: row.proname,
+          detail: `الدالة موسومة كـ anon-callable لكن anon لا يملك EXECUTE — انحدار محتمل!`,
+        });
+      }
+    }
+  } else {
+    console.warn(`⚠️ تعذّر التحقق من صلاحيات anon-callable: ${sqlRes.status}`);
+  }
+} catch (e) {
+  console.warn(`⚠️ خطأ في فحص anon-callable: ${e.message}`);
 }
 
 if (offenders.length) {
