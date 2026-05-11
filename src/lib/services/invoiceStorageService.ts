@@ -94,10 +94,17 @@ export const updateInvoiceFilePath = async (
 ): Promise<void> => {
   const safeName = sanitizeStoragePath(invoiceNumber || invoiceId);
   const storagePath = `payment-invoices/${safeName}.pdf`;
-  await supabase
+  const { error: updateError } = await supabase
     .from('invoices')
     .update({ file_path: storagePath })
     .eq('id', invoiceId);
+  if (updateError) {
+    logger.warn('[updateInvoiceFilePath] DB update failed', {
+      invoiceId,
+      storagePath,
+      error: updateError,
+    });
+  }
 };
 
 /**
