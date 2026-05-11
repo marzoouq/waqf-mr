@@ -12,8 +12,7 @@ export const useSupportStats = () => {
     queryKey: ['support_stats'],
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_support_stats');
-      if (error) throw error;
+      const data = await rpc('get_support_stats');
       return data as {
         totalTickets: number;
         openTickets: number;
