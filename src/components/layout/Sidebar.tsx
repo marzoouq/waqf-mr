@@ -1,20 +1,14 @@
 /**
- * مكون الشريط الجانبي (Sidebar)
- * يعرض قائمة التنقل ومعلومات المستخدم وزر تسجيل الخروج.
+ * مكون الشريط الجانبي (Sidebar) — حاوية ضوء تجمع الأجزاء العرضية الثلاثة.
+ * - SidebarBrand: الشعار وأزرار التبديل
+ * - SidebarNavList: قائمة الروابط
+ * - SidebarUserFooter: معلومات المستخدم + خروج
  */
-import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
-import { cn } from '@/lib/cn';
-import { ROLE_LABELS } from '@/constants/roles';
 import { useSetting } from '@/hooks/data/settings/useAppSettings';
-import { usePrefetchPages } from '@/hooks/data/core/usePrefetchPages';
-import { isActiveLink } from '@/lib/navigation/isActiveLink';
-
-type NavLinkItem = { to: string; icon: React.ComponentType<{ className?: string }>; label: string };
-type NavGroupItem = { key: string; label: string | null; items: NavLinkItem[] };
+import { SidebarBrand } from './sidebar/SidebarBrand';
+import { SidebarNavList, type NavLinkItem, type NavGroupItem } from './sidebar/SidebarNavList';
+import { SidebarUserFooter } from './sidebar/SidebarUserFooter';
 
 interface SidebarContentProps {
   links: NavLinkItem[] & { groups?: NavGroupItem[] };
@@ -29,171 +23,30 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   links, sidebarOpen, setSidebarOpen, setMobileSidebarOpen, onSignOut, unreadCount = 0,
 }) => {
   const { user, role } = useAuth();
-  const location = useLocation();
   const waqfName = useSetting('waqf_name', 'إدارة الوقف');
   const waqfLogoUrl = useSetting('waqf_logo_url');
-  const { getPrefetchHandler } = usePrefetchPages();
 
   return (
     <>
-      {/* Logo */}
-      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-        <div className={cn('flex items-center gap-3', !sidebarOpen && 'lg:justify-center')}>
-          <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center shrink-0 shadow-gold overflow-hidden">
-            {waqfLogoUrl ? (
-              <img src={waqfLogoUrl} alt="شعار الوقف" className="w-full h-full object-contain rounded-xl p-0.5" />
-            ) : (
-              <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
-            )}
-          </div>
-          <span className={cn('font-arabic font-bold text-lg text-sidebar-foreground truncate max-w-[150px]', !sidebarOpen && 'lg:hidden')}>
-            {waqfName}
-          </span>
-        </div>
-        {/* Desktop toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={sidebarOpen ? 'طي القائمة الجانبية' : 'توسيع القائمة الجانبية'}
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="text-sidebar-foreground hover:bg-sidebar-accent hidden lg:flex"
-        >
-          {sidebarOpen ? <ChevronLeft className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </Button>
-        {/* Mobile close */}
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="إغلاق القائمة الجانبية"
-          onClick={() => setMobileSidebarOpen(false)}
-          className="text-sidebar-foreground hover:bg-sidebar-accent lg:hidden"
-        >
-          <X className="w-5 h-5" />
-        </Button>
-      </div>
-
-      {/* Navigation */}
-      <nav aria-label="القائمة الرئيسية" role="navigation" className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-       <TooltipProvider delayDuration={0}>
-        {(() => {
-          // Render grouped if available; else flat.
-          const groups: NavGroupItem[] = links.groups && links.groups.length
-            ? links.groups
-            : [{ key: '_flat', label: null, items: links }];
-
-          const renderLink = (link: NavLinkItem) => {
-            const isActive = isActiveLink(location.pathname, link.to);
-            const linkContent = (
-              <Link
-                key={link.to}
-                to={link.to}
-                aria-current={isActive ? 'page' : undefined}
-                onClick={() => setMobileSidebarOpen(false)}
-                onMouseEnter={() => getPrefetchHandler(link.to)?.()}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200',
-                  isActive
-                    ? 'bg-sidebar-accent text-sidebar-primary'
-                    : 'text-sidebar-foreground hover:bg-sidebar-accent/50',
-                  !sidebarOpen && 'lg:justify-center'
-                )}
-              >
-                <link.icon className="w-5 h-5 shrink-0" aria-hidden="true" />
-                <span className={cn(!sidebarOpen && 'lg:hidden')}>{link.label}</span>
-                {link.to.includes('/messages') && unreadCount > 0 && (
-                  <span aria-label={`${unreadCount} رسالة غير مقروءة`} className="mr-auto bg-destructive text-destructive-foreground text-[11px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </Link>
-            );
-
-            if (!sidebarOpen) {
-              return (
-                <Tooltip key={link.to} delayDuration={0}>
-                  <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-                  <TooltipContent side="left" className="hidden lg:block">
-                    {link.label}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            }
-            return linkContent;
-          };
-
-          return groups.map((group, idx) => (
-            <div key={group.key} className={cn(idx > 0 && 'mt-3 pt-2 border-t border-sidebar-border/40')}>
-              {group.label && sidebarOpen && (
-                <p className="px-3 pt-1 pb-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-                  {group.label}
-                </p>
-              )}
-              <div className="space-y-1">
-                {group.items.map(renderLink)}
-              </div>
-            </div>
-          ));
-        })()}
-       </TooltipProvider>
-      </nav>
-
-      {/* User Info */}
-      <div
-        className="px-4 pt-4 pb-16 lg:pb-4 border-t border-sidebar-border"
-        onTouchStart={(e) => e.stopPropagation()}
-        onTouchMove={(e) => e.stopPropagation()}
-        onTouchEnd={(e) => e.stopPropagation()}
-      >
-        <div className={cn('mb-3 text-sm text-sidebar-foreground/80', !sidebarOpen && 'lg:hidden')}>
-          <p className="truncate">{user?.email}</p>
-          <p className="text-xs text-sidebar-primary mt-1">
-            {ROLE_LABELS[role || ''] || role}
-          </p>
-        </div>
-        <TooltipProvider delayDuration={0}>
-          {/* Mobile: always show button directly, no tooltip */}
-          <div className="lg:hidden">
-            <Button
-              variant="ghost"
-              className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
-              onClick={onSignOut}
-            >
-              <LogOut className="w-5 h-5" />
-              <span className="mr-2">تسجيل الخروج</span>
-            </Button>
-          </div>
-          {/* Desktop collapsed: tooltip wraps trigger */}
-          {!sidebarOpen && (
-            <div className="hidden lg:block">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive px-0"
-                    onClick={onSignOut}
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">تسجيل الخروج</TooltipContent>
-              </Tooltip>
-            </div>
-          )}
-          {/* Desktop expanded: simple button */}
-          {sidebarOpen && (
-            <div className="hidden lg:block">
-              <Button
-                variant="ghost"
-                className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
-                onClick={onSignOut}
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="mr-2">تسجيل الخروج</span>
-              </Button>
-            </div>
-          )}
-        </TooltipProvider>
-      </div>
+      <SidebarBrand
+        waqfName={waqfName}
+        waqfLogoUrl={waqfLogoUrl}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        setMobileSidebarOpen={setMobileSidebarOpen}
+      />
+      <SidebarNavList
+        links={links}
+        sidebarOpen={sidebarOpen}
+        setMobileSidebarOpen={setMobileSidebarOpen}
+        unreadCount={unreadCount}
+      />
+      <SidebarUserFooter
+        email={user?.email}
+        role={role}
+        sidebarOpen={sidebarOpen}
+        onSignOut={onSignOut}
+      />
     </>
   );
 };
