@@ -43,11 +43,10 @@ export function useYearComparisonData(year1Id: string, year2Id: string) {
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
     queryFn: async () => {
-      const { data: result, error } = await supabase.rpc('get_year_comparison_summary', {
+      const result = await rpc('get_year_comparison_summary', {
         p_year1_id: year1Id,
         p_year2_id: year2Id,
       });
-      if (error) throw error;
       // RPC — cast مبرر، يحتاج Zod validation لاحقاً
       return result as unknown as ComparisonRpcResult;
     },
