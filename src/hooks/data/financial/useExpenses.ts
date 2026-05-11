@@ -2,17 +2,16 @@
  * هوكات إدارة المصروفات (CRUD)
  * يوفر: useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, useExpensesByFiscalYear
  * الجدول: expenses | الربط: properties | الترتيب: حسب التاريخ
+ *
+ * M2.1: استعلام fiscal-year-filtered يمر عبر expensesService.
  */
 import { createCrudFactory } from '../core/useCrudFactory';
 import { Expense } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { supabase } from '@/integrations/supabase/client';
-import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+import { isFyReady } from '@/constants/fiscalYearIds';
 import { PER_FY_LIMIT } from '@/constants/pagination';
-
-/** أعمدة المصروفات مع ربط العقار */
-const EXPENSE_SELECT = 'id, amount, date, description, expense_type, fiscal_year_id, property_id, created_at, property:properties(id, property_number, location)';
+import { expensesService, EXPENSE_SELECT } from '@/lib/services/expensesService';
 
 const expensesCrud = createCrudFactory<'expenses', Expense>({
   table: 'expenses',
@@ -33,17 +32,7 @@ export const useExpensesByFiscalYear = (fiscalYearId: string | 'all') => {
     queryKey: ['expenses', 'fiscal_year', fiscalYearId],
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
-      let query = supabase.from('expenses').select(EXPENSE_SELECT).order('date', { ascending: false });
-      if (!isFyAll(fiscalYearId)) {
-        query = query.eq('fiscal_year_id', fiscalYearId).limit(PER_FY_LIMIT);
-      } else {
-        query = query.limit(PER_FY_LIMIT);
-      }
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Expense[];
-    },
+    queryFn: () => expensesService.listByFiscalYear(fiscalYearId),
     meta: { warnLimit: PER_FY_LIMIT },
   });
 };
