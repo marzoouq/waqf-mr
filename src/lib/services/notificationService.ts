@@ -4,29 +4,28 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+import { rpc } from '@/lib/api/rpc';
 
 /* ────────────── async/throw — تُستخدم داخل mutations ────────────── */
 
 /** إرسال إشعار لجميع المدراء (async — يرمي خطأ عند الفشل) */
 export const notifyAdmins = async (title: string, message: string, type = 'info', link?: string) => {
-  const { error } = await supabase.rpc('notify_admins', {
+  await rpc('notify_admins', {
     p_title: title,
     p_message: message,
     p_type: type,
     p_link: link ?? undefined,
   });
-  if (error) throw error;
 };
 
 /** إرسال إشعار لجميع المستفيدين (async — يرمي خطأ عند الفشل) */
 export const notifyAllBeneficiaries = async (title: string, message: string, type = 'info', link?: string) => {
-  const { error } = await supabase.rpc('notify_all_beneficiaries', {
+  await rpc('notify_all_beneficiaries', {
     p_title: title,
     p_message: message,
     p_type: type,
     p_link: link ?? undefined,
   });
-  if (error) throw error;
 };
 
 /** إدراج إشعارات مجمّعة (async — يرمي خطأ عند الفشل) */
