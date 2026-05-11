@@ -28,13 +28,7 @@ const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undef
  *  - prefetch → useDashboardPrefetch (يبقى داخل Provider عمدًا)
  */
 export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
-  const resolved = useResolvedFiscalYear('');
-  const { selectedId, setFiscalYearId } = useFiscalYearPersistence({
-    isLoading: resolved.isLoading,
-    fiscalYears: resolved.fiscalYears,
-  });
-
-  // إعادة الحل بقيمة selectedId الفعلية (الـ persistence hook يدير الـ state)
+  const { selectedId, setFiscalYearId } = useFiscalYearPersistence();
   const final = useResolvedFiscalYear(selectedId);
 
   // جلب مسبق لبيانات لوحة التحكم — يبقى داخل Provider (مراجعة Version I-R)
