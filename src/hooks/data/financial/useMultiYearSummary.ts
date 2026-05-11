@@ -2,7 +2,7 @@
  * هوك لجلب ملخص مالي لعدة سنوات في استدعاء RPC واحد
  */
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { mapEntry, type RpcYearEntry } from '@/utils/financial/multiYearHelpers';
 import type { YearSummaryEntry } from '@/types/financial/multiYear';
