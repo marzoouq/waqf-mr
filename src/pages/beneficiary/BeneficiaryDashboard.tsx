@@ -101,18 +101,10 @@ const BeneficiaryDashboard = () => {
         {/* U3: مرجعية الصفحة */}
         <p className="text-xs text-muted-foreground px-1">{PAGE_RESPONSIBILITY_COPY.dashboard}</p>
 
-        {/* بطاقة طلب السُلفة */}
+        {/* بطاقة طلب السُلفة — CR-07: تنقل إلى MyShare */}
         {isVisible('advance_card') && advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
           <DeferredRender delay={300}>
-            <BeneficiaryAdvanceCard
-              beneficiaryId={currentBeneficiary.id!}
-              fiscalYearId={fiscalYearId}
-              myShare={myShare}
-              isClosed={isClosed}
-              pendingAdvanceCount={pendingAdvanceCount}
-              minAmount={advanceSettings?.min_amount ?? 500}
-              maxPercentage={advanceSettings?.max_percentage ?? 50}
-            />
+            <BeneficiaryAdvanceCard pendingAdvanceCount={pendingAdvanceCount} />
           </DeferredRender>
         )}
 
