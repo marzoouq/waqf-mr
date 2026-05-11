@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Percent, Search, AlertTriangle, Wallet, UserCheck } from 'lucide-react';
 import { ExportMenu, TablePagination, ConfirmDeleteDialog } from '@/components/common';
-import { BeneficiaryFormDialog, BeneficiaryCard } from '@/components/beneficiary/admin';
+import { BeneficiaryFormDialog, BeneficiaryCard } from '@/components/admin/beneficiaries';
 import { AdvanceRequestsTab } from '@/components/accounts';
 import { useBeneficiariesPage } from '@/hooks/page/admin/management/useBeneficiariesPage';
 

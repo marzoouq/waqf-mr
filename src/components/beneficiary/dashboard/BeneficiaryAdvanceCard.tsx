@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Banknote } from 'lucide-react';
-import { AdvanceRequestDialog } from '@/components/beneficiary/admin';
+import AdvanceRequestDialog from '@/components/beneficiary/my-share/AdvanceRequestDialog';
 
 interface BeneficiaryAdvanceCardProps {
   beneficiaryId: string;

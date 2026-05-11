@@ -1,7 +1,6 @@
 /**
- * تصدير مكونات المستفيدين
+ * تصدير مكونات إدارة المستفيدين (للناظر فقط)
  */
-export { default as AdvanceRequestDialog } from './AdvanceRequestDialog';
 export { default as BeneficiaryCard } from './BeneficiaryCard';
 export { default as BeneficiaryFormDialog } from './BeneficiaryFormDialog';
 export { default as DistributionHistory } from './DistributionHistory';
