@@ -25,7 +25,7 @@ export const useCreateTicket = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
       defaultNotify.success('تم إنشاء التذكرة بنجاح');
-      supabase.rpc('notify_admins', {
+      rpc('notify_admins', {
         p_title: 'تذكرة دعم فني جديدة',
         p_message: 'تم استلام تذكرة دعم فني جديدة تحتاج مراجعة',
         p_type: 'info',
