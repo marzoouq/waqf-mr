@@ -190,3 +190,47 @@ describe('Auth pattern uses getUser() not getSession()', () => {
     expect((supabase.auth as unknown as Record<string, unknown>).getSession).toBeUndefined();
   });
 });
+
+// ---------------------------------------------------------------------------
+// 4. CORS preflight & origin allowlist (mirror of supabase/functions/_shared/cors.ts)
+// ---------------------------------------------------------------------------
+
+import { getCorsHeaders, ALLOWED_ORIGINS } from './__helpers__/corsMirror';
+
+const makeReq = (origin?: string): Request =>
+  new Request('https://example.com', {
+    headers: origin ? { origin } : {},
+  });
+
+describe('CORS preflight & origin allowlist', () => {
+  it('allows production origin and echoes it with Vary: Origin', () => {
+    const headers = getCorsHeaders(makeReq('https://waqf-wise.net'));
+    expect(headers['Access-Control-Allow-Origin']).toBe('https://waqf-wise.net');
+    expect(headers['Vary']).toBe('Origin');
+  });
+
+  it('allows project-scoped preview subdomain (UUID pattern)', () => {
+    const previewOrigin = 'https://id-preview--29470216-3df1-468f-b021-5c98b75b2920.lovable.app';
+    const headers = getCorsHeaders(makeReq(previewOrigin));
+    expect(headers['Access-Control-Allow-Origin']).toBe(previewOrigin);
+  });
+
+  it('rejects unknown origin with empty Allow-Origin', () => {
+    const headers = getCorsHeaders(makeReq('https://evil.example.com'));
+    expect(headers['Access-Control-Allow-Origin']).toBe('');
+  });
+
+  it('falls back to default origin for server-to-server calls (no Origin header)', () => {
+    const headers = getCorsHeaders(makeReq());
+    expect(headers['Access-Control-Allow-Origin']).toBe(ALLOWED_ORIGINS[0]);
+  });
+
+  it('preflight headers include allowed methods and webhook signature headers', () => {
+    const headers = getCorsHeaders(makeReq('https://waqf-wise.net'));
+    expect(headers['Access-Control-Allow-Methods']).toContain('OPTIONS');
+    expect(headers['Access-Control-Allow-Methods']).toContain('POST');
+    expect(headers['Access-Control-Allow-Headers']).toContain('x-lovable-signature');
+    expect(headers['Access-Control-Allow-Headers']).toContain('x-lovable-timestamp');
+    expect(headers['Access-Control-Allow-Headers']).toContain('authorization');
+  });
+});
