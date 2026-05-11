@@ -1,12 +1,12 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { FileText, FileDown, Info } from 'lucide-react';
-import { ExportMenu, RequirePublishedYears, DashboardSkeleton, ErrorState } from '@/components/common';
+import { FileText, FileDown } from 'lucide-react';
+import { ExportMenu, RequirePublishedYears, DashboardSkeleton, ErrorState, FiscalYearStateNotice } from '@/components/common';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import DisclosureSummaryCards from '@/components/beneficiary/disclosure/DisclosureSummaryCards';
 import DisclosureContractsSection from '@/components/beneficiary/disclosure/DisclosureContractsSection';
 import DisclosureFinancialStatement from '@/components/beneficiary/disclosure/DisclosureFinancialStatement';
 import { useDisclosurePage } from '@/hooks/page/beneficiary';
+import { PAGE_RESPONSIBILITY_COPY } from '@/constants/beneficiaryCopy';
 
 const DisclosurePage = () => {
   const {
@@ -81,19 +81,17 @@ const DisclosurePage = () => {
             totalReceived={totalReceived}
             pendingAmount={pendingAmount}
             waqfCorpusPrevious={waqfCorpusPrevious}
+            isClosed={selectedFY?.status === 'closed'}
           />
 
-          {/* تنبيه السنة النشطة */}
-          {myShare === 0 && !isAccountMissing && selectedFY?.status !== 'closed' && currentBeneficiary && (
-            <Card className="shadow-sm border-info/30 bg-info/5">
-              <CardContent className="p-4 flex items-start gap-3">
-                <Info className="w-5 h-5 text-info shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-sm">السنة المالية لم تُغلق بعد</p>
-                  <p className="text-sm text-muted-foreground mt-1">ستظهر حصتك من الريع بعد إغلاق السنة المالية من قِبل الناظر.</p>
-                </div>
-              </CardContent>
-            </Card>
+          {/* U3: مرجعية الصفحة */}
+          <p className="text-xs text-muted-foreground">{PAGE_RESPONSIBILITY_COPY.disclosure}</p>
+
+          {/* CR-01: تنبيه حالة السنة */}
+          {selectedFY?.status === 'closed' ? (
+            <FiscalYearStateNotice state="closed" />
+          ) : (
+            <FiscalYearStateNotice state="active" />
           )}
 
           <DisclosureContractsSection contracts={contracts} isLoading={isLoading} />

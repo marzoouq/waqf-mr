@@ -1,9 +1,10 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, Sun, Moon } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
-import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender, ErrorState } from '@/components/common';
+import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender, ErrorState, FiscalYearStateNotice } from '@/components/common';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useBeneficiaryWidgets } from '@/hooks/data/settings/useBeneficiaryWidgets';
+import { PAGE_RESPONSIBILITY_COPY } from '@/constants/beneficiaryCopy';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary/dashboard/BeneficiaryWelcomeCard';
 import BeneficiaryStatsRow from '@/components/beneficiary/dashboard/BeneficiaryStatsRow';
@@ -20,7 +21,7 @@ const BeneficiaryDashboard = () => {
     currentBeneficiary, myShare, distributions, role, fiscalYearId,
     fiscalYear, isClosed, fyProgress,
     displayName, roleLabel, recentNotifications, unreadCount, greetingData,
-    advanceEnabled, pendingAdvanceCount, advanceSettings,
+    advanceEnabled, pendingAdvanceCount,
     handleRetry,
   } = useBeneficiaryDashboardPage();
 
@@ -92,26 +93,18 @@ const BeneficiaryDashboard = () => {
           />
         )}
 
-        {/* تنبيه السنة غير المقفلة */}
+        {/* CR-01: تنبيه حالة السنة (موحَّد) */}
         {isVisible('fiscal_year_notice') && fiscalYear && !isClosed && (
-          <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/5 text-sm text-muted-foreground">
-            <AlertCircle className="w-4 h-4 text-warning shrink-0" />
-            <span>الأرقام النهائية (حصص الريع والتوزيعات) ستتوفر بعد إقفال السنة المالية.</span>
-          </div>
+          <FiscalYearStateNotice state={fyProgress.notStarted ? 'notStarted' : 'active'} />
         )}
 
-        {/* بطاقة طلب السُلفة */}
+        {/* U3: مرجعية الصفحة */}
+        <p className="text-xs text-muted-foreground px-1">{PAGE_RESPONSIBILITY_COPY.dashboard}</p>
+
+        {/* بطاقة طلب السُلفة — CR-07: تنقل إلى MyShare */}
         {isVisible('advance_card') && advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
           <DeferredRender delay={300}>
-            <BeneficiaryAdvanceCard
-              beneficiaryId={currentBeneficiary.id!}
-              fiscalYearId={fiscalYearId}
-              myShare={myShare}
-              isClosed={isClosed}
-              pendingAdvanceCount={pendingAdvanceCount}
-              minAmount={advanceSettings?.min_amount ?? 500}
-              maxPercentage={advanceSettings?.max_percentage ?? 50}
-            />
+            <BeneficiaryAdvanceCard pendingAdvanceCount={pendingAdvanceCount} />
           </DeferredRender>
         )}
 
