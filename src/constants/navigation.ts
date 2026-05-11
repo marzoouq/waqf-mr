@@ -40,8 +40,8 @@ export const allAdminLinks = [
   { to: '/dashboard/income', icon: DollarSign, label: 'الدخل' },
   { to: '/dashboard/expenses', icon: Receipt, label: 'المصروفات' },
   { to: '/dashboard/beneficiaries', icon: Users, label: 'المستفيدين' },
-  { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير' },
-  { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات' },
+  { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير والإفصاح' },
+  { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات الختامية والإقفال' },
   { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
   { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
   { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
@@ -50,7 +50,7 @@ export const allAdminLinks = [
   { to: '/dashboard/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/dashboard/zatca', icon: Lock, label: 'إدارة ZATCA' },
   { to: '/dashboard/support', icon: Headset, label: 'الدعم الفني' },
-  { to: '/dashboard/annual-report', icon: ClipboardList, label: 'التقرير السنوي' },
+  { to: '/dashboard/annual-report', icon: ClipboardList, label: 'المحتوى السنوي للوقف' },
   { to: '/dashboard/chart-of-accounts', icon: GitBranch, label: 'الشجرة المحاسبية' },
   { to: '/dashboard/comparison', icon: GitCompareArrows, label: 'المقارنة التاريخية' },
   { to: '/dashboard/diagnostics', icon: Activity, label: 'تشخيص النظام' },
@@ -72,9 +72,73 @@ export const allBeneficiaryLinks = [
   { to: '/beneficiary/invoices', icon: Receipt, label: 'الفواتير' },
   { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/beneficiary/support', icon: Headset, label: 'الدعم الفني' },
-  { to: '/beneficiary/annual-report', icon: ClipboardList, label: 'التقرير السنوي' },
+  { to: '/beneficiary/annual-report', icon: ClipboardList, label: 'التقرير السنوي للوقف' },
   { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
 ];
+
+// ─── Sidebar grouping (PR-1) ───
+// Single source of truth for which menu group a route belongs to.
+// Routes not listed appear ungrouped (above all groups for admin, below for beneficiary).
+export const ADMIN_GROUP_ORDER = ['operations', 'finance', 'reference', 'communication', 'administration', 'system'] as const;
+export type AdminGroupKey = typeof ADMIN_GROUP_ORDER[number];
+
+export const ADMIN_GROUP_LABELS: Record<AdminGroupKey, string> = {
+  operations: 'التشغيل',
+  finance: 'المالية',
+  reference: 'المرجع',
+  communication: 'الاتصال',
+  administration: 'الإدارة',
+  system: 'النظام',
+};
+
+export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
+  '/dashboard/properties': 'operations',
+  '/dashboard/contracts': 'operations',
+  '/dashboard/beneficiaries': 'operations',
+  '/dashboard/invoices': 'operations',
+  '/dashboard/income': 'finance',
+  '/dashboard/expenses': 'finance',
+  '/dashboard/accounts': 'finance',
+  '/dashboard/reports': 'finance',
+  '/dashboard/annual-report': 'finance',
+  '/dashboard/chart-of-accounts': 'reference',
+  '/dashboard/bylaws': 'reference',
+  '/dashboard/messages': 'communication',
+  '/dashboard/support': 'communication',
+  '/dashboard/users': 'administration',
+  '/dashboard/settings': 'administration',
+  '/dashboard/audit-log': 'system',
+  '/dashboard/zatca': 'system',
+  '/dashboard/email-monitor': 'system',
+  '/dashboard/diagnostics': 'system',
+};
+
+export const BENEFICIARY_GROUP_ORDER = ['financial', 'documents', 'communication', 'account'] as const;
+export type BeneficiaryGroupKey = typeof BENEFICIARY_GROUP_ORDER[number];
+
+export const BENEFICIARY_GROUP_LABELS: Record<BeneficiaryGroupKey, string> = {
+  financial: 'المالية',
+  documents: 'المستندات',
+  communication: 'الاتصال',
+  account: 'حسابي',
+};
+
+export const BENEFICIARY_ROUTE_GROUPS: Record<string, BeneficiaryGroupKey> = {
+  '/beneficiary/properties': 'documents',
+  '/beneficiary/contracts': 'documents',
+  '/beneficiary/invoices': 'documents',
+  '/beneficiary/bylaws': 'documents',
+  '/beneficiary/annual-report': 'documents',
+  '/beneficiary/disclosure': 'financial',
+  '/beneficiary/my-share': 'financial',
+  '/beneficiary/carryforward': 'financial',
+  '/beneficiary/financial-reports': 'financial',
+  '/beneficiary/accounts': 'financial',
+  '/beneficiary/messages': 'communication',
+  '/beneficiary/notifications': 'communication',
+  '/beneficiary/support': 'communication',
+  '/beneficiary/settings': 'account',
+};
 
 // ─── Routes that support "All Years" filter ───
 export const SHOW_ALL_ROUTES = [
