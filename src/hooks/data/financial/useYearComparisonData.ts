@@ -3,7 +3,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyAll } from '@/constants/fiscalYearIds';
