@@ -83,6 +83,21 @@
 | `custom_access_token_hook(jsonb)` | يستدعيها GoTrue باسم النظام لإضافة الدور إلى JWT. |
 | `sync_role_to_auth_meta()` | trigger مزامنة الدور — لا تُستدعى من العميل. |
 
+## الدوال العامة (anon-callable) — مستثناة من 0028
+
+| الدالة | المبرر |
+|---|---|
+| `get_public_stats()` | إحصائيات صفحة الهبوط للزوار. الإخراج مفلتر بواسطة `app_settings` (الناظر يتحكم بكل إحصائية: auto/manual/hidden). |
+| `log_access_event(text,text,uuid,text,text,jsonb)` | تسجيل أخطاء/أحداث العميل قبل تسجيل الدخول. RLS على `access_logs` يمنع المستخدمين من القراءة. |
+
+كلتاهما موسومتان في DB بـ `COMMENT ON FUNCTION ... IS '[anon-callable] ...'`،
+والـ event trigger `auto_revoke_anon_execute` يحترم هذا الوسم ولا يسحب صلاحية
+`EXECUTE` من `anon` عند إعادة الإنشاء.
+
+> لإضافة دالة anon-callable جديدة: أضف الـ COMMENT بالوسم، امنح
+> `EXECUTE` لـ `anon, authenticated`، وأضفها إلى `ALLOWLIST_ANON` في
+> `scripts/supabase-lint-check.mjs`.
+
 ## كيف يعمل فحص CI
 - Workflow: `.github/workflows/ci.yml` (خطوة "Supabase security linter").
 - السكربت: `scripts/supabase-lint-check.mjs`.
