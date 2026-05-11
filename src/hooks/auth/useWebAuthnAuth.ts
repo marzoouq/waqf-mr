@@ -16,11 +16,19 @@ export function useWebAuthnAuth({ setIsLoading }: UseWebAuthnAuthArgs) {
   const authenticateWithBiometric = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data: options, error: optErr } = await supabase.functions.invoke('webauthn', {
-        body: { action: 'auth-options' },
-      });
-
-      if (optErr || !options) {
+      let options: { challenge_id: string } & Record<string, unknown>;
+      try {
+        options = await invoke<{ challenge_id: string } & Record<string, unknown>>(
+          'webauthn',
+          { body: { action: 'auth-options' } },
+          { maxAttempts: 1, treatDataErrorAsFailure: false },
+        );
+      } catch {
+        logBiometricEvent('login_failed', 'auth-options', { reason: 'server_error' });
+        defaultNotify.error('فشل في بدء عملية المصادقة. تحقق من اتصالك بالإنترنت');
+        return false;
+      }
+      if (!options) {
         logBiometricEvent('login_failed', 'auth-options', { reason: 'server_error' });
         defaultNotify.error('فشل في بدء عملية المصادقة. تحقق من اتصالك بالإنترنت');
         return false;
@@ -28,11 +36,18 @@ export function useWebAuthnAuth({ setIsLoading }: UseWebAuthnAuthArgs) {
 
       const credential = await startAuthentication({ optionsJSON: options });
 
-      const { data: result, error: verErr } = await supabase.functions.invoke('webauthn', {
-        body: { action: 'auth-verify', credential, challenge_id: options.challenge_id },
-      });
+      let result: { verified?: boolean; access_token?: string; refresh_token?: string } | null = null;
+      try {
+        result = await invoke<{ verified?: boolean; access_token?: string; refresh_token?: string }>(
+          'webauthn',
+          { body: { action: 'auth-verify', credential, challenge_id: options.challenge_id } },
+          { maxAttempts: 1, treatDataErrorAsFailure: false },
+        );
+      } catch {
+        // fall-through إلى التحقق أدناه
+      }
 
-      if (verErr || !result?.verified) {
+      if (!result?.verified) {
         logBiometricEvent('login_failed', 'auth-verify', { reason: 'verification_failed' });
         defaultNotify.error('فشل في التحقق من البصمة');
         return false;
