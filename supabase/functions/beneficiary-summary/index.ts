@@ -3,13 +3,9 @@
 // في طلب واحد بدل عدة طلبات منفصلة من العميل
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
 import { getCorsHeaders } from "../_shared/cors.ts";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+import { authenticate } from "../_shared/auth.ts";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -24,50 +20,17 @@ Deno.serve(async (req) => {
   const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "private, max-age=60" };
 
   try {
-    // ── المصادقة ──
-    const authHeader = req.headers.get("authorization") || "";
-    if (!authHeader.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
-    }
-
-    // جلب المستخدم + تحليل الجسم بالتوازي
-    const supaAuth = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
+    // ── المصادقة + الدور + rate limit + body بالتوازي ──
+    const auth = await authenticate(req, corsHeaders, {
+      allowedRoles: ["beneficiary", "admin", "accountant"],
+      rateLimitKey: "beneficiary-summary",
+      parseJsonBody: true,
     });
-    const [authResult, body] = await Promise.all([
-      supaAuth.auth.getUser(),
-      req.json().catch(() => ({})),
-    ]);
-    const { data: { user }, error: userError } = authResult;
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
-    }
-
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-
-    // التحقق من الدور + Rate limiting بالتوازي
-    const [rolesRes, rateLimitRes] = await Promise.all([
-      admin.from("user_roles").select("role").eq("user_id", user.id),
-      admin.rpc("check_rate_limit", { p_key: `beneficiary-summary:${user.id}`, p_limit: 30, p_window_seconds: 60 }),
-    ]);
-
-    const userRoles = (rolesRes.data ?? []).map((r: { role: string }) => r.role);
-    const isBeneficiary = userRoles.includes("beneficiary");
-    const isAdmin = userRoles.includes("admin");
-    const isAccountant = userRoles.includes("accountant");
-
-    if (!isBeneficiary && !isAdmin && !isAccountant) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: jsonHeaders });
-    }
-    if (rateLimitRes.data) {
-      return new Response(
-        JSON.stringify({ error: "تم تجاوز الحد المسموح من الطلبات" }),
-        { status: 429, headers: jsonHeaders },
-      );
-    }
+    if ("error" in auth) return auth.error;
+    const { user, admin, body } = auth as typeof auth & { body: unknown };
 
     // ── التحقق من المدخلات ──
-    const parsed = RequestSchema.safeParse(body);
+    const parsed = RequestSchema.safeParse(body ?? {});
     if (!parsed.success) {
       return new Response(
         JSON.stringify({ error: "بيانات غير صالحة", details: parsed.error.flatten().fieldErrors }),

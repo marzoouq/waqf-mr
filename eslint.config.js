@@ -68,5 +68,34 @@ export default tseslint.config(
     rules: {
       "react-refresh/only-export-components": "off",
     },
+  // M3.5 — حماية الطبقات: استدعاءات supabase الخام يجب ألا تصل لـ pages/components.
+  // داخل hooks/data نسمح بها كتحذير فقط (للسماح باستثناءات موثقة مثل useFiscalYears).
+  {
+    files: ["src/pages/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.object.name='supabase'][callee.property.name='from']",
+          message: "Do not call supabase.from() inside pages/components. Use a hook from src/hooks/data/ that delegates to src/lib/services/.",
+        },
+        {
+          selector: "MemberExpression[object.name='supabase'][property.name='auth']",
+          message: "Do not access supabase.auth inside pages/components. Use useAuth() from @/hooks/auth/useAuthContext.",
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/hooks/data/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "warn",
+        {
+          selector: "CallExpression[callee.object.name='supabase'][callee.property.name='from']",
+          message: "Prefer extracting supabase.from() into src/lib/services/. Add a documented eslint-disable line if intentional.",
+        },
+      ],
+    },
   },
 );

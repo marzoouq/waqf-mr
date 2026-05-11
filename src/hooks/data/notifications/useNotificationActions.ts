@@ -3,12 +3,12 @@
  */
 import { useEffect, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import type { Notification as AppNotification } from '@/types';
 import { NOTIFICATION_TONE_KEY, type ToneId, getVolumeGain, playTone } from '@/constants/notificationTones';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeGet } from '@/lib/storage';
+import { notificationsCrudService } from '@/lib/services/notificationsCrudService';
 
 export const useNotificationActions = (userId: string, hasUser: boolean, disabledTypes: Set<string>) => {
   const queryClient = useQueryClient();
@@ -27,39 +27,22 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
 
   // ── Mutations ──
   const markAsRead = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id).eq('user_id', userId);
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => notificationsCrudService.markAsRead(id, userId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
   });
 
   const markAllAsRead = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('notifications').update({ is_read: true }).eq('user_id', userId).eq('is_read', false);
-      if (error) throw error;
-    },
+    mutationFn: () => notificationsCrudService.markAllAsRead(userId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
   });
 
   const deleteRead = useMutation({
-    mutationFn: async () => {
-      let query = supabase.from('notifications').delete().eq('user_id', userId).eq('is_read', true);
-      if (disabledTypes.size > 0) {
-        const typesArray = [...disabledTypes];
-        query = query.not('type', 'in', `("${typesArray.join('","')}")`);
-      }
-      const { error } = await query;
-      if (error) throw error;
-    },
+    mutationFn: () => notificationsCrudService.deleteRead(userId, disabledTypes),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
   });
 
   const deleteOne = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('notifications').delete().eq('id', id).eq('user_id', userId);
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => notificationsCrudService.deleteOne(id, userId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
   });
 

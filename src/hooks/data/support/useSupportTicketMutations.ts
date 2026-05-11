@@ -2,26 +2,18 @@
  * عمليات تذاكر الدعم الفني — mutations
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
 import { defaultNotify } from '@/lib/notify';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import type { SupportTicket } from './useSupportTickets';
+import { supportService } from '@/lib/services/supportService';
 
 /** إنشاء تذكرة جديدة */
 export const useCreateTicket = () => {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (ticket: { title: string; description: string; category: string; priority: string }) => {
-      const { data, error } = await supabase
-        .from('support_tickets')
-        .insert({ ...ticket, created_by: user?.id ?? '' })
-        .select()
-        .single();
-      if (error) throw error;
-      return data as SupportTicket;
-    },
+    mutationFn: (ticket: { title: string; description: string; category: string; priority: string }) =>
+      supportService.createTicket({ ...ticket, created_by: user?.id ?? '' }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
       defaultNotify.success('تم إنشاء التذكرة بنجاح');
@@ -40,16 +32,8 @@ export const useCreateTicket = () => {
 export const useUpdateTicketStatus = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status, resolution_notes, assigned_to }: {
-      id: string; status: string; resolution_notes?: string; assigned_to?: string;
-    }) => {
-      const updates: Record<string, unknown> = { status };
-      if (resolution_notes) updates.resolution_notes = resolution_notes;
-      if (assigned_to) updates.assigned_to = assigned_to;
-      if (status === 'resolved' || status === 'closed') updates.resolved_at = new Date().toISOString();
-      const { error } = await supabase.from('support_tickets').update(updates).eq('id', id);
-      if (error) throw error;
-    },
+    mutationFn: (input: { id: string; status: string; resolution_notes?: string; assigned_to?: string }) =>
+      supportService.updateTicketStatus(input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
       defaultNotify.success('تم تحديث التذكرة');
@@ -63,14 +47,8 @@ export const useAddTicketReply = () => {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ ticket_id, content, is_internal }: {
-      ticket_id: string; content: string; is_internal?: boolean;
-    }) => {
-      const { error } = await supabase
-        .from('support_ticket_replies')
-        .insert({ ticket_id, content, sender_id: user?.id ?? '', is_internal: is_internal ?? false });
-      if (error) throw error;
-    },
+    mutationFn: ({ ticket_id, content, is_internal }: { ticket_id: string; content: string; is_internal?: boolean }) =>
+      supportService.addReply({ ticket_id, content, sender_id: user?.id ?? '', is_internal }),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['ticket_replies', vars.ticket_id] });
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
@@ -84,15 +62,8 @@ export const useAddTicketReply = () => {
 export const useRateTicket = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, rating, rating_comment }: {
-      id: string; rating: number; rating_comment?: string;
-    }) => {
-      const { error } = await supabase
-        .from('support_tickets')
-        .update({ rating, rating_comment: rating_comment || null })
-        .eq('id', id);
-      if (error) throw error;
-    },
+    mutationFn: (input: { id: string; rating: number; rating_comment?: string }) =>
+      supportService.rateTicket(input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
       defaultNotify.success('شكراً لتقييمك!');
