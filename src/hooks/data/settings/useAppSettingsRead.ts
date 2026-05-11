@@ -10,20 +10,14 @@
  *  - jsonSettingCache: ذاكرة مؤقتة لقيم JSON المُحلَّلة لتفادي JSON.parse المتكرر
  */
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { getCategoryFromKey, type SettingsCategory } from './appSettingsUtils';
+import { appSettingsService } from '@/lib/services/appSettingsService';
 
 /** ذاكرة مؤقتة لقيم JSON المُحلَّلة — مُشتركة بين read/write */
 export const jsonSettingCache = new Map<string, { raw: string; parsed: unknown }>();
 
-export const settingsQueryFn = async () => {
-  const { data, error } = await supabase.from('app_settings').select('key, value');
-  if (error) throw error;
-  const settings: Record<string, string> = {};
-  data?.forEach((row) => { settings[row.key] = row.value; });
-  return settings;
-};
+export const settingsQueryFn = () => appSettingsService.listAll();
 
 /**
  * هوك مُحسَّن يقرأ فئة محددة فقط — يستخدم نفس استعلام `app-settings-all`
