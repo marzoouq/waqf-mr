@@ -128,6 +128,7 @@ async function handlePreview(req: Request): Promise<Response> {
 
 // Webhook handler - verifies signature and sends email
 async function handleWebhook(req: Request): Promise<Response> {
+  const corsHeaders = getCorsHeaders(req)
   const apiKey = Deno.env.get('LOVABLE_API_KEY')
 
   if (!apiKey) {
