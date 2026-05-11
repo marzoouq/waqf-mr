@@ -2,7 +2,7 @@
  * هوك إرسال تنبيهات التأخير
  */
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { defaultNotify } from '@/lib/notify';
 
 export const useCollectionAlerts = () => {
