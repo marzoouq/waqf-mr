@@ -68,7 +68,7 @@ export async function rpc<T = unknown>(
         throw new ApiError(classified, error);
       }
 
-      const delay = BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)];
+      const delay = BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)] ?? 1000;
       logger.warn(`[rpc] إعادة محاولة ${fnName} (${attempt}/${maxAttempts}) بعد ${delay}ms — ${classified.category}`);
       await sleep(delay);
     }
