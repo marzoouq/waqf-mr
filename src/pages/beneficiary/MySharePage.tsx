@@ -2,11 +2,11 @@
  * صفحة حصتي من الريع — مُفكّكة إلى hook + مكونات فرعية
  */
 import { useNavigate } from 'react-router-dom';
-import { Wallet, AlertCircle, UserX, FileDown, Info, FileText, Clock } from 'lucide-react';
+import { Wallet, AlertCircle, UserX, FileDown, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { RequirePublishedYears, ExportMenu, DashboardSkeleton, ErrorState, EmptyPageState } from '@/components/common';
+import { RequirePublishedYears, ExportMenu, DashboardSkeleton, ErrorState, EmptyPageState, FiscalYearStateNotice } from '@/components/common';
 import AdvanceRequestDialog from '@/components/beneficiary/my-share/AdvanceRequestDialog';
 import MyShareSummaryCards from '@/components/beneficiary/my-share/MyShareSummaryCards';
 import DistributionsTable from '@/components/beneficiary/my-share/DistributionsTable';
@@ -15,6 +15,7 @@ import CarryforwardsTable from '@/components/beneficiary/my-share/CarryforwardsT
 import DeductionsExplanationCard from '@/components/beneficiary/my-share/DeductionsExplanationCard';
 import { useMySharePage } from '@/hooks/page/beneficiary';
 import { fmt } from '@/utils/format/format';
+import { PAGE_RESPONSIBILITY_COPY, MISSING_STATES_COPY } from '@/constants/beneficiaryCopy';
 
 const MySharePage = () => {
   const {
