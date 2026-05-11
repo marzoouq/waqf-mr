@@ -1,0 +1,68 @@
+/**
+ * Page hook: SystemSettingsTab
+ */
+import { useState, useEffect, useMemo } from 'react';
+import { defaultNotify } from '@/lib/notify';
+import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettingsHistory, type AppSettingHistoryEntry } from '@/hooks/data/settings/useAppSettingsHistory';
+
+export interface AdvancedField {
+  key: string;
+  label: string;
+  description: string;
+  placeholder?: string;
+}
+
+export const ADVANCED_FIELDS: AdvancedField[] = [
+  {
+    key: 'auth_hook_custom_access_token',
+    label: 'مُعالج JWT المخصص (Custom Access Token Hook)',
+    description: 'تفعيل أو تعطيل إضافة بيانات الدور إلى الرمز المميز للمصادقة. القيمة المعتادة: enabled',
+    placeholder: 'enabled',
+  },
+];
+
+export type { AppSettingHistoryEntry };
+
+export const useSystemSettingsTab = () => {
+  const { data: settings, isLoading, updateSettingsBatch } = useAppSettings();
+  const { data: history, isLoading: isHistoryLoading } = useAppSettingsHistory(undefined, 50);
+
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!settings) return;
+    const initial: Record<string, string> = {};
+    ADVANCED_FIELDS.forEach((f) => {
+      initial[f.key] = settings[f.key] ?? '';
+    });
+    setFormData(initial);
+  }, [settings]);
+
+  const onFieldChange = (key: string, value: string) => {
+    setFormData((p) => ({ ...p, [key]: value }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const now = new Date().toISOString();
+      const rows = ADVANCED_FIELDS.map((f) => ({
+        key: f.key,
+        value: (formData[f.key] ?? '').trim(),
+        updated_at: now,
+      }));
+      await updateSettingsBatch.mutateAsync(rows);
+      defaultNotify.success('تم حفظ الإعدادات بنجاح');
+    } catch {
+      defaultNotify.error('حدث خطأ أثناء الحفظ');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const sortedHistory = useMemo(() => history ?? [], [history]);
+
+  return { formData, onFieldChange, handleSave, saving, isLoading, sortedHistory, isHistoryLoading };
+};
