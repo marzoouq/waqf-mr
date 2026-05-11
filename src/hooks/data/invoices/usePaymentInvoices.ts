@@ -72,12 +72,10 @@ export const useMarkInvoicePaid = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ invoiceId, paidAmount }: { invoiceId: string; paidAmount?: number }) => {
-      const { data, error } = await supabase.rpc('pay_invoice_and_record_collection', {
+      return await rpc('pay_invoice_and_record_collection', {
         p_invoice_id: invoiceId,
         p_paid_amount: paidAmount ?? undefined,
       });
-      if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
