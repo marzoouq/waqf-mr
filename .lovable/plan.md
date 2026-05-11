@@ -1,125 +1,88 @@
-## نتائج التحقق المباشر من التقرير الخارجي
+## نتائج التحقق الجنائي المباشر للتقرير
 
-تم فحص كل بند من التقرير على الكود الفعلي. النتائج بالتفصيل:
+تم فحص كل ادعاء فني بحثاً عن دليل ملموس في الكود. النتائج:
 
-### ✅ بنود صحيحة (يجب التصرف)
+### ✅ ادعاءات صحيحة جديدة (لم تُعالَج في Version E)
 
-| البند | الدليل المباشر |
+| الادعاء | الدليل المباشر |
 |---|---|
-| `process-email-queue` لديه `verify_jwt = true` بينما الباقي `false` | `supabase/config.toml` سطر 16 |
-| `supabase/functions/README.md` سطر 5 يقول "All Edge Functions … verify_jwt = false" | drift فعلي مع config.toml |
-| `docs/api/edge-functions.md` سطر 119 ما زال يصف `generate-invoice-pdf` بـ `{ pdf_base64, file_name }` | بينما سطر 193 يحوي ملاحظة تصحيح — تناقض داخلي |
-| `docs/API.md` قسم 6 يصف نفس الـ shape القديم | drift |
-| `errorReporter.ts` يستخدم `supabase.rpc` مباشرة | استثناء مقصود (fallback) لكن غير موثّق صراحة |
-| `notificationService.ts` يستخدم `.from().insert` مباشر fire-and-forget | استثناء غير موثّق |
-| `diagnosticsService.ts` يستخدم `.from()` مباشر | استثناء غير موثّق (health check) |
-| لا توجد retry/rate-limit policy موثّقة كحوكمة موحدة | مؤكد |
-| Runtime validation محصور في endpoint واحد + RPC واحد | `useDashboardSummary` + `useSupportAnalytics` فقط |
+| `_shared/auth.ts` موجود ومُستعمل في 4 functions فقط (`admin-manage-users`, `generate-invoice-pdf`, `process-email-queue`, `check-contract-expiry`) | `rg -l "_shared/auth"` |
+| `email-admin` لا يستخدم abstraction المشترك — auth/role check يدوي | تأكيد بصري + غياب من قائمة `_shared/auth` consumers |
+| `beneficiary-summary` لا يستخدم abstraction المشترك — `getUser`/`check_rate_limit` يدوي | الأسطر 38, 51 |
+| `webauthn` dispatcher رفيع + handlers متفرقة | `ls supabase/functions/webauthn/handlers/` |
+| **`guard-signup` body فعلي = `{ email, password }`** بينما docs تقول `{ email, national_id?, phone? }` | الأسطر 51, 95-96 من `guard-signup/index.ts` |
+| **`lookup-national-id` response = `{ found, masked_email, remaining, auth_error?, session? }`** بينما docs تقول `{ email?, error?, retry_after? }` | الأسطر 136-198 من `lookup-national-id/index.ts` |
+| **`email-admin` actions = `get_stats \| retry_dlq`** بينما docs تقول `list \| retry \| cancel` | السطر 10: `ALLOWED_ACTIONS = ["get_stats", "retry_dlq"]` |
 
-### ❌ بنود غير دقيقة في التقرير
+### ❌ ادعاءات خاطئة في التقرير
 
-| ادعاء التقرير | الواقع |
+| الادعاء | الواقع |
 |---|---|
-| `nationalIdLogin.ts` ما زال يستخدم `supabase.functions.invoke` مباشرة | **خاطئ** — مُرحَّل في الجولة C، الاستدعاء الوحيد المتبقي هو `supabase.auth.setSession` (مسار auth وليس invoke) |
-| "كل استدعاءات `supabase.functions.invoke` المباشرة" تحتاج ترحيل | الاستدعاءات المتبقية كلها استثناءات مبررة (`AuthContext.guard-signup` ممنوع التعديل بالقاعدة، tests، الغلاف نفسه) |
+| `generate-invoice-pdf` body/response في docs خاطئة | **مُصحَّح فعلاً في Version E** — التقرير يستخدم لقطة قديمة |
+| المشروع يحتاج "policy override matrix" للـ retry/429 | **موجود فعلياً** في `docs/api/README.md` قسم "Retry & Rate-limit Policy" المُضاف في Version E |
 
-### 🟡 لا داعي للترحيل
+### 🟡 ملاحظات معمارية صحيحة لكن خارج النطاق التنفيذي
 
-- `AuthContext.tsx` — قاعدة المشروع تمنع تعديل ملفات المصادقة
-- `errorReporter.ts` — fallback مقصود (لو فشل الغلاف، لا يجب أن يفشل تسجيل الخطأ)
-- `notificationService` / `diagnosticsService` — `.from()` مباشر للجداول، ليس Edge Function/RPC
+- **عدم اتساق auth orchestration بين Edge Functions:** ادعاء صحيح هندسياً، لكن إعادة كتابة auth في functions حسّاسة (`webauthn`, `lookup-national-id`, `guard-signup`) **محظورة بقاعدة المشروع** ("لا تعدّل ملفات المصادقة دون طلب صريح"). الإجراء المقبول: **توثيق المصفوفة وتبرير الاستثناءات**، ليس refactoring.
+- **runtime validation محدود:** صحيح — مغطى عمداً في Version E (`dashboardSummary` + `supportAnalytics` فقط) كقرار نضج.
+- **client throttling عام:** مرفوض بقاعدة "Do Not Implement Backend Rate Limiting" في تعليمات المنصة.
 
 ---
 
-## خطة Version E — توثيق وحوكمة فقط (بدون ترحيل إضافي)
+## خطة Version F — معالجة Drift الجديد المؤكد (توثيقياً فقط)
 
-نطاق محدود: لا تعديل لمنطق التشغيل. فقط معالجة الـ drift والفجوات التوثيقية الحقيقية المكتشفة.
+نطاق محدود: 3 إصلاحات docs + مصفوفة auth abstraction adoption. صفر تعديلات على Edge Functions.
 
-### المرحلة 1 — إصلاح الـ Docs Drift المؤكد
+### المرحلة 1 — إصلاح Drift توثيقي مؤكد بالدليل المباشر
 
-1. **`supabase/functions/README.md`**: تعديل العبارة العامة لتذكر استثناء `process-email-queue` (`verify_jwt = true` لأن استدعاءه عبر pg_cron داخلي).
-2. **`docs/api/edge-functions.md`** سطر 119: استبدال `Response: { pdf_base64, file_name }` بالشكل الفعلي `{ results: Array<{id, invoice_number, success, error?}> }`.
-3. **`docs/API.md`** قسم 6: نفس التصحيح + تحديث المثال البرمجي.
+**`docs/api/edge-functions.md`:**
+1. `guard-signup` (سطر ~123): تغيير Body من `{ email, national_id?, phone? }` إلى `{ email: string, password: string }` + Response من `{ allowed, reason? }` إلى `{ success: true, message: string } | { error: string }`.
+2. `lookup-national-id` (سطر ~135): تغيير Response إلى الشكل الفعلي `{ found: boolean, masked_email: string, remaining: number, auth_error?: string, session?: { access_token, refresh_token }, retry_after?: number }` + إضافة ملاحظة "لا يُعاد البريد الكامل أبداً — `masked_email` فقط لمنع enumeration".
+3. `email-admin` (سطر ~113): تغيير Body من `{ action: 'list'|'retry'|'cancel', id? }` إلى `{ action: 'get_stats' | 'retry_dlq', queueName?: 'auth_emails'|'transactional_emails' }`.
 
-### المرحلة 2 — إنشاء Network Inventory موثّق
+**`docs/API.md`:** نفس التصحيحات الثلاثة في الأقسام المقابلة (إن وُجدت).
 
-ملف جديد: `docs/api/network-inventory.md` يحوي جدولاً واحداً شاملاً:
+### المرحلة 2 — مصفوفة Auth Abstraction Adoption
 
-```text
-| Endpoint | النوع | المصادقة | الغلاف | Retry | Rate-limit | Cache | Validation |
-```
+إضافة قسم جديد في `docs/api/network-inventory.md`:
 
-يغطي: 17 Edge Function + 8 RPCs الرئيسية + استثناءات `.from()` المباشرة الموثقة.
+| Function | يستخدم `_shared/auth.ts`؟ | السبب عند عدم الاستخدام |
+|---|:-:|---|
+| `admin-manage-users` | ✅ | — |
+| `generate-invoice-pdf` | ✅ | — |
+| `process-email-queue` | ✅ | — |
+| `check-contract-expiry` | ✅ | — |
+| `dashboard-summary` | ❌ | (يحتاج فحص — قد يكون مرشّحاً للترحيل لاحقاً) |
+| `beneficiary-summary` | ❌ | role-scoped مع rate-limit مخصصة بمفتاح خاص |
+| `email-admin` | ❌ | dispatcher صغير مع منطق DLQ متخصص |
+| `webauthn` | ❌ | dispatcher مع handlers متعددة بسياسات auth مختلفة (anon/JWT لكل عملية) |
+| `lookup-national-id` | ❌ | **anon flow** — لا يوجد JWT للتحقق منه |
+| `guard-signup` | ❌ | **anon flow** — قبل التسجيل أصلاً |
+| `auth-email-hook` | ❌ | webhook بـ HMAC، ليس JWT |
+| `health-check` | ❌ | عام بلا auth |
+| `ai-assistant` | (للفحص) | — |
+| `zatca-*` (5) | (للفحص) | — |
 
-### المرحلة 3 — توثيق Retry/Rate-limit Policy
+ملاحظة عند نهاية المصفوفة: **التوحيد الكامل غير ممكن** — هناك 3 فئات auth جوهرياً (JWT user / webhook signature / anon) وفي كل فئة استثناءات مبررة.
 
-إضافة قسم في `docs/api/README.md`:
+### المرحلة 3 — تحديث `.lovable/plan.md`
 
-- **auth-sensitive flows** (`nationalIdLogin`, `guard-signup`): `maxAttempts: 1`
-- **429 responses**: لا retry + إظهار `retry_after`
-- **validation errors**: لا retry
-- **transient transport errors**: retry × 3 + backoff 250/500/1000
-- **fire-and-forget (notifications)**: لا retry
-
-### المرحلة 4 — توثيق Justified Exceptions Register
-
-قسم في `docs/api/network-inventory.md` يبرر كل استثناء:
-
-- `AuthContext.tsx` → سياسة المشروع تمنع التعديل
-- `errorReporter.ts` → fallback مقصود
-- `notificationService.ts` → fire-and-forget على جدول مباشر
-- `diagnosticsService.ts` → فحوصات صحة على جداول مباشرة
-
-### المرحلة 5 — توثيق CORS Verification Matrix
-
-نقل نتائج CORS curl من جولة C إلى ملف ثابت `docs/api/cors-verification.md`:
-4 origins (prod / www / preview / malicious) × 3 functions = نتائج موثّقة.
-
-### المرحلة 6 — تحديث `.lovable/plan.md`
-
-إضافة سجل Version E مع:
-- ما تحقق من ادعاءات التقرير الخارجي وما رُفض منها
-- البنود المنفذة
-- البنود المؤجلة بوعي (Zod toolkit شامل، client throttling عام، test matrix كامل) — مع مبرر لكل واحد
-
-### خارج النطاق (مرفوض بوعي)
-
-- ❌ ترحيل `AuthContext.tsx` (قاعدة مشروع)
-- ❌ ترحيل `errorReporter.ts` (fallback مقصود)
-- ❌ توسيع Zod ليشمل كل endpoint — تكلفة عالية بلا قيمة فورية على endpoints مستقرة
-- ❌ client-side throttling عام — السيرفر يفرضه عبر `check_rate_limit`
-- ❌ تعديل ملفات runtime (لا حاجة بناءً على الفحص)
+تسجيل Version F: ما تحقق، ما رُفض، الفرق بين drift توثيقي (تم) و refactoring معماري (مرفوض بقاعدة).
 
 ---
+
+## خارج النطاق (مرفوض بدليل صريح)
+
+- ❌ Refactoring auth في `webauthn`/`guard-signup`/`lookup-national-id` → قاعدة "لا تعدّل ملفات المصادقة"
+- ❌ ترحيل `email-admin`/`beneficiary-summary` إلى `_shared/auth.ts` → كل واحدة لديها rate-limit key مخصص + سياسة role مختلفة؛ الترحيل يخلق regression حقيقي
+- ❌ بناء "contract tests" على Edge Functions → خارج نطاق طلب التوثيق؛ مرشّح لجولة منفصلة
+- ❌ runtime validation شامل → قرار نضج موثّق في Version E
+- ❌ client-side throttling → ممنوع بتعليمات المنصة
+- ❌ تعديل أي كود تشغيلي
 
 ## الملفات المتأثرة
 
-**تعديل:** `supabase/functions/README.md`, `docs/api/edge-functions.md`, `docs/API.md`, `docs/api/README.md`, `.lovable/plan.md`
-**إنشاء:** `docs/api/network-inventory.md`, `docs/api/cors-verification.md`
+**تعديل (3):** `docs/api/edge-functions.md`, `docs/API.md`, `docs/api/network-inventory.md`, `.lovable/plan.md`
+**إنشاء:** لا شيء
 
-**صفر تعديلات على كود التشغيل.** الجولة E توثيقية بالكامل.
-
----
-
-## Version E — منفّذ (2026-05-11)
-
-### ما تم تنفيذه
-- ✅ `supabase/functions/README.md`: استثناء `process-email-queue` موثّق صراحة.
-- ✅ `docs/api/edge-functions.md` سطر 118-119: استبدال shape القديم بالشكل الفعلي `{ results: [...] }`.
-- ✅ `docs/API.md` قسم 6: تصحيح المثال البرمجي ليستخدم `invoke()` ويعكس الـ shape الصحيح.
-- ✅ إنشاء `docs/api/network-inventory.md` — جرد كامل (Edge Functions + RPCs + استثناءات مبررة).
-- ✅ إنشاء `docs/api/cors-verification.md` — مصفوفة CORS الميدانية + سكربت إعادة التشغيل.
-- ✅ `docs/api/README.md`: إضافة قسم "Retry & Rate-limit Policy" موحّد.
-
-### ما رُفض بوعي (مع المبرر)
-- ❌ ترحيل `AuthContext.tsx` — قاعدة AGENTS.md تمنع تعديل ملفات المصادقة.
-- ❌ ترحيل `errorReporter.ts` — fallback مقصود؛ تسجيل الأخطاء يجب ألا يعتمد على الغلاف نفسه.
-- ❌ ترحيل `notificationService` / `diagnosticsService` — استدعاءات `.from()` مباشرة على جداول، ليست Edge Functions/RPCs.
-- ❌ توسيع Zod ليشمل كل endpoint — تكلفة عالية بلا قيمة على endpoints مستقرة؛ التغطية الحالية (`dashboard-summary` + `support-analytics`) كافية للمسارات عالية المخاطر.
-- ❌ client-side throttling عام — `check_rate_limit` على السيرفر هو خط الدفاع الموحّد.
-- ❌ تعديل أي كود تشغيلي — الفحص المباشر أكّد أن الترحيلات السابقة كاملة.
-
-### النتائج
-- 0 تعديلات على كود التشغيل.
-- 6 ملفات توثيقية محدّثة/منشأة.
-- جميع ادعاءات التقرير الخارجي تم التحقق منها مباشرة (صحيحة / خاطئة / خارج النطاق) وموثّقة.
+**صفر تعديلات على Edge Functions أو كود تشغيلي. الجولة F توثيقية بالكامل، تستجيب فقط للـ drift المؤكد بدليل مباشر من كود الـ functions نفسها.**
