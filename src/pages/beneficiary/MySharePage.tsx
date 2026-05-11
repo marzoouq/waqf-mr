@@ -100,13 +100,13 @@ const MySharePage = () => {
             }
           />
 
-          {/* #C1 — badge تقديري */}
-          {myShareIsEstimated && !isClosed && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-warning/10 border border-warning/30 text-warning text-sm w-fit">
-              <Clock className="w-4 h-4" />
-              <span className="font-medium">الحصة المعروضة تقديرية — ستتأكد بعد إقفال السنة</span>
-            </div>
+          {/* CR-01: تنبيه حالة السنة النشطة (يستبدل badge القديم + بطاقة "لم تُغلق") */}
+          {!isClosed && (
+            <FiscalYearStateNotice state="active" />
           )}
+
+          {/* U3: مرجعية الصفحة */}
+          <p className="text-xs text-muted-foreground">{PAGE_RESPONSIBILITY_COPY.myShare}</p>
 
           {/* بطاقات الملخص */}
           <MyShareSummaryCards
@@ -127,20 +127,15 @@ const MySharePage = () => {
             isClosed={isClosed}
           />
 
-          {/* تنبيه السنة النشطة */}
-          {!isClosed && (
+          {/* MS-06: سنة مغلقة بدون توزيعات */}
+          {isClosed && filteredDistributions.length === 0 && (
             <Card className="shadow-sm border-info/30 bg-info/5">
-              <CardContent className="p-4 flex items-start gap-3">
-                <Info className="w-5 h-5 text-info shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-sm">السنة المالية لم تُغلق بعد</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    ستظهر حصتك من الريع بعد إغلاق السنة المالية من قِبل الناظر.
-                  </p>
-                </div>
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground">{MISSING_STATES_COPY.closedNoDistributionYet}</p>
               </CardContent>
             </Card>
           )}
+
 
           {/* تنبيه الفروق المرحّلة */}
           {carryforwardBalance > 0 && (
