@@ -52,12 +52,17 @@ export function notifyOnCreate(
     '/dashboard/beneficiaries',
   );
   if (beneficiaryId) {
-    supabase
-      .from('beneficiaries')
-      .select('user_id')
-      .eq('id', beneficiaryId)
-      .single()
-      .then(({ data: benData }) => {
+    void (async () => {
+      try {
+        const { data: benData, error } = await supabase
+          .from('beneficiaries')
+          .select('user_id')
+          .eq('id', beneficiaryId)
+          .single();
+        if (error) {
+          logger.warn('[notifyOnCreate] failed to load beneficiary', { beneficiaryId, error });
+          return;
+        }
         if (benData?.user_id) {
           notifyUser(
             benData.user_id,
@@ -67,7 +72,10 @@ export function notifyOnCreate(
             '/beneficiary/my-share',
           );
         }
-      });
+      } catch (e) {
+        logger.warn('[notifyOnCreate] unexpected error', { beneficiaryId, error: e });
+      }
+    })();
   }
 }
 
