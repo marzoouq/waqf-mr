@@ -43,8 +43,7 @@ export const useSupportAnalytics = () => {
     queryKey: ['support_analytics'],
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_support_analytics');
-      if (error) throw error;
+      const data = await rpc('get_support_analytics');
       // RPC — cast مبرر، يحتاج Zod validation لاحقاً
       return data as unknown as SupportAnalyticsData;
     },
