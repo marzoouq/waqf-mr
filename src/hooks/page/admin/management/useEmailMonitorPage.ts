@@ -5,12 +5,11 @@
  * - يدعم فلاتر template/status/range
  * - يستدعي email-admin edge function لإحصاءات DLQ والـ retry
  */
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
-import { logger } from '@/lib/logger';
-import { toast } from 'sonner';
+import { useEmailMonitorActions } from './useEmailMonitorActions';
 
 export type EmailRange = '24h' | '7d' | '30d' | 'custom';
 export type EmailStatusFilter = 'all' | 'sent' | 'dlq' | 'failed' | 'suppressed' | 'pending';
@@ -54,7 +53,6 @@ function getStartIso(range: EmailRange, customStart?: string) {
 }
 
 export function useEmailMonitorPage() {
-  const qc = useQueryClient();
   const [range, setRange] = useState<EmailRange>('7d');
   const [customStart, setCustomStart] = useState<string>('');
   const [customEnd, setCustomEnd] = useState<string>('');
@@ -153,33 +151,8 @@ export function useEmailMonitorPage() {
 
   useEffect(() => { setPage(0); }, [range, customStart, customEnd, templateFilter, statusFilter]);
 
-  // إعادة محاولة DLQ
-  const retryMutation = useMutation({
-    mutationFn: async (queue: 'auth_emails' | 'transactional_emails') => {
-      return await invoke<{ ok: boolean; moved: number; error: string | null }>(
-        'email-admin',
-        { body: { action: 'retry_dlq', queue } },
-      );
-    },
-    onSuccess: (data, queue) => {
-      if (data.error) {
-        toast.error(`فشلت إعادة المحاولة: ${data.error}`);
-      } else {
-        toast.success(`تم إعادة جدولة ${data.moved} رسالة من ${queue === 'auth_emails' ? 'بريد المصادقة' : 'البريد التشغيلي'}`);
-      }
-      qc.invalidateQueries({ queryKey: ['email-admin-stats'] });
-      qc.invalidateQueries({ queryKey: ['email-logs'] });
-    },
-    onError: (err: unknown) => {
-      logger.error('retry_dlq failed', err);
-      toast.error('حدث خطأ أثناء إعادة المحاولة');
-    },
-  });
-
-  const refresh = useCallback(() => {
-    qc.invalidateQueries({ queryKey: ['email-logs'] });
-    qc.invalidateQueries({ queryKey: ['email-admin-stats'] });
-  }, [qc]);
+  // إعادة محاولة DLQ + refresh مفصولة في hook خاص
+  const { retry, isRetrying, refresh } = useEmailMonitorActions();
 
   return {
     // state
@@ -204,7 +177,7 @@ export function useEmailMonitorPage() {
     isAdminLoading: adminStatsQuery.isLoading,
     // actions
     refresh,
-    retry: retryMutation.mutate,
-    isRetrying: retryMutation.isPending,
+    retry,
+    isRetrying,
   };
 }
