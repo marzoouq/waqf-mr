@@ -2,12 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Save, RotateCcw, Shield } from 'lucide-react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
-import { useState, useEffect } from 'react';
-import { defaultNotify } from '@/lib/notify';
-import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 import { ROLE_SECTION_DEFS } from '@/constants/sections';
+import { useRolePermissionsTab } from '@/hooks/page/admin/settings/useRolePermissionsTab';
 
 const SECTIONS = ROLE_SECTION_DEFS;
 
@@ -18,36 +14,7 @@ const ROLES = [
 ];
 
 const RolePermissionsTab = () => {
-  const { updateJsonSetting, isLoading } = useAppSettings();
-  const { rolePermissions: saved } = useRolePermissions();
-  const [perms, setPerms] = useState<RolePerms>(DEFAULT_ROLE_PERMS);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    // saved is already merged with defaults via useRolePermissions
-    setPerms(saved);
-  }, [saved]);
-
-  const toggle = (role: string, section: string) => {
-    setPerms(prev => ({
-      ...prev,
-      [role]: { ...prev[role], [section]: !prev[role]?.[section] },
-    }));
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await updateJsonSetting('role_permissions', perms);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleReset = () => {
-    setPerms(DEFAULT_ROLE_PERMS);
-    defaultNotify.info('تم استعادة الإعدادات الافتراضية - اضغط حفظ للتطبيق');
-  };
+  const { perms, toggle, handleSave, handleReset, saving, isLoading } = useRolePermissionsTab();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 

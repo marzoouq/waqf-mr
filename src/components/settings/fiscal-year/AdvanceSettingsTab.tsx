@@ -1,42 +1,13 @@
-import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Banknote, Save } from 'lucide-react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-
-const DEFAULT_ADVANCE_SETTINGS = { enabled: true, min_amount: 500, max_percentage: 50 };
+import { useAdvanceSettingsTab } from '@/hooks/page/admin/settings/useAdvanceSettingsTab';
 
 const AdvanceSettingsTab = () => {
-  const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
-
-  const [form, setForm] = useState(DEFAULT_ADVANCE_SETTINGS);
-  const [initialized, setInitialized] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading && !initialized) {
-      setForm(getJsonSetting('advance_settings', DEFAULT_ADVANCE_SETTINGS));
-      setInitialized(true);
-    }
-  }, [getJsonSetting, isLoading, initialized]);
-
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    // السماح بالحفظ عند التعطيل (لحفظ حالة enabled=false)
-    if (form.enabled) {
-      if (form.min_amount < 0) return;
-      if (form.max_percentage < 1 || form.max_percentage > 100) return;
-    }
-    setSaving(true);
-    try {
-      await updateJsonSetting('advance_settings', form);
-    } finally {
-      setSaving(false);
-    }
-  };
+  const { form, setEnabled, setMinAmount, setMaxPercentage, handleSave, saving, isLoading } = useAdvanceSettingsTab();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
@@ -56,10 +27,7 @@ const AdvanceSettingsTab = () => {
             <p className="text-sm font-medium">تفعيل طلبات السُلف</p>
             <p className="text-xs text-muted-foreground">عند التعطيل، لن يتمكن المستفيدون من رؤية أو طلب السُلف</p>
           </div>
-          <Switch
-            checked={form.enabled}
-            onCheckedChange={(v) => setForm((p: typeof form) => ({ ...p, enabled: v }))}
-          />
+          <Switch checked={form.enabled} onCheckedChange={setEnabled} />
         </div>
 
         {/* الحد الأدنى */}
@@ -69,7 +37,7 @@ const AdvanceSettingsTab = () => {
             type="number"
             min={0}
             value={form.min_amount}
-            onChange={(e) => setForm((p: typeof form) => ({ ...p, min_amount: parseInt(e.target.value) || 0 }))}
+            onChange={(e) => setMinAmount(parseInt(e.target.value) || 0)}
             className="w-48"
             disabled={!form.enabled}
           />
@@ -84,14 +52,13 @@ const AdvanceSettingsTab = () => {
             min={1}
             max={100}
             value={form.max_percentage}
-            onChange={(e) => setForm((p: typeof form) => ({ ...p, max_percentage: parseInt(e.target.value) || 50 }))}
+            onChange={(e) => setMaxPercentage(parseInt(e.target.value) || 50)}
             className="w-48"
             disabled={!form.enabled}
           />
           <p className="text-xs text-muted-foreground">النسبة القصوى من الحصة التقديرية التي يمكن طلبها كسلفة (الافتراضي: 50%)</p>
         </div>
 
-        {/* FIX: زر الحفظ لم يعد معطلاً عند تعطيل السُلف */}
         <Button onClick={handleSave} disabled={saving} className="gap-2">
           <Save className="w-4 h-4" />
           {saving ? 'جارٍ الحفظ...' : 'حفظ إعدادات السُلف'}

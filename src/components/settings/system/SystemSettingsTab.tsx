@@ -1,37 +1,14 @@
 /**
- * SystemSettingsTab — تبويب إعدادات النظام المتقدمة
- *
- * يدير المفاتيح التي لا تظهر في WaqfSettingsTab (مثل auth_hook_custom_access_token)
- * ويعرض سجل تغييرات لكل تعديلات `app_settings` المحفوظة في `audit_log`.
- *
- * ملاحظة: zakat_percentage و fiscal_year يُداران من تبويب "بيانات الوقف".
+ * SystemSettingsTab — presentational
+ * يدير المفاتيح المتقدمة ويعرض سجل تغييرات app_settings.
  */
-import { useState, useEffect, useMemo } from 'react';
-import { defaultNotify } from '@/lib/notify';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Save, History, ShieldAlert } from 'lucide-react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { useAppSettingsHistory, type AppSettingHistoryEntry } from '@/hooks/data/settings/useAppSettingsHistory';
-
-interface AdvancedField {
-  key: string;
-  label: string;
-  description: string;
-  placeholder?: string;
-}
-
-const ADVANCED_FIELDS: AdvancedField[] = [
-  {
-    key: 'auth_hook_custom_access_token',
-    label: 'مُعالج JWT المخصص (Custom Access Token Hook)',
-    description: 'تفعيل أو تعطيل إضافة بيانات الدور إلى الرمز المميز للمصادقة. القيمة المعتادة: enabled',
-    placeholder: 'enabled',
-  },
-];
+import { useSystemSettingsTab, ADVANCED_FIELDS, type AppSettingHistoryEntry } from '@/hooks/page/admin/settings/useSystemSettingsTab';
 
 const operationStyles: Record<AppSettingHistoryEntry['operation'], string> = {
   INSERT: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
@@ -52,40 +29,7 @@ const formatValue = (v: string | null): string => {
 };
 
 const SystemSettingsTab = () => {
-  const { data: settings, isLoading, updateSettingsBatch } = useAppSettings();
-  const { data: history, isLoading: isHistoryLoading } = useAppSettingsHistory(undefined, 50);
-
-  const [formData, setFormData] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!settings) return;
-    const initial: Record<string, string> = {};
-    ADVANCED_FIELDS.forEach((f) => {
-      initial[f.key] = settings[f.key] ?? '';
-    });
-    setFormData(initial);
-  }, [settings]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const now = new Date().toISOString();
-      const rows = ADVANCED_FIELDS.map((f) => ({
-        key: f.key,
-        value: (formData[f.key] ?? '').trim(),
-        updated_at: now,
-      }));
-      await updateSettingsBatch.mutateAsync(rows);
-      defaultNotify.success('تم حفظ الإعدادات بنجاح');
-    } catch {
-      defaultNotify.error('حدث خطأ أثناء الحفظ');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const sortedHistory = useMemo(() => history ?? [], [history]);
+  const { formData, onFieldChange, handleSave, saving, isLoading, sortedHistory, isHistoryLoading } = useSystemSettingsTab();
 
   if (isLoading) {
     return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
@@ -111,7 +55,7 @@ const SystemSettingsTab = () => {
                 id={`system-settings-${f.key}`}
                 name={f.key}
                 value={formData[f.key] ?? ''}
-                onChange={(e) => setFormData((p) => ({ ...p, [f.key]: e.target.value }))}
+                onChange={(e) => onFieldChange(f.key, e.target.value)}
                 placeholder={f.placeholder}
                 maxLength={500}
                 dir="ltr"

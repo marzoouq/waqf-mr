@@ -1,11 +1,10 @@
-import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Fingerprint, Smartphone, Trash2, Plus, Loader2, ShieldCheck, Info, Globe } from 'lucide-react';
-import { useWebAuthn } from '@/hooks/auth/useWebAuthn';
 import { fmtDate } from '@/utils/format/format';
+import { useBiometricSettings } from '@/hooks/page/admin/settings/useBiometricSettings';
 
 const SUPPORTED_BROWSERS = [
   { name: 'Chrome / Edge', version: '67+' },
@@ -22,12 +21,7 @@ const BiometricSettings = () => {
     credentials,
     registerBiometric,
     removeCredential,
-    fetchCredentials,
-  } = useWebAuthn();
-
-  useEffect(() => {
-    fetchCredentials();
-  }, [fetchCredentials]);
+  } = useBiometricSettings();
 
   if (!isSupported) {
     return (
@@ -77,7 +71,6 @@ const BiometricSettings = () => {
           سجّل بصمة إصبعك أو وجهك لتسجيل الدخول بسرعة وأمان بدون كلمة مرور.
         </p>
 
-        {/* تنبيهات مهمة */}
         <Alert variant="default" className="bg-muted/50">
           <Info className="w-4 h-4" />
           <AlertDescription className="text-xs space-y-1">
@@ -90,7 +83,6 @@ const BiometricSettings = () => {
           </AlertDescription>
         </Alert>
 
-        {/* الأجهزة المسجلة */}
         {credentials.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-medium">الأجهزة المسجلة:</p>
@@ -122,7 +114,6 @@ const BiometricSettings = () => {
           </div>
         )}
 
-        {/* زر إضافة بصمة جديدة */}
         <Button
           onClick={() => registerBiometric()}
           disabled={isLoading}

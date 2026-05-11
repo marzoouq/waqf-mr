@@ -1,6 +1,5 @@
 /**
- * تبويب إعدادات الواجهة الرئيسية (Landing Page)
- * يتيح للناظر تعديل نصوص وعناوين الواجهة الرئيسية ديناميكياً + شعار مستقل
+ * تبويب إعدادات الواجهة الرئيسية — presentational
  */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -8,38 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Save, Globe } from 'lucide-react';
-import { useAppSettings, useSetting } from '@/hooks/data/settings/useAppSettings';
-import { useState, useEffect } from 'react';
 import LogoUploadCard from './LogoUploadCard';
 import LandingStatsSettings from './LandingStatsSettings';
+import { useLandingPageTab } from '@/hooks/page/admin/settings/useLandingPageTab';
 import type { LandingPageContent } from '@/types/landing';
 
 // إعادة تصدير للتوافق العكسي مع المستوردين القدامى
 export type { LandingPageContent };
 
-const defaults: LandingPageContent = {
-  hero_title: 'نظام إدارة الوقف',
-  hero_subtitle: 'منصة متكاملة لإدارة أملاك الوقف وتوزيع الريع على المستفيدين',
-  hero_tagline: 'حفظ الأمانة · إدارة الممتلكات · توزيع عادل',
-  cta_text: 'دخول النظام',
-  features_title: 'مميزات النظام',
-  features_subtitle: 'أدوات شاملة لإدارة الوقف بكفاءة وشفافية تامة',
-  cta_section_title: 'ابدأ بإدارة وقفك بكفاءة اليوم',
-  cta_section_subtitle: 'سجّل دخولك للوصول إلى لوحة التحكم وإدارة جميع جوانب الوقف',
-  footer_text: 'نظام إدارة الوقف © {year} — جميع الحقوق محفوظة',
-};
-
 const LandingPageTab = () => {
-  const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
-  const landingLogoUrl = useSetting('landing_logo_url');
-  const content = getJsonSetting<LandingPageContent>('landing_page_content', defaults);
-  const [form, setForm] = useState<LandingPageContent>(content);
-
-  useEffect(() => { setForm(content); }, [content]);
-
-  const handleChange = (key: keyof LandingPageContent, value: string) => {
-    setForm(prev => ({ ...prev, [key]: value }));
-  };
+  const { form, handleChange, handleSave, landingLogoUrl, isLoading } = useLandingPageTab();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
@@ -116,7 +93,7 @@ const LandingPageTab = () => {
         </CardContent>
       </Card>
 
-      <Button onClick={() => updateJsonSetting('landing_page_content', form)} className="gap-2">
+      <Button onClick={handleSave} className="gap-2">
         <Save className="w-4 h-4" />
         حفظ محتوى الواجهة الرئيسية
       </Button>
