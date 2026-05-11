@@ -12,10 +12,10 @@
  *  - invalidateCategories: إبطال انتقائي حسب الفئة + legacy key
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { defaultNotify } from '@/lib/notify';
 import { getCategoryFromKey } from './appSettingsUtils';
 import { jsonSettingCache } from './useAppSettingsRead';
+import { appSettingsService } from '@/lib/services/appSettingsService';
 
 export const useAppSettingsWrite = (data: Record<string, string> | undefined) => {
   const queryClient = useQueryClient();
@@ -30,28 +30,15 @@ export const useAppSettingsWrite = (data: Record<string, string> | undefined) =>
   };
 
   const updateSetting = useMutation({
-    mutationFn: async ({ key, value }: { key: string; value: string }) => {
-      const { error } = await supabase
-        .from('app_settings')
-        .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-      if (error) throw error;
-      return key;
-    },
+    mutationFn: ({ key, value }: { key: string; value: string }) =>
+      appSettingsService.upsertOne(key, value),
     onSuccess: (key) => { invalidateCategories([key]); },
     onError: () => { defaultNotify.error('حدث خطأ أثناء حفظ الإعداد'); },
   });
 
   const updateSettingsBatch = useMutation({
-    mutationFn: async (rows: Array<{ key: string; value: string; updated_at?: string }>) => {
-      const payload = rows.map((row) => ({
-        key: row.key,
-        value: row.value,
-        updated_at: row.updated_at ?? new Date().toISOString(),
-      }));
-      const { error } = await supabase.from('app_settings').upsert(payload, { onConflict: 'key' });
-      if (error) throw error;
-      return rows.map((r) => r.key);
-    },
+    mutationFn: (rows: Array<{ key: string; value: string; updated_at?: string }>) =>
+      appSettingsService.upsertBatch(rows),
     onSuccess: (keys) => { invalidateCategories(keys); },
     onError: () => { defaultNotify.error('حدث خطأ أثناء حفظ الإعدادات'); },
   });
