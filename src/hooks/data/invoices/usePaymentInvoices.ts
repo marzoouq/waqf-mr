@@ -56,9 +56,8 @@ export const useGenerateAllInvoices = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.rpc('generate_all_active_invoices');
-      if (error) throw error;
-      return data as number;
+      const data = await rpc<number>('generate_all_active_invoices');
+      return data;
     },
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
