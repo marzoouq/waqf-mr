@@ -26,16 +26,17 @@ export const useMaxAdvanceAmount = (
     enabled: enabled && !!beneficiaryId && !!fiscalYearId,
     staleTime: 30_000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_max_advance_amount', {
-        p_beneficiary_id: beneficiaryId,
-        p_fiscal_year_id: fiscalYearId!,
-      });
-      if (error) {
+      try {
+        const data = await rpc('get_max_advance_amount', {
+          p_beneficiary_id: beneficiaryId,
+          p_fiscal_year_id: fiscalYearId!,
+        });
+        // RPC — cast مبرر، يحتاج Zod validation لاحقاً
+        return data as unknown as ServerAdvanceData;
+      } catch (e) {
         defaultNotify.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
-        throw error;
+        throw e;
       }
-      // RPC — cast مبرر، يحتاج Zod validation لاحقاً
-      return data as unknown as ServerAdvanceData;
     },
   });
 
