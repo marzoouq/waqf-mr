@@ -1,12 +1,11 @@
 /** جدول الدخل للديسكتوب — مع تمرير افتراضي للبيانات الكبيرة */
-import { fmt } from '@/utils/format/format';
-import { safeNumber } from '@/utils/format/safeNumber';
-import { Button } from '@/components/ui/button';
-import { TableHeader, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Edit, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+
+import { TableHeader, TableRow, TableHead } from '@/components/ui/table';
+import { ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import type { Income } from '@/types';
 import type { SortField } from '@/hooks/page/admin/financial/useIncomePage';
 import VirtualTable from '@/components/common/VirtualTable';
+import IncomeTableRow from './IncomeTableRow';
 
 interface IncomeDesktopTableProps {
   items: Income[];
@@ -49,22 +48,17 @@ const IncomeDesktopTable = ({ items, isLocked, sortField, sortDir, onSort, onEdi
         </TableHeader>
       }
       renderRow={(item) => (
-        <TableRow key={item.id}>
-          <TableCell className="font-medium">{item.source}</TableCell>
-          <TableCell className="text-success font-medium">+{fmt(safeNumber(item.amount))} ر.س</TableCell>
-          <TableCell>{item.date}</TableCell>
-          <TableCell>{item.property?.property_number || '-'}</TableCell>
-          <TableCell className="text-muted-foreground">{item.notes || '-'}</TableCell>
-          <TableCell>
-            <div className="flex gap-1">
-              <Button variant="ghost" size="icon" onClick={() => onEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-              <Button variant="ghost" size="icon" onClick={() => onDelete({ id: item.id, name: `دخل ${item.source}` })} className="text-destructive hover:text-destructive" disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
-            </div>
-          </TableCell>
-        </TableRow>
+        <IncomeTableRow
+          key={item.id}
+          item={item}
+          isLocked={isLocked}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
       )}
     />
   </div>
 );
 
 export default IncomeDesktopTable;
+

@@ -1,8 +1,8 @@
 /**
  * Page hook: LandingPageTab
  */
-import { useState, useEffect } from 'react';
 import { useAppSettings, useSetting } from '@/hooks/data/settings/useAppSettings';
+import { useSyncedFormState } from '@/hooks/ui/useSyncedFormState';
 import type { LandingPageContent } from '@/types/landing';
 
 const DEFAULTS: LandingPageContent = {
@@ -21,9 +21,7 @@ export const useLandingPageTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
   const landingLogoUrl = useSetting('landing_logo_url');
   const content = getJsonSetting<LandingPageContent>('landing_page_content', DEFAULTS);
-  const [form, setForm] = useState<LandingPageContent>(content);
-
-  useEffect(() => { setForm(content); }, [content]);
+  const [form, setForm] = useSyncedFormState<LandingPageContent>(content);
 
   const handleChange = (key: keyof LandingPageContent, value: string) => {
     setForm(prev => ({ ...prev, [key]: value }));

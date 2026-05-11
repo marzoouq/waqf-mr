@@ -1,21 +1,18 @@
 /**
  * Page hook: RolePermissionsTab
  */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
+import { useSyncedFormState } from '@/hooks/ui/useSyncedFormState';
 import { defaultNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 
 export const useRolePermissionsTab = () => {
   const { updateJsonSetting, isLoading } = useAppSettings();
   const { rolePermissions: saved } = useRolePermissions();
-  const [perms, setPerms] = useState<RolePerms>(DEFAULT_ROLE_PERMS);
+  const [perms, setPerms] = useSyncedFormState<RolePerms>(saved);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    setPerms(saved);
-  }, [saved]);
 
   const toggle = (role: string, section: string) => {
     setPerms(prev => ({
