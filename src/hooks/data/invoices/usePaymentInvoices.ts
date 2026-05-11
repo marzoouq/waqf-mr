@@ -38,11 +38,10 @@ export const useGenerateContractInvoices = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (contractId: string) => {
-      const { data, error } = await supabase.rpc('generate_contract_invoices', {
+      const data = await rpc<number>('generate_contract_invoices', {
         p_contract_id: contractId,
       });
-      if (error) throw error;
-      return data as number;
+      return data;
     },
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
