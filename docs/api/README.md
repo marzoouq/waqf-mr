@@ -130,6 +130,27 @@ invoke<T>(
 - `src/lib/api/rpc.test.ts` — 9 سيناريوهات (success, auth, permission, validation, rate-limit×3, network, server, retry/backoff مع `vi.useFakeTimers`).
 - `src/lib/api/invoke.test.ts` — 8 سيناريوهات (success, auth + `onAuthError`, validation, rate-limit×3, network, server, `data.error` fallback, `treatDataErrorAsFailure: false`).
 
+## Retry & Rate-limit Policy (موحّدة)
+
+| فئة المسار | `maxAttempts` | `treatDataErrorAsFailure` | السلوك عند 429 |
+|---|---|---|---|
+| auth-sensitive (`lookup-national-id`, `guard-signup`, WebAuthn challenges) | **1** | `false` | يقرأ `data.retry_after`/`data.remaining` ويعرض رسالة بدون retry |
+| ZATCA onboard / renew (تحديات مرة واحدة) | **1** | افتراضي | لا retry — تفشل بصراحة |
+| Edge Functions تشغيلية عادية (`dashboard-summary`, `generate-invoice-pdf`, `email-admin`، إلخ) | **3** افتراضي | افتراضي | retry مع backoff 250→500→1000ms للفئات `network/server/rate_limit` |
+| RPCs قراءة | **3** افتراضي | غ.م | retry مع backoff |
+| RPCs mutation حسّاسة (`execute_distribution`, `close_fiscal_year`) | **3** افتراضي | غ.م | retry مع backoff (الدوال idempotent على مستوى السنة) |
+| fire-and-forget (`notificationService.notifyUser`) | **0** (لا غلاف) | غ.م | لا retry بالتصميم — لا يحجب UX |
+| `errorReporter.log_access_event` | **0** (rpc مباشر) | غ.م | لا retry — fallback محلي عند الفشل |
+
+**قواعد عامة:**
+- `auth/permission/validation` → **لا retry** أبداً.
+- `network/server` → retry تلقائي حتى `maxAttempts`.
+- `rate_limit` → retry فقط للمسارات غير الحسّاسة (الحسّاسة تُظهر `retry_after` للمستخدم).
+- العميل لا يُطبّق throttling عام — `check_rate_limit` على السيرفر هو خط الدفاع الموحّد.
+
+راجع `docs/api/network-inventory.md` للسياسة الفعلية لكل endpoint، و
+`docs/api/cors-verification.md` لمصفوفة CORS الميدانية.
+
 ## Caching invariants (per domain)
 
 | الدومين | staleTime | invalidate عند |
