@@ -5,13 +5,14 @@ import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { RequirePublishedYears, ExportMenu, TablePagination } from '@/components/common';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, AlertCircle, RefreshCw } from 'lucide-react';
+import { FileText, AlertCircle, RefreshCw, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ContractStatsCards } from '@/components/contracts';
 import ContractsViewMobileCards from '@/components/contracts/ContractsViewMobileCards';
 import ContractsViewDesktopTable from '@/components/contracts/ContractsViewDesktopTable';
 import { useContractsViewPage } from '@/hooks/page/beneficiary';
+import { CONTRACTS_SCOPE_COPY } from '@/constants/beneficiaryCopy';
 
 const ContractsViewPage = () => {
   const isMobile = useIsMobile();
@@ -27,7 +28,7 @@ const ContractsViewPage = () => {
     return (
       <DashboardLayout>
         <div className="p-4 md:p-6 space-y-6">
-          <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" />
+          <PageHeaderCard title={CONTRACTS_SCOPE_COPY.title} icon={FileText} description={CONTRACTS_SCOPE_COPY.description} />
           <Card className="shadow-sm border-destructive/30 bg-destructive/5">
             <CardContent className="p-6 flex flex-col items-center justify-center gap-3 min-h-[30vh]">
               <AlertCircle className="w-12 h-12 text-destructive" />
@@ -42,12 +43,19 @@ const ContractsViewPage = () => {
   }
 
   return (
-    <RequirePublishedYears title="العقود" icon={FileText} description="عرض عقود الإيجار">
+    <RequirePublishedYears title={CONTRACTS_SCOPE_COPY.title} icon={FileText} description={CONTRACTS_SCOPE_COPY.description}>
       <DashboardLayout>
         <div className="p-4 md:p-6 space-y-6">
-          <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" actions={
+          <PageHeaderCard title={CONTRACTS_SCOPE_COPY.title} icon={FileText} description={CONTRACTS_SCOPE_COPY.description} actions={
             <ExportMenu onExportPdf={handleExportPdf} />
           } />
+
+          <Card className="shadow-sm border-info/30 bg-info/5">
+            <CardContent className="p-3 flex items-start gap-2">
+              <Info className="w-4 h-4 text-info shrink-0 mt-0.5" />
+              <p className="text-xs text-muted-foreground">{CONTRACTS_SCOPE_COPY.context}</p>
+            </CardContent>
+          </Card>
 
           <ContractStatsCards stats={stats} isLoading={!!isLoading} variant="beneficiary" />
 

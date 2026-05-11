@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InvoiceViewer, InvoiceGridView, InvoicesViewMobileCards, InvoicesViewDesktopTable } from '@/components/invoices';
-import { FileText, Search, LayoutGrid, List, AlertCircle, RefreshCw } from 'lucide-react';
+import { FileText, Search, LayoutGrid, List, AlertCircle, RefreshCw, Info } from 'lucide-react';
 import { ExportMenu, TablePagination, RequirePublishedYears, TableSkeleton } from '@/components/common';
 import { useInvoicesViewPage } from '@/hooks/page/beneficiary';
+import { INVOICES_SCOPE_COPY } from '@/constants/beneficiaryCopy';
 
 const InvoicesViewPage = () => {
   const {
@@ -36,16 +37,22 @@ const InvoicesViewPage = () => {
   }
 
   return (
-    <RequirePublishedYears title="الفواتير" icon={FileText} description="عرض جميع فواتير الوقف">
+    <RequirePublishedYears title={INVOICES_SCOPE_COPY.title} icon={FileText} description={INVOICES_SCOPE_COPY.description}>
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
-          title="الفواتير"
-          description="عرض جميع فواتير الوقف"
+          title={INVOICES_SCOPE_COPY.title}
+          description={INVOICES_SCOPE_COPY.description}
           icon={FileText}
           actions={<ExportMenu onExportPdf={handleDownloadPDF} />}
         />
 
+        <Card className="shadow-sm border-info/30 bg-info/5">
+          <CardContent className="p-3 flex items-start gap-2">
+            <Info className="w-4 h-4 text-info shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground">{INVOICES_SCOPE_COPY.context}</p>
+          </CardContent>
+        </Card>
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-end">
           <div className="flex gap-1 border rounded-lg p-1">
             <Button variant={viewMode === 'table' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('table')} className="gap-1">
