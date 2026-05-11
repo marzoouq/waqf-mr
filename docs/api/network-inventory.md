@@ -87,3 +87,32 @@
   - **4 مرشّحات مقبولة للترحيل في جولة لاحقة** (`ai-assistant`, `zatca-signer`, `zatca-xml-generator`, ربما `zatca-report`).
 
 **التوحيد الكامل غير ممكن — هناك 3 فئات auth جوهرياً (JWT user / webhook signature / anon)، وفي كل فئة استثناءات مبررة.** الترحيل القسري لـ functions حسّاسة (`webauthn`, `guard-signup`, `lookup-national-id`) محظور بقاعدة المشروع.
+
+---
+
+## 7. CORS Exceptions
+
+استثناءات موثقة لا تستخدم `_shared/cors.ts` المركزي (`getCorsHeaders`):
+
+### `auth-email-hook`
+
+تحتوي مسارين بسياسات CORS مختلفة:
+
+| المسار | CORS | المصدر | الحماية |
+|---|---|---|---|
+| `POST /` | `getCorsHeaders(req)` المركزي | `_shared/cors.ts` | توقيع HMAC من Supabase Auth Hooks |
+| `GET /preview` | `Access-Control-Allow-Origin: *` + `Access-Control-Allow-Headers: 'authorization, content-type'` | محلي داخل الملف (سطر 81) | `Authorization: Bearer ${LOVABLE_API_KEY}` (وليس JWT مستخدم) |
+
+**المبرر:** مسار `/preview` يُستخدم لمعاينة قوالب البريد من بيئات تطوير متعددة (لوحات admin، أدوات التصميم)، لذا CORS مفتوح intentional. الحماية تتم على طبقة `Authorization` بالمفتاح السري `LOVABLE_API_KEY`، فلا أهمية لتقييد origin هنا.
+
+---
+
+## 8. استثناءات services إضافية (تكميل لجدول §3)
+
+| الملف | النمط | السبب | الحالة |
+|---|---|---|---|
+| `src/lib/services/dataFetcher.ts` | `supabase.from(table).select(...).limit(5000)` مباشر | خدمة تصدير قراءة فقط بحدود واضحة؛ ليست استدعاء Edge Function/RPC | ✅ خارج النطاق |
+| `src/lib/services/fiscalYearService.ts` | يجمع `.from(...).insert()` مباشر مع `rpc()` للـ RPCs (`reopen_fiscal_year`, `close_fiscal_year`) | direct CRUD مقبول للجداول البسيطة؛ RPCs مغلفة عبر `rpc()` بالفعل | ✅ خارج النطاق |
+| `src/lib/services/securityService.ts` | `.from('access_log').select(...)` مباشر للقراءة الأمنية | graceful degradation محلي مع log + return؛ ليست استدعاء API | ✅ خارج النطاق |
+| `src/lib/services/invoiceStorageService.ts` | `supabase.storage.from(...).upload(...)` + `.from('invoices').update(...)` | عمليات Storage مع تحديث DB؛ تم تعزيز error logging في Version G | ✅ موثّق |
+| `src/lib/services/advanceService.ts` | fire-and-forget `supabase.from('beneficiaries').select(...)` لإشعار side-effect | تم تحويله إلى async/try-catch مع `logger.warn` في Version G | ✅ موثّق |
