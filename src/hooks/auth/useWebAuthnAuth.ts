@@ -16,9 +16,10 @@ export function useWebAuthnAuth({ setIsLoading }: UseWebAuthnAuthArgs) {
   const authenticateWithBiometric = useCallback(async () => {
     setIsLoading(true);
     try {
-      let options: { challenge_id: string } & Record<string, unknown>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let options: any;
       try {
-        options = await invoke<{ challenge_id: string } & Record<string, unknown>>(
+        options = await invoke<any>(
           'webauthn',
           { body: { action: 'auth-options' } },
           { maxAttempts: 1, treatDataErrorAsFailure: false },
