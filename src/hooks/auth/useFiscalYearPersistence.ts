@@ -3,22 +3,19 @@
  * يعزل منطق sessionStorage hydration/cleanup للـ fiscal year.
  *
  * - يقرأ id محفوظ مبدئيًا (مع تحقق UUID).
- * - عند تحميل قائمة السنوات: يمسح id غير صالح أو غير موجود.
+ * - يقرأ القائمة من useActiveFiscalYear (react-query dedup) لتنظيف id غير صالح.
  * - يكشف setter يحفظ تلقائيًا في sessionStorage.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeSessionGet, safeSessionSet, safeSessionRemove } from '@/lib/storage';
 import { UUID_REGEX } from '@/utils/validation/regexPatterns';
-import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import { useActiveFiscalYear } from '@/hooks/data/financial/useFiscalYears';
 
 const STORAGE_KEY = STORAGE_KEYS.FISCAL_YEAR;
 
-export function useFiscalYearPersistence(opts: {
-  isLoading: boolean;
-  fiscalYears: FiscalYear[];
-}) {
-  const { isLoading, fiscalYears } = opts;
+export function useFiscalYearPersistence() {
+  const { fiscalYears, isLoading } = useActiveFiscalYear();
 
   const [selectedId, setSelectedId] = useState<string>(() => {
     const stored = safeSessionGet(STORAGE_KEY, '');
