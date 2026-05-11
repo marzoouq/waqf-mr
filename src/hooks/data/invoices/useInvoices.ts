@@ -41,7 +41,7 @@ export const INVOICE_STATUS_LABELS: Record<string, string> = {
 const invoicesCrud = createCrudFactory<'invoices', Invoice>({
   table: 'invoices',
   queryKey: 'invoices',
-  select: '*, property:properties(id, property_number, location), contract:contracts(id, contract_number, tenant_name)',
+  select: INVOICES_SELECT,
   orderBy: 'date',
   ascending: false,
   label: 'الفاتورة',
@@ -57,42 +57,20 @@ export const useInvoicesByFiscalYear = (fiscalYearId: string | 'all') => {
     queryKey: ['invoices', 'fiscal_year', fiscalYearId],
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
-      let query = supabase
-        .from('invoices')
-        .select('*, property:properties(id, property_number, location), contract:contracts(id, contract_number, tenant_name)')
-        .order('date', { ascending: false })
-        .limit(1000);
-      if (!isFyAll(fiscalYearId)) {
-        query = query.eq('fiscal_year_id', fiscalYearId);
-      }
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Invoice[];
-    },
+    queryFn: () => invoicesService.listByFiscalYear(fiscalYearId),
   });
 };
 
 // ---------------------------------------------------------------------------
-// CRIT-4: حذف DB أولاً ثم Storage — ترتيب صحيح
+// CRIT-4: حذف DB أولاً ثم Storage — ترتيب صحيح (M2.2: عبر invoicesService)
 // ---------------------------------------------------------------------------
 
 export const useDeleteInvoice = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, file_path }: { id: string; file_path?: string | null }) => {
-      const { error } = await supabase.from('invoices').delete().eq('id', id);
-      if (error) throw error;
-
-      if (file_path) {
-        try {
-          await supabase.storage.from('invoices').remove([file_path]);
-        } catch (storageErr) {
-          logger.warn('فشل حذف ملف الفاتورة من التخزين — سيبقى كملف يتيم', { file_path, error: storageErr });
-        }
-      }
-    },
+    mutationFn: ({ id, file_path }: { id: string; file_path?: string | null }) =>
+      invoicesService.remove(id, file_path),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       defaultNotify.success('تم حذف الفاتورة بنجاح');
