@@ -14,7 +14,6 @@
  *   - xmldsig-builder.ts            — SignedInfo + SignedProperties + ECDSA crypto helpers
  *   - ../_shared/zatca-qr-tlv.ts    — ZATCA QR TLV (BER) encoding for Phase 2 (shared)
  */
-import { createClient } from "npm:@supabase/supabase-js@2";
 import { p256 } from "npm:@noble/curves@1.4.0/p256";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { c14n } from "../_shared/xml-c14n.ts";
