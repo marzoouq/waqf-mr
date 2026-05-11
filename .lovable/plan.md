@@ -1,94 +1,170 @@
-# تدقيق معماري شامل لمكونات الواجهة
+# خطة: قاموس تجربة المستفيد + خريطة التوحيد الدلالي الموسّعة
 
-## النتيجة المختصرة
+## الهدف
+إنتاج **مرجع حوكمة دلالي صارم وشامل** لتجربة المستفيد (بدون تعديل كود)، يجمع بين:
+- قاموس مصطلحات موحّد (Canonical Glossary)
+- خريطة التعارضات والتكرارات بأدلة من الكود الحالي
+- حدود مسؤولية كل صفحة
+- قواعد صياغة (Copy Rules) جاهزة للتطبيق لاحقًا
 
-البنية **سليمة بنيوياً** (Page Hook Pattern مُطبّق، لا `supabase.from` ولا `useQuery` في المكونات، routes lazy، فصل واضح بين `pages/components/hooks/contexts`). المشاكل الموجودة **متوسطة وموضعية** — لا تستدعي إعادة هيكلة جذرية، بل تنظيفات مستهدفة.
+يصبح هذا التقرير **المرجع الوحيد** لأي تعديل لاحق على نصوص أو حدود صفحات المستفيد.
 
----
+## النطاق المباشر (Pages)
+الصفحات المفحوصة فقط:
+`BeneficiaryDashboard`, `MySharePage`, `DisclosurePage`, `FinancialReportsPage`, `InvoicesViewPage`, `ContractsViewPage`, `NotificationsPage`, `BeneficiaryMessagesPage`, `SupportPage`.
 
-## مرحلة 1 — التدقيق (لا كود)
+## النطاق الموسّع (Components & Hooks)
+المكونات والهوكات الداعمة المرتبطة بهذه الصفحات:
+- `BeneficiaryStatsRow`, `BeneficiaryAdvanceCard`, `BeneficiaryRecentDistributions`, `BeneficiaryNotificationsCard`, `WaqifWelcomeCard` (إن استُخدم)
+- `MyShareSummaryCards`, `DeductionsExplanationCard`, `AdvanceRequestDialog`, `AdvancesTable`, `CarryforwardsTable`, `DistributionsTable`
+- `DisclosureSummaryCards`
+- `useMySharePage`, `useBeneficiaryDashboardPage`, `useBeneficiaryFinancials`, `useDisclosurePage`, `useFinancialReportsPage`, `useNotificationsPage`, `useSupportPage`, `useBeneficiaryMessages`
 
-سيتم إنتاج **تقرير ARCHITECTURE_AUDIT.md** في `/mnt/documents/` يغطي:
+## المخرج النهائي
+ملف واحد رئيسي: `/mnt/documents/BENEFICIARY_SEMANTIC_MAP.md`
+ملف فهرس مختصر: `/mnt/documents/BENEFICIARY_SEMANTIC_MAP_INDEX.md` (فهرس المصطلحات والتعارضات للمراجعة السريعة).
 
-### 1. خريطة شجرة المكونات
-- Mermaid diagram لأشجار المكونات الثلاث الكبرى:
-  - شجرة Admin Dashboard (الأكثر تعقيداً)
-  - شجرة Contracts (تحتوي accordion + form + accrual)
-  - شجرة Beneficiary Dashboard
-- كل عقدة موسومة بـ **Container (ذكي)** أو **Presentational (بسيط)** أو **Hybrid**.
+## بنية التقرير
 
-### 2. مصفوفة النتائج (مرتّبة بالخطورة)
+### القسم 1 — قاموس المصطلحات الموحّد (Canonical Glossary)
+جدول مرجعي لكل مصطلح:
+| المصطلح الموحّد | التعريف الدلالي (جملة واحدة) | الحقل المصدر | متى "تقديري" / متى "نهائي" | الصياغات الممنوعة |
 
-| # | البند | الخطورة | الملفات |
-|---|---|---|---|
-| 1 | **مكونات Hybrid: عرض + جلب إعدادات** — `Sidebar`, `WaqfSettingsTab`, `MenuCustomizationTab` تستدعي `useSetting`/`useEffect` مباشرة بدل تمرير القيم من page hook | عالية | 11 مكوّن في `settings/` |
-| 2 | **prop drilling مؤكّد** — `WaqifWelcomeCard` يستقبل 6 props وصفية تُجمَّع في كائن واحد | متوسطة | `pages/waqif/WaqifDashboard.tsx` |
-| 3 | **مكونات > 180 سطر** بمسؤوليات متعددة: `EmailMonitorPage` (286), `ZatcaCertificatesTab` (207), `Sidebar` (201), `BalanceSheetReport` (197), `PermissionsControlPanel` (195), `ContractRentalModeSection` (195), `MonthlyAccrualTable` (193), `MySharePage` (191), `SystemSettingsTab` (189), `BylawDialogs` (183) | متوسطة | 10 ملفات |
-| 4 | **Page Hooks > 180 سطر** (god-hook smell): `useEmailMonitorPage` (210), `useCollectionData` (205), `useInvoicesPage` (199), `useIncomePage` (198), `useAiChat` (197), `usePaymentInvoicesTab` (196), `useZatcaSettings` (195), `useExpensesPage` (185) | متوسطة | 8 hooks |
-| 5 | **استخدام شبه معدوم لـ `React.memo`** (0 ملف) و`useCallback` (5 فقط) — جداول كبيرة (`InvoiceGridView`, `MonthlyAccrualTable`, `ContractAccordionGroup`, `IncomeDesktopTable`) تُعيد render كاملاً عند أي تغيير في الأب | منخفضة–متوسطة | جداول العرض |
-| 6 | **Context قاصر** — `ContractsContext` موجود لكن غير مستخدم خارج طبقة محدودة، ولا يوجد context لـ Settings رغم تكرار جلب نفس البيانات في كل tab | منخفضة | settings tabs |
-| 7 | **`useEffect` في مكونات إعدادات** (10 ملفات) — معظمها لمزامنة form state من server، يمكن استبداله بـ `useForm({ values })` أو `key` reset | منخفضة | settings/* |
+المصطلحات المغطّاة (≥18 مصطلح):
+- الحصة الإجمالية / الحصة التقديرية / الحصة النهائية / الحصة الصافية
+- نسبة الحصة
+- إجمالي المستلم / آخر توزيع مدفوع / التوزيعات الأخيرة / المبالغ المعلّقة / سجل التوزيعات
+- السلفة المدفوعة / الحد الأقصى للسلفة / السلف السابقة / طلب السلفة قيد المراجعة
+- الفرق المرحَّل / الحصة بعد خصم المرحَّل
+- السنة المالية النشطة / المنشورة / المغلقة / غير المبدوءة / غير المنشورة
+- إيرادات / مصروفات / ضريبة / زكاة / ريع الوقف / رقبة الوقف
+- إشعار جديد / غير مقروء / آخر الإشعارات / سجل الإشعارات
+- مراسلة (محادثة) / تذكرة دعم فني
+- فاتورة (scope المستفيد) / عقد (scope المستفيد)
 
-### 3. قواعد للتوثيق (كنتيجة)
-يتضمن التقرير قسم "Rules" يُكتب أيضاً في الذاكرة (`mem://`):
-- **Container vs Presentational**: تعريف رسمي + قائمة فحص.
-- **حدود استدعاء `useSetting`/`useQuery`/`useMutation`**: داخل page hooks فقط.
-- **حد أقصى للسطور**: مكوّن > 200 يُقسَّم؛ page hook > 180 يُجزَّأ إلى sub-hooks.
-- **Props > 5**: علامة على ضرورة التجميع في كائن semantic أو رفع state إلى context.
-- **memoization**: إلزامي على صفوف الجداول ومعالجات `onSort/onEdit/onDelete` المُمرَّرة لأطفال متعددين.
+### القسم 2 — مصفوفة الظهور (Concept × Page Matrix)
+جدول ثنائي البعد:
+- الصف = مفهوم
+- العمود = صفحة/مكوّن
+- الخلية = (النص الحرفي الحالي / الحقل البياني / الملف+السطر)
 
----
+يُستخدم بصريًا لرصد:
+- التكرار (نفس المفهوم في عدة صفحات)
+- التعارض (نفس المفهوم بصياغات متضاربة)
+- الفراغ (مفهوم مهم غائب حيث يجب أن يظهر)
 
-## مرحلة 2 — التنفيذ بترتيب الخطورة (دفعات منفصلة)
+### القسم 3 — سجل التعارضات (Conflict Log)
+لكل تعارض ID مستقل (CFL-01 …)، يحتوي:
+- العنوان
+- الصفحات/المكونات المتعارضة
+- اقتباسات النص الحالي بأرقام السطور
+- الفجوة الدلالية بجملة
+- النسخة الموحّدة المقترحة (نص نهائي واحد)
+- الشدّة (حرجة/عالية/متوسطة)
+- الأثر على المستخدم
 
-### دفعة A — إصلاح Hybrid في settings/* (البند 1)
-- نقل كل `useSetting`/`useEffect` من 11 مكوّن settings إلى sub-hooks لكل tab.
-- المكونات تتحول إلى presentational (تستقبل value + onChange).
-- اختبارات Vitest لكل sub-hook.
+تعارضات مستهدفة (الحد الأدنى):
+- CFL-01: الحصة "تُحسب عند الإقفال" (Dashboard) ↔ "تقديرية" (MyShare) ↔ ظهورها في Disclosure
+- CFL-02: ثلاث صياغات لرسالة "السنة غير المغلقة"
+- CFL-03: خلط latest/new/unread في بطاقة إشعارات Dashboard
+- CFL-04: ازدحام مفهوم التوزيعات (آخر مدفوع، آخر التوزيعات، إجمالي مستلم، معلّق، سجل)
+- CFL-05: تبسيط السلفة في Dashboard مقابل تعقيدها الفعلي في Dialog
+- CFL-06: غياب المرحَّل من Dashboard رغم تأثيره على السلفة
+- CFL-07: تداخل "المراسلات" و"الدعم الفني" (مساران لنفس الغاية)
+- CFL-08: scope الفواتير "جميع فواتير الوقف" غير دقيق لمستفيد محدود الصلاحية
+- CFL-09: scope العقود غير مفسَّر (هل عقود حصته أم عقود الوقف عمومًا؟)
+- CFL-10: FinancialReports تحتاج إلى تفسير صفحة أخرى لها (Disclosure)
+- CFL-11: حالة "سنة لم تبدأ بعد" (`notStarted`) محسوبة لكنها غير مستخدمة
+- CFL-12: Disclosure ↔ MyShare تكرار `myShare/totalReceived/pendingAmount`
+- CFL-13: fallback `paidAdvances=0` المضلل في Dashboard advance card
+- CFL-14: تكرار welcome branch
+- CFL-15: استخدام `RequirePublishedYears` غير مفسَّر للمستخدم
 
-### دفعة B — تقسيم المكونات الضخمة (البند 3)
-- `EmailMonitorPage` → `EmailMonitorFilters` + `EmailMonitorStats` + `EmailMonitorTable` + `DlqRetryPanel`.
-- `Sidebar` → `SidebarHeader` + `SidebarNav` + `SidebarFooter` + `MobileSidebarTrigger`.
-- `MonthlyAccrualTable` → استخراج صفّ memoized + header منفصل.
-- `BylawDialogs` → dialog واحد لكل نوع.
-- باقي الـ 6 ملفات بنفس النمط.
+### القسم 4 — حدود مسؤولية الصفحات (Page Responsibility Boundaries)
+لكل صفحة من التسع:
+- جملة "هذه الصفحة هي **المرجع الوحيد** لـ X، وليست مرجعًا لـ Y"
+- قائمة المفاهيم المسموح ظهورها فقط
+- قائمة المفاهيم الممنوع تكرارها هنا
+- علاقتها بالصفحات المجاورة (روابط دلالية)
 
-### دفعة C — تجزئة god-hooks (البند 4)
-- مثال `useInvoicesPage` → `useInvoicesFilters` + `useInvoicesMutations` + `useInvoicesDerived` ثم composite hook رفيع.
-- نفس النمط لـ 8 hooks.
+التقسيم المستهدف:
+- **Dashboard**: ملخّص دخول + تنبيهات فعّالة (لا أرقام نهائية)
+- **MyShare**: المرجع الشخصي المالي الكامل للحصة والسلف والمرحَّل
+- **Disclosure**: الإفصاح السنوي الرسمي الكامل (نهائي للسنة المغلقة)
+- **FinancialReports**: تحليل بياني فقط (لا أرقام تفصيلية)
+- **Invoices/Contracts**: عرض scoped بمنظور المستفيد
+- **Notifications**: مركز الإشعارات الكامل
+- **Messages**: تواصل بشري مباشر
+- **Support**: تذاكر دعم فني فقط
 
-### دفعة D — معالجة prop drilling (البند 2)
-- `WaqifWelcomeCard`: تجميع الـ 6 props في `welcomeData: WelcomeData`.
-- مراجعة المواقع الأخرى التي تمرر >5 props.
+### القسم 5 — قواعد الصياغة الموحّدة (Copy Rules)
+لكل قاعدة:
+- النص النهائي الواحد (ar)
+- أين يُستخدم بالضبط
+- ما الصياغات التي يُلغيها
+- أي حالة (state) ينطبق عليها
 
-### دفعة E — memoization مُستهدف (البند 5)
-- `React.memo` + `useCallback` على صفوف الجداول الكبيرة فقط (لا memoization عشوائي).
+القواعد المستهدفة:
+- CR-01: حالات السنة المالية الأربع (لا منشورة / لم تبدأ / نشطة / مغلقة) — badge + message + semantics للأرقام
+- CR-02: الحصة التقديرية vs النهائية — قاعدة عرض موحّدة (badge إلزامي بجانب أي رقم تقديري)
+- CR-03: حالة فارغة للإشعارات (تمييز "لا جديد" عن "لا يوجد إطلاقًا")
+- CR-04: scope الفواتير من منظور المستفيد
+- CR-05: scope العقود من منظور المستفيد
+- CR-06: الفرق بين المراسلة والتذكرة
+- CR-07: صياغة بطاقة السلفة في Dashboard (تعكس التعقيد دون إغراق)
+- CR-08: إفصاح المرحَّل في Dashboard متى أثّر على إجراء فعلي
+- CR-09: تسميات التوزيعات الأربع (آخر مدفوع / الأخيرة / إجمالي مستلم / معلّق)
 
-### دفعة F — تنظيف useEffect في settings (البند 7)
-- استبدال `useEffect(setForm, [data])` بـ `useForm({ values })` أو `key={data?.id}`.
+### القسم 6 — حالات الواجهة المفقودة أو المهمَلة (Missing States)
+رصد الحالات غير الممثَّلة بوضوح:
+- `notStarted` غير مستخدمة
+- "لا توجد بيانات تاريخية لهذا المستفيد"
+- "حسابك البنكي غير مسجل" (`isAccountMissing`) — هل يظهر باستمرار؟
+- "السنة منشورة لكن دون عقود/إيرادات"
+- خطأ شبكة مقابل خطأ صلاحيات
+- وضع القراءة فقط للمستفيد المعطّل
 
-### دفعة G — توسعة الـ contexts عند الحاجة (البند 6)
-- إضافة `SettingsContext` فقط إن أثبتت الدفعة A تكرار جلب فعلي.
+### القسم 7 — خطة التطبيق المقترحة (للمراجعة لاحقًا فقط)
+ترتيب دفعات التنفيذ بدون أي تنفيذ الآن (U1…U7):
+- U1: توحيد رسالة السنة غير المغلقة + badge الحصة التقديرية
+- U2: ضبط بطاقة الإشعارات في Dashboard (تمييز unread/latest/new)
+- U3: حسم حدود Dashboard ↔ MyShare ↔ Disclosure (إزالة تكرار الأرقام)
+- U4: إصلاح بطاقة السلفة (إزالة fallback `=0` + إفصاح المرحَّل)
+- U5: توضيح scope الفواتير/العقود للمستفيد
+- U6: حسم الفرق بين المراسلات والدعم (مسار واحد أو فصل صريح)
+- U7: استكمال حالات الواجهة المفقودة (`notStarted`, missing account, empty published year)
 
----
+كل دفعة: العنوان، الملفات المتأثرة، التغييرات النصية فقط، اختبار قبول واحد بسيط.
 
-## التفاصيل التقنية
+### القسم 8 — فهرس سريع (في ملف Index منفصل)
+- جدول جميع المصطلحات بترتيب أبجدي مع روابط داخلية
+- جدول جميع التعارضات (CFL) مع الشدّة
+- جدول جميع قواعد الصياغة (CR)
+- جدول دفعات التنفيذ (U)
 
-**خارج النطاق:**
-- `AuthContext`, `ProtectedRoute`, `SecurityGuard` (محظور تعديلها).
-- `src/components/ui/` (shadcn — لا تُلمس).
-- منطق العمل المالي/الضريبي (تدقيق UI فقط).
-- RLS، Edge Functions، migrations.
+## المنهجية
+1. قراءة الملفات الفعلية لكل صفحة + المكونات + الهوكات المرتبطة (سرد مفصّل أعلاه).
+2. استخراج النصوص الحرفية الحالية (ar) كاقتباسات بأرقام السطور.
+3. بناء: القاموس → المصفوفة → سجل التعارضات → الحدود → قواعد الصياغة → الحالات المفقودة → خطة الدفعات.
+4. كتابة الملفين إلى `/mnt/documents/`.
 
-**معايير القبول لكل دفعة:**
-- build نظيف + الاختبارات الحالية تمر.
-- لا تغيّر في سلوك المستخدم ظاهرياً.
-- نفس DOM tree ونفس CSS classes.
+## قيود صريحة
+- لا تعديل كود.
+- لا تعديل ذاكرة `mem://` في هذه المرحلة.
+- لا اقتراحات تتجاوز النصوص والحدود الدلالية (لا تغيير في منطق مالي أو RPC أو RLS).
+- التقرير عربي بالكامل، RTL-friendly، مع أرقام أسطر للاقتباسات.
+- جميع الاقتباسات حرفية من الملفات الحالية لا إعادة صياغة.
 
-**المخرجات النهائية:**
-- `/mnt/documents/ARCHITECTURE_AUDIT.md` (التقرير الكامل).
-- `/mnt/documents/component-trees.mmd` (Mermaid).
-- تحديث `mem://technical/architecture/` بقواعد container/presentational وحدود السطور.
-- (حسب الموافقة) تنفيذ الدفعات A→G لاحقاً.
+## ما لا يشمله هذا التقرير
+- صفحات مستفيد لم تُفحص في الجولة السابقة.
+- إعادة تصميم بصري أو تعديلات Layout.
+- تغييرات على hooks البيانات أو RPC أو RLS.
+- صفحات الناظر/المحاسب/الواقف (نطاق منفصل).
 
-**يبدأ التنفيذ بإنتاج تقرير المرحلة 1 فقط** — لا تعديلات كود حتى مراجعته والموافقة على دفعة.
+## معيار القبول للتقرير
+- ≥18 مصطلحًا في القاموس
+- ≥15 تعارض موثَّق (CFL)
+- ≥9 قواعد صياغة (CR)
+- لكل صفحة من التسع فقرة حدود واضحة
+- كل اقتباس مرفق باسم الملف ورقم السطر
+- لا توصية بتعديل كود داخل التقرير ذاته (التطبيق في خطة منفصلة لاحقًا)
