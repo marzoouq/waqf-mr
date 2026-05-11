@@ -13,8 +13,11 @@ import { useSetting } from '@/hooks/data/settings/useAppSettings';
 import { usePrefetchPages } from '@/hooks/data/core/usePrefetchPages';
 import { isActiveLink } from '@/lib/navigation/isActiveLink';
 
+type NavLinkItem = { to: string; icon: React.ComponentType<{ className?: string }>; label: string };
+type NavGroupItem = { key: string; label: string | null; items: NavLinkItem[] };
+
 interface SidebarContentProps {
-  links: Array<{ to: string; icon: React.ComponentType<{ className?: string }>; label: string }>;
+  links: NavLinkItem[] & { groups?: NavGroupItem[] };
   sidebarOpen: boolean;
   setSidebarOpen: (v: boolean) => void;
   setMobileSidebarOpen: (v: boolean) => void;
