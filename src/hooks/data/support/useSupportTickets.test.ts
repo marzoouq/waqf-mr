@@ -170,7 +170,7 @@ describe('useSupportStats', () => {
     const { result } = renderHook(() => useSupportStats(), { wrapper: createWrapper() });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockRpc).toHaveBeenCalledWith('get_support_stats');
+    expect(mockRpc).toHaveBeenCalledWith('get_support_stats', undefined);
     expect(result.current.data).toMatchObject(statsData);
   });
 });
