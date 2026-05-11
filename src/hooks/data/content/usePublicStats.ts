@@ -7,7 +7,7 @@
  * — الإحصائيات المخفية لا تصل من الـ RPC أصلاً (يتم حذفها server-side).
  */
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 
 interface PublicStat {
@@ -27,8 +27,7 @@ export function usePublicStats() {
   const query = useQuery({
     queryKey: ['public-stats'],
     queryFn: async (): Promise<PublicStat[]> => {
-      const { data, error } = await supabase.rpc('get_public_stats');
-      if (error) throw error;
+      const data = await rpc('get_public_stats');
       const payload = data as { stats?: PublicStat[] } | null;
       const list = Array.isArray(payload?.stats) ? payload!.stats : [];
       // فلترة دفاعية إضافية للعناصر المخفية (الـ RPC لا يُرجعها أصلاً، لكن للأمان)
