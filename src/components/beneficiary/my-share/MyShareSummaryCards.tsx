@@ -1,9 +1,12 @@
 /**
- * بطاقات ملخص الحصة — نسبة، مستحقة، مستلمة، معلقة، سُلف
+ * بطاقات ملخص الحصة — نسبة، حصة (تقديرية/نهائية)، إجمالي مستلم، معلّقة، سُلف
+ * تتبع CR-02 و CR-09.
  */
 import { Card, CardContent } from '@/components/ui/card';
 import { Wallet, Clock, CheckCircle, Banknote, PieChart } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
+import { EstimatedShareBadge } from '@/components/common';
+import { DISTRIBUTIONS_LABELS } from '@/constants/beneficiaryCopy';
 
 interface Props {
   sharePercentage: number;
@@ -20,7 +23,7 @@ const MyShareSummaryCards = ({
   paidAdvancesTotal, isClosed, advancesEnabled,
 }: Props) => (
   <div className={`grid grid-cols-2 ${advancesEnabled ? 'lg:grid-cols-5' : 'sm:grid-cols-4'} gap-3 sm:gap-4`}>
-    {/* نسبة الحصة */}
+    {/* نسبة الحصة (G-01) */}
     <Card className="shadow-sm border-primary/20">
       <CardContent className="p-3 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
@@ -35,26 +38,27 @@ const MyShareSummaryCards = ({
       </CardContent>
     </Card>
 
-    {/* الحصة المستحقة */}
+    {/* الحصة (تقديرية أو نهائية) — CR-02 */}
     <Card className="shadow-sm gradient-primary text-primary-foreground">
       <CardContent className="p-3 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
             <Wallet className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
-          <div className="min-w-0">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">الحصة المستحقة</p>
-            {!isClosed ? (
-              <p className="text-sm font-medium text-primary-foreground/70">تُحسب عند إغلاق السنة</p>
-            ) : (
-              <p className="text-base sm:text-2xl font-bold truncate">{fmt(myShare)} ر.س</p>
-            )}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <p className="text-xs sm:text-sm text-primary-foreground/90">
+                {isClosed ? 'الحصة النهائية' : 'الحصة التقديرية'}
+              </p>
+              <EstimatedShareBadge isEstimated={!isClosed} />
+            </div>
+            <p className="text-base sm:text-2xl font-bold truncate">{fmt(myShare)} ر.س</p>
           </div>
         </div>
       </CardContent>
     </Card>
 
-    {/* المبالغ المستلمة */}
+    {/* CR-09: إجمالي المستلم */}
     <Card className="shadow-sm">
       <CardContent className="p-3 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
@@ -62,14 +66,14 @@ const MyShareSummaryCards = ({
             <CheckCircle className="w-4 h-4 sm:w-6 sm:h-6 text-success" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs sm:text-sm text-muted-foreground">المبالغ المستلمة</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">{DISTRIBUTIONS_LABELS.totalReceived}</p>
             <p className="text-base sm:text-2xl font-bold text-success truncate">{fmt(totalReceived)} ر.س</p>
           </div>
         </div>
       </CardContent>
     </Card>
 
-    {/* المبالغ المعلقة */}
+    {/* CR-09: المبالغ المعلّقة */}
     <Card className="shadow-sm">
       <CardContent className="p-3 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
@@ -77,7 +81,7 @@ const MyShareSummaryCards = ({
             <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-warning" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs sm:text-sm text-muted-foreground">المبالغ المعلقة</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">{DISTRIBUTIONS_LABELS.pending}</p>
             <p className="text-base sm:text-2xl font-bold text-warning truncate">{fmt(pendingAmount)} ر.س</p>
           </div>
         </div>
@@ -104,3 +108,4 @@ const MyShareSummaryCards = ({
 );
 
 export default MyShareSummaryCards;
+
