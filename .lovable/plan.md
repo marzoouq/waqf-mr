@@ -1,109 +1,114 @@
-## نتائج التحقق الجنائي المباشر للتقرير
+## التحقق من اعتراضات المراجعة
 
-تم فحص كل ادعاء فني بحثاً عن دليل ملموس في الكود. النتائج:
+### الاعتراض 1 — صياغة الحماية في `/preview`
+**صحيح 100%.** الكود يثبت أن الحماية هي `Authorization: Bearer ${LOVABLE_API_KEY}` وليست JWT مستخدم. سيتم تصحيح الصياغة.
 
-### ✅ ادعاءات صحيحة جديدة (لم تُعالَج في Version E)
+### الاعتراض 2 — ادعاء "موثّق في E/F" بلا قراءة مباشرة
+**اعتراض منهجي صحيح، لكن المحتوى مثبت الآن بقراءة مباشرة:**
 
-| الادعاء | الدليل المباشر |
-|---|---|
-| `_shared/auth.ts` موجود ومُستعمل في 4 functions فقط (`admin-manage-users`, `generate-invoice-pdf`, `process-email-queue`, `check-contract-expiry`) | `rg -l "_shared/auth"` |
-| `email-admin` لا يستخدم abstraction المشترك — auth/role check يدوي | تأكيد بصري + غياب من قائمة `_shared/auth` consumers |
-| `beneficiary-summary` لا يستخدم abstraction المشترك — `getUser`/`check_rate_limit` يدوي | الأسطر 38, 51 |
-| `webauthn` dispatcher رفيع + handlers متفرقة | `ls supabase/functions/webauthn/handlers/` |
-| **`guard-signup` body فعلي = `{ email, password }`** بينما docs تقول `{ email, national_id?, phone? }` | الأسطر 51, 95-96 من `guard-signup/index.ts` |
-| **`lookup-national-id` response = `{ found, masked_email, remaining, auth_error?, session? }`** بينما docs تقول `{ email?, error?, retry_after? }` | الأسطر 136-198 من `lookup-national-id/index.ts` |
-| **`email-admin` actions = `get_stats \| retry_dlq`** بينما docs تقول `list \| retry \| cancel` | السطر 10: `ALLOWED_ACTIONS = ["get_stats", "retry_dlq"]` |
+- `docs/api/network-inventory.md` موجود ويحتوي:
+  - جدول 17 Edge Function مع auth/wrapper/retry/rate-limit/cache/validation
+  - قسم "استثناءات مبررة" يدرج `notificationService` و`diagnosticsService` و`AuthContext` و`errorReporter` صراحةً
+  - "Auth Abstraction Adoption Matrix" مع 4/17 يستخدمون `_shared/auth.ts` ومبررات الباقي
+- `docs/api/edge-functions.md` يحتوي مدخلات صريحة لـ `email-admin`, `generate-invoice-pdf`, `guard-signup`, `lookup-national-id` (الأسطر 39-43, 110-135) بصياغات Version E/F (مثل `{ results: ... }` لـ generate-invoice-pdf في السطر 197).
 
-### ❌ ادعاءات خاطئة في التقرير
-
-| الادعاء | الواقع |
-|---|---|
-| `generate-invoice-pdf` body/response في docs خاطئة | **مُصحَّح فعلاً في Version E** — التقرير يستخدم لقطة قديمة |
-| المشروع يحتاج "policy override matrix" للـ retry/429 | **موجود فعلياً** في `docs/api/README.md` قسم "Retry & Rate-limit Policy" المُضاف في Version E |
-
-### 🟡 ملاحظات معمارية صحيحة لكن خارج النطاق التنفيذي
-
-- **عدم اتساق auth orchestration بين Edge Functions:** ادعاء صحيح هندسياً، لكن إعادة كتابة auth في functions حسّاسة (`webauthn`, `lookup-national-id`, `guard-signup`) **محظورة بقاعدة المشروع** ("لا تعدّل ملفات المصادقة دون طلب صريح"). الإجراء المقبول: **توثيق المصفوفة وتبرير الاستثناءات**، ليس refactoring.
-- **runtime validation محدود:** صحيح — مغطى عمداً في Version E (`dashboardSummary` + `supportAnalytics` فقط) كقرار نضج.
-- **client throttling عام:** مرفوض بقاعدة "Do Not Implement Backend Rate Limiting" في تعليمات المنصة.
+**ملاحظة:** `dataFetcher.ts`, `fiscalYearService.ts`, `securityService.ts` **ليست مذكورة بالاسم** في جدول الاستثناءات الحالي — المذكور هو `notificationService` و`diagnosticsService` فقط. لذا سأضيفها صراحةً في المرحلة 1 لإغلاق هذه الفجوة.
 
 ---
 
-## خطة Version F — معالجة Drift الجديد المؤكد (توثيقياً فقط)
+## Version G النهائية المنقّحة
 
-نطاق محدود: 3 إصلاحات docs + مصفوفة auth abstraction adoption. صفر تعديلات على Edge Functions.
+### المرحلة 1 — تحديثات توثيقية
 
-### المرحلة 1 — إصلاح Drift توثيقي مؤكد بالدليل المباشر
+**`docs/api/network-inventory.md`:**
+- إضافة قسم فرعي "CORS Exceptions" يوثّق `auth-email-hook`:
+  - **POST `/`** (الـ webhook الرسمي): يستخدم `getCorsHeaders(req)` المركزي + توقيع HMAC.
+  - **GET `/preview`**: يستخدم `Access-Control-Allow-Origin: *` + `Access-Control-Allow-Headers: 'authorization, content-type'`. الحماية عبر `Authorization: Bearer ${LOVABLE_API_KEY}` (وليس JWT مستخدم). استثناء intentional لمعاينة قوالب البريد من بيئات تطوير متعددة.
+- توسيع جدول "استثناءات مبررة" بإضافة 3 صفوف:
+  - `src/lib/services/dataFetcher.ts` — direct `.from()` reads — خدمة تصدير قراءة فقط بحدود `.limit(5000)` — خارج النطاق.
+  - `src/lib/services/fiscalYearService.ts` — يجمع `.from(...).insert()` (CRUD مباشر) مع `rpc()` للـ RPCs — direct CRUD مقبول للجداول البسيطة، RPCs مغلفة — خارج النطاق.
+  - `src/lib/services/securityService.ts` — direct `.from('access_log').select(...)` للقراءة الأمنية — graceful degradation محلي مع log + return — خارج النطاق.
 
-**`docs/api/edge-functions.md`:**
-1. `guard-signup` (سطر ~123): تغيير Body من `{ email, national_id?, phone? }` إلى `{ email: string, password: string }` + Response من `{ allowed, reason? }` إلى `{ success: true, message: string } | { error: string }`.
-2. `lookup-national-id` (سطر ~135): تغيير Response إلى الشكل الفعلي `{ found: boolean, masked_email: string, remaining: number, auth_error?: string, session?: { access_token, refresh_token }, retry_after?: number }` + إضافة ملاحظة "لا يُعاد البريد الكامل أبداً — `masked_email` فقط لمنع enumeration".
-3. `email-admin` (سطر ~113): تغيير Body من `{ action: 'list'|'retry'|'cancel', id? }` إلى `{ action: 'get_stats' | 'retry_dlq', queueName?: 'auth_emails'|'transactional_emails' }`.
+**`docs/api/cors-verification.md`:**
+- إضافة سطر استثناء `auth-email-hook /preview` بنفس الصياغة الدقيقة (LOVABLE_API_KEY، ليس JWT).
 
-**`docs/API.md`:** نفس التصحيحات الثلاثة في الأقسام المقابلة (إن وُجدت).
+### المرحلة 2 — إصلاح silent inconsistency في `invoiceStorageService.ts`
 
-### المرحلة 2 — مصفوفة Auth Abstraction Adoption
+**`uploadPaymentInvoicePdf`:**
+- التقاط نتيجة `update().eq()` في متغير في كلا المسارين (primary + retry).
+- فحص `error` و`logger.warn` مع: `invoiceId`, `storagePath`, نوع المسار (`primary` أو `retry`).
+- الإبقاء على `return URL.createObjectURL(pdfBlob)` (UX لا يُحجب).
 
-إضافة قسم جديد في `docs/api/network-inventory.md`:
+**`updateInvoiceFilePath`:**
+- نفس النمط: التقاط `error`، `logger.warn` مع `invoiceId` و`storagePath`.
+- إبقاء `Promise<void>` كما هو.
 
-| Function | يستخدم `_shared/auth.ts`؟ | السبب عند عدم الاستخدام |
-|---|:-:|---|
-| `admin-manage-users` | ✅ | — |
-| `generate-invoice-pdf` | ✅ | — |
-| `process-email-queue` | ✅ | — |
-| `check-contract-expiry` | ✅ | — |
-| `dashboard-summary` | ❌ | (يحتاج فحص — قد يكون مرشّحاً للترحيل لاحقاً) |
-| `beneficiary-summary` | ❌ | role-scoped مع rate-limit مخصصة بمفتاح خاص |
-| `email-admin` | ❌ | dispatcher صغير مع منطق DLQ متخصص |
-| `webauthn` | ❌ | dispatcher مع handlers متعددة بسياسات auth مختلفة (anon/JWT لكل عملية) |
-| `lookup-national-id` | ❌ | **anon flow** — لا يوجد JWT للتحقق منه |
-| `guard-signup` | ❌ | **anon flow** — قبل التسجيل أصلاً |
-| `auth-email-hook` | ❌ | webhook بـ HMAC، ليس JWT |
-| `health-check` | ❌ | عام بلا auth |
-| `ai-assistant` | (للفحص) | — |
-| `zatca-*` (5) | (للفحص) | — |
+### المرحلة 3 — إصلاح fire-and-forget في `advanceService.ts`
 
-ملاحظة عند نهاية المصفوفة: **التوحيد الكامل غير ممكن** — هناك 3 فئات auth جوهرياً (JWT user / webhook signature / anon) وفي كل فئة استثناءات مبررة.
+**`notifyOnCreate`:**
+- استبدال `.then(...)` chain بـ:
+  ```ts
+  void (async () => {
+    try {
+      const { data: benData, error } = await supabase.from('beneficiaries').select('user_id').eq('id', beneficiaryId).single();
+      if (error) { logger.warn('[notifyOnCreate] failed to load beneficiary', { beneficiaryId, error }); return; }
+      if (benData?.user_id) { notifyUser(...); }
+    } catch (e) { logger.warn('[notifyOnCreate] unexpected error', { beneficiaryId, e }); }
+  })();
+  ```
+- لا تغيير في توقيع الدالة العام أو سلوك fire-and-forget.
 
-### المرحلة 3 — تحديث `.lovable/plan.md`
+### المرحلة 4 — تحديث `.lovable/plan.md`
 
-تسجيل Version F: ما تحقق، ما رُفض، الفرق بين drift توثيقي (تم) و refactoring معماري (مرفوض بقاعدة).
+تسجيل Version G بصياغة دقيقة:
+- النتائج المؤكدة بأدلة مباشرة فقط.
+- التغييرات الفعلية (4 ملفات).
+- البنود **المؤجَّلة** كقرارات أوسع (وليس "مرفوضة" بصياغة قاطعة):
+  - توحيد adoption لـ `_shared/auth.ts` على functions إضافية → قرار refactor معماري واسع، مؤجل.
+  - contract tests شاملة + runtime validation موسّع → جولة مخصصة.
+  - إعادة كتابة `src/lib/services/*` → ليس ضرورياً لمعالجة findings الحالية.
 
 ---
-
-## خارج النطاق (مرفوض بدليل صريح)
-
-- ❌ Refactoring auth في `webauthn`/`guard-signup`/`lookup-national-id` → قاعدة "لا تعدّل ملفات المصادقة"
-- ❌ ترحيل `email-admin`/`beneficiary-summary` إلى `_shared/auth.ts` → كل واحدة لديها rate-limit key مخصص + سياسة role مختلفة؛ الترحيل يخلق regression حقيقي
-- ❌ بناء "contract tests" على Edge Functions → خارج نطاق طلب التوثيق؛ مرشّح لجولة منفصلة
-- ❌ runtime validation شامل → قرار نضج موثّق في Version E
-- ❌ client-side throttling → ممنوع بتعليمات المنصة
-- ❌ تعديل أي كود تشغيلي
 
 ## الملفات المتأثرة
 
-**تعديل (3):** `docs/api/edge-functions.md`, `docs/API.md`, `docs/api/network-inventory.md`, `.lovable/plan.md`
-**إنشاء:** لا شيء
+| الملف | نوع التغيير |
+|---|---|
+| `docs/api/network-inventory.md` | إضافة قسم CORS Exceptions + 3 صفوف استثناءات services |
+| `docs/api/cors-verification.md` | سطر استثناء `auth-email-hook /preview` |
+| `src/lib/services/invoiceStorageService.ts` | فحص error في 3 مواقع update + `logger.warn` |
+| `src/lib/services/advanceService.ts` | تحويل `.then()` إلى async/try-catch |
+| `.lovable/plan.md` | سجل Version G |
 
-**صفر تعديلات على Edge Functions أو كود تشغيلي. الجولة F توثيقية بالكامل، تستجيب فقط للـ drift المؤكد بدليل مباشر من كود الـ functions نفسها.**
+**صفر تعديلات على:** Edge Functions، ملفات المصادقة، `_shared/*`، wrappers (`invoke`/`rpc`)، types، client.ts، config.toml.
+
+تغييرات الكود **معزولة وآمنة**: لا تغيّر public signatures ولا UX، فقط تكشف failures كانت صامتة.
 
 ---
 
-## Version F — منفّذ (2026-05-11)
+## Version G — السجل التنفيذي (2026-05-11)
 
-### ما تم تنفيذه
-- ✅ `docs/api/edge-functions.md` — تصحيح 3 endpoints (`email-admin`, `guard-signup`, `lookup-national-id`) بناءً على فحص جنائي مباشر للكود.
-- ✅ `docs/api/network-inventory.md` — إضافة قسم "Auth Abstraction Adoption Matrix" يوثّق 17 function بالحالة الفعلية + سبب كل استثناء.
-- ℹ️ `docs/API.md` — لا يحتاج تعديلاً: أقسام `lookup-national-id` و`guard-signup` فيه دقيقة فعلاً (التقرير قاسهما على `docs/api/edge-functions.md` فقط).
+### النتائج المؤكدة بأدلة مباشرة
 
-### نتائج الفحص الجنائي للتقرير الخارجي
-- ✅ صحيح: drift في 3 endpoints بـ `docs/api/edge-functions.md` فقط.
-- ✅ صحيح: 4/17 functions فقط تستخدم `_shared/auth.ts` (`admin-manage-users`, `generate-invoice-pdf`, `process-email-queue`, `check-contract-expiry`).
-- ❌ خاطئ: ادعاء `generate-invoice-pdf` drift — مُصحَّح في Version E.
-- ❌ خاطئ: ادعاء غياب "policy override matrix" — موجود في `docs/api/README.md` منذ Version E.
-- 🟡 صحيح هندسياً لكن خارج النطاق: refactoring auth في functions حسّاسة محظور بقاعدة AGENTS.md.
+1. **`auth-email-hook /preview`** — يستخدم CORS مفتوح `*` بحماية `LOVABLE_API_KEY` (وليس JWT مستخدم). استثناء intentional موثّق الآن.
+2. **`invoiceStorageService`** — كان يبتلع أخطاء `update file_path` بصمت في 3 مواقع. تم إضافة فحص `error` + `logger.warn` مع الحفاظ على blob URL.
+3. **`advanceService.notifyOnCreate`** — كان يستخدم Promise `.then()` بدون `.catch()`. تم تحويله إلى async/try-catch مع تسجيل الأخطاء.
 
-### نتائج
-- 0 تعديلات على Edge Functions أو كود تشغيلي.
-- 2 ملفات توثيقية محدّثة.
-- 17 Edge Function موثّقة الآن بحالة auth الفعلية.
+### التغييرات الفعلية
+
+- `src/lib/services/invoiceStorageService.ts` — error logging على primary update + retry update + `updateInvoiceFilePath`.
+- `src/lib/services/advanceService.ts` — async/try-catch + `logger.warn`.
+- `docs/api/network-inventory.md` — قسم §7 "CORS Exceptions" + قسم §8 "استثناءات services إضافية" (يضيف `dataFetcher`, `fiscalYearService`, `securityService`, `invoiceStorageService`, `advanceService`).
+- `docs/api/cors-verification.md` — قسم استثناءات يصف `/preview`.
+
+### مؤجَّل (قرارات أوسع، غير مرفوضة بصياغة قاطعة)
+
+- توحيد adoption لـ `_shared/auth.ts` على functions إضافية (`ai-assistant`, `zatca-signer`, `zatca-xml-generator`) — refactor معماري واسع، يحتاج جولة مخصصة.
+- contract tests شاملة لكل response shape + runtime validation موسّع على endpoints مستقرة.
+- إعادة كتابة `src/lib/services/*` لتوحيد wrappers — ليست ضرورية لمعالجة findings الحالية.
+
+### تصحيحات منهجية مقابل المراجعة
+
+- **تم تصحيح:** الادعاء بأن `/preview` يستخدم "admin JWT" → الواقع `LOVABLE_API_KEY`.
+- **تم التحقق المباشر:** `network-inventory.md` و`edge-functions.md` يحتويان فعلاً مدخلات Version E/F (تم قراءة الملفات قبل الادعاء).
+- **تم سدّ فجوة:** `dataFetcher`/`fiscalYearService`/`securityService` لم تكن مذكورة بالاسم في جدول الاستثناءات سابقاً — أُضيفت في §8.

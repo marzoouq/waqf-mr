@@ -44,16 +44,38 @@ export const uploadPaymentInvoicePdf = async (
         });
 
       if (!retryError) {
-        await supabase
+        const { error: updateError } = await supabase
           .from('payment_invoices')
           .update({ file_path: timestampPath })
           .eq('id', invoiceId);
+        if (updateError) {
+          logger.warn('[uploadPaymentInvoicePdf] DB update failed (retry path)', {
+            invoiceId,
+            storagePath: timestampPath,
+            pathType: 'retry',
+            error: updateError,
+          });
+        }
+      } else {
+        logger.warn('[uploadPaymentInvoicePdf] Storage upload failed (retry path)', {
+          invoiceId,
+          storagePath: timestampPath,
+          error: retryError,
+        });
       }
     } else {
-      await supabase
+      const { error: updateError } = await supabase
         .from('payment_invoices')
         .update({ file_path: storagePath })
         .eq('id', invoiceId);
+      if (updateError) {
+        logger.warn('[uploadPaymentInvoicePdf] DB update failed (primary path)', {
+          invoiceId,
+          storagePath,
+          pathType: 'primary',
+          error: updateError,
+        });
+      }
     }
 
     return URL.createObjectURL(pdfBlob);
@@ -72,10 +94,17 @@ export const updateInvoiceFilePath = async (
 ): Promise<void> => {
   const safeName = sanitizeStoragePath(invoiceNumber || invoiceId);
   const storagePath = `payment-invoices/${safeName}.pdf`;
-  await supabase
+  const { error: updateError } = await supabase
     .from('invoices')
     .update({ file_path: storagePath })
     .eq('id', invoiceId);
+  if (updateError) {
+    logger.warn('[updateInvoiceFilePath] DB update failed', {
+      invoiceId,
+      storagePath,
+      error: updateError,
+    });
+  }
 };
 
 /**
