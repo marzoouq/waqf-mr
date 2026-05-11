@@ -38,7 +38,7 @@ Deno.serve(async (req): Promise<Response> => {
     console.error("Missing required environment variables");
     return new Response(JSON.stringify({ error: "Server configuration error" }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: jsonHeaders,
     });
   }
 
@@ -46,7 +46,7 @@ Deno.serve(async (req): Promise<Response> => {
   if (!authHeader?.startsWith("Bearer ")) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { "Content-Type": "application/json" },
+      headers: jsonHeaders,
     });
   }
 
@@ -55,7 +55,7 @@ Deno.serve(async (req): Promise<Response> => {
   if (!isServiceRole(token)) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
-      headers: { "Content-Type": "application/json" },
+      headers: jsonHeaders,
     });
   }
 
@@ -69,7 +69,7 @@ Deno.serve(async (req): Promise<Response> => {
 
   if (state?.retry_after_until && new Date(state.retry_after_until) > new Date()) {
     return new Response(JSON.stringify({ skipped: true, reason: "rate_limited" }), {
-      headers: { "Content-Type": "application/json" },
+      headers: jsonHeaders,
     });
   }
 
@@ -108,12 +108,12 @@ Deno.serve(async (req): Promise<Response> => {
 
     if (result.stopped) {
       return new Response(JSON.stringify({ processed: totalProcessed, stopped: result.stopped }), {
-        headers: { "Content-Type": "application/json" },
+        headers: jsonHeaders,
       });
     }
   }
 
   return new Response(JSON.stringify({ processed: totalProcessed }), {
-    headers: { "Content-Type": "application/json" },
+    headers: jsonHeaders,
   });
 });
