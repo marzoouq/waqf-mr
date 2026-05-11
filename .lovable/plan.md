@@ -1,156 +1,87 @@
-# خطة التنفيذ الكاملة — إصلاح صلاحيات anon + استراتيجية API شاملة
+# خطة إصلاح ثغرات CORS واختبارات Edge Functions (نسخة محدّثة)
 
 ## السياق المؤكَّد بعد الفحص
 
-- **الـ trigger موجود فعلاً**: `trg_auto_revoke_anon_execute` (event trigger على `ddl_command_end`) يستدعي `public.auto_revoke_anon_execute()`.
-- **سلوكه الحالي**: يسحب `EXECUTE` من `anon` و`PUBLIC` لكل دالة جديدة/معادة الإنشاء في schema `public`، ويمنح `authenticated` إلا إذا كانت في قائمة `service_role_only_functions`. **لا يوجد** استثناء للدوال العامة.
-- **الدوال العامة (anon-callable) المطلوبة فقط**: `get_public_stats()` و`log_access_event(...)` — كلتاهما بدون `COMMENT` حالياً.
-- **سبب الانحدار**: REVOKE جماعي سابق + غياب وسم استثناء ⇒ `anon` فقد الصلاحية ⇒ خطأ `42501` على `/auth` و`/`.
+- **`auth-email-hook`**: يستخدم `*` محلياً + رؤوس مخصّصة `x-lovable-signature`, `x-lovable-timestamp` غير موجودة في `_shared/cors.ts`. يحتوي مساراً للمعاينة (`handlePreview`) تستدعيه أداة Lovable من origin خارجي.
+- **`process-email-queue`**: cron-only (يستخدم `isServiceRole` + `LOVABLE_API_KEY`، يُستدعى عبر `pg_net`)، 6 استجابات بدون CORS.
+- **`_shared/cors.ts`**: `getAllowedOrigin` يُرجع سلسلة فارغة عند غياب `Origin` header مع وجود `req` ⇒ يكسر استدعاءات السيرفر-إلى-سيرفر.
+- **`edgeFunctionAuth.test.ts`**: لا اختبارات CORS/preflight.
 
 ---
 
-## المرحلة 1 — إصلاح فوري + تحصين الـ trigger (Migration واحدة)
+## المرحلة 1 — تحديث `_shared/cors.ts`
 
-### 1.1 وسم الدوال العامة بـ COMMENT صريح
+تعديلان فقط:
 
-```sql
-COMMENT ON FUNCTION public.get_public_stats() IS
-  '[anon-callable] Public landing-page stats. Output filtered by app_settings (admin-controlled visibility).';
+1. **دعم استدعاءات السيرفر**: إذا كان `req.headers.get('origin')` فارغاً/null، يُرجع `ALLOWED_ORIGINS[0]` بدلاً من سلسلة فارغة. الـ origins المتصفحية غير المعروفة تبقى مرفوضة.
+2. **إضافة رؤوس webhook**: إضافة `x-lovable-signature, x-lovable-timestamp` إلى `Access-Control-Allow-Headers`.
 
-COMMENT ON FUNCTION public.log_access_event(text, text, text, jsonb) IS
-  '[anon-callable] Pre-auth client error/event logger. Writes to access_logs (RLS prevents user reads).';
-```
+`Vary: Origin` موجود مسبقاً.
 
-### 1.2 ترقية `auto_revoke_anon_execute` لاحترام الوسم
+## المرحلة 2 — توحيد `auth-email-hook` على CORS المشترك (مع استثناء preview)
 
-التعديل الجوهري: قبل سحب `EXECUTE` من `anon`، تفحص الدالة `obj_description(oid)` بحثاً عن السلسلة `[anon-callable]`. إذا وُجدت، **تتخطّى السحب** وتمنح `anon` صراحةً.
+- استيراد `getCorsHeaders` من `../_shared/cors.ts`.
+- استبدال `corsHeaders` المحلي (مسار الـ webhook الرئيسي) باستدعاء `getCorsHeaders(req)` في بداية الـ handler.
+- تعديل كل `new Response(...)` في المسار الرئيسي (تقريباً 12 موقعاً) لاستخدام `corsHeaders` الجديد.
+- **الإبقاء على `previewCorsHeaders` المحلي مع `*`** في `handlePreview` فقط، مع تعليق صريح:
+  ```
+  // CORS مفتوح مقصود: مسار /preview يُستدعى من أداة معاينة قوالب البريد في Lovable (origin خارجي).
+  // المصادقة تتم عبر LOVABLE_API_KEY في Authorization header، فلا حاجة لتقييد origin.
+  ```
+- لا تغيير على منطق التحقق من توقيع الـ webhook أو توليد HTML.
 
-```plpgsql
--- بعد استخراج func_name
-IF position('[anon-callable]' in COALESCE(obj_description(obj.objid), '')) > 0 THEN
-  EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO anon, authenticated', obj.object_identity);
-  CONTINUE;
-END IF;
+## المرحلة 3 — تأمين `process-email-queue`
 
--- المسار الافتراضي الحالي (revoke + grant authenticated إذا لم تكن service-role-only)
-```
+- استيراد `getCorsHeaders` من `../_shared/cors.ts`.
+- إضافة معالج `OPTIONS` في بداية الـ handler.
+- إضافة `corsHeaders` لكل الاستجابات الست.
+- إضافة تعليق رأس صريح:
+  ```
+  // cron-only: يُستدعى من pg_cron عبر pg_net (سيرفر-إلى-سيرفر).
+  // CORS مُضاف كدفاع عميق فقط — لا متصفحات تستدعي هذه الوظيفة.
+  ```
 
-### 1.3 إصلاح فوري للصلاحيات (في نفس الـ migration بعد التعديل)
+## المرحلة 4 — توسيع `src/test/edgeFunctionAuth.test.ts`
 
-```sql
-GRANT EXECUTE ON FUNCTION public.get_public_stats() TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.log_access_event(text, text, text, jsonb) TO anon, authenticated;
-```
+إنشاء `src/test/__helpers__/corsMirror.ts` يحاكي منطق `getAllowedOrigin` و`getCorsHeaders` بـ TypeScript ESM (نسخة 1:1 من Deno). ثم إضافة `describe('CORS preflight & origin allowlist', ...)` بـ 5 اختبارات:
 
-> ملاحظة: التواقيع الفعلية ستُستخرج من `pg_proc` ضمن الـ migration لضمان المطابقة.
+1. origin إنتاجي مسموح (`https://waqf-wise.net`) ⇒ يطابق + `Vary: Origin`.
+2. origin preview بنمط UUID ⇒ مسموح.
+3. origin مرفوض (`https://evil.example.com`) ⇒ `Access-Control-Allow-Origin` فارغ.
+4. غياب origin (سيرفر-إلى-سيرفر) ⇒ يُرجع `ALLOWED_ORIGINS[0]`.
+5. preflight `OPTIONS`: التأكد من `Access-Control-Allow-Methods` و`Access-Control-Allow-Headers` (تشمل `x-lovable-signature`).
 
----
+> **قاعدة `lib vs utils`**: الملف helper اختباري بحت تحت `__helpers__/` ولا يُستورد من تطبيق الإنتاج، فلا يُخالف القاعدة.
 
-## المرحلة 2 — توسيع CI Gate (`scripts/supabase-lint-check.mjs`)
+## المرحلة 5 — توثيق
 
-- إضافة فحص جديد: استعلام Management API عن جميع الدوال في schema `public` التي تحمل وسم `[anon-callable]` في تعليقها.
-- لكل واحدة، التحقق من `proacl` يحتوي `anon=X`.
-- إذا فُقدت الصلاحية ⇒ فشل البناء برسالة واضحة تشير إلى الدالة المتأثرة.
-- قائمة `ALLOWLIST_ANON` صريحة في السكربت كمصدر حقيقة احتياطي: `['get_public_stats', 'log_access_event']`.
-- تحديث `docs/security/security-definer-allowlist.md` بقسم جديد "الدوال العامة (anon-callable)".
-
----
-
-## المرحلة 3 — طبقة API موحّدة على الكلاينت
-
-### 3.1 `src/lib/api/rpc.ts` (جديد)
-
-Wrapper رفيع حول `supabase.rpc()` يوفّر:
-
-- توقيت تلقائي (`performance.now()`) يُمرَّر إلى `queryMonitor`.
-- تصنيف الأخطاء في `class ApiError extends Error` بفئات:
-  - `auth` (401/403 من PostgREST)
-  - `permission` (`42501` Postgres)
-  - `validation` (400 / `22xxx` / `23xxx`)
-  - `network` (`TypeError: fetch failed`)
-  - `rate_limit` (429)
-  - `server` (5xx)
-  - `unknown`
-- إعادة محاولة فقط لـ `network` / `server` / `rate_limit` بـ exponential backoff: `250ms → 500ms → 1000ms` (حد أقصى 3 محاولات).
-- لا إعادة محاولة لـ `permission` / `validation` / `auth`.
-
-### 3.2 توسيع `src/utils/error/getErrorStatus.ts`
-
-إضافة دالة جديدة `classifyError(error)` تُرجع `{ status, code, category }` — مع إبقاء `getErrorStatus` كما هي للحفاظ على التوافق العكسي.
-
-### 3.3 ضبط `src/lib/queryClient.ts` و`queryStaleTime.ts`
-
-- استبدال `retry` ليستخدم `classifyError(error).category`.
-- توسيع ثوابت `STALE_*`:
-  - `STALE_PUBLIC = 5 * 60_000` (إحصائيات الهبوط)
-  - `STALE_DASHBOARD = 30_000` (لوحات)
-  - `STALE_REFERENCE = 15 * 60_000` (إعدادات/أدوار)
-  - الإبقاء على `STALE_FINANCIAL` كما هو.
-
-### 3.4 Throttle لـ `errorReporter`
-
-- dedupe خلال 5 ثوانٍ بمفتاح `hash(error_name + url)`.
-- يقلّل ضوضاء `log_access_event` ويحمي من حلقات الأخطاء.
-
----
-
-## المرحلة 4 — تحصين CORS لـ Edge Functions
-
-- مراجعة كل `new Response(...)` في `supabase/functions/**/*.ts` للتأكد من تضمين `getCorsHeaders(req)` في كل استجابة (نجاح وخطأ).
-- إضافة `Vary: Origin` إلى `getCorsHeaders`.
-- لا تعديل على `_shared/cors.ts` نفسه إلا إضافة الـ header.
-
----
-
-## المرحلة 5 — مراقبة الأداء
-
-في `src/lib/monitoring/queryMonitor.ts`:
-
-- عتبات تنبيه: `> 2000ms ⇒ logger.warn`، `> 5000ms ⇒ logger.error`.
-- تتبّع حجم استجابة (`content-length` إن توفّر) للاستعلامات > 100KB.
-
----
-
-## المرحلة 6 — اختبارات
-
-| الملف | المحتوى |
-|---|---|
-| `src/lib/api/rpc.test.ts` | تغطية كل فئة خطأ + سلوك backoff + عدم إعادة المحاولة على permission |
-| `src/test/publicRpcAccess.test.ts` | اختبار تكامل: anon يستطيع استدعاء `get_public_stats` و`log_access_event` فعلاً |
-| `src/test/edgeFunctionAuth.test.ts` (توسيع) | preflight OPTIONS من origin مسموح/مرفوض |
-
----
-
-## المرحلة 7 — توثيق
-
-- `docs/api/README.md` (جديد): جدول كامل بكل RPC + الدور المستدعي + المعاملات + شكل الاستجابة + رمز الخطأ المعتاد + قاعدة retry/cache.
-- `docs/api/edge-functions.md` (جديد): جدول كل Edge Function + origins المسموحة + رؤوس المصادقة المطلوبة.
-- تحديث `docs/security/security-definer-allowlist.md` بقسم anon-callable.
+- تحديث `docs/api/edge-functions.md` بقسمين:
+  - **Origins المسموحة**: قائمة `ALLOWED_ORIGINS` + أنماط preview.
+  - **تصنيف الوظائف**: جدول لكل من الـ 18 وظيفة يحدّد "متصفح" / "cron" / "server-to-server (Auth Hook)" + الرؤوس المتوقعة.
 
 ---
 
 ## ما لن يتغيّر
 
-- منطق الأعمال (RLS، التوزيع، الإقفال، صيغ المحاسبة).
-- الملفات المحمية: `supabase/config.toml`, `client.ts`, `types.ts`, `.env`.
-- `AuthContext` / `ProtectedRoute` / `SecurityGuard`.
-- Edge Functions القائمة (فحص فقط، لا إعادة كتابة).
-- قائمة `service_role_only_functions` داخل الـ trigger (تبقى كما هي).
+- منطق التحقق من توقيع الـ webhook في `auth-email-hook`.
+- منطق `processBatch` و`utils.ts` في `process-email-queue`.
+- `verify_jwt = false` في `supabase/config.toml`.
+- بقية الـ 16 وظيفة التي تستخدم `getCorsHeaders(req)` بشكل صحيح.
+- `AuthContext`, `ProtectedRoute`, `SecurityGuard`, ملفات Supabase المحمية.
 
 ---
 
 ## ترتيب التنفيذ
 
-1. **Migration**: ترقية `auto_revoke_anon_execute` + COMMENT + GRANT (تُصلح الشاشة فوراً).
-2. توسيع `supabase-lint-check.mjs` + تحديث `security-definer-allowlist.md`.
-3. إنشاء `src/lib/api/rpc.ts` + `classifyError` + توسيع `STALE_*`.
-4. تحديث `queryClient.ts` + dedupe في `errorReporter`.
-5. مراجعة CORS + إضافة `Vary: Origin`.
-6. اختبارات (rpc + publicRpcAccess + CORS).
-7. توثيق `docs/api/`.
+1. تعديل `_shared/cors.ts` (origin افتراضي للسيرفر + رؤوس webhook).
+2. توحيد `auth-email-hook/index.ts` (مع الإبقاء على preview مفتوحاً).
+3. إضافة CORS لـ `process-email-queue/index.ts` + توثيق cron-only.
+4. إنشاء `src/test/__helpers__/corsMirror.ts` + توسيع `edgeFunctionAuth.test.ts` بـ 5 اختبارات.
+5. تشغيل `vitest run src/test/edgeFunctionAuth.test.ts` للتحقق.
+6. تحديث `docs/api/edge-functions.md`.
 
 ## مخاطر / نقاط انتباه
 
-- **توقيع `log_access_event`**: سيُستخرج من DB قبل كتابة `GRANT` لتجنّب overload mismatch.
-- **Trigger يعمل فقط على دوال جديدة**: الإصلاح الفوري بـ `GRANT` ضروري لأن الدالتين موجودتان فعلاً.
-- **لا تأثير على دوال admin/accountant**: تعديل الـ trigger يضيف فرعاً جديداً فقط، السلوك الافتراضي يبقى REVOKE.
+- **حساسية `auth-email-hook`**: أي خطأ يكسر إيميلات التسجيل/إعادة تعيين كلمة المرور. التغيير محصور في CORS فقط.
+- **إضافة الرؤوس المخصّصة لكل الوظائف**: `x-lovable-signature`/`x-lovable-timestamp` ستظهر في `Access-Control-Allow-Headers` لكل الـ 18 وظيفة. لا أثر سلبي — المتصفحات تتجاهل ما لا ترسله.
+- **افتراضي origin للسيرفر**: استخدام `ALLOWED_ORIGINS[0]` لا يفتح ثغرة لأن المتصفحات لا ترسل طلبات بدون `Origin` header؛ الفرع يُفعَّل فقط للـ server-to-server.
