@@ -4,6 +4,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { notifyAdmins, notifyUser } from '@/lib/services';
+import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format/format';
 
 /** انتقالات الحالة المسموحة — FSM (داخلي) */
