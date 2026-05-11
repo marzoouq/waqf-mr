@@ -1,6 +1,8 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, Wallet, CheckCircle, Clock } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
+import { EstimatedShareBadge } from '@/components/common';
+import { DISTRIBUTIONS_LABELS } from '@/constants/beneficiaryCopy';
 
 interface Props {
   totalIncome: number;
@@ -9,9 +11,13 @@ interface Props {
   totalReceived: number;
   pendingAmount: number;
   waqfCorpusPrevious: number;
+  /** CR-02: هل السنة مغلقة؟ */
+  isClosed?: boolean;
 }
 
-const DisclosureSummaryCards = ({ totalIncome, totalExpenses, myShare, totalReceived, pendingAmount, waqfCorpusPrevious }: Props) => (
+const DisclosureSummaryCards = ({
+  totalIncome, totalExpenses, myShare, totalReceived, pendingAmount, waqfCorpusPrevious, isClosed = false,
+}: Props) => (
   <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <Card className="shadow-sm bg-success/10 border-success/20">
       <CardContent className="p-4 sm:p-6">
@@ -57,20 +63,27 @@ const DisclosureSummaryCards = ({ totalIncome, totalExpenses, myShare, totalRece
       </CardContent>
     </Card>
 
+    {/* CR-02: حصتي تقديرية أو نهائية */}
     <Card className="shadow-sm gradient-primary text-primary-foreground">
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
             <Wallet className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <div className="min-w-0">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">حصتي المستحقة</p>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <p className="text-xs sm:text-sm text-primary-foreground/90">
+                {isClosed ? 'حصتي النهائية' : 'حصتي التقديرية'}
+              </p>
+              <EstimatedShareBadge isEstimated={!isClosed} />
+            </div>
             <p className="text-lg sm:text-2xl font-bold truncate">{fmt(myShare)} ر.س</p>
           </div>
         </div>
       </CardContent>
     </Card>
 
+    {/* CR-09: إجمالي المستلم */}
     <Card className="shadow-sm bg-success/10 border-success/20">
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-center gap-3 sm:gap-4">
@@ -78,7 +91,7 @@ const DisclosureSummaryCards = ({ totalIncome, totalExpenses, myShare, totalRece
             <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs sm:text-sm text-muted-foreground">حصتي المستلمة</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">{DISTRIBUTIONS_LABELS.totalReceived}</p>
             <p className="text-lg sm:text-2xl font-bold text-success truncate">{fmt(totalReceived)} ر.س</p>
           </div>
         </div>
@@ -93,7 +106,7 @@ const DisclosureSummaryCards = ({ totalIncome, totalExpenses, myShare, totalRece
               <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-warning" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-muted-foreground">مبلغ معلق</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">{DISTRIBUTIONS_LABELS.pending}</p>
               <p className="text-lg sm:text-2xl font-bold text-warning truncate">{fmt(pendingAmount)} ر.س</p>
             </div>
           </div>
@@ -104,3 +117,4 @@ const DisclosureSummaryCards = ({ totalIncome, totalExpenses, myShare, totalRece
 );
 
 export default DisclosureSummaryCards;
+
