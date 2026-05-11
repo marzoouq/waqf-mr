@@ -17,9 +17,9 @@ export const ALLOWED_ORIGIN_PATTERNS = [
 ];
 
 function getAllowedOrigin(req?: Request): string {
-  if (!req) return ALLOWED_ORIGINS[0];
+  if (!req) return ALLOWED_ORIGINS[0]!;
   const origin = req.headers.get('origin');
-  if (!origin) return ALLOWED_ORIGINS[0];
+  if (!origin) return ALLOWED_ORIGINS[0]!;
   if (
     ALLOWED_ORIGINS.includes(origin) ||
     ALLOWED_ORIGIN_PATTERNS.some((p) => p.test(origin))
