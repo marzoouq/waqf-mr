@@ -7,6 +7,21 @@ This is **intentional** — Lovable Cloud uses a signing-keys system where the d
 
 **Exception:** `process-email-queue` uses `verify_jwt = true` because it is invoked exclusively by `pg_cron` via `pg_net` with a service-role JWT — there is no end-user request path, so the platform-level JWT check is sufficient and no manual `getUser()` validation is required.
 
+### Recognized Auth Patterns (Version I-R Inventory)
+
+The 18 Edge Functions fall into 5 legitimate categories. Do **not** force a single auth shape across all of them:
+
+| Pattern | Functions | Notes |
+|---|---|---|
+| **A** — JWT-protected uniform | `beneficiary-summary`, `dashboard-summary`, `email-admin` | Candidates for `_shared/auth.ts` `authenticate()`. |
+| **B** — ZATCA cluster | `zatca-onboard`, `zatca-renew`, `zatca-report`, `zatca-signer`, `zatca-xml-generator` | Migrate per-function after individual review. |
+| **C** — Mixed dispatcher | `webauthn` | Keep dispatcher; use shared helpers only where uniform. |
+| **D** — Public/anon by design | `guard-signup`, `lookup-national-id`, `health-check` | Bypass `_shared/auth` intentionally — must carry an inline justification comment. |
+| **E** — Hybrid/special | `auth-email-hook` (HMAC webhook), `check-contract-expiry` (service-role + admin), `process-email-queue` (`verify_jwt=true` cron), `ai-assistant` (streaming body), `admin-manage-users`, `generate-invoice-pdf` | Use `_shared/auth` selectively; never break the streaming body of `ai-assistant`. |
+
+Currently 4 functions import `_shared/auth.ts` (categories A target + parts of E). The realistic adoption ceiling is ~8 — not 15/19.
+
+
 ### Required Pattern for Every New Function
 
 Every function that accesses user data or performs privileged operations **MUST** include authentication:
