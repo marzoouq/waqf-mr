@@ -3,6 +3,7 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { defaultNotify } from '@/lib/notify';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import type { SupportTicket } from './useSupportTickets';
@@ -24,7 +25,7 @@ export const useCreateTicket = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
       defaultNotify.success('تم إنشاء التذكرة بنجاح');
-      supabase.rpc('notify_admins', {
+      rpc('notify_admins', {
         p_title: 'تذكرة دعم فني جديدة',
         p_message: 'تم استلام تذكرة دعم فني جديدة تحتاج مراجعة',
         p_type: 'info',

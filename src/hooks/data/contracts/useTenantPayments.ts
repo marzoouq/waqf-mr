@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { logger } from '@/lib/logger';
 import { defaultNotify } from '@/lib/notify';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
@@ -47,7 +48,7 @@ export const useUpsertTenantPayment = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payment: UpsertPaymentParams) => {
-      const { data, error } = await supabase.rpc('upsert_tenant_payment', {
+      return await rpc('upsert_tenant_payment', {
         p_contract_id: payment.contract_id,
         p_paid_months: payment.paid_months,
         p_notes: payment.notes ?? undefined,
@@ -57,8 +58,6 @@ export const useUpsertTenantPayment = () => {
         p_tenant_name: payment.auto_income?.tenant_name ?? undefined,
         p_payment_date: payment.auto_income?.payment_date ?? undefined,
       });
-      if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenant_payments'] });

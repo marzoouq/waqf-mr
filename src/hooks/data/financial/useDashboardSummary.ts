@@ -4,6 +4,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/api/invoke';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { useMemo } from 'react';
 import { isFyReady } from '@/constants/fiscalYearIds';
@@ -22,17 +23,16 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
     queryKey: ['dashboard-summary', fiscalYearId, fiscalYearLabel ?? ''],
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('dashboard-summary', {
-        body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fiscalYearLabel },
-      });
-      // كشف جلسة منتهية — تسجيل خروج تلقائي بدلاً من رسالة خطأ عامة
-      if (error?.message?.includes('401') || data?.error === 'Unauthorized') {
-        await supabase.auth.signOut();
-        throw new Error('انتهت الجلسة — يُرجى تسجيل الدخول مجدداً');
-      }
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data as DashboardSummaryResponse;
+      return await invoke<DashboardSummaryResponse>(
+        'dashboard-summary',
+        { body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fiscalYearLabel } },
+        {
+          onAuthError: async () => {
+            // جلسة منتهية — تسجيل خروج تلقائي بدلاً من رسالة خطأ عامة
+            await supabase.auth.signOut();
+          },
+        },
+      );
     },
     enabled: !!fiscalYearId && isFyReady(fiscalYearId),
   });

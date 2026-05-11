@@ -3,6 +3,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { defaultNotify } from '@/lib/notify';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
@@ -37,11 +38,10 @@ export const useGenerateContractInvoices = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (contractId: string) => {
-      const { data, error } = await supabase.rpc('generate_contract_invoices', {
+      const data = await rpc<number>('generate_contract_invoices', {
         p_contract_id: contractId,
       });
-      if (error) throw error;
-      return data as number;
+      return data;
     },
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
@@ -56,9 +56,8 @@ export const useGenerateAllInvoices = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.rpc('generate_all_active_invoices');
-      if (error) throw error;
-      return data as number;
+      const data = await rpc<number>('generate_all_active_invoices');
+      return data;
     },
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
@@ -73,12 +72,10 @@ export const useMarkInvoicePaid = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ invoiceId, paidAmount }: { invoiceId: string; paidAmount?: number }) => {
-      const { data, error } = await supabase.rpc('pay_invoice_and_record_collection', {
+      return await rpc('pay_invoice_and_record_collection', {
         p_invoice_id: invoiceId,
         p_paid_amount: paidAmount ?? undefined,
       });
-      if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
@@ -95,11 +92,9 @@ export const useMarkInvoiceUnpaid = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (invoiceId: string) => {
-      const { data, error } = await supabase.rpc('unpay_invoice_and_revert_collection', {
+      return await rpc('unpay_invoice_and_revert_collection', {
         p_invoice_id: invoiceId,
       });
-      if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });

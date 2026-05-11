@@ -3,6 +3,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 
 /** إحصائيات الدعم الفني — RPC واحد بدلاً من 9 استعلامات */
@@ -11,8 +12,7 @@ export const useSupportStats = () => {
     queryKey: ['support_stats'],
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_support_stats');
-      if (error) throw error;
+      const data = await rpc('get_support_stats');
       return data as {
         totalTickets: number;
         openTickets: number;
@@ -43,8 +43,7 @@ export const useSupportAnalytics = () => {
     queryKey: ['support_analytics'],
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_support_analytics');
-      if (error) throw error;
+      const data = await rpc('get_support_analytics');
       // RPC — cast مبرر، يحتاج Zod validation لاحقاً
       return data as unknown as SupportAnalyticsData;
     },

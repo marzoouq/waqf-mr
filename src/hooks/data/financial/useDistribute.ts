@@ -3,7 +3,7 @@
  * يضمن عدم تلف البيانات في حالة فشل جزئي
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { defaultNotify } from '@/lib/notify';
 import { notifyUser } from '@/lib/services';
 
@@ -42,15 +42,14 @@ export const useDistributeShares = () => {
         ...d,
         beneficiary_user_id: d.beneficiary_user_id ?? null,
       }));
-      const { data, error } = await supabase.rpc('execute_distribution', {
+      const data = await rpc<{ success: boolean; with_share: number; with_deficit: number }>('execute_distribution', {
         p_account_id: account_id,
         p_fiscal_year_id: fiscal_year_id || undefined,
         p_total_distributed: total_distributed,
         p_distributions: sanitized,
       });
-      if (error) throw error;
       return {
-        result: data as { success: boolean; with_share: number; with_deficit: number },
+        result: data,
         distributions,
       };
     },

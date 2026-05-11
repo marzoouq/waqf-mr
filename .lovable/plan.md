@@ -68,3 +68,29 @@
 - **دفعة B**: تعديل تدفقات الإقفال/التوزيع/WebAuthn/ZATCA — يتطلب smoke testing يدوي لكل مسار.
 - **`onAuthError` callback**: يجب أن يُمرَّر صراحةً في `useDashboardSummary` لتفادي تغيير سلوك signOut الحالي.
 - **`data.error` fallback**: `invoke()` يحتفظ بـ `cause` للوصول للحقول غير القياسية إن لزم.
+
+---
+
+## ✅ حالة التنفيذ النهائية
+
+| المرحلة | الحالة | الملاحظات |
+|---------|--------|----------|
+| 1. غلاف `invoke()` | ✅ مكتمل | `src/lib/api/invoke.ts` + ApiError + `data.error` fallback + `onAuthError` |
+| 2A. ترحيل آمن (12 ملف) | ✅ مكتمل | services/* + 8 hooks بسيطة |
+| 2B. ترحيل حسّاس | ✅ مكتمل | useCloseFiscalYear, useDistribute, useDashboardSummary (`onAuthError`→signOut), useWebAuthn{Auth,Register} (`maxAttempts:1`), useZatcaInvoiceActions (4 mutations), useSupportTicketMutations, useSupportAnalytics, useTenantPayments, useCollectionAlerts, usePaymentInvoices (4 mutations), useBeneficiaries (مع fallback) |
+| 3. مراقبة الحمولة | ✅ مكتمل | `payloadMonitor` يعمل من `rpc()` و `invoke()` |
+| 4. اختبارات failure | ✅ مكتمل | 17 اختبار يمر (9 rpc + 8 invoke) |
+| 5. توثيق | ✅ مكتمل | `edge-functions.md` (18 وظيفة + مصفوفة فئات) + `README.md` (`invoke()` + payload monitor) |
+| 6. throttle عميل | ⏸ مؤجَّل | كما خُطِّط — ينتظر رصد flood فعلي |
+
+## ملفات استُثنيت من الترحيل (مبرَّر)
+
+- `src/contexts/AuthContext.tsx` — قاعدة المشروع: لا تعديل على ملفات المصادقة دون طلب صريح.
+- `src/lib/errorReporter.ts` — يمنع recursion في طبقة logging.
+- `src/lib/auth/nationalIdLogin.ts` — منطق rate-limit مخصّص يفحص `data.retry_after`/`data.remaining` مباشرة.
+- `src/hooks/page/admin/management/useEmailMonitorPage.ts`, `useUserManagementData.ts`, `useBeneficiaryUsers.ts`, `useInvoices.ts` (PDF blob), `useZatcaOnboarding.ts`, `useDashboardPrefetch.ts` — لم تكن في نطاق Wave A/B؛ تُترك للجولة القادمة عند الحاجة.
+
+## التحقق النهائي
+
+- `bunx vitest run src/lib/api` ⇒ 17/17 ✅
+- لا أخطاء build بعد كل ترحيل (تحقق فوري عبر اللينتر).
