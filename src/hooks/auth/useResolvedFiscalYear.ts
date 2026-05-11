@@ -7,6 +7,8 @@
  * - `fiscalYearId` النهائي بعد resolveFiscalYearId
  * - كائن `fiscalYear` المطابق
  * - `isClosed`, `isSpecificYear`
+ *
+ * يقرأ بيانات السنوات داخليًا (react-query يدير الـ dedup عبر queryKey).
  */
 import { useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
@@ -14,7 +16,17 @@ import { useActiveFiscalYear, type FiscalYear } from '@/hooks/data/financial/use
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { resolveFiscalYearId } from '@/utils/fiscalYear/resolveFiscalYearId';
 
-export function useResolvedFiscalYear(selectedId: string) {
+export interface ResolvedFiscalYear {
+  fiscalYearId: string;
+  fiscalYear: FiscalYear | null;
+  fiscalYears: FiscalYear[];
+  isClosed: boolean;
+  isLoading: boolean;
+  noPublishedYears: boolean;
+  isSpecificYear: boolean;
+}
+
+export function useResolvedFiscalYear(selectedId: string): ResolvedFiscalYear {
   const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
   const { role, loading: authLoading } = useAuth();
 
