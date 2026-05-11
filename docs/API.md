@@ -1,6 +1,13 @@
 <div dir="rtl">
 
-# توثيق الوظائف الخلفية (Edge Functions) — 16 وظيفة
+# توثيق الوظائف الخلفية (Edge Functions) — 18 وظيفة
+
+> **مصادر الحقيقة:**
+> - **عقود تفصيلية + CORS + auth matrix:** [`docs/api/edge-functions.md`](./api/edge-functions.md)
+> - **جرد طوبولوجيا الشبكة (Edge + RPCs + استثناءات):** [`docs/api/network-inventory.md`](./api/network-inventory.md)
+> - **سياسات retry/cache/throttle:** [`docs/api/README.md`](./api/README.md)
+>
+> هذا الملف مرجع مستخدم/مطور — أمثلة استدعاء عملية. عند أي تعارض، الملفات أعلاه أولى.
 
 جميع الوظائف تعمل على Lovable Cloud وتُستدعى عبر:
 ```typescript
