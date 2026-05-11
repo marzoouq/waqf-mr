@@ -1,17 +1,17 @@
 /**
  * هوكات CRUD للفواتير
+ * M2.2: استعلام fiscal-year + حذف يمران عبر invoicesService.
  */
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { invoke } from '@/lib/api/invoke';
 import { defaultNotify } from '@/lib/notify';
 import { createCrudFactory } from '../core/useCrudFactory';
-import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { invoicesService, INVOICES_SELECT } from '@/lib/services/invoicesService';
 
 // إعادة تصدير أدوات الملفات للتوافق مع الاستيرادات الحالية
 export { uploadInvoiceFile, getInvoiceSignedUrl, ALLOWED_MIME_TYPES, MAX_FILE_SIZE, VALID_EXTENSIONS } from './useInvoiceFileUtils';
-import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+import { isFyReady } from '@/constants/fiscalYearIds';
 
 // ---------------------------------------------------------------------------
 // Types & constants
