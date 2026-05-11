@@ -11,7 +11,7 @@
  *   const data = await invoke<MyResponse>('dashboard-summary', { body: { ... } });
  */
 import { supabase } from '@/integrations/supabase/client';
-import { classifyError, type ClassifiedError, isRetryableCategory } from '@/utils/error/getErrorStatus';
+import { classifyError, isRetryableCategory } from '@/utils/error/getErrorStatus';
 import { startPerfTimer } from '@/lib/monitoring/queryMonitor';
 import { recordPayloadSize } from '@/lib/monitoring/payloadMonitor';
 import { logger } from '@/lib/logger';
