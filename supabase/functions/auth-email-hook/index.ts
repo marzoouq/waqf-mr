@@ -76,6 +76,8 @@ const SAMPLE_DATA: Record<string, object> = {
 
 // Preview endpoint handler - returns rendered HTML without sending email
 async function handlePreview(req: Request): Promise<Response> {
+  // CORS مفتوح مقصود: مسار /preview يُستدعى من أداة معاينة قوالب البريد في Lovable (origin خارجي).
+  // المصادقة تتم عبر LOVABLE_API_KEY في Authorization header، فلا حاجة لتقييد origin.
   const previewCorsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, content-type',
