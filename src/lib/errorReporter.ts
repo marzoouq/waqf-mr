@@ -17,11 +17,30 @@ interface ErrorMetadata {
   timestamp: string;
 }
 
+/** dedupe — يمنع تكرار نفس الخطأ خلال نافذة قصيرة */
+const DEDUPE_WINDOW_MS = 5000;
+const recentErrors = new Map<string, number>();
+
+function shouldReport(metadata: ErrorMetadata): boolean {
+  const key = `${metadata.error_name}::${metadata.url ?? ''}`;
+  const now = Date.now();
+  const last = recentErrors.get(key);
+  if (last && now - last < DEDUPE_WINDOW_MS) return false;
+  recentErrors.set(key, now);
+  // تنظيف بسيط — احتفظ بآخر 50 إدخالاً فقط
+  if (recentErrors.size > 50) {
+    const oldest = [...recentErrors.entries()].sort((a, b) => a[1] - b[1])[0]?.[0];
+    if (oldest) recentErrors.delete(oldest);
+  }
+  return true;
+}
+
 /**
  * إرسال خطأ عميل إلى الخادم عبر RPC
  * مع fallback للتخزين المحلي في حال عدم توفر الاتصال
  */
 export async function reportClientError(metadata: ErrorMetadata): Promise<void> {
+  if (!shouldReport(metadata)) return;
   try {
     await supabase.rpc('log_access_event', {
       p_event_type: 'client_error',
