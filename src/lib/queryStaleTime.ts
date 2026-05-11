@@ -19,3 +19,12 @@ export const STALE_MESSAGING = 30_000;
 
 /** ردود تذاكر، رسائل محادثة فردية (Realtime يتولى الإبطال الفوري) */
 export const STALE_LIVE = 15_000;
+
+/** بيانات عامة (إحصائيات الهبوط، محتوى للزوار) — تتغير ببطء */
+export const STALE_PUBLIC = 5 * 60_000;
+
+/** بيانات لوحات القيادة — مشتقة وتستفيد من تخزين قصير */
+export const STALE_DASHBOARD = 30_000;
+
+/** بيانات مرجعية ثابتة (الأدوار، الإعدادات الجامدة) */
+export const STALE_REFERENCE = 15 * 60_000;
