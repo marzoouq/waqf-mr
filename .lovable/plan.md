@@ -1,137 +1,193 @@
-# خطة إقفال drift التوثيق — منقّحة بعد التحقق الجنائي العميق
 
-تم التحقق المباشر من كل بند في الخطة المقترحة مقابل المصدر الفعلي. النتائج أدناه.
+# Version I-R — خطة مصححة جنائيًا (Evidence-Based)
 
-## أ) جدول التحقق من بنود الخطة
-
-| # | الادعاء | الدليل المباشر | الحكم |
-|---|---|---|---|
-| 1 | `process-email-queue` فقط له `verify_jwt = true`، الباقي `false` | `supabase/config.toml` يُظهر 16 دالة كلها `false` ما عدا `process-email-queue = true` | ✅ صحيح |
-| 2 | `health-check` يُرجع `{status: healthy/degraded, timestamp}` بدون `uptime_ms` | `health-check/index.ts` السطر 41-47 | ✅ صحيح |
-| 3 | `check-contract-expiry` auth = `isServiceRole` أو admin user (لا `cron_secret`) | `check-contract-expiry/index.ts` السطر 19-58 | ✅ صحيح |
-| 4 | `auth-email-hook /preview`: CORS `*` + `LOVABLE_API_KEY` | `auth-email-hook/index.ts` السطر 81-103 | ✅ صحيح |
-| 5 | `lookup-national-id`: rate limit = `3 / 300s` | `lookup-national-id/index.ts` السطر 4-5 | ✅ صحيح (لكن `docs/API.md:158` يجب فحصه — موجود لكن لم يُعرض رقم بديل) |
-| 6 | `guard-signup` success = `{success, message}` بدون `user` | `guard-signup/index.ts` السطر 128-130 | ✅ صحيح |
-| 7 | `dashboard-summary` = `{aggregated, pending_advances, fetched_at}` | `dashboard-summary/index.ts` (نهاية الملف) | ✅ صحيح |
-| 8 | Adoption matrix: `check-contract-expiry` = Partial (helper فقط) | يستورد `isServiceRole as checkServiceRole` فقط، لا `authenticate()` | ✅ صحيح |
-| 9 | Full adoption حصراً في: `admin-manage-users`, `generate-invoice-pdf` | `grep` لـ `authenticate(` يُرجع هاتين فقط | ✅ صحيح |
-| 10 | Partial adoption في: `check-contract-expiry`, `process-email-queue` (`isServiceRole` فقط) | `grep` يؤكد | ✅ صحيح |
-| 11 | No adoption في: `email-admin`, `beneficiary-summary`, `lookup-national-id`, `guard-signup`, `auth-email-hook`, `health-check`, `dashboard-summary`, `webauthn`, `ai-assistant`, جميع `zatca-*` | `grep` يؤكد عدم وجود استيراد من `_shared/auth.ts` | ✅ صحيح |
-
-## ب) drift إضافي اكتشفه التحقق ولم يكن في الخطة الأصلية
-
-| # | الموقع | الانحراف | الإصلاح المطلوب |
-|---|---|---|---|
-| D1 | `docs/api/edge-functions.md:132` | `health-check` Auth: `none` ✅ صحيح، لكن السطر 133 `Response: { status: 'ok', uptime_ms }` خاطئ | تصحيح إلى `healthy/degraded` + `timestamp` (مدمج في البند 1.2 من الخطة الأصلية — مغطّى) |
-| D2 | `docs/api/edge-functions.md:145` | `process-email-queue` Auth: `cron_secret` خاطئ — الكود يستخدم `isServiceRole(token)` فعلياً | إضافة بند: استبدال `cron_secret` بـ `service_role JWT (verified via isServiceRole)` |
-| D3 | `docs/API.md:145` | تعليق "verify_jwt = false ... قرار واعٍ لتسهيل استدعاء Cron" — مضلّل لأن المصادقة الفعلية عبر `isServiceRole` للـ JWT، وليس استدعاء غير مصادَق | إضافة جملة توضيح: "cron يمرّر `service_role` JWT ويُتحقَّق منه عبر `isServiceRole()` في الكود" |
-| D4 | `docs/api/network-inventory.md:22` | `check-contract-expiry` Auth = "service" — يخفي قبول admin user | تحديث إلى "service_role أو admin user" |
-
-## ج) الادعاءات التي ظلّت مدعومة جزئياً فقط
-
-- ادعاء وجود `dashboardSummarySchema` في `useDashboardSummary` لم يُتحقق منه مباشرةً في هذه الجولة. في `.lovable/plan.md` يجب وسمه "غير مُتحقَّق منه — يحتاج إثبات لاحق" بدلاً من اعتباره منفّذاً.
-- "التحقق الميداني لـ CORS" لا يوجد له script أو CI artifact — يجب وسمه "موثّق نظرياً فقط".
+نطاق هذه الخطة: **refactor معماري داخلي فقط**. لا تغييرات على عقود API، RLS، schema، أو UX.  
+هذه نسخة مُصححة من Version I بعد تدقيق المراجع الخارجي + تحقق مباشر بأوامر `rg`/`wc` على الكود.
 
 ---
 
-## د) الإجراءات النهائية (4 ملفات Markdown فقط — لا كود)
+## الأرقام المُتحقَّق منها مباشرة (read-only)
 
-### 1) `docs/api/edge-functions.md`
-- استبدال السطر 25 (`verify_jwt = false متعمَّد لكل الدوال`) بجدول استثناء واضح: `process-email-queue = true`، الباقي `false`.
-- السطر 99: تصحيح `check-contract-expiry` Auth إلى: `service_role JWT (cron) أو admin user (متصفح)`. حذف `cron_secret`.
-- السطر 133: تصحيح `health-check` Response إلى `{ status: 'healthy' \| 'degraded', timestamp: string }` و status `200/503`.
-- السطر 145: تصحيح `process-email-queue` Auth من `cron_secret` إلى `service_role JWT (يُتحقَّق منه عبر isServiceRole)`.
-- ضمن الجدول السطر 37: تحديث ملاحظة `check-contract-expiry` لتذكر أن المصادقة admin user أيضاً.
-- توضيح في صف `auth-email-hook`: إضافة جملة قصيرة تفصل `/preview` (CORS `*` + `LOVABLE_API_KEY`) عن webhook (HMAC).
-
-### 2) `docs/API.md`
-- القسم 3 (`check-contract-expiry`، السطر 137-145): تصحيح ملاحظة المصادقة لتقول "cron يمرّر `service_role` JWT يُتحقَّق منه عبر `isServiceRole()`؛ الأدمن يستطيع الاستدعاء أيضاً من المتصفح".
-- القسم 4 (`lookup-national-id`، السطر 158+): تأكيد rate limit الفعلي `3 / 300s` لكل IP، وإضافة وصف concealment المتعمَّد كقرار أمني.
-- القسم 5 (`guard-signup`، السطر 185+): تصحيح شكل النجاح إلى `{ success: true, message: string }`. حذف أي ادعاء `{ user: ... }`.
-- القسم 12 (`health-check`، السطر 434+): تصحيح الاستجابة إلى `{ status, timestamp }` + `200/503`.
-- القسم 13 (`dashboard-summary`، السطر 449+): تصحيح الاستجابة إلى `{ aggregated, pending_advances, fetched_at }`.
-
-### 3) `docs/api/network-inventory.md`
-- السطر 22: تحديث `check-contract-expiry` Auth من "service" إلى "service_role أو admin user".
-- قسم Auth Adoption Matrix: تمييز ثلاث حالات بدل اثنتين:
-  - **Full** (`authenticate()`): `admin-manage-users`, `generate-invoice-pdf`.
-  - **Partial** (`isServiceRole` helper فقط): `check-contract-expiry`, `process-email-queue`.
-  - **None**: الباقي (مع التبرير الموجود سلفاً).
-- تصحيح صف `check-contract-expiry` السطر 68 (✅) إلى Partial.
-
-### 4) `.lovable/plan.md`
-- إضافة "Version H — إقفال drift التوثيق" يسرد البنود 1-3 أعلاه.
-- حذف/تصحيح أي جملة تدّعي أن `docs/API.md` لا يحتاج تعديلاً.
-- وسم "CORS field verification" بـ "موثّق نظرياً فقط — لا يوجد CI/script".
-- وسم ادعاء `dashboardSummarySchema` بـ "غير مُتحقَّق منه — يتطلّب فحص `useDashboardSummary` لاحقاً".
-- قسم Open Items يبقى كما هو (توحيد `_shared/auth.ts`، CORS CI script، فحص بقية schemas).
-
----
-
-## هـ) المخاطر
-
-- **0 تغييرات كود.** **0 تعديلات** على Edge Functions, `_shared/*`, `config.toml`, wrappers, client, types.
-- 4 ملفات Markdown فقط.
-- لا أثر على runtime، UX، عقود API، أو أمن.
-- الخطة الأصلية صحيحة 100% فيما طرحته؛ هذه النسخة المنقّحة تضيف 4 تصحيحات drift لم تكن مغطّاة (D1-D4).
-
-## الملفات المُعدَّلة
-
-1. `docs/api/edge-functions.md`
-2. `docs/API.md`
-3. `docs/api/network-inventory.md`
-4. `.lovable/plan.md`
-
----
-
-## Version H — إقفال drift التوثيق (2026-05-11)
-
-### الهدف
-مزامنة `docs/API.md` و`docs/api/edge-functions.md` و`docs/api/network-inventory.md` مع المصدر الفعلي بعد التحقق الجنائي العميق. **0 تغييرات كود.**
-
-### التصحيحات المنفّذة
-
-**`docs/api/edge-functions.md`:**
-- استُبدل ادعاء "`verify_jwt = false` متعمَّد لكل الدوال" بجدول استثناءات صريح يُظهر `process-email-queue = true`، الباقي `false`.
-- `check-contract-expiry`: تصحيح Auth إلى `service_role JWT (cron)` أو `admin user (متصفح)`. حُذف ذكر `cron_secret` (لم يكن موجوداً في الكود).
-- `health-check`: تصحيح Response من `{ status: 'ok', uptime_ms }` إلى `{ status: 'healthy' \| 'degraded', timestamp }` + HTTP `200/503`.
-- `process-email-queue`: تصحيح Auth من `cron_secret` إلى `service_role JWT (verify_jwt=true بوابة + isServiceRole كود)`.
-- جدول التصنيف: تحديث ملاحظة `check-contract-expiry`.
-
-**`docs/API.md`:**
-- §3 `check-contract-expiry`: تصحيح وصف المصادقة (service_role JWT عبر `isServiceRole()` بدلاً من مقارنة token مباشرة).
-- §4 `lookup-national-id`: تصحيح rate limit من `5/120s` إلى الفعلي `3/300s`. توثيق concealment المتعمَّد كقرار أمني (`{ found: true, masked_email: '***@***.com' }` عند عدم الوجود).
-- §5 `guard-signup`: تصحيح شكل النجاح من `{ user: { id, email, ... } }` إلى الفعلي `{ success: true, message: string }`.
-- §12 `health-check`: تصحيح Response shape + HTTP status.
-- §13 `dashboard-summary`: تصحيح Response من المسطّح `{ total_income, ... }` إلى الفعلي `{ aggregated, pending_advances, fetched_at }`.
-
-**`docs/api/network-inventory.md`:**
-- §1: تحديث صف `check-contract-expiry` Auth من "service" إلى "service_role JWT (cron) أو admin user (متصفح)".
-- §6 Adoption Matrix: تمييز ثلاث حالات بدل اثنتين:
-  - **Full** (`authenticate()`): `admin-manage-users`, `generate-invoice-pdf` فقط (2/17).
-  - **Partial** (`isServiceRole` helper فقط): `process-email-queue`, `check-contract-expiry` (2/17).
-  - **None**: 13/17 — مع التبرير الموجود.
-- صفّا `process-email-queue` و`check-contract-expiry` انتقلا من ✅ Full إلى Partial — تصحيح drift كان قائماً في الإصدارات السابقة.
-
-### تحفّظات مسجَّلة
-
-- **CORS field verification:** الجدول في `edge-functions.md` و`cors-verification.md` موثَّق نظرياً فقط. لا يوجد CI script ولا artifact runnable داخل المستودع يُثبت إعادة تشغيله. وُسم كـ "موثّق نظرياً" — يحتاج CI script في جولة لاحقة.
-- **`dashboardSummarySchema` runtime validation:** ادعاء وجوده في `useDashboardSummary` لم يُتحقَّق منه مباشرةً في هذه الجولة. الادعاء الوحيد المُثبَت هو `supportAnalyticsSchema` في `useSupportAnalytics`. يحتاج فحص لاحق لـ `src/hooks/data/dashboard/useDashboardSummary.ts`.
-
-### Open Items (لم تتغيَّر)
-
-- توحيد `_shared/auth.ts` على functions إضافية (`ai-assistant`, `zatca-signer`, `zatca-xml-generator`, ربما `zatca-report`) — refactor معماري مؤجل.
-- تحويل CORS field verification إلى CI script قابل للتشغيل.
-- التحقق من بقية schemas الحرجة قبل أي ادعاء اكتمال (`dashboardSummarySchema`, إلخ).
-- مراجعة `dispatcher` functions (`dashboard-summary`, `beneficiary-summary`, `email-admin`) لتقييم إمكانية توحيد جزئي.
-
-### الملفات المُعدَّلة
-
-| الملف | نوع التغيير |
+| المقياس | القيمة المُؤكَّدة الآن |
 |---|---|
-| `docs/api/edge-functions.md` | جدول `verify_jwt` + 4 إصلاحات Auth/Response |
-| `docs/API.md` | 5 إصلاحات Response/Auth/Rate-limit |
-| `docs/api/network-inventory.md` | تصحيح Adoption Matrix (Full/Partial/None) + صف `check-contract-expiry` |
-| `.lovable/plan.md` | هذا السجل (Version H) |
+| ملفات `hooks/data/**` تستورد client Supabase | **58** ✅ |
+| ملفات `hooks/data/**` تستدعي `supabase.from(` | **12** (≠ 13 من Version I) |
+| إجمالي استدعاءات `supabase.from(` في hooks/data | **20** (≠ 22 من Version I) |
+| Edge Functions الفعلية | **18** (≠ 19 من Version I) |
+| Edge Functions تستورد `_shared/auth` | **4** (admin-manage-users, generate-invoice-pdf, check-contract-expiry, process-email-queue) |
+| `src/App.tsx` | **116 سطر** ✅ |
+| `src/contexts/FiscalYearContext.tsx` | **130 سطر** ✅ |
+| `src/pages/waqif/` | **غير موجود** — يلزم إنشاؤه |
+| `pages/beneficiary/WaqifDashboard.tsx` + `.test.tsx` | موجودان ✅ |
 
-**صفر تعديلات على:** Edge Functions، `_shared/*`، `config.toml`، wrappers، client.ts، types.ts، أي ملف مصادقة. **صفر مخاطر runtime/UX/أمن.**
+**ما لم نعد ندّعيه**: لا "5/19"، لا "≥15/19"، لا "10 functions على الأقل" كأهداف رقمية إلزامية.
+
+---
+
+## فلسفة التصحيح
+
+اعتراضات المراجع الخارجي المقبولة:
+1. **`hooks/data` يُسمح لها رسميًا** باستهلاك Supabase حسب `src/hooks/README.md`. لذلك هدف "≤5 imports" ليس إصلاح drift بل **تغيير سياسة معمارية**. لا نفرضه قبل تحديث الوثائق رسميًا.
+2. **Edge Functions ليست متجانسة**: webhook, anon public, mixed dispatcher, service-role hybrid. ترحيل دفعة واحدة خطر. نُرحّل فقط ما يمكن توحيده فعلًا.
+3. **الأرقام التعسفية** (`≤40 سطر` لـ App.tsx) ليست هدفًا هندسيًا. الهدف هو **فصل المسؤوليات**.
+4. **نقل `useDashboardPrefetch` خارج Provider** غير مثبت كأفضل حل — يبقى داخل provider كـ hook منفصل.
+
+---
+
+## التقسيم الجديد: 3 مستويات حسب المخاطر
+
+### المستوى 1 — آمن ومباشر (يُنفَّذ أولًا)
+
+#### M1.1 — تفكيك `src/App.tsx` (116 سطر)
+- `src/app/providers.tsx` — `ErrorBoundary`, `ThemeProvider`, `QueryClientProvider`, `AuthProvider`, `FiscalYearProvider`, `TooltipProvider`, `Sonner`.
+- `src/app/router.tsx` — `createBrowserRouter` + composition.
+- `src/app/root-layout.tsx` — `RootLayout` + `PagePerformanceTracker` + `RoleGatedAiAssistant`.
+- `src/App.tsx` يبقى entry point مختصر.
+- **معيار النجاح**: فصل المسؤوليات، وليس عدد سطور محدد.
+
+#### M1.2 — تفكيك `FiscalYearContext.tsx` (130 سطر)
+- `src/hooks/auth/useFiscalYearPersistence.ts` — sessionStorage hydration/cleanup.
+- `src/hooks/auth/useResolvedFiscalYear.ts` — role-aware resolution.
+- `useDashboardPrefetch` **يبقى داخل Provider** (لا يُنقَل لـ root layout — اعتراض المراجع مقبول).
+- Provider يصبح composition خفيف.
+
+#### M1.3 — نقل `WaqifDashboard` إلى domain صحيح
+- إنشاء `src/pages/waqif/`.
+- نقل `WaqifDashboard.tsx` + `WaqifDashboard.test.tsx` معًا.
+- **re-export سطر واحد** من الموقع القديم لفترة انتقالية.
+- تحديث `src/routes/waqifRoutes.tsx`.
+- إزالة جملة "لأسباب تاريخية" من `README.md`.
+
+#### M1.4 — تحديث الوثائق لتعكس الواقع
+- `src/hooks/README.md` — توضيح متى يُسمح بـ `supabase.from` في `hooks/data` ومتى يُفضّل تمرير عبر `lib/services/`.
+- `supabase/functions/README.md` — توثيق الأنماط المختلفة (JWT, anon, webhook, service-role) كأنماط مشروعة.
+
+**0 تغيير على schema/RLS/types/client/config.toml. 0 تغيير على عقود API.**
+
+---
+
+### المستوى 2 — متوسط المخاطر (يُنفَّذ بعد M1، تدريجيًا)
+
+#### M2.1 — استخراج خدمات للـ 12 hook المثبتة (تدريجي، PR صغيرة)
+الـ 12 ملف المُثبَتة بالاسم:
+- Financial: `useIncome.ts`, `useExpenses.ts`
+- Properties: `useUnits.ts`
+- Invoices: `useInvoices.ts`
+- Settings: `useAppSettingsRead.ts`, `useAppSettingsWrite.ts`
+- Notifications: `useNotificationActions.ts`
+- Messaging: `useMessaging.ts`
+- Support: `useSupportTicketMutations.ts`
+- Content: `useAnnualReport.ts`
+- ZATCA: `useZatcaInvoices.ts`, `useZatcaOnboardingReadiness.ts`
+
+**القاعدة**: لا نُنشئ خدمة إلا حين تُستخدم في hook فعلي. لا overdesign.
+
+**الترتيب المقترح حسب الفائدة**:
+1. `incomeService` + `expensesService` (تكرار منطق fiscal year filtering).
+2. `invoicesService` (يربط مع `invoiceStorageService` الموجود).
+3. `appSettingsService` (يدمج Read + Write).
+4. `notificationsService`, `messagingService`, `supportService` (مجموعة واحدة).
+5. `zatcaInvoicesService` + extension لـ `zatcaService` الموجود.
+6. `unitsService`, `annualReportService` (آخرها).
+
+**شرط القبول لكل PR**:
+- نفس `queryKey` بالحرف الواحد (لمنع كسر cache invalidation).
+- نفس بنية البيانات المُرجعة.
+- لا تغيير على signature الـ hook.
+
+#### M2.2 — توسيع `createCrudFactory` بـ `customQuery` **فقط إن ظهرت حاجة فعلية** أثناء M2.1
+لا نوسّع spec بشكل استباقي.
+
+---
+
+### المستوى 3 — عالي المخاطر (يُنفَّذ بعد inventory أدق)
+
+#### M3.1 — Inventory دقيق لـ Edge Functions auth
+قبل أي ترحيل، تصنيف الـ 18 function إلى 5 فئات:
+
+| الفئة | الـ Functions | استراتيجية الترحيل |
+|---|---|---|
+| **A** — JWT-protected متجانسة | beneficiary-summary, dashboard-summary, email-admin | **مرشّحة للترحيل** عبر `authenticate({ requiredRole? })` |
+| **B** — ZATCA cluster | zatca-onboard, zatca-renew, zatca-report, zatca-signer, zatca-xml-generator | **ترحيل بعد فحص** كل واحدة على حدة (قد تحتاج params مختلفة) |
+| **C** — Mixed dispatcher | webauthn (auth-options/verify + register-options/verify) | **لا تُرحَّل قسرًا** — يبقى dispatcher ويستخدم helpers انتقائيًا |
+| **D** — Public/anon مقصودة | guard-signup, lookup-national-id, health-check | **لا تُرحَّل** — تبقى مع تعليق `// intentionally bypasses _shared/auth: <reason>` |
+| **E** — Hybrid/special | auth-email-hook (HMAC webhook), check-contract-expiry (service-role + admin), process-email-queue (verify_jwt=true), ai-assistant (streaming), admin-manage-users + generate-invoice-pdf (مُرحَّلة بالفعل) | **بحالها** — تستخدم `_shared/auth` بشكل انتقائي حسب الحاجة |
+
+**الهدف الواقعي**: الفئة A (3 functions) + الفئة B بعد فحص (حتى 5 إضافية) = **حد أقصى 8 functions جديدة تستخدم `_shared/auth`**، بدلًا من ادعاء "15/19" غير المُبرَّر.
+
+#### M3.2 — توسيع `_shared/auth.ts` بحذر
+إضافة خيار `consumeBody: false` (أو تصميم helper يقرأ headers فقط) **قبل** المساس بـ `ai-assistant`.
+
+#### M3.3 — توحيد CORS
+سياسة موثقة: "افتراضيًا `_shared/cors.ts`، أي استثناء يجب أن يحمل تعليق سبب".  
+لا فرض قسري على functions ذات Origin policy خاصة.
+
+#### M3.4 — حواجز ESLint **فقط بعد** اكتمال M2 + M3
+- `no-restricted-imports` لـ `@/integrations/supabase/client` خارج `lib/`, `integrations/`, `contexts/AuthContext.tsx`, **و `hooks/data/` (مع allowlist موثقة للـ 12 ملف المتبقية إن لم تُرحَّل كلها)**.
+- لا نضيف rules تكسر الـ build قبل refactor الكافي.
+
+---
+
+## معايير القبول النهائية (مُصححة، بدون أرقام تعسفية)
+
+### M1 (آمن — يجب اكتماله)
+- ✅ `src/App.tsx` مفكَّك إلى providers/router/root-layout (حجم نهائي غير مهم — المهم الفصل).
+- ✅ `FiscalYearContext.tsx` مفكَّك مع بقاء prefetch داخل Provider.
+- ✅ `WaqifDashboard.tsx` + `.test.tsx` في `pages/waqif/`، re-export في الموقع القديم.
+- ✅ `README.md` و`hooks/README.md` و`functions/README.md` محدّثة.
+- ✅ `bun run build` ناجح، اختبارات موجودة تمر.
+
+### M2 (متوسط — تدريجي PR-by-PR)
+- ✅ كل PR يُرحّل hook واحد أو مجموعة صغيرة بنفس `queryKey` بالحرف.
+- ✅ لا تغيير على signatures.
+- ✅ عدد ملفات `hooks/data` التي تستدعي `supabase.from(` ينخفض **تدريجيًا** من 12 (لا هدف رقمي إلزامي).
+
+### M3 (عالي — اختياري ومتدرج)
+- ✅ Inventory موثق في `docs/api/edge-functions.md`.
+- ✅ ترحيل **فقط** الفئة A بعد PoC ناجح.
+- ✅ لا ترحيل للفئة C/D/E.
+- ✅ لا تغيير على شكل الخطأ المُرجَع (`{ error, status }`, messages, status codes).
+
+---
+
+## المخاطر المُؤكَّدة وتخفيفاتها
+
+| الخطر | التخفيف |
+|---|---|
+| كسر cache invalidation أثناء M2 | **الإبقاء على `queryKey` بالحرف الواحد** (ميزة خاصة من Version I محفوظة). |
+| كسر streaming في `ai-assistant` (M3) | تصميم helper بدون استهلاك body؛ اختبار PoC قبل المساس بـ ai-assistant. |
+| تغيير شكل الخطأ المُستهلَك من frontend (M3) | الحفاظ على نفس `{ error, status }` + نفس messages + نفس status codes. |
+| كسر روابط `WaqifDashboard` (M1.3) | re-export سطر واحد + نقل test معًا في نفس PR. |
+| ESLint rules تكسر build قبل refactor كاف | rules تُضاف **بعد** M2، مع allowlist للملفات غير المُرحَّلة. |
+
+**0 تغيير على**: `supabase/config.toml`, `client.ts`, `types.ts`, `.env`, RLS, schema, عقود API.
+
+---
+
+## ترتيب التنفيذ (PRs)
+
+| PR | المحتوى | المستوى |
+|---|---|---|
+| **PR-1** | M1.1 — تفكيك `App.tsx` | آمن |
+| **PR-2** | M1.2 — تفكيك `FiscalYearContext.tsx` | آمن |
+| **PR-3** | M1.3 — نقل `WaqifDashboard` + re-export | آمن |
+| **PR-4** | M1.4 — تحديث docs | آمن |
+| **PR-5..N** | M2.1 — ترحيل hooks، PR صغير لكل مجموعة | متوسط |
+| **PR-X** | M3.1 — Inventory موثق فقط (لا كود) | بحث |
+| **PR-X+1** | M3.2 — توسيع `_shared/auth.ts` + PoC على function واحدة من الفئة A | عالي |
+| **PR-X+2..** | ترحيل بقية الفئة A + الفئة B بعد فحص | عالي |
+| **PR-أخير** | حواجز ESLint بعد اكتمال M2 + M3 | آمن (بعد ما سبق) |
+
+---
+
+## ما حُذف من Version I بعد التدقيق
+
+- ❌ هدف "ملفات `hooks/data` تستورد supabase ≤ 5" — غير متسق مع README الحالي.
+- ❌ هدف "Edge Functions تستخدم `_shared/auth` ≥ 15/19" — مبالغ فيه ومخاطره أعلى من فائدته.
+- ❌ هدف "App.tsx ≤ 40 سطر" — رقم تعسفي بدون قيمة هندسية.
+- ❌ هدف "FiscalYearContext.tsx ≤ 50 سطر" — نفس السبب.
+- ❌ نقل `useDashboardPrefetch` خارج Provider — غير مثبت كأفضل حل.
+- ❌ ترحيل 14 Edge Function دفعة واحدة — مخاطر عالية بلا مبرر.
+- ❌ توسيع `createCrudFactory` بـ `customQuery` استباقيًا — يُضاف فقط عند الحاجة الفعلية.
+- ❌ إنشاء قائمة طويلة من الخدمات دفعة واحدة — استبدلت بنهج "خدمة عند الحاجة".
+
