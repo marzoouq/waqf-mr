@@ -1,7 +1,7 @@
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
-import { getErrorStatus } from '@/utils/error/getErrorStatus';
+import { classifyError, isRetryableCategory } from '@/utils/error/getErrorStatus';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 const queryCache = new QueryCache({
