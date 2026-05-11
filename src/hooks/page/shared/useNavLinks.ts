@@ -52,7 +52,7 @@ function groupLinks<L extends NavLink>(
   if (ungrouped.length) groups.push({ key: '_top', label: null, items: ungrouped });
   for (const key of groupOrder) {
     if (buckets[key]?.length) {
-      groups.push({ key, label: groupLabels[key], items: buckets[key] });
+      groups.push({ key, label: groupLabels[key] ?? key, items: buckets[key] });
     }
   }
   return groups;
