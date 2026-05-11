@@ -2,17 +2,16 @@
  * هوكات إدارة الإيرادات (CRUD)
  * يوفر: useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear
  * الجدول: income | الربط: properties | الترتيب: حسب التاريخ
+ *
+ * M2.1: استعلام fiscal-year-filtered يمر عبر incomeService.
  */
 import { createCrudFactory } from '../core/useCrudFactory';
 import { Income } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { supabase } from '@/integrations/supabase/client';
-import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+import { isFyReady } from '@/constants/fiscalYearIds';
 import { PER_FY_LIMIT } from '@/constants/pagination';
-
-/** أعمدة الإيرادات مع ربط العقار */
-const INCOME_SELECT = 'id, amount, date, source, notes, fiscal_year_id, property_id, contract_id, created_at, property:properties(id, property_number, location)';
+import { incomeService, INCOME_SELECT } from '@/lib/services/incomeService';
 
 const incomeCrud = createCrudFactory<'income', Income>({
   table: 'income',
@@ -33,17 +32,7 @@ export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
     queryKey: ['income', 'fiscal_year', fiscalYearId],
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
-      let query = supabase.from('income').select(INCOME_SELECT).order('date', { ascending: false });
-      if (!isFyAll(fiscalYearId)) {
-        query = query.eq('fiscal_year_id', fiscalYearId).limit(PER_FY_LIMIT);
-      } else {
-        query = query.limit(PER_FY_LIMIT);
-      }
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Income[];
-    },
+    queryFn: () => incomeService.listByFiscalYear(fiscalYearId),
     meta: { warnLimit: PER_FY_LIMIT },
   });
 };
