@@ -4,6 +4,7 @@
 import { useCallback } from 'react';
 import { startRegistration } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/api/invoke';
 import { defaultNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { logBiometricEvent, handleRegistrationError, getDeviceName } from '@/utils/auth/webAuthnErrors';
