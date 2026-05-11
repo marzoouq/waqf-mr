@@ -27,7 +27,7 @@
 | Function | `verify_jwt` | المصدر |
 |---|:-:|---|
 | `process-email-queue` | **`true`** | `supabase/config.toml` — يضمن أن البوابة ترفض الطلبات بدون service_role JWT قبل الوصول للكود |
-| كل الدوال الأخرى (16 دالة) | `false` | المصادقة يدوية في الكود |
+| كل الدوال الأخرى (17 دالة) | `false` | المصادقة يدوية في الكود (`getUser()` أو `isServiceRole()` من `_shared/auth.ts`) |
 
 المصادقة الفعلية تُجرى يدوياً داخل كل function — إما عبر `supabase.auth.getUser(jwt)` (مستخدمون عاديون) أو عبر `isServiceRole(token)` من `_shared/auth.ts` (cron / service_role). لا تستخدم `getSession()` ولا `SUPABASE_SERVICE_ROLE_KEY` كبديل عن مصادقة المستخدم.
 
