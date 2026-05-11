@@ -129,3 +129,35 @@ invoke<T>(
 
 - `src/lib/api/rpc.test.ts` — 9 سيناريوهات (success, auth, permission, validation, rate-limit×3, network, server, retry/backoff مع `vi.useFakeTimers`).
 - `src/lib/api/invoke.test.ts` — 8 سيناريوهات (success, auth + `onAuthError`, validation, rate-limit×3, network, server, `data.error` fallback, `treatDataErrorAsFailure: false`).
+
+## Caching invariants (per domain)
+
+| الدومين | staleTime | invalidate عند |
+|---------|-----------|----------------|
+| Financial (`useDashboardSummary`, `useInvoices`, allocations, distribution) | `STALE_FINANCIAL` (60s) | إغلاق سنة، توزيع، دفع فاتورة، تعديل عقد |
+| Contracts | `STALE_FINANCIAL` (60s) | CRUD على عقد/مستأجر/وحدة |
+| Dashboard prefetch | `2*60_000` صريح | تلقائي عند تغيير fiscalYearId (مع AbortController) |
+| Messaging/Support (`useSupportAnalytics`, `useUserManagementData`) | `STALE_MESSAGING` (30s) | إنشاء/تحديث/حذف تذكرة، إجراء على مستخدم |
+| Reference (الأدوار، الإعدادات) | `STALE_REFERENCE` (15min) | تغيير دور أو إعداد |
+| Public (`useBylaws`, public stats) | `STALE_PUBLIC`/`STALE_STATIC` (5min) | تحديث محتوى من admin |
+
+ملاحظات `queryClient.ts`:
+- `gcTime` افتراضي (5 دقائق) — متّسق مع `STALE_STATIC`، لا تعارض.
+- `refetchOnWindowFocus: false` — مُعطَّل عمداً لتفادي طلبات شبح. الـ realtime
+  channels تتولى التحديث الحي حيث يلزم.
+
+## جولة C — Version D — مكتملة (2026-05-11)
+
+### المُنجز
+- ترحيل 7 ملفات إلى `invoke()` (5 مباشرة + 2 حساسة).
+- 2 Zod schemas: `dashboardSummarySchema`, `supportAnalyticsSchema` + helper `parseOrThrow`.
+- تحقق CORS ميداني (12 سيناريو) — راجع `edge-functions.md > CORS verified matrix`.
+- توثيق caching invariants لكل دومين.
+
+### المستثنى عمداً
+- `AuthContext.tsx` (نداء `guard-signup`) — قاعدة AGENTS.md.
+- `errorReporter.ts` (rpc `log_access_event`) — طبقة تسجيل أساسية.
+- `executeDistributionSchema` — مؤجَّل لجولة منفصلة (RPC وليس Edge Function).
+
+### الاختبارات
+- `bunx vitest run src/lib/api`: **23 passed** (9 rpc + 8 invoke + 6 schemas).
