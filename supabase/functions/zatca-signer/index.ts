@@ -14,48 +14,31 @@
  *   - xmldsig-builder.ts            — SignedInfo + SignedProperties + ECDSA crypto helpers
  *   - ../_shared/zatca-qr-tlv.ts    — ZATCA QR TLV (BER) encoding for Phase 2 (shared)
  */
-import { createClient } from "npm:@supabase/supabase-js@2";
 import { p256 } from "npm:@noble/curves@1.4.0/p256";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { c14n } from "../_shared/xml-c14n.ts";
+import { authenticate } from "../_shared/auth.ts";
 
 import { extractCertSignatureAndPublicKey } from "./x509-parser.ts";
 import { buildXmlDsig, sha256Base64, sha256BytesBase64, hexToBytes } from "./xmldsig-builder.ts";
 import { generateZatcaQrTLV } from "../_shared/zatca-qr-tlv.ts";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // ── Auth ──
-    const authHeader = req.headers.get("authorization") || "";
-    if (!authHeader.startsWith("Bearer ")) {
-      return json({ error: "Unauthorized" }, 401, corsHeaders);
-    }
-
-    const supaAuth = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: authHeader } },
+    // ── Auth + role + rate-limit + body parsing موحَّد ──
+    const auth = await authenticate(req, corsHeaders, {
+      allowedRoles: ["admin", "accountant"],
+      rateLimitKey: "zatca-signer",
+      rateLimit: 20,
+      parseJsonBody: true,
     });
-    const { data: { user }, error: userError } = await supaAuth.auth.getUser();
-    if (userError || !user) return json({ error: "Unauthorized" }, 401, corsHeaders);
+    if ("error" in auth) return auth.error;
+    const { admin, body } = auth;
 
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-
-    const { data: roles } = await admin.from("user_roles").select("role")
-      .eq("user_id", user.id).in("role", ["admin", "accountant"]);
-    if (!roles?.length) return json({ error: "Forbidden" }, 403, corsHeaders);
-
-    // Rate limiting: 20 طلب/دقيقة لكل مستخدم
-    const { data: isLimited } = await admin.rpc('check_rate_limit', {
-      p_key: `zatca-signer:${user.id}`, p_limit: 20, p_window_seconds: 60
-    });
-    if (isLimited) return json({ error: "تم تجاوز الحد المسموح من الطلبات. حاول بعد دقيقة." }, 429, corsHeaders);
-
-    const { invoice_id, table } = await req.json();
+    const { invoice_id, table } = (body ?? {}) as { invoice_id?: string; table?: string };
     if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
       return json({ error: "Invalid parameters" }, 400, corsHeaders);
     }

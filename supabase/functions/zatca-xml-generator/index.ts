@@ -1,10 +1,7 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { authenticate } from "../_shared/auth.ts";
 import { buildUBL } from "../_shared/zatca-xml-builder.ts";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // --- Zod schema للتحقق من المدخلات ---
 const RequestSchema = z.object({
@@ -27,39 +24,18 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Content-Type must be application/json" }), { status: 415, headers: jsonHeaders });
     }
 
-    // --- المصادقة ---
-    const authHeader = req.headers.get("authorization") || "";
-    if (!authHeader.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
-    }
-
-    const supaAuth = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: authHeader } },
+    // --- Auth + role + rate-limit + body parsing موحَّد ---
+    const auth = await authenticate(req, corsHeaders, {
+      allowedRoles: ["admin", "accountant"],
+      rateLimitKey: "zatca-xml",
+      rateLimit: 30,
+      parseJsonBody: true,
     });
-    const { data: { user }, error: userError } = await supaAuth.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
-    }
-
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-
-    // --- فحص الدور ---
-    const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "accountant"]);
-    if (!roles?.length) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: jsonHeaders });
-    }
-
-    // --- تقييد معدل الطلبات: 30 طلب/دقيقة ---
-    const { data: isLimited } = await admin.rpc('check_rate_limit', {
-      p_key: `zatca-xml:${user.id}`, p_limit: 30, p_window_seconds: 60
-    });
-    if (isLimited) {
-      return new Response(JSON.stringify({ error: "تم تجاوز الحد المسموح من الطلبات. حاول بعد دقيقة." }), { status: 429, headers: jsonHeaders });
-    }
+    if ("error" in auth) return auth.error;
+    const { admin, body } = auth;
 
     // --- التحقق من المدخلات بـ Zod ---
-    const rawBody = await req.json();
-    const parsed = RequestSchema.safeParse(rawBody);
+    const parsed = RequestSchema.safeParse(body);
     if (!parsed.success) {
       return new Response(JSON.stringify({ error: "Invalid parameters", details: parsed.error.flatten().fieldErrors }), { status: 400, headers: jsonHeaders });
     }

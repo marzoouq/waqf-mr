@@ -8,6 +8,7 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { authenticate } from "../_shared/auth.ts";
 import { buildSystemPrompt, ALLOWED_MODES, type AllowedMode } from "../_shared/ai-prompts.ts";
 import { fetchWaqfData } from "./fetcher.ts";
 import { dataCache } from "./simple-cache.ts";
@@ -21,80 +22,61 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // ─── المصادقة ───
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "يجب تسجيل الدخول لاستخدام المساعد الذكي" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
+    // ─── Auth + role + per-minute rate-limit + body parsing موحَّد ───
+    const auth = await authenticate(req, corsHeaders, {
+      allowedRoles: ["admin", "accountant", "beneficiary", "waqif"],
+      rateLimitKey: "ai",
+      rateLimit: 30,
+      rateLimitWindowSeconds: 60,
+      parseJsonBody: true,
     });
+    if ("error" in auth) return auth.error;
+    const { user, admin, body: bodyData } = auth;
+    const userId = user.id;
 
-    // جلب المستخدم + تحليل الجسم بالتوازي
-    const [authRes, bodyData] = await Promise.all([
-      userClient.auth.getUser(),
-      req.json().catch(() => ({})),
-    ]);
-    const { data: userData, error: userError } = authRes;
-    if (userError || !userData?.user) {
-      return new Response(
-        JSON.stringify({ error: "جلسة غير صالحة، يرجى تسجيل الدخول مجدداً" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const userId = userData.user.id;
-
-    // التحقق من الدور + Rate limiting (دقيقة) + Quota يومي — بالتوازي
-    const [roleRes, rlRes, dailyRes] = await Promise.all([
-      serviceClient.from("user_roles").select("role").eq("user_id", userId).single(),
-      serviceClient.rpc('check_rate_limit', { p_key: `ai:${userId}`, p_limit: 30, p_window_seconds: 60 }),
-      serviceClient.rpc('check_rate_limit', { p_key: `ai_daily:${userId}`, p_limit: DAILY_QUOTA, p_window_seconds: 86400 }),
-    ]);
-
-    if (rlRes.error || dailyRes.error) {
-      console.error("ai rate_limit check failed");
+    // ─── Quota يومي (rate-limit ثاني — لا يدعمه authenticate() حالياً) ───
+    const { data: dailyLimited, error: dailyErr } = await admin.rpc('check_rate_limit', {
+      p_key: `ai_daily:${userId}`, p_limit: DAILY_QUOTA, p_window_seconds: 86400,
+    });
+    if (dailyErr) {
+      console.error("ai daily quota check failed");
       return new Response(
         JSON.stringify({ error: "خطأ مؤقت في الخادم، يرجى المحاولة لاحقاً" }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    if (rlRes.data) {
-      return new Response(
-        JSON.stringify({ error: "تم تجاوز حد الطلبات، يرجى الانتظار دقيقة" }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    if (dailyRes.data) {
+    if (dailyLimited) {
       return new Response(
         JSON.stringify({ error: `تم تجاوز الحد اليومي (${DAILY_QUOTA} طلب). يرجى المحاولة غداً.`, code: "DAILY_QUOTA_EXCEEDED" }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (!roleRes.data?.role) {
+    // ─── جلب الدور المحدد (للـ system prompt + cache key) ───
+    const { data: roleRow } = await admin
+      .from("user_roles").select("role").eq("user_id", userId).single();
+    if (!roleRow?.role) {
       console.error("ai-assistant: failed to fetch role for authenticated user");
       return new Response(
         JSON.stringify({ error: "لم يتم التعرف على صلاحياتك. يرجى التواصل مع الناظر." }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    const userRole = roleRes.data.role;
+    const userRole = roleRow.role;
+
+    // ─── userClient مطلوب لـ fetchWaqfData (RLS-scoped) ───
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: req.headers.get("Authorization")! } } },
+    );
 
     // ─── تحليل المدخلات ───
     const url = new URL(req.url);
     const forceRefresh = url.searchParams.get("refresh") === "true";
-    const { messages, mode: rawMode } = bodyData;
+    const { messages, mode: rawMode } = (bodyData ?? {}) as { messages?: unknown; mode?: unknown };
 
-    const mode: AllowedMode = ALLOWED_MODES.includes(rawMode) ? rawMode as AllowedMode : "chat";
+    const mode: AllowedMode = ALLOWED_MODES.includes(rawMode as AllowedMode) ? rawMode as AllowedMode : "chat";
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return new Response(

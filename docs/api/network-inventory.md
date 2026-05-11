@@ -68,30 +68,32 @@
 |---|:-:|---|
 | `admin-manage-users` | **Full** | يستخدم `authenticate()` بـ `allowedRoles: ['admin']` |
 | `generate-invoice-pdf` | **Full** | يستخدم `authenticate()` بـ rate-limit مخصص |
-| `process-email-queue` | **Partial** | يستخدم `isServiceRole()` فقط — ليس `authenticate()`. مبرر: المسار cron-only بـ service_role JWT، لا حاجة لفحص دور أو rate-limit مستخدم |
-| `check-contract-expiry` | **Partial** | يستخدم `isServiceRole()` لمسار cron + `getUser()` يدوي + role check للمسار اليدوي. لا يستدعي `authenticate()` لأنه يدعم مسارَين متباينَين في دالة واحدة |
-| `dashboard-summary` | **None** | يدير role check محلياً + admin/accountant بسياسات مختلفة |
-| `beneficiary-summary` | **None** | role-scoped على `beneficiary` مع rate-limit بمفتاح خاص |
-| `email-admin` | **None** | dispatcher صغير + منطق DLQ متخصص |
+| `dashboard-summary` | **Full** | يستخدم `authenticate()` بـ admin/accountant + claims محلي |
+| `beneficiary-summary` | **Full** | يستخدم `authenticate()` بـ rate-limit بمفتاح خاص |
+| `email-admin` | **Full** | يستخدم `authenticate()` بـ `allowedRoles: ['admin']` |
+| `zatca-onboard` / `zatca-renew` / `zatca-report` | **Full** | يستخدمون `authenticateAdmin()` (غلاف رفيع لـ `authenticate()`) |
+| `zatca-signer` | **Full** | تم الترحيل (Version J) — `authenticate()` بـ admin/accountant + rate-limit `zatca-signer` |
+| `zatca-xml-generator` | **Full** | تم الترحيل (Version J) — `authenticate()` بـ admin/accountant + rate-limit `zatca-xml` |
+| `ai-assistant` | **Full** | تم الترحيل (Version J) — `authenticate()` للـ JWT + per-minute؛ Quota اليومي يدوي بعد المصادقة (rate-limit ثاني غير مدعوم في `authenticate()`) |
+| `process-email-queue` | **Partial** | يستخدم `isServiceRole()` فقط — مبرر: cron-only بـ service_role JWT، لا حاجة لفحص دور أو rate-limit مستخدم |
+| `check-contract-expiry` | **Partial** | يستخدم `isServiceRole()` لمسار cron + `getUser()` يدوي + role check للمسار اليدوي. مسارَين متباينَين في دالة واحدة |
 | `webauthn` | **None** | dispatcher مع 4 handlers بسياسات auth مختلطة |
 | `lookup-national-id` | **None** | **anon flow** — لا JWT للتحقق منه |
 | `guard-signup` | **None** | **anon flow** — قبل التسجيل |
 | `auth-email-hook` | **None** | webhook مُوقَّع بـ HMAC + مسار `/preview` بـ `LOVABLE_API_KEY` |
 | `health-check` | **None** | عام بلا auth |
-| `ai-assistant` | **None** | يدوي عبر `userClient.auth.getUser()` — مرشّح للترحيل |
-| `zatca-onboard` / `zatca-renew` / `zatca-report` | **None** | منطق ZATCA-specific؛ يحتاج جولة مخصصة |
-| `zatca-signer` / `zatca-xml-generator` | **None** | يدوي عبر `getUser()` — مرشّحان للترحيل |
 
-### خلاصة
+### خلاصة (Version J — 2026-05-11)
 
-- **2/17** functions تتبنى `_shared/auth.ts` بالكامل (`authenticate()`).
-- **2/17** تتبنى Partial (helper `isServiceRole` فقط) — مبررة معمارياً.
-- **13/17** لا تتبنى — منها:
-  - **6 لا يمكن توحيدها معمارياً** (anon flows × 2، webhook بـ HMAC، health-check العام، dispatchers بسياسات مختلطة × 2).
-  - **3 تحتاج توحيداً مع تعديل سياسة rate-limit/role** — قرار مؤجل (`dashboard-summary`, `beneficiary-summary`, `email-admin`).
-  - **4 مرشّحات مقبولة للترحيل في جولة لاحقة** (`ai-assistant`, `zatca-signer`, `zatca-xml-generator`, ربما `zatca-report`).
+- **10/17** functions تتبنى `_shared/auth.ts` بالكامل (`authenticate()` أو `authenticateAdmin()`) — قفزة من 2/17 في Version E.
+- **2/17** تتبنى Partial (`isServiceRole()` فقط) — مبررة معمارياً لمسارات cron / dual-mode.
+- **5/17** لا تتبنى — كلها مستثناة معمارياً:
+  - **2 anon flows** (`guard-signup`, `lookup-national-id`)
+  - **1 webhook بـ HMAC** (`auth-email-hook`)
+  - **1 dispatcher مختلط** (`webauthn`)
+  - **1 عام بلا auth** (`health-check`)
 
-**التوحيد الكامل غير ممكن — هناك 3 فئات auth جوهرياً (JWT user / webhook signature / anon)، وفي كل فئة استثناءات مبررة.** الترحيل القسري لـ functions حسّاسة (`webauthn`, `guard-signup`, `lookup-national-id`) محظور بقاعدة المشروع.
+**التوحيد بلغ سقفه المعقول.** أي ترحيل إضافي يتطلب توسيع `authenticate()` لدعم anon أو HMAC أو multi-rate-limit، وهو tradeoff معماري مفتوح.
 
 ---
 
