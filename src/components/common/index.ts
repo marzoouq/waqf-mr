@@ -25,3 +25,5 @@ export { default as LockedYearBanner } from './LockedYearBanner';
 export { ErrorState, EmptyPageState } from './PageStateGuards';
 export { default as ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 export { default as WebVitalsPanel } from './WebVitalsPanel';
+export { default as FiscalYearStateNotice } from './FiscalYearStateNotice';
+export { default as EstimatedShareBadge } from './EstimatedShareBadge';
