@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
-import { supabase } from '@/integrations/supabase/client';
+
 import { defaultNotify } from '@/lib/notify';
 import { createCrudFactory } from '@/hooks/data/core/useCrudFactory';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
