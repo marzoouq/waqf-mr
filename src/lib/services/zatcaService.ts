@@ -11,13 +11,15 @@ export const zatcaOnboard = async () => {
 };
 
 export const zatcaRenew = async () => {
-  return await invoke<{ success?: boolean; error?: string }>('zatca-renew');
+  // الاستجابة قد تحوي { error } كحقل تقرير وليس فشل نقل
+  return await invoke<{ success?: boolean; error?: string }>('zatca-renew', {}, { treatDataErrorAsFailure: false });
 };
 
 export const zatcaTestConnection = async () => {
   return await invoke<{ connected: boolean; url?: string; error?: string; tested_at?: string; status_code?: number }>(
     'zatca-onboard',
     { body: { action: 'test-connection' } },
+    { treatDataErrorAsFailure: false },
   );
 };
 
