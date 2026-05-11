@@ -2,24 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { useBannerSettings } from "@/hooks/data/settings/useBannerSettings";
-import { useState, useEffect } from "react";
 import { FlaskConical } from "lucide-react";
-import { BANNER_COLORS, type BannerSettings } from "@/constants";
+import { BANNER_COLORS } from "@/constants";
+import { useBannerSettingsTab } from "@/hooks/page/admin/settings/useBannerSettingsTab";
 
 const BannerSettingsTab = () => {
-  const { settings, isLoading, save: saveSettings } = useBannerSettings();
-  const [form, setForm] = useState<BannerSettings>(settings);
-
-  useEffect(() => {
-    setForm(settings);
-  }, [settings]);
-
-  const save = (patch: Partial<BannerSettings>) => {
-    const updated = { ...form, ...patch };
-    setForm(updated);
-    saveSettings(patch);
-  };
+  const { form, save, setText, flushText, isLoading } = useBannerSettingsTab();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
@@ -48,8 +36,8 @@ const BannerSettingsTab = () => {
             <Label htmlFor="banner-settings-tab-field-1">نص الشريط</Label>
             <Input name="text" id="banner-settings-tab-field-1"
               value={form.text}
-              onChange={(e) => setForm((p) => ({ ...p, text: e.target.value }))}
-              onBlur={() => save({ text: form.text })}
+              onChange={(e) => setText(e.target.value)}
+              onBlur={flushText}
               maxLength={200}
               dir="rtl"
             />

@@ -1,59 +1,17 @@
 /**
- * تبويب تخصيص القائمة الجانبية
- * يتيح للناظر تغيير أسماء عناصر القائمة الجانبية
+ * تبويب تخصيص القائمة الجانبية — presentational
  */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Save, LayoutList, RotateCcw } from 'lucide-react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { useState, useEffect } from 'react';
-
-// مصدر الأنواع: types/navigation — لا re-export من هنا (لتفعيل Fast Refresh)
-import { defaultMenuLabels, type MenuLabels } from '@/types/navigation';
+import { useMenuCustomizationTab, MENU_ITEMS } from '@/hooks/page/admin/settings/useMenuCustomizationTab';
 
 const MenuCustomizationTab = () => {
-  const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
-  const labels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
-  const [form, setForm] = useState<MenuLabels>(labels);
-
-  // FIX: استقرار المرجع لمنع إعادة الضبط المتكررة
-  useEffect(() => {
-    const next = JSON.stringify(labels);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync local form with remote settings only when content changes
-    setForm((prev) => JSON.stringify(prev) === next ? prev : labels);
-  }, [labels]);
-
-  const handleChange = (key: keyof MenuLabels, value: string) => {
-    setForm(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleReset = () => {
-    setForm(defaultMenuLabels);
-    updateJsonSetting('menu_labels', defaultMenuLabels);
-  };
+  const { form, handleChange, handleSave, handleReset, isLoading } = useMenuCustomizationTab();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
-
-  const items: { key: keyof MenuLabels; defaultLabel: string }[] = [
-    { key: 'home', defaultLabel: 'الرئيسية' },
-    { key: 'properties', defaultLabel: 'العقارات' },
-    { key: 'contracts', defaultLabel: 'العقود' },
-    { key: 'income', defaultLabel: 'الدخل' },
-    { key: 'expenses', defaultLabel: 'المصروفات' },
-    { key: 'beneficiaries', defaultLabel: 'المستفيدين' },
-    { key: 'reports', defaultLabel: 'التقارير' },
-    { key: 'accounts', defaultLabel: 'الحسابات' },
-    { key: 'users', defaultLabel: 'إدارة المستخدمين' },
-    { key: 'settings', defaultLabel: 'الإعدادات' },
-    { key: 'messages', defaultLabel: 'المراسلات' },
-    { key: 'invoices', defaultLabel: 'الفواتير' },
-    { key: 'audit_log', defaultLabel: 'سجل المراجعة' },
-    { key: 'bylaws', defaultLabel: 'اللائحة التنظيمية' },
-    { key: 'chart_of_accounts', defaultLabel: 'الشجرة المحاسبية' },
-    { key: 'beneficiary_view', defaultLabel: 'واجهة المستفيد' },
-  ];
 
   return (
     <div className="space-y-6">
@@ -67,7 +25,7 @@ const MenuCustomizationTab = () => {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {items.map(item => (
+            {MENU_ITEMS.map(item => (
               <div key={item.key} className="space-y-1">
                 <Label htmlFor={`menu-label-${item.key}`} className="text-xs text-muted-foreground">{item.defaultLabel}</Label>
                 <Input name="menu_label" id={`menu-label-${item.key}`}
@@ -80,7 +38,7 @@ const MenuCustomizationTab = () => {
             ))}
           </div>
           <div className="flex gap-2 pt-2">
-            <Button onClick={() => updateJsonSetting('menu_labels', form)} className="gap-2">
+            <Button onClick={handleSave} className="gap-2">
               <Save className="w-4 h-4" />
               حفظ المسميات
             </Button>

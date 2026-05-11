@@ -1,86 +1,13 @@
-import { useState, useEffect } from 'react';
-import { defaultNotify } from '@/lib/notify';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
-import { useAppSettings, useSetting } from '@/hooks/data/settings/useAppSettings';
 import LogoUploadCard from '../landing/LogoUploadCard';
-
-const waqfFields = [
-  { key: 'waqf_name', label: 'اسم الوقف' },
-  { key: 'waqf_founder', label: 'الواقف' },
-  { key: 'waqf_admin', label: 'الناظر' },
-  { key: 'waqf_deed_number', label: 'رقم صك الوقف' },
-  { key: 'waqf_deed_date', label: 'تاريخ صك الوقف' },
-  { key: 'waqf_nazara_number', label: 'رقم صك النظارة' },
-  { key: 'waqf_nazara_date', label: 'تاريخ صك النظارة' },
-  { key: 'waqf_court', label: 'المحكمة' },
-];
-
-const financialFields = [
-  { key: 'admin_share_percentage', label: 'نسبة الناظر (%)' },
-  { key: 'waqif_share_percentage', label: 'نسبة الواقف (%)' },
-  { key: 'zakat_percentage', label: 'نسبة الزكاة (%)' },
-  { key: 'fiscal_year', label: 'السنة المالية' },
-];
+import { useWaqfSettingsTab, WAQF_FIELDS, FINANCIAL_FIELDS } from '@/hooks/page/admin/settings/useWaqfSettingsTab';
 
 const WaqfSettingsTab = () => {
-  const { data: settings, isLoading, updateSettingsBatch } = useAppSettings();
-  const waqfLogoUrl = useSetting('waqf_logo_url');
-  const [formData, setFormData] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (settings) setFormData({ ...settings });
-  }, [settings]);
-
-  // F8: السماح بالقيمة الفارغة (تُعامل كصفر) وتحسين رسالة الخطأ
-  const validatePercentage = (key: string, label: string, value: string): boolean => {
-    if (!key.endsWith('_percentage')) return true;
-    if (key === 'fiscal_year') return true;
-    if (value.trim() === '' || value.trim() === '0') return true;
-    const num = parseFloat(value);
-    if (!Number.isFinite(num) || num < 0 || num > 100) {
-      defaultNotify.error(`${label}: يجب إدخال رقم بين 0 و 100`);
-      return false;
-    }
-    return true;
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const allFields = [...waqfFields, ...financialFields];
-
-      // F12: التحقق من مجموع النسب
-      const adminVal = parseFloat(formData['admin_share_percentage'] || '0') || 0;
-      const waqifVal = parseFloat(formData['waqif_share_percentage'] || '0') || 0;
-      if (adminVal + waqifVal > 100) {
-        defaultNotify.error('مجموع نسبة الناظر والواقف يتجاوز 100%');
-        setSaving(false);
-        return;
-      }
-
-      const failedFields: string[] = [];
-      const now = new Date().toISOString();
-      const rows: { key: string; value: string; updated_at: string }[] = [];
-      for (const field of allFields) {
-        const value = (formData[field.key] || '').trim();
-        if (value.length > 500) { defaultNotify.error(`${field.label} طويل جداً`); setSaving(false); return; }
-        if (!validatePercentage(field.key, field.label, value)) { setSaving(false); return; }
-        rows.push({ key: field.key, value, updated_at: now });
-      }
-      await updateSettingsBatch.mutateAsync(rows);
-      
-      if (failedFields.length > 0) {
-        defaultNotify.error(`فشل حفظ: ${failedFields.join('، ')}`);
-      } else {
-        defaultNotify.success('تم حفظ البيانات بنجاح');
-      }
-    } catch { defaultNotify.error('حدث خطأ أثناء الحفظ'); } finally { setSaving(false); }
-  };
+  const { formData, onFieldChange, handleSave, saving, isLoading, waqfLogoUrl } = useWaqfSettingsTab();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
@@ -99,10 +26,10 @@ const WaqfSettingsTab = () => {
           <CardDescription>معلومات الوقف والصكوك</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
-          {waqfFields.map((f) => (
+          {WAQF_FIELDS.map((f) => (
             <div key={f.key} className="space-y-1.5">
               <Label htmlFor={`waqf-settings-tab-field-${f.key}`}>{f.label}</Label>
-              <Input name="form_data" id={`waqf-settings-tab-field-${f.key}`} value={formData[f.key] || ''} onChange={(e) => setFormData((p) => ({ ...p, [f.key]: e.target.value }))} maxLength={500} />
+              <Input name="form_data" id={`waqf-settings-tab-field-${f.key}`} value={formData[f.key] || ''} onChange={(e) => onFieldChange(f.key, e.target.value)} maxLength={500} />
             </div>
           ))}
         </CardContent>
@@ -113,7 +40,7 @@ const WaqfSettingsTab = () => {
           <CardDescription>نسب الناظر والواقف والسنة المالية</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
-          {financialFields.map((f) => {
+          {FINANCIAL_FIELDS.map((f) => {
             const isPercentField = f.key.endsWith('_percentage');
             return (
               <div key={f.key} className="space-y-1.5">
@@ -124,7 +51,7 @@ const WaqfSettingsTab = () => {
                   max={isPercentField ? 100 : undefined}
                   step={isPercentField ? '0.1' : undefined}
                   value={formData[f.key] || ''}
-                  onChange={(e) => setFormData((p) => ({ ...p, [f.key]: e.target.value }))}
+                  onChange={(e) => onFieldChange(f.key, e.target.value)}
                   maxLength={100}
                 />
               </div>
