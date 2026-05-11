@@ -47,6 +47,18 @@ export const zatcaInvoicesService = {
     return (data || []).map((i) => ({ ...i, source: 'payment_invoices' as const, date: i.due_date }));
   },
 
+  async getRequiredSettings(): Promise<Record<string, string>> {
+    const { data } = await supabase
+      .from('app_settings')
+      .select('key, value')
+      .in('key', ['waqf_name', 'vat_registration_number', 'zatca_device_serial']);
+    const map: Record<string, string> = {};
+    (data || []).forEach((s) => {
+      map[s.key] = s.value;
+    });
+    return map;
+  },
+
   async listInvoiceChain() {
     const limit = 1000;
     const { data, error } = await supabase

@@ -19,7 +19,11 @@ The 18 Edge Functions fall into 5 legitimate categories. Do **not** force a sing
 | **D** — Public/anon by design | `guard-signup`, `lookup-national-id`, `health-check` | Bypass `_shared/auth` intentionally — must carry an inline justification comment. |
 | **E** — Hybrid/special | `auth-email-hook` (HMAC webhook), `check-contract-expiry` (service-role + admin), `process-email-queue` (`verify_jwt=true` cron), `ai-assistant` (streaming body), `admin-manage-users`, `generate-invoice-pdf` | Use `_shared/auth` selectively; never break the streaming body of `ai-assistant`. |
 
-Currently 4 functions import `_shared/auth.ts` (categories A target + parts of E). The realistic adoption ceiling is ~8 — not 15/19.
+**Status (M3 — Version I-R):** Category A is fully adopted (`beneficiary-summary`, `dashboard-summary`, `email-admin` all import `authenticate` from `_shared/auth.ts`). Categories B/C/E are migrated case-by-case in separate PRs. Category D **must never** import `_shared/auth` — they require explicit `// AUTH-EXEMPT: <reason>` comment at the top of the file.
+
+`_shared/auth.ts` supports two non-breaking flags:
+- `useClaims: true` — uses `getClaims()` locally (no network round-trip) instead of `getUser()`.
+- `parseJsonBody: true` — parses `req.json()` in parallel with auth, returned in `auth.body`.
 
 
 ### Required Pattern for Every New Function

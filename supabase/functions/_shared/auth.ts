@@ -25,11 +25,17 @@ export interface AuthOptions {
   rateLimit?: number;
   /** نافذة rate limit بالثواني (افتراضي 60). */
   rateLimitWindowSeconds?: number;
+  /** استخدم getClaims() المحلي بدلاً من getUser() (أسرع — لا round-trip شبكي). */
+  useClaims?: boolean;
+  /** parse JSON body بالتوازي مع المصادقة (يُرجع في AuthSuccess.body). */
+  parseJsonBody?: boolean;
 }
 
 export type AuthSuccess = {
   user: { id: string; email?: string | null };
   admin: AdminClient;
+  /** متاح فقط إذا parseJsonBody = true. null عند فشل parsing. */
+  body?: unknown;
 };
 export type AuthFailure = { error: Response };
 export type AuthResult = AuthSuccess | AuthFailure;
@@ -62,6 +68,8 @@ export async function authenticate(
     rateLimitKey,
     rateLimit = 30,
     rateLimitWindowSeconds = 60,
+    useClaims = false,
+    parseJsonBody = false,
   } = opts;
 
   // 1) Bearer token
@@ -70,12 +78,37 @@ export async function authenticate(
     return { error: json({ error: "Unauthorized" }, 401, corsHeaders) };
   }
 
-  // 2) getUser()
+  // 2) المصادقة (getClaims محلي أو getUser شبكي) — مع تحليل body بالتوازي اختياريًا
   const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: authHeader } },
   });
-  const { data: { user }, error: userError } = await userClient.auth.getUser();
-  if (userError || !user) {
+
+  const authPromise: Promise<{ userId: string; email: string | null } | null> = useClaims
+    ? (async () => {
+        const token = authHeader.replace("Bearer ", "");
+        const { data, error } = await userClient.auth.getClaims(token);
+        if (error || !data?.claims) return null;
+        return {
+          userId: data.claims.sub as string,
+          email: (data.claims.email as string | undefined) ?? null,
+        };
+      })()
+    : (async () => {
+        const { data, error } = await userClient.auth.getUser();
+        if (error || !data.user) return null;
+        return { userId: data.user.id, email: data.user.email ?? null };
+      })();
+
+  const bodyPromise: Promise<unknown> | null = parseJsonBody
+    ? req.json().catch(() => null)
+    : null;
+
+  const [authInfo, parsedBody] = await Promise.all([
+    authPromise,
+    bodyPromise ?? Promise.resolve(undefined),
+  ]);
+
+  if (!authInfo) {
     return { error: json({ error: "Unauthorized" }, 401, corsHeaders) };
   }
 
@@ -88,10 +121,9 @@ export async function authenticate(
 
   if (allowedRoles.length > 0) {
     roleIdx = promises.length;
-    // Promise.resolve() لتحويل PostgrestFilterBuilder إلى Promise قابل للاستخدام في Promise.all
     promises.push(
       Promise.resolve(
-        admin.from("user_roles").select("role").eq("user_id", user.id).in("role", allowedRoles),
+        admin.from("user_roles").select("role").eq("user_id", authInfo.userId).in("role", allowedRoles),
       ),
     );
   }
@@ -100,7 +132,7 @@ export async function authenticate(
     promises.push(
       Promise.resolve(
         admin.rpc("check_rate_limit", {
-          p_key: `${rateLimitKey}:${user.id}`,
+          p_key: `${rateLimitKey}:${authInfo.userId}`,
           p_limit: rateLimit,
           p_window_seconds: rateLimitWindowSeconds,
         }),
@@ -129,7 +161,9 @@ export async function authenticate(
     }
   }
 
-  return { user: { id: user.id, email: user.email }, admin };
+  const success: AuthSuccess = { user: { id: authInfo.userId, email: authInfo.email }, admin };
+  if (parseJsonBody) success.body = parsedBody;
+  return success;
 }
 
 /** اختصار للأدمن فقط — يحافظ على التوافق مع `authenticateAdmin` القديمة في zatca-shared. */

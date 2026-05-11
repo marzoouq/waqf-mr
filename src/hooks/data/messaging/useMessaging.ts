@@ -1,17 +1,14 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useCallback, useRef } from 'react';
 import { Conversation, Message } from '@/types';
 import { notifyUser } from '@/lib/services';
-import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { useStableRef } from '@/lib/hooks/useStableRef';
 import { STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
+import { messagingService, MESSAGES_PAGE_SIZE } from '@/lib/services/messagingService';
 
 export type { Conversation, Message };
-
-const MESSAGES_PAGE_SIZE = 50;
 
 export const useConversations = (type?: string) => {
   const { user } = useAuth();
@@ -19,13 +16,7 @@ export const useConversations = (type?: string) => {
 
   const query = useQuery({
     queryKey: ['conversations', type],
-    queryFn: async (): Promise<Conversation[]> => {
-      let q = supabase.from('conversations').select('id, type, subject, status, created_by, participant_id, created_at, updated_at').order('updated_at', { ascending: false }).limit(100);
-      if (type) q = q.eq('type', type);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data || []) as Conversation[];
-    },
+    queryFn: () => messagingService.listConversations(type),
     enabled: !!user,
     staleTime: STALE_MESSAGING,
   });
@@ -51,36 +42,19 @@ export const useMessages = (conversationId: string | null) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  /** مؤشر cursor مركّب: created_at|id — يضمن عدم تكرار أو فقدان رسائل */
   type Cursor = { created_at: string; id: string } | undefined;
 
   const query = useInfiniteQuery({
     queryKey: ['messages', conversationId],
     queryFn: async ({ pageParam }: { pageParam: Cursor }): Promise<Message[]> => {
       if (!conversationId) return [];
-      let q = supabase
-        .from('messages')
-        .select('id, conversation_id, sender_id, content, is_read, created_at')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: false })
-        .order('id', { ascending: false })
-        .limit(MESSAGES_PAGE_SIZE);
-
-      if (pageParam) {
-        // جلب رسائل أقدم من المؤشر الحالي
-        q = q.or(`created_at.lt.${pageParam.created_at},and(created_at.eq.${pageParam.created_at},id.lt.${pageParam.id})`);
-      }
-
-      const { data, error } = await q;
-      if (error) throw error;
-      return ((data || []) as Message[]).reverse();
+      return messagingService.listMessagesPage(conversationId, pageParam);
     },
     initialPageParam: undefined as Cursor,
     getNextPageParam: (_lastPage, allPages) => {
-      // أقدم رسالة في أول صفحة (لأن كل صفحة مقلوبة بـ reverse)
       const oldestPage = allPages[allPages.length - 1];
       if (!oldestPage || oldestPage.length < MESSAGES_PAGE_SIZE) return undefined;
-      const oldest = oldestPage[0]; // أقدم رسالة بعد الـ reverse
+      const oldest = oldestPage[0];
       if (!oldest) return undefined;
       return { created_at: oldest.created_at, id: oldest.id };
     },
@@ -102,7 +76,6 @@ export const useMessages = (conversationId: string | null) => {
     !!user && !!conversationId,
   );
 
-  // تسطيح الصفحات في مصفوفة واحدة مرتبة زمنياً
   const allMessages = query.data?.pages.flat() ?? [];
 
   return {
@@ -121,23 +94,17 @@ export const useSendMessage = () => {
     mutationFn: async ({ conversationId, content, senderId }: { conversationId: string; content: string; senderId: string }) => {
       const trimmed = content.trim();
       if (!trimmed || trimmed.length > 5000) throw new Error('رسالة غير صالحة');
-      const { error } = await supabase.from('messages').insert({
+      await messagingService.insertMessage({
         conversation_id: conversationId,
         sender_id: senderId,
         content: trimmed,
       });
-      if (error) throw error;
-      const { error: updateError } = await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
-      if (updateError) logger.warn('Failed to update conversation timestamp:', updateError.message);
+      await messagingService.touchConversation(conversationId);
 
       // إشعار المستفيد عند إرسال رسالة من المسؤول أو المحاسب
       if (role === 'admin' || role === 'accountant') {
         try {
-          const { data: conv } = await supabase
-            .from('conversations')
-            .select('participant_id, subject')
-            .eq('id', conversationId)
-            .maybeSingle();
+          const conv = await messagingService.getConversationParticipant(conversationId);
           if (conv?.participant_id) {
             notifyUser(
               conv.participant_id,
@@ -167,14 +134,12 @@ export const useCreateConversation = () => {
       if (pendingRef.current) throw new Error('طلب قيد المعالجة');
       pendingRef.current = true;
       try {
-        const { data, error } = await supabase.from('conversations').insert({
+        return await messagingService.createConversation({
           type,
           subject: subject || null,
           created_by: createdBy,
           participant_id: participantId || null,
-        }).select().single();
-        if (error) throw error;
-        return data as Conversation;
+        });
       } finally {
         pendingRef.current = false;
       }

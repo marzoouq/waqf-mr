@@ -4,8 +4,8 @@
  *  - get_stats: إحصاءات مجمّعة (sent/failed/dlq/suppressed) + last_run + DLQ counts
  *  - retry_dlq: نقل رسائل DLQ المختارة (أو الكل) إلى الطابور الأصلي لإعادة المحاولة
  */
-import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { authenticate } from "../_shared/auth.ts";
 
 const ALLOWED_ACTIONS = ["get_stats", "retry_dlq"] as const;
 type Action = typeof ALLOWED_ACTIONS[number];
@@ -18,52 +18,14 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-    // التحقق من المستخدم
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
+    const auth = await authenticate(req, corsHeaders, {
+      allowedRoles: ["admin"],
+      parseJsonBody: true,
     });
-    const [authRes, body] = await Promise.all([
-      userClient.auth.getUser(),
-      req.json().catch(() => ({})),
-    ]);
-    const { data: userData, error: userErr } = authRes;
-    if (userErr || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if ("error" in auth) return auth.error;
+    const { admin: adminClient, body } = auth as typeof auth & { body: { action?: string; queue?: string } | null };
 
-    const adminClient = createClient(supabaseUrl, serviceKey);
-
-    // التحقق من دور admin
-    const { data: roleData } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userData.user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (!roleData) {
-      return new Response(JSON.stringify({ error: "Forbidden — admin only" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const action = body?.action as Action;
+    const action = (body?.action ?? "") as Action;
     if (!ALLOWED_ACTIONS.includes(action)) {
       return new Response(JSON.stringify({ error: "Invalid action" }), {
         status: 400,
