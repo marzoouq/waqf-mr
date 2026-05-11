@@ -108,9 +108,11 @@
 - **سلوك خاص:** عند 401 يُستدعى `onAuthError` → `signOut()` تلقائياً.
 
 ### 7. `email-admin`
-- **الغرض:** إعادة إرسال/إعادة تشغيل عناصر طابور البريد.
-- **Method:** POST · **Auth:** admin.
-- **Body:** `{ action: 'list'|'retry'|'cancel', id?: string }`
+- **الغرض:** قراءة إحصاءات طابور البريد + إعادة محاولة عناصر DLQ.
+- **Method:** POST · **Auth:** admin (يدوي — لا يستخدم `_shared/auth.ts`).
+- **Body:** `{ action: 'get_stats' | 'retry_dlq', queueName?: 'auth_emails' | 'transactional_emails' }`
+- **Response (`get_stats`):** `{ sent, failed, dlq, suppressed, last_run, auth_dlq_count, transactional_dlq_count, rate_limited_until }`
+- **Response (`retry_dlq`):** `{ moved: number }` (يتطلب `queueName` صالح)
 
 ### 8. `generate-invoice-pdf`
 - **الغرض:** توليد PDF للفاتورة بالعربية (jsPDF + Amiri).
@@ -119,10 +121,11 @@
 - **Response:** `{ results: Array<{ id: string, invoice_number?: string, success: boolean, error?: string }> }` — يرفع الـ PDF إلى Storage ويُحدّث `file_path/file_name` على الجدول؛ لا يُعيد binary مباشرة.
 
 ### 9. `guard-signup`
-- **الغرض:** ضبط تسجيل المستخدمين الجدد (whitelist، captcha).
+- **الغرض:** ضبط تسجيل المستخدمين الجدد — يتحقق من `registration_enabled`، صيغة البريد، تعقيد كلمة المرور (8–128، حرف كبير/صغير/رقم)، ومنع التكرار.
 - **Method:** POST · **Auth:** anon (قبل التسجيل).
-- **Body:** `{ email, national_id?, phone? }`
-- **Response:** `{ allowed: boolean, reason?: string }`
+- **Body:** `{ email: string, password: string }`
+- **Response (نجاح):** `{ success: true, message: string }` — يُنشئ المستخدم بـ `email_confirm: false` (يحتاج تأكيد بريد قبل تسجيل الدخول).
+- **Response (فشل):** `{ error: string }` — رسالة عربية موحّدة.
 
 ### 10. `health-check`
 - **الغرض:** فحص حياة المنصة (uptime).
@@ -130,11 +133,12 @@
 - **Response:** `{ status: 'ok', uptime_ms: number }`
 
 ### 11. `lookup-national-id`
-- **الغرض:** استخراج البريد الإلكتروني من رقم الهوية + التحقق من كلمة المرور (دخول بالهوية).
+- **الغرض:** البحث عن مستخدم برقم الهوية الوطنية + (اختيارياً) تسجيل دخول مباشر عند تمرير كلمة المرور.
 - **Method:** POST · **Auth:** anon.
-- **Body:** `{ national_id: string, password: string }`
-- **Response:** `{ email?: string, error?: string, retry_after?: number, remaining?: number }`
-- **سلوك خاص:** يُطبّق rate-limit عبر `IP+national_id`؛ يرجِع 429 مع `retry_after`.
+- **Body:** `{ national_id: string, password?: string }`
+- **Response:** `{ found: boolean, masked_email: string \| null, remaining: number, auth_error?: string, session?: { access_token: string, refresh_token: string }, retry_after?: number, error?: string }`
+- **خصوصية حرجة:** لا يُعاد البريد الكامل أبداً — `masked_email` فقط (مثل `u***@example.com`) لمنع enumeration. عند `found: false` تُعاد نفس البنية بـ `masked_email: '***@***.com'` (timing-safe).
+- **سلوك خاص:** rate-limit عبر `IP+national_id`؛ عند التجاوز تُعاد الاستجابة بـ HTTP 200 + `error` + `retry_after` (وليس HTTP 429) — العميل يقرأ `data.retry_after` يدوياً، لذلك يُستدعى عبر `invoke()` مع `treatDataErrorAsFailure: false` و `maxAttempts: 1`.
 
 ### 12. `process-email-queue`
 - **الغرض:** معالجة طابور البريد (cron فقط).
