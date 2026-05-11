@@ -98,3 +98,28 @@
 **إنشاء:** `docs/api/network-inventory.md`, `docs/api/cors-verification.md`
 
 **صفر تعديلات على كود التشغيل.** الجولة E توثيقية بالكامل.
+
+---
+
+## Version E — منفّذ (2026-05-11)
+
+### ما تم تنفيذه
+- ✅ `supabase/functions/README.md`: استثناء `process-email-queue` موثّق صراحة.
+- ✅ `docs/api/edge-functions.md` سطر 118-119: استبدال shape القديم بالشكل الفعلي `{ results: [...] }`.
+- ✅ `docs/API.md` قسم 6: تصحيح المثال البرمجي ليستخدم `invoke()` ويعكس الـ shape الصحيح.
+- ✅ إنشاء `docs/api/network-inventory.md` — جرد كامل (Edge Functions + RPCs + استثناءات مبررة).
+- ✅ إنشاء `docs/api/cors-verification.md` — مصفوفة CORS الميدانية + سكربت إعادة التشغيل.
+- ✅ `docs/api/README.md`: إضافة قسم "Retry & Rate-limit Policy" موحّد.
+
+### ما رُفض بوعي (مع المبرر)
+- ❌ ترحيل `AuthContext.tsx` — قاعدة AGENTS.md تمنع تعديل ملفات المصادقة.
+- ❌ ترحيل `errorReporter.ts` — fallback مقصود؛ تسجيل الأخطاء يجب ألا يعتمد على الغلاف نفسه.
+- ❌ ترحيل `notificationService` / `diagnosticsService` — استدعاءات `.from()` مباشرة على جداول، ليست Edge Functions/RPCs.
+- ❌ توسيع Zod ليشمل كل endpoint — تكلفة عالية بلا قيمة على endpoints مستقرة؛ التغطية الحالية (`dashboard-summary` + `support-analytics`) كافية للمسارات عالية المخاطر.
+- ❌ client-side throttling عام — `check_rate_limit` على السيرفر هو خط الدفاع الموحّد.
+- ❌ تعديل أي كود تشغيلي — الفحص المباشر أكّد أن الترحيلات السابقة كاملة.
+
+### النتائج
+- 0 تعديلات على كود التشغيل.
+- 6 ملفات توثيقية محدّثة/منشأة.
+- جميع ادعاءات التقرير الخارجي تم التحقق منها مباشرة (صحيحة / خاطئة / خارج النطاق) وموثّقة.
