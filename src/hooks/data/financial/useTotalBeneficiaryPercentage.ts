@@ -15,8 +15,7 @@ export const useTotalBeneficiaryPercentage = () => {
   return useQuery({
     queryKey: ['total-beneficiary-percentage'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_total_beneficiary_percentage');
-      if (error) throw error;
+      const data = await rpc('get_total_beneficiary_percentage');
       const result = safeNumber(data);
       if (result <= 0) return 0;
       if (result > 200) {
