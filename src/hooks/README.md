@@ -36,7 +36,7 @@ pages/  →  hooks/page/  →  hooks/financial/  →  hooks/data/  →  lib/serv
 | المجلد | المسؤولية | يستهلك | لا يستهلك |
 |--------|-----------|--------|-----------|
 | `auth/` | جلسات وأدوار | Supabase, AuthContext | UI components |
-| `data/` | استعلامات DB | Supabase, queryClient | UI state, navigation |
+| `data/` | استعلامات DB | `lib/services/*` (مفضّل)، أو `supabase` مباشرة عند الحاجة | UI state, navigation |
 | `financial/` | حسابات مشتقة | `data/` | استعلامات DB مباشرة |
 | `page/` | منطق صفحة كامل | `data/`, `financial/`, `auth/` | DOM، `document.*`، `supabase` مباشرة |
 | `ui/` | تأثيرات DOM | React, browser APIs | Supabase |

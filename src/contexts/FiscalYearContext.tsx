@@ -1,13 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { useActiveFiscalYear, FiscalYear } from '@/hooks/data/financial/useFiscalYears';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import React, { createContext, useContext } from 'react';
+import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 import { useDashboardPrefetch } from '@/hooks/data/dashboard/useDashboardPrefetch';
+import { useFiscalYearPersistence } from '@/hooks/auth/useFiscalYearPersistence';
+import { useResolvedFiscalYear } from '@/hooks/auth/useResolvedFiscalYear';
 import { logger } from '@/lib/logger';
-import { FY_NONE, isFyReady, isFyAll } from '@/constants/fiscalYearIds';
-import { STORAGE_KEYS } from '@/constants/storageKeys';
-import { resolveFiscalYearId } from '@/utils/fiscalYear/resolveFiscalYearId';
-import { safeSessionGet, safeSessionSet, safeSessionRemove } from '@/lib/storage';
-import { UUID_REGEX } from '@/utils/validation/regexPatterns';
+import { FY_NONE } from '@/constants/fiscalYearIds';
 
 interface FiscalYearContextType {
   fiscalYearId: string;
@@ -23,90 +20,42 @@ interface FiscalYearContextType {
 
 const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undefined);
 
-const STORAGE_KEY = STORAGE_KEYS.FISCAL_YEAR;
-
+/**
+ * FiscalYearProvider — composition خفيف بعد M1.2 (Version I-R).
+ * المسؤوليات الفرعية مُستخرَجة:
+ *  - persistence → useFiscalYearPersistence
+ *  - role-aware resolution → useResolvedFiscalYear
+ *  - prefetch → useDashboardPrefetch (يبقى داخل Provider عمدًا)
+ */
 export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
-  const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
-  const { role, loading: authLoading } = useAuth();
-  const [selectedId, setSelectedId] = useState<string>(() => {
-    const stored = safeSessionGet(STORAGE_KEY, '');
-    return UUID_REGEX.test(stored) ? stored : '';
+  const { selectedId, setFiscalYearId } = useFiscalYearPersistence();
+  const final = useResolvedFiscalYear(selectedId);
+
+  // جلب مسبق لبيانات لوحة التحكم — يبقى داخل Provider (مراجعة Version I-R)
+  useDashboardPrefetch({
+    fiscalYearId: final.fiscalYearId,
+    fiscalYears: final.fiscalYears,
   });
-
-  // #34: المحاسب يُعامَل كأنه ليس "non-admin" لأنه يحتاج وصولاً تشغيلياً
-  // لكل السنوات (لإدخال قيود/تسديد فواتير في أي سنة مفتوحة). فقط المستفيد/الواقف
-  // مقيّدان بالسنوات المنشورة عبر هذا الفلاغ.
-  const isNonAdmin = role === 'beneficiary' || role === 'waqif';
-
-  // Once fiscal years load, validate stored selection
-  // D5: Also clean up when noPublishedYears (fiscalYears.length === 0)
-  useEffect(() => {
-    if (!isLoading && selectedId) {
-      if (fiscalYears.length === 0) {
-        // No fiscal years available (e.g. beneficiary with no published years)
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- invalidate stale selection when remote list loads
-        setSelectedId('');
-        safeSessionRemove(STORAGE_KEY);
-      } else {
-        const exists = fiscalYears.some(fy => fy.id === selectedId);
-        if (!exists) {
-          setSelectedId('');
-          safeSessionRemove(STORAGE_KEY);
-        }
-      }
-    }
-  }, [isLoading, fiscalYears, selectedId]);
-
-  // For beneficiary/waqif: RLS already filters to published-only fiscal years.
-  // If no fiscal years are available (all unpublished), don't fallback to 'all'.
-  const noPublishedYears = !isLoading && !authLoading && isNonAdmin && fiscalYears.length === 0;
-
-  const fiscalYearId = resolveFiscalYearId({
-    isLoading,
-    authLoading,
-    noPublishedYears,
-    selectedId,
-    activeFyId: activeFY?.id,
-    isNonAdmin,
-    firstYearId: fiscalYears[0]?.id,
-  });
-
-  const fiscalYear = useMemo(
-    () => (isFyAll(fiscalYearId) || !isFyReady(fiscalYearId)) ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),
-    [fiscalYears, fiscalYearId, activeFY]
-  );
-  const isClosed = fiscalYear?.status === 'closed';
-  const isSpecificYear = !isFyAll(fiscalYearId) && isFyReady(fiscalYearId);
-
-  // جلب مسبق لبيانات لوحة التحكم — منقول إلى hook منفصل (#24)
-  useDashboardPrefetch({ fiscalYearId, fiscalYears });
-
-  const handleSetFiscalYearId = useCallback((id: string) => {
-    setSelectedId(id);
-    if (id) {
-      safeSessionSet(STORAGE_KEY, id);
-    } else {
-      safeSessionRemove(STORAGE_KEY);
-    }
-  }, []);
 
   return (
-    <FiscalYearContext.Provider value={{
-      fiscalYearId,
-      setFiscalYearId: handleSetFiscalYearId,
-      fiscalYear,
-      fiscalYears,
-      isClosed,
-      isLoading,
-      noPublishedYears,
-      isSpecificYear,
-    }}>
+    <FiscalYearContext.Provider
+      value={{
+        fiscalYearId: final.fiscalYearId,
+        setFiscalYearId,
+        fiscalYear: final.fiscalYear,
+        fiscalYears: final.fiscalYears,
+        isClosed: final.isClosed,
+        isLoading: final.isLoading,
+        noPublishedYears: final.noPublishedYears,
+        isSpecificYear: final.isSpecificYear,
+      }}
+    >
       {children}
     </FiscalYearContext.Provider>
   );
 }
 
-/** قيمة احتياطية آمنة تُستخدم عند فقدان السياق مؤقتاً (تحديث chunk / HMR) */
+/** قيمة احتياطية آمنة عند فقدان السياق مؤقتاً (تحديث chunk / HMR) */
 const FALLBACK: FiscalYearContextType = {
   fiscalYearId: FY_NONE,
   setFiscalYearId: () => {},
@@ -121,8 +70,6 @@ const FALLBACK: FiscalYearContextType = {
 export const useFiscalYear = () => {
   const context = useContext(FiscalYearContext);
   if (!context) {
-    // بدلاً من الانهيار الكامل، نسجل تحذير ونعيد قيمة آمنة
-    // هذا يحدث عادةً عند تحميل chunk قديم بعد تحديث التطبيق
     logger.warn('[FiscalYearContext] استُدعي useFiscalYear خارج FiscalYearProvider — إعادة قيمة احتياطية');
     return FALLBACK;
   }
