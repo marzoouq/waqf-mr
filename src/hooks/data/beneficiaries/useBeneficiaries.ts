@@ -13,6 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { Beneficiary } from '@/types';
 import { notifyAdmins } from '@/lib/services';
