@@ -83,3 +83,49 @@
 
 `reportClientError()` يُطبّق dedupe بمفتاح `error_name + url` خلال نافذة 5 ثوانٍ
 لمنع تكرار نفس الخطأ في حلقات الفشل.
+
+## طبقة `invoke()` الموحّدة (`src/lib/api/invoke.ts`)
+
+كل استدعاءات `supabase.functions.invoke()` يجب أن تمر عبر `invoke()` للحصول على
+نفس فوائد `rpc()` (توقيت + تصنيف خطأ + retry/backoff + مراقبة الحمولة).
+
+### التوقيع
+
+```ts
+invoke<T>(
+  fnName: string,
+  request?: { body?: unknown; headers?: Record<string,string>; signal?: AbortSignal },
+  options?: {
+    maxAttempts?: number;             // الافتراضي 3
+    label?: string;                    // perf-timer label
+    onAuthError?: (e: ApiError) => void | Promise<void>;
+    treatDataErrorAsFailure?: boolean; // الافتراضي true — يحوّل { error: '...' } إلى ApiError
+  },
+): Promise<T>
+```
+
+### حالات استخدام مرجعية
+
+| الحالة | الإعداد |
+|--------|--------|
+| Edge Function عاديّة | `await invoke('fn', { body })` |
+| تسجيل خروج عند 401 | `{ onAuthError: () => supabase.auth.signOut() }` |
+| تحديات حسّاسة (WebAuthn) | `{ maxAttempts: 1, treatDataErrorAsFailure: false }` |
+| Edge Function ترجِع `{ error: ... }` بدلاً من 4xx | يُعالَج تلقائياً (الافتراضي) |
+| الوصول للحقول الإضافية في الخطأ | `catch (e) { (e as ApiError).cause }` |
+
+## مراقبة حجم الحمولة (DEV)
+
+`src/lib/monitoring/payloadMonitor.ts` يُستدعى تلقائياً من `rpc()` و `invoke()`:
+
+| الحجم | السلوك |
+|-------|--------|
+| > 500 KB | `logger.warn` |
+| > 1 MB | `logger.error` |
+
+يعمل في `import.meta.env.DEV` فقط لتفادي تكلفة `JSON.stringify` في الإنتاج.
+
+## اختبارات failure paths
+
+- `src/lib/api/rpc.test.ts` — 9 سيناريوهات (success, auth, permission, validation, rate-limit×3, network, server, retry/backoff مع `vi.useFakeTimers`).
+- `src/lib/api/invoke.test.ts` — 8 سيناريوهات (success, auth + `onAuthError`, validation, rate-limit×3, network, server, `data.error` fallback, `treatDataErrorAsFailure: false`).
