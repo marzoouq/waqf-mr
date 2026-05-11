@@ -22,9 +22,7 @@ export function useZatcaInvoiceActions() {
   const generateXml = useMutation({
     mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
       addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-xml-generator', { body: { invoice_id: invoiceId, table } });
-      if (error) throw error;
-      return data;
+      return await invoke('zatca-xml-generator', { body: { invoice_id: invoiceId, table } });
     },
     onSuccess: () => { defaultNotify.success('تم توليد XML بنجاح'); invalidateInvoices(); },
     onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
@@ -34,9 +32,7 @@ export function useZatcaInvoiceActions() {
   const signInvoice = useMutation({
     mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
       addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-signer', { body: { invoice_id: invoiceId, table } });
-      if (error) throw error;
-      return data;
+      return await invoke('zatca-signer', { body: { invoice_id: invoiceId, table } });
     },
     onSuccess: () => { defaultNotify.success('تم التوقيع بنجاح'); invalidateInvoices(); queryClient.invalidateQueries({ queryKey: ['invoice-chain'] }); },
     onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
@@ -46,9 +42,7 @@ export function useZatcaInvoiceActions() {
   const submitToZatca = useMutation({
     mutationFn: async ({ invoiceId, table, action }: { invoiceId: string; table: string; action: 'report' | 'clearance' }) => {
       addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-report', { body: { action, invoice_id: invoiceId, table } });
-      if (error) throw error;
-      return data;
+      return await invoke('zatca-report', { body: { action, invoice_id: invoiceId, table } });
     },
     onSuccess: () => { defaultNotify.success('تم الإرسال لـ ZATCA'); invalidateInvoices(); },
     onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
@@ -58,9 +52,7 @@ export function useZatcaInvoiceActions() {
   const complianceCheck = useMutation({
     mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
       addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-report', { body: { action: 'compliance-check', invoice_id: invoiceId, table } });
-      if (error) throw error;
-      return data;
+      return await invoke<{ validationResults?: { status?: string } }>('zatca-report', { body: { action: 'compliance-check', invoice_id: invoiceId, table } });
     },
     onSuccess: (data) => {
       if (data?.validationResults?.status === 'PASS') defaultNotify.success('✅ اجتاز فحص الامتثال');
