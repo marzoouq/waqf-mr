@@ -19,10 +19,9 @@ export function useMultiYearSummary(yearIds: string[]) {
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_multi_year_summary', {
+      const data = await rpc('get_multi_year_summary', {
         p_year_ids: sortedIds,
       });
-      if (error) throw error;
       // RPC — cast مبرر، يحتاج Zod validation لاحقاً
       const arr = data as unknown as RpcYearEntry[];
       return (arr ?? []).map(mapEntry);
