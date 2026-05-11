@@ -19,7 +19,7 @@ const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner')
 const WaqifDashboard = () => {
   const {
     isLoading, noPublishedYears,
-    displayName, greeting, greetingIconName, hijriDate, gregorianDate, timeStr,
+    displayName, welcome,
     overviewStats, kpis,
     fiscalYear, totalIncome, totalExpenses, availableAmount,
     activeContracts, expiredContracts,
@@ -33,7 +33,7 @@ const WaqifDashboard = () => {
     return (
       <DashboardLayout>
         <div className="p-3 sm:p-6 space-y-4">
-          <WaqifWelcomeCard displayName={displayName} greeting={greeting} greetingIconName={greetingIconName} hijriDate={hijriDate} gregorianDate={gregorianDate} timeStr={timeStr} />
+          <WaqifWelcomeCard displayName={displayName} welcome={welcome} />
           <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
@@ -43,8 +43,7 @@ const WaqifDashboard = () => {
   return (
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
-        <WaqifWelcomeCard displayName={displayName} greeting={greeting} greetingIconName={greetingIconName} hijriDate={hijriDate} gregorianDate={gregorianDate} timeStr={timeStr} />
-
+        <WaqifWelcomeCard displayName={displayName} welcome={welcome} />
         <div className="flex items-center justify-end gap-2">
           <ExportMenu hidePdf />
         </div>
