@@ -15,8 +15,7 @@ export const useCollectionAlerts = () => {
     }
     setSendingAlerts(true);
     try {
-      const { error } = await supabase.rpc('cron_check_late_payments');
-      if (error) throw error;
+      await rpc('cron_check_late_payments');
       defaultNotify.success(`تم إرسال تنبيهات لـ ${overdueCount} عقد متأخر`);
     } catch {
       defaultNotify.error('حدث خطأ أثناء إرسال التنبيهات');
