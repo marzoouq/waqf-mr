@@ -29,12 +29,21 @@ export function useWebAuthnRegister({ setIsLoading, setIsEnabled, fetchCredentia
         return false;
       }
 
-      const { data: options, error: optErr } = await supabase.functions.invoke('webauthn', {
-        body: { action: 'register-options' },
-      });
-
-      if (optErr || !options) {
-        logger.error('WebAuthn register-options error:', optErr);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let options: any;
+      try {
+        options = await invoke<any>(
+          'webauthn',
+          { body: { action: 'register-options' } },
+          { maxAttempts: 1, treatDataErrorAsFailure: false },
+        );
+      } catch (e) {
+        logger.error('WebAuthn register-options error:', e);
+        logBiometricEvent('login_failed', 'register-options', { reason: 'server_error' });
+        defaultNotify.error('فشل في بدء عملية التسجيل. تحقق من اتصالك بالإنترنت وأعد المحاولة');
+        return false;
+      }
+      if (!options) {
         logBiometricEvent('login_failed', 'register-options', { reason: 'server_error' });
         defaultNotify.error('فشل في بدء عملية التسجيل. تحقق من اتصالك بالإنترنت وأعد المحاولة');
         return false;
@@ -49,11 +58,19 @@ export function useWebAuthnRegister({ setIsLoading, setIsEnabled, fetchCredentia
 
       const credential = await startRegistration({ optionsJSON: options });
 
-      const { data: result, error: verErr } = await supabase.functions.invoke('webauthn', {
-        body: { action: 'register-verify', credential, deviceName: (deviceName || getDeviceName()).slice(0, 100), challenge_id: options.challenge_id },
-      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let result: any = null;
+      try {
+        result = await invoke<any>(
+          'webauthn',
+          { body: { action: 'register-verify', credential, deviceName: (deviceName || getDeviceName()).slice(0, 100), challenge_id: options.challenge_id } },
+          { maxAttempts: 1, treatDataErrorAsFailure: false },
+        );
+      } catch {
+        // معالجة موحّدة أدناه
+      }
 
-      if (verErr || !result?.verified) {
+      if (!result?.verified) {
         logBiometricEvent('login_failed', 'register-verify', { reason: 'verification_failed' });
         defaultNotify.error('فشل في تسجيل البصمة');
         return false;
