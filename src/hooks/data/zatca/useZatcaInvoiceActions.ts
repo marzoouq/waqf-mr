@@ -3,7 +3,7 @@
  */
 import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/api/invoke';
 import { defaultNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 
