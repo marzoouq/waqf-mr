@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Bell } from 'lucide-react';
 import { fmtDate } from '@/utils/format/format';
+import { NOTIFICATIONS_COPY } from '@/constants/beneficiaryCopy';
 
 interface Notification {
   id: string;
@@ -20,22 +21,31 @@ interface BeneficiaryNotificationsCardProps {
 
 const BeneficiaryNotificationsCard = ({ notifications, unreadCount }: BeneficiaryNotificationsCardProps) => {
   const navigate = useNavigate();
+  // CR-03: تمييز الحالتين الفارغتين
+  const emptyText =
+    notifications.length === 0 ? NOTIFICATIONS_COPY.emptyAll : NOTIFICATIONS_COPY.emptyUnread;
 
   return (
     <Card className="shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
           <Bell className="w-5 h-5" />
-          آخر الإشعارات
+          {NOTIFICATIONS_COPY.cardTitle}
           {unreadCount > 0 && (
-            <Badge variant="destructive" className="text-[11px] px-1.5">{unreadCount}</Badge>
+            <Badge
+              variant="destructive"
+              className="text-[11px] px-1.5"
+              aria-label={`${unreadCount} غير مقروء`}
+            >
+              {unreadCount}
+            </Badge>
           )}
         </CardTitle>
         <Button variant="ghost" size="sm" onClick={() => navigate('/beneficiary/notifications')}>عرض الكل</Button>
       </CardHeader>
       <CardContent>
-        {notifications.length === 0 ? (
-          <p className="text-center text-muted-foreground py-6 text-sm">لا توجد إشعارات جديدة</p>
+        {notifications.length === 0 || unreadCount === 0 ? (
+          <p className="text-center text-muted-foreground py-6 text-sm">{emptyText}</p>
         ) : (
           <div className="space-y-3">
             {notifications.map((n) => (
@@ -43,7 +53,11 @@ const BeneficiaryNotificationsCard = ({ notifications, unreadCount }: Beneficiar
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-sm">{n.title}</p>
-                    {!n.is_read && <Badge variant="secondary" className="text-[11px] px-1.5 py-0">جديد</Badge>}
+                    {!n.is_read && (
+                      <Badge variant="secondary" className="text-[11px] px-1.5 py-0">
+                        {NOTIFICATIONS_COPY.unreadBadge}
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{n.message}</p>
                 </div>
@@ -58,3 +72,4 @@ const BeneficiaryNotificationsCard = ({ notifications, unreadCount }: Beneficiar
 };
 
 export default BeneficiaryNotificationsCard;
+
