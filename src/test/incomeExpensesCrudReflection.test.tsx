@@ -46,6 +46,14 @@ function buildQuery(table: string) {
     if (state.op === 'update') {
       const updates = state.payload as Partial<Row>;
       const updated = rows.map((r) => Object.assign(r, updates));
+      const t = mockDb[table];
+      if (t) {
+        rows.forEach((r) => {
+          const idx = t.indexOf(r);
+          if (idx !== -1) t[idx] = r;
+        });
+      }
+      void updated;
       return { data: updated[0] ?? null, error: null };
     }
 
