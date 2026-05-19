@@ -188,10 +188,9 @@ describe('Income CRUD reflects DB changes in UI', () => {
       expect(hooks.result.current.list.data?.length).toBe(2);
     });
 
-    // suppress unused
-    void create;
   });
 });
+
 
 describe('Expenses CRUD reflects DB changes in UI', () => {
   it('list → create → update → delete', async () => {
