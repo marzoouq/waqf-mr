@@ -30,6 +30,15 @@ jobs:
       - name: ESLint check
         run: npx eslint src/
 
+      - name: Security audit
+        run: |
+          npm audit --audit-level=high --omit=dev || true
+          npm audit --audit-level=high --omit=dev --json > audit-report.json
+          if [ $(grep -c '"severity":"high"\|"severity":"critical"' audit-report.json) -gt 0 ]; then
+            echo "::error::عثر على ثغرات عالية/حرجة في التبعيات"
+            exit 1
+          fi
+
       - name: Run tests with coverage
         run: npx vitest run --coverage
 
