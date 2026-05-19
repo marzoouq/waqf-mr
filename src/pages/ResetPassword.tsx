@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, KeyRound, Loader2, CheckCircle } from 'lucide-react';
 import { useResetPassword } from '@/hooks/auth/useResetPassword';
+import { RouteHead } from '@/components/seo/RouteHead';
 
 const ResetPassword = () => {
   const navigate = useNavigate();

@@ -5,6 +5,7 @@ import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle } from 'lu
 import { LoginForm, SignupForm, ResetPasswordForm } from '@/components/auth';
 import { useSetting } from '@/hooks/data/settings/useAppSettings';
 import { useAuthPage } from '@/hooks/page/shared/useAuthPage';
+import { RouteHead } from '@/components/seo/RouteHead';
 
 const Auth = () => {
   const waqfLogoUrl = useSetting('waqf_logo_url');
@@ -41,6 +42,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen gradient-auth pattern-islamic-strong flex items-center justify-center p-4 relative overflow-hidden">
+      <RouteHead
+        title="تسجيل الدخول"
+        description="بوّابة دخول نظام إدارة وقف مرزوق بن علي الثبيتي — تسجيل دخول الناظر والمحاسب والمستفيدين والواقفين بطرق آمنة، مع دعم المصادقة البيومترية."
+        path="/auth"
+      />
       {/* Decorative orbs */}
       <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-secondary/5 blur-3xl" style={{ contain: 'strict' }} />
       <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full bg-primary/10 blur-3xl" style={{ contain: 'strict' }} />

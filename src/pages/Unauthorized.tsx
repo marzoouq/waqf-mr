@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ShieldX, Home, ArrowRight, Building2, UserCog } from 'lucide-react';
 import { useAuth } from '@/hooks/auth/useAuthContext';
+import { RouteHead } from '@/components/seo/RouteHead';
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'ناظر الوقف',
@@ -24,6 +25,12 @@ const Unauthorized = () => {
 
   return (
     <main dir="rtl" className="min-h-screen bg-background flex flex-col">
+      <RouteHead
+        title="غير مصرّح بالوصول"
+        description="ليس لديك صلاحية الوصول إلى هذه الصفحة في نظام إدارة الوقف. عُد إلى لوحتك أو تواصل مع الناظر إذا كنت بحاجة إلى صلاحية إضافية."
+        path="/unauthorized"
+        noindex
+      />
       {/* Hero header */}
       <div className="gradient-primary py-10">
         <div className="container mx-auto px-4 text-center">
