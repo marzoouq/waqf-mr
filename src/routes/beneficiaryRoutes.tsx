@@ -10,6 +10,7 @@ const AccountsViewPage = lazyWithRetry(() => import("@/pages/beneficiary/Account
 const BeneficiarySettingsPage = lazyWithRetry(() => import("@/pages/beneficiary/BeneficiarySettingsPage"));
 const BeneficiaryMessagesPage = lazyWithRetry(() => import("@/pages/beneficiary/BeneficiaryMessagesPage"));
 const InvoicesViewPage = lazyWithRetry(() => import("@/pages/beneficiary/InvoicesViewPage"));
+const ExpensesViewPage = lazyWithRetry(() => import("@/pages/beneficiary/ExpensesViewPage"));
 const NotificationsPage = lazyWithRetry(() => import("@/pages/beneficiary/NotificationsPage"));
 const BylawsViewPage = lazyWithRetry(() => import("@/pages/beneficiary/BylawsViewPage"));
 const PropertiesViewPage = lazyWithRetry(() => import("@/pages/beneficiary/PropertiesViewPage"));
