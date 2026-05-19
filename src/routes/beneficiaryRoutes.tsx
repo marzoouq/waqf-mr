@@ -35,6 +35,7 @@ export const beneficiaryRoutes = (
     <Route path="/beneficiary/settings" element={pr(ALL_NON_ACCOUNTANT, <BeneficiarySettingsPage />)} />
     <Route path="/beneficiary/messages" element={pr(ALL_NON_ACCOUNTANT, <BeneficiaryMessagesPage />)} />
     <Route path="/beneficiary/invoices" element={pr(ALL_NON_ACCOUNTANT, <InvoicesViewPage />)} />
+    <Route path="/beneficiary/expenses" element={pr(ALL_NON_ACCOUNTANT, <ExpensesViewPage />)} />
     <Route path="/beneficiary/notifications" element={pr(ALL_NON_ACCOUNTANT, <NotificationsPage />)} />
     <Route path="/beneficiary/bylaws" element={pr(ALL_NON_ACCOUNTANT, <BylawsViewPage />)} />
     <Route path="/beneficiary/carryforward" element={pr(ALL_NON_ACCOUNTANT, <CarryforwardHistoryPage />)} />
