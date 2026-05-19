@@ -36,13 +36,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string) => {
-    const { data, error } = await supabase.functions.invoke('guard-signup', {
-      body: { email, password },
-    });
-    if (error || data?.error) {
-      return { error: new Error(data?.error || getSafeErrorMessage(error)) };
+    // يمر عبر invoke() للحصول على retry/classification/perf monitoring.
+    // treatDataErrorAsFailure:false لأن guard-signup قد يعيد 200 + { error } لرسائل validation
+    // ولا نريد retry تلقائي على هذا النوع — نتعامل معه يدوياً أدناه.
+    // maxAttempts:1 — endpoint حساس مع حماية ضد إعادة المحاولة.
+    try {
+      const data = await invoke<{ error?: string }>(
+        'guard-signup',
+        { body: { email, password } },
+        { maxAttempts: 1, treatDataErrorAsFailure: false },
+      );
+      if (data?.error) return { error: new Error(data.error) };
+      return { error: null };
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'حدث خطأ غير متوقع أثناء إنشاء الحساب';
+      return { error: new Error(msg) };
     }
-    return { error: null };
   }, []);
 
   const signOut = useCallback(async () => {
