@@ -36,8 +36,10 @@ export function usePrefetchPages() {
     queryClient.prefetchQuery({ ...opts, staleTime: PREFETCH_STALE });
 
     // المستفيدين — من view آمنة (لا CRUD factory)
+    // F-A1: المفتاح ['beneficiaries-safe'] يطابق useBeneficiariesSafe لتفادي تصادم
+    // الكاش مع useBeneficiaries (CRUD factory على جدول beneficiaries الحقيقي).
     queryClient.prefetchQuery({
-      queryKey: ['beneficiaries'],
+      queryKey: ['beneficiaries-safe'],
       staleTime: PREFETCH_STALE,
       queryFn: async () => {
         const { data, error } = await supabase
