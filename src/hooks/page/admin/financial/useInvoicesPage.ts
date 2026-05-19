@@ -34,9 +34,12 @@ export const useInvoicesPage = () => {
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   const { data: invoices = [], isLoading } = useInvoicesByFiscalYear(fiscalYearId);
+  const { data: rentInvoices = [], isLoading: loadingRent } = usePaymentInvoices(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const generatePdf = useGenerateInvoicePdf();
+
+  const [sourceFilter, setSourceFilter] = useState<InvoiceSourceFilter>('all');
 
   const {
     searchQuery, setSearchQuery,
@@ -44,6 +47,49 @@ export const useInvoicesPage = () => {
     filterStatus, setFilterStatus,
     filteredInvoices,
   } = useInvoicesFilters(invoices);
+
+  // عرض موحّد للمستخدم في تبويبات "الكل" و "إيجار"
+  const unifiedInvoices: UnifiedInvoiceItem[] = useMemo(() => {
+    const expenseItems: UnifiedInvoiceItem[] = invoices.map((inv) => ({
+      id: inv.id,
+      invoice_type: inv.invoice_type,
+      invoice_number: inv.invoice_number,
+      amount: safeNumber(inv.amount),
+      date: inv.date,
+      status: inv.status,
+      file_path: inv.file_path,
+      file_name: inv.file_name,
+      property: inv.property ? { property_number: inv.property.property_number } : null,
+      source: 'expense',
+    }));
+    const rentItems: UnifiedInvoiceItem[] = rentInvoices.map((inv) => ({
+      id: inv.id,
+      invoice_type: 'rent_invoice',
+      invoice_number: inv.invoice_number || null,
+      amount: safeNumber(inv.amount),
+      date: inv.due_date,
+      status: inv.status,
+      file_path: inv.file_path,
+      file_name: inv.invoice_number ? `${inv.invoice_number}.pdf` : null,
+      property: inv.contract?.property ? { property_number: inv.contract.property.property_number } : null,
+      source: 'rent',
+    }));
+    return [...expenseItems, ...rentItems].sort((a, b) => (a.date < b.date ? 1 : -1));
+  }, [invoices, rentInvoices]);
+
+  const unifiedFiltered = useMemo(() => unifiedInvoices.filter((item) => {
+    if (sourceFilter !== 'all' && item.source !== sourceFilter) return false;
+    if (filterStatus !== 'all' && item.status !== filterStatus) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return (
+        (item.invoice_number || '').toLowerCase().includes(q) ||
+        (INVOICE_TYPE_LABELS[item.invoice_type] || '').includes(q) ||
+        item.date.includes(q)
+      );
+    }
+    return true;
+  }), [unifiedInvoices, sourceFilter, filterStatus, searchQuery]);
 
   const {
     editingInvoice, formData, setFormData,
