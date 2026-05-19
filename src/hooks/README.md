@@ -8,8 +8,8 @@
 hooks/
 ├── auth/        — مصادقة، أدوار، WebAuthn، إدارة المستخدمين
 ├── data/        — استعلامات Supabase موحّدة (CRUD + caching)
-├── financial/   — حسابات مالية مشتركة (مشتقة من data/)
-├── page/        — منطق صفحات كامل (ينظّم data + financial + UI state)
+├── domain/      — حسابات مشتركة (مالية، توزيع، حصص…) مشتقة من data/
+├── page/        — منطق صفحات كامل (ينظّم data + domain + UI state)
 └── ui/          — هوكات UI عامة (toast, debounce, media query, ...)
 ```
 
@@ -20,14 +20,14 @@ hooks/
 ### اتجاه التبعيات (one-way)
 
 ```
-pages/  →  hooks/page/  →  hooks/financial/  →  hooks/data/  →  lib/services/  →  supabase
-                       ↘  hooks/auth/      ↗
+pages/  →  hooks/page/  →  hooks/domain/  →  hooks/data/  →  lib/services/  →  supabase
+                       ↘  hooks/auth/    ↗
                        ↘  hooks/ui/
 ```
 
 **ممنوع** أي تبعية عكسية:
-- ❌ `hooks/data/` يستورد من `hooks/page/`
-- ❌ `hooks/financial/` يستورد `supabase` مباشرة
+- ❌ `hooks/data/` يستورد من `hooks/page/` أو `hooks/domain/`
+- ❌ `hooks/domain/` يستورد `supabase` مباشرة
 - ❌ `hooks/page/` يستدعي `supabase.from(...)` — يجب أن يمرّ عبر `hooks/data/`
 - ❌ `pages/` تحتوي على منطق أعمال — يجب أن تكون logic-less
 
@@ -37,9 +37,9 @@ pages/  →  hooks/page/  →  hooks/financial/  →  hooks/data/  →  lib/serv
 |--------|-----------|--------|-----------|
 | `auth/` | جلسات وأدوار | Supabase, AuthContext | UI components |
 | `data/` | استعلامات DB | `lib/services/*` (مفضّل)، أو `supabase` مباشرة عند الحاجة | UI state, navigation |
-| `financial/` | حسابات مشتقة | `data/` | استعلامات DB مباشرة |
-| `page/` | منطق صفحة كامل | `data/`, `financial/`, `auth/` | DOM، `document.*`، `supabase` مباشرة |
-| `ui/` | تأثيرات DOM | React, browser APIs | Supabase |
+| `domain/` | حسابات مشتقة | `data/` | استعلامات DB مباشرة |
+| `page/` | منطق صفحة كامل | `data/`, `domain/`, `auth/` | DOM، `document.*`، `supabase` مباشرة |
+| `ui/` | تأثيرات DOM | React, browser APIs | Supabase, auth state |
 
 ## نمط Page Hook
 
