@@ -30,32 +30,41 @@ export function useAccountsSettings(params: SettingsParams) {
   useEffect(() => {
     if (appSettings.data) {
       const settings = appSettings.data;
-      /* eslint-disable react-hooks/set-state-in-effect -- intentional sync of editable form state from server settings on initial load / change */
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync of editable form state from server settings
       if (settings['admin_share_percentage']) setAdminPercent(Number(settings['admin_share_percentage']));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync of editable form state from server settings
       if (settings['waqif_share_percentage']) setWaqifPercent(Number(settings['waqif_share_percentage']));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync of editable form state from server settings
       if (settings['fiscal_year']) setFiscalYear(settings['fiscal_year']);
-      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [appSettings.data]);
 
   // مزامنة من حساب السنة المختارة — قيم قابلة للتحرير في صفحة الحسابات
   useEffect(() => {
     const matchingAccount = findAccountByFY(params.accounts, params.selectedFY);
-    /* eslint-disable react-hooks/set-state-in-effect -- intentional sync of editable form state from selected fiscal year account */
     if (matchingAccount) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from selected fiscal year account
       if (matchingAccount.zakat_amount !== undefined) setZakatAmount(Number(matchingAccount.zakat_amount));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from selected fiscal year account
       if (matchingAccount.waqf_corpus_manual !== undefined) setWaqfCorpusManual(Number(matchingAccount.waqf_corpus_manual));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from selected fiscal year account
       if (matchingAccount.waqf_corpus_previous !== undefined) setWaqfCorpusPrevious(Number(matchingAccount.waqf_corpus_previous));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from selected fiscal year account
       if (matchingAccount.vat_amount !== undefined) setManualVat(Number(matchingAccount.vat_amount));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from selected fiscal year account
       if (matchingAccount.distributions_amount !== undefined) setManualDistributions(Number(matchingAccount.distributions_amount));
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset form when no account exists for selected year
       setZakatAmount(0);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset
       setWaqfCorpusManual(0);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset
       setWaqfCorpusPrevious(0);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset
       setManualVat(0);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset
       setManualDistributions(0);
     }
-    /* eslint-enable react-hooks/set-state-in-effect */
   }, [params.accounts, params.selectedFY]);
 
   const saveSettingTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
