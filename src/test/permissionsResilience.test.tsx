@@ -95,10 +95,11 @@ describe('Permissions resilience matrix', () => {
 
     // مصفوفة كاملة: لكل تبويب ناظر، إخفاء sectionKey يحجبه فقط ولا يمسّ غيره
     describe('مصفوفة كل تبويب × sectionKey=false (لا تسرّب)', () => {
+      const protectedSet = new Set<string>(PROTECTED_ADMIN_SECTIONS);
       const adminRoutesWithSection = Object.entries(ADMIN_ROUTES).filter(
         ([route, meta]) =>
           meta.sectionKey &&
-          !PROTECTED_ADMIN_SECTIONS.has(meta.sectionKey) &&
+          !protectedSet.has(meta.sectionKey) &&
           ADMIN_NAV_ROUTES.includes(route),
       );
 
