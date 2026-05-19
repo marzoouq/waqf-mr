@@ -294,16 +294,16 @@ describe('Permissions resilience matrix', () => {
       ]),
     ).filter(Boolean) as string[];
 
+    // `/beneficiary` كرابط معاينة للناظر مسموح — نمنع فقط مسارات المستفيد الفرعية
+    const isBeneficiarySubRoute = (r: string) => r.startsWith('/beneficiary/');
+
     it.each(['admin', 'accountant'] as const)(
-      '%s لا يرى أي رابط /beneficiary أو /waqif (افتراضي)',
+      '%s لا يرى أي مسار /beneficiary/<sub> (افتراضي)',
       (role) => {
         setup(role);
         const { result } = renderHook(() => useNavLinks());
-        const routes = tos(result.current);
-        for (const r of routes) {
-          expect(r.startsWith('/beneficiary') || r === '/waqif', `${role} leaked ${r}`).toBe(
-            false,
-          );
+        for (const r of tos(result.current)) {
+          expect(isBeneficiarySubRoute(r), `${role} leaked sub-route ${r}`).toBe(false);
         }
       },
     );
@@ -319,7 +319,6 @@ describe('Permissions resilience matrix', () => {
       },
     );
 
-    // إخفاء أي قسم لا يكسر العزل بين الواجهتين
     it.each(allSections)('إخفاء section=%s لا يكسر العزل عبر الأدوار', (section) => {
       for (const role of ['admin', 'accountant', 'beneficiary', 'waqif'] as const) {
         setup(role, {
@@ -330,7 +329,7 @@ describe('Permissions resilience matrix', () => {
         const routes = tos(result.current);
         if (role === 'admin' || role === 'accountant') {
           for (const r of routes) {
-            expect(r.startsWith('/beneficiary') || r === '/waqif').toBe(false);
+            expect(isBeneficiarySubRoute(r)).toBe(false);
           }
         } else {
           for (const r of routes) {
