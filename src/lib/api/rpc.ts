@@ -58,7 +58,8 @@ export async function rpc<T = unknown>(
 
   try {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const { data, error } = await (supabase.rpc as (
+      // Cast through unknown because supabase.rpc is heavily generic over fnName literal unions.
+      const { data, error } = await (supabase.rpc as unknown as (
         fn: string,
         p?: Record<string, unknown>,
       ) => Promise<{ data: unknown; error: { message?: string; status?: number; name?: string } | null }>)(fnName, params);
