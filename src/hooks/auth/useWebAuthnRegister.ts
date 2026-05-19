@@ -29,10 +29,10 @@ export function useWebAuthnRegister({ setIsLoading, setIsEnabled, fetchCredentia
         return false;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let options: any;
+      type RegisterOptionsResponse = { challenge_id?: string; error?: string; [k: string]: unknown };
+      let options: RegisterOptionsResponse | undefined;
       try {
-        options = await invoke<any>(
+        options = await invoke<RegisterOptionsResponse>(
           'webauthn',
           { body: { action: 'register-options' } },
           { maxAttempts: 1, treatDataErrorAsFailure: false },
@@ -58,10 +58,10 @@ export function useWebAuthnRegister({ setIsLoading, setIsEnabled, fetchCredentia
 
       const credential = await startRegistration({ optionsJSON: options });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let result: any = null;
+      type RegisterVerifyResponse = { verified?: boolean; error?: string; [k: string]: unknown };
+      let result: RegisterVerifyResponse | null = null;
       try {
-        result = await invoke<any>(
+        result = await invoke<RegisterVerifyResponse>(
           'webauthn',
           { body: { action: 'register-verify', credential, deviceName: (deviceName || getDeviceName()).slice(0, 100), challenge_id: options.challenge_id } },
           { maxAttempts: 1, treatDataErrorAsFailure: false },
