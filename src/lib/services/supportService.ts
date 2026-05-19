@@ -3,7 +3,10 @@
  * مستخرج من useSupportTicketMutations.ts ضمن M2.4.
  */
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import type { SupportTicket } from '@/hooks/data/support/useSupportTickets';
+
+type SupportTicketUpdate = Database['public']['Tables']['support_tickets']['Update'];
 
 export const supportService = {
   async createTicket(payload: {
@@ -28,12 +31,7 @@ export const supportService = {
     resolution_notes?: string;
     assigned_to?: string;
   }): Promise<void> {
-    const updates: {
-      status: string;
-      resolution_notes?: string;
-      assigned_to?: string;
-      resolved_at?: string;
-    } = { status: input.status };
+    const updates: SupportTicketUpdate = { status: input.status };
     if (input.resolution_notes) updates.resolution_notes = input.resolution_notes;
     if (input.assigned_to) updates.assigned_to = input.assigned_to;
     if (input.status === 'resolved' || input.status === 'closed') {
