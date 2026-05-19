@@ -8,7 +8,7 @@ const mockExpenses = [
 
 const mockMutate = { mutateAsync: vi.fn(), isPending: false };
 
-vi.mock('@/hooks/data/useExpenses', () => ({
+vi.mock('@/hooks/data/financial/useExpenses', () => ({
   useExpenses: vi.fn(() => ({ data: mockExpenses, isLoading: false })),
   useExpensesByFiscalYear: vi.fn(() => ({ data: mockExpenses, isLoading: false })),
   useCreateExpense: vi.fn(() => mockMutate),
@@ -16,12 +16,12 @@ vi.mock('@/hooks/data/useExpenses', () => ({
   useDeleteExpense: vi.fn(() => mockMutate),
 }));
 
-vi.mock('@/hooks/data/useInvoices', () => ({
+vi.mock('@/hooks/data/invoices/useInvoices', () => ({
   useInvoices: vi.fn(() => ({ data: [{ id: 'inv1', expense_id: 'e1' }] })),
   useInvoicesByFiscalYear: vi.fn(() => ({ data: [{ id: 'inv1', expense_id: 'e1' }] })),
 }));
 
-vi.mock('@/hooks/data/useProperties', () => ({
+vi.mock('@/hooks/data/properties/useProperties', () => ({
   useProperties: vi.fn(() => ({ data: [{ id: 'p1', property_number: 'W-001', location: 'حي النزهة' }] })),
 }));
 
@@ -40,7 +40,11 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
+  useAuth: vi.fn(() => ({ role: 'admin', user: { id: 'u1' }, loading: false })),
+}));
+
+vi.mock('@/hooks/data/settings/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/components/layout', async () => {
   const actual = await vi.importActual('@/components/layout');
