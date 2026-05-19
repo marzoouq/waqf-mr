@@ -20,7 +20,11 @@ export const useBeneficiariesForMessaging = () => {
         .not('user_id', 'is', null)
         .order('name');
       if (error) throw error;
-      return data;
+      // الـ view يُرجع أعمدة nullable — نُصفّي ونُطبّع للنوع الصارم المستهلَك.
+      return (data ?? [])
+        .filter((r): r is { id: string; name: string; user_id: string } =>
+          !!r.id && !!r.name && !!r.user_id,
+        );
     },
   });
 };
