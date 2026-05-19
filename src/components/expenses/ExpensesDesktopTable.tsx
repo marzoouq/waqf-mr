@@ -32,7 +32,7 @@ const SortIcon = ({ field, sortField, sortDir }: { field: SortField; sortField: 
   return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
 };
 
-const ExpensesDesktopTable = ({ items, expenseInvoiceMap, expandedRow, setExpandedRow, onEdit, onDelete, isLocked, sortField, sortDir, onSort }: ExpensesDesktopTableProps) => (
+const ExpensesDesktopTable = ({ items, expenseInvoiceMap, expandedRow, setExpandedRow, onEdit, onDelete, isLocked, sortField, sortDir, onSort, readOnly = false }: ExpensesDesktopTableProps) => (
   <div className="overflow-x-auto hidden md:block">
     <Table className="min-w-[700px]">
       <TableHeader>
