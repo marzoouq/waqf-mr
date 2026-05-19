@@ -10,9 +10,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { fetchUserRole } from '@/lib/auth/fetchUserRole';
-import { AuthStateContext, AuthActionsContext } from '@/hooks/auth/useAuthContext';
-import { useAuthListener } from '@/hooks/auth/useAuthListener';
-import { useAuthCleanup } from '@/hooks/auth/useAuthCleanup';
+import { AuthStateContext, AuthActionsContext } from '@/hooks/auth/session/useAuthContext';
+import { useAuthListener } from '@/hooks/auth/session/useAuthListener';
+import { useAuthCleanup } from '@/hooks/auth/session/useAuthCleanup';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   // === State + listener (مُستخرج إلى hook منفصل في الموجة 18) ===

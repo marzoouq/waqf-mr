@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { useRegistrationEnabled } from '@/hooks/data/settings/useRegistrationEnabled';
 import { usePwaInstall } from '@/hooks/ui/usePwaInstall';
 import { useOfflineDetect } from '@/hooks/ui/useOfflineDetect';
-import { useRoleRedirect } from '@/hooks/auth/useRoleRedirect';
+import { useRoleRedirect } from '@/hooks/auth/role/useRoleRedirect';
 
 export const useAuthPage = () => {
   const { signIn, signUp, user, role, loading, signOut } = useAuth();

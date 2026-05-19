@@ -2,8 +2,8 @@
  * مكون إدارة مهلة الخمول — يفصل منطق idle timeout عن DashboardLayout
  */
 import { useCallback, lazy, Suspense } from 'react';
-import { useAuth } from '@/hooks/auth/useAuthContext';
-import { useAuthCleanup } from '@/hooks/auth/useAuthCleanup';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
+import { useAuthCleanup } from '@/hooks/auth/session/useAuthCleanup';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { logAccessEvent } from '@/lib/services/accessLogService';

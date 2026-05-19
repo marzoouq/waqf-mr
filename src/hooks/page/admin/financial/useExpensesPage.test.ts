@@ -36,7 +36,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   useFiscalYear: () => ({ fiscalYearId: 'fy1', fiscalYear: { id: 'fy1', label: '1446', status: 'active' }, isClosed: false }),
 }));
 
-vi.mock('@/hooks/auth/useAuthContext', () => ({
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: () => ({ role: 'admin' }),
 }));
 

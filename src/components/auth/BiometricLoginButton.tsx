@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Fingerprint, Loader2 } from 'lucide-react';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
-import { isBiometricEnabled, useWebAuthn } from '@/hooks/auth/useWebAuthn';
+import { isBiometricEnabled, useWebAuthn } from '@/hooks/auth/biometric/useWebAuthn';
 
 export default function BiometricLoginButton() {
   const showBiometric = browserSupportsWebAuthn() && isBiometricEnabled();

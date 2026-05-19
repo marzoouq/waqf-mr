@@ -6,11 +6,15 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import DeferredRender from '@/components/common/DeferredRender';
 import ViewportRender from '@/components/common/ViewportRender';
 import { Button } from '@/components/ui/button';
-import {
-  FiscalYearWidget, DashboardAlerts, DashboardStatsGrid, DashboardKpiPanel,
-  CollectionSummaryCard, RecentContractsCard, QuickActionsCard, YearComparisonCard,
-  AccountantDashboardView,
-} from '@/components/dashboard';
+import FiscalYearWidget from '@/components/dashboard/widgets/FiscalYearWidget';
+import DashboardAlerts from '@/components/dashboard/widgets/DashboardAlerts';
+import QuickActionsCard from '@/components/dashboard/widgets/QuickActionsCard';
+import RecentContractsCard from '@/components/dashboard/widgets/RecentContractsCard';
+import DashboardStatsGrid from '@/components/dashboard/kpi/DashboardStatsGrid';
+import DashboardKpiPanel from '@/components/dashboard/kpi/DashboardKpiPanel';
+import CollectionSummaryCard from '@/components/dashboard/kpi/CollectionSummaryCard';
+import YearComparisonCard from '@/components/dashboard/kpi/YearComparisonCard';
+import AccountantDashboardView from '@/components/dashboard/views/AccountantDashboardView';
 import { Printer, Gauge } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import type { FiscalYear } from '@/types';

@@ -13,7 +13,7 @@ import { ROLE_SECTION_DEFS, makeDefaults } from '@/constants/sections';
 import { defaultAdminSections, defaultBeneficiarySections } from '@/constants/navigation';
 import { BENEFICIARY_WIDGET_KEYS } from '@/constants/beneficiaryWidgets';
 import { useLogAccessEvent } from '@/hooks/data/audit/useLogAccessEvent';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 export const PERMISSIONS_ROLES = [
   { key: 'accountant', label: 'المحاسب', color: 'text-info dark:text-info' },

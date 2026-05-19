@@ -12,7 +12,7 @@ import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import type { Income } from '@/types';
 import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
 import { uiNotify } from '@/lib/notify';

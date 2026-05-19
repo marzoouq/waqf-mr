@@ -4,7 +4,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { enqueueUserNotification } from '@/lib/services';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { useState, useCallback } from 'react';

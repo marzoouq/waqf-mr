@@ -16,4 +16,6 @@ export * from './dashboard';
 export * from './navigation';
 export * from './financial';
 export * from './sorting';
-export * from './forms';
+export * from './forms/beneficiary';
+export * from './forms/contract';
+export * from './forms/property';

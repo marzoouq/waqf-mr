@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { runAllDiagnostics, runCategoryDiagnostics, diagnosticCategories, type CheckResult } from '@/utils/diagnostics/checks';
 import { sanitizeDiagnosticOutput } from '@/utils/diagnostics/sanitize';
 import { logAccessEvent } from '@/lib/services/accessLogService';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logger } from '@/lib/logger';
 
 export const useSystemDiagnostics = (autoRun = true) => {

@@ -46,7 +46,7 @@ const defaultAuthMock = {
 /** دالة useAuth العالمية — يمكن تجاوزها في أي اختبار عبر mockReturnValue */
 export const mockUseAuth = vi.fn(() => defaultAuthMock);
 
-vi.mock('@/hooks/auth/useAuthContext', () => ({
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: () => mockUseAuth(),
 }));
 

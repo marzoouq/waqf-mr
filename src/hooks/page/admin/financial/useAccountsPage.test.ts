@@ -78,7 +78,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   }),
 }));
 
-vi.mock('@/hooks/auth/useAuthContext', () => ({
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: () => ({ user: { id: 'u1' }, role: 'admin', signOut: vi.fn() }),
 }));
 

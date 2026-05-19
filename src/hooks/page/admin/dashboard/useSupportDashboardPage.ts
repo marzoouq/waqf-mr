@@ -2,7 +2,7 @@
  * هوك منطق صفحة لوحة تحكم الدعم الفني
  */
 import { useState, useMemo, useCallback } from 'react';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import {
   useSupportTickets, useSupportStats, useSupportAnalytics,
   useClientErrors, fetchTicketsForExport,

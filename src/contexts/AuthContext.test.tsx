@@ -4,10 +4,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 
 // إلغاء الموك العام لـ useAuthContext لاختبار AuthContext الحقيقي
-vi.unmock('@/hooks/auth/useAuthContext');
+vi.unmock('@/hooks/auth/session/useAuthContext');
 
 import { AuthProvider } from "./AuthContext";
-import { useAuth } from "@/hooks/auth/useAuthContext";
+import { useAuth } from "@/hooks/auth/session/useAuthContext";
 
 // Mock supabase client
 const mockOnAuthStateChange = vi.fn();

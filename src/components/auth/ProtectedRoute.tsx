@@ -4,7 +4,7 @@
  * Fallback قصير فقط إذا كان الدور غير متاح بعد (حالة نادرة).
  */
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { logAccessEvent } from '@/lib/services/accessLogService';

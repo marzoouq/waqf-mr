@@ -13,7 +13,7 @@
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 

@@ -12,7 +12,7 @@ import { safeSessionGet } from '@/lib/storage';
 import { handleNationalIdLogin } from '@/lib/auth/nationalIdLogin';
 import { useIsMountedRef } from '@/hooks/ui/useIsMountedRef';
 import { EMAIL_REGEX } from '@/utils/validation/index';
-import { useFieldErrors, type FieldErrors } from '@/hooks/auth/useFieldErrors';
+import { useFieldErrors, type FieldErrors } from '@/hooks/auth/flows/useFieldErrors';
 
 type LoginMethod = 'email' | 'national_id';
 type LoginFieldKey = 'email' | 'password' | 'nationalId';

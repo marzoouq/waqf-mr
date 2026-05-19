@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { invoke } from '@/lib/api/invoke';
 import { ApiError } from '@/lib/api/rpc';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 export interface ManagedUser {
   id: string;

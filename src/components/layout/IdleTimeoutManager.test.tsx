@@ -19,11 +19,11 @@ const h = vi.hoisted(() => ({
   mockUser: { id: 'u1' } as { id: string } | null,
 }));
 
-vi.mock('@/hooks/auth/useAuthContext', () => ({
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: () => ({ user: h.mockUser, signOut: h.signOutMock }),
 }));
 
-vi.mock('@/hooks/auth/useAuthCleanup', () => ({
+vi.mock('@/hooks/auth/session/useAuthCleanup', () => ({
   useAuthCleanup: () => ({ performCleanup: h.performCleanupMock }),
 }));
 

@@ -11,7 +11,7 @@ import { FileText, Search, Eye, LayoutGrid, List, FileDown } from 'lucide-react'
 import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
 import { useInvoicesPage } from '@/hooks/page/admin/financial/useInvoicesPage';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import { DEFAULT_WAQF_NAME } from '@/constants/waqf';
 

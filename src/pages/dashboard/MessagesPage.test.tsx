@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 
-vi.mock('@/hooks/auth/useAuthContext', () => ({
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'admin-1' }, role: 'admin' })),
 }));
 
@@ -75,7 +75,7 @@ describe('MessagesPage', () => {
   });
 
   it('hides new conversation button for beneficiary', async () => {
-    const { useAuth } = await import('@/hooks/auth/useAuthContext');
+    const { useAuth } = await import('@/hooks/auth/session/useAuthContext');
     vi.mocked(useAuth).mockReturnValue({ user: { id: 'user-1' }, role: 'beneficiary' } as unknown as ReturnType<typeof useAuth>);
     renderPage();
     expect(screen.queryByText('محادثة جديدة')).not.toBeInTheDocument();

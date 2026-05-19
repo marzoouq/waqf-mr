@@ -5,7 +5,7 @@
  * إضافةً لقائمة مجمَّعة حسب الأقسام (Sidebar groups — PR-1).
  */
 import { useMemo } from 'react';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
 import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';

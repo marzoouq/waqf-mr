@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
-import { useChangePassword } from '@/hooks/auth/useChangePassword';
+import { useChangePassword } from '@/hooks/auth/flows/useChangePassword';
 
 const passwordSchema = z.object({
   password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),

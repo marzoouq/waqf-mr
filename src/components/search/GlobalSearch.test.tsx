@@ -10,7 +10,7 @@ vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
   useLocation: () => ({ pathname: '/dashboard' }),
 }));
-vi.mock('@/hooks/auth/useAuthContext', () => ({
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: () => ({ role: 'admin', user: { id: '1' } }),
 }));
 vi.mock('@/contexts/FiscalYearContext', () => ({

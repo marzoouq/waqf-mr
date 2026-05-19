@@ -11,7 +11,7 @@ import OfflineBanner from "@/components/common/OfflineBanner";
 import DeferredRender from "@/components/common/DeferredRender";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
-import { useAuth } from "@/hooks/auth/useAuthContext";
+import { useAuth } from "@/hooks/auth/session/useAuthContext";
 import { ADMIN_ROLES } from "@/constants/roles";
 
 const AiAssistant = lazyWithRetry(() => import("@/components/dashboard/AiAssistant"));
