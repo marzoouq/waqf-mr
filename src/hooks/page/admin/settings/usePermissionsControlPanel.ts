@@ -114,7 +114,7 @@ export const usePermissionsControlPanel = () => {
 
   const handleReset = () => {
     setPerms(DEFAULT_ROLE_PERMS);
-    setAdminSections(defaultAdminSections);
+    setAdminSections(normalizeAdminSections(defaultAdminSections));
     setBeneficiarySections(defaultBeneficiarySections);
     setWidgets(defaultWidgets);
     setNotifSettings({
