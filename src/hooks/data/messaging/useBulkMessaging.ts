@@ -11,10 +11,11 @@ import { useState, useCallback } from 'react';
 
 export const useBeneficiariesForMessaging = () => {
   return useQuery({
-    queryKey: ['beneficiaries-for-messaging'],
+    queryKey: ['beneficiaries-safe', 'messaging-recipients'],
     queryFn: async () => {
+      // F-A2: استخدام beneficiaries_safe (view آمن) بدل جدول PII الخام.
       const { data, error } = await supabase
-        .from('beneficiaries')
+        .from('beneficiaries_safe')
         .select('id, name, user_id')
         .not('user_id', 'is', null)
         .order('name');

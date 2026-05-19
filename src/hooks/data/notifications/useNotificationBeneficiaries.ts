@@ -12,10 +12,12 @@ interface NotificationBeneficiary {
 
 export const useNotificationBeneficiaries = () => {
   return useQuery({
-    queryKey: ['beneficiaries', 'all'],
+    // F-A3: مفتاح مستقل لا يتداخل مع invalidation الخاص بـ ['beneficiaries'].
+    queryKey: ['beneficiaries-safe', 'notifications-recipients'],
     queryFn: async () => {
+      // F-A2: استخدام beneficiaries_safe (view آمن) بدل جدول PII الخام.
       const { data, error } = await supabase
-        .from('beneficiaries')
+        .from('beneficiaries_safe')
         .select('id, name, user_id')
         .order('name', { ascending: true });
 
