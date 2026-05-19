@@ -146,9 +146,6 @@ describe('Income CRUD reflects DB changes in UI', () => {
   it('list → create → update → delete', async () => {
     const sharedWrapper = makeWrapper();
 
-
-    // CREATE — use same QueryClient via shared wrapper instance
-    const sharedWrapper = makeWrapper();
     const hooks = renderHook(
       () => ({
         list: useIncomeByFiscalYear(FY),
