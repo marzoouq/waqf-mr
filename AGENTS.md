@@ -35,3 +35,15 @@
 
 - قبل أي `push` يجب الالتزام ببروتوكول التنفيذ الرسمي في `CONTRIBUTING.md`
 - أي تغيير أمني أو تغييرات في `supabase/migrations` لا يُدفع دون استكمال checkpoints الإلزامية الموثقة
+
+## معايير المشروع الشاملة (مرجعية)
+
+تفاصيل كل فئة محفوظة كقواعد تُطبَّق تلقائياً في كل جلسة:
+
+- **أسلوب الكود والتسمية** → `mem://conventions/code-style-and-naming`
+- **المكتبات والمعمارية** → `mem://conventions/libraries-and-architecture`
+- **الاختبار والجودة** → `mem://conventions/testing-and-quality`
+- **اللغة وصوت العلامة** → `mem://conventions/language-and-brand-voice`
+- **ممنوعات Lovable** → `mem://conventions/lovable-forbidden-actions`
+
+عند أي تعارض بين هذا الملف والذاكرة، تُعتمد الذاكرة لأنها الأحدث.
