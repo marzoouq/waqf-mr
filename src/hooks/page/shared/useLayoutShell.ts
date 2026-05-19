@@ -1,6 +1,6 @@
 /**
- * هوك إدارة حالة التخطيط العام (Sidebar + Logout dialog + Navigation)
- * UI-only — منطق تسجيل الخروج مستخرج إلى useLogoutFlow
+ * useLayoutShell — حالة الـ layout الرئيسي (sidebar, logout dialog, navigation)
+ * Page-shell orchestrator: يستهلك auth + fiscal + messages + nav.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { safeGet, safeSet } from '@/lib/storage';
@@ -16,7 +16,7 @@ import { SHOW_ALL_ROUTES } from '@/constants/navigation';
 
 const SIDEBAR_W = 256;
 
-export function useLayoutState() {
+export function useLayoutShell() {
   const { user, role } = useAuth();
   const { fiscalYearId, setFiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const location = useLocation();
