@@ -10,6 +10,9 @@
  *   5. sonner / supabase داخل src/utils/
  *   6. ملفات > 250 سطر في components/pages/hooks
  *   7. تبعية عكسية: hooks/data أو hooks/domain يستورد من hooks/page
+ *   8. components/pages يستورد @/lib/services مباشرة (يجب الالتفاف بهوك)
+ *   9. supabase.functions.invoke خارج src/lib/api/invoke.ts
+ *  10. supabase.rpc خارج src/lib/api/rpc.ts و errorReporter.ts
  *
  * تحذيرات (لا تفشل):
  *   - ملفات hooks/page > 200 سطر — مرشّحة للتفكيك
@@ -122,6 +125,36 @@ for (const file of files) {
     lines.forEach((line, i) => {
       if (/from ['"]@\/hooks\/page\//.test(line)) {
         violations.push(`${rel}:${i + 1} — تبعية عكسية محظورة (hooks/data|domain ← hooks/page)`);
+      }
+    });
+  }
+
+  // 8) components/ و pages/ لا تستورد من @/lib/services مباشرة
+  // (راجع src/lib/services/README.md — يجب المرور عبر hooks/)
+  if ((rel.startsWith('src/components/') || rel.startsWith('src/pages/')) && !isTest) {
+    lines.forEach((line, i) => {
+      if (/from ['"]@\/lib\/services(\/|['"])/.test(line)) {
+        const where = rel.startsWith('src/pages/') ? 'pages/' : 'components/';
+        violations.push(`${rel}:${i + 1} — استيراد @/lib/services من ${where} محظور (لفّ الاستدعاء بهوك في src/hooks/)`);
+      }
+    });
+  }
+
+  // 9) supabase.functions.invoke فقط داخل lib/api/invoke.ts
+  if (rel !== 'src/lib/api/invoke.ts' && !isTest) {
+    lines.forEach((line, i) => {
+      if (/\bsupabase\.functions\.invoke\s*\(/.test(line) && !line.trim().startsWith('//') && !line.trim().startsWith('*')) {
+        violations.push(`${rel}:${i + 1} — supabase.functions.invoke محظور خارج lib/api/invoke.ts (استخدم invoke() من @/lib/api/invoke)`);
+      }
+    });
+  }
+
+  // 10) supabase.rpc فقط داخل lib/api/rpc.ts و errorReporter.ts (للسبب المعلَّق في الملف)
+  const RPC_ALLOWED_FILES = ['src/lib/api/rpc.ts', 'src/lib/errorReporter.ts'];
+  if (!RPC_ALLOWED_FILES.includes(rel) && !isTest) {
+    lines.forEach((line, i) => {
+      if (/\bsupabase\.rpc\s*\(/.test(line) && !line.trim().startsWith('//') && !line.trim().startsWith('*')) {
+        violations.push(`${rel}:${i + 1} — supabase.rpc محظور خارج lib/api/rpc.ts (استخدم rpc() من @/lib/api/rpc)`);
       }
     });
   }
