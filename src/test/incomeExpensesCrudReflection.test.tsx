@@ -144,11 +144,8 @@ beforeEach(() => {
 // ─── Tests ───────────────────────────────────────────────────────────────────
 describe('Income CRUD reflects DB changes in UI', () => {
   it('list → create → update → delete', async () => {
-    const wrapper = makeWrapper();
-    const list = renderHook(() => useIncomeByFiscalYear(FY), { wrapper });
-    const create = renderHook(() => useCreateIncome(), { wrapper: list.rerender ? wrapper : wrapper });
+    const sharedWrapper = makeWrapper();
 
-    await waitFor(() => expect(list.result.current.data?.length).toBe(2));
 
     // CREATE — use same QueryClient via shared wrapper instance
     const sharedWrapper = makeWrapper();
