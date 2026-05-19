@@ -11,6 +11,7 @@ export type AccessEventType =
   | 'logout'
   | 'unauthorized_access'
   | 'idle_logout'
+  | 'session_expired'
   | 'role_fetch'
   | 'client_error'
   | 'diagnostics_run';
