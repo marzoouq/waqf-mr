@@ -49,7 +49,7 @@ const ExpensesDesktopTable = ({ items, expenseInvoiceMap, expandedRow, setExpand
           </TableHead>
           <TableHead className="text-right">العقار</TableHead>
           <TableHead className="text-right">المرفقات</TableHead>
-          <TableHead className="text-right">إجراءات</TableHead>
+          {!readOnly && <TableHead className="text-right">إجراءات</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
