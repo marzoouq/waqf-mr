@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { defaultNotify } from '@/lib/notify';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
-import { useMyShare } from '@/hooks/financial/useMyShare';
+import { useMyShare } from '@/hooks/domain/financial/useMyShare';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';

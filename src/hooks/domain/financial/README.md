@@ -1,4 +1,4 @@
-# hooks/financial/ — منطق الأعمال المالي المحسوب
+# hooks/domain/financial/ — منطق الأعمال المالي المحسوب
 
 هذا المجلد يحتوي على **منطق أعمال محسوب** (Computed Business Logic) — لا يتضمن أي استدعاءات مباشرة لـ Supabase.
 
@@ -15,7 +15,7 @@
 - `useContractAllocationMap` — تخصيص دفعات العقود حسب السنة المالية.
 
 ## الفرق عن `hooks/data/financial/`
-| هذا المجلد (`hooks/financial/`) | `hooks/data/financial/` |
+| هذا المجلد (`hooks/domain/financial/`) | `hooks/data/financial/` |
 |---|---|
 | منطق محسوب (pure derivations) | استعلامات Supabase خام (CRUD) |
 | لا `supabase` import | يستخدم `createCrudFactory` |
@@ -23,7 +23,7 @@
 
 ## الاستيراد
 ```ts
-import { useMyShare } from '@/hooks/financial/useMyShare';
+import { useMyShare } from '@/hooks/domain/financial/useMyShare';
 ```
 
 ## ملاحظة تاريخية
