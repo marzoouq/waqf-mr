@@ -9,7 +9,7 @@ import { useBeneficiaryWidgets } from '@/hooks/data/settings/useBeneficiaryWidge
 import { useNotificationSettings, type NotificationSettings } from '@/hooks/data/settings/useNotificationSettings';
 import { uiNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
-import { ROLE_SECTION_DEFS, makeDefaults } from '@/constants/sections';
+import { ROLE_SECTION_DEFS, makeDefaults, PROTECTED_ADMIN_SECTIONS, isProtectedAdminSection } from '@/constants/sections';
 import { defaultAdminSections, defaultBeneficiarySections } from '@/constants/navigation';
 import { BENEFICIARY_WIDGET_KEYS } from '@/constants/beneficiaryWidgets';
 import { useLogAccessEvent } from '@/hooks/data/audit/useLogAccessEvent';
