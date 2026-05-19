@@ -2,21 +2,30 @@
 /**
  * check-conventions.mjs — حارس قواعد المعمارية للمشروع
  *
- * يفشل عند:
+ * يفشل عند مخالفات Critical/High:
  *   1. console.* خارج src/lib/logger.ts
- *   2. استيراد supabase داخل src/pages/
- *   3. استخدام localStorage لمفتاح fiscal_year
- *   4. ملفات > 250 سطر في components/ أو pages/ أو hooks/
- *   5. استيراد sonner أو supabase داخل src/utils/
+ *   2. supabase داخل src/pages/ أو src/components/
+ *   3. supabase.from(...) داخل src/lib/ خارج services/ و auth/
+ *   4. localStorage لمفتاح fiscal_year
+ *   5. sonner / supabase داخل src/utils/
+ *   6. ملفات > 250 سطر في components/pages/hooks
+ *   7. تبعية عكسية: hooks/data أو hooks/domain يستورد من hooks/page
+ *
+ * تحذيرات (لا تفشل):
+ *   - ملفات hooks/page > 200 سطر — مرشّحة للتفكيك
+ *   - barrel فيه > 25 export — مرشّح للتقسيم
  *
  * شغّل عبر: npm run lint:conventions
+ * تجاوز التحذيرات بفشل: LINT_STRICT=1 npm run lint:conventions
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, extname } from 'node:path';
 
 const ROOT = process.cwd();
 const SRC = join(ROOT, 'src');
+const STRICT = process.env.LINT_STRICT === '1';
 const violations = [];
+const warnings = [];
 
 function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
@@ -29,6 +38,8 @@ function walk(dir, out = []) {
 }
 
 const files = walk(SRC);
+const SUPABASE_CLIENT_IMPORT = /from ['"]@\/integrations\/supabase\/client['"]/;
+const SUPABASE_CALL = /\bsupabase\.(from|rpc|auth|functions|storage|channel)\b/;
 
 for (const file of files) {
   const rel = relative(ROOT, file).replaceAll('\\', '/');
@@ -36,7 +47,7 @@ for (const file of files) {
   const lines = text.split('\n');
   const isTest = /\.test\.tsx?$/.test(rel);
 
-  // 1) console.* — مسموح فقط في logger.ts
+  // 1) console.*
   if (!rel.endsWith('src/lib/logger.ts') && !isTest) {
     lines.forEach((line, i) => {
       if (/^\s*console\.(log|warn|error|info|debug)\(/.test(line) && !line.includes('eslint-disable')) {
@@ -45,47 +56,100 @@ for (const file of files) {
     });
   }
 
-  // 2) supabase داخل pages/ — يجب أن يمر عبر hooks/data
-  if (rel.startsWith('src/pages/') && !isTest) {
+  // 2) supabase داخل pages/ أو components/
+  if ((rel.startsWith('src/pages/') || rel.startsWith('src/components/')) && !isTest) {
     lines.forEach((line, i) => {
-      if (/from ['"]@\/integrations\/supabase\/client['"]/.test(line)) {
-        violations.push(`${rel}:${i + 1} — استيراد supabase من pages/ محظور (استخدم hooks/data)`);
+      if (SUPABASE_CLIENT_IMPORT.test(line)) {
+        const where = rel.startsWith('src/pages/') ? 'pages/' : 'components/';
+        violations.push(`${rel}:${i + 1} — استيراد supabase من ${where} محظور (استخدم hooks/data)`);
       }
     });
   }
 
-  // 3) localStorage مع fiscal_year
+  // 3) supabase.* خارج boundaries المسموحة في lib/
+  // المسموح: services/ (domain), auth/ (مصادقة), api/ (RPC/invoke wrappers),
+  // realtime/ (channel factory), errorReporter.ts (تسجيل أخطاء)
+  const LIB_SUPABASE_ALLOWED = [
+    'src/lib/services/',
+    'src/lib/auth/',
+    'src/lib/api/',
+    'src/lib/realtime/',
+  ];
+  const LIB_SUPABASE_ALLOWED_FILES = ['src/lib/errorReporter.ts'];
+  if (rel.startsWith('src/lib/') && !isTest) {
+    const isAllowed =
+      LIB_SUPABASE_ALLOWED.some((p) => rel.startsWith(p)) ||
+      LIB_SUPABASE_ALLOWED_FILES.includes(rel);
+    if (!isAllowed) {
+      lines.forEach((line, i) => {
+        if (SUPABASE_CALL.test(line) && !line.trim().startsWith('//') && !line.trim().startsWith('*')) {
+          violations.push(`${rel}:${i + 1} — supabase.* محظور في lib/ خارج boundaries (services/auth/api/realtime). انقل إلى service.`);
+        }
+      });
+    }
+  }
+
+  // 4) localStorage مع fiscal_year
   lines.forEach((line, i) => {
     if (/localStorage[^.]*fiscal_year/.test(line) && !line.trim().startsWith('//')) {
       violations.push(`${rel}:${i + 1} — استخدم sessionStorage لـ fiscal_year_id`);
     }
   });
 
-  // 4) sonner / supabase داخل utils/ — utils يجب أن تكون نقية
+  // 5) sonner / supabase في utils/
   if (rel.startsWith('src/utils/') && !isTest) {
     lines.forEach((line, i) => {
       if (/from ['"]sonner['"]/.test(line)) {
         violations.push(`${rel}:${i + 1} — sonner محظور في utils/ (استخدم lib/notify)`);
       }
-      if (/from ['"]@\/integrations\/supabase\/client['"]/.test(line)) {
+      if (SUPABASE_CLIENT_IMPORT.test(line)) {
         violations.push(`${rel}:${i + 1} — supabase محظور في utils/ (استخدم lib/services)`);
       }
     });
   }
 
-  // 5) حجم الملف
+  // 6) حجم الملف
   if (!isTest && (rel.startsWith('src/components/') || rel.startsWith('src/pages/') || rel.startsWith('src/hooks/'))) {
     if (lines.length > 250) {
       violations.push(`${rel} — ${lines.length} سطر (الحد 250). قسّم الملف.`);
+    } else if (rel.startsWith('src/hooks/page/') && lines.length > 200) {
+      warnings.push(`${rel} — ${lines.length} سطر في hooks/page (الحد المفضّل 200). فكّر بالتقسيم.`);
     }
   }
+
+  // 7) تبعية عكسية: data/domain يستورد من page
+  if ((rel.startsWith('src/hooks/data/') || rel.startsWith('src/hooks/domain/')) && !isTest) {
+    lines.forEach((line, i) => {
+      if (/from ['"]@\/hooks\/page\//.test(line)) {
+        violations.push(`${rel}:${i + 1} — تبعية عكسية محظورة (hooks/data|domain ← hooks/page)`);
+      }
+    });
+  }
+
+  // 8) barrel كبير
+  if (rel.endsWith('/index.ts') && rel.startsWith('src/')) {
+    const exports = (text.match(/^export\s+/gm) || []).length;
+    if (exports > 25) {
+      warnings.push(`${rel} — ${exports} export في barrel واحد. فكّر بالتقسيم.`);
+    }
+  }
+}
+
+if (warnings.length > 0) {
+  console.log(`\n⚠ ${warnings.length} تحذير:\n`);
+  for (const w of warnings) console.log(`  ${w}`);
 }
 
 if (violations.length > 0) {
   console.error(`\n✖ ${violations.length} مخالفة معمارية:\n`);
   for (const v of violations) console.error(`  ${v}`);
-  console.error('\nراجع mem://conventions/code-style-and-naming و mem://technical/architecture/core-modularization-standard-v7\n');
+  console.error('\nراجع ARCHITECTURE.md و mem://conventions/code-style-and-naming\n');
   process.exit(1);
 }
 
-console.log(`✔ لا مخالفات معمارية (${files.length} ملف مفحوص)`);
+if (STRICT && warnings.length > 0) {
+  console.error(`\n✖ STRICT mode: ${warnings.length} تحذير = فشل\n`);
+  process.exit(1);
+}
+
+console.log(`\n✔ لا مخالفات معمارية (${files.length} ملف، ${warnings.length} تحذير)`);
