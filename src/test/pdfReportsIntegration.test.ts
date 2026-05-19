@@ -68,7 +68,7 @@ function assertValidPdf(doc: jsPDF | null, filename: string | null, expectedName
   const bytes = new Uint8Array(buffer);
   expect(bytes.byteLength).toBeGreaterThan(1000);
 
-  const header = String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]);
+  const header = String.fromCharCode(bytes[0]!, bytes[1]!, bytes[2]!, bytes[3]!);
   expect(header).toBe(PDF_MAGIC);
 
   expect(doc!.getNumberOfPages()).toBeGreaterThanOrEqual(1);
