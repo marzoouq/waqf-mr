@@ -43,8 +43,11 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dompurify": "^3.4.5",
+    "fast-uri": "^3.1.2",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
+    "lodash": "^4.18.1",
     "lucide-react": "1.8.0",
     "modern-screenshot": "^4.6.8",
     "next-themes": "^0.4.6",
@@ -59,6 +62,7 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7",
     "web-vitals": "^5.2.0",
+    "ws": "^8.20.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -80,7 +84,7 @@
     "globals": "^17.4.0",
     "jsdom": "^29.0.1",
     "lovable-tagger": "^1.1.13",
-    "postcss": "^8.5.8",
+    "postcss": "8.5.14",
     "rollup-plugin-visualizer": "^5.12.0",
     "tailwindcss": "^4.2.2",
     "typescript": "~5.8.3",
