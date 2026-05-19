@@ -137,8 +137,11 @@ export const useInvoicesPage = () => {
 
   // مشتقات
   const invoicesWithoutFiles = useMemo(
-    () => invoices.filter(inv => !inv.file_path),
-    [invoices]
+    () => [
+      ...invoices.filter(inv => !inv.file_path).map(inv => ({ id: inv.id, source: 'expense' as const })),
+      ...rentInvoices.filter(inv => !inv.file_path).map(inv => ({ id: inv.id, source: 'rent' as const })),
+    ],
+    [invoices, rentInvoices]
   );
 
   const paginatedInvoices = useMemo(
@@ -146,9 +149,14 @@ export const useInvoicesPage = () => {
     [filteredInvoices, currentPage, ITEMS_PER_PAGE]
   );
 
+  const paginatedUnified = useMemo(
+    () => unifiedFiltered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [unifiedFiltered, currentPage, ITEMS_PER_PAGE]
+  );
+
   const exportActions = useInvoicesExport({
     filteredInvoices,
-    invoicesWithoutFiles,
+    invoicesWithoutFiles: invoices.filter(inv => !inv.file_path),
     fiscalYearId,
     fiscalYearLabel: fiscalYear?.label,
     pdfWaqfInfo,
@@ -158,10 +166,11 @@ export const useInvoicesPage = () => {
   });
 
   return {
-    invoices, filteredInvoices, properties, contracts, isLoading, isClosed,
+    invoices, filteredInvoices, properties, contracts, isLoading: isLoading || loadingRent, isClosed,
     fiscalYear, fiscalYearId, pdfWaqfInfo,
     viewMode, setViewMode, isOpen, setIsOpen, searchQuery, setSearchQuery,
     filterType, setFilterType, filterStatus, setFilterStatus,
+    sourceFilter, setSourceFilter,
     deleteTarget, setDeleteTarget, currentPage, setCurrentPage,
     uploading, selectedFile, isDragging, setIsDragging, previewUrl,
     fileInputRef, viewerFile, setViewerFile, previewInvoice, setPreviewInvoice,
@@ -173,6 +182,7 @@ export const useInvoicesPage = () => {
     isGeneratingPdf: generatePdf.isPending,
     ITEMS_PER_PAGE, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS,
     invoicesWithoutFiles, paginatedInvoices,
+    unifiedInvoices, unifiedFiltered, paginatedUnified,
     handleExportPdf: exportActions.handleExportPdf,
     handleExportCsv: exportActions.handleExportCsv,
     handleSaveTemplate: exportActions.handleSaveTemplate,
