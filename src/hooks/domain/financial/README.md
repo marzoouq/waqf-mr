@@ -23,7 +23,7 @@
 
 ## الاستيراد
 ```ts
-import { useMyShare } from '@/hooks/financial/useMyShare';
+import { useMyShare } from '@/hooks/domain/financial/useMyShare';
 ```
 
 ## ملاحظة تاريخية
