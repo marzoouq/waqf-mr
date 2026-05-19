@@ -5,7 +5,7 @@
 export * from './dashboard/useBeneficiaryDashboardData';
 export * from './dashboard/useBeneficiaryDashboardPage';
 export * from './dashboard/useBeneficiaryFinancials';
-export * from './dashboard/useWaqifDashboardPage';
+
 export * from './financial/useAccountsViewPage';
 export * from './financial/useCarryforwardData';
 export * from './financial/useDisclosurePage';
