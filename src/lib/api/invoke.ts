@@ -25,8 +25,7 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 export interface InvokeRequest {
   body?: unknown;
   headers?: Record<string, string>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  signal?: any;
+  signal?: AbortSignal;
 }
 
 export interface InvokeOptions {
@@ -74,8 +73,10 @@ export async function invoke<T = unknown>(
 
   try {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = (await (supabase.functions.invoke as any)(fnName, request)) as InvokeRawResult<T>;
+      const result = (await (supabase.functions.invoke as (
+        name: string,
+        req: InvokeRequest,
+      ) => Promise<InvokeRawResult<T>>)(fnName, request));
       const { data, error } = result;
 
       // 1) خطأ نقل مباشر (شبكة، 4xx/5xx من runtime)

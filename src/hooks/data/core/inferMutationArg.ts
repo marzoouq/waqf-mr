@@ -11,8 +11,7 @@
  */
 
 // نمط Mutation العام — أي شيء يحوي mutateAsync (signature متساهل ليتوافق مع React Query)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyMutation<TArg> = { mutateAsync: (arg: TArg, ...rest: any[]) => any };
+type AnyMutation<TArg> = { mutateAsync: (arg: TArg, ...rest: unknown[]) => Promise<unknown> };
 
 /**
  * يُحوّل قيمة عامة (form data، Partial<Row>) إلى النوع المتوقع لـ `mutation.mutateAsync`.
