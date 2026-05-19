@@ -48,7 +48,7 @@ export function useInvoicesViewPage() {
       file_path: inv.file_path,
       file_name: inv.file_name,
       property: inv.property ? { property_number: inv.property.property_number } : null,
-      source: 'expense',
+      source: 'purchase',
     }));
     const rentItems: UnifiedInvoiceItem[] = rentInvoices.map((inv) => ({
       id: inv.id,

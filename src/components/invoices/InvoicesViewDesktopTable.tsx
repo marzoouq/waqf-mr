@@ -19,7 +19,7 @@ interface InvoiceItem {
   file_path: string | null;
   file_name: string | null;
   property?: { property_number: string } | null;
-  source?: 'expense' | 'rent';
+  source?: 'purchase' | 'rent';
 }
 
 interface InvoicesViewDesktopTableProps {
@@ -56,7 +56,7 @@ export default function InvoicesViewDesktopTable({ invoices, statusBadgeVariant,
         </TableHeader>
         <TableBody>
           {invoices.map((item) => (
-            <TableRow key={`${item.source || 'expense'}-${item.id}`}>
+            <TableRow key={`${item.source || 'purchase'}-${item.id}`}>
               <TableCell>
                 <Badge variant={item.source === 'rent' ? 'default' : 'outline'} className="text-[11px]">
                   {item.source === 'rent' ? 'إيجار' : 'شراء'}

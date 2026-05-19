@@ -65,7 +65,7 @@ const InvoicesViewPage = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <Tabs value={sourceFilter} onValueChange={(v) => handleSourceFilterChange(v as 'all' | 'expense' | 'rent')}>
+          <Tabs value={sourceFilter} onValueChange={(v) => handleSourceFilterChange(v as 'all' | 'purchase' | 'rent')}>
             <TabsList>
               <TabsTrigger value="all">الكل</TabsTrigger>
               <TabsTrigger value="rent">فواتير الإيجار</TabsTrigger>

@@ -54,7 +54,7 @@ const InvoicesPage = () => {
         <InvoiceSummaryCards invoices={h.invoices} isLoading={h.isLoading} />
 
         {/* تبويبات مصدر الفاتورة — يوحّد العرض مع لوحة المستفيد */}
-        <Tabs value={h.sourceFilter} onValueChange={(v) => { h.setSourceFilter(v as 'all' | 'expense' | 'rent'); h.setCurrentPage(1); }}>
+        <Tabs value={h.sourceFilter} onValueChange={(v) => { h.setSourceFilter(v as 'all' | 'purchase' | 'rent'); h.setCurrentPage(1); }}>
           <TabsList>
             <TabsTrigger value="all">الكل ({h.unifiedInvoices.length})</TabsTrigger>
             <TabsTrigger value="rent">فواتير الإيجار</TabsTrigger>
@@ -68,7 +68,7 @@ const InvoicesPage = () => {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input name="search_query" placeholder="بحث في الفواتير..." value={h.searchQuery} onChange={(e) => { h.setSearchQuery(e.target.value); h.setCurrentPage(1); }} className="pr-10" />
           </div>
-          {h.sourceFilter === 'expense' && (
+          {h.sourceFilter === 'purchase' && (
             <Select value={h.filterType} onValueChange={(v) => { h.setFilterType(v); h.setCurrentPage(1); }}>
               <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="نوع الفاتورة" /></SelectTrigger>
               <SelectContent>
@@ -84,7 +84,7 @@ const InvoicesPage = () => {
               {Object.entries(h.INVOICE_STATUS_LABELS).map(([key, label]) => (<SelectItem key={key} value={key}>{label}</SelectItem>))}
             </SelectContent>
           </Select>
-          {h.sourceFilter === 'expense' && (
+          {h.sourceFilter === 'purchase' && (
             <div className="flex gap-1 border rounded-lg p-1 self-center">
               <Button variant={h.viewMode === 'table' ? 'default' : 'ghost'} size="sm" onClick={() => h.setViewMode('table')} className="gap-1"><List className="w-4 h-4" /><span className="hidden sm:inline">جدول</span></Button>
               <Button variant={h.viewMode === 'grid' ? 'default' : 'ghost'} size="sm" onClick={() => h.setViewMode('grid')} className="gap-1"><LayoutGrid className="w-4 h-4" /><span className="hidden sm:inline">شبكي</span></Button>
@@ -93,7 +93,7 @@ const InvoicesPage = () => {
         </div>
 
         {/* عرض الفواتير */}
-        {h.sourceFilter !== 'expense' ? (
+        {h.sourceFilter !== 'purchase' ? (
           // عرض موحّد للقراءة فقط (الكل/إيجار) — فواتير الإيجار غير قابلة للتعديل من هنا
           <Card className="shadow-sm">
             <CardContent className="p-0">
