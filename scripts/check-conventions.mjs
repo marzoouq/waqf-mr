@@ -10,6 +10,9 @@
  *   5. sonner / supabase داخل src/utils/
  *   6. ملفات > 250 سطر في components/pages/hooks
  *   7. تبعية عكسية: hooks/data أو hooks/domain يستورد من hooks/page
+ *   8. components/pages يستورد @/lib/services مباشرة (يجب الالتفاف بهوك)
+ *   9. supabase.functions.invoke خارج src/lib/api/invoke.ts
+ *  10. supabase.rpc خارج src/lib/api/rpc.ts و errorReporter.ts
  *
  * تحذيرات (لا تفشل):
  *   - ملفات hooks/page > 200 سطر — مرشّحة للتفكيك
