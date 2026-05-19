@@ -14,9 +14,9 @@ const ExpensesPage = () => {
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
-          title="إدارة المصروفات"
+          title="المصروفات التشغيلية"
           icon={TrendingDown}
-          description="تسجيل ومتابعة المصروفات"
+          description="سجل محاسبي داخلي للمصروفات — مستقل عن فواتير ZATCA (يمكن إرفاق فاتورة كتوثيق فقط)"
           actions={<>
             <ExportMenu onExportPdf={h.handleExportPdf} onExportCsv={h.handleExportCsv} />
             <ExpenseFormDialog
