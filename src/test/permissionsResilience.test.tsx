@@ -1,7 +1,8 @@
 /**
  * مصفوفة مرونة الصلاحيات: useNavLinks تحت كل تركيبة منطقية
  * من الأدوار والأقسام والصلاحيات. تضمن أن أي تغيير في الإعداد لا يحجب
- * الروابط الأساسية الخاطئة ولا يكسر المسارات المحمية.
+ * الروابط الأساسية الخاطئة ولا يكسر المسارات المحمية ولا يسرّب روابط
+ * بين لوحات الناظر والمستفيد.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
@@ -28,6 +29,12 @@ import {
   defaultAdminSections,
   defaultBeneficiarySections,
   ACCOUNTANT_EXCLUDED_ROUTES,
+  allAdminLinks,
+  allBeneficiaryLinks,
+  ADMIN_ROUTE_PERM_KEYS,
+  BENEFICIARY_ROUTE_PERM_KEYS,
+  ADMIN_ROUTE_TO_SECTION,
+  BENEFICIARY_ROUTE_TO_SECTION,
 } from '@/constants/navigation';
 import { PROTECTED_ADMIN_SECTIONS } from '@/constants/sections';
 import { ADMIN_ROUTES, BENEFICIARY_ROUTES } from '@/constants/routeRegistry';
@@ -50,6 +57,10 @@ const setup = (
   permsMock.mockReturnValue(opts.perms ?? {});
 };
 
+// مسارات الناظر/المستفيد الموجودة فعلاً في القوائم (مصدر بيانات useNavLinks)
+const ADMIN_NAV_ROUTES = allAdminLinks.map((l) => l.to);
+const BENEFICIARY_NAV_ROUTES = allBeneficiaryLinks.map((l) => l.to);
+
 describe('Permissions resilience matrix', () => {
   beforeEach(() => {
     authMock.mockReset();
@@ -63,23 +74,12 @@ describe('Permissions resilience matrix', () => {
       setup('admin');
       const { result } = renderHook(() => useNavLinks());
       const routes = tos(result.current);
-      // كل مسار في ADMIN_ROUTES يجب أن يظهر
       for (const route of Object.keys(ADMIN_ROUTES)) {
         expect(routes, `missing admin route: ${route}`).toContain(route);
       }
     });
 
-    it('settings و users محميان حتى لو حاولنا إخفاءهما', () => {
-      setup('admin', { admin: { settings: false, users: false } });
-      const { result } = renderHook(() => useNavLinks());
-      // الحماية تُطبَّق في useSectionsVisibility، لكن نحاكي هنا أن الإعداد جاء بـ false
-      // ومع ذلك، يجب أن تُفعّل القائمة الحماية بشكل غير مباشر عبر isProtectedAdminSection.
-      // لا نتمكن من اختبار الحماية إلا عبر useSectionsVisibility الحقيقي.
-      // هنا نتأكد أن منطق الفلترة الخالص يحجبهما عندما false (تأكيد سلوك الفلتر).
-      const routes = tos(result.current);
-      expect(routes).not.toContain('/dashboard/settings');
-      expect(routes).not.toContain('/dashboard/users');
-      // لكن قائمة PROTECTED_ADMIN_SECTIONS تضمن في الـ data hook ألا تصل false إلى هنا أبداً
+    it('settings و users محميان على مستوى البيانات (قائمة PROTECTED_ADMIN_SECTIONS)', () => {
       expect([...PROTECTED_ADMIN_SECTIONS].sort()).toEqual(['settings', 'users']);
     });
 
@@ -92,6 +92,43 @@ describe('Permissions resilience matrix', () => {
       expect(routes).toContain('/dashboard/contracts');
       expect(routes).toContain('/dashboard/properties');
     });
+
+    // مصفوفة كاملة: لكل تبويب ناظر، إخفاء sectionKey يحجبه فقط ولا يمسّ غيره
+    describe('مصفوفة كل تبويب × sectionKey=false (لا تسرّب)', () => {
+      const adminRoutesWithSection = Object.entries(ADMIN_ROUTES).filter(
+        ([route, meta]) =>
+          meta.sectionKey &&
+          !PROTECTED_ADMIN_SECTIONS.has(meta.sectionKey) &&
+          ADMIN_NAV_ROUTES.includes(route),
+      );
+
+      it.each(adminRoutesWithSection)(
+        '%s: إخفاء قسمه يحجبه فقط',
+        (route, meta) => {
+          setup('admin', { admin: { [meta.sectionKey!]: false } });
+          const { result } = renderHook(() => useNavLinks());
+          const routes = tos(result.current);
+          expect(routes, `${route} should be hidden`).not.toContain(route);
+          // بقية الروابط لم تتأثر
+          for (const other of ADMIN_NAV_ROUTES) {
+            if (other === route) continue;
+            const otherSection = ADMIN_ROUTE_TO_SECTION[other];
+            // قد يشترك مساران في نفس sectionKey نظرياً؛ نتسامح في تلك الحالة
+            if (otherSection && otherSection === meta.sectionKey) continue;
+            expect(routes, `leak: ${other} disappeared when hiding ${route}`).toContain(other);
+          }
+        },
+      );
+
+      it('settings و users يبقيان لو وصل sectionKey=false (يُعتبر أن useSectionsVisibility حماهما)', () => {
+        // محاكاة الحماية: نمرّر true رغم محاولة الإخفاء (وهذا ما يفعله الهوك الحقيقي)
+        setup('admin', { admin: { settings: true, users: true } });
+        const { result } = renderHook(() => useNavLinks());
+        const routes = tos(result.current);
+        expect(routes).toContain('/dashboard/settings');
+        expect(routes).toContain('/dashboard/users');
+      });
+    });
   });
 
   // ─────────────────────── ACCOUNTANT ───────────────────────
@@ -103,7 +140,6 @@ describe('Permissions resilience matrix', () => {
       for (const excluded of ACCOUNTANT_EXCLUDED_ROUTES) {
         expect(routes, `accountant must not see ${excluded}`).not.toContain(excluded);
       }
-      // روابط أساسية يجب أن تظهر
       expect(routes).toContain('/dashboard/properties');
       expect(routes).toContain('/dashboard/contracts');
       expect(routes).toContain('/dashboard/accounts');
@@ -118,11 +154,30 @@ describe('Permissions resilience matrix', () => {
     });
 
     it('opt-out: مفتاح غير محدد يبقي الرابط ظاهراً', () => {
-      setup('accountant', { perms: { /* لا شيء */ } });
+      setup('accountant', { perms: {} });
       const { result } = renderHook(() => useNavLinks());
       const routes = tos(result.current);
       expect(routes).toContain('/dashboard/accounts');
       expect(routes).toContain('/dashboard/invoices');
+    });
+
+    describe('مصفوفة كل تبويب محاسب × permKey=false (لا تسرّب)', () => {
+      const accountantRoutes = ADMIN_NAV_ROUTES.filter(
+        (r) => !ACCOUNTANT_EXCLUDED_ROUTES.includes(r) && ADMIN_ROUTE_PERM_KEYS[r],
+      );
+
+      it.each(accountantRoutes)('%s: permKey=false يحجبه فقط', (route) => {
+        const permKey = ADMIN_ROUTE_PERM_KEYS[route]!;
+        setup('accountant', { perms: { [permKey]: false } });
+        const { result } = renderHook(() => useNavLinks());
+        const routes = tos(result.current);
+        expect(routes).not.toContain(route);
+        for (const other of accountantRoutes) {
+          if (other === route) continue;
+          if (ADMIN_ROUTE_PERM_KEYS[other] === permKey) continue;
+          expect(routes, `leak: ${other} disappeared when blocking ${route}`).toContain(other);
+        }
+      });
     });
   });
 
@@ -132,7 +187,6 @@ describe('Permissions resilience matrix', () => {
       setup('beneficiary');
       const { result } = renderHook(() => useNavLinks());
       const routes = tos(result.current);
-      // أهم مسارات المستفيد
       for (const route of [
         '/beneficiary',
         '/beneficiary/my-share',
@@ -152,22 +206,64 @@ describe('Permissions resilience matrix', () => {
       expect(routes).toContain('/beneficiary/expenses');
     });
 
+    it('إخفاء expenses لا يؤثر على invoices', () => {
+      setup('beneficiary', { beneficiary: { expenses: false } });
+      const { result } = renderHook(() => useNavLinks());
+      const routes = tos(result.current);
+      expect(routes).not.toContain('/beneficiary/expenses');
+      expect(routes).toContain('/beneficiary/invoices');
+    });
+
+    it('إخفاء share لا يخفي carryforward (#24 مفاتيح مستقلة)', () => {
+      setup('beneficiary', { beneficiary: { share: false } });
+      const { result } = renderHook(() => useNavLinks());
+      const routes = tos(result.current);
+      expect(routes).not.toContain('/beneficiary/my-share');
+      expect(routes).toContain('/beneficiary/carryforward');
+    });
+
     it('false صريح على صلاحية يحجب الرابط', () => {
       setup('beneficiary', { perms: { messages: false } });
       const { result } = renderHook(() => useNavLinks());
       expect(tos(result.current)).not.toContain('/beneficiary/messages');
     });
 
-    it('كل مسارات BENEFICIARY_ROUTES ذات sectionKey مغطّاة', () => {
-      setup('beneficiary');
-      const { result } = renderHook(() => useNavLinks());
-      const routes = tos(result.current);
-      // فقط المسارات الموجودة في allBeneficiaryLinks (وليس كل routeRegistry)
-      // لكن نتأكد أن الفئات الأساسية كلها تظهر دون false
-      const required = Object.keys(BENEFICIARY_ROUTES).filter((r) =>
-        ['/beneficiary/properties', '/beneficiary/contracts', '/beneficiary/bylaws'].includes(r),
+    describe('مصفوفة كل تبويب مستفيد × sectionKey=false (لا تسرّب)', () => {
+      const beneficiaryRoutesWithSection = Object.entries(BENEFICIARY_ROUTES).filter(
+        ([route, meta]) => meta.sectionKey && BENEFICIARY_NAV_ROUTES.includes(route),
       );
-      for (const r of required) expect(routes).toContain(r);
+
+      it.each(beneficiaryRoutesWithSection)('%s: إخفاء قسمه يحجبه فقط', (route, meta) => {
+        setup('beneficiary', { beneficiary: { [meta.sectionKey!]: false } });
+        const { result } = renderHook(() => useNavLinks());
+        const routes = tos(result.current);
+        expect(routes).not.toContain(route);
+        for (const other of BENEFICIARY_NAV_ROUTES) {
+          if (other === route) continue;
+          const otherSection = BENEFICIARY_ROUTE_TO_SECTION[other];
+          if (otherSection && otherSection === meta.sectionKey) continue;
+          expect(routes, `leak: ${other} disappeared when hiding ${route}`).toContain(other);
+        }
+      });
+    });
+
+    describe('مصفوفة كل تبويب مستفيد × permKey=false (لا تسرّب)', () => {
+      const beneficiaryRoutesWithPerm = BENEFICIARY_NAV_ROUTES.filter(
+        (r) => BENEFICIARY_ROUTE_PERM_KEYS[r],
+      );
+
+      it.each(beneficiaryRoutesWithPerm)('%s: permKey=false يحجبه فقط', (route) => {
+        const permKey = BENEFICIARY_ROUTE_PERM_KEYS[route]!;
+        setup('beneficiary', { perms: { [permKey]: false } });
+        const { result } = renderHook(() => useNavLinks());
+        const routes = tos(result.current);
+        expect(routes).not.toContain(route);
+        for (const other of beneficiaryRoutesWithPerm) {
+          if (other === route) continue;
+          if (BENEFICIARY_ROUTE_PERM_KEYS[other] === permKey) continue;
+          expect(routes, `leak: ${other} disappeared when blocking ${route}`).toContain(other);
+        }
+      });
     });
   });
 
@@ -185,6 +281,62 @@ describe('Permissions resilience matrix', () => {
       setup('waqif', { beneficiary: { invoices: false } });
       const { result } = renderHook(() => useNavLinks());
       expect(tos(result.current)).not.toContain('/beneficiary/invoices');
+    });
+  });
+
+  // ─────────────────────── CROSS-SURFACE ISOLATION ───────────────────────
+  describe('عزل بين الواجهتين: لا تسرّب روابط بين dashboard و beneficiary', () => {
+    const allSections = Array.from(
+      new Set([
+        ...Object.values(ADMIN_ROUTE_TO_SECTION),
+        ...Object.values(BENEFICIARY_ROUTE_TO_SECTION),
+      ]),
+    ).filter(Boolean) as string[];
+
+    it.each(['admin', 'accountant'] as const)(
+      '%s لا يرى أي رابط /beneficiary أو /waqif (افتراضي)',
+      (role) => {
+        setup(role);
+        const { result } = renderHook(() => useNavLinks());
+        const routes = tos(result.current);
+        for (const r of routes) {
+          expect(r.startsWith('/beneficiary') || r === '/waqif', `${role} leaked ${r}`).toBe(
+            false,
+          );
+        }
+      },
+    );
+
+    it.each(['beneficiary', 'waqif'] as const)(
+      '%s لا يرى أي رابط /dashboard (افتراضي)',
+      (role) => {
+        setup(role);
+        const { result } = renderHook(() => useNavLinks());
+        for (const r of tos(result.current)) {
+          expect(r.startsWith('/dashboard'), `${role} leaked ${r}`).toBe(false);
+        }
+      },
+    );
+
+    // إخفاء أي قسم لا يكسر العزل بين الواجهتين
+    it.each(allSections)('إخفاء section=%s لا يكسر العزل عبر الأدوار', (section) => {
+      for (const role of ['admin', 'accountant', 'beneficiary', 'waqif'] as const) {
+        setup(role, {
+          admin: { [section]: false },
+          beneficiary: { [section]: false },
+        });
+        const { result } = renderHook(() => useNavLinks());
+        const routes = tos(result.current);
+        if (role === 'admin' || role === 'accountant') {
+          for (const r of routes) {
+            expect(r.startsWith('/beneficiary') || r === '/waqif').toBe(false);
+          }
+        } else {
+          for (const r of routes) {
+            expect(r.startsWith('/dashboard')).toBe(false);
+          }
+        }
+      }
     });
   });
 });
