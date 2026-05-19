@@ -242,6 +242,8 @@ export function useAccountsPage() {
     // Actions
     handleCreateAccount: actions.handleCreateAccount, handleCloseYear: actions.handleCloseYear,
     handleExportPdf: actions.handleExportPdf,
+    handleExportDisclosurePdf,
+    handleExportDistributionPdf,
     handleExportCsv,
     handleFiscalYearChange: settings.handleFiscalYearChange,
     handleAdminPercentChange: settings.handleAdminPercentChange,
