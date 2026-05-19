@@ -52,6 +52,7 @@ const ResetPassword = () => {
   if (success) {
     return (
       <div className="min-h-screen gradient-auth pattern-islamic-strong flex items-center justify-center p-4" dir="rtl">
+        {headTags}
         <Card className="w-full max-w-md shadow-elegant border-border/50 backdrop-blur-xs bg-card/95">
           <CardHeader className="text-center space-y-4">
             <div className="mx-auto w-16 h-16 bg-accent rounded-2xl flex items-center justify-center">
@@ -74,6 +75,7 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen gradient-auth pattern-islamic-strong flex items-center justify-center p-4" dir="rtl">
+      {headTags}
       <Card className="w-full max-w-md shadow-elegant border-border/50 backdrop-blur-xs bg-card/95">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 gradient-gold rounded-2xl flex items-center justify-center shadow-gold">
