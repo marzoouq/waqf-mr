@@ -1,5 +1,6 @@
 import { Shield } from 'lucide-react';
 import { LegalPageFooter } from '@/components/common';
+import { RouteHead } from '@/components/seo/RouteHead';
 
 const PrivacyPolicy = () => {
 
