@@ -114,6 +114,9 @@ beforeEach(() => {
   captured.doc = null;
   captured.filename = null;
   vi.clearAllMocks();
+  // إعادة تعيين module cache لضمان تطبيق mock الـ pdf/core/core
+  // عند استيراد useReportsExport (وإلا يأخذ نسخة مُلوّثة من ملفات أخرى).
+  vi.resetModules();
 });
 
 describe('PDF Reports Integration — مستندات صالحة', () => {

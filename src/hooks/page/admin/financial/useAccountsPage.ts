@@ -7,7 +7,7 @@
  * - useAccountsEditing: حالة التحرير
  * - useAccountsActions: العمليات (حفظ، إقفال، تصدير)
  */
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useAccountsData } from '@/hooks/domain/financial/useAccountsData';
 import { useAccountsSettings } from '@/hooks/domain/financial/useAccountsSettings';
 import { useAccountsCalculations } from '@/hooks/domain/financial/useAccountsCalculations';
@@ -16,9 +16,7 @@ import { useAccountsActions } from '@/hooks/domain/financial/useAccountsActions'
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useAdvanceRequests } from '@/hooks/data/financial/useAdvanceRequests';
 import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/useTotalBeneficiaryPercentage';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { buildCsv, downloadCsv } from '@/utils/export/csv';
-import { uiNotify } from '@/lib/notify';
+import { useAccountsExports } from './useAccountsExports';
 
 
 export function useAccountsPage() {
@@ -93,105 +91,36 @@ export function useAccountsPage() {
     [advanceRequests]
   );
 
-  // 7. تصدير CSV — قياس واحد للحقول المالية الموزعة عبر الصفحة
-  const handleExportCsv = useCallback(() => {
-    const csv = buildCsv([{
-      'السنة المالية': data.selectedFY?.label || '-',
-      'إجمالي الإيرادات': calc.totalIncome,
-      'إجمالي المصروفات': calc.totalExpenses,
-      'صافي بعد المصروفات': calc.netAfterExpenses,
-      'الضريبة': settings.manualVat,
-      'الزكاة': settings.zakatAmount,
-      'حصة الناظر': calc.adminShare,
-      'حصة الواقف': calc.waqifShare,
-      'ريع الوقف': calc.waqfRevenue,
-      'رقبة الوقف': settings.waqfCorpusManual,
-      'المتاح للتوزيع': calc.availableAmount,
-    }]);
-    downloadCsv(csv, `حسابات-${data.selectedFY?.label || 'عام'}.csv`);
-  }, [
-    data.selectedFY,
-    calc.totalIncome, calc.totalExpenses, calc.netAfterExpenses,
-    calc.adminShare, calc.waqifShare, calc.waqfRevenue, calc.availableAmount,
-    settings.manualVat, settings.zakatAmount, settings.waqfCorpusManual,
-  ]);
-
-  // 8. تصديرات PDF إضافية — الإفصاح وتقرير التوزيع تعتمد على نفس السنة المالية النشطة
-  const pdfWaqfInfo = usePdfWaqfInfo();
+  // 7. تصديرات CSV/PDF — مستخرجة في hook منفصل
   const fiscalYearLabel = data.selectedFY?.label || settings.fiscalYear || '';
+  const { handleExportCsv, handleExportDisclosurePdf, handleExportDistributionPdf } = useAccountsExports({
+    fiscalYearLabel,
+    fiscalYearShortLabel: data.selectedFY?.label || '',
+    totalIncome: calc.totalIncome,
+    totalExpenses: calc.totalExpenses,
+    netAfterExpenses: calc.netAfterExpenses,
+    netAfterVat: calc.netAfterVat,
+    netAfterZakat: calc.netAfterZakat,
+    grandTotal: calc.grandTotal,
+    adminShare: calc.adminShare,
+    waqifShare: calc.waqifShare,
+    waqfRevenue: calc.waqfRevenue,
+    availableAmount: calc.availableAmount,
+    remainingBalance: calc.remainingBalance,
+    manualVat: settings.manualVat,
+    zakatAmount: settings.zakatAmount,
+    waqfCorpusManual: settings.waqfCorpusManual,
+    waqfCorpusPrevious: settings.waqfCorpusPrevious,
+    manualDistributions: settings.manualDistributions,
+    adminPercent: settings.adminPercent,
+    waqifPercent: settings.waqifPercent,
+    incomeBySource: calc.incomeBySource,
+    expensesByType: calc.expensesByType,
+    beneficiaries: data.beneficiaries,
+    totalBenPct,
+  });
 
-  const handleExportDisclosurePdf = useCallback(async () => {
-    try {
-      const { generateAnnualDisclosurePDF } = await import('@/utils/pdf');
-      await generateAnnualDisclosurePDF({
-        fiscalYear: fiscalYearLabel,
-        totalIncome: calc.totalIncome,
-        totalExpenses: calc.totalExpenses,
-        waqfCorpusPrevious: settings.waqfCorpusPrevious,
-        grandTotal: calc.grandTotal,
-        netAfterExpenses: calc.netAfterExpenses,
-        vatAmount: settings.manualVat,
-        netAfterVat: calc.netAfterVat,
-        zakatAmount: settings.zakatAmount,
-        netAfterZakat: calc.netAfterZakat,
-        adminShare: calc.adminShare,
-        waqifShare: calc.waqifShare,
-        waqfRevenue: calc.waqfRevenue,
-        waqfCorpusManual: settings.waqfCorpusManual,
-        availableAmount: calc.availableAmount,
-        distributionsAmount: settings.manualDistributions,
-        remainingBalance: calc.remainingBalance,
-        incomeBySource: calc.incomeBySource,
-        expensesByType: calc.expensesByType,
-        beneficiaries: data.beneficiaries.map(b => ({
-          name: b.name ?? 'غير معروف',
-          share_percentage: Number(b.share_percentage ?? 0),
-          amount: totalBenPct > 0 ? (calc.availableAmount * Number(b.share_percentage ?? 0)) / totalBenPct : 0,
-        })),
-        adminPct: settings.adminPercent,
-        waqifPct: settings.waqifPercent,
-      }, pdfWaqfInfo);
-      uiNotify.success('تم تصدير الإفصاح السنوي');
-    } catch {
-      uiNotify.error('تعذّر تصدير الإفصاح السنوي');
-    }
-  }, [
-    fiscalYearLabel, pdfWaqfInfo, data.beneficiaries,
-    calc.totalIncome, calc.totalExpenses, calc.grandTotal, calc.netAfterExpenses,
-    calc.netAfterVat, calc.netAfterZakat, calc.adminShare, calc.waqifShare,
-    calc.waqfRevenue, calc.availableAmount, calc.remainingBalance,
-    calc.incomeBySource, calc.expensesByType,
-    settings.waqfCorpusPrevious, settings.manualVat, settings.zakatAmount,
-    settings.waqfCorpusManual, settings.manualDistributions,
-    settings.adminPercent, settings.waqifPercent, totalBenPct,
-  ]);
 
-  const handleExportDistributionPdf = useCallback(async () => {
-    try {
-      const { generateDistributionsPDF } = await import('@/utils/pdf');
-      const distributions = data.beneficiaries.map(b => {
-        const pct = Number(b.share_percentage ?? 0);
-        const amount = totalBenPct > 0 ? (calc.availableAmount * pct) / totalBenPct : 0;
-        return {
-          beneficiary_name: b.name ?? 'غير معروف',
-          share_percentage: pct,
-          share_amount: amount,
-          advances_paid: 0,
-          carryforward_deducted: 0,
-          net_amount: amount,
-          deficit: 0,
-        };
-      });
-      await generateDistributionsPDF({
-        fiscalYearLabel,
-        availableAmount: calc.availableAmount,
-        distributions,
-      }, pdfWaqfInfo);
-      uiNotify.success('تم تصدير تقرير توزيع الحصص');
-    } catch {
-      uiNotify.error('تعذّر تصدير تقرير توزيع الحصص');
-    }
-  }, [fiscalYearLabel, pdfWaqfInfo, data.beneficiaries, calc.availableAmount, totalBenPct]);
 
 
   return {
