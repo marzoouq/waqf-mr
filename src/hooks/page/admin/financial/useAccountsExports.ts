@@ -28,8 +28,8 @@ interface ExportsInput {
   manualDistributions: number;
   adminPercent: number;
   waqifPercent: number;
-  incomeBySource: Array<{ name: string; value: number }>;
-  expensesByType: Array<{ name: string; value: number }>;
+  incomeBySource: Record<string, number>;
+  expensesByType: Record<string, number>;
   beneficiaries: Array<{ name?: string | null; share_percentage?: number | null }>;
   totalBenPct: number;
 }
