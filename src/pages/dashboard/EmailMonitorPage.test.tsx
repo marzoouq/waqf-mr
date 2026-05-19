@@ -14,13 +14,16 @@ vi.mock('@/components/layout', async () => {
 vi.mock('@/hooks/page/admin/management/useEmailMonitorPage', () => ({
   useEmailMonitorPage: vi.fn(() => ({
     isLoading: false,
-    adminStats: { last_log_at: null, rate_limited_until: null, queued: 0, sent: 0, failed: 0, blocked: 0, dlq: 0 },
+    adminStats: { last_log_at: null, rate_limited_until: null, auth_dlq_count: 0, transactional_dlq_count: 0 },
+    stats: { total: 0, sent: 0, pending: 0, failed: 0, dlq: 0, suppressed: 0 },
     logs: [],
+    range: '24h',
+    setRange: vi.fn(),
     filters: { status: 'all', q: '' },
     setFilters: vi.fn(),
     refresh: vi.fn(),
-    retryDlq: vi.fn(),
-    retryPending: false,
+    retry: vi.fn(),
+    isRetrying: false,
   })),
 }));
 
