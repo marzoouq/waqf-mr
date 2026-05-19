@@ -14,4 +14,5 @@ export {
   DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
   ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity, Mail,
+  TrendingDown,
 } from 'lucide-react';
