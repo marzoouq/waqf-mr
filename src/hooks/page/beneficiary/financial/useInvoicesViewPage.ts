@@ -3,7 +3,7 @@
  * يدمج فواتير الشراء (invoices) وفواتير الإيجار (payment_invoices) في عرض موحّد للمستفيد
  */
 import { useState, useCallback, useMemo } from 'react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
@@ -95,7 +95,7 @@ export function useInvoicesViewPage() {
   const handleDownloadPDF = useCallback(async () => {
     try {
       if (searchQuery) {
-        defaultNotify.info(`سيتم تصدير ${filteredInvoices.length} فاتورة مفلترة فقط`);
+        uiNotify.info(`سيتم تصدير ${filteredInvoices.length} فاتورة مفلترة فقط`);
       }
       const fiscalYearLabel = fiscalYear?.label || undefined;
       const { generateInvoicesViewPDF } = await import('@/utils/pdf');
@@ -111,9 +111,9 @@ export function useInvoicesViewPage() {
         pdfWaqfInfo,
         fiscalYearLabel
       );
-      defaultNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success('تم تحميل ملف PDF بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error('حدث خطأ أثناء تصدير PDF');
     }
   }, [searchQuery, filteredInvoices, fiscalYear, pdfWaqfInfo]);
 

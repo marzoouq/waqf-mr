@@ -8,7 +8,7 @@
  */
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 
@@ -18,7 +18,7 @@ export function usePasswordResetRequest(onSuccess?: () => void) {
 
   const handleRequest = async () => {
     if (!resetEmail) {
-      defaultNotify.error('يرجى إدخال البريد الإلكتروني');
+      uiNotify.error('يرجى إدخال البريد الإلكتروني');
       return;
     }
     setIsLoading(true);
@@ -27,9 +27,9 @@ export function usePasswordResetRequest(onSuccess?: () => void) {
     });
     setIsLoading(false);
     if (error) {
-      defaultNotify.error(getSafeErrorMessage(error));
+      uiNotify.error(getSafeErrorMessage(error));
     } else {
-      defaultNotify.success('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني');
+      uiNotify.success('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني');
       onSuccess?.();
     }
   };

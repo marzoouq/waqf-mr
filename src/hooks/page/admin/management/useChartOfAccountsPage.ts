@@ -2,7 +2,7 @@
  * هوك منطق صفحة الشجرة المحاسبية
  */
 import { useState, useMemo, useCallback } from 'react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import {
   useAccountCategoryTree,
   useCreateAccountCategory,
@@ -100,7 +100,7 @@ export function useChartOfAccountsPage() {
 
   const handleSave = () => {
     if (!form.code.trim() || !form.name.trim()) {
-      defaultNotify.error('يرجى تعبئة الكود والاسم');
+      uiNotify.error('يرجى تعبئة الكود والاسم');
       return;
     }
     const payload = {
@@ -128,7 +128,7 @@ export function useChartOfAccountsPage() {
     // فحص وجود حسابات فرعية قبل الحذف
     const hasChildren = categories.some(c => c.parent_id === deletingCategory.id);
     if (hasChildren) {
-      defaultNotify.error('لا يمكن حذف حساب يحتوي على حسابات فرعية — احذف الفروع أولاً');
+      uiNotify.error('لا يمكن حذف حساب يحتوي على حسابات فرعية — احذف الفروع أولاً');
       setDeleteDialogOpen(false);
       setDeletingCategory(null);
       return;

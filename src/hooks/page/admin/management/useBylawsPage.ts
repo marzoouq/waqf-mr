@@ -4,7 +4,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws, type BylawEntry } from '@/hooks/data/content/useBylaws';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import {
   DragEndEvent,
@@ -109,9 +109,9 @@ export function useBylawsPage() {
     const newValue = isPublished ? 'false' : 'true';
     try {
       await updateSetting.mutateAsync({ key: 'bylaws_published', value: newValue });
-      defaultNotify.success(newValue === 'true' ? 'تم نشر اللائحة للمستفيدين' : 'تم حجب اللائحة عن المستفيدين');
+      uiNotify.success(newValue === 'true' ? 'تم نشر اللائحة للمستفيدين' : 'تم حجب اللائحة عن المستفيدين');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تحديث حالة النشر');
+      uiNotify.error('حدث خطأ أثناء تحديث حالة النشر');
     }
   };
 

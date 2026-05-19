@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
 import { useSyncedFormState } from '@/hooks/ui/useSyncedFormState';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 
 export const useRolePermissionsTab = () => {
@@ -32,7 +32,7 @@ export const useRolePermissionsTab = () => {
 
   const handleReset = () => {
     setPerms(DEFAULT_ROLE_PERMS);
-    defaultNotify.info('تم استعادة الإعدادات الافتراضية - اضغط حفظ للتطبيق');
+    uiNotify.info('تم استعادة الإعدادات الافتراضية - اضغط حفظ للتطبيق');
   };
 
   return { perms, toggle, handleSave, handleReset, saving, isLoading };

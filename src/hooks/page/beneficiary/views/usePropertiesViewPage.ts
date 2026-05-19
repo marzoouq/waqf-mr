@@ -12,7 +12,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 
 export function usePropertiesViewPage() {
@@ -149,9 +149,9 @@ export function usePropertiesViewPage() {
         })),
         pdfWaqfInfo,
       );
-      defaultNotify.success('تم تصدير العقارات بنجاح');
+      uiNotify.success('تم تصدير العقارات بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error('حدث خطأ أثناء تصدير PDF');
     }
   }, [properties, pdfWaqfInfo]);
 

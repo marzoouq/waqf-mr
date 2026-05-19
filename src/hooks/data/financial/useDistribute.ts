@@ -4,8 +4,8 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
-import { defaultNotify } from '@/lib/notify';
-import { notifyUser } from '@/lib/services';
+import { uiNotify } from '@/lib/notify';
+import { enqueueUserNotification } from '@/lib/services';
 
 interface DistributionInput {
   beneficiary_id: string;
@@ -57,11 +57,11 @@ export const useDistributeShares = () => {
       invalidateAll();
       let msg = `تم توزيع الحصص بنجاح لـ ${result.with_share} مستفيد`;
       if (result.with_deficit > 0) msg += ` (${result.with_deficit} مستفيد لديهم فروق مرحّلة)`;
-      defaultNotify.success(msg);
+      uiNotify.success(msg);
 
       for (const d of distributions) {
         if (d.beneficiary_user_id && d.net_amount > 0) {
-          notifyUser(
+          enqueueUserNotification(
             d.beneficiary_user_id,
             'صدور حصتك المالية',
             `تم توزيع حصتك بمبلغ ${d.net_amount.toLocaleString('ar-SA')} ر.س. يرجى مراجعة التفاصيل.`,
@@ -72,7 +72,7 @@ export const useDistributeShares = () => {
       }
     },
     onError: () => {
-      defaultNotify.error('فشل تنفيذ التوزيع — لم يتم تعديل أي بيانات (عملية ذرية)');
+      uiNotify.error('فشل تنفيذ التوزيع — لم يتم تعديل أي بيانات (عملية ذرية)');
     },
   });
 };

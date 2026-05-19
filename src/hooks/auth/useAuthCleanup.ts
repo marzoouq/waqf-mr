@@ -14,7 +14,7 @@
  * ملاحظة: لا يلمس setRole — تلك مسؤولية AuthContext لأنها state داخل الـ context.
  */
 import { useCallback } from 'react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { queryClient } from '@/lib/queryClient';
 import { STORAGE_KEYS, CLEARABLE_STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeRemove, safeSessionRemove } from '@/lib/storage';
@@ -30,7 +30,7 @@ export function useAuthCleanup() {
       m.clearSlowQueries();
       m.clearPageLoadEntries();
     }).catch(() => { /* silent */ });
-    defaultNotify.dismissAll();
+    uiNotify.dismissAll();
   }, []);
 
   return { performCleanup };

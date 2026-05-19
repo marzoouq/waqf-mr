@@ -6,13 +6,13 @@
  *   هذا الملف هو **handler طبقة الصفحة** يربط بين:
  *     - بيانات الهوك (currentBeneficiary, myShare, totalReceived, ...)
  *     - مولّدات utils/pdf النقية
- *     - إشعارات defaultNotify (toast نجاح/فشل)
+ *     - إشعارات uiNotify (toast نجاح/فشل)
  *     - usePdfWaqfInfo (شعار وبيانات الوقف)
  *   الفصل صحيح: utils/pdf لا يستهلك hooks ولا notify (قاعدة `src/utils/`).
  */
 import { useState, useCallback } from 'react';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { printShareReport } from '@/utils/export/printShareReport';
 
 interface PdfHandlersParams {
@@ -59,7 +59,7 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
 
   const handleDownloadPDF = withPdfLoading(async () => {
     if (!params.currentBeneficiary) return;
-    if (!params.isClosed) { defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
+    if (!params.isClosed) { uiNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
     try {
       const advAmt = params.paidAdvancesTotal;
       const afterAdv = Math.max(0, params.myShare - advAmt);
@@ -83,13 +83,13 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
           amount: Number(d.amount), status: d.status,
         })),
       }, pdfWaqfInfo);
-      defaultNotify.success('تم تحميل ملف PDF بنجاح');
-    } catch { defaultNotify.error('حدث خطأ أثناء تصدير PDF'); }
+      uiNotify.success('تم تحميل ملف PDF بنجاح');
+    } catch { uiNotify.error('حدث خطأ أثناء تصدير PDF'); }
   });
 
   const handleDownloadDistributionsPDF = withPdfLoading(async () => {
     if (!params.currentBeneficiary) return;
-    if (!params.isClosed) { defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
+    if (!params.isClosed) { uiNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
     try {
       const advances = params.paidAdvancesTotal;
       const afterAdvances = Math.max(0, params.myShare - advances);
@@ -109,13 +109,13 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
           net_amount: net, deficit,
         }],
       }, pdfWaqfInfo);
-      defaultNotify.success('تم تحميل تقرير التوزيعات بنجاح');
-    } catch { defaultNotify.error('حدث خطأ أثناء تصدير التقرير'); }
+      uiNotify.success('تم تحميل تقرير التوزيعات بنجاح');
+    } catch { uiNotify.error('حدث خطأ أثناء تصدير التقرير'); }
   });
 
   const handleDownloadComprehensivePDF = withPdfLoading(async () => {
     if (!params.currentBeneficiary) return;
-    if (!params.isClosed) { defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
+    if (!params.isClosed) { uiNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية'); return; }
     try {
       // جلب العقود lazily إذا لم تكن متاحة
       const contractsData = params.contracts.length > 0
@@ -145,8 +145,8 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
           amount: Number(d.amount), status: d.status,
         })),
       }, pdfWaqfInfo);
-      defaultNotify.success('تم تحميل التقرير الشامل بنجاح');
-    } catch { defaultNotify.error('حدث خطأ أثناء تصدير التقرير الشامل'); }
+      uiNotify.success('تم تحميل التقرير الشامل بنجاح');
+    } catch { uiNotify.error('حدث خطأ أثناء تصدير التقرير الشامل'); }
   });
 
 
@@ -154,14 +154,14 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
   const handlePrintReport = () => {
     if (!params.currentBeneficiary) return;
     // #B3 — تحذير عند السنة النشطة
-    if (!params.isClosed) defaultNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية');
+    if (!params.isClosed) uiNotify.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية');
     const ok = printShareReport({
       beneficiaryName: params.currentBeneficiary.name ?? 'غير معروف',
       beneficiariesShare: params.beneficiariesShare, myShare: params.myShare,
       paidAdvancesTotal: params.paidAdvancesTotal, carryforwardBalance: params.carryforwardBalance,
       fiscalYearLabel: params.fiscalYearLabel, filteredDistributions: params.filteredDistributions,
     });
-    if (!ok) defaultNotify.error('يرجى السماح بالنوافذ المنبثقة');
+    if (!ok) uiNotify.error('يرجى السماح بالنوافذ المنبثقة');
   };
 
   return { isPdfLoading, handleDownloadPDF, handleDownloadDistributionsPDF, handleDownloadComprehensivePDF, handlePrintReport };

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import {
   NOTIFICATION_TONE_KEY,
   NOTIFICATION_VOLUME_KEY,
@@ -33,7 +33,7 @@ export const useNotificationPreferences = () => {
   const handleSoundChange = useCallback((value: boolean) => {
     setSoundEnabled(value);
     safeSet(NOTIF_SOUND_KEY, String(value));
-    defaultNotify.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
+    uiNotify.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
   }, []);
 
   const handleToneChange = useCallback((tone: ToneId) => {

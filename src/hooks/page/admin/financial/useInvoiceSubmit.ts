@@ -7,7 +7,7 @@ import {
   useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile,
   type Invoice,
 } from '@/hooks/data/invoices/useInvoices';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { removeInvoiceFile } from '@/lib/services';
 
 const sanitizeDescription = (value: string): string => {
@@ -45,9 +45,9 @@ export function useInvoiceSubmit({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.invoice_type || !formData.date) { defaultNotify.error('يرجى ملء الحقول المطلوبة'); return; }
-    if (!editingInvoice && !selectedFile) { defaultNotify.error('يرجى رفع ملف الفاتورة'); return; }
-    if (!(parseFloat(formData.amount) > 0)) { defaultNotify.error('يرجى إدخال مبلغ أكبر من صفر'); return; }
+    if (!formData.invoice_type || !formData.date) { uiNotify.error('يرجى ملء الحقول المطلوبة'); return; }
+    if (!editingInvoice && !selectedFile) { uiNotify.error('يرجى رفع ملف الفاتورة'); return; }
+    if (!(parseFloat(formData.amount) > 0)) { uiNotify.error('يرجى إدخال مبلغ أكبر من صفر'); return; }
 
     try {
       setUploading(true);
@@ -89,12 +89,12 @@ export function useInvoiceSubmit({
       const viewablePath = filePath || editingInvoice?.file_path;
       const viewableName = fileName || editingInvoice?.file_name;
       if (viewablePath) {
-        defaultNotify.success(editingInvoice ? 'تم تحديث الفاتورة بنجاح' : 'تم رفع الفاتورة بنجاح', {
+        uiNotify.success(editingInvoice ? 'تم تحديث الفاتورة بنجاح' : 'تم رفع الفاتورة بنجاح', {
           action: { label: 'عرض', onClick: () => setViewerFile({ path: viewablePath, name: viewableName || null }) },
         });
       }
     } catch {
-      defaultNotify.error('حدث خطأ أثناء حفظ الفاتورة');
+      uiNotify.error('حدث خطأ أثناء حفظ الفاتورة');
     } finally {
       setUploading(false);
     }

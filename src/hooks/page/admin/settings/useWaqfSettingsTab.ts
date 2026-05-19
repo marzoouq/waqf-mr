@@ -3,7 +3,7 @@
  * يدير form state وحفظ بيانات الوقف والنسب المالية.
  */
 import { useState, useEffect } from 'react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { useAppSettings, useSetting } from '@/hooks/data/settings/useAppSettings';
 
 export interface WaqfFieldDef { key: string; label: string }
@@ -46,7 +46,7 @@ export const useWaqfSettingsTab = () => {
     if (value.trim() === '' || value.trim() === '0') return true;
     const num = parseFloat(value);
     if (!Number.isFinite(num) || num < 0 || num > 100) {
-      defaultNotify.error(`${label}: يجب إدخال رقم بين 0 و 100`);
+      uiNotify.error(`${label}: يجب إدخال رقم بين 0 و 100`);
       return false;
     }
     return true;
@@ -59,7 +59,7 @@ export const useWaqfSettingsTab = () => {
       const adminVal = parseFloat(formData['admin_share_percentage'] || '0') || 0;
       const waqifVal = parseFloat(formData['waqif_share_percentage'] || '0') || 0;
       if (adminVal + waqifVal > 100) {
-        defaultNotify.error('مجموع نسبة الناظر والواقف يتجاوز 100%');
+        uiNotify.error('مجموع نسبة الناظر والواقف يتجاوز 100%');
         setSaving(false);
         return;
       }
@@ -67,14 +67,14 @@ export const useWaqfSettingsTab = () => {
       const rows: { key: string; value: string; updated_at: string }[] = [];
       for (const field of allFields) {
         const value = (formData[field.key] || '').trim();
-        if (value.length > 500) { defaultNotify.error(`${field.label} طويل جداً`); setSaving(false); return; }
+        if (value.length > 500) { uiNotify.error(`${field.label} طويل جداً`); setSaving(false); return; }
         if (!validatePercentage(field.key, field.label, value)) { setSaving(false); return; }
         rows.push({ key: field.key, value, updated_at: now });
       }
       await updateSettingsBatch.mutateAsync(rows);
-      defaultNotify.success('تم حفظ البيانات بنجاح');
+      uiNotify.success('تم حفظ البيانات بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error('حدث خطأ أثناء الحفظ');
     } finally {
       setSaving(false);
     }

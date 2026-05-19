@@ -6,7 +6,7 @@ import { UnitRow } from './useUnits';
 import { useCreateUnit, useUpdateUnit, useDeleteUnit } from './useUnits';
 import { useCreateContract, useUpdateContract } from '@/hooks/data/contracts/useContracts';
 import { Property, Contract } from '@/types';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import type { UnitFormData } from '@/types/forms/property';
 
 const getDefaultForm = (propertyId: string): UnitFormData => ({
@@ -35,7 +35,7 @@ export function useUnitMutations(property: Property, contracts: Contract[]) {
   const handleUnitSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!unitForm.unit_number) {
-      defaultNotify.error('يرجى إدخال رقم الوحدة');
+      uiNotify.error('يرجى إدخال رقم الوحدة');
       return;
     }
 
@@ -74,7 +74,7 @@ export function useUnitMutations(property: Property, contracts: Contract[]) {
         });
       } else {
         if (!unitForm.contract_start_date || !unitForm.contract_end_date) {
-          defaultNotify.error('يرجى تحديد تاريخ بداية ونهاية العقد');
+          uiNotify.error('يرجى تحديد تاريخ بداية ونهاية العقد');
           return;
         }
         await createContract.mutateAsync({

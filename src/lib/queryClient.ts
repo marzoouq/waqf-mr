@@ -1,5 +1,5 @@
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { classifyError, isRetryableCategory } from '@/utils/error/getErrorStatus';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
@@ -18,7 +18,7 @@ const mutationCache = new MutationCache({
     const { category } = classifyError(error);
     if (category === 'auth') return;
     if (!mutation.options.onError) {
-      defaultNotify.error('حدث خطأ أثناء حفظ البيانات', {
+      uiNotify.error('حدث خطأ أثناء حفظ البيانات', {
         description: error.message?.slice(0, 120),
       });
     }

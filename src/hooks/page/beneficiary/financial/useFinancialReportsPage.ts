@@ -10,7 +10,7 @@ import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
 
 
@@ -77,9 +77,9 @@ export const useFinancialReportsPage = () => {
           amount: myShare,
         }] : [],
       }, pdfWaqfInfo);
-      defaultNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success('تم تحميل ملف PDF بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error('حدث خطأ أثناء تصدير PDF');
     }
   }, [fiscalYear, fin, currentBeneficiary, myShare, pdfWaqfInfo]);
 

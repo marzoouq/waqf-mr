@@ -2,7 +2,7 @@
  * هوك منطق صفحة التقرير السنوي
  */
 import { useState, useMemo, useCallback, useRef } from 'react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { usePrint } from '@/hooks/ui/usePrint';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -110,7 +110,7 @@ export function useAnnualReportPage() {
         updateItem.mutateAsync({ id: sectionItems[swapIdx]!.id, sort_order: sectionItems[idx]!.sort_order }),
       ]);
     } catch {
-      defaultNotify.error('فشل إعادة الترتيب');
+      uiNotify.error('فشل إعادة الترتيب');
     } finally {
       isReordering.current = false;
     }

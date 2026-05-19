@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
 import type { Property } from '@/types';
 import { useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/data/properties/useProperties';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 
 const EMPTY_FORM = { property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false };
 
@@ -28,7 +28,7 @@ export function usePropertiesForm() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!formData.property_number || !formData.property_type || !formData.location || !formData.area) {
-      defaultNotify.error('يرجى ملء جميع الحقول المطلوبة');
+      uiNotify.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     const propertyData = {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 
 export const useSecuritySettings = () => {
   const { data: settings, updateSetting, isLoading } = useAppSettings();
@@ -20,9 +20,9 @@ export const useSecuritySettings = () => {
         key: 'idle_timeout_minutes',
         value: idleMinutes,
       });
-      defaultNotify.success('تم حفظ إعدادات الأمان');
+      uiNotify.success('تم حفظ إعدادات الأمان');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error('حدث خطأ أثناء الحفظ');
     } finally {
       setSaving(false);
     }

@@ -3,7 +3,7 @@
  * مُستخرج من useAdvanceRequests لفصل المسؤوليات
  */
 import { supabase } from '@/integrations/supabase/client';
-import { notifyAdmins, notifyUser } from '@/lib/services';
+import { notifyAdmins, enqueueUserNotification } from '@/lib/services';
 import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format/format';
 
@@ -64,7 +64,7 @@ export function notifyOnCreate(
           return;
         }
         if (benData?.user_id) {
-          notifyUser(
+          enqueueUserNotification(
             benData.user_id,
             'تم استلام طلب السلفة',
             `تم استلام طلبك بمبلغ ${fmt(amount)} ر.س وسيتم مراجعته من قبل الناظر.`,
@@ -94,5 +94,5 @@ export function notifyOnStatusChange(
     paid: { title: 'تم صرف السلفة', message: `تم صرف سلفة بمبلغ ${amtStr} ر.س إلى حسابك`, type: 'success' },
   };
   const n = notifMap[status];
-  if (n) notifyUser(userId, n.title, n.message, n.type, '/beneficiary/my-share');
+  if (n) enqueueUserNotification(userId, n.title, n.message, n.type, '/beneficiary/my-share');
 }

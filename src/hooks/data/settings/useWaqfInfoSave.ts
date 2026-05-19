@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 
 interface WaqfField {
   key: string;
@@ -42,7 +42,7 @@ export const useWaqfInfoSave = (onSuccess: () => void) => {
       for (const field of fields) {
         const value = (formData[field.key] || '').trim();
         if (value.length > 500) {
-          defaultNotify.error(`الحقل "${field.label}" طويل جداً`);
+          uiNotify.error(`الحقل "${field.label}" طويل جداً`);
           setSaving(false);
           return;
         }
@@ -54,10 +54,10 @@ export const useWaqfInfoSave = (onSuccess: () => void) => {
       // المهمة B — إبطال فئة general (waqf_*) + legacy
       await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
       await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      defaultNotify.success('تم حفظ بيانات الوقف بنجاح');
+      uiNotify.success('تم حفظ بيانات الوقف بنجاح');
       onSuccess();
     } catch {
-      defaultNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error('حدث خطأ أثناء الحفظ');
     } finally {
       setSaving(false);
     }

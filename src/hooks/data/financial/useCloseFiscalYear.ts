@@ -5,7 +5,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
 import { logger } from '@/lib/logger';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 
 interface CloseYearInput {
   fiscalYearId: string;
@@ -42,7 +42,7 @@ export function useCloseFiscalYear() {
     },
     onError: (err) => {
       logger.error('خطأ في إقفال السنة:', err instanceof Error ? err.message : err);
-      defaultNotify.error('فشل إقفال السنة المالية. يرجى المحاولة لاحقاً');
+      uiNotify.error('فشل إقفال السنة المالية. يرجى المحاولة لاحقاً');
     },
   });
 }

@@ -2,7 +2,7 @@
  * Page hook: SystemSettingsTab
  */
 import { useState, useEffect, useMemo } from 'react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useAppSettingsHistory, type AppSettingHistoryEntry } from '@/hooks/data/settings/useAppSettingsHistory';
 
@@ -54,9 +54,9 @@ export const useSystemSettingsTab = () => {
         updated_at: now,
       }));
       await updateSettingsBatch.mutateAsync(rows);
-      defaultNotify.success('تم حفظ الإعدادات بنجاح');
+      uiNotify.success('تم حفظ الإعدادات بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error('حدث خطأ أثناء الحفظ');
     } finally {
       setSaving(false);
     }

@@ -6,7 +6,7 @@
  */
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 
 export function useResetPassword() {
@@ -43,11 +43,11 @@ export function useResetPassword() {
     e.preventDefault();
 
     if (!password || password.length < 8) {
-      defaultNotify.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+      uiNotify.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
       return;
     }
     if (password !== confirmPassword) {
-      defaultNotify.error('كلمتا المرور غير متطابقتين');
+      uiNotify.error('كلمتا المرور غير متطابقتين');
       return;
     }
 
@@ -55,13 +55,13 @@ export function useResetPassword() {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
-        defaultNotify.error(getSafeErrorMessage(error));
+        uiNotify.error(getSafeErrorMessage(error));
       } else {
         setSuccess(true);
-        defaultNotify.success('تم تغيير كلمة المرور بنجاح');
+        uiNotify.success('تم تغيير كلمة المرور بنجاح');
       }
     } catch {
-      defaultNotify.error('حدث خطأ غير متوقع');
+      uiNotify.error('حدث خطأ غير متوقع');
     } finally {
       setIsLoading(false);
     }

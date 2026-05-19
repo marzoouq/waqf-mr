@@ -7,7 +7,7 @@ import LoginForm from './LoginForm';
 const mockNotify = vi.hoisted(() => ({
   error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn(),
 }));
-vi.mock('@/lib/notify', () => ({ defaultNotify: mockNotify }));
+vi.mock('@/lib/notify', () => ({ uiNotify: mockNotify }));
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {

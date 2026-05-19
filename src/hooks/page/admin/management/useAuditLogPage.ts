@@ -5,7 +5,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useAuditLog, getTableNameAr } from '@/hooks/data/audit/useAuditLog';
 import { useAuditLogTodayCount, fetchAuditLogForExport } from '@/hooks/data/audit/useAuditLogStats';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { PAGE_SIZE_AUDIT } from '@/constants/pagination';
 
 const ITEMS_PER_PAGE = PAGE_SIZE_AUDIT;
@@ -50,7 +50,7 @@ export function useAuditLogPage() {
   }, []);
 
   const handleExportPdf = useCallback(async () => {
-    if (logs.length === 0) { defaultNotify.error('لا توجد سجلات للتصدير'); return; }
+    if (logs.length === 0) { uiNotify.error('لا توجد سجلات للتصدير'); return; }
     setExporting(true);
     try {
       const allLogs = await fetchAuditLogForExport({ tableFilter, opFilter, dateFrom, dateTo });
@@ -59,9 +59,9 @@ export function useAuditLogPage() {
         logs: allLogs.length > 0 ? allLogs : logs,
         waqfInfo, tableFilter, opFilter,
       });
-      defaultNotify.success('تم تصدير سجل المراجعة بنجاح');
+      uiNotify.success('تم تصدير سجل المراجعة بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير التقرير');
+      uiNotify.error('حدث خطأ أثناء تصدير التقرير');
     } finally {
       setExporting(false);
     }

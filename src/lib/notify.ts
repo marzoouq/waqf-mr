@@ -1,7 +1,7 @@
 /**
  * واجهة إشعارات موحّدة للمشروع بالكامل
  * تجمع بين MutationNotify (من mutationNotify.ts) و CrudNotifications (من useCrudFactory.ts)
- * استخدم defaultNotify لإرسال إشعارات toast من أي مكان
+ * استخدم uiNotify لإرسال إشعارات toast من أي مكان
  *
  * #28/#29 من تقرير الفحص: dedup يمنع تكرار نفس الرسالة خلال DEDUP_MS.
  * القيمة 2000ms مختارة عمداً لتغطية batch operations دون قمع رسائل مشروعة.
@@ -60,7 +60,7 @@ function dedupToast(
 }
 
 /** الإشعارات الافتراضية عبر sonner — مع حماية من التكرار */
-export const defaultNotify: AppNotify = {
+export const uiNotify: AppNotify = {
   success: (msg, opts) => dedupToast(toast.success, msg, opts),
   error: (msg, opts) => dedupToast(toast.error, msg, opts),
   info: (msg, opts) => dedupToast(toast.info, msg, opts),
@@ -76,11 +76,11 @@ export const defaultNotify: AppNotify = {
 /** تحويل CrudNotifications إلى AppNotify كامل (مع fallback) */
 export function crudNotifyAdapter(custom?: CrudNotifications): AppNotify {
   return {
-    success: custom?.onSuccess ?? defaultNotify.success,
-    error: custom?.onError ?? defaultNotify.error,
-    info: custom?.onInfo ?? defaultNotify.info,
-    warning: custom?.onWarning ?? defaultNotify.warning,
-    dismissAll: defaultNotify.dismissAll,
+    success: custom?.onSuccess ?? uiNotify.success,
+    error: custom?.onError ?? uiNotify.error,
+    info: custom?.onInfo ?? uiNotify.info,
+    warning: custom?.onWarning ?? uiNotify.warning,
+    dismissAll: uiNotify.dismissAll,
   };
 }
 

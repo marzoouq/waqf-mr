@@ -7,7 +7,7 @@ import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContract
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { usePropertiesMap } from '@/hooks/data/properties/usePropertiesMap';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 
@@ -75,9 +75,9 @@ export const useContractsViewPage = () => {
         })),
         pdfWaqfInfo
       );
-      defaultNotify.success('تم تصدير العقود بنجاح');
+      uiNotify.success('تم تصدير العقود بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error('حدث خطأ أثناء تصدير PDF');
     }
   }, [contracts, pdfWaqfInfo]);
 

@@ -3,7 +3,7 @@
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 
 export interface ServerAdvanceData {
   estimated_share: number;
@@ -34,7 +34,7 @@ export const useMaxAdvanceAmount = (
         // RPC — cast مبرر، يحتاج Zod validation لاحقاً
         return data as unknown as ServerAdvanceData;
       } catch (e) {
-        defaultNotify.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
+        uiNotify.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
         throw e;
       }
     },

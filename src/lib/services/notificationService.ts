@@ -39,7 +39,7 @@ export const insertNotifications = async (
 /* ────────────── fire-and-forget — تُستخدم كتأثير جانبي ────────────── */
 
 /** إرسال إشعار لمستخدم محدد (fire-and-forget) */
-export const notifyUser = (
+export const enqueueUserNotification = (
   userId: string,
   title: string,
   message: string,
@@ -61,7 +61,7 @@ export const notifyUser = (
 };
 
 /** إرسال إشعار لجميع المدراء (fire-and-forget) */
-export const notifyAdminsSilent = (title: string, message: string, type = 'info', link?: string): void => {
+export const broadcastAdminNotification = (title: string, message: string, type = 'info', link?: string): void => {
   notifyAdmins(title, message, type, link).catch((err) => {
     logger.error('Failed to notify admins:', err);
   });

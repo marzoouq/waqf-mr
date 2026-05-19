@@ -3,7 +3,7 @@
  */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { useStableRef } from '@/lib/hooks/useStableRef';
 import { findAccountByFY } from '@/utils/financial/findAccountByFY';
@@ -75,10 +75,10 @@ export function useAccountsSettings(params: SettingsParams) {
     saveSettingTimeouts.current[key] = setTimeout(async () => {
       try {
         await updateSettingRef.current({ key, value });
-        defaultNotify.success('تم حفظ الإعداد');
+        uiNotify.success('تم حفظ الإعداد');
       } catch (err) {
         logger.error('خطأ في حفظ الإعداد:', err instanceof Error ? err.message : err);
-        defaultNotify.error('خطأ في حفظ الإعداد');
+        uiNotify.error('خطأ في حفظ الإعداد');
       }
     }, 500);
   }, [updateSettingRef]);
@@ -86,7 +86,7 @@ export function useAccountsSettings(params: SettingsParams) {
   const handleAdminPercentChange = (val: string) => {
     const num = parseFloat(val);
     if (!Number.isFinite(num) || num < 0 || num > 100) {
-      defaultNotify.error('نسبة الناظر يجب أن تكون رقماً بين 0 و 100');
+      uiNotify.error('نسبة الناظر يجب أن تكون رقماً بين 0 و 100');
       return;
     }
     setAdminPercent(num);
@@ -96,7 +96,7 @@ export function useAccountsSettings(params: SettingsParams) {
   const handleWaqifPercentChange = (val: string) => {
     const num = parseFloat(val);
     if (!Number.isFinite(num) || num < 0 || num > 100) {
-      defaultNotify.error('نسبة الواقف يجب أن تكون رقماً بين 0 و 100');
+      uiNotify.error('نسبة الواقف يجب أن تكون رقماً بين 0 و 100');
       return;
     }
     setWaqifPercent(num);

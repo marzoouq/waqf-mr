@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { usePushNotifications } from '@/hooks/data/notifications/usePushNotifications';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
@@ -45,9 +45,9 @@ export function useNotificationsPage() {
   const handleEnablePush = useCallback(async () => {
     const result = await requestPermission();
     if (result === 'granted') {
-      defaultNotify.success('تم تفعيل الإشعارات المنبثقة بنجاح');
+      uiNotify.success('تم تفعيل الإشعارات المنبثقة بنجاح');
     } else if (result === 'denied') {
-      defaultNotify.error('تم رفض الإشعارات المنبثقة. يمكنك تغييرها من إعدادات المتصفح');
+      uiNotify.error('تم رفض الإشعارات المنبثقة. يمكنك تغييرها من إعدادات المتصفح');
     }
   }, [requestPermission]);
 

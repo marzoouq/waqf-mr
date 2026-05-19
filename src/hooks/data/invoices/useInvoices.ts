@@ -4,7 +4,7 @@
  */
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { invoicesService, INVOICES_SELECT } from '@/lib/services/invoicesService';
@@ -73,10 +73,10 @@ export const useDeleteInvoice = () => {
       invoicesService.remove(id, file_path),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      defaultNotify.success('تم حذف الفاتورة بنجاح');
+      uiNotify.success('تم حذف الفاتورة بنجاح');
     },
     onError: () => {
-      defaultNotify.error('حدث خطأ أثناء حذف الفاتورة');
+      uiNotify.error('حدث خطأ أثناء حذف الفاتورة');
     },
   });
 };
@@ -117,13 +117,13 @@ export const useGenerateInvoicePdf = () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       const successCount = data.results.filter((r) => r.success && r.error !== 'already has file').length;
       if (successCount > 0) {
-        defaultNotify.success(`تم توليد ${successCount} ملف PDF بنجاح`);
+        uiNotify.success(`تم توليد ${successCount} ملف PDF بنجاح`);
       } else {
-        defaultNotify.info('جميع الفواتير تحتوي على مرفقات بالفعل');
+        uiNotify.info('جميع الفواتير تحتوي على مرفقات بالفعل');
       }
     },
     onError: () => {
-      defaultNotify.error('حدث خطأ أثناء توليد ملفات PDF');
+      uiNotify.error('حدث خطأ أثناء توليد ملفات PDF');
     },
   });
 };

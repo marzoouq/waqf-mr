@@ -17,11 +17,11 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-// الكود يستخدم defaultNotify — نموكه بدل sonner
+// الكود يستخدم uiNotify — نموكه بدل sonner
 const mockNotify = vi.hoisted(() => ({
   success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn(),
 }));
-vi.mock('@/lib/notify', () => ({ defaultNotify: mockNotify }));
+vi.mock('@/lib/notify', () => ({ uiNotify: mockNotify }));
 
 import { useTenantPayments, useUpsertTenantPayment } from './useTenantPayments';
 

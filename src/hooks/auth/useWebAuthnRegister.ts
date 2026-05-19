@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { startRegistration, type PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
 import { invoke } from '@/lib/api/invoke';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { logBiometricEvent, handleRegistrationError, getDeviceName } from '@/utils/auth/webAuthnErrors';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
@@ -25,7 +25,7 @@ export function useWebAuthnRegister({ setIsLoading, setIsEnabled, fetchCredentia
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
-        defaultNotify.error('يرجى تسجيل الدخول أولاً');
+        uiNotify.error('يرجى تسجيل الدخول أولاً');
         return false;
       }
 
@@ -40,19 +40,19 @@ export function useWebAuthnRegister({ setIsLoading, setIsEnabled, fetchCredentia
       } catch (e) {
         logger.error('WebAuthn register-options error:', e);
         logBiometricEvent('login_failed', 'register-options', { reason: 'server_error' });
-        defaultNotify.error('فشل في بدء عملية التسجيل. تحقق من اتصالك بالإنترنت وأعد المحاولة');
+        uiNotify.error('فشل في بدء عملية التسجيل. تحقق من اتصالك بالإنترنت وأعد المحاولة');
         return false;
       }
       if (!options) {
         logBiometricEvent('login_failed', 'register-options', { reason: 'server_error' });
-        defaultNotify.error('فشل في بدء عملية التسجيل. تحقق من اتصالك بالإنترنت وأعد المحاولة');
+        uiNotify.error('فشل في بدء عملية التسجيل. تحقق من اتصالك بالإنترنت وأعد المحاولة');
         return false;
       }
 
       if (options.error) {
         logger.error('WebAuthn register-options server error');
         logBiometricEvent('login_failed', 'register-options', { reason: options.error });
-        defaultNotify.error(options.error || 'فشل في بدء عملية التسجيل');
+        uiNotify.error(options.error || 'فشل في بدء عملية التسجيل');
         return false;
       }
 
@@ -72,14 +72,14 @@ export function useWebAuthnRegister({ setIsLoading, setIsEnabled, fetchCredentia
 
       if (!result?.verified) {
         logBiometricEvent('login_failed', 'register-verify', { reason: 'verification_failed' });
-        defaultNotify.error('فشل في تسجيل البصمة');
+        uiNotify.error('فشل في تسجيل البصمة');
         return false;
       }
 
       safeSet(BIOMETRIC_ENABLED_KEY, 'true');
       setIsEnabled(true);
       await fetchCredentials(user.id);
-      defaultNotify.success('تم تسجيل البصمة بنجاح! يمكنك الآن تسجيل الدخول بها');
+      uiNotify.success('تم تسجيل البصمة بنجاح! يمكنك الآن تسجيل الدخول بها');
       return true;
     } catch (err: unknown) {
       handleRegistrationError(err);

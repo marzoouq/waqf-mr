@@ -2,7 +2,7 @@
  * هوكات التقرير السنوي — CRUD لعناصر التقرير + حالة النشر
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { annualReportService } from '@/lib/services/annualReportService';
@@ -54,11 +54,11 @@ export const useCreateReportItem = () => {
       annualReportService.createItem(item),
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['annual_report_items', v.fiscal_year_id] });
-      defaultNotify.success('تمت إضافة العنصر بنجاح');
+      uiNotify.success('تمت إضافة العنصر بنجاح');
     },
     onError: (e) => {
       logger.error('خطأ في إضافة عنصر التقرير:', e);
-      defaultNotify.error('فشل في إضافة العنصر');
+      uiNotify.error('فشل في إضافة العنصر');
     },
   });
 };
@@ -70,9 +70,9 @@ export const useUpdateReportItem = () => {
       annualReportService.updateItem(id, updates),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['annual_report_items'], exact: false });
-      defaultNotify.success('تم تحديث العنصر');
+      uiNotify.success('تم تحديث العنصر');
     },
-    onError: () => defaultNotify.error('فشل في تحديث العنصر'),
+    onError: () => uiNotify.error('فشل في تحديث العنصر'),
   });
 };
 
@@ -82,9 +82,9 @@ export const useDeleteReportItem = () => {
     mutationFn: (id: string) => annualReportService.deleteItem(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['annual_report_items'] });
-      defaultNotify.success('تم حذف العنصر');
+      uiNotify.success('تم حذف العنصر');
     },
-    onError: () => defaultNotify.error('فشل في حذف العنصر'),
+    onError: () => uiNotify.error('فشل في حذف العنصر'),
   });
 };
 
@@ -107,8 +107,8 @@ export const useToggleReportPublish = () => {
       annualReportService.setPublishStatus(fiscalYearId, publish),
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['annual_report_status', v.fiscalYearId] });
-      defaultNotify.success(v.publish ? 'تم نشر التقرير السنوي' : 'تم إرجاع التقرير إلى مسودة');
+      uiNotify.success(v.publish ? 'تم نشر التقرير السنوي' : 'تم إرجاع التقرير إلى مسودة');
     },
-    onError: () => defaultNotify.error('فشل في تحديث حالة النشر'),
+    onError: () => uiNotify.error('فشل في تحديث حالة النشر'),
   });
 };

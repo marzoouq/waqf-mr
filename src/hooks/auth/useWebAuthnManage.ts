@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeGet, safeSet, safeRemove } from '@/lib/storage';
@@ -71,7 +71,7 @@ export function useWebAuthnManage() {
 
     if (error) {
       logger.error('Failed to fetch credentials:', error.message);
-      defaultNotify.error('تعذر جلب بيانات الاعتماد');
+      uiNotify.error('تعذر جلب بيانات الاعتماد');
       return [];
     }
 
@@ -83,7 +83,7 @@ export function useWebAuthnManage() {
   const removeCredential = useCallback(async (credentialId: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      defaultNotify.error('يجب تسجيل الدخول أولاً');
+      uiNotify.error('يجب تسجيل الدخول أولاً');
       return false;
     }
     const { error } = await supabase
@@ -93,7 +93,7 @@ export function useWebAuthnManage() {
       .eq('user_id', user.id);
 
     if (error) {
-      defaultNotify.error('فشل في حذف البصمة');
+      uiNotify.error('فشل في حذف البصمة');
       return false;
     }
 
@@ -103,7 +103,7 @@ export function useWebAuthnManage() {
       setIsEnabled(false);
     }
 
-    defaultNotify.success('تم حذف البصمة بنجاح');
+    uiNotify.success('تم حذف البصمة بنجاح');
     return true;
   }, [fetchCredentials]);
 

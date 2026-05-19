@@ -11,7 +11,7 @@ import { useMyShare } from '@/hooks/domain/financial/useMyShare';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
 import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
@@ -81,9 +81,9 @@ export const useDisclosurePage = () => {
         adminShare: fin.adminShare, waqifShare: fin.waqifShare, adminPct, waqifPct, beneficiariesShare,
         incomeBySource: fin.incomeBySource, expensesByType: fin.expensesByTypeExcludingVat,
       }, pdfWaqfInfo);
-      defaultNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success('تم تحميل ملف PDF بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error('حدث خطأ أثناء تصدير PDF');
     }
   }, [gregorianFiscalYear, currentBeneficiary, myShare, fin, adminPct, waqifPct, beneficiariesShare, pdfWaqfInfo]);
 
@@ -112,9 +112,9 @@ export const useDisclosurePage = () => {
           status: d.status,
         })),
       }, pdfWaqfInfo);
-      defaultNotify.success('تم تحميل التقرير الشامل بنجاح');
+      uiNotify.success('تم تحميل التقرير الشامل بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير التقرير الشامل');
+      uiNotify.error('حدث خطأ أثناء تصدير التقرير الشامل');
     }
   }, [currentBeneficiary, gregorianFiscalYear, fin, adminPct, waqifPct, beneficiariesShare, myShare, totalReceived, pendingAmount, contracts, filteredDistributions, pdfWaqfInfo]);
 

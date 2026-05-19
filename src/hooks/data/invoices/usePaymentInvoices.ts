@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 export type { PaymentInvoice } from '@/types/invoices';
@@ -46,9 +46,9 @@ export const useGenerateContractInvoices = () => {
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      defaultNotify.success(`تم توليد ${count} فاتورة`);
+      uiNotify.success(`تم توليد ${count} فاتورة`);
     },
-    onError: () => defaultNotify.error('فشل توليد الفواتير'),
+    onError: () => uiNotify.error('فشل توليد الفواتير'),
   });
 };
 
@@ -62,9 +62,9 @@ export const useGenerateAllInvoices = () => {
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      defaultNotify.success(`تم توليد ${count} فاتورة لجميع العقود النشطة`);
+      uiNotify.success(`تم توليد ${count} فاتورة لجميع العقود النشطة`);
     },
-    onError: () => defaultNotify.error('فشل توليد الفواتير'),
+    onError: () => uiNotify.error('فشل توليد الفواتير'),
   });
 };
 
@@ -82,9 +82,9 @@ export const useMarkInvoicePaid = () => {
       qc.invalidateQueries({ queryKey: ['tenant_payments'] });
       qc.invalidateQueries({ queryKey: ['income'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      defaultNotify.success('تم تسديد الفاتورة وتسجيل التحصيل');
+      uiNotify.success('تم تسديد الفاتورة وتسجيل التحصيل');
     },
-    onError: () => defaultNotify.error('فشل تسديد الفاتورة'),
+    onError: () => uiNotify.error('فشل تسديد الفاتورة'),
   });
 };
 
@@ -101,8 +101,8 @@ export const useMarkInvoiceUnpaid = () => {
       qc.invalidateQueries({ queryKey: ['tenant_payments'] });
       qc.invalidateQueries({ queryKey: ['income'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      defaultNotify.success('تم إلغاء التسديد والتراجع عن التحصيل');
+      uiNotify.success('تم إلغاء التسديد والتراجع عن التحصيل');
     },
-    onError: () => defaultNotify.error('فشل إلغاء التسديد'),
+    onError: () => uiNotify.error('فشل إلغاء التسديد'),
   });
 };

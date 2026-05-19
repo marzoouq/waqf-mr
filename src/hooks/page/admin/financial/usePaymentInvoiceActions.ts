@@ -3,7 +3,7 @@
  * مُستخرج من usePaymentInvoicesTab لتقليل حجم الملف الأصلي (#22)
  */
 import { useState, useCallback } from 'react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import {
   type PaymentInvoice,
   useMarkInvoicePaid,
@@ -28,7 +28,7 @@ export function usePaymentInvoiceActions() {
   const handlePay = () => {
     if (!payDialog) return;
     const amount = parseFloat(payAmount);
-    if (!(amount > 0)) { defaultNotify.error('يرجى إدخال مبلغ صحيح'); return; }
+    if (!(amount > 0)) { uiNotify.error('يرجى إدخال مبلغ صحيح'); return; }
     const inv = payDialog.inv;
     setPayingInvoiceId(inv.id);
     setPayDialog(null);
@@ -63,8 +63,8 @@ export function usePaymentInvoiceActions() {
     }
     setBulkPaying(false);
     setSelectedIds(new Set());
-    if (done > 0) defaultNotify.success(`تم تسديد ${done} فاتورة من ${ids.length}`);
-    if (failed.length > 0) defaultNotify.error(`فشل تسديد ${failed.length} فاتورة — يرجى المحاولة مرة أخرى`);
+    if (done > 0) uiNotify.success(`تم تسديد ${done} فاتورة من ${ids.length}`);
+    if (failed.length > 0) uiNotify.error(`فشل تسديد ${failed.length} فاتورة — يرجى المحاولة مرة أخرى`);
   }, [selectedIds, markPaid]);
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);

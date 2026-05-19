@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/cn';
 import { Check, Palette } from 'lucide-react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { safeGet, safeSet } from '@/lib/storage';
 import { THEME_KEY, applyTheme, resetTheme, themes, type ThemeTemplate } from '@/lib/theme/themeColor.utils';
 
@@ -17,7 +17,7 @@ const ThemeColorPicker = () => {
     } else {
       applyTheme(theme);
     }
-    defaultNotify.success(`تم تطبيق قالب "${theme.name}"`);
+    uiNotify.success(`تم تطبيق قالب "${theme.name}"`);
   };
 
   return (

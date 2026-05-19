@@ -5,7 +5,7 @@
  * بحيث لا تُحمَّل وحدة PDF إلا عند أول طلب تصدير.
  */
 import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 
 /** مُحمِّل موحد لوحدة PDF — الاستيراد التالي يأتي من cache المتصفح */
 const loadPdfModule = () => import('@/utils/pdf');
@@ -98,9 +98,9 @@ export function useReportsExport(input: ReportsExportInput) {
     try {
       const { generateForensicAuditPDF } = await loadPdfModule();
       await generateForensicAuditPDF(input.forensicAuditData, input.pdfWaqfInfo);
-      defaultNotify.success('تم تصدير الفحص الجنائي بنجاح');
+      uiNotify.success('تم تصدير الفحص الجنائي بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير الفحص الجنائي');
+      uiNotify.error('حدث خطأ أثناء تصدير الفحص الجنائي');
     }
   };
 

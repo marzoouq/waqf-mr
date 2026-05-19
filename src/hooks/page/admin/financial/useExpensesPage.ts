@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Expense } from '@/types';
 import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 import { computeDocumentationStats } from '@/utils/financial/documentationRate';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
@@ -59,15 +59,15 @@ export function useExpensesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.expense_type || !formData.amount || !formData.date) { defaultNotify.error('يرجى ملء جميع الحقول المطلوبة'); return; }
+    if (!formData.expense_type || !formData.amount || !formData.date) { uiNotify.error('يرجى ملء جميع الحقول المطلوبة'); return; }
     const amount = parseFloat(formData.amount);
-    if (!Number.isFinite(amount) || amount <= 0 || amount > MAX_FINANCIAL_AMOUNT) { defaultNotify.error(MAX_FINANCIAL_AMOUNT_MESSAGE); return; }
+    if (!Number.isFinite(amount) || amount <= 0 || amount > MAX_FINANCIAL_AMOUNT) { uiNotify.error(MAX_FINANCIAL_AMOUNT_MESSAGE); return; }
     const expenseData: Record<string, unknown> = {
       expense_type: formData.expense_type, amount, date: formData.date,
       property_id: formData.property_id || undefined, description: formData.description || undefined,
     };
     if (!editingExpense) {
-      if (!fiscalYear?.id) { defaultNotify.error('يرجى اختيار سنة مالية محددة قبل إضافة مصروف'); return; }
+      if (!fiscalYear?.id) { uiNotify.error('يرجى اختيار سنة مالية محددة قبل إضافة مصروف'); return; }
       expenseData.fiscal_year_id = fiscalYear.id;
     }
     try {
@@ -160,7 +160,7 @@ export function useExpensesPage() {
       'الوصف': item.description || '-',
     })));
     downloadCsv(csv, 'مصروفات.csv');
-    defaultNotify.success('تم تصدير المصروفات بنجاح');
+    uiNotify.success('تم تصدير المصروفات بنجاح');
   }, [filteredExpenses]);
 
   return {

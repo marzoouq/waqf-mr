@@ -27,7 +27,7 @@ vi.mock('@/hooks/auth/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: null, role: null })),
 }));
 
-vi.mock('@/utils/notifications', () => ({ notifyUser: vi.fn() }));
+vi.mock('@/utils/notifications', () => ({ enqueueUserNotification: vi.fn() }));
 vi.mock('@/lib/logger', () => ({ logger: { warn: vi.fn() } }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
