@@ -16,11 +16,14 @@ import { renderHook, act } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-// ── Supabase auth mock ──────────────────────────────────────────────
-const updateUserMock = vi.fn();
-const resetPasswordForEmailMock = vi.fn();
-const onAuthStateChangeMock = vi.fn((_cb: unknown) => ({
-  data: { subscription: { unsubscribe: vi.fn() } },
+// ── Hoisted mocks ───────────────────────────────────────────────────
+const { updateUserMock, resetPasswordForEmailMock, onAuthStateChangeMock, notifyMock } = vi.hoisted(() => ({
+  updateUserMock: vi.fn(),
+  resetPasswordForEmailMock: vi.fn(),
+  onAuthStateChangeMock: vi.fn((_cb: unknown) => ({
+    data: { subscription: { unsubscribe: vi.fn() } },
+  })),
+  notifyMock: { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() },
 }));
 
 vi.mock('@/integrations/supabase/client', () => ({
@@ -33,7 +36,6 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-const notifyMock = { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() };
 vi.mock('@/lib/notify', () => ({ uiNotify: notifyMock }));
 
 vi.mock('@/lib/services/accessLogService', () => ({ logAccessEvent: vi.fn() }));
