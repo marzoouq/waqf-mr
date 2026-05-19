@@ -19,15 +19,15 @@ import { join } from 'node:path';
 // ── Supabase auth mock ──────────────────────────────────────────────
 const updateUserMock = vi.fn();
 const resetPasswordForEmailMock = vi.fn();
-const onAuthStateChangeMock = vi.fn(() => ({
+const onAuthStateChangeMock = vi.fn((_cb: unknown) => ({
   data: { subscription: { unsubscribe: vi.fn() } },
 }));
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
-      updateUser: (...a: unknown[]) => updateUserMock(...a),
-      resetPasswordForEmail: (...a: unknown[]) => resetPasswordForEmailMock(...a),
+      updateUser: (arg: unknown) => updateUserMock(arg),
+      resetPasswordForEmail: (email: unknown, opts: unknown) => resetPasswordForEmailMock(email, opts),
       onAuthStateChange: (cb: unknown) => onAuthStateChangeMock(cb),
     },
   },
