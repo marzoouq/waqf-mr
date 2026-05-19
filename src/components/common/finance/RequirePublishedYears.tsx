@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import NoPublishedYearsNotice from '@/components/common/NoPublishedYearsNotice';
+import NoPublishedYearsNotice from './NoPublishedYearsNotice';
 
 interface Props {
   /** عنوان الصفحة يُعرض فوق رسالة عدم النشر */

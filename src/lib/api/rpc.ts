@@ -58,8 +58,11 @@ export async function rpc<T = unknown>(
 
   try {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase.rpc as any)(fnName, params);
+      // Cast through unknown because supabase.rpc is heavily generic over fnName literal unions.
+      const { data, error } = await (supabase.rpc as unknown as (
+        fn: string,
+        p?: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message?: string; status?: number; name?: string } | null }>)(fnName, params);
       if (!error) {
         if (import.meta.env.DEV && data !== null && data !== undefined) {
           try { recordPayloadSize(`rpc:${fnName}:response`, JSON.stringify(data).length); } catch { /* noop */ }

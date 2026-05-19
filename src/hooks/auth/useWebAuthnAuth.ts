@@ -2,7 +2,7 @@
  * هوك المصادقة بالبيومتري (WebAuthn)
  */
 import { useCallback } from 'react';
-import { startAuthentication } from '@simplewebauthn/browser';
+import { startAuthentication, type PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
 import { invoke } from '@/lib/api/invoke';
 import { defaultNotify } from '@/lib/notify';
@@ -16,10 +16,10 @@ export function useWebAuthnAuth({ setIsLoading }: UseWebAuthnAuthArgs) {
   const authenticateWithBiometric = useCallback(async () => {
     setIsLoading(true);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let options: any;
+      type AuthOptionsResponse = PublicKeyCredentialRequestOptionsJSON & { challenge_id?: string; error?: string };
+      let options: AuthOptionsResponse | undefined;
       try {
-        options = await invoke<any>(
+        options = await invoke<AuthOptionsResponse>(
           'webauthn',
           { body: { action: 'auth-options' } },
           { maxAttempts: 1, treatDataErrorAsFailure: false },

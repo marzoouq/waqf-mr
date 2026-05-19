@@ -10,9 +10,9 @@
  * يحافظ على type safety لأن TS يستنتج النوع المتوقع من mutation نفسه.
  */
 
-// نمط Mutation العام — أي شيء يحوي mutateAsync (signature متساهل ليتوافق مع React Query)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyMutation<TArg> = { mutateAsync: (arg: TArg, ...rest: any[]) => any };
+// نمط Mutation العام — متساهل ليتوافق مع UseMutationResult في React Query (contravariant rest)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- React Query mutateAsync uses variadic any[] rest internally
+type AnyMutation<TArg> = { mutateAsync: (arg: TArg, ...rest: any[]) => Promise<unknown> };
 
 /**
  * يُحوّل قيمة عامة (form data، Partial<Row>) إلى النوع المتوقع لـ `mutation.mutateAsync`.
