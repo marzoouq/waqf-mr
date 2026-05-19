@@ -2,7 +2,7 @@
  * هوك تسجيل بيانات بيومترية جديدة (WebAuthn)
  */
 import { useCallback } from 'react';
-import { startRegistration } from '@simplewebauthn/browser';
+import { startRegistration, type PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
 import { invoke } from '@/lib/api/invoke';
 import { defaultNotify } from '@/lib/notify';
@@ -29,7 +29,7 @@ export function useWebAuthnRegister({ setIsLoading, setIsEnabled, fetchCredentia
         return false;
       }
 
-      type RegisterOptionsResponse = { challenge_id?: string; error?: string; [k: string]: unknown };
+      type RegisterOptionsResponse = PublicKeyCredentialCreationOptionsJSON & { challenge_id?: string; error?: string };
       let options: RegisterOptionsResponse | undefined;
       try {
         options = await invoke<RegisterOptionsResponse>(
