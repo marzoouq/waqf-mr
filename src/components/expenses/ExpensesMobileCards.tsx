@@ -18,9 +18,11 @@ interface ExpensesMobileCardsProps {
   onEdit: (item: Expense) => void;
   onDelete: (target: { id: string; name: string }) => void;
   isLocked: boolean;
+  /** يُخفي أزرار التعديل/الحذف بالكامل (للعروض القرائية المحضة) */
+  readOnly?: boolean;
 }
 
-const ExpensesMobileCards = ({ items, expenseInvoiceMap, expandedRow, setExpandedRow, onEdit, onDelete, isLocked }: ExpensesMobileCardsProps) => (
+const ExpensesMobileCards = ({ items, expenseInvoiceMap, expandedRow, setExpandedRow, onEdit, onDelete, isLocked, readOnly = false }: ExpensesMobileCardsProps) => (
   <div className="space-y-3 md:hidden px-3 py-2">
     {items.map((item) => {
       const attachCount = expenseInvoiceMap.get(item.id) || 0;
