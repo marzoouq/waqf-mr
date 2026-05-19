@@ -5,7 +5,7 @@
 import { useState, useCallback } from 'react';
 import { Contract } from '@/types';
 import { emptyFormData, type ContractFormData } from '@/types/forms/contract';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { asMutationArg } from '@/hooks/data/core';
@@ -77,7 +77,7 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
 
   const handleFormSubmit = async (formData: ContractFormData, isEditing: boolean) => {
     if (formData.end_date <= formData.start_date) {
-      defaultNotify.error('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
+      uiNotify.error('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
       return;
     }
     const paymentCount = getPaymentCount({ payment_type: formData.payment_type, payment_count: parseInt(formData.payment_count) || 1 });
@@ -137,7 +137,7 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
         await createContract.mutateAsync(asMutationArg(createContract, contractData));
         created++;
       }
-      defaultNotify.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
+      uiNotify.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
     } else {
       const rentAmount = parseFloat(formData.rent_amount);
       const paymentAmount = rentAmount / paymentCount;

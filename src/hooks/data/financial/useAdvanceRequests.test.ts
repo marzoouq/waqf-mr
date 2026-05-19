@@ -19,7 +19,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: (...args: unknown[]) => mockFrom(...args) },
 }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
-vi.mock('@/utils/notifications', () => ({ notifyAdmins: vi.fn(), notifyUser: vi.fn() }));
+vi.mock('@/utils/notifications', () => ({ notifyAdmins: vi.fn(), enqueueUserNotification: vi.fn() }));
 
 function buildChain() {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {

@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 
 export const useChangePassword = () => {
   const [loading, setLoading] = useState(false);
@@ -14,10 +14,10 @@ export const useChangePassword = () => {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      defaultNotify.success('تم تغيير كلمة المرور بنجاح');
+      uiNotify.success('تم تغيير كلمة المرور بنجاح');
       return true;
     } catch (err: unknown) {
-      defaultNotify.error(getSafeErrorMessage(err));
+      uiNotify.error(getSafeErrorMessage(err));
       return false;
     } finally {
       setLoading(false);

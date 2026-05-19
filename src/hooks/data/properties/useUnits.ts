@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { Unit } from '@/types';
@@ -54,8 +54,8 @@ export const useDeleteUnit = () => {
     onSuccess: (propertyId) => {
       queryClient.invalidateQueries({ queryKey: ['all-units'] });
       queryClient.invalidateQueries({ queryKey: ['units', propertyId] });
-      defaultNotify.success('تم حذف الوحدة بنجاح');
+      uiNotify.success('تم حذف الوحدة بنجاح');
     },
-    onError: () => defaultNotify.error('حدث خطأ أثناء حذف الوحدة'),
+    onError: () => uiNotify.error('حدث خطأ أثناء حذف الوحدة'),
   });
 };

@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger';
  * Returns the global sum of all beneficiary share percentages
  * using a SECURITY DEFINER function that bypasses RLS.
  *
- * #90: أُزيل defaultNotify من queryFn لمنع side effects أثناء الجلب.
+ * #90: أُزيل uiNotify من queryFn لمنع side effects أثناء الجلب.
  * التحذير يُسجَّل في logger فقط — المكوّن المستخدِم يمكنه عرض تحذير UI.
  */
 export const useTotalBeneficiaryPercentage = () => {

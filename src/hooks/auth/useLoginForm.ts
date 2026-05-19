@@ -3,7 +3,7 @@
  * مُستخرج من LoginForm لتقليل تعقيد المكون
  */
 import { useState, useRef, useCallback } from 'react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
@@ -89,7 +89,7 @@ export function useLoginForm({ signIn }: UseLoginFormParams) {
       if (error) {
         const msg = getSafeErrorMessage(error);
         setServerError(msg);
-        defaultNotify.error(msg);
+        uiNotify.error(msg);
         logAccessEvent({
           event_type: 'login_failed',
           email: resolvedEmail,
@@ -99,7 +99,7 @@ export function useLoginForm({ signIn }: UseLoginFormParams) {
     } catch {
       const msg = 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
       setServerError(msg);
-      defaultNotify.error(msg);
+      uiNotify.error(msg);
     } finally {
       if (isMountedRef.current) {
         setIsLoading(false);

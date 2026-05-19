@@ -3,7 +3,7 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { callAdminApi } from './useUserManagementData';
 
@@ -14,10 +14,10 @@ export const useCreateUserMutation = (onSuccess?: () => void) => {
       callAdminApi({ action: 'create_user', ...data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      defaultNotify.success('تم إنشاء المستخدم بنجاح');
+      uiNotify.success('تم إنشاء المستخدم بنجاح');
       onSuccess?.();
     },
-    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
+    onError: (e: Error) => uiNotify.error(getSafeErrorMessage(e)),
   });
 };
 
@@ -27,9 +27,9 @@ export const useConfirmEmailMutation = () => {
     mutationFn: async (userId: string) => callAdminApi({ action: 'confirm_email', userId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      defaultNotify.success('تم تفعيل البريد الإلكتروني');
+      uiNotify.success('تم تفعيل البريد الإلكتروني');
     },
-    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
+    onError: (e: Error) => uiNotify.error(getSafeErrorMessage(e)),
   });
 };
 
@@ -40,10 +40,10 @@ export const useUpdateEmailMutation = (onSuccess?: () => void) => {
       callAdminApi({ action: 'update_email', ...data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      defaultNotify.success('تم تحديث البريد الإلكتروني');
+      uiNotify.success('تم تحديث البريد الإلكتروني');
       onSuccess?.();
     },
-    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
+    onError: (e: Error) => uiNotify.error(getSafeErrorMessage(e)),
   });
 };
 
@@ -54,10 +54,10 @@ export const useUpdatePasswordMutation = (onSuccess?: () => void) => {
       callAdminApi({ action: 'update_password', ...data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] }); 
-      defaultNotify.success('تم تحديث كلمة المرور');
+      uiNotify.success('تم تحديث كلمة المرور');
       onSuccess?.();
     },
-    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
+    onError: (e: Error) => uiNotify.error(getSafeErrorMessage(e)),
   });
 };
 
@@ -70,10 +70,10 @@ export const useSetRoleMutation = (onSuccess?: () => void) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       queryClient.invalidateQueries({ queryKey: ['orphaned-beneficiaries'] });
       queryClient.invalidateQueries({ queryKey: ['unlinked-beneficiaries'] });
-      defaultNotify.success('تم تحديث الدور');
+      uiNotify.success('تم تحديث الدور');
       onSuccess?.();
     },
-    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
+    onError: (e: Error) => uiNotify.error(getSafeErrorMessage(e)),
   });
 };
 
@@ -83,10 +83,10 @@ export const useDeleteUserMutation = (onSuccess?: () => void) => {
     mutationFn: (userId: string) => callAdminApi({ action: 'delete_user', userId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      defaultNotify.success('تم حذف المستخدم');
+      uiNotify.success('تم حذف المستخدم');
       onSuccess?.();
     },
-    onError: (e: Error) => defaultNotify.error(getSafeErrorMessage(e)),
+    onError: (e: Error) => uiNotify.error(getSafeErrorMessage(e)),
   });
 };
 
@@ -100,9 +100,9 @@ export const useLinkBeneficiaryMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unlinked-beneficiaries'] });
       queryClient.invalidateQueries({ queryKey: ['orphaned-beneficiaries'] });
-      defaultNotify.success('تم ربط المستخدم بالمستفيد بنجاح');
+      uiNotify.success('تم ربط المستخدم بالمستفيد بنجاح');
     },
-    onError: () => defaultNotify.error('فشل ربط المستخدم بالمستفيد'),
+    onError: () => uiNotify.error('فشل ربط المستخدم بالمستفيد'),
   });
 };
 
@@ -114,8 +114,8 @@ export const useToggleRegistration = () => {
     },
     onSuccess: (_, enabled) => {
       queryClient.invalidateQueries({ queryKey: ['registration-enabled'] });
-      defaultNotify.success(enabled ? 'تم تفعيل التسجيل العام' : 'تم إيقاف التسجيل العام');
+      uiNotify.success(enabled ? 'تم تفعيل التسجيل العام' : 'تم إيقاف التسجيل العام');
     },
-    onError: (e: unknown) => defaultNotify.error(getSafeErrorMessage(e)),
+    onError: (e: unknown) => uiNotify.error(getSafeErrorMessage(e)),
   });
 };

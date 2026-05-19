@@ -6,7 +6,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useFiscalYears } from '@/hooks/data/financial/useFiscalYears';
 import { useMultiYearSummary, type YearSummaryEntry } from '@/hooks/data/financial/useMultiYearSummary';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 
 export function useHistoricalComparison() {
   const { data: fiscalYears = [], isLoading: fyLoading } = useFiscalYears();
@@ -39,7 +39,7 @@ export function useHistoricalComparison() {
     setSelectedIds(prev => {
       if (prev.includes(fyId)) return prev.filter(id => id !== fyId);
       if (prev.length >= 4) {
-        defaultNotify.warning('الحد الأقصى 4 سنوات للمقارنة');
+        uiNotify.warning('الحد الأقصى 4 سنوات للمقارنة');
         return prev;
       }
       return [...prev, fyId];
@@ -90,7 +90,7 @@ export function useHistoricalComparison() {
       const d0 = yearData[0];
       const d1 = yearData[1];
       if (!d0 || !d1) {
-        defaultNotify.error('بيانات السنوات غير مكتملة');
+        uiNotify.error('بيانات السنوات غير مكتملة');
         return;
       }
       const y0 = selectedYears[0];
@@ -112,9 +112,9 @@ export function useHistoricalComparison() {
         expensesByType2: Object.entries(d1.expensesByType).map(([name, value]) => ({ name, value })),
         monthlyData: [],
       }, waqfInfo ?? undefined);
-      defaultNotify.success('تم تصدير PDF بنجاح');
+      uiNotify.success('تم تصدير PDF بنجاح');
     } catch {
-      defaultNotify.error('فشل تصدير PDF');
+      uiNotify.error('فشل تصدير PDF');
     }
   }, [selectedYears, yearData, waqfInfo]);
 

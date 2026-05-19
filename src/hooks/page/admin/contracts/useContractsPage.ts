@@ -4,7 +4,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { useNowClock } from '@/lib/hooks/useNowClock';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { getPaymentTypeLabel } from '@/utils/financial/contractHelpers';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
@@ -111,7 +111,7 @@ export const useContractsPage = () => {
       'الحالة': c.status === 'active' ? 'ساري' : c.status === 'cancelled' ? 'ملغي' : 'منتهي',
     })));
     downloadCsv(csv, 'عقود.csv');
-    defaultNotify.success('تم تصدير العقود بنجاح');
+    uiNotify.success('تم تصدير العقود بنجاح');
   }, [contracts]);
 
   return {

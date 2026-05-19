@@ -4,7 +4,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { resizeImage } from '@/utils/image/resizeImage';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
@@ -31,11 +31,11 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
     const file = e.target.files?.[0];
     if (!file) return;
     if (!ALLOWED_TYPES.includes(file.type)) {
-      defaultNotify.error('نوع الملف غير مسموح. الأنواع المسموحة: JPG, PNG, WEBP, SVG');
+      uiNotify.error('نوع الملف غير مسموح. الأنواع المسموحة: JPG, PNG, WEBP, SVG');
       return;
     }
     if (file.size > MAX_SIZE) {
-      defaultNotify.error('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت');
+      uiNotify.error('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت');
       return;
     }
 
@@ -62,9 +62,9 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
       await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
       await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       setPreview(logoUrl);
-      defaultNotify.success('تم رفع الشعار بنجاح');
+      uiNotify.success('تم رفع الشعار بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء رفع الشعار');
+      uiNotify.error('حدث خطأ أثناء رفع الشعار');
     } finally {
       setSaving(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -80,9 +80,9 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
       await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
       await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       setPreview('');
-      defaultNotify.success('تم إزالة الشعار');
+      uiNotify.success('تم إزالة الشعار');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء الإزالة');
+      uiNotify.error('حدث خطأ أثناء الإزالة');
     } finally {
       setSaving(false);
     }

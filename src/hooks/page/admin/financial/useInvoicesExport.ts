@@ -4,7 +4,7 @@
  * مسؤوليات: handleExportPdf, handleExportCsv, handleSaveTemplate, handleGeneratePdfForMissing
  */
 import { useCallback } from 'react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { asMutationArg } from '@/hooks/data/core';
@@ -40,7 +40,7 @@ export const useInvoicesExport = ({
 }: UseInvoicesExportArgs) => {
   const handleExportPdf = useCallback(async () => {
     if (!fiscalYearId || fiscalYearId === 'all') {
-      defaultNotify.warning('⚠️ أنت تصدّر فواتير جميع السنوات المالية.');
+      uiNotify.warning('⚠️ أنت تصدّر فواتير جميع السنوات المالية.');
     }
     try {
       const fyLabel = fiscalYearLabel || (fiscalYearId ? '' : 'جميع السنوات');
@@ -57,9 +57,9 @@ export const useInvoicesExport = ({
         pdfWaqfInfo,
         fyLabel,
       );
-      defaultNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success('تم تحميل ملف PDF بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error('حدث خطأ أثناء تصدير PDF');
     }
   }, [fiscalYearId, fiscalYearLabel, filteredInvoices, pdfWaqfInfo]);
 
@@ -76,7 +76,7 @@ export const useInvoicesExport = ({
       })),
     );
     downloadCsv(csv, `فواتير-${fyLabel}.csv`);
-    defaultNotify.success('تم تصدير الفواتير بنجاح');
+    uiNotify.success('تم تصدير الفواتير بنجاح');
   }, [fiscalYearLabel, filteredInvoices]);
 
   const handleSaveTemplate = useCallback(
@@ -89,7 +89,7 @@ export const useInvoicesExport = ({
         } as unknown as CreateArg),
       );
       setTemplateOpen(false);
-      defaultNotify.success('تم إنشاء الفاتورة بنجاح');
+      uiNotify.success('تم إنشاء الفاتورة بنجاح');
     },
     [createInvoice, fiscalYearId, setTemplateOpen],
   );

@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bell, Volume2, Play } from 'lucide-react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { TONE_OPTIONS, NOTIF_PREFS_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/data/notifications/useNotifications';
 import { useNotificationPreferences } from '@/hooks/data/notifications/useNotificationPreferences';
 
@@ -30,7 +30,7 @@ const NotificationsTab = () => {
     const updated = { ...prefs, [key]: value };
     setPrefs(updated);
     safeSet(NOTIF_PREFS_KEY, updated);
-    defaultNotify.success('تم حفظ التفضيلات');
+    uiNotify.success('تم حفظ التفضيلات');
   };
 
   return (

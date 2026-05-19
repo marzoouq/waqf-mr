@@ -5,7 +5,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { invoke } from '@/lib/api/invoke';
 import { ApiError } from '@/lib/api/rpc';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import type { AppNotify } from '@/lib/notify';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
@@ -32,7 +32,7 @@ export async function handleNationalIdLogin(
   nationalId: string,
   password: string,
   state: NidLoginState,
-  notify: AppNotify = defaultNotify,
+  notify: AppNotify = uiNotify,
 ): Promise<boolean> {
   const { nidLockedUntil, setNidLockedUntil, setNidAttemptsRemaining } = state;
 

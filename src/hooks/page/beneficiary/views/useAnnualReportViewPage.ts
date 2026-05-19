@@ -74,9 +74,9 @@ export function useAnnualReportViewPage() {
     };
     const { generateAnnualReportPDF } = await import('@/utils/pdf/reports/annualReport');
     const ok = await generateAnnualReportPDF(pdfData, waqfInfo);
-    const { defaultNotify } = await import('@/lib/notify');
-    if (ok) defaultNotify.success('تم تصدير التقرير السنوي بنجاح');
-    else defaultNotify.error('فشل في تصدير التقرير');
+    const { uiNotify } = await import('@/lib/notify');
+    if (ok) uiNotify.success('تم تصدير التقرير السنوي بنجاح');
+    else uiNotify.error('فشل في تصدير التقرير');
   }, [fiscalYear?.label, grouped, properties, summaryCards, waqfInfo]);
 
   const handleExportCsv = useCallback(() => {

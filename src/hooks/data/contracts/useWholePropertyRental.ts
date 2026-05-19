@@ -3,7 +3,7 @@
  */
 import { useCreateContract, useUpdateContract } from './useContracts';
 import { Property, Contract } from '@/types';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import type { WholeRentalForm } from '@/types/forms/property';
 
 export function useWholePropertyRental(property: Property, contracts: Contract[]) {
@@ -22,7 +22,7 @@ export function useWholePropertyRental(property: Property, contracts: Contract[]
 
   const handleWholePropertySave = async (form: WholeRentalForm) => {
     if (!form.tenant_name || !form.rent_amount || !form.start_date || !form.end_date) {
-      defaultNotify.error('يرجى ملء جميع الحقول المطلوبة');
+      uiNotify.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     const rentAmount = parseFloat(form.rent_amount);

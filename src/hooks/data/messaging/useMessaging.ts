@@ -2,7 +2,7 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tansta
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { useCallback, useRef } from 'react';
 import { Conversation, Message } from '@/types';
-import { notifyUser } from '@/lib/services';
+import { enqueueUserNotification } from '@/lib/services';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { useStableRef } from '@/lib/hooks/useStableRef';
 import { STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
@@ -106,7 +106,7 @@ export const useSendMessage = () => {
         try {
           const conv = await messagingService.getConversationParticipant(conversationId);
           if (conv?.participant_id) {
-            notifyUser(
+            enqueueUserNotification(
               conv.participant_id,
               'رسالة جديدة من ناظر الوقف',
               `لديك رسالة جديدة في محادثة "${conv.subject || 'محادثة'}"`,

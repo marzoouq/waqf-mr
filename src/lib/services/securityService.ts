@@ -3,7 +3,7 @@
  * مستخرجة من hooks/data/audit/useSecurityAlerts لفك الاعتماد المعكوس
  */
 import { supabase } from '@/integrations/supabase/client';
-import { notifyUser, notifyAdmins } from '@/lib/services';
+import { enqueueUserNotification, notifyAdmins } from '@/lib/services';
 import { logger } from '@/lib/logger';
 
 /**
@@ -58,7 +58,7 @@ export const checkNewDeviceLogin = async (userId: string, userEmail?: string): P
     const [os, browser] = currentFingerprint.split('|');
     const deviceDesc = `${os} - ${browser}`.replace(/[/|_]/g, ' ');
 
-    notifyUser(
+    enqueueUserNotification(
       userId,
       '🔒 تسجيل دخول من جهاز جديد',
       `تم تسجيل الدخول من جهاز جديد: ${deviceDesc}. إذا لم تكن أنت، يرجى تغيير كلمة المرور فوراً.`,

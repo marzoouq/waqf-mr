@@ -1,7 +1,7 @@
 /**
  * منطق معالجة أخطاء WebAuthn — مستخرج من useWebAuthn لتقليل حجم الملف
  */
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 
@@ -29,30 +29,30 @@ export const handleRegistrationError = (
   if (name === 'NotAllowedError') {
     if (errMessage.toLowerCase().includes('timeout')) {
       logBiometricEvent('login_failed', 'register', { reason: 'timeout' });
-      defaultNotify.error('انتهت مهلة تسجيل البصمة. أعد المحاولة وثبّت الإصبع/الوجه حتى الاكتمال', {
+      uiNotify.error('انتهت مهلة تسجيل البصمة. أعد المحاولة وثبّت الإصبع/الوجه حتى الاكتمال', {
         action: retryFn ? { label: 'إعادة المحاولة', onClick: retryFn } : undefined,
       });
     } else {
       logBiometricEvent('login_failed', 'register', { reason: 'not_allowed' });
-      defaultNotify.error('تعذّر إكمال تسجيل البصمة. تأكد من:\n• تفعيل البصمة/الوجه في إعدادات جهازك\n• السماح للمتصفح بالوصول للمستشعر البيومتري');
+      uiNotify.error('تعذّر إكمال تسجيل البصمة. تأكد من:\n• تفعيل البصمة/الوجه في إعدادات جهازك\n• السماح للمتصفح بالوصول للمستشعر البيومتري');
     }
   } else if (name === 'SecurityError') {
     logBiometricEvent('login_failed', 'register', { reason: 'security_error' });
-    defaultNotify.error('خطأ أمني: تأكد من استخدام اتصال آمن (HTTPS)');
+    uiNotify.error('خطأ أمني: تأكد من استخدام اتصال آمن (HTTPS)');
   } else if (name === 'InvalidStateError') {
     logBiometricEvent('login_failed', 'register', { reason: 'already_registered' });
-    defaultNotify.error('هذا الجهاز مسجل مسبقاً');
+    uiNotify.error('هذا الجهاز مسجل مسبقاً');
   } else if (name === 'AbortError') {
     logBiometricEvent('login_failed', 'register', { reason: 'aborted' });
-    defaultNotify.error('تم إلغاء عملية تسجيل البصمة');
+    uiNotify.error('تم إلغاء عملية تسجيل البصمة');
   } else if (errMessage.toLowerCase().includes('network') || errMessage.toLowerCase().includes('fetch')) {
     logBiometricEvent('login_failed', 'register', { reason: 'network_error' });
-    defaultNotify.error('خطأ في الاتصال بالخادم. تحقق من اتصالك بالإنترنت وأعد المحاولة', {
+    uiNotify.error('خطأ في الاتصال بالخادم. تحقق من اتصالك بالإنترنت وأعد المحاولة', {
       action: retryFn ? { label: 'إعادة المحاولة', onClick: retryFn } : undefined,
     });
   } else {
     logBiometricEvent('login_failed', 'register', { reason: 'unknown', error_name: name });
-    defaultNotify.error('حدث خطأ أثناء تسجيل البصمة. أعد المحاولة أو تواصل مع الدعم الفني');
+    uiNotify.error('حدث خطأ أثناء تسجيل البصمة. أعد المحاولة أو تواصل مع الدعم الفني');
   }
 };
 
@@ -64,20 +64,20 @@ export const handleAuthenticationError = (err: unknown) => {
   if (name === 'NotAllowedError') {
     if (errMessage.toLowerCase().includes('timeout')) {
       logBiometricEvent('login_failed', 'authenticate', { reason: 'timeout' });
-      defaultNotify.error('انتهت مهلة المصادقة بالبصمة. أعد المحاولة');
+      uiNotify.error('انتهت مهلة المصادقة بالبصمة. أعد المحاولة');
     } else {
       logBiometricEvent('login_failed', 'authenticate', { reason: 'cancelled' });
-      defaultNotify.error('تم إلغاء عملية البصمة');
+      uiNotify.error('تم إلغاء عملية البصمة');
     }
   } else if (name === 'AbortError') {
     logBiometricEvent('login_failed', 'authenticate', { reason: 'aborted' });
-    defaultNotify.error('تم إلغاء عملية المصادقة بالبصمة');
+    uiNotify.error('تم إلغاء عملية المصادقة بالبصمة');
   } else if (errMessage.toLowerCase().includes('network') || errMessage.toLowerCase().includes('fetch')) {
     logBiometricEvent('login_failed', 'authenticate', { reason: 'network_error' });
-    defaultNotify.error('خطأ في الاتصال. تحقق من الإنترنت وأعد المحاولة');
+    uiNotify.error('خطأ في الاتصال. تحقق من الإنترنت وأعد المحاولة');
   } else {
     logBiometricEvent('login_failed', 'authenticate', { reason: 'unknown', error_name: name });
-    defaultNotify.error('حدث خطأ أثناء المصادقة بالبصمة. أعد المحاولة أو سجّل الدخول بكلمة المرور');
+    uiNotify.error('حدث خطأ أثناء المصادقة بالبصمة. أعد المحاولة أو سجّل الدخول بكلمة المرور');
   }
 };
 

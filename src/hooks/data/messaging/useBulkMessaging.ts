@@ -3,9 +3,9 @@
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { notifyUser } from '@/lib/services';
+import { enqueueUserNotification } from '@/lib/services';
 import { useAuth } from '@/hooks/auth/useAuthContext';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { useState, useCallback } from 'react';
 
@@ -72,7 +72,7 @@ export const useBulkMessageSender = () => {
             continue;
           }
 
-          notifyUser(
+          enqueueUserNotification(
             b.user_id!,
             'رسالة جديدة من ناظر الوقف',
             `لديك رسالة جديدة: "${subjectText}"`,
@@ -87,13 +87,13 @@ export const useBulkMessageSender = () => {
       }
 
       if (successCount > 0) {
-        defaultNotify.success(`تم إرسال الرسالة لـ ${successCount} مستفيد`);
+        uiNotify.success(`تم إرسال الرسالة لـ ${successCount} مستفيد`);
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
       } else {
-        defaultNotify.error('فشل إرسال الرسالة لجميع المستفيدين');
+        uiNotify.error('فشل إرسال الرسالة لجميع المستفيدين');
       }
     } catch {
-      defaultNotify.error('حدث خطأ أثناء إرسال الرسائل');
+      uiNotify.error('حدث خطأ أثناء إرسال الرسائل');
     } finally {
       setSending(false);
     }

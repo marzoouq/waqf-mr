@@ -24,7 +24,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/lib/notify', () => ({ defaultNotify: mockNotify }));
+vi.mock('@/lib/notify', () => ({ uiNotify: mockNotify }));
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');

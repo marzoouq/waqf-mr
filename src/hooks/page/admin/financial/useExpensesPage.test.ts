@@ -45,7 +45,7 @@ vi.mock('@/hooks/data/settings/usePdfWaqfInfo', () => ({
 }));
 
 vi.mock('@/lib/notify', () => ({
-  defaultNotify: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
+  uiNotify: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
 
 vi.mock('@/hooks/ui/useTableSort', () => ({

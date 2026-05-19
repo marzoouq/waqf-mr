@@ -7,7 +7,7 @@ import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibili
 import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
 import { useBeneficiaryWidgets } from '@/hooks/data/settings/useBeneficiaryWidgets';
 import { useNotificationSettings, type NotificationSettings } from '@/hooks/data/settings/useNotificationSettings';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 import { ROLE_SECTION_DEFS, makeDefaults } from '@/constants/sections';
 import { defaultAdminSections, defaultBeneficiarySections } from '@/constants/navigation';
@@ -94,9 +94,9 @@ export const usePermissionsControlPanel = () => {
         user_id: user?.id ?? undefined,
         metadata: { action: 'permissions_updated', role_permissions: perms, admin_sections: adminSections, beneficiary_sections: beneficiarySections },
       });
-      defaultNotify.success('تم حفظ الصلاحيات بنجاح');
+      uiNotify.success('تم حفظ الصلاحيات بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء حفظ الصلاحيات');
+      uiNotify.error('حدث خطأ أثناء حفظ الصلاحيات');
     } finally {
       setSaving(false);
     }
@@ -112,7 +112,7 @@ export const usePermissionsControlPanel = () => {
       notify_beneficiary_contract_expiry: false,
       notify_beneficiary_expired_contracts: false,
     });
-    defaultNotify.info('تم استعادة الإعدادات الافتراضية — اضغط حفظ للتطبيق');
+    uiNotify.info('تم استعادة الإعدادات الافتراضية — اضغط حفظ للتطبيق');
   };
 
   return {

@@ -3,7 +3,7 @@
  * يُضيف إشعار + تأخير اختياري قبل الطباعة
  */
 import { useCallback } from 'react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 
 interface UsePrintOptions {
   /** رسالة الإشعار قبل الطباعة */
@@ -16,7 +16,7 @@ export function usePrint(options: UsePrintOptions = {}) {
   const { message = 'جاري تجهيز الطباعة...', delay = 300 } = options;
 
   const print = useCallback(() => {
-    defaultNotify.info(message);
+    uiNotify.info(message);
     setTimeout(() => {
       window.print();
     }, delay);

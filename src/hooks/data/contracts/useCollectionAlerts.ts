@@ -3,22 +3,22 @@
  */
 import { useState } from 'react';
 import { rpc } from '@/lib/api/rpc';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 
 export const useCollectionAlerts = () => {
   const [sendingAlerts, setSendingAlerts] = useState(false);
 
   const sendLatePaymentAlerts = async (overdueCount: number) => {
     if (overdueCount === 0) {
-      defaultNotify.info('لا توجد دفعات متأخرة');
+      uiNotify.info('لا توجد دفعات متأخرة');
       return;
     }
     setSendingAlerts(true);
     try {
       await rpc('cron_check_late_payments');
-      defaultNotify.success(`تم إرسال تنبيهات لـ ${overdueCount} عقد متأخر`);
+      uiNotify.success(`تم إرسال تنبيهات لـ ${overdueCount} عقد متأخر`);
     } catch {
-      defaultNotify.error('حدث خطأ أثناء إرسال التنبيهات');
+      uiNotify.error('حدث خطأ أثناء إرسال التنبيهات');
     } finally {
       setSendingAlerts(false);
     }

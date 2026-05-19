@@ -6,7 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { useZatcaCertificates } from '@/hooks/data/zatca/useZatcaCertificates';
 import { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp, saveZatcaSettings } from '@/lib/services';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { validateZatcaSettingsForm } from '@/utils/zatca/validateZatcaForm';
 
 export const ZATCA_KEYS = [
@@ -77,7 +77,7 @@ export const useZatcaSettings = () => {
   const handleSave = async () => {
     const validation = validateZatcaSettingsForm(formData);
     if (!validation.ok) {
-      defaultNotify.error(validation.reason);
+      uiNotify.error(validation.reason);
       return;
     }
 
@@ -91,9 +91,9 @@ export const useZatcaSettings = () => {
       // المهمة B — إبطال فئة zatca فقط + legacy
       queryClient.invalidateQueries({ queryKey: ['app-settings', 'zatca'] });
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      defaultNotify.success('تم حفظ إعدادات الضريبة بنجاح');
+      uiNotify.success('تم حفظ إعدادات الضريبة بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error('حدث خطأ أثناء الحفظ');
     } finally {
       setSaving(false);
     }
@@ -106,12 +106,12 @@ export const useZatcaSettings = () => {
     ];
     const missing = requiredFields.filter(f => !formData[f.key]?.trim());
     if (missing.length > 0) {
-      defaultNotify.error(`يجب تعيين: ${missing.map(f => f.label).join('، ')}`);
+      uiNotify.error(`يجب تعيين: ${missing.map(f => f.label).join('، ')}`);
       return;
     }
     const otp1 = formData.zatca_otp_1?.trim();
     if (!otp1) {
-      defaultNotify.error('رمز التفعيل OTP الأول مطلوب لبدء التهيئة');
+      uiNotify.error('رمز التفعيل OTP الأول مطلوب لبدء التهيئة');
       return;
     }
 
@@ -119,11 +119,11 @@ export const useZatcaSettings = () => {
     try {
       await handleSave();
       await zatcaOnboard();
-      defaultNotify.success('تم التسجيل بنجاح في بوابة فاتورة');
+      uiNotify.success('تم التسجيل بنجاح في بوابة فاتورة');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
       queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
     } catch (e) {
-      defaultNotify.error(e instanceof Error ? e.message : 'فشل التسجيل');
+      uiNotify.error(e instanceof Error ? e.message : 'فشل التسجيل');
     } finally {
       setOnboardLoading(false);
       try {
@@ -138,7 +138,7 @@ export const useZatcaSettings = () => {
   const handleRenewCertificate = async () => {
     const otp = formData.zatca_otp_2?.trim() || formData.zatca_otp_1?.trim();
     if (!otp) {
-      defaultNotify.error('رمز التفعيل OTP مطلوب للتجديد');
+      uiNotify.error('رمز التفعيل OTP مطلوب للتجديد');
       return;
     }
 
@@ -147,14 +147,14 @@ export const useZatcaSettings = () => {
       await handleSave();
       const data = await zatcaRenew();
       if (data?.success) {
-        defaultNotify.success('تم تجديد شهادة الإنتاج بنجاح');
+        uiNotify.success('تم تجديد شهادة الإنتاج بنجاح');
       } else {
         throw new Error(data?.error || 'فشل التجديد');
       }
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
       queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
     } catch (e) {
-      defaultNotify.error(e instanceof Error ? e.message : 'فشل تجديد الشهادة');
+      uiNotify.error(e instanceof Error ? e.message : 'فشل تجديد الشهادة');
     } finally {
       setRenewLoading(false);
       try {
@@ -173,16 +173,16 @@ export const useZatcaSettings = () => {
       setConnectionTest({ loading: false, result: data });
       queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
       if (data?.connected) {
-        defaultNotify.success('✅ الاتصال ببوابة فاتورة ناجح');
+        uiNotify.success('✅ الاتصال ببوابة فاتورة ناجح');
       } else {
-        defaultNotify.error('❌ تعذّر الاتصال ببوابة فاتورة');
+        uiNotify.error('❌ تعذّر الاتصال ببوابة فاتورة');
       }
     } catch (e) {
       setConnectionTest({
         loading: false,
         result: { connected: false, error: e instanceof Error ? e.message : 'خطأ غير معروف' },
       });
-      defaultNotify.error('فشل اختبار الاتصال');
+      uiNotify.error('فشل اختبار الاتصال');
     }
   };
 

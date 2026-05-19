@@ -8,7 +8,7 @@ import {
   useClientErrors, fetchTicketsForExport,
   type SupportTicket,
 } from '@/hooks/data/support/useSupportTickets';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { fmtDate } from '@/utils/format/format';
 import { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/constants/support';
 
@@ -16,7 +16,7 @@ async function exportToCsv(filename: string, headers: string[], rows: string[][]
   const { buildCsvFromRows, downloadCsv } = await import('@/utils/export/csv');
   const csv = buildCsvFromRows(headers, rows);
   downloadCsv(csv, filename);
-  defaultNotify.success(`تم تصدير ${rows.length} سجل`);
+  uiNotify.success(`تم تصدير ${rows.length} سجل`);
 }
 
 export function useSupportDashboardPage() {
@@ -64,7 +64,7 @@ export function useSupportDashboardPage() {
       ]);
       await exportToCsv('support-tickets.csv', headers, csvRows);
     } catch {
-      defaultNotify.error('فشل تصدير التذاكر');
+      uiNotify.error('فشل تصدير التذاكر');
     }
   }, []);
 

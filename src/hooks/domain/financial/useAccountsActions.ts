@@ -7,7 +7,7 @@ import { useCreateAccount } from '@/hooks/data/financial/useAccounts';
 import { useCloseFiscalYear } from '@/hooks/data/financial/useCloseFiscalYear';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { notifyAllBeneficiaries } from '@/lib/services';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format/format';
 import type { Account, Contract, Beneficiary } from '@/types';
@@ -90,7 +90,7 @@ export function useAccountsActions(params: ActionsParams) {
       }
     } catch (err) {
       logger.error('خطأ في حفظ الحسابات:', err instanceof Error ? err.message : err);
-      defaultNotify.error('خطأ في حفظ الحسابات');
+      uiNotify.error('خطأ في حفظ الحسابات');
     }
   };
 
@@ -98,7 +98,7 @@ export function useAccountsActions(params: ActionsParams) {
     const p = paramsRef.current;
     if (!p.selectedFY || p.selectedFY.status === 'closed') return;
     if (role !== 'admin') {
-      defaultNotify.error('فقط الناظر يمكنه إقفال السنة المالية');
+      uiNotify.error('فقط الناظر يمكنه إقفال السنة المالية');
       return;
     }
     try {
@@ -117,15 +117,15 @@ export function useAccountsActions(params: ActionsParams) {
 
       if (rpcResult?.warnings && rpcResult.warnings.length > 0) {
         for (const w of rpcResult.warnings) {
-          defaultNotify.warning(w, { duration: 10000 });
+          uiNotify.warning(w, { duration: 10000 });
         }
       }
-      defaultNotify.success(`تم إقفال السنة المالية ${rpcResult?.closed_label || p.selectedFY.label} وترحيل الرصيد بنجاح`);
-      defaultNotify.info('تنبيه: السنة المالية الجديدة غير منشورة — يرجى نشرها من إعدادات السنوات المالية ليتمكن المستفيدون من رؤيتها', { duration: 8000 });
+      uiNotify.success(`تم إقفال السنة المالية ${rpcResult?.closed_label || p.selectedFY.label} وترحيل الرصيد بنجاح`);
+      uiNotify.info('تنبيه: السنة المالية الجديدة غير منشورة — يرجى نشرها من إعدادات السنوات المالية ليتمكن المستفيدون من رؤيتها', { duration: 8000 });
       setCloseYearOpen(false);
     } catch (err) {
       logger.error('خطأ في إقفال السنة:', err instanceof Error ? err.message : err);
-      defaultNotify.error('خطأ في إقفال السنة المالية');
+      uiNotify.error('خطأ في إقفال السنة المالية');
     }
   };
 
@@ -155,9 +155,9 @@ export function useAccountsActions(params: ActionsParams) {
         availableAmount: p.availableAmount,
         remainingBalance: p.remainingBalance,
       });
-      defaultNotify.success('تم تصدير التقرير بنجاح');
+      uiNotify.success('تم تصدير التقرير بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير التقرير');
+      uiNotify.error('حدث خطأ أثناء تصدير التقرير');
     } finally {
       setIsExportingPdf(false);
     }

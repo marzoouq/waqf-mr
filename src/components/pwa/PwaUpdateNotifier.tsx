@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { defaultNotify } from "@/lib/notify";
+import { uiNotify } from "@/lib/notify";
 import { safeGet, safeRemove, safeSet } from '@/lib/storage';
 import {
   Dialog,
@@ -95,7 +95,7 @@ const PwaUpdateNotifier = () => {
           const entries = filtered.length > 0 ? filtered : fallback ? [fallback] : [];
           setNewEntries(entries);
 
-          defaultNotify.success("تم تحديث التطبيق بنجاح ✨", {
+          uiNotify.success("تم تحديث التطبيق بنجاح ✨", {
             description: "اضغط لعرض سجل التحديثات",
             duration: 6000,
             action: {

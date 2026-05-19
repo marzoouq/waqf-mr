@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
 import { logger } from '@/lib/logger';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 interface TenantPayment {
@@ -62,11 +62,11 @@ export const useUpsertTenantPayment = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenant_payments'] });
       queryClient.invalidateQueries({ queryKey: ['income'] });
-      defaultNotify.success('تم حفظ بيانات التحصيل');
+      uiNotify.success('تم حفظ بيانات التحصيل');
     },
     onError: (error: Error) => {
       logger.error('Tenant payment error:', error.message);
-      defaultNotify.error('خطأ في حفظ بيانات التحصيل');
+      uiNotify.error('خطأ في حفظ بيانات التحصيل');
     },
   });
 };

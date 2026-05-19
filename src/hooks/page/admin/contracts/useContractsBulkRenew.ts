@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { Contract } from '@/types';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { fetchActiveFiscalYear, notifyAdmins, notifyAllBeneficiaries } from '@/lib/services';
 
 interface UseContractsBulkRenewParams {
@@ -73,9 +73,9 @@ export const useContractsBulkRenew = ({ contracts, fiscalYearId, createContractA
       }
       await notifyAdmins('تجديد جماعي للعقود', `تم تجديد ${created} عقد منتهي بنجاح`, 'success', '/dashboard/contracts');
       await notifyAllBeneficiaries('تجديد عقود الإيجار', `تم تجديد ${created} عقد إيجار للسنة الجديدة`, 'info', '/beneficiary/notifications');
-      defaultNotify.success(`تم تجديد ${created} عقد بنجاح`);
+      uiNotify.success(`تم تجديد ${created} عقد بنجاح`);
     } catch {
-      defaultNotify.error('حدث خطأ أثناء التجديد');
+      uiNotify.error('حدث خطأ أثناء التجديد');
     } finally {
       setBulkRenewing(false);
       setBulkRenewOpen(false);

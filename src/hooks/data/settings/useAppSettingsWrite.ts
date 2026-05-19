@@ -12,7 +12,7 @@
  *  - invalidateCategories: إبطال انتقائي حسب الفئة + legacy key
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { getCategoryFromKey } from './appSettingsUtils';
 import { jsonSettingCache } from './useAppSettingsRead';
 import { appSettingsService } from '@/lib/services/appSettingsService';
@@ -33,14 +33,14 @@ export const useAppSettingsWrite = (data: Record<string, string> | undefined) =>
     mutationFn: ({ key, value }: { key: string; value: string }) =>
       appSettingsService.upsertOne(key, value),
     onSuccess: (key) => { invalidateCategories([key]); },
-    onError: () => { defaultNotify.error('حدث خطأ أثناء حفظ الإعداد'); },
+    onError: () => { uiNotify.error('حدث خطأ أثناء حفظ الإعداد'); },
   });
 
   const updateSettingsBatch = useMutation({
     mutationFn: (rows: Array<{ key: string; value: string; updated_at?: string }>) =>
       appSettingsService.upsertBatch(rows),
     onSuccess: (keys) => { invalidateCategories(keys); },
-    onError: () => { defaultNotify.error('حدث خطأ أثناء حفظ الإعدادات'); },
+    onError: () => { uiNotify.error('حدث خطأ أثناء حفظ الإعدادات'); },
   });
 
   const getJsonSetting = <T>(key: string, fallback: T): T => {
@@ -62,7 +62,7 @@ export const useAppSettingsWrite = (data: Record<string, string> | undefined) =>
   const updateJsonSetting = async (key: string, value: object) => {
     try {
       await updateSetting.mutateAsync({ key, value: JSON.stringify(value) });
-      defaultNotify.success('تم حفظ الإعدادات بنجاح');
+      uiNotify.success('تم حفظ الإعدادات بنجاح');
     } catch {
       // onError في useMutation يتكفل بعرض الخطأ — منع double toast
     }

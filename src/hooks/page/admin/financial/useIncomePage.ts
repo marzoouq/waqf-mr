@@ -15,7 +15,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import type { Income } from '@/types';
 import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 import { computeLowIncomeMonths } from '@/utils/financial/incomeAnomalies';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
@@ -61,16 +61,16 @@ export function useIncomePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.source || !formData.amount || !formData.date) { defaultNotify.error('يرجى ملء جميع الحقول المطلوبة'); return; }
+    if (!formData.source || !formData.amount || !formData.date) { uiNotify.error('يرجى ملء جميع الحقول المطلوبة'); return; }
     const amount = parseFloat(formData.amount);
-    if (!Number.isFinite(amount) || amount <= 0 || amount > MAX_FINANCIAL_AMOUNT) { defaultNotify.error(MAX_FINANCIAL_AMOUNT_MESSAGE); return; }
+    if (!Number.isFinite(amount) || amount <= 0 || amount > MAX_FINANCIAL_AMOUNT) { uiNotify.error(MAX_FINANCIAL_AMOUNT_MESSAGE); return; }
     const incomeData: Record<string, unknown> = {
       source: formData.source, amount, date: formData.date,
       property_id: formData.property_id || undefined, notes: formData.notes || undefined,
     };
     if (!editingIncome) {
       if (!fiscalYear?.id) {
-        defaultNotify.error('يرجى اختيار سنة مالية محددة لإضافة سجل دخل');
+        uiNotify.error('يرجى اختيار سنة مالية محددة لإضافة سجل دخل');
         return;
       }
       incomeData.fiscal_year_id = fiscalYear.id;
@@ -164,7 +164,7 @@ export function useIncomePage() {
       await generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo);
     } catch (e) {
       logger.error('PDF Income failed:', e);
-      defaultNotify.error('تعذّر توليد ملف PDF');
+      uiNotify.error('تعذّر توليد ملف PDF');
     }
   }, [filteredIncome, totalIncome, pdfWaqfInfo]);
 
@@ -177,7 +177,7 @@ export function useIncomePage() {
       'ملاحظات': item.notes || '-',
     })));
     downloadCsv(csv, 'دخل.csv');
-    defaultNotify.success('تم تصدير الدخل بنجاح');
+    uiNotify.success('تم تصدير الدخل بنجاح');
   }, [filteredIncome]);
 
   return {

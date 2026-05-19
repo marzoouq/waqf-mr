@@ -3,7 +3,7 @@
  */
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useMyShare } from '@/hooks/domain/financial/useMyShare';
@@ -54,9 +54,9 @@ export function useAccountsViewPage() {
         waqfCorpusManual: fin.waqfCorpusManual, distributionsAmount: fin.distributionsAmount,
         availableAmount: fin.availableAmount, remainingBalance,
       }, pdfWaqfInfo);
-      defaultNotify.success('تم تصدير الحسابات الختامية بنجاح');
+      uiNotify.success('تم تصدير الحسابات الختامية بنجاح');
     } catch {
-      defaultNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error('حدث خطأ أثناء تصدير PDF');
     }
   }, [contracts, fin, remainingBalance, pdfWaqfInfo]);
 

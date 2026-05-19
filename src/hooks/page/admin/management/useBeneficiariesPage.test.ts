@@ -36,7 +36,7 @@ vi.mock('@/hooks/data/beneficiaries/useBeneficiaryUsers', () => ({
 }));
 
 vi.mock('@/lib/notify', () => ({
-  defaultNotify: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
+  uiNotify: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
 
 function createWrapper() {

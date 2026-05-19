@@ -4,7 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { isFySpecific } from '@/constants/fiscalYearIds';
 
 export interface BudgetRow {
@@ -50,8 +50,8 @@ export const useSaveBudget = (fiscalYearId: string, budgetMap: Map<string, Budge
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expense_budgets', fiscalYearId] });
-      defaultNotify.success('تم حفظ الميزانية');
+      uiNotify.success('تم حفظ الميزانية');
     },
-    onError: () => defaultNotify.error('فشل حفظ الميزانية'),
+    onError: () => uiNotify.error('فشل حفظ الميزانية'),
   });
 };

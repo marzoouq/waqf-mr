@@ -3,7 +3,7 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { supportService } from '@/lib/services/supportService';
 
@@ -16,7 +16,7 @@ export const useCreateTicket = () => {
       supportService.createTicket({ ...ticket, created_by: user?.id ?? '' }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      defaultNotify.success('تم إنشاء التذكرة بنجاح');
+      uiNotify.success('تم إنشاء التذكرة بنجاح');
       rpc('notify_admins', {
         p_title: 'تذكرة دعم فني جديدة',
         p_message: 'تم استلام تذكرة دعم فني جديدة تحتاج مراجعة',
@@ -24,7 +24,7 @@ export const useCreateTicket = () => {
         p_link: '/dashboard/support',
       }).then(() => {}, () => {});
     },
-    onError: () => defaultNotify.error('فشل إنشاء التذكرة'),
+    onError: () => uiNotify.error('فشل إنشاء التذكرة'),
   });
 };
 
@@ -36,9 +36,9 @@ export const useUpdateTicketStatus = () => {
       supportService.updateTicketStatus(input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      defaultNotify.success('تم تحديث التذكرة');
+      uiNotify.success('تم تحديث التذكرة');
     },
-    onError: () => defaultNotify.error('فشل تحديث التذكرة'),
+    onError: () => uiNotify.error('فشل تحديث التذكرة'),
   });
 };
 
@@ -52,9 +52,9 @@ export const useAddTicketReply = () => {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['ticket_replies', vars.ticket_id] });
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      defaultNotify.success('تم إرسال الرد');
+      uiNotify.success('تم إرسال الرد');
     },
-    onError: () => defaultNotify.error('فشل إرسال الرد'),
+    onError: () => uiNotify.error('فشل إرسال الرد'),
   });
 };
 
@@ -66,8 +66,8 @@ export const useRateTicket = () => {
       supportService.rateTicket(input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      defaultNotify.success('شكراً لتقييمك!');
+      uiNotify.success('شكراً لتقييمك!');
     },
-    onError: () => defaultNotify.error('فشل إرسال التقييم'),
+    onError: () => uiNotify.error('فشل إرسال التقييم'),
   });
 };

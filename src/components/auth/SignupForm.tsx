@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
-import { defaultNotify } from '@/lib/notify';
+import { uiNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 import { EMAIL_REGEX } from '@/utils/validation/index';
@@ -57,9 +57,9 @@ export default function SignupForm({ signUp }: SignupFormProps) {
     if (error) {
       const msg = getSafeErrorMessage(error);
       setServerError(msg);
-      defaultNotify.error(msg);
+      uiNotify.error(msg);
     } else {
-      defaultNotify.success('تم التسجيل بنجاح! يرجى تأكيد بريدك الإلكتروني. سيتم إنشاء حسابك كمستفيد ويحتاج تفعيل من ناظر الوقف.');
+      uiNotify.success('تم التسجيل بنجاح! يرجى تأكيد بريدك الإلكتروني. سيتم إنشاء حسابك كمستفيد ويحتاج تفعيل من ناظر الوقف.');
     }
   };
 
