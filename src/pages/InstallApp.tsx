@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Smartphone, Share, Plus, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useInstallAppPage } from '@/hooks/page/shared/useInstallAppPage';
+import { useInstallAppPage } from '@/hooks/application/useInstallAppPage';
 import { RouteHead } from '@/components/seo/RouteHead';
 
 const InstallApp = () => {

@@ -20,7 +20,7 @@ const GlobalSearch = lazy(() => import('@/components/search/GlobalSearch'));
 import MobileHeader from '@/components/layout/MobileHeader';
 import DesktopTopBar from '@/components/layout/DesktopTopBar';
 import IdleTimeoutManager from '@/components/layout/IdleTimeoutManager';
-import { useLayoutShell } from '@/hooks/page/shared/useLayoutShell';
+import { useLayoutShell } from '@/hooks/application/useLayoutShell';
 
 // DiagnosticOverlay — يُحمّل فقط في وضع التطوير
 const DiagnosticOverlay = import.meta.env.DEV

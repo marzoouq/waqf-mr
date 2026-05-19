@@ -3,7 +3,7 @@
  * المنطق مستخرج إلى useLandingPage()
  */
 import { Loader2 } from 'lucide-react';
-import { useLandingPage } from '@/hooks/page/shared/useLandingPage';
+import { useLandingPage } from '@/hooks/application/useLandingPage';
 import LandingHero from '@/components/landing/LandingHero';
 import LandingFeatures from '@/components/landing/LandingFeatures';
 import LandingCTA from '@/components/landing/LandingCTA';

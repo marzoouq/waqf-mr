@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle } from 'lucide-react';
 import { LoginForm, SignupForm, ResetPasswordForm } from '@/components/auth';
 import { useSetting } from '@/hooks/data/settings/useAppSettings';
-import { useAuthPage } from '@/hooks/page/shared/useAuthPage';
+import { useAuthPage } from '@/hooks/application/useAuthPage';
 import { RouteHead } from '@/components/seo/RouteHead';
 
 const Auth = () => {

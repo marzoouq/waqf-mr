@@ -5,7 +5,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Database, Loader2, FileSpreadsheet } from 'lucide-react';
-import { useDataExport } from '@/hooks/page/shared/useDataExport';
+import { useDataExport } from '@/hooks/application/useDataExport';
 
 const DataExportTab = () => {
   const { exporting, format, setFormat, handleExport, handleExportAll, tables } = useDataExport();
