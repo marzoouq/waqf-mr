@@ -25,9 +25,9 @@ const InvoicesPage = () => {
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
-          title="إدارة الفواتير"
+          title="إدارة الفواتير الضريبية"
           icon={FileText}
-          description="إدارة وإصدار الفواتير الضريبية — يمكنك إنشاء فاتورة من قالب أو رفع فاتورة موجودة"
+          description="مستندات ZATCA — فواتير الإيجار تُولَّد تلقائياً من العقود، وفواتير الشراء تُدار يدوياً (مستقلة عن سجل المصروفات التشغيلي)"
           actions={<>
             <Button variant="outline" className="gap-2" onClick={() => h.setTemplateOpen(true)} disabled={isLocked}>
               <FileText className="w-4 h-4" />إنشاء من قالب
