@@ -1,5 +1,14 @@
 /**
- * EmailMonitorPage — لوحة مراقبة نظام البريد الإلكتروني (admin only)
+ * EmailMonitorPage — لوحة مراقبة نظام البريد الإلكتروني.
+ *
+ * صلاحية الوصول: ADMIN_ONLY (مسجّلة في src/routes/adminRoutes.tsx).
+ * سبب التقييد على الناظر (admin) حصراً — لا accountant ولا غيره:
+ *   1. تعرض `recipient_email` لكل المستلمين (PII — قائمة بريد كاملة).
+ *   2. تعرض `error_message` و metadata تشخيصية قد تكشف بنية النظام
+ *      ومعلومات حساسة عن أعطال SMTP / المزود.
+ *   3. تتيح أزرار retry / DLQ التي تؤثر فعلياً على إعادة إرسال البريد
+ *      للمستلمين النهائيين، وهي عملية يجب أن تبقى بيد الناظر فقط.
+ *
  * مكون حاوية رفيع: يمرّر بيانات الـ page hook إلى مكونات عرضية مفصولة.
  */
 import { DashboardLayout } from '@/components/layout';
