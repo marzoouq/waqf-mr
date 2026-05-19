@@ -8,6 +8,7 @@ import LandingHero from '@/components/landing/LandingHero';
 import LandingFeatures from '@/components/landing/LandingFeatures';
 import LandingCTA from '@/components/landing/LandingCTA';
 import LandingFooter from '@/components/landing/LandingFooter';
+import { RouteHead } from '@/components/seo/RouteHead';
 
 const Index = () => {
   const {
@@ -31,6 +32,11 @@ const Index = () => {
 
   return (
     <main dir="rtl" className="min-h-screen bg-background">
+      <RouteHead
+        title="نظام إدارة الوقف | وقف مرزوق بن علي الثبيتي"
+        description="منصة متكاملة لإدارة وقف مرزوق بن علي الثبيتي العقاري: العقارات، العقود، تحصيل الإيرادات، الإفصاحات السنوية وتوزيع الحصص على المستفيدين بشفافية كاملة."
+        path="/"
+      />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: orgJsonLd }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: webAppJsonLd }} />
       <LandingHero
