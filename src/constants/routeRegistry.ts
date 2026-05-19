@@ -65,6 +65,7 @@ export const BENEFICIARY_ROUTES: Record<string, RouteMeta> = {
   '/beneficiary/messages': { title: 'المراسلات', permKey: 'messages', sectionKey: 'messages' },
   '/beneficiary/notifications': { title: 'سجل الإشعارات', permKey: 'notifications', sectionKey: 'notifications' },
   '/beneficiary/invoices': { title: 'الفواتير', permKey: 'invoices', sectionKey: 'invoices' },
+  '/beneficiary/expenses': { title: 'المصروفات', permKey: 'expenses', sectionKey: 'expenses' },
   '/beneficiary/bylaws': { title: 'اللائحة التنظيمية', permKey: 'bylaws', sectionKey: 'bylaws' },
   '/beneficiary/settings': { title: 'الإعدادات' },
   '/beneficiary/support': { title: 'الدعم الفني', permKey: 'support', sectionKey: 'support' },

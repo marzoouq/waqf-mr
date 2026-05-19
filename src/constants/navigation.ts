@@ -14,6 +14,7 @@ import {
   DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
   ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity, Mail,
+  TrendingDown,
 } from '@/constants/navigationIcons';
 import { ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
 import {
@@ -70,6 +71,7 @@ export const allBeneficiaryLinks = [
   { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
   { to: '/beneficiary/notifications', icon: Bell, label: 'سجل الإشعارات' },
   { to: '/beneficiary/invoices', icon: Receipt, label: 'الفواتير' },
+  { to: '/beneficiary/expenses', icon: TrendingDown, label: 'المصروفات' },
   { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/beneficiary/support', icon: Headset, label: 'الدعم الفني' },
   { to: '/beneficiary/annual-report', icon: ClipboardList, label: 'التقرير السنوي للوقف' },
@@ -134,6 +136,7 @@ export const BENEFICIARY_ROUTE_GROUPS: Record<string, BeneficiaryGroupKey> = {
   '/beneficiary/carryforward': 'financial',
   '/beneficiary/financial-reports': 'financial',
   '/beneficiary/accounts': 'financial',
+  '/beneficiary/expenses': 'financial',
   '/beneficiary/messages': 'communication',
   '/beneficiary/notifications': 'communication',
   '/beneficiary/support': 'communication',

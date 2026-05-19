@@ -13,12 +13,12 @@ export const DEFAULT_ROLE_PERMS: RolePerms = {
   },
   beneficiary: {
     properties: true, contracts: true, disclosure: true, share: true,
-    reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
+    reports: true, accounts: true, invoices: true, expenses: true, bylaws: true, messages: true,
     notifications: true, annual_report: true, support: true,
   },
   waqif: {
     properties: true, contracts: true, disclosure: false,
-    reports: true, accounts: true, bylaws: true,
+    reports: true, accounts: true, expenses: true, bylaws: true,
     share: false, notifications: true, annual_report: true,
     support: true,
   },

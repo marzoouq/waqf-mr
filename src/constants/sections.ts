@@ -38,7 +38,7 @@ export const ADMIN_SECTION_KEYS = [
 /** مفاتيح أقسام واجهة المستفيد */
 export const BENEFICIARY_SECTION_KEYS = [
   'properties', 'contracts', 'disclosure', 'share', 'carryforward',
-  'financial_reports', 'accounts', 'reports', 'invoices', 'bylaws',
+  'financial_reports', 'accounts', 'reports', 'invoices', 'expenses', 'bylaws',
   'messages', 'notifications', 'annual_report', 'support',
 ] as const;
 
@@ -48,7 +48,7 @@ export const ROLE_SECTION_DEFS: { key: string; label: string; roles: string[] }[
   { key: 'properties', label: SECTION_LABELS['properties'] ?? 'properties', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'contracts', label: SECTION_LABELS['contracts'] ?? 'contracts', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'income', label: SECTION_LABELS['income'] ?? 'income', roles: ['accountant'] },
-  { key: 'expenses', label: SECTION_LABELS['expenses'] ?? 'expenses', roles: ['accountant'] },
+  { key: 'expenses', label: SECTION_LABELS['expenses'] ?? 'expenses', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'beneficiaries', label: SECTION_LABELS['beneficiaries'] ?? 'beneficiaries', roles: ['accountant'] },
   { key: 'reports', label: SECTION_LABELS['reports'] ?? 'reports', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'accounts', label: SECTION_LABELS['accounts'] ?? 'accounts', roles: ['accountant', 'beneficiary', 'waqif'] },

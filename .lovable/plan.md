@@ -1,117 +1,59 @@
-# فحص جنائي للتقرير — نتائج موثّقة بالأرقام
 
-قرأت كل الملفات التي طلب التقرير فحصها سطراً بسطر، ثم قِست الادعاءات بالكود الفعلي. هذه هي النتائج.
+## التشخيص الجنائي
 
----
+- لا توجد صفحة `/beneficiary/expenses` إطلاقاً، ولا hook، ولا مدخل في `beneficiaryRoutes.tsx`. المستفيد يرى المصروفات حالياً فقط كمخططات مجمَّعة داخل `FinancialReportsPage` (`expensesByTypeExcludingVat` + `monthly_expenses`) بلا جدول، بلا بحث، بلا فلاتر، بلا توثيق، بلا تصدير.
+- `DEFAULT_ROLE_PERMS.beneficiary` لا يحوي `expenses`. الناظر لديه `/dashboard/expenses` كامل: PageHeader + Summary + Pie + Budget + Search + AdvancedFilters + Table + Mobile + Pagination + Export PDF/CSV + ربط بالفواتير لحساب نسبة التوثيق.
+- على مستوى DB: `Authorized roles can view expenses` تسمح للمستفيد والواقف بـ SELECT، و`Restrict unpublished fiscal year data on expenses` يحجب السنوات غير المنشورة — لا تغيير DB مطلوب.
+- `ExpensesDesktopTable`/`ExpensesMobileCards` يخفيان زرّي التعديل والحذف عند `isLocked=true`، فيمكن إعادة استخدامهما كقراءة فقط دون تكرار.
 
-## القياسات الحقيقية (وليست الانطباعات)
+## القرار
 
-```
-طبقة                                              | العدد
--------------------------------------------------|------
-hooks/data يستورد @/lib/services                  | 19
-hooks/data يستدعي supabase مباشرة                 | 46
-نسبة تبنّي service layer في hooks/data           | ~29%
+إنشاء شاشة مستفيد متطابقة بصرياً ووظيفياً مع شاشة الناظر، باستثناء الكتابة (لا إضافة/تعديل/حذف/ميزانية)، عبر hook قراءة-فقط مشتق من نفس hooks البيانات. لا يتغيّر شيء في صفحة الناظر.
 
-hooks/page + application يستورد services         | 8
-hooks/page + application يستدعي supabase مباشرة  | 1
+## التغييرات
 
-components/ يستدعي supabase مباشرة               | 0  ✅
-pages/      يستدعي supabase مباشرة               | 0  ✅
+### 1) طبقة الـhook (قراءة-فقط)
 
-uses of invoke() wrapper                          | 14
-uses of rpc() wrapper                             | 23
-bypasses invoke() (production code)               | 1  (AuthContext → guard-signup)
-bypasses rpc()    (production code)               | 1  (errorReporter — مقصود)
-```
+- `src/hooks/page/beneficiary/views/useExpensesViewPage.ts` جديد:
+  - يستهلك `useExpensesByFiscalYear`, `useInvoicesByFiscalYear`, `useProperties`, `useFiscalYear`, `usePdfWaqfInfo`, `useTableSort`.
+  - يُعيد نفس مفاتيح `useExpensesPage` التي تستخدمها مكونات العرض: `expenses, isLoading, properties, totalExpenses, uniqueTypes, expenseInvoiceMap, documentedCount, documentationRate, filteredExpenses, paginatedExpenses, searchQuery, setSearchQuery, filters, setFilters, sortField, sortDir, handleSort, currentPage, setCurrentPage, ITEMS_PER_PAGE, expandedRow, setExpandedRow, handleExportPdf, handleExportCsv, fiscalYearId, isClosed`.
+  - يُثبّت `isLocked = true` دائماً (يعطّل أزرار التحرير/الحذف في الجداول المشتركة).
+  - يحذف: `createExpense/updateExpense/deleteExpense`, `formData`, `isOpen`, `editingExpense`, `handleSubmit`, `handleEdit`, `handleConfirmDelete`, `deleteTarget`, `canAdd`.
 
----
+### 2) صفحة المستفيد
 
-## ادعاءات التقرير — مُتحقَّق منها
+- `src/pages/beneficiary/ExpensesViewPage.tsx` جديد، يطابق `pages/dashboard/ExpensesPage.tsx` تخطيطاً مع الفروق:
+  - `PageHeaderCard` بعنوان "مصروفات الوقف" ووصف "للاطلاع فقط — جميع مصروفات الوقف".
+  - `actions` يحتوي `ExportMenu` فقط (لا `ExpenseFormDialog`).
+  - يحذف `LockedYearBanner` ويستبدله ببنر مستفيد موحَّد بصياغة "عرض للاطلاع فقط" متّسق مع باقي صفحات `*ViewPage`.
+  - يحذف `ExpenseBudgetBar` (إدارة ميزانية ليست من اختصاص المستفيد) ويُبقي `ExpenseSummaryCards` و`ExpensesPieChart`.
+  - يستخدم نفس `AdvancedFiltersBar` + بحث + `ExpensesDesktopTable`/`ExpensesMobileCards` + `TablePagination` (الأزرار التحريرية مخفية تلقائياً عبر `isLocked`).
+  - بدون `ConfirmDeleteDialog`.
 
-| # | الادعاء | الحكم | الدليل |
-|---|---------|------|--------|
-| 1 | `lib/services` نموذجية ومتقدمة | ✅ **مؤكّد** | supportService/appSettingsService/securityService: CRUD نظيف بمسؤولية واحدة. notificationService يفصل dual-API (async vs fire-and-forget) بشكل صريح ومسمى جيداً. |
-| 2 | يجب أن تصبح القاعدة لا الاستثناء | ✅ **مؤكّد رقمياً** | 29% تبنّي فقط في `hooks/data`. 46 ملف ما زال يضرب supabase مباشرة. |
-| 3 | `searchService` نموذج جيد للفصل | ✅ مؤكّد | data-access شفاف؛ `globalSearchFn` يبقى composer. |
-| 4 | تعليق "نقي" مضلّل في `searchService` | ✅ مؤكّد | السطر 4 يقول "نقية" لكنه stateful I/O. |
-| 5 | `nationalIdLogin` orchestrator ثقيل | ✅ **مؤكّد** | 147 سطر، 4 مسؤوليات: validation + invoke + session + access-log. |
-| 6 | `notificationService` ينهي rename plan | ✅ مؤكّد | الأسماء الجديدة (`enqueue/broadcast/silent`) دلاليّة وواضحة. |
-| 7 | `lib/api/invoke.ts` و `rpc.ts` ناضجان | ✅ **أعلى مما وصفه التقرير** | retry + backoff + classification + `onAuthError` + payload monitoring + DEV instrumentation. هذه طبقة بنية تحتية ممتازة. |
-| 8 | layer الـ realtime "محورية" | ❌ **مبالغ** | الواقع: 3 ملفات صغيرة (factory + bfcache-safe). README سطرين. لا يستحق التوصيف "محوري". |
-| 9 | `RootLayout` global sink | ⚠️ غير محقَّق هذه الجولة | يحتاج فحص مستقل. |
+### 3) التوجيه والصلاحيات والملاحة
 
----
+- `src/routes/beneficiaryRoutes.tsx`: استيراد كسول للصفحة + Route `/beneficiary/expenses` بحماية `ALL_NON_ACCOUNTANT` (مطابقاً لباقي صفحات العرض).
+- `src/constants/rolePermissions.ts`: إضافة `expenses: true` لـ `beneficiary` و`waqif`.
+- `src/constants/routeRegistry.ts`: إضافة سجل لـ `/beneficiary/expenses` بنفس الـ`labelKey/sectionKey: 'expenses'`.
+- `src/constants/beneficiaryWidgets.ts` (إن كان يحدّد عناصر القائمة الجانبية للمستفيد): إضافة عنصر "المصروفات" أو التأكد من ظهوره عبر إذن `expenses`. أتحقق من المصدر الفعلي للقائمة وأعدّله بالحد الأدنى.
 
-## نتائج التقرير لم يلتقطها — اكتُشفت في الفحص
+### 4) اختبارات
 
-### 1) **خرق حدود فعلي** في `components/` (التقرير لم يره)
-README الـ services يقول صراحةً: "لا تُستدعى مباشرة من `pages/` أو `components/`". لكن:
-- `src/components/auth/ProtectedRoute.tsx` يستورد من `@/lib/services`
-- `src/components/layout/IdleTimeoutManager.tsx` يستورد من `@/lib/services`
+- `useExpensesViewPage.test.ts`: 
+  - يُعيد نفس عدد المصروفات الذي يعيده hook الناظر لنفس السنة.
+  - الفلتر/البحث/الفرز/الترقيم يتطابق.
+  - `documentationRate` و`documentedCount` متطابقان مع الناظر.
+  - لا يُصدِّر دوال كتابة (`createExpense`, `updateExpense`, `deleteExpense` غير موجودة في الإرجاع).
+- `ExpensesViewPage.test.tsx`: يعرض الجدول، لا يعرض زر "إضافة مصروف"، لا يعرض أزرار تعديل/حذف، يعرض `ExportMenu`.
 
-هذه **خروقات معمارية حقيقية** غير ملتقطة بالحارس الحالي.
+### 5) ذاكرة المشروع
 
-### 2) **AuthContext يتجاوز `invoke()` wrapper**
-`src/contexts/AuthContext.tsx:38` يستدعي `supabase.functions.invoke('guard-signup')` مباشرة. يفقد retry وclassification وperf monitoring. هذا أهم bypass في الكود.
+- `mem://business-logic/finance/beneficiary-expenses-view-parity`: صفحة `/beneficiary/expenses` تطابق `/dashboard/expenses` في البيانات والفلاتر والملخصات والتصدير، وتختلف فقط بإخفاء الإضافة/التحرير/الحذف وإدارة الميزانية. مصدر البيانات `useExpensesByFiscalYear` نفسه عبر `useExpensesViewPage`.
 
-### 3) **`errorReporter` يتجاوز `rpc()` wrapper**
-مقصود (تجنّب recursion) لكنه غير موثّق في الملف.
+## معايير القبول
 
-### 4) **الحارس لا يفرض القواعد الجديدة**
-`scripts/check-conventions.mjs` لا يحتوي قاعدة:
-- "ممنوع `@/lib/services` من `components/` أو `pages/` (عدا tests)"
-- "ممنوع `supabase.functions.invoke` خارج `lib/api/invoke.ts`"
-- "ممنوع `supabase.rpc(` خارج `lib/api/rpc.ts` و `lib/errorReporter.ts`"
-
-بدون هذه القواعد، التبنّي سيبقى 29% للأبد.
-
-### 5) **عدم تماثل service vs hook**
-`appSettingsService` موجود وبالكامل (CRUD على `app_settings`)، لكن `hooks/data` فيه ملفات أخرى تستعلم نفس الجداول مباشرة دون المرور عبره. هذه **migration debt** حقيقية.
-
----
-
-## التقييم النهائي الصارم
-
-| البُعد | الحكم بعد التحقق |
-|--------|-------------------|
-| backend (migrations, RLS, RPC, email infra) | **8.5/10** — أنضج طبقة |
-| `lib/api/*` و `lib/services/*` (التصميم) | **8.5/10** — تصميم ممتاز |
-| `lib/services/*` (التبنّي عبر المشروع) | **5.5/10** — 29% فقط |
-| boundaries المفروضة بالحارس | **6/10** — يفرض الـ الأساسي لا التفاصيل |
-| `hooks/page` و `hooks/application` (semantics) | **6.5/10** — تحسّن بعد إعادة التسمية |
-| `hooks/data` (consistency) | **5/10** — أنماط مختلطة بوضوح |
-
-**الحكم**: التقرير الخارجي **دقيق في ~85%** من ادعاءاته، لكنه فاتته 3 خروقات معمارية حقيقية موجودة في الكود (ProtectedRoute, IdleTimeoutManager, AuthContext bypass).
-
----
-
-## الخطة المقترحة (مرتبة بالأثر/المخاطرة)
-
-### P0 — إصلاحات فورية ومحدودة (جلسة واحدة قصيرة)
-1. **AuthContext → invoke()**: استبدال `supabase.functions.invoke('guard-signup')` بـ `invoke<...>('guard-signup', ...)`. مكسب فوري: retry + classification + perf.
-2. **توثيق bypass في errorReporter**: تعليق سطرين يشرحان لماذا لا يستخدم `rpc()` (تجنّب recursion).
-3. **تصحيح تعليق "نقية" في searchService**: تغيير إلى "طبقة وصول بيانات".
-
-### P1 — تقوية الحارس (جلسة واحدة)
-4. إضافة قواعد للـ `scripts/check-conventions.mjs`:
-   - منع `@/lib/services` من `components/` و `pages/` (مع white-list صريح لـ ProtectedRoute و IdleTimeoutManager إن قُرّر إبقاؤها استثناءً موثّقاً).
-   - منع `supabase.functions.invoke(` خارج `src/lib/api/invoke.ts`.
-   - منع `supabase.rpc(` خارج `src/lib/api/rpc.ts` و `src/lib/errorReporter.ts`.
-5. إصلاح الخروقين في ProtectedRoute و IdleTimeoutManager: نقل الاستدعاء إلى hook (`hooks/data/` أو `hooks/auth/`) ثم استهلاكه من المكوّن.
-
-### P2 — رفع تبنّي service layer (جلسات متعدّدة، اختياري)
-6. مشروع تدريجي: لكل خدمة موجودة، مراجعة `hooks/data/` التي تستعلم نفس الجدول وتحويلها لاستخدام الخدمة. الأولوية للخدمات الأكثر إعادة استخدام (`appSettingsService`, `notificationService`, `fiscalYearService`).
-7. **لا يلزم 100%**: هدف عملي = 60–70% تبنّي. الحالات البسيطة (select واحد لجدول واحد) يجوز إبقاؤها مباشرة.
-
-### P3 — تأجيل صريح
-- تفكيك `nationalIdLogin` إلى 4 sub-functions: **مؤجَّل**. الملف يعمل، اختباره ممكن عبر AppNotify injection. تقسيمه الآن = شكلي.
-- فحص `RootLayout` global sink: جلسة مستقلة.
-- مراجعة `get_beneficiary_dashboard` RPC: ليست مشكلة معمارية، هي **قرار صحيح** (single trip للوحة). توثيق blast radius فقط في تعليق README كافٍ.
-
----
-
-## ما الذي سأنفّذه إن اعتمدت الخطة
-- **P0 فقط** افتراضياً (3 تعديلات صغيرة، مخاطرة دنيا، أثر مباشر).
-- إن أردت `P1`، أضيف القواعد للحارس + أصلح الخرقين (يتطلب فحص ProtectedRoute و IdleTimeoutManager لتحديد البديل المناسب).
-- `P2` يحتاج موافقة منفصلة لكل خدمة لأن codemod واسع.
+- فتح `/dashboard/expenses` و`/beneficiary/expenses` على نفس السنة المنشورة → نفس عدد المصروفات، نفس الإجمالي، نفس قائمة الأنواع، نفس نسبة التوثيق.
+- المستفيد لا يرى أزرار إضافة/تعديل/حذف/ميزانية، ويرى Export PDF/CSV ويعملان.
+- الفلاتر (نوع، عقار، تاريخ من/إلى) والبحث والفرز والترقيم تعمل بنفس سلوك الناظر.
+- السنوات غير المنشورة لا تظهر للمستفيد (RLS قائم).
+- اختبارات `check-conventions.mjs` و`vitest` تمر بصفر مخالفات.
