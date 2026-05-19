@@ -75,8 +75,8 @@ export function useAccountsExports(input: ExportsInput) {
         availableAmount: input.availableAmount,
         distributionsAmount: input.manualDistributions,
         remainingBalance: input.remainingBalance,
-        incomeBySource: input.incomeBySource,
-        expensesByType: input.expensesByType,
+        incomeBySource: Object.fromEntries(input.incomeBySource.map(d => [d.name, d.value])),
+        expensesByType: Object.fromEntries(input.expensesByType.map(d => [d.name, d.value])),
         beneficiaries: input.beneficiaries.map(b => ({
           name: b.name ?? 'غير معروف',
           share_percentage: Number(b.share_percentage ?? 0),
