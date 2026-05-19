@@ -60,6 +60,23 @@ export interface PaymentInvoice {
   };
 }
 
+/** فلتر مصدر الفواتير في الصفحات الموحّدة (المستفيد + الناظر) */
+export type InvoiceSourceFilter = 'all' | 'expense' | 'rent';
+
+/** صف فاتورة موحّد يدمج invoices + payment_invoices للعرض المشترك */
+export interface UnifiedInvoiceItem {
+  id: string;
+  invoice_type: string;
+  invoice_number: string | null;
+  amount: number;
+  date: string;
+  status: string;
+  file_path: string | null;
+  file_name: string | null;
+  property?: { property_number: string } | null;
+  source: 'expense' | 'rent';
+}
+
 /** خصم أو رسوم إضافية */
 export interface AllowanceChargeItem {
   reason: string;
