@@ -118,17 +118,18 @@ const FAIL_LINTS = new Set([
   '0029_authenticated_security_definer_function_executable',
 ]);
 
-// إذا استُدعي السكربت كـ entry point وليس كاستيراد، نفّذ الفحص.
+// إذا استُورد كموديول من سكربت آخر، توقف هنا (لا تنفّذ الفحص الفعلي).
 const isMain = import.meta.url === `file://${process.argv[1]}`;
-if (!isMain) {
-  // مُستورَد من سكربت آخر (مثلاً security-definer-sync-check.mjs) — لا تنفّذ الفحص.
-  process.exit(0);
+
+if (isMain) {
+  if (!TOKEN || !REF) {
+    console.warn('⚠️ SUPABASE_ACCESS_TOKEN أو SUPABASE_PROJECT_REF غير مضبوط — تخطّي فحص Supabase Linter.');
+    process.exit(0);
+  }
+  await runLintCheck();
 }
 
-if (!TOKEN || !REF) {
-  console.warn('⚠️ SUPABASE_ACCESS_TOKEN أو SUPABASE_PROJECT_REF غير مضبوط — تخطّي فحص Supabase Linter.');
-  process.exit(0);
-}
+async function runLintCheck() {
 
 
 
