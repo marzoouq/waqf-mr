@@ -1,51 +1,81 @@
-# تفعيل اختبارات صحة مستندات PDF للتقارير الثلاثة
+## تحليل شامل للـ 30 ملف اختبار الفاشلة
 
-## الهدف
+شغّلت المجموعة كاملة وجمعت 140 فشلاً موزّعة على 30 ملف. التصنيف الفعلي:
 
-الاختبارات الحالية في `src/utils/pdf/**/*.test.ts` تستخدم **mocks كاملة لـ jsPDF** — تتحقق فقط أن الدوال تُستدعى، لا أن المخرج PDF صالح. سنضيف طبقة اختبار تكاملية ثانية **بدون mocking لـ jsPDF**، تُمرّر التدفق الكامل: زر → handler → `generate*PDF` → ملف PDF حقيقي، ثم نتحقق أن المخرج مستند PDF صالح وقابل للقراءة.
+| الفئة | عدد الـ assertions الفاشلة | السبب الجذري |
+|---|---|---|
+| `dom-query` (getByText لا يجد نصوص) | 95 | اختبارات صفحات قديمة كُتبت قبل Page Hook Pattern + hooks/data — الصفحات أصبحت logic-less وتعرض skeleton عندما لا تُمَوّك الـ hooks الجديدة |
+| `assertion` (قيم/استدعاءات لا تتطابق) | 27 | اختبارات لـ utils/PDF تتوقع توقيع API قديم (مثل `toast.success` بدل uiNotify، أو `uploadInvoiceToStorage` يُرجع null لأن الـ storage mock تغيّر) |
+| `api-mismatch` (TypeError) | 13 | `mockedUseX.mockReturnValue is not a function` — استيراد الـ hook لم يعد default export، و `supabase.channel is not a function` لأن mock العميل ناقص |
+| `other` (STACK_TRACE_ERROR) | 5 | فشل تحميل الملف أصلاً (ZatcaManagement, WaqifDashboard) — اختبارات تستورد رموز محذوفة/منقولة |
 
-## ما يُضاف
+### 1) ما يجب حذفه (قديم بحت — لا قيمة في إعادة كتابته)
 
-ملف جديد واحد:
+اختبارات صفحات تتحقق فقط من ظهور labels ثابتة دون منطق فعلي. القيمة الحقيقية موجودة الآن في `hooks/page/` (المنطق) و `hooks/data/` (Supabase). تكرار getByText على رؤوس صفحات RTL لا يضيف ضماناً ويكسر مع كل إعادة تسمية.
+
 ```
-src/test/pdfReportsIntegration.test.ts
+src/pages/beneficiary/AccountsViewPage.test.tsx
+src/pages/beneficiary/BeneficiaryDashboard.test.tsx
+src/pages/beneficiary/BeneficiaryMessagesPage.test.tsx
+src/pages/beneficiary/BylawsViewPage.test.tsx
+src/pages/beneficiary/ContractsViewPage.test.tsx
+src/pages/beneficiary/FinancialReportsPage.test.tsx
+src/pages/beneficiary/InvoicesViewPage.test.tsx
+src/pages/beneficiary/PropertiesViewPage.test.tsx
+src/pages/beneficiary/SupportPage.test.tsx
+src/pages/dashboard/AccountsPage.test.tsx
+src/pages/dashboard/AdminDashboard.test.tsx
+src/pages/dashboard/AuditLogPage.test.tsx
+src/pages/dashboard/BylawsPage.test.tsx
+src/pages/dashboard/ContractsPage.test.tsx
+src/pages/dashboard/InvoicesPage.test.tsx
+src/pages/dashboard/MessagesPage.test.tsx
+src/pages/dashboard/PropertiesPage.test.tsx
+src/pages/dashboard/ReportsPage.test.tsx
+src/pages/dashboard/SettingsPage.test.tsx
+src/pages/dashboard/ZatcaManagementPage.test.tsx
+src/pages/waqif/WaqifDashboard.test.tsx
+src/components/common/ExportMenu.test.tsx
+src/components/common/finance/NoPublishedYearsNotice.test.tsx
 ```
 
-يغطي ثلاثة سيناريوهات نهائية مطلوبة من المستخدم:
+**المجموع: 23 ملف للحذف.** المنطق الفعلي مُغطّى بـ `useXPage.test.ts` (موجودة) + اختبار التكامل الجديد للـ PDF.
 
-| التقرير | المُولِّد | Handler |
-|--------|---------|---------|
-| الإفصاح السنوي | `generateAnnualDisclosurePDF` | `useReportsExport.handleExportDisclosure` |
-| الحسابات الختامية (التقرير السنوي) | `generateAnnualReportPDF` | `useReportsExport.handleExportPDF` |
-| توزيع الحصص | `generateDistributionsPDF` | `useReportsExport.handleExportDistribution` |
+### 2) ما يجب إصلاحه (له قيمة حقيقية)
 
-## آلية التحقق من صحة المستند
+سبعة ملفات تختبر منطقاً جوهرياً ويستحق التصحيح بدلاً من الحذف:
 
-بدلاً من mocking كامل لـ jsPDF، نعمل:
+| الملف | السبب | الإصلاح المقترح |
+|---|---|---|
+| `src/pages/beneficiary/DisclosurePage.test.tsx` | الإفصاح السنوي = ميزة شرعية حرجة | تحديث mocks لـ `useDisclosurePage` |
+| `src/pages/beneficiary/MySharePage.test.tsx` | حصة المستفيد = منطق توزيع حساس | إضافة `supabase.channel` mock في setup |
+| `src/utils/pdf/reports/annualReport.test.ts` | يولّد PDF التقرير السنوي | تحديث assertion للـ uiNotify الجديد |
+| `src/utils/pdf/invoices/invoice.test.ts` | ZATCA invoice generation | إصلاح mock `uploadInvoiceToStorage` |
+| `src/utils/pdf/invoices/paymentInvoice.test.ts` | ZATCA payment invoice | نفس السبب |
+| `src/hooks/page/admin/dashboard/useSupportDashboardPage.test.ts` | منطق تذاكر الدعم | محاذاة البيانات الوهمية مع الـ query الجديد |
+| `src/hooks/page/admin/financial/useAccountsPage.test.ts` | حسابات مالية | محاذاة الأرصدة الوهمية مع المُحدّث |
 
-1. **استخدام jsPDF + jspdf-autotable الحقيقيين** (لا `vi.mock('jspdf')`).
-2. **Mock محدود فقط لـ `loadArabicFont`** → يُرجع `false` فيستخدم الخط الافتراضي (يتفادى جلب ملفات `.ttf` من الشبكة في jsdom).
-3. **Mock لـ `finalizePdf`** بحيث يلتقط الكائن `doc` ويستخرج `doc.output('arraybuffer')` بدلاً من حفظه إلى الملف، ثم يُرجعه للاختبار.
-4. **Mock صامت لـ `sonner` toast و `logger`** (موجود مسبقاً كنمط).
+### 3) خطة التنفيذ على دفعتين
 
-لكل سيناريو نتحقق من:
+**الدفعة A — حذف (5 دقائق):**
+- حذف الـ 23 ملف أعلاه دفعة واحدة
+- التحقق: `vitest run` يجب أن يُظهر 7 ملفات فاشلة فقط
 
-- **توقيع PDF**: أول 4 بايتات = `%PDF` (سحري قياسي).
-- **حجم معقول**: `byteLength > 1000` لاستبعاد ملف فارغ.
-- **عدد صفحات ≥ 1**: عبر `doc.getNumberOfPages()`.
-- **اسم الملف المتوقّع** يحوي تسمية السنة المالية (مثلاً `annual-disclosure-2024-2025.pdf`).
-- **استدعاء `finalizePdf` مرة واحدة بالضبط**.
+**الدفعة B — إصلاح الـ 7 الجوهرية:**
+1. إضافة `supabase.channel`/`removeChannel` للـ mock العام في `src/test/setup.ts` (يحل MySharePage + أي مستقبلي)
+2. تحديث `annualReport.test.ts`: استبدال `toast.success` بـ تحقق من `uiNotify` (نفس نمط `pdfReportsIntegration.test.ts` الذي بنيناه أمس)
+3. إصلاح اختباري الفواتير: mock `@/lib/storage/invoiceStorage` بإرجاع URL ثابت
+4. `DisclosurePage`: استبدال getByText بـ `screen.findByRole` على heading + mock `useDisclosurePage` كاملاً
+5. `useSupportDashboardPage` + `useAccountsPage`: مزامنة fixtures مع شكل بيانات الـ hook الحالي (قراءة الـ hook + تعديل الـ mock data)
 
-## بنية الاختبار (تفاصيل تقنية)
+**معيار النجاح النهائي:**
+- `vitest run` → 0 ملفات فاشلة
+- لا تخفيض في تغطية المنطق (المنطق الحقيقي في `hooks/page/*` و `hooks/data/*` يبقى مُختبَراً)
 
-- إعداد بيانات `ReportsExportInput` ثابتة في `beforeAll` (سنة `2024-2025`، إيرادات/مصروفات/مستفيدان).
-- لكل اختبار: استدعاء الـ handler من `useReportsExport({...})` مباشرة (الـ hook بلا React state — مجرد دالة تُرجع handlers، تعمل خارج render).
-- التقاط الـ `doc` عبر `vi.mock('@/utils/pdf/core/core', async (importOriginal) => ({ ...await importOriginal(), finalizePdf: vi.fn((doc, _f, name) => { capturedDoc = doc; capturedName = name; }), loadArabicFont: vi.fn().mockResolvedValue(false) }))`.
-- التحويل: `const bytes = new Uint8Array(capturedDoc.output('arraybuffer'))` ثم `expect(String.fromCharCode(...bytes.slice(0,4))).toBe('%PDF')`.
+### 4) ما لن أفعله
 
-## ملاحظات
+- لن أُعيد كتابة اختبارات smoke للصفحات. سياسة المشروع (`mem://testing/automated-test-suite-strategy`) تفضّل اختبار الـ hooks لأن المكونات logic-less.
+- لن ألمس أي كود إنتاجي.
+- لن أضيف `it.skip` — حسب اختيارك: حذف صريح.
 
-- لا تغييرات على كود الإنتاج — فقط ملف اختبار واحد جديد.
-- الاختبارات الحالية للـ unit-mocks تبقى كما هي (تغطي تفاصيل النص والجداول).
-- متوقع زمن التشغيل: ~2-4 ثوان (jsPDF داخل jsdom).
-- في حال فشل تحميل `jspdf-autotable` في jsdom، يُضاف polyfill بسيط لـ `Canvas` (موجود مسبقاً في `src/test/setup.ts`).
+عند الموافقة، أُنفّذ الدفعة A ثم B في رسالة واحدة وأرفق تقرير `vitest` نهائي.
