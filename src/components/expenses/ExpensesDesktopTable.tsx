@@ -90,7 +90,7 @@ const ExpensesDesktopTable = ({ items, expenseInvoiceMap, expandedRow, setExpand
           if (isExpanded) {
             rows.push(
               <TableRow key={`${item.id}-expand`}>
-                <TableCell colSpan={7} className="bg-muted/30 p-3 border-b">
+                <TableCell colSpan={readOnly ? 6 : 7} className="bg-muted/30 p-3 border-b">
                   <ExpenseAttachments expenseId={item.id} />
                 </TableCell>
               </TableRow>
