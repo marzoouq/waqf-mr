@@ -87,7 +87,7 @@ if (opts.checkDoc) {
   }
   // استخراج كل اسم دالة محاط بـ ` داخل أعمدة جدول.
   // يقبل: `fn_name`، `fn_name(...)`، `fn_name()`، وعدة أسماء في خلية واحدة.
-  const rx = /`([a-z_][a-z0-9_]*)\s*(?:\([^`]*?\))?`/gi;
+  const rx = /`([a-z_][a-z0-9_]*)\s*\([^`]*?\)`/gi;
   let m;
   while ((m = rx.exec(md)) !== null) docSet.add(m[1]);
   console.log(`📘 ${docSet.size} دالة مستخرجة من التوثيق.`);
