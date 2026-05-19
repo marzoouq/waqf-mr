@@ -1,5 +1,6 @@
 import { Shield } from 'lucide-react';
 import { LegalPageFooter } from '@/components/common';
+import { RouteHead } from '@/components/seo/RouteHead';
 
 const PrivacyPolicy = () => {
 
@@ -44,6 +45,11 @@ const PrivacyPolicy = () => {
 
   return (
     <main dir="rtl" className="min-h-screen bg-background">
+      <RouteHead
+        title="سياسة الخصوصية"
+        description="سياسة خصوصية نظام إدارة وقف مرزوق بن علي الثبيتي: البيانات التي نجمعها، كيف نستخدمها، إجراءات الحماية والتشفير، وحقوق المستخدم في الاطلاع والتصحيح."
+        path="/privacy"
+      />
       {/* Header */}
       <div className="gradient-primary py-16">
         <div className="container mx-auto px-4 text-center">

@@ -1,5 +1,6 @@
 import { FileText } from 'lucide-react';
 import { LegalPageFooter } from '@/components/common';
+import { RouteHead } from '@/components/seo/RouteHead';
 
 const TermsOfUse = () => {
 
@@ -48,6 +49,11 @@ const TermsOfUse = () => {
 
   return (
     <main dir="rtl" className="min-h-screen bg-background">
+      <RouteHead
+        title="شروط الاستخدام"
+        description="الشروط والأحكام التي تحكم استخدام نظام إدارة وقف مرزوق بن علي الثبيتي: حسابات المستخدمين، الصلاحيات، الاستخدام المقبول، والملكية الفكرية."
+        path="/terms"
+      />
       {/* Header */}
       <div className="gradient-primary py-16">
         <div className="container mx-auto px-4 text-center">

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Smartphone, Share, Plus, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInstallAppPage } from '@/hooks/page/shared/useInstallAppPage';
+import { RouteHead } from '@/components/seo/RouteHead';
 
 const InstallApp = () => {
   const navigate = useNavigate();
@@ -10,6 +11,11 @@ const InstallApp = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <RouteHead
+        title="تثبيت التطبيق"
+        description="إرشادات تثبيت تطبيق نظام إدارة الوقف على جوالك للوصول السريع والعمل بدون إنترنت — متاح لأجهزة Android و iOS عبر تطبيق ويب تقدمي."
+        path="/install"
+      />
       <div className="w-full max-w-md space-y-4">
         <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
           <ArrowRight className="w-4 h-4" />

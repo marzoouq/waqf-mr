@@ -2,13 +2,17 @@ User-agent: Googlebot
 Allow: /
 Disallow: /dashboard/
 Disallow: /beneficiary/
+Disallow: /waqif/
 Disallow: /unauthorized
+Disallow: /reset-password
 
 User-agent: Bingbot
 Allow: /
 Disallow: /dashboard/
 Disallow: /beneficiary/
+Disallow: /waqif/
 Disallow: /unauthorized
+Disallow: /reset-password
 
 User-agent: Twitterbot
 Allow: /
@@ -20,9 +24,11 @@ User-agent: *
 Allow: /
 Disallow: /dashboard/
 Disallow: /beneficiary/
+Disallow: /waqif/
 Disallow: /admin/
 Disallow: /settings/
 Disallow: /auth
 Disallow: /unauthorized
+Disallow: /reset-password
 
 Sitemap: https://waqf-wise.net/sitemap.xml

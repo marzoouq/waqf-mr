@@ -1,10 +1,17 @@
 import { Link } from "react-router-dom";
 import { Building2, Home, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RouteHead } from "@/components/seo/RouteHead";
 
 const NotFound = () => {
   return (
     <main dir="rtl" className="min-h-screen bg-background flex flex-col">
+      <RouteHead
+        title="الصفحة غير موجودة"
+        description="الصفحة التي تبحث عنها غير موجودة في نظام إدارة وقف مرزوق بن علي الثبيتي. عُد إلى الصفحة الرئيسية أو سجّل الدخول للوصول إلى لوحتك."
+        path="/404"
+        noindex
+      />
       {/* Hero header */}
       <div className="gradient-primary py-10">
         <div className="container mx-auto px-4 text-center">
