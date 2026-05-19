@@ -92,5 +92,19 @@
     "vite": "^5.4.21",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.1.2"
+  },
+  "overrides": {
+    "dompurify": "3.4.5",
+    "postcss": "8.5.14",
+    "fast-uri": "3.1.2",
+    "ws": "8.20.1",
+    "@babel/plugin-transform-modules-systemjs": "7.29.4"
+  },
+  "resolutions": {
+    "dompurify": "3.4.5",
+    "postcss": "8.5.14",
+    "fast-uri": "3.1.2",
+    "ws": "8.20.1",
+    "@babel/plugin-transform-modules-systemjs": "7.29.4"
   }
 }
