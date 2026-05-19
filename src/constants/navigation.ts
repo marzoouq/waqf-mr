@@ -136,6 +136,7 @@ export const BENEFICIARY_ROUTE_GROUPS: Record<string, BeneficiaryGroupKey> = {
   '/beneficiary/carryforward': 'financial',
   '/beneficiary/financial-reports': 'financial',
   '/beneficiary/accounts': 'financial',
+  '/beneficiary/expenses': 'financial',
   '/beneficiary/messages': 'communication',
   '/beneficiary/notifications': 'communication',
   '/beneficiary/support': 'communication',
