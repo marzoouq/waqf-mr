@@ -17,7 +17,7 @@ import {
 import ReportsSummaryCards from '@/components/reports/ReportsSummaryCards';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
+import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ExportMenu } from '@/components/common';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
