@@ -91,10 +91,19 @@ export const ALLOWLIST_0029 = new Set([
   'cron_archive_old_access_logs',
   'cron_auto_expire_contracts',
   'cron_check_contract_expiry',
+  'cron_check_late_payments',
+  'cron_check_slow_queries',
+  'cron_check_zatca_cert_expiry',
   'cron_cleanup_old_notifications',
   'cron_update_overdue_invoices',
   'cleanup_expired_challenges',
   'cleanup_pending_invoice_chain',
+
+  // ── PII encryption helpers — تُستدعى من triggers / Edge Functions موثّقة ──
+  'encrypt_pii',
+  'decrypt_pii',
+  'get_pii_key',
+  'lookup_by_national_id',
 
   // ── Email queue internals — تُستدعى من process-email-queue Edge Function ──
   'enqueue_email',
