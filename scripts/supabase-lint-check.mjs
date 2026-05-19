@@ -107,7 +107,7 @@ export const ALLOWLIST_0029 = new Set([
 // قائمة الدوال العامة (anon-callable) المسموح استدعاؤها بدون تسجيل دخول.
 // كل دالة هنا موسومة في DB بـ COMMENT يحمل '[anon-callable]'، والـ event trigger
 // auto_revoke_anon_execute يحترم هذا الوسم ولا يسحب EXECUTE من anon.
-const ALLOWLIST_ANON = new Set([
+export const ALLOWLIST_ANON = new Set([
   'get_public_stats',     // إحصائيات صفحة الهبوط (مفلترة بـ app_settings)
   'log_access_event',     // تسجيل أخطاء العميل قبل تسجيل الدخول
 ]);
@@ -117,6 +117,20 @@ const FAIL_LINTS = new Set([
   '0028_anon_security_definer_function_executable',
   '0029_authenticated_security_definer_function_executable',
 ]);
+
+// إذا استُدعي السكربت كـ entry point وليس كاستيراد، نفّذ الفحص.
+const isMain = import.meta.url === `file://${process.argv[1]}`;
+if (!isMain) {
+  // مُستورَد من سكربت آخر (مثلاً security-definer-sync-check.mjs) — لا تنفّذ الفحص.
+  process.exit(0);
+}
+
+if (!TOKEN || !REF) {
+  console.warn('⚠️ SUPABASE_ACCESS_TOKEN أو SUPABASE_PROJECT_REF غير مضبوط — تخطّي فحص Supabase Linter.');
+  process.exit(0);
+}
+
+
 
 const url = `https://api.supabase.com/v1/projects/${REF}/database/lints`;
 const res = await fetch(url, {
