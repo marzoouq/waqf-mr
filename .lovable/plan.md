@@ -1,158 +1,117 @@
+# فحص جنائي للتقرير — نتائج موثّقة بالأرقام
 
-# خطة Refactor Sprint — تنظيف معماري شامل
-
-**المدة المتوقعة:** 5–7 جلسات عمل متتالية
-**المبدأ:** كل خطوة قابلة للنشر مستقلة. نتحقق بعد كل مرحلة عبر `bun run typecheck` و`lint:conventions`.
-**مستثنى:** البند #1 من التقرير (`.env`) لأنه لا ينطبق على Lovable Cloud.
+قرأت كل الملفات التي طلب التقرير فحصها سطراً بسطر، ثم قِست الادعاءات بالكود الفعلي. هذه هي النتائج.
 
 ---
 
-## المرحلة 1 — توثيق وتوحيد المصطلحات (آمن، صفر مخاطر)
-
-**الهدف:** إزالة تعارض الوثائق مع الواقع.
-
-- تحديث `src/hooks/README.md`: استبدال كل ذكر لـ `financial/` بـ `domain/`، وتحديث رسم اتجاه التبعيات
-- إنشاء `ARCHITECTURE.md` في جذر المشروع — صفحة واحدة موحّدة تشرح الطبقات النهائية وتُحيل لـ READMEات الفرعية
-- تحديث `src/hooks/domain/README.md` ليعكس وجود `useDistributionCalculation`
-
-**التحقق:** قراءة بصرية + `lint:conventions`.
-
----
-
-## المرحلة 2 — توسيع check-conventions.mjs (حواجز إضافية)
-
-تضاف القواعد التالية:
-- منع `supabase.from(` و`supabase.auth.` و`supabase.functions.invoke(` داخل `src/pages/` و`src/components/`
-- منع `supabase.from(` داخل `src/lib/` خارج `src/lib/services/` و`src/lib/auth/` (الاستثناءان المسموحان)
-- منع استيراد أي ملف من `hooks/page/` داخل `hooks/data/` أو `hooks/domain/`
-- تحذير (لا فشل) إذا تجاوز ملف في `hooks/page/` 200 سطر
-
-**التحقق:** تشغيل الحارس ورصد المخالفات الحالية كقائمة عمل للمراحل التالية.
-
----
-
-## المرحلة 3 — توحيد طبقة البيانات (High)
-
-### 3.1 إنشاء `lib/services/searchService.ts`
-- نقل استعلامات Supabase من `src/lib/search/globalSearchFn.ts` إلى service جديد بدوال صغيرة: `searchContracts`, `searchProperties`, `searchInvoices`, `searchBeneficiaries`
-- `globalSearchFn.ts` يصبح **مُجمِّعاً** (composer) يستدعي الـ service ويُشكّل النتيجة الموحّدة فقط — بدون SQL مباشر
-
-### 3.2 تنظيف `lib/auth/nationalIdLogin.ts`
-- استخراج rate-limit إلى `lib/services/rateLimitService.ts` (موجود ضمنياً — يُستخلص)
-- إبقاء `setSession` و`signIn` في `lib/auth/` فقط (هذا boundary مقصود لـ auth)
-- نقل أي `notify` خارج هذه الطبقة
-
-### 3.3 فحص بقايا
-- `rg "supabase\.(from|rpc|auth|functions|storage)" src/lib src/hooks/page src/components` ومراجعة كل تطابق
-- ما يكون منطقياً ينقل إلى الـ service المناسب أو يُسوَّغ في تعليق
-
-**التحقق:** typecheck + اختبارات + الحارس الجديد.
-
----
-
-## المرحلة 4 — تفكيك page hooks الكبيرة (High)
-
-### 4.1 `useContractsPage.ts`
-يُقسّم إلى:
-- `useContractsFilters.ts` — state للبحث والفلاتر
-- `useContractsActions.ts` — handlers (create/edit/delete/renew)
-- `useContractsExport.ts` — منطق التصدير
-- `useContractsPage.ts` — مُجمّع رفيع يستدعي الثلاثة
-
-### 4.2 `useBeneficiaryDashboardPage.ts`
-- `useBeneficiaryGreeting.ts` (domain layer — منطق التحية + الوقت)
-- `useBeneficiaryDashboardRealtime.ts` — اشتراكات realtime + invalidation
-- `useBeneficiaryDashboardPage.ts` — تجميع + view model
-
-### 4.3 `useSupportDashboardPage.ts`
-- نقل `exportToCsv` إلى `src/utils/export/toCsv.ts` (نقي تماماً)
-- استخراج فلاتر التذاكر إلى `useSupportTicketFilters.ts`
-
-### 4.4 `useAuditLogPage.ts`
-- استخراج معاينة السجل وtemplate التصدير
-
-**التحقق:** اختبارات الصفحات الحالية يجب أن تمر دون تعديل (الواجهة العامة للـ page hooks لا تتغير).
-
----
-
-## المرحلة 5 — إعادة تموضع ملفات (Medium)
-
-| من | إلى | السبب |
-|----|----|--------|
-| `hooks/ui/useLayoutState.ts` | `hooks/page/shared/useLayoutShell.ts` | يستدعي auth/fiscal/messages — ليس UI نقي |
-| `hooks/page/beneficiary/dashboard/useWaqifDashboardPage.ts` | `hooks/page/waqif/useWaqifDashboardPage.ts` | المسار يخالف الدور |
-| `src/lib/search/globalSearchFn.ts` (بعد 3.1) | يبقى مكانه كـ composer | — |
-
-تُحدَّث جميع الاستيرادات مع كل نقل.
-
----
-
-## المرحلة 6 — توحيد تسمية الإشعارات (Medium)
-
-| الاسم الحالي | الاسم الجديد | المجال |
-|-------------|--------------|--------|
-| `defaultNotify` | `uiNotify` | toast من sonner |
-| `notifyUser` (في `notificationService`) | `enqueueUserNotification` | DB record |
-| `notifyAdminsSilent` | `broadcastAdminNotification` | DB record |
-| `notify` (الوثائق) | `uiNotify` | تحديث الإشارات |
-
-تنفّذ كـ rename موحّد عبر codemod بسيط (`rg` + `sed`).
-
----
-
-## المرحلة 7 — تنظيف barrels وبقايا التوافق (Medium/Low)
-
-- تدقيق كل `index.ts` في `components/` و`hooks/` للتأكد من عدم وجود re-export متبادل
-- حذف أي re-export wrapper لم يعد له مستهلكون (`rg` للتحقق قبل الحذف)
-- إضافة قاعدة في `check-conventions.mjs`: barrel لا يحتوي أكثر من 20 export
-
----
-
-## المرحلة 8 — تجميع auth modules (Medium)
-
-إنشاء بنية فرعية موثّقة (بدون نقل قسري) داخل `src/hooks/auth/`:
+## القياسات الحقيقية (وليست الانطباعات)
 
 ```
-hooks/auth/
-├── session/      — useAuthListener, useSessionExpiry, useAuthCleanup
-├── role/         — useRoleRedirect, useFetchUserRole
-├── biometric/    — useWebAuthnAuth/Register/Manage
-└── flows/        — useLoginFlow, useLogoutFlow
+طبقة                                              | العدد
+-------------------------------------------------|------
+hooks/data يستورد @/lib/services                  | 19
+hooks/data يستدعي supabase مباشرة                 | 46
+نسبة تبنّي service layer في hooks/data           | ~29%
+
+hooks/page + application يستورد services         | 8
+hooks/page + application يستدعي supabase مباشرة  | 1
+
+components/ يستدعي supabase مباشرة               | 0  ✅
+pages/      يستدعي supabase مباشرة               | 0  ✅
+
+uses of invoke() wrapper                          | 14
+uses of rpc() wrapper                             | 23
+bypasses invoke() (production code)               | 1  (AuthContext → guard-signup)
+bypasses rpc()    (production code)               | 1  (errorReporter — مقصود)
 ```
 
-يُنقل كل ملف لمكانه الصحيح + يُحدَّث استيراده.
+---
+
+## ادعاءات التقرير — مُتحقَّق منها
+
+| # | الادعاء | الحكم | الدليل |
+|---|---------|------|--------|
+| 1 | `lib/services` نموذجية ومتقدمة | ✅ **مؤكّد** | supportService/appSettingsService/securityService: CRUD نظيف بمسؤولية واحدة. notificationService يفصل dual-API (async vs fire-and-forget) بشكل صريح ومسمى جيداً. |
+| 2 | يجب أن تصبح القاعدة لا الاستثناء | ✅ **مؤكّد رقمياً** | 29% تبنّي فقط في `hooks/data`. 46 ملف ما زال يضرب supabase مباشرة. |
+| 3 | `searchService` نموذج جيد للفصل | ✅ مؤكّد | data-access شفاف؛ `globalSearchFn` يبقى composer. |
+| 4 | تعليق "نقي" مضلّل في `searchService` | ✅ مؤكّد | السطر 4 يقول "نقية" لكنه stateful I/O. |
+| 5 | `nationalIdLogin` orchestrator ثقيل | ✅ **مؤكّد** | 147 سطر، 4 مسؤوليات: validation + invoke + session + access-log. |
+| 6 | `notificationService` ينهي rename plan | ✅ مؤكّد | الأسماء الجديدة (`enqueue/broadcast/silent`) دلاليّة وواضحة. |
+| 7 | `lib/api/invoke.ts` و `rpc.ts` ناضجان | ✅ **أعلى مما وصفه التقرير** | retry + backoff + classification + `onAuthError` + payload monitoring + DEV instrumentation. هذه طبقة بنية تحتية ممتازة. |
+| 8 | layer الـ realtime "محورية" | ❌ **مبالغ** | الواقع: 3 ملفات صغيرة (factory + bfcache-safe). README سطرين. لا يستحق التوصيف "محوري". |
+| 9 | `RootLayout` global sink | ⚠️ غير محقَّق هذه الجولة | يحتاج فحص مستقل. |
 
 ---
 
-## ما لن يُنفّذ في هذا الـ Sprint
+## نتائج التقرير لم يلتقطها — اكتُشفت في الفحص
 
-- نقل `logger`, `cn`, `notify` إلى مجلدات فرعية — تم رفضه سابقاً (يلامس مئات الملفات بلا قيمة معمارية حقيقية)
-- إعادة تسمية `hooks/domain` ↔ `hooks/financial` — `domain` هو الاسم الصحيح؛ نُحدِّث الوثائق فقط
-- أي تغيير في schema الـ DB أو RLS
+### 1) **خرق حدود فعلي** في `components/` (التقرير لم يره)
+README الـ services يقول صراحةً: "لا تُستدعى مباشرة من `pages/` أو `components/`". لكن:
+- `src/components/auth/ProtectedRoute.tsx` يستورد من `@/lib/services`
+- `src/components/layout/IdleTimeoutManager.tsx` يستورد من `@/lib/services`
+
+هذه **خروقات معمارية حقيقية** غير ملتقطة بالحارس الحالي.
+
+### 2) **AuthContext يتجاوز `invoke()` wrapper**
+`src/contexts/AuthContext.tsx:38` يستدعي `supabase.functions.invoke('guard-signup')` مباشرة. يفقد retry وclassification وperf monitoring. هذا أهم bypass في الكود.
+
+### 3) **`errorReporter` يتجاوز `rpc()` wrapper**
+مقصود (تجنّب recursion) لكنه غير موثّق في الملف.
+
+### 4) **الحارس لا يفرض القواعد الجديدة**
+`scripts/check-conventions.mjs` لا يحتوي قاعدة:
+- "ممنوع `@/lib/services` من `components/` أو `pages/` (عدا tests)"
+- "ممنوع `supabase.functions.invoke` خارج `lib/api/invoke.ts`"
+- "ممنوع `supabase.rpc(` خارج `lib/api/rpc.ts` و `lib/errorReporter.ts`"
+
+بدون هذه القواعد، التبنّي سيبقى 29% للأبد.
+
+### 5) **عدم تماثل service vs hook**
+`appSettingsService` موجود وبالكامل (CRUD على `app_settings`)، لكن `hooks/data` فيه ملفات أخرى تستعلم نفس الجداول مباشرة دون المرور عبره. هذه **migration debt** حقيقية.
 
 ---
 
-## تقدير المخاطر
+## التقييم النهائي الصارم
 
-| المرحلة | المخاطر | التخفيف |
-|---------|---------|---------|
-| 1, 2 | لا شيء (وثائق + سكربت) | — |
-| 3.1 | كسر البحث الموحّد | اختبار يدوي بعد النقل |
-| 3.2 | كسر تسجيل دخول الهوية | حذر شديد، اختبار end-to-end |
-| 4 | تغيير سلوك page hook | الاختبارات الحالية تُمسك أي رجوع |
-| 5 | كسر استيرادات | typecheck يمسك الكل |
-| 6 | rename واسع | codemod + typecheck |
-| 7 | حذف export مستخدم | `rg` قبل كل حذف |
-| 8 | كسر مسار مصادقة | اختبار يدوي بعد كل نقل |
+| البُعد | الحكم بعد التحقق |
+|--------|-------------------|
+| backend (migrations, RLS, RPC, email infra) | **8.5/10** — أنضج طبقة |
+| `lib/api/*` و `lib/services/*` (التصميم) | **8.5/10** — تصميم ممتاز |
+| `lib/services/*` (التبنّي عبر المشروع) | **5.5/10** — 29% فقط |
+| boundaries المفروضة بالحارس | **6/10** — يفرض الـ الأساسي لا التفاصيل |
+| `hooks/page` و `hooks/application` (semantics) | **6.5/10** — تحسّن بعد إعادة التسمية |
+| `hooks/data` (consistency) | **5/10** — أنماط مختلطة بوضوح |
+
+**الحكم**: التقرير الخارجي **دقيق في ~85%** من ادعاءاته، لكنه فاتته 3 خروقات معمارية حقيقية موجودة في الكود (ProtectedRoute, IdleTimeoutManager, AuthContext bypass).
 
 ---
 
-## التسليم
+## الخطة المقترحة (مرتبة بالأثر/المخاطرة)
 
-بعد كل مرحلة:
-- `bun run typecheck` ✓
-- `bun run lint:conventions` ✓
-- `bun run test` ✓
-- ملاحظة في task tracker
+### P0 — إصلاحات فورية ومحدودة (جلسة واحدة قصيرة)
+1. **AuthContext → invoke()**: استبدال `supabase.functions.invoke('guard-signup')` بـ `invoke<...>('guard-signup', ...)`. مكسب فوري: retry + classification + perf.
+2. **توثيق bypass في errorReporter**: تعليق سطرين يشرحان لماذا لا يستخدم `rpc()` (تجنّب recursion).
+3. **تصحيح تعليق "نقية" في searchService**: تغيير إلى "طبقة وصول بيانات".
 
-عند الانتهاء الكلّي: تحديث ذاكرة المشروع بقاعدة جديدة (`mem://technical/architecture/sprint-2026-05-cleanup`) توثّق ما تغيّر.
+### P1 — تقوية الحارس (جلسة واحدة)
+4. إضافة قواعد للـ `scripts/check-conventions.mjs`:
+   - منع `@/lib/services` من `components/` و `pages/` (مع white-list صريح لـ ProtectedRoute و IdleTimeoutManager إن قُرّر إبقاؤها استثناءً موثّقاً).
+   - منع `supabase.functions.invoke(` خارج `src/lib/api/invoke.ts`.
+   - منع `supabase.rpc(` خارج `src/lib/api/rpc.ts` و `src/lib/errorReporter.ts`.
+5. إصلاح الخروقين في ProtectedRoute و IdleTimeoutManager: نقل الاستدعاء إلى hook (`hooks/data/` أو `hooks/auth/`) ثم استهلاكه من المكوّن.
+
+### P2 — رفع تبنّي service layer (جلسات متعدّدة، اختياري)
+6. مشروع تدريجي: لكل خدمة موجودة، مراجعة `hooks/data/` التي تستعلم نفس الجدول وتحويلها لاستخدام الخدمة. الأولوية للخدمات الأكثر إعادة استخدام (`appSettingsService`, `notificationService`, `fiscalYearService`).
+7. **لا يلزم 100%**: هدف عملي = 60–70% تبنّي. الحالات البسيطة (select واحد لجدول واحد) يجوز إبقاؤها مباشرة.
+
+### P3 — تأجيل صريح
+- تفكيك `nationalIdLogin` إلى 4 sub-functions: **مؤجَّل**. الملف يعمل، اختباره ممكن عبر AppNotify injection. تقسيمه الآن = شكلي.
+- فحص `RootLayout` global sink: جلسة مستقلة.
+- مراجعة `get_beneficiary_dashboard` RPC: ليست مشكلة معمارية، هي **قرار صحيح** (single trip للوحة). توثيق blast radius فقط في تعليق README كافٍ.
+
+---
+
+## ما الذي سأنفّذه إن اعتمدت الخطة
+- **P0 فقط** افتراضياً (3 تعديلات صغيرة، مخاطرة دنيا، أثر مباشر).
+- إن أردت `P1`، أضيف القواعد للحارس + أصلح الخرقين (يتطلب فحص ProtectedRoute و IdleTimeoutManager لتحديد البديل المناسب).
+- `P2` يحتاج موافقة منفصلة لكل خدمة لأن codemod واسع.

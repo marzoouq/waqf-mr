@@ -38,6 +38,11 @@ function shouldReport(metadata: ErrorMetadata): boolean {
 /**
  * إرسال خطأ عميل إلى الخادم عبر RPC
  * مع fallback للتخزين المحلي في حال عدم توفر الاتصال
+ *
+ * ملاحظة معمارية: نستدعي supabase.rpc مباشرة (بدلاً من lib/api/rpc) عمداً.
+ * lib/api/rpc يسجّل تحذيرات ويسجّل أخطاءه عبر logger، وlogger قد يستدعي
+ * reportClientError مرة أخرى — مما يخلق recursion. هذا المسار يجب أن يبقى
+ * منخفض المستوى وصامتاً.
  */
 export async function reportClientError(metadata: ErrorMetadata): Promise<void> {
   if (!shouldReport(metadata)) return;
