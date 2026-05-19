@@ -66,13 +66,24 @@ for (const file of files) {
     });
   }
 
-  // 3) supabase.from(...) خارج boundaries المسموحة في lib/
+  // 3) supabase.* خارج boundaries المسموحة في lib/
+  // المسموح: services/ (domain), auth/ (مصادقة), api/ (RPC/invoke wrappers),
+  // realtime/ (channel factory), errorReporter.ts (تسجيل أخطاء)
+  const LIB_SUPABASE_ALLOWED = [
+    'src/lib/services/',
+    'src/lib/auth/',
+    'src/lib/api/',
+    'src/lib/realtime/',
+  ];
+  const LIB_SUPABASE_ALLOWED_FILES = ['src/lib/errorReporter.ts'];
   if (rel.startsWith('src/lib/') && !isTest) {
-    const isAllowed = rel.startsWith('src/lib/services/') || rel.startsWith('src/lib/auth/');
+    const isAllowed =
+      LIB_SUPABASE_ALLOWED.some((p) => rel.startsWith(p)) ||
+      LIB_SUPABASE_ALLOWED_FILES.includes(rel);
     if (!isAllowed) {
       lines.forEach((line, i) => {
         if (SUPABASE_CALL.test(line) && !line.trim().startsWith('//') && !line.trim().startsWith('*')) {
-          violations.push(`${rel}:${i + 1} — supabase.* محظور في lib/ خارج services/ و auth/ (انقل إلى service)`);
+          violations.push(`${rel}:${i + 1} — supabase.* محظور في lib/ خارج boundaries (services/auth/api/realtime). انقل إلى service.`);
         }
       });
     }
