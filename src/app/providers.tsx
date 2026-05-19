@@ -3,6 +3,7 @@
  * كل الـ Providers العالمية مفصولة عن router/layout لتسهيل القراءة والاختبار.
  */
 import { ReactNode } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "next-themes";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,18 +16,20 @@ import ErrorBoundary from "@/components/common/ErrorBoundary";
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <ErrorBoundary>
-      <ThemeProvider attribute="class" defaultTheme="light" storageKey="waqf-theme">
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <FiscalYearProvider>
-              <TooltipProvider>
-                <Sonner />
-                {children}
-              </TooltipProvider>
-            </FiscalYearProvider>
-          </AuthProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
+      <HelmetProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" storageKey="waqf-theme">
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <FiscalYearProvider>
+                <TooltipProvider>
+                  <Sonner />
+                  {children}
+                </TooltipProvider>
+              </FiscalYearProvider>
+            </AuthProvider>
+          </QueryClientProvider>
+        </ThemeProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }
