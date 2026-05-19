@@ -1,81 +1,65 @@
-## تحليل شامل للـ 30 ملف اختبار الفاشلة
+## نتيجة المراجعة: الإصلاحات الثلاثة المطلوبة
 
-شغّلت المجموعة كاملة وجمعت 140 فشلاً موزّعة على 30 ملف. التصنيف الفعلي:
+فحصت الكود الفعلي للبنود الثلاثة. الواقع مختلف عما ادّعى التدقيق السابق:
 
-| الفئة | عدد الـ assertions الفاشلة | السبب الجذري |
+### 1) EmailMonitorPage — حقيقي ويحتاج توثيق فقط
+
+**الواقع:** الصفحة موجودة، مستخدمة، محمية بـ `ADMIN_ONLY` في `adminRoutes.tsx:55`، ومُختبَرة في `dashboardRoutesContract.test.ts` و `adminSectionsVisibility.test.ts`. تحوي تعليقاً مختصراً `(admin only)` فقط دون مبرّر.
+
+**الإجراء:** توسيع التعليق العلوي ليوثّق صراحةً سبب التقييد:
+- يعرض `recipient_email` (PII)
+- يعرض `error_message` (تفاصيل تشخيصية حساسة)
+- يفتح أزرار retry/DLQ على بنية البريد (impact على المستلمين)
+
+**ملف واحد، تعديل JSDoc فقط:** `src/pages/dashboard/EmailMonitorPage.tsx`
+
+### 2) F-C2 / PII raw table — لا توجد ثغرة فعلية
+
+فحصت كل استعلامات `from('beneficiaries')` و `from('contracts')` في `src/hooks/` و `src/lib/`:
+
+| المُستهلِك | الأعمدة المختارة | حالة الأمان |
 |---|---|---|
-| `dom-query` (getByText لا يجد نصوص) | 95 | اختبارات صفحات قديمة كُتبت قبل Page Hook Pattern + hooks/data — الصفحات أصبحت logic-less وتعرض skeleton عندما لا تُمَوّك الـ hooks الجديدة |
-| `assertion` (قيم/استدعاءات لا تتطابق) | 27 | اختبارات لـ utils/PDF تتوقع توقيع API قديم (مثل `toast.success` بدل uiNotify، أو `uploadInvoiceToStorage` يُرجع null لأن الـ storage mock تغيّر) |
-| `api-mismatch` (TypeError) | 13 | `mockedUseX.mockReturnValue is not a function` — استيراد الـ hook لم يعد default export، و `supabase.channel is not a function` لأن mock العميل ناقص |
-| `other` (STACK_TRACE_ERROR) | 5 | فشل تحميل الملف أصلاً (ZatcaManagement, WaqifDashboard) — اختبارات تستورد رموز محذوفة/منقولة |
+| `searchService.ts` admin | CONTRACT_FIELDS (5 حقول، بدون PII) | آمن — والمتغير غير-admin يستخدم `contracts_safe` بالفعل |
+| `useContracts.ts` | tenant_id_number, tenant_tax_number… | RLS على `contracts` تمنع beneficiary/waqif كلياً (`Admin and accountant can view contracts`) |
+| `useContractsForPdf.ts` | contract_number, tenant_name فقط | نفس RLS فوق |
+| `useDashboardSummary.ts` | tenant_name فقط | نفس RLS |
+| `dataFetcher.ts` beneficiaries | id,name,email,phone,share_percentage,notes — **بدون** national_id/bank_account | لا PII حساس |
+| `advanceService.ts` | user_id فقط | لا PII |
+| `useUserManagementData.ts` | id,name,email,user_id | لا national_id/bank_account |
 
-### 1) ما يجب حذفه (قديم بحت — لا قيمة في إعادة كتابته)
+**الخلاصة:** الـ `_safe` views موجودة (`beneficiaries_safe`, `contracts_safe`) وتُستعمل حيث تلزم. الجداول الخام محميّة بـ RLS تمنع الأدوار غير المُمتازة من قراءتها أصلاً. **لا حاجة لأي تغيير** — التدقيق السابق كان بناءً على افتراض خاطئ.
 
-اختبارات صفحات تتحقق فقط من ظهور labels ثابتة دون منطق فعلي. القيمة الحقيقية موجودة الآن في `hooks/page/` (المنطق) و `hooks/data/` (Supabase). تكرار getByText على رؤوس صفحات RTL لا يضيف ضماناً ويكسر مع كل إعادة تسمية.
+**الإجراء:** توثيق الحقيقة في ذاكرة الأمان لمنع تكرار نفس التنبيه الكاذب.
+
+### 3) cacheKey في generateZatcaXml.ts / xmlBuilder.ts — الملفات غير موجودة
 
 ```
-src/pages/beneficiary/AccountsViewPage.test.tsx
-src/pages/beneficiary/BeneficiaryDashboard.test.tsx
-src/pages/beneficiary/BeneficiaryMessagesPage.test.tsx
-src/pages/beneficiary/BylawsViewPage.test.tsx
-src/pages/beneficiary/ContractsViewPage.test.tsx
-src/pages/beneficiary/FinancialReportsPage.test.tsx
-src/pages/beneficiary/InvoicesViewPage.test.tsx
-src/pages/beneficiary/PropertiesViewPage.test.tsx
-src/pages/beneficiary/SupportPage.test.tsx
-src/pages/dashboard/AccountsPage.test.tsx
-src/pages/dashboard/AdminDashboard.test.tsx
-src/pages/dashboard/AuditLogPage.test.tsx
-src/pages/dashboard/BylawsPage.test.tsx
-src/pages/dashboard/ContractsPage.test.tsx
-src/pages/dashboard/InvoicesPage.test.tsx
-src/pages/dashboard/MessagesPage.test.tsx
-src/pages/dashboard/PropertiesPage.test.tsx
-src/pages/dashboard/ReportsPage.test.tsx
-src/pages/dashboard/SettingsPage.test.tsx
-src/pages/dashboard/ZatcaManagementPage.test.tsx
-src/pages/waqif/WaqifDashboard.test.tsx
-src/components/common/ExportMenu.test.tsx
-src/components/common/finance/NoPublishedYearsNotice.test.tsx
+$ ls src/utils/zatca/
+validateZatcaForm.ts  zatcaQr.test.ts  zatcaQr.ts
 ```
 
-**المجموع: 23 ملف للحذف.** المنطق الفعلي مُغطّى بـ `useXPage.test.ts` (موجودة) + اختبار التكامل الجديد للـ PDF.
+لا يوجد `generateZatcaXml.ts` ولا `xmlBuilder.ts`. الـ ZATCA XML يُولَّد في Edge Function أو في مكان آخر لا يحوي `cacheKey`. الـ `cacheKey` الوحيد في المشروع كله موجود في `supabase/functions/ai-assistant/index.ts` ولا علاقة له بـ ZATCA.
 
-### 2) ما يجب إصلاحه (له قيمة حقيقية)
+**الخلاصة:** البند مبني على ملفات وهمية. **لا إصلاح ممكن** — لا يوجد ما يُصلَح.
 
-سبعة ملفات تختبر منطقاً جوهرياً ويستحق التصحيح بدلاً من الحذف:
+**الإجراء:** لا تغييرات. تأكيد للمستخدم.
 
-| الملف | السبب | الإصلاح المقترح |
-|---|---|---|
-| `src/pages/beneficiary/DisclosurePage.test.tsx` | الإفصاح السنوي = ميزة شرعية حرجة | تحديث mocks لـ `useDisclosurePage` |
-| `src/pages/beneficiary/MySharePage.test.tsx` | حصة المستفيد = منطق توزيع حساس | إضافة `supabase.channel` mock في setup |
-| `src/utils/pdf/reports/annualReport.test.ts` | يولّد PDF التقرير السنوي | تحديث assertion للـ uiNotify الجديد |
-| `src/utils/pdf/invoices/invoice.test.ts` | ZATCA invoice generation | إصلاح mock `uploadInvoiceToStorage` |
-| `src/utils/pdf/invoices/paymentInvoice.test.ts` | ZATCA payment invoice | نفس السبب |
-| `src/hooks/page/admin/dashboard/useSupportDashboardPage.test.ts` | منطق تذاكر الدعم | محاذاة البيانات الوهمية مع الـ query الجديد |
-| `src/hooks/page/admin/financial/useAccountsPage.test.ts` | حسابات مالية | محاذاة الأرصدة الوهمية مع المُحدّث |
+---
 
-### 3) خطة التنفيذ على دفعتين
+## خطة التنفيذ (دقيقة واحدة)
 
-**الدفعة A — حذف (5 دقائق):**
-- حذف الـ 23 ملف أعلاه دفعة واحدة
-- التحقق: `vitest run` يجب أن يُظهر 7 ملفات فاشلة فقط
+**ملفان فقط للتعديل:**
 
-**الدفعة B — إصلاح الـ 7 الجوهرية:**
-1. إضافة `supabase.channel`/`removeChannel` للـ mock العام في `src/test/setup.ts` (يحل MySharePage + أي مستقبلي)
-2. تحديث `annualReport.test.ts`: استبدال `toast.success` بـ تحقق من `uiNotify` (نفس نمط `pdfReportsIntegration.test.ts` الذي بنيناه أمس)
-3. إصلاح اختباري الفواتير: mock `@/lib/storage/invoiceStorage` بإرجاع URL ثابت
-4. `DisclosurePage`: استبدال getByText بـ `screen.findByRole` على heading + mock `useDisclosurePage` كاملاً
-5. `useSupportDashboardPage` + `useAccountsPage`: مزامنة fixtures مع شكل بيانات الـ hook الحالي (قراءة الـ hook + تعديل الـ mock data)
+1. **`src/pages/dashboard/EmailMonitorPage.tsx`** — توسيع JSDoc بشرح أسباب `ADMIN_ONLY` (3-4 أسطر)
 
-**معيار النجاح النهائي:**
-- `vitest run` → 0 ملفات فاشلة
-- لا تخفيض في تغطية المنطق (المنطق الحقيقي في `hooks/page/*` و `hooks/data/*` يبقى مُختبَراً)
+2. **`security/security-memory`** عبر `update_memory` — تسجيل أن:
+   - `beneficiaries_safe` و `contracts_safe` تُستخدم في الصفحات العامة، والجداول الخام محمية بـ RLS صارمة
+   - EmailMonitorPage admin-only مقصود بسبب عرض PII البريد
+   - لا تُنشأ تنبيهات `raw PII table query` على هذه الـ hooks لأن RLS يحميها
 
-### 4) ما لن أفعله
+**ما لن أفعله:**
+- لن أُنشئ ملفات zatca وهمية
+- لن أُحوّل استعلامات الـ hooks الإدارية إلى `contracts_safe` (سيُكسر الـ join مع unit/property ولا يضيف أماناً)
+- لن أُعدّل أي منطق إنتاجي
 
-- لن أُعيد كتابة اختبارات smoke للصفحات. سياسة المشروع (`mem://testing/automated-test-suite-strategy`) تفضّل اختبار الـ hooks لأن المكونات logic-less.
-- لن ألمس أي كود إنتاجي.
-- لن أضيف `it.skip` — حسب اختيارك: حذف صريح.
-
-عند الموافقة، أُنفّذ الدفعة A ثم B في رسالة واحدة وأرفق تقرير `vitest` نهائي.
+عند الموافقة، أُنفّذ التعديلين وأنتهي.
