@@ -11,7 +11,7 @@ import { Loader2, AlertTriangle, ArrowLeftRight, FileDown, Printer } from 'lucid
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { printDistributionReport } from '@/utils/export/printDistributionReport';
 import { defaultNotify } from '@/lib/notify';
-import { useDistributionCalculation } from '@/hooks/page/admin/financial/useDistributionCalculation';
+import { useDistributionCalculation } from '@/hooks/domain/financial/useDistributionCalculation';
 
 interface Beneficiary {
   id: string;
