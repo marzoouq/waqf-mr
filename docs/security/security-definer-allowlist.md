@@ -98,10 +98,22 @@
 | `cron_archive_old_access_logs()` | أرشفة `access_logs` القديمة. |
 | `cron_auto_expire_contracts()` | إنهاء العقود المنتهية تلقائياً. |
 | `cron_check_contract_expiry()` | فحص العقود المقاربة للانتهاء وإرسال تنبيهات. |
+| `cron_check_late_payments()` | فحص الدفعات المتأخرة وإصدار تنبيهات. |
+| `cron_check_slow_queries()` | تتبّع الاستعلامات البطيئة وإرسال تقرير صحة. |
+| `cron_check_zatca_cert_expiry()` | تنبيه عند اقتراب انتهاء شهادة ZATCA. |
 | `cron_cleanup_old_notifications()` | حذف الإشعارات القديمة. |
 | `cron_update_overdue_invoices()` | تحديث حالة الفواتير المتأخرة. |
 | `cleanup_expired_challenges()` | تنظيف WebAuthn challenges المنتهية. |
 | `cleanup_pending_invoice_chain()` | تنظيف فواتير ICV غير المثبّتة. |
+
+## مساعدات تشفير PII (تُستدعى من triggers و Edge Functions)
+
+| الدالة | المبرر |
+|---|---|
+| `encrypt_pii(text)` | تشفير AES-256 لأي قيمة PII قبل التخزين. |
+| `decrypt_pii(text)` | فك التشفير؛ يتحقق من admin أو ملكية الصف عبر المستدعي. |
+| `get_pii_key()` | يُرجع مفتاح التشفير من `vault.secrets`؛ DEFINER إلزامي. |
+| `lookup_by_national_id(text)` | بحث آمن عن طريق رقم الهوية المشفّر؛ يتحقق من الدور. |
 
 ## Email Queue Internals (تُستدعى من process-email-queue Edge Function)
 
