@@ -25,7 +25,11 @@ export const SECTION_LABELS: Record<string, string> = {
   notifications: 'سجل الإشعارات',
   carryforward: 'الترحيلات والخصومات',
   financial_reports: 'التقارير المالية',
-  settings: 'إعدادات الحساب',
+  settings: 'إعدادات النظام',
+  zatca: 'إدارة ZATCA',
+  diagnostics: 'تشخيص النظام',
+  email_monitor: 'مراقبة البريد',
+  comparison: 'المقارنة التاريخية',
 };
 
 /** مفاتيح أقسام لوحة تحكم الناظر/المحاسب */
@@ -33,7 +37,18 @@ export const ADMIN_SECTION_KEYS = [
   'properties', 'contracts', 'income', 'expenses', 'beneficiaries',
   'reports', 'accounts', 'users', 'invoices', 'bylaws', 'messages',
   'audit_log', 'annual_report', 'support', 'chart_of_accounts',
+  'settings', 'zatca', 'diagnostics', 'email_monitor', 'comparison',
 ] as const satisfies readonly (keyof typeof SECTION_LABELS)[];
+
+/**
+ * أقسام محمية لا يمكن للناظر إخفاؤها — تحمي من حبس الناظر خارج الإعدادات
+ * أو إدارة المستخدمين بإخفاء غير مقصود. تُعرض في UI كـ Switch معطّل.
+ */
+export const PROTECTED_ADMIN_SECTIONS = ['settings', 'users'] as const;
+export type ProtectedAdminSectionKey = typeof PROTECTED_ADMIN_SECTIONS[number];
+
+export const isProtectedAdminSection = (key: string): boolean =>
+  (PROTECTED_ADMIN_SECTIONS as readonly string[]).includes(key);
 
 /** مفاتيح أقسام واجهة المستفيد */
 export const BENEFICIARY_SECTION_KEYS = [
