@@ -59,9 +59,14 @@ export async function searchContracts(
   { pattern, fiscalYearId, limit = 5, signal }: SearchOpts,
   variant: 'admin' | 'safe',
 ): Promise<ContractSearchRow[]> {
-  const table = variant === 'admin' ? 'contracts' : 'contracts_safe';
   const filter = `contract_number.ilike.${pattern},tenant_name.ilike.${pattern}`;
-  let q = supabase.from(table).select(CONTRACT_FIELDS).or(filter).limit(limit);
+  if (variant === 'admin') {
+    let q = supabase.from('contracts').select(CONTRACT_FIELDS).or(filter).limit(limit);
+    if (isFyReady(fiscalYearId)) q = q.eq('fiscal_year_id', fiscalYearId!);
+    const { data } = await q.abortSignal(signal);
+    return (data ?? []) as ContractSearchRow[];
+  }
+  let q = supabase.from('contracts_safe').select(CONTRACT_FIELDS).or(filter).limit(limit);
   if (isFyReady(fiscalYearId)) q = q.eq('fiscal_year_id', fiscalYearId!);
   const { data } = await q.abortSignal(signal);
   return (data ?? []) as ContractSearchRow[];
