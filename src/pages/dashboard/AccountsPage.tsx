@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { Plus, Lock, Wallet } from 'lucide-react';
+import { Plus, Lock, Wallet, FileText, Users } from 'lucide-react';
 import { ExportMenu, DeferredRender, StatsGridSkeleton, LockedYearBanner } from '@/components/common';
 import { useAccountsPage } from '@/hooks/page/admin/financial/useAccountsPage';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
@@ -35,6 +35,14 @@ const AccountsPage = () => {
           actions={<>
             {/* #6 — استخدام LockedYearBanner بدل span inline */}
             <LockedYearBanner isClosed={page.isClosed} role={role} />
+            <Button onClick={page.handleExportDisclosurePdf} variant="outline" size="sm" className="gap-1.5">
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">الإفصاح PDF</span>
+            </Button>
+            <Button onClick={page.handleExportDistributionPdf} variant="outline" size="sm" className="gap-1.5">
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">توزيع الحصص PDF</span>
+            </Button>
             <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={page.handleExportCsv} />
             <Button onClick={page.handleCreateAccount} className="gradient-primary gap-2" disabled={page.createAccountPending}>
               <Plus className="w-4 h-4" />

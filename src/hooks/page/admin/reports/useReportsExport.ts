@@ -104,5 +104,27 @@ export function useReportsExport(input: ReportsExportInput) {
     }
   };
 
-  return { handleExportPDF, handleExportDisclosure, handleExportForensic };
+  const handleExportDistribution = async () => {
+    try {
+      const { generateDistributionsPDF } = await loadPdfModule();
+      await generateDistributionsPDF({
+        fiscalYearLabel: input.fiscalYearLabel,
+        availableAmount: input.availableAmount,
+        distributions: input.distributionData.map(d => ({
+          beneficiary_name: d.name ?? 'غير معروف',
+          share_percentage: d.percentage ?? 0,
+          share_amount: d.amount,
+          advances_paid: 0,
+          carryforward_deducted: 0,
+          net_amount: d.amount,
+          deficit: 0,
+        })),
+      }, input.pdfWaqfInfo);
+      uiNotify.success('تم تصدير تقرير توزيع الحصص');
+    } catch {
+      uiNotify.error('تعذّر تصدير تقرير توزيع الحصص');
+    }
+  };
+
+  return { handleExportPDF, handleExportDisclosure, handleExportForensic, handleExportDistribution };
 }

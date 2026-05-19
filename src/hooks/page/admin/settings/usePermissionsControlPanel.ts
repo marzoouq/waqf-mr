@@ -9,7 +9,7 @@ import { useBeneficiaryWidgets } from '@/hooks/data/settings/useBeneficiaryWidge
 import { useNotificationSettings, type NotificationSettings } from '@/hooks/data/settings/useNotificationSettings';
 import { uiNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
-import { ROLE_SECTION_DEFS, makeDefaults } from '@/constants/sections';
+import { ROLE_SECTION_DEFS, makeDefaults, PROTECTED_ADMIN_SECTIONS, isProtectedAdminSection } from '@/constants/sections';
 import { defaultAdminSections, defaultBeneficiarySections } from '@/constants/navigation';
 import { BENEFICIARY_WIDGET_KEYS } from '@/constants/beneficiaryWidgets';
 import { useLogAccessEvent } from '@/hooks/data/audit/useLogAccessEvent';
@@ -59,7 +59,16 @@ export const usePermissionsControlPanel = () => {
     }));
   };
 
-  const toggleAdminSection = (key: string) => setAdminSections(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleAdminSection = (key: string) => {
+    if (isProtectedAdminSection(key)) return;
+    setAdminSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+  /** يضمن أن المفاتيح المحمية = true قبل أي كتابة لـ DB */
+  const normalizeAdminSections = (s: Record<string, boolean>): Record<string, boolean> => {
+    const out = { ...s };
+    for (const k of PROTECTED_ADMIN_SECTIONS) out[k] = true;
+    return out;
+  };
   const toggleBeneficiarySection = (key: string) => setBeneficiarySections(prev => ({ ...prev, [key]: !prev[key] }));
   const toggleWidget = (key: string) => setWidgets(prev => ({ ...prev, [key]: !prev[key] }));
   const toggleNotifyExpiry = () => setNotifSettings(prev => ({
@@ -82,9 +91,10 @@ export const usePermissionsControlPanel = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const safeAdminSections = normalizeAdminSections(adminSections);
       await Promise.all([
         updateJsonSetting('role_permissions', perms),
-        updateJsonSetting('sections_visibility', adminSections),
+        updateJsonSetting('sections_visibility', safeAdminSections),
         updateJsonSetting('beneficiary_sections', beneficiarySections),
         updateJsonSetting('beneficiary_widgets', widgets),
         updateJsonSetting('notification_settings', notifSettings),
@@ -104,7 +114,7 @@ export const usePermissionsControlPanel = () => {
 
   const handleReset = () => {
     setPerms(DEFAULT_ROLE_PERMS);
-    setAdminSections(defaultAdminSections);
+    setAdminSections(normalizeAdminSections(defaultAdminSections));
     setBeneficiarySections(defaultBeneficiarySections);
     setWidgets(defaultWidgets);
     setNotifSettings({

@@ -17,7 +17,7 @@ import {
 import ReportsSummaryCards from '@/components/reports/ReportsSummaryCards';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
+import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ExportMenu } from '@/components/common';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
@@ -48,7 +48,7 @@ const ReportsPage = () => {
 
   const fiscalYearLabel = currentAccount?.fiscal_year || fiscalYear?.label || '';
 
-  const { handleExportPDF, handleExportDisclosure, handleExportForensic } = useReportsExport({
+  const { handleExportPDF, handleExportDisclosure, handleExportForensic, handleExportDistribution } = useReportsExport({
     pdfWaqfInfo, fiscalYearLabel,
     totalIncome, totalExpenses, netRevenue,
     adminShare, waqifShare, waqfRevenue,
@@ -72,6 +72,10 @@ const ReportsPage = () => {
             <Button onClick={handleExportDisclosure} variant="outline" className="gap-2">
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">الإفصاح السنوي PDF</span>
+            </Button>
+            <Button onClick={handleExportDistribution} variant="outline" className="gap-2">
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">توزيع الحصص PDF</span>
             </Button>
             <Button onClick={handleExportForensic} variant="outline" className="gap-2">
               <ShieldCheck className="w-4 h-4" />
