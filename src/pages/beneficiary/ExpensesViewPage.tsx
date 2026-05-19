@@ -99,6 +99,7 @@ const ExpensesViewPage = () => {
                     onEdit={noop}
                     onDelete={noop}
                     isLocked={h.isLocked}
+                    readOnly
                   />
                   <ExpensesDesktopTable
                     items={h.paginatedExpenses}
@@ -108,6 +109,7 @@ const ExpensesViewPage = () => {
                     onEdit={noop}
                     onDelete={noop}
                     isLocked={h.isLocked}
+                    readOnly
                     sortField={h.sortField}
                     sortDir={h.sortDir}
                     onSort={h.handleSort}

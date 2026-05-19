@@ -13,21 +13,9 @@ import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
+import type { InvoiceSourceFilter, UnifiedInvoiceItem } from '@/types/invoices';
 
-export type InvoiceSourceFilter = 'all' | 'expense' | 'rent';
-
-export interface UnifiedInvoiceItem {
-  id: string;
-  invoice_type: string;
-  invoice_number: string | null;
-  amount: number;
-  date: string;
-  status: string;
-  file_path: string | null;
-  file_name: string | null;
-  property?: { property_number: string } | null;
-  source: 'expense' | 'rent';
-}
+export type { InvoiceSourceFilter, UnifiedInvoiceItem };
 
 export function useInvoicesViewPage() {
   const isMobile = useIsMobile();

@@ -18,9 +18,11 @@ interface ExpensesMobileCardsProps {
   onEdit: (item: Expense) => void;
   onDelete: (target: { id: string; name: string }) => void;
   isLocked: boolean;
+  /** يُخفي أزرار التعديل/الحذف بالكامل (للعروض القرائية المحضة) */
+  readOnly?: boolean;
 }
 
-const ExpensesMobileCards = ({ items, expenseInvoiceMap, expandedRow, setExpandedRow, onEdit, onDelete, isLocked }: ExpensesMobileCardsProps) => (
+const ExpensesMobileCards = ({ items, expenseInvoiceMap, expandedRow, setExpandedRow, onEdit, onDelete, isLocked, readOnly = false }: ExpensesMobileCardsProps) => (
   <div className="space-y-3 md:hidden px-3 py-2">
     {items.map((item) => {
       const attachCount = expenseInvoiceMap.get(item.id) || 0;
@@ -38,10 +40,12 @@ const ExpensesMobileCards = ({ items, expenseInvoiceMap, expandedRow, setExpande
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">{item.date}</p>
               </div>
-              <div className="flex gap-1 shrink-0">
-                <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => onDelete({ id: item.id, name: `مصروف ${item.expense_type}` })} disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
-              </div>
+              {!readOnly && (
+                <div className="flex gap-1 shrink-0">
+                  <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => onDelete({ id: item.id, name: `مصروف ${item.expense_type}` })} disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
               <div><p className="text-[11px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-destructive">-{fmt(safeNumber(item.amount))} ر.س</p></div>

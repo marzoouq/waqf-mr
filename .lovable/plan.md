@@ -1,59 +1,77 @@
+## السياق
 
-## التشخيص الجنائي
+بعد فحص صارم للمكونات الأربعة (لوحة الناظر/المستفيد × فواتير/مصروفات) ظهر تناقضان:
 
-- لا توجد صفحة `/beneficiary/expenses` إطلاقاً، ولا hook، ولا مدخل في `beneficiaryRoutes.tsx`. المستفيد يرى المصروفات حالياً فقط كمخططات مجمَّعة داخل `FinancialReportsPage` (`expensesByTypeExcludingVat` + `monthly_expenses`) بلا جدول، بلا بحث، بلا فلاتر، بلا توثيق، بلا تصدير.
-- `DEFAULT_ROLE_PERMS.beneficiary` لا يحوي `expenses`. الناظر لديه `/dashboard/expenses` كامل: PageHeader + Summary + Pie + Budget + Search + AdvancedFilters + Table + Mobile + Pagination + Export PDF/CSV + ربط بالفواتير لحساب نسبة التوثيق.
-- على مستوى DB: `Authorized roles can view expenses` تسمح للمستفيد والواقف بـ SELECT، و`Restrict unpublished fiscal year data on expenses` يحجب السنوات غير المنشورة — لا تغيير DB مطلوب.
-- `ExpensesDesktopTable`/`ExpensesMobileCards` يخفيان زرّي التعديل والحذف عند `isLocked=true`، فيمكن إعادة استخدامهما كقراءة فقط دون تكرار.
+| الصفحة | يقرأ من | ملاحظة |
+|--------|---------|--------|
+| `/dashboard/invoices` (الناظر) | `invoices` فقط | **لا يرى فواتير الإيجار** |
+| `/beneficiary/invoices` (المستفيد) | `invoices` + `payment_invoices` | يرى الاثنين بتبويبات (الكل/إيجار/شراء) |
+| `/dashboard/expenses` (الناظر) | `expenses` + إضافة/تعديل/حذف | الأزرار فعّالة |
+| `/beneficiary/expenses` (المستفيد) | `expenses` للقراءة فقط | أزرار Edit/Trash **مرئية معطّلة** بدل إخفائها |
 
-## القرار
+**التناقض الأول (فواتير):** الناظر يرى عدداً أقل من المستفيد في نفس السنة المالية — لأن `payment_invoices` (فواتير الإيجار التي يولّدها نظام العقود تلقائياً) غير مدمجة في لوحته. عملياً الناظر يستطيع إصدار فاتورة من قالب (`invoices`)، لكنه لا يرى/يدير فواتير الإيجار المُولَّدة، فيشعر أن "لوحة الفواتير = لوحة المصروفات".
 
-إنشاء شاشة مستفيد متطابقة بصرياً ووظيفياً مع شاشة الناظر، باستثناء الكتابة (لا إضافة/تعديل/حذف/ميزانية)، عبر hook قراءة-فقط مشتق من نفس hooks البيانات. لا يتغيّر شيء في صفحة الناظر.
+**التناقض الثاني (مصروفات المستفيد):** المكوّن المشترك `ExpensesDesktopTable/ExpensesMobileCards` يطبّق `disabled={isLocked}` على زرّي Edit/Trash، فيظهران رماديّين بلا فائدة.
 
-## التغييرات
+---
 
-### 1) طبقة الـhook (قراءة-فقط)
+## الخطة
 
-- `src/hooks/page/beneficiary/views/useExpensesViewPage.ts` جديد:
-  - يستهلك `useExpensesByFiscalYear`, `useInvoicesByFiscalYear`, `useProperties`, `useFiscalYear`, `usePdfWaqfInfo`, `useTableSort`.
-  - يُعيد نفس مفاتيح `useExpensesPage` التي تستخدمها مكونات العرض: `expenses, isLoading, properties, totalExpenses, uniqueTypes, expenseInvoiceMap, documentedCount, documentationRate, filteredExpenses, paginatedExpenses, searchQuery, setSearchQuery, filters, setFilters, sortField, sortDir, handleSort, currentPage, setCurrentPage, ITEMS_PER_PAGE, expandedRow, setExpandedRow, handleExportPdf, handleExportCsv, fiscalYearId, isClosed`.
-  - يُثبّت `isLocked = true` دائماً (يعطّل أزرار التحرير/الحذف في الجداول المشتركة).
-  - يحذف: `createExpense/updateExpense/deleteExpense`, `formData`, `isOpen`, `editingExpense`, `handleSubmit`, `handleEdit`, `handleConfirmDelete`, `deleteTarget`, `canAdd`.
+### 1) إخفاء أزرار Edit/Trash للمستفيد بدل تعطيلها
 
-### 2) صفحة المستفيد
+تعديل المكوّنين المشتركين لإضافة prop جديد `readOnly` (افتراضياً `false`) — عندما يكون `true` تُحذف خلية/كتلة الإجراءات بالكامل من DOM.
 
-- `src/pages/beneficiary/ExpensesViewPage.tsx` جديد، يطابق `pages/dashboard/ExpensesPage.tsx` تخطيطاً مع الفروق:
-  - `PageHeaderCard` بعنوان "مصروفات الوقف" ووصف "للاطلاع فقط — جميع مصروفات الوقف".
-  - `actions` يحتوي `ExportMenu` فقط (لا `ExpenseFormDialog`).
-  - يحذف `LockedYearBanner` ويستبدله ببنر مستفيد موحَّد بصياغة "عرض للاطلاع فقط" متّسق مع باقي صفحات `*ViewPage`.
-  - يحذف `ExpenseBudgetBar` (إدارة ميزانية ليست من اختصاص المستفيد) ويُبقي `ExpenseSummaryCards` و`ExpensesPieChart`.
-  - يستخدم نفس `AdvancedFiltersBar` + بحث + `ExpensesDesktopTable`/`ExpensesMobileCards` + `TablePagination` (الأزرار التحريرية مخفية تلقائياً عبر `isLocked`).
-  - بدون `ConfirmDeleteDialog`.
+- `src/components/expenses/ExpensesDesktopTable.tsx` — رأس "الإجراءات" + `<TableCell>` للأزرار يُلفّان بـ `{!readOnly && (...)}`.
+- `src/components/expenses/ExpensesMobileCards.tsx` — `<div className="flex gap-1 shrink-0">` يُلفّ بـ `{!readOnly && (...)}`.
+- `src/pages/beneficiary/ExpensesViewPage.tsx` — تمرير `readOnly={true}` (يبقى `isLocked` كما هو لمنع التعديل من شاشات أخرى).
+- لوحة الناظر تبقى دون تغيير: `readOnly` غير مُمرَّر → الأزرار تظهر كما هي (مع `disabled` للسنوات المُقفلة).
 
-### 3) التوجيه والصلاحيات والملاحة
+### 2) توحيد لوحة فواتير الناظر مع فواتير الإيجار
 
-- `src/routes/beneficiaryRoutes.tsx`: استيراد كسول للصفحة + Route `/beneficiary/expenses` بحماية `ALL_NON_ACCOUNTANT` (مطابقاً لباقي صفحات العرض).
-- `src/constants/rolePermissions.ts`: إضافة `expenses: true` لـ `beneficiary` و`waqif`.
-- `src/constants/routeRegistry.ts`: إضافة سجل لـ `/beneficiary/expenses` بنفس الـ`labelKey/sectionKey: 'expenses'`.
-- `src/constants/beneficiaryWidgets.ts` (إن كان يحدّد عناصر القائمة الجانبية للمستفيد): إضافة عنصر "المصروفات" أو التأكد من ظهوره عبر إذن `expenses`. أتحقق من المصدر الفعلي للقائمة وأعدّله بالحد الأدنى.
+دمج `payment_invoices` في `/dashboard/invoices` بنفس فلسفة لوحة المستفيد، مع الإبقاء على صلاحيات الإنشاء/التعديل/الحذف لمصدر `expense` فقط:
 
-### 4) اختبارات
+**أ. نقل النوع المشترك:**
+- نقل `UnifiedInvoiceItem` + `InvoiceSourceFilter` من `useInvoicesViewPage.ts` إلى `src/types/invoices.ts`.
+- استيرادهما في كلا الهوكين.
 
-- `useExpensesViewPage.test.ts`: 
-  - يُعيد نفس عدد المصروفات الذي يعيده hook الناظر لنفس السنة.
-  - الفلتر/البحث/الفرز/الترقيم يتطابق.
-  - `documentationRate` و`documentedCount` متطابقان مع الناظر.
-  - لا يُصدِّر دوال كتابة (`createExpense`, `updateExpense`, `deleteExpense` غير موجودة في الإرجاع).
-- `ExpensesViewPage.test.tsx`: يعرض الجدول، لا يعرض زر "إضافة مصروف"، لا يعرض أزرار تعديل/حذف، يعرض `ExportMenu`.
+**ب. توسيع `useInvoicesPage`:**
+- إضافة `usePaymentInvoices(fiscalYearId)` بجانب `useInvoicesByFiscalYear`.
+- بناء `unifiedInvoices: UnifiedInvoiceItem[]` (دمج + ترتيب تنازلي حسب التاريخ).
+- إضافة state `sourceFilter: InvoiceSourceFilter` (افتراضي `'all'`).
+- تحديث `useInvoicesFilters` لقبول الـ unified list + `sourceFilter`؛ فلتر `filterType` يُطبَّق فقط على `source==='expense'`.
+- `invoicesWithoutFiles` يفحص كلا المصدرين.
+- `handleGeneratePdfForMissing` يستدعي Edge Function `generate-invoice-pdf` مع `sourceTable` المناسب لكل صف (الـ Edge Function تدعمهما أصلاً).
+- `handleConfirmDelete` و `handleEdit` يعملان فقط لـ `source==='expense'` (تأكيد بالـ guard).
 
-### 5) ذاكرة المشروع
+**ج. تحديث صفحة `InvoicesPage.tsx`:**
+- إضافة شريط تبويبات (الكل/إيجار/شراء) فوق فلاتر النوع/الحالة (نفس الـ Tabs من صفحة المستفيد).
+- `InvoiceSummaryCards` يبقى لمصدر `expense` فقط (لتفادي خلط VAT/الإجماليات).
+- في الجدول والشبكة: شارة `source` (إيجار/شراء) بجانب رقم الفاتورة، وعرض `payment_number/payment_count` للإيجار بصيغة "العقد X — الدفعة n/m" بدلاً من تكرار الاسم.
+- أزرار Edit/Delete/Upload تُخفى للصفوف ذات `source==='rent'` (تُعرض فقط: عرض الملف + توليد PDF + معاينة).
+- زرّ "إنشاء من قالب" يبقى كما هو (يُنشئ فقط `invoices` — فواتير الإيجار تُولَّد تلقائياً من العقود).
 
-- `mem://business-logic/finance/beneficiary-expenses-view-parity`: صفحة `/beneficiary/expenses` تطابق `/dashboard/expenses` في البيانات والفلاتر والملخصات والتصدير، وتختلف فقط بإخفاء الإضافة/التحرير/الحذف وإدارة الميزانية. مصدر البيانات `useExpensesByFiscalYear` نفسه عبر `useExpensesViewPage`.
+**د. تحديث المكوّنات المشتركة:**
+- `InvoicesDesktopTable`, `InvoiceGridView`, `MobileCardView` items: قبول `UnifiedInvoiceItem` مع `source` و conditional rendering لأزرار الكتابة.
+
+### 3) اختبارات
+
+- `useInvoicesPage.test.ts`: التحقق من أن `sourceFilter='all'` يدمج المصدرين، وأن `handleEdit/handleConfirmDelete` يُتجاهلان لصف `rent`، وأن `invoicesWithoutFiles` يشمل المصدرين.
+- `ExpensesViewPage.test.tsx`: تأكيد أن `readOnly=true` يُخفي كل أزرار Edit/Trash من DOM (وليس `disabled` فقط).
+- مقارنة بيانات: نفس `fiscal_year_id` → نفس عدد الفواتير في لوحة الناظر ولوحة المستفيد.
+
+### 4) توثيق الذاكرة
+
+تحديث الذاكرة:
+- `mem://business-logic/finance/invoices-page-unified-source` — قاعدة جديدة: لوحة الفواتير لكلا الدورين تقرأ `invoices` + `payment_invoices` معاً، والكتابة محصورة بمصدر `expense`.
+- إضافة ملاحظة في `mem://business-logic/finance/beneficiary-expenses-view-parity` بأن أزرار الإجراءات تُخفى عبر `readOnly` لا `disabled`.
+
+---
 
 ## معايير القبول
 
-- فتح `/dashboard/expenses` و`/beneficiary/expenses` على نفس السنة المنشورة → نفس عدد المصروفات، نفس الإجمالي، نفس قائمة الأنواع، نفس نسبة التوثيق.
-- المستفيد لا يرى أزرار إضافة/تعديل/حذف/ميزانية، ويرى Export PDF/CSV ويعملان.
-- الفلاتر (نوع، عقار، تاريخ من/إلى) والبحث والفرز والترقيم تعمل بنفس سلوك الناظر.
-- السنوات غير المنشورة لا تظهر للمستفيد (RLS قائم).
-- اختبارات `check-conventions.mjs` و`vitest` تمر بصفر مخالفات.
+1. صفحة `/beneficiary/expenses`: لا يوجد أي زر تعديل/حذف في DOM (`document.querySelector('[aria-label="تعديل"]')` يعطي null).
+2. صفحة `/dashboard/invoices` في نفس السنة المالية تعرض **نفس** إجمالي الفواتير الذي تعرضه `/beneficiary/invoices` (مجموع `invoices` + `payment_invoices`).
+3. الناظر يستطيع: إنشاء من قالب، تعديل، حذف، رفع ملف، توليد PDF — للمصدر `expense` فقط.
+4. الناظر يستطيع: عرض ملف، معاينة، توليد PDF — للمصدر `rent`. أزرار التعديل/الحذف غير موجودة في DOM لصفوف `rent`.
+5. سنة مالية مُقفلة: سلوك الناظر كما كان (`disabled` على أزرار الكتابة لمصدر `expense`).
+6. `bun run check:conventions` و `bunx vitest run` بدون أخطاء جديدة.
