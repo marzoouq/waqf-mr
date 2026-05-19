@@ -9,6 +9,7 @@ export * from './dashboard/useBeneficiaryFinancials';
 export * from './financial/useAccountsViewPage';
 export * from './financial/useCarryforwardData';
 export * from './financial/useDisclosurePage';
+export * from './financial/useExpensesViewPage';
 export * from './financial/useFinancialReportsPage';
 export * from './financial/useInvoicesViewPage';
 export * from './financial/useMySharePage';
