@@ -36,7 +36,7 @@ export const supportService = {
       resolution_notes?: string;
       assigned_to?: string;
       resolved_at?: string;
-    } = { status: input.status };
+    const updates: SupportTicketUpdate = { status: input.status };
     if (input.resolution_notes) updates.resolution_notes = input.resolution_notes;
     if (input.assigned_to) updates.assigned_to = input.assigned_to;
     if (input.status === 'resolved' || input.status === 'closed') {
