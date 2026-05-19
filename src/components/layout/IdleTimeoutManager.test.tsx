@@ -102,7 +102,7 @@ describe('IdleTimeoutManager', () => {
     expect(h.signOutMock).toHaveBeenCalledTimes(1);
     expect(h.performCleanupMock).toHaveBeenCalledTimes(1);
     expect(h.loggerErrorMock).toHaveBeenCalledWith(
-      expect.stringContaining('[IdleTimeout]'),
+      expect.stringContaining('[IdleTimeoutManager]'),
       err,
     );
     expect(window.location.href).toBe('/auth?reason=idle');
@@ -120,6 +120,7 @@ describe('IdleTimeoutManager', () => {
     expect(h.logAccessEventMock).toHaveBeenCalledWith({
       event_type: 'idle_logout',
       user_id: 'u1',
+      metadata: { reason: 'idle' },
     });
     const logOrder = h.logAccessEventMock.mock.invocationCallOrder[0] ?? 0;
     const signOutOrder = h.signOutMock.mock.invocationCallOrder[0] ?? 0;

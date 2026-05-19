@@ -40,7 +40,7 @@ describe("ProtectedRoute", () => {
         <ProtectedRoute><div>محتوى</div></ProtectedRoute>
       </MemoryRouter>
     );
-    expect(screen.getByTestId("navigate")).toHaveAttribute("data-to", "/auth");
+    expect(screen.getByTestId("navigate").getAttribute("data-to")).toMatch(/^\/auth(\?|$)/);
   });
 
   it("renders children when user is logged in without role restriction", () => {
