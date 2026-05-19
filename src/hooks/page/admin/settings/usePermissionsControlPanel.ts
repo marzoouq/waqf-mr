@@ -59,7 +59,16 @@ export const usePermissionsControlPanel = () => {
     }));
   };
 
-  const toggleAdminSection = (key: string) => setAdminSections(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleAdminSection = (key: string) => {
+    if (isProtectedAdminSection(key)) return;
+    setAdminSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+  /** يضمن أن المفاتيح المحمية = true قبل أي كتابة لـ DB */
+  const normalizeAdminSections = (s: Record<string, boolean>): Record<string, boolean> => {
+    const out = { ...s };
+    for (const k of PROTECTED_ADMIN_SECTIONS) out[k] = true;
+    return out;
+  };
   const toggleBeneficiarySection = (key: string) => setBeneficiarySections(prev => ({ ...prev, [key]: !prev[key] }));
   const toggleWidget = (key: string) => setWidgets(prev => ({ ...prev, [key]: !prev[key] }));
   const toggleNotifyExpiry = () => setNotifSettings(prev => ({
