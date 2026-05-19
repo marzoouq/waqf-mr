@@ -199,10 +199,22 @@ export function parseJwtClaims(token: string): Record<string, unknown> | null {
   }
 }
 
-/** يتحقق ما إذا كان الـ JWT ينتمي لدور service_role (يستخدم في cron jobs). */
+/**
+ * يتحقق بشكل آمن ما إذا كان token مطابقاً لمفتاح SERVICE_ROLE الحقيقي.
+ * يستخدم مقارنة ثابتة الزمن (constant-time) لتفادي timing attacks.
+ * ─────────────────────────────────────────────────────────────────────────
+ * ⚠️ لا تستخدم parseJwtClaims هنا — JWT بدون تحقق التوقيع قابل للتزوير
+ *    (أي شخص يستطيع صياغة JWT بـ role=service_role).
+ *    المقارنة الفعلية بالمفتاح من env هي مصدر الثقة الوحيد.
+ */
 export function isServiceRole(token: string): boolean {
   if (!token) return false;
-  const claims = parseJwtClaims(token);
-  return claims?.role === "service_role";
+  if (!SUPABASE_SERVICE_ROLE_KEY) return false;
+  const a = new TextEncoder().encode(token);
+  const b = new TextEncoder().encode(SUPABASE_SERVICE_ROLE_KEY);
+  if (a.byteLength !== b.byteLength) return false;
+  let diff = 0;
+  for (let i = 0; i < a.byteLength; i++) diff |= a[i] ^ b[i];
+  return diff === 0;
 }
 
