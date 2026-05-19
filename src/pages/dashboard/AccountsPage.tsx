@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { Plus, Lock, Wallet } from 'lucide-react';
+import { Plus, Lock, Wallet, FileText, Users } from 'lucide-react';
 import { ExportMenu, DeferredRender, StatsGridSkeleton, LockedYearBanner } from '@/components/common';
 import { useAccountsPage } from '@/hooks/page/admin/financial/useAccountsPage';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
