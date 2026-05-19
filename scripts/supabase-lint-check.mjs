@@ -25,12 +25,12 @@ if (!TOKEN || !REF) {
 // قائمة دوال SECURITY DEFINER المسموح لها بالاستدعاء من المستخدمين المسجلين.
 // كل دالة هنا تتحقق من الدور أو ملكية الصف داخلياً قبل تنفيذ أي عملية حساسة.
 const ALLOWLIST_0029 = new Set([
-  // RLS helpers — تُستدعى من سياسات RLS لكل المستخدمين المصادقين
+  // ── RLS helpers — تُستدعى من سياسات RLS ──
   'has_role',
   'is_fiscal_year_accessible',
   'get_total_beneficiary_percentage',
 
-  // Dashboards / Reports — تتحقق من الدور وتفلتر بـ auth.uid()
+  // ── Dashboards / Reports — تتحقق من الدور وتفلتر بـ auth.uid() ──
   'get_dashboard_full_summary',
   'get_dashboard_kpis',
   'get_beneficiary_dashboard',
@@ -44,7 +44,7 @@ const ALLOWLIST_0029 = new Set([
   'get_support_analytics',
   'get_support_stats',
 
-  // Workflow RPCs — تتحقق من admin/accountant داخلياً
+  // ── Workflow RPCs — تتحقق من admin/accountant داخلياً ──
   'close_fiscal_year',
   'reopen_fiscal_year',
   'execute_distribution',
@@ -60,14 +60,54 @@ const ALLOWLIST_0029 = new Set([
   'log_access_event',
   'check_rate_limit',
 
-  // ZATCA chain — تحمي تسلسل ICV، تُستدعى من Edge Functions باسم المستخدم
+  // ── ZATCA chain ──
   'allocate_icv_and_chain',
   'commit_icv_chain',
   'reserve_icv',
   'get_next_icv',
   'get_active_zatca_certificate',
   'clear_zatca_otp',
+
+  // ── Trigger functions — لا تُستدعى عبر PostgREST، لكن DEFINER لازم لتعديل جداول محمية ──
+  'audit_app_settings_trigger',
+  'audit_trigger_func',
+  'auto_revoke_anon_execute',
+  'enforce_single_active_fy',
+  'encrypt_beneficiary_pii',
+  'encrypt_zatca_private_key',
+  'prevent_category_circular_ref',
+  'prevent_closed_fiscal_year_modification',
+  'prevent_fiscal_year_overlap',
+  'prevent_issued_invoice_modification',
+  'sync_role_to_auth_meta',
+  'sync_unit_status_on_contract_change',
+  'update_support_ticket_timestamp',
+  'validate_advance_request_amount',
+  'validate_advance_status_transition',
+  'validate_invoice_chain_ref',
+  'validate_invoice_chain_reference',
+  'validate_ticket_rating',
+  'validate_zatca_certificate_activation',
+
+  // ── Auth hook — يُستدعى من GoTrue، لا من المستخدمين ──
+  'custom_access_token_hook',
+
+  // ── Cron / background — تُستدعى من pg_cron فقط ──
+  'cron_archive_old_access_logs',
+  'cron_auto_expire_contracts',
+  'cron_check_contract_expiry',
+  'cron_cleanup_old_notifications',
+  'cron_update_overdue_invoices',
+  'cleanup_expired_challenges',
+  'cleanup_pending_invoice_chain',
+
+  // ── Email queue internals — تُستدعى من process-email-queue Edge Function ──
+  'enqueue_email',
+  'read_email_batch',
+  'delete_email',
+  'move_to_dlq',
 ]);
+
 
 // قائمة الدوال العامة (anon-callable) المسموح استدعاؤها بدون تسجيل دخول.
 // كل دالة هنا موسومة في DB بـ COMMENT يحمل '[anon-callable]'، والـ event trigger
