@@ -116,6 +116,84 @@ export function useAccountsPage() {
     settings.manualVat, settings.zakatAmount, settings.waqfCorpusManual,
   ]);
 
+  // 8. تصديرات PDF إضافية — الإفصاح وتقرير التوزيع تعتمد على نفس السنة المالية النشطة
+  const pdfWaqfInfo = usePdfWaqfInfo();
+  const fiscalYearLabel = data.selectedFY?.label || settings.fiscalYear || '';
+
+  const handleExportDisclosurePdf = useCallback(async () => {
+    try {
+      const { generateAnnualDisclosurePDF } = await import('@/utils/pdf');
+      await generateAnnualDisclosurePDF({
+        fiscalYear: fiscalYearLabel,
+        totalIncome: calc.totalIncome,
+        totalExpenses: calc.totalExpenses,
+        waqfCorpusPrevious: settings.waqfCorpusPrevious,
+        grandTotal: calc.grandTotal,
+        netAfterExpenses: calc.netAfterExpenses,
+        vatAmount: settings.manualVat,
+        netAfterVat: calc.netAfterVat,
+        zakatAmount: settings.zakatAmount,
+        netAfterZakat: calc.netAfterZakat,
+        adminShare: calc.adminShare,
+        waqifShare: calc.waqifShare,
+        waqfRevenue: calc.waqfRevenue,
+        waqfCorpusManual: settings.waqfCorpusManual,
+        availableAmount: calc.availableAmount,
+        distributionsAmount: settings.manualDistributions,
+        remainingBalance: calc.remainingBalance,
+        incomeBySource: calc.incomeBySource,
+        expensesByType: calc.expensesByType,
+        beneficiaries: data.beneficiaries.map(b => ({
+          name: b.name ?? 'غير معروف',
+          share_percentage: Number(b.share_percentage ?? 0),
+          amount: totalBenPct > 0 ? (calc.availableAmount * Number(b.share_percentage ?? 0)) / totalBenPct : 0,
+        })),
+        adminPct: settings.adminPercent,
+        waqifPct: settings.waqifPercent,
+      }, pdfWaqfInfo);
+      uiNotify.success('تم تصدير الإفصاح السنوي');
+    } catch {
+      uiNotify.error('تعذّر تصدير الإفصاح السنوي');
+    }
+  }, [
+    fiscalYearLabel, pdfWaqfInfo, data.beneficiaries,
+    calc.totalIncome, calc.totalExpenses, calc.grandTotal, calc.netAfterExpenses,
+    calc.netAfterVat, calc.netAfterZakat, calc.adminShare, calc.waqifShare,
+    calc.waqfRevenue, calc.availableAmount, calc.remainingBalance,
+    calc.incomeBySource, calc.expensesByType,
+    settings.waqfCorpusPrevious, settings.manualVat, settings.zakatAmount,
+    settings.waqfCorpusManual, settings.manualDistributions,
+    settings.adminPercent, settings.waqifPercent, totalBenPct,
+  ]);
+
+  const handleExportDistributionPdf = useCallback(async () => {
+    try {
+      const { generateDistributionsPDF } = await import('@/utils/pdf');
+      const distributions = data.beneficiaries.map(b => {
+        const pct = Number(b.share_percentage ?? 0);
+        const amount = totalBenPct > 0 ? (calc.availableAmount * pct) / totalBenPct : 0;
+        return {
+          beneficiary_name: b.name ?? 'غير معروف',
+          share_percentage: pct,
+          share_amount: amount,
+          advances_paid: 0,
+          carryforward_deducted: 0,
+          net_amount: amount,
+          deficit: 0,
+        };
+      });
+      await generateDistributionsPDF({
+        fiscalYearLabel,
+        availableAmount: calc.availableAmount,
+        distributions,
+      }, pdfWaqfInfo);
+      uiNotify.success('تم تصدير تقرير توزيع الحصص');
+    } catch {
+      uiNotify.error('تعذّر تصدير تقرير توزيع الحصص');
+    }
+  }, [fiscalYearLabel, pdfWaqfInfo, data.beneficiaries, calc.availableAmount, totalBenPct]);
+
+
   return {
     // Data
     accounts: data.accounts, contracts: data.contracts, beneficiaries: data.beneficiaries,
