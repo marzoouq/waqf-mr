@@ -53,4 +53,20 @@ describe('Page → Page-Hook binding contract', () => {
       expect(content, `${file} must NOT use ${banned}`).not.toMatch(new RegExp(`\\b${banned}\\b`));
     }
   });
+
+  // عقد عام عبر regex: لا تسرّب طبقات الـ hooks بين الواجهتين
+  describe('Cross-layer page-hook isolation (regex)', () => {
+    const ADMIN_PAGES = BINDINGS.filter((b) => b.file.startsWith('src/pages/dashboard/')).map((b) => b.file);
+    const BENEFICIARY_PAGES = BINDINGS.filter((b) => b.file.startsWith('src/pages/beneficiary/')).map((b) => b.file);
+
+    it.each(ADMIN_PAGES)('%s لا تستورد من hooks/page/beneficiary', (file) => {
+      const content = read(file);
+      expect(content).not.toMatch(/from\s+['"]@\/hooks\/page\/beneficiary/);
+    });
+
+    it.each(BENEFICIARY_PAGES)('%s لا تستورد من hooks/page/admin', (file) => {
+      const content = read(file);
+      expect(content).not.toMatch(/from\s+['"]@\/hooks\/page\/admin/);
+    });
+  });
 });
