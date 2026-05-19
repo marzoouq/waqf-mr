@@ -11,8 +11,6 @@ export {
   getSlowQueries,
   clearSlowQueries,
   reportPageLoadMetrics,
-  type PerfEntry,
-  type PerfTimerOptions,
 } from './queryMonitor';
 
 export {
@@ -23,7 +21,6 @@ export {
   subscribePerfUpdates,
   getPerfRevision,
   notifyPerfUpdate,
-  type PageLoadEntry,
   type PagePerfSummary,
 } from './pageMonitor';
 

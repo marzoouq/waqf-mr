@@ -10,5 +10,5 @@ export { useLandingPageTab } from './useLandingPageTab';
 export { useBiometricSettings } from './useBiometricSettings';
 export { useRolePermissionsTab } from './useRolePermissionsTab';
 export { usePermissionsControlPanel, PERMISSIONS_ROLES } from './usePermissionsControlPanel';
-export { useAdvanceSettingsTab, type AdvanceSettingsForm } from './useAdvanceSettingsTab';
+export { useAdvanceSettingsTab } from './useAdvanceSettingsTab';
 export { useLandingStatsSettings } from './useLandingStatsSettings';
