@@ -31,11 +31,6 @@ export const supportService = {
     resolution_notes?: string;
     assigned_to?: string;
   }): Promise<void> {
-    const updates: {
-      status: string;
-      resolution_notes?: string;
-      assigned_to?: string;
-      resolved_at?: string;
     const updates: SupportTicketUpdate = { status: input.status };
     if (input.resolution_notes) updates.resolution_notes = input.resolution_notes;
     if (input.assigned_to) updates.assigned_to = input.assigned_to;
