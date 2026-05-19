@@ -2,6 +2,10 @@
  * هوك صفحة الفواتير — orchestrator نحيف يجمع helpers مفصلة:
  * - useInvoicesFilters / useInvoiceFormState / useInvoiceFileUpload
  * - useInvoicePreviewBuilder / useInvoicesExport / useInvoiceSubmit
+ *
+ * يدمج فواتير الشراء (invoices) وفواتير الإيجار (payment_invoices) في عرض موحّد.
+ * الكتابة (إنشاء/تعديل/حذف/رفع) مقصورة على مصدر expense — فواتير الإيجار تُولَّد
+ * تلقائياً من العقود ولا يُسمح بتعديلها هنا (انظر mem://business-logic/finance/invoices-page-unified-source).
  */
 import { useState, useMemo } from 'react';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
@@ -10,7 +14,9 @@ import {
   INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear,
   useGenerateInvoicePdf,
 } from '@/hooks/data/invoices/useInvoices';
-import type { InvoicePreviewData } from '@/types/invoices';
+import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
+import type { InvoicePreviewData, InvoiceSourceFilter, UnifiedInvoiceItem } from '@/types/invoices';
+import { safeNumber } from '@/utils/format/safeNumber';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
