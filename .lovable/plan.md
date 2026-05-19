@@ -1,39 +1,49 @@
 ## الهدف
-تحديث مسارات `vi.mock` في `IncomePage.test.tsx` و`ExpensesPage.test.tsx` لتطابق البنية الحالية بعد Core Modularization v7، وإضافة Mock مفقود لـ `useAuth`.
+إضافة اختبارَي تكامل يضمنان أن صفحتَي الدخل والمصروفات:
+1. تستهلكان مسارات hooks الجديدة (post-Core Modularization v7) — لا تسرّب للمسارات القديمة.
+2. عمليات CRUD تعكس تغييرات قاعدة البيانات في الواجهة (عبر TanStack Query invalidation).
 
-## التغييرات
+## الملفات الجديدة (داخل `src/test/`)
 
-### 1) `src/pages/dashboard/IncomePage.test.tsx`
-تحديث مسارات `vi.mock`:
-| المسار القديم | المسار الجديد |
-|---|---|
-| `@/hooks/data/useIncome` | `@/hooks/data/financial/useIncome` |
-| `@/hooks/data/useProperties` | `@/hooks/data/properties/useProperties` |
-| `@/hooks/data/useContracts` | `@/hooks/data/contracts/useContracts` |
-| `@/hooks/data/usePaymentInvoices` | `@/hooks/data/invoices/usePaymentInvoices` |
-| `@/hooks/data/usePdfWaqfInfo` | `@/hooks/data/settings/usePdfWaqfInfo` |
-| `@/hooks/domain/financial/useFiscalYears` | يبقى كما هو (التحقق من الوجود) |
+### 1) `src/test/incomeExpensesHookPathsContract.test.ts` — عقد المسارات
 
-إضافة Mock جديد:
-- `@/hooks/auth/session/useAuthContext` → `useAuth` يُعيد `{ role: 'admin' }` لتفعيل `canAdd` ومنع `isLocked`.
+اختبار static يقرأ الملفات التالية ويتحقق من imports/mocks:
 
-### 2) `src/pages/dashboard/ExpensesPage.test.tsx`
-تحديث مسارات `vi.mock`:
-| المسار القديم | المسار الجديد |
-|---|---|
-| `@/hooks/data/useExpenses` | `@/hooks/data/financial/useExpenses` |
-| `@/hooks/data/useInvoices` | `@/hooks/data/invoices/useInvoices` |
-| `@/hooks/data/useProperties` | `@/hooks/data/properties/useProperties` |
-| `@/hooks/data/usePdfWaqfInfo` | `@/hooks/data/settings/usePdfWaqfInfo` |
+| الملف | يجب أن يحتوي | يجب ألا يحتوي |
+|---|---|---|
+| `src/hooks/page/admin/financial/useIncomePage.ts` | `@/hooks/data/financial/useIncome`, `@/hooks/data/properties/useProperties`, `@/hooks/data/contracts/useContracts`, `@/hooks/data/invoices/usePaymentInvoices`, `@/hooks/data/settings/usePdfWaqfInfo`, `@/hooks/auth/session/useAuthContext` | `@/hooks/data/useIncome`, `@/hooks/data/useProperties`, `@/hooks/data/useContracts`, `@/hooks/data/usePaymentInvoices`, `@/hooks/data/usePdfWaqfInfo` |
+| `src/hooks/page/admin/financial/useExpensesPage.ts` | `@/hooks/data/financial/useExpenses`, `@/hooks/data/invoices/useInvoices`, `@/hooks/data/properties/useProperties`, `@/hooks/data/settings/usePdfWaqfInfo`, `@/hooks/auth/session/useAuthContext` | `@/hooks/data/useExpenses`, `@/hooks/data/useInvoices` |
+| `src/pages/dashboard/IncomePage.test.tsx` | نفس المسارات الجديدة في `vi.mock(...)` | المسارات القديمة |
+| `src/pages/dashboard/ExpensesPage.test.tsx` | نفس المسارات الجديدة في `vi.mock(...)` | المسارات القديمة |
 
-إضافة Mock جديد:
-- `@/hooks/auth/session/useAuthContext` → `useAuth` يُعيد `{ role: 'admin' }`.
+كل تأكيد عبر regex على المحتوى المقروء بـ `readFileSync`.
 
-### 3) التحقق
-- تشغيل `bunx vitest run src/pages/dashboard/IncomePage.test.tsx src/pages/dashboard/ExpensesPage.test.tsx`
-- التأكد من نجاح جميع الاختبارات (6 لـ Income و8 لـ Expenses).
-- في حال فشل اختبارات بسبب اختلافات في النصوص (مثل عنوان "إدارة الدخل" vs النص الفعلي في الصفحة)، أُحدّث النصوص لتطابق ما يعرضه الـ Page الحالي.
+### 2) `src/test/incomeExpensesCrudReflection.test.tsx` — انعكاس CRUD على الواجهة
+
+اختبار يستخدم `renderHook` من `@testing-library/react` مع `QueryClientProvider` ومحاكاة Supabase client.
+
+**Mock Supabase chain**:
+- `mockDb = { income: [...], expenses: [...] }`
+- `supabase.from(table)` يعيد builder يدعم `.select().order().eq().limit().maybeSingle().single()` للقراءة، و`.insert().select().maybeSingle()` و`.update().eq().select().single()` و`.delete().eq()` للكتابة.
+- كل mutation تعدّل `mockDb[table]` فعلياً ثم تعيد الصف.
+
+**سيناريو لكل جدول (income, expenses)**:
+1. Mount `useXByFiscalYear('fy1')` → تأكيد البيانات الأولية (سجلَين مثلاً).
+2. استدعاء `useCreateX().mutateAsync(newRow)` → انتظار refetch → التحقق أن `.data.length === 3` ويحوي الصف الجديد.
+3. `useUpdateX().mutateAsync({ id, amount: 99 })` → التحقق أن الصف ظهر بالقيمة الجديدة.
+4. `useDeleteX().mutateAsync(id)` → التحقق أن الصف اختفى.
+
+كل خطوة عبر `waitFor` لانتظار invalidateQueries → refetch.
+
+**Mocks الإضافية**:
+- `@/lib/notify` (uiNotify silent)
+- `@/lib/logger`
+- `@/utils/notifications` (notifyAllBeneficiaries no-op)
+
+### التحقق
+- `bunx vitest run src/test/incomeExpensesHookPathsContract.test.ts src/test/incomeExpensesCrudReflection.test.tsx`
+- التأكد من نجاح جميع الاختبارات.
 
 ## النطاق
-- ملفان فقط داخل `src/pages/dashboard/`.
-- لا تغييرات على كود الإنتاج أو الهوكس أو الصفحات.
+- ملفان جديدان فقط في `src/test/`.
+- لا تعديل على كود الإنتاج أو الـ hooks أو الصفحات.
