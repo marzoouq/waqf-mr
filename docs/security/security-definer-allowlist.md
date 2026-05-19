@@ -157,7 +157,33 @@
 > `scripts/supabase-lint-check.mjs`.
 
 ## كيف يعمل فحص CI
-- Workflow: `.github/workflows/ci.yml` (خطوة "Supabase security linter").
-- السكربت: `scripts/supabase-lint-check.mjs`.
-- يفشل البناء عند ظهور أي تحذير `0028` أو `0029` خارج هذه القائمة.
+- Workflow: `.github/workflows/ci.yml`.
+- خطوتان:
+  1. **Supabase security linter** → `scripts/supabase-lint-check.mjs` — يفشل عند أي تحذير `0028` أو `0029` خارج Allowlist.
+  2. **SECURITY DEFINER allowlist sync** → `scripts/security-definer-sync-check.mjs` — يفشل عند أي عدم تطابق بين DB، السكربت، والتوثيق.
 - يتطلب أسرار GitHub: `SUPABASE_ACCESS_TOKEN` و `SUPABASE_PROJECT_REF`.
+
+## فحص المزامنة — الخيارات القابلة للضبط
+
+سكربت `security-definer-sync-check.mjs` يقبل CLI flags ومتغيرات بيئة (CLI تطغى):
+
+| Flag | Env | افتراضي | الوصف |
+|---|---|---|---|
+| `--check-doc` | `CHECK_DOC_SYNC` | `true` | فعّل مقارنة التوثيق ↔ السكربت. |
+| `--check-db` | `CHECK_DB_SYNC` | `true` | فعّل مقارنة DB ↔ Allowlist. |
+| `--schemas` | `DEFINER_SCHEMAS` | `public` | Schemas مفصولة بفواصل. |
+| `--name-pattern` | `DEFINER_NAME_PATTERN` | `.*` | Regex POSIX لتصفية أسماء الدوال. |
+| `--exclude-pattern` | `DEFINER_EXCLUDE_PATTERN` | `^$` | Regex لاستثناء أسماء (مثل `^test_`). |
+| `--doc-path` | `ALLOWLIST_DOC_PATH` | `docs/security/security-definer-allowlist.md` | مسار ملف التوثيق. |
+| `--strict` | `STRICT_MODE` | `true` | فشل البناء عند أي فرق (false = warning فقط). |
+| `--report-json` | `REPORT_JSON_PATH` | فارغ | حفظ التقرير كـ JSON. |
+
+أمثلة:
+```bash
+node scripts/security-definer-sync-check.mjs --check-doc=false
+node scripts/security-definer-sync-check.mjs --exclude-pattern='^cron_'
+node scripts/security-definer-sync-check.mjs --strict=false --report-json=sync-report.json
+```
+
+يمكن أيضاً تشغيل CI يدوياً (`workflow_dispatch`) لتجاوز الافتراضيات.
+
