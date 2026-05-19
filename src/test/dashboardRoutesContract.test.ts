@@ -68,7 +68,7 @@ describe('Dashboard routes ↔ pages contract', () => {
   it.each(Object.keys(allRoutes))('المسار %s مربوط بملف Page موجود', (route) => {
     const file = ROUTE_TO_FILE[route];
     expect(file, `Missing ROUTE_TO_FILE entry for ${route}`).toBeTruthy();
-    expect(existsSync(resolve(ROOT, file)), `File not found: ${file}`).toBe(true);
+    expect(existsSync(resolve(ROOT, file!)), `File not found: ${file}`).toBe(true);
   });
 
   it.each(Object.entries(ROUTE_TO_FILE))(
