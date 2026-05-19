@@ -123,3 +123,17 @@ npm run lint && npx tsc --noEmit && npm run build && npm test && npm audit
 ## التزام AGENTS
 
 يُطبَّق هذا البروتوكول مع تعليمات التنفيذ الواردة في `AGENTS.md`، وأي تعارض يُحل لصالح الأكثر تقييدًا للأمان والجودة.
+
+## معايير المشروع الشاملة
+
+التفاصيل الكاملة لكل فئة محفوظة كقواعد ذاكرة تُطبَّق تلقائياً على كل جلسة:
+
+| الفئة | المرجع |
+|------|--------|
+| أسلوب الكود واصطلاحات التسمية | `mem://conventions/code-style-and-naming` |
+| المكتبات المفضلة والأنماط المعمارية | `mem://conventions/libraries-and-architecture` |
+| متطلبات الاختبار وجودة الكود | `mem://conventions/testing-and-quality` |
+| تفضيلات اللغة وصوت العلامة وإرشادات UI | `mem://conventions/language-and-brand-voice` |
+| ممنوعات Lovable | `mem://conventions/lovable-forbidden-actions` |
+
+عند أي تعارض مع نص ثابت في `AGENTS.md` أو هذا الملف، تُعتمد الذاكرة.
