@@ -19,7 +19,7 @@ interface InvoiceItem {
   file_path: string | null;
   file_name: string | null;
   property?: { property_number: string } | null;
-  source?: 'expense' | 'rent';
+  source?: 'purchase' | 'rent';
 }
 
 interface InvoicesViewMobileCardsProps {
@@ -41,7 +41,7 @@ export default function InvoicesViewMobileCards({ invoices, statusBadgeVariant, 
   return (
     <div className="space-y-3">
       {invoices.map((item) => (
-        <Card key={`${item.source || 'expense'}-${item.id}`} className="shadow-sm">
+        <Card key={`${item.source || 'purchase'}-${item.id}`} className="shadow-sm">
           <CardContent className="p-3 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">

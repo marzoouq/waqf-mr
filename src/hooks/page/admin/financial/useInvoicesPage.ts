@@ -60,7 +60,7 @@ export const useInvoicesPage = () => {
       file_path: inv.file_path,
       file_name: inv.file_name,
       property: inv.property ? { property_number: inv.property.property_number } : null,
-      source: 'expense',
+      source: 'purchase',
     }));
     const rentItems: UnifiedInvoiceItem[] = rentInvoices.map((inv) => ({
       id: inv.id,
@@ -138,7 +138,7 @@ export const useInvoicesPage = () => {
   // مشتقات
   const invoicesWithoutFiles = useMemo(
     () => [
-      ...invoices.filter(inv => !inv.file_path).map(inv => ({ id: inv.id, source: 'expense' as const })),
+      ...invoices.filter(inv => !inv.file_path).map(inv => ({ id: inv.id, source: 'purchase' as const })),
       ...rentInvoices.filter(inv => !inv.file_path).map(inv => ({ id: inv.id, source: 'rent' as const })),
     ],
     [invoices, rentInvoices]

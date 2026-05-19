@@ -8,15 +8,21 @@
 import { useMemo } from 'react';
 import { useAppSettings } from './useAppSettings';
 import { defaultAdminSections, defaultBeneficiarySections } from '@/constants/navigation';
+import { PROTECTED_ADMIN_SECTIONS } from '@/constants/sections';
 
 export function useSectionsVisibility() {
   const { getJsonSetting } = useAppSettings();
 
   const adminSections = useMemo<Record<string, boolean>>(
-    () => ({
-      ...defaultAdminSections,
-      ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}),
-    }),
+    () => {
+      const merged = {
+        ...defaultAdminSections,
+        ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}),
+      };
+      // إجبار الأقسام المحمية على true دائماً — حتى لو حُدِّثت يدوياً في DB
+      for (const key of PROTECTED_ADMIN_SECTIONS) merged[key] = true;
+      return merged;
+    },
     [getJsonSetting],
   );
 

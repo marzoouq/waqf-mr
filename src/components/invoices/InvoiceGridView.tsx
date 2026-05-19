@@ -24,7 +24,7 @@ export interface GridInvoiceItem {
   file_name: string | null;
   property?: { property_number: string } | null;
   vat_amount?: number;
-  source?: 'expense' | 'rent';
+  source?: 'purchase' | 'rent';
 }
 
 interface InvoiceGridViewProps {

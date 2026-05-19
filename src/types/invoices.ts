@@ -60,8 +60,16 @@ export interface PaymentInvoice {
   };
 }
 
-/** فلتر مصدر الفواتير في الصفحات الموحّدة (المستفيد + الناظر) */
-export type InvoiceSourceFilter = 'all' | 'expense' | 'rent';
+/**
+ * فلتر مصدر الفواتير في الصفحات الموحّدة (المستفيد + الناظر).
+ *
+ * - `purchase`: مستندات ضريبية صادرة عن مصروف/خدمة شراء (جدول `invoices`).
+ *   ⚠️ "فاتورة شراء" هنا ≠ "سجل مصروف تشغيلي". الفاتورة مستند ZATCA،
+ *   والمصروف سجل محاسبي داخلي. الربط بينهما اختياري عبر `invoices.expense_id`
+ *   لأغراض التوثيق (documentationRate) فقط.
+ * - `rent`: فواتير إيجار مولّدة تلقائياً من العقود (جدول `payment_invoices`).
+ */
+export type InvoiceSourceFilter = 'all' | 'purchase' | 'rent';
 
 /** صف فاتورة موحّد يدمج invoices + payment_invoices للعرض المشترك */
 export interface UnifiedInvoiceItem {
@@ -74,7 +82,7 @@ export interface UnifiedInvoiceItem {
   file_path: string | null;
   file_name: string | null;
   property?: { property_number: string } | null;
-  source: 'expense' | 'rent';
+  source: 'purchase' | 'rent';
 }
 
 /** خصم أو رسوم إضافية */
