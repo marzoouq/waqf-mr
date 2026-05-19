@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save } from 'lucide-react';
-import { useSecuritySettings } from '@/hooks/page/shared/useSecuritySettings';
+import { useSecuritySettings } from '@/hooks/application/useSecuritySettings';
 
 const SecurityTab = () => {
   const { isLoading, saving, idleMinutes, setIdleMinutes, handleSaveIdleTimeout } = useSecuritySettings();

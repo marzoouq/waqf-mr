@@ -6,7 +6,7 @@
 import { type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { usePermissionCheck } from '@/hooks/page/shared/usePermissionCheck';
+import { usePermissionCheck } from '@/hooks/application/usePermissionCheck';
 import { uiNotify } from '@/lib/notify';
 
 interface Props {
