@@ -91,9 +91,10 @@ export const usePermissionsControlPanel = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const safeAdminSections = normalizeAdminSections(adminSections);
       await Promise.all([
         updateJsonSetting('role_permissions', perms),
-        updateJsonSetting('sections_visibility', adminSections),
+        updateJsonSetting('sections_visibility', safeAdminSections),
         updateJsonSetting('beneficiary_sections', beneficiarySections),
         updateJsonSetting('beneficiary_widgets', widgets),
         updateJsonSetting('notification_settings', notifSettings),
