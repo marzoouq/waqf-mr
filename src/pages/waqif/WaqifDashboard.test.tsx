@@ -11,7 +11,7 @@ const mockUseAuth = vi.fn(() => ({
   loading: false,
 }));
 
-vi.mock('@/hooks/auth/useAuthContext', () => ({
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: () => mockUseAuth(),
 }));
 

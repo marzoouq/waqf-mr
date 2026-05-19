@@ -7,7 +7,7 @@
  */
 import { useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/cn';

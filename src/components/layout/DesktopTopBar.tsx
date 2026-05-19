@@ -2,7 +2,7 @@
  * شريط العلوي للديسكتوب في لوحة التحكم
  */
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Lock, User } from 'lucide-react';
 import ThemeToggle from '@/components/theme/ThemeToggle';

@@ -4,7 +4,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 
 export const useUnreadMessages = () => {

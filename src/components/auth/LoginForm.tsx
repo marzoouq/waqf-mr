@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { useLoginForm } from '@/hooks/auth/useLoginForm';
+import { useLoginForm } from '@/hooks/auth/flows/useLoginForm';
 import BiometricLoginButton from './BiometricLoginButton';
 import ServerErrorAlert from './ServerErrorAlert';
 import LoginMethodSelector from './login/LoginMethodSelector';

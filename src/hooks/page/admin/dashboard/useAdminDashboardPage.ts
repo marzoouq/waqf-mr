@@ -10,7 +10,7 @@
 import { usePrint } from '@/hooks/ui/usePrint';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useDashboardSummary, useDashboardSecondary } from '@/hooks/data/financial/useDashboardSummary';
 import { useAdminDashboardData } from '@/hooks/page/admin/dashboard/useAdminDashboardData';
 import { useAccountantDashboardData } from '@/hooks/page/admin/dashboard/useAccountantDashboardData';

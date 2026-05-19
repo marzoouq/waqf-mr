@@ -4,7 +4,7 @@
  *  مستفيد/واقف من /beneficiary/messages)
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/messaging/useMessaging';
 import { useBeneficiaries } from '@/hooks/data/beneficiaries/useBeneficiaries';
 

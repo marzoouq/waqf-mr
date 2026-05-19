@@ -11,7 +11,7 @@ import { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteE
 import { useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { Expense } from '@/types';
 import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';

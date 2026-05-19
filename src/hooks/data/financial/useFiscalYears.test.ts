@@ -10,7 +10,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: () => ({ select: vi.fn().mockReturnValue({ order: vi.fn().mockReturnValue({ limit: vi.fn().mockResolvedValue({ data: mockFiscalYears, error: null }) }) }) }) },
 }));
 
-vi.mock('@/hooks/auth/useAuthContext', () => ({
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: () => ({ user: { id: 'user-1' }, role: 'admin', loading: false }),
 }));
 

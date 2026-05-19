@@ -1,5 +1,5 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useCallback, useRef } from 'react';
 import { Conversation, Message } from '@/types';
 import { enqueueUserNotification } from '@/lib/services';

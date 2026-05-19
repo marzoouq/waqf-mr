@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ShieldX, Home, ArrowRight, Building2, UserCog } from 'lucide-react';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { RouteHead } from '@/components/seo/RouteHead';
 
 const ROLE_LABELS: Record<string, string> = {

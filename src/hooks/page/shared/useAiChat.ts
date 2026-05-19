@@ -3,7 +3,7 @@
  * يدعم: Streaming، Fallback UI، إعادة المحاولة
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logger } from '@/lib/logger';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;

@@ -17,7 +17,7 @@ vi.mock('recharts', () => ({
   Legend: () => <div />,
 }));
 
-vi.mock('@/hooks/auth/useAuthContext', () => ({
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'u1', email: 'ben@waqf.com' }, role: 'beneficiary', signOut: vi.fn() })),
 }));
 

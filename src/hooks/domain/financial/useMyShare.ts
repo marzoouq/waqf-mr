@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/useTotalBeneficiaryPercentage';
 import { safeNumber } from '@/utils/format/safeNumber';
 

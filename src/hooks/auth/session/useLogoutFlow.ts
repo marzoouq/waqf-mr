@@ -4,7 +4,7 @@
  */
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 
 export function useLogoutFlow() {

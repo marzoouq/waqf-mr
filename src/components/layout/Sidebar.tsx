@@ -4,7 +4,7 @@
  * - SidebarNavList: قائمة الروابط
  * - SidebarUserFooter: معلومات المستخدم + خروج
  */
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useSetting } from '@/hooks/data/settings/useAppSettings';
 import { SidebarBrand } from './sidebar/SidebarBrand';
 import { SidebarNavList, type NavLinkItem, type NavGroupItem } from './sidebar/SidebarNavList';

@@ -47,7 +47,7 @@ const baseMySharePageState = {
   navigate: vi.fn(),
 };
 
-vi.mock('@/hooks/auth/useAuthContext', () => ({
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary' })),
 }));
 

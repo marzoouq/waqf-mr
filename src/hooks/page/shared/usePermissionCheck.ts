@@ -1,7 +1,7 @@
 /**
  * هوك فحص صلاحية الوصول لمسار معين حسب الدور والإعدادات
  */
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
 import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
 import {

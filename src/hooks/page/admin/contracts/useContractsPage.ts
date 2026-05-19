@@ -15,7 +15,7 @@ import { useProperties } from '@/hooks/data/properties/useProperties';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useContractsFilters } from './useContractsFilters';

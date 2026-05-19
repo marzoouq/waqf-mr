@@ -3,7 +3,7 @@
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { executeGlobalSearch, type SearchResult } from '@/lib/search/globalSearchFn';

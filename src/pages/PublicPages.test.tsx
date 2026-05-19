@@ -3,7 +3,7 @@ import { act, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('@/hooks/auth/useAuthContext', () => ({
+vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
@@ -50,7 +50,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 
 import Auth from './Auth';

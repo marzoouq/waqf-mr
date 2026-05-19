@@ -7,7 +7,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import type { BeneficiaryDashboardData } from './types';

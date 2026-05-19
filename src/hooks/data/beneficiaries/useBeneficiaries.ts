@@ -17,7 +17,7 @@ import { rpc } from '@/lib/api/rpc';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { Beneficiary } from '@/types';
 import { notifyAdmins } from '@/lib/services';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 const beneficiariesCrud = createCrudFactory<'beneficiaries', Beneficiary>({
   table: 'beneficiaries',

@@ -5,7 +5,7 @@
 import { useState, useRef } from 'react';
 import { useCreateAccount } from '@/hooks/data/financial/useAccounts';
 import { useCloseFiscalYear } from '@/hooks/data/financial/useCloseFiscalYear';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { notifyAllBeneficiaries } from '@/lib/services';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';

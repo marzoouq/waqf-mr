@@ -3,7 +3,7 @@
  */
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useBeneficiariesSafe } from '@/hooks/data/beneficiaries/useBeneficiaries';
 
 export const useBeneficiarySettingsPage = () => {

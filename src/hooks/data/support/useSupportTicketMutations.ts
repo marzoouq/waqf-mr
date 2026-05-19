@@ -4,7 +4,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
 import { uiNotify } from '@/lib/notify';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { supportService } from '@/lib/services/supportService';
 
 /** إنشاء تذكرة جديدة */

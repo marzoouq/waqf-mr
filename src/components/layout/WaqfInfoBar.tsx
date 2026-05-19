@@ -3,7 +3,7 @@
  */
 import { useState } from 'react';
 import { useWaqfInfo } from '@/hooks/data/settings/useAppSettings';
-import { useAuth } from '@/hooks/auth/useAuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Building2, ScrollText, User, Landmark, Info, Pencil } from 'lucide-react';

@@ -9,7 +9,7 @@ import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 import { EMAIL_REGEX } from '@/utils/validation/index';
 import PasswordStrengthBar from './PasswordStrengthBar';
 import ServerErrorAlert from './ServerErrorAlert';
-import { useFieldErrors, type FieldErrors } from '@/hooks/auth/useFieldErrors';
+import { useFieldErrors, type FieldErrors } from '@/hooks/auth/flows/useFieldErrors';
 
 interface SignupFormProps {
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;

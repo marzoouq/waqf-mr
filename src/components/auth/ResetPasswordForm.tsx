@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { usePasswordResetRequest } from '@/hooks/auth/usePasswordResetRequest';
+import { usePasswordResetRequest } from '@/hooks/auth/flows/usePasswordResetRequest';
 import { EMAIL_REGEX } from '@/utils/validation/index';
 
 interface ResetPasswordFormProps {
