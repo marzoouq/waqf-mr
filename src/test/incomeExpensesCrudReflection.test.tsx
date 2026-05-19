@@ -39,7 +39,7 @@ function buildQuery(table: string) {
     if (state.op === 'insert') {
       const payload = state.payload as Row;
       const inserted = { ...payload, id: payload.id ?? genId() };
-      mockDb[table].push(inserted);
+      (mockDb[table] ??= []).push(inserted);
       return { data: inserted, error: null };
     }
 
