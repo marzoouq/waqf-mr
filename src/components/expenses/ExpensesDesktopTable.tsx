@@ -23,6 +23,8 @@ interface ExpensesDesktopTableProps {
   sortField: SortField;
   sortDir: 'asc' | 'desc';
   onSort: (field: SortField) => void;
+  /** يُخفي عمود الإجراءات بالكامل (للعروض القرائية المحضة كصفحة المستفيد) */
+  readOnly?: boolean;
 }
 
 const SortIcon = ({ field, sortField, sortDir }: { field: SortField; sortField: SortField; sortDir: 'asc' | 'desc' }) => {
