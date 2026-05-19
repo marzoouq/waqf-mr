@@ -96,14 +96,14 @@
   },
   "overrides": {
     "dompurify": "$dompurify",
-    "postcss": "$postcss",
+    "postcss": "8.5.14",
     "fast-uri": "$fast-uri",
     "ws": "$ws",
     "@babel/plugin-transform-modules-systemjs": "7.29.4"
   },
   "resolutions": {
     "dompurify": "$dompurify",
-    "postcss": "$postcss",
+    "postcss": "8.5.14",
     "fast-uri": "$fast-uri",
     "ws": "$ws",
     "@babel/plugin-transform-modules-systemjs": "7.29.4"
