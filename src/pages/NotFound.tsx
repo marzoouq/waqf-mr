@@ -28,7 +28,7 @@ const NotFound = () => {
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="text-center max-w-md">
           <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-            <Search className="w-12 h-12 text-muted-foreground/60" />
+            <Search className="w-12 h-12 text-muted-foreground" />
           </div>
           <h1 className="text-6xl font-display font-bold text-foreground mb-3">٤٠٤</h1>
           <p className="text-xl font-bold text-foreground mb-2">الصفحة غير موجودة</p>
