@@ -38,7 +38,7 @@ export const ADMIN_SECTION_KEYS = [
 /** مفاتيح أقسام واجهة المستفيد */
 export const BENEFICIARY_SECTION_KEYS = [
   'properties', 'contracts', 'disclosure', 'share', 'carryforward',
-  'financial_reports', 'accounts', 'reports', 'invoices', 'bylaws',
+  'financial_reports', 'accounts', 'reports', 'invoices', 'expenses', 'bylaws',
   'messages', 'notifications', 'annual_report', 'support',
 ] as const;
 
