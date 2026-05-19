@@ -1,8 +1,9 @@
 /**
  * searchService — استعلامات البحث الشامل
  *
- * طبقة data-access نقية لكل كياناتBحث. تُستهلك من lib/search/globalSearchFn.ts
- * (composer) أو من أي page hook يحتاج بحثاً جزئياً.
+ * طبقة وصول بيانات (data-access service) لكيانات البحث.
+ * تُستهلك من lib/search/globalSearchFn.ts (composer) أو من أي page hook
+ * يحتاج بحثاً جزئياً. ليست pure — تعتمد على Supabase وAbortSignal.
  */
 import { supabase } from '@/integrations/supabase/client';
 import { isFyReady } from '@/constants/fiscalYearIds';
