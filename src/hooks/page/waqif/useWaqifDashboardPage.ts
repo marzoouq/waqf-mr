@@ -9,12 +9,13 @@ import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/da
 import { safeNumber } from '@/utils/format/safeNumber';
 import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
 import { computeContractualRevenue } from '@/utils/financial/computeContractualRevenue';
-import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
+// استيراد مباشر من ملفات end-user shared لتفادي cross-role coupling عبر barrel beneficiary
+import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/dashboard/useBeneficiaryFinancials';
+import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardData';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
