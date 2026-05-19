@@ -8,7 +8,8 @@
 import React, { useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
-import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
+import { invoke } from '@/lib/api/invoke';
+import { ApiError } from '@/lib/api/rpc';
 import { fetchUserRole } from '@/lib/auth/fetchUserRole';
 import { AuthStateContext, AuthActionsContext } from '@/hooks/auth/session/useAuthContext';
 import { useAuthListener } from '@/hooks/auth/session/useAuthListener';
