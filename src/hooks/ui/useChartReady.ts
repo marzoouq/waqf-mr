@@ -1,24 +1,56 @@
 /**
- * هوك للتأكد من جاهزية حاوية الرسم البياني قبل عرض ResponsiveContainer
- * يحل مشكلة width(-1) height(-1) في Recharts
+ * هوك للتأكد من جاهزية حاوية الرسم البياني قبل عرض ResponsiveContainer.
+ * يحل تحذير recharts: `width(-1) and height(-1) of chart should be greater than 0`.
+ *
+ * استراتيجية التحصين:
+ * - عتبة `>= 2px` لتجاوز قيم التخطيط الجزئية اللحظية.
+ * - فحص أولي متزامن عبر `getBoundingClientRect()` لتفادي وميض الحالة الفارغة
+ *   عندما تكون الحاوية مرئية مباشرة.
+ * - تأجيل `setReady(true)` داخل `requestAnimationFrame` ليُلتقط الرسم بعد
+ *   استقرار CSS layout.
+ * - لا نفصل `ResizeObserver` بعد أول قياس صالح؛ نفصله فقط عند unmount حتى
+ *   تستمر المراقبة عند remount داخل Tabs/Suspense.
  */
 import { useLayoutEffect, useState, useRef } from 'react';
 
+const MIN_DIM = 2;
+
 export function useChartReady() {
   const ref = useRef<HTMLDivElement>(null);
+  const readyRef = useRef(false);
+  const rafRef = useRef<number | null>(null);
   const [ready, setReady] = useState(false);
 
   useLayoutEffect(() => {
-    if (!ref.current) return;
+    const el = ref.current;
+    if (!el) return;
+
+    const markReady = () => {
+      if (readyRef.current) return;
+      readyRef.current = true;
+      rafRef.current = requestAnimationFrame(() => setReady(true));
+    };
+
+    // 1) فحص أولي متزامن
+    const rect = el.getBoundingClientRect();
+    if (rect.width >= MIN_DIM && rect.height >= MIN_DIM) {
+      markReady();
+    }
+
+    // 2) مراقبة مستمرة (دون فصل بعد أول قياس)
     const obs = new ResizeObserver((entries) => {
-      const { width, height } = entries[0]?.contentRect ?? {};
-      if (width && width > 0 && height && height > 0) {
-        setReady(true);
-        obs.disconnect();
+      const cr = entries[0]?.contentRect;
+      if (!cr) return;
+      if (cr.width >= MIN_DIM && cr.height >= MIN_DIM) {
+        markReady();
       }
     });
-    obs.observe(ref.current);
-    return () => obs.disconnect();
+    obs.observe(el);
+
+    return () => {
+      obs.disconnect();
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
   return { ref, ready };
