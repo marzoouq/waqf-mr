@@ -1,11 +1,14 @@
 /**
- * هوك البحث الشامل — منطق البحث + debounce + اختصارات لوحة المفاتيح
+ * هوك البحث الشامل — orchestration فقط.
+ * UI primitives مستخرَجة: useClickOutside / useKeyboardShortcut.
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
+import { useClickOutside } from '@/hooks/ui/useClickOutside';
+import { useKeyboardShortcut } from '@/hooks/ui/useKeyboardShortcut';
 import { executeGlobalSearch, type SearchResult } from '@/lib/search/globalSearchFn';
 import { SEARCH_DEBOUNCE_MS } from '@/constants/timing';
 
@@ -57,36 +60,22 @@ export function useGlobalSearch() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query, search]);
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  useClickOutside(containerRef, () => setIsOpen(false));
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        if (isMobile) {
-          setMobileOpen(true);
-        } else {
-          inputRef.current?.focus();
-          setIsOpen(true);
-        }
-      }
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-        setMobileOpen(false);
-        inputRef.current?.blur();
-      }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [isMobile]);
+  useKeyboardShortcut({ key: 'k', modifier: 'ctrlOrMeta' }, () => {
+    if (isMobile) {
+      setMobileOpen(true);
+    } else {
+      inputRef.current?.focus();
+      setIsOpen(true);
+    }
+  });
+
+  useKeyboardShortcut({ key: 'Escape', preventDefault: false }, () => {
+    setIsOpen(false);
+    setMobileOpen(false);
+    inputRef.current?.blur();
+  });
 
   const handleSelect = (result: SearchResult) => {
     navigate(result.path);
