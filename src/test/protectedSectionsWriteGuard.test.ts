@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-const updateJsonMock = vi.fn(async () => {});
+const updateJsonMock = vi.fn<(key: string, value: unknown) => Promise<void>>(async () => {});
 
 vi.mock('@/hooks/data/settings/useAppSettings', () => ({
   useAppSettings: () => ({ updateJsonSetting: updateJsonMock, isLoading: false, getJsonSetting: <T,>(_k: string, fb: T) => fb }),
