@@ -17,14 +17,9 @@
 const TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
 const REF = process.env.SUPABASE_PROJECT_REF;
 
-if (!TOKEN || !REF) {
-  console.warn('⚠️ SUPABASE_ACCESS_TOKEN أو SUPABASE_PROJECT_REF غير مضبوط — تخطّي فحص Supabase Linter.');
-  process.exit(0);
-}
-
 // قائمة دوال SECURITY DEFINER المسموح لها بالاستدعاء من المستخدمين المسجلين.
 // كل دالة هنا تتحقق من الدور أو ملكية الصف داخلياً قبل تنفيذ أي عملية حساسة.
-const ALLOWLIST_0029 = new Set([
+export const ALLOWLIST_0029 = new Set([
   // ── RLS helpers — تُستدعى من سياسات RLS ──
   'has_role',
   'is_fiscal_year_accessible',
