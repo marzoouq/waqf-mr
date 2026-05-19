@@ -1,49 +1,56 @@
+# فحص لوحة التحكم — تحذيرات React/Charts
 
-## الهدف
+## نتائج المسح
 
-إزالة تحذيرات `The width(-1) and height(-1) of chart should be greater than 0` المتكررة في الكونسول عند تحميل `/dashboard/reports` (ولوحات أخرى تستخدم Recharts).
+فحصت كل صفحات `/dashboard/*` (35 صفحة) وكل مكوّنات الرسوم البيانية:
 
-## السبب الجذري
+### ✅ سليم
+- **كل `ResponsiveContainer`** (14 موقع: dashboard, reports, expenses, waqif, annual-report) ملفوف بـ `ChartBox` أو `useChartReady` — لا تحذيرات `width(-1)` متوقعة بعد إصلاح `useChartReady` الأخير.
+- **لا توجد مشاكل Recharts** أخرى في الصفحات الأخرى.
 
-كل مكونات الرسوم تستخدم بالفعل `ChartBox` ← `useChartReady` ← `ResizeObserver` لتأجيل عرض `ResponsiveContainer` حتى تتوفر أبعاد للحاوية. لكن الحارس الحالي ضعيف في حالتين:
+### ⚠️ مصدر واحد لتحذير `React.Fragment data-state`
+- **`src/components/expenses/ExpensesDesktopTable.tsx:58,93`** — هذا هو المصدر الوحيد في كل الكود. تحذيراته الأربعة في console نشأت من 4 صفوف مصروفات تُعرض على `/dashboard/expenses`.
+- لا توجد حالات Fragment مشابهة في صفحات أخرى.
+- ملاحظة: `src/test/setup.ts:10` يقمع هذا التحذير في الاختبارات فقط — لكنه يظهر في dev console.
 
-1. **العتبة فضفاضة جداً**: الشرط `width > 0 && height > 0` يقبل قيماً جزئية (مثل 0.5px أثناء انتقالات تخطيط Grid)، فيُرندَر `ResponsiveContainer` قبل أن يستقر التخطيط فعلياً، فتقرأ `recharts` `clientWidth = -1` لحظياً.
-2. **`obs.disconnect()` بعد أول `ready=true`**: إذا أُعيد تركيب الرسم داخل `TabsContent` أو `Suspense` (lazy + remount)، نفقد التتبّع لإعادة القياسات اللاحقة، وقد تُرندَر بعض الحالات قبل قياس حقيقي.
-3. **عدم انتظار إطار رسم**: `setReady(true)` يحدث داخل callback الـ ResizeObserver وقد يتسبب بـ render في نفس الـ tick قبل أن يستقر CSS layout.
+## خطة الإصلاح
 
-## التغييرات
+### تعديل واحد فقط: `ExpensesDesktopTable.tsx`
 
-### 1) تحصين `src/hooks/ui/useChartReady.ts`
+تحويل التركيب من `React.Fragment` (الذي لا يقبل `data-state` الذي تمرره Radix tooltip/أي wrapper أعلى الشجرة) إلى مصفوفة `<TableRow>`s مع مفاتيح مستقلة:
 
-- رفع العتبة إلى `width >= 2 && height >= 2`.
-- تأجيل `setReady(true)` داخل `requestAnimationFrame` لضمان استقرار التخطيط.
-- **عدم** فصل `ResizeObserver` بعد أول قياس صالح؛ بدل ذلك حفظ آخر حالة في `useRef` ومنع `setState` المتكرر، مع فصل المراقب في `cleanup` فقط.
-- إضافة تحقق أولي متزامن عبر `getBoundingClientRect()` في `useLayoutEffect` للحالات التي تكون فيها الحاوية مرئية فوراً (يقلل وميض "فارغ").
-
-### 2) لا تغييرات على مستوى `ChartBox` ومستهلكيها
-
-`ChartBox` بالفعل يضمن `min-h-[1px]` ويُمرّر `height` ثابتاً (px أو tailwind class أو clamp). الحارس الموحَّد كافٍ لإصلاح جميع الرسوم (Reports/Dashboard/Annual/Waqif/...).
-
-### 3) التحقق
-
-- زيارة `/dashboard/reports` بعد الإصلاح والتحقق من خلو الكونسول من `width(-1) and height(-1)`.
-- زيارة `/dashboard` (يحتوي PieChart) للتأكد من عدم ظهور التحذير.
-- التحقق من تبديل التبويبات داخل `/dashboard/reports` (الأداء الشهري، التدفق النقدي، المقارنة) — لا يجب أن يظهر التحذير عند الانتقال.
-- لقطات شاشة قبل/بعد على عرض 1366×768.
-
-## ملف يتغيّر
-
-```text
-src/hooks/ui/useChartReady.ts   (~25 سطراً → ~40 سطراً)
+```tsx
+{items.flatMap((item) => {
+  const attachCount = expenseInvoiceMap.get(item.id) || 0;
+  const isExpanded = expandedRow === item.id;
+  const rows = [
+    <TableRow key={`${item.id}-main`} className={isExpanded ? 'border-b-0' : ''}>
+      {/* … محتوى الصف الحالي … */}
+    </TableRow>,
+  ];
+  if (isExpanded) {
+    rows.push(
+      <TableRow key={`${item.id}-expand`}>
+        <TableCell colSpan={7} className="bg-muted/30 p-3 border-b">
+          <ExpenseAttachments expenseId={item.id} />
+        </TableCell>
+      </TableRow>
+    );
+  }
+  return rows;
+})}
 ```
 
-## ما هو خارج النطاق
+ثم إزالة `import React` إذا لم يعد مستخدماً.
 
-- المشكلة الثانية (شارة "تجاوز 100%" في صفحة المستفيدين عند `100.00%` بالضبط) — أُعالجها في خطة منفصلة عند الطلب.
-- لا تغييرات على `recharts`، ولا على ChartBox أو مستهلكيها، ولا على منطق البيانات.
+## التحقق
 
-## معايير القبول
+1. إعادة تحميل `/dashboard/expenses` وتوسعة عدة صفوف.
+2. `read_console_logs` — يجب اختفاء الأربع تحذيرات `Invalid prop data-state supplied to React.Fragment`.
+3. تنقّل سريع عبر `/dashboard/contracts`, `/properties`, `/income`, `/beneficiaries`, `/reports` للتأكد من عدم ظهور تحذيرات Recharts أو Fragment جديدة.
 
-- صفر تحذيرات `width(-1) and height(-1)` في الكونسول على الصفحات المختبَرة.
-- جميع الرسوم لا تزال تُرندَر بنفس الشكل والأبعاد.
-- لا تراجع في أداء أول رسم (TTF chart) ملاحَظ بصرياً.
+## النطاق
+
+- ملف واحد فقط، ~10 أسطر تغيير.
+- لا تغييرات في منطق الأعمال أو الـ hooks أو الـ styles.
+- لا تأثير على الاختبارات (test setup يقمع الرسالة أصلاً).

@@ -1,7 +1,7 @@
 /**
  * جدول المصروفات لسطح المكتب
  */
-import React from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -51,47 +51,48 @@ const ExpensesDesktopTable = ({ items, expenseInvoiceMap, expandedRow, setExpand
         </TableRow>
       </TableHeader>
       <TableBody>
-        {items.map((item) => {
+        {items.flatMap((item) => {
           const attachCount = expenseInvoiceMap.get(item.id) || 0;
           const isExpanded = expandedRow === item.id;
-          return (
-            <React.Fragment key={item.id}>
-              <TableRow className={isExpanded ? 'border-b-0' : ''}>
-                <TableCell className="p-1">
-                  <Button variant="ghost" size="icon" className="w-6 h-6" onClick={() => setExpandedRow(isExpanded ? null : item.id)} aria-label={isExpanded ? 'طي' : 'توسيع'}>
-                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                  </Button>
-                </TableCell>
-                <TableCell className="max-w-[280px]">
-                  <div className="font-semibold text-foreground truncate" title={item.description || item.expense_type}>
-                    {item.description || item.expense_type}
-                  </div>
-                  {item.description && (
-                    <Badge variant="outline" className="mt-1 text-[10px] font-normal">{item.expense_type}</Badge>
-                  )}
-                </TableCell>
-                <TableCell className="text-destructive font-medium">-{fmt(safeNumber(item.amount))} ر.س</TableCell>
-                <TableCell>{item.date}</TableCell>
-                <TableCell>{item.property?.property_number || '-'}</TableCell>
-                <TableCell>
-                  {attachCount > 0 ? <Badge variant="secondary" className="gap-1"><Paperclip className="w-3 h-3" />{attachCount}</Badge> : <span className="text-muted-foreground text-xs">—</span>}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => onDelete({ id: item.id, name: `مصروف ${item.expense_type}` })} disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
-                  </div>
+          const rows = [
+            <TableRow key={`${item.id}-main`} className={isExpanded ? 'border-b-0' : ''}>
+              <TableCell className="p-1">
+                <Button variant="ghost" size="icon" className="w-6 h-6" onClick={() => setExpandedRow(isExpanded ? null : item.id)} aria-label={isExpanded ? 'طي' : 'توسيع'}>
+                  {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </Button>
+              </TableCell>
+              <TableCell className="max-w-[280px]">
+                <div className="font-semibold text-foreground truncate" title={item.description || item.expense_type}>
+                  {item.description || item.expense_type}
+                </div>
+                {item.description && (
+                  <Badge variant="outline" className="mt-1 text-[10px] font-normal">{item.expense_type}</Badge>
+                )}
+              </TableCell>
+              <TableCell className="text-destructive font-medium">-{fmt(safeNumber(item.amount))} ر.س</TableCell>
+              <TableCell>{item.date}</TableCell>
+              <TableCell>{item.property?.property_number || '-'}</TableCell>
+              <TableCell>
+                {attachCount > 0 ? <Badge variant="secondary" className="gap-1"><Paperclip className="w-3 h-3" />{attachCount}</Badge> : <span className="text-muted-foreground text-xs">—</span>}
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => onDelete({ id: item.id, name: `مصروف ${item.expense_type}` })} disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
+                </div>
+              </TableCell>
+            </TableRow>,
+          ];
+          if (isExpanded) {
+            rows.push(
+              <TableRow key={`${item.id}-expand`}>
+                <TableCell colSpan={7} className="bg-muted/30 p-3 border-b">
+                  <ExpenseAttachments expenseId={item.id} />
                 </TableCell>
               </TableRow>
-              {isExpanded && (
-                <TableRow>
-                  <TableCell colSpan={7} className="bg-muted/30 p-3 border-b">
-                    <ExpenseAttachments expenseId={item.id} />
-                  </TableCell>
-                </TableRow>
-              )}
-            </React.Fragment>
-          );
+            );
+          }
+          return rows;
         })}
       </TableBody>
     </Table>
