@@ -1,85 +1,37 @@
-# خطة الفحص الشاملة الصارمة — كل الأدوار
+## الوضع الحالي
 
-## الحالة الراهنة (مُتحقّقة)
-- **Vitest**: 193 ملف / 1686 اختبار → كلها ناجحة ✅
-- **Security scan**: 0 ملاحظات في جميع الماسحات (agent_security / connector / supabase / supabase_lov) ✅
-- **Supabase linter**: 72 تحذير — جميعها ضمن allowlist موثّقة سابقاً (SECURITY DEFINER + Public bucket مبرّر)
-- **System Diagnostics** (من جلسة سابقة): 3 بنود تحتاج معالجة → `zatca_unsubmitted`, `ui_csp`, `sec_notification`
+البنية الأمنية لهذا الطلب **مطبّقة فعلاً**:
 
-## نطاق الفحص (5 طبقات)
+- في **إعدادات الناظر → لوحة الصلاحيات الموحّدة** (`PermissionsControlPanel`) توجد بطاقة **"أقسام واجهة المستفيد"** تُمكّن الناظر من إظهار/إخفاء كل قسم من أقسام لوحة المستفيد (التقارير، المصاريف، العقارات، العقود، الفواتير، الإفصاح، الدعم… إلخ).
+- يُحفظ التحكّم في `app_settings.ln` ويُقرأ عبر `useSectionsVisibility` ويُطبَّق على القائمة الجانبية (`useNavLinks`) و `BottomNav` و `usePermissionCheck`.
+- سياسات RLS على `app_settings` تسمح فقط للناظر بتعديل المفاتيح، فلا يستطيع المستفيد التلاعب بها.
 
-### الطبقة 1 — لوحة الناظر (admin)
-- `src/pages/dashboard/*` (16 صفحة) + `src/hooks/page/admin/*`
-- التحقق: صلاحيات إقفال السنة، تعديل السنوات المقفلة، إدارة المستخدمين، إعدادات النظام، ZATCA، AuditLog
-- اختبارات سلوكية في المتصفح: تسجيل دخول كناظر → فحص كل قسم (Properties/Contracts/Income/Expenses/Distribution/Settings)
+## المشكلة المتبقية
 
-### الطبقة 2 — لوحة المحاسب (accountant)
-- التحقق من فلترة Waqf Revenue (mem://security/access-control/accountant-dashboard-filtering)
-- منع الوصول إلى: إقفال السنة، إدارة المستخدمين، الإعدادات الحساسة
-- اختبار CRUD مالي بدون صلاحيات الناظر
+يوجد ملف غير مستخدم لكنه يُصدَّر علناً ويحمل واجهة "تحكّم بأقسام المستفيد" تفترض أن المستفيد نفسه يستطيع تشغيلها/إيقافها:
 
-### الطبقة 3 — لوحة المستفيد (beneficiary)
-- `src/pages/beneficiary/*` (15 صفحة) + `src/hooks/page/beneficiary/*`
-- التحقق: عزل البيانات (beneficiaryIsolation)، عرض الحصة الصحيح، طلبات السلف، الإفصاح
-- التحقق من Negative Value Guards وLargest Remainder
-- اختبار في المتصفح: عرض MyShare/Carryforward/Advances/Notifications
+- `src/components/settings/account/BeneficiaryTab.tsx` يكتب إلى المفتاح الخاطئ `beneficiary_sections` بدلاً من `ln` (لن يؤثر على القائمة فعلياً، لكنه يخلق سلوكاً مضللاً).
+- مُصدَّر من `src/components/settings/index.ts` (سطر 20)، فقد يُستهلك مستقبلاً بطريق الخطأ ويعطي المستفيد انطباع امتلاكه صلاحية إخفاء أقسام عن نفسه.
+- صفحة `BeneficiarySettingsPage` لا تستعمله أصلاً.
 
-### الطبقة 4 — الفحص الأمني المتعمّق
-- إعادة تشغيل `security--run_security_scan` (الحالي قديم — up_to_date=false)
-- إعادة `supabase--linter` ومطابقة الـ72 تحذير مع allowlist (`docs/security/security-definer-allowlist.md`)
-- فحص RLS يدوياً عبر psql على الجداول الحرجة: `invoices/expenses/distributions/user_roles/audit_log/webauthn_credentials`
-- التحقق من Edge Functions الـ11: `getUser()` وعدم استخدام `getSession()`/service-role bypass
-- مراجعة `guard-signup` و`webauthn` و`admin-manage-users` (handlers)
+## الخطوات
 
-### الطبقة 5 — التشخيص التشغيلي
-- معالجة الـ3 ملاحظات السابقة من System Diagnostics:
-  1. `zatca_unsubmitted` → downgrade إلى `info` عند غياب شهادة نشطة
-  2. `ui_csp` → إضافة meta CSP في `index.html`
-  3. `sec_notification` → توثيق فقط (سلوك متصفح)
-- فحص `cloud_status` و`edge_function_logs` للأخطاء الحديثة
+1. **حذف الملف الميت** `src/components/settings/account/BeneficiaryTab.tsx`.
+2. **إزالة التصدير** من `src/components/settings/index.ts` السطر 20.
+3. **تحديث المرجع في التعليق** داخل `src/constants/sections.ts` (السطر 3) لإزالة ذكر `BeneficiaryTab`.
+4. **إبراز القسم في لوحة الناظر**: تعديل وصف بطاقة "أقسام واجهة المستفيد" داخل `PermissionsControlPanel.tsx` ليصبح أوضح: *"صلاحية حصرية للناظر — تحكّم بالصفحات الظاهرة في لوحة المستفيد والواقف"*، وإضافة Badge "صلاحية الناظر فقط" للتمييز.
+5. **تشغيل اختبارات Vitest** للتأكد من عدم كسر شيء (الاختبارات الحالية في `BottomNav.test.tsx` و `navLinksFiltering.test.tsx` و `sectionsVisibilityProtection.test.ts` تغطي مسار `ln`).
 
-## التنفيذ (مراحل متسلسلة)
+## ما لن نلمسه
 
-```text
-المرحلة 1: إعادة تشغيل الفحوصات الحيّة
-  ├── security--run_security_scan
-  ├── supabase--linter (مطابقة allowlist)
-  ├── cloud_status + edge_function_logs (آخر 24h)
-  └── bunx vitest run (إعادة تأكيد 1686/1686)
+- لا تغييرات على `AuthContext`, `ProtectedRoute`, `client.ts`, `types.ts`, `config.toml`.
+- لا migrations لقاعدة البيانات (سياسات RLS على `app_settings` كافية).
+- لا تعديل على منطق `useSectionsVisibility` أو `usePermissionsControlPanel` (سليم).
+- لا حذف لأي قسم من أقسام المستفيد.
 
-المرحلة 2: فحص قاعدة البيانات (read_query)
-  ├── RLS على 28 جدول → التأكد من تفعيلها
-  ├── دوال SECURITY DEFINER → التأكد من مطابقتها allowlist
-  └── التحقق من user_roles (لا تكرار، لا أدوار يتيمة)
+## النتيجة
 
-المرحلة 3: فحص الكود الثابت
-  ├── grep على console.log / localStorage('fiscal_year') / jwt_role
-  ├── grep على supabase خام داخل pages/ (ضد الـ Page Hook Pattern)
-  └── فحص حجم الملفات (≤200 سطر للمكونات)
-
-المرحلة 4: اختبار سلوكي بالمتصفح (3 أدوار)
-  ├── ناظر: /dashboard → سير عقد→فاتورة→تحصيل→توزيع
-  ├── محاسب: التحقق من الأقسام المخفية
-  └── مستفيد: /beneficiary → عرض الحصة + طلب سلفة
-
-المرحلة 5: إصلاح الملاحظات (بعد موافقة)
-  ├── src/utils/diagnostics/checks/zatca.ts (downgrade منطق)
-  ├── index.html (meta CSP)
-  └── تحديث security_memory + allowlist إن لزم
-```
-
-## مخرجات الخطة
-- تقرير نهائي بصيغة جدول: الطبقة | عدد البنود المفحوصة | نجاح | تحذير | فشل | إجراء
-- قائمة إصلاحات مرتبة بالأولوية (Critical → Info)
-- تحديث `mem://security/*` و`security-memory` بأي اكتشاف جديد
-
-## ما هو **خارج** النطاق (للحماية)
-- لن أعدّل: `AuthContext.tsx`, `ProtectedRoute.tsx`, `client.ts`, `types.ts`, `config.toml`, `.env`
-- لن أُعطّل أي اختبار قائم
-- لن أعدّل سياسات RLS دون موافقة صريحة على الـ migration
-- لن أغيّر `verify_jwt = false` (مقصود)
-
-## ملاحظة فنية للناظر
-الـ72 تحذير من supabase linter كلها من نوع SECURITY DEFINER على دوال داخلية مبرّرة (مثل `has_role`, `is_fiscal_year_accessible`, `execute_distribution`) — تركها مقصود لأن الـ RESTRICTIVE RLS أعلاها يحجب الوصول. الـ allowlist موثّق ومُحدَّث.
-
-هل أبدأ التنفيذ؟
+الناظر فقط هو من يملك مفتاح إظهار/إخفاء أقسام لوحة المستفيد، عبر بطاقة واحدة واضحة في **الإعدادات ← الصلاحيات**. لا توجد واجهة موازية مضللة في طرف المستفيد.  
+  
+اجعل المتحكم بالظهور من صلاحية الناظر  بلوحة التحكم  
+دّله (لتجنّب توسيع النطاق): شارة "متأخر" للفواتير في السنوات المغلقة — هذا سلوك عرض حالة تاريخية، أخبرني إن أردت إخفاء/تغيير الشارة عندما تكون السنة مغلقة.

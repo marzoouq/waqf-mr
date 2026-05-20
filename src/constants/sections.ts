@@ -1,6 +1,6 @@
 /**
  * ثوابت الأقسام المركزية — مصدر واحد للحقيقة
- * تُستخدم في: SectionsTab, BeneficiaryTab, RolePermissionsTab, DashboardLayout
+ * تُستخدم في: SectionsTab, PermissionsControlPanel, RolePermissionsTab, DashboardLayout
  */
 
 /** أسماء جميع الأقسام بالعربية */
