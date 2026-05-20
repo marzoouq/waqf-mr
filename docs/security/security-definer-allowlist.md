@@ -69,13 +69,71 @@
 | `get_active_zatca_certificate()` | إرجاع الشهادة النشطة للمصادقة على الفاتورة. |
 | `clear_zatca_otp()` | تنظيف OTP بعد الاستخدام. |
 
-## دوال Triggers و Crons (مستثناة من 0029)
+## دوال Triggers (مستثناة من 0028 — لا تُستدعى من العميل)
 
-دوال triggers (`audit_*`, `prevent_*`, `validate_*`, `enforce_*`, `sync_*`,
-`encrypt_*`, `auto_revoke_anon_execute`, `update_*_timestamp`) ودوال cron
-(`cron_*`, `cleanup_*`) لا تُستدعى مباشرة من العميل، لذا يجب على فحص
-0028 أن يكون منزوع الصلاحية عنها بالفعل عبر `auto_revoke_anon_execute`.
-إن ظهرت في تحذير 0029 بدون تبرير ⇒ خطأ يجب إصلاحه.
+| الدالة | المبرر |
+|---|---|
+| `audit_app_settings_trigger()` | تسجيل تغييرات الإعدادات في `audit_log`. |
+| `audit_trigger_func()` | trigger عام للمراجعة على الجداول الحسّاسة. |
+| `auto_revoke_anon_execute()` | event trigger يسحب EXECUTE من `anon` تلقائياً. |
+| `enforce_single_active_fy()` | يمنع وجود أكثر من سنة مالية نشطة. |
+| `encrypt_beneficiary_pii()` | تشفير AES-256 لبيانات المستفيد قبل الإدراج. |
+| `encrypt_zatca_private_key()` | تشفير المفتاح الخاص لشهادة ZATCA. |
+| `prevent_category_circular_ref()` | يمنع المراجع الدائرية في تصنيفات المصروفات. |
+| `prevent_closed_fiscal_year_modification()` | يحظر التعديل على سنة مقفلة. |
+| `prevent_fiscal_year_overlap()` | يمنع تداخل تواريخ السنوات. |
+| `prevent_issued_invoice_modification()` | يمنع تعديل فاتورة بعد الإصدار. |
+| `sync_unit_status_on_contract_change()` | يحدّث حالة الوحدة عند تغيير العقد. |
+| `update_support_ticket_timestamp()` | يحدّث `updated_at` لتذاكر الدعم. |
+| `validate_advance_request_amount()` | يتحقق من سقف السلفة. |
+| `validate_advance_status_transition()` | يفرض انتقالات الحالات المسموحة للسلفة. |
+| `validate_invoice_chain_ref()` / `validate_invoice_chain_reference()` | يتحقق من سلامة مرجع سلسلة الفواتير. |
+| `validate_ticket_rating()` | يتحقق من قيم تقييم تذاكر الدعم. |
+| `validate_zatca_certificate_activation()` | يتحقق من تفعيل شهادة ZATCA. |
+
+## دوال Cron / Background (مستثناة من 0028)
+
+| الدالة | المبرر |
+|---|---|
+| `cron_archive_old_access_logs()` | أرشفة `access_logs` القديمة. |
+| `cron_auto_expire_contracts()` | إنهاء العقود المنتهية تلقائياً. |
+| `cron_check_contract_expiry()` | فحص العقود المقاربة للانتهاء وإرسال تنبيهات. |
+| `cron_check_late_payments()` | فحص الدفعات المتأخرة وإصدار تنبيهات. |
+| `cron_check_slow_queries()` | تتبّع الاستعلامات البطيئة وإرسال تقرير صحة. |
+| `cron_check_zatca_cert_expiry()` | تنبيه عند اقتراب انتهاء شهادة ZATCA. |
+| `cron_cleanup_old_notifications()` | حذف الإشعارات القديمة. |
+| `cron_update_overdue_invoices()` | تحديث حالة الفواتير المتأخرة. |
+| `cleanup_expired_challenges()` | تنظيف WebAuthn challenges المنتهية. |
+| `cleanup_pending_invoice_chain()` | تنظيف فواتير ICV غير المثبّتة. |
+
+## مساعدات تشفير PII (تُستدعى من triggers و Edge Functions)
+
+| الدالة | المبرر |
+|---|---|
+| `encrypt_pii(text)` | تشفير AES-256 لأي قيمة PII قبل التخزين. |
+| `decrypt_pii(text)` | فك التشفير؛ يتحقق من admin أو ملكية الصف عبر المستدعي. |
+| `get_pii_key()` | يُرجع مفتاح التشفير من `vault.secrets`؛ DEFINER إلزامي. |
+| `lookup_by_national_id(text)` | بحث آمن عن طريق رقم الهوية المشفّر؛ يتحقق من الدور. |
+
+## Email Queue Internals (تُستدعى من process-email-queue Edge Function)
+
+| الدالة | المبرر |
+|---|---|
+| `enqueue_email(...)` | إضافة بريد للطابور؛ تتحقق من الدور قبل الإدراج. |
+| `read_email_batch(int)` | قراءة دفعة بـ SKIP LOCKED للمعالجة المتزامنة. |
+| `delete_email(uuid)` | حذف بريد بعد الإرسال الناجح. |
+| `move_to_dlq(uuid, text)` | نقل البريد الفاشل إلى Dead-Letter Queue. |
+
+## دوال إضافية للوحات الدعم
+
+| الدالة | المبرر |
+|---|---|
+| `get_support_analytics()` | تحليلات تذاكر الدعم؛ admin فقط. |
+| `get_support_stats()` | إحصائيات سريعة لتذاكر الدعم؛ admin فقط. |
+
+> إن ظهرت أي من هذه الدوال في تحذير 0028 ⇒ خلل في `auto_revoke_anon_execute`
+> يجب إصلاحه فوراً.
+
 
 ## دوال Hooks
 | الدالة | المبرر |
@@ -99,7 +157,33 @@
 > `scripts/supabase-lint-check.mjs`.
 
 ## كيف يعمل فحص CI
-- Workflow: `.github/workflows/ci.yml` (خطوة "Supabase security linter").
-- السكربت: `scripts/supabase-lint-check.mjs`.
-- يفشل البناء عند ظهور أي تحذير `0028` أو `0029` خارج هذه القائمة.
+- Workflow: `.github/workflows/ci.yml`.
+- خطوتان:
+  1. **Supabase security linter** → `scripts/supabase-lint-check.mjs` — يفشل عند أي تحذير `0028` أو `0029` خارج Allowlist.
+  2. **SECURITY DEFINER allowlist sync** → `scripts/security-definer-sync-check.mjs` — يفشل عند أي عدم تطابق بين DB، السكربت، والتوثيق.
 - يتطلب أسرار GitHub: `SUPABASE_ACCESS_TOKEN` و `SUPABASE_PROJECT_REF`.
+
+## فحص المزامنة — الخيارات القابلة للضبط
+
+سكربت `security-definer-sync-check.mjs` يقبل CLI flags ومتغيرات بيئة (CLI تطغى):
+
+| Flag | Env | افتراضي | الوصف |
+|---|---|---|---|
+| `--check-doc` | `CHECK_DOC_SYNC` | `true` | فعّل مقارنة التوثيق ↔ السكربت. |
+| `--check-db` | `CHECK_DB_SYNC` | `true` | فعّل مقارنة DB ↔ Allowlist. |
+| `--schemas` | `DEFINER_SCHEMAS` | `public` | Schemas مفصولة بفواصل. |
+| `--name-pattern` | `DEFINER_NAME_PATTERN` | `.*` | Regex POSIX لتصفية أسماء الدوال. |
+| `--exclude-pattern` | `DEFINER_EXCLUDE_PATTERN` | `^$` | Regex لاستثناء أسماء (مثل `^test_`). |
+| `--doc-path` | `ALLOWLIST_DOC_PATH` | `docs/security/security-definer-allowlist.md` | مسار ملف التوثيق. |
+| `--strict` | `STRICT_MODE` | `true` | فشل البناء عند أي فرق (false = warning فقط). |
+| `--report-json` | `REPORT_JSON_PATH` | فارغ | حفظ التقرير كـ JSON. |
+
+أمثلة:
+```bash
+node scripts/security-definer-sync-check.mjs --check-doc=false
+node scripts/security-definer-sync-check.mjs --exclude-pattern='^cron_'
+node scripts/security-definer-sync-check.mjs --strict=false --report-json=sync-report.json
+```
+
+يمكن أيضاً تشغيل CI يدوياً (`workflow_dispatch`) لتجاوز الافتراضيات.
+

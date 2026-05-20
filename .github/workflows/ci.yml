@@ -3,6 +3,32 @@ name: CI Quality Gate
 on:
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      check_doc_sync:
+        description: 'Compare doc vs script allowlist'
+        required: false
+        default: 'true'
+      check_db_sync:
+        description: 'Compare DB vs allowlist'
+        required: false
+        default: 'true'
+      definer_schemas:
+        description: 'Comma-separated schemas to scan (default: public)'
+        required: false
+        default: 'public'
+      definer_name_pattern:
+        description: 'POSIX regex to include function names (default: .*)'
+        required: false
+        default: '.*'
+      definer_exclude_pattern:
+        description: 'POSIX regex to exclude function names (default: ^$)'
+        required: false
+        default: '^$'
+      strict_mode:
+        description: 'Fail build on any mismatch'
+        required: false
+        default: 'true'
 
 jobs:
   quality:
@@ -39,6 +65,18 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: node scripts/supabase-lint-check.mjs
+
+      - name: SECURITY DEFINER allowlist sync
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          CHECK_DOC_SYNC: ${{ github.event.inputs.check_doc_sync || 'true' }}
+          CHECK_DB_SYNC: ${{ github.event.inputs.check_db_sync || 'true' }}
+          DEFINER_SCHEMAS: ${{ github.event.inputs.definer_schemas || 'public' }}
+          DEFINER_NAME_PATTERN: ${{ github.event.inputs.definer_name_pattern || '.*' }}
+          DEFINER_EXCLUDE_PATTERN: ${{ github.event.inputs.definer_exclude_pattern || '^$' }}
+          STRICT_MODE: ${{ github.event.inputs.strict_mode || 'true' }}
+        run: node scripts/security-definer-sync-check.mjs
 
       - name: Build
         run: npm run build

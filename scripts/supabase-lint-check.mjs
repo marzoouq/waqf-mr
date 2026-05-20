@@ -17,14 +17,9 @@
 const TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
 const REF = process.env.SUPABASE_PROJECT_REF;
 
-if (!TOKEN || !REF) {
-  console.warn('⚠️ SUPABASE_ACCESS_TOKEN أو SUPABASE_PROJECT_REF غير مضبوط — تخطّي فحص Supabase Linter.');
-  process.exit(0);
-}
-
 // قائمة دوال SECURITY DEFINER المسموح لها بالاستدعاء من المستخدمين المسجلين.
 // كل دالة هنا تتحقق من الدور أو ملكية الصف داخلياً قبل تنفيذ أي عملية حساسة.
-const ALLOWLIST_0029 = new Set([
+export const ALLOWLIST_0029 = new Set([
   // ── RLS helpers — تُستدعى من سياسات RLS ──
   'has_role',
   'is_fiscal_year_accessible',
@@ -96,10 +91,19 @@ const ALLOWLIST_0029 = new Set([
   'cron_archive_old_access_logs',
   'cron_auto_expire_contracts',
   'cron_check_contract_expiry',
+  'cron_check_late_payments',
+  'cron_check_slow_queries',
+  'cron_check_zatca_cert_expiry',
   'cron_cleanup_old_notifications',
   'cron_update_overdue_invoices',
   'cleanup_expired_challenges',
   'cleanup_pending_invoice_chain',
+
+  // ── PII encryption helpers — تُستدعى من triggers / Edge Functions موثّقة ──
+  'encrypt_pii',
+  'decrypt_pii',
+  'get_pii_key',
+  'lookup_by_national_id',
 
   // ── Email queue internals — تُستدعى من process-email-queue Edge Function ──
   'enqueue_email',
@@ -112,7 +116,7 @@ const ALLOWLIST_0029 = new Set([
 // قائمة الدوال العامة (anon-callable) المسموح استدعاؤها بدون تسجيل دخول.
 // كل دالة هنا موسومة في DB بـ COMMENT يحمل '[anon-callable]'، والـ event trigger
 // auto_revoke_anon_execute يحترم هذا الوسم ولا يسحب EXECUTE من anon.
-const ALLOWLIST_ANON = new Set([
+export const ALLOWLIST_ANON = new Set([
   'get_public_stats',     // إحصائيات صفحة الهبوط (مفلترة بـ app_settings)
   'log_access_event',     // تسجيل أخطاء العميل قبل تسجيل الدخول
 ]);
@@ -122,6 +126,21 @@ const FAIL_LINTS = new Set([
   '0028_anon_security_definer_function_executable',
   '0029_authenticated_security_definer_function_executable',
 ]);
+
+// إذا استُورد كموديول من سكربت آخر، توقف هنا (لا تنفّذ الفحص الفعلي).
+const isMain = import.meta.url === `file://${process.argv[1]}`;
+
+if (isMain) {
+  if (!TOKEN || !REF) {
+    console.warn('⚠️ SUPABASE_ACCESS_TOKEN أو SUPABASE_PROJECT_REF غير مضبوط — تخطّي فحص Supabase Linter.');
+    process.exit(0);
+  }
+  await runLintCheck();
+}
+
+async function runLintCheck() {
+
+
 
 const url = `https://api.supabase.com/v1/projects/${REF}/database/lints`;
 const res = await fetch(url, {
@@ -203,3 +222,5 @@ if (offenders.length) {
 }
 
 console.log('✅ لا توجد تحذيرات أمنية غير موثّقة (0028/0029).');
+}
+
