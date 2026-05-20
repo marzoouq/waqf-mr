@@ -36,8 +36,8 @@ const PermissionsControlPanel = () => {
         onToggle={toggleAdminSection}
       />
       <SectionVisibilityCard
-        title="أقسام واجهة المستفيد"
-        description="التحكم بالأقسام الظاهرة للمستفيدين والواقف"
+        title="أقسام واجهة المستفيد — صلاحية الناظر حصراً"
+        description="تحكّم بالصفحات الظاهرة في لوحة المستفيد والواقف (التقارير، المصاريف، العقارات، العقود، الفواتير، الإفصاح، الدعم…)."
         sectionKeys={BENEFICIARY_SECTION_KEYS}
         values={beneficiarySections}
         onToggle={toggleBeneficiarySection}
