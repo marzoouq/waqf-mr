@@ -97,14 +97,25 @@ export async function checkUnsubmittedInvoices(): Promise<CheckResult> {
 
     if (error) return { id, label: 'فواتير مدفوعة غير مُبلّغة', status: 'fail', detail: `خطأ: ${error.message}` };
     const unsubCount = count ?? 0;
-    // ✅ تشديد العتبات لنظام مالي حساس: أي فاتورة غير مُبلّغة = warn، >10 = fail
+    if (unsubCount === 0) {
+      return { id, label: 'فواتير مدفوعة غير مُبلّغة', status: 'pass', detail: 'كل الفواتير المدفوعة مُبلّغة' };
+    }
+
+    // ✅ بدون شهادة نشطة لا يمكن التبليغ — اخفض الخطورة إلى info
+    const { data: cert } = await getActiveCertificate();
+    if (!cert) {
+      return {
+        id,
+        label: 'فواتير مدفوعة غير مُبلّغة',
+        status: 'info',
+        detail: `${unsubCount} فاتورة بانتظار التبليغ — يتطلب إكمال ربط ZATCA (Onboard) أولاً`,
+      };
+    }
+
     if (unsubCount > 10) {
       return { id, label: 'فواتير مدفوعة غير مُبلّغة', status: 'fail', detail: `${unsubCount} فاتورة مدفوعة لم تُبلّغ لـ ZATCA — مخالفة محتملة` };
     }
-    if (unsubCount > 0) {
-      return { id, label: 'فواتير مدفوعة غير مُبلّغة', status: 'warn', detail: `${unsubCount} فاتورة مدفوعة بانتظار التبليغ — يجب الإسراع` };
-    }
-    return { id, label: 'فواتير مدفوعة غير مُبلّغة', status: 'pass', detail: 'كل الفواتير المدفوعة مُبلّغة' };
+    return { id, label: 'فواتير مدفوعة غير مُبلّغة', status: 'warn', detail: `${unsubCount} فاتورة مدفوعة بانتظار التبليغ — يجب الإسراع` };
   } catch {
     return { id, label: 'فواتير مدفوعة غير مُبلّغة', status: 'info', detail: 'تعذر الفحص' };
   }
