@@ -133,18 +133,28 @@ describe('checkPendingInvoiceChains', () => {
 });
 
 describe('checkUnsubmittedInvoices', () => {
+  const activeCert = { id: 'c1', certificate_type: 'production', expires_at: new Date(Date.now() + 86400000 * 365).toISOString() };
+
   it('pass عند صفر فواتير غير مُبلّغة', async () => {
     vi.mocked(svc.countUnsubmittedInvoices).mockResolvedValue({ count: 0, error: null } as never);
     expect((await checkUnsubmittedInvoices()).status).toBe('pass');
   });
 
-  it('warn عند 1-10 فواتير غير مُبلّغة', async () => {
+  it('info عند وجود فواتير لكن بدون شهادة نشطة', async () => {
+    vi.mocked(svc.countUnsubmittedInvoices).mockResolvedValue({ count: 20, error: null } as never);
+    vi.mocked(svc.getActiveCertificate).mockResolvedValue({ data: null, error: null } as never);
+    expect((await checkUnsubmittedInvoices()).status).toBe('info');
+  });
+
+  it('warn عند 1-10 فواتير غير مُبلّغة مع شهادة نشطة', async () => {
     vi.mocked(svc.countUnsubmittedInvoices).mockResolvedValue({ count: 5, error: null } as never);
+    vi.mocked(svc.getActiveCertificate).mockResolvedValue({ data: activeCert, error: null } as never);
     expect((await checkUnsubmittedInvoices()).status).toBe('warn');
   });
 
-  it('fail عند >10 فواتير غير مُبلّغة', async () => {
+  it('fail عند >10 فواتير غير مُبلّغة مع شهادة نشطة', async () => {
     vi.mocked(svc.countUnsubmittedInvoices).mockResolvedValue({ count: 15, error: null } as never);
+    vi.mocked(svc.getActiveCertificate).mockResolvedValue({ data: activeCert, error: null } as never);
     expect((await checkUnsubmittedInvoices()).status).toBe('fail');
   });
 });
