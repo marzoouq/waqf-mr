@@ -15,7 +15,17 @@ vi.mock('@/hooks/auth/session/useAuthContext', () => ({
 }));
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) }) }),
+    auth: {
+      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+    },
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: () => Promise.resolve({ data: null, error: null }),
+          order: () => ({ limit: () => Promise.resolve({ data: [], error: null, count: 0 }) }),
+        }),
+      }),
+    }),
   },
 }));
 vi.mock('@/lib/services/accessLogService', () => ({ logAccessEvent: vi.fn() }));
