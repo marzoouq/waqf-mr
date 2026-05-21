@@ -49,7 +49,10 @@ const ContractsViewPage = () => {
       <DashboardLayout>
         <div className="p-4 md:p-6 space-y-6">
           <PageHeaderCard title={CONTRACTS_SCOPE_COPY.title} icon={FileText} description={CONTRACTS_SCOPE_COPY.description} actions={
-            <ExportMenu onExportPdf={handleExportPdf} />
+            <div className="flex items-center gap-2">
+              {!isMobile && <ViewModeToggle value={viewMode} onChange={setViewMode} />}
+              <ExportMenu onExportPdf={handleExportPdf} />
+            </div>
           } />
 
           <Card className="shadow-sm border-info/30 bg-info/5">
@@ -75,6 +78,11 @@ const ContractsViewPage = () => {
               {isMobile ? (
                 <>
                   <ContractsViewMobileCards contracts={paginatedContracts} isExpiringSoon={isExpiringSoon} />
+                  <TablePagination currentPage={currentPage} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
+                </>
+              ) : viewMode === 'grid' ? (
+                <>
+                  <ContractsViewGridCards contracts={paginatedContracts} propertiesMap={propertiesMap} isExpiringSoon={isExpiringSoon} />
                   <TablePagination currentPage={currentPage} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
                 </>
               ) : (
