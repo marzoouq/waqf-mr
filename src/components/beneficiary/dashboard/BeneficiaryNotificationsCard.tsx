@@ -44,7 +44,7 @@ const BeneficiaryNotificationsCard = ({ notifications, unreadCount }: Beneficiar
         <Button variant="ghost" size="sm" onClick={() => navigate('/beneficiary/notifications')}>عرض الكل</Button>
       </CardHeader>
       <CardContent>
-        {notifications.length === 0 || unreadCount === 0 ? (
+        {notifications.length === 0 ? (
           <p className="text-center text-muted-foreground py-6 text-sm">{emptyText}</p>
         ) : (
           <div className="space-y-3">
