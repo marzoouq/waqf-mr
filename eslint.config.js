@@ -68,6 +68,7 @@ export default tseslint.config(
     rules: {
       "react-refresh/only-export-components": "off",
     },
+  },
   // M3.5 — حماية الطبقات: استدعاءات supabase الخام يجب ألا تصل لـ pages/components.
   // داخل hooks/data نسمح بها كتحذير فقط (للسماح باستثناءات موثقة مثل useFiscalYears).
   {
@@ -94,6 +95,39 @@ export default tseslint.config(
         {
           selector: "CallExpression[callee.object.name='supabase'][callee.property.name='from']",
           message: "Prefer extracting supabase.from() into src/lib/services/. Add a documented eslint-disable line if intentional.",
+        },
+      ],
+    },
+  },
+  // M6 — فصل الأدوار: لا يجوز للواقف استيراد hooks المستفيد والعكس.
+  {
+    files: ["src/hooks/page/waqif/**/*.{ts,tsx}", "src/pages/waqif/**/*.{ts,tsx}", "src/components/waqif/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/hooks/page/beneficiary/*", "@/hooks/page/beneficiary"],
+              message: "Waqif must not import beneficiary hooks. Use @/hooks/application/dashboard/* for shared end-user logic.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/hooks/page/beneficiary/**/*.{ts,tsx}", "src/pages/beneficiary/**/*.{ts,tsx}", "src/components/beneficiary/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/hooks/page/waqif/*", "@/hooks/page/waqif"],
+              message: "Beneficiary must not import waqif hooks. Use @/hooks/application/dashboard/* for shared end-user logic.",
+            },
+          ],
         },
       ],
     },

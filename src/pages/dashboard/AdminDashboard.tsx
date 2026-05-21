@@ -4,7 +4,7 @@
 import { lazy, Suspense } from 'react';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import DeferredRender from '@/components/common/DeferredRender';
-import ViewportRender from '@/components/common/ViewportRender';
+import DashboardLazySection from '@/components/shared/dashboard/DashboardLazySection';
 import { Button } from '@/components/ui/button';
 import FiscalYearWidget from '@/components/dashboard/widgets/FiscalYearWidget';
 import DashboardAlerts from '@/components/dashboard/widgets/DashboardAlerts';
@@ -89,19 +89,13 @@ const AdminDashboard = () => {
           />
         </ErrorBoundary>
 
-        <ViewportRender minHeight={160}>
-          <div className="print:hidden">
-            <ErrorBoundary>
-              <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
-                <CollectionHeatmap
-                  paymentInvoices={ctx.heatmapInvoices}
-                  fiscalYearStart={ctx.fy?.start_date}
-                  fiscalYearEnd={ctx.fy?.end_date}
-                />
-              </Suspense>
-            </ErrorBoundary>
-          </div>
-        </ViewportRender>
+        <DashboardLazySection minHeight={160} printHidden>
+          <CollectionHeatmap
+            paymentInvoices={ctx.heatmapInvoices}
+            fiscalYearStart={ctx.fy?.start_date}
+            fiscalYearEnd={ctx.fy?.end_date}
+          />
+        </DashboardLazySection>
 
         <DeferredRender delay={100}>
           <ErrorBoundary>
@@ -114,43 +108,30 @@ const AdminDashboard = () => {
           </ErrorBoundary>
         </DeferredRender>
 
-        <ViewportRender minHeight={300}>
-          <div className="print:hidden">
-            <ErrorBoundary>
-              <Suspense fallback={<ChartSkeleton />}>
-                <DashboardCharts monthlyData={ctx.monthlyData} expenseTypes={ctx.expenseTypes} />
-              </Suspense>
-            </ErrorBoundary>
-          </div>
-        </ViewportRender>
+        <DashboardLazySection minHeight={300} printHidden fallback={<ChartSkeleton />}>
+          <DashboardCharts monthlyData={ctx.monthlyData} expenseTypes={ctx.expenseTypes} />
+        </DashboardLazySection>
 
-        <ViewportRender minHeight={200}>
+        <DashboardLazySection minHeight={200}>
           <YearComparisonCard
             allFiscalYears={ctx.allFiscalYears as FiscalYear[]}
             fiscalYearId={ctx.fiscalYearId}
           />
-        </ViewportRender>
+        </DashboardLazySection>
 
         {ctx.role === 'admin' && (
-          <ViewportRender minHeight={200}>
-            <div className="print:hidden">
-              <ErrorBoundary>
-                <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-                  <PagePerformanceCard />
-                </Suspense>
-              </ErrorBoundary>
-            </div>
-          </ViewportRender>
+          <DashboardLazySection minHeight={200} printHidden>
+            <PagePerformanceCard />
+          </DashboardLazySection>
         )}
 
-        <ViewportRender minHeight={200}>
-          <ErrorBoundary>
-            <RecentContractsCard
-              contracts={ctx.recentContracts}
-              isLoading={ctx.secondaryIsLoading}
-            />
-          </ErrorBoundary>
-        </ViewportRender>
+        <DashboardLazySection minHeight={200}>
+          <RecentContractsCard
+            contracts={ctx.recentContracts}
+            isLoading={ctx.secondaryIsLoading}
+          />
+        </DashboardLazySection>
+
       </div>
     </DashboardLayout>
   );
