@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle, Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender, ErrorState, FiscalYearStateNotice } from '@/components/common';
 import { isFyReady } from '@/constants/fiscalYearIds';
