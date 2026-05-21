@@ -1,63 +1,23 @@
-## نتيجة الفحص الجنائي للتقرير
+## خطة الإصلاح الجراحية (3 بنود حقيقية فقط)
 
-فحصت كل بند فعلياً في الكود ضد ما يدّعيه التقرير. **معظم البنود الحرجة في التقرير غير صحيحة — تم إصلاحها مسبقاً** ولم يُحدَّث التقرير. التفصيل:
+تم التحقق الجنائي من التقرير. التفاصيل في الرد السابق. **النفّذ التالي يخصّ البنود الصحيحة فقط** ولا يمسّ مكونات سليمة.
 
-### ❌ بنود التقرير غير الصحيحة (ادعاءات خاطئة)
+### 1. defense-in-depth: تشديد route guard لـ `/dashboard/comparison`
+`src/routes/adminRoutes.tsx` السطر 48: تغيير `pr(ADMIN_ROLES, …)` إلى `pr(ADMIN_ONLY, …)` ليطابق `users`/`settings`/`zatca`/`diagnostics`/`email-monitor`. لو وصل المحاسب رابطاً مباشراً يُحوَّل لـ `/unauthorized`.
 
-| البند | الادعاء | الواقع في الكود |
-|---|---|---|
-| 1.1 | تعارض opt-in/opt-out في صلاحيات المحاسب | **غير صحيح**. كلٌّ من `filterLinksByPermissions` (`utils/auth/filterByVisibility.ts:42`) و `usePermissionCheck` (`usePermissionCheck.ts:32`) يستخدمان نفس قاعدة **opt-out**: `!== false`. متّسقان تماماً. |
-| 1.2 | `ADMIN_SECTION_KEYS` ينقصه zatca/diagnostics/email_monitor/comparison/settings/users | **غير صحيح**. `sections.ts:36-41` يتضمّن جميع الـ20 مفتاحاً بما فيها الستة المذكورة. |
-| 1.3 | InvoicesPage و ExpensesPage يعرضان نفس البيانات | **غير صحيح**. ExpensesPage يستورد `@/components/expenses` + `useExpensesPage` فقط، و InvoicesPage يستورد `@/components/invoices` + `useInvoicesPage` فقط. الفصل محفوظ في الذاكرة `invoices-page-unified-source` ومحمي باختبار `invoicesExpensesDecoupling.test.ts`. |
-| 1.4 | لا يوجد `PROTECTED_ADMIN_SECTIONS` يمنع إخفاء settings/users | **غير صحيح**. معرَّف في `sections.ts:47` كـ `['settings', 'users']` + دالة `isProtectedAdminSection` + اختبار `protectedSectionsWriteGuard.test.ts`. |
-| 1.5 | `InvoiceSourceFilter` ما زال يستخدم `'expense'` | **غير صحيح**. `types/invoices.ts:72` بالفعل: `'all' \| 'purchase' \| 'rent'`. |
-| 5.x | `ACCOUNTANT_EXCLUDED_ROUTES` لا يشمل comparison/email-monitor | **جزئياً**: يشمل `email-monitor` و`diagnostics` و`zatca` و`users` و`settings` (`navigation.ts:167`). لا يشمل `/dashboard/comparison` فقط. |
-| 7 | `ADMIN_ROUTES` فيه مسارات بلا `sectionKey` | **غير صحيح**. كل المسارات في `routeRegistry.ts:25-47` لها `sectionKey`. |
+### 2. كسر silent fail في `accessLogService`
+`src/lib/services/accessLogService.ts`: استبدال `catch {}` بـ `catch (e) { logger.warn(...) }` مع import `logger` من `@/lib/logger`. لا يكسر تدفق المستخدم لكنه يكشف الأعطال للتشخيص.
 
-### ✅ بنود التقرير الصحيحة فعلاً (الإصلاحات الحقيقية)
+### 3. اختبار عقد role boundaries (ملف جديد)
+`src/test/roleBoundaryContract.test.ts` يحرس:
+- `ADMIN_ONLY === ['admin']`
+- `ADMIN_ROLES === ['admin', 'accountant']`
+- كل المسارات الإدارية الحساسة موجودة في `ACCOUNTANT_EXCLUDED_ROUTES` (users, settings, zatca, diagnostics, email-monitor, comparison).
+- لا تسرّب لمسارات `/beneficiary/*` ضمن قائمة استبعاد المحاسب.
 
-1. **`/dashboard/comparison` للمحاسب**: المسار غير مستبعد في `ACCOUNTANT_EXCLUDED_ROUTES`، رغم أنه لوحة تحكم ناظر بحتة (مقارنة تاريخية بين السنوات).
-2. **`aria-label` ناقص** على أزرار icon في 4 مواقع (تحقق سطحي مطلوب: `ChatArea.tsx`, `ThemeToggle.tsx`, `NotificationsList.tsx`).
-
-### 🟡 بنود "معمارية" — رأي وليس خطأ
-- تجزئة `InvoicesPage.tsx` (179 سطر) أو `useInvoicesPage.ts` (191 سطر): **تحت سقف 200**، لا انتهاك فعلي للقاعدة `container-vs-presentational-boundary`.
-- توحيد `useInvoicesPage` (admin) ↔ `useInvoicesViewPage` (beneficiary) في hook مشترك: الفصل الحالي مقصود لأن صلاحيات الكتابة مختلفة. لن أنفّذ هذا دون طلب صريح.
-
----
-
-## خطة الإصلاح الفعلية (الحقيقي فقط، لا يمسّ مكونات سليمة)
-
-### 1. استبعاد `/dashboard/comparison` للمحاسب
-**ملف**: `src/constants/navigation.ts` السطر 167.
-
-```diff
--export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/dashboard/email-monitor', '/beneficiary'];
-+export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/dashboard/email-monitor', '/dashboard/comparison', '/beneficiary'];
-```
-
-**السبب**: المقارنة التاريخية أداة ناظر استراتيجية، خارج نطاق المحاسب.  
-**التأثير**: يختفي الرابط من قائمة المحاسب ويُمنع الوصول المباشر.
-
-### 2. إضافة `aria-label` للأزرار التي تفتقدها
-- `src/components/messages/ChatArea.tsx`: زرّا الإرفاق والإرسال.
-- `src/components/layout/ThemeToggle.tsx`: زر التبديل.
-- `src/components/notifications/NotificationsList.tsx`: زر القائمة/الإجراء.
-
-**السبب**: A11y فقط — لا يغيّر أي سلوك.
-
-### 3. اختبار يحرس استبعاد comparison للمحاسب
-إضافة assertion في `src/test/permissionsParity.test.ts` يتأكد أن `isRouteAllowed('/dashboard/comparison')` يُرجع `false` للمحاسب.
-
----
-
-## ما لن أنفّذه (وأرفض تنفيذه بحجة "التقرير")
-
-- إعادة تسمية `InvoiceSourceFilter` — **مُنجز سلفاً**.
-- توسيع `ADMIN_SECTION_KEYS` — **مكتمل سلفاً**.
-- إنشاء `PROTECTED_ADMIN_SECTIONS` — **موجود سلفاً**.
-- "توحيد" منطق opt-in/opt-out — **لا تعارض أصلاً**.
-- فصل InvoicesPage عن ExpensesPage — **منفصلان سلفاً ومحميان باختبارات**.
-- تجزئة ملفات تحت سقف 200 سطر بدون ضرورة وظيفية.
-- إنشاء `useInvoicesController` مشترك — يخالف فصل صلاحيات الكتابة الحالي.
-
-هل أنفّذ الخطة الثلاثية أعلاه؟
+### بنود مرفوضة عمداً (لن أنفّذها)
+- إنشاء `accountantRoutes.tsx` منفصل (إعادة تنظيم ضخمة بلا قيمة وظيفية).
+- إزالة نمط `admin || accountant` من 30+ ملف (رأي تنظيمي).
+- نقل `useDashboardPrefetch` خارج `FiscalYearProvider`.
+- تعديل `useBeneficiariesDecrypted` (مقصود ومحمي بـ RLS).
+- حصر `AiAssistant` على admin فقط.

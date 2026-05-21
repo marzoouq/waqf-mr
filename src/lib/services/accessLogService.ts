@@ -3,6 +3,7 @@
  * مستخرجة من useAccessLog لفك الاعتماد الدائري (lib → hooks)
  */
 import { rpc } from '@/lib/api/rpc';
+import { logger } from '@/lib/logger';
 import type { Json } from '@/integrations/supabase/types';
 
 export type AccessEventType =
@@ -32,7 +33,8 @@ export const logAccessEvent = async (event: {
       p_device_info: navigator.userAgent?.substring(0, 500) ?? undefined,
       p_metadata: (event.metadata ?? {}) as Json,
     });
-  } catch {
-    // Silent fail - don't block user flow for logging
+  } catch (e) {
+    // لا نكسر تدفق المستخدم — لكن نسجّل تحذيراً لقابلية التشخيص
+    logger.warn('logAccessEvent failed:', e instanceof Error ? e.message : e);
   }
 };

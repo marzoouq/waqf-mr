@@ -45,7 +45,7 @@ export const adminRoutes = (
     <Route path="/dashboard/support" element={pr(ADMIN_ROLES, <SupportDashboardPage />)} />
     <Route path="/dashboard/annual-report" element={pr(ADMIN_ROLES, <AnnualReportPage />)} />
     <Route path="/dashboard/chart-of-accounts" element={pr(ADMIN_ROLES, <ChartOfAccountsPage />)} />
-    <Route path="/dashboard/comparison" element={pr(ADMIN_ROLES, <HistoricalComparisonPage />)} />
+    <Route path="/dashboard/comparison" element={pr(ADMIN_ONLY, <HistoricalComparisonPage />)} />
 
     {/* Admin Only */}
     <Route path="/dashboard/users" element={pr(ADMIN_ONLY, <UserManagementPage />)} />
