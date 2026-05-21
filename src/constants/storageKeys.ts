@@ -38,16 +38,17 @@ export const STORAGE_KEYS = {
 } as const;
 
 /**
- * جميع المفاتيح القابلة للمسح عند تسجيل الخروج (#70 من الفحص العميق).
+ * جميع المفاتيح القابلة للمسح عند تسجيل الخروج.
  *
- * تُستهلك في `AuthContext.signOut()` لمسح كل تفضيلات المستخدم المحلية:
- *  - **مفاتيح تخص الجلسة**: FISCAL_YEAR, SIDEBAR_OPEN, NID_LOCKED_UNTIL
- *  - **تفضيلات UI**: THEME_COLOR, NOTIFICATION_*, BIOMETRIC_ENABLED
- *  - **حالة PWA**: PWA_LAST_VERSION, PWA_BANNER_DISMISSED, PWA_UPDATE_TIME
- *  - **طوابير غير مرسلة**: ERROR_LOG_QUEUE
- *
- * إضافة مفتاح جديد إلى STORAGE_KEYS أعلاه = مسحه تلقائياً عند الخروج.
- * إذا أردت مفتاحاً يبقى بعد الخروج، **لا تضعه في STORAGE_KEYS** — استخدم
- * مفتاحاً منفصلاً غير مدرج هنا.
+ * استثناءات (تبقى بعد الخروج عمداً):
+ *  - `BIOMETRIC_ENABLED`: مؤشر عرض فقط لزر "تسجيل الدخول بالبصمة" في /auth.
+ *    ليس مصدر صلاحية أمنية — التحقق الفعلي يتم في Edge Function عبر DB.
+ *    مسحه يجعل الزر يختفي رغم وجود بيانات اعتماد مسجلة على الجهاز.
  */
-export const CLEARABLE_STORAGE_KEYS = Object.values(STORAGE_KEYS);
+const NON_CLEARABLE_KEYS: ReadonlySet<string> = new Set([
+  STORAGE_KEYS.BIOMETRIC_ENABLED,
+]);
+
+export const CLEARABLE_STORAGE_KEYS = Object.values(STORAGE_KEYS).filter(
+  (k) => !NON_CLEARABLE_KEYS.has(k),
+);

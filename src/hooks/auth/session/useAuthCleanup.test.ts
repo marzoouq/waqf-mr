@@ -52,6 +52,14 @@ describe('useAuthCleanup', () => {
     });
   });
 
+  it('لا يمسح مؤشر البصمة BIOMETRIC_ENABLED حتى يبقى زر الدخول بالبصمة ظاهراً', () => {
+    const { result } = renderHook(() => useAuthCleanup());
+    act(() => result.current.performCleanup());
+
+    expect(CLEARABLE_STORAGE_KEYS).not.toContain(STORAGE_KEYS.BIOMETRIC_ENABLED);
+    expect(safeRemove).not.toHaveBeenCalledWith(STORAGE_KEYS.BIOMETRIC_ENABLED);
+  });
+
   it('يستدعي safeSessionRemove للمفتاحين الحساسين', () => {
     const { result } = renderHook(() => useAuthCleanup());
     act(() => result.current.performCleanup());

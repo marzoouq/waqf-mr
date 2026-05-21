@@ -34,6 +34,11 @@ export function useWebAuthnAuth({ setIsLoading }: UseWebAuthnAuthArgs) {
         uiNotify.error('فشل في بدء عملية المصادقة. تحقق من اتصالك بالإنترنت');
         return false;
       }
+      if (options.error) {
+        logBiometricEvent('login_failed', 'auth-options', { reason: options.error });
+        uiNotify.error(options.error || 'تعذّر بدء تسجيل الدخول بالبصمة');
+        return false;
+      }
 
       const credential = await startAuthentication({ optionsJSON: options });
 

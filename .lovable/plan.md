@@ -1,71 +1,66 @@
-## الهدف
-تفكيك `useWebAuthnManage` (115 سطر) إلى طبقتَين متوافقتَين مع `Hooks Layering`: طبقة بيانات صرفة + طبقة عرض (toast) — مع الحفاظ الكامل على API العام لـ `useWebAuthn` كي لا يتأثر أي مستهلك خارجي.
+## التشخيص المختصر
 
-## النطاق المعزول
-- **يُعدَّل**: `src/hooks/auth/biometric/useWebAuthnManage.ts` (يصبح غلافاً رفيعاً للتوافق)
-- **يُنشَأ**: `src/hooks/data/auth/useWebAuthnCredentials.ts` (قراءة/كتابة Supabase + storage فقط)
-- **لا يُمَس**: `useWebAuthn.ts`، `useWebAuthnAuth.ts`، `useWebAuthnRegister.ts`، `AuthContext.tsx`، `ProtectedRoute.tsx`، Edge Functions، أي مكوّن UI
+المشكلة ليست في تفعيل البصمة داخل الإعدادات فقط، بل في شرط إظهار زر البصمة في شاشة `/auth`:
 
-## بنية ما بعد التفكيك
+- زر `BiometricLoginButton` يظهر فقط إذا كان `localStorage` يحتوي المفتاح `waqf_biometric_enabled = true`.
+- عند تسجيل الخروج، `useAuthCleanup` يمسح كل مفاتيح `STORAGE_KEYS`، ومنها `BIOMETRIC_ENABLED`، فيختفي الزر رغم أن بيانات البصمة ما زالت محفوظة في قاعدة البيانات.
+- شاشة الدخول لا تتحقق من وجود بيانات اعتماد WebAuthn في الخلفية، لذلك لا تستطيع معرفة أن الجهاز/المستخدم لديه بصمة مسجلة بعد الخروج.
+- يوجد أيضًا قصور UX: إذا كان المتصفح لا يدعم WebAuthn أو لا توجد بصمة مفعلة محليًا، لا تظهر رسالة واضحة للمستخدم.
 
-```text
-hooks/data/auth/useWebAuthnCredentials.ts   ← Supabase + storage فقط (بدون toast)
-  ├─ isSupported, isEnabled, credentials state
-  ├─ initial mount effect (DB sync)
-  ├─ fetchCredentials() → returns {ok, data, error}
-  └─ deleteCredential(id) → returns {ok, error}
+## خطة الإصلاح المحدودة
 
-hooks/auth/biometric/useWebAuthnManage.ts   ← غلاف توافق (Domain/UI layer)
-  ├─ يستهلك useWebAuthnCredentials
-  ├─ يضيف toast العربية على نجاح/فشل
-  └─ يحافظ على نفس التوقيع المُصدَّر حرفياً
-```
+1. **الحفاظ على مؤشر البصمة بعد تسجيل الخروج**
+   - تعديل `src/constants/storageKeys.ts` فقط بحيث لا يُمسح `STORAGE_KEYS.BIOMETRIC_ENABLED` ضمن `CLEARABLE_STORAGE_KEYS`.
+   - إبقاء المفتاح نفسه داخل `STORAGE_KEYS` كما هو حتى لا تتأثر بقية الملفات.
+   - تحديث التعليق التوثيقي في نفس الملف لتوضيح أن مؤشر البصمة يبقى بعد الخروج لأنه مطلوب لإظهار زر الدخول، وليس مصدر صلاحية أمني.
 
-التوقيع المُصدَّر `useWebAuthnManage()` يبقى **مطابقاً 100%** للحالي:
-`{ isSupported, isEnabled, isLoading, credentials, setIsLoading, setIsEnabled, fetchCredentials, removeCredential }`
+2. **تحسين شاشة الدخول بدون تغيير AuthContext**
+   - تعديل `src/components/auth/BiometricLoginButton.tsx` فقط:
+     - إذا كان المتصفح يدعم WebAuthn وكان المؤشر المحلي مفعّلًا، يظهر زر `تسجيل الدخول بالبصمة` كالمعتاد.
+     - إذا كان WebAuthn غير مدعوم، تظهر رسالة عربية مختصرة بدل المساحة الفارغة.
+     - إذا لم يكن المؤشر المحلي موجودًا، تظهر رسالة عربية مختصرة: `لتفعيل الدخول بالبصمة سجّل الدخول أولاً ثم فعّلها من الإعدادات.`
+   - عدم إضافة استعلام قاعدة بيانات في شاشة الدخول حتى لا نغيّر نموذج الأمان أو نربط البصمة بهوية قبل المصادقة.
 
-## الخطوات
-1. إنشاء `src/hooks/data/auth/useWebAuthnCredentials.ts` ينقل:
-   - استدعاءات `supabase.from('webauthn_credentials')` (select/delete)
-   - استدعاءات `supabase.auth.getUser()`
-   - تأثيرات `safeGet/safeSet/safeRemove` على `BIOMETRIC_ENABLED_KEY`
-   - حالات `isSupported / isEnabled / credentials`
-   - **بدون** أي `uiNotify` أو `logger.error` لرسائل المستخدم
-2. إعادة كتابة `useWebAuthnManage.ts` كغلاف ≤60 سطراً يستدعي `useWebAuthnCredentials` ويضيف `uiNotify.success/error` فقط
-3. تحديث `useWebAuthn.test.ts` (إن لزم) — التحقق من بقاء جميع الاختبارات خضراء دون تعديل ثوابتها
-4. تحديث `mem://technical/architecture/hooks-auth-subfolder-layout` بفقرة قصيرة تشير إلى طبقة `hooks/data/auth/`
+3. **تحسين رسالة فشل المصادقة عند عدم وجود بصمة**
+   - تعديل `src/hooks/auth/biometric/useWebAuthnAuth.ts` بشكل محدود لقراءة `options.error` العائد من الخلفية قبل استدعاء `startAuthentication`.
+   - إن أرجع الخادم رسالة مثل عدم وجود بيانات اعتماد أو فشل بدء العملية، تظهر Toast عربية واضحة بدل رسالة عامة أو فشل صامت.
+   - لا تغيير على Edge Functions ولا قاعدة البيانات.
 
-## خطة الاختبار اليدوي الصارمة (إلزامية)
+4. **تحديث الاختبارات المرتبطة فقط**
+   - تحديث اختبار `useAuthCleanup` ليتأكد أن `BIOMETRIC_ENABLED` لا يُمسح عند الخروج.
+   - إضافة/تحديث اختبار لـ `BiometricLoginButton` إن لم يكن موجودًا، للتأكد من:
+     - ظهور الزر عند دعم WebAuthn ووجود `waqf_biometric_enabled=true`.
+     - ظهور رسالة إرشادية عند عدم وجود المؤشر.
+     - ظهور رسالة عدم الدعم عند عدم دعم المتصفح.
+   - تحديث اختبار `useWebAuthnAuth` ليتحقق من التعامل مع `options.error`.
 
-بعد التنفيذ، يجب على المستخدم تنفيذ هذه السيناريوهات بالترتيب على متصفّح يدعم WebAuthn (Chrome/Safari + Touch ID / Windows Hello):
+## ما لن ألمسه
 
-| # | السيناريو | الخطوات | النتيجة المتوقعة |
-|---|-----------|---------|------------------|
-| 1 | تسجيل دخول عادي | `/auth` → بريد + كلمة مرور | دخول ناجح، لا أخطاء console |
-| 2 | تسجيل بصمة جديدة | الإعدادات → الأمان → تفعيل البصمة | prompt بيومتري → toast "تم تسجيل البصمة" → الزر يصبح "إلغاء التفعيل" |
-| 3 | تحديث الصفحة بعد التسجيل | F5 | `isEnabled=true` تلقائياً، البصمة المسجّلة تظهر في القائمة |
-| 4 | تسجيل خروج ثم دخول بالبصمة | خروج → `/auth` → زر "دخول بالبصمة" | prompt → دخول ناجح بدون كلمة مرور |
-| 5 | حذف بصمة | الإعدادات → حذف البصمة | toast "تم حذف البصمة بنجاح" → القائمة فارغة → `isEnabled=false` |
-| 6 | إلغاء البصمة منتصف العملية | بدء تسجيل ثم Cancel على prompt | toast خطأ عربي مفهوم، لا crash، الحالة تعود |
-| 7 | متصفح بدون دعم WebAuthn | فتح في متصفح قديم/خاص | `isSupported=false`، الأزرار مخفية |
-| 8 | حذف بصمة بدون تسجيل دخول | فتح صفحة محمية بعد انتهاء الجلسة | toast "يجب تسجيل الدخول أولاً" |
+- لن أعدّل `AuthContext.tsx`.
+- لن أعدّل `ProtectedRoute.tsx` أو `SecurityGuard.tsx`.
+- لن أعدّل `src/integrations/supabase/client.ts` أو `types.ts` أو `.env` أو `supabase/config.toml`.
+- لن أغيّر Edge Functions أو سياسات RLS أو الجداول.
+- لن أغيّر تصميم شاشة تسجيل الدخول خارج منطقة زر/رسالة البصمة.
 
-**معيار النجاح**: 8/8 سيناريوهات تمر بدون regression.
+## خطة اختبار يدوي صارمة بعد التنفيذ
 
-## بروتوكول الإصلاح إذا انكسر تسجيل الدخول
+1. تسجيل دخول عادي إلى الحساب.
+2. فتح الإعدادات > البصمة.
+3. تسجيل بصمة/جهاز جديد والتأكد من ظهور الجهاز ضمن `الأجهزة المسجلة`.
+4. تسجيل الخروج.
+5. العودة إلى `/auth` والتأكد من ظهور زر `تسجيل الدخول بالبصمة`.
+6. الضغط على زر البصمة والتأكد من ظهور نافذة بصمة/Face ID/تعرف الجهاز.
+7. إكمال البصمة والتأكد من إنشاء جلسة وتوجيه المستخدم للوحة المناسبة.
+8. تجربة إلغاء نافذة البصمة والتأكد من ظهور رسالة عربية واضحة وعدم كسر تسجيل الدخول العادي.
+9. مسح مفتاح `waqf_biometric_enabled` يدويًا من المتصفح ثم فتح `/auth` والتأكد من ظهور رسالة التفعيل من الإعدادات بدل زر مضلل.
+10. تجربة متصفح/بيئة لا تدعم WebAuthn والتأكد من ظهور رسالة عدم الدعم.
+11. اختبار أن تسجيل الدخول بالبريد/كلمة المرور ورقم الهوية لم يتغير.
+12. اختبار أن تسجيل الخروج لا يمسح اختيار السنة المالية من `sessionStorage` بشكل مخالف للقاعدة الحالية: يظل المسح من `sessionStorage` كما هو، ولا يتم استخدام `localStorage` للسنة المالية.
 
-عند فشل أي سيناريو من 1–8:
-1. **التشخيص الفوري** عبر `code--read_console_logs` + `supabase--edge_function_logs` للوظائف `webauthn-*`
-2. **مقارنة diff**: قراءة `useWebAuthnManage.ts` الجديد والقديم (من git history) سطراً سطراً
-3. **الإصلاح الموضعي**: تعديل الغلاف فقط — لا تعديل لـ Auth/Register/Edge Functions
-4. **إذا فشل الإصلاح خلال محاولتَين**: rollback فوري — إعادة `useWebAuthnManage.ts` لحالته الأصلية (115 سطر) وحذف `useWebAuthnCredentials.ts` الجديد، مع تقرير الفشل
+## التحقق الآلي المقترح
 
-## ضمانات عدم المساس
-- **API ثابت**: نفس الأسماء، نفس الترتيب، نفس الأنواع المُصدَّرة
-- **سلوك ثابت**: نفس استدعاءات Supabase بنفس الترتيب، نفس مفاتيح storage، نفس رسائل toast العربية
-- **لا تعديل** على: AuthContext, ProtectedRoute, SecurityGuard, Edge Functions, config.toml, types.ts, client.ts, .env
-- **لا تعديل** على ملفات اختبار موجودة إلا للتأكد من اجتيازها — أي تغيير في توقعات الاختبار = توقّف وإبلاغ
+- تشغيل اختبارات WebAuthn الحالية فقط.
+- تشغيل اختبار `useAuthCleanup`.
+- تشغيل اختبار `BiometricLoginButton`/`LoginForm` المرتبط بالعرض فقط.
 
-## مخاطر متبقية
-- اختبارات `useWebAuthn.test.ts` (404 سطر) قد تحتوي mocks لاستيرادات داخلية محدّدة. سأحافظ على نفس مسارات الاستيراد قدر الإمكان، وإن لزم تعديل mock فسأذكره صراحة قبل التطبيق.
-- لا يمكنني اختبار البصمة فعلياً من السطر؛ الاختبار اليدوي مسؤولية المستخدم.
+إذا فشل أي اختبار مرتبط بالإصلاح، سأصلح السبب داخل الملفات المذكورة فقط أو أتراجع عن التغيير الجزئي الذي سببه.
