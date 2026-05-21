@@ -27,7 +27,7 @@ const DashboardKpiPanel = ({ kpis, isLoading }: DashboardKpiPanelProps) => {
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
           {kpis.map((kpi, idx) => (
-            <div key={idx} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
+            <div key={kpi.label} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
               <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
               <p className={`text-lg sm:text-xl md:text-3xl font-bold ${kpi.color}`}>
                 {kpi.value === 0 && !kpi.suffix ? '—' : <>{fmt(kpi.value)}{kpi.suffix}</>}
