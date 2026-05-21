@@ -9,9 +9,9 @@ import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/da
 import { safeNumber } from '@/utils/format/safeNumber';
 import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
 import { computeContractualRevenue } from '@/utils/financial/computeContractualRevenue';
-// استيراد مباشر من ملفات end-user shared لتفادي cross-role coupling عبر barrel beneficiary
-import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary/dashboard/useBeneficiaryFinancials';
-import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardData';
+// #M6 — مصدر مشترك في طبقة application (لا cross-role coupling عبر beneficiary)
+import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFinancials';
+import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
