@@ -80,7 +80,7 @@ const BeneficiaryDashboard = () => {
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
         {isVisible('welcome_card') && (
-          <BeneficiaryWelcomeCard displayName={displayName} roleLabel={roleLabel} />
+          <BeneficiaryWelcomeCard displayName={displayName} roleLabel={roleLabel} greetingData={greetingData} />
         )}
 
         {isVisible('stats_row') && (
