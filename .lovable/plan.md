@@ -1,86 +1,64 @@
-## خطة التنفيذ — تحسينات المعمارية (6 مراحل)
+## التحقق الصارم من تقرير المراجعة
 
-تنفيذ توصيات تقرير المراجعة المعمارية خطوة بخطوة، مع الحفاظ التام على المكونات والسلوك الحالي. كل مرحلة مستقلة وقابلة للتراجع.
+تم فحص كل بند مباشرةً في الشيفرة الحالية بعد تحسينات الجلسة السابقة. النتائج بشفافية كاملة:
 
----
+| # | البند | حكم التحقق | الدليل |
+|---|---|---|---|
+| **H1** | utils/diagnostics ينتهك قاعدة "نقاء utils" | ❌ **متجاوَز** | تم نقله إلى `src/lib/diagnostics/` في المرحلة 1 — لا وجود لـ `src/utils/diagnostics` |
+| **H2** | `lib/services/` يحوي CRUD بسيط مخالف للوثيقة | ✅ **صحيح** | `appSettingsService.ts` (49 سطر CRUD على `app_settings`) و `unitsService.ts` (27 سطر CRUD على `units`) |
+| **H3** | Auth.tsx ليس logic-less | ⚠️ **مختلط** | الصفحة 132 سطر، تستدعي `useAuthPage` من `hooks/application/`. لكن `hooks/application/` **طبقة موثقة فعلياً** (راجع mem://technical/architecture/hooks-application-layer). الادعاء بأنها "غير موثقة" قديم. يبقى أن الصفحة فيها كتلة شرطية لانتظار الدور |
+| **M1** | useNotifications يخلط مسؤوليات | ✅ **صحيح** | 119 سطر — يجمع supabase + localStorage + window events + role filtering + prefs |
+| **M2** | data hooks تستدعي uiNotify | ✅ **صحيح** | `useTenantPayments.ts` يستدعي `uiNotify.success/.error` مباشرة (سطور 65/69) |
+| **M3** | FiscalYearContext يطلق prefetch عالمياً | ⚠️ **مخفف** | صحيح هيكلياً، **لكن** `useDashboardPrefetch` يحرس داخلياً بـ `if (!isAdminOrAccountant ...) return;` فلا عمل فعلي على المسارات العامة. التحسين تجميلي |
+| **M4** | RootLayout يجمّع 6 اهتمامات | ⚠️ **بسيط** | 63 سطر فقط، مقبول حالياً لكن قد يكبر |
+| **D1** | README يذكر `components/waqf/` بينما الموجود `waqf-info/` و `waqif/` | ✅ **صحيح** | لا يوجد مجلد `waqf` |
+| **D2** | README يقول 11 Edge Function، الواقع 18 | ✅ **صحيح** | عدّت 18 دالة فعلية |
+| **D3** | تعارض بين services README و ARCHITECTURE.md | ✅ **صحيح** | services/README يصرّح بالاستخدام من `hooks/page`، الوثيقة تمنع CRUD-services |
+| **S1** | `.env` مرفوع للمستودع | ⚠️ **متروك بأمان** | الملف **مُتعقّب فعلاً** في git لكنه يحوي فقط مفاتيح Supabase **العامة** (anon + URL). `.gitignore` يستثني `.env.*` للملفات الجديدة. لا أسرار حقيقية مكشوفة، لكن الممارسة سيئة |
 
-### المرحلة 1 — نقل ملفات utils المرتبطة بـ IO إلى lib/
-
-**الهدف**: تطبيق قاعدة `lib vs utils` — utils تبقى دوال نقية فقط.
-
-- نقل `src/utils/database.ts` → `src/lib/database.ts`
-- نقل `src/utils/zatca.ts` → `src/lib/zatca/index.ts` (أو دمجه مع `src/lib/zatca` إن وُجد)
-- نقل `src/utils/webAuthnErrors.ts` → `src/lib/auth/webAuthnErrors.ts`
-- تحديث جميع الاستيرادات (`rg` ثم استبدال دقيق)
-- إبقاء re-export مؤقت من المسار القديم لمنع الكسر إن لزم
-
-**التحقق**: build + 1693 test يجب أن تمر.
-
----
-
-### المرحلة 2 — توحيد بنية `src/types/`
-
-- دمج `src/types/financial.ts` داخل `src/types/financial/` (كـ `financial/legacy.ts` أو إعادة توزيع)
-- نقل `src/types/data/crudFactory.ts` إلى مكان منطقي ضمن نفس المجلد + index موحّد
-- تحديث الاستيرادات
-
-**التحقق**: tsc + tests.
+**خلاصة الفحص**: 7 بنود صحيحة، 3 مخففة/جزئية، 1 متجاوَز سابقاً، 1 ادعاء قديم عن `hooks/application`.
 
 ---
 
-### المرحلة 3 — تسطيح المجلدات شبه الفارغة
+## خطة المعالجة — 4 مراحل
 
-- `src/components/admin/beneficiaries/` → `src/components/beneficiaries/admin/` (أو دمج)
-- `src/components/admin/email-monitor/` → `src/components/email-monitor/`
-- `src/components/settings/account/AccountTab.tsx` → `src/components/settings/AccountTab.tsx`
-- حذف المجلدات الفارغة الناتجة
+### المرحلة 1 — تصحيح انجراف الوثائق (مخاطر = صفر)
+- تحديث README: عدد Edge Functions من 11 → 18 + قائمة محدّثة
+- تصحيح `components/waqf` → `components/waqf-info`
+- توحيد قاعدة الطبقات بين `ARCHITECTURE.md` و `src/lib/services/README.md`:
+  - **القرار المقترح**: services مسموح أن تكون repositories لكل جدول (الواقع الحالي)، نحدّث `ARCHITECTURE.md` ليطابق الممارسة بدلاً من العكس (لأن إعادة دمج الـservices في hooks/data أكبر بكثير).
 
-**التحقق**: استيرادات + tests.
+### المرحلة 2 — تفكيك `useNotifications` (M1)
+نقسّمه إلى:
+- `useNotificationPreferences` — قراءة localStorage + storage events
+- `useNotificationsQuery` — استعلام Supabase فقط
+- `useVisibleNotifications` — فلترة حسب الدور والتفضيلات
+- يبقى `useNotifications` orchestrator نحيف يجمعها (للتوافق مع المستهلكين)
 
----
+### المرحلة 3 — تنظيف uiNotify من طبقة data (M2)
+- نقل toast من `useTenantPayments` إلى الـpage hook المستهلك
+- لا نلمس باقي data hooks في هذه الجولة (نطاق محدود، لا يمس مكونات أخرى)
 
-### المرحلة 4 — تفكيك Page Hooks الثقيلة
-
-استخراج المنطق الحسابي إلى `src/hooks/domain/financial/`:
-
-- `useCollectionData.ts` (205) → استخراج حسابات التحصيل
-- `useIncomePage.ts` (198) → استخراج تجميعات الدخل
-- `usePaymentInvoicesTab.ts` (196) → استخراج فلترة الفواتير
-- `useInvoicesPage.ts` (191)، `useAccountsPage.ts` (188)، `useExpensesPage.ts` (185)
-
-كل hook يبقى < 180 سطر بعد التفكيك.
-
-**التحقق**: tests + سلوك الصفحات يدوياً.
-
----
-
-### المرحلة 5 — توضيح حدود `src/lib/hooks/` vs `src/hooks/ui/`
-
-- مراجعة `useNowClock.ts` و `useStableRef.ts`
-- نقلهما إلى `src/hooks/ui/` ودمج المجلد، أو توثيق سبب الفصل في README صغير
-
-**التحقق**: استيرادات + tests.
+### المرحلة 4 — أمان `.env` (S1)
+- إزالة `.env` من تعقّب git مع الإبقاء على الملف محلياً (`git rm --cached`)
+- تأكيد `.gitignore` يغطيه (يغطّيه بالفعل)
+- **بدون تدوير مفاتيح** لأنها مفاتيح anon عامة بحكم تصميمها
 
 ---
 
-### المرحلة 6 — توثيق فقط (بدون migration rollup)
-
-- إضافة ملاحظة في `supabase/migrations/README.md` (إن لم يوجد ننشئه) تشرح سياسة rollup المستقبلية
-- **لا rollup فعلي** — مؤجل لنافذة هادئة بقرار صريح من الناظر
+## ما لن نلمسه (التزاماً بـ "دون المساس بالمكونات الأخرى")
+- ❌ Auth.tsx / useAuthPage — `hooks/application` طبقة موثقة، الادعاء غير دقيق
+- ❌ FiscalYearContext prefetch — الحارس الداخلي يكفي
+- ❌ RootLayout — حجمه مقبول
+- ❌ نقل CRUD services إلى hooks/data — تغيير جذري يلامس كل المستهلكين
+- ❌ AuthContext, ProtectedRoute, client.ts, types.ts, config.toml
 
 ---
 
-## ضمانات السلامة
+## أولوية التنفيذ المقترحة
+1️⃣ المرحلة 1 (وثائق) — لا مخاطر، قيمة عالية
+2️⃣ المرحلة 4 (.env) — سريع وآمن
+3️⃣ المرحلة 2 (useNotifications) — تحسين بنيوي مهم
+4️⃣ المرحلة 3 (uiNotify في useTenantPayments) — صغير ومنعزل
 
-- ❌ لا تعديل على: AuthContext, ProtectedRoute, client.ts, types.ts, config.toml, .env
-- ❌ لا migrations لقاعدة البيانات (المراحل 1–5 frontend فقط)
-- ❌ لا تغيير في منطق RLS أو Edge Functions
-- ✅ كل مرحلة = commit منفصل + اختبارات خضراء
-- ✅ بعد كل مرحلة: تشغيل `bunx vitest run` + فحص build
-
-## ترتيب التنفيذ المقترح
-
-أبدأ بالمرحلة **1** (الأقل خطورة، الأعلى قيمة)، ثم انتظر تأكيدك قبل الانتقال للمرحلة التالية، أو نفّذ المراحل 1→5 متتالية ثم تقرير شامل.
-
-**أيهما تفضّل: مرحلة-مرحلة بتأكيد بينها، أم تنفيذ كامل متتالي مع تقرير نهائي؟**  
-**تنفيذ كامل متتالي مع تقرير نهائي؟ مع التقيد بعدم الامساس بالمكونات الاخرى وتنفيذ المراحل مرحله مرحله بالكامل وبعدم القفز والحرص على الانتهاء 100% اثناء التنفيذ ومراجعة كل مرحله بعد الانتهاء بشكل صارم ودقيق** 
+**تأكيد قبل البدء**: نفّذ كل المراحل متتالية، أم مرحلة-مرحلة بمراجعة بعد كل واحدة؟
