@@ -79,11 +79,19 @@ jobs:
           node -e "
             const fs = require('fs');
             const lines = fs.readFileSync('/tmp/commits.txt','utf8').split('\n').filter(Boolean);
+            const SKIP_TYPES = /^(chore|refactor|perf|style|test|ci|build|docs)(\(|:)/i;
+            const hasArabic = (s) => /[\u0600-\u06FF]/.test(s);
             const changes = [];
             for (const msg of lines) {
-              if (/\[skip ci\]/i.test(msg) || /^docs:/i.test(msg)) continue;
-              const clean = msg.replace(/^(feat|fix|improvement|chore|refactor|perf|style):\s*/i, '');
-              const type = /^feat:/i.test(msg) ? 'feature' : /^fix:/i.test(msg) ? 'fix' : 'improvement';
+              if (/\[skip ci\]/i.test(msg)) continue;
+              if (/^Merge /i.test(msg)) continue;
+              if (SKIP_TYPES.test(msg)) continue;
+              const clean = msg.replace(/^(feat|fix|improvement)(\([^)]+\))?:\s*/i, '').trim();
+              if (clean.length < 5) continue;
+              // ارفض رسائل بدون عربية ما لم تكن feat/fix صريحة
+              const isExplicit = /^(feat|fix)(\(|:)/i.test(msg);
+              if (!isExplicit && !hasArabic(clean)) continue;
+              const type = /^feat(\(|:)/i.test(msg) ? 'feature' : /^fix(\(|:)/i.test(msg) ? 'fix' : 'improvement';
               changes.push({ type, text: clean });
             }
             if (!changes.length) changes.push({ type: 'improvement', text: 'تحسينات وإصلاحات متنوعة' });
