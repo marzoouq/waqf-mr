@@ -64,9 +64,11 @@ export const useUpsertTenantPayment = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenant_payments'] });
       queryClient.invalidateQueries({ queryKey: ['income'] });
+      uiNotify.success('تم حفظ الدفعة');
     },
     onError: (error: Error) => {
       logger.error('Tenant payment error:', error.message);
+      uiNotify.error(error.message ?? 'تعذّر حفظ الدفعة');
     },
   });
 };
