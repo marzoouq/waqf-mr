@@ -20,8 +20,9 @@ export async function checkFontsLoaded(): Promise<CheckResult> {
     fonts.forEach(f => loadedFamilies.add(f.family));
     const hasTajawal = loadedFamilies.has('Tajawal');
     const hasAmiri = loadedFamilies.has('Amiri');
-    if (!hasTajawal && !hasAmiri) return { id, label: 'الخطوط', status: 'warn', detail: 'Tajawal و Amiri غير محمّلين' };
-    if (!hasTajawal || !hasAmiri) return { id, label: 'الخطوط', status: 'warn', detail: `مفقود: ${!hasTajawal ? 'Tajawal' : 'Amiri'}` };
+    // Amiri يُحمَّل عند الطلب (للطباعة/PDF) — غيابه ليس خطأ
+    if (!hasTajawal) return { id, label: 'الخطوط', status: 'warn', detail: 'Tajawal غير محمّل (خط الواجهة الأساسي)' };
+    if (!hasAmiri) return { id, label: 'الخطوط', status: 'info', detail: `Tajawal محمّل — Amiri يُحمَّل عند الطباعة فقط (${loadedFamilies.size} عائلة)` };
     return { id, label: 'الخطوط', status: 'pass', detail: `Tajawal + Amiri محمّلان (${loadedFamilies.size} عائلة)` };
   } catch {
     return { id, label: 'الخطوط', status: 'info', detail: 'تعذر الفحص' };
