@@ -41,21 +41,29 @@ export async function handleRegisterOptions(
     attestationType: "none",
     excludeCredentials,
     authenticatorSelection: {
-      userVerification: "preferred",
-      residentKey: "preferred",
-      requireResidentKey: false,
+      userVerification: "required",
+      residentKey: "required",
+      requireResidentKey: true,
     },
   });
 
   await admin.rpc("cleanup_expired_challenges");
-  const { data: insertedChallenge } = await admin.from("webauthn_challenges").insert({
+  const { data: insertedChallenge, error: challengeError } = await admin.from("webauthn_challenges").insert({
     user_id: user.id,
     challenge: options.challenge,
     type: "registration",
   }).select("id").single();
 
+  if (challengeError || !insertedChallenge?.id) {
+    console.error("Failed to create registration challenge:", challengeError?.message);
+    return new Response(
+      JSON.stringify({ error: "تعذّر بدء تسجيل البصمة، حاول مجدداً" }),
+      { status: 500, headers: { ...cors, "Content-Type": "application/json" } },
+    );
+  }
+
   return new Response(JSON.stringify({
     ...options,
-    challenge_id: insertedChallenge?.id || null,
+    challenge_id: insertedChallenge.id,
   }), { headers: { ...cors, "Content-Type": "application/json" } });
 }
