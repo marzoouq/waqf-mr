@@ -103,7 +103,7 @@ const PropertiesViewPage = () => {
               {properties.map((property) => {
                 const pf = propertyFinancialsMap.get(property.id);
                 if (!pf) return null;
-                const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses: propExpenses, netIncome: propNet, contractualRevenue: propContractual } = pf;
+                const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses: propExpenses, netIncome: propNet } = pf;
 
                 // استخدام الخرائط المسبقة بدل filter جديد لكل عقار (perf O(n) بدل O(n²))
                 const propertyUnits = propertyUnitsMap.get(property.id) ?? [];
