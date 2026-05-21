@@ -89,23 +89,44 @@ const PwaUpdateNotifier = () => {
         .then(res => res.json())
         .then((changelog: ChangelogEntry[]) => {
           if (controller.signal.aborted) return;
-          const lastSeen = safeGet(LAST_SEEN_KEY, '0.0.0');
-          const filtered = changelog.filter(e => compareSemver(e.version, lastSeen) > 0);
-          const fallback = changelog[0];
-          const entries = filtered.length > 0 ? filtered : fallback ? [fallback] : [];
+          if (!Array.isArray(changelog) || changelog.length === 0) return;
+
+          const latest = changelog[0]!;
+          const latestVersion = latest.version;
+          const lastSeen = safeGet(LAST_SEEN_KEY, '');
+
+          // مستخدم جديد على الجهاز: اعرض أحدث إصدار فقط واحفظه فوراً
+          // (الـ fallback السابق `0.0.0` كان يعرض كل السجل)
+          let entries: ChangelogEntry[];
+          if (!lastSeen) {
+            entries = [latest];
+          } else {
+            const filtered = changelog.filter(e => compareSemver(e.version, lastSeen) > 0);
+            entries = filtered.slice(0, 3); // حد أقصى 3 إصدارات
+          }
+
+          if (entries.length === 0) {
+            safeSet(LAST_SEEN_KEY, latestVersion);
+            return;
+          }
+
+          // احفظ قبل العرض لمنع إعادة الإظهار عند reload
+          safeSet(LAST_SEEN_KEY, latestVersion);
           setNewEntries(entries);
 
-          uiNotify.success("تم تحديث التطبيق بنجاح ✨", {
-            description: "اضغط لعرض سجل التحديثات",
-            duration: 6000,
-            action: {
-              label: "عرض التحديثات",
-              onClick: () => setShowChangelog(true),
-            },
-          });
-
-          if (changelog[0]) {
-            safeSet(LAST_SEEN_KEY, changelog[0].version);
+          // toast فقط إن وُجد feature أو fix (تجنب الإزعاج بتحسينات داخلية)
+          const hasUserFacing = entries.some(e =>
+            e.changes.some(c => c.type === 'feature' || c.type === 'fix'),
+          );
+          if (hasUserFacing) {
+            uiNotify.success("تم تحديث التطبيق بنجاح ✨", {
+              description: "اضغط لعرض سجل التحديثات",
+              duration: 6000,
+              action: {
+                label: "عرض التحديثات",
+                onClick: () => setShowChangelog(true),
+              },
+            });
           }
         })
         .catch((error: unknown) => {

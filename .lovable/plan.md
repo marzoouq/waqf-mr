@@ -1,76 +1,62 @@
-## التحقق الجنائي من تقرير البصمة
+## التحقق من التقرير
 
-فحصت كل بند فعلياً مقابل الكود. النتيجة: **5 بنود حقيقية تحتاج إصلاحاً جراحياً**، و4 بنود أرفضها لأنها آراء معمارية أو تتعارض مع قرار موثّق في الذاكرة.
+فحصت كل بند مقابل الكود. النتائج:
 
----
-
-### بنود صحيحة سأنفّذها
-
-| # | الادعاء | التحقق |
+| # | البند | الحالة |
 |---|---|---|
-| 1 | `register-verify` يتجاهل خطأ insert في `webauthn_credentials` ويرجع `verified: true` كذباً | **صحيح** — `register-verify.ts:60-67` يستدعي `insert` بدون فحص `error`، ثم الواجهة تكتب `BIOMETRIC_ENABLED=true` في `useWebAuthnRegister.ts:79`. |
-| 2 | فشل إنشاء challenge لا يُفحص → `challenge_id: null` | **صحيح** في `register-options.ts:51-55` و `auth-options.ts:34-37` — كلاهما يستخدم `insertedChallenge?.id || null` دون فحص `error`. |
-| 3 | `residentKey: "preferred"` يكسر تدفق passkey بلا اسم مستخدم | **صحيح** — `auth-options.ts:29-32` لا يرسل `allowCredentials` (تدفق discoverable كامل)، لكن `register-options.ts:43-47` يستخدم `residentKey: "preferred"` و `requireResidentKey: false`. لا تطابق بين التسجيل والمصادقة → بعض الـ authenticators لا تنشئ passkey discoverable فيفشل الدخول. |
-| 4 | `userVerification: "preferred"` رغم وعد الواجهة بـ"بصمة" | **صحيح** في كلا الـ options. لا قيمة أمنية للبصمة إن قبل authenticator مجرد presence. |
-| 5 | رسائل خطأ السيرفر تضيع | **صحيح جزئياً** — `useWebAuthnAuth.ts:56-59` و `useWebAuthnRegister.ts:73-77` يعرضان رسالة عامة عند `!result?.verified` متجاهلَين `result.error` الذي يرسله السيرفر (مثل "بيانات الاعتماد غير موجودة"، "التحدي منتهي الصلاحية"). |
+| 1 | `0.0.0` fallback يعرض كل التحديثات | **مؤكد** — `PwaUpdateNotifier.tsx:92-95` |
+| 2 | `pwa_last_seen_version` يُمسح عند الخروج | **مؤكد** — `storageKeys.ts:48-50` يستثني `BIOMETRIC_ENABLED` فقط |
+| 3 | لا حد أقصى لعدد الإصدارات المعروضة | **مؤكد** — لا `slice` في `PwaUpdateNotifier.tsx:93-96` |
+| 4 | `changelog.json` ملوّث برسائل تطوير | **مؤكد** — أمثلة فعلية: "Save plan in Lovable"، "Refactor accounts hooks"، "Update tests…" |
+| 5 | `auto-version.yml` يُمرّر chore/refactor/perf/style | **مؤكد** — `auto-version.yml:84-87` يستبعد فقط `docs:` و `[skip ci]` |
+| 6 | `setInterval` بدون cleanup | **منخفض** — موجود في `SwUpdateBanner.tsx` لكن `useRegisterSW` يدير عمر التسجيل؛ خارج النطاق |
+| 7 | مسارا `pwa_just_updated` | **مقصود** — كلاهما يضع TTL=10د؛ ليس عطلاً |
+
+سأنفّذ البنود 1-5، وأتجاهل 6-7 (الأول تحسين هامشي، الثاني سلوك مقصود).
 
 ---
 
-### بنود أرفضها (مع التبرير)
+## خطة الإصلاح
 
-| # | الادعاء | سبب الرفض |
-|---|---|---|
-| الزر يعتمد على `localStorage` | **قرار موثّق** في `src/constants/storageKeys.ts:43-46` وفي ذاكرة المشروع `mem://auth/biometric-webauthn-implementation`: المؤشر مقصود لتجنّب استدعاءات شبكة من شاشة `/auth` العامة قبل المصادقة. ليس مصدر صلاحية أمنية. الإصلاح الحقيقي للأخطاء الأخرى (رسائل واضحة، رفض false-positive في register-verify) يحلّ تجربة "زر يظهر بلا credential". |
-| سباق claim للتحدي في `auth-verify` | الكود **بالفعل** ذرّي: `update ... is('user_id', null)` على PK يكفل أن طلباً واحداً فقط ينجح. الحذف اللاحق على `id` آمن. الادعاء بـ"عدم فحص الصفوف المتأثرة" نظري — verifyAuthenticationResponse يفشل بنفسه عند إعادة الاستخدام لاختلاف counter. |
-| Magic Link لإصدار الجلسة | نمط Supabase معتمد ومذكور بوضوح في الذاكرة، خارج نطاق التقرير. |
-| `platformAuthenticatorIsAvailable` | تحسين UX، ليس خطأ. الكود الحالي يكشف الفشل عبر استثناء `startAuthentication`. |
+### 1. `src/components/pwa/PwaUpdateNotifier.tsx`
+- **استبدال `0.0.0` fallback**: إن لم يوجد `lastSeen` (مستخدم جديد على الجهاز)، اعرض **أحدث إصدار فقط** (`[changelog[0]]`) واحفظه فوراً.
+- **حد أقصى 3 إصدارات**: تطبيق `.slice(0, 3)` على نتيجة `filtered`.
+- **ترتيب**: تأكيد أن `changelog[0]` هو الأحدث (مضمون من الـ workflow عبر `unshift`).
+- حفظ `LAST_SEEN_KEY` قبل عرض النافذة لمنع إعادة العرض عند reload.
 
----
+### 2. `src/constants/storageKeys.ts`
+- إضافة `STORAGE_KEYS.PWA_LAST_VERSION` إلى `NON_CLEARABLE_KEYS`.
+- تحديث التعليق التوضيحي ليفسر السبب (تجربة تحديث متّسقة عبر دورات تسجيل دخول/خروج، ليس سراً أمنياً).
 
-## خطة الإصلاح الجراحية
+### 3. `public/changelog.json`
+- تنظيف الإدخالات الملوّثة الموجودة يدوياً: حذف الرسائل الإنجليزية الداخلية و التكرارات (`"Save plan in Lovable"`, `"Preceding changes"`, `"Update tests to match UI changes"`, `"Refactor accounts hooks"`, إلخ).
+- دمج/استبدال بنصوص عربية مفيدة للمستخدم النهائي.
+- إبقاء الإصدارات الحقيقية التي تحمل قيمة وظيفية فقط.
 
-### Edge Functions (تنشر تلقائياً)
+### 4. `.github/workflows/auto-version.yml`
+تشديد فلتر الـ commits في `Collect commits since last tag`:
+- استبعاد `chore:`, `refactor:`, `perf:`, `style:`, `test:`, `ci:`, `build:`, `docs:` بالكامل.
+- استبعاد commits بالإنجليزية الخالصة (heuristic: لا تحتوي حروف عربية ولا تبدأ بـ `feat:`/`fix:`).
+- استبعاد رسائل قصيرة جداً (<5 chars) ورسائل merge.
+- إن لم يبقَ شيء بعد الفلترة، استخدم النص الافتراضي العربي الموجود `"تحسينات وإصلاحات متنوعة"`.
 
-**1. `supabase/functions/webauthn/handlers/register-options.ts`**
-- تغيير `authenticatorSelection`:
-  ```
-  userVerification: "required",
-  residentKey: "required",
-  requireResidentKey: true,
-  ```
-- فحص `error` من insert التحدي، وإرجاع 500 برسالة عربية واضحة عند الفشل.
-
-**2. `supabase/functions/webauthn/handlers/auth-options.ts`**
-- تغيير `userVerification: "required"`.
-- فحص `error` من insert التحدي وإرجاع 500 عند الفشل.
-
-**3. `supabase/functions/webauthn/handlers/register-verify.ts`**
-- التقاط `{ error: insertError }` من insert الـ credential.
-- عند الفشل: تسجيل الخطأ + إرجاع 500 برسالة "فشل حفظ بيانات البصمة" **بدون** حذف التحدي ولا إرجاع `verified: true`.
-
-### الواجهة
-
-**4. `src/hooks/auth/biometric/useWebAuthnAuth.ts`**
-- عند `!result?.verified`: استخدام `result?.error` إن وُجد بدلاً من الرسالة العامة (fallback يبقى).
-- نفس المعالجة عند `!result.access_token`.
-
-**5. `src/hooks/auth/biometric/useWebAuthnRegister.ts`**
-- عند `!result?.verified`: استخدام `result?.error` إن وُجد.
-- **مهم**: لا نكتب `BIOMETRIC_ENABLED=true` ولا نستدعي `setIsEnabled(true)` إلا بعد `result.verified === true` (هذا محقق فعلاً لكن سيُحفظ بعد الإصلاح #3 بشكل صحيح).
+### 5. (إضافة) سياسة عرض المستخدم
+- إذا كانت كل التغييرات من نوع `improvement` فقط، عرض النافذة لكن بدون toast صاخب — toast يُعرض فقط إذا فيه `feature` أو `fix`. (تخفيف الإزعاج بدون كسر سجل التحديثات).
 
 ---
 
 ## ما لن أمسّه
 
-- `BiometricLoginButton.tsx` — السلوك مقصود وموثّق.
-- `useWebAuthn.ts` / `useWebAuthnManage.ts` — لا علاقة بالأخطاء.
-- `AuthContext.tsx` / `ProtectedRoute.tsx` — محمية بقواعد المشروع.
-- آلية Magic Link لإصدار الجلسة في `auth-verify` — خارج النطاق.
-- جدول `webauthn_credentials` و RLS — لا تغيير على الـ schema.
+- `vite.config.ts` (إعدادات PWA صحيحة).
+- `SwUpdateBanner.tsx` (`useRegisterSW` يدير دورة حياته).
+- `pwaBootstrap.ts` (مساري `pwa_just_updated` مقصودان).
+- `lazyWithRetry.ts` (حماية صحيحة).
+- إعادة كتابة الـ workflow بالكامل — تعديل جراحي فقط على شرط الفلتر.
 
-## نقاط التحقق بعد التنفيذ
+## نقاط التحقق
 
-1. تشغيل اختبارات `src/hooks/auth/biometric/useWebAuthn.test.ts` للتأكد من عدم كسر التغطية الموجودة.
-2. اختبار يدوي: تسجيل بصمة جديدة على جهاز يدعم passkey discoverable → نجاح + ظهور credential في DB.
-3. اختبار سلبي: محاكاة فشل insert (مثلاً بصمة موجودة → unique constraint) يجب أن يرفع 500 ولا يضع localStorage.
-4. اختبار رسائل: إعادة استخدام challenge قديم يجب أن يعرض "التحدي منتهي الصلاحية" بدل "فشل التحقق".
+1. مستخدم جديد على جهاز نظيف → يرى نافذة بإصدار واحد فقط (الأحدث).
+2. مستخدم سجل خروج/دخول → `pwa_last_seen_version` يبقى → لا تظهر نافذة بلا داعٍ.
+3. تجاوز 3 إصدارات بين زيارتين → النافذة تعرض 3 فقط.
+4. commit بـ `chore: refactor stuff` → لا يدخل changelog.
+5. اختبارات `PwaUpdateNotifier` (إن وُجدت) لا تنكسر.
