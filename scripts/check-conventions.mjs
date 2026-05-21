@@ -17,6 +17,7 @@
  * تحذيرات (لا تفشل):
  *   - ملفات hooks/page > 200 سطر — مرشّحة للتفكيك
  *   - barrel فيه > 25 export — مرشّح للتقسيم
+ *   - single-table service بمستهلك <3 ولا يحوي storage/invoke/rpc — مرشّح للدمج
  *
  * شغّل عبر: npm run lint:conventions
  * تجاوز التحذيرات بفشل: LINT_STRICT=1 npm run lint:conventions
