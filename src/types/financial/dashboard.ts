@@ -76,6 +76,16 @@ export interface AggregatedBeneficiary {
   user_id: string | null;
 }
 
+/**
+ * إعدادات النسب المُجمّعة من RPC — أرقام nullable لا نصوص.
+ * النوع السابق `Record<string, string>` كان كاذباً والاستخدام الفعلي رقمي.
+ */
+export interface AggregatedSettings {
+  admin_share_percentage?: number | null;
+  waqif_share_percentage?: number | null;
+  waqf_corpus_percentage?: number | null;
+}
+
 export interface AggregatedData {
   totals: AggregatedTotals;
   collection: AggregatedCollection;
@@ -85,7 +95,7 @@ export interface AggregatedData {
   expense_types: Array<{ name: string; value: number }>;
   yoy: AggregatedYoY;
   fiscal_years: AggregatedFiscalYear[];
-  settings: Record<string, string>;
+  settings: AggregatedSettings;
   beneficiaries: AggregatedBeneficiary[];
   fiscal_year_id: string;
   fiscal_year_status: string;

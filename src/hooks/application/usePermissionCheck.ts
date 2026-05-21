@@ -44,7 +44,8 @@ export function usePermissionCheck() {
       return true;
     }
 
-    return true;
+    // default deny: أي دور غير معروف لا يُسمح له بأي مسار
+    return false;
   };
 
   return { isRouteAllowed };

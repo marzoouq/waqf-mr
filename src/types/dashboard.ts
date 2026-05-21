@@ -11,6 +11,13 @@ export interface StatItem {
   link: string;
   yoyChange?: number | null;
   invertColor?: boolean;
+  /**
+   * صلاحية عرض البطاقة:
+   * - 'all' (افتراضي) — تظهر لكل الأدوار المخوّلة بعرض اللوحة
+   * - 'admin-only' — حصرية للناظر؛ تُحجب عن المحاسب
+   * الفصل بناءً على metadata بدل النص العربي (مرونة i18n + سلامة الصلاحيات).
+   */
+  visibility?: 'all' | 'admin-only';
 }
 
 export interface KpiItem {
