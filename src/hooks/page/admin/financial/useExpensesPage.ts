@@ -19,6 +19,7 @@ import { uiNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 import { computeDocumentationStats } from '@/utils/financial/documentationRate';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
+import { filterAndSortExpenses } from '@/utils/financial/expensesCompute';
 
 export type SortField = SortFieldOf<'amount' | 'date' | 'expense_type'>;
 
