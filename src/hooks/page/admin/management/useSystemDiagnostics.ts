@@ -2,8 +2,8 @@
  * هوك صفحة التشخيص — يستخرج كل المنطق (تشغيل، تصدير، نتائج)
  */
 import { useState, useEffect, useCallback } from 'react';
-import { runAllDiagnostics, runCategoryDiagnostics, diagnosticCategories, type CheckResult } from '@/utils/diagnostics/checks';
-import { sanitizeDiagnosticOutput } from '@/utils/diagnostics/sanitize';
+import { runAllDiagnostics, runCategoryDiagnostics, diagnosticCategories, type CheckResult } from '@/lib/diagnostics/checks';
+import { sanitizeDiagnosticOutput } from '@/lib/diagnostics/sanitize';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logger } from '@/lib/logger';
