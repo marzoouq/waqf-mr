@@ -55,9 +55,13 @@
 
 ### المسارات الجانبية المسموحة
 
-- `lib/auth/*` — منطق مصادقة منخفض المستوى (`setSession`, `nationalIdLogin`) — boundary مقصود
-- `utils/*` — **دوال نقية فقط**. لا `supabase`، لا `sonner`، لا حالة. تُستخدم من أي طبقة.
+- `lib/auth/*` — منطق مصادقة منخفض المستوى (`setSession`, `nationalIdLogin`, `fetchUserRole`) — boundary مقصود يقرأ `auth.*` و`user_roles`
+- `lib/realtime/*` — مصانع realtime channels (`channelFactory`, `bfcacheSafeChannel`) — تستخدم `supabase` لإدارة القنوات؛ boundary مقصود
+- `lib/services/diagnosticsService.ts` — طبقة تجريد لـDB probing تُستخدم من `lib/diagnostics/checks/` لتبقى utils نقية
+- `contexts/AuthContext.tsx` — يستخدم `supabase.auth.*` (signIn/signOut/getSession) كجزء من boundary المصادقة. لا يجوز استخدام `supabase.from/rpc` هناك
+- `utils/*` — **دوال نقية فقط**. لا `supabase`، لا `sonner`، لا حالة. تُستخدم من أي طبقة
 - `lib/` — أدوات بنية تحتية لا تنتمي لطبقة محدّدة (`logger`, `cn`, `notify`, `queryClient`)
+
 
 ## القواعد المُلزِمة (يفرضها CI)
 

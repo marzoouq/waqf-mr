@@ -20,9 +20,12 @@ export interface RpInfo {
 /**
  * استخراج rpID و origin من الطلب مع التحقق من origin whitelist.
  * WebAuthn يتطلب أن يتطابق rpID مع نطاق الصفحة الحالية تماماً.
+ *
+ * Fallback: أول origin مسموح في `_shared/cors.ts` (waqf-wise.net حالياً) —
+ * بدلاً من النطاق القديم `waqf-mr.lovable.app` الذي لم يعد ضمن القائمة.
  */
 export function getRpInfo(req: Request): RpInfo {
-  const origin = req.headers.get("origin") || "https://waqf-mr.lovable.app";
+  const origin = req.headers.get("origin") || ALLOWED_ORIGINS[0];
 
   const isAllowed =
     ALLOWED_ORIGINS.includes(origin) ||
@@ -39,6 +42,7 @@ export function getRpInfo(req: Request): RpInfo {
     origin,
   };
 }
+
 
 export async function getAuthUser(req: Request) {
   const authHeader = req.headers.get("authorization");

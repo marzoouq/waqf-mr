@@ -1,64 +1,89 @@
-## التحقق الصارم من تقرير المراجعة
+## التحقق الصارم بند بند — التقرير الجديد
 
-تم فحص كل بند مباشرةً في الشيفرة الحالية بعد تحسينات الجلسة السابقة. النتائج بشفافية كاملة:
+فحص مباشر من المصدر الحقيقي (لا اعتماد على ادعاء)، بعد إصلاحات الجلسات السابقة.
 
-| # | البند | حكم التحقق | الدليل |
+### القسم 1 — Misplaced files / responsibilities
+
+| البند | الادعاء | الحقيقة | الحكم |
 |---|---|---|---|
-| **H1** | utils/diagnostics ينتهك قاعدة "نقاء utils" | ❌ **متجاوَز** | تم نقله إلى `src/lib/diagnostics/` في المرحلة 1 — لا وجود لـ `src/utils/diagnostics` |
-| **H2** | `lib/services/` يحوي CRUD بسيط مخالف للوثيقة | ✅ **صحيح** | `appSettingsService.ts` (49 سطر CRUD على `app_settings`) و `unitsService.ts` (27 سطر CRUD على `units`) |
-| **H3** | Auth.tsx ليس logic-less | ⚠️ **مختلط** | الصفحة 132 سطر، تستدعي `useAuthPage` من `hooks/application/`. لكن `hooks/application/` **طبقة موثقة فعلياً** (راجع mem://technical/architecture/hooks-application-layer). الادعاء بأنها "غير موثقة" قديم. يبقى أن الصفحة فيها كتلة شرطية لانتظار الدور |
-| **M1** | useNotifications يخلط مسؤوليات | ✅ **صحيح** | 119 سطر — يجمع supabase + localStorage + window events + role filtering + prefs |
-| **M2** | data hooks تستدعي uiNotify | ✅ **صحيح** | `useTenantPayments.ts` يستدعي `uiNotify.success/.error` مباشرة (سطور 65/69) |
-| **M3** | FiscalYearContext يطلق prefetch عالمياً | ⚠️ **مخفف** | صحيح هيكلياً، **لكن** `useDashboardPrefetch` يحرس داخلياً بـ `if (!isAdminOrAccountant ...) return;` فلا عمل فعلي على المسارات العامة. التحسين تجميلي |
-| **M4** | RootLayout يجمّع 6 اهتمامات | ⚠️ **بسيط** | 63 سطر فقط، مقبول حالياً لكن قد يكبر |
-| **D1** | README يذكر `components/waqf/` بينما الموجود `waqf-info/` و `waqif/` | ✅ **صحيح** | لا يوجد مجلد `waqf` |
-| **D2** | README يقول 11 Edge Function، الواقع 18 | ✅ **صحيح** | عدّت 18 دالة فعلية |
-| **D3** | تعارض بين services README و ARCHITECTURE.md | ✅ **صحيح** | services/README يصرّح بالاستخدام من `hooks/page`، الوثيقة تمنع CRUD-services |
-| **S1** | `.env` مرفوع للمستودع | ⚠️ **متروك بأمان** | الملف **مُتعقّب فعلاً** في git لكنه يحوي فقط مفاتيح Supabase **العامة** (anon + URL). `.gitignore` يستثني `.env.*` للملفات الجديدة. لا أسرار حقيقية مكشوفة، لكن الممارسة سيئة |
+| **A** | AuthContext يستورد supabase ويستعمله مباشرة | ✅ صحيح **هيكلياً**: السطر 28 يستعمل `supabase.auth.signInWithPassword`، السطر 59 `supabase.auth.signOut`. **لكن** قاعدة ARCHITECTURE.md تقول "supabase **للجداول**" (CRUD/select/realtime) — استدعاءات `supabase.auth.*` ليست table access. التقرير يخلط بين الاثنين | ⚠️ **مبالَغ فيه** |
+| **B** | `lib/auth/fetchUserRole.ts` يقرأ `user_roles` خارج hooks/data | ✅ صحيح، يفعل `supabase.from('user_roles').select(...)`. **لكن** ARCHITECTURE.md السطر 56 يصرّح: "`lib/auth/*` — منطق مصادقة منخفض المستوى — **boundary مقصود**". الاستثناء **موثّق فعلاً** | ⚠️ **ادعاء قديم** |
+| **C** | `src/lib/hooks/` يبدو معماريّاً مريباً | ✅ موجود (3 ملفات: useNowClock, useStableRef, README). تمت معالجته في الجلسة السابقة بـREADME يحدّد البوندري | ⚠️ **معالَج جزئياً** |
+| **D** | `diagnosticsService` يكشف "مشكلة boundary" | ✅ موجود، لكن التعليق الفعلي يقول "تُستخدم من `lib/diagnostics/checks/` بدلاً من Supabase مباشرة" — هذا **نمط صحيح** (طبقة تجريد بين utils النقية وSupabase). تأطير التقرير سلبي بلا مبرر | ❌ **تأويل خاطئ** |
 
-**خلاصة الفحص**: 7 بنود صحيحة، 3 مخففة/جزئية، 1 متجاوَز سابقاً، 1 ادعاء قديم عن `hooks/application`.
+### القسم 2 — هوكات مختلطة المسؤوليات (الأهم)
 
----
+| البند | الادعاء | الحقيقة | الحكم |
+|---|---|---|---|
+| **useWebAuthnManage** | يجمع storage + supabase + uiNotify + state | ✅ **صحيح فعلاً**. 115 سطر، يستورد supabase + safeGet + uiNotify + 5+ استدعاءات supabase.auth/from | ✅ **صحيح** |
+| **useNotificationActions** | يحتوي AudioContext + Notification API + safeGet | ✅ **صحيح فعلاً**. 81 سطر، `new AudioContext()` السطر 20، `new window.Notification(...)` السطر 69، safeGet السطر 21 و63 | ✅ **صحيح** |
+| **Data hooks مع uiNotify** | useUnits, useTenantPayments, useAppSettingsWrite, useZatcaInvoiceActions | جزئياً صحيح: **10 ملفات** فعلاً في `hooks/data/` تستخدم uiNotify. `useTenantPayments` **لم يعد** كذلك (أُصلح في الجلسة السابقة) | ✅ **صحيح** (إلا useTenantPayments) |
 
-## خطة المعالجة — 4 مراحل
+### القسم 3 — Naming / Taxonomy
 
-### المرحلة 1 — تصحيح انجراف الوثائق (مخاطر = صفر)
-- تحديث README: عدد Edge Functions من 11 → 18 + قائمة محدّثة
-- تصحيح `components/waqf` → `components/waqf-info`
-- توحيد قاعدة الطبقات بين `ARCHITECTURE.md` و `src/lib/services/README.md`:
-  - **القرار المقترح**: services مسموح أن تكون repositories لكل جدول (الواقع الحالي)، نحدّث `ARCHITECTURE.md` ليطابق الممارسة بدلاً من العكس (لأن إعادة دمج الـservices في hooks/data أكبر بكثير).
+| البند | الحقيقة | الحكم |
+|---|---|---|
+| **hooks/page vs hooks/application** | كلاهما موجود فعلاً. `hooks/application/` **طبقة مقصودة وموثقة** في `mem://technical/architecture/hooks-application-layer` (feature controllers عابرة الأدوار). لكن `src/hooks/README.md` لا يذكرها — **README ناقص**، لا "drift" معماري | ⚠️ **README ناقص فقط** |
 
-### المرحلة 2 — تفكيك `useNotifications` (M1)
-نقسّمه إلى:
-- `useNotificationPreferences` — قراءة localStorage + storage events
-- `useNotificationsQuery` — استعلام Supabase فقط
-- `useVisibleNotifications` — فلترة حسب الدور والتفضيلات
-- يبقى `useNotifications` orchestrator نحيف يجمعها (للتوافق مع المستهلكين)
+### القسم 4 — Backend / Edge
 
-### المرحلة 3 — تنظيف uiNotify من طبقة data (M2)
-- نقل toast من `useTenantPayments` إلى الـpage hook المستهلك
-- لا نلمس باقي data hooks في هذه الجولة (نطاق محدود، لا يمس مكونات أخرى)
+| البند | الحقيقة | الحكم |
+|---|---|---|
+| **webauthn helpers يستخدم domain قديم** | ✅ **صحيح وخطير**: `supabase/functions/webauthn/helpers.ts:25` يستخدم `https://waqf-mr.lovable.app` كfallback. النطاقات الحالية في `_shared/cors.ts` هي `waqf-wise.net` فقط. هذا fallback خاطئ ومنفصل عن مصدر الحقيقة | ✅ **صحيح ومهم** |
+| **تكرار في ZATCA** | onboard 182 سطر، renew 147، signer 257. `_shared/zatca-shared.ts` موجود فعلاً. التكرار محتمل لكن غير حرج | ⚠️ **مقبول** |
+| **lib/realtime/channelFactory.ts يستخدم supabase خارج boundaries الموثقة** | ✅ صحيح. ARCHITECTURE.md يذكر `lib/auth/*` كاستثناء فقط، لا `lib/realtime/*` | ✅ **صحيح، يحتاج توثيق** |
 
-### المرحلة 4 — أمان `.env` (S1)
-- إزالة `.env` من تعقّب git مع الإبقاء على الملف محلياً (`git rm --cached`)
-- تأكيد `.gitignore` يغطيه (يغطّيه بالفعل)
-- **بدون تدوير مفاتيح** لأنها مفاتيح anon عامة بحكم تصميمها
+### خلاصة الفحص الصارم
+- ✅ **6 بنود صحيحة فعلاً**: useWebAuthnManage مختلط، useNotificationActions مختلط، data hooks مع uiNotify، webauthn helpers fallback خاطئ، lib/realtime استثناء غير موثق، توثيق hooks README ناقص
+- ⚠️ **4 بنود مبالغ فيها أو قديمة**: AuthContext auth.* (ليس CRUD)، fetchUserRole (موثّق فعلاً)، src/lib/hooks (معالَج)، application/page (طبقة مقصودة)
+- ❌ **1 تأويل خاطئ**: diagnosticsService
 
 ---
 
-## ما لن نلمسه (التزاماً بـ "دون المساس بالمكونات الأخرى")
-- ❌ Auth.tsx / useAuthPage — `hooks/application` طبقة موثقة، الادعاء غير دقيق
-- ❌ FiscalYearContext prefetch — الحارس الداخلي يكفي
-- ❌ RootLayout — حجمه مقبول
-- ❌ نقل CRUD services إلى hooks/data — تغيير جذري يلامس كل المستهلكين
+## خطة الإصلاح — 5 مراحل (نطاق محدود، صفر مساس بالمصادقة)
+
+### المرحلة 1 — إصلاح webauthn helpers fallback (أمن/تشغيل)
+- `supabase/functions/webauthn/helpers.ts:25`: استبدال fallback إلى `https://waqf-wise.net` بدلاً من `waqf-mr.lovable.app` القديم
+- إضافة guard: إذا `origin` غير موجود في `ALLOWED_ORIGINS` من `_shared/cors.ts` → استخدم أول origin مسموح
+- **لا يلامس** منطق WebAuthn نفسه ولا التحقق
+
+### المرحلة 2 — تحديث `src/hooks/README.md`
+- إضافة سطر يذكر `hooks/application/` كطبقة feature controllers عابرة الأدوار (مع رابط للذاكرة)
+- توضيح أن `application/` ≠ `page/`: page = صفحة واحدة، application = منطق ميزة عابر صفحات/أدوار
+
+### المرحلة 3 — توثيق boundaries المسموحة في ARCHITECTURE.md
+- إضافة `lib/realtime/*` للاستثناءات الموثقة (السطر 56)
+- إضافة `lib/services/diagnosticsService.ts` كاستثناء صريح (طبقة تجريد للtest/utils)
+- إضافة جملة: "`supabase.auth.*` (غير `from/rpc`) مسموح في contexts/AuthContext كجزء من boundary المصادقة"
+
+### المرحلة 4 — تفكيك `useNotificationActions` (الأقل خطورة)
+- استخراج audio + Notification إلى hook UI جديد: `src/hooks/ui/useNotificationSounds.ts`
+- إبقاء mutations + realtime invalidation في `useNotificationActions`
+- المستهلك الوحيد `useNotifications` يستدعي كلاهما — لا تغيير في API الخارجي
+
+### المرحلة 5 — تفكيك `useWebAuthnManage` (الأكثر حساسية)
+**اقتراح فقط، يتطلّب موافقة منفصلة لأنه يلمس مسار البصمة:**
+- استخراج قراءات supabase إلى `hooks/data/auth/useWebAuthnCredentials.ts`
+- إبقاء UI state + uiNotify في `useWebAuthnManage`
+- **لن أنفّذها افتراضياً** — هذا hook حسّاس أمنياً، أنتظر إذناً صريحاً
+
+---
+
+## ما لن نلمسه
+- ❌ AuthContext — استدعاءات `supabase.auth.*` ليست انتهاكاً
+- ❌ `lib/auth/fetchUserRole` — موثّق فعلاً كاستثناء
+- ❌ `lib/services/diagnosticsService` — نمط صحيح
+- ❌ ZATCA functions — التكرار مقبول والـ_shared موجود
+- ❌ بقية data hooks مع uiNotify (9 ملفات) — نمط مقبول في React Query، تغييرها سلسلة طويلة تلامس كل المستهلكين
 - ❌ AuthContext, ProtectedRoute, client.ts, types.ts, config.toml
 
 ---
 
-## أولوية التنفيذ المقترحة
-1️⃣ المرحلة 1 (وثائق) — لا مخاطر، قيمة عالية
-2️⃣ المرحلة 4 (.env) — سريع وآمن
-3️⃣ المرحلة 2 (useNotifications) — تحسين بنيوي مهم
-4️⃣ المرحلة 3 (uiNotify في useTenantPayments) — صغير ومنعزل
+## ترتيب التنفيذ المقترح
+1️⃣ **المرحلة 1** — webauthn fallback (إصلاح سريع، يمنع bug محتمل)
+2️⃣ **المرحلة 2** — توثيق hooks/application في README
+3️⃣ **المرحلة 3** — توثيق lib/realtime + auth.* exceptions
+4️⃣ **المرحلة 4** — تفكيك useNotificationActions
+5️⃣ **المرحلة 5** — useWebAuthnManage (انتظار إذن صريح)
 
-**تأكيد قبل البدء**: نفّذ كل المراحل متتالية، أم مرحلة-مرحلة بمراجعة بعد كل واحدة؟
+**سؤال**: نفّذ 1-4 مباشرة وأتوقف عند 5، أم تريد ترتيباً مختلفاً؟
