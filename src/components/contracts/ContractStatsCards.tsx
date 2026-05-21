@@ -16,14 +16,14 @@ interface ContractStats {
 interface ContractStatsCardsProps {
   stats: ContractStats;
   isLoading: boolean;
-  /** 'admin' = جميع البطاقات (5)، 'beneficiary' = إخفاء المنتهية والقاربة (3) */
+  /** 'admin' = جميع البطاقات (5)، 'beneficiary' = الإجمالي والنشطة فقط (2) — لا أرقام إيرادات */
   variant?: 'admin' | 'beneficiary';
 }
 
 const ContractStatsCards = ({ stats, isLoading, variant = 'admin' }: ContractStatsCardsProps) => {
   const isBeneficiary = variant === 'beneficiary';
-  const skeletonCount = isBeneficiary ? 3 : 5;
-  const gridCols = isBeneficiary ? 'sm:grid-cols-3 lg:grid-cols-3' : 'sm:grid-cols-3 lg:grid-cols-5';
+  const skeletonCount = isBeneficiary ? 2 : 5;
+  const gridCols = isBeneficiary ? 'sm:grid-cols-2 lg:grid-cols-2' : 'sm:grid-cols-3 lg:grid-cols-5';
 
   if (isLoading) {
     return (
