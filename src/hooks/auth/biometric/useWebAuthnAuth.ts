@@ -42,9 +42,9 @@ export function useWebAuthnAuth({ setIsLoading }: UseWebAuthnAuthArgs) {
 
       const credential = await startAuthentication({ optionsJSON: options });
 
-      let result: { verified?: boolean; access_token?: string; refresh_token?: string } | null = null;
+      let result: { verified?: boolean; error?: string; access_token?: string; refresh_token?: string } | null = null;
       try {
-        result = await invoke<{ verified?: boolean; access_token?: string; refresh_token?: string }>(
+        result = await invoke<{ verified?: boolean; error?: string; access_token?: string; refresh_token?: string }>(
           'webauthn',
           { body: { action: 'auth-verify', credential, challenge_id: options.challenge_id } },
           { maxAttempts: 1, treatDataErrorAsFailure: false },
@@ -54,14 +54,14 @@ export function useWebAuthnAuth({ setIsLoading }: UseWebAuthnAuthArgs) {
       }
 
       if (!result?.verified) {
-        logBiometricEvent('login_failed', 'auth-verify', { reason: 'verification_failed' });
-        uiNotify.error('فشل في التحقق من البصمة');
+        logBiometricEvent('login_failed', 'auth-verify', { reason: result?.error || 'verification_failed' });
+        uiNotify.error(result?.error || 'فشل في التحقق من البصمة');
         return false;
       }
 
       if (!result.access_token || !result.refresh_token) {
         logBiometricEvent('login_failed', 'auth-session', { reason: 'no_tokens' });
-        uiNotify.error('لم يتم استلام بيانات الجلسة. أعد المحاولة');
+        uiNotify.error(result.error || 'لم يتم استلام بيانات الجلسة. أعد المحاولة');
         return false;
       }
 

@@ -28,16 +28,24 @@ export async function handleAuthOptions(
 
   const options = await generateAuthenticationOptions({
     rpID: rp.rpID,
-    userVerification: "preferred",
+    userVerification: "required",
   });
 
-  const { data: insertedChallenge } = await admin.from("webauthn_challenges").insert({
+  const { data: insertedChallenge, error: challengeError } = await admin.from("webauthn_challenges").insert({
     challenge: options.challenge,
     type: "authentication",
   }).select("id").single();
 
+  if (challengeError || !insertedChallenge?.id) {
+    console.error("Failed to create authentication challenge:", challengeError?.message);
+    return new Response(
+      JSON.stringify({ error: "تعذّر بدء تسجيل الدخول بالبصمة، حاول مجدداً" }),
+      { status: 500, headers: { ...cors, "Content-Type": "application/json" } },
+    );
+  }
+
   return new Response(JSON.stringify({
     ...options,
-    challenge_id: insertedChallenge?.id || null,
+    challenge_id: insertedChallenge.id,
   }), { headers: { ...cors, "Content-Type": "application/json" } });
 }
