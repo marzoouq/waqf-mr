@@ -119,7 +119,7 @@ const AdminDashboard = () => {
           />
         </DashboardLazySection>
 
-        {ctx.role === 'admin' && (
+        {ctx.showPerformanceCard && (
           <DashboardLazySection minHeight={200} printHidden>
             <PagePerformanceCard />
           </DashboardLazySection>

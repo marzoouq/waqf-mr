@@ -21,25 +21,37 @@ export const useAdminDashboardPage = () => {
   const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
   const print = usePrint();
 
+  // D-02: قناة مالية تبطل dashboard-summary (يشمل app_settings — تعديل الإعدادات يُحدّث النسب فورًا)
   useDashboardRealtime(
-    'admin-dashboard-realtime',
-    ['income', 'expenses', 'accounts', 'payment_invoices', 'messages',
-     'properties', 'contracts', 'beneficiaries', 'distributions', 'advance_requests'],
+    'admin-dashboard-financial-realtime',
+    ['income', 'expenses', 'accounts', 'payment_invoices',
+     'properties', 'contracts', 'beneficiaries', 'distributions', 'advance_requests',
+     'app_settings'],
     true,
     [
       // prefix-match — invalidateQueries({queryKey, exact:false}) يطابق كل المفاتيح التي تبدأ بهذا الـ prefix
       dashboardKeys.prefixes.summary,
       dashboardKeys.prefixes.heatmap,
       dashboardKeys.prefixes.recentContracts,
-      ['unread-messages-count'],
     ]
+  );
+
+  // D-03: قناة messages مستقلة — لا تبطل dashboard-summary، فقط عداد الرسائل غير المقروءة
+  useDashboardRealtime(
+    'admin-dashboard-messages-realtime',
+    ['messages'],
+    true,
+    [['unread-messages-count']]
   );
 
   const summary = useDashboardSummary(fiscalYearId, fiscalYear?.label);
   const isLoading = summary.isLoading;
 
-  // هوك ثانوي — يجلب heatmap و recent_contracts بعد تحميل KPIs
-  const secondary = useDashboardSecondary(fiscalYearId, !summary.isLoading);
+  // D-05: هوك ثانوي يُفعَّل فقط إذا اكتمل summary بنجاح (لا بعد فشل)
+  const secondary = useDashboardSecondary(
+    fiscalYearId,
+    !summary.isLoading && !summary.isError
+  );
 
   const adminData = useAdminDashboardData({
     user,
@@ -95,6 +107,9 @@ export const useAdminDashboardPage = () => {
     // accountant
     isAccountant,
     accountantMetrics,
+
+    // D-07: علم عرض البطاقة منقول من JSX إلى hook
+    showPerformanceCard: role === 'admin',
   };
 };
 
