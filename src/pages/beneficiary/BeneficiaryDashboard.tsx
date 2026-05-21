@@ -36,22 +36,9 @@ const BeneficiaryDashboard = () => {
   }
 
   if (!currentBeneficiary && !dashLoading) {
-    return (
-      <DashboardLayout>
-        <div className="p-3 sm:p-6 space-y-4">
-          <Card className="shadow-sm border-warning/30 bg-warning/5">
-            <CardContent className="p-6 flex flex-col items-center justify-center gap-3 min-h-[30vh]">
-              <AlertCircle className="w-12 h-12 text-warning" />
-              <h2 className="text-lg font-bold text-foreground">حسابك غير مرتبط</h2>
-              <p className="text-sm text-muted-foreground text-center max-w-md">
-                حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع الناظر لربط حسابك.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
-    );
+    return <UnlinkedAccountNotice />;
   }
+
 
   if (noPublishedYears) {
     const GreetingIcon = greetingData.greetingIconName === 'sun' ? Sun : Moon;
