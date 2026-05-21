@@ -5,7 +5,7 @@
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { TableSkeleton, TablePagination, ExportMenu, RequirePublishedYears } from '@/components/common';
+import { TableSkeleton, TablePagination, ExportMenu, RequirePublishedYears, ViewModeToggle, useViewMode } from '@/components/common';
 import { TrendingDown, Search, Info } from 'lucide-react';
 import {
   ExpenseSummaryCards,
@@ -14,12 +14,15 @@ import {
   ExpensesDesktopTable,
 } from '@/components/expenses';
 import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
+import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useExpensesViewPage } from '@/hooks/page/beneficiary';
 
 const noop = () => undefined;
 
 const ExpensesViewPage = () => {
   const h = useExpensesViewPage();
+  const isMobile = useIsMobile();
+  const [viewMode, setViewMode] = useViewMode('beneficiary-expenses', 'table');
 
   return (
     <RequirePublishedYears
@@ -33,7 +36,10 @@ const ExpensesViewPage = () => {
             title="مصروفات الوقف"
             icon={TrendingDown}
             description="جميع مصروفات الوقف — للاطلاع فقط"
-            actions={<ExportMenu onExportPdf={h.handleExportPdf} onExportCsv={h.handleExportCsv} />}
+            actions={<div className="flex items-center gap-2">
+              {!isMobile && <ViewModeToggle value={viewMode} onChange={setViewMode} />}
+              <ExportMenu onExportPdf={h.handleExportPdf} onExportCsv={h.handleExportCsv} />
+            </div>}
           />
 
           <div
@@ -100,20 +106,23 @@ const ExpensesViewPage = () => {
                     onDelete={noop}
                     isLocked={h.isLocked}
                     readOnly
+                    viewMode={!isMobile && viewMode === 'grid' ? 'grid' : 'auto'}
                   />
-                  <ExpensesDesktopTable
-                    items={h.paginatedExpenses}
-                    expenseInvoiceMap={h.expenseInvoiceMap}
-                    expandedRow={h.expandedRow}
-                    setExpandedRow={h.setExpandedRow}
-                    onEdit={noop}
-                    onDelete={noop}
-                    isLocked={h.isLocked}
-                    readOnly
-                    sortField={h.sortField}
-                    sortDir={h.sortDir}
-                    onSort={h.handleSort}
-                  />
+                  {!(viewMode === 'grid' && !isMobile) && (
+                    <ExpensesDesktopTable
+                      items={h.paginatedExpenses}
+                      expenseInvoiceMap={h.expenseInvoiceMap}
+                      expandedRow={h.expandedRow}
+                      setExpandedRow={h.setExpandedRow}
+                      onEdit={noop}
+                      onDelete={noop}
+                      isLocked={h.isLocked}
+                      readOnly
+                      sortField={h.sortField}
+                      sortDir={h.sortDir}
+                      onSort={h.handleSort}
+                    />
+                  )}
                   <TablePagination
                     currentPage={h.currentPage}
                     totalItems={h.filteredExpenses.length}
