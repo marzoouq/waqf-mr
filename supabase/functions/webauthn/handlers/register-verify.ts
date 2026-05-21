@@ -57,7 +57,7 @@ export async function handleRegisterVerify(
   const credIdBase64 = regCred.id;
   const pubKeyBase64 = toBase64(regCred.publicKey);
 
-  await admin.from("webauthn_credentials").insert({
+  const { error: insertError } = await admin.from("webauthn_credentials").insert({
     user_id: user.id,
     credential_id: credIdBase64,
     public_key: pubKeyBase64,
@@ -65,6 +65,14 @@ export async function handleRegisterVerify(
     device_name: deviceName || "جهاز غير مسمى",
     transports: credential.response?.transports || [],
   });
+
+  if (insertError) {
+    console.error("Failed to store WebAuthn credential:", insertError.message);
+    return new Response(
+      JSON.stringify({ error: "فشل حفظ بيانات البصمة، حاول مجدداً" }),
+      { status: 500, headers: { ...cors, "Content-Type": "application/json" } },
+    );
+  }
 
   await admin.from("webauthn_challenges").delete()
     .eq("user_id", user.id)
