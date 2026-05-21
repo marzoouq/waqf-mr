@@ -51,7 +51,7 @@ const AccountantDashboardView = ({ metrics, isLoading }: AccountantDashboardView
           value={metrics.unsubmittedZatcaCount}
           icon={FileWarning}
           color={metrics.unsubmittedZatcaCount > 0 ? 'bg-warning' : 'bg-muted-foreground'}
-          link="/dashboard/zatca"
+          subtitle="إدارة المراسلة للناظر"
         />
         <MetricCard
           title="عقود بدون سنة"

@@ -15,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+import { dashboardKeys } from '@/lib/queryKeys/dashboardKeys';
 import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
 
 interface UseDashboardPrefetchArgs {
@@ -38,7 +39,9 @@ export function useDashboardPrefetch({ fiscalYearId, fiscalYears }: UseDashboard
 
     const fy = fiscalYears.find(f => f.id === fiscalYearId);
     queryClient.prefetchQuery({
-      queryKey: ['dashboard-summary', fiscalYearId],
+      // مفتاح موحّد عبر dashboardKeys — يجب تطابق label مع useDashboardSummary
+      // وإلا يصبح prefetch بلا فائدة (entry مختلف في الكاش)
+      queryKey: dashboardKeys.summary(fiscalYearId, fy?.label),
       queryFn: async () => {
         if (controller.signal.aborted) throw new Error('aborted');
         // ملاحظة: invoke() لا يدعم signal فعلياً (Supabase SDK v2 لا يلغي النقل)
