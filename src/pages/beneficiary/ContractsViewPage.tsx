@@ -17,6 +17,7 @@ import { CONTRACTS_SCOPE_COPY } from '@/constants/beneficiaryCopy';
 
 const ContractsViewPage = () => {
   const isMobile = useIsMobile();
+  const [viewMode, setViewMode] = useViewMode('beneficiary-contracts', 'table');
   const {
     contracts, isLoading, isError, refetch,
     currentPage, setCurrentPage,
