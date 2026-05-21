@@ -4,7 +4,7 @@
 import { lazy, Suspense } from 'react';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import DeferredRender from '@/components/common/DeferredRender';
-import ViewportRender from '@/components/common/ViewportRender';
+import DashboardLazySection from '@/components/shared/dashboard/DashboardLazySection';
 import { Button } from '@/components/ui/button';
 import FiscalYearWidget from '@/components/dashboard/widgets/FiscalYearWidget';
 import DashboardAlerts from '@/components/dashboard/widgets/DashboardAlerts';
