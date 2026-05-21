@@ -1,6 +1,6 @@
 /**
  * خدمة استعلامات التشخيص — تجريد لطبقة قاعدة البيانات
- * تُستخدم من utils/diagnostics/checks/ بدلاً من استيراد Supabase مباشرة
+ * تُستخدم من lib/diagnostics/checks/ بدلاً من استيراد Supabase مباشرة
  */
 import { supabase } from '@/integrations/supabase/client';
 import { fromView } from '@/integrations/supabase/viewHelper';
