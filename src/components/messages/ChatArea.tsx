@@ -49,7 +49,7 @@ export default function ChatArea({
       {selectedConv ? (
         <>
           <div className="p-3 border-b border-border flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack}>
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack} aria-label="رجوع إلى قائمة المحادثات">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <p className="font-medium text-sm">{selectedConv.subject || 'محادثة'}</p>
@@ -91,7 +91,7 @@ export default function ChatArea({
               maxLength={5000}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); } }}
             />
-            <Button onClick={onSend} disabled={!newMessage.trim() || isSending} size="icon">
+            <Button onClick={onSend} disabled={!newMessage.trim() || isSending} size="icon" aria-label="إرسال الرسالة">
               <Send className="w-4 h-4" />
             </Button>
           </div>
