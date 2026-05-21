@@ -22,7 +22,7 @@ import type { DashboardSummaryResponse, HeatmapInvoice, RecentContract } from '@
 
 export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: string) => {
   const query = useQuery<DashboardSummaryResponse>({
-    queryKey: dashboardKeys.summary(fiscalYearId, fiscalYearLabel),
+    queryKey: dashboardKeys.summary(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const raw = await invoke<DashboardSummaryResponse>(
@@ -30,7 +30,9 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
         { body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fiscalYearLabel } },
         {
           onAuthError: async () => {
-            // جلسة منتهية — تسجيل خروج تلقائي بدلاً من رسالة خطأ عامة
+            // جلسة منتهية — إعلام المستخدم قبل تسجيل الخروج (لا يجوز خروج صامت)
+            const { uiNotify } = await import('@/lib/notify');
+            uiNotify.error('انتهت الجلسة، يُرجى تسجيل الدخول من جديد');
             await supabase.auth.signOut();
           },
         },
