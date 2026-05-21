@@ -22,7 +22,7 @@ import type { DashboardSummaryResponse, HeatmapInvoice, RecentContract } from '@
 
 export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: string) => {
   const query = useQuery<DashboardSummaryResponse>({
-    queryKey: dashboardKeys.summary(fiscalYearId, fiscalYearLabel),
+    queryKey: dashboardKeys.summary(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const raw = await invoke<DashboardSummaryResponse>(
@@ -30,7 +30,9 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
         { body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fiscalYearLabel } },
         {
           onAuthError: async () => {
-            // جلسة منتهية — تسجيل خروج تلقائي بدلاً من رسالة خطأ عامة
+            // جلسة منتهية — إعلام المستخدم قبل تسجيل الخروج (لا يجوز خروج صامت)
+            const { uiNotify } = await import('@/lib/notify');
+            uiNotify.error('انتهت الجلسة، يُرجى تسجيل الدخول من جديد');
             await supabase.auth.signOut();
           },
         },
@@ -85,7 +87,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
         .from('payment_invoices')
         .select('id, contract_id, invoice_number, payment_number, due_date, amount, status, paid_date, paid_amount, zatca_status, fiscal_year_id, contract:contracts(contract_number, tenant_name, property_id, payment_count, property:properties(property_number))')
         .order('due_date', { ascending: true })
-        .limit(500);
+        .limit(2000); // التزام invoice-pagination-strategy (≤2000) لتفادي بتر السنوات الكبيرة
       if (!isAll) q = q.eq('fiscal_year_id', fiscalYearId);
       const { data, error } = await q;
       if (error) throw error;
@@ -97,7 +99,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
   const recentQuery = useQuery<RecentContract[]>({
     queryKey: dashboardKeys.recentContracts(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    enabled: !!fiscalYearId && enabled,
+    enabled: !!fiscalYearId && enabled && isFyReady(fiscalYearId),
     queryFn: async () => {
       // إصلاح اتساق: فلترة بالسنة المختارة مثل heatmap — حتى لا تظهر عقود من سنة مختلفة
       let q = supabase

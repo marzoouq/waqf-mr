@@ -21,6 +21,8 @@ interface Contract {
 interface RecentContractsCardProps {
   contracts: Contract[];
   isLoading: boolean;
+  /** P2: عرض fallback صريح عند فشل جلب العقود الأخيرة بدل صمت تام */
+  isError?: boolean;
 }
 
 /** هل العقد ينتهي خلال 30 يوماً؟ */
@@ -29,7 +31,7 @@ const isExpiringSoon = (endDate: string) => {
   return diff > 0 && diff <= 30 * 86_400_000;
 };
 
-const RecentContractsCard = ({ contracts, isLoading }: RecentContractsCardProps) => {
+const RecentContractsCard = ({ contracts, isLoading, isError }: RecentContractsCardProps) => {
   if (isLoading) {
     return (
       <Card className="shadow-sm">
@@ -41,6 +43,21 @@ const RecentContractsCard = ({ contracts, isLoading }: RecentContractsCardProps)
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle>آخر العقود</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="py-6 text-center text-sm text-destructive">
+            تعذّر تحميل العقود الأخيرة. يُرجى المحاولة لاحقاً.
+          </p>
         </CardContent>
       </Card>
     );

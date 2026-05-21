@@ -8,8 +8,13 @@
  * لذا أول عنصر في كل مفتاح يجب أن يبقى ثابتاً.
  */
 export const dashboardKeys = {
-  summary: (fiscalYearId: string, fiscalYearLabel?: string) =>
-    ['dashboard-summary', fiscalYearId, fiscalYearLabel ?? ''] as const,
+  /**
+   * مفتاح ملخص اللوحة — يعتمد على `fiscalYearId` فقط.
+   * `fiscalYearLabel` تم استبعاده عمداً لمنع double-invalidation
+   * حين يصل اللابل متأخراً بعد ID أثناء التحميل.
+   */
+  summary: (fiscalYearId: string) =>
+    ['dashboard-summary', fiscalYearId] as const,
   heatmap: (fiscalYearId: string) =>
     ['dashboard-heatmap', fiscalYearId] as const,
   recentContracts: (fiscalYearId: string) =>

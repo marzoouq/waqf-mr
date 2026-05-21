@@ -45,13 +45,13 @@ export const adminRoutes = (
     <Route path="/dashboard/support" element={pr(ADMIN_ROLES, <SupportDashboardPage />)} />
     <Route path="/dashboard/annual-report" element={pr(ADMIN_ROLES, <AnnualReportPage />)} />
     <Route path="/dashboard/chart-of-accounts" element={pr(ADMIN_ROLES, <ChartOfAccountsPage />)} />
-    <Route path="/dashboard/comparison" element={pr(ADMIN_ONLY, <HistoricalComparisonPage />)} />
+    <Route path="/dashboard/comparison" element={pr(ADMIN_ONLY, <HistoricalComparisonPage />, false)} />
 
-    {/* Admin Only */}
-    <Route path="/dashboard/users" element={pr(ADMIN_ONLY, <UserManagementPage />)} />
-    <Route path="/dashboard/settings" element={pr(ADMIN_ONLY, <SettingsPage />)} />
-    <Route path="/dashboard/zatca" element={pr(ADMIN_ONLY, <ZatcaManagementPage />)} />
-    <Route path="/dashboard/diagnostics" element={pr(ADMIN_ONLY, <SystemDiagnosticsPage />)} />
-    <Route path="/dashboard/email-monitor" element={pr(ADMIN_ONLY, <EmailMonitorPage />)} />
+    {/* Admin Only — لا حاجة لـ RequirePermission لأن ProtectedRoute يحجبها أصلاً للناظر فقط */}
+    <Route path="/dashboard/users" element={pr(ADMIN_ONLY, <UserManagementPage />, false)} />
+    <Route path="/dashboard/settings" element={pr(ADMIN_ONLY, <SettingsPage />, false)} />
+    <Route path="/dashboard/zatca" element={pr(ADMIN_ONLY, <ZatcaManagementPage />, false)} />
+    <Route path="/dashboard/diagnostics" element={pr(ADMIN_ONLY, <SystemDiagnosticsPage />, false)} />
+    <Route path="/dashboard/email-monitor" element={pr(ADMIN_ONLY, <EmailMonitorPage />, false)} />
   </>
 );
