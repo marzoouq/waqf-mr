@@ -71,8 +71,8 @@ export function useWebAuthnRegister({ setIsLoading, setIsEnabled, fetchCredentia
       }
 
       if (!result?.verified) {
-        logBiometricEvent('login_failed', 'register-verify', { reason: 'verification_failed' });
-        uiNotify.error('فشل في تسجيل البصمة');
+        logBiometricEvent('login_failed', 'register-verify', { reason: result?.error || 'verification_failed' });
+        uiNotify.error(result?.error || 'فشل في تسجيل البصمة');
         return false;
       }
 
