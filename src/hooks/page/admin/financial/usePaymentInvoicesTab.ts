@@ -15,13 +15,18 @@ import type { InvoicePreviewData } from '@/types/invoices';
 import { usePaymentInvoiceActions } from './usePaymentInvoiceActions';
 import { DEFAULT_WAQF_NAME } from '@/constants/waqf';
 import { PAGE_SIZE_LIST } from '@/constants/pagination';
+import {
+  summarizePaymentInvoices,
+  filterPaymentInvoices,
+  sortPaymentInvoices,
+  groupByContract,
+  type InvoiceFilterStatus,
+  type SortKey,
+} from '@/utils/financial/paymentInvoicesCompute';
 
 import type { SortDir } from '@/types/sorting';
 
-export type InvoiceFilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';
-export type SortKey = 'due_date' | 'amount' | 'status' | 'payment_number';
-
-const statusOrder: Record<string, number> = { overdue: 0, pending: 1, partially_paid: 2, paid: 3 };
+export type { InvoiceFilterStatus, SortKey };
 
 const ITEMS_PER_PAGE = PAGE_SIZE_LIST;
 
