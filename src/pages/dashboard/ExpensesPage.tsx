@@ -1,14 +1,17 @@
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner, ConfirmDeleteDialog } from '@/components/common';
+import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner, ConfirmDeleteDialog, ViewModeToggle, useViewMode } from '@/components/common';
 import { TrendingDown, Search } from 'lucide-react';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
 import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
+import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useExpensesPage } from '@/hooks/page/admin/financial/useExpensesPage';
 
 const ExpensesPage = () => {
   const h = useExpensesPage();
+  const isMobile = useIsMobile();
+  const [viewMode, setViewMode] = useViewMode('admin-expenses', 'table');
 
   return (
     <DashboardLayout>
