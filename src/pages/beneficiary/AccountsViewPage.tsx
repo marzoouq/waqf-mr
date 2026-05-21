@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
 import { AccountsViewSummary, AccountsViewMyShare } from '@/components/accounts';
+import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import { useAccountsViewPage } from '@/hooks/page/beneficiary';
 
 const AccountsViewPage = () => {
