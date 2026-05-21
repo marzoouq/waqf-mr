@@ -99,7 +99,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
   const recentQuery = useQuery<RecentContract[]>({
     queryKey: dashboardKeys.recentContracts(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    enabled: !!fiscalYearId && enabled,
+    enabled: !!fiscalYearId && enabled && isFyReady(fiscalYearId),
     queryFn: async () => {
       // إصلاح اتساق: فلترة بالسنة المختارة مثل heatmap — حتى لا تظهر عقود من سنة مختلفة
       let q = supabase
