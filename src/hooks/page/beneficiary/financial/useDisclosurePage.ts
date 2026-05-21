@@ -1,6 +1,6 @@
 /**
  * هوك بيانات صفحة الإفصاح السنوي
- * محسّن: يستخدم useBeneficiaryFinancials المشترك + useCallback للـ PDF
+ * محسّن: يستخدم useEndUserFinancials المشترك + useCallback للـ PDF
  * #13 — نسب الحصص من RPC | #21 — lazy fetch للعقود
  */
 import { useCallback } from 'react';
@@ -12,8 +12,8 @@ import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistribution
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { uiNotify } from '@/lib/notify';
-import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
-import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
+import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';
+import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFinancials';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { toGregorianShort } from '@/utils/format/date';
@@ -33,12 +33,12 @@ export const useDisclosurePage = () => {
     [['disclosure'], ['beneficiary-dashboard']],
   );
 
-  const { data: dashData, isLoading: finLoading, isError: finError } = useBeneficiaryDashboardData(
+  const { data: dashData, isLoading: finLoading, isError: finError } = useEndUserDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
 
   // هوك مشترك (#1)
-  const fin = useBeneficiaryFinancials(dashData, fiscalYearId);
+  const fin = useEndUserFinancials(dashData, fiscalYearId);
 
   // #13 — نسب الحصص من RPC بدل الحساب المحلي
   const adminPct = safeNumber(dashData?.admin_share_pct);

@@ -1,5 +1,5 @@
 /**
- * هوك صفحة الحسابات الختامية — محسّن: يستخدم useBeneficiaryFinancials المشترك
+ * هوك صفحة الحسابات الختامية — محسّن: يستخدم useEndUserFinancials المشترك
  */
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,8 +7,8 @@ import { uiNotify } from '@/lib/notify';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useMyShare } from '@/hooks/domain/financial/useMyShare';
-import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
-import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
+import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';
+import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFinancials';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyReady } from '@/constants/fiscalYearIds';
@@ -23,12 +23,12 @@ export function useAccountsViewPage() {
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId ?? 'all');
 
-  const { data: dashData, isLoading: finLoading, isError: finError } = useBeneficiaryDashboardData(
+  const { data: dashData, isLoading: finLoading, isError: finError } = useEndUserDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
 
   // هوك مشترك بدل ~20 سطر مكرر (#1)
-  const fin = useBeneficiaryFinancials(dashData, fiscalYearId);
+  const fin = useEndUserFinancials(dashData, fiscalYearId);
   const remainingBalance = Math.max(0, fin.availableAmount - fin.distributionsAmount);
 
   const { currentBeneficiary, myShare } = useMyShare({

@@ -1,12 +1,12 @@
 /**
- * هوك صفحة التقارير المالية للمستفيد — محسّن: يستخدم useBeneficiaryFinancials المشترك
+ * هوك صفحة التقارير المالية للمستفيد — محسّن: يستخدم useEndUserFinancials المشترك
  */
 import { useMemo, useCallback } from 'react';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useMyShare } from '@/hooks/domain/financial/useMyShare';
-import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
-import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
+import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';
+import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFinancials';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
@@ -27,12 +27,12 @@ export const useFinancialReportsPage = () => {
     [['financial-reports'], ['beneficiary-dashboard']],
   );
 
-  const { data: dashData, isLoading, isError } = useBeneficiaryDashboardData(
+  const { data: dashData, isLoading, isError } = useEndUserDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
 
   // هوك مشترك (#1)
-  const fin = useBeneficiaryFinancials(dashData, fiscalYearId);
+  const fin = useEndUserFinancials(dashData, fiscalYearId);
 
   const { currentBeneficiary, myShare } = useMyShare({
     beneficiaries: fin.beneficiaries as Array<{ id: string; name: string; share_percentage: number; user_id?: string | null }>,

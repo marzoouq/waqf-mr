@@ -1,9 +1,7 @@
 /**
- * Sub-barrel: dashboard hooks (موجة 16)
+ * Sub-barrel: dashboard hooks (beneficiary scope)
+ * #M6 — `useEndUserFinancials` و`useEndUserDashboardData` انتقلا إلى
+ * `@/hooks/application/dashboard/` (طبقة مشتركة بين الأدوار).
+ * إعادة تصدير `useWaqifDashboardPage` حُذفت لأنها لم تكن مستخدمة.
  */
 export { useBeneficiaryDashboardPage } from './useBeneficiaryDashboardPage';
-export { useBeneficiaryDashboardData } from './useBeneficiaryDashboardData';
-export type { BeneficiaryDashboardData } from './useBeneficiaryDashboardData';
-export { useBeneficiaryFinancials } from './useBeneficiaryFinancials';
-// useWaqifDashboardPage migrated to @/hooks/page/waqif/
-export { useWaqifDashboardPage } from '@/hooks/page/waqif/useWaqifDashboardPage';

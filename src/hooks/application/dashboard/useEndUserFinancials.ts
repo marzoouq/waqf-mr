@@ -1,13 +1,16 @@
 /**
- * هوك مشترك لاستخراج البيانات المالية من RPC المستفيد
- * يُوحّد الكود المُكرر في useMySharePage, useAccountsViewPage, useDisclosurePage, useFinancialReportsPage
+ * هوك مالي مشترك لطبقة المستخدم النهائي (المستفيد/الواقف).
+ * يستخرج المؤشرات المالية من بيانات RPC الموحَّدة.
+ *
+ * #M6 — استُخرج من `hooks/page/beneficiary/dashboard/useBeneficiaryFinancials.ts`
+ * كي يستهلكه الواقف والمستفيد بمصدر واحد في طبقة application.
  */
 import { useMemo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { toSourceRecord, toExpenseRecord } from '@/utils/financial/recordConverters';
-import type { BeneficiaryDashboardData } from '@/hooks/page/beneficiary';
+import type { EndUserDashboardData } from './useEndUserDashboardData';
 
-export function useBeneficiaryFinancials(dashData: BeneficiaryDashboardData | undefined, fiscalYearId?: string | null) {
+export function useEndUserFinancials(dashData: EndUserDashboardData | undefined, fiscalYearId?: string | null) {
   const account = dashData?.account;
   const isAccountMissing = !account && !!fiscalYearId && fiscalYearId !== 'all';
 
