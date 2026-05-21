@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface DashboardLazySectionProps {
   children: ReactNode;
   fallback?: ReactNode;
-  minHeight?: number | string;
+  minHeight?: number;
   rootMargin?: string;
   printHidden?: boolean;
 }
