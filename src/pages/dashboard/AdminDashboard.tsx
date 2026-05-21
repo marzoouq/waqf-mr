@@ -92,8 +92,8 @@ const AdminDashboard = () => {
         <DashboardLazySection minHeight={160} printHidden>
           <CollectionHeatmap
             paymentInvoices={ctx.heatmapInvoices}
-            fiscalYearStart={ctx.fy?.start_date}
-            fiscalYearEnd={ctx.fy?.end_date}
+            fiscalYearStart={ctx.heatmapBounds.start}
+            fiscalYearEnd={ctx.heatmapBounds.end}
           />
         </DashboardLazySection>
 
