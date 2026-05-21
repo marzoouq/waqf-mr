@@ -32,7 +32,7 @@ const PREVIEW_LINKS = new Set<string>(['/beneficiary']);
 const HIDDEN_ROUTES = new Set<string>([]);
 
 /** المسارات التي لا تنتمي لأي group في ADMIN_ROUTE_GROUPS (مبرّرة كـ ungrouped). */
-const UNGROUPED_ROUTES = new Set<string>(['/dashboard', '/dashboard/comparison', '/dashboard/annual-report']);
+const UNGROUPED_ROUTES = new Set<string>(['/dashboard', '/dashboard/comparison']);
 
 describe('Nav links ↔ adminRoutes parity (D-06)', () => {
   const registered = extractRegisteredRoutes();
