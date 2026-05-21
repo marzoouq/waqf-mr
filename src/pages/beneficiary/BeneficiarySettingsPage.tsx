@@ -3,10 +3,11 @@
  */
 import { ResponsiveTabs, TabsContent, type TabItem } from '@/components/ui/responsive-tabs';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { User, Lock, Bell, Shield, Palette, AlertCircle } from 'lucide-react';
+import { User, Lock, Bell, Shield, Palette } from 'lucide-react';
 import ThemeColorPicker from '@/components/theme/ThemeColorPicker';
 import { BiometricSettings, AccountTab, PasswordTab, NotificationsTab } from '@/components/settings';
-import { TableSkeleton, ErrorState, EmptyPageState } from '@/components/common';
+import { TableSkeleton, ErrorState } from '@/components/common';
+import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import { useBeneficiarySettingsPage } from '@/hooks/page/beneficiary';
 
 const tabItems: TabItem[] = [
