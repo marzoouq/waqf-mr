@@ -20,10 +20,10 @@ import {
 } from 'lucide-react';
 import { useEmailMonitorPage } from '@/hooks/page/admin/management/useEmailMonitorPage';
 import { cn } from '@/lib/cn';
-import { EmailStatCard, formatEmailDateTime } from '@/components/admin/email-monitor/EmailMonitorPrimitives';
-import { EmailDlqRetryCard } from '@/components/admin/email-monitor/EmailDlqRetryCard';
-import { EmailFiltersCard } from '@/components/admin/email-monitor/EmailFiltersCard';
-import { EmailLogsTable } from '@/components/admin/email-monitor/EmailLogsTable';
+import { EmailStatCard, formatEmailDateTime } from '@/components/email-monitor/EmailMonitorPrimitives';
+import { EmailDlqRetryCard } from '@/components/email-monitor/EmailDlqRetryCard';
+import { EmailFiltersCard } from '@/components/email-monitor/EmailFiltersCard';
+import { EmailLogsTable } from '@/components/email-monitor/EmailLogsTable';
 
 export default function EmailMonitorPage() {
   const h = useEmailMonitorPage();
