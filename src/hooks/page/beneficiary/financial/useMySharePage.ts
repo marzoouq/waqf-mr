@@ -1,6 +1,6 @@
 /**
  * هوك بيانات صفحة حصتي من الريع
- * محسّن: يعتمد على useBeneficiaryFinancials المشترك + بيانات السُلف من RPC
+ * محسّن: يعتمد على useEndUserFinancials المشترك + بيانات السُلف من RPC
  */
 import { useCallback, useMemo } from 'react';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
@@ -8,9 +8,9 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistributions';
 import { useContractsForPdf } from '@/hooks/data/contracts';
 import { useMyShare } from '@/hooks/domain/financial/useMyShare';
-import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
+import { useEndUserDashboardData } from '@/hooks/page/beneficiary';
 import { useMySharePdfHandlers } from '@/hooks/page/beneficiary';
-import { useBeneficiaryFinancials } from '@/hooks/page/beneficiary';
+import { useEndUserFinancials } from '@/hooks/page/beneficiary';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { isFyReady } from '@/constants/fiscalYearIds';
@@ -31,11 +31,11 @@ export const useMySharePage = () => {
     [['my-share'], ['beneficiary-dashboard'], ['my-distributions']],
   );
 
-  const { data: dashData, isLoading: finLoading, isError: finError } = useBeneficiaryDashboardData(
+  const { data: dashData, isLoading: finLoading, isError: finError } = useEndUserDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
 
-  const fin = useBeneficiaryFinancials(dashData, fiscalYearId);
+  const fin = useEndUserFinancials(dashData, fiscalYearId);
 
   const { currentBeneficiary, myShare, pctLoading } = useMyShare({
     beneficiaries: fin.beneficiaries as Array<{ id: string; name: string; share_percentage: number; user_id?: string | null }>,

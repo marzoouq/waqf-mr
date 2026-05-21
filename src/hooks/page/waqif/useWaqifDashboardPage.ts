@@ -28,10 +28,10 @@ export const useWaqifDashboardPage = () => {
 
   useDashboardRealtime('waqif-dashboard-realtime', ['income', 'expenses', 'payment_invoices']);
 
-  const { data: dashData, isLoading: dashLoading } = useBeneficiaryDashboardData(fiscalYearId);
+  const { data: dashData, isLoading: dashLoading } = useEndUserDashboardData(fiscalYearId);
 
   // استخدام الهوك المشترك بدلاً من الاستخراج اليدوي
-  const fin = useBeneficiaryFinancials(dashData, fiscalYearId);
+  const fin = useEndUserFinancials(dashData, fiscalYearId);
   const { totalIncome, totalExpenses, availableAmount, expensesByTypeExcludingVat } = fin;
 
   const { data: properties = [], isLoading: propLoading } = useProperties();

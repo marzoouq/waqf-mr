@@ -7,7 +7,7 @@ import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useNotifications } from '@/hooks/data/notifications/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useBeneficiaryDashboardData } from '@/hooks/page/beneficiary';
+import { useEndUserDashboardData } from '@/hooks/page/beneficiary';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { useStableRef } from '@/lib/hooks/useStableRef';
 import { useGreeting } from '@/hooks/ui/useGreeting';
@@ -22,7 +22,7 @@ export function useBeneficiaryDashboardPage() {
   const { filteredData: notifications = [], filteredUnreadCount: unreadCount } = useNotifications();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
 
-  const { data: dashData, isLoading: dashLoading, isError: dashError } = useBeneficiaryDashboardData(
+  const { data: dashData, isLoading: dashLoading, isError: dashError } = useEndUserDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
   );
 
