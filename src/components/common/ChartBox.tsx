@@ -1,9 +1,9 @@
 /**
- * ChartBox — حاوية رسم بياني موحّدة مع useChartReady
- * تؤجل عرض المحتوى حتى تصبح الحاوية جاهزة (مقاسات محسوبة)
+ * ChartBox — حاوية رسم بياني موحّدة
+ * نضمن ارتفاع وعرض ثابتين حتى يتمكن ResponsiveContainer من القياس فوراً
+ * دون الحاجة لانتظار ResizeObserver (الذي قد لا يطلق داخل Suspense/lazy).
  */
 import type { ReactNode } from 'react';
-import { useChartReady } from '@/hooks/ui/useChartReady';
 import { cn } from '@/lib/cn';
 
 interface ChartBoxProps {
@@ -11,31 +11,21 @@ interface ChartBoxProps {
   height?: number | string;
   /** className إضافي */
   className?: string;
-  /** نص بديل أثناء التحميل */
+  /** نص بديل (غير مستخدم — للتوافق العكسي) */
   fallback?: string;
   children: ReactNode;
 }
 
-const ChartBox = ({ height = 300, className, fallback, children }: ChartBoxProps) => {
-  const { ref, ready } = useChartReady();
-
-  // تحديد نوع الارتفاع
+const ChartBox = ({ height = 300, className, children }: ChartBoxProps) => {
   const isNumeric = typeof height === 'number';
-  // إذا كانت string تحتوي على class tailwind (مثل h-[300px]) → className
-  // إذا كانت string تحتوي على CSS value (مثل clamp(...)) → style
   const isCssValue = !isNumeric && typeof height === 'string' && !height.startsWith('h-');
 
   return (
     <div
-      ref={ref}
-      className={cn('min-w-0 min-h-[1px]', !isNumeric && !isCssValue && height, className)}
-      style={isNumeric ? { height } : isCssValue ? { height } : undefined}
+      className={cn('w-full min-w-0', !isNumeric && !isCssValue && height, className)}
+      style={isNumeric ? { height, width: '100%' } : isCssValue ? { height, width: '100%' } : { width: '100%' }}
     >
-      {ready
-        ? children
-        : fallback
-          ? <div className="h-full flex items-center justify-center text-muted-foreground">{fallback}</div>
-          : null}
+      {children}
     </div>
   );
 };
