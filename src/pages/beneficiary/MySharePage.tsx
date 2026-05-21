@@ -45,13 +45,7 @@ const MySharePage = () => {
 
   // مستفيد غير موجود
   if (!currentBeneficiary) {
-    return (
-      <EmptyPageState
-        icon={UserX}
-        title="لم يتم العثور على سجل المستفيد"
-        description="حسابك غير مرتبط بسجل مستفيد. يرجى التواصل مع ناظر الوقف."
-      />
-    );
+    return <UnlinkedAccountNotice />;
   }
 
   // حساب ختامي مفقود في سنة مقفلة
