@@ -2,9 +2,8 @@
  * Barrel: تصدير مركزي لهوكات صفحات المستفيد.
  * يعيد التصدير من الملفات مباشرة (وليس من sub-barrels) لتفادي barrel→barrel.
  */
-export * from './dashboard/useBeneficiaryDashboardData';
 export * from './dashboard/useBeneficiaryDashboardPage';
-export * from './dashboard/useBeneficiaryFinancials';
+
 
 export * from './financial/useAccountsViewPage';
 export * from './financial/useCarryforwardData';
