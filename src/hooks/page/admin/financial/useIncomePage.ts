@@ -18,6 +18,7 @@ import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
 import { uiNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 import { computeLowIncomeMonths } from '@/utils/financial/incomeAnomalies';
+import { buildIncomeSummaryCards, filterAndSortIncome } from '@/utils/financial/incomeCompute';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { logger } from '@/lib/logger';
