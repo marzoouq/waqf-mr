@@ -129,6 +129,7 @@ const AdminDashboard = () => {
           <RecentContractsCard
             contracts={ctx.recentContracts}
             isLoading={ctx.secondaryIsLoading}
+            isError={ctx.isRecentContractsError}
           />
         </DashboardLazySection>
 
