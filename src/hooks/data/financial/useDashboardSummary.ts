@@ -87,7 +87,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
         .from('payment_invoices')
         .select('id, contract_id, invoice_number, payment_number, due_date, amount, status, paid_date, paid_amount, zatca_status, fiscal_year_id, contract:contracts(contract_number, tenant_name, property_id, payment_count, property:properties(property_number))')
         .order('due_date', { ascending: true })
-        .limit(500);
+        .limit(2000); // التزام invoice-pagination-strategy (≤2000) لتفادي بتر السنوات الكبيرة
       if (!isAll) q = q.eq('fiscal_year_id', fiscalYearId);
       const { data, error } = await q;
       if (error) throw error;
