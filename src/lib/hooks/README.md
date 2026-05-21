@@ -1,32 +1,10 @@
-# `src/lib/hooks/` — React Compiler Helpers
+# `src/lib/hooks/`
 
-هوكات بنية تحتية تقنية (technical infrastructure) تحلّ مشاكل React Compiler
-ولوازم النقاء (purity rules)، وليست هوكات منطق أعمال.
+Generic, app-agnostic React hook primitives with **no domain knowledge**.
+They depend only on React and stable browser APIs and could be moved to a
+shared package without modification.
 
-## لماذا `lib/hooks/` وليس `src/hooks/`؟
+- `useNowClock` — ticking clock for time-based UI.
+- `useStableRef` — ref that mirrors the latest value for use in callbacks/effects.
 
-`src/hooks/` يحوي هوكات **منطق المشروع** (auth, data, financial, page, ui).
-`lib/hooks/` يحوي **أدوات React عامة** لا علاقة لها بالنطاق (domain):
-
-- لا تستدعي Supabase
-- لا تعرف بالأدوار أو السنة المالية
-- قابلة للنقل إلى أي مشروع React آخر دون تعديل
-
-هذا يطابق مبدأ `lib-vs-utils-boundary`: `lib/` للبنية التحتية ذات الحالة،
-لكن هنا الحالة تقنية بحتة (refs, intervals) لا حالة بيانات.
-
-## الهوكات المتاحة
-
-| الهوك | الغرض |
-|-------|-------|
-| `useStableRef` | يحتفظ بمرجع ثابت لآخر قيمة دون كسر قواعد React Compiler (التعيين داخل `useEffect` بدلاً من render body) |
-| `useNowClock` | يوفّر `Date.now()` متحدّث دورياً عبر `useState/useEffect` بدلاً من استدعاء `Date.now()` في render body (يحلّ `react-hooks/purity`) |
-
-## متى تضيف هوكاً هنا؟
-
-أضف هنا فقط إذا كان الهوك:
-1. يحلّ مشكلة React Compiler / lint عامة
-2. لا يعرف بنطاق المشروع (وقف، مالية، عقود)
-3. مستقل عن Supabase والخدمات الخارجية
-
-غير ذلك ضعه في `src/hooks/<category>/`.
+Domain-specific or UI-toolkit-bound hooks live in `src/hooks/ui/` instead.
