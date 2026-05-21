@@ -10,6 +10,7 @@ import { RecoveryEmail } from '../_shared/email-templates/recovery.tsx'
 import { EmailChangeEmail } from '../_shared/email-templates/email-change.tsx'
 import { ReauthenticationEmail } from '../_shared/email-templates/reauthentication.tsx'
 import { getCorsHeaders } from '../_shared/cors.ts'
+import { maskEmail } from '../_shared/maskEmail.ts'
 
 const EMAIL_SUBJECTS: Record<string, string> = {
   signup: 'Confirm your email',
