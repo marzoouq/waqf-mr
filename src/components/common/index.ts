@@ -27,3 +27,4 @@ export { default as ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 export { default as WebVitalsPanel } from './WebVitalsPanel';
 export { default as FiscalYearStateNotice } from './finance/FiscalYearStateNotice';
 export { default as EstimatedShareBadge } from './finance/EstimatedShareBadge';
+export { ViewModeToggle, useViewMode, type ViewMode } from './ViewModeToggle';

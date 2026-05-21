@@ -3,7 +3,7 @@
  */
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { RequirePublishedYears, ExportMenu, TablePagination } from '@/components/common';
+import { RequirePublishedYears, ExportMenu, TablePagination, ViewModeToggle, useViewMode } from '@/components/common';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, AlertCircle, RefreshCw, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,11 +11,13 @@ import { Button } from '@/components/ui/button';
 import { ContractStatsCards } from '@/components/contracts';
 import ContractsViewMobileCards from '@/components/contracts/ContractsViewMobileCards';
 import ContractsViewDesktopTable from '@/components/contracts/ContractsViewDesktopTable';
+import ContractsViewGridCards from '@/components/contracts/ContractsViewGridCards';
 import { useContractsViewPage } from '@/hooks/page/beneficiary';
 import { CONTRACTS_SCOPE_COPY } from '@/constants/beneficiaryCopy';
 
 const ContractsViewPage = () => {
   const isMobile = useIsMobile();
+  const [viewMode, setViewMode] = useViewMode('beneficiary-contracts', 'table');
   const {
     contracts, isLoading, isError, refetch,
     currentPage, setCurrentPage,
@@ -47,7 +49,10 @@ const ContractsViewPage = () => {
       <DashboardLayout>
         <div className="p-4 md:p-6 space-y-6">
           <PageHeaderCard title={CONTRACTS_SCOPE_COPY.title} icon={FileText} description={CONTRACTS_SCOPE_COPY.description} actions={
-            <ExportMenu onExportPdf={handleExportPdf} />
+            <div className="flex items-center gap-2">
+              {!isMobile && <ViewModeToggle value={viewMode} onChange={setViewMode} />}
+              <ExportMenu onExportPdf={handleExportPdf} />
+            </div>
           } />
 
           <Card className="shadow-sm border-info/30 bg-info/5">
@@ -73,6 +78,11 @@ const ContractsViewPage = () => {
               {isMobile ? (
                 <>
                   <ContractsViewMobileCards contracts={paginatedContracts} isExpiringSoon={isExpiringSoon} />
+                  <TablePagination currentPage={currentPage} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
+                </>
+              ) : viewMode === 'grid' ? (
+                <>
+                  <ContractsViewGridCards contracts={paginatedContracts} propertiesMap={propertiesMap} isExpiringSoon={isExpiringSoon} />
                   <TablePagination currentPage={currentPage} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
                 </>
               ) : (

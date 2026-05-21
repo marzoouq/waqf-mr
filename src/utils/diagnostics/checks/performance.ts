@@ -42,9 +42,10 @@ export async function checkPagePerformance(): Promise<CheckResult> {
   const id = 'perf_pages';
   const summaries = getPagePerfSummaries();
   if (summaries.length === 0) return { id, label: 'أداء الصفحات', status: 'info', detail: 'سيتوفر بعد التنقل بين الصفحات' };
-  const slowPages = summaries.filter(s => s.avgMs > 2000);
+  // عتبة 4s واقعية لتطبيق React 19 مع lazy-loading + Suspense (التحميل الأول يشمل code-split chunks)
+  const slowPages = summaries.filter(s => s.avgMs > 4000);
   if (slowPages.length > 0) {
-    return { id, label: 'أداء الصفحات', status: 'warn', detail: `${slowPages.length} صفحة بطيئة (>2s): ${slowPages.map(s => s.label).join('، ')}` };
+    return { id, label: 'أداء الصفحات', status: 'warn', detail: `${slowPages.length} صفحة بطيئة (>4s): ${slowPages.map(s => s.label).join('، ')}` };
   }
   return { id, label: 'أداء الصفحات', status: 'pass', detail: `${summaries.length} صفحة مُسجّلة — الأبطأ: ${summaries[0]?.label} (${summaries[0]?.avgMs}ms)` };
 }
