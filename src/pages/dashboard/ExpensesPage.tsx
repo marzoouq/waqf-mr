@@ -22,6 +22,7 @@ const ExpensesPage = () => {
           description="سجل محاسبي داخلي للمصروفات — مستقل عن فواتير ZATCA (يمكن إرفاق فاتورة كتوثيق فقط)"
           actions={<>
             <ExportMenu onExportPdf={h.handleExportPdf} onExportCsv={h.handleExportCsv} />
+            {!isMobile && <ViewModeToggle value={viewMode} onChange={setViewMode} />}
             <ExpenseFormDialog
               isOpen={h.isOpen} setIsOpen={h.setIsOpen} formData={h.formData} setFormData={h.setFormData}
               isEditing={!!h.editingExpense} isPending={h.createExpense.isPending || h.updateExpense.isPending}
@@ -68,19 +69,22 @@ const ExpensesPage = () => {
                   onEdit={h.handleEdit}
                   onDelete={h.setDeleteTarget}
                   isLocked={h.isLocked}
+                  viewMode={!isMobile && viewMode === 'grid' ? 'grid' : 'auto'}
                 />
-                <ExpensesDesktopTable
-                  items={h.paginatedExpenses}
-                  expenseInvoiceMap={h.expenseInvoiceMap}
-                  expandedRow={h.expandedRow}
-                  setExpandedRow={h.setExpandedRow}
-                  onEdit={h.handleEdit}
-                  onDelete={h.setDeleteTarget}
-                  isLocked={h.isLocked}
-                  sortField={h.sortField}
-                  sortDir={h.sortDir}
-                  onSort={h.handleSort}
-                />
+                {!(viewMode === 'grid' && !isMobile) && (
+                  <ExpensesDesktopTable
+                    items={h.paginatedExpenses}
+                    expenseInvoiceMap={h.expenseInvoiceMap}
+                    expandedRow={h.expandedRow}
+                    setExpandedRow={h.setExpandedRow}
+                    onEdit={h.handleEdit}
+                    onDelete={h.setDeleteTarget}
+                    isLocked={h.isLocked}
+                    sortField={h.sortField}
+                    sortDir={h.sortDir}
+                    onSort={h.handleSort}
+                  />
+                )}
                 <TablePagination currentPage={h.currentPage} totalItems={h.filteredExpenses.length} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
               </>
             )}
