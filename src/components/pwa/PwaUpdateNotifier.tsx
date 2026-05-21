@@ -91,14 +91,15 @@ const PwaUpdateNotifier = () => {
           if (controller.signal.aborted) return;
           if (!Array.isArray(changelog) || changelog.length === 0) return;
 
-          const latestVersion = changelog[0].version;
+          const latest = changelog[0]!;
+          const latestVersion = latest.version;
           const lastSeen = safeGet(LAST_SEEN_KEY, '');
 
           // مستخدم جديد على الجهاز: اعرض أحدث إصدار فقط واحفظه فوراً
           // (الـ fallback السابق `0.0.0` كان يعرض كل السجل)
           let entries: ChangelogEntry[];
           if (!lastSeen) {
-            entries = [changelog[0]];
+            entries = [latest];
           } else {
             const filtered = changelog.filter(e => compareSemver(e.version, lastSeen) > 0);
             entries = filtered.slice(0, 3); // حد أقصى 3 إصدارات
