@@ -6,7 +6,7 @@ import { startAuthentication, type PublicKeyCredentialRequestOptionsJSON } from 
 import { supabase } from '@/integrations/supabase/client';
 import { invoke } from '@/lib/api/invoke';
 import { uiNotify } from '@/lib/notify';
-import { logBiometricEvent, handleAuthenticationError } from '@/utils/auth/webAuthnErrors';
+import { logBiometricEvent, handleAuthenticationError } from '@/lib/auth/webAuthnErrors';
 
 interface UseWebAuthnAuthArgs {
   setIsLoading: (v: boolean) => void;

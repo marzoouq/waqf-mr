@@ -1,63 +1,86 @@
-# خطة الإصلاح الشامل
+## خطة التنفيذ — تحسينات المعمارية (6 مراحل)
 
-## 1) الرسوم البيانية بلوحة الناظر
+تنفيذ توصيات تقرير المراجعة المعمارية خطوة بخطوة، مع الحفاظ التام على المكونات والسلوك الحالي. كل مرحلة مستقلة وقابلة للتراجع.
 
-**السبب الجذري**: `ChartBox` يستخدم `useChartReady` الذي يتطلب أبعاد ≥2px قبل عرض المحتوى. عند تحميل الصفحة مع `Suspense` + `ViewportRender`، حاوية `CardContent` بـ `min-h-[300px]` فقط (الحد الأدنى، ليس الفعلي) — `ResizeObserver` قد يقيس 300×0 أو لا يطلق لأن لا يوجد محتوى داخلي يفرض ارتفاعاً. `ChartBox` نفسه يضع `height: 300` على div، لكن إذا كانت الحاوية الأم `min-w-0` بدون عرض، يصبح العرض صفر.
+---
 
-**الإصلاح**:
-- `ChartBox`: تغيير العتبة لتقبل `width > 0` فقط (الارتفاع مضمون من style)، ورفع fallback أوضح بدلاً من null.
-- `DashboardChartsInner`: تمرير `height` صريح من CardContent إلى ChartBox، وإزالة `min-h-[300px]` وجعلها `h-[320px]`.
-- نفس الإصلاح لـ `ExpensesPieChart` و `CollectionHeatmap` و `IncomeBreakdownChart` و `BudgetVsActualChart` و `YearComparisonCard` و أي رسم في `src/components/dashboard/charts/` و `src/components/expenses/` و `src/components/income/`.
-- إضافة `key` على ResponsiveContainer مرتبط بطول البيانات لإجبار إعادة الرسم.
+### المرحلة 1 — نقل ملفات utils المرتبطة بـ IO إلى lib/
 
-## 2) الوضع الشبكي (Grid View) لصفحات السجلات
+**الهدف**: تطبيق قاعدة `lib vs utils` — utils تبقى دوال نقية فقط.
 
-إضافة مكوّن مشترك `<ViewModeToggle table|grid>` يحفظ التفضيل في `sessionStorage` (مفتاح لكل صفحة):
-- **المصروفات** (`/dashboard/expenses`): إضافة `ExpensesGridCards` (شبكة `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`) — يُعاد استخدام منطق `ExpensesMobileCards` للبطاقة الواحدة.
-- **العقود** (لوحة الناظر + المستفيد): إضافة `ContractsGridCards` و `ContractsViewGridCards`.
-- **الفواتير** (`/dashboard/invoices`): إضافة `InvoicesGridCards`.
-- **الدخل** (`/dashboard/income`): إضافة `IncomeGridCards`.
+- نقل `src/utils/database.ts` → `src/lib/database.ts`
+- نقل `src/utils/zatca.ts` → `src/lib/zatca/index.ts` (أو دمجه مع `src/lib/zatca` إن وُجد)
+- نقل `src/utils/webAuthnErrors.ts` → `src/lib/auth/webAuthnErrors.ts`
+- تحديث جميع الاستيرادات (`rg` ثم استبدال دقيق)
+- إبقاء re-export مؤقت من المسار القديم لمنع الكسر إن لزم
 
-السلوك: على الجوال يبقى الافتراضي `cards` (بطاقات بعمود واحد)، على الديسكتوب يظهر التبديل بين `جدول` و`شبكي`.
+**التحقق**: build + 1693 test يجب أن تمر.
 
-## 3) كشف اسم المستأجر للمستفيد
+---
 
-**Migration**: تعديل عرض `public.contracts_safe` لإلغاء قناع `tenant_name` فقط (الإبقاء على إخفاء `tenant_id_number`, `tenant_tax_number`, `tenant_crn`, `tenant_street`, `tenant_building`, `tenant_district`, `tenant_city`, `tenant_postal_code`, `tenant_id_type`):
+### المرحلة 2 — توحيد بنية `src/types/`
 
-```sql
-CREATE OR REPLACE VIEW public.contracts_safe
-WITH (security_invoker = off) AS
-SELECT c.id, c.property_id, c.unit_id, c.start_date, c.end_date,
-       c.rent_amount, c.payment_count, c.payment_amount, c.fiscal_year_id,
-       c.created_at, c.updated_at, c.status, c.contract_number, c.payment_type,
-       c.tenant_name,  -- ← مكشوف الآن (قرار صاحب الوقف)
-       CASE WHEN r.is_privileged THEN c.tenant_id_type ELSE NULL END AS tenant_id_type,
-       CASE WHEN r.is_privileged THEN c.tenant_id_number ELSE NULL END AS tenant_id_number,
-       -- بقية حقول PII تبقى مقنّعة بنفس الشرط ...
-FROM public.contracts c, LATERAL ( ... ) r;
-```
+- دمج `src/types/financial.ts` داخل `src/types/financial/` (كـ `financial/legacy.ts` أو إعادة توزيع)
+- نقل `src/types/data/crudFactory.ts` إلى مكان منطقي ضمن نفس المجلد + index موحّد
+- تحديث الاستيرادات
 
-تحديث `mem://business-logic/contracts/renewal-pii-persistence` لتوثيق أن `tenant_name` ليس PII حساس في هذا الوقف.
+**التحقق**: tsc + tests.
 
-## 4) معالجة تحذيرات التشخيص
+---
 
-- **خط Amiri**: `src/utils/diagnostics/checks/ui.ts` → تغيير `Amiri` من `warn` إلى `info` مع وصف "يُحمَّل عند الطباعة فقط (Amiri on-demand for print)".
-- **CSP**: إضافة `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.supabase.co https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fonts.googleapis.com; frame-ancestors 'none';">` في `index.html`.
-- **بطء الصفحات / LCP 5.8s**: رفع عتبة `slow page` من 2s إلى 4s في فحص الأداء (الأكثر واقعية لنظام محمّل بـ React 19 + lazy)، وتخفيف معيار LCP إلى `warn` عند >4s و `fail` عند >8s فقط (المعايير الحالية صارمة).
+### المرحلة 3 — تسطيح المجلدات شبه الفارغة
 
-## 5) رفع شارة "متأخر" من فواتير السنوات المغلقة
+- `src/components/admin/beneficiaries/` → `src/components/beneficiaries/admin/` (أو دمج)
+- `src/components/admin/email-monitor/` → `src/components/email-monitor/`
+- `src/components/settings/account/AccountTab.tsx` → `src/components/settings/AccountTab.tsx`
+- حذف المجلدات الفارغة الناتجة
 
-في `InvoicesViewPage` (المستفيد) فقط: عندما `fiscal_year.status = 'closed'`، إخفاء شارة "متأخر" واستبدالها بـ "أرشيف". لا تغيير في حساب أو ترتيب الفواتير.
+**التحقق**: استيرادات + tests.
 
-## ما لن نلمسه
+---
 
-- AuthContext, ProtectedRoute, client.ts, types.ts, config.toml.
-- منطق `useSectionsVisibility` / `usePermissionsControlPanel` (تم تنظيفه سابقاً).
-- جداول/سياسات RLS — فقط تعديل عرض contracts_safe.
-- صفحات الإعدادات والصلاحيات (الناظر يتحكم بالأقسام عبر `SectionVisibilityCard` الموجودة).
+### المرحلة 4 — تفكيك Page Hooks الثقيلة
 
-## الاختبار
+استخراج المنطق الحسابي إلى `src/hooks/domain/financial/`:
 
-- تشغيل `vitest` كاملاً (1687 اختبار).
-- اختبار يدوي: لوحة الناظر (الرسوم تظهر)، صفحة المصروفات (تبديل جدول/شبكي)، صفحة العقود للمستفيد (اسم المستأجر ظاهر + وضع شبكي + جوال).
-- إعادة تشغيل تشخيص النظام والتحقق من اختفاء تحذير Amiri و CSP.
+- `useCollectionData.ts` (205) → استخراج حسابات التحصيل
+- `useIncomePage.ts` (198) → استخراج تجميعات الدخل
+- `usePaymentInvoicesTab.ts` (196) → استخراج فلترة الفواتير
+- `useInvoicesPage.ts` (191)، `useAccountsPage.ts` (188)، `useExpensesPage.ts` (185)
+
+كل hook يبقى < 180 سطر بعد التفكيك.
+
+**التحقق**: tests + سلوك الصفحات يدوياً.
+
+---
+
+### المرحلة 5 — توضيح حدود `src/lib/hooks/` vs `src/hooks/ui/`
+
+- مراجعة `useNowClock.ts` و `useStableRef.ts`
+- نقلهما إلى `src/hooks/ui/` ودمج المجلد، أو توثيق سبب الفصل في README صغير
+
+**التحقق**: استيرادات + tests.
+
+---
+
+### المرحلة 6 — توثيق فقط (بدون migration rollup)
+
+- إضافة ملاحظة في `supabase/migrations/README.md` (إن لم يوجد ننشئه) تشرح سياسة rollup المستقبلية
+- **لا rollup فعلي** — مؤجل لنافذة هادئة بقرار صريح من الناظر
+
+---
+
+## ضمانات السلامة
+
+- ❌ لا تعديل على: AuthContext, ProtectedRoute, client.ts, types.ts, config.toml, .env
+- ❌ لا migrations لقاعدة البيانات (المراحل 1–5 frontend فقط)
+- ❌ لا تغيير في منطق RLS أو Edge Functions
+- ✅ كل مرحلة = commit منفصل + اختبارات خضراء
+- ✅ بعد كل مرحلة: تشغيل `bunx vitest run` + فحص build
+
+## ترتيب التنفيذ المقترح
+
+أبدأ بالمرحلة **1** (الأقل خطورة، الأعلى قيمة)، ثم انتظر تأكيدك قبل الانتقال للمرحلة التالية، أو نفّذ المراحل 1→5 متتالية ثم تقرير شامل.
+
+**أيهما تفضّل: مرحلة-مرحلة بتأكيد بينها، أم تنفيذ كامل متتالي مع تقرير نهائي؟**  
+**تنفيذ كامل متتالي مع تقرير نهائي؟ مع التقيد بعدم الامساس بالمكونات الاخرى وتنفيذ المراحل مرحله مرحله بالكامل وبعدم القفز والحرص على الانتهاء 100% اثناء التنفيذ ومراجعة كل مرحله بعد الانتهاء بشكل صارم ودقيق** 
