@@ -84,12 +84,14 @@ export function useAccountsEditing({ contracts, collectionData, getExpectedPayme
         notes: editData.status === 'مكتمل' ? '' : `متأخر ${expectedPmts - editData.paidMonths} دفعات`,
       });
 
+      uiNotify.success('تم حفظ بيانات التحصيل');
       setEditingIndex(null);
       setEditData(null);
     } catch {
-      // handled by hooks
+      uiNotify.error('خطأ في حفظ بيانات التحصيل');
     }
   };
+
 
   const handleOpenContractEdit = (contract: ContractEditData) => {
     setEditingContractData({ ...contract, rent_amount: Number(contract.rent_amount) });

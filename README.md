@@ -61,12 +61,14 @@
 
 | المصطلح | المعنى | الاستخدام في الكود |
 |---------|--------|--------------------|
-| **`waqf`** | الوقف ككيان (الأصول والكيان القانوني) | `src/components/waqf/` — معلومات الوقف، الشعار، البيانات التعريفية (مثل `WaqfInfoEditDialog`) |
+| **`waqf`** | الوقف ككيان (الأصول والكيان القانوني) | `src/components/waqf-info/` — معلومات الوقف، الشعار، البيانات التعريفية (مثل `WaqfInfoEditDialog`) |
 | **`waqif`** | الواقف كدور مستخدم (`app_role = 'waqif'`) | `src/components/waqif/` — مكونات لوحة الواقف (`WaqifWelcomeCard`, `WaqifOverviewStats`, …) |
 
+
 **قاعدة عامة:**
-- أي مكون يخص **معلومات الوقف نفسه** (الاسم، الشعار، الوصف) → `components/waqf/`
+- أي مكون يخص **معلومات الوقف نفسه** (الاسم، الشعار، الوصف) → `components/waqf-info/`
 - أي مكون يخص **واجهة الواقف كمستخدم** (لوحة، رسوم، روابط سريعة) → `components/waqif/`
+
 - صفحة `WaqifDashboard.tsx` تقع في `pages/waqif/` (مع اختبارها)؛ منطقها وصلاحياتها مستقلة تماماً عن المستفيد. يوجد re-export شيّم في `pages/beneficiary/WaqifDashboard.tsx` للتوافق الخلفي فقط ويُحذف لاحقاً.
 
 ---
@@ -142,7 +144,7 @@ npm run dev
 | Lazy-loaded routes | **48 route** عبر `lazyWithRetry` |
 | GitHub Actions نشطة | **5 workflows** |
 | Database migrations | **298+ migration** (سلوك معتاد لـ Lovable Cloud) |
-| Edge Functions | **11 function** بمصادقة يدوية عبر `getUser()` |
+| Edge Functions | **18 function** بمصادقة يدوية عبر `getUser()` (admin-manage-users, ai-assistant, auth-email-hook, beneficiary-summary, check-contract-expiry, dashboard-summary, email-admin, generate-invoice-pdf, guard-signup, health-check, lookup-national-id, process-email-queue, webauthn, zatca-onboard/renew/report/signer/xml-generator) |
 | RLS coverage | **100%** على الجداول الحساسة |
 
 استراتيجية الاختبارات موثّقة في `mem://testing/automated-test-suite-strategy`.

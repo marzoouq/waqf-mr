@@ -1,13 +1,12 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { Notification } from '@/types';
 import { logger } from '@/lib/logger';
-import { safeGet } from '@/lib/storage';
-import { NOTIF_PREFS_KEY } from '@/constants/notificationTones';
 import { useNotificationActions } from './useNotificationActions';
 import { useNotificationSettings } from '@/hooks/data/settings/useNotificationSettings';
+import { useNotificationVisibilityPrefs } from './useNotificationVisibilityPrefs';
 import { shouldHideForBeneficiary } from '@/lib/notifications/beneficiaryNotificationVisibility';
 
 // إعادة تصدير للتوافق
@@ -18,49 +17,13 @@ export {
 export type { VolumeLevel, ToneId, ToneOption } from '@/constants/notificationTones';
 export { VOLUME_OPTIONS, TONE_OPTIONS, previewTone } from '@/constants/notificationTones';
 
-/** Maps beneficiary preference keys to notification types */
-const PREF_TYPE_MAP: Record<string, string> = {
-  distributions: 'payment',
-  contracts: 'warning',
-  messages: 'message',
-};
-
-/** Returns set of notification types disabled by beneficiary prefs */
-const getDisabledTypes = (): Set<string> => {
-  try {
-    const stored = safeGet<string>(NOTIF_PREFS_KEY, '');
-    if (!stored) return new Set();
-    const prefs = JSON.parse(stored);
-    const disabled = new Set<string>();
-    for (const [prefKey, notifType] of Object.entries(PREF_TYPE_MAP)) {
-      if (prefs[prefKey] === false) disabled.add(notifType);
-    }
-    return disabled;
-  } catch {
-    return new Set();
-  }
-};
-
 const PAGE_SIZE = 50;
 
 export const useNotifications = () => {
   const { user, role } = useAuth();
   const { notificationSettings } = useNotificationSettings();
-  const [disabledTypes, setDisabledTypes] = useState<Set<string>>(() => getDisabledTypes());
+  const disabledTypes = useNotificationVisibilityPrefs();
 
-  // الاستماع لتغييرات localStorage
-  useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === NOTIF_PREFS_KEY) setDisabledTypes(getDisabledTypes());
-    };
-    const handleCustom = () => setDisabledTypes(getDisabledTypes());
-    window.addEventListener('storage', handleStorage);
-    window.addEventListener('notif-prefs-changed', handleCustom);
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-      window.removeEventListener('notif-prefs-changed', handleCustom);
-    };
-  }, []);
 
   const userId = user?.id ?? '';
 
