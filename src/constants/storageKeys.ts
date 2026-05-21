@@ -41,12 +41,14 @@ export const STORAGE_KEYS = {
  * جميع المفاتيح القابلة للمسح عند تسجيل الخروج.
  *
  * استثناءات (تبقى بعد الخروج عمداً):
- *  - `BIOMETRIC_ENABLED`: مؤشر عرض فقط لزر "تسجيل الدخول بالبصمة" في /auth.
+ *  - `BIOMETRIC_ENABLED`: مؤشر عرض زر "تسجيل الدخول بالبصمة" في /auth.
  *    ليس مصدر صلاحية أمنية — التحقق الفعلي يتم في Edge Function عبر DB.
- *    مسحه يجعل الزر يختفي رغم وجود بيانات اعتماد مسجلة على الجهاز.
+ *  - `PWA_LAST_VERSION`: آخر إصدار شاهده المستخدم على هذا الجهاز.
+ *    مسحه يعيد عرض كل سجل التحديثات بعد كل تسجيل دخول. ليس سراً أمنياً.
  */
 const NON_CLEARABLE_KEYS: ReadonlySet<string> = new Set([
   STORAGE_KEYS.BIOMETRIC_ENABLED,
+  STORAGE_KEYS.PWA_LAST_VERSION,
 ]);
 
 export const CLEARABLE_STORAGE_KEYS = Object.values(STORAGE_KEYS).filter(
