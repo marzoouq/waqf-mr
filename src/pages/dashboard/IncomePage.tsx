@@ -6,9 +6,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { TrendingUp, Search, AlertTriangle } from 'lucide-react';
 import { IncomeSummaryCards, IncomeMobileCards, IncomeDesktopTable, IncomeFormDialog } from '@/components/income';
-import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner, ConfirmDeleteDialog } from '@/components/common';
+import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner, ConfirmDeleteDialog, ViewModeToggle, useViewMode } from '@/components/common';
 import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useIncomePage } from '@/hooks/page/admin/financial/useIncomePage';
 
 const IncomeMonthlyChart = lazy(() => import('@/components/dashboard/charts/IncomeMonthlyChart'));
@@ -28,6 +29,8 @@ const IncomePage = () => {
     paginatedItems,
     handleExportPdf, handleExportCsv,
   } = useIncomePage();
+  const isMobile = useIsMobile();
+  const [viewMode, setViewMode] = useViewMode('admin-income', 'table');
 
   return (
     <DashboardLayout>
@@ -38,6 +41,7 @@ const IncomePage = () => {
           description="تسجيل ومتابعة مصادر الدخل"
           actions={<>
             <ExportMenu onExportPdf={handleExportPdf} onExportCsv={handleExportCsv} />
+            {!isMobile && <ViewModeToggle value={viewMode} onChange={setViewMode} />}
             <IncomeFormDialog
               open={isOpen} onOpenChange={setIsOpen}
               editingIncome={editingIncome}
@@ -107,8 +111,10 @@ const IncomePage = () => {
               <div className="py-12 text-center"><TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery || filters.category || filters.propertyId || filters.dateFrom ? 'لا توجد نتائج للبحث' : 'لا توجد سجلات دخل'}</p></div>
             ) : (
               <>
-              <IncomeMobileCards items={paginatedItems} isLocked={isLocked} onEdit={handleEdit} onDelete={setDeleteTarget} />
-              <IncomeDesktopTable items={paginatedItems} isLocked={isLocked} sortField={sortField} sortDir={sortDir} onSort={handleSort} onEdit={handleEdit} onDelete={setDeleteTarget} />
+              <IncomeMobileCards items={paginatedItems} isLocked={isLocked} onEdit={handleEdit} onDelete={setDeleteTarget} viewMode={!isMobile && viewMode === 'grid' ? 'grid' : 'auto'} />
+              {!(viewMode === 'grid' && !isMobile) && (
+                <IncomeDesktopTable items={paginatedItems} isLocked={isLocked} sortField={sortField} sortDir={sortDir} onSort={handleSort} onEdit={handleEdit} onDelete={setDeleteTarget} />
+              )}
               </>
             )}
             <TablePagination currentPage={currentPage} totalItems={filteredIncome.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
