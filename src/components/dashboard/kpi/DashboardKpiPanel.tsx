@@ -26,28 +26,32 @@ const DashboardKpiPanel = ({ kpis, isLoading }: DashboardKpiPanelProps) => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
-          {kpis.map((kpi) => (
-            <div key={kpi.label} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
-              <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
-              <p className={`text-lg sm:text-xl md:text-3xl font-bold ${kpi.color}`}>
-                {kpi.value === 0 && !kpi.suffix ? '—' : <>{fmt(kpi.value)}{kpi.suffix}</>}
-              </p>
-              {kpi.yoyChange !== null && kpi.yoyChange !== undefined && (
-                <div className={`flex items-center justify-center gap-1 text-xs font-medium ${
-                  kpi.yoyChange === 0 ? 'text-muted-foreground' :
-                  (kpi.invertColor ? kpi.yoyChange > 0 : kpi.yoyChange > 0) 
-                    ? (kpi.invertColor ? 'text-destructive' : 'text-success')
-                    : (kpi.invertColor ? 'text-success' : 'text-destructive')
-                }`}>
-                  {kpi.yoyChange > 0 ? <TrendingUp className="w-3 h-3" /> : kpi.yoyChange < 0 ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
-                  <span>{kpi.yoyChange > 0 ? '+' : ''}{kpi.yoyChange}% عن العام السابق</span>
-                </div>
-              )}
-              {kpi.progressColor && (
-                <Progress value={Math.min(kpi.value, 100)} className={`h-2 ${kpi.progressColor}`} />
-              )}
-            </div>
-          ))}
+          {kpis.map((kpi) => {
+            // D-04: إصلاح تعبير YoY الميت — منطق ألوان واضح ومُعبّر
+            const yoyChange = kpi.yoyChange ?? 0;
+            const isPositive = yoyChange > 0;
+            const isGood = kpi.invertColor ? !isPositive : isPositive;
+            const yoyColor =
+              yoyChange === 0 ? 'text-muted-foreground' : isGood ? 'text-success' : 'text-destructive';
+
+            return (
+              <div key={kpi.label} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
+                <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
+                <p className={`text-lg sm:text-xl md:text-3xl font-bold ${kpi.color}`}>
+                  {kpi.value === 0 && !kpi.suffix ? '—' : <>{fmt(kpi.value)}{kpi.suffix}</>}
+                </p>
+                {kpi.yoyChange !== null && kpi.yoyChange !== undefined && (
+                  <div className={`flex items-center justify-center gap-1 text-xs font-medium ${yoyColor}`}>
+                    {yoyChange > 0 ? <TrendingUp className="w-3 h-3" /> : yoyChange < 0 ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+                    <span>{yoyChange > 0 ? '+' : ''}{yoyChange}% عن العام السابق</span>
+                  </div>
+                )}
+                {kpi.progressColor && (
+                  <Progress value={Math.min(kpi.value, 100)} className={`h-2 ${kpi.progressColor}`} />
+                )}
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
