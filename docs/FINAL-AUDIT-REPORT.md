@@ -325,12 +325,35 @@
 
 ---
 
+## 🟡 Known Open Items (آخر تحديث: 2026-05-21)
+
+بنود مفتوحة موثّقة بعد مراجعة جنائية إضافية للوحة الناظر. لا تمنع النشر لكنها مُتتبَّعة:
+
+| # | البند | الأولوية | الحالة |
+|---|---|---|---|
+| D-01 | `RequirePermission` نقل toast إلى useEffect | P0 | ✅ مُصلَح |
+| D-02 | `app_settings` في realtime invalidation | P0 | ✅ مُصلَح |
+| D-03 | فصل قناة messages عن dashboard summary | P0 | ✅ مُصلَح |
+| D-04 | تعبير YoY الميت في DashboardKpiPanel | P0 | ✅ مُصلَح |
+| D-05 | `useDashboardSecondary` لا يعمل بعد فشل summary | P0 | ✅ مُصلَح |
+| PII-01 | إخفاء PII في `auth-email-hook` logs | P0 | ✅ مُصلَح (maskEmail) |
+| CI-01 | Security gates: PII / getSession / SERVICE_ROLE allowlist | P0 | ✅ مضاف |
+| D-06 | navLinksParity test | P1 | ✅ مضاف |
+| D-07 | منطق الدور من JSX إلى hook (`showPerformanceCard`) | P1 | ✅ مُصلَح |
+| D-09 | تسمية "معاينة واجهة المستفيد" | P1 | ✅ مُصلَح |
+| AUTH-01 | توثيق role source (JWT vs DB) | P1 | ✅ موثّق في `docs/auth/role-source.md` |
+| P2-01 | helper `canModifyFiscalYear` + توحيد LockedYearBanner | P2 | ⏳ مؤجَّل لـ PR منفصل |
+| P2-02 | `DashboardPageContainer` + توحيد ExportMenu | P2 | ⏳ مؤجَّل |
+| P2-03 | heatmap pagination/freshness badge | P2 | ⏳ مؤجَّل |
+| SEC-01 | WebAuthn replay/race tests | خارج النطاق | يحتاج مراجعة أمنية بشرية |
+| SEC-02 | `lookup-national-id` enumeration audit | خارج النطاق | يحتاج مراجعة أمنية بشرية |
+| ARCH-01 | توحيد role source (إلغاء JWT cache أو إبقاؤه موثّقًا) | قرار معماري | موثّق حاليًا |
+| DB-01 | FK مباشر إلى `auth.users` | قرار معماري | legacy موثّق |
+
 ## 🏁 الخلاصة
 
-النظام **مستقر وآمن وجاهز للنشر**. تم إصلاح **87+ مشكلة** عبر 24 جولة تدقيق جنائي شاملة. الاختبارات الآلية (~600+ اختبار) تمر بنجاح. المشاكل المؤجلة موثقة بالكامل ولا تُشكّل خطراً فورياً.
+النظام **متقدم وآمن وقابل للنشر** بعد إغلاق بنود P0/P1 أعلاه. الاختبارات الآلية (~600+ اختبار + 61 اختبار parity جديد) تمر. بنود P2 والقرارات المعمارية مُتتبَّعة لكنها لا تمنع الإنتاج.
 
-```
-التقييم النهائي: ██████████  100% ✅ (10/10)
-```
+> لا نعتمد عبارة "100% جاهز" — نعتمد: **"جاهزية إنتاج عالية مع تتبّع شفّاف للبنود المفتوحة"**.
 
 </div>
