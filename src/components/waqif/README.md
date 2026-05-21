@@ -8,7 +8,7 @@
 > - `waqif/` = واجهة المستخدم لدور **الواقف** (Dashboard, Reports view)
 > - `waqf/` = إدارة بيانات **المؤسسة** (Logo, Settings)
 >
-> هوك الصفحة `useWaqifDashboardPage` يقع في `src/hooks/page/beneficiary/` لأنه يشترك
-> مع المستفيد في layout القراءة فقط، لكن المكونات المرئية الخاصة بالواقف هنا.
+> هوك الصفحة `useWaqifDashboardPage` يقع في `src/hooks/page/waqif/`، ويعتمد على
+> طبقة `src/hooks/application/dashboard/` المشتركة بين الواقف والمستفيد (لا cross-role coupling).
 
 لا تخلط بين المجلدين — كل مكوّن يجب أن يبقى في موقعه الدلالي.
