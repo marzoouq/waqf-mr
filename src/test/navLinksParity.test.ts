@@ -21,7 +21,7 @@ const ROUTES_FILE = resolve(ROOT, 'src/routes/adminRoutes.tsx');
 const extractRegisteredRoutes = (): string[] => {
   const content = readFileSync(ROUTES_FILE, 'utf8');
   const matches = Array.from(content.matchAll(/path="(\/dashboard[^"]*)"/g));
-  return matches.map((m) => m[1]);
+  return matches.map((m) => m[1]).filter((s): s is string => Boolean(s));
 };
 
 /** المسارات المُدرجة عمدًا في allAdminLinks دون أن تكون Route — موثّقة كروابط معاينة. */
