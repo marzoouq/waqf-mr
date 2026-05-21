@@ -7,6 +7,7 @@ import { useBeneficiaryWidgets } from '@/hooks/data/settings/useBeneficiaryWidge
 import { PAGE_RESPONSIBILITY_COPY } from '@/constants/beneficiaryCopy';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary/dashboard/BeneficiaryWelcomeCard';
+import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import BeneficiaryStatsRow from '@/components/beneficiary/dashboard/BeneficiaryStatsRow';
 import BeneficiaryQuickLinks from '@/components/beneficiary/dashboard/BeneficiaryQuickLinks';
 import BeneficiaryRecentDistributions from '@/components/beneficiary/dashboard/BeneficiaryRecentDistributions';
