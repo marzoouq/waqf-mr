@@ -3,7 +3,7 @@
  */
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { RequirePublishedYears, ExportMenu, TablePagination } from '@/components/common';
+import { RequirePublishedYears, ExportMenu, TablePagination, ViewModeToggle, useViewMode } from '@/components/common';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, AlertCircle, RefreshCw, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ContractStatsCards } from '@/components/contracts';
 import ContractsViewMobileCards from '@/components/contracts/ContractsViewMobileCards';
 import ContractsViewDesktopTable from '@/components/contracts/ContractsViewDesktopTable';
+import ContractsViewGridCards from '@/components/contracts/ContractsViewGridCards';
 import { useContractsViewPage } from '@/hooks/page/beneficiary';
 import { CONTRACTS_SCOPE_COPY } from '@/constants/beneficiaryCopy';
 
