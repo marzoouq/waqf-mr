@@ -3,7 +3,7 @@ import { dashboardSummarySchema, supportAnalyticsSchema, parseOrThrow } from './
 import { ApiError } from '../rpc';
 
 describe('dashboardSummarySchema', () => {
-  it('يقبل الشكل الصحيح', () => {
+  it('يقبل الشكل الصحيح (الحد الأدنى)', () => {
     const ok = dashboardSummarySchema.safeParse({
       aggregated: { totals: {} },
       pending_advances: [],
@@ -12,8 +12,39 @@ describe('dashboardSummarySchema', () => {
     expect(ok.success).toBe(true);
   });
 
+  it('يقبل aggregated كامل مع settings رقمية', () => {
+    const ok = dashboardSummarySchema.safeParse({
+      aggregated: {
+        totals: { total_income: 1000, total_expenses: 500 },
+        settings: { admin_share_percentage: 5, waqif_share_percentage: 10, waqf_corpus_percentage: 20 },
+        fiscal_years: [{ id: 'x', label: '2024-2025', status: 'active', start_date: '2024-01-01', end_date: '2024-12-31', published: false }],
+      },
+      pending_advances: [],
+      fetched_at: '2025-01-01T00:00:00Z',
+    });
+    expect(ok.success).toBe(true);
+  });
+
   it('يرفض غياب fetched_at', () => {
     const bad = dashboardSummarySchema.safeParse({ aggregated: {}, pending_advances: [] });
+    expect(bad.success).toBe(false);
+  });
+
+  it('يرفض settings.admin_share_percentage كنص (يكشف drift النوع)', () => {
+    const bad = dashboardSummarySchema.safeParse({
+      aggregated: { settings: { admin_share_percentage: '5' } },
+      pending_advances: [],
+      fetched_at: '2025-01-01T00:00:00Z',
+    });
+    expect(bad.success).toBe(false);
+  });
+
+  it('يرفض totals.total_income كنص (يكشف drift النوع)', () => {
+    const bad = dashboardSummarySchema.safeParse({
+      aggregated: { totals: { total_income: 'nope' } },
+      pending_advances: [],
+      fetched_at: '2025-01-01T00:00:00Z',
+    });
     expect(bad.success).toBe(false);
   });
 

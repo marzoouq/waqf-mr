@@ -26,9 +26,13 @@ export interface AccountantMetrics {
   /** فواتير متأخرة */
   overdueInvoices: OverdueInvoice[];
   overdueTotal: number;
-  /** مصروفات غير موثقة (نسبة) */
-  undocumentedExpensesCount: number;
-  documentationRate: number;
+  /**
+   * نسبة توثيق المصروفات — `null` تعني "غير متاح حالياً" (لا يوجد RPC يحسبها).
+   * المنطق الفعلي مُتاح في `utils/financial/documentationRate.ts` لكن يتطلب جلب
+   * expenses + invoices كاملة — تأجيل التكامل لتفادي توسيع scope الجلب.
+   */
+  undocumentedExpensesCount: number | null;
+  documentationRate: number | null;
   /** ملخص التحصيل الشهري */
   monthlyCollection: MonthlyCollectionItem[];
   /** فواتير ZATCA غير مُرسلة */
@@ -115,11 +119,11 @@ export function useAccountantDashboardData({ aggregated, heatmapInvoices }: UseA
   const totalCollected = aggregated?.collection?.total_collected ?? 0;
   const totalExpected = aggregated?.collection?.total_expected ?? 0;
 
-  // تقديري: نسبة المصروفات الموثقة (لها فواتير) — نعرض عدد المصروفات بدون فواتير
-  const expenseTypeCount = aggregated?.expense_types?.length ?? 0;
-  // documentationRate غير متاحة مباشرة — نُقدّر بناءً على وجود expense_types
-  const documentationRate = expenseTypeCount > 0 ? 100 : 0;
-  const undocumentedExpensesCount = 0; // سيتم تحسينه لاحقاً عند إضافة RPC مخصص
+  // documentationRate — لا يحسبه RPC الحالي؛ نُرجع null بدلاً من قيمة وهمية (100 أو 0)
+  // الواجهة مسؤولة عن إخفاء أي عرض يعتمد على null. القيمة الحقيقية تتطلب
+  // جلب expenses + invoices ثم استدعاء computeDocumentationStats من utils.
+  const documentationRate: number | null = null;
+  const undocumentedExpensesCount: number | null = null;
 
   return {
     overdueInvoices,
