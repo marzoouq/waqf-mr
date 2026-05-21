@@ -17,8 +17,8 @@ const getKpiColor = (value: number, good: number, warn: number, invert = false) 
   return { text: 'text-destructive', bar: '[&>div]:bg-destructive' };
 };
 
-/** بطاقات خاصة بالناظر فقط — لا تُعرض للمحاسب */
-const ADMIN_ONLY_TITLES = new Set(['حصة الناظر', 'حصة الواقف', 'ريع الوقف']);
+// ملاحظة: تصفية بطاقات الناظر تتم عبر metadata `visibility: 'admin-only'`
+// المُعرّفة على كل StatItem — لا تعتمد على النصوص العربية (مرونة i18n + سلامة صلاحيات).
 
 interface UseAdminDashboardStatsParams {
   propertiesCount: number;
@@ -93,17 +93,17 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
       { title: 'إجمالي المصروفات', value: `${fmtInt(totalExpenses)} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true },
       { title: `صافي الريع${sharesNote}`, value: `${fmtInt(netAfterExpenses)} ر.س`, icon: Landmark, color: 'bg-success', link: '/dashboard/accounts', yoyChange: netChange, invertColor: false },
       { title: isYearActive ? `صافي متاح (قبل الحصص)${sharesNote}` : `المتاح للتوزيع`, value: `${fmtInt(Math.max(0, isYearActive ? netAfterZakat : availableAmount))} ر.س`, icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts' },
-      { title: 'حصة الناظر', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(adminShare)} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
-      { title: 'حصة الواقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqifShare)} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
-      { title: 'ريع الوقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqfRevenue)} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
+      { title: 'حصة الناظر', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(adminShare)} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts', visibility: 'admin-only' },
+      { title: 'حصة الواقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqifShare)} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts', visibility: 'admin-only' },
+      { title: 'ريع الوقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqfRevenue)} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries', visibility: 'admin-only' },
       { title: 'المستفيدون النشطون', value: beneficiariesCount, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
       { title: `التدفق النقدي الصافي${sharesNote}`, value: isYearActive ? 'يُحسب عند الإقفال' : `${fmtInt(netCashFlow)} ر.س`, icon: ArrowDownUp, color: netCashFlow >= 0 ? 'bg-success' : 'bg-destructive', link: '/dashboard/accounts' },
       { title: 'نسبة التوزيع الفعلي', value: isYearActive ? '—' : `${distributionRatio}%${isYearActive ? ' *تقديري' : ''}`, icon: PercentCircle, color: 'bg-accent', link: '/dashboard/beneficiaries' },
     ];
 
-    // تصفية بطاقات خاصة بالناظر عند عرض لوحة المحاسب
+    // تصفية بطاقات بناءً على metadata بدل النص — يحمي من تغييرات الترجمة
     if (role === 'accountant') {
-      return allStats.filter(s => !ADMIN_ONLY_TITLES.has(s.title));
+      return allStats.filter(s => s.visibility !== 'admin-only');
     }
     return allStats;
   }, [propertiesCount, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, distributionsAmount, beneficiariesCount, isYearActive, sharesNote, yoy, role]);

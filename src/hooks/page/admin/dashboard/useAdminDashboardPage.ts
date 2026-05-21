@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useDashboardSummary, useDashboardSecondary } from '@/hooks/data/financial/useDashboardSummary';
 import { useAdminDashboardData } from '@/hooks/page/admin/dashboard/useAdminDashboardData';
 import { useAccountantDashboardData } from '@/hooks/page/admin/dashboard/useAccountantDashboardData';
+import { dashboardKeys } from '@/lib/queryKeys/dashboardKeys';
 
 export const useAdminDashboardPage = () => {
   const { role, user } = useAuth();
@@ -26,9 +27,10 @@ export const useAdminDashboardPage = () => {
      'properties', 'contracts', 'beneficiaries', 'distributions', 'advance_requests'],
     true,
     [
-      ['dashboard-summary'],
-      ['dashboard-heatmap'],
-      ['dashboard-recent-contracts'],
+      // prefix-match — invalidateQueries({queryKey, exact:false}) يطابق كل المفاتيح التي تبدأ بهذا الـ prefix
+      dashboardKeys.prefixes.summary,
+      dashboardKeys.prefixes.heatmap,
+      dashboardKeys.prefixes.recentContracts,
       ['unread-messages-count'],
     ]
   );
