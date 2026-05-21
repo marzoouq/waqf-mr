@@ -42,14 +42,16 @@
 
 ### سياسة data access (حاسمة)
 
-- **القاعدة**: `hooks/data/**` هي **الطبقة الوحيدة** المسموح لها باستدعاء `supabase` مباشرةً للجداول (CRUD، select، realtime).
-- **استثناء `lib/services/`**: يُستخدم فقط حين يكون الاستدعاء **أحد** التالي:
+- **القاعدة**: `hooks/data/**` هي طبقة البيانات الافتراضية ومسموح لها باستدعاء `supabase` مباشرةً للجداول (CRUD، select، realtime).
+- **استخدامات `lib/services/` المسموحة**:
   - Edge Function (`supabase.functions.invoke`)
   - Storage (`supabase.storage.from(...)`)
   - منطق يجمع **استدعاءين أو أكثر** عبر جداول مختلفة بترتيب محدّد
   - يُعاد استخدامه من **3+ data hooks**
-- **لا يُسمح** بنمط `hook → service → supabase` لاستعلام جدول واحد بسيط. هذا تعقيد بلا فائدة.
+  - **Repository خفيف لجدول واحد** عند الحاجة لإعادة استخدام الـselect/upsert من أكثر من hook، أو لعزل أعمدة select الطويلة. مقبول طالما الـservice **بدون state ولا toast**.
 - **لا يُسمح** بـ `pages/` أو `components/` تستدعي `supabase` أو `lib/services/` مباشرة — يجب أن تمر عبر `hooks/data/` أو `hooks/page/`.
+- **`hooks/page/`** قد تستدعي services التي تنفّذ Edge Functions أو Storage أو orchestration، لكن استعلامات الجداول تبقى عبر `hooks/data/`.
+
 
 ### المسارات الجانبية المسموحة
 
