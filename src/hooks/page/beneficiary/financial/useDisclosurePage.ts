@@ -12,8 +12,8 @@ import { useMyDistributions } from '@/hooks/data/beneficiaries/useMyDistribution
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { uiNotify } from '@/lib/notify';
-import { useEndUserDashboardData } from '@/hooks/page/beneficiary';
-import { useEndUserFinancials } from '@/hooks/page/beneficiary';
+import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';
+import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFinancials';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { toGregorianShort } from '@/utils/format/date';
