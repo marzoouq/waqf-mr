@@ -1,62 +1,68 @@
-## التحقق من التقرير
+# خطة عاجلة — إصلاح imports مكسورة + إكمال الدمج
 
-فحصت كل بند مقابل الكود. النتائج:
+## الوضع الحالي (مؤكَّد بالفحص)
 
-| # | البند | الحالة |
-|---|---|---|
-| 1 | `0.0.0` fallback يعرض كل التحديثات | **مؤكد** — `PwaUpdateNotifier.tsx:92-95` |
-| 2 | `pwa_last_seen_version` يُمسح عند الخروج | **مؤكد** — `storageKeys.ts:48-50` يستثني `BIOMETRIC_ENABLED` فقط |
-| 3 | لا حد أقصى لعدد الإصدارات المعروضة | **مؤكد** — لا `slice` في `PwaUpdateNotifier.tsx:93-96` |
-| 4 | `changelog.json` ملوّث برسائل تطوير | **مؤكد** — أمثلة فعلية: "Save plan in Lovable"، "Refactor accounts hooks"، "Update tests…" |
-| 5 | `auto-version.yml` يُمرّر chore/refactor/perf/style | **مؤكد** — `auto-version.yml:84-87` يستبعد فقط `docs:` و `[skip ci]` |
-| 6 | `setInterval` بدون cleanup | **منخفض** — موجود في `SwUpdateBanner.tsx` لكن `useRegisterSW` يدير عمر التسجيل؛ خارج النطاق |
-| 7 | مسارا `pwa_just_updated` | **مقصود** — كلاهما يضع TTL=10د؛ ليس عطلاً |
+- ✗ `src/lib/services/{expensesService,incomeService,unitsService,notificationsCrudService}.ts` **محذوفة فعلاً** (rm نجح في دورة سابقة).
+- ✗ 4 hooks ما زالت تستوردها → **البناء/typecheck مكسور**.
+- ✓ `invoicesService.ts` موجود وسليم (Storage boundary).
+- ✓ `src/lib/services/index.ts` لا يصدّر أياً من الأربعة (لا حاجة لتعديله).
 
-سأنفّذ البنود 1-5، وأتجاهل 6-7 (الأول تحسين هامشي، الثاني سلوك مقصود).
+يجب التحويل إلى **build mode** لتنفيذ الإصلاح فوراً.
 
----
+## الإصلاح (4 ملفات داخل `hooks/data/` فقط)
 
-## خطة الإصلاح
+### 1. `src/hooks/data/financial/useExpenses.ts`
 
-### 1. `src/components/pwa/PwaUpdateNotifier.tsx`
-- **استبدال `0.0.0` fallback**: إن لم يوجد `lastSeen` (مستخدم جديد على الجهاز)، اعرض **أحدث إصدار فقط** (`[changelog[0]]`) واحفظه فوراً.
-- **حد أقصى 3 إصدارات**: تطبيق `.slice(0, 3)` على نتيجة `filtered`.
-- **ترتيب**: تأكيد أن `changelog[0]` هو الأحدث (مضمون من الـ workflow عبر `unshift`).
-- حفظ `LAST_SEEN_KEY` قبل عرض النافذة لمنع إعادة العرض عند reload.
+- إزالة import من `@/lib/services/expensesService`.
+- إضافة `EXPENSE_SELECT` محلياً وتصديره (للتوافق إن استُورد من مكان آخر).
+- إضافة `fetchExpensesByFiscalYear(fiscalYearId)` محلياً (نفس منطق `listByFiscalYear` السابق: `isFyAll` → بدون `eq`، وإلا `eq + limit(PER_FY_LIMIT)`).
+- استبدال `queryFn` بـ `() => fetchExpensesByFiscalYear(fiscalYearId)`.
+- الحفاظ على API: `useExpenses`, `useCreateExpense`, `useUpdateExpense`, `useDeleteExpense`, `useExpensesByFiscalYear`, `EXPENSE_SELECT`.
 
-### 2. `src/constants/storageKeys.ts`
-- إضافة `STORAGE_KEYS.PWA_LAST_VERSION` إلى `NON_CLEARABLE_KEYS`.
-- تحديث التعليق التوضيحي ليفسر السبب (تجربة تحديث متّسقة عبر دورات تسجيل دخول/خروج، ليس سراً أمنياً).
+### 2. `src/hooks/data/financial/useIncome.ts`
 
-### 3. `public/changelog.json`
-- تنظيف الإدخالات الملوّثة الموجودة يدوياً: حذف الرسائل الإنجليزية الداخلية و التكرارات (`"Save plan in Lovable"`, `"Preceding changes"`, `"Update tests to match UI changes"`, `"Refactor accounts hooks"`, إلخ).
-- دمج/استبدال بنصوص عربية مفيدة للمستخدم النهائي.
-- إبقاء الإصدارات الحقيقية التي تحمل قيمة وظيفية فقط.
+- نفس النمط: نقل `INCOME_SELECT` محلياً، إضافة `fetchIncomeByFiscalYear` محلياً، استبدال `queryFn`.
+- الحفاظ على: `useIncome`, `useCreateIncome`, `useUpdateIncome`, `useDeleteIncome`, `useIncomeByFiscalYear`, `INCOME_SELECT`.
 
-### 4. `.github/workflows/auto-version.yml`
-تشديد فلتر الـ commits في `Collect commits since last tag`:
-- استبعاد `chore:`, `refactor:`, `perf:`, `style:`, `test:`, `ci:`, `build:`, `docs:` بالكامل.
-- استبعاد commits بالإنجليزية الخالصة (heuristic: لا تحتوي حروف عربية ولا تبدأ بـ `feat:`/`fix:`).
-- استبعاد رسائل قصيرة جداً (<5 chars) ورسائل merge.
-- إن لم يبقَ شيء بعد الفلترة، استخدم النص الافتراضي العربي الموجود `"تحسينات وإصلاحات متنوعة"`.
+### 3. `src/hooks/data/properties/useUnits.ts`
 
-### 5. (إضافة) سياسة عرض المستخدم
-- إذا كانت كل التغييرات من نوع `improvement` فقط، عرض النافذة لكن بدون toast صاخب — toast يُعرض فقط إذا فيه `feature` أو `fix`. (تخفيف الإزعاج بدون كسر سجل التحديثات).
+- إزالة import من `@/lib/services/unitsService`.
+- إضافة `UNITS_SELECT` محلياً + `fetchUnitsByProperty(propertyId)`.
+- داخل `useDeleteUnit`: `supabase.from('units').delete().eq('id', id)` مباشرة قبل `return propertyId`.
+- الحفاظ على: `useAllUnits`, `useCreateUnit`, `useUpdateUnit`, `unitsQueryOptions`, `useUnits`, `useDeleteUnit`, `UnitRow`, `UnitInsert`.
 
----
+### 4. `src/hooks/data/notifications/useNotificationActions.ts`
 
-## ما لن أمسّه
+- إزالة import من `@/lib/services/notificationsCrudService`.
+- إضافة 4 دوال محلية بنفس التواقيع **حرفياً**:
+  - `markOneAsRead(id, userId)` — `update is_read=true`.
+  - `markEveryAsRead(userId)` — `update is_read=true where is_read=false`.
+  - `deleteReadExcluding(userId, disabledTypes)` — `delete where is_read=true` مع استثناء `disabledTypes` عبر `.not('type', 'in', ...)` **بنفس صياغة `("a","b")` بالضبط**.
+  - `deleteOneNotification(id, userId)` — حذف بـ id+user_id.
+- ربط mutationFns بالدوال الجديدة. لا تغيير على Realtime ولا على API الخارجي للهوك.
 
-- `vite.config.ts` (إعدادات PWA صحيحة).
-- `SwUpdateBanner.tsx` (`useRegisterSW` يدير دورة حياته).
-- `pwaBootstrap.ts` (مساري `pwa_just_updated` مقصودان).
-- `lazyWithRetry.ts` (حماية صحيحة).
-- إعادة كتابة الـ workflow بالكامل — تعديل جراحي فقط على شرط الفلتر.
+## البند الإضافي — حارس linter (تحذير غير قاتل)
 
-## نقاط التحقق
+**`scripts/check-conventions.mjs`** — قاعدة 11 (warning فقط):
 
-1. مستخدم جديد على جهاز نظيف → يرى نافذة بإصدار واحد فقط (الأحدث).
-2. مستخدم سجل خروج/دخول → `pwa_last_seen_version` يبقى → لا تظهر نافذة بلا داعٍ.
-3. تجاوز 3 إصدارات بين زيارتين → النافذة تعرض 3 فقط.
-4. commit بـ `chore: refactor stuff` → لا يدخل changelog.
-5. اختبارات `PwaUpdateNotifier` (إن وُجدت) لا تنكسر.
+- نطاق: ملفات `.ts` في `src/lib/services/` (باستثناء `index.ts`, `README.md`, `dataFetcher.ts`).
+- استثناءات صريحة (whitelist لا تُفحص): الـservices الشرعية الموجودة فعلاً —
+  `invoicesService`, `invoiceStorageService`, `notificationService`, `fiscalYearService`, `securityService`, `accessLogService`, `zatcaService`, `zatcaInvoicesService`, `advanceService`, `annualReportService`, `appSettingsService`, `diagnosticsService`, `messagingService`, `searchService`, `supportService`.
+- المنطق للملفات غير المدرجة: إن لم تحوِ `functions.invoke|storage.from|rpc(` ولم تُستهلَك من ≥3 ملفات في `src/hooks/` → `warnings.push("single-table service مرشّح للدمج")`.
+- لن يفشل البناء إلا مع `LINT_STRICT=1`.
+
+## التحقق بعد التنفيذ
+
+- `rg "expensesService|incomeService|unitsService|notificationsCrudService" src` يجب أن يعود فارغاً.
+- `npm run lint:conventions` → 0 violations، 0 warnings جديدة (الـservices المتبقية كلها شرعية).
+- `npm test` يمر — لا اختبار يستورد من الـservices المحذوفة (تم التحقق سابقاً).
+- typecheck/build يمر — لم يتم تعديل أي صفحة أو مكون أو ملف اختبار.
+
+## نقاط حذرة
+
+- **`useNotificationActions.deleteRead`**: نسخ منطق `disabledTypes` بصيغته الأصلية حرفياً (`("a","b","c")` بعلامات اقتباس مزدوجة محاطة بأقواس) — أي اختلاف يكسر السلوك.
+- **`PER_FY_LIMIT`**: استدعاء `.limit(PER_FY_LIMIT)` في كلا فرعي `isFyAll` و`!isFyAll` كما في الكود الأصلي.
+- **`invoicesService` لا يُمَس** — Storage boundary شرعي.
+- لا تعديل قاعدة بيانات، لا تعديل أمني، لا لمس صفحات/مكونات/اختبارات.
+
+عند الموافقة سأنفذ مباشرة في build mode.

@@ -1,14 +1,21 @@
+/**
+ * هوكات إدارة الوحدات (CRUD)
+ * Audit-fix: استعلامات unitsService مدمجة محلياً (كان بمستهلك واحد).
+ */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { Unit } from '@/types';
 import type { UnitInsert } from '@/types/models';
-import { unitsService } from '@/lib/services/unitsService';
+import { supabase } from '@/integrations/supabase/client';
 
 // Re-export types for backward compatibility
 export type UnitRow = Unit;
 export type { UnitInsert };
+
+export const UNITS_SELECT =
+  'id, property_id, unit_number, unit_type, floor, area, status, notes, created_at, updated_at';
 
 // ---------------------------------------------------------------------------
 // Factory-based CRUD (all units, no filter)
@@ -30,15 +37,25 @@ export const useUpdateUnit = unitsCrud.useUpdate;
 export const unitsQueryOptions = unitsCrud.getQueryOptions;
 
 // ---------------------------------------------------------------------------
-// Custom hooks that need special behavior (M2.6: via unitsService)
+// Custom hooks (per-property listing + delete with cross-cache invalidation)
 // ---------------------------------------------------------------------------
+
+async function fetchUnitsByProperty(propertyId: string): Promise<Unit[]> {
+  const { data, error } = await supabase
+    .from('units')
+    .select(UNITS_SELECT)
+    .eq('property_id', propertyId)
+    .order('unit_number');
+  if (error) throw error;
+  return data as Unit[];
+}
 
 /** Fetch units filtered by property_id */
 export const useUnits = (propertyId?: string) => {
   return useQuery({
     queryKey: ['units', propertyId],
     staleTime: STALE_STATIC,
-    queryFn: () => unitsService.listByProperty(propertyId!),
+    queryFn: () => fetchUnitsByProperty(propertyId!),
     enabled: !!propertyId,
   });
 };
@@ -48,7 +65,8 @@ export const useDeleteUnit = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, propertyId }: { id: string; propertyId: string }) => {
-      await unitsService.remove(id);
+      const { error } = await supabase.from('units').delete().eq('id', id);
+      if (error) throw error;
       return propertyId;
     },
     onSuccess: (propertyId) => {

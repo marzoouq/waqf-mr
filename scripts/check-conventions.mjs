@@ -17,6 +17,7 @@
  * تحذيرات (لا تفشل):
  *   - ملفات hooks/page > 200 سطر — مرشّحة للتفكيك
  *   - barrel فيه > 25 export — مرشّح للتقسيم
+ *   - single-table service بمستهلك <3 ولا يحوي storage/invoke/rpc — مرشّح للدمج
  *
  * شغّل عبر: npm run lint:conventions
  * تجاوز التحذيرات بفشل: LINT_STRICT=1 npm run lint:conventions
@@ -165,6 +166,33 @@ for (const file of files) {
     if (exports > 25) {
       warnings.push(`${rel} — ${exports} export في barrel واحد. فكّر بالتقسيم.`);
     }
+  }
+}
+
+// 11) Single-table services بمستهلك واحد (تحذير) — يحضّ على الدمج داخل hooks/data
+const SERVICE_WHITELIST = new Set([
+  'invoicesService', 'invoiceStorageService', 'notificationService',
+  'fiscalYearService', 'securityService', 'accessLogService',
+  'zatcaService', 'zatcaInvoicesService', 'advanceService',
+  'annualReportService', 'appSettingsService', 'diagnosticsService',
+  'messagingService', 'searchService', 'supportService', 'dataFetcher',
+]);
+const SERVICE_INFRA_PATTERN = /\b(storage\.from|functions\.invoke|\brpc\s*\()/;
+for (const file of files) {
+  const rel = relative(ROOT, file).replaceAll('\\', '/');
+  if (!rel.startsWith('src/lib/services/') || !rel.endsWith('.ts')) continue;
+  if (rel.endsWith('/index.ts')) continue;
+  const base = rel.split('/').pop().replace(/\.ts$/, '');
+  if (SERVICE_WHITELIST.has(base)) continue;
+  const text = readFileSync(file, 'utf8');
+  if (SERVICE_INFRA_PATTERN.test(text)) continue;
+  const consumerCount = files.filter((f) => {
+    const r = relative(ROOT, f).replaceAll('\\', '/');
+    if (!r.startsWith('src/hooks/')) return false;
+    return readFileSync(f, 'utf8').includes(`/services/${base}`);
+  }).length;
+  if (consumerCount < 3) {
+    warnings.push(`${rel} — single-table service بمستهلكين ${consumerCount} (دون storage/invoke/rpc). فكّر بدمجه في hooks/data.`);
   }
 }
 

@@ -3,15 +3,18 @@
  * يوفر: useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear
  * الجدول: income | الربط: properties | الترتيب: حسب التاريخ
  *
- * M2.1: استعلام fiscal-year-filtered يمر عبر incomeService.
+ * Audit-fix: الاستعلام المفلتر بالسنة المالية مدمج محلياً (كان incomeService بمستهلك واحد).
  */
 import { createCrudFactory } from '../core/useCrudFactory';
 import { Income } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { isFyReady } from '@/constants/fiscalYearIds';
+import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { PER_FY_LIMIT } from '@/constants/pagination';
-import { incomeService, INCOME_SELECT } from '@/lib/services/incomeService';
+import { supabase } from '@/integrations/supabase/client';
+
+export const INCOME_SELECT =
+  'id, amount, date, source, notes, fiscal_year_id, property_id, contract_id, created_at, property:properties(id, property_number, location)';
 
 const incomeCrud = createCrudFactory<'income', Income>({
   table: 'income',
@@ -26,13 +29,28 @@ export const useCreateIncome = incomeCrud.useCreate;
 export const useUpdateIncome = incomeCrud.useUpdate;
 export const useDeleteIncome = incomeCrud.useDelete;
 
+async function fetchIncomeByFiscalYear(fiscalYearId: string | 'all'): Promise<Income[]> {
+  let query = supabase
+    .from('income')
+    .select(INCOME_SELECT)
+    .order('date', { ascending: false });
+  if (!isFyAll(fiscalYearId)) {
+    query = query.eq('fiscal_year_id', fiscalYearId).limit(PER_FY_LIMIT);
+  } else {
+    query = query.limit(PER_FY_LIMIT);
+  }
+  const { data, error } = await query;
+  if (error) throw error;
+  return data as Income[];
+}
+
 /** Income filtered by fiscal year */
 export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['income', 'fiscal_year', fiscalYearId],
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    queryFn: () => incomeService.listByFiscalYear(fiscalYearId),
+    queryFn: () => fetchIncomeByFiscalYear(fiscalYearId),
     meta: { warnLimit: PER_FY_LIMIT },
   });
 };
