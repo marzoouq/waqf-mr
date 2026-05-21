@@ -1,14 +1,15 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Clock, Sun, Moon } from 'lucide-react';
-import { useGreeting } from '@/hooks/ui/useGreeting';
+import type { GreetingData } from '@/hooks/ui/useGreeting';
 
 interface BeneficiaryWelcomeCardProps {
   displayName: string;
   roleLabel: string;
+  greetingData: GreetingData;
 }
 
-const BeneficiaryWelcomeCard = ({ displayName, roleLabel }: BeneficiaryWelcomeCardProps) => {
-  const { greeting, greetingIconName, hijriDate, gregorianDate, timeStr } = useGreeting();
+const BeneficiaryWelcomeCard = ({ displayName, roleLabel, greetingData }: BeneficiaryWelcomeCardProps) => {
+  const { greeting, greetingIconName, hijriDate, gregorianDate, timeStr } = greetingData;
   const GreetingIcon = greetingIconName === 'sun' ? Sun : Moon;
 
   return (

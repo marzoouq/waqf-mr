@@ -2,11 +2,12 @@
  * صفحة حصتي من الريع — مُفكّكة إلى hook + مكونات فرعية
  */
 import { useNavigate } from 'react-router-dom';
-import { Wallet, AlertCircle, UserX, FileDown, FileText } from 'lucide-react';
+import { Wallet, AlertCircle, FileDown, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { RequirePublishedYears, ExportMenu, DashboardSkeleton, ErrorState, EmptyPageState, FiscalYearStateNotice } from '@/components/common';
+import { RequirePublishedYears, ExportMenu, DashboardSkeleton, ErrorState, FiscalYearStateNotice } from '@/components/common';
+import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import AdvanceRequestDialog from '@/components/beneficiary/my-share/AdvanceRequestDialog';
 import MyShareSummaryCards from '@/components/beneficiary/my-share/MyShareSummaryCards';
 import DistributionsTable from '@/components/beneficiary/my-share/DistributionsTable';
@@ -44,13 +45,7 @@ const MySharePage = () => {
 
   // مستفيد غير موجود
   if (!currentBeneficiary) {
-    return (
-      <EmptyPageState
-        icon={UserX}
-        title="لم يتم العثور على سجل المستفيد"
-        description="حسابك غير مرتبط بسجل مستفيد. يرجى التواصل مع ناظر الوقف."
-      />
-    );
+    return <UnlinkedAccountNotice />;
   }
 
   // حساب ختامي مفقود في سنة مقفلة

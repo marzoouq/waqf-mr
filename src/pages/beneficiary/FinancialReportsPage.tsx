@@ -8,6 +8,7 @@ import { AlertCircle, RefreshCw, BarChart3 } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';
+import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import { useFinancialReportsPage } from '@/hooks/page/beneficiary';
 
 const LazyFinancialCharts = lazy(() => import('@/components/dashboard/charts/FinancialChartsInner'));
@@ -53,18 +54,9 @@ const FinancialReportsPage = () => {
   }
 
   if (!currentBeneficiary && !isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-warning" />
-          <h2 className="text-xl font-bold">حسابك غير مرتبط</h2>
-          <p className="text-muted-foreground text-center max-w-md">
-            حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف.
-          </p>
-        </div>
-      </DashboardLayout>
-    );
+    return <UnlinkedAccountNotice />;
   }
+
 
   return (
     <RequirePublishedYears title="التقارير المالية" icon={BarChart3}>

@@ -5,6 +5,7 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import DisclosureSummaryCards from '@/components/beneficiary/disclosure/DisclosureSummaryCards';
 import DisclosureContractsSection from '@/components/beneficiary/disclosure/DisclosureContractsSection';
 import DisclosureFinancialStatement from '@/components/beneficiary/disclosure/DisclosureFinancialStatement';
+import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import { useDisclosurePage } from '@/hooks/page/beneficiary';
 import { PAGE_RESPONSIBILITY_COPY } from '@/constants/beneficiaryCopy';
 
@@ -35,14 +36,9 @@ const DisclosurePage = () => {
   }
 
   if (!currentBeneficiary) {
-    return (
-      <ErrorState
-        variant="warning"
-        message="حسابك غير مرتبط"
-        description="حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف."
-      />
-    );
+    return <UnlinkedAccountNotice />;
   }
+
 
   if (isAccountMissing && selectedFY?.status === 'closed') {
     return (

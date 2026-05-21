@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle, Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender, ErrorState, FiscalYearStateNotice } from '@/components/common';
 import { isFyReady } from '@/constants/fiscalYearIds';
@@ -7,6 +7,7 @@ import { useBeneficiaryWidgets } from '@/hooks/data/settings/useBeneficiaryWidge
 import { PAGE_RESPONSIBILITY_COPY } from '@/constants/beneficiaryCopy';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary/dashboard/BeneficiaryWelcomeCard';
+import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import BeneficiaryStatsRow from '@/components/beneficiary/dashboard/BeneficiaryStatsRow';
 import BeneficiaryQuickLinks from '@/components/beneficiary/dashboard/BeneficiaryQuickLinks';
 import BeneficiaryRecentDistributions from '@/components/beneficiary/dashboard/BeneficiaryRecentDistributions';
@@ -35,22 +36,9 @@ const BeneficiaryDashboard = () => {
   }
 
   if (!currentBeneficiary && !dashLoading) {
-    return (
-      <DashboardLayout>
-        <div className="p-3 sm:p-6 space-y-4">
-          <Card className="shadow-sm border-warning/30 bg-warning/5">
-            <CardContent className="p-6 flex flex-col items-center justify-center gap-3 min-h-[30vh]">
-              <AlertCircle className="w-12 h-12 text-warning" />
-              <h2 className="text-lg font-bold text-foreground">حسابك غير مرتبط</h2>
-              <p className="text-sm text-muted-foreground text-center max-w-md">
-                حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع الناظر لربط حسابك.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
-    );
+    return <UnlinkedAccountNotice />;
   }
+
 
   if (noPublishedYears) {
     const GreetingIcon = greetingData.greetingIconName === 'sun' ? Sun : Moon;
@@ -80,7 +68,7 @@ const BeneficiaryDashboard = () => {
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
         {isVisible('welcome_card') && (
-          <BeneficiaryWelcomeCard displayName={displayName} roleLabel={roleLabel} />
+          <BeneficiaryWelcomeCard displayName={displayName} roleLabel={roleLabel} greetingData={greetingData} />
         )}
 
         {isVisible('stats_row') && (

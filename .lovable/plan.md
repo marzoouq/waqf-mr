@@ -1,174 +1,118 @@
-# خطة الإصلاح النهائية المُعتمدة
+## نتيجة الفحص الجنائي الكامل — 120 بند (4 أقسام × 30)
 
-كل المسارات مُتحقَّقة بـ `rg`/`cat` على الكود الفعلي. القرارات: M4 إعادة صياغة فقط (لا إخفاء)، M6 خيار (أ) فك الترابط الكامل، M11 جديد لإخفاء الإيرادات التعاقدية من سطح المستفيد.
+فحصت كل ادعاء ضد الكود الفعلي (rg/grep + قراءة ملفات). هذا الجدول يصنّف كل بند:
 
----
+### 🟥 أخطاء حقيقية مُثبتة بالكود (أولوية تنفيذ)
 
-## M1 — `useTenantPayments` (P0)
+| المصدر | البند | الإثبات في الكود | الحالة |
+|---|---|---|---|
+| شكوى المستخدم | "الإيرادات التعاقدية" بصفحة عقود المستفيد | `ContractStatsCards.tsx:68-73` ليس محمياً بـ `!isBeneficiary` | **خطأ** |
+| المستفيد #4 | `useGreeting` يُستدعى مرتين | `useBeneficiaryDashboardPage.ts:115` + `BeneficiaryWelcomeCard.tsx:11` | **تكرار حقيقي** (timer مزدوج) |
+| المستفيد #14 | عند `unreadCount===0` تُخفى كل الإشعارات المقروءة | `BeneficiaryNotificationsCard.tsx:47` شرط `\|\| unreadCount === 0` | **خطأ منطقي** |
+| الناظر #3 | `key={index}` في StatsGrid | `DashboardStatsGrid.tsx:22` | **خطأ React** |
+| الناظر #4 | `key={idx}` في KpiPanel | `DashboardKpiPanel.tsx:30` | **خطأ React** |
+| تكرار جديد (لم يذكره التقرير) | نص "حسابك غير مرتبط" مكرر حرفياً في **6 ملفات** | `BeneficiaryDashboard`, `MySharePage`, `FinancialReportsPage`, `BeneficiarySettingsPage`, `AccountsViewPage`, `PropertiesViewPage` (السطر 49-62 في كل منها) | **تكرار حقيقي** |
 
-**ملف:** `src/hooks/data/contracts/useTenantPayments.ts`
+### 🟨 ادعاءات صحيحة لكن **تصميم مقصود** أو سبق إصلاحها
 
-1. `import { uiNotify } from '@/lib/notify';`
-2. `onSuccess`: بعد `invalidateQueries` → `uiNotify.success('تم حفظ الدفعة');`
-3. `onError`: أبقِ `logger.error` + أضف `uiNotify.error(error.message ?? 'تعذّر حفظ الدفعة');`
+| البند | السبب |
+|---|---|
+| المستفيد #6 (حصة بلا تمييز تقديري) | `EstimatedShareBadge` موجود فعلياً في `BeneficiaryStatsRow.tsx:53` — التقرير لم يلاحظه |
+| المستفيد #16/#17 (إخفاء السلفة) | محمي بـ `useBeneficiaryWidgets` + `advanceEnabled` — مقصود إدارياً |
+| المستفيد #19 (إخفاء بطاقات للواقف) | منطق `isVisible('...')` صحيح |
+| الناظر #6/#7 (المتاح للتوزيع) | M4 السابق وضع `(تقديري)` في `useAdminDashboardStats.ts:95` — مُنجَز |
+| الناظر #16 (PagePerformance زائد) | مُحمَّل `lazy` بالفعل عبر `AdminDashboard.tsx:29` — أثره معدوم على الأداء |
 
-الاختبار الحالي صالح كما هو (موك `supabase.rpc` كافٍ؛ `rpc()` wrapper يرمي `ApiError` عند `{error}`).
+### ⬜ توصيات UX بحتة — تتطلب قرار منتج (خارج النطاق)
 
----
+كل بنود "30 توصية" في الأقسام 2/4/6 ومعظم بنود التكرار في القسم 5: tooltips، watermark "بيانات تقديرية"، Print Layout، Dashboard Config، خط زمني لمراحل السنة، مقارنة YoY في لوحة المستفيد، Drill-down من KPI، فلاتر سريعة، وضع مختصر للناظر… كلها **مفتوحة بلا معايير قبول واضحة**. لا تُنفَّذ في هذه الجولة.
 
-## M4 — توضيح بطاقة "المتاح للتوزيع" للناظر (لا إخفاء)
+### ❌ ادعاءات غير دقيقة
 
-**ملف:** `src/hooks/page/admin/dashboard/useAdminDashboardStats.ts` السطر 95.
-
-**السبب:** الناظر/المحاسب يحتاجان رؤية تقديرية لاتخاذ قرار الإقفال والتوزيع. الإخفاء يكسر UX.
-
-**التنفيذ:** عدّل البطاقة فقط لتوضيح الطابع التقديري في العنوان:
-
-```ts
-{
-  title: isYearActive ? 'المتاح للتوزيع (تقديري)' : 'المتاح للتوزيع',
-  value: `${fmtInt(Math.max(0, isYearActive ? netAfterZakat : availableAmount))} ر.س`,
-  icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts'
-},
-```
-
-(القيمة ومصدرها يبقيان كما هما؛ التغيير في العنوان فقط — لا تأثير على حسابات أو RPC.)
-
----
-
-## M5 — تثبيت `computeContractualRevenue` كمصدر منطق موحد
-
-**ملف جديد:** `src/utils/financial/computeContractualRevenue.test.ts`
-
-ثلاث حالات مطابقة لقواعد RPC `get_dashboard_full_summary`:
-- مع allocations → مجموع `allocated_amount`.
-- بدون allocations (fallback) → مجموع `rent_amount` للعقود المحددة.
-- مزيج عقود لها/ليس لها allocations.
-
-لا تغيير إنتاجي. توحيد المصدر عبر RPC مستفيد موسّع مؤجَّل.
+- "تكرار بطاقة الترحيب بين الناظر والمستفيد" (#تكرار 1): مكونان مختلفان (`DashboardHeaderCard` vs `BeneficiaryWelcomeCard`) — تشابه سطحي، لا تكرار كود.
+- "PendingActionsTable يخلط مهام" (#الناظر 18): الجدول مفصول داخلياً بأقسام — ادعاء غير دقيق.
+- "لا توجد Skeleton مخصصة" (#المستفيد 22): `DashboardSkeleton` و`Skeleton` shadcn مستخدمان في عدة بطاقات.
 
 ---
 
-## M6 — فك ترابط الواقف من حزمة المستفيد (خيار أ — كامل)
+## ما سأنفذه (6 إصلاحات فقط — كلها أخطاء مُثبتة)
 
-**1) إنشاء مجلدات:**
-- `src/hooks/application/dashboard/` (يطابق memory `hooks-application-layer`)
-- `src/components/shared/dashboard/` (يُستخدم أيضاً في M10)
+### F1 — إخفاء "الإيرادات التعاقدية" من عقود المستفيد ⭐ (السبب الأصلي للشكوى)
 
-**2) نقل ملفين end-user مشتركين** (مع إعادة تسمية الـ exports):
-- `src/hooks/page/beneficiary/dashboard/useBeneficiaryFinancials.ts` → `src/hooks/application/dashboard/useEndUserFinancials.ts` (export: `useEndUserFinancials`).
-- `src/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardData.ts` → `src/hooks/application/dashboard/useEndUserDashboardData.ts` (export: `useEndUserDashboardData`, type: `EndUserDashboardData`).
+**ملف**: `src/components/contracts/ContractStatsCards.tsx`
 
-**3) تحديث 7 ملفات مستهلكة** (استيراد مباشر من المسار الجديد):
-- `src/hooks/page/waqif/useWaqifDashboardPage.ts`
-- `src/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardPage.ts`
-- `src/hooks/page/beneficiary/dashboard/useBeneficiaryFinancials.ts` (إن بقي كـ wrapper نحيف؛ وإلا يُحذف بعد التحديث)
-- `src/hooks/page/beneficiary/financial/useDisclosurePage.ts`
-- `src/hooks/page/beneficiary/financial/useAccountsViewPage.ts`
-- `src/hooks/page/beneficiary/financial/useMySharePage.ts`
-- `src/hooks/page/beneficiary/financial/useFinancialReportsPage.ts`
+- لفّ البطاقة (السطور 68-73) بـ `{!isBeneficiary && (...)}`.
+- `skeletonCount = isBeneficiary ? 2 : 5`، `gridCols = isBeneficiary ? 'sm:grid-cols-2 lg:grid-cols-2' : ...`.
+- تحديث JSDoc للـ `variant`: "بطاقتان للمستفيد (إجمالي + نشطة)، 5 للناظر".
 
-**4) تنظيف barrels:**
-- `src/hooks/page/beneficiary/dashboard/index.ts`: حذف السطر 9 (re-export `useWaqifDashboardPage` — غير مستخدم؛ `WaqifDashboard.tsx` يستورد مباشرة)، وحذف re-exports المنقولة.
-- `src/hooks/page/beneficiary/index.ts`: تحديث ليصدّر من المسارات المباشرة (يحترم `barrel-import-rule`).
+### F2 — إصلاح خطأ منطق إشعارات المستفيد
 
-**5) تصحيح وثيقة:** `src/components/waqif/README.md` السطر 11 — تصحيح موقع `useWaqifDashboardPage` إلى `src/hooks/page/waqif/`.
+**ملف**: `src/components/beneficiary/dashboard/BeneficiaryNotificationsCard.tsx:47`
 
-**6) ESLint** في `eslint.config.js` — `no-restricted-imports`:
-- منع `src/hooks/page/waqif/**` ← من `@/hooks/page/beneficiary/**` والعكس.
-- منع `src/pages/waqif/**` ← من `@/components/beneficiary/**` والعكس.
+- استبدال `notifications.length === 0 || unreadCount === 0` بـ `notifications.length === 0`.
+- نص `emptyText` يبقى للحالة الفارغة الحقيقية فقط. إذا كانت كلها مقروءة → تُعرض كقائمة عادية (الـ Badge بداخل العنصر يميّز المقروء/غير المقروء أصلاً).
 
-**7) اختبار عقد:** `src/test/roleHooksDecouplingContract.test.ts` يفحص بـ regex ويفشل عند الانتهاك.
+### F3 — إزالة `useGreeting` المكرر
 
-بدون re-export شفاف — كل المستهلكين داخليون ويُحدَّثون في نفس الموجة.
+- `BeneficiaryWelcomeCard.tsx`: حذف `useGreeting()` وقبول `greetingData: GreetingData` كـ prop.
+- `BeneficiaryDashboard.tsx`: تمرير `greetingData={greetingData}` (مُستخرَج فعلاً من الـ hook).
+- استيراد النوع من `@/hooks/ui/useGreeting`.
 
----
+### F4 — مفاتيح ثابتة في شبكتي الناظر
 
-## M10 — `DashboardLazySection`
+- `DashboardStatsGrid.tsx:22`: `key={index}` → `key={stat.title}`.
+- `DashboardKpiPanel.tsx:30`: `key={idx}` → `key={kpi.label}`.
 
-**ملف جديد:** `src/components/shared/dashboard/DashboardLazySection.tsx`
+### F5 — توحيد نص "حسابك غير مرتبط" (تكرار في 6 ملفات)
 
-```ts
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-  minHeight?: number | string;
-  rootMargin?: string;
-  printHidden?: boolean;
-}
-```
+- إنشاء `src/components/beneficiary/UnlinkedAccountNotice.tsx` — مكون عرض موحد (label/description/أيقونة).
+- استبداله في الملفات الستة. لا يضيف CTA جديد (توصية UX) — فقط يزيل التكرار.
+- يُضاف نص ثابت إلى `src/constants/beneficiaryCopy.ts` تحت `UNLINKED_ACCOUNT_COPY`.
 
-التركيب: `ViewportRender(minHeight, rootMargin) > [div.print:hidden if printHidden] > ErrorBoundary > Suspense(fallback) > children`.
+### F6 — اختبار عقد بسيط لمنع الانكسار
 
-**يُستبدل في `src/pages/dashboard/AdminDashboard.tsx` فقط (3 أقسام):**
-- `CollectionHeatmap` (minHeight=160, printHidden).
-- `DashboardCharts` (minHeight=300, printHidden, fallback=`<ChartSkeleton/>`).
-- `PagePerformanceCard` (minHeight=200, printHidden، داخل شرط `role === 'admin'`).
-
-**يُستثنى:** `PendingActionsTable` (DeferredRender)، `YearComparisonCard` و`RecentContractsCard` (لا Suspense/Lazy).
+`src/test/contractStatsBeneficiaryVariant.test.ts`: تأكيد أن النص "الإيرادات التعاقدية" **لا يظهر** عند `variant="beneficiary"` ويظهر عند `variant="admin"`.
 
 ---
 
-## M11 — إخفاء "الإيرادات التعاقدية" من سطح المستفيد (جديد)
+## ما لن يُمَس
 
-**المُثبت:** لا تظهر في `BeneficiaryDashboard.tsx`، لكنها تظهر في `/beneficiary/properties`:
-- بطاقة KPI علوية: `src/pages/beneficiary/PropertiesViewPage.tsx` السطر 83.
-- صف تفاصيل كل عقار: السطر 151.
-- محسوبة في `src/hooks/page/beneficiary/views/usePropertiesViewPage.ts` (السطر 61: إجمالي، والسطر داخل `propertyFinancialsMap` لكل عقار).
-
-**التنفيذ (سطح UI فقط — لا حسابات):**
-
-1. `src/pages/beneficiary/PropertiesViewPage.tsx`:
-   - احذف بطاقة KPI "الإيرادات التعاقدية" (السطر 83).
-   - احذف صف "الإيرادات التعاقدية" من تفاصيل العقار (السطر 151).
-   - احذف destructure `contractualRevenue` و`propContractual` إذا لم تعد مستخدمة.
-
-2. `src/hooks/page/beneficiary/views/usePropertiesViewPage.ts`:
-   - أبقِ الحساب موجوداً لمنع كسر `computePropertyFinancials` الموحَّد، لكن **لا تصدّر** `contractualRevenue` من `summaryData` (احذفه من return السطر 87) ولا من حقول العقار المعادة إذا كانت تتدفق إلى UI المستفيد فقط.
-   - تحقق ألا يكسر هذا `propertyFinancialsMap` المُستخدم في صفحات أخرى — إن استخدمه ملف غير مستفيد، أبقِ الحقل وانزع العرض فقط من المستفيد.
-
-**فحص أثر جانبي قبل التنفيذ:**
-```sh
-rg -n "contractualRevenue|propContractual" src/pages/beneficiary src/components/beneficiary src/hooks/page/beneficiary
-rg -n "PropertyFinancials" src/utils/financial/ src/hooks/
-```
-
-إن وُجد استهلاك خارج beneficiary، نزع UI فقط (الخطوة 1) ونترك الحساب في الـ hook كما هو.
+- لوحة الواقف بكل ملفاتها (ثانوية كما اتفقنا).
+- باقي 100+ توصية UX من التقرير (Tooltips، Watermark، CTAs، فلاتر، YoY، Drill-down، Print Layout، Dashboard Config، خط زمني، مقارنات…).
+- منطق المالية، RLS، migrations، RPC، Edge Functions.
+- ملفات المصادقة المحمية و `client.ts`/`types.ts`/`.env`/`config.toml`.
+- `EstimatedShareBadge` (موجود ويعمل).
+- `PagePerformanceCard` (lazy بالفعل).
 
 ---
 
-## ❌ مُسقَط
+## التحقق
 
-- **M2 (`checks.test`):** لا يوجد `src/test/checks.test.ts`. مُلغى.
-
----
-
-## ترتيب التنفيذ
-
-1. M1 (hook + اختباره)
-2. M5 (اختبار utility — لا أثر إنتاجي)
-3. M4 (تعديل عنوان بطاقة)
-4. M11 (إخفاء UI عقارات المستفيد)
-5. M6 (نقل + 7 ملفات + barrel + README + ESLint + اختبار عقد)
-6. M10 (مكوّن + 3 استبدالات)
-7. تحقق نهائي + تحديث `.lovable/plan.md`
-
-## التحقق النهائي
-
-```sh
-bunx vitest run src/hooks/data/contracts/useTenantPayments.test.ts
-bunx vitest run src/utils/financial/computeContractualRevenue.test.ts
-bunx vitest run src/test/roleHooksDecouplingContract.test.ts
+```bash
+bunx vitest run src/test/contractStatsBeneficiaryVariant.test.ts
 bunx vitest run
 npm run lint
 npx tsc --noEmit
 ```
 
-**فحص يدوي:**
-- `/dashboard` (ناظر، سنة نشطة): البطاقة = `المتاح للتوزيع (تقديري)` مع الرقم ظاهراً.
-- `/beneficiary/properties`: بدون بطاقة "الإيرادات التعاقدية" وبدون الصف داخل تفاصيل العقار.
-- `/waqif` و`/beneficiary`: لا انكسار بعد نقل الـ hooks.
+فحص يدوي:
+1. `/beneficiary/contracts` (مستفيد): بطاقتان فقط، لا "الإيرادات التعاقدية".
+2. `/beneficiary` (مستفيد): إشعارات مقروءة تظهر بشكل صحيح؛ timer واحد فقط.
+3. `/dashboard` (ناظر): لا تحذير React عن duplicate keys.
+4. ست صفحات المستفيد عند عدم الربط: نفس البطاقة الموحدة.
 
-## ما لن يُمَس
+---
 
-ملفات المصادقة/المحمية، RLS، migrations، منطق التوزيع/الزكاة/الضريبة، RPC، صلاحيات الواقف/المستفيد، `PendingActionsTable`، `DeferredRender`، `YearComparisonCard`، `RecentContractsCard`، أي حساب مالي.
+## ملخص الحجم
+
+| إصلاح | ملفات | أسطر تقديرياً |
+|---|---|---|
+| F1 | 1 | ~6 |
+| F2 | 1 | ~1 |
+| F3 | 2 | ~10 |
+| F4 | 2 | ~2 |
+| F5 | 8 (1 مكون جديد + 1 ثابت + 6 استبدالات) | ~80 |
+| F6 | 1 | ~30 |
+| **الإجمالي** | **15 ملف** | **~130 سطر** |
+
+كلها أخطاء حقيقية مُثبتة بالكود، لا توصيات تخمينية.
