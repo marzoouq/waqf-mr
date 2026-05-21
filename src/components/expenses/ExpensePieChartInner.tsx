@@ -1,8 +1,12 @@
 /**
  * المكون الداخلي للرسم الدائري — يُحمَّل كسولاً لتجنب تحميل recharts في الحزمة الأولية.
+ *
+ * نستخدم القياسات الفعلية من `useChartReady` ونمررها مباشرة إلى `<PieChart>`
+ * بدون `ResponsiveContainer` لأن الأخير يفشل في القياس الأول داخل Suspense
+ * فيظهر `width(-1) height(-1)` ولا يُرسم SVG أبداً.
  */
 import { memo } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { fmt } from '@/utils/format/format';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 import { CHART_COLORS } from '@/utils/chart/chartHelpers';
@@ -13,39 +17,37 @@ interface DataItem {
 }
 
 const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = memo(({ data }) => {
-  const { ref, ready } = useChartReady();
+  const { ref, ready, width, height } = useChartReady();
 
   return (
     <div ref={ref} className="w-full h-[280px] min-h-[1px] min-w-0">
-      {ready && (
-        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={50}
-              outerRadius={100}
-              dataKey="value"
-              nameKey="name"
-              paddingAngle={2}
-              label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
-              labelLine={false}
-            >
-              {data.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip
-              formatter={((value: number | undefined) => [`${fmt(value ?? 0)} ر.س`, '']) as never}
-              contentStyle={{ direction: 'rtl', fontSize: 12 }}
-            />
-            <Legend
-              verticalAlign="bottom"
-              formatter={(value: string) => <span className="text-xs">{value}</span>}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+      {ready && width > 0 && height > 0 && (
+        <PieChart width={width} height={height}>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={50}
+            outerRadius={100}
+            dataKey="value"
+            nameKey="name"
+            paddingAngle={2}
+            label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
+            labelLine={false}
+          >
+            {data.map((_, index) => (
+              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={((value: number | undefined) => [`${fmt(value ?? 0)} ر.س`, '']) as never}
+            contentStyle={{ direction: 'rtl', fontSize: 12 }}
+          />
+          <Legend
+            verticalAlign="bottom"
+            formatter={(value: string) => <span className="text-xs">{value}</span>}
+          />
+        </PieChart>
       )}
     </div>
   );
