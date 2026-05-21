@@ -95,6 +95,8 @@ const NotificationsList = ({ groupedNotifications, isEmpty, onClickNotification,
                           size="icon"
                           className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0"
                           onClick={(e) => { e.stopPropagation(); onDelete(n.id); }}
+                          aria-label="حذف الإشعار"
+
                         >
                           <X className="w-4 h-4" />
                         </Button>

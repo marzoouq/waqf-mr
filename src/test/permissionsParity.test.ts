@@ -4,6 +4,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { filterLinksByPermissions, filterLinksBySectionVisibility } from '@/utils/auth/filterByVisibility';
+import { ACCOUNTANT_EXCLUDED_ROUTES } from '@/constants/navigation';
 
 const links = [
   { to: '/dashboard/properties' },
@@ -39,5 +40,17 @@ describe('Permissions parity (filterLinksByPermissions ↔ usePermissionCheck)',
     };
     const result = filterLinksBySectionVisibility(links, sectionMap, { income: false });
     expect(result.map(l => l.to)).toEqual(['/dashboard/properties', '/dashboard/expenses']);
+  });
+});
+
+describe('Accountant excluded routes — admin-only dashboards', () => {
+  it('يستبعد /dashboard/comparison من قائمة المحاسب (أداة مقارنة تاريخية للناظر)', () => {
+    expect(ACCOUNTANT_EXCLUDED_ROUTES).toContain('/dashboard/comparison');
+  });
+
+  it('يستبعد المسارات الإدارية الحساسة الكاملة', () => {
+    for (const route of ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/dashboard/email-monitor', '/dashboard/comparison']) {
+      expect(ACCOUNTANT_EXCLUDED_ROUTES).toContain(route);
+    }
   });
 });
