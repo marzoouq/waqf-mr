@@ -49,14 +49,9 @@ const BeneficiarySettingsPage = () => {
   }
 
   if (!currentBeneficiary) {
-    return (
-      <EmptyPageState
-        icon={AlertCircle}
-        title="حسابك غير مرتبط"
-        description="حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف."
-      />
-    );
+    return <UnlinkedAccountNotice />;
   }
+
 
   return (
     <DashboardLayout>
