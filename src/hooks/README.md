@@ -6,12 +6,20 @@
 
 ```
 hooks/
-├── auth/        — مصادقة، أدوار، WebAuthn، إدارة المستخدمين
-├── data/        — استعلامات Supabase موحّدة (CRUD + caching)
-├── domain/      — حسابات مشتركة (مالية، توزيع، حصص…) مشتقة من data/
-├── page/        — منطق صفحات كامل (ينظّم data + domain + UI state)
-└── ui/          — هوكات UI عامة (toast, debounce, media query, ...)
+├── auth/          — مصادقة، أدوار، WebAuthn، إدارة المستخدمين
+├── data/          — استعلامات Supabase موحّدة (CRUD + caching)
+├── domain/        — حسابات مشتركة (مالية، توزيع، حصص…) مشتقة من data/
+├── page/          — منطق صفحة واحدة (page hook لكل صفحة، ينظّم data + domain + UI state)
+├── application/   — feature controllers عابرة للأدوار/الصفحات (auth flow, install app, landing, global search…)
+│                    راجع: mem://technical/architecture/hooks-application-layer
+└── ui/            — هوكات UI عامة (toast, debounce, media query, sounds…)
 ```
+
+### الفرق بين `page/` و`application/`
+
+- `page/` = هوك لصفحة واحدة محددة (مثال: `usePropertiesPage`، `useIncomePage`)
+- `application/` = هوك لميزة عابرة عدة صفحات/أدوار (مثال: `useAuthPage`, `useLandingPage`, `useGlobalSearch`, `useInstallAppPage`)
+
 
 ## v7 Layered Architecture
 

@@ -1,29 +1,18 @@
 /**
- * هوك mutations و realtime للإشعارات — مستخرج من useNotifications
+ * هوك mutations و realtime للإشعارات — مستخرج من useNotifications.
+ * تأثيرات UI/المتصفح (الصوت + إشعار المتصفح) منفصلة في
+ * `@/hooks/ui/useNotificationSounds`.
  */
 import { useEffect, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Notification as AppNotification } from '@/types';
-import { NOTIFICATION_TONE_KEY, type ToneId, getVolumeGain, playTone } from '@/constants/notificationTones';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
-import { STORAGE_KEYS } from '@/constants/storageKeys';
-import { safeGet } from '@/lib/storage';
 import { notificationsCrudService } from '@/lib/services/notificationsCrudService';
+import { useNotificationSounds } from '@/hooks/ui/useNotificationSounds';
 
 export const useNotificationActions = (userId: string, hasUser: boolean, disabledTypes: Set<string>) => {
   const queryClient = useQueryClient();
-  const lastNotifIdRef = useRef<string | null>(null);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-
-  const playNotificationSound = useCallback(() => {
-    try {
-      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
-      const tone = safeGet(NOTIFICATION_TONE_KEY, 'chime') as ToneId;
-      playTone(audioCtxRef.current, tone, getVolumeGain());
-    } catch { /* silent */ }
-  }, []);
-
-  useEffect(() => () => { audioCtxRef.current?.close(); }, []);
+  const { playSound, showBrowserNotification } = useNotificationSounds();
 
   // ── Mutations ──
   const markAsRead = useMutation({
@@ -47,8 +36,10 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
   });
 
   // ── Realtime ──
-  const playSoundRef = useRef(playNotificationSound);
-  useEffect(() => { playSoundRef.current = playNotificationSound; }, [playNotificationSound]);
+  const playSoundRef = useRef(playSound);
+  useEffect(() => { playSoundRef.current = playSound; }, [playSound]);
+  const showRef = useRef(showBrowserNotification);
+  useEffect(() => { showRef.current = showBrowserNotification; }, [showBrowserNotification]);
   const qcRef = useRef(queryClient);
   useEffect(() => { qcRef.current = queryClient; }, [queryClient]);
 
@@ -60,18 +51,8 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
     }, (payload) => {
       qcRef.current.invalidateQueries({ queryKey: ['notifications', userId] });
       const newNotif = payload.new as AppNotification;
-      const soundEnabled = safeGet<string>(STORAGE_KEYS.NOTIFICATION_SOUND, 'true') !== 'false';
-      if (soundEnabled) playSoundRef.current();
-      if ('Notification' in window && window.Notification.permission === 'granted') {
-        if (lastNotifIdRef.current !== newNotif.id) {
-          lastNotifIdRef.current = newNotif.id;
-          try {
-            new window.Notification(newNotif.title || 'إشعار جديد', {
-              body: newNotif.message, icon: '/favicon.ico', dir: 'rtl', lang: 'ar', tag: newNotif.id,
-            });
-          } catch { /* silent */ }
-        }
-      }
+      playSoundRef.current();
+      showRef.current({ id: newNotif.id, title: newNotif.title, message: newNotif.message });
     });
   }, [userId]);
 
