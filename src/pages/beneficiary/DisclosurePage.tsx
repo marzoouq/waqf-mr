@@ -36,14 +36,9 @@ const DisclosurePage = () => {
   }
 
   if (!currentBeneficiary) {
-    return (
-      <ErrorState
-        variant="warning"
-        message="حسابك غير مرتبط"
-        description="حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف."
-      />
-    );
+    return <UnlinkedAccountNotice />;
   }
+
 
   if (isAccountMissing && selectedFY?.status === 'closed') {
     return (
