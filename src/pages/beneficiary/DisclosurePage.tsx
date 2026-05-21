@@ -5,6 +5,7 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import DisclosureSummaryCards from '@/components/beneficiary/disclosure/DisclosureSummaryCards';
 import DisclosureContractsSection from '@/components/beneficiary/disclosure/DisclosureContractsSection';
 import DisclosureFinancialStatement from '@/components/beneficiary/disclosure/DisclosureFinancialStatement';
+import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import { useDisclosurePage } from '@/hooks/page/beneficiary';
 import { PAGE_RESPONSIBILITY_COPY } from '@/constants/beneficiaryCopy';
 
