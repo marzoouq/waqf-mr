@@ -11,10 +11,14 @@ interface IncomeMobileCardsProps {
   isLocked: boolean;
   onEdit: (item: Income) => void;
   onDelete: (target: { id: string; name: string }) => void;
+  /** auto: محمول فقط — grid: شبكة بطاقات على كل المقاسات */
+  viewMode?: 'auto' | 'grid';
 }
 
-const IncomeMobileCards = ({ items, isLocked, onEdit, onDelete }: IncomeMobileCardsProps) => (
-  <div className="space-y-3 md:hidden px-3 py-2">
+const IncomeMobileCards = ({ items, isLocked, onEdit, onDelete, viewMode = 'auto' }: IncomeMobileCardsProps) => (
+  <div className={viewMode === 'grid'
+    ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 px-3 py-2'
+    : 'space-y-3 md:hidden px-3 py-2'}>
     {items.map((item) => (
       <Card key={item.id} className="shadow-sm">
         <CardContent className="p-4 space-y-3">

@@ -1,14 +1,17 @@
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner, ConfirmDeleteDialog } from '@/components/common';
+import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner, ConfirmDeleteDialog, ViewModeToggle, useViewMode } from '@/components/common';
 import { TrendingDown, Search } from 'lucide-react';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
 import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
+import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useExpensesPage } from '@/hooks/page/admin/financial/useExpensesPage';
 
 const ExpensesPage = () => {
   const h = useExpensesPage();
+  const isMobile = useIsMobile();
+  const [viewMode, setViewMode] = useViewMode('admin-expenses', 'table');
 
   return (
     <DashboardLayout>
@@ -19,6 +22,7 @@ const ExpensesPage = () => {
           description="سجل محاسبي داخلي للمصروفات — مستقل عن فواتير ZATCA (يمكن إرفاق فاتورة كتوثيق فقط)"
           actions={<>
             <ExportMenu onExportPdf={h.handleExportPdf} onExportCsv={h.handleExportCsv} />
+            {!isMobile && <ViewModeToggle value={viewMode} onChange={setViewMode} />}
             <ExpenseFormDialog
               isOpen={h.isOpen} setIsOpen={h.setIsOpen} formData={h.formData} setFormData={h.setFormData}
               isEditing={!!h.editingExpense} isPending={h.createExpense.isPending || h.updateExpense.isPending}
@@ -65,19 +69,22 @@ const ExpensesPage = () => {
                   onEdit={h.handleEdit}
                   onDelete={h.setDeleteTarget}
                   isLocked={h.isLocked}
+                  viewMode={!isMobile && viewMode === 'grid' ? 'grid' : 'auto'}
                 />
-                <ExpensesDesktopTable
-                  items={h.paginatedExpenses}
-                  expenseInvoiceMap={h.expenseInvoiceMap}
-                  expandedRow={h.expandedRow}
-                  setExpandedRow={h.setExpandedRow}
-                  onEdit={h.handleEdit}
-                  onDelete={h.setDeleteTarget}
-                  isLocked={h.isLocked}
-                  sortField={h.sortField}
-                  sortDir={h.sortDir}
-                  onSort={h.handleSort}
-                />
+                {!(viewMode === 'grid' && !isMobile) && (
+                  <ExpensesDesktopTable
+                    items={h.paginatedExpenses}
+                    expenseInvoiceMap={h.expenseInvoiceMap}
+                    expandedRow={h.expandedRow}
+                    setExpandedRow={h.setExpandedRow}
+                    onEdit={h.handleEdit}
+                    onDelete={h.setDeleteTarget}
+                    isLocked={h.isLocked}
+                    sortField={h.sortField}
+                    sortDir={h.sortDir}
+                    onSort={h.handleSort}
+                  />
+                )}
                 <TablePagination currentPage={h.currentPage} totalItems={h.filteredExpenses.length} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
               </>
             )}

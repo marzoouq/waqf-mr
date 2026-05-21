@@ -20,10 +20,14 @@ interface ExpensesMobileCardsProps {
   isLocked: boolean;
   /** يُخفي أزرار التعديل/الحذف بالكامل (للعروض القرائية المحضة) */
   readOnly?: boolean;
+  /** auto: محمول فقط (md:hidden) — grid: شبكة بطاقات تظهر على كل المقاسات */
+  viewMode?: 'auto' | 'grid';
 }
 
-const ExpensesMobileCards = ({ items, expenseInvoiceMap, expandedRow, setExpandedRow, onEdit, onDelete, isLocked, readOnly = false }: ExpensesMobileCardsProps) => (
-  <div className="space-y-3 md:hidden px-3 py-2">
+const ExpensesMobileCards = ({ items, expenseInvoiceMap, expandedRow, setExpandedRow, onEdit, onDelete, isLocked, readOnly = false, viewMode = 'auto' }: ExpensesMobileCardsProps) => (
+  <div className={viewMode === 'grid'
+    ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 px-3 py-2'
+    : 'space-y-3 md:hidden px-3 py-2'}>
     {items.map((item) => {
       const attachCount = expenseInvoiceMap.get(item.id) || 0;
       return (
