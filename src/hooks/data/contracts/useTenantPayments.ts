@@ -2,7 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
 import { logger } from '@/lib/logger';
+import { uiNotify } from '@/lib/notify';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+
 
 
 interface TenantPayment {
