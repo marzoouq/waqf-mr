@@ -8,7 +8,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import {
   ZATCA_COMMON_HEADERS,
   authenticateAdmin,
-  resolveZatcaUrl,
+  resolveZatcaTarget,
   logZatcaOperation,
   parseCertExpiry,
   buildDistinguishedName,
@@ -32,7 +32,8 @@ Deno.serve(async (req): Promise<Response> => {
 
     const body = await req.json();
     const { action } = body;
-    const ZATCA_API_URL = await resolveZatcaUrl(admin);
+    const { url: ZATCA_API_URL, platform } = await resolveZatcaTarget(admin);
+    const isProduction = platform === "production";
 
     // ─── test-connection ───
     if (action === "test-connection") {
@@ -79,7 +80,7 @@ Deno.serve(async (req): Promise<Response> => {
       const vatNumber = settings.vat_registration_number || "";
       const deviceSerial = settings.zatca_device_serial || "";
       const solutionName = settings.zatca_solution_name || "WaqfManagement";
-      const isProduction = ZATCA_API_URL.includes("gw-fatoora.zatca.gov.sa");
+      // platform/isProduction مُحدَّدان أعلى الدالة من resolveZatcaTarget
 
       const missingFields: string[] = [];
       if (!deviceSerial) missingFields.push("zatca_device_serial (الرقم التسلسلي للجهاز)");

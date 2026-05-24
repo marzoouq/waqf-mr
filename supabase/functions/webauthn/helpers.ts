@@ -18,14 +18,20 @@ export interface RpInfo {
 }
 
 /**
+ * النطاق الرسمي للإنتاج المعتمد للـ WebAuthn fallback.
+ * مستقل عن ترتيب ALLOWED_ORIGINS لتجنّب drift في حال أعيد ترتيب القائمة.
+ */
+const WEBAUTHN_FALLBACK_ORIGIN = "https://waqf-wise.net";
+
+/**
  * استخراج rpID و origin من الطلب مع التحقق من origin whitelist.
  * WebAuthn يتطلب أن يتطابق rpID مع نطاق الصفحة الحالية تماماً.
  *
- * Fallback: أول origin مسموح في `_shared/cors.ts` (waqf-wise.net حالياً) —
- * بدلاً من النطاق القديم `waqf-mr.lovable.app` الذي لم يعد ضمن القائمة.
+ * Fallback صريح: `waqf-wise.net` (النطاق المخصص للإنتاج) — لا يعتمد على
+ * ترتيب `ALLOWED_ORIGINS` لأن تغيير الترتيب يكسر rpID وهو حساس في WebAuthn.
  */
 export function getRpInfo(req: Request): RpInfo {
-  const origin = req.headers.get("origin") || ALLOWED_ORIGINS[0];
+  const origin = req.headers.get("origin") || WEBAUTHN_FALLBACK_ORIGIN;
 
   const isAllowed =
     ALLOWED_ORIGINS.includes(origin) ||
