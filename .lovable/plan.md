@@ -1,131 +1,76 @@
-# تقرير تدقيق معماري شامل — قراءة فقط (لا تعديلات مقترحة في الكود)
+## النطاق
 
-> ملاحظة: هذا تقرير تقييمي خالص لا يتضمّن أي خطوة كتابة. عند الموافقة على الانتقال إلى Build، يُمكن استخراج بنود الإصلاح من القسم 7 إلى خطة تنفيذ منفصلة.
+تنفيذ البنود 1، 2، 6، 5 فقط. تم إلغاء 3 (Waqif محجوب عن RPC) و4 (منجز سابقًا).
 
-## 1) خريطة البنية كما هي فعليًا
+---
 
-```text
-src/
-├── app/          (providers, router, root-layout)         — نقطة تركيب
-├── routes/       (admin/beneficiary/waqif/publicRoutes)   — حراس + lazy
-├── pages/        (~70 صفحة)                                — رقيقة، تستهلك Page Hook
-├── components/   (~30 مجلد ميزة + ui/ + shared/ + common/) — عرضية
-├── contexts/     (Auth, FiscalYear, Contracts)            — 3 فقط ✓
-├── hooks/
-│   ├── auth/        (session/role/biometric/flows)
-│   ├── data/    (129 ملف)   — Supabase خام + useQuery
-│   ├── domain/  (16 ملف)    — حسابات أعمال خالصة فوق data
-│   ├── page/    (91 ملف)    — تنسيق صفحة (orchestration)
-│   ├── application/ (13)    — controllers عابرة للأدوار
-│   └── ui/                  — hooks عرضية بحتة
-├── lib/          (stateful: supabase, queryClient, notify, services, monitoring)
-├── utils/        (pure: format, financial, pdf, export, validation, fiscalYear)
-├── constants/    — جداول ثابتة + roles + routeRegistry
-├── types/        — barrel موحّد + sub-barrels
-└── integrations/supabase/ (محمي — لا يُلمس)
+### 1) إصلاح اختبار `checkPagePerformance`
+ملف: `src/lib/diagnostics/checks.test.ts` السطر 152
 
-supabase/
-├── functions/ (20 وظيفة، _shared للمصادقة والـCORS)
-└── migrations/ (321 ملف)
+تغيير القيم لتتجاوز عتبة 4000ms:
+- `avgMs: 3000` → `avgMs: 4500`
+- `maxMs: 3500` → `maxMs: 5000`
+- `minMs: 2500` → `minMs: 4000`
+- `lastMs: 3000` → `lastMs: 4500`
+
+لا تغيير على `performance.ts`.
+
+---
+
+### 2) توحيد عرض "المتاح للتوزيع" في السنة النشطة (Admin)
+ملف: `src/hooks/page/admin/dashboard/useAdminDashboardStats.ts` السطر 95
+
+استبدال:
+```ts
+{ title: isYearActive ? 'المتاح للتوزيع (تقديري)' : 'المتاح للتوزيع',
+  value: `${fmtInt(Math.max(0, isYearActive ? netAfterZakat : availableAmount))} ر.س`, ... }
+```
+بـ:
+```ts
+{ title: 'المتاح للتوزيع',
+  value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(Math.max(0, availableAmount))} ر.س`, ... }
 ```
 
-## 2) الحكم العام
+لمطابقة سلوك بطاقات Waqif/Beneficiary وحصة الناظر/الواقف/ريع الوقف في نفس الملف.
 
-البنية **ناضجة ومنضبطة بدرجة عالية** وتتبع فعليًا الطبقات الموثّقة في الذاكرة (Page Hook Pattern, lib vs utils, Hooks Layering). الفحص التلقائي يُظهر:
+---
 
-| فحص | النتيجة |
-|---|---|
-| `console.*` في الكود المنتج | **0** انتهاك |
-| `supabase` المستورد في `src/pages/` | **0** |
-| `supabase` المستورد في `src/components/` | **0** (المطابقات السابقة كانت إيجابيات كاذبة لـ `Array.from`/`DateRange.from`) |
-| `supabase` المستورد في `src/utils/` | **0** |
-| `sonner` المستورد في `src/utils/` | **0** |
-| ألوان hex داخل المكونات | **1 فقط** (`InvoicePreviewDialog` لـ Canvas — مسموح بقاعدة المشروع) |
-| `useState` في `pages/` | **0** |
-| `useQuery` في `pages/` أو `components/` | **0** |
-| فحوصات الأدوار خارج `hooks/auth` | **0** (المطابقات في `types.ts` و`lib/auth/fetchUserRole.ts` شرعية) |
-| Edge functions تستخدم `getSession()` | **0** (المطابقة الوحيدة في README) |
-| ملفات > 200 سطر | **5 فقط** من ~700 ملف منتج |
+### 5) تنظيف اختياري ضيق لـ `AdminDashboard.tsx`
+ملف: `src/pages/dashboard/AdminDashboard.tsx`
 
-النتيجة: لا توجد مخالفات فادحة (P0) لقواعد المعمارية في الكود الحالي.
+تحويل الموضعين المتبقيين اللذين يستخدمان `ErrorBoundary + Suspense` يدويًا إلى `DashboardLazySection`:
+- السطور 76-83 (`AccountantDashboardView`) — استبدال `<ErrorBoundary>` بـ `<DashboardLazySection minHeight={200}>`
+- السطور 100-109 (`PendingActionsTable` داخل `DeferredRender`) — استبدال الـ `DeferredRender + ErrorBoundary + Suspense` بـ `<DashboardLazySection minHeight={200} printHidden>`
 
-## 3) منطق في غير مكانه (Misplaced Logic)
+لا تغيير على المنطق، فقط تخفيض التكرار.
 
-العناصر المرصودة جميعها صغيرة (P2/P3):
+---
 
-| # | الموقع | المشكلة | التصنيف |
-|---|---|---|---|
-| M1 | `src/components/beneficiary/disclosure/DisclosureContractsSection.tsx` | حسابات مالية داخل مكوّن عرض (يُفضّل نقلها إلى `hooks/domain/` أو `utils/financial/`) | P2 |
-| M2 | `src/components/invoices/invoiceTemplateUtils.ts` + `templates/ProfessionalTotals.tsx` | منطق حساب إجماليات داخل مجلد components بدل `utils/financial/` | P2 |
-| M3 | `src/components/contracts/accrual/accrualUtils.ts` | ملف utils مدفون داخل مجلد components (انتهاك حدود — رغم نقاوته) | P2 |
-| M4 | `src/pages/dashboard/ContractsPage.tsx` يستورد `canModifyFiscalYear` من `@/utils/auth/permissions` | منطق تخويل في utils — يجب توحيده داخل `hooks/auth/` أو `lib/auth/` لإغلاق المصدر الموحّد للأدوار | P2 |
+### 6) إزالة prop `role` من `DashboardAlerts`
+ملفان:
 
-> الإيجابيات الكاذبة: مطابقات `supabase.rpc/from` في 14 مكوّن (مثل `MobileCardView`, `TablePagination`, `RecentContractsCard`) تبيّن بعد التحقق أنها `Array.from` / `DateRange.from`. **لا توجد** مكونات تستدعي Supabase مباشرة.
+**أ) `src/components/dashboard/widgets/DashboardAlerts.tsx`**
+- إزالة prop `role` من interface
+- إزالة متغير `isAdmin` المحلي
+- إضافة prop `canApproveAdvances?: boolean` و`canConfigureRatios?: boolean` (افتراضيًا `false`)
+- استخدامها بدل `isAdmin` في موضعي السُلف والنسب الافتراضية
 
-## 4) فصل المسؤوليات
+**ب) `src/pages/dashboard/AdminDashboard.tsx` السطر 62**
+- استبدال `role={ctx.role}` بـ:
+  ```tsx
+  canApproveAdvances={ctx.role === 'admin'}
+  canConfigureRatios={ctx.role === 'admin'}
+  ```
 
-| الطبقة | الالتزام | ملاحظات |
-|---|---|---|
-| UI ↔ Data | ممتاز | كل صفحة تستهلك Page Hook واحد، لا useQuery في الصفحات/المكونات |
-| Data ↔ Domain | جيد | 129 data hook مقابل 16 domain فقط — قد يدلّ على أن بعض الحسابات لا تزال داخل Page Hooks بدلاً من رفعها إلى `domain/` |
-| Auth/RBAC | جيد | `hooks/auth/` مقسّم بشكل سليم؛ ملف `utils/auth/permissions.ts` هو الاستثناء الوحيد (M4) |
-| Validation | جيد | `utils/validation/` نقي |
-| Business rules | جيد | معظمها في `utils/financial/` (contractAllocation, distribution, accrual) وبعضها domain hooks |
+هذا يجعل المكوّن presentational بحت بدون اتخاذ قرارات صلاحيات داخليًا.
 
-## 5) الاقتران والتبعيات
+---
 
-- **لا تبعيات دائرية مرصودة** بين barrels (تمّ التحقق من `src/types`, `src/hooks`, `src/lib`).
-- `ContractsContext` + `ContractsContextValue` + `useContractsContext` مُقسّمة بشكل سليم لتفادي حلقات الـHMR.
-- 91 ملف داخل `hooks/page/` — رقم كبير لكنه طبيعي لـ ~70 صفحة. لا يوجد توحّد ضدّ Page Hook Pattern.
-- 321 ملف migration: تاريخ طويل وصحّي؛ لم نلاحظ migrations حديثة تكتب roles خارج `user_roles`.
+## معايير القبول
+- `vitest run` يمر بالكامل بما فيه `checkPagePerformance`.
+- بطاقة "المتاح للتوزيع" في Admin بالسنة النشطة تعرض "تُحسب عند الإقفال" (مطابقة لـ Waqif).
+- `AdminDashboard.tsx` لا يحتوي على `ErrorBoundary` أو `Suspense` يدوي مباشر — كله عبر `DashboardLazySection`.
+- `DashboardAlerts` لا يستقبل prop `role` ولا يحتوي على `role ===`.
 
-## 6) أكبر الملفات (Hotspots للمراجعة المستقبلية)
-
-| الملف | الأسطر | ملاحظة |
-|---|---|---|
-| `utils/pdf/reports/forensicAudit.ts` | 238 | PDF — استثناء طبيعي |
-| `utils/pdf/reports/comprehensiveBeneficiaryTables.ts` | 213 | PDF — استثناء |
-| `utils/export/printDistributionReport.ts` | 213 | استثناء |
-| `utils/export/xlsx.ts` | 205 | حدّي |
-| `hooks/application/useAiChat.ts` | 197 | قابل للتقسيم لاحقًا |
-| `hooks/page/admin/management/useZatcaSettings.ts` | 195 | حدّي |
-| `components/contracts/contract-form/ContractRentalModeSection.tsx` | 195 | حدّي — مكوّن نموذج |
-| `components/contracts/MonthlyAccrualTable.tsx` | 193 | جدول معقّد |
-| `hooks/page/admin/financial/useInvoicesPage.ts` | 191 | حدّي |
-| `hooks/page/admin/financial/useAccountsPage.ts` | 188 | حدّي |
-| `components/pwa/PwaUpdateNotifier.tsx` | 188 | يجمع UI + service worker logic |
-
-## 7) توصيات مرتّبة (للنقاش — لا تنفيذ)
-
-### P1 (تنظيم حدود)
-- **R1**: نقل `utils/auth/permissions.ts` إلى `lib/auth/` لإلغاء الحاجة لاستيراد منطق صلاحيات من utils في الصفحات. (M4)
-- **R2**: نقل `components/contracts/accrual/accrualUtils.ts` إلى `utils/financial/accrual/`. (M3)
-- **R3**: استخراج الحسابات من `DisclosureContractsSection` و`invoiceTemplateUtils` إلى `utils/financial/` أو `hooks/domain/`. (M1, M2)
-
-### P2 (نضج معماري)
-- **R4**: مراجعة Page Hooks الكبيرة (>180 سطر) لاستخراج حسابات الأعمال إلى `hooks/domain/` (نسبة domain:data منخفضة 16:129).
-- **R5**: تقسيم `useAiChat.ts` (197 سطر) إلى hook مزامنة + hook عرض.
-- **R6**: فصل `PwaUpdateNotifier` إلى hook منطقي + مكوّن عرض.
-
-### P3 (نظافة)
-- **R7**: تثبيت قاعدة ESLint تمنع `supabase`/`sonner` داخل `src/utils/` و`src/components/` (تأمين الحالة الجيدة الحالية من الانحراف).
-- **R8**: تثبيت قاعدة ESLint تمنع `useQuery`/`useMutation` داخل `src/pages/` و`src/components/`.
-- **R9**: تثبيت حدّ ESLint للملف ≤200 سطر مع استثناءات لمجلدات `utils/pdf`, `utils/export`.
-
-## 8) ما يجب **عدم** تغييره
-
-- بنية `hooks/{auth, data, domain, page, application, ui}` — تعكس بدقّة Hooks Layering المعتمدة.
-- 3 contexts فقط (Auth, FiscalYear, Contracts) — لا تضخّم.
-- `verify_jwt = false` المتعمّد + `getUser()` يدويًا في Edge Functions.
-- جدار `integrations/supabase/{client,types}.ts` + `config.toml`.
-
-## 9) خلاصة المخاطر
-
-| الفئة | الحالة |
-|---|---|
-| أمنية (RLS / Roles / Edge auth) | لا مشاكل مرصودة في الكود الحاضر |
-| مالية (تسرّب حسابات إلى UI) | منخفضة جدًا — 3 حالات صغيرة فقط |
-| تقنية (اقتران / حلقات) | لا حلقات مرصودة |
-| صيانة (ملفات ضخمة) | محدودة — 5 ملفات فقط فوق 200 سطر |
-
-**الحكم النهائي**: المستودع في حالة معمارية صحّية. التوصيات أعلاه تحسينات تجميل/تصلّب لا إصلاحات حرجة. لا حاجة لأي تعديل قسري؛ تنفيذ R1–R3 (P1) كافٍ لإغلاق آخر الفجوات الحقيقية.
+## ترتيب التنفيذ
+1 → 2 → 6 → 5، ثم `vitest run` للتحقق.
