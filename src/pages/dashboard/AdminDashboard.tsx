@@ -59,7 +59,8 @@ const AdminDashboard = () => {
           pendingAdvancesCount={ctx.pendingAdvancesCount}
           collectionRate={ctx.collectionSummary.percentage}
           expenseRatio={ctx.expenseRatio}
-          role={ctx.role}
+          canApproveAdvances={ctx.role === 'admin'}
+          canConfigureRatios={ctx.role === 'admin'}
         />
 
         <DashboardStatsGrid stats={ctx.stats} isLoading={ctx.isLoading} />
@@ -74,12 +75,12 @@ const AdminDashboard = () => {
         <QuickActionsCard role={ctx.role} />
 
         {ctx.isAccountant && (
-          <ErrorBoundary>
+          <DashboardLazySection minHeight={200}>
             <AccountantDashboardView
               metrics={ctx.accountantMetrics}
               isLoading={ctx.isLoading || ctx.secondaryIsLoading}
             />
-          </ErrorBoundary>
+          </DashboardLazySection>
         )}
 
         <ErrorBoundary>
@@ -97,16 +98,12 @@ const AdminDashboard = () => {
           />
         </DashboardLazySection>
 
-        <DeferredRender delay={100}>
-          <ErrorBoundary>
-            <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-              <PendingActionsTable
-                advanceRequests={ctx.pendingAdvances}
-                paymentInvoices={ctx.heatmapInvoices}
-              />
-            </Suspense>
-          </ErrorBoundary>
-        </DeferredRender>
+        <DashboardLazySection minHeight={200} printHidden>
+          <PendingActionsTable
+            advanceRequests={ctx.pendingAdvances}
+            paymentInvoices={ctx.heatmapInvoices}
+          />
+        </DashboardLazySection>
 
         <DashboardLazySection minHeight={300} printHidden fallback={<ChartSkeleton />}>
           <DashboardCharts monthlyData={ctx.monthlyData} expenseTypes={ctx.expenseTypes} />
