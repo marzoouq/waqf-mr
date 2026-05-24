@@ -35,7 +35,7 @@ export const useSystemDiagnostics = (autoRun = true) => {
     } finally {
       setRunning(false);
     }
-  }, [user?.id]);
+  }, [user]);
 
   const runSingle = useCallback(async (categoryTitle: string) => {
     setRunningCategory(categoryTitle);
