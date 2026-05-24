@@ -79,7 +79,8 @@ export const useIdleTimeout = ({
   }, [resetTimer]);
 
   useEffect(() => {
-    // mount: جدولة فقط — لا setShowWarning لأنه أصلاً false
+    // mount: جدولة المؤقتات فقط — resetTimer قد يحوي setState لكن hideWarning=false يتجاوزه
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial timer scheduling is intentional
     resetTimer({ hideWarning: false });
 
     const handler = () => resetTimer();
