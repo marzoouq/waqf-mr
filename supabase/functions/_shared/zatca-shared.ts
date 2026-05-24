@@ -172,12 +172,32 @@ export function parseCertExpiry(base64Cert: string): string | null {
 // ZATCA API Helpers
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export type ZatcaPlatform = "production" | "sandbox";
+
+export interface ResolvedZatcaTarget {
+  /** URL البوابة الفعلي — قد يكون ZATCA_API_URL_ENV أو من ZATCA_URLS */
+  url: string;
+  /** المنصة المعتمدة فعلياً — مصدر الحقيقة للتمييز بين الإنتاج والـ sandbox */
+  platform: ZatcaPlatform;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- admin client بدون Database generic
+export async function resolveZatcaTarget(adminClient: any): Promise<ResolvedZatcaTarget> {
+  // ENV override: لا يحدد المنصة بنفسه — نقرأ القيمة المخزّنة لمعرفة النية
+  const { data } = await adminClient.from("app_settings").select("value").eq("key", "zatca_platform").single();
+  const rawPlatform = (data?.value as string | undefined)?.toLowerCase();
+  const platform: ZatcaPlatform = rawPlatform === "production" ? "production" : "sandbox";
+  const url = ZATCA_API_URL_ENV || ZATCA_URLS[platform] || ZATCA_URLS.sandbox;
+  return { url, platform };
+}
+
+/**
+ * @deprecated استخدم `resolveZatcaTarget` للحصول على المنصة بشكل صريح بدلاً من الاستدلال من URL.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- admin client بدون Database generic
 export async function resolveZatcaUrl(adminClient: any): Promise<string> {
-  if (ZATCA_API_URL_ENV) return ZATCA_API_URL_ENV;
-  const { data } = await adminClient.from("app_settings").select("value").eq("key", "zatca_platform").single();
-  const platform = data?.value || "sandbox";
-  return ZATCA_URLS[platform] || ZATCA_URLS.sandbox;
+  const { url } = await resolveZatcaTarget(adminClient);
+  return url;
 }
 
 export async function logZatcaOperation(
