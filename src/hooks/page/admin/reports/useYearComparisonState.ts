@@ -28,11 +28,13 @@ export function useYearComparisonState({ fiscalYears, currentFiscalYearId }: Use
   const [year2Id, setYear2Id] = useState('');
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- اختيار افتراضي للسنتين عند توفر البيانات */
     if (currentFiscalYearId && !year1Id) setYear1Id(currentFiscalYearId);
     if (fiscalYears.length >= 2 && !year2Id) {
       const other = fiscalYears.find(fy => fy.id !== currentFiscalYearId);
       if (other) setYear2Id(other.id);
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [currentFiscalYearId, fiscalYears, year1Id, year2Id]);
 
   const year1Label = fiscalYears.find(fy => fy.id === year1Id)?.label || '';

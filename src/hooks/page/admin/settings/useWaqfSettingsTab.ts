@@ -33,6 +33,7 @@ export const useWaqfSettingsTab = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- تهيئة form من useAppSettings (مصدر خارجي)
     if (settings) setFormData({ ...settings });
   }, [settings]);
 

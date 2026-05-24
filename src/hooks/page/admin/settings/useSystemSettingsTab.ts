@@ -37,6 +37,7 @@ export const useSystemSettingsTab = () => {
     ADVANCED_FIELDS.forEach((f) => {
       initial[f.key] = settings[f.key] ?? '';
     });
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- تهيئة form من useAppSettings (مصدر خارجي)
     setFormData(initial);
   }, [settings]);
 

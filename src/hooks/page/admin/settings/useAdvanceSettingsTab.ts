@@ -20,6 +20,7 @@ export const useAdvanceSettingsTab = () => {
 
   useEffect(() => {
     if (!isLoading && !initialized) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- تهيئة form من الإعدادات بعد التحميل (يعمل مرة واحدة)
       setForm(getJsonSetting('advance_settings', DEFAULTS));
       setInitialized(true);
     }
