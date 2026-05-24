@@ -2,7 +2,7 @@
  * عمليات صفحة الحسابات — حفظ، إقفال سنة، تصدير PDF
  * يستقبل القيم المحسوبة الحقيقية مباشرة — بدون أصفار أو paramsRef خارجي
  */
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useCreateAccount } from '@/hooks/data/financial/useAccounts';
 import { useCloseFiscalYear } from '@/hooks/data/financial/useCloseFiscalYear';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
@@ -45,9 +45,9 @@ export function useAccountsActions(params: ActionsParams) {
   const createAccount = useCreateAccount();
   const closeFiscalYear = useCloseFiscalYear();
 
-  // مرجع داخلي يُحدّث تلقائياً في كل render — يُستخدم في callbacks غير متزامنة
+  // مرجع داخلي يُحدّث في effect — يُستخدم في handlers مستخدم (تُشغَّل بعد commit، آمن)
   const paramsRef = useRef(params);
-  paramsRef.current = params;
+  useEffect(() => { paramsRef.current = params; }, [params]);
 
   const [closeYearOpen, setCloseYearOpen] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);

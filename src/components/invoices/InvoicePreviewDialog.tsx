@@ -35,6 +35,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
 
   useEffect(() => {
     if (invoice) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- مزامنة القالب الافتراضي مع نوع الفاتورة الواردة
       setTemplate(invoice.type === 'standard' ? 'professional' : 'simplified');
     }
   }, [invoice]);

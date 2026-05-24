@@ -149,6 +149,7 @@ export function useEmailMonitorPage() {
   );
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE));
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset pagination عند تغيّر الفلتر (نمط رسمي)
   useEffect(() => { setPage(0); }, [range, customStart, customEnd, templateFilter, statusFilter]);
 
   // إعادة محاولة DLQ + refresh مفصولة في hook خاص

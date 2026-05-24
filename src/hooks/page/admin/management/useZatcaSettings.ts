@@ -72,6 +72,7 @@ export const useZatcaSettings = () => {
       for (const key of ZATCA_KEYS) {
         initial[key] = settings[key] || '';
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- تهيئة form من useAppSettings (مصدر خارجي)
       setFormData(initial);
     }
   }, [settings]);

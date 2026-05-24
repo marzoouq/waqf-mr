@@ -9,10 +9,13 @@ import { PAGE_PERF_INITIAL_MEASURE_DELAY_MS } from '@/constants/timing';
 
 export function usePagePerformance(): void {
   const { pathname } = useLocation();
-  const startRef = useRef<number>(performance.now());
+  // lazy init: 0 يعني "غير مُهيّأ بعد" — يُملأ في mount effect أدناه
+  const startRef = useRef<number>(0);
   const lastPathRef = useRef<string>(pathname);
 
   useEffect(() => {
+    // fallback لتغطية أول render قبل تشغيل mount effect لـ initial
+    if (!startRef.current) startRef.current = performance.now();
     // عند تغيير المسار — سجّل وقت المسار السابق وابدأ عداد المسار الجديد
     if (lastPathRef.current !== pathname) {
       const duration = performance.now() - startRef.current;

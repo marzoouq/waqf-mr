@@ -15,6 +15,7 @@ export const useContractsBulkRenew = ({ contracts, fiscalYearId, createContractA
   const [bulkRenewing, setBulkRenewing] = useState(false);
   const [selectedForRenewal, setSelectedForRenewal] = useState<Set<string>>(new Set());
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset selection عند تغيّر السنة المالية
   useEffect(() => setSelectedForRenewal(new Set()), [fiscalYearId]);
 
   const expiredContracts = useMemo(() => contracts.filter(c => c.status === 'expired'), [contracts]);

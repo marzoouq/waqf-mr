@@ -40,11 +40,14 @@ export const usePermissionsControlPanel = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    // مزامنة form state مع القيم المحفوظة في DB — تعمل عند كل تحديث للإعدادات المحفوظة
+    /* eslint-disable react-hooks/set-state-in-effect -- مزامنة form state من useAppSettings (مصدر خارجي) */
     setPerms(savedRolePerms);
     setAdminSections(savedAdminSections);
     setBeneficiarySections(savedBeneficiarySections);
     setWidgets(savedWidgets);
     setNotifSettings(savedNotifSettings);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [savedRolePerms, savedAdminSections, savedBeneficiarySections, savedWidgets, savedNotifSettings]);
 
   const toggleRolePerm = (role: string, section: string) => {

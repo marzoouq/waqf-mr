@@ -35,7 +35,7 @@ export const useSystemDiagnostics = (autoRun = true) => {
     } finally {
       setRunning(false);
     }
-  }, [user?.id]);
+  }, [user]);
 
   const runSingle = useCallback(async (categoryTitle: string) => {
     setRunningCategory(categoryTitle);
@@ -60,6 +60,8 @@ export const useSystemDiagnostics = (autoRun = true) => {
   }, []);
 
   useEffect(() => {
+    // التشغيل التلقائي عند mount جزء أساسي من سلوك صفحة التشخيص — setState داخل run() مقصود
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- autoRun behavior is intentional initial mount side-effect
     if (autoRun) run();
   }, [autoRun, run]);
 

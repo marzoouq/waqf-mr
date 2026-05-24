@@ -9,6 +9,7 @@ export const useSecuritySettings = () => {
 
   useEffect(() => {
     if (settings?.idle_timeout_minutes) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- مزامنة form من useAppSettings (مصدر خارجي)
       setIdleMinutes(settings.idle_timeout_minutes);
     }
   }, [settings]);
