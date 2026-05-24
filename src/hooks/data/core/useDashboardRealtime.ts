@@ -27,12 +27,14 @@ export const useDashboardRealtime = (
   // تثبيت مرجع الجداول لمنع إعادة الاشتراك عند تغيّر مرجع المصفوفة
   const tablesKey = useMemo(() => JSON.stringify(tables), [tables]);
   const tablesRef = useRef(tables);
-  tablesRef.current = tables;
 
   // تثبيت مرجع المفاتيح الإضافية
   const extraKeysKey = useMemo(() => JSON.stringify(extraKeys), [extraKeys]);
   const extraKeysRef = useRef(extraKeys);
-  extraKeysRef.current = extraKeys;
+
+  // تحديث refs خارج render لتفادي react-hooks/refs (الأخطار: subscribe يستخدم القيمة الأولى)
+  useEffect(() => { tablesRef.current = tables; }, [tablesKey, tables]);
+  useEffect(() => { extraKeysRef.current = extraKeys; }, [extraKeysKey, extraKeys]);
 
   // مرجع لتجميع الجداول المتغيرة مع debounce
   const pendingTablesRef = useRef<Set<string>>(new Set());
