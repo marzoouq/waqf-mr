@@ -101,3 +101,22 @@ For functions that don't require user auth (webhooks, cron, hooks):
 | `lookup-national-id` | ✅ `getUser()` | Rate-limited |
 | `health-check` | ⚡ Public | No auth needed, DB + env checks |
 | `auth-email-hook` | ⚡ Hook | Supabase-initiated |
+
+---
+
+## SERVICE_ROLE_KEY Usage (P3 Audit)
+
+The `SUPABASE_SERVICE_ROLE_KEY` is used **exclusively for system-level operations**, never as a substitute for end-user authentication. Each usage is justified below:
+
+| Function | Justification |
+|---|---|
+| `guard-signup` | Pre-auth signup validation (no user session exists yet); rate-limiting against abuse. |
+| `auth-email-hook` | Supabase-initiated webhook — no end-user JWT available; HMAC-verified. |
+| `process-email-queue` | `pg_cron` driven; server-initiated background job. |
+| `check-contract-expiry` | Cron job scanning all contracts; admin notifications. |
+| `webauthn` | Reads/writes credential rows that must bypass user RLS during registration handshake. |
+| `health-check` | Infrastructure probe; no user context. |
+| `lookup-national-id` | Calls external KSA registry; user is authenticated separately via `getUser()` before service-role lookup. |
+| `_shared/zatca-shared.ts` | Reads ZATCA certificate secrets stored outside user-scoped tables. |
+
+**Rule:** Any *new* function importing `SERVICE_ROLE_KEY` must (1) authenticate the user first via `_shared/auth.ts` (unless Category D), and (2) add a row to this table.
