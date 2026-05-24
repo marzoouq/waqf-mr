@@ -62,7 +62,9 @@ export const useZatcaSettings = () => {
 
   const isEnabled = formData.zatca_enabled === 'true';
   const selectedPhase = formData.zatca_phase || 'phase2';
-  const selectedPlatform = formData.zatca_platform || 'production';
+  // الافتراضي 'sandbox' ليطابق مصدر الحقيقة في الخلفية (`resolveZatcaTarget`).
+  // يمنع تضليل الناظر بإظهار "production" بينما الخلفية تنفّذ على sandbox.
+  const selectedPlatform = formData.zatca_platform || 'sandbox';
 
   useEffect(() => {
     if (settings) {

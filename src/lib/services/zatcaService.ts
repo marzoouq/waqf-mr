@@ -7,12 +7,17 @@ import { rpc, ApiError } from '@/lib/api/rpc';
 import { invoke } from '@/lib/api/invoke';
 
 export const zatcaOnboard = async () => {
-  await invoke('zatca-onboard', { body: { action: 'onboard' } });
+  // عملية حساسة تستهلك OTP — لا يجوز إعادة المحاولة تلقائياً.
+  await invoke('zatca-onboard', { body: { action: 'onboard' } }, { maxAttempts: 1 });
 };
 
 export const zatcaRenew = async () => {
-  // الاستجابة قد تحوي { error } كحقل تقرير وليس فشل نقل
-  return await invoke<{ success?: boolean; error?: string }>('zatca-renew', {}, { treatDataErrorAsFailure: false });
+  // عملية حساسة تستهلك OTP — لا retry. الاستجابة قد تحوي { error } كحقل تقرير وليس فشل نقل.
+  return await invoke<{ success?: boolean; error?: string }>(
+    'zatca-renew',
+    {},
+    { maxAttempts: 1, treatDataErrorAsFailure: false },
+  );
 };
 
 export const zatcaTestConnection = async () => {

@@ -162,7 +162,7 @@
 
 | Function | الغرض | Body |
 |----------|-------|------|
-| `zatca-onboard` | تسجيل CSID/PCSID مع ZATCA | `{ action: 'compliance'|'production' }` |
+| `zatca-onboard` | تسجيل CSID / ترقية إنتاج / اختبار اتصال | `{ action: 'onboard' \| 'production' \| 'test-connection' }` |
 | `zatca-renew` | تجديد PCSID قبل الانتهاء | `{}` |
 | `zatca-xml-generator` | توليد UBL 2.1 XML | `{ invoice_id, table }` |
 | `zatca-signer` | توقيع XML عبر ECDSA P-256 + بناء سلسلة ICV | `{ invoice_id, table }` |
