@@ -1,7 +1,16 @@
 /**
  * إعدادات ونسب صفحة الحسابات — adminPercent, waqifPercent, إلخ
+ *
+ * نمط Default + Override:
+ *   - القيم المشتقّة (`derivedDefaults`) محسوبة من `appSettings.data` و`selectedAccount` عبر `useMemo`.
+ *   - تعديلات المستخدم تُخزَّن في `overrides` (Partial state).
+ *   - القيمة المعروضة = override ?? default.
+ *   - عند تغيّر السنة المالية المختارة (`selectedFY.id`) تُمسح overrides تلقائياً (إعادة ضبط النموذج
+ *     لقيم السنة الجديدة) باستخدام نمط React الرسمي "تحديث state أثناء render مع مفتاح سابق".
+ *
+ * هذا يحلّ محل 13 `useEffect`/`setState` للمزامنة، ويزيل تحذيرات `react-hooks/set-state-in-effect`.
  */
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
@@ -14,59 +23,73 @@ interface SettingsParams {
   accounts: Account[];
 }
 
+interface SettingsValues {
+  adminPercent: number;
+  waqifPercent: number;
+  fiscalYear: string;
+  zakatAmount: number;
+  waqfCorpusManual: number;
+  waqfCorpusPrevious: number;
+  manualVat: number;
+  manualDistributions: number;
+}
+
+type Overrides = Partial<SettingsValues>;
+
+const PCT_FALLBACK = { admin: 10, waqif: 5 } as const;
+
 export function useAccountsSettings(params: SettingsParams) {
   const appSettings = useAppSettings();
 
-  const [adminPercent, setAdminPercent] = useState(10);
-  const [waqifPercent, setWaqifPercent] = useState(5);
-  const [fiscalYear, setFiscalYear] = useState('');
-  const [zakatAmount, setZakatAmount] = useState(0);
-  const [waqfCorpusManual, setWaqfCorpusManual] = useState(0);
-  const [waqfCorpusPrevious, setWaqfCorpusPrevious] = useState(0);
-  const [manualVat, setManualVat] = useState(0);
-  const [manualDistributions, setManualDistributions] = useState(0);
+  const currentAccount = useMemo(
+    () => findAccountByFY(params.accounts, params.selectedFY),
+    [params.accounts, params.selectedFY]
+  );
 
-  // مزامنة من إعدادات الخادم — مطلوبة للحفاظ على state محلي قابل للتحرير في النماذج
-  useEffect(() => {
-    if (appSettings.data) {
-      const settings = appSettings.data;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync of editable form state from server settings
-      if (settings['admin_share_percentage']) setAdminPercent(Number(settings['admin_share_percentage']));
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync of editable form state from server settings
-      if (settings['waqif_share_percentage']) setWaqifPercent(Number(settings['waqif_share_percentage']));
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync of editable form state from server settings
-      if (settings['fiscal_year']) setFiscalYear(settings['fiscal_year']);
-    }
-  }, [appSettings.data]);
+  // القيم المشتقّة من المصدر (إعدادات الخادم + حساب السنة المختارة)
+  const derivedDefaults = useMemo<SettingsValues>(() => {
+    const settings = appSettings.data ?? {};
+    const acc = currentAccount;
+    return {
+      adminPercent: Number(settings['admin_share_percentage'] ?? PCT_FALLBACK.admin),
+      waqifPercent: Number(settings['waqif_share_percentage'] ?? PCT_FALLBACK.waqif),
+      fiscalYear: String(settings['fiscal_year'] ?? ''),
+      zakatAmount: Number(acc?.zakat_amount ?? 0),
+      waqfCorpusManual: Number(acc?.waqf_corpus_manual ?? 0),
+      waqfCorpusPrevious: Number(acc?.waqf_corpus_previous ?? 0),
+      manualVat: Number(acc?.vat_amount ?? 0),
+      manualDistributions: Number(acc?.distributions_amount ?? 0),
+    };
+  }, [appSettings.data, currentAccount]);
 
-  // مزامنة من حساب السنة المختارة — قيم قابلة للتحرير في صفحة الحسابات
-  useEffect(() => {
-    const matchingAccount = findAccountByFY(params.accounts, params.selectedFY);
-    if (matchingAccount) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from selected fiscal year account
-      if (matchingAccount.zakat_amount !== undefined) setZakatAmount(Number(matchingAccount.zakat_amount));
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from selected fiscal year account
-      if (matchingAccount.waqf_corpus_manual !== undefined) setWaqfCorpusManual(Number(matchingAccount.waqf_corpus_manual));
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from selected fiscal year account
-      if (matchingAccount.waqf_corpus_previous !== undefined) setWaqfCorpusPrevious(Number(matchingAccount.waqf_corpus_previous));
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from selected fiscal year account
-      if (matchingAccount.vat_amount !== undefined) setManualVat(Number(matchingAccount.vat_amount));
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from selected fiscal year account
-      if (matchingAccount.distributions_amount !== undefined) setManualDistributions(Number(matchingAccount.distributions_amount));
-    } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset form when no account exists for selected year
-      setZakatAmount(0);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset
-      setWaqfCorpusManual(0);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset
-      setWaqfCorpusPrevious(0);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset
-      setManualVat(0);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset
-      setManualDistributions(0);
-    }
-  }, [params.accounts, params.selectedFY]);
+  const [overrides, setOverrides] = useState<Overrides>({});
 
+  // إعادة ضبط overrides عند تغيّر السنة المالية (نمط React الرسمي: setState أثناء render مع مفتاح سابق)
+  const sourceKey = params.selectedFY?.id ?? '';
+  const lastSourceKeyRef = useRef(sourceKey);
+  if (lastSourceKeyRef.current !== sourceKey) {
+    lastSourceKeyRef.current = sourceKey;
+    setOverrides({});
+  }
+
+  // القيم النهائية (override يتقدّم على القيمة المشتقّة)
+  const resolved: SettingsValues = useMemo(
+    () => ({ ...derivedDefaults, ...overrides }),
+    [derivedDefaults, overrides]
+  );
+
+  // دوال تعديل override فقط (تستخدمها UI كـ setters متوافقة مع الواجهة السابقة)
+  const updateOverride = useCallback(<K extends keyof SettingsValues>(key: K, value: SettingsValues[K]) => {
+    setOverrides(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const setZakatAmount = useCallback((v: number) => updateOverride('zakatAmount', v), [updateOverride]);
+  const setWaqfCorpusManual = useCallback((v: number) => updateOverride('waqfCorpusManual', v), [updateOverride]);
+  const setWaqfCorpusPrevious = useCallback((v: number) => updateOverride('waqfCorpusPrevious', v), [updateOverride]);
+  const setManualVat = useCallback((v: number) => updateOverride('manualVat', v), [updateOverride]);
+  const setManualDistributions = useCallback((v: number) => updateOverride('manualDistributions', v), [updateOverride]);
+
+  // حفظ إعدادات الخادم (debounced)
   const saveSettingTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const updateSettingRef = useStableRef(appSettings.updateSetting.mutateAsync);
 
@@ -83,32 +106,31 @@ export function useAccountsSettings(params: SettingsParams) {
     }, 500);
   }, [updateSettingRef]);
 
-  const handleAdminPercentChange = (val: string) => {
+  const handleAdminPercentChange = useCallback((val: string) => {
     const num = parseFloat(val);
     if (!Number.isFinite(num) || num < 0 || num > 100) {
       uiNotify.error('نسبة الناظر يجب أن تكون رقماً بين 0 و 100');
       return;
     }
-    setAdminPercent(num);
+    updateOverride('adminPercent', num);
     saveSetting('admin_share_percentage', val);
-  };
+  }, [updateOverride, saveSetting]);
 
-  const handleWaqifPercentChange = (val: string) => {
+  const handleWaqifPercentChange = useCallback((val: string) => {
     const num = parseFloat(val);
     if (!Number.isFinite(num) || num < 0 || num > 100) {
       uiNotify.error('نسبة الواقف يجب أن تكون رقماً بين 0 و 100');
       return;
     }
-    setWaqifPercent(num);
+    updateOverride('waqifPercent', num);
     saveSetting('waqif_share_percentage', val);
-  };
+  }, [updateOverride, saveSetting]);
 
-  const handleFiscalYearChange = (val: string) => {
-    setFiscalYear(val);
+  const handleFiscalYearChange = useCallback((val: string) => {
+    updateOverride('fiscalYear', val);
     saveSetting('fiscal_year', val);
-  };
+  }, [updateOverride, saveSetting]);
 
-  const currentAccount = findAccountByFY(params.accounts, params.selectedFY);
   const adminPctSetting = appSettings.data?.['admin_share_percentage'];
   const waqifPctSetting = appSettings.data?.['waqif_share_percentage'];
   const usingFallbackPct =
@@ -116,9 +138,23 @@ export function useAccountsSettings(params: SettingsParams) {
     waqifPctSetting === null || waqifPctSetting === undefined;
 
   return {
-    adminPercent, waqifPercent, zakatAmount, waqfCorpusManual, waqfCorpusPrevious,
-    manualVat, manualDistributions, fiscalYear, usingFallbackPct, currentAccount,
-    setWaqfCorpusPrevious, setManualVat, setZakatAmount, setWaqfCorpusManual, setManualDistributions,
-    handleAdminPercentChange, handleWaqifPercentChange, handleFiscalYearChange,
+    adminPercent: resolved.adminPercent,
+    waqifPercent: resolved.waqifPercent,
+    zakatAmount: resolved.zakatAmount,
+    waqfCorpusManual: resolved.waqfCorpusManual,
+    waqfCorpusPrevious: resolved.waqfCorpusPrevious,
+    manualVat: resolved.manualVat,
+    manualDistributions: resolved.manualDistributions,
+    fiscalYear: resolved.fiscalYear,
+    usingFallbackPct,
+    currentAccount,
+    setWaqfCorpusPrevious,
+    setManualVat,
+    setZakatAmount,
+    setWaqfCorpusManual,
+    setManualDistributions,
+    handleAdminPercentChange,
+    handleWaqifPercentChange,
+    handleFiscalYearChange,
   };
 }
