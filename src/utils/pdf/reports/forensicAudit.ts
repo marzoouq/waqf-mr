@@ -6,47 +6,19 @@ import {
 } from '../core/core';
 import { getPdfThemeColors } from '../core/themeColors';
 import { getLastAutoTableY } from '../core/pdfHelpers';
+import {
+  buildStatusColors,
+  buildSeverityColors,
+  type ForensicAuditData,
+} from './forensicAuditTypes';
+import { renderForensicSignature } from './forensicAuditSignature';
 
-export interface ForensicAuditCategory {
-  category: string;
-  status: 'سليم' | 'مُصحح' | 'ملاحظة';
-  details: string;
-  score: string;
-}
-
-export interface ForensicSecurityFinding {
-  finding: string;
-  severity: 'خطأ' | 'تحذير' | 'معلومة';
-  status: 'مُعالج' | 'مُتجاهل' | 'معلق';
-  notes: string;
-}
-
-export interface ForensicAuditData {
-  auditDate: string;
-  auditorName: string;
-  overallScore: number;
-  totalFiles: number;
-  issuesFound: number;
-  issuesFixed: number;
-  categories: ForensicAuditCategory[];
-  securityFindings: ForensicSecurityFinding[];
-}
-
-// خرائط ألوان الحالة — تُولَّد ديناميكياً من الثيم النشط
-const buildStatusColors = (theme: ReturnType<typeof getPdfThemeColors>): Record<string, [number, number, number]> => ({
-  'سليم': theme.primary,
-  'مُصحح': theme.secondary,
-  'ملاحظة': theme.destructive,
-  'مُعالج': theme.primary,
-  'مُتجاهل': [100, 100, 100],
-  'معلق': theme.destructive,
-});
-
-const buildSeverityColors = (theme: ReturnType<typeof getPdfThemeColors>): Record<string, [number, number, number]> => ({
-  'خطأ': theme.destructive,
-  'تحذير': theme.secondary,
-  'معلومة': [59, 130, 246],
-});
+// Re-export public types for backward compatibility
+export type {
+  ForensicAuditCategory,
+  ForensicSecurityFinding,
+  ForensicAuditData,
+} from './forensicAuditTypes';
 
 export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo?: PdfWaqfInfo) => {
   const { default: autoTable } = await import('jspdf-autotable');
@@ -185,54 +157,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   y = getLastAutoTableY(doc, y + 40) + 12;
 
   // ─── Digital Signature Section ───
-  if (y > 230) {
-    doc.addPage();
-    y = 25;
-  }
-
-  // Signature box
-  const boxH = 42;
-  doc.setDrawColor(...themeColors.primary);
-  doc.setLineWidth(1);
-  doc.roundedRect(margin, y, pageW - 2 * margin, boxH, 3, 3, 'S');
-
-  // Inner dashed line
-  doc.setDrawColor(...themeColors.secondary);
-  doc.setLineWidth(0.3);
-  doc.setLineDashPattern([2, 2], 0);
-  doc.roundedRect(margin + 2, y + 2, pageW - 2 * margin - 4, boxH - 4, 2, 2, 'S');
-  doc.setLineDashPattern([], 0);
-
-  doc.setFont(font, 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(...themeColors.primary);
-  doc.text(rs('التوقيع الرقمي والاعتماد'), pageW / 2, y + 8, { align: 'center' });
-
-  doc.setFont(font, 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(60, 60, 60);
-  doc.text(rs(`أُعد بواسطة: نظام إدارة الوقف — الفحص الجنائي الآلي`), pageW - margin - 6, y + 16, { align: 'right' });
-  doc.text(rs(`اعتمده: ${data.auditorName}`), pageW - margin - 6, y + 23, { align: 'right' });
-  doc.text(rs(`التاريخ: ${data.auditDate}`), pageW - margin - 6, y + 30, { align: 'right' });
-
-  // Circular "مُعتمد" stamp
-  const stampX = margin + 25;
-  const stampY = y + 22;
-  const stampR = 11;
-
-  doc.setDrawColor(...themeColors.primary);
-  doc.setLineWidth(1.5);
-  doc.circle(stampX, stampY, stampR, 'S');
-  doc.setLineWidth(0.5);
-  doc.circle(stampX, stampY, stampR - 2, 'S');
-
-  doc.setFont(font, 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(...themeColors.primary);
-  doc.text(rs('مُعتمد'), stampX, stampY + 1, { align: 'center' });
-
-  doc.setFontSize(5);
-  doc.text('APPROVED', stampX, stampY + 5, { align: 'center' });
+  renderForensicSignature({ doc, font, y, pageW, margin, data });
 
   finalizePdf(doc, font, `تقرير-الفحص-الجنائي-${data.auditDate}.pdf`, waqfInfo);
 };

@@ -1,7 +1,9 @@
 /**
  * أدوات تصدير Excel (XLSX) باستخدام XML مباشر — بدون مكتبة خارجية
  * يدعم RTL والعربية مع أسماء أعمدة وصفوف بيانات
+ * بنية ZIP+CRC مستخرجة في `xlsxZip.ts`.
  */
+import { createZipBlob } from './xlsxZip';
 
 /** تحويل رقم عمود إلى حرف (0→A, 1→B, ..., 25→Z, 26→AA) */
 function colLetter(n: number): string {
@@ -88,7 +90,6 @@ ${dataRows}
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
 </Relationships>`;
 
-  // بناء ZIP يدوياً (بدون ضغط — Store فقط)
   return createZipBlob([
     { path: '[Content_Types].xml', content: contentTypes },
     { path: '_rels/.rels', content: relsXml },
@@ -106,100 +107,4 @@ export function downloadXlsx(blob: Blob, filename: string) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
-}
-
-// ─── بناء ZIP بسيط (Store — بدون ضغط) ───
-
-interface ZipEntry { path: string; content: string; }
-
-function createZipBlob(entries: ZipEntry[]): Blob {
-  const encoder = new TextEncoder();
-  const parts: Uint8Array[] = [];
-  const centralDir: Uint8Array[] = [];
-  let offset = 0;
-
-  for (const entry of entries) {
-    const nameBytes = encoder.encode(entry.path);
-    const dataBytes = encoder.encode(entry.content);
-
-    // Local file header
-    const localHeader = new Uint8Array(30 + nameBytes.length);
-    const lv = new DataView(localHeader.buffer);
-    lv.setUint32(0, 0x04034b50, true); // signature
-    lv.setUint16(4, 20, true); // version needed
-    lv.setUint16(6, 0, true); // flags
-    lv.setUint16(8, 0, true); // compression (store)
-    lv.setUint16(10, 0, true); // mod time
-    lv.setUint16(12, 0, true); // mod date
-    lv.setUint32(14, crc32(dataBytes), true); // crc
-    lv.setUint32(18, dataBytes.length, true); // compressed
-    lv.setUint32(22, dataBytes.length, true); // uncompressed
-    lv.setUint16(26, nameBytes.length, true); // name length
-    lv.setUint16(28, 0, true); // extra length
-    localHeader.set(nameBytes, 30);
-
-    parts.push(localHeader, dataBytes);
-
-    // Central directory entry
-    const cdEntry = new Uint8Array(46 + nameBytes.length);
-    const cv = new DataView(cdEntry.buffer);
-    cv.setUint32(0, 0x02014b50, true); // signature
-    cv.setUint16(4, 20, true); // version made by
-    cv.setUint16(6, 20, true); // version needed
-    cv.setUint16(8, 0, true); // flags
-    cv.setUint16(10, 0, true); // compression
-    cv.setUint16(12, 0, true); // mod time
-    cv.setUint16(14, 0, true); // mod date
-    cv.setUint32(16, crc32(dataBytes), true); // crc
-    cv.setUint32(20, dataBytes.length, true); // compressed
-    cv.setUint32(24, dataBytes.length, true); // uncompressed
-    cv.setUint16(28, nameBytes.length, true); // name length
-    cv.setUint16(30, 0, true); // extra length
-    cv.setUint16(32, 0, true); // comment length
-    cv.setUint16(34, 0, true); // disk start
-    cv.setUint16(36, 0, true); // internal attrs
-    cv.setUint32(38, 0, true); // external attrs
-    cv.setUint32(42, offset, true); // local header offset
-    cdEntry.set(nameBytes, 46);
-
-    centralDir.push(cdEntry);
-    offset += localHeader.length + dataBytes.length;
-  }
-
-  const cdOffset = offset;
-  let cdSize = 0;
-  for (const cd of centralDir) cdSize += cd.length;
-
-  // End of central directory
-  const eocd = new Uint8Array(22);
-  const ev = new DataView(eocd.buffer);
-  ev.setUint32(0, 0x06054b50, true);
-  ev.setUint16(4, 0, true); // disk number
-  ev.setUint16(6, 0, true); // cd disk
-  ev.setUint16(8, entries.length, true); // entries on disk
-  ev.setUint16(10, entries.length, true); // total entries
-  ev.setUint32(12, cdSize, true); // cd size
-  ev.setUint32(16, cdOffset, true); // cd offset
-  ev.setUint16(20, 0, true); // comment length
-
-  const allParts: ArrayBuffer[] = [];
-  for (const p of parts) allParts.push(p.buffer as ArrayBuffer);
-  for (const cd of centralDir) allParts.push(cd.buffer as ArrayBuffer);
-  allParts.push(eocd.buffer as ArrayBuffer);
-
-  return new Blob(allParts, {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-}
-
-/** CRC-32 حساب */
-function crc32(data: Uint8Array): number {
-  let crc = 0xFFFFFFFF;
-  for (let i = 0; i < data.length; i++) {
-    crc ^= data[i] ?? 0;
-    for (let j = 0; j < 8; j++) {
-      crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
-    }
-  }
-  return (crc ^ 0xFFFFFFFF) >>> 0;
 }
