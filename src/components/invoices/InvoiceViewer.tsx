@@ -22,11 +22,11 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
   const isPdf = fileName && /\.pdf$/i.test(fileName);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- إدارة blob URL lifecycle مع async fetch + cleanup */
     if (!open || !filePath) {
       if (blobUrlRef.current) {
         URL.revokeObjectURL(blobUrlRef.current);
         blobUrlRef.current = null;
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- clear preview URL when dialog closes or file removed
         setBlobUrl(null);
       }
       return;
@@ -65,6 +65,7 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
         blobUrlRef.current = null;
       }
     };
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [open, filePath]);
 
   const handleDownload = () => {

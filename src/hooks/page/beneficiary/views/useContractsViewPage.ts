@@ -62,6 +62,7 @@ export const useContractsViewPage = () => {
     return contracts.slice(start, start + ITEMS_PER_PAGE);
   }, [contracts, currentPage]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset pagination عند تغيّر السنة المالية
   useEffect(() => { setCurrentPage(1); }, [fiscalYearId]);
 
   const handleExportPdf = useCallback(async () => {

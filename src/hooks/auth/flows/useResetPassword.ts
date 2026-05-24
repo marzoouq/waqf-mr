@@ -17,6 +17,7 @@ export function useResetPassword() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- اكتشاف recovery flow من URL + auth event عند mount */
     // الاستماع لحدث PASSWORD_RECOVERY من Supabase
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
@@ -37,6 +38,7 @@ export function useResetPassword() {
     }
 
     return () => subscription.unsubscribe();
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
