@@ -23,7 +23,8 @@ export const useIdleTimeout = ({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const lastActivityRef = useRef(Date.now());
+  // lazy init: 0 يعني "غير مُهيّأ" — يُملأ في mount effect
+  const lastActivityRef = useRef<number>(0);
   const firedRef = useRef(false);
   const onIdleRef = useRef(onIdle);
   useEffect(() => { onIdleRef.current = onIdle; }, [onIdle]);
@@ -34,10 +35,16 @@ export const useIdleTimeout = ({
     if (countdownRef.current) clearInterval(countdownRef.current);
   }, []);
 
-  const resetTimer = useCallback(() => {
+  /**
+   * يجدّد جدولة المؤقتات. خيار `hideWarning` يفصل "إخفاء التحذير" عن
+   * "جدولة المؤقتات" — لتفادي setState داخل mount effect حين لا حاجة لها.
+   */
+  const resetTimer = useCallback((options?: { hideWarning?: boolean }) => {
     lastActivityRef.current = Date.now();
     firedRef.current = false;
-    setShowWarning(false);
+    if (options?.hideWarning !== false) {
+      setShowWarning(false);
+    }
     clearTimers();
 
     // Prevent negative/zero warning delay when timeout ≤ warningBefore
@@ -72,7 +79,8 @@ export const useIdleTimeout = ({
   }, [resetTimer]);
 
   useEffect(() => {
-    resetTimer();
+    // mount: جدولة فقط — لا setShowWarning لأنه أصلاً false
+    resetTimer({ hideWarning: false });
 
     const handler = () => resetTimer();
     for (const event of IDLE_EVENTS) {
