@@ -149,7 +149,7 @@ describe('checks — المتصفح والأداء', () => {
   it('checkPagePerformance يكشف الصفحات البطيئة', async () => {
     const { getPagePerfSummaries } = await import('@/lib/monitoring');
     vi.mocked(getPagePerfSummaries).mockReturnValueOnce([
-      { path: '/slow', label: 'بطيئة', avgMs: 3000, count: 5, maxMs: 3500, minMs: 2500, lastMs: 3000 },
+      { path: '/slow', label: 'بطيئة', avgMs: 4500, count: 5, maxMs: 5000, minMs: 4000, lastMs: 4500 },
     ]);
     const { checkPagePerformance } = await import('./checks');
     const result = await checkPagePerformance();

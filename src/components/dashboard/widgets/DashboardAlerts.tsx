@@ -12,12 +12,13 @@ interface DashboardAlertsProps {
   pendingAdvancesCount?: number;
   collectionRate?: number;
   expenseRatio?: number;
-  /** دور المستخدم الحالي — يُستخدم لتخصيص رسائل التنبيه */
-  role?: string | null;
+  /** يمكن للمستخدم الحالي الموافقة على السُلف (الناظر فقط) */
+  canApproveAdvances?: boolean;
+  /** يمكن للمستخدم الحالي ضبط النسب الافتراضية (الناظر فقط) */
+  canConfigureRatios?: boolean;
 }
 
-const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedContractsCount, pendingAdvancesCount = 0, collectionRate, expenseRatio = 0, role }: DashboardAlertsProps) => {
-  const isAdmin = role === 'admin';
+const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedContractsCount, pendingAdvancesCount = 0, collectionRate, expenseRatio = 0, canApproveAdvances = false, canConfigureRatios = false }: DashboardAlertsProps) => {
 
   return (
     <>
@@ -73,7 +74,7 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
           <AlertTitle>سُلف بانتظار الموافقة</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span>يوجد {pendingAdvancesCount} طلب سُلفة معلق بانتظار المراجعة والموافقة.</span>
-            {isAdmin ? (
+            {canApproveAdvances ? (
               <Link to="/dashboard/accounts">
                 <Button variant="outline" size="sm" className="shrink-0">مراجعة الطلبات</Button>
               </Link>
@@ -105,7 +106,7 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
           <AlertTitle>نسب افتراضية مُستخدمة</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span>يتم استخدام النسب الافتراضية (ناظر 10%، واقف 5%) لأنه لم يتم إعدادها في الحسابات الختامية.</span>
-            {isAdmin ? (
+            {canConfigureRatios ? (
               <Link to="/dashboard/accounts">
                 <Button variant="outline" size="sm" className="shrink-0">ضبط النسب</Button>
               </Link>
