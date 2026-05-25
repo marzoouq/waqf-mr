@@ -39,7 +39,7 @@ export const defaultMenuLabels: MenuLabels = {
   users: 'إدارة المستخدمين',
   settings: 'الإعدادات',
   messages: 'المراسلات',
-  invoices: 'فواتير العقود',
+  invoices: 'الفواتير الضريبية',
   audit_log: 'سجل المراجعة',
   bylaws: 'اللائحة التنظيمية',
   beneficiary_view: 'معاينة بوابة المستفيد',
