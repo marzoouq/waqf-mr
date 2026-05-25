@@ -46,7 +46,7 @@ export const allAdminLinks = [
   { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
   { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
   { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
-  { to: '/dashboard/invoices', icon: ReceiptText, label: 'فواتير العقود' },
+  { to: '/dashboard/invoices', icon: ReceiptText, label: 'الفواتير الضريبية' },
   { to: '/dashboard/audit-log', icon: ShieldCheck, label: 'سجل المراجعة' },
   { to: '/dashboard/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/dashboard/zatca', icon: Lock, label: 'تكامل ZATCA' },
