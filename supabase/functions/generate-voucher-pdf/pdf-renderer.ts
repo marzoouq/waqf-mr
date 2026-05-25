@@ -73,14 +73,28 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
   const muted = rgb(0.45, 0.45, 0.5);
   const accent = rgb(0.15, 0.35, 0.6);
 
+  // helper: تنظيف نص من أي محرف لا يدعمه الخط (يسبب NaN عند قياس العرض)
+  const sanitize = (s: string) => (s || "").replace(/[\u0000-\u001F\u007F\uFFF0-\uFFFF]/g, "");
+  const safeWidth = (font: typeof regular, text: string, size: number): number => {
+    try {
+      const w = font.widthOfTextAtSize(text, size);
+      return Number.isFinite(w) ? w : text.length * size * 0.5;
+    } catch {
+      return text.length * size * 0.5;
+    }
+  };
+
   // helper: نص عربي RTL محاذي يميناً
   const drawAr = (text: string, x: number, y: number, size: number, font = regular, color = ink) => {
-    const reshaped = processArabicText(text || "");
-    const w = font.widthOfTextAtSize(reshaped, size);
+    const reshaped = sanitize(processArabicText(sanitize(text)));
+    if (!reshaped) return;
+    const w = safeWidth(font, reshaped, size);
     page.drawText(reshaped, { x: x - w, y, size, font, color });
   };
   const drawArLeft = (text: string, x: number, y: number, size: number, font = regular, color = ink) => {
-    page.drawText(processArabicText(text || ""), { x, y, size, font, color });
+    const reshaped = sanitize(processArabicText(sanitize(text)));
+    if (!reshaped) return;
+    page.drawText(reshaped, { x, y, size, font, color });
   };
 
   // العنوان
