@@ -2401,6 +2401,10 @@ export type Database = {
       }
       reorder_bylaws: { Args: { items: Json }; Returns: undefined }
       reserve_icv: { Args: never; Returns: Json }
+      sync_property_contract_invoice_vat: {
+        Args: { p_property_id: string }
+        Returns: Json
+      }
       unpay_invoice_and_revert_collection: {
         Args: { p_invoice_id: string }
         Returns: Json

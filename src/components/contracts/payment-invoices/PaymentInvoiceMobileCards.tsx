@@ -53,7 +53,7 @@ export default function PaymentInvoiceMobileCards({
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div><span className="text-muted-foreground text-xs">تاريخ الاستحقاق</span><p className="font-medium">{inv.due_date}</p></div>
                     <div><span className="text-muted-foreground text-xs">المبلغ</span><p className="font-medium">{fmt(Number(inv.amount))} ر.س</p></div>
-                    {Number(inv.vat_amount) > 0 && <div><span className="text-muted-foreground text-xs">الضريبة</span><p className="font-medium">{fmt(Number(inv.vat_amount))} ر.س</p></div>}
+                    <div><span className="text-muted-foreground text-xs">الضريبة</span><p className="font-medium">{Number(inv.vat_amount) > 0 ? `${fmt(Number(inv.vat_amount))} ر.س (${inv.vat_rate}%)` : 'معفاة'}</p></div>
                     {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
                   </div>
                   <div className="flex gap-2">

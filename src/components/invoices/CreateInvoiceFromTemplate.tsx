@@ -8,6 +8,7 @@ import { FileText, Eye, Save } from 'lucide-react';
 import type { Contract } from '@/types';
 import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector } from './InvoiceTemplates';
 import { useCreateInvoiceForm, INVOICE_TYPES } from '@/hooks/page/admin/financial/useCreateInvoiceForm';
+import { useSetting } from '@/hooks/data/settings/useAppSettings';
 import InvoiceFormFields from './create-invoice/InvoiceFormFields';
 import InvoiceItemsTable from './create-invoice/InvoiceItemsTable';
 
@@ -43,6 +44,8 @@ interface CreateInvoiceFromTemplateProps {
 export default function CreateInvoiceFromTemplate({
   open, onOpenChange, contracts, properties, sellerInfo, onSave, isSaving,
 }: CreateInvoiceFromTemplateProps) {
+  const defaultVatRateStr = useSetting('default_vat_rate', '15');
+  const defaultVatRate = Number(defaultVatRateStr) || 0;
   const {
     activeTab, setActiveTab,
     invoiceNumber, setInvoiceNumber,
@@ -62,7 +65,7 @@ export default function CreateInvoiceFromTemplate({
     isStandard, missingFields, buyerAddress,
     handleSave,
     contractId,
-  } = useCreateInvoiceForm({ contracts, onSave });
+  } = useCreateInvoiceForm({ contracts, onSave, defaultVatRate });
 
   const allMissingFields = [...missingFields];
   if (!sellerInfo.vatNumber) allMissingFields.push('الرقم الضريبي للبائع');

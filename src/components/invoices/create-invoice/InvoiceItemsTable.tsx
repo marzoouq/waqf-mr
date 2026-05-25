@@ -142,10 +142,10 @@ export default function InvoiceItemsTable({
         <div className="flex items-center justify-between">
           <Label className="text-sm font-semibold">خصومات / رسوم إضافية</Label>
           <div className="flex gap-1">
-            <Button type="button" variant="outline" size="sm" className="gap-1 text-xs" onClick={() => setAllowances(prev => [...prev, { reason: '', amount: 0, vatRate: 15 }])}>
+            <Button type="button" variant="outline" size="sm" className="gap-1 text-xs" onClick={() => setAllowances(prev => [...prev, { reason: '', amount: 0, vatRate: computedItems[0]?.vatRate ?? 0 }])}>
               <Plus className="w-3 h-3" />خصم
             </Button>
-            <Button type="button" variant="outline" size="sm" className="gap-1 text-xs" onClick={() => setCharges(prev => [...prev, { reason: '', amount: 0, vatRate: 15 }])}>
+            <Button type="button" variant="outline" size="sm" className="gap-1 text-xs" onClick={() => setCharges(prev => [...prev, { reason: '', amount: 0, vatRate: computedItems[0]?.vatRate ?? 0 }])}>
               <Plus className="w-3 h-3" />رسوم
             </Button>
           </div>
