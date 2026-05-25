@@ -9,6 +9,9 @@ const FONT_BASE_URL = `${Deno.env.get("SUPABASE_URL")!}/storage/v1/object/public
 
 let cachedFonts: { regular: Uint8Array; bold: Uint8Array } | null = null;
 
+type FontWeight = "normal" | "bold";
+type Rgb = [number, number, number];
+
 const PAYMENT_AR: Record<string, string> = {
   cash: "نقدي",
   bank_transfer: "تحويل بنكي",
@@ -96,20 +99,16 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
   };
 
   // العنوان
-  drawAr("سند صرف داخلي", width - 40, height - 60, 22, bold, accent);
-  drawAr(`رقم: ${v.voucher_number}`, width - 40, height - 85, 12, regular, muted);
-  drawAr(`التاريخ: ${fmtDate(v.approved_at || v.created_at)}`, width - 40, height - 102, 12, regular, muted);
+  drawAr("سند صرف داخلي", width - 40, height - 60, 22, "bold", accent);
+  drawAr(`رقم: ${v.voucher_number}`, width - 40, height - 85, 12, "normal", muted);
+  drawAr(`التاريخ: ${fmtDate(v.approved_at || v.created_at)}`, width - 40, height - 102, 12, "normal", muted);
 
   // خط فاصل
-  page.drawLine({
-    start: { x: 40, y: height - 115 },
-    end: { x: width - 40, y: height - 115 },
-    thickness: 1, color: accent,
-  });
+  drawLine(doc, 40, height - 115, width - 40, height - 115, accent, 1);
 
   // بيانات المستلم
   let y = height - 145;
-  drawAr("بيانات المستلم", width - 40, y, 14, bold);
+  drawAr("بيانات المستلم", width - 40, y, 14, "bold");
   y -= 22;
   drawAr(`الاسم: ${v.recipient_name}`, width - 40, y, 11);
   y -= 18;
@@ -124,9 +123,9 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
 
   // بيانات الصرف
   y -= 15;
-  drawAr("بيانات الصرف", width - 40, y, 14, bold);
+  drawAr("بيانات الصرف", width - 40, y, 14, "bold");
   y -= 22;
-  drawAr(`المبلغ: ${fmtAmount(v.amount)} ر.س`, width - 40, y, 13, bold);
+  drawAr(`المبلغ: ${fmtAmount(v.amount)} ر.س`, width - 40, y, 13, "bold");
   y -= 18;
   drawAr(`طريقة الدفع: ${PAYMENT_AR[v.payment_method] || v.payment_method}`, width - 40, y, 11);
   y -= 18;
@@ -137,7 +136,7 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
 
   // الأعمال المنفذة
   y -= 15;
-  drawAr("الأعمال المنفذة", width - 40, y, 14, bold);
+  drawAr("الأعمال المنفذة", width - 40, y, 14, "bold");
   y -= 22;
   const lines = wrapArabic(v.work_description, 70);
   for (const line of lines) {
