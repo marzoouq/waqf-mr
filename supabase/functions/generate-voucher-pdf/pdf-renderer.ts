@@ -147,31 +147,28 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
 
   // التوقيع (إن وُجد)
   y = 200;
-  drawAr("توقيع المستلم:", width - 40, y, 11, bold);
+  drawAr("توقيع المستلم:", width - 40, y, 11, "bold");
   if (v.signature_data?.startsWith("data:image/")) {
     try {
       const b64 = v.signature_data.split(",")[1];
-      const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-      const img = v.signature_data.includes("image/png")
-        ? await pdf.embedPng(bytes)
-        : await pdf.embedJpg(bytes);
-      const dims = img.scale(0.3);
-      page.drawImage(img, { x: width - 200, y: y - 60, width: Math.min(dims.width, 160), height: Math.min(dims.height, 50) });
+      const imageType = v.signature_data.includes("image/png") ? "PNG" : "JPEG";
+      doc.addImage(b64, imageType, width - 200, y - 60, 160, 50, undefined, "FAST");
     } catch { /* skip on error */ }
   }
-  page.drawLine({ start: { x: width - 220, y: y - 70 }, end: { x: width - 40, y: y - 70 }, thickness: 0.5, color: muted });
+  drawLine(doc, width - 220, y - 70, width - 40, y - 70, muted, 0.5);
 
-  drawAr("اعتماد الناظر:", 200, y, 11, bold);
-  page.drawLine({ start: { x: 40, y: y - 70 }, end: { x: 220, y: y - 70 }, thickness: 0.5, color: muted });
+  drawAr("اعتماد الناظر:", 200, y, 11, "bold");
+  drawLine(doc, 40, y - 70, 220, y - 70, muted, 0.5);
 
   // تذييل قانوني إلزامي
-  page.drawRectangle({ x: 40, y: 40, width: width - 80, height: 36, color: rgb(0.97, 0.95, 0.88) });
+  setFill(doc, [247, 242, 224]);
+  doc.rect(40, 40, width - 80, 36, "F");
   drawAr(
     "سند صرف داخلي — ليس فاتورة ضريبية ولا يصلح لاسترداد ضريبة القيمة المضافة",
-    width - 50, 55, 10, bold, rgb(0.55, 0.35, 0.05)
+    width - 50, 62, 10, "bold", [140, 89, 13]
   );
 
-  return pdf.save();
+  return new Uint8Array(doc.output("arraybuffer"));
 }
 
 function wrapArabic(text: string, maxChars: number): string[] {
