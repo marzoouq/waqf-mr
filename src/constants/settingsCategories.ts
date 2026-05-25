@@ -5,7 +5,7 @@
 import {
   Building2, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar,
   Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText,
-  MessageSquare, ServerCog, type LucideIcon,
+  MessageSquare, ServerCog, Eye, type LucideIcon,
 } from 'lucide-react';
 
 export interface SettingsTab {
