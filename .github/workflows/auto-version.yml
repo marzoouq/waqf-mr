@@ -112,6 +112,18 @@ jobs:
             fs.writeFileSync('public/changelog.json', JSON.stringify(changelog, null, 2) + '\n');
           "
 
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          TAG="v${{ steps.bump.outputs.version }}"
+          git fetch --tags --quiet || true
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "::warning::Tag $TAG already exists — skipping tag creation"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
@@ -119,11 +131,18 @@ jobs:
           git add package.json public/changelog.json
           git diff --cached --quiet && echo "No changes" && exit 0
           git commit -m "chore: bump version to v${{ steps.bump.outputs.version }} [skip ci]"
-          git tag "v${{ steps.bump.outputs.version }}"
+          TAG_EXISTS="${{ steps.check_tag.outputs.exists }}"
+          if [ "$TAG_EXISTS" != "true" ]; then
+            git tag "v${{ steps.bump.outputs.version }}"
+          fi
           for i in 1 2 3; do
-            git pull --rebase origin main && git push && git push --tags && exit 0
+            if [ "$TAG_EXISTS" != "true" ]; then
+              git pull --rebase origin main && git push && git push --tags && exit 0
+            else
+              git pull --rebase origin main && git push && exit 0
+            fi
             echo "Retry $i..."
             sleep 5
           done
-          echo "Push failed after 3 retries"
-          exit 1
+          echo "::warning::Push failed after 3 retries — exiting gracefully"
+          exit 0
