@@ -2,13 +2,14 @@
 // pdf-renderer.ts — توليد PDF لسند صرف داخلي بالعربية (Amiri RTL)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { PDFDocument, rgb } from "npm:pdf-lib@1.17.1";
-import fontkit from "npm:@pdf-lib/fontkit@1.1.1";
-import { processArabicText } from "../_shared/arabic-reshaper.ts";
+import { jsPDF } from "npm:jspdf@3.0.4";
 
 const FONT_BASE_URL = `${Deno.env.get("SUPABASE_URL")!}/storage/v1/object/public/waqf-assets/fonts`;
 
 let cachedFonts: { regular: Uint8Array; bold: Uint8Array } | null = null;
+
+type FontWeight = "normal" | "bold";
+type Rgb = [number, number, number];
 
 const PAYMENT_AR: Record<string, string> = {
   cash: "نقدي",
@@ -63,18 +64,40 @@ function fmtDate(iso: string | null): string {
   return `${day}/${m}/${y}`;
 }
 
+function toBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i] ?? 0);
+  return btoa(binary);
+}
+
+function setColor(doc: jsPDF, color: Rgb): void {
+  doc.setTextColor(color[0], color[1], color[2]);
+}
+
+function setFill(doc: jsPDF, color: Rgb): void {
+  doc.setFillColor(color[0], color[1], color[2]);
+}
+
+function drawLine(doc: jsPDF, pageHeight: number, x1: number, y1: number, x2: number, y2: number, color: Rgb, width: number): void {
+  doc.setDrawColor(color[0], color[1], color[2]);
+  doc.setLineWidth(width);
+  doc.line(x1, pageHeight - y1, x2, pageHeight - y2);
+}
+
 export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
   const fonts = await getFonts();
-  const pdf = await PDFDocument.create();
-  pdf.registerFontkit(fontkit);
-  const regular = await pdf.embedFont(fonts.regular, { subset: true });
-  const bold = await pdf.embedFont(fonts.bold, { subset: true });
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  doc.addFileToVFS("Amiri-Regular.ttf", toBase64(fonts.regular));
+  doc.addFont("Amiri-Regular.ttf", "Amiri", "normal", "Identity-H");
+  doc.addFileToVFS("Amiri-Bold.ttf", toBase64(fonts.bold));
+  doc.addFont("Amiri-Bold.ttf", "Amiri", "bold", "Identity-H");
+  doc.setLanguage("ar");
 
-  const page = pdf.addPage([595, 842]); // A4
-  const { width, height } = page;
-  const ink = rgb(0.07, 0.07, 0.1);
-  const muted = rgb(0.45, 0.45, 0.5);
-  const accent = rgb(0.15, 0.35, 0.6);
+  const width = doc.internal.pageSize.getWidth();
+  const height = doc.internal.pageSize.getHeight();
+  const ink: Rgb = [18, 18, 26];
+  const muted: Rgb = [115, 115, 128];
+  const accent: Rgb = [38, 89, 153];
 
   // helper: تنظيف نص من أي محرف لا يدعمه الخط (يسبب NaN عند قياس العرض)
   // نُبقي فقط ASCII المطبوع + كتلة العربية + أشكال العرض العربية + المسافات
@@ -84,43 +107,27 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/[^\x20-\x7E\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF\s]/g, "");
-  const safeWidth = (font: typeof regular, text: string, size: number): number => {
-    try {
-      const w = font.widthOfTextAtSize(text, size);
-      return Number.isFinite(w) ? w : text.length * size * 0.5;
-    } catch {
-      return text.length * size * 0.5;
-    }
-  };
-
   // helper: نص عربي RTL محاذي يميناً
-  const drawAr = (text: string, x: number, y: number, size: number, font = regular, color = ink) => {
-    const reshaped = sanitize(processArabicText(sanitize(text)));
+  const drawAr = (text: string, x: number, y: number, size: number, weight: FontWeight = "normal", color = ink) => {
+    const reshaped = sanitize(text);
     if (!reshaped) return;
-    const w = safeWidth(font, reshaped, size);
-    page.drawText(reshaped, { x: x - w, y, size, font, color });
-  };
-  const drawArLeft = (text: string, x: number, y: number, size: number, font = regular, color = ink) => {
-    const reshaped = sanitize(processArabicText(sanitize(text)));
-    if (!reshaped) return;
-    page.drawText(reshaped, { x, y, size, font, color });
+    doc.setFont("Amiri", weight);
+    doc.setFontSize(size);
+    setColor(doc, color);
+    doc.text(reshaped, x, height - y, { align: "right", isInputVisual: true });
   };
 
   // العنوان
-  drawAr("سند صرف داخلي", width - 40, height - 60, 22, bold, accent);
-  drawAr(`رقم: ${v.voucher_number}`, width - 40, height - 85, 12, regular, muted);
-  drawAr(`التاريخ: ${fmtDate(v.approved_at || v.created_at)}`, width - 40, height - 102, 12, regular, muted);
+  drawAr("سند صرف داخلي", width - 40, height - 60, 22, "bold", accent);
+  drawAr(`رقم: ${v.voucher_number}`, width - 40, height - 85, 12, "normal", muted);
+  drawAr(`التاريخ: ${fmtDate(v.approved_at || v.created_at)}`, width - 40, height - 102, 12, "normal", muted);
 
   // خط فاصل
-  page.drawLine({
-    start: { x: 40, y: height - 115 },
-    end: { x: width - 40, y: height - 115 },
-    thickness: 1, color: accent,
-  });
+  drawLine(doc, height, 40, height - 115, width - 40, height - 115, accent, 1);
 
   // بيانات المستلم
   let y = height - 145;
-  drawAr("بيانات المستلم", width - 40, y, 14, bold);
+  drawAr("بيانات المستلم", width - 40, y, 14, "bold");
   y -= 22;
   drawAr(`الاسم: ${v.recipient_name}`, width - 40, y, 11);
   y -= 18;
@@ -135,9 +142,9 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
 
   // بيانات الصرف
   y -= 15;
-  drawAr("بيانات الصرف", width - 40, y, 14, bold);
+  drawAr("بيانات الصرف", width - 40, y, 14, "bold");
   y -= 22;
-  drawAr(`المبلغ: ${fmtAmount(v.amount)} ر.س`, width - 40, y, 13, bold);
+  drawAr(`المبلغ: ${fmtAmount(v.amount)} ر.س`, width - 40, y, 13, "bold");
   y -= 18;
   drawAr(`طريقة الدفع: ${PAYMENT_AR[v.payment_method] || v.payment_method}`, width - 40, y, 11);
   y -= 18;
@@ -148,7 +155,7 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
 
   // الأعمال المنفذة
   y -= 15;
-  drawAr("الأعمال المنفذة", width - 40, y, 14, bold);
+  drawAr("الأعمال المنفذة", width - 40, y, 14, "bold");
   y -= 22;
   const lines = wrapArabic(v.work_description, 70);
   for (const line of lines) {
@@ -159,31 +166,28 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
 
   // التوقيع (إن وُجد)
   y = 200;
-  drawAr("توقيع المستلم:", width - 40, y, 11, bold);
+  drawAr("توقيع المستلم:", width - 40, y, 11, "bold");
   if (v.signature_data?.startsWith("data:image/")) {
     try {
       const b64 = v.signature_data.split(",")[1];
-      const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-      const img = v.signature_data.includes("image/png")
-        ? await pdf.embedPng(bytes)
-        : await pdf.embedJpg(bytes);
-      const dims = img.scale(0.3);
-      page.drawImage(img, { x: width - 200, y: y - 60, width: Math.min(dims.width, 160), height: Math.min(dims.height, 50) });
+      const imageType = v.signature_data.includes("image/png") ? "PNG" : "JPEG";
+      doc.addImage(b64, imageType, width - 200, height - (y - 60) - 50, 160, 50, undefined, "FAST");
     } catch { /* skip on error */ }
   }
-  page.drawLine({ start: { x: width - 220, y: y - 70 }, end: { x: width - 40, y: y - 70 }, thickness: 0.5, color: muted });
+  drawLine(doc, height, width - 220, y - 70, width - 40, y - 70, muted, 0.5);
 
-  drawAr("اعتماد الناظر:", 200, y, 11, bold);
-  page.drawLine({ start: { x: 40, y: y - 70 }, end: { x: 220, y: y - 70 }, thickness: 0.5, color: muted });
+  drawAr("اعتماد الناظر:", 200, y, 11, "bold");
+  drawLine(doc, height, 40, y - 70, 220, y - 70, muted, 0.5);
 
   // تذييل قانوني إلزامي
-  page.drawRectangle({ x: 40, y: 40, width: width - 80, height: 36, color: rgb(0.97, 0.95, 0.88) });
+  setFill(doc, [247, 242, 224]);
+  doc.rect(40, height - 40 - 36, width - 80, 36, "F");
   drawAr(
     "سند صرف داخلي — ليس فاتورة ضريبية ولا يصلح لاسترداد ضريبة القيمة المضافة",
-    width - 50, 55, 10, bold, rgb(0.55, 0.35, 0.05)
+    width - 50, 62, 10, "bold", [140, 89, 13]
   );
 
-  return pdf.save();
+  return new Uint8Array(doc.output("arraybuffer"));
 }
 
 function wrapArabic(text: string, maxChars: number): string[] {
