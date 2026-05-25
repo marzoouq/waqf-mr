@@ -139,7 +139,10 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
           </div>
 
           <div>
-            <Label>توقيع المستلم *</Label>
+            <Label>توقيع المستلم (اختياري)</Label>
+            <p className="text-[11px] text-muted-foreground mb-2">
+              اتركه فارغاً إن لم يكن المستلم حاضراً — سيُخصَّص سطر للتوقيع اليدوي على النسخة المطبوعة.
+            </p>
             <SignaturePad value={form.signature_data}
               onChange={(d) => setForm((f) => ({ ...f, signature_data: d }))} />
           </div>
