@@ -8,6 +8,7 @@ import { BarChart3 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, ExportMenu, DashboardSkeleton, DeferredRender } from '@/components/common';
+import FeatureGate from '@/components/common/FeatureGate';
 import WaqifWelcomeCard from '@/components/waqif/WaqifWelcomeCard';
 import WaqifFinancialSection from '@/components/waqif/WaqifFinancialSection';
 import WaqifOverviewStats from '@/components/waqif/WaqifOverviewStats';
@@ -51,37 +52,43 @@ const WaqifDashboard = () => {
         <WaqifOverviewStats stats={overviewStats} />
 
         <DeferredRender delay={200}>
-          <WaqifFinancialSection
-            kpis={kpis}
-            fiscalYearLabel={fiscalYear?.label || ''}
-            totalIncome={totalIncome}
-            totalExpenses={totalExpenses}
-            availableAmount={availableAmount}
-            isFiscalYearActive={fiscalYear?.status === 'active'}
-            activeContractsCount={activeContracts.length}
-            expiredContractsCount={expiredContracts.length}
-            contractualRevenue={contractualRevenue}
-            collectionSummary={collectionSummary}
-          />
+          <FeatureGate scope="waqif" featureKey="financial_section">
+            <WaqifFinancialSection
+              kpis={kpis}
+              fiscalYearLabel={fiscalYear?.label || ''}
+              totalIncome={totalIncome}
+              totalExpenses={totalExpenses}
+              availableAmount={availableAmount}
+              isFiscalYearActive={fiscalYear?.status === 'active'}
+              activeContractsCount={activeContracts.length}
+              expiredContractsCount={expiredContracts.length}
+              contractualRevenue={contractualRevenue}
+              collectionSummary={collectionSummary}
+            />
+          </FeatureGate>
         </DeferredRender>
 
         <DeferredRender delay={400}>
-          {(monthlyData.length > 0 || expenseData.length > 0) && (
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><BarChart3 className="w-5 h-5" /> الرسوم البيانية</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Suspense fallback={<Skeleton className="h-[280px] w-full rounded-lg" />}>
-                  <LazyWaqifCharts monthlyData={monthlyData} expenseData={expenseData} />
-                </Suspense>
-              </CardContent>
-            </Card>
-          )}
+          <FeatureGate scope="waqif" featureKey="charts_section">
+            {(monthlyData.length > 0 || expenseData.length > 0) && (
+              <Card className="shadow-sm">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><BarChart3 className="w-5 h-5" /> الرسوم البيانية</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Suspense fallback={<Skeleton className="h-[280px] w-full rounded-lg" />}>
+                    <LazyWaqifCharts monthlyData={monthlyData} expenseData={expenseData} />
+                  </Suspense>
+                </CardContent>
+              </Card>
+            )}
+          </FeatureGate>
         </DeferredRender>
 
         <DeferredRender delay={600}>
-          <WaqifQuickLinks />
+          <FeatureGate scope="waqif" featureKey="quick_links">
+            <WaqifQuickLinks />
+          </FeatureGate>
         </DeferredRender>
       </div>
     </DashboardLayout>

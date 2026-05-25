@@ -63,26 +63,10 @@ export const ALLOWLIST_0029 = new Set([
   'get_active_zatca_certificate',
   'clear_zatca_otp',
 
-  // ── Trigger functions — لا تُستدعى عبر PostgREST، لكن DEFINER لازم لتعديل جداول محمية ──
-  'audit_app_settings_trigger',
-  'audit_trigger_func',
-  'auto_revoke_anon_execute',
-  'enforce_single_active_fy',
-  'encrypt_beneficiary_pii',
-  'encrypt_zatca_private_key',
-  'prevent_category_circular_ref',
-  'prevent_closed_fiscal_year_modification',
-  'prevent_fiscal_year_overlap',
-  'prevent_issued_invoice_modification',
-  'sync_role_to_auth_meta',
-  'sync_unit_status_on_contract_change',
-  'update_support_ticket_timestamp',
-  'validate_advance_request_amount',
-  'validate_advance_status_transition',
-  'validate_invoice_chain_ref',
-  'validate_invoice_chain_reference',
-  'validate_ticket_rating',
-  'validate_zatca_certificate_activation',
+  // ── Trigger functions (REVOKED in Migration #2) ──
+  // EXECUTE تم سحبه من PUBLIC/anon/authenticated وأُبقي على postgres/service_role فقط.
+  // لم تعد تظهر في تحذير 0029 ولذا أُزيلت من القائمة.
+  // إن عادت للظهور = شخص ما منحها صلاحية يدوياً → افحص قبل إضافتها للقائمة.
 
   // ── Auth hook — يُستدعى من GoTrue، لا من المستخدمين ──
   'custom_access_token_hook',

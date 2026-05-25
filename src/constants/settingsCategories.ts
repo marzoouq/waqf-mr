@@ -5,7 +5,7 @@
 import {
   Building2, Palette, Bell, ShieldCheck, Shield, Globe, Download, Calendar,
   Megaphone, LayoutList, FlaskConical, Fingerprint, Banknote, FileText,
-  MessageSquare, ServerCog, type LucideIcon,
+  MessageSquare, ServerCog, Eye, type LucideIcon,
 } from 'lucide-react';
 
 export interface SettingsTab {
@@ -42,6 +42,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
     tabs: [
       { value: 'permissions', label: 'إدارة الصلاحيات', icon: Shield },
       { value: 'menu', label: 'القائمة', icon: LayoutList },
+      { value: 'visibility', label: 'إظهار/إخفاء الميزات', icon: Eye },
     ],
   },
   {
