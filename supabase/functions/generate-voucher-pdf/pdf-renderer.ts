@@ -123,7 +123,7 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
   drawAr(`التاريخ: ${fmtDate(v.approved_at || v.created_at)}`, width - 40, height - 102, 12, "normal", muted);
 
   // خط فاصل
-  drawLine(doc, 40, height - 115, width - 40, height - 115, accent, 1);
+  drawLine(doc, height, 40, height - 115, width - 40, height - 115, accent, 1);
 
   // بيانات المستلم
   let y = height - 145;
@@ -174,10 +174,10 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
       doc.addImage(b64, imageType, width - 200, height - (y - 60) - 50, 160, 50, undefined, "FAST");
     } catch { /* skip on error */ }
   }
-  drawLine(doc, width - 220, y - 70, width - 40, y - 70, muted, 0.5);
+  drawLine(doc, height, width - 220, y - 70, width - 40, y - 70, muted, 0.5);
 
   drawAr("اعتماد الناظر:", 200, y, 11, "bold");
-  drawLine(doc, 40, y - 70, 220, y - 70, muted, 0.5);
+  drawLine(doc, height, 40, y - 70, 220, y - 70, muted, 0.5);
 
   // تذييل قانوني إلزامي
   setFill(doc, [247, 242, 224]);
