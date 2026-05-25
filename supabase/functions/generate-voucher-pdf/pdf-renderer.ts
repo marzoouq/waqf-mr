@@ -110,7 +110,7 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
       .replace(/[^\x20-\x7E\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF\s]/g, "");
   // helper: نص عربي RTL محاذي يميناً
   const drawAr = (text: string, x: number, y: number, size: number, weight: FontWeight = "normal", color = ink) => {
-    const reshaped = sanitize(processArabicText(sanitize(text)));
+    const reshaped = sanitize(text);
     if (!reshaped) return;
     doc.setFont("Amiri", weight);
     doc.setFontSize(size);
