@@ -8,8 +8,11 @@
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
 import { renderVoucherPdf } from "./pdf-renderer.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 Deno.serve(async (req): Promise<Response> => {
   const corsHeaders = getCorsHeaders(req);
@@ -23,7 +26,11 @@ Deno.serve(async (req): Promise<Response> => {
       rateLimitWindowSeconds: 60,
     });
     if ("error" in auth) return auth.error;
-    const { admin } = auth;
+    const { admin, user } = auth;
+    const authHeader = req.headers.get("authorization") || req.headers.get("Authorization") || "";
+    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
     const body = await req.json().catch(() => ({}));
     const voucherId = body?.voucher_id;
@@ -39,6 +46,21 @@ Deno.serve(async (req): Promise<Response> => {
     if (vErr || !voucher) return jsonError("السند غير موجود", 404, corsHeaders);
     if (voucher.status !== "approved") {
       return jsonError("لا يمكن توليد PDF إلا للسندات المعتمدة", 400, corsHeaders);
+    }
+
+    const { data: fiscalYear } = await admin
+      .from("fiscal_years")
+      .select("status")
+      .eq("id", voucher.fiscal_year_id)
+      .single();
+    if (fiscalYear?.status === "closed") {
+      const { data: adminRole } = await admin
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!adminRole) return jsonError("لا يمكن إصدار سند سنة مالية مقفلة إلا بواسطة الناظر", 403, corsHeaders);
     }
 
     const pdfBytes = await renderVoucherPdf({
@@ -63,7 +85,7 @@ Deno.serve(async (req): Promise<Response> => {
       .upload(storagePath, pdfBytes, { contentType: "application/pdf", upsert: true });
     if (upErr) throw upErr;
 
-    const { error: updErr } = await admin
+    const { error: updErr } = await userClient
       .from("disbursement_vouchers")
       .update({ pdf_path: storagePath })
       .eq("id", voucherId);
@@ -73,10 +95,19 @@ Deno.serve(async (req): Promise<Response> => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("generate-voucher-pdf error:", err instanceof Error ? err.message : String(err));
+    console.error("generate-voucher-pdf error:", formatError(err));
     return jsonError("فشل توليد سند الصرف", 500, corsHeaders);
   }
 });
+
+function formatError(err: unknown): string {
+  if (err instanceof Error) return `${err.name}: ${err.message}\n${err.stack ?? ""}`;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
+}
 
 function jsonError(message: string, status: number, corsHeaders: Record<string, string>) {
   return new Response(JSON.stringify({ error: message }), {
