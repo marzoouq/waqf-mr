@@ -1,86 +1,138 @@
+# إصلاح القائمة الجانبية للناظر — خطة مُصححة بعد الفحص الجنائي
 
-# خطة إصلاح ضريبة العقود (VAT Exemption Sync)
+## ⚠️ تصحيح حرج للخطة السابقة
 
-تم التحقق: التحليل المُرسَل دقيق. الكود الحالي يقرأ `properties.vat_exempt` في `generate_contract_invoices`، لكن الفواتير القائمة لا تُحدَّث (`CONTINUE`)، وإنشاء الفاتورة اليدوية يفرض `vatRate: 15`. لا توجد سجلات متضررة حالياً في Test/Live، لكن الخلل المنطقي قائم وسيظهر فور تبديل `vat_exempt`.
+التقرير الأصلي وخطّتي الأولى ادّعا أن **تعديل `allAdminLinks[].label` كافٍ**. هذا **خطأ**. الفحص الفعلي لـ `useNavLinks.ts` السطر 70-74 كشف:
 
-النطاق: **مزامنة آمنة + منع تكرار المشكلة + توضيح العرض**. بدون لمس أي فاتورة دخلت ZATCA.
-
----
-
-## 1) Migration — تحديث `generate_contract_invoices`
-
-استبدال `CONTINUE` للفواتير القائمة بمنطق UPDATE مشروط:
-
-- إذا الفاتورة `pending`/`overdue` **و** `paid_amount = 0/NULL` **و** `zatca_status = 'not_submitted'` **و** `icv IS NULL` **و** `invoice_hash IS NULL` **و** `zatca_xml IS NULL`:
-  - تحديث `vat_rate`, `vat_amount`, `amount`, `due_date`, `fiscal_year_id`
-- خلاف ذلك: `CONTINUE` (حماية ZATCA والمدفوعات).
-
-## 2) RPC جديدة: `sync_property_contract_invoice_vat(p_property_id uuid)`
-
-- صلاحية: `admin` + `accountant`.
-- تستدعي `generate_contract_invoices` لكل عقد ساري على العقار (أو UPDATE مباشر بنفس شروط الحماية أعلاه).
-- تُستدعى تلقائياً عند تحديث `properties.vat_exempt` عبر trigger `AFTER UPDATE OF vat_exempt`، أو من الواجهة بعد حفظ العقار.
-- ترجع عدد الفواتير المحدّثة وعدد المتخطّاة (مدفوعة/ZATCA).
-
-## 3) Migration — تصحيح بيانات لمرة واحدة (دفاعي)
-
-`UPDATE payment_invoices SET vat_rate=0, vat_amount=0` فقط للفواتير التي تطابق شروط الحماية الكاملة (غير مدفوعة، غير مرسلة، لا hash/icv/xml) وعقارها معفى. لا نتوقع صفوفاً متأثرة حالياً، لكنها شبكة أمان.
-
-## 4) Frontend — مسار الفاتورة اليدوية
-
-ملف `src/hooks/page/admin/financial/useCreateInvoiceForm.ts`:
-- حذف `vatRate: 15` الصلب.
-- جلب `vat_exempt` ضمن join العقود (تعديل CONTRACT_SELECT_FIELDS أو select مخصص لهذه الشاشة).
-- عند اختيار عقد: `vatRate = contract.property.vat_exempt ? 0 : Number(defaultVatRate ?? 15)`.
-- البنود الافتراضية الجديدة ترث `vatRate` المحسوب من العقد المختار، وإلا `defaultVatRate`.
-
-ملف `InvoiceItemsTable.tsx`:
-- `allowances`/`charges` الجديدة ترث `vatRate` من العنصر الأول بدل `15` ثابت.
-
-## 5) Frontend — عرض واضح للإعفاء
-
-`PaymentInvoiceDesktopTable` و `PaymentInvoiceMobileCards`:
-- عمود الضريبة: إذا `vat_rate === 0` يعرض شارة "غير خاضعة" بدل "0.00 ر.س".
-- إذا `vat_amount > 0` يعرض `{المبلغ} ر.س ({vat_rate}%)`.
-
-## 6) Hook حفظ العقار
-
-`useCreateProperty`/`useUpdateProperty` (أو page hook المقابل):
-- بعد نجاح UPDATE وتغيّر `vat_exempt`، استدعاء `sync_property_contract_invoice_vat` ثم Toast: "تم تحديث X فاتورة، تم تخطي Y فاتورة محمية".
-
-## 7) ZATCA XML Fallback
-
-`zatca-xml-builder.ts`: تغيير `?? 15` النهائي إلى `?? 0` مع `logger.warn` عند الوقوع في fallback (لا يجب الوصول إليه أصلاً لأن `vat_rate` محفوظ على الفاتورة).
-
-## 8) اختبارات
-
-- Vitest: `useCreateInvoiceForm` — اختيار عقد لعقار معفى ⇒ `vatRate=0`.
-- Vitest: عرض الجدول — `vat_rate=0` ⇒ "غير خاضعة".
-- (اختياري) snapshot SQL يدوي على Test بعد التطبيق.
-
----
-
-## قيود إلزامية
-
-- **عدم لمس** أي فاتورة `zatca_status != 'not_submitted'` أو لها `invoice_hash`/`icv`/`zatca_xml`.
-- **عدم لمس** أي فاتورة `paid`/`partially_paid` أو `paid_amount > 0`.
-- إقفال السنة المالية: لا تشغيل المزامنة على فواتير سنة مُقفلة (يحترمها فحص الحالة + `is_fiscal_year_accessible`).
-- لا تعديل على `client.ts` / `types.ts` / `config.toml` / `.env`.
-
-## ملفات متوقع تعديلها
-
-```text
-supabase/migrations/<new>.sql           ← #1 + #2 + #3
-src/hooks/page/admin/financial/useCreateInvoiceForm.ts
-src/hooks/data/contracts/* (CONTRACT_SELECT_FIELDS)
-src/components/invoices/create-invoice/InvoiceItemsTable.tsx
-src/components/contracts/PaymentInvoiceDesktopTable.tsx
-src/components/contracts/PaymentInvoiceMobileCards.tsx
-src/hooks/page/admin/useProperties* (استدعاء sync بعد update)
-src/utils/zatca/zatca-xml-builder.ts
+```ts
+const labelKey = linkLabelKeys[link.to];
+return { ...link, label: (labelKey && menuLabels[labelKey]) || link.label };
 ```
 
-## ما خارج النطاق
+أي **التسمية الفعلية المعروضة في القائمة الجانبية تُؤخذ من `menuLabels[labelKey]` (المصدر = `defaultMenuLabels` في `src/types/navigation.ts` أو override من `app_settings`)**، و`link.label` في `allAdminLinks` مجرد **fallback عند غياب labelKey**.
 
-- نقل `vat_exempt` إلى مستوى العقد (تغيير نموذج بيانات كبير) — يُترك كاقتراح مستقبلي.
-- تصحيح فواتير ZATCA المُرسَلة (يتطلب قرار محاسبي + إصدار credit notes).
+### دليل ملموس على أن التقرير الأصلي غير دقيق
+- `/beneficiary` في `allAdminLinks` مكتوبة `"معاينة واجهة المستفيد"` (سطر 59) لكن `labelKey = beneficiary_view`، و`defaultMenuLabels.beneficiary_view = 'واجهة المستفيد'`. **ما يراه الناظر فعلياً هو "واجهة المستفيد" — لا "معاينة واجهة المستفيد"**.
+- `/dashboard/annual-report` يعرض `"المحتوى السنوي للوقف"` من `defaultMenuLabels.annual_report`، لكن **رأس الموبايل/breadcrumb يعرض `"التقرير السنوي"`** من `ADMIN_ROUTES['/dashboard/annual-report'].title`. **تعارض موجود مسبقاً ومخفي**.
+
+### مصادر التسمية الثلاثة التي يجب مزامنتها
+| المصدر | الملف | يُستخدم في |
+|---|---|---|
+| `defaultMenuLabels[labelKey]` | `src/types/navigation.ts` | القائمة الجانبية (التسمية الفعلية) |
+| `ADMIN_ROUTES[route].title` | `src/constants/routeRegistry.ts` | رأس الموبايل، breadcrumbs، `ROUTE_TITLES` |
+| `allAdminLinks[].label` | `src/constants/navigation.ts` | fallback فقط — يظهر للمسارات بلا labelKey |
+
+تجاهل أي منها = تعارض مرئي بين السايدبار والرأس.
+
+---
+
+## الملفات المعدَّلة (4 ملفات، لا واحد)
+
+### 1) `src/types/navigation.ts` — تحديث `defaultMenuLabels` (مصدر التسمية الفعلي)
+| المفتاح | من | إلى |
+|---|---|---|
+| `reports` | `التقارير والإفصاح` | **`التقارير المالية والإفصاح`** |
+| `accounts` | `الحسابات الختامية والإقفال` | **`الحسابات الختامية`** |
+| `annual_report` | `المحتوى السنوي للوقف` | **`إدارة التقرير السنوي`** |
+| `zatca` | `إدارة ZATCA` | **`تكامل ZATCA`** |
+| `invoices` | `الفواتير` | **`فواتير العقود`** |
+| `beneficiary_view` | `واجهة المستفيد` | **`معاينة بوابة المستفيد`** |
+
+### 2) `src/constants/routeRegistry.ts` — مزامنة `ADMIN_ROUTES[route].title`
+نفس التسميات أعلاه — لمنع تعارض القائمة الجانبية مع رأس الصفحة في الموبايل و breadcrumbs:
+- `/dashboard/reports.title` → `التقارير المالية والإفصاح`
+- `/dashboard/accounts.title` → `الحسابات الختامية`
+- `/dashboard/annual-report.title` → `إدارة التقرير السنوي`
+- `/dashboard/zatca.title` → `تكامل ZATCA`
+- `/dashboard/invoices.title` → `فواتير العقود`
+
+### 3) `src/constants/navigation.ts` — التجميع والأيقونات
+**أ. `allAdminLinks` (تحديث الأيقونات + fallback labels):**
+- `/dashboard/invoices`: `icon: FileText → ReceiptText` (إزالة التكرار مع `/dashboard/contracts`)
+- مزامنة `label` الـ fallback مع التسميات الجديدة (نظافة فقط، فلن يُعرض ما دام labelKey موجوداً)
+
+**ب. `ADMIN_GROUP_ORDER` + `ADMIN_GROUP_LABELS`:**
+```ts
+ADMIN_GROUP_ORDER = ['operations', 'finance', 'reference', 'communication', 'administration', 'system', 'preview']
+ADMIN_GROUP_LABELS = {
+  operations: 'التشغيل',
+  finance: 'المالية والتقارير',   // كان 'المالية'
+  reference: 'المرجع',
+  communication: 'الاتصال',
+  administration: 'الإدارة',
+  system: 'النظام والتكاملات',    // كان 'النظام'
+  preview: 'المعاينة',             // جديد
+}
+```
+
+**ج. `ADMIN_ROUTE_GROUPS` — إصلاح اليتامى وإعادة التصنيف:**
+| المسار | من | إلى |
+|---|---|---|
+| `/dashboard/invoices` | `operations` | **`finance`** |
+| `/dashboard/chart-of-accounts` | `reference` | **`finance`** |
+| `/dashboard/annual-report` | `finance` | **`reference`** |
+| `/dashboard/comparison` | _(يتيم)_ | **`finance`** |
+| `/beneficiary` | _(يتيم)_ | **`preview`** |
+
+### 4) `src/constants/navigationIcons.ts` — إضافة `ReceiptText`
+re-export من `lucide-react` (نمط الملف الحالي).
+
+---
+
+## الهيكل النهائي (الناظر — مستند للتحقق من useNavLinks بعد التطبيق)
+
+```text
+الرئيسية                         ← _top
+
+التشغيل
+  • العقارات
+  • العقود
+  • المستفيدين
+
+المالية والتقارير
+  • الدخل
+  • المصروفات
+  • فواتير العقود          (إيقونة ReceiptText)
+  • الحسابات الختامية
+  • التقارير المالية والإفصاح
+  • الشجرة المحاسبية
+  • المقارنة التاريخية
+
+المرجع
+  • اللائحة التنظيمية
+  • إدارة التقرير السنوي
+
+الاتصال
+  • المراسلات
+  • الدعم الفني
+
+الإدارة
+  • إدارة المستخدمين
+  • الإعدادات
+
+النظام والتكاملات
+  • سجل المراجعة
+  • تكامل ZATCA
+  • تشخيص النظام
+  • مراقبة البريد
+
+المعاينة
+  • معاينة بوابة المستفيد
+```
+
+---
+
+## خارج النطاق (مع تبرير)
+- لا تعديل على routes أو حراس الصلاحيات.
+- لا تعديل على `ACCOUNTANT_EXCLUDED_ROUTES` — المحاسب يبقى محجوباً عن: users, settings, zatca, diagnostics, email-monitor, comparison, beneficiary preview (مؤكَّد من سطر 167).
+- لا نقل "معاينة بوابة المستفيد" إلى داخل صفحة المستفيدين (تأجيل).
+- لا تعديل على `allBeneficiaryLinks` — تسميات المستفيد سليمة وموحَّدة فعلياً.
+
+## ملاحظة على `app_settings.menu_labels` (override من قاعدة البيانات)
+إذا كان الناظر قد عدّل التسميات يدوياً من شاشة الإعدادات (تخزَّن في `app_settings` كـ JSON)، فإن `useNavLinks` يقرأها عبر `getJsonSetting('menu_labels', defaultMenuLabels)` — أي **القيم في DB ستبقى وتطغى على defaults الجديدة**. هذا سلوك متعمَّد ولا يحتاج تعديل. التغيير يطبّق على المستخدمين الذين لم يخصّصوا.
+
+## التحقق بعد التنفيذ
+1. `vitest run src/test/navLinksFiltering.test.tsx src/test/permissionsParity.test.ts src/test/navLinksParity.test.ts` — يجب أن تمر بدون تعديل (لا اختبارات تربط بتسميات نصية).
+2. تسجيل دخول admin: تأكيد أن "الرئيسية" وحدها في `_top`، وأن "معاينة بوابة المستفيد" أسفل القائمة تحت قسم "المعاينة"، وأن "المقارنة التاريخية" + "الشجرة المحاسبية" + "فواتير العقود" تحت "المالية والتقارير".
+3. فتح صفحة `/dashboard/annual-report` على عرض الموبايل والتأكد من تطابق رأس الصفحة مع اسم القائمة ("إدارة التقرير السنوي") — هذا اختبار التعارض المخفي الذي كانت الخطة السابقة ستتركه دون حل.
+4. تسجيل دخول accountant والتأكد من اختفاء: comparison, users, settings, zatca, diagnostics, email-monitor, beneficiary preview.
