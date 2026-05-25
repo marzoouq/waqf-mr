@@ -20,6 +20,12 @@ export const ADVANCED_FIELDS: AdvancedField[] = [
     description: 'تفعيل أو تعطيل إضافة بيانات الدور إلى الرمز المميز للمصادقة. القيمة المعتادة: enabled',
     placeholder: 'enabled',
   },
+  {
+    key: 'voucher_pdf_beneficiary_access',
+    label: 'السماح للمستفيد/الواقف بتنزيل ملفات PDF لسندات الصرف',
+    description: 'القيمة "true" تُتيح للمستفيد والواقف معاينة وتنزيل ملفات PDF للسندات المعتمدة (تحتوي بيانات شخصية للمستلمين). الافتراضي: false',
+    placeholder: 'false',
+  },
 ];
 
 export type { AppSettingHistoryEntry };
