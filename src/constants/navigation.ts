@@ -81,30 +81,32 @@ export const allBeneficiaryLinks = [
 // ─── Sidebar grouping (PR-1) ───
 // Single source of truth for which menu group a route belongs to.
 // Routes not listed appear ungrouped (above all groups for admin, below for beneficiary).
-export const ADMIN_GROUP_ORDER = ['operations', 'finance', 'reference', 'communication', 'administration', 'system'] as const;
+export const ADMIN_GROUP_ORDER = ['operations', 'finance', 'reference', 'communication', 'administration', 'system', 'preview'] as const;
 export type AdminGroupKey = typeof ADMIN_GROUP_ORDER[number];
 
 export const ADMIN_GROUP_LABELS: Record<AdminGroupKey, string> = {
   operations: 'التشغيل',
-  finance: 'المالية',
+  finance: 'المالية والتقارير',
   reference: 'المرجع',
   communication: 'الاتصال',
   administration: 'الإدارة',
-  system: 'النظام',
+  system: 'النظام والتكاملات',
+  preview: 'المعاينة',
 };
 
 export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/properties': 'operations',
   '/dashboard/contracts': 'operations',
   '/dashboard/beneficiaries': 'operations',
-  '/dashboard/invoices': 'operations',
   '/dashboard/income': 'finance',
   '/dashboard/expenses': 'finance',
+  '/dashboard/invoices': 'finance',
   '/dashboard/accounts': 'finance',
   '/dashboard/reports': 'finance',
-  '/dashboard/annual-report': 'finance',
-  '/dashboard/chart-of-accounts': 'reference',
+  '/dashboard/chart-of-accounts': 'finance',
+  '/dashboard/comparison': 'finance',
   '/dashboard/bylaws': 'reference',
+  '/dashboard/annual-report': 'reference',
   '/dashboard/messages': 'communication',
   '/dashboard/support': 'communication',
   '/dashboard/users': 'administration',
@@ -113,6 +115,7 @@ export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/zatca': 'system',
   '/dashboard/email-monitor': 'system',
   '/dashboard/diagnostics': 'system',
+  '/beneficiary': 'preview',
 };
 
 export const BENEFICIARY_GROUP_ORDER = ['financial', 'documents', 'communication', 'account'] as const;
