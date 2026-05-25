@@ -17,10 +17,10 @@ const PropertiesViewPage = lazyWithRetry(() => import("@/pages/beneficiary/Prope
 const ContractsViewPage = lazyWithRetry(() => import("@/pages/beneficiary/ContractsViewPage"));
 const CarryforwardHistoryPage = lazyWithRetry(() => import("@/pages/beneficiary/CarryforwardHistoryPage"));
 
-const BeneficiarySupportPage = lazyWithRetry(() => import("@/pages/beneficiary/SupportPage"));
+const BeneficiarySupportPage = lazyWithRetry(() => import("@/pages/beneficiary/SupportPageGuard"));
 const AnnualReportViewPage = lazyWithRetry(() => import("@/pages/beneficiary/AnnualReportViewPage"));
 
-import { BENEFICIARY_ROLES, ALL_NON_ACCOUNTANT, ALL_ROLES } from '@/constants/roles';
+import { BENEFICIARY_ROLES, ALL_NON_ACCOUNTANT } from '@/constants/roles';
 
 /** مسارات المستفيدين والواقف */
 export const beneficiaryRoutes = (
