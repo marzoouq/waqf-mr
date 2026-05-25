@@ -18,7 +18,7 @@ interface LandingHeroProps {
 }
 
 const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, statsLoading, onNavigateAuth }) => (
-  <header className="relative overflow-hidden gradient-hero min-h-[90vh] flex items-center" role="banner">
+  <header className="relative overflow-hidden gradient-hero min-h-[100svh] md:min-h-[90vh] flex items-center" role="banner">
     <div className="absolute inset-0 opacity-[0.07]" aria-hidden="true">
       <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
         <defs>
@@ -57,7 +57,7 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
           <p className="text-lg md:text-xl text-white/90 mb-4 max-w-2xl mx-auto leading-relaxed font-arabic">
             {content.hero_subtitle}
           </p>
-          <p className="text-sm md:text-base text-secondary mb-10 font-arabic font-medium">
+          <p className="text-sm md:text-base text-white mb-10 font-arabic font-semibold drop-shadow-md">
             {content.hero_tagline}
           </p>
         </div>
@@ -71,7 +71,7 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
             {content.cta_text}
           </Button>
         </div>
-        <div className="mt-16 flex justify-center gap-8 md:gap-16 animate-fade-in" style={{ animationDelay: '500ms' }}>
+        <div className="mt-10 md:mt-16 flex justify-center gap-8 md:gap-16 animate-fade-in" style={{ animationDelay: '500ms' }}>
           {stats.map((stat) => (
             <div key={stat.label} className="text-center">
               {statsLoading ? (
@@ -86,7 +86,7 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
       </div>
     </div>
     <button
-      className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce cursor-pointer bg-transparent border-0"
+      className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce cursor-pointer bg-transparent border-0"
       aria-label="انتقل لقسم الميزات"
       onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
     >

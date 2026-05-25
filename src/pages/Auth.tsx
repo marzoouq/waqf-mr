@@ -1,7 +1,8 @@
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle } from 'lucide-react';
+import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle, Home } from 'lucide-react';
 import { LoginForm, SignupForm, ResetPasswordForm } from '@/components/auth';
 import { useSetting } from '@/hooks/data/settings/useAppSettings';
 import { useAuthPage } from '@/hooks/application/useAuthPage';
@@ -52,6 +53,19 @@ const Auth = () => {
       <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full bg-primary/10 blur-3xl" style={{ contain: 'strict' }} />
 
       <div className="w-full max-w-md relative z-10">
+        <div className="mb-4 flex justify-start">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10"
+          >
+            <Link to="/" aria-label="العودة للصفحة الرئيسية">
+              <Home className="w-4 h-4" />
+              الصفحة الرئيسية
+            </Link>
+          </Button>
+        </div>
         {isOffline && (
           <div className="mb-3 flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive" role="alert">
             <AlertTriangle className="w-4 h-4 shrink-0" />
