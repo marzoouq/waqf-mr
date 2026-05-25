@@ -65,3 +65,21 @@ export const TENANT_ID_TYPES = [
 
 // ─── ثوابت العقود ───
 export const EXPIRING_SOON_DAYS = 90;
+
+// ─── سندات الصرف الداخلية ───
+export const VOUCHER_PAYMENT_METHODS = {
+  cash: 'نقدي',
+  bank_transfer: 'تحويل بنكي',
+  cheque: 'شيك',
+  other: 'أخرى',
+} as const;
+
+export const VOUCHER_STATUS_LABELS = {
+  draft: 'مسودة',
+  approved: 'معتمد',
+  void: 'ملغي',
+} as const;
+
+export type VoucherPaymentMethod = keyof typeof VOUCHER_PAYMENT_METHODS;
+export type VoucherStatus = keyof typeof VOUCHER_STATUS_LABELS;
+
