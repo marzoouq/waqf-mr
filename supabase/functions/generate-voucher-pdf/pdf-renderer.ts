@@ -49,15 +49,18 @@ async function getFonts() {
 }
 
 function fmtAmount(n: number): string {
-  return new Intl.NumberFormat("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  // أرقام لاتينية حتى لا تخرج عن مجموعة الخط الفرعية
+  return new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 }
 
 function fmtDate(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
-  return new Intl.DateTimeFormat("ar-SA-u-ca-gregory", {
-    year: "numeric", month: "2-digit", day: "2-digit",
-  }).format(d);
+  if (isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${day}/${m}/${y}`;
 }
 
 export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
