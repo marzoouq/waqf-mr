@@ -36,6 +36,9 @@ export const supportService = {
     if (input.assigned_to) updates.assigned_to = input.assigned_to;
     if (input.status === 'resolved' || input.status === 'closed') {
       updates.resolved_at = new Date().toISOString();
+    } else {
+      // F8: عند إعادة فتح التذكرة، تصفير resolved_at
+      (updates as Record<string, unknown>).resolved_at = null;
     }
     const { error } = await supabase.from('support_tickets').update(updates).eq('id', input.id);
     if (error) throw error;
@@ -57,10 +60,12 @@ export const supportService = {
   },
 
   async rateTicket(input: { id: string; rating: number; rating_comment?: string }): Promise<void> {
-    const { error } = await supabase
-      .from('support_tickets')
-      .update({ rating: input.rating, rating_comment: input.rating_comment || null })
-      .eq('id', input.id);
+    // F2: استخدام RPC آمنة بدل تحديث مباشر يفشل بصمت بسبب RLS
+    const { error } = await supabase.rpc('rate_support_ticket', {
+      p_id: input.id,
+      p_rating: input.rating,
+      p_comment: input.rating_comment || undefined,
+    });
     if (error) throw error;
   },
 };

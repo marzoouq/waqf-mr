@@ -2241,6 +2241,10 @@ export type Database = {
         Args: { p_invoice_id: string; p_paid_amount?: number }
         Returns: Json
       }
+      rate_support_ticket: {
+        Args: { p_comment?: string; p_id: string; p_rating: number }
+        Returns: undefined
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
