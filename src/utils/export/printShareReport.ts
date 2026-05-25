@@ -93,9 +93,9 @@ export function printShareReport(params: PrintShareReportParams): boolean {
         <tr><th>التاريخ</th><th>السنة المالية</th><th>المبلغ</th><th>الحالة</th></tr>
         ${filteredDistributions.map(d => `<tr>
           <td>${fmtDate(d.date)}</td>
-          <td>${d.account?.fiscal_year || '—'}</td>
+          <td>${escapeHtml(d.account?.fiscal_year || '—')}</td>
           <td>${fmt(safeNumber(d.amount))} ر.س</td>
-          <td>${d.status === 'paid' ? 'مستلم' : d.status === 'pending' ? 'معلق' : d.status}</td>
+          <td>${d.status === 'paid' ? 'مستلم' : d.status === 'pending' ? 'معلق' : escapeHtml(d.status)}</td>
         </tr>`).join('')}
       </table>
     ` : ''}
