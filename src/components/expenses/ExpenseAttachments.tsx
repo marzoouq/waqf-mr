@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, Paperclip } from 'lucide-react';
 import { useInvoices } from '@/hooks/data/invoices/useInvoices';
+import { useExpenses } from '@/hooks/data/financial/useExpenses';
 import { InvoiceViewer } from '@/components/invoices';
+import VoucherList from './vouchers/VoucherList';
 
 interface ExpenseAttachmentsProps {
   expenseId: string;
