@@ -64,7 +64,7 @@ const ReportsPage = () => {
     <DashboardLayout>
        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
-          title="التقارير"
+          title="التقارير المالية والإفصاح"
           icon={CalendarRange}
           description="عرض التقارير والإحصائيات"
           badge={fiscalYear ? <Badge variant="secondary" className="text-xs">{fiscalYear.label}</Badge> : undefined}
