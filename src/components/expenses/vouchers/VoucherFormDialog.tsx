@@ -1,6 +1,8 @@
 /**
  * نموذج إنشاء سند صرف داخلي — للناظر والمحاسب.
- * - يتطلب: اسم، هوية، جوال، وصف عمل، طريقة دفع، توقيع.
+ * - يتطلب: اسم، هوية، جوال، وصف عمل، طريقة دفع.
+ * - توقيع المستلم اختياري: يُلتقط رقمياً إن كان المستلم حاضراً بجهاز لمس،
+ *   وإلا يُترك ليوقّع على النسخة المطبوعة من الـ PDF.
  * - يمنع المبلغ أن يتجاوز المصروف ويمنع الازدواجية على مستوى DB.
  */
 import { useState } from 'react';
@@ -48,7 +50,7 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
     if (!form.recipient_id_number.trim()) { toast.error('أدخل رقم الهوية'); return; }
     if (!form.recipient_phone.trim()) { toast.error('أدخل رقم الجوال'); return; }
     if (!form.work_description.trim()) { toast.error('أدخل وصف الأعمال المنفذة'); return; }
-    if (!form.signature_data) { toast.error('توقيع المستلم مطلوب'); return; }
+    // توقيع المستلم اختياري — يوقّع على النسخة المطبوعة إن لم يُلتقط رقمياً
     if (form.amount <= 0) { toast.error('المبلغ يجب أن يكون أكبر من صفر'); return; }
     if (form.amount > expenseAmount) { toast.error(`المبلغ يتجاوز قيمة المصروف (${expenseAmount} ر.س)`); return; }
     if ((form.payment_method === 'bank_transfer' || form.payment_method === 'cheque') && !form.transfer_reference.trim()) {
@@ -81,8 +83,9 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
           <DialogTitle>سند صرف داخلي</DialogTitle>
           <DialogDescription>
             يُستخدم لتوثيق المصروفات النقدية بدون فاتورة ضريبية (عمالة يومية، أعمال صغيرة…).
-            تُنشأ كمسودة ثم تُعتمد لإصدار PDF.
+            تُنشأ كمسودة، ثم تُعتمد لإصدار PDF يُطبع ويوقّع عليه المستلم ورقياً.
           </DialogDescription>
+
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">
@@ -136,7 +139,10 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
           </div>
 
           <div>
-            <Label>توقيع المستلم *</Label>
+            <Label>توقيع المستلم (اختياري)</Label>
+            <p className="text-[11px] text-muted-foreground mb-2">
+              اتركه فارغاً إن لم يكن المستلم حاضراً — سيُخصَّص سطر للتوقيع اليدوي على النسخة المطبوعة.
+            </p>
             <SignaturePad value={form.signature_data}
               onChange={(d) => setForm((f) => ({ ...f, signature_data: d }))} />
           </div>
