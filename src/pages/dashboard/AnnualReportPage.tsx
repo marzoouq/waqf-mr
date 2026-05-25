@@ -35,7 +35,7 @@ const AnnualReportPage = () => {
         {/* ترويسة */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <PageHeaderCard
-            title="التقرير السنوي"
+            title="إدارة التقرير السنوي"
             icon={Trophy}
             description={`تقرير إنجازات السنة المالية ${r.fiscalYear?.label || ''}`}
           />

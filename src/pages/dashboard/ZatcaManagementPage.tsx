@@ -20,7 +20,7 @@ function ZatcaManagementPage() {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6" dir="rtl">
-        <PageHeaderCard title="إدارة ZATCA" icon={ShieldCheck} description="إدارة الشهادات والفواتير الضريبية وسلسلة التوقيع" />
+        <PageHeaderCard title="تكامل ZATCA" icon={ShieldCheck} description="إدارة الشهادات والفواتير الضريبية وسلسلة التوقيع" />
         <InvoiceStepsGuide />
 
         {!z.activeCert && !z.certsLoading && (
