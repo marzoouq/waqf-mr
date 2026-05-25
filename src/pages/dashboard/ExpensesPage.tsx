@@ -99,6 +99,16 @@ const ExpensesPage = () => {
         targetName={h.deleteTarget?.name}
         onConfirm={h.handleConfirmDelete}
       />
+
+      {h.postCreateVoucherFor && (
+        <VoucherFormDialog
+          open={!!h.postCreateVoucherFor}
+          onOpenChange={(o) => { if (!o) h.clearPostCreateVoucher(); }}
+          expenseId={h.postCreateVoucherFor.id}
+          expenseAmount={h.postCreateVoucherFor.amount}
+          defaultDescription={h.postCreateVoucherFor.description}
+        />
+      )}
     </DashboardLayout>
   );
 };
