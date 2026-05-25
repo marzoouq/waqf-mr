@@ -41,8 +41,9 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ value, onChange, disabled, 
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
     const isTouch = 'touches' in e;
-    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
-    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+    const touch = isTouch ? e.touches[0] : null;
+    const clientX = touch ? touch.clientX : (e as React.MouseEvent).clientX;
+    const clientY = touch ? touch.clientY : (e as React.MouseEvent).clientY;
     return {
       x: ((clientX - rect.left) / rect.width) * canvas.width,
       y: ((clientY - rect.top) / rect.height) * canvas.height,
