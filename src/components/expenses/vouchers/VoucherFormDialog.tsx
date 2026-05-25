@@ -50,7 +50,7 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
     if (!form.recipient_id_number.trim()) { toast.error('أدخل رقم الهوية'); return; }
     if (!form.recipient_phone.trim()) { toast.error('أدخل رقم الجوال'); return; }
     if (!form.work_description.trim()) { toast.error('أدخل وصف الأعمال المنفذة'); return; }
-    if (!form.signature_data) { toast.error('توقيع المستلم مطلوب'); return; }
+    // توقيع المستلم اختياري — يوقّع على النسخة المطبوعة إن لم يُلتقط رقمياً
     if (form.amount <= 0) { toast.error('المبلغ يجب أن يكون أكبر من صفر'); return; }
     if (form.amount > expenseAmount) { toast.error(`المبلغ يتجاوز قيمة المصروف (${expenseAmount} ر.س)`); return; }
     if ((form.payment_method === 'bank_transfer' || form.payment_method === 'cheque') && !form.transfer_reference.trim()) {
