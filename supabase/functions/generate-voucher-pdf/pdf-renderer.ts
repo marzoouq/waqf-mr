@@ -3,7 +3,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { jsPDF } from "npm:jspdf@3.0.4";
-import { processArabicText } from "../_shared/arabic-reshaper.ts";
 
 const FONT_BASE_URL = `${Deno.env.get("SUPABASE_URL")!}/storage/v1/object/public/waqf-assets/fonts`;
 
