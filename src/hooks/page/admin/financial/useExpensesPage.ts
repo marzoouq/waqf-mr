@@ -49,6 +49,8 @@ export function useExpensesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [formData, setFormData] = useState(EMPTY_EXPENSE_FORM);
+  const [postCreateVoucherFor, setPostCreateVoucherFor] = useState<{ id: string; amount: number; description: string } | null>(null);
+  const clearPostCreateVoucher = useCallback(() => setPostCreateVoucherFor(null), []);
 
   const resetForm = useCallback(() => { setFormData(EMPTY_EXPENSE_FORM); setEditingExpense(null); }, []);
 
@@ -77,7 +79,15 @@ export function useExpensesPage() {
         await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as UpdateArg);
       } else {
         type CreateArg = Parameters<typeof createExpense.mutateAsync>[0];
-        await createExpense.mutateAsync(expenseData as CreateArg);
+        const created = await createExpense.mutateAsync(expenseData as CreateArg);
+        // فتح نافذة سند الصرف تلقائياً للمصاريف الجديدة فقط
+        if (created?.id) {
+          setPostCreateVoucherFor({
+            id: created.id,
+            amount,
+            description: formData.description || formData.expense_type,
+          });
+        }
       }
       setIsOpen(false);
       resetForm();
@@ -161,5 +171,6 @@ export function useExpensesPage() {
     expenseInvoiceMap, documentedCount, documentationRate,
     filteredExpenses, paginatedExpenses,
     handleExportPdf, handleExportCsv,
+    postCreateVoucherFor, clearPostCreateVoucher,
   };
 }

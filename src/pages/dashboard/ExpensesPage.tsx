@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner, ConfirmDeleteDialog, ViewModeToggle, useViewMode } from '@/components/common';
 import { TrendingDown, Search } from 'lucide-react';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
+import VoucherFormDialog from '@/components/expenses/vouchers/VoucherFormDialog';
 import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useExpensesPage } from '@/hooks/page/admin/financial/useExpensesPage';
@@ -98,6 +99,16 @@ const ExpensesPage = () => {
         targetName={h.deleteTarget?.name}
         onConfirm={h.handleConfirmDelete}
       />
+
+      {h.postCreateVoucherFor && (
+        <VoucherFormDialog
+          open={!!h.postCreateVoucherFor}
+          onOpenChange={(o) => { if (!o) h.clearPostCreateVoucher(); }}
+          expenseId={h.postCreateVoucherFor.id}
+          expenseAmount={h.postCreateVoucherFor.amount}
+          defaultDescription={h.postCreateVoucherFor.description}
+        />
+      )}
     </DashboardLayout>
   );
 };

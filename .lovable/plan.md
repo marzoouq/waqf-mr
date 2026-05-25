@@ -1,25 +1,34 @@
-# تنفيذ الخيار A + مزامنة عناوين الصفحات
+## توحيد إنشاء المصروف مع سند الصرف — تدفق متسلسل ذكي
 
-## التغييرات (4 ملفات)
+### السلوك الجديد
+1. الناظر/المحاسب ينقر "إضافة مصروف" → النموذج الحالي كما هو → حفظ.
+2. عند نجاح الحفظ تُغلق نافذة المصروف وتُفتح فوراً نافذة سند الصرف معبّأة بـ:
+   - `expense_id` (المصروف المُنشأ حديثاً)
+   - `expenseAmount` (من المصروف، للتحقق + التعبئة)
+   - `defaultDescription` (وصف المصروف)
+3. ثلاثة أزرار في أسفل نافذة السند:
+   - **إصدار لاحقاً** — يُغلق النافذة بدون إنشاء سند. المصروف يبقى محفوظاً ويمكن إنشاء سند له لاحقاً من زر "+ سند صرف" في توسعة الصف.
+   - **حفظ كمسودة** — يُنشئ السند بحالة `draft`.
+   - **حفظ واعتماد + PDF** — ينشئ السند ثم يستدعي `approveMut.mutateAsync(voucherId)` ثم يُولّد PDF فوراً.
+4. عند **تعديل** مصروف موجود: لا تُفتح نافذة السند تلقائياً (تجنّب التكرار).
+5. تدفق المحاسب يستفيد تلقائياً من نفس السلوك.
 
-### 1) `src/types/navigation.ts`
-- `invoices: 'فواتير العقود'` → `'الفواتير الضريبية'`
+### الملفات المتأثرة
+| الملف | التغيير |
+|---|---|
+| `src/hooks/page/admin/financial/useExpensesPage.ts` | إضافة state `postCreateVoucherFor: { id, amount, description } \| null`. بعد `createExpense.mutateAsync(...)` التقاط النتيجة وضبط الـ state. تصدير `postCreateVoucherFor` و `clearPostCreateVoucher`. |
+| `src/pages/dashboard/ExpensesPage.tsx` | إضافة `<VoucherFormDialog>` على مستوى الصفحة مع `open={!!postCreateVoucherFor}`، تمرير `expenseId`/`expenseAmount`/`defaultDescription`، و `onOpenChange` يستدعي `clearPostCreateVoucher`. |
+| `src/components/expenses/vouchers/VoucherFormDialog.tsx` | (أ) استدعاء `useApproveVoucher` داخل المكون. (ب) إضافة handler `submitAndApprove` يستدعي `createMut.mutateAsync` ثم `approveMut.mutateAsync(voucherId)`. (ج) `DialogFooter` يصبح ثلاثة أزرار: "إصدار لاحقاً" (ghost) + "حفظ كمسودة" + "حفظ واعتماد + PDF" (default). |
 
-### 2) `src/constants/routeRegistry.ts`
-- `/dashboard/invoices.title: 'فواتير العقود'` → `'الفواتير الضريبية'`
-- `/dashboard/reports.title` يبقى `'التقارير المالية والإفصاح'` ✓
-- `/dashboard/annual-report.title` يبقى `'إدارة التقرير السنوي'` ✓
-- `/dashboard/zatca.title` يبقى `'تكامل ZATCA'` ✓
+### القيود
+- لا migration، لا RLS، لا edge functions، لا تعديل على نموذج المصروف، لا تغيير على جدول `disbursement_vouchers`.
+- لا حقول جديدة في النموذج (لا `payment_date`، لا `defaultAmount`، لا `defaultDate`).
+- استخدام `logger` بدل `console.*`، رسائل toast عربية عبر `sonner`.
 
-### 3) `src/constants/navigation.ts`
-- fallback label لـ `/dashboard/invoices`: `'فواتير العقود'` → `'الفواتير الضريبية'`
-
-### 4) مزامنة عناوين الصفحات مع القائمة (3 صفحات)
-- `src/pages/dashboard/ReportsPage.tsx`: `title="التقارير"` → `"التقارير المالية والإفصاح"`
-- `src/pages/dashboard/AnnualReportPage.tsx`: `title="التقرير السنوي"` → `"إدارة التقرير السنوي"`
-- `src/pages/dashboard/ZatcaManagementPage.tsx`: `title="إدارة ZATCA"` → `"تكامل ZATCA"`
-- `src/pages/dashboard/InvoicesPage.tsx`: `title` يبقى `"إدارة الفواتير الضريبية"` (متطابق بدلالةً)
-
-## خارج النطاق
-- لا تغييرات routes/permissions/أيقونات.
-- لا تعديل اختبارات (لا اختبار يربط بهذه النصوص).
+### التحقق بعد التنفيذ
+1. إضافة مصروف جديد → نافذة السند تفتح تلقائياً معبّأة بالمبلغ والوصف.
+2. "إصدار لاحقاً" → المصروف محفوظ، لا سند مُنشأ، رسالة نجاح للمصروف فقط.
+3. ملء بيانات المستلم + "حفظ واعتماد + PDF" → سند بحالة `approved` + تنزيل PDF + تحديث القوائم.
+4. تعديل مصروف موجود → نافذة السند لا تفتح تلقائياً.
+5. توسعة صف مصروف بدون سند → زر "+ سند صرف" يعمل كما السابق.
+6. تشغيل `bunx vitest run` للتأكد من عدم كسر اختبارات قائمة.
