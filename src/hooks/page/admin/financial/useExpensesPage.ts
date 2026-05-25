@@ -171,5 +171,6 @@ export function useExpensesPage() {
     expenseInvoiceMap, documentedCount, documentationRate,
     filteredExpenses, paginatedExpenses,
     handleExportPdf, handleExportCsv,
+    postCreateVoucherFor, clearPostCreateVoucher,
   };
 }
