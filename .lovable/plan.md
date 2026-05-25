@@ -1,34 +1,84 @@
-## توحيد إنشاء المصروف مع سند الصرف — تدفق متسلسل ذكي
+# خطة إصلاح ملاحظات تدقيق waqf-wise.net
 
-### السلوك الجديد
-1. الناظر/المحاسب ينقر "إضافة مصروف" → النموذج الحالي كما هو → حفظ.
-2. عند نجاح الحفظ تُغلق نافذة المصروف وتُفتح فوراً نافذة سند الصرف معبّأة بـ:
-   - `expense_id` (المصروف المُنشأ حديثاً)
-   - `expenseAmount` (من المصروف، للتحقق + التعبئة)
-   - `defaultDescription` (وصف المصروف)
-3. ثلاثة أزرار في أسفل نافذة السند:
-   - **إصدار لاحقاً** — يُغلق النافذة بدون إنشاء سند. المصروف يبقى محفوظاً ويمكن إنشاء سند له لاحقاً من زر "+ سند صرف" في توسعة الصف.
-   - **حفظ كمسودة** — يُنشئ السند بحالة `draft`.
-   - **حفظ واعتماد + PDF** — ينشئ السند ثم يستدعي `approveMut.mutateAsync(voucherId)` ثم يُولّد PDF فوراً.
-4. عند **تعديل** مصروف موجود: لا تُفتح نافذة السند تلقائياً (تجنّب التكرار).
-5. تدفق المحاسب يستفيد تلقائياً من نفس السلوك.
+## 1. إصلاحات قسم البطل (LandingHero)
 
-### الملفات المتأثرة
-| الملف | التغيير |
-|---|---|
-| `src/hooks/page/admin/financial/useExpensesPage.ts` | إضافة state `postCreateVoucherFor: { id, amount, description } \| null`. بعد `createExpense.mutateAsync(...)` التقاط النتيجة وضبط الـ state. تصدير `postCreateVoucherFor` و `clearPostCreateVoucher`. |
-| `src/pages/dashboard/ExpensesPage.tsx` | إضافة `<VoucherFormDialog>` على مستوى الصفحة مع `open={!!postCreateVoucherFor}`، تمرير `expenseId`/`expenseAmount`/`defaultDescription`، و `onOpenChange` يستدعي `clearPostCreateVoucher`. |
-| `src/components/expenses/vouchers/VoucherFormDialog.tsx` | (أ) استدعاء `useApproveVoucher` داخل المكون. (ب) إضافة handler `submitAndApprove` يستدعي `createMut.mutateAsync` ثم `approveMut.mutateAsync(voucherId)`. (ج) `DialogFooter` يصبح ثلاثة أزرار: "إصدار لاحقاً" (ghost) + "حفظ كمسودة" + "حفظ واعتماد + PDF" (default). |
+**الملف:** `src/components/landing/LandingHero.tsx`
 
-### القيود
-- لا migration، لا RLS، لا edge functions، لا تعديل على نموذج المصروف، لا تغيير على جدول `disbursement_vouchers`.
-- لا حقول جديدة في النموذج (لا `payment_date`، لا `defaultAmount`، لا `defaultDate`).
-- استخدام `logger` بدل `console.*`، رسائل toast عربية عبر `sonner`.
+- إخفاء سهم `ChevronDown` على الشاشات الصغيرة لمنع تداخله مع رقم "14 مستفيد":
+  - تغيير `absolute bottom-8` → `hidden md:flex absolute bottom-8`
+- تحسين تباين `hero_tagline`:
+  - استبدال `text-secondary` بـ `text-secondary-foreground` أو `text-white/95` مع `font-semibold` لتحقيق WCAG AA
+- تقليل `min-h-[90vh]` إلى `min-h-[100svh] md:min-h-[90vh]` لاستخدام `svh` (small viewport height) على الموبايل ومنع التمدد الزائد
+- تقليل المسافة العلوية للإحصائيات على الموبايل: `mt-16` → `mt-10 md:mt-16`
 
-### التحقق بعد التنفيذ
-1. إضافة مصروف جديد → نافذة السند تفتح تلقائياً معبّأة بالمبلغ والوصف.
-2. "إصدار لاحقاً" → المصروف محفوظ، لا سند مُنشأ، رسالة نجاح للمصروف فقط.
-3. ملء بيانات المستلم + "حفظ واعتماد + PDF" → سند بحالة `approved` + تنزيل PDF + تحديث القوائم.
-4. تعديل مصروف موجود → نافذة السند لا تفتح تلقائياً.
-5. توسعة صف مصروف بدون سند → زر "+ سند صرف" يعمل كما السابق.
-6. تشغيل `bunx vitest run` للتأكد من عدم كسر اختبارات قائمة.
+## 2. إزالة ازدواجية CTA
+
+**الملفات:** `src/components/landing/LandingHero.tsx` + `src/components/landing/LandingCTA.tsx`
+
+- إبقاء زر "دخول النظام" في البطل كزر أساسي
+- تغيير زر `LandingCTA` السفلي ليصبح ثانوي (variant مختلف) أو تغيير نصه إلى "ابدأ الآن" / "تصفّح الميزات" لتمييزه
+- البديل: حذف زر CTA السفلي والاكتفاء بالعلوي مع تذييل بدون زر تكراري
+
+## 3. إصلاحات SEO و Robots/Sitemap
+
+**الملف:** `public/robots.txt`
+- إضافة `Disallow: /auth` تحت كتلتي `Googlebot` و `Bingbot` لتوحيد السياسة مع `User-agent: *`
+- إضافة `Disallow: /install` و `Disallow: /reset-password` لجميع الكتل
+
+**الملف:** `public/sitemap.xml`
+- حذف إدخال `/auth` (صفحة تسجيل دخول لا تُفهرس)
+- حذف إدخال `/install` (صفحة PWA داخلية)
+- إبقاء `/`, `/privacy`, `/terms` فقط
+
+**الملف:** `index.html`
+- تقصير `meta description` إلى ≤ 160 حرف مع الحفاظ على الكلمات المفتاحية الرئيسية (وقف، إدارة، عقارات، مستفيدين)
+- التأكد من وجود `<link rel="canonical">` للنطاق الرسمي
+
+## 4. تحسينات UX
+
+**الملف:** `src/pages/Auth.tsx`
+- إضافة رابط/زر عودة للرئيسية في أعلى الصفحة (`<Link to="/">` مع أيقونة `Home`)
+- إصلاح محاذاة أيقونة تلميح البصمة مع النص العربي (إضافة `gap-2` ومراجعة `dir`)
+
+**الملف:** `src/components/landing/LandingHero.tsx` (اختياري)
+- إضافة شريط علوي خفيف (Header) للرئيسية بزر "دخول" مدمج لتجنب الحاجة للتمرير، مع `position: sticky` شفاف
+
+## 5. تحسينات الأداء
+
+**الملف:** `src/hooks/application/useLandingPage.ts` (أو المكان المسؤول عن `analytics`)
+- تأجيل استدعاء `/~api/analytics` عبر `requestIdleCallback` أو `setTimeout(..., 2000)` لتقليل زمن TTI
+- إضافة `loading="lazy"` لأي صور غير حرجة
+
+**الملف:** `src/components/landing/LandingHero.tsx`
+- تبسيط `<pattern id="islamicPattern">` (إزالة المسار الأصغر) لتقليل حجم DOM
+- إضافة `will-change: auto` بدل أنماط الـ blur الثقيلة على الموبايل عبر `hidden md:block` للدوائر المتوهجة
+
+## 6. إجراءات اختيارية موصى بها
+
+- تشغيل `seo_chat--trigger_scan` بعد التطبيق للتحقق
+- اختبار التباين عبر متصفح بعد تعديل `hero_tagline`
+- مراجعة الشاشة على 360×800 و 414×896 بعد التطبيق
+
+## التفاصيل التقنية
+
+```text
+LandingHero.tsx:
+- L24:  min-h-[90vh]               → min-h-[100svh] md:min-h-[90vh]
+- L62:  text-secondary             → text-white font-semibold (أو لون داكن جديد)
+- L82:  mt-16                      → mt-10 md:mt-16
+- L92:  absolute bottom-8 ...      → hidden md:flex absolute bottom-8 ...
+
+robots.txt:
+- إضافة Disallow: /auth, /install, /reset-password لكتلتي Googlebot و Bingbot
+
+sitemap.xml:
+- إزالة <url> الخاصة بـ /auth و /install
+```
+
+## الترتيب المقترح للتنفيذ
+
+1. إصلاحات Hero الحرجة (تداخل + تباين)
+2. SEO (robots + sitemap + meta)
+3. إزالة ازدواجية CTA
+4. UX (رابط العودة في Auth)
+5. تحسينات الأداء (تأجيل analytics)
