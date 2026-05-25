@@ -33,12 +33,12 @@ export const beneficiaryRoutes = (
     <Route path="/beneficiary/financial-reports" element={pr(ALL_NON_ACCOUNTANT, <FinancialReportsPage />)} />
     <Route path="/beneficiary/accounts" element={pr(ALL_NON_ACCOUNTANT, <AccountsViewPage />)} />
     <Route path="/beneficiary/settings" element={pr(ALL_NON_ACCOUNTANT, <BeneficiarySettingsPage />)} />
-    <Route path="/beneficiary/messages" element={pr(ALL_NON_ACCOUNTANT, <BeneficiaryMessagesPage />)} />
+    <Route path="/beneficiary/messages" element={pr(BENEFICIARY_ROLES, <BeneficiaryMessagesPage />)} />
     <Route path="/beneficiary/invoices" element={pr(ALL_NON_ACCOUNTANT, <InvoicesViewPage />)} />
     <Route path="/beneficiary/expenses" element={pr(ALL_NON_ACCOUNTANT, <ExpensesViewPage />)} />
-    <Route path="/beneficiary/notifications" element={pr(ALL_NON_ACCOUNTANT, <NotificationsPage />)} />
+    <Route path="/beneficiary/notifications" element={pr(BENEFICIARY_ROLES, <NotificationsPage />)} />
     <Route path="/beneficiary/bylaws" element={pr(ALL_NON_ACCOUNTANT, <BylawsViewPage />)} />
-    <Route path="/beneficiary/carryforward" element={pr(ALL_NON_ACCOUNTANT, <CarryforwardHistoryPage />)} />
+    <Route path="/beneficiary/carryforward" element={pr(BENEFICIARY_ROLES, <CarryforwardHistoryPage />)} />
     <Route path="/beneficiary/support" element={pr(BENEFICIARY_ROLES, <BeneficiarySupportPage />)} />
     <Route path="/beneficiary/annual-report" element={pr(ALL_NON_ACCOUNTANT, <AnnualReportViewPage />)} />
   </>
