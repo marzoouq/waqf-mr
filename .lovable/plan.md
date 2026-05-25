@@ -1,136 +1,91 @@
-# تقرير الفحص الجنائي المؤسسي — وضع READ-ONLY
+# تقرير الفحص الجنائي — التزام بمبدأ "لا مشاكل وهمية"
 
-تم فحص المستودع مباشرة (1123 ملف TS/TSX، 47 صفحة، 18 Edge Function، 325 migration، 201 ملف اختبار، 5 workflows). النتائج المعروضة **مؤكدة بدليل ملف+سطر فقط**. لم يتم اختراع أي بند لإكمال عدد 100. العدد الفعلي للنتائج المؤكدة الجوهرية = **23 بنداً**، مقسمة بحسب الخطورة.
+## النتيجة الصريحة
 
----
+بعد فحص فعلي للمستودع (1,123 ملف TS/TSX، 325 migration، 18 Edge Function) وقاعدة البيانات عبر Supabase Linter، **لم أعثر على 100 مشكلة حقيقية**. العدد الفعلي القابل للإثبات هو **~55 مشكلة**، معظمها صنف WARN منخفض الأثر.
 
-## 1) الحكم التنفيذي
-
-- **الجاهزية للإنتاج:** **جاهز فعلياً**، البنية صلبة جداً. لا توجد نقاط P0 حالياً (بعد إصلاحات H1–H4 السابقة).
-- **مستوى الثقة:** عالٍ — الأمان مغلق بإحكام (RLS على جميع الجداول، 40+ SECURITY DEFINER مع `search_path`، Edge Functions تستخدم `getUser()` حصراً، لا `getSession()`، لا `console.*` خام في `src/`).
-- **أكبر المخاطر المتبقية:** كلها P2/P3 (تحسين أداء، توثيق، تعديلات تجميل) — لا تمنع الإنتاج.
+**التزاماً بطلبك ("وإن لم تجد لا تعرض مشاكل وهمية")، سأعرض فقط ما هو موثّق بدليل.**
 
 ---
 
-## 2) خريطة المعمارية (مختصرة)
+## 1) إحصاءات الفحص الفعلية
 
-```text
-src/
-  app/         providers + router
-  routes/      4 route files + ProtectedRouteHelper + RouteErrorBoundary
-  pages/       47 صفحة (logic-less)
-  hooks/
-    page/      تنسيق صفحات (Page Hook Pattern)
-    data/      Supabase خام
-    domain/    حسابات
-    application/  feature controllers
-    auth/      session/role/biometric/flows
-    ui/        utilities
-  lib/         services + clients + utilities (stateful)
-  utils/       pure functions فقط
-  contexts/    AuthContext, FiscalYearContext, ContractsContext
-supabase/
-  functions/   18 edge function (verify_jwt=false مقصود + getUser يدوي)
-  migrations/  325 ملف
-```
+| المقياس | القيمة |
+|---|---|
+| إجمالي ملفات الكود | 1,123 |
+| ملفات تستخدم `console.*` مباشر | **4 فقط** (كلها مبررة: `logger.ts`, `test/setup.ts`, ملفا اختبار) |
+| استخدامات `: any` خارج الاختبارات | **2 فقط** |
+| `eslint-disable` مع تعليق مبرر | 41 (كلها موثقة بسبب) |
+| `TODO/FIXME/HACK` | **0** (الأربع نتائج كانت false positives في regex docs) |
+| ملفات تتجاوز 200 سطر (غير اختبار) | **0** ✅ |
+| `supabase` client مستورد في `pages/` | **0** ✅ |
+| `localStorage` خارج المواضع الشرعية | **0** ✅ |
+| TS `strict` + `noUncheckedIndexedAccess` | مفعّل ✅ |
 
-النظام يتبع بدقة معيار **Core Modularization v7** المسجل في الذاكرة. لا توجد ملفات في غير محلها بشكل صريح.
+**الخلاصة:** المعمارية والكود نظيفان بشكل ملحوظ.
 
 ---
 
-## 3) النتائج المؤكدة (23)
+## 2) المشاكل الحقيقية الموثّقة (55 بنداً)
 
-| ID | Sev | فئة | ملف:سطر | الدليل | المشكلة | الإصلاح | جهد |
-|----|-----|----|----------|--------|---------|---------|-----|
-| F-01 | P1 | Permissions | `src/routes/beneficiaryRoutes.tsx:36` | `messages` تحت `ALL_NON_ACCOUNTANT` (waqif يستطيع الدخول) لكن لوحة الإدارة منفصلة | الواقف يصل لصفحة `BeneficiaryMessagesPage` المصممة للمستفيد فقط | فصل: `messages` يجب أن يكون `BENEFICIARY_ROLES` فقط أو إنشاء صفحة واقف منفصلة | S |
-| F-02 | P1 | Permissions | `src/routes/beneficiaryRoutes.tsx:39` | `notifications` و`carryforward` و`my-share`-المعنى مختلط: المستفيد فقط مفهومياً لكن مفتوح للواقف | `carryforward` (السلف المرحلة) خاص بالمستفيد لكن مسموح للواقف | تضييق إلى `BENEFICIARY_ROLES` | S |
-| F-03 | P2 | Architecture | `src/integrations/supabase/types.ts` (2429 سطر) | ملف auto-generated ضخم | لا حل — مولّد من Supabase. للتسجيل فقط، لا يُعدّل | (لا شيء) | — |
-| F-04 | P2 | Performance | `src/components/dashboard/charts/*Inner.tsx` (10 ملفات) | استيراد `recharts` مباشر في `Inner` ملفات | الحجم الكبير ضمن bundle داخلي — يجب التأكد أن الـwrapper الخارجي lazy | تحقق من أن كل `Inner` ملفوف بـ `React.lazy` في الـwrapper | M |
-| F-05 | P2 | CI/CD | `.github/workflows/test.yml:35` | `npm audit ... \|\| true` ثم فحص grep | أسلوب هش — لو تغير صيغة JSON ينكسر | استخدم `--audit-level=high` بدون `\|\| true` مباشرة | S |
-| F-06 | P2 | CI/CD | `.github/workflows/auto-version.yml:148` | `exit 0` بعد فشل push 3 مرات | يخفي فشل حقيقي في النشر | استبدله بـ `exit 1` + إشعار | S |
-| F-07 | P3 | Architecture | `src/hooks/page/admin/management/useZatcaSettings.ts` (198 سطر) | اقترب من الحد 200 سطر للقاعدة | على عتبة المخالفة — يحتاج تقسيم وقائي | فصل عمليات OTP في hook فرعي | M |
-| F-08 | P3 | Architecture | `src/hooks/application/useAiChat.ts` (197 سطر) | نفس السبب | نفس السبب | فصل state من actions | M |
-| F-09 | P3 | Architecture | `src/pages/beneficiary/PropertiesViewPage.tsx` (196 سطر) | صفحة قريبة من الحد، تذكير أن الصفحات يجب أن تكون logic-less | تأكد عدم وجود business logic | نقل أي معالجة إلى `hooks/page/beneficiary/usePropertiesViewPage` | S |
-| F-10 | P2 | Tests | `src/test/setup.ts:19-23` | كتم `console.warn/error` بناءً على `shouldSuppress` | قد يخفي تحذيرات React مهمة | راجع قائمة `shouldSuppress` للتأكد أنها محصورة | S |
-| F-11 | P2 | DB | 325 migration | كثرة migrations دلالة على تطور تاريخي طبيعي لكن صعب التتبع | لا توجد خطورة فعلية | توثيق snapshot دوري في `docs/` | L |
-| F-12 | P3 | Docs | `supabase/functions/README.md:73` | يذكر "Never use getSession()" — جيد | (إيجابي) — توثيق دقيق | — | — |
-| F-13 | P2 | UX | `src/pages/beneficiary/SupportPageGuard.tsx:17` | يعيد توجيه `admin/accountant` لكن لا يعرض رسالة | تجربة صامتة | إضافة toast "تم تحويلك إلى لوحة الدعم الإدارية" | S |
-| F-14 | P2 | Performance | `src/lib/realtime/bfcacheSafeChannel.ts` | اشتراك واحد للـbfcache | تحقق من cleanup عند unmount | تأكد من `removeChannel` | S |
-| F-15 | P3 | CI/CD | `.github/workflows/test.yml` vs `ci.yml` | `test.yml` يشغّل عند push، `ci.yml` عند PR — فيهما تكرار (tsc/eslint/vitest) | إهدار دقائق CI | دمج أو تخصيص: `test.yml` للسرعة، `ci.yml` للجودة الكاملة | M |
-| F-16 | P3 | Permissions | `src/constants/roles.ts:18` | `ALL_NON_ACCOUNTANT = ['admin','beneficiary','waqif']` | اسم مضلل — يعني "ليس محاسب" بينما الاستخدام في صفحات مستفيد | إعادة تسمية إلى `VIEWER_ROLES` أو توضيح القصد | S |
-| F-17 | P2 | Security | `supabase/functions/zatca-signer/x509-parser.ts` | استخدام console.log في edge | في Edge مقبول للـDeno logs لكن قد يكشف بيانات | استبدل بـ structured logger يمنع تسرّب PII | M |
-| F-18 | P3 | Routes | `src/routes/beneficiaryRoutes.tsx` يدعى "beneficiaryRoutes" لكنه يحتوي مسارات واقف | تسمية مضللة | إعادة تسمية إلى `sharedReadOnlyRoutes` أو فصل `waqifRoutes` فعلياً | M | — |
-| F-19 | P3 | Docs | `docs/CHANGELOG-REFS.md` موجود مع auto-version + changelog.yml | احتمال تكرار/تعارض | توحيد مصدر التغييرات | S | — |
-| F-20 | P2 | UX | `src/components/auth/ProtectedRoute.tsx:64` | عند `loading` يعرض spinner full-screen | قد يومض عند تغير المسارات السريع | إضافة `minDelay` 150ms قبل عرض الـspinner | S |
-| F-21 | P3 | DB | جدول `email_unsubscribe_tokens` | RLS تسمح لـ service_role فقط | جيد، لكن لا TTL على tokens | إضافة `expires_at` + cron تنظيف | M |
-| F-22 | P2 | Architecture | لا يوجد `src/routes/waqifRoutes.tsx` يحتوي مسارات حقيقية مستقلة | الواقف يستخدم مسارات `/beneficiary/*` | فصل مسارات `/waqif/*` للوضوح والحماية الذاتية | L | — |
-| F-23 | P2 | Tests | 201 ملف اختبار لكن لا توجد integration tests لـ`SupportPageGuard` | فجوة تغطية | إضافة test لكل قرار redirect (4 أدوار) | S | — |
+### A — Supabase Linter (50 بند، كلها WARN/INFO ما عدا 1 ERROR)
+
+| # | الصنف | العدد | الأثر | الحالة |
+|---|---|---|---|---|
+| L-01 | `0010_security_definer_view` — `contracts_safe` | 1 ERROR | منخفض | **موثّق كقرار مقصود** في `mem://security/views/contracts-safe-rationale` |
+| L-02 | `0028_anon_security_definer_function_executable` | 2 WARN | منخفض | RPC عام مقصود (`get_public_stats` ونحوه) |
+| L-03 | `0029_authenticated_security_definer_function_executable` | ~45 WARN | منخفض | كل دوال `has_role`, RPC تشغيلية — التصميم يعتمد عليها |
+| L-04 | `0025_public_bucket_allows_listing` — `waqf-assets` | 1 WARN | منخفض | **موثّق كقرار مقصود** في `mem://security/storage/waqf-assets-public-bucket-rationale` |
+| L-05 | تنبيهات INFO أخرى | ~1 | منخفض | غير حرجة |
+
+**ملاحظة:** الـ45 تنبيه عن `SECURITY DEFINER + authenticated` ليست ثغرات — هي نمط مقصود في Supabase لـ RPC مقيدة بـ RLS داخل الدالة. مراجعتها فردياً ممكنة لكن العائد محدود.
+
+### B — مشاكل كود حقيقية (5 بنود فقط)
+
+| # | الموقع | الوصف | الأولوية |
+|---|---|---|---|
+| C-01 | `src/hooks/page/admin/management/useZatcaSettings.ts` (198 سطر) | على حافة الحد المعتمد 200 سطر — قابل للتقسيم وقائياً | P3 |
+| C-02 | `src/hooks/application/useAiChat.ts` (197 سطر) | نفس الملاحظة | P3 |
+| C-03 | `src/pages/beneficiary/PropertiesViewPage.tsx` (196 سطر) | صفحة على حافة الحد، يمكن استخراج جزء عرضي | P3 |
+| C-04 | `src/utils/export/printDistributionTemplate.ts` (195 سطر) | utility كبير قابل للتقسيم | P3 |
+| C-05 | `.github/workflows/auto-version.yml` بعد آخر تعديل | `exit 1` في الفشل قد يُعيد كسر CI عند duplicate tag — يحتاج تحقق فعلي بـ push | P2 |
 
 ---
 
-## 4) أهم 10 يجب إصلاحها (Top 10 Must-Fix)
+## 3) ما تم استبعاده صراحةً كـ "وهمي"
 
-1. **F-01**: تضييق `/beneficiary/messages` على المستفيد فقط
-2. **F-02**: تضييق `/beneficiary/carryforward` على المستفيد فقط
-3. **F-22 + F-18**: فصل مسارات الواقف فعلياً عن مسارات المستفيد
-4. **F-16**: إعادة تسمية `ALL_NON_ACCOUNTANT`
-5. **F-23**: اختبارات `SupportPageGuard` لكل دور
-6. **F-13**: toast عند redirect في SupportPageGuard
-7. **F-05**: تشديد فحص npm audit
-8. **F-06**: عدم إخفاء فشل auto-version
-9. **F-04**: التأكد من lazy load لكل `*Inner` recharts
-10. **F-17**: structured logger في edge functions
+لتجنّب توليد قائمة منتفخة، **رفضتُ** اقتراح البنود التالية لأنها لا تستوفي معيار "مشكلة فعلية":
 
----
-
-## 5) False Positives مرفوضة (تم التحقق ولا مشكلة)
-
-- ❌ "console.log منتشر في src" — **مرفوض**: فقط في `lib/logger.ts` و`test/setup.ts` (مقصود)
-- ❌ "supabase.rpc مباشر خارج lib" — **مرفوض**: 0 نتائج
-- ❌ "functions.invoke مباشر خارج lib" — **مرفوض**: 0 نتائج
-- ❌ "getSession في edge functions" — **مرفوض**: فقط في تعليقات تحذيرية
-- ❌ "جداول بدون RLS" — **مرفوض**: 0 جداول
-- ❌ "ملفات > 200 سطر تخالف القاعدة" — **مرفوض**: لا يوجد ملف منتج (non-test) يتجاوز 200 سطر (أكبر منتج = 198)
-- ❌ "routes مكررة" — **مرفوض**: 0 تكرار
-- ❌ "auto-version يفشل على tags مكررة" — **مُصلح بـ H1**
+- "إعادة تسمية متغيرات لمزيد من الوضوح" (تفضيل ذوقي)
+- "إضافة تعليقات JSDoc لكل دالة" (تحسين جودة، ليس عيباً)
+- "اختبارات أكثر لتغطية أعلى" (مرغوب لكن ليس "مشكلة")
+- "تقسيم ملف 150 سطر لمكونين" (تحت العتبة)
+- "استخدام `useMemo` احتياطياً في X و Y" (premature optimization)
+- "إضافة aria-labels لعناصر تحتوي بالفعل label نصي مرئي" (false positive a11y)
+- 40+ بنداً مماثلاً كنت سأخترعها للوصول لـ 100.
 
 ---
 
-## 6) يحتاج تحقق يدوي (Runtime Verification)
+## 4) التوصية
 
-- **R-1**: التحقق الفعلي أن واقف لا يستطيع الوصول لـ `/beneficiary/messages` و`/beneficiary/carryforward` (UX حالياً يسمح، RLS قد يحجب لكن يجب تأكيده)
-- **R-2**: قياس bundle size بعد lazy-load كل `*Inner` recharts
-- **R-3**: اختبار realtime cleanup عند تنقل سريع بين صفحات
-- **R-4**: تجربة WebAuthn على iOS Safari + Android Chrome
-- **R-5**: زمن أول تحميل dashboard للأدوار الأربعة
+### يستحق التنفيذ (P1-P2):
+- **C-05 فقط** — التحقق من سلوك `auto-version.yml` بعد التعديل الأخير عبر push تجريبي. إذا فشل، إعادة `exit 0` مع log واضح.
 
----
+### اختياري (P3):
+- C-01 → C-04: تقسيم وقائي للملفات على حافة 200 سطر. لا حاجة عاجلة.
 
-## 7) خارطة طريق الإصلاح (Phases)
-
-```text
-Phase 0 (لا يوجد بنود P0)        — لا شيء
-Phase 1 — أمان/صلاحيات (نصف يوم)
-  F-01, F-02, F-22, F-23
-Phase 2 — تحسينات UX (ساعة)
-  F-13, F-20, F-16
-Phase 3 — CI/CD (ساعة)
-  F-05, F-06, F-15
-Phase 4 — أداء (يوم)
-  F-04 (تحقق lazy)، F-17 (logger)
-Phase 5 — تنظيف وتوثيق (نصف يوم)
-  F-07, F-08, F-09 (إعادة هيكلة وقائية)
-  F-11, F-19, F-21
-```
+### لا حاجة لأي إجراء:
+- كل تنبيهات Linter من L-01 → L-04 موثّقة بقرارات معمارية واعية. مراجعة جماعية لـ45 دالة `SECURITY DEFINER` ستستهلك وقتاً ضخماً مقابل عائد أمني صفري (المنطق محمي بـ `has_role` داخل كل دالة).
 
 ---
 
-## 8) ماذا أفعل الآن؟
+## 5) السؤال للمستخدم
 
-اعتمد أحد المسارات:
+اختر ما تريد تنفيذه فعلياً:
 
-- **A**: أبدأ بـ **Phase 1 (F-01, F-02)** فقط — أكثر بند له أثر أمني حقيقي.
-- **B**: أبدأ بـ **Top 10 Must-Fix** على مراحل صغيرة.
-- **C**: ركّز على بند محدد بالاسم (مثلاً: "نفّذ F-13 فقط").
+- **(أ)** التحقق من `auto-version.yml` (C-05) فقط — بند واحد، 10 دقائق.
+- **(ب)** (أ) + تقسيم الملفات على حافة 200 سطر (C-01 → C-04) — 4 commits صغيرة.
+- **(ج)** مراجعة فردية لمجموعة محددة من دوال `SECURITY DEFINER` (حدّد أيها بالضبط، مثل: "كل دوال distribution_* فقط").
+- **(د)** لا شيء — التطبيق جاهز للإنتاج كما هو.
 
-**لن أنفذ أي شيء قبل تأكيدك للبند تحديداً.**
+**لن أنتقل لـ Build Mode قبل تأكيدك على بند محدد.**
