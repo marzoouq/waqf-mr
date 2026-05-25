@@ -20,7 +20,12 @@ import { VOUCHER_PAYMENT_METHODS, VOUCHER_STATUS_LABELS } from '@/constants/enti
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { fmt } from '@/utils/format/format';
 import VoucherFormDialog from './VoucherFormDialog';
-import { ConfirmDeleteDialog } from '@/components/common';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
 interface VoucherListProps {
@@ -149,23 +154,39 @@ const VoucherList: React.FC<VoucherListProps> = ({ expenseId, expenseAmount, exp
         />
       )}
 
-      <ConfirmDeleteDialog
-        open={!!voidTarget}
-        onOpenChange={(o) => !o && setVoidTarget(null)}
-        targetName={voidTarget ? `سند ${voidTarget.voucher_number}` : undefined}
-        title="إلغاء سند الصرف"
-        confirmLabel="تأكيد الإلغاء"
-        requireReason
-        reasonLabel="سبب الإلغاء"
-        onConfirm={(reason) => {
-          if (!voidTarget) return;
-          if (!reason?.trim()) return toast.error('سبب الإلغاء مطلوب');
-          voidMut.mutate(
-            { voucherId: voidTarget.id, reason: reason.trim() },
-            { onSettled: () => setVoidTarget(null) },
-          );
-        }}
-      />
+      <AlertDialog open={!!voidTarget} onOpenChange={(o) => { if (!o) { setVoidTarget(null); setVoidReason(''); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>إلغاء سند الصرف</AlertDialogTitle>
+            <AlertDialogDescription>
+              سيتم إلغاء سند {voidTarget?.voucher_number} ولا يمكن التراجع. أدخل سبب الإلغاء:
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="void-reason">سبب الإلغاء *</Label>
+            <Textarea id="void-reason" rows={3} value={voidReason}
+              onChange={(e) => setVoidReason(e.target.value)} />
+          </div>
+          <AlertDialogFooter className="flex-row-reverse gap-2">
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={voidMut.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                if (!voidTarget) return;
+                if (!voidReason.trim()) { toast.error('سبب الإلغاء مطلوب'); return; }
+                voidMut.mutate(
+                  { voucherId: voidTarget.id, reason: voidReason.trim() },
+                  { onSettled: () => { setVoidTarget(null); setVoidReason(''); } },
+                );
+              }}
+            >
+              {voidMut.isPending ? 'جارٍ الإلغاء…' : 'تأكيد الإلغاء'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
