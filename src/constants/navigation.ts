@@ -11,7 +11,7 @@
  */
 import {
   Building2, Home, FileText, Wallet, Users, BarChart3,
-  DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
+  DollarSign, Receipt, ReceiptText, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
   ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity, Mail,
   TrendingDown,
@@ -41,22 +41,22 @@ export const allAdminLinks = [
   { to: '/dashboard/income', icon: DollarSign, label: 'الدخل' },
   { to: '/dashboard/expenses', icon: Receipt, label: 'المصروفات' },
   { to: '/dashboard/beneficiaries', icon: Users, label: 'المستفيدين' },
-  { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير والإفصاح' },
-  { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات الختامية والإقفال' },
+  { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير المالية والإفصاح' },
+  { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات الختامية' },
   { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
   { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
   { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
-  { to: '/dashboard/invoices', icon: FileText, label: 'الفواتير' },
+  { to: '/dashboard/invoices', icon: ReceiptText, label: 'فواتير العقود' },
   { to: '/dashboard/audit-log', icon: ShieldCheck, label: 'سجل المراجعة' },
   { to: '/dashboard/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
-  { to: '/dashboard/zatca', icon: Lock, label: 'إدارة ZATCA' },
+  { to: '/dashboard/zatca', icon: Lock, label: 'تكامل ZATCA' },
   { to: '/dashboard/support', icon: Headset, label: 'الدعم الفني' },
-  { to: '/dashboard/annual-report', icon: ClipboardList, label: 'المحتوى السنوي للوقف' },
+  { to: '/dashboard/annual-report', icon: ClipboardList, label: 'إدارة التقرير السنوي' },
   { to: '/dashboard/chart-of-accounts', icon: GitBranch, label: 'الشجرة المحاسبية' },
   { to: '/dashboard/comparison', icon: GitCompareArrows, label: 'المقارنة التاريخية' },
   { to: '/dashboard/diagnostics', icon: Activity, label: 'تشخيص النظام' },
   { to: '/dashboard/email-monitor', icon: Mail, label: 'مراقبة البريد' },
-  { to: '/beneficiary', icon: Eye, label: 'معاينة واجهة المستفيد' },
+  { to: '/beneficiary', icon: Eye, label: 'معاينة بوابة المستفيد' },
 ];
 
 export const allBeneficiaryLinks = [
@@ -81,30 +81,32 @@ export const allBeneficiaryLinks = [
 // ─── Sidebar grouping (PR-1) ───
 // Single source of truth for which menu group a route belongs to.
 // Routes not listed appear ungrouped (above all groups for admin, below for beneficiary).
-export const ADMIN_GROUP_ORDER = ['operations', 'finance', 'reference', 'communication', 'administration', 'system'] as const;
+export const ADMIN_GROUP_ORDER = ['operations', 'finance', 'reference', 'communication', 'administration', 'system', 'preview'] as const;
 export type AdminGroupKey = typeof ADMIN_GROUP_ORDER[number];
 
 export const ADMIN_GROUP_LABELS: Record<AdminGroupKey, string> = {
   operations: 'التشغيل',
-  finance: 'المالية',
+  finance: 'المالية والتقارير',
   reference: 'المرجع',
   communication: 'الاتصال',
   administration: 'الإدارة',
-  system: 'النظام',
+  system: 'النظام والتكاملات',
+  preview: 'المعاينة',
 };
 
 export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/properties': 'operations',
   '/dashboard/contracts': 'operations',
   '/dashboard/beneficiaries': 'operations',
-  '/dashboard/invoices': 'operations',
   '/dashboard/income': 'finance',
   '/dashboard/expenses': 'finance',
+  '/dashboard/invoices': 'finance',
   '/dashboard/accounts': 'finance',
   '/dashboard/reports': 'finance',
-  '/dashboard/annual-report': 'finance',
-  '/dashboard/chart-of-accounts': 'reference',
+  '/dashboard/chart-of-accounts': 'finance',
+  '/dashboard/comparison': 'finance',
   '/dashboard/bylaws': 'reference',
+  '/dashboard/annual-report': 'reference',
   '/dashboard/messages': 'communication',
   '/dashboard/support': 'communication',
   '/dashboard/users': 'administration',
@@ -113,6 +115,7 @@ export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/zatca': 'system',
   '/dashboard/email-monitor': 'system',
   '/dashboard/diagnostics': 'system',
+  '/beneficiary': 'preview',
 };
 
 export const BENEFICIARY_GROUP_ORDER = ['financial', 'documents', 'communication', 'account'] as const;
