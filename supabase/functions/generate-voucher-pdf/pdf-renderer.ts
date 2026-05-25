@@ -2,8 +2,7 @@
 // pdf-renderer.ts — توليد PDF لسند صرف داخلي بالعربية (Amiri RTL)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { PDFDocument, rgb } from "npm:pdf-lib@1.17.1";
-import fontkit from "npm:@pdf-lib/fontkit@1.1.1";
+import { jsPDF } from "npm:jspdf@3.0.4";
 import { processArabicText } from "../_shared/arabic-reshaper.ts";
 
 const FONT_BASE_URL = `${Deno.env.get("SUPABASE_URL")!}/storage/v1/object/public/waqf-assets/fonts`;
@@ -65,16 +64,18 @@ function fmtDate(iso: string | null): string {
 
 export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
   const fonts = await getFonts();
-  const pdf = await PDFDocument.create();
-  pdf.registerFontkit(fontkit);
-  const regular = await pdf.embedFont(fonts.regular, { subset: true });
-  const bold = await pdf.embedFont(fonts.bold, { subset: true });
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  doc.addFileToVFS("Amiri-Regular.ttf", toBase64(fonts.regular));
+  doc.addFont("Amiri-Regular.ttf", "Amiri", "normal", "Identity-H");
+  doc.addFileToVFS("Amiri-Bold.ttf", toBase64(fonts.bold));
+  doc.addFont("Amiri-Bold.ttf", "Amiri", "bold", "Identity-H");
+  doc.setLanguage("ar");
 
-  const page = pdf.addPage([595, 842]); // A4
-  const { width, height } = page.getSize();
-  const ink = rgb(0.07, 0.07, 0.1);
-  const muted = rgb(0.45, 0.45, 0.5);
-  const accent = rgb(0.15, 0.35, 0.6);
+  const width = doc.internal.pageSize.getWidth();
+  const height = doc.internal.pageSize.getHeight();
+  const ink: Rgb = [18, 18, 26];
+  const muted: Rgb = [115, 115, 128];
+  const accent: Rgb = [38, 89, 153];
 
   // helper: تنظيف نص من أي محرف لا يدعمه الخط (يسبب NaN عند قياس العرض)
   // نُبقي فقط ASCII المطبوع + كتلة العربية + أشكال العرض العربية + المسافات
@@ -84,26 +85,14 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/[^\x20-\x7E\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF\s]/g, "");
-  const safeWidth = (font: typeof regular, text: string, size: number): number => {
-    try {
-      const w = font.widthOfTextAtSize(text, size);
-      return Number.isFinite(w) ? w : text.length * size * 0.5;
-    } catch {
-      return text.length * size * 0.5;
-    }
-  };
-
   // helper: نص عربي RTL محاذي يميناً
-  const drawAr = (text: string, x: number, y: number, size: number, font = regular, color = ink) => {
+  const drawAr = (text: string, x: number, y: number, size: number, weight: FontWeight = "normal", color = ink) => {
     const reshaped = sanitize(processArabicText(sanitize(text)));
     if (!reshaped) return;
-    const w = safeWidth(font, reshaped, size);
-    page.drawText(reshaped, { x: x - w, y, size, font, color });
-  };
-  const drawArLeft = (text: string, x: number, y: number, size: number, font = regular, color = ink) => {
-    const reshaped = sanitize(processArabicText(sanitize(text)));
-    if (!reshaped) return;
-    page.drawText(reshaped, { x, y, size, font, color });
+    doc.setFont("Amiri", weight);
+    doc.setFontSize(size);
+    setColor(doc, color);
+    doc.text(reshaped, x, y, { align: "right", isInputVisual: true });
   };
 
   // العنوان
