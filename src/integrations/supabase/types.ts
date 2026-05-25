@@ -750,6 +750,78 @@ export type Database = {
         }
         Relationships: []
       }
+      disbursement_vouchers: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          created_by: string
+          expense_id: string
+          fiscal_year_id: string
+          id: string
+          payment_method: Database["public"]["Enums"]["voucher_payment_method"]
+          pdf_path: string | null
+          recipient_id_number: string | null
+          recipient_name: string
+          recipient_phone: string | null
+          signature_data: string | null
+          status: Database["public"]["Enums"]["voucher_status"]
+          transfer_reference: string | null
+          updated_at: string
+          void_reason: string | null
+          voided_at: string | null
+          voucher_number: string
+          work_description: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by: string
+          expense_id: string
+          fiscal_year_id: string
+          id?: string
+          payment_method?: Database["public"]["Enums"]["voucher_payment_method"]
+          pdf_path?: string | null
+          recipient_id_number?: string | null
+          recipient_name: string
+          recipient_phone?: string | null
+          signature_data?: string | null
+          status?: Database["public"]["Enums"]["voucher_status"]
+          transfer_reference?: string | null
+          updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voucher_number: string
+          work_description: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string
+          expense_id?: string
+          fiscal_year_id?: string
+          id?: string
+          payment_method?: Database["public"]["Enums"]["voucher_payment_method"]
+          pdf_path?: string | null
+          recipient_id_number?: string | null
+          recipient_name?: string
+          recipient_phone?: string | null
+          signature_data?: string | null
+          status?: Database["public"]["Enums"]["voucher_status"]
+          transfer_reference?: string | null
+          updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voucher_number?: string
+          work_description?: string
+        }
+        Relationships: []
+      }
       distributions: {
         Row: {
           account_id: string
@@ -1992,6 +2064,57 @@ export type Database = {
           },
         ]
       }
+      disbursement_vouchers_public: {
+        Row: {
+          amount: number | null
+          approved_at: string | null
+          created_at: string | null
+          expense_id: string | null
+          fiscal_year_id: string | null
+          id: string | null
+          payment_method:
+            | Database["public"]["Enums"]["voucher_payment_method"]
+            | null
+          pdf_path: string | null
+          recipient_name: string | null
+          status: Database["public"]["Enums"]["voucher_status"] | null
+          voucher_number: string | null
+          work_description: string | null
+        }
+        Insert: {
+          amount?: number | null
+          approved_at?: string | null
+          created_at?: string | null
+          expense_id?: string | null
+          fiscal_year_id?: string | null
+          id?: string | null
+          payment_method?:
+            | Database["public"]["Enums"]["voucher_payment_method"]
+            | null
+          pdf_path?: string | null
+          recipient_name?: string | null
+          status?: Database["public"]["Enums"]["voucher_status"] | null
+          voucher_number?: string | null
+          work_description?: string | null
+        }
+        Update: {
+          amount?: number | null
+          approved_at?: string | null
+          created_at?: string | null
+          expense_id?: string | null
+          fiscal_year_id?: string | null
+          id?: string | null
+          payment_method?:
+            | Database["public"]["Enums"]["voucher_payment_method"]
+            | null
+          pdf_path?: string | null
+          recipient_name?: string | null
+          status?: Database["public"]["Enums"]["voucher_status"] | null
+          voucher_number?: string | null
+          work_description?: string | null
+        }
+        Relationships: []
+      }
       v_fiscal_year_summary: {
         Row: {
           distribution_count: number | null
@@ -2054,6 +2177,10 @@ export type Database = {
             }
             Returns: Json
           }
+      approve_disbursement_voucher: {
+        Args: { p_voucher_id: string }
+        Returns: undefined
+      }
       check_rate_limit: {
         Args: { p_key: string; p_limit: number; p_window_seconds: number }
         Returns: boolean
@@ -2078,6 +2205,20 @@ export type Database = {
           p_source_table?: string
         }
         Returns: undefined
+      }
+      create_disbursement_voucher: {
+        Args: {
+          p_amount: number
+          p_expense_id: string
+          p_payment_method: Database["public"]["Enums"]["voucher_payment_method"]
+          p_recipient_id_number: string
+          p_recipient_name: string
+          p_recipient_phone: string
+          p_signature_data: string
+          p_transfer_reference: string
+          p_work_description: string
+        }
+        Returns: string
       }
       cron_archive_old_access_logs: { Args: never; Returns: undefined }
       cron_auto_expire_contracts: { Args: never; Returns: undefined }
@@ -2122,6 +2263,7 @@ export type Database = {
         Args: { p_contract_id: string }
         Returns: number
       }
+      generate_voucher_number: { Args: never; Returns: string }
       get_active_zatca_certificate: { Args: never; Returns: Json }
       get_beneficiary_dashboard: {
         Args: { p_fiscal_year_id?: string }
@@ -2293,9 +2435,15 @@ export type Database = {
             }
             Returns: Json
           }
+      void_disbursement_voucher: {
+        Args: { p_reason: string; p_voucher_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "beneficiary" | "waqif" | "accountant"
+      voucher_payment_method: "cash" | "bank_transfer" | "cheque" | "other"
+      voucher_status: "draft" | "approved" | "void"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2424,6 +2572,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "beneficiary", "waqif", "accountant"],
+      voucher_payment_method: ["cash", "bank_transfer", "cheque", "other"],
+      voucher_status: ["draft", "approved", "void"],
     },
   },
 } as const
