@@ -49,15 +49,18 @@ async function getFonts() {
 }
 
 function fmtAmount(n: number): string {
-  return new Intl.NumberFormat("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  // أرقام لاتينية حتى لا تخرج عن مجموعة الخط الفرعية
+  return new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 }
 
 function fmtDate(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
-  return new Intl.DateTimeFormat("ar-SA-u-ca-gregory", {
-    year: "numeric", month: "2-digit", day: "2-digit",
-  }).format(d);
+  if (isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${day}/${m}/${y}`;
 }
 
 export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
@@ -74,7 +77,13 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
   const accent = rgb(0.15, 0.35, 0.6);
 
   // helper: تنظيف نص من أي محرف لا يدعمه الخط (يسبب NaN عند قياس العرض)
-  const sanitize = (s: string) => (s || "").replace(/[\u0000-\u001F\u007F\uFFF0-\uFFFF]/g, "");
+  // نُبقي فقط ASCII المطبوع + كتلة العربية + أشكال العرض العربية + المسافات
+  const sanitize = (s: string) =>
+    (s || "")
+      .replace(/[\u2010-\u2015]/g, "-") // em/en dash → ASCII -
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[^\x20-\x7E\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF\s]/g, "");
   const safeWidth = (font: typeof regular, text: string, size: number): number => {
     try {
       const w = font.widthOfTextAtSize(text, size);
