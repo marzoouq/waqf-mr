@@ -78,10 +78,10 @@ function setFill(doc: jsPDF, color: Rgb): void {
   doc.setFillColor(color[0], color[1], color[2]);
 }
 
-function drawLine(doc: jsPDF, x1: number, y1: number, x2: number, y2: number, color: Rgb, width: number): void {
+function drawLine(doc: jsPDF, pageHeight: number, x1: number, y1: number, x2: number, y2: number, color: Rgb, width: number): void {
   doc.setDrawColor(color[0], color[1], color[2]);
   doc.setLineWidth(width);
-  doc.line(x1, y1, x2, y2);
+  doc.line(x1, pageHeight - y1, x2, pageHeight - y2);
 }
 
 export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
