@@ -44,8 +44,8 @@ interface CreateInvoiceFromTemplateProps {
 export default function CreateInvoiceFromTemplate({
   open, onOpenChange, contracts, properties, sellerInfo, onSave, isSaving,
 }: CreateInvoiceFromTemplateProps) {
-  const { data: defaultVatRateStr } = useSetting('default_vat_rate');
-  const defaultVatRate = Number(defaultVatRateStr ?? 15) || 0;
+  const defaultVatRateStr = useSetting('default_vat_rate', '15');
+  const defaultVatRate = Number(defaultVatRateStr) || 0;
   const {
     activeTab, setActiveTab,
     invoiceNumber, setInvoiceNumber,
