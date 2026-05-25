@@ -24,6 +24,7 @@ const BiometricSettings = lazy(() => import('@/components/settings/security/Biom
 const AdvanceSettingsTab = lazy(() => import('@/components/settings/fiscal-year/AdvanceSettingsTab'));
 const ZatcaSettingsTab = lazy(() => import('@/components/settings/zatca/ZatcaSettingsTab'));
 const SystemSettingsTab = lazy(() => import('@/components/settings/system/SystemSettingsTab'));
+const FeatureVisibilityGrid = lazy(() => import('@/components/settings/visibility/FeatureVisibilityGrid'));
 
 const LOADING = <PageLoader />;
 
