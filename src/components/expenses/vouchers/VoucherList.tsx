@@ -12,6 +12,7 @@ import {
   useDisbursementVouchersPublicByExpense,
   useApproveVoucher,
   useVoidVoucher,
+  useGenerateVoucherPdf,
   getVoucherSignedUrl,
   type Voucher,
   type VoucherPublic,
