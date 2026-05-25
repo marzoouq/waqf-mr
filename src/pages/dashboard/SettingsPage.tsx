@@ -81,6 +81,7 @@ const SettingsPage = () => {
           <TabsContent value="zatca"><Suspense fallback={LOADING}><ZatcaSettingsTab /></Suspense></TabsContent>
           <TabsContent value="security"><Suspense fallback={LOADING}><SecurityTab /></Suspense></TabsContent>
           <TabsContent value="system"><Suspense fallback={LOADING}><SystemSettingsTab /></Suspense></TabsContent>
+          <TabsContent value="visibility"><Suspense fallback={LOADING}><FeatureVisibilityGrid /></Suspense></TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
