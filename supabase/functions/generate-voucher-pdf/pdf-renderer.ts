@@ -65,6 +65,26 @@ function fmtDate(iso: string | null): string {
   return `${day}/${m}/${y}`;
 }
 
+function toBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i] ?? 0);
+  return btoa(binary);
+}
+
+function setColor(doc: jsPDF, color: Rgb): void {
+  doc.setTextColor(color[0], color[1], color[2]);
+}
+
+function setFill(doc: jsPDF, color: Rgb): void {
+  doc.setFillColor(color[0], color[1], color[2]);
+}
+
+function drawLine(doc: jsPDF, x1: number, y1: number, x2: number, y2: number, color: Rgb, width: number): void {
+  doc.setDrawColor(color[0], color[1], color[2]);
+  doc.setLineWidth(width);
+  doc.line(x1, y1, x2, y2);
+}
+
 export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
   const fonts = await getFonts();
   const doc = new jsPDF({ unit: "pt", format: "a4" });
