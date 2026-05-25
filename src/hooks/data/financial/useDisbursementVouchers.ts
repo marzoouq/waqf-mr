@@ -108,19 +108,44 @@ export function useApproveVoucher() {
         p_voucher_id: voucherId,
       });
       if (error) throw error;
-      // توليد PDF بعد الاعتماد
       const { error: fnErr } = await supabase.functions.invoke('generate-voucher-pdf', {
         body: { voucher_id: voucherId },
       });
-      if (fnErr) logger.warn('generate-voucher-pdf failed (non-blocking)', fnErr);
+      return { pdfOk: !fnErr, fnErr };
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: KEY });
-      toast.success('تم اعتماد السند وإصدار PDF');
+      if (res.pdfOk) {
+        toast.success('تم اعتماد السند وإصدار PDF');
+      } else {
+        logger.warn('generate-voucher-pdf failed (non-blocking)', res.fnErr);
+        toast.warning('تم اعتماد السند، لكن تعذّر إصدار PDF — استخدم زر "إصدار PDF" لإعادة المحاولة');
+      }
     },
     onError: (e: Error) => {
       logger.error('approve_disbursement_voucher failed', e);
       toast.error(e.message || 'فشل اعتماد السند');
+    },
+  });
+}
+
+/** إعادة إصدار PDF لسند معتمد بدون ملف */
+export function useGenerateVoucherPdf() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (voucherId: string) => {
+      const { error } = await supabase.functions.invoke('generate-voucher-pdf', {
+        body: { voucher_id: voucherId },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      toast.success('تم إصدار PDF بنجاح');
+    },
+    onError: (e: Error) => {
+      logger.error('generate-voucher-pdf failed', e);
+      toast.error('تعذّر إصدار PDF — راجع السجلات');
     },
   });
 }
