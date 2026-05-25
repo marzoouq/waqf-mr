@@ -34,7 +34,7 @@ export const ADMIN_ROUTES: Record<string, RouteMeta> = {
   '/dashboard/users': { title: 'إدارة المستخدمين', labelKey: 'users', sectionKey: 'users' },
   '/dashboard/settings': { title: 'الإعدادات', labelKey: 'settings', sectionKey: 'settings' },
   '/dashboard/messages': { title: 'المراسلات', labelKey: 'messages', permKey: 'messages', sectionKey: 'messages' },
-  '/dashboard/invoices': { title: 'فواتير العقود', labelKey: 'invoices', permKey: 'invoices', sectionKey: 'invoices' },
+  '/dashboard/invoices': { title: 'الفواتير الضريبية', labelKey: 'invoices', permKey: 'invoices', sectionKey: 'invoices' },
   '/dashboard/audit-log': { title: 'سجل المراجعة', labelKey: 'audit_log', permKey: 'audit_log', sectionKey: 'audit_log' },
   '/dashboard/bylaws': { title: 'اللائحة التنظيمية', labelKey: 'bylaws', permKey: 'bylaws', sectionKey: 'bylaws' },
   '/dashboard/zatca': { title: 'تكامل ZATCA', labelKey: 'zatca', sectionKey: 'zatca' },
