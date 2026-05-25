@@ -127,6 +127,13 @@ const VoucherList: React.FC<VoucherListProps> = ({ expenseId, expenseAmount, exp
                       <Download className="w-3 h-3" /> تنزيل PDF
                     </Button>
                   )}
+                  {isManager && status === 'approved' && !v.pdf_path && v.id && (
+                    <Button size="sm" variant="secondary" className="h-7 text-xs gap-1"
+                      onClick={() => genPdfMut.mutate(v.id!)} disabled={genPdfMut.isPending}>
+                      <FileText className="w-3 h-3" />
+                      {genPdfMut.isPending ? 'جارٍ الإصدار…' : 'إصدار PDF'}
+                    </Button>
+                  )}
                   {isManager && full && status === 'draft' && !isLocked && (
                     <Button size="sm" variant="default" className="h-7 text-xs gap-1"
                       onClick={() => approveMut.mutate(full.id)} disabled={approveMut.isPending}>
