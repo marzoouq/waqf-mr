@@ -95,7 +95,12 @@ export const useInvoicesExport = ({
   );
 
   const handleGeneratePdfForMissing = useCallback(() => {
-    generatePdf.mutate(invoicesWithoutFiles.map((inv) => inv.id));
+    const ids = invoicesWithoutFiles.map((inv) => inv.id);
+    if (ids.length === 0) {
+      uiNotify.info('جميع الفواتير تحتوي على مرفقات بالفعل');
+      return;
+    }
+    generatePdf.mutate(ids);
   }, [generatePdf, invoicesWithoutFiles]);
 
   return {
