@@ -79,7 +79,15 @@ export function useExpensesPage() {
         await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as UpdateArg);
       } else {
         type CreateArg = Parameters<typeof createExpense.mutateAsync>[0];
-        await createExpense.mutateAsync(expenseData as CreateArg);
+        const created = await createExpense.mutateAsync(expenseData as CreateArg);
+        // فتح نافذة سند الصرف تلقائياً للمصاريف الجديدة فقط
+        if (created?.id) {
+          setPostCreateVoucherFor({
+            id: created.id,
+            amount,
+            description: formData.description || formData.expense_type,
+          });
+        }
       }
       setIsOpen(false);
       resetForm();
