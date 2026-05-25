@@ -69,27 +69,27 @@
 | `get_active_zatca_certificate()` | إرجاع الشهادة النشطة للمصادقة على الفاتورة. |
 | `clear_zatca_otp()` | تنظيف OTP بعد الاستخدام. |
 
-## دوال Triggers (مستثناة من 0028 — لا تُستدعى من العميل)
+## دوال Triggers — REVOKED (Migration #2, 2026-05-25)
 
-| الدالة | المبرر |
-|---|---|
-| `audit_app_settings_trigger()` | تسجيل تغييرات الإعدادات في `audit_log`. |
-| `audit_trigger_func()` | trigger عام للمراجعة على الجداول الحسّاسة. |
-| `auto_revoke_anon_execute()` | event trigger يسحب EXECUTE من `anon` تلقائياً. |
-| `enforce_single_active_fy()` | يمنع وجود أكثر من سنة مالية نشطة. |
-| `encrypt_beneficiary_pii()` | تشفير AES-256 لبيانات المستفيد قبل الإدراج. |
-| `encrypt_zatca_private_key()` | تشفير المفتاح الخاص لشهادة ZATCA. |
-| `prevent_category_circular_ref()` | يمنع المراجع الدائرية في تصنيفات المصروفات. |
-| `prevent_closed_fiscal_year_modification()` | يحظر التعديل على سنة مقفلة. |
-| `prevent_fiscal_year_overlap()` | يمنع تداخل تواريخ السنوات. |
-| `prevent_issued_invoice_modification()` | يمنع تعديل فاتورة بعد الإصدار. |
-| `sync_unit_status_on_contract_change()` | يحدّث حالة الوحدة عند تغيير العقد. |
-| `update_support_ticket_timestamp()` | يحدّث `updated_at` لتذاكر الدعم. |
-| `validate_advance_request_amount()` | يتحقق من سقف السلفة. |
-| `validate_advance_status_transition()` | يفرض انتقالات الحالات المسموحة للسلفة. |
-| `validate_invoice_chain_ref()` / `validate_invoice_chain_reference()` | يتحقق من سلامة مرجع سلسلة الفواتير. |
-| `validate_ticket_rating()` | يتحقق من قيم تقييم تذاكر الدعم. |
-| `validate_zatca_certificate_activation()` | يتحقق من تفعيل شهادة ZATCA. |
+سُحبت `EXECUTE` من `PUBLIC, anon, authenticated` وأُبقي `postgres, service_role` فقط.
+لم تعد تُحسَب ضمن تحذير 0029. القائمة محفوظة هنا للتوثيق التاريخي فقط:
+
+`audit_app_settings_trigger`, `audit_trigger_func`, `encrypt_beneficiary_pii`,
+`encrypt_zatca_private_key`, `enforce_single_active_fy`, `prevent_category_circular_ref`,
+`prevent_closed_fiscal_year_modification`, `prevent_fiscal_year_overlap`,
+`prevent_issued_invoice_modification`, `set_distribution_fiscal_year`,
+`sync_role_to_auth_meta`, `sync_unit_status_on_contract_change`,
+`update_support_ticket_timestamp`, `update_updated_at_column`,
+`validate_advance_request_amount`, `validate_advance_status_transition`,
+`validate_app_settings_value`, `validate_category_type`, `validate_conversation_type`,
+`validate_invoice_chain_reference`, `validate_invoice_vat`, `validate_payment_invoice_vat`,
+`validate_polymorphic_invoice_item_ref`, `validate_reply_content`, `validate_support_ticket`,
+`validate_ticket_rating`, `validate_zatca_certificate_activation`.
+
+إن ظهرت أي منها مجدداً في 0029 → شخص ما منحها صلاحية يدوياً؛ أعد سحبها قبل الإضافة للقائمة.
+
+> `auto_revoke_anon_execute` و `validate_invoice_chain_ref` (التواقيع الأخرى) تبقى في القائمة
+> الأصلية إن وُجدت — تحقّق قبل الحذف.
 
 ## دوال Cron / Background (مستثناة من 0028)
 
