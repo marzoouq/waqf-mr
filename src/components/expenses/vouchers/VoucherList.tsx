@@ -12,6 +12,7 @@ import {
   useDisbursementVouchersPublicByExpense,
   useApproveVoucher,
   useVoidVoucher,
+  useGenerateVoucherPdf,
   getVoucherSignedUrl,
   type Voucher,
   type VoucherPublic,
@@ -49,6 +50,7 @@ const VoucherList: React.FC<VoucherListProps> = ({ expenseId, expenseAmount, exp
   const pubQ = useDisbursementVouchersPublicByExpense(!isManager ? expenseId : undefined);
   const approveMut = useApproveVoucher();
   const voidMut = useVoidVoucher();
+  const genPdfMut = useGenerateVoucherPdf();
   const [formOpen, setFormOpen] = useState(false);
   const [voidTarget, setVoidTarget] = useState<Voucher | null>(null);
 
@@ -123,6 +125,13 @@ const VoucherList: React.FC<VoucherListProps> = ({ expenseId, expenseAmount, exp
                     <Button size="sm" variant="outline" className="h-7 text-xs gap-1"
                       onClick={() => download(v.pdf_path)}>
                       <Download className="w-3 h-3" /> تنزيل PDF
+                    </Button>
+                  )}
+                  {isManager && status === 'approved' && !v.pdf_path && v.id && (
+                    <Button size="sm" variant="secondary" className="h-7 text-xs gap-1"
+                      onClick={() => genPdfMut.mutate(v.id!)} disabled={genPdfMut.isPending}>
+                      <FileText className="w-3 h-3" />
+                      {genPdfMut.isPending ? 'جارٍ الإصدار…' : 'إصدار PDF'}
                     </Button>
                   )}
                   {isManager && full && status === 'draft' && !isLocked && (
