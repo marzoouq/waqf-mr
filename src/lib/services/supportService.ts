@@ -64,7 +64,7 @@ export const supportService = {
     const { error } = await supabase.rpc('rate_support_ticket', {
       p_id: input.id,
       p_rating: input.rating,
-      p_comment: input.rating_comment ?? null,
+      p_comment: input.rating_comment || undefined,
     });
     if (error) throw error;
   },
