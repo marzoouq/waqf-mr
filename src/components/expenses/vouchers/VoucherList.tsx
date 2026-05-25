@@ -48,11 +48,12 @@ const VoucherList: React.FC<VoucherListProps> = ({ expenseId, expenseAmount, exp
   const [voidTarget, setVoidTarget] = useState<Voucher | null>(null);
 
   const download = async (pdfPath: string | null) => {
-    if (!pdfPath) return toast.error('لم يُصدر PDF بعد — اعتمد السند أولاً');
+    if (!pdfPath) { toast.error('لم يُصدر PDF بعد — اعتمد السند أولاً'); return; }
     const url = await getVoucherSignedUrl(pdfPath);
-    if (!url) return toast.error('تعذّر إنشاء رابط التنزيل');
+    if (!url) { toast.error('تعذّر إنشاء رابط التنزيل'); return; }
     window.open(url, '_blank', 'noopener,noreferrer');
   };
+  const [voidReason, setVoidReason] = useState('');
 
   const vouchers: Array<Voucher | VoucherPublic> = isManager ? (fullQ.data || []) : (pubQ.data || []);
   const isLoading = isManager ? fullQ.isLoading : pubQ.isLoading;
