@@ -71,7 +71,7 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
   const bold = await pdf.embedFont(fonts.bold, { subset: true });
 
   const page = pdf.addPage([595, 842]); // A4
-  const { width, height } = page;
+  const { width, height } = page.getSize();
   const ink = rgb(0.07, 0.07, 0.1);
   const muted = rgb(0.45, 0.45, 0.5);
   const accent = rgb(0.15, 0.35, 0.6);
