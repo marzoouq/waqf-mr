@@ -114,7 +114,7 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
     doc.setFont("Amiri", weight);
     doc.setFontSize(size);
     setColor(doc, color);
-    doc.text(reshaped, x, y, { align: "right", isInputVisual: true });
+    doc.text(reshaped, x, height - y, { align: "right", isInputVisual: true });
   };
 
   // العنوان
@@ -171,7 +171,7 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
     try {
       const b64 = v.signature_data.split(",")[1];
       const imageType = v.signature_data.includes("image/png") ? "PNG" : "JPEG";
-      doc.addImage(b64, imageType, width - 200, y - 60, 160, 50, undefined, "FAST");
+      doc.addImage(b64, imageType, width - 200, height - (y - 60) - 50, 160, 50, undefined, "FAST");
     } catch { /* skip on error */ }
   }
   drawLine(doc, width - 220, y - 70, width - 40, y - 70, muted, 0.5);
@@ -181,7 +181,7 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
 
   // تذييل قانوني إلزامي
   setFill(doc, [247, 242, 224]);
-  doc.rect(40, 40, width - 80, 36, "F");
+  doc.rect(40, height - 40 - 36, width - 80, 36, "F");
   drawAr(
     "سند صرف داخلي — ليس فاتورة ضريبية ولا يصلح لاسترداد ضريبة القيمة المضافة",
     width - 50, 62, 10, "bold", [140, 89, 13]
