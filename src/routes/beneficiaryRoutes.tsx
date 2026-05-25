@@ -39,7 +39,7 @@ export const beneficiaryRoutes = (
     <Route path="/beneficiary/notifications" element={pr(ALL_NON_ACCOUNTANT, <NotificationsPage />)} />
     <Route path="/beneficiary/bylaws" element={pr(ALL_NON_ACCOUNTANT, <BylawsViewPage />)} />
     <Route path="/beneficiary/carryforward" element={pr(ALL_NON_ACCOUNTANT, <CarryforwardHistoryPage />)} />
-    <Route path="/beneficiary/support" element={pr(ALL_ROLES, <BeneficiarySupportPage />)} />
+    <Route path="/beneficiary/support" element={pr(BENEFICIARY_ROLES, <BeneficiarySupportPage />)} />
     <Route path="/beneficiary/annual-report" element={pr(ALL_NON_ACCOUNTANT, <AnnualReportViewPage />)} />
   </>
 );
