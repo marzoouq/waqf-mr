@@ -83,8 +83,9 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
           <DialogTitle>سند صرف داخلي</DialogTitle>
           <DialogDescription>
             يُستخدم لتوثيق المصروفات النقدية بدون فاتورة ضريبية (عمالة يومية، أعمال صغيرة…).
-            تُنشأ كمسودة ثم تُعتمد لإصدار PDF.
+            تُنشأ كمسودة، ثم تُعتمد لإصدار PDF يُطبع ويوقّع عليه المستلم ورقياً.
           </DialogDescription>
+
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">
