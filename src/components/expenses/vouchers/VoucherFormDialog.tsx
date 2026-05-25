@@ -167,10 +167,15 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
               onChange={(d) => setForm((f) => ({ ...f, signature_data: d }))} />
           </div>
 
-          <DialogFooter className="gap-2">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>إلغاء</Button>
-            <Button type="submit" disabled={createMut.isPending}>
-              {createMut.isPending ? 'جارٍ الحفظ…' : 'حفظ كمسودة'}
+          <DialogFooter className="gap-2 flex-col sm:flex-row">
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isBusy}>
+              إصدار لاحقاً
+            </Button>
+            <Button type="submit" variant="secondary" disabled={isBusy}>
+              {createMut.isPending && !approveMut.isPending ? 'جارٍ الحفظ…' : 'حفظ كمسودة'}
+            </Button>
+            <Button type="button" onClick={submitAndApprove} disabled={isBusy}>
+              {approveMut.isPending ? 'جارٍ الاعتماد…' : 'حفظ واعتماد + PDF'}
             </Button>
           </DialogFooter>
         </form>
