@@ -8,6 +8,7 @@ import { BarChart3 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, ExportMenu, DashboardSkeleton, DeferredRender } from '@/components/common';
+import FeatureGate from '@/components/common/FeatureGate';
 import WaqifWelcomeCard from '@/components/waqif/WaqifWelcomeCard';
 import WaqifFinancialSection from '@/components/waqif/WaqifFinancialSection';
 import WaqifOverviewStats from '@/components/waqif/WaqifOverviewStats';
