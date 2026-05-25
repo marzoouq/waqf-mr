@@ -1,7 +1,7 @@
 /**
  * قسم الدعوة للعمل في الصفحة الرئيسية
  */
-import { ArrowRight } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { LandingPageContent } from '@/types/landing';
 
@@ -23,10 +23,11 @@ const LandingCTA: React.FC<LandingCTAProps> = ({ content, onNavigateAuth }) => (
       <Button
         onClick={onNavigateAuth}
         size="lg"
-        className="gradient-gold text-primary-foreground gap-2 shadow-gold hover:scale-105 transition-transform duration-300 rounded-xl font-bold px-8"
+        variant="outline"
+        className="gap-2 bg-transparent border-2 border-secondary/60 text-secondary hover:bg-secondary hover:text-primary transition-colors duration-300 rounded-xl font-bold px-8"
       >
-        <ArrowRight className="w-5 h-5" />
-        {content.cta_text}
+        <LogIn className="w-5 h-5" />
+        لديك حساب؟ سجّل دخولك
       </Button>
     </div>
   </section>

@@ -3,6 +3,10 @@ Allow: /
 Disallow: /dashboard/
 Disallow: /beneficiary/
 Disallow: /waqif/
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /auth
+Disallow: /install
 Disallow: /unauthorized
 Disallow: /reset-password
 
@@ -11,6 +15,10 @@ Allow: /
 Disallow: /dashboard/
 Disallow: /beneficiary/
 Disallow: /waqif/
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /auth
+Disallow: /install
 Disallow: /unauthorized
 Disallow: /reset-password
 
@@ -28,6 +36,7 @@ Disallow: /waqif/
 Disallow: /admin/
 Disallow: /settings/
 Disallow: /auth
+Disallow: /install
 Disallow: /unauthorized
 Disallow: /reset-password
 
