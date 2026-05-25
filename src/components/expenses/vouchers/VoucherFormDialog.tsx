@@ -44,15 +44,15 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.recipient_name.trim()) return toast.error('أدخل اسم المستلم');
-    if (!form.recipient_id_number.trim()) return toast.error('أدخل رقم الهوية');
-    if (!form.recipient_phone.trim()) return toast.error('أدخل رقم الجوال');
-    if (!form.work_description.trim()) return toast.error('أدخل وصف الأعمال المنفذة');
-    if (!form.signature_data) return toast.error('توقيع المستلم مطلوب');
-    if (form.amount <= 0) return toast.error('المبلغ يجب أن يكون أكبر من صفر');
-    if (form.amount > expenseAmount) return toast.error(`المبلغ يتجاوز قيمة المصروف (${expenseAmount} ر.س)`);
+    if (!form.recipient_name.trim()) { toast.error('أدخل اسم المستلم'); return; }
+    if (!form.recipient_id_number.trim()) { toast.error('أدخل رقم الهوية'); return; }
+    if (!form.recipient_phone.trim()) { toast.error('أدخل رقم الجوال'); return; }
+    if (!form.work_description.trim()) { toast.error('أدخل وصف الأعمال المنفذة'); return; }
+    if (!form.signature_data) { toast.error('توقيع المستلم مطلوب'); return; }
+    if (form.amount <= 0) { toast.error('المبلغ يجب أن يكون أكبر من صفر'); return; }
+    if (form.amount > expenseAmount) { toast.error(`المبلغ يتجاوز قيمة المصروف (${expenseAmount} ر.س)`); return; }
     if ((form.payment_method === 'bank_transfer' || form.payment_method === 'cheque') && !form.transfer_reference.trim()) {
-      return toast.error('أدخل رقم التحويل / الشيك');
+      toast.error('أدخل رقم التحويل / الشيك'); return;
     }
 
     try {
