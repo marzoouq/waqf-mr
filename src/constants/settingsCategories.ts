@@ -42,6 +42,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
     tabs: [
       { value: 'permissions', label: 'إدارة الصلاحيات', icon: Shield },
       { value: 'menu', label: 'القائمة', icon: LayoutList },
+      { value: 'visibility', label: 'إظهار/إخفاء الميزات', icon: Eye },
     ],
   },
   {
