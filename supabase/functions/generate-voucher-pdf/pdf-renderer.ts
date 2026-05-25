@@ -77,7 +77,13 @@ export async function renderVoucherPdf(v: VoucherData): Promise<Uint8Array> {
   const accent = rgb(0.15, 0.35, 0.6);
 
   // helper: تنظيف نص من أي محرف لا يدعمه الخط (يسبب NaN عند قياس العرض)
-  const sanitize = (s: string) => (s || "").replace(/[\u0000-\u001F\u007F\uFFF0-\uFFFF]/g, "");
+  // نُبقي فقط ASCII المطبوع + كتلة العربية + أشكال العرض العربية + المسافات
+  const sanitize = (s: string) =>
+    (s || "")
+      .replace(/[\u2010-\u2015]/g, "-") // em/en dash → ASCII -
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[^\x20-\x7E\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF\s]/g, "");
   const safeWidth = (font: typeof regular, text: string, size: number): number => {
     try {
       const w = font.widthOfTextAtSize(text, size);
