@@ -89,7 +89,13 @@ export function useCreateVoucher() {
     },
     onError: (e: Error) => {
       logger.error('create_disbursement_voucher failed', e);
-      toast.error(e.message || 'فشل إنشاء سند الصرف');
+      const map: Record<string, string> = {
+        EXPENSE_NOT_FOUND: 'المصروف غير موجود',
+        EXPENSE_HAS_ACTIVE_VOUCHER: 'يوجد سند صرف نشط لهذا المصروف بالفعل',
+        INSUFFICIENT_PRIVILEGES: 'صلاحياتك لا تسمح بإنشاء سند صرف',
+      };
+      const key = Object.keys(map).find((k) => e.message?.includes(k));
+      toast.error(key ? map[key] : (e.message || 'فشل إنشاء سند الصرف'));
     },
   });
 }
