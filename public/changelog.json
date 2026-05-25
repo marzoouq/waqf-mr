@@ -1,5 +1,1131 @@
 [
   {
+    "version": "3.0.40",
+    "date": "٢٥ مايو ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "تنفيذ البنود المتبقية"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين modularity وتوحيد utilities"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة فلاتر AuditLog Filters وتقسيم المراجعة"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح جميع الاختبارات المتبقية"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين هيكل dashboard-summary"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح 401 وت cleanup"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد واقة الدفع"
+      },
+      {
+        "type": "improvement",
+        "text": "حذف ملف شارد وتحديث البناء"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح الألوان الثابتة"
+      },
+      {
+        "type": "improvement",
+        "text": "إضاف اختبارات هوكات رئيسية"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح mock وتبويب هيكلة"
+      },
+      {
+        "type": "improvement",
+        "text": "تنظيف html2canvas من vite.config.ts"
+      },
+      {
+        "type": "improvement",
+        "text": "تطبيق تحسينات الأسبوع 3"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين حزم المكونات البيانية"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد حساب الدفعات"
+      },
+      {
+        "type": "improvement",
+        "text": "تنظيم إصلاحات الأسبوع 1"
+      },
+      {
+        "type": "improvement",
+        "text": "تنفيذ إصلاحات Week1"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد getPaymentCount"
+      },
+      {
+        "type": "fix",
+        "text": "isLoading undefined check, advancesEnabled default false, add myShareIsEstimated"
+      },
+      {
+        "type": "fix",
+        "text": "filterDistributionsByFiscalYear — إعادة مصفوفة فارغة بدلاً من كل التوزيعات عند غياب الحساب و fiscalYearId"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة شعار صفحة الهبوط المستقل"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة شعار صفحة الهبوط المستقل"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة شعار صفحة الهبوط المنفصل"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة شعار صفحة الهبوط منفصل"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة شعارات وتحصين ഡ"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة شعار صفحة الهبوط منفصل"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة شعارات وإعدادات متنوعة"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة شعار الهبوط المستقل"
+      },
+      {
+        "type": "improvement",
+        "text": "حذف تبعيات ومهملات"
+      },
+      {
+        "type": "improvement",
+        "text": "تنظيف بنيوي شامل"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة دالة حالات العقود"
+      },
+      {
+        "type": "improvement",
+        "text": "تحديث لوحة الناظر شمل تحسينات وواجهات"
+      },
+      {
+        "type": "improvement",
+        "text": "إجراء تحسينات أسبوع 1"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسينات متعددة للمالية المتعددة السنوات"
+      },
+      {
+        "type": "improvement",
+        "text": "تحديث تذاكر الدعم وتعديل المهاجرات"
+      },
+      {
+        "type": "improvement",
+        "text": "تنفيذ الدورة 1 و2 وتحديثات سريعة"
+      },
+      {
+        "type": "improvement",
+        "text": "تنفيذ الدورة 1 وال2 والتحسينات"
+      },
+      {
+        "type": "improvement",
+        "text": "تنفيذ دورتين مبكرتين"
+      },
+      {
+        "type": "improvement",
+        "text": "تنفيذ الدورة 1 فورية fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "تنفيذ إصلاحات Hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "نفّذ 8 مهام متبقية"
+      },
+      {
+        "type": "improvement",
+        "text": "إكمال 8 مهام متبقية"
+      },
+      {
+        "type": "improvement",
+        "text": "مركزت الثوابت والتحديثات"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافت ثوابت التصفح وتطوير View helper"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة as-any من zatca_safe"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة DEVICE_SERIAL_REGEX"
+      },
+      {
+        "type": "improvement",
+        "text": "تنظيفEdge Functions"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة مكونات ميتة"
+      },
+      {
+        "type": "improvement",
+        "text": "حذف مكونات ميتة"
+      },
+      {
+        "type": "improvement",
+        "text": "تحديث تبعيات آمنة دفعة"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل حسابات مالية للعقارات"
+      },
+      {
+        "type": "improvement",
+        "text": "إعادة تنظيم هيكلة الصفحات وتبسيط البنية"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل حسابات العقارات للصفحات"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة حزم غير مستخدمة"
+      },
+      {
+        "type": "improvement",
+        "text": "تحديث الاستيرادات والهيكلة"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل هوكات البيانات المالية لخدمة البيانات"
+      },
+      {
+        "type": "improvement",
+        "text": "تنظيم hooks/financial إلى مجلدات فرعية"
+      },
+      {
+        "type": "improvement",
+        "text": "تنظيم hooks المالية"
+      },
+      {
+        "type": "improvement",
+        "text": "نُشِئُ مجلدات فرعية لهُوكات المالية"
+      },
+      {
+        "type": "improvement",
+        "text": "تنظيم البنــى المعماري"
+      },
+      {
+        "type": "improvement",
+        "text": "رفع useUnreadMessages إلى DashboardLayout"
+      },
+      {
+        "type": "improvement",
+        "text": "تسريع dashboard-summary"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل calcChangePercent وحذف useYoYComparison"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج dashboard_summary RPC"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد Tailwind و-breathing"
+      },
+      {
+        "type": "improvement",
+        "text": "أضفت جدول افتراضي عالي الكفاءة"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة الجداول الافتراضية"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة VirtualTable وتوابع الأداء"
+      },
+      {
+        "type": "improvement",
+        "text": "أضيف التمرير الافتراضي للجداول الكبيرة"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسينات الأداء العابر"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة اختبارات QA"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة اختبارات QA"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة دعم التحقق الوطني والعمل دون اتصال"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة OfflineBanner وتحديث National ID"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة OfflineBanner وتحسين تحليل الهوية"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة OfflineBanner وتحسين التحقق الوطني"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة دعم الانقطاع الإنترنت والتحقق الوطني"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين أداء وواجهة"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسينات استقرار وتحسينات أداء"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين حالات الفراغ وضغط الصور"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسينات الأداء وواجهة المستخدم"
+      },
+      {
+        "type": "improvement",
+        "text": "تصحيح شاشة الدخول"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم PermissionsPanel"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم PermissionsControlPanel إلى مكونات فرعية"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح هيكلية التوجيه وتقليل إعادة التحميل"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح تدفق المصادقة"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج إحصاءات dashboard"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل الحسابات المالية إلى RPC"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح تأخر الصلاحيات"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح race and loops في Auth"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم hooks/data إلى فروع فرعيه"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم hooks/data إلى مجلدات فرعية"
+      },
+      {
+        "type": "improvement",
+        "text": "إعادة تنظيم hooks/data"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح أربعة مشاكل طفيفة وتحسين الأداء"
+      },
+      {
+        "type": "improvement",
+        "text": "قيدت حاويةInvoices"
+      },
+      {
+        "type": "improvement",
+        "text": "تقييد حاويةInvoices"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين استيرادات Recharts وواجهات PDF"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين استيرادات Recharts"
+      },
+      {
+        "type": "improvement",
+        "text": "6 إصلاحات ل الأداء"
+      },
+      {
+        "type": "improvement",
+        "text": "اظهرت صفحة ملخص صلاحيات الناظر"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة صفحة ملخص صلاحيات الناظر"
+      },
+      {
+        "type": "improvement",
+        "text": "دمع لوحة صلاحيات موحدة"
+      },
+      {
+        "type": "improvement",
+        "text": "دمع صُلاحيات موحده"
+      },
+      {
+        "type": "improvement",
+        "text": "دمع لوحة صلاحيات موحدة"
+      },
+      {
+        "type": "improvement",
+        "text": "دمع لوحة صلاحيات موحدة"
+      },
+      {
+        "type": "improvement",
+        "text": "دمع لوحة صلاحيات موحدة"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج صلاحيات موحدة"
+      },
+      {
+        "type": "improvement",
+        "text": "ربط شعار البريد بالاعدادات"
+      },
+      {
+        "type": "improvement",
+        "text": "ربط شعار البريد بالواجهات الموحدة"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة LogoManager وتحديث رفع الشعار"
+      },
+      {
+        "type": "improvement",
+        "text": "تحديث بيانات لوحة التحكم"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح أخطاء واجهة البيانات"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح استخدام any في useAdminDashboardData"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافةDeferredRender للمخطط"
+      },
+      {
+        "type": "improvement",
+        "text": "تقليل حجم الصفحات بتجزئة"
+      },
+      {
+        "type": "improvement",
+        "text": "استبعاد اختبارات البناء"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم الصفحات الكبيرة"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج إشعارات في خدمة واحدة"
+      },
+      {
+        "type": "improvement",
+        "text": "استخراج useLayoutState وIdleTimeoutManager"
+      },
+      {
+        "type": "improvement",
+        "text": "استخراج useLayoutState وIdleTimeoutManager"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل استيرادات Supabase كامل"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم واجهة المراسلات وتحديث Contracts"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم مكوّنات دعم ورسائل"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك شيمات وتحديث استيرادات"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل خدمات الإعلام والقياس"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل وتحسين خدمات"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل إشعارات وخدمات المراقبة"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل وتهيئة خدمات الإشعارات"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل إشعارات وتحديث المسارات"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج مجلدات layout"
+      },
+      {
+        "type": "improvement",
+        "text": "قُدمت اختبارات PDF"
+      },
+      {
+        "type": "improvement",
+        "text": "مركزت المفاتيح وتحديثات"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين التدقيق وتنظيم المراسلة"
+      },
+      {
+        "type": "improvement",
+        "text": "تحديث ميزات ومراجعة تنفيذ"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح paramsRef hack"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح postcss.config.js"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك مصادر الإشعارات"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم hooks الإشعارات"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم الهوكات وتحسين البيانات"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم هوكات الإدارة"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم هوكات الإدارة"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم هوكات المستخدمين"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح خطة التدقيق"
+      },
+      {
+        "type": "improvement",
+        "text": "نقلت ملفات إلى أماكنها الصحيحة"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل وتحسين بنية العقارات"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل استدعاءات Supabase إلى hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل استدعاءات Supabase وتجزئة عقارية"
+      },
+      {
+        "type": "improvement",
+        "text": "نقل استدعاءات Supabase إلى hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح تمييز المعاينة"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح كسر التنسيق"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح PostCSS Tailwind v3"
+      },
+      {
+        "type": "improvement",
+        "text": "تصحيح بيئة التطوير"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد AdvanceRequest type"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح splash و تنظيم"
+      },
+      {
+        "type": "fix",
+        "text": "إضافة autoComplete لجميع حقول المصادقة وفق معايير Password Managers"
+      },
+      {
+        "type": "fix",
+        "text": "إصلاح فشل الاختبارات وتحذيرات lint والثغرات الأمنية"
+      },
+      {
+        "type": "improvement",
+        "text": "حذف الملف المكرر وتحسين الاختبارات"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم hooks الرئيسية"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم هوك عقد إلى وحدات أصغر"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم استخدامات العقود"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم هوكس العقود والدفع"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم ثلاث hooks رئيسية"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم استخدام الفواتير إلى هوكين أصغر"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم three hooks إلى أصغر"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح وميض المحتوى قبل التحميل"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح وميض المحتوى قبل التحميل"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم صفحات التحصيل إلى مكوّنات"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم صفحات العروض إلى مكونات أصغر"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم صفحات التقارير الكبرى"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكك useSupportTickets.ts"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم حفظ الحسابات إلى hooks مستقلة"
+      },
+      {
+        "type": "improvement",
+        "text": "فصل حفظ الحسابات وPDF إلى hooks مستقلة"
+      },
+      {
+        "type": "improvement",
+        "text": "فصل حسابات القفل والتوزيع"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم هوك إدارة المستخدمين"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم hooks إلى أصغر أجزاء"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم تقارير الحصص والملخصات"
+      },
+      {
+        "type": "improvement",
+        "text": "قسم ReportsPage و useMySharePage إلى مكونات أصغر"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك Hooks إضافية"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم مراسلة إلى هوكات مستقلة"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم MonthlyAccrualTable"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم ملفات العقد"
+      },
+      {
+        "type": "improvement",
+        "text": "تفريغ دفعات العقد"
+      },
+      {
+        "type": "improvement",
+        "text": "قسمت دفعات العقد"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم دفعات العقد"
+      },
+      {
+        "type": "improvement",
+        "text": "نظمت دفعات العقود"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم دفعات الفواتير للمراسلة"
+      },
+      {
+        "type": "improvement",
+        "text": "قسمت دفعات العقد"
+      },
+      {
+        "type": "improvement",
+        "text": "تفريغ دفعات العقد"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم دفعات العقد"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم دفعات العقد إلى مكوّن مستقل"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم دفعات العقد"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك الملفات الكبيرة"
+      },
+      {
+        "type": "improvement",
+        "text": "تنظيم تعريفات CRUD"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم تقارير التدفق النقدي"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم تقارير CashFlow و MonthlyPerformance و YearOverYear"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسينات تصويرية وتوقيتات"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة قياس التحميل الفعلي وCore Web Vitals وpreload"
+      },
+      {
+        "type": "improvement",
+        "text": "قياس وقت تحميل الصفحة الفعلي"
+      },
+      {
+        "type": "improvement",
+        "text": "قياس وقت التحميل الفعلي"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة مسارات مفقودة في اللابلز"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين تدفق تسجيل الخروج"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافت مسارات مفقودة"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة مسارات مفقودة وتحديث التحميل"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة id وname للنماذج"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين dashboard-summary"
+      },
+      {
+        "type": "improvement",
+        "text": "حذف 8 ملفات stub"
+      },
+      {
+        "type": "fix",
+        "text": "mobile layout + VS Code Tailwind CSS v4 warnings"
+      },
+      {
+        "type": "fix",
+        "text": "harden env handling and structural cleanup"
+      },
+      {
+        "type": "fix",
+        "text": "restore tailwind v4 theme tokens and optimize dashboard summary"
+      },
+      {
+        "type": "fix",
+        "text": "switch to @vitejs/plugin-react, fix lint and chunk warnings"
+      },
+      {
+        "type": "fix",
+        "text": "harden bfcache channel subscription race"
+      },
+      {
+        "type": "fix",
+        "text": "resolve TypeScript errors in useBulkNotifications"
+      },
+      {
+        "type": "fix",
+        "text": "correct TypeScript errors in useBulkNotifications"
+      },
+      {
+        "type": "fix",
+        "text": "restore test auth mocks, stabilize lint rules, and harden deps"
+      },
+      {
+        "type": "fix",
+        "text": "restore stable Tailwind v3 pipeline and resolve build blockers"
+      },
+      {
+        "type": "fix",
+        "text": "resolve remaining lint warnings in contracts and dashboard summary"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج استعلامات السلف والترحيل"
+      },
+      {
+        "type": "improvement",
+        "text": "نفذت تحسينات واجهة الأربعة"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة 4 إصلاحات الجولة2"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة قيود الحد الأقصى للنص"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين عقود ودخل ومصروفات"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين عقود ودخل ومصروفات"
+      },
+      {
+        "type": "improvement",
+        "text": "ربط Labels بالحقول"
+      },
+      {
+        "type": "improvement",
+        "text": "أظهر ربط Label بنموذج"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح أربع مهام نهائية"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة حارس AiAssistant"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة حماية AiAssistant"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح splash وAiAssistant"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح splash و AiAssistant"
+      },
+      {
+        "type": "improvement",
+        "text": "حذف @tailwindcss/vite ونقل autoprefixer"
+      },
+      {
+        "type": "improvement",
+        "text": "تنظيم تبعيات الواجهة"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح تبعيات وتحقق FK"
+      },
+      {
+        "type": "improvement",
+        "text": "أضف زر تجديد الشهادة"
+      },
+      {
+        "type": "improvement",
+        "text": "أضافت دعم Renew و303 وQR"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة Pagination للرسائل"
+      },
+      {
+        "type": "improvement",
+        "text": "خفض رسائل كشفية منخفضة الصلة"
+      },
+      {
+        "type": "improvement",
+        "text": "رجع تعديلات SignIn وExpenseBudgetBar"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح signIn timeout"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح signIn timeout وتحديث imports"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح اختبارات فاشلة لavailableAmount وaccountsCalculations"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة اختبارات صفحات حرجة"
+      },
+      {
+        "type": "improvement",
+        "text": "تقوية بنية الاختبار والسياسة"
+      },
+      {
+        "type": "improvement",
+        "text": "تصحيح أبعاد ZATCA والم Dashboards"
+      },
+      {
+        "type": "improvement",
+        "text": "تصحيح 5 بنود حرجة"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة getSession usage"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاحFallback وتخصيص"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح أمان وتحسينات"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة حصتي المستلمة للإفصاح"
+      },
+      {
+        "type": "improvement",
+        "text": "تشخيص بطء 15 صفحة"
+      },
+      {
+        "type": "improvement",
+        "text": "تصحيح عرض VAT في الإفصاح"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم مكونات وتحسين استعلامات"
+      },
+      {
+        "type": "improvement",
+        "text": "فكّ تعطل النشر وتوحيد الترحيلات"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك سجل ZATCA"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك ZatcaSettingsTab"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك DisclosurePage وInvoicesPage"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك DisclosureContractsSection"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك DisclosureContractsSection"
+      },
+      {
+        "type": "improvement",
+        "text": "تشخيص الاختبارات الفاشلة"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح الاختبارات انهيار البناء"
+      },
+      {
+        "type": "improvement",
+        "text": "تنظيم المتبقي من الخطة"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك MySharePage إلى hook"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك MySharePage إلى hook"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك MySharePage مخصص"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح تخصيص الإيرادات بدون fallback"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح التخصيص الإيرادات"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة fallback في الإيرادات"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة fallback للقيمة كاملة"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح الإيرادات التعاقدية بدون fallback"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة دوال مشتركة للدashboard"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة جدولة استحقاقات ديناميكية"
+      },
+      {
+        "type": "improvement",
+        "text": "أضاف hook usePropertyFinancials"
+      },
+      {
+        "type": "improvement",
+        "text": "أضاف hook usePropertyFinancials"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك PropertyUnitsDialog ناجز"
+      },
+      {
+        "type": "improvement",
+        "text": "تفكيك PropertyUnitsDialog"
+      },
+      {
+        "type": "improvement",
+        "text": "تطبيق طريقة PDF عبر المعاينة لفواتير الدفعات"
+      },
+      {
+        "type": "improvement",
+        "text": "تطبيق طريقة PDF عبر المعاينة لفواتير الدفعات"
+      },
+      {
+        "type": "improvement",
+        "text": "توطيد فواتير الدفعات PDF"
+      },
+      {
+        "type": "improvement",
+        "text": "فتح فواتير الدفعات لعرض PDF عبر المعاينة"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة الدفع اليدوي"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة أزرار التحصيل اليدوي"
+      }
+    ]
+  },
+  {
     "version": "3.0.39",
     "date": "٢٥ مايو ٢٠٢٦",
     "changes": [
