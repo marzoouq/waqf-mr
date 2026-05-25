@@ -144,5 +144,5 @@ jobs:
             echo "Retry $i..."
             sleep 5
           done
-          echo "::warning::Push failed after 3 retries — exiting gracefully"
-          exit 0
+          echo "::error::Push failed after 3 retries"
+          exit 1

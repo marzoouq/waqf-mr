@@ -1,21 +1,29 @@
 /**
  * Guard pour /beneficiary/support
- * - admin/accountant → redirect إلى لوحة دعم الإدارة (/dashboard/support)
+ * - admin/accountant → redirect إلى لوحة دعم الإدارة (/dashboard/support) مع toast
  * - beneficiary → عرض الصفحة
  * (waqif محجوب على مستوى المسار)
  */
 import { Navigate } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 const BeneficiarySupportPage = lazy(() => import('@/pages/beneficiary/SupportPage'));
+
+const RedirectWithToast = () => {
+  useEffect(() => {
+    toast.info('تم تحويلك إلى لوحة دعم الإدارة');
+  }, []);
+  return <Navigate to="/dashboard/support" replace />;
+};
 
 const SupportPageGuard = () => {
   const { role } = useAuth();
 
   if (role === 'admin' || role === 'accountant') {
-    return <Navigate to="/dashboard/support" replace />;
+    return <RedirectWithToast />;
   }
 
   return (
