@@ -38,7 +38,7 @@ export const supportService = {
       updates.resolved_at = new Date().toISOString();
     } else {
       // F8: عند إعادة فتح التذكرة، تصفير resolved_at
-      updates.resolved_at = null;
+      (updates as Record<string, unknown>).resolved_at = null;
     }
     const { error } = await supabase.from('support_tickets').update(updates).eq('id', input.id);
     if (error) throw error;
