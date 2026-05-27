@@ -8,7 +8,9 @@ import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
 import { useContractAllocationMap } from '@/hooks/domain/financial/useContractAllocationMap';
+import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { safeNumber } from '@/utils/format/safeNumber';
 import type { Property } from '@/types';
 import type { Contract } from '@/types';
 
@@ -26,6 +28,7 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
   const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: accounts = [] } = useAccountByFiscalYear(fiscalYear?.label, fiscalYearId);
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
 
   const allocationMap = useContractAllocationMap(contracts);
   const summaryLoading = propertiesLoading || contractsLoading || unitsLoading || expensesLoading;
