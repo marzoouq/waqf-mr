@@ -15,8 +15,7 @@ import {
   useGenerateInvoicePdf,
 } from '@/hooks/data/invoices/useInvoices';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
-import type { InvoicePreviewData, InvoiceSourceFilter, UnifiedInvoiceItem } from '@/types/invoices';
-import { safeNumber } from '@/utils/format/safeNumber';
+import type { InvoicePreviewData, InvoiceSourceFilter } from '@/types/invoices';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -27,6 +26,8 @@ import { useInvoiceFileUpload } from './useInvoiceFileUpload';
 import { useInvoicePreviewBuilder } from './useInvoicePreviewBuilder';
 import { useInvoicesExport } from './useInvoicesExport';
 import { useInvoiceSubmit } from './useInvoiceSubmit';
+import { useUnifiedInvoices } from './useUnifiedInvoices';
+
 
 export const useInvoicesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -48,52 +49,10 @@ export const useInvoicesPage = () => {
     filteredInvoices,
   } = useInvoicesFilters(invoices);
 
-  // عرض موحّد للمستخدم في تبويبات "الكل" و "إيجار"
-  const unifiedInvoices: UnifiedInvoiceItem[] = useMemo(() => {
-    const expenseItems: UnifiedInvoiceItem[] = invoices.map((inv) => ({
-      id: inv.id,
-      invoice_type: inv.invoice_type,
-      invoice_number: inv.invoice_number,
-      amount: safeNumber(inv.amount),
-      vat_amount: safeNumber(inv.vat_amount ?? 0),
-      date: inv.date,
-      status: inv.status,
-      file_path: inv.file_path,
-      file_name: inv.file_name,
-      property: inv.property ? { property_number: inv.property.property_number } : null,
-      source: 'purchase',
-    }));
-    const rentItems: UnifiedInvoiceItem[] = rentInvoices.map((inv) => ({
-      id: inv.id,
-      invoice_type: 'rent_invoice',
-      invoice_number: inv.invoice_number || null,
-      amount: safeNumber(inv.amount),
-      paid_amount: safeNumber(inv.paid_amount ?? 0),
-      vat_amount: safeNumber(inv.vat_amount ?? 0),
-      date: inv.due_date,
-      status: inv.status,
-      file_path: inv.file_path,
-      file_name: inv.invoice_number ? `${inv.invoice_number}.pdf` : null,
-      property: inv.contract?.property ? { property_number: inv.contract.property.property_number } : null,
-      source: 'rent',
-    }));
-    return [...expenseItems, ...rentItems].sort((a, b) => (a.date < b.date ? 1 : -1));
-  }, [invoices, rentInvoices]);
+  const { unifiedInvoices, unifiedFiltered } = useUnifiedInvoices(
+    invoices, rentInvoices, sourceFilter, filterStatus, searchQuery,
+  );
 
-
-  const unifiedFiltered = useMemo(() => unifiedInvoices.filter((item) => {
-    if (sourceFilter !== 'all' && item.source !== sourceFilter) return false;
-    if (filterStatus !== 'all' && item.status !== filterStatus) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      return (
-        (item.invoice_number || '').toLowerCase().includes(q) ||
-        (INVOICE_TYPE_LABELS[item.invoice_type] || '').includes(q) ||
-        item.date.includes(q)
-      );
-    }
-    return true;
-  }), [unifiedInvoices, sourceFilter, filterStatus, searchQuery]);
 
   const {
     editingInvoice, formData, setFormData,
