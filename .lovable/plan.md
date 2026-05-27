@@ -23,10 +23,11 @@
 
 ---
 
-### الجلسة 3 — Wave 7: استبدال ألوان hardcoded بـ tokens
-مسح `rg "#[0-9a-fA-F]{6}" src/components src/pages` واستبدال كل hex بـ `hsl(var(--...))` ما عدا Canvas/SVG/PDF.
-
-**القبول:** ESLint rule جديد + 0 hex جديدة في components/pages.
+### الجلسة 3 — Wave 7: استبدال ألوان hardcoded بـ tokens ✅
+- المسح: 4 hex فقط في `InvoicePreviewDialog.tsx` و `SignaturePad.tsx` — **كلها Canvas** (مسموحة).
+- أُضيفت قاعدة ESLint `no-restricted-syntax` تمنع `Literal /^#[0-9a-fA-F]{3,8}$/` و `TemplateElement /#[0-9a-fA-F]{6}/` داخل `src/pages` و `src/components`، مع allowlist للملفّين Canvas.
+- `bunx eslint src/components src/pages` → 0 انتهاك hex.
+- `bunx vitest run` → 1809/1809 أخضر.
 
 ---
 
