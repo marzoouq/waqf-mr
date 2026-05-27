@@ -1445,7 +1445,7 @@ export type Database = {
           created_at: string
           due_date: string
           file_path: string | null
-          fiscal_year_id: string
+          fiscal_year_id: string | null
           icv: number | null
           id: string
           invoice_hash: string | null
@@ -1469,7 +1469,7 @@ export type Database = {
           created_at?: string
           due_date: string
           file_path?: string | null
-          fiscal_year_id: string
+          fiscal_year_id?: string | null
           icv?: number | null
           id?: string
           invoice_hash?: string | null
@@ -1493,7 +1493,7 @@ export type Database = {
           created_at?: string
           due_date?: string
           file_path?: string | null
-          fiscal_year_id?: string
+          fiscal_year_id?: string | null
           icv?: number | null
           id?: string
           invoice_hash?: string | null
