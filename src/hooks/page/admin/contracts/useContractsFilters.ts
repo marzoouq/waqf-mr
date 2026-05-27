@@ -1,17 +1,27 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Contract } from '@/types';
 import { getPaymentTypeLabel } from '@/utils/financial/contractHelpers';
+import { classifyContractOrigin } from '@/utils/financial/contractClassification';
 
 const getBaseNumber = (num: string) => num.replace(/-R\d+$/, '');
 
-export type StatusFilterValue = 'all' | 'active' | 'expired' | 'cancelled' | 'overdue';
+export type StatusFilterValue =
+  | 'all'
+  | 'active'
+  | 'expired'
+  | 'cancelled'
+  | 'overdue'
+  | 'contractsInYear'
+  | 'contractsFromPrevious';
 
 interface UseContractsFiltersParams {
   contracts: Contract[];
   overdueContractIds: Set<string>;
+  /** بداية السنة المالية الحالية (ISO). null في وضع "كل السنوات" — يُعطّل فلاتر السنة. */
+  fiscalYearStartDate: string | null;
 }
 
-export const useContractsFilters = ({ contracts, overdueContractIds }: UseContractsFiltersParams) => {
+export const useContractsFilters = ({ contracts, overdueContractIds, fiscalYearStartDate }: UseContractsFiltersParams) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
@@ -36,23 +46,45 @@ export const useContractsFilters = ({ contracts, overdueContractIds }: UseContra
     });
   }, [contracts]);
 
+  // تصنيف منشأ كل مجموعة بناءً على أحدث عقد فيها
+  const groupOriginMap = useMemo(() => {
+    const m = new Map<string, ReturnType<typeof classifyContractOrigin>>();
+    for (const [base, group] of groupedContracts) {
+      m.set(base, classifyContractOrigin(group[0]!.start_date, fiscalYearStartDate));
+    }
+    return m;
+  }, [groupedContracts, fiscalYearStartDate]);
+
   const statusCounts = useMemo(() => {
     let active = 0, expired = 0, cancelled = 0;
-    for (const [, group] of groupedContracts) {
+    let contractsInYear = 0, contractsFromPrevious = 0;
+    for (const [base, group] of groupedContracts) {
       const latestStatus = group[0]!.status;
       if (latestStatus === 'active') active++;
       else if (latestStatus === 'cancelled') cancelled++;
       else expired++;
+
+      const origin = groupOriginMap.get(base);
+      if (origin === 'inYear') contractsInYear++;
+      else if (origin === 'fromPrevious') contractsFromPrevious++;
     }
     const overdue = groupedContracts.filter(([, group]) => group.some(c => overdueContractIds.has(c.id))).length;
-    return { active, expired, cancelled, all: groupedContracts.length, overdue };
-  }, [groupedContracts, overdueContractIds]);
+    return {
+      active, expired, cancelled, overdue,
+      all: groupedContracts.length,
+      contractsInYear, contractsFromPrevious,
+    };
+  }, [groupedContracts, overdueContractIds, groupOriginMap]);
 
   // فلترة المجموعات
   const filteredGroups = useMemo(() => {
     let result = groupedContracts;
     if (statusFilter === 'overdue') {
       result = result.filter(([, group]) => group.some(c => overdueContractIds.has(c.id)));
+    } else if (statusFilter === 'contractsInYear') {
+      result = result.filter(([base]) => groupOriginMap.get(base) === 'inYear');
+    } else if (statusFilter === 'contractsFromPrevious') {
+      result = result.filter(([base]) => groupOriginMap.get(base) === 'fromPrevious');
     } else if (statusFilter !== 'all') {
       result = result.filter(([, group]) => {
         const latestStatus = group[0]!.status;
@@ -75,7 +107,7 @@ export const useContractsFilters = ({ contracts, overdueContractIds }: UseContra
       ));
     }
     return result;
-  }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter, overdueContractIds]);
+  }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter, overdueContractIds, groupOriginMap]);
 
   const allExpanded = filteredGroups.length > 0 && filteredGroups.every(([base]) => expandedGroups.has(base));
   const toggleAllGroups = useCallback(() => {
@@ -94,5 +126,6 @@ export const useContractsFilters = ({ contracts, overdueContractIds }: UseContra
     expandedGroups, setExpandedGroups,
     groupedContracts, overdueContractIds, statusCounts, filteredGroups,
     allExpanded, toggleAllGroups,
+    fiscalYearStartDate,
   };
 };
