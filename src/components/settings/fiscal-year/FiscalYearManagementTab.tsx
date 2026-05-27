@@ -11,7 +11,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import type { FiscalYear } from '@/types';
 import { useState } from 'react';
 import { uiNotify } from '@/lib/notify';
