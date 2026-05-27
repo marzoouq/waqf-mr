@@ -1,30 +1,34 @@
 /**
- * مقارنة الدخل عبر السنوات المالية — مستخرج من useAnnualReport
+ * طبقة البيانات: جلب آخر 4 سنوات مالية + جميع سجلات الدخل الخاصة بها (raw rows).
+ * المنطق الحسابي (التجميع/التحويل) موجود في طبقة domain:
+ *   `src/hooks/domain/financial/useIncomeComparison.ts`
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
-import { safeNumber } from '@/utils/format/safeNumber';
 
 export interface IncomeComparison {
   label: string;
   total: number;
 }
 
-export const useIncomeComparison = () => {
+export interface IncomeComparisonRaw {
+  years: Array<{ id: string; label: string }>;
+  income: Array<{ fiscal_year_id: string | null; amount: number | null }>;
+}
+
+export const useIncomeComparisonRaw = () => {
   return useQuery({
-    queryKey: ['income_comparison'],
-    queryFn: async () => {
-      // جلب آخر 4 سنوات مالية
+    queryKey: ['income_comparison_raw'],
+    queryFn: async (): Promise<IncomeComparisonRaw> => {
       const { data: years, error: fyErr } = await supabase
         .from('fiscal_years')
         .select('id, label')
         .order('start_date', { ascending: false })
         .limit(4);
       if (fyErr) throw fyErr;
-      if (!years?.length) return [];
+      if (!years?.length) return { years: [], income: [] };
 
-      // جلب كل الدخل لهذه السنوات في استعلام واحد (بدلاً من N+1)
       const yearIds = years.map(y => y.id);
       const { data: allIncome, error: incErr } = await supabase
         .from('income')
@@ -32,19 +36,7 @@ export const useIncomeComparison = () => {
         .in('fiscal_year_id', yearIds);
       if (incErr) throw incErr;
 
-      // تجميع الدخل حسب السنة المالية
-      const totalsMap = new Map<string, number>();
-      for (const row of allIncome || []) {
-        const current = totalsMap.get(row.fiscal_year_id!) || 0;
-        totalsMap.set(row.fiscal_year_id!, current + safeNumber(row.amount));
-      }
-
-      const results: IncomeComparison[] = years.map(fy => ({
-        label: fy.label,
-        total: totalsMap.get(fy.id) || 0,
-      }));
-
-      return results.reverse(); // الأقدم أولاً
+      return { years, income: allIncome ?? [] };
     },
     staleTime: STALE_STATIC,
   });
