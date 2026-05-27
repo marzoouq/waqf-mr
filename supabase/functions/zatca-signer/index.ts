@@ -22,6 +22,12 @@ import { authenticate } from "../_shared/auth.ts";
 import { extractCertSignatureAndPublicKey } from "./x509-parser.ts";
 import { buildXmlDsig, sha256Base64, sha256BytesBase64, hexToBytes } from "./xmldsig-builder.ts";
 import { generateZatcaQrTLV } from "../_shared/zatca-qr-tlv.ts";
+import { z } from "npm:zod@3";
+
+const RequestSchema = z.object({
+  invoice_id: z.string().uuid("invoice_id must be a UUID"),
+  table: z.enum(["invoices", "payment_invoices"]),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -38,10 +44,11 @@ Deno.serve(async (req) => {
     if ("error" in auth) return auth.error;
     const { admin, body } = auth;
 
-    const { invoice_id, table } = (body ?? {}) as { invoice_id?: string; table?: string };
-    if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
-      return json({ error: "Invalid parameters" }, 400, corsHeaders);
+    const parsed = RequestSchema.safeParse(body ?? {});
+    if (!parsed.success) {
+      return json({ error: "Invalid parameters", details: parsed.error.flatten().fieldErrors }, 400, corsHeaders);
     }
+    const { invoice_id, table } = parsed.data;
 
     // ── Get Invoice ──
     const { data: inv, error: invErr } = await admin.from(table).select("*").eq("id", invoice_id).single();

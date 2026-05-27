@@ -12,7 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCreateVoucher, useApproveVoucher, type VoucherPaymentMethod } from '@/hooks/data/financial/useDisbursementVouchers';
+import { type VoucherPaymentMethod } from '@/hooks/data/financial/useDisbursementVouchers';
+import { useCreateVoucherAction, useApproveVoucherAction } from '@/hooks/page/admin/financial/useVoucherActions';
 import { VOUCHER_PAYMENT_METHODS } from '@/constants/entities';
 import SignaturePad from './SignaturePad';
 import { toast } from 'sonner';
@@ -40,8 +41,8 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
   open, onOpenChange, expenseId, expenseAmount, defaultDescription,
 }) => {
   const [form, setForm] = useState({ ...EMPTY, amount: expenseAmount, work_description: defaultDescription || '' });
-  const createMut = useCreateVoucher();
-  const approveMut = useApproveVoucher();
+  const createMut = useCreateVoucherAction();
+  const approveMut = useApproveVoucherAction();
 
   const reset = () => setForm({ ...EMPTY, amount: expenseAmount, work_description: defaultDescription || '' });
 

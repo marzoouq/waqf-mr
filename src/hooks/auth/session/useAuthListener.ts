@@ -127,24 +127,32 @@ export function useAuthListener(): AuthListenerState {
     );
 
     // Fallback: إذا لم يصدر INITIAL_SESSION (race condition)
-    // NOTE: getSession مسموح هنا — client-side fallback فقط
-    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+    // نستخدم getUser() لإجبار تحقق خادمي (يكتشف الرموز الملغاة)،
+    // ثم getSession() للحصول على JWT claims المخزّنة محلياً.
+    supabase.auth.getUser().then(async ({ data: { user: verifiedUser }, error }) => {
       if (!isMounted) return;
-      if (!lastUserIdRef.current && existingSession?.user) {
-        logger.info('[Auth] getSession fallback triggered');
-        const jwtRole = getRoleFromSession(existingSession);
-        lastUserIdRef.current = existingSession.user.id;
-        setSession(existingSession);
-        setUser(existingSession.user);
-        if (jwtRole) {
-          setRoleWithRef(jwtRole);
-          setLoading(false);
-        } else {
-          logger.info('[Auth] getSession fallback: no JWT role, fetching from DB');
-          fetchRoleFallback(existingSession.user.id, existingSession.user.email);
-        }
-      } else if (!existingSession) {
+      if (error || !verifiedUser) {
         setLoading(false);
+        return;
+      }
+      if (lastUserIdRef.current) return; // INITIAL_SESSION already handled it
+
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (!isMounted || !existingSession?.user) {
+        setLoading(false);
+        return;
+      }
+      logger.info('[Auth] getUser fallback triggered (server-verified)');
+      const jwtRole = getRoleFromSession(existingSession);
+      lastUserIdRef.current = existingSession.user.id;
+      setSession(existingSession);
+      setUser(existingSession.user);
+      if (jwtRole) {
+        setRoleWithRef(jwtRole);
+        setLoading(false);
+      } else {
+        logger.info('[Auth] getUser fallback: no JWT role, fetching from DB');
+        fetchRoleFallback(existingSession.user.id, existingSession.user.email);
       }
     });
 

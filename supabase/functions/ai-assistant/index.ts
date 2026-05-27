@@ -12,9 +12,19 @@ import { authenticate } from "../_shared/auth.ts";
 import { buildSystemPrompt, ALLOWED_MODES, type AllowedMode } from "../_shared/ai-prompts.ts";
 import { fetchWaqfData } from "./fetcher.ts";
 import { dataCache } from "./simple-cache.ts";
+import { z } from "npm:zod@3";
 
 /** حد الاستخدام اليومي لكل مستخدم */
 const DAILY_QUOTA = 100;
+
+const MessageSchema = z.object({
+  role: z.string().max(20),
+  content: z.string().max(5000),
+});
+const RequestSchema = z.object({
+  messages: z.array(MessageSchema).min(1).max(50),
+  mode: z.string().max(40).optional(),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -74,18 +84,17 @@ Deno.serve(async (req) => {
     // ─── تحليل المدخلات ───
     const url = new URL(req.url);
     const forceRefresh = url.searchParams.get("refresh") === "true";
-    const { messages, mode: rawMode } = (bodyData ?? {}) as { messages?: unknown; mode?: unknown };
-
-    const mode: AllowedMode = ALLOWED_MODES.includes(rawMode as AllowedMode) ? rawMode as AllowedMode : "chat";
-
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    const parsedBody = RequestSchema.safeParse(bodyData ?? {});
+    if (!parsedBody.success) {
       return new Response(
-        JSON.stringify({ error: "الرسائل مطلوبة" }),
+        JSON.stringify({ error: "بيانات الطلب غير صالحة", details: parsedBody.error.flatten().fieldErrors }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    const { messages, mode: rawMode } = parsedBody.data;
+    const mode: AllowedMode = ALLOWED_MODES.includes(rawMode as AllowedMode) ? rawMode as AllowedMode : "chat";
 
-    const safeMessages = messages.slice(-10).map((m: { role: string; content: string }) => ({
+    const safeMessages = messages.slice(-10).map((m) => ({
       role: m.role === "user" ? "user" : "assistant",
       content: typeof m.content === "string" ? m.content.slice(0, 2000) : "",
     }));
