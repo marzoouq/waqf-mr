@@ -1,193 +1,28 @@
 /**
- * هوك إدارة إعدادات ZATCA
+ * useZatcaSettings — Page hook composer
+ * يجمع: useZatcaForm + useZatcaCompliance + useZatcaCertExpiry
+ * الواجهة العامة محفوظة دون تغيير لمستهلكي ZatcaSettingsTab.
  */
-import { useState, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { useZatcaCertificates } from '@/hooks/data/zatca/useZatcaCertificates';
-import { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp, saveZatcaSettings } from '@/lib/services';
-import { uiNotify } from '@/lib/notify';
-import { validateZatcaSettingsForm } from '@/utils/zatca/validateZatcaForm';
+import { useZatcaForm, ZATCA_KEYS } from './zatca/useZatcaForm';
+import { useZatcaCompliance, type ConnectionTestResult } from './zatca/useZatcaCompliance';
+import { useZatcaCertExpiry } from './zatca/useZatcaCertExpiry';
 
-export const ZATCA_KEYS = [
-  'vat_registration_number',
-  'commercial_registration_number',
-  'business_address_street',
-  'business_address_city',
-  'business_address_postal_code',
-  'business_address_district',
-  'business_address_building',
-  'default_vat_rate',
-  'zatca_device_serial',
-  'zatca_enabled',
-  'zatca_phase',
-  'zatca_platform',
-  'zatca_branch_name',
-  'zatca_activity_code',
-  'zatca_otp_1',
-  'zatca_otp_2',
-  'waqf_bank_name',
-  'waqf_bank_account',
-  'waqf_bank_iban',
-] as const;
-
-export type ConnectionTestResult = {
-  loading: boolean;
-  result: null | { connected: boolean; url?: string; error?: string; tested_at?: string; status_code?: number };
-};
+export { ZATCA_KEYS };
+export type { ConnectionTestResult };
 
 export const useZatcaSettings = () => {
-  const { data: settings, isLoading } = useAppSettings();
-  const queryClient = useQueryClient();
-  const [formData, setFormData] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-  const [onboardLoading, setOnboardLoading] = useState(false);
-  const [renewLoading, setRenewLoading] = useState(false);
-  const [connectionTest, setConnectionTest] = useState<ConnectionTestResult>({ loading: false, result: null });
-
-  const { data: certificates = [] } = useZatcaCertificates();
-
-  const activeCert = certificates.find(c => c.is_active);
-
-  const certExpiryWarning = (() => {
-    if (!activeCert?.expires_at) return null;
-    const expiresAt = new Date(activeCert.expires_at);
-    const now = new Date();
-    const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    if (daysLeft < 0) return { daysLeft, level: 'expired' as const, message: 'شهادة ZATCA منتهية الصلاحية. يجب تجديدها فوراً.' };
-    if (daysLeft <= 14) return { daysLeft, level: 'critical' as const, message: `شهادة ZATCA ستنتهي خلال ${daysLeft} يوماً. يُرجى تجديدها.` };
-    if (daysLeft <= 30) return { daysLeft, level: 'warning' as const, message: `شهادة ZATCA ستنتهي خلال ${daysLeft} يوماً.` };
-    return null;
-  })();
+  const { isLoading, formData, setFormData, saving, handleSave } = useZatcaForm();
+  const { activeCert, certExpiryWarning } = useZatcaCertExpiry();
+  const {
+    onboardLoading, renewLoading, connectionTest,
+    handleSetupAndOnboard, handleRenewCertificate, handleTestConnection,
+  } = useZatcaCompliance({ formData, setFormData, saveFirst: handleSave });
 
   const isEnabled = formData.zatca_enabled === 'true';
   const selectedPhase = formData.zatca_phase || 'phase2';
   // الافتراضي 'sandbox' ليطابق مصدر الحقيقة في الخلفية (`resolveZatcaTarget`).
   // يمنع تضليل الناظر بإظهار "production" بينما الخلفية تنفّذ على sandbox.
   const selectedPlatform = formData.zatca_platform || 'sandbox';
-
-  useEffect(() => {
-    if (settings) {
-      const initial: Record<string, string> = {};
-      for (const key of ZATCA_KEYS) {
-        initial[key] = settings[key] || '';
-      }
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- تهيئة form من useAppSettings (مصدر خارجي)
-      setFormData(initial);
-    }
-  }, [settings]);
-
-  const handleSave = async () => {
-    const validation = validateZatcaSettingsForm(formData);
-    if (!validation.ok) {
-      uiNotify.error(validation.reason);
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const rows = ZATCA_KEYS.map((key) => ({
-        key,
-        value: (formData[key] || '').trim(),
-      }));
-      await saveZatcaSettings(rows);
-      // المهمة B — إبطال فئة zatca فقط + legacy
-      queryClient.invalidateQueries({ queryKey: ['app-settings', 'zatca'] });
-      queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      uiNotify.success('تم حفظ إعدادات الضريبة بنجاح');
-    } catch {
-      uiNotify.error('حدث خطأ أثناء الحفظ');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSetupAndOnboard = async () => {
-    const requiredFields: { key: string; label: string }[] = [
-      { key: 'vat_registration_number', label: 'الرقم الضريبي' },
-      { key: 'zatca_device_serial', label: 'معرّف الجهاز' },
-    ];
-    const missing = requiredFields.filter(f => !formData[f.key]?.trim());
-    if (missing.length > 0) {
-      uiNotify.error(`يجب تعيين: ${missing.map(f => f.label).join('، ')}`);
-      return;
-    }
-    const otp1 = formData.zatca_otp_1?.trim();
-    if (!otp1) {
-      uiNotify.error('رمز التفعيل OTP الأول مطلوب لبدء التهيئة');
-      return;
-    }
-
-    setOnboardLoading(true);
-    try {
-      await handleSave();
-      await zatcaOnboard();
-      uiNotify.success('تم التسجيل بنجاح في بوابة فاتورة');
-      queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
-      queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
-    } catch (e) {
-      uiNotify.error(e instanceof Error ? e.message : 'فشل التسجيل');
-    } finally {
-      setOnboardLoading(false);
-      try {
-        await clearZatcaOtp();
-        setFormData(prev => ({ ...prev, zatca_otp_1: '', zatca_otp_2: '' }));
-        queryClient.invalidateQueries({ queryKey: ['app-settings', 'zatca'] });
-        queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      } catch { /* صمت */ }
-    }
-  };
-
-  const handleRenewCertificate = async () => {
-    const otp = formData.zatca_otp_2?.trim() || formData.zatca_otp_1?.trim();
-    if (!otp) {
-      uiNotify.error('رمز التفعيل OTP مطلوب للتجديد');
-      return;
-    }
-
-    setRenewLoading(true);
-    try {
-      await handleSave();
-      const data = await zatcaRenew();
-      if (data?.success) {
-        uiNotify.success('تم تجديد شهادة الإنتاج بنجاح');
-      } else {
-        throw new Error(data?.error || 'فشل التجديد');
-      }
-      queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
-      queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
-    } catch (e) {
-      uiNotify.error(e instanceof Error ? e.message : 'فشل تجديد الشهادة');
-    } finally {
-      setRenewLoading(false);
-      try {
-        await clearZatcaOtp();
-        setFormData(prev => ({ ...prev, zatca_otp_1: '', zatca_otp_2: '' }));
-        queryClient.invalidateQueries({ queryKey: ['app-settings', 'zatca'] });
-        queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      } catch { /* صمت */ }
-    }
-  };
-
-  const handleTestConnection = async () => {
-    setConnectionTest({ loading: true, result: null });
-    try {
-      const data = await zatcaTestConnection();
-      setConnectionTest({ loading: false, result: data });
-      queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
-      if (data?.connected) {
-        uiNotify.success('✅ الاتصال ببوابة فاتورة ناجح');
-      } else {
-        uiNotify.error('❌ تعذّر الاتصال ببوابة فاتورة');
-      }
-    } catch (e) {
-      setConnectionTest({
-        loading: false,
-        result: { connected: false, error: e instanceof Error ? e.message : 'خطأ غير معروف' },
-      });
-      uiNotify.error('فشل اختبار الاتصال');
-    }
-  };
 
   return {
     isLoading, formData, setFormData, saving, onboardLoading, renewLoading,
