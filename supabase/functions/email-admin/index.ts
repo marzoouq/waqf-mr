@@ -95,13 +95,13 @@ Deno.serve(async (req) => {
 
     // ───── retry_dlq ─────
     if (action === "retry_dlq") {
-      const queueName = body?.queue as string;
-      if (!queueName || !["auth_emails", "transactional_emails"].includes(queueName)) {
-        return new Response(JSON.stringify({ error: "Invalid queue" }), {
+      if (!queue) {
+        return new Response(JSON.stringify({ error: "queue is required for retry_dlq" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      const queueName = queue;
 
       // قراءة رسائل DLQ ثم إعادة إرسالها للطابور الأصلي
       // pgmq exposes pgmq.read / pgmq.send / pgmq.delete via RPC wrappers
