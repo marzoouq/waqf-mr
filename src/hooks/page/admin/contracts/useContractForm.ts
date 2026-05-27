@@ -192,8 +192,11 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
       };
       if (activeFY?.id) contractData.fiscal_year_id = activeFY.id;
       // CRUD factory — موجة 15
-      await createContract.mutateAsync(asMutationArg(createContract, contractData));
+      const createdSingle = await createContract.mutateAsync(asMutationArg(createContract, contractData));
+      const newIdSingle = (createdSingle as { id?: string } | undefined)?.id;
+      if (newIdSingle) await syncAllocations(newIdSingle, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount });
     }
+
   };
 
   const handleConfirmDelete = async () => {
