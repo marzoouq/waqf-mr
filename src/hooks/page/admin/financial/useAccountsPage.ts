@@ -51,12 +51,8 @@ export function useAccountsPage() {
 
   // فصل المتأخرات حسب السنة المالية — للعرض في PDF
   const fiscalYearStartDate = data.selectedFY?.start_date ?? null;
-  const overdueSplit = useMemo(() => {
-    if (!fiscalYearStartDate) return { prev: 0, cur: 0 };
-    const today = new Date().toISOString().slice(0, 10);
-    let prev = 0, cur = 0;
-    return { prev, cur };
-  }, [fiscalYearStartDate]);
+  const overdueSplit = { prev: 0, cur: 0 };
+
 
   // 5. العمليات — تستقبل القيم الحقيقية مباشرة (بدون أصفار أو paramsRef خارجي)
   const actions = useAccountsActions({
