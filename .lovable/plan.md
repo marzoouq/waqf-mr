@@ -1,166 +1,133 @@
-# فحص جنائي للخطة — نتائج التحقق الفعلي
+# خطة نهائية موحّدة — فصل العقود والمتأخرات حسب السنة المالية
 
-## القاعدة المرجعية: لا يُحذف من اللوحة إلا ما تأكد وجوده في صفحة اختصاصه
+## قاموس موحّد (يُلتزم به في كل الطبقات)
 
-تم التحقق فعلياً من كل صفحة وجهة. النتائج أدناه **تُعدّل** الخطة السابقة، وليست تأكيداً أعمى لها.
+محور زمني واحد بكلمتَي مفتاح متناظرتَين: `inYear` (داخل السنة) / `fromPrevious` (من قبلها).
 
----
+| المفهوم | مفتاح برمجي | تسمية عربية في الواجهة |
+|---|---|---|
+| عقد بدأ داخل السنة الحالية | `contractsInYear` | عقود جديدة في السنة |
+| عقد بدأ قبل السنة الحالية وما زال يظهر فيها | `contractsFromPrevious` | عقود مستمرة من سنة سابقة |
+| فاتورة استحقاقها داخل السنة الحالية وغير مدفوعة | `overdueInYear` | متأخرات هذه السنة |
+| فاتورة استحقاقها قبل السنة الحالية وغير مدفوعة | `overdueFromPrevious` | متأخرات من سنوات سابقة |
 
-## 1) Stats — التحقق الفعلي (13 بطاقة)
+تعريف رياضي:
 
-
-| #   | البطاقة                 | الوجهة        | موجودة هناك؟                                                     | القرار المصحَّح                   |
-| --- | ----------------------- | ------------- | ---------------------------------------------------------------- | --------------------------------- |
-| 1   | إجمالي العقارات         | Properties    | ✅ `PropertySummaryCards`                                         | **يبقى**                          |
-| 2   | العقود النشطة           | Contracts     | ✅ `ContractStatsCards`                                           | **يبقى**                          |
-| 3   | الإيرادات التعاقدية     | Contracts     | ✅ `ContractStatsCards` سطر 80                                    | **يُحذف من اللوحة**               |
-| 4   | إجمالي الدخل الفعلي     | Income        | ✅                                                                | **يبقى** (YoY)                    |
-| 5   | إجمالي المصروفات        | Expenses      | ✅ `ExpenseSummaryCards`                                          | **يبقى** (YoY)                    |
-| 6   | صافي الريع              | Accounts      | ✅ `AccountsDistributionTable`                                    | **يبقى**                          |
-| 7   | المتاح للتوزيع          | Distributions | ✅ سطر 58                                                         | **يُحذف من اللوحة**               |
-| 8   | حصة الناظر (admin-only) | Accounts      | ✅ `AccountsSummaryCards` + `AccountsDistributionTable`           | **يُحذف من اللوحة**               |
-| 9   | حصة الواقف (admin-only) | Accounts      | ✅ نفس المكان                                                     | **يُحذف من اللوحة**               |
-| 10  | ريع الوقف (admin-only)  | Distributions | ✅ سطر 64 + `AccountsSummaryCards`                                | **يُحذف من اللوحة**               |
-| 11  | المستفيدون النشطون      | Beneficiaries | ✅                                                                | **يبقى**                          |
-| 12  | التدفق النقدي الصافي    | Accounts      | ⚠️ غير ظاهر كبطاقة مستقلة — موجود في `useAdminDashboardData` فقط | **يبقى على اللوحة** (لا بديل بعد) |
-| 13  | نسبة التوزيع الفعلي     | Distributions | ❌ **غير موجودة**                                                 | **مُحتجز — يبقى مؤقتاً**          |
-
-
-**نتيجة جنائية:** 4 بطاقات تُحذف بأمان فقط (#3, #7, #8, #9, #10). البطاقة #13 لا يجوز حذفها قبل إضافتها لـ DistributionsPage.
-
----
-
-## 2) KPIs — التحقق الفعلي (4 مؤشرات)
-
-
-| #   | KPI            | الوجهة                          | موجود؟                                                           | القرار المصحَّح          |
-| --- | -------------- | ------------------------------- | ---------------------------------------------------------------- | ------------------------ |
-| 1   | نسبة التحصيل   | يبقى في `CollectionSummaryCard` | ✅ موجودة                                                         | **يُحذف من KpiPanel**    |
-| 2   | معدل الإشغال   | Properties                      | ✅ `PropertySummaryCards` سطر 77-80 (شريط Progress)               | **يُحذف من KpiPanel**    |
-| 3   | متوسط الإيجار  | Properties                      | ❌ **غير موجود**                                                  | **مُحتجز — يبقى مؤقتاً** |
-| 4   | نسبة المصروفات | Expenses                        | ❌ **غير موجود** (الموجود: نسبة التوثيق، متوسط المصروف، أعلى نوع) | **مُحتجز — يبقى مؤقتاً** |
-
-
-**نتيجة جنائية:** لا يمكن حذف `DashboardKpiPanel` بالكامل بأمان. KPIs #3 و#4 ليس لهما بديل في صفحات الاختصاص.
-
----
-
-## 3) فحص لوحة المحاسب (`AccountantDashboardView`)
-
-
-| البطاقة                                     | المصدر   | تكرار مع AdminDashboard؟ |
-| ------------------------------------------- | -------- | ------------------------ |
-| 5 بطاقات تشغيلية (فواتير معلّقة/متأخرة/إلخ) | hook خاص | ❌ مستقلة                 |
-| التحصيل اليومي + المصروفات الشهرية          | hook خاص | ❌ مستقلة                 |
-
-
-لا تغيير. الفلتر `accountant-dashboard-filtering` يجب أن يبقى كطبقة دفاع لأن stats الجديدة قد تحمل `visibility: 'admin-only'` مستقبلاً.
-
----
-
-## 4) لوحة الواقف — التحقق
-
-`WaqifFinancialSection.tsx` سطر 76-87 يعرض:
-
-- إجمالي الدخل ← مكرر مع `AnnualDisclosureTable` + Reports ✅
-- إجمالي المصروفات ← مكرر ✅
-- الريع القابل للتوزيع ← مكرر ✅
-
-`useWaqifDashboardPage.ts` سطر 79-80 يحسب `معدل الإشغال` + `نسبة المصروفات` كـ KPIs — **يبقى** (الناظر يتحكم به عبر `app_settings`).
-
-`WaqifFinancialSection` props غير مستخدمة بعد الحذف: `totalIncome`, `totalExpenses`, `availableAmount`, `isFiscalYearActive` → حذف من التواقيع و hook.
-
----
-
-# الخطة المصحَّحة (مرحلتان: حماية ثم تنظيف)
-
-## المرحلة 0 — سدّ الثغرات قبل الحذف (إضافات إلزامية)
-
-تُضاف 3 بطاقات للوجهات قبل أي حذف:
-
-1. `**PropertySummaryCards**`: إضافة بطاقة "متوسط الإيجار" (موجود في `usePropertiesSummary` كحساب أو نضيفه: contractualRevenue / totalRented)
-2. `**ExpenseSummaryCards**`: إضافة بطاقة "نسبة المصروفات إلى الدخل" (من `useExpensesPage` — قراءة `expenseRatio` من `useAdminDashboardData` أو حسابها محلياً)
-3. `**DistributionsPage**`: إضافة بطاقة "نسبة التوزيع الفعلي" (distributed/available×100) — توسعة الشبكة من 4 إلى 5 بطاقات
-
-## المرحلة 1 — Wave D: تنظيف لوحة الناظر
-
-- `useAdminDashboardStats.ts`: حذف 5 stats (#3, #7, #8, #9, #10, #13) → **6 بطاقات محذوفة**، 7 تبقى
-  - الباقي: إجمالي العقارات، العقود النشطة، الدخل، المصروفات، صافي الريع، المستفيدون، التدفق النقدي
-- `useAdminDashboardStats.ts`: حذف 3 KPIs (#2, #3, #4) → 1 يبقى (نسبة التحصيل)
-- `AdminDashboard.tsx`: حذف استيراد + استخدام `DashboardKpiPanel` (نسبة التحصيل تظهر في `CollectionSummaryCard`)
-
-## المرحلة 2 — Wave F: تنظيف لوحة الواقف
-
-- `WaqifFinancialSection.tsx`: حذف كتلة "التسلسل المالي" (سطور 68-89)
-- إضافة شريط إرشادي مع رابط `/dashboard/reports`
-- تنظيف props غير المستخدمة في `WaqifFinancialSection` + `useWaqifDashboardPage`
-
-## المرحلة 3 — توثيق وتحقق
-
-- تحديث `mem://business-logic/dashboards/role-data-consistency-standard`
-- اختبار يدوي: لوحة ناظر / محاسب / واقف / مستفيد + صفحات Properties / Expenses / Distributions
-
----
-
-# جدول التغيير الإجمالي
-
-
-| فعل                                  | عدد البطاقات                               |
-| ------------------------------------ | ------------------------------------------ |
-| يُضاف (وجهات)                        | 3                                          |
-| يُحذف من لوحة الناظر (Stats)         | 5                                          |
-| يُحذف من لوحة الناظر (KPIs)          | 3                                          |
-| يُحذف كومبوننت كامل                  | 1 (`DashboardKpiPanel` استخدام)            |
-| يُحذف من لوحة الواقف                 | 3 (كتلة التسلسل المالي)                    |
-| يُدمج                                | 1 (نسبة التحصيل ← `CollectionSummaryCard`) |
-| يُرحَّل (يبقى مؤقتاً لحين توفر بديل) | 0 بعد المرحلة 0                            |
-
-
----
-
-# الملفات المتأثرة
-
-```
-[المرحلة 0 — إضافات]
-src/components/properties/PropertySummaryCards.tsx          (+ بطاقة متوسط الإيجار)
-src/hooks/page/admin/properties/usePropertiesSummary.ts     (+ avgRent إذا غير موجود)
-src/components/expenses/ExpenseSummaryCards.tsx             (+ بطاقة نسبة المصروفات)
-src/hooks/page/admin/financial/useExpensesPage.ts           (+ expenseRatio prop)
-src/pages/dashboard/DistributionsPage.tsx                   (+ بطاقة نسبة التوزيع)
-src/hooks/page/admin/financial/useDistributionsPage.ts      (+ distributionRatio)
-
-[المرحلة 1 — حذف من اللوحة]
-src/hooks/page/admin/dashboard/useAdminDashboardStats.ts    (− 5 stats + 3 kpis)
-src/pages/dashboard/AdminDashboard.tsx                      (− DashboardKpiPanel)
-
-[المرحلة 2 — تنظيف الواقف]
-src/components/waqif/WaqifFinancialSection.tsx              (− كتلة التسلسل + شريط رابط)
-src/hooks/page/waqif/useWaqifDashboardPage.ts               (− props غير مستخدمة)
-
-[المرحلة 3]
-mem://business-logic/dashboards/role-data-consistency-standard
+```text
+contractsFromPrevious  ⇔ contract.start_date < fiscalYear.start_date
+contractsInYear        ⇔ contract.start_date ≥ fiscalYear.start_date
+overdueFromPrevious    ⇔ invoice.due_date    < fiscalYear.start_date AND status ≠ 'paid'
+overdueInYear          ⇔ invoice.due_date    ≥ fiscalYear.start_date AND invoice.due_date ≤ today AND status ≠ 'paid'
 ```
 
----
-
-# ضمانات السلامة (محدّثة)
-
-- ✅ بلا تغيير في DB/RPC/RLS/ZATCA
-- ✅ بلا تغيير في `AccountantDashboardView` و `BeneficiaryDashboard`
-- ✅ **كل بطاقة محذوفة تأكدت وجود بديل لها** (بعد المرحلة 0)
-- ✅ `accountant-dashboard-filtering` يبقى كطبقة دفاع
-- ✅ `public-stats-anonymization` للواقف غير متأثر
-- ✅ ترتيب المراحل (0 → 1 → 2) يضمن عدم وجود لحظة "بيانات مفقودة"
+في وضع `'all'` (`isSpecificYear === false`): التصنيف غير معرَّف ⇒ تُخفى الفلاتر الجديدة ويُخفى السطر الفرعي في بطاقة المتأخر.
 
 ---
 
-# قرار مطلوب
+## نتائج التحقق الجنائي (مثبّتة بالكود)
 
-اعتمد الخطة بترتيبها (0 → 1 → 2) أو حدد:
+1. `FiscalYearContext` يوفّر `fiscalYear` كاملاً مع `start_date` — لا حاجة لـ `fiscalYears.find()`.
+2. `useContractsByFiscalYear` يفلتر بـ `eq('fiscal_year_id', …)`. عمود `contracts.start_date` يبقى أصلياً بعد أي تجديد، لذا التصنيف يعمل داخل النتيجة المُجلَبة.
+3. `paymentInvoices.due_date` متاح لكل دفعة ⇒ تصنيف المتأخرات يعتمد على الفاتورة لا العقد.
 
-- هل أُضيف **بطاقة "متوسط الإيجار"** فعلاً لـ Properties، أم أكتفي بحذفها من الناظر دون بديل؟
-- هل تريد بطاقة **"نسبة المصروفات"** في Expenses أم تكتفي بـ Alerts الموجود؟
-- هل تريد بطاقة **"نسبة التوزيع الفعلي"** في Distributions أم تكتفي بصفحة Beneficiaries؟  
-  
-القرار   
-بلا تغيير نسبة المصروفات 
+---
+
+## التغييرات (7 ملفات فقط)
+
+### 1) `src/utils/financial/contractClassification.ts` — جديد (≤25 سطر)
+
+```ts
+export type ContractOriginClass = 'inYear' | 'fromPrevious' | 'unknown';
+
+export function classifyContractOrigin(
+  contractStartDate: string,
+  fiscalYearStartDate: string | null,
+): ContractOriginClass {
+  if (!fiscalYearStartDate) return 'unknown';
+  return contractStartDate < fiscalYearStartDate ? 'fromPrevious' : 'inYear';
+}
+```
+
++ `contractClassification.test.ts` بثلاث حالات.
+
+### 2) `src/hooks/page/admin/contracts/useContractsFilters.ts`
+
+- توسيع `StatusFilterValue` بقيمتين: `'contractsInYear'`, `'contractsFromPrevious'`.
+- استقبال `fiscalYearStartDate: string | null` كمعامل.
+- إضافة عدّادَين في `statusCounts`: `contractsInYear`, `contractsFromPrevious` (يُحتسبان فقط عند توفّر `fiscalYearStartDate`).
+- منطق الفلترة يستدعي `classifyContractOrigin`.
+
+### 3) `src/hooks/page/admin/contracts/useContractsFilters.test.ts`
+
+- ثلاث حالات: عقد ضمن السنة، عقد مستمر، وضع كل السنوات.
+
+### 4) `src/components/contracts/ContractsFiltersBar.tsx`
+
+- توسيع `StatusCounts` بحقلَي العدّادَين الجديدَين.
+- إضافة قسم في القائمة بفاصل `─── حسب السنة المالية ───`:
+  - «عقود جديدة في السنة (N)» → `contractsInYear`
+  - «عقود مستمرة من سنة سابقة (N)» → `contractsFromPrevious`
+- إخفاء القسم بالكامل عند `fiscalYearStartDate === null`.
+
+### 5) `src/hooks/page/admin/contracts/useContractsPage.ts`
+
+- استدعاء `useFiscalYear()` واستخراج `fiscalYear?.start_date ?? null`.
+- تمرير القيمة إلى `useContractsFilters` وإلى `ContractsFiltersBar`.
+
+### 6) `src/utils/financial/collectionCompute.ts`
+
+- توسيع `summarizeCollection(rows, invoices, fiscalYearStart)` بأربعة حقول:
+  - `overdueInYearAmount`
+  - `overdueInYearCount`
+  - `overdueFromPreviousAmount`
+  - `overdueFromPreviousCount`
+- التصنيف يعتمد على `invoice.due_date` مقارنةً بـ `fiscalYearStart`.
+- عند `fiscalYearStart === null` تُترك الحقول الأربعة `0` ولا يتم عرض السطر الفرعي.
+
+### 7) `src/hooks/page/admin/financial/useCollectionData.ts`
+
+- تمرير `fiscalYear?.start_date ?? null` إلى `summarizeCollection`.
+
+### 8) `src/components/contracts/CollectionSummaryCards.tsx`
+
+- بطاقة «المتأخر» تبقى كما هي.
+- إضافة سطر فرعي صغير تحتها (يظهر فقط عند `fiscalYearStart !== null` ووجود قيمة موجبة):
+  - «من سنوات سابقة: X ر.س»
+  - «هذه السنة: Y ر.س»
+
+(الترقيم 7 ملفات + ملف الاختبار للدالة النقية = 8 إجمالاً.)
+
+---
+
+## ما لن يتغير
+
+- لا تعديلات قاعدة بيانات / RLS / RPC / ZATCA.
+- لا تعديل في توزيع الريع أو احتساب الإيراد أو شاشات المستفيد/الواقف.
+- لا `DashboardAlerts` ولا `OverdueTenantsReport` ولا بطاقة جديدة في لوحة الناظر.
+- لا ذاكرة جديدة (`mem://`) في هذه الموجة — تُضاف بعد تثبيت التنفيذ.
+
+---
+
+## سيناريوهات التحقق
+
+| # | السيناريو | الفلتر | المتأخر |
+|---|---|---|---|
+| 1 | عقد بدأ بعد بداية السنة، منتظم | `contractsInYear` | لا يظهر |
+| 2 | عقد بدأ قبل بداية السنة، منتظم | `contractsFromPrevious` | لا يظهر |
+| 3 | عقد بدأ قبل السنة وعليه فاتورة قديمة غير مدفوعة | `contractsFromPrevious` | داخل «من سنوات سابقة» |
+| 4 | عقد جديد وعليه فاتورة حالية متأخرة | `contractsInYear` | داخل «هذه السنة» |
+| 5 | وضع «كل السنوات» | الفلاتر مخفية | السطر الفرعي مخفي |
+
+---
+
+## مصفوفة الاتساق (للمراجعة قبل الموافقة)
+
+```text
+المفتاح البرمجي       ↔ الواجهة العربية                ↔ مصدر التصنيف
+contractsInYear        ↔ عقود جديدة في السنة            ↔ contracts.start_date
+contractsFromPrevious  ↔ عقود مستمرة من سنة سابقة       ↔ contracts.start_date
+overdueInYear          ↔ متأخرات هذه السنة              ↔ payment_invoices.due_date
+overdueFromPrevious    ↔ متأخرات من سنوات سابقة         ↔ payment_invoices.due_date
+```
+
+نفس الجذرين (`InYear` / `FromPrevious`) عبر العقود والمتأخرات — لا تذبذب، لا تعارض مع «رقبة الوقف المرحّلة» أو `advance_carryforward` أو إقفال السنة.
