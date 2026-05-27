@@ -26,7 +26,8 @@ import { asMutationArg } from '@/hooks/data/core';
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
 export const useContractsPage = () => {
-  const { fiscalYearId, fiscalYears, isClosed, setFiscalYearId, isSpecificYear } = useFiscalYear();
+  const { fiscalYearId, fiscalYear, fiscalYears, isClosed, setFiscalYearId, isSpecificYear } = useFiscalYear();
+  const fiscalYearStartDate = isSpecificYear ? (fiscalYear?.start_date ?? null) : null;
   const { role } = useAuth();
   const isMobile = useIsMobile();
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -56,7 +57,7 @@ export const useContractsPage = () => {
   }, [paymentInvoices, now]);
 
   // التصفية والتجميع
-  const filters = useContractsFilters({ contracts, overdueContractIds });
+  const filters = useContractsFilters({ contracts, overdueContractIds, fiscalYearStartDate });
 
   // التجديد الجماعي
   const bulkRenew = useContractsBulkRenew({
