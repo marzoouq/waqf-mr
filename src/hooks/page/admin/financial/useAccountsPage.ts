@@ -116,8 +116,6 @@ export function useAccountsPage() {
   });
 
 
-
-
   return {
     // Data
     accounts: data.accounts, contracts: data.contracts, beneficiaries: data.beneficiaries,
