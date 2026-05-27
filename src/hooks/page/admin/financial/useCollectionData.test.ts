@@ -138,4 +138,59 @@ describe('useCollectionData', () => {
     expect(result.current.useDynamicAllocation).toBe(false);
     expect(result.current.rows).toHaveLength(1);
   });
+
+  it('يُصنّف المتأخرات حسب السنة المالية: قبل البداية = مُرحّل، داخل السنة = هذه السنة', () => {
+    const invoices = [
+      makeInvoice({ id: 'old1', status: 'pending', due_date: '2024-06-01', amount: 500 }),
+      makeInvoice({ id: 'old2', status: 'pending', due_date: '2024-12-31', amount: 700 }),
+      makeInvoice({ id: 'cur1', status: 'pending', due_date: '2025-01-15', amount: 300 }),
+      makeInvoice({ id: 'future', status: 'pending', due_date: '2099-01-01', amount: 999 }),
+      makeInvoice({ id: 'paid', status: 'paid', due_date: '2024-01-01', amount: 9999 }),
+    ];
+    const { result } = renderHook(() =>
+      useCollectionData({ contracts, paymentInvoices: invoices, fiscalYears, fiscalYearId: 'fy1', fiscalYearStart: '2025-01-01' })
+    );
+    expect(result.current.summary.overdueFromPreviousAmount).toBe(1200);
+    expect(result.current.summary.overdueFromPreviousCount).toBe(2);
+    expect(result.current.summary.overdueInYearAmount).toBe(300);
+    expect(result.current.summary.overdueInYearCount).toBe(1);
+  });
+
+  it('يُعطّل تصنيف المتأخرات عند وضع "كل السنوات" (fiscalYearStart=null)', () => {
+    const invoices = [
+      makeInvoice({ id: 'old', status: 'pending', due_date: '2024-06-01', amount: 500 }),
+      makeInvoice({ id: 'cur', status: 'pending', due_date: '2025-01-15', amount: 300 }),
+    ];
+    const { result } = renderHook(() =>
+      useCollectionData({ contracts, paymentInvoices: invoices, fiscalYears, fiscalYearId: 'all', fiscalYearStart: null })
+    );
+    expect(result.current.summary.overdueFromPreviousAmount).toBe(0);
+    expect(result.current.summary.overdueFromPreviousCount).toBe(0);
+    expect(result.current.summary.overdueInYearAmount).toBe(0);
+    expect(result.current.summary.overdueInYearCount).toBe(0);
+  });
+
+  it('يُعيد تصنيف المتأخرات تلقائياً عند تغيّر fiscalYearStart (تكامل تفاعلي)', () => {
+    const invoices = [
+      makeInvoice({ id: 'i1', status: 'pending', due_date: '2024-06-01', amount: 500 }),
+      makeInvoice({ id: 'i2', status: 'pending', due_date: '2025-06-01', amount: 800 }),
+    ];
+    const { result, rerender } = renderHook(
+      ({ fyStart }: { fyStart: string | null }) =>
+        useCollectionData({ contracts, paymentInvoices: invoices, fiscalYears, fiscalYearId: 'fy1', fiscalYearStart: fyStart }),
+      { initialProps: { fyStart: '2025-01-01' as string | null } },
+    );
+    expect(result.current.summary.overdueFromPreviousAmount).toBe(500);
+    expect(result.current.summary.overdueInYearAmount).toBe(800);
+
+    // تغيير بداية السنة المالية → إعادة التصنيف فوراً
+    rerender({ fyStart: '2024-01-01' });
+    expect(result.current.summary.overdueFromPreviousAmount).toBe(0);
+    expect(result.current.summary.overdueInYearAmount).toBe(1300);
+
+    // وضع "كل السنوات" → إيقاف التصنيف
+    rerender({ fyStart: null });
+    expect(result.current.summary.overdueFromPreviousAmount).toBe(0);
+    expect(result.current.summary.overdueInYearAmount).toBe(0);
+  });
 });
