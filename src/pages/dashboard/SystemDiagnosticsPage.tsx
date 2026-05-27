@@ -105,6 +105,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
                     disabled={running || !!runningCategory}
                     onClick={() => runSingle(cat.title)}
                     title={`تشغيل فحوصات ${cat.title}`}
+                    aria-label={`تشغيل فحوصات ${cat.title}`}
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isCatRunning ? 'animate-spin' : ''}`} />
                   </Button>

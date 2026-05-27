@@ -102,7 +102,7 @@ export default function TicketDetailDialog({ ticket, onClose, isAdmin }: Props) 
 
         <div className="flex gap-2">
           <Textarea value={replyContent} onChange={e => setReplyContent(e.target.value)} placeholder="اكتب رداً..." className="flex-1 min-h-[60px]" />
-          <Button size="icon" onClick={handleSendReply} disabled={!replyContent.trim() || addReply.isPending}>
+          <Button size="icon" onClick={handleSendReply} disabled={!replyContent.trim() || addReply.isPending} aria-label="إرسال الرد">
             <Send className="w-4 h-4" />
           </Button>
         </div>

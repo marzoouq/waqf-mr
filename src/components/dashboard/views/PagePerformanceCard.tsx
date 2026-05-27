@@ -73,6 +73,7 @@ const PagePerformanceCard = () => {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
+                aria-label="مسح السجلات"
                 onClick={() => {
                   clearPageLoadEntries();
                   notifyPerfUpdate();
@@ -89,6 +90,7 @@ const PagePerformanceCard = () => {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
+                aria-label="تحديث"
                 onClick={() => notifyPerfUpdate()}
               >
                 <RotateCcw className="w-3.5 h-3.5" />

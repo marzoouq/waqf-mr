@@ -130,13 +130,13 @@ const ContractAccordionGroup = ({
                     </div>
                   </div>
                   <div className="flex gap-0.5 shrink-0">
-                    <Button variant="ghost" size="icon" className="w-7 h-7 text-success hover:text-success/80" onClick={() => onRenew(contract)} title="تجديد">
+                    <Button variant="ghost" size="icon" className="w-7 h-7 text-success hover:text-success/80" onClick={() => onRenew(contract)} title="تجديد" aria-label="تجديد العقد">
                       <RefreshCw className="w-3.5 h-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => onEdit(contract)} title="تعديل">
+                    <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => onEdit(contract)} title="تعديل" aria-label="تعديل العقد">
                       <Edit className="w-3.5 h-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="w-7 h-7 text-destructive hover:text-destructive" onClick={() => onDelete(contract)} title="حذف">
+                    <Button variant="ghost" size="icon" className="w-7 h-7 text-destructive hover:text-destructive" onClick={() => onDelete(contract)} title="حذف" aria-label="حذف العقد">
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>

@@ -94,7 +94,7 @@ const AuditLogTable = ({
                     <>
                       <CollapsibleTrigger asChild>
                         <TableRow className="cursor-pointer hover:bg-muted/50">
-                          <TableCell><Button variant="ghost" size="icon" className="h-6 w-6">{isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}</Button></TableCell>
+                          <TableCell><Button variant="ghost" size="icon" className="h-6 w-6" aria-label={isExpanded ? 'طي' : 'توسيع'}>{isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}</Button></TableCell>
                           <TableCell className="text-sm">{new Date(log.created_at).toLocaleString('ar-SA')}</TableCell>
                           <TableCell>{getTableNameAr(log.table_name)}</TableCell>
                           <TableCell><Badge className={operationColor(log.operation)} variant="outline">{getOperationNameAr(log.operation)}</Badge></TableCell>
