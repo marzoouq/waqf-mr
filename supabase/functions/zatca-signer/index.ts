@@ -44,10 +44,11 @@ Deno.serve(async (req) => {
     if ("error" in auth) return auth.error;
     const { admin, body } = auth;
 
-    const { invoice_id, table } = (body ?? {}) as { invoice_id?: string; table?: string };
-    if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
-      return json({ error: "Invalid parameters" }, 400, corsHeaders);
+    const parsed = RequestSchema.safeParse(body ?? {});
+    if (!parsed.success) {
+      return json({ error: "Invalid parameters", details: parsed.error.flatten().fieldErrors }, 400, corsHeaders);
     }
+    const { invoice_id, table } = parsed.data;
 
     // ── Get Invoice ──
     const { data: inv, error: invErr } = await admin.from(table).select("*").eq("id", invoice_id).single();
