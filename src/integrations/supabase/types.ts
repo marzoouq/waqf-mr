@@ -285,7 +285,7 @@ export type Database = {
           approved_by: string | null
           beneficiary_id: string
           created_at: string
-          fiscal_year_id: string | null
+          fiscal_year_id: string
           id: string
           paid_at: string | null
           reason: string | null
@@ -298,7 +298,7 @@ export type Database = {
           approved_by?: string | null
           beneficiary_id: string
           created_at?: string
-          fiscal_year_id?: string | null
+          fiscal_year_id: string
           id?: string
           paid_at?: string | null
           reason?: string | null
@@ -311,7 +311,7 @@ export type Database = {
           approved_by?: string | null
           beneficiary_id?: string
           created_at?: string
-          fiscal_year_id?: string | null
+          fiscal_year_id?: string
           id?: string
           paid_at?: string | null
           reason?: string | null
@@ -609,7 +609,7 @@ export type Database = {
           contract_number: string
           created_at: string
           end_date: string
-          fiscal_year_id: string | null
+          fiscal_year_id: string
           id: string
           notes: string | null
           payment_amount: number | null
@@ -636,7 +636,7 @@ export type Database = {
           contract_number: string
           created_at?: string
           end_date: string
-          fiscal_year_id?: string | null
+          fiscal_year_id: string
           id?: string
           notes?: string | null
           payment_amount?: number | null
@@ -663,7 +663,7 @@ export type Database = {
           contract_number?: string
           created_at?: string
           end_date?: string
-          fiscal_year_id?: string | null
+          fiscal_year_id?: string
           id?: string
           notes?: string | null
           payment_amount?: number | null
@@ -1260,7 +1260,7 @@ export type Database = {
           expense_id: string | null
           file_name: string | null
           file_path: string | null
-          fiscal_year_id: string | null
+          fiscal_year_id: string
           icv: number | null
           id: string
           invoice_hash: string | null
@@ -1285,7 +1285,7 @@ export type Database = {
           expense_id?: string | null
           file_name?: string | null
           file_path?: string | null
-          fiscal_year_id?: string | null
+          fiscal_year_id: string
           icv?: number | null
           id?: string
           invoice_hash?: string | null
@@ -1310,7 +1310,7 @@ export type Database = {
           expense_id?: string | null
           file_name?: string | null
           file_path?: string | null
-          fiscal_year_id?: string | null
+          fiscal_year_id?: string
           icv?: number | null
           id?: string
           invoice_hash?: string | null
@@ -1445,7 +1445,7 @@ export type Database = {
           created_at: string
           due_date: string
           file_path: string | null
-          fiscal_year_id: string | null
+          fiscal_year_id: string
           icv: number | null
           id: string
           invoice_hash: string | null
@@ -1469,7 +1469,7 @@ export type Database = {
           created_at?: string
           due_date: string
           file_path?: string | null
-          fiscal_year_id?: string | null
+          fiscal_year_id: string
           icv?: number | null
           id?: string
           invoice_hash?: string | null
@@ -1493,7 +1493,7 @@ export type Database = {
           created_at?: string
           due_date?: string
           file_path?: string | null
-          fiscal_year_id?: string | null
+          fiscal_year_id?: string
           icv?: number | null
           id?: string
           invoice_hash?: string | null
