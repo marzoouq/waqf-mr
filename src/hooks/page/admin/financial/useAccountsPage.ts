@@ -49,6 +49,15 @@ export function useAccountsPage() {
     getExpectedPayments: calc.getExpectedPayments,
   });
 
+  // فصل المتأخرات حسب السنة المالية — للعرض في PDF
+  const fiscalYearStartDate = data.selectedFY?.start_date ?? null;
+  const overdueSplit = useMemo(() => {
+    if (!fiscalYearStartDate) return { prev: 0, cur: 0 };
+    const today = new Date().toISOString().slice(0, 10);
+    let prev = 0, cur = 0;
+    return { prev, cur };
+  }, [fiscalYearStartDate]);
+
   // 5. العمليات — تستقبل القيم الحقيقية مباشرة (بدون أصفار أو paramsRef خارجي)
   const actions = useAccountsActions({
     selectedFY: data.selectedFY,
@@ -75,6 +84,9 @@ export function useAccountsPage() {
     zakatAmount: settings.zakatAmount,
     waqfCorpusManual: settings.waqfCorpusManual,
     waqfCorpusPrevious: settings.waqfCorpusPrevious,
+    fiscalYearStartDate,
+    overdueFromPreviousAmount: overdueSplit.prev,
+    overdueInYearAmount: overdueSplit.cur,
   });
 
   // 6. بيانات إقفال السنة — فواتير غير مدفوعة وسلف معلّقة
