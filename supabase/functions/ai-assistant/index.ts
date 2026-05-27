@@ -12,9 +12,19 @@ import { authenticate } from "../_shared/auth.ts";
 import { buildSystemPrompt, ALLOWED_MODES, type AllowedMode } from "../_shared/ai-prompts.ts";
 import { fetchWaqfData } from "./fetcher.ts";
 import { dataCache } from "./simple-cache.ts";
+import { z } from "npm:zod@3";
 
 /** حد الاستخدام اليومي لكل مستخدم */
 const DAILY_QUOTA = 100;
+
+const MessageSchema = z.object({
+  role: z.string().max(20),
+  content: z.string().max(5000),
+});
+const RequestSchema = z.object({
+  messages: z.array(MessageSchema).min(1).max(50),
+  mode: z.string().max(40).optional(),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
