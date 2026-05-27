@@ -19,7 +19,7 @@ const DistributeDialog = lazy(() => import('@/components/accounts/DistributeDial
 
 const DistributionsPage = () => {
   const p = useDistributionsPage();
-  const fyLabel = p.selectedFY?.label || p.fiscalYear?.label || '';
+  const fyLabel = p.selectedFY?.label || p.fiscalYear || '';
   const canDistribute =
     !!p.currentAccount && p.availableAmount > 0 && p.beneficiaries.length > 0 && !p.isClosed === false
       ? !!p.currentAccount && p.availableAmount > 0 && p.beneficiaries.length > 0
