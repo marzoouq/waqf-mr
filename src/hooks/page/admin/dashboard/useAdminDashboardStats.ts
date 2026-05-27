@@ -23,16 +23,22 @@ const getKpiColor = (value: number, good: number, warn: number, invert = false) 
 interface UseAdminDashboardStatsParams {
   propertiesCount: number;
   activeContractsCount: number;
-  contractualRevenue: number;
+  /** @deprecated مُرحَّل لـ ContractStatsCards — يبقى في التوقيع لتفادي تكسير الواجهة */
+  contractualRevenue?: number;
   totalIncome: number;
   totalExpenses: number;
   netAfterExpenses: number;
-  netAfterZakat: number;
-  availableAmount: number;
-  adminShare: number;
-  waqifShare: number;
+  /** @deprecated غير مستخدم بعد Wave D */
+  netAfterZakat?: number;
+  /** @deprecated مُرحَّل لـ DistributionsPage */
+  availableAmount?: number;
+  /** @deprecated مُرحَّل لـ AccountsSummaryCards */
+  adminShare?: number;
+  /** @deprecated مُرحَّل لـ AccountsSummaryCards */
+  waqifShare?: number;
   waqfRevenue: number;
-  distributionsAmount: number;
+  /** @deprecated مُرحَّل لـ DistributionsPage */
+  distributionsAmount?: number;
   beneficiariesCount: number;
   isYearActive: boolean;
   sharesNote: string;
@@ -43,18 +49,19 @@ interface UseAdminDashboardStatsParams {
     prevNetAfterExpenses: number;
   };
   collection: AggregatedCollection | null;
-  occupancy: AggregatedOccupancy | null;
+  /** @deprecated مُرحَّل لـ PropertySummaryCards (Progress) */
+  occupancy?: AggregatedOccupancy | null;
   /** دور المستخدم — يُستخدم لتصفية البطاقات حسب الصلاحية */
   role?: string | null;
 }
 
 export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
   const {
-    propertiesCount, activeContractsCount, contractualRevenue,
-    totalIncome, totalExpenses, netAfterExpenses, netAfterZakat,
-    availableAmount, adminShare, waqifShare, waqfRevenue,
-    distributionsAmount, beneficiariesCount, isYearActive, sharesNote,
-    yoy, collection, occupancy, role,
+    propertiesCount, activeContractsCount,
+    totalIncome, totalExpenses, netAfterExpenses,
+    waqfRevenue,
+    beneficiariesCount, isYearActive, sharesNote,
+    yoy, collection, role,
   } = params;
 
   // ── ملخص التحصيل (جاهز من RPC) ──
