@@ -158,6 +158,9 @@ export function useAccountsActions(params: ActionsParams) {
         grandTotal: p.grandTotal,
         availableAmount: p.availableAmount,
         remainingBalance: p.remainingBalance,
+        fiscalYearStartDate: p.fiscalYearStartDate ?? null,
+        overdueFromPreviousAmount: p.overdueFromPreviousAmount ?? 0,
+        overdueInYearAmount: p.overdueInYearAmount ?? 0,
       });
       uiNotify.success('تم تصدير التقرير بنجاح');
     } catch {
