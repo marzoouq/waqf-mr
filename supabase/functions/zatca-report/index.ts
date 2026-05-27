@@ -10,6 +10,19 @@ import {
   resolveZatcaUrl,
   logZatcaOperation,
 } from "../_shared/zatca-shared.ts";
+import { z } from "npm:zod@3";
+
+const RequestSchema = z.object({
+  action: z.enum([
+    "report",
+    "clearance",
+    "compliance-check",
+    "compliance-buyer-qr",
+    "compliance-seller-qr",
+  ]),
+  invoice_id: z.string().uuid().optional(),
+  table: z.enum(["invoices", "payment_invoices"]).optional(),
+});
 
 Deno.serve(async (req): Promise<Response> => {
   const corsHeaders = getCorsHeaders(req);
@@ -20,8 +33,12 @@ Deno.serve(async (req): Promise<Response> => {
     if ("error" in auth) return auth.error;
     const { user, admin } = auth;
 
-    const body = await req.json();
-    const { action, invoice_id, table } = body;
+    const rawBody = await req.json().catch(() => ({}));
+    const parsed = RequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: "Invalid parameters", details: parsed.error.flatten().fieldErrors }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const { action, invoice_id, table } = parsed.data;
     const ZATCA_API_URL = await resolveZatcaUrl(admin);
 
     if (!ZATCA_API_URL) {
