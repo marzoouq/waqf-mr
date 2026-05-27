@@ -41,8 +41,8 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
   open, onOpenChange, expenseId, expenseAmount, defaultDescription,
 }) => {
   const [form, setForm] = useState({ ...EMPTY, amount: expenseAmount, work_description: defaultDescription || '' });
-  const createMut = useCreateVoucher();
-  const approveMut = useApproveVoucher();
+  const createMut = useCreateVoucherAction();
+  const approveMut = useApproveVoucherAction();
 
   const reset = () => setForm({ ...EMPTY, amount: expenseAmount, work_description: defaultDescription || '' });
 
