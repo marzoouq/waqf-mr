@@ -77,6 +77,10 @@ export interface UnifiedInvoiceItem {
   invoice_type: string;
   invoice_number: string | null;
   amount: number;
+  /** المبلغ المسدّد فعلياً (للفواتير الإيجارية فقط، يُستخدم لحساب نسبة التحصيل) */
+  paid_amount?: number;
+  /** ضريبة القيمة المضافة على هذا الصف (لإظهار الإجمالي الضريبي في البطاقات) */
+  vat_amount?: number;
   date: string;
   status: string;
   file_path: string | null;
@@ -84,6 +88,7 @@ export interface UnifiedInvoiceItem {
   property?: { property_number: string } | null;
   source: 'purchase' | 'rent';
 }
+
 
 /** خصم أو رسوم إضافية */
 export interface AllowanceChargeItem {

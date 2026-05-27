@@ -56,10 +56,14 @@ const DisclosureFinancialStatement = (props: Props) => {
                   <span className="text-success font-medium">+{fmt(amount)} ر.س</span>
                 </div>
               ))}
-              <div className="flex justify-between items-center py-2 font-bold bg-success/10 rounded px-2">
-                <span>إجمالي الإيرادات</span>
+              <div
+                className="flex justify-between items-center py-2 font-bold bg-success/10 rounded px-2"
+                title="مجموع الدخل المسجّل دفترياً — قد يتضمن قيوداً يدوية. للتحصيل النقدي الفعلي راجع صفحة الفواتير."
+              >
+                <span>إجمالي الدخل المسجّل دفترياً</span>
                 <span className="text-success">+{fmt(totalIncome)} ر.س</span>
               </div>
+
             </div>
           </div>
 
