@@ -48,41 +48,8 @@ export function useEmailMonitorPage() {
   const startIso = useMemo(() => getStartIso(range, customStart || undefined), [range, customStart]);
   const endIso = useMemo(() => (range === 'custom' && customEnd ? customEnd : new Date().toISOString()), [range, customEnd]);
 
-  // جلب السجلات (raw, ثم deduplication في الذاكرة)
-  const logsQuery = useQuery({
-    queryKey: ['email-logs', startIso, endIso],
-    queryFn: async (): Promise<EmailLogRow[]> => {
-      const { data, error } = await supabase
-        .from('email_send_log')
-        .select('id, message_id, template_name, recipient_email, status, error_message, created_at')
-        .gte('created_at', startIso)
-        .lte('created_at', endIso)
-        .order('created_at', { ascending: false })
-        .limit(2000);
-      if (error) throw error;
-      return (data ?? []) as EmailLogRow[];
-    },
-    staleTime: 15_000,
-    refetchInterval: 30_000,
-  });
-
-  // إحصاءات DLQ + last_run عبر edge function
-  const adminStatsQuery = useQuery({
-    queryKey: ['email-admin-stats'],
-    queryFn: async (): Promise<EmailAdminStats> => {
-      const data = await invoke<Partial<EmailAdminStats>>('email-admin', {
-        body: { action: 'get_stats' },
-      });
-      return {
-        last_log_at: data?.last_log_at ?? null,
-        auth_dlq_count: data?.auth_dlq_count ?? 0,
-        transactional_dlq_count: data?.transactional_dlq_count ?? 0,
-        rate_limited_until: data?.rate_limited_until ?? null,
-      };
-    },
-    staleTime: 15_000,
-    refetchInterval: 30_000,
-  });
+  const logsQuery = useEmailLogs(startIso, endIso);
+  const adminStatsQuery = useEmailAdminStats();
 
   // Deduplication: latest row per message_id
   const dedupedLogs = useMemo(() => {
