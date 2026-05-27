@@ -25,7 +25,7 @@ const ContractsTabContent: React.FC = () => {
 
   return (
     <div className="space-y-5">
-      <ContractStatsCards stats={stats} isLoading={isLoading} />
+      <ContractStatsCards stats={stats} isLoading={isLoading} revenueSource={stats.revenueSource} />
 
       {expiredContracts.length > 0 && (
         <Alert className="border-destructive/40 bg-destructive/10">
