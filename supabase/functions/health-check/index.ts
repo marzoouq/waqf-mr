@@ -13,6 +13,16 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // حماية بسر مشترك: يجب تمرير X-Health-Secret مطابقاً لـ HEALTH_CHECK_SECRET
+  const expectedSecret = Deno.env.get("HEALTH_CHECK_SECRET");
+  const providedSecret = req.headers.get("x-health-secret");
+  if (!expectedSecret || providedSecret !== expectedSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   let allOk = true;
 
   // فحص اتصال قاعدة البيانات
