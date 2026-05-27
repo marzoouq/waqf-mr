@@ -1,8 +1,8 @@
-import { fmt } from '@/utils/format/format';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Building2, Layers, TrendingUp, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Building2, Layers, ArrowLeft } from 'lucide-react';
 
 interface PropertySummary {
   totalProperties: number;
