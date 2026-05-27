@@ -1,12 +1,19 @@
 /**
  * هوك CRUD نموذج العقد — منطق التحرير والتجديد والإنشاء
  * مُستخرج من useContractsPage لتقليل حجم الملف الأصلي (#29)
+ *
+ * P1-1: بعد كل إنشاء/تحديث للعقد نُحدِّث `contract_fiscal_allocations`
+ * تلقائياً لضمان دقة الإيرادات والاستحقاق في صفحات العقارات.
  */
 import { useState, useCallback } from 'react';
 import { Contract } from '@/types';
 import { emptyFormData, type ContractFormData } from '@/types/forms/contract';
 import { uiNotify } from '@/lib/notify';
+import { logger } from '@/lib/logger';
 import { useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
+import { useUpsertContractAllocations } from '@/hooks/data/financial/useContractAllocations';
+import { useFiscalYears } from '@/hooks/data/financial/useFiscalYears';
+import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { asMutationArg } from '@/hooks/data/core';
 
@@ -19,6 +26,9 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
+  const upsertAllocations = useUpsertContractAllocations();
+  const { data: fiscalYearsFull = [] } = useFiscalYears();
+
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
