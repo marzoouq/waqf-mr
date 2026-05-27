@@ -1,23 +1,15 @@
 /**
- * Custom hook encapsulating AccountsPage business logic
- * Composition layer over sub-hooks:
- * - useAccountsData: جلب البيانات
- * - useAccountsSettings: إعدادات النسب والمبالغ
- * - useAccountsCalculations: الحسابات المالية
- * - useAccountsEditing: حالة التحرير
- * - useAccountsActions: العمليات (حفظ، إقفال، تصدير)
+ * Custom hook encapsulating AccountsPage business logic.
+ * Composition layer over sub-hooks (data/settings/calculations/editing/actions/extras/exports).
  */
-import { useMemo } from 'react';
 import { useAccountsData } from '@/hooks/domain/financial/useAccountsData';
 import { useAccountsSettings } from '@/hooks/domain/financial/useAccountsSettings';
 import { useAccountsCalculations } from '@/hooks/domain/financial/useAccountsCalculations';
 import { useAccountsEditing } from '@/hooks/domain/financial/useAccountsEditing';
 import { useAccountsActions } from '@/hooks/domain/financial/useAccountsActions';
-import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
-import { useAdvanceRequests } from '@/hooks/data/financial/useAdvanceRequests';
-import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/useTotalBeneficiaryPercentage';
+import { useAccountsExtras } from './useAccountsExtras';
 import { useAccountsExports } from './useAccountsExports';
-import { useOverdueSplit } from './useOverdueSplit';
+
 
 
 export function useAccountsPage() {
@@ -87,24 +79,15 @@ export function useAccountsPage() {
     overdueInYearAmount: overdueSplit.cur,
   });
 
-  // 6. بيانات إقفال السنة — فواتير غير مدفوعة وسلف معلّقة
-  const { data: paymentInvoices = [] } = usePaymentInvoices(data.fiscalYearId || 'all');
-  const { data: advanceRequests = [] } = useAdvanceRequests(data.fiscalYearId !== 'all' ? data.fiscalYearId : undefined);
-  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
+  // 6. بيانات إقفال السنة (فواتير غير مدفوعة، سلف معلّقة، نسب، تقسيم متأخرات)
+  // TODO: إعادة تصميم useAccountsActions ليستقبل overdueSplit كقيمة مستقرة بدل mutation لمرجع.
+  const extras = useAccountsExtras(data.fiscalYearId, fiscalYearStartDate);
+  overdueSplit.prev = extras.overdueSplit.prev;
+  overdueSplit.cur = extras.overdueSplit.cur;
+  const { paymentInvoices, advanceRequests, totalBenPct, unpaidInvoices, pendingAdvances } = extras;
+  // مراجع تُستخدم في الـreturn:
+  void paymentInvoices; void advanceRequests;
 
-  const unpaidInvoices = useMemo(() =>
-    paymentInvoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue').length,
-    [paymentInvoices]
-  );
-  const pendingAdvances = useMemo(() =>
-    advanceRequests.filter(r => r.status === 'pending').length,
-    [advanceRequests]
-  );
-
-  // حساب فعلي لتقسيم المتأخرات بعد جلب الفواتير — مستخرج إلى useOverdueSplit (#A3)
-  const overdueSplitComputed = useOverdueSplit(paymentInvoices, fiscalYearStartDate);
-  overdueSplit.prev = overdueSplitComputed.prev;
-  overdueSplit.cur = overdueSplitComputed.cur;
 
 
   // 7. تصديرات CSV/PDF — مستخرجة في hook منفصل
