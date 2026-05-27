@@ -23,7 +23,11 @@ interface ContractStatsCardsProps {
   revenueSource?: 'allocated' | 'rent';
 }
 
-const ContractStatsCards = ({ stats, isLoading, variant = 'admin' }: ContractStatsCardsProps) => {
+const ContractStatsCards = ({ stats, isLoading, variant = 'admin', revenueSource = 'rent' }: ContractStatsCardsProps) => {
+  const revenueLabel = revenueSource === 'allocated' ? 'حصة السنة من العقود' : 'إجمالي قيمة العقود';
+  const revenueTitle = revenueSource === 'allocated'
+    ? 'مجموع المخصّص للسنة المالية من قيم العقود (allocated_amount)'
+    : 'مجموع قيم العقود الكاملة (rent_amount) — قد يشمل سنوات متعددة';
   const isBeneficiary = variant === 'beneficiary';
   const skeletonCount = isBeneficiary ? 2 : 5;
   const gridCols = isBeneficiary ? 'sm:grid-cols-2 lg:grid-cols-2' : 'sm:grid-cols-3 lg:grid-cols-5';
