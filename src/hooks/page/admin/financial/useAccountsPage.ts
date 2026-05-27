@@ -84,9 +84,8 @@ export function useAccountsPage() {
   const extras = useAccountsExtras(data.fiscalYearId, fiscalYearStartDate);
   overdueSplit.prev = extras.overdueSplit.prev;
   overdueSplit.cur = extras.overdueSplit.cur;
-  const { paymentInvoices, advanceRequests, totalBenPct, unpaidInvoices, pendingAdvances } = extras;
-  // مراجع تُستخدم في الـreturn:
-  void paymentInvoices; void advanceRequests;
+  const { totalBenPct, unpaidInvoices, pendingAdvances } = extras;
+
 
 
 
