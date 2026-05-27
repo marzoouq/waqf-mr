@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, PieChart, AlertTriangle, Wallet } from 'lucide-react';
+import { Users, PieChart, AlertTriangle, Wallet, PercentCircle } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 import { formatPercentage } from '@/utils/format';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -52,7 +52,7 @@ const DistributionsPage = () => {
         {p.isLoading ? (
           <Skeleton className="h-32 w-full rounded-lg" />
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
             <Card className="shadow-sm">
               <CardContent className="p-3 sm:p-4">
                 <p className="text-xs sm:text-sm text-muted-foreground">المبلغ المتاح للتوزيع</p>
@@ -75,6 +75,15 @@ const DistributionsPage = () => {
               <CardContent className="p-3 sm:p-4">
                 <p className="text-xs sm:text-sm text-muted-foreground">إجمالي السُلف المخصومة</p>
                 <p className="text-lg sm:text-2xl font-bold text-destructive tabular-nums truncate">{fmt(p.totalAdvances)} ر.س</p>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardContent className="p-3 sm:p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-accent/50 shrink-0"><PercentCircle className="w-5 h-5 text-accent-foreground" /></div>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground">نسبة التوزيع الفعلي</p>
+                  <p className="text-lg sm:text-2xl font-bold tabular-nums">{p.distributionRatio}%</p>
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -23,6 +23,11 @@ export function useDistributionsPage() {
   );
 
 
+  // نسبة التوزيع الفعلي = المنفّذ يدوياً ÷ المتاح × 100 (مرحَّلة من لوحة الناظر)
+  const distributionRatio = acc.availableAmount > 0
+    ? Math.round((acc.manualDistributions / acc.availableAmount) * 100)
+    : 0;
+
   return {
     // سياق
     role,
@@ -42,6 +47,7 @@ export function useDistributionsPage() {
     totalExpenses: acc.totalExpenses,
     manualDistributions: acc.manualDistributions,
     remainingBalance: acc.remainingBalance,
+    distributionRatio,
 
     // المستفيدون والتوزيع المحسوب
     beneficiaries: acc.beneficiaries,

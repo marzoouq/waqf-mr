@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { fmtInt } from '@/utils/format/format';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { calcChangePercent } from '@/utils/financial/calcChangePercent';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, DollarSign, Landmark, HandCoins, ArrowDownUp, PercentCircle } from 'lucide-react';
+import { Building2, FileText, TrendingDown, Users, DollarSign, Landmark, ArrowDownUp } from 'lucide-react';
 import type { StatItem, KpiItem } from '@/types/dashboard';
 import type { AggregatedCollection, AggregatedOccupancy } from '@/hooks/data/financial/useDashboardSummary';
 
@@ -82,42 +82,34 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
     const netChange = yoy.hasPrevYear ? calcChangePercent(netAfterExpenses, yoy.prevNetAfterExpenses) : null;
 
     const netCashFlow = safeNumber(waqfRevenue);
-    const distributable = safeNumber(availableAmount);
-    const distributionRatio = distributable > 0 ? Math.round((safeNumber(distributionsAmount) / distributable) * 100) : 0;
 
+    // البطاقات التالية رُحّلت لصفحات اختصاصها — لا تُكرَّر هنا:
+    //  • الإيرادات التعاقدية → /dashboard/contracts (ContractStatsCards)
+    //  • المتاح للتوزيع / ريع الوقف → /dashboard/distributions
+    //  • حصة الناظر / حصة الواقف → /dashboard/accounts (AccountsSummaryCards + Distribution)
+    //  • نسبة التوزيع الفعلي → /dashboard/distributions (بطاقة جديدة)
     const allStats: StatItem[] = [
       { title: 'إجمالي العقارات', value: propertiesCount, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
       { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary', link: '/dashboard/contracts' },
-      { title: 'الإيرادات التعاقدية', value: `${fmtInt(contractualRevenue)} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/contracts' },
       { title: 'إجمالي الدخل الفعلي', value: `${fmtInt(totalIncome)} ر.س`, icon: DollarSign, color: 'bg-primary', link: '/dashboard/income', yoyChange: incomeChange, invertColor: false },
       { title: 'إجمالي المصروفات', value: `${fmtInt(totalExpenses)} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true },
       { title: `صافي الريع${sharesNote}`, value: `${fmtInt(netAfterExpenses)} ر.س`, icon: Landmark, color: 'bg-success', link: '/dashboard/accounts', yoyChange: netChange, invertColor: false },
-      { title: 'المتاح للتوزيع', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(Math.max(0, availableAmount))} ر.س`, icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts' },
-      { title: 'حصة الناظر', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(adminShare)} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts', visibility: 'admin-only' },
-      { title: 'حصة الواقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqifShare)} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts', visibility: 'admin-only' },
-      { title: 'ريع الوقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqfRevenue)} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries', visibility: 'admin-only' },
       { title: 'المستفيدون النشطون', value: beneficiariesCount, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
       { title: `التدفق النقدي الصافي${sharesNote}`, value: isYearActive ? 'يُحسب عند الإقفال' : `${fmtInt(netCashFlow)} ر.س`, icon: ArrowDownUp, color: netCashFlow >= 0 ? 'bg-success' : 'bg-destructive', link: '/dashboard/accounts' },
-      { title: 'نسبة التوزيع الفعلي', value: isYearActive ? '—' : `${distributionRatio}%${isYearActive ? ' *تقديري' : ''}`, icon: PercentCircle, color: 'bg-accent', link: '/dashboard/beneficiaries' },
     ];
 
-    // تصفية بطاقات بناءً على metadata بدل النص — يحمي من تغييرات الترجمة
+    // الفلتر يبقى كطبقة دفاع لأي بطاقات admin-only تُضاف مستقبلاً
     if (role === 'accountant') {
       return allStats.filter(s => s.visibility !== 'admin-only');
     }
     return allStats;
-  }, [propertiesCount, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, distributionsAmount, beneficiariesCount, isYearActive, sharesNote, yoy, role]);
+  }, [propertiesCount, activeContractsCount, totalIncome, totalExpenses, netAfterExpenses, waqfRevenue, beneficiariesCount, isYearActive, sharesNote, yoy, role]);
 
   const kpis: KpiItem[] = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
-    const occupancyRate = occupancy?.rate ?? 0;
-    const avgRent = activeContractsCount > 0 && contractualRevenue > 0
-      ? Math.round(contractualRevenue / activeContractsCount)
-      : 0;
     const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
     const colColor = getKpiColor(collectionRate, 80, 50);
-    const occColor = getKpiColor(occupancyRate, 80, 50);
     const expColor = getKpiColor(expenseRatio, 20, 40, true);
 
     const prevExpenseRatio = yoy.hasPrevYear && yoy.prevTotalIncome > 0
@@ -126,13 +118,12 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
 
     const hasInvoicesDue = collectionSummary.total > 0;
 
+    // KPIs المُرحَّلة: معدل الإشغال → Properties (Progress bar)، متوسط الإيجار → Properties (بطاقة جديدة)
     return [
       { label: 'نسبة التحصيل', value: hasInvoicesDue ? collectionRate : 0, suffix: hasInvoicesDue ? '%' : '', color: hasInvoicesDue ? colColor.text : 'text-muted-foreground', progressColor: hasInvoicesDue ? colColor.bar : '' },
-      { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occColor.text, progressColor: occColor.bar },
-      { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
       { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar, yoyChange: expenseRatioChange, invertColor: true },
     ];
-  }, [collectionSummary, totalIncome, totalExpenses, activeContractsCount, contractualRevenue, occupancy, yoy]);
+  }, [collectionSummary, totalIncome, totalExpenses, yoy]);
 
   return { stats, kpis, collectionSummary, collectionColor };
 }

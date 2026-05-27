@@ -2,7 +2,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
-import { Building2, Layers, ArrowLeft } from 'lucide-react';
+import { Building2, Layers, ArrowLeft, Wallet } from 'lucide-react';
+import { fmt } from '@/utils/format/format';
 
 interface PropertySummary {
   totalProperties: number;
@@ -42,9 +43,14 @@ const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps)
     );
   }
 
+  // متوسط الإيجار = حصة السنة من قيمة العقود ÷ عدد الوحدات المؤجرة (مرحَّل من لوحة الناظر)
+  const avgRent = summary.totalRented > 0 && summary.contractualRevenue > 0
+    ? Math.round(summary.contractualRevenue / summary.totalRented)
+    : 0;
+
   return (
     <div className="space-y-4 animate-slide-up">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <Card className="shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10"><Building2 className="w-5 h-5 text-primary" /></div>
@@ -67,6 +73,15 @@ const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps)
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-warning/10"><div className="w-5 h-5 rounded-full bg-warning" /></div>
             <div><p className="text-xs text-muted-foreground">شاغرة</p><p className="text-xl font-bold text-warning">{summary.totalVacant}</p></div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10"><Wallet className="w-5 h-5 text-primary" /></div>
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">متوسط الإيجار</p>
+              <p className="text-base sm:text-xl font-bold tabular-nums truncate text-primary">{fmt(avgRent)} <span className="text-xs font-normal">ر.س</span></p>
+            </div>
           </CardContent>
         </Card>
       </div>
