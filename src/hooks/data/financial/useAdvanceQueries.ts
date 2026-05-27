@@ -11,14 +11,21 @@ import type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 export type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 
 // ---------------------------------------------------------------------------
-// هوك مدمج لبيانات المستفيد: سُلف + ترحيلات في استعلامين متوازيين
+// طبقة data: استعلام raw للسلف + الترحيلات (بدون حسابات).
+// الحسابات (المجاميع/الأرصدة) في طبقة domain:
+//   `src/hooks/domain/financial/useAdvanceCalculations.ts#useMyBeneficiaryFinance`
 // ---------------------------------------------------------------------------
-export const useMyBeneficiaryFinance = (beneficiaryId?: string, fiscalYearId?: string) => {
+export interface MyBeneficiaryFinanceRaw {
+  advances: AdvanceRequest[];
+  carryforwards: AdvanceCarryforward[];
+}
+
+export const useMyBeneficiaryFinanceRaw = (beneficiaryId?: string) => {
   return useQuery({
-    queryKey: ['my_beneficiary_finance', beneficiaryId, fiscalYearId ?? 'all'],
+    queryKey: ['my_beneficiary_finance_raw', beneficiaryId],
     staleTime: STALE_REALTIME,
-    queryFn: async () => {
-      if (!beneficiaryId) return { advances: [] as AdvanceRequest[], carryforwards: [] as AdvanceCarryforward[] };
+    queryFn: async (): Promise<MyBeneficiaryFinanceRaw> => {
+      if (!beneficiaryId) return { advances: [], carryforwards: [] };
 
       const [advRes, cfRes] = await Promise.all([
         supabase
@@ -38,31 +45,17 @@ export const useMyBeneficiaryFinance = (beneficiaryId?: string, fiscalYearId?: s
       if (advRes.error) throw advRes.error;
       if (cfRes.error) throw cfRes.error;
 
-      // select() أعمدة صريحة — cast مطلوب لأن الأنواع المولّدة لا تطابق الـ interface المحلي
       return {
         advances: (advRes.data ?? []) as unknown as AdvanceRequest[],
         carryforwards: (cfRes.data ?? []) as unknown as AdvanceCarryforward[],
       };
     },
     enabled: !!beneficiaryId,
-    select: (raw) => {
-      const paidAdvancesTotal = raw.advances
-        .filter(a => a.status === 'paid' && (!fiscalYearId || a.fiscal_year_id === fiscalYearId))
-        .reduce((sum, a) => sum + safeNumber(a.amount), 0);
-
-      const carryforwardBalance = raw.carryforwards
-        .filter(c => c.status === 'active' && (!fiscalYearId || c.to_fiscal_year_id === fiscalYearId || !c.to_fiscal_year_id))
-        .reduce((sum, c) => sum + safeNumber(c.amount), 0);
-
-      return {
-        myAdvances: raw.advances,
-        myCarryforwards: raw.carryforwards,
-        paidAdvancesTotal,
-        carryforwardBalance,
-      };
-    },
   });
 };
+
+// إعادة تصدير للتوافق العكسي مع الاستيرادات الحالية (طبقة domain)
+export { useMyBeneficiaryFinance } from '@/hooks/domain/financial/useAdvanceCalculations';
 
 
 /**
