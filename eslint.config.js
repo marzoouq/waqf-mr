@@ -32,8 +32,10 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unsafe-function-type": "off",
       "no-console": "off",
+      "max-lines": "off",
     },
   },
+
   {
     files: ["**/*.d.ts"],
     rules: {
