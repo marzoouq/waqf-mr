@@ -13,6 +13,7 @@ import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useIncomePage } from '@/hooks/page/admin/financial/useIncomePage';
 
 const IncomeMonthlyChart = lazy(() => import('@/components/dashboard/charts/IncomeMonthlyChart'));
+const CollectionReport = lazy(() => import('@/components/contracts/CollectionReport'));
 
 const IncomePage = () => {
   const {
@@ -62,6 +63,13 @@ const IncomePage = () => {
         {!isLoading && income.length > 0 && (
           <Suspense fallback={<Skeleton className="h-[320px]" />}>
             <IncomeMonthlyChart income={income} contracts={contracts} fiscalYear={fiscalYear} isSpecificYear={!!(fiscalYearId && fiscalYearId !== 'all')} paymentInvoices={paymentInvoices} />
+          </Suspense>
+        )}
+
+        {/* تقرير التحصيل الديناميكي — مُنقول من صفحة العقود */}
+        {!isLoading && (
+          <Suspense fallback={<Skeleton className="h-[200px]" />}>
+            <CollectionReport contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYears={fiscalYear ? [fiscalYear] : []} fiscalYearId={fiscalYearId ?? 'all'} />
           </Suspense>
         )}
 

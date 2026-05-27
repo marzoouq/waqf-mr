@@ -1,8 +1,8 @@
-import { fmt } from '@/utils/format/format';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Building2, Layers, TrendingUp, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Building2, Layers, ArrowLeft } from 'lucide-react';
 
 interface PropertySummary {
   totalProperties: number;
@@ -36,9 +36,6 @@ const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps)
       <div className="space-y-4 animate-slide-up">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20" />)}
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[5, 6, 7, 8].map(i => <Skeleton key={i} className="h-20" />)}
         </div>
         <Skeleton className="h-14" />
       </div>
@@ -74,49 +71,6 @@ const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps)
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="shadow-sm" title="حصة السنة المالية من قيمة العقود (allocated_amount)">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><TrendingUp className="w-5 h-5 text-primary" /></div>
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">الإيرادات التعاقدية</p>
-              <p className="text-lg font-bold">{fmt(summary.contractualRevenue)} <span className="text-xs font-normal">ريال</span></p>
-              <p className="text-[10px] text-muted-foreground">حصة السنة من قيمة العقود</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm" title="مجموع المسدّد من فواتير الدفع خلال السنة المالية">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-success/10"><CircleDollarSign className="w-5 h-5 text-success" /></div>
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">المحصّل فعلياً</p>
-              <p className="text-lg font-bold text-success">{fmt(summary.collectedIncome)} <span className="text-xs font-normal">ريال</span></p>
-              <p className="text-[10px] text-muted-foreground">من الفواتير المدفوعة</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-destructive/10"><Receipt className="w-5 h-5 text-destructive" /></div>
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">المصروفات</p>
-              <p className="text-lg font-bold">{fmt(summary.totalExpensesAll)} <span className="text-xs font-normal">ريال</span></p>
-              <p className="text-[10px] text-muted-foreground">مصروفات العقارات للسنة</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm" title="المحصّل − المصروفات">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-muted"><Wallet className="w-5 h-5 text-foreground" /></div>
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">صافي بعد المصروفات</p>
-              <p className={`text-lg font-bold ${summary.netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(summary.netIncome)} <span className="text-xs font-normal">ريال</span></p>
-              <p className="text-[10px] text-muted-foreground">محصّل − مصروفات</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       <Card className="shadow-sm">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
@@ -124,6 +78,22 @@ const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps)
             <span className={`text-sm font-bold ${occColor}`}>{summary.overallOccupancy}%</span>
           </div>
           <Progress value={summary.overallOccupancy} className={`h-3 ${occBarColor}`} />
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm bg-muted/30">
+        <CardContent className="p-3 flex items-center justify-between gap-3 text-xs sm:text-sm">
+          <span className="text-muted-foreground">
+            للاطلاع على الإيرادات والمصروفات وصافي الدخل، انتقل إلى صفحات الاختصاص.
+          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link to="/dashboard/reports" className="inline-flex items-center gap-1 text-primary hover:underline">
+              التقارير المالية <ArrowLeft className="w-3.5 h-3.5" />
+            </Link>
+            <Link to="/dashboard/invoices" className="inline-flex items-center gap-1 text-primary hover:underline">
+              الفواتير <ArrowLeft className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

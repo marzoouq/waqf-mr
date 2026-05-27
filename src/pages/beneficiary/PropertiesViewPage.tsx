@@ -13,7 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
-import { Building2, MapPin, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
+import { Building2, MapPin, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { fmt, fmtInt } from '@/utils/format/format';
@@ -23,7 +24,6 @@ const PropertiesViewPage = () => {
   const {
     properties, isLoading, isError,
     refetchProps, refetchUnits,
-    isClosed,
     expandedId, setExpandedId,
     
     totalUnits, occupiedUnits,
@@ -36,7 +36,7 @@ const PropertiesViewPage = () => {
     handleExportPdf,
   } = usePropertiesViewPage();
 
-  const { totalProperties, totalVacant, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor } = summaryData;
+  const { totalProperties, totalVacant, overallOccupancy, occColor, occBarColor } = summaryData;
 
   if (isLoading) {
     return <DashboardLayout><div className="p-4 md:p-6 space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div></DashboardLayout>;
@@ -79,11 +79,16 @@ const PropertiesViewPage = () => {
               <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-warning/10"><div className="w-5 h-5 rounded-full bg-warning" /></div><div><p className="text-xs text-muted-foreground">شاغرة</p><p className="text-xl font-bold text-warning">{totalVacant}</p></div></CardContent></Card>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-success/10"><CircleDollarSign className="w-5 h-5 text-success" /></div><div><p className="text-xs text-muted-foreground">{isClosed ? 'دخل السنة' : 'الدخل النشط'}</p><p className="text-lg font-bold text-success">{fmt(activeIncome)} <span className="text-xs font-normal">ريال</span></p></div></CardContent></Card>
-              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-destructive/10"><Receipt className="w-5 h-5 text-destructive" /></div><div><p className="text-xs text-muted-foreground">المصروفات</p><p className="text-lg font-bold">{fmt(totalExpensesAll)} <span className="text-xs font-normal">ريال</span></p></div></CardContent></Card>
-              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-muted"><Wallet className="w-5 h-5 text-foreground" /></div><div><p className="text-xs text-muted-foreground">صافي الدخل</p><p className={`text-lg font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(netIncome)} <span className="text-xs font-normal">ريال</span></p></div></CardContent></Card>
-            </div>
+            <Card className="shadow-sm bg-muted/30">
+              <CardContent className="p-3 flex items-center justify-between gap-3 text-xs sm:text-sm">
+                <span className="text-muted-foreground">للاطلاع على التفاصيل المالية، انتقل إلى صفحات الاختصاص.</span>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Link to="/dashboard/reports" className="inline-flex items-center gap-1 text-primary hover:underline">التقارير المالية <ArrowLeft className="w-3.5 h-3.5" /></Link>
+                  <Link to="/dashboard/my-share" className="inline-flex items-center gap-1 text-primary hover:underline">حصتي <ArrowLeft className="w-3.5 h-3.5" /></Link>
+                </div>
+              </CardContent>
+            </Card>
+
 
             <Card className="shadow-sm">
               <CardContent className="p-4">
