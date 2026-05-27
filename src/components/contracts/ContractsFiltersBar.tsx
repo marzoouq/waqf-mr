@@ -6,7 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, ChevronsUpDown, Filter } from 'lucide-react';
 
-interface StatusCounts { all: number; active: number; expired: number; cancelled: number; overdue: number }
+interface StatusCounts {
+  all: number;
+  active: number;
+  expired: number;
+  cancelled: number;
+  overdue: number;
+  contractsInYear: number;
+  contractsFromPrevious: number;
+}
 
 interface ContractsFiltersBarProps {
   searchQuery: string;
@@ -23,13 +31,17 @@ interface ContractsFiltersBarProps {
   allExpanded: boolean;
   toggleAllGroups: () => void;
   resetPage: () => void;
+  /** بداية السنة المالية الحالية. null في وضع "كل السنوات" — يُخفي فلاتر السنة. */
+  fiscalYearStartDate: string | null;
 }
 
 export default function ContractsFiltersBar({
   searchQuery, setSearchQuery, statusFilter, setStatusFilter,
   propertyFilter, setPropertyFilter, paymentTypeFilter, setPaymentTypeFilter,
   statusCounts, properties, hasGroups, allExpanded, toggleAllGroups, resetPage,
+  fiscalYearStartDate,
 }: ContractsFiltersBarProps) {
+  const showYearFilters = fiscalYearStartDate !== null;
   return (
     <div className="flex flex-wrap items-start sm:items-center gap-3">
       <div className="relative w-full sm:max-w-md sm:flex-1">
@@ -44,6 +56,13 @@ export default function ContractsFiltersBar({
           <SelectItem value="expired">منتهي ({statusCounts.expired})</SelectItem>
           <SelectItem value="cancelled">ملغي ({statusCounts.cancelled})</SelectItem>
           <SelectItem value="overdue">متأخر &gt; 30 يوم ({statusCounts.overdue})</SelectItem>
+          {showYearFilters && (
+            <>
+              <div className="px-2 py-1.5 text-[10px] text-muted-foreground border-t mt-1">─── حسب السنة المالية ───</div>
+              <SelectItem value="contractsInYear">عقود جديدة في السنة ({statusCounts.contractsInYear})</SelectItem>
+              <SelectItem value="contractsFromPrevious">عقود مستمرة من سنة سابقة ({statusCounts.contractsFromPrevious})</SelectItem>
+            </>
+          )}
         </SelectContent>
       </Select>
       <Select value={propertyFilter} onValueChange={(v) => { setPropertyFilter(v); resetPage(); }}>

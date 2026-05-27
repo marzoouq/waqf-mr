@@ -22,9 +22,11 @@ interface UseCollectionDataParams {
   paymentInvoices: PaymentInvoice[];
   fiscalYears: FiscalYear[];
   fiscalYearId: string;
+  /** بداية السنة المالية الحالية. null في وضع "كل السنوات" — يُعطّل تصنيف المتأخر حسب السنة. */
+  fiscalYearStart?: string | null;
 }
 
-export function useCollectionData({ contracts, paymentInvoices, fiscalYears, fiscalYearId }: UseCollectionDataParams) {
+export function useCollectionData({ contracts, paymentInvoices, fiscalYears, fiscalYearId, fiscalYearStart = null }: UseCollectionDataParams) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<CollectionFilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,7 +67,10 @@ export function useCollectionData({ contracts, paymentInvoices, fiscalYears, fis
     [rows, filter, search],
   );
 
-  const summary: CollectionSummary = useMemo(() => summarizeCollection(rows), [rows]);
+  const summary: CollectionSummary = useMemo(
+    () => summarizeCollection(rows, paymentInvoices, fiscalYearStart),
+    [rows, paymentInvoices, fiscalYearStart],
+  );
 
   return {
     rows,

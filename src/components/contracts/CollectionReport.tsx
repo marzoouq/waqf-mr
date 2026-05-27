@@ -34,13 +34,17 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
   const { sendingAlerts, sendLatePaymentAlerts } = useCollectionAlerts();
   const print = usePrint();
 
+  const fiscalYearStart = fiscalYearId !== 'all'
+    ? (fiscalYears.find(fy => fy.id === fiscalYearId)?.start_date ?? null)
+    : null;
+
   const {
     rows, filteredRows, summary,
     filter, setFilter,
     search, setSearch,
     currentPage, setCurrentPage,
     useDynamicAllocation,
-  } = useCollectionData({ contracts, paymentInvoices, fiscalYears, fiscalYearId });
+  } = useCollectionData({ contracts, paymentInvoices, fiscalYears, fiscalYearId, fiscalYearStart });
 
   const handleSendAlerts = () => {
     const overdueCount = rows.filter(r => r.overdue > 0).length;

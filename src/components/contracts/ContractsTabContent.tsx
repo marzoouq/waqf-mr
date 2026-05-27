@@ -21,6 +21,7 @@ const ContractsTabContent: React.FC = () => {
     selectedForRenewal, expandedGroups, setExpandedGroups,
     toggleAllGroups, toggleSelection, selectAllExpired, deselectAll,
     setBulkRenewOpen, setFiscalYearId, setDeleteTarget, handleEdit, handleRenew,
+    fiscalYearStartDate,
   } = useContractsContext();
 
   return (
@@ -58,6 +59,7 @@ const ContractsTabContent: React.FC = () => {
         statusCounts={statusCounts} properties={properties}
         hasGroups={filteredGroups.length > 0} allExpanded={allExpanded}
         toggleAllGroups={toggleAllGroups} resetPage={() => setCurrentPage(1)}
+        fiscalYearStartDate={fiscalYearStartDate}
       />
 
       {isClosed && (
