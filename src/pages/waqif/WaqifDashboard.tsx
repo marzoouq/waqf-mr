@@ -22,7 +22,7 @@ const WaqifDashboard = () => {
     isLoading, noPublishedYears,
     displayName, welcome,
     overviewStats, kpis,
-    fiscalYear, totalIncome, totalExpenses, availableAmount,
+    fiscalYear,
     activeContracts, expiredContracts,
     contractualRevenue, collectionSummary,
     monthlyData, expenseData,
