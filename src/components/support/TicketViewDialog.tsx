@@ -96,7 +96,7 @@ const TicketViewDialog = ({ ticket, onClose }: TicketViewDialogProps) => {
         {ticket.status !== 'closed' && ticket.status !== 'resolved' && (
           <div className="flex gap-2">
             <Textarea value={replyContent} onChange={e => setReplyContent(e.target.value)} placeholder="اكتب رداً..." className="flex-1" />
-            <Button size="icon" onClick={handleSend} disabled={!replyContent.trim() || addReply.isPending}>
+            <Button size="icon" onClick={handleSend} disabled={!replyContent.trim() || addReply.isPending} aria-label="إرسال الرد">
               <Send className="w-4 h-4" />
             </Button>
           </div>

@@ -36,17 +36,17 @@ export const InvoiceCard = ({
     </span>
     <div className="flex gap-0.5 mr-1">
       {onDownloadInvoice && (
-        <Button variant="ghost" size="icon" className="w-6 h-6" onClick={() => onDownloadInvoice(inv)} title="تحميل PDF" disabled={loadingInvoiceId === inv.id}>
+        <Button variant="ghost" size="icon" className="w-6 h-6" onClick={() => onDownloadInvoice(inv)} title="تحميل PDF" aria-label="تحميل PDF" disabled={loadingInvoiceId === inv.id}>
           {loadingInvoiceId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
         </Button>
       )}
       {!isClosed && inv.status !== 'paid' && onPayInvoice && (
-        <Button variant="ghost" size="icon" className="w-6 h-6 text-success hover:text-success/80" onClick={() => onPayInvoice(inv)} title="تسديد" disabled={payingInvoiceId === inv.id}>
+        <Button variant="ghost" size="icon" className="w-6 h-6 text-success hover:text-success/80" onClick={() => onPayInvoice(inv)} title="تسديد" aria-label="تسديد" disabled={payingInvoiceId === inv.id}>
           {payingInvoiceId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
         </Button>
       )}
       {!isClosed && inv.status === 'paid' && onUnpayInvoice && (
-        <Button variant="ghost" size="icon" className="w-6 h-6 text-muted-foreground" onClick={() => onUnpayInvoice(inv.id)} title="إلغاء التسديد">
+        <Button variant="ghost" size="icon" className="w-6 h-6 text-muted-foreground" onClick={() => onUnpayInvoice(inv.id)} title="إلغاء التسديد" aria-label="إلغاء التسديد">
           <X className="w-3 h-3" />
         </Button>
       )}

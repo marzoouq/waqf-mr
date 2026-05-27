@@ -100,15 +100,15 @@ const CollectionDesktopRow = memo(function CollectionDesktopRow({
       <TableCell>
         {isEditing ? (
           <div className="flex gap-1">
-            <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={onSaveEdit} disabled={isUpdatePending || isUpsertPending}>
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={onSaveEdit} disabled={isUpdatePending || isUpsertPending} aria-label="حفظ">
               <Check className="w-4 h-4" />
             </Button>
-            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={onCancelEdit}>
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={onCancelEdit} aria-label="إلغاء">
               <X className="w-4 h-4" />
             </Button>
           </div>
         ) : (
-          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onStartEdit}>
+          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onStartEdit} aria-label="تعديل">
             <Pencil className="w-4 h-4" />
           </Button>
         )}

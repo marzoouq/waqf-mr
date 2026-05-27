@@ -43,19 +43,19 @@ const ReportItemCard: React.FC<Props> = ({
           {!readOnly && (
             <div className="flex items-center gap-1 shrink-0">
               {!isFirst && (
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveUp}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveUp} aria-label="رفع للأعلى">
                   <ChevronUp className="h-4 w-4" />
                 </Button>
               )}
               {!isLast && (
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveDown}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveDown} aria-label="تنزيل للأسفل">
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               )}
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit}>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit} aria-label="تعديل العنصر">
                 <Pencil className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={onDelete}>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={onDelete} aria-label="حذف العنصر">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>

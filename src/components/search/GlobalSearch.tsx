@@ -54,6 +54,7 @@ const GlobalSearch = () => {
                   size="icon"
                   className="w-7 h-7 shrink-0"
                   onClick={() => { setQuery(''); }}
+                  aria-label="مسح البحث"
                 >
                   <X className="w-3.5 h-3.5" />
                 </Button>

@@ -42,6 +42,7 @@ const AiAssistant = () => {
           open ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
         )}
         size="icon"
+        aria-label="فتح المساعد الذكي"
       >
         <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
       </Button>
@@ -68,7 +69,7 @@ const AiAssistant = () => {
             {messages.length > 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" aria-label="مسح المحادثة"><Trash2 className="w-4 h-4" /></Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader><AlertDialogTitle>مسح المحادثة</AlertDialogTitle><AlertDialogDescription>هل أنت متأكد من مسح المحادثة؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription></AlertDialogHeader>
@@ -76,7 +77,7 @@ const AiAssistant = () => {
                 </AlertDialogContent>
               </AlertDialog>
             )}
-            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={closePanel}><X className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={closePanel} aria-label="إغلاق المساعد"><X className="w-4 h-4" /></Button>
           </div>
         </div>
 
@@ -151,7 +152,7 @@ const AiAssistant = () => {
         <div className="p-3 border-t border-border flex gap-2">
           <label htmlFor="ai-assistant-input" className="sr-only">اسأل المساعد الذكي</label>
           <Input id="ai-assistant-input" name="ai-assistant-input" value={input} onChange={(e) => setInput(e.target.value)} placeholder={currentConfig.placeholder} maxLength={1000} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} disabled={isLoading} />
-          <Button onClick={send} disabled={!input.trim() || isLoading} size="icon"><Send className="w-4 h-4" /></Button>
+          <Button onClick={send} disabled={!input.trim() || isLoading} size="icon" aria-label="إرسال"><Send className="w-4 h-4" /></Button>
         </div>
       </div>
     </>

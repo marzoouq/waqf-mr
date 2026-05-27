@@ -61,7 +61,7 @@ export function CategoryRow({
           onCheckedChange={(v) => onToggle(node.id, v)}
           className="scale-75"
         />
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(node)}>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(node)} aria-label="تعديل الفئة">
           <Pencil className="w-3.5 h-3.5" />
         </Button>
         <Button
@@ -71,6 +71,7 @@ export function CategoryRow({
           onClick={() => onDelete(node)}
           disabled={hasChildren}
           title={hasChildren ? 'لا يمكن حذف فئة لها فروع' : 'حذف'}
+          aria-label={hasChildren ? 'لا يمكن حذف فئة لها فروع' : 'حذف الفئة'}
         >
           <Trash2 className="w-3.5 h-3.5" />
         </Button>

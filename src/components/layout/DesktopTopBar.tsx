@@ -38,9 +38,9 @@ const DesktopTopBar: React.FC<DesktopTopBarProps> = ({
             <Lock className="w-3 h-3" /> مقفلة
           </span>
         )}
-        <Link to={(role === 'admin' || role === 'accountant') ? '/dashboard/bylaws' : '/beneficiary/bylaws'}>
+        <Link to={(role === 'admin' || role === 'accountant') ? '/dashboard/bylaws' : '/beneficiary/bylaws'} aria-label="نظام الوقف">
           <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50">
-            <BookOpen className="w-5 h-5" />
+            <BookOpen className="w-5 h-5" aria-hidden="true" />
           </Button>
         </Link>
         <ThemeToggle />
