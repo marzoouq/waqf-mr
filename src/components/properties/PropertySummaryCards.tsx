@@ -101,5 +101,3 @@ const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps)
 };
 
 export default PropertySummaryCards;
-
-export default PropertySummaryCards;
