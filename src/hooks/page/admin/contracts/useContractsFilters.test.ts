@@ -46,8 +46,8 @@ const contracts: Contract[] = [
 const overdueContractIds = new Set(['c3']);
 
 describe('useContractsFilters', () => {
-  const setup = () =>
-    renderHook(() => useContractsFilters({ contracts, overdueContractIds }));
+  const setup = (fiscalYearStartDate: string | null = '2025-01-01') =>
+    renderHook(() => useContractsFilters({ contracts, overdueContractIds, fiscalYearStartDate }));
 
   it('يجمع العقود حسب الرقم الأساسي', () => {
     const { result } = setup();
