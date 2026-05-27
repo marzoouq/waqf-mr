@@ -129,8 +129,10 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
       };
       // CRUD factory — استخدام asMutationArg لتأمين النوع (موجة 15)
       await updateContract.mutateAsync(asMutationArg(updateContract, { id: editingContract.id, ...contractData }));
+      await syncAllocations(editingContract.id, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount });
       return;
     }
+
 
     const contextFYId = fiscalYearId && fiscalYearId !== 'all' ? fiscalYearId : null;
     let activeFYId = contextFYId;
