@@ -8,6 +8,7 @@ interface ContractStats {
   active: number;
   activePercent: number;
   expired: number;
+  /** الإيرادات: إن كانت السنة محددة وتوجد تخصيصات تكون = Σ allocated_amount، وإلا = Σ rent_amount */
   totalRent: number;
   activeRent: number;
   expiringSoon: number;
@@ -18,6 +19,8 @@ interface ContractStatsCardsProps {
   isLoading: boolean;
   /** 'admin' = جميع البطاقات (5)، 'beneficiary' = الإجمالي والنشطة فقط (2) — لا أرقام إيرادات */
   variant?: 'admin' | 'beneficiary';
+  /** مصدر حساب الإيراد: 'allocated' = حصة السنة من العقود (allocated_amount) | 'rent' = إجمالي قيمة العقد (rent_amount) */
+  revenueSource?: 'allocated' | 'rent';
 }
 
 const ContractStatsCards = ({ stats, isLoading, variant = 'admin' }: ContractStatsCardsProps) => {
