@@ -36,11 +36,12 @@ Deno.serve(async (req): Promise<Response> => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const body = await req.json().catch(() => ({}));
-    const voucherId = body?.voucher_id;
-    if (typeof voucherId !== "string" || !UUID_RE.test(voucherId)) {
+    const rawBody = await req.json().catch(() => ({}));
+    const parsedBody = RequestSchema.safeParse(rawBody);
+    if (!parsedBody.success) {
       return jsonError("voucher_id غير صالح", 400, corsHeaders);
     }
+    const voucherId = parsedBody.data.voucher_id;
 
     const { data: voucher, error: vErr } = await admin
       .from("disbursement_vouchers")
