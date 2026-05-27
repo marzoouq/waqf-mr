@@ -121,6 +121,29 @@ export const generateAccountsPDF = async (data: {
 
   y = getLastAutoTableY(doc, 190) + 10;
 
+  // المتأخرات حسب السنة المالية — يظهر فقط عند توفر بداية السنة ووجود متأخرات
+  const overduePrev = data.overdueFromPreviousAmount || 0;
+  const overdueCur = data.overdueInYearAmount || 0;
+  if (showOrigin && (overduePrev > 0 || overdueCur > 0)) {
+    doc.setFont(fontFamily, 'bold');
+    doc.text(rs('المتأخرات حسب السنة المالية'), 105, y, { align: 'center' });
+    autoTable(doc, {
+      startY: y + 6,
+      head: [reshapeRow(['البند', 'المبلغ'])],
+      body: [
+        reshapeRow(['من سنوات سابقة', `-${fmt(overduePrev)}`]),
+        reshapeRow(['هذه السنة', `-${fmt(overdueCur)}`]),
+      ],
+      foot: [reshapeRow(['الإجمالي', `-${fmt(overduePrev + overdueCur)}`])],
+      theme: 'striped',
+      ...headStyles(TABLE_HEAD_RED, fontFamily),
+      ...footStyles(TABLE_HEAD_RED, fontFamily),
+      ...baseTableStyles(fontFamily),
+    });
+    y = getLastAutoTableY(doc, y + 30) + 10;
+  }
+
+
   // التوزيع — التسلسل المالي الهرمي
   const corpusPrev = data.waqfCorpusPrevious || 0;
   const gt = data.grandTotal || (data.totalIncome + corpusPrev);
