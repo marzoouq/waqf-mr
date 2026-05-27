@@ -5,10 +5,12 @@ import { useCreateContract, useUpdateContract } from './useContracts';
 import { Property, Contract } from '@/types';
 import { uiNotify } from '@/lib/notify';
 import type { WholeRentalForm } from '@/types/forms/property';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 export function useWholePropertyRental(property: Property, contracts: Contract[]) {
   const createContract = useCreateContract();
   const updateContractMutation = useUpdateContract();
+  const { fiscalYear } = useFiscalYear();
 
   const wholePropertyContracts = contracts
     .filter(c => c.property_id === property.id && !c.unit_id)
@@ -36,11 +38,16 @@ export function useWholePropertyRental(property: Property, contracts: Contract[]
         start_date: form.start_date, end_date: form.end_date,
       });
     } else {
+      if (!fiscalYear?.id) {
+        uiNotify.error('لا توجد سنة مالية نشطة لربط العقد بها');
+        return;
+      }
       await createContract.mutateAsync({
         contract_number: `C-${property.property_number}-WHOLE-${Date.now().toString(36)}`,
         property_id: property.id, tenant_name: form.tenant_name, rent_amount: rentAmount,
         start_date: form.start_date, end_date: form.end_date, status: 'active',
         payment_type: form.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
+        fiscal_year_id: fiscalYear.id,
       });
     }
   };

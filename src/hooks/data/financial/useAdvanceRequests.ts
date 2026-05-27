@@ -55,7 +55,7 @@ export const useCreateAdvanceRequest = () => {
   return useMutation({
     mutationFn: async (req: {
       beneficiary_id: string;
-      fiscal_year_id?: string;
+      fiscal_year_id: string;
       amount: number;
       reason?: string;
       beneficiaryName?: string;

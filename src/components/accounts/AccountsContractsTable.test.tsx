@@ -16,7 +16,7 @@ const mockContract: Contract = {
   status: 'active',
   property_id: 'p1',
   unit_id: null,
-  fiscal_year_id: null,
+  fiscal_year_id: 'fy-test',
   notes: null,
   tenant_id_type: null,
   tenant_id_number: null,
