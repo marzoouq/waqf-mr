@@ -8,7 +8,7 @@ import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { annualReportService } from '@/lib/services/annualReportService';
 
 // إعادة تصدير للتوافق مع الاستيرادات القائمة
-export { useIncomeComparison, type IncomeComparison } from '../financial/useIncomeComparison';
+export { useIncomeComparison, type IncomeComparison } from '@/hooks/domain/financial/useIncomeComparison';
 
 // ---------------------------------------------------------------------------
 // أنواع البيانات
