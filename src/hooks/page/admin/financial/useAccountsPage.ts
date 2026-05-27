@@ -100,6 +100,25 @@ export function useAccountsPage() {
     [advanceRequests]
   );
 
+  // حساب فعلي لتقسيم المتأخرات بعد جلب الفواتير — يُستخدم لاحقاً في الـ return
+  const overdueSplitComputed = useMemo(() => {
+    if (!fiscalYearStartDate) return { prev: 0, cur: 0 };
+    const today = new Date().toISOString().slice(0, 10);
+    let prev = 0, cur = 0;
+    for (const inv of paymentInvoices) {
+      if (inv.status === 'paid') continue;
+      const due = inv.due_date;
+      if (!due) continue;
+      const amt = Number(inv.amount) || 0;
+      if (due < fiscalYearStartDate) prev += amt;
+      else if (due <= today) cur += amt;
+    }
+    return { prev, cur };
+  }, [paymentInvoices, fiscalYearStartDate]);
+  overdueSplit.prev = overdueSplitComputed.prev;
+  overdueSplit.cur = overdueSplitComputed.cur;
+
+
   // 7. تصديرات CSV/PDF — مستخرجة في hook منفصل
   const fiscalYearLabel = data.selectedFY?.label || settings.fiscalYear || '';
   const { handleExportCsv, handleExportDisclosurePdf, handleExportDistributionPdf } = useAccountsExports({
