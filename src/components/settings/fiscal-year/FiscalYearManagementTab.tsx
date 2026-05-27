@@ -104,7 +104,7 @@ const FiscalYearManagementTab = () => {
                       </AlertDialog>
                     )}
 
-                    {fy.status === 'closed' && <ReopenDialog fy={fy} onConfirm={(reason) => handleReopen(fy, reason)} loading={actionLoading === fy.id} />}
+                    {fy.status === 'closed' && <ReopenFiscalYearDialog fy={fy} onConfirm={(reason) => handleReopen(fy, reason)} loading={actionLoading === fy.id} />}
 
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -116,7 +116,7 @@ const FiscalYearManagementTab = () => {
                       </AlertDialogContent>
                     </AlertDialog>
 
-                    <CascadeDeleteDialog fy={fy} onConfirm={() => handleCascadeDelete(fy)} loading={actionLoading === fy.id} />
+                    <CascadeDeleteFiscalYearDialog fy={fy} onConfirm={() => handleCascadeDelete(fy)} loading={actionLoading === fy.id} />
                   </div>
                 </div>
               ))}
