@@ -6,7 +6,7 @@
  * - يستدعي email-admin edge function لإحصاءات DLQ والـ retry
  */
 import { useEffect, useMemo, useState } from 'react';
-import { useEmailLogs, useEmailAdminStats, type EmailLogRow, type EmailAdminStats } from '@/hooks/data/email/useEmailMonitor';
+import { useEmailLogs, useEmailAdminStats, type EmailLogRow } from '@/hooks/data/email/useEmailMonitor';
 import { useEmailMonitorActions } from './useEmailMonitorActions';
 
 export type EmailRange = '24h' | '7d' | '30d' | 'custom';
