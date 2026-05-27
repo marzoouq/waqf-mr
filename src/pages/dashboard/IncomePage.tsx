@@ -66,6 +66,13 @@ const IncomePage = () => {
           </Suspense>
         )}
 
+        {/* تقرير التحصيل الديناميكي — مُنقول من صفحة العقود */}
+        {!isLoading && (
+          <Suspense fallback={<Skeleton className="h-[200px]" />}>
+            <CollectionReport contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYears={fiscalYear ? [fiscalYear] : []} fiscalYearId={fiscalYearId ?? 'all'} />
+          </Suspense>
+        )}
+
         {/* تنبيه الإيراد الناقص */}
         {!isLoading && lowIncomeMonths.length > 0 && (
           <Card className="shadow-sm border-warning/50 bg-warning/5">
