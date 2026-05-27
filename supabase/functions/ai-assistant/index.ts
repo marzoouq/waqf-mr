@@ -84,18 +84,17 @@ Deno.serve(async (req) => {
     // ─── تحليل المدخلات ───
     const url = new URL(req.url);
     const forceRefresh = url.searchParams.get("refresh") === "true";
-    const { messages, mode: rawMode } = (bodyData ?? {}) as { messages?: unknown; mode?: unknown };
-
-    const mode: AllowedMode = ALLOWED_MODES.includes(rawMode as AllowedMode) ? rawMode as AllowedMode : "chat";
-
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    const parsedBody = RequestSchema.safeParse(bodyData ?? {});
+    if (!parsedBody.success) {
       return new Response(
-        JSON.stringify({ error: "الرسائل مطلوبة" }),
+        JSON.stringify({ error: "بيانات الطلب غير صالحة", details: parsedBody.error.flatten().fieldErrors }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    const { messages, mode: rawMode } = parsedBody.data;
+    const mode: AllowedMode = ALLOWED_MODES.includes(rawMode as AllowedMode) ? rawMode as AllowedMode : "chat";
 
-    const safeMessages = messages.slice(-10).map((m: { role: string; content: string }) => ({
+    const safeMessages = messages.slice(-10).map((m) => ({
       role: m.role === "user" ? "user" : "assistant",
       content: typeof m.content === "string" ? m.content.slice(0, 2000) : "",
     }));
