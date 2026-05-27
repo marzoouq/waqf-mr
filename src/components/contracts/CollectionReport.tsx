@@ -59,6 +59,24 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
     <div className="space-y-5">
       <CollectionSummaryCards summary={summary} expectedLabel={expectedLabel} />
 
+      {fiscalYearStart !== null && (summary.overdueFromPreviousAmount > 0 || summary.overdueInYearAmount > 0) && (
+        <Card className="shadow-sm border-destructive/20">
+          <CardContent className="p-4 space-y-2">
+            <div className="text-sm font-medium">تقسيم المتأخرات حسب السنة المالية</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div className="flex items-center justify-between p-2 rounded bg-muted/30">
+                <span className="text-muted-foreground">من سنوات سابقة</span>
+                <span className="font-bold text-destructive">{fmt(summary.overdueFromPreviousAmount)} ر.س <span className="text-xs text-muted-foreground">({summary.overdueFromPreviousCount} فاتورة)</span></span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded bg-muted/30">
+                <span className="text-muted-foreground">هذه السنة</span>
+                <span className="font-bold text-destructive">{fmt(summary.overdueInYearAmount)} ر.س <span className="text-xs text-muted-foreground">({summary.overdueInYearCount} فاتورة)</span></span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* أدوات الفلترة */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <div className="relative max-w-xs flex-1">
