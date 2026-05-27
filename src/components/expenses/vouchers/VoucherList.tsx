@@ -58,7 +58,7 @@ const VoucherList: React.FC<VoucherListProps> = ({ expenseId, expenseAmount, exp
     if (!url) { toast.error('تعذّر إنشاء رابط التنزيل'); return; }
     window.open(url, '_blank', 'noopener,noreferrer');
   };
-  const [voidReason, setVoidReason] = useState('');
+  
 
   const vouchers: Array<Voucher | VoucherPublic> = isManager ? (fullQ.data || []) : (pubQ.data || []);
   const isLoading = isManager ? fullQ.isLoading : pubQ.isLoading;
@@ -161,39 +161,18 @@ const VoucherList: React.FC<VoucherListProps> = ({ expenseId, expenseAmount, exp
         />
       )}
 
-      <AlertDialog open={!!voidTarget} onOpenChange={(o) => { if (!o) { setVoidTarget(null); setVoidReason(''); } }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>إلغاء سند الصرف</AlertDialogTitle>
-            <AlertDialogDescription>
-              سيتم إلغاء سند {voidTarget?.voucher_number} ولا يمكن التراجع. أدخل سبب الإلغاء:
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="void-reason">سبب الإلغاء *</Label>
-            <Textarea id="void-reason" rows={3} value={voidReason}
-              onChange={(e) => setVoidReason(e.target.value)} />
-          </div>
-          <AlertDialogFooter className="flex-row-reverse gap-2">
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={voidMut.isPending}
-              onClick={(e) => {
-                e.preventDefault();
-                if (!voidTarget) return;
-                if (!voidReason.trim()) { toast.error('سبب الإلغاء مطلوب'); return; }
-                voidMut.mutate(
-                  { voucherId: voidTarget.id, reason: voidReason.trim() },
-                  { onSettled: () => { setVoidTarget(null); setVoidReason(''); } },
-                );
-              }}
-            >
-              {voidMut.isPending ? 'جارٍ الإلغاء…' : 'تأكيد الإلغاء'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <VoidVoucherDialog
+        target={voidTarget}
+        onClose={() => setVoidTarget(null)}
+        isPending={voidMut.isPending}
+        onConfirm={(voucherId, reason, onDone) => {
+          voidMut.mutate(
+            { voucherId, reason },
+            { onSettled: () => { setVoidTarget(null); onDone(); } },
+          );
+        }}
+      />
+
     </div>
   );
 };
