@@ -87,6 +87,36 @@ export default tseslint.config(
       ],
     },
   },
+  // Wave 7 — منع ألوان hex المباشرة في components/pages.
+  // الاستثناءات: ملفات Canvas/SVG/PDF (انظر allowlist أدناه).
+  {
+    files: ["src/pages/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+    ignores: [
+      "src/components/invoices/InvoicePreviewDialog.tsx",
+      "src/components/expenses/vouchers/SignaturePad.tsx",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.object.name='supabase'][callee.property.name='from']",
+          message: "Do not call supabase.from() inside pages/components. Use a hook from src/hooks/data/ that delegates to src/lib/services/.",
+        },
+        {
+          selector: "MemberExpression[object.name='supabase'][property.name='auth']",
+          message: "Do not access supabase.auth inside pages/components. Use useAuth() from @/hooks/auth/useAuthContext.",
+        },
+        {
+          selector: "Literal[value=/^#[0-9a-fA-F]{3,8}$/]",
+          message: "ممنوع استخدام ألوان hex مباشرة. استخدم hsl(var(--token)) من design system. الاستثناء: Canvas/SVG/PDF فقط مع إضافة الملف لـ allowlist.",
+        },
+        {
+          selector: "TemplateElement[value.raw=/#[0-9a-fA-F]{6}/]",
+          message: "ممنوع استخدام ألوان hex داخل template strings. استخدم hsl(var(--token)).",
+        },
+      ],
+    },
+  },
   {
     files: ["src/hooks/data/**/*.{ts,tsx}"],
     rules: {
