@@ -22,6 +22,10 @@ vi.mock("@/integrations/supabase/client", () => ({
     auth: {
       onAuthStateChange: (...args: any[]) => mockOnAuthStateChange(...args),
       getSession: () => mockGetSession(),
+      getUser: async () => {
+        const res = await mockGetSession();
+        return { data: { user: res?.data?.session?.user ?? null }, error: null };
+      },
       signInWithPassword: (creds: any) => mockSignIn(creds),
       signUp: (opts: any) => mockSignUp(opts),
       signOut: () => mockSignOut(),
