@@ -123,4 +123,26 @@ describe('useContractsFilters', () => {
     // فقط CON-002 (نشط + عقار p2)
     expect(result.current.filteredGroups).toHaveLength(1);
   });
+
+  // فصل العقود حسب السنة المالية
+  it('يصنّف العقد الذي بدأ داخل السنة كـ inYear', () => {
+    const { result } = setup('2025-01-01');
+    // CON-002 و CON-003 يبدآن 2025-01-01، CON-001 group يبدأ 2025-01-01 (أحدث)
+    expect(result.current.statusCounts.contractsInYear).toBeGreaterThanOrEqual(1);
+    act(() => result.current.setStatusFilter('contractsInYear'));
+    expect(result.current.filteredGroups.length).toBeGreaterThan(0);
+  });
+
+  it('يصنّف العقد الذي بدأ قبل السنة كـ fromPrevious', () => {
+    // نقل بداية السنة لـ 2026 ⇒ كل العقود (2025) تصبح "مستمرة"
+    const { result } = setup('2026-01-01');
+    expect(result.current.statusCounts.contractsFromPrevious).toBe(3);
+    expect(result.current.statusCounts.contractsInYear).toBe(0);
+  });
+
+  it('يعطّل تصنيف السنة في وضع "كل السنوات"', () => {
+    const { result } = setup(null);
+    expect(result.current.statusCounts.contractsInYear).toBe(0);
+    expect(result.current.statusCounts.contractsFromPrevious).toBe(0);
+  });
 });
