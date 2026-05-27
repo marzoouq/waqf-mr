@@ -6,143 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff, AlertTriangle } from 'lucide-react';
-import type { FiscalYear } from '@/types';
-import { useState } from 'react';
-import { uiNotify } from '@/lib/notify';
+import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useFiscalYearManagement } from '@/hooks/page/admin/financial/useFiscalYearManagement';
+import ReopenFiscalYearDialog from './ReopenFiscalYearDialog';
+import CascadeDeleteFiscalYearDialog from './CascadeDeleteFiscalYearDialog';
 
-// ── ReopenDialog ──
-const ReopenDialog = ({ fy, onConfirm, loading }: { fy: FiscalYear; onConfirm: (reason: string) => void; loading: boolean }) => {
-  const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState('');
 
-  const handleConfirm = () => {
-    if (reason.trim().length < 10) { uiNotify.error('يجب ذكر سبب واضح لإعادة الفتح (10 أحرف على الأقل)'); return; }
-    onConfirm(reason.trim());
-    setOpen(false);
-    setReason('');
-  };
-
-  return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="gap-1 text-xs text-caution-foreground hover:text-caution-foreground/80" disabled={loading}>
-          {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlock className="w-3 h-3" />}
-          إعادة فتح
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>⚠️ إعادة فتح سنة مقفلة — عملية حساسة</AlertDialogTitle>
-          <AlertDialogDescription className="space-y-2 text-sm">
-            <p>إعادة فتح <strong>{fy.label}</strong> ستسمح بتعديل بياناتها المالية المؤرشفة.</p>
-            <p className="text-destructive font-medium">هذه العملية تُسجَّل في سجل المراجعة ولا يمكن إخفاؤها.</p>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <div className="space-y-1.5 px-1 pb-1">
-          <Label htmlFor="reopen-reason">سبب إعادة الفتح <span className="text-destructive">*</span></Label>
-          <Textarea id="reopen-reason" value={reason} onChange={e => setReason(e.target.value)} placeholder="مثال: تصحيح خطأ في قيد دخل الوحدة 3 بتاريخ ..." rows={3} maxLength={500} className="resize-none" />
-          <p className="text-xs text-muted-foreground">{reason.trim().length} / 500 — حد أدنى 10 أحرف</p>
-        </div>
-        <AlertDialogFooter className="gap-2">
-          <AlertDialogCancel onClick={() => setReason('')}>إلغاء</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} className="bg-caution hover:bg-caution/90" disabled={reason.trim().length < 10}>تأكيد إعادة الفتح</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-};
-
-// ── CascadeDeleteDialog: حذف السنة وكل بياناتها مع تأكيد نصي ──
-const CascadeDeleteDialog = ({ fy, onConfirm, loading }: { fy: FiscalYear; onConfirm: () => void; loading: boolean }) => {
-  const [open, setOpen] = useState(false);
-  const [selectAll, setSelectAll] = useState(false);
-  const [confirmText, setConfirmText] = useState('');
-  const expected = fy.label;
-  const canDelete = selectAll && confirmText.trim() === expected;
-
-  const handleConfirm = () => {
-    if (!canDelete) {
-      uiNotify.error(`اكتب اسم السنة "${expected}" للتأكيد، وفعّل "تحديد الكل"`);
-      return;
-    }
-    onConfirm();
-    setOpen(false);
-    setSelectAll(false);
-    setConfirmText('');
-  };
-
-  return (
-    <AlertDialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setSelectAll(false); setConfirmText(''); } }}>
-      <AlertDialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive gap-1 text-xs" disabled={loading} title="حذف السنة وكل بياناتها">
-          <AlertTriangle className="w-3 h-3" />
-          حذف السنة وكل بياناتها
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-destructive">⚠️ حذف شامل — لا يمكن التراجع</AlertDialogTitle>
-          <AlertDialogDescription asChild>
-            <div className="space-y-2 text-sm">
-              <p>سيتم حذف السنة <strong>{fy.label}</strong> وجميع بياناتها المرتبطة نهائياً:</p>
-              <ul className="list-disc pr-5 text-xs text-muted-foreground space-y-0.5">
-                <li>العقود وتخصيصاتها</li>
-                <li>فواتير الدفعات والفواتير الضريبية وعناصرها وسلسلتها</li>
-                <li>الدخل والمصروفات والميزانيات وسندات الصرف</li>
-                <li>التوزيعات وطلبات السلف والرصيد المرحّل</li>
-                <li>التقارير السنوية والحسابات الختامية</li>
-              </ul>
-              <p className="text-destructive font-medium">هذه العملية لا يمكن استرجاعها.</p>
-            </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <div className="space-y-3 px-1 pb-1">
-          <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input
-              type="checkbox"
-              checked={selectAll}
-              onChange={(e) => setSelectAll(e.target.checked)}
-              className="w-4 h-4 accent-destructive"
-            />
-            <span>تحديد الكل — حذف السنة وكل بياناتها</span>
-          </label>
-          <div className="space-y-1.5">
-            <Label htmlFor="cascade-confirm">اكتب <code className="px-1 py-0.5 rounded bg-muted text-destructive">{expected}</code> للتأكيد</Label>
-            <Input
-              id="cascade-confirm"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              placeholder={expected}
-              disabled={!selectAll}
-              autoComplete="off"
-            />
-          </div>
-        </div>
-
-        <AlertDialogFooter className="gap-2">
-          <AlertDialogCancel>إلغاء</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleConfirm}
-            disabled={!canDelete}
-            className="bg-destructive hover:bg-destructive/90"
-          >
-            تأكيد الحذف الشامل
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-};
-
-// ── Component الرئيسي ──
 const FiscalYearManagementTab = () => {
   const {
     fiscalYears, isLoading, creating, setCreating,
