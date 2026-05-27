@@ -50,9 +50,9 @@ const VoucherList: React.FC<VoucherListProps> = ({ expenseId, expenseAmount, exp
 
   const fullQ = useDisbursementVouchersByExpense(isManager ? expenseId : undefined);
   const pubQ = useDisbursementVouchersPublicByExpense(!isManager ? expenseId : undefined);
-  const approveMut = useApproveVoucher();
-  const voidMut = useVoidVoucher();
-  const genPdfMut = useGenerateVoucherPdf();
+  const approveMut = useApproveVoucherAction();
+  const voidMut = useVoidVoucherAction();
+  const genPdfMut = useGenerateVoucherPdfAction();
   const [formOpen, setFormOpen] = useState(false);
   const [voidTarget, setVoidTarget] = useState<Voucher | null>(null);
 
