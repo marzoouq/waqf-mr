@@ -69,26 +69,8 @@ export default tseslint.config(
       "react-refresh/only-export-components": "off",
     },
   },
-  // M3.5 — حماية الطبقات: استدعاءات supabase الخام يجب ألا تصل لـ pages/components.
-  // داخل hooks/data نسمح بها كتحذير فقط (للسماح باستثناءات موثقة مثل useFiscalYears).
-  {
-    files: ["src/pages/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
-    rules: {
-      "no-restricted-syntax": [
-        "error",
-        {
-          selector: "CallExpression[callee.object.name='supabase'][callee.property.name='from']",
-          message: "Do not call supabase.from() inside pages/components. Use a hook from src/hooks/data/ that delegates to src/lib/services/.",
-        },
-        {
-          selector: "MemberExpression[object.name='supabase'][property.name='auth']",
-          message: "Do not access supabase.auth inside pages/components. Use useAuth() from @/hooks/auth/useAuthContext.",
-        },
-      ],
-    },
-  },
-  // Wave 7 — منع ألوان hex المباشرة في components/pages.
-  // الاستثناءات: ملفات Canvas/SVG/PDF (انظر allowlist أدناه).
+  // M3.5 + Wave 7 — حماية الطبقات: ممنوع supabase خام أو ألوان hex داخل pages/components.
+  // الاستثناءات (ignores): ملفات Canvas/SVG/PDF.
   {
     files: ["src/pages/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     ignores: [
@@ -115,8 +97,27 @@ export default tseslint.config(
           message: "ممنوع استخدام ألوان hex داخل template strings. استخدم hsl(var(--token)).",
         },
       ],
+      "max-lines": ["warn", { max: 200, skipBlankLines: true, skipComments: true }],
     },
   },
+  // Wave 8 — utils/ نقي: ممنوع toast و supabase.
+  {
+    files: ["src/utils/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            { name: "sonner", message: "ممنوع استيراد sonner داخل utils/. أعد نتيجة والطبقة المستدعية تُشعر." },
+          ],
+          patterns: [
+            { group: ["@/integrations/supabase/*"], message: "ممنوع استيراد supabase داخل utils/. استخدم lib/services/." },
+          ],
+        },
+      ],
+    },
+  },
+  // Wave 8 — hooks/data/ بدون toast (تحذير).
   {
     files: ["src/hooks/data/**/*.{ts,tsx}"],
     rules: {
@@ -127,8 +128,38 @@ export default tseslint.config(
           message: "Prefer extracting supabase.from() into src/lib/services/. Add a documented eslint-disable line if intentional.",
         },
       ],
+      "no-restricted-imports": [
+        "warn",
+        {
+          paths: [
+            { name: "sonner", message: "hooks/data نقي بدون toast — الإشعارات في hooks/page/." },
+          ],
+        },
+      ],
     },
   },
+  // Wave 8 — hooks/domain/ منطق حسابات فقط، بدون supabase.
+  {
+    files: ["src/hooks/domain/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            { group: ["@/integrations/supabase/*"], message: "hooks/domain/ منطق حسابات فقط — استخدم hooks/data/ للوصول إلى supabase." },
+          ],
+        },
+      ],
+    },
+  },
+  // Wave 8 — حدود الحجم.
+  {
+    files: ["src/hooks/page/**/*.ts"],
+    rules: {
+      "max-lines": ["warn", { max: 180, skipBlankLines: true, skipComments: true }],
+    },
+  },
+
   // M6 — فصل الأدوار: لا يجوز للواقف استيراد hooks المستفيد والعكس.
   {
     files: ["src/hooks/page/waqif/**/*.{ts,tsx}", "src/pages/waqif/**/*.{ts,tsx}", "src/components/waqif/**/*.{ts,tsx}"],
