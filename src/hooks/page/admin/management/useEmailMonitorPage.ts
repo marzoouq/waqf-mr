@@ -6,9 +6,7 @@
  * - يستدعي email-admin edge function لإحصاءات DLQ والـ retry
  */
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
-import { invoke } from '@/lib/api/invoke';
+import { useEmailLogs, useEmailAdminStats, type EmailLogRow, type EmailAdminStats } from '@/hooks/data/email/useEmailMonitor';
 import { useEmailMonitorActions } from './useEmailMonitorActions';
 
 export type EmailRange = '24h' | '7d' | '30d' | 'custom';
