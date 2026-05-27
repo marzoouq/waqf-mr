@@ -24,7 +24,6 @@ const PropertiesViewPage = () => {
   const {
     properties, isLoading, isError,
     refetchProps, refetchUnits,
-    isClosed,
     expandedId, setExpandedId,
     
     totalUnits, occupiedUnits,
@@ -37,7 +36,7 @@ const PropertiesViewPage = () => {
     handleExportPdf,
   } = usePropertiesViewPage();
 
-  const { totalProperties, totalVacant, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor } = summaryData;
+  const { totalProperties, totalVacant, overallOccupancy, occColor, occBarColor } = summaryData;
 
   if (isLoading) {
     return <DashboardLayout><div className="p-4 md:p-6 space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div></DashboardLayout>;
