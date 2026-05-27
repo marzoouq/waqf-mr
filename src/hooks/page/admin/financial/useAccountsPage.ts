@@ -156,7 +156,7 @@ export function useAccountsPage() {
     accounts: data.accounts, contracts: data.contracts, beneficiaries: data.beneficiaries,
     income: data.income, expenses: data.expenses, isLoading: data.isLoading,
     selectedFY: data.selectedFY, fiscalYear: settings.fiscalYear, fiscalYears: data.fiscalYears,
-    fiscalYearId: data.fiscalYearId, isClosed: data.isClosed, currentAccount: settings.currentAccount,
+    fiscalYearId: data.fiscalYearId, fiscalYearStartDate, isClosed: data.isClosed, currentAccount: settings.currentAccount,
     // Settings
     adminPercent: settings.adminPercent, waqifPercent: settings.waqifPercent,
     zakatAmount: settings.zakatAmount, waqfCorpusManual: settings.waqfCorpusManual,
