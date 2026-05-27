@@ -40,13 +40,23 @@ export default function CollectionSummaryCards({ summary, expectedLabel }: Colle
           </CardContent>
         </Card>
         <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+          <CardContent className="p-4 flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
               <TrendingDown className="w-5 h-5 text-destructive" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">المتأخر</p>
               <p className="text-lg font-bold text-destructive">{fmt(summary.totalOverdue)}</p>
+              {(summary.overdueFromPreviousAmount > 0 || summary.overdueInYearAmount > 0) && (
+                <div className="mt-1 space-y-0.5 text-[10px] text-muted-foreground leading-tight">
+                  {summary.overdueFromPreviousAmount > 0 && (
+                    <div>من سنوات سابقة: <span className="font-medium text-foreground">{fmt(summary.overdueFromPreviousAmount)}</span></div>
+                  )}
+                  {summary.overdueInYearAmount > 0 && (
+                    <div>هذه السنة: <span className="font-medium text-foreground">{fmt(summary.overdueInYearAmount)}</span></div>
+                  )}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
