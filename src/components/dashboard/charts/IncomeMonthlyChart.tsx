@@ -80,7 +80,11 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, pay
 
   const totalActual = chartData.reduce((s, m) => s + m.actual, 0);
   const totalExpected = chartData.reduce((s, m) => s + m.expected, 0);
-  const achievementRate = totalExpected > 0 ? Math.round((totalActual / totalExpected) * 100) : 0;
+  // نسبة التحصيل مقيّدة بسقف 100% لمنع قراءات مضللة مثل 774% عند وجود
+  // إيرادات استثنائية تتجاوز المتوقع. الفائض يُعرض كـ "تحصيل زائد".
+  const rawRate = totalExpected > 0 ? Math.round((totalActual / totalExpected) * 100) : 0;
+  const achievementRate = Math.min(100, rawRate);
+  const surplus = Math.max(0, totalActual - totalExpected);
 
   return (
     <Card className="shadow-sm">
@@ -91,7 +95,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, pay
             الدخل الشهري: فعلي مقابل المتوقع
           </span>
           <span className={`text-sm font-bold ${achievementRate >= 100 ? 'text-success' : achievementRate >= 70 ? 'text-warning' : 'text-destructive'}`}>
-            نسبة التحصيل: {achievementRate}%
+            نسبة التحصيل: {achievementRate}%{surplus > 0 ? ` (+${rawRate - 100}% تحصيل زائد)` : ''}
           </span>
         </CardTitle>
       </CardHeader>
