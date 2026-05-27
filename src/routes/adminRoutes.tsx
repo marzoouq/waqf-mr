@@ -19,6 +19,7 @@ const BylawsPage = lazyWithRetry(() => import("@/pages/dashboard/BylawsPage"));
 const ZatcaManagementPage = lazyWithRetry(() => import("@/pages/dashboard/ZatcaManagementPage"));
 const SupportDashboardPage = lazyWithRetry(() => import("@/pages/dashboard/SupportDashboardPage"));
 const AnnualReportPage = lazyWithRetry(() => import("@/pages/dashboard/AnnualReportPage"));
+const DistributionsPage = lazyWithRetry(() => import("@/pages/dashboard/DistributionsPage"));
 const ChartOfAccountsPage = lazyWithRetry(() => import("@/pages/dashboard/ChartOfAccountsPage"));
 const HistoricalComparisonPage = lazyWithRetry(() => import("@/pages/dashboard/HistoricalComparisonPage"));
 const SystemDiagnosticsPage = lazyWithRetry(() => import("@/pages/dashboard/SystemDiagnosticsPage"));
@@ -38,6 +39,7 @@ export const adminRoutes = (
     <Route path="/dashboard/beneficiaries" element={pr(ADMIN_ROLES, <BeneficiariesPage />)} />
     <Route path="/dashboard/reports" element={pr(ADMIN_ROLES, <ReportsPage />)} />
     <Route path="/dashboard/accounts" element={pr(ADMIN_ROLES, <AccountsPage />)} />
+    <Route path="/dashboard/distributions" element={pr(ADMIN_ROLES, <DistributionsPage />)} />
     <Route path="/dashboard/messages" element={pr(ADMIN_ROLES, <MessagesPage />)} />
     <Route path="/dashboard/invoices" element={pr(ADMIN_ROLES, <InvoicesPage />)} />
     <Route path="/dashboard/audit-log" element={pr(ADMIN_ROLES, <AuditLogPage />)} />
