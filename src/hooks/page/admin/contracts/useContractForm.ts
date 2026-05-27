@@ -85,7 +85,29 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
     setIsOpen(true);
   }, []);
 
+  // P1-1: مزامنة تخصيصات السنوات المالية بعد كل عملية حفظ.
+  // مكتومة الأخطاء لئلا تكسر تجربة المستخدم — التخصيصات تُقرأ في صفحات
+  // العقارات/التقارير، وغيابها يعود لـ fallback آمن في usePropertyFinancials.
+  const syncAllocations = useCallback(
+    async (contractId: string, contract: { start_date: string; end_date: string; rent_amount: number; payment_type?: string; payment_count?: number; payment_amount?: number }) => {
+      if (!fiscalYearsFull.length) return;
+      try {
+        const allocations = allocateContractToFiscalYears(
+          { id: contractId, ...contract },
+          fiscalYearsFull,
+        );
+        if (allocations.length > 0) {
+          await upsertAllocations.mutateAsync(allocations);
+        }
+      } catch (err) {
+        logger.warn('Allocation sync skipped:', err instanceof Error ? err.message : String(err));
+      }
+    },
+    [fiscalYearsFull, upsertAllocations],
+  );
+
   const handleFormSubmit = async (formData: ContractFormData, isEditing: boolean) => {
+
     if (formData.end_date <= formData.start_date) {
       uiNotify.error('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
       return;
