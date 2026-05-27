@@ -9,8 +9,12 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
 import { renderVoucherPdf } from "./pdf-renderer.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { z } from "npm:zod@3";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const RequestSchema = z.object({
+  voucher_id: z.string().uuid("voucher_id يجب أن يكون UUID صالحاً"),
+});
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
@@ -32,11 +36,12 @@ Deno.serve(async (req): Promise<Response> => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const body = await req.json().catch(() => ({}));
-    const voucherId = body?.voucher_id;
-    if (typeof voucherId !== "string" || !UUID_RE.test(voucherId)) {
+    const rawBody = await req.json().catch(() => ({}));
+    const parsedBody = RequestSchema.safeParse(rawBody);
+    if (!parsedBody.success) {
       return jsonError("voucher_id غير صالح", 400, corsHeaders);
     }
+    const voucherId = parsedBody.data.voucher_id;
 
     const { data: voucher, error: vErr } = await admin
       .from("disbursement_vouchers")

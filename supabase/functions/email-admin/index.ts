@@ -6,9 +6,15 @@
  */
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
+import { z } from "npm:zod@3";
 
 const ALLOWED_ACTIONS = ["get_stats", "retry_dlq"] as const;
 type Action = typeof ALLOWED_ACTIONS[number];
+
+const RequestSchema = z.object({
+  action: z.enum(ALLOWED_ACTIONS),
+  queue: z.enum(["auth_emails", "transactional_emails"]).optional(),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -23,15 +29,16 @@ Deno.serve(async (req) => {
       parseJsonBody: true,
     });
     if ("error" in auth) return auth.error;
-    const { admin: adminClient, body } = auth as typeof auth & { body: { action?: string; queue?: string } | null };
+    const { admin: adminClient, body } = auth;
 
-    const action = (body?.action ?? "") as Action;
-    if (!ALLOWED_ACTIONS.includes(action)) {
-      return new Response(JSON.stringify({ error: "Invalid action" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const parsed = RequestSchema.safeParse(body ?? {});
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid parameters", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
+    const { action, queue } = parsed.data;
 
     // ───── get_stats ─────
     if (action === "get_stats") {
@@ -88,13 +95,13 @@ Deno.serve(async (req) => {
 
     // ───── retry_dlq ─────
     if (action === "retry_dlq") {
-      const queueName = body?.queue as string;
-      if (!queueName || !["auth_emails", "transactional_emails"].includes(queueName)) {
-        return new Response(JSON.stringify({ error: "Invalid queue" }), {
+      if (!queue) {
+        return new Response(JSON.stringify({ error: "queue is required for retry_dlq" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      const queueName = queue;
 
       // قراءة رسائل DLQ ثم إعادة إرسالها للطابور الأصلي
       // pgmq exposes pgmq.read / pgmq.send / pgmq.delete via RPC wrappers
