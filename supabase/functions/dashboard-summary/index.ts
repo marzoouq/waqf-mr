@@ -23,11 +23,12 @@ Deno.serve(async (req) => {
   const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "private, max-age=60" };
 
   try {
-    // ── المصادقة (claims محلي) + body + role + rateLimit بالتوازي عبر authenticate() ──
+    // ── المصادقة (getUser شبكي للتحقق من توقيع JWT) + body + role + rateLimit ──
+    // ملاحظة أمنية: لا نستخدم useClaims هنا لأن verify_jwt = false، فالتحقق المحلي
+    // من الادعاءات لا يتحقق من التوقيع ويسمح بتزوير JWT بمعرف admin معروف.
     const auth = await authenticate(req, corsHeaders, {
       allowedRoles: ["admin", "accountant"],
       rateLimitKey: "dashboard-summary",
-      useClaims: true,
       parseJsonBody: true,
     });
     if ("error" in auth) return auth.error;
