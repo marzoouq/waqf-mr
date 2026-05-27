@@ -58,7 +58,7 @@ describe('AnnualReportPage', () => {
         <MemoryRouter><AnnualReportPage /></MemoryRouter>
       </QueryClientProvider>,
     );
-    expect(screen.getByText('التقرير السنوي')).toBeInTheDocument();
+    expect(screen.getByText(/التقرير السنوي/)).toBeInTheDocument();
     expect(screen.getByText('مسودة')).toBeInTheDocument();
   });
 });

@@ -39,6 +39,7 @@ const ROUTE_TO_FILE: Record<string, string> = {
   '/dashboard/comparison': 'src/pages/dashboard/HistoricalComparisonPage.tsx',
   '/dashboard/diagnostics': 'src/pages/dashboard/SystemDiagnosticsPage.tsx',
   '/dashboard/email-monitor': 'src/pages/dashboard/EmailMonitorPage.tsx',
+  '/dashboard/distributions': 'src/pages/dashboard/DistributionsPage.tsx',
 
   '/beneficiary': 'src/pages/beneficiary/BeneficiaryDashboard.tsx',
   '/beneficiary/properties': 'src/pages/beneficiary/PropertiesViewPage.tsx',
