@@ -1,10 +1,12 @@
 import { fmt } from '@/utils/format/format';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { TrendingUp, Search, AlertTriangle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TrendingUp, Search, AlertTriangle, BarChart3, ListChecks } from 'lucide-react';
 import { IncomeSummaryCards, IncomeMobileCards, IncomeDesktopTable, IncomeFormDialog } from '@/components/income';
 import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner, ConfirmDeleteDialog, ViewModeToggle, useViewMode } from '@/components/common';
 import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
@@ -13,6 +15,7 @@ import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useIncomePage } from '@/hooks/page/admin/financial/useIncomePage';
 
 const IncomeMonthlyChart = lazy(() => import('@/components/dashboard/charts/IncomeMonthlyChart'));
+const CollectionReport = lazy(() => import('@/components/contracts/CollectionReport'));
 
 const IncomePage = () => {
   const {
