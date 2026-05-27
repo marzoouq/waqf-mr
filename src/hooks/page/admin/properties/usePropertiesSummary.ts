@@ -8,11 +8,15 @@ import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
 import { useContractAllocationMap } from '@/hooks/domain/financial/useContractAllocationMap';
+import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
+import { computeContractualRevenue } from '@/utils/financial/computeContractualRevenue';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { isFyAll } from '@/constants/fiscalYearIds';
 import type { Property } from '@/types';
 import type { Contract } from '@/types';
+
 
 interface Args {
   properties: Property[];
@@ -31,6 +35,9 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
 
   const allocationMap = useContractAllocationMap(contracts);
+  // مصدر موحّد للإيرادات التعاقدية — يطابق RPC ولا يستخدم fallback خطي
+  const isSpecific = fiscalYearId && !isFyAll(fiscalYearId);
+  const { data: allocations = [] } = useContractAllocations(isSpecific ? fiscalYearId : undefined);
   const summaryLoading = propertiesLoading || contractsLoading || unitsLoading || expensesLoading;
 
   const summary = useMemo(() => {
@@ -56,10 +63,9 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
 
     const occupancyBase = totalRented + totalVacant;
     const overallOccupancy = occupancyBase > 0 ? Math.round((totalRented / occupancyBase) * 100) : 0;
-    const contractualRevenue = contracts.reduce((s, c) => {
-      const alloc = allocationMap.get(c.id);
-      return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? Number(c.rent_amount) : 0));
-    }, 0);
+
+    // الإيرادات التعاقدية (DB-backed) — يطابق ContractsPage و WaqifDashboard
+    const contractualRevenue = computeContractualRevenue(contracts, allocations);
 
     const currentAccount = accounts?.[0];
     let activeIncome: number;
@@ -68,14 +74,13 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
       activeIncome = Number(currentAccount.total_income) || 0;
       totalExpensesCalc = Number(currentAccount.total_expenses) || 0;
     } else {
-      activeIncome = contracts.filter(c => isSpecificYear || c.status === 'active').reduce((s, c) => {
-        const alloc = allocationMap.get(c.id);
-        return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? Number(c.rent_amount) : 0));
-      }, 0);
-      totalExpensesCalc = expenses.filter(e => e.property_id).reduce((s, e) => s + Number(e.amount), 0);
+      const relevantContracts = contracts.filter(c => isSpecificYear || c.status === 'active');
+      activeIncome = computeContractualRevenue(relevantContracts, allocations);
+      // المصروفات الكاملة (بلا فلتر property_id) — لتوحيد المعنى مع التقارير
+      totalExpensesCalc = expenses.reduce((s, e) => s + safeNumber(e.amount), 0);
     }
 
-    // الإيراد المحصّل فعلياً = مجموع المدفوع من فواتير السنة المالية (المصدر الموحّد عبر التطبيق)
+    // الإيراد المحصّل فعلياً = مجموع المدفوع من فواتير السنة المالية (المصدر الموحّد)
     const collectedIncome = paymentInvoices.reduce((s, inv) => {
       if (inv.status === 'paid' || inv.status === 'partially_paid') {
         return s + safeNumber(inv.paid_amount);
@@ -90,7 +95,8 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
       contractualRevenue, activeIncome, collectedIncome,
       totalExpensesAll: totalExpensesCalc, netIncome, isClosed: !!isClosed,
     };
-  }, [properties, allUnits, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap, paymentInvoices]);
+  }, [properties, allUnits, contracts, expenses, isClosed, accounts, isSpecificYear, allocations, paymentInvoices]);
+
 
   const propertyOccupancy = useMemo(() => {
     const map = new Map<string, number>();
