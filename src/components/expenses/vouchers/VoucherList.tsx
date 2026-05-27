@@ -10,13 +10,15 @@ import { FileText, Download, CheckCircle2, XCircle, Receipt } from 'lucide-react
 import {
   useDisbursementVouchersByExpense,
   useDisbursementVouchersPublicByExpense,
-  useApproveVoucher,
-  useVoidVoucher,
-  useGenerateVoucherPdf,
   getVoucherSignedUrl,
   type Voucher,
   type VoucherPublic,
 } from '@/hooks/data/financial/useDisbursementVouchers';
+import {
+  useApproveVoucherAction,
+  useVoidVoucherAction,
+  useGenerateVoucherPdfAction,
+} from '@/hooks/page/admin/financial/useVoucherActions';
 import { VOUCHER_PAYMENT_METHODS, VOUCHER_STATUS_LABELS } from '@/constants/entities';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { fmt } from '@/utils/format/format';
