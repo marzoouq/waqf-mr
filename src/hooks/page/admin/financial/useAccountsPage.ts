@@ -49,9 +49,10 @@ export function useAccountsPage() {
     getExpectedPayments: calc.getExpectedPayments,
   });
 
-  // فصل المتأخرات حسب السنة المالية — للعرض في PDF
+  // فصل المتأخرات حسب السنة المالية — مبدئياً 0، يُعاد حسابه بعد جلب paymentInvoices
   const fiscalYearStartDate = data.selectedFY?.start_date ?? null;
   const overdueSplit = { prev: 0, cur: 0 };
+
 
 
   // 5. العمليات — تستقبل القيم الحقيقية مباشرة (بدون أصفار أو paramsRef خارجي)
