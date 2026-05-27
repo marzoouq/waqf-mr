@@ -85,8 +85,8 @@ const AnnualDisclosureTable = ({
                   <td className="py-2 px-4 font-medium text-success">+{fmt(item.value)}</td>
                 </tr>
               ))}
-              <tr className="border-b-2 border-success bg-success/10">
-                <td className="py-3 px-4 font-bold">إجمالي الإيرادات</td>
+              <tr className="border-b-2 border-success bg-success/10" title="مجموع المحصّل فعلياً من فواتير الدفع — المصدر الموحّد عبر التطبيق">
+                <td className="py-3 px-4 font-bold">إجمالي الإيرادات المحصّلة</td>
                 <td className="py-3 px-4 font-bold text-success">+{fmt(totalIncome)}</td>
               </tr>
               {waqfCorpusPrevious > 0 && (

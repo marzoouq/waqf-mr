@@ -8,7 +8,9 @@ import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
 import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
 import { useContractAllocationMap } from '@/hooks/domain/financial/useContractAllocationMap';
+import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { safeNumber } from '@/utils/format/safeNumber';
 import type { Property } from '@/types';
 import type { Contract } from '@/types';
 
@@ -26,6 +28,7 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
   const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: accounts = [] } = useAccountByFiscalYear(fiscalYear?.label, fiscalYearId);
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
 
   const allocationMap = useContractAllocationMap(contracts);
   const summaryLoading = propertiesLoading || contractsLoading || unitsLoading || expensesLoading;
@@ -71,10 +74,23 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
       }, 0);
       totalExpensesCalc = expenses.filter(e => e.property_id).reduce((s, e) => s + Number(e.amount), 0);
     }
-    const netIncome = activeIncome - totalExpensesCalc;
 
-    return { totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy, contractualRevenue, activeIncome, totalExpensesAll: totalExpensesCalc, netIncome, isClosed: !!isClosed };
-  }, [properties, allUnits, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap]);
+    // الإيراد المحصّل فعلياً = مجموع المدفوع من فواتير السنة المالية (المصدر الموحّد عبر التطبيق)
+    const collectedIncome = paymentInvoices.reduce((s, inv) => {
+      if (inv.status === 'paid' || inv.status === 'partially_paid') {
+        return s + safeNumber(inv.paid_amount);
+      }
+      return s;
+    }, 0);
+
+    const netIncome = collectedIncome - totalExpensesCalc;
+
+    return {
+      totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy,
+      contractualRevenue, activeIncome, collectedIncome,
+      totalExpensesAll: totalExpensesCalc, netIncome, isClosed: !!isClosed,
+    };
+  }, [properties, allUnits, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap, paymentInvoices]);
 
   const propertyOccupancy = useMemo(() => {
     const map = new Map<string, number>();

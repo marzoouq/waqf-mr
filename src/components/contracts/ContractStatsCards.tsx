@@ -8,6 +8,7 @@ interface ContractStats {
   active: number;
   activePercent: number;
   expired: number;
+  /** الإيرادات: إن كانت السنة محددة وتوجد تخصيصات تكون = Σ allocated_amount، وإلا = Σ rent_amount */
   totalRent: number;
   activeRent: number;
   expiringSoon: number;
@@ -18,9 +19,15 @@ interface ContractStatsCardsProps {
   isLoading: boolean;
   /** 'admin' = جميع البطاقات (5)، 'beneficiary' = الإجمالي والنشطة فقط (2) — لا أرقام إيرادات */
   variant?: 'admin' | 'beneficiary';
+  /** مصدر حساب الإيراد: 'allocated' = حصة السنة من العقود (allocated_amount) | 'rent' = إجمالي قيمة العقد (rent_amount) */
+  revenueSource?: 'allocated' | 'rent';
 }
 
-const ContractStatsCards = ({ stats, isLoading, variant = 'admin' }: ContractStatsCardsProps) => {
+const ContractStatsCards = ({ stats, isLoading, variant = 'admin', revenueSource = 'rent' }: ContractStatsCardsProps) => {
+  const revenueLabel = revenueSource === 'allocated' ? 'حصة السنة من العقود' : 'إجمالي قيمة العقود';
+  const revenueTitle = revenueSource === 'allocated'
+    ? 'مجموع المخصّص للسنة المالية من قيم العقود (allocated_amount)'
+    : 'مجموع قيم العقود الكاملة (rent_amount) — قد يشمل سنوات متعددة';
   const isBeneficiary = variant === 'beneficiary';
   const skeletonCount = isBeneficiary ? 2 : 5;
   const gridCols = isBeneficiary ? 'sm:grid-cols-2 lg:grid-cols-2' : 'sm:grid-cols-3 lg:grid-cols-5';
@@ -66,10 +73,14 @@ const ContractStatsCards = ({ stats, isLoading, variant = 'admin' }: ContractSta
         </Card>
       )}
       {!isBeneficiary && (
-        <Card className="border-accent/30 bg-accent/5">
+        <Card className="border-accent/30 bg-accent/5" title={revenueTitle}>
           <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
             <div className="p-1.5 sm:p-2 rounded-lg bg-accent/15 text-accent-foreground"><DollarSign className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-            <div className="min-w-0"><p className="text-[11px] sm:text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-base sm:text-lg font-bold tabular-nums truncate">{fmt(stats.totalRent)} <span className="text-[11px] sm:text-xs font-normal">ر.س</span></p><p className="text-[11px] text-muted-foreground tabular-nums">نشط: {fmt(stats.activeRent)}</p></div>
+            <div className="min-w-0">
+              <p className="text-[11px] sm:text-xs text-muted-foreground">الإيرادات التعاقدية</p>
+              <p className="text-base sm:text-lg font-bold tabular-nums truncate">{fmt(stats.totalRent)} <span className="text-[11px] sm:text-xs font-normal">ر.س</span></p>
+              <p className="text-[10px] text-muted-foreground tabular-nums">{revenueLabel} · نشط: {fmt(stats.activeRent)}</p>
+            </div>
           </CardContent>
         </Card>
       )}
