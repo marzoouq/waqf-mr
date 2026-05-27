@@ -1,5 +1,15 @@
 [
   {
+    "version": "3.0.73",
+    "date": "٢٧ مايو ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "تحسينات وإصلاحات متنوعة"
+      }
+    ]
+  },
+  {
     "version": "3.0.72",
     "date": "٢٧ مايو ٢٠٢٦",
     "changes": [
