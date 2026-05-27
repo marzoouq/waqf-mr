@@ -8,6 +8,7 @@ import { useCreateContract, useUpdateContract } from '@/hooks/data/contracts/use
 import { Property, Contract } from '@/types';
 import { uiNotify } from '@/lib/notify';
 import type { UnitFormData } from '@/types/forms/property';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 const getDefaultForm = (propertyId: string): UnitFormData => ({
   property_id: propertyId, unit_number: '', unit_type: 'شقة', floor: '', area: undefined, status: 'شاغرة', notes: '',
@@ -20,6 +21,7 @@ export function useUnitMutations(property: Property, contracts: Contract[]) {
   const deleteUnit = useDeleteUnit();
   const createContract = useCreateContract();
   const updateContractMutation = useUpdateContract();
+  const { fiscalYear } = useFiscalYear();
 
   const [isUnitFormOpen, setIsUnitFormOpen] = useState(false);
   const [editingUnit, setEditingUnit] = useState<UnitRow | null>(null);
@@ -77,12 +79,17 @@ export function useUnitMutations(property: Property, contracts: Contract[]) {
           uiNotify.error('يرجى تحديد تاريخ بداية ونهاية العقد');
           return;
         }
+        if (!fiscalYear?.id) {
+          uiNotify.error('لا توجد سنة مالية نشطة لربط العقد بها');
+          return;
+        }
         await createContract.mutateAsync({
           contract_number: `C-${property.property_number}-${unitForm.unit_number}-${Date.now().toString(36)}`,
           property_id: property.id, unit_id: savedUnitId, tenant_name: unitForm.tenant_name,
           rent_amount: rentAmount, start_date: unitForm.contract_start_date, end_date: unitForm.contract_end_date,
           status: 'active', payment_type: unitForm.payment_type || 'annual',
           payment_count: paymentCount, payment_amount: paymentAmount,
+          fiscal_year_id: fiscalYear.id,
         });
       }
     }
