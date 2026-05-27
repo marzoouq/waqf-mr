@@ -20,6 +20,11 @@ import {
   asn1BitString,
   sha256Async,
 } from "../_shared/zatca-shared.ts";
+import { z } from "npm:zod@3";
+
+const RequestSchema = z.object({
+  action: z.enum(["test-connection", "onboard", "production"]),
+});
 
 Deno.serve(async (req): Promise<Response> => {
   const corsHeaders = getCorsHeaders(req);
@@ -30,8 +35,12 @@ Deno.serve(async (req): Promise<Response> => {
     if ("error" in auth) return auth.error;
     const { user, admin } = auth;
 
-    const body = await req.json();
-    const { action } = body;
+    const body = await req.json().catch(() => ({}));
+    const parsed = RequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: "Invalid parameters", details: parsed.error.flatten().fieldErrors }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const { action } = parsed.data;
     const { url: ZATCA_API_URL, platform } = await resolveZatcaTarget(admin);
     const isProduction = platform === "production";
 
