@@ -22,6 +22,12 @@ import { authenticate } from "../_shared/auth.ts";
 import { extractCertSignatureAndPublicKey } from "./x509-parser.ts";
 import { buildXmlDsig, sha256Base64, sha256BytesBase64, hexToBytes } from "./xmldsig-builder.ts";
 import { generateZatcaQrTLV } from "../_shared/zatca-qr-tlv.ts";
+import { z } from "npm:zod@3";
+
+const RequestSchema = z.object({
+  invoice_id: z.string().uuid("invoice_id must be a UUID"),
+  table: z.enum(["invoices", "payment_invoices"]),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
