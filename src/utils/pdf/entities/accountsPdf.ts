@@ -56,17 +56,33 @@ export const generateAccountsPDF = async (data: {
   // العقود
   doc.setFontSize(13);
   doc.text(rs('العقود'), 105, startY + 18, { align: 'center' });
+  const contractHead = showOrigin
+    ? ['رقم العقد', 'المستأجر', 'النوع', 'الإيجار السنوي', 'الإيجار الشهري']
+    : ['رقم العقد', 'المستأجر', 'الإيجار السنوي', 'الإيجار الشهري'];
+  let countInYear = 0, countFromPrevious = 0;
+  const contractBody = data.contracts.map(c => {
+    const origin = classifyOrigin(c.start_date);
+    if (origin === 'inYear') countInYear++;
+    else if (origin === 'fromPrevious') countFromPrevious++;
+    const monthly = fmt(Math.round(safeNumber(c.rent_amount) / 12), 0);
+    const annual = fmt(safeNumber(c.rent_amount));
+    return reshapeRow(
+      showOrigin
+        ? [c.contract_number, c.tenant_name, originLabel(origin), annual, monthly]
+        : [c.contract_number, c.tenant_name, annual, monthly],
+    );
+  });
+  const contractFoot = showOrigin
+    ? [reshapeRow(['الإجمالي', `${data.contracts.length} عقد`, `مُرحّل: ${countFromPrevious} / جديد: ${countInYear}`, '', ''])]
+    : [reshapeRow(['الإجمالي', `${data.contracts.length} عقد`, '', ''])];
   autoTable(doc, {
     startY: startY + 24,
-    head: [reshapeRow(['رقم العقد', 'المستأجر', 'الإيجار السنوي', 'الإيجار الشهري'])],
-    body: data.contracts.map(c => reshapeRow([
-      c.contract_number,
-      c.tenant_name,
-      fmt(safeNumber(c.rent_amount)),
-      fmt(Math.round(safeNumber(c.rent_amount) / 12), 0),
-    ])),
+    head: [reshapeRow(contractHead)],
+    body: contractBody,
+    foot: contractFoot,
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
+    ...footStyles(TABLE_HEAD_GREEN, fontFamily),
     ...baseTableStyles(fontFamily),
   });
 
