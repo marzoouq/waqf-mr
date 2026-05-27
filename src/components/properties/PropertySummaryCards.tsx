@@ -10,9 +10,14 @@ interface PropertySummary {
   totalRented: number;
   totalVacant: number;
   overallOccupancy: number;
+  /** حصة السنة المالية من قيمة العقود (allocated_amount أو rent_amount) */
   contractualRevenue: number;
+  /** الإيرادات المتوقعة من العقود النشطة فقط */
   activeIncome: number;
+  /** الإيراد المحصّل فعلياً من فواتير الدفع المسددة في السنة */
+  collectedIncome: number;
   totalExpensesAll: number;
+  /** صافي بعد المصروفات = المحصّل − المصروفات */
   netIncome: number;
   isClosed?: boolean;
 }
