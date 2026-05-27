@@ -102,32 +102,35 @@ export function computePropertyFinancials(params: {
     : isWholePropertyRented ? 100 : 0;
 
   // --- المالية ---
-  const contractualRevenue = allPropertyContracts.reduce(
-    (sum, c) => {
-      if (allocationMap && c.id) {
-        const alloc = allocationMap.get(c.id);
-        return sum + (alloc ? alloc.allocated_amount : 0);
-      }
-      return sum + safeNumber(c.rent_amount);
-    }, 0
-  );
+  // قاعدة السقوط: نعتمد التخصيصات فقط حين تكون الـ Map مملوءة (size > 0).
+  // - Map فارغة كلياً → الميزة غير مفعّلة → fallback إلى rent_amount.
+  // - Map مملوءة جزئياً → عقد بلا تخصيص يُعدّ صفراً مقصوداً (خارج السنة)،
+  //   لأن السقوط إلى rent_amount الكامل يضخّم العقود الممتدة لسنوات.
+  const useAllocations = !!(allocationMap && allocationMap.size > 0);
+
+  const contractualRevenue = allPropertyContracts.reduce((sum, c) => {
+    if (useAllocations && c.id) {
+      const alloc = allocationMap!.get(c.id);
+      return sum + (alloc ? alloc.allocated_amount : 0);
+    }
+    return sum + safeNumber(c.rent_amount);
+  }, 0);
+
   const activeContracts = isSpecificYear
     ? allPropertyContracts
     : allPropertyContracts.filter(c => c.status === 'active');
-  const activeAnnualRent = activeContracts.reduce(
-    (sum, c) => {
-      if (allocationMap && c.id) {
-        const alloc = allocationMap.get(c.id);
-        return sum + (alloc ? alloc.allocated_amount : 0);
-      }
-      return sum + safeNumber(c.rent_amount);
-    }, 0
-  );
+  const activeAnnualRent = activeContracts.reduce((sum, c) => {
+    if (useAllocations && c.id) {
+      const alloc = allocationMap!.get(c.id);
+      return sum + (alloc ? alloc.allocated_amount : 0);
+    }
+    return sum + safeNumber(c.rent_amount);
+  }, 0);
+
   const monthlyRent = allPropertyContracts.reduce((sum, c) => {
-    // استخدام التخصيص لحساب الاستحقاق الشهري بدقة للعقود الممتدة عبر سنوات
-    if (allocationMap && c.id) {
-      const alloc = allocationMap.get(c.id);
-      if (alloc) return sum + alloc.allocated_amount / 12;
+    if (useAllocations && c.id) {
+      const alloc = allocationMap!.get(c.id);
+      return sum + (alloc ? alloc.allocated_amount / 12 : 0);
     }
     const rent = safeNumber(c.rent_amount);
     if (c.payment_type === 'monthly') return sum + (safeNumber(c.payment_amount) || rent / 12);
