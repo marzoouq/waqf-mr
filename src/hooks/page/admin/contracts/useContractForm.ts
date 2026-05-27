@@ -1,6 +1,6 @@
 /**
- * هوك CRUD نموذج العقد — منطق التحرير والتجديد والإنشاء
- * مُستخرج من useContractsPage لتقليل حجم الملف الأصلي (#29)
+ * هوك CRUD نموذج العقد — منطق التحرير والتجديد والإنشاء.
+ * المُنشئات النقية (renew/edit/payload) في `src/utils/contracts/contractFormBuilders.ts` (#A3).
  *
  * P1-1: بعد كل إنشاء/تحديث للعقد نُحدِّث `contract_fiscal_allocations`
  * تلقائياً لضمان دقة الإيرادات والاستحقاق في صفحات العقارات.
@@ -16,6 +16,11 @@ import { useFiscalYears } from '@/hooks/data/financial/useFiscalYears';
 import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { asMutationArg } from '@/hooks/data/core';
+import {
+  buildRenewInitialData,
+  buildEditInitialData,
+  buildContractPayload,
+} from '@/utils/contracts/contractFormBuilders';
 
 interface UseContractFormParams {
   fiscalYearId: string;
@@ -29,7 +34,6 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
   const upsertAllocations = useUpsertContractAllocations();
   const { data: fiscalYearsFull = [] } = useFiscalYears();
 
-
   const [isOpen, setIsOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -41,47 +45,14 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
   }, []);
 
   const handleRenew = useCallback((contract: Contract) => {
-    const num = contract.contract_number;
-    const match = num.match(/-R(\d+)$/);
-    const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]!) + 1}`) : `${num}-R1`;
-    const oldStart = new Date(contract.start_date);
-    const oldEnd = new Date(contract.end_date);
-    const durationMs = oldEnd.getTime() - oldStart.getTime();
-    const newStart = new Date(oldEnd);
-    const newEnd = new Date(newStart.getTime() + durationMs);
-    setFormInitialData({
-      contract_number: newNumber, property_id: contract.property_id, unit_id: contract.unit_id || '',
-      tenant_name: contract.tenant_name,
-      start_date: newStart.toISOString().split('T')[0]!,
-      end_date: newEnd.toISOString().split('T')[0]!,
-      rent_amount: contract.rent_amount.toString(),
-      status: 'active', notes: `تجديد للعقد ${contract.contract_number}`,
-      payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
-      rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {}, vat_applicable: false,
-      tenant_id_type: contract.tenant_id_type || 'NAT',
-      tenant_id_number: contract.tenant_id_number || '',
-      tenant_tax_number: contract.tenant_tax_number || '',
-      tenant_crn: contract.tenant_crn || '',
-      tenant_street: contract.tenant_street || '',
-      tenant_building: contract.tenant_building || '',
-      tenant_district: contract.tenant_district || '',
-      tenant_city: contract.tenant_city || '',
-      tenant_postal_code: contract.tenant_postal_code || '',
-    });
+    setFormInitialData(buildRenewInitialData(contract));
     setEditingContract(null);
     setIsOpen(true);
   }, []);
 
   const handleEdit = useCallback((contract: Contract) => {
     setEditingContract(contract);
-    setFormInitialData({
-      contract_number: contract.contract_number, property_id: contract.property_id, unit_id: contract.unit_id || '', tenant_name: contract.tenant_name,
-      start_date: contract.start_date, end_date: contract.end_date, rent_amount: contract.rent_amount.toString(),
-      status: contract.status, notes: contract.notes || '',
-      payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
-      rental_mode: contract.unit_id ? 'single' : 'full', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {}, vat_applicable: false,
-      tenant_id_type: contract.tenant_id_type || 'NAT', tenant_id_number: contract.tenant_id_number || '', tenant_tax_number: contract.tenant_tax_number || '', tenant_crn: contract.tenant_crn || '', tenant_street: contract.tenant_street || '', tenant_building: contract.tenant_building || '', tenant_district: contract.tenant_district || '', tenant_city: contract.tenant_city || '', tenant_postal_code: contract.tenant_postal_code || '',
-    });
+    setFormInitialData(buildEditInitialData(contract));
     setIsOpen(true);
   }, []);
 
@@ -107,7 +78,6 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
   );
 
   const handleFormSubmit = async (formData: ContractFormData, isEditing: boolean) => {
-
     if (formData.end_date <= formData.start_date) {
       uiNotify.error('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
       return;
@@ -116,31 +86,20 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
 
     if (isEditing && editingContract) {
       const rentAmount = parseFloat(formData.rent_amount);
-      const paymentAmount = rentAmount / paymentCount;
-      const contractData: Record<string, unknown> = {
-        contract_number: formData.contract_number, property_id: formData.property_id, unit_id: formData.unit_id || null, tenant_name: formData.tenant_name,
-        start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
-        status: formData.status, notes: formData.notes || undefined,
-        payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
-        tenant_id_type: formData.tenant_id_type || 'NAT', tenant_id_number: formData.tenant_id_number || null,
-        tenant_tax_number: formData.tenant_tax_number || null, tenant_crn: formData.tenant_crn || null,
-        tenant_street: formData.tenant_street || null, tenant_building: formData.tenant_building || null,
-        tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
-      };
-      // CRUD factory — استخدام asMutationArg لتأمين النوع (موجة 15)
-      await updateContract.mutateAsync(asMutationArg(updateContract, { id: editingContract.id, ...contractData }));
-      await syncAllocations(editingContract.id, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount });
+      const payload = buildContractPayload({
+        formData, contractNumber: formData.contract_number,
+        unitId: formData.unit_id || null, rentAmount, paymentCount,
+      });
+      await updateContract.mutateAsync(asMutationArg(updateContract, { id: editingContract.id, ...payload }));
+      await syncAllocations(editingContract.id, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
       return;
     }
-
 
     const contextFYId = fiscalYearId && fiscalYearId !== 'all' ? fiscalYearId : null;
     let activeFYId = contextFYId;
     if (!activeFYId) {
-      const activeFY = fiscalYears?.find(fy => fy.status === 'active');
-      activeFYId = activeFY?.id || null;
+      activeFYId = fiscalYears?.find(fy => fy.status === 'active')?.id || null;
     }
-    const activeFY = activeFYId ? { id: activeFYId } : null;
     const suffixLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
     if (formData.rental_mode === 'multi' && formData.selected_unit_ids.length > 1) {
@@ -149,54 +108,30 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
       for (let i = 0; i < units.length; i++) {
         const unitId = units[i]!;
         const contractNumber = `${formData.contract_number}-${suffixLetters[i] || (i + 1)}`;
-        let rentAmount: number;
-        if (formData.pricing_mode === 'per_unit') {
-          rentAmount = parseFloat(formData.rent_per_unit[unitId] ?? '0') || 0;
-        } else {
-          rentAmount = parseFloat(formData.rent_amount) / units.length;
-        }
-        const paymentAmount = rentAmount / paymentCount;
-        const contractData: Record<string, unknown> = {
-          contract_number: contractNumber, property_id: formData.property_id, unit_id: unitId, tenant_name: formData.tenant_name,
-          start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
-          status: formData.status, notes: formData.notes || undefined,
-          payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
-          fiscal_year_id: activeFY?.id || null,
-          tenant_id_type: formData.tenant_id_type || 'NAT', tenant_id_number: formData.tenant_id_number || null,
-          tenant_tax_number: formData.tenant_tax_number || null, tenant_crn: formData.tenant_crn || null,
-          tenant_street: formData.tenant_street || null, tenant_building: formData.tenant_building || null,
-          tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
-        };
-        // CRUD factory — موجة 15
-        const createdMulti = await createContract.mutateAsync(asMutationArg(createContract, contractData));
+        const rentAmount = formData.pricing_mode === 'per_unit'
+          ? (parseFloat(formData.rent_per_unit[unitId] ?? '0') || 0)
+          : (parseFloat(formData.rent_amount) / units.length);
+        const payload = buildContractPayload({
+          formData, contractNumber, unitId, rentAmount, paymentCount, fiscalYearId: activeFYId,
+        });
+        const createdMulti = await createContract.mutateAsync(asMutationArg(createContract, payload));
         const newIdMulti = (createdMulti as { id?: string } | undefined)?.id;
-        if (newIdMulti) await syncAllocations(newIdMulti, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount });
+        if (newIdMulti) await syncAllocations(newIdMulti, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
         created++;
       }
-
       uiNotify.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
     } else {
       const rentAmount = parseFloat(formData.rent_amount);
-      const paymentAmount = rentAmount / paymentCount;
-      const contractData: Record<string, unknown> = {
-        contract_number: formData.contract_number, property_id: formData.property_id,
-        unit_id: (formData.rental_mode === 'single' ? formData.unit_id : (formData.rental_mode === 'multi' && formData.selected_unit_ids.length === 1 ? formData.selected_unit_ids[0] : null)) || null,
-        tenant_name: formData.tenant_name,
-        start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
-        status: formData.status, notes: formData.notes || undefined,
-        payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
-        tenant_id_type: formData.tenant_id_type || 'NAT', tenant_id_number: formData.tenant_id_number || null,
-        tenant_tax_number: formData.tenant_tax_number || null, tenant_crn: formData.tenant_crn || null,
-        tenant_street: formData.tenant_street || null, tenant_building: formData.tenant_building || null,
-        tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
-      };
-      if (activeFY?.id) contractData.fiscal_year_id = activeFY.id;
-      // CRUD factory — موجة 15
-      const createdSingle = await createContract.mutateAsync(asMutationArg(createContract, contractData));
+      const unitId = (formData.rental_mode === 'single'
+        ? formData.unit_id
+        : (formData.rental_mode === 'multi' && formData.selected_unit_ids.length === 1 ? formData.selected_unit_ids[0] : null)) || null;
+      const payload = buildContractPayload({
+        formData, contractNumber: formData.contract_number, unitId, rentAmount, paymentCount, fiscalYearId: activeFYId,
+      });
+      const createdSingle = await createContract.mutateAsync(asMutationArg(createContract, payload));
       const newIdSingle = (createdSingle as { id?: string } | undefined)?.id;
-      if (newIdSingle) await syncAllocations(newIdSingle, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount });
+      if (newIdSingle) await syncAllocations(newIdSingle, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
     }
-
   };
 
   const handleConfirmDelete = async () => {
