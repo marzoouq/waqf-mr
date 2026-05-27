@@ -87,8 +87,6 @@ export function useAccountsPage() {
   const { totalBenPct, unpaidInvoices, pendingAdvances } = extras;
 
 
-
-
   // 7. تصديرات CSV/PDF — مستخرجة في hook منفصل
   const fiscalYearLabel = data.selectedFY?.label || settings.fiscalYear || '';
   const { handleExportCsv, handleExportDisclosurePdf, handleExportDistributionPdf } = useAccountsExports({
