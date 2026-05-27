@@ -235,13 +235,15 @@ const FiscalYearManagementTab = () => {
 
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive gap-1 text-xs" disabled={actionLoading === fy.id || fy.status === 'active'} title={fy.status === 'active' ? 'أقفل السنة أولاً' : 'حذف'}><Trash2 className="w-3 h-3" /></Button>
+                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive gap-1 text-xs" disabled={actionLoading === fy.id || fy.status === 'active'} title={fy.status === 'active' ? 'استخدم "حذف السنة وكل بياناتها"' : 'حذف'}><Trash2 className="w-3 h-3" /></Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
-                        <AlertDialogHeader><AlertDialogTitle>حذف السنة المالية</AlertDialogTitle><AlertDialogDescription>هل أنت متأكد من حذف السنة "{fy.label}"؟</AlertDialogDescription></AlertDialogHeader>
+                        <AlertDialogHeader><AlertDialogTitle>حذف السنة المالية</AlertDialogTitle><AlertDialogDescription>هل أنت متأكد من حذف السنة "{fy.label}"؟ (تعمل فقط إذا لم تكن مرتبطة ببيانات)</AlertDialogDescription></AlertDialogHeader>
                         <AlertDialogFooter className="gap-2"><AlertDialogCancel>إلغاء</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(fy)} className="bg-destructive hover:bg-destructive/90">حذف</AlertDialogAction></AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
+
+                    <CascadeDeleteDialog fy={fy} onConfirm={() => handleCascadeDelete(fy)} loading={actionLoading === fy.id} />
                   </div>
                 </div>
               ))}
