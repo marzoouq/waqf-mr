@@ -33,6 +33,19 @@ export interface CollectionSummary {
   completeCount: number;
   collectionRate: number;
   total: number;
+  /** متأخرات استحقاقها داخل السنة المالية الحالية. 0 في وضع "كل السنوات". */
+  overdueInYearAmount: number;
+  overdueInYearCount: number;
+  /** متأخرات استحقاقها قبل بداية السنة المالية الحالية. 0 في وضع "كل السنوات". */
+  overdueFromPreviousAmount: number;
+  overdueFromPreviousCount: number;
+}
+
+/** دفعة فاتورة مبسّطة لاحتياج تصنيف المتأخر حسب سنة الاستحقاق. */
+export interface OverdueInvoiceLite {
+  due_date: string;
+  status: string;
+  amount: number;
 }
 
 /** عدد الدفعات المتوقعة كـ fallback عند عرض "جميع السنوات". */
@@ -147,13 +160,39 @@ export function filterCollectionRows(
   return [...result].sort((a, b) => b.overdue - a.overdue);
 }
 
-/** يحسب الملخص الإجمالي. */
-export function summarizeCollection(rows: CollectionRow[]): CollectionSummary {
+/** يحسب الملخص الإجمالي. يُمرَّر `invoices` و`fiscalYearStart` لتصنيف المتأخر حسب سنة الاستحقاق. */
+export function summarizeCollection(
+  rows: CollectionRow[],
+  invoices: OverdueInvoiceLite[] = [],
+  fiscalYearStart: string | null = null,
+): CollectionSummary {
   const totalExpected = rows.reduce((s, r) => s + r.totalAmount, 0);
   const totalCollected = rows.reduce((s, r) => s + r.collectedAmount, 0);
   const totalOverdue = rows.reduce((s, r) => s + r.overdueAmount, 0);
   const overdueCount = rows.filter(r => r.overdue > 0).length;
   const completeCount = rows.filter(r => r.status === 'complete').length;
   const collectionRate = totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0;
-  return { totalExpected, totalCollected, totalOverdue, overdueCount, completeCount, collectionRate, total: rows.length };
+
+  let overdueInYearAmount = 0, overdueInYearCount = 0;
+  let overdueFromPreviousAmount = 0, overdueFromPreviousCount = 0;
+  if (fiscalYearStart) {
+    const today = new Date().toISOString().slice(0, 10);
+    for (const inv of invoices) {
+      if (inv.status === 'paid') continue;
+      if (inv.due_date < fiscalYearStart) {
+        overdueFromPreviousAmount += safeNumber(inv.amount);
+        overdueFromPreviousCount++;
+      } else if (inv.due_date <= today) {
+        overdueInYearAmount += safeNumber(inv.amount);
+        overdueInYearCount++;
+      }
+    }
+  }
+
+  return {
+    totalExpected, totalCollected, totalOverdue, overdueCount, completeCount, collectionRate,
+    total: rows.length,
+    overdueInYearAmount, overdueInYearCount,
+    overdueFromPreviousAmount, overdueFromPreviousCount,
+  };
 }
