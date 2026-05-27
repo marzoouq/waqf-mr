@@ -11,7 +11,6 @@ import { useAccountsExtras } from './useAccountsExtras';
 import { useAccountsExports } from './useAccountsExports';
 
 
-
 export function useAccountsPage() {
   // 1. جلب البيانات
   const data = useAccountsData();
