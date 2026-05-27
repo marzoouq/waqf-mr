@@ -12,7 +12,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
 
 export const generateAccountsPDF = async (data: {
-  contracts: Array<{ contract_number: string; tenant_name: string; rent_amount: number; status: string }>;
+  contracts: Array<{ contract_number: string; tenant_name: string; rent_amount: number; status: string; start_date?: string | null }>;
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
   totalIncome: number;
@@ -33,9 +33,21 @@ export const generateAccountsPDF = async (data: {
   netAfterVat?: number;
   availableAmount?: number;
   remainingBalance?: number;
+  /** بداية السنة المالية الحالية. null في وضع "كل السنوات" — يُخفي عمود "النوع" وقسم تقسيم المتأخرات. */
+  fiscalYearStartDate?: string | null;
+  overdueFromPreviousAmount?: number;
+  overdueInYearAmount?: number;
 }, waqfInfo?: PdfWaqfInfo) => {
   const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
+
+  const showOrigin = data.fiscalYearStartDate != null;
+  const classifyOrigin = (startDate?: string | null): 'inYear' | 'fromPrevious' | 'unknown' => {
+    if (!showOrigin || !startDate) return 'unknown';
+    return startDate < (data.fiscalYearStartDate as string) ? 'fromPrevious' : 'inYear';
+  };
+  const originLabel = (k: ReturnType<typeof classifyOrigin>) =>
+    k === 'fromPrevious' ? 'مُرحّل' : k === 'inYear' ? 'جديد' : '—';
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
