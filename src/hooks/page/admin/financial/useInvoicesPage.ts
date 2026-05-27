@@ -55,6 +55,7 @@ export const useInvoicesPage = () => {
       invoice_type: inv.invoice_type,
       invoice_number: inv.invoice_number,
       amount: safeNumber(inv.amount),
+      vat_amount: safeNumber(inv.vat_amount ?? 0),
       date: inv.date,
       status: inv.status,
       file_path: inv.file_path,
@@ -67,6 +68,8 @@ export const useInvoicesPage = () => {
       invoice_type: 'rent_invoice',
       invoice_number: inv.invoice_number || null,
       amount: safeNumber(inv.amount),
+      paid_amount: safeNumber(inv.paid_amount ?? 0),
+      vat_amount: safeNumber(inv.vat_amount ?? 0),
       date: inv.due_date,
       status: inv.status,
       file_path: inv.file_path,
@@ -76,6 +79,7 @@ export const useInvoicesPage = () => {
     }));
     return [...expenseItems, ...rentItems].sort((a, b) => (a.date < b.date ? 1 : -1));
   }, [invoices, rentInvoices]);
+
 
   const unifiedFiltered = useMemo(() => unifiedInvoices.filter((item) => {
     if (sourceFilter !== 'all' && item.source !== sourceFilter) return false;

@@ -58,9 +58,10 @@ export function usePropertiesViewPage() {
   const summaryData = useMemo(() => {
     const totalProperties = properties?.length ?? 0;
     const totalVacant = totalUnits - occupiedUnits + propertiesWithoutUnitsNoContract;
+    // الإيرادات التعاقدية تُحسب من جدول allocations (DB) عبر الـ map الموحّد
     const contractualRevenue = (contracts ?? []).reduce((s, c) => {
       const alloc = allocationMap.get(c.id!);
-      return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? safeNumber(c.rent_amount) : 0));
+      return s + (alloc ? alloc.allocated_amount : 0);
     }, 0);
 
     const currentAccount = accounts?.[0];
@@ -75,10 +76,10 @@ export function usePropertiesViewPage() {
         : (contracts ?? []).filter(c => c.status === 'active');
       activeIncome = relevantContracts.reduce((s, c) => {
         const alloc = allocationMap.get(c.id!);
-        return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? safeNumber(c.rent_amount) : 0));
+        return s + (alloc ? alloc.allocated_amount : 0);
       }, 0);
-      const propExpensesAll = (expenses ?? []).filter(e => e.property_id);
-      totalExpensesAll = propExpensesAll.reduce((s, e) => s + safeNumber(e.amount), 0);
+      // المصروفات الكاملة (موحّدة مع التقارير الرسمية)
+      totalExpensesAll = (expenses ?? []).reduce((s, e) => s + safeNumber(e.amount), 0);
     }
     const netIncome = activeIncome - totalExpensesAll;
     const overallOccupancy = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
@@ -86,6 +87,7 @@ export function usePropertiesViewPage() {
     const occBarColor = overallOccupancy >= 80 ? '[&>div]:bg-success' : overallOccupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
     return { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor };
   }, [properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap]);
+
 
   // --- حساب المؤشرات المالية لكل عقار (مرة واحدة) ---
   const propertyFinancialsMap = useMemo(() => {

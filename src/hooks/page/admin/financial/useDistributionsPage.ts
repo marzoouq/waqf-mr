@@ -6,9 +6,11 @@
 import { useState } from 'react';
 import { useAccountsPage } from './useAccountsPage';
 import { useDistributionCalculation } from '@/hooks/domain/financial/useDistributionCalculation';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 export function useDistributionsPage() {
   const acc = useAccountsPage();
+  const { role } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const fyId = acc.fiscalYearId && acc.fiscalYearId !== 'all' ? acc.fiscalYearId : undefined;
@@ -20,9 +22,12 @@ export function useDistributionsPage() {
     true, // نحمّل السلف والمرحّل دائماً في الصفحة
   );
 
+
   return {
     // سياق
+    role,
     fiscalYear: acc.fiscalYear,
+
     fiscalYearId: acc.fiscalYearId,
     selectedFY: acc.selectedFY,
     isClosed: acc.isClosed,

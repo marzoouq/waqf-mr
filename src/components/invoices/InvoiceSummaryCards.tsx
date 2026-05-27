@@ -5,8 +5,15 @@ import { FileText, CheckCircle2, Clock, AlertTriangle, Ban, TrendingUp } from 'l
 import { cn } from '@/lib/cn';
 import { fmt } from '@/utils/format/format';
 
+interface InvoiceLike {
+  status: string;
+  amount: number;
+  paid_amount?: number;
+  vat_amount?: number;
+}
+
 interface InvoiceSummaryCardsProps {
-  invoices: Array<{ status: string; amount: number; vat_amount?: number }>;
+  invoices: InvoiceLike[];
   isLoading: boolean;
 }
 
@@ -27,15 +34,18 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
   }
 
   const total = invoices.length;
-  const paid = invoices.filter(i => i.status === 'paid');
+  // المسدد يشمل paid و partially_paid (موحّد عبر التطبيق)
+  const paid = invoices.filter(i => i.status === 'paid' || i.status === 'partially_paid');
   const pending = invoices.filter(i => i.status === 'pending');
   const overdue = invoices.filter(i => i.status === 'overdue');
   const cancelled = invoices.filter(i => i.status === 'cancelled');
   const totalAmount = invoices.reduce((s, i) => s + safeNumber(i.amount), 0);
-  const paidAmount = paid.reduce((s, i) => s + safeNumber(i.amount), 0);
+  // المبلغ المحصّل: paid_amount عند توفره (فواتير الإيجار)، وإلا amount (فواتير الشراء المسددة)
+  const paidAmount = paid.reduce((s, i) => s + safeNumber(i.paid_amount ?? i.amount), 0);
   const totalVat = invoices.reduce((s, i) => s + safeNumber(i.vat_amount ?? 0), 0);
   // نسبة التحصيل بالمبلغ (موحدة مع PaymentInvoicesTab)
   const collectionRate = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
+
 
   const cards = [
     {

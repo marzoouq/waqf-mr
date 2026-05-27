@@ -51,7 +51,7 @@ const InvoicesPage = () => {
 
         <LockedYearBanner isClosed={h.isClosed} role={role} iconSize="md" />
 
-        <InvoiceSummaryCards invoices={h.invoices} isLoading={h.isLoading} />
+        <InvoiceSummaryCards invoices={h.unifiedInvoices} isLoading={h.isLoading} />
 
         {/* تبويبات مصدر الفاتورة — يوحّد العرض مع لوحة المستفيد */}
         <Tabs value={h.sourceFilter} onValueChange={(v) => { h.setSourceFilter(v as 'all' | 'purchase' | 'rent'); h.setCurrentPage(1); }}>
