@@ -45,8 +45,6 @@ export function useAccountsPage() {
   const fiscalYearStartDate = data.selectedFY?.start_date ?? null;
   const overdueSplit = { prev: 0, cur: 0 };
 
-
-
   // 5. العمليات — تستقبل القيم الحقيقية مباشرة (بدون أصفار أو paramsRef خارجي)
   const actions = useAccountsActions({
     selectedFY: data.selectedFY,
@@ -85,7 +83,6 @@ export function useAccountsPage() {
   overdueSplit.cur = extras.overdueSplit.cur;
   const { totalBenPct, unpaidInvoices, pendingAdvances } = extras;
 
-
   // 7. تصديرات CSV/PDF — مستخرجة في hook منفصل
   const fiscalYearLabel = data.selectedFY?.label || settings.fiscalYear || '';
   const { handleExportCsv, handleExportDisclosurePdf, handleExportDistributionPdf } = useAccountsExports({
@@ -114,7 +111,6 @@ export function useAccountsPage() {
     beneficiaries: data.beneficiaries,
     totalBenPct,
   });
-
 
   return {
     // Data
