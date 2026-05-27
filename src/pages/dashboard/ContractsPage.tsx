@@ -46,14 +46,11 @@ const ContractsPage = () => {
             {isMobile ? (
               <NativeSelect value={activeTab} onValueChange={setActiveTab} options={[
                 { value: 'contracts', label: 'العقود' }, { value: 'accruals', label: 'الاستحقاقات الشهرية' },
-                { value: 'invoices', label: 'فواتير الدفعات' }, { value: 'collection', label: 'تقرير التحصيل' },
               ]} />
             ) : (
-              <TabsList className="grid w-full max-w-2xl grid-cols-4">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
                 <TabsTrigger value="contracts" className="gap-2"><FileText className="w-4 h-4" />العقود</TabsTrigger>
                 <TabsTrigger value="accruals" className="gap-2"><CalendarDays className="w-4 h-4" />الاستحقاقات</TabsTrigger>
-                <TabsTrigger value="invoices" className="gap-2"><Receipt className="w-4 h-4" />فواتير الدفعات</TabsTrigger>
-                <TabsTrigger value="collection" className="gap-2"><BarChart3 className="w-4 h-4" />تقرير التحصيل</TabsTrigger>
               </TabsList>
             )}
 
@@ -66,9 +63,23 @@ const ContractsPage = () => {
                 <MonthlyAccrualTable contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYearId={fiscalYearId} fiscalYear={fiscalYears?.find(fy => fy.id === fiscalYearId) ?? null} />
               </Suspense>
             </TabsContent>
-            <TabsContent value="invoices"><Suspense fallback={<TabFallback />}><PaymentInvoicesTab fiscalYearId={fiscalYearId} isClosed={!canModifyFiscalYear(role, isClosed)} /></Suspense></TabsContent>
-            <TabsContent value="collection"><Suspense fallback={<TabFallback />}><CollectionReport contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYears={fiscalYears} fiscalYearId={fiscalYearId} /></Suspense></TabsContent>
           </Tabs>
+
+          {/* روابط مختصرة لصفحات الاختصاص (بدل التبويبات السابقة) */}
+          <Card className="shadow-sm bg-muted/30">
+            <CardContent className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs sm:text-sm">
+              <span className="text-muted-foreground">للفواتير الضريبية وتقرير التحصيل، انتقل إلى صفحات الاختصاص.</span>
+              <div className="flex items-center gap-3">
+                <Link to="/dashboard/invoices" className="inline-flex items-center gap-1 text-primary hover:underline">
+                  <Receipt className="w-3.5 h-3.5" /> الفواتير الضريبية <ArrowLeft className="w-3.5 h-3.5" />
+                </Link>
+                <Link to="/dashboard/income?tab=collection" className="inline-flex items-center gap-1 text-primary hover:underline">
+                  <BarChart3 className="w-3.5 h-3.5" /> تقرير التحصيل <ArrowLeft className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
 
           <ContractFormDialog open={isOpen} onOpenChange={setIsOpen} editingContract={editingContract} properties={properties}
             activeContracts={contracts} onSubmit={handleFormSubmit} onReset={resetForm} isPending={isPending} initialFormData={formInitialData} />
