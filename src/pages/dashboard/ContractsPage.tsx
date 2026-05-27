@@ -21,8 +21,8 @@ const ContractsPage = () => {
   // موجة 17 — كل المنطق + side-effect hooks في useContractsPage
   const ctx = useContractsPage();
   const {
-    contracts, properties, paymentInvoices, fiscalYearId, fiscalYears, isClosed,
-    isLoading, isPending, role, isMobile,
+    contracts, properties, paymentInvoices, fiscalYearId, fiscalYears,
+    isLoading, isPending, isMobile,
     isOpen, setIsOpen, editingContract, deleteTarget, setDeleteTarget,
     bulkRenewOpen, setBulkRenewOpen, bulkRenewing, expiredContracts, selectedForRenewal,
     formInitialData, activeTab, setActiveTab,
