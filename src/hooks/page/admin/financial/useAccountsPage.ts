@@ -17,6 +17,7 @@ import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useAdvanceRequests } from '@/hooks/data/financial/useAdvanceRequests';
 import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/useTotalBeneficiaryPercentage';
 import { useAccountsExports } from './useAccountsExports';
+import { useOverdueSplit } from './useOverdueSplit';
 
 
 export function useAccountsPage() {
@@ -100,21 +101,8 @@ export function useAccountsPage() {
     [advanceRequests]
   );
 
-  // حساب فعلي لتقسيم المتأخرات بعد جلب الفواتير — يُستخدم لاحقاً في الـ return
-  const overdueSplitComputed = useMemo(() => {
-    if (!fiscalYearStartDate) return { prev: 0, cur: 0 };
-    const today = new Date().toISOString().slice(0, 10);
-    let prev = 0, cur = 0;
-    for (const inv of paymentInvoices) {
-      if (inv.status === 'paid') continue;
-      const due = inv.due_date;
-      if (!due) continue;
-      const amt = Number(inv.amount) || 0;
-      if (due < fiscalYearStartDate) prev += amt;
-      else if (due <= today) cur += amt;
-    }
-    return { prev, cur };
-  }, [paymentInvoices, fiscalYearStartDate]);
+  // حساب فعلي لتقسيم المتأخرات بعد جلب الفواتير — مستخرج إلى useOverdueSplit (#A3)
+  const overdueSplitComputed = useOverdueSplit(paymentInvoices, fiscalYearStartDate);
   overdueSplit.prev = overdueSplitComputed.prev;
   overdueSplit.cur = overdueSplitComputed.cur;
 
