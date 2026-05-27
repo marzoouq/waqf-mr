@@ -168,9 +168,12 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
           tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
         };
         // CRUD factory — موجة 15
-        await createContract.mutateAsync(asMutationArg(createContract, contractData));
+        const createdMulti = await createContract.mutateAsync(asMutationArg(createContract, contractData));
+        const newIdMulti = (createdMulti as { id?: string } | undefined)?.id;
+        if (newIdMulti) await syncAllocations(newIdMulti, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount });
         created++;
       }
+
       uiNotify.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
     } else {
       const rentAmount = parseFloat(formData.rent_amount);
