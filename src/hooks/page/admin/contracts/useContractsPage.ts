@@ -75,7 +75,8 @@ export const useContractsPage = () => {
     const expired = contracts.filter(c => c.status === 'expired');
     let totalRent: number;
     let activeRent: number;
-    if (isSpecificYear && contractAllocations.length > 0) {
+    const useAllocations = isSpecificYear && contractAllocations.length > 0;
+    if (useAllocations) {
       const allocMap = new Map<string, number>();
       contractAllocations.forEach(a => {
         allocMap.set(a.contract_id, (allocMap.get(a.contract_id) ?? 0) + safeNumber(a.allocated_amount));
@@ -92,7 +93,11 @@ export const useContractsPage = () => {
       return days > 0 && days <= EXPIRING_SOON_DAYS;
     });
     const activePercent = contracts.length > 0 ? Math.round((active.length / contracts.length) * 100) : 0;
-    return { total: contracts.length, active: active.length, activePercent, expired: expired.length, totalRent, activeRent, expiringSoon: soon.length };
+    return {
+      total: contracts.length, active: active.length, activePercent, expired: expired.length,
+      totalRent, activeRent, expiringSoon: soon.length,
+      revenueSource: (useAllocations ? 'allocated' : 'rent') as 'allocated' | 'rent',
+    };
   }, [contracts, contractAllocations, isSpecificYear]);
 
   const handleExportPdf = useCallback(async () => {
