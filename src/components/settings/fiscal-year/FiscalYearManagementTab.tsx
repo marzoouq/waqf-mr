@@ -147,7 +147,7 @@ const FiscalYearManagementTab = () => {
   const {
     fiscalYears, isLoading, creating, setCreating,
     newFY, setNewFY, actionLoading,
-    handleCreate, handleClose, handleReopen, togglePublished, handleDelete,
+    handleCreate, handleClose, handleReopen, togglePublished, handleDelete, handleCascadeDelete,
   } = useFiscalYearManagement();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
