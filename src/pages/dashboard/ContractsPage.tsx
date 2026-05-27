@@ -1,19 +1,18 @@
 import { lazy, Suspense } from 'react';
+import { Link } from 'react-router-dom';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NativeSelect } from '@/components/ui/native-select';
-import { FileText, Plus, CalendarDays, Receipt, BarChart3 } from 'lucide-react';
+import { FileText, Plus, CalendarDays, ArrowLeft, Receipt, BarChart3 } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
 import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent } from '@/components/contracts';
-import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import { useContractsPage } from '@/hooks/page/admin/contracts/useContractsPage';
 import { ContractsProvider } from '@/contexts/ContractsContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // تبويبات ثانوية — تُحمّل عند الطلب فقط
-const CollectionReport = lazy(() => import('@/components/contracts/CollectionReport'));
-const PaymentInvoicesTab = lazy(() => import('@/components/contracts/PaymentInvoicesTab'));
 const MonthlyAccrualTable = lazy(() => import('@/components/contracts/MonthlyAccrualTable'));
 
 const TabFallback = () => <div className="space-y-3 p-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>;
