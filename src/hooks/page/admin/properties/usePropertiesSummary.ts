@@ -74,10 +74,23 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
       }, 0);
       totalExpensesCalc = expenses.filter(e => e.property_id).reduce((s, e) => s + Number(e.amount), 0);
     }
-    const netIncome = activeIncome - totalExpensesCalc;
 
-    return { totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy, contractualRevenue, activeIncome, totalExpensesAll: totalExpensesCalc, netIncome, isClosed: !!isClosed };
-  }, [properties, allUnits, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap]);
+    // الإيراد المحصّل فعلياً = مجموع المدفوع من فواتير السنة المالية (المصدر الموحّد عبر التطبيق)
+    const collectedIncome = paymentInvoices.reduce((s, inv) => {
+      if (inv.status === 'paid' || inv.status === 'partially_paid') {
+        return s + safeNumber(inv.paid_amount);
+      }
+      return s;
+    }, 0);
+
+    const netIncome = collectedIncome - totalExpensesCalc;
+
+    return {
+      totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy,
+      contractualRevenue, activeIncome, collectedIncome,
+      totalExpensesAll: totalExpensesCalc, netIncome, isClosed: !!isClosed,
+    };
+  }, [properties, allUnits, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap, paymentInvoices]);
 
   const propertyOccupancy = useMemo(() => {
     const map = new Map<string, number>();
