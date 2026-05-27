@@ -32,6 +32,17 @@ export const deleteFiscalYear = async (fiscalYearId: string) => {
   if (error) throw error;
 };
 
+/**
+ * حذف شامل للسنة المالية وكل بياناتها المرتبطة (للناظر فقط).
+ * يستدعي دالة قاعدة بيانات آمنة تتحقق من دور الأدمن قبل التنفيذ.
+ */
+export const deleteFiscalYearCascade = async (fiscalYearId: string) => {
+  return await rpc<{ success: boolean; label: string; deleted: Record<string, number> }>(
+    'delete_fiscal_year_cascade',
+    { p_fiscal_year_id: fiscalYearId },
+  );
+};
+
 export const fetchActiveFiscalYear = async () => {
   const { data, error } = await supabase
     .from('fiscal_years')

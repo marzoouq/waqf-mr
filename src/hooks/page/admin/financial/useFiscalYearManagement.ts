@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { useFiscalYears, type FiscalYear } from '@/hooks/data/financial/useFiscalYears';
-import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY } from '@/lib/services';
+import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY, deleteFiscalYearCascade } from '@/lib/services';
 
 export function useFiscalYearManagement() {
   const { data: fiscalYears = [], isLoading } = useFiscalYears();
@@ -72,7 +72,7 @@ export function useFiscalYearManagement() {
 
   const handleDelete = async (fy: FiscalYear) => {
     if (fy.status === 'active') {
-      uiNotify.error('لا يمكن حذف سنة نشطة — أقفلها أولاً قبل الحذف');
+      uiNotify.error('لا يمكن حذف سنة نشطة بالحذف العادي — استخدم "حذف السنة وكل بياناتها"');
       return;
     }
     setActionLoading(fy.id);
@@ -83,9 +83,28 @@ export function useFiscalYearManagement() {
     } catch (err: unknown) {
       uiNotify.error(
         err instanceof Error && err.message?.includes('violates foreign key')
-          ? 'لا يمكن حذف سنة مرتبطة ببيانات مالية'
+          ? 'لا يمكن حذف سنة مرتبطة ببيانات مالية — استخدم "حذف السنة وكل بياناتها"'
           : 'حدث خطأ أثناء الحذف',
       );
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  /**
+   * حذف السنة وكل البيانات المرتبطة (للناظر فقط).
+   * يستخدم دالة قاعدة بيانات آمنة.
+   */
+  const handleCascadeDelete = async (fy: FiscalYear) => {
+    setActionLoading(fy.id);
+    try {
+      const res = await deleteFiscalYearCascade(fy.id);
+      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      queryClient.invalidateQueries();
+      const total = Object.values(res?.deleted ?? {}).reduce((a, b) => a + (b || 0), 0);
+      uiNotify.success(`تم حذف السنة "${fy.label}" وكل بياناتها (${total} سجل)`);
+    } catch (err: unknown) {
+      uiNotify.error(err instanceof Error ? err.message : 'حدث خطأ أثناء الحذف الشامل');
     } finally {
       setActionLoading(null);
     }
@@ -96,6 +115,6 @@ export function useFiscalYearManagement() {
     creating, setCreating,
     newFY, setNewFY,
     actionLoading,
-    handleCreate, handleClose, handleReopen, togglePublished, handleDelete,
+    handleCreate, handleClose, handleReopen, togglePublished, handleDelete, handleCascadeDelete,
   };
 }

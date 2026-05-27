@@ -2234,6 +2234,10 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      delete_fiscal_year_cascade: {
+        Args: { p_fiscal_year_id: string }
+        Returns: Json
+      }
       encrypt_pii: { Args: { p_value: string }; Returns: string }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
