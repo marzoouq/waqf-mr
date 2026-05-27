@@ -6,8 +6,8 @@ import { useState } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
 import type { Property } from '@/types';
 import { useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/data/properties/useProperties';
+import { usePropertyVatSync } from '@/hooks/data/properties/usePropertyVatSync';
 import { uiNotify } from '@/lib/notify';
-import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 
 const EMPTY_FORM = { property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false };
@@ -16,6 +16,7 @@ export function usePropertiesForm() {
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
   const deleteProperty = useDeleteProperty();
+  const vatSync = usePropertyVatSync();
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
@@ -47,11 +48,7 @@ export function usePropertiesForm() {
         await updateProperty.mutateAsync({ id: editingProperty.id, ...propertyData });
         if (vatExemptChanged) {
           try {
-            const { data, error } = await supabase.rpc('sync_property_contract_invoice_vat', { p_property_id: editingProperty.id });
-            if (error) throw error;
-            const result = (data ?? {}) as { updated?: number; skipped?: number };
-            const updated = Number(result.updated ?? 0);
-            const skipped = Number(result.skipped ?? 0);
+            const { updated, skipped } = await vatSync.mutateAsync(editingProperty.id);
             if (updated > 0 || skipped > 0) {
               uiNotify.success(`تمت مزامنة الضريبة: تم تحديث ${updated} فاتورة${skipped > 0 ? ` وتخطّي ${skipped} فاتورة محمية (مدفوعة/مرسلة لـ ZATCA)` : ''}`);
             }
