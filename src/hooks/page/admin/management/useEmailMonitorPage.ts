@@ -12,15 +12,7 @@ import { useEmailMonitorActions } from './useEmailMonitorActions';
 export type EmailRange = '24h' | '7d' | '30d' | 'custom';
 export type EmailStatusFilter = 'all' | 'sent' | 'dlq' | 'failed' | 'suppressed' | 'pending';
 
-export interface EmailLogRow {
-  id: string;
-  message_id: string | null;
-  template_name: string;
-  recipient_email: string;
-  status: string;
-  error_message: string | null;
-  created_at: string;
-}
+export type { EmailLogRow, EmailAdminStats } from '@/hooks/data/email/useEmailMonitor';
 
 export interface EmailStats {
   total: number;
@@ -29,13 +21,6 @@ export interface EmailStats {
   dlq: number;
   suppressed: number;
   pending: number;
-}
-
-export interface EmailAdminStats {
-  last_log_at: string | null;
-  auth_dlq_count: number;
-  transactional_dlq_count: number;
-  rate_limited_until: string | null;
 }
 
 const RANGE_HOURS: Record<Exclude<EmailRange, 'custom'>, number> = {
