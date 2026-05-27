@@ -1,12 +1,15 @@
 /**
- * بطاقة KPI + الملخص المالي + حالة العقود في لوحة الواقف
+ * بطاقة KPI + حالة العقود + ملخص التحصيل في لوحة الواقف
+ *
+ * ملاحظة Wave F: تم حذف كتلة "التسلسل المالي" (إجمالي الدخل/المصروفات/الريع القابل للتوزيع)
+ * لأنها مكررة مع /dashboard/reports + AnnualDisclosureTable. تُعرض الآن كرابط إرشادي للتقارير.
  */
 import { fmt } from '@/utils/format/format';
-import { safeNumber } from '@/utils/format/safeNumber';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Gauge, Wallet, FileText, CheckCircle, AlertTriangle, Info } from 'lucide-react';
+import { Gauge, FileText, CheckCircle, AlertTriangle, Info, ArrowLeft } from 'lucide-react';
 import { COLLECTION_SUMMARY_RULE_AR } from '@/constants/collectionRules';
 
 interface KpiItem {
@@ -26,10 +29,6 @@ interface CollectionSummary {
 interface WaqifFinancialSectionProps {
   kpis: KpiItem[];
   fiscalYearLabel: string;
-  totalIncome: number;
-  totalExpenses: number;
-  availableAmount: number;
-  isFiscalYearActive: boolean;
   activeContractsCount: number;
   expiredContractsCount: number;
   contractualRevenue: number;
@@ -37,7 +36,7 @@ interface WaqifFinancialSectionProps {
 }
 
 const WaqifFinancialSection = ({
-  kpis, fiscalYearLabel, totalIncome, totalExpenses, availableAmount, isFiscalYearActive,
+  kpis, fiscalYearLabel,
   activeContractsCount, expiredContractsCount, contractualRevenue, collectionSummary,
 }: WaqifFinancialSectionProps) => (
   <>
@@ -63,36 +62,13 @@ const WaqifFinancialSection = ({
       </CardContent>
     </Card>
 
-    {/* ═══ Financial Summary + Contracts Status ═══ */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Wallet className="w-5 h-5" /> التسلسل المالي
-            <Badge variant="outline" className="text-[11px]">{fiscalYearLabel || '—'}</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {[
-            { label: 'إجمالي الدخل', value: totalIncome, cls: 'text-primary' },
-            { label: 'إجمالي المصروفات', value: totalExpenses, cls: 'text-destructive' },
-            { label: 'الريع القابل للتوزيع', value: availableAmount, cls: 'font-bold text-lg' },
-          ].map((row, i) => (
-            <div key={row.label} className={`flex items-center justify-between p-3 rounded-lg ${i === 2 ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30'}`}>
-              <span className="text-sm text-muted-foreground">{row.label}</span>
-              <span className={`font-bold ${row.cls}`}>
-                {i === 2 && isFiscalYearActive ? 'تُحسب عند الإقفال' : `${fmt(safeNumber(row.value))} ر.س`}
-              </span>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><FileText className="w-5 h-5" /> حالة العقود والتحصيل</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+    {/* ═══ Contracts Status — التسلسل المالي مُرحَّل للتقارير ═══ */}
+    <Card className="shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><FileText className="w-5 h-5" /> حالة العقود والتحصيل</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
             <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-primary" /><span className="text-sm">نشطة</span></div>
             <Badge variant="default">{activeContractsCount}</Badge>
@@ -102,11 +78,14 @@ const WaqifFinancialSection = ({
             <Badge variant="secondary">{expiredContractsCount}</Badge>
           </div>
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-            <span className="text-sm text-muted-foreground">إجمالي قيمة العقود النشطة</span>
-            <span className="font-bold">{fmt(contractualRevenue)} ر.س</span>
+            <span className="text-sm text-muted-foreground">قيمة العقود</span>
+            <span className="font-bold tabular-nums">{fmt(contractualRevenue)} ر.س</span>
           </div>
-          {collectionSummary.total > 0 && (
-            <>
+        </div>
+
+        {collectionSummary.total > 0 && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex items-center justify-between p-3 rounded-lg bg-success/5 border border-success/20">
                 <span className="text-sm">مسددة (كاملاً أو جزئياً)</span>
                 <span className="font-bold text-success">{collectionSummary.onTime} فاتورة</span>
@@ -117,15 +96,27 @@ const WaqifFinancialSection = ({
                   <span className="font-bold text-destructive">{collectionSummary.late} فاتورة</span>
                 </div>
               )}
-              <p className="flex items-start gap-2 text-xs text-muted-foreground border-t pt-3">
-                <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
-                <span>{COLLECTION_SUMMARY_RULE_AR}</span>
-              </p>
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+            </div>
+            <p className="flex items-start gap-2 text-xs text-muted-foreground border-t pt-3">
+              <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+              <span>{COLLECTION_SUMMARY_RULE_AR}</span>
+            </p>
+          </>
+        )}
+
+        <Link
+          to="/dashboard/reports"
+          className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors"
+        >
+          <span className="text-sm text-muted-foreground">
+            للاطلاع على التسلسل المالي الكامل (الدخل، المصروفات، الريع القابل للتوزيع)
+          </span>
+          <span className="inline-flex items-center gap-1 text-sm font-medium text-primary shrink-0">
+            التقارير المالية <ArrowLeft className="w-3.5 h-3.5" />
+          </span>
+        </Link>
+      </CardContent>
+    </Card>
   </>
 );
 

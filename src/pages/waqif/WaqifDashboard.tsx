@@ -22,7 +22,7 @@ const WaqifDashboard = () => {
     isLoading, noPublishedYears,
     displayName, welcome,
     overviewStats, kpis,
-    fiscalYear, totalIncome, totalExpenses, availableAmount,
+    fiscalYear,
     activeContracts, expiredContracts,
     contractualRevenue, collectionSummary,
     monthlyData, expenseData,
@@ -56,10 +56,6 @@ const WaqifDashboard = () => {
             <WaqifFinancialSection
               kpis={kpis}
               fiscalYearLabel={fiscalYear?.label || ''}
-              totalIncome={totalIncome}
-              totalExpenses={totalExpenses}
-              availableAmount={availableAmount}
-              isFiscalYearActive={fiscalYear?.status === 'active'}
               activeContractsCount={activeContracts.length}
               expiredContractsCount={expiredContracts.length}
               contractualRevenue={contractualRevenue}
