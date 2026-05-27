@@ -1,12 +1,19 @@
 /**
  * هوك CRUD نموذج العقد — منطق التحرير والتجديد والإنشاء
  * مُستخرج من useContractsPage لتقليل حجم الملف الأصلي (#29)
+ *
+ * P1-1: بعد كل إنشاء/تحديث للعقد نُحدِّث `contract_fiscal_allocations`
+ * تلقائياً لضمان دقة الإيرادات والاستحقاق في صفحات العقارات.
  */
 import { useState, useCallback } from 'react';
 import { Contract } from '@/types';
 import { emptyFormData, type ContractFormData } from '@/types/forms/contract';
 import { uiNotify } from '@/lib/notify';
+import { logger } from '@/lib/logger';
 import { useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
+import { useUpsertContractAllocations } from '@/hooks/data/financial/useContractAllocations';
+import { useFiscalYears } from '@/hooks/data/financial/useFiscalYears';
+import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { asMutationArg } from '@/hooks/data/core';
 
@@ -19,6 +26,9 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
+  const upsertAllocations = useUpsertContractAllocations();
+  const { data: fiscalYearsFull = [] } = useFiscalYears();
+
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
@@ -75,7 +85,29 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
     setIsOpen(true);
   }, []);
 
+  // P1-1: مزامنة تخصيصات السنوات المالية بعد كل عملية حفظ.
+  // مكتومة الأخطاء لئلا تكسر تجربة المستخدم — التخصيصات تُقرأ في صفحات
+  // العقارات/التقارير، وغيابها يعود لـ fallback آمن في usePropertyFinancials.
+  const syncAllocations = useCallback(
+    async (contractId: string, contract: { start_date: string; end_date: string; rent_amount: number; payment_type?: string; payment_count?: number; payment_amount?: number }) => {
+      if (!fiscalYearsFull.length) return;
+      try {
+        const allocations = allocateContractToFiscalYears(
+          { id: contractId, ...contract },
+          fiscalYearsFull,
+        );
+        if (allocations.length > 0) {
+          await upsertAllocations.mutateAsync(allocations);
+        }
+      } catch (err) {
+        logger.warn('Allocation sync skipped:', err instanceof Error ? err.message : String(err));
+      }
+    },
+    [fiscalYearsFull, upsertAllocations],
+  );
+
   const handleFormSubmit = async (formData: ContractFormData, isEditing: boolean) => {
+
     if (formData.end_date <= formData.start_date) {
       uiNotify.error('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
       return;
@@ -97,8 +129,10 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
       };
       // CRUD factory — استخدام asMutationArg لتأمين النوع (موجة 15)
       await updateContract.mutateAsync(asMutationArg(updateContract, { id: editingContract.id, ...contractData }));
+      await syncAllocations(editingContract.id, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount });
       return;
     }
+
 
     const contextFYId = fiscalYearId && fiscalYearId !== 'all' ? fiscalYearId : null;
     let activeFYId = contextFYId;
@@ -134,9 +168,12 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
           tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
         };
         // CRUD factory — موجة 15
-        await createContract.mutateAsync(asMutationArg(createContract, contractData));
+        const createdMulti = await createContract.mutateAsync(asMutationArg(createContract, contractData));
+        const newIdMulti = (createdMulti as { id?: string } | undefined)?.id;
+        if (newIdMulti) await syncAllocations(newIdMulti, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount });
         created++;
       }
+
       uiNotify.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
     } else {
       const rentAmount = parseFloat(formData.rent_amount);
@@ -155,8 +192,11 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
       };
       if (activeFY?.id) contractData.fiscal_year_id = activeFY.id;
       // CRUD factory — موجة 15
-      await createContract.mutateAsync(asMutationArg(createContract, contractData));
+      const createdSingle = await createContract.mutateAsync(asMutationArg(createContract, contractData));
+      const newIdSingle = (createdSingle as { id?: string } | undefined)?.id;
+      if (newIdSingle) await syncAllocations(newIdSingle, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount });
     }
+
   };
 
   const handleConfirmDelete = async () => {
