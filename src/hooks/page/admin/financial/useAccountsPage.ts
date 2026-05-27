@@ -49,6 +49,12 @@ export function useAccountsPage() {
     getExpectedPayments: calc.getExpectedPayments,
   });
 
+  // فصل المتأخرات حسب السنة المالية — مبدئياً 0، يُعاد حسابه بعد جلب paymentInvoices
+  const fiscalYearStartDate = data.selectedFY?.start_date ?? null;
+  const overdueSplit = { prev: 0, cur: 0 };
+
+
+
   // 5. العمليات — تستقبل القيم الحقيقية مباشرة (بدون أصفار أو paramsRef خارجي)
   const actions = useAccountsActions({
     selectedFY: data.selectedFY,
@@ -75,6 +81,9 @@ export function useAccountsPage() {
     zakatAmount: settings.zakatAmount,
     waqfCorpusManual: settings.waqfCorpusManual,
     waqfCorpusPrevious: settings.waqfCorpusPrevious,
+    fiscalYearStartDate,
+    overdueFromPreviousAmount: overdueSplit.prev,
+    overdueInYearAmount: overdueSplit.cur,
   });
 
   // 6. بيانات إقفال السنة — فواتير غير مدفوعة وسلف معلّقة
@@ -90,6 +99,25 @@ export function useAccountsPage() {
     advanceRequests.filter(r => r.status === 'pending').length,
     [advanceRequests]
   );
+
+  // حساب فعلي لتقسيم المتأخرات بعد جلب الفواتير — يُستخدم لاحقاً في الـ return
+  const overdueSplitComputed = useMemo(() => {
+    if (!fiscalYearStartDate) return { prev: 0, cur: 0 };
+    const today = new Date().toISOString().slice(0, 10);
+    let prev = 0, cur = 0;
+    for (const inv of paymentInvoices) {
+      if (inv.status === 'paid') continue;
+      const due = inv.due_date;
+      if (!due) continue;
+      const amt = Number(inv.amount) || 0;
+      if (due < fiscalYearStartDate) prev += amt;
+      else if (due <= today) cur += amt;
+    }
+    return { prev, cur };
+  }, [paymentInvoices, fiscalYearStartDate]);
+  overdueSplit.prev = overdueSplitComputed.prev;
+  overdueSplit.cur = overdueSplitComputed.cur;
+
 
   // 7. تصديرات CSV/PDF — مستخرجة في hook منفصل
   const fiscalYearLabel = data.selectedFY?.label || settings.fiscalYear || '';
@@ -128,7 +156,7 @@ export function useAccountsPage() {
     accounts: data.accounts, contracts: data.contracts, beneficiaries: data.beneficiaries,
     income: data.income, expenses: data.expenses, isLoading: data.isLoading,
     selectedFY: data.selectedFY, fiscalYear: settings.fiscalYear, fiscalYears: data.fiscalYears,
-    fiscalYearId: data.fiscalYearId, isClosed: data.isClosed, currentAccount: settings.currentAccount,
+    fiscalYearId: data.fiscalYearId, fiscalYearStartDate, isClosed: data.isClosed, currentAccount: settings.currentAccount,
     // Settings
     adminPercent: settings.adminPercent, waqifPercent: settings.waqifPercent,
     zakatAmount: settings.zakatAmount, waqfCorpusManual: settings.waqfCorpusManual,

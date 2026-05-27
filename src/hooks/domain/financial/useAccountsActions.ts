@@ -13,7 +13,7 @@ import { fmt } from '@/utils/format/format';
 import type { Account, Contract, Beneficiary } from '@/types';
 
 interface ActionsParams {
-  selectedFY: { id: string; label: string; status: string } | null;
+  selectedFY: { id: string; label: string; status: string; start_date?: string | null } | null;
   fiscalYear: string;
   fiscalYearId: string | undefined;
   accounts: Account[];
@@ -38,6 +38,10 @@ interface ActionsParams {
   zakatAmount: number;
   waqfCorpusManual: number;
   waqfCorpusPrevious: number;
+  // فصل المتأخرات حسب السنة المالية (اختياري)
+  fiscalYearStartDate?: string | null;
+  overdueFromPreviousAmount?: number;
+  overdueInYearAmount?: number;
 }
 
 export function useAccountsActions(params: ActionsParams) {
@@ -154,6 +158,9 @@ export function useAccountsActions(params: ActionsParams) {
         grandTotal: p.grandTotal,
         availableAmount: p.availableAmount,
         remainingBalance: p.remainingBalance,
+        fiscalYearStartDate: p.fiscalYearStartDate ?? null,
+        overdueFromPreviousAmount: p.overdueFromPreviousAmount ?? 0,
+        overdueInYearAmount: p.overdueInYearAmount ?? 0,
       });
       uiNotify.success('تم تصدير التقرير بنجاح');
     } catch {

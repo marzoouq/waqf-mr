@@ -1,133 +1,108 @@
-# خطة نهائية موحّدة — فصل العقود والمتأخرات حسب السنة المالية
+## الهدف
 
-## قاموس موحّد (يُلتزم به في كل الطبقات)
+توضيح فصل العقود المُرحّلة عن الجديدة، وفصل المتأخرات حسب السنة المالية، في **3 مواضع**: صفحة الحسابات الختامية، صفحة العقود (بطاقات + كشف)، وPDF الحسابات الختامية. مع اختبارات تكامل وحدود.
 
-محور زمني واحد بكلمتَي مفتاح متناظرتَين: `inYear` (داخل السنة) / `fromPrevious` (من قبلها).
+## 1) صفحة الحسابات الختامية — التوضيح + سطر إجمالي الدفعات
 
-| المفهوم | مفتاح برمجي | تسمية عربية في الواجهة |
-|---|---|---|
-| عقد بدأ داخل السنة الحالية | `contractsInYear` | عقود جديدة في السنة |
-| عقد بدأ قبل السنة الحالية وما زال يظهر فيها | `contractsFromPrevious` | عقود مستمرة من سنة سابقة |
-| فاتورة استحقاقها داخل السنة الحالية وغير مدفوعة | `overdueInYear` | متأخرات هذه السنة |
-| فاتورة استحقاقها قبل السنة الحالية وغير مدفوعة | `overdueFromPrevious` | متأخرات من سنوات سابقة |
+**`src/components/accounts/AccountsContractsTable.tsx`**
+- استقبال prop جديد `fiscalYearStartDate: string | null`.
+- إضافة عمود **النوع** (شارة `مُرحّل` / `جديد` / لا شيء عند `unknown`) قبل عمود "الحالة".
+- ملء الخانة الفارغة في `TableFooter` تحت "عدد الدفعات" بـ **إجمالي الدفعات** = مجموع `getExpectedPayments` لكل العقود + ملصق `دفعة`.
+- إضافة عداد سفلي تحت الإجمالي: `مُرحّل: X | جديد: Y` (يظهر فقط عند `fiscalYearStartDate !== null`).
+- عرض الموبايل: شارة النوع داخل كل بطاقة + سطر "إجمالي الدفعات" في بطاقة الإجمالي.
 
-تعريف رياضي:
+**`src/hooks/page/admin/accounts/useAccountsPage.ts`** (أو الـ hook المرتبط بـ `AccountsPage`)
+- استخراج `fiscalYear?.start_date ?? null` من `FiscalYearContext` وتمريره للجدول.
 
-```text
-contractsFromPrevious  ⇔ contract.start_date < fiscalYear.start_date
-contractsInYear        ⇔ contract.start_date ≥ fiscalYear.start_date
-overdueFromPrevious    ⇔ invoice.due_date    < fiscalYear.start_date AND status ≠ 'paid'
-overdueInYear          ⇔ invoice.due_date    ≥ fiscalYear.start_date AND invoice.due_date ≤ today AND status ≠ 'paid'
+## 2) صفحة العقود — عرض تفصيلي للمتأخرات في البطاقات والكشف
+
+**`src/components/contracts/CollectionSummaryCards.tsx`** — موجود جزئياً؛ التأكد من ظهور سطرَي "من سنوات سابقة" و"هذه السنة" بوضوح تحت بطاقة "المتأخر" مع لون `text-destructive` للمرحّل، وإخفاؤهما عند `fiscalYearStart === null`.
+
+**`src/components/contracts/CollectionReport.tsx`** — إضافة قسم تفصيلي (لوحة صغيرة) تحت البطاقات يعرض:
+- "متأخرات من سنوات سابقة: X ر.س (N فاتورة)"
+- "متأخرات هذه السنة: Y ر.س (M فاتورة)"
+- يظهر فقط عند `fiscalYearStart !== null`.
+
+> هذا يتطلب توسيع `summarizeCollection` لإرجاع `overdueFromPreviousCount` و`overdueInYearCount` (يوجد `Amount` فقط — نُضيف `Count`).
+
+## 3) PDF الحسابات الختامية — تقسيم المتأخرات
+
+**`src/utils/pdf/entities/accountsPdf.ts`**
+- توسيع `data` بـ:
+  - `fiscalYearStartDate?: string | null`
+  - `contracts[].start_date?: string` (اختياري)
+  - `overdueFromPreviousAmount?: number`, `overdueInYearAmount?: number`
+- جدول العقود: إضافة عمود **النوع** (`مُرحّل` / `جديد` / `—`) + صف `foot` ثانٍ:
+  ```
+  ['إجمالي الدفعات', N]
+  ['مُرحّل / جديد', `X / Y`]
+  ```
+- **قسم جديد** "المتأخرات حسب السنة المالية" بين قسم المصروفات والتوزيع (يظهر فقط عند `fiscalYearStartDate !== null` وعند وجود أي مبلغ متأخر):
+  ```
+  من سنوات سابقة | -X
+  هذه السنة      | -Y
+  الإجمالي       | -(X+Y)
+  ```
+
+**`src/pages/dashboard/AccountsPage.tsx` / hook الطباعة**
+- تمرير `fiscalYearStartDate` + `start_date` للعقود + قيم المتأخرات من `summarizeCollection` إلى `generateAccountsPDF`.
+
+## 4) إخفاء الفلاتر في وضع "كل السنوات" — تأكيد
+
+موجود بالفعل في `ContractsFiltersBar` (خياران مخفيان عند `fiscalYearStartDate === null`). نضيف **اختبار صريح** لضمان عدم التراجع.
+
+## 5) الاختبارات
+
+**a) وحدة — حدود التاريخ** `src/utils/financial/contractClassification.test.ts`
+- إضافة:
+  - تماماً يوم بداية السنة → `inYear`
+  - يوم واحد قبل البداية → `fromPrevious`
+  - استقرار: نفس المدخل عبر 100 استدعاء يُرجع نفس النتيجة (no randomness).
+
+**b) تكامل** `src/test/contractsFiltersCollectionReport.integration.test.tsx` (جديد)
+- يُحاكي `CollectionReport` داخل `FiscalYearContext` بقيمتين مختلفتين لـ `fiscalYearId`:
+  1. تغيير `fiscalYearId` يحدّث الفلاتر والبطاقات فوراً.
+  2. وضع `'all'` → بطاقتا "من سنوات سابقة / هذه السنة" مخفيتان + خيارا الفلتر مخفيان.
+  3. تغيير `fiscalYearId` يُعيد تصنيف العقود ويظهر الفصل.
+
+**c) وحدة موسعة** `src/hooks/page/admin/contracts/useContractsFilters.test.ts`
+- إضافة حالة: عند `fiscalYearStartDate === null` ⇒ `statusCounts.contractsInYear === 0` و`contractsFromPrevious === 0` ولا يؤثر على نتائج الفلاتر الأخرى.
+
+**d) PDF** `src/utils/pdf/entities/accountsPdf.test.ts` (إن لم يوجد، نُنشئه بـ snapshot لقائمة الصفوف فقط — لا نولّد PDF فعلي).
+
+## ما لا يتغيّر
+
+- لا تغييرات DB / RPC / RLS / ZATCA.
+- لا تغييرات في صفحات المستفيد/المحاسب (نطاق منفصل لاحقاً).
+- لا تغيير في منطق `classifyContractOrigin` أو `summarizeCollection` الحسابي — فقط **إضافة** حقول `Count` الجديدة.
+- الملفات المحمية (`client.ts`, `types.ts`, `config.toml`, `.env`) لا تُلمس.
+
+## الملفات المتأثرة
+
+```
+تعديل:
+  src/components/accounts/AccountsContractsTable.tsx
+  src/hooks/page/admin/accounts/useAccountsPage.ts  (أو ما يعادله)
+  src/pages/dashboard/AccountsPage.tsx              (تمرير بسيط)
+  src/components/contracts/CollectionSummaryCards.tsx
+  src/components/contracts/CollectionReport.tsx
+  src/utils/financial/collectionCompute.ts          (+ Count fields)
+  src/utils/pdf/entities/accountsPdf.ts
+
+تحديث اختبارات:
+  src/utils/financial/contractClassification.test.ts
+  src/hooks/page/admin/contracts/useContractsFilters.test.ts
+  src/components/accounts/AccountsContractsTable.test.tsx
+
+جديد:
+  src/test/contractsFiltersCollectionReport.integration.test.tsx
+  src/utils/pdf/entities/accountsPdf.test.ts  (snapshot صفوف فقط)
 ```
 
-في وضع `'all'` (`isSpecificYear === false`): التصنيف غير معرَّف ⇒ تُخفى الفلاتر الجديدة ويُخفى السطر الفرعي في بطاقة المتأخر.
+## معايير القبول
 
----
-
-## نتائج التحقق الجنائي (مثبّتة بالكود)
-
-1. `FiscalYearContext` يوفّر `fiscalYear` كاملاً مع `start_date` — لا حاجة لـ `fiscalYears.find()`.
-2. `useContractsByFiscalYear` يفلتر بـ `eq('fiscal_year_id', …)`. عمود `contracts.start_date` يبقى أصلياً بعد أي تجديد، لذا التصنيف يعمل داخل النتيجة المُجلَبة.
-3. `paymentInvoices.due_date` متاح لكل دفعة ⇒ تصنيف المتأخرات يعتمد على الفاتورة لا العقد.
-
----
-
-## التغييرات (7 ملفات فقط)
-
-### 1) `src/utils/financial/contractClassification.ts` — جديد (≤25 سطر)
-
-```ts
-export type ContractOriginClass = 'inYear' | 'fromPrevious' | 'unknown';
-
-export function classifyContractOrigin(
-  contractStartDate: string,
-  fiscalYearStartDate: string | null,
-): ContractOriginClass {
-  if (!fiscalYearStartDate) return 'unknown';
-  return contractStartDate < fiscalYearStartDate ? 'fromPrevious' : 'inYear';
-}
-```
-
-+ `contractClassification.test.ts` بثلاث حالات.
-
-### 2) `src/hooks/page/admin/contracts/useContractsFilters.ts`
-
-- توسيع `StatusFilterValue` بقيمتين: `'contractsInYear'`, `'contractsFromPrevious'`.
-- استقبال `fiscalYearStartDate: string | null` كمعامل.
-- إضافة عدّادَين في `statusCounts`: `contractsInYear`, `contractsFromPrevious` (يُحتسبان فقط عند توفّر `fiscalYearStartDate`).
-- منطق الفلترة يستدعي `classifyContractOrigin`.
-
-### 3) `src/hooks/page/admin/contracts/useContractsFilters.test.ts`
-
-- ثلاث حالات: عقد ضمن السنة، عقد مستمر، وضع كل السنوات.
-
-### 4) `src/components/contracts/ContractsFiltersBar.tsx`
-
-- توسيع `StatusCounts` بحقلَي العدّادَين الجديدَين.
-- إضافة قسم في القائمة بفاصل `─── حسب السنة المالية ───`:
-  - «عقود جديدة في السنة (N)» → `contractsInYear`
-  - «عقود مستمرة من سنة سابقة (N)» → `contractsFromPrevious`
-- إخفاء القسم بالكامل عند `fiscalYearStartDate === null`.
-
-### 5) `src/hooks/page/admin/contracts/useContractsPage.ts`
-
-- استدعاء `useFiscalYear()` واستخراج `fiscalYear?.start_date ?? null`.
-- تمرير القيمة إلى `useContractsFilters` وإلى `ContractsFiltersBar`.
-
-### 6) `src/utils/financial/collectionCompute.ts`
-
-- توسيع `summarizeCollection(rows, invoices, fiscalYearStart)` بأربعة حقول:
-  - `overdueInYearAmount`
-  - `overdueInYearCount`
-  - `overdueFromPreviousAmount`
-  - `overdueFromPreviousCount`
-- التصنيف يعتمد على `invoice.due_date` مقارنةً بـ `fiscalYearStart`.
-- عند `fiscalYearStart === null` تُترك الحقول الأربعة `0` ولا يتم عرض السطر الفرعي.
-
-### 7) `src/hooks/page/admin/financial/useCollectionData.ts`
-
-- تمرير `fiscalYear?.start_date ?? null` إلى `summarizeCollection`.
-
-### 8) `src/components/contracts/CollectionSummaryCards.tsx`
-
-- بطاقة «المتأخر» تبقى كما هي.
-- إضافة سطر فرعي صغير تحتها (يظهر فقط عند `fiscalYearStart !== null` ووجود قيمة موجبة):
-  - «من سنوات سابقة: X ر.س»
-  - «هذه السنة: Y ر.س»
-
-(الترقيم 7 ملفات + ملف الاختبار للدالة النقية = 8 إجمالاً.)
-
----
-
-## ما لن يتغير
-
-- لا تعديلات قاعدة بيانات / RLS / RPC / ZATCA.
-- لا تعديل في توزيع الريع أو احتساب الإيراد أو شاشات المستفيد/الواقف.
-- لا `DashboardAlerts` ولا `OverdueTenantsReport` ولا بطاقة جديدة في لوحة الناظر.
-- لا ذاكرة جديدة (`mem://`) في هذه الموجة — تُضاف بعد تثبيت التنفيذ.
-
----
-
-## سيناريوهات التحقق
-
-| # | السيناريو | الفلتر | المتأخر |
-|---|---|---|---|
-| 1 | عقد بدأ بعد بداية السنة، منتظم | `contractsInYear` | لا يظهر |
-| 2 | عقد بدأ قبل بداية السنة، منتظم | `contractsFromPrevious` | لا يظهر |
-| 3 | عقد بدأ قبل السنة وعليه فاتورة قديمة غير مدفوعة | `contractsFromPrevious` | داخل «من سنوات سابقة» |
-| 4 | عقد جديد وعليه فاتورة حالية متأخرة | `contractsInYear` | داخل «هذه السنة» |
-| 5 | وضع «كل السنوات» | الفلاتر مخفية | السطر الفرعي مخفي |
-
----
-
-## مصفوفة الاتساق (للمراجعة قبل الموافقة)
-
-```text
-المفتاح البرمجي       ↔ الواجهة العربية                ↔ مصدر التصنيف
-contractsInYear        ↔ عقود جديدة في السنة            ↔ contracts.start_date
-contractsFromPrevious  ↔ عقود مستمرة من سنة سابقة       ↔ contracts.start_date
-overdueInYear          ↔ متأخرات هذه السنة              ↔ payment_invoices.due_date
-overdueFromPrevious    ↔ متأخرات من سنوات سابقة         ↔ payment_invoices.due_date
-```
-
-نفس الجذرين (`InYear` / `FromPrevious`) عبر العقود والمتأخرات — لا تذبذب، لا تعارض مع «رقبة الوقف المرحّلة» أو `advance_carryforward` أو إقفال السنة.
+- في `/dashboard/accounts` يظهر عمود "النوع" + سطر "إجمالي الدفعات" في الجدول والموبايل.
+- في `/dashboard/contracts` بطاقة "المتأخر" تُظهر سطرَي التقسيم + قسم تفصيلي في `CollectionReport`.
+- PDF الحسابات الختامية يحوي عمود النوع + قسم "المتأخرات حسب السنة المالية".
+- وضع "كل السنوات" يُخفي كل عناصر التصنيف (شارات/بطاقات/أقسام/فلاتر).
+- جميع الاختبارات (وحدة + تكامل) خضراء.

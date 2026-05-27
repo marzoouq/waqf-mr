@@ -89,6 +89,7 @@ const AccountsPage = () => {
           totalAnnualRent={page.totalAnnualRent} statusLabel={page.statusLabel}
           onEditContract={page.handleOpenContractEdit}
           onDeleteContract={(id, name) => page.setDeleteTarget({ type: 'contract', id, name })}
+          fiscalYearStartDate={page.fiscalYearStartDate}
         />
 
         <AccountsCollectionTable

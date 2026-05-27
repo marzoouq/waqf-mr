@@ -12,7 +12,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
 
 export const generateAccountsPDF = async (data: {
-  contracts: Array<{ contract_number: string; tenant_name: string; rent_amount: number; status: string }>;
+  contracts: Array<{ contract_number: string; tenant_name: string; rent_amount: number; status: string; start_date?: string | null }>;
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
   totalIncome: number;
@@ -33,9 +33,21 @@ export const generateAccountsPDF = async (data: {
   netAfterVat?: number;
   availableAmount?: number;
   remainingBalance?: number;
+  /** بداية السنة المالية الحالية. null في وضع "كل السنوات" — يُخفي عمود "النوع" وقسم تقسيم المتأخرات. */
+  fiscalYearStartDate?: string | null;
+  overdueFromPreviousAmount?: number;
+  overdueInYearAmount?: number;
 }, waqfInfo?: PdfWaqfInfo) => {
   const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
+
+  const showOrigin = data.fiscalYearStartDate != null;
+  const classifyOrigin = (startDate?: string | null): 'inYear' | 'fromPrevious' | 'unknown' => {
+    if (!showOrigin || !startDate) return 'unknown';
+    return startDate < (data.fiscalYearStartDate as string) ? 'fromPrevious' : 'inYear';
+  };
+  const originLabel = (k: ReturnType<typeof classifyOrigin>) =>
+    k === 'fromPrevious' ? 'مُرحّل' : k === 'inYear' ? 'جديد' : '—';
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -44,17 +56,33 @@ export const generateAccountsPDF = async (data: {
   // العقود
   doc.setFontSize(13);
   doc.text(rs('العقود'), 105, startY + 18, { align: 'center' });
+  const contractHead = showOrigin
+    ? ['رقم العقد', 'المستأجر', 'النوع', 'الإيجار السنوي', 'الإيجار الشهري']
+    : ['رقم العقد', 'المستأجر', 'الإيجار السنوي', 'الإيجار الشهري'];
+  let countInYear = 0, countFromPrevious = 0;
+  const contractBody = data.contracts.map(c => {
+    const origin = classifyOrigin(c.start_date);
+    if (origin === 'inYear') countInYear++;
+    else if (origin === 'fromPrevious') countFromPrevious++;
+    const monthly = fmt(Math.round(safeNumber(c.rent_amount) / 12), 0);
+    const annual = fmt(safeNumber(c.rent_amount));
+    return reshapeRow(
+      showOrigin
+        ? [c.contract_number, c.tenant_name, originLabel(origin), annual, monthly]
+        : [c.contract_number, c.tenant_name, annual, monthly],
+    );
+  });
+  const contractFoot = showOrigin
+    ? [reshapeRow(['الإجمالي', `${data.contracts.length} عقد`, `مُرحّل: ${countFromPrevious} / جديد: ${countInYear}`, '', ''])]
+    : [reshapeRow(['الإجمالي', `${data.contracts.length} عقد`, '', ''])];
   autoTable(doc, {
     startY: startY + 24,
-    head: [reshapeRow(['رقم العقد', 'المستأجر', 'الإيجار السنوي', 'الإيجار الشهري'])],
-    body: data.contracts.map(c => reshapeRow([
-      c.contract_number,
-      c.tenant_name,
-      fmt(safeNumber(c.rent_amount)),
-      fmt(Math.round(safeNumber(c.rent_amount) / 12), 0),
-    ])),
+    head: [reshapeRow(contractHead)],
+    body: contractBody,
+    foot: contractFoot,
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
+    ...footStyles(TABLE_HEAD_GREEN, fontFamily),
     ...baseTableStyles(fontFamily),
   });
 
@@ -92,6 +120,29 @@ export const generateAccountsPDF = async (data: {
   });
 
   y = getLastAutoTableY(doc, 190) + 10;
+
+  // المتأخرات حسب السنة المالية — يظهر فقط عند توفر بداية السنة ووجود متأخرات
+  const overduePrev = data.overdueFromPreviousAmount || 0;
+  const overdueCur = data.overdueInYearAmount || 0;
+  if (showOrigin && (overduePrev > 0 || overdueCur > 0)) {
+    doc.setFont(fontFamily, 'bold');
+    doc.text(rs('المتأخرات حسب السنة المالية'), 105, y, { align: 'center' });
+    autoTable(doc, {
+      startY: y + 6,
+      head: [reshapeRow(['البند', 'المبلغ'])],
+      body: [
+        reshapeRow(['من سنوات سابقة', `-${fmt(overduePrev)}`]),
+        reshapeRow(['هذه السنة', `-${fmt(overdueCur)}`]),
+      ],
+      foot: [reshapeRow(['الإجمالي', `-${fmt(overduePrev + overdueCur)}`])],
+      theme: 'striped',
+      ...headStyles(TABLE_HEAD_RED, fontFamily),
+      ...footStyles(TABLE_HEAD_RED, fontFamily),
+      ...baseTableStyles(fontFamily),
+    });
+    y = getLastAutoTableY(doc, y + 30) + 10;
+  }
+
 
   // التوزيع — التسلسل المالي الهرمي
   const corpusPrev = data.waqfCorpusPrevious || 0;
