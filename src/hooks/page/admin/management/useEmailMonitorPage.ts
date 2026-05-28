@@ -130,5 +130,6 @@ export function useEmailMonitorPage() {
     refresh,
     retry,
     isRetrying,
+    retryingQueue,
   };
 }
