@@ -35,7 +35,8 @@ export function calculateDistributions(
 ): DistributionRow[] {
   const totalPercentage = beneficiaries.reduce((s, b) => s + safeNumber(b.share_percentage), 0);
 
-  if (totalPercentage === 0 || availableAmount === 0) {
+  // حماية: عند العجز (availableAmount <= 0) نُرجع توزيعات صفرية بدلاً من توليد حصص سالبة
+  if (totalPercentage === 0 || availableAmount <= 0) {
     return beneficiaries.map(b => ({
       beneficiary_id: b.id, beneficiary_name: b.name, beneficiary_user_id: b.user_id,
       share_percentage: b.share_percentage, share_amount: 0, advances_paid: 0,

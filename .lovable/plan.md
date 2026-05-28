@@ -1,125 +1,71 @@
-# خطة الإصلاحات المعمارية — مُحدّثة بعد التحقق
+## خطة الإصلاح — P0 فقط (جراحي، بدون لمس منطق غير مرتبط)
 
-> **النطاق:** إصلاحات تجميلية آمنة فقط. لا تغييرات DB، لا تغييرات سلوك، لا حذف ميزات.
-> **الحالة العامة للمعمارية:** ممتازة (A−). هذه تلميعات نهائية.
+### النطاق
 
-## التغييرات في الأرقام بعد التحقق
-
-
-| البند                            | الأرقام في التقرير | الواقع                               |
-| -------------------------------- | ------------------ | ------------------------------------ |
-| `useUserManagement.ts` useState  | 9                  | **15**                               |
-| `useBylawsPage.ts` useState      | 7                  | **10**                               |
-| `FiscalYear` في `src/types/`     | يحتاج إنشاء        | **موجود مسبقاً** في `models.ts:27`   |
-| `PaymentInvoice` في `src/types/` | يحتاج إنشاء        | **موجود مسبقاً** في `invoices.ts:34` |
-
-
-تبسيط مهم: **لا حاجة لإنشاء `src/types/financial.ts**` — فقط إعادة توجيه الاستيرادات.
+أربعة إصلاحات محددة فقط، كل واحد في موضعه الأصلي، بدون refactor إضافي.
 
 ---
 
-## الخطوات المرتّبة
+### 1. تصحيح enum حالة الفاتورة الجزئية
 
-### 🟡 الخطوة 1 — إعادة توجيه استيرادات الأنواع (10 دقائق، أعلى أولوية)
-
-**الملفات المتأثرة:** 2 ملف، سطر واحد لكل ملف.
-
-1. `**src/utils/financial/collectionCompute.ts:6**`
-  - قبل: `import type { FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';`
-  - بعد: `import type { FiscalYear } from '@/types';`
-2. `**src/utils/financial/paymentInvoicesCompute.ts:5**`
-  - قبل: `import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';`
-  - بعد: `import type { PaymentInvoice } from '@/types/invoices';`
-
-**شرط القبول:** `utils/` لا يستورد شيئاً من `hooks/` (`rg "from ['\"]@/hooks" src/utils/` → فارغ).
-
-**التحقق المطلوب قبل الإصلاح:** التأكد من أن `PaymentInvoice` في `types/invoices.ts` و في `hooks/data/invoices/usePaymentInvoices.ts` متطابقان حقلاً بحقل. إن اختلفا، استخدم نوع الـ hook (لأنه الأقرب لاستعمال utils) ووثّق الفرق.
+**الملف:** `src/hooks/page/accountant/useAccountantDashboardData.ts`
+**التغيير:** استبدال `inv.status === 'partial'` بـ `inv.status === 'partially_paid'` لمطابقة قيمة قاعدة البيانات.
+**الأثر:** المدفوعات الجزئية ستُحتسب الآن في إجماليات التحصيل الشهري.
+**التحقق:** قراءة `payment_invoices.status` للتأكد من القيم الفعلية المستخدمة، ثم تشغيل اختبارات الـ hook إن وُجدت.
 
 ---
 
-### 🟢 الخطوة 2 — استبدال `as any` في `useVoucherActions.ts` (10 دقائق)
+### 2. تصحيح روابط لوحة المحاسب
 
-`**src/hooks/page/admin/financial/useVoucherActions.ts:40-41**`
-
-استخدام النوع المُولّد من Supabase بدلاً من `as any`:
-
-```ts
-import type { Database } from '@/integrations/supabase/types';
-type VoucherPaymentMethod = Database['public']['Enums']['voucher_payment_method'];
-
-// ثم:
-p_payment_method: input.payment_method as VoucherPaymentMethod,
-```
-
-وحذف تعليق `eslint-disable` المقابل.
-
-**شرط القبول:** عدد `as any` في الإنتاج ينخفض من 3 إلى 2 (المتبقيان موثّقان ومبرّران).
+**الملف:** `src/components/dashboard/AccountantDashboardView.tsx` (أو ما يماثله)
+**التغيير:** تحويل روابط "الفواتير المتأخرة/المعلقة" من `/dashboard/contracts` إلى `/dashboard/invoices` مع query params مناسبة للفلترة إن لزم.
+**الأثر:** المحاسب يصل للصفحة الصحيحة عند النقر.
+**التحقق:** فحص مسارات الراوتر الموجودة والتأكد من قبولها لـ query params الفلترة.
 
 ---
 
-### 🟡 الخطوة 3 — تقليل كثافة `useState` (مهمة منفصلة، 1-2 ساعة)
+### 3. حماية حساب التوزيع من المبالغ السالبة
 
-**3.أ — `useUserManagement.ts` (15 → ~5 مجموعات)**
-
-دمج state في 5 كائنات منطقية:
-
-- `dialogState`: `{ isCreateOpen, editingUser, passwordDialog, deleteTarget, pendingConfirmId, showAdvanced }`
-- `formState`: `{ createForm, editEmail, editRole, newPassword, showPassword }`
-- `filterState`: `{ userSearch, roleFilter, statusFilterUser }`
-- `paginationState`: `{ currentPage }` (يبقى مفرداً)
-
-**3.ب — `useBylawsPage.ts` (10 → ~3 مجموعات)**
-
-- `dialogState`: `{ editItem, showAddDialog, deleteItem }`
-- `editForm`: `{ editContent, editPartNumber, editPartTitle, editChapterTitle, editChapterNumber }`
-- `addForm`: `{ newBylaw }` + `search`
-
-**شرط القبول:** عدد `useState` في كل ملف ≤ 5. السلوك الخارجي للـ hook (return value) لم يتغيّر — تغيير داخلي بحت.
-
-**ملاحظة:** هذه أكبر مخاطرة في الخطة. تتطلب تشغيل الاختبارات بعد التغيير. يمكن تأجيلها لـ PR منفصل.
+**الملف:** `src/utils/financial/distributionCalcPure.ts`
+**التغيير:** تغيير الشرط من `if (availableAmount === 0)` إلى `if (availableAmount <= 0)` لإرجاع توزيعات صفرية بدلاً من قيم سالبة.
+**الأثر:** منع توليد حصص سالبة عند العجز.
+**التحقق:** تشغيل اختبارات `distributionCalcPure` (موجودة بالفعل حسب استراتيجية الاختبار)؛ إضافة حالة اختبار للقيم السالبة إن لم تكن موجودة.
 
 ---
 
-### 🟢 الخطوة 4 — تحديث ملف الذاكرة (5 دقائق)
+### 4. توضيح تسمية "صافي الريع" والتنبيه
 
-تحديث `mem://technical/architecture/lib-vs-utils-boundary` بإضافة قاعدة صريحة:
+**الملف:** `src/components/dashboard/DashboardAlerts.tsx` + `src/hooks/page/admin/useAdminDashboardStats.ts` (تسمية فقط، لا منطق)
+**التغيير:** 
 
-> **types في utils تأتي حصراً من `@/types` — لا من `@/hooks/data/*`.**
-
----
-
-## ما لن يُنفّذ في هذه الخطة
-
-- ❌ ملفات قرب الحدود (188-197 سطر) — ضمن الحد، لا حاجة للتدخل
-- ❌ توحيد 39 `eslint-disable` في وثيقة منفصلة — كلها موثّقة محلياً وذلك أوضح
-- ❌ تقسيم `components/accounts/` (33 ملف) — التجميع منطقي حالياً
-- ❌ CI check لحجم الملفات — يحتاج قرار منفصل حول tooling
+- إعادة تسمية الحقل المعروض من "صافي الريع" إلى "صافي بعد المصروفات" حيث تكون القيمة `netAfterExpenses` فعلياً.
+- إضافة ملاحظة في `DashboardAlerts` توضح أن النسب البديلة (fallback) مصدرها الإعدادات وليس الحسابات النهائية للسنة.
+**الأثر:** UI فقط — لا تغيير في الأرقام أو الحسابات.
 
 ---
 
-## ترتيب التنفيذ الموصى به
+### حدود واضحة (ما لن يُلمس)
 
-**جلسة واحدة قصيرة (~25 دقيقة):** الخطوات 1 + 2 + 4 معاً. مخاطرة دنيا، فوائد فورية.
+- ❌ لا تغيير على معالجة السنوات النشطة (عرض الأصفار) — يحتاج نقاش منفصل
+- ❌ لا تعديل على `BeneficiaryDashboardData.account` نوع — يحتاج migration للأنواع
+- ❌ لا refactor لـ `useEndUserFinancials` — `Math.max(0)` يبقى كما هو لحماية UI
+- ❌ لا تعديل على RLS أو قاعدة البيانات
+- ❌ لا تعديل على ملفات الاختبار غير المرتبطة
 
-**جلسة لاحقة منفصلة (~2 ساعة):** الخطوة 3 مع تشغيل suite اختبارات كامل.
+### معايير القبول
 
-## تفاصيل تقنية للتحقق بعد التنفيذ
+1. `partially_paid` تظهر في إجماليات تحصيل المحاسب
+2. روابط لوحة المحاسب تفتح صفحة الفواتير الصحيحة
+3. التوزيع لا يُرجع قيماً سالبة عند العجز
+4. تسمية "صافي الريع" دقيقة في DashboardAlerts
+5. كل اختبارات `vitest` الحالية تمر دون تعديل
+6. لا تغيير في سلوك أي صفحة/مكوّن آخر
 
-```bash
-# يجب أن تعطي صفر:
-rg "from ['\"]@/hooks" src/utils/
+### الترتيب
 
-# يجب أن تعطي 2 (بدلاً من 3):
-rg ":\s*any\b|as any|<any>" -g "*.ts" -g "*.tsx" -g "!**/*.test.*" src/
-
-# يجب أن يكون ≤ 5 لكل ملف:
-rg -c "useState\(" src/hooks/auth/role/useUserManagement.ts
-rg -c "useState\(" src/hooks/page/admin/management/useBylawsPage.ts
-```
-
-عند موافقتك على الخطة سأنتقل إلى وضع البناء وأنفذ الخطوات 1+2+4 أولاً.  
+تنفيذ تسلسلي: (1) → (3) → (2) → (4)، مع تحقق بعد كل خطوة عبر قراءة الملف المعدّل وتشغيل الاختبارات المرتبطة.  
   
-ملاحظات تقيد بها عند الاصلاح والتنفيذ   
+ملاحظه تقيد بالتوصيات اثناء الاصلاحات والتخطيط   
 **Error Fixing**
 
 When fixing errors, focus exclusively on the relevant code sections without modifying unrelated functioning parts. Analyze the error message and trace it to its source. Implement targeted fixes that address the specific issue while maintaining compatibility with the existing codebase. Before confirming any solution, validate that it resolves the original problem without introducing new bugs. Always preserve working functionality and avoid rewriting code that isn’t directly related to the error.

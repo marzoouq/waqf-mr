@@ -89,7 +89,7 @@ export function useAccountantDashboardData({ aggregated, heatmapInvoices }: UseA
       entry.expected += inv.amount;
       if (inv.status === 'paid') {
         entry.collected += inv.paid_amount ?? inv.amount;
-      } else if (inv.status === 'partial') {
+      } else if (inv.status === 'partially_paid') {
         entry.collected += inv.paid_amount ?? 0;
       }
       monthMap.set(month, entry);
