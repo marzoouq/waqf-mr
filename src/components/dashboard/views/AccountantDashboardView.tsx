@@ -30,14 +30,14 @@ const AccountantDashboardView = ({ metrics, isLoading }: AccountantDashboardView
           subtitle={metrics.overdueTotal > 0 ? `${fmtInt(metrics.overdueTotal)} ر.س` : undefined}
           icon={AlertTriangle}
           color={metrics.overdueInvoices.length > 0 ? 'bg-destructive' : 'bg-success'}
-          link="/dashboard/contracts"
+          link="/dashboard/invoices?status=overdue"
         />
         <MetricCard
           title="فواتير معلقة"
           value={metrics.pendingInvoicesCount}
           icon={Clock}
           color="bg-warning"
-          link="/dashboard/contracts"
+          link="/dashboard/invoices?status=pending"
         />
         <MetricCard
           title="إجمالي المُحصّل"
