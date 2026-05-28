@@ -112,7 +112,10 @@ const AccountsSummaryCards = ({
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(netAfterExpenses)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">ضريبة القيمة المضافة</p>
+            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
+              ضريبة القيمة المضافة
+              {vatOverridden && <UnsavedBadge />}
+            </p>
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(manualVat)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
@@ -120,7 +123,10 @@ const AccountsSummaryCards = ({
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(netAfterVat)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">الزكاة</p>
+            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
+              الزكاة
+              {zakatOverridden && <UnsavedBadge />}
+            </p>
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(zakatAmount)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
