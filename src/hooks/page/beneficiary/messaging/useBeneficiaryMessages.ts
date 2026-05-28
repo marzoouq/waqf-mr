@@ -3,6 +3,7 @@
  * يتضمن: إدارة المحادثات، الإرسال، إنشاء محادثة/دعم جديد
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/messaging/useMessaging';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
@@ -49,8 +50,9 @@ export function useBeneficiaryMessages() {
     try {
       await sendMessage.mutateAsync({ conversationId: selectedConv.id, content: newMessage, senderId: user.id });
       setNewMessage('');
+      toast.success('تم إرسال الرسالة');
     } catch {
-      // onError in the mutation already shows a toast
+      toast.error('تعذّر إرسال الرسالة');
     }
   }, [newMessage, selectedConv, user, sendMessage, setNewMessage]);
 

@@ -31,7 +31,7 @@ export const ADMIN_ROUTES: Record<string, RouteMeta> = {
   '/dashboard/beneficiaries': { title: 'المستفيدين', labelKey: 'beneficiaries', permKey: 'beneficiaries', sectionKey: 'beneficiaries' },
   '/dashboard/reports': { title: 'التقارير المالية والإفصاح', labelKey: 'reports', permKey: 'reports', sectionKey: 'reports' },
   '/dashboard/accounts': { title: 'الحسابات الختامية', labelKey: 'accounts', permKey: 'accounts', sectionKey: 'accounts' },
-  '/dashboard/distributions': { title: 'توزيع الحصص', permKey: 'accounts', sectionKey: 'accounts' },
+  '/dashboard/distributions': { title: 'توزيع الحصص', labelKey: 'distributions', permKey: 'accounts', sectionKey: 'accounts' },
   '/dashboard/users': { title: 'إدارة المستخدمين', labelKey: 'users', sectionKey: 'users' },
   '/dashboard/settings': { title: 'الإعدادات', labelKey: 'settings', sectionKey: 'settings' },
   '/dashboard/messages': { title: 'المراسلات', labelKey: 'messages', permKey: 'messages', sectionKey: 'messages' },

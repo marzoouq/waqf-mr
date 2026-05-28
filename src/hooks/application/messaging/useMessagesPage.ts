@@ -4,6 +4,7 @@
  *  مستفيد/واقف من /beneficiary/messages)
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/messaging/useMessaging';
 import { useBeneficiaries } from '@/hooks/data/beneficiaries/useBeneficiaries';
@@ -37,8 +38,9 @@ export function useMessagesPage() {
     try {
       await sendMessage.mutateAsync({ conversationId: selectedConv.id, content: newMessage, senderId: user.id });
       setNewMessage('');
+      toast.success('تم إرسال الرسالة');
     } catch {
-      // toast in mutation
+      toast.error('تعذّر إرسال الرسالة');
     }
   }, [newMessage, selectedConv, user, sendMessage]);
 
@@ -55,8 +57,9 @@ export function useMessagesPage() {
       setNewConvOpen(false);
       setNewConvSubject('');
       setNewConvBeneficiary('');
+      toast.success('تم إنشاء المحادثة');
     } catch {
-      // toast in mutation
+      toast.error('تعذّر إنشاء المحادثة');
     }
   }, [user, newConvBeneficiary, role, newConvSubject, createConversation]);
 

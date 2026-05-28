@@ -19,8 +19,8 @@ const DashboardStatsGrid = ({ stats, isLoading }: DashboardStatsGridProps) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
       {stats.map((stat, index) => (
-        <Link key={stat.title} to={stat.link} className="block">
-          <Card className="shadow-sm hover:shadow-md transition-[transform,box-shadow] hover:scale-[1.02] cursor-pointer animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+        <Link key={stat.title} to={stat.link} className="block" aria-label={`فتح صفحة ${stat.title}`}>
+          <Card className="shadow-sm hover:shadow-md transition-[transform,box-shadow] hover:scale-[1.02] cursor-pointer motion-safe:animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
             <CardContent className="p-3 sm:p-6">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
@@ -30,7 +30,7 @@ const DashboardStatsGrid = ({ stats, isLoading }: DashboardStatsGridProps) => {
                     <YoYBadge changePercent={stat.yoyChange} invertColor={stat.invertColor} className="mt-0.5" />
                   )}
                 </div>
-                <div className={`w-9 h-9 sm:w-12 sm:h-12 ${stat.color} rounded-lg sm:rounded-xl flex items-center justify-center shrink-0`}>
+                <div className={`w-9 h-9 sm:w-12 sm:h-12 ${stat.color} rounded-lg sm:rounded-xl flex items-center justify-center shrink-0`} aria-hidden="true">
                   <stat.icon className="w-4 h-4 sm:w-6 sm:h-6 text-primary-foreground" />
                 </div>
               </div>

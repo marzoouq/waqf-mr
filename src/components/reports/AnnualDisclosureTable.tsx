@@ -63,6 +63,7 @@ const AnnualDisclosureTable = ({
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
+            <caption className="sr-only">جدول الإفصاح السنوي للوقف للسنة المالية {fiscalYearLabel}</caption>
             <thead>
               <tr className="border-b-2 border-primary">
                 <th className="py-3 px-4 text-right font-bold text-primary">البند</th>

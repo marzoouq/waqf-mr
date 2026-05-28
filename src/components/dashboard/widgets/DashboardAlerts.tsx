@@ -25,7 +25,7 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
     <>
       {/* 1. عجز مالي — أعلى أولوية (يشمل حالة "إنفاق بلا دخل") */}
       {expenseRatio > 100 && (
-        <Alert variant="destructive" className="animate-fade-in">
+        <Alert variant="destructive" className="motion-safe:animate-fade-in">
           <XCircle className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>تحذير: عجز مالي</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -43,14 +43,14 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
 
       {/* 2. عقود بدون سنة مالية */}
       {orphanedContractsCount > 0 && (
-        <Alert variant="destructive" className="animate-fade-in">
-          <AlertTriangle className="h-4 w-4" />
+        <Alert variant="destructive" className="motion-safe:animate-fade-in">
+          <AlertTriangle className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>عقود بدون سنة مالية</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span>يوجد {orphanedContractsCount} عقد غير مربوط بسنة مالية. لن تظهر في التقارير المالية.</span>
             <Link to="/dashboard/contracts">
               <Button variant="outline" size="sm" className="gap-1 shrink-0">
-                <LinkIcon className="w-3 h-3" />
+                <LinkIcon className="w-3 h-3" aria-hidden="true" />
                 إدارة العقود
               </Button>
             </Link>
@@ -60,7 +60,7 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
 
       {/* 3. معدل تحصيل منخفض — الزر يوجّه إلى الفواتير (مصدر التحصيل) */}
       {collectionRate !== null && collectionRate !== undefined && collectionRate > 0 && collectionRate < 50 && (
-        <Alert variant="destructive" className="animate-fade-in">
+        <Alert variant="destructive" className="motion-safe:animate-fade-in">
           <TrendingDown className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>معدل التحصيل منخفض</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -74,8 +74,8 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
 
       {/* 4. سُلف معلقة — الموافقة حصراً للناظر */}
       {pendingAdvancesCount > 0 && (
-        <Alert className="animate-fade-in border-warning/50">
-          <Banknote className="h-4 w-4" />
+        <Alert className="motion-safe:animate-fade-in border-warning/50">
+          <Banknote className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>سُلف بانتظار الموافقة</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span>يوجد {pendingAdvancesCount} طلب سُلفة معلق بانتظار المراجعة والموافقة.</span>
@@ -92,8 +92,8 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
 
       {/* 5. عقود تنتهي قريباً */}
       {expiringContractsCount > 0 && (
-        <Alert className="animate-fade-in border-warning/50">
-          <Clock className="h-4 w-4" />
+        <Alert className="motion-safe:animate-fade-in border-warning/50">
+          <Clock className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>عقود تنتهي قريباً</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span>{expiringContractsCount} عقد ينتهي خلال {EXPIRING_SOON_DAYS} يوماً القادمة.</span>
@@ -106,8 +106,8 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
 
       {/* 6. نسب افتراضية — ضبطها حصراً للناظر */}
       {usingFallbackPct && (
-        <Alert className="animate-fade-in">
-          <AlertTriangle className="h-4 w-4" />
+        <Alert className="motion-safe:animate-fade-in">
+          <AlertTriangle className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>نسب افتراضية مُستخدمة</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span>يتم استخدام النسب الافتراضية (ناظر 10%، واقف 5%) لأنه لم يتم إعدادها في الحسابات الختامية.</span>

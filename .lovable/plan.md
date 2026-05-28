@@ -1,143 +1,121 @@
-# خطة إصلاح موجة Critical — 7 مشاكل مؤكدة بالفحص الجنائي
+# خطة مُصحَّحة — بعد مراجعة جنائية للخطة نفسها
 
-ادعاءات التقرير الخارجي تم فلترتها: 7 صحيحة فعلياً، الباقي إما UX أو ادعاءات كاذبة (خاصة بند `.env` الحرج المزعوم — المحتوى مفاتيح publishable و`.env` في `.gitignore` أصلاً).
+## الأخطاء التي اكتشفتها في الخطة السابقة وصحَّحتها
 
----
-
-## 1. تسرّب `/dashboard/comparison` لـ QuickActions المحاسب
-
-**المشكلة:**
-`src/constants/quickActions.ts:24` يضع `/dashboard/comparison` ضمن `accountant`، بينما `adminRoutes.tsx:50` يحمي المسار بـ`ADMIN_ONLY`، و`navigation.ts:172` يضعه في `ACCOUNTANT_EXCLUDED_ROUTES`. المحاسب يضغط الزر → صفحة محجوبة.
-
-**الحل:**
-- إزالة سطر `comparison` من `QUICK_ACTIONS.accountant` في `quickActions.ts`.
-- تحصين دفاعي في `QuickActionsCard.tsx`: استيراد `ACCOUNTANT_EXCLUDED_ROUTES` وفلترة `actions` بحيث لا يظهر أي action مسارُه ضمن قائمة الاستثناء عندما `role==='accountant'`.
-- اختبار جديد `src/test/quickActionsExclusion.test.ts` يفشل إذا ظهر مسار محجوب في QuickActions.
+| الخطأ في خطتي | الواقع | التصحيح |
+|---|---|---|
+| كتبت مسار `useSettingsPage` كـ `src/hooks/application/messaging/useSettingsPage.ts` | المسار الفعلي `src/hooks/page/admin/management/useSettingsPage.ts` | استخدام المسار الصحيح |
+| اقترحتُ إضافة `labelKey: 'distributions'` فقط في `routeRegistry.ts` | `labelKey` نوعه `keyof MenuLabels` (نوع صارم في `src/types/navigation.ts`)، ولا توجد فيه قيمة `distributions` | يجب أولاً إضافة `distributions` إلى `MenuLabels` interface و `defaultMenuLabels`، ثم استخدامها في routeRegistry |
+| اقترحتُ إضافة `toast` داخل `useMessaging.ts` (طبقة data) | يخالف قاعدة الذاكرة الأساسية: **"No Toast in Data Hooks — hooks/data نقي، الإشعارات في hooks/page wrappers"** | نقل الـtoast إلى `useMessagesPage.ts` (application) و `useBeneficiaryMessages.ts` (page beneficiary) |
 
 ---
 
-## 2. حساب العجز يخفي حالة "إنفاق بلا دخل"
+## الخطة النهائية — 17 إصلاحاً موزّعة على فئات
 
-**المشكلة:**
-في `useAdminDashboardStats.ts:117` و`useAdminDashboardData.ts:74`:
-```ts
-expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
+### 🔴 P0 — أمن (3 بنود، بعضها خارج نطاق الكود)
+
+**1. `.env` متعقَّب في git (بند #1)**  
+خارج نطاق Lovable — أنبّه المستخدم بتنفيذ يدوي: `git rm --cached .env && git commit`. لا أعدّل `.env` (محمي).
+
+**2. عدم وجود headers أمنية فعلية (بنود #7-8)**  
+إنشاء `public/_headers`:
 ```
-عند `income=0 && expenses>0` تكون النسبة 0 ولا يتحقق شرط `expenseRatio > 100` في `DashboardAlerts.tsx:25`، فتختفي حالة عجز حقيقية.
-
-**الحل:**
-استخراج دالة نقية `computeExpenseRatio(income, expenses)` في `src/utils/financial/ratios.ts`:
-```ts
-if (income <= 0 && expenses > 0) return 999; // sentinel = deficit
-if (income <= 0) return 0;
-return Math.round((expenses / income) * 100);
-```
-استخدامها في الموضعين. عرض النص الموحّد في `DashboardAlerts` و KPI:
-- `ratio === 999` → "عجز كامل: إنفاق بدون دخل" بدل "تجاوز X%".
-- `ratio > 100` → السلوك الحالي.
-
-اختبار وحدة للدالة بالحالات الثلاث.
-
----
-
-## 3. زر تنبيه "معدل التحصيل منخفض" يوجّه للعقود
-
-**المشكلة:**
-`DashboardAlerts.tsx` نص التنبيه عن "الفواتير المتأخرة" لكن الزر `Link to="/dashboard/contracts"`.
-
-**الحل:**
-تغيير الوجهة إلى `/dashboard/invoices` ونص الزر إلى "مراجعة الفواتير المتأخرة". (تعديل سطرين فقط في `DashboardAlerts.tsx`.)
-
----
-
-## 4. SidebarNavList المطوي بلا اسم accessible
-
-**المشكلة:**
-`SidebarNavList.tsx:31-49` عند الطي: النص `lg:hidden`، الأيقونة `aria-hidden`، الرابط بلا `aria-label`. Tooltip لا يُحسب accessible name. → روابط مجهولة لقارئ الشاشة.
-
-**الحل:**
-إضافة `aria-label={link.label}` على كل `<Link>` بشكل دائم (لا يضر عند الفتح لأن النص المرئي يبقى المرجع البصري). تعديل سطر واحد.
-
----
-
-## 5. ResponsiveTabs بـ id ثابت وبلا label
-
-**المشكلة:**
-`responsive-tabs.tsx:61` `id="responsive-tabs-select-1"` → IDs مكررة عند استخدام المكوّن مرتين. كذلك `NativeSelect` بلا `aria-label`.
-
-**الحل:**
-- `const reactId = React.useId();` واستخدام ``id={`responsive-tabs-select-${reactId}`}``.
-- إضافة prop اختيارية `ariaLabel?: string` تُمرَّر إلى `NativeSelect`، مع fallback "اختر القسم".
-
----
-
-## 6. Mobile Sidebar بدون dialog semantics ولا focus trap
-
-**المشكلة:**
-`DashboardLayout.tsx:63-77` mobile `<aside>` يفتح كـdrawer لكن بدون `role="dialog"`/`aria-modal`/focus trap → خروج التركيز خلف القائمة، قارئ الشاشة لا يعلم بفتح واجهة.
-
-**الحل (محدود الأثر):**
-على عنصر `<aside>` المخصص للموبايل فقط:
-- إضافة `role="dialog"` و`aria-modal="true"`.
-- إضافة `aria-hidden={!mobileSidebarOpen}` ووسم `tabIndex={-1}` مع `inert` (عبر className condition) عند الإغلاق.
-- إضافة `aria-hidden="true"` على overlay div.
-- focus trap بسيط: عند فتح القائمة، نقل التركيز لأول عنصر تفاعلي داخلها (`useEffect` يستهدف ref)، وعند الإغلاق إعادة التركيز لزر hamburger. (لا حاجة لمكتبة — حلقة Tab تُعالَج بـonKeyDown داخل `<aside>`.)
-- استخدام Escape للإغلاق.
-
-لا تغيير على البنية البصرية ولا استبدال للمكوّن.
-
----
-
-## 7. SettingsPage mobile Select غير دلالي
-
-**المشكلة:**
-`SettingsPage.tsx:38-50`:
-- `<div>` خام داخل `<SelectContent>` بدل `<SelectGroup>/<SelectLabel>`.
-- `Select` بلا label/`aria-label`.
-- على سطح المكتب: عدة `TabsList` داخل نفس `Tabs` — مقبول لكن `TabsList` بحاجة `aria-label="<group>"`.
-
-**الحل:**
-- استبدال `<div>` بـ`<SelectGroup>` و`<div className="...">` بـ`<SelectLabel>` لكل فئة.
-- إضافة `aria-label="اختر قسم الإعدادات"` على `<SelectTrigger>`.
-- إضافة `aria-label={cat.label}` على كل `<TabsList>`.
-
----
-
-## ملفات ستُعدَّل
-
-```
-src/constants/quickActions.ts                          (إزالة سطر)
-src/components/dashboard/widgets/QuickActionsCard.tsx  (فلترة دفاعية)
-src/utils/financial/ratios.ts                          (جديد — دالة نقية)
-src/hooks/page/admin/dashboard/useAdminDashboardStats.ts
-src/hooks/page/admin/dashboard/useAdminDashboardData.ts
-src/components/dashboard/widgets/DashboardAlerts.tsx   (نص + رابط + عجز كامل)
-src/components/layout/sidebar/SidebarNavList.tsx       (aria-label)
-src/components/ui/responsive-tabs.tsx                  (useId + ariaLabel)
-src/components/layout/DashboardLayout.tsx              (dialog + focus trap mobile)
-src/pages/dashboard/SettingsPage.tsx                   (SelectGroup/Label + aria)
+/*
+  Content-Security-Policy: frame-ancestors 'self'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
 ```
 
-## ملفات جديدة (اختبارات)
+**3. لا CI gate ضد `.env` (بند #10)**  
+إضافة خطوة `gitleaks-action` في `.github/workflows/ci.yml` لرفض أي commit يحوي أسراراً.
+
+---
+
+### 🟡 P1 — توافق صارم مع الأنواع (بند 1)
+
+**4. `/dashboard/distributions` بلا `labelKey` (بند #17)**  
+- **`src/types/navigation.ts`**: إضافة `distributions: string` إلى `MenuLabels` interface و `'توزيع الحصص'` إلى `defaultMenuLabels`.
+- **`src/constants/routeRegistry.ts:34`**: إضافة `labelKey: 'distributions'` على مدخل `/dashboard/distributions`.
+
+---
+
+### ♿ Accessibility (10 بنود)
+
+**5. بطاقات `DashboardStatsGrid` بلا `aria-label` (#31)**  
+`DashboardStatsGrid.tsx:22-35` — إضافة `aria-label={\`فتح صفحة ${stat.label}\`}` على كل `<Link>`.
+
+**6. `aria-hidden` ناقص على 3 أيقونات في `DashboardAlerts` (#32)**  
+السطور 47 (AlertTriangle), 78 (Banknote), 95 (Clock), 110 (AlertTriangle) — إضافة `aria-hidden="true"`.
+
+**7. لا احترام لـ `prefers-reduced-motion` (#33)**  
+استبدال `animate-fade-in` بـ `motion-safe:animate-fade-in` في `DashboardStatsGrid` و `DashboardAlerts`.
+
+**8. `SettingsPage` لا يدعم deep link `?tab=` (#54)**  
+**`src/hooks/page/admin/management/useSettingsPage.ts`** (المسار الصحيح) — استبدال `useState(defaultTab)` بـ `useSearchParams` للقراءة والكتابة من/إلى URL.
+
+**9. Focus trap جزئي في mobile sidebar (#74)**  
+`DashboardLayout.tsx:48-62` — إضافة معالج `keydown` للـ`Tab/Shift+Tab` يدور بين أول وآخر عنصر قابل للتركيز داخل الـdialog.
+
+**10. لا Skip Link (#76) و `<main>` بلا `id` (#77)**  
+`DashboardLayout.tsx` — إضافة:
+```tsx
+<a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 focus:z-50 focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded">
+  تخطي إلى المحتوى الرئيسي
+</a>
+```
+وتعديل `<main>` ليصبح `<main id="main-content" role="main" ...>`.
+
+**11. زر User في `DesktopTopBar` بدون `aria-label` (#80)**  
+فحص `DesktopTopBar.tsx` كاملاً وإضافة `aria-label` لأي زر أيقوني يفتقر إليه.
+
+**12. `MessageThread` بلا `aria-live` على حاوية الرسائل (#86)**  
+- إضافة `role="log" aria-live="polite" aria-atomic="false"` على حاوية scroll الرسائل.
+- إضافة `aria-label="اكتب رسالتك"` على Input الإرسال.
+
+**13. لا toast عند إرسال رسالة (#88) — مُحترِم قاعدة "No Toast in Data Hooks"**  
+**في طبقة Page فقط** — لا نلمس `useMessaging.ts`:
+- `src/hooks/application/messaging/useMessagesPage.ts:38-43` — إضافة `try/catch` يطلق `toast.success('تم إرسال الرسالة')` عند النجاح و `toast.error('تعذّر إرسال الرسالة')` عند الفشل.
+- `src/hooks/page/beneficiary/messaging/useBeneficiaryMessages.ts:50` — نفس النمط للمستفيد.
+
+**14. `ZatcaManagementPage` لا تعرض تنبيه انتهاء الشهادة (#93)**  
+`src/pages/dashboard/ZatcaManagementPage.tsx` — إدراج `<ZatcaCertExpiryWarning />` (من `@/components/settings/zatca/ZatcaCertExpiryWarning`) أعلى الصفحة قبل الـTabs.
+
+**15. جداول التقارير بلا `<caption>` دلالي (#94)**  
+`AnnualDisclosureTable.tsx:65` وأي جدول مماثل في `src/components/reports/` — إضافة `<caption className="sr-only">جدول الإفصاح السنوي للوقف</caption>`.
+
+---
+
+## الملفات المعدَّلة (نهائية)
 
 ```
-src/utils/financial/ratios.test.ts
-src/test/quickActionsExclusion.test.ts
+[جديد]   public/_headers
+[تعديل]  .github/workflows/ci.yml
+[تعديل]  src/types/navigation.ts                                         ← MenuLabels.distributions
+[تعديل]  src/constants/routeRegistry.ts                                  ← labelKey
+[تعديل]  src/components/dashboard/kpi/DashboardStatsGrid.tsx             ← aria-label + motion-safe
+[تعديل]  src/components/dashboard/widgets/DashboardAlerts.tsx            ← aria-hidden + motion-safe
+[تعديل]  src/hooks/page/admin/management/useSettingsPage.ts              ← useSearchParams (مسار صحيح)
+[تعديل]  src/components/layout/DashboardLayout.tsx                       ← skip link + id main + Tab trap
+[تعديل]  src/components/layout/DesktopTopBar.tsx                         ← aria-label فحص
+[تعديل]  src/components/messages/MessageThread.tsx                       ← aria-live + label
+[تعديل]  src/hooks/application/messaging/useMessagesPage.ts              ← toast (page layer)
+[تعديل]  src/hooks/page/beneficiary/messaging/useBeneficiaryMessages.ts  ← toast (page layer)
+[تعديل]  src/pages/dashboard/ZatcaManagementPage.tsx                     ← ZatcaCertExpiryWarning
+[تعديل]  src/components/reports/AnnualDisclosureTable.tsx                ← caption
 ```
 
-## خارج النطاق (مرفوض كادعاء كاذب)
+**ملاحظة حاسمة**: لن نمسّ `src/hooks/data/messaging/useMessaging.ts` — احتراماً لقاعدة الذاكرة الأساسية.
 
-- **بند 43 (.env "حرج"):** لا تغيير — `.env` في `.gitignore` (سطر 27)، والمحتوى مفاتيح Supabase publishable علنية بطبيعتها.
+---
 
-## خارج النطاق (UX/قاعدة عمل، يحتاج قراراً منفصلاً)
+## ما تأكدنا أنه **خارج نطاق هذه الخطة**
 
-- BottomNav بدون رسائل للناظر/المحاسب (بند 26-27).
-- routeRegistry تكرار مع navigation (بند 5).
-- `distributions` يستخدم `permKey:'accounts'` (بند 3-4).
-- صلاحيات المحاسب على audit-log/bylaws/support (بند 38-42).
+- بنود `.env` و `git` (تنفيذ يدوي).
+- 14 ادعاءً مُصلَحاً مسبقاً (comparison/expenseRatio/SettingsPage SelectGroup/Sidebar aria-label/mobile sidebar dialog…).
+- 18 قراراً تصميمياً مقصوداً (صلاحيات المحاسب على audit/bylaws/annual-report/chart-of-accounts، BottomNav بلا messages للمحاسب، الرسائل الجماعية في الإعدادات فقط…).
+- 6 ادعاءات كاذبة مُوثَّقة.
+- 40 توصية UX اختيارية مؤجَّلة.
 
-## التحقق بعد التنفيذ
-
-- `tsc --noEmit` نظيف.
-- `bunx vitest run` على الاختبارات الجديدة.
-- فحص يدوي: تسجيل دخول كمحاسب → عدم ظهور زر "المقارنة التاريخية"؛ فتح Sidebar موبايل بلوحة المفاتيح والتأكد من Escape و focus trap.
+هل أعتمد هذه النسخة المصححة وأنفّذها؟

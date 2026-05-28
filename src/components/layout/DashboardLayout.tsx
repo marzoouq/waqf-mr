@@ -44,15 +44,35 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  // accessibility — Escape للإغلاق + focus management عند فتح/إغلاق القائمة الجوال
+  // accessibility — Escape للإغلاق + focus management + Tab trap دوري داخل القائمة الجوال
   useEffect(() => {
     if (!mobileSidebarOpen) return;
     previousFocusRef.current = document.activeElement as HTMLElement | null;
     const dialog = document.querySelector<HTMLElement>('aside[role="dialog"][aria-label="القائمة الجانبية"]');
-    const first = dialog?.querySelector<HTMLElement>('a, button, [tabindex]:not([tabindex="-1"])');
-    first?.focus();
+    const getFocusable = () => Array.from(
+      dialog?.querySelectorAll<HTMLElement>('a, button, [tabindex]:not([tabindex="-1"])') ?? []
+    ).filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null);
+    const focusables = getFocusable();
+    focusables[0]?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileSidebarOpen(false);
+      if (e.key === 'Escape') {
+        setMobileSidebarOpen(false);
+        return;
+      }
+      if (e.key === 'Tab') {
+        const items = getFocusable();
+        if (items.length === 0) return;
+        const first = items[0]!;
+        const last = items[items.length - 1]!;
+        const active = document.activeElement as HTMLElement | null;
+        if (e.shiftKey && active === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener('keydown', onKey);
     return () => {
@@ -63,11 +83,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background" dir="rtl">
+      {/* Skip link — تخطي إلى المحتوى الرئيسي */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:right-2 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded focus:shadow-elegant"
+      >
+        تخطي إلى المحتوى الرئيسي
+      </a>
+
       {/* Mobile Header */}
       <MobileHeader
         onOpenSidebar={() => setMobileSidebarOpen(true)}
         fiscalYearLabel={fiscalYear?.label}
       />
+
 
       {/* Mobile Sidebar Overlay */}
       <div
@@ -122,8 +151,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Main Content */}
       <main
+        id="main-content"
         role="main"
         aria-label="المحتوى الرئيسي"
+        tabIndex={-1}
         {...swipe.mainTouchProps}
         className={cn(
           'flex-1 transition-[margin] duration-300 min-h-screen overflow-y-auto',
