@@ -13,10 +13,12 @@ import ZatcaCertificatesTab from '@/components/zatca/ZatcaCertificatesTab';
 import ZatcaChainTab from '@/components/zatca/ZatcaChainTab';
 import ZatcaComplianceDialog from '@/components/zatca/ZatcaComplianceDialog';
 import ZatcaCertExpiryWarning from '@/components/settings/zatca/ZatcaCertExpiryWarning';
+import { useZatcaCertExpiry } from '@/hooks/page/admin/management/zatca/useZatcaCertExpiry';
 import { useZatcaManagementPage } from '@/hooks/page/admin/management/useZatcaManagementPage';
 
 function ZatcaManagementPage() {
   const { z, complianceResult, runComplianceCheck, clearComplianceResult } = useZatcaManagementPage();
+  const { certExpiryWarning } = useZatcaCertExpiry();
 
   return (
     <DashboardLayout>
@@ -24,7 +26,16 @@ function ZatcaManagementPage() {
         <PageHeaderCard title="تكامل ZATCA" icon={ShieldCheck} description="إدارة الشهادات والفواتير الضريبية وسلسلة التوقيع" />
         <InvoiceStepsGuide />
 
-        <ZatcaCertExpiryWarning />
+        {certExpiryWarning && (
+          <ZatcaCertExpiryWarning
+            warning={certExpiryWarning}
+            isProductionCert={z.isProductionCert}
+            onRenew={z.handleProductionUpgrade}
+            renewLoading={z.productionLoading}
+          />
+        )}
+
+
 
         {!z.activeCert && !z.certsLoading && (
           <div className="rounded-lg border border-warning/50 bg-warning/10 p-4 text-sm" role="alert">
