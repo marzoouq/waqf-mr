@@ -68,10 +68,18 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
         })}
         <button
           onClick={onOpenSidebar}
-          aria-label="المزيد"
+          aria-label={unreadCount > 0 ? `المزيد — ${unreadCount} رسالة غير مقروءة` : 'المزيد'}
           className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-muted-foreground transition-colors active:text-primary"
         >
-          <Menu className="w-5 h-5" />
+          <div className="relative">
+            <Menu className="w-5 h-5" aria-hidden="true" />
+            {/* عداد الرسائل غير المقروءة — يظهر للناظر/المحاسب فقط لأن روابطهم في BottomNav لا تتضمن /messages */}
+            {isAdminLike && unreadCount > 0 && (
+              <span className="absolute -top-1 -left-1 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-0.5">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </div>
           <span className="text-[11px] font-medium leading-none">المزيد</span>
         </button>
       </div>
