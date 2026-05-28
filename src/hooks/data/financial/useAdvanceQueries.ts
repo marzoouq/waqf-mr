@@ -53,8 +53,10 @@ export const useMyBeneficiaryFinanceRaw = (beneficiaryId?: string) => {
   });
 };
 
-// إعادة تصدير للتوافق العكسي مع الاستيرادات الحالية (طبقة domain)
-export { useMyBeneficiaryFinance } from '@/hooks/domain/financial/useAdvanceCalculations';
+// ملاحظة: useMyBeneficiaryFinance (دالة الحساب) في طبقة domain —
+// استورده مباشرة من '@/hooks/domain/financial/useAdvanceCalculations'.
+
+
 
 
 /**
