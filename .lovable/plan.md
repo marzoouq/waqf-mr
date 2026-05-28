@@ -1,168 +1,101 @@
-# تقرير تدقيق المعمارية — نظام إدارة وقف مرزوق بن علي الثبيتي
+# خطة T14 — دمج 340 Migration في Baseline واحد
 
-> **تحليل للقراءة فقط** — لم يُعدَّل أي ملف. التنفيذ يحتاج موافقتك ثم الانتقال إلى Build Mode.
+> **حالة:** مُعدّة وغير منفّذة. تتطلب نافذة صيانة وموافقة الناظر.
+> **آخر تحديث:** 2026-05-28
 
-## 1) ملخص الحالة الصحية
+## السياق
+- عدد ملفات migrations الحالية: **340 ملف** في `supabase/migrations/`
+- النطاق الزمني: من `20260209105205` إلى `20260528004128`
+- المشكلة: بطء استرجاع نسخ البيئات الجديدة، صعوبة تتبع التاريخ، وزن المستودع
+- الهدف: استبدال 340 ملف بـ baseline واحد يمثل الحالة النهائية لقاعدة البيانات الحالية، مع أرشفة الملفات الأصلية
 
-| المقياس | القيمة | التقدير |
-|---|---|---|
-| إجمالي ملفات TS/TSX | 1156 | — |
-| ملفات إنتاج تتجاوز 200 سطر | **3 فقط** | ✅ ممتاز |
-| `console.*` في الإنتاج | **0** | ✅ مثالي |
-| استيراد Supabase خام في `pages/` | **0** | ✅ مثالي |
-| استيراد Supabase خام في `components/` | **2** (تحتاج نقل) | ⚠️ |
-| `sonner` في `utils/` | **0** | ✅ |
-| `: any` غير موثّق | **0** (الموجودان موثّقان eslint-disable) | ✅ |
-| `@ts-ignore` / `@ts-nocheck` | **0** | ✅ مثالي |
-| `eslint-disable` | 41 | 🟡 مقبول |
-| Pages بـ `useState/useEffect` مباشر | **2 من 48** | ✅ ممتاز |
-| Page Hooks | 85 لـ 48 صفحة | ✅ متوافق مع Page Hook Pattern |
-| Migrations | 340 | 🟡 يستحق ضغط baseline لاحقاً |
+## المخاطر الحرجة
+1. **فقدان البيانات** إذا اختلف baseline عن Live حتى في تفصيل صغير
+2. **كسر مرجعية Supabase** لتاريخ migrations (جدول `supabase_migrations.schema_migrations`)
+3. **عدم اتساق بين Test و Live** إذا نُفّذت العملية على إحداهما فقط
+4. **استحالة rollback السهل** بعد التطبيق
+5. **تعطّل النشر التالي** إذا لم تُحدّث مرجعية Supabase CLI
 
-**الخلاصة**: المعمارية نظيفة، الفصل بين الطبقات قوي، والقواعد المحفوظة في الذاكرة مُطبّقة. التوصيات أدناه نقاط جراحية لا إصلاح شامل.
+## المتطلبات الإلزامية قبل التنفيذ
+- [ ] نسخة احتياطية كاملة من Live DB (logical + physical) محفوظة خارجياً
+- [ ] نسخة احتياطية كاملة من Test DB
+- [ ] تصدير `supabase_migrations.schema_migrations` كمرجع
+- [ ] نافذة صيانة لا تقل عن ساعتين خارج ساعات الذروة
+- [ ] موافقة صريحة من الناظر مع توقيع زمني
+- [ ] بيئة dev منفصلة لاختبار baseline من الصفر
 
----
+## الخطوات التفصيلية
 
-## 2) قائمة التوصيات (مرتّبة بالأولوية)
+### المرحلة 1 — توليد Baseline (محلياً)
+```bash
+# تصدير schema الحالي من Live بصيغة pure SQL
+supabase db dump --schema public,auth,storage --data=false > /tmp/baseline_schema.sql
 
-### 🔴 حرج — انتهاكات صريحة لقواعد الذاكرة
-
-**T1 — انتهاك Hooks Layering: `hooks/data` يعتمد على `hooks/domain`**
-الذاكرة `mem://technical/architecture/hooks-layering-data-vs-domain` تنص على فصل `data` (Supabase خام) عن `domain` (حسابات). يوجد عكس دائرة في مكانين:
-- `src/hooks/data/content/useAnnualReport.ts:11` → يُعيد تصدير `useIncomeComparison` من `@/hooks/domain/financial/useIncomeComparison`
-- `src/hooks/data/financial/useAdvanceQueries.ts:57` → يُعيد تصدير `useMyBeneficiaryFinance` من `@/hooks/domain/financial/useAdvanceCalculations`
-
-**الإصلاح**: حذف الـ re-exports، وتحديث المستوردين ليستوردوا من `@/hooks/domain/...` مباشرة. لا يحتاج منطقاً جديداً.
-
-**T2 — مكوّن يحتوي طبقة بيانات (Container/Presentational violation)**
-`src/components/settings/BankAccountTab.tsx` يستدعي `useMutation` + `useQueryClient` داخل المكوّن (السطور 12، 23، 27).
-**الإصلاح**: استخراج `useUpdateBeneficiarySelf` إلى `src/hooks/data/beneficiaries/`، ثم اختياري wrapper في `hooks/page/beneficiary/settings/` للـ toast. المكوّن يبقى عرضياً بالكامل.
-
-**T3 — Barrel-to-barrel في `src/types/index.ts`**
-يُعيد التصدير من `./financial` (وهو نفسه barrel) ومن `./models`، `./relations`، إلخ. قاعدة `mem://technical/architecture/barrel-import-rule` تمنع ذلك (يكسر tree-shaking ويفتح حلقات).
-**الإصلاح**: إما تسطيح `./financial/index.ts` ودمج محتواه في ملفات مفرّدة مرئية من `types/index.ts`، أو حذف barrel `./financial` ودع `types/index.ts` يستورد الملفات النهائية مباشرة. نفس المراجعة لـ `./forms/*`.
-
----
-
-### 🟠 عالٍ — نظافة معمارية
-
-**T4 — صفحات تحتفظ بحالة محلية بدل Page Hook**
-- `src/pages/beneficiary/SupportPageGuard.tsx` — 2× `useState/useEffect` (قاعدة Page Hook Pattern).
-- `src/pages/dashboard/PropertiesPage.tsx` — استخدامات للـ hooks الأخرى; تأكيد لاحق.
-
-**الإصلاح**: نقل المنطق إلى `useSupportPageGuard()` تحت `hooks/page/beneficiary/messaging/`.
-
-**T5 — `hooks/data/financial` تضخّم (22 ملفاً)**
-المجلد بدأ يصبح مكب. هناك مجموعات منفصلة طبيعياً:
-```
-data/financial/
-  ├── accounts/        (useAccounts, useAccountCategories, useCloseFiscalYear)
-  ├── advances/        (useAdvanceQueries, useAdvanceRequests, useMaxAdvanceAmount, useDistributionAdvances)
-  ├── distribution/    (useDistribute, useDistributionHistory)
-  ├── expenses/        (useExpenses, useExpenseBudgets)
-  ├── income/          (useIncome, useIncomeComparison)
-  ├── fiscalYears/     (useFiscalYears, useFiscalYearSummary, useMultiYearSummary, useYearComparisonData)
-  └── dashboard/       (useDashboardSummary, useTotalBeneficiaryPercentage)
-```
-**الإصلاح**: تقسيم المجلد + تحديث `index.ts` كـ barrel مستوٍ (سطر مستوى واحد فقط) دون كسر المستوردين بفضل تحديث المسار بحركة `mv`.
-
-**T6 — `hooks/data/settings` تضخّم (18 ملفاً)**
-نفس النمط:
-```
-data/settings/
-  ├── app/         (useAppSettings, useAppSettingsRead/Write/History, appSettingsUtils)
-  ├── appearance/  (useAppearanceSettings, useBannerSettings, useLogoUpload)
-  ├── permissions/ (useRolePermissions, useRegistrationEnabled, useFeatureVisibility, useSectionsVisibility)
-  ├── waqf/        (useWaqfInfo, useWaqfInfoSave, usePdfWaqfInfo)
-  └── notifications/ (useNotificationSettings, useBeneficiaryWidgets)
+# تصدير بيانات الجداول المرجعية فقط (roles, settings, etc.) بدون بيانات تشغيلية
+supabase db dump --schema public --data-only \
+  --table user_roles --table app_settings \
+  > /tmp/baseline_seed.sql
 ```
 
-**T7 — التباس `hooks/application` مقابل `hooks/page`**
-كلاهما يحتوي مجلد `dashboard/`:
-- `hooks/application/dashboard/`: `useEndUserDashboardData`, `useEndUserFinancials` (عابر للأدوار — هذا صحيح حسب `mem://technical/architecture/hooks-application-layer`).
-- `hooks/page/admin/dashboard/`: hooks خاصة بـ admin.
-
-الذاكرة موثّقة لكن الأسماء قد تُربك. **الإصلاح**: إضافة `hooks/application/README.md` مختصر يوضّح الحدود + JSDoc على كل ملف في `application/dashboard` يشير صراحة "cross-role; لـ admin/accountant استخدم page/admin".
-
----
-
-### 🟡 متوسط — تحسينات بنيوية
-
-**T8 — `components/messages/` فيه ملفان متشابهان جداً**
-- `ConversationList.tsx`
-- `ConversationsList.tsx`
-
-تسمية مختلفة بحرف واحد = إشارة قوية على تكرار/نسيان. **الإصلاح**: مراجعة، توحيد إلى مكوّن واحد أو إعادة تسمية صريحة (مثل `ConversationListItem` vs `ConversationListContainer`).
-
-**T9 — `components/shared/dashboard/` فيه ملف واحد**
-`DashboardLazySection.tsx` وحيد في مجلد. **الإصلاح**: نقل إلى `components/common/` أو `components/dashboard/` وحذف `shared/` الفارغ.
-
-**T10 — `app/router.tsx` + `routes/*.tsx` — مزدوج الإحساس**
-بعد الفحص: `app/router.tsx` يُركّب الـ `RouterProvider`، و `routes/*.tsx` تصدّر `<Route>` elements للأدوار. هذا نمط Composition سليم. **الإصلاح المقترح**: إضافة README مختصر في `src/app/` و `src/routes/` يوضح "app = root composition، routes = role-specific elements" لمنع التباس مستقبلي.
-
-**T11 — ملفات إنتاج تتجاوز حد 200 سطر**
-| الملف | الأسطر |
-|---|---|
-| `src/utils/pdf/entities/accountsPdf.ts` | 221 |
-| `src/components/layout/DashboardLayout.tsx` | 212 |
-| `src/pages/beneficiary/PropertiesViewPage.tsx` | 201 |
-
-**الإصلاح**: تقسيم جراحي:
-- `accountsPdf.ts` → فصل الـ helpers (`buildSummarySection`, `buildBeneficiariesSection`) إلى ملفات منفصلة في نفس المجلد.
-- `DashboardLayout.tsx` → استخراج `<Sidebar>` و`<Topbar>` إلى مكوّنات مستقلة.
-- `PropertiesViewPage.tsx` → التحقق أن المنطق فعلاً في page hook، وإلا استخراجه.
-
-**T12 — TODO معلّق**
-`src/hooks/page/admin/financial/useAccountsPage.ts:80`:
+### المرحلة 2 — أرشفة Migrations القديمة
+```bash
+mkdir -p supabase/migrations_archive/2026-05-28
+mv supabase/migrations/2026*.sql supabase/migrations_archive/2026-05-28/
+# الاحتفاظ بـ README.md في المجلد الأصلي
 ```
-TODO: إعادة تصميم useAccountsActions ليستقبل overdueSplit كقيمة مستقرة بدل mutation لمرجع.
+
+### المرحلة 3 — كتابة Baseline الجديد
+- اسم الملف: `supabase/migrations/20260528000000_baseline.sql`
+- محتوى: schema كامل + GRANTs + RLS + functions + triggers + seed مرجعي
+- يجب أن يحتوي تعليق header يوضح:
+  - تاريخ التوليد
+  - الـ migrations المؤرشفة (340 ملف)
+  - hash من schema الأصلي للتحقق
+
+### المرحلة 4 — مزامنة سجل Supabase
+```sql
+-- في Live و Test:
+-- حذف السجلات القديمة من supabase_migrations.schema_migrations
+DELETE FROM supabase_migrations.schema_migrations
+  WHERE version < '20260528000000';
+
+-- إدراج baseline كمنفّذ (لأن schema موجود فعلياً)
+INSERT INTO supabase_migrations.schema_migrations (version, name, statements)
+  VALUES ('20260528000000', 'baseline', ARRAY['-- baseline applied manually']);
 ```
-يستحق معالجة أو تحويله إلى issue رسمي.
 
----
+### المرحلة 5 — التحقق
+1. تشغيل `supabase db diff` — يجب ألا يظهر أي فرق
+2. تشغيل suite الاختبارات الكامل (`bunx vitest run`)
+3. تشغيل `supabase--linter` للتأكد من عدم وجود تراجعات أمنية
+4. اختبار تشغيل baseline من الصفر في بيئة dev نظيفة
+5. التحقق من عمل جميع Edge Functions
 
-### 🟢 منخفض — تحسينات اختيارية
+### المرحلة 6 — Rollback Plan
+إذا فشل أي تحقق:
+```bash
+# استعادة الملفات الأصلية
+mv supabase/migrations_archive/2026-05-28/*.sql supabase/migrations/
+rm supabase/migrations/20260528000000_baseline.sql
 
-**T13 — `eslint-disable` (41 موقع)** — تدقيق دفعة واحدة لإزالة المبررات الضعيفة. هدف واقعي: تقليلها إلى < 25.
+# استعادة سجل Supabase من النسخة الاحتياطية
+psql $DATABASE_URL < /backup/schema_migrations_backup.sql
+```
 
-**T14 — Migrations baseline squash** — 340 ملف migration. بعد سنة من العمل، يستحق إنتاج baseline موحّد + الإبقاء على آخر 30-50 migration. **خطر**: عملية حساسة، تتطلب نسخ احتياطي ومحاكاة على بيئة فرعية.
+## معايير القبول
+- ✅ عدد الملفات في `supabase/migrations/`: 1 (baseline) + README
+- ✅ `supabase db diff` يُرجع فارغ
+- ✅ جميع الاختبارات تمر (0 failures)
+- ✅ Live يعمل بدون أي تأثير ملحوظ على المستخدمين
+- ✅ بيئة dev جديدة تُبنى من baseline في < 30 ثانية
 
-**T15 — `hooks/page/beneficiary/index.ts` و `hooks/page/waqif/`** — قليلة الملفات؛ تأكيد أن البنية النيستد المستخدمة (subfolders) مقصودة وليست لخطأ تنظيمي.
+## قرار التنفيذ
+لا تُنفّذ هذه الخطة من قبل Lovable تلقائياً. تتطلب:
+1. تشغيل يدوي من الناظر مع إشراف فني
+2. تأكيد النسخ الاحتياطية قبل البدء
+3. إعلان نافذة صيانة للمستخدمين
 
-**T16 — JSDoc موحّد لكل page hook** — ~85 ملفاً؛ إضافة header موحّد (`@page`, `@role`, `@dependencies`) يسهّل الـ navigation للذكاء الاصطناعي ولمراجعي الكود.
-
----
-
-## 3) مقاييس مرجعية بعد التنفيذ (DoD)
-
-- 0 ملف في `hooks/data/*` يستورد من `hooks/domain/*`
-- 0 مكوّن في `components/` يستورد `useMutation` / `useQuery` / `supabase`
-- 0 ملف إنتاج > 200 سطر (باستثناء `integrations/supabase/types.ts` التلقائي)
-- 0 ملف Page بدون Page Hook مقابل
-- `bunx tsc --noEmit` نظيف، `vitest` كل 1849 اختبار يجتاز
-- README موجز في `src/app/`, `src/routes/`, `src/hooks/application/`
-
----
-
-## 4) خطة تنفيذ مقترحة (مراحل قابلة للموافقة منفصلة)
-
-**المرحلة 1 — حرجة (T1, T2, T3)** — ~6 ملفات، تأثير معدوم على المستخدم النهائي، يصلح انتهاكات قواعد الذاكرة فوراً.
-
-**المرحلة 2 — تنظيم بنية (T4, T8, T9, T11, T12)** — نقل/تقسيم ملفات + معالجة TODO. يحتاج اختبار يدوي للصفحات الثلاث الكبيرة.
-
-**المرحلة 3 — إعادة هيكلة subdirectories (T5, T6)** — تقسيم `hooks/data/financial` و`hooks/data/settings`. الأكبر أثراً على المستوردين؛ يجب فعله في PR واحد منفصل لتسهيل المراجعة.
-
-**المرحلة 4 — وثائق وتنظيف (T7, T10, T13, T15, T16)** — README و JSDoc و تنظيف eslint-disable.
-
-**المرحلة 5 (مستقلة، مؤجلة) — T14 squash migrations** — تحتاج نافذة صيانة مخصصة.
-
----
-
-## 5) ما لم يُدقَّق في هذه الجولة
-
-- تحليل الأمان الفعلي للـ RLS (يتم بأداة `supabase--linter` منفصلة).
-- تحليل الأداء (bundle size, lazy chunks).
-- مراجعة UX/visual.
-- اختبار end-to-end للمسارات المعطّلة سابقاً (تمّت في الجولة السابقة).
-
-موافقتك على المراحل (كلها أو محددة) تنقلنا إلى Build Mode للتنفيذ.
+## بدائل أخف وزناً (يُنصح بها قبل T14 الكامل)
+- **T14a:** أرشفة migrations أقدم من 6 أشهر فقط (~150 ملف) دون توليد baseline موحّد
+- **T14b:** إضافة `.gitattributes` لضغط migrations القديمة في git history
+- **T14c:** تأجيل T14 حتى الوصول لـ 500+ ملف
