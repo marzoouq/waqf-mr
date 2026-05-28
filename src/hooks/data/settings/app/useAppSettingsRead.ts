@@ -11,7 +11,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
-import { getCategoryFromKey, type SettingsCategory } from './appSettingsUtils';
+import { getCategoryFromKey, type SettingsCategory } from '@/hooks/data/settings/app/appSettingsUtils';
 import { appSettingsService } from '@/lib/services/appSettingsService';
 
 /** ذاكرة مؤقتة لقيم JSON المُحلَّلة — مُشتركة بين read/write */

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useBeneficiaryWidgets } from './useBeneficiaryWidgets';
+import { useBeneficiaryWidgets } from '@/hooks/data/settings/notifications/useBeneficiaryWidgets';
 import { BENEFICIARY_WIDGET_KEYS } from '@/constants/beneficiaryWidgets';
 
 let storedData: Record<string, string> = {};

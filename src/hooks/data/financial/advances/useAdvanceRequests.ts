@@ -16,7 +16,7 @@ import {
 
 // إعادة تصدير الأنواع وهوكات data أخرى
 export type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
-export { useAllCarryforwards } from './useAdvanceQueries';
+export { useAllCarryforwards } from '@/hooks/data/financial/advances/useAdvanceQueries';
 // ملاحظة: useMyBeneficiaryFinance طبقة domain — استورده من
 // '@/hooks/domain/financial/useAdvanceCalculations' مباشرة.
 

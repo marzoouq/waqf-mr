@@ -9,7 +9,7 @@
  *   - getPermissionsForRole(roleKey): مساعدة آمنة تُرجع perms لدور معيّن مع fallback
  */
 import { useMemo, useCallback } from 'react';
-import { useAppSettings } from './useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 
 export function useRolePermissions() {

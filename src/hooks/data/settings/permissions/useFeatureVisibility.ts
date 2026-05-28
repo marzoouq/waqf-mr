@@ -6,7 +6,7 @@
  * العناصر ذات `lockable=true` تُرجع دائماً visible حتى لو حُفظت كـ hidden.
  */
 import { useMemo } from 'react';
-import { useAppSettings } from './useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import {
   FEATURE_VISIBILITY_REGISTRY,
   featureVisibilityKey,

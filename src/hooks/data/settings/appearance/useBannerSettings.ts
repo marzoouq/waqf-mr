@@ -7,7 +7,7 @@
  * المستهلكون: `BetaBanner`, `BannerSettingsTab`.
  */
 import { useMemo } from 'react';
-import { useAppSettings } from './useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { DEFAULT_BANNER_SETTINGS, type BannerSettings } from '@/constants';
 
 export const BANNER_SETTINGS_KEY = 'beta_banner_settings';

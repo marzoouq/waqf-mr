@@ -22,7 +22,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: vi.fn() },
 }));
 
-import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from './useExpenses';
+import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/data/financial/expenses/useExpenses';
 
 describe('useExpenses hooks', () => {
   it('exports all CRUD hooks', () => {

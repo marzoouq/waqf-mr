@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useAppearanceSettings, DEFAULT_APPEARANCE_SETTINGS } from './useAppearanceSettings';
+import { useAppearanceSettings, DEFAULT_APPEARANCE_SETTINGS } from '@/hooks/data/settings/appearance/useAppearanceSettings';
 
 let storedData: Record<string, string> = {};
 

@@ -22,7 +22,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: vi.fn() },
 }));
 
-import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome } from './useIncome';
+import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/hooks/data/financial/income/useIncome';
 
 describe('useIncome hooks', () => {
   it('exports all CRUD hooks', () => {

@@ -7,7 +7,7 @@
  * المستهلكون: `AppearanceTab`.
  */
 import { useMemo } from 'react';
-import { useAppSettings } from './useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 
 export const APPEARANCE_SETTINGS_KEY = 'appearance_settings';
 

@@ -9,7 +9,7 @@
  * المستهلكون: `BeneficiaryDashboard`, `PermissionsControlPanel`.
  */
 import { useMemo, useCallback } from 'react';
-import { useAppSettings } from './useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { BENEFICIARY_WIDGET_KEYS } from '@/constants/beneficiaryWidgets';
 import { makeDefaults } from '@/constants/sections';
 

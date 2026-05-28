@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useRolePermissions } from './useRolePermissions';
+import { useRolePermissions } from '@/hooks/data/settings/permissions/useRolePermissions';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 
 const getJsonSettingMock = vi.fn();

@@ -11,8 +11,8 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
-import { settingsQueryFn } from './useAppSettingsRead';
-import { useAppSettingsWrite } from './useAppSettingsWrite';
+import { settingsQueryFn } from '@/hooks/data/settings/app/useAppSettingsRead';
+import { useAppSettingsWrite } from '@/hooks/data/settings/app/useAppSettingsWrite';
 
 export const useAppSettings = () => {
   const query = useQuery({
@@ -30,6 +30,6 @@ export const useAppSettings = () => {
 };
 
 // Re-exports للتوافق الخلفي مع الاستيرادات القائمة
-export { useSetting, useSettingsCategory } from './useAppSettingsRead';
-export { useWaqfInfo, type WaqfInfo } from './useWaqfInfo';
-export { getCategoryFromKey, updateNotificationPrefs, type SettingsCategory } from './appSettingsUtils';
+export { useSetting, useSettingsCategory } from '@/hooks/data/settings/app/useAppSettingsRead';
+export { useWaqfInfo, type WaqfInfo } from '@/hooks/data/settings/waqf/useWaqfInfo';
+export { getCategoryFromKey, updateNotificationPrefs, type SettingsCategory } from '@/hooks/data/settings/app/appSettingsUtils';

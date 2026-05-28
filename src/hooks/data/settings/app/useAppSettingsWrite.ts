@@ -13,8 +13,8 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
-import { getCategoryFromKey } from './appSettingsUtils';
-import { jsonSettingCache } from './useAppSettingsRead';
+import { getCategoryFromKey } from '@/hooks/data/settings/app/appSettingsUtils';
+import { jsonSettingCache } from '@/hooks/data/settings/app/useAppSettingsRead';
 import { appSettingsService } from '@/lib/services/appSettingsService';
 
 export const useAppSettingsWrite = (data: Record<string, string> | undefined) => {

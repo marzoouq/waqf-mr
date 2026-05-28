@@ -6,7 +6,7 @@
  * وضمان مرجع ثابت بين عمليات الـ render (memoization).
  */
 import { useMemo } from 'react';
-import { useAppSettings } from './useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { defaultAdminSections, defaultBeneficiarySections } from '@/constants/navigation';
 import { PROTECTED_ADMIN_SECTIONS } from '@/constants/sections';
 

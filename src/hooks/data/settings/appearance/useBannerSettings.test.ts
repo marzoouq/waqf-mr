@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useBannerSettings } from './useBannerSettings';
+import { useBannerSettings } from '@/hooks/data/settings/appearance/useBannerSettings';
 import { DEFAULT_BANNER_SETTINGS } from '@/constants';
 
 let storedData: Record<string, string> = {};
