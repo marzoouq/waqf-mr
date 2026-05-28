@@ -14,12 +14,11 @@ import {
   notifyOnStatusChange,
 } from '@/lib/services/advanceService';
 
-// إعادة تصدير الأنواع والهوكات
+// إعادة تصدير الأنواع وهوكات data أخرى
 export type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
-export {
-  useMyBeneficiaryFinance,
-  useAllCarryforwards,
-} from './useAdvanceQueries';
+export { useAllCarryforwards } from './useAdvanceQueries';
+// ملاحظة: useMyBeneficiaryFinance طبقة domain — استورده من
+// '@/hooks/domain/financial/useAdvanceCalculations' مباشرة.
 
 /**
  * جلب طلبات السُلف — للناظر: الكل، للمستفيد: طلباته فقط (RLS تتكفل)

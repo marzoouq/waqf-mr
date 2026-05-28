@@ -14,7 +14,10 @@ export * from './advance';
 export * from './zatca';
 export * from './dashboard';
 export * from './navigation';
-export * from './financial';
+// types/financial — مسطّح يدوياً لتجنّب barrel-to-barrel
+export * from './financial/core';
+export * from './financial/dashboard';
+export * from './financial/multiYear';
 export * from './sorting';
 export * from './forms/beneficiary';
 export * from './forms/contract';

@@ -7,8 +7,8 @@ import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { annualReportService } from '@/lib/services/annualReportService';
 
-// إعادة تصدير للتوافق مع الاستيرادات القائمة
-export { useIncomeComparison, type IncomeComparison } from '@/hooks/domain/financial/useIncomeComparison';
+// ملاحظة: useIncomeComparison في طبقة domain — استورده مباشرة من
+// '@/hooks/domain/financial/useIncomeComparison' (طبقة data لا تعتمد على domain).
 
 // ---------------------------------------------------------------------------
 // أنواع البيانات

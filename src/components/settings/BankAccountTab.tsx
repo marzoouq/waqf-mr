@@ -1,18 +1,14 @@
 /**
- * BankAccountTab — يتيح للمستفيد تحديث رقم حسابه البنكي ورقم الهاتف
- * #B4: يستخدم RPC update_beneficiary_self (SECURITY DEFINER) مع تحقق مزدوج
- *      (طول/فراغ) في القاعدة. حقول الاسم والهوية تبقى للناظر فقط.
+ * BankAccountTab — مكوّن عرضي بالكامل (Container/Presentational)
+ * #B4: المنطق في `hooks/page/beneficiary/settings/useBankAccountTab`،
+ *      وطبقة data في `hooks/data/beneficiaries/useUpdateBeneficiarySelf`.
  */
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Landmark, Phone, Save, Loader2 } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { rpc } from '@/lib/api/rpc';
-import { uiNotify } from '@/lib/notify';
-import { logger } from '@/lib/logger';
+import { useBankAccountTab } from '@/hooks/page/beneficiary/settings/useBankAccountTab';
 
 interface BankAccountTabProps {
   bankAccount: string | null;
@@ -20,33 +16,8 @@ interface BankAccountTabProps {
 }
 
 const BankAccountTab = ({ bankAccount, phone }: BankAccountTabProps) => {
-  const qc = useQueryClient();
-  const [bank, setBank] = useState(bankAccount ?? '');
-  const [phoneVal, setPhoneVal] = useState(phone ?? '');
-
-  const mutation = useMutation({
-    mutationFn: async () => {
-      const bankTrim = bank.trim();
-      const phoneTrim = phoneVal.trim();
-      return await rpc('update_beneficiary_self', {
-        p_bank_account: bankTrim || null,
-        p_phone: phoneTrim || null,
-      });
-    },
-    onSuccess: () => {
-      uiNotify.success('تم حفظ بياناتك بنجاح');
-      qc.invalidateQueries({ queryKey: ['beneficiaries'] });
-    },
-    onError: (err: unknown) => {
-      logger.error('update_beneficiary_self failed', err);
-      const msg = err instanceof Error ? err.message : 'تعذّر حفظ التعديلات';
-      uiNotify.error(msg);
-    },
-  });
-
-  const noChange =
-    bank.trim() === (bankAccount ?? '').trim() &&
-    phoneVal.trim() === (phone ?? '').trim();
+  const { bank, setBank, phoneVal, setPhoneVal, isSaving, noChange, handleSave } =
+    useBankAccountTab({ bankAccount, phone });
 
   return (
     <Card className="shadow-sm">
@@ -83,12 +54,8 @@ const BankAccountTab = ({ bankAccount, phone }: BankAccountTabProps) => {
             maxLength={20}
           />
         </div>
-        <Button
-          onClick={() => mutation.mutate()}
-          disabled={mutation.isPending || noChange}
-          className="gap-2"
-        >
-          {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+        <Button onClick={handleSave} disabled={isSaving || noChange} className="gap-2">
+          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           حفظ التعديلات
         </Button>
       </CardContent>
