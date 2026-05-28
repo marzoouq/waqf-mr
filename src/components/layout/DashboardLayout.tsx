@@ -42,16 +42,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     handleSignOut, handleSignOutClick,
   } = useLayoutShell();
 
-  const mobileSidebarRef = useRef<HTMLElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
   // accessibility — Escape للإغلاق + focus management عند فتح/إغلاق القائمة الجوال
   useEffect(() => {
     if (!mobileSidebarOpen) return;
     previousFocusRef.current = document.activeElement as HTMLElement | null;
-    const first = mobileSidebarRef.current?.querySelector<HTMLElement>(
-      'a, button, [tabindex]:not([tabindex="-1"])'
-    );
+    const dialog = document.querySelector<HTMLElement>('aside[role="dialog"][aria-label="القائمة الجانبية"]');
+    const first = dialog?.querySelector<HTMLElement>('a, button, [tabindex]:not([tabindex="-1"])');
     first?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMobileSidebarOpen(false);
@@ -77,14 +75,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         aria-hidden="true"
         className={cn(
           'fixed inset-0 z-40 lg:hidden',
-          mobileSidebarOpen ? 'pointer-events-auto bg-black/40' : 'pointer-events-none'
+          mobileSidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'
         )}
         onClick={() => setMobileSidebarOpen(false)}
       />
 
       {/* Sidebar - Mobile (drawer dialog) */}
       <aside
-        ref={mobileSidebarRef}
         role="dialog"
         aria-modal="true"
         aria-label="القائمة الجانبية"
