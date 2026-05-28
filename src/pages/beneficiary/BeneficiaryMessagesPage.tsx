@@ -104,11 +104,6 @@ const BeneficiaryMessagesPage = () => {
         chatSubject={chatSubject}
         setChatSubject={setChatSubject}
         handleNewChat={handleNewChat}
-        supportDialogOpen={supportDialogOpen}
-        setSupportDialogOpen={setSupportDialogOpen}
-        supportSubject={supportSubject}
-        setSupportSubject={setSupportSubject}
-        handleNewSupport={handleNewSupport}
         isPending={createConversation.isPending}
       />
     </DashboardLayout>
