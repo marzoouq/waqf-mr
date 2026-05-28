@@ -41,11 +41,13 @@ export function useAccountsPage() {
     getExpectedPayments: calc.getExpectedPayments,
   });
 
-  // فصل المتأخرات حسب السنة المالية — مبدئياً 0، يُعاد حسابه بعد جلب paymentInvoices
   const fiscalYearStartDate = data.selectedFY?.start_date ?? null;
-  const overdueSplit = { prev: 0, cur: 0 };
 
-  // 5. العمليات — تستقبل القيم الحقيقية مباشرة (بدون أصفار أو paramsRef خارجي)
+  // 5. بيانات إقفال السنة — تُحسب قبل الإجراءات لتُمرَّر إليها كقيم مستقرة
+  const extras = useAccountsExtras(data.fiscalYearId, fiscalYearStartDate);
+  const { totalBenPct, unpaidInvoices, pendingAdvances, overdueSplit } = extras;
+
+  // 6. العمليات — تستقبل overdueSplit كقيم مستقرة (لا mutable ref)
   const actions = useAccountsActions({
     selectedFY: data.selectedFY,
     fiscalYear: settings.fiscalYear,
@@ -75,13 +77,6 @@ export function useAccountsPage() {
     overdueFromPreviousAmount: overdueSplit.prev,
     overdueInYearAmount: overdueSplit.cur,
   });
-
-  // 6. بيانات إقفال السنة (فواتير غير مدفوعة، سلف معلّقة، نسب، تقسيم متأخرات)
-  // TODO: إعادة تصميم useAccountsActions ليستقبل overdueSplit كقيمة مستقرة بدل mutation لمرجع.
-  const extras = useAccountsExtras(data.fiscalYearId, fiscalYearStartDate);
-  overdueSplit.prev = extras.overdueSplit.prev;
-  overdueSplit.cur = extras.overdueSplit.cur;
-  const { totalBenPct, unpaidInvoices, pendingAdvances } = extras;
 
   // 7. تصديرات CSV/PDF — مستخرجة في hook منفصل
   const fiscalYearLabel = data.selectedFY?.label || settings.fiscalYear || '';

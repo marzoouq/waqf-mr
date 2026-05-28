@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { MessageSquare, Headphones, AlertCircle, RefreshCw } from 'lucide-react';
 import { TableSkeleton } from '@/components/common';
 import { useBeneficiaryMessages } from '@/hooks/page/beneficiary';
-import ConversationsList from '@/components/messages/ConversationsList';
+import BeneficiaryConversationsList from '@/components/messages/BeneficiaryConversationsList';
 import ChatArea from '@/components/messages/ChatArea';
 import MessageDialogs from '@/components/messages/MessageDialogs';
 import { MESSAGES_VS_SUPPORT_COPY } from '@/constants/beneficiaryCopy';
@@ -72,7 +72,7 @@ const BeneficiaryMessagesPage = () => {
         />
 
         <div className="flex-1 flex gap-4 min-h-0">
-          <ConversationsList
+          <BeneficiaryConversationsList
             conversations={conversations}
             selectedConvId={selectedConv?.id ?? null}
             onSelect={(conv) => setSelectedConv(conv as typeof selectedConv)}

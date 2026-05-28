@@ -1,5 +1,6 @@
 /**
- * قائمة المحادثات — مكوّن فرعي من صفحة المراسلات
+ * BeneficiaryConversationsList — قائمة محادثات المستفيد (chat/support tabs)
+ * Note: مكوّن الإدارة المختلف بشكل واضح هو `ConversationList.tsx` (نفس المجلد).
  */
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,7 +16,7 @@ interface Conversation {
   [key: string]: unknown;
 }
 
-interface ConversationsListProps {
+interface BeneficiaryConversationsListProps {
   conversations: Conversation[];
   selectedConvId: string | null;
   onSelect: (conv: Conversation) => void;
@@ -23,7 +24,7 @@ interface ConversationsListProps {
   hidden?: boolean;
 }
 
-export default function ConversationsList({ conversations, selectedConvId, onSelect, activeTab, hidden }: ConversationsListProps) {
+export default function BeneficiaryConversationsList({ conversations, selectedConvId, onSelect, activeTab, hidden }: BeneficiaryConversationsListProps) {
   return (
     <Card className={cn('w-full md:w-72 shrink-0 flex flex-col', hidden && 'hidden md:flex')} aria-hidden={hidden || undefined}>
       <ScrollArea className="flex-1">

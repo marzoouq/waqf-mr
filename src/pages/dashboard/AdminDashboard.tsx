@@ -3,7 +3,7 @@
  */
 import { lazy } from 'react';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
-import DashboardLazySection from '@/components/shared/dashboard/DashboardLazySection';
+import DashboardLazySection from '@/components/dashboard/DashboardLazySection';
 import { Button } from '@/components/ui/button';
 import FiscalYearWidget from '@/components/dashboard/widgets/FiscalYearWidget';
 import DashboardAlerts from '@/components/dashboard/widgets/DashboardAlerts';
