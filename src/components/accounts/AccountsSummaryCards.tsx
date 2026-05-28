@@ -25,16 +25,34 @@ interface AccountsSummaryCardsProps {
   isClosed?: boolean;
   /** H11: whether default percentages are being used instead of configured ones */
   usingFallbackPct?: boolean;
+  /** P0-2: قيم DB الأصلية لكشف overrides غير المحفوظة */
+  defaultManualVat?: number;
+  defaultZakatAmount?: number;
+  defaultWaqfCorpusManual?: number;
+  defaultManualDistributions?: number;
 }
+
+const isOverridden = (current: number, original: number | undefined) =>
+  original !== undefined && Math.abs(current - original) > 0.01;
+
+const UnsavedBadge = () => (
+  <span className="text-[10px] px-1 py-0.5 rounded bg-destructive/40 text-primary-foreground mr-1">غير محفوظ</span>
+);
 
 const AccountsSummaryCards = ({
   waqfCorpusPrevious, totalIncome, grandTotal, totalExpenses,
   netAfterExpenses, manualVat, netAfterVat, zakatAmount, netAfterZakat,
   adminPercent, adminShare, waqifPercent, waqifShare,
   waqfRevenue, waqfCorpusManual, manualDistributions, remainingBalance,
-  isClosed = false, usingFallbackPct = false, 
+  isClosed = false, usingFallbackPct = false,
+  defaultManualVat, defaultZakatAmount, defaultWaqfCorpusManual, defaultManualDistributions,
 }: AccountsSummaryCardsProps) => {
   const computedNetAfterZakat = netAfterZakat ?? (netAfterVat - zakatAmount);
+  const vatOverridden = isOverridden(manualVat, defaultManualVat);
+  const zakatOverridden = isOverridden(zakatAmount, defaultZakatAmount);
+  const corpusOverridden = isOverridden(waqfCorpusManual, defaultWaqfCorpusManual);
+  const distOverridden = isOverridden(manualDistributions, defaultManualDistributions);
+  const anyOverridden = vatOverridden || zakatOverridden || corpusOverridden || distOverridden;
   return (
     <Card className="shadow-sm gradient-hero text-primary-foreground">
       <CardHeader>
@@ -57,6 +75,14 @@ const AccountsSummaryCards = ({
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               تُستخدَم النسب الافتراضية (ناظر 10%، واقف 5%) — يمكنك تعديلها من إعدادات الحسابات
+            </AlertDescription>
+          </Alert>
+        )}
+        {anyOverridden && (
+          <Alert className="mb-4 border-destructive/60 bg-destructive/25 text-primary-foreground">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              تم تعديل قيمة يدوية في الواجهة فقط — لم تُحفظ في قاعدة البيانات وستُفقد عند تحديث الصفحة.
             </AlertDescription>
           </Alert>
         )}
@@ -86,7 +112,10 @@ const AccountsSummaryCards = ({
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(netAfterExpenses)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">ضريبة القيمة المضافة</p>
+            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
+              ضريبة القيمة المضافة
+              {vatOverridden && <UnsavedBadge />}
+            </p>
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(manualVat)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
@@ -94,7 +123,10 @@ const AccountsSummaryCards = ({
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(netAfterVat)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">الزكاة</p>
+            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
+              الزكاة
+              {zakatOverridden && <UnsavedBadge />}
+            </p>
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(zakatAmount)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
@@ -123,11 +155,17 @@ const AccountsSummaryCards = ({
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfRevenue)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">رقبة الوقف (الحالي)</p>
+            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
+              رقبة الوقف (الحالي)
+              {corpusOverridden && <UnsavedBadge />}
+            </p>
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfCorpusManual)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">التوزيعات</p>
+            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
+              التوزيعات
+              {distOverridden && <UnsavedBadge />}
+            </p>
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(manualDistributions)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
