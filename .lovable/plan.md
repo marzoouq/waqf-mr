@@ -1,77 +1,143 @@
-# خطة التنفيذ النهائية — gates + تقسيمات الحجم
+# خطة إصلاح موجة Critical — 7 مشاكل مؤكدة بالفحص الجنائي
 
-تحقق ميداني مُكتمل: الأحجام (204/195/258/205) مطابقة، الملفات الخمسة الجديدة غير موجودة، `toast` مستخدم فعلاً في `VoucherList.download()` و void، ونمط mutation لـ `overdueSplit` موجود في `useAccountsPage.ts:106-107`. لا يوجد `--max-warnings=0` في CI.
+ادعاءات التقرير الخارجي تم فلترتها: 7 صحيحة فعلياً، الباقي إما UX أو ادعاءات كاذبة (خاصة بند `.env` الحرج المزعوم — المحتوى مفاتيح publishable و`.env` في `.gitignore` أصلاً).
 
-## النطاق
-frontend-only + `eslint.config.js`. **لا تغييرات** على DB / RLS / Edge Functions / Auth / ملفات محمية.
+---
 
-## ترتيب التنفيذ
-1. استخراج hooks + dialogs (إنشاء الـ5 ملفات الجديدة).
-2. تحديث الاستدعاءات في الـ4 ملفات الكبيرة.
-3. تعديل `eslint.config.js` (دمج + gates جديدة).
-4. تحديث `src/utils/README.md`.
-5. تحقق: `tsc --noEmit` + ESLint + `wc -l`.
+## 1. تسرّب `/dashboard/comparison` لـ QuickActions المحاسب
 
-## الملفات الجديدة (5)
+**المشكلة:**
+`src/constants/quickActions.ts:24` يضع `/dashboard/comparison` ضمن `accountant`، بينما `adminRoutes.tsx:50` يحمي المسار بـ`ADMIN_ONLY`، و`navigation.ts:172` يضعه في `ACCOUNTANT_EXCLUDED_ROUTES`. المحاسب يضغط الزر → صفحة محجوبة.
 
-1. **`src/hooks/page/admin/financial/useAccountsExtras.ts`** (~40 سطر)
-   - يجمع `usePaymentInvoices` + `useAdvanceRequests` + `useTotalBeneficiaryPercentage` + `useOverdueSplit`.
-   - يُرجع: `{ paymentInvoices, advanceRequests, totalBenPct, unpaidInvoices, pendingAdvances, overdueSplit }` كقيم محسوبة فقط (بدون mutation داخلي).
+**الحل:**
+- إزالة سطر `comparison` من `QUICK_ACTIONS.accountant` في `quickActions.ts`.
+- تحصين دفاعي في `QuickActionsCard.tsx`: استيراد `ACCOUNTANT_EXCLUDED_ROUTES` وفلترة `actions` بحيث لا يظهر أي action مسارُه ضمن قائمة الاستثناء عندما `role==='accountant'`.
+- اختبار جديد `src/test/quickActionsExclusion.test.ts` يفشل إذا ظهر مسار محجوب في QuickActions.
 
-2. **`src/hooks/page/admin/financial/useUnifiedInvoices.ts`** (~75 سطر)
-   - يدمج فواتير الشراء + الإيجار ويطبّق `source/status/search`.
+---
 
-3. **`src/components/settings/fiscal-year/ReopenFiscalYearDialog.tsx`** (~75 سطر)
-4. **`src/components/settings/fiscal-year/CascadeDeleteFiscalYearDialog.tsx`** (~100 سطر)
-5. **`src/components/expenses/vouchers/VoidVoucherDialog.tsx`** (~55 سطر) — ينقل state `voidReason` داخلياً.
+## 2. حساب العجز يخفي حالة "إنفاق بلا دخل"
 
-## الملفات المُعدَّلة (6)
+**المشكلة:**
+في `useAdminDashboardStats.ts:117` و`useAdminDashboardData.ts:74`:
+```ts
+expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
+```
+عند `income=0 && expenses>0` تكون النسبة 0 ولا يتحقق شرط `expenseRatio > 100` في `DashboardAlerts.tsx:25`، فتختفي حالة عجز حقيقية.
 
-### `src/hooks/page/admin/financial/useAccountsPage.ts` (204 → ~177)
-- استبدال الأسطر 91-107 باستدعاء `useAccountsExtras(...)`.
-- **خيار (أ) مُعتمد:** الإبقاء على `let overdueSplit = { prev:0, cur:0 }` المُمرَّر إلى `useAccountsActions` قبل الجلب، ثم mutation بعد الاستدعاء:
-  ```ts
-  const extras = useAccountsExtras(data.fiscalYearId, fiscalYearStartDate);
-  overdueSplit.prev = extras.overdueSplit.prev;
-  overdueSplit.cur = extras.overdueSplit.cur;
-  ```
-- تحديث المراجع إلى `extras.paymentInvoices/advanceRequests/totalBenPct/unpaidInvoices/pendingAdvances`.
-- **TODO موثَّق داخل الملف:** إعادة تصميم `useAccountsActions` لاحقاً ليستقبل `overdueSplit` كقيمة مستقرة بدل mutation.
-- بدون تغيير ترتيب hooks أو توقيع `useAccountsActions`.
+**الحل:**
+استخراج دالة نقية `computeExpenseRatio(income, expenses)` في `src/utils/financial/ratios.ts`:
+```ts
+if (income <= 0 && expenses > 0) return 999; // sentinel = deficit
+if (income <= 0) return 0;
+return Math.round((expenses / income) * 100);
+```
+استخدامها في الموضعين. عرض النص الموحّد في `DashboardAlerts` و KPI:
+- `ratio === 999` → "عجز كامل: إنفاق بدون دخل" بدل "تجاوز X%".
+- `ratio > 100` → السلوك الحالي.
 
-### `src/hooks/page/admin/financial/useInvoicesPage.ts` (195 → ~154)
-- استبدال الأسطر 51-96 باستدعاء `useUnifiedInvoices(invoices, rentInvoices, sourceFilter, filterStatus, searchQuery)`.
+اختبار وحدة للدالة بالحالات الثلاث.
 
-### `src/components/settings/fiscal-year/FiscalYearManagementTab.tsx` (258 → ~144)
-- حذف `ReopenDialog` (20-60) و `CascadeDeleteDialog` (62-143) واستيرادهما من الملفين الجديدين.
+---
 
-### `src/components/expenses/vouchers/VoucherList.tsx` (205 → ~177)
-- استبدال بلوك `AlertDialog` (168-200) بـ `<VoidVoucherDialog ... />` ونقل `voidReason` state إلى الحوار.
-- **الإبقاء صراحةً على** `import { toast } from 'sonner'` (السطر 32) لأنه مُستخدم في `download()` (سطور 60-62). لا تنظيف زائد للاستيرادات.
+## 3. زر تنبيه "معدل التحصيل منخفض" يوجّه للعقود
 
-### `eslint.config.js` — gates + دمج البلوكَين المكررين
-- **دمج بلوكَي `no-restricted-syntax` المكررين** (74-89 و 90-119) في بلوك واحد لـ `src/pages/**` و `src/components/**` يحوي قواعد Supabase وقيود ألوان hex، مع `ignores` للاستثناءات (`InvoicePreviewDialog`, `SignaturePad`). يُزيل البلوك الميت ويثبّت القواعد فعلياً.
-- إضافة 3 gates جديدة عبر `no-restricted-imports`:
-  - `src/utils/**` → منع `sonner` و `@/integrations/supabase/*`.
-  - `src/hooks/data/**` → منع `sonner` (warn).
-  - `src/hooks/domain/**` → منع `@/integrations/supabase/*`.
-- إضافة `max-lines` (warn):
-  - `src/components/**/*.{ts,tsx}` و `src/pages/**/*.{ts,tsx}` → 200
-  - `src/hooks/page/**/*.ts` → 180
-  - tests/specs مستثناة.
-- ملاحظة: CI لا يستخدم `--max-warnings=0` (تحقق مُكتمل)، فلا خطر فشل من تحذيرات جديدة.
+**المشكلة:**
+`DashboardAlerts.tsx` نص التنبيه عن "الفواتير المتأخرة" لكن الزر `Link to="/dashboard/contracts"`.
 
-### `src/utils/README.md`
-- توضيح أن ذكر `sonner` للممنوعات فقط (تنظيف صياغة).
+**الحل:**
+تغيير الوجهة إلى `/dashboard/invoices` ونص الزر إلى "مراجعة الفواتير المتأخرة". (تعديل سطرين فقط في `DashboardAlerts.tsx`.)
+
+---
+
+## 4. SidebarNavList المطوي بلا اسم accessible
+
+**المشكلة:**
+`SidebarNavList.tsx:31-49` عند الطي: النص `lg:hidden`، الأيقونة `aria-hidden`، الرابط بلا `aria-label`. Tooltip لا يُحسب accessible name. → روابط مجهولة لقارئ الشاشة.
+
+**الحل:**
+إضافة `aria-label={link.label}` على كل `<Link>` بشكل دائم (لا يضر عند الفتح لأن النص المرئي يبقى المرجع البصري). تعديل سطر واحد.
+
+---
+
+## 5. ResponsiveTabs بـ id ثابت وبلا label
+
+**المشكلة:**
+`responsive-tabs.tsx:61` `id="responsive-tabs-select-1"` → IDs مكررة عند استخدام المكوّن مرتين. كذلك `NativeSelect` بلا `aria-label`.
+
+**الحل:**
+- `const reactId = React.useId();` واستخدام ``id={`responsive-tabs-select-${reactId}`}``.
+- إضافة prop اختيارية `ariaLabel?: string` تُمرَّر إلى `NativeSelect`، مع fallback "اختر القسم".
+
+---
+
+## 6. Mobile Sidebar بدون dialog semantics ولا focus trap
+
+**المشكلة:**
+`DashboardLayout.tsx:63-77` mobile `<aside>` يفتح كـdrawer لكن بدون `role="dialog"`/`aria-modal`/focus trap → خروج التركيز خلف القائمة، قارئ الشاشة لا يعلم بفتح واجهة.
+
+**الحل (محدود الأثر):**
+على عنصر `<aside>` المخصص للموبايل فقط:
+- إضافة `role="dialog"` و`aria-modal="true"`.
+- إضافة `aria-hidden={!mobileSidebarOpen}` ووسم `tabIndex={-1}` مع `inert` (عبر className condition) عند الإغلاق.
+- إضافة `aria-hidden="true"` على overlay div.
+- focus trap بسيط: عند فتح القائمة، نقل التركيز لأول عنصر تفاعلي داخلها (`useEffect` يستهدف ref)، وعند الإغلاق إعادة التركيز لزر hamburger. (لا حاجة لمكتبة — حلقة Tab تُعالَج بـonKeyDown داخل `<aside>`.)
+- استخدام Escape للإغلاق.
+
+لا تغيير على البنية البصرية ولا استبدال للمكوّن.
+
+---
+
+## 7. SettingsPage mobile Select غير دلالي
+
+**المشكلة:**
+`SettingsPage.tsx:38-50`:
+- `<div>` خام داخل `<SelectContent>` بدل `<SelectGroup>/<SelectLabel>`.
+- `Select` بلا label/`aria-label`.
+- على سطح المكتب: عدة `TabsList` داخل نفس `Tabs` — مقبول لكن `TabsList` بحاجة `aria-label="<group>"`.
+
+**الحل:**
+- استبدال `<div>` بـ`<SelectGroup>` و`<div className="...">` بـ`<SelectLabel>` لكل فئة.
+- إضافة `aria-label="اختر قسم الإعدادات"` على `<SelectTrigger>`.
+- إضافة `aria-label={cat.label}` على كل `<TabsList>`.
+
+---
+
+## ملفات ستُعدَّل
+
+```
+src/constants/quickActions.ts                          (إزالة سطر)
+src/components/dashboard/widgets/QuickActionsCard.tsx  (فلترة دفاعية)
+src/utils/financial/ratios.ts                          (جديد — دالة نقية)
+src/hooks/page/admin/dashboard/useAdminDashboardStats.ts
+src/hooks/page/admin/dashboard/useAdminDashboardData.ts
+src/components/dashboard/widgets/DashboardAlerts.tsx   (نص + رابط + عجز كامل)
+src/components/layout/sidebar/SidebarNavList.tsx       (aria-label)
+src/components/ui/responsive-tabs.tsx                  (useId + ariaLabel)
+src/components/layout/DashboardLayout.tsx              (dialog + focus trap mobile)
+src/pages/dashboard/SettingsPage.tsx                   (SelectGroup/Label + aria)
+```
+
+## ملفات جديدة (اختبارات)
+
+```
+src/utils/financial/ratios.test.ts
+src/test/quickActionsExclusion.test.ts
+```
+
+## خارج النطاق (مرفوض كادعاء كاذب)
+
+- **بند 43 (.env "حرج"):** لا تغيير — `.env` في `.gitignore` (سطر 27)، والمحتوى مفاتيح Supabase publishable علنية بطبيعتها.
+
+## خارج النطاق (UX/قاعدة عمل، يحتاج قراراً منفصلاً)
+
+- BottomNav بدون رسائل للناظر/المحاسب (بند 26-27).
+- routeRegistry تكرار مع navigation (بند 5).
+- `distributions` يستخدم `permKey:'accounts'` (بند 3-4).
+- صلاحيات المحاسب على audit-log/bylaws/support (بند 38-42).
 
 ## التحقق بعد التنفيذ
-- `wc -l` على الـ4 ملفات → كلها تحت الحد.
-- `tsc --noEmit` نظيف.
-- ESLint: gates الجديدة `warn` فقط، لا أخطاء جديدة.
-- مراجعة بصرية: `useAccountsActions` يستقبل نفس مرجع `overdueSplit`، و`toast` لا يزال مستورداً في `VoucherList.tsx`.
 
-## خارج النطاق
-- لا تغييرات DB / RLS / Edge Functions / Auth.
-- ملفات الاختبار تبقى كما هي.
-- إعادة تصميم `useAccountsActions` (مؤجَّل عبر TODO).
-- الملفات المحمية (`config.toml`, `client.ts`, `types.ts`, `.env`).
+- `tsc --noEmit` نظيف.
+- `bunx vitest run` على الاختبارات الجديدة.
+- فحص يدوي: تسجيل دخول كمحاسب → عدم ظهور زر "المقارنة التاريخية"؛ فتح Sidebar موبايل بلوحة المفاتيح والتأكد من Escape و focus trap.
