@@ -76,7 +76,11 @@ export function useAnnualReportPage() {
 
   // إضافة/تعديل عنصر
   const handleSubmit = useCallback((data: { title: string; content: string; section_type: SectionType; property_id?: string | null }) => {
-    if (!fiscalYearId) return;
+    if (!fiscalYearId) {
+      // A3: تنبيه صريح بدلاً من فشل صامت
+      uiNotify.error('يرجى اختيار سنة مالية محددة قبل إضافة/تعديل عنصر التقرير');
+      return;
+    }
     if (editingItem) {
       updateItem.mutate({ id: editingItem.id, ...data }, {
         onSuccess: () => { setDialogOpen(false); setEditingItem(null); },
