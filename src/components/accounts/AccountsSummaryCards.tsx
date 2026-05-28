@@ -25,16 +25,34 @@ interface AccountsSummaryCardsProps {
   isClosed?: boolean;
   /** H11: whether default percentages are being used instead of configured ones */
   usingFallbackPct?: boolean;
+  /** P0-2: قيم DB الأصلية لكشف overrides غير المحفوظة */
+  defaultManualVat?: number;
+  defaultZakatAmount?: number;
+  defaultWaqfCorpusManual?: number;
+  defaultManualDistributions?: number;
 }
+
+const isOverridden = (current: number, original: number | undefined) =>
+  original !== undefined && Math.abs(current - original) > 0.01;
+
+const UnsavedBadge = () => (
+  <span className="text-[10px] px-1 py-0.5 rounded bg-destructive/40 text-primary-foreground mr-1">غير محفوظ</span>
+);
 
 const AccountsSummaryCards = ({
   waqfCorpusPrevious, totalIncome, grandTotal, totalExpenses,
   netAfterExpenses, manualVat, netAfterVat, zakatAmount, netAfterZakat,
   adminPercent, adminShare, waqifPercent, waqifShare,
   waqfRevenue, waqfCorpusManual, manualDistributions, remainingBalance,
-  isClosed = false, usingFallbackPct = false, 
+  isClosed = false, usingFallbackPct = false,
+  defaultManualVat, defaultZakatAmount, defaultWaqfCorpusManual, defaultManualDistributions,
 }: AccountsSummaryCardsProps) => {
   const computedNetAfterZakat = netAfterZakat ?? (netAfterVat - zakatAmount);
+  const vatOverridden = isOverridden(manualVat, defaultManualVat);
+  const zakatOverridden = isOverridden(zakatAmount, defaultZakatAmount);
+  const corpusOverridden = isOverridden(waqfCorpusManual, defaultWaqfCorpusManual);
+  const distOverridden = isOverridden(manualDistributions, defaultManualDistributions);
+  const anyOverridden = vatOverridden || zakatOverridden || corpusOverridden || distOverridden;
   return (
     <Card className="shadow-sm gradient-hero text-primary-foreground">
       <CardHeader>
