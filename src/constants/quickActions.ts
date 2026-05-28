@@ -4,7 +4,7 @@
  * في لوحات التحكم (مع iconClass وألوان)، وليست روابط تنقل قياسية.
  * مصدر الحقيقة للمسارات/التسميات يبقى `navigation.ts`.
  */
-import { FileText, TrendingUp, TrendingDown, Users, Printer, Gauge, Landmark, GitBranch, Receipt, BarChart3 } from 'lucide-react';
+import { FileText, TrendingUp, TrendingDown, Users, Printer, Gauge, ArrowUpDown, Landmark, GitBranch, Receipt, BarChart3 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface QuickActionItem {
