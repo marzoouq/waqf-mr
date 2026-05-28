@@ -17,7 +17,7 @@ vi.mock('@/hooks/data/useUnreadMessages', () => ({
 }));
 
 const mockGetJsonSetting = vi.fn((_key: string, fallback: unknown) => fallback);
-vi.mock('@/hooks/data/settings/useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: () => ({ getJsonSetting: mockGetJsonSetting }),
 }));
 

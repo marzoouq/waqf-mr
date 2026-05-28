@@ -12,10 +12,10 @@ import {
   type AnnualReportItem, type SectionType,
 } from '@/hooks/data/content/useAnnualReport';
 import { useProperties } from '@/hooks/data/properties/useProperties';
-import { useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
-import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
+import { useIncomeByFiscalYear } from '@/hooks/data/financial/income/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpenses';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import type { AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
 import { DollarSign, Receipt, FileText, Building2 } from 'lucide-react';

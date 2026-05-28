@@ -5,7 +5,7 @@
  * (يتكفّل بذلك useFeatureVisibility).
  */
 import type { ReactNode } from 'react';
-import { useFeatureVisibility } from '@/hooks/data/settings/useFeatureVisibility';
+import { useFeatureVisibility } from '@/hooks/data/settings/permissions/useFeatureVisibility';
 import type { FeatureScope } from '@/constants/featureVisibilityRegistry';
 
 interface FeatureGateProps {

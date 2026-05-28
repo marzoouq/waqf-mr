@@ -14,7 +14,7 @@ import type { Property } from '@/types';
 import { usePropertiesFilters } from '../properties/usePropertiesFilters';
 import { usePropertiesForm } from '../properties/usePropertiesForm';
 import { usePropertiesSummary } from '../properties/usePropertiesSummary';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 
 export function usePropertiesPage() {
   const propertiesQuery = useProperties();

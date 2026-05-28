@@ -5,7 +5,7 @@ import { Beneficiary } from '@/types';
 import { uiNotify } from '@/lib/notify';
 import type { BeneficiaryFormData } from '@/types/forms/beneficiary';
 import { PAGE_SIZE_BENEFICIARIES } from '@/constants/pagination';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 
 const ITEMS_PER_PAGE = PAGE_SIZE_BENEFICIARIES;

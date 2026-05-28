@@ -10,7 +10,7 @@ const mutateAsync = vi.fn();
 const mkReq = (id: string) => ({ id, amount: 1000, status: 'pending', beneficiary: { user_id: `u-${id}` } });
 const requests = Array.from({ length: 45 }, (_, i) => mkReq(`r${i}`));
 
-vi.mock('@/hooks/data/financial/useAdvanceRequests', () => ({
+vi.mock('@/hooks/data/financial/advances/useAdvanceRequests', () => ({
   useAdvanceRequests: () => ({ data: requests, isLoading: false }),
   useUpdateAdvanceStatus: () => ({ mutate, mutateAsync, isPending: false }),
 }));
@@ -19,7 +19,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   useFiscalYear: () => ({ fiscalYearId: 'fy1' }),
 }));
 
-vi.mock('@/hooks/data/settings/useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: () => ({ getJsonSetting: (_k: string, d: unknown) => d }),
 }));
 

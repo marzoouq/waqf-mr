@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useAuthCleanup } from '@/hooks/auth/session/useAuthCleanup';
 import { useSessionExpiry } from '@/hooks/auth/session/useSessionExpiry';
 import { useAccessLogger } from '@/hooks/auth/flows/useAccessLogger';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { logger } from '@/lib/logger';
 

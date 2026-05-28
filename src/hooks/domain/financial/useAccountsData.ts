@@ -3,17 +3,17 @@
  * محسّن: يجلب العقود للسنة المحددة فقط + التخصيصات من جدول contract_fiscal_allocations مباشرة
  */
 import { useMemo } from 'react';
-import { useAccounts } from '@/hooks/data/financial/useAccounts';
-import { useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
-import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
+import { useAccounts } from '@/hooks/data/financial/accounts/useAccounts';
+import { useIncomeByFiscalYear } from '@/hooks/data/financial/income/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpenses';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useBeneficiaries } from '@/hooks/data/beneficiaries/useBeneficiaries';
 import { useTenantPayments } from '@/hooks/data/contracts/useTenantPayments';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useProperties } from '@/hooks/data/properties/useProperties';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
+import { useContractAllocations } from '@/hooks/data/financial/contracts/useContractAllocations';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 export function useAccountsData() {

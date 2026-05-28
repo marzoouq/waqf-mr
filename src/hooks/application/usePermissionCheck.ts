@@ -2,8 +2,8 @@
  * هوك فحص صلاحية الوصول لمسار معين حسب الدور والإعدادات
  */
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
-import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
+import { useSectionsVisibility } from '@/hooks/data/settings/permissions/useSectionsVisibility';
+import { useRolePermissions } from '@/hooks/data/settings/permissions/useRolePermissions';
 import {
   ADMIN_ROUTE_PERM_KEYS,
   BENEFICIARY_ROUTE_PERM_KEYS,

@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useCollectionData } from './useCollectionData';
 import type { Contract } from '@/types';
-import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import type { FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 
 const makeFY = (overrides: Partial<FiscalYear> = {}): FiscalYear => ({

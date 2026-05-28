@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import type { FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import { useDashboardPrefetch } from '@/hooks/data/dashboard/useDashboardPrefetch';
 import { useFiscalYearPersistence } from '@/hooks/auth/session/useFiscalYearPersistence';
 import { useResolvedFiscalYear } from '@/hooks/auth/session/useResolvedFiscalYear';

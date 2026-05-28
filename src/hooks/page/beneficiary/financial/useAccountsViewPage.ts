@@ -9,7 +9,7 @@ import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContract
 import { useMyShare } from '@/hooks/domain/financial/useMyShare';
 import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';
 import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFinancials';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';

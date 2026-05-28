@@ -2,7 +2,7 @@
  * Page hook: AdvanceSettingsTab
  */
 import { useState, useEffect } from 'react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 
 export interface AdvanceSettingsForm {
   enabled: boolean;

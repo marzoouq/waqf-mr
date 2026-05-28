@@ -11,10 +11,10 @@
  *  - تجهيز handler التصدير PDF
  */
 import { useState, useMemo, useEffect } from 'react';
-import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
-import { useYearComparisonData } from '@/hooks/data/financial/useYearComparisonData';
-import { useFiscalYearSummaries } from '@/hooks/data/financial/useFiscalYearSummary';
+import type { FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
+import { useYearComparisonData } from '@/hooks/data/financial/fiscalYears/useYearComparisonData';
+import { useFiscalYearSummaries } from '@/hooks/data/financial/fiscalYears/useFiscalYearSummary';
 import { MONTH_NAMES } from '@/constants/calendar';
 
 interface UseYearComparisonStateArgs {

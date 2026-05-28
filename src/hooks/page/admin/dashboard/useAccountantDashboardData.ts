@@ -2,8 +2,8 @@
  * هوك بيانات لوحة المحاسب المخصصة — يستخرج مقاييس تشغيلية من بيانات RPC المُجمّعة
  */
 import { useMemo } from 'react';
-import type { AggregatedData } from '@/hooks/data/financial/useDashboardSummary';
-import type { HeatmapInvoice } from '@/hooks/data/financial/useDashboardSummary';
+import type { AggregatedData } from '@/hooks/data/financial/dashboard/useDashboardSummary';
+import type { HeatmapInvoice } from '@/hooks/data/financial/dashboard/useDashboardSummary';
 
 export interface OverdueInvoice {
   id: string;

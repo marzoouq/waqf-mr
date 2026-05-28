@@ -5,7 +5,7 @@
  * - SidebarUserFooter: معلومات المستخدم + خروج
  */
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { useSetting } from '@/hooks/data/settings/useAppSettings';
+import { useSetting } from '@/hooks/data/settings/app/useAppSettings';
 import { SidebarBrand } from './sidebar/SidebarBrand';
 import { SidebarNavList, type NavLinkItem, type NavGroupItem } from './sidebar/SidebarNavList';
 import { SidebarUserFooter } from './sidebar/SidebarUserFooter';

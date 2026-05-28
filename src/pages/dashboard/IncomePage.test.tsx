@@ -8,7 +8,7 @@ const mockIncome = [
 
 const mockMutate = { mutateAsync: vi.fn(), isPending: false };
 
-vi.mock('@/hooks/data/financial/useIncome', () => ({
+vi.mock('@/hooks/data/financial/income/useIncome', () => ({
   useIncome: vi.fn(() => ({ data: mockIncome, isLoading: false })),
   useIncomeByFiscalYear: vi.fn(() => ({ data: mockIncome, isLoading: false })),
   useCreateIncome: vi.fn(() => mockMutate),
@@ -43,7 +43,7 @@ vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ role: 'admin', user: { id: 'u1' }, loading: false })),
 }));
 
-vi.mock('@/hooks/data/settings/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/hooks/data/settings/waqf/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/hooks/data/invoices/usePaymentInvoices', () => ({
   usePaymentInvoices: vi.fn(() => ({ data: [], isLoading: false })),

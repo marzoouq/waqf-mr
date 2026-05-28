@@ -3,7 +3,7 @@
  * مستخرج من useAccountsPage للحفاظ على حد 200 سطر.
  */
 import { useCallback } from 'react';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { uiNotify } from '@/lib/notify';
 

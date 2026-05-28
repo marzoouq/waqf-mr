@@ -3,8 +3,8 @@
  */
 import { useMemo, useState, useCallback } from 'react';
 import { useBylaws } from '@/hooks/data/content/useBylaws';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 
 export function useBylawsViewPage() {

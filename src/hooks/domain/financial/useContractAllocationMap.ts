@@ -11,7 +11,7 @@
  */
 import { useMemo } from 'react';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
+import { useContractAllocations } from '@/hooks/data/financial/contracts/useContractAllocations';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 interface ContractLike {

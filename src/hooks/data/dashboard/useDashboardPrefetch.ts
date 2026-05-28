@@ -16,7 +16,7 @@ import { invoke } from '@/lib/api/invoke';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { dashboardKeys } from '@/lib/queryKeys/dashboardKeys';
-import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import type { FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 
 interface UseDashboardPrefetchArgs {
   fiscalYearId: string;

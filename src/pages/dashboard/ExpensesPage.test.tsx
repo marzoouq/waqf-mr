@@ -8,7 +8,7 @@ const mockExpenses = [
 
 const mockMutate = { mutateAsync: vi.fn(), isPending: false };
 
-vi.mock('@/hooks/data/financial/useExpenses', () => ({
+vi.mock('@/hooks/data/financial/expenses/useExpenses', () => ({
   useExpenses: vi.fn(() => ({ data: mockExpenses, isLoading: false })),
   useExpensesByFiscalYear: vi.fn(() => ({ data: mockExpenses, isLoading: false })),
   useCreateExpense: vi.fn(() => mockMutate),
@@ -44,7 +44,7 @@ vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: vi.fn(() => ({ role: 'admin', user: { id: 'u1' }, loading: false })),
 }));
 
-vi.mock('@/hooks/data/settings/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/hooks/data/settings/waqf/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/layout/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/components/layout', async () => {
   const actual = await vi.importActual('@/components/layout');

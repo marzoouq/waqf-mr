@@ -3,9 +3,9 @@
  * يتضمن: اختيار السنوات، جلب البيانات، حساب صفوف المقارنة، بيانات الرسم البياني، تصدير PDF
  */
 import { useState, useMemo, useCallback } from 'react';
-import { useFiscalYears } from '@/hooks/data/financial/useFiscalYears';
-import { useMultiYearSummary, type YearSummaryEntry } from '@/hooks/data/financial/useMultiYearSummary';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { useFiscalYears } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
+import { useMultiYearSummary, type YearSummaryEntry } from '@/hooks/data/financial/fiscalYears/useMultiYearSummary';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 
 export function useHistoricalComparison() {

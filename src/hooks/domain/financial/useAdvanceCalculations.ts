@@ -3,7 +3,7 @@
  * يعتمد على طبقة data: `useMyBeneficiaryFinanceRaw`.
  */
 import { useMemo } from 'react';
-import { useMyBeneficiaryFinanceRaw } from '@/hooks/data/financial/useAdvanceQueries';
+import { useMyBeneficiaryFinanceRaw } from '@/hooks/data/financial/advances/useAdvanceQueries';
 import { safeNumber } from '@/utils/format/safeNumber';
 import type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 

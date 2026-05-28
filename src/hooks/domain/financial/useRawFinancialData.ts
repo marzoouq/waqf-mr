@@ -1,8 +1,8 @@
-import { useIncomeByFiscalYear } from '@/hooks/data/financial/useIncome';
-import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
-import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
+import { useIncomeByFiscalYear } from '@/hooks/data/financial/income/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpenses';
+import { useAccountByFiscalYear } from '@/hooks/data/financial/accounts/useAccounts';
 import { useBeneficiariesSafe } from '@/hooks/data/beneficiaries/useBeneficiaries';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { FY_NONE, FY_SKIP, isFyReady } from '@/constants/fiscalYearIds';
 
 /**

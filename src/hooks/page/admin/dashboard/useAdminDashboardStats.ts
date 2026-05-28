@@ -8,7 +8,7 @@ import { calcChangePercent } from '@/utils/financial/calcChangePercent';
 import { computeExpenseRatio, EXPENSE_RATIO_FULL_DEFICIT } from '@/utils/financial/ratios';
 import { Building2, FileText, TrendingDown, Users, DollarSign, Landmark, ArrowDownUp } from 'lucide-react';
 import type { StatItem, KpiItem } from '@/types/dashboard';
-import type { AggregatedCollection, AggregatedOccupancy } from '@/hooks/data/financial/useDashboardSummary';
+import type { AggregatedCollection, AggregatedOccupancy } from '@/hooks/data/financial/dashboard/useDashboardSummary';
 
 const getKpiColor = (value: number, good: number, warn: number, invert = false) => {
   const isGood = invert ? value <= good : value >= good;

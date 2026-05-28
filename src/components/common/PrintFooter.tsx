@@ -1,4 +1,4 @@
-import { useWaqfInfo } from '@/hooks/data/settings/useAppSettings';
+import { useWaqfInfo } from '@/hooks/data/settings/app/useAppSettings';
 import { DEFAULT_WAQF_NAME } from '@/constants/waqf';
 
 const PrintFooter = () => {

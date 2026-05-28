@@ -2,8 +2,8 @@
  * Page hook: RolePermissionsTab
  */
 import { useState } from 'react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
+import { useRolePermissions } from '@/hooks/data/settings/permissions/useRolePermissions';
 import { useSyncedFormState } from '@/hooks/ui/useSyncedFormState';
 import { uiNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';

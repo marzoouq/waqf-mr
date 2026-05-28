@@ -2,7 +2,7 @@
  * Page hook: MenuCustomizationTab
  */
 import { useState, useEffect } from 'react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { defaultMenuLabels, type MenuLabels } from '@/types/navigation';
 
 export const MENU_ITEMS: { key: keyof MenuLabels; defaultLabel: string }[] = [

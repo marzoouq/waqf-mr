@@ -5,9 +5,9 @@
  * ليبقى المكوّن UI خالصاً.
  */
 import { useState } from 'react';
-import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from '@/hooks/data/financial/useAdvanceRequests';
+import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from '@/hooks/data/financial/advances/useAdvanceRequests';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { isFyAll } from '@/constants/fiscalYearIds';
 
 const PAGE_SIZE = 20;

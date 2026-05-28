@@ -19,7 +19,7 @@ import type { InvoicePreviewData, InvoiceSourceFilter } from '@/types/invoices';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useInvoicesFilters } from './useInvoicesFilters';
 import { useInvoiceFormState } from './useInvoiceFormState';
 import { useInvoiceFileUpload } from './useInvoiceFileUpload';

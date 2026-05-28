@@ -1,7 +1,7 @@
 /**
  * Page hook: AppearanceTab
  */
-import { useAppearanceSettings, type AppearanceSettings } from '@/hooks/data/settings/useAppearanceSettings';
+import { useAppearanceSettings, type AppearanceSettings } from '@/hooks/data/settings/appearance/useAppearanceSettings';
 import { useSyncedFormState } from '@/hooks/ui/useSyncedFormState';
 
 export const useAppearanceTab = () => {

@@ -14,7 +14,7 @@ import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFi
 import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
-import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
+import { useContractAllocations } from '@/hooks/data/financial/contracts/useContractAllocations';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';

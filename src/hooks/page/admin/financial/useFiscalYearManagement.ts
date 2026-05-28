@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
-import { useFiscalYears, type FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import { useFiscalYears, type FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY, deleteFiscalYearCascade } from '@/lib/services';
 
 export function useFiscalYearManagement() {

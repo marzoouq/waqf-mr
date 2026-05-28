@@ -8,7 +8,7 @@ import { FileText, Eye, Save } from 'lucide-react';
 import type { Contract } from '@/types';
 import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector } from './InvoiceTemplates';
 import { useCreateInvoiceForm, INVOICE_TYPES } from '@/hooks/page/admin/financial/useCreateInvoiceForm';
-import { useSetting } from '@/hooks/data/settings/useAppSettings';
+import { useSetting } from '@/hooks/data/settings/app/useAppSettings';
 import InvoiceFormFields from './create-invoice/InvoiceFormFields';
 import InvoiceItemsTable from './create-invoice/InvoiceItemsTable';
 

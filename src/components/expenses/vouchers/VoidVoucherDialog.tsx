@@ -10,7 +10,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import type { Voucher } from '@/hooks/data/financial/useDisbursementVouchers';
+import type { Voucher } from '@/hooks/data/financial/distribution/useDisbursementVouchers';
 
 interface Props {
   target: Voucher | null;

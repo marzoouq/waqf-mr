@@ -5,7 +5,7 @@ import { useMemo, useCallback, useState, useEffect } from 'react';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { usePropertiesMap } from '@/hooks/data/properties/usePropertiesMap';
 import { uiNotify } from '@/lib/notify';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';

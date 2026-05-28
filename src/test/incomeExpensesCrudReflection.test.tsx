@@ -110,13 +110,13 @@ import {
   useCreateIncome,
   useUpdateIncome,
   useDeleteIncome,
-} from '@/hooks/data/financial/useIncome';
+} from '@/hooks/data/financial/income/useIncome';
 import {
   useExpensesByFiscalYear,
   useCreateExpense,
   useUpdateExpense,
   useDeleteExpense,
-} from '@/hooks/data/financial/useExpenses';
+} from '@/hooks/data/financial/expenses/useExpenses';
 
 // ─── Wrapper ─────────────────────────────────────────────────────────────────
 const makeWrapper = () => {

@@ -12,7 +12,7 @@
  */
 import { useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { useActiveFiscalYear, type FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import { useActiveFiscalYear, type FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { resolveFiscalYearId } from '@/utils/fiscalYear/resolveFiscalYearId';
 

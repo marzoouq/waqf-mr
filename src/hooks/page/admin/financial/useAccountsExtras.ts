@@ -5,8 +5,8 @@
  */
 import { useMemo } from 'react';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
-import { useAdvanceRequests } from '@/hooks/data/financial/useAdvanceRequests';
-import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/useTotalBeneficiaryPercentage';
+import { useAdvanceRequests } from '@/hooks/data/financial/advances/useAdvanceRequests';
+import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/dashboard/useTotalBeneficiaryPercentage';
 import { useOverdueSplit } from './useOverdueSplit';
 
 export const useAccountsExtras = (

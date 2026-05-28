@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Receipt, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
-import type { FiscalYearSummary } from '@/hooks/data/financial/useFiscalYearSummary';
+import type { FiscalYearSummary } from '@/hooks/data/financial/fiscalYears/useFiscalYearSummary';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface YoYSummaryCardsProps {

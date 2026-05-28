@@ -7,7 +7,7 @@ vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock('@/hooks/data/settings/useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: vi.fn(),
   useWaqfInfo: vi.fn(() => ({ data: null })),
   useSetting: vi.fn(() => undefined),
@@ -51,7 +51,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 
 import Auth from './Auth';
 import Index from './Index';

@@ -35,5 +35,5 @@ hooks/data/financial/
 ## سياسة الاستيراد
 استخدم المسارات المباشرة دائماً:
 ```ts
-import { useFiscalYears } from '@/hooks/data/financial/useFiscalYears';
+import { useFiscalYears } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 ```

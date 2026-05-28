@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { prefetchComponent } from '@/lib/componentPrefetch';
 import { propertiesQueryOptions } from '@/hooks/data/properties/useProperties';
 import { contractsQueryOptions } from '@/hooks/data/contracts/useContracts';
-import { accountsQueryOptions } from '@/hooks/data/financial/useAccounts';
+import { accountsQueryOptions } from '@/hooks/data/financial/accounts/useAccounts';
 import { unitsQueryOptions } from '@/hooks/data/properties/useUnits';
 
 const PREFETCH_STALE = 2 * 60_000; // دقيقتان — لتجنب إعادة التحميل المتكررة عند hover

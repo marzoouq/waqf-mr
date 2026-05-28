@@ -12,7 +12,7 @@ import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import type { ForensicAuditData } from '@/utils/pdf/reports/forensicAudit';
 
