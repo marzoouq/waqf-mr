@@ -2,8 +2,7 @@
  * دوال نقية لحساب صفوف وملخص تقرير التحصيل.
  * مستخرَجة من `useCollectionData` لتقليل حجم الهوك مع الإبقاء على السلوك.
  */
-import type { Contract } from '@/types';
-import type { FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
+import type { Contract, FiscalYear } from '@/types';
 import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { safeNumber } from '@/utils/format/safeNumber';
