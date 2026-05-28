@@ -28,12 +28,16 @@ export interface RpcYearEntry {
 /** تحويل صف RPC خام إلى YearSummaryEntry */
 export function mapEntry(raw: RpcYearEntry): YearSummaryEntry {
   const acct = raw.account;
+  const hasSnapshot = acct !== null;
   const waqfRevenue = acct?.waqf_revenue ?? 0;
   const corpusManual = acct?.waqf_corpus_manual ?? 0;
   const expensesByType: Record<string, number> = {};
   (raw.expenses_by_type ?? []).forEach(e => {
     expensesByType[e.expense_type] = e.total;
   });
+
+  // P1-6 (السياسة ب): حماية بصرية + إعلان isDeficit للـ badge
+  const rawAvailable = waqfRevenue - corpusManual;
 
   return {
     yearId: raw.year_id,
@@ -48,9 +52,10 @@ export function mapEntry(raw: RpcYearEntry): YearSummaryEntry {
     waqfRevenue,
     netAfterExpenses: acct?.net_after_expenses ?? 0,
     netAfterVat: acct?.net_after_vat ?? 0,
-    // المبلغ المتاح للتوزيع = ريع الوقف − رقبة الوقف المُخصصة يدوياً
-    availableAmount: waqfRevenue - corpusManual,
+    availableAmount: Math.max(0, rawAvailable),
     distributionsAmount: acct?.distributions_amount ?? 0,
     expensesByType,
+    isDeficit: rawAvailable < 0,
+    hasSnapshot,
   };
 }
