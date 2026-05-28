@@ -1,5 +1,6 @@
 /**
  * تقرير الحسابات الختامية — PDF
+ * Helpers (صفوف التوزيع وصفوف المستفيدين) في accountsPdf.helpers.ts.
  */
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
@@ -10,6 +11,7 @@ import {
 import { getLastAutoTableY } from '../core/pdfHelpers';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { fmt } from '@/utils/format/format';
+import { buildDistributionRows, buildBeneficiaryRows } from './accountsPdf.helpers';
 
 export const generateAccountsPDF = async (data: {
   contracts: Array<{ contract_number: string; tenant_name: string; rent_amount: number; status: string; start_date?: string | null }>;
@@ -144,47 +146,25 @@ export const generateAccountsPDF = async (data: {
   }
 
 
-  // التوزيع — التسلسل المالي الهرمي
-  const corpusPrev = data.waqfCorpusPrevious || 0;
-  const gt = data.grandTotal || (data.totalIncome + corpusPrev);
-  const regularExp = data.totalExpenses;
-  const netAfterExp = data.netAfterExpenses ?? (gt - regularExp);
-  const netAfterVat = data.netAfterVat ?? (netAfterExp - (data.vatAmount || 0));
-  const zakatAmt = data.zakatAmount || 0;
-  const netAfterZakatVal = data.netAfterZakat || (netAfterVat - zakatAmt);
-  const avail = data.availableAmount ?? (data.waqfRevenue - (data.waqfCorpusManual || 0));
-  const remaining = data.remainingBalance ?? (avail - (data.distributionsAmount || 0));
-
-  const distributionRows: (string | number)[][] = [];
-  if (corpusPrev > 0) {
-    distributionRows.push(['رقبة الوقف المرحلة من العام السابق', `+${fmt(corpusPrev)}`]);
-  }
-  distributionRows.push(['إجمالي الدخل', `+${fmt(data.totalIncome)}`]);
-  if (corpusPrev > 0) {
-    distributionRows.push(['الإجمالي الشامل', fmt(gt)]);
-  }
-  distributionRows.push(
-    ['(-) المصروفات التشغيلية', `(${fmt(regularExp)})`],
-    ['الصافي بعد المصاريف', fmt(netAfterExp)],
-    ['(-) ضريبة القيمة المضافة', `(${fmt(data.vatAmount || 0)})`],
-    ['الصافي بعد الضريبة', fmt(netAfterVat)],
-  );
-  if (zakatAmt > 0) {
-    distributionRows.push(
-      ['(-) الزكاة', `(${fmt(zakatAmt)})`],
-      ['الصافي بعد الزكاة', fmt(netAfterZakatVal)],
-    );
-  }
-  distributionRows.push(
-    ['(-) حصة الناظر', `(${fmt(data.adminShare)})`],
-    [`الباقي بعد حصة الناظر`, fmt(netAfterZakatVal - data.adminShare)],
-    ['(-) حصة الواقف', `(${fmt(data.waqifShare)})`],
-    ['ريع الوقف (الإجمالي القابل للتوزيع)', fmt(data.waqfRevenue)],
-    ['(-) رقبة الوقف للعام الحالي', `(${fmt(data.waqfCorpusManual || 0)})`],
-    ['المبلغ المتاح', fmt(avail)],
-    ['(-) التوزيعات', `(${fmt(data.distributionsAmount || 0)})`],
-    ['الرصيد المتبقي', fmt(remaining)],
-  );
+  // التوزيع — التسلسل المالي الهرمي (صفوف مبنية في helper)
+  const distributionRows = buildDistributionRows({
+    totalIncome: data.totalIncome,
+    totalExpenses: data.totalExpenses,
+    vatAmount: data.vatAmount,
+    zakatAmount: data.zakatAmount,
+    netAfterExpenses: data.netAfterExpenses,
+    netAfterVat: data.netAfterVat,
+    netAfterZakat: data.netAfterZakat,
+    adminShare: data.adminShare,
+    waqifShare: data.waqifShare,
+    waqfRevenue: data.waqfRevenue,
+    waqfCorpusManual: data.waqfCorpusManual,
+    waqfCorpusPrevious: data.waqfCorpusPrevious,
+    grandTotal: data.grandTotal,
+    availableAmount: data.availableAmount,
+    distributionsAmount: data.distributionsAmount,
+    remainingBalance: data.remainingBalance,
+  });
 
   doc.setFont(fontFamily, 'bold');
   doc.text(rs('التوزيع'), 105, y, { align: 'center' });
@@ -200,18 +180,12 @@ export const generateAccountsPDF = async (data: {
   y = getLastAutoTableY(doc, 240) + 10;
 
   // حصص المستفيدين
-  const totalBenPct = data.beneficiaries.reduce((s, b) => s + safeNumber(b.share_percentage), 0);
-  const distAmount = data.distributionsAmount || 0;
   doc.setFont(fontFamily, 'bold');
   doc.text(rs('حصص المستفيدين'), 105, y, { align: 'center' });
   autoTable(doc, {
     startY: y + 6,
     head: [reshapeRow(['المستفيد', 'النسبة', 'المبلغ'])],
-    body: data.beneficiaries.map(b => reshapeRow([
-      b.name,
-      `${safeNumber(b.share_percentage).toFixed(6)}%`,
-      totalBenPct > 0 ? fmt(distAmount * safeNumber(b.share_percentage) / totalBenPct) : '0',
-    ])),
+    body: buildBeneficiaryRows(data.beneficiaries, data.distributionsAmount || 0).map(r => reshapeRow(r)),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
     ...baseTableStyles(fontFamily),
