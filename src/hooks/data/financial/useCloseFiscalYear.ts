@@ -32,13 +32,15 @@ export function useCloseFiscalYear() {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['income'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['contracts'] });
-      queryClient.invalidateQueries({ queryKey: ['tenant_payments'] });
-      queryClient.invalidateQueries({ queryKey: ['payment_invoices'] });
+      // قائمة شاملة: تشمل التوزيعات والسُلف والمرحّل والمستفيدين والفواتير ولوحات السنوات
+      const keys = [
+        'fiscal_years', 'accounts', 'income', 'expenses', 'contracts',
+        'tenant_payments', 'payment_invoices', 'invoices', 'distributions',
+        'advance_requests', 'advance_carryforward', 'beneficiaries',
+        'dashboard_summary', 'annual_report_status', 'annual_report_items',
+        'contract_fiscal_allocations',
+      ];
+      for (const key of keys) queryClient.invalidateQueries({ queryKey: [key] });
     },
     onError: (err) => {
       logger.error('خطأ في إقفال السنة:', err instanceof Error ? err.message : err);
