@@ -4,7 +4,7 @@
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Headset, Loader2, MessageSquare, Plus, Info } from 'lucide-react';
+import { Headset, Loader2, MessageSquare, Plus, Info, AlertCircle, RefreshCw } from 'lucide-react';
 import { TicketList, TicketViewDialog, NewTicketDialog } from '@/components/support';
 import { useSupportPage } from '@/hooks/page/beneficiary';
 import { MESSAGES_VS_SUPPORT_COPY } from '@/constants/beneficiaryCopy';
@@ -13,6 +13,8 @@ const BeneficiarySupportPage = () => {
   const {
     tickets,
     isLoading,
+    isError,
+    refetch,
     selectedTicket,
     setSelectedTicket,
     showNewTicket,
