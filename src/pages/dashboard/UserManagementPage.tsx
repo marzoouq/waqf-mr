@@ -18,6 +18,7 @@ import { useUserManagement } from '@/hooks/auth/role/useUserManagement';
 import UsersTable from '@/components/user-management/UsersTable';
 import CreateUserForm from '@/components/user-management/CreateUserForm';
 import { UserEditDialog, UserPasswordDialog, UserDeleteDialog } from '@/components/user-management/UserDialogs';
+import UserStatsCards from '@/components/user-management/UserStatsCards';
 
 const UserManagementPage = () => {
   const queryClient = useQueryClient();
@@ -57,6 +58,8 @@ const UserManagementPage = () => {
             />
           }
         />
+
+        <UserStatsCards />
 
         {/* تنبيه المستفيدين غير المربوطين */}
         {mgmt.orphanedBeneficiaries.length > 0 && (
