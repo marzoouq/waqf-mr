@@ -152,7 +152,10 @@ export function useAnnualReportPage() {
 
   // نشر/إلغاء نشر
   const handleTogglePublish = useCallback(() => {
-    if (!fiscalYearId) return;
+    if (!fiscalYearId) {
+      uiNotify.error('يرجى اختيار سنة مالية محددة قبل النشر');
+      return;
+    }
     togglePublish.mutate({ fiscalYearId, publish: !isPublished });
   }, [fiscalYearId, isPublished, togglePublish]);
 
