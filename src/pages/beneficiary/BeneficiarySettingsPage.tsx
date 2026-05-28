@@ -76,6 +76,13 @@ const BeneficiarySettingsPage = () => {
             />
           </TabsContent>
 
+          <TabsContent value="bank">
+            <BankAccountTab
+              bankAccount={currentBeneficiary?.bank_account ?? null}
+              phone={currentBeneficiary?.phone ?? null}
+            />
+          </TabsContent>
+
           <TabsContent value="password">
             <PasswordTab />
           </TabsContent>
