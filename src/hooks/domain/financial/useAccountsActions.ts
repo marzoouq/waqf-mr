@@ -77,9 +77,14 @@ export function useAccountsActions(params: ActionsParams) {
   };
 
   const handleCreateAccount = async () => {
+    const p = paramsRef.current;
+    // A2: حماية صريحة من إنشاء حساب ختامي بدون سنة مالية مختارة
+    if (!p.selectedFY?.id) {
+      uiNotify.error('يرجى اختيار سنة مالية أولاً قبل إنشاء الحساب الختامي');
+      return;
+    }
     try {
       await createAccount.mutateAsync(buildAccountData());
-      const p = paramsRef.current;
       notifyAllBeneficiaries(
         'تحديث الحسابات الختامية',
         `تم تحديث الحسابات الختامية للسنة المالية ${p.selectedFY?.label || p.fiscalYear}`,
