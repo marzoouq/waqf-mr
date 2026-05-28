@@ -2413,6 +2413,28 @@ export type Database = {
         Args: { p_invoice_id: string }
         Returns: Json
       }
+      update_beneficiary_self: {
+        Args: { p_bank_account?: string; p_phone?: string }
+        Returns: {
+          bank_account: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          national_id: string | null
+          notes: string | null
+          phone: string | null
+          share_percentage: number
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "beneficiaries"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       upsert_contract_allocations: {
         Args: { p_allocations: Json; p_contract_id: string }
         Returns: undefined

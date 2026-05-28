@@ -12,19 +12,20 @@ import { useMaxAdvanceAmount } from '@/hooks/data/financial/useMaxAdvanceAmount'
 
 interface AdvanceRequestDialogProps {
   beneficiaryId: string;
+  beneficiaryName?: string;
   fiscalYearId?: string;
   /** Fallback client-side estimated share (used only if RPC fails) */
   estimatedShare: number;
   /** Fallback client-side paid advances */
   paidAdvances: number;
   carryforwardBalance?: number;
-  /** When true, the fiscal year is still active (shares not finalized) */
+  /** True when the fiscal year is active — advances are allowed only in this case */
   isFiscalYearActive?: boolean;
   minAmount?: number;
   maxPercentage?: number;
 }
 
-const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, paidAdvances, carryforwardBalance = 0, isFiscalYearActive = false, minAmount = 0, maxPercentage = 50 }: AdvanceRequestDialogProps) => {
+const AdvanceRequestDialog = ({ beneficiaryId, beneficiaryName, fiscalYearId, estimatedShare, paidAdvances, carryforwardBalance = 0, isFiscalYearActive = false, minAmount = 0, maxPercentage = 50 }: AdvanceRequestDialogProps) => {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
@@ -53,6 +54,7 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
         fiscal_year_id: fiscalYearId,
         amount: numAmount,
         reason: reason || undefined,
+        beneficiaryName,
       });
       setOpen(false);
       setAmount('');
@@ -70,7 +72,12 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2" disabled={isFiscalYearActive}>
+        <Button
+          variant="outline"
+          className="gap-2"
+          disabled={!isFiscalYearActive}
+          title={!isFiscalYearActive ? 'طلب السلفة متاح فقط خلال السنة المالية النشطة' : undefined}
+        >
           <Banknote className="w-4 h-4" />
           طلب سلفة
         </Button>

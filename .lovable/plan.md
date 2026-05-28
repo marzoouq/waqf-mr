@@ -1,121 +1,101 @@
-# خطة مُصحَّحة — بعد مراجعة جنائية للخطة نفسها
 
-## الأخطاء التي اكتشفتها في الخطة السابقة وصحَّحتها
+# تقرير التدقيق وخطة الإصلاح
 
-| الخطأ في خطتي | الواقع | التصحيح |
-|---|---|---|
-| كتبت مسار `useSettingsPage` كـ `src/hooks/application/messaging/useSettingsPage.ts` | المسار الفعلي `src/hooks/page/admin/management/useSettingsPage.ts` | استخدام المسار الصحيح |
-| اقترحتُ إضافة `labelKey: 'distributions'` فقط في `routeRegistry.ts` | `labelKey` نوعه `keyof MenuLabels` (نوع صارم في `src/types/navigation.ts`)، ولا توجد فيه قيمة `distributions` | يجب أولاً إضافة `distributions` إلى `MenuLabels` interface و `defaultMenuLabels`، ثم استخدامها في routeRegistry |
-| اقترحتُ إضافة `toast` داخل `useMessaging.ts` (طبقة data) | يخالف قاعدة الذاكرة الأساسية: **"No Toast in Data Hooks — hooks/data نقي، الإشعارات في hooks/page wrappers"** | نقل الـtoast إلى `useMessagesPage.ts` (application) و `useBeneficiaryMessages.ts` (page beneficiary) |
+## نتائج التدقيق (تلقائي عبر وكيلين متوازيين)
 
----
+**لوحة الناظر**: 128 عنصر تفاعلي · ✅ 101 يعمل · 🚧 1 جزئي · ❌ 0 مفقود · 🧭 26 تنقل/فلتر  
+**واجهة المستفيد**: 45 عنصر · ✅ 28 يعمل · 🚧 4 جزئي · ❌ 5 مفقود · 🧭 5 تنقل
 
-## الخطة النهائية — 17 إصلاحاً موزّعة على فئات
-
-### 🔴 P0 — أمن (3 بنود، بعضها خارج نطاق الكود)
-
-**1. `.env` متعقَّب في git (بند #1)**  
-خارج نطاق Lovable — أنبّه المستخدم بتنفيذ يدوي: `git rm --cached .env && git commit`. لا أعدّل `.env` (محمي).
-
-**2. عدم وجود headers أمنية فعلية (بنود #7-8)**  
-إنشاء `public/_headers`:
-```
-/*
-  Content-Security-Policy: frame-ancestors 'self'
-  X-Frame-Options: DENY
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
-```
-
-**3. لا CI gate ضد `.env` (بند #10)**  
-إضافة خطوة `gitleaks-action` في `.github/workflows/ci.yml` لرفض أي commit يحوي أسراراً.
+النظام في حالة جيدة عموماً — المشاكل محصورة في **15 خلل حرج/متوسط** سنصلحها.
 
 ---
 
-### 🟡 P1 — توافق صارم مع الأنواع (بند 1)
+## أولاً: مشاكل واجهة المستفيد (Beneficiary)
 
-**4. `/dashboard/distributions` بلا `labelKey` (بند #17)**  
-- **`src/types/navigation.ts`**: إضافة `distributions: string` إلى `MenuLabels` interface و `'توزيع الحصص'` إلى `defaultMenuLabels`.
-- **`src/constants/routeRegistry.ts:34`**: إضافة `labelKey: 'distributions'` على مدخل `/dashboard/distributions`.
+| # | الصفحة | المشكلة | الإصلاح |
+|---|--------|---------|---------|
+| B1 | `MySharePage` / `AdvanceRequestDialog` | زر "طلب سلفة" معطّل عكسياً: `isFiscalYearActive={selectedFY?.status !== 'closed'}` → السلف متاحة فقط على السنوات المغلقة | عكس المنطق: `isFiscalYearActive={selectedFY?.status === 'active'}` وتفعيل الزر للسنة النشطة فقط |
+| B2 | `AdvanceRequestDialog` | `beneficiaryName` لا يُمرَّر لـ `mutateAsync` → إشعار الناظر يظهر "غير معروف" | تمرير `beneficiaryName` من `useMySharePage` للحوار ثم للـ mutation |
+| B3 | `SupportPage` | `isError`/`error`/`refetch` تُرجَع من الـ hook لكنها غير مستخدمة → فشل الجلب يظهر قائمة فارغة بلا رسالة | عرض رسالة خطأ + زر "إعادة المحاولة" |
+| B4 | `BeneficiarySettingsPage` | لا يوجد حقل لرقم الحساب البنكي ولا تعديل ذاتي للهاتف | إضافة تبويب "البيانات البنكية" مع حقل `bank_account` (تشفير AES عبر RPC موجود)، وحقل هاتف قابل للتعديل |
+| B5 | `BeneficiaryMessagesPage` | `activeTab` معاد من الـ hook لكن JSX يمرّر `'chat'` ثابت → محادثات الدعم غير ظاهرة | استخدام `activeTab/setActiveTab` فعلياً وإضافة تبويب "الدعم" |
+| B6 | `MySharePage` (3 أزرار PDF) | تعود بصمت عند السنة النشطة بدون tooltip/toast | إضافة `disabled` + tooltip "متاح بعد إقفال السنة" |
+| B7 | `BeneficiaryMessagesPage` "دعم جديد" | يُنشئ `conversations` بدلاً من `support_tickets` → نظامان متوازيان | توحيد: زر يفتح `NewTicketDialog` الموجود في `SupportPage` |
+| B8 | `useCreateTicket` | فشل `notify_admins` RPC مبتلَع صامتاً | إضافة `logger.error` ورفع toast للناظر إن لزم |
 
----
+## ثانياً: مشاكل لوحة الناظر (Admin)
 
-### ♿ Accessibility (10 بنود)
-
-**5. بطاقات `DashboardStatsGrid` بلا `aria-label` (#31)**  
-`DashboardStatsGrid.tsx:22-35` — إضافة `aria-label={\`فتح صفحة ${stat.label}\`}` على كل `<Link>`.
-
-**6. `aria-hidden` ناقص على 3 أيقونات في `DashboardAlerts` (#32)**  
-السطور 47 (AlertTriangle), 78 (Banknote), 95 (Clock), 110 (AlertTriangle) — إضافة `aria-hidden="true"`.
-
-**7. لا احترام لـ `prefers-reduced-motion` (#33)**  
-استبدال `animate-fade-in` بـ `motion-safe:animate-fade-in` في `DashboardStatsGrid` و `DashboardAlerts`.
-
-**8. `SettingsPage` لا يدعم deep link `?tab=` (#54)**  
-**`src/hooks/page/admin/management/useSettingsPage.ts`** (المسار الصحيح) — استبدال `useState(defaultTab)` بـ `useSearchParams` للقراءة والكتابة من/إلى URL.
-
-**9. Focus trap جزئي في mobile sidebar (#74)**  
-`DashboardLayout.tsx:48-62` — إضافة معالج `keydown` للـ`Tab/Shift+Tab` يدور بين أول وآخر عنصر قابل للتركيز داخل الـdialog.
-
-**10. لا Skip Link (#76) و `<main>` بلا `id` (#77)**  
-`DashboardLayout.tsx` — إضافة:
-```tsx
-<a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 focus:z-50 focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded">
-  تخطي إلى المحتوى الرئيسي
-</a>
-```
-وتعديل `<main>` ليصبح `<main id="main-content" role="main" ...>`.
-
-**11. زر User في `DesktopTopBar` بدون `aria-label` (#80)**  
-فحص `DesktopTopBar.tsx` كاملاً وإضافة `aria-label` لأي زر أيقوني يفتقر إليه.
-
-**12. `MessageThread` بلا `aria-live` على حاوية الرسائل (#86)**  
-- إضافة `role="log" aria-live="polite" aria-atomic="false"` على حاوية scroll الرسائل.
-- إضافة `aria-label="اكتب رسالتك"` على Input الإرسال.
-
-**13. لا toast عند إرسال رسالة (#88) — مُحترِم قاعدة "No Toast in Data Hooks"**  
-**في طبقة Page فقط** — لا نلمس `useMessaging.ts`:
-- `src/hooks/application/messaging/useMessagesPage.ts:38-43` — إضافة `try/catch` يطلق `toast.success('تم إرسال الرسالة')` عند النجاح و `toast.error('تعذّر إرسال الرسالة')` عند الفشل.
-- `src/hooks/page/beneficiary/messaging/useBeneficiaryMessages.ts:50` — نفس النمط للمستفيد.
-
-**14. `ZatcaManagementPage` لا تعرض تنبيه انتهاء الشهادة (#93)**  
-`src/pages/dashboard/ZatcaManagementPage.tsx` — إدراج `<ZatcaCertExpiryWarning />` (من `@/components/settings/zatca/ZatcaCertExpiryWarning`) أعلى الصفحة قبل الـTabs.
-
-**15. جداول التقارير بلا `<caption>` دلالي (#94)**  
-`AnnualDisclosureTable.tsx:65` وأي جدول مماثل في `src/components/reports/` — إضافة `<caption className="sr-only">جدول الإفصاح السنوي للوقف</caption>`.
+| # | الصفحة | المشكلة | الإصلاح |
+|---|--------|---------|---------|
+| A1 | `InvoicesPage` "إنشاء من قالب" | `InvoicesPageDialogs` template-submit غير متتبَّع — يجب التحقق من ربطه بـ mutation | فحص `InvoicesPageDialogs` وربطه بـ `createInvoice` إن كان مفقوداً |
+| A2 | `AccountsPage` "إنشاء حساب ختامي" | `buildAccountData()` يضع `fiscal_year_id=''` إن كان `selectedFY` null → INSERT تالف | guard: `if (!selectedFY?.id) { toast.error('اختر سنة مالية'); return; }` |
+| A3 | `AnnualReportPage` add/edit | فشل صامت عند غياب `fiscalYearId` | إظهار toast "الرجاء اختيار سنة مالية" |
+| A4 | `DistributionsPage` "تنفيذ التوزيع" | تمرير `fiscalYearId=undefined` ممكن عند `'all'` | تعطيل الزر ما لم يكن هناك سنة محددة + guard في `useDistribute` |
+| A5 | `UserManagementPage` "ربط مستفيد" | `.from('beneficiaries').update()` مباشر يتجاوز `admin-users` edge fn → لا audit | نقله إلى edge function `admin-users` بـ action `link_beneficiary` |
+| A6 | `useCloseFiscalYear` | لا يُبطل cache `['fiscal_years']` بعد الإقفال | إضافة `qc.invalidateQueries({queryKey:['fiscal_years']})` |
+| A7 | `EmailMonitorPage` Retry DLQ | `isRetrying` مشترك بين queue auth و transactional | حالتان منفصلتان `isRetryingAuth` / `isRetryingTx` |
 
 ---
 
-## الملفات المعدَّلة (نهائية)
+## مخطط التنفيذ
 
-```
-[جديد]   public/_headers
-[تعديل]  .github/workflows/ci.yml
-[تعديل]  src/types/navigation.ts                                         ← MenuLabels.distributions
-[تعديل]  src/constants/routeRegistry.ts                                  ← labelKey
-[تعديل]  src/components/dashboard/kpi/DashboardStatsGrid.tsx             ← aria-label + motion-safe
-[تعديل]  src/components/dashboard/widgets/DashboardAlerts.tsx            ← aria-hidden + motion-safe
-[تعديل]  src/hooks/page/admin/management/useSettingsPage.ts              ← useSearchParams (مسار صحيح)
-[تعديل]  src/components/layout/DashboardLayout.tsx                       ← skip link + id main + Tab trap
-[تعديل]  src/components/layout/DesktopTopBar.tsx                         ← aria-label فحص
-[تعديل]  src/components/messages/MessageThread.tsx                       ← aria-live + label
-[تعديل]  src/hooks/application/messaging/useMessagesPage.ts              ← toast (page layer)
-[تعديل]  src/hooks/page/beneficiary/messaging/useBeneficiaryMessages.ts  ← toast (page layer)
-[تعديل]  src/pages/dashboard/ZatcaManagementPage.tsx                     ← ZatcaCertExpiryWarning
-[تعديل]  src/components/reports/AnnualDisclosureTable.tsx                ← caption
+```text
+المرحلة 1 — إصلاحات Frontend الخالصة (لا تغييرات DB)
+  ├─ B1, B6  — منطق تفعيل/تعطيل زر السلفة + tooltips
+  ├─ B2      — تمرير beneficiaryName
+  ├─ B3      — عرض خطأ + retry في SupportPage
+  ├─ B5      — تفعيل tabs في BeneficiaryMessagesPage
+  ├─ B7      — توحيد زر "دعم جديد" على NewTicketDialog
+  ├─ B8      — تسجيل فشل notify_admins
+  ├─ A2, A3, A4 — guards واضحة + toasts
+  ├─ A6      — invalidation بعد إقفال السنة
+  ├─ A7      — فصل isRetrying لقائمتي DLQ
+  └─ A1      — فحص InvoicesPageDialogs وربط template-submit
+
+المرحلة 2 — إضافات تتطلب Frontend + Backend خفيف
+  ├─ B4: تبويب "البيانات البنكية" في BeneficiarySettingsPage
+  │      └─ يحتاج RPC: update_beneficiary_self(bank_account, phone)
+  │         مع تشفير bank_account عبر pgcrypto الموجود
+  └─ A5: نقل link_beneficiary إلى edge function admin-users
+          └─ إضافة action جديد + audit log entry
+
+المرحلة 3 — تحقق
+  ├─ tsc + tests (vitest)
+  └─ فحص يدوي للأزرار المصلحة في preview
 ```
 
-**ملاحظة حاسمة**: لن نمسّ `src/hooks/data/messaging/useMessaging.ts` — احتراماً لقاعدة الذاكرة الأساسية.
+## التفاصيل التقنية (للمراجعة)
+
+**الملفات المتأثرة (~16 ملف):**
+- `src/hooks/page/beneficiary/myshare/useMySharePage.ts`, `AdvanceRequestDialog.tsx` (B1, B2, B6)
+- `src/pages/beneficiary/SupportPage.tsx` + `useSupportPage.ts` (B3)
+- `src/pages/beneficiary/BeneficiarySettingsPage.tsx` + tab جديد `BankAccountTab.tsx` (B4)
+- `src/pages/beneficiary/BeneficiaryMessagesPage.tsx` (B5, B7)
+- `src/hooks/data/support/useCreateTicket.ts` (B8)
+- `src/hooks/page/admin/accounts/useAccountsActions.ts` (A2, A6)
+- `src/hooks/page/admin/annual-report/useAnnualReportPage.ts` (A3)
+- `src/pages/dashboard/DistributionsPage.tsx` + `useDistribute.ts` (A4)
+- `src/hooks/page/admin/users/useUserManagement.ts` + `supabase/functions/admin-users/index.ts` (A5)
+- `src/hooks/page/admin/email/useEmailMonitorActions.ts` (A7)
+- `src/components/invoices/InvoicesPageDialogs.tsx` (A1)
+
+**Migrations مطلوبة (المرحلة 2 فقط):**
+- RPC `update_beneficiary_self(p_bank_account text, p_phone text)` security definer — يتحقق `auth.uid()` ويشفّر `bank_account`
+- لا جداول جديدة، لا تغييرات schema
+
+**معايير المشروع المُلتزَم بها:**
+- Page Hook Pattern: كل المنطق في `hooks/page/`
+- No toast في `hooks/data/` (التوست في طبقة page فقط)
+- `logger` بدل `console`
+- `sessionStorage` للـ fiscal_year_id
+- RLS تبقى كما هي (لا توسعة صلاحيات)
+
+## ما لن يُنفَّذ
+
+- العناصر المصنّفة NAV_ONLY (26 في الناظر، 5 في المستفيد) — تعمل كما هو متوقع (تنقل/فلترة client-side)
+- تبويب الـ Theme المحفوظ في localStorage (مقصود — تفضيل جهاز)
+- المكونات القراءة-فقط (`DisclosurePage`, `AdminDashboard` widgets, إلخ)
 
 ---
 
-## ما تأكدنا أنه **خارج نطاق هذه الخطة**
-
-- بنود `.env` و `git` (تنفيذ يدوي).
-- 14 ادعاءً مُصلَحاً مسبقاً (comparison/expenseRatio/SettingsPage SelectGroup/Sidebar aria-label/mobile sidebar dialog…).
-- 18 قراراً تصميمياً مقصوداً (صلاحيات المحاسب على audit/bylaws/annual-report/chart-of-accounts، BottomNav بلا messages للمحاسب، الرسائل الجماعية في الإعدادات فقط…).
-- 6 ادعاءات كاذبة مُوثَّقة.
-- 40 توصية UX اختيارية مؤجَّلة.
-
-هل أعتمد هذه النسخة المصححة وأنفّذها؟
+**التقدير**: ~15 إصلاح موزّعة على ~16 ملف + migration واحد. كل الأخطاء قابلة للإصلاح دون كسر أي ميزة موجودة.
