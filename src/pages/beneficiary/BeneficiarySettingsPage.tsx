@@ -3,15 +3,16 @@
  */
 import { ResponsiveTabs, TabsContent, type TabItem } from '@/components/ui/responsive-tabs';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { User, Lock, Bell, Shield, Palette } from 'lucide-react';
+import { User, Lock, Bell, Shield, Palette, Landmark } from 'lucide-react';
 import ThemeColorPicker from '@/components/theme/ThemeColorPicker';
-import { BiometricSettings, AccountTab, PasswordTab, NotificationsTab } from '@/components/settings';
+import { BiometricSettings, AccountTab, BankAccountTab, PasswordTab, NotificationsTab } from '@/components/settings';
 import { TableSkeleton, ErrorState } from '@/components/common';
 import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import { useBeneficiarySettingsPage } from '@/hooks/page/beneficiary';
 
 const tabItems: TabItem[] = [
   { value: 'account', label: 'الحساب', icon: <User className="w-4 h-4" /> },
+  { value: 'bank', label: 'الحساب البنكي', icon: <Landmark className="w-4 h-4" /> },
   { value: 'password', label: 'كلمة المرور', icon: <Lock className="w-4 h-4" /> },
   { value: 'biometric', label: 'البصمة', icon: <Shield className="w-4 h-4" /> },
   { value: 'notifications', label: 'الإشعارات', icon: <Bell className="w-4 h-4" /> },
@@ -72,6 +73,13 @@ const BeneficiarySettingsPage = () => {
               name={currentBeneficiary?.name || '—'}
               email={user?.email || '—'}
               maskedId={maskedId}
+            />
+          </TabsContent>
+
+          <TabsContent value="bank">
+            <BankAccountTab
+              bankAccount={currentBeneficiary?.bank_account ?? null}
+              phone={currentBeneficiary?.phone ?? null}
             />
           </TabsContent>
 

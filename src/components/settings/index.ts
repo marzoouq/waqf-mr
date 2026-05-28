@@ -17,6 +17,7 @@
 
 // account
 export { default as AccountTab } from './AccountTab';
+export { default as BankAccountTab } from './BankAccountTab';
 
 // fiscal-year
 export { default as AdvanceSettingsTab } from './fiscal-year/AdvanceSettingsTab';

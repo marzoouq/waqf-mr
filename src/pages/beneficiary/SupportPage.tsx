@@ -4,7 +4,7 @@
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Headset, Loader2, MessageSquare, Plus, Info } from 'lucide-react';
+import { Headset, Loader2, MessageSquare, Plus, Info, AlertCircle, RefreshCw } from 'lucide-react';
 import { TicketList, TicketViewDialog, NewTicketDialog } from '@/components/support';
 import { useSupportPage } from '@/hooks/page/beneficiary';
 import { MESSAGES_VS_SUPPORT_COPY } from '@/constants/beneficiaryCopy';
@@ -13,6 +13,8 @@ const BeneficiarySupportPage = () => {
   const {
     tickets,
     isLoading,
+    isError,
+    refetch,
     selectedTicket,
     setSelectedTicket,
     showNewTicket,
@@ -54,6 +56,14 @@ const BeneficiarySupportPage = () => {
           <CardContent>
             {isLoading ? (
               <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>
+            ) : isError ? (
+              <div className="flex flex-col items-center gap-3 py-8">
+                <AlertCircle className="w-10 h-10 text-destructive" />
+                <p className="text-sm text-muted-foreground">تعذّر تحميل قائمة التذاكر</p>
+                <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
+                  <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+                </Button>
+              </div>
             ) : tickets.length === 0 ? (
               <div className="text-center py-8">
                 <Headset className="w-12 h-12 text-muted-foreground mx-auto mb-2" />

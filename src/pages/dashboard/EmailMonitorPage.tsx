@@ -73,7 +73,7 @@ export default function EmailMonitorPage() {
         <EmailDlqRetryCard
           authDlqCount={h.adminStats?.auth_dlq_count ?? 0}
           transactionalDlqCount={h.adminStats?.transactional_dlq_count ?? 0}
-          isRetrying={h.isRetrying}
+          retryingQueue={h.retryingQueue}
           onRetry={h.retry}
         />
 

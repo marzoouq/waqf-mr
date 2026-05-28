@@ -1,17 +1,25 @@
 /**
  * useEmailMonitorActions — يفصل DLQ retry + refresh عن orchestrator
+ *
+ * #A7: نتتبع الطابور النشط حالياً (activeQueue) كي لا يتعطّل زر الطابور الآخر
+ * أثناء إعادة محاولة طابور واحد. الزرّان المنفصلان (auth/transactional) يحتاجان
+ * مؤشر تحميل مستقل لكل طابور.
  */
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 
+type DlqQueue = 'auth_emails' | 'transactional_emails';
+
 export function useEmailMonitorActions() {
   const qc = useQueryClient();
+  const [activeQueue, setActiveQueue] = useState<DlqQueue | null>(null);
 
   const retryMutation = useMutation({
-    mutationFn: async (queue: 'auth_emails' | 'transactional_emails') => {
+    mutationFn: async (queue: DlqQueue) => {
+      setActiveQueue(queue);
       return await invoke<{ ok: boolean; moved: number; error: string | null }>(
         'email-admin',
         { body: { action: 'retry_dlq', queue } },
@@ -30,6 +38,9 @@ export function useEmailMonitorActions() {
       logger.error('retry_dlq failed', err);
       toast.error('حدث خطأ أثناء إعادة المحاولة');
     },
+    onSettled: () => {
+      setActiveQueue(null);
+    },
   });
 
   const refresh = useCallback(() => {
@@ -37,9 +48,12 @@ export function useEmailMonitorActions() {
     qc.invalidateQueries({ queryKey: ['email-admin-stats'] });
   }, [qc]);
 
+  const retryingQueue: DlqQueue | null = retryMutation.isPending ? activeQueue : null;
+
   return {
     retry: retryMutation.mutate,
     isRetrying: retryMutation.isPending,
+    retryingQueue,
     refresh,
   };
 }

@@ -103,7 +103,7 @@ export function useEmailMonitorPage() {
   useEffect(() => { setPage(0); }, [range, customStart, customEnd, templateFilter, statusFilter]);
 
   // إعادة محاولة DLQ + refresh مفصولة في hook خاص
-  const { retry, isRetrying, refresh } = useEmailMonitorActions();
+  const { retry, isRetrying, retryingQueue, refresh } = useEmailMonitorActions();
 
   return {
     // state
@@ -130,5 +130,6 @@ export function useEmailMonitorPage() {
     refresh,
     retry,
     isRetrying,
+    retryingQueue,
   };
 }
