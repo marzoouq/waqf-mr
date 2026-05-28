@@ -22,4 +22,8 @@ export interface YearSummaryEntry {
   availableAmount: number;
   distributionsAmount: number;
   expensesByType: Record<string, number>;
+  /** علم العجز — يظهر badge "عجز" في الواجهة */
+  isDeficit?: boolean;
+  /** هل توجد snapshot لهذه السنة (للتمييز عن السنوات النشطة) */
+  hasSnapshot?: boolean;
 }
