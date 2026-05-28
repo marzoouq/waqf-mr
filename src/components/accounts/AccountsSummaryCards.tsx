@@ -102,15 +102,24 @@ const AccountsSummaryCards = ({
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(computedNetAfterZakat)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">حصة الناظر ({adminPercent}%)</p>
+            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
+              حصة الناظر ({adminPercent}%)
+              {!isClosed && <span className="text-[10px] px-1 py-0.5 rounded bg-warning/40 text-primary-foreground">تقديري</span>}
+            </p>
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(adminShare)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">حصة الواقف ({waqifPercent}%)</p>
+            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
+              حصة الواقف ({waqifPercent}%)
+              {!isClosed && <span className="text-[10px] px-1 py-0.5 rounded bg-warning/40 text-primary-foreground">تقديري</span>}
+            </p>
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqifShare)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">ريع الوقف</p>
+            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
+              ريع الوقف
+              {!isClosed && <span className="text-[10px] px-1 py-0.5 rounded bg-warning/40 text-primary-foreground">تقديري</span>}
+            </p>
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfRevenue)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
