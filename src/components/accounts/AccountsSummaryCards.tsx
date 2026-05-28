@@ -78,6 +78,14 @@ const AccountsSummaryCards = ({
             </AlertDescription>
           </Alert>
         )}
+        {anyOverridden && (
+          <Alert className="mb-4 border-destructive/60 bg-destructive/25 text-primary-foreground">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              تم تعديل قيمة يدوية في الواجهة فقط — لم تُحفظ في قاعدة البيانات وستُفقد عند تحديث الصفحة.
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
           {waqfCorpusPrevious > 0 && (
             <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
