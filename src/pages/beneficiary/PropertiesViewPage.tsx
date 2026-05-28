@@ -16,7 +16,7 @@ import { Building2, Layers, AlertCircle, RefreshCw, ArrowLeft } from 'lucide-rea
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import PropertyCard from '@/components/properties/PropertyCard';
+import BeneficiaryPropertyCard from '@/components/beneficiary/properties/BeneficiaryPropertyCard';
 import { usePropertiesViewPage } from '@/hooks/page/beneficiary/views/usePropertiesViewPage';
 
 const PropertiesViewPage = () => {
@@ -117,7 +117,7 @@ const PropertiesViewPage = () => {
                 const isExpanded = expandedId === property.id;
 
                 return (
-                  <PropertyCard
+                  <BeneficiaryPropertyCard
                     key={property.id}
                     property={property}
                     financials={pf}
