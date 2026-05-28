@@ -2,7 +2,7 @@
  * دوال نقية لتلخيص وتصفية وترتيب فواتير الدفعات.
  * مستخرجة من `usePaymentInvoicesTab` للحفاظ على حجم الهوك.
  */
-import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
+import type { PaymentInvoice } from '@/types';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 export type InvoiceFilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';

@@ -6,6 +6,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+import type { Database } from '@/integrations/supabase/types';
+
+type VoucherPaymentMethod = Database['public']['Enums']['voucher_payment_method'];
 
 const KEY = ['disbursement_vouchers'] as const;
 
@@ -15,7 +18,7 @@ interface CreateVoucherInput {
   recipient_name: string;
   recipient_id_number: string;
   recipient_phone: string;
-  payment_method: string;
+  payment_method: VoucherPaymentMethod;
   transfer_reference: string;
   work_description: string;
   signature_data: string;
@@ -37,8 +40,7 @@ export function useCreateVoucherAction() {
         p_recipient_name: input.recipient_name,
         p_recipient_id_number: input.recipient_id_number,
         p_recipient_phone: input.recipient_phone,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        p_payment_method: input.payment_method as any,
+        p_payment_method: input.payment_method,
         p_transfer_reference: input.transfer_reference,
         p_work_description: input.work_description,
         p_signature_data: input.signature_data,
