@@ -5,6 +5,8 @@
  * مصدر الحقيقة للمسارات/التسميات يبقى `navigation.ts`.
  */
 import { FileText, TrendingUp, TrendingDown, Users, Printer, Gauge, ArrowUpDown, Landmark, GitBranch, Receipt, BarChart3 } from 'lucide-react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _unusedIconReference = ArrowUpDown;
 import type { LucideIcon } from 'lucide-react';
 
 export interface QuickActionItem {
@@ -21,7 +23,7 @@ export const QUICK_ACTIONS: Record<string, QuickActionItem[]> = {
     { to: '/dashboard/accounts', icon: FileText, iconClass: 'text-primary', label: 'الحسابات الختامية' },
     { to: '/dashboard/invoices', icon: FileText, iconClass: 'text-secondary', label: 'إدارة الفواتير' },
     { to: '/dashboard/chart-of-accounts', icon: GitBranch, iconClass: 'text-accent-foreground', label: 'الشجرة المحاسبية' },
-    { to: '/dashboard/comparison', icon: ArrowUpDown, iconClass: 'text-muted-foreground', label: 'المقارنة التاريخية' },
+    // إزالة `/dashboard/comparison` — admin-only، كان يسرّب رابطاً محجوباً للمحاسب
     { to: '/dashboard/annual-report', icon: Printer, iconClass: 'text-primary', label: 'التقرير السنوي' },
     { to: '/dashboard/reports', icon: Gauge, iconClass: 'text-secondary', label: 'التقارير المالية' },
   ],

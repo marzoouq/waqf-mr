@@ -70,8 +70,8 @@ export const useAdminDashboardData = ({
   const expiringContractsCount = counts?.expiring_contracts ?? 0;
   const orphanedContractsCount = counts?.orphaned_contracts ?? 0;
 
-  // ── نسبة المصروفات (لتمريرها للتنبيهات) ──
-  const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
+  // ── نسبة المصروفات (لتمريرها للتنبيهات) — تكشف عجز "إنفاق بلا دخل" ──
+  const expenseRatio = computeExpenseRatio(totalIncome, totalExpenses);
 
   // ── إحصائيات البطاقات ──
   const { stats, kpis, collectionSummary, collectionColor } = useAdminDashboardStats({

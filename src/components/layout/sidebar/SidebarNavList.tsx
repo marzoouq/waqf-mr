@@ -33,6 +33,7 @@ export const SidebarNavList: React.FC<SidebarNavListProps> = ({
       <Link
         key={link.to}
         to={link.to}
+        aria-label={link.label}
         aria-current={isActive ? 'page' : undefined}
         onClick={() => setMobileSidebarOpen(false)}
         onMouseEnter={() => getPrefetchHandler(link.to)?.()}

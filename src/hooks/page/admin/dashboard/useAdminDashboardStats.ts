@@ -114,21 +114,31 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
 
   const kpis: KpiItem[] = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
-    const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
+    const expenseRatio = computeExpenseRatio(totalIncome, totalExpenses);
+    const isFullDeficit = expenseRatio === EXPENSE_RATIO_FULL_DEFICIT;
+    const isDeficit = expenseRatio > 100;
 
     const colColor = getKpiColor(collectionRate, 80, 50);
-    const expColor = getKpiColor(expenseRatio, 20, 40, true);
+    // عند الـ sentinel نعرض 100% بصرياً (شريط ممتلئ بلون مدمّر)
+    const expColor = getKpiColor(isFullDeficit ? 100 : expenseRatio, 20, 40, true);
 
     const prevExpenseRatio = yoy.hasPrevYear && yoy.prevTotalIncome > 0
       ? Math.round((yoy.prevTotalExpenses / yoy.prevTotalIncome) * 100) : null;
-    const expenseRatioChange = prevExpenseRatio !== null ? calcChangePercent(expenseRatio, prevExpenseRatio) : null;
+    const expenseRatioChange = prevExpenseRatio !== null && !isFullDeficit ? calcChangePercent(expenseRatio, prevExpenseRatio) : null;
 
     const hasInvoicesDue = collectionSummary.total > 0;
 
-    // KPIs المُرحَّلة: معدل الإشغال → Properties (Progress bar)، متوسط الإيجار → Properties (بطاقة جديدة)
     return [
       { label: 'نسبة التحصيل', value: hasInvoicesDue ? collectionRate : 0, suffix: hasInvoicesDue ? '%' : '', color: hasInvoicesDue ? colColor.text : 'text-muted-foreground', progressColor: hasInvoicesDue ? colColor.bar : '' },
-      { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar, yoyChange: expenseRatioChange, invertColor: true },
+      {
+        label: isFullDeficit ? 'عجز: إنفاق بلا دخل' : isDeficit ? 'عجز مالي' : 'نسبة المصروفات',
+        value: isFullDeficit ? 100 : expenseRatio,
+        suffix: '%',
+        color: isDeficit ? 'text-destructive font-bold' : expColor.text,
+        progressColor: isDeficit ? '[&>div]:bg-destructive' : expColor.bar,
+        yoyChange: expenseRatioChange,
+        invertColor: true,
+      },
     ];
   }, [collectionSummary, totalIncome, totalExpenses, yoy]);
 

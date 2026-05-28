@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { useSettingsPage } from '@/hooks/page/admin/management/useSettingsPage';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings } from 'lucide-react';
 import PageLoader from '@/components/common/PageLoader';
 import { SETTINGS_CATEGORIES } from '@/constants/settingsCategories';
@@ -38,13 +38,19 @@ const SettingsPage = () => {
           {isMobile ? (
             <div className="mb-4">
               <Select value={activeSettingsTab} onValueChange={setActiveSettingsTab}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="اختر القسم..." /></SelectTrigger>
+                <SelectTrigger className="w-full" aria-label="اختر قسم الإعدادات">
+                  <SelectValue placeholder="اختر القسم..." />
+                </SelectTrigger>
                 <SelectContent>
                   {SETTINGS_CATEGORIES.map((cat) => (
-                    <div key={cat.label}>
-                      <div className="px-2 py-1.5 text-xs font-bold text-muted-foreground border-b border-border">{cat.label}</div>
-                      {cat.tabs.map((tab) => (<SelectItem key={tab.value} value={tab.value}>{tab.label}</SelectItem>))}
-                    </div>
+                    <SelectGroup key={cat.label}>
+                      <SelectLabel className="px-2 py-1.5 text-xs font-bold text-muted-foreground border-b border-border">
+                        {cat.label}
+                      </SelectLabel>
+                      {cat.tabs.map((tab) => (
+                        <SelectItem key={tab.value} value={tab.value}>{tab.label}</SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>
@@ -54,10 +60,10 @@ const SettingsPage = () => {
               {SETTINGS_CATEGORIES.map((cat) => (
                 <div key={cat.label}>
                   <p className="text-xs font-bold text-muted-foreground mb-1.5 px-1">{cat.label}</p>
-                  <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1 rounded-lg">
+                  <TabsList aria-label={cat.label} className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1 rounded-lg">
                     {cat.tabs.map((tab) => (
                       <TabsTrigger key={tab.value} value={tab.value} className="gap-1.5 text-xs md:text-sm">
-                        <tab.icon className="w-4 h-4" />{tab.label}
+                        <tab.icon className="w-4 h-4" aria-hidden="true" />{tab.label}
                       </TabsTrigger>
                     ))}
                   </TabsList>
