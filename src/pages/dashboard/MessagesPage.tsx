@@ -8,6 +8,7 @@ import ConversationList from '@/components/messages/ConversationList';
 import MessageThread from '@/components/messages/MessageThread';
 import NewConversationDialog from '@/components/messages/NewConversationDialog';
 import { useMessagesPage } from '@/hooks/application/messaging/useMessagesPage';
+import MessagesStatsCards from '@/components/messages/MessagesStatsCards';
 
 const MessagesPage = () => {
   const {
@@ -37,6 +38,8 @@ const MessagesPage = () => {
           ) : undefined}
           className="mb-0"
         />
+
+        {role === 'admin' && <MessagesStatsCards conversations={conversations} />}
 
         <div className="flex-1 flex gap-2 sm:gap-4 min-h-0">
           <ConversationList
