@@ -5,7 +5,7 @@
  *
  * Audit-fix: الاستعلام المفلتر بالسنة المالية مدمج محلياً (كان incomeService بمستهلك واحد).
  */
-import { createCrudFactory } from '../core/useCrudFactory';
+import { createCrudFactory } from '../../core/useCrudFactory';
 import { Income } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
