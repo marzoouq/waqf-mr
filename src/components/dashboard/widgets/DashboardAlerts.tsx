@@ -110,7 +110,7 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
           <AlertTriangle className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>نسب افتراضية مُستخدمة</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span>يتم استخدام النسب الافتراضية (ناظر 10%، واقف 5%) لأنه لم يتم إعدادها في الحسابات الختامية.</span>
+            <span>يتم استخدام النسب الافتراضية (ناظر 10%، واقف 5%) لأنه لم يتم إعدادها في إعدادات النظام أو الحسابات الختامية.</span>
             {canConfigureRatios ? (
               <Link to="/dashboard/accounts">
                 <Button variant="outline" size="sm" className="shrink-0">ضبط النسب</Button>
