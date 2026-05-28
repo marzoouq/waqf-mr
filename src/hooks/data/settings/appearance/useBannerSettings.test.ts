@@ -5,7 +5,7 @@ import { DEFAULT_BANNER_SETTINGS } from '@/constants';
 
 let storedData: Record<string, string> = {};
 
-vi.mock('./useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: () => ({
     isLoading: false,
     getJsonSetting: <T,>(key: string, fallback: T) => {

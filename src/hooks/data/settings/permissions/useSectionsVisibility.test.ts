@@ -9,7 +9,7 @@ import { defaultAdminSections, defaultBeneficiarySections } from '@/constants/na
 
 const getJsonSettingMock = vi.fn();
 
-vi.mock('./useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: () => ({ getJsonSetting: getJsonSettingMock }),
 }));
 

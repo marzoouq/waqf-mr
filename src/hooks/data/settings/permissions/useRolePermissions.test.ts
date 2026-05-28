@@ -8,7 +8,7 @@ import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 
 const getJsonSettingMock = vi.fn();
 
-vi.mock('./useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: () => ({ getJsonSetting: getJsonSettingMock }),
 }));
 
