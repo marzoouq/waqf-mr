@@ -41,6 +41,7 @@ export function useAnnualReportPage() {
   const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId ?? 'all');
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId ?? 'all');
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId ?? 'all');
+  const { data: accountsForFy = [] } = useAccountByFiscalYear(fiscalYear?.label, fiscalYearId ?? undefined);
   const waqfInfo = usePdfWaqfInfo();
 
   const createItem = useCreateReportItem();
@@ -54,6 +55,8 @@ export function useAnnualReportPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const isPublished = reportStatus?.status === 'published';
+  const isClosed = fiscalYear?.status === 'closed';
+  const fyAccount = accountsForFy[0];
 
   // تصنيف العناصر حسب النوع
   const grouped = useMemo(() => ({
@@ -63,9 +66,15 @@ export function useAnnualReportPage() {
     future_plan: items.filter(i => i.section_type === 'future_plan'),
   }), [items]);
 
-  // بطاقات ملخصة
-  const totalIncome = useMemo(() => income.reduce((s, r) => s + safeNumber(r.amount), 0), [income]);
-  const totalExpenses = useMemo(() => expenses.reduce((s, r) => s + safeNumber(r.amount), 0), [expenses]);
+  // بطاقات ملخصة — للسنة المُقفلة نقرأ snapshot؛ للنشطة نحسب من السطور
+  const totalIncome = useMemo(
+    () => (isClosed && fyAccount ? safeNumber(fyAccount.total_income) : income.reduce((s, r) => s + safeNumber(r.amount), 0)),
+    [isClosed, fyAccount, income],
+  );
+  const totalExpenses = useMemo(
+    () => (isClosed && fyAccount ? safeNumber(fyAccount.total_expenses) : expenses.reduce((s, r) => s + safeNumber(r.amount), 0)),
+    [isClosed, fyAccount, expenses],
+  );
   const activeContracts = useMemo(() => contracts.filter(c => c.status === 'active').length, [contracts]);
 
   const summaryCards = useMemo(() => [
