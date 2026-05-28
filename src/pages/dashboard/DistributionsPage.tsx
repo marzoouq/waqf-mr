@@ -20,13 +20,15 @@ const DistributeDialog = lazy(() => import('@/components/accounts/DistributeDial
 const DistributionsPage = () => {
   const p = useDistributionsPage();
   const fyLabel = p.selectedFY?.label || p.fiscalYear || '';
-  // التوزيع متاح فقط: للناظر، عند وجود حساب ختامي، ومتاح > 0، ومستفيدون، والسنة غير مقفلة
+  // التوزيع متاح فقط: للناظر، عند وجود حساب ختامي، ومتاح > 0، ومستفيدون، والسنة غير مقفلة، وسنة محددة (ليست 'all')
   const canDistribute =
     p.role === 'admin' &&
     !!p.currentAccount &&
     p.availableAmount > 0 &&
     p.beneficiaries.length > 0 &&
-    !p.isClosed;
+    !p.isClosed &&
+    p.fiscalYearId !== 'all' &&
+    !!p.fiscalYearId;
 
 
   return (
