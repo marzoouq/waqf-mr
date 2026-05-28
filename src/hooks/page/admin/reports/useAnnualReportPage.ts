@@ -15,6 +15,7 @@ import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useIncomeByFiscalYear } from '@/hooks/data/financial/income/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpenses';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
+import { useAccountByFiscalYear } from '@/hooks/data/financial/accounts/useAccounts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import type { AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
