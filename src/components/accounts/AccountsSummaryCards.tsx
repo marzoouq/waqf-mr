@@ -155,11 +155,17 @@ const AccountsSummaryCards = ({
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfRevenue)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">رقبة الوقف (الحالي)</p>
+            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
+              رقبة الوقف (الحالي)
+              {corpusOverridden && <UnsavedBadge />}
+            </p>
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfCorpusManual)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">التوزيعات</p>
+            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
+              التوزيعات
+              {distOverridden && <UnsavedBadge />}
+            </p>
             <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(manualDistributions)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
