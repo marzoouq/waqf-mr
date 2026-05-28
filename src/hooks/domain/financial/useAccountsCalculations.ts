@@ -3,6 +3,7 @@
  */
 import { useMemo, useCallback } from 'react';
 import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/financial/accountsCalculations';
+import { closedYearFinancials } from '@/utils/financial/closedYearFinancials';
 import { getPaymentCountFromMonths, getContractStatusLabel } from '@/utils/financial/contractHelpers';
 import type { useAccountsData } from './useAccountsData';
 
@@ -26,7 +27,7 @@ export function useAccountsCalculations({
   waqfCorpusManual, waqfCorpusPrevious, manualVat, manualDistributions,
   isClosed = false,
 }: CalcParams) {
-  const { income, expenses, contracts, properties, allUnits, allocationMap, paymentMap, appSettings } = data;
+  const { income, expenses, contracts, properties, allUnits, allocationMap, paymentMap, appSettings, currentAccount } = data as ReturnType<typeof useAccountsData> & { currentAccount?: AccountsData['accounts'][number] | null };
 
   const { totalIncome, totalExpenses } = useMemo(
     () => computeTotals(income, expenses),
@@ -61,12 +62,24 @@ export function useAccountsCalculations({
     }, 0), [contracts, isCommercialContract, allocationMap]);
   const calculatedVat = useMemo(() => commercialRent * (vatPercentage / 100), [commercialRent, vatPercentage]);
 
-  const financials = useMemo(() => calculateFinancials({
-    totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,
-    zakatAmount, adminPercent, waqifPercent,
-    waqfCorpusManual, manualDistributions,
-    isClosed,
-  }), [totalIncome, totalExpenses, waqfCorpusPrevious, manualVat, zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions, isClosed]);
+  const financials = useMemo(() => {
+    // P0-1: للسنة المُقفلة نقرأ القيم من snapshot DB بدلاً من إعادة الحساب حياً،
+    // لتفادي تناقض الأرقام بين AccountsPage و ReportsPage و AdminDashboard.
+    if (isClosed && currentAccount) {
+      return closedYearFinancials({
+        account: currentAccount,
+        waqfCorpusPrevious,
+        waqfCorpusManual,
+        distributionsAmount: manualDistributions,
+      });
+    }
+    return calculateFinancials({
+      totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,
+      zakatAmount, adminPercent, waqifPercent,
+      waqfCorpusManual, manualDistributions,
+      isClosed,
+    });
+  }, [isClosed, currentAccount, totalIncome, totalExpenses, waqfCorpusPrevious, manualVat, zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions]);
 
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
   const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
