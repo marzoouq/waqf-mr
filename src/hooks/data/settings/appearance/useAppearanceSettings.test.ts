@@ -4,7 +4,7 @@ import { useAppearanceSettings, DEFAULT_APPEARANCE_SETTINGS } from '@/hooks/data
 
 let storedData: Record<string, string> = {};
 
-vi.mock('./useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: () => ({
     isLoading: false,
     getJsonSetting: <T,>(key: string, fallback: T) => {
