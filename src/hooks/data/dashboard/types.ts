@@ -41,6 +41,7 @@ export interface BeneficiaryDashboardData {
     zakat_amount: number;
     net_after_expenses: number;
     net_after_vat: number;
+    net_after_zakat: number;
     waqf_corpus_manual: number;
     waqf_corpus_previous: number;
     distributions_amount: number;

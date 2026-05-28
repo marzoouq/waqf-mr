@@ -34,6 +34,16 @@ describe('calculateDistributions — Penny Allocation', () => {
     });
   });
 
+  it('يُرجع صفر لجميع الحصص عند مبلغ سالب (حماية)', () => {
+    const bens = [makeBen('a', 60), makeBen('b', 40)];
+    const result = calculateDistributions(bens, -1000);
+    expect(result).toHaveLength(2);
+    result.forEach(r => {
+      expect(r.share_amount).toBe(0);
+      expect(r.net_amount).toBe(0);
+    });
+  });
+
   it('يُعطي المبلغ كاملاً لمستفيد واحد بنسبة 100%', () => {
     const bens = [makeBen('a', 100)];
     const result = calculateDistributions(bens, 5000);

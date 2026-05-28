@@ -20,7 +20,11 @@ export function useEndUserFinancials(dashData: EndUserDashboardData | undefined,
   const vatAmount = safeNumber(account?.vat_amount);
   const netAfterVat = safeNumber(account?.net_after_vat);
   const zakatAmount = safeNumber(account?.zakat_amount);
-  const netAfterZakat = Math.max(0, netAfterVat - zakatAmount);
+  // تفضيل القيمة الرسمية من DB، مع الإبقاء على Math.max(0) كحماية UI (Negative Value Guards)
+  const netAfterZakat = Math.max(
+    0,
+    account?.net_after_zakat != null ? safeNumber(account.net_after_zakat) : netAfterVat - zakatAmount,
+  );
   const adminShare = safeNumber(account?.admin_share);
   const waqifShare = safeNumber(account?.waqif_share);
   const waqfRevenue = safeNumber(account?.waqf_revenue);
