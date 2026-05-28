@@ -1,39 +1,23 @@
-# hooks/data/financial/ — استعلامات البيانات المالية
+# `src/hooks/data/financial/` — استعلامات البيانات المالية
 
-هذا المجلد يحتوي على **هوكات بيانات** تتعامل مباشرة مع Supabase عبر TanStack Query.
+طبقة `hooks/data` نقية: تتعامل مباشرة مع Supabase عبر TanStack Query فقط، بدون toast ولا منطق محسوب.
 
-## الدور
-- جلب الإيرادات والمصروفات (`useIncome`, `useExpenses`)
-- إدارة السنوات المالية (`useFiscalYears`)
-- عمليات CRUD على الحسابات والتوزيعات
-- استعلامات السُلف والميزانيات
+## التنظيم (Sub-folders)
 
-## الفرق عن `hooks/computed/`
-| `hooks/computed/` | هذا المجلد (`hooks/data/financial/`) |
-|-------------------|-------------------------------------|
-| منطق محسوب فقط (selectors) | استعلامات Supabase (useQuery/useMutation) |
-| لا يستورد `supabase` client | يستورد `supabase` client |
-| يستهلك بيانات من هنا | يوفر البيانات الخام |
+| المجلد | المحتوى |
+|--------|---------|
+| `accounts/` | `useAccounts`, `useAccountCategories` |
+| `fiscalYears/` | `useFiscalYears`, `useFiscalYearSummary`, `useMultiYearSummary`, `useYearComparisonData`, `useCloseFiscalYear` |
+| `advances/` | `useAdvanceQueries`, `useAdvanceRequests`, `useMaxAdvanceAmount`, `useDistributionAdvances` |
+| `distribution/` | `useDistribute`, `useDistributionHistory`, `useDisbursementVouchers` |
+| `expenses/` | `useExpenses`, `useExpenseBudgets` |
+| `income/` | `useIncome`, `useIncomeComparison` |
+| `dashboard/` | `useDashboardSummary`, `useTotalBeneficiaryPercentage` |
+| `contracts/` | `useContractAllocations` |
 
-## التنظيم المقترح للنمو المستقبلي
+## القواعد
 
-عند تجاوز 35 ملفاً، يُنصح بتقسيم الملفات إلى مجلدات فرعية:
-
-```
-hooks/data/financial/
-├─ accounts/        ← useAccounts*, useAccountCategories
-├─ advances/        ← useAdvance*, useMaxAdvanceAmount
-├─ distribution/    ← useDistribut*, useTotalBeneficiaryPercentage
-├─ expenses/        ← useExpenses*, useExpenseBudgets
-├─ income/          ← useIncome*
-├─ fiscal-year/     ← useFiscalYear*, useCloseFiscalYear, useDashboardSummary
-└─ contracts/       ← useContractAllocations
-```
-
-ملاحظة: حالياً (30 ملف) التنظيم flat مقبول. نقل الملفات سيكسر >70 import — يُؤجَّل حتى تستحق الفائدة التكلفة.
-
-## سياسة الاستيراد
-استخدم المسارات المباشرة دائماً:
-```ts
-import { useFiscalYears } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
-```
+- لا `sonner` ولا `toast` هنا — راجع `mem://conventions/no-toast-in-data-hooks`.
+- لا استيراد من `hooks/domain/*` — اتجاه التبعية: `page → domain → data` فقط.
+- لا re-exports من طبقات أعلى.
+- استورد من المسار النهائي مباشرة: `@/hooks/data/financial/<sub>/<hook>`.
