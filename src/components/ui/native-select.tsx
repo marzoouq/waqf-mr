@@ -23,10 +23,11 @@ interface NativeSelectProps {
   disabled?: boolean;
   id?: string;
   name?: string;
+  'aria-label'?: string;
 }
 
 const NativeSelect = React.forwardRef<HTMLDivElement, NativeSelectProps>(
-  ({ value, onValueChange, options, placeholder, className, triggerClassName, disabled, id, name }, ref) => {
+  ({ value, onValueChange, options, placeholder, className, triggerClassName, disabled, id, name, 'aria-label': ariaLabel }, ref) => {
     const selectedOption = options.find((o) => o.value === value);
 
     return (
@@ -34,6 +35,7 @@ const NativeSelect = React.forwardRef<HTMLDivElement, NativeSelectProps>(
         <select
           id={id}
           name={name}
+          aria-label={ariaLabel}
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
           disabled={disabled}

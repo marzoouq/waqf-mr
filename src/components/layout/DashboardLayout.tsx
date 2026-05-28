@@ -7,7 +7,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Lock } from 'lucide-react';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { cn } from '@/lib/cn';
 import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
 const PrintHeader = lazy(() => import('@/components/common/PrintHeader'));
@@ -42,6 +42,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     handleSignOut, handleSignOutClick,
   } = useLayoutShell();
 
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // accessibility — Escape للإغلاق + focus management عند فتح/إغلاق القائمة الجوال
+  useEffect(() => {
+    if (!mobileSidebarOpen) return;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    const dialog = document.querySelector<HTMLElement>('aside[role="dialog"][aria-label="القائمة الجانبية"]');
+    const first = dialog?.querySelector<HTMLElement>('a, button, [tabindex]:not([tabindex="-1"])');
+    first?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileSidebarOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      previousFocusRef.current?.focus?.();
+    };
+  }, [mobileSidebarOpen, setMobileSidebarOpen]);
+
   return (
     <div className="min-h-screen flex w-full bg-background" dir="rtl">
       {/* Mobile Header */}
@@ -53,6 +72,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       {/* Mobile Sidebar Overlay */}
       <div
         {...swipe.overlayProps}
+        aria-hidden="true"
         className={cn(
           'fixed inset-0 z-40 lg:hidden',
           mobileSidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'
@@ -60,11 +80,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onClick={() => setMobileSidebarOpen(false)}
       />
 
-      {/* Sidebar - Mobile */}
+      {/* Sidebar - Mobile (drawer dialog) */}
       <aside
+        role="dialog"
+        aria-modal="true"
         aria-label="القائمة الجانبية"
+        aria-hidden={!mobileSidebarOpen}
         {...swipe.sidebarProps}
-        className="fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden"
+        className={cn(
+          'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden',
+          !mobileSidebarOpen && 'pointer-events-none'
+        )}
       >
         <SidebarContent
           links={links}

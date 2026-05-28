@@ -4,6 +4,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Clock, Link as LinkIcon, Banknote, TrendingDown, XCircle } from 'lucide-react';
+import { EXPENSE_RATIO_FULL_DEFICIT } from '@/utils/financial/ratios';
 
 interface DashboardAlertsProps {
   usingFallbackPct: boolean;
@@ -22,13 +23,17 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
 
   return (
     <>
-      {/* 1. عجز مالي — أعلى أولوية */}
+      {/* 1. عجز مالي — أعلى أولوية (يشمل حالة "إنفاق بلا دخل") */}
       {expenseRatio > 100 && (
         <Alert variant="destructive" className="animate-fade-in">
-          <XCircle className="h-4 w-4" />
+          <XCircle className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>تحذير: عجز مالي</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span>المصروفات تتجاوز الدخل بنسبة {expenseRatio - 100}% — يُرجى مراجعة بنود المصروفات.</span>
+            <span>
+              {expenseRatio === EXPENSE_RATIO_FULL_DEFICIT
+                ? 'يوجد إنفاق مسجّل بدون أي دخل في الفترة الحالية — يُرجى مراجعة بنود المصروفات.'
+                : `المصروفات تتجاوز الدخل بنسبة ${expenseRatio - 100}% — يُرجى مراجعة بنود المصروفات.`}
+            </span>
             <Link to="/dashboard/expenses">
               <Button variant="outline" size="sm" className="shrink-0">مراجعة المصروفات</Button>
             </Link>
@@ -53,15 +58,15 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContractsCount, orphanedCon
         </Alert>
       )}
 
-      {/* 3. معدل تحصيل منخفض */}
+      {/* 3. معدل تحصيل منخفض — الزر يوجّه إلى الفواتير (مصدر التحصيل) */}
       {collectionRate !== null && collectionRate !== undefined && collectionRate > 0 && collectionRate < 50 && (
         <Alert variant="destructive" className="animate-fade-in">
-          <TrendingDown className="h-4 w-4" />
+          <TrendingDown className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>معدل التحصيل منخفض</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span>معدل التحصيل الحالي {collectionRate ?? 0}% — يُنصح بمراجعة الفواتير المتأخرة واتخاذ إجراء.</span>
-            <Link to="/dashboard/contracts">
-              <Button variant="outline" size="sm" className="shrink-0">مراجعة العقود</Button>
+            <Link to="/dashboard/invoices">
+              <Button variant="outline" size="sm" className="shrink-0">مراجعة الفواتير المتأخرة</Button>
             </Link>
           </AlertDescription>
         </Alert>

@@ -25,6 +25,8 @@ interface ResponsiveTabsProps {
   dir?: 'rtl' | 'ltr';
   className?: string;
   tabsListClassName?: string;
+  /** تسمية accessible تُمرّر للـ NativeSelect على الجوال و TabsList على سطح المكتب */
+  ariaLabel?: string;
 }
 
 const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({
@@ -36,10 +38,13 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({
   dir = 'rtl',
   className,
   tabsListClassName,
+  ariaLabel,
 }) => {
   const isMobile = useIsMobile();
+  const reactId = React.useId();
   const [internalValue, setInternalValue] = React.useState(defaultValue);
   const currentValue = controlledValue ?? internalValue;
+  const label = ariaLabel ?? 'اختر القسم';
 
   const handleChange = (v: string) => {
     setInternalValue(v);
@@ -57,7 +62,10 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({
       {/* الجوال: NativeSelect */}
       {isMobile && (
         <div className="mb-3 print:hidden">
-          <NativeSelect id="responsive-tabs-select-1" value={currentValue}
+          <NativeSelect
+            id={`responsive-tabs-select-${reactId}`}
+            aria-label={label}
+            value={currentValue}
             onValueChange={handleChange}
             options={selectOptions}
             triggerClassName="text-sm font-medium"
@@ -67,7 +75,7 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({
 
       {/* سطح المكتب: TabsList عادية */}
       {!isMobile && (
-        <TabsList className={cn('print:hidden w-auto', tabsListClassName)}>
+        <TabsList aria-label={label} className={cn('print:hidden w-auto', tabsListClassName)}>
           {items.map((item) => (
             <TabsTrigger
               key={item.value}
