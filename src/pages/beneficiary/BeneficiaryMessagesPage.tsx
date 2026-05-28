@@ -16,7 +16,6 @@ const BeneficiaryMessagesPage = () => {
     conversations, messages, hasMore, loadMore, isLoadingMore,
     isLoading, chatError, handleRetry,
     newMessage, setNewMessage, handleSend, sendMessage,
-    supportDialogOpen, setSupportDialogOpen, supportSubject, setSupportSubject, handleNewSupport,
     chatDialogOpen, setChatDialogOpen, chatSubject, setChatSubject, handleNewChat,
     createConversation, messagesEndRef,
   } = useBeneficiaryMessages();
