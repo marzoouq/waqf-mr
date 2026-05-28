@@ -36,6 +36,7 @@ export const safeName = (name: string) => name.substring(0, 100).replace(/[<>&"'
 export const ALLOWED_ACTIONS = [
   "toggle_registration", "list_users", "update_email", "update_password",
   "confirm_email", "set_role", "delete_user", "create_user", "bulk_create_users",
+  "link_beneficiary",
 ] as const;
 
 export type AdminAction = typeof ALLOWED_ACTIONS[number];

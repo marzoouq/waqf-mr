@@ -2,7 +2,6 @@
  * عمليات إدارة المستخدمين — mutations
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { uiNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { callAdminApi } from './useUserManagementData';
@@ -93,16 +92,15 @@ export const useDeleteUserMutation = (onSuccess?: () => void) => {
 export const useLinkBeneficiaryMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ beneficiaryId, userId }: { beneficiaryId: string; userId: string }) => {
-      const { error } = await supabase.from('beneficiaries').update({ user_id: userId }).eq('id', beneficiaryId);
-      if (error) throw error;
-    },
+    mutationFn: async ({ beneficiaryId, userId }: { beneficiaryId: string; userId: string }) =>
+      callAdminApi({ action: 'link_beneficiary', beneficiaryId, userId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unlinked-beneficiaries'] });
       queryClient.invalidateQueries({ queryKey: ['orphaned-beneficiaries'] });
+      queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] });
       uiNotify.success('تم ربط المستخدم بالمستفيد بنجاح');
     },
-    onError: () => uiNotify.error('فشل ربط المستخدم بالمستفيد'),
+    onError: (e: unknown) => uiNotify.error(getSafeErrorMessage(e)),
   });
 };
 

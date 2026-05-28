@@ -20,6 +20,7 @@ import { setRole } from "./handlers/set-role.ts";
 import { deleteUser } from "./handlers/delete-user.ts";
 import { createUser } from "./handlers/create-user.ts";
 import { bulkCreateUsers } from "./handlers/bulk-create-users.ts";
+import { linkBeneficiary } from "./handlers/link-beneficiary.ts";
 
 type Handler = (ctx: HandlerContext) => Promise<Response>;
 
@@ -33,6 +34,7 @@ const handlers: Record<AdminAction, Handler> = {
   delete_user: deleteUser,
   create_user: createUser,
   bulk_create_users: bulkCreateUsers,
+  link_beneficiary: linkBeneficiary,
 };
 
 Deno.serve(async (req): Promise<Response> => {
