@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { uiNotify } from '@/lib/notify';
 
 export const useSecuritySettings = () => {

@@ -9,20 +9,20 @@ const mockAccounts = { data: undefined as unknown[] | undefined, isLoading: fals
 const mockBeneficiaries = { data: undefined as unknown[] | undefined, isLoading: false, isError: false };
 const mockSettings = { data: undefined as Record<string, string> | undefined };
 
-vi.mock('@/hooks/data/financial/useIncome', () => ({
+vi.mock('@/hooks/data/financial/income/useIncome', () => ({
   useIncomeByFiscalYear: () => mockIncome,
 }));
-vi.mock('@/hooks/data/financial/useExpenses', () => ({
+vi.mock('@/hooks/data/financial/expenses/useExpenses', () => ({
   useExpensesByFiscalYear: () => mockExpenses,
 }));
-vi.mock('@/hooks/data/financial/useAccounts', () => ({
+vi.mock('@/hooks/data/financial/accounts/useAccounts', () => ({
   useAccounts: () => mockAccounts,
   useAccountByFiscalYear: () => mockAccounts,
 }));
 vi.mock('@/hooks/data/beneficiaries/useBeneficiaries', () => ({
   useBeneficiariesSafe: () => mockBeneficiaries,
 }));
-vi.mock('@/hooks/data/settings/useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: () => mockSettings,
 }));
 

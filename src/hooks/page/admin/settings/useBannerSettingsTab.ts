@@ -1,7 +1,7 @@
 /**
  * Page hook: BannerSettingsTab
  */
-import { useBannerSettings } from '@/hooks/data/settings/useBannerSettings';
+import { useBannerSettings } from '@/hooks/data/settings/appearance/useBannerSettings';
 import { useSyncedFormState } from '@/hooks/ui/useSyncedFormState';
 import type { BannerSettings } from '@/constants';
 

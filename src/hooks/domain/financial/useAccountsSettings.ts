@@ -11,7 +11,7 @@
  * هذا يحلّ محل 13 `useEffect`/`setState` للمزامنة، ويزيل تحذيرات `react-hooks/set-state-in-effect`.
  */
 import { useState, useCallback, useRef, useMemo } from 'react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { useStableRef } from '@/lib/hooks/useStableRef';

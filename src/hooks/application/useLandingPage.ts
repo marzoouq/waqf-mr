@@ -8,7 +8,7 @@
 import { useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { useAppSettings, useWaqfInfo, useSetting } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings, useWaqfInfo, useSetting } from '@/hooks/data/settings/app/useAppSettings';
 import { usePublicStats } from '@/hooks/data/content/usePublicStats';
 import type { LandingPageContent } from '@/types/landing';
 

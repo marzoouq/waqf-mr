@@ -1,4 +1,4 @@
-import { useWaqfInfo } from '@/hooks/data/settings/useAppSettings';
+import { useWaqfInfo } from '@/hooks/data/settings/app/useAppSettings';
 import { useEffect } from 'react';
 import { loadAmiriFonts } from '@/utils/fonts/loadAmiriFonts';
 const PrintHeader = () => {

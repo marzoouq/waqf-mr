@@ -4,7 +4,7 @@
  */
 import { useMemo, useState } from 'react';
 import type { Contract } from '@/types';
-import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import type { FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/invoices/usePaymentInvoices';
 import {
   buildCollectionRow,

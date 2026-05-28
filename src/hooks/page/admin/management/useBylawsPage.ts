@@ -3,9 +3,9 @@
  */
 import { useMemo, useState, useCallback } from 'react';
 import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws, type BylawEntry } from '@/hooks/data/content/useBylaws';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { uiNotify } from '@/lib/notify';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import {
   DragEndEvent,
   PointerSensor,

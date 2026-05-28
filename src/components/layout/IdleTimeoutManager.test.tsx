@@ -27,7 +27,7 @@ vi.mock('@/hooks/auth/session/useAuthCleanup', () => ({
   useAuthCleanup: () => ({ performCleanup: h.performCleanupMock }),
 }));
 
-vi.mock('@/hooks/data/settings/useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: () => ({
     getJsonSetting: <T,>(_key: string, fallback: T) => fallback,
   }),

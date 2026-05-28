@@ -17,7 +17,7 @@ const mockInvoices = [
   { id: 'inv1', expense_id: 'e1', invoice_type: 'expense', status: 'paid' },
 ];
 
-vi.mock('@/hooks/data/financial/useExpenses', () => ({
+vi.mock('@/hooks/data/financial/expenses/useExpenses', () => ({
   useExpensesByFiscalYear: () => ({ data: mockExpenses, isLoading: false }),
   useCreateExpense: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateExpense: () => ({ mutateAsync: vi.fn(), isPending: false }),
@@ -40,7 +40,7 @@ vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: () => ({ role: 'admin' }),
 }));
 
-vi.mock('@/hooks/data/settings/usePdfWaqfInfo', () => ({
+vi.mock('@/hooks/data/settings/waqf/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: () => ({ waqfName: 'وقف الثبيتي' }),
 }));
 

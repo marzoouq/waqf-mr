@@ -4,11 +4,11 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
+import { useSectionsVisibility } from '@/hooks/data/settings/permissions/useSectionsVisibility';
 
 const getJsonSettingMock = vi.fn();
 
-vi.mock('@/hooks/data/settings/useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: () => ({ getJsonSetting: getJsonSettingMock }),
 }));
 

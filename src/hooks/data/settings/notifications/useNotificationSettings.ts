@@ -3,7 +3,7 @@
  * يدعم مفاتيح إشعارات المستفيدين الخاصة بالعقود (افتراضي false لمنع الإرباك)
  */
 import { useMemo } from 'react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import type { NotificationSettings } from '@/types/notifications';
 
 // إعادة تصدير للحفاظ على التوافق الخلفي مع الاستيرادات القائمة

@@ -14,13 +14,13 @@ const permsMock = vi.fn();
 vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: () => authMock(),
 }));
-vi.mock('@/hooks/data/settings/useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: () => ({ getJsonSetting: (_k: string, fb: unknown) => fb }),
 }));
-vi.mock('@/hooks/data/settings/useSectionsVisibility', () => ({
+vi.mock('@/hooks/data/settings/permissions/useSectionsVisibility', () => ({
   useSectionsVisibility: () => sectionsMock(),
 }));
-vi.mock('@/hooks/data/settings/useRolePermissions', () => ({
+vi.mock('@/hooks/data/settings/permissions/useRolePermissions', () => ({
   useRolePermissions: () => ({ getPermissionsForRole: (r: string) => permsMock(r) }),
 }));
 

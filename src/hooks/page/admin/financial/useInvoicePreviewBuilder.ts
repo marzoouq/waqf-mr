@@ -6,7 +6,7 @@ import { useCallback } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { INVOICE_TYPE_LABELS, type Invoice } from '@/hooks/data/invoices/useInvoices';
 import type { InvoicePreviewData } from '@/types/invoices';
-import type { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import type { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { DEFAULT_WAQF_NAME } from '@/constants/waqf';
 
 type PdfWaqfInfo = ReturnType<typeof usePdfWaqfInfo>;

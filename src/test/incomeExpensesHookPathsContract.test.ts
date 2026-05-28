@@ -19,11 +19,11 @@ const CONTRACTS: PathContract[] = [
   {
     file: 'src/hooks/page/admin/financial/useIncomePage.ts',
     required: [
-      '@/hooks/data/financial/useIncome',
+      '@/hooks/data/financial/income/useIncome',
       '@/hooks/data/properties/useProperties',
       '@/hooks/data/contracts/useContracts',
       '@/hooks/data/invoices/usePaymentInvoices',
-      '@/hooks/data/settings/usePdfWaqfInfo',
+      '@/hooks/data/settings/waqf/usePdfWaqfInfo',
       '@/hooks/auth/session/useAuthContext',
     ],
     forbidden: [
@@ -37,10 +37,10 @@ const CONTRACTS: PathContract[] = [
   {
     file: 'src/hooks/page/admin/financial/useExpensesPage.ts',
     required: [
-      '@/hooks/data/financial/useExpenses',
+      '@/hooks/data/financial/expenses/useExpenses',
       '@/hooks/data/invoices/useInvoices',
       '@/hooks/data/properties/useProperties',
-      '@/hooks/data/settings/usePdfWaqfInfo',
+      '@/hooks/data/settings/waqf/usePdfWaqfInfo',
       '@/hooks/auth/session/useAuthContext',
     ],
     forbidden: [
@@ -53,11 +53,11 @@ const CONTRACTS: PathContract[] = [
   {
     file: 'src/pages/dashboard/IncomePage.test.tsx',
     required: [
-      '@/hooks/data/financial/useIncome',
+      '@/hooks/data/financial/income/useIncome',
       '@/hooks/data/properties/useProperties',
       '@/hooks/data/contracts/useContracts',
       '@/hooks/data/invoices/usePaymentInvoices',
-      '@/hooks/data/settings/usePdfWaqfInfo',
+      '@/hooks/data/settings/waqf/usePdfWaqfInfo',
       '@/hooks/auth/session/useAuthContext',
     ],
     forbidden: [
@@ -71,10 +71,10 @@ const CONTRACTS: PathContract[] = [
   {
     file: 'src/pages/dashboard/ExpensesPage.test.tsx',
     required: [
-      '@/hooks/data/financial/useExpenses',
+      '@/hooks/data/financial/expenses/useExpenses',
       '@/hooks/data/invoices/useInvoices',
       '@/hooks/data/properties/useProperties',
-      '@/hooks/data/settings/usePdfWaqfInfo',
+      '@/hooks/data/settings/waqf/usePdfWaqfInfo',
       '@/hooks/auth/session/useAuthContext',
     ],
     forbidden: [

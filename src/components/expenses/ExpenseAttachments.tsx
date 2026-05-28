@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, Paperclip } from 'lucide-react';
 import { useInvoices } from '@/hooks/data/invoices/useInvoices';
-import { useExpenses } from '@/hooks/data/financial/useExpenses';
+import { useExpenses } from '@/hooks/data/financial/expenses/useExpenses';
 import { InvoiceViewer } from '@/components/invoices';
 import VoucherList from './vouchers/VoucherList';
 

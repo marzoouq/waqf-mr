@@ -7,10 +7,10 @@ import { useContractAllocationMap } from '@/hooks/domain/financial/useContractAl
 import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/domain/financial/usePropertyFinancials';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
-import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
+import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpenses';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { useAccountByFiscalYear } from '@/hooks/data/financial/accounts/useAccounts';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { uiNotify } from '@/lib/notify';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';

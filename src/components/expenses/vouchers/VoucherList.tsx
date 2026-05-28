@@ -13,7 +13,7 @@ import {
   getVoucherSignedUrl,
   type Voucher,
   type VoucherPublic,
-} from '@/hooks/data/financial/useDisbursementVouchers';
+} from '@/hooks/data/financial/distribution/useDisbursementVouchers';
 import {
   useApproveVoucherAction,
   useVoidVoucherAction,

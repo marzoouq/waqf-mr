@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import type { Contract } from '@/types';
 import { useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
-import { useDeleteAccount } from '@/hooks/data/financial/useAccounts';
+import { useDeleteAccount } from '@/hooks/data/financial/accounts/useAccounts';
 import { useUpsertTenantPayment } from '@/hooks/data/contracts/useTenantPayments';
 import { uiNotify } from '@/lib/notify';
 

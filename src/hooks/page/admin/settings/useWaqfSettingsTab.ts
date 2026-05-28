@@ -4,7 +4,7 @@
  */
 import { useState, useEffect } from 'react';
 import { uiNotify } from '@/lib/notify';
-import { useAppSettings, useSetting } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings, useSetting } from '@/hooks/data/settings/app/useAppSettings';
 
 export interface WaqfFieldDef { key: string; label: string }
 

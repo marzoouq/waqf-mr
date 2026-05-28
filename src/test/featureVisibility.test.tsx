@@ -15,11 +15,11 @@ import {
 
 let mockSettings: Record<string, string> = {};
 
-vi.mock('@/hooks/data/settings/useAppSettings', () => ({
+vi.mock('@/hooks/data/settings/app/useAppSettings', () => ({
   useAppSettings: () => ({ data: mockSettings, isLoading: false }),
 }));
 
-import { useFeatureVisibility } from '@/hooks/data/settings/useFeatureVisibility';
+import { useFeatureVisibility } from '@/hooks/data/settings/permissions/useFeatureVisibility';
 
 const wrapper = ({ children }: { children: React.ReactNode }) => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

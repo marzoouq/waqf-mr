@@ -2,7 +2,7 @@
  * هوك صفحة التقارير المالية للمستفيد — محسّن: يستخدم useEndUserFinancials المشترك
  */
 import { useMemo, useCallback } from 'react';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useMyShare } from '@/hooks/domain/financial/useMyShare';
 import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';

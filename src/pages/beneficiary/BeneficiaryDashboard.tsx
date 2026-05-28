@@ -3,7 +3,7 @@ import { Sun, Moon } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender, ErrorState, FiscalYearStateNotice } from '@/components/common';
 import { isFyReady } from '@/constants/fiscalYearIds';
-import { useBeneficiaryWidgets } from '@/hooks/data/settings/useBeneficiaryWidgets';
+import { useBeneficiaryWidgets } from '@/hooks/data/settings/notifications/useBeneficiaryWidgets';
 import { PAGE_RESPONSIBILITY_COPY } from '@/constants/beneficiaryCopy';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary/dashboard/BeneficiaryWelcomeCard';

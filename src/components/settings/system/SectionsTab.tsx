@@ -3,7 +3,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Lock } from 'lucide-react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import {
   ADMIN_SECTION_KEYS,
   PROTECTED_ADMIN_SECTIONS,

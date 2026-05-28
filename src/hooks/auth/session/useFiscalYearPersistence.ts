@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeSessionGet, safeSessionSet, safeSessionRemove } from '@/lib/storage';
 import { UUID_REGEX } from '@/utils/validation/regexPatterns';
-import { useActiveFiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import { useActiveFiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 
 const STORAGE_KEY = STORAGE_KEYS.FISCAL_YEAR;
 

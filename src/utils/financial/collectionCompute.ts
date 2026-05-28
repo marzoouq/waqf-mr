@@ -3,7 +3,7 @@
  * مستخرَجة من `useCollectionData` لتقليل حجم الهوك مع الإبقاء على السلوك.
  */
 import type { Contract } from '@/types';
-import type { FiscalYear } from '@/hooks/data/financial/useFiscalYears';
+import type { FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { safeNumber } from '@/utils/format/safeNumber';

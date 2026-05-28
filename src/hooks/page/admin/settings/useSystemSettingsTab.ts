@@ -3,8 +3,8 @@
  */
 import { useState, useEffect, useMemo } from 'react';
 import { uiNotify } from '@/lib/notify';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { useAppSettingsHistory, type AppSettingHistoryEntry } from '@/hooks/data/settings/useAppSettingsHistory';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
+import { useAppSettingsHistory, type AppSettingHistoryEntry } from '@/hooks/data/settings/app/useAppSettingsHistory';
 
 export interface AdvancedField {
   key: string;

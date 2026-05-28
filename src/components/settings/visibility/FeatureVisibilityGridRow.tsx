@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Lock } from 'lucide-react';
 import type { FeatureVisibilityEntry } from '@/constants/featureVisibilityRegistry';
-import type { VisibilityValue } from '@/hooks/data/settings/useFeatureVisibility';
+import type { VisibilityValue } from '@/hooks/data/settings/permissions/useFeatureVisibility';
 
 interface Props {
   entry: FeatureVisibilityEntry;

@@ -8,7 +8,7 @@ import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';

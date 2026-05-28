@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockUseAuth } from '@/test/setup';
 
-vi.mock('@/hooks/data/financial/useTotalBeneficiaryPercentage', () => ({
+vi.mock('@/hooks/data/financial/dashboard/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 100, isLoading: false })),
 }));
 
 import { renderHook } from '@testing-library/react';
 import { useMyShare } from './useMyShare';
-import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/useTotalBeneficiaryPercentage';
+import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/dashboard/useTotalBeneficiaryPercentage';
 
 const mockPct = vi.mocked(useTotalBeneficiaryPercentage);
 

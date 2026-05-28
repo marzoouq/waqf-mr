@@ -6,7 +6,7 @@ import { History, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Beneficiary } from '@/types';
 import { fmt as fmtNum } from '@/utils/format/format';
-import { useDistributionHistory } from '@/hooks/data/financial/useDistributionHistory';
+import { useDistributionHistory } from '@/hooks/data/financial/distribution/useDistributionHistory';
 
 interface Props {
   beneficiary: Beneficiary;

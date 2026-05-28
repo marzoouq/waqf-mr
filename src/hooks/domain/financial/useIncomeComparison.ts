@@ -3,10 +3,10 @@
  * يعتمد على طبقة data: `useIncomeComparisonRaw`.
  */
 import { useMemo } from 'react';
-import { useIncomeComparisonRaw, type IncomeComparison } from '@/hooks/data/financial/useIncomeComparison';
+import { useIncomeComparisonRaw, type IncomeComparison } from '@/hooks/data/financial/income/useIncomeComparison';
 import { safeNumber } from '@/utils/format/safeNumber';
 
-export type { IncomeComparison } from '@/hooks/data/financial/useIncomeComparison';
+export type { IncomeComparison } from '@/hooks/data/financial/income/useIncomeComparison';
 
 export const useIncomeComparison = () => {
   const query = useIncomeComparisonRaw();

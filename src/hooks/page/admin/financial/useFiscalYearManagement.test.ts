@@ -22,7 +22,7 @@ vi.mock('@/lib/services', () => ({
   deleteFiscalYear: (...args: unknown[]) => deleteFy(...args),
 }));
 
-vi.mock('@/hooks/data/financial/useFiscalYears', () => ({
+vi.mock('@/hooks/data/financial/fiscalYears/useFiscalYears', () => ({
   useFiscalYears: () => ({ data: [], isLoading: false }),
 }));
 

@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Building2, Upload, X, Loader2 } from 'lucide-react';
-import { useLogoUpload } from '@/hooks/data/settings/useLogoUpload';
+import { useLogoUpload } from '@/hooks/data/settings/appearance/useLogoUpload';
 
 interface LogoUploadCardProps {
   title: string;

@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { saveZatcaSettings } from '@/lib/services';
 import { uiNotify } from '@/lib/notify';
 import { validateZatcaSettingsForm } from '@/utils/zatca/validateZatcaForm';

@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useCreateAdvanceRequest } from '@/hooks/data/financial/useAdvanceRequests';
+import { useCreateAdvanceRequest } from '@/hooks/data/financial/advances/useAdvanceRequests';
 import { Banknote, Loader2, AlertTriangle } from 'lucide-react';
 import { uiNotify } from '@/lib/notify';
 import { fmt } from '@/utils/format/format';
-import { useMaxAdvanceAmount } from '@/hooks/data/financial/useMaxAdvanceAmount';
+import { useMaxAdvanceAmount } from '@/hooks/data/financial/advances/useMaxAdvanceAmount';
 
 interface AdvanceRequestDialogProps {
   beneficiaryId: string;

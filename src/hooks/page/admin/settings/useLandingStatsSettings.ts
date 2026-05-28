@@ -11,7 +11,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 
 export type StatMode = 'auto' | 'manual' | 'hidden';
 

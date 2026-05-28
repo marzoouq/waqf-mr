@@ -47,14 +47,14 @@ function createWrapper() {
 
 describe('useAdvanceRequests', () => {
   it('يجلب بيانات طلبات السلف', async () => {
-    const { useAdvanceRequests } = await import('@/hooks/data/financial/useAdvanceRequests');
+    const { useAdvanceRequests } = await import('@/hooks/data/financial/advances/useAdvanceRequests');
     const { result } = renderHook(() => useAdvanceRequests(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess || result.current.isError).toBe(true));
     expect(result.current).not.toBeNull();
   });
 
   it('يفلتر بالسنة المالية', async () => {
-    const { useAdvanceRequests } = await import('@/hooks/data/financial/useAdvanceRequests');
+    const { useAdvanceRequests } = await import('@/hooks/data/financial/advances/useAdvanceRequests');
     const { result } = renderHook(() => useAdvanceRequests('fy-123'), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess || result.current.isError).toBe(true));
     expect(result.current).not.toBeNull();
@@ -65,7 +65,7 @@ describe('useAdvanceRequests', () => {
 
 describe('useCreateAdvanceRequest', () => {
   it('يرندر بدون خطأ', async () => {
-    const { useCreateAdvanceRequest } = await import('@/hooks/data/financial/useAdvanceRequests');
+    const { useCreateAdvanceRequest } = await import('@/hooks/data/financial/advances/useAdvanceRequests');
     const { result } = renderHook(() => useCreateAdvanceRequest(), { wrapper: createWrapper() });
     expect(result.current.mutateAsync).toBeDefined();
   });
@@ -73,7 +73,7 @@ describe('useCreateAdvanceRequest', () => {
 
 describe('useUpdateAdvanceStatus', () => {
   it('يرندر بدون خطأ', async () => {
-    const { useUpdateAdvanceStatus } = await import('@/hooks/data/financial/useAdvanceRequests');
+    const { useUpdateAdvanceStatus } = await import('@/hooks/data/financial/advances/useAdvanceRequests');
     const { result } = renderHook(() => useUpdateAdvanceStatus(), { wrapper: createWrapper() });
     expect(result.current.mutateAsync).toBeDefined();
   });

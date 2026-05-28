@@ -2,11 +2,11 @@
  * Page hook: PermissionsControlPanel — orchestrator
  */
 import { useState, useEffect, useMemo } from 'react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
-import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
-import { useBeneficiaryWidgets } from '@/hooks/data/settings/useBeneficiaryWidgets';
-import { useNotificationSettings, type NotificationSettings } from '@/hooks/data/settings/useNotificationSettings';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
+import { useSectionsVisibility } from '@/hooks/data/settings/permissions/useSectionsVisibility';
+import { useRolePermissions } from '@/hooks/data/settings/permissions/useRolePermissions';
+import { useBeneficiaryWidgets } from '@/hooks/data/settings/notifications/useBeneficiaryWidgets';
+import { useNotificationSettings, type NotificationSettings } from '@/hooks/data/settings/notifications/useNotificationSettings';
 import { uiNotify } from '@/lib/notify';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 import { ROLE_SECTION_DEFS, makeDefaults, PROTECTED_ADMIN_SECTIONS, isProtectedAdminSection } from '@/constants/sections';

@@ -1,7 +1,7 @@
 /**
  * Page hook: LandingPageTab
  */
-import { useAppSettings, useSetting } from '@/hooks/data/settings/useAppSettings';
+import { useAppSettings, useSetting } from '@/hooks/data/settings/app/useAppSettings';
 import { useSyncedFormState } from '@/hooks/ui/useSyncedFormState';
 import type { LandingPageContent } from '@/types/landing';
 

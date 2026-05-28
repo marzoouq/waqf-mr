@@ -5,10 +5,10 @@
 import { useMemo } from 'react';
 import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/domain/financial/usePropertyFinancials';
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
-import { useExpensesByFiscalYear } from '@/hooks/data/financial/useExpenses';
-import { useAccountByFiscalYear } from '@/hooks/data/financial/useAccounts';
+import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpenses';
+import { useAccountByFiscalYear } from '@/hooks/data/financial/accounts/useAccounts';
 import { useContractAllocationMap } from '@/hooks/domain/financial/useContractAllocationMap';
-import { useContractAllocations } from '@/hooks/data/financial/useContractAllocations';
+import { useContractAllocations } from '@/hooks/data/financial/contracts/useContractAllocations';
 import { computeContractualRevenue } from '@/utils/financial/computeContractualRevenue';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';

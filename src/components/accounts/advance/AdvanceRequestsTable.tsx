@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format/format';
 import { safeNumber } from '@/utils/format/safeNumber';
-import type { AdvanceRequest } from '@/hooks/data/financial/useAdvanceRequests';
+import type { AdvanceRequest } from '@/hooks/data/financial/advances/useAdvanceRequests';
 import AdvanceStatusBadge from './AdvanceStatusBadge';
 
 interface Props {

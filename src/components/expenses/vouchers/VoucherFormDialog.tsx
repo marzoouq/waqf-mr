@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type VoucherPaymentMethod } from '@/hooks/data/financial/useDisbursementVouchers';
+import { type VoucherPaymentMethod } from '@/hooks/data/financial/distribution/useDisbursementVouchers';
 import { useCreateVoucherAction, useApproveVoucherAction } from '@/hooks/page/admin/financial/useVoucherActions';
 import { VOUCHER_PAYMENT_METHODS } from '@/constants/entities';
 import SignaturePad from './SignaturePad';

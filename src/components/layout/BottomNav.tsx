@@ -8,7 +8,7 @@
 import { useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
+import { useSectionsVisibility } from '@/hooks/data/settings/permissions/useSectionsVisibility';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { BOTTOM_NAV_LINKS } from '@/constants/bottomNavLinks';

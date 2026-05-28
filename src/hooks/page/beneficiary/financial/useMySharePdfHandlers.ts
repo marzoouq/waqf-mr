@@ -11,7 +11,7 @@
  *   الفصل صحيح: utils/pdf لا يستهلك hooks ولا notify (قاعدة `src/utils/`).
  */
 import { useState, useCallback } from 'react';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 import { printShareReport } from '@/utils/export/printShareReport';
 

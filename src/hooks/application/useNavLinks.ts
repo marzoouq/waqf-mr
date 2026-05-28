@@ -6,9 +6,9 @@
  */
 import { useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { useSectionsVisibility } from '@/hooks/data/settings/useSectionsVisibility';
-import { useRolePermissions } from '@/hooks/data/settings/useRolePermissions';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
+import { useSectionsVisibility } from '@/hooks/data/settings/permissions/useSectionsVisibility';
+import { useRolePermissions } from '@/hooks/data/settings/permissions/useRolePermissions';
 import { defaultMenuLabels, type MenuLabels } from '@/types/navigation';
 import {
   linkLabelKeys,

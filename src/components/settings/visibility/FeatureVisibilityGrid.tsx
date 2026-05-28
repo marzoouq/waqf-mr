@@ -12,8 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, Search, Eye, EyeOff } from 'lucide-react';
-import { useAppSettings } from '@/hooks/data/settings/useAppSettings';
-import { useFeatureVisibility, type VisibilityValue } from '@/hooks/data/settings/useFeatureVisibility';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
+import { useFeatureVisibility, type VisibilityValue } from '@/hooks/data/settings/permissions/useFeatureVisibility';
 import {
   FEATURE_REGISTRY_BY_SCOPE,
   FEATURE_SCOPE_LABELS,

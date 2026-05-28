@@ -8,9 +8,9 @@ import {
   useCreateAccountCategory,
   useUpdateAccountCategory,
   useDeleteAccountCategory,
-} from '@/hooks/data/financial/useAccountCategories';
+} from '@/hooks/data/financial/accounts/useAccountCategories';
 import type { AccountCategory } from '@/types';
-import type { CategoryTreeNode } from '@/hooks/data/financial/useAccountCategories';
+import type { CategoryTreeNode } from '@/hooks/data/financial/accounts/useAccountCategories';
 
 type CategoryType = 'income' | 'expense' | 'tax' | 'distribution';
 

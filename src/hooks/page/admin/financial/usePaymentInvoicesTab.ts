@@ -10,7 +10,7 @@ import {
   useGenerateAllInvoices,
 } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import type { InvoicePreviewData } from '@/types/invoices';
 import { usePaymentInvoiceActions } from './usePaymentInvoiceActions';
 import { DEFAULT_WAQF_NAME } from '@/constants/waqf';

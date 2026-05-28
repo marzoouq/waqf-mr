@@ -4,7 +4,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useAuditLog, getTableNameAr } from '@/hooks/data/audit/useAuditLog';
 import { useAuditLogTodayCount, fetchAuditLogForExport } from '@/hooks/data/audit/useAuditLogStats';
-import { usePdfWaqfInfo } from '@/hooks/data/settings/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 import { PAGE_SIZE_AUDIT } from '@/constants/pagination';
 
