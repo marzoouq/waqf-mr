@@ -12,6 +12,7 @@ import ZatcaInvoicesTab from '@/components/zatca/ZatcaInvoicesTab';
 import ZatcaCertificatesTab from '@/components/zatca/ZatcaCertificatesTab';
 import ZatcaChainTab from '@/components/zatca/ZatcaChainTab';
 import ZatcaComplianceDialog from '@/components/zatca/ZatcaComplianceDialog';
+import ZatcaCertExpiryWarning from '@/components/settings/zatca/ZatcaCertExpiryWarning';
 import { useZatcaManagementPage } from '@/hooks/page/admin/management/useZatcaManagementPage';
 
 function ZatcaManagementPage() {
@@ -23,8 +24,10 @@ function ZatcaManagementPage() {
         <PageHeaderCard title="تكامل ZATCA" icon={ShieldCheck} description="إدارة الشهادات والفواتير الضريبية وسلسلة التوقيع" />
         <InvoiceStepsGuide />
 
+        <ZatcaCertExpiryWarning />
+
         {!z.activeCert && !z.certsLoading && (
-          <div className="rounded-lg border border-warning/50 bg-warning/10 p-4 text-sm">
+          <div className="rounded-lg border border-warning/50 bg-warning/10 p-4 text-sm" role="alert">
             <p className="font-medium">⚠️ لا توجد شهادة ZATCA نشطة</p>
             <p className="text-muted-foreground mt-1">يرجى التسجيل للحصول على شهادة امتثال من تبويب "الشهادات" أولاً.</p>
           </div>

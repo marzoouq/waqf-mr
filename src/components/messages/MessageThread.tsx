@@ -48,11 +48,11 @@ export default function MessageThread({
             </div>
           </div>
           <ScrollArea className="flex-1 p-4">
-            <div className="space-y-3">
+            <div className="space-y-3" role="log" aria-live="polite" aria-atomic="false" aria-label="رسائل المحادثة">
               {hasMore && (
                 <div className="text-center py-2">
                   <Button variant="ghost" size="sm" onClick={() => loadMore()} disabled={isLoadingMore}>
-                    {isLoadingMore ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : null}
+                    {isLoadingMore ? <Loader2 className="w-4 h-4 animate-spin ml-1" aria-hidden="true" /> : null}
                     تحميل رسائل أقدم
                   </Button>
                 </div>
@@ -81,11 +81,12 @@ export default function MessageThread({
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="اكتب رسالتك..."
+              aria-label="اكتب رسالتك"
               maxLength={5000}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); } }}
             />
             <Button onClick={onSend} disabled={!newMessage.trim() || isSending} size="icon" aria-label="إرسال الرسالة">
-              {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              {isSending ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Send className="w-4 h-4" aria-hidden="true" />}
             </Button>
           </div>
         </>

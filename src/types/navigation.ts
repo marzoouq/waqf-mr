@@ -25,6 +25,7 @@ export interface MenuLabels {
   comparison: string;
   diagnostics: string;
   email_monitor: string;
+  distributions: string;
 }
 
 export const defaultMenuLabels: MenuLabels = {
@@ -50,4 +51,5 @@ export const defaultMenuLabels: MenuLabels = {
   comparison: 'المقارنة التاريخية',
   diagnostics: 'تشخيص النظام',
   email_monitor: 'مراقبة البريد',
+  distributions: 'توزيع الحصص',
 };
