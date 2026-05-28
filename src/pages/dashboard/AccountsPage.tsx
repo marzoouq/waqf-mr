@@ -80,6 +80,10 @@ const AccountsPage = () => {
             waqifPercent={page.waqifPercent} waqifShare={page.waqifShare} waqfRevenue={page.waqfRevenue}
             waqfCorpusManual={page.waqfCorpusManual} manualDistributions={page.manualDistributions}
             remainingBalance={page.remainingBalance} isClosed={page.isClosed} usingFallbackPct={page.usingFallbackPct}
+            defaultManualVat={Number(page.currentAccount?.vat_amount ?? 0)}
+            defaultZakatAmount={Number(page.currentAccount?.zakat_amount ?? 0)}
+            defaultWaqfCorpusManual={Number(page.currentAccount?.waqf_corpus_manual ?? 0)}
+            defaultManualDistributions={Number(page.currentAccount?.distributions_amount ?? 0)}
           />
         )}
 
