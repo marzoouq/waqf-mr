@@ -1,5 +1,6 @@
 /**
  * هوك إدارة المستخدمين — منظّم يجمع البيانات + العمليات + حالة UI
+ * حالة النماذج والحوارات مستخرجة في `useUserManagementForms`.
  */
 import { useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
@@ -11,35 +12,31 @@ import {
   useUpdatePasswordMutation, useSetRoleMutation, useDeleteUserMutation,
   useLinkBeneficiaryMutation, useToggleRegistration,
 } from './useUserManagementMutations';
+import {
+  useCreateUserForm, useEditUserForm, usePasswordDialogState, useUserFilters,
+} from './useUserManagementForms';
 
 export type { ManagedUser } from './useUserManagementData';
 
 export const useUserManagement = () => {
   const { user: currentUser } = useAuth();
 
-  // حالة الحوارات
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
-  const [passwordDialog, setPasswordDialog] = useState<string | null>(null);
-  const [newPassword, setNewPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [createForm, setCreateForm] = useState({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
-  const [editEmail, setEditEmail] = useState('');
-  const [editRole, setEditRole] = useState('');
+  // sub-hooks لحالة UI المرتبطة منطقياً
+  const createFormState = useCreateUserForm();
+  const editFormState = useEditUserForm();
+  const passwordState = usePasswordDialogState();
+  const filtersState = useUserFilters();
+
+  // حالة مستقلة منفردة
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; email: string } | null>(null);
   const [pendingConfirmId, setPendingConfirmId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-
-  // بحث وفلتر
-  const [userSearch, setUserSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<string>('all');
-  const [statusFilterUser, setStatusFilterUser] = useState<string>('all');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // استعلامات البيانات
   const { data: registrationEnabled = false } = useRegistrationEnabled();
   const { data: usersResult = { users: [] as ManagedUser[], total: 0, nextPage: null as number | null }, isLoading, isError, error } = useAdminUsers(currentPage);
   // لا تجلب بيانات المستفيدين إلا عند الحاجة (الصفحة مفتوحة فعلاً)
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const { data: orphanedBeneficiaries = [] } = useOrphanedBeneficiaries(showAdvanced);
   const { data: unlinkedBeneficiaries = [] } = useUnlinkedBeneficiaries(showAdvanced);
 
@@ -50,32 +47,32 @@ export const useUserManagement = () => {
   // فلترة محلية
   const users = useMemo(() => {
     let result = allUsers;
-    if (userSearch) {
-      const q = userSearch.toLowerCase();
+    if (filtersState.userSearch) {
+      const q = filtersState.userSearch.toLowerCase();
       result = result.filter(u => u.email.toLowerCase().includes(q));
     }
-    if (roleFilter !== 'all') {
-      result = result.filter(u => (u.role || 'none') === roleFilter);
+    if (filtersState.roleFilter !== 'all') {
+      result = result.filter(u => (u.role || 'none') === filtersState.roleFilter);
     }
-    if (statusFilterUser === 'confirmed') {
+    if (filtersState.statusFilterUser === 'confirmed') {
       result = result.filter(u => !!u.email_confirmed_at);
-    } else if (statusFilterUser === 'unconfirmed') {
+    } else if (filtersState.statusFilterUser === 'unconfirmed') {
       result = result.filter(u => !u.email_confirmed_at);
     }
     return result;
-  }, [allUsers, userSearch, roleFilter, statusFilterUser]);
+  }, [allUsers, filtersState.userSearch, filtersState.roleFilter, filtersState.statusFilterUser]);
 
   // Mutations
   const toggleRegistrationMut = useToggleRegistration();
   const createUser = useCreateUserMutation(() => {
-    setIsCreateOpen(false);
-    setCreateForm({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
+    createFormState.setIsCreateOpen(false);
+    createFormState.resetCreateForm();
     setCurrentPage(1);
   });
   const confirmEmail = useConfirmEmailMutation();
-  const updateEmail = useUpdateEmailMutation(() => setEditingUser(null));
-  const updatePassword = useUpdatePasswordMutation(() => { setPasswordDialog(null); setNewPassword(''); });
-  const setRoleMutation = useSetRoleMutation(() => setEditingUser(null));
+  const updateEmail = useUpdateEmailMutation(() => editFormState.setEditingUser(null));
+  const updatePassword = useUpdatePasswordMutation(() => passwordState.resetPasswordDialog());
+  const setRoleMutation = useSetRoleMutation(() => editFormState.setEditingUser(null));
   const deleteUser = useDeleteUserMutation(() => { setDeleteTarget(null); setCurrentPage(1); });
   const linkBeneficiary = useLinkBeneficiaryMutation();
 
@@ -97,20 +94,37 @@ export const useUserManagement = () => {
     orphanedBeneficiaries, unlinkedBeneficiaries,
     showAdvanced, setShowAdvanced,
     registrationEnabled, toggling: toggleRegistrationMut.isPending,
-    isCreateOpen, setIsCreateOpen,
-    editingUser, setEditingUser,
-    passwordDialog, setPasswordDialog,
-    newPassword, setNewPassword,
-    showPassword, setShowPassword,
-    createForm, setCreateForm,
-    editEmail, setEditEmail,
-    editRole, setEditRole,
+    // create form
+    isCreateOpen: createFormState.isCreateOpen,
+    setIsCreateOpen: createFormState.setIsCreateOpen,
+    createForm: createFormState.createForm,
+    setCreateForm: createFormState.setCreateForm,
+    // edit form
+    editingUser: editFormState.editingUser,
+    setEditingUser: editFormState.setEditingUser,
+    editEmail: editFormState.editEmail,
+    setEditEmail: editFormState.setEditEmail,
+    editRole: editFormState.editRole,
+    setEditRole: editFormState.setEditRole,
+    // password dialog
+    passwordDialog: passwordState.passwordDialog,
+    setPasswordDialog: passwordState.setPasswordDialog,
+    newPassword: passwordState.newPassword,
+    setNewPassword: passwordState.setNewPassword,
+    showPassword: passwordState.showPassword,
+    setShowPassword: passwordState.setShowPassword,
+    // delete + pagination
     deleteTarget, setDeleteTarget,
     pendingConfirmId,
     currentPage, setCurrentPage,
-    userSearch, setUserSearch,
-    roleFilter, setRoleFilter,
-    statusFilterUser, setStatusFilterUser,
+    // filters
+    userSearch: filtersState.userSearch,
+    setUserSearch: filtersState.setUserSearch,
+    roleFilter: filtersState.roleFilter,
+    setRoleFilter: filtersState.setRoleFilter,
+    statusFilterUser: filtersState.statusFilterUser,
+    setStatusFilterUser: filtersState.setStatusFilterUser,
+    // actions
     toggleRegistration,
     createUser, confirmEmail: wrappedConfirmEmail, updateEmail, updatePassword,
     setRole: setRoleMutation, deleteUser, linkBeneficiary,

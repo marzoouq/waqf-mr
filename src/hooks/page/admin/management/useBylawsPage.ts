@@ -1,5 +1,6 @@
 /**
- * هوك منطق صفحة اللائحة التنظيمية
+ * هوك منطق صفحة اللائحة التنظيمية.
+ * حالة نماذج الإضافة/التعديل مستخرجة في `useBylawsForms`.
  */
 import { useMemo, useState, useCallback } from 'react';
 import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws, type BylawEntry } from '@/hooks/data/content/useBylaws';
@@ -14,6 +15,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { useBylawAddForm, useBylawEditForm } from './useBylawsForms';
 
 export function useBylawsPage() {
   const { data: bylaws, isLoading } = useBylawsList();
@@ -24,16 +26,13 @@ export function useBylawsPage() {
   const { data: settings, updateSetting } = useAppSettings();
   const pdfWaqfInfo = usePdfWaqfInfo();
 
-  const [editItem, setEditItem] = useState<BylawEntry | null>(null);
-  const [editContent, setEditContent] = useState('');
+  // sub-hooks لحالة النماذج
+  const addForm = useBylawAddForm();
+  const editForm = useBylawEditForm();
+
+  // حالة مستقلة منفردة
   const [search, setSearch] = useState('');
-  const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteItem, setDeleteItem] = useState<BylawEntry | null>(null);
-  const [newBylaw, setNewBylaw] = useState({ part_title: '', chapter_title: '', content: '', part_number: 0 });
-  const [editPartNumber, setEditPartNumber] = useState(0);
-  const [editPartTitle, setEditPartTitle] = useState('');
-  const [editChapterTitle, setEditChapterTitle] = useState('');
-  const [editChapterNumber, setEditChapterNumber] = useState<number | null>(null);
 
   const isPublished = settings?.bylaws_published === 'true';
   const allBylaws = useMemo(() => bylaws ?? [], [bylaws]);
@@ -77,27 +76,18 @@ export function useBylawsPage() {
     [allBylaws, reorderBylaws],
   );
 
-  const openEdit = (item: BylawEntry) => {
-    setEditItem(item);
-    setEditContent(item.content);
-    setEditPartNumber(item.part_number);
-    setEditPartTitle(item.part_title);
-    setEditChapterTitle(item.chapter_title || '');
-    setEditChapterNumber(item.chapter_number);
-  };
-
   const handleSave = () => {
-    if (!editItem || !editPartTitle.trim()) return;
+    if (!editForm.editItem || !editForm.editPartTitle.trim()) return;
     updateBylaw.mutate(
       {
-        id: editItem.id,
-        content: editContent,
-        part_number: editPartNumber,
-        part_title: editPartTitle.trim(),
-        chapter_title: editChapterTitle.trim() || null,
-        chapter_number: editChapterNumber,
+        id: editForm.editItem.id,
+        content: editForm.editContent,
+        part_number: editForm.editPartNumber,
+        part_title: editForm.editPartTitle.trim(),
+        chapter_title: editForm.editChapterTitle.trim() || null,
+        chapter_number: editForm.editChapterNumber,
       },
-      { onSuccess: () => setEditItem(null) },
+      { onSuccess: () => editForm.setEditItem(null) },
     );
   };
 
@@ -116,20 +106,17 @@ export function useBylawsPage() {
   };
 
   const handleAdd = () => {
-    if (!newBylaw.part_title.trim()) return;
+    if (!addForm.newBylaw.part_title.trim()) return;
     createBylaw.mutate(
       {
-        part_number: newBylaw.part_number,
-        part_title: newBylaw.part_title.trim(),
-        chapter_title: newBylaw.chapter_title.trim() || undefined,
-        content: newBylaw.content.trim(),
+        part_number: addForm.newBylaw.part_number,
+        part_title: addForm.newBylaw.part_title.trim(),
+        chapter_title: addForm.newBylaw.chapter_title.trim() || undefined,
+        content: addForm.newBylaw.content.trim(),
         sort_order: allBylaws.length,
       },
       {
-        onSuccess: () => {
-          setShowAddDialog(false);
-          setNewBylaw({ part_title: '', chapter_title: '', content: '', part_number: 0 });
-        },
+        onSuccess: () => addForm.resetAdd(),
       },
     );
   };
@@ -151,18 +138,26 @@ export function useBylawsPage() {
     // بحث
     search, setSearch,
     // إضافة
-    showAddDialog, setShowAddDialog,
-    newBylaw, setNewBylaw,
+    showAddDialog: addForm.showAddDialog,
+    setShowAddDialog: addForm.setShowAddDialog,
+    newBylaw: addForm.newBylaw,
+    setNewBylaw: addForm.setNewBylaw,
     handleAdd,
     createBylawPending: createBylaw.isPending,
     // تعديل
-    editItem, setEditItem,
-    editContent, setEditContent,
-    editPartNumber, setEditPartNumber,
-    editPartTitle, setEditPartTitle,
-    editChapterTitle, setEditChapterTitle,
-    editChapterNumber, setEditChapterNumber,
-    openEdit,
+    editItem: editForm.editItem,
+    setEditItem: editForm.setEditItem,
+    editContent: editForm.editContent,
+    setEditContent: editForm.setEditContent,
+    editPartNumber: editForm.editPartNumber,
+    setEditPartNumber: editForm.setEditPartNumber,
+    editPartTitle: editForm.editPartTitle,
+    setEditPartTitle: editForm.setEditPartTitle,
+    editChapterTitle: editForm.editChapterTitle,
+    setEditChapterTitle: editForm.setEditChapterTitle,
+    editChapterNumber: editForm.editChapterNumber,
+    setEditChapterNumber: editForm.setEditChapterNumber,
+    openEdit: editForm.openEdit,
     handleSave,
     updateBylawPending: updateBylaw.isPending,
     // حذف
