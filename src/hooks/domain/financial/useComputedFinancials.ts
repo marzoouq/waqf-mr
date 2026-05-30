@@ -14,7 +14,7 @@ import { safeNumber, safePercent } from '@/utils/format/safeNumber';
 interface ComputedParams {
   income: Income[];
   expenses: Expense[];
-  accounts: Tables<'accounts'>[];
+  accounts: Account[];
   settings: Record<string, string> | null | undefined;
   fiscalYearLabel?: string;
   fiscalYearId?: string;

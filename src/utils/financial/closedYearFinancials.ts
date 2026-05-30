@@ -24,7 +24,7 @@ export function closedYearFinancials(params: ClosedYearParams): FinancialResult 
 
   // P1-1: تفضيل القيمة المخزَّنة في DB كمصدر واحد للحقيقة
   const storedNetAfterZakat =
-    (account as { net_after_zakat?: number | null }).net_after_zakat != null
+    (account as { net_after_zakat?: number | null }).net_after_zakat !== null && (account as { net_after_zakat?: number | null }).net_after_zakat !== undefined
       ? safeNumber((account as { net_after_zakat?: number | null }).net_after_zakat)
       : storedNetAfterVat - storedZakat;
 

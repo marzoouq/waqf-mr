@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useComputedFinancials } from '@/hooks/domain/financial/useComputedFinancials';
 import type { Income, Expense } from '@/types';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Account } from '@/types';
 
 // ─── Factories ───
 
@@ -23,7 +23,7 @@ const mkExpense = (type: string, amount: number, desc?: string): Expense => ({
   fiscal_year_id: 'fy1', description: desc ?? null, property_id: null,
 });
 
-const mkAccount = (overrides: Partial<Tables<'accounts'>> = {}): Tables<'accounts'> => ({
+const mkAccount = (overrides: Partial<Account> = {}): Account => ({
   id: id(),
   fiscal_year: '1446-1447',
   total_income: 0,

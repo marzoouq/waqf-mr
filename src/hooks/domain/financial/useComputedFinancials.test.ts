@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useComputedFinancials } from './useComputedFinancials';
 import type { Income, Expense } from '@/types';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Account } from '@/types';
 
 // ─── Helpers ───
 
@@ -31,7 +31,7 @@ const mkExpense = (overrides: Partial<Expense> = {}): Expense => ({
   ...overrides,
 });
 
-const mkAccount = (overrides: Partial<Tables<'accounts'>> = {}): Tables<'accounts'> => ({
+const mkAccount = (overrides: Partial<Account> = {}): Account => ({
   id: crypto.randomUUID(),
   fiscal_year: '1446-1447',
   total_income: 100000,
@@ -510,7 +510,8 @@ describe('useComputedFinancials', () => {
         fiscalYearId: 'fy-d1', fiscalYearStatus: 'closed',
       });
 
-      expect(r.availableAmount).toBe(30000 - 80000);
+      // P1-6 (Negative Value Guards): العجز يُعرض كصفر لكن isDeficit يبقى true
+      expect(r.availableAmount).toBe(0);
       expect(r.isDeficit).toBe(true);
     });
 
@@ -527,8 +528,9 @@ describe('useComputedFinancials', () => {
         fiscalYearId: 'fy-d2', fiscalYearStatus: 'closed',
       });
 
+      // P1-6: availableAmount يبقى موجباً لكن remainingBalance يصبح 0 (مع isDeficit=true)
       expect(r.availableAmount).toBe(80000);
-      expect(r.remainingBalance).toBe(-120000);
+      expect(r.remainingBalance).toBe(0);
       expect(r.isDeficit).toBe(true);
     });
 
@@ -568,8 +570,9 @@ describe('useComputedFinancials', () => {
         fiscalYearId: 'fy-d3', fiscalYearStatus: 'closed',
       });
 
+      // P1-6: availableAmount يُعرض كصفر مع isDeficit=true
       expect(r.isDeficit).toBe(true);
-      expect(r.availableAmount).toBeLessThan(0);
+      expect(r.availableAmount).toBe(0);
     });
 
     it('لا عجز عندما المتاح ≥ 0 والرصيد ≥ 0', () => {
