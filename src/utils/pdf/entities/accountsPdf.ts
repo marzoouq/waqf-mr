@@ -43,7 +43,7 @@ export const generateAccountsPDF = async (data: {
   const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
-  const showOrigin = data.fiscalYearStartDate != null;
+  const showOrigin = data.fiscalYearStartDate !== null && data.fiscalYearStartDate !== undefined;
   const classifyOrigin = (startDate?: string | null): 'inYear' | 'fromPrevious' | 'unknown' => {
     if (!showOrigin || !startDate) return 'unknown';
     return startDate < (data.fiscalYearStartDate as string) ? 'fromPrevious' : 'inYear';

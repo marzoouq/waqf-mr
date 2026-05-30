@@ -23,7 +23,7 @@ export function useEndUserFinancials(dashData: EndUserDashboardData | undefined,
   // تفضيل القيمة الرسمية من DB، مع الإبقاء على Math.max(0) كحماية UI (Negative Value Guards)
   const netAfterZakat = Math.max(
     0,
-    account?.net_after_zakat != null ? safeNumber(account.net_after_zakat) : netAfterVat - zakatAmount,
+    account?.net_after_zakat !== null && account?.net_after_zakat !== undefined ? safeNumber(account.net_after_zakat) : netAfterVat - zakatAmount,
   );
   const adminShare = safeNumber(account?.admin_share);
   const waqifShare = safeNumber(account?.waqif_share);

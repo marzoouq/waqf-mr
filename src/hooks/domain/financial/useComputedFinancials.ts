@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import type { Income, Expense } from '@/types';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Income, Expense, Account } from '@/types';
 import {
   computeTotals,
   calculateFinancials,
@@ -15,7 +14,7 @@ import { safeNumber, safePercent } from '@/utils/format/safeNumber';
 interface ComputedParams {
   income: Income[];
   expenses: Expense[];
-  accounts: Tables<'accounts'>[];
+  accounts: Account[];
   settings: Record<string, string> | null | undefined;
   fiscalYearLabel?: string;
   fiscalYearId?: string;
