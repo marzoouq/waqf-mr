@@ -122,7 +122,9 @@ export default tseslint.config(
   // Wave 8 — hooks/data/ هي طبقة Supabase الخام بحسب mem://technical/architecture/hooks-layering-data-vs-domain.
   // supabase.from() مسموح هنا بشكل صريح. يبقى منع toast لأن الإشعارات مسؤولية hooks/page/.
   {
+  {
     files: ["src/hooks/data/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
