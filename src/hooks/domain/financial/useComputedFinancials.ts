@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import type { Income, Expense } from '@/types';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Income, Expense, Account } from '@/types';
 import {
   computeTotals,
   calculateFinancials,
