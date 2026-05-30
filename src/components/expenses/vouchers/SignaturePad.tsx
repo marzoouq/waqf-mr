@@ -33,6 +33,8 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ value, onChange, disabled, 
       };
       img.src = value;
     } else {
+      // إعادة تعيين الحالة عند مسح القيمة الخارجية — مقصود ومحدود بتغيّر value
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasInk(false);
     }
   }, [value]);
