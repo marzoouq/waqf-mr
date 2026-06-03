@@ -31,7 +31,10 @@ export const useWaqifDashboardPage = () => {
 
   useDashboardRealtime('waqif-dashboard-realtime', ['income', 'expenses', 'payment_invoices']);
 
-  const { data: dashData, isLoading: dashLoading } = useEndUserDashboardData(fiscalYearId);
+  const { data: dashData, isLoading: dashLoading } = useEndUserDashboardData(
+    isFyReady(fiscalYearId) ? fiscalYearId : undefined,
+  );
+
 
   // استخدام الهوك المشترك بدلاً من الاستخراج اليدوي
   const fin = useEndUserFinancials(dashData, fiscalYearId);
