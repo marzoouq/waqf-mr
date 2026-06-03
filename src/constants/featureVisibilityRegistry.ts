@@ -106,6 +106,14 @@ export const FEATURE_VISIBILITY_REGISTRY: readonly FeatureVisibilityEntry[] = [
     description: 'ملخّص سريع لإجماليات التحصيل اليومي/الشهري.',
     lockable: false,
   },
+  {
+    scope: 'accountant',
+    key: 'financial_cards',
+    label: 'بطاقات الإيرادات والمتاح (H-02/H-03)',
+    description: 'إظهار بطاقتي إجمالي الإيرادات وصافي الريع المتاح للمحاسب. الافتراضي مخفي.',
+    lockable: false,
+    defaultHidden: true,
+  },
 ] as const;
 
 /** تجميع السجل حسب النطاق — للعرض في شبكة الناظر. */
