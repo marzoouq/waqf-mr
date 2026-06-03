@@ -54,12 +54,18 @@ export function buildClosureChecklist(params: {
     detail: 'يُنصح بمعالجة السُلف المعلقة قبل الإقفال',
   });
 
+  // التوزيع الجزئي لا يُعتبر "تم التوزيع". نسمح بفرق هللات صغير (≤0.01).
+  const fullyDistributed = params.availableAmount <= 0
+    || params.distributionsAmount + 0.01 >= params.availableAmount;
   items.push({
-    label: params.distributionsAmount > 0 ? `تم توزيع ${fmt(params.distributionsAmount)} ر.س` : 'لم يتم إجراء توزيعات',
-    passed: params.distributionsAmount > 0 || params.availableAmount <= 0,
+    label: params.distributionsAmount > 0
+      ? `تم توزيع ${fmt(params.distributionsAmount)} ر.س${!fullyDistributed ? ` (المتاح ${fmt(params.availableAmount)} ر.س)` : ''}`
+      : 'لم يتم إجراء توزيعات',
+    passed: fullyDistributed,
     severity: 'warning',
-    detail: 'يوجد مبلغ متاح لم يُوزَّع بعد',
+    detail: 'يوجد مبلغ متاح لم يُوزَّع بالكامل',
   });
 
   return items;
 }
+

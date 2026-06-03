@@ -6,9 +6,12 @@ import { useMemo } from 'react';
 import { useGreeting } from '@/hooks/ui/useGreeting';
 import { fmt } from '@/utils/format/format';
 import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/dashboardComputations';
+import { computeExpenseRatio, EXPENSE_RATIO_FULL_DEFICIT } from '@/utils/financial/ratios';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
 import { computeContractualRevenue } from '@/utils/financial/computeContractualRevenue';
+import { isFyReady } from '@/constants/fiscalYearIds';
+
 // #M6 — مصدر مشترك في طبقة application (لا cross-role coupling عبر beneficiary)
 import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFinancials';
 import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';
@@ -28,7 +31,10 @@ export const useWaqifDashboardPage = () => {
 
   useDashboardRealtime('waqif-dashboard-realtime', ['income', 'expenses', 'payment_invoices']);
 
-  const { data: dashData, isLoading: dashLoading } = useEndUserDashboardData(fiscalYearId);
+  const { data: dashData, isLoading: dashLoading } = useEndUserDashboardData(
+    isFyReady(fiscalYearId) ? fiscalYearId : undefined,
+  );
+
 
   // استخدام الهوك المشترك بدلاً من الاستخراج اليدوي
   const fin = useEndUserFinancials(dashData, fiscalYearId);
@@ -73,13 +79,16 @@ export const useWaqifDashboardPage = () => {
   const kpis = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
     const { occupancyRate } = computeOccupancy(contracts, allUnits, isSpecificYear);
-    const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
+    const expenseRatio = computeExpenseRatio(totalIncome, totalExpenses);
+    const isDeficit = expenseRatio >= EXPENSE_RATIO_FULL_DEFICIT;
     return [
       { label: 'نسبة التحصيل', value: collectionSummary.total === 0 ? '—' : collectionRate, suffix: collectionSummary.total === 0 ? '' : '%', color: collectionSummary.total === 0 ? 'text-muted-foreground' : (collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive'), progressColor: collectionSummary.total === 0 ? '[&>div]:bg-muted' : (collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
       { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
-      { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : (expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive'), progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : (expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
+      { label: isDeficit ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: isDeficit ? 'text-destructive font-bold' : (expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive'), progressColor: isDeficit ? '[&>div]:bg-destructive' : (expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
     ];
   }, [collectionSummary.percentage, collectionSummary.total, totalIncome, totalExpenses, allUnits, contracts, isSpecificYear]);
+
+
 
   // بناء monthlyData من utility مشتركة (#11)
   const monthlyData = useMemo(
@@ -94,7 +103,7 @@ export const useWaqifDashboardPage = () => {
     { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
     { title: 'العقود النشطة', value: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
     { title: 'المستفيدون', value: beneficiaryCount || '—', icon: Users, bg: 'bg-secondary/10 text-secondary' },
-    { title: 'القابل للتوزيع', value: fiscalYear?.status === 'active' ? 'تُحسب عند الإقفال' : `${fmt(safeNumber(availableAmount))} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
+    { title: 'القابل للتوزيع', value: !fiscalYear ? '—' : (fiscalYear.status !== 'closed' ? 'تُحسب عند الإقفال' : `${fmt(safeNumber(availableAmount))} ر.س`), icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
   ];
 
   const expenseData = useMemo(

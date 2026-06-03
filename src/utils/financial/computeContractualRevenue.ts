@@ -29,7 +29,11 @@ export function computeContractualRevenue(
   contracts: ContractLike[],
   allocations: AllocationLike[],
 ): number {
-  const allocSum = allocations.reduce((s, a) => s + safeNumber(a.allocated_amount), 0);
-  if (allocSum > 0) return allocSum;
+  // إذا وُجدت تخصيصات للسنة (حتى لو مجموعها صفر) فهي مصدر الحقيقة —
+  // لا نسقط إلى rent_amount لتفادي تضخيم الإيراد.
+  if (allocations.length > 0) {
+    return allocations.reduce((s, a) => s + safeNumber(a.allocated_amount), 0);
+  }
   return contracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
 }
+
