@@ -139,7 +139,7 @@ const BylawsViewPage = () => {
                         </AccordionTrigger>
                         <AccordionContent>
                           <div className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed py-3 prose-headings:text-primary prose-strong:text-foreground" dir="rtl">
-                            <Suspense fallback={<div className="animate-pulse h-4 bg-muted rounded" />}><ReactMarkdown>{item.content}</ReactMarkdown></Suspense>
+                            <Suspense fallback={<div className="animate-pulse h-4 bg-muted rounded" />}><ReactMarkdown disallowedElements={['script', 'iframe', 'style', 'object', 'embed']} unwrapDisallowed>{item.content}</ReactMarkdown></Suspense>
                           </div>
                         </AccordionContent>
                       </AccordionItem>
