@@ -13,7 +13,12 @@ export interface MultiYearComparisonEntry {
   label: string;
   income: number;
   expenses: number;
-  net: number; // معنى موحَّد: waqfRevenue إن وُجد، وإلا income−expenses
+  /** صافي بعد المصروفات (قبل الضريبة) */
+  netAfterExpenses: number;
+  /** صافي بعد الزكاة (قبل خصم حصص الناظر/الواقف) */
+  netAfterZakat: number;
+  /** ريع الوقف (الصافي النهائي قبل التوزيع) */
+  waqfRevenue: number;
   vatAmount?: number;
   zakatAmount?: number;
   adminShare?: number;
