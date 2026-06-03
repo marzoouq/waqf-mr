@@ -10,6 +10,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
+import { normalizeArabicDigits } from '@/utils/format/normalizeDigits';
 
 export interface FiscalYearInput {
   label: string;
@@ -20,6 +21,10 @@ export interface FiscalYearInput {
 const LABEL_REGEX = /^(\d{4})-(\d{4})$/;
 const MAX_DURATION_DAYS = 400;
 
+/** يطبّع label: يحوّل الأرقام العربية/الفارسية إلى لاتينية ويزيل المسافات */
+export const normalizeFiscalYearLabel = (label: string): string =>
+  normalizeArabicDigits(String(label ?? '')).trim();
+
 /**
  * تحقق دلالي pure (بدون استعلامات) — صالح للاختبار.
  * يُرجع رسالة خطأ بالعربية أو null عند الصلاحية.
@@ -28,7 +33,8 @@ export const validateFiscalYearInput = (input: FiscalYearInput): string | null =
   if (!input.label || !input.start_date || !input.end_date) {
     return 'يرجى تعبئة جميع الحقول';
   }
-  const m = input.label.match(LABEL_REGEX);
+  const normalizedLabel = normalizeFiscalYearLabel(input.label);
+  const m = normalizedLabel.match(LABEL_REGEX);
   if (!m) {
     return 'تنسيق المسمى يجب أن يكون YYYY-YYYY (مثال: 2025-2026)';
   }
