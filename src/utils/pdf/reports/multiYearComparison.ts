@@ -68,11 +68,13 @@ export const generateMultiYearComparisonPDF = async (
   const rows: Array<{ label: string; pick: (e: MultiYearComparisonEntry) => number }> = [
     { label: 'إجمالي الدخل', pick: e => e.income },
     { label: 'إجمالي المصروفات', pick: e => e.expenses },
-    { label: 'الصافي (ريع الوقف)', pick: e => e.net },
+    { label: 'صافي بعد المصروفات', pick: e => e.netAfterExpenses },
     { label: 'ضريبة القيمة المضافة', pick: e => e.vatAmount ?? 0 },
     { label: 'الزكاة', pick: e => e.zakatAmount ?? 0 },
+    { label: 'صافي بعد الزكاة', pick: e => e.netAfterZakat },
     { label: 'حصة الناظر', pick: e => e.adminShare ?? 0 },
     { label: 'حصة الواقف', pick: e => e.waqifShare ?? 0 },
+    { label: 'ريع الوقف', pick: e => e.waqfRevenue },
     { label: 'التوزيعات', pick: e => e.distributionsAmount ?? 0 },
   ];
 
