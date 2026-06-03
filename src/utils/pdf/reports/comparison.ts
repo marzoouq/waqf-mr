@@ -8,11 +8,20 @@ import {
 import { getLastAutoTableY } from '../core/pdfHelpers';
 import { fmt } from '@/utils/format/format';
 
+interface YearTotalsBlock {
+  income: number;
+  expenses: number;
+  net: number;
+  netAfterExpenses?: number;
+  netAfterZakat?: number;
+  waqfRevenue?: number;
+}
+
 export interface YearComparisonPdfData {
   year1Label: string;
   year2Label: string;
-  year1: { income: number; expenses: number; net: number };
-  year2: { income: number; expenses: number; net: number };
+  year1: YearTotalsBlock;
+  year2: YearTotalsBlock;
   incomeChange: number;
   expenseChange: number;
   netChange: number;
