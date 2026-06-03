@@ -50,7 +50,7 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
         <div className="flex flex-col md:flex-row items-center gap-6">
           <ErrorBoundary>
             <Suspense fallback={<Skeleton className="w-[180px] h-[180px] rounded-full shrink-0" />}>
-              <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount} partial={collectionSummary.partialCount} />
+              <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.overdueCount ?? collectionSummary.unpaidCount} partial={collectionSummary.partialCount} />
             </Suspense>
           </ErrorBoundary>
 
