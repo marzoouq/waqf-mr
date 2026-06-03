@@ -45,8 +45,10 @@ export interface PropertyFinancials {
   statusMismatch: number;
   /** الإيرادات التعاقدية (جميع العقود) */
   contractualRevenue: number;
-  /** الدخل النشط (active فقط أو الكل حسب السنة) */
+  /** الدخل النشط (active فقط أو الكل حسب السنة) — مستحقات تعاقدية */
   activeAnnualRent: number;
+  /** الدخل الفعلي من جدول income — إن وُجدت خريطة الدخل، وإلا = activeAnnualRent */
+  actualIncome: number;
   /** الإيجار الشهري */
   monthlyRent: number;
   /** إجمالي المصروفات */
