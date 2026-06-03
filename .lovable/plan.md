@@ -158,3 +158,28 @@
 - snapshot السنوات المقفلة محمي (تعديل RPC على السنوات النشطة فقط)
 - جميع تغييرات DB عبر migration واحد مراجَع
 - اختبار قبل/بعد لكل سنة مقفلة موجودة
+
+---
+
+## ✅ Phase 1 (Stage 3) — تم التنفيذ — 2026-06-03
+
+### تغييرات DB
+- Migration `get_dashboard_full_summary`:
+  - تطبيق `GREATEST(0, ...)` على `available_amount` و`remaining_balance` في كل الفروع (نشطة/مقفلة/بدون حساب)
+  - حقول جديدة في `totals`: `available_amount_raw`, `remaining_balance_raw` (للاطلاع الإداري على العجز)
+  - حقول جديدة في `yoy`: `prev_corpus_previous`, `prev_vat`, `prev_zakat`, `prev_net_after_zakat`, `prev_has_account`
+- **حماية snapshots**: لم يُمس جدول `accounts` ولا السنوات المقفلة المخزَّنة. التعديل عرض RPC فقط.
+
+### تغييرات Frontend
+- `src/types/financial/dashboard.ts`: إضافة الحقول الجديدة لـ `AggregatedYoY`
+- `src/lib/api/schemas/dashboardSummary.ts`: تحديث Zod schema
+- `src/hooks/data/financial/dashboard/useDashboardSummary.ts`: استخدام `prev_net_after_zakat` الدقيق من snapshot عند توفره
+
+### اختبارات
+- 317/317 اختباراً نجحت في `src/hooks/domain/financial` + `src/utils/financial`
+- `closedYearFinancials` و`activeYearFinancials` لم تتطلب تعديلاً لأنها بالفعل تطبق `Math.max(0)` محلياً — الآن RPC متوافق معها
+
+### المتبقي (Phase 2-4)
+- Phase 2: أداة تحقق آلية + integration test
+- Phase 3: تدقيق وظيفي عبر sub-agents
+- Phase 4: توثيق ختامي
