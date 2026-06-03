@@ -17,6 +17,7 @@ const PUBLISH_INVALIDATION_KEYS: readonly (readonly string[])[] = [
   ['public-stats'],
   ['annual_report_status'],
   ['annual_report_items'],
+  ['waqif_annual_report'],
 ];
 
 /**

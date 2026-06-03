@@ -90,13 +90,34 @@ export const checkFiscalYearConflicts = async (input: FiscalYearInput): Promise<
   return null;
 };
 
+/**
+ * يبحث في DB عن السنة المتعارضة زمنياً مع المدخل (استعلام مباشر بدلاً من scan في JS).
+ * يُستخدم لإثراء رسالة خطأ 23P01 بالاسم والفترة الفعلية للسنة المتعارضة.
+ */
+const findOverlappingYear = async (
+  input: FiscalYearInput,
+): Promise<{ label: string; start_date: string; end_date: string } | null> => {
+  const { data, error } = await supabase
+    .from('fiscal_years')
+    .select('label, start_date, end_date')
+    .lte('start_date', input.end_date)
+    .gte('end_date', input.start_date)
+    .limit(1)
+    .maybeSingle();
+  if (error) return null;
+  return data ?? null;
+};
+
 /** يحوّل أخطاء Postgres إلى رسائل عربية حرفية مفهومة */
-const mapPostgresError = (err: unknown, input: FiscalYearInput): string => {
+const mapPostgresError = async (err: unknown, input: FiscalYearInput): Promise<string> => {
   const e = err as { code?: string; message?: string };
   const label = normalizeFiscalYearLabel(input.label);
   if (e?.code === '23P01') {
-    // exclusion / overlap — رسالة الـtrigger تحوي الاسم والفترة
-    return e.message ?? `يوجد تداخل زمني بين السنة "${label}" وسنة موجودة`;
+    // EXCLUDE constraint — استعلم عن السنة المتعارضة لرسالة دقيقة
+    const overlap = await findOverlappingYear(input);
+    return overlap
+      ? `يوجد تداخل زمني مع السنة "${overlap.label}" (${overlap.start_date} → ${overlap.end_date})`
+      : 'يوجد تداخل زمني مع سنة مالية أخرى';
   }
   if (e?.code === '23505') {
     const msg = String(e.message ?? '');
@@ -131,8 +152,9 @@ export const createFiscalYear = async (data: FiscalYearInput) => {
     status: 'active',
     published: false,
   });
-  if (error) throw new Error(mapPostgresError(error, payload));
+  if (error) throw new Error(await mapPostgresError(error, payload));
 };
+
 
 export const reopenFiscalYear = async (fiscalYearId: string, reason: string) => {
   return await rpc<{ label: string }>('reopen_fiscal_year', {

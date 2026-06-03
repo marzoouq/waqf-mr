@@ -41,6 +41,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
   });
 
   // Realtime لتغييرات السنوات المالية — يحدّث كل اللوحات فوراً عند الإنشاء/التحديث/الحذف
+  // ملاحظة: `waqif_annual_report` غير مُستهلَك حالياً كـqueryKey — يُضاف عند بناء تقرير الواقف السنوي.
   useDashboardRealtime(
     'fiscal-years-global',
     ['fiscal_years'],
@@ -49,7 +50,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
       ['fiscal_years_published_all'],
       ['public-stats'],
       ['annual_report_status'],
-      ['waqif_annual_report'],
+      ['annual_report_items'],
     ],
   );
 
