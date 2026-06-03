@@ -1,8 +1,9 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link } from 'react-router-dom';
-import { Building2, Layers, ArrowLeft, Wallet } from 'lucide-react';
+import { Building2, Layers, ArrowLeft, Wallet, AlertTriangle } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 
 interface PropertySummary {
