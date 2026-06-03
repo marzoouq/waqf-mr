@@ -46,16 +46,29 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
   doc.setFont(f, 'normal');
   doc.text(rs(`${data.year1Label}  ←→  ${data.year2Label}`), 105, startY + 14, { align: 'center' });
 
-  // 1. Summary comparison
+  // 1. Summary comparison — يدعم 3 صفوف صافي منفصلة عند توفّر البيانات
   const fmtPctLocal = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`;
+  const hasBreakdown =
+    data.year1.netAfterExpenses !== undefined && data.year1.netAfterZakat !== undefined && data.year1.waqfRevenue !== undefined;
+  const body: unknown[][] = [
+    reshapeRow(['إجمالي الدخل', fmt(data.year1.income), fmt(data.year2.income), fmtPctLocal(data.incomeChange)]),
+    reshapeRow(['إجمالي المصروفات', fmt(data.year1.expenses), fmt(data.year2.expenses), fmtPctLocal(data.expenseChange)]),
+  ];
+  if (hasBreakdown) {
+    const ne1 = data.year1.netAfterExpenses!, ne2 = data.year2.netAfterExpenses!;
+    const nz1 = data.year1.netAfterZakat!,    nz2 = data.year2.netAfterZakat!;
+    const wr1 = data.year1.waqfRevenue!,      wr2 = data.year2.waqfRevenue!;
+    const ch = (a: number, b: number) => b !== 0 ? ((a - b) / Math.abs(b)) * 100 : 0;
+    body.push(reshapeRow(['صافي بعد المصروفات', fmt(ne1), fmt(ne2), fmtPctLocal(ch(ne2, ne1))]));
+    body.push(reshapeRow(['صافي بعد الزكاة',    fmt(nz1), fmt(nz2), fmtPctLocal(ch(nz2, nz1))]));
+    body.push(reshapeRow(['ريع الوقف',          fmt(wr1), fmt(wr2), fmtPctLocal(ch(wr2, wr1))]));
+  } else {
+    body.push(reshapeRow(['صافي الدخل', fmt(data.year1.net), fmt(data.year2.net), fmtPctLocal(data.netChange)]));
+  }
   autoTable(doc, {
     startY: startY + 22,
     head: [reshapeRow(['المؤشر', data.year1Label, data.year2Label, 'التغير'])],
-    body: [
-      reshapeRow(['إجمالي الدخل', fmt(data.year1.income), fmt(data.year2.income), fmtPctLocal(data.incomeChange)]),
-      reshapeRow(['إجمالي المصروفات', fmt(data.year1.expenses), fmt(data.year2.expenses), fmtPctLocal(data.expenseChange)]),
-      reshapeRow(['صافي الدخل', fmt(data.year1.net), fmt(data.year2.net), fmtPctLocal(data.netChange)]),
-    ],
+    body,
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, f),
     ...baseTableStyles(f),
