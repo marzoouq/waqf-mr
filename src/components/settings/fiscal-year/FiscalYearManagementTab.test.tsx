@@ -47,7 +47,7 @@ describe('FiscalYearManagementTab', () => {
     render(<FiscalYearManagementTab />);
     const btn = screen.getByRole('button', { name: /إنشاء/ });
     expect(btn).toBeDisabled();
-    expect(screen.getByText(/YYYY-YYYY/)).toBeInTheDocument();
+    expect(screen.getByText(/تنسيق المسمى/)).toBeInTheDocument();
   });
 
   it('يعرض submitError داخل Alert حرفياً', () => {
