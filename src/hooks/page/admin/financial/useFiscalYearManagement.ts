@@ -54,6 +54,12 @@ export function useFiscalYearManagement() {
   useEffect(() => { setSubmitError(null); }, [newFY.label, newFY.start_date, newFY.end_date]);
 
   const handleCreate = async () => {
+    if (!newFY.label || !newFY.start_date || !newFY.end_date) {
+      const msg = 'يرجى تعبئة جميع الحقول';
+      setSubmitError(msg);
+      uiNotify.error(msg);
+      return;
+    }
     if (formError) {
       setSubmitError(formError);
       uiNotify.error(formError);
