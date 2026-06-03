@@ -8,6 +8,7 @@ import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/doma
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpenses';
+import { useIncomeByFiscalYear } from '@/hooks/data/financial/income/useIncome';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAccountByFiscalYear } from '@/hooks/data/financial/accounts/useAccounts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
@@ -30,10 +31,27 @@ export function usePropertiesViewPage() {
   const isClosed = fiscalYear?.status === 'closed';
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
+  const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId);
   const { data: accounts = [] } = useAccountByFiscalYear(fiscalYear?.label, fiscalYearId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const allocationMap = useContractAllocationMap(contracts);
+
+  // خريطة الدخل الفعلي لكل عقار من جدول income (للسنة المالية الحالية)
+  const incomeByPropertyMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const inc of (income ?? [])) {
+      if (!inc.property_id) continue;
+      map.set(inc.property_id, (map.get(inc.property_id) ?? 0) + safeNumber(inc.amount));
+    }
+    return map;
+  }, [income]);
+
+  // إجمالي الدخل الفعلي للسنة (مجموع income.amount)
+  const totalActualIncome = useMemo(
+    () => (income ?? []).reduce((s, i) => s + safeNumber(i.amount), 0),
+    [income],
+  );
 
   const isLoading = propsLoading || unitsLoading;
   const isError = propsError || unitsError;
@@ -74,13 +92,9 @@ export function usePropertiesViewPage() {
       activeIncome = safeNumber(currentAccount.total_income);
       totalExpensesAll = safeNumber(currentAccount.total_expenses);
     } else {
-      const relevantContracts = isSpecificYear
-        ? (contracts ?? [])
-        : (contracts ?? []).filter(c => c.status === 'active');
-      activeIncome = relevantContracts.reduce((s, c) => {
-        const alloc = allocationMap.get(c.id!);
-        return s + (alloc ? alloc.allocated_amount : 0);
-      }, 0);
+      // الدخل الفعلي من جدول income (وليس المستحقات التعاقدية allocated_amount).
+      // المستحقات تبقى متاحة كـ contractualRevenue للمقارنة.
+      activeIncome = totalActualIncome;
       // المصروفات الكاملة (موحّدة مع التقارير الرسمية)
       totalExpensesAll = (expenses ?? []).reduce((s, e) => s + safeNumber(e.amount), 0);
     }
@@ -90,7 +104,7 @@ export function usePropertiesViewPage() {
     const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
     const occBarColor = overallOccupancy >= 80 ? '[&>div]:bg-success' : overallOccupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
     return { totalProperties, totalVacant, vacantUnits, propertiesWithoutUnits, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor };
-  }, [properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap]);
+  }, [properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses, isClosed, accounts, allocationMap, totalActualIncome]);
 
 
   // --- حساب المؤشرات المالية لكل عقار (مرة واحدة) ---
@@ -100,10 +114,14 @@ export function usePropertiesViewPage() {
       map.set(p.id, computePropertyFinancials({
         propertyId: p.id, contracts, expenses, units: units ?? [],
         isSpecificYear, allocationMap,
+        // السنة المقفلة: لا نمرّر خريطة الدخل لأن accounts هي المصدر الرسمي.
+        // السنة النشطة: نمرّر الدخل الفعلي من جدول income.
+        actualIncomeByProperty: isClosed ? undefined : incomeByPropertyMap,
       }));
     }
     return map;
-  }, [properties, contracts, expenses, units, isSpecificYear, allocationMap]);
+  }, [properties, contracts, expenses, units, isSpecificYear, allocationMap, isClosed, incomeByPropertyMap]);
+
 
   // --- #3/#61: خرائط مُسبقة الحساب لتفادي filter داخل .map JSX ---
   const propertyContractsMap = useMemo(() => {

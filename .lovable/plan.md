@@ -1,56 +1,138 @@
-## خلاصة الاستكشاف
+## نتيجة الفحص الفعلي — تصفية البنود قبل التخطيط
 
-شغّلت الـ Linter محلياً + استعلامات على pg_proc/pg_views/pg_policies. النتيجة 44 تنبيه مفصّلة:
+فحصت كل توصية من التقريرين الأخيرين (24 بنداً سابقاً + 12 مجموعة جديدة) بقراءة مباشرة للملفات. النتيجة:
 
-| # | النوع | المصدر | الحكم |
-|---|------|--------|------|
-| 1 | ERROR — Security Definer View | `contracts_safe` (security_invoker=off) | **مقصود** — مذكور صراحة في `mem://security/views/contracts-safe-rationale` لإخفاء PII. تبديله ممنوع. |
-| 2 | WARN — Extension in Public | `btree_gist` | **مقصود** — يُستخدم في فهارس exclusion على contracts/payment_invoices؛ نقله يكسر الفهارس. |
-| 3 | WARN — Public Bucket Allows Listing | `waqf-assets` + policy `Anyone can view waqf assets` لدور `public` | **يُصلح فعلياً** — نسحب صلاحية LIST من `anon` مع إبقاء القراءة المباشرة عبر CDN. |
-| 4-5 | WARN — anon SECURITY DEFINER | `get_public_stats`, `log_access_event` | **مقصود** — endpoints عامة (إحصائيات الهبوط + تسجيل وصول قبل المصادقة). |
-| 6-44 | WARN — authenticated SECURITY DEFINER | 39 دالة (has_role, close_fiscal_year, get_*_dashboard, execute_distribution, …) | **مقصود** — كلها تتجاوز RLS بحراسة `has_role()` داخلها؛ التحويل إلى INVOKER يكسر التطبيق. |
+### مُصلَح فعلاً — لن يُعاد العمل عليه
 
-## الفحص بعد التنفيذ (لا تعارضات متوقعة)
+| البند | الحالة الفعلية |
+|---|---|
+| 1-12, 16-19, 24 من التقرير الأول | مُصلَحة (راجعتها سطراً سطراً) |
+| `SwUpdateBanner.setInterval` cleanup | موجود `return () => { clearTimeout; clearInterval }` |
+| JSON-LD في `Index.tsx` | يستخدم `safeJsonLdString` |
+| CSV formula injection | `sanitizeCsvValue` موجود |
+| `useDataExport` تنبيه 5000 | موجود (`uiNotify.warning`) |
+| `logger` production silent | تصميم متعمَّد (موثّق في الملف) |
+| `errorReporter` dedupe | موجود |
+| ReactMarkdown raw HTML | react-markdown v8+ لا يعرض HTML افتراضياً |
 
-- **#3 (الإصلاح الفعلي)**: تغيير policy `Anyone can view waqf assets` ليصبح INSERT/SELECT مقيّداً على authenticated فقط، أو حذفها بالكامل لأن `bucket.public=true` يكفي للوصول عبر CDN URL. تأكدت من ذلك:
-  - أصول EF/Email تُجلب عبر `getPublicUrl()` → CDN مباشر (لا يحتاج policy على storage.objects).
-  - لا يوجد كود يستدعي `list()` على `waqf-assets` من anon. تحقق سريع: `rg "from\(.waqf-assets.\).*\.list"` يجب أن يعود فارغاً للأكواد العامة.
-  - الأدمن يحتاج list في صفحة إدارة الأصول → يحتفظ بسياسة UPDATE/DELETE/INSERT الحالية (authenticated+admin) ونضيف SELECT for admin/accountant لتمكين list.
+### الأخطاء الحقيقية المتبقية — هذه ما سأنفّذه
 
-- **#1, #2, #4-44 (Ignore)**: عمليات قراءة فقط في scanner state — لا أثر على DB أو التطبيق.
+---
 
-## الخطوات
+## الموجة A — حسابات وبيانات حرجة (P0/P1)
 
-### 1) Migration (إصلاح #3 فقط)
-```sql
-DROP POLICY IF EXISTS "Anyone can view waqf assets" ON storage.objects;
-CREATE POLICY "Authenticated can list waqf assets"
-  ON storage.objects FOR SELECT TO authenticated
-  USING (bucket_id = 'waqf-assets');
+### A1 — `usePropertiesViewPage.activeIncome` يستخدم مستحقات تعاقدية بدل دخل فعلي
+- استبدال `Σ allocated_amount` بـ `Σ income.amount WHERE property_id` للسنة النشطة.
+- السنة المقفلة تبقى `accounts.total_income` (الكود الحالي).
+- إضافة جلب `useIncomeByFiscalYear`.
+- `contractualRevenue` يبقى في بطاقة مستقلة بعنوان واضح.
+
+### A2 — `collectionCompute.perPayment` يستخدم `||` بدل `??`
+- السطر: `contract.payment_amount || rent/count` → عند `payment_amount === 0` يقع fallback صامت.
+- التحويل إلى `??` لاكتشاف بيانات خاطئة (0 يبقى 0 وتنبيه عبر diagnostics).
+
+### A3 — `availableAmount` من snapshot في multiYearHelpers + إضافة `net_after_zakat`
+- Migration: تعديل RPC `get_multi_year_summary` لإرجاع `account.available_amount` و `account.net_after_zakat` (محسوبَين كـ `net_after_vat - zakat_amount`).
+- تحديث `YearSummaryEntry` بإضافة `netAfterZakat`.
+- تحديث `mapEntry` لاستخدام snapshot إن وُجد، fallback للحساب الحالي للسنوات النشطة.
+
+### A4 — توحيد عرض الصافي كثلاث أعمدة منفصلة (قرار المستخدم)
+- `useHistoricalComparison.comparisonRows`: عرض `netAfterExpenses` و `netAfterZakat` و `waqfRevenue` كصفوف مستقلة.
+- `chartData`: استبدال خط "الصافي" المفرد بثلاثة خطوط.
+- `useYearComparisonState`: نفس التحديث للسنتين + تحديث `generateYearComparisonPDF` و `generateMultiYearComparisonPDF`.
+
+---
+
+## الموجة B — أمان/تقارير/تواريخ (P1)
+
+### B1 — حماية XLSX من Formula Injection
+- إضافة `sanitizeXlsxCell` في `src/utils/export/xlsx.ts` تُسبق أي قيمة تبدأ بـ `= + - @ \t \r` بـ `'`.
+- تطبيقها داخل `buildXlsx` عند `escXml(val)` للقيم النصية.
+- اختبار `xlsx.test.ts` يثبت السلوك.
+
+### B2 — تشديد Markdown صراحةً (defense in depth)
+- في `SortableBylawItem.tsx` و `BylawsViewPage.tsx`: تمرير `disallowedElements={['script','iframe','style','object','embed']}` + `unwrapDisallowed`.
+- توضيح في وصف الإدخال: "Markdown فقط — HTML غير مدعوم".
+
+### B3 — sanitization لـ errorReporter PII
+- إضافة `src/lib/diagnostics/sanitizeErrorMetadata.ts` يُنظّف:
+  - `url`: إزالة query string وtokens
+  - `stack`: قص إلى 1000 محرف + إخفاء absolute paths
+  - `user_agent`: قص إلى 200 محرف
+- تطبيقه قبل `log_access_event` في `reportClientError`.
+
+### B4 — date-only helpers موحّدة
+- إنشاء `src/utils/date/dateOnly.ts` يحتوي:
+  - `todayLocalISO()` — YYYY-MM-DD بالتوقيت المحلي
+  - `parseDateOnlyLocal(s)`
+  - `compareDateOnly(a, b)`
+  - `diffCalendarDays(a, b)`
+- استبدال `new Date().toISOString().slice(0,10)` في `useOverdueSplit` و `collectionCompute` (السطر 178).
+- اختبار شامل.
+
+### B5 — diagnostics: فحوص مالية جديدة
+- إضافة فحوص في `src/lib/diagnostics/checks.ts`:
+  - `partially_paid && paid_amount < amount` معلّقة
+  - `distributions_amount > available_amount` لكل سنة مقفلة
+  - `fy.status='closed' && !account`
+  - `allocations مجموعها 0 مع rent_amount > 0` (مفخخات)
+  - `partially_paid && due_date < today` (متأخرات جزئية)
+
+---
+
+## الموجة C — وصول/أداء/تنظيف (P2)
+
+### C1 — `BottomNav` skeleton أثناء تحميل الدور
+- استبدال `BOTTOM_NAV_LINKS[role ?? 'beneficiary']` بـ `if (!role) return null` (أو skeleton).
+
+### C2 — a11y: drag handle لـ bylaws
+- في `SortableBylawItem.tsx`: إضافة `aria-label="مقبض السحب"` + الاعتماد على dnd-kit KeyboardSensor الموجود (تأكيد التهيئة في المكون الأب).
+
+### C3 — `aria-label` للتبويبات الناقصة
+- 7 ملفات تحتوي `TabsList` بدون `aria-label`. إضافة label عربي وصفي لكل واحدة.
+
+### C4 — اختبار QuickActions ضد ACCOUNTANT_EXCLUDED_ROUTES
+- اختبار: كل عنصر `QUICK_ACTIONS_BY_ROLE.accountant` ليس ضمن `ACCOUNTANT_EXCLUDED_ROUTES`.
+
+### C5 — `CashFlowReport` performance
+- استبدال 12 filter داخل loop ببناء `Map<month, {income, expenses}>` مرة واحدة.
+
+---
+
+## ترتيب التنفيذ (PR واحد متماسك)
+
+```text
+1. Migration: get_multi_year_summary + net_after_zakat + available_amount
+2. Types: YearSummaryEntry.netAfterZakat
+3. utils: mapEntry, sanitizeXlsxCell, dateOnly.ts, sanitizeErrorMetadata.ts
+4. hooks: usePropertiesViewPage (income الفعلي), collectionCompute (??)
+5. comparisons: useHistoricalComparison + useYearComparisonState + 2 PDFs (3 أعمدة)
+6. UI: BottomNav skeleton, SortableBylawItem aria, Markdown disallowedElements, TabsList labels
+7. errorReporter: تطبيق sanitization
+8. diagnostics: 5 فحوص مالية + xlsx.test
+9. CashFlowReport: month Map
+10. Tests: 9 ملفات اختبار (Vitest)
+11. `bunx vitest run` → 0 انحدار
 ```
-الوصول العام للقراءة يبقى عبر `bucket.public=true` (Supabase CDN) — لا انكسار في PDF/Email templates.
 
-### 2) Ignore 43 تنبيه مقصودة عبر `security--manage_security_finding`
-لكل تنبيه: explanation عربي مختصر يربط بقرار التصميم/الذاكرة المناسبة.
+## ما لن يُنفَّذ (مع الأسباب)
 
-### 3) تحديث `@security-memory`
-إضافة قسم يوضح:
-- `contracts_safe` بـ security_invoker=off مقصود (PII).
-- `btree_gist` في public مقصود (exclusion indexes).
-- `get_public_stats` + `log_access_event` endpoints عامة موثقة.
-- جميع SECURITY DEFINER في public تحمل حراسة `has_role()` داخلياً — لا تطلب من السكنر إعادة رفعها.
+| البند | السبب |
+|---|---|
+| تغيير `logger` production console silent | تصميم متعمَّد موثّق |
+| `pwa_just_updated` TTL | لا يوجد ضرر فعلي، يُمسح مع localStorage عادة |
+| توحيد `usePwaInstall` و `useInstallAppPage` | refactor كبير بلا فائدة وظيفية فورية |
+| تغيير fallback السنوي `monthsSinceStart >= 1` | سياسة تجارية — يحتاج قرار محاسبي صريح |
+| إعادة تسمية ملفات PDF/CSV لاتفاقية موحدة | تجميلي، يُمكن لاحقاً |
+| pagination كامل للتصدير | الحد 5000 + التنبيه كافٍ حالياً |
+| تحويل `ReactMarkdown` lazy إلى eager | فائدة هامشية، Suspense يعمل |
 
-### 4) التحقق
-- `supabase--linter` بعد التنفيذ → يبقى فقط تنبيهات تم تصنيفها كـ accepted، أو 0 جديدة.
-- `bunx vitest run` → بدون انحدار (لا تغييرات frontend/types).
-- زيارة `/dashboard` + لوحة المستفيد للتأكد من تحميل صور/PDFs من `waqf-assets`.
+## التحقق بعد التنفيذ
 
-## ما لن أنفّذه (مبررات)
-
-- **نقل `btree_gist` خارج public**: يتطلب إعادة بناء فهارس exclusion + إيقاف الكتابة لحظياً. مخاطرة عالية مقابل تنبيه WARN واحد. سأوثّقه بدل تنفيذه.
-- **تحويل أي دالة إلى SECURITY INVOKER**: يكسر تجاوز RLS المتعمّد (مثلاً `has_role` نفسها).
-- **تبديل `contracts_safe`**: محظور صراحة في الذاكرة.
-
-## النتيجة المتوقعة
-
-Linter post-run: إصلاح فعلي = 1، مقبول/موثّق = 43. لا تعارض مع المنطق المالي/المحاسبي الموثّق في رسالتك السابقة (هذه الخطة لا تمس `useEndUserFinancials` ولا RPCs المالية — تلك تحتاج خطة منفصلة).
+- `bunx vitest run` — كل الاختبارات تمر (الحالية 1904 + ~12 جديدة).
+- مراجعة يدوية:
+  - بطاقة "الدخل الفعلي" في صفحة العقارات.
+  - جدول المقارنة التاريخية يعرض 3 أعمدة صافي.
+  - تنزيل XLSX يحوي قيمة تبدأ بـ `=SUM(...)` — تظهر كنص لا كصيغة.
+  - فتح التطبيق بدون دور — لا روابط مستفيد تومض.
+- مراجعة logs بعد deploy: `access_log.metadata.error_stack` لا يحوي مسارات absolute.

@@ -45,8 +45,10 @@ export interface PropertyFinancials {
   statusMismatch: number;
   /** الإيرادات التعاقدية (جميع العقود) */
   contractualRevenue: number;
-  /** الدخل النشط (active فقط أو الكل حسب السنة) */
+  /** الدخل النشط (active فقط أو الكل حسب السنة) — مستحقات تعاقدية */
   activeAnnualRent: number;
+  /** الدخل الفعلي من جدول income — إن وُجدت خريطة الدخل، وإلا = activeAnnualRent */
+  actualIncome: number;
   /** الإيجار الشهري */
   monthlyRent: number;
   /** إجمالي المصروفات */
@@ -63,8 +65,10 @@ export function computePropertyFinancials(params: {
   isSpecificYear: boolean;
   /** خريطة التخصيص — إن وُجدت تُستخدم بدلاً من rent_amount الكامل */
   allocationMap?: Map<string, { allocated_amount: number }>;
+  /** خريطة الدخل الفعلي لكل عقار (من جدول income). إن وُجدت تُستخدم كـ "الدخل الفعلي" بدل المستحقات التعاقدية. */
+  actualIncomeByProperty?: Map<string, number>;
 }): PropertyFinancials {
-  const { propertyId, contracts, expenses, units, isSpecificYear, allocationMap } = params;
+  const { propertyId, contracts, expenses, units, isSpecificYear, allocationMap, actualIncomeByProperty } = params;
 
   const propertyUnits = units.filter(u => u.property_id === propertyId);
   const allPropertyContracts = contracts.filter(c => c.property_id === propertyId);
@@ -139,7 +143,12 @@ export function computePropertyFinancials(params: {
 
   const propExpenses = expenses.filter(e => e.property_id === propertyId);
   const totalExpenses = propExpenses.reduce((sum, e) => sum + safeNumber(e.amount), 0);
-  const netIncome = activeAnnualRent - totalExpenses;
+  // الدخل الفعلي من جدول income — fallback إلى activeAnnualRent (المستحقات) إن لم تُمرَّر خريطة
+  const actualIncome = actualIncomeByProperty
+    ? safeNumber(actualIncomeByProperty.get(propertyId) ?? 0)
+    : activeAnnualRent;
+  // الصافي يُحسب على الدخل الفعلي حين توفّر
+  const netIncome = actualIncome - totalExpenses;
 
   // --- الألوان ---
   const occupancyColor = occupancy >= 80 ? 'text-success' : occupancy >= 50 ? 'text-warning' : 'text-destructive';
@@ -148,7 +157,7 @@ export function computePropertyFinancials(params: {
   return {
     totalUnits, rented, vacant, maintenance, occupancy,
     occupancyColor, progressColor, statusMismatch,
-    contractualRevenue, activeAnnualRent, monthlyRent,
+    contractualRevenue, activeAnnualRent, actualIncome, monthlyRent,
     totalExpenses, netIncome,
   };
 }
