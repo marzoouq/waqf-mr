@@ -15,6 +15,9 @@ import { useDashboardSummary, useDashboardSecondary } from '@/hooks/data/financi
 import { useAdminDashboardData } from '@/hooks/page/admin/dashboard/useAdminDashboardData';
 import { useAccountantDashboardData } from '@/hooks/page/admin/dashboard/useAccountantDashboardData';
 import { dashboardKeys } from '@/lib/queryKeys/dashboardKeys';
+import type { HeatmapInvoice } from '@/hooks/data/financial/dashboard/useDashboardSummary';
+
+const EMPTY_HEATMAP: HeatmapInvoice[] = [];
 
 export const useAdminDashboardPage = () => {
   const { role, user } = useAuth();
