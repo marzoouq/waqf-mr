@@ -59,10 +59,10 @@ vi.mock('jspdf', () => {
 const sampleData: ForensicAuditData = {
   auditDate: '2025-02-17',
   auditorName: 'نظام الوقف',
-  overallScore: 9.8,
+  overallScore: 98,
   totalFiles: 113,
-  issuesFound: 5,
-  issuesFixed: 4,
+  checksFailed: 5,
+  checksPassed: 4,
   categories: [
     { category: 'أمن البيانات', status: 'سليم', details: 'RLS مفعّل', score: '10/10' },
     { category: 'إخفاء البيانات', status: 'مُصحح', details: 'تم التصحيح', score: '9/10' },

@@ -20,10 +20,13 @@ export interface ForensicSecurityFinding {
 export interface ForensicAuditData {
   auditDate: string;
   auditorName: string;
+  /** التقييم العام كنسبة مئوية من 100 */
   overallScore: number;
   totalFiles: number;
-  issuesFound: number;
-  issuesFixed: number;
+  /** عدد الفحوصات الناجحة (المعروف سابقاً issuesFixed) */
+  checksPassed: number;
+  /** عدد الفحوصات الفاشلة (المعروف سابقاً issuesFound) */
+  checksFailed: number;
   categories: ForensicAuditCategory[];
   securityFindings: ForensicSecurityFinding[];
 }

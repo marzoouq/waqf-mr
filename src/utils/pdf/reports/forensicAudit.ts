@@ -63,9 +63,9 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   doc.setTextColor(40, 40, 40);
 
   const summaryLines = [
-    rs(`التقييم العام: ${data.overallScore}/10`),
+    rs(`التقييم العام: ${data.overallScore}/100`),
     rs(`عدد الملفات المفحوصة: ${data.totalFiles} ملف`),
-    rs(`المشاكل المكتشفة: ${data.issuesFound}  |  المشاكل المصححة: ${data.issuesFixed}`),
+    rs(`الفحوصات الناجحة: ${data.checksPassed}  |  الفحوصات الفاشلة: ${data.checksFailed}`),
     rs(`تاريخ الفحص: ${data.auditDate}  |  المدقق: ${data.auditorName}`),
   ];
   summaryLines.forEach((line, i) => {
@@ -78,11 +78,11 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   doc.setFillColor(...themeColors.primary);
   doc.circle(scoreX, y + 8, 10, 'F');
   doc.setFont(font, 'bold');
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setTextColor(255, 255, 255);
   doc.text(`${data.overallScore}`, scoreX, y + 11, { align: 'center' });
   doc.setFontSize(7);
-  doc.text('/10', scoreX, y + 15, { align: 'center' });
+  doc.text('/100', scoreX, y + 15, { align: 'center' });
   y += 24;
 
   // ─── Categories Table ───
