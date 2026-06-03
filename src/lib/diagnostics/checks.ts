@@ -30,6 +30,9 @@ export { checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPending
 // بطاقة 8 — فحوصات مالية
 export { checkPartiallyPaidConsistency, checkDistributionsVsAvailable, checkBeneficiariesWithoutAccount, checkContractsWithoutAllocations, checkOverduePartiallyPaid } from './checks/financial';
 
+// بطاقة 9 — اتساق بطاقات اللوحات
+export { checkAvailableAmountNonNegative, checkDistributionsWithinAvailable, checkBeneficiaryShareFormula, checkAdvancesWithinShare, checkOverduePendingNoOverlap, checkCarryforwardIntegrity } from './checks/cardConsistency';
+
 // استيراد الدوال لبناء المجمّع
 import { checkSupabaseConnection, checkRealtimeChannels, checkAuthSession } from './checks/database';
 import { checkScrollPerformance, checkDomNodesCount, checkDeviceMemory, checkPagePerformance, checkWcagContrast } from './checks/performance';
@@ -39,7 +42,9 @@ import { checkNotificationPermission, checkClipboardAPI } from './checks/securit
 import { checkEnvVariables, checkRegisteredRoutes, checkOnlineStatus } from './checks/appSettings';
 import { checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPendingInvoiceChains, checkUnsubmittedInvoices, checkZatcaSettings, checkStaleOtp, checkInvoiceChainCompleteness } from './checks/zatca';
 import { checkPartiallyPaidConsistency, checkDistributionsVsAvailable, checkBeneficiariesWithoutAccount, checkContractsWithoutAllocations, checkOverduePartiallyPaid } from './checks/financial';
+import { checkAvailableAmountNonNegative, checkDistributionsWithinAvailable, checkBeneficiaryShareFormula, checkAdvancesWithinShare, checkOverduePendingNoOverlap, checkCarryforwardIntegrity } from './checks/cardConsistency';
 import type { CheckResult, DiagnosticCategory } from './types';
+
 
 // ════════════════════════════════════════════════
 // مجمّع البطاقات
@@ -78,7 +83,12 @@ export const diagnosticCategories: DiagnosticCategory[] = [
     title: 'الفحوصات المالية',
     checks: [checkPartiallyPaidConsistency, checkDistributionsVsAvailable, checkBeneficiariesWithoutAccount, checkContractsWithoutAllocations, checkOverduePartiallyPaid],
   },
+  {
+    title: 'اتساق بطاقات اللوحات',
+    checks: [checkAvailableAmountNonNegative, checkDistributionsWithinAvailable, checkBeneficiaryShareFormula, checkAdvancesWithinShare, checkOverduePendingNoOverlap, checkCarryforwardIntegrity],
+  },
 ];
+
 
 export async function runAllDiagnostics(): Promise<{ category: string; results: CheckResult[] }[]> {
   const output: { category: string; results: CheckResult[] }[] = [];

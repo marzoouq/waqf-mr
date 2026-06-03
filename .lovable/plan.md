@@ -1,185 +1,81 @@
+# خطة متابعة التدقيق الشامل (المراحل 2-4)
 
-# خطة شاملة متكاملة — توحيد المنطق المالي + تدقيق البطاقات والوظائف
+تم إنجاز المرحلة 1 (توحيد المنطق المالي على مستوى RPC + Frontend). هذه الخطة تكمل ما تبقى.
 
-## الهدف
-1. تنفيذ **Stage 3** المؤجل: توحيد `available_amount` و`net_after_zakat` وإصلاح YoY مع حماية snapshots السنوات المقفلة.
-2. **تدقيق عددي شامل** لكل بطاقة في 3 لوحات (ناظر/مستفيد/محاسب) مقارنةً بمصدر البيانات (RPC/Metrics/DB).
-3. **تدقيق وظيفي** لكل زر/تبويب/صفحة فرعية في 3 لوحات للتأكد من سلامة التكامل.
+## المرحلة 2 — أداة تشخيص اتساق البطاقات (Diagnostic Tool)
 
----
+**الهدف:** كشف أي انحراف عددي بين بطاقات لوحة الناظر والمستفيد والمحاسب والـRPC مصدر البيانات.
 
-## المرحلة 1 — توحيد المنطق المالي (Stage 3 المؤجل) 🔴 حرج
+**الملفات الجديدة:**
+- `src/lib/diagnostics/cardConsistencyCheck.ts` — دالة `runCardConsistencyAudit(fiscalYearId)` تُرجع تقريراً منظماً يقارن:
+  - `available_amount` (Admin RPC) مقابل `share_percentage × available_amount` (Beneficiary)
+  - `total_received` (Beneficiary RPC) مقابل `SUM(distributions WHERE status='paid')`
+  - `overdue_count` vs `pending_count` (Accountant) — التأكد من عدم التداخل
+  - `net_after_zakat` من `accounts` مقابل قراءات الـhooks الثلاثة
+  - `paidAdvancesTotal` و`carryforward_balance` ضمن نفس النطاق الزمني
+- `src/lib/diagnostics/__tests__/cardConsistency.test.ts` — اختبارات Vitest على بيانات seed لكل دور
+- صفحة مخفية للأدمن فقط: `src/pages/admin/DiagnosticsPage.tsx` تعرض النتائج في جدول قابل للتصدير CSV (للاستخدام التشخيصي فقط، لا تظهر في القائمة الرئيسية إلا للأدمن)
 
-### 1.1 توحيد `available_amount` و`remaining_balance`
-**المشكلة:** نفس السنة لها 3 قيم مختلفة:
-- admin RPC: يسمح بقيمة سالبة
-- beneficiary RPC: `GREATEST(0, ...)`
-- `closedYearFinancials`: `Math.max(0, ...)`
+**حدود الأمان:** أداة قراءة فقط، لا تُعدّل أي بيانات، لا تتأثر بها السنوات المقفلة.
 
-**الحل (migration):**
-- في `get_dashboard_full_summary`: تطبيق `GREATEST(0, waqf_revenue - waqf_corpus_manual)` على `available_amount` و`remaining_balance`.
-- إضافة عمود مساعد `available_amount_raw` (بدون GREATEST) للاستخدام الإداري عند الحاجة لرؤية العجز.
-- **حماية snapshots:** التعديل يطبَّق فقط على السنوات النشطة (الحساب الديناميكي). السنوات المقفلة تقرأ من `accounts` كما هي.
+## المرحلة 3 — التدقيق الوظيفي الشامل (Sub-agent Audit)
 
-### 1.2 توحيد `net_after_zakat`
-**المشكلة:** يُحسب في RPC للنشطة، ويُقرأ من `account.net_after_zakat` في المقفلة → احتمال انحراف.
+**الهدف:** فحص كل زر/تبويب/رابط/استعلام في الصفحات الثلاث.
 
-**الحل:**
-- توحيد قراءة `net_after_zakat` من نفس المصدر في كل من `activeYearFinancials.ts` و`closedYearFinancials.ts`.
-- التأكد من أن صيغة `net_after_expenses - vat - zakat` مطبقة بنفس الترتيب في الجهتين.
+**النهج:** استخدام `acp_subagent--explore` بثلاث مهام متوازية:
 
-### 1.3 إصلاح YoY (Year-over-Year)
-**المشكلة:** `prevNetAfterExpenses` يتجاهل `corpus_previous`/`vat`/`zakat` → نسبة النمو غير صحيحة.
+1. **لوحة الناظر** (`src/pages/dashboard/AdminDashboard.tsx` + جميع الويدجتس):
+   - أزرار ميتة، تبويبات فارغة، روابط مكسورة
+   - استعلامات مكررة بين `useAdminDashboardPage` و`useAdminDashboardStats`
+   - تطابق البيانات المعروضة مع مصادرها الفعلية
+   
+2. **لوحة المستفيد** (`src/pages/beneficiary/*`):
+   - صفحات: MyShare, MyAdvances, MyDistributions, MyDisclosure
+   - تحقق من ربط كل بطاقة بـ hook صحيح
+   - أزرار طلب السلفة وحالاتها
 
-**الحل:**
-- تعديل `get_dashboard_full_summary` لإرجاع `prev_corpus_previous`, `prev_vat`, `prev_zakat`, `prev_net_after_zakat`.
-- تحديث `useAdminDashboardStats.ts` ليستخدم `prev_net_after_zakat` مباشرة في حساب YoY بدلاً من `prevNetAfterExpenses`.
+3. **لوحة المحاسب** (`src/pages/accountant/*` + AccountantDashboard widgets):
+   - بطاقات الإفصاح المخفية، فلاتر `overdue` vs `pending`
+   - تكامل مع `useAccountantDashboardData`
 
-### 1.4 توحيد نطاق `paidAdvancesTotal` و`carryforward_balance`
-- توحيد الفترة الزمنية (السنة المالية الحالية) في كلا الحقلين عبر جميع الـhooks.
+**المخرج:** تقرير منظم لكل لوحة في `.lovable/audit-findings-stage3.md` يحتوي:
+- قائمة العناصر السليمة ✓
+- المشاكل المكتشفة مع المسار:السطر
+- توصية إصلاح لكل مشكلة (مرتبة حسب الخطورة)
 
-### 1.5 إزالة `waqf_corpus_percentage` غير المستخدم
-- إما حذفه من DB/RPCs أو ربطه فعلياً بحساب `waqf_corpus_manual` كنسبة من الإيراد.
+## المرحلة 4 — التحقق النهائي والتوثيق
 
----
+1. **تشغيل اختبارات شاملة:**
+   ```
+   vitest run src/hooks src/utils src/lib/diagnostics
+   ```
+   هدف: 100% pass على ≥317 اختباراً + الاختبارات الجديدة
 
-## المرحلة 2 — التدقيق العددي الشامل للبطاقات 🟡 توثيق+فحص
+2. **مقارنة قبل/بعد على سنة مقفلة** (read-only عبر `supabase--read_query`):
+   - اختيار سنة مقفلة عشوائية
+   - مقارنة قيم RPC الجديدة مع snapshot `accounts` للتأكد من عدم التغيير
 
-### 2.1 لوحة الناظر (Admin Dashboard)
-لكل بطاقة، توثيق:
-- الاسم المعروض
-- المصدر (RPC / hook / حساب محلي)
-- الصيغة المتوقعة
-- مقارنة مع جدول `accounts` للسنة المقفلة و RPC للسنة النشطة
+3. **تحديث `mem://` حسب الحاجة** — إضافة:
+   - قاعدة جديدة لـ `available_amount_raw` (للشفافية الإدارية)
+   - تحديث قاعدة `Net Share Logic` لتعكس أولوية `prev_net_after_zakat` snapshot
 
-البطاقات المستهدفة:
-- إجمالي الإيرادات / إجمالي المصروفات
-- ضريبة القيمة المضافة / الزكاة
-- ريع الوقف / المتاح للتوزيع
-- التدفق النقدي الصافي (admin-only)
-- إجمالي التحصيل / المتأخرات / المعلقة
-- YoY لكل مؤشر
-- تنبيهات `DashboardAlerts`
-
-### 2.2 لوحة المستفيد (Beneficiary Dashboard)
-- حصتي (`my_share`) — مقارنة مع `share_percentage × available_amount`
-- المستلم فعلياً (`total_received`) — مقارنة مع مجموع `distributions.status='paid'`
-- السلف المستلمة (`paidAdvancesTotal`)
-- المرحّل من السنة السابقة (`carryforward_balance`)
-- صافي مستحقي = `my_share - advances - carryforward`
-- حماية `Math.max(0, ...)`
-
-### 2.3 لوحة المحاسب (Accountant Dashboard)
-- التأكد من إخفاء بطاقات الإفصاح (Waqf Revenue, Net Cash Flow)
-- بطاقة الفواتير المتأخرة (`overdue_count`) vs المعلقة (`pending_count`)
-- مقارنة `pendingInvoicesCount` بعد فلتر `due_date >= today`
-- التحقق من عدم الازدواج في عدّ الفواتير
-
-### 2.4 أداة تحقق آلية (diagnostic)
-- إنشاء `src/lib/diagnostics/cardConsistencyCheck.ts`:
-  - يقارن قيم بطاقات الإدمن مع بطاقات المستفيد لنفس السنة المالية ونفس المستفيد.
-  - يُسجّل أي انحراف في `logger.warn` مع تفاصيل الفروقات.
-- إضافة zaktest في `src/test/integration/dashboardConsistency.test.ts`.
-
----
-
-## المرحلة 3 — تدقيق الوظائف والأزرار والتبويبات 🟢 شامل
-
-### 3.1 لوحة الناظر — كل الصفحات الفرعية
-- `/dashboard` — التحقق من أزرار التنقل السريع
-- `/dashboard/properties` — CRUD العقارات + الوحدات
-- `/dashboard/contracts` — العقود (إنشاء/تجديد/إنهاء/PII persistence)
-- `/dashboard/invoices` — الفواتير + ZATCA (إصدار/إلغاء/تحميل XML)
-- `/dashboard/expenses` — المصروفات + سندات الصرف
-- `/dashboard/distributions` — التوزيعات (execute_distribution)
-- `/dashboard/fiscal-years` — إقفال/إعادة فتح/snapshots
-- `/dashboard/users` — إدارة الأدوار
-- `/dashboard/settings` — إعدادات النظام
-- `/dashboard/audit-log` — سجل المراجعة
-- `/dashboard/reports` — التقارير السنوية
-- `/dashboard/bylaws` — اللوائح
-
-### 3.2 لوحة المستفيد — كل الصفحات
-- `/dashboard/my-share` — التحقق من ربط الأرقام بـRPC
-- `/dashboard/my-distributions` — التحقق من الفلترة حسب beneficiary_id
-- `/dashboard/advance-request` — تقديم طلب سلفة + حدود `advance_limit_percentage`
-- `/dashboard/disclosure` — الإفصاحات المنشورة فقط
-
-### 3.3 لوحة المحاسب
-- التأكد من إخفاء صفحات الإفصاح والإعدادات الإدارية
-- التحقق من صلاحيات CRUD المالية فقط
-- اختبار `accountant-dashboard-filtering` بفعالية
-
-### 3.4 فحص التكامل عبر sub-agent
-- استخدام `acp_subagent--explore` ثلاث مرات متوازية لمسح كامل لكل لوحة وتوثيق:
-  - الأزرار غير المربوطة (dead buttons)
-  - التبويبات بدون محتوى
-  - الروابط المعطلة
-  - الـqueries المكررة (نفس البيانات تُجلب مرتين)
-
----
-
-## المرحلة 4 — التحقق النهائي والاختبارات
-
-- تشغيل `vitest` على كامل `src/hooks/domain/financial` و`src/test/integration/`
-- تشغيل migration على Test أولاً والتحقق من snapshots السنوات المقفلة (يجب ألا تتغير قيمها)
-- query عيّنة من DB قبل/بعد لكل سنة مقفلة للتأكد من عدم تأثرها
-- توثيق نتائج التدقيق في `.lovable/audit-report-2026-06-03.md`
-
----
-
-## الملفات المتأثرة
-
-### Migration
-- `supabase/migrations/*_unify_financial_logic.sql` (تعديل `get_dashboard_full_summary` فقط)
-
-### Frontend
-- `src/hooks/page/admin/dashboard/useAdminDashboardStats.ts` (YoY)
-- `src/utils/financial/activeYearFinancials.ts` (توحيد)
-- `src/utils/financial/closedYearFinancials.ts` (توحيد)
-- `src/hooks/domain/financial/useMyShare.ts` (تنظيف)
-- `src/hooks/domain/financial/useCarryforwardData.ts` (توحيد نطاق)
-
-### جديد
-- `src/lib/diagnostics/cardConsistencyCheck.ts`
-- `src/test/integration/dashboardConsistency.test.ts`
-- `.lovable/audit-report-2026-06-03.md`
-
----
-
-## ترتيب التنفيذ المقترح
-1. **المرحلة 1** أولاً (migration + توحيد utils) — يحل جذر التناقضات
-2. **المرحلة 2** فوراً بعدها (التحقق العددي) — لإثبات صحة المرحلة 1
-3. **المرحلة 3** بعد ذلك (sub-agents بالتوازي) — فحص شامل
-4. **المرحلة 4** أخيراً (اختبارات + توثيق)
+4. **توثيق ختامي:** `.lovable/audit-report-2026-06-03.md`
+   - ملخص جميع المراحل الأربع
+   - قائمة الملفات المعدلة
+   - دليل تشغيل أداة التشخيص للأدمن
+   - قيود معروفة وتوصيات مستقبلية
 
 ## ضمانات الأمان
-- لا تعديل على `auth/`, `client.ts`, `types.ts`, `config.toml`
-- snapshot السنوات المقفلة محمي (تعديل RPC على السنوات النشطة فقط)
-- جميع تغييرات DB عبر migration واحد مراجَع
-- اختبار قبل/بعد لكل سنة مقفلة موجودة
 
----
+- لا تعديل على: `auth/`, `client.ts`, `types.ts`, `config.toml`, `.env`
+- لا تغيير على بيانات السنوات المقفلة (snapshots محمية)
+- جميع الإضافات الجديدة (Diagnostics) محمية بـ `has_role('admin')`
+- لا migrations جديدة في هذه المراحل — المرحلة 1 أنجزت كل تغييرات DB
 
-## ✅ Phase 1 (Stage 3) — تم التنفيذ — 2026-06-03
+## الترتيب الزمني المتوقع
 
-### تغييرات DB
-- Migration `get_dashboard_full_summary`:
-  - تطبيق `GREATEST(0, ...)` على `available_amount` و`remaining_balance` في كل الفروع (نشطة/مقفلة/بدون حساب)
-  - حقول جديدة في `totals`: `available_amount_raw`, `remaining_balance_raw` (للاطلاع الإداري على العجز)
-  - حقول جديدة في `yoy`: `prev_corpus_previous`, `prev_vat`, `prev_zakat`, `prev_net_after_zakat`, `prev_has_account`
-- **حماية snapshots**: لم يُمس جدول `accounts` ولا السنوات المقفلة المخزَّنة. التعديل عرض RPC فقط.
+1. المرحلة 2 (أداة التشخيص + اختبارات) — أولاً، لأنها أساس التحقق
+2. المرحلة 3 (Sub-agents متوازية) — بعد توفر الأداة
+3. المرحلة 4 (تحقق نهائي + توثيق) — ختامياً
 
-### تغييرات Frontend
-- `src/types/financial/dashboard.ts`: إضافة الحقول الجديدة لـ `AggregatedYoY`
-- `src/lib/api/schemas/dashboardSummary.ts`: تحديث Zod schema
-- `src/hooks/data/financial/dashboard/useDashboardSummary.ts`: استخدام `prev_net_after_zakat` الدقيق من snapshot عند توفره
-
-### اختبارات
-- 317/317 اختباراً نجحت في `src/hooks/domain/financial` + `src/utils/financial`
-- `closedYearFinancials` و`activeYearFinancials` لم تتطلب تعديلاً لأنها بالفعل تطبق `Math.max(0)` محلياً — الآن RPC متوافق معها
-
-### المتبقي (Phase 2-4)
-- Phase 2: أداة تحقق آلية + integration test
-- Phase 3: تدقيق وظيفي عبر sub-agents
-- Phase 4: توثيق ختامي
+هل أبدأ بالمرحلة 2؟
