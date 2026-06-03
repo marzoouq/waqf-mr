@@ -6,6 +6,7 @@ import type { Contract, FiscalYear } from '@/types';
 import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { todayLocalISO } from '@/utils/date/dateOnly';
 
 export type CollectionFilterStatus = 'all' | 'overdue' | 'partial' | 'complete';
 
@@ -176,7 +177,7 @@ export function summarizeCollection(
   let overdueInYearAmount = 0, overdueInYearCount = 0;
   let overdueFromPreviousAmount = 0, overdueFromPreviousCount = 0;
   if (fiscalYearStart) {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayLocalISO();
     for (const inv of invoices) {
       if (inv.status === 'paid') continue;
       if (inv.due_date < fiscalYearStart) {

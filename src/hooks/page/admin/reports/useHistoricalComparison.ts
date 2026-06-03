@@ -8,9 +8,12 @@ import { useMultiYearSummary, type YearSummaryEntry } from '@/hooks/data/financi
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 
-// تعريف موحَّد لـ "الصافي" = waqfRevenue (مصدر رسمي للسنوات المقفلة) مع fallback آمن
-const netOf = (d: YearSummaryEntry | null | undefined) =>
-  d?.waqfRevenue && d.waqfRevenue > 0 ? d.waqfRevenue : (d?.totalIncome ?? 0) - (d?.totalExpenses ?? 0);
+// ثلاث مراحل صافية منفصلة — يُعرض كل منها في عمود/خط مستقل
+const netAfterExpensesOf = (d: YearSummaryEntry | null | undefined) =>
+  d?.netAfterExpenses ?? ((d?.totalIncome ?? 0) - (d?.totalExpenses ?? 0));
+const netAfterZakatOf = (d: YearSummaryEntry | null | undefined) =>
+  d?.netAfterZakat ?? ((d?.netAfterVat ?? 0) - (d?.zakatAmount ?? 0));
+const waqfRevenueOf = (d: YearSummaryEntry | null | undefined) => d?.waqfRevenue ?? 0;
 
 export function useHistoricalComparison() {
   const { data: fiscalYears = [], isLoading: fyLoading } = useFiscalYears();
@@ -50,7 +53,9 @@ export function useHistoricalComparison() {
     const metrics = [
       { key: 'income', label: 'الدخل' },
       { key: 'expenses', label: 'المصروفات' },
-      { key: 'net', label: 'الصافي' },
+      { key: 'netAfterExpenses', label: 'صافي بعد المصروفات' },
+      { key: 'netAfterZakat', label: 'صافي بعد الزكاة' },
+      { key: 'waqfRevenue', label: 'ريع الوقف' },
     ];
     return metrics.map(m => {
       const row: Record<string, string | number> = { metric: m.label };
@@ -58,7 +63,9 @@ export function useHistoricalComparison() {
         const d = yearData[i];
         if (m.key === 'income') row[fy.label] = d?.totalIncome ?? 0;
         else if (m.key === 'expenses') row[fy.label] = d?.totalExpenses ?? 0;
-        else row[fy.label] = netOf(d);
+        else if (m.key === 'netAfterExpenses') row[fy.label] = netAfterExpensesOf(d);
+        else if (m.key === 'netAfterZakat') row[fy.label] = netAfterZakatOf(d);
+        else row[fy.label] = waqfRevenueOf(d);
       });
       return row;
     });
@@ -72,6 +79,7 @@ export function useHistoricalComparison() {
       { label: 'صافي بعد المصروفات', key: 'netAfterExpenses', getValue: (d: YearSummaryEntry | null) => d?.netAfterExpenses ?? 0 },
       { label: 'الضريبة', key: 'vatAmount', getValue: (d: YearSummaryEntry | null) => d?.vatAmount ?? 0 },
       { label: 'الزكاة', key: 'zakatAmount', getValue: (d: YearSummaryEntry | null) => d?.zakatAmount ?? 0 },
+      { label: 'صافي بعد الزكاة', key: 'netAfterZakat', getValue: (d: YearSummaryEntry | null) => d?.netAfterZakat ?? 0 },
       { label: 'حصة الناظر', key: 'adminShare', getValue: (d: YearSummaryEntry | null) => d?.adminShare ?? 0 },
       { label: 'حصة الواقف', key: 'waqifShare', getValue: (d: YearSummaryEntry | null) => d?.waqifShare ?? 0 },
       { label: 'ريع الوقف', key: 'waqfRevenue', getValue: (d: YearSummaryEntry | null) => d?.waqfRevenue ?? 0 },
@@ -90,7 +98,9 @@ export function useHistoricalComparison() {
           label: fy.label,
           income: d?.totalIncome ?? 0,
           expenses: d?.totalExpenses ?? 0,
-          net: netOf(d),
+          netAfterExpenses: netAfterExpensesOf(d),
+          netAfterZakat: netAfterZakatOf(d),
+          waqfRevenue: waqfRevenueOf(d),
           vatAmount: d?.vatAmount ?? 0,
           zakatAmount: d?.zakatAmount ?? 0,
           adminShare: d?.adminShare ?? 0,

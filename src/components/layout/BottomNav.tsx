@@ -29,7 +29,10 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
   const location = useLocation();
   const { adminSections, beneficiarySections } = useSectionsVisibility();
 
-  const navLinks = BOTTOM_NAV_LINKS[role ?? 'beneficiary'] ?? BOTTOM_NAV_LINKS.beneficiary!;
+  // لا نعرض شريط التنقل قبل تحميل الدور — يمنع وميض روابط مستفيد للناظر/المحاسب
+  if (!role) return null;
+
+  const navLinks = BOTTOM_NAV_LINKS[role] ?? [];
 
   const isAdminLike = role === 'admin' || role === 'accountant';
 

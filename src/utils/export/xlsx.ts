@@ -26,6 +26,19 @@ function escXml(val: string): string {
 }
 
 /**
+ * حماية من Formula Injection — يُسبق القيم النصية التي تبدأ
+ * بـ = + - @ \t \r بـ ' حتى لا تُفسَّر كصيغ في Excel.
+ */
+export function sanitizeXlsxCell(val: string): string {
+  if (!val) return val;
+  const first = val.charAt(0);
+  if (first === '=' || first === '+' || first === '-' || first === '@' || first === '\t' || first === '\r') {
+    return `'${val}`;
+  }
+  return val;
+}
+
+/**
  * بناء ملف XLSX (كـ Blob) من مصفوفة كائنات
  * يستخدم SpreadsheetML XML مباشرة في ZIP مبسط (PK)
  */
@@ -51,7 +64,7 @@ export function buildXlsx(data: Record<string, unknown>[]): Blob {
       if (val !== '' && !isNaN(num) && isFinite(num)) {
         return `<c r="${colLetter(ci)}${rowNum}"><v>${num}</v></c>`;
       }
-      return `<c r="${colLetter(ci)}${rowNum}" t="inlineStr"><is><t>${escXml(val)}</t></is></c>`;
+      return `<c r="${colLetter(ci)}${rowNum}" t="inlineStr"><is><t>${escXml(sanitizeXlsxCell(val))}</t></is></c>`;
     }).join('');
     return `<row r="${rowNum}">${cells}</row>`;
   }).join('\n');

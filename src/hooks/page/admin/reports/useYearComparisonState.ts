@@ -71,14 +71,29 @@ export function useYearComparisonState({ fiscalYears, currentFiscalYearId }: Use
     Object.entries(expensesByType.year2).map(([name, value]) => ({ name, value })),
     [expensesByType.year2]);
 
-  // تعريف موحَّد لـ "الصافي" = waqfRevenue (إن وُجد حساب رسمي) وإلا fallback لـ income−expenses
-  const netOf = (t: typeof totals.year1) =>
-    t.waqfRevenue > 0 ? t.waqfRevenue : t.totalIncome - t.totalExpenses;
+  // ثلاث مراحل صافية منفصلة — تُعرض في الجدول والـPDF كل منها مستقلة
+  const netExpOf = (t: typeof totals.year1) => t.netAfterExpenses || (t.totalIncome - t.totalExpenses);
+  const netZakOf = (t: typeof totals.year1) => t.netAfterVat - t.zakatAmount;
+  const waqfOf = (t: typeof totals.year1) => t.waqfRevenue;
+  // alias للتوافق — يبقى = ريع الوقف (المعنى الرسمي للصافي)
+  const netOf = (t: typeof totals.year1) => waqfOf(t) > 0 ? waqfOf(t) : netExpOf(t);
 
   const yearTotals = useMemo(() => ({
-    year1: { income: totals.year1.totalIncome, expenses: totals.year1.totalExpenses, net: netOf(totals.year1) },
-    year2: { income: totals.year2.totalIncome, expenses: totals.year2.totalExpenses, net: netOf(totals.year2) },
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- netOf نقي ويعتمد على totals فقط
+    year1: {
+      income: totals.year1.totalIncome, expenses: totals.year1.totalExpenses,
+      net: netOf(totals.year1),
+      netAfterExpenses: netExpOf(totals.year1),
+      netAfterZakat: netZakOf(totals.year1),
+      waqfRevenue: waqfOf(totals.year1),
+    },
+    year2: {
+      income: totals.year2.totalIncome, expenses: totals.year2.totalExpenses,
+      net: netOf(totals.year2),
+      netAfterExpenses: netExpOf(totals.year2),
+      netAfterZakat: netZakOf(totals.year2),
+      waqfRevenue: waqfOf(totals.year2),
+    },
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- helpers نقية تعتمد على totals فقط
   }), [totals]);
 
   const incomeChange = yearTotals.year1.income > 0

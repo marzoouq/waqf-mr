@@ -3,6 +3,7 @@
  * مستخرج من useAccountsPage لتقليل حجمه (#A3).
  */
 import { useMemo } from 'react';
+import { todayLocalISO } from '@/utils/date/dateOnly';
 
 interface InvoiceLike {
   status: string;
@@ -17,7 +18,7 @@ export const useOverdueSplit = (
 ) => {
   return useMemo(() => {
     if (!fiscalYearStartDate) return { prev: 0, cur: 0 };
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayLocalISO();
     let prev = 0, cur = 0;
     for (const inv of paymentInvoices) {
       if (inv.status === 'paid') continue;
