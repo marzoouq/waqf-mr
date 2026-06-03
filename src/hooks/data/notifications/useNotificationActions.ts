@@ -3,14 +3,19 @@
  * تأثيرات UI/المتصفح (الصوت + إشعار المتصفح) منفصلة في
  * `@/hooks/ui/useNotificationSounds`.
  *
- * Audit-fix: استدعاءات notificationsCrudService مدمجة محلياً (كان بمستهلك واحد).
+ * Optimistic updates + rollback + toast.error عند فشل الشبكة
+ * — يمنع سيناريو "ضغطت قراءة الكل ثم أُغلق التطبيق فلم تُحفظ".
  */
 import { useEffect, useRef, useCallback } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import type { Notification as AppNotification } from '@/types';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotificationSounds } from '@/hooks/ui/useNotificationSounds';
+import { logger } from '@/lib/logger';
+
+type NotifPages = InfiniteData<AppNotification[]>;
 
 async function markOneAsRead(id: string, userId: string): Promise<void> {
   const { error } = await supabase
@@ -30,9 +35,6 @@ async function markEveryAsRead(userId: string): Promise<void> {
   if (error) throw error;
 }
 
-/**
- * حذف الإشعارات المقروءة مع استثناء أنواع معينة (disabledTypes) — السلوك الأصلي بدون تغيير.
- */
 async function deleteReadExcluding(userId: string, disabledTypes: Set<string>): Promise<void> {
   let query = supabase
     .from('notifications')
@@ -59,26 +61,80 @@ async function deleteOneNotification(id: string, userId: string): Promise<void> 
 export const useNotificationActions = (userId: string, hasUser: boolean, disabledTypes: Set<string>) => {
   const queryClient = useQueryClient();
   const { playSound, showBrowserNotification } = useNotificationSounds();
+  const queryKey = ['notifications', userId] as const;
 
-  // ── Mutations ──
+  const snapshot = (): NotifPages | undefined => queryClient.getQueryData<NotifPages>(queryKey);
+
+  const setPages = (updater: (pages: AppNotification[][]) => AppNotification[][]) => {
+    queryClient.setQueryData<NotifPages>(queryKey, (prev) => {
+      if (!prev) return prev;
+      return { ...prev, pages: updater(prev.pages) };
+    });
+  };
+
+  // ── Mutations مع Optimistic + Rollback + Toast ──
   const markAsRead = useMutation({
     mutationFn: (id: string) => markOneAsRead(id, userId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey });
+      const prev = snapshot();
+      setPages((pages) => pages.map((p) => p.map((n) => (n.id === id ? { ...n, is_read: true } : n))));
+      return { prev };
+    },
+    onError: (err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(queryKey, ctx.prev);
+      logger.error('markAsRead failed:', err);
+      toast.error('تعذّر تحديث حالة الإشعار');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
 
   const markAllAsRead = useMutation({
     mutationFn: () => markEveryAsRead(userId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+      const prev = snapshot();
+      setPages((pages) => pages.map((p) => p.map((n) => (n.is_read ? n : { ...n, is_read: true }))));
+      return { prev };
+    },
+    onError: (err, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(queryKey, ctx.prev);
+      logger.error('markAllAsRead failed:', err);
+      toast.error('تعذّر تحديث حالة الإشعارات');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
 
   const deleteRead = useMutation({
     mutationFn: () => deleteReadExcluding(userId, disabledTypes),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+      const prev = snapshot();
+      setPages((pages) => pages.map((p) => p.filter((n) => !n.is_read || disabledTypes.has(n.type))));
+      return { prev };
+    },
+    onError: (err, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(queryKey, ctx.prev);
+      logger.error('deleteRead failed:', err);
+      toast.error('تعذّر حذف الإشعارات المقروءة');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
 
   const deleteOne = useMutation({
     mutationFn: (id: string) => deleteOneNotification(id, userId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey });
+      const prev = snapshot();
+      setPages((pages) => pages.map((p) => p.filter((n) => n.id !== id)));
+      return { prev };
+    },
+    onError: (err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(queryKey, ctx.prev);
+      logger.error('deleteOne failed:', err);
+      toast.error('تعذّر حذف الإشعار');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
 
   // ── Realtime ──
