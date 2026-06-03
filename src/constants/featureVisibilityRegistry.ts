@@ -20,6 +20,8 @@ export interface FeatureVisibilityEntry {
   label: string;
   description?: string;
   lockable: boolean;
+  /** إذا true، الافتراضي = hidden (تفعيل صريح من الناظر). */
+  defaultHidden?: boolean;
 }
 
 export const FEATURE_SCOPE_LABELS: Record<FeatureScope, string> = {
