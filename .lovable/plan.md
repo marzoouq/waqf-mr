@@ -83,3 +83,26 @@ ON CONFLICT (key) DO NOTHING;
 - لا تغيير على أي ملف محمي
 - لا تعديل RLS — العَلَم في `app_settings` المحمي أصلاً
 - لا بيانات حقيقية في الاختبارات
+
+---
+
+## ✅ Stage 4 — تم التنفيذ (2026-06-03)
+
+### مُنجَز
+- **H-02/H-03 — Feature Flag**: مفتاح `feature_visibility.accountant.financial_cards` (افتراضي `hidden`) — يتحكم به الناظر من شبكة الميزات الحالية. أُضيف حقل `defaultHidden` إلى `FeatureVisibilityEntry` وعالج `useFeatureVisibility` كلتا الحالتين.
+- **بطاقتا المحاسب**: `TrendingUp` لإجمالي الإيرادات + `Wallet` للريع المتاح، يستهلكان `aggregated.totals.{total_income,available_amount}` (نفس مصدر بيانات الناظر — صفر انحراف).
+- **حماية الصلاحيات**: البطاقات تظهر فقط داخل `ctx.isAccountant` (admin يرى لوحته الكاملة)، والـRLS الحالية لا تتغير.
+- **`useAdminDashboardPage`**: يُمرّر `accountantAggregated` عند `isAccountant`.
+- **اختبارات جديدة (3 ملفات / 10 حالات)**:
+  - `useFeatureVisibility.test.ts` — يحمي منطق `defaultHidden`
+  - `varianceReport.test.ts` — يغطي ok/drift/missing + summary
+  - `accountantDashboardFlow.test.tsx` — E2E smoke: إخفاء افتراضي، إظهار بعد التفعيل، حماية ضد aggregated فارغ
+- **أداة التباين**: `src/lib/diagnostics/varianceReport.ts` — `buildVarianceReport(inputs)` يُعيد `VarianceRow[]` مع status (ok/drift/missing) وعتبة 0.01 SAR. جاهزة لاستخدامها داخل صفحة تشخيص أو CI.
+
+### مُؤجَّل (نطاق أوسع — يحتاج طلب صريح)
+- **`numericalAudit.ts` Runtime**: يتطلب جلب raw aggregates من 6+ جداول لكل سنة. الأداة الحالية `varianceReport` كافية للمقارنة UI↔RPC؛ الإضافة DB↔RPC تحتاج صلاحيات admin وSQL مخصص.
+- **`uiIntegrityCheck.ts` AST Scanner**: مسح ملفات pages/components للروابط الميتة يحتاج script Node منفصل خارج Vite.
+- **E2E الكامل لـadmin/beneficiary**: تم تركيب نموذج accountant كنواة — توسيعه يحتاج mocks لـ`useAdminDashboardPage` و`useDisclosurePage` (نطاق كبير).
+
+### إصلاح H-02 لوحة المستفيد
+سبق تطبيقه في Stage 3 (`distLoading` + `isFyReady` guards في `useDisclosurePage` و`useAccountsViewPage`).
