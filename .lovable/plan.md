@@ -1,87 +1,129 @@
-# خطة الجولة التالية — مراجعة جنائية وتنفيذ دقيق
+# خطة الفحص والإصلاح — السنوات المالية وتأثيرها على الإعدادات
 
-## نتائج الفحص الجنائي قبل التنفيذ
+## نطاق الفحص
 
-راجعت كل ادعاء من خطة الجولة السابقة مقابل الكود الفعلي. الخلاصة:
+تبويبات الإعدادات: بيانات الوقف، الواجهة الرئيسية، المظهر، شريط التنبيه، **السنوات المالية**، السُلف، ZATCA، الصلاحيات، القائمة، الميزات، الإشعارات، الإشعارات الجماعية، الرسائل، التصدير، البصمة، الأمان، الإعدادات المتقدمة.
 
-### ❌ ادعاءات سقطت في الفحص — لن تُنفَّذ
-
-1. **P1-7 (`useEmailMonitorActions` انتهاك طبقات)** — خاطئ. الملف يستخدم `invoke` من `@/lib/api/invoke` (الغلاف الصحيح)، لا يستورد `supabase` مباشرة. ووجود `toast` في `hooks/page/` مسموح به صراحةً حسب قاعدة `mem://conventions/no-toast-in-data-hooks`. **لا انتهاك — لا تغيير.**
-
-2. **B1 (`AdminDashboard`: بطاقة "رقبة الوقف المرحَّلة")** — خاطئ. التعليقات في `useAdminDashboardStats.ts:94-98` تنصّ صراحة على أن هذه البطاقة "رُحّلت لـ AccountsSummaryCards عمداً ولا تُكرَّر هنا". البطاقة موجودة فعلاً في `AccountsSummaryCards.tsx:64-68` (تظهر إذا `> 0`). **القرار المعماري قائم — لا تغيير.**
-
-3. **B2 (`AdminDashboard`: بطاقة "الصافي بعد الزكاة")** — خاطئ. موجودة فعلاً في `AccountsSummaryCards.tsx:100-103`. وفي `useAdminDashboardStats.ts:33` معلَّمة `@deprecated غير مستخدم بعد Wave D`. **القرار المعماري قائم — لا تغيير.**
+التركيز الأساسي على **إنشاء وإدارة السنة المالية** لأنها نقطة التأثير الجذري على بقية الأقسام.
 
 ---
 
-## التنفيذ الفعلي (دقيق، مُتحقَّق منه)
+## المشاكل المؤكدة في إنشاء/إدارة السنة المالية
 
-### P0-2 — تنبيه على القيم اليدوية غير المحفوظة ✅ مؤكَّد
-**السياق المُتحقَّق منه:**
-- `useAccountsSettings.ts:82-90` — setters تكتب فقط في `overrides` state.
-- `AccountsPage.tsx:67-68` — تمرّر setters للـ UI، لكن لا توجد أي استدعاء `updateAccount` في الصفحة.
-- بحث `rg "updateAccount"` في `hooks/page/admin/` و `accounts/` → **0 نتائج**.
-- النتيجة: تعديل `manualVat / zakatAmount / waqfCorpusManual / manualDistributions` في الواجهة يضيع عند F5.
+### 1. `createFiscalYear` بلا تحقق دلالي — مخاطر بيانات صامتة
+ملف: `src/lib/services/fiscalYearService.ts:7-16` + `useFiscalYearManagement.ts:18-37`.
 
-**العمل:**
-- في `src/components/accounts/AccountsSummaryCards.tsx`:
-  - إضافة 4 props اختيارية: `defaultManualVat`, `defaultZakatAmount`, `defaultWaqfCorpusManual`, `defaultManualDistributions` (القيم الأصلية من DB).
-  - إضافة `Alert` ظاهرة فقط عندما أي قيمة معروضة ≠ القيمة الأصلية، بنص:
-    > "تم تعديل قيمة يدوية في الواجهة فقط — لم تُحفظ في قاعدة البيانات وستُفقد عند تحديث الصفحة."
-  - شارة `غير محفوظ` بجانب كل بطاقة متأثرة.
-- في `src/pages/dashboard/AccountsPage.tsx`: تمرير القيم الأصلية من `currentAccount` (vat_amount, zakat_amount, waqf_corpus_manual, distributions_amount).
+نواقص مؤكدة بالقراءة الفعلية:
+- **لا تحقق من تنسيق `label`** رغم قاعدة الذاكرة الحرجة: `YYYY-YYYY` فقط. يقبل حالياً "2025-2026م" أو أي نص حر.
+- **لا تحقق من `start_date < end_date`** — يقبل تواريخ معكوسة أو متطابقة.
+- **لا تحقق من تداخل المدى الزمني** مع سنوات أخرى. تداخل واحد يكسر `resolveFiscalYearId` و`useUniversalFiscalFilter`.
+- **لا تحقق من تكرار `label`** قبل الإدراج (يُترك للقيد على مستوى DB إن وُجد).
+- **يُنشئ السنة بـ `status='active'` مباشرة بدون التأكد من عدم وجود سنة نشطة أخرى** — يخالف افتراض "سنة نشطة واحدة" المستخدم في `useFiscalYears.ts:31` و`fetchActiveFiscalYear`. تعدد السنوات النشطة يؤدي إلى:
+  - اختيار غير حتمي للسنة النشطة (`find` يُرجع أول مطابق).
+  - فواتير/توزيعات تُخصَّص لسنة خاطئة.
+  - `sessionStorage[fiscal_year_id]` يصبح غير متسق بين علامات تبويب.
 
-### P1-3 — `useAnnualReportPage` يحترم snapshot للسنة المُقفلة ✅ مؤكَّد
-**السياق المُتحقَّق منه:**
-- `useAnnualReportPage.ts:66-67` — يحسب `totalIncome/totalExpenses` بـ `reduce` محلي على `income/expenses` المُحمَّلة، بغض النظر عن `isClosed`.
-- لا يستخدم `accounts.total_income/total_expenses` من snapshot.
+### 2. حقل المدة الزمنية غير مقيد
+حقول `<Input type="date">` بدون `min/max` مشتقة من السنة السابقة، ولا فجوة/تتابع مفروض. يسمح بفجوات بين سنتين متتاليتين، ما يُسقط حركات من نطاق أي سنة عند الاستعلام بحدود.
 
-**العمل:**
-- جلب `currentAccount` عبر `useAccounts` + `findAccountByFY`.
-- إذا `fiscalYear?.status === 'closed'` و `account` موجود → استخدم `account.total_income / account.total_expenses`.
-- وإلا → أبقِ `reduce` الحالي.
+### 3. سلوك "إقفال" مُربك
+`handleClose` لا يُقفل فعلاً — يعرض warning ويوجّه لصفحة الحسابات. مع ذلك، الزر يظهر بنفس مظهر الإجراءات الفعلية ويمنح المستخدم انطباع تنفيذ ناقص. يجب إما تعطيله مع tooltip، أو تحويله لرابط واضح.
 
-### B3 — بطاقات ملخص في `DistributionsPage` ✅ مؤكَّد
-- إنشاء `src/components/distributions/DistributionsSummaryCards.tsx`.
-- 3 بطاقات: المتاح للتوزيع / الموزَّع فعلياً (SUM distributions) / المتبقي مع شارة `عجز` إن وُجد (بناءً على `isDeficit` الموجودة).
+### 4. الحذف العادي يقع في فخ FK دائماً
+أي سنة دخلت دورة العمل (عقد/فاتورة واحدة كافية) تفشل في `handleDelete` بخطأ FK ويتحول إلى `cascadeDelete`. عملياً زر "حذف" العادي غير ذي قيمة في 99% من الحالات.
 
-### B4 — بطاقات عدّ المستخدمين في `UserManagementPage` ✅ مؤكَّد
-- 4 بطاقات: إجمالي / ناظر / محاسب / مستفيد + واقف. يقرأ من `user_roles` الموجود في الصفحة.
+### 5. `cascadeDelete` يبطل ذاكرة المتصفح
+يستدعي `queryClient.invalidateQueries()` بدون مفتاح — يُعيد جلب **كل** الاستعلامات، لكن لا يُنظّف `sessionStorage[fiscal_year_id]`. لو حذف الناظر السنة المختارة حالياً → يبقى ID مفقود في sessionStorage ويظهر "لا توجد بيانات" بدلاً من اختيار سنة بديلة.
 
-### B7 — بطاقات في `MessagesPage` ✅ مؤكَّد
-- 3 بطاقات: غير مقروء / مفتوحة / مغلقة. مصادر من المحادثات المحمَّلة.
+### 6. النشر/الحجب لا يُبطل ذاكرة الواجهات التابعة
+`togglePublished` يُبطل `['fiscal_years']` فقط. صفحات المستفيد/الواقف التي تعتمد على `published=true` (لوحة الواقف، الإفصاح السنوي، التقارير العامة) قد لا تُحدَّث فوراً لأنها تستخدم queryKeys مختلفة (`['fiscal_years_published']`, `['public_stats']`، إلخ).
 
-### B8 — بطاقات ملخص في `ReportsPage` ✅ مؤكَّد
-- استخدام `AccountsSummaryCards` بنفس مصدر بيانات `AccountsPage` (`useAccountsCalculations`) لضمان التطابق.
+### 7. إعادة الفتح بدون حماية في الواجهة
+`ReopenFiscalYearDialog` يستدعي `reopen_fiscal_year` RPC، لكن لا فحص واجهي يتأكد من:
+- عدم وجود سنة نشطة لاحقة (السنة المُعاد فتحها قد تتعارض مع نشطة).
+- تنبيه بصري في الجدول بأن snapshot الحسابات الختامية قد يتغير.
 
----
-
-## مؤجَّل لمراجعة منفصلة (يحتاج قرار معماري)
-
-- **B5 (`PropertiesPage` بطاقات "وحدات نشطة")** — يحتاج التحقق من وجود hook الوحدات أولاً.
-- **B6 (`IncomePage` بطاقات تحصيل)** — قد تتعارض مع `useUnifiedCollectionAndIncomeSync` (قاعدة موجودة).
-- **P2 (9 تحسينات)** — تجميلية، تستحق PR منفصل.
-- **P1-7 جزء `useVoucherActions`** — استيراد `supabase` مباشرة في page hook. الفصل لـ data hook طبقي لكن وظيفي 100%. أؤجّله لمراجعة معمارية واحدة شاملة لكل سجل المخالفات بدلاً من إصلاح واحد معزول.
+### 8. إنشاء السنة لا يُهيّئ السياقات التابعة
+بعد الإنشاء، لا يحدث أي من:
+- تهيئة `accounts` snapshot فارغ للسنة الجديدة.
+- نسخ إعدادات السُلف الافتراضية (`AdvanceSettingsTab`) للسنة الجديدة.
+- اشتقاق نِسب توزيع المستفيدين الأخيرة كنقطة بداية.
+النتيجة: لوحات المحاسب/الناظر تعرض "صفر" في كل مكان حتى يدوياً يُهيّئ كل شيء.
 
 ---
 
-## الملفات الفعلية المعدَّلة
+## انعكاسات على بقية أقسام الإعدادات (مؤكدة بالملاحظة)
 
-| ملف | نوع التغيير |
-|------|---------|
-| `src/components/accounts/AccountsSummaryCards.tsx` | إضافة Alert + شارات |
-| `src/pages/dashboard/AccountsPage.tsx` | تمرير القيم الأصلية |
-| `src/hooks/page/admin/reports/useAnnualReportPage.ts` | قراءة snapshot للسنة المُقفلة |
-| `src/components/distributions/DistributionsSummaryCards.tsx` | **جديد** — 3 بطاقات |
-| `src/pages/dashboard/DistributionsPage.tsx` | استخدام البطاقات الجديدة |
-| `src/pages/dashboard/UserManagementPage.tsx` | بطاقات عدّ المستخدمين |
-| `src/pages/dashboard/MessagesPage.tsx` | بطاقات المحادثات |
-| `src/pages/dashboard/ReportsPage.tsx` | بطاقات ملخص |
+| القسم | الانعكاس |
+|------|----------|
+| **بيانات الوقف** | بيانات الواقف ثابتة عبر السنوات لكن صفحات الإفصاح تربطها بسنة محددة — إنشاء سنة بدون snapshot يُظهر "—". |
+| **الواجهة الرئيسية / المظهر / شريط التنبيه** | لا تأثير مباشر، لكن شريط التنبيه يُستخدم حالياً للسنة النشطة وحدها — تعدد السنوات النشطة (مشكلة #1) يجعل الشريط يعرض سنة عشوائية. |
+| **السُلف** | إعدادات السقف (`mem://features/advance-requests`) تُربط بالسنة المالية. سنة جديدة بدون إعداد سُلف → السقف = 0% → كل طلب سُلفة يُرفض صامتاً. |
+| **ZATCA** | تسلسل ICV (`mem://technical/zatca/icv-chain-integrity-logic`) لا يُعاد ضبطه عند سنة جديدة — صحيح وظيفياً، لكن لا تنبيه بصري للمستخدم. |
+| **الصلاحيات / القائمة / إظهار الميزات** | عامة عبر السنوات — لا أثر مباشر. |
+| **الإشعارات الجماعية / الرسائل** | حذف cascade لسنة قد يحذف tickets مرتبطة (`mem://features/messaging`) بدون تحذير. يجب التحقق من نص dialog الحذف. |
+| **تصدير البيانات** | يفترض وجود snapshot — التصدير لسنة جديدة فارغة يُنتج CSV/PDF فارغ بدون تحذير. |
+| **البصمة / الأمان / المتقدمة** | لا تأثير. |
 
-**بدون migrations، بدون Edge Functions، بدون RLS/grants.**
+---
+
+## خطة الإصلاح المقترحة (PR واحد منفصل)
+
+### A. تحقق دلالي عند الإنشاء (`createFiscalYear` + الواجهة)
+1. Regex `^\d{4}-\d{4}$` على `label`. الفارق 1 سنة فقط، السنة الثانية = الأولى+1.
+2. `start_date < end_date` + المدة ≤ 400 يوم.
+3. كشف التداخل: استعلام `fiscal_years` يلتقط أي سنة فيها `start_date <= new.end AND end_date >= new.start` — رفض مع رسالة تشير للسنة المتداخلة.
+4. كشف التكرار: `label` فريد.
+5. **لا** تجعل السنة الجديدة `active` تلقائياً — أنشئها `inactive` افتراضياً، وأضف زر "تفعيل" منفصل يقوم بـ:
+   - التحقق أن كل السنوات الأخرى `inactive` أو `closed`.
+   - تحديث `sessionStorage[fiscal_year_id]` لكل المستخدمين الإداريين.
+
+### B. إقفال/حذف
+6. تحويل زر "إقفال" في هذا التبويب إلى **رابط** واضح لـ `/dashboard/accounts` (إزالة شكل الزر التنفيذي).
+7. إخفاء زر "حذف" العادي إذا `cascade=true` ممكن، أو دمجه مع cascade في زر واحد بحوار موحَّد.
+8. في `handleCascadeDelete`: إذا الـ ID المحذوف = `sessionStorage[fiscal_year_id]` → اختيار أول سنة active بديلة وتحديث sessionStorage قبل invalidate.
+
+### C. تنشيط/نشر
+9. توسيع `togglePublished` لإبطال `['public_stats']`, `['waqif_annual_report']`, `['fiscal_years_published']` إضافة لـ `['fiscal_years']`.
+10. منع إعادة فتح سنة إذا يوجد سنة active أحدث منها — تحذير حواري قبل استدعاء RPC.
+
+### D. تهيئة السنة الجديدة (اختياري داخل نفس PR)
+11. عند الإنشاء، استدعاء RPC جديدة `initialize_fiscal_year(p_id uuid)` تقوم بـ:
+    - إدراج صف `accounts` فارغ بالقيم الافتراضية.
+    - نسخ آخر `advance_settings` كافتراضي.
+12. توسيم زر "تهيئة من السنة السابقة" بجانب السنة المُنشأة حديثاً كبديل لو لم يكن RPC جاهزاً.
+
+### E. توافق مع باقي الأقسام
+13. AdvanceSettingsTab: عرض تحذير "لا توجد إعدادات سُلف لهذه السنة — انسخ من سنة سابقة" بدلاً من 0% صامت.
+14. ZATCA: شارة معلوماتية "تسلسل ICV يستمر عبر السنوات".
+
+---
+
+## الملفات المتأثرة (بدون تعديل المحمي)
+
+| ملف | تغيير |
+|------|------|
+| `src/lib/services/fiscalYearService.ts` | إضافة `validateFiscalYear`, `checkOverlap` |
+| `src/hooks/page/admin/financial/useFiscalYearManagement.ts` | منطق التحقق + تحديث sessionStorage |
+| `src/components/settings/fiscal-year/FiscalYearManagementTab.tsx` | UI: زر تفعيل، رابط إقفال، تحذيرات |
+| `src/components/settings/fiscal-year/CascadeDeleteFiscalYearDialog.tsx` | تحذير عن tickets/messages |
+| `src/components/settings/fiscal-year/AdvanceSettingsTab.tsx` | تحذير غياب إعدادات |
+| (اختياري) migration: `initialize_fiscal_year` + GRANT | تهيئة snapshot |
+
+---
 
 ## التحقق
-- `bunx vitest run` — يجب بقاء جميع الاختبارات خضراء.
-- فحص بصري على viewport 1319×770.
 
-هل أبدأ التنفيذ بهذا النطاق المُدقَّق؟
+- `bunx vitest run` لكل من `useFiscalYearManagement.test.ts`, `useFiscalYears.test.ts`, `resolveFiscalYearId.test.ts`.
+- اختبار يدوي: إنشاء سنة بتنسيق غير صالح، تواريخ متداخلة، تكرار label، تفعيل ثنائي، cascade للسنة المختارة.
+- `supabase--linter` بعد أي migration.
+
+---
+
+## ترتيب التنفيذ المقترح
+
+1. **PR-A (P0):** بنود A1–A5 + B6–B8 + C9 — يمنع تلف بيانات فوراً.
+2. **PR-B (P1):** D11–D12 + E13–E14 — يحسن تجربة الإنشاء.
+3. **PR-C (P2):** اختبارات إضافية + توثيق.
+
+أبدأ بـ PR-A؟
