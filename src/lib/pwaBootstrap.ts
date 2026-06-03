@@ -1,15 +1,20 @@
 /**
- * منطق حماية كاش PWA — يُستدعى مرة واحدة عند بدء التطبيق
- * مُستخرج من main.tsx لفصل المسؤوليات
+ * منطق حماية كاش PWA — يُستدعى مرة واحدة عند بدء التطبيق.
+ *
+ * المسؤولية الوحيدة بعد إصلاح Update Loop:
+ *   - في بيئة المعاينة/iframe (Lovable sandbox): إلغاء تسجيل أي SW متسرّب ومسح الكاش
+ *     لمنع تثبيت SW داخل preview.
+ *
+ * في الإنتاج: لا نفعل شيئاً هنا. اكتشاف التحديث + reload مسؤولية workbox عبر
+ * `SwUpdateBanner` (registerType: 'prompt') — مصدر الحقيقة الوحيد للتحديثات.
+ *
+ * لماذا أُزيل المنطق القديم؟ كان يقارن APP_BUILD_ID (= pkg.version) ويفرض reload
+ * عند أي اختلاف. مع auto-version-on-every-push، النسخة تختلف دائماً → reload قسري
+ * في كل cold launch حتى لو لم يتغيّر JS/CSS فعلاً.
  */
 import { logger } from './logger';
-import { safeGet, safeSet } from './storage';
 
-const APP_BUILD_ID = import.meta.env.VITE_APP_BUILD_ID || import.meta.env.VITE_APP_VERSION || '0.0.0';
-const CACHE_VERSION_KEY = 'pwa_cache_version';
-// PREVIEW_CACHE_KEY لم يعد ضرورياً — المعاينة تمسح دائماً
-
-/** حارس iframe — لا نُسجّل SW داخل إطار */
+/** حارس iframe — لا نسمح بـ SW داخل إطار */
 const isInIframe = (() => {
   try { return window.self !== window.top; } catch { return true; }
 })();
@@ -21,51 +26,19 @@ const isPreviewHost =
   window.location.hostname === 'localhost';
 
 export async function runPwaCacheGuard(): Promise<void> {
-  // في بيئة المعاينة أو iframe: فقط مسح الكاش بدون reload
-  if (isPreviewHost || isInIframe) {
-    try {
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map(r => r.unregister()));
-      }
-      const names = await caches.keys();
-      await Promise.all(names.map(name => caches.delete(name)));
-    } catch (error) {
-      logger.warn('[PWA] تعذر مسح الكاش في المعاينة', error);
-    }
+  if (!(isPreviewHost || isInIframe)) {
+    // الإنتاج: workbox يتولى كل شيء.
     return;
   }
 
-  // بيئة الإنتاج فقط
   try {
-    const stored = safeGet<string>(CACHE_VERSION_KEY, '');
-    if (stored && stored !== APP_BUILD_ID) {
-      const names = await caches.keys();
-      await Promise.all(names.map(name => caches.delete(name)));
-
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map(r => r.update()));
-      }
-
-      safeSet(CACHE_VERSION_KEY, APP_BUILD_ID);
-      safeSet('pwa_just_updated', { version: APP_BUILD_ID, ts: Date.now() });
-
-      // حارس ضد حلقات reload لا نهائية — مهلة 10 ثوانٍ
-      const RELOAD_GUARD = 'pwa_reload_guard';
-      const lastReload = sessionStorage.getItem(RELOAD_GUARD);
-      if (lastReload && Date.now() - Number(lastReload) < 10_000) {
-        logger.warn('[PWA] تم منع reload متكرر خلال 10 ثوانٍ');
-        return;
-      }
-      sessionStorage.setItem(RELOAD_GUARD, String(Date.now()));
-
-      window.location.reload();
-      return;
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(r => r.unregister()));
     }
-
-    safeSet(CACHE_VERSION_KEY, APP_BUILD_ID);
+    const names = await caches.keys();
+    await Promise.all(names.map(name => caches.delete(name)));
   } catch (error) {
-    logger.warn('[PWA] تعذر تنفيذ حماية الكاش', error);
+    logger.warn('[PWA] تعذر مسح الكاش في المعاينة', error);
   }
 }
