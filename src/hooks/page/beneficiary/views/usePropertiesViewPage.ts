@@ -57,7 +57,10 @@ export function usePropertiesViewPage() {
 
   const summaryData = useMemo(() => {
     const totalProperties = properties?.length ?? 0;
-    const totalVacant = totalUnits - occupiedUnits + propertiesWithoutUnitsNoContract;
+    // فصل: وحدات شاغرة فعلياً مقابل عقارات بدون وحدات (لكلٍّ بطاقة مستقلة)
+    const vacantUnits = Math.max(0, totalUnits - occupiedUnits);
+    const propertiesWithoutUnits = propertiesWithoutUnitsNoContract;
+    const totalVacant = vacantUnits + propertiesWithoutUnits;
     // الإيرادات التعاقدية تُحسب من جدول allocations (DB) عبر الـ map الموحّد
     const contractualRevenue = (contracts ?? []).reduce((s, c) => {
       const alloc = allocationMap.get(c.id!);
@@ -85,7 +88,7 @@ export function usePropertiesViewPage() {
     const overallOccupancy = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
     const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
     const occBarColor = overallOccupancy >= 80 ? '[&>div]:bg-success' : overallOccupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
-    return { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor };
+    return { totalProperties, totalVacant, vacantUnits, propertiesWithoutUnits, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor };
   }, [properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap]);
 
 
@@ -121,14 +124,18 @@ export function usePropertiesViewPage() {
     return map;
   }, [units]);
 
-  /** عقارات مؤجرة كاملة (عقد بدون unit_id) */
+  /**
+   * عقارات مؤجرة كاملة (عقد بدون unit_id).
+   * يراعي السنة المحددة: في عرض "كل السنوات" نقتصر على العقود النشطة لتجنّب إظهار عقار كمؤجَّر بعقد منتهٍ.
+   */
   const wholePropertyRentedSet = useMemo(() => {
     const s = new Set<string>();
     for (const c of (contracts ?? [])) {
+      if (!(isSpecificYear || c.status === 'active')) continue;
       if (c.property_id && !c.unit_id) s.add(c.property_id);
     }
     return s;
-  }, [contracts]);
+  }, [contracts, isSpecificYear]);
 
   /** خريطة معرفات الوحدات المؤجرة لكل عقار */
   const rentedUnitIdsByPropertyMap = useMemo(() => {
