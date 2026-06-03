@@ -47,19 +47,20 @@ function shouldReport(metadata: ErrorMetadata): boolean {
  */
 export async function reportClientError(metadata: ErrorMetadata): Promise<void> {
   if (!shouldReport(metadata)) return;
+  const safe = sanitizeErrorMetadata(metadata);
   try {
     await supabase.rpc('log_access_event', {
       p_event_type: 'client_error',
-      p_target_path: metadata.url ?? undefined,
-      p_device_info: metadata.user_agent ?? undefined,
+      p_target_path: safe.url ?? undefined,
+      p_device_info: safe.user_agent ?? undefined,
       p_metadata: {
-        error_name: metadata.error_name,
-        error_message: metadata.error_message,
-        error_stack: metadata.error_stack,
-        component_stack: metadata.component_stack,
-        url: metadata.url,
-        user_agent: metadata.user_agent,
-        timestamp: metadata.timestamp,
+        error_name: safe.error_name,
+        error_message: safe.error_message,
+        error_stack: safe.error_stack,
+        component_stack: safe.component_stack,
+        url: safe.url,
+        user_agent: safe.user_agent,
+        timestamp: safe.timestamp,
       },
     });
   } catch {
@@ -67,7 +68,7 @@ export async function reportClientError(metadata: ErrorMetadata): Promise<void> 
     try {
       const sessionId = (globalThis as Record<string, unknown>).__ERROR_SESSION_ID ??= crypto.randomUUID();
       const queue: unknown[] = safeGet(STORAGE_KEYS.ERROR_LOG_QUEUE, [] as unknown[]);
-      queue.push({ ...metadata, session_id: sessionId, logged_at: new Date().toISOString() });
+      queue.push({ ...safe, session_id: sessionId, logged_at: new Date().toISOString() });
       if (queue.length > 20) queue.shift();
       safeSet(STORAGE_KEYS.ERROR_LOG_QUEUE, queue);
     } catch { /* التخزين ممتلئ أو غير متاح */ }
