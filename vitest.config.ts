@@ -51,6 +51,13 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      // stub للـ virtual module الذي يُولّده vite-plugin-pwa في الإنتاج فقط
+      "virtual:pwa-register/react": path.resolve(
+        __dirname,
+        "./src/test/__mocks__/pwa-register-react.ts",
+      ),
+    },
   },
 });
