@@ -72,7 +72,9 @@ export function useFiscalYearManagement() {
     setActionLoading(`pub-${fy.id}`);
     try {
       await toggleFiscalYearPublished(fy.id, newVal);
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      PUBLISH_INVALIDATION_KEYS.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: [...key] });
+      });
       uiNotify.success(newVal ? `تم نشر السنة "${fy.label}" للمستفيدين` : `تم حجب السنة "${fy.label}" عن المستفيدين`);
     } catch {
       uiNotify.error('حدث خطأ أثناء تحديث حالة النشر');
@@ -90,6 +92,7 @@ export function useFiscalYearManagement() {
     try {
       await deleteFY(fy.id);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      cleanupSelectedFiscalYearIfDeleted(fy.id, fiscalYears);
       uiNotify.success(`تم حذف السنة: ${fy.label}`);
     } catch (err: unknown) {
       uiNotify.error(
@@ -110,6 +113,7 @@ export function useFiscalYearManagement() {
     setActionLoading(fy.id);
     try {
       const res = await deleteFiscalYearCascade(fy.id);
+      cleanupSelectedFiscalYearIfDeleted(fy.id, fiscalYears);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
       queryClient.invalidateQueries();
       const total = Object.values(res?.deleted ?? {}).reduce((a, b) => a + (b || 0), 0);
