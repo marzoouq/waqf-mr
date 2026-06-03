@@ -44,28 +44,15 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
   const summary = useMemo(() => {
     const totalProperties = properties.length;
     const totalUnitsCount = allUnits.length;
-    const rentedUnitIds = new Set(contracts.filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id));
-    const wholePropertyIds = new Set(contracts.filter(c => (isSpecificYear || c.status === 'active') && !c.unit_id).map(c => c.property_id));
 
-    let totalRented = 0;
-    let totalVacant = 0;
-    let propertiesWithoutUnits = 0;
-    let propertiesWithoutUnitsRented = 0;
-    properties.forEach(p => {
-      const pUnits = allUnits.filter(u => u.property_id === p.id);
-      if (pUnits.length > 0) {
-        const r = pUnits.filter(u => rentedUnitIds.has(u.id)).length;
-        totalRented += wholePropertyIds.has(p.id) ? pUnits.length : r;
-        totalVacant += wholePropertyIds.has(p.id) ? 0 : pUnits.length - r;
-      } else {
-        // عقار بلا وحدات معرّفة — لا يُحتسب ضمن "وحدات شاغرة"
-        propertiesWithoutUnits += 1;
-        if (wholePropertyIds.has(p.id)) propertiesWithoutUnitsRented += 1;
-      }
+    // مصدر موحّد لتقسيم الإشغال (بند 9) — مغطّى بـ computeOccupancySplit.test.ts
+    const split = computeOccupancySplit({
+      properties: properties.map(p => ({ id: p.id })),
+      units: allUnits.map(u => ({ id: u.id, property_id: u.property_id })),
+      contracts: contracts.map(c => ({ unit_id: c.unit_id, property_id: c.property_id, status: c.status })),
+      isSpecificYear,
     });
-
-    const occupancyBase = totalRented + totalVacant;
-    const overallOccupancy = occupancyBase > 0 ? Math.round((totalRented / occupancyBase) * 100) : 0;
+    const { totalRented, totalVacant, propertiesWithoutUnits, propertiesWithoutUnitsRented, overallOccupancy } = split;
 
     // الإيرادات التعاقدية (DB-backed) — يطابق ContractsPage و WaqifDashboard
     const contractualRevenue = computeContractualRevenue(contracts, allocations);
