@@ -32,12 +32,26 @@ const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undef
 export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
   const { selectedId, setFiscalYearId } = useFiscalYearPersistence();
   const final = useResolvedFiscalYear(selectedId);
+  const { user, role } = useAuth();
 
   // جلب مسبق لبيانات لوحة التحكم — يبقى داخل Provider (مراجعة Version I-R)
   useDashboardPrefetch({
     fiscalYearId: final.fiscalYearId,
     fiscalYears: final.fiscalYears,
   });
+
+  // Realtime لتغييرات السنوات المالية — يحدّث كل اللوحات فوراً عند الإنشاء/التحديث/الحذف
+  useDashboardRealtime(
+    'fiscal-years-global',
+    ['fiscal_years'],
+    !!user && !!role,
+    [
+      ['fiscal_years_published_all'],
+      ['public-stats'],
+      ['annual_report_status'],
+      ['waqif_annual_report'],
+    ],
+  );
 
   return (
     <FiscalYearContext.Provider
