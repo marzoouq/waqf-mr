@@ -7,6 +7,33 @@ import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { useFiscalYears, type FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY, deleteFiscalYearCascade } from '@/lib/services';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeSessionGet, safeSessionRemove, safeSessionSet } from '@/lib/storage';
+
+/** قائمة queryKeys التي تتأثر بتغيير حالة النشر لسنة مالية. */
+const PUBLISH_INVALIDATION_KEYS: readonly (readonly string[])[] = [
+  ['fiscal_years'],
+  ['fiscal_years_published_all'],
+  ['public-stats'],
+  ['annual_report_status'],
+  ['annual_report_items'],
+];
+
+/**
+ * إذا كانت السنة المحذوفة هي المختارة حالياً في sessionStorage،
+ * يستبدلها بأول سنة active متاحة، أو يمسحها تماماً.
+ */
+const cleanupSelectedFiscalYearIfDeleted = (
+  deletedId: string,
+  remaining: readonly FiscalYear[],
+) => {
+  const currentSelected = safeSessionGet(STORAGE_KEYS.FISCAL_YEAR, '');
+  if (currentSelected !== deletedId) return;
+  const fallback = remaining.find(fy => fy.id !== deletedId && fy.status === 'active')
+    ?? remaining.find(fy => fy.id !== deletedId);
+  if (fallback) safeSessionSet(STORAGE_KEYS.FISCAL_YEAR, fallback.id);
+  else safeSessionRemove(STORAGE_KEYS.FISCAL_YEAR);
+};
 
 export function useFiscalYearManagement() {
   const { data: fiscalYears = [], isLoading } = useFiscalYears();
@@ -61,7 +88,9 @@ export function useFiscalYearManagement() {
     setActionLoading(`pub-${fy.id}`);
     try {
       await toggleFiscalYearPublished(fy.id, newVal);
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      PUBLISH_INVALIDATION_KEYS.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: [...key] });
+      });
       uiNotify.success(newVal ? `تم نشر السنة "${fy.label}" للمستفيدين` : `تم حجب السنة "${fy.label}" عن المستفيدين`);
     } catch {
       uiNotify.error('حدث خطأ أثناء تحديث حالة النشر');
@@ -79,6 +108,7 @@ export function useFiscalYearManagement() {
     try {
       await deleteFY(fy.id);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      cleanupSelectedFiscalYearIfDeleted(fy.id, fiscalYears);
       uiNotify.success(`تم حذف السنة: ${fy.label}`);
     } catch (err: unknown) {
       uiNotify.error(
@@ -99,6 +129,7 @@ export function useFiscalYearManagement() {
     setActionLoading(fy.id);
     try {
       const res = await deleteFiscalYearCascade(fy.id);
+      cleanupSelectedFiscalYearIfDeleted(fy.id, fiscalYears);
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
       queryClient.invalidateQueries();
       const total = Object.values(res?.deleted ?? {}).reduce((a, b) => a + (b || 0), 0);

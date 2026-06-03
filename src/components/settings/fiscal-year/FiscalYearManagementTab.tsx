@@ -40,11 +40,12 @@ const FiscalYearManagementTab = () => {
             <Card className="border-primary/30 bg-primary/5">
               <CardContent className="p-4 space-y-3">
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="space-y-1.5"><Label>المسمى</Label><Input value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="مثال: 2025-2026م" /></div>
+                  <div className="space-y-1.5"><Label>المسمى</Label><Input value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="2025-2026" pattern="\d{4}-\d{4}" /></div>
                   <div className="space-y-1.5"><Label>تاريخ البداية</Label><Input type="date" value={newFY.start_date} onChange={e => setNewFY(p => ({ ...p, start_date: e.target.value }))} /></div>
                   <div className="space-y-1.5"><Label>تاريخ النهاية</Label><Input type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} /></div>
                 </div>
-                <p className="text-xs text-caution-foreground">ملاحظ: السنة الجديدة ستكون <strong>محجوبة</strong> عن المستفيدين تلقائياً — يمكنك نشرها بعد إضافة البيانات.</p>
+                <p className="text-xs text-muted-foreground">المسمى يجب أن يكون بصيغة <code className="px-1 rounded bg-muted">YYYY-YYYY</code> بفارق سنة واحدة (مثل 2025-2026). لا يُسمح بتداخل المدد الزمنية أو تكرار المسمى، ولا يمكن إنشاء سنة جديدة قبل إقفال السنة النشطة الحالية.</p>
+                <p className="text-xs text-caution-foreground">ملاحظة: السنة الجديدة ستكون <strong>محجوبة</strong> عن المستفيدين تلقائياً — يمكنك نشرها بعد إضافة البيانات.</p>
                 <div className="flex gap-2">
                   <Button size="sm" onClick={handleCreate} disabled={actionLoading === 'create'} className="gap-1.5">{actionLoading === 'create' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}إنشاء</Button>
                   <Button size="sm" variant="ghost" onClick={() => setCreating(false)}>إلغاء</Button>
