@@ -2,6 +2,7 @@
  * تقرير سنوي مُجمَّع للناظر — يجمع البيانات المالية الكاملة + محتوى التقرير السنوي
  * مصدر البيانات: dashboard-summary RPC (نفس لوحة الناظر) لضمان تطابق الأرقام.
  */
+import type jsPDF from 'jspdf';
 import type { CellHookData } from 'jspdf-autotable';
 import {
   createPdfDocument, finalizePdf,
@@ -62,10 +63,7 @@ export interface AggregatedAnnualPdfData {
   };
 }
 
-const sectionTitle = (
-  doc: ReturnType<typeof createPdfDocument> extends Promise<infer T> ? (T extends { doc: infer D } ? D : never) : never,
-  f: string, title: string, y: number,
-) => {
+const sectionTitle = (doc: jsPDF, f: string, title: string, y: number) => {
   doc.setFont(f, 'bold');
   doc.setFontSize(13);
   doc.text(rs(title), 192, y, { align: 'right' });
