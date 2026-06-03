@@ -15,6 +15,8 @@ interface CollectionSummaryCardProps {
     paidCount: number;
     partialCount: number;
     unpaidCount: number;
+    /** عدد الفواتير المتأخرة فعلياً (بعد تاريخ الاستحقاق) — مصدر RPC */
+    overdueCount?: number;
     paidLikeCount?: number;
     total: number;
     percentage: number;
