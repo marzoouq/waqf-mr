@@ -42,7 +42,9 @@ export const useMyShare = <T extends BeneficiaryLike>({
   );
 
   const myShare = useMemo(() => {
-    // #9: تفضيل القيمة المحسوبة من الخادم (RPC) عند توفرها
+    // #9: تفضيل القيمة المحسوبة من الخادم (RPC) عند توفرها — بما فيها 0 الصريحة (عجز/مرحّل كامل).
+    // ملاحظة: تناقض السنة النشطة (كان يُرجع 0) عُولج في RPC `get_beneficiary_dashboard`
+    // باحتساب تقدير حقيقي بصيغة الناظر `waqf_revenue - waqf_corpus_manual`.
     if (serverMyShare !== null && serverMyShare !== undefined && isFinite(serverMyShare)) {
       return serverMyShare;
     }
