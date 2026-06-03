@@ -33,7 +33,8 @@ export default defineConfig(({ mode }) => ({
         cleanupOutdatedCaches: true,
         skipWaiting: false,
         clientsClaim: false,
-        navigateFallback: 'index.html',
+        // index.html مُستبعد عمداً من precache — يُخدم عبر NetworkFirst أدناه.
+        // هذا يضمن أن بمب النسخة وحده لا يُولّد SW جديد؛ يحتاج تغيير محتوى JS/CSS فعلي.
         navigateFallbackDenylist: [
           /^\/~oauth/,
           /^\/api\//,
@@ -44,7 +45,7 @@ export default defineConfig(({ mode }) => ({
           /\.(?:png|jpg|jpeg|svg|gif|ico|webp|woff2?|ttf)$/,
           /^\/fonts\//,
         ],
-        globPatterns: ['**/*.{html,js,css,ico,png,svg,woff2,ttf}'],
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff2,ttf}'],
         // استبعاد الحزم الثقيلة من precache — تُحمّل عند الطلب فقط
         globIgnores: [
           '**/vendor-pdf*.js',
