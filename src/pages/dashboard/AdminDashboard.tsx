@@ -96,23 +96,28 @@ const AdminDashboard = () => {
           />
         </DashboardLazySection>
 
-        <DashboardLazySection minHeight={200} printHidden>
-          <PendingActionsTable
-            advanceRequests={ctx.pendingAdvances}
-            paymentInvoices={ctx.heatmapInvoices}
-          />
-        </DashboardLazySection>
+        {/* PendingActions / Charts / YearComparison — حصرية للناظر (تكشف بيانات حساسة) */}
+        {ctx.role === 'admin' && (
+          <>
+            <DashboardLazySection minHeight={200} printHidden>
+              <PendingActionsTable
+                advanceRequests={ctx.pendingAdvances}
+                paymentInvoices={ctx.heatmapInvoices}
+              />
+            </DashboardLazySection>
 
-        <DashboardLazySection minHeight={300} printHidden fallback={<ChartSkeleton />}>
-          <DashboardCharts monthlyData={ctx.monthlyData} expenseTypes={ctx.expenseTypes} />
-        </DashboardLazySection>
+            <DashboardLazySection minHeight={300} printHidden fallback={<ChartSkeleton />}>
+              <DashboardCharts monthlyData={ctx.monthlyData} expenseTypes={ctx.expenseTypes} />
+            </DashboardLazySection>
 
-        <DashboardLazySection minHeight={200}>
-          <YearComparisonCard
-            allFiscalYears={ctx.allFiscalYears as FiscalYear[]}
-            fiscalYearId={ctx.fiscalYearId}
-          />
-        </DashboardLazySection>
+            <DashboardLazySection minHeight={200}>
+              <YearComparisonCard
+                allFiscalYears={ctx.allFiscalYears as FiscalYear[]}
+                fiscalYearId={ctx.fiscalYearId}
+              />
+            </DashboardLazySection>
+          </>
+        )}
 
         {ctx.showPerformanceCard && (
           <DashboardLazySection minHeight={200} printHidden>
