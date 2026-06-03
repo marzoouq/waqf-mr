@@ -1,12 +1,12 @@
 /**
  * هوك منطق إدارة السنوات المالية
  */
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { useFiscalYears, type FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
-import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY, deleteFiscalYearCascade } from '@/lib/services';
+import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY, deleteFiscalYearCascade, validateFiscalYearInput } from '@/lib/services';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeSessionGet, safeSessionRemove, safeSessionSet } from '@/lib/storage';
 
