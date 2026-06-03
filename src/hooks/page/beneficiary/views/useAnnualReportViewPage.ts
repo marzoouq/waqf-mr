@@ -45,7 +45,7 @@ export function useAnnualReportViewPage() {
   const { data: properties = [] } = useProperties();
   const { data: income = [] } = useIncomeByFiscalYear(safeFyId || 'all');
   const { data: expenses = [] } = useExpensesByFiscalYear(safeFyId || 'all');
-  const { data: contracts = [] } = useContractsSafeByFiscalYear(safeFyId);
+  const { data: contracts = [] } = useContractsSafeByFiscalYear(safeFyId || 'all');
   const { data: dashData } = useEndUserDashboardData(safeFyId);
   const fin = useEndUserFinancials(dashData, safeFyId);
   const waqfInfo = usePdfWaqfInfo();
