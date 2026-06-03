@@ -79,6 +79,7 @@ export function useHistoricalComparison() {
       { label: 'صافي بعد المصروفات', key: 'netAfterExpenses', getValue: (d: YearSummaryEntry | null) => d?.netAfterExpenses ?? 0 },
       { label: 'الضريبة', key: 'vatAmount', getValue: (d: YearSummaryEntry | null) => d?.vatAmount ?? 0 },
       { label: 'الزكاة', key: 'zakatAmount', getValue: (d: YearSummaryEntry | null) => d?.zakatAmount ?? 0 },
+      { label: 'صافي بعد الزكاة', key: 'netAfterZakat', getValue: (d: YearSummaryEntry | null) => d?.netAfterZakat ?? 0 },
       { label: 'حصة الناظر', key: 'adminShare', getValue: (d: YearSummaryEntry | null) => d?.adminShare ?? 0 },
       { label: 'حصة الواقف', key: 'waqifShare', getValue: (d: YearSummaryEntry | null) => d?.waqifShare ?? 0 },
       { label: 'ريع الوقف', key: 'waqfRevenue', getValue: (d: YearSummaryEntry | null) => d?.waqfRevenue ?? 0 },
