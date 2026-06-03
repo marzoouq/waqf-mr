@@ -48,16 +48,18 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
 
     let totalRented = 0;
     let totalVacant = 0;
+    let propertiesWithoutUnits = 0;
+    let propertiesWithoutUnitsRented = 0;
     properties.forEach(p => {
       const pUnits = allUnits.filter(u => u.property_id === p.id);
       if (pUnits.length > 0) {
         const r = pUnits.filter(u => rentedUnitIds.has(u.id)).length;
         totalRented += wholePropertyIds.has(p.id) ? pUnits.length : r;
         totalVacant += wholePropertyIds.has(p.id) ? 0 : pUnits.length - r;
-      } else if (wholePropertyIds.has(p.id)) {
-        totalRented += 1;
       } else {
-        totalVacant += 1;
+        // عقار بلا وحدات معرّفة — لا يُحتسب ضمن "وحدات شاغرة"
+        propertiesWithoutUnits += 1;
+        if (wholePropertyIds.has(p.id)) propertiesWithoutUnitsRented += 1;
       }
     });
 
@@ -92,6 +94,7 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
 
     return {
       totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy,
+      propertiesWithoutUnits, propertiesWithoutUnitsRented,
       contractualRevenue, activeIncome, collectedIncome,
       totalExpensesAll: totalExpensesCalc, netIncome, isClosed: !!isClosed,
     };
