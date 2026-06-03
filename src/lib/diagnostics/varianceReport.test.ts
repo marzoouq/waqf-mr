@@ -27,9 +27,10 @@ describe('varianceReport', () => {
         },
       },
     ]);
-    expect(rows[0].status).toBe('drift');
-    expect(rows[0].diff).toBeCloseTo(1, 5);
-    expect(rows[0].suspectedSource).toBe('useMyShare');
+    const r0 = rows[0]!;
+    expect(r0.status).toBe('drift');
+    expect(r0.diff).toBeCloseTo(1, 5);
+    expect(r0.suspectedSource).toBe('useMyShare');
   });
 
   it('marks missing values without computing diff', () => {
@@ -37,8 +38,8 @@ describe('varianceReport', () => {
       { card: 'X', fyLabel: '—', fields: { v: { rpc: 10, ui: null } } },
       { card: 'X', fyLabel: '—', fields: { v: { rpc: undefined, ui: 5 } } },
     ]);
-    expect(rows[0].status).toBe('missing');
-    expect(rows[1].status).toBe('missing');
+    expect(rows[0]!.status).toBe('missing');
+    expect(rows[1]!.status).toBe('missing');
   });
 
   it('summarizes correctly', () => {
