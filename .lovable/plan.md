@@ -1,120 +1,88 @@
-## النتيجة بعد الفحص العميق
+# خطة إصلاح آلية تحديث التطبيق (PWA)
 
-الخطة السابقة منفّذة 22/33 بنداً ✅. تبقّت 4 ثغرات حقيقية تؤثر على سلامة البيانات وانعكاس التحديث على لوحات التحكم.
+## السلوك المطلوب (مرجع التحقق)
 
----
+| السيناريو | السلوك الصحيح |
+|---|---|
+| لا يوجد تحديث فعلي على الإنتاج | لا شريط، لا toast، لا reload — التطبيق يفتح فوراً |
+| نُشر تحديث فعلي (JS/CSS تغيّر) | يظهر **شريط يدوي واحد** للمستخدم "يوجد تحديث — تحديث الآن" |
+| المستخدم ضغط "تحديث الآن" | يُفعَّل SW الجديد + reload مرة واحدة + (اختياري) عرض سجل التغييرات |
+| المستخدم أجّل التحديث | لا يُعاد عرض البانر لنفس النسخة حتى دخول لاحق + مرور وقت معقول |
+| إغلاق وفتح بدون تحديث جديد | **صفر شريط** — التطبيق يفتح كأي مرة |
 
-## الثغرات المكتشفة
+## السبب الجذري الحالي (مؤكَّد بالكود)
 
-### ❌ 1) سباق تزامن في trigger التداخل
-`prevent_fiscal_year_overlap` (PLPGSQL) لا يقفل الصفوف عند القراءة. عند إدخال متوازٍ من جلستين، **قد تمر سنتان متداخلتان معاً**. الخطة الأصلية نصّت على `EXCLUDE USING gist` لكن لم يُنفَّذ.
+ثلاث آليات متنافسة تعمل في كل cold launch:
+1. `src/lib/pwaBootstrap.ts:42-65` — يقارن `VITE_APP_BUILD_ID` (= `pkg.version`) بقيمة مخزّنة، وعند الاختلاف يمسح كل الكاش ويُجبر `window.location.reload()`. وبما أن `auto-version.yml` يبمب `patch` مع **كل** push إلى `main`، فالنسخة تختلف دائماً → reload قسري دائم.
+2. `src/components/pwa/SwUpdateBanner.tsx` — workbox يكتشف SW جديد (بسبب precache manifest جديد ناتج من بمب النسخة) → يعرض شريط "تحديث جديد".
+3. `src/components/pwa/PwaUpdateNotifier.tsx` — يقرأ علم `pwa_just_updated` بعد كل reload ويعرض toast + ديالوج سجل تغييرات.
 
-### ⚠️ 2) `waqif_annual_report` queryKey وهمي
-مُدرَج في invalidation realtime + غير مستهلك في أي hook → إبطال بدون أثر.
+النتيجة: حتى بدون تغيير حقيقي في JS/CSS، مجرد بمب النسخة يفعّل الثلاثة معاً عند كل فتح.
 
-### ⚠️ 3) `PUBLISH_INVALIDATION_KEYS` ناقص
-عند نشر/حجب سنة من تبويب المدير، لوحة الواقف لا تُبطَل فوراً (تنتظر حدث realtime).
+## التطبيق الصحيح — مرجع مقارن
 
-### ❌ 4) لا اختبارات UI لـ `FiscalYearManagementTab`
-الخطة الأصلية طلبت `FiscalYearManagementTab.test.tsx` ولم يُنشأ.
+| النهج | ميزته | عيبه | الحكم |
+|---|---|---|---|
+| **A. workbox فقط (`registerType: 'prompt'`)** — مصدر حقيقة واحد | يتفعّل فقط عند تغيّر hash لأصل في precache (محتوى فعلي) | يحتاج المستخدم نقرة | ✅ **هذا المطلوب** |
+| B. workbox `autoUpdate` + `skipWaiting` | بدون تفاعل | قد يُسقط الصفحة أثناء استخدام نشط | ❌ تجربة سيئة |
+| C. مقارنة نسخة يدوية + reload قسري (الحالي) | تحكّم كامل | يتفعّل على بمب نسخة بدون تغيير محتوى | ❌ السبب الحالي للحلقة |
+| D. polling لـ `/version.json` | يعمل عبر cross-tab | تكرار شبكي + يكرر سبب C | ❌ |
 
-### ⚠️ 5) سيناريو حذف+إعادة إنشاء بنفس التاريخ
-**يعمل حالياً** (لا قيود معلّقة)، لكن سنُضيف اختبار E2E يُثبته صراحةً.
+**المعتمد**: النهج A. workbox هو **المصدر الوحيد للحقيقة**، و`pkg.version` تبقى للعرض (سجل التغييرات + الإحصاء) فقط — **لا تُحرّك** آلية التحديث.
 
----
+## نقاط التحقق على صلاحية الخطة
 
-## بنود التنفيذ
+- [x] workbox `cleanupOutdatedCaches: true` مُفعّل بالفعل في `vite.config.ts` → آمن إزالة `pwaBootstrap` reload.
+- [x] `SwUpdateBanner.handleUpdate` يضع `pwa_just_updated` بالفعل → `PwaUpdateNotifier` يستمر بالعمل بعد التحديث الحقيقي فقط.
+- [x] workbox يولّد precache manifest بـ **content hash** للأصول، لا برقم النسخة. إخراج `index.html` من precache يجعل بمب النسخة وحده **غير كافٍ** لتوليد SW جديد — يحتاج تغيير محتوى فعلي.
+- [x] `registerType: 'prompt'` + `skipWaiting: false` + `clientsClaim: false` (المضبوط حالياً) صحيح لمنهج "موافقة المستخدم".
+- [x] حارس المعاينة/iframe في `pwaBootstrap` يبقى — مفيد لتنظيف SW المتسرب داخل sandbox Lovable.
 
-### 1) Migration: استبدال trigger بـ EXCLUDE constraint ذرّي
+## التغييرات (3 ملفات)
 
-```sql
-CREATE EXTENSION IF NOT EXISTS btree_gist;
+### 1) `src/lib/pwaBootstrap.ts` — حذف فرع reload القسري
+- **الإبقاء**: فرع `isPreviewHost || isInIframe` (مسح SW + caches في sandbox).
+- **الحذف**: كل فرع الإنتاج الذي يقارن `APP_BUILD_ID` ويمسح ويُعيد التحميل. مع شطب `CACHE_VERSION_KEY` و`pwa_reload_guard` و`pwa_just_updated` من هذا الملف (الأخير ينتقل ملكيته بالكامل إلى `SwUpdateBanner`).
+- **الناتج**: ~30 سطر بدل 70.
 
--- إزالة trigger القديم (لا يحمي من السباقات)
-DROP TRIGGER IF EXISTS trg_prevent_fiscal_year_overlap ON public.fiscal_years;
-DROP FUNCTION IF EXISTS public.prevent_fiscal_year_overlap();
+### 2) `src/components/pwa/SwUpdateBanner.tsx` — كبح الضوضاء + ربط بسجل التغييرات الفعلي
+- تأخير أول `registration.update()` إلى **30 ثانية** بعد الإقلاع.
+- رفع فترة الفحص الدوري من **60ث إلى 5 دقائق**.
+- إضافة تذكُّر بالنسخة: `pwa_snoozed_version` — عند الرفض، احفظ نسخة الـ SW الجديد. لا تُظهر البانر مجدداً لنفس النسخة قبل 24 ساعة.
+- `handleUpdate` يضع `pwa_just_updated` (موجود) — هذا يبقى المُحفّز الوحيد لـ `PwaUpdateNotifier`.
 
--- قيد ذرّي على مستوى الفهرس
-ALTER TABLE public.fiscal_years
-  ADD CONSTRAINT fiscal_years_no_overlap
-  EXCLUDE USING gist (daterange(start_date, end_date, '[]') WITH &&);
-```
+### 3) `vite.config.ts` — إخراج `index.html` من precache + قاعدة navigate
+- إزالة `html` من `globPatterns` (يبقى `js, css, ico, png, svg, woff2, ttf`).
+- إزالة `navigateFallback: 'index.html'`.
+- إضافة قاعدة في `runtimeCaching`:
+  ```ts
+  { urlPattern: ({ request }) => request.mode === 'navigate',
+    handler: 'NetworkFirst',
+    options: { cacheName: 'html', networkTimeoutSeconds: 3 } }
+  ```
+- **الأثر**: بمب النسخة فقط (بدون تغيير JS/CSS) لن يُولّد SW جديد بعد الآن، فلن يظهر بانر إلا عند تحديث فعلي.
 
-### 2) `fiscalYearService.ts` — تحسين رسالة 23P01
+## ما لن نعدّله (مقصود)
+- `package.json` ونظام البمب التلقائي — يبقى يخدم سجل التغييرات والإحصاء.
+- `PwaUpdateNotifier.tsx` — منطقه صحيح، يعتمد على علم سيتم وضعه فقط عند تحديث حقيقي بعد الإصلاح.
+- ملفات المصادقة والـ RLS وأي مكوّن غير PWA.
 
-بعد التقاط `23P01`، نُجري استعلام `daterange && daterange` لاسترجاع السنة المتعارضة فعلياً (الاسم + الفترة) ونُركّبها في الرسالة:
+## التحقق بعد التنفيذ (مصفوفة الفحص)
 
-```ts
-if (error.code === '23P01') {
-  const { data: overlap } = await supabase
-    .from('fiscal_years')
-    .select('label,start_date,end_date')
-    .or(`and(start_date.lte.${input.end_date},end_date.gte.${input.start_date})`)
-    .maybeSingle();
-  throw new Error(
-    overlap
-      ? `يوجد تداخل زمني مع السنة "${overlap.label}" (${overlap.start_date} → ${overlap.end_date})`
-      : 'يوجد تداخل زمني مع سنة مالية أخرى'
-  );
-}
-```
+1. **`bunx vitest run`** — كل الاختبارات الـ1858+ تمر.
+2. **محلياً (preview)**: فتح وإغلاق التطبيق مراراً — لا شريط ولا reload.
+3. **إنتاج بعد دفع كوميت بلا تغيير محتوى** (تعليق فقط): فتح PWA → **لا** شريط.
+4. **إنتاج بعد دفع كوميت يغيّر JS فعلياً**: فتح PWA → شريط واحد فقط بعد ≤5 دقائق من الاستخدام (أو بعد 30ث من cold launch) → نقرة → reload → toast سجل التغييرات.
+5. **Android Chrome + iOS Safari PWA مثبّت**: السيناريو 3 و4 يدوياً.
+6. **رفض التحديث**: إعادة فتح خلال 24 ساعة لنفس النسخة → لا بانر.
 
-### 3) `useFiscalYearManagement.ts` — إضافة `waqif_annual_report`
+## انعكاس على بقية الشاشات
+الإصلاح في طبقة Boot/SW فقط — **لا يلمس أي صفحة أو data hook أو دور**. كل الشاشات (admin/accountant/beneficiary/waqif) ستتحسّن تلقائياً لأن المشكلة كانت في الإقلاع لا في الصفحات.
 
-```ts
-const PUBLISH_INVALIDATION_KEYS = [
-  ['fiscal_years'],
-  ['fiscal_years_published_all'],
-  ['public-stats'],
-  ['annual_report_status'],
-  ['annual_report_items'],
-  ['waqif_annual_report'],   // ← جديد
-];
-```
+## ما يبقى خارج هذا الـ MR (مقترحات لاحقة)
+- security-gate يرفض `window.location.reload()` خارج `SwUpdateBanner`.
+- توثيق `src/components/pwa/README.md`.
+- اختبار E2E لمحاكاة بمب SW.
+- التدقيق المعماري الكامل قُدّم في الجولة السابقة وكان نظيفاً — لا تغييرات مطلوبة الآن.
 
-### 4) `FiscalYearContext.tsx` — تنظيف المفتاح الوهمي
-
-نُبقي `['waqif_annual_report']` فقط إذا أنشأنا hook يستهلكه، وإلا نحذفه. **الإجراء**: حذفه من `extraKeys` لتجنب الإبطال الزائف، وإضافة TODO في كومنت لاستهلاكه عند بناء تقرير الواقف السنوي.
-
-### 5) ملف اختبار جديد: `FiscalYearManagementTab.test.tsx`
-
-سيناريوهات RTL:
-1. label `25-26` → خطأ inline + زر "إنشاء" معطّل + لا استدعاء service
-2. label `٢٠٢٥-٢٠٢٦` + تواريخ صحيحة → يمرّ التطبيع والإنشاء
-3. mock `createFiscalYear` يرمي `يوجد تداخل زمني مع السنة "2024-2025"...` → `<Alert variant="destructive">` يعرض النص حرفياً
-4. تحديث `useFiscalYears` (محاكاة realtime) → الجدول يُعاد عرضه بدون reload
-5. زر حذف معطّل للسنة `active`
-
-### 6) توسيع `fiscalYearService.test.ts`
-
-- اختبار جديد: بعد محاكاة DELETE، `checkFiscalYearConflicts` بنفس التاريخ يُعيد `null` → الإنشاء مقبول
-- اختبار: `23P01` mock يُرجع رسالة بالاسم والفترة بعد استعلام `findOverlappingYear`
-
----
-
-## مصفوفة التحقق
-
-- `bunx vitest run` → كل الاختبارات الحالية (34) + الجديدة (~6) تمر
-- على DB بعد migration:
-  - `INSERT` متداخل عبر `supabase--read_query` → يفشل برسالة 23P01 من EXCLUDE constraint
-  - حذف 2024-2025 ثم INSERT بنفس التاريخ → ينجح
-- يدوي على `/dashboard/settings?tab=fiscal`:
-  - تعديل/حذف سنة من تبويب آخر → الجدول + شريط التنبيه + لوحات (admin/accountant/beneficiary) تتحدث فوراً
-  - نشر/حجب سنة → لوحة الواقف والمستفيد تتحدثان فوراً (دون انتظار realtime)
-- على `/dashboard/audit-log` — العمليات تظهر مع diff كامل
-
----
-
-## الملفات المتأثرة
-
-**جديد:**
-- `supabase/migrations/<ts>_fiscal_years_exclude_gist.sql`
-- `src/components/settings/fiscal-year/FiscalYearManagementTab.test.tsx`
-
-**تعديل:**
-- `src/lib/services/fiscalYearService.ts` (دالة `findOverlappingYear` + استدعاؤها في catch 23P01)
-- `src/lib/services/fiscalYearService.test.ts` (سيناريوهات إضافية)
-- `src/hooks/page/admin/financial/useFiscalYearManagement.ts` (إضافة `waqif_annual_report`)
-- `src/contexts/FiscalYearContext.tsx` (حذف المفتاح الوهمي + TODO)
-
-**غير متأثر:** ملفات المصادقة، RLS policies، types.ts، client.ts، config.toml.
+بانتظار موافقتك للانتقال إلى Build.
