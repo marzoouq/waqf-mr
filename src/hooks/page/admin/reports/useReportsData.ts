@@ -97,17 +97,18 @@ export function useReportsData() {
     { key: 'shareConsistency', ok: !isYearClosed || Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 },
   ];
 
-  const issuesFound = auditChecks.filter(c => !c.ok).length;
-  const issuesFixed = auditChecks.filter(c => c.ok).length;
-  const overallScore = Math.round(((auditChecks.length - issuesFound) / Math.max(1, auditChecks.length)) * 100) / 10;
+  const checksFailed = auditChecks.filter(c => !c.ok).length;
+  const checksPassed = auditChecks.filter(c => c.ok).length;
+  // تقييم من 100 (سابقاً كان من 10 — أُعيدت تسميته لتطابق العرض)
+  const overallScore = Math.round((checksPassed / Math.max(1, auditChecks.length)) * 100);
 
   const forensicAuditData: ForensicAuditData = {
     auditDate: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
     auditorName: pdfWaqfInfo.waqfName || 'ناظر الوقف',
     overallScore,
     totalFiles: properties.length + contracts.length + income.length + expenses.length + beneficiaries.length,
-    issuesFound,
-    issuesFixed,
+    checksFailed,
+    checksPassed,
     categories: [
       {
         category: 'الحساب الختامي للسنة',

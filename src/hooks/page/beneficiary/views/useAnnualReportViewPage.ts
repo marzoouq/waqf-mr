@@ -1,5 +1,8 @@
 /**
- * هوك صفحة التقرير السنوي — يستخرج كل المنطق من AnnualReportViewPage
+ * هوك صفحة التقرير السنوي — يستخرج كل المنطق من AnnualReportViewPage.
+ *
+ * P1 fix: عقود السنة فقط، الحسابات الرسمية للسنة المقفلة عبر RPC،
+ * وRealtime موسَّع ليشمل income/expenses/contracts/properties.
  */
 import { useMemo, useState, useCallback } from 'react';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
@@ -9,8 +12,11 @@ import { useAnnualReportItems, useReportStatus } from '@/hooks/data/content/useA
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useIncomeByFiscalYear } from '@/hooks/data/financial/income/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpenses';
-import { useContracts } from '@/hooks/data/contracts/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
+import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';
+import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFinancials';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
+import { isFyReady } from '@/constants/fiscalYearIds';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import type { AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
@@ -23,21 +29,25 @@ export function useAnnualReportViewPage() {
   const isMobile = useIsMobile();
   const [viewTab, setViewTab] = useState('property_status');
   const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const safeFyId = isFyReady(fiscalYearId) ? fiscalYearId : undefined;
+  const isClosed = fiscalYear?.status === 'closed';
 
-  // Realtime: انعكاس فوري لتعديلات التقرير السنوي وحالته
+  // Realtime: انعكاس فوري لتعديلات التقرير السنوي + الأرقام المالية للبطاقات
   useDashboardRealtime(
     'annual-report-view-realtime',
-    ['annual_report_items', 'annual_report_status'],
+    ['annual_report_items', 'annual_report_status', 'income', 'expenses', 'contracts', 'properties', 'accounts'],
     true,
-    [['annual-report-items'], ['annual-report-status']],
+    [['annual-report-items'], ['annual-report-status'], ['beneficiary-dashboard-rpc']],
   );
 
-  const { data: items = [], isLoading } = useAnnualReportItems(fiscalYearId || undefined);
-  const { data: reportStatus, isLoading: statusLoading } = useReportStatus(fiscalYearId || undefined);
+  const { data: items = [], isLoading } = useAnnualReportItems(safeFyId);
+  const { data: reportStatus, isLoading: statusLoading } = useReportStatus(safeFyId);
   const { data: properties = [] } = useProperties();
-  const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId || 'all');
-  const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId || 'all');
-  const { data: contracts = [] } = useContracts();
+  const { data: income = [] } = useIncomeByFiscalYear(safeFyId || 'all');
+  const { data: expenses = [] } = useExpensesByFiscalYear(safeFyId || 'all');
+  const { data: contracts = [] } = useContractsSafeByFiscalYear(safeFyId || 'all');
+  const { data: dashData } = useEndUserDashboardData(safeFyId);
+  const fin = useEndUserFinancials(dashData, safeFyId);
   const waqfInfo = usePdfWaqfInfo();
 
   const isPublished = reportStatus?.status === 'published';
@@ -49,8 +59,16 @@ export function useAnnualReportViewPage() {
     future_plan: items.filter(i => i.section_type === 'future_plan'),
   }), [items]);
 
-  const totalIncome = useMemo(() => income.reduce((s, r) => s + safeNumber(r.amount), 0), [income]);
-  const totalExpenses = useMemo(() => expenses.reduce((s, r) => s + safeNumber(r.amount), 0), [expenses]);
+  // مصدر الأرقام: السنة المقفلة → حساب رسمي (account snapshot)، غير ذلك → تجميع حي
+  const totalIncome = useMemo(
+    () => (isClosed && dashData ? fin.totalIncome : income.reduce((s, r) => s + safeNumber(r.amount), 0)),
+    [isClosed, dashData, fin.totalIncome, income],
+  );
+  const totalExpenses = useMemo(
+    () => (isClosed && dashData ? fin.totalExpenses : expenses.reduce((s, r) => s + safeNumber(r.amount), 0)),
+    [isClosed, dashData, fin.totalExpenses, expenses],
+  );
+  // عقود نشطة ضمن السنة (لا تستعمل كل العقود)
   const activeContracts = useMemo(() => contracts.filter(c => c.status === 'active').length, [contracts]);
 
   const summaryCards = useMemo(() => [
@@ -93,16 +111,12 @@ export function useAnnualReportViewPage() {
   }, [summaryCards, items, fiscalYear?.label]);
 
   return {
-    // حالات التحميل
     isLoading: statusLoading || isLoading,
     isPublished,
     isMobile,
-    // بيانات التبويب
     viewTab, setViewTab,
-    // بيانات مجمّعة
     grouped, summaryCards, properties,
     fiscalYear,
-    // دوال الإجراءات
     handleExportPdf, handleExportCsv,
   };
 }

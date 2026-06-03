@@ -143,7 +143,7 @@ const AnnualDisclosureTable = ({
                 <td className="py-3 px-4">{fmt(waqifShare)}</td>
               </tr>
               <tr className="border-b-2 border-primary bg-muted/50">
-                <td className="py-3 px-4 font-bold">ريع الوقف (الإجمالي القابل للتوزيع)</td>
+                <td className="py-3 px-4 font-bold">ريع الوقف قبل احتياطي رقبة الوقف</td>
                 <td className="py-3 px-4 font-bold text-primary">{fmt(waqfRevenue)}</td>
               </tr>
               {waqfCorpusManual > 0 && (
