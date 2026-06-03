@@ -33,7 +33,8 @@ export default defineConfig(({ mode }) => ({
         cleanupOutdatedCaches: true,
         skipWaiting: false,
         clientsClaim: false,
-        navigateFallback: 'index.html',
+        // index.html مُستبعد عمداً من precache — يُخدم عبر NetworkFirst أدناه.
+        // هذا يضمن أن بمب النسخة وحده لا يُولّد SW جديد؛ يحتاج تغيير محتوى JS/CSS فعلي.
         navigateFallbackDenylist: [
           /^\/~oauth/,
           /^\/api\//,
@@ -44,7 +45,7 @@ export default defineConfig(({ mode }) => ({
           /\.(?:png|jpg|jpeg|svg|gif|ico|webp|woff2?|ttf)$/,
           /^\/fonts\//,
         ],
-        globPatterns: ['**/*.{html,js,css,ico,png,svg,woff2,ttf}'],
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff2,ttf}'],
         // استبعاد الحزم الثقيلة من precache — تُحمّل عند الطلب فقط
         globIgnores: [
           '**/vendor-pdf*.js',
@@ -59,6 +60,17 @@ export default defineConfig(({ mode }) => ({
           '**/vendor-arabic*.js',
         ],
         runtimeCaching: [
+          // HTML navigations عبر NetworkFirst — يضمن أن المستخدم يستلم index.html محدّث
+          // فور توفر اتصال، بدون الاعتماد على precache (الذي كان يتغيّر مع كل بمب نسخة).
+          {
+            urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-navigations',
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 },
+            },
+          },
           // تحميل الحزم المستبعدة عند الطلب مع تخزين مؤقت
           {
             urlPattern: /\/assets\/vendor-(?:pdf|pdf-table|recharts|d3|markdown|dnd|webauthn|qr|arabic).+\.js$/i,
