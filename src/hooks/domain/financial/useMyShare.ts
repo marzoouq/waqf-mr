@@ -42,13 +42,17 @@ export const useMyShare = <T extends BeneficiaryLike>({
   );
 
   const myShare = useMemo(() => {
-    // #9: تفضيل القيمة المحسوبة من الخادم (RPC) عند توفرها
-    if (serverMyShare !== null && serverMyShare !== undefined && isFinite(serverMyShare)) {
+    // #9: تفضيل القيمة المحسوبة من الخادم (RPC) عند توفرها — بما فيها 0 الصريحة من DB المغلقة.
+    // ملاحظة: بعد إصلاح RPC `get_beneficiary_dashboard` (يونيو 2026) أصبحت السنة النشطة
+    // تُرجع تقديراً حقيقياً بدل 0، فلم يعد 0 يعني "غير محسوب" إلا للسنوات بدون snapshot حساب.
+    if (serverMyShare !== null && serverMyShare !== undefined && isFinite(serverMyShare) && serverMyShare > 0) {
       return serverMyShare;
     }
-    // fallback: حساب محلي (للناظر أو عند غياب RPC)
-    if (!currentBeneficiary || totalBenPct <= 0) return 0;
-    return Math.round(safeNumber(availableAmount) * safeNumber(currentBeneficiary.share_percentage) / totalBenPct * 100) / 100;
+    // fallback: حساب محلي (للناظر، أو عند غياب snapshot الحساب، أو عند serverMyShare=0)
+    if (!currentBeneficiary || totalBenPct <= 0) return safeNumber(serverMyShare);
+    const localShare = Math.round(safeNumber(availableAmount) * safeNumber(currentBeneficiary.share_percentage) / totalBenPct * 100) / 100;
+    // إذا الـ fallback المحلي = 0 أيضاً، نُرجع قيمة الخادم (قد تكون 0 صراحة لسنة مغلقة بلا متاح)
+    return localShare > 0 ? localShare : safeNumber(serverMyShare);
   }, [serverMyShare, currentBeneficiary, availableAmount, totalBenPct]);
 
   return { currentBeneficiary, totalBenPct, pctLoading, myShare };
