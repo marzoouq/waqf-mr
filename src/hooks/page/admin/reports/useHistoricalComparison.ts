@@ -53,7 +53,9 @@ export function useHistoricalComparison() {
     const metrics = [
       { key: 'income', label: 'الدخل' },
       { key: 'expenses', label: 'المصروفات' },
-      { key: 'net', label: 'الصافي' },
+      { key: 'netAfterExpenses', label: 'صافي بعد المصروفات' },
+      { key: 'netAfterZakat', label: 'صافي بعد الزكاة' },
+      { key: 'waqfRevenue', label: 'ريع الوقف' },
     ];
     return metrics.map(m => {
       const row: Record<string, string | number> = { metric: m.label };
@@ -61,7 +63,9 @@ export function useHistoricalComparison() {
         const d = yearData[i];
         if (m.key === 'income') row[fy.label] = d?.totalIncome ?? 0;
         else if (m.key === 'expenses') row[fy.label] = d?.totalExpenses ?? 0;
-        else row[fy.label] = netOf(d);
+        else if (m.key === 'netAfterExpenses') row[fy.label] = netAfterExpensesOf(d);
+        else if (m.key === 'netAfterZakat') row[fy.label] = netAfterZakatOf(d);
+        else row[fy.label] = waqfRevenueOf(d);
       });
       return row;
     });
