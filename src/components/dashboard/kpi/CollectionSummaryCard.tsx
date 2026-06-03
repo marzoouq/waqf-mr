@@ -15,6 +15,8 @@ interface CollectionSummaryCardProps {
     paidCount: number;
     partialCount: number;
     unpaidCount: number;
+    /** عدد الفواتير المتأخرة فعلياً (بعد تاريخ الاستحقاق) — مصدر RPC */
+    overdueCount?: number;
     paidLikeCount?: number;
     total: number;
     percentage: number;
@@ -48,7 +50,7 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
         <div className="flex flex-col md:flex-row items-center gap-6">
           <ErrorBoundary>
             <Suspense fallback={<Skeleton className="w-[180px] h-[180px] rounded-full shrink-0" />}>
-              <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount} partial={collectionSummary.partialCount} />
+              <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.overdueCount ?? collectionSummary.unpaidCount} partial={collectionSummary.partialCount} />
             </Suspense>
           </ErrorBoundary>
 
@@ -77,7 +79,7 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
                 <AlertTriangle className="w-5 h-5 text-destructive" />
                 <span className="text-sm text-muted-foreground">متأخر</span>
               </div>
-              <p className="text-xl sm:text-3xl font-bold text-destructive">{collectionSummary.unpaidCount}</p>
+              <p className="text-xl sm:text-3xl font-bold text-destructive">{collectionSummary.overdueCount ?? collectionSummary.unpaidCount}</p>
               <Badge className="bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30">فاتورة</Badge>
             </div>
 

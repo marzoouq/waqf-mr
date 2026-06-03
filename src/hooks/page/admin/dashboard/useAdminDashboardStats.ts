@@ -67,6 +67,8 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
 
   // ── ملخص التحصيل (جاهز من RPC) ──
   // paidLikeCount = paid + partially_paid (تعريف موحّد مع لوحة المستفيد)
+  // overdueCount = الفواتير المتأخرة فعلياً (لا يشمل pending قبل تاريخ الاستحقاق)
+  // unpaidCount = كل غير المدفوع (overdue + pending قبل الاستحقاق) — يُستخدم في الإحصاء العام
   const collectionSummary = useMemo(() => {
     const paidCount = collection?.paid_count ?? 0;
     const partialCount = collection?.partial_count ?? 0;
@@ -74,6 +76,7 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
       paidCount,
       partialCount,
       unpaidCount: collection?.unpaid_count ?? 0,
+      overdueCount: collection?.overdue_count ?? 0,
       paidLikeCount: paidCount + partialCount,
       total: collection?.total ?? 0,
       percentage: collection?.percentage ?? 0,
@@ -103,7 +106,7 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
       { title: 'إجمالي المصروفات', value: `${fmtInt(totalExpenses)} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true },
       { title: `صافي بعد المصروفات${sharesNote}`, value: `${fmtInt(netAfterExpenses)} ر.س`, icon: Landmark, color: 'bg-success', link: '/dashboard/accounts', yoyChange: netChange, invertColor: false },
       { title: 'المستفيدون النشطون', value: beneficiariesCount, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
-      { title: `التدفق النقدي الصافي${sharesNote}`, value: isYearActive ? 'يُحسب عند الإقفال' : `${fmtInt(netCashFlow)} ر.س`, icon: ArrowDownUp, color: netCashFlow >= 0 ? 'bg-success' : 'bg-destructive', link: '/dashboard/accounts' },
+      { title: `التدفق النقدي الصافي${sharesNote}`, value: isYearActive ? 'يُحسب عند الإقفال' : `${fmtInt(netCashFlow)} ر.س`, icon: ArrowDownUp, color: netCashFlow >= 0 ? 'bg-success' : 'bg-destructive', link: '/dashboard/accounts', visibility: 'admin-only' },
     ];
 
     // الفلتر يبقى كطبقة دفاع لأي بطاقات admin-only تُضاف مستقبلاً

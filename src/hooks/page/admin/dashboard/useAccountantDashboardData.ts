@@ -115,10 +115,10 @@ export function useAccountantDashboardData({ aggregated, heatmapInvoices }: UseA
       }));
   }, [heatmapInvoices]);
 
-  /** فواتير معلقة */
+  /** فواتير معلقة — pending ولم يحن استحقاقها بعد (لا تتداخل مع overdueInvoices) */
   const pendingInvoicesCount = useMemo(
-    () => heatmapInvoices.filter(inv => inv.status === 'pending').length,
-    [heatmapInvoices],
+    () => heatmapInvoices.filter(inv => inv.status === 'pending' && inv.due_date >= today).length,
+    [heatmapInvoices, today],
   );
 
   /** بيانات من counts المُجمّعة */

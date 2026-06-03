@@ -71,7 +71,12 @@ export const useMySharePage = () => {
 
   // تصفية التوزيعات عبر الدالة المشتركة (تحترم وجود الحساب والسنة المحددة)
   const filteredDistributions = filterDistributionsByFiscalYear(distributions, !!fin.account, fiscalYearId);
-  const { totalReceived, pendingAmount } = summarizeDistributions(filteredDistributions);
+  const localSummary = summarizeDistributions(filteredDistributions);
+  // إصلاح اتساق #3: عند غياب الحساب (سنة نشطة) قد تكون filteredDistributions فارغة
+  // فنعتمد على total_received من RPC كمصدر مرجعي. عند وجود توزيعات محلية نُفضّلها لدقة الفلترة.
+  const serverTotalReceived = safeNumber(dashData?.total_received);
+  const totalReceived = filteredDistributions.length > 0 ? localSummary.totalReceived : serverTotalReceived;
+  const { pendingAmount } = localSummary;
 
   // جلب العقود lazily فقط عند الحاجة لتصدير PDF — عبر data hook (التزام v7)
   const fetchContractsForPdf = useContractsForPdf();
