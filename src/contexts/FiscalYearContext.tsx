@@ -1,8 +1,10 @@
 import React, { createContext, useContext } from 'react';
 import type { FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import { useDashboardPrefetch } from '@/hooks/data/dashboard/useDashboardPrefetch';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { useFiscalYearPersistence } from '@/hooks/auth/session/useFiscalYearPersistence';
 import { useResolvedFiscalYear } from '@/hooks/auth/session/useResolvedFiscalYear';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logger } from '@/lib/logger';
 import { FY_NONE } from '@/constants/fiscalYearIds';
 
