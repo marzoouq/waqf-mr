@@ -57,10 +57,10 @@ export function usePropertiesViewPage() {
 
   const summaryData = useMemo(() => {
     const totalProperties = properties?.length ?? 0;
-    // فصل: وحدات شاغرة فعلياً مقابل عقارات بدون وحدات (لكلٍّ بطاقة مستقلة)
+    // تطابق منطق الناظر (بند 9): الوحدات الشاغرة فقط — العقارات بدون وحدات لا تُحتسب ضمن "الشواغر"
     const vacantUnits = Math.max(0, totalUnits - occupiedUnits);
     const propertiesWithoutUnits = propertiesWithoutUnitsNoContract;
-    const totalVacant = vacantUnits + propertiesWithoutUnits;
+    const totalVacant = vacantUnits;
     // الإيرادات التعاقدية تُحسب من جدول allocations (DB) عبر الـ map الموحّد
     const contractualRevenue = (contracts ?? []).reduce((s, c) => {
       const alloc = allocationMap.get(c.id!);
@@ -85,6 +85,7 @@ export function usePropertiesViewPage() {
       totalExpensesAll = (expenses ?? []).reduce((s, e) => s + safeNumber(e.amount), 0);
     }
     const netIncome = activeIncome - totalExpensesAll;
+    // قاعدة الإشغال = الوحدات فقط (لا تُحسب العقارات بدون وحدات) — تطابق الناظر
     const overallOccupancy = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
     const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
     const occBarColor = overallOccupancy >= 80 ? '[&>div]:bg-success' : overallOccupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
