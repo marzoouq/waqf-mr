@@ -16,3 +16,4 @@ export { generateForensicAuditPDF } from './reports/forensicAudit';
 // ملاحظة: generateAnnualReportPDF و generateAnnualDisclosurePDF تأتي من reports.ts (وليس annualReport.ts)
 // لأن المستهلكين يستخدمون شكل البيانات ذو الحقل `fiscalYear`.
 export { generateAnnualReportPDF, generateAnnualDisclosurePDF } from './reports/reports';
+export { generateAggregatedAnnualReportPDF } from './reports/aggregatedAnnualReport';
