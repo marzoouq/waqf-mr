@@ -177,7 +177,7 @@ export function summarizeCollection(
   let overdueInYearAmount = 0, overdueInYearCount = 0;
   let overdueFromPreviousAmount = 0, overdueFromPreviousCount = 0;
   if (fiscalYearStart) {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayLocalISO();
     for (const inv of invoices) {
       if (inv.status === 'paid') continue;
       if (inv.due_date < fiscalYearStart) {
