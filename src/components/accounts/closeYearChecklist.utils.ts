@@ -65,3 +65,7 @@ export function buildClosureChecklist(params: {
     severity: 'warning',
     detail: 'يوجد مبلغ متاح لم يُوزَّع بالكامل',
   });
+
+  return items;
+}
+
