@@ -37,9 +37,9 @@ function setupHook(opts: {
 
 describe('SwUpdateBanner', () => {
   beforeEach(() => {
-    localStorage.clear();
-    vi.clearAllMocks();
     cleanup();
+    localStorage.clear();
+    useRegisterSWMock.mockReset();
   });
 
   it('1) لا يرسم البانر عندما needRefresh=false', () => {
