@@ -8,6 +8,7 @@ import { computePropertyFinancials, type PropertyFinancials } from '@/hooks/doma
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpenses';
+import { useIncomeByFiscalYear } from '@/hooks/data/financial/income/useIncome';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAccountByFiscalYear } from '@/hooks/data/financial/accounts/useAccounts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
