@@ -50,9 +50,10 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
   const fmtPctLocal = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`;
   const hasBreakdown =
     data.year1.netAfterExpenses !== undefined && data.year1.netAfterZakat !== undefined && data.year1.waqfRevenue !== undefined;
-  const body: (string | number)[][] = [
-    reshapeRow(['إجمالي الدخل', fmt(data.year1.income), fmt(data.year2.income), fmtPctLocal(data.incomeChange)]) as (string | number)[],
-    reshapeRow(['إجمالي المصروفات', fmt(data.year1.expenses), fmt(data.year2.expenses), fmtPctLocal(data.expenseChange)]) as (string | number)[],
+  type Row = ReturnType<typeof reshapeRow>;
+  const body: Row[] = [
+    reshapeRow(['إجمالي الدخل', fmt(data.year1.income), fmt(data.year2.income), fmtPctLocal(data.incomeChange)]),
+    reshapeRow(['إجمالي المصروفات', fmt(data.year1.expenses), fmt(data.year2.expenses), fmtPctLocal(data.expenseChange)]),
   ];
   if (hasBreakdown) {
     const ne1 = data.year1.netAfterExpenses!, ne2 = data.year2.netAfterExpenses!;
