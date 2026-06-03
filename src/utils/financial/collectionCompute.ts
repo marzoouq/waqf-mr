@@ -83,7 +83,8 @@ export function buildCollectionRow(
   useDynamicAllocation: boolean,
 ): CollectionRow {
   const contractPaymentCount = getPaymentCount(contract);
-  const perPayment = contract.payment_amount || (safeNumber(contract.rent_amount) / contractPaymentCount);
+  // ?? بدل || لاكتشاف payment_amount=0 (بيانات خاطئة) بدل ابتلاعه صامتاً.
+  const perPayment = contract.payment_amount ?? (safeNumber(contract.rent_amount) / contractPaymentCount);
 
   let allocatedPayments: number;
   let allocatedAmount: number;
