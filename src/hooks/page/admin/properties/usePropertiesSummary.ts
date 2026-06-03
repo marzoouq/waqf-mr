@@ -14,6 +14,7 @@ import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyAll } from '@/constants/fiscalYearIds';
+import { computeOccupancySplit } from '@/utils/properties/computeOccupancySplit';
 import type { Property } from '@/types';
 import type { Contract } from '@/types';
 
