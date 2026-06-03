@@ -6,9 +6,12 @@ import { useMemo } from 'react';
 import { useGreeting } from '@/hooks/ui/useGreeting';
 import { fmt } from '@/utils/format/format';
 import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/dashboardComputations';
+import { computeExpenseRatio, EXPENSE_RATIO_FULL_DEFICIT } from '@/utils/financial/ratios';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
 import { computeContractualRevenue } from '@/utils/financial/computeContractualRevenue';
+import { isFyReady } from '@/constants/fiscalYearIds';
+
 // #M6 — مصدر مشترك في طبقة application (لا cross-role coupling عبر beneficiary)
 import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFinancials';
 import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';
