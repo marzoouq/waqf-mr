@@ -21,7 +21,7 @@ export function useAccountsViewPage() {
   const navigate = useNavigate();
 
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
-  const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId ?? 'all');
+  const { data: contracts = [] } = useContractsSafeByFiscalYear(isFyReady(fiscalYearId) ? fiscalYearId : 'all');
 
   const { data: dashData, isLoading: finLoading, isError: finError } = useEndUserDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
