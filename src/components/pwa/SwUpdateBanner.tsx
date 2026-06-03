@@ -46,7 +46,7 @@ const SwUpdateBanner = () => {
 
   useEffect(() => {
     if (!needRefresh) return;
-    const stored = safeGet<SnoozedVersion | string>(SNOOZED_VERSION_KEY, '' as unknown as SnoozedVersion);
+    const stored = safeGet<SnoozedVersion | null>(SNOOZED_VERSION_KEY, null);
     if (stored && typeof stored === 'object' && stored.sw === swFingerprint) {
       if (Date.now() - stored.ts < SNOOZE_VERSION_TTL_MS) {
         // نفس النسخة المرفوضة سابقاً وما زالت ضمن TTL — لا نُظهر البانر
