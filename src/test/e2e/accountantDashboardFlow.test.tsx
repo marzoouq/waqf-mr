@@ -34,12 +34,12 @@ const aggregated = {
   totals: { total_income: 500_000, available_amount: 250_000 },
 } as unknown as AggregatedData;
 
-const renderView = (props?: { aggregated?: AggregatedData | null }) =>
+const renderView = (override?: { aggregated: AggregatedData | null }) =>
   render(
     <MemoryRouter>
       <AccountantDashboardView
         metrics={baseMetrics}
-        aggregated={props?.aggregated ?? aggregated}
+        aggregated={override ? override.aggregated : aggregated}
         isLoading={false}
       />
     </MemoryRouter>,
