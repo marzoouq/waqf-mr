@@ -56,6 +56,12 @@ export interface AggregatedYoY {
   prev_label: string | null;
   prev_income: number;
   prev_expenses: number;
+  /** قيم السنة السابقة من snapshot الحساب الختامي (للحسابات الدقيقة YoY) */
+  prev_corpus_previous?: number;
+  prev_vat?: number;
+  prev_zakat?: number;
+  prev_net_after_zakat?: number;
+  prev_has_account?: boolean;
   has_prev: boolean;
 }
 
