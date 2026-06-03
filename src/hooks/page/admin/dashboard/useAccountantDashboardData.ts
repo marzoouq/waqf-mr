@@ -56,27 +56,35 @@ interface UseAccountantDashboardDataParams {
 export function useAccountantDashboardData({ aggregated, heatmapInvoices }: UseAccountantDashboardDataParams): AccountantMetrics {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
-  /** فواتير متأخرة — مرتبة بالأقدم أولاً */
+  /** فواتير متأخرة — مرتبة بالأقدم أولاً (تشمل partially_paid المتأخرة، والمبلغ = المتبقي) */
   const overdueInvoices = useMemo<OverdueInvoice[]>(() => {
     if (!heatmapInvoices.length) return [];
     const now = new Date();
     return heatmapInvoices
-      .filter(inv => inv.status === 'overdue' || (inv.status === 'pending' && inv.due_date < today))
+      .filter(inv => {
+        const isPastDue = inv.due_date < today;
+        return inv.status === 'overdue'
+          || (isPastDue && (inv.status === 'pending' || inv.status === 'partially_paid'));
+      })
       .map(inv => {
         const dueDate = new Date(inv.due_date);
         const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / 86_400_000);
+        const remaining = inv.status === 'partially_paid'
+          ? Math.max(0, inv.amount - (inv.paid_amount ?? 0))
+          : inv.amount;
         return {
           id: inv.id,
           invoiceNumber: inv.invoice_number,
           tenantName: inv.contract?.tenant_name ?? '—',
           propertyNumber: inv.contract?.property?.property_number ?? '—',
-          amount: inv.amount,
+          amount: remaining,
           dueDate: inv.due_date,
           daysOverdue,
         };
       })
       .sort((a, b) => b.daysOverdue - a.daysOverdue);
   }, [heatmapInvoices, today]);
+
 
   const overdueTotal = useMemo(() => overdueInvoices.reduce((s, i) => s + i.amount, 0), [overdueInvoices]);
 
