@@ -8,9 +8,12 @@ import { useMultiYearSummary, type YearSummaryEntry } from '@/hooks/data/financi
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 
-// تعريف موحَّد لـ "الصافي" = waqfRevenue (مصدر رسمي للسنوات المقفلة) مع fallback آمن
-const netOf = (d: YearSummaryEntry | null | undefined) =>
-  d?.waqfRevenue && d.waqfRevenue > 0 ? d.waqfRevenue : (d?.totalIncome ?? 0) - (d?.totalExpenses ?? 0);
+// ثلاث مراحل صافية منفصلة — يُعرض كل منها في عمود/خط مستقل
+const netAfterExpensesOf = (d: YearSummaryEntry | null | undefined) =>
+  d?.netAfterExpenses ?? ((d?.totalIncome ?? 0) - (d?.totalExpenses ?? 0));
+const netAfterZakatOf = (d: YearSummaryEntry | null | undefined) =>
+  d?.netAfterZakat ?? ((d?.netAfterVat ?? 0) - (d?.zakatAmount ?? 0));
+const waqfRevenueOf = (d: YearSummaryEntry | null | undefined) => d?.waqfRevenue ?? 0;
 
 export function useHistoricalComparison() {
   const { data: fiscalYears = [], isLoading: fyLoading } = useFiscalYears();
