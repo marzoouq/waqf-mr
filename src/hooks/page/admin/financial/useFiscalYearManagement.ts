@@ -7,6 +7,17 @@ import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { useFiscalYears, type FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY, deleteFiscalYearCascade } from '@/lib/services';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { safeSessionGet, safeSessionRemove, safeSessionSet } from '@/lib/storage';
+
+/** قائمة queryKeys التي تتأثر بتغيير حالة النشر لسنة مالية. */
+const PUBLISH_INVALIDATION_KEYS: readonly (readonly string[])[] = [
+  ['fiscal_years'],
+  ['fiscal_years_published_all'],
+  ['public-stats'],
+  ['annual_report_status'],
+  ['annual_report_items'],
+];
 
 export function useFiscalYearManagement() {
   const { data: fiscalYears = [], isLoading } = useFiscalYears();
