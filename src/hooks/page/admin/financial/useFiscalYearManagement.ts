@@ -19,6 +19,22 @@ const PUBLISH_INVALIDATION_KEYS: readonly (readonly string[])[] = [
   ['annual_report_items'],
 ];
 
+/**
+ * إذا كانت السنة المحذوفة هي المختارة حالياً في sessionStorage،
+ * يستبدلها بأول سنة active متاحة، أو يمسحها تماماً.
+ */
+const cleanupSelectedFiscalYearIfDeleted = (
+  deletedId: string,
+  remaining: readonly FiscalYear[],
+) => {
+  const currentSelected = safeSessionGet(STORAGE_KEYS.FISCAL_YEAR, '');
+  if (currentSelected !== deletedId) return;
+  const fallback = remaining.find(fy => fy.id !== deletedId && fy.status === 'active')
+    ?? remaining.find(fy => fy.id !== deletedId);
+  if (fallback) safeSessionSet(STORAGE_KEYS.FISCAL_YEAR, fallback.id);
+  else safeSessionRemove(STORAGE_KEYS.FISCAL_YEAR);
+};
+
 export function useFiscalYearManagement() {
   const { data: fiscalYears = [], isLoading } = useFiscalYears();
   const queryClient = useQueryClient();

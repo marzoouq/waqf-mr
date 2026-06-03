@@ -32,8 +32,8 @@ export const validateFiscalYearInput = (input: FiscalYearInput): string | null =
   if (!m) {
     return 'تنسيق المسمى يجب أن يكون YYYY-YYYY (مثال: 2025-2026)';
   }
-  const y1 = parseInt(m[1], 10);
-  const y2 = parseInt(m[2], 10);
+  const y1 = parseInt(m[1] ?? '0', 10);
+  const y2 = parseInt(m[2] ?? '0', 10);
   if (y2 - y1 !== 1) {
     return 'السنة الثانية في المسمى يجب أن تكون أكبر من الأولى بسنة واحدة بالضبط';
   }
