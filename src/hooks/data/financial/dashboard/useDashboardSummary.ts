@@ -48,15 +48,23 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
   const data = query.data;
 
   // ── YoY من البيانات المُجمّعة ──
+  // P3-Stage3: استخدام prev_net_after_zakat من snapshot الحساب الختامي للسنة السابقة
+  // (يتضمن corpus_previous + vat + zakat) بدل التقريب income - expenses
   const yoy = useMemo(() => {
     const y = data?.aggregated?.yoy;
     if (!y?.has_prev) {
       return { prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0, hasPrevYear: false };
     }
+    const prevIncome = y.prev_income ?? 0;
+    const prevExpenses = y.prev_expenses ?? 0;
+    // إذا توفر snapshot للسنة السابقة نستخدم net_after_zakat الدقيق، وإلا fallback للفرق
+    const prevNet = y.prev_has_account && typeof y.prev_net_after_zakat === 'number'
+      ? y.prev_net_after_zakat
+      : prevIncome - prevExpenses;
     return {
-      prevTotalIncome: y.prev_income ?? 0,
-      prevTotalExpenses: y.prev_expenses ?? 0,
-      prevNetAfterExpenses: (y.prev_income ?? 0) - (y.prev_expenses ?? 0),
+      prevTotalIncome: prevIncome,
+      prevTotalExpenses: prevExpenses,
+      prevNetAfterExpenses: prevNet,
       hasPrevYear: true,
     };
   }, [data?.aggregated?.yoy]);
