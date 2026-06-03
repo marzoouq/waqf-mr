@@ -55,7 +55,7 @@ const InvoicesPage = () => {
 
         {/* تبويبات مصدر الفاتورة — يوحّد العرض مع لوحة المستفيد */}
         <Tabs value={h.sourceFilter} onValueChange={(v) => { h.setSourceFilter(v as 'all' | 'purchase' | 'rent'); h.setCurrentPage(1); }}>
-          <TabsList>
+          <TabsList aria-label="تصنيف الفواتير">
             <TabsTrigger value="all">الكل ({h.unifiedInvoices.length})</TabsTrigger>
             <TabsTrigger value="rent">فواتير الإيجار</TabsTrigger>
             <TabsTrigger value="expense">فواتير الشراء</TabsTrigger>

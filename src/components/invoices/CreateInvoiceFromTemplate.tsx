@@ -83,7 +83,7 @@ export default function CreateInvoiceFromTemplate({
 
         <Tabs value={activeTab} onValueChange={v => setActiveTab(v as 'form' | 'preview')} className="w-full">
           <div className="px-6 pt-2">
-            <TabsList className="w-full grid grid-cols-2">
+            <TabsList aria-label="نوع الفاتورة" className="w-full grid grid-cols-2">
               <TabsTrigger value="form" className="gap-1.5"><FileText className="w-4 h-4" />تعبئة البيانات</TabsTrigger>
               <TabsTrigger value="preview" className="gap-1.5"><Eye className="w-4 h-4" />معاينة الفاتورة</TabsTrigger>
             </TabsList>

@@ -117,7 +117,7 @@ const FeatureVisibilityGrid = () => {
         </div>
 
         <Tabs value={activeScope} onValueChange={(v) => setActiveScope(v as FeatureScope)} dir="rtl">
-          <TabsList className="w-full grid grid-cols-3">
+          <TabsList aria-label="فئات الميزات" className="w-full grid grid-cols-3">
             {SCOPES.map((s) => (
               <TabsTrigger key={s} value={s}>
                 {FEATURE_SCOPE_LABELS[s]}

@@ -254,11 +254,11 @@ describe('checks — إعدادات التطبيق', () => {
 // ════════════════════════════════════════════════
 
 describe('diagnosticCategories', () => {
-  it('يحتوي 7 بطاقات و29 فحصاً (بعد الموجة 12)', async () => {
+  it('يحتوي 8 بطاقات و34 فحصاً (بعد إضافة البطاقة المالية)', async () => {
     const { diagnosticCategories } = await import('./checks');
-    expect(diagnosticCategories).toHaveLength(7);
+    expect(diagnosticCategories).toHaveLength(8);
     const totalChecks = diagnosticCategories.reduce((sum, cat) => sum + cat.checks.length, 0);
-    expect(totalChecks).toBe(29);
+    expect(totalChecks).toBe(34);
   });
 
   it('كل بطاقة لها عنوان وفحوصات', async () => {

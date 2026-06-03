@@ -46,7 +46,7 @@ const SupportDashboardPage = () => {
         />
 
         <Tabs defaultValue="tickets" className="space-y-4">
-          <TabsList className="grid grid-cols-3 w-full max-w-md">
+          <TabsList aria-label="حالة التذاكر" className="grid grid-cols-3 w-full max-w-md">
             <TabsTrigger value="tickets" className="gap-1"><Headset className="w-4 h-4" />التذاكر</TabsTrigger>
             <TabsTrigger value="errors" className="gap-1"><Bug className="w-4 h-4" />الأخطاء</TabsTrigger>
             <TabsTrigger value="stats" className="gap-1"><BarChart3 className="w-4 h-4" />الإحصائيات</TabsTrigger>
