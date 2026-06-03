@@ -27,6 +27,9 @@ export { checkEnvVariables, checkRegisteredRoutes, checkOnlineStatus } from './c
 // بطاقة 7 — ZATCA والفوترة الإلكترونية
 export { checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPendingInvoiceChains, checkUnsubmittedInvoices, checkZatcaSettings, checkStaleOtp, checkInvoiceChainCompleteness } from './checks/zatca';
 
+// بطاقة 8 — فحوصات مالية
+export { checkPartiallyPaidConsistency, checkDistributionsVsAvailable, checkBeneficiariesWithoutAccount, checkContractsWithoutAllocations, checkOverduePartiallyPaid } from './checks/financial';
+
 // استيراد الدوال لبناء المجمّع
 import { checkSupabaseConnection, checkRealtimeChannels, checkAuthSession } from './checks/database';
 import { checkScrollPerformance, checkDomNodesCount, checkDeviceMemory, checkPagePerformance, checkWcagContrast } from './checks/performance';
@@ -35,6 +38,7 @@ import { checkCssVariables, checkFontsLoaded, checkCSP } from './checks/ui';
 import { checkNotificationPermission, checkClipboardAPI } from './checks/security';
 import { checkEnvVariables, checkRegisteredRoutes, checkOnlineStatus } from './checks/appSettings';
 import { checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPendingInvoiceChains, checkUnsubmittedInvoices, checkZatcaSettings, checkStaleOtp, checkInvoiceChainCompleteness } from './checks/zatca';
+import { checkPartiallyPaidConsistency, checkDistributionsVsAvailable, checkBeneficiariesWithoutAccount, checkContractsWithoutAllocations, checkOverduePartiallyPaid } from './checks/financial';
 import type { CheckResult, DiagnosticCategory } from './types';
 
 // ════════════════════════════════════════════════
@@ -69,6 +73,10 @@ export const diagnosticCategories: DiagnosticCategory[] = [
   {
     title: 'ZATCA والفوترة الإلكترونية',
     checks: [checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPendingInvoiceChains, checkUnsubmittedInvoices, checkZatcaSettings, checkStaleOtp, checkInvoiceChainCompleteness],
+  },
+  {
+    title: 'الفحوصات المالية',
+    checks: [checkPartiallyPaidConsistency, checkDistributionsVsAvailable, checkBeneficiariesWithoutAccount, checkContractsWithoutAllocations, checkOverduePartiallyPaid],
   },
 ];
 
