@@ -10,7 +10,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useFiscalYearManagement } from '@/hooks/page/admin/financial/useFiscalYearManagement';
 import ReopenFiscalYearDialog from './ReopenFiscalYearDialog';
 import CascadeDeleteFiscalYearDialog from './CascadeDeleteFiscalYearDialog';
@@ -19,7 +20,7 @@ import CascadeDeleteFiscalYearDialog from './CascadeDeleteFiscalYearDialog';
 const FiscalYearManagementTab = () => {
   const {
     fiscalYears, isLoading, creating, setCreating,
-    newFY, setNewFY, actionLoading,
+    newFY, setNewFY, actionLoading, formError, submitError,
     handleCreate, handleClose, handleReopen, togglePublished, handleDelete, handleCascadeDelete,
   } = useFiscalYearManagement();
 
