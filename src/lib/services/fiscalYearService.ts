@@ -72,9 +72,10 @@ export const checkFiscalYearConflicts = async (input: FiscalYearInput): Promise<
     .limit(200);
   if (error) throw error;
   const rows = data ?? [];
+  const normalizedLabel = normalizeFiscalYearLabel(input.label);
 
-  if (rows.some(r => r.label === input.label)) {
-    return `يوجد سنة مالية بنفس المسمى "${input.label}"`;
+  if (rows.some(r => r.label === normalizedLabel)) {
+    return `يوجد سنة مالية بنفس المسمى "${normalizedLabel}"`;
   }
   const overlap = rows.find(r =>
     r.start_date <= input.end_date && r.end_date >= input.start_date,
@@ -89,21 +90,48 @@ export const checkFiscalYearConflicts = async (input: FiscalYearInput): Promise<
   return null;
 };
 
+/** يحوّل أخطاء Postgres إلى رسائل عربية حرفية مفهومة */
+const mapPostgresError = (err: unknown, input: FiscalYearInput): string => {
+  const e = err as { code?: string; message?: string };
+  const label = normalizeFiscalYearLabel(input.label);
+  if (e?.code === '23P01') {
+    // exclusion / overlap — رسالة الـtrigger تحوي الاسم والفترة
+    return e.message ?? `يوجد تداخل زمني بين السنة "${label}" وسنة موجودة`;
+  }
+  if (e?.code === '23505') {
+    const msg = String(e.message ?? '');
+    if (msg.includes('fiscal_years_one_active_idx')) {
+      return 'يوجد سنة نشطة بالفعل. أقفلها قبل إنشاء سنة جديدة.';
+    }
+    if (msg.includes('fiscal_years_label_unique') || msg.includes('label')) {
+      return `يوجد سنة مالية بنفس المسمى "${label}"`;
+    }
+    return 'قيمة مكررة تنتهك قيداً فريداً في جدول السنوات المالية';
+  }
+  if (e?.code === '23514') {
+    return 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية';
+  }
+  return e?.message ?? 'حدث خطأ أثناء إنشاء السنة المالية';
+};
+
 export const createFiscalYear = async (data: FiscalYearInput) => {
-  const validationError = validateFiscalYearInput(data);
+  const normalizedLabel = normalizeFiscalYearLabel(data.label);
+  const payload: FiscalYearInput = { ...data, label: normalizedLabel };
+
+  const validationError = validateFiscalYearInput(payload);
   if (validationError) throw new Error(validationError);
 
-  const conflictError = await checkFiscalYearConflicts(data);
+  const conflictError = await checkFiscalYearConflicts(payload);
   if (conflictError) throw new Error(conflictError);
 
   const { error } = await supabase.from('fiscal_years').insert({
-    label: data.label,
-    start_date: data.start_date,
-    end_date: data.end_date,
+    label: payload.label,
+    start_date: payload.start_date,
+    end_date: payload.end_date,
     status: 'active',
     published: false,
   });
-  if (error) throw error;
+  if (error) throw new Error(mapPostgresError(error, payload));
 };
 
 export const reopenFiscalYear = async (fiscalYearId: string, reason: string) => {
