@@ -33,14 +33,9 @@ function HistoricalComparisonPage() {
           description="قارن بيانات 2-4 سنوات مالية جنباً إلى جنب"
           actions={
             selectedYears.length >= 2 ? (
-              <Button
-                variant="outline"
-                onClick={handleExportPdf}
-                disabled={isAnyLoading || selectedYears.length > 2}
-                title={selectedYears.length > 2 ? 'تصدير PDF متاح فقط عند مقارنة سنتين' : undefined}
-              >
+              <Button variant="outline" onClick={handleExportPdf} disabled={isAnyLoading}>
                 <FileDown className="w-4 h-4 ml-2" />
-                {selectedYears.length > 2 ? 'PDF (سنتان فقط)' : 'تصدير PDF'}
+                تصدير PDF
               </Button>
             ) : undefined
           }

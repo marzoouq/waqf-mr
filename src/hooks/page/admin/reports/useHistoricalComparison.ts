@@ -1,12 +1,16 @@
 /**
  * Hook لمنطق صفحة المقارنة التاريخية
- * يتضمن: اختيار السنوات، جلب البيانات، حساب صفوف المقارنة، بيانات الرسم البياني، تصدير PDF
+ * يتضمن: اختيار السنوات، جلب البيانات، حساب صفوف المقارنة، بيانات الرسم البياني، تصدير PDF متعدد السنوات
  */
 import { useState, useMemo, useCallback } from 'react';
 import { useFiscalYears } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import { useMultiYearSummary, type YearSummaryEntry } from '@/hooks/data/financial/fiscalYears/useMultiYearSummary';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
+
+// تعريف موحَّد لـ "الصافي" = waqfRevenue (مصدر رسمي للسنوات المقفلة) مع fallback آمن
+const netOf = (d: YearSummaryEntry | null) =>
+  d?.waqfRevenue && d.waqfRevenue > 0 ? d.waqfRevenue : (d?.totalIncome ?? 0) - (d?.totalExpenses ?? 0);
 
 export function useHistoricalComparison() {
   const { data: fiscalYears = [], isLoading: fyLoading } = useFiscalYears();
@@ -21,20 +25,15 @@ export function useHistoricalComparison() {
     [fiscalYears, selectedIds],
   );
 
-  // جلب بيانات كل السنوات المختارة في استدعاء RPC واحد
   const selectedYearIds = useMemo(() => selectedYears.map(fy => fy.id), [selectedYears]);
   const { data: multiYearData = [], isLoading: multiLoading, isError: multiError, error: multiErrorObj } = useMultiYearSummary(selectedYearIds);
 
-  // ترتيب البيانات بنفس ترتيب السنوات المختارة
   const yearData = useMemo(() => {
-    return selectedYears.map(fy => {
-      return multiYearData.find(d => d.yearId === fy.id) ?? null;
-    });
+    return selectedYears.map(fy => multiYearData.find(d => d.yearId === fy.id) ?? null);
   }, [selectedYears, multiYearData]);
 
   const isAnyLoading = multiLoading;
 
-  // إضافة / إزالة سنة
   const toggleYear = useCallback((fyId: string) => {
     setSelectedIds(prev => {
       if (prev.includes(fyId)) return prev.filter(id => id !== fyId);
@@ -46,7 +45,6 @@ export function useHistoricalComparison() {
     });
   }, []);
 
-  // بيانات الرسم البياني
   const chartData = useMemo(() => {
     if (selectedYears.length < 2) return [];
     const metrics = [
@@ -60,13 +58,12 @@ export function useHistoricalComparison() {
         const d = yearData[i];
         if (m.key === 'income') row[fy.label] = d?.totalIncome ?? 0;
         else if (m.key === 'expenses') row[fy.label] = d?.totalExpenses ?? 0;
-        else row[fy.label] = d?.waqfRevenue ?? ((d?.totalIncome ?? 0) - (d?.totalExpenses ?? 0));
+        else row[fy.label] = netOf(d);
       });
       return row;
     });
   }, [selectedYears, yearData]);
 
-  // صفوف جدول المقارنة
   const comparisonRows = useMemo(() => {
     if (selectedYears.length < 2) return [];
     return [
@@ -82,36 +79,27 @@ export function useHistoricalComparison() {
     ];
   }, [selectedYears]);
 
-  // تصدير PDF
+  // تصدير PDF — يدعم 2-4 سنوات
   const handleExportPdf = useCallback(async () => {
     if (selectedYears.length < 2) return;
     try {
-      const { generateYearComparisonPDF } = await import('@/utils/pdf/reports/comparison');
-      const d0 = yearData[0];
-      const d1 = yearData[1];
-      if (!d0 || !d1) {
-        uiNotify.error('بيانات السنوات غير مكتملة');
-        return;
-      }
-      const y0 = selectedYears[0];
-      const y1 = selectedYears[1];
-      if (!y0 || !y1) return;
-      await generateYearComparisonPDF({
-        year1Label: y0.label,
-        year2Label: y1.label,
-        year1: { income: d0.totalIncome, expenses: d0.totalExpenses, net: d0.waqfRevenue ?? (d0.totalIncome - d0.totalExpenses) },
-        year2: { income: d1.totalIncome, expenses: d1.totalExpenses, net: d1.waqfRevenue ?? (d1.totalIncome - d1.totalExpenses) },
-        incomeChange: d0.totalIncome ? ((d1.totalIncome - d0.totalIncome) / d0.totalIncome) * 100 : 0,
-        expenseChange: d0.totalExpenses ? ((d1.totalExpenses - d0.totalExpenses) / d0.totalExpenses) * 100 : 0,
-        netChange: (() => {
-          const n0 = d0.waqfRevenue ?? (d0.totalIncome - d0.totalExpenses);
-          const n1 = d1.waqfRevenue ?? (d1.totalIncome - d1.totalExpenses);
-          return n0 ? ((n1 - n0) / Math.abs(n0)) * 100 : 0;
-        })(),
-        expensesByType1: Object.entries(d0.expensesByType).map(([name, value]) => ({ name, value })),
-        expensesByType2: Object.entries(d1.expensesByType).map(([name, value]) => ({ name, value })),
-        monthlyData: [],
-      }, waqfInfo ?? undefined);
+      const { generateMultiYearComparisonPDF } = await import('@/utils/pdf/reports/multiYearComparison');
+      const years = selectedYears.map((fy, i) => {
+        const d = yearData[i];
+        return {
+          label: fy.label,
+          income: d?.totalIncome ?? 0,
+          expenses: d?.totalExpenses ?? 0,
+          net: netOf(d),
+          vatAmount: d?.vatAmount ?? 0,
+          zakatAmount: d?.zakatAmount ?? 0,
+          adminShare: d?.adminShare ?? 0,
+          waqifShare: d?.waqifShare ?? 0,
+          distributionsAmount: d?.distributionsAmount ?? 0,
+          expensesByType: Object.entries(d?.expensesByType ?? {}).map(([name, value]) => ({ name, value })),
+        };
+      });
+      await generateMultiYearComparisonPDF({ years }, waqfInfo ?? undefined);
       uiNotify.success('تم تصدير PDF بنجاح');
     } catch {
       uiNotify.error('فشل تصدير PDF');
