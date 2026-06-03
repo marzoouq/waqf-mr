@@ -22,16 +22,32 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
   const monthlyData = useMemo(() => {
     const months: Array<{ month: string; monthNum: number; income: number; expenses: number; net: number; cumulative: number }> = [];
     const startDate = fiscalYear ? new Date(fiscalYear.start_date) : new Date(new Date().getFullYear(), 0, 1);
+    // مرور واحد: جمع الدخل والمصروفات في خريطة "year-month"
+    const bucket = new Map<string, { income: number; expenses: number }>();
+    const key = (y: number, m: number) => `${y}-${m}`;
+    for (const item of income) {
+      const d = new Date(item.date);
+      const k = key(d.getFullYear(), d.getMonth());
+      const cur = bucket.get(k) ?? { income: 0, expenses: 0 };
+      cur.income += safeNumber(item.amount);
+      bucket.set(k, cur);
+    }
+    for (const item of expenses) {
+      const d = new Date(item.date);
+      const k = key(d.getFullYear(), d.getMonth());
+      const cur = bucket.get(k) ?? { income: 0, expenses: 0 };
+      cur.expenses += safeNumber(item.amount);
+      bucket.set(k, cur);
+    }
     let cumulative = 0;
     for (let i = 0; i < 12; i++) {
       const monthDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
       const year = monthDate.getFullYear();
       const month = monthDate.getMonth();
-      const monthIncome = income.filter(item => { const d = new Date(item.date); return d.getFullYear() === year && d.getMonth() === month; }).reduce((sum, item) => sum + safeNumber(item.amount), 0);
-      const monthExpenses = expenses.filter(item => { const d = new Date(item.date); return d.getFullYear() === year && d.getMonth() === month; }).reduce((sum, item) => sum + safeNumber(item.amount), 0);
-      const net = monthIncome - monthExpenses;
+      const cur = bucket.get(key(year, month)) ?? { income: 0, expenses: 0 };
+      const net = cur.income - cur.expenses;
       cumulative += net;
-      months.push({ month: MONTH_NAMES[month]!, monthNum: month, income: monthIncome, expenses: monthExpenses, net, cumulative });
+      months.push({ month: MONTH_NAMES[month]!, monthNum: month, income: cur.income, expenses: cur.expenses, net, cumulative });
     }
     return months;
   }, [income, expenses, fiscalYear]);
