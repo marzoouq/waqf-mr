@@ -143,7 +143,12 @@ export function computePropertyFinancials(params: {
 
   const propExpenses = expenses.filter(e => e.property_id === propertyId);
   const totalExpenses = propExpenses.reduce((sum, e) => sum + safeNumber(e.amount), 0);
-  const netIncome = activeAnnualRent - totalExpenses;
+  // الدخل الفعلي من جدول income — fallback إلى activeAnnualRent (المستحقات) إن لم تُمرَّر خريطة
+  const actualIncome = actualIncomeByProperty
+    ? safeNumber(actualIncomeByProperty.get(propertyId) ?? 0)
+    : activeAnnualRent;
+  // الصافي يُحسب على الدخل الفعلي حين توفّر
+  const netIncome = actualIncome - totalExpenses;
 
   // --- الألوان ---
   const occupancyColor = occupancy >= 80 ? 'text-success' : occupancy >= 50 ? 'text-warning' : 'text-destructive';
@@ -152,7 +157,7 @@ export function computePropertyFinancials(params: {
   return {
     totalUnits, rented, vacant, maintenance, occupancy,
     occupancyColor, progressColor, statusMismatch,
-    contractualRevenue, activeAnnualRent, monthlyRent,
+    contractualRevenue, activeAnnualRent, actualIncome, monthlyRent,
     totalExpenses, netIncome,
   };
 }
