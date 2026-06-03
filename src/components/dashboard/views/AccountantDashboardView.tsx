@@ -75,13 +75,13 @@ const AccountantDashboardView = ({ metrics, aggregated, isLoading }: AccountantD
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" data-testid="accountant-financial-cards">
           <MetricCard
             title="إجمالي الإيرادات (السنة)"
-            value={`${fmtInt(aggregated.total_income)} ر.س`}
+            value={`${fmtInt(aggregated.totals.total_income)} ر.س`}
             icon={TrendingUp}
             color="bg-primary"
           />
           <MetricCard
             title="صافي الريع المتاح للتوزيع"
-            value={`${fmtInt(aggregated.available_amount)} ر.س`}
+            value={`${fmtInt(aggregated.totals.available_amount)} ر.س`}
             subtitle={`بعد الضريبة والزكاة والحصص`}
             icon={Wallet}
             color="bg-success"
