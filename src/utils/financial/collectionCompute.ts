@@ -6,6 +6,7 @@ import type { Contract, FiscalYear } from '@/types';
 import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { todayLocalISO } from '@/utils/date/dateOnly';
 
 export type CollectionFilterStatus = 'all' | 'overdue' | 'partial' | 'complete';
 
