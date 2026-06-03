@@ -49,9 +49,10 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
                 {...listeners}
                 role="button"
                 tabIndex={0}
+                aria-label="مقبض السحب لإعادة الترتيب"
                 onClick={(e) => e.stopPropagation()}
               >
-                <GripVertical className="w-4 h-4" />
+                <GripVertical className="w-4 h-4" aria-hidden="true" />
               </div>
             )}
             <Badge variant={item.is_visible ? 'default' : 'secondary'} className="shrink-0 min-w-14 justify-center">
