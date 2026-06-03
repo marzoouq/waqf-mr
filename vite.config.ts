@@ -60,6 +60,17 @@ export default defineConfig(({ mode }) => ({
           '**/vendor-arabic*.js',
         ],
         runtimeCaching: [
+          // HTML navigations عبر NetworkFirst — يضمن أن المستخدم يستلم index.html محدّث
+          // فور توفر اتصال، بدون الاعتماد على precache (الذي كان يتغيّر مع كل بمب نسخة).
+          {
+            urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-navigations',
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 },
+            },
+          },
           // تحميل الحزم المستبعدة عند الطلب مع تخزين مؤقت
           {
             urlPattern: /\/assets\/vendor-(?:pdf|pdf-table|recharts|d3|markdown|dnd|webauthn|qr|arabic).+\.js$/i,
