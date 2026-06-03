@@ -62,7 +62,7 @@ const OverdueInvoicesCard = memo(function OverdueInvoicesCard({
           ))}
         </div>
         {invoices.length > 10 && (
-          <Link to="/dashboard/contracts" className="block mt-3">
+          <Link to="/dashboard/invoices?status=overdue" className="block mt-3">
             <Button variant="outline" size="sm" className="w-full">
               عرض جميع الفواتير المتأخرة ({invoices.length})
             </Button>
