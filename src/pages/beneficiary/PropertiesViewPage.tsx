@@ -97,7 +97,7 @@ const PropertiesViewPage = () => {
                   <span className="text-sm font-medium">نسبة الإشغال الإجمالية</span>
                   <span className={`text-sm font-bold ${occColor}`}>{overallOccupancy}%</span>
                 </div>
-                <Tooltip><TooltipTrigger asChild><div className="cursor-help"><Progress value={overallOccupancy} className={`h-3 ${occBarColor}`} /></div></TooltipTrigger><TooltipContent>مؤجرة: {occupiedUnits} من {totalUnits} وحدة | شاغرة: {totalVacant}</TooltipContent></Tooltip>
+                <Tooltip><TooltipTrigger asChild><div className="cursor-help"><Progress value={overallOccupancy} className={`h-3 ${occBarColor}`} /></div></TooltipTrigger><TooltipContent>مؤجرة: {occupiedUnits} من {totalUnits} وحدة | وحدات شاغرة: {vacantUnits} | عقارات بدون وحدات: {propertiesWithoutUnits}</TooltipContent></Tooltip>
               </CardContent>
             </Card>
           </div>
