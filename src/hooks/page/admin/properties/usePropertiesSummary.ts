@@ -94,6 +94,7 @@ export function usePropertiesSummary({ properties, contracts, propertiesLoading,
 
     return {
       totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy,
+      propertiesWithoutUnits, propertiesWithoutUnitsRented,
       contractualRevenue, activeIncome, collectedIncome,
       totalExpensesAll: totalExpensesCalc, netIncome, isClosed: !!isClosed,
     };
