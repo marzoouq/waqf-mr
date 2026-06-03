@@ -31,10 +31,27 @@ export function usePropertiesViewPage() {
   const isClosed = fiscalYear?.status === 'closed';
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
+  const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId);
   const { data: accounts = [] } = useAccountByFiscalYear(fiscalYear?.label, fiscalYearId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const allocationMap = useContractAllocationMap(contracts);
+
+  // خريطة الدخل الفعلي لكل عقار من جدول income (للسنة المالية الحالية)
+  const incomeByPropertyMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const inc of (income ?? [])) {
+      if (!inc.property_id) continue;
+      map.set(inc.property_id, (map.get(inc.property_id) ?? 0) + safeNumber(inc.amount));
+    }
+    return map;
+  }, [income]);
+
+  // إجمالي الدخل الفعلي للسنة (مجموع income.amount)
+  const totalActualIncome = useMemo(
+    () => (income ?? []).reduce((s, i) => s + safeNumber(i.amount), 0),
+    [income],
+  );
 
   const isLoading = propsLoading || unitsLoading;
   const isError = propsError || unitsError;
