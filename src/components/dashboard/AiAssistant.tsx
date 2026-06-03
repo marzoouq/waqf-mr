@@ -84,7 +84,7 @@ const AiAssistant = () => {
         {/* ── المحادثة ── */}
         <div className="px-3 pt-2 pb-1 border-b border-border">
           <Tabs value={mode} onValueChange={handleModeChange}>
-            <TabsList className="w-full h-8 p-0.5">
+            <TabsList aria-label="وضع المساعد الذكي" className="w-full h-8 p-0.5">
               {(Object.entries(MODE_CONFIG) as [ChatMode, typeof MODE_CONFIG['chat']][]).map(([key, cfg]) => {
                 const Icon = cfg.icon;
                 return (

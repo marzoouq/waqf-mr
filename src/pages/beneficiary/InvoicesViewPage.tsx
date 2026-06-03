@@ -66,7 +66,7 @@ const InvoicesViewPage = () => {
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <Tabs value={sourceFilter} onValueChange={(v) => handleSourceFilterChange(v as 'all' | 'purchase' | 'rent')}>
-            <TabsList>
+            <TabsList aria-label="تصنيف الفواتير">
               <TabsTrigger value="all">الكل</TabsTrigger>
               <TabsTrigger value="rent">فواتير الإيجار</TabsTrigger>
               <TabsTrigger value="expense">فواتير الشراء</TabsTrigger>

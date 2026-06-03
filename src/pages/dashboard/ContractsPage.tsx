@@ -48,7 +48,7 @@ const ContractsPage = () => {
                 { value: 'contracts', label: 'العقود' }, { value: 'accruals', label: 'الاستحقاقات الشهرية' },
               ]} />
             ) : (
-              <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsList aria-label="حالة العقود" className="grid w-full max-w-md grid-cols-2">
                 <TabsTrigger value="contracts" className="gap-2"><FileText className="w-4 h-4" />العقود</TabsTrigger>
                 <TabsTrigger value="accruals" className="gap-2"><CalendarDays className="w-4 h-4" />الاستحقاقات</TabsTrigger>
               </TabsList>

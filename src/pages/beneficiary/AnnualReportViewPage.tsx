@@ -109,7 +109,7 @@ const AnnualReportViewPage = () => {
               </select>
             </div>
           ) : (
-            <TabsList className="w-full justify-start">
+            <TabsList aria-label="أقسام التقرير السنوي" className="w-full justify-start">
               <TabsTrigger value="property_status" className="gap-1 text-sm">
                 <Building2 className="h-4 w-4" /> حالة العقارات
               </TabsTrigger>

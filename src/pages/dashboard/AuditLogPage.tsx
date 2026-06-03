@@ -43,7 +43,7 @@ const AuditLogPage = () => {
               </Select>
             </div>
           ) : (
-            <TabsList className="mb-4">
+            <TabsList aria-label="تصنيف السجلات" className="mb-4">
               <TabsTrigger value="operations" className="gap-2"><Activity className="w-4 h-4" />سجل العمليات</TabsTrigger>
               <TabsTrigger value="access" className="gap-2"><ShieldAlert className="w-4 h-4" />محاولات الوصول</TabsTrigger>
               <TabsTrigger value="archive" className="gap-2"><Archive className="w-4 h-4" />الأرشيف</TabsTrigger>

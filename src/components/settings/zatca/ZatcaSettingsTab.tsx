@@ -57,7 +57,7 @@ const ZatcaSettingsTab = () => {
 
       {isEnabled && (
         <Tabs defaultValue="settings" className="w-full">
-          <TabsList className="w-full">
+          <TabsList aria-label="إعدادات ZATCA" className="w-full">
             <TabsTrigger value="settings" className="flex-1 gap-2">
               <ShieldCheck className="w-4 h-4" />
               الإعدادات

@@ -60,7 +60,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
           </div>
 
           <Tabs value={pu.rentalMode} onValueChange={(v) => pu.setRentalMode(v as 'units' | 'whole')} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList aria-label="عرض الوحدات" className="grid w-full grid-cols-2">
               <TabsTrigger value="units">وحدات منفصلة</TabsTrigger>
               <TabsTrigger value="whole">العقار كامل</TabsTrigger>
             </TabsList>
