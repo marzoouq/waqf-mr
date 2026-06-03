@@ -128,3 +128,4 @@ describe('checkFiscalYearConflicts', () => {
       .toMatch(/نشطة/);
   });
 });
+
