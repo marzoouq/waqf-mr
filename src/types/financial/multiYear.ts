@@ -19,7 +19,11 @@ export interface YearSummaryEntry {
   waqfRevenue: number;
   netAfterExpenses: number;
   netAfterVat: number;
+  /** الصافي بعد الزكاة (net_after_vat - zakat_amount) — يُستخدم كعمود منفصل في المقارنات */
+  netAfterZakat: number;
   availableAmount: number;
+  /** المتاح الخام قبل حماية Math.max(0) — يُستخدم لعرض العجز السالب في الجداول التحليلية */
+  rawAvailableAmount: number;
   distributionsAmount: number;
   expensesByType: Record<string, number>;
   /** علم العجز — يظهر badge "عجز" في الواجهة */
