@@ -2,51 +2,73 @@ import { useRegisterSW } from "virtual:pwa-register/react";
 import { useState, useEffect, useCallback } from "react";
 import { RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { safeSet } from '@/lib/storage';
+import { safeGet, safeSet } from '@/lib/storage';
 
-const SNOOZE_MS = 30 * 60 * 1000; // 30 دقيقة
+const FIRST_CHECK_DELAY_MS = 30 * 1000;        // 30ث قبل أول فحص (لا ضوضاء عند فتح بارد)
+const PERIODIC_CHECK_MS = 5 * 60 * 1000;       // فحص كل 5 دقائق بدل 60ث
+const SNOOZE_MS = 30 * 60 * 1000;              // 30 دقيقة snooze افتراضي
+const SNOOZE_VERSION_TTL_MS = 24 * 60 * 60 * 1000; // لا نُعيد عرض نفس النسخة قبل 24ساعة
+const SNOOZED_VERSION_KEY = 'pwa_snoozed_version';
+
+interface SnoozedVersion { sw: string; ts: number }
 
 const SwUpdateBanner = () => {
   const {
-    needRefresh: [needRefresh],
+    needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(_url, registration) {
-      // فحص دوري كل 60 ثانية لاكتشاف تحديثات جديدة
-      if (registration) {
-        setInterval(() => registration.update(), 60 * 1000);
-      }
+      if (!registration) return;
+      // تأجيل أول فحص — يمنع ظهور البانر فور الإقلاع
+      const initial = setTimeout(() => registration.update(), FIRST_CHECK_DELAY_MS);
+      // فحص دوري كل 5 دقائق (وليس 60ث) — يقلل الضوضاء على PWA المثبّت
+      const periodic = setInterval(() => registration.update(), PERIODIC_CHECK_MS);
+      // تنظيف عند unmount/HMR
+      return () => { clearTimeout(initial); clearInterval(periodic); };
     },
   });
 
-  const [dismissed, setDismissed] = useState(false);
   const [snoozedUntil, setSnoozedUntil] = useState<number>(0);
 
-  // إعادة إظهار الشريط بعد انتهاء فترة التأجيل
+  // عند انتهاء snooze، نُعيد فتح البانر تلقائياً
   useEffect(() => {
-    if (!dismissed || !snoozedUntil) return;
+    if (!snoozedUntil) return;
     const remaining = snoozedUntil - Date.now();
-    if (remaining <= 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- snooze period already expired on mount
-      setDismissed(false);
-      return;
-    }
-    const timer = setTimeout(() => setDismissed(false), remaining);
+    if (remaining <= 0) return;
+    const timer = setTimeout(() => setSnoozedUntil(0), remaining);
     return () => clearTimeout(timer);
-  }, [dismissed, snoozedUntil]);
+  }, [snoozedUntil]);
+
+  // حارس "نسخة مرفوضة سابقاً" — يمنع إعادة العرض لنفس SW خلال 24 ساعة
+  // ملاحظة: نستخدم بصمة بسيطة (طول precache manifest) عبر `needRefresh` toggle.
+  // workbox يعيد إصدار needRefresh لكل SW جديد، فيكفينا تخزين علامة وقت + رقم نسخة التطبيق.
+  const swFingerprint = (import.meta.env.VITE_APP_BUILD_ID as string | undefined) ?? 'unknown';
+
+  useEffect(() => {
+    if (!needRefresh) return;
+    const stored = safeGet<SnoozedVersion | string>(SNOOZED_VERSION_KEY, '' as unknown as SnoozedVersion);
+    if (stored && typeof stored === 'object' && stored.sw === swFingerprint) {
+      if (Date.now() - stored.ts < SNOOZE_VERSION_TTL_MS) {
+        // نفس النسخة المرفوضة سابقاً وما زالت ضمن TTL — لا نُظهر البانر
+        setNeedRefresh(false);
+      }
+    }
+  }, [needRefresh, swFingerprint, setNeedRefresh]);
 
   const handleUpdate = useCallback(() => {
-    // تخزين علامة التحديث لعرض سجل التغييرات بعد إعادة التحميل
-    safeSet("pwa_just_updated", { ts: Date.now() });
+    // علم لـ PwaUpdateNotifier ليعرض سجل التغييرات بعد reload — مصدر حقيقة وحيد
+    safeSet('pwa_just_updated', { ts: Date.now(), version: swFingerprint });
     updateServiceWorker(true);
-  }, [updateServiceWorker]);
+  }, [updateServiceWorker, swFingerprint]);
 
   const handleSnooze = useCallback(() => {
-    setDismissed(true);
+    // تذكُّر النسخة المرفوضة + snooze قصير الأمد
+    safeSet(SNOOZED_VERSION_KEY, { sw: swFingerprint, ts: Date.now() });
+    setNeedRefresh(false);
     setSnoozedUntil(Date.now() + SNOOZE_MS);
-  }, []);
+  }, [swFingerprint, setNeedRefresh]);
 
-  if (!needRefresh || dismissed) return null;
+  if (!needRefresh) return null;
 
   return (
     <div
