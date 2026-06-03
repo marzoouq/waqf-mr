@@ -77,7 +77,7 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
           <div className="pt-2 pb-4 space-y-4">
             <div className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed prose-headings:text-primary prose-strong:text-foreground" dir="rtl">
               <Suspense fallback={<div className="animate-pulse h-4 bg-muted rounded" />}>
-                <ReactMarkdown>{item.content}</ReactMarkdown>
+                <ReactMarkdown disallowedElements={['script', 'iframe', 'style', 'object', 'embed']} unwrapDisallowed>{item.content}</ReactMarkdown>
               </Suspense>
             </div>
             <div className="flex items-center justify-between pt-3 border-t print:hidden">
