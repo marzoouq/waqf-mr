@@ -10,10 +10,12 @@ export interface OverdueInvoice {
   invoiceNumber: string;
   tenantName: string;
   propertyNumber: string;
+  /** المبلغ المتبقي (amount - paid_amount للجزئية) */
   amount: number;
   dueDate: string;
   daysOverdue: number;
 }
+
 
 export interface MonthlyCollectionItem {
   month: string;
