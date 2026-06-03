@@ -64,6 +64,11 @@ const aggregatedYoYSchema = z.object({
   prev_label: z.string().nullable().optional(),
   prev_income: z.number().optional(),
   prev_expenses: z.number().optional(),
+  prev_corpus_previous: z.number().optional(),
+  prev_vat: z.number().optional(),
+  prev_zakat: z.number().optional(),
+  prev_net_after_zakat: z.number().optional(),
+  prev_has_account: z.boolean().optional(),
   has_prev: z.boolean().optional(),
 }).passthrough();
 
