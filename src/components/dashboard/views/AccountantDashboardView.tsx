@@ -1,24 +1,31 @@
 /**
  * عرض مخصص للوحة المحاسب — يُبرز البيانات التشغيلية والتحصيلية
- * (موجة 17) قُسِّم إلى ثلاث بطاقات منفصلة في components/dashboard/views/accountant/
+ * البطاقتان H-02 (إجمالي الإيرادات) و H-03 (صافي الريع المتاح) خلف feature flag
+ * يتحكم بها الناظر عبر شبكة إظهار/إخفاء الميزات (`accountant.financial_cards`).
  */
 import { memo } from 'react';
 import {
-  AlertTriangle, Clock, Banknote, FileWarning, FileX,
+  AlertTriangle, Clock, Banknote, FileWarning, FileX, TrendingUp, Wallet,
 } from 'lucide-react';
 import { fmtInt } from '@/utils/format/format';
 import { DashboardSkeleton } from '@/components/common';
+import { useFeatureVisibility } from '@/hooks/data/settings/permissions/useFeatureVisibility';
 import type { AccountantMetrics } from '@/hooks/page/admin/dashboard/useAccountantDashboardData';
+import type { AggregatedData } from '@/types/financial/dashboard';
 import MetricCard from './accountant/MetricCard';
 import OverdueInvoicesCard from './accountant/OverdueInvoicesCard';
 import MonthlyCollectionCard from './accountant/MonthlyCollectionCard';
 
 interface AccountantDashboardViewProps {
   metrics: AccountantMetrics;
+  aggregated: AggregatedData | null;
   isLoading: boolean;
 }
 
-const AccountantDashboardView = ({ metrics, isLoading }: AccountantDashboardViewProps) => {
+const AccountantDashboardView = ({ metrics, aggregated, isLoading }: AccountantDashboardViewProps) => {
+  const { isVisible } = useFeatureVisibility();
+  const showFinancial = isVisible('accountant', 'financial_cards');
+
   if (isLoading) return <DashboardSkeleton />;
 
   return (
@@ -62,6 +69,25 @@ const AccountantDashboardView = ({ metrics, isLoading }: AccountantDashboardView
           link="/dashboard/contracts"
         />
       </div>
+
+      {/* H-02 / H-03 — مقاييس مالية مُجمَّعة خلف feature flag */}
+      {showFinancial && aggregated && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" data-testid="accountant-financial-cards">
+          <MetricCard
+            title="إجمالي الإيرادات (السنة)"
+            value={`${fmtInt(aggregated.totals.total_income)} ر.س`}
+            icon={TrendingUp}
+            color="bg-primary"
+          />
+          <MetricCard
+            title="صافي الريع المتاح للتوزيع"
+            value={`${fmtInt(aggregated.totals.available_amount)} ر.س`}
+            subtitle={`بعد الضريبة والزكاة والحصص`}
+            icon={Wallet}
+            color="bg-success"
+          />
+        </div>
+      )}
 
       {/* البطاقات التفصيلية */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

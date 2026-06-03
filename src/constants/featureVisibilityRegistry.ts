@@ -20,6 +20,8 @@ export interface FeatureVisibilityEntry {
   label: string;
   description?: string;
   lockable: boolean;
+  /** إذا true، الافتراضي = hidden (تفعيل صريح من الناظر). */
+  defaultHidden?: boolean;
 }
 
 export const FEATURE_SCOPE_LABELS: Record<FeatureScope, string> = {
@@ -103,6 +105,14 @@ export const FEATURE_VISIBILITY_REGISTRY: readonly FeatureVisibilityEntry[] = [
     label: 'ملخّص التحصيل',
     description: 'ملخّص سريع لإجماليات التحصيل اليومي/الشهري.',
     lockable: false,
+  },
+  {
+    scope: 'accountant',
+    key: 'financial_cards',
+    label: 'بطاقات الإيرادات والمتاح (H-02/H-03)',
+    description: 'إظهار بطاقتي إجمالي الإيرادات وصافي الريع المتاح للمحاسب. الافتراضي مخفي.',
+    lockable: false,
+    defaultHidden: true,
   },
 ] as const;
 

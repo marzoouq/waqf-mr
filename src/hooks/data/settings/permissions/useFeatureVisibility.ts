@@ -35,7 +35,10 @@ export const useFeatureVisibility = (): UseFeatureVisibilityResult => {
     for (const entry of FEATURE_VISIBILITY_REGISTRY) {
       const fullKey = featureVisibilityKey(entry.scope, entry.key);
       const raw = data?.[fullKey];
-      out[fullKey] = raw === 'hidden' ? 'hidden' : 'visible';
+      const fallback: VisibilityValue = entry.defaultHidden ? 'hidden' : 'visible';
+      if (raw === 'hidden') out[fullKey] = 'hidden';
+      else if (raw === 'visible') out[fullKey] = 'visible';
+      else out[fullKey] = fallback;
     }
     return out;
   }, [data]);
@@ -44,7 +47,8 @@ export const useFeatureVisibility = (): UseFeatureVisibilityResult => {
     const fullKey = featureVisibilityKey(scope, key);
     const entry = REGISTRY_INDEX.get(fullKey);
     if (entry?.lockable) return 'visible';
-    return values[fullKey] ?? 'visible';
+    const fallback: VisibilityValue = entry?.defaultHidden ? 'hidden' : 'visible';
+    return values[fullKey] ?? fallback;
   };
 
   const isVisible = (scope: FeatureScope, key: string): boolean =>

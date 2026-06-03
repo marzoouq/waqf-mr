@@ -91,6 +91,7 @@ const AdminDashboard = () => {
           <DashboardLazySection minHeight={200}>
             <AccountantDashboardView
               metrics={ctx.accountantMetrics}
+              aggregated={ctx.accountantAggregated}
               isLoading={ctx.isLoading || ctx.secondaryIsLoading}
             />
           </DashboardLazySection>
