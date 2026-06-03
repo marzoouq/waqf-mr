@@ -90,7 +90,7 @@ describe('useNotificationActions — optimistic mark as read', () => {
     act(() => { result.current.markAsRead.mutate('n1'); });
     // فحص فوري بعد onMutate
     await waitFor(() => {
-      const n1 = getPages(qc)[0].find(n => n.id === 'n1');
+      const n1 = getList(qc).find(n => n.id === 'n1');
       expect(n1?.is_read).toBe(true);
     });
   });
@@ -99,7 +99,7 @@ describe('useNotificationActions — optimistic mark as read', () => {
     const { qc, result } = setup();
     act(() => { result.current.markAllAsRead.mutate(); });
     await waitFor(() => {
-      const all = getPages(qc)[0];
+      const all = getList(qc);
       expect(all.every(n => n.is_read)).toBe(true);
     });
   });
@@ -111,7 +111,7 @@ describe('useNotificationActions — optimistic mark as read', () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('تعذّر تحديث حالة الإشعارات');
     });
-    const all = getPages(qc)[0];
+    const all = getList(qc);
     // unread استُعيدا (n1, n2)
     expect(all.filter(n => !n.is_read).map(n => n.id).sort()).toEqual(['n1', 'n2']);
   });
@@ -120,7 +120,7 @@ describe('useNotificationActions — optimistic mark as read', () => {
     const { qc, result } = setup();
     act(() => { result.current.deleteOne.mutate('n2'); });
     await waitFor(() => {
-      expect(getPages(qc)[0].find(n => n.id === 'n2')).toBeUndefined();
+      expect(getList(qc).find(n => n.id === 'n2')).toBeUndefined();
     });
   });
 
@@ -131,14 +131,14 @@ describe('useNotificationActions — optimistic mark as read', () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('تعذّر حذف الإشعار');
     });
-    expect(getPages(qc)[0].find(n => n.id === 'n2')).toBeDefined();
+    expect(getList(qc).find(n => n.id === 'n2')).toBeDefined();
   });
 
   it('deleteRead يحذف الإشعارات المقروءة فوراً من الـ cache', async () => {
     const { qc, result } = setup();
     act(() => { result.current.deleteRead.mutate(); });
     await waitFor(() => {
-      expect(getPages(qc)[0].some(n => n.is_read)).toBe(false);
+      expect(getList(qc).some(n => n.is_read)).toBe(false);
     });
   });
 });
