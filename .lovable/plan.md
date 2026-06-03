@@ -1,85 +1,74 @@
-# الخطة النهائية — اختبارات سلوك تحديث PWA (بعد فحص التعارضات الكامل)
+# خطة إصلاح ثبات قراءة الإشعارات (Web + Mobile)
 
-## نتائج فحص التعارضات
+## التشخيص (من فحص الكود + قاعدة البيانات + الكرونات)
 
-| فحص | النتيجة |
+| المؤشر | النتيجة |
 |---|---|
-| الملفات الأربعة موجودة مسبقاً؟ | ❌ لا — كلها جديدة (لا تكرار) |
-| `vitest.config.ts` يلتقط `src/**/*.{test,spec}.{ts,tsx}` | ✅ نعم |
-| `src/test/setup.ts` متوافق (jsdom + موك `useAuth` عام + `matchMedia`) | ✅ نعم |
-| موك سابق لـ `virtual:pwa-register/react` | ❌ غير موجود — نُنشئه داخل كل ملف اختبار عبر `vi.mock` |
-| نقطة تركيب البانر | ⚠️ `src/app/root-layout.tsx` (وليس `App.tsx`) — تصحيح في وثيقة QA |
-| `pwaBootstrap.ts` يحوي `location.reload` | ❌ لا (نظيف) — حارس الانحدار يمرّ من أول تشغيل |
-| `SwUpdateBanner.tsx` يحوي `location.reload` مباشر | ❌ لا — يستخدم `updateServiceWorker(true)` من workbox فقط |
-| `isPreviewHost`/`isInIframe` ثوابت module-level | ⚠️ تتطلب `vi.resetModules()` + `vi.stubGlobal` + `await import()` ديناميكي |
-| Coverage thresholds (60%) | ✅ آمن — الاختبارات تزيد التغطية ولا تنقصها |
-| ESLint `no-console` / `eqeqeq` | ✅ سيُلتزم بها في الاختبارات الجديدة |
+| إجمالي الإشعارات في DB | **213** |
+| المقروءة | **1** فقط |
+| غير المقروءة | **212** |
+| سياسات RLS على `notifications` | ✅ سليمة (SELECT/UPDATE/DELETE بـ `auth.uid()=user_id` + admin manage) |
+| تريغرات تُعيد is_read=false | ❌ لا يوجد |
+| Mutation `markAsRead/markAllAsRead` | يُستدعى بـ `.mutate()` fire-and-forget بدون optimistic ولا onError/toast |
+| تحديث الـ UI | **لا يوجد optimistic update** — يعتمد على `invalidateQueries` ثم refetch (≥ دورة شبكة كاملة) |
+| Cron `cron_check_contract_expiry` | **مجدول مرتين** يومياً (06:00 و 08:00) — تكرار غير مبرّر (الدالة نفسها تُدبّل dedupe لكن JOB مكرر) |
+| Cron `cron_update_overdue_invoices` | يُدرج إشعاراً يومياً للأدمن — متوقع، لا تكرار |
 
-## الأهداف المُتحقَّق منها
-1. شريط التحديث يظهر **مرة واحدة فقط** عند نشر جديد فعلي.
-2. لا يظهر عند فتح/إغلاق التطبيق دون نشر.
-3. لا `location.reload()` قسري — التحديث يدوي بموافقة المستخدم.
-4. لا يتكرر عند التنقل بين تبويبات لوحات الناظر/المستفيدين.
+### السبب الجذري لسيناريو المستخدم
 
-## الملفات (3 اختبارات + وثيقة)
+1. المستخدم يضغط "قراءة الكل" أو ينقر إشعاراً → `markAllAsRead.mutate()` يُطلق طلب UPDATE.
+2. الـ UI **لا يتغيّر فوراً** (لا optimistic) — يعتمد على نجاح الطلب ثم `invalidateQueries`.
+3. على الجوال إذا أغلق المستخدم التطبيق قبل اكتمال الطلب (تحت دورة شبكة بطيئة، أو لأن لا feedback) → الطلب يُقتل، DB يبقى `is_read=false`.
+4. عند العودة يرى الإشعارات غير مقروءة → تطابق صورة قاعدة البيانات الحالية (212/213 unread).
+5. لا toast ولا onError → فشل صامت كلياً.
 
-### 1) `src/components/pwa/SwUpdateBanner.test.tsx` — Vitest + RTL
-موك على مستوى الملف:
-```ts
-vi.mock('virtual:pwa-register/react', () => ({
-  useRegisterSW: vi.fn(),
-}));
+## الإصلاحات (5 ملفات + 1 migration)
+
+### 1) `src/hooks/data/notifications/useNotificationActions.ts` — Optimistic + onError
+- إضافة `onMutate` لكل من `markAsRead/markAllAsRead/deleteOne/deleteRead`:
+  - `queryClient.cancelQueries`.
+  - حفظ snapshot لـ `previousData`.
+  - `setQueryData(['notifications', userId], …)` يُحدّث `is_read=true` فوراً.
+  - return context للـ rollback.
+- `onError`: rollback إلى snapshot + `toast.error('تعذّر تحديث حالة الإشعارات')` (عبر `sonner`).
+- `onSettled`: `invalidateQueries` (السلوك الحالي).
+- نتيجة: الـ UI يتغيّر فوراً، الـ cache يحتفظ بالحالة الجديدة حتى لو أُغلق التطبيق أثناء الطلب، و عند فشل الشبكة تظهر toast واضحة.
+
+### 2) `src/components/notifications/NotificationBell.tsx` — Auto-mark-on-open (اختياري ذكي)
+- عند فتح Popover ووجود `unreadCount > 0`، بعد ثانيتين من العرض، استدعاء `markAllAsRead.mutate()` تلقائياً (سلوك Gmail/Slack).
+- يُلغى إذا أُغلق Popover قبل الـ 2س.
+- مُفضّل سلوك يدوي + تلقائي معاً (يدوي عبر زر "قراءة الكل" يبقى).
+- **سأطلب تأكيد المستخدم** على هذه النقطة قبل التنفيذ لأنها تغيّر السلوك المتوقع.
+
+### 3) إضافة اختبارات `useNotificationActions.test.ts`
+- اختبار optimistic update: قبل نجاح الطلب، `getQueryData` يُظهر `is_read=true`.
+- اختبار rollback عند فشل: snapshot يُستعاد + toast.error مُستدعى.
+- اختبار `markAllAsRead`: كل العناصر تُصبح `is_read=true` في الـ cache فوراً.
+
+### 4) Migration: إزالة Cron المكرر
+```sql
+SELECT cron.unschedule('check-contract-expiry-daily'); -- 06:00 (مكرر)
+-- نُبقي على 'check-expiry-daily' الساعة 08:00 (السلوك الفعلي اليومي)
 ```
-ثم في كل سيناريو نتحكم بقيمة `useRegisterSW` عبر `mockReturnValue`.
+- لا يحذف الدالة، فقط الجدولة المكررة.
 
-**6 سيناريوهات**:
-1. `needRefresh=false` → لا بانر يُرسم.
-2. `needRefresh=true` → البانر يظهر بنص "يوجد تحديث جديد للتطبيق".
-3. ضغط "تحديث الآن" → `updateServiceWorker(true)` يُستدعى **مرة واحدة فقط** + `pwa_just_updated` يُكتب في `localStorage`. لا استدعاء يدوي لـ `location.reload`.
-4. ضغط X → البانر يختفي + `pwa_snoozed_version` = `{sw: fingerprint, ts}`.
-5. remount بنفس fingerprint داخل 24س → `setNeedRefresh(false)` يُستدعى تلقائياً → لا بانر.
-6. remount بـ fingerprint مختلف → البانر يظهر (نشر جديد فعلي).
+### 5) `docs/notifications-qa.md` — قائمة فحص يدوية
+- Desktop + Mobile (Android Chrome / iOS Safari):
+  - فتح الجرس → ضغط إشعار واحد → تأكيد اختفاء النقطة فوراً.
+  - ضغط "قراءة الكل" → كل الـ badges تختفي فوراً + بعد إغلاق التطبيق وفتحه: تبقى مقروءة.
+  - فصل الشبكة + ضغط "قراءة الكل" → toast.error + الـ badges تعود.
+  - فحص `/beneficiary/notifications` و `/dashboard` و navigation بين الصفحات.
 
-`beforeEach`: `localStorage.clear()` + `vi.clearAllMocks()`.
-
-### 2) `src/lib/pwaBootstrap.test.ts`
-- `beforeEach`: `vi.resetModules()` + `vi.stubGlobal('caches', mockCaches)` + موك `navigator.serviceWorker.getRegistrations`.
-- **Test A** (إنتاج): `vi.stubGlobal('location', { hostname: 'waqf-wise.net' })` + `window.top === window.self` → `await import(...)` → `runPwaCacheGuard()` → التأكد أن `caches.delete` **لم** يُستدعَ ولا `location.reload`.
-- **Test B** (preview): hostname `id-preview--xxx.lovable.app` → SW unregister يُستدعى + caches تُمسح، **لا** reload.
-
-### 3) `src/components/pwa/__tests__/no-forced-reload.test.tsx` — حارس انحدار
-- يقرأ كل `src/**/*.{ts,tsx}` (يستثني `*.test.*` و `*.spec.*`).
-- يطابق `/\blocation\.reload\s*\(/` بـ regex.
-- Allowlist فارغ حالياً (لأن `pwaBootstrap.ts` و `SwUpdateBanner.tsx` نظيفان من `location.reload` المباشر).
-- يفشل عند ظهور أي استدعاء جديد.
-- ملاحظة: `main.tsx` يحوي `onclick="location.reload()"` داخل **سلسلة HTML** للـ fallback — سنستثنيها بقاعدة "خارج السلاسل" أو نُضيف `main.tsx` للـ allowlist مع تعليق توضيحي.
-
-### 4) `docs/pwa-update-qa.md` — قائمة فحص يدوية بالعربية
-جدول لـ Android Chrome / iOS Safari / Desktop Chrome مع 5 سيناريوهات:
-- فتح/إغلاق 3 مرات بدون نشر → 0 بانر.
-- نشر JS فعلي → بانر مرة واحدة خلال ≤30ث (بارد) أو ≤5دق (مفتوح).
-- ضغط "تحديث الآن" → reload واحد + toast سجل تغييرات → إعادة فتح → لا بانر.
-- ضغط X → لا بانر لنفس النسخة خلال 24س.
-- التنقل بين `/dashboard`, `/dashboard/reports`, `/contracts`, `/distributions`, `/beneficiary/*` → البانر لا يتكرر (مُركَّب مرة واحدة في `src/app/root-layout.tsx` خارج `<Outlet/>`).
-
-## المخاطر بعد التنفيذ وتخفيفها
-
-| مخاطرة | التخفيف |
-|---|---|
-| موك `virtual:pwa-register/react` لا يُحلّ في jsdom | `vi.mock` على مستوى الملف قبل أي `import` للمكوّن |
-| تسريب state بين سيناريوهات `SwUpdateBanner` | `beforeEach`: `localStorage.clear()` + `vi.clearAllMocks()` |
-| `pwaBootstrap` يستخدم ثوابت module-level | `vi.resetModules()` + dynamic `await import()` بعد stub |
-| حارس `no-forced-reload` يلتقط `main.tsx` HTML string | استثناء `main.tsx` بـ allowlist مع تعليق، أو regex يستبعد ما داخل علامات الاقتباس |
-| كسر coverage thresholds | الاختبارات تزيد التغطية → لا خطر |
+## التحقق بعد التنفيذ (إلزامي)
+1. `bunx vitest run src/hooks/data/notifications src/components/notifications` → جميع الاختبارات الجديدة + الموجودة تمر.
+2. `bunx vitest run` (كامل السويت) → لا انحدار في 1898 اختبار.
+3. **تحقق فوري في DB** بعد ضغط "قراءة الكل" من preview: استعلام `SELECT COUNT FILTER (WHERE is_read)` للمستخدم الحالي ليكون > 0.
+4. مراجعة `docs/notifications-qa.md` يدوياً على الجوال.
 
 ## ما **لن** يُعدّل
-- `SwUpdateBanner.tsx`, `pwaBootstrap.ts`, `vite.config.ts`, `root-layout.tsx`, `main.tsx`.
-- أي ملف خارج اختبارات PWA + الوثيقة.
+- ملفات الإشعارات الأخرى (`NotificationsList`, `usePushNotifications`, إلخ).
+- إعدادات `useNotificationVisibilityPrefs` (فلترة فقط).
+- دوال DB (`cron_check_contract_expiry`, `cron_update_overdue_invoices`).
 
-## ما **لن** يُنفَّذ
-- **Playwright** فعلي: غير مثبّت؛ يحتاج deps + CI + بيئة نشر. مهمة منفصلة عند الطلب.
-
-## التحقق الكامل بعد التنفيذ (إلزامي قبل الإنهاء)
-1. `bunx vitest run src/components/pwa src/lib/pwaBootstrap.test.ts` → الاختبارات الجديدة كلها تمر.
-2. **`bunx vitest run` (كامل السويت)** → الـ 1888 الحالية + الجديدة كلها خضراء، صفر انحدار.
-3. تقرير نهائي بعدد الاختبارات الإجمالي + أي إصلاحات مطلوبة قبل التسليم.
+## سؤال للمستخدم قبل التنفيذ
+هل تريد سلوك **"قراءة تلقائية عند فتح الجرس"** بعد 2 ثانية (مثل Gmail)، أم تبقى يدوية فقط (زر "قراءة الكل" / النقر على إشعار)؟ هذا يحدد ما إذا كنت سأضمّن النقطة (2) أعلاه.
