@@ -1,129 +1,185 @@
-# خطة الفحص والإصلاح — السنوات المالية وتأثيرها على الإعدادات
+## الهدف
 
-## نطاق الفحص
-
-تبويبات الإعدادات: بيانات الوقف، الواجهة الرئيسية، المظهر، شريط التنبيه، **السنوات المالية**، السُلف، ZATCA، الصلاحيات، القائمة، الميزات، الإشعارات، الإشعارات الجماعية، الرسائل، التصدير، البصمة، الأمان، الإعدادات المتقدمة.
-
-التركيز الأساسي على **إنشاء وإدارة السنة المالية** لأنها نقطة التأثير الجذري على بقية الأقسام.
+تحويل التحقق من السنوات المالية إلى طبقات صارمة: قاعدة بيانات (مصدر الحقيقة) + تحقق محلي فوري + رسائل خطأ حرفية inline + انعكاس realtime على كل لوحات التحكم + اختبارات RTL.
 
 ---
 
-## المشاكل المؤكدة في إنشاء/إدارة السنة المالية
+## سيناريو حذف 2024-2025 ثم إعادة إنشاء بنفس التاريخ
 
-### 1. `createFiscalYear` بلا تحقق دلالي — مخاطر بيانات صامتة
-ملف: `src/lib/services/fiscalYearService.ts:7-16` + `useFiscalYearManagement.ts:18-37`.
-
-نواقص مؤكدة بالقراءة الفعلية:
-- **لا تحقق من تنسيق `label`** رغم قاعدة الذاكرة الحرجة: `YYYY-YYYY` فقط. يقبل حالياً "2025-2026م" أو أي نص حر.
-- **لا تحقق من `start_date < end_date`** — يقبل تواريخ معكوسة أو متطابقة.
-- **لا تحقق من تداخل المدى الزمني** مع سنوات أخرى. تداخل واحد يكسر `resolveFiscalYearId` و`useUniversalFiscalFilter`.
-- **لا تحقق من تكرار `label`** قبل الإدراج (يُترك للقيد على مستوى DB إن وُجد).
-- **يُنشئ السنة بـ `status='active'` مباشرة بدون التأكد من عدم وجود سنة نشطة أخرى** — يخالف افتراض "سنة نشطة واحدة" المستخدم في `useFiscalYears.ts:31` و`fetchActiveFiscalYear`. تعدد السنوات النشطة يؤدي إلى:
-  - اختيار غير حتمي للسنة النشطة (`find` يُرجع أول مطابق).
-  - فواتير/توزيعات تُخصَّص لسنة خاطئة.
-  - `sessionStorage[fiscal_year_id]` يصبح غير متسق بين علامات تبويب.
-
-### 2. حقل المدة الزمنية غير مقيد
-حقول `<Input type="date">` بدون `min/max` مشتقة من السنة السابقة، ولا فجوة/تتابع مفروض. يسمح بفجوات بين سنتين متتاليتين، ما يُسقط حركات من نطاق أي سنة عند الاستعلام بحدود.
-
-### 3. سلوك "إقفال" مُربك
-`handleClose` لا يُقفل فعلاً — يعرض warning ويوجّه لصفحة الحسابات. مع ذلك، الزر يظهر بنفس مظهر الإجراءات الفعلية ويمنح المستخدم انطباع تنفيذ ناقص. يجب إما تعطيله مع tooltip، أو تحويله لرابط واضح.
-
-### 4. الحذف العادي يقع في فخ FK دائماً
-أي سنة دخلت دورة العمل (عقد/فاتورة واحدة كافية) تفشل في `handleDelete` بخطأ FK ويتحول إلى `cascadeDelete`. عملياً زر "حذف" العادي غير ذي قيمة في 99% من الحالات.
-
-### 5. `cascadeDelete` يبطل ذاكرة المتصفح
-يستدعي `queryClient.invalidateQueries()` بدون مفتاح — يُعيد جلب **كل** الاستعلامات، لكن لا يُنظّف `sessionStorage[fiscal_year_id]`. لو حذف الناظر السنة المختارة حالياً → يبقى ID مفقود في sessionStorage ويظهر "لا توجد بيانات" بدلاً من اختيار سنة بديلة.
-
-### 6. النشر/الحجب لا يُبطل ذاكرة الواجهات التابعة
-`togglePublished` يُبطل `['fiscal_years']` فقط. صفحات المستفيد/الواقف التي تعتمد على `published=true` (لوحة الواقف، الإفصاح السنوي، التقارير العامة) قد لا تُحدَّث فوراً لأنها تستخدم queryKeys مختلفة (`['fiscal_years_published']`, `['public_stats']`، إلخ).
-
-### 7. إعادة الفتح بدون حماية في الواجهة
-`ReopenFiscalYearDialog` يستدعي `reopen_fiscal_year` RPC، لكن لا فحص واجهي يتأكد من:
-- عدم وجود سنة نشطة لاحقة (السنة المُعاد فتحها قد تتعارض مع نشطة).
-- تنبيه بصري في الجدول بأن snapshot الحسابات الختامية قد يتغير.
-
-### 8. إنشاء السنة لا يُهيّئ السياقات التابعة
-بعد الإنشاء، لا يحدث أي من:
-- تهيئة `accounts` snapshot فارغ للسنة الجديدة.
-- نسخ إعدادات السُلف الافتراضية (`AdvanceSettingsTab`) للسنة الجديدة.
-- اشتقاق نِسب توزيع المستفيدين الأخيرة كنقطة بداية.
-النتيجة: لوحات المحاسب/الناظر تعرض "صفر" في كل مكان حتى يدوياً يُهيّئ كل شيء.
+**يجب أن يُقبل** — وقد تحققت من ذلك ضد الخطة:
+1. الحذف يُزيل السطر فعلياً → trigger التداخل لا يجد مطابقاً.
+2. `UNIQUE(label)` يتحرّر تلقائياً.
+3. الفهرس الفريد `WHERE status='active'` يتحرّر.
+4. realtime يبثّ حدث DELETE → كل اللوحات تُحدِّث الكاش → النموذج يُعيد الفحص بدون باقي تالف.
 
 ---
 
-## انعكاسات على بقية أقسام الإعدادات (مؤكدة بالملاحظة)
+## مشاكل في الخطة السابقة تم تصحيحها
 
-| القسم | الانعكاس |
-|------|----------|
-| **بيانات الوقف** | بيانات الواقف ثابتة عبر السنوات لكن صفحات الإفصاح تربطها بسنة محددة — إنشاء سنة بدون snapshot يُظهر "—". |
-| **الواجهة الرئيسية / المظهر / شريط التنبيه** | لا تأثير مباشر، لكن شريط التنبيه يُستخدم حالياً للسنة النشطة وحدها — تعدد السنوات النشطة (مشكلة #1) يجعل الشريط يعرض سنة عشوائية. |
-| **السُلف** | إعدادات السقف (`mem://features/advance-requests`) تُربط بالسنة المالية. سنة جديدة بدون إعداد سُلف → السقف = 0% → كل طلب سُلفة يُرفض صامتاً. |
-| **ZATCA** | تسلسل ICV (`mem://technical/zatca/icv-chain-integrity-logic`) لا يُعاد ضبطه عند سنة جديدة — صحيح وظيفياً، لكن لا تنبيه بصري للمستخدم. |
-| **الصلاحيات / القائمة / إظهار الميزات** | عامة عبر السنوات — لا أثر مباشر. |
-| **الإشعارات الجماعية / الرسائل** | حذف cascade لسنة قد يحذف tickets مرتبطة (`mem://features/messaging`) بدون تحذير. يجب التحقق من نص dialog الحذف. |
-| **تصدير البيانات** | يفترض وجود snapshot — التصدير لسنة جديدة فارغة يُنتج CSV/PDF فارغ بدون تحذير. |
-| **البصمة / الأمان / المتقدمة** | لا تأثير. |
+### أ) استبدال trigger التداخل بـ EXCLUDE constraint (آمن من السباقات)
+
+trigger الـPLPGSQL **عرضة لسباقات** عند INSERT متزامن من جلستين (لا يقفل الصفوف الأخرى). البديل الذرّي:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+ALTER TABLE public.fiscal_years
+  ADD CONSTRAINT fiscal_years_no_overlap
+  EXCLUDE USING gist (
+    daterange(start_date, end_date, '[]') WITH &&
+  );
+```
+
+عند الانتهاك تُعيد Postgres الخطأ: `conflicting key value violates exclusion constraint "fiscal_years_no_overlap"`. نُغلِّفها برسالة عربية واضحة عبر دالة wrapper تُلتقط في خدمة `createFiscalYear`:
+
+```ts
+// في fiscalYearService.ts catch block
+if (error.code === '23P01') {
+  // ابحث عن السنة المتعارضة لإظهار اسمها
+  const overlap = await findOverlappingYear(input);
+  throw new Error(`يوجد تداخل زمني مع السنة "${overlap?.label}" (${overlap?.start_date} → ${overlap?.end_date})`);
+}
+```
+
+### ب) UNIQUE(label) — معالجة كود الخطأ 23505
+
+نلتقط `error.code === '23505'` ونُحوّله لرسالة `يوجد سنة مالية بنفس المسمى "${input.label}"`.
+
+### ج) الفهرس الفريد على active
+
+الصيغة الصحيحة في Postgres:
+```sql
+CREATE UNIQUE INDEX fiscal_years_one_active_idx
+  ON public.fiscal_years (status)
+  WHERE status = 'active';
+```
+(الأقواس المضاعفة `((status))` غير لازمة لعمود واحد.)
+
+### د) Realtime — لم يُضَف فعلياً في الجولة السابقة (يجب التأكيد)
+
+```sql
+ALTER PUBLICATION supabase_realtime ADD TABLE public.fiscal_years;
+ALTER TABLE public.fiscal_years REPLICA IDENTITY FULL;
+```
+
+وفي `FiscalYearProvider`:
+```ts
+const { user, role } = useAuth();
+useDashboardRealtime(
+  'fiscal-years-global',
+  ['fiscal_years'],
+  !!user && !!role,
+  [
+    ['fiscal_years_published_all'],
+    ['public-stats'],
+    ['annual_report_status'],
+    ['waqif_annual_report'],
+  ],
+);
+```
+
+**ملاحظة على حدث DELETE والمستفيد/الواقف:** RLS يفلتر الأحداث الواردة. إن كانت السنة المحذوفة `published=true`، يستلم المستفيد حدث DELETE ويُحدّث `fiscal_years_published_all`. إن كانت محجوبة، لا حدث له — لكن لا يهم لأنه لم يكن يراها أصلاً.
+
+### هـ) تنظيف `submitError` عند تغيير الحقول
+
+```ts
+useEffect(() => { setSubmitError(null); }, [newFY.label, newFY.start_date, newFY.end_date]);
+```
+
+### و) مخاطر migration على البيانات الحالية
+
+تحققت: يوجد سنة واحدة `2024-2025` (`2024-10-25 → 2025-10-24`). لا تعارض مع أي constraint جديد ✓.
 
 ---
 
-## خطة الإصلاح المقترحة (PR واحد منفصل)
+## بنود التنفيذ النهائية
 
-### A. تحقق دلالي عند الإنشاء (`createFiscalYear` + الواجهة)
-1. Regex `^\d{4}-\d{4}$` على `label`. الفارق 1 سنة فقط، السنة الثانية = الأولى+1.
-2. `start_date < end_date` + المدة ≤ 400 يوم.
-3. كشف التداخل: استعلام `fiscal_years` يلتقط أي سنة فيها `start_date <= new.end AND end_date >= new.start` — رفض مع رسالة تشير للسنة المتداخلة.
-4. كشف التكرار: `label` فريد.
-5. **لا** تجعل السنة الجديدة `active` تلقائياً — أنشئها `inactive` افتراضياً، وأضف زر "تفعيل" منفصل يقوم بـ:
-   - التحقق أن كل السنوات الأخرى `inactive` أو `closed`.
-   - تحديث `sessionStorage[fiscal_year_id]` لكل المستخدمين الإداريين.
+### 1) Migration واحدة موحّدة
 
-### B. إقفال/حذف
-6. تحويل زر "إقفال" في هذا التبويب إلى **رابط** واضح لـ `/dashboard/accounts` (إزالة شكل الزر التنفيذي).
-7. إخفاء زر "حذف" العادي إذا `cascade=true` ممكن، أو دمجه مع cascade في زر واحد بحوار موحَّد.
-8. في `handleCascadeDelete`: إذا الـ ID المحذوف = `sessionStorage[fiscal_year_id]` → اختيار أول سنة active بديلة وتحديث sessionStorage قبل invalidate.
+```sql
+-- 1. UNIQUE label
+ALTER TABLE public.fiscal_years
+  ADD CONSTRAINT fiscal_years_label_unique UNIQUE (label);
 
-### C. تنشيط/نشر
-9. توسيع `togglePublished` لإبطال `['public_stats']`, `['waqif_annual_report']`, `['fiscal_years_published']` إضافة لـ `['fiscal_years']`.
-10. منع إعادة فتح سنة إذا يوجد سنة active أحدث منها — تحذير حواري قبل استدعاء RPC.
+-- 2. CHECK start<end
+ALTER TABLE public.fiscal_years
+  ADD CONSTRAINT fiscal_years_dates_valid CHECK (start_date < end_date);
 
-### D. تهيئة السنة الجديدة (اختياري داخل نفس PR)
-11. عند الإنشاء، استدعاء RPC جديدة `initialize_fiscal_year(p_id uuid)` تقوم بـ:
-    - إدراج صف `accounts` فارغ بالقيم الافتراضية.
-    - نسخ آخر `advance_settings` كافتراضي.
-12. توسيم زر "تهيئة من السنة السابقة" بجانب السنة المُنشأة حديثاً كبديل لو لم يكن RPC جاهزاً.
+-- 3. سنة active واحدة
+CREATE UNIQUE INDEX fiscal_years_one_active_idx
+  ON public.fiscal_years (status) WHERE status = 'active';
 
-### E. توافق مع باقي الأقسام
-13. AdvanceSettingsTab: عرض تحذير "لا توجد إعدادات سُلف لهذه السنة — انسخ من سنة سابقة" بدلاً من 0% صامت.
-14. ZATCA: شارة معلوماتية "تسلسل ICV يستمر عبر السنوات".
+-- 4. منع التداخل (ذرّي)
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+ALTER TABLE public.fiscal_years
+  ADD CONSTRAINT fiscal_years_no_overlap
+  EXCLUDE USING gist (daterange(start_date, end_date, '[]') WITH &&);
+
+-- 5. Realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE public.fiscal_years;
+ALTER TABLE public.fiscal_years REPLICA IDENTITY FULL;
+```
+
+### 2) `fiscalYearService.ts`
+- تطبيع الأرقام العربية في `label` عبر `normalizeArabicDigits` قبل regex.
+- في `createFiscalYear` التقاط `error.code`:
+  - `23P01` → استعلام للسنة المتعارضة → رسالة بالاسم والفترة
+  - `23505` على فهرس label → رسالة "بنفس المسمى"
+  - `23505` على فهرس active → رسالة "يوجد سنة نشطة"
+  - `23514` (CHECK) → رسالة "تاريخ البداية يجب أن يكون قبل تاريخ النهاية"
+
+### 3) `useFiscalYearManagement.ts`
+- `formError: string | null` عبر `useMemo` يستدعي `validateFiscalYearInput`.
+- `submitError: string | null` يُملأ في catch ويُمسح في useEffect عند تغيير الحقول.
+- `handleCreate` يعيد فوراً عند `formError`.
+
+### 4) `FiscalYearManagementTab.tsx`
+- زر إنشاء `disabled={!!formError || actionLoading==='create'}`.
+- `<Alert variant="destructive">` عند `submitError` يعرض النص حرفياً.
+- رسائل inline تحت كل حقل من `formError` (label/dates/duration).
+
+### 5) `FiscalYearContext.tsx`
+- إضافة `useDashboardRealtime` كما أعلاه (إن لم يكن مضافاً).
+
+### 6) اختبارات
+
+**ملف جديد:** `src/components/settings/fiscal-year/FiscalYearManagementTab.test.tsx`
+1. `label="25-26"` → inline error + زر معطّل + لا استدعاء
+2. `label="٢٠٢٥-٢٠٢٦"` → يُقبل (تطبيع)
+3. mock يرمي رسالة التداخل الحرفية → `<Alert>` يظهرها
+4. mock يحدّث `useFiscalYears` (محاكاة realtime) → الجدول يتحدّث بدون reload
+
+**توسيع `fiscalYearService.test.ts`:**
+- `normalizeArabicDigits` على label عربي
+- محاكاة `error.code='23P01'` → رسالة عربية صحيحة
+- سيناريو الحذف ثم إعادة الإنشاء بنفس التاريخ (mock): `checkFiscalYearConflicts` يعود `null`
 
 ---
 
-## الملفات المتأثرة (بدون تعديل المحمي)
+### مصفوفة التحقق النهائية
 
-| ملف | تغيير |
-|------|------|
-| `src/lib/services/fiscalYearService.ts` | إضافة `validateFiscalYear`, `checkOverlap` |
-| `src/hooks/page/admin/financial/useFiscalYearManagement.ts` | منطق التحقق + تحديث sessionStorage |
-| `src/components/settings/fiscal-year/FiscalYearManagementTab.tsx` | UI: زر تفعيل، رابط إقفال، تحذيرات |
-| `src/components/settings/fiscal-year/CascadeDeleteFiscalYearDialog.tsx` | تحذير عن tickets/messages |
-| `src/components/settings/fiscal-year/AdvanceSettingsTab.tsx` | تحذير غياب إعدادات |
-| (اختياري) migration: `initialize_fiscal_year` + GRANT | تهيئة snapshot |
-
----
-
-## التحقق
-
-- `bunx vitest run` لكل من `useFiscalYearManagement.test.ts`, `useFiscalYears.test.ts`, `resolveFiscalYearId.test.ts`.
-- اختبار يدوي: إنشاء سنة بتنسيق غير صالح، تواريخ متداخلة، تكرار label، تفعيل ثنائي، cascade للسنة المختارة.
-- `supabase--linter` بعد أي migration.
+- `bunx vitest run` — كل الاختبارات + الجديدة تمر
+- بعد migration: `INSERT` متداخل عبر `supabase--read_query` يفشل برسالة 23P01
+- `DELETE` للسنة الوحيدة ثم `INSERT` بنفس التاريخ ينجح
+- يدوي على `/dashboard/settings?tab=fiscal`:
+  - `label='25-26'` → خطأ inline + زر معطّل
+  - `label='٢٠٢٥-٢٠٢٦'` → يُقبل
+  - تداخل → Alert بنص: `يوجد تداخل زمني مع السنة "2024-2025" (2024-10-25 → 2025-10-24)`
+  - حذف 2024-2025 ثم إنشاء بنفس التاريخ → ينجح ويظهر في كل اللوحات
+  - تعديل/حذف من تبويب آخر → الجدول وشريط التنبيه ولوحات الناظر/المستفيد تتحدث فوراً بلا refresh
+- `/dashboard/audit-log` — العمليات تظهر مع diff
 
 ---
 
-## ترتيب التنفيذ المقترح
+### الملفات المتأثرة
 
-1. **PR-A (P0):** بنود A1–A5 + B6–B8 + C9 — يمنع تلف بيانات فوراً.
-2. **PR-B (P1):** D11–D12 + E13–E14 — يحسن تجربة الإنشاء.
-3. **PR-C (P2):** اختبارات إضافية + توثيق.
+**جديد:**
+- `supabase/migrations/<ts>_fiscal_years_constraints_realtime.sql`
+- `src/components/settings/fiscal-year/FiscalYearManagementTab.test.tsx`
+- `src/lib/services/fiscalYearService.test.ts`
 
-أبدأ بـ PR-A؟
+**تعديل:**
+- `src/lib/services/fiscalYearService.ts`
+- `src/hooks/page/admin/financial/useFiscalYearManagement.ts` (+ توسيع اختباره)
+- `src/components/settings/fiscal-year/FiscalYearManagementTab.tsx`
+- `src/contexts/FiscalYearContext.tsx`
