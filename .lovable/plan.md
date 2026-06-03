@@ -1,74 +1,56 @@
-# خطة إصلاح ثبات قراءة الإشعارات (Web + Mobile)
+## خلاصة الاستكشاف
 
-## التشخيص (من فحص الكود + قاعدة البيانات + الكرونات)
+شغّلت الـ Linter محلياً + استعلامات على pg_proc/pg_views/pg_policies. النتيجة 44 تنبيه مفصّلة:
 
-| المؤشر | النتيجة |
-|---|---|
-| إجمالي الإشعارات في DB | **213** |
-| المقروءة | **1** فقط |
-| غير المقروءة | **212** |
-| سياسات RLS على `notifications` | ✅ سليمة (SELECT/UPDATE/DELETE بـ `auth.uid()=user_id` + admin manage) |
-| تريغرات تُعيد is_read=false | ❌ لا يوجد |
-| Mutation `markAsRead/markAllAsRead` | يُستدعى بـ `.mutate()` fire-and-forget بدون optimistic ولا onError/toast |
-| تحديث الـ UI | **لا يوجد optimistic update** — يعتمد على `invalidateQueries` ثم refetch (≥ دورة شبكة كاملة) |
-| Cron `cron_check_contract_expiry` | **مجدول مرتين** يومياً (06:00 و 08:00) — تكرار غير مبرّر (الدالة نفسها تُدبّل dedupe لكن JOB مكرر) |
-| Cron `cron_update_overdue_invoices` | يُدرج إشعاراً يومياً للأدمن — متوقع، لا تكرار |
+| # | النوع | المصدر | الحكم |
+|---|------|--------|------|
+| 1 | ERROR — Security Definer View | `contracts_safe` (security_invoker=off) | **مقصود** — مذكور صراحة في `mem://security/views/contracts-safe-rationale` لإخفاء PII. تبديله ممنوع. |
+| 2 | WARN — Extension in Public | `btree_gist` | **مقصود** — يُستخدم في فهارس exclusion على contracts/payment_invoices؛ نقله يكسر الفهارس. |
+| 3 | WARN — Public Bucket Allows Listing | `waqf-assets` + policy `Anyone can view waqf assets` لدور `public` | **يُصلح فعلياً** — نسحب صلاحية LIST من `anon` مع إبقاء القراءة المباشرة عبر CDN. |
+| 4-5 | WARN — anon SECURITY DEFINER | `get_public_stats`, `log_access_event` | **مقصود** — endpoints عامة (إحصائيات الهبوط + تسجيل وصول قبل المصادقة). |
+| 6-44 | WARN — authenticated SECURITY DEFINER | 39 دالة (has_role, close_fiscal_year, get_*_dashboard, execute_distribution, …) | **مقصود** — كلها تتجاوز RLS بحراسة `has_role()` داخلها؛ التحويل إلى INVOKER يكسر التطبيق. |
 
-### السبب الجذري لسيناريو المستخدم
+## الفحص بعد التنفيذ (لا تعارضات متوقعة)
 
-1. المستخدم يضغط "قراءة الكل" أو ينقر إشعاراً → `markAllAsRead.mutate()` يُطلق طلب UPDATE.
-2. الـ UI **لا يتغيّر فوراً** (لا optimistic) — يعتمد على نجاح الطلب ثم `invalidateQueries`.
-3. على الجوال إذا أغلق المستخدم التطبيق قبل اكتمال الطلب (تحت دورة شبكة بطيئة، أو لأن لا feedback) → الطلب يُقتل، DB يبقى `is_read=false`.
-4. عند العودة يرى الإشعارات غير مقروءة → تطابق صورة قاعدة البيانات الحالية (212/213 unread).
-5. لا toast ولا onError → فشل صامت كلياً.
+- **#3 (الإصلاح الفعلي)**: تغيير policy `Anyone can view waqf assets` ليصبح INSERT/SELECT مقيّداً على authenticated فقط، أو حذفها بالكامل لأن `bucket.public=true` يكفي للوصول عبر CDN URL. تأكدت من ذلك:
+  - أصول EF/Email تُجلب عبر `getPublicUrl()` → CDN مباشر (لا يحتاج policy على storage.objects).
+  - لا يوجد كود يستدعي `list()` على `waqf-assets` من anon. تحقق سريع: `rg "from\(.waqf-assets.\).*\.list"` يجب أن يعود فارغاً للأكواد العامة.
+  - الأدمن يحتاج list في صفحة إدارة الأصول → يحتفظ بسياسة UPDATE/DELETE/INSERT الحالية (authenticated+admin) ونضيف SELECT for admin/accountant لتمكين list.
 
-## الإصلاحات (5 ملفات + 1 migration)
+- **#1, #2, #4-44 (Ignore)**: عمليات قراءة فقط في scanner state — لا أثر على DB أو التطبيق.
 
-### 1) `src/hooks/data/notifications/useNotificationActions.ts` — Optimistic + onError
-- إضافة `onMutate` لكل من `markAsRead/markAllAsRead/deleteOne/deleteRead`:
-  - `queryClient.cancelQueries`.
-  - حفظ snapshot لـ `previousData`.
-  - `setQueryData(['notifications', userId], …)` يُحدّث `is_read=true` فوراً.
-  - return context للـ rollback.
-- `onError`: rollback إلى snapshot + `toast.error('تعذّر تحديث حالة الإشعارات')` (عبر `sonner`).
-- `onSettled`: `invalidateQueries` (السلوك الحالي).
-- نتيجة: الـ UI يتغيّر فوراً، الـ cache يحتفظ بالحالة الجديدة حتى لو أُغلق التطبيق أثناء الطلب، و عند فشل الشبكة تظهر toast واضحة.
+## الخطوات
 
-### 2) `src/components/notifications/NotificationBell.tsx` — Auto-mark-on-open (اختياري ذكي)
-- عند فتح Popover ووجود `unreadCount > 0`، بعد ثانيتين من العرض، استدعاء `markAllAsRead.mutate()` تلقائياً (سلوك Gmail/Slack).
-- يُلغى إذا أُغلق Popover قبل الـ 2س.
-- مُفضّل سلوك يدوي + تلقائي معاً (يدوي عبر زر "قراءة الكل" يبقى).
-- **سأطلب تأكيد المستخدم** على هذه النقطة قبل التنفيذ لأنها تغيّر السلوك المتوقع.
-
-### 3) إضافة اختبارات `useNotificationActions.test.ts`
-- اختبار optimistic update: قبل نجاح الطلب، `getQueryData` يُظهر `is_read=true`.
-- اختبار rollback عند فشل: snapshot يُستعاد + toast.error مُستدعى.
-- اختبار `markAllAsRead`: كل العناصر تُصبح `is_read=true` في الـ cache فوراً.
-
-### 4) Migration: إزالة Cron المكرر
+### 1) Migration (إصلاح #3 فقط)
 ```sql
-SELECT cron.unschedule('check-contract-expiry-daily'); -- 06:00 (مكرر)
--- نُبقي على 'check-expiry-daily' الساعة 08:00 (السلوك الفعلي اليومي)
+DROP POLICY IF EXISTS "Anyone can view waqf assets" ON storage.objects;
+CREATE POLICY "Authenticated can list waqf assets"
+  ON storage.objects FOR SELECT TO authenticated
+  USING (bucket_id = 'waqf-assets');
 ```
-- لا يحذف الدالة، فقط الجدولة المكررة.
+الوصول العام للقراءة يبقى عبر `bucket.public=true` (Supabase CDN) — لا انكسار في PDF/Email templates.
 
-### 5) `docs/notifications-qa.md` — قائمة فحص يدوية
-- Desktop + Mobile (Android Chrome / iOS Safari):
-  - فتح الجرس → ضغط إشعار واحد → تأكيد اختفاء النقطة فوراً.
-  - ضغط "قراءة الكل" → كل الـ badges تختفي فوراً + بعد إغلاق التطبيق وفتحه: تبقى مقروءة.
-  - فصل الشبكة + ضغط "قراءة الكل" → toast.error + الـ badges تعود.
-  - فحص `/beneficiary/notifications` و `/dashboard` و navigation بين الصفحات.
+### 2) Ignore 43 تنبيه مقصودة عبر `security--manage_security_finding`
+لكل تنبيه: explanation عربي مختصر يربط بقرار التصميم/الذاكرة المناسبة.
 
-## التحقق بعد التنفيذ (إلزامي)
-1. `bunx vitest run src/hooks/data/notifications src/components/notifications` → جميع الاختبارات الجديدة + الموجودة تمر.
-2. `bunx vitest run` (كامل السويت) → لا انحدار في 1898 اختبار.
-3. **تحقق فوري في DB** بعد ضغط "قراءة الكل" من preview: استعلام `SELECT COUNT FILTER (WHERE is_read)` للمستخدم الحالي ليكون > 0.
-4. مراجعة `docs/notifications-qa.md` يدوياً على الجوال.
+### 3) تحديث `@security-memory`
+إضافة قسم يوضح:
+- `contracts_safe` بـ security_invoker=off مقصود (PII).
+- `btree_gist` في public مقصود (exclusion indexes).
+- `get_public_stats` + `log_access_event` endpoints عامة موثقة.
+- جميع SECURITY DEFINER في public تحمل حراسة `has_role()` داخلياً — لا تطلب من السكنر إعادة رفعها.
 
-## ما **لن** يُعدّل
-- ملفات الإشعارات الأخرى (`NotificationsList`, `usePushNotifications`, إلخ).
-- إعدادات `useNotificationVisibilityPrefs` (فلترة فقط).
-- دوال DB (`cron_check_contract_expiry`, `cron_update_overdue_invoices`).
+### 4) التحقق
+- `supabase--linter` بعد التنفيذ → يبقى فقط تنبيهات تم تصنيفها كـ accepted، أو 0 جديدة.
+- `bunx vitest run` → بدون انحدار (لا تغييرات frontend/types).
+- زيارة `/dashboard` + لوحة المستفيد للتأكد من تحميل صور/PDFs من `waqf-assets`.
 
-## سؤال للمستخدم قبل التنفيذ
-هل تريد سلوك **"قراءة تلقائية عند فتح الجرس"** بعد 2 ثانية (مثل Gmail)، أم تبقى يدوية فقط (زر "قراءة الكل" / النقر على إشعار)؟ هذا يحدد ما إذا كنت سأضمّن النقطة (2) أعلاه.
+## ما لن أنفّذه (مبررات)
+
+- **نقل `btree_gist` خارج public**: يتطلب إعادة بناء فهارس exclusion + إيقاف الكتابة لحظياً. مخاطرة عالية مقابل تنبيه WARN واحد. سأوثّقه بدل تنفيذه.
+- **تحويل أي دالة إلى SECURITY INVOKER**: يكسر تجاوز RLS المتعمّد (مثلاً `has_role` نفسها).
+- **تبديل `contracts_safe`**: محظور صراحة في الذاكرة.
+
+## النتيجة المتوقعة
+
+Linter post-run: إصلاح فعلي = 1، مقبول/موثّق = 43. لا تعارض مع المنطق المالي/المحاسبي الموثّق في رسالتك السابقة (هذه الخطة لا تمس `useEndUserFinancials` ولا RPCs المالية — تلك تحتاج خطة منفصلة).
