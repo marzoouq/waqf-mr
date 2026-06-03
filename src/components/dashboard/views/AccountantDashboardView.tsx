@@ -4,9 +4,10 @@
  */
 import { memo } from 'react';
 import {
-  AlertTriangle, Clock, Banknote, FileWarning, Link as LinkIcon,
+  AlertTriangle, Clock, Banknote, FileWarning, FileX,
 } from 'lucide-react';
 import { fmtInt } from '@/utils/format/format';
+import { DashboardSkeleton } from '@/components/common';
 import type { AccountantMetrics } from '@/hooks/page/admin/dashboard/useAccountantDashboardData';
 import MetricCard from './accountant/MetricCard';
 import OverdueInvoicesCard from './accountant/OverdueInvoicesCard';
@@ -18,7 +19,7 @@ interface AccountantDashboardViewProps {
 }
 
 const AccountantDashboardView = ({ metrics, isLoading }: AccountantDashboardViewProps) => {
-  if (isLoading) return null;
+  if (isLoading) return <DashboardSkeleton />;
 
   return (
     <div className="space-y-4">
@@ -54,9 +55,9 @@ const AccountantDashboardView = ({ metrics, isLoading }: AccountantDashboardView
           subtitle="إدارة المراسلة للناظر"
         />
         <MetricCard
-          title="عقود بدون سنة"
+          title="عقود بدون فواتير"
           value={metrics.orphanedContractsCount}
-          icon={LinkIcon}
+          icon={FileX}
           color={metrics.orphanedContractsCount > 0 ? 'bg-destructive' : 'bg-muted-foreground'}
           link="/dashboard/contracts"
         />

@@ -59,9 +59,9 @@ export const useDisclosurePage = () => {
     ? `${toGregorianShort(selectedFY.start_date)}م — ${toGregorianShort(selectedFY.end_date)}م`
     : fiscalYear;
 
-  const { data: distributions = [] } = useMyDistributions(
+  const { data: distributions = [], isLoading: distLoading } = useMyDistributions(
     currentBeneficiary?.id,
-    fiscalYearId,
+    isFyReady(fiscalYearId) ? fiscalYearId : null,
   );
 
   // دوال مشتركة (#3, #4)
@@ -119,8 +119,8 @@ export const useDisclosurePage = () => {
   }, [currentBeneficiary, gregorianFiscalYear, fin, adminPct, waqifPct, beneficiariesShare, myShare, totalReceived, pendingAmount, contracts, filteredDistributions, pdfWaqfInfo]);
 
   return {
-    // توحيد loading states (#37)
-    isLoading: finLoading || pctLoading || contractsLoading,
+    // توحيد loading states (#37) — يشمل distLoading لمنع الـ flickering
+    isLoading: finLoading || pctLoading || contractsLoading || distLoading,
     isError: finError, isAccountMissing: fin.isAccountMissing,
     selectedFY, handleRetry, contracts,
     totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,

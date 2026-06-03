@@ -14,11 +14,12 @@ import DashboardKpiPanel from '@/components/dashboard/kpi/DashboardKpiPanel';
 import CollectionSummaryCard from '@/components/dashboard/kpi/CollectionSummaryCard';
 import YearComparisonCard from '@/components/dashboard/kpi/YearComparisonCard';
 import AccountantDashboardView from '@/components/dashboard/views/AccountantDashboardView';
-import { Printer, Gauge } from 'lucide-react';
+import { Printer, Gauge, FileDown } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import type { FiscalYear } from '@/types';
 import ChartSkeleton from '@/components/common/ChartSkeleton';
 import { useAdminDashboardPage } from '@/hooks/page/admin/dashboard/useAdminDashboardPage';
+import { useAggregatedAnnualReport } from '@/hooks/page/admin/dashboard/useAggregatedAnnualReport';
 
 // Lazy-load heavy below-the-fold components
 const DashboardCharts = lazy(() => import('@/components/dashboard/charts/DashboardCharts'));
@@ -28,6 +29,7 @@ const PagePerformanceCard = lazy(() => import('@/components/dashboard/views/Page
 
 const AdminDashboard = () => {
   const ctx = useAdminDashboardPage();
+  const aggregated = useAggregatedAnnualReport();
 
   return (
     <DashboardLayout>
@@ -43,10 +45,23 @@ const AdminDashboard = () => {
           icon={Gauge}
           description={ctx.greetingText}
           actions={
-            <Button variant="outline" onClick={ctx.print} className="gap-2">
-              <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">طباعة</span>
-            </Button>
+            <div className="flex items-center gap-2 flex-wrap">
+              {ctx.role === 'admin' && (
+                <Button
+                  variant="outline"
+                  onClick={aggregated.handleExport}
+                  disabled={!aggregated.canExport}
+                  className="gap-2"
+                >
+                  <FileDown className="w-4 h-4" />
+                  <span className="hidden sm:inline">تقرير سنوي مُجمَّع</span>
+                </Button>
+              )}
+              <Button variant="outline" onClick={ctx.print} className="gap-2">
+                <Printer className="w-4 h-4" />
+                <span className="hidden sm:inline">طباعة</span>
+              </Button>
+            </div>
           }
         />
 

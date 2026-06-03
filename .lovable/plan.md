@@ -1,81 +1,33 @@
-# خطة متابعة التدقيق الشامل (المراحل 2-4)
+# تنفيذ الخطة الشاملة — حالة 2026-06-03
 
-تم إنجاز المرحلة 1 (توحيد المنطق المالي على مستوى RPC + Frontend). هذه الخطة تكمل ما تبقى.
+## ✅ مُنجَز
 
-## المرحلة 2 — أداة تشخيص اتساق البطاقات (Diagnostic Tool)
+### المرحلة 1 — إصلاحات H-02 المستفيد + Medium
+- `useDisclosurePage.ts`: إضافة `distLoading` إلى `isLoading` + guard `isFyReady` على `useMyDistributions`.
+- `useAccountsViewPage.ts`: استبدال `?? 'all'` بـ `isFyReady(...) ? id : 'all'`.
+- `AccountantDashboardView.tsx`: استبدال `return null` بـ `DashboardSkeleton`، تصحيح "عقود بدون سنة" → "عقود بدون فواتير"، استبدال أيقونة `Link` بـ `FileX`.
+- `MonthlyCollectionCard.tsx`: استبدال `return null` الصامت بـ EmptyState.
+- (ملاحظة) `AiAssistant.tsx` غير موجود في المشروع — أُسقط من النطاق.
 
-**الهدف:** كشف أي انحراف عددي بين بطاقات لوحة الناظر والمستفيد والمحاسب والـRPC مصدر البيانات.
+### المرحلة 2 — تقرير سنوي مُجمَّع PDF للناظر
+- `src/utils/pdf/reports/aggregatedAnnualReport.ts` (جديد): مولّد PDF كامل — مؤشرات سريعة + تسلسل مالي كامل + إيرادات/مصروفات/مستفيدين/توزيعات + YoY + إنجازات/تحديات/خطط/حالة عقارات.
+- `src/hooks/page/admin/dashboard/useAggregatedAnnualReport.ts` (جديد): يجمع من `useDashboardSummary` (أرقام موثوقة) + `useIncomeByFiscalYear` + `useExpensesByFiscalYear` + `useAnnualReportItems` + `useProperties` + استعلام `distributions` مباشر.
+- `src/utils/pdf/index.ts`: تصدير `generateAggregatedAnnualReportPDF`.
+- `src/pages/dashboard/AdminDashboard.tsx`: زر "تقرير سنوي مُجمَّع" (admin فقط، disabled حتى تجهز البيانات).
 
-**الملفات الجديدة:**
-- `src/lib/diagnostics/cardConsistencyCheck.ts` — دالة `runCardConsistencyAudit(fiscalYearId)` تُرجع تقريراً منظماً يقارن:
-  - `available_amount` (Admin RPC) مقابل `share_percentage × available_amount` (Beneficiary)
-  - `total_received` (Beneficiary RPC) مقابل `SUM(distributions WHERE status='paid')`
-  - `overdue_count` vs `pending_count` (Accountant) — التأكد من عدم التداخل
-  - `net_after_zakat` من `accounts` مقابل قراءات الـhooks الثلاثة
-  - `paidAdvancesTotal` و`carryforward_balance` ضمن نفس النطاق الزمني
-- `src/lib/diagnostics/__tests__/cardConsistency.test.ts` — اختبارات Vitest على بيانات seed لكل دور
-- صفحة مخفية للأدمن فقط: `src/pages/admin/DiagnosticsPage.tsx` تعرض النتائج في جدول قابل للتصدير CSV (للاستخدام التشخيصي فقط، لا تظهر في القائمة الرئيسية إلا للأدمن)
+## ⏸️ مُؤجَّل للجلسة القادمة (نطاق كبير — يحتاج وقت تنفيذ مستقل)
 
-**حدود الأمان:** أداة قراءة فقط، لا تُعدّل أي بيانات، لا تتأثر بها السنوات المقفلة.
+### المرحلة 3 — تقرير تباين RPC ↔ Hooks (variance report)
+ملف `src/lib/diagnostics/varianceReport.ts` + تكامل في صفحة Diagnostics + اختبار.
 
-## المرحلة 3 — التدقيق الوظيفي الشامل (Sub-agent Audit)
+### المرحلة 4 — اختبارات E2E (Vitest + RTL)
+ثلاث ملفات في `src/test/e2e/` لتدفقات admin/beneficiary/accountant.
 
-**الهدف:** فحص كل زر/تبويب/رابط/استعلام في الصفحات الثلاث.
+### المرحلة 5 — فحص عددي شامل
+`src/lib/diagnostics/checks/numericalAudit.ts` كفحص #8.
 
-**النهج:** استخدام `acp_subagent--explore` بثلاث مهام متوازية:
+### المرحلة 6 — فحص تكامل الأزرار/التبويبات
+`src/lib/diagnostics/checks/uiIntegrityCheck.ts` كفحص #9.
 
-1. **لوحة الناظر** (`src/pages/dashboard/AdminDashboard.tsx` + جميع الويدجتس):
-   - أزرار ميتة، تبويبات فارغة، روابط مكسورة
-   - استعلامات مكررة بين `useAdminDashboardPage` و`useAdminDashboardStats`
-   - تطابق البيانات المعروضة مع مصادرها الفعلية
-   
-2. **لوحة المستفيد** (`src/pages/beneficiary/*`):
-   - صفحات: MyShare, MyAdvances, MyDistributions, MyDisclosure
-   - تحقق من ربط كل بطاقة بـ hook صحيح
-   - أزرار طلب السلفة وحالاتها
-
-3. **لوحة المحاسب** (`src/pages/accountant/*` + AccountantDashboard widgets):
-   - بطاقات الإفصاح المخفية، فلاتر `overdue` vs `pending`
-   - تكامل مع `useAccountantDashboardData`
-
-**المخرج:** تقرير منظم لكل لوحة في `.lovable/audit-findings-stage3.md` يحتوي:
-- قائمة العناصر السليمة ✓
-- المشاكل المكتشفة مع المسار:السطر
-- توصية إصلاح لكل مشكلة (مرتبة حسب الخطورة)
-
-## المرحلة 4 — التحقق النهائي والتوثيق
-
-1. **تشغيل اختبارات شاملة:**
-   ```
-   vitest run src/hooks src/utils src/lib/diagnostics
-   ```
-   هدف: 100% pass على ≥317 اختباراً + الاختبارات الجديدة
-
-2. **مقارنة قبل/بعد على سنة مقفلة** (read-only عبر `supabase--read_query`):
-   - اختيار سنة مقفلة عشوائية
-   - مقارنة قيم RPC الجديدة مع snapshot `accounts` للتأكد من عدم التغيير
-
-3. **تحديث `mem://` حسب الحاجة** — إضافة:
-   - قاعدة جديدة لـ `available_amount_raw` (للشفافية الإدارية)
-   - تحديث قاعدة `Net Share Logic` لتعكس أولوية `prev_net_after_zakat` snapshot
-
-4. **توثيق ختامي:** `.lovable/audit-report-2026-06-03.md`
-   - ملخص جميع المراحل الأربع
-   - قائمة الملفات المعدلة
-   - دليل تشغيل أداة التشخيص للأدمن
-   - قيود معروفة وتوصيات مستقبلية
-
-## ضمانات الأمان
-
-- لا تعديل على: `auth/`, `client.ts`, `types.ts`, `config.toml`, `.env`
-- لا تغيير على بيانات السنوات المقفلة (snapshots محمية)
-- جميع الإضافات الجديدة (Diagnostics) محمية بـ `has_role('admin')`
-- لا migrations جديدة في هذه المراحل — المرحلة 1 أنجزت كل تغييرات DB
-
-## الترتيب الزمني المتوقع
-
-1. المرحلة 2 (أداة التشخيص + اختبارات) — أولاً، لأنها أساس التحقق
-2. المرحلة 3 (Sub-agents متوازية) — بعد توفر الأداة
-3. المرحلة 4 (تحقق نهائي + توثيق) — ختامياً
-
-هل أبدأ بالمرحلة 2؟
+### قرار منتج معلَّق
+H-02/H-03 صلاحيات المحاسب — بانتظار قرار المنتج.

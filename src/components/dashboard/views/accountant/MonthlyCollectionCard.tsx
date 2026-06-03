@@ -28,10 +28,26 @@ interface MonthlyCollectionCardProps {
 }
 
 const MonthlyCollectionCard = memo(function MonthlyCollectionCard({ data }: MonthlyCollectionCardProps) {
-  if (!data.length) return null;
-
   // آخر 6 أشهر فقط
   const recent = data.slice(-6);
+
+  if (!recent.length) {
+    return (
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2">
+            <CalendarClock className="w-5 h-5" />
+            ملخص التحصيل الشهري
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-6">
+            لا توجد بيانات تحصيل لعرضها بعد.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-sm">
