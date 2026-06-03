@@ -67,6 +67,8 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
 
   // ── ملخص التحصيل (جاهز من RPC) ──
   // paidLikeCount = paid + partially_paid (تعريف موحّد مع لوحة المستفيد)
+  // overdueCount = الفواتير المتأخرة فعلياً (لا يشمل pending قبل تاريخ الاستحقاق)
+  // unpaidCount = كل غير المدفوع (overdue + pending قبل الاستحقاق) — يُستخدم في الإحصاء العام
   const collectionSummary = useMemo(() => {
     const paidCount = collection?.paid_count ?? 0;
     const partialCount = collection?.partial_count ?? 0;
@@ -74,6 +76,7 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
       paidCount,
       partialCount,
       unpaidCount: collection?.unpaid_count ?? 0,
+      overdueCount: collection?.overdue_count ?? 0,
       paidLikeCount: paidCount + partialCount,
       total: collection?.total ?? 0,
       percentage: collection?.percentage ?? 0,
