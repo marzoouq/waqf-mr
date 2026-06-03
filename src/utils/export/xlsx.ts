@@ -64,7 +64,7 @@ export function buildXlsx(data: Record<string, unknown>[]): Blob {
       if (val !== '' && !isNaN(num) && isFinite(num)) {
         return `<c r="${colLetter(ci)}${rowNum}"><v>${num}</v></c>`;
       }
-      return `<c r="${colLetter(ci)}${rowNum}" t="inlineStr"><is><t>${escXml(val)}</t></is></c>`;
+      return `<c r="${colLetter(ci)}${rowNum}" t="inlineStr"><is><t>${escXml(sanitizeXlsxCell(val))}</t></is></c>`;
     }).join('');
     return `<row r="${rowNum}">${cells}</row>`;
   }).join('\n');
