@@ -61,8 +61,8 @@ export const useMySharePage = () => {
     [dashData?.my_carryforwards],
   );
 
-  const advanceSettings = dashData?.advance_settings ?? { enabled: true, min_amount: 500, max_percentage: 50 };
-  // #64 fix: default false instead of true to prevent advances without settings
+  // إصلاح C-01: افتراضي enabled=false لمنع ظهور زر السلفة قبل تحميل الإعدادات
+  const advanceSettings = dashData?.advance_settings ?? { enabled: false, min_amount: 500, max_percentage: 50 };
   const advancesEnabled = advanceSettings.enabled ?? false;
   const beneficiariesShare = fin.availableAmount;
   const isClosed = selectedFY?.status === 'closed';

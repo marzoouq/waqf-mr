@@ -43,14 +43,14 @@ export const useMyShare = <T extends BeneficiaryLike>({
 
   const myShare = useMemo(() => {
     // #9: تفضيل القيمة المحسوبة من الخادم (RPC) عند توفرها — بما فيها 0 الصريحة (عجز/مرحّل كامل).
-    // ملاحظة: تناقض السنة النشطة (كان يُرجع 0) عُولج في RPC `get_beneficiary_dashboard`
-    // باحتساب تقدير حقيقي بصيغة الناظر `waqf_revenue - waqf_corpus_manual`.
+    // إصلاح H-01: حماية ضد القيم السالبة في كلا المسارين (server + fallback)
     if (serverMyShare !== null && serverMyShare !== undefined && isFinite(serverMyShare)) {
-      return serverMyShare;
+      return Math.max(0, serverMyShare);
     }
     // fallback: حساب محلي (للناظر أو عند غياب RPC)
     if (!currentBeneficiary || totalBenPct <= 0) return 0;
-    return Math.round(safeNumber(availableAmount) * safeNumber(currentBeneficiary.share_percentage) / totalBenPct * 100) / 100;
+    const computed = Math.round(safeNumber(availableAmount) * safeNumber(currentBeneficiary.share_percentage) / totalBenPct * 100) / 100;
+    return Math.max(0, computed);
   }, [serverMyShare, currentBeneficiary, availableAmount, totalBenPct]);
 
   return { currentBeneficiary, totalBenPct, pctLoading, myShare };
