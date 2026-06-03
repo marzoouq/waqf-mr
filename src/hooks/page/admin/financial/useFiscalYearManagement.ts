@@ -42,10 +42,21 @@ export function useFiscalYearManagement() {
   const [creating, setCreating] = useState(false);
   const [newFY, setNewFY] = useState({ label: '', start_date: '', end_date: '' });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  /** تحقق محلي فوري — يعود null عند صلاحية الإدخال */
+  const formError = useMemo<string | null>(() => {
+    if (!newFY.label && !newFY.start_date && !newFY.end_date) return null;
+    return validateFiscalYearInput(newFY);
+  }, [newFY]);
+
+  /** مسح خطأ الخادم عند أي تغيير في الحقول */
+  useEffect(() => { setSubmitError(null); }, [newFY.label, newFY.start_date, newFY.end_date]);
 
   const handleCreate = async () => {
-    if (!newFY.label || !newFY.start_date || !newFY.end_date) {
-      uiNotify.error('يرجى تعبئة جميع الحقول');
+    if (formError) {
+      setSubmitError(formError);
+      uiNotify.error(formError);
       return;
     }
     setActionLoading('create');
@@ -54,11 +65,14 @@ export function useFiscalYearManagement() {
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
       uiNotify.success('تم إنشاء السنة المالية (محجوبة عن المستفيدين — يمكنك نشرها لاحقاً)');
       setNewFY({ label: '', start_date: '', end_date: '' });
+      setSubmitError(null);
+      setCreating(false);
     } catch (err: unknown) {
-      uiNotify.error(err instanceof Error ? err.message : 'حدث خطأ أثناء الإنشاء');
+      const msg = err instanceof Error ? err.message : 'حدث خطأ أثناء الإنشاء';
+      setSubmitError(msg);
+      uiNotify.error(msg);
     } finally {
       setActionLoading(null);
-      setCreating(false);
     }
   };
 
