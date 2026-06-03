@@ -160,6 +160,7 @@ export function useFiscalYearManagement() {
     creating, setCreating,
     newFY, setNewFY,
     actionLoading,
+    formError, submitError,
     handleCreate, handleClose, handleReopen, togglePublished, handleDelete, handleCascadeDelete,
   };
 }
