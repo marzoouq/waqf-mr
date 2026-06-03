@@ -73,8 +73,10 @@ const setup = () => {
   return { qc, result };
 };
 
-const getPages = (qc: QueryClient) =>
-  qc.getQueryData<InfiniteData<Notification[]>>(['notifications', USER_ID])!.pages;
+const getList = (qc: QueryClient): Notification[] => {
+  const d = qc.getQueryData<InfiniteData<Notification[]>>(['notifications', USER_ID]);
+  return d?.pages[0] ?? [];
+};
 
 beforeEach(() => {
   updateMockState.shouldFail = false;
