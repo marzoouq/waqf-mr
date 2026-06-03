@@ -122,6 +122,8 @@ export const useAdminDashboardPage = () => {
     // accountant
     isAccountant,
     accountantMetrics,
+    accountantAggregated: isAccountant ? summary.aggregated : null,
+
 
     // D-07: علم عرض البطاقة منقول من JSX إلى hook
     showPerformanceCard: role === 'admin',
