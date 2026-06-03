@@ -20,6 +20,11 @@ vi.mock('@/lib/services', () => ({
   reopenFiscalYear: (...args: unknown[]) => reopenFy(...args),
   toggleFiscalYearPublished: (...args: unknown[]) => togglePub(...args),
   deleteFiscalYear: (...args: unknown[]) => deleteFy(...args),
+  deleteFiscalYearCascade: vi.fn(),
+  validateFiscalYearInput: (input: { label: string; start_date: string; end_date: string }) => {
+    if (!input.label || !input.start_date || !input.end_date) return 'يرجى تعبئة جميع الحقول';
+    return null;
+  },
 }));
 
 vi.mock('@/hooks/data/financial/fiscalYears/useFiscalYears', () => ({

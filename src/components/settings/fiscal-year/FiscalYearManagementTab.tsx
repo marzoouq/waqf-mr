@@ -10,7 +10,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useFiscalYearManagement } from '@/hooks/page/admin/financial/useFiscalYearManagement';
 import ReopenFiscalYearDialog from './ReopenFiscalYearDialog';
 import CascadeDeleteFiscalYearDialog from './CascadeDeleteFiscalYearDialog';
@@ -19,7 +20,7 @@ import CascadeDeleteFiscalYearDialog from './CascadeDeleteFiscalYearDialog';
 const FiscalYearManagementTab = () => {
   const {
     fiscalYears, isLoading, creating, setCreating,
-    newFY, setNewFY, actionLoading,
+    newFY, setNewFY, actionLoading, formError, submitError,
     handleCreate, handleClose, handleReopen, togglePublished, handleDelete, handleCascadeDelete,
   } = useFiscalYearManagement();
 
@@ -36,23 +37,55 @@ const FiscalYearManagementTab = () => {
           <Button size="sm" className="gap-1.5" onClick={() => setCreating(!creating)}><Plus className="w-4 h-4" />سنة جديدة</Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          {creating && (
+          {creating && (() => {
+            const labelErr = formError && (formError.includes('المسمى') || formError.includes('السنة الثانية')) ? formError : null;
+            const dateErr = formError && (formError.includes('تاريخ') || formError.includes('مدة')) ? formError : null;
+            const allEmptyErr = formError === 'يرجى تعبئة جميع الحقول' ? formError : null;
+            const durationDays = newFY.start_date && newFY.end_date
+              ? Math.round((new Date(newFY.end_date).getTime() - new Date(newFY.start_date).getTime()) / 86_400_000)
+              : null;
+            return (
             <Card className="border-primary/30 bg-primary/5">
               <CardContent className="p-4 space-y-3">
+                {submitError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="w-4 h-4" />
+                    <AlertTitle>تعذّر إنشاء السنة المالية</AlertTitle>
+                    <AlertDescription className="whitespace-pre-wrap">{submitError}</AlertDescription>
+                  </Alert>
+                )}
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="space-y-1.5"><Label>المسمى</Label><Input value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="2025-2026" pattern="\d{4}-\d{4}" /></div>
-                  <div className="space-y-1.5"><Label>تاريخ البداية</Label><Input type="date" value={newFY.start_date} onChange={e => setNewFY(p => ({ ...p, start_date: e.target.value }))} /></div>
-                  <div className="space-y-1.5"><Label>تاريخ النهاية</Label><Input type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} /></div>
+                  <div className="space-y-1.5">
+                    <Label>المسمى</Label>
+                    <Input value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="2025-2026" pattern="\d{4}-\d{4}" aria-invalid={!!labelErr} />
+                    {labelErr && <p className="text-xs text-destructive">{labelErr}</p>}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>تاريخ البداية</Label>
+                    <Input type="date" value={newFY.start_date} onChange={e => setNewFY(p => ({ ...p, start_date: e.target.value }))} aria-invalid={!!dateErr} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>تاريخ النهاية</Label>
+                    <Input type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} aria-invalid={!!dateErr} />
+                    {dateErr && <p className="text-xs text-destructive">{dateErr}</p>}
+                    {!dateErr && durationDays !== null && (
+                      <p className={`text-xs ${durationDays > 380 ? 'text-caution-foreground' : 'text-muted-foreground'}`}>
+                        المدة المحسوبة: {durationDays} يوم
+                      </p>
+                    )}
+                  </div>
                 </div>
+                {allEmptyErr && <p className="text-xs text-destructive">{allEmptyErr}</p>}
                 <p className="text-xs text-muted-foreground">المسمى يجب أن يكون بصيغة <code className="px-1 rounded bg-muted">YYYY-YYYY</code> بفارق سنة واحدة (مثل 2025-2026). لا يُسمح بتداخل المدد الزمنية أو تكرار المسمى، ولا يمكن إنشاء سنة جديدة قبل إقفال السنة النشطة الحالية.</p>
                 <p className="text-xs text-caution-foreground">ملاحظة: السنة الجديدة ستكون <strong>محجوبة</strong> عن المستفيدين تلقائياً — يمكنك نشرها بعد إضافة البيانات.</p>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleCreate} disabled={actionLoading === 'create'} className="gap-1.5">{actionLoading === 'create' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}إنشاء</Button>
+                  <Button size="sm" onClick={handleCreate} disabled={!!formError || actionLoading === 'create'} className="gap-1.5">{actionLoading === 'create' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}إنشاء</Button>
                   <Button size="sm" variant="ghost" onClick={() => setCreating(false)}>إلغاء</Button>
                 </div>
               </CardContent>
             </Card>
-          )}
+            );
+          })()}
 
           {fiscalYears.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">لا توجد سنوات مالية بعد</p>

@@ -1,8 +1,10 @@
 import React, { createContext, useContext } from 'react';
 import type { FiscalYear } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import { useDashboardPrefetch } from '@/hooks/data/dashboard/useDashboardPrefetch';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { useFiscalYearPersistence } from '@/hooks/auth/session/useFiscalYearPersistence';
 import { useResolvedFiscalYear } from '@/hooks/auth/session/useResolvedFiscalYear';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logger } from '@/lib/logger';
 import { FY_NONE } from '@/constants/fiscalYearIds';
 
@@ -30,12 +32,26 @@ const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undef
 export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
   const { selectedId, setFiscalYearId } = useFiscalYearPersistence();
   const final = useResolvedFiscalYear(selectedId);
+  const { user, role } = useAuth();
 
   // جلب مسبق لبيانات لوحة التحكم — يبقى داخل Provider (مراجعة Version I-R)
   useDashboardPrefetch({
     fiscalYearId: final.fiscalYearId,
     fiscalYears: final.fiscalYears,
   });
+
+  // Realtime لتغييرات السنوات المالية — يحدّث كل اللوحات فوراً عند الإنشاء/التحديث/الحذف
+  useDashboardRealtime(
+    'fiscal-years-global',
+    ['fiscal_years'],
+    !!user && !!role,
+    [
+      ['fiscal_years_published_all'],
+      ['public-stats'],
+      ['annual_report_status'],
+      ['waqif_annual_report'],
+    ],
+  );
 
   return (
     <FiscalYearContext.Provider
