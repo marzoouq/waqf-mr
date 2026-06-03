@@ -35,7 +35,7 @@ const PropertiesViewPage = () => {
     handleExportPdf,
   } = usePropertiesViewPage();
 
-  const { totalProperties, totalVacant, overallOccupancy, occColor, occBarColor } = summaryData;
+  const { totalProperties, totalVacant, vacantUnits, propertiesWithoutUnits, overallOccupancy, occColor, occBarColor } = summaryData;
 
   if (isLoading) {
     return <DashboardLayout><div className="p-4 md:p-6 space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div></DashboardLayout>;
@@ -71,12 +71,14 @@ const PropertiesViewPage = () => {
 
           {/* بطاقات الملخص الإجمالية */}
           <div className="space-y-4 animate-slide-up">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
               <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-primary/10"><Building2 className="w-5 h-5 text-primary" /></div><div><p className="text-xs text-muted-foreground">إجمالي العقارات</p><p className="text-xl font-bold">{totalProperties}</p></div></CardContent></Card>
               <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-accent/50"><Layers className="w-5 h-5 text-accent-foreground" /></div><div><p className="text-xs text-muted-foreground">إجمالي الوحدات</p><p className="text-xl font-bold">{totalUnits}</p></div></CardContent></Card>
               <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-success/10"><div className="w-5 h-5 rounded-full bg-success" /></div><div><p className="text-xs text-muted-foreground">مؤجرة</p><p className="text-xl font-bold text-success">{occupiedUnits}</p></div></CardContent></Card>
-              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-warning/10"><div className="w-5 h-5 rounded-full bg-warning" /></div><div><p className="text-xs text-muted-foreground">شاغرة</p><p className="text-xl font-bold text-warning">{totalVacant}</p></div></CardContent></Card>
+              <Tooltip><TooltipTrigger asChild><Card className="shadow-sm cursor-help"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-warning/10"><div className="w-5 h-5 rounded-full bg-warning" /></div><div><p className="text-xs text-muted-foreground">وحدات شاغرة</p><p className="text-xl font-bold text-warning">{vacantUnits}</p></div></CardContent></Card></TooltipTrigger><TooltipContent>وحدات مسجَّلة غير مؤجَّرة</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><Card className="shadow-sm cursor-help"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-muted"><Building2 className="w-5 h-5 text-muted-foreground" /></div><div><p className="text-xs text-muted-foreground">عقارات بدون وحدات</p><p className="text-xl font-bold text-muted-foreground">{propertiesWithoutUnits}</p></div></CardContent></Card></TooltipTrigger><TooltipContent>عقارات لم تُسجَّل لها وحدات ولا تتبعها عقود</TooltipContent></Tooltip>
             </div>
+            <p className="sr-only">إجمالي الشواغر: {totalVacant}</p>
 
             <Card className="shadow-sm bg-muted/30">
               <CardContent className="p-3 flex items-center justify-between gap-3 text-xs sm:text-sm">

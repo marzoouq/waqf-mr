@@ -124,11 +124,11 @@ const PropertyCard = ({ property, financials, hasActiveContracts, onSelect, onEd
 
         <div className="border-t pt-3 space-y-1 text-sm">
           <div className="flex justify-between"><span className="text-muted-foreground">الإيرادات التعاقدية:</span><span className="font-semibold">{fmt(contractualRevenue)} ريال</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">الدخل النشط:</span><span className="font-medium text-success">{fmt(activeAnnualRent)} ريال</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">الإيراد التعاقدي المخصص:</span><span className="font-medium text-success">{fmt(activeAnnualRent)} ريال</span></div>
           <div className="flex justify-between"><span className="text-muted-foreground">الاستحقاق الشهري:</span><span className="font-medium">{fmtInt(monthlyRent)} ريال</span></div>
           <div className="flex justify-between"><span className="text-muted-foreground">المصروفات:</span><span className="font-medium">{fmt(totalExpenses)} ريال</span></div>
           <div className="flex justify-between border-t pt-1 mt-1">
-            <span className="text-muted-foreground">الصافي:</span>
+            <span className="text-muted-foreground">صافي مستحق تقديري:</span>
             <span className={`font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(netIncome)} ريال</span>
           </div>
         </div>
