@@ -18,7 +18,12 @@ import { join, relative, sep } from 'node:path';
 const SRC_ROOT = join(process.cwd(), 'src');
 
 const ALLOWLIST = new Set<string>([
-  'main.tsx', // fallback HTML داخل innerHTML — ليس استدعاءً تشغيلياً
+  // fallback HTML داخل innerHTML عند فشل React boot — ليس استدعاءً تشغيلياً
+  'main.tsx',
+  // زر استرجاع يدوي يضغطه المستخدم بعد ظهور شاشة الخطأ
+  'components/common/ErrorBoundary.tsx',
+  // استرداد من chunk load failure بعد نشر جديد (مرة واحدة فقط مع علم session)
+  'lib/lazyWithRetry.ts',
 ]);
 
 function walk(dir: string, out: string[] = []): string[] {
