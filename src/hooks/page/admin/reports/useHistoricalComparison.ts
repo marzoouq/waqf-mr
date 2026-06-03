@@ -9,7 +9,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 
 // تعريف موحَّد لـ "الصافي" = waqfRevenue (مصدر رسمي للسنوات المقفلة) مع fallback آمن
-const netOf = (d: YearSummaryEntry | null) =>
+const netOf = (d: YearSummaryEntry | null | undefined) =>
   d?.waqfRevenue && d.waqfRevenue > 0 ? d.waqfRevenue : (d?.totalIncome ?? 0) - (d?.totalExpenses ?? 0);
 
 export function useHistoricalComparison() {
