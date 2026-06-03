@@ -79,7 +79,7 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
                 <AlertTriangle className="w-5 h-5 text-destructive" />
                 <span className="text-sm text-muted-foreground">متأخر</span>
               </div>
-              <p className="text-xl sm:text-3xl font-bold text-destructive">{collectionSummary.unpaidCount}</p>
+              <p className="text-xl sm:text-3xl font-bold text-destructive">{collectionSummary.overdueCount ?? collectionSummary.unpaidCount}</p>
               <Badge className="bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30">فاتورة</Badge>
             </div>
 
