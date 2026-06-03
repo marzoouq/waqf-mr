@@ -63,16 +63,22 @@ export function useYearComparisonData(year1Id: string, year2Id: string) {
     expenses: toMonthMap(data?.year2?.monthly_expenses ?? []),
   }), [data]);
 
-  const totals = useMemo(() => ({
-    year1: {
-      totalIncome: safeNumber(data?.year1?.total_income),
-      totalExpenses: safeNumber(data?.year1?.total_expenses),
-    },
-    year2: {
-      totalIncome: safeNumber(data?.year2?.total_income),
-      totalExpenses: safeNumber(data?.year2?.total_expenses),
-    },
-  }), [data]);
+  const totals = useMemo(() => {
+    const pick = (y: YearSummary | undefined) => ({
+      totalIncome: safeNumber(y?.total_income),
+      totalExpenses: safeNumber(y?.total_expenses),
+      // الحقول الرسمية من الحساب المقفل — تُستخدم كمصدر موحَّد للصافي عبر الجدول/الرسم/الـ PDF
+      waqfRevenue: safeNumber(y?.account?.waqf_revenue),
+      netAfterExpenses: safeNumber(y?.account?.net_after_expenses),
+      netAfterVat: safeNumber(y?.account?.net_after_vat),
+      vatAmount: safeNumber(y?.account?.vat_amount),
+      zakatAmount: safeNumber(y?.account?.zakat_amount),
+      adminShare: safeNumber(y?.account?.admin_share),
+      waqifShare: safeNumber(y?.account?.waqif_share),
+      distributionsAmount: safeNumber(y?.account?.distributions_amount),
+    });
+    return { year1: pick(data?.year1), year2: pick(data?.year2) };
+  }, [data]);
 
   const expensesByType = useMemo(() => ({
     year1: toExpenseRecord(data?.year1?.expenses_by_type ?? []),

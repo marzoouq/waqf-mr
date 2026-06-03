@@ -71,9 +71,14 @@ export function useYearComparisonState({ fiscalYears, currentFiscalYearId }: Use
     Object.entries(expensesByType.year2).map(([name, value]) => ({ name, value })),
     [expensesByType.year2]);
 
+  // تعريف موحَّد لـ "الصافي" = waqfRevenue (إن وُجد حساب رسمي) وإلا fallback لـ income−expenses
+  const netOf = (t: typeof totals.year1) =>
+    t.waqfRevenue > 0 ? t.waqfRevenue : t.totalIncome - t.totalExpenses;
+
   const yearTotals = useMemo(() => ({
-    year1: { income: totals.year1.totalIncome, expenses: totals.year1.totalExpenses, net: totals.year1.totalIncome - totals.year1.totalExpenses },
-    year2: { income: totals.year2.totalIncome, expenses: totals.year2.totalExpenses, net: totals.year2.totalIncome - totals.year2.totalExpenses },
+    year1: { income: totals.year1.totalIncome, expenses: totals.year1.totalExpenses, net: netOf(totals.year1) },
+    year2: { income: totals.year2.totalIncome, expenses: totals.year2.totalExpenses, net: netOf(totals.year2) },
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- netOf نقي ويعتمد على totals فقط
   }), [totals]);
 
   const incomeChange = yearTotals.year1.income > 0
