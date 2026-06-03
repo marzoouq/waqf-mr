@@ -83,7 +83,12 @@ export const diagnosticCategories: DiagnosticCategory[] = [
     title: 'الفحوصات المالية',
     checks: [checkPartiallyPaidConsistency, checkDistributionsVsAvailable, checkBeneficiariesWithoutAccount, checkContractsWithoutAllocations, checkOverduePartiallyPaid],
   },
+  {
+    title: 'اتساق بطاقات اللوحات',
+    checks: [checkAvailableAmountNonNegative, checkDistributionsWithinAvailable, checkBeneficiaryShareFormula, checkAdvancesWithinShare, checkOverduePendingNoOverlap, checkCarryforwardIntegrity],
+  },
 ];
+
 
 export async function runAllDiagnostics(): Promise<{ category: string; results: CheckResult[] }[]> {
   const output: { category: string; results: CheckResult[] }[] = [];
