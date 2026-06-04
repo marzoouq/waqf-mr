@@ -87,9 +87,12 @@ export async function invoke<T = unknown>(
         const enriched = status ? { ...error, status } : error;
         const classified = classifyError(enriched);
 
-        if (classified.category === 'auth' && options.onAuthError) {
+        if (classified.category === 'auth') {
           const apiErr = new ApiError(classified, enriched);
-          await options.onAuthError(apiErr);
+          // إشعار افتراضي بانتهاء الجلسة (lib/ مسموح له بـ toast)
+          const { uiNotify } = await import('@/lib/notify');
+          uiNotify.error('انتهت الجلسة، يُرجى تسجيل الدخول من جديد');
+          if (options.onAuthError) await options.onAuthError(apiErr);
           throw apiErr;
         }
 
@@ -117,9 +120,11 @@ export async function invoke<T = unknown>(
             : { message, status: 400 };
           const classified = classifyError(synthetic);
 
-          if (classified.category === 'auth' && options.onAuthError) {
+          if (classified.category === 'auth') {
             const apiErr = new ApiError(classified, synthetic);
-            await options.onAuthError(apiErr);
+            const { uiNotify } = await import('@/lib/notify');
+            uiNotify.error('انتهت الجلسة، يُرجى تسجيل الدخول من جديد');
+            if (options.onAuthError) await options.onAuthError(apiErr);
             throw apiErr;
           }
 

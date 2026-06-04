@@ -1,11 +1,15 @@
 /**
- * هوك فرعي لإدارة تأجير العقار بالكامل (بدون وحدات)
+ * هوك فرعي لإدارة تأجير العقار بالكامل (بدون وحدات) — طبقة data نقية.
+ * Toasts الخاصة بالتحقق نُقلت إلى المستهلِك في hooks/page/admin/properties/usePropertyUnits.
  */
 import { useCreateContract, useUpdateContract } from './useContracts';
 import { Property, Contract } from '@/types';
-import { uiNotify } from '@/lib/notify';
 import type { WholeRentalForm } from '@/types/forms/property';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+
+export type WholePropertySaveResult =
+  | { ok: true }
+  | { ok: false; reason: 'missing_fields' | 'no_fiscal_year' };
 
 export function useWholePropertyRental(property: Property, contracts: Contract[]) {
   const createContract = useCreateContract();
@@ -22,10 +26,9 @@ export function useWholePropertyRental(property: Property, contracts: Contract[]
 
   const wholePropertyContract = wholePropertyContracts[0] || null;
 
-  const handleWholePropertySave = async (form: WholeRentalForm) => {
+  const handleWholePropertySave = async (form: WholeRentalForm): Promise<WholePropertySaveResult> => {
     if (!form.tenant_name || !form.rent_amount || !form.start_date || !form.end_date) {
-      uiNotify.error('يرجى ملء جميع الحقول المطلوبة');
-      return;
+      return { ok: false, reason: 'missing_fields' };
     }
     const rentAmount = parseFloat(form.rent_amount);
     const paymentCount = form.payment_type === 'monthly' ? 12 : form.payment_type === 'multi' ? parseInt(form.payment_count || '1') : 1;
@@ -37,19 +40,20 @@ export function useWholePropertyRental(property: Property, contracts: Contract[]
         payment_type: form.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
         start_date: form.start_date, end_date: form.end_date,
       });
-    } else {
-      if (!fiscalYear?.id) {
-        uiNotify.error('لا توجد سنة مالية نشطة لربط العقد بها');
-        return;
-      }
-      await createContract.mutateAsync({
-        contract_number: `C-${property.property_number}-WHOLE-${Date.now().toString(36)}`,
-        property_id: property.id, tenant_name: form.tenant_name, rent_amount: rentAmount,
-        start_date: form.start_date, end_date: form.end_date, status: 'active',
-        payment_type: form.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
-        fiscal_year_id: fiscalYear.id,
-      });
+      return { ok: true };
     }
+
+    if (!fiscalYear?.id) {
+      return { ok: false, reason: 'no_fiscal_year' };
+    }
+    await createContract.mutateAsync({
+      contract_number: `C-${property.property_number}-WHOLE-${Date.now().toString(36)}`,
+      property_id: property.id, tenant_name: form.tenant_name, rent_amount: rentAmount,
+      start_date: form.start_date, end_date: form.end_date, status: 'active',
+      payment_type: form.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
+      fiscal_year_id: fiscalYear.id,
+    });
+    return { ok: true };
   };
 
   const isPending = createContract.isPending || updateContractMutation.isPending;
