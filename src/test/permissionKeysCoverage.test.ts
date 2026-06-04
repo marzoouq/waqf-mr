@@ -32,18 +32,17 @@ const accountantPerms = DEFAULT_ROLE_PERMS.accountant ?? {};
 
 describe('P0 — تغطية مفاتيح الصلاحيات', () => {
   it('كل permKey للمستفيد معرّف في DEFAULT_ROLE_PERMS.beneficiary', () => {
-    const missing = beneficiaryPermKeys.filter(k => !(k in DEFAULT_ROLE_PERMS.beneficiary));
+    const missing = beneficiaryPermKeys.filter(k => !(k in benePerms));
     expect(missing, `مفاتيح مفقودة للمستفيد: ${missing.join(', ')}`).toEqual([]);
   });
 
   it('كل permKey للمستفيد معرّف في DEFAULT_ROLE_PERMS.waqif (أو يُحجب صراحة)', () => {
-    // الواقف قد يحجب بعض المفاتيح بـ false — لكن يجب أن تكون معرّفة لا غائبة
-    const missing = beneficiaryPermKeys.filter(k => !(k in DEFAULT_ROLE_PERMS.waqif));
+    const missing = beneficiaryPermKeys.filter(k => !(k in waqifPerms));
     expect(missing, `مفاتيح مفقودة للواقف: ${missing.join(', ')}`).toEqual([]);
   });
 
   it('كل permKey للمحاسب معرّف في DEFAULT_ROLE_PERMS.accountant', () => {
-    const missing = adminPermKeys.filter(k => !(k in DEFAULT_ROLE_PERMS.accountant));
+    const missing = adminPermKeys.filter(k => !(k in accountantPerms));
     expect(missing, `مفاتيح مفقودة للمحاسب: ${missing.join(', ')}`).toEqual([]);
   });
 
@@ -54,13 +53,13 @@ describe('P0 — تغطية مفاتيح الصلاحيات', () => {
 
   it('لا dead keys في DEFAULT_ROLE_PERMS.beneficiary (كل مفتاح يقابله مسار)', () => {
     const validKeys = new Set(beneficiaryPermKeys);
-    const dead = Object.keys(DEFAULT_ROLE_PERMS.beneficiary).filter(k => !validKeys.has(k));
+    const dead = Object.keys(benePerms).filter(k => !validKeys.has(k));
     expect(dead, `مفاتيح ميتة للمستفيد: ${dead.join(', ')}`).toEqual([]);
   });
 
   it('لا dead keys في DEFAULT_ROLE_PERMS.waqif (كل مفتاح يقابله مسار)', () => {
     const validKeys = new Set(beneficiaryPermKeys);
-    const dead = Object.keys(DEFAULT_ROLE_PERMS.waqif).filter(k => !validKeys.has(k));
+    const dead = Object.keys(waqifPerms).filter(k => !validKeys.has(k));
     expect(dead, `مفاتيح ميتة للواقف: ${dead.join(', ')}`).toEqual([]);
   });
 });
