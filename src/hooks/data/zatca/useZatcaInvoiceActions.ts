@@ -1,11 +1,10 @@
 /**
- * useZatcaInvoiceActions — كل mutations الفواتير (XML + توقيع + إرسال + امتثال) مع تتبع pendingIds
+ * useZatcaInvoiceActions — mutations الفواتير (XML + توقيع + إرسال + امتثال) مع تتبع pendingIds
+ * بلا أي toast — الإشعارات تُدار في طبقة الصفحة (hooks/page)
  */
 import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
-import { uiNotify } from '@/lib/notify';
-import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 
 export function useZatcaInvoiceActions() {
   const queryClient = useQueryClient();
@@ -24,8 +23,7 @@ export function useZatcaInvoiceActions() {
       addPending(invoiceId);
       return await invoke('zatca-xml-generator', { body: { invoice_id: invoiceId, table } });
     },
-    onSuccess: () => { uiNotify.success('تم توليد XML بنجاح'); invalidateInvoices(); },
-    onError: (e: Error) => uiNotify.error(getSafeErrorMessage(e)),
+    onSuccess: () => { invalidateInvoices(); },
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
@@ -34,8 +32,7 @@ export function useZatcaInvoiceActions() {
       addPending(invoiceId);
       return await invoke('zatca-signer', { body: { invoice_id: invoiceId, table } });
     },
-    onSuccess: () => { uiNotify.success('تم التوقيع بنجاح'); invalidateInvoices(); queryClient.invalidateQueries({ queryKey: ['invoice-chain'] }); },
-    onError: (e: Error) => uiNotify.error(getSafeErrorMessage(e)),
+    onSuccess: () => { invalidateInvoices(); queryClient.invalidateQueries({ queryKey: ['invoice-chain'] }); },
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
@@ -44,8 +41,7 @@ export function useZatcaInvoiceActions() {
       addPending(invoiceId);
       return await invoke('zatca-report', { body: { action, invoice_id: invoiceId, table } });
     },
-    onSuccess: () => { uiNotify.success('تم الإرسال لـ ZATCA'); invalidateInvoices(); },
-    onError: (e: Error) => uiNotify.error(getSafeErrorMessage(e)),
+    onSuccess: () => { invalidateInvoices(); },
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
@@ -54,13 +50,7 @@ export function useZatcaInvoiceActions() {
       addPending(invoiceId);
       return await invoke<{ validationResults?: { status?: string } }>('zatca-report', { body: { action: 'compliance-check', invoice_id: invoiceId, table } });
     },
-    onSuccess: (data) => {
-      if (data?.validationResults?.status === 'PASS') uiNotify.success('✅ اجتاز فحص الامتثال');
-      else if (data?.validationResults?.status === 'WARNING') uiNotify.warning('⚠️ اجتاز مع تحذيرات');
-      else uiNotify.error('❌ لم يجتز فحص الامتثال');
-      invalidateInvoices();
-    },
-    onError: (e: Error) => uiNotify.error(getSafeErrorMessage(e)),
+    onSuccess: () => { invalidateInvoices(); },
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 

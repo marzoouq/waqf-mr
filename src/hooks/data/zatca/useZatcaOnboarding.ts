@@ -1,10 +1,10 @@
 /**
  * useZatcaOnboarding — تسجيل شهادة الامتثال + الترقية لشهادة الإنتاج
+ * بلا أي toast — الإشعارات تُدار في طبقة الصفحة (hooks/page)
  */
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
-import { uiNotify } from '@/lib/notify';
 import { zatcaOnboard } from '@/lib/services/zatcaService';
 
 export function useZatcaOnboarding() {
@@ -16,10 +16,7 @@ export function useZatcaOnboarding() {
     setOnboardLoading(true);
     try {
       await zatcaOnboard();
-      uiNotify.success('تم إرسال طلب التسجيل');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
-    } catch (e) {
-      uiNotify.error(e instanceof Error ? e.message : 'فشل التسجيل');
     } finally {
       setOnboardLoading(false);
     }
@@ -30,10 +27,7 @@ export function useZatcaOnboarding() {
     try {
       // maxAttempts:1 — تسجيل/ترقية شهادة لا يجوز تكرارها تلقائياً
       await invoke('zatca-onboard', { body: { action: 'production' } }, { maxAttempts: 1 });
-      uiNotify.success('✅ تمت الترقية لشهادة الإنتاج بنجاح');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
-    } catch (e) {
-      uiNotify.error(e instanceof Error ? e.message : 'فشلت الترقية للإنتاج');
     } finally {
       setProductionLoading(false);
     }
