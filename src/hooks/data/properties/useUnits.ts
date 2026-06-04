@@ -3,7 +3,6 @@
  * Audit-fix: استعلامات unitsService مدمجة محلياً (كان بمستهلك واحد).
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { uiNotify } from '@/lib/notify';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { Unit } from '@/types';
@@ -72,8 +71,6 @@ export const useDeleteUnit = () => {
     onSuccess: (propertyId) => {
       queryClient.invalidateQueries({ queryKey: ['all-units'] });
       queryClient.invalidateQueries({ queryKey: ['units', propertyId] });
-      uiNotify.success('تم حذف الوحدة بنجاح');
     },
-    onError: () => uiNotify.error('حدث خطأ أثناء حذف الوحدة'),
   });
 };
