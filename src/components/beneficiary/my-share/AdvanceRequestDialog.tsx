@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,7 +31,13 @@ const AdvanceRequestDialog = ({ beneficiaryId, beneficiaryName, fiscalYearId, es
   const [reason, setReason] = useState('');
   const create = useCreateAdvanceRequest();
 
-  const { serverData, loading, reset } = useMaxAdvanceAmount(beneficiaryId, fiscalYearId, open);
+  const { serverData, loading, error: maxAdvanceError, reset } = useMaxAdvanceAmount(beneficiaryId, fiscalYearId, open);
+
+  useEffect(() => {
+    if (maxAdvanceError) {
+      uiNotify.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
+    }
+  }, [maxAdvanceError]);
 
   // Use server values if available, fallback to client-side
   const effectiveShare = serverData ? serverData.effective_share : Math.max(0, estimatedShare - carryforwardBalance);
@@ -48,21 +54,25 @@ const AdvanceRequestDialog = ({ beneficiaryId, beneficiaryName, fiscalYearId, es
     }
     const numAmount = parseFloat(amount);
     if (!numAmount || numAmount <= 0 || numAmount > maxAdvance) return;
-    try {
-      await create.mutateAsync({
+    create.mutate(
+      {
         beneficiary_id: beneficiaryId,
         fiscal_year_id: fiscalYearId,
         amount: numAmount,
         reason: reason || undefined,
         beneficiaryName,
-      });
-      setOpen(false);
-      setAmount('');
-      setReason('');
-      reset();
-    } catch {
-      // onError in the mutation already shows a toast
-    }
+      },
+      {
+        onSuccess: () => {
+          uiNotify.success('تم إرسال طلب السلفة بنجاح');
+          setOpen(false);
+          setAmount('');
+          setReason('');
+          reset();
+        },
+        onError: () => uiNotify.error('فشل إرسال طلب السلفة'),
+      },
+    );
   };
 
   const numAmount = parseFloat(amount) || 0;

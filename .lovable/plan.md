@@ -1,56 +1,66 @@
-# نتائج التحقق الفعلي من الادعاءات
+# تحقق فعلي + خطة المراحل المتبقية
 
-تم فحص الكود مباشرة. هذه نتائج كل ادعاء:
+## ✅ P0 — مُصلَح بالكامل (تم التحقق)
 
-## P0 — مؤكدة فعلياً (يجب إصلاحها)
+| البند | الفحص الفعلي |
+|------|--------------|
+| #1 InvoicesPage.tsx `value="expense"` | لا وجود — `rg 'value="expense"' src/pages/` صفر نتائج ضمن تبويبات الفواتير (الناتج الوحيد في `ChartOfAccountsPage` هو SelectItem لنوع حساب، ليس فلتر فواتير) |
+| #2 InvoicesViewPage.tsx | كذلك صفر |
+| #3 PropertiesViewPage `/dashboard/reports` | صفر نتائج في `src/pages/beneficiary/` |
+| #4 WaqifFinancialSection `/dashboard/reports` | صفر نتائج في `src/components/waqif/` |
+| اختبار الانحدار | يفحص الآن `<TabsTrigger value="expense">` ويمنع الانحدار |
 
-| # | الادعاء | الحالة | الدليل |
-|---|---------|--------|--------|
-| 1 | `InvoicesPage.tsx` يستخدم `value="expense"` بينما النوع `purchase` | ✅ مؤكد | السطر 61: `<TabsTrigger value="expense">` والمقارنات على `'purchase'` (أسطر 71/87/96) |
-| 2 | نفس الخطأ في `beneficiary/InvoicesViewPage.tsx` | ✅ مؤكد | السطر 72 |
-| 3 | `PropertiesViewPage.tsx` يربط `/dashboard/reports` | ✅ مؤكد | السطر 87 (الجلسة السابقة أصلحت `حصتي` فقط على سطر 88، وتركت رابط التقارير) |
-| 4 | `WaqifFinancialSection.tsx` يربط `/dashboard/reports` | ✅ مؤكد | السطر 108؛ والمسار محمي بـ `ADMIN_ROLES` فقط (لا يشمل الواقف) |
-| 4b | (مكتشف إضافي) رابط «حصتي» في `PropertiesViewPage` يذهب إلى `/beneficiary/my-share` المحمي بـ `BENEFICIARY_ROLES` فقط، بينما الصفحة الأم متاحة للواقف عبر `ALL_NON_ACCOUNTANT` → الواقف يصل لرابط مكسور | ✅ مؤكد | beneficiaryRoutes.tsx:32 vs :29 |
+## 📊 ما يتبقى فعلياً (مؤكد بالأرقام)
 
-ملاحظة على اختبار الانحدار: `src/test/invoiceSourceFilter.test.ts` يفحص `useInvoicesPage.ts` فقط ولا يفحص JSX داخل `InvoicesPage.tsx`، لهذا فات عليه الخطأ. سنوسّعه.
+- **#5 hooks/data مع uiNotify**: **25 ملف** (بعد إنجاز دفعة 2A: support/bylaws/annual-report).
+- **#8 supabase خام في hooks/page**: **2 ملف** (`useVoucherActions.ts`، `useAggregatedAnnualReport.ts`).
+- **#14 `window.confirm`**: موضعان في `src/lib/contracts/invoiceSync.ts` فقط (مركّز ومحدود).
+- **#11 ResponsiveTabs**: مستخدم في 3 ملفات فقط مقابل 11 صفحة تستخدم Tabs خام.
 
-## P1/P2/P3 — صحيحة جزئياً (مؤجَّلة)
+## 📋 خطة الدفعات التالية (مرتّبة بالأثر/المخاطر)
 
-- **#5 toast في hooks/data**: مؤكد — 25 ملف ما زال يستورد `uiNotify`. الدفعة 2A أُنجزت (support/bylaws/annual-report). الباقي ضمن دفعات 2B–2D.
-- **#8 supabase خام في hooks/page**: مؤكد في `useVoucherActions.ts` و`useAggregatedAnnualReport.ts`.
-- **#11, #13, #14, #15, #16**: ادعاءات معمارية صحيحة لكنها تحسينات، لا أخطاء وظيفية.
+### دفعة 2B — Toast migration للنطاق المالي الحسّاس (5 ملفات)
+- `useAdvanceRequests.ts` (السلف)
+- `useMaxAdvanceAmount.ts` (تحقق حد السلفة)
+- `useDistribute.ts` (التوزيعات)
+- `useExpenseBudgets.ts` (ميزانيات المصروفات)
+- `useCloseFiscalYear.ts` (إقفال السنة)
 
----
+**النهج**: إزالة `uiNotify` من hook، نقلها لاستدعاءات `mutate(vars, { onSuccess, onError })` في `hooks/page/admin/financial/*`. اختبار يدوي بعد كل ملف.
 
-# خطة التنفيذ
+### دفعة 2C — ZATCA + Units mutations (5 ملفات)
+- `useZatcaInvoiceActions.ts`، `useZatcaOnboarding.ts`
+- `useUnits.ts`، `useUnitMutations.ts` (الأخير سيُنقل كاملاً إلى `hooks/page/admin/properties/`)
+- `useWholePropertyRental.ts`
 
-## المرحلة الحالية — إصلاح P0 فقط (4 ملفات + اختبار)
+### دفعة 2D — الإعدادات/الإشعارات/التواصل (8 ملفات)
+- `useWaqfInfoSave.ts`، `useLogoUpload.ts` (+ إصلاح setState في جسم hook → `useEffect`)
+- `useAppSettingsWrite.ts`
+- `useBulkMessaging.ts`
+- `useNotificationActions.ts`، `useNotificationPreferences.ts`
+- `useTenantPayments.ts`، `useCollectionAlerts.ts`، `useContractAllocations.ts`
 
-### 1. `src/pages/dashboard/InvoicesPage.tsx`
-- السطر 61: `value="expense"` → `value="purchase"`
+### دفعة 2E — استبدال `window.confirm` بـ AlertDialog
+- استخراج `ConfirmRegenerateDialog` و`ConfirmDeleteWithPendingDialog` كمكوّنين موحّدين باستخدام `ConfirmDeleteDialog` كأساس.
+- تعديل `invoiceSync.ts` ليُرجع رسائل/بيانات فقط (دون `window.confirm`).
+- تحديث الاستدعاءَين في `useContractForm.ts` و`useContractDelete.ts` لاستخدام state + dialog بدلاً من `confirm()` المتزامن.
 
-### 2. `src/pages/beneficiary/InvoicesViewPage.tsx`
-- السطر 72: `value="expense"` → `value="purchase"`
+### دفعة 3 — نقل Supabase الخام من hooks/page (ملفان)
+- `useVoucherActions.ts` → استخراج `useVoucherMutations` في `hooks/data/financial/vouchers/`.
+- `useAggregatedAnnualReport.ts` → استخراج `usePaidDistributionsByFiscalYear` في `hooks/data/financial/distribution/`.
 
-### 3. `src/pages/beneficiary/PropertiesViewPage.tsx`
-- السطر 87: `/dashboard/reports` → `/beneficiary/financial-reports`
-- السطر 88: `/beneficiary/my-share` → إخفاء الرابط للواقف (شرط على الدور) أو توجيهه للتقارير المالية. الخيار المقترح: عرض «حصتي» للمستفيد فقط عبر `useRole()`.
+### دفعة 4 (اختياري) — توحيد ResponsiveTabs
+- تحويل 8 صفحات تستخدم Tabs خام (بدءاً بـ `InvoicesPage`، `ContractsPage`) إلى `ResponsiveTabs` مع ثوابت قيم محفوظة.
 
-### 4. `src/components/waqif/WaqifFinancialSection.tsx`
-- السطر 108: `/dashboard/reports` → `/beneficiary/financial-reports` (متاح للواقف عبر `ALL_NON_ACCOUNTANT`)
-- تحديث التعليق في الرأس (السطر 5).
+## ⏸ مؤجَّل (يحتاج قرارك)
 
-### 5. توسيع اختبار الانحدار
-- في `src/test/invoiceSourceFilter.test.ts`: إضافة فحص أن `InvoicesPage.tsx` و`InvoicesViewPage.tsx` لا يحويان `value="expense"` داخل `TabsTrigger`.
+- **#13** توحيد حوارات الحذف البسيطة (Bylaw + ChartOfAccounts + AnnualReport item) إلى `ConfirmDeleteDialog`.
+- **#15** ثوابت رسائل PDF/Save (تم إنشاء `PDF_MESSAGES`/`SAVE_MESSAGES` سابقاً؛ يبقى التمشيط الكامل).
+- **#16** ثوابت `ROUTES` (ليست أولوية بعد إصلاح الروابط الفعلية).
+- **#17-19** Edge Functions Zod + `jwt_role`/`has_role`: حساس أمنياً، يحتاج migrations منفصلة واختبارات.
 
-## المرحلة التالية (بعد موافقتك) — استكمال التنظيف المعماري
+## 🎯 التوصية الآن
 
-دفعات Toast migration المتبقية (2B–2D)، نقل supabase الخام من hooks/page، توحيد `ResponsiveTabs`، استبدال `window.confirm` بـ `AlertDialog`. لن تُنفَّذ الآن.
+ابدأ بـ **دفعة 2B** (5 ملفات مالية) — أعلى أثر سلامة بيانات وأكثرها استخداماً، ثم 2E (إزالة `window.confirm`) لإغلاق نقطة UX واضحة. الدفعات 2C/2D ميكانيكية ويمكن تنفيذها على دفعتين متتاليتين.
 
----
-
-# التفاصيل التقنية
-
-- اختيار `/beneficiary/financial-reports` كبديل لـ `/dashboard/reports` آمن لأنه محمي بـ `ALL_NON_ACCOUNTANT = ['admin','beneficiary','waqif']` — يغطي كلا الدورين.
-- الحل لرابط «حصتي» داخل `PropertiesViewPage`: استيراد `useAuth().role` وعرض الرابط فقط عندما `role !== 'waqif'` (أبسط من تعديل صلاحيات المسار).
-- لا تغييرات DB، لا migrations، لا Edge Functions.
+أكّد المتابعة بـ **2B** أو رتّب الأولوية كما تريد.

@@ -1,11 +1,9 @@
 /**
  * هوك mutation لإقفال السنة المالية عبر RPC
- * مستخرج من useAccountsActions لفصل طبقة البيانات عن منطق الصفحة
+ * طبقة بيانات نقية: لا توستات هنا — `useAccountsActions` يلتقط الخطأ ويُظهر التوست.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
-import { logger } from '@/lib/logger';
-import { uiNotify } from '@/lib/notify';
 
 interface CloseYearInput {
   fiscalYearId: string;
@@ -41,10 +39,6 @@ export function useCloseFiscalYear() {
         'contract_fiscal_allocations',
       ];
       for (const key of keys) queryClient.invalidateQueries({ queryKey: [key] });
-    },
-    onError: (err) => {
-      logger.error('خطأ في إقفال السنة:', err instanceof Error ? err.message : err);
-      uiNotify.error('فشل إقفال السنة المالية. يرجى المحاولة لاحقاً');
     },
   });
 }

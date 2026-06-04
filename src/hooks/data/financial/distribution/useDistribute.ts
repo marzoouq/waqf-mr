@@ -1,10 +1,12 @@
 /**
  * هوك تنفيذ التوزيع الفعلي عبر RPC ذري (Atomic Transaction)
- * يضمن عدم تلف البيانات في حالة فشل جزئي
+ * يضمن عدم تلف البيانات في حالة فشل جزئي.
+ *
+ * طبقة بيانات نقية: لا توستات هنا. الإشعارات للمستفيدين (`enqueueUserNotification`)
+ * تبقى لأنها push notifications، ليست UI toasts.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
-import { uiNotify } from '@/lib/notify';
 import { enqueueUserNotification } from '@/lib/services';
 
 interface DistributionInput {
@@ -53,12 +55,8 @@ export const useDistributeShares = () => {
         distributions,
       };
     },
-    onSuccess: ({ result, distributions }) => {
+    onSuccess: ({ distributions }) => {
       invalidateAll();
-      let msg = `تم توزيع الحصص بنجاح لـ ${result.with_share} مستفيد`;
-      if (result.with_deficit > 0) msg += ` (${result.with_deficit} مستفيد لديهم فروق مرحّلة)`;
-      uiNotify.success(msg);
-
       for (const d of distributions) {
         if (d.beneficiary_user_id && d.net_amount > 0) {
           enqueueUserNotification(
@@ -70,9 +68,6 @@ export const useDistributeShares = () => {
           );
         }
       }
-    },
-    onError: () => {
-      uiNotify.error('فشل تنفيذ التوزيع — لم يتم تعديل أي بيانات (عملية ذرية)');
     },
   });
 };

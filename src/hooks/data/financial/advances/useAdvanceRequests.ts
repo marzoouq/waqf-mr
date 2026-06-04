@@ -1,15 +1,16 @@
 /**
  * هوكات إدارة طلبات السُلف (advance_requests) — mutations فقط
  * الأنواع في src/hooks/financial/advanceTypes.ts
+ *
+ * لا توستات هنا (طبقة بيانات نقية). الإشعارات تظهر من hooks/page أو المكوّن.
+ * إشعارات `notify*` تبقى لأنها push notifications للمستخدمين الآخرين عبر RPC.
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { uiNotify } from '@/lib/notify';
 import {
   validateTargetStatus,
   buildStatusUpdates,
-  STATUS_SUCCESS_MESSAGES,
   notifyOnCreate,
   notifyOnStatusChange,
 } from '@/lib/services/advanceService';
@@ -17,6 +18,7 @@ import {
 // إعادة تصدير الأنواع وهوكات data أخرى
 export type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 export { useAllCarryforwards } from '@/hooks/data/financial/advances/useAdvanceQueries';
+export { STATUS_SUCCESS_MESSAGES } from '@/lib/services/advanceService';
 // ملاحظة: useMyBeneficiaryFinance طبقة domain — استورده من
 // '@/hooks/domain/financial/useAdvanceCalculations' مباشرة.
 
@@ -71,10 +73,9 @@ export const useCreateAdvanceRequest = () => {
     onSuccess: (result, vars) => {
       qc.invalidateQueries({ queryKey: ['advance_requests'] });
       qc.invalidateQueries({ queryKey: ['my_beneficiary_finance'] });
-      uiNotify.success('تم إرسال طلب السلفة بنجاح');
+      // push notification للناظر — ليس toast UI
       notifyOnCreate(result.beneficiary_id, result._beneficiaryName, Number(vars.amount));
     },
-    onError: () => uiNotify.error('فشل إرسال طلب السلفة'),
   });
 };
 
@@ -107,9 +108,8 @@ export const useUpdateAdvanceStatus = () => {
       qc.invalidateQueries({ queryKey: ['advance_carryforward'] });
       qc.invalidateQueries({ queryKey: ['my_beneficiary_finance'] });
       if (vars.status === 'paid') qc.invalidateQueries({ queryKey: ['accounts'] });
-      uiNotify.success(STATUS_SUCCESS_MESSAGES[vars.status] || 'تم تحديث الطلب');
+      // push notification للمستفيد — ليس toast UI
       notifyOnStatusChange(vars.beneficiary_user_id, vars.status, vars.amount, vars.rejection_reason);
     },
-    onError: () => uiNotify.error('فشل تحديث حالة الطلب'),
   });
 };
