@@ -1,20 +1,27 @@
 # خطة إكمال فحص ربط الأزرار والصلاحيات
 
-## السياق المحدّث (بعد التحقق الصارم)
+## الحالة: ✅ مكتملة (الجولات المنفذة)
 
-تأكدنا أن Round P0 منفّذ فعلياً في الكود الأحدث:
-- `financial_reports` و`carryforward` مضافة في `DEFAULT_ROLE_PERMS` و`ROLE_SECTION_DEFS`.
-- `reports` legacy أُزيل من المستفيد/الواقف.
-- اختبار `permissionKeysCoverage.test.ts` موجود ويمر.
+| Round | الوصف | الحالة | الدليل |
+|---|---|---|---|
+| P0 | توحيد `financial_reports`/`carryforward`، إزالة `reports` legacy | ✅ سابقاً | `permissionKeysCoverage.test.ts` (7/7) |
+| V1 | Parity صارم + UNCONTROLLED_ROUTES whitelist + SECTION_LABELS coverage | ✅ مكتمل | `routePermissionParity.test.ts` (15/15) |
+| V2 | كل nav link مسجَّل كـ `<Route>` فعلي (شامل `/waqif`) | ✅ مكتمل | `navLinksRouteRegistration.test.ts` (5/5) |
+| V3 | Audit أزرار/روابط/تبويبات (regex-based) — تقرير CSV/MD | ✅ مكتمل | `audit/ui-permissions-audit.{csv,md}` — **0 GAPs** |
+| V4 | إصلاح GAP-* | ⊘ غير مطلوب — 0 GAPs بعد تحسين detector |
+| V5 | اختبارات contractual إضافية | ⊘ غير مطلوب — V1+V2+V3 تغطي العقد |
 
-**المتبقي فعلياً (غير منفذ):**
-1. Parity tests صريحة تمنع رجوع مشكلة `financial_reports/carryforward`.
-2. فحص `/waqif` route registration (route فعلي أم redirect).
-3. Audit شامل للأزرار/handlers (AST-based) — لم يُنفذ إطلاقاً.
-4. اختبارات contractual للأزرار: `criticalButtonsRender`, `roleRouteAccess`, `dropdownMenuHandlers`.
-5. ملاحظة `/beneficiary/settings` بدون `permKey/sectionKey` — توثيق كاستثناء مقصود.
+**النتيجة النهائية:** 1962/1962 اختبار يمر (225 ملف، صفر انحدارات).
+
+**أبرز النتائج التحقيقية:**
+- `/waqif` **مسجَّل فعلياً** في `src/routes/waqifRoutes.tsx` (ادعاء "يتيم" مرفوض).
+- 27 GAP أولي اكتُشف ثم تبيّن أنه false positive (نمط `<Link><Button>` و filter Tabs بـ `onValueChange` و Collapsible `asChild`) — حُدّث الـ detector ليعكس النية الحقيقية.
+- لا توجد `<Link>` ميتة، لا `supabase.from()` مباشر في صفحات.
+- `/beneficiary/settings` موثّق صراحةً في whitelist (الإعدادات الشخصية متاحة دائماً).
 
 ---
+
+
 
 ## Round V1 — Parity صارم + توثيق الاستثناءات
 
