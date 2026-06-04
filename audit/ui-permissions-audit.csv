@@ -1,2 +1,1 @@
 file,line,element,status,detail
-src/components/audit/AuditLogTable.tsx,97,Button,GAP-NO-HANDLER,"<Button variant=""ghost"" size=""icon"" className=""h-6 w-6"" aria-label={isExpanded ? 'طي' : 'توسيع'}>"
