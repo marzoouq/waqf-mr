@@ -1,60 +1,32 @@
-# Stage 6-5 — تنفيذ BeneficiaryAdvanceCard مع Dialog
+# Stage 6 — مُقفلة ✅ (5/5)
 
-## النطاق
-استبدال زر التنقل في `BeneficiaryAdvanceCard` بـ `AdvanceRequestDialog` المُعاد استخدامه، مع توسيع `useBeneficiaryDashboardPage` لتمرير السياق الكامل دون استدعاءات RPC إضافية (نفس `useEndUserDashboardData` يوفّر كل الحقول).
+تُوّجت بتنفيذ جميع البنود الخمسة المتبقية من تدقيق `audit-report-2026-06-03.md`.
 
-## التغييرات (3 ملفات + توثيق)
+## ما نُفِّذ
 
-### 1) `src/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardPage.ts`
-إضافة كائن `advanceContext` واحد إلى القيم المُعادة:
+| # | البند | الحالة | الملفات |
+|---|---|---|---|
+| **S6-1** | `PagePerformanceCard` → Page Hook | ✅ | `usePagePerformanceCard.ts` (جديد) + UI خالص |
+| **S6-2** | `FiscalYearWidget` → Page Hook | ✅ | `useFiscalYearWidget.ts` (جديد) + UI خالص |
+| **S6-3** | IIFE `heatmapBounds` → `useMemo` | ✅ | `useAdminDashboardPage.ts` |
+| **S6-4** | `AiAssistant` Tabs → `radiogroup` ARIA | ✅ | `AiAssistant.tsx` |
+| **S6-5** | `BeneficiaryAdvanceCard` Dialog بدل التنقل | ✅ | `BeneficiaryAdvanceCard.tsx` + `useBeneficiaryDashboardPage.ts` + `BeneficiaryDashboard.tsx` |
 
-```ts
-advanceContext: {
-  beneficiaryId: currentBeneficiary?.id ?? '',
-  beneficiaryName: currentBeneficiary?.name ?? '',
-  fiscalYearId: fiscalYearId ?? '',
-  estimatedShare: myShare,
-  paidAdvances: dashData?.paid_advances_total ?? 0,
-  carryforwardBalance: dashData?.carryforward_balance ?? 0,
-  isFiscalYearActive: !isClosed && !!fiscalYear,
-  minAmount: advanceSettings.min_amount,
-  maxPercentage: advanceSettings.max_percentage,
-  enabled: advanceEnabled,
-}
-```
-- صفر استدعاءات جديدة (كل الحقول من `dashData` الحالي)
-- لا تغيير في باقي الحقول المُعادة
+## S6-5 — تفاصيل التنفيذ
 
-### 2) `src/components/beneficiary/dashboard/BeneficiaryAdvanceCard.tsx` (≤ 80 سطر)
-- إزالة `useNavigate` و `ChevronLeft`
-- استقبال `advanceContext` ككائن واحد + `pendingAdvanceCount`
-- استبدال `<Button onClick={navigate(...)}>` بـ `<AdvanceRequestDialog ... />` (يأتي بـ Trigger داخلي)
-- إضافة رابط ثانوي صغير `<Link to="/beneficiary/my-share">` للسجل الكامل أسفل الزر
-- حين `!advanceContext.enabled || !advanceContext.isFiscalYearActive`: الزر مُعطّل ورسالة واضحة (لا إخفاء)
-- صفر منطق/حساب داخل المكوّن
+- توسيع `useBeneficiaryDashboardPage` لإرجاع كائن `advanceContext` مُجمَّع (10 حقول) — كل الحقول من `dashData` نفسه، **صفر استدعاءات RPC إضافية**.
+- إعادة استخدام `AdvanceRequestDialog` من `src/components/beneficiary/my-share/` كما هو دون أي تعديل.
+- البطاقة تعرض زر معطّل برسالة واضحة عند `!enabled` أو `!isFiscalYearActive` (بدلاً من الإخفاء — تحسين اكتشافية).
+- رابط ثانوي «عرض السجل الكامل» → `/beneficiary/my-share`.
+- Realtime موجود مسبقاً على `advance_requests` (السطور 88-93) → `pendingAdvanceCount` يتحدّث تلقائياً.
 
-### 3) `src/pages/beneficiary/BeneficiaryDashboard.tsx`
-- استخراج `advanceContext` من الـ hook
-- تمريره: `<BeneficiaryAdvanceCard pendingAdvanceCount={...} advanceContext={advanceContext} />`
-- إبقاء الحارس `isVisible('advance_card') && currentBeneficiary && isFyReady(fiscalYearId)` (إزالة شرط `advanceEnabled` لإظهار البطاقة معطّلة بدلاً من إخفائها — يحسّن الاكتشاف)
+## معلَّق بقرار منتج (خارج النطاق التقني)
 
-### 4) `.lovable/plan.md`
-- نقل S6-5 من «مؤجَّل» إلى «منفَّذ»
-- توثيق القرار: إعادة استخدام `AdvanceRequestDialog` بالخيار (1) الموسَّع
+- إفصاح المحاسب على `FiscalYearWidget` (`totalIncome` + `contractualRevenue`) — يحتاج قرار سياسة.
 
-## خارج النطاق
-- لا تعديل على `AdvanceRequestDialog` نفسه
-- لا migrations / RLS / RPC جديدة
-- لا تعديل `AuthContext` / `ProtectedRoute` / `client.ts` / `types.ts` / `config.toml`
-- لا استخراج `useBeneficiaryAdvanceContext` (مكرّر 5 أسطر فقط — YAGNI)
+## مرجع: ما تم في Stages 1-5
 
-## خطة التحقق
-1. `bunx tsc --noEmit` نظيف
-2. `bun run lint -- --max-warnings 0`
-3. `bunx vitest run src/test/e2e/beneficiaryDashboardFlow.test.tsx` يمرّ
-4. أحجام الملفات: البطاقة ≤80 سطر، الـ hook ≤155 سطر
-5. تحقق يدوي على `/beneficiary`:
-   - زر «طلب سلفة» يفتح Dialog محلياً (لا navigation)
-   - عند `isClosed` أو `!advanceEnabled`: زر معطّل برسالة
-   - رابط «عرض السجل الكامل» يعمل
-   - بعد إرسال السلفة: realtime على `advance_requests` يحدّث `pendingAdvanceCount` تلقائياً (السطر 88-93 موجود)
+- **Stages 1-3**: توحيد المنطق المالي، RPC، تطبيع `available_amount` ≥ 0
+- **Stage 4**: `varianceReport.ts` + بطاقة #9 اتساق اللوحات
+- **Stage 5**: E2E helpers + 3 ملفات اختبار + بطاقة #10 تدقيق رقمي
+- **Stage 6**: Page Hook Pattern على بطاقات الناظر + إصلاح ARIA + Dialog السلفة المحلي
