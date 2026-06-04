@@ -136,8 +136,8 @@ export function useBeneficiaryDashboardPage() {
       paidAdvances: paidAdvancesTotal,
       carryforwardBalance,
       isFiscalYearActive: !isClosed && !!fiscalYear,
-      minAmount: advanceSettings.min_amount,
-      maxPercentage: advanceSettings.max_percentage,
+      minAmount: advanceSettings.min_amount ?? 500,
+      maxPercentage: advanceSettings.max_percentage ?? 50,
       enabled: advanceEnabled,
     },
     // دوال الإجراءات
