@@ -63,7 +63,7 @@ export function useZatcaForm() {
       uiNotify.success('تم حفظ إعدادات الضريبة بنجاح');
       return true;
     } catch {
-      uiNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error(SAVE_MESSAGES.saveError);
       return false;
     } finally {
       setSaving(false);

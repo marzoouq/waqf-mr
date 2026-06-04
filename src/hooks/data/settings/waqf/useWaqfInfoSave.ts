@@ -57,7 +57,7 @@ export const useWaqfInfoSave = (onSuccess: () => void) => {
       uiNotify.success('تم حفظ بيانات الوقف بنجاح');
       onSuccess();
     } catch {
-      uiNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error(SAVE_MESSAGES.saveError);
     } finally {
       setSaving(false);
     }

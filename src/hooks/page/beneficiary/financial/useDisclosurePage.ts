@@ -81,9 +81,9 @@ export const useDisclosurePage = () => {
         adminShare: fin.adminShare, waqifShare: fin.waqifShare, adminPct, waqifPct, beneficiariesShare,
         incomeBySource: fin.incomeBySource, expensesByType: fin.expensesByTypeExcludingVat,
       }, pdfWaqfInfo);
-      uiNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success(PDF_MESSAGES.downloadSuccess);
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [gregorianFiscalYear, currentBeneficiary, myShare, fin, adminPct, waqifPct, beneficiariesShare, pdfWaqfInfo]);
 

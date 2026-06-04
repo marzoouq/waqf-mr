@@ -77,9 +77,9 @@ export const useFinancialReportsPage = () => {
           amount: myShare,
         }] : [],
       }, pdfWaqfInfo);
-      uiNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success(PDF_MESSAGES.downloadSuccess);
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [fiscalYear, fin, currentBeneficiary, myShare, pdfWaqfInfo]);
 

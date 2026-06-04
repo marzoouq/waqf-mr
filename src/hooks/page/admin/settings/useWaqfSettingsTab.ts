@@ -75,7 +75,7 @@ export const useWaqfSettingsTab = () => {
       await updateSettingsBatch.mutateAsync(rows);
       uiNotify.success('تم حفظ البيانات بنجاح');
     } catch {
-      uiNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error(SAVE_MESSAGES.saveError);
     } finally {
       setSaving(false);
     }

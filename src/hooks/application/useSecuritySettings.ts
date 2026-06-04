@@ -23,7 +23,7 @@ export const useSecuritySettings = () => {
       });
       uiNotify.success('تم حفظ إعدادات الأمان');
     } catch {
-      uiNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error(SAVE_MESSAGES.saveError);
     } finally {
       setSaving(false);
     }

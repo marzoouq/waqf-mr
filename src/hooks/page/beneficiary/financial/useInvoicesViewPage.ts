@@ -99,9 +99,9 @@ export function useInvoicesViewPage() {
         pdfWaqfInfo,
         fiscalYearLabel
       );
-      uiNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success(PDF_MESSAGES.downloadSuccess);
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [searchQuery, filteredInvoices, fiscalYear, pdfWaqfInfo]);
 

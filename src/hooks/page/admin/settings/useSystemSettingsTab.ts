@@ -63,7 +63,7 @@ export const useSystemSettingsTab = () => {
       await updateSettingsBatch.mutateAsync(rows);
       uiNotify.success('تم حفظ الإعدادات بنجاح');
     } catch {
-      uiNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error(SAVE_MESSAGES.saveError);
     } finally {
       setSaving(false);
     }

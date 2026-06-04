@@ -56,7 +56,7 @@ export function useAccountsViewPage() {
       }, pdfWaqfInfo);
       uiNotify.success('تم تصدير الحسابات الختامية بنجاح');
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [contracts, fin, remainingBalance, pdfWaqfInfo]);
 

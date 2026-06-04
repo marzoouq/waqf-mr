@@ -78,7 +78,7 @@ export const useContractsViewPage = () => {
       );
       uiNotify.success('تم تصدير العقود بنجاح');
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [contracts, pdfWaqfInfo]);
 

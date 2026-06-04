@@ -57,9 +57,9 @@ export const useInvoicesExport = ({
         pdfWaqfInfo,
         fyLabel,
       );
-      uiNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success(PDF_MESSAGES.downloadSuccess);
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [fiscalYearId, fiscalYearLabel, filteredInvoices, pdfWaqfInfo]);
 

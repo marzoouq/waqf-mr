@@ -83,8 +83,8 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
           amount: Number(d.amount), status: d.status,
         })),
       }, pdfWaqfInfo);
-      uiNotify.success('تم تحميل ملف PDF بنجاح');
-    } catch { uiNotify.error('حدث خطأ أثناء تصدير PDF'); }
+      uiNotify.success(PDF_MESSAGES.downloadSuccess);
+    } catch { uiNotify.error(PDF_MESSAGES.exportError); }
   });
 
   const handleDownloadDistributionsPDF = withPdfLoading(async () => {

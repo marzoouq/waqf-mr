@@ -179,7 +179,7 @@ export function usePropertiesViewPage() {
       );
       uiNotify.success('تم تصدير العقارات بنجاح');
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [properties, pdfWaqfInfo]);
 
