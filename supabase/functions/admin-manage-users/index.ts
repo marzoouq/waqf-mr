@@ -9,7 +9,7 @@
 
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
-import { ALLOWED_ACTIONS, type AdminAction } from "./validators.ts";
+import { ALLOWED_ACTIONS, AdminBodySchema, type AdminAction } from "./validators.ts";
 import { json, type HandlerContext } from "./handlers/types.ts";
 import { toggleRegistration } from "./handlers/toggle-registration.ts";
 import { listUsers } from "./handlers/list-users.ts";
