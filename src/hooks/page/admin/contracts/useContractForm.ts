@@ -170,47 +170,20 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
     }
   };
 
-  /**
-   * حذف عقد مع حماية الأرشيف المحاسبي:
-   * - يفحص الفواتير قبل الحذف
-   * - يمنع الحذف عند وجود فواتير مدفوعة
-   * - يحذف الفواتير المعلقة معه (cascade منطقي)
-   */
+  // الحذف يمر عبر useContractDelete الذي يحمي الأرشيف المحاسبي
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    const { data: existingInvoices } = await supabase
-      .from('payment_invoices')
-      .select('status')
-      .eq('contract_id', deleteTarget.id);
-    const paidCount = existingInvoices?.filter(i => i.status === 'paid').length ?? 0;
-    const pendingCount = existingInvoices?.filter(i => i.status === 'pending').length ?? 0;
-
-    if (paidCount > 0) {
-      notifyDeleteBlockedByPaid(paidCount);
-      setDeleteTarget(null);
-      return;
-    }
-    if (pendingCount > 0 && !confirmDeleteWithPending(pendingCount, deleteTarget.name)) {
-      return;
-    }
-    if (pendingCount > 0) {
-      try {
-        const deleted = await deletePendingInvoices.mutateAsync(deleteTarget.id);
-        notifyPendingInvoicesDeleted(deleted);
-      } catch (err) {
-        logger.warn('Pending invoice cleanup failed:', err instanceof Error ? err.message : String(err));
-      }
-    }
-    await deleteContract.mutateAsync(deleteTarget.id);
+    await contractDelete.deleteWithGuard(deleteTarget);
     setDeleteTarget(null);
   };
 
   return {
-    createContract, updateContract, deleteContract,
+    createContract, updateContract,
+    deleteContract: { isPending: contractDelete.isPending },
     isOpen, setIsOpen, editingContract,
     deleteTarget, setDeleteTarget,
     formInitialData,
     resetForm, handleRenew, handleEdit, handleFormSubmit, handleConfirmDelete,
-    isPending: createContract.isPending || updateContract.isPending || deleteContract.isPending,
+    isPending: createContract.isPending || updateContract.isPending || contractDelete.isPending,
   };
 }
