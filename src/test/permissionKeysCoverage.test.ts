@@ -26,6 +26,10 @@ const adminPermKeys = Array.from(
 
 const sectionDefKeys = new Set(ROLE_SECTION_DEFS.map(d => d.key));
 
+const benePerms = DEFAULT_ROLE_PERMS.beneficiary ?? {};
+const waqifPerms = DEFAULT_ROLE_PERMS.waqif ?? {};
+const accountantPerms = DEFAULT_ROLE_PERMS.accountant ?? {};
+
 describe('P0 — تغطية مفاتيح الصلاحيات', () => {
   it('كل permKey للمستفيد معرّف في DEFAULT_ROLE_PERMS.beneficiary', () => {
     const missing = beneficiaryPermKeys.filter(k => !(k in DEFAULT_ROLE_PERMS.beneficiary));
