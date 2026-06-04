@@ -73,7 +73,7 @@ const ContractsPage = () => {
                 <Link to="/dashboard/invoices" className="inline-flex items-center gap-1 text-primary hover:underline">
                   <Receipt className="w-3.5 h-3.5" /> الفواتير الضريبية <ArrowLeft className="w-3.5 h-3.5" />
                 </Link>
-                <Link to="/dashboard/income?tab=collection" className="inline-flex items-center gap-1 text-primary hover:underline">
+                <Link to="/dashboard/income" className="inline-flex items-center gap-1 text-primary hover:underline">
                   <BarChart3 className="w-3.5 h-3.5" /> تقرير التحصيل <ArrowLeft className="w-3.5 h-3.5" />
                 </Link>
               </div>
