@@ -1,9 +1,22 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { z } from "npm:zod@3";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SIGNUP_RATE_LIMIT = 5;
 const SIGNUP_RATE_WINDOW_SECONDS = 60;
+
+// Batch 4: Zod schemas — رسائل خطأ موحّدة تطابق contract الاختبارات.
+const EmailSchema = z
+  .string({ invalid_type_error: "بريد إلكتروني غير صالح" })
+  .trim()
+  .min(1, "بريد إلكتروني غير صالح")
+  .max(255, "بريد إلكتروني غير صالح")
+  .email("بريد إلكتروني غير صالح");
+
+const PasswordSchema = z
+  .string({ invalid_type_error: "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً" })
+  .min(8, "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً")
+  .max(128, "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
