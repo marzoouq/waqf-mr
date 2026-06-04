@@ -127,6 +127,19 @@ export function useBeneficiaryDashboardPage() {
     displayName, roleLabel, recentNotifications, unreadCount, greetingData,
     // بيانات السُلفة
     advanceEnabled, pendingAdvanceCount, advanceSettings,
+    // سياق Dialog السلفة (مُجمَّع — props ≥5)
+    advanceContext: {
+      beneficiaryId: currentBeneficiary?.id ?? '',
+      beneficiaryName: currentBeneficiary?.name ?? '',
+      fiscalYearId: fiscalYearId ?? '',
+      estimatedShare: myShare,
+      paidAdvances: paidAdvancesTotal,
+      carryforwardBalance,
+      isFiscalYearActive: !isClosed && !!fiscalYear,
+      minAmount: advanceSettings.min_amount,
+      maxPercentage: advanceSettings.max_percentage,
+      enabled: advanceEnabled,
+    },
     // دوال الإجراءات
     handleRetry,
   };
