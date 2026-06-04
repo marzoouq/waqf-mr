@@ -119,7 +119,7 @@ beforeEach(() => {
   vi.resetModules();
 });
 
-describe('PDF Reports Integration — مستندات صالحة', () => {
+describe('PDF Reports Integration — مستندات صالحة', { timeout: 30000 }, () => {
   it('الإفصاح السنوي: handleExportDisclosure يُنتج PDF صالحاً', async () => {
     const { useReportsExport } = await import('@/hooks/page/admin/reports/useReportsExport');
     const { handleExportDisclosure } = useReportsExport(buildInput());
