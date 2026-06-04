@@ -4,7 +4,6 @@
  */
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
-import { uiNotify } from '@/lib/notify';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { invoicesService, INVOICES_SELECT } from '@/lib/services/invoicesService';
@@ -73,16 +72,12 @@ export const useDeleteInvoice = () => {
       invoicesService.remove(id, file_path),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      uiNotify.success('تم حذف الفاتورة بنجاح');
-    },
-    onError: () => {
-      uiNotify.error('حدث خطأ أثناء حذف الفاتورة');
     },
   });
 };
 
 // ---------------------------------------------------------------------------
-// Generate PDF for invoices without attachments
+// Generate PDF for invoices without attachments — toasts live in page layer
 // ---------------------------------------------------------------------------
 
 export interface GenerateInvoicePdfOptions {
@@ -90,6 +85,10 @@ export interface GenerateInvoicePdfOptions {
   template?: 'professional' | 'simplified';
   forceRegenerate?: boolean;
   table?: 'invoices' | 'payment_invoices';
+}
+
+export interface GenerateInvoicePdfResult {
+  results: { id: string; invoice_number: string | null; success: boolean; error?: string }[];
 }
 
 export const useGenerateInvoicePdf = () => {
@@ -101,29 +100,15 @@ export const useGenerateInvoicePdf = () => {
         ? { invoice_ids: options }
         : options;
 
-      // المصادقة تتم تلقائياً عبر JWT في Edge Function
-
       const body: Record<string, unknown> = { invoice_ids: opts.invoice_ids };
       if (opts.template) body.template = opts.template;
       if (opts.forceRegenerate) body.force_regenerate = true;
       if (opts.table) body.table = opts.table;
 
-      return await invoke<{ results: { id: string; invoice_number: string | null; success: boolean; error?: string }[] }>(
-        'generate-invoice-pdf',
-        { body },
-      );
+      return await invoke<GenerateInvoicePdfResult>('generate-invoice-pdf', { body });
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      const successCount = data.results.filter((r) => r.success && r.error !== 'already has file').length;
-      if (successCount > 0) {
-        uiNotify.success(`تم توليد ${successCount} ملف PDF بنجاح`);
-      } else {
-        uiNotify.info('جميع الفواتير تحتوي على مرفقات بالفعل');
-      }
-    },
-    onError: () => {
-      uiNotify.error('حدث خطأ أثناء توليد ملفات PDF');
     },
   });
 };

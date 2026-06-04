@@ -7,12 +7,28 @@
  */
 import { uiNotify } from '@/lib/notify';
 
+export function notifyInvoicesGenerated(count: number) {
+  if (count > 0) {
+    uiNotify.success(`تم توليد ${count} فاتورة للعقد`);
+  }
+}
+
 export function notifyInvoicesRegenerated(count: number) {
   if (count > 0) {
     uiNotify.success(`تم إعادة توليد ${count} فاتورة معلقة وفق القيم الجديدة`);
   } else {
     uiNotify.info('تم تحديث العقد — لا توجد فواتير معلقة لإعادة توليدها');
   }
+}
+
+export function notifyContractsCreatedWithInvoices(
+  tenantName: string,
+  contractCount: number,
+  invoiceCount: number,
+) {
+  const parts = [`تم إنشاء ${contractCount} عقد للمستأجر ${tenantName}`];
+  if (invoiceCount > 0) parts.push(`وتوليد ${invoiceCount} فاتورة`);
+  uiNotify.success(parts.join(' و'));
 }
 
 export function notifyDeleteBlockedByPaid(paidCount: number) {
