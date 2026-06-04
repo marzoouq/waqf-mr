@@ -1,3 +1,7 @@
+/**
+ * Page hook لإعدادات صوت الإشعارات — يدير localStorage و معاينة الصوت.
+ * نُقل من hooks/data/notifications لأنه ليس data hook (لا Supabase).
+ */
 import { useState, useCallback } from 'react';
 import { uiNotify } from '@/lib/notify';
 import {
@@ -7,16 +11,12 @@ import {
   previewTone,
   type ToneId,
   type VolumeLevel,
-} from './useNotifications';
+} from '@/hooks/data/notifications/useNotifications';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeGet, safeSet } from '@/lib/storage';
 
 const NOTIF_SOUND_KEY = STORAGE_KEYS.NOTIFICATION_SOUND;
 
-/**
- * Hook مشترك لإدارة إعدادات صوت الإشعارات
- * يُستخدم في صفحات الإعدادات (الناظر + المستفيد)
- */
 export const useNotificationPreferences = () => {
   const [soundEnabled, setSoundEnabled] = useState(
     () => safeGet<string>(NOTIF_SOUND_KEY, 'true') !== 'false',

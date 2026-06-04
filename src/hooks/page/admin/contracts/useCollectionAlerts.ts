@@ -1,5 +1,6 @@
 /**
- * هوك إرسال تنبيهات التأخير
+ * Page hook لإرسال تنبيهات تأخير التحصيل — يحتوي UI state و toasts.
+ * نُقل من hooks/data/contracts لأنه ليس data hook نقي.
  */
 import { useState } from 'react';
 import { rpc } from '@/lib/api/rpc';

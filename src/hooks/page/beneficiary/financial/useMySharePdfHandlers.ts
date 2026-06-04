@@ -14,7 +14,7 @@ import { useState, useCallback } from 'react';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 import { printShareReport } from '@/utils/export/printShareReport';
-import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
+import { PDF_MESSAGES } from '@/lib/messages';
 
 interface PdfHandlersParams {
   currentBeneficiary: { name: string | null; share_percentage: number | null } | null;

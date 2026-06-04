@@ -1,7 +1,8 @@
 /**
- * هوك رفع الشعار — يفصل منطق Supabase عن مكون LogoUploadCard
+ * Page hook لرفع/إزالة شعار التطبيق — يدير state واجهة وتنبيهات.
+ * نُقل من hooks/data/settings/appearance لأنه يحتوي UI state و toasts.
  */
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
@@ -22,10 +23,10 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
   const [preview, setPreview] = useState<string>(currentUrl);
   const [saving, setSaving] = useState(false);
 
-  // مزامنة مع التغييرات الخارجية
-  if (currentUrl !== preview && !saving) {
-    setPreview(currentUrl);
-  }
+  // مزامنة مع التغييرات الخارجية — useEffect بدل setState داخل render
+  useEffect(() => {
+    if (!saving) setPreview(currentUrl);
+  }, [currentUrl, saving]);
 
   const handleSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -58,7 +59,6 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
         .from('app_settings')
         .upsert({ key: settingKey, value: logoUrl, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 
-      // المهمة B — إبطال فئة general + legacy
       await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
       await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       setPreview(logoUrl);

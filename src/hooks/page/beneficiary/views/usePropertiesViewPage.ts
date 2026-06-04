@@ -15,7 +15,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { uiNotify } from '@/lib/notify';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
-import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
+import { PDF_MESSAGES } from '@/lib/messages';
 
 export function usePropertiesViewPage() {
   // Realtime: انعكاس فوري لتعديلات العقارات والوحدات

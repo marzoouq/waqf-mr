@@ -14,7 +14,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import type { InvoiceSourceFilter, UnifiedInvoiceItem } from '@/types/invoices';
-import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
+import { PDF_MESSAGES } from '@/lib/messages';
 
 export type { InvoiceSourceFilter, UnifiedInvoiceItem };
 

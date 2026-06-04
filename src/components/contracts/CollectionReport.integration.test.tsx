@@ -6,7 +6,7 @@ import { render, screen } from '@testing-library/react';
 import CollectionReport from './CollectionReport';
 import type { Contract, FiscalYear, PaymentInvoice } from '@/types';
 
-vi.mock('@/hooks/data/contracts/useCollectionAlerts', () => ({
+vi.mock('@/hooks/page/admin/contracts/useCollectionAlerts', () => ({
   useCollectionAlerts: () => ({ sendingAlerts: false, sendLatePaymentAlerts: vi.fn() }),
 }));
 vi.mock('@/hooks/ui/usePrint', () => ({ usePrint: () => vi.fn() }));

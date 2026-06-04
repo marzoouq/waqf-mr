@@ -12,7 +12,7 @@ import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { uiNotify } from '@/lib/notify';
 import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
-import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
+import { PDF_MESSAGES } from '@/lib/messages';
 
 
 export const useFinancialReportsPage = () => {

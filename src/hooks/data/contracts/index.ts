@@ -1,4 +1,4 @@
-export { useCollectionAlerts } from './useCollectionAlerts';
+// useCollectionAlerts moved to @/hooks/page/admin/contracts/useCollectionAlerts (UI state + toasts)
 export { useContracts, useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear, useContractsSafeByFiscalYear } from './useContracts';
 export { useContractsForPdf } from './useContractsForPdf';
 export type { ContractForPdf } from './useContractsForPdf';
