@@ -1,41 +1,51 @@
-## المشكلة
+## فحص ثلاثي عميق للتطبيق (قراءة فقط — لا تعديلات)
 
-في `src/utils/auth/canAccessRoute.ts` (السطر 80) ترجع `evaluateAccess` للمسارات بلا `permKey` و بلا `sectionKey` نتيجة:
+### المرحلة 1 — Edge Functions (11 دالة)
 
-```ts
-return { allowed: true, basis: 'role-only' };
-```
+سحب سجلات آخر 24 ساعة لكل Edge Function وفلترة 5xx/timeout/exception:
 
-بينما:
+- `health-check`, `guard-signup`, `send-verification-email`, `webauthn-register`, `webauthn-authenticate`
+- `generate-pdf`, `zatca-report-invoice`, `zatca-renew-csid`, `zatca-onboard`
+- `ai-assistant`, `email-unsubscribe`
+- (أي دوال أخرى في `supabase/functions/`)
 
-- `scripts/build-permissions-matrix.mjs` يولّد للمسارات نفسها `access_basis = 'uncontrolled'` في `audit/ui-permissions-matrix.csv` (مثلاً `/waqif`@waqif, `/dashboard`@accountant).
-- `src/test/roleRouteAccess.test.ts` السطر 81–85 يتوقع صراحة `basis === 'uncontrolled'` لـ `/waqif`@waqif.
+أولاً أحصي الدوال الفعلية من `supabase/functions/` ثم أستدعي `supabase--edge_function_logs` لكل دالة بحثاً عن `error|500|timeout|exception|panic`.
 
-النتيجة: اختبار `uncontrolled basis لمسارات بدون permKey/sectionKey (/waqif)` سيفشل، وبقية اختبار 156-حالة سيمر لأنه يقارن `allowed` فقط لا `basis`.
+### المرحلة 2 — مصفوفة التحقق الخماسية
 
-## الإصلاح
+تشغيل بالترتيب وجمع النتائج:
 
-تعديل سطر واحد في `src/utils/auth/canAccessRoute.ts`:
+1. `bunx vitest run` (كامل، ليس مجموعة جزئية)
+2. `node scripts/audit-ui-permissions.mjs` → يجب 0 GAPs
+3. `node scripts/build-permissions-matrix.mjs` → يجب 156 صف
+4. `bun run lint` إن وُجد script
+5. تحقق سريع من حالة Cloud عبر `supabase--cloud_status`
 
-```ts
-// before
-return { allowed: true, basis: 'role-only' };
-// after
-return { allowed: true, basis: 'uncontrolled' };
-```
+تجميع تقرير "نجح/فشل/تحذيرات" لكل بند.
 
-المنطق: `'role-only'` غير ممكن الوصول إليه فعلياً لأن وجود الدور في `ROUTE_ROLES[route]` بدون أي بوابة إضافية = `uncontrolled` بحسب تعريف الخطة. الفرعان `role+permission` و `role+section` و `role+permission+section` تغطي بقية الحالات.
+### المرحلة 3 — فحص متصفح يدوي على صفحات حرجة
 
-## التحقق بعد التطبيق
+عبر `browser--navigate_to_sandbox` ثم تنقل بدون أي إجراءات تعديل (لا حفظ، لا حذف، لا إقفال). فقط:
 
-```bash
-bunx vitest run src/test/roleRouteAccess.test.ts src/test/uiPermissionsMatrix.test.ts src/test/buttonHandlerAudit.test.ts
-node scripts/build-permissions-matrix.mjs   # يجب أن يبقى 156 صفاً
-node scripts/audit-ui-permissions.mjs       # يجب أن يبقى 0 GAPs
-```
+1. `/dashboard` — تحميل بدون أخطاء console
+2. `/dashboard/expenses` (الصفحة الحالية) — فتح نموذج إضافة مصروف ثم إلغاء
+3. `/dashboard/contracts` — قائمة العقود تُحمَّل
+4. `/dashboard/distributions` — صفحة التوزيع تُحمَّل
+5. `/dashboard/fiscal-years` — قائمة السنوات وزر "إقفال" يظهر للناظر فقط (لا ضغط)
+6. `/beneficiary/dashboard` (إن أمكن التبديل) — تحميل واجهة المستفيد
 
-## خارج النطاق
+لكل صفحة: جمع console errors + network 4xx/5xx + لقطة شاشة عند ظهور أي خلل بصري.
 
-- لا تعديل على `ROUTE_ROLES` أو المصفوفة أو الاختبارات.
+### المخرجات النهائية
+
+تقرير موحّد في رسالة واحدة:
+- ✅ ما يعمل بشكل سليم
+- ⚠️ تحذيرات (موثّقة/معروفة)
+- 🔴 مشاكل فعلية تستدعي إصلاحاً (مع ملف+سطر+سبب)
+
+### حدود واضحة
+
+- لا تعديلات على أي ملف.
 - لا migrations.
-- ملاحظات التوثيق في تعليق `routeRoles.ts` (التوصيف "17 ADMIN_ROLES + 5 ADMIN_ONLY + /dashboard" بدل 16+6) تُترك لجولة توثيق منفصلة لأنها لا تؤثر على السلوك.
+- لا أي حركة تكتب في DB (لا حفظ نماذج، لا حذف، لا إقفال).
+- إن وُجدت مشاكل، تُذكر فقط في التقرير ولا تُصلح في نفس الجولة — تُترك لقرارك في جولة بناء منفصلة.
