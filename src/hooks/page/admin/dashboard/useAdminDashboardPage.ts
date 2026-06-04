@@ -7,6 +7,7 @@
  *
  * التزاماً بـ v7: الصفحة لا تنسّق هوكات متعددة بنفسها — هذا منطق صفحة.
  */
+import { useMemo } from 'react';
 import { usePrint } from '@/hooks/ui/usePrint';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -72,6 +73,17 @@ export const useAdminDashboardPage = () => {
     heatmapInvoices: isAccountant ? secondary.heatmapInvoices : EMPTY_HEATMAP,
   });
 
+  // P0-2: حدود الـ heatmap مع fallback عند 'all' أو غياب السنة — يُحسب من invoices
+  // S6-3: IIFE → useMemo لتفادي إعادة التنفيذ في كل render
+  const heatmapBounds = useMemo<{ start: string | undefined; end: string | undefined }>(() => {
+    const fy = adminData.fiscalYear;
+    if (fy?.start_date && fy?.end_date) return { start: fy.start_date, end: fy.end_date };
+    const invs = secondary.heatmapInvoices;
+    if (!invs.length) return { start: undefined, end: undefined };
+    const dates = invs.map(i => i.due_date).filter(Boolean).sort();
+    return { start: dates[0], end: dates[dates.length - 1] };
+  }, [adminData.fiscalYear, secondary.heatmapInvoices]);
+
   return {
     // identity / context
     role,
@@ -88,15 +100,7 @@ export const useAdminDashboardPage = () => {
     pendingAdvances: summary.pendingAdvances,
     heatmapInvoices: secondary.heatmapInvoices,
     recentContracts: secondary.recentContracts,
-    // P0-2: حدود الـ heatmap مع fallback عند 'all' أو غياب السنة — يُحسب من invoices
-    heatmapBounds: (() => {
-      const fy = adminData.fiscalYear;
-      if (fy?.start_date && fy?.end_date) return { start: fy.start_date, end: fy.end_date };
-      const invs = secondary.heatmapInvoices;
-      if (!invs.length) return { start: undefined, end: undefined };
-      const dates = invs.map(i => i.due_date).filter(Boolean).sort();
-      return { start: dates[0], end: dates[dates.length - 1] };
-    })(),
+    heatmapBounds,
     // surface secondary errors لاستخدامها في الكروت
     isRecentContractsError: secondary.isRecentContractsError,
     isHeatmapError: secondary.isHeatmapError,
