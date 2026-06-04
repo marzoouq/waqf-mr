@@ -106,3 +106,53 @@ export const useMarkInvoiceUnpaid = () => {
     onError: () => uiNotify.error('فشل إلغاء التسديد'),
   });
 };
+
+/**
+ * يحذف فواتير الدفع المعلّقة (`status='pending'`) لعقد محدد.
+ * لا يلمس المدفوعة أو المتأخرة-المُحصَّلة جزئياً — يستخدمه نمط «تعديل عقد» و«إعادة توليد».
+ * بدون توست (data layer pure) — الإشعارات في طبقة الصفحة.
+ */
+export const useDeleteContractPendingInvoices = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (contractId: string) => {
+      const { data, error } = await supabase
+        .from('payment_invoices')
+        .delete()
+        .eq('contract_id', contractId)
+        .eq('status', 'pending')
+        .select('id');
+      if (error) throw error;
+      return data?.length ?? 0;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['payment_invoices'] });
+      qc.invalidateQueries({ queryKey: ['contracts'] });
+    },
+  });
+};
+
+/**
+ * عدّاد فواتير العقد حسب الحالة — يُستخدم في حوارات تأكيد التعديل/الحذف.
+ */
+export const useContractInvoiceSummary = (contractId: string | null | undefined) => {
+  return useQuery({
+    queryKey: ['contract_invoice_summary', contractId],
+    enabled: !!contractId,
+    staleTime: STALE_FINANCIAL,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payment_invoices')
+        .select('status')
+        .eq('contract_id', contractId!);
+      if (error) throw error;
+      let paidCount = 0;
+      let pendingCount = 0;
+      for (const row of data ?? []) {
+        if (row.status === 'paid') paidCount++;
+        else if (row.status === 'pending') pendingCount++;
+      }
+      return { paidCount, pendingCount, totalCount: data?.length ?? 0 };
+    },
+  });
+};
