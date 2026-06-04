@@ -1,8 +1,7 @@
 /**
- * Barrel — utils/pdf/shared/renderers
- * يُستهلك من `paymentInvoiceShared.ts` عبر `../shared/renderers/index`.
+ * نقطة إعادة تصدير موحدة لدوال رسم أقسام PDF
  */
-export { renderInvoiceMeta } from './invoiceMeta';
 export { renderSellerInfo, renderBuyerInfo } from './sellerBuyer';
-export { renderVatSummary, renderBankDetails } from './summary';
+export { renderInvoiceMeta } from './invoiceMeta';
 export { renderLineItemsTable, renderAllowanceChargeTable } from './tables';
+export { renderVatSummary, renderBankDetails } from './summary';

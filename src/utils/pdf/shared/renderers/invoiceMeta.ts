@@ -2,8 +2,8 @@
  * رسم معلومات الفاتورة (رقم + تاريخ + عقد + عقار)
  */
 import type jsPDF from 'jspdf';
-import { reshapeArabic as rs } from '@/utils/pdf/core/core';
-import type { PaymentInvoicePdfData } from '@/utils/pdf/shared/types';
+import { reshapeArabic as rs } from '../../core/core';
+import type { PaymentInvoicePdfData } from '../types';
 
 export const renderInvoiceMeta = (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,

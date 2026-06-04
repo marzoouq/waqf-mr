@@ -1,62 +1,23 @@
-# خطة إكمال الجولات المتبقية (B + C)
+# خطة الجولات — مكتملة ✓
 
-## Round B — Zod Validation لـ Edge Functions (P1)
+## Round A — UI/Data separation ✓
+## Round B — Zod for Edge Functions ✓ (admin-manage-users, lookup-national-id, generate-invoice-pdf, auth-email-hook /preview)
+## Round C — Realtime + Perf ✓ (bfcacheSafeChannel + EXPLAIN ANALYZE)
 
-### B1. `lookup-national-id`
-- إضافة `z.object({ national_id: z.string().regex(/^[12]\d{9}$/) })`
-- `safeParse` + رد 400 موحّد عند الفشل
-- الحفاظ على CORS headers في كل الردود
+## Round D (cleanup) ✓
+- `auth-email-hook` /preview: Zod (PreviewBodySchema) + 400
+- حذف ملفات backward-compat الميتة:
+  - `src/components/ui/RtlPortal.tsx`
+  - `src/hooks/data/core/crudFactory.types.ts`
+  - 11 barrels فارغة (`src/components/dashboard/{charts,kpi,views,widgets}/index.ts`, `src/hooks/page/beneficiary/{dashboard,financial,messaging,notifications,settings,views}/index.ts`, `src/hooks/page/admin/settings/index.ts`)
+  - `src/utils/pdf/invoices/invoices.test.ts` (test فارغ)
+- توحيد `ConfirmDialog`: تم سابقاً — `ContractDeleteDialog`, `PropertyDeleteDialog`, `BylawDeleteDialog` أصبحت wrappers رقيقة فوق `ConfirmDeleteDialog`
 
-### B2. `admin-manage-users`
-- إنشاء `supabase/functions/admin-manage-users/validators.ts` يحتوي على schema لكل من 10 actions:
-  - `list_users`, `create_user`, `update_user`, `delete_user`, `assign_role`, `remove_role`, `reset_password`, `disable_user`, `enable_user`, `get_user`
-- `discriminatedUnion('action', [...])` للتمييز بين العمليات
-- استدعاء `safeParse` في `index.ts` قبل تنفيذ أي action
+## مؤجَّل (يحتاج جولة منفصلة آمنة)
+- تقسيم الملفات > 200 سطر (الأكبر: `aggregatedAnnualReport.ts` 274، `useContractForm.ts` 227) — يتطلب تغطية اختبارات أعمق قبل التقسيم
+- ضبط `knip` لتجاهل `supabase/functions/` و dynamic imports عبر barrels قبل اعتمادها في CI
 
-### B3. `generate-invoice-pdf`
-- إضافة `z.object({ invoice_id: z.string().uuid() })`
-- `safeParse` + 400
-
-### نشر وفحص
-- `supabase--deploy_edge_functions` للوظائف الثلاث
-- `supabase--test_edge_functions` (إن وُجدت اختبارات)
-- فحص logs بعد النشر
-
----
-
-## Round C — أداء واستقرار Realtime (P2)
-
-### C1. تحليل الاستعلامات البطيئة
-- `EXPLAIN ANALYZE` لـ:
-  - `SELECT * FROM properties WHERE fiscal_year_id = $1`
-  - `SELECT * FROM expenses WHERE fiscal_year_id = $1`
-  - `SELECT * FROM invoices WHERE fiscal_year_id = $1`
-- إذا كانت Seq Scan → اقتراح migration بإضافة فهارس:
-  ```sql
-  CREATE INDEX IF NOT EXISTS idx_expenses_fiscal_year ON public.expenses(fiscal_year_id);
-  CREATE INDEX IF NOT EXISTS idx_invoices_fiscal_year ON public.invoices(fiscal_year_id);
-  CREATE INDEX IF NOT EXISTS idx_properties_fiscal_year ON public.properties(fiscal_year_id);
-  ```
-- مراجعة `invoke:dashboard-summary` (4.6s) في `supabase/functions/` لتقليل عدد الاستعلامات
-
-### C2. إصلاح `bfcacheSafeChannel` على `TOKEN_REFRESHED`
-- ملف: `src/lib/realtime/bfcacheSafeChannel.ts` (أو ما يكافئه)
-- المشكلة: `CHANNEL_ERROR` على `fiscal-years-global` و `notifications-{userId}` بعد تجديد التوكن
-- الحل: إعادة الاشتراك تلقائياً عند `onAuthStateChange('TOKEN_REFRESHED')` مع backoff
-- اختبار يدوي عبر preview بعد التطبيق
-
----
-
-## التحقق النهائي (إلزامي قبل الإنهاء)
-- `bunx vitest run` — 1936/1936 ✓
-- `supabase--linter` — لا warnings جديدة
-- فحص `edge_function_logs` للوظائف المُحدّثة (لا 500)
-- network tab بعد C1 — تأكد من تحسّن زمن الاستعلامات
-
----
-
-## مستثنى من هذه الخطة (يحتاج جولات منفصلة)
-- `auth-email-hook` Zod (P3 — webhook موقّع داخلياً)
-- ملفات backward-compat الصغيرة (تحتاج `knip` محلياً)
-- توحيد `ConfirmDialog` (تجميلي)
-- تقسيم الملفات > 200 سطر
+## التحقق ✓
+- `bunx tsc --noEmit`: نظيف
+- `bunx vitest run`: 1935/1935 ✓
+- `auth-email-hook` تم نشره

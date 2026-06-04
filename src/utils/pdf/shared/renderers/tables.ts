@@ -6,10 +6,10 @@ import {
   TABLE_HEAD_GREEN,
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
-} from '@/utils/pdf/core/core';
-import { getLastAutoTableY } from '@/utils/pdf/core/pdfHelpers';
+} from '../../core/core';
+import { getLastAutoTableY } from '../../core/pdfHelpers';
 import { fmt } from '@/utils/format/format';
-import type { PaymentInvoicePdfData } from '@/utils/pdf/shared/types';
+import type { PaymentInvoicePdfData } from '../types';
 
 /** رسم جدول البنود (8 أعمدة) — يدعم بنوداً متعددة */
 export const renderLineItemsTable = async (

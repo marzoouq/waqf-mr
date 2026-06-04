@@ -3,7 +3,6 @@
  */
 import type jsPDF from 'jspdf';
 import { PdfWaqfInfo, loadLogoBase64, reshapeArabic as rs } from '../core/core';
-import { getPdfThemeColors } from '../core/themeColors';
 import { getLastAutoTableY } from '../core/pdfHelpers';
 
 import {
@@ -16,7 +15,6 @@ export const renderTaxProfessional = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   waqfInfo?: PdfWaqfInfo,
 ) => {
-  const themeColors = getPdfThemeColors();
   const pageW = doc.internal.pageSize.width;
   const margin = 14;
   let y = 14;
@@ -29,7 +27,7 @@ export const renderTaxProfessional = async (
       doc.setTextColor(0, 0, 0);
       doc.text(`${label} : ${value}`, xPos, yPos, { align: 'right' });
     } else {
-      doc.setTextColor(...themeColors.destructive);
+      doc.setTextColor(180, 60, 60);
       doc.text(`${label} : ${missingText}`, xPos, yPos, { align: 'right' });
       doc.setTextColor(0, 0, 0);
     }
@@ -53,7 +51,7 @@ export const renderTaxProfessional = async (
   // --- عنوان ثنائي اللغة أعلى يسار ---
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(14);
-  doc.setTextColor(...themeColors.primary);
+  doc.setTextColor(22, 101, 52);
   const titleAr = isVat ? rs('فاتورة ضريبية') : rs('فاتورة');
   const titleEn = isVat ? 'Tax Invoice' : 'Invoice';
   doc.text(titleAr, margin, y + 4, { align: 'left' });
@@ -92,7 +90,7 @@ export const renderTaxProfessional = async (
   y = Math.max(sellerY, qrY + qrSize + 2, logoY + logoSize + 2);
 
   // خط فاصل أخضر
-  doc.setDrawColor(...themeColors.primary);
+  doc.setDrawColor(22, 101, 52);
   doc.setLineWidth(0.6);
   doc.line(margin, y, pageW - margin, y);
   y += 6;

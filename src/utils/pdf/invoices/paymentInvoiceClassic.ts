@@ -3,7 +3,6 @@
  */
 import type jsPDF from 'jspdf';
 import { PdfWaqfInfo, TABLE_HEAD_GREEN, baseTableStyles, headStyles, reshapeArabic as rs, reshapeRow } from '../core/core';
-import { getPdfThemeColors } from '../core/themeColors';
 import { getLastAutoTableY } from '../core/pdfHelpers';
 import { fmt } from '@/utils/format/format';
 import {
@@ -15,7 +14,6 @@ export const renderClassic = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   waqfInfo?: PdfWaqfInfo,
 ) => {
-  const themeColors = getPdfThemeColors();
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
 
@@ -24,7 +22,7 @@ export const renderClassic = async (
   y += 2;
 
   // خط ذهبي فاصل
-  doc.setDrawColor(...themeColors.secondary);
+  doc.setDrawColor(202, 138, 4);
   doc.setLineWidth(0.8);
   doc.line(margin, y, pageW - margin, y);
   y += 8;

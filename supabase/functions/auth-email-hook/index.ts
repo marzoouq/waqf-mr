@@ -1,6 +1,7 @@
 import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { parseEmailWebhookPayload } from 'npm:@lovable.dev/email-js'
+import { z } from 'npm:zod@3'
 import { WebhookError, verifyWebhookRequest } from 'npm:@lovable.dev/webhooks-js'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { SignupEmail } from '../_shared/email-templates/signup.tsx'
@@ -98,25 +99,30 @@ async function handlePreview(req: Request): Promise<Response> {
     })
   }
 
-  let type: string
+  // Validate body via Zod (Edge Functions Zod Required)
+  const PreviewBodySchema = z.object({
+    type: z.enum(['signup', 'invite', 'magiclink', 'recovery', 'email_change', 'reauthentication']),
+  })
+  let parsedBody: z.infer<typeof PreviewBodySchema>
   try {
     const body = await req.json()
-    type = body.type
-  } catch (error) {
+    const parsed = PreviewBodySchema.safeParse(body)
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: parsed.error.issues[0]?.message ?? 'Invalid body' }),
+        { status: 400, headers: { ...previewCorsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+    parsedBody = parsed.data
+  } catch (_error) {
     return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
       status: 400,
       headers: { ...previewCorsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
+  const type = parsedBody.type
   const EmailTemplate = EMAIL_TEMPLATES[type]
-
-  if (!EmailTemplate) {
-    return new Response(JSON.stringify({ error: `Unknown email type: ${type}` }), {
-      status: 400,
-      headers: { ...previewCorsHeaders, 'Content-Type': 'application/json' },
-    })
-  }
 
   const sampleData = SAMPLE_DATA[type] || {}
   const html = await renderAsync(React.createElement(EmailTemplate, sampleData))
