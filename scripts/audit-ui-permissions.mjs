@@ -90,13 +90,16 @@ function scanFile(filePath, src, registered, gaps) {
     if (/\btype\s*=\s*["']submit["']/.test(attrs)) continue;
     if (/\bform\s*=/.test(attrs)) continue;
     if (/\bdisabled\b/.test(attrs)) continue; // intentionally inert
-    // wrapped by Link or any *Trigger / *Item component with asChild
+    // wrapped by Link, or by an ancestor *Trigger asChild (within 800 chars, no closing trigger between)
     const start = m.index;
     const end = start + m[0].length;
-    const before = src.slice(Math.max(0, start - 400), start);
-    const wrappedByTrigger = /<([A-Z]\w*(?:Trigger|Link))\b[^>]*\basChild\b[^>]*>\s*$/.test(before);
-    const wrappedByLink = /<Link\b[^>]*>\s*$/.test(before);
-    const wrapped = wrappedByTrigger || wrappedByLink;
+    const before = src.slice(Math.max(0, start - 800), start);
+    const lastTrigger = before.match(/<([A-Z]\w*Trigger)\b[^>]*\basChild\b[^>]*>(?![\s\S]*<\/\1>)/);
+    const wrappedByTrigger = !!lastTrigger;
+    const wrappedByLink = /<Link\b[^>]*>(?![\s\S]*<\/Link>)/.test(before);
+    // also: parent element has cursor-pointer (decorative button inside clickable row)
+    const cursorPointer = /className=["'][^"']*cursor-pointer[^"']*["'][^>]*>(?![\s\S]*<\/(tr|TableRow|div|li)>)/.test(before);
+    const wrapped = wrappedByTrigger || wrappedByLink || cursorPointer;
     if (wrapped) continue;
     gaps.push({
       file: rel,
