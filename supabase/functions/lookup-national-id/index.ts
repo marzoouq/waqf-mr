@@ -1,8 +1,16 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { z } from "npm:zod@3";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
 const RATE_LIMIT = 3;
 const RATE_WINDOW_SECONDS = 300;
+
+// Body schema موحّد — يقبل أرقام عربية/فارسية وكلمة مرور اختيارية.
+const BodySchema = z.object({
+  national_id: z.union([z.string(), z.number()]).transform((v) => String(v)),
+  password: z.string().min(8).max(128).optional(),
+});
+
 
 /** Mask email: "user@example.com" → "u***@example.com" */
 function maskEmail(email: string): string {
