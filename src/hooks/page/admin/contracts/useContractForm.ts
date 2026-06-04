@@ -10,7 +10,7 @@ import { Contract } from '@/types';
 import { emptyFormData, type ContractFormData } from '@/types/forms/contract';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
-import { useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
+import { useCreateContract, useUpdateContract } from '@/hooks/data/contracts/useContracts';
 import { useUpsertContractAllocations } from '@/hooks/data/financial/contracts/useContractAllocations';
 import { useFiscalYears } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import {
@@ -18,12 +18,8 @@ import {
   useDeleteContractPendingInvoices,
 } from '@/hooks/data/invoices/usePaymentInvoices';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  confirmRegenerateWithPaid,
-  notifyDeleteBlockedByPaid,
-  confirmDeleteWithPending,
-  notifyPendingInvoicesDeleted,
-} from '@/lib/contracts/invoiceSync';
+import { confirmRegenerateWithPaid } from '@/lib/contracts/invoiceSync';
+import { useContractDelete } from './useContractDelete';
 import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { asMutationArg } from '@/hooks/data/core';
