@@ -23,7 +23,10 @@ function extractRegisteredPaths(): Set<string> {
   for (const f of ROUTE_FILES) {
     const content = readFileSync(resolve(ROOT, f), 'utf8');
     let m: RegExpExecArray | null;
-    while ((m = re.exec(content)) !== null) out.add(m[1]);
+    while ((m = re.exec(content)) !== null) {
+      const path = m[1];
+      if (path) out.add(path);
+    }
   }
   return out;
 }
