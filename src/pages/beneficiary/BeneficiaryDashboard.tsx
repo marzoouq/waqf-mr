@@ -22,7 +22,7 @@ const BeneficiaryDashboard = () => {
     currentBeneficiary, myShare, distributions, role, fiscalYearId,
     fiscalYear, isClosed, fyProgress,
     displayName, roleLabel, recentNotifications, unreadCount, greetingData,
-    advanceEnabled, pendingAdvanceCount,
+    advanceEnabled, pendingAdvanceCount, advanceContext,
     handleRetry,
   } = useBeneficiaryDashboardPage();
 
