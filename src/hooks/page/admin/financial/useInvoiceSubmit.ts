@@ -103,7 +103,10 @@ export function useInvoiceSubmit({
   const confirmDelete = async (target: { id: string; file_path?: string | null }) => {
     try {
       await deleteInvoice.mutateAsync({ id: target.id, file_path: target.file_path });
-    } catch { /* mutation handles toast */ }
+      uiNotify.success('تم حذف الفاتورة بنجاح');
+    } catch {
+      uiNotify.error('حدث خطأ أثناء حذف الفاتورة');
+    }
   };
 
   return {
