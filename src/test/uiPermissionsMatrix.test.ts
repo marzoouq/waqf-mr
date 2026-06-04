@@ -72,7 +72,7 @@ describe('Round W — UI Permissions Matrix (audit/ui-permissions-matrix.csv)', 
 
   it('كل مسار في ROUTE_ROLES ظاهر بأربعة صفوف (دور لكل)', () => {
     const counts = new Map<string, number>();
-    for (const r of csv.rows) counts.set(r[0], (counts.get(r[0]) || 0) + 1);
+    for (const r of csv.rows) counts.set(r.route, (counts.get(r.route) || 0) + 1);
     const bad = [...counts.entries()].filter(([, n]) => n !== 4);
     expect(bad, `مسارات بعدد صفوف ≠ 4: ${bad.map(b => `${b[0]}(${b[1]})`).join(', ')}`).toEqual([]);
   });
@@ -88,24 +88,24 @@ describe('Round W — UI Permissions Matrix (audit/ui-permissions-matrix.csv)', 
   });
 
   it('كل access_basis قيمة صالحة', () => {
-    const bad = csv.rows.map(r => r[6]).filter(b => !VALID_BASIS.has(b));
+    const bad = csv.rows.map(r => r.access_basis).filter(b => !VALID_BASIS.has(b));
     expect([...new Set(bad)], `قيم basis غير صالحة: ${bad.join(', ')}`).toEqual([]);
   });
 
   it('كل effective_allowed=true له basis إيجابي (وليس denied-*)', () => {
-    const bad = csv.rows.filter(r => r[5] === 'true' && r[6].startsWith('denied-'));
-    expect(bad.map(b => `${b[0]}/${b[1]}`)).toEqual([]);
+    const bad = csv.rows.filter(r => r.effective_allowed === 'true' && r.access_basis.startsWith('denied-'));
+    expect(bad.map(b => `${b.route}/${b.role}`)).toEqual([]);
   });
 
   it('كل effective_allowed=false له basis سلبي (denied-*)', () => {
-    const bad = csv.rows.filter(r => r[5] === 'false' && !r[6].startsWith('denied-'));
-    expect(bad.map(b => `${b[0]}/${b[1]}`)).toEqual([]);
+    const bad = csv.rows.filter(r => r.effective_allowed === 'false' && !r.access_basis.startsWith('denied-'));
+    expect(bad.map(b => `${b.route}/${b.role}`)).toEqual([]);
   });
 
   it('كل صف بـ basis=uncontrolled مسارُه في whitelist', () => {
     const bad = csv.rows
-      .filter(r => r[6] === 'uncontrolled')
-      .map(r => r[0])
+      .filter(r => r.access_basis === 'uncontrolled')
+      .map(r => r.route)
       .filter(route => !UNCONTROLLED_WHITELIST.has(route));
     expect([...new Set(bad)], `مسارات uncontrolled غير موثقة: ${bad.join(', ')}`).toEqual([]);
   });
@@ -116,9 +116,9 @@ describe('Round W — UI Permissions Matrix (audit/ui-permissions-matrix.csv)', 
   });
 
   it('admin مسموح في كل المسارات (admin-override)', () => {
-    const adminRows = csv.rows.filter(r => r[1] === 'admin');
+    const adminRows = csv.rows.filter(r => r.role === 'admin');
     expect(adminRows).toHaveLength(39);
-    const denied = adminRows.filter(r => r[5] !== 'true');
-    expect(denied.map(d => d[0])).toEqual([]);
+    const denied = adminRows.filter(r => r.effective_allowed !== 'true');
+    expect(denied.map(d => d.route)).toEqual([]);
   });
 });
