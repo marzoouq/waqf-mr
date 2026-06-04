@@ -37,11 +37,11 @@ interface UseContractFormParams {
 export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormParams) {
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
-  const deleteContract = useDeleteContract();
   const upsertAllocations = useUpsertContractAllocations();
   const generateInvoices = useGenerateContractInvoices();
   const deletePendingInvoices = useDeleteContractPendingInvoices();
   const { data: fiscalYearsFull = [] } = useFiscalYears();
+  const contractDelete = useContractDelete();
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
