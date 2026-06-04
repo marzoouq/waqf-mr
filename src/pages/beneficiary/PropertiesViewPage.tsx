@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import BeneficiaryPropertyCard from '@/components/beneficiary/properties/BeneficiaryPropertyCard';
 import { usePropertiesViewPage } from '@/hooks/page/beneficiary/views/usePropertiesViewPage';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 const PropertiesViewPage = () => {
   const {
@@ -34,6 +35,7 @@ const PropertiesViewPage = () => {
     rentedUnitIdsByPropertyMap,
     handleExportPdf,
   } = usePropertiesViewPage();
+  const { role } = useAuth();
 
   const { totalProperties, totalVacant, vacantUnits, propertiesWithoutUnits, overallOccupancy, occColor, occBarColor } = summaryData;
 
@@ -84,8 +86,10 @@ const PropertiesViewPage = () => {
               <CardContent className="p-3 flex items-center justify-between gap-3 text-xs sm:text-sm">
                 <span className="text-muted-foreground">للاطلاع على التفاصيل المالية، انتقل إلى صفحات الاختصاص.</span>
                 <div className="flex items-center gap-3 shrink-0">
-                  <Link to="/dashboard/reports" className="inline-flex items-center gap-1 text-primary hover:underline">التقارير المالية <ArrowLeft className="w-3.5 h-3.5" /></Link>
-                  <Link to="/beneficiary/my-share" className="inline-flex items-center gap-1 text-primary hover:underline">حصتي <ArrowLeft className="w-3.5 h-3.5" /></Link>
+                  <Link to="/beneficiary/financial-reports" className="inline-flex items-center gap-1 text-primary hover:underline">التقارير المالية <ArrowLeft className="w-3.5 h-3.5" /></Link>
+                  {role !== 'waqif' && (
+                    <Link to="/beneficiary/my-share" className="inline-flex items-center gap-1 text-primary hover:underline">حصتي <ArrowLeft className="w-3.5 h-3.5" /></Link>
+                  )}
                 </div>
               </CardContent>
             </Card>

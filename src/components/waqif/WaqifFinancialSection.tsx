@@ -2,7 +2,7 @@
  * بطاقة KPI + حالة العقود + ملخص التحصيل في لوحة الواقف
  *
  * ملاحظة Wave F: تم حذف كتلة "التسلسل المالي" (إجمالي الدخل/المصروفات/الريع القابل للتوزيع)
- * لأنها مكررة مع /dashboard/reports + AnnualDisclosureTable. تُعرض الآن كرابط إرشادي للتقارير.
+ * لأنها مكررة مع التقارير المالية + AnnualDisclosureTable. تُعرض الآن كرابط إرشادي للتقارير.
  */
 import { fmt } from '@/utils/format/format';
 import { Link } from 'react-router-dom';
