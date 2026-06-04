@@ -8,6 +8,7 @@ import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { saveZatcaSettings } from '@/lib/services';
 import { uiNotify } from '@/lib/notify';
 import { validateZatcaSettingsForm } from '@/utils/zatca/validateZatcaForm';
+import { SAVE_MESSAGES } from '@/lib/messages/pdfMessages';
 
 export const ZATCA_KEYS = [
   'vat_registration_number',

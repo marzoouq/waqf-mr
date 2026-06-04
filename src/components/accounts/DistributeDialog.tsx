@@ -12,6 +12,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { printDistributionReport } from '@/utils/export/printDistributionReport';
 import { uiNotify } from '@/lib/notify';
 import { useDistributionCalculation } from '@/hooks/domain/financial/useDistributionCalculation';
+import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
 
 interface Beneficiary {
   id: string;
