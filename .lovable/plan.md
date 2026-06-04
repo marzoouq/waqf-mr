@@ -1,97 +1,105 @@
-# تدقيق التكرار والتعارض في تدفق العقود ↔ الفواتير
+# تقرير فحص شامل + خطة معالجة مُحكَمة
 
-## النتائج (تم التحقق بالكود)
+تمّ فحص الهوكات، الصفحات، التوجيه، الأزرار، Edge Functions، الـ DB، والإشعارات. **150+ ملاحظة** موزّعة على 4 محاور. ما يلي تلخيص مع تصنيف حدّة، ثم خطة على 4 مراحل.
 
-### 1. تكرار توست فعلي عند الإنشاء متعدد الوحدات
-في `useContractForm.handleFormSubmit` (multi-mode، N وحدات):
-- لكل وحدة: `createContract` → factory CRUD يطلق **«تم إضافة العقد بنجاح»** (يُلَمّ التكرار بواسطة dedup 2s ✓)
-- لكل وحدة: `generateInvoices.mutateAsync` → data hook يطلق **«تم توليد X فاتورة»** (X يختلف بين العقود غالباً → dedup لا يلتقطها → **N توستات**)
-- في النهاية: **«تم إنشاء N عقد للمستأجر …»**
+---
 
-النتيجة: حتى **2N+1 توست** لعملية واحدة منطقياً. ضوضاء + رسائل متضاربة (factory يقول "تم إضافة العقد" بينما الإجمالي يقول "تم إنشاء N عقد").
+## ملخص النتائج (المُرصد فعلياً)
 
-### 2. مخالفة قاعدة `mem://conventions/no-toast-in-data-hooks`
-`src/hooks/data/invoices/usePaymentInvoices.ts` فيه `uiNotify.*` في 4 mutations:
-`useGenerateContractInvoices`, `useGenerateAllInvoices`, `useMarkInvoicePaid`, `useMarkInvoiceUnpaid`.
-نفس المخالفة في `src/hooks/data/invoices/useInvoices.ts` (delete + PDF).
-القاعدة: `hooks/data/` نقي بدون toast — الإشعارات في `hooks/page/`.
+### A. مخالفات معمارية — Hooks (53 ملاحظة)
 
-### 3. كود ميت تم إنشاؤه في الجولة السابقة ولم يُربط
-- `useContractInvoiceSummary` (في `usePaymentInvoices.ts`) — **لا مستورد واحد**. `useContractForm` و`useContractDelete` يكرران نفس الاستعلام يدوياً بدلاً من استخدامه.
-- `notifyInvoicesRegenerated` (في `invoiceSync.ts`) — **لا مستورد واحد**. مسار التعديل لا يطلق رسالة "إعادة توليد" صريحة، بل يعتمد على توست data-hook العام «تم توليد X فاتورة» الذي لا يميّز بين التوليد الأول وإعادة التوليد.
+| فئة | عدد |
+|---|---|
+| **toast داخل `hooks/data/**`** (خرق no-toast-in-data-hooks) | 22 ملفاً |
+| **supabase خام داخل `hooks/page/**`** | ملفان (`useVoucherActions`, `useAggregatedAnnualReport`) |
+| **هوكات بوظيفة مكررة** (يجلبان نفس البيانات) | 6 أزواج |
+| **ملفات تتجاوز 200 سطر** | `useContractForm.ts` (202)، `usePropertiesViewPage.ts` (201) + 3 ملفات اختبار |
+| **خلط واجهة+منطق+supabase** | 4 ملفات |
 
-### 4. ازدواجية استعلام الفواتير قبل التعديل/الحذف
-- `useContractForm.handleFormSubmit` (سطر 104-109): `supabase.from('payment_invoices').select('status').eq('contract_id', …)`
-- `useContractDelete.deleteWithGuard` (سطر 33-36): نفس الاستعلام حرفياً.
-وكلاهما يكرر منطق `useContractInvoiceSummary` الميت.
+### B. التوجيه والصفحات والأزرار (8 محاور رئيسية)
 
-### 5. تعارض مع نمط الواجهة
-`confirmRegenerateWithPaid` و`confirmDeleteWithPending` يستخدمان `window.confirm` بينما باقي المشروع يستخدم AlertDialog. خارج النطاق هنا (يتطلب UI work)، يُسجَّل كملاحظة فقط.
+- **رابط مكسور حقيقي**: `PropertiesViewPage.tsx:88 → /dashboard/my-share` (المسار الصحيح `/beneficiary/my-share`).
+- **رابط معطل بصمت**: `ContractsPage.tsx:76 → /dashboard/income?tab=collection` — لا tabs في IncomePage.
+- **رابط لمسار محجوب للمحاسب**: `PendingActionsTable` يولّد روابط إلى `/dashboard/zatca` (ADMIN_ONLY) وهو معروض في AdminDashboard للمحاسب.
+- **4 حوارات حذف مكررة** بدل `ConfirmDeleteDialog` الموحد (Property/Unit/Bylaw/Contract).
+- **CTA متكرر** لـ "التقارير المالية" في 3 مكونات مختلفة، و"الوصول السريع" في 3 أماكن.
+- **صفحتان متوازيتان بنفس البيانات** بحسابات منفصلة: `ReportsPage` vs `FinancialReportsPage`, `AnnualReportPage` vs `AnnualReportViewPage`.
+- **`window.confirm` في `invoiceSync.ts`** (2 موضع) بدل AlertDialog.
 
-### 6. ليس تكراراً (تم التحقق ونفيه)
-- `notifyPendingInvoicesDeleted` يُستدعى فقط في `useContractDelete` ولا تعارض مع factory delete (الذي يطلق «تم حذف العقد بنجاح»). الرسالتان مختلفتان وكلتاهما مفيدتان.
-- `dedupToast` بـ 2000ms في `lib/notify.ts` يحمي من تكرار نفس الـ string فقط — لا يحمي من رسائل مختلفة المعنى المتكررة.
+### C. التوست والمعايير (9 محاور)
 
-## التغييرات المقترحة
+- **نص توست متطابق** في 8 ملفات: `'حدث خطأ أثناء تصدير PDF'`.
+- **نص توست متطابق** في 5 ملفات: `'تم تحميل ملف PDF بنجاح'`، `'حدث خطأ أثناء الحفظ'`.
+- **تناقض UX**: 3 صياغات مختلفة لنجاح "حفظ الإعدادات"، شرطتان مختلفتان `—` vs `-` لنفس الرسالة.
+- **منطق دور مكرر** بين `ProtectedRoute` + `RequirePermission` + `useRoleRedirect` + `useAuthListener` + `AuthContext`.
+- **`getSession()` في `useAuthListener.ts:140`** — fallback مقبول لكن يقبل دور JWT دون تحقق DB في المسار السعيد.
+- ✅ لا خرق في utils، console، localStorage، hex colors.
 
-### A. نقل توستات data hooks إلى طبقة الصفحة
-**`src/hooks/data/invoices/usePaymentInvoices.ts`** — إزالة `uiNotify.*` من:
-- `useGenerateContractInvoices` (onSuccess + onError)
-- `useGenerateAllInvoices`
-- `useMarkInvoicePaid`
-- `useMarkInvoiceUnpaid`
+### D. Edge Functions و DB (~55 ملاحظة)
 
-تبقى `qc.invalidateQueries` فقط. حذف استيراد `uiNotify`.
+- **5 functions تقرأ body بدون Zod**: guard-signup, lookup-national-id, generate-invoice-pdf, admin-manage-users, auth-email-hook (`/preview`).
+- **2 functions عامة بـ SERVICE_ROLE بدون auth**: guard-signup, lookup-national-id (محميتان فقط بـ rate limit).
+- **2 ثنائيات مكررة**: generate-invoice-pdf/generate-voucher-pdf، zatca-onboard/zatca-renew.
+- **`ai-assistant` يُستدعى بـ `fetch` مباشر بـ URL** بدل `invoke()`.
+- **3 جداول بدون GRANTs صريحة**: `zatca_certificates`, `invoice_chain`, `disbursement_vouchers`، و 4 جداول email infra.
+- **migration كامل (`20260403210830`) يستخدم `jwt_role()`** في 30+ policy بدل `has_role()`.
+- **5 FKs إلى `auth.users`** في `user_roles`, `beneficiaries`, `support_tickets`, `support_ticket_replies`.
+- **10 triggers مُعرَّفة 2–3 مرات** في migrations متتالية (audit_*, prevent_closed_fy_*, encrypt_*, validate_*, trg_validate_invoice_chain_ref).
 
-**`src/hooks/data/invoices/useInvoices.ts`** — نفس المعالجة (delete + PDF) ونقل التوست إلى الـ page hooks المستدعية.
+---
 
-### B. تنسيق توستات تدفق العقد في `useContractForm`
-- **EDIT**: استبدال الاعتماد على توست data-hook بـ:
-  ```
-  await updateContract  // factory: "تم تحديث العقد بنجاح" — واحدة فقط
-  await deletePendingInvoices
-  const count = await generateInvoices
-  notifyInvoicesRegenerated(count)  // "تم إعادة توليد N فاتورة معلقة وفق القيم الجديدة"
-  ```
-  بدلاً من «تم توليد X فاتورة» الغامض.
+## خطة المعالجة على 4 مراحل
 
-- **CREATE single**: إبقاء توست factory «تم إضافة العقد» وإضافة `notifyInvoicesGenerated(count)` صريحة (دالة جديدة في `invoiceSync.ts`) بدلاً من توست data-hook.
+كل مرحلة منفصلة وقابلة للتنفيذ مستقلة. اقترحت ترتيباً حسب نسبة **(أثر/مخاطرة)**.
 
-- **CREATE multi**: 
-  - كتم رسائل factory create لكل عقد عبر تمرير `notifications: { onCreateSuccess: noop }` أو الاكتفاء بالاعتماد على dedup (الرسالة متطابقة).
-  - **عدم** إطلاق توست لكل `generateInvoices` داخل اللوب — تجميع العداد محلياً.
-  - في النهاية توست واحد مدمج: **«تم إنشاء N عقد و توليد M فاتورة للمستأجر …»**.
+### المرحلة 1 — إصلاحات فورية منخفضة المخاطرة (P0)
+1. **إصلاح الرابط المكسور** `PropertiesViewPage.tsx:88` → `/beneficiary/my-share`.
+2. **حذف رابط `?tab=collection` من `ContractsPage.tsx:76`** (أو إضافة tabs فعلية لاحقاً).
+3. **إخفاء روابط `/dashboard/zatca` من `PendingActionsTable` للمحاسب** (تطبيق `ACCOUNTANT_EXCLUDED_ROUTES`).
+4. **توحيد صياغة 4 رسائل توست متناقضة** (شرطة موحدة، نجاح حفظ الإعدادات بصيغة واحدة).
+5. **استخراج ثوابت الرسائل المكررة** (PDF success/error) إلى `src/lib/messages/pdfMessages.ts`.
 
-### C. توحيد قراءة ملخص الفواتير
-- استخدام `useContractInvoiceSummary` (الموجودة فعلاً) في `useContractDelete`، وفي `useContractForm` (عبر `queryClient.fetchQuery` لأن السياق إجرائي وليس reactive).
-- إزالة الاستعلامين اليدويين المكررين لـ `payment_invoices`.
+**النتيجة**: لا تكرار نصي، روابط نظيفة، تجربة متسقة. صفر مخاطر تراجع.
 
-### D. إضافة دالة `notifyInvoicesGenerated` للتمييز
-في `src/lib/contracts/invoiceSync.ts`:
-```
-export function notifyInvoicesGenerated(count: number) {
-  if (count > 0) uiNotify.success(`تم توليد ${count} فاتورة للعقد`);
-}
-```
-ودمج `notifyInvoicesRegenerated` لتُستخدم فعلياً.
+### المرحلة 2 — تنظيف معماري للهوكات (P1)
+1. **نقل التوست من 22 ملف `hooks/data/**` إلى wrappers في `hooks/page/**`** (نفس النمط المُطبَّق على usePaymentInvoices/useInvoices).
+2. **نقل supabase الخام من** `useVoucherActions.ts` و `useAggregatedAnnualReport.ts` إلى `hooks/data/`.
+3. **توحيد 4 حوارات الحذف** على `ConfirmDeleteDialog` + إزالة التعليق المُبرّر في `ConfirmDeleteDialog.tsx:3`.
+4. **استبدال `window.confirm` في `invoiceSync.ts`** بـ AlertDialog (يتطلب رفع التأكيد من lib إلى hook + component).
+5. **تقسيم الملفات > 200 سطر** (useContractForm إلى createFlow/editFlow، usePropertiesViewPage إلى pdf+page).
 
-### E. ذاكرة المشروع
-تحديث `mem://business-logic/contracts/invoice-sync-on-mutation` بإضافة:
-> التوست في تدفق العقد يصدر من `hooks/page/` فقط عبر دوال `invoiceSync.ts`. data hooks للفواتير ممنوع منعاً قطعياً أن تطلق `uiNotify`.
+### المرحلة 3 — تنظيف ازدواجية وظيفية (P2)
+1. **دمج 6 أزواج الهوكات المكررة**:
+   - `usePropertiesMap` ← يصبح `useMemo` داخل `useProperties`.
+   - `useDistributionAdvances` + `useAdvanceRequests` — فلتر مشترك.
+   - `useAccessLogTab` + `useArchiveLog` — schema موحد.
+   - `useMultiYearSummary` + `useYearComparisonData` — RPC واحد.
+   - `useRawFinancialData` + `useAccountsData` — هوك أساسي مع views محسوبة.
+   - `useAccountantDashboardData` + `useAdminDashboardData` — orchestrator واحد بخيارات.
+2. **توحيد منطق فحص الدور**: حذف `RequirePermission` كطبقة منفصلة (دمج في `ProtectedRoute`).
+3. **توحيد PDF مكتبة** (`generate-invoice-pdf` و `generate-voucher-pdf` على renderer مشترك في `_shared`).
+4. **توحيد ZATCA crypto** (`zatca-onboard` و `zatca-renew` على module مشترك للـ keypair/CSR).
+5. **نقل `ai-assistant` لاستخدام `invoke()`** بدل fetch المباشر.
+
+### المرحلة 4 — تصحيحات DB وأمنية (P3 — تتطلب migrations)
+1. **إضافة GRANTs الناقصة** على `zatca_certificates`, `invoice_chain`, `disbursement_vouchers`, و 4 جداول email infra.
+2. **استبدال `jwt_role()` بـ `has_role()`** في 30+ policy في `20260403210830` عبر migration جديد.
+3. **إزالة `IF NOT EXISTS` المضلل وتنظيف triggers المكررة** (10 triggers) عبر migration واحد يحذف ثم يُنشئ.
+4. **استبدال FKs إلى `auth.users`** بـ `ON DELETE` triggers + cascade منطقي (إن أمكن دون كسر بيانات).
+5. **إضافة Zod safeParse في 5 Edge Functions** الناقصة.
+6. **مراجعة `guard-signup` و `lookup-national-id`** — تشديد rate limit + إضافة فحص captcha أو دور لكل عملية حساسة.
+
+---
 
 ## خارج النطاق
-- تبديل `window.confirm` بـ AlertDialog (تغيير UI منفصل).
-- منطق RPC/RLS/migrations.
-- إنهاء عقد، AdvanceRequestDialog، dashboards.
+- إعادة تصميم بصري للصفحات.
+- تغيير منطق المحاسبة أو RPC المالية (التوزيع، الإقفال، إلخ).
+- ميزات جديدة.
 
-## التحقق
-1. `tsc --noEmit` نظيف.
-2. `bun run lint -- --max-warnings 0`.
-3. تحديث `usePaymentInvoices.test.ts` لإسقاط التحقق من توست (لم يعد في data layer).
-4. اختبار يدوي على `/dashboard/contracts`:
-   - إنشاء عقد single → توستان فقط (إضافة + توليد) برسالة صريحة.
-   - إنشاء multi 3 وحدات → توست واحد مدمج فقط.
-   - تعديل عقد بفواتير معلقة → «تم تحديث» + «تم إعادة توليد N فاتورة».
-   - تعديل عقد بفواتير مدفوعة → confirm ثم نفس الزوج أعلاه (المدفوعة لا تُمسّ).
-   - حذف عقد → كما هو (لا تغيير منطقي).
-5. مراجعة بصرية: لا توست مكرر، لا «تم توليد» يظهر وحيداً بدون سياق.
+## سؤال للمستخدم قبل التنفيذ
+الخطة كبيرة (4 مراحل × ~12 ملفاً لكل مرحلة في المتوسط). أقترح **البدء بالمرحلة 1 فقط** (إصلاحات فورية بدون مخاطرة) ثم الانتقال للمرحلة 2 بموافقة جديدة. هل توافق على هذا التسلسل، أم تفضّل تنفيذ مرحلة بعينها أولاً؟
+
+ملاحظات تنفيذية:
+- كل مرحلة بعدها: `tsc --noEmit`، `bunx vitest run`، فحص يدوي للروابط المعدّلة.
+- المرحلة 4 تتطلب موافقة منفصلة على كل migration.
+- لن يُلمَس أي ملف محمي (`AuthContext`, `ProtectedRoute`, `SecurityGuard`, `supabase/config.toml`, `client.ts`, `types.ts`).
