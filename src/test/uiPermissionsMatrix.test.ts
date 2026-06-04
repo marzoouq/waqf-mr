@@ -28,10 +28,24 @@ const UNCONTROLLED_WHITELIST = new Set([
   '/waqif',
 ]);
 
-function parseCsv(content: string): { header: string[]; rows: string[][] } {
+interface MatrixRow {
+  route: string; role: string; role_allowed: string; perm_key: string;
+  section_key: string; effective_allowed: string; access_basis: string; status: string;
+}
+
+function parseCsv(content: string): { header: string[]; rows: MatrixRow[] } {
   const lines = content.trim().split('\n');
   const [first, ...rest] = lines;
-  return { header: (first ?? '').split(','), rows: rest.map(l => l.split(',')) };
+  const header = (first ?? '').split(',');
+  const rows: MatrixRow[] = rest.map(l => {
+    const c = l.split(',');
+    return {
+      route: c[0] ?? '', role: c[1] ?? '', role_allowed: c[2] ?? '',
+      perm_key: c[3] ?? '', section_key: c[4] ?? '',
+      effective_allowed: c[5] ?? '', access_basis: c[6] ?? '', status: c[7] ?? '',
+    };
+  });
+  return { header, rows };
 }
 
 describe('Round W — UI Permissions Matrix (audit/ui-permissions-matrix.csv)', () => {
