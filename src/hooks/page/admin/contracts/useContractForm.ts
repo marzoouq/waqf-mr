@@ -4,6 +4,9 @@
  *
  * P1-1: بعد كل إنشاء/تحديث للعقد نُحدِّث `contract_fiscal_allocations`
  * تلقائياً لضمان دقة الإيرادات والاستحقاق في صفحات العقارات.
+ *
+ * الإشعارات: تصدر من هنا فقط (طبقة الصفحة) عبر `lib/contracts/invoiceSync`.
+ * data hooks للفواتير نقية بدون toast (راجع mem://conventions/no-toast-in-data-hooks).
  */
 import { useState, useCallback } from 'react';
 import { Contract } from '@/types';
@@ -16,9 +19,14 @@ import { useFiscalYears } from '@/hooks/data/financial/fiscalYears/useFiscalYear
 import {
   useGenerateContractInvoices,
   useDeleteContractPendingInvoices,
+  fetchContractInvoiceSummary,
 } from '@/hooks/data/invoices/usePaymentInvoices';
-import { supabase } from '@/integrations/supabase/client';
-import { confirmRegenerateWithPaid } from '@/lib/contracts/invoiceSync';
+import {
+  confirmRegenerateWithPaid,
+  notifyInvoicesGenerated,
+  notifyInvoicesRegenerated,
+  notifyContractsCreatedWithInvoices,
+} from '@/lib/contracts/invoiceSync';
 import { useContractDelete } from './useContractDelete';
 import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
@@ -66,8 +74,6 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
   }, []);
 
   // P1-1: مزامنة تخصيصات السنوات المالية بعد كل عملية حفظ.
-  // مكتومة الأخطاء لئلا تكسر تجربة المستخدم — التخصيصات تُقرأ في صفحات
-  // العقارات/التقارير، وغيابها يعود لـ fallback آمن في usePropertyFinancials.
   const syncAllocations = useCallback(
     async (contractId: string, contract: { start_date: string; end_date: string; rent_amount: number; payment_type?: string; payment_count?: number; payment_amount?: number }) => {
       if (!fiscalYearsFull.length) return;
@@ -101,12 +107,7 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
       });
 
       // فحص الفواتير المدفوعة قبل إعادة التوليد — يحمي الأرشيف المحاسبي
-      const { data: existingInvoices } = await supabase
-        .from('payment_invoices')
-        .select('status')
-        .eq('contract_id', editingContract.id);
-      const paidCount = existingInvoices?.filter(i => i.status === 'paid').length ?? 0;
-      const pendingCount = existingInvoices?.filter(i => i.status === 'pending').length ?? 0;
+      const { paidCount, pendingCount } = await fetchContractInvoiceSummary(editingContract.id);
       if (paidCount > 0 && !confirmRegenerateWithPaid(paidCount, pendingCount)) {
         return;
       }
@@ -116,9 +117,11 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
       // إعادة توليد الفواتير المعلقة وفق القيم الجديدة (المدفوعة محفوظة)
       try {
         await deletePendingInvoices.mutateAsync(editingContract.id);
-        await generateInvoices.mutateAsync(editingContract.id);
+        const generatedCount = await generateInvoices.mutateAsync(editingContract.id);
+        notifyInvoicesRegenerated(generatedCount);
       } catch (err) {
         logger.warn('Invoice regeneration failed:', err instanceof Error ? err.message : String(err));
+        uiNotify.error('فشل إعادة توليد الفواتير المعلقة');
       }
       return;
     }
@@ -132,7 +135,8 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
 
     if (formData.rental_mode === 'multi' && formData.selected_unit_ids.length > 1) {
       const units = formData.selected_unit_ids;
-      let created = 0;
+      let createdContracts = 0;
+      let totalInvoices = 0;
       for (let i = 0; i < units.length; i++) {
         const unitId = units[i]!;
         const contractNumber = `${formData.contract_number}-${suffixLetters[i] || (i + 1)}`;
@@ -146,12 +150,17 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
         const newIdMulti = (createdMulti as { id?: string } | undefined)?.id;
         if (newIdMulti) {
           await syncAllocations(newIdMulti, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
-          try { await generateInvoices.mutateAsync(newIdMulti); }
-          catch (err) { logger.warn('Invoice generation failed:', err instanceof Error ? err.message : String(err)); }
+          try {
+            const count = await generateInvoices.mutateAsync(newIdMulti);
+            totalInvoices += count;
+          } catch (err) {
+            logger.warn('Invoice generation failed:', err instanceof Error ? err.message : String(err));
+          }
         }
-        created++;
+        createdContracts++;
       }
-      uiNotify.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
+      // توست موحّد بدل 2N+1 توست — يحلّ محل توست factory create (يُلَمّ بالـ dedup)
+      notifyContractsCreatedWithInvoices(formData.tenant_name, createdContracts, totalInvoices);
     } else {
       const rentAmount = parseFloat(formData.rent_amount);
       const unitId = (formData.rental_mode === 'single'
@@ -164,8 +173,12 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
       const newIdSingle = (createdSingle as { id?: string } | undefined)?.id;
       if (newIdSingle) {
         await syncAllocations(newIdSingle, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
-        try { await generateInvoices.mutateAsync(newIdSingle); }
-        catch (err) { logger.warn('Invoice generation failed:', err instanceof Error ? err.message : String(err)); }
+        try {
+          const count = await generateInvoices.mutateAsync(newIdSingle);
+          notifyInvoicesGenerated(count);
+        } catch (err) {
+          logger.warn('Invoice generation failed:', err instanceof Error ? err.message : String(err));
+        }
       }
     }
   };
