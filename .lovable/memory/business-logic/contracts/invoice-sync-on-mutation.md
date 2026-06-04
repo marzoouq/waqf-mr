@@ -24,6 +24,8 @@ type: feature
 - **لا تُدرج `income` يدوياً.** سجلات `income` تُكتب حصراً عبر RPC `pay_invoice_and_record_collection` المُستدعى من `useMarkInvoicePaid`. هذه القاعدة موثّقة في Unified Collection Sync ولا يجوز كسرها.
 - **لا تحذف فواتير مدفوعة** من أي مكان آخر — تنتهك ZATCA و ICV chain.
 - **لا تستخدم `useDeleteContract` مباشرة** في الواجهة — استخدم `useContractDelete` أو `useContractForm` للحماية.
+- **لا تطلق toast من `hooks/data/invoices/*`.** كل الإشعارات في تدفق العقد/الفواتير تصدر من طبقة الصفحة عبر دوال `lib/contracts/invoiceSync.ts` (`notifyInvoicesGenerated`, `notifyInvoicesRegenerated`, `notifyContractsCreatedWithInvoices`, `notifyDeleteBlockedByPaid`, `notifyPendingInvoicesDeleted`). data hooks تُبقي onSuccess للـ invalidate فقط.
+- **لا تكرر استعلام `payment_invoices` يدوياً** قبل التعديل/الحذف — استخدم `fetchContractInvoiceSummary` أو `useContractInvoiceSummary`.
 
 ## التحقق
 
