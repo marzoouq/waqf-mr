@@ -52,7 +52,7 @@ export const adminDashboardFixture: AdminDashboardPageCtx = {
   expenseTypes: [],
   greetingText: 'مرحباً بك أيها الناظر',
   allFiscalYears: [],
-  fy: null,
+  fy: undefined,
 
   isAccountant: false,
   accountantMetrics: {} as never,
