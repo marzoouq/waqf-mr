@@ -74,7 +74,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
                     editingType === type ? (
                       <div className="flex items-center gap-1">
                         <Input name="editValue" id="expense-budget-bar-field-1" type="number" value={editValue} onChange={e => setEditValue(e.target.value)} className="w-24 h-7 text-xs" dir="ltr" min={0} />
-                        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => { const amt = parseFloat(editValue); if (!Number.isFinite(amt) || amt < 0) { uiNotify.error('مبلغ غير صالح'); return; } saveBudget.mutate({ expenseType: type, amount: amt }); setEditingType(null); }} disabled={saveBudget.isPending}>حفظ</Button>
+                        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => { const amt = parseFloat(editValue); if (!Number.isFinite(amt) || amt < 0) { uiNotify.error('مبلغ غير صالح'); return; } saveBudget.mutate({ expenseType: type, amount: amt }, { onSuccess: () => { uiNotify.success('تم حفظ الميزانية'); setEditingType(null); }, onError: () => uiNotify.error('فشل حفظ الميزانية') }); }} disabled={saveBudget.isPending}>حفظ</Button>
                         <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setEditingType(null)}>✕</Button>
                       </div>
                     ) : (

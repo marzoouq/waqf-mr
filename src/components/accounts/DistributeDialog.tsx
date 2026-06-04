@@ -43,18 +43,25 @@ const DistributeDialog = ({
   const { distributions, totalNet, totalAdvances, totalCarryforward, totalDeficit, hasDeficit } =
     useDistributionCalculation(beneficiaries, availableAmount, fiscalYearId, open);
 
-  const handleConfirm = async () => {
-    try {
-      await distribute.mutateAsync({
+  const handleConfirm = () => {
+    distribute.mutate(
+      {
         account_id: accountId,
         fiscal_year_id: fiscalYearId,
         distributions,
         total_distributed: totalNet + totalAdvances + totalCarryforward,
-      });
-      onOpenChange(false);
-    } catch {
-      // onError in the mutation already shows a toast
-    }
+      },
+      {
+        onSuccess: ({ result }) => {
+          let msg = `تم توزيع الحصص بنجاح لـ ${result.with_share} مستفيد`;
+          if (result.with_deficit > 0) msg += ` (${result.with_deficit} مستفيد لديهم فروق مرحّلة)`;
+          uiNotify.success(msg);
+          onOpenChange(false);
+        },
+        onError: () =>
+          uiNotify.error('فشل تنفيذ التوزيع — لم يتم تعديل أي بيانات (عملية ذرية)'),
+      },
+    );
   };
 
   return (

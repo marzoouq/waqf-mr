@@ -5,10 +5,16 @@
  * ليبقى المكوّن UI خالصاً.
  */
 import { useState } from 'react';
-import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from '@/hooks/data/financial/advances/useAdvanceRequests';
+import {
+  useAdvanceRequests,
+  useUpdateAdvanceStatus,
+  STATUS_SUCCESS_MESSAGES,
+  type AdvanceRequest,
+} from '@/hooks/data/financial/advances/useAdvanceRequests';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { isFyAll } from '@/constants/fiscalYearIds';
+import { uiNotify } from '@/lib/notify';
 
 const PAGE_SIZE = 20;
 
@@ -33,28 +39,43 @@ export function useAdvanceRequestsState() {
   const totalPages = Math.max(1, Math.ceil(requests.length / PAGE_SIZE));
   const paginatedRequests = requests.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-  const handleApprove = (req: AdvanceRequest) => updateStatus.mutate({
-    id: req.id, status: 'approved',
-    beneficiary_user_id: req.beneficiary?.user_id ?? undefined, amount: req.amount,
+  const notifyStatus = (status: string) => ({
+    onSuccess: () => uiNotify.success(STATUS_SUCCESS_MESSAGES[status] || 'تم تحديث الطلب'),
+    onError: () => uiNotify.error('فشل تحديث حالة الطلب'),
   });
 
-  const handlePaid = (req: AdvanceRequest) => updateStatus.mutate({
-    id: req.id, status: 'paid',
-    beneficiary_user_id: req.beneficiary?.user_id ?? undefined, amount: req.amount,
-  });
+  const handleApprove = (req: AdvanceRequest) => updateStatus.mutate(
+    {
+      id: req.id, status: 'approved',
+      beneficiary_user_id: req.beneficiary?.user_id ?? undefined, amount: req.amount,
+    },
+    notifyStatus('approved'),
+  );
 
-  const handleReject = async () => {
+  const handlePaid = (req: AdvanceRequest) => updateStatus.mutate(
+    {
+      id: req.id, status: 'paid',
+      beneficiary_user_id: req.beneficiary?.user_id ?? undefined, amount: req.amount,
+    },
+    notifyStatus('paid'),
+  );
+
+  const handleReject = () => {
     if (!rejectTarget) return;
-    try {
-      await updateStatus.mutateAsync({
+    updateStatus.mutate(
+      {
         id: rejectTarget.id, status: 'rejected', rejection_reason: rejectionReason,
         beneficiary_user_id: rejectTarget.userId, amount: rejectTarget.amount,
-      });
-      setRejectTarget(null);
-      setRejectionReason('');
-    } catch {
-      // Toast يظهر من onError — الحوار يبقى مفتوحاً للمحاولة مرة أخرى
-    }
+      },
+      {
+        onSuccess: () => {
+          uiNotify.success(STATUS_SUCCESS_MESSAGES.rejected || 'تم تحديث الطلب');
+          setRejectTarget(null);
+          setRejectionReason('');
+        },
+        onError: () => uiNotify.error('فشل تحديث حالة الطلب'),
+      },
+    );
   };
 
   const openReject = (req: AdvanceRequest) => setRejectTarget({
