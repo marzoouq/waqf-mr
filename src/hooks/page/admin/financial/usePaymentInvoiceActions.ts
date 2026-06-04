@@ -1,8 +1,11 @@
 /**
  * هوك إجراءات فواتير الدفع — دفع وإلغاء دفع ودفع جماعي
  * مُستخرج من usePaymentInvoicesTab لتقليل حجم الملف الأصلي (#22)
+ *
+ * الإشعارات هنا حصراً — data hooks للفواتير لا تطلق toast
+ * (راجع mem://conventions/no-toast-in-data-hooks).
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { uiNotify } from '@/lib/notify';
 import {
   type PaymentInvoice,
@@ -11,14 +14,27 @@ import {
 } from '@/hooks/data/invoices/usePaymentInvoices';
 
 export function usePaymentInvoiceActions() {
-  const markPaid = useMarkInvoicePaid();
-  const markUnpaid = useMarkInvoiceUnpaid();
+  const markPaidRaw = useMarkInvoicePaid();
+  const markUnpaidRaw = useMarkInvoiceUnpaid();
 
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
   const [payDialog, setPayDialog] = useState<{ inv: PaymentInvoice } | null>(null);
   const [payAmount, setPayAmount] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkPaying, setBulkPaying] = useState(false);
+
+  // Wrappers: notify لكن لا نمرّر toast إلى data layer
+  const markUnpaid = useMemo(
+    () => ({
+      mutate: (id: string) =>
+        markUnpaidRaw.mutate(id, {
+          onSuccess: () => uiNotify.success('تم إلغاء التسديد والتراجع عن التحصيل'),
+          onError: () => uiNotify.error('فشل إلغاء التسديد'),
+        }),
+      isPending: markUnpaidRaw.isPending,
+    }),
+    [markUnpaidRaw],
+  );
 
   const openPayDialog = (inv: PaymentInvoice) => {
     setPayDialog({ inv });
@@ -32,9 +48,13 @@ export function usePaymentInvoiceActions() {
     const inv = payDialog.inv;
     setPayingInvoiceId(inv.id);
     setPayDialog(null);
-    markPaid.mutate(
+    markPaidRaw.mutate(
       { invoiceId: inv.id, paidAmount: amount },
-      { onSettled: () => setPayingInvoiceId(null) },
+      {
+        onSuccess: () => uiNotify.success('تم تسديد الفاتورة وتسجيل التحصيل'),
+        onError: () => uiNotify.error('فشل تسديد الفاتورة'),
+        onSettled: () => setPayingInvoiceId(null),
+      },
     );
   };
 
@@ -57,7 +77,7 @@ export function usePaymentInvoiceActions() {
     const failed: string[] = [];
     for (const id of ids) {
       try {
-        await markPaid.mutateAsync({ invoiceId: id });
+        await markPaidRaw.mutateAsync({ invoiceId: id });
         done++;
       } catch { failed.push(id); }
     }
@@ -65,12 +85,12 @@ export function usePaymentInvoiceActions() {
     setSelectedIds(new Set());
     if (done > 0) uiNotify.success(`تم تسديد ${done} فاتورة من ${ids.length}`);
     if (failed.length > 0) uiNotify.error(`فشل تسديد ${failed.length} فاتورة — يرجى المحاولة مرة أخرى`);
-  }, [selectedIds, markPaid]);
+  }, [selectedIds, markPaidRaw]);
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
   return {
-    markPaid, markUnpaid,
+    markPaid: markPaidRaw, markUnpaid,
     payingInvoiceId, payDialog, setPayDialog, payAmount, setPayAmount,
     openPayDialog, handlePay,
     selectedIds, toggleSelect, toggleSelectAll, bulkPaying, handleBulkPay, clearSelection,

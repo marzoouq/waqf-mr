@@ -1,11 +1,11 @@
 /**
- * هوك إدارة فواتير الدفعات الإلكترونية
+ * هوك إدارة فواتير الدفعات الإلكترونية — طبقة data نقية بدون toast.
+ * الإشعارات تصدر من طبقة `hooks/page/` فقط (راجع `mem://conventions/no-toast-in-data-hooks`).
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { uiNotify } from '@/lib/notify';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 
 export type { PaymentInvoice } from '@/types/invoices';
@@ -43,12 +43,11 @@ export const useGenerateContractInvoices = () => {
       });
       return data;
     },
-    onSuccess: (count) => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      uiNotify.success(`تم توليد ${count} فاتورة`);
+      qc.invalidateQueries({ queryKey: ['contract_invoice_summary'] });
     },
-    onError: () => uiNotify.error('فشل توليد الفواتير'),
   });
 };
 
@@ -59,12 +58,11 @@ export const useGenerateAllInvoices = () => {
       const data = await rpc<number>('generate_all_active_invoices');
       return data;
     },
-    onSuccess: (count) => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      uiNotify.success(`تم توليد ${count} فاتورة لجميع العقود النشطة`);
+      qc.invalidateQueries({ queryKey: ['contract_invoice_summary'] });
     },
-    onError: () => uiNotify.error('فشل توليد الفواتير'),
   });
 };
 
@@ -82,9 +80,7 @@ export const useMarkInvoicePaid = () => {
       qc.invalidateQueries({ queryKey: ['tenant_payments'] });
       qc.invalidateQueries({ queryKey: ['income'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      uiNotify.success('تم تسديد الفاتورة وتسجيل التحصيل');
     },
-    onError: () => uiNotify.error('فشل تسديد الفاتورة'),
   });
 };
 
@@ -101,9 +97,7 @@ export const useMarkInvoiceUnpaid = () => {
       qc.invalidateQueries({ queryKey: ['tenant_payments'] });
       qc.invalidateQueries({ queryKey: ['income'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
-      uiNotify.success('تم إلغاء التسديد والتراجع عن التحصيل');
     },
-    onError: () => uiNotify.error('فشل إلغاء التسديد'),
   });
 };
 
@@ -128,6 +122,7 @@ export const useDeleteContractPendingInvoices = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
       qc.invalidateQueries({ queryKey: ['contracts'] });
+      qc.invalidateQueries({ queryKey: ['contract_invoice_summary'] });
     },
   });
 };
@@ -140,19 +135,25 @@ export const useContractInvoiceSummary = (contractId: string | null | undefined)
     queryKey: ['contract_invoice_summary', contractId],
     enabled: !!contractId,
     staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('payment_invoices')
-        .select('status')
-        .eq('contract_id', contractId!);
-      if (error) throw error;
-      let paidCount = 0;
-      let pendingCount = 0;
-      for (const row of data ?? []) {
-        if (row.status === 'paid') paidCount++;
-        else if (row.status === 'pending') pendingCount++;
-      }
-      return { paidCount, pendingCount, totalCount: data?.length ?? 0 };
-    },
+    queryFn: () => fetchContractInvoiceSummary(contractId!),
   });
 };
+
+/**
+ * نسخة إجرائية (غير reactive) من قراءة ملخص الفواتير — تُستخدم في handlers
+ * مثل تعديل/حذف العقد حيث لا نحتاج اشتراك مكوّن.
+ */
+export async function fetchContractInvoiceSummary(contractId: string) {
+  const { data, error } = await supabase
+    .from('payment_invoices')
+    .select('status')
+    .eq('contract_id', contractId);
+  if (error) throw error;
+  let paidCount = 0;
+  let pendingCount = 0;
+  for (const row of data ?? []) {
+    if (row.status === 'paid') paidCount++;
+    else if (row.status === 'pending') pendingCount++;
+  }
+  return { paidCount, pendingCount, totalCount: data?.length ?? 0 };
+}

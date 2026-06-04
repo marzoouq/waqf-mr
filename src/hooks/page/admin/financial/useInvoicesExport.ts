@@ -100,7 +100,19 @@ export const useInvoicesExport = ({
       uiNotify.info('جميع الفواتير تحتوي على مرفقات بالفعل');
       return;
     }
-    generatePdf.mutate(ids);
+    generatePdf.mutate(ids, {
+      onSuccess: (data) => {
+        const successCount = data.results.filter(
+          (r) => r.success && r.error !== 'already has file',
+        ).length;
+        if (successCount > 0) {
+          uiNotify.success(`تم توليد ${successCount} ملف PDF بنجاح`);
+        } else {
+          uiNotify.info('جميع الفواتير تحتوي على مرفقات بالفعل');
+        }
+      },
+      onError: () => uiNotify.error('حدث خطأ أثناء توليد ملفات PDF'),
+    });
   }, [generatePdf, invoicesWithoutFiles]);
 
   return {

@@ -3,6 +3,7 @@
  * تم استخراج إجراءات الدفع إلى usePaymentInvoiceActions (#22)
  */
 import { useMemo, useState, useEffect } from 'react';
+import { uiNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
 import {
   type PaymentInvoice,
@@ -33,8 +34,22 @@ const ITEMS_PER_PAGE = PAGE_SIZE_LIST;
 export const usePaymentInvoicesTab = (fiscalYearId: string) => {
   const { data: invoices = [], isLoading } = usePaymentInvoices(fiscalYearId);
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
-  const generateAll = useGenerateAllInvoices();
+  const generateAllRaw = useGenerateAllInvoices();
   const waqfInfo = usePdfWaqfInfo();
+
+  // Wrapper مع إشعارات — data hook نقي بدون toast
+  const generateAll = useMemo(
+    () => ({
+      mutate: () =>
+        generateAllRaw.mutate(undefined, {
+          onSuccess: (count) =>
+            uiNotify.success(`تم توليد ${count} فاتورة لجميع العقود النشطة`),
+          onError: () => uiNotify.error('فشل توليد الفواتير'),
+        }),
+      isPending: generateAllRaw.isPending,
+    }),
+    [generateAllRaw],
+  );
 
   // إجراءات الدفع — مُستخرجة (#22)
   const actions = usePaymentInvoiceActions();

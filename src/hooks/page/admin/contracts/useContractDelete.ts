@@ -8,12 +8,14 @@
  * - عقد بدون فواتير → حذف مباشر بعد تأكيد قياسي من الواجهة.
  */
 import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import {
   useDeleteContract,
 } from '@/hooks/data/contracts/useContracts';
-import { useDeleteContractPendingInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
+import {
+  useDeleteContractPendingInvoices,
+  fetchContractInvoiceSummary,
+} from '@/hooks/data/invoices/usePaymentInvoices';
 import {
   notifyDeleteBlockedByPaid,
   confirmDeleteWithPending,
@@ -30,19 +32,17 @@ export function useContractDelete({ onSettled }: UseContractDeleteParams = {}) {
 
   const deleteWithGuard = useCallback(
     async (target: { id: string; name: string }) => {
-      const { data: existingInvoices, error } = await supabase
-        .from('payment_invoices')
-        .select('status')
-        .eq('contract_id', target.id);
-
-      if (error) {
-        logger.warn('Failed to read invoices before delete:', error.message);
+      let paidCount = 0;
+      let pendingCount = 0;
+      try {
+        const summary = await fetchContractInvoiceSummary(target.id);
+        paidCount = summary.paidCount;
+        pendingCount = summary.pendingCount;
+      } catch (err) {
+        logger.warn('Failed to read invoices before delete:', err instanceof Error ? err.message : String(err));
         onSettled?.();
         return false;
       }
-
-      const paidCount = existingInvoices?.filter(i => i.status === 'paid').length ?? 0;
-      const pendingCount = existingInvoices?.filter(i => i.status === 'pending').length ?? 0;
 
       if (paidCount > 0) {
         notifyDeleteBlockedByPaid(paidCount);

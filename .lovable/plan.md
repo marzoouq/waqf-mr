@@ -1,66 +1,97 @@
-# ربط CRUD العقود بسجلات الدخل والفواتير
+# تدقيق التكرار والتعارض في تدفق العقود ↔ الفواتير
 
-> **مُتحقّق منه:** التقرير الميداني أكّد أن جميع الفجوات السبعة حقيقية ولا شيء منها مُنفَّذ. الدوال جاهزة في DB لكن لا تُستدعى من الواجهة، ولا يوجد trigger يعوّضها.
+## النتائج (تم التحقق بالكود)
 
-## الفجوة الأساسية
-- `generate_contract_invoices(uuid)` و `pay_invoice_and_record_collection(uuid)` موجودتان في DB ومحميتان بـ `has_role(admin|accountant)`.
-- `useGenerateContractInvoices` معرَّف في `usePaymentInvoices.ts:37` لكنه مستخدم في الاختبارات فقط.
-- `useContractForm.ts` ينفّذ `syncAllocations` بعد الحفظ فقط — **لا** توليد فواتير، **لا** حماية حذف.
-- نتيجة عملية: إنشاء/تعديل/حذف عقد من لوحة الناظر لا يولّد ولا يُحدّث ولا ينظّف أي سجلات مالية.
+### 1. تكرار توست فعلي عند الإنشاء متعدد الوحدات
+في `useContractForm.handleFormSubmit` (multi-mode، N وحدات):
+- لكل وحدة: `createContract` → factory CRUD يطلق **«تم إضافة العقد بنجاح»** (يُلَمّ التكرار بواسطة dedup 2s ✓)
+- لكل وحدة: `generateInvoices.mutateAsync` → data hook يطلق **«تم توليد X فاتورة»** (X يختلف بين العقود غالباً → dedup لا يلتقطها → **N توستات**)
+- في النهاية: **«تم إنشاء N عقد للمستأجر …»**
 
-## القرارات
-- **التوليد:** تلقائي فور حفظ العقد + زر «إعادة توليد المعلقة» في إجراءات العقد.
-- **التعديل:** المدفوع محفوظ دائماً. المعلق يُحذف ويُعاد توليده. تنبيه قبل الحفظ عند وجود مدفوع.
-- **الحذف:** ممنوع إن وُجدت فواتير مدفوعة. مسموح مع cascade لفواتير معلقة فقط.
-- **الإنهاء (terminate):** خارج النطاق — مهمة منفصلة لاحقة.
+النتيجة: حتى **2N+1 توست** لعملية واحدة منطقياً. ضوضاء + رسائل متضاربة (factory يقول "تم إضافة العقد" بينما الإجمالي يقول "تم إنشاء N عقد").
 
-## التغييرات
+### 2. مخالفة قاعدة `mem://conventions/no-toast-in-data-hooks`
+`src/hooks/data/invoices/usePaymentInvoices.ts` فيه `uiNotify.*` في 4 mutations:
+`useGenerateContractInvoices`, `useGenerateAllInvoices`, `useMarkInvoicePaid`, `useMarkInvoiceUnpaid`.
+نفس المخالفة في `src/hooks/data/invoices/useInvoices.ts` (delete + PDF).
+القاعدة: `hooks/data/` نقي بدون toast — الإشعارات في `hooks/page/`.
 
-### 1) `src/hooks/data/invoices/usePaymentInvoices.ts`
-- إضافة `useDeleteContractPendingInvoices()` — يحذف `payment_invoices` حيث `contract_id=X AND status='pending'` (بدون توست — قاعدة `no-toast-in-data-hooks`).
-- إضافة `useContractInvoiceSummary(contractId)` — يُرجع `{ paidCount, pendingCount }` للاستخدام في حوارات التأكيد.
+### 3. كود ميت تم إنشاؤه في الجولة السابقة ولم يُربط
+- `useContractInvoiceSummary` (في `usePaymentInvoices.ts`) — **لا مستورد واحد**. `useContractForm` و`useContractDelete` يكرران نفس الاستعلام يدوياً بدلاً من استخدامه.
+- `notifyInvoicesRegenerated` (في `invoiceSync.ts`) — **لا مستورد واحد**. مسار التعديل لا يطلق رسالة "إعادة توليد" صريحة، بل يعتمد على توست data-hook العام «تم توليد X فاتورة» الذي لا يميّز بين التوليد الأول وإعادة التوليد.
 
-### 2) `src/lib/contracts/invoiceSync.ts` (جديد، ≤80 سطر)
-- `notifyInvoicesGenerated(count)`, `notifyInvoicesRegenerated(count)`, `notifyDeleteBlocked(paidCount)` — توست عربية موحّدة عبر `uiNotify`.
-- منطق الـ side-effect يبقى في `lib/` (ليس `utils/` ولا `hooks/data/`).
+### 4. ازدواجية استعلام الفواتير قبل التعديل/الحذف
+- `useContractForm.handleFormSubmit` (سطر 104-109): `supabase.from('payment_invoices').select('status').eq('contract_id', …)`
+- `useContractDelete.deleteWithGuard` (سطر 33-36): نفس الاستعلام حرفياً.
+وكلاهما يكرر منطق `useContractInvoiceSummary` الميت.
 
-### 3) `src/hooks/page/admin/contracts/useContractForm.ts` (تعديل)
-بعد `syncAllocations` في كلا المسارين (create/update):
-- **Create:** استدعاء `generateInvoices.mutateAsync(newContractId)` ثم `notifyInvoicesGenerated`.
-- **Update:** قراءة `useContractInvoiceSummary` للعقد. إن `paidCount > 0` → `confirm` عربي «لديك N فواتير مدفوعة محفوظة؛ سيتم إعادة توليد المعلقة فقط». ثم `deletePendingInvoices` → `generateInvoices` → `notifyInvoicesRegenerated`.
-- Invalidate موحّد: `['payment_invoices']`, `['income']`, `['contracts']`, `['contract-allocations']`.
+### 5. تعارض مع نمط الواجهة
+`confirmRegenerateWithPaid` و`confirmDeleteWithPending` يستخدمان `window.confirm` بينما باقي المشروع يستخدم AlertDialog. خارج النطاق هنا (يتطلب UI work)، يُسجَّل كملاحظة فقط.
 
-### 4) `src/hooks/page/admin/contracts/useContractDelete.ts` (جديد، ≤100 سطر)
-- يقرأ `useContractInvoiceSummary` قبل أي عملية.
-- `paidCount > 0` → blocking dialog «لا يمكن حذف عقد له فواتير مدفوعة. استخدم الإنهاء.» (يعود `false`).
-- `pendingCount > 0` فقط → confirm «سيتم حذف N فاتورة معلقة مع العقد. متابعة؟» → `deletePendingInvoices` → `deleteContract`.
-- لا فواتير → حذف مباشر مع confirm قياسي.
+### 6. ليس تكراراً (تم التحقق ونفيه)
+- `notifyPendingInvoicesDeleted` يُستدعى فقط في `useContractDelete` ولا تعارض مع factory delete (الذي يطلق «تم حذف العقد بنجاح»). الرسالتان مختلفتان وكلتاهما مفيدتان.
+- `dedupToast` بـ 2000ms في `lib/notify.ts` يحمي من تكرار نفس الـ string فقط — لا يحمي من رسائل مختلفة المعنى المتكررة.
 
-### 5) ربط الواجهة
-- `src/components/contracts/ContractsTableActions.tsx` (أو ما يكافئها — البحث في build mode):
-  - استبدال استدعاء `useDeleteContract` المباشر بـ `useContractDelete`.
-  - إضافة عنصر قائمة «إعادة توليد الفواتير المعلقة» → `deletePendingInvoices` + `generateInvoices` + `notifyInvoicesRegenerated`.
+## التغييرات المقترحة
 
-### 6) ذاكرة المشروع
-- إنشاء `mem://business-logic/contracts/invoice-sync-on-mutation` يوثّق القاعدة:
-  > «إنشاء/تعديل عقد يُولّد فواتيره تلقائياً. المدفوعة لا تُمسّ أبداً. المعلقة تُحذف وتُعاد عند التعديل. سجلات `income` تُكتب حصرياً عبر `pay_invoice_and_record_collection` (لا إدراج يدوي).»
-- تحديث `mem://index.md` (إضافة سطر مرجع، الاحتفاظ بالباقي حرفياً).
+### A. نقل توستات data hooks إلى طبقة الصفحة
+**`src/hooks/data/invoices/usePaymentInvoices.ts`** — إزالة `uiNotify.*` من:
+- `useGenerateContractInvoices` (onSuccess + onError)
+- `useGenerateAllInvoices`
+- `useMarkInvoicePaid`
+- `useMarkInvoiceUnpaid`
+
+تبقى `qc.invalidateQueries` فقط. حذف استيراد `uiNotify`.
+
+**`src/hooks/data/invoices/useInvoices.ts`** — نفس المعالجة (delete + PDF) ونقل التوست إلى الـ page hooks المستدعية.
+
+### B. تنسيق توستات تدفق العقد في `useContractForm`
+- **EDIT**: استبدال الاعتماد على توست data-hook بـ:
+  ```
+  await updateContract  // factory: "تم تحديث العقد بنجاح" — واحدة فقط
+  await deletePendingInvoices
+  const count = await generateInvoices
+  notifyInvoicesRegenerated(count)  // "تم إعادة توليد N فاتورة معلقة وفق القيم الجديدة"
+  ```
+  بدلاً من «تم توليد X فاتورة» الغامض.
+
+- **CREATE single**: إبقاء توست factory «تم إضافة العقد» وإضافة `notifyInvoicesGenerated(count)` صريحة (دالة جديدة في `invoiceSync.ts`) بدلاً من توست data-hook.
+
+- **CREATE multi**: 
+  - كتم رسائل factory create لكل عقد عبر تمرير `notifications: { onCreateSuccess: noop }` أو الاكتفاء بالاعتماد على dedup (الرسالة متطابقة).
+  - **عدم** إطلاق توست لكل `generateInvoices` داخل اللوب — تجميع العداد محلياً.
+  - في النهاية توست واحد مدمج: **«تم إنشاء N عقد و توليد M فاتورة للمستأجر …»**.
+
+### C. توحيد قراءة ملخص الفواتير
+- استخدام `useContractInvoiceSummary` (الموجودة فعلاً) في `useContractDelete`، وفي `useContractForm` (عبر `queryClient.fetchQuery` لأن السياق إجرائي وليس reactive).
+- إزالة الاستعلامين اليدويين المكررين لـ `payment_invoices`.
+
+### D. إضافة دالة `notifyInvoicesGenerated` للتمييز
+في `src/lib/contracts/invoiceSync.ts`:
+```
+export function notifyInvoicesGenerated(count: number) {
+  if (count > 0) uiNotify.success(`تم توليد ${count} فاتورة للعقد`);
+}
+```
+ودمج `notifyInvoicesRegenerated` لتُستخدم فعلياً.
+
+### E. ذاكرة المشروع
+تحديث `mem://business-logic/contracts/invoice-sync-on-mutation` بإضافة:
+> التوست في تدفق العقد يصدر من `hooks/page/` فقط عبر دوال `invoiceSync.ts`. data hooks للفواتير ممنوع منعاً قطعياً أن تطلق `uiNotify`.
 
 ## خارج النطاق
-- لا تعديل على migrations/RLS/RPC (كله جاهز).
-- لا إجراء «إنهاء عقد».
-- لا إنشاء/تعديل `income` يدوياً — يبقى المسار الوحيد عبر `pay_invoice_and_record_collection` (Core memory: Unified Collection Sync).
-- لا تعديل ملفات محمية (`client.ts`, `types.ts`, `config.toml`, `AuthContext`, `ProtectedRoute`).
+- تبديل `window.confirm` بـ AlertDialog (تغيير UI منفصل).
+- منطق RPC/RLS/migrations.
+- إنهاء عقد، AdvanceRequestDialog، dashboards.
 
-## خطة التحقق
-1. `bunx tsc --noEmit` نظيف.
+## التحقق
+1. `tsc --noEmit` نظيف.
 2. `bun run lint -- --max-warnings 0`.
-3. اختبار وحدة `useContractDelete.test.ts`: ثلاث حالات (بدون فواتير / معلقة فقط / مدفوعة → محظور).
-4. تحقق يدوي على `/dashboard/contracts`:
-   - إنشاء عقد → ظهور فواتيره في `/dashboard/invoices`.
-   - تعديل سعر عقد بمعلقة فقط → الفواتير القديمة تختفي والجديدة تظهر بالسعر الجديد.
-   - تعديل عقد بفواتير مدفوعة → تنبيه قبل الحفظ، المدفوعة كما هي.
-   - حذف عقد بمدفوعة → blocking dialog.
-   - حذف عقد بمعلقة فقط → يُحذف هو وفواتيره.
-   - دفع فاتورة من `/dashboard/invoices` → سجل `income` يظهر في صفحة الدخل.
-5. SQL تحقق (read-only): `SELECT count(*) FROM income i LEFT JOIN payment_invoices p ON i.invoice_id=p.id WHERE p.id IS NULL;` يجب أن يساوي 0 (لا دخل يتيم).
+3. تحديث `usePaymentInvoices.test.ts` لإسقاط التحقق من توست (لم يعد في data layer).
+4. اختبار يدوي على `/dashboard/contracts`:
+   - إنشاء عقد single → توستان فقط (إضافة + توليد) برسالة صريحة.
+   - إنشاء multi 3 وحدات → توست واحد مدمج فقط.
+   - تعديل عقد بفواتير معلقة → «تم تحديث» + «تم إعادة توليد N فاتورة».
+   - تعديل عقد بفواتير مدفوعة → confirm ثم نفس الزوج أعلاه (المدفوعة لا تُمسّ).
+   - حذف عقد → كما هو (لا تغيير منطقي).
+5. مراجعة بصرية: لا توست مكرر، لا «تم توليد» يظهر وحيداً بدون سياق.
