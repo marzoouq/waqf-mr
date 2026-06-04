@@ -13,7 +13,7 @@ export interface FySnapshot {
 }
 
 export interface AccountBasic {
-  fiscal_year: number | null;
+  fiscal_year: string | number | null;
   waqf_revenue: number | null;
   waqf_corpus_manual: number | null;
 }
