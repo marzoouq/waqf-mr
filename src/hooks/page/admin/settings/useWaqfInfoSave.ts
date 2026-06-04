@@ -1,5 +1,7 @@
 /**
- * هوك حفظ بيانات الوقف (شعار + حقول) — مستخرج من WaqfInfoEditDialog
+ * هوك حفظ بيانات الوقف (شعار + حقول) — مستخرج من WaqfInfoEditDialog.
+ * نُقل من hooks/data إلى hooks/page لأنه يحتوي UI state + toasts
+ * (راجع mem://conventions/no-toast-in-data-hooks).
  */
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,7 +54,6 @@ export const useWaqfInfoSave = (onSuccess: () => void) => {
           .upsert({ key: field.key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
         if (error) throw error;
       }
-      // المهمة B — إبطال فئة general (waqf_*) + legacy
       await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
       await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       uiNotify.success('تم حفظ بيانات الوقف بنجاح');

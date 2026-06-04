@@ -2,7 +2,7 @@ export { useAppSettings, useSetting, useSettingsCategory, updateNotificationPref
 export type { WaqfInfo, SettingsCategory } from './app/useAppSettings';
 export { usePdfWaqfInfo } from './waqf/usePdfWaqfInfo';
 export { useRegistrationEnabled } from './permissions/useRegistrationEnabled';
-export { useWaqfInfoSave } from './waqf/useWaqfInfoSave';
+// useWaqfInfoSave moved to @/hooks/page/admin/settings/useWaqfInfoSave (UI state + toasts)
 // useLogoUpload moved to @/hooks/page/admin/settings/useLogoUpload (UI state + toasts)
 export { useBannerSettings, BANNER_SETTINGS_KEY } from './appearance/useBannerSettings';
 export type { UseBannerSettingsResult } from './appearance/useBannerSettings';

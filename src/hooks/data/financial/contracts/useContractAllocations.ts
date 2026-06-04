@@ -1,7 +1,10 @@
+/**
+ * طبقة data نقية لتخصيصات السنوات المالية للعقود — بدون toasts.
+ * الإشعارات تُدار في المستهلِك (hooks/page/admin/contracts/useContractForm).
+ */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
-import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { FiscalAllocation } from '@/utils/financial/contractAllocation';
@@ -23,7 +26,6 @@ const ALLOCATION_LIMIT = 500;
 export const useContractAllocations = (fiscalYearId?: string | null) => {
   return useQuery({
     queryKey: ['contract_fiscal_allocations', fiscalYearId],
-    // منع الجلب قبل تحديد السنة المالية (#83)
     enabled: fiscalYearId !== undefined,
     queryFn: async () => {
       let query = supabase
@@ -36,7 +38,6 @@ export const useContractAllocations = (fiscalYearId?: string | null) => {
       const { data, error } = await query;
       if (error) throw error;
       const results = (data ?? []) as ContractFiscalAllocation[];
-      // تحذير عند الوصول لحد السجلات (#28)
       if (results.length >= ALLOCATION_LIMIT) {
         logger.warn(`تخصيصات العقود وصلت للحد الأقصى (${ALLOCATION_LIMIT}) — قد تكون بيانات مفقودة`);
       }
@@ -59,10 +60,8 @@ export const useUpsertContractAllocations = () => {
         allocated_payments: a.allocated_payments,
         allocated_amount: a.allocated_amount,
       }));
-      // تمرير rows مباشرة — Supabase JS client يتعامل مع objects (#55)
       await rpc('upsert_contract_allocations', {
         p_contract_id: contractId,
-        // Supabase JSON parameter — cast ضروري لأن RPC يتوقع Json
         p_allocations: rows as unknown as import('@/integrations/supabase/types').Json,
       });
     },
@@ -71,7 +70,6 @@ export const useUpsertContractAllocations = () => {
     },
     onError: (error: Error) => {
       logger.error('Allocation error:', error.message);
-      uiNotify.error('خطأ في حفظ تخصيصات العقد');
     },
   });
 };
