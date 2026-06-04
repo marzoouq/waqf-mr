@@ -15,7 +15,7 @@ import { PAGE_SIZE_LIST } from '@/constants/pagination';
 
 import type { FiscalYear, PaymentInvoice } from '@/types';
 import { useCollectionData, type CollectionFilterStatus } from '@/hooks/page/admin/financial/useCollectionData';
-import { useCollectionAlerts } from '@/hooks/data/contracts/useCollectionAlerts';
+import { useCollectionAlerts } from '@/hooks/page/admin/contracts/useCollectionAlerts';
 import CollectionSummaryCards from './CollectionSummaryCards';
 import CollectionMobileCards from './CollectionMobileCards';
 import CollectionDesktopTable from './CollectionDesktopTable';
