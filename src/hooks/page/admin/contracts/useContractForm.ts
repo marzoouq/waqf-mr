@@ -22,7 +22,6 @@ import {
   fetchContractInvoiceSummary,
 } from '@/hooks/data/invoices/usePaymentInvoices';
 import {
-  confirmRegenerateWithPaid,
   notifyInvoicesGenerated,
   notifyInvoicesRegenerated,
   notifyContractsCreatedWithInvoices,
