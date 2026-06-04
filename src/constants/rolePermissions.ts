@@ -11,14 +11,18 @@ export const DEFAULT_ROLE_PERMS: RolePerms = {
     bylaws: true, messages: true, audit_log: true, annual_report: true,
     support: true, chart_of_accounts: true,
   },
+  // P0: استبدلنا مفتاح `reports` legacy بمفاتيح متطابقة مع routeRegistry:
+  // `financial_reports` و`carryforward` (انظر BENEFICIARY_ROUTES.permKey)
   beneficiary: {
     properties: true, contracts: true, disclosure: true, share: true,
-    reports: true, accounts: true, invoices: true, expenses: true, bylaws: true, messages: true,
+    carryforward: true, financial_reports: true,
+    accounts: true, invoices: true, expenses: true, bylaws: true, messages: true,
     notifications: true, annual_report: true, support: true,
   },
   waqif: {
     properties: true, contracts: true, disclosure: false,
-    reports: true, accounts: true, expenses: true, bylaws: true,
+    financial_reports: true, accounts: true, invoices: true,
+    expenses: true, bylaws: true,
     share: false, notifications: true, annual_report: true,
     support: true,
   },
