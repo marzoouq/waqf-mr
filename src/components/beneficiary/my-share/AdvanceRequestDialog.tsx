@@ -48,21 +48,25 @@ const AdvanceRequestDialog = ({ beneficiaryId, beneficiaryName, fiscalYearId, es
     }
     const numAmount = parseFloat(amount);
     if (!numAmount || numAmount <= 0 || numAmount > maxAdvance) return;
-    try {
-      await create.mutateAsync({
+    create.mutate(
+      {
         beneficiary_id: beneficiaryId,
         fiscal_year_id: fiscalYearId,
         amount: numAmount,
         reason: reason || undefined,
         beneficiaryName,
-      });
-      setOpen(false);
-      setAmount('');
-      setReason('');
-      reset();
-    } catch {
-      // onError in the mutation already shows a toast
-    }
+      },
+      {
+        onSuccess: () => {
+          uiNotify.success('تم إرسال طلب السلفة بنجاح');
+          setOpen(false);
+          setAmount('');
+          setReason('');
+          reset();
+        },
+        onError: () => uiNotify.error('فشل إرسال طلب السلفة'),
+      },
+    );
   };
 
   const numAmount = parseFloat(amount) || 0;
