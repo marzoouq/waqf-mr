@@ -127,8 +127,9 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
 
       // فحص الفواتير المدفوعة قبل إعادة التوليد — يحمي الأرشيف المحاسبي
       const { paidCount, pendingCount } = await fetchContractInvoiceSummary(editingContract.id);
-      if (paidCount > 0 && !confirmRegenerateWithPaid(paidCount, pendingCount)) {
-        return;
+      if (paidCount > 0) {
+        const ok = await requestRegenerateConfirm(paidCount, pendingCount);
+        if (!ok) return;
       }
 
       await updateContract.mutateAsync(asMutationArg(updateContract, { id: editingContract.id, ...payload }));
