@@ -1,98 +1,127 @@
-# فحص ربط الأزرار والصلاحيات — خطة مُنقَّحة (P0 توحيد المصادر، ثم Audit، ثم اختبارات)
+# خطة إكمال فحص ربط الأزرار والصلاحيات
 
-## النتائج المؤكدة من الفحص (قبل أي تعديل)
+## الحالة: ✅ مكتملة (الجولات المنفذة)
 
-| البند | الحالة |
-|---|---|
-| عدد صفحات/مسارات Admin | **22** (وليس 24) |
-| عدد صفحات Beneficiary | 17 ملف، **16 مساراً** (SupportPageGuard wrapper) |
-| `DEFAULT_ROLE_PERMS.beneficiary.financial_reports` | **مفقود** — والمسار `/beneficiary/financial-reports` يستخدم `permKey: financial_reports` |
-| `DEFAULT_ROLE_PERMS.beneficiary.carryforward` | **مفقود** — والمسار `/beneficiary/carryforward` يستخدم `permKey: carryforward` |
-| `DEFAULT_ROLE_PERMS.{beneficiary,waqif}.reports` | **legacy غير مستخدم** — لا يطابق أي `permKey` في `BENEFICIARY_ROUTES` |
-| `ROLE_SECTION_DEFS` يحتوي `financial_reports` / `carryforward` | **لا** — `RolePermissionsTab` لا يعرضهما |
-| `RequirePermission` يقبل prop `section` | **لا** — يعتمد على `location.pathname` |
-| `usePermissionCheck` سلوكه عند `permKey` غير معرّف | **مسموح صامتاً** (opt-out) → ثغرة تحكم فعلية |
+| Round | الوصف | الحالة | الدليل |
+|---|---|---|---|
+| P0 | توحيد `financial_reports`/`carryforward`، إزالة `reports` legacy | ✅ سابقاً | `permissionKeysCoverage.test.ts` (7/7) |
+| V1 | Parity صارم + UNCONTROLLED_ROUTES whitelist + SECTION_LABELS coverage | ✅ مكتمل | `routePermissionParity.test.ts` (15/15) |
+| V2 | كل nav link مسجَّل كـ `<Route>` فعلي (شامل `/waqif`) | ✅ مكتمل | `navLinksRouteRegistration.test.ts` (5/5) |
+| V3 | Audit أزرار/روابط/تبويبات (regex-based) — تقرير CSV/MD | ✅ مكتمل | `audit/ui-permissions-audit.{csv,md}` — **0 GAPs** |
+| V4 | إصلاح GAP-* | ⊘ غير مطلوب — 0 GAPs بعد تحسين detector |
+| V5 | اختبارات contractual إضافية | ⊘ غير مطلوب — V1+V2+V3 تغطي العقد |
 
-→ هذه ثغرات حقيقية في **مصادر الحقيقة**؛ Audit الأزرار قبل إصلاحها = ضوضاء.
+**النتيجة النهائية:** 1962/1962 اختبار يمر (225 ملف، صفر انحدارات).
 
----
-
-## الجولة P0 — توحيد مصادر الصلاحيات (شرط مسبق)
-
-### تعديلات `src/constants/rolePermissions.ts`
-- إضافة للمستفيد: `financial_reports: true`, `carryforward: true`.
-- إضافة للواقف: `financial_reports: true` (وحذف `share/disclosure: false` إن أُريد، أو تركها — تُحسم في نقطة قرار أدناه).
-- إزالة المفتاح القديم `reports` من كتلتي `beneficiary` و`waqif` (لا يطابق أي مسار في `BENEFICIARY_ROUTES`).
-- إبقاء `reports` للمحاسب فقط (يطابق `/dashboard/reports`).
-
-### تعديلات `src/constants/sections.ts` (`ROLE_SECTION_DEFS`)
-- إضافة صفّين:
-  - `{ key: 'financial_reports', roles: ['beneficiary', 'waqif'] }`
-  - `{ key: 'carryforward', roles: ['beneficiary'] }` (وفق قرار واقف أدناه)
-
-### نقاط قرار صريحة (نطلب تأكيد المستخدم قبل التنفيذ)
-1. هل يرى الواقف `/beneficiary/carryforward`؟ افتراض الخطة: **لا**.
-2. هل يبقى مسار `/waqif` (لوحة منفصلة) أم يُكتفى بدخوله مسارات beneficiary؟ افتراض: **يبقى**.
-
-### اختبار يمنع التراجع (P0)
-`src/test/permissionKeysCoverage.test.ts`:
-- لكل route في `ADMIN_ROUTES`/`BENEFICIARY_ROUTES` فيه `permKey`: يجب أن يوجد إدخال مطابق في `DEFAULT_ROLE_PERMS` لكل دور مسموح به على المسار.
-- لكل `permKey` في الجانب البَنيفيشري: يجب أن يوجد صف مطابق في `ROLE_SECTION_DEFS`.
-- لا توجد مفاتيح في `DEFAULT_ROLE_PERMS.{beneficiary,waqif}` بدون مسار يستهدفها (يكشف dead keys مثل `reports`).
+**أبرز النتائج التحقيقية:**
+- `/waqif` **مسجَّل فعلياً** في `src/routes/waqifRoutes.tsx` (ادعاء "يتيم" مرفوض).
+- 27 GAP أولي اكتُشف ثم تبيّن أنه false positive (نمط `<Link><Button>` و filter Tabs بـ `onValueChange` و Collapsible `asChild`) — حُدّث الـ detector ليعكس النية الحقيقية.
+- لا توجد `<Link>` ميتة، لا `supabase.from()` مباشر في صفحات.
+- `/beneficiary/settings` موثّق صراحةً في whitelist (الإعدادات الشخصية متاحة دائماً).
 
 ---
 
-## الجولة A — Audit AST دقيق (تقرير فقط)
 
-### الأداة
-سكربت `scripts/audit-ui-permissions.mjs` يستخدم **`ts-morph`** (لا regex) — مع fallback regex مكشوف الحدود.
 
-### المخرجات
-- `/mnt/documents/ui-permissions-audit.csv` بالأعمدة:
-  `role, route, section_key, perm_key, file, line, element_type (Button/Link/TabsTrigger/DropdownMenuItem/MenuItem), label, handler_kind (onClick/onSelect/asChild-Link/form-submit/Link.to), handler_resolved (yes/no/composite), guarded_by (route|RequirePermission|inline-hasRole|none), status`
-- `ui-permissions-audit.md` ملخص عربي: العدد، الفجوات الحقيقية المصنفة، استثناءات موثقة.
+## Round V1 — Parity صارم + توثيق الاستثناءات
 
-### حدود معترف بها صراحة
-- العناصر `asChild`، props العابرة، handlers من Context/Hooks → تُصنَّف `handler_kind=composite, handler_resolved=composite` بدلاً من إعلانها broken.
-- الـ Audit **استكشافي**؛ القرار النهائي على كل GAP يكون يدوياً.
+ملف اختبار جديد: `src/test/routePermissionParity.test.ts`
 
-### معايير قبول الجولة A
-- التقرير يُولَّد دون أخطاء.
-- كل route admin/beneficiary مذكور في التقرير ولو بسطر `no-buttons`.
+يفحص:
+- كل `permKey` في `BENEFICIARY_ROUTES`/`ADMIN_ROUTES` موجود في `DEFAULT_ROLE_PERMS` للأدوار المسموحة.
+- كل `sectionKey` في الـ registries موجود في `BENEFICIARY_SECTION_KEYS`/`ADMIN_SECTION_KEYS`.
+- كل key في `ROLE_SECTION_DEFS` له label في `SECTION_LABELS`.
+- كل key في `DEFAULT_ROLE_PERMS` إما مستخدم فعلياً في routeRegistry أو مدرج في whitelist `LEGACY_PERM_KEYS = []` (فارغة الآن).
+- whitelist `UNCONTROLLED_ROUTES = ['/beneficiary/settings', '/dashboard/settings/profile', ...]` للمسارات التي لا تملك permKey عمداً، مع تعليق يشرح السبب.
+
+## Round V2 — التحقق من `/waqif`
+
+ملف اختبار: `src/test/waqifRouteRegistration.test.tsx`
+
+- يستخرج جميع `<Route path>` من `App.tsx` + `adminRoutes.tsx` + `beneficiaryRoutes.tsx` + أي ملف routes آخر.
+- يفحص أن كل `to` يُرجعه `useNavLinks('waqif')` إما مسجل كـ Route أو معرف كـ redirect معروف في خريطة `KNOWN_REDIRECTS`.
+- خاص: `/waqif` يجب أن يحل إلى مكون React صالح (ليس 404).
+
+إذا كشف الاختبار أن `/waqif` غير مسجل: إضافته في `beneficiaryRoutes.tsx` كـ redirect إلى `/beneficiary` أو route مستقل (حسب نتيجة الفحص).
+
+## Round V3 — Audit أزرار AST (سكربت Node)
+
+سكربت جديد: `scripts/audit-ui-permissions.ts` (يستخدم `ts-morph`).
+
+يفحص كل ملف في `src/pages/**` و `src/components/**` ويُولّد:
+- `audit/ui-permissions-audit.csv`
+- `audit/ui-permissions-audit.md`
+
+أعمدة CSV:
+```
+file | line | element | label | handler | handler_resolved | role_context | route | guard | status
+```
+
+قواعد كشف:
+- `<Button>` بدون `onClick` ولا `type="submit"` ولا `asChild` ولا داخل `DialogTrigger`/`AlertDialogTrigger` → `GAP-NO-HANDLER`.
+- `<DropdownMenuItem>` بدون `onClick` ولا `asChild` → `GAP-NO-HANDLER`.
+- `<TabsTrigger value="X">` بدون `<TabsContent value="X">` مطابق في نفس الشجرة → `GAP-DEAD-TAB`.
+- `<Link to="/path">` حيث `/path` غير موجود في `routeRegistry` ولا في Route files → `GAP-DEAD-LINK`.
+- أزرار destructive (variant="destructive" أو label يحتوي "حذف") بدون `AlertDialog`/`ConfirmDeleteDialog` → `GAP-NO-CONFIRM`.
+- handler يستدعي `supabase.from(...).delete()` مباشرة في صفحة (يجب عبر hook) → `GAP-DIRECT-DB`.
+
+يولّد ملخص MD بإحصاء `GAP-*` لكل صفحة.
+
+## Round V4 — إصلاح GAPs المكتشفة
+
+بناءً على CSV:
+- `GAP-NO-HANDLER`: ربط handler من `hooks/page/` أو حذف العنصر الميت.
+- `GAP-DEAD-TAB`: إضافة `TabsContent` أو إزالة `TabsTrigger`.
+- `GAP-DEAD-LINK`: تصحيح المسار أو إزالة الرابط.
+- `GAP-NO-CONFIRM`: لف الزر بـ `ConfirmDeleteDialog` الموجود.
+- `GAP-DIRECT-DB`: نقل الاستدعاء إلى `hooks/data/` (احتراماً لـ memory rule).
+
+الصفحات الحرجة المستهدفة أولاً:
+`PropertiesPage`, `ContractsPage`, `InvoicesPage`, `ExpensesPage`, `SettingsPage`, `UserManagementPage`, `MySharePage`, `DisclosurePage`, `SupportPage`.
+
+## Round V5 — اختبارات contractual للأزرار
+
+ملفات جديدة:
+
+**`src/test/criticalButtonsRender.test.tsx`**
+- لكل صفحة حرجة (9 صفحات أعلاه)، يرندر بـ mock auth لكل دور مسموح، ويفحص أن جميع `getAllByRole('button')` تملك `onClick` غير undefined عبر `(btn as any).onclick !== null` أو event handler attached.
+
+**`src/test/roleRouteAccess.test.tsx`**
+- `<MemoryRouter>` لكل دور × كل route من registry.
+- يتحقق: إذا كان الدور غير مسموح → يُعاد توجيهه إلى `/unauthorized`.
+- إذا مسموح → يرندر المكون بدون throw.
+
+**`src/test/dropdownMenuHandlers.test.tsx`**
+- يلتقط كل `DropdownMenu` في الصفحات الحرجة، يفتحه، ويتحقق أن كل `MenuItem` يستجيب للضغط (handler attached).
+
+## Round V6 — تشغيل مصفوفة التحقق الخماسية + توثيق
+
+```bash
+bunx vitest run    # كل الاختبارات الجديدة + الموجودة
+bun run lint
+bun tsc --noEmit
+```
+
+تحديث `.lovable/plan.md` بحالة "مكتمل" لكل Round.
+إضافة `audit/ui-permissions-audit.md` كـ snapshot مرجعي.
 
 ---
 
-## الجولة B — إصلاحات موجَّهة (بعد قراءة Audit)
+## معايير القبول
 
-قاعدة: **لا تعديل لمنطق الأعمال، فقط wiring/guards**. كل GAP يُصنَّف إلى:
-- **GAP-HIDDEN** (مرئي لدور يجب حجبه): إصلاحه إما في `routeRegistry` (تصحيح roles على المسار) أو إضافة guard عبر `useAuth().role`/`usePermissionCheck`.
-- **GAP-VISIBLE-ROUTE** (مسار غير محمي بالأدوار الصحيحة): تعديل `pr(ROLES, …)` في `adminRoutes`/`beneficiaryRoutes`.
-- **GAP-NO-HANDLER**: إن كان dead UI → حذف؛ وإلا ربط بـ hook صحيح من `hooks/page/`.
+- 0 صف `GAP-*` في `ui-permissions-audit.csv` (أو موثّق صراحة كاستثناء مقصود في whitelist).
+- 100% اختبارات Round V1-V5 تمر.
+- `/waqif` محسوم: إما route مسجل أو redirect موثق.
+- لا تعديل على ملفات محمية: `AuthContext`, `ProtectedRoute`, `SecurityGuard`, `client.ts`, `types.ts`, `.env`, `config.toml`.
+- لا migrations جديدة (فحص واجهة فقط).
 
-**ملاحظة على `RequirePermission`**: لن نضيف `section` prop (احترام قاعدة عدم لمس ملفات الحماية بلا طلب). الاعتماد يبقى على `usePermissionCheck` المبني على `routeRegistry`، الذي سيكون متّسقاً بعد P0.
+## استثناءات مقصودة موثقة
 
----
+- `/beneficiary/settings`, `/dashboard/settings/profile` — بدون permKey لأن الإعدادات الشخصية متاحة دائماً.
+- `usePermissionCheck` opt-out على المفاتيح المفقودة — مقبول لأن `routePermissionParity` يمنع الفقدان أصلاً.
 
-## الجولة C — اختبارات تعاقدية (منع التراجع)
+## خارج النطاق
 
-1. **`permissionKeysCoverage.test.ts`** (من P0 أعلاه).
-2. **`roleRouteAccess.test.tsx`**: لكل دور (admin/accountant/beneficiary/waqif) ولكل route معروف، render داخل `MemoryRouter` مع mocks خفيفة (`useAuth`, `useAppSettings`, `QueryClient`) والتأكد من `Navigate` المتوقع. mocks مركزية في `src/test/__mocks__/authPerms.ts` لتقليل الهشاشة.
-3. **(اختياري) `criticalButtonsRender.test.tsx`**: 5–8 صفحات حساسة فقط (Properties, Contracts, Invoices, Expenses, Distributions, UserManagement, MySharePage, SupportPage)، نتحقق فقط من **ظهور الزر** وفق الدور — لا نختبر `onClick !== undefined` (هش، كما لاحظ المراجع).
-
-### معايير القبول النهائية
-- `bunx vitest run` ينجح بالكامل (سنذكر الرقم الفعلي بعد التشغيل، لا قبله).
-- `bunx tsc --noEmit` نظيف.
-- صفر سطر `GAP-*` متبقٍّ بدون قرار موثَّق (إصلاح أو استثناء في `audit-exceptions.md`).
-- 0 تعديل في `AuthContext`, `ProtectedRoute`, `RequirePermission`, `client.ts`, `types.ts`, migrations جديدة.
-
----
-
-## التسليمات للمستخدم
-- `/mnt/documents/ui-permissions-audit.csv` + `.md`
-- ملف `audit-exceptions.md` لأي GAP مرفوض الإصلاح بقرار صريح
-- ملخّص في الدردشة: ما أُصلح، ما استُثني، الاختبارات الجديدة، نتائج التشغيل الفعلية
-
-## أسئلة قبل البدء
-1. هل تُؤكِّد إصلاحات P0 على `DEFAULT_ROLE_PERMS`/`ROLE_SECTION_DEFS` (إضافة `financial_reports`, `carryforward` وإزالة `reports` legacy للمستفيد/الواقف)؟
-2. هل يرى **الواقف** `carryforward`؟ افتراضي = لا.
-3. هل تقبل أن `RequirePermission` يبقى كما هو دون إضافة prop `section`؟
+- إعادة هيكلة `RequirePermission` لإضافة prop `section` (غير مطلوب — الاختبارات الجديدة تكفي).
+- تغيير `verify_jwt` أو سياسات RLS.
+- فحص Edge Functions (جولة منفصلة).
