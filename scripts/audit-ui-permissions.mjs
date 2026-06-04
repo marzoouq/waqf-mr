@@ -90,7 +90,7 @@ function scanFile(file, registered, gaps) {
     if (/\btype\s*=\s*["']submit["']/.test(attrs)) continue;
     if (/\bonClick\s*=/.test(attrs)) continue;
     if (/\bdisabled\b/.test(attrs) && !/onClick/.test(attrs)) continue; // disabled بدون handler مقبول
-    if (isInsideTrigger(c, m.index)) continue;
+    if (isInsideTriggerOrLink(c, m.index)) continue;
     gaps.push({
       file: rel, line: lineOf(c, m.index), element: 'Button',
       status: 'GAP-NO-HANDLER', detail: attrs.trim().slice(0, 80),
