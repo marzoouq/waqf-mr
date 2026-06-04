@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { uiNotify } from '@/lib/notify';
+import { SAVE_MESSAGES } from '@/lib/messages/pdfMessages';
 
 export const useSecuritySettings = () => {
   const { data: settings, updateSetting, isLoading } = useAppSettings();
@@ -23,7 +24,7 @@ export const useSecuritySettings = () => {
       });
       uiNotify.success('تم حفظ إعدادات الأمان');
     } catch {
-      uiNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error(SAVE_MESSAGES.saveError);
     } finally {
       setSaving(false);
     }

@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { uiNotify } from '@/lib/notify';
 import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { useAppSettingsHistory, type AppSettingHistoryEntry } from '@/hooks/data/settings/app/useAppSettingsHistory';
+import { SAVE_MESSAGES } from '@/lib/messages/pdfMessages';
 
 export interface AdvancedField {
   key: string;
@@ -63,7 +64,7 @@ export const useSystemSettingsTab = () => {
       await updateSettingsBatch.mutateAsync(rows);
       uiNotify.success('تم حفظ الإعدادات بنجاح');
     } catch {
-      uiNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error(SAVE_MESSAGES.saveError);
     } finally {
       setSaving(false);
     }

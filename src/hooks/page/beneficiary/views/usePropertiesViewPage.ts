@@ -15,6 +15,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { uiNotify } from '@/lib/notify';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
+import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
 
 export function usePropertiesViewPage() {
   // Realtime: انعكاس فوري لتعديلات العقارات والوحدات
@@ -179,7 +180,7 @@ export function usePropertiesViewPage() {
       );
       uiNotify.success('تم تصدير العقارات بنجاح');
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [properties, pdfWaqfInfo]);
 

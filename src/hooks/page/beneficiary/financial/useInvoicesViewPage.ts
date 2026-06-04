@@ -14,6 +14,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import type { InvoiceSourceFilter, UnifiedInvoiceItem } from '@/types/invoices';
+import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
 
 export type { InvoiceSourceFilter, UnifiedInvoiceItem };
 
@@ -99,9 +100,9 @@ export function useInvoicesViewPage() {
         pdfWaqfInfo,
         fiscalYearLabel
       );
-      uiNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success(PDF_MESSAGES.downloadSuccess);
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [searchQuery, filteredInvoices, fiscalYear, pdfWaqfInfo]);
 

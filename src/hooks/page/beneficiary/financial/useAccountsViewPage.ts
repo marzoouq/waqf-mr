@@ -13,6 +13,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
+import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
 
 
 export function useAccountsViewPage() {
@@ -56,7 +57,7 @@ export function useAccountsViewPage() {
       }, pdfWaqfInfo);
       uiNotify.success('تم تصدير الحسابات الختامية بنجاح');
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [contracts, fin, remainingBalance, pdfWaqfInfo]);
 

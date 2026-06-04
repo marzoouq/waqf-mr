@@ -14,6 +14,7 @@ import { useState, useCallback } from 'react';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 import { printShareReport } from '@/utils/export/printShareReport';
+import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
 
 interface PdfHandlersParams {
   currentBeneficiary: { name: string | null; share_percentage: number | null } | null;
@@ -83,8 +84,8 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
           amount: Number(d.amount), status: d.status,
         })),
       }, pdfWaqfInfo);
-      uiNotify.success('تم تحميل ملف PDF بنجاح');
-    } catch { uiNotify.error('حدث خطأ أثناء تصدير PDF'); }
+      uiNotify.success(PDF_MESSAGES.downloadSuccess);
+    } catch { uiNotify.error(PDF_MESSAGES.exportError); }
   });
 
   const handleDownloadDistributionsPDF = withPdfLoading(async () => {

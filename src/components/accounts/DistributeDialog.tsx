@@ -12,6 +12,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { printDistributionReport } from '@/utils/export/printDistributionReport';
 import { uiNotify } from '@/lib/notify';
 import { useDistributionCalculation } from '@/hooks/domain/financial/useDistributionCalculation';
+import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
 
 interface Beneficiary {
   id: string;
@@ -157,7 +158,7 @@ const DistributeDialog = ({
           <Button variant="secondary" onClick={() => { const ok = printDistributionReport({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions, waqfName: pdfWaqfInfo.waqfName, deedNumber: pdfWaqfInfo.deedNumber, logoUrl: pdfWaqfInfo.logoUrl }); if (!ok) uiNotify.error('يرجى السماح بالنوافذ المنبثقة'); }} disabled={beneficiaries.length === 0}>
             <Printer className="w-4 h-4 ml-2" />طباعة
           </Button>
-          <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { const { generateDistributionsPDF } = await import('@/utils/pdf'); await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { uiNotify.error('حدث خطأ أثناء تصدير PDF'); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>
+          <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { const { generateDistributionsPDF } = await import('@/utils/pdf'); await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { uiNotify.error(PDF_MESSAGES.exportError); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>
             {pdfLoading ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <FileDown className="w-4 h-4 ml-2" />}تصدير PDF
           </Button>
           <div className="flex-1" />

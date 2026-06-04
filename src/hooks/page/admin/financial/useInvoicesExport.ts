@@ -16,6 +16,7 @@ import {
   useGenerateInvoicePdf,
 } from '@/hooks/data/invoices/useInvoices';
 import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
+import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
 
 interface UseInvoicesExportArgs {
   filteredInvoices: Invoice[];
@@ -57,9 +58,9 @@ export const useInvoicesExport = ({
         pdfWaqfInfo,
         fyLabel,
       );
-      uiNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success(PDF_MESSAGES.downloadSuccess);
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [fiscalYearId, fiscalYearLabel, filteredInvoices, pdfWaqfInfo]);
 

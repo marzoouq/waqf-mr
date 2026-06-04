@@ -12,6 +12,7 @@ import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { uiNotify } from '@/lib/notify';
 import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
+import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
 
 
 export const useFinancialReportsPage = () => {
@@ -77,9 +78,9 @@ export const useFinancialReportsPage = () => {
           amount: myShare,
         }] : [],
       }, pdfWaqfInfo);
-      uiNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success(PDF_MESSAGES.downloadSuccess);
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [fiscalYear, fin, currentBeneficiary, myShare, pdfWaqfInfo]);
 

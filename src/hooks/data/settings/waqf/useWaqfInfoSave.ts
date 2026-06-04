@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
+import { SAVE_MESSAGES } from '@/lib/messages/pdfMessages';
 
 interface WaqfField {
   key: string;
@@ -57,7 +58,7 @@ export const useWaqfInfoSave = (onSuccess: () => void) => {
       uiNotify.success('تم حفظ بيانات الوقف بنجاح');
       onSuccess();
     } catch {
-      uiNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error(SAVE_MESSAGES.saveError);
     } finally {
       setSaving(false);
     }

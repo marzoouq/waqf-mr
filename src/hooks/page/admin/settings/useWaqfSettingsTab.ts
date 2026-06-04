@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { uiNotify } from '@/lib/notify';
 import { useAppSettings, useSetting } from '@/hooks/data/settings/app/useAppSettings';
+import { SAVE_MESSAGES } from '@/lib/messages/pdfMessages';
 
 export interface WaqfFieldDef { key: string; label: string }
 
@@ -75,7 +76,7 @@ export const useWaqfSettingsTab = () => {
       await updateSettingsBatch.mutateAsync(rows);
       uiNotify.success('تم حفظ البيانات بنجاح');
     } catch {
-      uiNotify.error('حدث خطأ أثناء الحفظ');
+      uiNotify.error(SAVE_MESSAGES.saveError);
     } finally {
       setSaving(false);
     }

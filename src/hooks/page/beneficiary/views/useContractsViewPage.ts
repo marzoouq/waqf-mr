@@ -10,6 +10,7 @@ import { usePropertiesMap } from '@/hooks/data/properties/usePropertiesMap';
 import { uiNotify } from '@/lib/notify';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
+import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
 
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
@@ -78,7 +79,7 @@ export const useContractsViewPage = () => {
       );
       uiNotify.success('تم تصدير العقود بنجاح');
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [contracts, pdfWaqfInfo]);
 

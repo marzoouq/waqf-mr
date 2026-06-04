@@ -18,6 +18,7 @@ import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { toGregorianShort } from '@/utils/format/date';
 import { isFyReady } from '@/constants/fiscalYearIds';
+import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
 
 
 export const useDisclosurePage = () => {
@@ -81,9 +82,9 @@ export const useDisclosurePage = () => {
         adminShare: fin.adminShare, waqifShare: fin.waqifShare, adminPct, waqifPct, beneficiariesShare,
         incomeBySource: fin.incomeBySource, expensesByType: fin.expensesByTypeExcludingVat,
       }, pdfWaqfInfo);
-      uiNotify.success('تم تحميل ملف PDF بنجاح');
+      uiNotify.success(PDF_MESSAGES.downloadSuccess);
     } catch {
-      uiNotify.error('حدث خطأ أثناء تصدير PDF');
+      uiNotify.error(PDF_MESSAGES.exportError);
     }
   }, [gregorianFiscalYear, currentBeneficiary, myShare, fin, adminPct, waqifPct, beneficiariesShare, pdfWaqfInfo]);
 
