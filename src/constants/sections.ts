@@ -53,11 +53,13 @@ export const isProtectedAdminSection = (key: string): boolean =>
 /** مفاتيح أقسام واجهة المستفيد */
 export const BENEFICIARY_SECTION_KEYS = [
   'properties', 'contracts', 'disclosure', 'share', 'carryforward',
-  'financial_reports', 'accounts', 'reports', 'invoices', 'expenses', 'bylaws',
+  'financial_reports', 'accounts', 'invoices', 'expenses', 'bylaws',
   'messages', 'notifications', 'annual_report', 'support',
 ] as const;
 
 /** تعريف الأقسام مع الأدوار المؤهلة لمصفوفة الصلاحيات.
+ *  P0: ضُمَّت `financial_reports` و`carryforward` كي يعرضها `RolePermissionsTab`،
+ *  ونُقل `reports` إلى المحاسب فقط (المستفيد/الواقف يستخدمان `financial_reports`).
  *  ملاحظة: نستخدم `?? key` (وليس `?? ''`) لكشف أي مفتاح مفقود من SECTION_LABELS أثناء التطوير. */
 export const ROLE_SECTION_DEFS: { key: string; label: string; roles: string[] }[] = [
   { key: 'properties', label: SECTION_LABELS['properties'] ?? 'properties', roles: ['accountant', 'beneficiary', 'waqif'] },
@@ -65,12 +67,14 @@ export const ROLE_SECTION_DEFS: { key: string; label: string; roles: string[] }[
   { key: 'income', label: SECTION_LABELS['income'] ?? 'income', roles: ['accountant'] },
   { key: 'expenses', label: SECTION_LABELS['expenses'] ?? 'expenses', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'beneficiaries', label: SECTION_LABELS['beneficiaries'] ?? 'beneficiaries', roles: ['accountant'] },
-  { key: 'reports', label: SECTION_LABELS['reports'] ?? 'reports', roles: ['accountant', 'beneficiary', 'waqif'] },
+  { key: 'reports', label: SECTION_LABELS['reports'] ?? 'reports', roles: ['accountant'] },
+  { key: 'financial_reports', label: SECTION_LABELS['financial_reports'] ?? 'financial_reports', roles: ['beneficiary', 'waqif'] },
   { key: 'accounts', label: SECTION_LABELS['accounts'] ?? 'accounts', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'invoices', label: SECTION_LABELS['invoices'] ?? 'invoices', roles: ['accountant', 'beneficiary'] },
   { key: 'bylaws', label: SECTION_LABELS['bylaws'] ?? 'bylaws', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'disclosure', label: SECTION_LABELS['disclosure'] ?? 'disclosure', roles: ['beneficiary'] },
   { key: 'share', label: SECTION_LABELS['share'] ?? 'share', roles: ['beneficiary'] },
+  { key: 'carryforward', label: SECTION_LABELS['carryforward'] ?? 'carryforward', roles: ['beneficiary'] },
   { key: 'messages', label: SECTION_LABELS['messages'] ?? 'messages', roles: ['accountant', 'beneficiary'] },
   { key: 'audit_log', label: SECTION_LABELS['audit_log'] ?? 'audit_log', roles: ['accountant'] },
   { key: 'chart_of_accounts', label: SECTION_LABELS['chart_of_accounts'] ?? 'chart_of_accounts', roles: ['accountant'] },
