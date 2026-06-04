@@ -254,11 +254,11 @@ describe('checks — إعدادات التطبيق', () => {
 // ════════════════════════════════════════════════
 
 describe('diagnosticCategories', () => {
-  it('يحتوي 9 بطاقات و40 فحصاً (بعد إضافة بطاقة اتساق اللوحات)', async () => {
+  it('يحتوي 10 بطاقات و44 فحصاً (بعد إضافة بطاقة تدقيق رقمي DB↔RPC↔UI)', async () => {
     const { diagnosticCategories } = await import('./checks');
-    expect(diagnosticCategories).toHaveLength(9);
+    expect(diagnosticCategories).toHaveLength(10);
     const totalChecks = diagnosticCategories.reduce((sum, cat) => sum + cat.checks.length, 0);
-    expect(totalChecks).toBe(40);
+    expect(totalChecks).toBe(44);
   });
 
 
