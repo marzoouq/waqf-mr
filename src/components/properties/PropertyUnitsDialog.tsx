@@ -8,7 +8,7 @@ import { Plus, Building2, Home, DoorOpen } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
 import type { UnitPdfRow } from '@/utils/pdf/core/core';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
-import { usePropertyUnits } from '@/hooks/data/properties/usePropertyUnits';
+import { usePropertyUnits } from '@/hooks/page/admin/properties/usePropertyUnits';
 import { getTenantFromContracts } from './units/helpers';
 
 import UnitFormCard from './units/UnitFormCard';

@@ -2,7 +2,7 @@
  * هوك منسّق لإدارة وحدات العقار — يجمع بين الهوكات الفرعية
  */
 import { useState } from 'react';
-import { useUnits } from './useUnits';
+import { useUnits } from '@/hooks/data/properties/useUnits';
 import { useTenantPayments } from '@/hooks/data/contracts/useTenantPayments';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
