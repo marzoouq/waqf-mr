@@ -151,10 +151,21 @@ export const useBfcacheSafeChannel = (
     window.addEventListener('pageshow', handlePageShow);
     window.addEventListener('pagehide', handlePageHide);
 
+    // إعادة الاشتراك عند تجديد التوكن — يمنع CHANNEL_ERROR بعد TOKEN_REFRESHED
+    const { data: authSub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+        logger.info(`[BfcacheSafe] Auth ${event} — re-initializing channel: ${channelName}`);
+        attemptRef.current = 0;
+        initChannel();
+      }
+    });
+
     return () => {
       teardown();
       window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('pagehide', handlePageHide);
+      authSub.subscription.unsubscribe();
     };
   }, [initChannel, enabled, channelName, teardown]);
 };
+
