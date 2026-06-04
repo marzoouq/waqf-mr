@@ -17,7 +17,17 @@ import { useZatcaCertExpiry } from '@/hooks/page/admin/management/zatca/useZatca
 import { useZatcaManagementPage } from '@/hooks/page/admin/management/useZatcaManagementPage';
 
 function ZatcaManagementPage() {
-  const { z, complianceResult, runComplianceCheck, clearComplianceResult } = useZatcaManagementPage();
+  const {
+    z,
+    complianceResult,
+    runComplianceCheck,
+    clearComplianceResult,
+    generateXml,
+    signInvoice,
+    submitToZatca,
+    handleOnboard,
+    handleProductionUpgrade,
+  } = useZatcaManagementPage();
   const { certExpiryWarning } = useZatcaCertExpiry();
 
   return (
