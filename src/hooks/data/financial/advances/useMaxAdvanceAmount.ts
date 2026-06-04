@@ -1,9 +1,9 @@
 /**
  * هوك جلب الحد الأقصى للسلفة من الخادم — يستخدم useQuery بدل useEffect
+ * طبقة بيانات نقية: لا توستات. الخطأ يُمرَّر للمستدعي عبر `error`.
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
-import { uiNotify } from '@/lib/notify';
 
 export interface ServerAdvanceData {
   estimated_share: number;
@@ -21,22 +21,17 @@ export const useMaxAdvanceAmount = (
 ) => {
   const queryClient = useQueryClient();
 
-  const { data: serverData = null, isLoading: loading } = useQuery<ServerAdvanceData | null>({
+  const { data: serverData = null, isLoading: loading, error } = useQuery<ServerAdvanceData | null>({
     queryKey: ['max-advance', beneficiaryId, fiscalYearId],
     enabled: enabled && !!beneficiaryId && !!fiscalYearId,
     staleTime: 30_000,
     queryFn: async () => {
-      try {
-        const data = await rpc('get_max_advance_amount', {
-          p_beneficiary_id: beneficiaryId,
-          p_fiscal_year_id: fiscalYearId!,
-        });
-        // RPC — cast مبرر، يحتاج Zod validation لاحقاً
-        return data as unknown as ServerAdvanceData;
-      } catch (e) {
-        uiNotify.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
-        throw e;
-      }
+      const data = await rpc('get_max_advance_amount', {
+        p_beneficiary_id: beneficiaryId,
+        p_fiscal_year_id: fiscalYearId!,
+      });
+      // RPC — cast مبرر، يحتاج Zod validation لاحقاً
+      return data as unknown as ServerAdvanceData;
     },
   });
 
@@ -44,5 +39,5 @@ export const useMaxAdvanceAmount = (
     queryClient.removeQueries({ queryKey: ['max-advance', beneficiaryId, fiscalYearId] });
   };
 
-  return { serverData, loading, reset };
+  return { serverData, loading, error, reset };
 };

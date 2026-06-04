@@ -1,10 +1,9 @@
 /**
- * هوك بيانات ميزانيات المصروفات
+ * هوك بيانات ميزانيات المصروفات — طبقة بيانات نقية (لا توستات)
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { uiNotify } from '@/lib/notify';
 import { isFySpecific } from '@/constants/fiscalYearIds';
 
 export interface BudgetRow {
@@ -50,8 +49,6 @@ export const useSaveBudget = (fiscalYearId: string, budgetMap: Map<string, Budge
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expense_budgets', fiscalYearId] });
-      uiNotify.success('تم حفظ الميزانية');
     },
-    onError: () => uiNotify.error('فشل حفظ الميزانية'),
   });
 };
