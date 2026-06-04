@@ -33,6 +33,8 @@ export function useBeneficiaryDashboardPage() {
   const advanceSettings = dashData?.advance_settings ?? { enabled: false, min_amount: 500, max_percentage: 50 };
   // fallback آمن: false (يخفي الزر حتى تُحمّل الإعدادات الفعلية بدلاً من إظهاره خطأً)
   const advanceEnabled = advanceSettings?.enabled ?? false;
+  const paidAdvancesTotal = dashData?.paid_advances_total ?? 0;
+  const carryforwardBalance = dashData?.carryforward_balance ?? 0;
 
   const fyReady = isFyReady(fiscalYearId);
   const isLoading = authLoading || fyLoading || (!fyReady ? false : dashLoading);
