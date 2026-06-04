@@ -103,8 +103,27 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
         formData, contractNumber: formData.contract_number,
         unitId: formData.unit_id || null, rentAmount, paymentCount,
       });
+
+      // فحص الفواتير المدفوعة قبل إعادة التوليد — يحمي الأرشيف المحاسبي
+      const { data: existingInvoices } = await supabase
+        .from('payment_invoices')
+        .select('status')
+        .eq('contract_id', editingContract.id);
+      const paidCount = existingInvoices?.filter(i => i.status === 'paid').length ?? 0;
+      const pendingCount = existingInvoices?.filter(i => i.status === 'pending').length ?? 0;
+      if (paidCount > 0 && !confirmRegenerateWithPaid(paidCount, pendingCount)) {
+        return;
+      }
+
       await updateContract.mutateAsync(asMutationArg(updateContract, { id: editingContract.id, ...payload }));
       await syncAllocations(editingContract.id, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
+      // إعادة توليد الفواتير المعلقة وفق القيم الجديدة (المدفوعة محفوظة)
+      try {
+        await deletePendingInvoices.mutateAsync(editingContract.id);
+        await generateInvoices.mutateAsync(editingContract.id);
+      } catch (err) {
+        logger.warn('Invoice regeneration failed:', err instanceof Error ? err.message : String(err));
+      }
       return;
     }
 
@@ -129,7 +148,11 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
         });
         const createdMulti = await createContract.mutateAsync(asMutationArg(createContract, payload));
         const newIdMulti = (createdMulti as { id?: string } | undefined)?.id;
-        if (newIdMulti) await syncAllocations(newIdMulti, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
+        if (newIdMulti) {
+          await syncAllocations(newIdMulti, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
+          try { await generateInvoices.mutateAsync(newIdMulti); }
+          catch (err) { logger.warn('Invoice generation failed:', err instanceof Error ? err.message : String(err)); }
+        }
         created++;
       }
       uiNotify.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
@@ -143,12 +166,45 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
       });
       const createdSingle = await createContract.mutateAsync(asMutationArg(createContract, payload));
       const newIdSingle = (createdSingle as { id?: string } | undefined)?.id;
-      if (newIdSingle) await syncAllocations(newIdSingle, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
+      if (newIdSingle) {
+        await syncAllocations(newIdSingle, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
+        try { await generateInvoices.mutateAsync(newIdSingle); }
+        catch (err) { logger.warn('Invoice generation failed:', err instanceof Error ? err.message : String(err)); }
+      }
     }
   };
 
+  /**
+   * حذف عقد مع حماية الأرشيف المحاسبي:
+   * - يفحص الفواتير قبل الحذف
+   * - يمنع الحذف عند وجود فواتير مدفوعة
+   * - يحذف الفواتير المعلقة معه (cascade منطقي)
+   */
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
+    const { data: existingInvoices } = await supabase
+      .from('payment_invoices')
+      .select('status')
+      .eq('contract_id', deleteTarget.id);
+    const paidCount = existingInvoices?.filter(i => i.status === 'paid').length ?? 0;
+    const pendingCount = existingInvoices?.filter(i => i.status === 'pending').length ?? 0;
+
+    if (paidCount > 0) {
+      notifyDeleteBlockedByPaid(paidCount);
+      setDeleteTarget(null);
+      return;
+    }
+    if (pendingCount > 0 && !confirmDeleteWithPending(pendingCount, deleteTarget.name)) {
+      return;
+    }
+    if (pendingCount > 0) {
+      try {
+        const deleted = await deletePendingInvoices.mutateAsync(deleteTarget.id);
+        notifyPendingInvoicesDeleted(deleted);
+      } catch (err) {
+        logger.warn('Pending invoice cleanup failed:', err instanceof Error ? err.message : String(err));
+      }
+    }
     await deleteContract.mutateAsync(deleteTarget.id);
     setDeleteTarget(null);
   };
