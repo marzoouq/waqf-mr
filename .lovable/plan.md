@@ -1,81 +1,68 @@
-# خطة الإغلاق النهائية — تحقق وإصلاح الادعاءات الخارجية
+## الحالة الحالية
 
-## نتائج التحقق المباشر
+تم تنفيذ Batches 2A→2D بنجاح. الادعاءات المتبقية الصحيحة من التقرير الجديد:
 
-التقرير الخارجي يشير إلى commit قديم (`77cc292`). تحققت من الكود الفعلي وفلترت الادعاءات:
+| الادعاء | الحالة الفعلية |
+|---|---|
+| ازدواجية toast في `useDistributeShares` و`DistributeDialog` | ✅ مُصلحة بالفعل في Batch 2A — `useDistribute.ts` الحالي لا يحتوي `uiNotify` |
+| `useLogoUpload` يحدث state أثناء render | ✅ مُصلحة في Batch 2D — `useEffect([currentUrl, saving])` |
+| `useUnits` / `useUnitMutations` toasts في data layer | ✅ مُصلحة في Batches 2B/2C |
+| `useCollectionAlerts` / `useNotificationPreferences` UI state في data | ✅ مُصلحة في Batch 2D |
+| `PendingActionsTable` يسرّب ZATCA للمحاسب | ✅ آمن — `AdminDashboard.tsx:116` يستخدم `{ctx.role === 'admin' && ...}` |
+| `SAVE_MESSAGES` داخل `pdfMessages.ts` | ✅ مُصلحة — نُقلت إلى `lib/messages/saveMessages.ts` |
 
-### ❌ ادعاءات غير صحيحة (مُصلحة سابقاً أو خطأ بالأصل)
+### المتبقي فعلياً (3 بنود حقيقية)
 
-1. **PendingActionsTable يسرّب رابط ZATCA للمحاسب** — خطأ. `AdminDashboard.tsx:116` يلفّ المكوّن بـ `{ctx.role === 'admin' && (...)}`. المحاسب لا يراه إطلاقاً.
-2. **`useUnits.ts` فيه toast** — تم إصلاحه في Batch 2C (toasts مُزالة).
-3. **`useUnitMutations.ts` خلط طبقات في hooks/data** — تم نقله إلى `hooks/page/admin/properties/`.
-4. **`useZatcaInvoiceActions.ts` فيه toast** — تم إصلاحه في Batch 2C.
-5. **`useDistribute.ts` فيه toast** — تم إصلاحه في Batch 2B.
-
-### ✅ ادعاءات صحيحة متبقية
-
-1. `useLogoUpload.ts` — toasts + `setPreview` داخل جسم الـ hook أثناء render (نمط خطر).
-2. `useCollectionAlerts.ts` — toasts + UI loading state داخل `hooks/data/`.
-3. `useNotificationPreferences.ts` — toasts + UI state داخل `hooks/data/`.
-4. `useAppSettingsWrite.ts` — toasts متفرقة داخل `hooks/data/`.
-5. `invoiceSync.ts` — `window.confirm` × 2 وtoasts متعددة داخل `lib/`.
-6. `pdfMessages.ts` — `SAVE_MESSAGES` معرّف داخل ملف باسم `pdfMessages` (تسمية مضلِّلة).
-7. `pageMonitor.ts` — `PAGE_LABELS` يدوية ومكررة مع `routeRegistry`.
-8. `guard-signup` Edge Function — validation يدوي بدل Zod.
+1. `lib/invoiceSync.ts` يحتوي `window.confirm` ×2 + toasts (Batch 2E)
+2. `lib/monitoring/pageMonitor.ts` يكرر `PAGE_LABELS` بدل استخدام `routeRegistry/ALL_ROUTES` (Batch 3)
+3. `supabase/functions/guard-signup` validation يدوي بدل Zod (Batch 4)
 
 ---
 
-## التنفيذ المقترح (4 دفعات)
+## Batch 2E — استبدال `window.confirm` بـ AlertDialog
 
-### Batch 2D — تنظيف hooks/data المتبقية من toasts + UI state
+**ملفات جديدة:**
+- `src/components/contracts/ConfirmRegenerateInvoicesDialog.tsx` — AlertDialog لتأكيد إعادة توليد الفواتير عند وجود مدفوعات
+- `src/components/contracts/ConfirmDeleteContractWithPendingDialog.tsx` — AlertDialog لتأكيد حذف عقد مع فواتير معلّقة
 
-- **`useLogoUpload.ts`**: نقل الملف إلى `src/hooks/page/admin/settings/useLogoUpload.ts`، وإصلاح `setPreview` بنقله إلى `useEffect([currentUrl, saving])`. تحديث consumers.
-- **`useCollectionAlerts.ts`**: نقله إلى `src/hooks/page/admin/contracts/useCollectionAlerts.ts`. التوست يبقى لأنه أصبح في page layer. تحديث consumers.
-- **`useNotificationPreferences.ts`**: نقله إلى `src/hooks/page/shared/notifications/useNotificationPreferences.ts` (يقرأ/يكتب localStorage و audio preview — منطق UI خالص). تحديث consumers.
-- **`useAppSettingsWrite.ts`**: إبقاء الملف، إزالة كل `uiNotify.*`، نقلها إلى الـ wrappers في الصفحات/المكونات المستهلِكة عبر `mutate(vars, { onSuccess, onError })`.
+**تعديلات:**
+- `src/lib/invoiceSync.ts` — حذف `confirmRegenerateWithPaid` و`confirmDeleteWithPending` المعتمدة على `window.confirm`؛ تُرجع الدوال `{ shouldConfirm: boolean, message: string }` فقط بدون toast
+- `src/hooks/page/admin/contracts/useContractForm.ts` (أو الاسم الفعلي) — إضافة state لفتح dialog وانتظار قرار المستخدم
+- `src/hooks/page/admin/contracts/useContractDelete.ts` — نفس النمط
 
-### Batch 2E — استبدال `window.confirm` في invoiceSync
+## Batch 3 — توحيد PAGE_LABELS مع routeRegistry
 
-- إنشاء مكوّنين في `src/components/contracts/`:
-  - `ConfirmRegenerateInvoicesDialog.tsx`
-  - `ConfirmDeleteContractWithPendingDialog.tsx`
-  (مبنيان فوق `AlertDialog` الموجود).
-- تعديل `src/lib/contracts/invoiceSync.ts`: حذف `confirmRegenerateWithPaid` و`confirmDeleteWithPending` — استبدالها بدوال صافية تُرجع `{ shouldConfirm: boolean, message: string }` فقط (بدون `window.confirm`).
-- تحديث `useContractForm.ts` و`useContractDelete.ts` لاستخدام state للحوار + الموافقة عبر الـ dialog component.
+**تعديل `src/lib/monitoring/pageMonitor.ts`:**
+- حذف `PAGE_LABELS` المحلي
+- `getPageLabel(path)` يقرأ من `ALL_ROUTES[path]?.title` في `routeRegistry`
+- fallback للمسار نفسه إن لم يوجد
 
-### Batch 3 — تنظيمات صغيرة
+## Batch 4 — Zod في guard-signup
 
-- **رسائل**: فصل `src/lib/messages/saveMessages.ts` عن `pdfMessages.ts`. تحديث imports.
-- **pageMonitor**: استبدال `PAGE_LABELS` بدالة `getPageLabel(path)` تشتق من `ALL_ROUTES` في `src/constants/routeRegistry.ts`، مع fallback ذكي.
-
-### Batch 4 — Zod في `guard-signup`
-
-- استبدال `if (!email...)` المتسلسل بـ:
-  ```ts
-  const RequestSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(8).max(128),
-  });
-  const parsed = RequestSchema.safeParse(await req.json());
-  if (!parsed.success) return json({ error: ... }, 400, corsHeaders);
-  ```
+**تعديل `supabase/functions/guard-signup/index.ts`:**
+- استبدال التحقق اليدوي بـ:
+```ts
+const SignupSchema = z.object({
+  email: z.string().trim().email().max(255),
+  password: z.string().min(8).max(128),
+});
+const parsed = SignupSchema.safeParse(await req.json());
+if (!parsed.success) return json({ error: 'مدخلات غير صالحة' }, 400);
+```
+- استيراد Zod من `https://esm.sh/zod@3` (متوافق مع باقي functions)
 
 ---
 
-## التحقق بعد كل دفعة
+## التحقق بعد التنفيذ
 
-- `bunx vitest run` — يجب أن يبقى 1936/1936 ناجح.
-- بحث صفري:
-  - `rg -l "uiNotify\|useState" src/hooks/data/` يقتصر فقط على ملفات data نقية بلا UI.
-  - `rg "window\.confirm" src/lib src/hooks` = 0.
+- `bunx vitest run` يجب أن يبقى 1936/1936
+- `supabase/functions/guard-signup/index.test.ts` يجب أن يمر دون تعديل (نفس contract)
+- لا migrations، لا RLS، لا تغيير أمني
 
----
+## بنود مرفوضة من التقرير (لا تنفيذ)
 
-## ملفات سيتم تعديلها/إنشاؤها (تقدير)
-
-- موجودة (تعديل): ~12 ملف
-- نقل: 3 ملفات (Logo/CollectionAlerts/NotificationPreferences)
-- جديدة: 3 (Dialog ×2 + saveMessages.ts)
-- Edge Function: 1 (guard-signup)
-
-النطاق صغير ومحصور؛ لا migrations DB، لا تغييرات RLS، لا تعديل أمني. هل أبدأ تنفيذ Batch 2D؟
+- حذف ملفات compatibility (`crudFactory.types.ts`, `types/sorting.ts`, `entities/accounts.ts`) — موثّقة كـ backward-compat، حذفها يحتاج `knip` فعلي
+- `ChartBox.fallback` — موثّق للتوافق
+- ثوابت `pagination.ts` القديمة — موثّقة للتوافق
+- توحيد `ResponsiveTabs` في `SettingsPage` — تغيير UI كبير خارج نطاق الجولة
+- Zod لكل action في `admin-manage-users` — جولة منفصلة لاحقاً

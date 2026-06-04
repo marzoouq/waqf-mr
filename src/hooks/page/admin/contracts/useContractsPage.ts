@@ -134,6 +134,11 @@ export const useContractsPage = () => {
     formInitialData: form.formInitialData,
     resetForm: form.resetForm, handleRenew: form.handleRenew, handleEdit: form.handleEdit,
     handleFormSubmit: form.handleFormSubmit, handleConfirmDelete: form.handleConfirmDelete,
+    // Batch 2E — تأكيدات AlertDialog
+    regenConfirmTarget: form.regenConfirmTarget,
+    resolveRegenerateConfirm: form.resolveRegenerateConfirm,
+    confirmPendingDelete: form.confirmPendingDelete,
+    resolvePendingDelete: form.resolvePendingDelete,
     currentPage, setCurrentPage,
     activeTab, setActiveTab, ITEMS_PER_PAGE,
     handleExportPdf, handleExportCsv,

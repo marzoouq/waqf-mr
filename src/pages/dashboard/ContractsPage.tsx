@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NativeSelect } from '@/components/ui/native-select';
 import { FileText, Plus, CalendarDays, ArrowLeft, Receipt, BarChart3 } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
-import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent } from '@/components/contracts';
+import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent, ConfirmRegenerateInvoicesDialog, ConfirmDeleteContractWithPendingDialog } from '@/components/contracts';
 import { useContractsPage } from '@/hooks/page/admin/contracts/useContractsPage';
 import { ContractsProvider } from '@/contexts/ContractsContext';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -91,6 +91,22 @@ const ContractsPage = () => {
           />
 
           <ContractDeleteDialog target={deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleConfirmDelete} />
+
+          <ConfirmRegenerateInvoicesDialog
+            open={!!ctx.regenConfirmTarget}
+            paidCount={ctx.regenConfirmTarget?.paidCount ?? 0}
+            pendingCount={ctx.regenConfirmTarget?.pendingCount ?? 0}
+            onOpenChange={(open) => { if (!open) ctx.resolveRegenerateConfirm(false); }}
+            onConfirm={() => ctx.resolveRegenerateConfirm(true)}
+          />
+
+          <ConfirmDeleteContractWithPendingDialog
+            open={!!ctx.confirmPendingDelete}
+            pendingCount={ctx.confirmPendingDelete?.pendingCount ?? 0}
+            contractName={ctx.confirmPendingDelete?.contractName ?? ''}
+            onOpenChange={(open) => { if (!open) ctx.resolvePendingDelete(false); }}
+            onConfirm={() => ctx.resolvePendingDelete(true)}
+          />
         </div>
       </DashboardLayout>
     </ContractsProvider>

@@ -22,7 +22,6 @@ import {
   fetchContractInvoiceSummary,
 } from '@/hooks/data/invoices/usePaymentInvoices';
 import {
-  confirmRegenerateWithPaid,
   notifyInvoicesGenerated,
   notifyInvoicesRegenerated,
   notifyContractsCreatedWithInvoices,
@@ -55,6 +54,26 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
+
+  // Batch 2E: تأكيد إعادة توليد الفواتير عند وجود مدفوعات — Promise + AlertDialog.
+  const [regenConfirmTarget, setRegenConfirmTarget] = useState<
+    { paidCount: number; pendingCount: number; resolve: (ok: boolean) => void } | null
+  >(null);
+
+  const requestRegenerateConfirm = useCallback(
+    (paidCount: number, pendingCount: number) =>
+      new Promise<boolean>((resolve) => {
+        setRegenConfirmTarget({ paidCount, pendingCount, resolve });
+      }),
+    [],
+  );
+
+  const resolveRegenerateConfirm = useCallback((ok: boolean) => {
+    setRegenConfirmTarget((prev) => {
+      prev?.resolve(ok);
+      return null;
+    });
+  }, []);
 
   const resetForm = useCallback(() => {
     setEditingContract(null);
@@ -108,8 +127,9 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
 
       // فحص الفواتير المدفوعة قبل إعادة التوليد — يحمي الأرشيف المحاسبي
       const { paidCount, pendingCount } = await fetchContractInvoiceSummary(editingContract.id);
-      if (paidCount > 0 && !confirmRegenerateWithPaid(paidCount, pendingCount)) {
-        return;
+      if (paidCount > 0) {
+        const ok = await requestRegenerateConfirm(paidCount, pendingCount);
+        if (!ok) return;
       }
 
       await updateContract.mutateAsync(asMutationArg(updateContract, { id: editingContract.id, ...payload }));
@@ -198,5 +218,10 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
     formInitialData,
     resetForm, handleRenew, handleEdit, handleFormSubmit, handleConfirmDelete,
     isPending: createContract.isPending || updateContract.isPending || contractDelete.isPending,
+    // Batch 2E — تأكيد إعادة توليد الفواتير
+    regenConfirmTarget, resolveRegenerateConfirm,
+    // Batch 2E — تأكيد حذف عقد ذو فواتير معلقة (مُمرَّر من useContractDelete)
+    confirmPendingDelete: contractDelete.confirmPendingTarget,
+    resolvePendingDelete: contractDelete.resolvePendingConfirm,
   };
 }

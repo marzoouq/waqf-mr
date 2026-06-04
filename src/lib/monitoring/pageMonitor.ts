@@ -1,7 +1,10 @@
 /**
  * تتبع أوقات تحميل الصفحات — يُسجّل وقت كل انتقال بين المسارات
+ *
+ * Batch 3: تسميات المسارات تُقرأ من `ALL_ROUTES` (routeRegistry) — مصدر حقيقة واحد.
  */
 import { safeSessionGet, safeSessionSet, safeSessionRemove } from '@/lib/storage';
+import { ALL_ROUTES } from '@/constants/routeRegistry';
 
 export interface PageLoadEntry {
   path: string;
@@ -13,42 +16,8 @@ export interface PageLoadEntry {
 const MAX_ENTRIES = 100;
 const STORAGE_KEY = 'page_perf_entries';
 
-/** تسميات الصفحات بالعربي */
-const PAGE_LABELS: Record<string, string> = {
-  '/dashboard': 'لوحة التحكم',
-  '/dashboard/properties': 'العقارات',
-  '/dashboard/contracts': 'العقود',
-  '/dashboard/income': 'الإيرادات',
-  '/dashboard/expenses': 'المصروفات',
-  '/dashboard/beneficiaries': 'المستفيدون',
-  '/dashboard/reports': 'التقارير',
-  '/dashboard/accounts': 'الحسابات الختامية',
-  '/dashboard/messages': 'الرسائل',
-  '/dashboard/invoices': 'الفواتير',
-  '/dashboard/audit-log': 'سجل المراجعة',
-  '/dashboard/bylaws': 'النظام الأساسي',
-  '/dashboard/settings': 'الإعدادات',
-  '/dashboard/support': 'الدعم الفني',
-  '/dashboard/diagnostics': 'تشخيص النظام',
-  '/dashboard/zatca': 'إدارة ZATCA',
-  '/dashboard/annual-report': 'التقرير السنوي',
-  '/dashboard/comparison': 'المقارنة التاريخية',
-  '/dashboard/chart-of-accounts': 'دليل الحسابات',
-  '/dashboard/users': 'إدارة المستخدمين',
-  '/beneficiary': 'بوابة المستفيد',
-  '/beneficiary/disclosure': 'الإفصاح السنوي',
-  '/beneficiary/my-share': 'حصتي',
-  '/beneficiary/financial-reports': 'التقارير المالية',
-  '/beneficiary/properties': 'العقارات',
-  '/beneficiary/contracts': 'العقود',
-  '/beneficiary/accounts': 'الحسابات الختامية',
-  '/beneficiary/bylaws': 'النظام الأساسي',
-  '/beneficiary/support': 'الدعم الفني',
-  '/beneficiary/annual-report': 'التقرير السنوي',
-};
-
 function getPageLabel(path: string): string {
-  return PAGE_LABELS[path] || path;
+  return ALL_ROUTES[path]?.title ?? path;
 }
 
 /** جلب السجلات المحفوظة */

@@ -1,9 +1,22 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { z } from "npm:zod@3";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SIGNUP_RATE_LIMIT = 5;
 const SIGNUP_RATE_WINDOW_SECONDS = 60;
+
+// Batch 4: Zod schemas — رسائل خطأ موحّدة تطابق contract الاختبارات.
+const EmailSchema = z
+  .string({ invalid_type_error: "بريد إلكتروني غير صالح" })
+  .trim()
+  .min(1, "بريد إلكتروني غير صالح")
+  .max(255, "بريد إلكتروني غير صالح")
+  .email("بريد إلكتروني غير صالح");
+
+const PasswordSchema = z
+  .string({ invalid_type_error: "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً" })
+  .min(8, "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً")
+  .max(128, "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -48,22 +61,26 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, password } = await req.json();
+    const rawBody = await req.json().catch(() => ({}));
 
-    // Input validation
-    if (!email || typeof email !== "string" || !EMAIL_RE.test(email.trim())) {
+    // Batch 4: تحقق Zod متسلسل لإبقاء رسائل الخطأ موحّدة مع contract الاختبارات.
+    const emailParsed = EmailSchema.safeParse((rawBody as { email?: unknown }).email);
+    if (!emailParsed.success) {
       return new Response(JSON.stringify({ error: "بريد إلكتروني غير صالح" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const email = emailParsed.data;
 
-    if (!password || typeof password !== "string" || password.length < 8 || password.length > 128) {
+    const passwordParsed = PasswordSchema.safeParse((rawBody as { password?: unknown }).password);
+    if (!passwordParsed.success) {
       return new Response(JSON.stringify({ error: "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const password = passwordParsed.data;
 
     // فحص تعقيد كلمة المرور: حرف كبير + حرف صغير + رقم كحد أدنى
     const hasUpper = /[A-Z]/.test(password);

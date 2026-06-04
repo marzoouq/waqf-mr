@@ -8,6 +8,8 @@ export { default as CollectionReport } from './CollectionReport';
 export { default as CollectionSummaryCards } from './CollectionSummaryCards';
 export { default as ContractAccordionGroup } from './ContractAccordionGroup';
 export { default as ContractDeleteDialog } from './ContractDeleteDialog';
+export { default as ConfirmRegenerateInvoicesDialog } from './ConfirmRegenerateInvoicesDialog';
+export { default as ConfirmDeleteContractWithPendingDialog } from './ConfirmDeleteContractWithPendingDialog';
 export { default as ContractFormDialog } from './ContractFormDialog';
 export { default as ContractStatsCards } from './ContractStatsCards';
 export { default as ContractTenantIdSection } from './ContractTenantIdSection';
