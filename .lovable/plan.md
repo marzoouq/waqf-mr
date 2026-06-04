@@ -1,32 +1,66 @@
-# Stage 6 — مُقفلة ✅ (5/5)
+# ربط CRUD العقود بسجلات الدخل والفواتير
 
-تُوّجت بتنفيذ جميع البنود الخمسة المتبقية من تدقيق `audit-report-2026-06-03.md`.
+> **مُتحقّق منه:** التقرير الميداني أكّد أن جميع الفجوات السبعة حقيقية ولا شيء منها مُنفَّذ. الدوال جاهزة في DB لكن لا تُستدعى من الواجهة، ولا يوجد trigger يعوّضها.
 
-## ما نُفِّذ
+## الفجوة الأساسية
+- `generate_contract_invoices(uuid)` و `pay_invoice_and_record_collection(uuid)` موجودتان في DB ومحميتان بـ `has_role(admin|accountant)`.
+- `useGenerateContractInvoices` معرَّف في `usePaymentInvoices.ts:37` لكنه مستخدم في الاختبارات فقط.
+- `useContractForm.ts` ينفّذ `syncAllocations` بعد الحفظ فقط — **لا** توليد فواتير، **لا** حماية حذف.
+- نتيجة عملية: إنشاء/تعديل/حذف عقد من لوحة الناظر لا يولّد ولا يُحدّث ولا ينظّف أي سجلات مالية.
 
-| # | البند | الحالة | الملفات |
-|---|---|---|---|
-| **S6-1** | `PagePerformanceCard` → Page Hook | ✅ | `usePagePerformanceCard.ts` (جديد) + UI خالص |
-| **S6-2** | `FiscalYearWidget` → Page Hook | ✅ | `useFiscalYearWidget.ts` (جديد) + UI خالص |
-| **S6-3** | IIFE `heatmapBounds` → `useMemo` | ✅ | `useAdminDashboardPage.ts` |
-| **S6-4** | `AiAssistant` Tabs → `radiogroup` ARIA | ✅ | `AiAssistant.tsx` |
-| **S6-5** | `BeneficiaryAdvanceCard` Dialog بدل التنقل | ✅ | `BeneficiaryAdvanceCard.tsx` + `useBeneficiaryDashboardPage.ts` + `BeneficiaryDashboard.tsx` |
+## القرارات
+- **التوليد:** تلقائي فور حفظ العقد + زر «إعادة توليد المعلقة» في إجراءات العقد.
+- **التعديل:** المدفوع محفوظ دائماً. المعلق يُحذف ويُعاد توليده. تنبيه قبل الحفظ عند وجود مدفوع.
+- **الحذف:** ممنوع إن وُجدت فواتير مدفوعة. مسموح مع cascade لفواتير معلقة فقط.
+- **الإنهاء (terminate):** خارج النطاق — مهمة منفصلة لاحقة.
 
-## S6-5 — تفاصيل التنفيذ
+## التغييرات
 
-- توسيع `useBeneficiaryDashboardPage` لإرجاع كائن `advanceContext` مُجمَّع (10 حقول) — كل الحقول من `dashData` نفسه، **صفر استدعاءات RPC إضافية**.
-- إعادة استخدام `AdvanceRequestDialog` من `src/components/beneficiary/my-share/` كما هو دون أي تعديل.
-- البطاقة تعرض زر معطّل برسالة واضحة عند `!enabled` أو `!isFiscalYearActive` (بدلاً من الإخفاء — تحسين اكتشافية).
-- رابط ثانوي «عرض السجل الكامل» → `/beneficiary/my-share`.
-- Realtime موجود مسبقاً على `advance_requests` (السطور 88-93) → `pendingAdvanceCount` يتحدّث تلقائياً.
+### 1) `src/hooks/data/invoices/usePaymentInvoices.ts`
+- إضافة `useDeleteContractPendingInvoices()` — يحذف `payment_invoices` حيث `contract_id=X AND status='pending'` (بدون توست — قاعدة `no-toast-in-data-hooks`).
+- إضافة `useContractInvoiceSummary(contractId)` — يُرجع `{ paidCount, pendingCount }` للاستخدام في حوارات التأكيد.
 
-## معلَّق بقرار منتج (خارج النطاق التقني)
+### 2) `src/lib/contracts/invoiceSync.ts` (جديد، ≤80 سطر)
+- `notifyInvoicesGenerated(count)`, `notifyInvoicesRegenerated(count)`, `notifyDeleteBlocked(paidCount)` — توست عربية موحّدة عبر `uiNotify`.
+- منطق الـ side-effect يبقى في `lib/` (ليس `utils/` ولا `hooks/data/`).
 
-- إفصاح المحاسب على `FiscalYearWidget` (`totalIncome` + `contractualRevenue`) — يحتاج قرار سياسة.
+### 3) `src/hooks/page/admin/contracts/useContractForm.ts` (تعديل)
+بعد `syncAllocations` في كلا المسارين (create/update):
+- **Create:** استدعاء `generateInvoices.mutateAsync(newContractId)` ثم `notifyInvoicesGenerated`.
+- **Update:** قراءة `useContractInvoiceSummary` للعقد. إن `paidCount > 0` → `confirm` عربي «لديك N فواتير مدفوعة محفوظة؛ سيتم إعادة توليد المعلقة فقط». ثم `deletePendingInvoices` → `generateInvoices` → `notifyInvoicesRegenerated`.
+- Invalidate موحّد: `['payment_invoices']`, `['income']`, `['contracts']`, `['contract-allocations']`.
 
-## مرجع: ما تم في Stages 1-5
+### 4) `src/hooks/page/admin/contracts/useContractDelete.ts` (جديد، ≤100 سطر)
+- يقرأ `useContractInvoiceSummary` قبل أي عملية.
+- `paidCount > 0` → blocking dialog «لا يمكن حذف عقد له فواتير مدفوعة. استخدم الإنهاء.» (يعود `false`).
+- `pendingCount > 0` فقط → confirm «سيتم حذف N فاتورة معلقة مع العقد. متابعة؟» → `deletePendingInvoices` → `deleteContract`.
+- لا فواتير → حذف مباشر مع confirm قياسي.
 
-- **Stages 1-3**: توحيد المنطق المالي، RPC، تطبيع `available_amount` ≥ 0
-- **Stage 4**: `varianceReport.ts` + بطاقة #9 اتساق اللوحات
-- **Stage 5**: E2E helpers + 3 ملفات اختبار + بطاقة #10 تدقيق رقمي
-- **Stage 6**: Page Hook Pattern على بطاقات الناظر + إصلاح ARIA + Dialog السلفة المحلي
+### 5) ربط الواجهة
+- `src/components/contracts/ContractsTableActions.tsx` (أو ما يكافئها — البحث في build mode):
+  - استبدال استدعاء `useDeleteContract` المباشر بـ `useContractDelete`.
+  - إضافة عنصر قائمة «إعادة توليد الفواتير المعلقة» → `deletePendingInvoices` + `generateInvoices` + `notifyInvoicesRegenerated`.
+
+### 6) ذاكرة المشروع
+- إنشاء `mem://business-logic/contracts/invoice-sync-on-mutation` يوثّق القاعدة:
+  > «إنشاء/تعديل عقد يُولّد فواتيره تلقائياً. المدفوعة لا تُمسّ أبداً. المعلقة تُحذف وتُعاد عند التعديل. سجلات `income` تُكتب حصرياً عبر `pay_invoice_and_record_collection` (لا إدراج يدوي).»
+- تحديث `mem://index.md` (إضافة سطر مرجع، الاحتفاظ بالباقي حرفياً).
+
+## خارج النطاق
+- لا تعديل على migrations/RLS/RPC (كله جاهز).
+- لا إجراء «إنهاء عقد».
+- لا إنشاء/تعديل `income` يدوياً — يبقى المسار الوحيد عبر `pay_invoice_and_record_collection` (Core memory: Unified Collection Sync).
+- لا تعديل ملفات محمية (`client.ts`, `types.ts`, `config.toml`, `AuthContext`, `ProtectedRoute`).
+
+## خطة التحقق
+1. `bunx tsc --noEmit` نظيف.
+2. `bun run lint -- --max-warnings 0`.
+3. اختبار وحدة `useContractDelete.test.ts`: ثلاث حالات (بدون فواتير / معلقة فقط / مدفوعة → محظور).
+4. تحقق يدوي على `/dashboard/contracts`:
+   - إنشاء عقد → ظهور فواتيره في `/dashboard/invoices`.
+   - تعديل سعر عقد بمعلقة فقط → الفواتير القديمة تختفي والجديدة تظهر بالسعر الجديد.
+   - تعديل عقد بفواتير مدفوعة → تنبيه قبل الحفظ، المدفوعة كما هي.
+   - حذف عقد بمدفوعة → blocking dialog.
+   - حذف عقد بمعلقة فقط → يُحذف هو وفواتيره.
+   - دفع فاتورة من `/dashboard/invoices` → سجل `income` يظهر في صفحة الدخل.
+5. SQL تحقق (read-only): `SELECT count(*) FROM income i LEFT JOIN payment_invoices p ON i.invoice_id=p.id WHERE p.id IS NULL;` يجب أن يساوي 0 (لا دخل يتيم).
