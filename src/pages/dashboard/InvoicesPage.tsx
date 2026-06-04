@@ -58,7 +58,7 @@ const InvoicesPage = () => {
           <TabsList aria-label="تصنيف الفواتير">
             <TabsTrigger value="all">الكل ({h.unifiedInvoices.length})</TabsTrigger>
             <TabsTrigger value="rent">فواتير الإيجار</TabsTrigger>
-            <TabsTrigger value="expense">فواتير الشراء</TabsTrigger>
+            <TabsTrigger value="purchase">فواتير الشراء</TabsTrigger>
           </TabsList>
         </Tabs>
 

@@ -38,5 +38,7 @@ describe('InvoiceSourceFilter - purchase rename', () => {
     expect(content).not.toMatch(/source\s*===\s*['"]expense['"]/);
     expect(content).not.toMatch(/source:\s*['"]expense['"]/);
     expect(content).not.toMatch(/sourceFilter\s*===\s*['"]expense['"]/);
+    // ممنوع: <TabsTrigger value="expense"> — يجب أن يطابق نوع 'purchase'
+    expect(content).not.toMatch(/<TabsTrigger\s+value=["']expense["']/);
   });
 });
