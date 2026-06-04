@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NativeSelect } from '@/components/ui/native-select';
 import { FileText, Plus, CalendarDays, ArrowLeft, Receipt, BarChart3 } from 'lucide-react';
 import { ExportMenu } from '@/components/common';
-import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent } from '@/components/contracts';
+import { ContractFormDialog, ContractDeleteDialog, BulkRenewDialog, ContractsTabContent, ConfirmRegenerateInvoicesDialog, ConfirmDeleteContractWithPendingDialog } from '@/components/contracts';
 import { useContractsPage } from '@/hooks/page/admin/contracts/useContractsPage';
 import { ContractsProvider } from '@/contexts/ContractsContext';
 import { Skeleton } from '@/components/ui/skeleton';
