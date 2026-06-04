@@ -40,7 +40,7 @@ function ZatcaManagementPage() {
           <ZatcaCertExpiryWarning
             warning={certExpiryWarning}
             isProductionCert={z.isProductionCert}
-            onRenew={z.handleProductionUpgrade}
+            onRenew={handleProductionUpgrade}
             renewLoading={z.productionLoading}
           />
         )}
@@ -87,9 +87,9 @@ function ZatcaManagementPage() {
               isComplianceCert={z.isComplianceCert}
               isProductionCert={z.isProductionCert}
               pendingIds={z.pendingIds}
-              onGenerateXml={(id, table) => z.generateXml.mutate({ invoiceId: id, table })}
-              onSignInvoice={(id, table) => z.signInvoice.mutate({ invoiceId: id, table })}
-              onSubmitToZatca={(id, table, action) => z.submitToZatca.mutate({ invoiceId: id, table, action })}
+              onGenerateXml={generateXml}
+              onSignInvoice={signInvoice}
+              onSubmitToZatca={submitToZatca}
               onComplianceCheck={runComplianceCheck}
             />
           </TabsContent>
@@ -105,8 +105,8 @@ function ZatcaManagementPage() {
               missingSettings={z.missingSettings}
               onboardLoading={z.onboardLoading}
               productionLoading={z.productionLoading}
-              onOnboard={z.handleOnboard}
-              onProductionUpgrade={z.handleProductionUpgrade}
+              onOnboard={handleOnboard}
+              onProductionUpgrade={handleProductionUpgrade}
             />
           </TabsContent>
 
