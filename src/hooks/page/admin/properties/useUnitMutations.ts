@@ -2,8 +2,8 @@
  * هوك فرعي لعمليات CRUD على الوحدات وإنشاء/تحديث العقود المرتبطة
  */
 import { useState } from 'react';
-import { UnitRow } from './useUnits';
-import { useCreateUnit, useUpdateUnit, useDeleteUnit } from './useUnits';
+import { UnitRow } from '@/hooks/data/properties/useUnits';
+import { useCreateUnit, useUpdateUnit, useDeleteUnit } from '@/hooks/data/properties/useUnits';
 import { useCreateContract, useUpdateContract } from '@/hooks/data/contracts/useContracts';
 import { Property, Contract } from '@/types';
 import { uiNotify } from '@/lib/notify';
@@ -112,8 +112,14 @@ export function useUnitMutations(property: Property, contracts: Contract[]) {
 
   const handleConfirmDeleteUnit = async () => {
     if (!deleteUnitTarget) return;
-    await deleteUnit.mutateAsync({ id: deleteUnitTarget.id, propertyId: property.id });
-    setDeleteUnitTarget(null);
+    try {
+      await deleteUnit.mutateAsync({ id: deleteUnitTarget.id, propertyId: property.id });
+      uiNotify.success('تم حذف الوحدة بنجاح');
+    } catch {
+      uiNotify.error('حدث خطأ أثناء حذف الوحدة');
+    } finally {
+      setDeleteUnitTarget(null);
+    }
   };
 
   const isPending = createUnit.isPending || updateUnit.isPending || createContract.isPending || updateContractMutation.isPending;
