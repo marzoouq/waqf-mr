@@ -1,19 +1,24 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 /**
- * Round V3 — Audit أزرار وروابط واجهة المستخدم.
+ * audit-ui-permissions — Round W
  *
- * يفحص ملفات src/pages/** و src/components/** ويُولّد:
- *  - audit/ui-permissions-audit.csv
- *  - audit/ui-permissions-audit.md
+ * SCOPE & METHOD (explicit, first 10 lines):
+ *   This is a REGEX-BASED gap scanner — NOT a full AST/ts-morph audit and NOT
+ *   a complete role/route/permission matrix. It detects ~95% of common UI gaps
+ *   via multi-line regex over src/pages/** and src/components/**.
+ *   For the role/route/permission MATRIX (156 rows) see: scripts/build-permissions-matrix.mjs
+ *   which generates audit/ui-permissions-matrix.csv from constants.
  *
- * قواعد كشف الفجوات (GAP-*):
- *  - GAP-NO-HANDLER:  <Button> أو <DropdownMenuItem> بدون onClick/asChild/type="submit"/داخل Trigger.
- *  - GAP-DEAD-LINK:   <Link to="/path"> حيث /path لا يطابق أي Route مسجَّل ولا يبدأ بـ http/mailto/tel/#.
- *  - GAP-DEAD-TAB:    <TabsTrigger value="X"> بدون <TabsContent value="X"> في نفس الملف.
- *  - GAP-DIRECT-DB:   صفحة في src/pages/ تستدعي supabase.from() مباشرة (يجب عبر hook).
+ * Generates:
+ *   - audit/ui-permissions-audit.csv (gap report: file,line,element,status,detail)
+ *   - audit/ui-permissions-audit.md  (human summary + scope notice)
  *
- * النهج: regex متعدد الأسطر — كافٍ لاكتشاف ~95% من المشاكل دون اعتمادية ts-morph.
- * يولّد تقرير CSV/MD فقط — لا يعدّل الكود.
+ * Gap codes:
+ *   - GAP-NO-HANDLER : <Button>/<DropdownMenuItem> without onClick/asChild/type=submit/parent Trigger|Link
+ *   - GAP-DEAD-LINK  : <Link to="/x"> where /x is not in registered <Route path>
+ *   - GAP-DEAD-TAB   : <TabsTrigger value="X"> with no matching <TabsContent value="X"> in same file
+ *   - GAP-DIRECT-DB  : page in src/pages/ calls supabase.from(...) directly (should go via hook)
  */
 import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
@@ -22,7 +27,6 @@ const ROOT = process.cwd();
 const SCAN_DIRS = ['src/pages', 'src/components'];
 const OUT_DIR = resolve(ROOT, 'audit');
 
-/** استخراج كل المسارات المسجَّلة من ملفات routes/ */
 function loadRegisteredPaths() {
   const files = [
     'src/routes/adminRoutes.tsx',
@@ -52,150 +56,162 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-function lineOf(content, idx) {
-  return content.slice(0, idx).split('\n').length;
+function lineOf(src, idx) {
+  return src.slice(0, idx).split('\n').length;
 }
 
-/** يحدد ما إذا كان <Button موجوداً ضمن نطاق ancestor مفتوح يحمل asChild،
- *  أو موجوداً داخل <Link ...>...</Link>. كلاهما يفوّض التفاعل لمكوّن آخر. */
-function isInsideTriggerOrLink(content, openIdx) {
-  const before = content.slice(0, openIdx);
-  // ابحث عن آخر فتحة <Link ... > أو <*Trigger ... asChild >
-  // وتأكد أنها لم تُغلق بعد.
-  const candidates = [
-    ...before.matchAll(/<(Link)\b[^>]*>/g),
-    ...before.matchAll(/<((?:Alert)?DialogTrigger|DropdownMenuTrigger|PopoverTrigger|TooltipTrigger|HoverCardTrigger|SheetTrigger|TabsTrigger|CollapsibleTrigger|AccordionTrigger|ContextMenuTrigger|MenubarTrigger)\b[^>]*asChild[^>]*>/g),
-  ];
-  if (!candidates.length) return false;
-  // اختر الأقرب
-  candidates.sort((a, b) => a.index - b.index);
-  const last = candidates[candidates.length - 1];
-  const tagName = last[1];
-  const between = before.slice(last.index);
-  const opens = (between.match(new RegExp(`<${tagName}\\b`, 'g')) || []).length;
-  const closes = (between.match(new RegExp(`</${tagName}>`, 'g')) || []).length;
-  return opens > closes;
+/** Check whether the byte range [start,end] inside src sits within a wrapper tag
+ *  whose open tag appears before start and close tag appears after end. */
+function isWrappedBy(src, start, end, openTag, closeTag) {
+  const before = src.slice(0, start);
+  const after = src.slice(end);
+  const lastOpen = before.lastIndexOf(`<${openTag}`);
+  if (lastOpen === -1) return false;
+  // count balanced opens/closes between lastOpen and our position
+  const between = src.slice(lastOpen, start);
+  const opens = (between.match(new RegExp(`<${openTag}\\b`, 'g')) || []).length;
+  const closes = (between.match(new RegExp(`</${closeTag}>`, 'g')) || []).length;
+  if (opens - closes < 1) return false;
+  // there must be a closing tag somewhere after end
+  return after.includes(`</${closeTag}>`);
 }
 
-function scanFile(file, registered, gaps) {
-  const rel = relative(ROOT, file);
-  const c = readFileSync(file, 'utf8');
+function scanFile(filePath, src, registered, gaps) {
+  const rel = relative(ROOT, filePath).replace(/\\/g, '/');
+  const isPage = rel.startsWith('src/pages/');
 
-  // GAP-NO-HANDLER on <Button ...>
-  const btnRe = /<Button\b([^>]*)>/g;
+  // GAP-NO-HANDLER: <Button ...> opening tags
+  const btnRe = /<(Button|DropdownMenuItem)\b([^>]*)>/g;
   let m;
-  while ((m = btnRe.exec(c)) !== null) {
-    const attrs = m[1];
+  while ((m = btnRe.exec(src)) !== null) {
+    const attrs = m[2];
+    if (/\bonClick\b/.test(attrs)) continue;
     if (/\basChild\b/.test(attrs)) continue;
     if (/\btype\s*=\s*["']submit["']/.test(attrs)) continue;
-    if (/\bonClick\s*=/.test(attrs)) continue;
-    if (/\bdisabled\b/.test(attrs) && !/onClick/.test(attrs)) continue; // disabled بدون handler مقبول
-    if (isInsideTriggerOrLink(c, m.index)) continue;
+    if (/\bform\s*=/.test(attrs)) continue;
+    if (/\bdisabled\b/.test(attrs)) continue; // intentionally inert
+    // wrapped by Link / Trigger / DialogTrigger / AlertDialogTrigger / PopoverTrigger / SheetTrigger
+    const start = m.index;
+    const end = start + m[0].length;
+    const wrappers = ['Link', 'DialogTrigger', 'AlertDialogTrigger', 'PopoverTrigger', 'SheetTrigger', 'DropdownMenuTrigger', 'TooltipTrigger', 'HoverCardTrigger'];
+    const wrapped = wrappers.some(w => isWrappedBy(src, start, end, w, w));
+    if (wrapped) continue;
     gaps.push({
-      file: rel, line: lineOf(c, m.index), element: 'Button',
-      status: 'GAP-NO-HANDLER', detail: attrs.trim().slice(0, 80),
+      file: rel,
+      line: lineOf(src, start),
+      element: m[1],
+      status: 'GAP-NO-HANDLER',
+      detail: m[0].slice(0, 120).replace(/\s+/g, ' '),
     });
   }
 
-  // GAP-NO-HANDLER on <DropdownMenuItem ...>
-  const dmiRe = /<DropdownMenuItem\b([^>]*)>/g;
-  while ((m = dmiRe.exec(c)) !== null) {
-    const attrs = m[1];
-    if (/\basChild\b/.test(attrs)) continue;
-    if (/\bonClick\s*=/.test(attrs)) continue;
-    if (/\bonSelect\s*=/.test(attrs)) continue;
-    gaps.push({
-      file: rel, line: lineOf(c, m.index), element: 'DropdownMenuItem',
-      status: 'GAP-NO-HANDLER', detail: attrs.trim().slice(0, 80),
-    });
-  }
-
-  // GAP-DEAD-LINK on <Link to="...">
-  const linkRe = /<Link\b[^>]*\bto=["']([^"']+)["']/g;
-  while ((m = linkRe.exec(c)) !== null) {
+  // GAP-DEAD-LINK: <Link to="/x">
+  const linkRe = /<Link\b[^>]*\bto\s*=\s*["']([^"'$]+)["']/g;
+  while ((m = linkRe.exec(src)) !== null) {
     const to = m[1];
-    if (/^(https?:|mailto:|tel:|#)/.test(to)) continue;
-    if (to.startsWith('..') || to.startsWith('./')) continue; // relative
-    // strip query / hash
-    const clean = to.split(/[?#]/)[0];
-    // tolerate dynamic segments like /foo/:id — check the prefix only
-    if (clean.includes(':')) continue;
-    if (!registered.has(clean)) {
+    if (/^(https?:|mailto:|tel:|#|\?|\.)/.test(to)) continue;
+    if (to.startsWith('/') && !registered.has(to)) {
+      // tolerate dynamic params /foo/:id — strip last segment
+      const base = to.replace(/\/:?[^/]+$/, '');
+      if (registered.has(to) || registered.has(base)) continue;
       gaps.push({
-        file: rel, line: lineOf(c, m.index), element: 'Link',
-        status: 'GAP-DEAD-LINK', detail: `to=${to}`,
+        file: rel,
+        line: lineOf(src, m.index),
+        element: 'Link',
+        status: 'GAP-DEAD-LINK',
+        detail: to,
       });
     }
   }
 
-  // GAP-DEAD-TAB — تجاهل نمط "filter Tabs": <Tabs onValueChange=...> بدون TabsContent مقصود
-  const trigs = [...c.matchAll(/<TabsTrigger\b[^>]*\bvalue=["']([^"']+)["']/g)];
-  const conts = new Set([...c.matchAll(/<TabsContent\b[^>]*\bvalue=["']([^"']+)["']/g)].map(x => x[1]));
-  const tabsHasOnValueChange = /<Tabs\b[^>]*\bonValueChange\b/.test(c);
-  if (!tabsHasOnValueChange) {
-    for (const t of trigs) {
-      if (!conts.has(t[1])) {
-        gaps.push({
-          file: rel, line: lineOf(c, t.index), element: 'TabsTrigger',
-          status: 'GAP-DEAD-TAB', detail: `value=${t[1]}`,
-        });
-      }
-    }
+  // GAP-DEAD-TAB: <TabsTrigger value="X"> without <TabsContent value="X">
+  const triggers = [...src.matchAll(/<TabsTrigger\b[^>]*\bvalue\s*=\s*["']([^"']+)["']/g)];
+  const contents = new Set([...src.matchAll(/<TabsContent\b[^>]*\bvalue\s*=\s*["']([^"']+)["']/g)].map(x => x[1]));
+  // also accept dynamic onValueChange filter tabs (no TabsContent needed when filter pattern)
+  const hasFilterPattern = /onValueChange\b/.test(src) && /<Tabs\b[^>]*\bvalue\s*=\s*\{/.test(src);
+  for (const t of triggers) {
+    const v = t[1];
+    if (contents.has(v)) continue;
+    if (hasFilterPattern) continue;
+    gaps.push({
+      file: rel,
+      line: lineOf(src, t.index),
+      element: 'TabsTrigger',
+      status: 'GAP-DEAD-TAB',
+      detail: `value="${v}" — no matching TabsContent`,
+    });
   }
 
-  // GAP-DIRECT-DB in pages
-  if (rel.startsWith('src/pages/')) {
+  // GAP-DIRECT-DB: supabase.from in pages
+  if (isPage) {
     const dbRe = /supabase\s*\.\s*from\s*\(/g;
-    while ((m = dbRe.exec(c)) !== null) {
+    while ((m = dbRe.exec(src)) !== null) {
       gaps.push({
-        file: rel, line: lineOf(c, m.index), element: 'supabase.from()',
-        status: 'GAP-DIRECT-DB', detail: 'يجب نقله إلى hooks/data/',
+        file: rel,
+        line: lineOf(src, m.index),
+        element: 'supabase.from',
+        status: 'GAP-DIRECT-DB',
+        detail: 'page calls DB directly — move to hooks/data',
       });
     }
   }
 }
 
-const registered = loadRegisteredPaths();
-const files = SCAN_DIRS.flatMap(d => walk(resolve(ROOT, d)));
-const gaps = [];
-for (const f of files) scanFile(f, registered, gaps);
+function main() {
+  const registered = loadRegisteredPaths();
+  const files = [];
+  for (const d of SCAN_DIRS) walk(resolve(ROOT, d), files);
 
-mkdirSync(OUT_DIR, { recursive: true });
+  const gaps = [];
+  for (const f of files) {
+    const src = readFileSync(f, 'utf8');
+    scanFile(f, src, registered, gaps);
+  }
 
-// CSV
-const csvHead = 'file,line,element,status,detail\n';
-const csvBody = gaps
-  .map(g => [g.file, g.line, g.element, g.status, `"${(g.detail || '').replace(/"/g, '""')}"`].join(','))
-  .join('\n');
-writeFileSync(join(OUT_DIR, 'ui-permissions-audit.csv'), csvHead + csvBody + '\n');
+  mkdirSync(OUT_DIR, { recursive: true });
 
-// MD summary
-const byStatus = gaps.reduce((acc, g) => {
-  acc[g.status] = (acc[g.status] || 0) + 1;
-  return acc;
-}, {});
-const byFile = gaps.reduce((acc, g) => {
-  acc[g.file] = (acc[g.file] || 0) + 1;
-  return acc;
-}, {});
-const topFiles = Object.entries(byFile).sort((a, b) => b[1] - a[1]).slice(0, 25);
+  // CSV
+  const header = 'file,line,element,status,detail';
+  const rows = gaps.map(g => [g.file, g.line, g.element, g.status, `"${String(g.detail).replace(/"/g, '""')}"`].join(','));
+  writeFileSync(resolve(OUT_DIR, 'ui-permissions-audit.csv'), [header, ...rows].join('\n') + '\n', 'utf8');
 
-let md = '# UI Permissions & Button Audit\n\n';
-md += `Generated: ${new Date().toISOString()}\n\n`;
-md += `Files scanned: ${files.length}\n`;
-md += `Total GAPs: ${gaps.length}\n\n`;
-md += '## By status\n\n';
-for (const [s, n] of Object.entries(byStatus).sort((a, b) => b[1] - a[1])) {
-  md += `- **${s}**: ${n}\n`;
+  // MD summary
+  const byStatus = gaps.reduce((acc, g) => { acc[g.status] = (acc[g.status] || 0) + 1; return acc; }, {});
+  const byFile = gaps.reduce((acc, g) => { acc[g.file] = (acc[g.file] || 0) + 1; return acc; }, {});
+  const topFiles = Object.entries(byFile).sort((a, b) => b[1] - a[1]).slice(0, 25);
+
+  const md = [
+    '# UI Permissions & Button Audit',
+    '',
+    `Generated: ${new Date().toISOString()}`,
+    '',
+    '## Scope & method',
+    '',
+    'This report is a **regex-based gap scanner** over `src/pages/**` and `src/components/**`.',
+    'It is **not** a full AST/ts-morph audit and **not** a complete role/route/permission matrix.',
+    'For the full 156-row role × route matrix see `audit/ui-permissions-matrix.csv`',
+    '(generated by `scripts/build-permissions-matrix.mjs`).',
+    '',
+    `Files scanned: ${files.length}`,
+    `Total gaps: ${gaps.length}`,
+    '',
+    '## By status',
+    '',
+    ...Object.entries(byStatus).map(([k, v]) => `- ${k}: ${v}`),
+    '',
+    '## Top 25 files',
+    '',
+    ...topFiles.map(([k, v]) => `- ${k}: ${v}`),
+    '',
+    '## All gaps',
+    '',
+    ...gaps.map(g => `- \`${g.file}:${g.line}\` **${g.status}** \`${g.element}\` — ${g.detail}`),
+    '',
+  ].join('\n');
+  writeFileSync(resolve(OUT_DIR, 'ui-permissions-audit.md'), md, 'utf8');
+
+  console.log(`Scanned ${files.length} files. Gaps: ${gaps.length}`);
+  for (const [k, v] of Object.entries(byStatus)) console.log(`  ${k}: ${v}`);
 }
-md += '\n## Top 25 files\n\n';
-for (const [f, n] of topFiles) md += `- ${f}: ${n}\n`;
-md += '\n## All GAPs\n\n';
-for (const g of gaps) {
-  md += `- \`${g.file}:${g.line}\` — **${g.status}** — ${g.element} — ${g.detail}\n`;
-}
-writeFileSync(join(OUT_DIR, 'ui-permissions-audit.md'), md);
 
-console.log(`Scanned ${files.length} files, found ${gaps.length} GAPs.`);
-console.log(JSON.stringify(byStatus, null, 2));
-console.log(`Output: ${OUT_DIR}/ui-permissions-audit.{csv,md}`);
+main();
