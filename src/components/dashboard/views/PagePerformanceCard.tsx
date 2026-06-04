@@ -1,13 +1,12 @@
 /**
- * بطاقة مراقبة أداء الصفحات — تعرض أوقات التحميل في لوحة التحكم
+ * بطاقة مراقبة أداء الصفحات — UI خالص بعد استخراج المنطق إلى usePagePerformanceCard (S6-1).
  */
-import { useMemo, useState, useSyncExternalStore } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Activity, Trash2, RotateCcw } from 'lucide-react';
-import { getPagePerfSummaries, clearPageLoadEntries, getStoredEntries, subscribePerfUpdates, getPerfRevision, notifyPerfUpdate, type PagePerfSummary } from '@/lib/monitoring';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { usePagePerformanceCard } from '@/hooks/page/admin/dashboard/usePagePerformanceCard';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export { notifyPerfUpdate } from '@/lib/monitoring';
@@ -26,18 +25,9 @@ function getStatusLabel(ms: number): { text: string; className: string } {
 }
 
 const PagePerformanceCard = () => {
-  const rev = useSyncExternalStore(subscribePerfUpdates, getPerfRevision);
-  const [showAll, setShowAll] = useState(false);
+  const ctx = usePagePerformanceCard();
 
-  const summaries = useMemo(() => getPagePerfSummaries(), [rev]); // eslint-disable-line react-hooks/exhaustive-deps -- rev (revision من useSyncExternalStore) هو إشارة التحديث الوحيدة
-  const totalEntries = useMemo(() => getStoredEntries().length, [rev]); // eslint-disable-line react-hooks/exhaustive-deps -- نفس المبرر
-
-  const displayed: PagePerfSummary[] = showAll ? summaries : summaries.slice(0, 6);
-
-  // الحد الأقصى لتطبيع الشريط
-  const maxAvg = Math.max(...summaries.map(s => s.avgMs), 1);
-
-  if (summaries.length === 0) {
+  if (ctx.isEmpty) {
     return (
       <Card className="shadow-sm">
         <CardHeader>
@@ -55,8 +45,7 @@ const PagePerformanceCard = () => {
     );
   }
 
-  const globalAvg = Math.round(summaries.reduce((s, e) => s + e.avgMs, 0) / summaries.length);
-  const globalStatus = getStatusLabel(globalAvg);
+  const globalStatus = getStatusLabel(ctx.globalAvg);
 
   return (
     <Card className="shadow-sm">
@@ -66,7 +55,7 @@ const PagePerformanceCard = () => {
           مراقبة أداء الصفحات
         </CardTitle>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{totalEntries} قياس</span>
+          <span className="text-xs text-muted-foreground">{ctx.totalEntries} قياس</span>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -74,10 +63,7 @@ const PagePerformanceCard = () => {
                 size="icon"
                 className="h-7 w-7"
                 aria-label="مسح السجلات"
-                onClick={() => {
-                  clearPageLoadEntries();
-                  notifyPerfUpdate();
-                }}
+                onClick={ctx.clear}
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </Button>
@@ -91,7 +77,7 @@ const PagePerformanceCard = () => {
                 size="icon"
                 className="h-7 w-7"
                 aria-label="تحديث"
-                onClick={() => notifyPerfUpdate()}
+                onClick={ctx.refresh}
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </Button>
@@ -107,16 +93,16 @@ const PagePerformanceCard = () => {
           <span className="text-sm font-medium">متوسط الأداء العام</span>
           <div className="flex items-center gap-2">
             <span className={`text-sm font-bold ${globalStatus.className}`}>
-              {globalAvg}ms — {globalStatus.text}
+              {ctx.globalAvg}ms — {globalStatus.text}
             </span>
           </div>
         </div>
 
         {/* تفاصيل كل صفحة */}
         <div className="space-y-3">
-          {displayed.map((s) => {
+          {ctx.displayed.map((s) => {
             const status = getStatusLabel(s.avgMs);
-            const barValue = Math.min((s.avgMs / maxAvg) * 100, 100);
+            const barValue = Math.min((s.avgMs / ctx.maxAvg) * 100, 100);
             return (
               <div key={s.path} className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
@@ -142,14 +128,14 @@ const PagePerformanceCard = () => {
         </div>
 
         {/* عرض الكل */}
-        {summaries.length > 6 && (
+        {ctx.hasMore && (
           <Button
             variant="ghost"
             size="sm"
             className="w-full text-xs"
-            onClick={() => setShowAll(prev => !prev)}
+            onClick={ctx.toggleShowAll}
           >
-            {showAll ? 'عرض أقل' : `عرض الكل (${summaries.length} صفحة)`}
+            {ctx.showAll ? 'عرض أقل' : `عرض الكل (${ctx.summaries.length} صفحة)`}
           </Button>
         )}
       </CardContent>
