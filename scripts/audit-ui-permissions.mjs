@@ -56,18 +56,22 @@ function lineOf(content, idx) {
   return content.slice(0, idx).split('\n').length;
 }
 
-/** يحدد ما إذا كان <Button أو <DropdownMenuItem ضمن نطاق Trigger (asChild). */
-function isInsideTrigger(content, openIdx) {
-  // نبحث للخلف عن أقرب <SomethingTrigger ... ولم يُغلق بعد
+/** يحدد ما إذا كان <Button موجوداً ضمن نطاق ancestor مفتوح يحمل asChild،
+ *  أو موجوداً داخل <Link ...>...</Link>. كلاهما يفوّض التفاعل لمكوّن آخر. */
+function isInsideTriggerOrLink(content, openIdx) {
   const before = content.slice(0, openIdx);
-  const triggerOpen = /<((?:Alert)?DialogTrigger|DropdownMenuTrigger|PopoverTrigger|TooltipTrigger|HoverCardTrigger|SheetTrigger|TabsTrigger)\b[^>]*asChild/g;
-  let m, last = -1;
-  while ((m = triggerOpen.exec(before)) !== null) last = m.index;
-  if (last === -1) return false;
-  // تأكد أن الـ Trigger لم يُغلق بين last و openIdx
-  const between = before.slice(last);
-  // عدد فتح/إغلاق نفس الـ tag
-  const tagName = before.slice(last).match(/<(\w+)/)[1];
+  // ابحث عن آخر فتحة <Link ... > أو <*Trigger ... asChild >
+  // وتأكد أنها لم تُغلق بعد.
+  const candidates = [
+    ...before.matchAll(/<(Link)\b[^>]*>/g),
+    ...before.matchAll(/<((?:Alert)?DialogTrigger|DropdownMenuTrigger|PopoverTrigger|TooltipTrigger|HoverCardTrigger|SheetTrigger|TabsTrigger|CollapsibleTrigger|AccordionTrigger|ContextMenuTrigger|MenubarTrigger)\b[^>]*asChild[^>]*>/g),
+  ];
+  if (!candidates.length) return false;
+  // اختر الأقرب
+  candidates.sort((a, b) => a.index - b.index);
+  const last = candidates[candidates.length - 1];
+  const tagName = last[1];
+  const between = before.slice(last.index);
   const opens = (between.match(new RegExp(`<${tagName}\\b`, 'g')) || []).length;
   const closes = (between.match(new RegExp(`</${tagName}>`, 'g')) || []).length;
   return opens > closes;
