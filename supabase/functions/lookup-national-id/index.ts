@@ -82,25 +82,30 @@ Deno.serve(async (req) => {
       .maybeSingle();
     const remaining = Math.max(0, RATE_LIMIT - (updatedCount?.count ?? 1));
 
-    const body = await req.json();
-    const rawId = body.national_id;
-    const password = body.password; // Optional: if provided, perform server-side auth
-
-    // تحويل الأرقام العربية-الهندية والفارسية إلى لاتينية (Defense in Depth)
-    const national_id = typeof rawId === "string"
-      ? rawId
-          .replace(/[٠-٩]/g, (d: string) => String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48))
-          .replace(/[۰-۹]/g, (d: string) => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48))
-          .trim()
-      : rawId;
-
-    // Input validation: must be exactly 10 digits
-    if (!national_id || typeof national_id !== "string" || !/^\d{10}$/.test(national_id)) {
+    const rawBody = await req.json().catch(() => ({}));
+    const parsed = BodySchema.safeParse(rawBody);
+    if (!parsed.success) {
       return new Response(
         JSON.stringify({ error: "رقم الهوية يجب أن يكون 10 أرقام", remaining }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    const password = parsed.data.password;
+
+    // تحويل الأرقام العربية-الهندية والفارسية إلى لاتينية (Defense in Depth)
+    const national_id = parsed.data.national_id
+      .replace(/[٠-٩]/g, (d: string) => String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48))
+      .replace(/[۰-۹]/g, (d: string) => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48))
+      .trim();
+
+    // Input validation: must be exactly 10 digits (بعد التحويل)
+    if (!/^\d{10}$/.test(national_id)) {
+      return new Response(
+        JSON.stringify({ error: "رقم الهوية يجب أن يكون 10 أرقام", remaining }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
 
     // Fixed delay to prevent timing-based enumeration
     const fixedDelay = 300;
