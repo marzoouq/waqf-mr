@@ -1,6 +1,6 @@
 /**
- * #DRY — Dialog حذف موحّد للصفحات البسيطة
- * (PropertyDeleteDialog وإخوانه تبقى كما هي — منطق حذف خاص)
+ * #DRY — Dialog حذف موحّد. جميع DeleteDialogs المتخصصة (Property/Contract/Bylaw)
+ * أصبحت wrappers رقيقة فوقه لتوحيد النص والأنماط ومنع الازدواجية.
  */
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
