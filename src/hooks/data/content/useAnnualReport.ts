@@ -1,8 +1,10 @@
 /**
  * هوكات التقرير السنوي — CRUD لعناصر التقرير + حالة النشر
+ *
+ * طبقة بيانات نقية: لا توست هنا — تُضاف من طبقة الصفحة عبر
+ * `mutate(vars, { onSuccess, onError })` أو الـ wrapper المخصص.
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { annualReportService } from '@/lib/services/annualReportService';
@@ -54,11 +56,9 @@ export const useCreateReportItem = () => {
       annualReportService.createItem(item),
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['annual_report_items', v.fiscal_year_id] });
-      uiNotify.success('تمت إضافة العنصر بنجاح');
     },
     onError: (e) => {
       logger.error('خطأ في إضافة عنصر التقرير:', e);
-      uiNotify.error('فشل في إضافة العنصر');
     },
   });
 };
@@ -70,9 +70,7 @@ export const useUpdateReportItem = () => {
       annualReportService.updateItem(id, updates),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['annual_report_items'], exact: false });
-      uiNotify.success('تم تحديث العنصر');
     },
-    onError: () => uiNotify.error('فشل في تحديث العنصر'),
   });
 };
 
@@ -82,9 +80,7 @@ export const useDeleteReportItem = () => {
     mutationFn: (id: string) => annualReportService.deleteItem(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['annual_report_items'] });
-      uiNotify.success('تم حذف العنصر');
     },
-    onError: () => uiNotify.error('فشل في حذف العنصر'),
   });
 };
 
@@ -107,8 +103,6 @@ export const useToggleReportPublish = () => {
       annualReportService.setPublishStatus(fiscalYearId, publish),
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['annual_report_status', v.fiscalYearId] });
-      uiNotify.success(v.publish ? 'تم نشر التقرير السنوي' : 'تم إرجاع التقرير إلى مسودة');
     },
-    onError: () => uiNotify.error('فشل في تحديث حالة النشر'),
   });
 };

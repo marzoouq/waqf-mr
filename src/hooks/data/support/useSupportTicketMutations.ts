@@ -1,9 +1,9 @@
 /**
- * عمليات تذاكر الدعم الفني — mutations
+ * عمليات تذاكر الدعم الفني — mutations (طبقة بيانات نقية، لا توست هنا).
+ * الإشعارات تُضاف من طبقة الصفحة/المكوّن عبر `mutate(vars, { onSuccess, onError })`.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
-import { uiNotify } from '@/lib/notify';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { supportService } from '@/lib/services/supportService';
 
@@ -16,7 +16,6 @@ export const useCreateTicket = () => {
       supportService.createTicket({ ...ticket, created_by: user?.id ?? '' }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      uiNotify.success('تم إنشاء التذكرة بنجاح');
       rpc('notify_admins', {
         p_title: 'تذكرة دعم فني جديدة',
         p_message: 'تم استلام تذكرة دعم فني جديدة تحتاج مراجعة',
@@ -24,7 +23,6 @@ export const useCreateTicket = () => {
         p_link: '/dashboard/support',
       }).then(() => {}, () => {});
     },
-    onError: () => uiNotify.error('فشل إنشاء التذكرة'),
   });
 };
 
@@ -36,9 +34,7 @@ export const useUpdateTicketStatus = () => {
       supportService.updateTicketStatus(input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      uiNotify.success('تم تحديث التذكرة');
     },
-    onError: () => uiNotify.error('فشل تحديث التذكرة'),
   });
 };
 
@@ -52,9 +48,7 @@ export const useAddTicketReply = () => {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['ticket_replies', vars.ticket_id] });
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      uiNotify.success('تم إرسال الرد');
     },
-    onError: () => uiNotify.error('فشل إرسال الرد'),
   });
 };
 
@@ -66,8 +60,6 @@ export const useRateTicket = () => {
       supportService.rateTicket(input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
-      uiNotify.success('شكراً لتقييمك!');
     },
-    onError: () => uiNotify.error('فشل إرسال التقييم'),
   });
 };

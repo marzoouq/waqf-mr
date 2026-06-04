@@ -9,6 +9,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useCreateTicket } from '@/hooks/data/support/useSupportTickets';
+import { uiNotify } from '@/lib/notify';
 
 interface NewTicketDialogProps {
   open: boolean;
@@ -23,9 +24,14 @@ const NewTicketDialog = ({ open, onClose }: NewTicketDialogProps) => {
 
   const handleSubmit = async () => {
     if (!title.trim()) return;
-    await createTicket.mutateAsync({ title, description, category, priority: 'medium' });
-    setTitle(''); setDescription(''); setCategory('general');
-    onClose();
+    try {
+      await createTicket.mutateAsync({ title, description, category, priority: 'medium' });
+      uiNotify.success('تم إنشاء التذكرة بنجاح');
+      setTitle(''); setDescription(''); setCategory('general');
+      onClose();
+    } catch {
+      uiNotify.error('فشل إنشاء التذكرة');
+    }
   };
 
   return (

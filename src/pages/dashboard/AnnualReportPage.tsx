@@ -16,6 +16,7 @@ import ReportSectionList from '@/components/annual-report/ReportSectionList';
 import ReportItemFormDialog from '@/components/annual-report/ReportItemFormDialog';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';
 const IncomeComparisonChart = lazy(() => import('@/components/annual-report/IncomeComparisonChart'));
+import { uiNotify } from '@/lib/notify';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -172,7 +173,14 @@ const AnnualReportPage = () => {
             <AlertDialogFooter>
               <AlertDialogCancel>إلغاء</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => { if (r.deleteTarget) { r.deleteItem.mutate(r.deleteTarget); r.setDeleteTarget(null); } }}
+                onClick={() => {
+                  if (!r.deleteTarget) return;
+                  r.deleteItem.mutate(r.deleteTarget, {
+                    onSuccess: () => uiNotify.success('تم حذف العنصر'),
+                    onError: () => uiNotify.error('فشل في حذف العنصر'),
+                  });
+                  r.setDeleteTarget(null);
+                }}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 حذف

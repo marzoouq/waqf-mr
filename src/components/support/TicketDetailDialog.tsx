@@ -15,6 +15,7 @@ import {
 } from '@/hooks/data/support/useSupportTickets';
 import { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/constants/support';
 import { useNowClock } from '@/lib/hooks/useNowClock';
+import { uiNotify } from '@/lib/notify';
 
 interface Props {
   ticket: SupportTicket;
@@ -31,12 +32,23 @@ export default function TicketDetailDialog({ ticket, onClose, isAdmin }: Props) 
 
   const handleSendReply = async () => {
     if (!replyContent.trim()) return;
-    await addReply.mutateAsync({ ticket_id: ticket.id, content: replyContent });
-    setReplyContent('');
+    try {
+      await addReply.mutateAsync({ ticket_id: ticket.id, content: replyContent });
+      uiNotify.success('تم إرسال الرد');
+      setReplyContent('');
+    } catch {
+      uiNotify.error('فشل إرسال الرد');
+    }
   };
 
   const handleStatusChange = (newStatus: string) => {
-    updateStatus.mutate({ id: ticket.id, status: newStatus, resolution_notes: newStatus === 'resolved' ? resolutionNotes : undefined });
+    updateStatus.mutate(
+      { id: ticket.id, status: newStatus, resolution_notes: newStatus === 'resolved' ? resolutionNotes : undefined },
+      {
+        onSuccess: () => uiNotify.success('تم تحديث التذكرة'),
+        onError: () => uiNotify.error('فشل تحديث التذكرة'),
+      },
+    );
   };
 
   const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;

@@ -93,7 +93,11 @@ export function useAnnualReportPage() {
     }
     if (editingItem) {
       updateItem.mutate({ id: editingItem.id, ...data }, {
-        onSuccess: () => { setDialogOpen(false); setEditingItem(null); },
+        onSuccess: () => {
+          uiNotify.success('تم تحديث العنصر');
+          setDialogOpen(false); setEditingItem(null);
+        },
+        onError: () => uiNotify.error('فشل في تحديث العنصر'),
       });
     } else {
       const sectionItems = grouped[data.section_type as keyof typeof grouped] || [];
@@ -104,7 +108,13 @@ export function useAnnualReportPage() {
         section_type: data.section_type,
         property_id: data.property_id ?? null,
         sort_order: sectionItems.length,
-      }, { onSuccess: () => { setDialogOpen(false); } });
+      }, {
+        onSuccess: () => {
+          uiNotify.success('تمت إضافة العنصر بنجاح');
+          setDialogOpen(false);
+        },
+        onError: () => uiNotify.error('فشل في إضافة العنصر'),
+      });
     }
   }, [fiscalYearId, editingItem, grouped, createItem, updateItem]);
 
@@ -166,7 +176,10 @@ export function useAnnualReportPage() {
       uiNotify.error('يرجى اختيار سنة مالية محددة قبل النشر');
       return;
     }
-    togglePublish.mutate({ fiscalYearId, publish: !isPublished });
+    togglePublish.mutate({ fiscalYearId, publish: !isPublished }, {
+      onSuccess: () => uiNotify.success(!isPublished ? 'تم نشر التقرير السنوي' : 'تم إرجاع التقرير إلى مسودة'),
+      onError: () => uiNotify.error('فشل في تحديث حالة النشر'),
+    });
   }, [fiscalYearId, isPublished, togglePublish]);
 
   const propertiesList = useMemo(

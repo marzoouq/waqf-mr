@@ -71,7 +71,10 @@ export function useBylawsPage() {
       if (oldIndex === -1 || newIndex === -1) return;
       const reordered = arrayMove(allBylaws, oldIndex, newIndex);
       const updates = reordered.map((item, idx) => ({ id: item.id, sort_order: idx }));
-      reorderBylaws.mutate(updates);
+      reorderBylaws.mutate(updates, {
+        onSuccess: () => uiNotify.success('تم حفظ الترتيب الجديد'),
+        onError: () => uiNotify.error('حدث خطأ أثناء حفظ الترتيب'),
+      });
     },
     [allBylaws, reorderBylaws],
   );

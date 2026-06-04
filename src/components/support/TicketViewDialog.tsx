@@ -11,6 +11,7 @@ import { Send, Loader2, Star } from 'lucide-react';
 import { useTicketReplies, useAddTicketReply, useRateTicket, type SupportTicket } from '@/hooks/data/support/useSupportTickets';
 import { fmtDate } from '@/utils/format/format';
 import { STATUS_MAP } from '@/constants/support';
+import { uiNotify } from '@/lib/notify';
 
 interface TicketViewDialogProps {
   ticket: SupportTicket;
@@ -29,15 +30,25 @@ const TicketViewDialog = ({ ticket, onClose }: TicketViewDialogProps) => {
 
   const handleSend = async () => {
     if (!replyContent.trim()) return;
-    await addReply.mutateAsync({ ticket_id: ticket.id, content: replyContent });
-    setReplyContent('');
+    try {
+      await addReply.mutateAsync({ ticket_id: ticket.id, content: replyContent });
+      uiNotify.success('تم إرسال الرد');
+      setReplyContent('');
+    } catch {
+      uiNotify.error('فشل إرسال الرد');
+    }
   };
 
   const handleRate = async () => {
     if (rating < 1) return;
-    await rateTicket.mutateAsync({ id: ticket.id, rating, rating_comment: ratingComment });
-    setShowRating(false);
-    onClose();
+    try {
+      await rateTicket.mutateAsync({ id: ticket.id, rating, rating_comment: ratingComment });
+      uiNotify.success('شكراً لتقييمك!');
+      setShowRating(false);
+      onClose();
+    } catch {
+      uiNotify.error('فشل إرسال التقييم');
+    }
   };
 
   const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
