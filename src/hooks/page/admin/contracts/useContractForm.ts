@@ -10,9 +10,16 @@ import { Contract } from '@/types';
 import { emptyFormData, type ContractFormData } from '@/types/forms/contract';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
-import { useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
+import { useCreateContract, useUpdateContract } from '@/hooks/data/contracts/useContracts';
 import { useUpsertContractAllocations } from '@/hooks/data/financial/contracts/useContractAllocations';
 import { useFiscalYears } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
+import {
+  useGenerateContractInvoices,
+  useDeleteContractPendingInvoices,
+} from '@/hooks/data/invoices/usePaymentInvoices';
+import { supabase } from '@/integrations/supabase/client';
+import { confirmRegenerateWithPaid } from '@/lib/contracts/invoiceSync';
+import { useContractDelete } from './useContractDelete';
 import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { asMutationArg } from '@/hooks/data/core';
@@ -30,9 +37,11 @@ interface UseContractFormParams {
 export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormParams) {
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
-  const deleteContract = useDeleteContract();
   const upsertAllocations = useUpsertContractAllocations();
+  const generateInvoices = useGenerateContractInvoices();
+  const deletePendingInvoices = useDeleteContractPendingInvoices();
   const { data: fiscalYearsFull = [] } = useFiscalYears();
+  const contractDelete = useContractDelete();
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
@@ -90,8 +99,27 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
         formData, contractNumber: formData.contract_number,
         unitId: formData.unit_id || null, rentAmount, paymentCount,
       });
+
+      // فحص الفواتير المدفوعة قبل إعادة التوليد — يحمي الأرشيف المحاسبي
+      const { data: existingInvoices } = await supabase
+        .from('payment_invoices')
+        .select('status')
+        .eq('contract_id', editingContract.id);
+      const paidCount = existingInvoices?.filter(i => i.status === 'paid').length ?? 0;
+      const pendingCount = existingInvoices?.filter(i => i.status === 'pending').length ?? 0;
+      if (paidCount > 0 && !confirmRegenerateWithPaid(paidCount, pendingCount)) {
+        return;
+      }
+
       await updateContract.mutateAsync(asMutationArg(updateContract, { id: editingContract.id, ...payload }));
       await syncAllocations(editingContract.id, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
+      // إعادة توليد الفواتير المعلقة وفق القيم الجديدة (المدفوعة محفوظة)
+      try {
+        await deletePendingInvoices.mutateAsync(editingContract.id);
+        await generateInvoices.mutateAsync(editingContract.id);
+      } catch (err) {
+        logger.warn('Invoice regeneration failed:', err instanceof Error ? err.message : String(err));
+      }
       return;
     }
 
@@ -116,7 +144,11 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
         });
         const createdMulti = await createContract.mutateAsync(asMutationArg(createContract, payload));
         const newIdMulti = (createdMulti as { id?: string } | undefined)?.id;
-        if (newIdMulti) await syncAllocations(newIdMulti, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
+        if (newIdMulti) {
+          await syncAllocations(newIdMulti, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
+          try { await generateInvoices.mutateAsync(newIdMulti); }
+          catch (err) { logger.warn('Invoice generation failed:', err instanceof Error ? err.message : String(err)); }
+        }
         created++;
       }
       uiNotify.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
@@ -130,22 +162,28 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
       });
       const createdSingle = await createContract.mutateAsync(asMutationArg(createContract, payload));
       const newIdSingle = (createdSingle as { id?: string } | undefined)?.id;
-      if (newIdSingle) await syncAllocations(newIdSingle, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
+      if (newIdSingle) {
+        await syncAllocations(newIdSingle, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
+        try { await generateInvoices.mutateAsync(newIdSingle); }
+        catch (err) { logger.warn('Invoice generation failed:', err instanceof Error ? err.message : String(err)); }
+      }
     }
   };
 
+  // الحذف يمر عبر useContractDelete الذي يحمي الأرشيف المحاسبي
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    await deleteContract.mutateAsync(deleteTarget.id);
+    await contractDelete.deleteWithGuard(deleteTarget);
     setDeleteTarget(null);
   };
 
   return {
-    createContract, updateContract, deleteContract,
+    createContract, updateContract,
+    deleteContract: { isPending: contractDelete.isPending },
     isOpen, setIsOpen, editingContract,
     deleteTarget, setDeleteTarget,
     formInitialData,
     resetForm, handleRenew, handleEdit, handleFormSubmit, handleConfirmDelete,
-    isPending: createContract.isPending || updateContract.isPending || deleteContract.isPending,
+    isPending: createContract.isPending || updateContract.isPending || contractDelete.isPending,
   };
 }
