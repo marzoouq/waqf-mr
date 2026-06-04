@@ -1,10 +1,13 @@
 /**
  * useAppSettingsWrite — mutations كتابة إعدادات التطبيق
  *
- * بلا toasts — الإشعارات تُدار في طبقة الصفحة (hooks/page)
- * عبر .mutate(vars, { onSuccess, onError }).
+ * `updateSetting` و `updateSettingsBatch` بلا toast — المستهلِك يضيفها.
+ * `updateJsonSetting` يحتفظ بـ toast نجاح/فشل (SAVE_MESSAGES) لأنه
+ * facade عالي المستوى مُستخدَم من 15+ صفحة تعتمد على هذه الدلالة.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { uiNotify } from '@/lib/notify';
+import { SAVE_MESSAGES } from '@/lib/messages';
 import { getCategoryFromKey } from '@/hooks/data/settings/app/appSettingsUtils';
 import { jsonSettingCache } from '@/hooks/data/settings/app/useAppSettingsRead';
 import { appSettingsService } from '@/lib/services/appSettingsService';
@@ -49,9 +52,14 @@ export const useAppSettingsWrite = (data: Record<string, string> | undefined) =>
     }
   };
 
-  /** يحفظ قيمة JSON. الـ caller مسؤول عن toast النجاح/الفشل. */
+  /** يحفظ قيمة JSON. يُظهر SAVE_MESSAGES.saveSuccess/saveError تلقائياً. */
   const updateJsonSetting = async (key: string, value: object) => {
-    await updateSetting.mutateAsync({ key, value: JSON.stringify(value) });
+    try {
+      await updateSetting.mutateAsync({ key, value: JSON.stringify(value) });
+      uiNotify.success(SAVE_MESSAGES.saveSuccess);
+    } catch {
+      uiNotify.error(SAVE_MESSAGES.saveError);
+    }
   };
 
   return { updateSetting, updateSettingsBatch, getJsonSetting, updateJsonSetting };
