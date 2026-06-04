@@ -218,5 +218,10 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
     formInitialData,
     resetForm, handleRenew, handleEdit, handleFormSubmit, handleConfirmDelete,
     isPending: createContract.isPending || updateContract.isPending || contractDelete.isPending,
+    // Batch 2E — تأكيد إعادة توليد الفواتير
+    regenConfirmTarget, resolveRegenerateConfirm,
+    // Batch 2E — تأكيد حذف عقد ذو فواتير معلقة (مُمرَّر من useContractDelete)
+    confirmPendingDelete: contractDelete.confirmPendingTarget,
+    resolvePendingDelete: contractDelete.resolvePendingConfirm,
   };
 }
