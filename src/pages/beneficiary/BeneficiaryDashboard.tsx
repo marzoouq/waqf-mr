@@ -22,7 +22,7 @@ const BeneficiaryDashboard = () => {
     currentBeneficiary, myShare, distributions, role, fiscalYearId,
     fiscalYear, isClosed, fyProgress,
     displayName, roleLabel, recentNotifications, unreadCount, greetingData,
-    advanceEnabled, pendingAdvanceCount,
+    advanceEnabled, pendingAdvanceCount, advanceContext,
     handleRetry,
   } = useBeneficiaryDashboardPage();
 
@@ -92,7 +92,7 @@ const BeneficiaryDashboard = () => {
         {/* بطاقة طلب السُلفة — CR-07: تنقل إلى MyShare */}
         {isVisible('advance_card') && advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
           <DeferredRender delay={300}>
-            <BeneficiaryAdvanceCard pendingAdvanceCount={pendingAdvanceCount} />
+            <BeneficiaryAdvanceCard pendingAdvanceCount={pendingAdvanceCount} advanceContext={advanceContext} />
           </DeferredRender>
         )}
 
