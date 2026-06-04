@@ -21,7 +21,8 @@ export const DEFAULT_ROLE_PERMS: RolePerms = {
   },
   waqif: {
     properties: true, contracts: true, disclosure: false,
-    financial_reports: true, accounts: true, expenses: true, bylaws: true,
+    financial_reports: true, accounts: true, invoices: true,
+    expenses: true, bylaws: true,
     share: false, notifications: true, annual_report: true,
     support: true,
   },
