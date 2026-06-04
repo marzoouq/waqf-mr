@@ -30,6 +30,7 @@ const ROUTE_ROLES: Record<string, readonly string[]> = {
   '/beneficiary/bylaws': ['admin', 'beneficiary', 'waqif'],
   '/beneficiary/support': ['admin', 'beneficiary'],
   '/beneficiary/annual-report': ['admin', 'beneficiary', 'waqif'],
+  '/waqif': ['admin', 'waqif'],
 };
 
 function permKeysReachableBy(role: string, source: Record<string, { permKey?: string }>): string[] {
