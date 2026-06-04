@@ -13,6 +13,17 @@ import { logger } from '@/lib/logger';
 import { useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/data/contracts/useContracts';
 import { useUpsertContractAllocations } from '@/hooks/data/financial/contracts/useContractAllocations';
 import { useFiscalYears } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
+import {
+  useGenerateContractInvoices,
+  useDeleteContractPendingInvoices,
+} from '@/hooks/data/invoices/usePaymentInvoices';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  confirmRegenerateWithPaid,
+  notifyDeleteBlockedByPaid,
+  confirmDeleteWithPending,
+  notifyPendingInvoicesDeleted,
+} from '@/lib/contracts/invoiceSync';
 import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { asMutationArg } from '@/hooks/data/core';
