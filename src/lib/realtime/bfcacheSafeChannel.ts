@@ -4,7 +4,9 @@
 import { useEffect, useCallback, useMemo, useRef } from 'react';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { createRealtimeChannel, removeRealtimeChannel, getRealtimeChannels } from '@/lib/realtime/channelFactory';
+import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+
 
 type SubscribeFn = (channel: RealtimeChannel) => void;
 
