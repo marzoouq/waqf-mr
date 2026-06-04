@@ -43,6 +43,8 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
   const upsertAllocations = useUpsertContractAllocations();
+  const generateInvoices = useGenerateContractInvoices();
+  const deletePendingInvoices = useDeleteContractPendingInvoices();
   const { data: fiscalYearsFull = [] } = useFiscalYears();
 
   const [isOpen, setIsOpen] = useState(false);
