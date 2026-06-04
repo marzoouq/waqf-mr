@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
 
-import { uiNotify } from '@/lib/notify';
 import { createCrudFactory } from '@/hooks/data/core/useCrudFactory';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import type { BylawEntry } from '@/types/bylaws';
@@ -46,10 +45,6 @@ export const useReorderBylaws = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waqf_bylaws'] });
-      uiNotify.success('تم حفظ الترتيب الجديد');
-    },
-    onError: () => {
-      uiNotify.error('حدث خطأ أثناء حفظ الترتيب');
     },
   });
 };
