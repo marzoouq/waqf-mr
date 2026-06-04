@@ -128,15 +128,18 @@ function scanFile(file, registered, gaps) {
     }
   }
 
-  // GAP-DEAD-TAB
+  // GAP-DEAD-TAB — تجاهل نمط "filter Tabs": <Tabs onValueChange=...> بدون TabsContent مقصود
   const trigs = [...c.matchAll(/<TabsTrigger\b[^>]*\bvalue=["']([^"']+)["']/g)];
   const conts = new Set([...c.matchAll(/<TabsContent\b[^>]*\bvalue=["']([^"']+)["']/g)].map(x => x[1]));
-  for (const t of trigs) {
-    if (!conts.has(t[1])) {
-      gaps.push({
-        file: rel, line: lineOf(c, t.index), element: 'TabsTrigger',
-        status: 'GAP-DEAD-TAB', detail: `value=${t[1]}`,
-      });
+  const tabsHasOnValueChange = /<Tabs\b[^>]*\bonValueChange\b/.test(c);
+  if (!tabsHasOnValueChange) {
+    for (const t of trigs) {
+      if (!conts.has(t[1])) {
+        gaps.push({
+          file: rel, line: lineOf(c, t.index), element: 'TabsTrigger',
+          status: 'GAP-DEAD-TAB', detail: `value=${t[1]}`,
+        });
+      }
     }
   }
 
