@@ -61,22 +61,26 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, password } = await req.json();
+    const rawBody = await req.json().catch(() => ({}));
 
-    // Input validation
-    if (!email || typeof email !== "string" || !EMAIL_RE.test(email.trim())) {
+    // Batch 4: تحقق Zod متسلسل لإبقاء رسائل الخطأ موحّدة مع contract الاختبارات.
+    const emailParsed = EmailSchema.safeParse((rawBody as { email?: unknown }).email);
+    if (!emailParsed.success) {
       return new Response(JSON.stringify({ error: "بريد إلكتروني غير صالح" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const email = emailParsed.data;
 
-    if (!password || typeof password !== "string" || password.length < 8 || password.length > 128) {
+    const passwordParsed = PasswordSchema.safeParse((rawBody as { password?: unknown }).password);
+    if (!passwordParsed.success) {
       return new Response(JSON.stringify({ error: "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const password = passwordParsed.data;
 
     // فحص تعقيد كلمة المرور: حرف كبير + حرف صغير + رقم كحد أدنى
     const hasUpper = /[A-Z]/.test(password);
