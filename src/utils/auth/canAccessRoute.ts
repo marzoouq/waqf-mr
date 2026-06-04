@@ -77,7 +77,7 @@ export function evaluateAccess(input: AccessInput): AccessResult {
   if (permKey && sectionKey) return { allowed: true, basis: 'role+permission+section' };
   if (permKey) return { allowed: true, basis: 'role+permission' };
   if (sectionKey) return { allowed: true, basis: 'role+section' };
-  return { allowed: true, basis: 'role-only' };
+  return { allowed: true, basis: 'uncontrolled' };
 }
 
 /** نسخة مختصرة (boolean فقط) للحالات التي لا تحتاج تفصيل الـ basis. */
