@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Bot, Send, X, Sparkles, Trash2, MessageSquare, BarChart3, FileText, WifiOff, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/cn';
 const ReactMarkdown = lazy(() => import('react-markdown'));
@@ -83,18 +83,33 @@ const AiAssistant = () => {
 
         {/* ── المحادثة ── */}
         <div className="px-3 pt-2 pb-1 border-b border-border">
-          <Tabs value={mode} onValueChange={handleModeChange}>
-            <TabsList aria-label="وضع المساعد الذكي" className="w-full h-8 p-0.5">
-              {(Object.entries(MODE_CONFIG) as [ChatMode, typeof MODE_CONFIG['chat']][]).map(([key, cfg]) => {
-                const Icon = cfg.icon;
-                return (
-                  <TabsTrigger key={key} value={key} className="flex-1 text-[11px] gap-1 h-7 data-[state=active]:shadow-sm" disabled={isLoading}>
-                    <Icon className="w-3 h-3" />{cfg.label}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-          </Tabs>
+          {/* S6-4: radiogroup بديل عن Radix Tabs (لا TabsContent مرتبط — كسر ARIA) */}
+          <div
+            role="radiogroup"
+            aria-label="وضع المساعد الذكي"
+            className="w-full h-8 p-0.5 inline-flex items-center justify-center rounded-md bg-muted text-muted-foreground"
+          >
+            {(Object.entries(MODE_CONFIG) as [ChatMode, typeof MODE_CONFIG['chat']][]).map(([key, cfg]) => {
+              const Icon = cfg.icon;
+              const isActive = mode === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  role="radio"
+                  aria-checked={isActive}
+                  disabled={isLoading}
+                  onClick={() => handleModeChange(key)}
+                  className={cn(
+                    'flex-1 text-[11px] gap-1 h-7 inline-flex items-center justify-center whitespace-nowrap rounded-sm px-2 font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+                    isActive ? 'bg-background text-foreground shadow-sm' : 'hover:text-foreground',
+                  )}
+                >
+                  <Icon className="w-3 h-3" />{cfg.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <ScrollArea className="flex-1 p-3">
