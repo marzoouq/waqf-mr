@@ -55,6 +55,26 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
 
+  // Batch 2E: تأكيد إعادة توليد الفواتير عند وجود مدفوعات — Promise + AlertDialog.
+  const [regenConfirmTarget, setRegenConfirmTarget] = useState<
+    { paidCount: number; pendingCount: number; resolve: (ok: boolean) => void } | null
+  >(null);
+
+  const requestRegenerateConfirm = useCallback(
+    (paidCount: number, pendingCount: number) =>
+      new Promise<boolean>((resolve) => {
+        setRegenConfirmTarget({ paidCount, pendingCount, resolve });
+      }),
+    [],
+  );
+
+  const resolveRegenerateConfirm = useCallback((ok: boolean) => {
+    setRegenConfirmTarget((prev) => {
+      prev?.resolve(ok);
+      return null;
+    });
+  }, []);
+
   const resetForm = useCallback(() => {
     setEditingContract(null);
     setFormInitialData(emptyFormData);
