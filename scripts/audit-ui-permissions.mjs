@@ -90,11 +90,13 @@ function scanFile(filePath, src, registered, gaps) {
     if (/\btype\s*=\s*["']submit["']/.test(attrs)) continue;
     if (/\bform\s*=/.test(attrs)) continue;
     if (/\bdisabled\b/.test(attrs)) continue; // intentionally inert
-    // wrapped by Link / Trigger / DialogTrigger / AlertDialogTrigger / PopoverTrigger / SheetTrigger
+    // wrapped by Link or any *Trigger / *Item component with asChild
     const start = m.index;
     const end = start + m[0].length;
-    const wrappers = ['Link', 'DialogTrigger', 'AlertDialogTrigger', 'PopoverTrigger', 'SheetTrigger', 'DropdownMenuTrigger', 'TooltipTrigger', 'HoverCardTrigger'];
-    const wrapped = wrappers.some(w => isWrappedBy(src, start, end, w, w));
+    const before = src.slice(Math.max(0, start - 400), start);
+    const wrappedByTrigger = /<([A-Z]\w*(?:Trigger|Link))\b[^>]*\basChild\b[^>]*>\s*$/.test(before);
+    const wrappedByLink = /<Link\b[^>]*>\s*$/.test(before);
+    const wrapped = wrappedByTrigger || wrappedByLink;
     if (wrapped) continue;
     gaps.push({
       file: rel,
