@@ -141,14 +141,16 @@ describe('Round V1 — Parity مفاتيح الصلاحيات والأقسام',
     });
 
     it('financial_reports و carryforward موجودان للمستفيد', () => {
-      expect(DEFAULT_ROLE_PERMS.beneficiary.financial_reports).toBe(true);
-      expect(DEFAULT_ROLE_PERMS.beneficiary.carryforward).toBe(true);
+      const bene = DEFAULT_ROLE_PERMS.beneficiary ?? {};
+      expect(bene.financial_reports).toBe(true);
+      expect(bene.carryforward).toBe(true);
     });
 
     it('financial_reports موجود للواقف، carryforward غير معروض (الواقف لا يصل /carryforward)', () => {
-      expect(DEFAULT_ROLE_PERMS.waqif.financial_reports).toBe(true);
+      const waqif = DEFAULT_ROLE_PERMS.waqif ?? {};
+      expect(waqif.financial_reports).toBe(true);
       // الواقف ليس له حصة فردية → لا ترحيلات شخصية
-      expect(DEFAULT_ROLE_PERMS.waqif).not.toHaveProperty('carryforward');
+      expect(waqif).not.toHaveProperty('carryforward');
     });
   });
 });
