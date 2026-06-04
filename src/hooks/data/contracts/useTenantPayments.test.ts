@@ -69,15 +69,16 @@ describe('useTenantPayments', () => {
   });
 });
 
-describe('useUpsertTenantPayment', () => {
-  it('upserts payment via RPC and shows success toast', async () => {
+describe('useUpsertTenantPayment (data layer — no toasts)', () => {
+  it('upserts payment via RPC', async () => {
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await result.current.mutateAsync({ contract_id: 'c-1', paid_months: 8 });
     expect(mockRpc).toHaveBeenCalledWith('upsert_tenant_payment', expect.objectContaining({
       p_contract_id: 'c-1',
       p_paid_months: 8,
     }));
-    expect(mockNotify.success).toHaveBeenCalled();
+    // طبقة data لا تُطلق toasts — المستهلِك يتولى ذلك
+    expect(mockNotify.success).not.toHaveBeenCalled();
   });
 
   it('passes notes as undefined when not provided', async () => {
@@ -94,7 +95,6 @@ describe('useUpsertTenantPayment', () => {
     expect(mockRpc).toHaveBeenCalledWith('upsert_tenant_payment', expect.objectContaining({
       p_notes: 'مسدد',
     }));
-    expect(mockNotify.success).toHaveBeenCalled();
   });
 
   it('calls upsert_tenant_payment RPC', async () => {
@@ -103,16 +103,16 @@ describe('useUpsertTenantPayment', () => {
     expect(mockRpc).toHaveBeenCalledWith('upsert_tenant_payment', expect.any(Object));
   });
 
-  it('shows error toast on RPC failure', async () => {
+  it('throws on RPC failure without firing toast (consumer notifies)', async () => {
     mockRpc.mockResolvedValue({ data: null, error: { message: 'rls denied' } });
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await expect(result.current.mutateAsync({ contract_id: 'c-1', paid_months: 5 })).rejects.toThrow();
-    expect(mockNotify.error).toHaveBeenCalled();
+    expect(mockNotify.error).not.toHaveBeenCalled();
   });
 
   it('handles zero paid_months', async () => {
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await result.current.mutateAsync({ contract_id: 'c-1', paid_months: 0 });
-    expect(mockNotify.success).toHaveBeenCalled();
+    expect(mockRpc).toHaveBeenCalled();
   });
 });
