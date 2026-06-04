@@ -30,7 +30,8 @@ const UNCONTROLLED_WHITELIST = new Set([
 
 function parseCsv(content: string): { header: string[]; rows: string[][] } {
   const lines = content.trim().split('\n');
-  return { header: lines[0].split(','), rows: lines.slice(1).map(l => l.split(',')) };
+  const [first, ...rest] = lines;
+  return { header: (first ?? '').split(','), rows: rest.map(l => l.split(',')) };
 }
 
 describe('Round W — UI Permissions Matrix (audit/ui-permissions-matrix.csv)', () => {
