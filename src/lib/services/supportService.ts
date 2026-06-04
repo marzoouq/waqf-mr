@@ -61,11 +61,10 @@ export const supportService = {
 
   async rateTicket(input: { id: string; rating: number; rating_comment?: string }): Promise<void> {
     // F2: استخدام RPC آمنة بدل تحديث مباشر يفشل بصمت بسبب RLS
-    const { error } = await supabase.rpc('rate_support_ticket', {
+    await rpc('rate_support_ticket', {
       p_id: input.id,
       p_rating: input.rating,
       p_comment: input.rating_comment || undefined,
     });
-    if (error) throw error;
   },
 };

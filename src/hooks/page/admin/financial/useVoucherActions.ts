@@ -4,7 +4,8 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
+import { invoke } from '@/lib/api/invoke';
 import { logger } from '@/lib/logger';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -34,7 +35,7 @@ export function useCreateVoucherAction() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: CreateVoucherInput): Promise<string> => {
-      const { data, error } = await supabase.rpc('create_disbursement_voucher', {
+      const data = await rpc<string>('create_disbursement_voucher', {
         p_expense_id: input.expense_id,
         p_amount: input.amount,
         p_recipient_name: input.recipient_name,
@@ -45,8 +46,7 @@ export function useCreateVoucherAction() {
         p_work_description: input.work_description,
         p_signature_data: input.signature_data,
       });
-      if (error) throw error;
-      return data as string;
+      return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
@@ -64,14 +64,16 @@ export function useApproveVoucherAction() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (voucherId: string) => {
-      const { error } = await supabase.rpc('approve_disbursement_voucher', {
-        p_voucher_id: voucherId,
-      });
-      if (error) throw error;
-      const { error: fnErr } = await supabase.functions.invoke('generate-voucher-pdf', {
-        body: { voucher_id: voucherId },
-      });
-      return { pdfOk: !fnErr, fnErr };
+      await rpc('approve_disbursement_voucher', { p_voucher_id: voucherId });
+      let pdfOk = true;
+      let fnErr: unknown = null;
+      try {
+        await invoke('generate-voucher-pdf', { body: { voucher_id: voucherId } });
+      } catch (err) {
+        pdfOk = false;
+        fnErr = err;
+      }
+      return { pdfOk, fnErr };
     },
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: KEY });
@@ -93,10 +95,7 @@ export function useGenerateVoucherPdfAction() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (voucherId: string) => {
-      const { error } = await supabase.functions.invoke('generate-voucher-pdf', {
-        body: { voucher_id: voucherId },
-      });
-      if (error) throw error;
+      await invoke('generate-voucher-pdf', { body: { voucher_id: voucherId } });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
@@ -113,11 +112,10 @@ export function useVoidVoucherAction() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { voucherId: string; reason: string }) => {
-      const { error } = await supabase.rpc('void_disbursement_voucher', {
+      await rpc('void_disbursement_voucher', {
         p_voucher_id: input.voucherId,
         p_reason: input.reason,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
