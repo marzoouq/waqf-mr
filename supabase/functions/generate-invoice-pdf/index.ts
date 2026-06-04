@@ -9,11 +9,20 @@
 
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
+import { z } from "npm:zod@3";
 import { generateInvoicePdf } from "./pdf-renderer.ts";
 import { fetchWaqfSettings } from "./settings-fetcher.ts";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_INVOICES_PER_REQUEST = 20;
+
+const BodySchema = z.object({
+  invoice_ids: z
+    .array(z.string().uuid({ message: "صيغة معرّف الفاتورة غير صالحة" }))
+    .min(1, "invoice_ids array is required")
+    .max(MAX_INVOICES_PER_REQUEST, `Maximum ${MAX_INVOICES_PER_REQUEST} invoices at a time`),
+  table: z.enum(["invoices", "payment_invoices"]).optional(),
+  force_regenerate: z.boolean().optional(),
+});
 
 Deno.serve(async (req): Promise<Response> => {
   const corsHeaders = getCorsHeaders(req);
@@ -33,22 +42,17 @@ Deno.serve(async (req): Promise<Response> => {
     if ("error" in auth) return auth.error;
     const { admin } = auth;
 
-    // 2) Body validation
-    const bodyData = await req.json().catch(() => ({}));
-    const { invoice_ids, table: sourceTable, force_regenerate } = bodyData;
+    // 2) Body validation موحّد (Zod)
+    const raw = await req.json().catch(() => ({}));
+    const parsed = BodySchema.safeParse(raw);
+    if (!parsed.success) {
+      const firstMsg = parsed.error.issues[0]?.message ?? "بيانات غير صالحة";
+      return jsonError(firstMsg, 400, corsHeaders);
+    }
+    const { invoice_ids, table: sourceTable, force_regenerate } = parsed.data;
     const tableName = sourceTable === "payment_invoices" ? "payment_invoices" : "invoices";
     const forceRegenerate = force_regenerate === true;
 
-    if (!invoice_ids || !Array.isArray(invoice_ids) || invoice_ids.length === 0) {
-      return jsonError("invoice_ids array is required", 400, corsHeaders);
-    }
-    if (invoice_ids.length > MAX_INVOICES_PER_REQUEST) {
-      return jsonError(`Maximum ${MAX_INVOICES_PER_REQUEST} invoices at a time`, 400, corsHeaders);
-    }
-    const invalidIds = invoice_ids.filter((id: unknown) => typeof id !== "string" || !UUID_RE.test(id));
-    if (invalidIds.length > 0) {
-      return jsonError("صيغة معرّف الفاتورة غير صالحة", 400, corsHeaders);
-    }
 
     // 3) جلب الفواتير + الإعدادات بالتوازي
     const [invoicesRes, waqfSettings] = await Promise.all([

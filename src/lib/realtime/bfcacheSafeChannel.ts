@@ -4,7 +4,9 @@
 import { useEffect, useCallback, useMemo, useRef } from 'react';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { createRealtimeChannel, removeRealtimeChannel, getRealtimeChannels } from '@/lib/realtime/channelFactory';
+import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+
 
 type SubscribeFn = (channel: RealtimeChannel) => void;
 
@@ -149,10 +151,22 @@ export const useBfcacheSafeChannel = (
     window.addEventListener('pageshow', handlePageShow);
     window.addEventListener('pagehide', handlePageHide);
 
+    // إعادة الاشتراك عند تجديد التوكن — يمنع CHANNEL_ERROR بعد TOKEN_REFRESHED
+    const authSub = supabase.auth?.onAuthStateChange?.((event) => {
+      if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+        logger.info(`[BfcacheSafe] Auth ${event} — re-initializing channel: ${channelName}`);
+        attemptRef.current = 0;
+        initChannel();
+      }
+    });
+
     return () => {
       teardown();
       window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('pagehide', handlePageHide);
+      authSub?.data?.subscription?.unsubscribe?.();
     };
+
   }, [initChannel, enabled, channelName, teardown]);
 };
+

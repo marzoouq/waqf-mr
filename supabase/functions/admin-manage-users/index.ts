@@ -9,7 +9,7 @@
 
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
-import { ALLOWED_ACTIONS, type AdminAction } from "./validators.ts";
+import { ALLOWED_ACTIONS, AdminBodySchema, type AdminAction } from "./validators.ts";
 import { json, type HandlerContext } from "./handlers/types.ts";
 import { toggleRegistration } from "./handlers/toggle-registration.ts";
 import { listUsers } from "./handlers/list-users.ts";
@@ -58,15 +58,21 @@ Deno.serve(async (req): Promise<Response> => {
     if ("error" in auth) return auth.error;
     const { user, admin } = auth;
 
-    // 2) Validate action
-    const action = body.action as string | undefined;
-    if (!action || !ALLOWED_ACTIONS.includes(action as AdminAction)) {
+    // 2) Validate body shape via Zod (Edge Functions Zod Required)
+    const action = (body as { action?: unknown }).action;
+    if (typeof action !== "string" || !ALLOWED_ACTIONS.includes(action as AdminAction)) {
       return json({ error: "إجراء غير صالح" }, 400, corsHeaders);
+    }
+    const parsed = AdminBodySchema.safeParse(body);
+    if (!parsed.success) {
+      const firstMsg = parsed.error.issues[0]?.message ?? "بيانات غير صالحة";
+      return json({ error: firstMsg }, 400, corsHeaders);
     }
 
     // 3) Dispatch
     const handler = handlers[action as AdminAction];
-    return await handler({ admin, callerId: user.id, body, corsHeaders });
+    return await handler({ admin, callerId: user.id, body: parsed.data, corsHeaders });
+
   } catch (error) {
     const msg = (error as Error).message;
     console.error("admin-manage-users: request failed");
