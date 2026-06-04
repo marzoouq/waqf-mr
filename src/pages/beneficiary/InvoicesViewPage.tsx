@@ -69,7 +69,7 @@ const InvoicesViewPage = () => {
             <TabsList aria-label="تصنيف الفواتير">
               <TabsTrigger value="all">الكل</TabsTrigger>
               <TabsTrigger value="rent">فواتير الإيجار</TabsTrigger>
-              <TabsTrigger value="expense">فواتير الشراء</TabsTrigger>
+              <TabsTrigger value="purchase">فواتير الشراء</TabsTrigger>
             </TabsList>
           </Tabs>
           <div className="relative flex-1 max-w-md">

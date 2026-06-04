@@ -105,7 +105,7 @@ const WaqifFinancialSection = ({
         )}
 
         <Link
-          to="/dashboard/reports"
+          to="/beneficiary/financial-reports"
           className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors"
         >
           <span className="text-sm text-muted-foreground">
