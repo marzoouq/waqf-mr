@@ -24,5 +24,4 @@ export const useBeneficiariesForMessaging = () => {
   });
 };
 
-// re-export للتوافق الخلفي — توجيه للمسار الجديد
-export { useBulkMessageSender } from '@/hooks/page/admin/messaging/useBulkMessageSender';
+// useBulkMessageSender متاح مباشرة من '@/hooks/page/admin/messaging/useBulkMessageSender'

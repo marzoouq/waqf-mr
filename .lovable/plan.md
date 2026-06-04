@@ -1,51 +1,61 @@
-## فحص ثلاثي عميق للتطبيق (قراءة فقط — لا تعديلات)
+# إصلاح مخالفات `lint:conventions` المعمارية
 
-### المرحلة 1 — Edge Functions (11 دالة)
+التشغيل الحالي لـ `bun run lint:conventions` يكشف **21 مخالفة** (وليس 16) في 6 ملفات. كلها تنتهك حدود معمارية موثّقة في `ARCHITECTURE.md` و `mem://conventions/libraries-and-architecture`:
 
-سحب سجلات آخر 24 ساعة لكل Edge Function وفلترة 5xx/timeout/exception:
+- `hooks/page` يستدعي `supabase.rpc` / `supabase.functions.invoke` مباشرة بدل wrappers الموحّدة.
+- `hooks/data` يصدّر hook من `hooks/page` (تبعية عكسية).
+- `hooks/data` يستدعي `supabase.rpc` مباشرة بدل `rpc()`.
+- `lib/services/` يستدعي `supabase.rpc` مباشرة.
+- `lib/diagnostics/checks/` يستخدم `supabase.from/rpc` خارج حدود `lib/services|auth|api|realtime`.
 
-- `health-check`, `guard-signup`, `send-verification-email`, `webauthn-register`, `webauthn-authenticate`
-- `generate-pdf`, `zatca-report-invoice`, `zatca-renew-csid`, `zatca-onboard`
-- `ai-assistant`, `email-unsubscribe`
-- (أي دوال أخرى في `supabase/functions/`)
+## التغييرات
 
-أولاً أحصي الدوال الفعلية من `supabase/functions/` ثم أستدعي `supabase--edge_function_logs` لكل دالة بحثاً عن `error|500|timeout|exception|panic`.
+### 1) `src/hooks/page/admin/financial/useVoucherActions.ts` (5 مخالفات)
+استبدال 3 `supabase.rpc` + 2 `supabase.functions.invoke` بـ `rpc()` و `invoke()` من `@/lib/api`. حذف import الـ supabase client. السلوك (toast/onSuccess/onError) يبقى كما هو.
 
-### المرحلة 2 — مصفوفة التحقق الخماسية
+### 2) `src/hooks/data/properties/usePropertyVatSync.ts` (1)
+استبدال `supabase.rpc('sync_property_contract_invoice_vat')` بـ `rpc(...)`.
 
-تشغيل بالترتيب وجمع النتائج:
+### 3) `src/lib/services/supportService.ts` (1)
+استبدال `supabase.rpc('rate_support_ticket')` بـ `rpc(...)`.
 
-1. `bunx vitest run` (كامل، ليس مجموعة جزئية)
-2. `node scripts/audit-ui-permissions.mjs` → يجب 0 GAPs
-3. `node scripts/build-permissions-matrix.mjs` → يجب 156 صف
-4. `bun run lint` إن وُجد script
-5. تحقق سريع من حالة Cloud عبر `supabase--cloud_status`
+### 4) `src/hooks/data/messaging/useBulkMessaging.ts` (1 — تبعية عكسية)
+حذف السطر `export { useBulkMessageSender } from '@/hooks/page/admin/messaging/useBulkMessageSender';`.
+ثم البحث عن كل المستهلكين عبر `rg "from '@/hooks/data/messaging/useBulkMessaging'"` وتحويل أي استيراد لـ `useBulkMessageSender` ليأتي مباشرة من `hooks/page/admin/messaging/useBulkMessageSender`.
 
-تجميع تقرير "نجح/فشل/تحذيرات" لكل بند.
+### 5) `src/lib/diagnostics/checks/cardConsistency.ts` + `numericalAudit.ts` (12 مخالفة)
+إنشاء **`src/lib/services/diagnosticsReadService.ts`** يلفّ كل قراءات DB التي تحتاجها فحوصات التشخيص (read-only). توقيع المنهج:
 
-### المرحلة 3 — فحص متصفح يدوي على صفحات حرجة
+```text
+listAccountsBasic(limit)
+listClosedFiscalYears(limit)
+getAccountByFy(fyId)
+listDistributionsByFy(fyId)
+listBeneficiariesWithShare()
+getActiveFiscalYear()
+listApprovedAdvancesByFy(fyId)
+listOpenPaymentInvoices(limit)
+listCarryforwardRecords(limit)
+getLatestFiscalYear() // active أو آخر مقفلة
+getDashboardFullSummary(fyId) // عبر rpc()
+listIncomeByFy(fyId)
+listExpensesByFy(fyId)
+getLatestClosedFy()
+getAccountSnapshotForFy(fyId)
+```
 
-عبر `browser--navigate_to_sandbox` ثم تنقل بدون أي إجراءات تعديل (لا حفظ، لا حذف، لا إقفال). فقط:
+كل دالة تستخدم `supabase` (مسموح داخل `lib/services/`) أو `rpc()` لاستدعاءات RPC. ثم في الفحصين نستبدل كل `supabase.from(...)` و `supabase.rpc(...)` بنداء الخدمة. يحذف `import { supabase }` من ملفّي الفحوصات.
 
-1. `/dashboard` — تحميل بدون أخطاء console
-2. `/dashboard/expenses` (الصفحة الحالية) — فتح نموذج إضافة مصروف ثم إلغاء
-3. `/dashboard/contracts` — قائمة العقود تُحمَّل
-4. `/dashboard/distributions` — صفحة التوزيع تُحمَّل
-5. `/dashboard/fiscal-years` — قائمة السنوات وزر "إقفال" يظهر للناظر فقط (لا ضغط)
-6. `/beneficiary/dashboard` (إن أمكن التبديل) — تحميل واجهة المستفيد
+## التحقّق بعد التغيير
 
-لكل صفحة: جمع console errors + network 4xx/5xx + لقطة شاشة عند ظهور أي خلل بصري.
+```bash
+bun run lint:conventions        # يجب أن ينخفض إلى 0 مخالفة
+bunx vitest run                  # 1985/1985 يجب أن تبقى خضراء
+node scripts/audit-ui-permissions.mjs   # 0 GAPs
+```
 
-### المخرجات النهائية
+## ما لن يتغيّر
 
-تقرير موحّد في رسالة واحدة:
-- ✅ ما يعمل بشكل سليم
-- ⚠️ تحذيرات (موثّقة/معروفة)
-- 🔴 مشاكل فعلية تستدعي إصلاحاً (مع ملف+سطر+سبب)
-
-### حدود واضحة
-
-- لا تعديلات على أي ملف.
-- لا migrations.
-- لا أي حركة تكتب في DB (لا حفظ نماذج، لا حذف، لا إقفال).
-- إن وُجدت مشاكل، تُذكر فقط في التقرير ولا تُصلح في نفس الجولة — تُترك لقرارك في جولة بناء منفصلة.
+- لا تعديل على RLS أو migrations أو edge functions.
+- لا تغيير في سلوك UI أو رسائل toast أو منطق الأعمال — فقط نقل استدعاءات إلى الطبقات الصحيحة.
+- التحذيرات الأربعة (ملفات > 200 سطر + `fiscalYearService.test.ts`) خارج النطاق.
