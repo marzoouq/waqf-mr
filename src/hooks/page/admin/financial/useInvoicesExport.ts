@@ -16,7 +16,7 @@ import {
   useGenerateInvoicePdf,
 } from '@/hooks/data/invoices/useInvoices';
 import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
-import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
+import { PDF_MESSAGES } from '@/lib/messages';
 
 interface UseInvoicesExportArgs {
   filteredInvoices: Invoice[];

@@ -10,7 +10,7 @@ import { usePropertiesMap } from '@/hooks/data/properties/usePropertiesMap';
 import { uiNotify } from '@/lib/notify';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
-import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
+import { PDF_MESSAGES } from '@/lib/messages';
 
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 

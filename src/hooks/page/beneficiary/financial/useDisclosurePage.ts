@@ -18,7 +18,7 @@ import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
 import { toGregorianShort } from '@/utils/format/date';
 import { isFyReady } from '@/constants/fiscalYearIds';
-import { PDF_MESSAGES } from '@/lib/messages/pdfMessages';
+import { PDF_MESSAGES } from '@/lib/messages';
 
 
 export const useDisclosurePage = () => {

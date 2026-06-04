@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { uiNotify } from '@/lib/notify';
 import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { useAppSettingsHistory, type AppSettingHistoryEntry } from '@/hooks/data/settings/app/useAppSettingsHistory';
-import { SAVE_MESSAGES } from '@/lib/messages/pdfMessages';
+import { SAVE_MESSAGES } from '@/lib/messages';
 
 export interface AdvancedField {
   key: string;

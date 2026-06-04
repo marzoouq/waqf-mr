@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { uiNotify } from '@/lib/notify';
-import { SAVE_MESSAGES } from '@/lib/messages/pdfMessages';
+import { SAVE_MESSAGES } from '@/lib/messages';
 
 export const useSecuritySettings = () => {
   const { data: settings, updateSetting, isLoading } = useAppSettings();

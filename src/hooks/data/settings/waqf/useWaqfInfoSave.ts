@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
-import { SAVE_MESSAGES } from '@/lib/messages/pdfMessages';
+import { SAVE_MESSAGES } from '@/lib/messages';
 
 interface WaqfField {
   key: string;
