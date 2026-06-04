@@ -33,6 +33,9 @@ export { checkPartiallyPaidConsistency, checkDistributionsVsAvailable, checkBene
 // بطاقة 9 — اتساق بطاقات اللوحات
 export { checkAvailableAmountNonNegative, checkDistributionsWithinAvailable, checkBeneficiaryShareFormula, checkAdvancesWithinShare, checkOverduePendingNoOverlap, checkCarryforwardIntegrity } from './checks/cardConsistency';
 
+// بطاقة 10 — تدقيق رقمي DB ↔ RPC ↔ UI
+export { checkDbVsRpcTotalIncome, checkDbVsRpcExpenses, checkRpcVsUiAvailableAmount, checkSnapshotIntegrityClosedYear } from './checks/numericalAudit';
+
 // استيراد الدوال لبناء المجمّع
 import { checkSupabaseConnection, checkRealtimeChannels, checkAuthSession } from './checks/database';
 import { checkScrollPerformance, checkDomNodesCount, checkDeviceMemory, checkPagePerformance, checkWcagContrast } from './checks/performance';
@@ -43,6 +46,7 @@ import { checkEnvVariables, checkRegisteredRoutes, checkOnlineStatus } from './c
 import { checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPendingInvoiceChains, checkUnsubmittedInvoices, checkZatcaSettings, checkStaleOtp, checkInvoiceChainCompleteness } from './checks/zatca';
 import { checkPartiallyPaidConsistency, checkDistributionsVsAvailable, checkBeneficiariesWithoutAccount, checkContractsWithoutAllocations, checkOverduePartiallyPaid } from './checks/financial';
 import { checkAvailableAmountNonNegative, checkDistributionsWithinAvailable, checkBeneficiaryShareFormula, checkAdvancesWithinShare, checkOverduePendingNoOverlap, checkCarryforwardIntegrity } from './checks/cardConsistency';
+import { checkDbVsRpcTotalIncome, checkDbVsRpcExpenses, checkRpcVsUiAvailableAmount, checkSnapshotIntegrityClosedYear } from './checks/numericalAudit';
 import type { CheckResult, DiagnosticCategory } from './types';
 
 
@@ -86,6 +90,10 @@ export const diagnosticCategories: DiagnosticCategory[] = [
   {
     title: 'اتساق بطاقات اللوحات',
     checks: [checkAvailableAmountNonNegative, checkDistributionsWithinAvailable, checkBeneficiaryShareFormula, checkAdvancesWithinShare, checkOverduePendingNoOverlap, checkCarryforwardIntegrity],
+  },
+  {
+    title: 'تدقيق رقمي DB ↔ RPC ↔ UI',
+    checks: [checkDbVsRpcTotalIncome, checkDbVsRpcExpenses, checkRpcVsUiAvailableAmount, checkSnapshotIntegrityClosedYear],
   },
 ];
 
