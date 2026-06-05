@@ -973,6 +973,7 @@ routes/withRouteErrorBoundary.tsx,route,8,2,1,false,false,false,false,false
 test/__helpers__/corsMirror.ts,test,41,0,3,false,false,false,false,false
 test/__mocks__/pwa-register-react.ts,test,13,0,1,false,false,false,false,false
 test/adminSectionsVisibility.test.ts,test,40,2,0,false,false,false,false,false
+test/auditCriticalGate.test.ts,test,105,4,0,false,false,false,false,false
 test/authFlowsIntegration.test.tsx,test,237,8,0,false,false,false,false,false
 test/beneficiariesSafeUsageContract.test.ts,test,48,3,0,false,false,false,false,false
 test/beneficiaryIsolation.test.ts,test,194,1,0,false,false,false,false,false

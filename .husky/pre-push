@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# pre-push: بوابة Audit الإلزامية قبل الدفع.
+# لتجاوز مؤقت (في حالات الطوارئ فقط): git push --no-verify
+set -e
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  بوابة Audit — نظام إدارة وقف مرزوق بن علي الثبيتي"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+if ! command -v npm >/dev/null 2>&1; then
+  echo "✗ npm غير متوفر في PATH — تعذّر تشغيل البوابة."
+  exit 1
+fi
+
+echo "▶ 1/2 تشغيل سلسلة Audit وتوليد التقرير..."
+if ! npm run -s audit; then
+  echo ""
+  echo "✗ فشلت سلسلة Audit. راجع audit/report.html و audit/*.md"
+  echo "  للتجاوز الطارئ فقط: git push --no-verify"
+  exit 1
+fi
+
+echo ""
+echo "▶ 2/2 تشغيل اختبار البوابة الحرجة (auditCriticalGate)..."
+if ! npm run -s audit:gate; then
+  echo ""
+  echo "✗ اختبار البوابة الحرجة فشل. الـ push ممنوع."
+  echo "  للتجاوز الطارئ فقط: git push --no-verify"
+  exit 1
+fi
+
+echo ""
+echo "✓ بوابة Audit اجتازت — يُسمح بالـ push."
