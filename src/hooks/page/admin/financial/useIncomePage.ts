@@ -174,7 +174,7 @@ export function useIncomePage() {
   return {
     income, isLoading, properties, contracts, paymentInvoices,
     fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,
-    isOpen, setIsOpen, editingIncome, formData, setFormData,
+    isOpen, setIsOpen, editingIncome, formData, setFormData, errors, onFieldBlur,
     resetForm, handleEdit, handleSubmit,
     createPending: createIncome.isPending,
     updatePending: updateIncome.isPending,
