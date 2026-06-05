@@ -43,3 +43,17 @@ describe('validateIncomeForm', () => {
     }
   });
 });
+
+import { getIncomeFieldErrors } from './incomeFormValidation';
+
+describe('getIncomeFieldErrors', () => {
+  it('يُرجع خريطة فارغة عند النجاح', () => {
+    expect(getIncomeFieldErrors(base)).toEqual({});
+  });
+  it('يُرجع أخطاء متعددة الحقول دفعة واحدة', () => {
+    const e = getIncomeFieldErrors({ source: '', amount: '-1', date: '', property_id: '', notes: '' });
+    expect(e.source).toBeTruthy();
+    expect(e.amount).toBeTruthy();
+    expect(e.date).toBeTruthy();
+  });
+});
