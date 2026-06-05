@@ -28,6 +28,10 @@ const ALLOWED_HEX_NAMES = /(Pdf|PDF|Chart|Canvas|Svg|SVG|Color|Theme|tailwind)/;
 for (const abs of walk(ROOT)) {
   const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
   const src = fs.readFileSync(abs, 'utf8');
+  const isTest = /\.test\.(ts|tsx)$/.test(rel) || rel.startsWith('test/') || rel.startsWith('__mocks__');
+  if (isTest) continue; // tests are exempt from runtime rules
+
+
 
   // Core Modularization v7: pages must not import supabase or hooks/data directly
   if (rel.startsWith('pages/')) {
