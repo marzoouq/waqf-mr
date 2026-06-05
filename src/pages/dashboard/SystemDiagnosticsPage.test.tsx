@@ -27,7 +27,7 @@ vi.mock('@/hooks/page/admin/management/useSystemDiagnostics', () => ({
   })),
 }));
 
-vi.mock('@/components/common/WebVitalsPanel', () => ({ default: () => null }));
+vi.mock('@/components/common/feedback/WebVitalsPanel', () => ({ default: () => null }));
 
 import SystemDiagnosticsPage from './SystemDiagnosticsPage';
 

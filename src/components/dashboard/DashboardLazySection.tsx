@@ -6,7 +6,7 @@
  * يُستثنى من هذا النمط: أقسام `DeferredRender` (تأخير زمني لا viewport).
  */
 import { Suspense, type ReactNode } from 'react';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
+import ErrorBoundary from '@/components/common/feedback/ErrorBoundary';
 import ViewportRender from '@/components/common/ViewportRender';
 import { Skeleton } from '@/components/ui/skeleton';
 

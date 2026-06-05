@@ -11,7 +11,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { queryClient } from "@/lib/queryClient";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
-import ErrorBoundary from "@/components/common/ErrorBoundary";
+import ErrorBoundary from "@/components/common/feedback/ErrorBoundary";
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (

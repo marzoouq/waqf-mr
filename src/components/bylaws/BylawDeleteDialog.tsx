@@ -1,7 +1,7 @@
 /**
  * Wrapper رقيق فوق ConfirmDeleteDialog — يحافظ على API الموجود في BylawsPage.
  */
-import ConfirmDeleteDialog from '@/components/common/ConfirmDeleteDialog';
+import ConfirmDeleteDialog from '@/components/common/feedback/ConfirmDeleteDialog';
 import type { BylawEntry } from '@/hooks/data/content/useBylaws';
 
 interface DeleteDialogProps {
