@@ -21,7 +21,7 @@ const ALLOWLIST = new Set<string>([
   // fallback HTML داخل innerHTML عند فشل React boot — ليس استدعاءً تشغيلياً
   'main.tsx',
   // زر استرجاع يدوي يضغطه المستخدم بعد ظهور شاشة الخطأ
-  'components/common/ErrorBoundary.tsx',
+  'components/common/feedback/ErrorBoundary.tsx',
   // استرداد من chunk load failure بعد نشر جديد (مرة واحدة فقط مع علم session)
   'lib/lazyWithRetry.ts',
 ]);
