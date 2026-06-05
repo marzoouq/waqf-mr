@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
-import { MAX_FINANCIAL_AMOUNT, MAX_FINANCIAL_AMOUNT_MESSAGE } from '@/constants/limits';
+import { validateIncomeForm } from '@/utils/financial/incomeFormValidation';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import type { SortFieldOf } from '@/types/sorting';
