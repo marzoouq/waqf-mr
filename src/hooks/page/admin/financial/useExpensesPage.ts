@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
-import { validateExpenseForm } from '@/utils/financial/expenseFormValidation';
+import { validateExpenseForm, getExpenseFieldErrors, type ExpenseFieldErrors, type ExpenseFormInput } from '@/utils/financial/expenseFormValidation';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import type { SortFieldOf } from '@/types/sorting';
