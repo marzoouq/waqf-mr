@@ -1,6 +1,6 @@
 # Page Controls Audit — Admin & Beneficiary
 
-Generated: 2026-06-05T22:29:59.748Z
+Generated: 2026-06-05T22:30:21.132Z
 
 ## Scope
 
@@ -13,15 +13,15 @@ Generated: 2026-06-05T22:29:59.748Z
 | Metric | Value |
 |---|---|
 | Total controls | 91 |
-| OK | 89 |
-| GAP-NO-HANDLER | 2 |
+| OK | 91 |
+| GAP-NO-HANDLER | 0 |
 
 ## Per-page summary
 
 | Page | Route | Roles | Tabs | Buttons | Dropdown/CommandItems | Links | Forms | Gaps |
 |---|---|---|---:|---:|---:|---:|---:|---:|
 | `beneficiary/AccountsViewPage.tsx` | `/beneficiary/accounts` | ALL_NON_ACCOUNTANT | 0 | 3 | 0 | 0 | 0 | ✅ 0 |
-| `beneficiary/AnnualReportViewPage.tsx` | `/beneficiary/annual-report` | ALL_NON_ACCOUNTANT | 4 | 3 | 0 | 0 | 0 | 🔴 1 |
+| `beneficiary/AnnualReportViewPage.tsx` | `/beneficiary/annual-report` | ALL_NON_ACCOUNTANT | 4 | 3 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/BeneficiaryDashboard.tsx` | `/beneficiary` | BENEFICIARY_ROLES | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/BeneficiaryMessagesPage.tsx` | `/beneficiary/messages` | BENEFICIARY_ROLES | 0 | 3 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/BeneficiarySettingsPage.tsx` | `/beneficiary/settings` | ALL_NON_ACCOUNTANT | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
@@ -39,7 +39,7 @@ Generated: 2026-06-05T22:29:59.748Z
 | `beneficiary/SupportPageGuard.tsx` | `/beneficiary/support` | BENEFICIARY_ROLES | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/AccountsPage.tsx` | `/dashboard/accounts` | ADMIN_ROLES | 0 | 4 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/AdminDashboard.tsx` | `/dashboard` | ADMIN_ROLES | 0 | 2 | 0 | 0 | 0 | ✅ 0 |
-| `dashboard/AnnualReportPage.tsx` | `/dashboard/annual-report` | ADMIN_ROLES | 4 | 3 | 0 | 0 | 0 | 🔴 1 |
+| `dashboard/AnnualReportPage.tsx` | `/dashboard/annual-report` | ADMIN_ROLES | 4 | 3 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/AuditLogPage.tsx` | `/dashboard/audit-log` | ADMIN_ROLES | 3 | 1 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/BeneficiariesPage.tsx` | `/dashboard/beneficiaries` | ADMIN_ROLES | 2 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/BylawsPage.tsx` | `/dashboard/bylaws` | ADMIN_ROLES | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
@@ -60,9 +60,6 @@ Generated: 2026-06-05T22:29:59.748Z
 | `dashboard/UserManagementPage.tsx` | `/dashboard/users` | ADMIN_ONLY | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/ZatcaManagementPage.tsx` | `/dashboard/zatca` | ADMIN_ONLY | 3 | 0 | 0 | 0 | 0 | ✅ 0 |
 
-## Gaps (controls without handler)
+## Gaps
 
-| file:line | type | label | parents |
-|---|---|---|---|
-| `src/pages/dashboard/AnnualReportPage.tsx:125` | Tab | الخطط المستقبلية | `Building2>Trophy>AlertTriangle` |
-| `src/pages/beneficiary/AnnualReportViewPage.tsx:122` | Tab | الخطط المستقبلية | `Building2>Trophy>AlertTriangle` |
+✅ No controls without a handler detected on admin/beneficiary pages.

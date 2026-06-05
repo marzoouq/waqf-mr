@@ -8,7 +8,7 @@ src/pages/dashboard/AdminDashboard.tsx,/dashboard,ADMIN_ROLES,60,Button,"طبا�
 src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,110,Tab,"حالة العقارات",tabs-radix,"Loader2>Tabs>TabsList",OK
 src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,115,Tab,"الإنجازات",tabs-radix,"TabsList>Building2",OK
 src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,120,Tab,"التحديات",tabs-radix,"TabsList>Building2>Trophy",OK
-src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,125,Tab,"الخطط المستقبلية",UNKNOWN,"Building2>Trophy>AlertTriangle",GAP-NO-HANDLER
+src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,125,Tab,"الخطط المستقبلية",tabs-radix,"Building2>Trophy>AlertTriangle",OK
 src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,47,Button,"",onClick,"DashboardLayout>PageHeaderCard",OK
 src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,57,Button,"PDF",onClick,"PageHeaderCard>FileEdit>Send",OK
 src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,61,Button,"طباعة",onClick,"FileEdit>Send>FileDown",OK
@@ -62,7 +62,7 @@ src/pages/beneficiary/AccountsViewPage.tsx,/beneficiary/accounts,ALL_NON_ACCOUNT
 src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,113,Tab,"حالة العقارات",tabs-radix,"IncomeComparisonChart>Tabs>TabsList",OK
 src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,116,Tab,"الإنجازات",tabs-radix,"Tabs>TabsList>Building2",OK
 src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,119,Tab,"التحديات",tabs-radix,"TabsList>Building2>Trophy",OK
-src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,122,Tab,"الخطط المستقبلية",UNKNOWN,"Building2>Trophy>AlertTriangle",GAP-NO-HANDLER
+src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,122,Tab,"الخطط المستقبلية",tabs-radix,"Building2>Trophy>AlertTriangle",OK
 src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,66,Button,"PDF",onClick,"PageHeaderCard>Info>PageHeaderCard",OK
 src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,69,Button,"CSV",onClick,"Info>PageHeaderCard>FileDown",OK
 src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,72,Button,"طباعة",onClick,"PageHeaderCard>FileDown>FileSpreadsheet",OK
