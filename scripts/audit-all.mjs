@@ -61,8 +61,16 @@ const checkMd = (file, marker) => {
   return (txt.match(re) || []).length;
 };
 
-summary.gap += checkMd('audit/page-controls-audit.md', 'GAP-NO-HANDLER');
-summary.gap += checkMd('audit/ui-permissions-audit.md', '^\\|\\s*GAP\\s*\\|');
+// page-controls: استخرج العدد من السطر "| GAP-NO-HANDLER | N |"
+{
+  const p = resolve(ROOT, 'audit/page-controls-audit.md');
+  if (existsSync(p)) {
+    const m = readFileSync(p, 'utf8').match(/\|\s*GAP-NO-HANDLER\s*\|\s*(\d+)\s*\|/);
+    if (m) summary.gap += parseInt(m[1], 10);
+  }
+}
+// ui-permissions: صفوف فعلية تحتوي على GAP في عمود الحالة
+summary.gap += checkMd('audit/ui-permissions-audit.md', '\\|\\s*GAP\\s*\\|\\s*[^\\d]');
 
 // ─── طباعة الملخص ─────────────────────────────────────────────────────────
 console.log('\n' + cyan('━━━ ملخص Audit ━━━'));
