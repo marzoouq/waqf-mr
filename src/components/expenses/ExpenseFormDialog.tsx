@@ -68,7 +68,7 @@ const ExpenseFormDialog = ({
               onValueChange={(value) => setFormData({ ...formData, expense_type: value })}
               options={expenseTypeOptions}
               placeholder="اختر نوع المصروف"
-              className={errCls(errors.expense_type)} />
+              triggerClassName={errCls(errors.expense_type)} />
             <FieldError id="expense-type-error" message={errors.expense_type} />
           </div>
 
