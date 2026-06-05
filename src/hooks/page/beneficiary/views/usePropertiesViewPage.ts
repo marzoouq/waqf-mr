@@ -16,6 +16,8 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { uiNotify } from '@/lib/notify';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { PDF_MESSAGES } from '@/lib/messages';
+import { usePropertiesAggregateMaps } from './usePropertiesAggregateMaps';
+
 
 export function usePropertiesViewPage() {
   // Realtime: انعكاس فوري لتعديلات العقارات والوحدات
@@ -124,49 +126,10 @@ export function usePropertiesViewPage() {
   }, [properties, contracts, expenses, units, isSpecificYear, allocationMap, isClosed, incomeByPropertyMap]);
 
 
-  // --- #3/#61: خرائط مُسبقة الحساب لتفادي filter داخل .map JSX ---
-  const propertyContractsMap = useMemo(() => {
-    const map = new Map<string, typeof contracts>();
-    for (const c of (contracts ?? [])) {
-      if (!c.property_id) continue;
-      const arr = map.get(c.property_id);
-      if (arr) arr.push(c); else map.set(c.property_id, [c]);
-    }
-    return map;
-  }, [contracts]);
+  // --- #3/#61: خرائط مُسبقة الحساب مُستخرجة في usePropertiesAggregateMaps ---
+  const { propertyContractsMap, propertyUnitsMap, wholePropertyRentedSet, rentedUnitIdsByPropertyMap } =
+    usePropertiesAggregateMaps(contracts, units, isSpecificYear);
 
-  const propertyUnitsMap = useMemo(() => {
-    const map = new Map<string, NonNullable<typeof units>>();
-    for (const u of (units ?? [])) {
-      const arr = map.get(u.property_id);
-      if (arr) arr.push(u); else map.set(u.property_id, [u]);
-    }
-    return map;
-  }, [units]);
-
-  /**
-   * عقارات مؤجرة كاملة (عقد بدون unit_id).
-   * يراعي السنة المحددة: في عرض "كل السنوات" نقتصر على العقود النشطة لتجنّب إظهار عقار كمؤجَّر بعقد منتهٍ.
-   */
-  const wholePropertyRentedSet = useMemo(() => {
-    const s = new Set<string>();
-    for (const c of (contracts ?? [])) {
-      if (!(isSpecificYear || c.status === 'active')) continue;
-      if (c.property_id && !c.unit_id) s.add(c.property_id);
-    }
-    return s;
-  }, [contracts, isSpecificYear]);
-
-  /** خريطة معرفات الوحدات المؤجرة لكل عقار */
-  const rentedUnitIdsByPropertyMap = useMemo(() => {
-    const map = new Map<string, Set<string>>();
-    for (const [pid, pcontracts] of propertyContractsMap.entries()) {
-      const set = new Set<string>();
-      for (const c of pcontracts) if (c.unit_id) set.add(c.unit_id);
-      map.set(pid, set);
-    }
-    return map;
-  }, [propertyContractsMap]);
 
   const handleExportPdf = useCallback(async () => {
     try {

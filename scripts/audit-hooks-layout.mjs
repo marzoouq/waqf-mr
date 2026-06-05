@@ -34,6 +34,16 @@ for (const sub of ['financial', 'settings']) {
   }
 }
 
+// منع `hooks/page/shared/` بعد التهجير إلى `hooks/application/` (المرحلة 1.1)
+const sharedDir = path.join(ROOT, 'page', 'shared');
+if (fs.existsSync(sharedDir)) {
+  for (const abs of walk(sharedDir)) {
+    const rel = path.relative(path.resolve('src'), abs).replace(/\\/g, '/');
+    issues.push({ rule: 'HooksPageSharedForbidden', sev: 'Critical', file: rel, msg: 'put cross-role hooks under hooks/application/, not hooks/page/shared/' });
+  }
+}
+
+
 // Per-file checks
 let total = 0;
 for (const abs of walk(ROOT)) {

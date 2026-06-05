@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Bell, Volume2, Play } from 'lucide-react';
 import { uiNotify } from '@/lib/notify';
 import { TONE_OPTIONS, NOTIF_PREFS_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/data/notifications/useNotifications';
-import { useNotificationPreferences } from '@/hooks/page/shared/notifications/useNotificationPreferences';
+import { useNotificationPreferences } from '@/hooks/application/messaging/useNotificationPreferences';
 
 const defaultPrefs = {
   distributions: true,

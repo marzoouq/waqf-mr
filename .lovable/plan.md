@@ -1,129 +1,86 @@
-# تقرير المراجعة المعمارية الشاملة (قراءة فقط)
+# خطة تنفيذ التوصيات الإحدى عشرة
 
-تحليل قراءة فقط لـ 1,202 ملف TS/TSX، اعتماداً على سكربتات `audit/*` الحالية + مسح مباشر للهيكل والاعتمادات.
+تنفيذ مرتّب على 5 مراحل، كل مرحلة قابلة للمراجعة منفصلة. لن تُلمس الملفات المحمية ولا الـ DB ولا منطق الأعمال.
 
----
+## المرحلة 1 — تنظيم الهوكات (P1)
 
-## 1. الحكم العام: ✅ سليم بدرجة عالية
+### 1.1 تهجير `hooks/page/shared/` (#2)
+- نقل `src/hooks/page/shared/notifications/useNotificationPreferences.ts` → `src/hooks/application/messaging/useNotificationPreferences.ts`.
+- تحديث المستورد الوحيد: `src/components/settings/messaging/NotificationsTab.tsx`.
+- حذف مجلد `src/hooks/page/shared/` بالكامل.
 
-| المؤشر | القيمة | الحكم |
-|---|---|---|
-| ملفات TS/TSX | 1,202 | — |
-| صفحات | 67 (39 محمية + auth/landing/...) | — |
-| pages تستورد `supabase/client` | 0 | ✅ |
-| components تستورد `supabase/client` | 0 | ✅ |
-| pages تحتوي `useState`/`useEffect` | 1 فقط | ✅ Page Hook Pattern مُطبّق |
-| Critical violations (CoreModV7) | 0 | ✅ |
-| GAP في الصلاحيات/التحكم | 0 | ✅ |
-| toast في `hooks/data/` أو `utils/` | 0 | ✅ |
-| Barrel → barrel | 0 | ✅ |
-| Hooks تستورد من `pages/**` | 0 | ✅ |
-| RLS مفعّل على الجداول | 42/42 | ✅ |
+### 1.2 تقسيم `useContractForm.ts` (#3) — 227 سطر → 3 ملفات
+- استخراج `useContractFormValidation` (التحقق + قواعد الأسعار).
+- استخراج `useContractFormSubmit` (إرسال + معالجة الأخطاء + invalidate).
+- إبقاء `useContractForm` كـ orchestrator صغير (<120 سطر).
 
-**الخلاصة:** البنية نظيفة، فصل الاهتمامات مُطبَّق بصرامة، بوابة Audit (`npm run audit && npm run audit:gate` + `.husky/pre-push`) تمنع الانحدار. النقاط أدناه تحسينات نوعية لا إصلاحات حرجة.
+### 1.3 تقسيم `usePropertiesViewPage.ts` و `useAnnualReportPage.ts` (#4)
+- استخراج `usePropertiesFilters` من `usePropertiesViewPage` إلى نفس المجلد.
+- نقل الحسابات من `useAnnualReportPage` إلى `hooks/domain/financial/useAnnualReportCalc.ts`.
+
+**معايير القبول**: كل هوك ≤200 سطر، الاختبارات الحالية تمر، 0 Critical في `npm run audit`.
 
 ---
 
-## 2. كود في مكان غير مثالي
+## المرحلة 2 — إعادة تنظيم المكوّنات (P2)
 
-### 2.1 ازدواج `hooks/page/shared/` مع `hooks/application/`
-الذاكرة `mem://technical/architecture/hooks-application-layer` تنص أن المشتركات بين الأدوار تذهب لـ `hooks/application/`. مع ذلك لا يزال `src/hooks/page/shared/notifications/useNotificationPreferences.ts` موجوداً كملف يتيم — انتهاك تنظيمي صامت لم تحجبه السكربتات.
+### 2.1 تقسيم `src/components/common/` (#5)
+- إنشاء `common/feedback/` (EmptyState, ErrorBoundary, PageStateGuards, SkeletonLoaders, BetaBanner, ConfirmDeleteDialog, DiagnosticOverlay, WebVitalsPanel).
+- `common/layout/` (PrintHeader, PrintFooter, LegalPageFooter, MobileCardView).
+- `common/forms/` (ViewModeToggle, ExportMenu).
+- `common/tables/` (TablePagination, CrudPagination, TableSkeleton).
+- إبقاء `common/finance/` كما هو.
+- تحديث `components/common/index.ts` (البارّل) ليُعيد التصدير من المسارات الجديدة (لا تغيير في الاستيرادات الخارجية).
 
-### 2.2 `src/components/dashboard/` يخلط 3 مستويات
-المجلد يحوي ملفات مسطحة (`AiAssistant.tsx`, `AdvancedFiltersBar.tsx`, `DashboardLazySection.tsx`) جنب مجلدات (`widgets/`, `views/`, `charts/`, `kpi/`). الملفات المسطحة تستحق مجلداً فرعياً (`dashboard/shell/`).
+### 2.2 تجميع dashboard المسطح (#6)
+- إنشاء `src/components/dashboard/shell/`.
+- نقل `AiAssistant.tsx`, `AdvancedFiltersBar.tsx`, `DashboardLazySection.tsx` إليه.
+- تحديث المستوردين (grep + replace).
 
-### 2.3 `src/components/common/` ضخم (31 ملف بدون تقسيم)
-ثاني أكبر مجلد بعد `ui/` (shadcn). مرشّح للتقسيم لـ `common/feedback`, `common/forms`, `common/layout`, `common/finance` (الأخير شبه موجود).
-
-### 2.4 تشابه أسماء `lib/` ↔ `utils/`
-مجلدات بنفس الاسم في الجهتين: `auth/`, `contracts/`. لا انتهاك آلي (الفحص يقول 0 supabase في utils)، لكن قد يُربك المساهمين. `lib/README.md` يشرح الحدود — ينقص نفس الشيء داخل `utils/contracts/` و `utils/auth/`.
-
----
-
-## 3. فصل الاهتمامات — تقييم تفصيلي
-
-| الطبقة | الحالة | ملاحظة |
-|---|---|---|
-| Pages (UI نقي) | ✅ ممتاز | 66/67 صفحة بلا state |
-| hooks/page (page controllers) | ✅ جيد | 3 هوكات > 200 سطر مرشّحة للتقسيم |
-| hooks/application (cross-role) | ⚠ تنظيمي | `shared/` لم يُهجَّر بالكامل |
-| hooks/data (Supabase نقي) | ✅ ممتاز | بلا toast/تنسيق |
-| hooks/domain (حسابات) | ✅ | معزول عن I/O |
-| lib (stateful services) | ✅ | منظّم لـ 14 مجلداً |
-| utils (pure functions) | ✅ | 0 supabase، 0 toast |
-| types | ✅ | `src/types/` مركزي |
-| RLS / Edge Functions | ✅ | Zod مطبّق + `getUser()` فقط |
-
-لا حالات High Coupling حرجة — السكربتات الخمسة تفحص حدود الطبقات وتعطي 0.
+**معايير القبول**: build + tests خضراء، لا تغيير سلوكي.
 
 ---
 
-## 4. التعقيد الزائد — مرشّحات التفكيك
+## المرحلة 3 — تشديد البوابة وقواعد الـ Audit (P3)
 
-### 4.1 هوكات > 200 سطر (3 ملفات — حالياً Info)
-| الملف | الأسطر | الفعل المقترح |
-|---|---:|---|
-| `hooks/page/admin/contracts/useContractForm.ts` | 227 | استخراج `useContractFormValidation` + `useContractFormSubmit` |
-| `hooks/page/beneficiary/views/usePropertiesViewPage.ts` | 202 | استخراج `usePropertiesFilters` |
-| `hooks/page/admin/reports/useAnnualReportPage.ts` | 200 | نقل الحسابات إلى `hooks/domain/` |
-| `hooks/application/useAiChat.ts` | 197 | مراقبة فقط |
+### 3.1 منع `hooks/page/shared/` مستقبلاً (#8)
+- إضافة قاعدة في `scripts/audit-hooks-layout.mjs` ترفع Critical إذا ظهر أي ملف تحت `src/hooks/page/shared/**`.
 
-### 4.2 مكوّنات بين 180–193 سطر
-الأكبر `components/contracts/MonthlyAccrualTable.tsx` (193). كلها تحت 200 ومسموحة للحاويات — لا فعل مطلوب.
+### 3.2 حد صارم 250 سطر للمكونات (#9)
+- في `scripts/audit-conventions-deep.mjs`: ترقية `HookSize` لتشمل مكوّنات > 250 سطر كـ Warning، و> 300 كـ Critical.
 
-### 4.3 ألوان hex (4 ملفات)
-كلها داخل Canvas (`SignaturePad`) أو خلفية طباعة (`InvoicePreviewDialog`) — متوافقة مع القاعدة.
+### 3.3 README لطبقتي `utils/auth` و `utils/contracts` (#7)
+- إضافة `src/utils/auth/README.md` و `src/utils/contracts/README.md` بفقرتين توضحان الحد مقابل `lib/auth` و `lib/contracts`.
 
 ---
 
-## 5. تحقق سلبي مفيد (لا مشكلة وُجدت)
+## المرحلة 4 — CI سحابي (P4)
 
-- ❌ لا ملف `utils/` يستورد `sonner` أو `@/integrations/supabase`.
-- ❌ لا صفحة تستورد `hooks/data/*`.
-- ❌ لا hook يستورد من `@/pages/**`.
-- ❌ لا `console.log` في الإنتاج.
-- ❌ لا `localStorage` لـ `fiscal_year_id` (sessionStorage فقط).
-- ❌ لا CHECK constraint زمني (validation triggers بدلاً منها).
-- ❌ لا roles مخزّنة خارج جدول `user_roles`.
+### 4.1 ربط بوابة Audit بـ GitHub Actions (#10)
+- إضافة خطوة `npm run audit && npm run audit:gate` إلى `.github/workflows/ci.yml` بعد خطوة `UI permissions audit` الموجودة.
+- رفع `audit/report.html` كـ artifact.
 
----
-
-## 6. التوصيات بالترتيب — من الأهم إلى الاختياري
-
-| # | الأولوية | البند | الجهد | الأثر |
-|---|---|---|---|---|
-| 1 | P0 | لا شيء حرج حالياً | — | — |
-| 2 | P1 | تهجير `hooks/page/shared/notifications/useNotificationPreferences.ts` → `hooks/application/messaging/` + تحديث المستوردين + حذف مجلد `shared/` | صغير (10د) | إغلاق ازدواج تنظيمي |
-| 3 | P1 | تقسيم `useContractForm.ts` (227 سطر) لـ 3 هوكات | متوسط (1س) | يخفض التعقيد ويسهّل الاختبار |
-| 4 | P2 | تقسيم `usePropertiesViewPage` + `useAnnualReportPage` | متوسط (1–2س) | إعادة استخدام أفضل |
-| 5 | P2 | تقسيم `src/components/common/` لمجلدات فرعية موضوعية | متوسط (1س) | قابلية اكتشاف |
-| 6 | P2 | تجميع الملفات المسطحة في `components/dashboard/` ضمن `dashboard/shell/` | صغير | تنظيم بصري |
-| 7 | P3 | إضافة `README.md` لـ `utils/auth/` و `utils/contracts/` يوضح الحدود مقابل `lib/` | صغير | توجيه المساهمين |
-| 8 | P3 | تشديد `audit-hooks-layout.mjs` ليرفض أي ملف جديد في `hooks/page/shared/` | صغير | منع الانحدار |
-| 9 | P3 | إضافة قاعدة في `audit-conventions-deep` لرفض components > 250 سطر صراحةً (الآن Info فقط) | صغير | حدود واضحة |
-| 10 | P4 | تأكيد أن `.github/workflows/ci.yml` يستدعي `npm run audit && npm run audit:gate` على كل PR (موجود workflow — يحتاج تحقق فقط) | متوسط | تطبيق سحابي للبوابة |
-| 11 | P4 | توثيق خريطة الطبقات (Mermaid) في `audit/architecture-map.md` | صغير | تيسير onboarding |
+### 4.2 خريطة طبقات Mermaid (#11)
+- إنشاء `audit/architecture-map.md` بمخطط Mermaid يوضّح:
+  Pages → hooks/page → hooks/data + hooks/domain → lib + utils → integrations/supabase.
 
 ---
 
-## 7. خطة التنفيذ (لا تُنفَّذ الآن — تتطلب موافقة لكل بند)
+## المرحلة 5 — التحقق النهائي
 
-> هذه المراجعة لم تُعدّل أي كود. كل بند أعلاه يُقدَّم كـ plan مستقل في رسالة لاحقة لإبقاء الـ diffs صغيرة وقابلة للمراجعة.
-
-الترتيب الموصى به:
-1. البند #2 (تهجير `shared/`) — أصغر وأعلى عائد تنظيمي.
-2. البند #3 (تقسيم `useContractForm`).
-3. البندان #5 و #6 (إعادة تنظيم `components/`).
-4. البنود #4 و #7–9 (تحسينات + تشديد البوابة).
-5. البندان #10–11 (CI سحابي + توثيق).
+- `npm run audit` → 0 Critical, 0 GAP, ≤7 Info.
+- `npm run audit:gate` (Vitest) → PASS.
+- تشغيل suite الاختبارات للتأكد من عدم وجود انحدارات.
+- تحديث `audit/structure-deep-review.md` بالحالة الجديدة.
 
 ---
 
-## 8. المخرجات الجاهزة الآن
+## خارج النطاق
 
-- `audit/report.html` — لوحة تفاعلية بكل النتائج.
-- `audit/structure-deep-review.md` — مراجعة الهيكل التفصيلية.
-- `audit/conventions-deep-report.md` — جدول الانتهاكات (7 Info، 0 حرج).
-- `audit/hooks-layout-report.md` — صحة طبقات الهوكات.
-- `audit/page-controls-audit.md` — كل عناصر التحكم في 39 صفحة محمية.
-- `audit/ui-permissions-audit.md` — مصفوفة الصلاحيات الكاملة.
+- لا تعديل على `src/integrations/**`, `supabase/migrations/**`, `supabase/config.toml`, `AuthContext`, `ProtectedRoute`.
+- لا تغيير في منطق الأعمال (الحسابات المالية، RLS، Edge Functions).
+- البند #1 لا يحتاج عمل.
+
+## ترتيب التسليم
+
+كل مرحلة تُسلَّم في commit/رسالة منفصلة (5 جولات تنفيذ). يمكن إيقاف الخطة عند أي مرحلة دون كسر التي قبلها.
