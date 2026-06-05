@@ -28,6 +28,7 @@ const ExpensesPage = () => {
               isOpen={h.isOpen} setIsOpen={h.setIsOpen} formData={h.formData} setFormData={h.setFormData}
               isEditing={!!h.editingExpense} isPending={h.createExpense.isPending || h.updateExpense.isPending}
               properties={h.properties} onSubmit={h.handleSubmit} onReset={h.resetForm} disabled={h.isLocked}
+              errors={h.errors} onFieldBlur={h.onFieldBlur}
             />
           </>}
         />
