@@ -26,12 +26,14 @@
  *   - audit/page-controls-audit.csv
  *   - audit/page-controls-audit.md
  */
-import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join, relative, resolve, basename } from 'node:path';
 
 const ROOT = process.cwd();
 const OUT_DIR = resolve(ROOT, 'audit');
 const PAGE_DIRS = ['src/pages/dashboard', 'src/pages/beneficiary'];
+const RECURSE_PREFIXES = ['@/components/dashboard/', '@/components/beneficiary/', '@/components/shared/', '@/components/admin/'];
+
 
 // ---- 1. resolve page filename -> route path & required roles ----
 function loadRouteMap() {
