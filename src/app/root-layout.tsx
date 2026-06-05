@@ -6,7 +6,7 @@
 import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import PageLoader from "@/components/common/PageLoader";
-import ErrorBoundary from "@/components/common/ErrorBoundary";
+import ErrorBoundary from "@/components/common/feedback/ErrorBoundary";
 import OfflineBanner from "@/components/common/OfflineBanner";
 import DeferredRender from "@/components/common/DeferredRender";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";

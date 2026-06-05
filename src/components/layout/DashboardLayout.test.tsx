@@ -22,8 +22,8 @@ vi.mock('@/hooks/data/useAppSettings', () => ({
 
 vi.mock('@/components/layout/WaqfInfoBar', () => ({ default: () => <div data-testid="waqf-info-bar" /> }));
 vi.mock('@/components/notifications/NotificationBell', () => ({ default: () => <div data-testid="notification-bell" /> }));
-vi.mock('@/components/common/PrintHeader', () => ({ default: () => <div data-testid="print-header" /> }));
-vi.mock('@/components/common/PrintFooter', () => ({ default: () => <div data-testid="print-footer" /> }));
+vi.mock('@/components/common/layout/PrintHeader', () => ({ default: () => <div data-testid="print-header" /> }));
+vi.mock('@/components/common/layout/PrintFooter', () => ({ default: () => <div data-testid="print-footer" /> }));
 
 vi.mock('@/contexts/FiscalYearContext', () => ({
   useFiscalYear: vi.fn(() => ({

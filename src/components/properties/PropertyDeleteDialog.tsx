@@ -1,7 +1,7 @@
 /**
  * Wrapper رقيق فوق ConfirmDeleteDialog — يحافظ على API الموجود في PropertiesPage.
  */
-import ConfirmDeleteDialog from '@/components/common/ConfirmDeleteDialog';
+import ConfirmDeleteDialog from '@/components/common/feedback/ConfirmDeleteDialog';
 
 interface DeleteTarget { id: string; name: string }
 

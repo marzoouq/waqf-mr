@@ -10,9 +10,9 @@ import { Lock } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { cn } from '@/lib/cn';
 import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
-const PrintHeader = lazy(() => import('@/components/common/PrintHeader'));
-const PrintFooter = lazy(() => import('@/components/common/PrintFooter'));
-import BetaBanner from '@/components/common/BetaBanner';
+const PrintHeader = lazy(() => import('@/components/common/layout/PrintHeader'));
+const PrintFooter = lazy(() => import('@/components/common/layout/PrintFooter'));
+import BetaBanner from '@/components/common/feedback/BetaBanner';
 import FiscalYearSelector from '@/components/layout/FiscalYearSelector';
 import SidebarContent from '@/components/layout/Sidebar';
 import BottomNav from '@/components/layout/BottomNav';
@@ -25,7 +25,7 @@ import { useMobileSidebarFocusTrap } from '@/hooks/ui/useMobileSidebarFocusTrap'
 
 // DiagnosticOverlay — يُحمّل فقط في وضع التطوير
 const DiagnosticOverlay = import.meta.env.DEV
-  ? lazy(() => import('@/components/common/DiagnosticOverlay'))
+  ? lazy(() => import('@/components/common/feedback/DiagnosticOverlay'))
   : null;
 
 interface DashboardLayoutProps {

@@ -33,7 +33,7 @@ vi.mock('@/hooks/domain/financial/useAdvanceCalculations', () => ({
   useCarryforwardBalance: () => ({ data: 0 }),
 }));
 
-vi.mock('@/components/common/SkeletonLoaders', () => ({
+vi.mock('@/components/common/feedback/SkeletonLoaders', () => ({
   DashboardSkeleton: () => <div>loading</div>,
 }));
 
@@ -41,7 +41,7 @@ vi.mock('@/components/layout/PageHeaderCard', () => ({
   default: ({ title }: { title: string }) => <div>{title}</div>,
 }));
 
-vi.mock('@/components/common/ExportMenu', () => ({
+vi.mock('@/components/common/forms/ExportMenu', () => ({
   default: () => <div>export</div>,
 }));
 

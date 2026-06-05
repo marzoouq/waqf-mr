@@ -2,7 +2,7 @@
  * AdminDashboard — UI خالصة بعد استخراج المنطق إلى useAdminDashboardPage (A2)
  */
 import { lazy } from 'react';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
+import ErrorBoundary from '@/components/common/feedback/ErrorBoundary';
 import DashboardLazySection from '@/components/dashboard/DashboardLazySection';
 import { Button } from '@/components/ui/button';
 import FiscalYearWidget from '@/components/dashboard/widgets/FiscalYearWidget';
