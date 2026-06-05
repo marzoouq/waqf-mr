@@ -39,3 +39,17 @@ describe('validateExpenseForm', () => {
     }
   });
 });
+
+import { getExpenseFieldErrors } from './expenseFormValidation';
+
+describe('getExpenseFieldErrors', () => {
+  it('يُرجع خريطة فارغة عند النجاح', () => {
+    expect(getExpenseFieldErrors(base)).toEqual({});
+  });
+  it('يُرجع أخطاء متعددة', () => {
+    const e = getExpenseFieldErrors({ expense_type: '', amount: '0', date: 'bad', property_id: '', description: '' });
+    expect(e.expense_type).toBeTruthy();
+    expect(e.amount).toBeTruthy();
+    expect(e.date).toBeTruthy();
+  });
+});

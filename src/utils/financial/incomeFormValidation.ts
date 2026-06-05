@@ -50,6 +50,19 @@ const incomeFormSchema = z.object({
     .default(''),
 });
 
+export type IncomeFieldErrors = Partial<Record<keyof IncomeFormInput, string>>;
+
+export function getIncomeFieldErrors(input: IncomeFormInput): IncomeFieldErrors {
+  const parsed = incomeFormSchema.safeParse(input);
+  if (parsed.success) return {};
+  const errors: IncomeFieldErrors = {};
+  for (const issue of parsed.error.issues) {
+    const field = issue.path[0] as keyof IncomeFormInput | undefined;
+    if (field && !errors[field]) errors[field] = issue.message;
+  }
+  return errors;
+}
+
 export function validateIncomeForm(input: IncomeFormInput): IncomeValidationResult {
   const parsed = incomeFormSchema.safeParse(input);
   if (!parsed.success) {
@@ -68,3 +81,4 @@ export function validateIncomeForm(input: IncomeFormInput): IncomeValidationResu
     },
   };
 }
+

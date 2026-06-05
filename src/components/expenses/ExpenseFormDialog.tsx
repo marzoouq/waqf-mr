@@ -5,22 +5,14 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Plus } from 'lucide-react';
+import { cn } from '@/lib/cn';
 import { EXPENSE_TYPES } from '@/constants';
 import { fmt } from '@/utils/format/format';
+import type { ExpenseFieldErrors, ExpenseFormInput } from '@/utils/financial/expenseFormValidation';
 
-interface ExpenseFormData {
-  expense_type: string;
-  amount: string;
-  date: string;
-  property_id: string;
-  description: string;
-}
+type ExpenseFormData = ExpenseFormInput;
 
-interface Property {
-  id: string;
-  property_number: string;
-  location: string;
-}
+interface Property { id: string; property_number: string; location: string; }
 
 interface ExpenseFormDialogProps {
   isOpen: boolean;
@@ -35,14 +27,24 @@ interface ExpenseFormDialogProps {
   disabled?: boolean;
   vatEnabled?: boolean;
   onVatChange?: (enabled: boolean) => void;
+  errors?: ExpenseFieldErrors;
+  onFieldBlur?: (field: keyof ExpenseFormInput) => void;
 }
 
-const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing, isPending, properties, onSubmit, onReset, disabled, vatEnabled = false, onVatChange }: ExpenseFormDialogProps) => {
+const errCls = (hasErr?: string) => cn(hasErr && 'border-destructive focus-visible:ring-destructive');
+
+const FieldError = ({ id, message }: { id: string; message?: string }) =>
+  message ? <p id={id} role="alert" className="text-sm text-destructive">{message}</p> : null;
+
+const ExpenseFormDialog = ({
+  isOpen, setIsOpen, formData, setFormData, isEditing, isPending, properties,
+  onSubmit, onReset, disabled, vatEnabled = false, onVatChange,
+  errors = {}, onFieldBlur,
+}: ExpenseFormDialogProps) => {
   const vatRate = vatEnabled ? 15 : 0;
   const amount = parseFloat(formData.amount) || 0;
   const vatAmount = amount * vatRate / 100;
 
-  /** حماية وقائية: استبعاد أي نوع يحتوي على كلمات VAT المحجوزة لمنع الخصم المزدوج */
   const VAT_BLOCKED = /ضريبة\s*القيمة\s*المضافة|vat/i;
   const expenseTypeOptions = EXPENSE_TYPES
     .filter(type => !VAT_BLOCKED.test(type))
@@ -51,21 +53,36 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) onReset(); }}>
-      <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={disabled}><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
+      <DialogTrigger asChild>
+        <Button className="gradient-primary gap-2" disabled={disabled}><Plus className="w-4 h-4" />إضافة مصروف</Button>
+      </DialogTrigger>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>{isEditing ? 'تعديل المصروف' : 'إضافة مصروف جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل مصروف</DialogDescription></DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <DialogHeader>
+          <DialogTitle>{isEditing ? 'تعديل المصروف' : 'إضافة مصروف جديد'}</DialogTitle>
+          <DialogDescription className="sr-only">نموذج إضافة أو تعديل مصروف</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="space-y-4" noValidate>
           <div className="space-y-2">
-            <Label htmlFor="expense-form-dialog-select-1">نوع المصروف *</Label>
-            <NativeSelect id="expense-form-dialog-select-1" value={formData.expense_type}
+            <Label htmlFor="expense-type">نوع المصروف *</Label>
+            <NativeSelect id="expense-type" value={formData.expense_type}
               onValueChange={(value) => setFormData({ ...formData, expense_type: value })}
               options={expenseTypeOptions}
               placeholder="اختر نوع المصروف"
-            />
+              triggerClassName={errCls(errors.expense_type)} />
+            <FieldError id="expense-type-error" message={errors.expense_type} />
           </div>
-          <div className="space-y-2"><div className="space-y-2"><Label htmlFor="expense-form-dialog-field-1">المبلغ (ر.س) *</Label><Input name="amount" id="expense-form-dialog-field-1" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="1000" /></div><Input name="amount" id="expense-form-dialog-field-1" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="1000" /></div>
 
-          {/* VAT Toggle */}
+          <div className="space-y-2">
+            <Label htmlFor="expense-amount">المبلغ (ر.س) *</Label>
+            <Input name="amount" id="expense-amount" type="number" value={formData.amount}
+              aria-invalid={!!errors.amount} aria-describedby={errors.amount ? 'expense-amount-error' : undefined}
+              className={errCls(errors.amount)}
+              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+              onBlur={() => onFieldBlur?.('amount')}
+              placeholder="1000" />
+            <FieldError id="expense-amount-error" message={errors.amount} />
+          </div>
+
           {onVatChange && (
             <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
               <div className="space-y-0.5">
@@ -80,16 +97,35 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
             </div>
           )}
 
-          <div className="space-y-2"><div className="space-y-2"><Label htmlFor="expense-form-dialog-field-2">التاريخ *</Label><Input name="date" id="expense-form-dialog-field-2" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div><Input name="date" id="expense-form-dialog-field-2" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
           <div className="space-y-2">
-            <Label htmlFor="expense-form-dialog-select-2">العقار (اختياري)</Label>
-            <NativeSelect id="expense-form-dialog-select-2" value={formData.property_id}
+            <Label htmlFor="expense-date">التاريخ *</Label>
+            <Input name="date" id="expense-date" type="date" value={formData.date}
+              aria-invalid={!!errors.date} aria-describedby={errors.date ? 'expense-date-error' : undefined}
+              className={errCls(errors.date)}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              onBlur={() => onFieldBlur?.('date')} />
+            <FieldError id="expense-date-error" message={errors.date} />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="expense-property">العقار (اختياري)</Label>
+            <NativeSelect id="expense-property" value={formData.property_id}
               onValueChange={(value) => setFormData({ ...formData, property_id: value })}
               options={propertyOptions}
-              placeholder="اختر العقار"
-            />
+              placeholder="اختر العقار" />
           </div>
-          <div className="space-y-2"><div className="space-y-2"><Label htmlFor="expense-form-dialog-field-3">الوصف</Label><Input name="description" id="expense-form-dialog-field-3" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي" /></div><Input name="description" id="expense-form-dialog-field-3" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
+
+          <div className="space-y-2">
+            <Label htmlFor="expense-description">الوصف</Label>
+            <Input name="description" id="expense-description" value={formData.description}
+              aria-invalid={!!errors.description} aria-describedby={errors.description ? 'expense-description-error' : undefined}
+              className={errCls(errors.description)}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onBlur={() => onFieldBlur?.('description')}
+              placeholder="وصف إضافي" />
+            <FieldError id="expense-description-error" message={errors.description} />
+          </div>
+
           <div className="flex gap-2 pt-4">
             <Button type="submit" className="flex-1 gradient-primary" disabled={isPending}>{isEditing ? 'تحديث' : 'إضافة'}</Button>
             <Button type="button" variant="outline" onClick={() => { setIsOpen(false); onReset(); }}>إلغاء</Button>

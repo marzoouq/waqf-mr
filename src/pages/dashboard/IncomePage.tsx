@@ -19,7 +19,7 @@ const IncomePage = () => {
   const {
     income, isLoading, properties, contracts, paymentInvoices,
     fiscalYearId, fiscalYear, isClosed, role, isLocked,
-    isOpen, setIsOpen, editingIncome, formData, setFormData,
+    isOpen, setIsOpen, editingIncome, formData, setFormData, errors, onFieldBlur,
     resetForm, handleEdit, handleSubmit,
     createPending, updatePending,
     deleteTarget, setDeleteTarget, handleConfirmDelete,
@@ -50,6 +50,7 @@ const IncomePage = () => {
               onSubmit={handleSubmit} onReset={resetForm}
               isPending={createPending || updatePending}
               isLocked={isLocked} properties={properties}
+              errors={errors} onFieldBlur={onFieldBlur}
             />
           </>}
         />

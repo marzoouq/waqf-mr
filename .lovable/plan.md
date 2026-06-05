@@ -1,55 +1,53 @@
-## السياق
+## الهدف
+تفعيل عرض رسائل أخطاء Zod حقلاً بحقل داخل `IncomeFormDialog` و`ExpenseFormDialog` مع إبراز بصري للحقول غير الصالحة، بدلاً من الاكتفاء برسالة toast واحدة عند الإرسال.
 
-صفحات إدارة الدخل والمصروفات (`IncomePage`, `ExpensesPage`) ونماذج CRUD (`IncomeFormDialog`, `ExpenseFormDialog`) والهوكس (`useIncomePage`, `useExpensesPage`) **مكتملة بالفعل** وتعمل: إضافة، تعديل، حذف بتأكيد، فلترة، ترتيب، تصدير PDF/CSV، RLS، وقفل السنوات المغلقة.
+## التصميم
 
-**الملاحظة الوحيدة**: التحقق من المدخلات حالياً سلسلة `if` يدوية مكررة حرفياً بين `useIncomePage` (السطور 65-67) و`useExpensesPage` (السطور 65-67)، بدون مخطط مركزي يمكن اختباره أو إعادة استخدامه.
+### 1. توسيع وحدات التحقق (utils نقية)
+- `src/utils/financial/incomeFormValidation.ts`:
+  - تصدير `IncomeFieldErrors = Partial<Record<keyof IncomeFormInput, string>>`.
+  - إضافة `getIncomeFieldErrors(input): IncomeFieldErrors` يستخدم `safeParse` ويبني خريطة `field → message` من `error.issues[*].path[0]`.
+  - الإبقاء على `validateIncomeForm` كما هو لتوافق الاستدعاءات الحالية.
+- نفس التوسيع في `expenseFormValidation.ts` (`ExpenseFieldErrors`, `getExpenseFieldErrors`).
 
-## النطاق
+### 2. تحديث هوكات الصفحات
+- `useIncomePage` و`useExpensesPage`:
+  - إضافة `errors` (state) من نوع خريطة الحقول.
+  - إضافة `setFieldTouched(field)` يحسب الخطأ لذلك الحقل عند الـ blur.
+  - في `handleSubmit`: إذا فشل التحقق، عيّن `errors` بكامل الخريطة (لإبراز كل الحقول) واعرض toast بأول رسالة (سلوك حالي محفوظ).
+  - تصفير `errors` ضمن `resetForm` وعند تغيير `formData[field]`.
+  - تصدير `errors` و`onFieldBlur` ضمن قيمة الهوك.
 
-تنفيذ التوصية #11 من الخطة الأم: استخراج تحقق نماذج الدخل والمصروفات إلى وحدات `utils/` نقية باستخدام Zod، وتحويل الهوكس إلى orchestrators صغيرة.
+### 3. تحديث النماذج (UI فقط)
+- `IncomeFormDialog` و`ExpenseFormDialog`:
+  - إضافة props: `errors`, `onFieldBlur`.
+  - لكل `<Input>` / `<NativeSelect>`:
+    - `aria-invalid={!!errors.field}`, `aria-describedby="<field>-error"`.
+    - `className` يضيف `border-destructive focus-visible:ring-destructive` عند الخطأ (CSS tokens فقط — لا hex).
+    - `onBlur={() => onFieldBlur('field')}`.
+  - أسفل كل حقل: `<p id="<field>-error" role="alert" className="text-sm text-destructive">{errors.field}</p>` عند وجود خطأ.
 
-خارج النطاق: أي تغيير في الواجهة، الـ DB، RLS، Edge Functions، أو منطق الأعمال.
+### 4. اختبارات
+- توسيع `incomeFormValidation.test.ts` و`expenseFormValidation.test.ts`:
+  - `getIncomeFieldErrors` يُرجع خريطة فارغة عند النجاح.
+  - يُرجع `source`, `amount`, `date` عند بيانات فاسدة متعددة.
+  - يحترم حدود الطول للملاحظات/الوصف.
 
-## الخطوات
+### 5. التحقق
+- `tsc --noEmit` نظيف.
+- `vitest run` ينجح بما فيه تحديثات الاختبارات.
+- مراجعة بصرية في `/dashboard/income` و`/dashboard/expenses`: ترك حقل فارغ ثم Tab يُظهر إطاراً أحمر ورسالة عربية، والإرسال يُبرز كل الحقول الناقصة دفعة واحدة.
 
-### 1. ملف تحقق الدخل
-إنشاء `src/utils/financial/incomeFormValidation.ts`:
-- `incomeFormSchema` (Zod) — يتحقق من: `source` (نص غير فارغ ≤200)، `amount` (رقم موجب ≤ `MAX_FINANCIAL_AMOUNT`)، `date` (ISO)، `property_id` (UUID اختياري)، `notes` (≤500 اختياري).
-- `validateIncomeForm(formData)` — يُرجع `{ success: true, data } | { success: false, error: string }` برسائل عربية.
-- لا استيراد من `sonner` أو `supabase` (utils نقية).
-
-### 2. ملف تحقق المصروفات
-إنشاء `src/utils/financial/expenseFormValidation.ts` بنفس النمط:
-- `expenseFormSchema` — `expense_type`, `amount`, `date`, `property_id?`, `description?`.
-- `validateExpenseForm(formData)`.
-
-### 3. اختبارات وحدة
-- `incomeFormValidation.test.ts` — حالات: فارغ، مبلغ سالب/تجاوز الحد، تاريخ صالح، خصائص اختيارية.
-- `expenseFormValidation.test.ts` — نفس الحالات.
-
-### 4. تحديث `useIncomePage`
-استبدال السطور 65-67 بـ:
-```ts
-const result = validateIncomeForm(formData);
-if (!result.success) { uiNotify.error(result.error); return; }
-const { amount } = result.data;
-```
-
-### 5. تحديث `useExpensesPage`
-نفس التحويل في السطور 65-67.
-
-### 6. التحقق
-- `tsc --noEmit` ينجح.
-- `vitest run` ينجح بما فيها الاختبارات الجديدة.
-- لا تغيير سلوكي مرئي للمستخدم.
+## القيود
+- لا تغيير في DB/RLS/Edge Functions/منطق الأعمال.
+- لا hex codes — استخدام `text-destructive`, `border-destructive` فقط.
+- `utils/` تبقى نقية (لا sonner لا supabase).
+- لا تجاوز سقف 200 سطر للنماذج.
 
 ## ملفات ستتغير
-- جديد: `src/utils/financial/incomeFormValidation.ts` + `.test.ts`
-- جديد: `src/utils/financial/expenseFormValidation.ts` + `.test.ts`
-- تعديل: `src/hooks/page/admin/financial/useIncomePage.ts` (حوالي 5 أسطر)
-- تعديل: `src/hooks/page/admin/financial/useExpensesPage.ts` (حوالي 5 أسطر)
-
-## معايير القبول
-- منطق تحقق مكرر يصبح مركزياً ومُختبَراً.
-- الهوكس أصغر وأكثر تركيزاً على التنسيق فقط.
-- جميع رسائل الخطأ بالعربية وتطابق السلوك الحالي.
+- تعديل: `src/utils/financial/incomeFormValidation.ts` (+ `.test.ts`)
+- تعديل: `src/utils/financial/expenseFormValidation.ts` (+ `.test.ts`)
+- تعديل: `src/hooks/page/admin/financial/useIncomePage.ts`
+- تعديل: `src/hooks/page/admin/financial/useExpensesPage.ts`
+- تعديل: `src/components/income/IncomeFormDialog.tsx`
+- تعديل: `src/components/expenses/ExpenseFormDialog.tsx`

@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
-import { validateIncomeForm } from '@/utils/financial/incomeFormValidation';
+import { validateIncomeForm, getIncomeFieldErrors, type IncomeFieldErrors, type IncomeFormInput } from '@/utils/financial/incomeFormValidation';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import type { SortFieldOf } from '@/types/sorting';
@@ -50,20 +50,40 @@ export function useIncomePage() {
   const { sortField, sortDir, handleSort } = useTableSort<'amount' | 'date' | 'source'>();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [formData, setFormData] = useState(EMPTY_INCOME_FORM);
+  const [formData, setFormDataRaw] = useState(EMPTY_INCOME_FORM);
+  const [errors, setErrors] = useState<IncomeFieldErrors>({});
 
-  const resetForm = useCallback(() => { setFormData(EMPTY_INCOME_FORM); setEditingIncome(null); }, []);
+  const setFormData = useCallback((data: typeof EMPTY_INCOME_FORM) => {
+    setFormDataRaw(data);
+    setErrors((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+  }, []);
+
+  const onFieldBlur = useCallback((field: keyof IncomeFormInput) => {
+    setFormDataRaw((current) => {
+      const fieldErrors = getIncomeFieldErrors(current);
+      setErrors((prev) => ({ ...prev, [field]: fieldErrors[field] }));
+      return current;
+    });
+  }, []);
+
+  const resetForm = useCallback(() => { setFormDataRaw(EMPTY_INCOME_FORM); setEditingIncome(null); setErrors({}); }, []);
 
   const handleEdit = useCallback((item: Income) => {
     setEditingIncome(item);
-    setFormData({ source: item.source, amount: item.amount.toString(), date: item.date, property_id: item.property_id || '', notes: item.notes || '' });
+    setFormDataRaw({ source: item.source, amount: item.amount.toString(), date: item.date, property_id: item.property_id || '', notes: item.notes || '' });
+    setErrors({});
     setIsOpen(true);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const result = validateIncomeForm(formData);
-    if (!result.success) { uiNotify.error(result.error); return; }
+    if (!result.success) {
+      setErrors(getIncomeFieldErrors(formData));
+      uiNotify.error(result.error);
+      return;
+    }
+    setErrors({});
     const incomeData: Record<string, unknown> = { ...result.data };
 
     if (!editingIncome) {
@@ -154,7 +174,7 @@ export function useIncomePage() {
   return {
     income, isLoading, properties, contracts, paymentInvoices,
     fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,
-    isOpen, setIsOpen, editingIncome, formData, setFormData,
+    isOpen, setIsOpen, editingIncome, formData, setFormData, errors, onFieldBlur,
     resetForm, handleEdit, handleSubmit,
     createPending: createIncome.isPending,
     updatePending: updateIncome.isPending,
