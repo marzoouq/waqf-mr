@@ -1,71 +1,101 @@
-# خطة مراجعة شاملة للمكوّنات والتبويبات والأزرار — الناظر والمستفيد
+# خطة فحص تنظيمي شامل للمستودع
 
-## السياق الحالي
+## السياق
 
-- **31 صفحة ناظر/محاسب** (`src/pages/dashboard/*`) + **21 صفحة مستفيد** (`src/pages/beneficiary/*`).
-- المصفوفة الرسمية `audit/ui-permissions-matrix.csv` = **156 صف** (39 مسار × 4 أدوار) ومحمية بـ CI gate.
-- ماسح `scripts/audit-ui-permissions.mjs` (regex، 449 ملف) يكشف 4 فئات فجوات: `GAP-NO-HANDLER`، `GAP-DEAD-LINK`، `GAP-DEAD-TAB`، `GAP-DIRECT-DB` — **النتيجة الحالية: 0 فجوة**.
-- اختبارات `roleRouteAccess` و `uiPermissionsMatrix` و `permissionKeysCoverage` و `buttonHandlerAudit` خضراء (1985/1985).
+المستودع ضخم وناضج: **1201 ملف TS/TSX**، 39 صفحة (`pages/dashboard` + `pages/beneficiary` + `waqif`)، 35 مجموعة مكوّنات، 6 طبقات هوكات (`application/auth/data/domain/page/ui`)، 17 مجلد `utils/*` تخصصي، 14 مجلد `lib/*`، 21 Edge Function، 7 سكربتات حراسة، 42 جدول قاعدة بيانات، و 40+ ملف اختبار حماية.
 
-## فجوات التغطية في الفحص الحالي
+الفحوصات الموجودة (`audit-ui-permissions`, `audit-page-controls`, `build-permissions-matrix`, `security-gates`, `check-conventions`, `supabase-lint-check`, `security-definer-sync-check`) تغطي **الصلاحيات والأمن** — لكن لا يوجد فحص شامل **للتنظيم الهيكلي** يطابق قواعد الذاكرة (Core Modularization v7، Hooks Layering، lib vs utils، Barrel Rule، Container/Presentational).
 
-الماسح الحالي يلتقط الأنماط الشائعة لكن لا يُجيب صراحة عن:
-1. **هل كل تبويب (Tab) داخل الصفحات يُعرض حسب الدور؟** (مثلاً تبويبات `SettingsPage` فقط للناظر؛ تبويبات `BeneficiaryDashboard` تحترم `featureVisibilityRegistry`).
-2. **هل كل زر إجراء مالي حساس (إقفال سنة / حذف فاتورة مدفوعة جزئياً / تنفيذ توزيع / فتح سنة مُقفلة) محميّ بـ `usePermissionCheck` أو `RequirePermission`؟**
-3. **هل كل زر داخل قوائم منسدلة (DropdownMenu/CommandItem) موصول بـ handler يحترم الدور؟**
-4. **هل أزرار صفحات المستفيد (Disclosure/MyShare/Carryforward) محجوبة فعلاً عن `accountant` و `waqif`؟**
+## النطاق (قراءة فقط)
 
-## النطاق
+لا تعديلات، لا migrations، لا ملفات محمية. المخرج تقارير Markdown + CSV في `audit/` فقط.
 
-- **قراءة فقط** — لا تعديل واجهة، لا منطق أعمال، لا RLS، لا migrations.
-- المخرَج النهائي: تقرير Markdown مفصّل + توسيع سكربت الفحص (إن لزم) ليُولّد جدول لكل صفحة.
+## خطة التنفيذ — 6 مراحل
 
-## خطة التنفيذ (4 مراحل)
+### المرحلة 1 — خط الأساس الآلي (متوازي)
 
-### المرحلة 1 — تشغيل المصفوفة الكاملة (تأكيد خط الأساس)
-- `npm run lint:conventions` + `audit-ui-permissions` + `build-permissions-matrix` + `security-gates` + `vitest run` بشكل متوازي.
-- يجب أن تظل كلها خضراء قبل المتابعة.
+تشغيل كل الفحوصات الحالية لتأكيد عدم وجود انحدار قبل البدء:
+- `npm test` + `npm run lint` + `npm run lint:conventions` + `npm run typecheck`
+- `node scripts/audit-ui-permissions.mjs` + `audit-page-controls.mjs` + `build-permissions-matrix.mjs` + `security-gates.mjs` + `supabase-lint-check.mjs` + `security-definer-sync-check.mjs`
 
-### المرحلة 2 — جرد آلي لكل تبويب وزرار في صفحات الناظر والمستفيد
-كتابة سكربت قراءة `scripts/audit-page-controls.mjs` (لا يعدّل المشروع) يولّد `audit/page-controls-audit.csv` بأعمدة:
-```
-page, role_required, control_type, control_label, handler_kind, permission_gate, status
-```
-حيث:
-- `control_type` ∈ {Tab, Button, DropdownItem, Link, FormSubmit}
-- `handler_kind` ∈ {onClick, asChild, type=submit, parent-Trigger, Link-to}
-- `permission_gate` = أقرب `RequirePermission` / `usePermissionCheck` / حارس مسار يحيط بالزر
-- `status` ∈ {OK, WARN-NO-GATE, GAP-NO-HANDLER, GAP-ROLE-MISMATCH}
+كلها يجب أن تبقى خضراء.
 
-### المرحلة 3 — مراجعة يدوية للأزرار المالية الحساسة
-قائمة محددة (≤15 زراً) تستحق فحصاً يدوياً مع citation `file:line`:
-- إقفال/إعادة فتح سنة مالية (`FiscalYearManagement`)
-- تنفيذ التوزيع (`DistributionsPage`)
-- حذف فاتورة مدفوعة جزئياً (`InvoicesPage`)
-- إنشاء/حذف مستخدم (`UserManagementPage`)
-- تعديل صلاحيات الأدوار (`SettingsPage`)
-- ZATCA onboard/renew/report
-- تصدير سجل المراجعة
-- التحكم بالإحصاءات العامة في الهبوط
+### المرحلة 2 — جرد هيكلي شامل
 
-لكل زر: تأكيد دور المسار + وجود `usePermissionCheck` + رسالة Toast عند المنع.
+سكربت قراءة جديد `scripts/audit-structure.mjs` يولّد `audit/structure-inventory.csv` يحوي لكل ملف TS/TSX:
+- `path`, `layer` (page/component/hook-data/hook-domain/hook-page/hook-application/hook-auth/hook-ui/lib/util/route/type/test/integration)
+- `loc` (عدد الأسطر)
+- `imports_count`, `exports_count`
+- `barrel` (هل هو `index.ts` يعيد التصدير فقط؟)
+- `has_supabase_import`, `has_toast_import`, `has_console_log`
+- `default_export` (true/false)
 
-### المرحلة 4 — تقرير نهائي
-ملف واحد `audit/role-controls-review.md` يحوي:
-1. ملخص خط الأساس (الفحوصات السبعة).
-2. جدول لكل صفحة من 52 صفحة (31 ناظر + 21 مستفيد): عدد التبويبات، عدد الأزرار، عدد الـ gated، الحالة.
-3. الأزرار الحساسة الـ 15 مع citation.
-4. أي فجوة مكتشفة (إن وُجدت) كبند عمل صريح — **بدون إصلاحها في هذه الجولة** (تنتظر موافقة منفصلة).
+### المرحلة 3 — فحص امتثال القواعد المعمارية
 
-## الاستبعادات
+سكربت `scripts/audit-conventions-deep.mjs` يفحص ضد قواعد الذاكرة:
 
-- لا تعديل ملفات `routes/*` أو `permissions.ts` أو `routeRoles.ts`.
-- لا إصلاح الفجوات إن وُجدت — تُسرد للموافقة لاحقاً.
-- لا تفعيل/تعطيل لأي ميزة.
-- لا تغيير في الملفات المحمية (`config.toml`, `client.ts`, `types.ts`, `.env`).
+| القاعدة | الفحص | الحد المسموح |
+|---|---|---|
+| Core Modularization v7 | صفحة `pages/**` تستورد فقط من `hooks/page/`، `components/`، `lib/`، `types/` — لا تستورد `supabase` مباشرة ولا `hooks/data/*` | 0 انتهاك |
+| Hooks Layering | `hooks/data/**` لا تستورد `sonner`؛ `hooks/domain/**` لا تستورد `supabase` مباشرة؛ `hooks/page/**` لا تحوي `await supabase.from` خارج wrappers | 0 |
+| lib vs utils | `utils/**` لا تستورد `sonner` ولا `@/integrations/supabase`؛ ولا تستورد من `@/hooks/data/*` | 0 |
+| Barrel Rule | لا `index.ts` يستورد من `index.ts` آخر | 0 |
+| Container vs Presentational | ملفات `components/**/*.tsx` ≤ 200 سطر؛ ملفات `hooks/**/*.ts` ≤ 200 سطر؛ Props ≥ 5 يجب تجميعها | تقرير + تحذيرات |
+| No Toast in Data Hooks | `hooks/data/**` بدون `from 'sonner'` ولا `uiNotify` | 0 |
+| Page Hook Pattern | صفحات `pages/**` بدون `useState/useEffect` لمنطق أعمال (heuristic: `useState` count > 3) | تحذير |
+| logger usage | لا `console.log/warn/error` خارج `src/lib/logger.ts` و `scripts/` | 0 |
+| Hex colors | لا `#[0-9a-f]{3,8}` في `.tsx` (ما عدا Canvas/SVG/PDF) | 0 |
+
+المخرج: `audit/conventions-deep-report.md` + `audit/conventions-deep-violations.csv`.
+
+### المرحلة 4 — فحص الصفحات والتبويبات
+
+موسّع للسكربت الحالي `audit-page-controls.mjs`:
+- لكل صفحة: اسم، مسار، أدوار، عدد التبويبات، عدد الأزرار، عدد المكوّنات الفرعية، عدد الأسطر، الهوك الرئيسي
+- تأكيد كل صفحة لها سطر في `audit/ui-permissions-matrix.csv`
+- تأكيد كل تبويب يستخدم `TabsTrigger` ضمن `Tabs` مع `value` متطابق
+- كشف أي صفحة بدون `hooks/page/` مقابل (انتهاك Page Hook Pattern)
+
+المخرج: تحديث `audit/page-controls-audit.md` بقسم جديد "Page → Hook binding".
+
+### المرحلة 5 — فحص الهوكات والتقسيم الفرعي
+
+`scripts/audit-hooks-layout.mjs`:
+- `hooks/auth/` يطابق `session/role/biometric/flows` (Hooks Auth Subfolder Layout)
+- `hooks/data/financial/` و `hooks/data/settings/` مقسّمة لمجلدات موضوعية (Hooks Data Subfolder Layout)
+- لا استيراد من barrel `hooks/auth/index.ts` (يجب direct imports)
+- كل hook له اسم يبدأ بـ `use`
+- لا hook يستورد من `pages/**` (انتهاك اتجاه الاعتماد)
+
+المخرج: `audit/hooks-layout-report.md`.
+
+### المرحلة 6 — تقرير نهائي موحّد
+
+ملف واحد `audit/structure-deep-review.md` يحوي:
+
+1. **ملخص تنفيذي** — درجة الصحة الإجمالية (✅/⚠/🔴) لكل قاعدة.
+2. **إحصاءات** — جدول: عدد الملفات لكل طبقة، متوسط LOC، أكبر 10 ملفات، الملفات > 200 سطر.
+3. **الانتهاكات** — مصنّفة حسب الخطورة (Critical/Warning/Info) مع `file:line` و القاعدة المخروقة و الذاكرة المرجعية (`mem://...`).
+4. **التوزيع الصحي** — هل المجلدات منظمة موضوعياً؟ أي مجلد منتفخ (> 50 ملف) يحتاج تقسيم؟
+5. **Edge Functions** — جرد سريع (21 وظيفة) + تأكيد وجود `_shared`, Zod validation, `getUser()` (مرجعية فقط — لا فحص جديد).
+6. **توصيات** — قائمة مرتبة بالأولوية للجولات اللاحقة (إصلاح مستقل بموافقة).
+
+## الاستبعادات الصريحة
+
+- لا تعديل أي ملف مصدر، migration، RLS، أو ملف محمي (`config.toml`, `client.ts`, `types.ts`, `.env`).
+- لا تحريك ملفات أو إعادة هيكلة في هذه الجولة.
+- لا إصلاح الانتهاكات المكتشفة — تُسرد فقط كبنود عمل تنتظر موافقة منفصلة.
+- لا تغيير في `CONTRIBUTING.md` أو ملفات الذاكرة.
 
 ## معايير القبول
 
-- `audit/page-controls-audit.csv` يحوي صفاً لكل عنصر تحكم في الصفحات الـ 52.
-- `audit/role-controls-review.md` يقدّم تقريراً نهائياً ≤ 800 سطر يكشف بوضوح: ✅ سليم / ⚠ تحذير / 🔴 فجوة.
-- جميع فحوصات CI تظل خضراء.
+- 4 سكربتات فحص جديدة في `scripts/audit-*` (قراءة فقط).
+- 5 مخرجات في `audit/`: `structure-inventory.csv`, `conventions-deep-report.md`, `conventions-deep-violations.csv`, `hooks-layout-report.md`, `structure-deep-review.md`.
+- جميع فحوصات CI الموجودة تبقى خضراء.
+- التقرير النهائي ≤ 1000 سطر، يحدد بوضوح ما هو سليم وما يحتاج تدخل لاحق.
+
+## تفاصيل تقنية
+
+- اللغة: Node ESM (متناسق مع باقي `scripts/*.mjs`).
+- بدون اعتمادات جديدة — regex + AST خفيف بـ `node:fs` فقط (نفس نمط السكربتات الحالية).
+- وقت التنفيذ المتوقع: ≤ 30 ثانية لكل سكربت على 1201 ملف.
