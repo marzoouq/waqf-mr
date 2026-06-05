@@ -3,7 +3,7 @@ import { Sun, Moon } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, DashboardSkeleton, DeferredRender, ErrorState, FiscalYearStateNotice } from '@/components/common';
 import { isFyReady } from '@/constants/fiscalYearIds';
-import { useBeneficiaryWidgets } from '@/hooks/data/settings/notifications/useBeneficiaryWidgets';
+
 import { PAGE_RESPONSIBILITY_COPY } from '@/constants/beneficiaryCopy';
 
 import BeneficiaryWelcomeCard from '@/components/beneficiary/dashboard/BeneficiaryWelcomeCard';
@@ -16,9 +16,8 @@ import BeneficiaryAdvanceCard from '@/components/beneficiary/dashboard/Beneficia
 import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 
 const BeneficiaryDashboard = () => {
-  const { isVisible } = useBeneficiaryWidgets();
   const {
-    isLoading, dashError, dashLoading, noPublishedYears,
+    isLoading, dashError, dashLoading, noPublishedYears, isVisible,
     currentBeneficiary, myShare, distributions, role, fiscalYearId,
     fiscalYear, isClosed, fyProgress,
     displayName, roleLabel, recentNotifications, unreadCount, greetingData,

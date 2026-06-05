@@ -4,17 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle, Home } from 'lucide-react';
 import { LoginForm, SignupForm, ResetPasswordForm } from '@/components/auth';
-import { useSetting } from '@/hooks/data/settings/app/useAppSettings';
 import { useAuthPage } from '@/hooks/application/useAuthPage';
 import { RouteHead } from '@/components/seo/RouteHead';
 
 const Auth = () => {
-  const waqfLogoUrl = useSetting('waqf_logo_url');
-  
   const {
     resetMode, setResetMode, isOffline, isAppInstalled, roleWaitTimeout,
     registrationEnabled, user, role, loading, signIn, signUp, signOut,
-    handleInstallClick,
+    handleInstallClick, waqfLogoUrl,
   } = useAuthPage();
 
   // انتظار تحديد الصلاحيات
