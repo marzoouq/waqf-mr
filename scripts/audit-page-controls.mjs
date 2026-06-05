@@ -202,33 +202,71 @@ function scanControls(filePath, src) {
   return out;
 }
 
+// ---- 2b. resolve `@/...` imports to file paths ----
+function resolveAlias(spec) {
+  if (!spec.startsWith('@/')) return null;
+  const rel = spec.slice(2);
+  const base = resolve(ROOT, 'src', rel);
+  for (const ext of ['.tsx', '.ts', '/index.tsx', '/index.ts']) {
+    if (existsSync(base + ext)) return base + ext;
+  }
+  if (existsSync(base)) { try { if (statSync(base).isFile()) return base; } catch { /* noop */ } }
+  return null;
+}
+
+function importedChildren(src) {
+  const out = new Set();
+  const re = /import\s+(?:[^'"]*?from\s+)?["']([^"']+)["']/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    const spec = m[1];
+    if (RECURSE_PREFIXES.some(p => spec.startsWith(p))) {
+      const resolved = resolveAlias(spec);
+      if (resolved) out.add(resolved);
+    }
+  }
+  return [...out];
+}
+
 // ---- 3. main ----
 mkdirSync(OUT_DIR, { recursive: true });
 const routeMap = loadRouteMap();
 
-const allFiles = PAGE_DIRS.flatMap(d => walk(resolve(ROOT, d)));
+const pageFiles = PAGE_DIRS.flatMap(d => walk(resolve(ROOT, d)));
 const rows = [];
 const perPage = {};
+const childRows = [];
+const scannedChildren = new Set();
 
-for (const f of allFiles) {
+for (const f of pageFiles) {
   const src = readFileSync(f, 'utf8');
   const base = basename(f, '.tsx');
   const route = routeMap[base];
   const controls = scanControls(f, src);
-  perPage[relative(ROOT, f).replace(/\\/g, '/')] = {
+  const pageRel = relative(ROOT, f).replace(/\\/g, '/');
+  perPage[pageRel] = {
     route: route?.path || '(no route)',
     roles: route?.roles || '(n/a)',
     controls,
+    children: [],
   };
   for (const c of controls) {
-    rows.push({
-      page: relative(ROOT, f).replace(/\\/g, '/'),
-      route: route?.path || '',
-      roles: route?.roles || '',
-      ...c,
-    });
+    rows.push({ page: pageRel, route: route?.path || '', roles: route?.roles || '', ...c });
+  }
+  for (const childFile of importedChildren(src)) {
+    if (scannedChildren.has(childFile)) continue;
+    scannedChildren.add(childFile);
+    let childSrc;
+    try { childSrc = readFileSync(childFile, 'utf8'); } catch { continue; }
+    const childControls = scanControls(childFile, childSrc);
+    const childRel = relative(ROOT, childFile).replace(/\\/g, '/');
+    perPage[pageRel].children.push({ file: childRel, controls: childControls });
+    for (const c of childControls) {
+      childRows.push({ page: pageRel, child: childRel, route: route?.path || '', roles: route?.roles || '', ...c });
+    }
   }
 }
+
 
 // ---- 4. write CSV ----
 const csvHeader = 'page,route,roles,line,control_type,control_label,handler_kind,parents,status';
