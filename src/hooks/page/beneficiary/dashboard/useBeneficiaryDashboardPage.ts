@@ -12,11 +12,14 @@ import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { useStableRef } from '@/lib/hooks/useStableRef';
 import { useGreeting } from '@/hooks/ui/useGreeting';
 import { isFyReady } from '@/constants/fiscalYearIds';
+import { useBeneficiaryWidgets } from '@/hooks/data/settings/notifications/useBeneficiaryWidgets';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export function useBeneficiaryDashboardPage() {
   const queryClient = useQueryClient();
   const handleRetry = useRetryQueries(['beneficiary-dashboard']);
+  const { isVisible } = useBeneficiaryWidgets();
+
 
   const { user, role, loading: authLoading } = useAuth();
   const { filteredData: notifications = [], filteredUnreadCount: unreadCount } = useNotifications();
