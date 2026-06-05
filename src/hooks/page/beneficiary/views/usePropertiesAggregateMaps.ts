@@ -4,14 +4,15 @@
  */
 import { useMemo } from 'react';
 
-interface Contract { id?: string; property_id?: string | null; unit_id?: string | null; status?: string }
-interface Unit { id: string; property_id: string }
+interface ContractLike { id?: string | null; property_id?: string | null; unit_id?: string | null; status?: string | null }
+interface UnitLike { id: string; property_id: string }
 
-export function usePropertiesAggregateMaps(
-  contracts: Contract[] | undefined,
-  units: Unit[] | undefined,
+export function usePropertiesAggregateMaps<C extends ContractLike, U extends UnitLike>(
+  contracts: C[] | undefined,
+  units: U[] | undefined,
   isSpecificYear: boolean,
 ) {
+
   const propertyContractsMap = useMemo(() => {
     const map = new Map<string, Contract[]>();
     for (const c of (contracts ?? [])) {
