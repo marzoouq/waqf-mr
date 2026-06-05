@@ -8,7 +8,7 @@
  */
 import { useEffect, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { uiNotify } from '@/lib/notify';
 import type { Notification as AppNotification } from '@/types';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { supabase } from '@/integrations/supabase/client';

@@ -29,18 +29,17 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
   const location = useLocation();
   const { adminSections, beneficiarySections } = useSectionsVisibility();
 
-  // لا نعرض شريط التنقل قبل تحميل الدور — يمنع وميض روابط مستفيد للناظر/المحاسب
-  if (!role) return null;
-
-  const navLinks = BOTTOM_NAV_LINKS[role] ?? [];
-
   const isAdminLike = role === 'admin' || role === 'accountant';
 
   const visibleLinks = useMemo(() => {
+    const navLinks = role ? (BOTTOM_NAV_LINKS[role] ?? []) : [];
     const routeToSection = isAdminLike ? ADMIN_ROUTE_TO_SECTION : BENEFICIARY_ROUTE_TO_SECTION;
     const visibility = isAdminLike ? adminSections : beneficiarySections;
     return filterLinksBySectionVisibility(navLinks, routeToSection, visibility);
-  }, [navLinks, isAdminLike, adminSections, beneficiarySections]);
+  }, [role, isAdminLike, adminSections, beneficiarySections]);
+
+  // لا نعرض شريط التنقل قبل تحميل الدور — يمنع وميض روابط مستفيد للناظر/المحاسب
+  if (!role) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-border/50 bg-background/95" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', willChange: 'transform' }}>
