@@ -125,4 +125,17 @@
 2. **`npm run audit:gate`** — اختبار Vitest (`src/test/auditCriticalGate.test.ts`) يطبّق 9 قواعد حرجة (0 Critical، 0 GAP، حظر استيراد `@/hooks/data/*` من الصفحات، حظر `sonner` في `hooks/data` و`utils`، إلخ).
 3. **`.husky/pre-push`** — يشغّل الأمرين قبل كل `git push` ويمنع الدفع عند الفشل. التثبيت: `bash scripts/install-git-hooks.sh`.
 
-**النتيجة الحالية:** 0 Critical · 0 GAP · 7 Info (Canvas/PDF colors + 3 hooks > 200 سطر — غير حاجبة).
+**النتيجة الحالية:** 0 Critical · 0 GAP · 5 Info (4 ألوان Canvas/PDF + 1 هوك بحد 200 سطر بالضبط — مقبول).
+
+## آخر تحديث — تنفيذ خطة التوصيات الإحدى عشرة
+
+- **#2 ✅** تهجير `hooks/page/shared/notifications/` → `hooks/application/messaging/`.
+- **#3 ✅** تقسيم `useContractForm.ts` (227→85) باستخراج `useContractFormSubmit`.
+- **#4 ✅** تقسيم `usePropertiesViewPage` (203→165) باستخراج `usePropertiesAggregateMaps`. `useAnnualReportPage` يبقى عند 200 (داخل الحد).
+- **#5 / #6 ⏸ مؤجل** — إعادة تنظيم `components/common/` و `components/dashboard/` تتطلب تحديث 30+ استيراد مباشر؛ يُنفَّذ في جولة مخصصة لتجنب diff كبير.
+- **#7 ✅** `src/utils/auth/README.md` و `src/utils/contracts/README.md` يوثّقان الحد مقابل `lib/`.
+- **#8 ✅** `audit-hooks-layout.mjs` يرفض الآن أي ملف تحت `hooks/page/shared/`.
+- **#9 ✅** `audit-conventions-deep.mjs` صار يصدر Warning > 250 و Critical > 300 للمكونات والهوكات.
+- **#10 ✅** `.github/workflows/ci.yml` يستدعي `npm run audit && npm run audit:gate` ويرفع `audit/` كـ artifact.
+- **#11 ✅** `audit/architecture-map.md` يحتوي مخطط Mermaid لاتجاه الاعتماد + جدول قواعد الحدود.
+
