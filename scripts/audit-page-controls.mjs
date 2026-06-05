@@ -115,7 +115,7 @@ function extractOpenTagAndInner(src, idx, tagName) {
   return { open, inner: '', selfClosed: false, end: openEnd };
 }
 
-function hasHandler(openTag, innerText, parentChain) {
+function hasHandler(openTag, innerText, parentChain, controlType) {
   if (/\bonClick\s*=/.test(openTag)) return 'onClick';
   if (/\bonSubmit\s*=/.test(openTag)) return 'onSubmit';
   if (/\basChild\b/.test(openTag)) return 'asChild';
@@ -123,6 +123,8 @@ function hasHandler(openTag, innerText, parentChain) {
   if (/\bto\s*=\s*["{]/.test(openTag)) return 'Link-to';
   if (/\bhref\s*=\s*["{]/.test(openTag)) return 'href';
   if (/\bdisabled\b/.test(openTag) && !/\bonClick/.test(openTag)) return 'disabled';
+  // Radix TabsTrigger is controlled by parent <Tabs value/onValueChange> — no per-trigger handler needed
+  if (controlType === 'Tab' && /TabsList/.test(parentChain || '')) return 'tabs-radix';
   // parent wrappers (DialogTrigger, DropdownMenuTrigger, AlertDialogTrigger, PopoverTrigger, SheetTrigger, TooltipTrigger, Link)
   if (parentChain && /(?:DialogTrigger|DropdownMenuTrigger|AlertDialogTrigger|PopoverTrigger|SheetTrigger|TooltipTrigger|HoverCardTrigger|ContextMenuTrigger|MenubarTrigger|\bLink\b)/.test(parentChain)) return 'parent-Trigger';
   return null;
