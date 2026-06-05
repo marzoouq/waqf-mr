@@ -183,7 +183,7 @@ function scanControls(filePath, src) {
       const idx = m.index;
       const { open, inner, selfClosed } = extractOpenTagAndInner(src, idx, p.tag);
       const parents = parentChainAt(src, idx);
-      const handler = hasHandler(open, inner, parents);
+      const handler = hasHandler(open, inner, parents, p.type);
       const label = extractLabel(open, inner) || '';
       out.push({
         file: rel,
