@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
-import { validateIncomeForm } from '@/utils/financial/incomeFormValidation';
+import { validateIncomeForm, getIncomeFieldErrors, type IncomeFieldErrors, type IncomeFormInput } from '@/utils/financial/incomeFormValidation';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import type { SortFieldOf } from '@/types/sorting';
