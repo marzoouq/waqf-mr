@@ -12,9 +12,8 @@ export function usePropertiesAggregateMaps<C extends ContractLike, U extends Uni
   units: U[] | undefined,
   isSpecificYear: boolean,
 ) {
-
   const propertyContractsMap = useMemo(() => {
-    const map = new Map<string, Contract[]>();
+    const map = new Map<string, C[]>();
     for (const c of (contracts ?? [])) {
       if (!c.property_id) continue;
       const arr = map.get(c.property_id);
@@ -24,7 +23,7 @@ export function usePropertiesAggregateMaps<C extends ContractLike, U extends Uni
   }, [contracts]);
 
   const propertyUnitsMap = useMemo(() => {
-    const map = new Map<string, Unit[]>();
+    const map = new Map<string, U[]>();
     for (const u of (units ?? [])) {
       const arr = map.get(u.property_id);
       if (arr) arr.push(u); else map.set(u.property_id, [u]);
