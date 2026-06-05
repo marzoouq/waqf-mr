@@ -1,7 +1,7 @@
 /**
  * زر عائم لتشخيص النظام — يظهر فقط للمسؤول
  */
-import { ErrorBoundary } from '@/components/common';
+import ErrorBoundary from './ErrorBoundary';
 import { lazy, Suspense, useState } from 'react';
 import { Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
