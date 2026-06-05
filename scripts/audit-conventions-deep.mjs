@@ -102,12 +102,17 @@ for (const abs of walk(ROOT)) {
 
   // Container vs Presentational sizing
   const loc = src.split('\n').length;
-  if (rel.startsWith('components/') && rel.endsWith('.tsx') && loc > 200) {
-    add('Info', 'ComponentSize', rel, loc, `component ${loc} lines > 200`);
+  if (rel.startsWith('components/') && rel.endsWith('.tsx')) {
+    if (loc > 300) add('Critical', 'ComponentSize', rel, loc, `component ${loc} lines > 300 (hard cap)`);
+    else if (loc > 250) add('Warning', 'ComponentSize', rel, loc, `component ${loc} lines > 250`);
+    else if (loc > 200) add('Info', 'ComponentSize', rel, loc, `component ${loc} lines > 200`);
   }
-  if (rel.startsWith('hooks/') && rel.endsWith('.ts') && loc > 200) {
-    add('Info', 'HookSize', rel, loc, `hook ${loc} lines > 200`);
+  if (rel.startsWith('hooks/') && rel.endsWith('.ts')) {
+    if (loc > 300) add('Critical', 'HookSize', rel, loc, `hook ${loc} lines > 300 (hard cap)`);
+    else if (loc > 250) add('Warning', 'HookSize', rel, loc, `hook ${loc} lines > 250`);
+    else if (loc > 200) add('Info', 'HookSize', rel, loc, `hook ${loc} lines > 200`);
   }
+
 }
 
 // Write outputs
