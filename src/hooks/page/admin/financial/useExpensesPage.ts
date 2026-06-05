@@ -183,7 +183,7 @@ export function useExpensesPage() {
     currentPage, setCurrentPage,
     expandedRow, setExpandedRow,
     ITEMS_PER_PAGE,
-    formData, setFormData,
+    formData, setFormData, errors, onFieldBlur,
     resetForm, handleEdit, handleSubmit, handleConfirmDelete,
     totalExpenses, uniqueTypes,
     expenseInvoiceMap, documentedCount, documentationRate,
