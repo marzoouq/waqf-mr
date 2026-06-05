@@ -488,6 +488,7 @@ contexts/useContractsContext.ts,context,22,2,1,false,false,false,false,false
 hooks/application/dashboard/useEndUserDashboardData.ts,hook-application,14,1,2,false,false,false,false,false
 hooks/application/dashboard/useEndUserFinancials.ts,hook-application,63,4,1,false,false,false,false,false
 hooks/application/messaging/useMessagesPage.ts,hook-application,84,5,1,false,false,true,false,false
+hooks/application/messaging/useNotificationPreferences.ts,hook-application,62,5,1,false,false,false,false,false
 hooks/application/useAiChat.ts,hook-application,198,3,3,false,false,false,false,false
 hooks/application/useAuthPage.ts,hook-application,48,8,1,false,false,false,false,false
 hooks/application/useDataExport.ts,hook-application,100,6,4,false,false,false,false,false
@@ -677,8 +678,9 @@ hooks/page/admin/activeContractsFilter.test.ts,hook-page,39,2,0,false,false,fals
 hooks/page/admin/activeContractsFilter.ts,hook-page,23,0,2,false,false,false,false,false
 hooks/page/admin/contracts/useCollectionAlerts.ts,hook-page,30,3,1,false,false,false,false,false
 hooks/page/admin/contracts/useContractDelete.ts,hook-page,106,5,1,false,false,false,false,false
-hooks/page/admin/contracts/useContractForm.ts,hook-page,228,15,1,false,false,false,false,false
+hooks/page/admin/contracts/useContractForm.ts,hook-page,86,6,1,false,false,false,false,false
 hooks/page/admin/contracts/useContractFormDialog.ts,hook-page,126,7,1,false,false,false,false,false
+hooks/page/admin/contracts/useContractFormSubmit.ts,hook-page,142,14,1,false,false,false,false,false
 hooks/page/admin/contracts/useContractsBulkRenew.ts,hook-page,96,5,1,false,false,false,false,false
 hooks/page/admin/contracts/useContractsFilters.test.ts,hook-page,149,4,0,false,false,false,false,false
 hooks/page/admin/contracts/useContractsFilters.ts,hook-page,132,4,2,false,false,false,false,false
@@ -777,8 +779,8 @@ hooks/page/beneficiary/settings/useBeneficiarySettingsPage.ts,hook-page,34,4,1,f
 hooks/page/beneficiary/views/useAnnualReportViewPage.ts,hook-page,123,17,1,false,false,false,false,false
 hooks/page/beneficiary/views/useBylawsViewPage.ts,hook-page,68,5,1,false,false,false,false,false
 hooks/page/beneficiary/views/useContractsViewPage.ts,hook-page,95,10,1,false,false,false,false,false
-hooks/page/beneficiary/views/usePropertiesViewPage.ts,hook-page,203,15,1,false,false,false,false,false
-hooks/page/shared/notifications/useNotificationPreferences.ts,hook-page,62,5,1,false,false,false,false,false
+hooks/page/beneficiary/views/usePropertiesAggregateMaps.ts,hook-page,55,1,1,false,false,false,false,false
+hooks/page/beneficiary/views/usePropertiesViewPage.ts,hook-page,166,16,1,false,false,false,false,false
 hooks/page/waqif/useWaqifDashboardPage.ts,hook-page,124,20,1,false,false,false,false,false
 hooks/ui/useChartReady.ts,hook-ui,61,1,1,false,false,false,false,false
 hooks/ui/useClickOutside.ts,hook-ui,21,1,1,false,false,false,false,false

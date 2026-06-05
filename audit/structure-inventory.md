@@ -7,7 +7,7 @@
 | component | 447 | 36497 | 82 |
 | util | 154 | 12693 | 82 |
 | hook-data | 130 | 8177 | 63 |
-| hook-page | 109 | 11133 | 102 |
+| hook-page | 110 | 11089 | 101 |
 | lib | 93 | 7169 | 77 |
 | page | 67 | 7563 | 113 |
 | test | 56 | 4766 | 85 |
@@ -16,14 +16,14 @@
 | type | 24 | 974 | 41 |
 | hook-domain | 19 | 2695 | 142 |
 | hook-ui | 18 | 904 | 50 |
-| hook-application | 13 | 1040 | 80 |
+| hook-application | 14 | 1102 | 79 |
 | route | 8 | 254 | 32 |
 | context | 5 | 238 | 48 |
 | other | 3 | 104 | 35 |
 | app | 3 | 132 | 44 |
 | integration | 3 | 2644 | 881 |
 
-## Files > 200 LOC (20)
+## Files > 200 LOC (18)
 
 | File | Layer | LOC |
 |---|---|---:|
@@ -42,8 +42,6 @@
 | test/incomeExpensesCrudReflection.test.tsx | test | 238 |
 | test/authFlowsIntegration.test.tsx | test | 237 |
 | test/edgeFunctionAuth.test.ts | test | 237 |
-| hooks/page/admin/contracts/useContractForm.ts | hook-page | 228 |
 | lib/services/diagnosticsReadService.ts | lib | 220 |
-| hooks/page/beneficiary/views/usePropertiesViewPage.ts | hook-page | 203 |
 | hooks/data/support/useSupportTickets.test.ts | hook-data | 201 |
 | hooks/page/admin/reports/useAnnualReportPage.ts | hook-page | 201 |

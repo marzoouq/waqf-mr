@@ -1,13 +1,13 @@
 # Conventions Deep Report
 
-Total violations: **7** (Critical: 0, Warning: 0, Info: 7)
+Total violations: **5** (Critical: 0, Warning: 0, Info: 5)
 
 ## By rule
 
 | Rule | Count |
 |---|---:|
 | HexColors | 4 |
-| HookSize | 3 |
+| HookSize | 1 |
 
 ## Critical violations
 
