@@ -50,6 +50,7 @@ const IncomePage = () => {
               onSubmit={handleSubmit} onReset={resetForm}
               isPending={createPending || updatePending}
               isLocked={isLocked} properties={properties}
+              errors={errors} onFieldBlur={onFieldBlur}
             />
           </>}
         />
