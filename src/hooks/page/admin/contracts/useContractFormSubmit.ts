@@ -25,6 +25,7 @@ import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocat
 import { getPaymentCount } from '@/utils/financial/contractHelpers';
 import { asMutationArg } from '@/hooks/data/core';
 import { buildContractPayload } from '@/utils/contracts/contractFormBuilders';
+import { validateContractForm } from '@/utils/contracts/contractFormValidation';
 
 interface Params {
   fiscalYearId: string;
@@ -55,8 +56,9 @@ export function useContractFormSubmit({ fiscalYearId, fiscalYears, editingContra
   );
 
   const submit = async (formData: ContractFormData, isEditing: boolean) => {
-    if (formData.end_date <= formData.start_date) {
-      uiNotify.error('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
+    const validationError = validateContractForm(formData);
+    if (validationError) {
+      uiNotify.error(validationError.message);
       return;
     }
     const paymentCount = getPaymentCount({ payment_type: formData.payment_type, payment_count: parseInt(formData.payment_count) || 1 });
