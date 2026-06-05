@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
-import { MAX_FINANCIAL_AMOUNT, MAX_FINANCIAL_AMOUNT_MESSAGE } from '@/constants/limits';
+import { validateIncomeForm } from '@/utils/financial/incomeFormValidation';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import type { SortFieldOf } from '@/types/sorting';
@@ -62,13 +62,10 @@ export function useIncomePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.source || !formData.amount || !formData.date) { uiNotify.error('يرجى ملء جميع الحقول المطلوبة'); return; }
-    const amount = parseFloat(formData.amount);
-    if (!Number.isFinite(amount) || amount <= 0 || amount > MAX_FINANCIAL_AMOUNT) { uiNotify.error(MAX_FINANCIAL_AMOUNT_MESSAGE); return; }
-    const incomeData: Record<string, unknown> = {
-      source: formData.source, amount, date: formData.date,
-      property_id: formData.property_id || undefined, notes: formData.notes || undefined,
-    };
+    const result = validateIncomeForm(formData);
+    if (!result.success) { uiNotify.error(result.error); return; }
+    const incomeData: Record<string, unknown> = { ...result.data };
+
     if (!editingIncome) {
       if (!fiscalYear?.id) {
         uiNotify.error('يرجى اختيار سنة مالية محددة لإضافة سجل دخل');

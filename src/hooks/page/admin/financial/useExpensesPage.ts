@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
-import { MAX_FINANCIAL_AMOUNT, MAX_FINANCIAL_AMOUNT_MESSAGE } from '@/constants/limits';
+import { validateExpenseForm } from '@/utils/financial/expenseFormValidation';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import type { SortFieldOf } from '@/types/sorting';
@@ -62,13 +62,10 @@ export function useExpensesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.expense_type || !formData.amount || !formData.date) { uiNotify.error('يرجى ملء جميع الحقول المطلوبة'); return; }
-    const amount = parseFloat(formData.amount);
-    if (!Number.isFinite(amount) || amount <= 0 || amount > MAX_FINANCIAL_AMOUNT) { uiNotify.error(MAX_FINANCIAL_AMOUNT_MESSAGE); return; }
-    const expenseData: Record<string, unknown> = {
-      expense_type: formData.expense_type, amount, date: formData.date,
-      property_id: formData.property_id || undefined, description: formData.description || undefined,
-    };
+    const result = validateExpenseForm(formData);
+    if (!result.success) { uiNotify.error(result.error); return; }
+    const { amount } = result.data;
+    const expenseData: Record<string, unknown> = { ...result.data };
     if (!editingExpense) {
       if (!fiscalYear?.id) { uiNotify.error('يرجى اختيار سنة مالية محددة قبل إضافة مصروف'); return; }
       expenseData.fiscal_year_id = fiscalYear.id;
@@ -85,10 +82,11 @@ export function useExpensesPage() {
           setPostCreateVoucherFor({
             id: created.id,
             amount,
-            description: formData.description || formData.expense_type,
+            description: result.data.description || result.data.expense_type,
           });
         }
       }
+
       setIsOpen(false);
       resetForm();
     } catch {
