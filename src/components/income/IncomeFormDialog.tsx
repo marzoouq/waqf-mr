@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import type { Income } from '@/types';
 import type { IncomeFieldErrors, IncomeFormInput } from '@/utils/financial/incomeFormValidation';
 
