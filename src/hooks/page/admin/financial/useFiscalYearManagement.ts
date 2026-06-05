@@ -1,7 +1,7 @@
 /**
  * هوك منطق إدارة السنوات المالية
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
@@ -51,8 +51,12 @@ export function useFiscalYearManagement() {
     return validateFiscalYearInput(newFY);
   }, [newFY]);
 
-  /** مسح خطأ الخادم عند أي تغيير في الحقول */
-  useEffect(() => { setSubmitError(null); }, [newFY.label, newFY.start_date, newFY.end_date]);
+  /** مسح خطأ الخادم عند أي تغيير في الحقول — adjust state during render */
+  const [prevFY, setPrevFY] = useState(newFY);
+  if (prevFY !== newFY) {
+    setPrevFY(newFY);
+    if (submitError !== null) setSubmitError(null);
+  }
 
   const handleCreate = async () => {
     if (!newFY.label || !newFY.start_date || !newFY.end_date) {

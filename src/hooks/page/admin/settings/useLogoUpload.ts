@@ -2,7 +2,7 @@
  * Page hook لرفع/إزالة شعار التطبيق — يدير state واجهة وتنبيهات.
  * نُقل من hooks/data/settings/appearance لأنه يحتوي UI state و toasts.
  */
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
