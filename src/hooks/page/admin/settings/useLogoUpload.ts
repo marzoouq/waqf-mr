@@ -23,10 +23,12 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
   const [preview, setPreview] = useState<string>(currentUrl);
   const [saving, setSaving] = useState(false);
 
-  // مزامنة مع التغييرات الخارجية — useEffect بدل setState داخل render
-  useEffect(() => {
-    if (!saving) setPreview(currentUrl);
-  }, [currentUrl, saving]);
+  // مزامنة مع التغييرات الخارجية — adjust state during render (React docs pattern)
+  const [prevUrl, setPrevUrl] = useState(currentUrl);
+  if (currentUrl !== prevUrl && !saving) {
+    setPrevUrl(currentUrl);
+    setPreview(currentUrl);
+  }
 
   const handleSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
