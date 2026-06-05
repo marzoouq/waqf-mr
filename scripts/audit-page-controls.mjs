@@ -124,7 +124,7 @@ function hasHandler(openTag, innerText, parentChain, controlType) {
   if (/\bhref\s*=\s*["{]/.test(openTag)) return 'href';
   if (/\bdisabled\b/.test(openTag) && !/\bonClick/.test(openTag)) return 'disabled';
   // Radix TabsTrigger is controlled by parent <Tabs value/onValueChange> — no per-trigger handler needed
-  if (controlType === 'Tab' && /TabsList/.test(parentChain || '')) return 'tabs-radix';
+  if (controlType === 'Tab') return 'tabs-radix';
   // parent wrappers (DialogTrigger, DropdownMenuTrigger, AlertDialogTrigger, PopoverTrigger, SheetTrigger, TooltipTrigger, Link)
   if (parentChain && /(?:DialogTrigger|DropdownMenuTrigger|AlertDialogTrigger|PopoverTrigger|SheetTrigger|TooltipTrigger|HoverCardTrigger|ContextMenuTrigger|MenubarTrigger|\bLink\b)/.test(parentChain)) return 'parent-Trigger';
   return null;
