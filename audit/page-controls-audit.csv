@@ -3,8 +3,8 @@ src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,38,Button,
 src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,42,Button,"توزيع الحصص PDF",onClick,"PageHeaderCard>LockedYearBanner>FileText",OK
 src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,47,Button,"إنشاء حساب ختامي",onClick,"FileText>Users>ExportMenu",OK
 src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,52,Button,"إقفال السنة",onClick,"Users>ExportMenu>Plus",OK
-src/pages/dashboard/AdminDashboard.tsx,,/dashboard,ADMIN_ROLES,50,Button,"تقرير سنوي مُجمَّع",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/AdminDashboard.tsx,,/dashboard,ADMIN_ROLES,60,Button,"طباعة",onClick,"DashboardLayout>PageHeaderCard>FileDown",OK
+src/pages/dashboard/AdminDashboard.tsx,,/dashboard,ADMIN_ROLES,51,Button,"تقرير سنوي مُجمَّع",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/AdminDashboard.tsx,,/dashboard,ADMIN_ROLES,61,Button,"طباعة",onClick,"DashboardLayout>PageHeaderCard>FileDown",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,110,Tab,"حالة العقارات",tabs-radix,"Loader2>Tabs>TabsList",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,115,Tab,"الإنجازات",tabs-radix,"TabsList>Building2",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,120,Tab,"التحديات",tabs-radix,"TabsList>Building2>Trophy",OK
@@ -42,10 +42,10 @@ src/pages/dashboard/InvoicesPage.tsx,,/dashboard/invoices,ADMIN_ROLES,89,Button,
 src/pages/dashboard/InvoicesPage.tsx,,/dashboard/invoices,ADMIN_ROLES,90,Button,"شبكي",onClick,"SelectValue>List",OK
 src/pages/dashboard/InvoicesPage.tsx,,/dashboard/invoices,ADMIN_ROLES,142,Button,"عرض الملف",onClick,"MobileCardView",OK
 src/pages/dashboard/MessagesPage.tsx,,/dashboard/messages,ADMIN_ROLES,34,Button,"محادثة جديدة",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/ReportsPage.tsx,,/dashboard/reports,ADMIN_ROLES,72,Button,"الإفصاح السنوي PDF",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/ReportsPage.tsx,,/dashboard/reports,ADMIN_ROLES,76,Button,"توزيع الحصص PDF",onClick,"DashboardLayout>PageHeaderCard>FileText",OK
-src/pages/dashboard/ReportsPage.tsx,,/dashboard/reports,ADMIN_ROLES,80,Button,"الفحص الجنائي PDF",onClick,"PageHeaderCard>FileText>Users",OK
-src/pages/dashboard/SettingsPage.tsx,,/dashboard/settings,ADMIN_ONLY,65,Tab,"",tabs-radix,"SelectValue>TabsList",OK
+src/pages/dashboard/ReportsPage.tsx,,/dashboard/reports,ADMIN_ROLES,73,Button,"الإفصاح السنوي PDF",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/ReportsPage.tsx,,/dashboard/reports,ADMIN_ROLES,77,Button,"توزيع الحصص PDF",onClick,"DashboardLayout>PageHeaderCard>FileText",OK
+src/pages/dashboard/ReportsPage.tsx,,/dashboard/reports,ADMIN_ROLES,81,Button,"الفحص الجنائي PDF",onClick,"PageHeaderCard>FileText>Users",OK
+src/pages/dashboard/SettingsPage.tsx,,/dashboard/settings,ADMIN_ONLY,66,Tab,"",tabs-radix,"SelectValue>TabsList",OK
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,50,Tab,"التذاكر",tabs-radix,"SupportStatsCards>Tabs>TabsList",OK
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,51,Tab,"الأخطاء",tabs-radix,"Tabs>TabsList>Headset",OK
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,52,Tab,"الإحصائيات",tabs-radix,"TabsList>Headset>Bug",OK
