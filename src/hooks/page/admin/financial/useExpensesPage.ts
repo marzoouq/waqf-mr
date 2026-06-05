@@ -48,22 +48,42 @@ export function useExpensesPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const [formData, setFormData] = useState(EMPTY_EXPENSE_FORM);
+  const [formData, setFormDataRaw] = useState(EMPTY_EXPENSE_FORM);
+  const [errors, setErrors] = useState<ExpenseFieldErrors>({});
   const [postCreateVoucherFor, setPostCreateVoucherFor] = useState<{ id: string; amount: number; description: string } | null>(null);
   const clearPostCreateVoucher = useCallback(() => setPostCreateVoucherFor(null), []);
 
-  const resetForm = useCallback(() => { setFormData(EMPTY_EXPENSE_FORM); setEditingExpense(null); }, []);
+  const setFormData = useCallback((data: typeof EMPTY_EXPENSE_FORM) => {
+    setFormDataRaw(data);
+    setErrors((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+  }, []);
+
+  const onFieldBlur = useCallback((field: keyof ExpenseFormInput) => {
+    setFormDataRaw((current) => {
+      const fieldErrors = getExpenseFieldErrors(current);
+      setErrors((prev) => ({ ...prev, [field]: fieldErrors[field] }));
+      return current;
+    });
+  }, []);
+
+  const resetForm = useCallback(() => { setFormDataRaw(EMPTY_EXPENSE_FORM); setEditingExpense(null); setErrors({}); }, []);
 
   const handleEdit = useCallback((item: Expense) => {
     setEditingExpense(item);
-    setFormData({ expense_type: item.expense_type, amount: item.amount.toString(), date: item.date, property_id: item.property_id || '', description: item.description || '' });
+    setFormDataRaw({ expense_type: item.expense_type, amount: item.amount.toString(), date: item.date, property_id: item.property_id || '', description: item.description || '' });
+    setErrors({});
     setIsOpen(true);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const result = validateExpenseForm(formData);
-    if (!result.success) { uiNotify.error(result.error); return; }
+    if (!result.success) {
+      setErrors(getExpenseFieldErrors(formData));
+      uiNotify.error(result.error);
+      return;
+    }
+    setErrors({});
     const { amount } = result.data;
     const expenseData: Record<string, unknown> = { ...result.data };
     if (!editingExpense) {
