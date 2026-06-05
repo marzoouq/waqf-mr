@@ -2,7 +2,7 @@
  * Page hook لرفع/إزالة شعار التطبيق — يدير state واجهة وتنبيهات.
  * نُقل من hooks/data/settings/appearance لأنه يحتوي UI state و toasts.
  */
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
@@ -23,10 +23,12 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
   const [preview, setPreview] = useState<string>(currentUrl);
   const [saving, setSaving] = useState(false);
 
-  // مزامنة مع التغييرات الخارجية — useEffect بدل setState داخل render
-  useEffect(() => {
-    if (!saving) setPreview(currentUrl);
-  }, [currentUrl, saving]);
+  // مزامنة مع التغييرات الخارجية — adjust state during render (React docs pattern)
+  const [prevUrl, setPrevUrl] = useState(currentUrl);
+  if (currentUrl !== prevUrl && !saving) {
+    setPrevUrl(currentUrl);
+    setPreview(currentUrl);
+  }
 
   const handleSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

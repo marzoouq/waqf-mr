@@ -1,77 +1,78 @@
-# خطة: تحقق شامل + تدقيق صلاحيات + بوابات CI
+# تقرير الفحص العميق للمستودع
 
-## 1) تشغيل مصفوفة التحقق (read-only، لا تعديل ملفات)
+## 1. إحصاءات المستودع
 
-أنفّذ بالتوازي وأجمع المخرجات:
+| الفئة | العدد |
+|---|---|
+| إجمالي ملفات `src/` | 1218 (684 ts + 516 tsx + 17 md + 1 css) |
+| الصفحات `src/pages/**` | 67 |
+| المكوّنات `src/components/**` | 450 |
+| الهوكات `src/hooks/**` | 319 |
+| ملفات المسارات | 4 (admin / beneficiary / waqif / public) + helpers |
+| Edge Functions | 19 وظيفة + `_shared` |
+| جداول قاعدة البيانات | 41 جدول (RLS مُفعّل على الكل) |
 
-```bash
-bunx vitest run                             # هدف: 1985/1985 خضراء
-bun run lint:conventions                    # هدف: 0 مخالفات
-npx eslint src/                             # هدف: 0
-npx tsc --noEmit                            # هدف: 0
-node scripts/audit-ui-permissions.mjs       # هدف: 0 GAPs
-node scripts/build-permissions-matrix.mjs   # هدف: 156 صف + header
-node scripts/security-gates.mjs             # هدف: 0 انتهاكات
-```
+## 2. نتائج الفحوصات
 
-أي فشل = أُبلغك بالقائمة الكاملة قبل أي اقتراح إصلاح (الإصلاح يحتاج جولة build منفصلة).
+| الفحص | الحالة |
+|---|---|
+| `tsc --noEmit` | ✅ 0 أخطاء |
+| `vitest run` | ✅ 1985/1985 مرّت (228 ملف) |
+| `lint:conventions` | ✅ 0 مخالفات + 5 تحذيرات حجم/استخدام |
+| `audit-ui-permissions` | ✅ 0 فجوات (449 ملف) |
+| `build-permissions-matrix` | ✅ 156 صف (39×4) |
+| `security-gates` (Edge) | ✅ 0 مخالفات |
+| `eslint src/` | ❌ **4 أخطاء + 4 تحذيرات** |
+| `npm audit` | ⚠ غير متاح (نقطة نهاية npm registry لا تدعمه في الـ sandbox) |
 
-## 2) تدقيق صلاحيات الواجهة (admin/beneficiary/waqif)
+## 3. الأخطاء الأربعة في ESLint (تحتاج إصلاح)
 
-- مراجعة `ROUTE_ROLES` (39 مسار) مقابل ملفات `src/routes/*.tsx` للتأكد من المطابقة الصارمة.
-- التحقق من أن كل صفحة في `src/pages/dashboard/*` و`src/pages/beneficiary/*` و`src/pages/waqif/*` ملفوفة بـ `pr()` (ProtectedRoute + RequirePermission) عبر `withRouteErrorBoundary`.
-- تشغيل `evaluateAccess` ذهنياً عبر اختبار `roleRouteAccess.test.ts` + `uiPermissionsMatrix.test.ts` + `permissionKeysCoverage.test.ts` (موجودة بالفعل) والتأكد من تغطية 39×4 = 156 خلية.
-- تشغيل `audit-ui-permissions.mjs` على 449 ملف (الزرار/الروابط) — أي GAP يُدرَج صراحة (بدون whitelist تلقائي).
-- فحص يدوي مركّز على نقاط معروفة:
-  - `SupportPageGuard` (إعادة توجيه admin/accountant).
-  - `usePermissionCheck` (default deny لأي دور غير معروف).
-  - `RequirePermission` على المسارات ذات `permKey` (مثل zatca, settings, users).
-  - الأزرار الحساسة: إقفال السنة، حذف فاتورة مدفوعة جزئياً، تنفيذ التوزيع.
+| # | الملف:السطر | القاعدة | الوصف |
+|---|---|---|---|
+| 1 | `src/components/layout/BottomNav.tsx:39` | `react-hooks/rules-of-hooks` | `useMemo` يُستدعى بعد early-return شرطي |
+| 2 | `src/hooks/data/notifications/useNotificationActions.ts:11` | `no-restricted-imports` | استيراد `sonner` داخل `hooks/data/` (يجب نقله لـ `hooks/page/`) |
+| 3 | `src/hooks/page/admin/financial/useFiscalYearManagement.ts:55` | `react-hooks/set-state-in-effect` | `setState` داخل `useEffect` بدون سبب |
+| 4 | `src/hooks/page/admin/settings/useLogoUpload.ts:28` | `react-hooks/set-state-in-effect` | `setPreview(currentUrl)` متزامن داخل effect |
 
-**لن أُعدّل أي ملف في هذه المرحلة** — فقط تقرير "✅ مطابق" أو قائمة فجوات.
+**التحذيرات الأربعة** (لا تُفشل البناء): `react-refresh/only-export-components` ×2، `exhaustive-deps` ×1، `max-lines` ×1.
 
-## 3) بوابات CI الجديدة في `.github/workflows/ci.yml`
+## 4. التحذيرات المعمارية (5)
 
-أضيف 3 خطوات بعد "ESLint check" وقبل "Run tests" (موضع منطقي للفشل المبكر):
+- 3 ملفات `hooks/page` تجاوزت 200 سطر (200-228) — تحت الحد الصارم.
+- `src/lib/services/diagnosticsReadService.ts` و `fiscalYearService.test.ts` — services بدون مستهلكين.
 
-```yaml
-- name: Lint conventions (lib/hooks/page boundary)
-  run: npm run lint:conventions
+## 5. تحذيرات الأداء من preview console
 
-- name: UI permissions audit (no GAPs)
-  run: |
-    node scripts/audit-ui-permissions.mjs
-    GAPS=$(tail -n +2 audit/ui-permissions-audit.csv | grep -c '^.' || true)
-    if [ "$GAPS" -gt 0 ]; then
-      echo "::error::وُجدت $GAPS فجوة صلاحيات UI"
-      exit 1
-    fi
+- `Query: contract_fiscal_allocations/...` استغرق 3286ms
+- `Query: contracts/...` استغرق 6673ms (slow query على `/dashboard/contracts`)
 
-- name: Permissions matrix integrity (156 rows)
-  run: |
-    node scripts/build-permissions-matrix.mjs
-    ROWS=$(tail -n +2 audit/ui-permissions-matrix.csv | wc -l)
-    if [ "$ROWS" -ne 156 ]; then
-      echo "::error::مصفوفة الصلاحيات: متوقع 156 صف، وُجد $ROWS"
-      exit 1
-    fi
-```
+## 6. الأمن
 
-البناء يفشل تلقائياً عند:
-- أي مخالفة `lint:conventions` (طبقات lib/hooks/page).
-- أي GAP في `audit/ui-permissions-audit.csv`.
-- أي انحراف عن 156 صف في مصفوفة الصلاحيات (إضافة/حذف مسار أو دور دون تحديث `ROUTE_ROLES`).
+- آخر فحص أمني: الـ finding الوحيد القابل للإصلاح (سياسة storage على الفواتير) تم إصلاحه مسبقاً. لا توجد ثغرات معلّقة في الذاكرة الأمنية.
 
-اختبار `buttonHandlerAudit.test.ts` و`roleRouteAccess.test.ts` و`uiPermissionsMatrix.test.ts` المُشغَّلة عبر vitest تكفل التحقق التفصيلي داخلياً.
+---
 
-## 4) المخرجات النهائية لك
+# خطة الإصلاح المقترحة (في جولة بناء منفصلة)
 
-- تقرير حالة موجز لكل من الـ 7 سكربتات.
-- تقرير تدقيق UI permissions (✅ أو قائمة فجوات بأسطر صريحة).
-- diff لـ `.github/workflows/ci.yml` فقط.
+## الإصلاحات الإلزامية (4 أخطاء ESLint)
 
-## نطاق محظور
+1. **`BottomNav.tsx`** — نقل `useMemo` فوق أي early-return حتى يلتزم بقواعد الهوكات.
+2. **`useNotificationActions.ts`** — إزالة استيراد `sonner` ونقل استدعاء toast إلى hook صفحة أعلى في الطبقات (`hooks/page/.../useNotificationsPage.ts`).
+3. **`useFiscalYearManagement.ts:55`** — تحويل `setState` داخل `useEffect` إلى derived state أو event handler.
+4. **`useLogoUpload.ts:28`** — استبدال المزامنة بـ `useEffect` بـ derived state من `currentUrl` + `saving`.
 
-- لا تعديل على RLS أو migrations أو edge functions أو UI أو منطق أعمال.
-- لا تعديل على ملفات Supabase المحمية.
-- لا حذف خطوات CI الموجودة (gitleaks/security-gates/supabase-linter/security-definer/audit/build).
+## التنظيف الاختياري (تحذيرات)
+
+- تقسيم 3 هوكات الصفحة المتجاوزة 200 سطر.
+- حذف/دمج `diagnosticsReadService.ts` و `fiscalYearService.test.ts` (services بلا مستهلكين).
+- مراجعة استعلامات `contracts` و `contract_fiscal_allocations` البطيئة (فهرس / select محدد / تقسيم).
+
+## نطاق التغييرات
+
+- 4 ملفات فقط للإصلاحات الإلزامية.
+- لا تغييرات في RLS أو migrations أو edge functions أو UI/business logic.
+- لا تعديل على الملفات المحمية.
+
+## التحقق بعد الإصلاح
+
+`npx tsc --noEmit` → `npx eslint src/` (0 أخطاء) → `npm run lint:conventions` → `npx vitest run` → سكربتات الـ audit الثلاثة.
