@@ -6,13 +6,14 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { BetaBanner } from '@/components/common';
 import { Lock } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { cn } from '@/lib/cn';
 import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
 const PrintHeader = lazy(() => import('@/components/common/layout/PrintHeader'));
 const PrintFooter = lazy(() => import('@/components/common/layout/PrintFooter'));
-import BetaBanner from '@/components/common/feedback/BetaBanner';
+
 import FiscalYearSelector from '@/components/layout/FiscalYearSelector';
 import SidebarContent from '@/components/layout/Sidebar';
 import BottomNav from '@/components/layout/BottomNav';
@@ -46,7 +47,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   // accessibility — Escape + focus management + Tab trap (hook منفصل)
   useMobileSidebarFocusTrap(mobileSidebarOpen, () => setMobileSidebarOpen(false));
 
-
   return (
     <div className="min-h-screen flex w-full bg-background" dir="rtl">
       {/* Skip link — تخطي إلى المحتوى الرئيسي */}
@@ -62,7 +62,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onOpenSidebar={() => setMobileSidebarOpen(true)}
         fiscalYearLabel={fiscalYear?.label}
       />
-
 
       {/* Mobile Sidebar Overlay */}
       <div

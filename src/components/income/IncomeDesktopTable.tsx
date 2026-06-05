@@ -1,10 +1,11 @@
 /** جدول الدخل للديسكتوب — مع تمرير افتراضي للبيانات الكبيرة */
 
+import { VirtualTable } from '@/components/common';
 import { TableHeader, TableRow, TableHead } from '@/components/ui/table';
 import { ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import type { Income } from '@/types';
 import type { SortField } from '@/hooks/page/admin/financial/useIncomePage';
-import VirtualTable from '@/components/common/VirtualTable';
+
 import IncomeTableRow from './IncomeTableRow';
 
 interface IncomeDesktopTableProps {

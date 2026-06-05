@@ -1,10 +1,10 @@
 /**
  * رسوم بيانية لصفحة التقارير — يُحمَّل كسولاً لتجنب تحميل recharts في الحزمة الأولية.
  */
+import { ChartBox } from '@/components/common';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { fmt } from '@/utils/format/format';
 import { tooltipStyleRtl } from '@/utils/chart/chartHelpers';
-import ChartBox from '@/components/common/ChartBox';
 
 const REPORT_COLORS = [
   'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',

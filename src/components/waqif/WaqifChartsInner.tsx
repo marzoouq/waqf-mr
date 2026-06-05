@@ -1,10 +1,10 @@
 /**
  * رسوم بيانية للوحة الواقف — يُحمَّل كسولاً.
  */
+import { ChartBox } from '@/components/common';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { fmt } from '@/utils/format/format';
 import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/chartHelpers';
-import ChartBox from '@/components/common/ChartBox';
 
 interface MonthlyItem { month: string; income: number; expenses: number }
 interface ExpenseItem { name: string; value: number }

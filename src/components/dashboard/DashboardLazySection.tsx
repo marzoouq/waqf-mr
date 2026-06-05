@@ -5,9 +5,9 @@
  * يُستخدم في `AdminDashboard` للأقسام الـ lazy المعتمدة على viewport.
  * يُستثنى من هذا النمط: أقسام `DeferredRender` (تأخير زمني لا viewport).
  */
+import { ErrorBoundary, ViewportRender } from '@/components/common';
 import { Suspense, type ReactNode } from 'react';
-import ErrorBoundary from '@/components/common/feedback/ErrorBoundary';
-import ViewportRender from '@/components/common/ViewportRender';
+
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DashboardLazySectionProps {

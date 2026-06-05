@@ -5,10 +5,10 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Legend, Area, AreaChart,
 } from 'recharts';
+import { ChartBox } from '@/components/common';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fmt } from '@/utils/format/format';
 import { tooltipStyleRtl } from '@/utils/chart/chartHelpers';
-import ChartBox from '@/components/common/ChartBox';
 
 interface MonthData {
   label: string;

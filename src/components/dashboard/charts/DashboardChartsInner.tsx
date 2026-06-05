@@ -1,3 +1,4 @@
+import { ChartBox } from '@/components/common';
 import { fmt } from '@/utils/format/format';
 import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 /**
@@ -6,7 +7,6 @@ import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/
  */
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import ChartBox from '@/components/common/ChartBox';
 
 interface DashboardChartsInnerProps {
   monthlyData: Array<{ month: string; income: number; expenses: number }>;

@@ -5,11 +5,11 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Legend, LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
+import { ChartBox } from '@/components/common';
 import { fmt } from '@/utils/format/format';
 import { tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import ChartBox from '@/components/common/ChartBox';
 
 const COLORS = [
   'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',

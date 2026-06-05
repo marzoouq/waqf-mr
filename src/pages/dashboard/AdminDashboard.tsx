@@ -1,8 +1,9 @@
 /**
  * AdminDashboard — UI خالصة بعد استخراج المنطق إلى useAdminDashboardPage (A2)
  */
+import { ChartSkeleton, ErrorBoundary } from '@/components/common';
 import { lazy } from 'react';
-import ErrorBoundary from '@/components/common/feedback/ErrorBoundary';
+
 import DashboardLazySection from '@/components/dashboard/DashboardLazySection';
 import { Button } from '@/components/ui/button';
 import FiscalYearWidget from '@/components/dashboard/widgets/FiscalYearWidget';
@@ -17,7 +18,7 @@ import AccountantDashboardView from '@/components/dashboard/views/AccountantDash
 import { Printer, Gauge, FileDown } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import type { FiscalYear } from '@/types';
-import ChartSkeleton from '@/components/common/ChartSkeleton';
+
 import { useAdminDashboardPage } from '@/hooks/page/admin/dashboard/useAdminDashboardPage';
 import { useAggregatedAnnualReport } from '@/hooks/page/admin/dashboard/useAggregatedAnnualReport';
 

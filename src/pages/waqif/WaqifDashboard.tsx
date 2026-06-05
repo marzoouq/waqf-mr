@@ -2,13 +2,14 @@
  * لوحة تحكم مخصصة للواقف
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
  */
+import { FeatureGate } from '@/components/common';
 import { lazy, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout } from '@/components/layout';
 import { NoPublishedYearsNotice, ExportMenu, DashboardSkeleton, DeferredRender } from '@/components/common';
-import FeatureGate from '@/components/common/FeatureGate';
+
 import WaqifWelcomeCard from '@/components/waqif/WaqifWelcomeCard';
 import WaqifFinancialSection from '@/components/waqif/WaqifFinancialSection';
 import WaqifOverviewStats from '@/components/waqif/WaqifOverviewStats';

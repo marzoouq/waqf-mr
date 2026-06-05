@@ -1,12 +1,12 @@
 /**
  * زر عائم لتشخيص النظام — يظهر فقط للمسؤول
  */
+import { ErrorBoundary } from '@/components/common';
 import { lazy, Suspense, useState } from 'react';
 import { Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
-import ErrorBoundary from '@/components/common/feedback/ErrorBoundary';
 
 const SystemDiagnosticsPage = lazy(() => import('@/pages/dashboard/SystemDiagnosticsPage'));
 
