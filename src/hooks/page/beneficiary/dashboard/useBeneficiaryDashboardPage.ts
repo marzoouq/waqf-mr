@@ -122,6 +122,8 @@ export function useBeneficiaryDashboardPage() {
   return {
     // حالات التحميل والخطأ
     isLoading, dashError, dashLoading, noPublishedYears,
+    // إعدادات الويدجتس
+    isVisible,
     // بيانات المستفيد
     currentBeneficiary, myShare, distributions, role, fiscalYearId,
     // بيانات السنة المالية
