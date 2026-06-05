@@ -157,6 +157,25 @@ export default tseslint.config(
     },
   },
 
+  // Wave 9 — barrel-only لـ components/common: استورد من @/components/common فقط.
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/components/common/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/components/common/*"],
+              message: "استورد من @/components/common فقط (البارّل). لا تستخدم مسارات فرعية.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // M6 — فصل الأدوار: لا يجوز للواقف استيراد hooks المستفيد والعكس.
   {
     files: ["src/hooks/page/waqif/**/*.{ts,tsx}", "src/pages/waqif/**/*.{ts,tsx}", "src/components/waqif/**/*.{ts,tsx}"],
