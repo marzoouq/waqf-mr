@@ -3,7 +3,7 @@
  * تأثيرات UI/المتصفح (الصوت + إشعار المتصفح) منفصلة في
  * `@/hooks/ui/useNotificationSounds`.
  *
- * Optimistic updates + rollback + toast.error عند فشل الشبكة
+ * Optimistic updates + rollback + uiNotify.error عند فشل الشبكة
  * — يمنع سيناريو "ضغطت قراءة الكل ثم أُغلق التطبيق فلم تُحفظ".
  */
 import { useEffect, useRef, useCallback } from 'react';
@@ -84,7 +84,7 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
     onError: (err, _id, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(queryKey, ctx.prev);
       logger.error('markAsRead failed:', err);
-      toast.error('تعذّر تحديث حالة الإشعار');
+      uiNotify.error('تعذّر تحديث حالة الإشعار');
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
@@ -100,7 +100,7 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
     onError: (err, _v, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(queryKey, ctx.prev);
       logger.error('markAllAsRead failed:', err);
-      toast.error('تعذّر تحديث حالة الإشعارات');
+      uiNotify.error('تعذّر تحديث حالة الإشعارات');
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
@@ -116,7 +116,7 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
     onError: (err, _v, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(queryKey, ctx.prev);
       logger.error('deleteRead failed:', err);
-      toast.error('تعذّر حذف الإشعارات المقروءة');
+      uiNotify.error('تعذّر حذف الإشعارات المقروءة');
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
@@ -132,7 +132,7 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
     onError: (err, _id, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(queryKey, ctx.prev);
       logger.error('deleteOne failed:', err);
-      toast.error('تعذّر حذف الإشعار');
+      uiNotify.error('تعذّر حذف الإشعار');
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
