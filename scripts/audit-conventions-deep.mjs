@@ -38,8 +38,8 @@ for (const abs of walk(ROOT)) {
     let m;
     const reSupa = /from\s+['"]@\/integrations\/supabase\/client['"]/g;
     while ((m = reSupa.exec(src))) add('Critical', 'CoreModV7', rel, lineOf(src, m.index), 'page imports supabase client directly');
-    const reData = /from\s+['"]@\/hooks\/data\//g;
-    while ((m = reData.exec(src))) add('Critical', 'CoreModV7', rel, lineOf(src, m.index), 'page imports from hooks/data/* directly');
+    const reData = /^import\s+(?!type\b)[^;]*from\s+['"]@\/hooks\/data\//gm;
+    while ((m = reData.exec(src))) add('Critical', 'CoreModV7', rel, lineOf(src, m.index), 'page imports from hooks/data/* directly (non-type)');
   }
 
   // Hooks Layering
