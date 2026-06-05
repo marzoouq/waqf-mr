@@ -76,6 +76,30 @@ jobs:
       - name: ESLint check
         run: npx eslint src/
 
+      - name: Lint conventions (lib/hooks/page boundary)
+        run: npm run lint:conventions
+
+      - name: UI permissions audit (no GAPs)
+        run: |
+          node scripts/audit-ui-permissions.mjs
+          GAPS=$(tail -n +2 audit/ui-permissions-audit.csv | grep -c '^.' || true)
+          if [ "$GAPS" -gt 0 ]; then
+            echo "::error::وُجدت $GAPS فجوة صلاحيات UI"
+            cat audit/ui-permissions-audit.csv
+            exit 1
+          fi
+          echo "✅ 0 فجوات صلاحيات UI"
+
+      - name: Permissions matrix integrity (156 rows)
+        run: |
+          node scripts/build-permissions-matrix.mjs
+          ROWS=$(tail -n +2 audit/ui-permissions-matrix.csv | wc -l | tr -d ' ')
+          if [ "$ROWS" != "156" ]; then
+            echo "::error::مصفوفة الصلاحيات: متوقع 156 صف، وُجد $ROWS"
+            exit 1
+          fi
+          echo "✅ مصفوفة الصلاحيات: 156 صف"
+
       - name: Run tests
         run: npx vitest run
 
