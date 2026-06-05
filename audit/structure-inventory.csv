@@ -489,7 +489,7 @@ hooks/application/dashboard/useEndUserDashboardData.ts,hook-application,14,1,2,f
 hooks/application/dashboard/useEndUserFinancials.ts,hook-application,63,4,1,false,false,false,false,false
 hooks/application/messaging/useMessagesPage.ts,hook-application,84,5,1,false,false,true,false,false
 hooks/application/useAiChat.ts,hook-application,198,3,3,false,false,false,false,false
-hooks/application/useAuthPage.ts,hook-application,45,7,1,false,false,false,false,false
+hooks/application/useAuthPage.ts,hook-application,48,8,1,false,false,false,false,false
 hooks/application/useDataExport.ts,hook-application,100,6,4,false,false,false,false,false
 hooks/application/useGlobalSearch.ts,hook-application,105,9,2,false,false,false,false,false
 hooks/application/useInstallAppPage.ts,hook-application,45,1,1,false,false,false,false,false
@@ -759,7 +759,7 @@ hooks/page/admin/settings/useRolePermissionsTab.ts,hook-page,40,6,1,false,false,
 hooks/page/admin/settings/useSystemSettingsTab.ts,hook-page,77,5,4,false,false,false,false,false
 hooks/page/admin/settings/useWaqfInfoSave.ts,hook-page,70,5,1,false,true,false,false,false
 hooks/page/admin/settings/useWaqfSettingsTab.ts,hook-page,87,4,4,false,false,false,false,false
-hooks/page/beneficiary/dashboard/useBeneficiaryDashboardPage.ts,hook-page,147,12,1,false,false,false,false,false
+hooks/page/beneficiary/dashboard/useBeneficiaryDashboardPage.ts,hook-page,152,13,1,false,false,false,false,false
 hooks/page/beneficiary/financial/useAccountsViewPage.ts,hook-page,73,13,1,false,false,false,false,false
 hooks/page/beneficiary/financial/useCarryforwardData.ts,hook-page,48,6,1,false,false,false,false,false
 hooks/page/beneficiary/financial/useDisclosurePage.ts,hook-page,137,16,1,false,false,false,false,false
@@ -896,7 +896,7 @@ lib/theme/themes/purple.ts,lib,121,1,1,false,false,false,false,false
 lib/theme/themes/royalBlue.ts,lib,121,1,1,false,false,false,false,false
 main.tsx,other,69,7,0,false,false,false,false,false
 pages/Auth.test.tsx,page,49,5,0,false,false,false,false,false
-pages/Auth.tsx,page,147,9,1,false,false,false,false,true
+pages/Auth.tsx,page,144,8,1,false,false,false,false,true
 pages/Index.tsx,page,57,7,1,false,false,false,false,true
 pages/InstallApp.test.tsx,page,24,4,0,false,false,false,false,false
 pages/InstallApp.tsx,page,97,6,1,false,false,false,false,true
@@ -912,7 +912,7 @@ pages/Unauthorized.tsx,page,90,5,1,false,false,false,false,true
 pages/beneficiary/AccountsViewPage.tsx,page,90,8,1,false,false,false,false,true
 pages/beneficiary/AnnualReportViewPage.test.tsx,page,49,5,0,false,false,false,false,false
 pages/beneficiary/AnnualReportViewPage.tsx,page,155,12,1,false,false,false,false,true
-pages/beneficiary/BeneficiaryDashboard.tsx,page,119,15,1,false,false,false,false,true
+pages/beneficiary/BeneficiaryDashboard.tsx,page,118,14,1,false,false,false,false,true
 pages/beneficiary/BeneficiaryMessagesPage.tsx,page,115,10,1,false,false,false,false,true
 pages/beneficiary/BeneficiarySettingsPage.test.tsx,page,119,4,0,false,false,false,false,false
 pages/beneficiary/BeneficiarySettingsPage.tsx,page,108,8,1,false,false,false,false,true
