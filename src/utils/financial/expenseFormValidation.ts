@@ -49,6 +49,19 @@ const expenseFormSchema = z.object({
     .default(''),
 });
 
+export type ExpenseFieldErrors = Partial<Record<keyof ExpenseFormInput, string>>;
+
+export function getExpenseFieldErrors(input: ExpenseFormInput): ExpenseFieldErrors {
+  const parsed = expenseFormSchema.safeParse(input);
+  if (parsed.success) return {};
+  const errors: ExpenseFieldErrors = {};
+  for (const issue of parsed.error.issues) {
+    const field = issue.path[0] as keyof ExpenseFormInput | undefined;
+    if (field && !errors[field]) errors[field] = issue.message;
+  }
+  return errors;
+}
+
 export function validateExpenseForm(input: ExpenseFormInput): ExpenseValidationResult {
   const parsed = expenseFormSchema.safeParse(input);
   if (!parsed.success) {
@@ -67,3 +80,4 @@ export function validateExpenseForm(input: ExpenseFormInput): ExpenseValidationR
     },
   };
 }
+
