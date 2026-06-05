@@ -26,12 +26,14 @@
  *   - audit/page-controls-audit.csv
  *   - audit/page-controls-audit.md
  */
-import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join, relative, resolve, basename } from 'node:path';
 
 const ROOT = process.cwd();
 const OUT_DIR = resolve(ROOT, 'audit');
 const PAGE_DIRS = ['src/pages/dashboard', 'src/pages/beneficiary'];
+const RECURSE_PREFIXES = ['@/components/dashboard/', '@/components/beneficiary/', '@/components/shared/', '@/components/admin/'];
+
 
 // ---- 1. resolve page filename -> route path & required roles ----
 function loadRouteMap() {
@@ -200,81 +202,129 @@ function scanControls(filePath, src) {
   return out;
 }
 
+// ---- 2b. resolve `@/...` imports to file paths ----
+function resolveAlias(spec) {
+  if (!spec.startsWith('@/')) return null;
+  const rel = spec.slice(2);
+  const base = resolve(ROOT, 'src', rel);
+  for (const ext of ['.tsx', '.ts', '/index.tsx', '/index.ts']) {
+    if (existsSync(base + ext)) return base + ext;
+  }
+  if (existsSync(base)) { try { if (statSync(base).isFile()) return base; } catch { /* noop */ } }
+  return null;
+}
+
+function importedChildren(src) {
+  const out = new Set();
+  const re = /import\s+(?:[^'"]*?from\s+)?["']([^"']+)["']/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    const spec = m[1];
+    if (RECURSE_PREFIXES.some(p => spec.startsWith(p))) {
+      const resolved = resolveAlias(spec);
+      if (resolved) out.add(resolved);
+    }
+  }
+  return [...out];
+}
+
 // ---- 3. main ----
 mkdirSync(OUT_DIR, { recursive: true });
 const routeMap = loadRouteMap();
 
-const allFiles = PAGE_DIRS.flatMap(d => walk(resolve(ROOT, d)));
+const pageFiles = PAGE_DIRS.flatMap(d => walk(resolve(ROOT, d)));
 const rows = [];
 const perPage = {};
+const childRows = [];
+const scannedChildren = new Set();
 
-for (const f of allFiles) {
+for (const f of pageFiles) {
   const src = readFileSync(f, 'utf8');
   const base = basename(f, '.tsx');
   const route = routeMap[base];
   const controls = scanControls(f, src);
-  perPage[relative(ROOT, f).replace(/\\/g, '/')] = {
+  const pageRel = relative(ROOT, f).replace(/\\/g, '/');
+  perPage[pageRel] = {
     route: route?.path || '(no route)',
     roles: route?.roles || '(n/a)',
     controls,
+    children: [],
   };
   for (const c of controls) {
-    rows.push({
-      page: relative(ROOT, f).replace(/\\/g, '/'),
-      route: route?.path || '',
-      roles: route?.roles || '',
-      ...c,
-    });
+    rows.push({ page: pageRel, route: route?.path || '', roles: route?.roles || '', ...c });
+  }
+  for (const childFile of importedChildren(src)) {
+    if (scannedChildren.has(childFile)) continue;
+    scannedChildren.add(childFile);
+    let childSrc;
+    try { childSrc = readFileSync(childFile, 'utf8'); } catch { continue; }
+    const childControls = scanControls(childFile, childSrc);
+    const childRel = relative(ROOT, childFile).replace(/\\/g, '/');
+    perPage[pageRel].children.push({ file: childRel, controls: childControls });
+    for (const c of childControls) {
+      childRows.push({ page: pageRel, child: childRel, route: route?.path || '', roles: route?.roles || '', ...c });
+    }
   }
 }
 
-// ---- 4. write CSV ----
-const csvHeader = 'page,route,roles,line,control_type,control_label,handler_kind,parents,status';
-const csvLines = rows.map(r => [
-  r.page, r.route, r.roles, r.line, r.control_type,
+
+// ---- 4. write CSV (pages + recursed children) ----
+const csvHeader = 'page,child,route,roles,line,control_type,control_label,handler_kind,parents,status';
+const toCsv = (r, child = '') => [
+  r.page, child, r.route, r.roles, r.line, r.control_type,
   `"${(r.control_label || '').replace(/"/g, "'")}"`,
   r.handler_kind,
   `"${r.parents || ''}"`,
   r.status,
-].join(','));
+].join(',');
+const csvLines = [
+  ...rows.map(r => toCsv(r, '')),
+  ...childRows.map(r => toCsv(r, r.child)),
+];
 writeFileSync(resolve(OUT_DIR, 'page-controls-audit.csv'), [csvHeader, ...csvLines].join('\n') + '\n');
 
 // ---- 5. write Markdown summary ----
-const gapRows = rows.filter(r => r.status !== 'OK');
+const allRows = [...rows, ...childRows];
+const gapRows = allRows.filter(r => r.status !== 'OK');
 let md = '';
 md += `# Page Controls Audit — Admin & Beneficiary\n\n`;
 md += `Generated: ${new Date().toISOString()}\n\n`;
 md += `## Scope\n\n`;
 md += `- Pages scanned: **${Object.keys(perPage).length}** under \`src/pages/dashboard\` + \`src/pages/beneficiary\`.\n`;
-md += `- Control types: Tab, Button, IconButton, DropdownItem, CommandItem, MenuItem, Link, FormSubmit (top-level only — children components are not recursively scanned in this phase).\n`;
-md += `- Method: regex inventory (not full AST). A control is **OK** if it has \`onClick\` / \`onSubmit\` / \`asChild\` / \`type=submit\` / \`to=\` / \`href=\` / parent Trigger.\n\n`;
+md += `- First-level child components recursed: **${scannedChildren.size}** under \`${RECURSE_PREFIXES.join('\`, \`')}\`.\n`;
+md += `- Control types: Tab, Button, IconButton, DropdownItem, CommandItem, MenuItem, Link, FormSubmit.\n`;
+md += `- Method: regex inventory (not full AST). A control is **OK** if it has \`onClick\` / \`onSubmit\` / \`asChild\` / \`type=submit\` / \`to=\` / \`href=\` / parent Trigger / Radix TabsTrigger.\n\n`;
 md += `## Totals\n\n`;
 md += `| Metric | Value |\n|---|---|\n`;
-md += `| Total controls | ${rows.length} |\n`;
-md += `| OK | ${rows.length - gapRows.length} |\n`;
+md += `| Page-level controls | ${rows.length} |\n`;
+md += `| Child-component controls | ${childRows.length} |\n`;
+md += `| Total controls | ${allRows.length} |\n`;
+md += `| OK | ${allRows.length - gapRows.length} |\n`;
 md += `| GAP-NO-HANDLER | ${gapRows.length} |\n\n`;
 
-md += `## Per-page summary\n\n`;
-md += `| Page | Route | Roles | Tabs | Buttons | Dropdown/CommandItems | Links | Forms | Gaps |\n`;
-md += `|---|---|---|---:|---:|---:|---:|---:|---:|\n`;
+md += `## Per-page summary (page + recursed children)\n\n`;
+md += `| Page | Route | Roles | Children | Tabs | Buttons | Dropdown/CommandItems | Links | Forms | Gaps |\n`;
+md += `|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n`;
 for (const [page, info] of Object.entries(perPage).sort()) {
-  const cs = info.controls;
+  const cs = [...info.controls, ...info.children.flatMap(ch => ch.controls)];
   const c = (t) => cs.filter(x => x.control_type === t).length;
   const dropdowns = cs.filter(x => ['DropdownItem','CommandItem','MenuItem'].includes(x.control_type)).length;
   const gaps = cs.filter(x => x.status !== 'OK').length;
   const gapMark = gaps > 0 ? `🔴 ${gaps}` : '✅ 0';
-  md += `| \`${page.replace('src/pages/','')}\` | \`${info.route}\` | ${info.roles} | ${c('Tab')} | ${c('Button')+c('IconButton')} | ${dropdowns} | ${c('Link')} | ${c('FormSubmit')} | ${gapMark} |\n`;
+  md += `| \`${page.replace('src/pages/','')}\` | \`${info.route}\` | ${info.roles} | ${info.children.length} | ${c('Tab')} | ${c('Button')+c('IconButton')} | ${dropdowns} | ${c('Link')} | ${c('FormSubmit')} | ${gapMark} |\n`;
 }
 
 if (gapRows.length > 0) {
   md += `\n## Gaps (controls without handler)\n\n`;
   md += `| file:line | type | label | parents |\n|---|---|---|---|\n`;
   for (const r of gapRows) {
-    md += `| \`${r.page}:${r.line}\` | ${r.control_type} | ${r.control_label || '_(empty)_'} | \`${r.parents}\` |\n`;
+    const file = r.child || r.page;
+    md += `| \`${file}:${r.line}\` | ${r.control_type} | ${r.control_label || '_(empty)_'} | \`${r.parents}\` |\n`;
   }
 } else {
-  md += `\n## Gaps\n\n✅ No controls without a handler detected on admin/beneficiary pages.\n`;
+  md += `\n## Gaps\n\n✅ No controls without a handler detected on admin/beneficiary pages or their first-level child components.\n`;
 }
 
 writeFileSync(resolve(OUT_DIR, 'page-controls-audit.md'), md);
-console.log(`Scanned ${Object.keys(perPage).length} pages. Controls: ${rows.length}. Gaps: ${gapRows.length}.`);
+console.log(`Scanned ${Object.keys(perPage).length} pages + ${scannedChildren.size} child components. Controls: ${allRows.length} (page ${rows.length} + child ${childRows.length}). Gaps: ${gapRows.length}.`);
+

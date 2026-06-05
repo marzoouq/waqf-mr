@@ -1,92 +1,115 @@
-page,route,roles,line,control_type,control_label,handler_kind,parents,status
-src/pages/dashboard/AccountsPage.tsx,/dashboard/accounts,ADMIN_ROLES,38,Button,"الإفصاح PDF",onClick,"DashboardLayout>PageHeaderCard>LockedYearBanner",OK
-src/pages/dashboard/AccountsPage.tsx,/dashboard/accounts,ADMIN_ROLES,42,Button,"توزيع الحصص PDF",onClick,"PageHeaderCard>LockedYearBanner>FileText",OK
-src/pages/dashboard/AccountsPage.tsx,/dashboard/accounts,ADMIN_ROLES,47,Button,"إنشاء حساب ختامي",onClick,"FileText>Users>ExportMenu",OK
-src/pages/dashboard/AccountsPage.tsx,/dashboard/accounts,ADMIN_ROLES,52,Button,"إقفال السنة",onClick,"Users>ExportMenu>Plus",OK
-src/pages/dashboard/AdminDashboard.tsx,/dashboard,ADMIN_ROLES,50,Button,"تقرير سنوي مُجمَّع",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/AdminDashboard.tsx,/dashboard,ADMIN_ROLES,60,Button,"طباعة",onClick,"DashboardLayout>PageHeaderCard>FileDown",OK
-src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,110,Tab,"حالة العقارات",tabs-radix,"Loader2>Tabs>TabsList",OK
-src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,115,Tab,"الإنجازات",tabs-radix,"TabsList>Building2",OK
-src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,120,Tab,"التحديات",tabs-radix,"TabsList>Building2>Trophy",OK
-src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,125,Tab,"الخطط المستقبلية",tabs-radix,"Building2>Trophy>AlertTriangle",OK
-src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,47,Button,"",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,57,Button,"PDF",onClick,"PageHeaderCard>FileEdit>Send",OK
-src/pages/dashboard/AnnualReportPage.tsx,/dashboard/annual-report,ADMIN_ROLES,61,Button,"طباعة",onClick,"FileEdit>Send>FileDown",OK
-src/pages/dashboard/AuditLogPage.tsx,/dashboard/audit-log,ADMIN_ROLES,47,Tab,"سجل العمليات",tabs-radix,"Tabs>SelectValue>TabsList",OK
-src/pages/dashboard/AuditLogPage.tsx,/dashboard/audit-log,ADMIN_ROLES,48,Tab,"محاولات الوصول",tabs-radix,"SelectValue>TabsList>Activity",OK
-src/pages/dashboard/AuditLogPage.tsx,/dashboard/audit-log,ADMIN_ROLES,49,Tab,"الأرشيف",tabs-radix,"TabsList>Activity>ShieldAlert",OK
-src/pages/dashboard/AuditLogPage.tsx,/dashboard/audit-log,ADMIN_ROLES,27,Button,"",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/BeneficiariesPage.tsx,/dashboard/beneficiaries,ADMIN_ROLES,34,Tab,"المستفيدون",tabs-radix,"BeneficiaryFormDialog>Tabs>TabsList",OK
-src/pages/dashboard/BeneficiariesPage.tsx,/dashboard/beneficiaries,ADMIN_ROLES,35,Tab,"طلبات السُلف",tabs-radix,"BeneficiaryFormDialog>Tabs>TabsList",OK
-src/pages/dashboard/BylawsPage.tsx,/dashboard/bylaws,ADMIN_ROLES,56,Button,"إضافة بند",onClick,"DashboardLayout>Loader2>PageHeaderCard",OK
-src/pages/dashboard/ChartOfAccountsPage.tsx,/dashboard/chart-of-accounts,ADMIN_ROLES,35,Button,"إضافة حساب",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/ChartOfAccountsPage.tsx,/dashboard/chart-of-accounts,ADMIN_ROLES,52,Button,"مسح البحث",onClick,"Plus>Search>Input",OK
-src/pages/dashboard/ChartOfAccountsPage.tsx,/dashboard/chart-of-accounts,ADMIN_ROLES,63,Button,"إضافة أول حساب",onClick,"X>Loader2>FolderTree",OK
-src/pages/dashboard/ChartOfAccountsPage.tsx,/dashboard/chart-of-accounts,ADMIN_ROLES,107,Button,"إلغاء",onClick,"SelectValue>SelectValue>DialogFooter",OK
-src/pages/dashboard/ChartOfAccountsPage.tsx,/dashboard/chart-of-accounts,ADMIN_ROLES,108,Button,"",onClick,"SelectValue>DialogFooter",OK
-src/pages/dashboard/ContractsPage.tsx,/dashboard/contracts,ADMIN_ROLES,52,Tab,"العقود",tabs-radix,"Tabs>NativeSelect>TabsList",OK
-src/pages/dashboard/ContractsPage.tsx,/dashboard/contracts,ADMIN_ROLES,53,Tab,"الاستحقاقات",tabs-radix,"NativeSelect>TabsList>FileText",OK
-src/pages/dashboard/ContractsPage.tsx,/dashboard/contracts,ADMIN_ROLES,41,Button,"إضافة عقد",onClick,"DashboardLayout>PageHeaderCard>ExportMenu",OK
-src/pages/dashboard/ContractsPage.tsx,/dashboard/contracts,ADMIN_ROLES,73,Link,"الفواتير الضريبية",Link-to,"MonthlyAccrualTable>Card>CardContent",OK
-src/pages/dashboard/ContractsPage.tsx,/dashboard/contracts,ADMIN_ROLES,76,Link,"تقرير التحصيل",Link-to,"CardContent>Receipt>ArrowLeft",OK
-src/pages/dashboard/DistributionsPage.tsx,/dashboard/distributions,ADMIN_ROLES,43,Button,"تنفيذ التوزيع",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/EmailMonitorPage.tsx,/dashboard/email-monitor,ADMIN_ONLY,48,Button,"تحديث",onClick,"DashboardLayout>Mail",OK
-src/pages/dashboard/HistoricalComparisonPage.tsx,/dashboard/comparison,ADMIN_ONLY,36,Button,"تصدير PDF",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/HistoricalComparisonPage.tsx,/dashboard/comparison,ADMIN_ONLY,57,Button,"",onClick,"Card>CardContent>Loader2",OK
-src/pages/dashboard/InvoicesPage.tsx,/dashboard/invoices,ADMIN_ROLES,59,Tab,"الكل ()",tabs-radix,"InvoiceSummaryCards>Tabs>TabsList",OK
-src/pages/dashboard/InvoicesPage.tsx,/dashboard/invoices,ADMIN_ROLES,60,Tab,"فواتير الإيجار",tabs-radix,"InvoiceSummaryCards>Tabs>TabsList",OK
-src/pages/dashboard/InvoicesPage.tsx,/dashboard/invoices,ADMIN_ROLES,61,Tab,"فواتير الشراء",tabs-radix,"InvoiceSummaryCards>Tabs>TabsList",OK
-src/pages/dashboard/InvoicesPage.tsx,/dashboard/invoices,ADMIN_ROLES,32,Button,"إنشاء من قالب",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/InvoicesPage.tsx,/dashboard/invoices,ADMIN_ROLES,36,Button,"{h.generatePdf.isPending ? 'جاري التوليد...' : `توليد PDF ($)`}",onClick,"DashboardLayout>PageHeaderCard>FileText",OK
-src/pages/dashboard/InvoicesPage.tsx,/dashboard/invoices,ADMIN_ROLES,89,Button,"جدول",onClick,"SelectValue>SelectValue",OK
-src/pages/dashboard/InvoicesPage.tsx,/dashboard/invoices,ADMIN_ROLES,90,Button,"شبكي",onClick,"SelectValue>List",OK
-src/pages/dashboard/InvoicesPage.tsx,/dashboard/invoices,ADMIN_ROLES,142,Button,"عرض الملف",onClick,"MobileCardView",OK
-src/pages/dashboard/MessagesPage.tsx,/dashboard/messages,ADMIN_ROLES,34,Button,"محادثة جديدة",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/ReportsPage.tsx,/dashboard/reports,ADMIN_ROLES,72,Button,"الإفصاح السنوي PDF",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/ReportsPage.tsx,/dashboard/reports,ADMIN_ROLES,76,Button,"توزيع الحصص PDF",onClick,"DashboardLayout>PageHeaderCard>FileText",OK
-src/pages/dashboard/ReportsPage.tsx,/dashboard/reports,ADMIN_ROLES,80,Button,"الفحص الجنائي PDF",onClick,"PageHeaderCard>FileText>Users",OK
-src/pages/dashboard/SettingsPage.tsx,/dashboard/settings,ADMIN_ONLY,65,Tab,"",tabs-radix,"SelectValue>TabsList",OK
-src/pages/dashboard/SupportDashboardPage.tsx,/dashboard/support,ADMIN_ROLES,50,Tab,"التذاكر",tabs-radix,"SupportStatsCards>Tabs>TabsList",OK
-src/pages/dashboard/SupportDashboardPage.tsx,/dashboard/support,ADMIN_ROLES,51,Tab,"الأخطاء",tabs-radix,"Tabs>TabsList>Headset",OK
-src/pages/dashboard/SupportDashboardPage.tsx,/dashboard/support,ADMIN_ROLES,52,Tab,"الإحصائيات",tabs-radix,"TabsList>Headset>Bug",OK
-src/pages/dashboard/SupportDashboardPage.tsx,/dashboard/support,ADMIN_ROLES,32,Button,"تذكرة جديدة",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,/dashboard/diagnostics,ADMIN_ONLY,69,Button,"تصدير",onClick,"",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,/dashboard/diagnostics,ADMIN_ONLY,74,Button,"",onClick,"Download",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,/dashboard/diagnostics,ADMIN_ONLY,101,Button,"",onClick,"WebVitalsPanel>Card>CardHeader",OK
-src/pages/dashboard/ZatcaManagementPage.tsx,/dashboard/zatca,ADMIN_ONLY,72,Tab,"الفواتير",tabs-radix,"ZatcaHealthPanel>Tabs>TabsList",OK
-src/pages/dashboard/ZatcaManagementPage.tsx,/dashboard/zatca,ADMIN_ONLY,73,Tab,"الشهادات",tabs-radix,"Tabs>TabsList>FileText",OK
-src/pages/dashboard/ZatcaManagementPage.tsx,/dashboard/zatca,ADMIN_ONLY,74,Tab,"سلسلة التوقيع",tabs-radix,"TabsList>FileText>ShieldCheck",OK
-src/pages/beneficiary/AccountsViewPage.tsx,/beneficiary/accounts,ALL_NON_ACCOUNTANT,24,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
-src/pages/beneficiary/AccountsViewPage.tsx,/beneficiary/accounts,ALL_NON_ACCOUNTANT,39,Button,"إعادة تحميل",onClick,"RefreshCw>DashboardSkeleton>AlertCircle",OK
-src/pages/beneficiary/AccountsViewPage.tsx,/beneficiary/accounts,ALL_NON_ACCOUNTANT,77,Button,"الإفصاح السنوي",onClick,"AccountsViewMyShare>Card>CardContent",OK
-src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,113,Tab,"حالة العقارات",tabs-radix,"IncomeComparisonChart>Tabs>TabsList",OK
-src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,116,Tab,"الإنجازات",tabs-radix,"Tabs>TabsList>Building2",OK
-src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,119,Tab,"التحديات",tabs-radix,"TabsList>Building2>Trophy",OK
-src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,122,Tab,"الخطط المستقبلية",tabs-radix,"Building2>Trophy>AlertTriangle",OK
-src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,66,Button,"PDF",onClick,"PageHeaderCard>Info>PageHeaderCard",OK
-src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,69,Button,"CSV",onClick,"Info>PageHeaderCard>FileDown",OK
-src/pages/beneficiary/AnnualReportViewPage.tsx,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,72,Button,"طباعة",onClick,"PageHeaderCard>FileDown>FileSpreadsheet",OK
-src/pages/beneficiary/BeneficiaryMessagesPage.tsx,/beneficiary/messages,BENEFICIARY_ROLES,29,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
-src/pages/beneficiary/BeneficiaryMessagesPage.tsx,/beneficiary/messages,BENEFICIARY_ROLES,57,Button,"محادثة الناظر",onClick,"RefreshCw>TableSkeleton>PageHeaderCard",OK
-src/pages/beneficiary/BeneficiaryMessagesPage.tsx,/beneficiary/messages,BENEFICIARY_ROLES,60,Button,"",onClick,"TableSkeleton>PageHeaderCard>MessageSquare",OK
-src/pages/beneficiary/BylawsViewPage.tsx,/beneficiary/bylaws,ALL_NON_ACCOUNTANT,27,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
-src/pages/beneficiary/CarryforwardHistoryPage.tsx,/beneficiary/carryforward,BENEFICIARY_ROLES,41,Button,"إعادة المحاولة",onClick,"DashboardLayout>DashboardSkeleton>AlertTriangle",OK
-src/pages/beneficiary/CarryforwardHistoryPage.tsx,/beneficiary/carryforward,BENEFICIARY_ROLES,70,Button,"رجوع",onClick,"AlertTriangle>RequirePublishedYears>PageHeaderCard",OK
-src/pages/beneficiary/ContractsViewPage.tsx,/beneficiary/contracts,ALL_NON_ACCOUNTANT,39,Button,"إعادة المحاولة",onClick,"Card>CardContent>AlertCircle",OK
-src/pages/beneficiary/DisclosurePage.tsx,/beneficiary/disclosure,BENEFICIARY_ROLES,65,Button,"تقرير شامل",onClick,"ErrorState>RequirePublishedYears>PageHeaderCard",OK
-src/pages/beneficiary/FinancialReportsPage.tsx,/beneficiary/financial-reports,ALL_NON_ACCOUNTANT,34,Button,"إعادة المحاولة",onClick,"DashboardLayout>DashboardSkeleton>AlertCircle",OK
-src/pages/beneficiary/FinancialReportsPage.tsx,/beneficiary/financial-reports,ALL_NON_ACCOUNTANT,71,Link,"صفحة الإفصاح السنوي",Link-to,"RequirePublishedYears>PageHeaderCard>ExportMenu",OK
-src/pages/beneficiary/InvoicesViewPage.tsx,/beneficiary/invoices,ALL_NON_ACCOUNTANT,70,Tab,"الكل",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
-src/pages/beneficiary/InvoicesViewPage.tsx,/beneficiary/invoices,ALL_NON_ACCOUNTANT,71,Tab,"فواتير الإيجار",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
-src/pages/beneficiary/InvoicesViewPage.tsx,/beneficiary/invoices,ALL_NON_ACCOUNTANT,72,Tab,"فواتير الشراء",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
-src/pages/beneficiary/InvoicesViewPage.tsx,/beneficiary/invoices,ALL_NON_ACCOUNTANT,31,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
-src/pages/beneficiary/InvoicesViewPage.tsx,/beneficiary/invoices,ALL_NON_ACCOUNTANT,58,Button,"جدول",onClick,"PageHeaderCard>ExportMenu>Info",OK
-src/pages/beneficiary/InvoicesViewPage.tsx,/beneficiary/invoices,ALL_NON_ACCOUNTANT,61,Button,"شبكي",onClick,"ExportMenu>Info>List",OK
-src/pages/beneficiary/MySharePage.tsx,/beneficiary/my-share,BENEFICIARY_ROLES,160,Button,"صفحة الإفصاح السنوي",onClick,"Card>CardContent>AlertCircle",OK
-src/pages/beneficiary/NotificationsPage.tsx,/beneficiary/notifications,BENEFICIARY_ROLES,30,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
-src/pages/beneficiary/NotificationsPage.tsx,/beneficiary/notifications,BENEFICIARY_ROLES,58,Button,"تفعيل الإشعارات المنبثقة تفعيل",onClick,"RefreshCw>TableSkeleton>PageHeaderCard",OK
-src/pages/beneficiary/PropertiesViewPage.tsx,/beneficiary/properties,ALL_NON_ACCOUNTANT,53,Button,"إعادة المحاولة",onClick,"DashboardLayout>Skeleton>AlertCircle",OK
-src/pages/beneficiary/PropertiesViewPage.tsx,/beneficiary/properties,ALL_NON_ACCOUNTANT,89,Link,"التقارير المالية",Link-to,"Building2",OK
-src/pages/beneficiary/PropertiesViewPage.tsx,/beneficiary/properties,ALL_NON_ACCOUNTANT,91,Link,"حصتي",Link-to,"CardContent>Building2>ArrowLeft",OK
-src/pages/beneficiary/SupportPage.tsx,,,33,Button,"طلب دعم جديد",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/beneficiary/SupportPage.tsx,,,63,Button,"إعادة المحاولة",onClick,"MessageSquare>Loader2>AlertCircle",OK
+page,child,route,roles,line,control_type,control_label,handler_kind,parents,status
+src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,38,Button,"الإفصاح PDF",onClick,"DashboardLayout>PageHeaderCard>LockedYearBanner",OK
+src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,42,Button,"توزيع الحصص PDF",onClick,"PageHeaderCard>LockedYearBanner>FileText",OK
+src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,47,Button,"إنشاء حساب ختامي",onClick,"FileText>Users>ExportMenu",OK
+src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,52,Button,"إقفال السنة",onClick,"Users>ExportMenu>Plus",OK
+src/pages/dashboard/AdminDashboard.tsx,,/dashboard,ADMIN_ROLES,50,Button,"تقرير سنوي مُجمَّع",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/AdminDashboard.tsx,,/dashboard,ADMIN_ROLES,60,Button,"طباعة",onClick,"DashboardLayout>PageHeaderCard>FileDown",OK
+src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,110,Tab,"حالة العقارات",tabs-radix,"Loader2>Tabs>TabsList",OK
+src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,115,Tab,"الإنجازات",tabs-radix,"TabsList>Building2",OK
+src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,120,Tab,"التحديات",tabs-radix,"TabsList>Building2>Trophy",OK
+src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,125,Tab,"الخطط المستقبلية",tabs-radix,"Building2>Trophy>AlertTriangle",OK
+src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,47,Button,"",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,57,Button,"PDF",onClick,"PageHeaderCard>FileEdit>Send",OK
+src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,61,Button,"طباعة",onClick,"FileEdit>Send>FileDown",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,47,Tab,"سجل العمليات",tabs-radix,"Tabs>SelectValue>TabsList",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,48,Tab,"محاولات الوصول",tabs-radix,"SelectValue>TabsList>Activity",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,49,Tab,"الأرشيف",tabs-radix,"TabsList>Activity>ShieldAlert",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,27,Button,"",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/BeneficiariesPage.tsx,,/dashboard/beneficiaries,ADMIN_ROLES,34,Tab,"المستفيدون",tabs-radix,"BeneficiaryFormDialog>Tabs>TabsList",OK
+src/pages/dashboard/BeneficiariesPage.tsx,,/dashboard/beneficiaries,ADMIN_ROLES,35,Tab,"طلبات السُلف",tabs-radix,"BeneficiaryFormDialog>Tabs>TabsList",OK
+src/pages/dashboard/BylawsPage.tsx,,/dashboard/bylaws,ADMIN_ROLES,56,Button,"إضافة بند",onClick,"DashboardLayout>Loader2>PageHeaderCard",OK
+src/pages/dashboard/ChartOfAccountsPage.tsx,,/dashboard/chart-of-accounts,ADMIN_ROLES,35,Button,"إضافة حساب",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/ChartOfAccountsPage.tsx,,/dashboard/chart-of-accounts,ADMIN_ROLES,52,Button,"مسح البحث",onClick,"Plus>Search>Input",OK
+src/pages/dashboard/ChartOfAccountsPage.tsx,,/dashboard/chart-of-accounts,ADMIN_ROLES,63,Button,"إضافة أول حساب",onClick,"X>Loader2>FolderTree",OK
+src/pages/dashboard/ChartOfAccountsPage.tsx,,/dashboard/chart-of-accounts,ADMIN_ROLES,107,Button,"إلغاء",onClick,"SelectValue>SelectValue>DialogFooter",OK
+src/pages/dashboard/ChartOfAccountsPage.tsx,,/dashboard/chart-of-accounts,ADMIN_ROLES,108,Button,"",onClick,"SelectValue>DialogFooter",OK
+src/pages/dashboard/ContractsPage.tsx,,/dashboard/contracts,ADMIN_ROLES,52,Tab,"العقود",tabs-radix,"Tabs>NativeSelect>TabsList",OK
+src/pages/dashboard/ContractsPage.tsx,,/dashboard/contracts,ADMIN_ROLES,53,Tab,"الاستحقاقات",tabs-radix,"NativeSelect>TabsList>FileText",OK
+src/pages/dashboard/ContractsPage.tsx,,/dashboard/contracts,ADMIN_ROLES,41,Button,"إضافة عقد",onClick,"DashboardLayout>PageHeaderCard>ExportMenu",OK
+src/pages/dashboard/ContractsPage.tsx,,/dashboard/contracts,ADMIN_ROLES,73,Link,"الفواتير الضريبية",Link-to,"MonthlyAccrualTable>Card>CardContent",OK
+src/pages/dashboard/ContractsPage.tsx,,/dashboard/contracts,ADMIN_ROLES,76,Link,"تقرير التحصيل",Link-to,"CardContent>Receipt>ArrowLeft",OK
+src/pages/dashboard/DistributionsPage.tsx,,/dashboard/distributions,ADMIN_ROLES,43,Button,"تنفيذ التوزيع",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/EmailMonitorPage.tsx,,/dashboard/email-monitor,ADMIN_ONLY,48,Button,"تحديث",onClick,"DashboardLayout>Mail",OK
+src/pages/dashboard/HistoricalComparisonPage.tsx,,/dashboard/comparison,ADMIN_ONLY,36,Button,"تصدير PDF",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/HistoricalComparisonPage.tsx,,/dashboard/comparison,ADMIN_ONLY,57,Button,"",onClick,"Card>CardContent>Loader2",OK
+src/pages/dashboard/InvoicesPage.tsx,,/dashboard/invoices,ADMIN_ROLES,59,Tab,"الكل ()",tabs-radix,"InvoiceSummaryCards>Tabs>TabsList",OK
+src/pages/dashboard/InvoicesPage.tsx,,/dashboard/invoices,ADMIN_ROLES,60,Tab,"فواتير الإيجار",tabs-radix,"InvoiceSummaryCards>Tabs>TabsList",OK
+src/pages/dashboard/InvoicesPage.tsx,,/dashboard/invoices,ADMIN_ROLES,61,Tab,"فواتير الشراء",tabs-radix,"InvoiceSummaryCards>Tabs>TabsList",OK
+src/pages/dashboard/InvoicesPage.tsx,,/dashboard/invoices,ADMIN_ROLES,32,Button,"إنشاء من قالب",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/InvoicesPage.tsx,,/dashboard/invoices,ADMIN_ROLES,36,Button,"{h.generatePdf.isPending ? 'جاري التوليد...' : `توليد PDF ($)`}",onClick,"DashboardLayout>PageHeaderCard>FileText",OK
+src/pages/dashboard/InvoicesPage.tsx,,/dashboard/invoices,ADMIN_ROLES,89,Button,"جدول",onClick,"SelectValue>SelectValue",OK
+src/pages/dashboard/InvoicesPage.tsx,,/dashboard/invoices,ADMIN_ROLES,90,Button,"شبكي",onClick,"SelectValue>List",OK
+src/pages/dashboard/InvoicesPage.tsx,,/dashboard/invoices,ADMIN_ROLES,142,Button,"عرض الملف",onClick,"MobileCardView",OK
+src/pages/dashboard/MessagesPage.tsx,,/dashboard/messages,ADMIN_ROLES,34,Button,"محادثة جديدة",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/ReportsPage.tsx,,/dashboard/reports,ADMIN_ROLES,72,Button,"الإفصاح السنوي PDF",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/ReportsPage.tsx,,/dashboard/reports,ADMIN_ROLES,76,Button,"توزيع الحصص PDF",onClick,"DashboardLayout>PageHeaderCard>FileText",OK
+src/pages/dashboard/ReportsPage.tsx,,/dashboard/reports,ADMIN_ROLES,80,Button,"الفحص الجنائي PDF",onClick,"PageHeaderCard>FileText>Users",OK
+src/pages/dashboard/SettingsPage.tsx,,/dashboard/settings,ADMIN_ONLY,65,Tab,"",tabs-radix,"SelectValue>TabsList",OK
+src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,50,Tab,"التذاكر",tabs-radix,"SupportStatsCards>Tabs>TabsList",OK
+src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,51,Tab,"الأخطاء",tabs-radix,"Tabs>TabsList>Headset",OK
+src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,52,Tab,"الإحصائيات",tabs-radix,"TabsList>Headset>Bug",OK
+src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,32,Button,"تذكرة جديدة",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,69,Button,"تصدير",onClick,"",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,74,Button,"",onClick,"Download",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,101,Button,"",onClick,"WebVitalsPanel>Card>CardHeader",OK
+src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,72,Tab,"الفواتير",tabs-radix,"ZatcaHealthPanel>Tabs>TabsList",OK
+src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,73,Tab,"الشهادات",tabs-radix,"Tabs>TabsList>FileText",OK
+src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,74,Tab,"سلسلة التوقيع",tabs-radix,"TabsList>FileText>ShieldCheck",OK
+src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,24,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
+src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,39,Button,"إعادة تحميل",onClick,"RefreshCw>DashboardSkeleton>AlertCircle",OK
+src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,77,Button,"الإفصاح السنوي",onClick,"AccountsViewMyShare>Card>CardContent",OK
+src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,113,Tab,"حالة العقارات",tabs-radix,"IncomeComparisonChart>Tabs>TabsList",OK
+src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,116,Tab,"الإنجازات",tabs-radix,"Tabs>TabsList>Building2",OK
+src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,119,Tab,"التحديات",tabs-radix,"TabsList>Building2>Trophy",OK
+src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,122,Tab,"الخطط المستقبلية",tabs-radix,"Building2>Trophy>AlertTriangle",OK
+src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,66,Button,"PDF",onClick,"PageHeaderCard>Info>PageHeaderCard",OK
+src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,69,Button,"CSV",onClick,"Info>PageHeaderCard>FileDown",OK
+src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,72,Button,"طباعة",onClick,"PageHeaderCard>FileDown>FileSpreadsheet",OK
+src/pages/beneficiary/BeneficiaryMessagesPage.tsx,,/beneficiary/messages,BENEFICIARY_ROLES,29,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
+src/pages/beneficiary/BeneficiaryMessagesPage.tsx,,/beneficiary/messages,BENEFICIARY_ROLES,57,Button,"محادثة الناظر",onClick,"RefreshCw>TableSkeleton>PageHeaderCard",OK
+src/pages/beneficiary/BeneficiaryMessagesPage.tsx,,/beneficiary/messages,BENEFICIARY_ROLES,60,Button,"",onClick,"TableSkeleton>PageHeaderCard>MessageSquare",OK
+src/pages/beneficiary/BylawsViewPage.tsx,,/beneficiary/bylaws,ALL_NON_ACCOUNTANT,27,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
+src/pages/beneficiary/CarryforwardHistoryPage.tsx,,/beneficiary/carryforward,BENEFICIARY_ROLES,41,Button,"إعادة المحاولة",onClick,"DashboardLayout>DashboardSkeleton>AlertTriangle",OK
+src/pages/beneficiary/CarryforwardHistoryPage.tsx,,/beneficiary/carryforward,BENEFICIARY_ROLES,70,Button,"رجوع",onClick,"AlertTriangle>RequirePublishedYears>PageHeaderCard",OK
+src/pages/beneficiary/ContractsViewPage.tsx,,/beneficiary/contracts,ALL_NON_ACCOUNTANT,39,Button,"إعادة المحاولة",onClick,"Card>CardContent>AlertCircle",OK
+src/pages/beneficiary/DisclosurePage.tsx,,/beneficiary/disclosure,BENEFICIARY_ROLES,65,Button,"تقرير شامل",onClick,"ErrorState>RequirePublishedYears>PageHeaderCard",OK
+src/pages/beneficiary/FinancialReportsPage.tsx,,/beneficiary/financial-reports,ALL_NON_ACCOUNTANT,34,Button,"إعادة المحاولة",onClick,"DashboardLayout>DashboardSkeleton>AlertCircle",OK
+src/pages/beneficiary/FinancialReportsPage.tsx,,/beneficiary/financial-reports,ALL_NON_ACCOUNTANT,71,Link,"صفحة الإفصاح السنوي",Link-to,"RequirePublishedYears>PageHeaderCard>ExportMenu",OK
+src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,70,Tab,"الكل",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
+src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,71,Tab,"فواتير الإيجار",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
+src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,72,Tab,"فواتير الشراء",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
+src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,31,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
+src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,58,Button,"جدول",onClick,"PageHeaderCard>ExportMenu>Info",OK
+src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,61,Button,"شبكي",onClick,"ExportMenu>Info>List",OK
+src/pages/beneficiary/MySharePage.tsx,,/beneficiary/my-share,BENEFICIARY_ROLES,160,Button,"صفحة الإفصاح السنوي",onClick,"Card>CardContent>AlertCircle",OK
+src/pages/beneficiary/NotificationsPage.tsx,,/beneficiary/notifications,BENEFICIARY_ROLES,30,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
+src/pages/beneficiary/NotificationsPage.tsx,,/beneficiary/notifications,BENEFICIARY_ROLES,58,Button,"تفعيل الإشعارات المنبثقة تفعيل",onClick,"RefreshCw>TableSkeleton>PageHeaderCard",OK
+src/pages/beneficiary/PropertiesViewPage.tsx,,/beneficiary/properties,ALL_NON_ACCOUNTANT,53,Button,"إعادة المحاولة",onClick,"DashboardLayout>Skeleton>AlertCircle",OK
+src/pages/beneficiary/PropertiesViewPage.tsx,,/beneficiary/properties,ALL_NON_ACCOUNTANT,89,Link,"التقارير المالية",Link-to,"Building2",OK
+src/pages/beneficiary/PropertiesViewPage.tsx,,/beneficiary/properties,ALL_NON_ACCOUNTANT,91,Link,"حصتي",Link-to,"CardContent>Building2>ArrowLeft",OK
+src/pages/beneficiary/SupportPage.tsx,,,,33,Button,"طلب دعم جديد",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/beneficiary/SupportPage.tsx,,,,63,Button,"إعادة المحاولة",onClick,"MessageSquare>Loader2>AlertCircle",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,38,Button,"مراجعة المصروفات",parent-Trigger,"XCircle>AlertDescription>Link",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,52,Button,"إدارة العقود",parent-Trigger,"AlertDescription>Link>AlertTriangle",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,69,Button,"مراجعة الفواتير المتأخرة",parent-Trigger,"Link>LinkIcon>TrendingDown",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,84,Button,"مراجعة الطلبات",parent-Trigger,"AlertDescription>Link>Banknote",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,101,Button,"إدارة العقود",parent-Trigger,"AlertDescription>Link>Clock",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,115,Button,"ضبط النسب",parent-Trigger,"AlertDescription>Link>AlertTriangle",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,37,Link,"مراجعة المصروفات",Link-to,"Alert>XCircle>AlertDescription",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,51,Link,"إدارة العقود",Link-to,"XCircle>AlertDescription>AlertTriangle",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,68,Link,"مراجعة الفواتير المتأخرة",Link-to,"AlertDescription>LinkIcon>TrendingDown",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,83,Link,"مراجعة الطلبات",Link-to,"TrendingDown>AlertDescription>Banknote",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,100,Link,"إدارة العقود",Link-to,"Banknote>AlertDescription>Clock",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/DashboardAlerts.tsx,/dashboard,ADMIN_ROLES,114,Link,"ضبط النسب",Link-to,"Clock>AlertDescription>AlertTriangle",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/QuickActionsCard.tsx,/dashboard,ADMIN_ROLES,49,Button,"",asChild,"Wallet>QuickAction",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/QuickActionsCard.tsx,/dashboard,ADMIN_ROLES,50,Link,"",Link-to,"Wallet>QuickAction>Button",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/RecentContractsCard.tsx,/dashboard,ADMIN_ROLES,74,Button,"عرض الكل",parent-Trigger,"Skeleton>Skeleton>Link",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/RecentContractsCard.tsx,/dashboard,ADMIN_ROLES,73,Link,"عرض الكل",Link-to,"Skeleton>Skeleton>Skeleton",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/kpi/DashboardStatsGrid.tsx,/dashboard,ADMIN_ROLES,22,Link,"{('yoyChange' in stat) && stat.yoyChange !== undefined && ( )}",Link-to,"StatsGridSkeleton",OK
+src/pages/dashboard/ExpensesPage.tsx,src/components/dashboard/AdvancedFiltersBar.tsx,/dashboard/expenses,ADMIN_ROLES,35,Button,"مسح الكل",onClick,"AdvancedFiltersBarProps>FilterState>Filter",OK
+src/pages/beneficiary/BeneficiaryDashboard.tsx,src/components/beneficiary/dashboard/BeneficiaryNotificationsCard.tsx,/beneficiary,BENEFICIARY_ROLES,44,Button,"عرض الكل",onClick,"Card>CardHeader>Bell",OK
+src/pages/beneficiary/BeneficiaryDashboard.tsx,src/components/beneficiary/dashboard/BeneficiaryAdvanceCard.tsx,/beneficiary,BENEFICIARY_ROLES,78,Link,"عرض السجل الكامل",Link-to,"AdvanceRequestDialog>Banknote",OK
+src/pages/beneficiary/MySharePage.tsx,src/components/beneficiary/my-share/AdvanceRequestDialog.tsx,/beneficiary/my-share,BENEFICIARY_ROLES,85,Button,"طلب سلفة",disabled,"Dialog>DialogTrigger",OK
+src/pages/beneficiary/MySharePage.tsx,src/components/beneficiary/my-share/AdvanceRequestDialog.tsx,/beneficiary/my-share,BENEFICIARY_ROLES,172,Button,"إلغاء",onClick,"Input>Textarea>DialogFooter",OK
+src/pages/beneficiary/MySharePage.tsx,src/components/beneficiary/my-share/AdvanceRequestDialog.tsx,/beneficiary/my-share,BENEFICIARY_ROLES,173,Button,"إرسال الطلب",onClick,"Input>Textarea>DialogFooter",OK
