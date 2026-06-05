@@ -1,78 +1,71 @@
-# تقرير الفحص العميق للمستودع
+# خطة مراجعة شاملة للمكوّنات والتبويبات والأزرار — الناظر والمستفيد
 
-## 1. إحصاءات المستودع
+## السياق الحالي
 
-| الفئة | العدد |
-|---|---|
-| إجمالي ملفات `src/` | 1218 (684 ts + 516 tsx + 17 md + 1 css) |
-| الصفحات `src/pages/**` | 67 |
-| المكوّنات `src/components/**` | 450 |
-| الهوكات `src/hooks/**` | 319 |
-| ملفات المسارات | 4 (admin / beneficiary / waqif / public) + helpers |
-| Edge Functions | 19 وظيفة + `_shared` |
-| جداول قاعدة البيانات | 41 جدول (RLS مُفعّل على الكل) |
+- **31 صفحة ناظر/محاسب** (`src/pages/dashboard/*`) + **21 صفحة مستفيد** (`src/pages/beneficiary/*`).
+- المصفوفة الرسمية `audit/ui-permissions-matrix.csv` = **156 صف** (39 مسار × 4 أدوار) ومحمية بـ CI gate.
+- ماسح `scripts/audit-ui-permissions.mjs` (regex، 449 ملف) يكشف 4 فئات فجوات: `GAP-NO-HANDLER`، `GAP-DEAD-LINK`، `GAP-DEAD-TAB`، `GAP-DIRECT-DB` — **النتيجة الحالية: 0 فجوة**.
+- اختبارات `roleRouteAccess` و `uiPermissionsMatrix` و `permissionKeysCoverage` و `buttonHandlerAudit` خضراء (1985/1985).
 
-## 2. نتائج الفحوصات
+## فجوات التغطية في الفحص الحالي
 
-| الفحص | الحالة |
-|---|---|
-| `tsc --noEmit` | ✅ 0 أخطاء |
-| `vitest run` | ✅ 1985/1985 مرّت (228 ملف) |
-| `lint:conventions` | ✅ 0 مخالفات + 5 تحذيرات حجم/استخدام |
-| `audit-ui-permissions` | ✅ 0 فجوات (449 ملف) |
-| `build-permissions-matrix` | ✅ 156 صف (39×4) |
-| `security-gates` (Edge) | ✅ 0 مخالفات |
-| `eslint src/` | ❌ **4 أخطاء + 4 تحذيرات** |
-| `npm audit` | ⚠ غير متاح (نقطة نهاية npm registry لا تدعمه في الـ sandbox) |
+الماسح الحالي يلتقط الأنماط الشائعة لكن لا يُجيب صراحة عن:
+1. **هل كل تبويب (Tab) داخل الصفحات يُعرض حسب الدور؟** (مثلاً تبويبات `SettingsPage` فقط للناظر؛ تبويبات `BeneficiaryDashboard` تحترم `featureVisibilityRegistry`).
+2. **هل كل زر إجراء مالي حساس (إقفال سنة / حذف فاتورة مدفوعة جزئياً / تنفيذ توزيع / فتح سنة مُقفلة) محميّ بـ `usePermissionCheck` أو `RequirePermission`؟**
+3. **هل كل زر داخل قوائم منسدلة (DropdownMenu/CommandItem) موصول بـ handler يحترم الدور؟**
+4. **هل أزرار صفحات المستفيد (Disclosure/MyShare/Carryforward) محجوبة فعلاً عن `accountant` و `waqif`؟**
 
-## 3. الأخطاء الأربعة في ESLint (تحتاج إصلاح)
+## النطاق
 
-| # | الملف:السطر | القاعدة | الوصف |
-|---|---|---|---|
-| 1 | `src/components/layout/BottomNav.tsx:39` | `react-hooks/rules-of-hooks` | `useMemo` يُستدعى بعد early-return شرطي |
-| 2 | `src/hooks/data/notifications/useNotificationActions.ts:11` | `no-restricted-imports` | استيراد `sonner` داخل `hooks/data/` (يجب نقله لـ `hooks/page/`) |
-| 3 | `src/hooks/page/admin/financial/useFiscalYearManagement.ts:55` | `react-hooks/set-state-in-effect` | `setState` داخل `useEffect` بدون سبب |
-| 4 | `src/hooks/page/admin/settings/useLogoUpload.ts:28` | `react-hooks/set-state-in-effect` | `setPreview(currentUrl)` متزامن داخل effect |
+- **قراءة فقط** — لا تعديل واجهة، لا منطق أعمال، لا RLS، لا migrations.
+- المخرَج النهائي: تقرير Markdown مفصّل + توسيع سكربت الفحص (إن لزم) ليُولّد جدول لكل صفحة.
 
-**التحذيرات الأربعة** (لا تُفشل البناء): `react-refresh/only-export-components` ×2، `exhaustive-deps` ×1، `max-lines` ×1.
+## خطة التنفيذ (4 مراحل)
 
-## 4. التحذيرات المعمارية (5)
+### المرحلة 1 — تشغيل المصفوفة الكاملة (تأكيد خط الأساس)
+- `npm run lint:conventions` + `audit-ui-permissions` + `build-permissions-matrix` + `security-gates` + `vitest run` بشكل متوازي.
+- يجب أن تظل كلها خضراء قبل المتابعة.
 
-- 3 ملفات `hooks/page` تجاوزت 200 سطر (200-228) — تحت الحد الصارم.
-- `src/lib/services/diagnosticsReadService.ts` و `fiscalYearService.test.ts` — services بدون مستهلكين.
+### المرحلة 2 — جرد آلي لكل تبويب وزرار في صفحات الناظر والمستفيد
+كتابة سكربت قراءة `scripts/audit-page-controls.mjs` (لا يعدّل المشروع) يولّد `audit/page-controls-audit.csv` بأعمدة:
+```
+page, role_required, control_type, control_label, handler_kind, permission_gate, status
+```
+حيث:
+- `control_type` ∈ {Tab, Button, DropdownItem, Link, FormSubmit}
+- `handler_kind` ∈ {onClick, asChild, type=submit, parent-Trigger, Link-to}
+- `permission_gate` = أقرب `RequirePermission` / `usePermissionCheck` / حارس مسار يحيط بالزر
+- `status` ∈ {OK, WARN-NO-GATE, GAP-NO-HANDLER, GAP-ROLE-MISMATCH}
 
-## 5. تحذيرات الأداء من preview console
+### المرحلة 3 — مراجعة يدوية للأزرار المالية الحساسة
+قائمة محددة (≤15 زراً) تستحق فحصاً يدوياً مع citation `file:line`:
+- إقفال/إعادة فتح سنة مالية (`FiscalYearManagement`)
+- تنفيذ التوزيع (`DistributionsPage`)
+- حذف فاتورة مدفوعة جزئياً (`InvoicesPage`)
+- إنشاء/حذف مستخدم (`UserManagementPage`)
+- تعديل صلاحيات الأدوار (`SettingsPage`)
+- ZATCA onboard/renew/report
+- تصدير سجل المراجعة
+- التحكم بالإحصاءات العامة في الهبوط
 
-- `Query: contract_fiscal_allocations/...` استغرق 3286ms
-- `Query: contracts/...` استغرق 6673ms (slow query على `/dashboard/contracts`)
+لكل زر: تأكيد دور المسار + وجود `usePermissionCheck` + رسالة Toast عند المنع.
 
-## 6. الأمن
+### المرحلة 4 — تقرير نهائي
+ملف واحد `audit/role-controls-review.md` يحوي:
+1. ملخص خط الأساس (الفحوصات السبعة).
+2. جدول لكل صفحة من 52 صفحة (31 ناظر + 21 مستفيد): عدد التبويبات، عدد الأزرار، عدد الـ gated، الحالة.
+3. الأزرار الحساسة الـ 15 مع citation.
+4. أي فجوة مكتشفة (إن وُجدت) كبند عمل صريح — **بدون إصلاحها في هذه الجولة** (تنتظر موافقة منفصلة).
 
-- آخر فحص أمني: الـ finding الوحيد القابل للإصلاح (سياسة storage على الفواتير) تم إصلاحه مسبقاً. لا توجد ثغرات معلّقة في الذاكرة الأمنية.
+## الاستبعادات
 
----
+- لا تعديل ملفات `routes/*` أو `permissions.ts` أو `routeRoles.ts`.
+- لا إصلاح الفجوات إن وُجدت — تُسرد للموافقة لاحقاً.
+- لا تفعيل/تعطيل لأي ميزة.
+- لا تغيير في الملفات المحمية (`config.toml`, `client.ts`, `types.ts`, `.env`).
 
-# خطة الإصلاح المقترحة (في جولة بناء منفصلة)
+## معايير القبول
 
-## الإصلاحات الإلزامية (4 أخطاء ESLint)
-
-1. **`BottomNav.tsx`** — نقل `useMemo` فوق أي early-return حتى يلتزم بقواعد الهوكات.
-2. **`useNotificationActions.ts`** — إزالة استيراد `sonner` ونقل استدعاء toast إلى hook صفحة أعلى في الطبقات (`hooks/page/.../useNotificationsPage.ts`).
-3. **`useFiscalYearManagement.ts:55`** — تحويل `setState` داخل `useEffect` إلى derived state أو event handler.
-4. **`useLogoUpload.ts:28`** — استبدال المزامنة بـ `useEffect` بـ derived state من `currentUrl` + `saving`.
-
-## التنظيف الاختياري (تحذيرات)
-
-- تقسيم 3 هوكات الصفحة المتجاوزة 200 سطر.
-- حذف/دمج `diagnosticsReadService.ts` و `fiscalYearService.test.ts` (services بلا مستهلكين).
-- مراجعة استعلامات `contracts` و `contract_fiscal_allocations` البطيئة (فهرس / select محدد / تقسيم).
-
-## نطاق التغييرات
-
-- 4 ملفات فقط للإصلاحات الإلزامية.
-- لا تغييرات في RLS أو migrations أو edge functions أو UI/business logic.
-- لا تعديل على الملفات المحمية.
-
-## التحقق بعد الإصلاح
-
-`npx tsc --noEmit` → `npx eslint src/` (0 أخطاء) → `npm run lint:conventions` → `npx vitest run` → سكربتات الـ audit الثلاثة.
+- `audit/page-controls-audit.csv` يحوي صفاً لكل عنصر تحكم في الصفحات الـ 52.
+- `audit/role-controls-review.md` يقدّم تقريراً نهائياً ≤ 800 سطر يكشف بوضوح: ✅ سليم / ⚠ تحذير / 🔴 فجوة.
+- جميع فحوصات CI تظل خضراء.
