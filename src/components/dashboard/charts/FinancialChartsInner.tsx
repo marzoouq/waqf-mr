@@ -1,10 +1,10 @@
 /**
  * رسوم بيانية لصفحة التقارير المالية للمستفيد — يُحمَّل كسولاً.
  */
+import { ChartBox } from '@/components/common';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { fmt } from '@/utils/format/format';
 import { formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/chartHelpers';
-import ChartBox from '@/components/common/ChartBox';
 
 const FINANCIAL_COLORS = [
   'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))',

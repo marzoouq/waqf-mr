@@ -4,8 +4,9 @@
  * - lazy() مجمّعة في كتلة واحدة بعدها
  * - منطق التصدير مفصول في useReportsExport (موجة 17)
  */
+import { ViewportRender } from '@/components/common';
 import { lazy, Suspense } from 'react';
-import ViewportRender from '@/components/common/ViewportRender';
+
 import {
   OverdueTenantsReport,
   BalanceSheetReport,

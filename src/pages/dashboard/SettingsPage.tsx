@@ -1,10 +1,11 @@
+import { PageLoader } from '@/components/common';
 import { lazy, Suspense } from 'react';
 import { useSettingsPage } from '@/hooks/page/admin/management/useSettingsPage';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings } from 'lucide-react';
-import PageLoader from '@/components/common/PageLoader';
+
 import { SETTINGS_CATEGORIES } from '@/constants/settingsCategories';
 
 // — مكونات محمّلة كسول مُجمّعة حسب المجال —

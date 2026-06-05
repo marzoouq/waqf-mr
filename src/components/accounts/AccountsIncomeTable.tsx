@@ -1,8 +1,8 @@
+import { EmptyState } from '@/components/common';
 import { fmt } from '@/utils/format/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { TrendingUp } from 'lucide-react';
-import EmptyState from '@/components/common/feedback/EmptyState';
 
 interface AccountsIncomeTableProps {
   incomeCount: number;

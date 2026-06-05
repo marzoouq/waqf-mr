@@ -3,12 +3,10 @@
  * يحتوي العناصر المشتركة عبر كل المسارات: OfflineBanner, SwUpdateBanner,
  * PerformanceTracker, SecurityGuard, PwaUpdateNotifier, RoleGatedAiAssistant.
  */
+import { DeferredRender, ErrorBoundary, OfflineBanner, PageLoader } from '@/components/common';
 import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
-import PageLoader from "@/components/common/PageLoader";
-import ErrorBoundary from "@/components/common/feedback/ErrorBoundary";
-import OfflineBanner from "@/components/common/OfflineBanner";
-import DeferredRender from "@/components/common/DeferredRender";
+
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { useAuth } from "@/hooks/auth/session/useAuthContext";

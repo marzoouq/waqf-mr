@@ -2,6 +2,7 @@
  * App Providers — M1.1 (Version I-R)
  * كل الـ Providers العالمية مفصولة عن router/layout لتسهيل القراءة والاختبار.
  */
+import { ErrorBoundary } from '@/components/common';
 import { ReactNode } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "next-themes";
@@ -11,7 +12,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { queryClient } from "@/lib/queryClient";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
-import ErrorBoundary from "@/components/common/feedback/ErrorBoundary";
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (

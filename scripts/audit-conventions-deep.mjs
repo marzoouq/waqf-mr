@@ -77,6 +77,15 @@ for (const abs of walk(ROOT)) {
     }
   }
 
+  // Wave 9 — barrel-only لـ components/common: ممنوع المسارات الفرعية خارج المجلد نفسه.
+  if (!rel.startsWith('components/common/')) {
+    const reCommonSub = /from\s+['"]@\/components\/common\/[^'"]+['"]/g;
+    let m;
+    while ((m = reCommonSub.exec(src))) {
+      add('Critical', 'CommonBarrelOnly', rel, lineOf(src, m.index), 'import مسار فرعي من components/common — استخدم البارّل @/components/common فقط');
+    }
+  }
+
   // No console outside logger
   if (!rel.includes('lib/logger')) {
     let m;

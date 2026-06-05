@@ -1,10 +1,11 @@
+import { EmptyState } from '@/components/common';
 import { fmt } from '@/utils/format/format';
 import { useState, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Users, Banknote } from 'lucide-react';
-import EmptyState from '@/components/common/feedback/EmptyState';
+
 import { formatPercentage } from '@/utils/format';
 import DistributeDialog from './DistributeDialog';
 import { isFyAll } from '@/constants/fiscalYearIds';

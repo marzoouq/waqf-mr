@@ -1,10 +1,11 @@
+import { EmptyState } from '@/components/common';
 import { fmt } from '@/utils/format/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Pencil, Trash2 } from 'lucide-react';
-import EmptyState from '@/components/common/feedback/EmptyState';
+
 import type { Contract } from '@/types';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { classifyContractOrigin } from '@/utils/financial/contractClassification';

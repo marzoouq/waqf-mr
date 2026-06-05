@@ -1,7 +1,7 @@
+import { ConfirmDeleteDialog } from '@/components/common';
 /**
  * Wrapper رقيق فوق ConfirmDeleteDialog — يحافظ على API الموجود في ContractsPage.
  */
-import ConfirmDeleteDialog from '@/components/common/feedback/ConfirmDeleteDialog';
 
 interface ContractDeleteDialogProps {
   target: { id: string; name: string } | null;
