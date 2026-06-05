@@ -4,12 +4,12 @@
 
 | Layer | Count | Total LOC | Avg LOC |
 |---|---:|---:|---:|
-| component | 447 | 36497 | 82 |
-| util | 154 | 12693 | 82 |
+| component | 447 | 36578 | 82 |
+| util | 160 | 13054 | 82 |
 | hook-data | 130 | 8177 | 63 |
-| hook-page | 110 | 11089 | 101 |
+| hook-page | 110 | 11126 | 101 |
 | lib | 93 | 7169 | 77 |
-| page | 67 | 7563 | 113 |
+| page | 67 | 7569 | 113 |
 | test | 56 | 4766 | 85 |
 | constant | 26 | 1402 | 54 |
 | hook-auth | 24 | 2075 | 86 |
@@ -20,7 +20,7 @@
 | route | 8 | 254 | 32 |
 | context | 5 | 238 | 48 |
 | other | 3 | 104 | 35 |
-| app | 3 | 132 | 44 |
+| app | 3 | 130 | 43 |
 | integration | 3 | 2644 | 881 |
 
 ## Files > 200 LOC (18)
