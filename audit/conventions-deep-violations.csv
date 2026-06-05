@@ -1,0 +1,10 @@
+severity,rule,file,line,message
+Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,26,"hex color #ffffff"
+Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,61,"hex color #0f172a"
+Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,91,"hex color #ffffff"
+Info,HexColors,components/invoices/InvoicePreviewDialog.tsx,16,"hex color #ffffff"
+Info,HookSize,hooks/page/admin/contracts/useContractForm.ts,228,"hook 228 lines > 200"
+Info,HookSize,hooks/page/admin/reports/useAnnualReportPage.ts,201,"hook 201 lines > 200"
+Info,HookSize,hooks/page/beneficiary/views/usePropertiesViewPage.ts,203,"hook 203 lines > 200"
+Critical,CoreModV7,pages/Auth.tsx,7,"page imports from hooks/data/* directly (non-type)"
+Critical,CoreModV7,pages/beneficiary/BeneficiaryDashboard.tsx,6,"page imports from hooks/data/* directly (non-type)"
