@@ -17,7 +17,7 @@ export { default as DiagnosticOverlay } from './feedback/DiagnosticOverlay';
 export { default as ConfirmDeleteDialog } from './feedback/ConfirmDeleteDialog';
 export { default as WebVitalsPanel } from './feedback/WebVitalsPanel';
 export { ErrorState, EmptyPageState } from './feedback/PageStateGuards';
-export { TableSkeleton, DashboardSkeleton, StatsGridSkeleton, KpiSkeleton, ChartSkeleton } from './feedback/SkeletonLoaders';
+export { TableSkeleton, DashboardSkeleton, StatsGridSkeleton, KpiSkeleton } from './feedback/SkeletonLoaders';
 
 // layout
 export { default as PrintHeader } from './layout/PrintHeader';
@@ -42,7 +42,7 @@ export { default as EstimatedShareBadge } from './finance/EstimatedShareBadge';
 
 // root (cross-cutting / غير مُصنَّفة)
 export { default as ChartBox } from './ChartBox';
-export { default as ChartSkeletonStandalone } from './ChartSkeleton';
+export { default as ChartSkeleton } from './ChartSkeleton';
 export { default as DeferredRender } from './DeferredRender';
 export { default as FeatureGate } from './FeatureGate';
 export { default as OfflineBanner } from './OfflineBanner';
