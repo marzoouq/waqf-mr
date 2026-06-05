@@ -137,3 +137,35 @@ npm run lint && npx tsc --noEmit && npm run build && npm test && npm audit
 | ممنوعات Lovable | `mem://conventions/lovable-forbidden-actions` |
 
 عند أي تعارض مع نص ثابت في `AGENTS.md` أو هذا الملف، تُعتمد الذاكرة.
+
+## بوابة Audit قبل الدفع
+
+تُشغَّل سلسلة فحوصات Audit تلقائياً قبل كل `git push` لمنع تسرّب الانتهاكات الحرجة.
+
+### الأوامر
+
+| الأمر | الغرض |
+|------|-------|
+| `npm run audit` | يشغّل السكربتات الخمسة + يُولّد `audit/report.html` |
+| `npm run audit:gate` | اختبار Vitest يحجب أي Critical / GAP / استيراد خاطئ |
+| `npm run audit:report` | توليد التقرير فقط دون إعادة فحص |
+
+### تثبيت الـ pre-push hook محلياً
+
+```bash
+bash scripts/install-git-hooks.sh
+```
+
+ينسخ `.husky/pre-push` إلى `.git/hooks/pre-push`. بعدها يُشغَّل `npm run audit && npm run audit:gate` تلقائياً عند كل `git push`، ويُمنع الدفع عند وجود انتهاك حرج.
+
+للتجاوز الطارئ فقط (يجب توثيقه في رسالة الـ commit التالية):
+```bash
+git push --no-verify
+```
+
+### التقرير
+
+`audit/report.html` ملف مستقل (RTL، CSS داخلي، لا تبعيات) يعرض:
+- إحصائيات الصفحات والهوكات والطبقات
+- جداول قابلة للبحث للانتهاكات
+- خريطة ربط Page ↔ Hook ↔ Imports

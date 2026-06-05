@@ -114,3 +114,15 @@
 - `scripts/audit-structure.mjs`
 - `scripts/audit-conventions-deep.mjs`
 - `scripts/audit-hooks-layout.mjs`
+
+---
+
+## آلية الإنفاذ — بوابة Audit (مُضافة)
+
+يُنفَّذ التحقق الشامل من النمط المعتمد (Page Hook Pattern + CoreModV7) عبر:
+
+1. **`npm run audit`** — سلسلة من 5 سكربتات تفحص: الهيكل، الاصطلاحات العميقة، تخطيط الهوكات، صلاحيات الواجهة، عناصر التحكم بالصفحات + توليد `audit/report.html`.
+2. **`npm run audit:gate`** — اختبار Vitest (`src/test/auditCriticalGate.test.ts`) يطبّق 9 قواعد حرجة (0 Critical، 0 GAP، حظر استيراد `@/hooks/data/*` من الصفحات، حظر `sonner` في `hooks/data` و`utils`، إلخ).
+3. **`.husky/pre-push`** — يشغّل الأمرين قبل كل `git push` ويمنع الدفع عند الفشل. التثبيت: `bash scripts/install-git-hooks.sh`.
+
+**النتيجة الحالية:** 0 Critical · 0 GAP · 7 Info (Canvas/PDF colors + 3 hooks > 200 سطر — غير حاجبة).
