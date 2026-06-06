@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# pre-commit: يمنع إضافة ملفات .env أو أسرار حساسة إلى المستودع.
+# للتجاوز الطارئ فقط: git commit --no-verify
+set -e
+
+RED='\033[0;31m'
+YEL='\033[1;33m'
+GRN='\033[0;32m'
+NC='\033[0m'
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM || true)
+[ -z "$STAGED" ] && exit 0
+
+# 1) حجب ملفات .env المُجهَّزة (ما عدا .env.example)
+ENV_FILES=$(echo "$STAGED" | grep -E '(^|/)\.env(\..+)?$' | grep -v '\.example$' || true)
+if [ -n "$ENV_FILES" ]; then
+  echo ""
+  echo -e "${RED}✗ pre-commit: محاولة إضافة ملف(ات) .env إلى المستودع${NC}"
+  echo "$ENV_FILES" | sed 's/^/   • /'
+  echo ""
+  echo -e "${YEL}للإصلاح:${NC}"
+  echo "   git restore --staged <file>"
+  echo "   git rm --cached <file>   # إذا كان متعقّباً مسبقاً"
+  echo ""
+  echo -e "${YEL}للتجاوز الطارئ فقط:${NC} git commit --no-verify"
+  exit 1
+fi
+
+# 2) فحص أنماط الأسرار في diff المُجهَّز
+DIFF=$(git diff --cached -U0 --no-color || true)
+if [ -n "$DIFF" ]; then
+  PATTERNS=(
+    'SUPABASE_SERVICE_ROLE_KEY[[:space:]]*[:=]'
+    'service_role'
+    'sk_live_[0-9a-zA-Z]{20,}'
+    'sk_test_[0-9a-zA-Z]{20,}'
+    'rk_live_[0-9a-zA-Z]{20,}'
+    'ghp_[0-9A-Za-z]{30,}'
+    'gho_[0-9A-Za-z]{30,}'
+    'ghs_[0-9A-Za-z]{30,}'
+    'github_pat_[0-9A-Za-z_]{20,}'
+    'xox[bpars]-[0-9A-Za-z-]{10,}'
+    'AKIA[0-9A-Z]{16}'
+    '-----BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----'
+    'AIza[0-9A-Za-z_-]{30,}'
+  )
+
+  HITS=""
+  for p in "${PATTERNS[@]}"; do
+    MATCH=$(echo "$DIFF" | grep -nE "^\+.*${p}" || true)
+    if [ -n "$MATCH" ]; then
+      HITS="${HITS}\n[نمط: ${p}]\n${MATCH}\n"
+    fi
+  done
+
+  if [ -n "$HITS" ]; then
+    echo ""
+    echo -e "${RED}✗ pre-commit: تم رصد أنماط أسرار محتملة في التغييرات المُجهَّزة${NC}"
+    echo -e "$HITS"
+    echo ""
+    echo -e "${YEL}للإصلاح:${NC}"
+    echo "   1) أزل القيمة من الكود وانقلها إلى Lovable Cloud Secrets"
+    echo "   2) git restore --staged <file> ثم عدّل المحتوى"
+    echo ""
+    echo -e "${YEL}إذا كان الرصد خاطئاً (false positive):${NC} git commit --no-verify"
+    exit 1
+  fi
+fi
+
+echo -e "${GRN}✓ pre-commit: لا توجد ملفات .env أو أسرار في التغييرات${NC}"
+exit 0

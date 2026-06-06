@@ -1,105 +1,64 @@
-# تدقيق شامل للمعمارية — تقرير قراءة فقط
+# خطة محققة بصرامة — Pre-commit + HIBP
 
-نطاق المسح: 1238 ملف TS/TSX، فحص آلي للأحجام والاستيرادات وحدود الطبقات.
+## التحقق من الواقع الحالي
 
-## 1. الصحة العامة — ممتازة فوق المتوسط
+| العنصر | الحالة الفعلية في الريبو |
+|---|---|
+| `.gitignore` يحجب `.env*` (مع استثناء `.env.example`) | موجود (أسطر 26-29) ✅ |
+| `.github/workflows/ci.yml` يحجب `.env` المتعقّب | موجود (أسطر 44-56) ✅ |
+| Gitleaks في CI | موجود (سطر 58-61) ✅ |
+| `.husky/pre-push` (بوابة audit) | موجود — يشغّل `npm run audit` + `audit:gate` فقط، **لا يفحص .env أو الأسرار** ❌ |
+| `scripts/install-git-hooks.sh` | موجود — يثبّت pre-push فقط، **لا pre-commit** ❌ |
+| `.husky/pre-commit` | **غير موجود** ❌ |
+| HIBP على المصادقة | غير مفعّل ❌ |
 
+النقاط الثلاث المطلوبة كلها لها فجوات حقيقية → الخطة صحيحة وضرورية.
 
-| المعيار                            | النتيجة     | الدليل                                                   |
-| ---------------------------------- | ----------- | -------------------------------------------------------- |
-| ملفات > 250 سطر (غير اختبار/أنواع) | **1 فقط**   | `utils/pdf/reports/aggregatedAnnualReport.ts` (274)      |
-| `console.*` خارج logger            | **0**       | فقط في `test/setup.ts` (مقصود)                           |
-| `: any` خارج types                 | **0** ملف   | نظافة استثنائية                                          |
-| `TODO/FIXME`                       | **4**       | منخفض جداً                                               |
-| `App.tsx` / `main.tsx`             | 15 / 28 سطر | مفصول إلى `app/providers`, `app/router`, `app/bootstrap` |
-| توزيع الطبقات                      | متوازن      | components 459, hooks 316, utils 160, lib 95, pages 67   |
-| اتجاه الاعتماد `utils → @/types`   | محفوظ       | لا استيراد من `@/hooks` في utils                         |
-| `sonner` في utils أو hooks/data    | **0**       | حد نظيف                                                  |
+## التغييرات
 
+### 1) `.husky/pre-commit` (ملف جديد)
+يمنع `git commit` إذا:
+- staged يحوي `.env` أو `.env.*` (ما عدا `.env.example`) عبر `git diff --cached --name-only --diff-filter=ACM`.
+- diff المُجهَّز يحوي أنماط أسرار: `SUPABASE_SERVICE_ROLE_KEY`، JWT بدور `service_role` (`eyJ...` مع decode سريع للـ payload عبر grep)، `sk_live_`، `sk_test_`، `ghp_`، `gho_`، `xox[bpars]-`، `AKIA[0-9A-Z]{16}`، `-----BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY-----`.
+- يعرض رسائل عربية واضحة + أمر العلاج (`git rm --cached <file>` أو `git restore --staged`).
+- مخرج طوارئ: `git commit --no-verify`.
 
-## 2. مخالفات حقيقية موثَّقة (مرتبة حسب الأولوية)
+### 2) `.husky/pre-push` (تحديث)
+إضافة فحص أولي **قبل** بوابة audit الحالية:
+```bash
+TRACKED_ENV=$(git ls-files | grep -E '^\.env(\.|$)' | grep -v '\.example$' || true)
+[ -n "$TRACKED_ENV" ] && { echo "✗ .env متعقّب: $TRACKED_ENV"; exit 1; }
+```
+يطابق سلوك CI تماماً → فشل محلي مبكر بدل انتظار CI.
 
-### 🔴 P0 — حرج (خارج قدرة الوكيل)
+### 3) `scripts/install-git-hooks.sh` (تحديث)
+نسخ `pre-commit` إلى `.git/hooks/pre-commit` (بنفس نمط pre-push الحالي) + `chmod +x`.
 
+### 4) إعدادات المصادقة — تفعيل HIBP
+استدعاء `supabase--configure_auth` بـ:
+- `password_hibp_enabled: true` ← المطلوب
+- `disable_signup: false` (الإبقاء على الحالي)
+- `auto_confirm_email: false` (الإبقاء — التحقق إلزامي حسب قواعد المشروع)
+- `external_anonymous_users_enabled: false` (الإبقاء)
 
-| #   | المخالفة              | الموقع       | الإجراء                                   |
-| --- | --------------------- | ------------ | ----------------------------------------- |
-| 1   | `.env` متعقَّب في Git | جذر المستودع | `git rm --cached .env` يدوياً من المستخدم |
+### 5) توثيق
+إضافة قسم قصير في `CONTRIBUTING.md` يشرح:
+- تثبيت hooks محلياً: `bash scripts/install-git-hooks.sh`
+- ما يحجبه pre-commit/pre-push
+- مخرج الطوارئ `--no-verify` ومتى يُستخدم
 
+## ملفات بدون مساس
+- `.env`, `supabase/config.toml`, `src/integrations/supabase/{client,types}.ts` (محمية)
+- `.github/workflows/ci.yml` (الحماية موجودة بالفعل ومطابقة لما سنضيفه محلياً)
+- أي كود UI أو منطق عمل
 
-### 🟡 P1 — تنظيف حدود طبقات (3 ملفات)
+## التحقق بعد التنفيذ
+1. `bash scripts/install-git-hooks.sh` → التحقق من وجود `.git/hooks/pre-commit`.
+2. اختبار سلبي: `git add .env.test && git commit -m x` → يجب أن يُرفض.
+3. اختبار إيجابي: commit عادي بدون أسرار → يمر.
+4. التحقق من HIBP عبر `supabase--configure_auth` (يعيد الحالة الجديدة).
 
-
-| #   | المخالفة                                | الموقع                         | المشكلة                                           | الإصلاح المقترح                                                                                       |
-| --- | --------------------------------------- | ------------------------------ | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| 2   | استيراد `supabase` خام في `hooks/page/` | `useBulkMessageSender.ts`      | يقوم بعملية `insert/notify` خام بدل تفويضها لخدمة | نقل منطق الإرسال إلى `lib/services/messagingService.ts` (موجود)، إبقاء UI state + toasts فقط في الهوك |
-| 3   | استيراد `supabase` خام في `hooks/page/` | `useAggregatedAnnualReport.ts` | يستعلم Supabase مباشرة لجمع التقرير المُجمَّع     | نقل الاستعلامات إلى `lib/services/annualReportService.ts` (موجود) — الهوك يُنسّق نتائج الخدمات فقط    |
-| 4   | `AuthContext.tsx` يستورد `supabase`     | `contexts/AuthContext.tsx`     | **استثناء مشروع** — لا إجراء                      | موثَّق ومحمي بالقواعد                                                                                 |
-
-
-### 🟢 P2 — تحسينات بنيوية صغيرة
-
-
-| #   | الموضوع                                            | الوضع                                                                             | الإصلاح                                                                       |
-| --- | -------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| 5   | استيرادات barrel-from-barrel                       | 5 مواقع تستورد من `@/utils/validation/index` و `@/utils/contracts/index` صراحةً   | تبسيط: إسقاط `/index` (استيراد المسار العادي) أو استيراد المسار الورقي مباشرة |
-| 6   | 65 component يستورد من `@/hooks/data/` مباشرة      | بعضها مشروع (presentational يحتاج list صغير)، بعضها يكسر Container/Presentational | مراجعة عيّنة عبر spawn_agent لتمييز الحالات الفعلية                           |
-| 7   | `index.css` 19 KB                                  | يحتوي كل tokens + utilities + animations                                          | اختياري: فصل إلى `tokens.css`, `utilities.css`, `animations.css` مع `@import` |
-| 8   | `aggregatedAnnualReport.ts` 274 سطر (الوحيد > 250) | منطق توليد PDF + تجميع بيانات في ملف واحد                                         | فصل `buildAggregatedPdfData()` إلى وحدة منفصلة، إبقاء الرسم فقط               |
-
-
-### ⚪ بنود **مرفوضة** (مراجعة سابقة اقترحتها — فحصها أثبت عدم وجاهتها)
-
-
-| البند                                       | السبب                                                        |
-| ------------------------------------------- | ------------------------------------------------------------ |
-| تقسيم `fiscalYearService.ts` (196 سطر)      | مسؤولية واحدة متماسكة                                        |
-| تقسيم `diagnosticsReadService.ts` (219 سطر) | كله read funcs مرتبطة                                        |
-| إعادة تسمية `beneficiary` ↔ `beneficiaries` | تمييز دلالي صحيح وموثَّق                                     |
-| نقل `src/lib/hooks/` (ملفان primitives)     | مقصود ومحمي بـ README                                        |
-| تفكيك `FiscalYearProvider`                  | قرار معماري محسوم                                            |
-| إعادة هيكلة الاختبارات                      | الذاكرة الرسمية تنص: co-located + integration في `src/test/` |
-
-
-## 3. اكتشافات إيجابية لا توثَّق عادة
-
-- **14 سكربت تدقيق آلي** يفرض القواعد (`audit-conventions-deep`, `security-gates`, `check-conventions`, ...)
-- **38 توثيق `mem://**` يغطي قرارات معمارية حساسة
-- **Page Hook Pattern** مُطبَّق بدقة — صفحات `dashboard/*` كلها < 200 سطر
-- **Bootstrap modular** جاهز (`src/app/bootstrap/`) مع اختبارات smoke + integration للـ39 صفحة
-- **0 تجاوزات** على قاعدة `utils = pure functions`
-- **0 استيرادات** `supabase` في `src/components/` أو `src/pages/`
-
----
-
-## 4. خطة العمل المقترحة (مرتبة)
-
-### الجلسة A — P1 (يومان عمل تقديرياً، ضمن قدرة الوكيل)
-
-1. **نقل استعلام `useBulkMessageSender**` إلى `messagingService.sendBulk(...)` جديدة. الهوك يبقى مع `setSending` + `uiNotify` فقط.
-2. **نقل استعلامات `useAggregatedAnnualReport**` إلى `annualReportService.fetchAggregated(fyId)`. الهوك يصبح composition + memoization فقط.
-3. تشغيل `bunx vitest run src/hooks/page/admin` + سكربت `audit-hooks-layout` للتحقق.
-
-### الجلسة B — P2 (اختياري، تحسينات تجميلية)
-
-4. تبسيط 5 استيرادات `index/index` الباقية (حذف `/index` الصريح).
-5. spawn_agent لفرز 65 component → تصنيف Container vs Presentational، تقرير دون تعديل.
-6. تقييم تقسيم `aggregatedAnnualReport.ts` بعد قراءة المحتوى الكامل (قد يكون رسماً متماسكاً لا يستحق التقسيم).
-
-### الجلسة C — اختياري بحت
-
-7. تقسيم `index.css` إلى وحدات مع `@import`.
-
-### خارج النطاق
-
-- `.env` من Git tracking → المستخدم يدوياً (`git rm --cached .env`).
-
----
-
-## 5. الحكم النهائي
-
-> البنية المعمارية **سليمة بنسبة 99.5%**. المخالفات الفعلية = **3 ملفات فقط** من أصل 1238 — كلها في `hooks/page/admin/` ويمكن إصلاحها في جلسة واحدة بإعادة توجيه الاستعلامات إلى خدمات موجودة فعلاً (`messagingService`, `annualReportService`).
->
-> لا توجد god modules، لا تكرار طبقات، لا تسريب أنواع، لا console violations، لا فوضى. هذا مشروع منضبط استثنائياً.
-
-**التوصية: نفّذ الجلسة A فقط (3 مهام محدودة). الباقي تحسينات تجميلية لا تستحق المخاطرة.**
+## الخطر والتكلفة
+- لا تأثير على المستخدمين النهائيين (HIBP يفحص فقط كلمات مرور جديدة/مغيَّرة عند التسجيل).
+- لا تأثير على البناء أو CI (الفحوصات محلية وقت commit/push).
+- المطورون قد يحتاجون تشغيل `scripts/install-git-hooks.sh` مرة واحدة → يُذكر في CONTRIBUTING.
