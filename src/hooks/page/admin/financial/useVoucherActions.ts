@@ -3,7 +3,7 @@
  * يحافظ على hooks/data نقياً (بدون toast/UI side-effects).
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { uiNotify } from '@/lib/notify';
 import { rpc } from '@/lib/api/rpc';
 import { invoke } from '@/lib/api/invoke';
 import { logger } from '@/lib/logger';
@@ -50,12 +50,12 @@ export function useCreateVoucherAction() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
-      toast.success('تم إنشاء سند الصرف كمسودة');
+      uiNotify.success('تم إنشاء سند الصرف كمسودة');
     },
     onError: (e: Error) => {
       logger.error('create_disbursement_voucher failed', e);
       const key = Object.keys(CREATE_ERR_MAP).find((k) => e.message?.includes(k));
-      toast.error(key ? CREATE_ERR_MAP[key] : (e.message || 'فشل إنشاء سند الصرف'));
+      uiNotify.error(key ? CREATE_ERR_MAP[key] : (e.message || 'فشل إنشاء سند الصرف'));
     },
   });
 }
@@ -78,15 +78,15 @@ export function useApproveVoucherAction() {
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: KEY });
       if (res.pdfOk) {
-        toast.success('تم اعتماد السند وإصدار PDF');
+        uiNotify.success('تم اعتماد السند وإصدار PDF');
       } else {
         logger.warn('generate-voucher-pdf failed (non-blocking)', res.fnErr);
-        toast.warning('تم اعتماد السند، لكن تعذّر إصدار PDF — استخدم زر "إصدار PDF" لإعادة المحاولة');
+        uiNotify.warning('تم اعتماد السند، لكن تعذّر إصدار PDF — استخدم زر "إصدار PDF" لإعادة المحاولة');
       }
     },
     onError: (e: Error) => {
       logger.error('approve_disbursement_voucher failed', e);
-      toast.error(e.message || 'فشل اعتماد السند');
+      uiNotify.error(e.message || 'فشل اعتماد السند');
     },
   });
 }
@@ -99,11 +99,11 @@ export function useGenerateVoucherPdfAction() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
-      toast.success('تم إصدار PDF بنجاح');
+      uiNotify.success('تم إصدار PDF بنجاح');
     },
     onError: (e: Error) => {
       logger.error('generate-voucher-pdf failed', e);
-      toast.error('تعذّر إصدار PDF — راجع السجلات');
+      uiNotify.error('تعذّر إصدار PDF — راجع السجلات');
     },
   });
 }
@@ -119,11 +119,11 @@ export function useVoidVoucherAction() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
-      toast.success('تم إلغاء السند');
+      uiNotify.success('تم إلغاء السند');
     },
     onError: (e: Error) => {
       logger.error('void_disbursement_voucher failed', e);
-      toast.error(e.message || 'فشل إلغاء السند');
+      uiNotify.error(e.message || 'فشل إلغاء السند');
     },
   });
 }

@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
+import { uiNotify } from '@/lib/notify';
 import type { Voucher } from '@/hooks/data/financial/distribution/useDisbursementVouchers';
 
 interface Props {
@@ -49,7 +49,7 @@ const VoidVoucherDialog: React.FC<Props> = ({ target, onClose, onConfirm, isPend
             onClick={(e) => {
               e.preventDefault();
               if (!target) return;
-              if (!voidReason.trim()) { toast.error('سبب الإلغاء مطلوب'); return; }
+              if (!voidReason.trim()) { uiNotify.error('سبب الإلغاء مطلوب'); return; }
               onConfirm(target.id, voidReason.trim(), () => { setVoidReason(''); });
             }}
           >

@@ -24,7 +24,7 @@ import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { fmt } from '@/utils/format/format';
 import VoucherFormDialog from './VoucherFormDialog';
 import VoidVoucherDialog from './VoidVoucherDialog';
-import { toast } from 'sonner';
+import { uiNotify } from '@/lib/notify';
 
 
 interface VoucherListProps {
@@ -53,9 +53,9 @@ const VoucherList: React.FC<VoucherListProps> = ({ expenseId, expenseAmount, exp
   const [voidTarget, setVoidTarget] = useState<Voucher | null>(null);
 
   const download = async (pdfPath: string | null) => {
-    if (!pdfPath) { toast.error('لم يُصدر PDF بعد — اعتمد السند أولاً'); return; }
+    if (!pdfPath) { uiNotify.error('لم يُصدر PDF بعد — اعتمد السند أولاً'); return; }
     const url = await getVoucherSignedUrl(pdfPath);
-    if (!url) { toast.error('تعذّر إنشاء رابط التنزيل'); return; }
+    if (!url) { uiNotify.error('تعذّر إنشاء رابط التنزيل'); return; }
     window.open(url, '_blank', 'noopener,noreferrer');
   };
   

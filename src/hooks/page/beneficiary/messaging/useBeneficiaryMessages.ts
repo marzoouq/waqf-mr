@@ -6,7 +6,7 @@
  * مسارات conversations.type='support' من هنا لمنع ازدواجية النظامين.
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
+import { uiNotify } from '@/lib/notify';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/messaging/useMessaging';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
@@ -40,9 +40,9 @@ export function useBeneficiaryMessages() {
     try {
       await sendMessage.mutateAsync({ conversationId: selectedConv.id, content: newMessage, senderId: user.id });
       setNewMessage('');
-      toast.success('تم إرسال الرسالة');
+      uiNotify.success('تم إرسال الرسالة');
     } catch {
-      toast.error('تعذّر إرسال الرسالة');
+      uiNotify.error('تعذّر إرسال الرسالة');
     }
   }, [newMessage, selectedConv, user, sendMessage, setNewMessage]);
 

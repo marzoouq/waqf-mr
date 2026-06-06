@@ -9,7 +9,7 @@ import { useCallback, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
 import { logger } from '@/lib/logger';
-import { toast } from 'sonner';
+import { uiNotify } from '@/lib/notify';
 
 type DlqQueue = 'auth_emails' | 'transactional_emails';
 
@@ -27,16 +27,16 @@ export function useEmailMonitorActions() {
     },
     onSuccess: (data, queue) => {
       if (data.error) {
-        toast.error(`فشلت إعادة المحاولة: ${data.error}`);
+        uiNotify.error(`فشلت إعادة المحاولة: ${data.error}`);
       } else {
-        toast.success(`تم إعادة جدولة ${data.moved} رسالة من ${queue === 'auth_emails' ? 'بريد المصادقة' : 'البريد التشغيلي'}`);
+        uiNotify.success(`تم إعادة جدولة ${data.moved} رسالة من ${queue === 'auth_emails' ? 'بريد المصادقة' : 'البريد التشغيلي'}`);
       }
       qc.invalidateQueries({ queryKey: ['email-admin-stats'] });
       qc.invalidateQueries({ queryKey: ['email-logs'] });
     },
     onError: (err: unknown) => {
       logger.error('retry_dlq failed', err);
-      toast.error('حدث خطأ أثناء إعادة المحاولة');
+      uiNotify.error('حدث خطأ أثناء إعادة المحاولة');
     },
     onSettled: () => {
       setActiveQueue(null);

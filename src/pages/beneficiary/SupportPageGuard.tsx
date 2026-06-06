@@ -7,14 +7,14 @@
 import { Navigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { uiNotify } from '@/lib/notify';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 const BeneficiarySupportPage = lazy(() => import('@/pages/beneficiary/SupportPage'));
 
 const RedirectWithToast = () => {
   useEffect(() => {
-    toast.info('تم تحويلك إلى لوحة دعم الإدارة');
+    uiNotify.info('تم تحويلك إلى لوحة دعم الإدارة');
   }, []);
   return <Navigate to="/dashboard/support" replace />;
 };
