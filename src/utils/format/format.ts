@@ -46,6 +46,23 @@ export const fmtDate = (date: string | Date | null | undefined): string => {
   return d.toLocaleDateString('en-CA').replace(/-/g, '/');
 };
 
+/**
+ * تنسيق التاريخ والوقت بصيغة عربية موحّدة (ar-SA)
+ * @param date تاريخ كنص أو Date
+ * @param opts خيارات Intl.DateTimeFormat (افتراضياً الصيغة الكاملة)
+ * @example fmtDateTime("2025-01-15T10:30:00") → "15‏/1‏/2025، 10:30:00 ص"
+ * @example fmtDateTime(d, { dateStyle: 'short', timeStyle: 'short' })
+ */
+export const fmtDateTime = (
+  date: string | Date | null | undefined,
+  opts?: Intl.DateTimeFormatOptions,
+): string => {
+  if (!date) return '—';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleString('ar-SA', opts);
+};
+
 
 /**
  * تنسيق نسبة مئوية — بمنزلتين عشريتين ورمز %
