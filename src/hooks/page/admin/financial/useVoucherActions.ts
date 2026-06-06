@@ -55,7 +55,7 @@ export function useCreateVoucherAction() {
     onError: (e: Error) => {
       logger.error('create_disbursement_voucher failed', e);
       const key = Object.keys(CREATE_ERR_MAP).find((k) => e.message?.includes(k));
-      uiNotify.error(key ? CREATE_ERR_MAP[key] : (e.message || 'فشل إنشاء سند الصرف'));
+      uiNotify.error((key && CREATE_ERR_MAP[key]) || e.message || 'فشل إنشاء سند الصرف');
     },
   });
 }
