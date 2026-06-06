@@ -1,20 +1,17 @@
 # Conventions Deep Report
 
-Total violations: **12** (Critical: 1, Warning: 7, Info: 4)
+Total violations: **10** (Critical: 0, Warning: 6, Info: 4)
 
 ## By rule
 
 | Rule | Count |
 |---|---:|
-| NoToastInDataHooks | 7 |
+| NoToastInDataHooks | 6 |
 | HexColors | 4 |
-| CoreModV7 | 1 |
 
 ## Critical violations
 
-| File:Line | Rule | Message |
-|---|---|---|
-| pages/dashboard/UserManagementPage.tsx:17 | CoreModV7 | page imports from hooks/data/* directly (non-type) |
+_None._
 
 ## Warnings (top 30)
 
@@ -26,4 +23,3 @@ Total violations: **12** (Critical: 1, Warning: 7, Info: 4)
 | hooks/data/core/crud/useListQuery.ts:9 | NoToastInDataHooks | hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper) |
 | hooks/data/notifications/useNotificationActions.ts:11 | NoToastInDataHooks | hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper) |
 | hooks/data/settings/app/useAppSettingsWrite.ts:9 | NoToastInDataHooks | hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper) |
-| hooks/data/users/useUserManagementMutations.ts:5 | NoToastInDataHooks | hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper) |

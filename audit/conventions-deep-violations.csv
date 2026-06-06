@@ -9,5 +9,3 @@ Warning,NoToastInDataHooks,hooks/data/core/crud/useListQuery.ts,8,"hooks/data im
 Warning,NoToastInDataHooks,hooks/data/core/crud/useListQuery.ts,9,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
 Warning,NoToastInDataHooks,hooks/data/notifications/useNotificationActions.ts,11,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
 Warning,NoToastInDataHooks,hooks/data/settings/app/useAppSettingsWrite.ts,9,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
-Warning,NoToastInDataHooks,hooks/data/users/useUserManagementMutations.ts,5,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
-Critical,CoreModV7,pages/dashboard/UserManagementPage.tsx,17,"page imports from hooks/data/* directly (non-type)"

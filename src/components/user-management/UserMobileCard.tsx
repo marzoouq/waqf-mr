@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Edit, Trash2, CheckCircle, XCircle, Key } from 'lucide-react';
-import type { ManagedUser } from '@/hooks/data/users/useUserManagement';
+import type { ManagedUser } from '@/hooks/auth/role/useUserManagement';
 
 const getRoleBadge = (role: string | null) => {
   switch (role) {
