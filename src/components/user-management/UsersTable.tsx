@@ -8,7 +8,7 @@ import { TableSkeleton } from '@/components/common';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card as CardSk, CardContent as CardSkCont } from '@/components/ui/card';
 import { Users, AlertTriangle } from 'lucide-react';
-import type { ManagedUser } from '@/hooks/auth/role/useUserManagement';
+import type { ManagedUser } from '@/hooks/data/users/useUserManagement';
 import UserRow from './UserRow';
 import UserMobileCard from './UserMobileCard';
 

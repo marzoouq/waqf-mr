@@ -14,7 +14,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, Lock, Unlock, AlertTriangle, Search } from 'lucide-react';
-import { useUserManagement } from '@/hooks/auth/role/useUserManagement';
+import { useUserManagement } from '@/hooks/data/users/useUserManagement';
 import UsersTable from '@/components/user-management/UsersTable';
 import CreateUserForm from '@/components/user-management/CreateUserForm';
 import { UserEditDialog, UserPasswordDialog, UserDeleteDialog } from '@/components/user-management/UserDialogs';
