@@ -53,7 +53,7 @@ const ZatcaConnectionStatus = ({ selectedPlatform, connectionTest, onTestConnect
               <p className="font-medium">{connectionTest.result.connected ? 'متصل بنجاح' : 'تعذّر الاتصال'}</p>
               {connectionTest.result.error && <p className="text-xs mt-0.5">{connectionTest.result.error}</p>}
               {connectionTest.result.tested_at && (
-                <p className="text-xs text-muted-foreground mt-0.5">آخر اختبار: {new Date(connectionTest.result.tested_at).toLocaleString('ar-SA')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">آخر اختبار: {fmtDateTime(connectionTest.result.tested_at)}</p>
               )}
             </div>
           </div>

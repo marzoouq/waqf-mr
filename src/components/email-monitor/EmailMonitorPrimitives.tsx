@@ -51,6 +51,6 @@ export function formatEmailDateTime(iso: string | null) {
   if (!iso) return '—';
   try {
     const d = new Date(iso);
-    return d.toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'medium' });
+    return fmtDateTime(d, { dateStyle: 'short', timeStyle: 'medium' });
   } catch { return iso; }
 }

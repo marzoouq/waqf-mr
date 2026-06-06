@@ -104,7 +104,7 @@ export default function TicketDetailDialog({ ticket, onClose, isAdmin }: Props) 
               <div key={reply.id} className={`rounded-lg p-3 text-sm ${reply.is_internal ? 'bg-warning/10 border border-warning/20' : 'bg-muted/50'}`}>
                 <p>{reply.content}</p>
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  {new Date(reply.created_at).toLocaleString('ar-SA')}
+                  {fmtDateTime(reply.created_at)}
                   {reply.is_internal && ' — ملاحظة داخلية'}
                 </p>
               </div>

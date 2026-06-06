@@ -36,7 +36,7 @@ const AuditLogStats = ({ totalCount, todayCount, lastOperationDate }: AuditLogSt
       </CardHeader>
       <CardContent>
         <p className="text-sm font-medium">
-          {lastOperationDate ? new Date(lastOperationDate).toLocaleString('ar-SA') : '—'}
+          {lastOperationDate ? fmtDateTime(lastOperationDate) : '—'}
         </p>
       </CardContent>
     </Card>

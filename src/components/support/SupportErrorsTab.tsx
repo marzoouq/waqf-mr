@@ -60,7 +60,7 @@ export default function SupportErrorsTab({ filteredErrors, errorSearch, setError
                 return (
                   <div key={err.id} className="rounded-lg border border-border p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">{new Date(err.created_at).toLocaleString('ar-SA')}</span>
+                      <span className="text-xs text-muted-foreground">{fmtDateTime(err.created_at)}</span>
                     </div>
                     {err.target_path && (
                       <p className="text-xs font-mono text-muted-foreground break-all" dir="ltr">{err.target_path}</p>
@@ -91,7 +91,7 @@ export default function SupportErrorsTab({ filteredErrors, errorSearch, setError
                     const meta = err.metadata as Record<string, string> | null;
                     return (
                       <TableRow key={err.id}>
-                        <TableCell className="text-xs">{new Date(err.created_at).toLocaleString('ar-SA')}</TableCell>
+                        <TableCell className="text-xs">{fmtDateTime(err.created_at)}</TableCell>
                         <TableCell className="font-mono text-xs max-w-[150px] truncate" dir="ltr">{err.target_path || '—'}</TableCell>
                         <TableCell className="max-w-[250px]">
                           <div className="text-xs text-destructive font-mono truncate" dir="ltr">

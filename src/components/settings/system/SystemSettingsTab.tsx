@@ -116,7 +116,7 @@ const SystemSettingsTab = () => {
                         {formatValue(entry.new_value)}
                       </td>
                       <td className="px-3 py-2 text-xs whitespace-nowrap text-muted-foreground">
-                        {new Date(entry.created_at).toLocaleString('ar-SA')}
+                        {fmtDateTime(entry.created_at)}
                       </td>
                     </tr>
                   ))}

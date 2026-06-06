@@ -33,7 +33,7 @@ const ArchiveLogTab = () => {
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><CalendarDays className="w-4 h-4" />أحدث أرشفة</CardTitle></CardHeader>
-          <CardContent><p className="text-sm font-medium">{logs[0] ? new Date(logs[0].archived_at).toLocaleString('ar-SA') : '—'}</p></CardContent>
+          <CardContent><p className="text-sm font-medium">{logs[0] ? fmtDateTime(logs[0].archived_at) : '—'}</p></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4" />الصفحة الحالية</CardTitle></CardHeader>
@@ -76,7 +76,7 @@ const ArchiveLogTab = () => {
                     <div key={log.id} className="p-3 rounded-lg border bg-card space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <Badge className={config.color} variant="outline"><Icon className="w-3 h-3 ml-1" />{config.label}</Badge>
-                        <span className="text-[11px] text-muted-foreground shrink-0">{new Date(log.created_at).toLocaleString('ar-SA')}</span>
+                        <span className="text-[11px] text-muted-foreground shrink-0">{fmtDateTime(log.created_at)}</span>
                       </div>
                       {log.email && <p className="text-xs font-mono" dir="ltr">{log.email}</p>}
                       {log.target_path && <p className="text-[11px] text-muted-foreground font-mono truncate" dir="ltr">{log.target_path}</p>}
@@ -103,7 +103,7 @@ const ArchiveLogTab = () => {
                       const Icon = config.icon;
                       return (
                         <TableRow key={log.id}>
-                          <TableCell className="text-sm">{new Date(log.created_at).toLocaleString('ar-SA')}</TableCell>
+                          <TableCell className="text-sm">{fmtDateTime(log.created_at)}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">{fmtDate(log.archived_at)}</TableCell>
                           <TableCell><Badge className={config.color} variant="outline"><Icon className="w-3 h-3 ml-1" />{config.label}</Badge></TableCell>
                           <TableCell className="text-sm font-mono" dir="ltr">{log.email || '—'}</TableCell>

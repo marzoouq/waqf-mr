@@ -56,7 +56,7 @@ const AuditLogTable = ({
                   <CardContent className="p-3 space-y-2 cursor-pointer">
                     <div className="flex items-center justify-between">
                       <Badge className={operationColor(log.operation)} variant="outline">{getOperationNameAr(log.operation)}</Badge>
-                      <span className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString('ar-SA')}</span>
+                      <span className="text-xs text-muted-foreground">{fmtDateTime(log.created_at)}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium">{getTableNameAr(log.table_name)}</span>
@@ -95,7 +95,7 @@ const AuditLogTable = ({
                       <CollapsibleTrigger asChild>
                         <TableRow className="cursor-pointer hover:bg-muted/50">
                           <TableCell><Button variant="ghost" size="icon" className="h-6 w-6" aria-label={isExpanded ? 'طي' : 'توسيع'}>{isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}</Button></TableCell>
-                          <TableCell className="text-sm">{new Date(log.created_at).toLocaleString('ar-SA')}</TableCell>
+                          <TableCell className="text-sm">{fmtDateTime(log.created_at)}</TableCell>
                           <TableCell>{getTableNameAr(log.table_name)}</TableCell>
                           <TableCell><Badge className={operationColor(log.operation)} variant="outline">{getOperationNameAr(log.operation)}</Badge></TableCell>
                           <TableCell className="text-sm text-muted-foreground">{getSummary(log)}</TableCell>

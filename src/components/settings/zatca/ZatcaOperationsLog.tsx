@@ -26,7 +26,7 @@ const ZatcaOperationsLog = () => {
   const buildDetail = (log: (typeof logs)[0]) => ({
     نوع_العملية: OPERATION_TYPE_LABELS[log.operation_type] || log.operation_type,
     الحالة: log.status === 'success' ? 'نجح' : 'فشل',
-    التاريخ: new Date(log.created_at).toLocaleString('ar-SA'),
+    التاريخ: fmtDateTime(log.created_at),
     ملخص_الطلب: log.request_summary,
     ملخص_الرد: log.response_summary,
     رسالة_الخطأ: log.error_message || 'لا يوجد',
@@ -57,7 +57,7 @@ const ZatcaOperationsLog = () => {
                   <Badge variant={log.status === 'success' ? 'default' : 'destructive'} className="text-xs">{log.status === 'success' ? '✅ نجح' : '❌ فشل'}</Badge>
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{new Date(log.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                  <span>{fmtDateTime(log.created_at, { dateStyle: 'short', timeStyle: 'short' })}</span>
                   <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setDetailItem(buildDetail(log))}><Eye className="w-4 h-4" /></Button>
                 </div>
                 {log.error_message && <p className="text-xs text-destructive line-clamp-2">{log.error_message}</p>}
@@ -72,7 +72,7 @@ const ZatcaOperationsLog = () => {
                   <TableRow key={log.id}>
                     <TableCell className="font-medium">{OPERATION_TYPE_LABELS[log.operation_type] || log.operation_type}</TableCell>
                     <TableCell><Badge variant={log.status === 'success' ? 'default' : 'destructive'} className="text-xs">{log.status === 'success' ? '✅ نجح' : '❌ فشل'}</Badge></TableCell>
-                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{new Date(log.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{fmtDateTime(log.created_at, { dateStyle: 'short', timeStyle: 'short' })}</TableCell>
                     <TableCell className="text-sm text-destructive max-w-[200px] truncate">{log.error_message || '—'}</TableCell>
                     <TableCell><Button variant="ghost" size="sm" onClick={() => setDetailItem(buildDetail(log))}><Eye className="w-4 h-4" /></Button></TableCell>
                   </TableRow>
