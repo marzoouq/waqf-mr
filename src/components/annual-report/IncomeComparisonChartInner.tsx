@@ -4,9 +4,9 @@
 import { memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useChartReady } from '@/hooks/ui/useChartReady';
+import { fmtInt } from '@/utils/format/format';
 
-const formatAmount = (v: number) =>
-  new Intl.NumberFormat('ar-SA', { style: 'decimal', maximumFractionDigits: 0 }).format(v);
+const formatAmount = (v: number) => fmtInt(v);
 
 interface IncomeComparisonChartInnerProps {
   data: Array<{ label: string; total: number }>;

@@ -21,7 +21,7 @@ export function useAccountsViewPage() {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const navigate = useNavigate();
 
-  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
+  const { fiscalYearId, fiscalYear: selectedFY, isClosed } = useFiscalYear();
   const { data: contracts = [] } = useContractsSafeByFiscalYear(isFyReady(fiscalYearId) ? fiscalYearId : 'all');
 
   const { data: dashData, isLoading: finLoading, isError: finError } = useEndUserDashboardData(
@@ -81,7 +81,7 @@ export function useAccountsViewPage() {
     distributionsAmount: fin.distributionsAmount,
     adminPercent: dashData?.admin_share_pct ?? 10,
     waqifPercent: dashData?.waqif_share_pct ?? 5,
-    isClosed: selectedFY?.status === 'closed',
+    isClosed,
     handleRetry, handleExportPdf, navigate,
   };
 }

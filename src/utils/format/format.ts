@@ -46,20 +46,6 @@ export const fmtDate = (date: string | Date | null | undefined): string => {
   return d.toLocaleDateString('en-CA').replace(/-/g, '/');
 };
 
-/**
- * تنسيق التاريخ بالهجري
- * @example fmtDateHijri("2025-01-15") → "١٥/٠٧/١٤٤٦"
- */
-export const fmtDateHijri = (date: string | Date | null | undefined): string => {
-  if (!date) return '—';
-  const d = typeof date === 'string' ? new Date(date) : date;
-  if (isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('ar-SA-u-ca-islamic', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-};
 
 /**
  * تنسيق نسبة مئوية — بمنزلتين عشريتين ورمز %

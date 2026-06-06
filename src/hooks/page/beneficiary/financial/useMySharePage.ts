@@ -19,7 +19,7 @@ import type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 
 
 export const useMySharePage = () => {
-  const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const selectedFY = fiscalYear;
   const handleRetry = useRetryQueries(['beneficiary-dashboard', 'my-distributions']);
 
@@ -65,7 +65,6 @@ export const useMySharePage = () => {
   const advanceSettings = dashData?.advance_settings ?? { enabled: false, min_amount: 500, max_percentage: 50 };
   const advancesEnabled = advanceSettings.enabled ?? false;
   const beneficiariesShare = fin.availableAmount;
-  const isClosed = selectedFY?.status === 'closed';
   // #12: is share estimated (active year)
   const myShareIsEstimated = dashData?.my_share_is_estimated ?? false;
 

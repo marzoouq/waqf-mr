@@ -7,6 +7,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { fmtInt } from '@/utils/format/format';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAnnualReportItems, useReportStatus } from '@/hooks/data/content/useAnnualReport';
 import { useProperties } from '@/hooks/data/properties/useProperties';
@@ -22,15 +23,11 @@ import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import type { AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
 import { DollarSign, Receipt, FileText, Building2 } from 'lucide-react';
 
-const formatCurrency = (v: number) =>
-  new Intl.NumberFormat('ar-SA', { style: 'decimal', maximumFractionDigits: 0 }).format(v);
-
 export function useAnnualReportViewPage() {
   const isMobile = useIsMobile();
   const [viewTab, setViewTab] = useState('property_status');
-  const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const safeFyId = isFyReady(fiscalYearId) ? fiscalYearId : undefined;
-  const isClosed = fiscalYear?.status === 'closed';
 
   // Realtime: انعكاس فوري لتعديلات التقرير السنوي + الأرقام المالية للبطاقات
   useDashboardRealtime(
@@ -72,8 +69,8 @@ export function useAnnualReportViewPage() {
   const activeContracts = useMemo(() => contracts.filter(c => c.status === 'active').length, [contracts]);
 
   const summaryCards = useMemo(() => [
-    { label: 'إجمالي الدخل', value: formatCurrency(totalIncome) + ' ر.س', icon: DollarSign, color: 'text-success' },
-    { label: 'إجمالي المصروفات', value: formatCurrency(totalExpenses) + ' ر.س', icon: Receipt, color: 'text-destructive' },
+    { label: 'إجمالي الدخل', value: fmtInt(totalIncome) + ' ر.س', icon: DollarSign, color: 'text-success' },
+    { label: 'إجمالي المصروفات', value: fmtInt(totalExpenses) + ' ر.س', icon: Receipt, color: 'text-destructive' },
     { label: 'العقود النشطة', value: String(activeContracts), icon: FileText, color: 'text-info' },
     { label: 'عدد العقارات', value: String(properties.length), icon: Building2, color: 'text-warning' },
   ], [totalIncome, totalExpenses, activeContracts, properties.length]);

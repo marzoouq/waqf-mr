@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
+
 /**
  * صفحة إدارة المستخدمين — مُفكّكة إلى hook + مكونات فرعية
  *
@@ -21,7 +21,6 @@ import { UserEditDialog, UserPasswordDialog, UserDeleteDialog } from '@/componen
 import UserStatsCards from '@/components/user-management/UserStatsCards';
 
 const UserManagementPage = () => {
-  const queryClient = useQueryClient();
   const mgmt = useUserManagement();
 
   return (
@@ -129,7 +128,7 @@ const UserManagementPage = () => {
           }}
           onPasswordChange={(id) => mgmt.setPasswordDialog(id)}
           onDelete={(user) => mgmt.setDeleteTarget(user)}
-          onRetry={() => queryClient.invalidateQueries({ queryKey: ['admin-users'] })}
+          onRetry={mgmt.retryUsersList}
         />
 
         {/* حوارات */}

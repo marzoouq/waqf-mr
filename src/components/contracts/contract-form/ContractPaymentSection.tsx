@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
 import { type ContractFormData } from '@/types/forms/contract';
 import { fmt } from '@/utils/format/format';
+import { VAT_RATE, VAT_INCLUSIVE_MULTIPLIER, VAT_RATE_LABEL } from '@/constants/vat';
 import { getContractSpanInfo } from '@/utils/financial/contractAllocation';
 
 import type { FiscalYear } from '@/types';
@@ -88,15 +89,15 @@ export default function ContractPaymentSection({
           {formData.vat_applicable && (
             <>
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">ضريبة القيمة المضافة (15%):</span>
+                <span className="text-muted-foreground">ضريبة القيمة المضافة ({VAT_RATE_LABEL}):</span>
                 <span className="text-muted-foreground">
-                  {fmt((parseFloat(formData.rent_amount) / paymentDivisor) * 0.15)} ر.س
+                  {fmt((parseFloat(formData.rent_amount) / paymentDivisor) * VAT_RATE)} ر.س
                 </span>
               </div>
               <div className="flex justify-between text-xs border-t border-border pt-1 mt-1">
                 <span className="font-medium">الإجمالي شاملاً الضريبة:</span>
                 <span className="font-bold text-primary">
-                  {fmt((parseFloat(formData.rent_amount) / paymentDivisor) * 1.15)} ر.س
+                  {fmt((parseFloat(formData.rent_amount) / paymentDivisor) * VAT_INCLUSIVE_MULTIPLIER)} ر.س
                 </span>
               </div>
             </>

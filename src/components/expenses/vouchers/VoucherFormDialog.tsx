@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useCreateVoucherAction, useApproveVoucherAction } from '@/hooks/page/admin/financial/useVoucherActions';
-import { toast } from 'sonner';
+import { uiNotify } from '@/lib/notify';
 import VoucherFormFields, { type VoucherFormState } from './VoucherFormFields';
 
 interface VoucherFormDialogProps {
@@ -37,14 +37,14 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
   const reset = () => setForm({ ...EMPTY, amount: expenseAmount, work_description: defaultDescription || '' });
 
   const validate = (): boolean => {
-    if (!form.recipient_name.trim()) { toast.error('أدخل اسم المستلم'); return false; }
-    if (!form.recipient_id_number.trim()) { toast.error('أدخل رقم الهوية'); return false; }
-    if (!form.recipient_phone.trim()) { toast.error('أدخل رقم الجوال'); return false; }
-    if (!form.work_description.trim()) { toast.error('أدخل وصف الأعمال المنفذة'); return false; }
-    if (form.amount <= 0) { toast.error('المبلغ يجب أن يكون أكبر من صفر'); return false; }
-    if (form.amount > expenseAmount) { toast.error(`المبلغ يتجاوز قيمة المصروف (${expenseAmount} ر.س)`); return false; }
+    if (!form.recipient_name.trim()) { uiNotify.error('أدخل اسم المستلم'); return false; }
+    if (!form.recipient_id_number.trim()) { uiNotify.error('أدخل رقم الهوية'); return false; }
+    if (!form.recipient_phone.trim()) { uiNotify.error('أدخل رقم الجوال'); return false; }
+    if (!form.work_description.trim()) { uiNotify.error('أدخل وصف الأعمال المنفذة'); return false; }
+    if (form.amount <= 0) { uiNotify.error('المبلغ يجب أن يكون أكبر من صفر'); return false; }
+    if (form.amount > expenseAmount) { uiNotify.error(`المبلغ يتجاوز قيمة المصروف (${expenseAmount} ر.س)`); return false; }
     if ((form.payment_method === 'bank_transfer' || form.payment_method === 'cheque') && !form.transfer_reference.trim()) {
-      toast.error('أدخل رقم التحويل / الشيك'); return false;
+      uiNotify.error('أدخل رقم التحويل / الشيك'); return false;
     }
     return true;
   };

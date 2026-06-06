@@ -18,7 +18,7 @@ import type { ForensicAuditData } from '@/utils/pdf/reports/forensicAudit';
 
 export function useReportsData() {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
+  const { fiscalYearId, fiscalYear, isSpecificYear, isClosed: isYearClosed } = useFiscalYear();
 
   // Realtime: تحديث فوري لتقارير الناظر/المحاسب عند تعديل أي بيانات مالية
   useDashboardRealtime(
@@ -87,7 +87,7 @@ export function useReportsData() {
   );
 
   // الفحص الجنائي
-  const isYearClosed = fiscalYear?.status === 'closed';
+
   const auditChecks = [
     { key: 'account', ok: !!currentAccount },
     { key: 'incomeData', ok: income.length > 0 },

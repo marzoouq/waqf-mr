@@ -29,9 +29,9 @@ export function usePropertiesViewPage() {
 
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
   const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
-  const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
+  const { fiscalYearId, fiscalYear, isSpecificYear, isClosed } = useFiscalYear();
 
-  const isClosed = fiscalYear?.status === 'closed';
+
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
   const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId);
