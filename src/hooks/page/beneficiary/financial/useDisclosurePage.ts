@@ -72,12 +72,17 @@ export const useDisclosurePage = () => {
 
   // لف بـ useCallback (#17)
   const handleDownloadPDF = useCallback(async () => {
+    // N9: منع التصدير عند غياب بيانات المستفيد بدل إنتاج PDF بحقول فارغة
+    if (!currentBeneficiary) {
+      uiNotify.warning('لا يمكن تصدير الإفصاح قبل ربط الحساب بمستفيد');
+      return;
+    }
     try {
       const { generateDisclosurePDF } = await import('@/utils/pdf');
       await generateDisclosurePDF({
         fiscalYear: gregorianFiscalYear,
-        beneficiaryName: currentBeneficiary?.name || '',
-        sharePercentage: currentBeneficiary?.share_percentage || 0,
+        beneficiaryName: currentBeneficiary.name || '',
+        sharePercentage: currentBeneficiary.share_percentage || 0,
         myShare, totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
         netRevenue: fin.netAfterZakat,
         adminShare: fin.adminShare, waqifShare: fin.waqifShare, adminPct, waqifPct, beneficiariesShare,

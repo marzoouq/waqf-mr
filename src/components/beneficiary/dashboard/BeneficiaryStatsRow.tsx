@@ -27,9 +27,12 @@ interface BeneficiaryStatsRowProps {
 }
 
 const BeneficiaryStatsRow = ({ myShare, isClosed, distributions, fiscalYearLabel, fyProgress }: BeneficiaryStatsRowProps) => {
-  const lastPaid = [...distributions]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .find(d => d.status === 'paid');
+  // N18: ابحث عن آخر مدفوع بتمرير واحد O(n) بدل sort+find
+  const lastPaid = distributions.reduce<Distribution | null>((acc, d) => {
+    if (d.status !== 'paid') return acc;
+    if (!acc) return d;
+    return new Date(d.date).getTime() > new Date(acc.date).getTime() ? d : acc;
+  }, null);
 
   // CR-01: شارة حالة السنة
   const yearBadge = isClosed
