@@ -5,7 +5,6 @@
  */
 import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useDashboardSummary } from '@/hooks/data/financial/dashboard/useDashboardSummary';
 import { useIncomeByFiscalYear } from '@/hooks/data/financial/income/useIncome';
@@ -13,19 +12,13 @@ import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpe
 import { useAnnualReportItems } from '@/hooks/data/content/useAnnualReport';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
+import { annualReportService, type AggregatedDistributionRow } from '@/lib/services';
 import { uiNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { toGregorianShort } from '@/utils/format/date';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { AggregatedAnnualPdfData } from '@/utils/pdf/reports/aggregatedAnnualReport';
-
-interface DistributionRow {
-  date: string;
-  amount: number;
-  status: string;
-  beneficiary: { name: string } | null;
-}
 
 export function useAggregatedAnnualReport() {
   const { fiscalYearId, fiscalYear } = useFiscalYear();
@@ -38,21 +31,11 @@ export function useAggregatedAnnualReport() {
   const { data: items = [] } = useAnnualReportItems(ready ? fiscalYearId : undefined);
   const { data: properties = [] } = useProperties();
 
-  const { data: distributions = [] } = useQuery<DistributionRow[]>({
+  const { data: distributions = [] } = useQuery<AggregatedDistributionRow[]>({
     queryKey: ['aggregated-distributions', fiscalYearId],
     staleTime: STALE_FINANCIAL,
     enabled: ready,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('distributions')
-        .select('date, amount, status, beneficiary:beneficiaries(name)')
-        .eq('fiscal_year_id', fiscalYearId)
-        .eq('status', 'paid')
-        .order('date', { ascending: false })
-        .limit(500);
-      if (error) throw error;
-      return (data ?? []) as unknown as DistributionRow[];
-    },
+    queryFn: () => annualReportService.listAggregatedDistributions(fiscalYearId),
   });
 
   const handleExport = useCallback(async () => {
