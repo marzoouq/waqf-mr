@@ -3,17 +3,18 @@
  */
 import { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, RefreshCw, BarChart3 } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
-import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
+import { ExportMenu, RequirePublishedYears, DashboardSkeleton, ErrorState } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';
 import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialReportsPage } from '@/hooks/page/beneficiary';
 
 const LazyFinancialCharts = lazy(() => import('@/components/dashboard/charts/FinancialChartsInner'));
 
 const FinancialReportsPage = () => {
+  const { noPublishedYears } = useFiscalYear();
   const {
     isLoading, isError, handleRetry,
     isAccountMissing, selectedFY, currentBeneficiary,
@@ -21,22 +22,18 @@ const FinancialReportsPage = () => {
     handleDownloadPDF,
   } = useFinancialReportsPage();
 
+  // B2: حارس السنوات المنشورة قبل أي فرع
+  if (noPublishedYears) {
+    return <RequirePublishedYears title="التقارير المالية" icon={BarChart3}><></></RequirePublishedYears>;
+  }
+
   if (isLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
+  // B12: ErrorState الموحّد
   if (isError) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={handleRetry} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
+    return <ErrorState onRetry={handleRetry} />;
   }
 
   // H3: تحقّق من ربط المستفيد قبل رسالة "الحساب الختامي مفقود"
@@ -46,15 +43,11 @@ const FinancialReportsPage = () => {
 
   if (isAccountMissing && selectedFY?.status === 'closed') {
     return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-warning" />
-          <h2 className="text-xl font-bold">لم يتم العثور على الحساب الختامي</h2>
-          <p className="text-muted-foreground text-center max-w-md">
-            لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد.
-          </p>
-        </div>
-      </DashboardLayout>
+      <ErrorState
+        variant="warning"
+        message="لم يتم العثور على الحساب الختامي"
+        description="لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد."
+      />
     );
   }
 

@@ -3,19 +3,20 @@
  */
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { RequirePublishedYears, ExportMenu, TablePagination, ViewModeToggle, useViewMode } from '@/components/common';
+import { RequirePublishedYears, ExportMenu, TablePagination, ViewModeToggle, useViewMode, ErrorState } from '@/components/common';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, AlertCircle, RefreshCw, Info } from 'lucide-react';
+import { FileText, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
 import { ContractStatsCards } from '@/components/contracts';
 import ContractsViewMobileCards from '@/components/contracts/ContractsViewMobileCards';
 import ContractsViewDesktopTable from '@/components/contracts/ContractsViewDesktopTable';
 import ContractsViewGridCards from '@/components/contracts/ContractsViewGridCards';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractsViewPage } from '@/hooks/page/beneficiary';
 import { CONTRACTS_SCOPE_COPY } from '@/constants/beneficiaryCopy';
 
 const ContractsViewPage = () => {
+  const { noPublishedYears } = useFiscalYear();
   const isMobile = useIsMobile();
   const [viewMode, setViewMode] = useViewMode('beneficiary-contracts', 'table');
   const {
@@ -26,21 +27,19 @@ const ContractsViewPage = () => {
     totalItems, itemsPerPage,
   } = useContractsViewPage();
 
+  // B2: حارس السنوات المنشورة قبل أي فرع
+  if (noPublishedYears) {
+    return <RequirePublishedYears title={CONTRACTS_SCOPE_COPY.title} icon={FileText} description={CONTRACTS_SCOPE_COPY.description}><></></RequirePublishedYears>;
+  }
+
+  // B14: ErrorState الموحّد
   if (isError) {
     return (
-      <DashboardLayout>
-        <div className="p-4 md:p-6 space-y-6">
-          <PageHeaderCard title={CONTRACTS_SCOPE_COPY.title} icon={FileText} description={CONTRACTS_SCOPE_COPY.description} />
-          <Card className="shadow-sm border-destructive/30 bg-destructive/5">
-            <CardContent className="p-6 flex flex-col items-center justify-center gap-3 min-h-[30vh]">
-              <AlertCircle className="w-12 h-12 text-destructive" />
-              <h2 className="text-lg font-bold text-foreground">حدث خطأ أثناء تحميل العقود</h2>
-              <p className="text-sm text-muted-foreground text-center max-w-md">تعذر جلب بيانات العقود. يرجى التحقق من الاتصال والمحاولة مرة أخرى.</p>
-              <Button onClick={() => refetch()} variant="outline" className="gap-2"><RefreshCw className="w-4 h-4" /> إعادة المحاولة</Button>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
+      <ErrorState
+        message="حدث خطأ أثناء تحميل العقود"
+        description="تعذر جلب بيانات العقود. يرجى التحقق من الاتصال والمحاولة مرة أخرى."
+        onRetry={() => refetch()}
+      />
     );
   }
 

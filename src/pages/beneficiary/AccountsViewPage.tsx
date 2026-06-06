@@ -1,13 +1,15 @@
-import { Wallet, PieChart, AlertCircle, RefreshCw } from 'lucide-react';
+import { Wallet, PieChart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
-import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
+import { ExportMenu, RequirePublishedYears, DashboardSkeleton, ErrorState } from '@/components/common';
 import { AccountsSummaryCards, AccountsViewMyShare } from '@/components/accounts';
 import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAccountsViewPage } from '@/hooks/page/beneficiary';
 
 const AccountsViewPage = () => {
+  const { noPublishedYears } = useFiscalYear();
   const {
     finLoading, finError,
     isAccountMissing, selectedFY, currentBeneficiary,
@@ -19,19 +21,16 @@ const AccountsViewPage = () => {
     handleRetry, handleExportPdf, navigate,
   } = useAccountsViewPage();
 
-  // H4: تجميع كل حالات التحميل/الخطأ في DashboardLayout واحد
+  // B2: حارس السنوات المنشورة قبل أي فرع
+  if (noPublishedYears) {
+    return <RequirePublishedYears title="الحسابات الختامية" icon={Wallet} description="ملخص الأرقام النهائية"><></></RequirePublishedYears>;
+  }
+
   if (finLoading) return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
 
+  // B11: استبدال البلوك اليدوي بـ ErrorState الموحّد
   if (finError) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={handleRetry} className="gap-2"><RefreshCw className="w-4 h-4" /> إعادة المحاولة</Button>
-        </div>
-      </DashboardLayout>
-    );
+    return <ErrorState message="حدث خطأ أثناء تحميل البيانات" onRetry={handleRetry} />;
   }
 
   // H3: تحقّق من ربط المستفيد قبل أي رسالة عن الحساب الختامي
@@ -41,14 +40,13 @@ const AccountsViewPage = () => {
 
   if (isAccountMissing && selectedFY?.status === 'closed') {
     return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-warning" />
-          <h2 className="text-xl font-bold">لم يتم العثور على الحساب الختامي</h2>
-          <p className="text-muted-foreground text-center max-w-md">لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد.</p>
-          <Button onClick={handleRetry} className="gap-2"><RefreshCw className="w-4 h-4" /> إعادة تحميل</Button>
-        </div>
-      </DashboardLayout>
+      <ErrorState
+        variant="warning"
+        message="لم يتم العثور على الحساب الختامي"
+        description="لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد."
+        onRetry={handleRetry}
+        retryLabel="إعادة تحميل"
+      />
     );
   }
 

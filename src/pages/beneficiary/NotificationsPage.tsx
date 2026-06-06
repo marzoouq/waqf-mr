@@ -4,8 +4,8 @@
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, BellRing, AlertCircle, RefreshCw } from 'lucide-react';
-import { TableSkeleton } from '@/components/common';
+import { Bell, BellRing } from 'lucide-react';
+import { TableSkeleton, ErrorState } from '@/components/common';
 
 import { NotificationStatsCards, NotificationFiltersBar, NotificationsList } from '@/components/notifications';
 import { useNotificationsPage } from '@/hooks/page/beneficiary';
@@ -21,18 +21,9 @@ const NotificationsPage = () => {
     handleRetry, handleClick, handleEnablePush,
   } = useNotificationsPage();
 
+  // B14: ErrorState الموحّد
   if (isError) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل الإشعارات</h2>
-          <Button onClick={handleRetry} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
+    return <ErrorState message="حدث خطأ أثناء تحميل الإشعارات" onRetry={handleRetry} />;
   }
 
   if (isLoading) {

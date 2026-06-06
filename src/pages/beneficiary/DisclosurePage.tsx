@@ -7,9 +7,11 @@ import DisclosureContractsSection from '@/components/beneficiary/disclosure/Disc
 import DisclosureFinancialStatement from '@/components/beneficiary/disclosure/DisclosureFinancialStatement';
 import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import { useDisclosurePage } from '@/hooks/page/beneficiary';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { PAGE_RESPONSIBILITY_COPY } from '@/constants/beneficiaryCopy';
 
 const DisclosurePage = () => {
+  const { noPublishedYears } = useFiscalYear();
   const {
     isLoading, isError, isAccountMissing,
     selectedFY, handleRetry,
@@ -21,6 +23,11 @@ const DisclosurePage = () => {
     contracts,
     handleDownloadPDF, handleDownloadComprehensivePDF,
   } = useDisclosurePage();
+
+  // B2: حارس السنوات المنشورة قبل أي فرع
+  if (noPublishedYears) {
+    return <RequirePublishedYears title="الإفصاح السنوي" icon={FileText}><></></RequirePublishedYears>;
+  }
 
   if (isLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;

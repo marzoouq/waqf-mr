@@ -24,7 +24,8 @@ import { PDF_MESSAGES } from '@/lib/messages';
 export const useDisclosurePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
-  const handleRetry = useRetryQueries(['beneficiary-dashboard', 'my-distributions']);
+  // B5: شمل جميع المفاتيح التي تقرأ منها الصفحة فعلياً (contracts_safe + disclosure)
+  const handleRetry = useRetryQueries(['beneficiary-dashboard', 'my-distributions', 'contracts_safe', 'disclosure']);
 
   // Realtime: انعكاس فوري لتعديلات بيانات الإفصاح
   // H12: شمل beneficiaries + advance_requests + advance_carryforward
