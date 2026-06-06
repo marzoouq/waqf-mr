@@ -85,8 +85,9 @@ export const useBeneficiariesSafe = () => {
       if (error) {
         if (error.code === '42501') {
           logger.warn('[useBeneficiariesSafe] RLS permission denied (42501) — returning empty', error.message);
-          const { toast } = await import('sonner');
-          toast.error('تعذر تحميل بيانات المستفيدين — يرجى تسجيل الخروج وإعادة الدخول');
+          // ملاحظة: لا نستدعي toast هنا (قاعدة NoToastInDataHooks).
+          // الطبقة المستهلكة (hooks/page) مسؤولة عن عرض رسالة المستخدم
+          // عبر فحص isError/data من React Query.
           return [];
         }
         throw error;
