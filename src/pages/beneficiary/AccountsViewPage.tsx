@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
-import { AccountsViewSummary, AccountsViewMyShare } from '@/components/accounts';
+import { AccountsSummaryCards, AccountsViewMyShare } from '@/components/accounts';
 import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import { useAccountsViewPage } from '@/hooks/page/beneficiary';
 
@@ -11,7 +11,11 @@ const AccountsViewPage = () => {
   const {
     finLoading, finError,
     isAccountMissing, selectedFY, currentBeneficiary,
-    totalIncome, totalExpenses, netAfterZakat, availableAmount, myShare,
+    totalIncome, totalExpenses, myShare,
+    waqfCorpusPrevious, grandTotal, netAfterExpenses, vatAmount, netAfterVat,
+    zakatAmount, netAfterZakat, adminShare, waqifShare, waqfRevenue,
+    waqfCorpusManual, distributionsAmount, remainingBalance,
+    adminPercent, waqifPercent, isClosed,
     handleRetry, handleExportPdf, navigate,
   } = useAccountsViewPage();
 
