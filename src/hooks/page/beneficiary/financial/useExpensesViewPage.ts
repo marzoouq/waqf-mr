@@ -18,6 +18,7 @@ import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { computeDocumentationStats } from '@/utils/financial/documentationRate';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 
