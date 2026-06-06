@@ -3,4 +3,3 @@ Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,26,"hex color #ffff
 Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,61,"hex color #0f172a"
 Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,91,"hex color #ffffff"
 Info,HexColors,components/invoices/InvoicePreviewDialog.tsx,16,"hex color #ffffff"
-Info,HookSize,hooks/page/admin/reports/useAnnualReportPage.ts,201,"hook 201 lines > 200"
