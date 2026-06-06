@@ -93,6 +93,48 @@ Deno.serve(async (req) => {
       });
     }
 
+    // فحص HIBP (Have I Been Pwned) عبر k-Anonymity:
+    // Admin API لا يطبّق password_hibp_enabled لذا نُجريه يدوياً هنا.
+    // Fail-open عند انقطاع الخدمة الخارجية حتى لا نوقف التسجيل.
+    const HIBP_PWNED_MESSAGE = "كلمة المرور هذه ظهرت في تسريبات بيانات معروفة. يرجى اختيار كلمة مرور مختلفة.";
+    try {
+      const encoder = new TextEncoder();
+      const hashBuffer = await crypto.subtle.digest("SHA-1", encoder.encode(password));
+      const hashHex = Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("")
+        .toUpperCase();
+      const prefix = hashHex.slice(0, 5);
+      const suffix = hashHex.slice(5);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      const hibpRes = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
+        headers: { "Add-Padding": "true", "User-Agent": "waqf-mr-guard-signup" },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (hibpRes.ok) {
+        const text = await hibpRes.text();
+        const lines = text.split("\n");
+        for (const line of lines) {
+          const [lineSuffix, countStr] = line.trim().split(":");
+          if (lineSuffix === suffix && Number(countStr) > 0) {
+            return new Response(JSON.stringify({ error: HIBP_PWNED_MESSAGE }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
+      } else {
+        console.warn(`HIBP check non-OK status: ${hibpRes.status}`);
+      }
+    } catch (hibpErr) {
+      // Fail-open: نسجّل ونتابع
+      console.warn("HIBP check failed (fail-open):", hibpErr instanceof Error ? hibpErr.message : String(hibpErr));
+    }
+
     // Check registration_enabled setting
     const { data: setting } = await supabaseAdmin
       .from("app_settings")
