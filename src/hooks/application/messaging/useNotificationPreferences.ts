@@ -11,7 +11,7 @@ import {
   previewTone,
   type ToneId,
   type VolumeLevel,
-} from '@/hooks/data/notifications/useNotifications';
+} from '@/constants/notificationTones';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeGet, safeSet } from '@/lib/storage';
 
