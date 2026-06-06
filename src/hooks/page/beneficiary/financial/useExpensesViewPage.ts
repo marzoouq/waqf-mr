@@ -18,6 +18,7 @@ import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { computeDocumentationStats } from '@/utils/financial/documentationRate';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 
@@ -29,13 +30,21 @@ export function useExpensesViewPage() {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, isClosed } = useFiscalYear();
 
+  // N2: Realtime — انعكاس فوري لمصاريف الناظر الجديدة
+  useDashboardRealtime(
+    'expenses-view-realtime',
+    ['expenses', 'invoices', 'fiscal_years'],
+    true,
+  );
+
   const { data: expenses = [], isLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: allInvoices = [] } = useInvoicesByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
-  const { sortField, sortDir, handleSort } = useTableSort<'amount' | 'date' | 'expense_type'>();
+  // N6: ترتيب افتراضي بالأحدث تاريخاً
+  const { sortField, sortDir, handleSort } = useTableSort<'amount' | 'date' | 'expense_type'>('date', 'desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 

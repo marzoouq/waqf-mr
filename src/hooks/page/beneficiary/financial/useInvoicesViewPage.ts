@@ -10,6 +10,7 @@ import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/invoi
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
@@ -24,6 +25,13 @@ export function useInvoicesViewPage() {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+
+  // H17: Realtime — تحديث فوري عند إصدار/تعديل فواتير الناظر
+  useDashboardRealtime(
+    'invoices-view-realtime',
+    ['invoices', 'payment_invoices', 'fiscal_years'],
+    true,
+  );
 
   const { data: expenseInvoices = [], isLoading: loadingExpense, isError: errExpense } = useInvoicesByFiscalYear(fiscalYearId);
   const { data: rentInvoices = [], isLoading: loadingRent, isError: errRent } = usePaymentInvoices(fiscalYearId);
@@ -63,7 +71,12 @@ export function useInvoicesViewPage() {
       property: inv.contract?.property ? { property_number: inv.contract.property.property_number } : null,
       source: 'rent',
     }));
-    return [...expenseItems, ...rentItems].sort((a, b) => (a.date < b.date ? 1 : -1));
+    return [...expenseItems, ...rentItems].sort((a, b) => {
+      // H16/N7: مقارنة زمنية فعلية (تتعامل مع date و timestamptz)
+      const ta = a.date ? new Date(a.date).getTime() : 0;
+      const tb = b.date ? new Date(b.date).getTime() : 0;
+      return tb - ta;
+    });
   }, [expenseInvoices, rentInvoices]);
 
   const filteredInvoices = useMemo(() => unifiedInvoices.filter((item) => {

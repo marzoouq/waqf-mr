@@ -13,6 +13,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { PDF_MESSAGES } from '@/lib/messages';
 
 
@@ -23,6 +24,14 @@ export function useAccountsViewPage() {
 
   const { fiscalYearId, fiscalYear: selectedFY, isClosed } = useFiscalYear();
   const { data: contracts = [] } = useContractsSafeByFiscalYear(isFyReady(fiscalYearId) ? fiscalYearId : 'all');
+
+  // H15: Realtime — انعكاس فوري لتعديلات الحسابات/التوزيعات/المصروفات/الإيرادات
+  useDashboardRealtime(
+    'accounts-view-realtime',
+    ['accounts', 'distributions', 'income', 'expenses', 'fiscal_years'],
+    true,
+    [['beneficiary-dashboard']],
+  );
 
   const { data: dashData, isLoading: finLoading, isError: finError } = useEndUserDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
@@ -79,8 +88,8 @@ export function useAccountsViewPage() {
     waqfRevenue: fin.waqfRevenue,
     waqfCorpusManual: fin.waqfCorpusManual,
     distributionsAmount: fin.distributionsAmount,
-    adminPercent: dashData?.admin_share_pct ?? 10,
-    waqifPercent: dashData?.waqif_share_pct ?? 5,
+    adminPercent: dashData?.admin_share_pct ?? 0,
+    waqifPercent: dashData?.waqif_share_pct ?? 0,
     isClosed,
     handleRetry, handleExportPdf, navigate,
   };

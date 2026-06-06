@@ -19,6 +19,9 @@ const AccountsViewPage = () => {
     handleRetry, handleExportPdf, navigate,
   } = useAccountsViewPage();
 
+  // H4: تجميع كل حالات التحميل/الخطأ في DashboardLayout واحد
+  if (finLoading) return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+
   if (finError) {
     return (
       <DashboardLayout>
@@ -30,8 +33,6 @@ const AccountsViewPage = () => {
       </DashboardLayout>
     );
   }
-
-  if (finLoading) return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
 
   // H3: تحقّق من ربط المستفيد قبل أي رسالة عن الحساب الختامي
   if (!currentBeneficiary) {
