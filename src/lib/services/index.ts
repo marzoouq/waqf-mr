@@ -8,3 +8,6 @@ export { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp, saveZatca
 export { logAccessEvent } from './accessLogService';
 export type { AccessEventType } from './accessLogService';
 export { checkNewDeviceLogin } from './securityService';
+export { messagingService, MESSAGES_PAGE_SIZE } from './messagingService';
+export { annualReportService } from './annualReportService';
+export type { AggregatedDistributionRow } from './annualReportService';
