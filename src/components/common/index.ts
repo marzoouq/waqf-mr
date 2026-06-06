@@ -40,12 +40,20 @@ export { default as LockedYearBanner } from './finance/LockedYearBanner';
 export { default as FiscalYearStateNotice } from './finance/FiscalYearStateNotice';
 export { default as EstimatedShareBadge } from './finance/EstimatedShareBadge';
 
-// root (cross-cutting / غير مُصنَّفة)
-export { default as ChartBox } from './ChartBox';
-export { default as ChartSkeleton } from './ChartSkeleton';
-export { default as DeferredRender } from './DeferredRender';
-export { default as FeatureGate } from './FeatureGate';
-export { default as OfflineBanner } from './OfflineBanner';
-export { default as PageLoader } from './PageLoader';
-export { default as ViewportRender } from './ViewportRender';
-export { default as VirtualTable } from './VirtualTable';
+// charts
+export { default as ChartBox } from './charts/ChartBox';
+export { default as ChartSkeleton } from './charts/ChartSkeleton';
+
+// perf
+export { default as DeferredRender } from './perf/DeferredRender';
+export { default as ViewportRender } from './perf/ViewportRender';
+
+// access
+export { default as FeatureGate } from './access/FeatureGate';
+
+// feedback (extra)
+export { default as OfflineBanner } from './feedback/OfflineBanner';
+export { default as PageLoader } from './feedback/PageLoader';
+
+// tables (extra)
+export { default as VirtualTable } from './tables/VirtualTable';
