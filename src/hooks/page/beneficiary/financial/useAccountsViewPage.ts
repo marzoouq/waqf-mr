@@ -88,8 +88,8 @@ export function useAccountsViewPage() {
     waqfRevenue: fin.waqfRevenue,
     waqfCorpusManual: fin.waqfCorpusManual,
     distributionsAmount: fin.distributionsAmount,
-    adminPercent: dashData?.admin_share_pct ?? 10,
-    waqifPercent: dashData?.waqif_share_pct ?? 5,
+    adminPercent: dashData?.admin_share_pct ?? 0,
+    waqifPercent: dashData?.waqif_share_pct ?? 0,
     isClosed,
     handleRetry, handleExportPdf, navigate,
   };
