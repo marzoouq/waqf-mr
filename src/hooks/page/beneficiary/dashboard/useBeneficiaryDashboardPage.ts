@@ -18,7 +18,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 export function useBeneficiaryDashboardPage() {
   const queryClient = useQueryClient();
   const handleRetry = useRetryQueries(['beneficiary-dashboard']);
-  const { isVisible } = useBeneficiaryWidgets();
+  const { isVisible, isLoading: widgetsLoading } = useBeneficiaryWidgets();
 
 
   const { user, role, loading: authLoading } = useAuth();
@@ -40,7 +40,8 @@ export function useBeneficiaryDashboardPage() {
   const carryforwardBalance = dashData?.carryforward_balance ?? 0;
 
   const fyReady = isFyReady(fiscalYearId);
-  const isLoading = authLoading || fyLoading || (!fyReady ? false : dashLoading);
+  // N20: انتظر تحميل إعدادات الويدجتس قبل العرض لمنع وميض الأقسام
+  const isLoading = authLoading || fyLoading || widgetsLoading || (!fyReady ? false : dashLoading);
 
 
 
@@ -82,8 +83,8 @@ export function useBeneficiaryDashboardPage() {
       event: '*', schema: 'public', table: 'distributions',
       filter: `beneficiary_id=eq.${beneficiaryId}`,
     }, () => {
+      // H6: ['my-distributions'] يُبطَّل في useMySharePage فقط (مصدره هناك)؛ لا داعي للتبطيل المزدوج هنا
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
-      qcRef.current.invalidateQueries({ queryKey: ['my-distributions'] });
     });
     channel.on('postgres_changes', {
       event: '*', schema: 'public', table: 'accounts',
