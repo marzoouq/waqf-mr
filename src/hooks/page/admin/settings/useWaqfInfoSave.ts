@@ -1,13 +1,13 @@
 /**
  * هوك حفظ بيانات الوقف (شعار + حقول) — مستخرج من WaqfInfoEditDialog.
- * نُقل من hooks/data إلى hooks/page لأنه يحتوي UI state + toasts
- * (راجع mem://conventions/no-toast-in-data-hooks).
+ * استدعاءات Supabase مفصولة في `lib/services/settingsAssetsService`
+ * (قاعدة HooksLayering — لا supabase مباشرة في hooks/page).
  */
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { SAVE_MESSAGES } from '@/lib/messages';
+import { settingsAssetsService } from '@/lib/services/settingsAssetsService';
 
 interface WaqfField {
   key: string;
@@ -28,19 +28,11 @@ export const useWaqfInfoSave = (onSuccess: () => void) => {
     try {
       let logoUrl = currentLogoUrl || '';
       if (logoFile) {
-        const ext = logoFile.name.split('.').pop()?.toLowerCase() || 'png';
-        const path = `logo.${ext}`;
-        const { error: uploadErr } = await supabase.storage
-          .from('waqf-assets')
-          .upload(path, logoFile, { upsert: true });
-        if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from('waqf-assets').getPublicUrl(path);
-        logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+        const ext = settingsAssetsService.pickExt(logoFile.name);
+        logoUrl = await settingsAssetsService.uploadAsset(logoFile, `logo.${ext}`);
       }
 
-      await supabase
-        .from('app_settings')
-        .upsert({ key: 'waqf_logo_url', value: logoUrl, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      await settingsAssetsService.setSetting('waqf_logo_url', logoUrl);
 
       for (const field of fields) {
         const value = (formData[field.key] || '').trim();
@@ -49,10 +41,7 @@ export const useWaqfInfoSave = (onSuccess: () => void) => {
           setSaving(false);
           return;
         }
-        const { error } = await supabase
-          .from('app_settings')
-          .upsert({ key: field.key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-        if (error) throw error;
+        await settingsAssetsService.setSetting(field.key, value);
       }
       await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
       await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
