@@ -34,6 +34,8 @@ graph TD
 
 | من | إلى | مسموح؟ |
 |---|---|---|
+| `main.tsx` | `app/bootstrap/**` فقط | ✅ (P4) |
+| `app/bootstrap/**` | `hooks/**` أو `pages/**` | ❌ (side effects only) |
 | `pages/**` | `hooks/page/**` أو `hooks/application/**` | ✅ |
 | `pages/**` | `hooks/data/**` | ❌ Critical (CoreModV7) |
 | `pages/**` | `@/integrations/supabase/client` | ❌ Critical |
