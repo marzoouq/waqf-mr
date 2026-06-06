@@ -110,7 +110,8 @@ for (const abs of walk(ROOT)) {
   }
 
   // Container vs Presentational sizing
-  const loc = src.split('\n').length;
+  // عدّ الأسطر الحقيقية (نتجاهل سطر EOF النهائي إذا كان الملف ينتهي بـ \n)
+  const loc = src.split('\n').length - (src.endsWith('\n') ? 1 : 0);
   if (rel.startsWith('components/') && rel.endsWith('.tsx')) {
     if (loc > 300) add('Critical', 'ComponentSize', rel, loc, `component ${loc} lines > 300 (hard cap)`);
     else if (loc > 250) add('Warning', 'ComponentSize', rel, loc, `component ${loc} lines > 250`);
