@@ -1,64 +1,76 @@
-# خطة محققة بصرامة — Pre-commit + HIBP
 
-## التحقق من الواقع الحالي
+# تحقق وإصلاح فحص HIBP في التسجيل/تسجيل الدخول
 
-| العنصر | الحالة الفعلية في الريبو |
-|---|---|
-| `.gitignore` يحجب `.env*` (مع استثناء `.env.example`) | موجود (أسطر 26-29) ✅ |
-| `.github/workflows/ci.yml` يحجب `.env` المتعقّب | موجود (أسطر 44-56) ✅ |
-| Gitleaks في CI | موجود (سطر 58-61) ✅ |
-| `.husky/pre-push` (بوابة audit) | موجود — يشغّل `npm run audit` + `audit:gate` فقط، **لا يفحص .env أو الأسرار** ❌ |
-| `scripts/install-git-hooks.sh` | موجود — يثبّت pre-push فقط، **لا pre-commit** ❌ |
-| `.husky/pre-commit` | **غير موجود** ❌ |
-| HIBP على المصادقة | غير مفعّل ❌ |
+## النتائج الحرجة من المراجعة
 
-النقاط الثلاث المطلوبة كلها لها فجوات حقيقية → الخطة صحيحة وضرورية.
+عند فحص الكود الفعلي وجدت **فجوتين** تجعلان طلب "ظهور رسالة واضحة للمستخدم عند رفض HIBP" غير قابل للتحقق حالياً:
 
-## التغييرات
+### الفجوة 1 — `guard-signup` يتجاوز HIBP فعلياً
+`supabase/functions/guard-signup/index.ts` يستخدم `supabaseAdmin.auth.admin.createUser(...)` (سطر 111). **الـ Admin API يتجاوز فحوصات GoTrue للمستخدم العادي بما فيها HIBP**. أي حتى مع `password_hibp_enabled: true` المُفعَّل في المصادقة، التسجيل عبر هذا الـ endpoint **لن يُرفض** لكلمة مرور مُسرَّبة.
 
-### 1) `.husky/pre-commit` (ملف جديد)
-يمنع `git commit` إذا:
-- staged يحوي `.env` أو `.env.*` (ما عدا `.env.example`) عبر `git diff --cached --name-only --diff-filter=ACM`.
-- diff المُجهَّز يحوي أنماط أسرار: `SUPABASE_SERVICE_ROLE_KEY`، JWT بدور `service_role` (`eyJ...` مع decode سريع للـ payload عبر grep)، `sk_live_`، `sk_test_`، `ghp_`، `gho_`، `xox[bpars]-`، `AKIA[0-9A-Z]{16}`، `-----BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY-----`.
-- يعرض رسائل عربية واضحة + أمر العلاج (`git rm --cached <file>` أو `git restore --staged`).
-- مخرج طوارئ: `git commit --no-verify`.
-
-### 2) `.husky/pre-push` (تحديث)
-إضافة فحص أولي **قبل** بوابة audit الحالية:
-```bash
-TRACKED_ENV=$(git ls-files | grep -E '^\.env(\.|$)' | grep -v '\.example$' || true)
-[ -n "$TRACKED_ENV" ] && { echo "✗ .env متعقّب: $TRACKED_ENV"; exit 1; }
+### الفجوة 2 — أي خطأ من `createUser` يتحوّل لرسالة عامة
+سطر 117-123 في `guard-signup`:
+```ts
+if (createError) {
+  return new Response(JSON.stringify({ error: "تعذر إتمام التسجيل" }), { status: 400, ... });
+}
 ```
-يطابق سلوك CI تماماً → فشل محلي مبكر بدل انتظار CI.
+حتى لو وصلتنا رسالة HIBP من GoTrue (في `signInWithPassword` لتغيير المرور مثلاً)، فالمستخدم يرى نصاً عاماً لا يميّز سبب الرفض.
 
-### 3) `scripts/install-git-hooks.sh` (تحديث)
-نسخ `pre-commit` إلى `.git/hooks/pre-commit` (بنفس نمط pre-push الحالي) + `chmod +x`.
+### حالة `safeErrorMessage` لتسجيل الدخول/إعادة التعيين
+- يلتقط `password + weak` ويعيد: «كلمة المرور ضعيفة أو غير متطابقة…»
+- لا يلتقط مصطلحات HIBP الفعلية من GoTrue: `pwned`, `has been found in a data breach`, `compromised`, `leaked` → رسالة افتراضية غامضة.
 
-### 4) إعدادات المصادقة — تفعيل HIBP
-استدعاء `supabase--configure_auth` بـ:
-- `password_hibp_enabled: true` ← المطلوب
-- `disable_signup: false` (الإبقاء على الحالي)
-- `auto_confirm_email: false` (الإبقاء — التحقق إلزامي حسب قواعد المشروع)
-- `external_anonymous_users_enabled: false` (الإبقاء)
+## الخطة
 
-### 5) توثيق
-إضافة قسم قصير في `CONTRIBUTING.md` يشرح:
-- تثبيت hooks محلياً: `bash scripts/install-git-hooks.sh`
-- ما يحجبه pre-commit/pre-push
-- مخرج الطوارئ `--no-verify` ومتى يُستخدم
+### 1) فحص HIBP داخل `guard-signup` (مصدر الحقيقة)
+بما أن Admin API لا يطبّقه، نضيف فحصاً صريحاً قبل `createUser`:
+- حساب SHA-1 لكلمة المرور (Web Crypto متاحة في Deno).
+- استدعاء `https://api.pwnedpasswords.com/range/{first5}` مع header `Add-Padding: true`.
+- إن وُجد suffix في النتيجة → رد `400` بـ:
+  ```json
+  { "error": "كلمة المرور هذه ظهرت في تسريبات بيانات معروفة. يرجى اختيار كلمة مرور مختلفة." }
+  ```
+- timeout قصير (3 ثوانٍ) + fail-open (نسمح بالمرور إن فشل HIBP خدمياً) حتى لا نوقف التسجيل عند انقطاع API الخارجي.
 
-## ملفات بدون مساس
-- `.env`, `supabase/config.toml`, `src/integrations/supabase/{client,types}.ts` (محمية)
-- `.github/workflows/ci.yml` (الحماية موجودة بالفعل ومطابقة لما سنضيفه محلياً)
-- أي كود UI أو منطق عمل
+### 2) تمرير أخطاء `createUser` المعروفة بدل ابتلاعها
+في `guard-signup`، نُبقي رسالة عامة افتراضياً لكن نُميّز الحالات الآمنة للإبلاغ:
+- `email already registered` → «هذا البريد الإلكتروني مسجل بالفعل»
+- `weak password / pwned / breach` → نفس رسالة HIBP أعلاه
+- خلاف ذلك → الرسالة العامة الحالية (بدون كشف تفاصيل).
 
-## التحقق بعد التنفيذ
-1. `bash scripts/install-git-hooks.sh` → التحقق من وجود `.git/hooks/pre-commit`.
-2. اختبار سلبي: `git add .env.test && git commit -m x` → يجب أن يُرفض.
-3. اختبار إيجابي: commit عادي بدون أسرار → يمر.
-4. التحقق من HIBP عبر `supabase--configure_auth` (يعيد الحالة الجديدة).
+### 3) توسيع `safeErrorMessage.ts` (لمسار تغيير/إعادة تعيين المرور)
+يغطي مسارات `useChangePassword` و`useResetPassword` التي تستدعي `supabase.auth.updateUser` مباشرة (حيث HIBP فعّال أصلاً):
+```ts
+if (msg.includes('pwned') || msg.includes('breach') || msg.includes('compromised') || msg.includes('leaked')) {
+  return 'كلمة المرور هذه ظهرت في تسريبات بيانات معروفة. يرجى اختيار كلمة مرور مختلفة.';
+}
+```
+يُضاف قبل فرع `password + weak` ليطغى عليه.
+
+### 4) اختبار يدوي في المعاينة عبر المتصفح
+بعد التطبيق:
+- **تسجيل جديد** بكلمة معروفة التسريب (`Password123`) → توقع رفض + رسالة HIBP العربية أسفل الحقل/في التنبيه.
+- **تسجيل جديد** بكلمة قوية فريدة → توقع نجاح + رسالة «يرجى تأكيد بريدك الإلكتروني…».
+- **تغيير كلمة المرور** لمستخدم موجود إلى `Password123` (إن أمكن دون كسر حساب الناظر) → توقع رفض من GoTrue مباشرة + ترجمة عربية واضحة.
+- **تسجيل دخول** عادي بحساب موجود → غير متأثر (HIBP لا يُفعَّل عند login).
+
+### 5) اختبارات وحدة قصيرة
+- `guard-signup/index.test.ts`: حالة pwned تُعيد 400 ورسالة HIBP.
+- `safeErrorMessage.test.ts` (إن وُجد، وإلا نضيف): إدخال يحوي `pwned` يعيد الرسالة الجديدة.
+
+## ملفات ستتغيّر
+- `supabase/functions/guard-signup/index.ts` (إضافة HIBP + تحسين أخطاء createUser)
+- `src/utils/format/safeErrorMessage.ts` (فرع جديد)
+- `supabase/functions/guard-signup/index.test.ts` (حالة اختبار جديدة)
+- ملف اختبار لـ `safeErrorMessage` (إن لم يكن موجوداً)
+
+## ملفات لن تُمسّ
+- `AuthContext.tsx`, `LoginForm.tsx`, `SignupForm.tsx` (المنطق سليم، الرسائل تأتي من المصدر)
+- `supabase/config.toml`, `client.ts`, `types.ts`, `.env`
+- إعداد HIBP في لوحة المصادقة (مُفعَّل بالفعل ويبقى — يحمي مسار `updateUser`)
 
 ## الخطر والتكلفة
-- لا تأثير على المستخدمين النهائيين (HIBP يفحص فقط كلمات مرور جديدة/مغيَّرة عند التسجيل).
-- لا تأثير على البناء أو CI (الفحوصات محلية وقت commit/push).
-- المطورون قد يحتاجون تشغيل `scripts/install-git-hooks.sh` مرة واحدة → يُذكر في CONTRIBUTING.
+- استدعاء HIBP خارجي يضيف ~100-300ms على التسجيل (مقبول).
+- Fail-open يمنع تعطّل التسجيل عند انقطاع HIBP لكن يُسجَّل تحذير في logs.
+- لا تأثير على المستخدمين الحاليين (الفحص فقط عند إنشاء/تغيير كلمة مرور).
