@@ -1,53 +1,41 @@
 ## الهدف
-تفعيل عرض رسائل أخطاء Zod حقلاً بحقل داخل `IncomeFormDialog` و`ExpenseFormDialog` مع إبراز بصري للحقول غير الصالحة، بدلاً من الاكتفاء برسالة toast واحدة عند الإرسال.
+إنشاء تقرير التدقيق `audit/codebase-audit-2026-06-05.md` بعد التحقق اليدوي من كل البنود، مع إزالة البنود الخاطئة (false positives) وتوثيق النتائج المؤكدة فقط.
 
-## التصميم
+## البنود التي ثبت خطأها وتم حذفها
+- **P0.1** — `Auth.tsx` لا يستورد من `hooks/data/*` (يستخدم `useAuthPage` من `hooks/application/` بالفعل).
+- **P0.2** — `BeneficiaryDashboard.tsx` لا يستورد `useBeneficiaryWidgets()` مباشرة.
+- **P3.11** — `src/services/` غير موجود أصلاً (السكربت عدّد دليل غير موجود).
+- **P3.12** — `src/hooks/application/README.md` موجود فعلاً.
 
-### 1. توسيع وحدات التحقق (utils نقية)
-- `src/utils/financial/incomeFormValidation.ts`:
-  - تصدير `IncomeFieldErrors = Partial<Record<keyof IncomeFormInput, string>>`.
-  - إضافة `getIncomeFieldErrors(input): IncomeFieldErrors` يستخدم `safeParse` ويبني خريطة `field → message` من `error.issues[*].path[0]`.
-  - الإبقاء على `validateIncomeForm` كما هو لتوافق الاستدعاءات الحالية.
-- نفس التوسيع في `expenseFormValidation.ts` (`ExpenseFieldErrors`, `getExpenseFieldErrors`).
+## البنود المؤكدة (صحيحة)
 
-### 2. تحديث هوكات الصفحات
-- `useIncomePage` و`useExpensesPage`:
-  - إضافة `errors` (state) من نوع خريطة الحقول.
-  - إضافة `setFieldTouched(field)` يحسب الخطأ لذلك الحقل عند الـ blur.
-  - في `handleSubmit`: إذا فشل التحقق، عيّن `errors` بكامل الخريطة (لإبراز كل الحقول) واعرض toast بأول رسالة (سلوك حالي محفوظ).
-  - تصفير `errors` ضمن `resetForm` وعند تغيير `formData[field]`.
-  - تصدير `errors` و`onFieldBlur` ضمن قيمة الهوك.
+### P1 — متوسطة
+1. **حجم Hooks** — 4 hooks قريبة من حد 200 سطر:
+   - `useAnnualReportPage.ts` (200)
+   - `useExpensesPage.ts` (194)
+   - `useIncomePage.ts` (189)
+   - `useCreateInvoiceForm.ts` (180)
+2. **حجم Components** — 5 مكونات > 180 سطر (193، 193، 188، 188، 188).
+3. **components/common/** — 8 ملفات جذرية مختلطة مع 4 مجلدات فرعية، تحتاج إعادة تصنيف.
+4. **lib/contracts/invoiceSync.ts** — لا يوجد ملف README في المجلد.
 
-### 3. تحديث النماذج (UI فقط)
-- `IncomeFormDialog` و`ExpenseFormDialog`:
-  - إضافة props: `errors`, `onFieldBlur`.
-  - لكل `<Input>` / `<NativeSelect>`:
-    - `aria-invalid={!!errors.field}`, `aria-describedby="<field>-error"`.
-    - `className` يضيف `border-destructive focus-visible:ring-destructive` عند الخطأ (CSS tokens فقط — لا hex).
-    - `onBlur={() => onFieldBlur('field')}`.
-  - أسفل كل حقل: `<p id="<field>-error" role="alert" className="text-sm text-destructive">{errors.field}</p>` عند وجود خطأ.
+### P2 — مفيدة
+5. **ExpenseFormDialog** — تم إصلاح تكرار `<Input>` في الجلسة السابقة.
+6. **3 مكونات** تحتوي على 6 حالات `useState`/`useReducer` — يحتاجون إلى استخراج الحالة إلى hooks صفحات/تطبيقات.
 
-### 4. اختبارات
-- توسيع `incomeFormValidation.test.ts` و`expenseFormValidation.test.ts`:
-  - `getIncomeFieldErrors` يُرجع خريطة فارغة عند النجاح.
-  - يُرجع `source`, `amount`, `date` عند بيانات فاسدة متعددة.
-  - يحترم حدود الطول للملاحظات/الوصف.
+### P3 — اختيارية
+7. **scripts/codemod-common-barrel.mjs** — سكربت قديم يجب أرشفته.
+8. **conventions-deep-violations.csv** — 5 مخالفات Info فقط (ألوان Hex في Canvas/SVG + حجم hook)، لا Critical ولا Warning.
+9. **سكربت العد** — يبلغ `useAnnualReportPage.ts` 201 سطر بينما الملف الفعلي 200 سطر (خلل في منطق العد).
 
-### 5. التحقق
-- `tsc --noEmit` نظيف.
-- `vitest run` ينجح بما فيه تحديثات الاختبارات.
-- مراجعة بصرية في `/dashboard/income` و`/dashboard/expenses`: ترك حقل فارغ ثم Tab يُظهر إطاراً أحمر ورسالة عربية، والإرسال يُبرز كل الحقول الناقصة دفعة واحدة.
+## الحالة العامة المؤكدة
+- Conventions Deep: 0 Critical · 0 Warning · 5 Info
+- Hooks Layout (263 ملف): 0 مخالفة
+- UI Permissions (449 ملف): 0 GAP
+- Pages/Components مع `supabase` مباشرة: 0
+- `console.*` في الإنتاج: 0
+- `sonner` في `utils/`: 0
+- Barrel→Barrel: 0
 
-## القيود
-- لا تغيير في DB/RLS/Edge Functions/منطق الأعمال.
-- لا hex codes — استخدام `text-destructive`, `border-destructive` فقط.
-- `utils/` تبقى نقية (لا sonner لا supabase).
-- لا تجاوز سقف 200 سطر للنماذج.
-
-## ملفات ستتغير
-- تعديل: `src/utils/financial/incomeFormValidation.ts` (+ `.test.ts`)
-- تعديل: `src/utils/financial/expenseFormValidation.ts` (+ `.test.ts`)
-- تعديل: `src/hooks/page/admin/financial/useIncomePage.ts`
-- تعديل: `src/hooks/page/admin/financial/useExpensesPage.ts`
-- تعديل: `src/components/income/IncomeFormDialog.tsx`
-- تعديل: `src/components/expenses/ExpenseFormDialog.tsx`
+## الخطوة الوحيدة
+كتابة الملف `audit/codebase-audit-2026-06-05.md` بالصيغة المحدّثة التي تعكس البنود الصحيحة فقط مع شرح سبب حذف البنود الخاطئة.
