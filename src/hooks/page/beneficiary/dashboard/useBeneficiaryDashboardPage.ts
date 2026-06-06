@@ -50,7 +50,8 @@ export function useBeneficiaryDashboardPage() {
     if (isClosed || !fiscalYear) return;
     const id = setInterval(() => setNow(Date.now()), 60_000);
     return () => clearInterval(id);
-  }, [isClosed, fiscalYear]);
+    // H5: ربط الـ deps بـ id فقط لتجنّب إعادة إنشاء المؤقّت عند كل تحديث لمرجع الكائن
+  }, [isClosed, fiscalYear?.id]);
 
   const fyProgress = useMemo(() => {
     if (!fiscalYear) return { percent: 0, daysLeft: 0, isClosed: false, notStarted: false };
