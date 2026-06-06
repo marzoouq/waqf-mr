@@ -1,85 +1,91 @@
-# إكمال باقي بنود لوحة المستفيد (الملاحظات + المتبقي من المتوسطة)
+# إكمال خطة لوحة المستفيد + تدقيق الربط الشامل (مُصحَّح)
 
-نُفّذ سابقاً: المجموعة الحرجة (4 بنود) + معظم المتوسطة (9 بنود: H5, H12, H14, H15, H16, H17, H25, N2, N6, N7).
+## نتائج الفحص قبل التخطيط
 
-**المتبقي**: 5 بنود متوسطة (H4 مكتمل جزئياً، H9, H11, H20, N4, N8) + 16 ملاحظة 🟡.
-
----
-
-## المرحلة A — بنود متوسطة متبقية
-
-### H9 — تكرار `useMaxAdvanceAmount`
-التحقق: TanStack Query يُشارك الكاش تلقائياً عند تطابق queryKey. سأفتح `useMaxAdvanceAmount` وأتأكد من ثبات queryKey؛ إذا ثابت، أوثّق "محلول بالتصميم". وإلا أُضيف queryKey مستقر.
-
-### H11 — `contracts: []` في `useMySharePage`
-حذف الحقل غير المستخدم (lazy fetch موجود عبر `fetchContracts`) لتنظيف API الـ hook.
-
-### H20 — اتساق مصدر بيانات `CarryforwardHistoryPage`
-استبدال `useMyBeneficiaryFinance` بمصدر موحّد من `useEndUserDashboardData` (`my_carryforwards`, `my_advances`, `paid_advances_total`, `carryforward_balance`) لمطابقة باقي اللوحة. fallback: توثيق سبب الاختلاف إن كان مقصوداً.
-
-### N4 — تحقق queryKey مشترك لـ `useNotifications`
-قراءة `useNotifications` للتأكد من ثبات queryKey بين Dashboard/Sidebar/BottomNav. توثيق في تعليق.
-
-### N8 — Tooltip بطاقة "العقارات بدون وحدات"
-تصحيح النص في المكوّن المعني (`PropertiesSummaryCards` أو ما يماثله) ليطابق دلالة "عقارات بلا وحدات مسجّلة" بدل "غير مؤجَّرة".
+| ادّعاء سابق | الواقع المُتحقَّق |
+|---|---|
+| `BeneficiaryWelcomeCard.tsx` يجب إنشاؤه (H7) | ✅ **موجود مسبقاً** (43 سطر) — يبقى التحقّق من استخدامه في `BeneficiaryDashboard.tsx` فقط |
+| `RecentActivityCard.tsx` (N13) | ❌ غير موجود؛ الاسم الفعلي **`BeneficiaryRecentDistributions.tsx`** |
+| `useResetPageOnFilterChange` (N17) | ❌ **غير موجود** في المشروع؛ سأُبقي `useEffect+setCurrentPage` مع تعليق توثيقي بدل إنشاء hook جديد خارج النطاق |
+| `my-distributions` invalidation (H6) | ✅ مُؤكَّد في `useBeneficiaryDashboardPage.ts:86` — قابل للحذف |
 
 ---
 
-## المرحلة B — الملاحظات 🟡 (16 بند)
+## المرحلة 1 — الـ 10 ملاحظات 🟡 (مع التصحيحات)
 
-### تنظيفات منطقية مؤثّرة
-- **H6** — حذف إبطال `my-distributions` غير اللازم من dashboard realtime.
-- **H7** — استخراج كتلة الترحيب اليدوية (سطور 44-63 في BeneficiaryDashboard) إلى `BeneficiaryWelcomeCard` لتجنّب التكرار.
-- **N9** — `useDisclosurePage.handleDownloadPDF`: منع التصدير عند `!currentBeneficiary` بدل إنتاج PDF بحقل فارغ.
-- **N10** — `recentNotifications` vs `unreadCount`: إصلاح عدم الاتساق — إما عرض شارة عدد غير المقروء من الـ slice، أو تمرير "هناك المزيد".
-- **N12** — إضافة `useDashboardRealtime` لـ `useCarryforwardData` (جدول `advance_carryforward`, `advance_requests`).
-- **N15** — `NotificationsPage.markAllAsRead`: إضافة `onError` toast.
-- **N16** — `useFinancialReportsPage`: fallback لـ `monthlyData` من income/expenses المحلية عند فراغ RPC.
-- **N17** — استبدال useEffect+setCurrentPage في `ContractsViewPage` بـ `useResetPageOnFilterChange` (أو إبقاء eslint-disable مع تعليق توثيقي).
-- **N18** — `BeneficiaryStatsRow`: تبديل `[...arr].sort(...).find(...)` بـ `reduce` O(n).
-- **N20** — تمرير `widgetsLoading` للوحة لمنع وميض الأقسام قبل تحميل الإعدادات.
+| # | البند | الإجراء | الملف الفعلي |
+|---|---|---|---|
+| H6 | حذف `invalidateQueries(['my-distributions'])` من interval | تنظيف | `useBeneficiaryDashboardPage.ts` |
+| H7 | التأكد أن `BeneficiaryWelcomeCard` مستخدَم وأي كتلة ترحيب مكرّرة محذوفة | فحص + تعديل إن لزم | `BeneficiaryDashboard.tsx` |
+| H8 | إعادة تسمية `isClosed` → `isYearClosed` إن وُجد لبس | إعادة تسمية | `useBeneficiaryDashboardPage.ts` |
+| N10 | تمرير `unreadCount` الكلي للـ badge بدل اشتقاقه من slice | تعديل | `useBeneficiaryDashboardPage.ts` + استخدامه |
+| N11 | `aria-label` لأي أزرار أيقونية في صف الإحصاءات | a11y | `BeneficiaryStatsRow.tsx` |
+| N13 | تأكيد Empty State في `BeneficiaryRecentDistributions.tsx` (بدل الاسم الخاطئ سابقاً) | فحص + إضافة EmptyState إن نقص | `BeneficiaryRecentDistributions.tsx` |
+| N16 | fallback لـ `monthlyData` من income/expenses المحلية | تعديل | `useFinancialReportsPage.ts` |
+| N17 | إبقاء `useEffect+setCurrentPage` مع تعليق `// reset page on filter change`  + `eslint-disable-next-line` موثَّق (لا hook جديد) | توثيق | `useContractsViewPage.ts` |
+| N19 | فحص ثبات `key` في خرائط الإشعارات؛ تصحيح إن لزم | فحص + تعديل | `NotificationsPage.tsx` |
+| N20 | تمرير `widgetsLoading` لمنع الوميض | تعديل | `BeneficiaryDashboard.tsx` |
 
-### ملاحظات قبول/توثيق فقط (لا تغيير كود)
-- **H8** — دلالي بحت، بلا أثر مرئي.
-- **H19** — لا مشكلة فعلية.
-- **H22** — مسار `/waqif` مطابق للـ redirect.
-- **H23, H24, H26, H27, H28, H29, H30** — إما توثيق أو تأجيل لإعادة هيكلة أوسع.
-- **N11, N13, N14, N19** — لا تغيير مطلوب.
-
-سأكتفي بتنفيذ ما له أثر فعلي (10 من 16) وأُلحق ملاحظة موجزة في تقرير الفحص للباقي.
+أي بند يثبت أنه "محلول بالتصميم" بعد القراءة → يوثَّق في التقرير بدل التعديل.
 
 ---
 
-## المرحلة C — التحقق وتوثيق
+## المرحلة 2 — مصفوفة ربط Guards/Hooks/States لـ 21 صفحة
 
-1. تشغيل `bunx vitest run` كاملاً.
-2. تحديث `audit/conventions-deep-report.md`:
-   - جدول الحالة النهائية لكل البنود H1–H30 و N1–N20.
-   - وسم البنود المنفّذة/المؤجّلة/المرفوضة.
+أمشي على كل صفحة في `src/pages/beneficiary/` وأملأ جدول 21×9:
+
+| العمود | المعيار |
+|---|---|
+| Guard | `RequirePublishedYears` بترتيب صحيح حول DashboardLayout |
+| Page Hook | الصفحة logic-less؛ State من hook في `hooks/page/beneficiary/...` |
+| Loading | `<DashboardLayout loading>` أو skeleton موحّد |
+| Error | فرع `error` يستخدم `EmptyState` أو رسالة موحّدة |
+| Empty | فرع بيانات فارغة بـ `EmptyState` |
+| Unlinked | فحص `!currentBeneficiary` قبل الحساب |
+| Realtime | `useDashboardRealtime` بالجداول الصحيحة |
+| Buttons | كل زر مربوط بـ handler من hook (لا inline supabase) |
+| Tabs | كل tab state من hook (لا `useState` يتيم في الصفحة) |
+
+**الصفحات المغطّاة (21)**:
+AccountsViewPage · AnnualReportViewPage · BeneficiaryDashboard · BeneficiaryMessagesPage · BeneficiarySettingsPage · BylawsViewPage · CarryforwardHistoryPage · ContractsViewPage · DisclosurePage · ExpensesViewPage · FinancialReportsPage · InvoicesViewPage · MySharePage · NotificationsPage · PropertiesViewPage · SupportPage · SupportPageGuard (+4 صفحات auxiliary).
+
+**المخرجات**:
+1. `audit/beneficiary-wiring-matrix.md` — جدول كامل بالحالة (✅/⚠️/❌) لكل خانة + ملاحظة موجزة.
+2. إصلاحات نقطية لكل صفحة تخالف المعيار:
+   - توحيد فروع Loading/Error/Empty.
+   - نقل أي `useState`/handler متبقّي إلى Page Hook.
+   - `aria-label` و `disabled` للأزرار حسب الحالة.
+   - متوقّع ≤ 6 صفحات تحتاج تعديلاً (الأرجح: BeneficiaryMessagesPage, SupportPage, BylawsViewPage, AnnualReportViewPage).
 
 ---
 
-## الملفات المتوقّع تعديلها (≈ 12)
+## المرحلة 3 — التحقق
+
+1. `bunx vitest run` — يجب نجاح كل الاختبارات.
+2. لقطة سريعة عبر preview لـ `/beneficiary/*` للتأكد من اختفاء الوميض.
+3. تحديث `audit/beneficiary-dashboard-final.md` بقسم "الجولة الختامية".
+
+---
+
+## الملفات المتوقّع تعديلها
 
 ```
-src/hooks/page/beneficiary/financial/useMySharePage.ts          (H11)
-src/hooks/page/beneficiary/financial/useCarryforwardData.ts     (H20, N12)
-src/hooks/page/beneficiary/financial/useDisclosurePage.ts       (N9)
-src/hooks/page/beneficiary/financial/useFinancialReportsPage.ts (N16)
-src/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardPage.ts (H6, N10)
-src/hooks/page/beneficiary/notifications/useNotificationsPage.ts (N15)
-src/hooks/page/beneficiary/views/useContractsViewPage.ts        (N17)
-src/pages/beneficiary/BeneficiaryDashboard.tsx                  (H7, N20)
-src/components/beneficiary/dashboard/BeneficiaryWelcomeCard.tsx (H7)
-src/components/beneficiary/dashboard/BeneficiaryStatsRow.tsx    (N18)
-src/components/properties/PropertiesSummaryCards.tsx*           (N8)
-audit/conventions-deep-report.md                                (تقرير ختامي)
+src/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardPage.ts   (H6, H8, N10, N20)
+src/hooks/page/beneficiary/financial/useFinancialReportsPage.ts       (N16)
+src/hooks/page/beneficiary/views/useContractsViewPage.ts              (N17 توثيق)
+src/pages/beneficiary/BeneficiaryDashboard.tsx                        (H7, N20)
+src/pages/beneficiary/NotificationsPage.tsx                           (N19)
+src/components/beneficiary/dashboard/BeneficiaryStatsRow.tsx          (N11)
+src/components/beneficiary/dashboard/BeneficiaryRecentDistributions.tsx (N13)
++ 2-6 صفحات beneficiary حسب نتيجة مصفوفة المرحلة 2
+audit/beneficiary-wiring-matrix.md                                    (جديد)
+audit/beneficiary-dashboard-final.md                                  (تحديث)
 ```
-*المسار التقريبي — سأتحقّق قبل التعديل.
 
 ## خارج النطاق
 
-- البنود الـ 6 المُصنّفة "ملاحظة بلا أثر" — توثيق فقط في التقرير الختامي.
-- H4 المكتمل سابقاً — لا تغيير إضافي.
+- إنشاء hook عام `useResetPageOnFilterChange` (refactor أوسع — توثيق فقط).
+- بنود H22–H30 الموثّقة سابقاً.
+- إعادة هيكلة Layout كبرى أو تغييرات business logic مالية.
 
-هل أُكمل التنفيذ الآن؟
+هل أُكمل التنفيذ؟
