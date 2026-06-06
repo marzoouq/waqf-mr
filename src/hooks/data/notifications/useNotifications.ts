@@ -6,7 +6,7 @@ import type { Notification } from '@/types';
 import { logger } from '@/lib/logger';
 import { useNotificationActions } from './useNotificationActions';
 import { useNotificationSettings } from '@/hooks/data/settings/notifications/useNotificationSettings';
-import { useNotificationVisibilityPrefs } from './useNotificationVisibilityPrefs';
+import { useNotificationVisibilityPrefs } from '@/hooks/ui/useNotificationVisibilityPrefs';
 import { shouldHideForBeneficiary } from '@/lib/notifications/beneficiaryNotificationVisibility';
 
 // إعادة تصدير للتوافق
