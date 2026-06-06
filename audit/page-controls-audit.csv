@@ -50,15 +50,15 @@ src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,50,
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,51,Tab,"الأخطاء",tabs-radix,"Tabs>TabsList>Headset",OK
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,52,Tab,"الإحصائيات",tabs-radix,"TabsList>Headset>Bug",OK
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,32,Button,"تذكرة جديدة",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,69,Button,"تصدير",onClick,"",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,74,Button,"",onClick,"Download",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,101,Button,"",onClick,"WebVitalsPanel>Card>CardHeader",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,70,Button,"تصدير",onClick,"",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,75,Button,"",onClick,"Download",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,102,Button,"",onClick,"WebVitalsPanel>Card>CardHeader",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,72,Tab,"الفواتير",tabs-radix,"ZatcaHealthPanel>Tabs>TabsList",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,73,Tab,"الشهادات",tabs-radix,"Tabs>TabsList>FileText",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,74,Tab,"سلسلة التوقيع",tabs-radix,"TabsList>FileText>ShieldCheck",OK
-src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,24,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
-src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,39,Button,"إعادة تحميل",onClick,"RefreshCw>DashboardSkeleton>AlertCircle",OK
-src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,77,Button,"الإفصاح السنوي",onClick,"AccountsViewMyShare>Card>CardContent",OK
+src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,28,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
+src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,43,Button,"إعادة تحميل",onClick,"RefreshCw>DashboardSkeleton>AlertCircle",OK
+src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,94,Button,"الإفصاح السنوي",onClick,"AccountsViewMyShare>Card>CardContent",OK
 src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,113,Tab,"حالة العقارات",tabs-radix,"IncomeComparisonChart>Tabs>TabsList",OK
 src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,116,Tab,"الإنجازات",tabs-radix,"Tabs>TabsList>Building2",OK
 src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,119,Tab,"التحديات",tabs-radix,"TabsList>Building2>Trophy",OK
