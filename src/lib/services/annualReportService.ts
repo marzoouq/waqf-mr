@@ -82,4 +82,25 @@ export const annualReportService = {
     if (error) throw error;
     return data;
   },
+
+  // ── بيانات التقرير السنوي المُجمَّع ──
+  /** قراءة آخر 500 توزيع مدفوع لسنة مالية محددة (مصدر تفاصيل التقرير المُجمَّع). */
+  async listAggregatedDistributions(fiscalYearId: string): Promise<AggregatedDistributionRow[]> {
+    const { data, error } = await supabase
+      .from('distributions')
+      .select('date, amount, status, beneficiary:beneficiaries(name)')
+      .eq('fiscal_year_id', fiscalYearId)
+      .eq('status', 'paid')
+      .order('date', { ascending: false })
+      .limit(500);
+    if (error) throw error;
+    return (data ?? []) as unknown as AggregatedDistributionRow[];
+  },
 };
+
+export interface AggregatedDistributionRow {
+  date: string;
+  amount: number;
+  status: string;
+  beneficiary: { name: string } | null;
+}
