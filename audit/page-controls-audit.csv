@@ -56,9 +56,9 @@ src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,72,Tab,"الفواتير",tabs-radix,"ZatcaHealthPanel>Tabs>TabsList",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,73,Tab,"الشهادات",tabs-radix,"Tabs>TabsList>FileText",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,74,Tab,"سلسلة التوقيع",tabs-radix,"TabsList>FileText>ShieldCheck",OK
-src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,28,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
-src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,43,Button,"إعادة تحميل",onClick,"RefreshCw>DashboardSkeleton>AlertCircle",OK
-src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,94,Button,"الإفصاح السنوي",onClick,"AccountsViewMyShare>Card>CardContent",OK
+src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,31,Button,"إعادة المحاولة",onClick,"DashboardLayout>DashboardSkeleton>AlertCircle",OK
+src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,49,Button,"إعادة تحميل",onClick,"RefreshCw>UnlinkedAccountNotice>AlertCircle",OK
+src/pages/beneficiary/AccountsViewPage.tsx,,/beneficiary/accounts,ALL_NON_ACCOUNTANT,97,Button,"الإفصاح السنوي",onClick,"AccountsViewMyShare>Card>CardContent",OK
 src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,113,Tab,"حالة العقارات",tabs-radix,"IncomeComparisonChart>Tabs>TabsList",OK
 src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,116,Tab,"الإنجازات",tabs-radix,"Tabs>TabsList>Building2",OK
 src/pages/beneficiary/AnnualReportViewPage.tsx,,/beneficiary/annual-report,ALL_NON_ACCOUNTANT,119,Tab,"التحديات",tabs-radix,"TabsList>Building2>Trophy",OK
@@ -71,11 +71,11 @@ src/pages/beneficiary/BeneficiaryMessagesPage.tsx,,/beneficiary/messages,BENEFIC
 src/pages/beneficiary/BeneficiaryMessagesPage.tsx,,/beneficiary/messages,BENEFICIARY_ROLES,60,Button,"",onClick,"TableSkeleton>PageHeaderCard>MessageSquare",OK
 src/pages/beneficiary/BylawsViewPage.tsx,,/beneficiary/bylaws,ALL_NON_ACCOUNTANT,27,Button,"إعادة المحاولة",onClick,"DashboardLayout>AlertCircle",OK
 src/pages/beneficiary/CarryforwardHistoryPage.tsx,,/beneficiary/carryforward,BENEFICIARY_ROLES,41,Button,"إعادة المحاولة",onClick,"DashboardLayout>DashboardSkeleton>AlertTriangle",OK
-src/pages/beneficiary/CarryforwardHistoryPage.tsx,,/beneficiary/carryforward,BENEFICIARY_ROLES,70,Button,"رجوع",onClick,"AlertTriangle>RequirePublishedYears>PageHeaderCard",OK
+src/pages/beneficiary/CarryforwardHistoryPage.tsx,,/beneficiary/carryforward,BENEFICIARY_ROLES,71,Button,"رجوع",onClick,"AlertTriangle>RequirePublishedYears>PageHeaderCard",OK
 src/pages/beneficiary/ContractsViewPage.tsx,,/beneficiary/contracts,ALL_NON_ACCOUNTANT,39,Button,"إعادة المحاولة",onClick,"Card>CardContent>AlertCircle",OK
 src/pages/beneficiary/DisclosurePage.tsx,,/beneficiary/disclosure,BENEFICIARY_ROLES,65,Button,"تقرير شامل",onClick,"ErrorState>RequirePublishedYears>PageHeaderCard",OK
 src/pages/beneficiary/FinancialReportsPage.tsx,,/beneficiary/financial-reports,ALL_NON_ACCOUNTANT,34,Button,"إعادة المحاولة",onClick,"DashboardLayout>DashboardSkeleton>AlertCircle",OK
-src/pages/beneficiary/FinancialReportsPage.tsx,,/beneficiary/financial-reports,ALL_NON_ACCOUNTANT,71,Link,"صفحة الإفصاح السنوي",Link-to,"RequirePublishedYears>PageHeaderCard>ExportMenu",OK
+src/pages/beneficiary/FinancialReportsPage.tsx,,/beneficiary/financial-reports,ALL_NON_ACCOUNTANT,73,Link,"صفحة الإفصاح السنوي",Link-to,"RequirePublishedYears>PageHeaderCard>ExportMenu",OK
 src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,70,Tab,"الكل",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
 src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,71,Tab,"فواتير الإيجار",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
 src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,72,Tab,"فواتير الشراء",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
