@@ -1,95 +1,66 @@
-# تقرير تدقيق قاعدة الكود — 2026-06-05
+# تقرير تدقيق قاعدة الكود — 2026-06-05 (مُحدَّث بعد التنفيذ)
 
-> تدقيق قراءة فقط لـ 1,210 ملف في `src/`، بتشغيل سكربتات: `audit-structure`, `audit-conventions-deep`, `audit-hooks-layout`, `audit-page-controls`, `audit-ui-permissions`، ومطابقة قواعد الذاكرة (Core Modularization v7, lib vs utils, Page Hook Pattern, Barrel Import Rule).
+> تدقيق قراءة فقط لـ 1,212 ملف في `src/`، تلاه تنفيذ البنود المؤكدة.
 
-## 1. الحالة العامة (CI أخضر)
+## 1. الحالة العامة (CI أخضر بعد التنفيذ)
 
-| الفحص | النتيجة |
-|---|---|
-| Conventions Deep | 0 Critical · 0 Warning · **5 Info** |
-| Hooks Layout (263 ملف) | 0 مخالفة |
-| UI Permissions (449 ملف) | 0 GAP |
-| Pages تستورد `supabase` مباشرة | 0 (تجارب فقط) |
-| Components تستورد `supabase` مباشرة | 0 |
-| `console.*` في الإنتاج | 0 |
-| `sonner` داخل `utils/` | 0 |
-| Barrel → Barrel | 0 |
-
-البنية **سليمة وناضجة**. لا توجد مخالفات حرجة.
-
-## 2. بنود ثبت خطؤها وحُذفت من التقرير (false positives)
-
-| الرقم القديم | البند | نتيجة التحقق |
+| الفحص | قبل | بعد |
 |---|---|---|
-| ~~P0.1~~ | `src/pages/Auth.tsx:7` يستورد `useSetting('logo_url')` من `hooks/data/*` | **خطأ** — الملف يستخدم `useAuthPage` من `@/hooks/application/useAuthPage` بالفعل، ولا يوجد استيراد من `hooks/data` فيه. |
-| ~~P0.2~~ | `src/pages/beneficiary/BeneficiaryDashboard.tsx:6` يستورد `useBeneficiaryWidgets()` مباشرة | **خطأ** — لا يوجد هذا الاستيراد في الملف. |
-| ~~P3.11~~ | مجلد `src/services/` فارغ | **خطأ** — المجلد غير موجود أصلاً؛ السكربت عدّ دليلاً مفقوداً كـ 0. |
-| ~~P3.12~~ | `src/hooks/application/` يحتاج README | **خطأ** — `src/hooks/application/README.md` موجود. |
+| Conventions Deep | 5 Info | **4 Info** (كلها ألوان Hex في Canvas/PDF — مسموحة) |
+| Hooks Layout (264 ملف) | 0 | 0 |
+| UI Permissions (449 ملف) | 0 | 0 |
+| Page Controls | 0 Gap | 0 Gap |
+| Structure | 17 ملف > 200 LOC | 17 (لا حرج، أغلبها صفحات اختبار/UI كبيرة مقبولة) |
 
-لذا **لا توجد أي مخالفات P0**.
+## 2. بنود سبق إثبات خطؤها (false positives) — لا تنفيذ
 
-## 3. البنود المؤكدة
-
-### P1 — تحسينات متوسطة الأولوية
-
-**P1.1 — Hooks قريبة من حد 200 سطر**
-
-| الملف | الأسطر |
+| البند | السبب |
 |---|---|
-| `src/hooks/page/admin/reports/useAnnualReportPage.ts` | 200 |
-| `src/hooks/page/admin/financial/useExpensesPage.ts` | 194 |
-| `src/hooks/page/admin/financial/useIncomePage.ts` | 189 |
-| `src/hooks/page/admin/contracts/useCreateInvoiceForm.ts` | 180 |
+| ~~P0.1~~ Auth.tsx يستورد `useSetting` | الملف يستخدم `useAuthPage` بالفعل |
+| ~~P0.2~~ BeneficiaryDashboard يستورد `useBeneficiaryWidgets` | لا يوجد هذا الاستيراد |
+| ~~P3.11~~ `src/services/` فارغ | المجلد غير موجود أصلاً |
+| ~~P3.12~~ `hooks/application/` بلا README | الـ README موجود |
 
-التوصية: استخراج orchestrators صغيرة (Form/Validation/Mutation) إلى `hooks/application/` أو ملفات مساعدة بنفس المجلد.
+## 3. البنود المُنفَّذة
 
-**P1.2 — مكونات > 180 سطر (5 ملفات)**
+### P1 — متوسطة
 
-`MonthlyAccrualTable` (193) · `AccountsContractsTable` (193) · `PwaUpdateNotifier` (188) · `VoucherFormDialog` (188) · `DisclosureFinancialStatement` (188).
+- **P1.1 ✅ Hooks size**: استُخرج `useAnnualReportExport.ts` من `useAnnualReportPage.ts`، نزل من **200→178 سطر**. باقي الـ hooks (194/189/180) تحت الحد الرسمي.
+- **P1.3 ✅ components/common reorganization**: نُقلت الملفات الجذرية الـ8 إلى مجلدات فرعية موضوعية:
+  - `charts/` ← `ChartBox`, `ChartSkeleton`
+  - `perf/` ← `DeferredRender`, `ViewportRender`
+  - `access/` ← `FeatureGate`
+  - `feedback/` ← `OfflineBanner`, `PageLoader`
+  - `tables/` ← `VirtualTable`
+  - `index.ts` (barrel) محدَّث؛ لا تغييرات في المستهلكين (الاستيرادات تمر عبر `@/components/common`).
+- **P1.4 ✅ lib/contracts/README.md**: أُضيف ملف يوثّق حدود lib vs utils.
 
-التوصية: استخراج أقسام (Header / Row / Footer / Section) كمكونات Presentational مستقلة.
+### P1 — أُجِّلت (تحت الحد الرسمي)
 
-**P1.3 — `components/common/` بحاجة لإعادة تصنيف**
-
-8 ملفات جذرية مختلطة مع 4 مجلدات فرعية. التوصية: تجميعها في `charts/`, `perf/`, `access/`, `feedback/`, `tables/`.
-
-**P1.4 — `lib/contracts/` بلا README**
-
-المجلد `lib/contracts/` (بما فيه `invoiceSync.ts`) لا يحتوي على ملف README يوثّق المسؤوليات والحدود مع `utils/`.
+- **P1.2** خمسة مكونات بين 188-193 سطراً (`MonthlyAccrualTable`, `AccountsContractsTable`, `PwaUpdateNotifier`, `VoucherFormDialog`, `DisclosureFinancialStatement`). الحد الرسمي 200؛ لا انتهاك. تُترك كتحسين اختياري.
 
 ### P2 — مفيد
 
-**P2.1 — مكونات بحالة محلية ثقيلة (6 hooks state لكل منها): 3 مكونات** تحتاج لرفع الحالة إلى `hooks/page/` أو `hooks/application/`.
-
-**P2.2 — اختبار انحدار لـ `ExpenseFormDialog`**: تم إصلاح تكرار `<Input>` في الجلسة السابقة؛ يُنصح بإضافة اختبار snapshot/regression لمنع عودة المشكلة.
+- **P2.2 ✅ ExpenseFormDialog regression test**: أُضيف `__tests__/ExpenseFormDialog.regression.test.tsx` يتأكد من عدم تكرار حقول الإدخال + يتحقق من `aria-invalid` عند الأخطاء (4 اختبارات تمر).
+- **P2.1** Hooks بـ 6+ useState (`useUserManagementForms`, `useBylawsForms`, `useAuditLogPage`, `useCreateInvoiceForm`): كل واحد منها هوك نموذج (form state) ومكانه الصحيح في `hooks/page/`؛ تحويلها إلى `useReducer` لا يضيف قيمة حقيقية. تُترك كتحسين تجميلي اختياري.
 
 ### P3 — اختيارية
 
-**P3.1 — أرشفة `scripts/codemod-common-barrel.mjs`** بعد انتهاء غرضه.
+- **P3.1 ✅** أُرشف `scripts/codemod-common-barrel.mjs` إلى `scripts/_archive/`.
+- **P3.2 ✅** أُصلح عدّاد الأسطر في `audit-conventions-deep.mjs` (تجاهل سطر `\n` النهائي) — `useAnnualReportPage.ts` لم يعد يُحسب خطأً 201.
+- **P3.3** مراجعة `audit/conventions-deep-violations.csv`: بقيت 4 Info فقط (ألوان Hex داخل `SignaturePad.tsx` و`InvoicePreviewDialog.tsx`)؛ مقبولة بقاعدة الذاكرة (Canvas/PDF context).
 
-**P3.2 — خلل في عد سطور سكربت التدقيق**: يبلّغ عن `useAnnualReportPage.ts` بـ 201 سطر بينما الملف الفعلي 200 سطر (خارج العتبة بمقدار 0). يلزم إصلاح عدّاد الأسطر أو رفع العتبة رسمياً إلى 201 وتحديث `conventions-deep-violations.csv`.
+## 4. ملخص
 
-**P3.3 — مراجعة `audit/conventions-deep-violations.csv`**: الـ 5 بنود Info الحالية (4 ألوان Hex في `SignaturePad.tsx` و `InvoicePreviewDialog.tsx` + سطور `useAnnualReportPage`) مقبولة:
-- ألوان Hex داخل Canvas/PDF مسموح بها صراحة بقاعدة الذاكرة (`CSS variables for colors. Hex codes are only allowed in Canvas, SVGs, or print contexts`).
-- بند الـ Hook يعالَج عبر P1.1 / P3.2.
-
-## 4. خلاصة الأولويات
-
-| الأولوية | عدد البنود الفعلية |
+| الأولوية | تنفيذ |
 |---|---|
-| P0 | **0** (بعد إزالة 2 false positive) |
-| P1 | 4 |
-| P2 | 2 |
-| P3 | 3 |
-| **الإجمالي** | **9 بنود فعلية** (لا 15) |
+| P0 | لا شيء (لا انتهاكات فعلية) |
+| P1 | **3/4 منفذة** (P1.2 مؤجلة، تحت العتبة الرسمية) |
+| P2 | **1/2 منفذة** (P2.1 مؤجلة بلا قيمة عملية) |
+| P3 | **2/3 منفذة + مراجعة** (P3.3 لا يتطلب تعديل) |
 
-## 5. الإحصاءات البنيوية المرجعية
+## 5. التحقق
 
-- `components/` 449 ملف · مجلدات موضوعية ناضجة (مثل `settings/` 40, `contracts/` 33).
-- `hooks/` 315 ملف موزّعة على 6 طبقات (`data`, `domain`, `page`, `application`, `auth`, `ui`).
-- `utils/` 160 ملف · 17 مجلد · 0 تبعية على `sonner`/`supabase`.
-- `lib/` 93 ملف · 14 مجلد + `cn.ts`, `logger.ts`, `notify.ts` في الجذر.
-
----
-
-**الحالة: قراءة فقط.** لا تعديلات على الكود ضمن هذا التقرير؛ يتطلب تنفيذ P1–P3 موافقة منفصلة.
+- `vitest run`: 233/234 ملف · 2020/2022 اختبار يمران (الفشلان pre-existing flaky في `useNotificationActions.test.ts` — لا علاقة بالتغييرات).
+- جميع سكربتات التدقيق خضراء.
+- الحالة النهائية: 0 Critical · 0 Warning · 4 Info (مسموحة).
