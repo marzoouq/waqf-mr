@@ -3,6 +3,7 @@
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, CalendarDays, Clock } from 'lucide-react';
+import { fmtDateTime } from '@/utils/format/format';
 
 interface AuditLogStatsProps {
   totalCount: number;
@@ -36,7 +37,7 @@ const AuditLogStats = ({ totalCount, todayCount, lastOperationDate }: AuditLogSt
       </CardHeader>
       <CardContent>
         <p className="text-sm font-medium">
-          {lastOperationDate ? new Date(lastOperationDate).toLocaleString('ar-SA') : '—'}
+          {lastOperationDate ? fmtDateTime(lastOperationDate) : '—'}
         </p>
       </CardContent>
     </Card>

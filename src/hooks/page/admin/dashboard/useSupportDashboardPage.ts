@@ -9,7 +9,7 @@ import {
   type SupportTicket,
 } from '@/hooks/data/support/useSupportTickets';
 import { uiNotify } from '@/lib/notify';
-import { fmtDate } from '@/utils/format/format';
+import { fmtDate, fmtDateTime } from '@/utils/format/format';
 import { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/constants/support';
 
 async function exportToCsv(filename: string, headers: string[], rows: string[][]) {
@@ -73,7 +73,7 @@ export function useSupportDashboardPage() {
     const rows = filteredErrors.map(err => {
       const meta = err.metadata as Record<string, string> | null;
       return [
-        new Date(err.created_at).toLocaleString('ar-SA'), err.target_path ?? '',
+        fmtDateTime(err.created_at), err.target_path ?? '',
         `${meta?.error_name ?? ''}: ${meta?.error_message ?? ''}`, (meta?.user_agent ?? '').slice(0, 80),
       ];
     });

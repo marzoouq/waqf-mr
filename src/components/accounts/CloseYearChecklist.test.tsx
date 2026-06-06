@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import CloseYearChecklist from './CloseYearChecklist';
-import type { ChecklistItem } from './closeYearChecklist.utils';
+import type { ChecklistItem } from '@/utils/accounts/closeYearChecklist';
 
 describe('CloseYearChecklist', () => {
   const passedItem: ChecklistItem = { label: 'تم بنجاح', passed: true, severity: 'warning' };

@@ -9,6 +9,7 @@ import { TablePagination } from '@/components/common';
 import { useAccessLogTab, useFailedLoginsToday, useUnauthorizedAccessToday, ACCESS_LOG_ITEMS_PER_PAGE } from '@/hooks/data/audit/useAccessLogTab';
 import { useDebouncedValue } from '@/hooks/ui/useDebouncedValue';
 import { eventConfig } from './auditEventConfig';
+import { fmtDateTime } from '@/utils/format/format';
 
 const AccessLogTab = () => {
   const [eventFilter, setEventFilter] = useState('all');
@@ -89,7 +90,7 @@ const AccessLogTab = () => {
                     <div key={log.id} className="p-3 rounded-lg border bg-card space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <Badge className={config.color} variant="outline"><Icon className="w-3 h-3 ml-1" />{config.label}</Badge>
-                        <span className="text-[11px] text-muted-foreground shrink-0">{new Date(log.created_at).toLocaleString('ar-SA')}</span>
+                        <span className="text-[11px] text-muted-foreground shrink-0">{fmtDateTime(log.created_at)}</span>
                       </div>
                       {log.email && <p className="text-xs font-mono" dir="ltr">{log.email}</p>}
                       {log.target_path && <p className="text-[11px] text-muted-foreground font-mono truncate" dir="ltr">{log.target_path}</p>}
@@ -114,7 +115,7 @@ const AccessLogTab = () => {
                       const Icon = config.icon;
                       return (
                         <TableRow key={log.id}>
-                          <TableCell className="text-sm">{new Date(log.created_at).toLocaleString('ar-SA')}</TableCell>
+                          <TableCell className="text-sm">{fmtDateTime(log.created_at)}</TableCell>
                           <TableCell><Badge className={config.color} variant="outline"><Icon className="w-3 h-3 ml-1" />{config.label}</Badge></TableCell>
                           <TableCell className="text-sm font-mono" dir="ltr">{log.email || '—'}</TableCell>
                           <TableCell className="text-sm font-mono" dir="ltr">{log.target_path || '—'}</TableCell>

@@ -5,7 +5,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import {
   computeInvoiceTotals, generateQR, fmtNum,
   type InvoiceTemplateData,
-} from '../invoiceTemplateUtils';
+} from '@/utils/invoices/invoiceTemplate';
 import { QrImage } from './SharedComponents';
 
 export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {

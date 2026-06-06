@@ -1,7 +1,7 @@
 /**
  * Barrel file — دوال التنسيق والتحقق
  */
-export { fmt, fmtInt, fmtSAR, fmtPct, fmtDate, formatPercentage } from './format';
+export { fmt, fmtInt, fmtSAR, fmtPct, fmtDate, fmtDateTime, formatPercentage } from './format';
 export { normalizeArabicDigits } from './normalizeDigits';
 export { maskBankAccount, maskNationalId } from './maskData';
 export { safeNumber } from './safeNumber';

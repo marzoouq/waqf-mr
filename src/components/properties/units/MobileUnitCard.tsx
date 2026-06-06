@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Edit, Trash2 } from 'lucide-react';
 import { statusColor } from './constants';
-import { getPaymentStatusFromInvoices, getMonthlyRent, type TenantInfo } from './helpers';
+import { getPaymentStatusFromInvoices, getMonthlyRent, type TenantInfo } from '@/utils/properties/units';
 import { fmt, fmtInt } from '@/utils/format/format';
 import type { UnitRow } from '@/hooks/data/properties/useUnits';
 

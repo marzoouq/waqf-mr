@@ -3,7 +3,7 @@
  */
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle } from 'lucide-react';
-import { statusLabel, statusColor, type InvoiceTemplateData } from '../invoiceTemplateUtils';
+import { statusLabel, statusColor, type InvoiceTemplateData } from '@/utils/invoices/invoiceTemplate';
 
 interface ProfessionalHeaderProps {
   data: InvoiceTemplateData;

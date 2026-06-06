@@ -7,6 +7,7 @@ import {
   Mail, CheckCircle2, AlertTriangle, XCircle, ShieldOff, Clock, AlertOctagon,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { fmtDateTime } from '@/utils/format/format';
 
 const STATUS_BADGE: Record<string, { label: string; className: string; icon: typeof CheckCircle2 }> = {
   sent: { label: 'مُرسلة', className: 'bg-success/10 text-success border-success/30', icon: CheckCircle2 },
@@ -51,6 +52,6 @@ export function formatEmailDateTime(iso: string | null) {
   if (!iso) return '—';
   try {
     const d = new Date(iso);
-    return d.toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'medium' });
+    return fmtDateTime(d, { dateStyle: 'short', timeStyle: 'medium' });
   } catch { return iso; }
 }

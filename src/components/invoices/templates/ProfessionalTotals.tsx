@@ -2,7 +2,7 @@
  * قسم الإجماليات + QR + بيانات بنكية — القالب الاحترافي
  */
 import { safeNumber } from '@/utils/format/safeNumber';
-import { fmtNum, type InvoiceTemplateData } from '../invoiceTemplateUtils';
+import { fmtNum, type InvoiceTemplateData } from '@/utils/invoices/invoiceTemplate';
 import { QrImage } from './SharedComponents';
 
 interface ProfessionalTotalsProps {

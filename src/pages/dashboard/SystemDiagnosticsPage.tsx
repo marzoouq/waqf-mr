@@ -11,6 +11,7 @@ import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download } from 
 import { sanitizeDiagnosticOutput } from '@/lib/diagnostics/sanitize';
 import type { CheckResult, CheckStatus } from '@/lib/diagnostics/types';
 import { useSystemDiagnostics } from '@/hooks/page/admin/management/useSystemDiagnostics';
+import { fmtDateTime } from '@/utils/format/format';
 
 const WebVitalsPanel = lazy(() => import('@/components/common/feedback/WebVitalsPanel'));
 
@@ -60,7 +61,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           <h1 className="text-2xl font-bold">تشخيص النظام</h1>
           {lastRun && (
             <p className="text-sm text-muted-foreground mt-1">
-              آخر تشغيل: {lastRun.toLocaleString('ar-SA')} — {totalChecks} فحص | {failures} فشل | {warnings} تحذير
+              آخر تشغيل: {fmtDateTime(lastRun)} — {totalChecks} فحص | {failures} فشل | {warnings} تحذير
             </p>
           )}
         </div>

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Edit, Trash2, CheckCircle, XCircle, Key, AlertTriangle } from 'lucide-react';
-import type { ManagedUser } from '@/hooks/auth/role/useUserManagement';
+import type { ManagedUser } from '@/hooks/data/users/useUserManagement';
 
 const getRoleBadge = (role: string | null) => {
   switch (role) {

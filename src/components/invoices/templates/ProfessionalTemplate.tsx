@@ -7,7 +7,7 @@ import {
   computeInvoiceTotals, generateQR, fmtNum,
   ID_TYPE_LABELS,
   type InvoiceTemplateData,
-} from '../invoiceTemplateUtils';
+} from '@/utils/invoices/invoiceTemplate';
 import { InfoRow } from './SharedComponents';
 import { ProfessionalHeader } from './ProfessionalHeader';
 import { ProfessionalTotals } from './ProfessionalTotals';
