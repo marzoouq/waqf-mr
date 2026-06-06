@@ -7,6 +7,7 @@ import { sanitizeDiagnosticOutput } from '@/lib/diagnostics/sanitize';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logger } from '@/lib/logger';
+import { fmtDateTime } from '@/utils/format/format';
 
 export const useSystemDiagnostics = (autoRun = true) => {
   const { user } = useAuth();

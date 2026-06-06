@@ -16,6 +16,7 @@ import {
 import { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/constants/support';
 import { useNowClock } from '@/lib/hooks/useNowClock';
 import { uiNotify } from '@/lib/notify';
+import { fmtDateTime } from '@/utils/format/format';
 
 interface Props {
   ticket: SupportTicket;

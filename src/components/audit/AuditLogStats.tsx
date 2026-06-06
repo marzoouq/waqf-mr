@@ -3,6 +3,7 @@
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, CalendarDays, Clock } from 'lucide-react';
+import { fmtDateTime } from '@/utils/format/format';
 
 interface AuditLogStatsProps {
   totalCount: number;

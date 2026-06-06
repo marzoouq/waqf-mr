@@ -9,7 +9,7 @@ import {
   type SupportTicket,
 } from '@/hooks/data/support/useSupportTickets';
 import { uiNotify } from '@/lib/notify';
-import { fmtDate } from '@/utils/format/format';
+import { fmtDate, fmtDateTime } from '@/utils/format/format';
 import { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/constants/support';
 
 async function exportToCsv(filename: string, headers: string[], rows: string[][]) {

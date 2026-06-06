@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Archive, Activity, CalendarDays } from 'lucide-react';
 import { TablePagination, TableSkeleton } from '@/components/common';
-import { fmtDate } from '@/utils/format/format';
+import { fmtDate, fmtDateTime } from '@/utils/format/format';
 import { useArchiveLog, ARCHIVE_ITEMS_PER_PAGE } from '@/hooks/data/audit/useArchiveLog';
 import { useDebouncedValue } from '@/hooks/ui/useDebouncedValue';
 import { eventConfig } from './auditEventConfig';

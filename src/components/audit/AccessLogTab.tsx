@@ -9,6 +9,7 @@ import { TablePagination } from '@/components/common';
 import { useAccessLogTab, useFailedLoginsToday, useUnauthorizedAccessToday, ACCESS_LOG_ITEMS_PER_PAGE } from '@/hooks/data/audit/useAccessLogTab';
 import { useDebouncedValue } from '@/hooks/ui/useDebouncedValue';
 import { eventConfig } from './auditEventConfig';
+import { fmtDateTime } from '@/utils/format/format';
 
 const AccessLogTab = () => {
   const [eventFilter, setEventFilter] = useState('all');

@@ -7,6 +7,7 @@ import {
   Mail, CheckCircle2, AlertTriangle, XCircle, ShieldOff, Clock, AlertOctagon,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { fmtDateTime } from '@/utils/format/format';
 
 const STATUS_BADGE: Record<string, { label: string; className: string; icon: typeof CheckCircle2 }> = {
   sent: { label: 'مُرسلة', className: 'bg-success/10 text-success border-success/30', icon: CheckCircle2 },

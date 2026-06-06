@@ -9,6 +9,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { History, Eye } from 'lucide-react';
 import { useZatcaOperationLog } from '@/hooks/data/zatca/useZatcaOperationLog';
+import { fmtDateTime } from '@/utils/format/format';
 
 const OPERATION_TYPE_LABELS: Record<string, string> = {
   'onboard': 'تهيئة وربط',

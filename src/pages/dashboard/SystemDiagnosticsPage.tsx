@@ -11,6 +11,7 @@ import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download } from 
 import { sanitizeDiagnosticOutput } from '@/lib/diagnostics/sanitize';
 import type { CheckResult, CheckStatus } from '@/lib/diagnostics/types';
 import { useSystemDiagnostics } from '@/hooks/page/admin/management/useSystemDiagnostics';
+import { fmtDateTime } from '@/utils/format/format';
 
 const WebVitalsPanel = lazy(() => import('@/components/common/feedback/WebVitalsPanel'));
 

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Save, History, ShieldAlert } from 'lucide-react';
 import { useSystemSettingsTab, ADVANCED_FIELDS, type AppSettingHistoryEntry } from '@/hooks/page/admin/settings/useSystemSettingsTab';
+import { fmtDateTime } from '@/utils/format/format';
 
 const operationStyles: Record<AppSettingHistoryEntry['operation'], string> = {
   INSERT: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',

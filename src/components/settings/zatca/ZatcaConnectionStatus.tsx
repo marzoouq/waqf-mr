@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Loader2, Wifi, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { fmtDateTime } from '@/utils/format/format';
 
 interface ConnectionTestResult {
   connected: boolean;

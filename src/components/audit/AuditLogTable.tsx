@@ -10,6 +10,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { DataDiff } from '@/components/audit/DataDiff';
 import { operationColor, getTableNameAr, getOperationNameAr } from '@/utils/format/auditLabels';
 import { TablePagination, TableSkeleton } from '@/components/common';
+import { fmtDateTime } from '@/utils/format/format';
 
 interface AuditLog {
   id: string;
