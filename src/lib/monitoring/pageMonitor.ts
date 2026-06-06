@@ -61,8 +61,17 @@ export interface PagePerfSummary {
   lastMs: number;
 }
 
-export function getPagePerfSummaries(): PagePerfSummary[] {
-  const entries = getStoredEntries();
+/**
+ * ملخصات أداء الصفحات.
+ * @param kindFilter يفلتر نوع القياس — افتراضياً `load` فقط لتجنّب
+ * خلط مدة بقاء المستخدم (dwell) مع وقت تحميل الصفحة الفعلي.
+ * مرّر `undefined` للحصول على الجميع، أو `'dwell'` لاستعراض زمن البقاء.
+ */
+export function getPagePerfSummaries(kindFilter: PageMetricKind | undefined = 'load'): PagePerfSummary[] {
+  const all = getStoredEntries();
+  const entries = kindFilter
+    ? all.filter(e => (e.kind ?? 'load') === kindFilter)
+    : all;
   const grouped: Record<string, PageLoadEntry[]> = {};
 
   for (const e of entries) {
