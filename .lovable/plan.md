@@ -1,41 +1,58 @@
 ## الهدف
-إنشاء تقرير التدقيق `audit/codebase-audit-2026-06-05.md` بعد التحقق اليدوي من كل البنود، مع إزالة البنود الخاطئة (false positives) وتوثيق النتائج المؤكدة فقط.
+تقسيم 5 مكونات (188-193 سطراً) إلى ملفات أصغر تبقى تحت 150 سطراً، مع الحفاظ الحرفي على السلوك والتوقيع العام (props + default export) لكل مكوّن — لا تغيير في المستهلكين ولا في منطق الأعمال.
 
-## البنود التي ثبت خطأها وتم حذفها
-- **P0.1** — `Auth.tsx` لا يستورد من `hooks/data/*` (يستخدم `useAuthPage` من `hooks/application/` بالفعل).
-- **P0.2** — `BeneficiaryDashboard.tsx` لا يستورد `useBeneficiaryWidgets()` مباشرة.
-- **P3.11** — `src/services/` غير موجود أصلاً (السكربت عدّد دليل غير موجود).
-- **P3.12** — `src/hooks/application/README.md` موجود فعلاً.
+## المبدأ التوجيهي
+- استخراج **عرضي بحت** (presentational) إلى أبناء مجاورين في نفس المجلد أو في مجلد فرعي قائم.
+- لا نقل لمنطق الأعمال إلى `utils/` ما لم يكن نقياً 100% (PwaUpdateNotifier فقط).
+- props passthrough مع `memo` عند الجدوى (صفوف الجداول).
+- لا تغيير في الاستيرادات الخارجية لكل مكوّن جذر.
 
-## البنود المؤكدة (صحيحة)
+## التغييرات
 
-### P1 — متوسطة
-1. **حجم Hooks** — 4 hooks قريبة من حد 200 سطر:
-   - `useAnnualReportPage.ts` (200)
-   - `useExpensesPage.ts` (194)
-   - `useIncomePage.ts` (189)
-   - `useCreateInvoiceForm.ts` (180)
-2. **حجم Components** — 5 مكونات > 180 سطر (193، 193، 188، 188، 188).
-3. **components/common/** — 8 ملفات جذرية مختلطة مع 4 مجلدات فرعية، تحتاج إعادة تصنيف.
-4. **lib/contracts/invoiceSync.ts** — لا يوجد ملف README في المجلد.
+### 1) `MonthlyAccrualTable.tsx` (193 → ~95)
+- مكان فرعي قائم: `src/components/contracts/accrual/`
+- ملفات جديدة:
+  - `AccrualDesktopTable.tsx` — جدول `md:` (rows + footer).
+  - `AccrualMobileSummary.tsx` — كتلة الجوال (header + قائمة `MobileAccrualCard`).
+- يبقى `MonthlyAccrualTable.tsx` يحتوي useMemo الحسابي + التوجيه بين العرضين + حالات Loading/Empty.
 
-### P2 — مفيدة
-5. **ExpenseFormDialog** — تم إصلاح تكرار `<Input>` في الجلسة السابقة.
-6. **3 مكونات** تحتوي على 6 حالات `useState`/`useReducer` — يحتاجون إلى استخراج الحالة إلى hooks صفحات/تطبيقات.
+### 2) `AccountsContractsTable.tsx` (193 → ~80)
+- مكان جديد: `src/components/accounts/contracts/`
+- ملفات جديدة:
+  - `AccountsContractsMobileList.tsx` — البطاقات + ملخّص الجوال.
+  - `AccountsContractsDesktopTable.tsx` — جدول `md:` + الفوتر.
+  - `originBadge.tsx` — Badge helper.
+- يبقى `AccountsContractsTable.tsx` غلافاً يحسب الإجماليات ويوجّه.
 
-### P3 — اختيارية
-7. **scripts/codemod-common-barrel.mjs** — سكربت قديم يجب أرشفته.
-8. **conventions-deep-violations.csv** — 5 مخالفات Info فقط (ألوان Hex في Canvas/SVG + حجم hook)، لا Critical ولا Warning.
-9. **سكربت العد** — يبلغ `useAnnualReportPage.ts` 201 سطر بينما الملف الفعلي 200 سطر (خلل في منطق العد).
+### 3) `PwaUpdateNotifier.tsx` (188 → ~85)
+- ملفات جديدة:
+  - `src/lib/pwa/semver.ts` — `compareSemver`, `parsePart`, `hasPrerelease` (دوال نقية، عديمة الأثر الجانبي → `lib/` وليس `utils/` لأنها مجال PWA لا تنسيق عام).
+  - `src/components/pwa/ChangelogDialog.tsx` — الـ Dialog + Map للسجل.
+- يبقى `PwaUpdateNotifier.tsx` يحتوي `useEffect` ومنطق التحقّق من التحديث.
 
-## الحالة العامة المؤكدة
-- Conventions Deep: 0 Critical · 0 Warning · 5 Info
-- Hooks Layout (263 ملف): 0 مخالفة
-- UI Permissions (449 ملف): 0 GAP
-- Pages/Components مع `supabase` مباشرة: 0
-- `console.*` في الإنتاج: 0
-- `sonner` في `utils/`: 0
-- Barrel→Barrel: 0
+### 4) `VoucherFormDialog.tsx` (188 → ~95)
+- مكان قائم: `src/components/expenses/vouchers/`
+- ملفات جديدة:
+  - `VoucherFormFields.tsx` — الـ grid الكامل (Name/ID/Phone/Amount/Method/Ref + Description + Signature).
+- يبقى `VoucherFormDialog.tsx` يحتوي state + validate + submit + DialogFooter.
 
-## الخطوة الوحيدة
-كتابة الملف `audit/codebase-audit-2026-06-05.md` بالصيغة المحدّثة التي تعكس البنود الصحيحة فقط مع شرح سبب حذف البنود الخاطئة.
+### 5) `DisclosureFinancialStatement.tsx` (188 → ~70)
+- مكان قائم: `src/components/beneficiary/disclosure/`
+- ملفات جديدة:
+  - `DisclosureIncomeBlock.tsx` — قسم الإيرادات.
+  - `DisclosureExpensesBlock.tsx` — قسم المصروفات + VAT.
+  - `DisclosureWaterfallBlock.tsx` — التسلسل المالي الكامل (corpus → نت → ضريبة → زكاة → حصص).
+  - `DisclosureMyShareCard.tsx` — بطاقة حصتي.
+- يبقى المكوّن الجذر غلاف Card + تمرير props لكل قسم.
+
+## التحقّق (بعد التنفيذ)
+1. `wc -l` لكل ملف جديد ≤ 150 سطر، والملفات الأصلية ≤ 100 سطر.
+2. `node scripts/audit-conventions-deep.mjs` — 0 Warning، Info ≤ 4 (الموجودة).
+3. `node scripts/audit-structure.mjs` — لا انتهاكات جديدة.
+4. `bunx vitest run` — جميع الاختبارات الحالية تمر (لا تغيير في API).
+5. فحص `rg` للتأكد من أن استيرادات المستهلكين الخارجيين لم تتغيّر.
+
+## تحديث التقرير
+تعديل `audit/codebase-audit-2026-06-05.md`:
+- نقل P1.2 من قسم "أُجِّلت" إلى قسم "المُنفَّذة" مع تفصيل الـ5 تقسيمات.
+- تحديث جدول الملخص النهائي (P1: 4/4).
