@@ -10,6 +10,7 @@ import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/invoi
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
+import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
