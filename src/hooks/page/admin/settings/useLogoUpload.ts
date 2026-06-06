@@ -1,12 +1,13 @@
 /**
  * Page hook لرفع/إزالة شعار التطبيق — يدير state واجهة وتنبيهات.
- * نُقل من hooks/data/settings/appearance لأنه يحتوي UI state و toasts.
+ * استدعاءات Supabase مفصولة في `lib/services/settingsAssetsService`
+ * (قاعدة HooksLayering — لا supabase مباشرة في hooks/page).
  */
 import { useState, useRef, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { resizeImage } from '@/utils/image/resizeImage';
+import { settingsAssetsService } from '@/lib/services/settingsAssetsService';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
 const MAX_SIZE = 2 * 1024 * 1024;
@@ -30,6 +31,11 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
     setPreview(currentUrl);
   }
 
+  const invalidate = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
+    await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+  }, [queryClient]);
+
   const handleSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -46,23 +52,13 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
     try {
       const result = await resizeImage(file, 256, 0.85);
       const resizedFile = new File([result.blob], file.name, { type: result.blob.type });
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+      const ext = settingsAssetsService.pickExt(file.name);
       const path = `${storagePath}.${ext}`;
 
-      const { error: uploadErr } = await supabase.storage
-        .from('waqf-assets')
-        .upload(path, resizedFile, { upsert: true });
-      if (uploadErr) throw uploadErr;
+      const logoUrl = await settingsAssetsService.uploadAsset(resizedFile, path);
+      await settingsAssetsService.setSetting(settingKey, logoUrl);
 
-      const { data: urlData } = supabase.storage.from('waqf-assets').getPublicUrl(path);
-      const logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-
-      await supabase
-        .from('app_settings')
-        .upsert({ key: settingKey, value: logoUrl, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-
-      await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
-      await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+      await invalidate();
       setPreview(logoUrl);
       uiNotify.success('تم رفع الشعار بنجاح');
     } catch {
@@ -71,16 +67,13 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
       setSaving(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  }, [settingKey, storagePath, queryClient]);
+  }, [settingKey, storagePath, invalidate]);
 
   const handleRemove = useCallback(async () => {
     setSaving(true);
     try {
-      await supabase
-        .from('app_settings')
-        .upsert({ key: settingKey, value: '', updated_at: new Date().toISOString() }, { onConflict: 'key' });
-      await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
-      await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+      await settingsAssetsService.setSetting(settingKey, '');
+      await invalidate();
       setPreview('');
       uiNotify.success('تم إزالة الشعار');
     } catch {
@@ -88,7 +81,7 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
     } finally {
       setSaving(false);
     }
-  }, [settingKey, queryClient]);
+  }, [settingKey, invalidate]);
 
   return { fileInputRef, preview, saving, handleSelect, handleRemove };
 };
