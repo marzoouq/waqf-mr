@@ -61,12 +61,25 @@ const AccountsViewPage = () => {
           actions={<ExportMenu onExportPdf={handleExportPdf} />}
         />
 
-        <AccountsViewSummary
+        <AccountsSummaryCards
+          waqfCorpusPrevious={waqfCorpusPrevious}
           totalIncome={totalIncome}
+          grandTotal={grandTotal}
           totalExpenses={totalExpenses}
+          netAfterExpenses={netAfterExpenses}
+          manualVat={vatAmount}
+          netAfterVat={netAfterVat}
+          zakatAmount={zakatAmount}
           netAfterZakat={netAfterZakat}
-          availableAmount={availableAmount}
-          myShare={myShare}
+          adminPercent={adminPercent}
+          adminShare={adminShare}
+          waqifPercent={waqifPercent}
+          waqifShare={waqifShare}
+          waqfRevenue={waqfRevenue}
+          waqfCorpusManual={waqfCorpusManual}
+          manualDistributions={distributionsAmount}
+          remainingBalance={remainingBalance}
+          isClosed={isClosed}
         />
 
         {currentBeneficiary && <AccountsViewMyShare myShare={myShare} />}
