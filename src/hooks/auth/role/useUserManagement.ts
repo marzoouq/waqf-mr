@@ -2,7 +2,8 @@
  * هوك إدارة المستخدمين — منظّم يجمع البيانات + العمليات + حالة UI
  * حالة النماذج والحوارات مستخرجة في `useUserManagementForms`.
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useAdminUsers, useOrphanedBeneficiaries, useUnlinkedBeneficiaries } from './useUserManagementData';
 import { useRegistrationEnabled } from '@/hooks/data/settings';
@@ -20,6 +21,11 @@ export type { ManagedUser } from './useUserManagementData';
 
 export const useUserManagement = () => {
   const { user: currentUser } = useAuth();
+  const queryClient = useQueryClient();
+  const retryUsersList = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
+    [queryClient],
+  );
 
   // sub-hooks لحالة UI المرتبطة منطقياً
   const createFormState = useCreateUserForm();
@@ -129,5 +135,6 @@ export const useUserManagement = () => {
     createUser, confirmEmail: wrappedConfirmEmail, updateEmail, updatePassword,
     setRole: setRoleMutation, deleteUser, linkBeneficiary,
     isSelf,
+    retryUsersList,
   };
 };
