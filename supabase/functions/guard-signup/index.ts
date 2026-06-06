@@ -158,7 +158,20 @@ Deno.serve(async (req) => {
 
     if (createError) {
       console.error("guard-signup createUser error");
-      return new Response(JSON.stringify({ error: "تعذر إتمام التسجيل" }), {
+      const rawMsg = (createError.message || "").toLowerCase();
+      let userMsg = "تعذر إتمام التسجيل";
+      if (rawMsg.includes("already") || rawMsg.includes("registered") || rawMsg.includes("duplicate")) {
+        userMsg = "هذا البريد الإلكتروني مسجل بالفعل";
+      } else if (
+        rawMsg.includes("pwned") ||
+        rawMsg.includes("breach") ||
+        rawMsg.includes("compromised") ||
+        rawMsg.includes("leaked") ||
+        (rawMsg.includes("password") && rawMsg.includes("weak"))
+      ) {
+        userMsg = HIBP_PWNED_MESSAGE;
+      }
+      return new Response(JSON.stringify({ error: userMsg }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
