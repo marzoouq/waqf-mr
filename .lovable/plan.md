@@ -1,65 +1,85 @@
-# إكمال خطة إصلاح لوحة المستفيد
+# إكمال باقي بنود لوحة المستفيد (الملاحظات + المتبقي من المتوسطة)
 
-تم تنفيذ المجموعة الحرجة (N1, H2, H3, H21, N5) في الجولة السابقة وعبرت كل الاختبارات. هذه الخطة تُكمل المتوسطة الـ 14 ثم تترك الـ 16 ملاحظة لجولة لاحقة اختيارية.
+نُفّذ سابقاً: المجموعة الحرجة (4 بنود) + معظم المتوسطة (9 بنود: H5, H12, H14, H15, H16, H17, H25, N2, N6, N7).
 
----
-
-## المرحلة 1 — اتساق Realtime (H12, H15, H17, H25, N2)
-
-**الهدف**: توحيد اشتراكات realtime عبر كل صفحات المستفيد.
-
-- `useDisclosurePage.ts` → إضافة `beneficiaries`, `advance_requests`, `advance_carryforward` للقائمة.
-- `useAccountsViewPage.ts` (H15) → استدعاء `useDashboardRealtime` لجداول `accounts`, `distributions`.
-- `useInvoicesViewPage.ts` (H17) → إضافة `useDashboardRealtime` لـ `invoices`, `payment_invoices`.
-- `useExpensesViewPage.ts` (N2) → إضافة `useDashboardRealtime` لـ `expenses`.
-- توحيد قائمة الجداول في ثابت `BENEFICIARY_REALTIME_TABLES` داخل `src/constants/`.
-
-## المرحلة 2 — صحة البيانات والترتيب (H5, H16, H20, N6, N7)
-
-- `useBeneficiaryDashboardPage.ts:53` (H5) → تغيير deps من `[isClosed, fiscalYear]` إلى `[isClosed, fiscalYear?.id]`.
-- `useInvoicesViewPage.ts:66` (H16) → استخدام `new Date(a.date).getTime() - new Date(b.date).getTime()` بدل مقارنة سلاسل.
-- `useInvoicesViewPage.ts` (N7) → توحيد تنسيق التاريخ عبر `toDateOnly()` من `utils/date/dateOnly`.
-- `useExpensesViewPage.ts:38` (N6) → تمرير قيم افتراضية `('date', 'desc')` لـ `useTableSort`.
-- `CarryforwardHistoryPage`/`useCarryforwardData` (H20) → التحقق من توافق مصدر البيانات مع باقي اللوحة (`useEndUserDashboardData`) — إذا اختلف، التبديل أو توثيق السبب.
-
-## المرحلة 3 — تحسينات منطقية وأداء (H4, H9, H11, H14, N4, N8)
-
-- `AccountsViewPage.tsx` (H4) → تجميع فروع `DashboardLayout` المكررة في حارس واحد early-return.
-- `useMySharePage.ts:96` (H11) → استدعاء `fetchContracts()` أو إزالة الحقل غير المستخدم نهائياً.
-- `useAccountsViewPage.ts:82-83` (H14) → استبدال الثوابت `10`/`5` بقيم من `useAppSettings` (`waqf_share_percentage`, `waqif_share_percentage`).
-- `BeneficiaryAdvanceCard` / `MyShare AdvanceRequestDialog` (H9) → استخراج `useMaxAdvanceAmount` إلى parent أو memoization مشترك لمنع الاستدعاء المكرر.
-- `useBeneficiaryDashboardPage.ts` (N4) → التحقق من توحيد queryKey مع `useNotifications` في Sidebar/BottomNav لتقاسم نفس الكاش.
-- `usePropertiesViewPage.ts` (N8) → تصحيح نص الـ tooltip ليطابق دلالة `propertiesWithoutUnits` (عقارات بلا وحدات مسجّلة) بدل "غير مؤجَّرة".
-
-## المرحلة 4 — التحقق
-
-- `bun run test` — كامل الحزمة.
-- فحص يدوي للوحة المستفيد على الراوتات: `/beneficiary`, `/beneficiary/accounts`, `/beneficiary/invoices`, `/beneficiary/expenses`, `/beneficiary/disclosure`, `/beneficiary/carryforward`.
-- تحديث `audit/conventions-deep-report.md` بنتائج التنفيذ.
+**المتبقي**: 5 بنود متوسطة (H4 مكتمل جزئياً، H9, H11, H20, N4, N8) + 16 ملاحظة 🟡.
 
 ---
 
-## الملفات المتأثرة (≈ 11 ملف)
+## المرحلة A — بنود متوسطة متبقية
+
+### H9 — تكرار `useMaxAdvanceAmount`
+التحقق: TanStack Query يُشارك الكاش تلقائياً عند تطابق queryKey. سأفتح `useMaxAdvanceAmount` وأتأكد من ثبات queryKey؛ إذا ثابت، أوثّق "محلول بالتصميم". وإلا أُضيف queryKey مستقر.
+
+### H11 — `contracts: []` في `useMySharePage`
+حذف الحقل غير المستخدم (lazy fetch موجود عبر `fetchContracts`) لتنظيف API الـ hook.
+
+### H20 — اتساق مصدر بيانات `CarryforwardHistoryPage`
+استبدال `useMyBeneficiaryFinance` بمصدر موحّد من `useEndUserDashboardData` (`my_carryforwards`, `my_advances`, `paid_advances_total`, `carryforward_balance`) لمطابقة باقي اللوحة. fallback: توثيق سبب الاختلاف إن كان مقصوداً.
+
+### N4 — تحقق queryKey مشترك لـ `useNotifications`
+قراءة `useNotifications` للتأكد من ثبات queryKey بين Dashboard/Sidebar/BottomNav. توثيق في تعليق.
+
+### N8 — Tooltip بطاقة "العقارات بدون وحدات"
+تصحيح النص في المكوّن المعني (`PropertiesSummaryCards` أو ما يماثله) ليطابق دلالة "عقارات بلا وحدات مسجّلة" بدل "غير مؤجَّرة".
+
+---
+
+## المرحلة B — الملاحظات 🟡 (16 بند)
+
+### تنظيفات منطقية مؤثّرة
+- **H6** — حذف إبطال `my-distributions` غير اللازم من dashboard realtime.
+- **H7** — استخراج كتلة الترحيب اليدوية (سطور 44-63 في BeneficiaryDashboard) إلى `BeneficiaryWelcomeCard` لتجنّب التكرار.
+- **N9** — `useDisclosurePage.handleDownloadPDF`: منع التصدير عند `!currentBeneficiary` بدل إنتاج PDF بحقل فارغ.
+- **N10** — `recentNotifications` vs `unreadCount`: إصلاح عدم الاتساق — إما عرض شارة عدد غير المقروء من الـ slice، أو تمرير "هناك المزيد".
+- **N12** — إضافة `useDashboardRealtime` لـ `useCarryforwardData` (جدول `advance_carryforward`, `advance_requests`).
+- **N15** — `NotificationsPage.markAllAsRead`: إضافة `onError` toast.
+- **N16** — `useFinancialReportsPage`: fallback لـ `monthlyData` من income/expenses المحلية عند فراغ RPC.
+- **N17** — استبدال useEffect+setCurrentPage في `ContractsViewPage` بـ `useResetPageOnFilterChange` (أو إبقاء eslint-disable مع تعليق توثيقي).
+- **N18** — `BeneficiaryStatsRow`: تبديل `[...arr].sort(...).find(...)` بـ `reduce` O(n).
+- **N20** — تمرير `widgetsLoading` للوحة لمنع وميض الأقسام قبل تحميل الإعدادات.
+
+### ملاحظات قبول/توثيق فقط (لا تغيير كود)
+- **H8** — دلالي بحت، بلا أثر مرئي.
+- **H19** — لا مشكلة فعلية.
+- **H22** — مسار `/waqif` مطابق للـ redirect.
+- **H23, H24, H26, H27, H28, H29, H30** — إما توثيق أو تأجيل لإعادة هيكلة أوسع.
+- **N11, N13, N14, N19** — لا تغيير مطلوب.
+
+سأكتفي بتنفيذ ما له أثر فعلي (10 من 16) وأُلحق ملاحظة موجزة في تقرير الفحص للباقي.
+
+---
+
+## المرحلة C — التحقق وتوثيق
+
+1. تشغيل `bunx vitest run` كاملاً.
+2. تحديث `audit/conventions-deep-report.md`:
+   - جدول الحالة النهائية لكل البنود H1–H30 و N1–N20.
+   - وسم البنود المنفّذة/المؤجّلة/المرفوضة.
+
+---
+
+## الملفات المتوقّع تعديلها (≈ 12)
 
 ```
-src/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardPage.ts
-src/hooks/page/beneficiary/useDisclosurePage.ts
-src/hooks/page/beneficiary/useAccountsViewPage.ts
-src/hooks/page/beneficiary/useInvoicesViewPage.ts
-src/hooks/page/beneficiary/useExpensesViewPage.ts
-src/hooks/page/beneficiary/useMySharePage.ts
-src/hooks/page/beneficiary/usePropertiesViewPage.ts
-src/hooks/page/beneficiary/financial/useCarryforwardData.ts
-src/pages/beneficiary/AccountsViewPage.tsx
-src/components/beneficiary/my-share/AdvanceRequestDialog.tsx
-src/constants/beneficiary*.ts (ثابت realtime جديد)
+src/hooks/page/beneficiary/financial/useMySharePage.ts          (H11)
+src/hooks/page/beneficiary/financial/useCarryforwardData.ts     (H20, N12)
+src/hooks/page/beneficiary/financial/useDisclosurePage.ts       (N9)
+src/hooks/page/beneficiary/financial/useFinancialReportsPage.ts (N16)
+src/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardPage.ts (H6, N10)
+src/hooks/page/beneficiary/notifications/useNotificationsPage.ts (N15)
+src/hooks/page/beneficiary/views/useContractsViewPage.ts        (N17)
+src/pages/beneficiary/BeneficiaryDashboard.tsx                  (H7, N20)
+src/components/beneficiary/dashboard/BeneficiaryWelcomeCard.tsx (H7)
+src/components/beneficiary/dashboard/BeneficiaryStatsRow.tsx    (N18)
+src/components/properties/PropertiesSummaryCards.tsx*           (N8)
+audit/conventions-deep-report.md                                (تقرير ختامي)
 ```
+*المسار التقريبي — سأتحقّق قبل التعديل.
 
 ## خارج النطاق
 
-- 16 بنداً صنف 🟡 (N9–N20, H6–H8, H17, H19, H22–H30): تُؤجَّل لجولة تنظيف منفصلة.
-- 3 بنود مرفوضة (H1, H10, H13): لا تنفيذ.
+- البنود الـ 6 المُصنّفة "ملاحظة بلا أثر" — توثيق فقط في التقرير الختامي.
+- H4 المكتمل سابقاً — لا تغيير إضافي.
 
-## السؤال
-
-هل أنفّذ المراحل الأربع جميعاً، أم مرحلة محددة فقط (مثلاً Realtime + صحة البيانات فقط = 1+2)؟
+هل أُكمل التنفيذ الآن؟
