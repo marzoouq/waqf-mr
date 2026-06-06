@@ -27,8 +27,7 @@ interface Args {
 }
 
 export function usePropertiesSummary({ properties, contracts, propertiesLoading, contractsLoading }: Args) {
-  const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
-  const isClosed = fiscalYear?.status === 'closed';
+  const { fiscalYearId, fiscalYear, isSpecificYear, isClosed } = useFiscalYear();
 
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
   const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);

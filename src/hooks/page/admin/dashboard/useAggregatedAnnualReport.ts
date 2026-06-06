@@ -21,7 +21,7 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { AggregatedAnnualPdfData } from '@/utils/pdf/reports/aggregatedAnnualReport';
 
 export function useAggregatedAnnualReport() {
-  const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const ready = isFyReady(fiscalYearId);
   const waqfInfo = usePdfWaqfInfo();
 
@@ -82,7 +82,7 @@ export function useAggregatedAnnualReport() {
     const pdfData: AggregatedAnnualPdfData = {
       fiscalYearLabel: fiscalYear.label,
       gregorianRange,
-      isClosed: fiscalYear.status === 'closed',
+      isClosed,
       totalIncome: safeNumber(t.total_income),
       totalExpenses: safeNumber(t.total_expenses),
       netAfterExpenses: safeNumber(t.net_after_expenses),

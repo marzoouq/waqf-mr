@@ -23,7 +23,7 @@ export function useBeneficiaryDashboardPage() {
 
   const { user, role, loading: authLoading } = useAuth();
   const { filteredData: notifications = [], filteredUnreadCount: unreadCount } = useNotifications();
-  const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
+  const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears, isClosed } = useFiscalYear();
 
   const { data: dashData, isLoading: dashLoading, isError: dashError } = useEndUserDashboardData(
     isFyReady(fiscalYearId) ? fiscalYearId : undefined,
@@ -42,7 +42,7 @@ export function useBeneficiaryDashboardPage() {
   const fyReady = isFyReady(fiscalYearId);
   const isLoading = authLoading || fyLoading || (!fyReady ? false : dashLoading);
 
-  const isClosed = fiscalYear?.status === 'closed';
+
 
   // ساعة دقيقة لتحديث نسبة التقدم — تتجنب Date.now() في render body (purity)
   const [now, setNow] = useState(() => Date.now());
