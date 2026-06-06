@@ -4,10 +4,10 @@
 
 | Layer | Count | Total LOC | Avg LOC |
 |---|---:|---:|---:|
-| component | 447 | 36578 | 82 |
+| component | 448 | 36634 | 82 |
 | util | 160 | 13054 | 82 |
 | hook-data | 130 | 8177 | 63 |
-| hook-page | 110 | 11126 | 101 |
+| hook-page | 111 | 11163 | 101 |
 | lib | 93 | 7169 | 77 |
 | page | 67 | 7569 | 113 |
 | test | 56 | 4766 | 85 |
@@ -23,7 +23,7 @@
 | app | 3 | 130 | 43 |
 | integration | 3 | 2644 | 881 |
 
-## Files > 200 LOC (18)
+## Files > 200 LOC (17)
 
 | File | Layer | LOC |
 |---|---|---:|
@@ -44,4 +44,3 @@
 | test/edgeFunctionAuth.test.ts | test | 237 |
 | lib/services/diagnosticsReadService.ts | lib | 220 |
 | hooks/data/support/useSupportTickets.test.ts | hook-data | 201 |
-| hooks/page/admin/reports/useAnnualReportPage.ts | hook-page | 201 |
