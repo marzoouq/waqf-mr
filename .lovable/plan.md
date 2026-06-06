@@ -1,91 +1,142 @@
-## ملخّص تنفيذي
+# خطة شاملة — إصلاح فجوات المعمارية والأمن (مُتحقَّق منها فعليًا في الكود)
 
-تم مسح **1,224 ملف** عبر `src/` وتشغيل كامل سلسلة التدقيق (`audit-all.mjs` = structure + conventions-deep + hooks-layout + ui-permissions + page-controls + build-report). الحالة:
-
-| المؤشر | القيمة |
-|---|---|
-| Critical violations | **0** |
-| Warning | **0** |
-| GAP (handlers/permissions/page-controls) | **0** |
-| Info (مسموح) | 4 ألوان Hex داخل Canvas/PDF (`SignaturePad`, `InvoicePreviewDialog`) |
-| TODO / FIXME / HACK | **0** |
-| `@ts-ignore` / `@ts-expect-error` | 3 فقط (مقبول) |
-| `any` خارج الاختبارات | **1** فقط (`utils/pdf/core/pdfHelpers.ts`) |
-| Pages تستورد `hooks/data` كقيمة | **0** (الوحيد type-only import) |
-| Hooks تستورد من `pages/**` | **0** |
-| ملفات > 200 سطر | 17 (كلها مبرّرة: 1 types مولّد، 9 اختبارات، 4 PDF/diagnostics، 3 hooks في 201-220) |
-
-**الخلاصة:** البنية ناضجة وصحية. لا توجد انتهاكات معمارية حرجة. التوصيات أدناه **تحسينات تجميلية** فقط.
+تستند هذه الخطة إلى نتائج الفحص الجنائي الذي أكدته بـ `rg` و`git ls-files` على المستودع الفعلي. الترتيب من **الأعلى خطورة** إلى **التحسينات الاختيارية**.
 
 ---
 
-## ما تم فحصه (قراءة فقط)
+## P0 — أمن وCI (فوري، يحجب أي push)
 
-1. **Structure** — توزيع الطبقات (component/util/hook-*/lib/page).
-2. **Conventions Deep** — حدود LOC، lib vs utils، logger، ألوان CSS، Page Hook Pattern.
-3. **Hooks Layout** — وجود `data/{financial,settings}` و `auth/{session,role,biometric,flows}`.
-4. **UI Permissions** — 460 ملف لـ `onClick`/`type=submit`/`asChild`/`to=`.
-5. **Page Controls** — 91 control صفحة + 23 child، كلها OK.
-6. **مؤشرات إضافية** — `any` types، TODOs، استيرادات عابرة للطبقات، اعتمادات circular.
+### 1. إزالة `.env` من تتبع Git
+- `git rm --cached .env` ثم تأكيد بقاء الملف محلياً.
+- التحقق أن `.gitignore` يحتوي `.env` (مع إبقاء `.env.example`).
+- تدوير `VITE_SUPABASE_PUBLISHABLE_KEY` ليس ضرورياً (anon key علني)، لكن نوثّق ذلك في `docs/security/`.
 
----
+### 2. تشديد Gitleaks
+- في `.github/workflows/ci.yml`: إزالة `continue-on-error: true` من خطوة Gitleaks لتصبح حاجبة.
+- إبقاء allowlist للملفات الموثقة (مفاتيح anon المعروفة).
 
-## التوصيات (مرتّبة من الأهم للاختياري)
-
-### P0 — لا شيء
-
-لا توجد انتهاكات حرجة تستدعي التدخل.
-
-### P1 — تحسينات معمارية مفيدة (اختياري)
-
-1. **مراجعة 65 مكوّناً يستورد `@/hooks/data` مباشرة.**
-   - بعضها container طبيعي (جداول، حوارات CRUD)؛ لا انتهاك.
-   - الإجراء: تشغيل `rg -l "from '@/hooks/data" src/components | wc` ومراجعة قائمة قصيرة لتحديد ما إذا كان أحدها من المفترض أن يكون presentational فقط ويأخذ البيانات عبر props.
-   - **بدون** فرض تحويل قسري — القاعدة الحالية تسمح به للحاويات.
-
-2. **استبدال `any` الوحيد في `utils/pdf/core/pdfHelpers.ts`** بنوع `jsPDF` المناسب أو `unknown` + type guard.
-
-3. **توثيق الـ3 `@ts-ignore` المتبقية** بتعليق سبب التجاوز (إن لم يكن موجوداً).
-
-### P2 — تنقية مكتبة الاختبارات (اختياري)
-
-4. **توحيد 9 ملفات اختبار > 200 سطر** (financialIntegration, accountsCalculations…) بتقسيم بحسب suite منطقي — حالياً تقرأ كـ "monolith" لكنها لا تكسر أي قاعدة (`size limit` لا يطبق على `.test.*`).
-
-5. **إصلاح الاختبارين الـflaky** في `useNotificationActions.test.ts:130-133` (toast.error timing) — يُفشل CI أحياناً.
-
-### P3 — تجميل (يمكن تجاهلها)
-
-6. **مراجعة الـ4 ملفات > 200 سطر في الإنتاج** (لا حرج معماري):
-   - `utils/pdf/reports/aggregatedAnnualReport.ts` (275)
-   - `lib/services/diagnosticsReadService.ts` (220)
-   - `utils/financial/collectionCompute.ts` (199 — قريب من الحد)
-   - `lib/services/fiscalYearService.ts` (196 — قريب)
-   - الإجراء المحتمل: استخراج helpers خاصة بكل تقرير في `aggregatedAnnualReport.ts` إلى ملفات مجاورة.
-
-7. **توسيع `audit/architecture-map.md`** ليعكس البنية الجديدة بعد تقسيمات P1.2/P1.3/P1.4 السابقة (`accrual/`, `accounts/contracts/`, `pwa/`, `disclosure/`).
-
-### P4 — اختياري لخفض ديون فنية (لا قيمة عاجلة)
-
-8. **P2.1 من جولة 2026-06-05 (مؤجَّل سابقاً)** — تحويل 4 form hooks بـ 6+ `useState` إلى `useReducer`. تحسين تجميلي بلا قيمة وظيفية.
+### 3. تشديد بوابات Audit
+في `scripts/audit-conventions-deep.mjs` إضافة قواعد Critical جديدة:
+- منع `from 'sonner'` و `await import('sonner')` داخل `src/hooks/data/**`.
+- منع `from '@/integrations/supabase/client'` داخل `src/hooks/page/**` (مع whitelist مؤقت للملفين الجاري نقلهما).
+- منع `from 'sonner'` و `from '@/integrations/supabase/client'` داخل `src/utils/**` (موجودة جزئياً — توسيع التغطية).
 
 ---
 
-## مصادر التقرير
+## P1 — إصلاح انتهاكات الطبقات المُتحقَّق منها
 
-- `audit/codebase-audit-2026-06-05.md` — التقرير السابق المُنفَّذ بالكامل.
-- `audit/structure-inventory.md` + `.csv` — جرد الطبقات.
-- `audit/conventions-deep-report.md` + `.csv` — انتهاكات الأنماط (4 Info فقط).
-- `audit/hooks-layout-report.md` — تخطيط الـhooks (0 issues).
-- `audit/page-controls-audit.md` — 0 GAP.
-- `audit/ui-permissions-audit.md` — 0 GAP.
-- `audit/report.html` — تقرير HTML مدمج.
+### 4. إزالة toast من `hooks/data`
+ملف واحد فقط ثبت فيه الانتهاك:
+- `src/hooks/data/beneficiaries/useBeneficiaries.ts` — يستدعي `await import('sonner')` في mutations.
+- نقل الإشعارات إلى wrapper في `src/hooks/page/admin/beneficiaries/` (أو الـ page hook المستهلك)، وإبقاء data hook نقياً يعيد `{ data, error }`.
+
+### 5. استخراج Supabase من `hooks/page/admin/settings`
+الملفان المثبتان:
+- `useLogoUpload.ts` (سطور 52, 57: `supabase.storage` + `supabase.from('app_settings')`).
+- `useWaqfInfoSave.ts` (سطور 33, 37, 48, 55: نفس النمط).
+
+الخطوات:
+- إنشاء `src/lib/services/settingsAssetsService.ts` يحتوي:
+  - `uploadWaqfAsset(file, path)` → `{ publicUrl }`
+  - `upsertAppSetting(key, value)`
+  - `removeAppSetting(key)`
+- استبدال الاستدعاءات داخل الـ page hooks بالخدمة (يبقى UI state + uiNotify في الـ hook).
+
+### 6. نقل `useNotificationVisibilityPrefs`
+- من `hooks/data/notifications/` إلى `hooks/ui/` (يستخدم localStorage/window فقط — ليس بيانات).
 
 ---
 
-## مخرجات الجولة الحالية (عند الموافقة على التنفيذ)
+## P2 — تنظيف `utils/` (browser side effects)
 
-ستُكتب نتائج هذه المراجعة إلى `audit/codebase-audit-2026-06-06.md` يوثّق:
-- تأكيد الحالة الخضراء الكاملة بعد جولة 2026-06-05.
-- قائمة P1-P4 أعلاه مع روابط الملفات المتأثرة.
+### 7. تحديث تعريف `utils/` (المسار الأخفّ كسراً)
+- توضيح في `src/utils/README.md` أن DOM/Canvas/Blob/URL مسموحة (لأنها deterministic transforms) ما دامت لا تستورد Supabase/sonner.
+- **بديل أكثر صرامة (مؤجَّل P3)**: نقل `utils/image/`, `utils/pdf/`, `utils/fonts/loadAmiriFonts.ts` إلى `lib/browser/` — يكسر ~14 import path.
 
-**لا تعديلات على الكود حتى الانتقال إلى وضع التنفيذ والموافقة بنداً ببند.**
+---
+
+## P3 — Bug فعلي في قياس الأداء
+
+### 8. تصحيح دلالات `pageMonitor`
+- في `src/lib/performance/pageMonitor.ts` (أو ما يقابله) فصل ثلاثة مفاهيم:
+  - `route_change` — وقت التنقل (Navigation Timing).
+  - `data_ready` — أول لحظة جاهزية بيانات أساسية (إشارة من الـ page hook).
+  - `route_dwell` — مدة بقاء المستخدم (تُسجَّل عند unmount، لا تُخلط مع load).
+- تحديث `usePagePerformance` ليُصدر الإشارة الصحيحة.
+- إصلاح p50/p95 ليُحسب على `data_ready` فقط.
+
+### 9. `lazyWithRetry` يستخدم `safeSession*`
+- استبدال `sessionStorage.getItem/setItem` المباشر في `src/lib/lazyWithRetry.ts` (أو ما يقابله) بـ `safeSessionGetItem/safeSessionSetItem` من `src/lib/storage.ts`.
+
+---
+
+## P4 — تحسينات اختيارية
+
+### 10. تقسيم `main.tsx` إلى `src/app/bootstrap/`
+- `theme.ts`, `monitoring.ts`, `pwa.ts`, `queryClient.ts` كل واحد يصدّر `init*()`.
+- `main.tsx` يصبح ~15 سطر.
+
+### 11. توثيق الفروقات في `audit/architecture-map.md`
+- تحديث الخريطة لتعكس انقسامات P1.2/P1.3/P1.4.
+
+---
+
+## تفاصيل تقنية للمراجعة
+
+**الملفات التي ستُعدَّل (مرتّبة حسب الأولوية):**
+
+```text
+P0:
+  .gitignore                                              (تأكيد .env)
+  .github/workflows/ci.yml                                (gitleaks blocking)
+  scripts/audit-conventions-deep.mjs                      (3 قواعد جديدة)
+
+P1:
+  src/hooks/data/beneficiaries/useBeneficiaries.ts        (حذف toast)
+  src/hooks/page/admin/beneficiaries/<wrapper>.ts         (إضافة toast)
+  src/lib/services/settingsAssetsService.ts               (جديد)
+  src/hooks/page/admin/settings/useLogoUpload.ts          (استخدام الخدمة)
+  src/hooks/page/admin/settings/useWaqfInfoSave.ts        (استخدام الخدمة)
+  src/hooks/ui/useNotificationVisibilityPrefs.ts          (نقل)
+
+P2:
+  src/utils/README.md                                     (توضيح browser utils)
+
+P3:
+  src/lib/performance/pageMonitor.ts                      (فصل MetricKind)
+  src/hooks/ui/usePagePerformance.ts                      (إصلاح القياس)
+  src/lib/lazyWithRetry.ts                                (safeSession*)
+
+P4:
+  src/app/bootstrap/{theme,monitoring,pwa,queryClient}.ts (جديد)
+  src/main.tsx                                            (تبسيط)
+  audit/architecture-map.md                               (تحديث)
+```
+
+**أوامر `git` المطلوبة (P0 فقط):**
+```bash
+git rm --cached .env
+```
+لا يوجد مسح تاريخ (history rewrite) لأن المفتاح anon علني بطبيعته.
+
+**خطة التحقق بعد التنفيذ:**
+1. `bun run lint && bun test`
+2. `node scripts/audit-all.mjs` — يجب أن يبقى Critical=0 وGAP=0 مع القواعد الجديدة.
+3. فحص يدوي لصفحات: رفع الشعار، حفظ بيانات الوقف، إنشاء/تحديث مستفيد، التنقل بين الصفحات (للأداء).
+
+**ما هو خارج النطاق صراحةً:**
+- إعادة تنظيم `components/` حسب features/roles (لا دليل على ألم فعلي).
+- AST-based audit (الـ regex gates كافية حالياً).
+- تقسيم `vite.config.ts` و`eslint.config.js`.
+- نقل ملفات `utils/image|pdf|fonts` إلى `lib/browser/` (مؤجَّل لـ P3 مستقبلية).
+
+---
+
+## ترتيب التنفيذ المقترح في جلسات
+
+- **جلسة 1 (P0)**: 3 ملفات، حاجب CI.
+- **جلسة 2 (P1)**: 6 ملفات، إصلاح طبقات.
+- **جلسة 3 (P2+P3)**: README + 3 ملفات أداء.
+- **جلسة 4 (P4 اختياري)**: bootstrap modularization.
+
+هل أبدأ بـ **جلسة 1 (P0)** فور الموافقة، أم تريد تعديل النطاق أولاً؟
