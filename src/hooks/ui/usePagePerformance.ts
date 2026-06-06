@@ -38,7 +38,7 @@ export function usePagePerformance(): void {
       if (!nav) return;
       const loadTime = Math.round(nav.loadEventEnd - nav.startTime);
       if (loadTime > 0 && loadTime < 60_000) {
-        recordPageLoad(pathname, loadTime);
+        recordPageLoad(pathname, loadTime, 'load');
         notifyPerfUpdate();
       }
     };
