@@ -21,4 +21,4 @@ export { default as CloseYearChecklist } from './CloseYearChecklist';
 export { default as CloseYearDialog } from './CloseYearDialog';
 export { default as DistributeDialog } from './DistributeDialog';
 export { TreeBranch, CategoryRow, TYPE_CONFIG } from './CategoryTreeView';
-export * from './closeYearChecklist.utils';
+export * from '@/utils/accounts/closeYearChecklist';

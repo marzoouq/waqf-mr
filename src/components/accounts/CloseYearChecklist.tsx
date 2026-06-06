@@ -4,7 +4,7 @@
  */
 import { CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import type { ChecklistItem } from './closeYearChecklist.utils';
+import type { ChecklistItem } from '@/utils/accounts/closeYearChecklist';
 
 interface CloseYearChecklistProps {
   items: ChecklistItem[];

@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { AlertCircle } from 'lucide-react';
 import type { Contract } from '@/types';
-import { ID_TYPE_LABELS } from '../invoiceTemplateUtils';
+import { ID_TYPE_LABELS } from '@/utils/invoices/invoiceTemplate';
 
 interface InvoiceFormFieldsProps {
   invoiceNumber: string;

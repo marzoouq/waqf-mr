@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildClosureChecklist } from './closeYearChecklist.utils';
+import { buildClosureChecklist } from '@/utils/accounts/closeYearChecklist';
 
 describe('buildClosureChecklist', () => {
   const defaults = {
