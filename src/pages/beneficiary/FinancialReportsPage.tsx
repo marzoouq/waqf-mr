@@ -39,6 +39,11 @@ const FinancialReportsPage = () => {
     );
   }
 
+  // H3: تحقّق من ربط المستفيد قبل رسالة "الحساب الختامي مفقود"
+  if (!currentBeneficiary) {
+    return <UnlinkedAccountNotice />;
+  }
+
   if (isAccountMissing && selectedFY?.status === 'closed') {
     return (
       <DashboardLayout>
@@ -53,9 +58,6 @@ const FinancialReportsPage = () => {
     );
   }
 
-  if (!currentBeneficiary && !isLoading) {
-    return <UnlinkedAccountNotice />;
-  }
 
 
   return (

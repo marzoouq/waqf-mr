@@ -122,6 +122,8 @@ export function useBeneficiaryDashboardPage() {
   return {
     // حالات التحميل والخطأ
     isLoading, dashError, dashLoading, noPublishedYears,
+    // جاهزية السنة المالية — يستخدمه الـ UI لتمييز "لم تُختر سنة بعد"
+    fyReady,
     // إعدادات الويدجتس
     isVisible,
     // بيانات المستفيد
@@ -133,6 +135,7 @@ export function useBeneficiaryDashboardPage() {
     // بيانات السُلفة
     advanceEnabled, pendingAdvanceCount, advanceSettings,
     // سياق Dialog السلفة (مُجمَّع — props ≥5)
+    // N5: isFiscalYearActive يجب أن يستثني السنة المستقبلية (notStarted)
     advanceContext: {
       beneficiaryId: currentBeneficiary?.id ?? '',
       beneficiaryName: currentBeneficiary?.name ?? '',
@@ -140,7 +143,7 @@ export function useBeneficiaryDashboardPage() {
       estimatedShare: myShare,
       paidAdvances: paidAdvancesTotal,
       carryforwardBalance,
-      isFiscalYearActive: !isClosed && !!fiscalYear,
+      isFiscalYearActive: !isClosed && !!fiscalYear && !fyProgress.notStarted,
       minAmount: advanceSettings.min_amount ?? 500,
       maxPercentage: advanceSettings.max_percentage ?? 50,
       enabled: advanceEnabled,
@@ -149,3 +152,4 @@ export function useBeneficiaryDashboardPage() {
     handleRetry,
   };
 }
+

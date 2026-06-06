@@ -33,6 +33,11 @@ const AccountsViewPage = () => {
 
   if (finLoading) return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
 
+  // H3: تحقّق من ربط المستفيد قبل أي رسالة عن الحساب الختامي
+  if (!currentBeneficiary) {
+    return <UnlinkedAccountNotice />;
+  }
+
   if (isAccountMissing && selectedFY?.status === 'closed') {
     return (
       <DashboardLayout>
@@ -46,9 +51,6 @@ const AccountsViewPage = () => {
     );
   }
 
-  if (!currentBeneficiary) {
-    return <UnlinkedAccountNotice />;
-  }
 
   return (
     <RequirePublishedYears title="الحسابات الختامية" icon={Wallet} description="ملخص الأرقام النهائية">

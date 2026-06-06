@@ -57,9 +57,10 @@ const CarryforwardHistoryPage = () => {
     );
   }
 
+  // N1: RequirePublishedYears يلفّ DashboardLayout بنفسه عند الحجب — لذا يجب أن يكون خارج DashboardLayout لتجنّب layout مزدوج
   return (
-    <DashboardLayout>
-      <RequirePublishedYears title="تاريخ الترحيلات والخصومات" icon={ArrowDownUp}>
+    <RequirePublishedYears title="تاريخ الترحيلات والخصومات" icon={ArrowDownUp}>
+      <DashboardLayout>
         <div className="p-4 md:p-6 space-y-6">
           <PageHeaderCard
             title="تاريخ الترحيلات والخصومات"
@@ -87,9 +88,10 @@ const CarryforwardHistoryPage = () => {
 
           <PaidAdvancesTable paidAdvances={paidAdvances} />
         </div>
-      </RequirePublishedYears>
-    </DashboardLayout>
+      </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
+
 
 export default CarryforwardHistoryPage;
