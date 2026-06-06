@@ -4,6 +4,7 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { uiNotify } from '@/lib/notify';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { fmtInt } from '@/utils/format/format';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import {
   useAnnualReportItems, useCreateReportItem, useUpdateReportItem,

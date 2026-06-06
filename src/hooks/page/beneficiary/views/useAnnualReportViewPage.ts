@@ -7,6 +7,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { fmtInt } from '@/utils/format/format';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAnnualReportItems, useReportStatus } from '@/hooks/data/content/useAnnualReport';
 import { useProperties } from '@/hooks/data/properties/useProperties';
