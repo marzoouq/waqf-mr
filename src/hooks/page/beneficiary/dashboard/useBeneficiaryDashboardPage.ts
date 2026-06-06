@@ -18,7 +18,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 export function useBeneficiaryDashboardPage() {
   const queryClient = useQueryClient();
   const handleRetry = useRetryQueries(['beneficiary-dashboard']);
-  const { isVisible } = useBeneficiaryWidgets();
+  const { isVisible, isLoading: widgetsLoading } = useBeneficiaryWidgets();
 
 
   const { user, role, loading: authLoading } = useAuth();
