@@ -3,7 +3,6 @@
  */
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { uiNotify } from '@/lib/notify';
-import { usePrint } from '@/hooks/ui/usePrint';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import {
@@ -18,7 +17,7 @@ import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useAccountByFiscalYear } from '@/hooks/data/financial/accounts/useAccounts';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
-import type { AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
+import { useAnnualReportExport } from './useAnnualReportExport';
 import { DollarSign, Receipt, FileText, Building2 } from 'lucide-react';
 
 const formatCurrency = (v: number) =>
@@ -140,35 +139,14 @@ export function useAnnualReportPage() {
     }
   }, [grouped, activeTab, updateItem]);
 
-  // تصدير PDF
-  const handleExportPdf = useCallback(async () => {
-    const pdfData: AnnualReportPdfData = {
-      fiscalYearLabel: fiscalYear?.label || '',
-      achievements: grouped.achievement.map(i => ({ title: i.title, content: i.content })),
-      challenges: grouped.challenge.map(i => ({ title: i.title, content: i.content })),
-      futurePlans: grouped.future_plan.map(i => ({ title: i.title, content: i.content })),
-      propertyStatuses: grouped.property_status.map(i => {
-        const prop = properties.find(p => p.id === i.property_id);
-        return { title: i.title, content: i.content, propertyName: prop ? `${prop.property_number} — ${prop.location}` : undefined };
-      }),
-      summaryCards: summaryCards.map(c => ({ label: c.label, value: c.value })),
-    };
-    const { generateAnnualReportPDF } = await import('@/utils/pdf/reports/annualReport');
-    const ok = await generateAnnualReportPDF(pdfData, waqfInfo);
-    const { toast } = await import('sonner');
-    if (ok) toast.success('تم تصدير التقرير السنوي بنجاح');
-    else toast.error('فشل في تصدير التقرير');
-  }, [fiscalYear, grouped, properties, summaryCards, waqfInfo]);
-
-  // طباعة
-  const fallbackPrint = usePrint();
-  const handlePrint = useCallback(async () => {
-    try {
-      await handleExportPdf();
-    } catch {
-      fallbackPrint();
-    }
-  }, [handleExportPdf, fallbackPrint]);
+  // تصدير PDF + طباعة (مُستخرَج إلى هوك مستقل)
+  const { handleExportPdf, handlePrint } = useAnnualReportExport({
+    fiscalYearLabel: fiscalYear?.label || '',
+    grouped,
+    properties,
+    summaryCards,
+    waqfInfo,
+  });
 
   // نشر/إلغاء نشر
   const handleTogglePublish = useCallback(() => {
