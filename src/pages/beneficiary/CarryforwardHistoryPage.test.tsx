@@ -23,6 +23,12 @@ vi.mock('@/integrations/supabase/client', () => ({
         order: () => Promise.resolve({ data: [] }),
       }),
     }),
+    channel: () => ({
+      on: function () { return this; },
+      subscribe: () => ({ unsubscribe: () => undefined }),
+      unsubscribe: () => undefined,
+    }),
+    removeChannel: () => undefined,
   },
 }));
 
