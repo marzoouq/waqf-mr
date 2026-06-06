@@ -20,6 +20,8 @@ const SRC_ROOT = join(process.cwd(), 'src');
 const ALLOWLIST = new Set<string>([
   // fallback HTML داخل innerHTML عند فشل React boot — ليس استدعاءً تشغيلياً
   'main.tsx',
+  // زر "تحديث" يدوي داخل innerHTML fallback عند فشل تركيب جذر React
+  'app/bootstrap/mountReact.tsx',
   // زر استرجاع يدوي يضغطه المستخدم بعد ظهور شاشة الخطأ
   'components/common/feedback/ErrorBoundary.tsx',
   // استرداد من chunk load failure بعد نشر جديد (مرة واحدة فقط مع علم session)
