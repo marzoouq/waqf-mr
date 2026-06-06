@@ -31,7 +31,7 @@ export function useAccountsPage() {
     waqfCorpusPrevious: settings.waqfCorpusPrevious,
     manualVat: settings.manualVat,
     manualDistributions: settings.manualDistributions,
-    isClosed: data.selectedFY?.status === 'closed',
+    isClosed: data.isClosed,
   });
 
   // 4. حالة التحرير
