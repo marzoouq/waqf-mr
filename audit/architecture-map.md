@@ -4,7 +4,14 @@
 
 ```mermaid
 graph TD
-  P[Pages<br/>src/pages] --> HP[hooks/page<br/>page controllers]
+  MAIN[main.tsx<br/>entry] --> BOOT[app/bootstrap<br/>side-effect modules]
+  MAIN --> APP[App.tsx]
+  APP --> APR[app/providers]
+  APP --> ARO[app/router]
+  ARO --> RL[app/root-layout]
+  ARO --> RT[routes/**<br/>role route trees]
+  RT --> P[Pages<br/>src/pages]
+  P --> HP[hooks/page<br/>page controllers]
   P --> HA[hooks/application<br/>cross-role controllers]
   HP --> HD[hooks/data<br/>Supabase queries]
   HP --> HDom[hooks/domain<br/>pure calculations]
