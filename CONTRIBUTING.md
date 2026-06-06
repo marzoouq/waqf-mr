@@ -169,3 +169,34 @@ git push --no-verify
 - إحصائيات الصفحات والهوكات والطبقات
 - جداول قابلة للبحث للانتهاكات
 - خريطة ربط Page ↔ Hook ↔ Imports
+
+---
+
+## Git Hooks المحلية (pre-commit + pre-push)
+
+### التثبيت لمرة واحدة
+
+```bash
+bash scripts/install-git-hooks.sh
+```
+
+يُثبّت hookين في `.git/hooks/`:
+
+- **pre-commit** — يحجب:
+  - أي ملف `.env` أو `.env.*` (باستثناء `.env.example`)
+  - أنماط أسرار: `SUPABASE_SERVICE_ROLE_KEY`، `service_role`، `sk_live_/sk_test_`، GitHub tokens (`ghp_/gho_/ghs_`)، Slack (`xox[bpars]-`)، AWS (`AKIA...`)، Google (`AIza...`)، PRIVATE KEY blocks
+- **pre-push** — يحجب أي ملف `.env` متعقّب في git، ثم يشغّل بوابة Audit الكاملة
+
+### حماية المصادقة (HIBP)
+
+تم تفعيل فحص كلمات المرور المُسرّبة عبر قاعدة Have I Been Pwned على الـ Backend.
+أي كلمة مرور جديدة عند التسجيل أو التغيير تُرفض إذا كانت ضمن قواعد التسريب المعروفة.
+
+### التجاوز الطارئ
+
+```bash
+git commit --no-verify   # تخطي pre-commit
+git push   --no-verify   # تخطي pre-push
+```
+
+يُسمح به فقط في حالات الطوارئ ويجب توثيق السبب في رسالة الـ commit.
