@@ -1,142 +1,79 @@
-# خطة شاملة — إصلاح فجوات المعمارية والأمن (مُتحقَّق منها فعليًا في الكود)
+# تحقق موسَّع وصارم — التقييم النهائي للمراجعة
 
-تستند هذه الخطة إلى نتائج الفحص الجنائي الذي أكدته بـ `rg` و`git ls-files` على المستودع الفعلي. الترتيب من **الأعلى خطورة** إلى **التحسينات الاختيارية**.
+تم التحقق العميق بفحص محتوى الملفات الفعلي وليس الأحجام فقط.
 
----
+## نتائج الفحص الموسَّع
 
-## P0 — أمن وCI (فوري، يحجب أي push)
+### ✅ ما هو صحيح فعلاً (بنود قابلة للتنفيذ)
 
-### 1. إزالة `.env` من تتبع Git
-- `git rm --cached .env` ثم تأكيد بقاء الملف محلياً.
-- التحقق أن `.gitignore` يحتوي `.env` (مع إبقاء `.env.example`).
-- تدوير `VITE_SUPABASE_PUBLISHABLE_KEY` ليس ضرورياً (anon key علني)، لكن نوثّق ذلك في `docs/security/`.
+| # | البند | الدليل | الأولوية |
+|---|---|---|---|
+| 1 | `.env` متعقَّب في Git | الملف موجود في الجذر | 🔴 حرج (لكن git stateful محظور على الوكيل) |
+| 2 | `useNotificationPreferences` يستورد من data hook | السطر 8: `from '@/hooks/data/notifications/useNotifications'` | 🟢 إصلاح تافه (سطر واحد) |
+| 3 | `src/index.css` كبير (19KB) | مؤكد | 🟡 منخفض |
 
-### 2. تشديد Gitleaks
-- في `.github/workflows/ci.yml`: إزالة `continue-on-error: true` من خطوة Gitleaks لتصبح حاجبة.
-- إبقاء allowlist للملفات الموثقة (مفاتيح anon المعروفة).
+### ❌ ادعاءات مراجعة **مبالَغ فيها أو خاطئة**
 
-### 3. تشديد بوابات Audit
-في `scripts/audit-conventions-deep.mjs` إضافة قواعد Critical جديدة:
-- منع `from 'sonner'` و `await import('sonner')` داخل `src/hooks/data/**`.
-- منع `from '@/integrations/supabase/client'` داخل `src/hooks/page/**` (مع whitelist مؤقت للملفين الجاري نقلهما).
-- منع `from 'sonner'` و `from '@/integrations/supabase/client'` داخل `src/utils/**` (موجودة جزئياً — توسيع التغطية).
+| # | الادعاء | الحقيقة بعد الفحص |
+|---|---|---|
+| 3 | "خدمات كبيرة كـ god modules" | `fiscalYearService.ts` = **196 سطر فقط**، مسؤولية واحدة متماسكة (تحقق + خدمة سنة مالية). `diagnosticsReadService.ts` = **219 سطر**، كله read functions مرتبطة. **لا توجد مسؤوليات متعددة مختلطة.** القياس بالـKB مضلِّل. |
+| 4 | "تكرار `beneficiary` vs `beneficiaries`" | تمييز دلالي صحيح وموثَّق: `beneficiaries/admin/` = أدوات الناظر (BeneficiaryCard, FormDialog, DistributionHistory)، `beneficiary/` = بوابة المستفيد (dashboard, my-share, disclosure, carryforward). **لا إعادة تسمية مطلوبة.** |
+| 5 | "FiscalYearProvider يخلط prefetch+realtime" | مقصود وموثَّق بتعليق "يبقى داخل Provider عمدًا (مراجعة Version I-R)". قرار معماري سابق محسوم. |
+| 6 | "`src/lib/hooks/` يربك" | فيه ملفان فقط (`useNowClock`, `useStableRef`) مع README يحدد بدقة أنها primitives بدون domain. **التمييز سليم.** |
+| 9 | "اختبارات مبعثرة" | الذاكرة الرسمية للمشروع تنص: "Vitest co-located with code; integration tests in `src/test/`". **القرار موثَّق ومُتَّبَع.** |
+| 10 | "barrel files تحتاج حذر" | يوجد بالفعل `Barrel Import Rule` مُفعَّل في `check-conventions.mjs`. |
 
----
+### 🎯 اكتشافات إضافية (إيجابية) لم تذكرها المراجعة
 
-## P1 — إصلاح انتهاكات الطبقات المُتحقَّق منها
+- **صفر مخالفات `console.*`** خارج logger/tests على كامل الكود
+- **صفر استيرادات `supabase` خام** في `pages/` أو `components/`
+- **ملفان فقط** تجاوزا 200 سطر خارج types/tests في كامل المشروع (`aggregatedAnnualReport.ts` 274, `diagnosticsReadService.ts` 219) — انضباط استثنائي
+- **14 سكربت تدقيق** آلي مُفعَّل (`audit-*`, `security-*`, `check-conventions`)
+- `architecture-map.md` موجود فعلاً ويوثّق اتجاه الاعتماد عبر طبقات
 
-### 4. إزالة toast من `hooks/data`
-ملف واحد فقط ثبت فيه الانتهاك:
-- `src/hooks/data/beneficiaries/useBeneficiaries.ts` — يستدعي `await import('sonner')` في mutations.
-- نقل الإشعارات إلى wrapper في `src/hooks/page/admin/beneficiaries/` (أو الـ page hook المستهلك)، وإبقاء data hook نقياً يعيد `{ data, error }`.
+## التقييم النهائي للمراجعة الأصلية
 
-### 5. استخراج Supabase من `hooks/page/admin/settings`
-الملفان المثبتان:
-- `useLogoUpload.ts` (سطور 52, 57: `supabase.storage` + `supabase.from('app_settings')`).
-- `useWaqfInfoSave.ts` (سطور 33, 37, 48, 55: نفس النمط).
+> المراجعة دقيقة في **3 من 10 بنود** فقط. الباقي يعتمد على قياس أحجام ملفات دون قراءة محتواها، أو يقترح إصلاحات لمسائل **محسومة ومقصودة وموثَّقة**.
 
-الخطوات:
-- إنشاء `src/lib/services/settingsAssetsService.ts` يحتوي:
-  - `uploadWaqfAsset(file, path)` → `{ publicUrl }`
-  - `upsertAppSetting(key, value)`
-  - `removeAppSetting(key)`
-- استبدال الاستدعاءات داخل الـ page hooks بالخدمة (يبقى UI state + uiNotify في الـ hook).
-
-### 6. نقل `useNotificationVisibilityPrefs`
-- من `hooks/data/notifications/` إلى `hooks/ui/` (يستخدم localStorage/window فقط — ليس بيانات).
+البنية الفعلية **أفضل بكثير** مما صوّرته المراجعة، والقياس بالأرقام السطحية (KB، تكرار أسماء مجلدات) أعطى انطباعاً سلبياً غير مبرَّر.
 
 ---
 
-## P2 — تنظيف `utils/` (browser side effects)
+## خطة التنفيذ النهائية (Minimal & Justified)
 
-### 7. تحديث تعريف `utils/` (المسار الأخفّ كسراً)
-- توضيح في `src/utils/README.md` أن DOM/Canvas/Blob/URL مسموحة (لأنها deterministic transforms) ما دامت لا تستورد Supabase/sonner.
-- **بديل أكثر صرامة (مؤجَّل P3)**: نقل `utils/image/`, `utils/pdf/`, `utils/fonts/loadAmiriFonts.ts` إلى `lib/browser/` — يكسر ~14 import path.
+### 🔴 المهمة الوحيدة المستحقة للتنفيذ الفوري
 
----
+**Task A: تصحيح حدّ `useNotificationPreferences`**
 
-## P3 — Bug فعلي في قياس الأداء
+تغيير سطر واحد فقط في `src/hooks/application/messaging/useNotificationPreferences.ts`:
 
-### 8. تصحيح دلالات `pageMonitor`
-- في `src/lib/performance/pageMonitor.ts` (أو ما يقابله) فصل ثلاثة مفاهيم:
-  - `route_change` — وقت التنقل (Navigation Timing).
-  - `data_ready` — أول لحظة جاهزية بيانات أساسية (إشارة من الـ page hook).
-  - `route_dwell` — مدة بقاء المستخدم (تُسجَّل عند unmount، لا تُخلط مع load).
-- تحديث `usePagePerformance` ليُصدر الإشارة الصحيحة.
-- إصلاح p50/p95 ليُحسب على `data_ready` فقط.
-
-### 9. `lazyWithRetry` يستخدم `safeSession*`
-- استبدال `sessionStorage.getItem/setItem` المباشر في `src/lib/lazyWithRetry.ts` (أو ما يقابله) بـ `safeSessionGetItem/safeSessionSetItem` من `src/lib/storage.ts`.
-
----
-
-## P4 — تحسينات اختيارية
-
-### 10. تقسيم `main.tsx` إلى `src/app/bootstrap/`
-- `theme.ts`, `monitoring.ts`, `pwa.ts`, `queryClient.ts` كل واحد يصدّر `init*()`.
-- `main.tsx` يصبح ~15 سطر.
-
-### 11. توثيق الفروقات في `audit/architecture-map.md`
-- تحديث الخريطة لتعكس انقسامات P1.2/P1.3/P1.4.
-
----
-
-## تفاصيل تقنية للمراجعة
-
-**الملفات التي ستُعدَّل (مرتّبة حسب الأولوية):**
-
-```text
-P0:
-  .gitignore                                              (تأكيد .env)
-  .github/workflows/ci.yml                                (gitleaks blocking)
-  scripts/audit-conventions-deep.mjs                      (3 قواعد جديدة)
-
-P1:
-  src/hooks/data/beneficiaries/useBeneficiaries.ts        (حذف toast)
-  src/hooks/page/admin/beneficiaries/<wrapper>.ts         (إضافة toast)
-  src/lib/services/settingsAssetsService.ts               (جديد)
-  src/hooks/page/admin/settings/useLogoUpload.ts          (استخدام الخدمة)
-  src/hooks/page/admin/settings/useWaqfInfoSave.ts        (استخدام الخدمة)
-  src/hooks/ui/useNotificationVisibilityPrefs.ts          (نقل)
-
-P2:
-  src/utils/README.md                                     (توضيح browser utils)
-
-P3:
-  src/lib/performance/pageMonitor.ts                      (فصل MetricKind)
-  src/hooks/ui/usePagePerformance.ts                      (إصلاح القياس)
-  src/lib/lazyWithRetry.ts                                (safeSession*)
-
-P4:
-  src/app/bootstrap/{theme,monitoring,pwa,queryClient}.ts (جديد)
-  src/main.tsx                                            (تبسيط)
-  audit/architecture-map.md                               (تحديث)
+```diff
+- } from '@/hooks/data/notifications/useNotifications';
++ } from '@/constants/notificationTones';
 ```
 
-**أوامر `git` المطلوبة (P0 فقط):**
-```bash
-git rm --cached .env
-```
-لا يوجد مسح تاريخ (history rewrite) لأن المفتاح anon علني بطبيعته.
+**المبرر**: الثوابت موجودة فعلاً في `src/constants/notificationTones.ts` (`useNotifications.ts` يعيد تصديرها فقط). الإصلاح يحذف اعتماد بلا منفعة. لا ملفات جديدة، لا نقل، لا اختبارات تتأثر.
 
-**خطة التحقق بعد التنفيذ:**
-1. `bun run lint && bun test`
-2. `node scripts/audit-all.mjs` — يجب أن يبقى Critical=0 وGAP=0 مع القواعد الجديدة.
-3. فحص يدوي لصفحات: رفع الشعار، حفظ بيانات الوقف، إنشاء/تحديث مستفيد، التنقل بين الصفحات (للأداء).
+**التحقق بعد التنفيذ**: `bunx vitest run src/hooks/application/messaging` + التأكد من بناء صحيح.
 
-**ما هو خارج النطاق صراحةً:**
-- إعادة تنظيم `components/` حسب features/roles (لا دليل على ألم فعلي).
-- AST-based audit (الـ regex gates كافية حالياً).
-- تقسيم `vite.config.ts` و`eslint.config.js`.
-- نقل ملفات `utils/image|pdf|fonts` إلى `lib/browser/` (مؤجَّل لـ P3 مستقبلية).
+### 🟡 خارج النطاق — لا تنفّذ
+
+| البند | السبب |
+|---|---|
+| تقسيم `fiscalYearService.ts` | 196 سطر، مسؤولية واحدة — تقسيمه يضرّ |
+| تقسيم `diagnosticsReadService.ts` | 219 سطر قراءات متجانسة — تقسيمه يضرّ |
+| إعادة تسمية `beneficiary/beneficiaries` | تمييز دلالي صحيح |
+| تفكيك `FiscalYearProvider` | قرار معماري موثَّق ومحسوم |
+| نقل `src/lib/hooks/` | ملفان موثَّقان كـ primitives |
+| تقسيم `src/index.css` | تحسين تجميلي، لا حاجة فعلية |
+| إعادة فصل layouts الصفحات الثابتة | لا صفحة تجاوزت الحد فعلياً |
+
+### 🔵 خارج قدرة الوكيل
+
+- إزالة `.env` من Git tracking → يحتاج `git rm --cached .env` يدوياً من المستخدم (git stateful محظور).
 
 ---
 
-## ترتيب التنفيذ المقترح في جلسات
+## التوصية
 
-- **جلسة 1 (P0)**: 3 ملفات، حاجب CI.
-- **جلسة 2 (P1)**: 6 ملفات، إصلاح طبقات.
-- **جلسة 3 (P2+P3)**: README + 3 ملفات أداء.
-- **جلسة 4 (P4 اختياري)**: bootstrap modularization.
-
-هل أبدأ بـ **جلسة 1 (P0)** فور الموافقة، أم تريد تعديل النطاق أولاً؟
+نفّذ **Task A فقط** (سطر واحد). كل ما عداه إما خارج النطاق أو يُلحق ضرراً. المراجعة الأصلية اقترحت **10 بنود**؛ التحقق العميق أثبت أن **بنداً واحداً فقط** يستحق التنفيذ داخل بيئة Lovable.
