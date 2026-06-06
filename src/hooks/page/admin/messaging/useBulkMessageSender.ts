@@ -1,12 +1,10 @@
 /**
- * هوك إرسال الرسائل الجماعية — UI state + toasts.
- * نُقل من hooks/data/messaging/ لأنه يحتوي toast UI state.
- * استعلام المستفيدين يبقى في hooks/data/messaging/useBulkMessaging (useBeneficiariesForMessaging).
+ * هوك إرسال الرسائل الجماعية — UI state + toasts فقط.
+ * الاستعلامات الخام مُفوَّضة إلى messagingService.sendBroadcastToRecipient (M2.4 refinement).
  */
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { enqueueUserNotification } from '@/lib/services';
+import { messagingService, enqueueUserNotification } from '@/lib/services';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
@@ -27,37 +25,18 @@ export const useBulkMessageSender = () => {
 
     try {
       const subjectText = subject.trim() || 'رسالة من ناظر الوقف';
+      const content = message.trim();
 
       for (const b of recipients) {
         try {
-          const { data: conv, error: convError } = await supabase
-            .from('conversations')
-            .insert({
-              type: 'broadcast',
-              subject: subjectText,
-              created_by: user.id,
-              participant_id: b.user_id,
-            })
-            .select()
-            .single();
-
-          if (convError) {
-            logger.error('فشل إنشاء محادثة للمستفيد:', b.name, convError);
-            continue;
-          }
-
-          const { error: msgError } = await supabase
-            .from('messages')
-            .insert({
-              conversation_id: conv.id,
-              sender_id: user.id,
-              content: message.trim(),
-            });
-
-          if (msgError) {
-            logger.error('فشل إرسال رسالة للمستفيد:', b.name, msgError);
-            continue;
-          }
+          const ok = await messagingService.sendBroadcastToRecipient({
+            senderId: user.id,
+            recipientUserId: b.user_id,
+            recipientName: b.name,
+            subject: subjectText,
+            content,
+          });
+          if (!ok) continue;
 
           enqueueUserNotification(
             b.user_id!,

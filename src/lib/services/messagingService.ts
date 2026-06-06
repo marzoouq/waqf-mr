@@ -86,4 +86,47 @@ export const messagingService = {
     if (error) throw error;
     return data as Conversation;
   },
+
+  /**
+   * إنشاء محادثة broadcast لمستفيد واحد + إدراج الرسالة الأولى.
+   * يُرجع true عند النجاح؛ يلتقط الأخطاء داخلياً ويرسلها للـ logger.
+   */
+  async sendBroadcastToRecipient(payload: {
+    senderId: string;
+    recipientUserId: string | null;
+    recipientName: string;
+    subject: string;
+    content: string;
+  }): Promise<boolean> {
+    const { data: conv, error: convError } = await supabase
+      .from('conversations')
+      .insert({
+        type: 'broadcast',
+        subject: payload.subject,
+        created_by: payload.senderId,
+        participant_id: payload.recipientUserId,
+      })
+      .select('id')
+      .single();
+
+    if (convError || !conv) {
+      logger.error('فشل إنشاء محادثة للمستفيد:', payload.recipientName, convError);
+      return false;
+    }
+
+    const { error: msgError } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: conv.id,
+        sender_id: payload.senderId,
+        content: payload.content,
+      });
+
+    if (msgError) {
+      logger.error('فشل إرسال رسالة للمستفيد:', payload.recipientName, msgError);
+      return false;
+    }
+
+    return true;
+  },
 };
