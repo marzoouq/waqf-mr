@@ -67,6 +67,21 @@ export function useAccountsViewPage() {
     totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
     netAfterZakat: fin.netAfterZakat, availableAmount: fin.availableAmount, myShare,
     remainingBalance,
+    // تفصيل البطاقات الكامل (مطابق لصفحة الناظر)
+    waqfCorpusPrevious: fin.waqfCorpusPrevious,
+    grandTotal: fin.grandTotal,
+    netAfterExpenses: fin.netAfterExpenses,
+    vatAmount: fin.vatAmount,
+    netAfterVat: fin.netAfterVat,
+    zakatAmount: fin.zakatAmount,
+    adminShare: fin.adminShare,
+    waqifShare: fin.waqifShare,
+    waqfRevenue: fin.waqfRevenue,
+    waqfCorpusManual: fin.waqfCorpusManual,
+    distributionsAmount: fin.distributionsAmount,
+    adminPercent: dashData?.admin_share_pct ?? 10,
+    waqifPercent: dashData?.waqif_share_pct ?? 5,
+    isClosed: selectedFY?.status === 'closed',
     handleRetry, handleExportPdf, navigate,
   };
 }

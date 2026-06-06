@@ -15,7 +15,7 @@ export { default as AccountsSavedTable } from './AccountsSavedTable';
 export { default as AccountsSettingsBar } from './AccountsSettingsBar';
 export { default as AccountsSummaryCards } from './AccountsSummaryCards';
 export { default as AccountsViewMyShare } from './AccountsViewMyShare';
-export { default as AccountsViewSummary } from './AccountsViewSummary';
+
 export { default as AdvanceRequestsTab } from './AdvanceRequestsTab';
 export { default as CloseYearChecklist } from './CloseYearChecklist';
 export { default as CloseYearDialog } from './CloseYearDialog';

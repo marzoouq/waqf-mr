@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import { ExportMenu, RequirePublishedYears, DashboardSkeleton } from '@/components/common';
-import { AccountsViewSummary, AccountsViewMyShare } from '@/components/accounts';
+import { AccountsSummaryCards, AccountsViewMyShare } from '@/components/accounts';
 import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import { useAccountsViewPage } from '@/hooks/page/beneficiary';
 
@@ -11,7 +11,11 @@ const AccountsViewPage = () => {
   const {
     finLoading, finError,
     isAccountMissing, selectedFY, currentBeneficiary,
-    totalIncome, totalExpenses, netAfterZakat, availableAmount, myShare,
+    totalIncome, totalExpenses, myShare,
+    waqfCorpusPrevious, grandTotal, netAfterExpenses, vatAmount, netAfterVat,
+    zakatAmount, netAfterZakat, adminShare, waqifShare, waqfRevenue,
+    waqfCorpusManual, distributionsAmount, remainingBalance,
+    adminPercent, waqifPercent, isClosed,
     handleRetry, handleExportPdf, navigate,
   } = useAccountsViewPage();
 
@@ -57,12 +61,25 @@ const AccountsViewPage = () => {
           actions={<ExportMenu onExportPdf={handleExportPdf} />}
         />
 
-        <AccountsViewSummary
+        <AccountsSummaryCards
+          waqfCorpusPrevious={waqfCorpusPrevious}
           totalIncome={totalIncome}
+          grandTotal={grandTotal}
           totalExpenses={totalExpenses}
+          netAfterExpenses={netAfterExpenses}
+          manualVat={vatAmount}
+          netAfterVat={netAfterVat}
+          zakatAmount={zakatAmount}
           netAfterZakat={netAfterZakat}
-          availableAmount={availableAmount}
-          myShare={myShare}
+          adminPercent={adminPercent}
+          adminShare={adminShare}
+          waqifPercent={waqifPercent}
+          waqifShare={waqifShare}
+          waqfRevenue={waqfRevenue}
+          waqfCorpusManual={waqfCorpusManual}
+          manualDistributions={distributionsAmount}
+          remainingBalance={remainingBalance}
+          isClosed={isClosed}
         />
 
         {currentBeneficiary && <AccountsViewMyShare myShare={myShare} />}
