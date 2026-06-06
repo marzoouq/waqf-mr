@@ -3,9 +3,12 @@
  * - admin/accountant → redirect إلى لوحة دعم الإدارة (/dashboard/support) مع toast
  * - beneficiary → عرض الصفحة
  * (waqif محجوب على مستوى المسار)
+ *
+ * H21: نستخدم navigate() داخل effect ونعرض Loader بدل <Navigate/> أثناء render
+ * كي يبقى المكوّن مُركّباً بما يكفي ليُلتقط toast قبل التحويل.
  */
-import { Navigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { uiNotify } from '@/lib/notify';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
@@ -14,16 +17,22 @@ const BeneficiarySupportPage = lazy(() => import('@/pages/beneficiary/SupportPag
 
 const SupportPageGuard = () => {
   const { role } = useAuth();
+  const navigate = useNavigate();
   const shouldRedirect = role === 'admin' || role === 'accountant';
 
   useEffect(() => {
     if (shouldRedirect) {
       uiNotify.info('تم تحويلك إلى لوحة دعم الإدارة');
+      navigate('/dashboard/support', { replace: true });
     }
-  }, [shouldRedirect]);
+  }, [shouldRedirect, navigate]);
 
   if (shouldRedirect) {
-    return <Navigate to="/dashboard/support" replace />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (

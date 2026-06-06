@@ -17,7 +17,7 @@ import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 
 const BeneficiaryDashboard = () => {
   const {
-    isLoading, dashError, dashLoading, noPublishedYears, isVisible,
+    isLoading, dashError, dashLoading, noPublishedYears, fyReady, isVisible,
     currentBeneficiary, myShare, distributions, role, fiscalYearId,
     fiscalYear, isClosed, fyProgress,
     displayName, roleLabel, recentNotifications, unreadCount, greetingData,
@@ -34,9 +34,11 @@ const BeneficiaryDashboard = () => {
     return <ErrorState onRetry={handleRetry} />;
   }
 
-  if (!currentBeneficiary && !dashLoading) {
+  // H2: لا تُظهر "غير مرتبط" حتى تكون السنة جاهزة فعلاً
+  if (fyReady && !currentBeneficiary && !dashLoading) {
     return <UnlinkedAccountNotice />;
   }
+
 
 
   if (noPublishedYears) {
