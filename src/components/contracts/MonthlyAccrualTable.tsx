@@ -4,18 +4,17 @@
  */
 import { useMemo, memo } from 'react';
 import { Contract } from '@/types';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays } from 'lucide-react';
 import {
   type CellData, type CellStatus,
-  buildFiscalMonthGrid, getCellClasses, fmtNum,
+  buildFiscalMonthGrid,
 } from './accrual/accrualUtils';
-import { MobileAccrualCard } from './accrual/AccrualHelpers';
+import AccrualDesktopTable from './accrual/AccrualDesktopTable';
+import AccrualMobileSummary from './accrual/AccrualMobileSummary';
 import { isFySpecific } from '@/constants/fiscalYearIds';
 
-/** واجهة فاتورة الدفعة المُمررة من الخارج */
 interface InvoiceInfo {
   id: string;
   contract_id: string;
@@ -52,7 +51,6 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
     return String(new Date().getFullYear());
   }, [fiscalYear]);
 
-  /** بناء خريطة: contract_id → فواتير مجمعة حسب (شهر, سنة) */
   const invoiceMap = useMemo(() => {
     const map = new Map<string, Map<string, { amount: number; status: CellStatus }>>();
     for (const inv of paymentInvoices) {
@@ -129,62 +127,8 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 md:p-0">
-        {/* عرض بطاقات الجوال */}
-        <div className="md:hidden p-3 space-y-3">
-          <div className="bg-primary/5 rounded-lg p-3 text-center border border-primary/20">
-            <p className="text-xs text-muted-foreground">الإجمالي السنوي</p>
-            <p className="text-lg font-bold text-primary tabular-nums">{fmtNum(grandTotal)} ر.س</p>
-          </div>
-          {accrualData.map(({ contract, cells, total }) => (
-            <MobileAccrualCard key={contract.id} contract={contract} cells={cells} total={total} grid={monthGrid} />
-          ))}
-        </div>
-
-        {/* عرض الجدول للشاشات الكبيرة */}
-        <div className="hidden md:block overflow-x-auto">
-          <Table className="min-w-[1200px]">
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="text-right sticky right-0 bg-muted/50 z-10 min-w-[160px]">العقد / المستأجر</TableHead>
-                {monthGrid.map((cell) => (
-                  <TableHead key={cell.label} className="text-center text-xs min-w-[85px]">{cell.label}</TableHead>
-                ))}
-                <TableHead className="text-center font-bold min-w-[100px]">الإجمالي</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {accrualData.map(({ contract, cells, total }) => (
-                <TableRow key={contract.id}>
-                  <TableCell className="sticky right-0 bg-background z-10">
-                    <div className="min-w-0">
-                      <p className="font-medium text-sm truncate">{contract.contract_number}</p>
-                      <p className="text-xs text-muted-foreground truncate">{contract.tenant_name}</p>
-                    </div>
-                  </TableCell>
-                  {cells.map((cell, i) => (
-                    <TableCell key={`${contract.id}-${monthGrid[i]?.label ?? i}`} className={`text-center text-xs tabular-nums ${getCellClasses(cell.status)}`}>
-                      {cell.amount > 0 ? fmtNum(cell.amount) : '—'}
-                    </TableCell>
-                  ))}
-                  <TableCell className="text-center font-bold text-sm tabular-nums">
-                    {fmtNum(total)}
-                  </TableCell>
-                </TableRow>
-              ))}
-              <TableRow className="bg-primary/5 font-bold border-t-2 border-primary/20">
-                <TableCell className="sticky right-0 bg-primary/5 z-10 text-primary">الإجمالي</TableCell>
-                {monthlyTotals.map((total, i) => (
-                  <TableCell key={`total-${monthGrid[i]?.label ?? i}`} className="text-center text-xs tabular-nums text-primary">
-                    {total > 0 ? fmtNum(total) : '—'}
-                  </TableCell>
-                ))}
-                <TableCell className="text-center text-primary text-sm tabular-nums">
-                  {fmtNum(grandTotal)} ر.س
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
+        <AccrualMobileSummary rows={accrualData} monthGrid={monthGrid} grandTotal={grandTotal} />
+        <AccrualDesktopTable rows={accrualData} monthGrid={monthGrid} monthlyTotals={monthlyTotals} grandTotal={grandTotal} />
       </CardContent>
     </Card>
   );

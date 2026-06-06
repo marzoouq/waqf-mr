@@ -1,67 +1,9 @@
-import { useEffect, useState } from "react";
-import { uiNotify } from "@/lib/notify";
+import { useEffect, useState } from 'react';
+import { uiNotify } from '@/lib/notify';
 import { safeGet, safeRemove, safeSet } from '@/lib/storage';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Bug, Wrench, Star } from "lucide-react";
-import { logger } from "@/lib/logger";
-
-interface ChangelogEntry {
-  version: string;
-  date: string;
-  changes: { type: "feature" | "fix" | "improvement"; text: string }[];
-}
-
-const typeIcon = {
-  feature: <Star className="h-3.5 w-3.5 text-primary" />,
-  fix: <Bug className="h-3.5 w-3.5 text-destructive" />,
-  improvement: <Wrench className="h-3.5 w-3.5 text-warning" />,
-};
-
-const typeLabel = {
-  feature: "جديد",
-  fix: "إصلاح",
-  improvement: "تحسين",
-};
-
-/** يستخرج أول عدد صحيح من بداية المقطع، ويعيد 0 إن لم يوجد أو نتج NaN */
-function parsePart(s: string | undefined): number {
-  const m = /^(\d+)/.exec(s ?? '');
-  const n = m ? Number(m[1]) : 0;
-  return Number.isFinite(n) ? n : 0;
-}
-
-/** هل يحتوي الإصدار على لاحقة pre-release (مثل -beta أو -rc.1)؟ */
-function hasPrerelease(v: string | undefined): boolean {
-  return /-/.test(v ?? '');
-}
-
-/**
- * مقارنة semver محصّنة ضد:
- *  - اللواحق: "1.2.3-beta" → يُعامَل كأقل من "1.2.3"
- *  - NaN: أي مقطع غير رقمي يُعامَل كـ 0 بدل تخريب المقارنة
- *  - مدخلات فارغة/null/undefined: تُعامَل كـ "0.0.0"
- * يعيد >0 إذا a > b، <0 إذا a < b، 0 إذا متساويان.
- */
-function compareSemver(a: string, b: string): number {
-  const sa = (a || '0.0.0').split('.');
-  const sb = (b || '0.0.0').split('.');
-  for (let i = 0; i < 3; i++) {
-    const diff = parsePart(sa[i]) - parsePart(sb[i]);
-    if (diff !== 0) return diff;
-  }
-  // أرقام متساوية → النظيف أكبر من نظيره الـ pre-release
-  const pa = hasPrerelease(a);
-  const pb = hasPrerelease(b);
-  if (pa && !pb) return -1;
-  if (!pa && pb) return 1;
-  return 0;
-}
+import { logger } from '@/lib/logger';
+import { compareSemver } from '@/lib/pwa/semver';
+import ChangelogDialog, { type ChangelogEntry } from './ChangelogDialog';
 
 const LAST_SEEN_KEY = 'pwa_last_seen_version';
 const UPDATE_FLAG_KEY = 'pwa_just_updated';
@@ -81,7 +23,6 @@ const PwaUpdateNotifier = () => {
       const { ts } = JSON.parse(raw);
       if (Date.now() - ts >= UPDATE_TTL) return;
 
-      // جلب سجل التحديثات مع تجاوز الكاش
       fetch(`/changelog.json?v=${Date.now()}`, {
         cache: 'no-store',
         signal: controller.signal,
@@ -95,14 +36,12 @@ const PwaUpdateNotifier = () => {
           const latestVersion = latest.version;
           const lastSeen = safeGet(LAST_SEEN_KEY, '');
 
-          // مستخدم جديد على الجهاز: اعرض أحدث إصدار فقط واحفظه فوراً
-          // (الـ fallback السابق `0.0.0` كان يعرض كل السجل)
           let entries: ChangelogEntry[];
           if (!lastSeen) {
             entries = [latest];
           } else {
             const filtered = changelog.filter(e => compareSemver(e.version, lastSeen) > 0);
-            entries = filtered.slice(0, 3); // حد أقصى 3 إصدارات
+            entries = filtered.slice(0, 3);
           }
 
           if (entries.length === 0) {
@@ -110,20 +49,18 @@ const PwaUpdateNotifier = () => {
             return;
           }
 
-          // احفظ قبل العرض لمنع إعادة الإظهار عند reload
           safeSet(LAST_SEEN_KEY, latestVersion);
           setNewEntries(entries);
 
-          // toast فقط إن وُجد feature أو fix (تجنب الإزعاج بتحسينات داخلية)
           const hasUserFacing = entries.some(e =>
             e.changes.some(c => c.type === 'feature' || c.type === 'fix'),
           );
           if (hasUserFacing) {
-            uiNotify.success("تم تحديث التطبيق بنجاح ✨", {
-              description: "اضغط لعرض سجل التحديثات",
+            uiNotify.success('تم تحديث التطبيق بنجاح ✨', {
+              description: 'اضغط لعرض سجل التحديثات',
               duration: 6000,
               action: {
-                label: "عرض التحديثات",
+                label: 'عرض التحديثات',
                 onClick: () => setShowChangelog(true),
               },
             });
@@ -142,47 +79,7 @@ const PwaUpdateNotifier = () => {
 
   if (newEntries.length === 0) return null;
 
-  return (
-    <Dialog open={showChangelog} onOpenChange={setShowChangelog}>
-      <DialogContent className="max-w-md" dir="rtl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <Sparkles className="h-5 w-5 text-primary" />
-            سجل التحديثات
-          </DialogTitle>
-        </DialogHeader>
-        <ScrollArea className="max-h-[60vh]">
-          <div className="space-y-6 pe-3">
-            {newEntries.map((entry) => (
-              <div key={entry.version}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-foreground">
-                    الإصدار {entry.version}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {entry.date}
-                  </span>
-                </div>
-                <ul className="space-y-1.5">
-                  {entry.changes.map((change, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      {typeIcon[change.type]}
-                      <span>
-                        <span className="inline-block text-xs font-medium text-foreground bg-muted rounded px-1.5 py-0.5 me-1">
-                          {typeLabel[change.type]}
-                        </span>
-                        {change.text}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
-  );
+  return <ChangelogDialog open={showChangelog} onOpenChange={setShowChangelog} entries={newEntries} />;
 };
 
 export default PwaUpdateNotifier;
