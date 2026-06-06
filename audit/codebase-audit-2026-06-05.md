@@ -35,9 +35,13 @@
   - `index.ts` (barrel) محدَّث؛ لا تغييرات في المستهلكين (الاستيرادات تمر عبر `@/components/common`).
 - **P1.4 ✅ lib/contracts/README.md**: أُضيف ملف يوثّق حدود lib vs utils.
 
-### P1 — أُجِّلت (تحت الحد الرسمي)
-
-- **P1.2** خمسة مكونات بين 188-193 سطراً (`MonthlyAccrualTable`, `AccountsContractsTable`, `PwaUpdateNotifier`, `VoucherFormDialog`, `DisclosureFinancialStatement`). الحد الرسمي 200؛ لا انتهاك. تُترك كتحسين اختياري.
+- **P1.2 ✅ تقسيم 5 مكونات (188-193 سطراً)** — كلها أصبحت < 140 سطراً بعد استخراج الأبناء العرضيين:
+  - `MonthlyAccrualTable` 193 → **137** + `accrual/AccrualDesktopTable` (66) + `accrual/AccrualMobileSummary` (30).
+  - `AccountsContractsTable` 193 → **67** + `contracts/AccountsContractsMobileList` (103) + `contracts/AccountsContractsDesktopTable` (95) + `contracts/originBadge` (8).
+  - `PwaUpdateNotifier` 188 → **85** + `ChangelogDialog` (67) + `lib/pwa/semver` (37).
+  - `VoucherFormDialog` 188 → **121** + `VoucherFormFields` (88).
+  - `DisclosureFinancialStatement` 188 → **79** + 4 أبناء (Income/Expenses/Waterfall/MyShare بين 29-82).
+  - لا تغيير في API الخارجي ولا في الاستيرادات من المستهلكين.
 
 ### P2 — مفيد
 
