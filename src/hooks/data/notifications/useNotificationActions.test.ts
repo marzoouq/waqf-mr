@@ -109,7 +109,7 @@ describe('useNotificationActions — optimistic mark as read', () => {
     const { qc, result } = setup();
     act(() => { result.current.markAllAsRead.mutate(); });
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('تعذّر تحديث حالة الإشعارات');
+      expect(toast.error).toHaveBeenCalledWith('تعذّر تحديث حالة الإشعارات', undefined);
     });
     const all = getList(qc);
     // unread استُعيدا (n1, n2)
@@ -129,7 +129,7 @@ describe('useNotificationActions — optimistic mark as read', () => {
     const { qc, result } = setup();
     act(() => { result.current.deleteOne.mutate('n2'); });
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('تعذّر حذف الإشعار');
+      expect(toast.error).toHaveBeenCalledWith('تعذّر حذف الإشعار', undefined);
     });
     expect(getList(qc).find(n => n.id === 'n2')).toBeDefined();
   });
