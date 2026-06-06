@@ -1,4 +1,7 @@
 import { lazy, type ComponentType } from 'react';
+import { safeSessionGet, safeSessionSet, safeSessionRemove } from '@/lib/storage';
+
+const RETRY_KEY = 'chunk_retry';
 
 // ─── تعافي تلقائي آمن عند فشل تحميل chunk قديم ───
 export function lazyWithRetry<T extends ComponentType<Record<string, unknown>>>(
@@ -7,7 +10,7 @@ export function lazyWithRetry<T extends ComponentType<Record<string, unknown>>>(
   return lazy(async () => {
     try {
       const mod = await importFn();
-      sessionStorage.removeItem('chunk_retry');
+      safeSessionRemove(RETRY_KEY);
       return mod;
     } catch (error: unknown) {
       const isChunkError =
@@ -18,14 +21,14 @@ export function lazyWithRetry<T extends ComponentType<Record<string, unknown>>>(
         );
 
       if (isChunkError) {
-        const retried = sessionStorage.getItem('chunk_retry');
+        const retried = safeSessionGet<string>(RETRY_KEY, '');
         if (!retried) {
-          sessionStorage.setItem('chunk_retry', '1');
+          safeSessionSet(RETRY_KEY, '1');
           try { await caches.delete('static-assets'); } catch { /* تجاهل */ }
           window.location.reload();
           return new Promise<{ default: T }>(() => {});
         }
-        sessionStorage.removeItem('chunk_retry');
+        safeSessionRemove(RETRY_KEY);
       }
       throw error;
     }

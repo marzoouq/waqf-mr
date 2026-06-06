@@ -6,11 +6,15 @@
 import { safeSessionGet, safeSessionSet, safeSessionRemove } from '@/lib/storage';
 import { ALL_ROUTES } from '@/constants/routeRegistry';
 
+export type PageMetricKind = 'load' | 'dwell';
+
 export interface PageLoadEntry {
   path: string;
   label: string;
   durationMs: number;
   timestamp: number;
+  /** نوع القياس — `load` لتحميل الصفحة الفعلي، `dwell` لمدة بقاء المستخدم. */
+  kind?: PageMetricKind;
 }
 
 const MAX_ENTRIES = 100;
@@ -25,14 +29,15 @@ export function getStoredEntries(): PageLoadEntry[] {
   return safeSessionGet<PageLoadEntry[]>(STORAGE_KEY, []);
 }
 
-/** حفظ سجل جديد */
-export function recordPageLoad(path: string, durationMs: number): void {
+/** حفظ سجل جديد — `kind` افتراضياً `load` للتوافق الخلفي. */
+export function recordPageLoad(path: string, durationMs: number, kind: PageMetricKind = 'load'): void {
   const entries = getStoredEntries();
   entries.push({
     path,
     label: getPageLabel(path),
     durationMs: Math.round(durationMs),
     timestamp: Date.now(),
+    kind,
   });
 
   while (entries.length > MAX_ENTRIES) entries.shift();
@@ -56,8 +61,17 @@ export interface PagePerfSummary {
   lastMs: number;
 }
 
-export function getPagePerfSummaries(): PagePerfSummary[] {
-  const entries = getStoredEntries();
+/**
+ * ملخصات أداء الصفحات.
+ * @param kindFilter يفلتر نوع القياس — افتراضياً `load` فقط لتجنّب
+ * خلط مدة بقاء المستخدم (dwell) مع وقت تحميل الصفحة الفعلي.
+ * مرّر `undefined` للحصول على الجميع، أو `'dwell'` لاستعراض زمن البقاء.
+ */
+export function getPagePerfSummaries(kindFilter: PageMetricKind | undefined = 'load'): PagePerfSummary[] {
+  const all = getStoredEntries();
+  const entries = kindFilter
+    ? all.filter(e => (e.kind ?? 'load') === kindFilter)
+    : all;
   const grouped: Record<string, PageLoadEntry[]> = {};
 
   for (const e of entries) {

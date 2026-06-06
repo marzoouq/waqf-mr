@@ -16,12 +16,13 @@ export function usePagePerformance(): void {
   useEffect(() => {
     // fallback لتغطية أول render قبل تشغيل mount effect لـ initial
     if (!startRef.current) startRef.current = performance.now();
-    // عند تغيير المسار — سجّل وقت المسار السابق وابدأ عداد المسار الجديد
+    // عند تغيير المسار — سجّل مدة بقاء المستخدم على المسار السابق (dwell)
+    // وابدأ عداد المسار الجديد. لا نخلط الـ dwell مع وقت التحميل (load).
     if (lastPathRef.current !== pathname) {
       const duration = performance.now() - startRef.current;
       // تجاهل الأوقات الطويلة جداً (المستخدم ترك التبويب)
       if (duration < 120_000) {
-        recordPageLoad(lastPathRef.current, duration);
+        recordPageLoad(lastPathRef.current, duration, 'dwell');
         notifyPerfUpdate();
         logger.info(`[Perf] صفحة "${lastPathRef.current}" عُرضت لمدة ${Math.round(duration)}ms`);
       }
@@ -37,7 +38,7 @@ export function usePagePerformance(): void {
       if (!nav) return;
       const loadTime = Math.round(nav.loadEventEnd - nav.startTime);
       if (loadTime > 0 && loadTime < 60_000) {
-        recordPageLoad(pathname, loadTime);
+        recordPageLoad(pathname, loadTime, 'load');
         notifyPerfUpdate();
       }
     };
