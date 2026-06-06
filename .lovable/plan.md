@@ -1,58 +1,91 @@
-## الهدف
-تقسيم 5 مكونات (188-193 سطراً) إلى ملفات أصغر تبقى تحت 150 سطراً، مع الحفاظ الحرفي على السلوك والتوقيع العام (props + default export) لكل مكوّن — لا تغيير في المستهلكين ولا في منطق الأعمال.
+## ملخّص تنفيذي
 
-## المبدأ التوجيهي
-- استخراج **عرضي بحت** (presentational) إلى أبناء مجاورين في نفس المجلد أو في مجلد فرعي قائم.
-- لا نقل لمنطق الأعمال إلى `utils/` ما لم يكن نقياً 100% (PwaUpdateNotifier فقط).
-- props passthrough مع `memo` عند الجدوى (صفوف الجداول).
-- لا تغيير في الاستيرادات الخارجية لكل مكوّن جذر.
+تم مسح **1,224 ملف** عبر `src/` وتشغيل كامل سلسلة التدقيق (`audit-all.mjs` = structure + conventions-deep + hooks-layout + ui-permissions + page-controls + build-report). الحالة:
 
-## التغييرات
+| المؤشر | القيمة |
+|---|---|
+| Critical violations | **0** |
+| Warning | **0** |
+| GAP (handlers/permissions/page-controls) | **0** |
+| Info (مسموح) | 4 ألوان Hex داخل Canvas/PDF (`SignaturePad`, `InvoicePreviewDialog`) |
+| TODO / FIXME / HACK | **0** |
+| `@ts-ignore` / `@ts-expect-error` | 3 فقط (مقبول) |
+| `any` خارج الاختبارات | **1** فقط (`utils/pdf/core/pdfHelpers.ts`) |
+| Pages تستورد `hooks/data` كقيمة | **0** (الوحيد type-only import) |
+| Hooks تستورد من `pages/**` | **0** |
+| ملفات > 200 سطر | 17 (كلها مبرّرة: 1 types مولّد، 9 اختبارات، 4 PDF/diagnostics، 3 hooks في 201-220) |
 
-### 1) `MonthlyAccrualTable.tsx` (193 → ~95)
-- مكان فرعي قائم: `src/components/contracts/accrual/`
-- ملفات جديدة:
-  - `AccrualDesktopTable.tsx` — جدول `md:` (rows + footer).
-  - `AccrualMobileSummary.tsx` — كتلة الجوال (header + قائمة `MobileAccrualCard`).
-- يبقى `MonthlyAccrualTable.tsx` يحتوي useMemo الحسابي + التوجيه بين العرضين + حالات Loading/Empty.
+**الخلاصة:** البنية ناضجة وصحية. لا توجد انتهاكات معمارية حرجة. التوصيات أدناه **تحسينات تجميلية** فقط.
 
-### 2) `AccountsContractsTable.tsx` (193 → ~80)
-- مكان جديد: `src/components/accounts/contracts/`
-- ملفات جديدة:
-  - `AccountsContractsMobileList.tsx` — البطاقات + ملخّص الجوال.
-  - `AccountsContractsDesktopTable.tsx` — جدول `md:` + الفوتر.
-  - `originBadge.tsx` — Badge helper.
-- يبقى `AccountsContractsTable.tsx` غلافاً يحسب الإجماليات ويوجّه.
+---
 
-### 3) `PwaUpdateNotifier.tsx` (188 → ~85)
-- ملفات جديدة:
-  - `src/lib/pwa/semver.ts` — `compareSemver`, `parsePart`, `hasPrerelease` (دوال نقية، عديمة الأثر الجانبي → `lib/` وليس `utils/` لأنها مجال PWA لا تنسيق عام).
-  - `src/components/pwa/ChangelogDialog.tsx` — الـ Dialog + Map للسجل.
-- يبقى `PwaUpdateNotifier.tsx` يحتوي `useEffect` ومنطق التحقّق من التحديث.
+## ما تم فحصه (قراءة فقط)
 
-### 4) `VoucherFormDialog.tsx` (188 → ~95)
-- مكان قائم: `src/components/expenses/vouchers/`
-- ملفات جديدة:
-  - `VoucherFormFields.tsx` — الـ grid الكامل (Name/ID/Phone/Amount/Method/Ref + Description + Signature).
-- يبقى `VoucherFormDialog.tsx` يحتوي state + validate + submit + DialogFooter.
+1. **Structure** — توزيع الطبقات (component/util/hook-*/lib/page).
+2. **Conventions Deep** — حدود LOC، lib vs utils، logger، ألوان CSS، Page Hook Pattern.
+3. **Hooks Layout** — وجود `data/{financial,settings}` و `auth/{session,role,biometric,flows}`.
+4. **UI Permissions** — 460 ملف لـ `onClick`/`type=submit`/`asChild`/`to=`.
+5. **Page Controls** — 91 control صفحة + 23 child، كلها OK.
+6. **مؤشرات إضافية** — `any` types، TODOs، استيرادات عابرة للطبقات، اعتمادات circular.
 
-### 5) `DisclosureFinancialStatement.tsx` (188 → ~70)
-- مكان قائم: `src/components/beneficiary/disclosure/`
-- ملفات جديدة:
-  - `DisclosureIncomeBlock.tsx` — قسم الإيرادات.
-  - `DisclosureExpensesBlock.tsx` — قسم المصروفات + VAT.
-  - `DisclosureWaterfallBlock.tsx` — التسلسل المالي الكامل (corpus → نت → ضريبة → زكاة → حصص).
-  - `DisclosureMyShareCard.tsx` — بطاقة حصتي.
-- يبقى المكوّن الجذر غلاف Card + تمرير props لكل قسم.
+---
 
-## التحقّق (بعد التنفيذ)
-1. `wc -l` لكل ملف جديد ≤ 150 سطر، والملفات الأصلية ≤ 100 سطر.
-2. `node scripts/audit-conventions-deep.mjs` — 0 Warning، Info ≤ 4 (الموجودة).
-3. `node scripts/audit-structure.mjs` — لا انتهاكات جديدة.
-4. `bunx vitest run` — جميع الاختبارات الحالية تمر (لا تغيير في API).
-5. فحص `rg` للتأكد من أن استيرادات المستهلكين الخارجيين لم تتغيّر.
+## التوصيات (مرتّبة من الأهم للاختياري)
 
-## تحديث التقرير
-تعديل `audit/codebase-audit-2026-06-05.md`:
-- نقل P1.2 من قسم "أُجِّلت" إلى قسم "المُنفَّذة" مع تفصيل الـ5 تقسيمات.
-- تحديث جدول الملخص النهائي (P1: 4/4).
+### P0 — لا شيء
+
+لا توجد انتهاكات حرجة تستدعي التدخل.
+
+### P1 — تحسينات معمارية مفيدة (اختياري)
+
+1. **مراجعة 65 مكوّناً يستورد `@/hooks/data` مباشرة.**
+   - بعضها container طبيعي (جداول، حوارات CRUD)؛ لا انتهاك.
+   - الإجراء: تشغيل `rg -l "from '@/hooks/data" src/components | wc` ومراجعة قائمة قصيرة لتحديد ما إذا كان أحدها من المفترض أن يكون presentational فقط ويأخذ البيانات عبر props.
+   - **بدون** فرض تحويل قسري — القاعدة الحالية تسمح به للحاويات.
+
+2. **استبدال `any` الوحيد في `utils/pdf/core/pdfHelpers.ts`** بنوع `jsPDF` المناسب أو `unknown` + type guard.
+
+3. **توثيق الـ3 `@ts-ignore` المتبقية** بتعليق سبب التجاوز (إن لم يكن موجوداً).
+
+### P2 — تنقية مكتبة الاختبارات (اختياري)
+
+4. **توحيد 9 ملفات اختبار > 200 سطر** (financialIntegration, accountsCalculations…) بتقسيم بحسب suite منطقي — حالياً تقرأ كـ "monolith" لكنها لا تكسر أي قاعدة (`size limit` لا يطبق على `.test.*`).
+
+5. **إصلاح الاختبارين الـflaky** في `useNotificationActions.test.ts:130-133` (toast.error timing) — يُفشل CI أحياناً.
+
+### P3 — تجميل (يمكن تجاهلها)
+
+6. **مراجعة الـ4 ملفات > 200 سطر في الإنتاج** (لا حرج معماري):
+   - `utils/pdf/reports/aggregatedAnnualReport.ts` (275)
+   - `lib/services/diagnosticsReadService.ts` (220)
+   - `utils/financial/collectionCompute.ts` (199 — قريب من الحد)
+   - `lib/services/fiscalYearService.ts` (196 — قريب)
+   - الإجراء المحتمل: استخراج helpers خاصة بكل تقرير في `aggregatedAnnualReport.ts` إلى ملفات مجاورة.
+
+7. **توسيع `audit/architecture-map.md`** ليعكس البنية الجديدة بعد تقسيمات P1.2/P1.3/P1.4 السابقة (`accrual/`, `accounts/contracts/`, `pwa/`, `disclosure/`).
+
+### P4 — اختياري لخفض ديون فنية (لا قيمة عاجلة)
+
+8. **P2.1 من جولة 2026-06-05 (مؤجَّل سابقاً)** — تحويل 4 form hooks بـ 6+ `useState` إلى `useReducer`. تحسين تجميلي بلا قيمة وظيفية.
+
+---
+
+## مصادر التقرير
+
+- `audit/codebase-audit-2026-06-05.md` — التقرير السابق المُنفَّذ بالكامل.
+- `audit/structure-inventory.md` + `.csv` — جرد الطبقات.
+- `audit/conventions-deep-report.md` + `.csv` — انتهاكات الأنماط (4 Info فقط).
+- `audit/hooks-layout-report.md` — تخطيط الـhooks (0 issues).
+- `audit/page-controls-audit.md` — 0 GAP.
+- `audit/ui-permissions-audit.md` — 0 GAP.
+- `audit/report.html` — تقرير HTML مدمج.
+
+---
+
+## مخرجات الجولة الحالية (عند الموافقة على التنفيذ)
+
+ستُكتب نتائج هذه المراجعة إلى `audit/codebase-audit-2026-06-06.md` يوثّق:
+- تأكيد الحالة الخضراء الكاملة بعد جولة 2026-06-05.
+- قائمة P1-P4 أعلاه مع روابط الملفات المتأثرة.
+
+**لا تعديلات على الكود حتى الانتقال إلى وضع التنفيذ والموافقة بنداً ببند.**
