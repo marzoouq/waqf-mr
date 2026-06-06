@@ -47,6 +47,15 @@ for (const abs of walk(ROOT)) {
     let m;
     const reToast = /from\s+['"]sonner['"]/g;
     while ((m = reToast.exec(src))) add('Critical', 'NoToastInDataHooks', rel, lineOf(src, m.index), 'hooks/data imports sonner');
+    const reDynToast = /import\(\s*['"]sonner['"]\s*\)/g;
+    while ((m = reDynToast.exec(src))) add('Critical', 'NoToastInDataHooks', rel, lineOf(src, m.index), 'hooks/data uses dynamic import of sonner');
+    const reNotify = /from\s+['"]@\/lib\/notify['"]/g;
+    while ((m = reNotify.exec(src))) add('Critical', 'NoToastInDataHooks', rel, lineOf(src, m.index), 'hooks/data imports @/lib/notify (UI side-effect)');
+  }
+  if (rel.startsWith('hooks/page/')) {
+    let m;
+    const reSupa = /from\s+['"]@\/integrations\/supabase\/client['"]/g;
+    while ((m = reSupa.exec(src))) add('Critical', 'HooksLayering', rel, lineOf(src, m.index), 'hooks/page imports supabase client directly — use lib/services/*');
   }
   if (rel.startsWith('hooks/domain/')) {
     let m;
