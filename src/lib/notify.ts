@@ -56,8 +56,7 @@ function dedupToast(
   if (lastTime && now - lastTime < DEDUP_MS) return;
   recentToasts.set(msg, now);
   scheduleCleanup();
-  if (opts === undefined) fn(msg);
-  else fn(msg, opts);
+  fn(msg, opts);
 }
 
 /** الإشعارات الافتراضية عبر sonner — مع حماية من التكرار */
