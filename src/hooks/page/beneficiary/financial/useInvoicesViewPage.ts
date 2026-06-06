@@ -26,6 +26,13 @@ export function useInvoicesViewPage() {
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
+  // H17: Realtime — تحديث فوري عند إصدار/تعديل فواتير الناظر
+  useDashboardRealtime(
+    'invoices-view-realtime',
+    ['invoices', 'payment_invoices', 'fiscal_years'],
+    true,
+  );
+
   const { data: expenseInvoices = [], isLoading: loadingExpense, isError: errExpense } = useInvoicesByFiscalYear(fiscalYearId);
   const { data: rentInvoices = [], isLoading: loadingRent, isError: errRent } = usePaymentInvoices(fiscalYearId);
 
