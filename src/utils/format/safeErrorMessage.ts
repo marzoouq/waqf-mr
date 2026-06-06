@@ -67,6 +67,17 @@ export function getSafeErrorMessage(error: unknown): string {
   if (msg.includes('otp') || msg.includes('expired') || msg.includes('verification')) {
     return 'انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد';
   }
+  // كلمة مرور مُسرَّبة (HIBP) — يجب أن تسبق فحص weak لأن GoTrue يستخدم weak_password كرمز موحَّد
+  if (
+    msg.includes('pwned') ||
+    msg.includes('breach') ||
+    msg.includes('compromised') ||
+    msg.includes('leaked') ||
+    msg.includes('data breach') ||
+    msg.includes('known to be weak')
+  ) {
+    return 'كلمة المرور هذه ظهرت في تسريبات بيانات معروفة. يرجى اختيار كلمة مرور مختلفة.';
+  }
   // عدم تطابق كلمة المرور أو ضعفها
   if (msg.includes('password') && (msg.includes('weak') || msg.includes('short') || msg.includes('mismatch'))) {
     return 'كلمة المرور ضعيفة أو غير متطابقة. يرجى استخدام كلمة مرور أقوى';

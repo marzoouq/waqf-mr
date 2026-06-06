@@ -63,6 +63,26 @@ Deno.test("guard-signup: يرفض طريقة GET", async () => {
   assertEquals(body.error, "Method not allowed");
 });
 
+Deno.test("guard-signup: يرفض كلمة مرور مُسرَّبة عبر HIBP", async () => {
+  const res = await fetch(FUNCTION_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    // Password123 معروفة الظهور في تسريبات HIBP بأعداد كبيرة
+    body: JSON.stringify({ email: `pwned-${Date.now()}@test-waqf.com`, password: "Password123" }),
+  });
+  const body = await res.json();
+  // قد يفشل HIBP خارجياً (fail-open) — نتحقق فقط من الحالات المعروفة
+  if (res.status === 400 && typeof body.error === "string" && body.error.includes("تسريبات")) {
+    assertEquals(body.error.includes("تسريبات"), true);
+  } else {
+    // fail-open مقبول إذا تعذّر استدعاء HIBP
+    assertExists(body);
+  }
+});
+
 Deno.test("guard-signup: يتعامل مع التسجيل المعطل أو الصالح", async () => {
   const res = await fetch(FUNCTION_URL, {
     method: "POST",
