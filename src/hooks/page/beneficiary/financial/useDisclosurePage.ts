@@ -27,9 +27,10 @@ export const useDisclosurePage = () => {
   const handleRetry = useRetryQueries(['beneficiary-dashboard', 'my-distributions']);
 
   // Realtime: انعكاس فوري لتعديلات بيانات الإفصاح
+  // H12: شمل beneficiaries + advance_requests + advance_carryforward
   useDashboardRealtime(
     'disclosure-realtime',
-    ['accounts', 'income', 'expenses', 'distributions', 'fiscal_years'],
+    ['accounts', 'income', 'expenses', 'distributions', 'fiscal_years', 'beneficiaries', 'advance_requests', 'advance_carryforward'],
     true,
     [['disclosure'], ['beneficiary-dashboard']],
   );
