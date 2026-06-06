@@ -12,18 +12,18 @@ import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 const BeneficiarySupportPage = lazy(() => import('@/pages/beneficiary/SupportPage'));
 
-const RedirectWithToast = () => {
-  useEffect(() => {
-    uiNotify.info('تم تحويلك إلى لوحة دعم الإدارة');
-  }, []);
-  return <Navigate to="/dashboard/support" replace />;
-};
-
 const SupportPageGuard = () => {
   const { role } = useAuth();
+  const shouldRedirect = role === 'admin' || role === 'accountant';
 
-  if (role === 'admin' || role === 'accountant') {
-    return <RedirectWithToast />;
+  useEffect(() => {
+    if (shouldRedirect) {
+      uiNotify.info('تم تحويلك إلى لوحة دعم الإدارة');
+    }
+  }, [shouldRedirect]);
+
+  if (shouldRedirect) {
+    return <Navigate to="/dashboard/support" replace />;
   }
 
   return (
