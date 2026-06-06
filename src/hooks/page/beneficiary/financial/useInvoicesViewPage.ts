@@ -71,7 +71,12 @@ export function useInvoicesViewPage() {
       property: inv.contract?.property ? { property_number: inv.contract.property.property_number } : null,
       source: 'rent',
     }));
-    return [...expenseItems, ...rentItems].sort((a, b) => (a.date < b.date ? 1 : -1));
+    return [...expenseItems, ...rentItems].sort((a, b) => {
+      // H16/N7: مقارنة زمنية فعلية (تتعامل مع date و timestamptz)
+      const ta = a.date ? new Date(a.date).getTime() : 0;
+      const tb = b.date ? new Date(b.date).getTime() : 0;
+      return tb - ta;
+    });
   }, [expenseInvoices, rentInvoices]);
 
   const filteredInvoices = useMemo(() => unifiedInvoices.filter((item) => {
