@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fmt, fmtInt, fmtSAR, fmtPct, fmtDate, fmtDateHijri } from './format';
+import { fmt, fmtInt, fmtSAR, fmtPct, fmtDate } from './format';
 
 describe('fmt', () => {
   it('ينسّق أرقام مالية بفواصل آلاف وعشرية', () => {
@@ -85,20 +85,3 @@ describe('fmtDate', () => {
   });
 });
 
-describe('fmtDateHijri', () => {
-  it('ينسّق تاريخ إلى هجري', () => {
-    const result = fmtDateHijri('2025-01-15');
-    // التاريخ الهجري يجب أن يحتوي أرقام عربية أو لاتينية وفواصل
-    expect(result).not.toBe('—');
-    expect(result.length).toBeGreaterThan(0);
-  });
-
-  it('يُرجع "—" لـ null/undefined', () => {
-    expect(fmtDateHijri(null)).toBe('—');
-    expect(fmtDateHijri(undefined)).toBe('—');
-  });
-
-  it('يُرجع "—" لتاريخ غير صالح', () => {
-    expect(fmtDateHijri('bad')).toBe('—');
-  });
-});
