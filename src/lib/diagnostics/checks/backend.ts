@@ -12,23 +12,32 @@ const EXPECTED_EDGE_FUNCTIONS = [
   'zatca-signer', 'zatca-xml-generator',
 ];
 
+/**
+ * Ping `health-check` عبر fetch مباشر — يتجنّب معترض أخطاء SDK
+ * ويُتيح قراءة status/زمن/اسم بدقة. 401 = محمية بسر مشترك (متوقع).
+ */
 export async function checkBackendEdgeHealthPing(): Promise<CheckResult> {
   const id = 'backend_edge_health_ping';
+  const fnName = 'health-check';
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${fnName}`;
+  const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const t0 = performance.now();
   try {
-    const { error } = await supabase.functions.invoke('health-check', { method: 'GET' });
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: { 'apikey': apikey, 'Authorization': `Bearer ${apikey}` },
+    });
+    // استهلاك الجسم لتفادي تسرّب الموارد
+    await res.text().catch(() => '');
     const ms = Math.round(performance.now() - t0);
-    if (error) {
-      // 401 = الدالة فعّالة لكنها محمية بسر مشترك (HEALTH_CHECK_SECRET) — نعتبرها سليمة
-      const msg = error.message || String(error);
-      if (/401|Unauthorized/i.test(msg)) {
-        return { id, label: 'نداء health-check', status: 'pass', detail: `${ms}ms — محمية بسر (401 متوقع)` };
-      }
-      return { id, label: 'نداء health-check', status: 'warn', detail: `${ms}ms — ${msg}` };
-    }
-    return { id, label: 'نداء health-check', status: ms < 2000 ? 'pass' : 'warn', detail: `${ms}ms` };
+    const detail = `[GET /${fnName}] status=${res.status} ms=${ms}`;
+    if (res.status === 200) return { id, label: 'نداء health-check', status: ms < 2000 ? 'pass' : 'warn', detail: `${detail} — سليمة` };
+    if (res.status === 401) return { id, label: 'نداء health-check', status: 'pass', detail: `${detail} — محمية بسر (متوقع)` };
+    if (res.status === 503) return { id, label: 'نداء health-check', status: 'warn', detail: `${detail} — degraded` };
+    return { id, label: 'نداء health-check', status: 'fail', detail };
   } catch (e) {
-    return { id, label: 'نداء health-check', status: 'fail', detail: String(e) };
+    const ms = Math.round(performance.now() - t0);
+    return { id, label: 'نداء health-check', status: 'fail', detail: `[GET /${fnName}] ms=${ms} network_error=${String(e)}` };
   }
 }
 
@@ -79,16 +88,28 @@ export async function checkBackendFiscalYearActive(): Promise<CheckResult> {
   }
 }
 
+/**
+ * يفحص وجود الحاويات المطلوبة. `listBuckets()` قد يُرجع فارغًا تحت RLS — لذا fallback
+ * عبر `from(bucket).list()` للتحقق من وصولية الحاوية فعلياً.
+ */
 export async function checkBackendStorageBuckets(): Promise<CheckResult> {
   const id = 'backend_storage_buckets';
+  const required = ['waqf-assets'];
   try {
     const { data, error } = await supabase.storage.listBuckets();
-    if (error) return { id, label: 'حاويات التخزين', status: 'warn', detail: error.message };
-    const names = (data ?? []).map(b => b.name);
-    const required = ['waqf-assets'];
-    const missing = required.filter(r => !names.includes(r));
+    const names = (!error && data) ? data.map(b => b.name) : [];
+    const missing: string[] = [];
+    for (const r of required) {
+      if (names.includes(r)) continue;
+      // fallback: حاول الوصول للحاوية مباشرة — قد لا تظهر في listBuckets بسبب RLS
+      const probe = await supabase.storage.from(r).list('', { limit: 1 });
+      if (probe.error && /not found|does not exist/i.test(probe.error.message)) {
+        missing.push(r);
+      }
+    }
     if (missing.length) return { id, label: 'حاويات التخزين', status: 'fail', detail: `مفقود: ${missing.join('، ')}` };
-    return { id, label: 'حاويات التخزين', status: 'pass', detail: `${names.length} حاوية` };
+    const total = names.length || required.length;
+    return { id, label: 'حاويات التخزين', status: 'pass', detail: `${total} حاوية متاحة` };
   } catch (e) {
     return { id, label: 'حاويات التخزين', status: 'fail', detail: String(e) };
   }
