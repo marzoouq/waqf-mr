@@ -39,29 +39,29 @@ const AuditReportFinalPage = () => {
             <div className="flex items-center gap-2">
               <CalendarDays className="w-4 h-4 text-primary" />
               <span className="text-muted-foreground">تاريخ الجولة:</span>
-              <span className="font-medium">{AUDIT_ROUND_META.date}</span>
+              <span className="font-medium">{meta.date}</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-success" />
               <span className="text-muted-foreground">الاختبارات:</span>
-              <span className="font-medium">{AUDIT_ROUND_META.testsPassed}</span>
+              <span className="font-medium">{meta.testsPassed}</span>
             </div>
             <div className="flex items-center gap-2 min-w-0">
               <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
               <span className="text-muted-foreground shrink-0">المرجع:</span>
               <code className="font-mono text-xs bg-background/60 rounded px-1.5 py-0.5 truncate">
-                {AUDIT_ROUND_META.reportPath}
+                {meta.reportPath}
               </code>
             </div>
           </CardContent>
         </Card>
 
-        <AuditSummaryStats findings={AUDIT_B_FINDINGS} />
+        <AuditSummaryStats findings={findings} />
 
         <section className="space-y-3">
           <h2 className="text-base sm:text-lg font-bold">تفاصيل البنود</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-            {AUDIT_B_FINDINGS.map((finding) => (
+            {findings.map((finding) => (
               <AuditFindingCard key={finding.id} finding={finding} />
             ))}
           </div>
