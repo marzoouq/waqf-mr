@@ -15,10 +15,12 @@ import AdvancesTable from '@/components/beneficiary/my-share/AdvancesTable';
 import CarryforwardsTable from '@/components/beneficiary/my-share/CarryforwardsTable';
 import DeductionsExplanationCard from '@/components/beneficiary/my-share/DeductionsExplanationCard';
 import { useMySharePage } from '@/hooks/page/beneficiary';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { fmt } from '@/utils/format/format';
 import { PAGE_RESPONSIBILITY_COPY, MISSING_STATES_COPY } from '@/constants/beneficiaryCopy';
 
 const MySharePage = () => {
+  const { noPublishedYears } = useFiscalYear();
   const {
     isLoading, isError, handleRetry,
     currentBeneficiary, isAccountMissing, isClosed,
@@ -28,6 +30,11 @@ const MySharePage = () => {
     handleDownloadPDF, handleDownloadDistributionsPDF, handleDownloadComprehensivePDF, handlePrintReport,
   } = useMySharePage();
   const navigate = useNavigate();
+
+  // B2: حارس السنوات المنشورة قبل أي فرع — يمنع UnlinkedAccountNotice الخاطئة عند noPublishedYears
+  if (noPublishedYears) {
+    return <RequirePublishedYears title="حصتي من الريع" icon={Wallet} description="تفاصيل حصتك من ريع الوقف"><></></RequirePublishedYears>;
+  }
 
   // حالة التحميل
   if (isLoading) {

@@ -16,9 +16,12 @@ import ReportItemCard from '@/components/annual-report/ReportItemCard';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';
 const IncomeComparisonChart = lazy(() => import('@/components/annual-report/IncomeComparisonChart'));
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RequirePublishedYears } from '@/components/common';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAnnualReportViewPage } from '@/hooks/page/beneficiary';
 
 const AnnualReportViewPage = () => {
+  const { noPublishedYears } = useFiscalYear();
   const {
     isLoading, isPublished, isMobile,
     viewTab, setViewTab,
@@ -27,6 +30,13 @@ const AnnualReportViewPage = () => {
     handleExportPdf, handleExportCsv,
   } = useAnnualReportViewPage();
   const print = usePrint();
+
+  // B1: حارس السنوات المنشورة قبل أي فرع — يمنع رسائل خاطئة عند عدم وجود سنة منشورة
+  if (noPublishedYears) {
+    return <RequirePublishedYears title="التقرير السنوي" icon={Trophy} description="تقرير إنجازات السنة المالية"><></></RequirePublishedYears>;
+  }
+
+
 
   if (isLoading) {
     return (
@@ -100,6 +110,7 @@ const AnnualReportViewPage = () => {
               <select
                 value={viewTab}
                 onChange={(e) => setViewTab(e.target.value)}
+                aria-label="اختر قسم التقرير"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="property_status">حالة العقارات</option>

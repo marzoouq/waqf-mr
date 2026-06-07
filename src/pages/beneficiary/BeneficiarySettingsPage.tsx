@@ -24,6 +24,7 @@ const BeneficiarySettingsPage = () => {
     user,
     currentBeneficiary,
     maskedId,
+    maskedIdAriaLabel,
     benLoading,
     benError,
     handleRetry,
@@ -73,6 +74,7 @@ const BeneficiarySettingsPage = () => {
               name={currentBeneficiary?.name || '—'}
               email={user?.email || '—'}
               maskedId={maskedId}
+              maskedIdAriaLabel={maskedIdAriaLabel}
             />
           </TabsContent>
 

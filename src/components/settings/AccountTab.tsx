@@ -10,9 +10,10 @@ interface AccountTabProps {
   name: string;
   email: string;
   maskedId: string;
+  maskedIdAriaLabel?: string;
 }
 
-const AccountTab = ({ name, email, maskedId }: AccountTabProps) => (
+const AccountTab = ({ name, email, maskedId, maskedIdAriaLabel = 'رقم الهوية مُخفي لحماية خصوصيتك' }: AccountTabProps) => (
   <Card className="shadow-sm">
     <CardHeader>
       <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -37,7 +38,7 @@ const AccountTab = ({ name, email, maskedId }: AccountTabProps) => (
             <Lock className="w-3 h-3" /> رقم الهوية
           </Label>
           <div className="flex items-center gap-2">
-            <Input name="maskedId" value={maskedId} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
+            <Input name="maskedId" value={maskedId} readOnly disabled aria-label={maskedIdAriaLabel} className="bg-muted/50 cursor-not-allowed" />
             <Shield className="w-4 h-4 text-muted-foreground shrink-0" />
           </div>
         </div>

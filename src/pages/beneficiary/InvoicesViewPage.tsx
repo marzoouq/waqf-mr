@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InvoiceViewer, InvoiceGridView, InvoicesViewMobileCards, InvoicesViewDesktopTable } from '@/components/invoices';
-import { FileText, Search, LayoutGrid, List, AlertCircle, RefreshCw, Info } from 'lucide-react';
-import { ExportMenu, TablePagination, RequirePublishedYears, TableSkeleton } from '@/components/common';
+import { FileText, Search, LayoutGrid, List, Info } from 'lucide-react';
+import { ExportMenu, TablePagination, RequirePublishedYears, TableSkeleton, ErrorState } from '@/components/common';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useInvoicesViewPage } from '@/hooks/page/beneficiary';
 import { INVOICES_SCOPE_COPY } from '@/constants/beneficiaryCopy';
 
 const InvoicesViewPage = () => {
+  const { noPublishedYears } = useFiscalYear();
   const {
     isLoading, isError, isMobile,
     viewMode, setViewMode,
@@ -22,18 +24,14 @@ const InvoicesViewPage = () => {
     handleRetry, handleDownloadPDF,
   } = useInvoicesViewPage();
 
+  // B2: حارس السنوات المنشورة قبل أي فرع
+  if (noPublishedYears) {
+    return <RequirePublishedYears title={INVOICES_SCOPE_COPY.title} icon={FileText} description={INVOICES_SCOPE_COPY.description}><></></RequirePublishedYears>;
+  }
+
+  // B14: ErrorState الموحّد
   if (isError) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل الفواتير</h2>
-          <Button onClick={handleRetry} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
+    return <ErrorState message="حدث خطأ أثناء تحميل الفواتير" onRetry={handleRetry} />;
   }
 
   return (

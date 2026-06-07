@@ -2,9 +2,9 @@
  * صفحة تاريخ الترحيلات والفروق المخصومة من حصة المستفيد
  */
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { ExportMenu, DashboardSkeleton, RequirePublishedYears } from '@/components/common';
+import { ExportMenu, DashboardSkeleton, RequirePublishedYears, ErrorState, EmptyPageState } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { ArrowDownUp, AlertTriangle, RefreshCw, ArrowRight } from 'lucide-react';
+import { ArrowDownUp, AlertTriangle, ArrowRight } from 'lucide-react';
 import { usePrint } from '@/hooks/ui/usePrint';
 import { useNavigate } from 'react-router-dom';
 
@@ -32,29 +32,13 @@ const CarryforwardHistoryPage = () => {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
+  // B15: ErrorState الموحّد
   if (benError) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertTriangle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={handleRetry} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
+    return <ErrorState message="حدث خطأ أثناء تحميل البيانات" onRetry={handleRetry} />;
   }
 
   if (!beneficiary) {
-    return (
-      <DashboardLayout>
-        <div className="text-center py-16 text-muted-foreground">
-          <AlertTriangle className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>لم يتم العثور على بيانات المستفيد</p>
-        </div>
-      </DashboardLayout>
-    );
+    return <EmptyPageState icon={AlertTriangle} title="لم يتم العثور على بيانات المستفيد" />;
   }
 
   // N1: RequirePublishedYears يلفّ DashboardLayout بنفسه عند الحجب — لذا يجب أن يكون خارج DashboardLayout لتجنّب layout مزدوج

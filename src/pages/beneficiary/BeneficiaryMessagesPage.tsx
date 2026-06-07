@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Headphones, AlertCircle, RefreshCw } from 'lucide-react';
-import { TableSkeleton } from '@/components/common';
+import { MessageSquare, Headphones } from 'lucide-react';
+import { TableSkeleton, ErrorState } from '@/components/common';
 import { useBeneficiaryMessages } from '@/hooks/page/beneficiary';
 import BeneficiaryConversationsList from '@/components/messages/BeneficiaryConversationsList';
 import ChatArea from '@/components/messages/ChatArea';
@@ -20,18 +20,9 @@ const BeneficiaryMessagesPage = () => {
     createConversation, messagesEndRef,
   } = useBeneficiaryMessages();
 
+  // B13: ErrorState الموحّد
   if (chatError) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل المراسلات</h2>
-          <Button onClick={handleRetry} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
+    return <ErrorState message="حدث خطأ أثناء تحميل المراسلات" onRetry={handleRetry} />;
   }
 
   if (isLoading) {
@@ -111,4 +102,3 @@ const BeneficiaryMessagesPage = () => {
 };
 
 export default BeneficiaryMessagesPage;
-

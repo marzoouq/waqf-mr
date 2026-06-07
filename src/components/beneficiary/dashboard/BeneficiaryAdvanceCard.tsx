@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Banknote } from 'lucide-react';
 import { ADVANCE_CARD_COPY } from '@/constants/beneficiaryCopy';
 import AdvanceRequestDialog from '@/components/beneficiary/my-share/AdvanceRequestDialog';
@@ -65,15 +66,19 @@ const BeneficiaryAdvanceCard = ({ pendingAdvanceCount, advanceContext }: Benefic
                 maxPercentage={advanceContext.maxPercentage}
               />
             ) : (
-              <button
+              // B7: استخدام Button بـ themed tokens بدل <button> خام
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 disabled
                 title={disabledHint ?? undefined}
-                className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm rounded-md border border-input bg-background text-muted-foreground opacity-60 cursor-not-allowed"
+                aria-label={disabledHint ?? 'طلب سلفة'}
+                className="gap-2"
               >
                 <Banknote className="w-4 h-4" />
                 طلب سلفة
-              </button>
+              </Button>
             )}
             <Link
               to="/beneficiary/my-share"

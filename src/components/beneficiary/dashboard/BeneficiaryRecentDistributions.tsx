@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wallet } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format/format';
+import { DISTRIBUTIONS_LABELS } from '@/constants/beneficiaryCopy';
 
 interface Distribution {
   id: string;
@@ -20,7 +21,8 @@ const BeneficiaryRecentDistributions = ({ distributions }: BeneficiaryRecentDist
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
           <Wallet className="w-5 h-5" />
-          آخر التوزيعات
+          {/* B8: استخدام ثوابت موحّدة بدل سلاسل صلبة */}
+          {DISTRIBUTIONS_LABELS.recent}
         </CardTitle>
       </CardHeader>
       <CardContent>
