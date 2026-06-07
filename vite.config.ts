@@ -182,6 +182,8 @@ export default defineConfig(({ mode }) => ({
           (dep) =>
             !dep.includes('vendor-pdf') &&
             !dep.includes('vendor-pdf-table') &&
+            !dep.includes('vendor-pdf-svg') &&
+            !dep.includes('vendor-qr') &&
             !dep.includes('html2canvas'),
         );
       },
@@ -205,19 +207,22 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/sonner')) return 'vendor-sonner';
           if (id.includes('node_modules/@dnd-kit/')) return 'vendor-dnd';
           if (id.includes('node_modules/jspdf-autotable')) return 'vendor-pdf-table';
-          if (id.includes('node_modules/jspdf') || id.includes('node_modules/canvg') || id.includes('node_modules/rgbcolor') || id.includes('node_modules/stackblur-canvas')) return 'vendor-pdf';
-          
+          // فصل canvg/SVG-to-PDF عن jspdf — يُحمَّل فقط عند طباعة SVG (نادر)
+          if (id.includes('node_modules/canvg') || id.includes('node_modules/rgbcolor') || id.includes('node_modules/stackblur-canvas')) return 'vendor-pdf-svg';
+          // arabic-reshaper مستخدم فقط مع PDF — ضمّه إلى vendor-pdf لتقليل عدد chunks
+          if (id.includes('node_modules/jspdf') || id.includes('node_modules/arabic-reshaper')) return 'vendor-pdf';
+
           if (id.includes('node_modules/recharts')) return 'vendor-recharts';
           if (id.includes('node_modules/victory-vendor') || id.includes('node_modules/d3-')) return 'vendor-d3';
           if (id.includes('node_modules/react-markdown') || id.includes('node_modules/remark-') || id.includes('node_modules/rehype-') || id.includes('node_modules/unified') || id.includes('node_modules/mdast-') || id.includes('node_modules/micromark') || id.includes('node_modules/hast-') || id.includes('node_modules/unist-')) return 'vendor-markdown';
           if (id.includes('node_modules/qrcode')) return 'vendor-qr';
           if (id.includes('node_modules/class-variance-authority') || id.includes('node_modules/clsx') || id.includes('node_modules/tailwind-merge') || id.includes('node_modules/cmdk') || id.includes('node_modules/vaul') || id.includes('node_modules/input-otp') || id.includes('node_modules/embla-carousel') || id.includes('node_modules/next-themes') || id.includes('node_modules/react-resizable-panels')) return 'vendor-ui-utils';
           if (id.includes('node_modules/@simplewebauthn/')) return 'vendor-webauthn';
-          if (id.includes('node_modules/arabic-reshaper')) return 'vendor-arabic';
         },
       },
     },
     chunkSizeWarningLimit: 600,
-    sourcemap: mode === 'production' ? false : 'hidden',
+    // تطوير: sourcemap كامل يمنع تجمّد DevTools عند فتح ملفات vendor الكبيرة
+    sourcemap: mode === 'production' ? false : true,
   },
 }));

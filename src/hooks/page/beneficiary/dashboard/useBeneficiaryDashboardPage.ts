@@ -14,6 +14,7 @@ import { useGreeting } from '@/hooks/ui/useGreeting';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useBeneficiaryWidgets } from '@/hooks/data/settings/notifications/useBeneficiaryWidgets';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { isAuditMode } from '@/lib/auditMode';
 
 export function useBeneficiaryDashboardPage() {
   const queryClient = useQueryClient();
@@ -104,9 +105,9 @@ export function useBeneficiaryDashboardPage() {
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });
-    // Realtime: تحديث إعدادات التطبيق
+    // Realtime: تحديث إعدادات التطبيق — UPDATE فقط (INSERT/DELETE نادر ولا يؤثر على UI)
     channel.on('postgres_changes', {
-      event: '*', schema: 'public', table: 'app_settings',
+      event: 'UPDATE', schema: 'public', table: 'app_settings',
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });
@@ -115,7 +116,7 @@ export function useBeneficiaryDashboardPage() {
   useBfcacheSafeChannel(
     `beneficiary-dist-${beneficiaryId || 'none'}`,
     distSubscribeFn,
-    !!currentBeneficiary?.id,
+    !!currentBeneficiary?.id && !isAuditMode(),
   );
 
   const recentNotifications = notifications.slice(0, 3);
