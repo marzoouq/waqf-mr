@@ -12,12 +12,12 @@ import AuditLogStats from '@/components/audit/AuditLogStats';
 import AuditLogFilters from '@/components/audit/AuditLogFilters';
 import AuditLogTable from '@/components/audit/AuditLogTable';
 import { useAuditLogPage } from '@/hooks/page/admin/management/useAuditLogPage';
-import { useUserRole } from '@/hooks/auth/role/useUserRole';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 const AuditLogPage = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const { role } = useUserRole();
+  const { role } = useAuth();
   const h = useAuditLogPage();
 
   return (
