@@ -6,11 +6,12 @@
  *
  * يحافظ على نفس public API للحفاظ على PropertiesPage.tsx بدون تغيير.
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
+import { logger } from '@/lib/logger';
 import type { Property } from '@/types';
 import { usePropertiesFilters } from '../properties/usePropertiesFilters';
 import { usePropertiesForm } from '../properties/usePropertiesForm';
