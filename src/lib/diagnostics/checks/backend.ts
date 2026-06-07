@@ -18,7 +18,14 @@ export async function checkBackendEdgeHealthPing(): Promise<CheckResult> {
   try {
     const { error } = await supabase.functions.invoke('health-check', { method: 'GET' });
     const ms = Math.round(performance.now() - t0);
-    if (error) return { id, label: 'نداء health-check', status: 'warn', detail: `${ms}ms — ${error.message}` };
+    if (error) {
+      // 401 = الدالة فعّالة لكنها محمية بسر مشترك (HEALTH_CHECK_SECRET) — نعتبرها سليمة
+      const msg = error.message || String(error);
+      if (/401|Unauthorized/i.test(msg)) {
+        return { id, label: 'نداء health-check', status: 'pass', detail: `${ms}ms — محمية بسر (401 متوقع)` };
+      }
+      return { id, label: 'نداء health-check', status: 'warn', detail: `${ms}ms — ${msg}` };
+    }
     return { id, label: 'نداء health-check', status: ms < 2000 ? 'pass' : 'warn', detail: `${ms}ms` };
   } catch (e) {
     return { id, label: 'نداء health-check', status: 'fail', detail: String(e) };
