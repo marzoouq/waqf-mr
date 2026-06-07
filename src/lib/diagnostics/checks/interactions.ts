@@ -28,6 +28,52 @@ export interface InteractionsAuditRow {
 
 let cachedRows: InteractionsAuditRow[] | null = null;
 
+/**
+ * يستخرج وسوم Button الكاملة مع احترام `{...}` و `"..."` و `'...'` و backticks
+ * بحيث لا يقطع الـ regex عند `=>` داخل onClick.
+ * يُعيد كل وسم مع موضع البداية في المصدر (لفحص السياق المحيط لاحقاً).
+ */
+function extractButtonTags(source: string): Array<{ tag: string; start: number }> {
+  const out: Array<{ tag: string; start: number }> = [];
+  const re = /<Button\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(source)) !== null) {
+    const start = m.index;
+    let i = m.index + m[0].length;
+    let braceDepth = 0;
+    let quote: string | null = null;
+    while (i < source.length) {
+      const ch = source[i];
+      if (quote) {
+        if (ch === '\\') { i += 2; continue; }
+        if (ch === quote) quote = null;
+      } else if (braceDepth > 0) {
+        if (ch === '{') braceDepth++;
+        else if (ch === '}') braceDepth--;
+        else if (ch === '"' || ch === "'" || ch === '`') quote = ch;
+      } else {
+        if (ch === '{') braceDepth++;
+        else if (ch === '"' || ch === "'" || ch === '`') quote = ch;
+        else if (ch === '>') { out.push({ tag: source.slice(start, i + 1), start }); break; }
+      }
+      i++;
+    }
+  }
+  return out;
+}
+
+/**
+ * يفحص ما إذا كان الزر داخل وسم أب يجعله مُعالَجاً (Link أو *Trigger asChild).
+ * ينظر إلى ~200 محرف قبل الزر — كافٍ لـ JSX المعتاد.
+ */
+function hasHandledParent(source: string, start: number): boolean {
+  const ctx = source.slice(Math.max(0, start - 300), start);
+  // أقرب وسم مفتوح غير مغلق قبل الزر
+  if (/<Link\b[^>]*>\s*$/.test(ctx)) return true;
+  if (/asChild\b[^<]*>\s*$/.test(ctx)) return true;
+  return false;
+}
+
 export async function getInteractionsRows(force = false): Promise<InteractionsAuditRow[]> {
   if (cachedRows && !force) return cachedRows;
   const sources = await loadAllSources();
@@ -40,29 +86,31 @@ export async function getInteractionsRows(force = false): Promise<InteractionsAu
     const tabValues = [...source.matchAll(/<TabsTrigger[^>]*\svalue=["'`]([^"'`]+)["'`]/g)].map(m => m[1] as string);
     if (tabValues.length) {
       rows.push({ file: short, type: 'tabs', severity: 'info', detail: `${tabValues.length} تبويب: ${tabValues.slice(0, 6).join('، ')}` });
-      // duplicates
       const seen = new Set<string>(), dups = new Set<string>();
       for (const v of tabValues) { if (seen.has(v)) dups.add(v); else seen.add(v); }
       if (dups.size) rows.push({ file: short, type: 'duplicate_tab_id', severity: 'fail', detail: `قيم مكررة: ${[...dups].join('، ')}` });
     }
 
-    // 2) handler-less buttons — heuristic: <Button ...> بلا onClick/type="submit"/asChild داخل نفس فتح الوسم
-    const buttonOpens = [...source.matchAll(/<Button\b[^>]*>/g)].map(m => m[0]);
+    const tags = extractButtonTags(source);
+
+    // 2) handler-less buttons
     let handlerLess = 0;
-    for (const tag of buttonOpens) {
+    for (const { tag, start } of tags) {
       if (/onClick\s*=/.test(tag)) continue;
       if (/type\s*=\s*["'`]submit["'`]/.test(tag)) continue;
       if (/\basChild\b/.test(tag)) continue;
       if (/\bdisabled\b/.test(tag)) continue;
+      if (hasHandledParent(source, start)) continue;
       handlerLess++;
     }
     if (handlerLess > 0) rows.push({ file: short, type: 'handler_less_button', severity: 'warn', detail: `${handlerLess} زر بدون onClick/submit/asChild` });
 
     // 3) icon-only buttons missing aria-label
-    const iconButtons = [...source.matchAll(/<Button\b[^>]*size=["'`]icon["'`][^>]*>/g)].map(m => m[0]);
     let missingAria = 0;
-    for (const tag of iconButtons) {
-      if (!/aria-label\s*=/.test(tag)) missingAria++;
+    for (const { tag } of tags) {
+      if (!/size=["'`]icon["'`]/.test(tag)) continue;
+      if (/aria-label\s*=/.test(tag)) continue;
+      missingAria++;
     }
     if (missingAria > 0) rows.push({ file: short, type: 'missing_aria', severity: 'warn', detail: `${missingAria} زر أيقونة بدون aria-label` });
   }

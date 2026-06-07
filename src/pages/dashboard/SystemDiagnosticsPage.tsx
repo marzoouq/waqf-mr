@@ -9,9 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download, ChevronDown, Trash2 } from 'lucide-react';
+import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { sanitizeDiagnosticOutput } from '@/lib/diagnostics/sanitize';
 import type { CheckResult, CheckStatus } from '@/lib/diagnostics/types';
@@ -26,7 +24,7 @@ import RunHistoryList from '@/components/diagnostics/RunHistoryList';
 import NotificationFallbackCard from '@/components/diagnostics/NotificationFallbackCard';
 import BackendLogTable from '@/components/diagnostics/BackendLogTable';
 import StatusFilterChips, { type StatusFilter } from '@/components/diagnostics/StatusFilterChips';
-import DeepCleanConfirmDialog from '@/components/diagnostics/DeepCleanConfirmDialog';
+import DiagnosticsToolbar from '@/components/diagnostics/DiagnosticsToolbar';
 
 const WebVitalsPanel = lazy(() => import('@/components/common/feedback/WebVitalsPanel'));
 
@@ -105,67 +103,14 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
             </p>
           )}
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {results.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm"><Download className="w-4 h-4 ml-2" />تصدير<ChevronDown className="w-3 h-3 mr-1" /></Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={exportJson}>تصدير JSON (مع روابط ومصادر)</DropdownMenuItem>
-                <DropdownMenuItem onClick={exportText}>تصدير نص</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          {results.length > 0 && (summary.fail > 0 || summary.warn > 0) && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" disabled={running}><RefreshCw className="w-4 h-4 ml-2" />إعادة فحص<ChevronDown className="w-3 h-3 mr-1" /></Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={rerunFailures} disabled={summary.fail === 0}>إعادة الفاشلة فقط ({summary.fail})</DropdownMenuItem>
-                <DropdownMenuItem onClick={rerunFailuresAndWarnings} disabled={summary.fail + summary.warn === 0}>إعادة الفاشلة والتحذيرات ({summary.fail + summary.warn})</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" disabled={running || deepCleaning}>
-                <Trash2 className="w-4 h-4 ml-2" />تنظيف<ChevronDown className="w-3 h-3 mr-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setCleanDialog('light')}>تنظيف خفيف (نتائج التشخيص)</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setCleanDialog('deep')}>تنظيف عميق (كاش + SW + IDB)</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <AlertDialog open={cleanDialog === 'light'} onOpenChange={(o) => !o && setCleanDialog(null)}>
-            <AlertDialogContent dir="rtl">
-              <AlertDialogHeader>
-                <AlertDialogTitle>تنظيف نتائج التشخيص</AlertDialogTitle>
-                <AlertDialogDescription>
-                  سيُمسح أرشيف التشغيلات والنتائج الحالية وعلامات التحذيرات المرفوضة. لا يؤثر على بيانات النظام الفعلية.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                <AlertDialogAction onClick={(e) => { e.preventDefault(); handleLightClean(); }}>
-                  تأكيد
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <DeepCleanConfirmDialog
-            open={cleanDialog === 'deep'}
-            busy={deepCleaning}
-            onCancel={() => setCleanDialog(null)}
-            onConfirm={() => void handleDeepClean()}
-          />
-          <Button onClick={run} disabled={running || !!runningCategory} size="sm">
-            <RefreshCw className={`w-4 h-4 ml-2 ${running ? 'animate-spin' : ''}`} />
-            {running ? 'جارٍ الفحص...' : 'تشغيل الكل'}
-          </Button>
-        </div>
+        <DiagnosticsToolbar
+          hasResults={results.length > 0} running={running} runningCategory={runningCategory}
+          deepCleaning={deepCleaning} summary={{ fail: summary.fail, warn: summary.warn }}
+          cleanDialog={cleanDialog} setCleanDialog={setCleanDialog}
+          onRunAll={run} onExportJson={exportJson} onExportText={exportText}
+          onRerunFailures={rerunFailures} onRerunFailuresAndWarnings={rerunFailuresAndWarnings}
+          onLightClean={handleLightClean} onDeepClean={() => void handleDeepClean()}
+        />
       </div>
 
       {running && progress && progress.total > 0 && (
