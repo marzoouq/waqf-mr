@@ -36,6 +36,18 @@ export { checkAvailableAmountNonNegative, checkDistributionsWithinAvailable, che
 // بطاقة 10 — تدقيق رقمي DB ↔ RPC ↔ UI
 export { checkDbVsRpcTotalIncome, checkDbVsRpcExpenses, checkRpcVsUiAvailableAmount, checkSnapshotIntegrityClosedYear } from './checks/numericalAudit';
 
+// بطاقة 11 — التوجيه
+export { checkRoutesRegistryConsistency, checkCurrentRouteResolved, checkNoBrokenChunkRetries } from './checks/routing';
+
+// بطاقة 12 — وضع التدقيق (Lighthouse)
+export { checkAuditModeFlag, checkAuditRealtimeDisabled, checkAuditSwBlocked, checkAuditQueryClientElevated, checkPdfChunksDeferred } from './checks/auditMode';
+
+// بطاقة 13 — PWA و Service Worker
+export { checkSwRefusalReason, checkManifestPresent, checkSwActiveRegistration } from './checks/pwa';
+
+// بطاقة 14 — أخطاء التشغيل
+export { checkRuntimeErrorsLog } from './checks/runtimeErrors';
+
 // استيراد الدوال لبناء المجمّع
 import { checkSupabaseConnection, checkRealtimeChannels, checkAuthSession } from './checks/database';
 import { checkScrollPerformance, checkDomNodesCount, checkDeviceMemory, checkPagePerformance, checkWcagContrast } from './checks/performance';
@@ -47,6 +59,10 @@ import { checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPending
 import { checkPartiallyPaidConsistency, checkDistributionsVsAvailable, checkBeneficiariesWithoutAccount, checkContractsWithoutAllocations, checkOverduePartiallyPaid } from './checks/financial';
 import { checkAvailableAmountNonNegative, checkDistributionsWithinAvailable, checkBeneficiaryShareFormula, checkAdvancesWithinShare, checkOverduePendingNoOverlap, checkCarryforwardIntegrity } from './checks/cardConsistency';
 import { checkDbVsRpcTotalIncome, checkDbVsRpcExpenses, checkRpcVsUiAvailableAmount, checkSnapshotIntegrityClosedYear } from './checks/numericalAudit';
+import { checkRoutesRegistryConsistency, checkCurrentRouteResolved, checkNoBrokenChunkRetries } from './checks/routing';
+import { checkAuditModeFlag, checkAuditRealtimeDisabled, checkAuditSwBlocked, checkAuditQueryClientElevated, checkPdfChunksDeferred } from './checks/auditMode';
+import { checkSwRefusalReason, checkManifestPresent, checkSwActiveRegistration } from './checks/pwa';
+import { checkRuntimeErrorsLog } from './checks/runtimeErrors';
 import type { CheckResult, DiagnosticCategory } from './types';
 
 
@@ -95,13 +111,50 @@ export const diagnosticCategories: DiagnosticCategory[] = [
     title: 'تدقيق رقمي DB ↔ RPC ↔ UI',
     checks: [checkDbVsRpcTotalIncome, checkDbVsRpcExpenses, checkRpcVsUiAvailableAmount, checkSnapshotIntegrityClosedYear],
   },
+  {
+    title: 'التوجيه والمسارات',
+    checks: [checkRoutesRegistryConsistency, checkCurrentRouteResolved, checkNoBrokenChunkRetries],
+  },
+  {
+    title: 'وضع التدقيق (Lighthouse)',
+    checks: [checkAuditModeFlag, checkAuditRealtimeDisabled, checkAuditSwBlocked, checkAuditQueryClientElevated, checkPdfChunksDeferred],
+  },
+  {
+    title: 'PWA و Service Worker',
+    checks: [checkSwRefusalReason, checkManifestPresent, checkSwActiveRegistration],
+  },
+  {
+    title: 'أخطاء التشغيل',
+    checks: [checkRuntimeErrorsLog],
+  },
 ];
 
+/** خيارات تشغيل الفحص مع دعم progress و cancel. */
+export interface RunAuditOptions {
+  onProgress?: (info: { done: number; total: number; current: string }) => void;
+  signal?: AbortSignal;
+}
 
-export async function runAllDiagnostics(): Promise<{ category: string; results: CheckResult[] }[]> {
+function totalChecksCount(): number {
+  return diagnosticCategories.reduce((s, c) => s + c.checks.length, 0);
+}
+
+export async function runAllDiagnostics(opts: RunAuditOptions = {}): Promise<{ category: string; results: CheckResult[] }[]> {
+  const { onProgress, signal } = opts;
+  const total = totalChecksCount();
+  let done = 0;
   const output: { category: string; results: CheckResult[] }[] = [];
   for (const cat of diagnosticCategories) {
-    const results = await Promise.all(cat.checks.map(fn => fn()));
+    if (signal?.aborted) break;
+    const results: CheckResult[] = [];
+    for (const fn of cat.checks) {
+      if (signal?.aborted) break;
+      const label = `${cat.title}`;
+      onProgress?.({ done, total, current: label });
+      results.push(await fn());
+      done += 1;
+      onProgress?.({ done, total, current: label });
+    }
     output.push({ category: cat.title, results });
   }
   return output;
@@ -114,3 +167,4 @@ export async function runCategoryDiagnostics(categoryTitle: string): Promise<{ c
   const results = await Promise.all(cat.checks.map(fn => fn()));
   return { category: cat.title, results };
 }
+

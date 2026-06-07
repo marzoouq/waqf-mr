@@ -60,13 +60,21 @@ function hasSwOffFlag(): boolean {
  * مستخدمة من `SwUpdateBanner` كذلك للتأكد من اتساق القرار.
  */
 export function canRegisterAppServiceWorker(): boolean {
-  if (typeof window === 'undefined') return false;
-  if (!import.meta.env.PROD) return false;
-  if (isInIframe) return false;
-  if (hasSwOffFlag()) return false;
-  if (isAuditMode()) return false;
-  if (isPreviewOrDevHost(window.location.hostname)) return false;
-  return true;
+  return getSwRefusalReason() === null;
+}
+
+/**
+ * يُعيد سبب رفض تسجيل Service Worker، أو `null` إذا كان التسجيل مسموحاً.
+ * يُستخدم في شاشة التشخيص لعرض السبب الفعلي للمستخدم.
+ */
+export function getSwRefusalReason(): string | null {
+  if (typeof window === 'undefined') return 'بيئة SSR (لا توجد window)';
+  if (!import.meta.env.PROD) return 'بيئة تطوير (dev mode)';
+  if (isInIframe) return 'داخل iframe (معاينة)';
+  if (hasSwOffFlag()) return 'تم تعطيله يدوياً عبر ?sw=off';
+  if (isAuditMode()) return 'وضع تدقيق الأداء نشط (?audit=1)';
+  if (isPreviewOrDevHost(window.location.hostname)) return `مضيف معاينة/تطوير: ${window.location.hostname}`;
+  return null;
 }
 
 /** هل اسم الكاش من إنتاج التطبيق؟ */
