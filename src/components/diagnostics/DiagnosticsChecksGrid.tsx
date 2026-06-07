@@ -34,7 +34,7 @@ function CheckRow({ result }: { result: CheckResult }) {
 }
 
 interface Props {
-  allCategories: DiagnosticCategoryRun[];
+  allCategories: CategoryRun[];
   filter: StatusFilter;
   setFilter: (v: StatusFilter) => void;
   filterCounts: Record<CheckStatus, number>;
