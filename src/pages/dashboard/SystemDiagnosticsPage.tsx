@@ -127,20 +127,41 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" disabled={running}><Trash2 className="w-4 h-4 ml-2" />تنظيف</Button>
-            </AlertDialogTrigger>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" disabled={running || deepCleaning}>
+                <Trash2 className="w-4 h-4 ml-2" />تنظيف<ChevronDown className="w-3 h-3 mr-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setCleanDialog('light')}>تنظيف خفيف (نتائج التشخيص)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setCleanDialog('deep')}>تنظيف عميق (كاش + SW + IDB)</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <AlertDialog open={cleanDialog !== null} onOpenChange={(o) => !o && !deepCleaning && setCleanDialog(null)}>
             <AlertDialogContent dir="rtl">
               <AlertDialogHeader>
-                <AlertDialogTitle>تنظيف نتائج التشخيص</AlertDialogTitle>
+                <AlertDialogTitle>
+                  {cleanDialog === 'deep' ? 'تنظيف عميق للتطبيق' : 'تنظيف نتائج التشخيص'}
+                </AlertDialogTitle>
                 <AlertDialogDescription>
-                  سيُمسح أرشيف التشغيلات والنتائج الحالية وعلامات التحذيرات المرفوضة. لا يؤثر على بيانات النظام الفعلية.
+                  {cleanDialog === 'deep'
+                    ? 'سيُمسح الكاش، Service Worker، وقواعد IndexedDB غير الحرجة. جلستك ومُعرّف السنة المالية محفوظان. ستُعاد تحميل الصفحة تلقائياً بعد ثانيتين.'
+                    : 'سيُمسح أرشيف التشغيلات والنتائج الحالية وعلامات التحذيرات المرفوضة. لا يؤثر على بيانات النظام الفعلية.'}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                <AlertDialogAction onClick={handleClear}>تأكيد التنظيف</AlertDialogAction>
+                <AlertDialogCancel disabled={deepCleaning}>إلغاء</AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={deepCleaning}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (cleanDialog === 'deep') void handleDeepClean();
+                    else handleLightClean();
+                  }}
+                >
+                  {deepCleaning ? 'جارٍ التنظيف...' : 'تأكيد'}
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
