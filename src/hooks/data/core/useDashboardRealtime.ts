@@ -87,5 +87,5 @@ export const useDashboardRealtime = (
     [queryClient, tablesKey, extraKeysKey, flushInvalidations],
   );
 
-  useBfcacheSafeChannel(channelName, subscribeFn, enabled);
+  useBfcacheSafeChannel(channelName, subscribeFn, enabled && !AUDIT);
 };
