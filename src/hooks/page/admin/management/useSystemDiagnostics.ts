@@ -7,7 +7,9 @@ import { logAccessEvent } from '@/lib/services/accessLogService';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logger } from '@/lib/logger';
 import { downloadJson, downloadText, computeSummary, collectFailedIds, type CategoryResults } from '@/lib/diagnostics/exporters';
-import { pushRun } from '@/lib/diagnostics/history';
+import { pushRun, clearHistory } from '@/lib/diagnostics/history';
+import { resetFallbackBanner } from '@/lib/notifications/fallbackPolling';
+
 
 export const useSystemDiagnostics = (autoRun = true) => {
   const { user } = useAuth();
@@ -91,11 +93,34 @@ export const useSystemDiagnostics = (autoRun = true) => {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- autoRun behavior is intentional initial mount side-effect
-    if (autoRun) run();
+    if (!autoRun) return;
+    const idleCb: () => void = () => { void run(); };
+    type IdleWin = Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number; cancelIdleCallback?: (id: number) => void };
+    const w = window as unknown as IdleWin;
+    if (typeof w.requestIdleCallback === 'function') {
+      const handle = w.requestIdleCallback(idleCb, { timeout: 1500 });
+      return () => w.cancelIdleCallback?.(handle);
+    }
+    const t = window.setTimeout(idleCb, 300);
+    return () => window.clearTimeout(t);
   }, [autoRun, run]);
 
   const exportJson = useCallback(() => downloadJson(results), [results]);
   const exportText = useCallback(() => downloadText(results), [results]);
+
+  const clearAll = useCallback(() => {
+    setResults([]);
+    setLastRun(null);
+    setProgress(null);
+    clearHistory();
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.removeItem('dismissed_warnings_v1');
+    } catch { /* noop */ }
+    try {
+      window.dispatchEvent(new CustomEvent('lovable:clear-runtime-errors'));
+    } catch { /* noop */ }
+    resetFallbackBanner();
+  }, []);
 
   const summary = computeSummary(results);
   const allCategories = diagnosticCategories.map(cat => {
@@ -105,7 +130,7 @@ export const useSystemDiagnostics = (autoRun = true) => {
 
   return {
     results, running, runningCategory, lastRun, progress,
-    run, runSingle, exportJson, exportText,
+    run, runSingle, exportJson, exportText, clearAll,
     rerunFailures: () => rerunByStatus(false),
     rerunFailuresAndWarnings: () => rerunByStatus(true),
     totalChecks: summary.total, failures: summary.fail, warnings: summary.warn,

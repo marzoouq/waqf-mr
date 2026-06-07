@@ -22,6 +22,8 @@ const LandingCTA: React.FC<LandingCTAProps> = ({ content, onNavigateAuth }) => (
       </p>
       <Button
         onClick={onNavigateAuth}
+        onMouseEnter={() => { void import('@/pages/Auth'); }}
+        onTouchStart={() => { void import('@/pages/Auth'); }}
         size="lg"
         variant="outline"
         className="gap-2 bg-transparent border-2 border-secondary/60 text-secondary hover:bg-secondary hover:text-primary transition-colors duration-300 rounded-xl font-bold px-8"

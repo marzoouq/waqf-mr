@@ -188,6 +188,8 @@ export async function runAllDiagnostics(opts: RunAuditOptions = {}): Promise<{ c
       onProgress?.({ done, total, current: label });
     }
     output.push({ category: cat.title, results });
+    // yield بين البطاقات لتحسين INP وتفادي long task واحد
+    await new Promise<void>(r => setTimeout(r, 0));
   }
   return output;
 }
