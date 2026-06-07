@@ -48,6 +48,18 @@ export { checkSwRefusalReason, checkManifestPresent, checkSwActiveRegistration }
 // بطاقة 14 — أخطاء التشغيل
 export { checkRuntimeErrorsLog } from './checks/runtimeErrors';
 
+// بطاقة 15 — خريطة التطبيق
+export { checkAppMapPagesReachable, checkAppMapOrphanPages, checkAppMapMissingTitles, checkAppMapRoleCoverage, checkAppMapRouteRoleSync } from './checks/appMap';
+
+// بطاقة 16 — تفاعلات الواجهة
+export { checkInteractionsTabsInventory, checkInteractionsHandlerLess, checkInteractionsDuplicateTabs, checkInteractionsMissingAria } from './checks/interactions';
+
+// بطاقة 17 — اتفاقيات الكود
+export { checkConvFileSize, checkConvNoConsole, checkConvNoHexColors, checkConvRtlHtmlDir, checkConvFiscalYearStorage } from './checks/conventions';
+
+// بطاقة 18 — Backend & Edge
+export { checkBackendEdgeHealthPing, checkBackendEdgeInventory, checkBackendAuthSession, checkBackendRoleResolved, checkBackendFiscalYearActive, checkBackendStorageBuckets } from './checks/backend';
+
 // استيراد الدوال لبناء المجمّع
 import { checkSupabaseConnection, checkRealtimeChannels, checkAuthSession } from './checks/database';
 import { checkScrollPerformance, checkDomNodesCount, checkDeviceMemory, checkPagePerformance, checkWcagContrast } from './checks/performance';
@@ -63,6 +75,10 @@ import { checkRoutesRegistryConsistency, checkCurrentRouteResolved, checkNoBroke
 import { checkAuditModeFlag, checkAuditRealtimeDisabled, checkAuditSwBlocked, checkAuditQueryClientElevated, checkPdfChunksDeferred } from './checks/auditMode';
 import { checkSwRefusalReason, checkManifestPresent, checkSwActiveRegistration } from './checks/pwa';
 import { checkRuntimeErrorsLog } from './checks/runtimeErrors';
+import { checkAppMapPagesReachable, checkAppMapOrphanPages, checkAppMapMissingTitles, checkAppMapRoleCoverage, checkAppMapRouteRoleSync } from './checks/appMap';
+import { checkInteractionsTabsInventory, checkInteractionsHandlerLess, checkInteractionsDuplicateTabs, checkInteractionsMissingAria } from './checks/interactions';
+import { checkConvFileSize, checkConvNoConsole, checkConvNoHexColors, checkConvRtlHtmlDir, checkConvFiscalYearStorage } from './checks/conventions';
+import { checkBackendEdgeHealthPing, checkBackendEdgeInventory, checkBackendAuthSession, checkBackendRoleResolved, checkBackendFiscalYearActive, checkBackendStorageBuckets } from './checks/backend';
 import type { CheckResult, DiagnosticCategory } from './types';
 
 
