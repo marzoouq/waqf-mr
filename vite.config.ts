@@ -33,6 +33,10 @@ export default defineConfig(({ mode }) => ({
         cleanupOutdatedCaches: true,
         skipWaiting: false,
         clientsClaim: false,
+        // index.html مُستبعد عمداً من precache → نُعطّل navigateFallback لمنع
+        // workbox من استدعاء createHandlerBoundToURL('index.html') ورمي
+        // non-precached-url. التنقل يُخدم عبر NetworkFirst في runtimeCaching.
+        navigateFallback: null,
         // index.html مُستبعد عمداً من precache — يُخدم عبر NetworkFirst أدناه.
         // هذا يضمن أن بمب النسخة وحده لا يُولّد SW جديد؛ يحتاج تغيير محتوى JS/CSS فعلي.
         navigateFallbackDenylist: [

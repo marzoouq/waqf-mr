@@ -42,6 +42,8 @@ export default function ResetPasswordForm({ onBack }: ResetPasswordFormProps) {
         <Label htmlFor="reset-email">البريد الإلكتروني</Label>
         <Input
           id="reset-email"
+          name="email"
+          autoComplete="email"
           type="email"
           value={resetEmail}
           onChange={(e) => { setResetEmail(e.target.value); clearError(); }}
