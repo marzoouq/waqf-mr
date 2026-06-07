@@ -116,7 +116,7 @@ export function useBeneficiaryDashboardPage() {
   useBfcacheSafeChannel(
     `beneficiary-dist-${beneficiaryId || 'none'}`,
     distSubscribeFn,
-    !!currentBeneficiary?.id,
+    !!currentBeneficiary?.id && !isAuditMode(),
   );
 
   const recentNotifications = notifications.slice(0, 3);
