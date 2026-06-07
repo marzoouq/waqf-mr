@@ -8,8 +8,8 @@ describe('diagnostics history', () => {
     for (let i = 0; i < 12; i++) pushRun({ total: i, pass: i, warn: 0, fail: 0, info: 0, healthScore: 100 });
     const h = getHistory();
     expect(h.length).toBe(10);
-    expect(h[0].total).toBe(11);
-    expect(typeof h[0].at).toBe('string');
+    expect(h[0]?.total).toBe(11);
+    expect(typeof h[0]?.at).toBe('string');
   });
 
   it('clearHistory removes all entries', () => {
