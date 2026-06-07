@@ -3,7 +3,7 @@
  * مفصول عن useCrudFactory لتقليل تعقيد الملف الرئيسي.
  */
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { crudNotifyAdapter } from '@/lib/notify';
 import type { CrudNotifications } from '@/lib/notify';
@@ -99,7 +99,10 @@ export function buildListHelpers<T extends TableName, TData>(
       setPage(Math.max(0, p));
     }, []);
 
-    return useMemo(() => ({
+    // ملاحظة: لا نلفّ بـ useMemo + spread لأن خصائص UseQueryResult getters متعقَّبة
+    // مرتبطة بـ QueryObserver نشط؛ تخزين النتيجة في closure يسبب
+    // "The provided callback is no longer runnable" عند إبطال الـ Observer.
+    return {
       ...query,
       page,
       nextPage,
@@ -108,7 +111,7 @@ export function buildListHelpers<T extends TableName, TData>(
       hasNextPage,
       hasPrevPage,
       pageSize: limit,
-    }), [query, page, nextPage, prevPage, goToPage, hasNextPage, hasPrevPage]);
+    };
   };
 
   return { useList, getQueryOptions };
