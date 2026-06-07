@@ -3,6 +3,11 @@ import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { classifyError, isRetryableCategory } from '@/utils/error/getErrorStatus';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { isAuditMode } from '@/lib/auditMode';
+
+// في وضع التدقيق (Lighthouse / ?audit=1) نُسكت كل النشاط الخلفي
+// حتى يصل المتصفح إلى networkidle ولا يتوقف Lighthouse.
+const AUDIT = isAuditMode();
 
 const queryCache = new QueryCache({
   onError: (error, query) => {
