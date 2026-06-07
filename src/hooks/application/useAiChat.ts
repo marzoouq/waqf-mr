@@ -1,91 +1,58 @@
 /**
- * هوك منطق المساعد الذكي — محادثات في الذاكرة فقط (بدون حفظ في قاعدة البيانات)
- * يدعم: Streaming، Fallback UI، إعادة المحاولة
+ * هوك منطق المساعد الذكي — يجمع الحالة (useAiChatState) مع إرسال الرسائل.
+ * يدعم: Streaming، Fallback UI، إعادة المحاولة.
  */
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logger } from '@/lib/logger';
 import { streamChatCompletion } from '@/lib/ai/streamChat';
+import { useAiChatState, type Msg } from './ai/useAiChatState';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const AI_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai-assistant` : null;
-
-type Msg = { role: 'user' | 'assistant'; content: string };
-export type ChatMode = 'chat' | 'analysis' | 'report';
-
 const SEND_COOLDOWN_MS = 2000;
+const HISTORY_LIMIT = 10;
 
 export function useAiChat() {
   const { user, role, session } = useAuth();
-
-  const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState<ChatMode>('chat');
-  const [error, setError] = useState<string | null>(null);
-  const lastSendTimeRef = useRef(0);
-  const endRef = useRef<HTMLDivElement>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const lastUserMsgRef = useRef<string>('');
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, open]);
-
-  useEffect(() => {
-    return () => abortControllerRef.current?.abort();
-  }, []);
+  const s = useAiChatState();
+  const { refs } = s;
 
   const isAvailable = role === 'admin' || role === 'accountant' || role === 'beneficiary' || role === 'waqif';
 
-  const handleModeChange = (newMode: string) => {
-    if (newMode === mode) return;
-    abortControllerRef.current?.abort();
-    setMode(newMode as ChatMode);
-    setMessages([]);
-    setIsLoading(false);
-    setError(null);
-  };
-
   const sendMessage = useCallback(async (messageText: string) => {
     const trimmed = messageText.trim().slice(0, 1000);
-    if (!trimmed || isLoading) return;
+    if (!trimmed || s.isLoading) return;
 
     const now = Date.now();
-    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) return;
-    lastSendTimeRef.current = now;
-    lastUserMsgRef.current = trimmed;
-    setError(null);
+    if (now - refs.lastSendTimeRef.current < SEND_COOLDOWN_MS) return;
+    refs.lastSendTimeRef.current = now;
+    refs.lastUserMsgRef.current = trimmed;
+    s.setError(null);
 
-    if (!AI_URL) {
-      setError('خطأ في إعداد المساعد الذكي — تعذر الاتصال بالخادم.');
-      return;
-    }
+    if (!AI_URL) { s.setError('خطأ في إعداد المساعد الذكي — تعذر الاتصال بالخادم.'); return; }
 
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = new AbortController();
+    refs.abortControllerRef.current?.abort();
+    refs.abortControllerRef.current = new AbortController();
 
     const userMsg: Msg = { role: 'user', content: trimmed };
-    const HISTORY_LIMIT = 10;
-    const allMessages = [...messages, userMsg].slice(-HISTORY_LIMIT);
-    setMessages(allMessages);
-    setInput('');
-    setIsLoading(true);
+    const allMessages = [...s.messages, userMsg].slice(-HISTORY_LIMIT);
+    s.setMessages(allMessages);
+    s.setInput('');
+    s.setIsLoading(true);
 
     let assistantContent = '';
-
     try {
       if (!session?.access_token) throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
       await streamChatCompletion({
         url: AI_URL,
         accessToken: session.access_token,
         apiKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        body: { messages: allMessages, mode },
-        signal: abortControllerRef.current.signal,
+        body: { messages: allMessages, mode: s.mode },
+        signal: refs.abortControllerRef.current.signal,
         onContent: (chunk) => {
           assistantContent += chunk;
-          setMessages((prev) => {
+          s.setMessages((prev) => {
             const last = prev[prev.length - 1];
             if (last?.role === 'assistant') {
               return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
@@ -96,58 +63,36 @@ export function useAiChat() {
       });
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') return;
-      const errMessage = e instanceof Error ? e.message : 'حدث خطأ غير متوقع';
+      const msg = e instanceof Error ? e.message : 'حدث خطأ غير متوقع';
       logger.error('خطأ في المساعد الذكي', e);
-      setError(errMessage);
-      // إضافة رسالة خطأ في المحادثة أيضاً
-      setMessages((prev) => [...prev, { role: 'assistant', content: `❌ ${errMessage}` }]);
+      s.setError(msg);
+      s.setMessages((prev) => [...prev, { role: 'assistant', content: `❌ ${msg}` }]);
     } finally {
-      setIsLoading(false);
+      s.setIsLoading(false);
     }
-  }, [messages, mode, session, isLoading]);
+  }, [s, refs, session]);
 
-  const send = useCallback(() => {
-    sendMessage(input);
-  }, [input, sendMessage]);
+  const send = useCallback(() => { sendMessage(s.input); }, [s.input, sendMessage]);
 
-  /** إعادة إرسال آخر رسالة (للـ Fallback UI) */
   const retryLast = useCallback(() => {
-    setError(null);
-    // حذف آخر رسالة خطأ من المساعد إن وجدت
-    setMessages((prev) => {
+    s.setError(null);
+    s.setMessages((prev) => {
       const last = prev[prev.length - 1];
-      if (last?.role === 'assistant' && last.content.startsWith('❌')) {
-        return prev.slice(0, -1);
-      }
-      return prev;
+      return last?.role === 'assistant' && last.content.startsWith('❌') ? prev.slice(0, -1) : prev;
     });
-    if (lastUserMsgRef.current) {
-      // إعادة إرسال بدون إضافة رسالة المستخدم مرة أخرى
-      sendMessage(lastUserMsgRef.current);
-    }
-  }, [sendMessage]);
-
-  const closePanel = useCallback(() => {
-    abortControllerRef.current?.abort();
-    setOpen(false);
-  }, []);
-
-  const clearMessages = useCallback(() => {
-    setMessages([]);
-    setError(null);
-  }, []);
+    if (refs.lastUserMsgRef.current) sendMessage(refs.lastUserMsgRef.current);
+  }, [s, refs, sendMessage]);
 
   return {
     user, role, isAvailable,
-    open, setOpen, closePanel,
-    messages, clearMessages,
-    input, setInput,
-    isLoading,
-    mode, handleModeChange,
-    send,
-    endRef,
-    error, retryLast,
+    open: s.open, setOpen: s.setOpen, closePanel: s.closePanel,
+    messages: s.messages, clearMessages: s.clearMessages,
+    input: s.input, setInput: s.setInput,
+    isLoading: s.isLoading,
+    mode: s.mode, handleModeChange: s.handleModeChange,
+    send, endRef: refs.endRef,
+    error: s.error, retryLast,
   };
 }
 
-export type { Msg };
+export type { Msg, ChatMode } from './ai/useAiChatState';
