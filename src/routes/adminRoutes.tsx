@@ -24,6 +24,7 @@ const ChartOfAccountsPage = lazyWithRetry(() => import("@/pages/dashboard/ChartO
 const HistoricalComparisonPage = lazyWithRetry(() => import("@/pages/dashboard/HistoricalComparisonPage"));
 const SystemDiagnosticsPage = lazyWithRetry(() => import("@/pages/dashboard/SystemDiagnosticsPage"));
 const EmailMonitorPage = lazyWithRetry(() => import("@/pages/dashboard/EmailMonitorPage"));
+const AuditReportFinalPage = lazyWithRetry(() => import("@/pages/dashboard/AuditReportFinalPage"));
 
 import { ADMIN_ROLES, ADMIN_ONLY } from '@/constants/roles';
 
@@ -55,5 +56,6 @@ export const adminRoutes = (
     <Route path="/dashboard/zatca" element={pr(ADMIN_ONLY, <ZatcaManagementPage />, false)} />
     <Route path="/dashboard/diagnostics" element={pr(ADMIN_ONLY, <SystemDiagnosticsPage />, false)} />
     <Route path="/dashboard/email-monitor" element={pr(ADMIN_ONLY, <EmailMonitorPage />, false)} />
+    <Route path="/dashboard/audit-report-final" element={pr(ADMIN_ONLY, <AuditReportFinalPage />, false)} />
   </>
 );

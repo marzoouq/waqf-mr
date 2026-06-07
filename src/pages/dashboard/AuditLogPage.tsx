@@ -4,16 +4,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ShieldCheck, Activity, ShieldAlert, Archive, FileDown } from 'lucide-react';
+import { ShieldCheck, Activity, ShieldAlert, Archive, FileDown, ClipboardCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import AccessLogTab from '@/components/audit/AccessLogTab';
 import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 import AuditLogStats from '@/components/audit/AuditLogStats';
 import AuditLogFilters from '@/components/audit/AuditLogFilters';
 import AuditLogTable from '@/components/audit/AuditLogTable';
 import { useAuditLogPage } from '@/hooks/page/admin/management/useAuditLogPage';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 const AuditLogPage = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { role } = useAuth();
   const h = useAuditLogPage();
 
   return (
@@ -24,9 +28,22 @@ const AuditLogPage = () => {
            icon={ShieldCheck}
            description="تتبع جميع العمليات والتغييرات على النظام"
            actions={
-             <Button variant="outline" size="sm" onClick={h.handleExportPdf} disabled={h.exporting || h.logs.length === 0} className="gap-2">
-               <FileDown className="w-4 h-4" />{h.exporting ? 'جاري التصدير...' : 'تصدير PDF'}
-             </Button>
+             <div className="flex flex-wrap items-center gap-2">
+               {role === 'admin' && (
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => navigate('/dashboard/audit-report-final')}
+                   className="gap-2"
+                 >
+                   <ClipboardCheck className="w-4 h-4" />
+                   تقرير التدقيق النهائي
+                 </Button>
+               )}
+               <Button variant="outline" size="sm" onClick={h.handleExportPdf} disabled={h.exporting || h.logs.length === 0} className="gap-2">
+                 <FileDown className="w-4 h-4" />{h.exporting ? 'جاري التصدير...' : 'تصدير PDF'}
+               </Button>
+             </div>
            }
          />
 
