@@ -200,3 +200,22 @@ export async function runCategoryDiagnostics(categoryTitle: string): Promise<{ c
   return { category: cat.title, results };
 }
 
+/**
+ * تشغيل فحوصات محدَّدة بـ ids — يستخدمه زر "إعادة الفاشلة فقط".
+ * يُعيد نتائج موزَّعة على بطاقاتها لدمجها مع الحالة الحالية.
+ */
+export async function runByIds(ids: string[]): Promise<{ category: string; results: CheckResult[] }[]> {
+  const want = new Set(ids);
+  const output: { category: string; results: CheckResult[] }[] = [];
+  for (const cat of diagnosticCategories) {
+    const matches: (() => Promise<CheckResult>)[] = [];
+    // نُشغّل كل فحوصات البطاقة ثم نُرشّح — أبسط من تتبّع id لكل دالة.
+    const results = await Promise.all(cat.checks.map(fn => fn()));
+    const filtered = results.filter(r => want.has(r.id));
+    if (filtered.length) output.push({ category: cat.title, results: filtered });
+    void matches;
+  }
+  return output;
+}
+
+
