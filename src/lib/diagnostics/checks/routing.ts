@@ -7,22 +7,15 @@ import type { CheckResult } from '../types';
 export async function checkRoutesRegistryConsistency(): Promise<CheckResult> {
   const id = 'routing_registry';
   try {
-    const routes = ALL_ROUTES ?? [];
-    if (!routes.length) {
+    const paths = Object.keys(ALL_ROUTES ?? {});
+    if (!paths.length) {
       return { id, label: 'سجل المسارات', status: 'fail', detail: 'سجل المسارات فارغ' };
     }
-    const dupes = new Set<string>();
-    const seen = new Set<string>();
-    for (const r of routes) {
-      const path = typeof r === 'string' ? r : (r as { path?: string })?.path ?? '';
-      if (!path) continue;
-      if (seen.has(path)) dupes.add(path);
-      seen.add(path);
+    const missingTitle = paths.filter((p) => !ALL_ROUTES[p]?.title);
+    if (missingTitle.length) {
+      return { id, label: 'سجل المسارات', status: 'warn', detail: `بدون عنوان: ${missingTitle.slice(0, 3).join(', ')}` };
     }
-    if (dupes.size) {
-      return { id, label: 'سجل المسارات', status: 'warn', detail: `مسارات مكررة: ${[...dupes].join(', ')}` };
-    }
-    return { id, label: 'سجل المسارات', status: 'pass', detail: `${seen.size} مسار مسجَّل` };
+    return { id, label: 'سجل المسارات', status: 'pass', detail: `${paths.length} مسار مسجَّل` };
   } catch (e) {
     return { id, label: 'سجل المسارات', status: 'fail', detail: String(e) };
   }
@@ -32,11 +25,13 @@ export async function checkCurrentRouteResolved(): Promise<CheckResult> {
   const id = 'routing_current';
   try {
     const path = window.location.pathname;
-    const found = (ALL_ROUTES ?? []).some((r) => {
-      const p = typeof r === 'string' ? r : (r as { path?: string })?.path ?? '';
-      if (!p) return false;
-      // basic match: exact أو prefix لمسارات ديناميكية
-      return p === path || (p.includes(':') && path.startsWith(p.split(':')[0]));
+    const found = Object.keys(ALL_ROUTES ?? {}).some((p) => {
+      if (p === path) return true;
+      if (p.includes(':')) {
+        const prefix = p.split(':')[0] ?? '';
+        return prefix.length > 1 && path.startsWith(prefix);
+      }
+      return false;
     });
     return found
       ? { id, label: 'المسار الحالي', status: 'pass', detail: path }

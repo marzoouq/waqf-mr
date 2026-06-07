@@ -68,5 +68,5 @@ export function installRuntimeCollector(): void {
       stack: reason?.stack ? String(reason.stack).slice(0, 1500) : undefined,
     });
   });
-  logger.debug('[Diagnostics] runtimeCollector installed');
+  logger.info('[Diagnostics] runtimeCollector installed');
 }
