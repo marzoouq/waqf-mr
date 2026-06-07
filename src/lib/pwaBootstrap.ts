@@ -10,6 +10,7 @@
  * مصدر الحقيقة لتسجيل SW في الإنتاج: `SwUpdateBanner` (useRegisterSW).
  */
 import { logger } from './logger';
+import { isAuditMode } from './auditMode';
 
 /** أسماء الكاشات التي ينتجها workbox runtimeCaching في vite.config.ts */
 const APP_CACHE_PREFIXES = [
