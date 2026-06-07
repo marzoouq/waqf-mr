@@ -182,6 +182,8 @@ export default defineConfig(({ mode }) => ({
           (dep) =>
             !dep.includes('vendor-pdf') &&
             !dep.includes('vendor-pdf-table') &&
+            !dep.includes('vendor-pdf-svg') &&
+            !dep.includes('vendor-qr') &&
             !dep.includes('html2canvas'),
         );
       },
