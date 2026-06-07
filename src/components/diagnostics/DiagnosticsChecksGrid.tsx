@@ -7,8 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { sanitizeDiagnosticOutput } from '@/lib/diagnostics/sanitize';
 import type { CheckResult, CheckStatus } from '@/lib/diagnostics/types';
-import type { DiagnosticCategoryRun } from '@/hooks/page/admin/management/useSystemDiagnostics';
 import StatusFilterChips, { type StatusFilter } from './StatusFilterChips';
+
+interface CategoryRun { title: string; results: CheckResult[] | null; checksCount: number }
 
 const STATUS_CONFIG: Record<CheckStatus, { icon: typeof CheckCircle2; color: string; label: string }> = {
   pass: { icon: CheckCircle2, color: 'text-success', label: 'ناجح' },
