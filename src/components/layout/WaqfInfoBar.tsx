@@ -72,6 +72,7 @@ const WaqfInfoBar = () => {
                   <Button
                     variant="ghost"
                     size="icon"
+                    aria-label="تعديل معلومات الوقف"
                     className="h-7 w-7 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                     onClick={() => setEditOpen(true)}
                   >
