@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { usePrint } from '@/hooks/ui/usePrint';
-import { CLEANUP_REPORT } from '@/constants/cleanupReport';
+import { useCleanupReportPage } from '@/hooks/page/admin/reports/useCleanupReportPage';
 import CleanupSummaryCards from '@/components/dashboard/cleanup/CleanupSummaryCards';
 import TestFailuresList from '@/components/dashboard/cleanup/TestFailuresList';
 
@@ -15,8 +14,7 @@ const phaseTone: Record<'HIGH' | 'MED' | 'LOW', string> = {
 };
 
 const CleanupReportPage = () => {
-  const print = usePrint();
-  const r = CLEANUP_REPORT;
+  const { report: r, handlePrint } = useCleanupReportPage();
 
   return (
     <DashboardLayout>
@@ -26,7 +24,7 @@ const CleanupReportPage = () => {
           description="نتائج جنائية مفصّلة لآخر جولة حذف ملفات يتيمة (rg + build + 2062 اختبار)"
           icon={ClipboardCheck}
           actions={
-            <Button variant="outline" size="sm" onClick={print} className="gap-2">
+            <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
               <FileText className="w-4 h-4" />
               تصدير PDF
             </Button>
