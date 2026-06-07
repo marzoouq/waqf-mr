@@ -1,44 +1,31 @@
-# تشغيل الاختبارات الكاملة + عرض النتائج في صفحة تقرير
+## الهدف
+إصلاح الاختبارين الفاشلين في `dashboardRoutesContract.test.ts` بإضافة طبقة page-hook لكلتا الصفحتين (`AuditReportFinalPage`, `CleanupReportPage`) بحيث تستوردان hook من `@/hooks/page/...` بدلاً من استدعاء `usePrint` مباشرةً.
 
-## الخطوات
+## التغييرات
 
-### 1. تشغيل البناء والاختبارات (في build mode)
-- `npm run build` — تأكيد عدم وجود أخطاء bundle بعد حذف الملفات الأربعة.
-- `bunx vitest run --reporter=json --outputFile=/tmp/vitest-results.json` — تشغيل كامل الـ 2060 اختبار.
-- استخراج: `numTotalTests`, `numPassedTests`, `numFailedTests`, قائمة الفاشلة (file + name + رسالة)، وأي تحذيرات stderr.
-- إن فشل أي اختبار: إيقاف فوري وإبلاغ المستخدم قبل أي إنشاء صفحة.
+### 1. إنشاء hooks جديدة تحت `src/hooks/page/admin/reports/`
+- **`useAuditReportFinalPage.ts`** — يستدعي `usePrint` ويُرجع `{ print, handlePrint }` (و`handleOpenCleanupReport` للتنقل إن لزم).
+- **`useCleanupReportPage.ts`** — يستدعي `usePrint` ويُرجع `{ print, handlePrint, report }` حيث `report` ثابت `CLEANUP_REPORT` من `@/constants/cleanupReport`.
 
-### 2. إنشاء صفحة التقرير (Admin only)
+السلوك المُغلَّف:
+- استدعاء `usePrint()`
+- دالة `handlePrint` تستدعي `print.printElement(ref)` (إن كان النمط الحالي يستخدم ref) أو `print.print()` حسب التوقيع الحالي.
 
-**ملفات جديدة:**
-- `src/constants/cleanupReport.ts` — snapshot ثابت:
-  ```ts
-  { generatedAt, deletedFiles: [{path, reason}],
-    rgChecks: [{pattern, matches}],
-    build: { status: 'pass'|'fail', durationMs?, errors? },
-    tests: { total, passed, failed, skipped, durationMs,
-             failures: [{file, name, message}] } }
-  ```
-  تُملأ بالنتائج الفعلية من الخطوة 1.
-- `src/pages/dashboard/CleanupReportPage.tsx` (≤180 سطر، presentational):
-  - `DashboardLayout` + `PageHeaderCard` + أيقونة `ClipboardCheck`.
-  - بطاقات ملخص: محذوف / rg / build / tests (لون أخضر/أحمر حسب النتيجة).
-  - جدول الملفات المحذوفة + جدول فحوصات rg.
-  - قسم تفصيلي للاختبارات الفاشلة (إن وُجدت) مع file/name/message.
-  - زر طباعة PDF عبر `usePrint`.
-- `src/components/dashboard/cleanup/CleanupSummaryCards.tsx` (4 بطاقات).
-- `src/components/dashboard/cleanup/TestFailuresList.tsx` (قائمة فاشلة، فارغة إن `failed=0`).
+### 2. تعديل الصفحتين
+- إزالة `import { usePrint }` المباشر.
+- استبداله بـ `import { useAuditReportFinalPage } from '@/hooks/page/admin/reports/useAuditReportFinalPage'` (والمماثل لتقرير التنظيف).
+- استخدام القيم المُعادة من الـ hook دون تغيير الـ JSX/العرض.
 
-**ملفات معدَّلة:**
-- `src/routes/adminRoutes.tsx` — مسار `/dashboard/cleanup-report` بحارس `ADMIN_ONLY` + lazy load.
-- `src/pages/dashboard/AuditReportFinalPage.tsx` — زر "تقرير التنظيف الأخير".
+### 3. التحقق
+- `bunx vitest run src/test/dashboardRoutesContract.test.ts` → اختباران فاشلان يصبحان أخضرَين.
+- `bunx vitest run` كاملاً → 2076/2076.
 
-## القيود الحقيقية
-
-- **لا يمكن** تشغيل vitest في runtime من المتصفح — الاختبارات تُشغَّل في sandbox الـ build فقط، ونتائجها تُخزَّن في `cleanupReport.ts` كـ snapshot.
-- التقرير يعكس **آخر جولة تنظيف**؛ يُحدَّث يدوياً في كل جولة قادمة (لا نظام CI داخل التطبيق).
+## الملفات
+- **جديد:** `src/hooks/page/admin/reports/useAuditReportFinalPage.ts`
+- **جديد:** `src/hooks/page/admin/reports/useCleanupReportPage.ts`
+- **معدّل:** `src/pages/dashboard/AuditReportFinalPage.tsx`
+- **معدّل:** `src/pages/dashboard/CleanupReportPage.tsx`
 
 ## خارج النطاق
-- لا تعديل على RLS أو السنة المالية.
-- لا تنفيذ rg/build/tests من واجهة المستخدم runtime.
-- لا حذف ملفات إضافية.
+- لا تغيير في `usePrint` نفسه (يبقى في `@/hooks/ui/`).
+- لا تغيير في المنطق، الـ JSX، التوجيه، أو الصلاحيات.
