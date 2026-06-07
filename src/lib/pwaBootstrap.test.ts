@@ -123,4 +123,10 @@ describe('canRegisterAppServiceWorker', () => {
     const mod = await import('./pwaBootstrap');
     expect(mod.canRegisterAppServiceWorker()).toBe(false);
   });
+
+  it('يرفض عند ?audit=1 (وضع Lighthouse)', async () => {
+    vi.stubGlobal('location', { hostname: 'waqf-wise.net', search: '?audit=1' } as unknown as Location);
+    const mod = await import('./pwaBootstrap');
+    expect(mod.canRegisterAppServiceWorker()).toBe(false);
+  });
 });
