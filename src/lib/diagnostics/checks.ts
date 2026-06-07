@@ -143,6 +143,22 @@ export const diagnosticCategories: DiagnosticCategory[] = [
     title: 'أخطاء التشغيل',
     checks: [checkRuntimeErrorsLog],
   },
+  {
+    title: 'خريطة التطبيق',
+    checks: [checkAppMapPagesReachable, checkAppMapOrphanPages, checkAppMapMissingTitles, checkAppMapRoleCoverage, checkAppMapRouteRoleSync],
+  },
+  {
+    title: 'تفاعلات الواجهة',
+    checks: [checkInteractionsTabsInventory, checkInteractionsHandlerLess, checkInteractionsDuplicateTabs, checkInteractionsMissingAria],
+  },
+  {
+    title: 'اتفاقيات الكود',
+    checks: [checkConvFileSize, checkConvNoConsole, checkConvNoHexColors, checkConvRtlHtmlDir, checkConvFiscalYearStorage],
+  },
+  {
+    title: 'Backend & Edge',
+    checks: [checkBackendEdgeHealthPing, checkBackendEdgeInventory, checkBackendAuthSession, checkBackendRoleResolved, checkBackendFiscalYearActive, checkBackendStorageBuckets],
+  },
 ];
 
 /** خيارات تشغيل الفحص مع دعم progress و cancel. */
