@@ -12,10 +12,12 @@ src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,1
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,47,Button,"",onClick,"DashboardLayout>PageHeaderCard",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,57,Button,"PDF",onClick,"PageHeaderCard>FileEdit>Send",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,61,Button,"طباعة",onClick,"FileEdit>Send>FileDown",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,47,Tab,"سجل العمليات",tabs-radix,"Tabs>SelectValue>TabsList",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,48,Tab,"محاولات الوصول",tabs-radix,"SelectValue>TabsList>Activity",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,49,Tab,"الأرشيف",tabs-radix,"TabsList>Activity>ShieldAlert",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,27,Button,"",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,64,Tab,"سجل العمليات",tabs-radix,"Tabs>SelectValue>TabsList",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,65,Tab,"محاولات الوصول",tabs-radix,"SelectValue>TabsList>Activity",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,66,Tab,"الأرشيف",tabs-radix,"TabsList>Activity>ShieldAlert",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,33,Button,"تقرير التدقيق النهائي",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,43,Button,"",onClick,"DashboardLayout>PageHeaderCard>ClipboardCheck",OK
+src/pages/dashboard/AuditReportFinalPage.tsx,,/dashboard/audit-report-final,ADMIN_ONLY,21,Button,"تصدير PDF",onClick,"DashboardLayout>PageHeaderCard",OK
 src/pages/dashboard/BeneficiariesPage.tsx,,/dashboard/beneficiaries,ADMIN_ROLES,34,Tab,"المستفيدون",tabs-radix,"BeneficiaryFormDialog>Tabs>TabsList",OK
 src/pages/dashboard/BeneficiariesPage.tsx,,/dashboard/beneficiaries,ADMIN_ROLES,35,Tab,"طلبات السُلف",tabs-radix,"BeneficiaryFormDialog>Tabs>TabsList",OK
 src/pages/dashboard/BylawsPage.tsx,,/dashboard/bylaws,ADMIN_ROLES,56,Button,"إضافة بند",onClick,"DashboardLayout>Loader2>PageHeaderCard",OK
