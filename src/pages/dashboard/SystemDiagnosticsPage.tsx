@@ -26,6 +26,7 @@ import RunHistoryList from '@/components/diagnostics/RunHistoryList';
 import NotificationFallbackCard from '@/components/diagnostics/NotificationFallbackCard';
 import BackendLogTable from '@/components/diagnostics/BackendLogTable';
 import StatusFilterChips, { type StatusFilter } from '@/components/diagnostics/StatusFilterChips';
+import DeepCleanConfirmDialog from '@/components/diagnostics/DeepCleanConfirmDialog';
 
 const WebVitalsPanel = lazy(() => import('@/components/common/feedback/WebVitalsPanel'));
 
@@ -138,33 +139,28 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
               <DropdownMenuItem onClick={() => setCleanDialog('deep')}>تنظيف عميق (كاش + SW + IDB)</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <AlertDialog open={cleanDialog !== null} onOpenChange={(o) => !o && !deepCleaning && setCleanDialog(null)}>
+          <AlertDialog open={cleanDialog === 'light'} onOpenChange={(o) => !o && setCleanDialog(null)}>
             <AlertDialogContent dir="rtl">
               <AlertDialogHeader>
-                <AlertDialogTitle>
-                  {cleanDialog === 'deep' ? 'تنظيف عميق للتطبيق' : 'تنظيف نتائج التشخيص'}
-                </AlertDialogTitle>
+                <AlertDialogTitle>تنظيف نتائج التشخيص</AlertDialogTitle>
                 <AlertDialogDescription>
-                  {cleanDialog === 'deep'
-                    ? 'سيُمسح الكاش، Service Worker، وقواعد IndexedDB غير الحرجة. جلستك ومُعرّف السنة المالية محفوظان. ستُعاد تحميل الصفحة تلقائياً بعد ثانيتين.'
-                    : 'سيُمسح أرشيف التشغيلات والنتائج الحالية وعلامات التحذيرات المرفوضة. لا يؤثر على بيانات النظام الفعلية.'}
+                  سيُمسح أرشيف التشغيلات والنتائج الحالية وعلامات التحذيرات المرفوضة. لا يؤثر على بيانات النظام الفعلية.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel disabled={deepCleaning}>إلغاء</AlertDialogCancel>
-                <AlertDialogAction
-                  disabled={deepCleaning}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (cleanDialog === 'deep') void handleDeepClean();
-                    else handleLightClean();
-                  }}
-                >
-                  {deepCleaning ? 'جارٍ التنظيف...' : 'تأكيد'}
+                <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                <AlertDialogAction onClick={(e) => { e.preventDefault(); handleLightClean(); }}>
+                  تأكيد
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          <DeepCleanConfirmDialog
+            open={cleanDialog === 'deep'}
+            busy={deepCleaning}
+            onCancel={() => setCleanDialog(null)}
+            onConfirm={() => void handleDeepClean()}
+          />
           <Button onClick={run} disabled={running || !!runningCategory} size="sm">
             <RefreshCw className={`w-4 h-4 ml-2 ${running ? 'animate-spin' : ''}`} />
             {running ? 'جارٍ الفحص...' : 'تشغيل الكل'}
