@@ -1,235 +1,93 @@
-# خطة v4: نظام التشخيص الكامل تحت `/dashboard/diagnostics`
+# خطة: تنظيف تشخيص النظام وتوسيع تسجيل Backend
 
-## التحقق من الشمولية مقابل بنية المشروع الفعلية
-
-| الطبقة | موجود في المشروع | كانت في v3؟ | في v4 |
-|--------|------------------|-------------|-------|
-| 50 صفحة (dashboard/beneficiary/waqif/public) | ✅ | جزئي (appMap) | ✅ كامل |
-| 41 route في `routeRegistry` | ✅ | ✅ | ✅ |
-| 4 ملفات routes (`adminRoutes/beneficiaryRoutes/waqifRoutes/publicRoutes`) | ✅ | ❌ | ✅ مُضاف |
-| ~14 صفحة فيها `<Tabs>` | ✅ | ✅ | ✅ |
-| الأزرار بدون handler | ✅ | ✅ | ✅ |
-| **11 Edge Function** | ✅ | ❌ مفقود | ✅ مُضاف |
-| **DB Migrations + linter** | ✅ | ❌ مفقود | ✅ مُضاف |
-| **Hooks layering (data/domain/page)** | ✅ | ❌ مفقود | ✅ مُضاف |
-| **CRUD factories + data hooks** | ✅ | ❌ مفقود | ✅ مُضاف |
-| **PWA / SW / Manifest** | ✅ | ✅ | ✅ |
-| **Auth context + Roles + RLS proxies** | ✅ | جزئي (security) | ✅ مُعمَّق |
-| **Fiscal Year context + closed-year guard** | ✅ Core rule | ❌ مفقود | ✅ مُضاف |
-| **ZATCA ICV chain + QR** | ✅ | ✅ | ✅ |
-| **Email queue + notifications** | ✅ | ❌ مفقود | ✅ مُضاف |
-| **Storage buckets** | ✅ | ✅ | ✅ |
-| **Realtime channels** | ✅ | جزئي | ✅ مُعمَّق |
-| **i18n / RTL / Arabic copy** | ✅ | ❌ مفقود | ✅ مُضاف |
-| **Conventions (file size ≤200, no console, hsl tokens)** | ✅ | ❌ مفقود | ✅ مُضاف |
-| **CI workflows + scripts/audit-*** | ✅ | ❌ مفقود | ✅ مُضاف (روابط فقط) |
-
-**النتيجة**: v3 كانت تغطي ~60% من التطبيق. v4 ترفعها إلى ~95%.
+الهدف: إزالة تراكم الأخطاء بعد التشخيص، توسيع معلومات Backend (HTTP status + زمن + اسم الدالة)، إضافة اختبار محلي لـ `health-check`، وإصلاح اثنين من الإخفاقات الحقيقية (`waqf-assets` غير مكتشَف رغم وجوده + غياب وسم manifest).
 
 ---
 
-## 1) إثراء تصدير JSON
+## 1) تنظيف Runtime Error من فحص `health-check`
 
-استبدال `exportResults` (تصدير نصي حالي) بـ `exportJson()` + `exportText()` جنبًا إلى جنب.
+**المشكلة:** `supabase.functions.invoke('health-check')` يستدعي 401 وتلتقطه دالة الفحص (status=pass) لكن SDK يُسجّل الخطأ كـ `RUNTIME_ERROR` في طبقة عرض الأخطاء قبل الوصول للكاتش، فيظهر تراكم.
 
-البنية:
-```json
-{
-  "schemaVersion": 1,
-  "generatedAt": "2026-06-07T04:33:55.123Z",
-  "app": { "version": "3.0.220", "env": "production", "commitHint": "...", "userAgent": "...", "route": "..." },
-  "summary": { "total": 95, "pass": 80, "warn": 10, "fail": 5, "info": 0, "healthScore": 89 },
-  "categories": [
-    {
-      "title": "قاعدة البيانات",
-      "results": [
-        {
-          "id": "db_connection", "label": "اتصال", "status": "pass", "detail": "120ms",
-          "category": "قاعدة البيانات",
-          "docLink": "/docs/diagnostics/check-catalog.md#db_connection",
-          "sourceFile": "src/lib/diagnostics/checks/database.ts"
-        }
-      ]
-    }
-  ]
-}
+**الحل:** استبدال `supabase.functions.invoke` في فحص واحد فقط (`checkBackendEdgeHealthPing`) بـ `fetch` مباشر إلى `${VITE_SUPABASE_URL}/functions/v1/health-check` مع `Authorization: Bearer <anon>` و`apikey`. هذا يلتقط الاستجابة بدون أن يمر عبر معترض أخطاء SDK، ويُمكّننا من قراءة `response.status` و`response.headers` بدقة.
+
+تفسير الحالات:
+- 200 → `pass` ("سليمة، Xms")
+- 401 → `pass` ("محمية بسر، Xms") — متوقع في الـ frontend
+- 503 → `warn` ("degraded، Xms")
+- 5xx أخرى أو شبكة → `fail`
+
+---
+
+## 2) توسيع تسجيل Backend في فحوصات Edge
+
+تعميم نمط الـ fetch المباشر في **فحص واحد إضافي تجريبي**: ping خفيف لـ `health-check` فقط (لا نضرب بقية 18 دالة). نُعيد `CheckResult.detail` بصيغة:
+
+```
+[GET /health-check] status=401 ms=124 name=health-check
 ```
 
-- `version`: من `package.json` عبر `define: __APP_VERSION__` في `vite.config.ts`.
-- `sourceFile/docLink`: من `src/lib/diagnostics/checkMeta.ts` (`id → { sourceFile, docAnchor }`).
-- اسم الملف: `diagnostics-{ISO-date}.json`.
+كما نُضيف فحصاً ثانياً اختيارياً `backend_functions_url_reachable` يتحقق فقط من أن مسار `/functions/v1/` لا يُرجع 5xx (HEAD أو OPTIONS) — مفيد لتشخيص مشاكل CORS/Routing بدون استدعاء دالة فعلية.
 
 ---
 
-## 2) إعادة الفحص الانتقائية
+## 3) إصلاح فحص `waqf-assets` (إخفاق كاذب)
 
-DropdownMenu بدل زر واحد:
+**المشكلة:** `storage.listBuckets()` من client بـ anon/auth قد يُرجع قائمة فارغة بسبب RLS، فيُبلَّغ "مفقود: waqf-assets" رغم وجوده فعلياً.
 
-| الزر | السلوك |
-|------|--------|
-| تشغيل الكل | كما هو |
-| إعادة الفاشلة فقط | يُشغّل دوال ids حالتها `fail` |
-| إعادة التحذيرات والفاشلة | يشمل `warn` و `fail` |
-| إعادة بطاقة | الموجود (▶ في كل بطاقة) |
-
-تنفيذ: `runByIds(ids)` في `checks.ts` + `rerunFailures()/rerunFailuresAndWarnings()` في الهوك.
-
----
-
-## 3) ملخص الصحة "ما يعمل / تحذير / يحتاج إصلاح"
-
-Hero بثلاث عرضات + Health Score (`pass / (pass+warn+fail) × 100`) + قسم "ملخص ذكي" يسرد:
-- ✅ أهم 3 فئات نجحت بالكامل
-- ⚠ كل تحذير + رابط للبطاقة
-- ❌ كل فشل + `detail` + رابط `sourceFile`
-
----
-
-## 4) تبويبات صفحة التشخيص (8 تبويبات)
-
-```text
-[نظرة عامة] [الفحوصات] [خريطة التطبيق] [التفاعلات]
-[الواجهة والاتفاقيات] [Backend & Edge] [الأداء الحي] [السجل والتصدير]
+**الحل:** قبل البتّ بـ `fail`، نُجرّب fallback:
+```ts
+const { error: probe } = await supabase.storage.from('waqf-assets').list('', { limit: 1 });
 ```
-
-### 4.1 نظرة عامة
-Hero + Health Score + Web Vitals + ملخص ذكي.
-
-### 4.2 الفحوصات (14 بطاقة الحالية + بطاقات جديدة §4.5/§4.6)
-عدّاد التقدم (موجود) + شريط أدوات.
-
-### 4.3 خريطة التطبيق — جديد
-`checks/appMap.ts` (6 فحوصات):
-- `appmap_pages_reachable` — كل lazy import يُحلّ بدون خطأ.
-- `appmap_orphan_pages` — ملف `.tsx` تحت `src/pages/` بدون route.
-- `appmap_missing_titles` — route بدون `title/permKey`.
-- `appmap_role_coverage` — كل دور (admin/accountant/beneficiary/waqif) له مساراته الأساسية.
-- `appmap_route_role_map` — مطابقة `routeRoles.ts` مقابل `ALL_ROUTES`.
-- `appmap_route_files_sync` — تطابق `adminRoutes.tsx`/`beneficiaryRoutes.tsx`/etc. مع `routeRegistry`.
-
-UI: شجرة قابلة للطي (admin/accountant/beneficiary/waqif/public).
-
-### 4.4 التفاعلات (Tabs + Buttons) — جديد
-`checks/interactions.ts` عبر `import.meta.glob('/src/pages/**/*.tsx', { query: '?raw', eager: false })`:
-- `interactions_tabs_inventory` — جرد كل `<TabsTrigger value="...">`.
-- `interactions_handler_less_buttons` — `<Button>` بدون `onClick/type="submit"/asChild`.
-- `interactions_duplicate_tab_ids` — قيم value مكرّرة.
-- `interactions_missing_aria_labels` — أزرار icon-only بدون `aria-label`.
-- `interactions_forms_without_submit` — `<form>` بدون `onSubmit`.
-
-UI: جدول قابل للتصفية (page/type/severity).
-
-### 4.5 الواجهة والاتفاقيات — جديد (يُغطّي قواعد المشروع)
-`checks/conventions.ts`:
-- `conv_file_size` — يحذّر من ملفات pages > 200 سطر / hooks > 180.
-- `conv_no_console` — يرصد `console.log/warn/error` خارج `logger`.
-- `conv_no_hex_colors` — هكس صريح خارج Canvas/SVG/print.
-- `conv_rtl_html_dir` — `<html dir="rtl" lang="ar">` صحيح.
-- `conv_localStorage_fiscal_year` — لا استخدام `localStorage` لـ `fiscal_year_id` (Core rule).
-- `conv_barrel_imports` — index.ts barrels لا تستورد من barrels أخرى.
-
-### 4.6 Backend & Edge — جديد
-`checks/backend.ts` (مكمّل لما هو موجود):
-- `backend_edge_health_ping` — نداء `health-check` Edge Function ويقيس latency.
-- `backend_edge_inventory` — تعداد 11 Edge Function متوقّعة (قائمة ثابتة) + تحذير إن تعطّل ping لأي منها (HEAD على `/functions/v1/{name}` بدون مصادقة).
-- `backend_realtime_subscribe` — اختبار subscribe لقناة وهمية وقياس handshake.
-- `backend_auth_session_valid` — `getUser()` يُعيد user صالح.
-- `backend_role_resolved` — دور المستخدم الحالي مُحلّ من `user_roles`.
-- `backend_fiscal_year_active` — `FiscalYearContext` يُعيد سنة نشطة (Core rule).
-- `backend_closed_year_guard` — إن السنة الحالية مُقفلة، تحقّق أن غير-admin يُمنع.
-- `backend_email_queue_health` — استعلام عدد سجلات `pending` في `email_queue` (إن كان قابلاً للقراءة بصلاحية admin).
-- `backend_notifications_unread_sanity` — التحقّق من عدّاد الإشعارات.
-- `backend_storage_buckets` — buckets المتوقّعة (`waqf-assets`, `tenant-documents`, ...).
-- `backend_rls_smoke` — قراءات حساسة من جداول مالية يجب أن تُحجب على غير-admin (تتطلب آلية محاكاة دور — في حال صعوبتها تُترجم لـ info فقط).
-
-### 4.7 الأداء الحي (موجود مُحسَّن)
-WebVitalsPanel + Long Tasks + Memory + Network filter للـ polling.
-
-### 4.8 السجل والتصدير
-آخر 10 تشغيلات في `localStorage` (`diag_history_v1`) + مقارنة تشغيلين + JSON/Text/Copy + mailto.
+إذا لم يكن هناك خطأ شبكي/404 على bucket → `pass` ("متاح عبر RLS"). إذا أعاد `Bucket not found` → `fail` حقيقي.
 
 ---
 
-## 5) أرشيف التشغيلات
+## 4) إصلاح Web App Manifest المفقود
 
-`src/lib/diagnostics/history.ts`:
-- `pushRun(summary)` — يحفظ 10 entries.
-- `getHistory()` / `clearHistory()`.
-- Entry: `{ at, total, pass, warn, fail, healthScore }`.
+**المشكلة:** لا يوجد ملف manifest ولا وسم `<link rel="manifest">` في `index.html`.
 
----
-
-## 6) الملفات
-
-### جديدة (16)
-- `src/lib/diagnostics/checkMeta.ts`
-- `src/lib/diagnostics/exporters.ts` + `exporters.test.ts`
-- `src/lib/diagnostics/history.ts` + `history.test.ts`
-- `src/lib/diagnostics/checks/appMap.ts` + `appMap.test.ts`
-- `src/lib/diagnostics/checks/interactions.ts` + `interactions.test.ts`
-- `src/lib/diagnostics/checks/conventions.ts` + `conventions.test.ts`
-- `src/lib/diagnostics/checks/backend.ts`
-- `src/components/diagnostics/HealthSummaryCard.tsx`
-- `src/components/diagnostics/AppMapTree.tsx`
-- `src/components/diagnostics/InteractionsTable.tsx`
-- `src/components/diagnostics/ConventionsTable.tsx`
-- `src/components/diagnostics/BackendStatusGrid.tsx`
-- `src/components/diagnostics/RunHistoryList.tsx`
-
-### تُعدَّل (4)
-- `src/pages/dashboard/SystemDiagnosticsPage.tsx` — تحويل لـ `ResponsiveTabs` (≤200 سطر بإخراج كل tab لـ sub-component).
-- `src/hooks/page/admin/management/useSystemDiagnostics.ts` — `rerunFailures` + `exportJson` + كتابة `history` (≤180 سطر).
-- `src/lib/diagnostics/checks.ts` — تسجيل 4 بطاقات جديدة + `runByIds()`.
-- `vite.config.ts` — `define: { __APP_VERSION__ }`.
-
-### لا تتغيّر
-ملفات Supabase المحمية، المصادقة، RLS، Edge Functions.
+**الحل:**
+- إنشاء `public/manifest.webmanifest` بالحد الأدنى: name, short_name, theme_color (من `--primary`), background_color, display: standalone, start_url: "/", icons (192/512 الموجودة بالفعل في `public/`).
+- إضافة سطر واحد في `<head>` لـ `index.html`:
+  ```html
+  <link rel="manifest" href="/manifest.webmanifest" />
+  ```
+- لا service worker جديد، لا offline — Manifest-Only فقط (وفق إرشادات skill/pwa).
 
 ---
 
-## 7) قيود تقنية
+## 5) اختبار محلي لـ `health-check`
 
-- لا migrations، لا edge functions جديدة (مع ذلك نُضيف **استدعاء قراءة** لـ `health-check` فقط).
-- نصوص عربية RTL، ألوان `hsl(var(--*))`، `logger` بدلاً من `console`.
-- صفحة ≤200 سطر، hook ≤180 سطر، محمي بـ admin.
-- `import.meta.glob` بـ `eager: false` لتجنّب bundle bloat.
-- لا تأثير على bundle الإنتاج: كل منطق التشخيص lazy-loaded ضمن صفحة `/dashboard/diagnostics`.
+ملف جديد: `src/lib/diagnostics/checks/backend.test.ts` (Vitest)
 
----
+اختبارات:
+1. mock لـ `fetch` يُرجع `{status:200}` → نتيجة `pass` ورسالة تحتوي `200`
+2. mock يُرجع `{status:401, body:{error:"Unauthorized"}}` → `pass` ورسالة "محمية بسر" + لا exception ينطلق خارج الدالة
+3. mock يُرجع `{status:503}` → `warn`
+4. mock يرمي خطأ شبكة → `fail`
 
-## 8) ترتيب التنفيذ
-
-1. `checkMeta.ts` + `exporters.ts` + تحديث الهوك لـ JSON ثري + إعادة الفاشلة.
-2. `HealthSummaryCard` + Hero + تحويل الصفحة لتبويبات (Overview/Checks/History).
-3. `appMap.ts` + `AppMapTree` (تبويب خريطة التطبيق).
-4. `interactions.ts` + `InteractionsTable` (تبويب التفاعلات).
-5. `conventions.ts` + `ConventionsTable` (تبويب الاتفاقيات).
-6. `backend.ts` + `BackendStatusGrid` (تبويب Backend & Edge).
-7. `history.ts` + `RunHistoryList`.
-8. تحديث `docs/diagnostics/check-catalog.md` لتوثيق الفحوصات الجديدة (~25 فحص جديد، الإجمالي ~75).
-9. اختبارات + التحقق الخماسي (tsc → vitest → ESLint → build → smoke).
+هذا يثبت أن المصادقة وتفسير الاستجابة يعملان في dev/preview/prod (لأن المنطق نفسه يُختبَر بدون اعتماد بيئي).
 
 ---
 
-## 9) ما لن نفعله
+## 6) ما لن نفعله
 
-- لا E2E (لا محاكاة ضغط أزرار حقيقي).
-- لا تتبّع تحليلي مستمر للضغطات.
-- لا إعادة كتابة الفحوصات الحالية — نبني فوقها فقط.
-- لا اختبار RLS عبر تبديل أدوار حقيقي (إن لزم، يُترجم لـ `info`).
+- لن نُغيّر `health-check/index.ts` (السر المشترك مقصود).
+- لن نضرب 18 Edge Function للـ ping (ضوضاء شبكة + مصادقة فردية).
+- لن نُسجّل `HEALTH_CHECK_SECRET` في الـ frontend (أمن).
+- لن نُضيف service worker — Manifest-Only.
+- لن نلمس التحذيرات الأخرى (إذن الإشعارات، ZATCA، مستفيدون بلا حساب بنكي، أزرار بلا معالج، أداء الصفحات) — هذه نتائج تشخيص صحيحة تخص بيانات/إعدادات المستخدم، ليست أخطاء برمجية يجب تنظيفها.
 
 ---
 
-## 10) الخلاصة: هل تشمل كل التطبيق؟
+## الملفات
 
-**نعم** — v4 تُغطّي:
-- ✅ كل الصفحات الـ50 (appMap).
-- ✅ كل التبويبات والأزرار في الصفحات (interactions).
-- ✅ كل الـ routes الـ41 + ملفات routes الأربعة (appMap).
-- ✅ كل Edge Functions الـ11 (backend).
-- ✅ كل قواعد المشروع الجوهرية (conventions).
-- ✅ Auth/Roles/RLS/Fiscal Year/Email Queue/Realtime/Storage (backend).
-- ✅ PWA/SW/Web Vitals/Runtime Errors (موجود سابقًا).
-- ✅ ZATCA/Finance/Numerical Audit (موجود سابقًا).
+**جديدة:**
+- `public/manifest.webmanifest`
+- `src/lib/diagnostics/checks/backend.test.ts`
 
-الإجمالي المتوقّع: **~75 فحص في 18 بطاقة** ضمن **8 تبويبات** — نظام تشخيص حقيقي وشامل.
+**معدَّلة:**
+- `src/lib/diagnostics/checks/backend.ts` (fetch مباشر + fallback bucket + status/ms/name في detail)
+- `index.html` (سطر `<link rel="manifest">`)
+
+لا migrations، لا edge functions جديدة، لا تغييرات DB.
