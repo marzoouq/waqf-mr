@@ -3,18 +3,21 @@
  * متاحة للمسؤولين فقط عبر /dashboard/diagnostics
  */
 import { lazy, Suspense, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download, ChevronDown, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { sanitizeDiagnosticOutput } from '@/lib/diagnostics/sanitize';
 import type { CheckResult, CheckStatus } from '@/lib/diagnostics/types';
 import { useSystemDiagnostics } from '@/hooks/page/admin/management/useSystemDiagnostics';
+import { runDeepClean } from '@/lib/diagnostics/deepClean';
+import { logger } from '@/lib/logger';
 import { fmtDateTime } from '@/utils/format/format';
 import HealthSummaryCard from '@/components/diagnostics/HealthSummaryCard';
 import AppMapTree from '@/components/diagnostics/AppMapTree';
@@ -54,6 +57,9 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
   const d = useSystemDiagnostics(autoRun);
   const { running, runningCategory, lastRun, progress, run, runSingle, exportJson, exportText, clearAll, rerunFailures, rerunFailuresAndWarnings, summary, allCategories, results } = d;
   const [filter, setFilter] = useState<StatusFilter>('all');
+  const [cleanDialog, setCleanDialog] = useState<null | 'light' | 'deep'>(null);
+  const [deepCleaning, setDeepCleaning] = useState(false);
+  const queryClient = useQueryClient();
 
   const filterCounts = useMemo(() => {
     const c: Record<CheckStatus, number> = { pass: 0, warn: 0, fail: 0, info: 0 };
@@ -61,9 +67,30 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
     return c;
   }, [results]);
 
-  const handleClear = () => {
+  const handleLightClean = () => {
     clearAll();
+    setCleanDialog(null);
     toast.success('تم تنظيف نتائج التشخيص وإعادة ضبط الواجهات');
+  };
+
+  const handleDeepClean = async () => {
+    setDeepCleaning(true);
+    try {
+      const report = await runDeepClean({ queryClient });
+      const msg = `تم التنظيف العميق: مفاتيح ${report.localStorageKeysCleared + report.sessionStorageKeysCleared}، SW ${report.serviceWorkersUnregistered}، Cache ${report.cachesDeleted.length}، IDB ${report.indexedDbsDeleted.length}. سيُعاد التحميل...`;
+      if (report.errors.length > 0) {
+        logger.warn('[DeepClean] أخطاء جزئية:', report.errors);
+        toast.warning(`${msg} (${report.errors.length} تحذير)`);
+      } else {
+        toast.success(msg);
+      }
+      setCleanDialog(null);
+      window.setTimeout(() => window.location.reload(), 2500);
+    } catch (e) {
+      logger.error('[DeepClean] فشل:', e);
+      toast.error('فشل التنظيف العميق — راجع السجل');
+      setDeepCleaning(false);
+    }
   };
 
   const content = (
@@ -100,20 +127,41 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" disabled={running}><Trash2 className="w-4 h-4 ml-2" />تنظيف</Button>
-            </AlertDialogTrigger>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" disabled={running || deepCleaning}>
+                <Trash2 className="w-4 h-4 ml-2" />تنظيف<ChevronDown className="w-3 h-3 mr-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setCleanDialog('light')}>تنظيف خفيف (نتائج التشخيص)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setCleanDialog('deep')}>تنظيف عميق (كاش + SW + IDB)</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <AlertDialog open={cleanDialog !== null} onOpenChange={(o) => !o && !deepCleaning && setCleanDialog(null)}>
             <AlertDialogContent dir="rtl">
               <AlertDialogHeader>
-                <AlertDialogTitle>تنظيف نتائج التشخيص</AlertDialogTitle>
+                <AlertDialogTitle>
+                  {cleanDialog === 'deep' ? 'تنظيف عميق للتطبيق' : 'تنظيف نتائج التشخيص'}
+                </AlertDialogTitle>
                 <AlertDialogDescription>
-                  سيُمسح أرشيف التشغيلات والنتائج الحالية وعلامات التحذيرات المرفوضة. لا يؤثر على بيانات النظام الفعلية.
+                  {cleanDialog === 'deep'
+                    ? 'سيُمسح الكاش، Service Worker، وقواعد IndexedDB غير الحرجة. جلستك ومُعرّف السنة المالية محفوظان. ستُعاد تحميل الصفحة تلقائياً بعد ثانيتين.'
+                    : 'سيُمسح أرشيف التشغيلات والنتائج الحالية وعلامات التحذيرات المرفوضة. لا يؤثر على بيانات النظام الفعلية.'}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                <AlertDialogAction onClick={handleClear}>تأكيد التنظيف</AlertDialogAction>
+                <AlertDialogCancel disabled={deepCleaning}>إلغاء</AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={deepCleaning}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (cleanDialog === 'deep') void handleDeepClean();
+                    else handleLightClean();
+                  }}
+                >
+                  {deepCleaning ? 'جارٍ التنظيف...' : 'تأكيد'}
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

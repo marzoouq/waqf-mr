@@ -1,163 +1,73 @@
-# خطة v2 (بعد التحقق): تحسين الأداء + إشعارات بديلة + سجل backend موسَّع + زر تنظيف
+# خطة: تفعيل التنظيف العميق في صفحة التشخيص
 
-تحقّقت من الكود الفعلي قبل الاعتماد. التصحيحات على الخطة السابقة:
+## الهدف
+إضافة خيار "تنظيف عميق" يمسح الكاش وSW وIndexedDB غير الحرج، مع حماية كاملة لجلسة المستخدم وإعادة تحميل تلقائية بعد التنفيذ.
 
-- ✅ `Auth.tsx` **لا** يستخدم framer-motion → نشطب هذه النقطة.
-- ✅ `Index.tsx` يستهلك `useLandingPage()` الذي يعيد `stats/statsLoading` → الحل الصحيح هو تأجيل تركيب البطاقات لا Suspense (لأن البيانات تأتي من hook تطبيقي وليس Suspense-source).
-- ✅ `runAllDiagnostics` تكرار تسلسلي في `checks.ts` (سطر 179) → مكان مثالي لإضافة yield بين البطاقات.
-- ✅ `CheckResult` نوع موجود في `types.ts` ويُصدَّر من `checks.ts` → آمن إضافة حقل `meta` اختياري.
-- ✅ يوجد بالفعل `useNotifications` تحت `hooks/data/notifications/` — لن نُعدّله، فقط نقرأ منه.
+## الملفات الجديدة
 
----
+### 1) `src/lib/diagnostics/deepClean.ts` (~120 سطر)
+دالة `runDeepClean({ queryClient })` تُنفّذ بالترتيب وتُرجع `DeepCleanReport`:
 
-## 1) تسريع الصفحات البطيئة (>4s)
-
-### `/dashboard/diagnostics` — السبب الجذري
-
-`autoRun=true` يُشغّل ~80 فحصاً في `useEffect` المباشر بعد mount. ضمنها فحوصات `appMap`/`interactions`/`conventions` تستخدم `import.meta.glob({ eager: false })` لكنها لا تزال تستورد عشرات الملفات نصياً، وفحوصات `backend` تستدعي شبكة. كلها قبل أوّل tick.
-
-**الإجراءات:**
-- (أ) في `useSystemDiagnostics.ts`: استبدال `if (autoRun) run()` المباشر بـ:
-  ```ts
-  const idle = (cb: () => void) =>
-    typeof requestIdleCallback === 'function'
-      ? requestIdleCallback(cb, { timeout: 1500 })
-      : setTimeout(cb, 300);
-  ```
-  ليؤجَّل أوّل تشغيل بعد التفاعل الأول (FCP لا ينتظر الفحص).
-- (ب) في `runAllDiagnostics` (`checks.ts`): إضافة yield بين البطاقات داخل الـ for الخارجي:
-  ```ts
-  await new Promise<void>(r => setTimeout(r, 0));
-  ```
-  يكسر long task واحد إلى ~18 مهمة قصيرة → INP أفضل.
-- (ج) لا تغيير في dynamic-import الموجود؛ فحوصات `appMap`/`interactions` تبقى كما هي لأنها تُستدعى فقط داخل `run()` المؤجَّل الآن.
-
-### `/auth`
-
-- (أ) إضافة `<link rel="prefetch" href="/auth">` (مُسبق التحميل البصري) في `index.html` غير ممكن لأن Vite يولّد hashes ديناميكياً، لذا الحل هو **prefetch من LandingCTA** عند hover/touch زر الدخول (`onMouseEnter={() => import('@/pages/Auth')}`).
-- (ب) داخل `pages/Auth.tsx`: لا تغيير في البنية الكبير، لكن نُحوّل بطاقة Hero/branding (Logo + ornament-divider) إلى مكون `<AuthBranding>` lazy خفيف. النموذج (LoginForm/SignupForm) يَبقى في الـ critical path فيظهر فوراً.
-- (ج) إزالة فحص `import.meta.glob` غير الضروري إن وُجد في `useAuthPage` (سنتحقق أثناء التنفيذ).
-
-### `/` (Landing)
-
-- (أ) في `useLandingPage` (لن نُعدّل المنطق، فقط الـ default state)، التأكد أن `stats` يبدأ بـ `null` و`statsLoading=true` بدون انتظار شبكة لأول render.
-- (ب) في `LandingHero`: تحويل بطاقات الإحصائيات إلى placeholders Skeleton عندما `statsLoading=true` بدلاً من حجب الـ Hero.
-- (ج) فحص `useLandingPage` للتأكد من أن أي استدعاء Edge Function (`dashboard-summary`) يستخدم `enabled: !isRedirecting` لتجنّب nested awaits.
-
-**النتيجة المتوقعة (Lighthouse Mobile):**
-
-| الصفحة | قبل | بعد |
-| --- | --- | --- |
-| /diagnostics FCP | ~4.0s | ~0.8s (الفحص يبدأ بعد idle) |
-| /auth FCP | ~4.0s | ~1.5s |
-| / FCP | ~4.0s | ~1.2s |
-
----
-
-## 2) إشعارات بديلة (Polling Fallback)
-
-ملف جديد: `src/lib/notifications/fallbackPolling.ts`
-
-API:
 ```ts
-export function getNotificationFallbackState(): {
-  permission: 'granted' | 'denied' | 'default' | 'unsupported';
-  pollingActive: boolean;
-  lastPollAt: Date | null;
-  pollIntervalSec: number;
-};
-export function tickPoll(): void; // يحدّث lastPollAt في memory
-export function resetFallbackBanner(): void; // يمسح علامة dismiss في localStorage
-```
-
-- لا queue للإرسال (push يحتاج SW وهو خارج النطاق).
-- يعتمد على `useNotifications` الموجود (لا تعديل عليه).
-
-مكوّن جديد: `src/components/diagnostics/NotificationFallbackCard.tsx` يُعرض داخل تبويب «نظرة عامة»:
-- حالة الإذن (granted/denied/default/unsupported) + شارة لونية
-- وضع polling (نشط/غير مفعّل)
-- زر «طلب الإذن مجدداً» يستدعي `Notification.requestPermission()`
-- آخر نَبضة polling (نسبية: «منذ 24 ثانية»)
-
----
-
-## 3) سجل backend موسَّع مع فلتر
-
-### بنية البيانات
-
-توسيع `CheckResult` في `types.ts` بحقل اختياري:
-```ts
-meta?: {
-  fnName?: string;
-  httpStatus?: number;
-  ms?: number;
-  env?: 'dev' | 'preview' | 'prod';
+type DeepCleanReport = {
+  localStorageKeysCleared: number;
+  sessionStorageKeysCleared: number;
+  queryCacheCleared: boolean;
+  indexedDbsDeleted: string[];
+  serviceWorkersUnregistered: number;
+  cachesDeleted: string[];
+  errors: Array<{ step: string; message: string }>;
+  durationMs: number;
 };
 ```
 
-تحديد البيئة عبر `window.location.hostname`:
-- يحتوي `id-preview--` أو `preview--` → `preview`
-- ينتهي بـ `.lovableproject.com` أو localhost → `dev`
-- خلاف ذلك → `prod`
+**القائمة البيضاء للحماية (لا تُمسّ أبداً):**
+- `localStorage`: كل مفاتيح `sb-*` (توكنات Supabase auth)، `theme`, `i18n*`
+- `sessionStorage`: `fiscal_year_id` فقط
+- `IndexedDB`: قواعد Supabase الداخلية (`supabase-auth-*`)، Firebase Messaging
+- `Service Worker`: `firebase-messaging-sw.js` (سكوب `/firebase-cloud-messaging-push-scope`)
+- `Cache Storage`: أي كاش يبدأ بـ `firebase-` أو `fcm-`
 
-### تعبئة `meta`
+**الخطوات (متسلسلة مع try/catch لكل خطوة):**
+1. مسح مفاتيح التشخيص من localStorage: `diagnostics_*`, `error_log_queue`, `dismissed_warnings`, `tickPoll_*`, `lovable-cache-*`
+2. مسح sessionStorage مع الإبقاء على `fiscal_year_id`
+3. `queryClient.clear()` ثم `queryClient.invalidateQueries()`
+4. `indexedDB.databases()` ← حذف كل ما ليس في القائمة البيضاء (lovable-cache, localforage, keyval-store)
+5. `navigator.serviceWorker.getRegistrations()` ← `unregister()` لكل تسجيل سكوبه `/` (تخطي firebase)
+6. `caches.keys()` ← حذف `workbox-*`, `precache-*`, `runtime-*` (تخطي firebase/fcm)
+7. إعادة ضبط بانر الإشعارات وtickPoll
 
-في `backend.ts`، كل فحص يضيف `meta` المناسب. `health-check` يحتوي fnName+httpStatus+ms+env؛ البقية ms+env.
+### 2) `src/lib/diagnostics/deepClean.test.ts` (~80 سطر)
+- يتحقق أن `sb-access-token` و`sb-refresh-token` محميان
+- يتحقق أن `fiscal_year_id` لا يُمسح
+- يتحقق أن SW الخاص بـ firebase لا يُلغى
+- يتحقق أن كاش `firebase-*` لا يُحذف
+- يتحقق سلوك try/catch — فشل خطوة لا يوقف البقية
 
-### الواجهة
+## الملفات المُعدَّلة
 
-ملف جديد: `src/components/diagnostics/BackendLogTable.tsx` — تبويب جديد «سجل Backend» يعرض جدول:
+### 3) `src/pages/dashboard/SystemDiagnosticsPage.tsx`
+- استبدال زر "Clean" الحالي بـ `DropdownMenu` يحتوي:
+  - **تنظيف خفيف** (الحالي `clearAll()`) — يفتح AlertDialog مبسّط
+  - **تنظيف عميق** (الجديد) — يفتح AlertDialog محذّر:
+    > "سيُمسح الكاش، Service Worker، وIndexedDB غير الحرج. جلستك محفوظة. ستُعاد تحميل الصفحة بعد ثانيتين."
+- بعد التأكيد: `await runDeepClean({ queryClient })` ← `toast.success` يعرض ملخّص التقرير ← `setTimeout(() => window.location.reload(), 2500)`
+- في حال خطأ: `toast.error` مع تفاصيل من `report.errors`
 
-| الدالة | البيئة | HTTP | الزمن (ms) | الحالة | التفاصيل |
+### 4) `src/hooks/page/admin/management/useSystemDiagnostics.ts`
+- تمرير `queryClient` من `useQueryClient()` إلى المستهلك
+- لا تغيير على منطق `clearAll()` الحالي
 
-- شارات فلتر فوق الجدول (chips Toggle): `الكل · ناجح · تحذير · فشل · معلومة`
-- ترتيب تنازلي افتراضي حسب `ms`
-- زر «نسخ JSON» للسطر يستخدم `navigator.clipboard.writeText`
+## القيود
+- لا ملفات SW جديدة، لا تعديل على `firebase-messaging-sw.js`
+- لا migrations، لا تغييرات DB، لا تعديل ملفات auth/RLS
+- جميع النصوص عربية RTL، `hsl(var(--*))` فقط، `logger` بدل console
+- حدود الحجم: Page ≤200 سطر، Hook ≤180 سطر
+- اختبار وحدة قبل التسليم: `bunx vitest run deepClean`
 
-### فلتر عام في تبويب «الفحوصات»
-
-ملف جديد: `src/components/diagnostics/StatusFilterChips.tsx` يعرض شارات فلترة فوق grid البطاقات. state محلي في `SystemDiagnosticsPage` (`useState<CheckStatus | 'all'>('all')`).
-
----
-
-## 4) زر «🧹 تنظيف وإعادة الضبط»
-
-في شريط أدوات صفحة التشخيص، بجانب «تشغيل الكل». ينفّذ ضمن `AlertDialog` تأكيد:
-
-1. مسح state الـ hook: `setResults([])` + `setLastRun(null)` + `setProgress(null)`
-2. `clearHistory()` من `@/lib/diagnostics/history`
-3. مسح `dismissed_warnings_v1` من localStorage (إن وُجد — حالياً لا يوجد، لكن نضع المفتاح للمستقبل)
-4. إطلاق `window.dispatchEvent(new CustomEvent('lovable:clear-runtime-errors'))` — إن كان overlay يستمع، يمسح وإلا no-op آمن
-5. `resetFallbackBanner()` لإعادة عرض بانر الإشعارات إن كان مرفوضاً مسبقاً
-6. toast نجاح عبر sonner: «تم تنظيف نتائج التشخيص وإعادة ضبط الواجهات»
-
-سيُضاف `clearAll()` في `useSystemDiagnostics` بحدود ≤180 سطر (الهوك حالياً 114 سطر، هامش كافٍ).
-
----
-
-## الملفات
-
-**جديدة:**
-- `src/lib/notifications/fallbackPolling.ts` (~60 سطر)
-- `src/lib/notifications/fallbackPolling.test.ts`
-- `src/components/diagnostics/NotificationFallbackCard.tsx` (~90 سطر)
-- `src/components/diagnostics/BackendLogTable.tsx` (~120 سطر)
-- `src/components/diagnostics/StatusFilterChips.tsx` (~40 سطر)
-- `src/components/auth/AuthBranding.tsx` (~50 سطر) — استخراج Hero
-
-**معدَّلة:**
-- `src/pages/dashboard/SystemDiagnosticsPage.tsx` — زر تنظيف، فلتر، تبويب «سجل Backend»، بطاقة fallback (≤200)
-- `src/hooks/page/admin/management/useSystemDiagnostics.ts` — `clearAll()` + idle autoRun (≤180)
-- `src/lib/diagnostics/checks.ts` — yield بين البطاقات
-- `src/lib/diagnostics/types.ts` — حقل `meta` اختياري
-- `src/lib/diagnostics/checks/backend.ts` — تعبئة `meta`
-- `src/pages/Auth.tsx` — استبدال Hero block بـ `<AuthBranding>` lazy
-- `src/components/landing/LandingHero.tsx` — Skeleton للإحصائيات عند `statsLoading`
-- `src/components/landing/LandingCTA.tsx` — prefetch `/auth` عند hover
-
-**لن نُغيّر:**
-- `useAuthPage`, `useLandingPage`, `useNotifications`, `useLandingPage` Edge Functions
-- `health-check` Edge Function
-- أي migrations أو RLS
-
-كل التغييرات: RTL عربية، `hsl(var(--*))` فقط، `logger` بدل console، Page ≤200 سطر، Hook ≤180 سطر.
+## التحقق بعد التنفيذ
+1. تشغيل `bunx vitest run` للتأكد من نجاح اختبارات `deepClean.test.ts`
+2. فتح `/dashboard/diagnostics` ← تجربة "تنظيف عميق" ← التحقق من:
+   - بقاء المستخدم مسجّل دخول بعد reload
+   - بقاء `fiscal_year_id` في sessionStorage
+   - عمل إشعارات Firebase بعد reload
