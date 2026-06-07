@@ -1,68 +1,52 @@
-# فحص جنائي — `The provided callback is no longer runnable`
+## الهدف
+تثبيت مصدر خطأ `The provided callback is no longer runnable` نهائياً في كل الصفحات المعتمدة على `useList`، مع إضافة تسجيل تشخيصي محدود وآمن في `useListQuery` و`PropertiesPage`، ثم تشغيل مصفوفة تحقق كاملة عبر TypeScript وESLint وVitest.
 
-## 1) موقع الخطأ
-- ملف المصدر بعد الـ minify: `vendor-query` (TanStack Query) → الإطار الأخير في تطبيقنا: `useList` في
-  `src/hooks/data/core/crud/useListQuery.ts:102` (مدعوم بـ Stack: `useMemo` → `useList` → `PropertiesPage`).
-- المستهلك المباشر: `usePropertiesPage` → `useProperties()` (مبني عبر `createCrudFactory`).
+## ما سيتم تغييره
 
-## 2) السبب الجذري (تشخيص قطعي)
-داخل `useList` نُعيد:
-```ts
-return useMemo(() => ({
-  ...query,           // ← هنا الفخ
-  page, nextPage, prevPage, goToPage,
-  hasNextPage, hasPrevPage, pageSize: limit,
-}), [query, ...]);
-```
-- `query` كائن **UseQueryResult** من TanStack Query v5، خصائصه **getters متعقَّبة** (tracked properties) مرتبطة بـ `QueryObserver` نشط.
-- عند `...query` يتم استدعاء كل getter، وداخلياً يجدول الـ Observer callback. إذا أُلغي اشتراك الـ Observer (StrictMode double-mount، أو إعادة بناء بسبب تغيّر `queryKey` مع تصفّح الصفحات، أو unmount متزامن مع render)، يصبح callback الداخلي "no longer runnable" ويُرمى `Error: The provided callback is no longer runnable.`
-- وضْع الـ spread داخل `useMemo` يفاقم المشكلة لأن الاعتماد `[query]` يجعل react يعيد تنفيذ المصنع في توقيتات تتزامن مع تبديل الـ Observer (تنقّل الصفحة، تحديث `setTotalCount` داخل `queryFn` يُحدث مرجع `query`).
+### 1. تثبيت `useListQuery` ضد تكرار العطل
+- تعديل `src/hooks/data/core/crud/useListQuery.ts` فقط في طبقة `hooks/data`.
+- إبقاء إزالة `useMemo + ...query` الحالية لأنها السبب الأقوى للعطل.
+- إزالة أي تحديث حالة داخل `queryFn` مثل `setTotalCount(count)` لأنها side effect داخل دالة الاستعلام وقد تتداخل مع دورة حياة `QueryObserver`.
+- نقل تحديث `totalCount` إلى `useEffect` يعتمد على نتيجة الاستعلام، بحيث يصبح `queryFn` نقياً: يجلب البيانات ويرمي الخطأ فقط.
+- إضافة `meta` للاستعلام تتضمن `table`, `queryKey`, `label`, `page`, `rangeFrom`, `rangeTo` لتظهر في التسجيل العام وتسهّل تتبع الصفحة/الجدول.
+- إضافة `onRecoverableError` داخلي عبر `logger.warn/error` عند حالات: فشل الاستعلام، إعادة المحاولة/التعافي، وتغيّر الصفحة.
 
-## 3) لماذا يظهر فقط في PropertiesPage الآن
-- `PropertiesPage` يستخدم `serverPage/serverNextPage/...` ⇒ يفعّل مسار `useMemo` مع تغيّرات `page`.
-- بعد تنظيف الكود الأخير لم يتغيّر هذا الملف، لكن انتهاء جلسة وتسجيل خروج (الـ replay يُظهر `session_expired`) يُسرّع unmount للـ Observers أثناء render → يكشف الخلل.
+### 2. تسجيل تشخيصي في `PropertiesPage`
+- التعديل في `src/hooks/page/admin/management/usePropertiesPage.ts` وليس داخل صفحة العرض نفسها قدر الإمكان، احتراماً لنمط Page Hook Pattern.
+- تسجيل سياق الصفحة عند فشل `propertiesQuery` أو عند عودة البيانات بعد خطأ سابق:
+  - اسم الصفحة: `PropertiesPage`
+  - query key/الصفحة الحالية إن كانت متاحة
+  - عدد العقارات والعقود
+  - حالة التحميل/الخطأ
+- عدم استخدام `console.*` إطلاقاً؛ التسجيل عبر `@/lib/logger` فقط.
+- إبقاء `src/pages/dashboard/PropertiesPage.tsx` منطقية-خفيفة؛ لا إضافة منطق بيانات داخل JSX إلا إذا لزم تمرير حالة خطأ للعرض.
 
-## 4) دلائل مساندة
-- لا يوجد `console.error` يشير لأي شيء آخر؛ الخطأ صادر حصراً من `vendor-query`.
-- الـ replay يؤكد الكراش وقع بعد فتح قائمة "تصدير PDF" ثم انتهاء الجلسة (unmount مفاجئ للصفحة).
-- باقي الاستهلاك (`useUnits`, اختبارات `useProperties`) لا يستخدم spread خارجي ⇒ لا يتأثر.
+### 3. ضمان عدم تكراره في مستهلكي `useList`
+- إضافة اختبار regression في `src/hooks/data/core/useCrudFactory.test.ts` أو ملف قريب يثبت أن `useList`:
+  - لا يستخدم `useMemo` لتخزين `UseQueryResult`.
+  - لا يكسر pagination.
+  - يتعامل مع `count` دون تحديث حالة داخل `queryFn`.
+- فحص كل مستهلكي `useList` الذين ظهروا في البحث: properties, units, contracts, invoices, income, expenses, beneficiaries, accounts, bylaws.
+- لن يتم تعديل كل الصفحات؛ الإصلاح سيكون مركزياً في `useListQuery` لأن كل هذه الهوكات تمر عبره.
 
-## 5) الإصلاح المقترح (الحد الأدنى، بدون تغيير API)
-تعديل واحد فقط في `src/hooks/data/core/crud/useListQuery.ts` لإزالة spread للـ `query` داخل `useMemo` مع الحفاظ على نفس الواجهة العمومية:
+### 4. فحص شامل بعد الإصلاح
+سيتم تشغيل الأوامر التالية بعد التنفيذ:
+- `npm run typecheck` أو `npx tsc --noEmit`
+- `npm run lint` أو `npx eslint .`
+- `bunx vitest run`
 
-```ts
-// بدل useMemo + ...query
-return {
-  ...query,                       // spread خارج useMemo، مرة واحدة لكل render (آمن، لا تخزين مرجع طويل العمر)
-  page,
-  nextPage,
-  prevPage,
-  goToPage,
-  hasNextPage,
-  hasPrevPage,
-  pageSize: limit,
-};
-```
-لماذا هذا يحلّ المشكلة:
-- لا نحتفظ بمرجع `query` داخل `useMemo` بعد إبطال الـ Observer.
-- TanStack Query يتوقّع spread أثناء render فقط (لا داخل closure مؤجل) — وهو نمطه الرسمي.
-- لا تأثير على re-renders: `useQuery` نفسه يتحكم في إعادة التصيير عبر الـ tracked getters.
+وفي حال ظهر فشل:
+- أتوقف عند أول فشل مؤثر.
+- أقدّم اسم الملف والسبب وخطة تصحيح محدودة.
+- لا أوسّع نطاق التعديل خارج الملفات المرتبطة بالمشكلة.
 
-البديل (دفاعي إضافي، اختياري):
-- استبدال `setTotalCount` من داخل `queryFn` بـ `useEffect` يراقب `query.data`/`count` ⇒ يقلّل re-renders ويُبعد تأثيرات جانبية عن `queryFn`.
+## الملفات المتوقعة
+- `src/hooks/data/core/crud/useListQuery.ts`
+- `src/hooks/page/admin/management/usePropertiesPage.ts`
+- `src/hooks/data/core/useCrudFactory.test.ts` أو اختبار قريب موجود
 
-## 6) نطاق التغيير
-- **ملف واحد فقط**: `src/hooks/data/core/crud/useListQuery.ts` (دالة `useList`).
-- لا تغيير على: `useCrudFactory.ts`, الأنواع، المستهلكين، الاختبارات.
-
-## 7) خطة التحقق (إلزامية بعد التنفيذ)
-1. `rg "useMemo" src/hooks/data/core/crud/useListQuery.ts` → لا spread لـ `query` داخل memo.
-2. `npx tsc --noEmit` → 0 أخطاء.
-3. `bunx vitest run` → 2076/2076 (خاصة `useProperties.test.ts`).
-4. `npx vite build` → نجاح.
-5. تشغيل المعاينة → دخول `PropertiesPage` → التصفح بين الصفحات → فتح/إغلاق export → التأكد من اختفاء `The provided callback is no longer runnable` من Console.
-
-## 8) ما لن أفعله
-- لن أعدّل أي شيء في AuthContext أو ProtectedRoute (الجلسة المنتهية مجرد كاشف، ليست السبب).
-- لن ألمس Edge Functions أو RLS أو migrations.
-- لن أغيّر public API لـ `createCrudFactory`.
+## خارج النطاق
+- لا تعديل على Edge Functions.
+- لا تعديل على ملفات المصادقة المحمية.
+- لا تعديل على `src/integrations/supabase/client.ts` أو `types.ts` أو `.env` أو `supabase/config.toml`.
+- لا حذف ملفات أو تبعيات.

@@ -1,11 +1,21 @@
 /**
  * useListQuery — استعلام قائمة مع تصفح وحماية حد أقصى
  * مفصول عن useCrudFactory لتقليل تعقيد الملف الرئيسي.
+ *
+ * ملاحظات تصميمية مهمة (لمنع تكرار عطل
+ * "The provided callback is no longer runnable"):
+ *  1) لا نلفّ نتيجة useQuery داخل useMemo + spread، لأن خصائص UseQueryResult
+ *     تعتمد على getters متعقَّبة مربوطة بـ QueryObserver نشط؛ تخزينها في
+ *     closure طويل العمر يسبب الخطأ عند إبطال الـ Observer.
+ *  2) queryFn يبقى نقياً — لا setState داخله. نقلنا تحديث totalCount إلى
+ *     useEffect يعتمد على بيانات الاستعلام.
+ *  3) نضيف meta للاستعلام لتسهيل التتبع عبر QueryCache.onError المركزي.
  */
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { crudNotifyAdapter } from '@/lib/notify';
+import { logger } from '@/lib/logger';
 import type { CrudNotifications } from '@/lib/notify';
 import type {
   TableName, PaginatedQueryResult, CrudQueryOptions,
@@ -24,6 +34,11 @@ interface BuildListOptions<T extends TableName> {
   label: string;
   staleTime: number;
   notifications?: CrudNotifications;
+}
+
+interface ListQueryResultRaw<TData> {
+  rows: TData[];
+  count: number | null;
 }
 
 export function buildListHelpers<T extends TableName, TData>(
@@ -54,13 +69,15 @@ export function buildListHelpers<T extends TableName, TData>(
   const useList = (): PaginatedQueryResult<TData> => {
     const [page, setPage] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
+    const lastErrorRef = useRef<unknown>(null);
 
     const rangeFrom = page * limit;
     const rangeTo = rangeFrom + limit - 1;
 
-    const query: UseQueryResult<TData[]> = useQuery({
+    const rawQuery = useQuery<ListQueryResultRaw<TData>>({
       queryKey: [queryKey, { page }],
       staleTime,
+      meta: { table, queryKey, label, page, rangeFrom, rangeTo },
       queryFn: async () => {
         const { data, error, count } = await supabase
           .from(table)
@@ -69,9 +86,16 @@ export function buildListHelpers<T extends TableName, TData>(
           .range(rangeFrom, rangeTo);
 
         if (error) throw error;
-        if (count !== null) setTotalCount(count);
+        return { rows: (data ?? []) as TData[], count: count ?? null };
+      },
+    });
 
-        if (page === 0 && count !== null && count > limit) {
+    // تحديث totalCount + تحذير الحد الأقصى عبر effect (لا side effects داخل queryFn)
+    useEffect(() => {
+      const c = rawQuery.data?.count;
+      if (typeof c === 'number') {
+        setTotalCount(c);
+        if (page === 0 && c > limit) {
           const key = `limit-warn-${queryKey}`;
           if (!limitWarnShown.has(key)) {
             limitWarnShown.add(key);
@@ -79,10 +103,27 @@ export function buildListHelpers<T extends TableName, TData>(
             setTimeout(() => { limitWarnShown.delete(key); }, 300_000);
           }
         }
+      }
+    }, [rawQuery.data, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
-        return data as TData[];
-      },
-    });
+    // تسجيل أخطاء الاستعلام والتعافي منها — يساعد على تتبع المصدر بدون toast إضافي
+    useEffect(() => {
+      if (rawQuery.error && rawQuery.error !== lastErrorRef.current) {
+        lastErrorRef.current = rawQuery.error;
+        logger.error('[useList] فشل استعلام', {
+          table, queryKey, label, page,
+          message: (rawQuery.error as Error)?.message,
+        });
+      } else if (!rawQuery.error && lastErrorRef.current && rawQuery.isSuccess) {
+        logger.info('[useList] تعافي بعد فشل سابق', { table, queryKey, page });
+        lastErrorRef.current = null;
+      }
+    }, [rawQuery.error, rawQuery.isSuccess, page]);
+
+    // نُعيد كائناً يتوافق مع UseQueryResult<TData[]> عبر تحويل data فقط.
+    // الـ spread يتم مرة واحدة لكل render — لا closures طويلة العمر.
+    const query = rawQuery as unknown as UseQueryResult<TData[]>;
+    const data = rawQuery.data?.rows;
 
     const hasNextPage = (page + 1) * limit < totalCount;
     const hasPrevPage = page > 0;
@@ -99,11 +140,9 @@ export function buildListHelpers<T extends TableName, TData>(
       setPage(Math.max(0, p));
     }, []);
 
-    // ملاحظة: لا نلفّ بـ useMemo + spread لأن خصائص UseQueryResult getters متعقَّبة
-    // مرتبطة بـ QueryObserver نشط؛ تخزين النتيجة في closure يسبب
-    // "The provided callback is no longer runnable" عند إبطال الـ Observer.
     return {
       ...query,
+      data,
       page,
       nextPage,
       prevPage,
