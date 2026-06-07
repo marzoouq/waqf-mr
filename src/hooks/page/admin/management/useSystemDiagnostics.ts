@@ -15,11 +15,15 @@ export const useSystemDiagnostics = (autoRun = true) => {
   const [running, setRunning] = useState(false);
   const [runningCategory, setRunningCategory] = useState<string | null>(null);
   const [lastRun, setLastRun] = useState<Date | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number; current: string } | null>(null);
 
   const run = useCallback(async () => {
     setRunning(true);
+    setProgress({ done: 0, total: 0, current: '' });
     try {
-      const output = await runAllDiagnostics();
+      const output = await runAllDiagnostics({
+        onProgress: (info) => setProgress(info),
+      });
       setResults(output);
       setLastRun(new Date());
       logAccessEvent({
