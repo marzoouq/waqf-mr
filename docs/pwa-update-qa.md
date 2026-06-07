@@ -75,3 +75,14 @@
 - لقطة شاشة أو سجل DevTools إن أمكن.
 
 ثم افتح Issue مع label `pwa-update-loop`.
+
+## تنظيف صارم يدوي من جهة المستخدم (QA / استرداد)
+
+عند الاشتباه بكاش قديم أو SW متسرّب:
+1. افتح: `https://waqf-wise.net/?sw=off`
+2. عند تحميل الصفحة سيتم تلقائياً: إلغاء تسجيل `/sw.js`، حذف كاشات التطبيق المعروفة فقط (`workbox-precache-*`, `html-navigations`, `static-assets`, `lazy-vendor-chunks`, `local-fonts`, `images`)، ومسح أعلام `chunk_retry` / `pwa_snoozed_version` / `pwa_just_updated`.
+3. Hard Reload (Ctrl+Shift+R / Cmd+Shift+R).
+4. تحقّق من DevTools → Application → Service Workers (لا تسجيل) و Cache Storage (لا كاشات تطبيق).
+5. أعد فتح `https://waqf-wise.net/` بدون `?sw=off`.
+
+ملاحظة: لا نمسح كل caches.keys() — كاشات الطرف الثالث (مثل messaging مستقبلاً) تبقى سليمة.
