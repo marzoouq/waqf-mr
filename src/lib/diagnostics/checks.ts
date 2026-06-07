@@ -36,6 +36,18 @@ export { checkAvailableAmountNonNegative, checkDistributionsWithinAvailable, che
 // بطاقة 10 — تدقيق رقمي DB ↔ RPC ↔ UI
 export { checkDbVsRpcTotalIncome, checkDbVsRpcExpenses, checkRpcVsUiAvailableAmount, checkSnapshotIntegrityClosedYear } from './checks/numericalAudit';
 
+// بطاقة 11 — التوجيه
+export { checkRoutesRegistryConsistency, checkCurrentRouteResolved, checkNoBrokenChunkRetries } from './checks/routing';
+
+// بطاقة 12 — وضع التدقيق (Lighthouse)
+export { checkAuditModeFlag, checkAuditRealtimeDisabled, checkAuditSwBlocked, checkAuditQueryClientElevated, checkPdfChunksDeferred } from './checks/auditMode';
+
+// بطاقة 13 — PWA و Service Worker
+export { checkSwRefusalReason, checkManifestPresent, checkSwActiveRegistration } from './checks/pwa';
+
+// بطاقة 14 — أخطاء التشغيل
+export { checkRuntimeErrorsLog } from './checks/runtimeErrors';
+
 // استيراد الدوال لبناء المجمّع
 import { checkSupabaseConnection, checkRealtimeChannels, checkAuthSession } from './checks/database';
 import { checkScrollPerformance, checkDomNodesCount, checkDeviceMemory, checkPagePerformance, checkWcagContrast } from './checks/performance';
@@ -47,6 +59,10 @@ import { checkZatcaCertificateValidity, checkInvoiceChainIntegrity, checkPending
 import { checkPartiallyPaidConsistency, checkDistributionsVsAvailable, checkBeneficiariesWithoutAccount, checkContractsWithoutAllocations, checkOverduePartiallyPaid } from './checks/financial';
 import { checkAvailableAmountNonNegative, checkDistributionsWithinAvailable, checkBeneficiaryShareFormula, checkAdvancesWithinShare, checkOverduePendingNoOverlap, checkCarryforwardIntegrity } from './checks/cardConsistency';
 import { checkDbVsRpcTotalIncome, checkDbVsRpcExpenses, checkRpcVsUiAvailableAmount, checkSnapshotIntegrityClosedYear } from './checks/numericalAudit';
+import { checkRoutesRegistryConsistency, checkCurrentRouteResolved, checkNoBrokenChunkRetries } from './checks/routing';
+import { checkAuditModeFlag, checkAuditRealtimeDisabled, checkAuditSwBlocked, checkAuditQueryClientElevated, checkPdfChunksDeferred } from './checks/auditMode';
+import { checkSwRefusalReason, checkManifestPresent, checkSwActiveRegistration } from './checks/pwa';
+import { checkRuntimeErrorsLog } from './checks/runtimeErrors';
 import type { CheckResult, DiagnosticCategory } from './types';
 
 
