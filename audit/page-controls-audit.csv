@@ -12,10 +12,14 @@ src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,1
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,47,Button,"",onClick,"DashboardLayout>PageHeaderCard",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,57,Button,"PDF",onClick,"PageHeaderCard>FileEdit>Send",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,61,Button,"طباعة",onClick,"FileEdit>Send>FileDown",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,47,Tab,"سجل العمليات",tabs-radix,"Tabs>SelectValue>TabsList",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,48,Tab,"محاولات الوصول",tabs-radix,"SelectValue>TabsList>Activity",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,49,Tab,"الأرشيف",tabs-radix,"TabsList>Activity>ShieldAlert",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,27,Button,"",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,64,Tab,"سجل العمليات",tabs-radix,"Tabs>SelectValue>TabsList",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,65,Tab,"محاولات الوصول",tabs-radix,"SelectValue>TabsList>Activity",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,66,Tab,"الأرشيف",tabs-radix,"TabsList>Activity>ShieldAlert",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,33,Button,"تقرير التدقيق النهائي",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,43,Button,"",onClick,"DashboardLayout>PageHeaderCard>ClipboardCheck",OK
+src/pages/dashboard/AuditReportFinalPage.tsx,,/dashboard/audit-report-final,ADMIN_ONLY,23,Button,"تقرير التنظيف الأخير",asChild,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/AuditReportFinalPage.tsx,,/dashboard/audit-report-final,ADMIN_ONLY,29,Button,"تصدير PDF",onClick,"DashboardLayout>PageHeaderCard>ClipboardCheck",OK
+src/pages/dashboard/AuditReportFinalPage.tsx,,/dashboard/audit-report-final,ADMIN_ONLY,24,Link,"تقرير التنظيف الأخير",Link-to,"DashboardLayout>PageHeaderCard>Button",OK
 src/pages/dashboard/BeneficiariesPage.tsx,,/dashboard/beneficiaries,ADMIN_ROLES,34,Tab,"المستفيدون",tabs-radix,"BeneficiaryFormDialog>Tabs>TabsList",OK
 src/pages/dashboard/BeneficiariesPage.tsx,,/dashboard/beneficiaries,ADMIN_ROLES,35,Tab,"طلبات السُلف",tabs-radix,"BeneficiaryFormDialog>Tabs>TabsList",OK
 src/pages/dashboard/BylawsPage.tsx,,/dashboard/bylaws,ADMIN_ROLES,56,Button,"إضافة بند",onClick,"DashboardLayout>Loader2>PageHeaderCard",OK
@@ -24,6 +28,7 @@ src/pages/dashboard/ChartOfAccountsPage.tsx,,/dashboard/chart-of-accounts,ADMIN_
 src/pages/dashboard/ChartOfAccountsPage.tsx,,/dashboard/chart-of-accounts,ADMIN_ROLES,63,Button,"إضافة أول حساب",onClick,"X>Loader2>FolderTree",OK
 src/pages/dashboard/ChartOfAccountsPage.tsx,,/dashboard/chart-of-accounts,ADMIN_ROLES,107,Button,"إلغاء",onClick,"SelectValue>SelectValue>DialogFooter",OK
 src/pages/dashboard/ChartOfAccountsPage.tsx,,/dashboard/chart-of-accounts,ADMIN_ROLES,108,Button,"",onClick,"SelectValue>DialogFooter",OK
+src/pages/dashboard/CleanupReportPage.tsx,,/dashboard/cleanup-report,ADMIN_ONLY,29,Button,"تصدير PDF",onClick,"DashboardLayout>PageHeaderCard",OK
 src/pages/dashboard/ContractsPage.tsx,,/dashboard/contracts,ADMIN_ROLES,52,Tab,"العقود",tabs-radix,"Tabs>NativeSelect>TabsList",OK
 src/pages/dashboard/ContractsPage.tsx,,/dashboard/contracts,ADMIN_ROLES,53,Tab,"الاستحقاقات",tabs-radix,"NativeSelect>TabsList>FileText",OK
 src/pages/dashboard/ContractsPage.tsx,,/dashboard/contracts,ADMIN_ROLES,41,Button,"إضافة عقد",onClick,"DashboardLayout>PageHeaderCard>ExportMenu",OK

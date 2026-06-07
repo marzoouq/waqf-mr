@@ -1,68 +1,44 @@
-# خطة تنظيف الملفات — تحقّق جنائي صارم ومُعتمَد
+# تشغيل الاختبارات الكاملة + عرض النتائج في صفحة تقرير
 
-## ملخص التحقق
+## الخطوات
 
-شغّلت وكيل فحص جنائي شامل، ثم **أعدت التحقق يدوياً من كل بند عبر `rg`** على المشروع الفعلي. النتيجة: **8 من 12 اقتراحاً للوكيل كانت false positives** (ملفات بدت يتيمة لكنها مُستخدَمة فعلياً عبر مسارات نسبية أو من ملفات أعمق لم يفحصها grep السطحي).
+### 1. تشغيل البناء والاختبارات (في build mode)
+- `npm run build` — تأكيد عدم وجود أخطاء bundle بعد حذف الملفات الأربعة.
+- `bunx vitest run --reporter=json --outputFile=/tmp/vitest-results.json` — تشغيل كامل الـ 2060 اختبار.
+- استخراج: `numTotalTests`, `numPassedTests`, `numFailedTests`, قائمة الفاشلة (file + name + رسالة)، وأي تحذيرات stderr.
+- إن فشل أي اختبار: إيقاف فوري وإبلاغ المستخدم قبل أي إنشاء صفحة.
 
-النتيجة النهائية: **4 ملفات فقط** آمنة الحذف بثقة عالية.
+### 2. إنشاء صفحة التقرير (Admin only)
 
-## ❌ False positives من الوكيل (تم رفضها — تبقى)
+**ملفات جديدة:**
+- `src/constants/cleanupReport.ts` — snapshot ثابت:
+  ```ts
+  { generatedAt, deletedFiles: [{path, reason}],
+    rgChecks: [{pattern, matches}],
+    build: { status: 'pass'|'fail', durationMs?, errors? },
+    tests: { total, passed, failed, skipped, durationMs,
+             failures: [{file, name, message}] } }
+  ```
+  تُملأ بالنتائج الفعلية من الخطوة 1.
+- `src/pages/dashboard/CleanupReportPage.tsx` (≤180 سطر، presentational):
+  - `DashboardLayout` + `PageHeaderCard` + أيقونة `ClipboardCheck`.
+  - بطاقات ملخص: محذوف / rg / build / tests (لون أخضر/أحمر حسب النتيجة).
+  - جدول الملفات المحذوفة + جدول فحوصات rg.
+  - قسم تفصيلي للاختبارات الفاشلة (إن وُجدت) مع file/name/message.
+  - زر طباعة PDF عبر `usePrint`.
+- `src/components/dashboard/cleanup/CleanupSummaryCards.tsx` (4 بطاقات).
+- `src/components/dashboard/cleanup/TestFailuresList.tsx` (قائمة فاشلة، فارغة إن `failed=0`).
 
-| الملف/المسار | دليل الإبقاء (تم تأكيده بـ rg) |
-|---|---|
-| `src/components/accounts/contracts/originBadge.tsx` | مُستخدم في `AccountsContractsMobileList.tsx:9,45` و `AccountsContractsDesktopTable.tsx:9,61` |
-| `src/hooks/application/dashboard/useEndUserDashboardData.ts` | مُستخدم في 7 ملفات (waqif + 6 beneficiary hooks) |
-| `src/hooks/application/dashboard/useEndUserFinancials.ts` | مُستخدم في 7 ملفات |
-| `src/lib/messages/index.ts` | مُستخدم في **15 ملفاً** |
-| `supabase/functions/zatca-renew/` | يُستدعى من `src/lib/services/zatcaService.ts:17` |
-| `scripts/install-git-hooks.sh` | مرجَّع في `CONTRIBUTING.md` (سطرين) و `audit/structure-deep-review.md` |
-| `public/pwa-192x192.png` | مرجَّع في `vite.config.ts` PWA manifest (السطر 31, 135) |
-| `src/utils/pdf/shared/renderers/index.ts` | barrel مُستخدم من `paymentInvoiceShared.ts:11` بمسار نسبي `../shared/renderers/index` (الوكيل بحث بـ `@/` فقط) |
-| كل ملفات barrel الأخرى | لديها مستوردون فعليون (1–16 لكل barrel) |
+**ملفات معدَّلة:**
+- `src/routes/adminRoutes.tsx` — مسار `/dashboard/cleanup-report` بحارس `ADMIN_ONLY` + lazy load.
+- `src/pages/dashboard/AuditReportFinalPage.tsx` — زر "تقرير التنظيف الأخير".
 
-## ✅ التنظيف المُعتمَد
+## القيود الحقيقية
 
-### Phase 1 — HIGH Confidence (آمن 100%)
-
-| # | الإجراء | المسار | الدليل |
-|---|---|---|---|
-| 1 | حذف ملف | `scripts/_archive/codemod-common-barrel.mjs` | 0 مراجع في `.github/`, `package.json`, أو أي CI |
-| 2 | حذف مجلد | `scripts/_archive/` (يصبح فارغاً بعد #1) | لا محتوى آخر |
-| 3 | حذف ملف | `public/placeholder.svg` | 0 مراجع في `src/`, `index.html`, `public/_headers`, `vite.config.ts` |
-
-### Phase 2 — MED Confidence (تنظيف منخفض الأثر)
-
-| # | الإجراء | المسار | السبب |
-|---|---|---|---|
-| 4 | حذف barrel | `src/types/data/index.ts` | re-export فقط لـ `./crudFactory`؛ كل المستوردين الستة يستوردون مباشرةً من `@/types/data/crudFactory`؛ barrel نفسه = 0 مستوردين |
-
-### Phase 3 — للمراجعة فقط (لا حذف)
-
-| # | المسار | الملاحظة |
-|---|---|---|
-| 5 | `supabase/functions/beneficiary-summary/` | لا `invoke()` من frontend، لكن README يذكره كـ Category A نشط. **القرار**: إبقاء وتمييز للمراجعة لاحقاً مع مالك المشروع. |
-
-## التنفيذ
-
-**حذف 4 عناصر فقط:**
-```
-scripts/_archive/codemod-common-barrel.mjs
-scripts/_archive/                  (المجلد كاملاً)
-public/placeholder.svg
-src/types/data/index.ts
-```
-
-لا تعديل على أي ملف آخر. صفر تأثير متوقَّع على build/runtime/tests.
-
-## التحقق بعد التنفيذ
-
-1. `rg -n "placeholder.svg" .` → يجب أن يُرجِع 0
-2. `rg -n "from ['\"]@/types/data['\"]" src/` → يجب أن يُرجِع 0
-3. `rg -n "_archive|codemod-common" .` → يجب أن يُرجِع 0
-4. تشغيل البناء التلقائي للتأكد من عدم وجود أخطاء TS
+- **لا يمكن** تشغيل vitest في runtime من المتصفح — الاختبارات تُشغَّل في sandbox الـ build فقط، ونتائجها تُخزَّن في `cleanupReport.ts` كـ snapshot.
+- التقرير يعكس **آخر جولة تنظيف**؛ يُحدَّث يدوياً في كل جولة قادمة (لا نظام CI داخل التطبيق).
 
 ## خارج النطاق
-
-- ملفات `audit/*.csv` و `audit/report.html`: مُولَّدة لكن مرجَّعة في `CONTRIBUTING.md` — قرار `.gitignore` يحتاج موافقة الفريق.
-- لا تغييرات على قاعدة البيانات أو edge functions.
-- لا إعادة هيكلة.
+- لا تعديل على RLS أو السنة المالية.
+- لا تنفيذ rg/build/tests من واجهة المستخدم runtime.
+- لا حذف ملفات إضافية.

@@ -40,6 +40,8 @@ const ROUTE_TO_FILE: Record<string, string> = {
   '/dashboard/diagnostics': 'src/pages/dashboard/SystemDiagnosticsPage.tsx',
   '/dashboard/email-monitor': 'src/pages/dashboard/EmailMonitorPage.tsx',
   '/dashboard/distributions': 'src/pages/dashboard/DistributionsPage.tsx',
+  '/dashboard/audit-report-final': 'src/pages/dashboard/AuditReportFinalPage.tsx',
+  '/dashboard/cleanup-report': 'src/pages/dashboard/CleanupReportPage.tsx',
 
   '/beneficiary': 'src/pages/beneficiary/BeneficiaryDashboard.tsx',
   '/beneficiary/properties': 'src/pages/beneficiary/PropertiesViewPage.tsx',

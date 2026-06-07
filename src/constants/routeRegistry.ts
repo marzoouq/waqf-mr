@@ -45,6 +45,8 @@ export const ADMIN_ROUTES: Record<string, RouteMeta> = {
   '/dashboard/comparison': { title: 'المقارنة التاريخية', labelKey: 'comparison', sectionKey: 'comparison' },
   '/dashboard/diagnostics': { title: 'تشخيص النظام', labelKey: 'diagnostics', sectionKey: 'diagnostics' },
   '/dashboard/email-monitor': { title: 'مراقبة البريد', labelKey: 'email_monitor', sectionKey: 'email_monitor' },
+  '/dashboard/audit-report-final': { title: 'تقرير التدقيق النهائي', sectionKey: 'audit_report_final' },
+  '/dashboard/cleanup-report': { title: 'تقرير التنظيف', sectionKey: 'cleanup_report' },
 };
 
 /**

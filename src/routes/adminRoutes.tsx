@@ -25,6 +25,7 @@ const HistoricalComparisonPage = lazyWithRetry(() => import("@/pages/dashboard/H
 const SystemDiagnosticsPage = lazyWithRetry(() => import("@/pages/dashboard/SystemDiagnosticsPage"));
 const EmailMonitorPage = lazyWithRetry(() => import("@/pages/dashboard/EmailMonitorPage"));
 const AuditReportFinalPage = lazyWithRetry(() => import("@/pages/dashboard/AuditReportFinalPage"));
+const CleanupReportPage = lazyWithRetry(() => import("@/pages/dashboard/CleanupReportPage"));
 
 import { ADMIN_ROLES, ADMIN_ONLY } from '@/constants/roles';
 
@@ -57,5 +58,6 @@ export const adminRoutes = (
     <Route path="/dashboard/diagnostics" element={pr(ADMIN_ONLY, <SystemDiagnosticsPage />, false)} />
     <Route path="/dashboard/email-monitor" element={pr(ADMIN_ONLY, <EmailMonitorPage />, false)} />
     <Route path="/dashboard/audit-report-final" element={pr(ADMIN_ONLY, <AuditReportFinalPage />, false)} />
+    <Route path="/dashboard/cleanup-report" element={pr(ADMIN_ONLY, <CleanupReportPage />, false)} />
   </>
 );

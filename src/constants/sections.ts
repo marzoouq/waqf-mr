@@ -30,6 +30,8 @@ export const SECTION_LABELS: Record<string, string> = {
   diagnostics: 'تشخيص النظام',
   email_monitor: 'مراقبة البريد',
   comparison: 'المقارنة التاريخية',
+  audit_report_final: 'تقرير التدقيق النهائي',
+  cleanup_report: 'تقرير التنظيف',
 };
 
 /** مفاتيح أقسام لوحة تحكم الناظر/المحاسب */
@@ -38,6 +40,7 @@ export const ADMIN_SECTION_KEYS = [
   'reports', 'accounts', 'users', 'invoices', 'bylaws', 'messages',
   'audit_log', 'annual_report', 'support', 'chart_of_accounts',
   'settings', 'zatca', 'diagnostics', 'email_monitor', 'comparison',
+  'audit_report_final', 'cleanup_report',
 ] as const satisfies readonly (keyof typeof SECTION_LABELS)[];
 
 /**
