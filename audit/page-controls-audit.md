@@ -1,6 +1,6 @@
 # Page Controls Audit — Admin & Beneficiary
 
-Generated: 2026-06-06T05:01:30.686Z
+Generated: 2026-06-07T00:00:01.611Z
 
 ## Scope
 
@@ -13,30 +13,30 @@ Generated: 2026-06-06T05:01:30.686Z
 
 | Metric | Value |
 |---|---|
-| Page-level controls | 91 |
-| Child-component controls | 23 |
-| Total controls | 114 |
-| OK | 114 |
+| Page-level controls | 83 |
+| Child-component controls | 25 |
+| Total controls | 108 |
+| OK | 108 |
 | GAP-NO-HANDLER | 0 |
 
 ## Per-page summary (page + recursed children)
 
 | Page | Route | Roles | Children | Tabs | Buttons | Dropdown/CommandItems | Links | Forms | Gaps |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|
-| `beneficiary/AccountsViewPage.tsx` | `/beneficiary/accounts` | ALL_NON_ACCOUNTANT | 1 | 0 | 3 | 0 | 0 | 0 | ✅ 0 |
+| `beneficiary/AccountsViewPage.tsx` | `/beneficiary/accounts` | ALL_NON_ACCOUNTANT | 1 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/AnnualReportViewPage.tsx` | `/beneficiary/annual-report` | ALL_NON_ACCOUNTANT | 0 | 4 | 3 | 0 | 0 | 0 | ✅ 0 |
-| `beneficiary/BeneficiaryDashboard.tsx` | `/beneficiary` | BENEFICIARY_ROLES | 6 | 0 | 1 | 0 | 1 | 0 | ✅ 0 |
-| `beneficiary/BeneficiaryMessagesPage.tsx` | `/beneficiary/messages` | BENEFICIARY_ROLES | 0 | 0 | 3 | 0 | 0 | 0 | ✅ 0 |
+| `beneficiary/BeneficiaryDashboard.tsx` | `/beneficiary` | BENEFICIARY_ROLES | 6 | 0 | 2 | 0 | 2 | 0 | ✅ 0 |
+| `beneficiary/BeneficiaryMessagesPage.tsx` | `/beneficiary/messages` | BENEFICIARY_ROLES | 0 | 0 | 2 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/BeneficiarySettingsPage.tsx` | `/beneficiary/settings` | ALL_NON_ACCOUNTANT | 0 | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/BylawsViewPage.tsx` | `/beneficiary/bylaws` | ALL_NON_ACCOUNTANT | 0 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
-| `beneficiary/CarryforwardHistoryPage.tsx` | `/beneficiary/carryforward` | BENEFICIARY_ROLES | 1 | 0 | 2 | 0 | 0 | 0 | ✅ 0 |
-| `beneficiary/ContractsViewPage.tsx` | `/beneficiary/contracts` | ALL_NON_ACCOUNTANT | 0 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
+| `beneficiary/CarryforwardHistoryPage.tsx` | `/beneficiary/carryforward` | BENEFICIARY_ROLES | 1 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
+| `beneficiary/ContractsViewPage.tsx` | `/beneficiary/contracts` | ALL_NON_ACCOUNTANT | 0 | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/DisclosurePage.tsx` | `/beneficiary/disclosure` | BENEFICIARY_ROLES | 3 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/ExpensesViewPage.tsx` | `/beneficiary/expenses` | ALL_NON_ACCOUNTANT | 0 | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
-| `beneficiary/FinancialReportsPage.tsx` | `/beneficiary/financial-reports` | ALL_NON_ACCOUNTANT | 0 | 0 | 1 | 0 | 1 | 0 | ✅ 0 |
-| `beneficiary/InvoicesViewPage.tsx` | `/beneficiary/invoices` | ALL_NON_ACCOUNTANT | 0 | 3 | 3 | 0 | 0 | 0 | ✅ 0 |
+| `beneficiary/FinancialReportsPage.tsx` | `/beneficiary/financial-reports` | ALL_NON_ACCOUNTANT | 0 | 0 | 0 | 0 | 1 | 0 | ✅ 0 |
+| `beneficiary/InvoicesViewPage.tsx` | `/beneficiary/invoices` | ALL_NON_ACCOUNTANT | 0 | 3 | 2 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/MySharePage.tsx` | `/beneficiary/my-share` | BENEFICIARY_ROLES | 6 | 0 | 4 | 0 | 0 | 0 | ✅ 0 |
-| `beneficiary/NotificationsPage.tsx` | `/beneficiary/notifications` | BENEFICIARY_ROLES | 0 | 0 | 2 | 0 | 0 | 0 | ✅ 0 |
+| `beneficiary/NotificationsPage.tsx` | `/beneficiary/notifications` | BENEFICIARY_ROLES | 0 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/PropertiesViewPage.tsx` | `/beneficiary/properties` | ALL_NON_ACCOUNTANT | 1 | 0 | 1 | 0 | 2 | 0 | ✅ 0 |
 | `beneficiary/SupportPage.tsx` | `(no route)` | (n/a) | 0 | 0 | 2 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/SupportPageGuard.tsx` | `/beneficiary/support` | BENEFICIARY_ROLES | 0 | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
