@@ -3,13 +3,12 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { usePrint } from '@/hooks/ui/usePrint';
-import { AUDIT_B_FINDINGS, AUDIT_ROUND_META } from '@/constants/auditFindings';
+import { useAuditReportFinalPage } from '@/hooks/page/admin/reports/useAuditReportFinalPage';
 import AuditSummaryStats from '@/components/dashboard/audit-report/AuditSummaryStats';
 import AuditFindingCard from '@/components/dashboard/audit-report/AuditFindingCard';
 
 const AuditReportFinalPage = () => {
-  const print = usePrint();
+  const { findings, meta, handlePrint } = useAuditReportFinalPage();
 
   return (
     <DashboardLayout>
@@ -26,7 +25,7 @@ const AuditReportFinalPage = () => {
                   تقرير التنظيف الأخير
                 </Link>
               </Button>
-              <Button variant="outline" size="sm" onClick={print} className="gap-2">
+              <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
                 <FileText className="w-4 h-4" />
                 تصدير PDF
               </Button>
