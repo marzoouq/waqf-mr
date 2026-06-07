@@ -28,8 +28,9 @@ describe('exporters', () => {
     const r = toJsonReport(sample);
     expect(r.schemaVersion).toBe(1);
     expect(r.summary.total).toBe(3);
-    expect(r.categories[0].results[0].sourceFile).toContain('database.ts');
-    expect(r.categories[0].results[0].docLink).toContain('check-catalog.md');
+    const firstResult = r.categories[0]?.results[0];
+    expect(firstResult?.sourceFile).toContain('database.ts');
+    expect(firstResult?.docLink).toContain('check-catalog.md');
   });
 
   it('toTextReport includes header and lines', () => {
