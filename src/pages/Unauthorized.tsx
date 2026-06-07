@@ -62,12 +62,12 @@ const Unauthorized = () => {
             </div>
           )}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link to={homePath}>
-              <Button className="gradient-primary gap-2 rounded-xl px-6">
+            <Button asChild className="gradient-primary gap-2 rounded-xl px-6">
+              <Link to={homePath}>
                 <Home className="w-4 h-4" />
                 العودة للرئيسية
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <Button variant="outline" className="gap-2 rounded-xl px-6" onClick={() => window.history.length > 1 ? navigate(-1) : navigate(homePath)}>
               <ArrowRight className="w-4 h-4" />
               الصفحة السابقة

@@ -36,17 +36,15 @@ const NotFound = () => {
             عذراً، لم نتمكن من العثور على الصفحة التي تبحث عنها. ربما تم نقلها أو حذفها.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link to="/">
-              <Button className="gradient-primary gap-2 rounded-xl px-6">
+            <Button asChild className="gradient-primary gap-2 rounded-xl px-6">
+              <Link to="/">
                 <Home className="w-4 h-4" />
                 الصفحة الرئيسية
-              </Button>
-            </Link>
-            <Link to="/auth">
-              <Button variant="outline" className="gap-2 rounded-xl px-6">
-                تسجيل الدخول
-              </Button>
-            </Link>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="gap-2 rounded-xl px-6">
+              <Link to="/auth">تسجيل الدخول</Link>
+            </Button>
           </div>
         </div>
       </div>
