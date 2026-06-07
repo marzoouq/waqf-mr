@@ -1,8 +1,10 @@
 /**
  * فحوصات Backend & Edge — health-check و auth و storage و edge inventory.
+ * كل فحص يملأ `meta` ليُعرض في «سجل Backend».
  */
 import { supabase } from '@/integrations/supabase/client';
 import type { CheckResult } from '../types';
+import { detectEnv } from '../types';
 
 const EXPECTED_EDGE_FUNCTIONS = [
   'admin-manage-users', 'ai-assistant', 'auth-email-hook', 'beneficiary-summary',
@@ -19,6 +21,7 @@ const EXPECTED_EDGE_FUNCTIONS = [
 export async function checkBackendEdgeHealthPing(): Promise<CheckResult> {
   const id = 'backend_edge_health_ping';
   const fnName = 'health-check';
+  const env = detectEnv();
   const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${fnName}`;
   const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const t0 = performance.now();
@@ -27,64 +30,83 @@ export async function checkBackendEdgeHealthPing(): Promise<CheckResult> {
       method: 'GET',
       headers: { 'apikey': apikey, 'Authorization': `Bearer ${apikey}` },
     });
-    // استهلاك الجسم لتفادي تسرّب الموارد
     await res.text().catch(() => '');
     const ms = Math.round(performance.now() - t0);
-    const detail = `[GET /${fnName}] status=${res.status} ms=${ms}`;
-    if (res.status === 200) return { id, label: 'نداء health-check', status: ms < 2000 ? 'pass' : 'warn', detail: `${detail} — سليمة` };
-    if (res.status === 401) return { id, label: 'نداء health-check', status: 'pass', detail: `${detail} — محمية بسر (متوقع)` };
-    if (res.status === 503) return { id, label: 'نداء health-check', status: 'warn', detail: `${detail} — degraded` };
-    return { id, label: 'نداء health-check', status: 'fail', detail };
+    const meta = { fnName, httpStatus: res.status, ms, env };
+    const detail = `[GET /${fnName}] status=${res.status} ms=${ms} env=${env}`;
+    if (res.status === 200) return { id, label: 'نداء health-check', status: ms < 2000 ? 'pass' : 'warn', detail: `${detail} — سليمة`, meta };
+    if (res.status === 401) return { id, label: 'نداء health-check', status: 'pass', detail: `${detail} — محمية بسر (متوقع)`, meta };
+    if (res.status === 503) return { id, label: 'نداء health-check', status: 'warn', detail: `${detail} — degraded`, meta };
+    return { id, label: 'نداء health-check', status: 'fail', detail, meta };
   } catch (e) {
     const ms = Math.round(performance.now() - t0);
-    return { id, label: 'نداء health-check', status: 'fail', detail: `[GET /${fnName}] ms=${ms} network_error=${String(e)}` };
+    return {
+      id, label: 'نداء health-check', status: 'fail',
+      detail: `[GET /${fnName}] ms=${ms} network_error=${String(e)}`,
+      meta: { fnName, ms, env },
+    };
   }
 }
 
 export async function checkBackendEdgeInventory(): Promise<CheckResult> {
-  const id = 'backend_edge_inventory';
   return {
-    id,
+    id: 'backend_edge_inventory',
     label: 'جرد Edge Functions',
     status: 'info',
     detail: `${EXPECTED_EDGE_FUNCTIONS.length} وظيفة متوقَّعة (لا اختبار ping فردي لتفادي ضوضاء الشبكة)`,
+    meta: { env: detectEnv() },
   };
 }
 
 export async function checkBackendAuthSession(): Promise<CheckResult> {
   const id = 'backend_auth_session_valid';
+  const env = detectEnv();
+  const t0 = performance.now();
   try {
     const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) return { id, label: 'صلاحية الجلسة', status: 'warn', detail: error?.message ?? 'لا يوجد user' };
-    return { id, label: 'صلاحية الجلسة', status: 'pass', detail: 'الجلسة فعّالة' };
+    const ms = Math.round(performance.now() - t0);
+    if (error || !data.user) return { id, label: 'صلاحية الجلسة', status: 'warn', detail: error?.message ?? 'لا يوجد user', meta: { ms, env } };
+    return { id, label: 'صلاحية الجلسة', status: 'pass', detail: 'الجلسة فعّالة', meta: { ms, env } };
   } catch (e) {
-    return { id, label: 'صلاحية الجلسة', status: 'fail', detail: String(e) };
+    const ms = Math.round(performance.now() - t0);
+    return { id, label: 'صلاحية الجلسة', status: 'fail', detail: String(e), meta: { ms, env } };
   }
 }
 
 export async function checkBackendRoleResolved(): Promise<CheckResult> {
   const id = 'backend_role_resolved';
+  const env = detectEnv();
+  const t0 = performance.now();
   try {
     const { data: userRes } = await supabase.auth.getUser();
-    if (!userRes.user) return { id, label: 'دور المستخدم', status: 'info', detail: 'بدون جلسة' };
+    if (!userRes.user) {
+      const ms = Math.round(performance.now() - t0);
+      return { id, label: 'دور المستخدم', status: 'info', detail: 'بدون جلسة', meta: { ms, env } };
+    }
     const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', userRes.user.id);
-    if (error) return { id, label: 'دور المستخدم', status: 'warn', detail: error.message };
+    const ms = Math.round(performance.now() - t0);
+    if (error) return { id, label: 'دور المستخدم', status: 'warn', detail: error.message, meta: { ms, env } };
     const roles = (data ?? []).map(r => r.role).join('، ');
-    return { id, label: 'دور المستخدم', status: roles ? 'pass' : 'warn', detail: roles || 'لا دور محدد' };
+    return { id, label: 'دور المستخدم', status: roles ? 'pass' : 'warn', detail: roles || 'لا دور محدد', meta: { ms, env } };
   } catch (e) {
-    return { id, label: 'دور المستخدم', status: 'fail', detail: String(e) };
+    const ms = Math.round(performance.now() - t0);
+    return { id, label: 'دور المستخدم', status: 'fail', detail: String(e), meta: { ms, env } };
   }
 }
 
 export async function checkBackendFiscalYearActive(): Promise<CheckResult> {
   const id = 'backend_fiscal_year_active';
+  const env = detectEnv();
+  const t0 = performance.now();
   try {
     const { data, error } = await supabase.from('fiscal_years').select('id, label, status').eq('status', 'active').limit(1).maybeSingle();
-    if (error) return { id, label: 'سنة مالية نشطة', status: 'warn', detail: error.message };
-    if (!data) return { id, label: 'سنة مالية نشطة', status: 'fail', detail: 'لا توجد سنة نشطة' };
-    return { id, label: 'سنة مالية نشطة', status: 'pass', detail: `${data.label}` };
+    const ms = Math.round(performance.now() - t0);
+    if (error) return { id, label: 'سنة مالية نشطة', status: 'warn', detail: error.message, meta: { ms, env } };
+    if (!data) return { id, label: 'سنة مالية نشطة', status: 'fail', detail: 'لا توجد سنة نشطة', meta: { ms, env } };
+    return { id, label: 'سنة مالية نشطة', status: 'pass', detail: `${data.label}`, meta: { ms, env } };
   } catch (e) {
-    return { id, label: 'سنة مالية نشطة', status: 'fail', detail: String(e) };
+    const ms = Math.round(performance.now() - t0);
+    return { id, label: 'سنة مالية نشطة', status: 'fail', detail: String(e), meta: { ms, env } };
   }
 }
 
@@ -94,6 +116,8 @@ export async function checkBackendFiscalYearActive(): Promise<CheckResult> {
  */
 export async function checkBackendStorageBuckets(): Promise<CheckResult> {
   const id = 'backend_storage_buckets';
+  const env = detectEnv();
+  const t0 = performance.now();
   const required = ['waqf-assets'];
   try {
     const { data, error } = await supabase.storage.listBuckets();
@@ -101,17 +125,18 @@ export async function checkBackendStorageBuckets(): Promise<CheckResult> {
     const missing: string[] = [];
     for (const r of required) {
       if (names.includes(r)) continue;
-      // fallback: حاول الوصول للحاوية مباشرة — قد لا تظهر في listBuckets بسبب RLS
       const probe = await supabase.storage.from(r).list('', { limit: 1 });
       if (probe.error && /not found|does not exist/i.test(probe.error.message)) {
         missing.push(r);
       }
     }
-    if (missing.length) return { id, label: 'حاويات التخزين', status: 'fail', detail: `مفقود: ${missing.join('، ')}` };
+    const ms = Math.round(performance.now() - t0);
+    if (missing.length) return { id, label: 'حاويات التخزين', status: 'fail', detail: `مفقود: ${missing.join('، ')}`, meta: { ms, env } };
     const total = names.length || required.length;
-    return { id, label: 'حاويات التخزين', status: 'pass', detail: `${total} حاوية متاحة` };
+    return { id, label: 'حاويات التخزين', status: 'pass', detail: `${total} حاوية متاحة`, meta: { ms, env } };
   } catch (e) {
-    return { id, label: 'حاويات التخزين', status: 'fail', detail: String(e) };
+    const ms = Math.round(performance.now() - t0);
+    return { id, label: 'حاويات التخزين', status: 'fail', detail: String(e), meta: { ms, env } };
   }
 }
 

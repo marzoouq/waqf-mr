@@ -2,14 +2,16 @@
  * صفحة تشخيص النظام — مركز شامل بتبويبات
  * متاحة للمسؤولين فقط عبر /dashboard/diagnostics
  */
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download, ChevronDown } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download, ChevronDown, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { sanitizeDiagnosticOutput } from '@/lib/diagnostics/sanitize';
 import type { CheckResult, CheckStatus } from '@/lib/diagnostics/types';
 import { useSystemDiagnostics } from '@/hooks/page/admin/management/useSystemDiagnostics';
@@ -18,6 +20,9 @@ import HealthSummaryCard from '@/components/diagnostics/HealthSummaryCard';
 import AppMapTree from '@/components/diagnostics/AppMapTree';
 import InteractionsTable from '@/components/diagnostics/InteractionsTable';
 import RunHistoryList from '@/components/diagnostics/RunHistoryList';
+import NotificationFallbackCard from '@/components/diagnostics/NotificationFallbackCard';
+import BackendLogTable from '@/components/diagnostics/BackendLogTable';
+import StatusFilterChips, { type StatusFilter } from '@/components/diagnostics/StatusFilterChips';
 
 const WebVitalsPanel = lazy(() => import('@/components/common/feedback/WebVitalsPanel'));
 
@@ -47,11 +52,22 @@ function CheckRow({ result }: { result: CheckResult }) {
 
 export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
   const d = useSystemDiagnostics(autoRun);
-  const { running, runningCategory, lastRun, progress, run, runSingle, exportJson, exportText, rerunFailures, rerunFailuresAndWarnings, summary, allCategories, results } = d;
+  const { running, runningCategory, lastRun, progress, run, runSingle, exportJson, exportText, clearAll, rerunFailures, rerunFailuresAndWarnings, summary, allCategories, results } = d;
+  const [filter, setFilter] = useState<StatusFilter>('all');
+
+  const filterCounts = useMemo(() => {
+    const c: Record<CheckStatus, number> = { pass: 0, warn: 0, fail: 0, info: 0 };
+    for (const cat of results) for (const r of cat.results) c[r.status]++;
+    return c;
+  }, [results]);
+
+  const handleClear = () => {
+    clearAll();
+    toast.success('تم تنظيف نتائج التشخيص وإعادة ضبط الواجهات');
+  };
 
   const content = (
     <div className="space-y-6">
-      {/* شريط التحكم */}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
           <h1 className="text-2xl font-bold">مركز تشخيص النظام</h1>
@@ -84,6 +100,23 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" disabled={running}><Trash2 className="w-4 h-4 ml-2" />تنظيف</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent dir="rtl">
+              <AlertDialogHeader>
+                <AlertDialogTitle>تنظيف نتائج التشخيص</AlertDialogTitle>
+                <AlertDialogDescription>
+                  سيُمسح أرشيف التشغيلات والنتائج الحالية وعلامات التحذيرات المرفوضة. لا يؤثر على بيانات النظام الفعلية.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                <AlertDialogAction onClick={handleClear}>تأكيد التنظيف</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button onClick={run} disabled={running || !!runningCategory} size="sm">
             <RefreshCw className={`w-4 h-4 ml-2 ${running ? 'animate-spin' : ''}`} />
             {running ? 'جارٍ الفحص...' : 'تشغيل الكل'}
@@ -91,7 +124,6 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
         </div>
       </div>
 
-      {/* عدّاد التقدم الحي */}
       {running && progress && progress.total > 0 && (
         <Card>
           <CardContent className="py-3 space-y-2">
@@ -110,6 +142,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
           <TabsTrigger value="checks">الفحوصات</TabsTrigger>
+          <TabsTrigger value="backend">سجل Backend</TabsTrigger>
           <TabsTrigger value="appmap">خريطة التطبيق</TabsTrigger>
           <TabsTrigger value="interactions">التفاعلات</TabsTrigger>
           <TabsTrigger value="performance">الأداء الحي</TabsTrigger>
@@ -117,6 +150,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
+          <NotificationFallbackCard />
           {results.length > 0 ? (
             <HealthSummaryCard summary={summary} categories={results} />
           ) : (
@@ -126,8 +160,11 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
         </TabsContent>
 
         <TabsContent value="checks">
+          {results.length > 0 && <StatusFilterChips value={filter} onChange={setFilter} counts={filterCounts} />}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {allCategories.map(cat => {
+              const visible = cat.results ? (filter === 'all' ? cat.results : cat.results.filter(r => r.status === filter)) : null;
+              if (cat.results && visible && visible.length === 0) return null;
               const catFailures = cat.results?.filter(r => r.status === 'fail').length ?? 0;
               const catWarnings = cat.results?.filter(r => r.status === 'warn').length ?? 0;
               const isCatRunning = runningCategory === cat.title;
@@ -144,7 +181,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
                         <RefreshCw className={`w-3.5 h-3.5 ${isCatRunning ? 'animate-spin' : ''}`} />
                       </Button>
                     </div>
-                    {cat.results ? cat.results.map(r => <CheckRow key={r.id} result={r} />) : (
+                    {visible ? visible.map(r => <CheckRow key={r.id} result={r} />) : (
                       <p className="text-xs text-muted-foreground text-center py-4">{cat.checksCount} فحص — اضغط ▶ لتشغيلها</p>
                     )}
                   </CardContent>
@@ -154,6 +191,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           </div>
         </TabsContent>
 
+        <TabsContent value="backend"><BackendLogTable results={results} /></TabsContent>
         <TabsContent value="appmap"><AppMapTree /></TabsContent>
         <TabsContent value="interactions"><InteractionsTable /></TabsContent>
         <TabsContent value="performance"><Suspense fallback={null}><WebVitalsPanel /></Suspense></TabsContent>

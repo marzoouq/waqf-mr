@@ -1,11 +1,14 @@
+import { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle, Home } from 'lucide-react';
+import { LogIn, UserPlus, Download, Loader2, AlertTriangle, Home } from 'lucide-react';
 import { LoginForm, SignupForm, ResetPasswordForm } from '@/components/auth';
 import { useAuthPage } from '@/hooks/application/useAuthPage';
 import { RouteHead } from '@/components/seo/RouteHead';
+
+const AuthBranding = lazy(() => import('@/components/auth/AuthBranding'));
 
 const Auth = () => {
   const {
@@ -71,15 +74,9 @@ const Auth = () => {
         )}
         <Card className="shadow-elegant animate-slide-up border-border/50 backdrop-blur-xs bg-card/95">
           <CardHeader className="text-center space-y-5 pb-2">
-            {waqfLogoUrl ? (
-              <div className="mx-auto w-20 h-20 rounded-2xl overflow-hidden shadow-gold animate-glow bg-white/10 backdrop-blur-xs flex items-center justify-center">
-                <img src={waqfLogoUrl} alt="شعار الوقف" className="w-16 h-16 object-contain" loading="eager" />
-              </div>
-            ) : (
-              <div className="mx-auto w-20 h-20 gradient-gold rounded-2xl flex items-center justify-center shadow-gold animate-glow">
-                <Building2 className="w-10 h-10 text-primary-foreground" />
-              </div>
-            )}
+            <Suspense fallback={<div className="mx-auto w-20 h-20 rounded-2xl bg-white/10" />}>
+              <AuthBranding waqfLogoUrl={waqfLogoUrl} />
+            </Suspense>
             <div className="space-y-2">
               <CardTitle className="text-3xl font-display font-bold tracking-wide">
                 نظام إدارة الوقف
