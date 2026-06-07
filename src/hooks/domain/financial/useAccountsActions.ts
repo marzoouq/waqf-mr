@@ -10,41 +10,9 @@ import { notifyAllBeneficiaries } from '@/lib/services';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format/format';
-import type { Account, Contract, Beneficiary } from '@/types';
+import type { AccountsActionsParams } from '@/types/financial/accountsActions';
 
-interface ActionsParams {
-  selectedFY: { id: string; label: string; status: string; start_date?: string | null } | null;
-  fiscalYear: string;
-  fiscalYearId: string | undefined;
-  accounts: Account[];
-  totalIncome: number;
-  totalExpenses: number;
-  adminShare: number;
-  waqifShare: number;
-  waqfRevenue: number;
-  netAfterExpenses: number;
-  netAfterVat: number;
-  netAfterZakat: number;
-  grandTotal: number;
-  availableAmount: number;
-  remainingBalance: number;
-  contracts: Contract[];
-  beneficiaries: Beneficiary[];
-  incomeBySource: Record<string, number>;
-  expensesByType: Record<string, number>;
-  // قيم الإعدادات المطلوبة لبناء بيانات الحساب
-  manualVat: number;
-  manualDistributions: number;
-  zakatAmount: number;
-  waqfCorpusManual: number;
-  waqfCorpusPrevious: number;
-  // فصل المتأخرات حسب السنة المالية (اختياري)
-  fiscalYearStartDate?: string | null;
-  overdueFromPreviousAmount?: number;
-  overdueInYearAmount?: number;
-}
-
-export function useAccountsActions(params: ActionsParams) {
+export function useAccountsActions(params: AccountsActionsParams) {
   const { role } = useAuth();
   const createAccount = useCreateAccount();
   const closeFiscalYear = useCloseFiscalYear();

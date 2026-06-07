@@ -5,6 +5,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logger } from '@/lib/logger';
+import { streamChatCompletion } from '@/lib/ai/streamChat';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const AI_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai-assistant` : null;
@@ -76,68 +77,23 @@ export function useAiChat() {
 
     try {
       if (!session?.access_token) throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
-      const accessToken = session.access_token;
-
-      const resp = await fetch(AI_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ messages: allMessages, mode }),
+      await streamChatCompletion({
+        url: AI_URL,
+        accessToken: session.access_token,
+        apiKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        body: { messages: allMessages, mode },
         signal: abortControllerRef.current.signal,
-      });
-
-      if (!resp.ok || !resp.body) {
-        const err = await resp.json().catch(() => ({}));
-        const errMsg = err.error || 'فشل الاتصال بالمساعد الذكي';
-        // رسائل خطأ واضحة حسب حالة HTTP
-        if (resp.status === 429) {
-          const isDaily = err.code === 'DAILY_QUOTA_EXCEEDED';
-          throw new Error(isDaily ? errMsg : 'تم تجاوز حد الطلبات — انتظر قليلاً ثم حاول مجدداً');
-        }
-        if (resp.status === 402) throw new Error('يرجى إضافة رصيد لاستخدام المساعد الذكي');
-        if (resp.status === 503) throw new Error('الخدمة غير متاحة مؤقتاً — حاول لاحقاً');
-        throw new Error(errMsg);
-      }
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        let newlineIdx: number;
-        while ((newlineIdx = buffer.indexOf('\n')) !== -1) {
-          let line = buffer.slice(0, newlineIdx);
-          buffer = buffer.slice(newlineIdx + 1);
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (!line.startsWith('data: ')) continue;
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') break;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              assistantContent += content;
-              setMessages((prev) => {
-                const last = prev[prev.length - 1];
-                if (last?.role === 'assistant') {
-                  return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
-                }
-                return [...prev, { role: 'assistant', content: assistantContent }];
-              });
+        onContent: (chunk) => {
+          assistantContent += chunk;
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant') {
+              return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
             }
-          } catch {
-            buffer = line + '\n' + buffer;
-            break;
-          }
-        }
-      }
+            return [...prev, { role: 'assistant', content: assistantContent }];
+          });
+        },
+      });
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') return;
       const errMessage = e instanceof Error ? e.message : 'حدث خطأ غير متوقع';
