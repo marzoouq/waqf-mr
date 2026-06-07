@@ -1,4 +1,5 @@
-import { ShieldCheck, CalendarDays, CheckCircle2, FileText } from 'lucide-react';
+import { ShieldCheck, CalendarDays, CheckCircle2, FileText, ClipboardCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
@@ -18,12 +19,21 @@ const AuditReportFinalPage = () => {
           description="نتائج التحقق الجنائي لجولة لوحة المستفيد (B1–B15) مع روابط الملفات المعدَّلة"
           icon={ShieldCheck}
           actions={
-            <Button variant="outline" size="sm" onClick={print} className="gap-2">
-              <FileText className="w-4 h-4" />
-              تصدير PDF
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button asChild variant="outline" size="sm" className="gap-2">
+                <Link to="/dashboard/cleanup-report">
+                  <ClipboardCheck className="w-4 h-4" />
+                  تقرير التنظيف الأخير
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" onClick={print} className="gap-2">
+                <FileText className="w-4 h-4" />
+                تصدير PDF
+              </Button>
+            </div>
           }
         />
+
 
         <Card className="shadow-sm border-primary/20 bg-primary/5">
           <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-sm">
