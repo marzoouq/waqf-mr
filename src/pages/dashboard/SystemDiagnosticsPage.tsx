@@ -104,20 +104,12 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           )}
         </div>
         <DiagnosticsToolbar
-          hasResults={results.length > 0}
-          running={running}
-          runningCategory={runningCategory}
-          deepCleaning={deepCleaning}
-          summary={{ fail: summary.fail, warn: summary.warn }}
-          cleanDialog={cleanDialog}
-          setCleanDialog={setCleanDialog}
-          onRunAll={run}
-          onExportJson={exportJson}
-          onExportText={exportText}
-          onRerunFailures={rerunFailures}
-          onRerunFailuresAndWarnings={rerunFailuresAndWarnings}
-          onLightClean={handleLightClean}
-          onDeepClean={() => void handleDeepClean()}
+          hasResults={results.length > 0} running={running} runningCategory={runningCategory}
+          deepCleaning={deepCleaning} summary={{ fail: summary.fail, warn: summary.warn }}
+          cleanDialog={cleanDialog} setCleanDialog={setCleanDialog}
+          onRunAll={run} onExportJson={exportJson} onExportText={exportText}
+          onRerunFailures={rerunFailures} onRerunFailuresAndWarnings={rerunFailuresAndWarnings}
+          onLightClean={handleLightClean} onDeepClean={() => void handleDeepClean()}
         />
       </div>
 
