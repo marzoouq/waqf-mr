@@ -3,18 +3,21 @@
  * متاحة للمسؤولين فقط عبر /dashboard/diagnostics
  */
 import { lazy, Suspense, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download, ChevronDown, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { sanitizeDiagnosticOutput } from '@/lib/diagnostics/sanitize';
 import type { CheckResult, CheckStatus } from '@/lib/diagnostics/types';
 import { useSystemDiagnostics } from '@/hooks/page/admin/management/useSystemDiagnostics';
+import { runDeepClean } from '@/lib/diagnostics/deepClean';
+import { logger } from '@/lib/logger';
 import { fmtDateTime } from '@/utils/format/format';
 import HealthSummaryCard from '@/components/diagnostics/HealthSummaryCard';
 import AppMapTree from '@/components/diagnostics/AppMapTree';
