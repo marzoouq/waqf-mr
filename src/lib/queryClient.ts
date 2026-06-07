@@ -40,16 +40,18 @@ export const queryClient = new QueryClient({
   mutationCache,
   defaultOptions: {
     queries: {
-      // #33: تخفيض الافتراضي من 5د إلى 60ث — أرضية آمنة لـ realtime/UI sync.
-      staleTime: STALE_FINANCIAL,
-      // #12 perf: تخفيض من 30د إلى 10د — توازن أفضل لذاكرة الجوال
+      // وضع التدقيق: staleTime مرتفع جداً + بدون retry — لمنع موجات refetch.
+      staleTime: AUDIT ? 60 * 60_000 : STALE_FINANCIAL,
       gcTime: 10 * 60 * 1000,
       retry: (failureCount, error) => {
+        if (AUDIT) return false;
         const { category } = classifyError(error);
         if (!isRetryableCategory(category)) return false;
         return failureCount < 2;
       },
       refetchOnWindowFocus: false,
+      refetchOnReconnect: !AUDIT,
+      refetchOnMount: AUDIT ? false : true,
     },
   },
 });
