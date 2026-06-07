@@ -106,7 +106,7 @@ export function buildListHelpers<T extends TableName, TData>(
           }
         }
       }
-    }, [query.isSuccess, query.dataUpdatedAt, page]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [query.isSuccess, query.dataUpdatedAt, page]);
 
     // تسجيل أخطاء الاستعلام والتعافي منها — يساعد على تتبع المصدر بدون toast إضافي
     useEffect(() => {
