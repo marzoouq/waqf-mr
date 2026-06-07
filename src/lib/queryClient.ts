@@ -5,10 +5,15 @@ import { classifyError, isRetryableCategory } from '@/utils/error/getErrorStatus
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 
 const queryCache = new QueryCache({
-  onError: (error) => {
+  onError: (error, query) => {
     const { category } = classifyError(error);
     if (category === 'auth') return;
-    logger.error('[QueryCache] خطأ في جلب البيانات:', error.message);
+    // طباعة meta لربط الفشل بمصدره (table/queryKey/label/page) بدلاً من stack مصغّر مجهول.
+    logger.error('[QueryCache] خطأ في جلب البيانات', {
+      message: error.message,
+      queryKey: query.queryKey,
+      meta: query.meta ?? null,
+    });
   },
 });
 

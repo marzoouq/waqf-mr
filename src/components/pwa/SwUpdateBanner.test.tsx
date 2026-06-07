@@ -16,6 +16,12 @@ vi.mock('virtual:pwa-register/react', () => ({
   useRegisterSW: (opts?: unknown) => useRegisterSWMock(opts),
 }));
 
+// نُجبر الحارس على السماح حتى يُركَّب InnerBanner في jsdom (PROD=false طبيعياً).
+vi.mock('@/lib/pwaBootstrap', () => ({
+  canRegisterAppServiceWorker: () => true,
+  runPwaCacheGuard: vi.fn(),
+}));
+
 import SwUpdateBanner from './SwUpdateBanner';
 
 const CURRENT_FINGERPRINT =

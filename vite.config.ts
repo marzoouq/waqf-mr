@@ -24,7 +24,9 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'prompt',
-      injectRegister: 'auto',
+      // التسجيل الوحيد للـ SW يتم عبر SwUpdateBanner مع حارس preview/iframe/dev.
+      // 'auto' كان يحقن تسجيلاً مستقلاً يلتف على الحارس.
+      injectRegister: null,
       devOptions: {
         enabled: false,
       },

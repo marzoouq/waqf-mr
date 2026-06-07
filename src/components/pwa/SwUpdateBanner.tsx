@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { safeGet, safeSet } from '@/lib/storage';
+import { canRegisterAppServiceWorker } from '@/lib/pwaBootstrap';
 
 const FIRST_CHECK_DELAY_MS = 30 * 1000;        // 30ث قبل أول فحص (لا ضوضاء عند فتح بارد)
 const PERIODIC_CHECK_MS = 5 * 60 * 1000;       // فحص كل 5 دقائق بدل 60ث
@@ -12,7 +13,16 @@ const SNOOZED_VERSION_KEY = 'pwa_snoozed_version';
 
 interface SnoozedVersion { sw: string; ts: number }
 
+/**
+ * المكون الخارجي: حارس صارم يمنع استدعاء useRegisterSW داخل preview/iframe/dev.
+ * بدون هذا الحارس يقوم vite-plugin-pwa بتسجيل SW حتى في بيئات لا يجب أن يُسجَّل فيها.
+ */
 const SwUpdateBanner = () => {
+  if (!canRegisterAppServiceWorker()) return null;
+  return <SwUpdateBannerInner />;
+};
+
+const SwUpdateBannerInner = () => {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
