@@ -73,6 +73,7 @@ export default function SignupForm({ signUp }: SignupFormProps) {
         <Input
           ref={emailRef}
           id="signup-email"
+          name="email"
           type="email"
           value={signupEmail}
           onChange={(e) => { setSignupEmail(e.target.value); clearFieldError('email'); setServerError(null); }}
@@ -100,6 +101,7 @@ export default function SignupForm({ signUp }: SignupFormProps) {
           <Input
             ref={passwordRef}
             id="signup-password"
+            name="new-password"
             type={showPassword ? 'text' : 'password'}
             value={signupPassword}
             onChange={(e) => { setSignupPassword(e.target.value); clearFieldError('password'); setServerError(null); }}

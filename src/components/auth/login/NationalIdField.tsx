@@ -20,6 +20,9 @@ const NationalIdField = forwardRef<HTMLInputElement, NationalIdFieldProps>(
       <Input
         ref={ref}
         id={`signin-national-id${idSuffix}`}
+        name="national_id"
+        autoComplete="username"
+        inputMode="numeric"
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}

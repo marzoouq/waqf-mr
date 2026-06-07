@@ -15,6 +15,7 @@ export default function LoginMethodSelector({ loginMethod, onChange, isLoading, 
     <div className="space-y-3">
       <Label id="login-method-label" className="text-sm font-medium">طريقة تسجيل الدخول</Label>
       <RadioGroup
+        name={`login_method${idSuffix}`}
         value={loginMethod}
         onValueChange={(v) => onChange(v as 'email' | 'national_id')}
         className="flex flex-wrap gap-3"

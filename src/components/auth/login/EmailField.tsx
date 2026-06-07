@@ -20,6 +20,8 @@ const EmailField = forwardRef<HTMLInputElement, EmailFieldProps>(
       <Input
         ref={ref}
         id={`signin-email${idSuffix}`}
+        name="email"
+        autoComplete="email"
         type="email"
         value={value}
         onChange={(e) => onChange(e.target.value)}

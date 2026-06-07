@@ -26,6 +26,7 @@ const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
             <Input
               ref={ref}
               id={`signin-password${idSuffix}`}
+              name="password"
               type={showPassword ? 'text' : 'password'}
               value={value}
               onChange={(e) => onChange(e.target.value)}
