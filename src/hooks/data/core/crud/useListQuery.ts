@@ -7,9 +7,10 @@
  *  1) لا نلفّ نتيجة useQuery داخل useMemo + spread، لأن خصائص UseQueryResult
  *     تعتمد على getters متعقَّبة مربوطة بـ QueryObserver نشط؛ تخزينها في
  *     closure طويل العمر يسبب الخطأ عند إبطال الـ Observer.
- *  2) queryFn يبقى نقياً — لا setState داخله. نقلنا تحديث totalCount إلى
- *     useEffect يعتمد على بيانات الاستعلام.
+ *  2) queryFn يبقى نقياً — لا setState داخله. نلتقط count عبر ref ثم نزامنه
+ *     مع state عبر useEffect.
  *  3) نضيف meta للاستعلام لتسهيل التتبع عبر QueryCache.onError المركزي.
+ *  4) شكل البيانات في الكاش يبقى TData[] للحفاظ على توافق getQueryOptions/prefetch.
  */
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useState, useCallback, useEffect, useRef } from 'react';
@@ -34,11 +35,6 @@ interface BuildListOptions<T extends TableName> {
   label: string;
   staleTime: number;
   notifications?: CrudNotifications;
-}
-
-interface ListQueryResultRaw<TData> {
-  rows: TData[];
-  count: number | null;
 }
 
 export function buildListHelpers<T extends TableName, TData>(
@@ -69,12 +65,13 @@ export function buildListHelpers<T extends TableName, TData>(
   const useList = (): PaginatedQueryResult<TData> => {
     const [page, setPage] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
+    const lastCountRef = useRef<number | null>(null);
     const lastErrorRef = useRef<unknown>(null);
 
     const rangeFrom = page * limit;
     const rangeTo = rangeFrom + limit - 1;
 
-    const rawQuery = useQuery<ListQueryResultRaw<TData>>({
+    const query: UseQueryResult<TData[]> = useQuery<TData[]>({
       queryKey: [queryKey, { page }],
       staleTime,
       meta: { table, queryKey, label, page, rangeFrom, rangeTo },
@@ -86,13 +83,18 @@ export function buildListHelpers<T extends TableName, TData>(
           .range(rangeFrom, rangeTo);
 
         if (error) throw error;
-        return { rows: (data ?? []) as TData[], count: count ?? null };
+        // التقاط العدد عبر ref فقط — لا setState داخل queryFn
+        if (count !== null && count !== undefined) {
+          lastCountRef.current = count;
+        }
+        return (data ?? []) as TData[];
       },
     });
 
-    // تحديث totalCount + تحذير الحد الأقصى عبر effect (لا side effects داخل queryFn)
+    // مزامنة totalCount + تحذير الحد الأقصى — خارج queryFn لتفادي تداخل مع QueryObserver
     useEffect(() => {
-      const c = rawQuery.data?.count;
+      if (!query.isSuccess) return;
+      const c = lastCountRef.current;
       if (typeof c === 'number') {
         setTotalCount(c);
         if (page === 0 && c > limit) {
@@ -104,26 +106,21 @@ export function buildListHelpers<T extends TableName, TData>(
           }
         }
       }
-    }, [rawQuery.data, page]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [query.isSuccess, query.dataUpdatedAt, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // تسجيل أخطاء الاستعلام والتعافي منها — يساعد على تتبع المصدر بدون toast إضافي
     useEffect(() => {
-      if (rawQuery.error && rawQuery.error !== lastErrorRef.current) {
-        lastErrorRef.current = rawQuery.error;
+      if (query.error && query.error !== lastErrorRef.current) {
+        lastErrorRef.current = query.error;
         logger.error('[useList] فشل استعلام', {
           table, queryKey, label, page,
-          message: (rawQuery.error as Error)?.message,
+          message: (query.error as Error)?.message,
         });
-      } else if (!rawQuery.error && lastErrorRef.current && rawQuery.isSuccess) {
+      } else if (!query.error && lastErrorRef.current && query.isSuccess) {
         logger.info('[useList] تعافي بعد فشل سابق', { table, queryKey, page });
         lastErrorRef.current = null;
       }
-    }, [rawQuery.error, rawQuery.isSuccess, page]);
-
-    // نُعيد كائناً يتوافق مع UseQueryResult<TData[]> عبر تحويل data فقط.
-    // الـ spread يتم مرة واحدة لكل render — لا closures طويلة العمر.
-    const query = rawQuery as unknown as UseQueryResult<TData[]>;
-    const data = rawQuery.data?.rows;
+    }, [query.error, query.isSuccess, page]);
 
     const hasNextPage = (page + 1) * limit < totalCount;
     const hasPrevPage = page > 0;
@@ -140,9 +137,9 @@ export function buildListHelpers<T extends TableName, TData>(
       setPage(Math.max(0, p));
     }, []);
 
+    // spread يتم مرة واحدة لكل render — لا closures طويلة العمر مع UseQueryResult
     return {
       ...query,
-      data,
       page,
       nextPage,
       prevPage,
