@@ -33,6 +33,28 @@ export function usePropertiesPage() {
 
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
+  // تسجيل تشخيصي لأخطاء/تعافي استعلام العقارات — يساعد على تتبع الأعطال
+  // مثل "The provided callback is no longer runnable" بدون إزعاج المستخدم.
+  const lastErrorRef = useRef<unknown>(null);
+  useEffect(() => {
+    if (propertiesQuery.error && propertiesQuery.error !== lastErrorRef.current) {
+      lastErrorRef.current = propertiesQuery.error;
+      logger.error('[PropertiesPage] فشل تحميل العقارات', {
+        page: propertiesQuery.page,
+        pageSize: propertiesQuery.pageSize,
+        propertiesCount: properties.length,
+        contractsCount: contracts.length,
+        message: (propertiesQuery.error as Error)?.message,
+      });
+    } else if (!propertiesQuery.error && lastErrorRef.current && propertiesQuery.isSuccess) {
+      logger.info('[PropertiesPage] تعافي بعد فشل سابق', {
+        propertiesCount: properties.length,
+      });
+      lastErrorRef.current = null;
+    }
+  }, [propertiesQuery.error, propertiesQuery.isSuccess, propertiesQuery.page, propertiesQuery.pageSize, properties.length, contracts.length]);
+
+
   const summary = usePropertiesSummary({ properties, contracts, propertiesLoading: isLoading, contractsLoading });
   const filters = usePropertiesFilters({ properties, propertyOccupancy: summary.propertyOccupancy });
   const form = usePropertiesForm();
