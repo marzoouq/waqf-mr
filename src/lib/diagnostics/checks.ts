@@ -111,13 +111,50 @@ export const diagnosticCategories: DiagnosticCategory[] = [
     title: 'تدقيق رقمي DB ↔ RPC ↔ UI',
     checks: [checkDbVsRpcTotalIncome, checkDbVsRpcExpenses, checkRpcVsUiAvailableAmount, checkSnapshotIntegrityClosedYear],
   },
+  {
+    title: 'التوجيه والمسارات',
+    checks: [checkRoutesRegistryConsistency, checkCurrentRouteResolved, checkNoBrokenChunkRetries],
+  },
+  {
+    title: 'وضع التدقيق (Lighthouse)',
+    checks: [checkAuditModeFlag, checkAuditRealtimeDisabled, checkAuditSwBlocked, checkAuditQueryClientElevated, checkPdfChunksDeferred],
+  },
+  {
+    title: 'PWA و Service Worker',
+    checks: [checkSwRefusalReason, checkManifestPresent, checkSwActiveRegistration],
+  },
+  {
+    title: 'أخطاء التشغيل',
+    checks: [checkRuntimeErrorsLog],
+  },
 ];
 
+/** خيارات تشغيل الفحص مع دعم progress و cancel. */
+export interface RunAuditOptions {
+  onProgress?: (info: { done: number; total: number; current: string }) => void;
+  signal?: AbortSignal;
+}
 
-export async function runAllDiagnostics(): Promise<{ category: string; results: CheckResult[] }[]> {
+function totalChecksCount(): number {
+  return diagnosticCategories.reduce((s, c) => s + c.checks.length, 0);
+}
+
+export async function runAllDiagnostics(opts: RunAuditOptions = {}): Promise<{ category: string; results: CheckResult[] }[]> {
+  const { onProgress, signal } = opts;
+  const total = totalChecksCount();
+  let done = 0;
   const output: { category: string; results: CheckResult[] }[] = [];
   for (const cat of diagnosticCategories) {
-    const results = await Promise.all(cat.checks.map(fn => fn()));
+    if (signal?.aborted) break;
+    const results: CheckResult[] = [];
+    for (const fn of cat.checks) {
+      if (signal?.aborted) break;
+      const label = `${cat.title}`;
+      onProgress?.({ done, total, current: label });
+      results.push(await fn());
+      done += 1;
+      onProgress?.({ done, total, current: label });
+    }
     output.push({ category: cat.title, results });
   }
   return output;
@@ -130,3 +167,4 @@ export async function runCategoryDiagnostics(categoryTitle: string): Promise<{ c
   const results = await Promise.all(cat.checks.map(fn => fn()));
   return { category: cat.title, results };
 }
+
