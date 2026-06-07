@@ -5,9 +5,12 @@
 import type { CheckResult } from '../types';
 
 const RAW_PAGES = import.meta.glob('/src/pages/**/*.tsx', { query: '?raw', import: 'default', eager: false });
+const RAW_DIAG = import.meta.glob('/src/components/diagnostics/**/*.tsx', { query: '?raw', import: 'default', eager: false });
+const RAW_LAYOUT = import.meta.glob('/src/components/layout/**/*.tsx', { query: '?raw', import: 'default', eager: false });
 
 async function loadAllSources(): Promise<{ file: string; source: string }[]> {
-  const entries = Object.entries(RAW_PAGES).filter(([f]) => !f.endsWith('.test.tsx'));
+  const all = { ...RAW_PAGES, ...RAW_DIAG, ...RAW_LAYOUT };
+  const entries = Object.entries(all).filter(([f]) => !f.endsWith('.test.tsx'));
   const results = await Promise.all(entries.map(async ([f, loader]) => {
     try {
       const source = (await (loader as () => Promise<string>)()) as string;
