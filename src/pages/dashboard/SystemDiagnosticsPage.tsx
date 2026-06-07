@@ -26,6 +26,7 @@ import RunHistoryList from '@/components/diagnostics/RunHistoryList';
 import NotificationFallbackCard from '@/components/diagnostics/NotificationFallbackCard';
 import BackendLogTable from '@/components/diagnostics/BackendLogTable';
 import StatusFilterChips, { type StatusFilter } from '@/components/diagnostics/StatusFilterChips';
+import DeepCleanConfirmDialog from '@/components/diagnostics/DeepCleanConfirmDialog';
 
 const WebVitalsPanel = lazy(() => import('@/components/common/feedback/WebVitalsPanel'));
 
