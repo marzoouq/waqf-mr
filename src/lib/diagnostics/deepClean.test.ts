@@ -42,8 +42,8 @@ describe('runDeepClean', () => {
 
   it('يستدعي queryClient.clear() عند توفّره', async () => {
     const clear = vi.fn();
-    const qc = { clear } as unknown as Parameters<typeof runDeepClean>[0]['queryClient'];
-    const r = await runDeepClean({ queryClient: qc });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = await runDeepClean({ queryClient: { clear } as any });
     expect(clear).toHaveBeenCalledOnce();
     expect(r.queryCacheCleared).toBe(true);
   });
