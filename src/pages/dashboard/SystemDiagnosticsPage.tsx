@@ -47,7 +47,7 @@ function CheckRow({ result }: { result: CheckResult }) {
 
 export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
   const {
-    running, runningCategory, lastRun,
+    running, runningCategory, lastRun, progress,
     run, runSingle, exportResults,
     totalChecks, failures, warnings, allCategories,
     results,
@@ -78,6 +78,24 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           </Button>
         </div>
       </div>
+
+      {/* عدّاد التقدم الحي */}
+      {running && progress && progress.total > 0 && (
+        <Card>
+          <CardContent className="py-3 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">يفحص: <span className="text-foreground font-medium">{progress.current}</span></span>
+              <span className="font-mono text-xs">{progress.done} / {progress.total}</span>
+            </div>
+            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all duration-200"
+                style={{ width: `${Math.min(100, (progress.done / progress.total) * 100)}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* لوحة Core Web Vitals */}
       <Suspense fallback={null}>
