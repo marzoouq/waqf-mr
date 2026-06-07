@@ -31,6 +31,8 @@ vi.mock('react', async () => {
     useState: (init: unknown) => [init, vi.fn()],
     useCallback: (fn: unknown) => fn,
     useMemo: (fn: () => unknown) => fn(),
+    useRef: (init: unknown) => ({ current: init }),
+    useEffect: vi.fn(),
   };
 });
 

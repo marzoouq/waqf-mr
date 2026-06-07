@@ -1,11 +1,22 @@
 /**
  * useListQuery — استعلام قائمة مع تصفح وحماية حد أقصى
  * مفصول عن useCrudFactory لتقليل تعقيد الملف الرئيسي.
+ *
+ * ملاحظات تصميمية مهمة (لمنع تكرار عطل
+ * "The provided callback is no longer runnable"):
+ *  1) لا نلفّ نتيجة useQuery داخل useMemo + spread، لأن خصائص UseQueryResult
+ *     تعتمد على getters متعقَّبة مربوطة بـ QueryObserver نشط؛ تخزينها في
+ *     closure طويل العمر يسبب الخطأ عند إبطال الـ Observer.
+ *  2) queryFn يبقى نقياً — لا setState داخله. نلتقط count عبر ref ثم نزامنه
+ *     مع state عبر useEffect.
+ *  3) نضيف meta للاستعلام لتسهيل التتبع عبر QueryCache.onError المركزي.
+ *  4) شكل البيانات في الكاش يبقى TData[] للحفاظ على توافق getQueryOptions/prefetch.
  */
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { crudNotifyAdapter } from '@/lib/notify';
+import { logger } from '@/lib/logger';
 import type { CrudNotifications } from '@/lib/notify';
 import type {
   TableName, PaginatedQueryResult, CrudQueryOptions,
@@ -54,13 +65,16 @@ export function buildListHelpers<T extends TableName, TData>(
   const useList = (): PaginatedQueryResult<TData> => {
     const [page, setPage] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
+    const lastCountRef = useRef<number | null>(null);
+    const lastErrorRef = useRef<unknown>(null);
 
     const rangeFrom = page * limit;
     const rangeTo = rangeFrom + limit - 1;
 
-    const query: UseQueryResult<TData[]> = useQuery({
+    const query: UseQueryResult<TData[]> = useQuery<TData[]>({
       queryKey: [queryKey, { page }],
       staleTime,
+      meta: { table, queryKey, label, page, rangeFrom, rangeTo },
       queryFn: async () => {
         const { data, error, count } = await supabase
           .from(table)
@@ -69,9 +83,21 @@ export function buildListHelpers<T extends TableName, TData>(
           .range(rangeFrom, rangeTo);
 
         if (error) throw error;
-        if (count !== null) setTotalCount(count);
+        // التقاط العدد عبر ref فقط — لا setState داخل queryFn
+        if (count !== null && count !== undefined) {
+          lastCountRef.current = count;
+        }
+        return data as TData[];
+      },
+    });
 
-        if (page === 0 && count !== null && count > limit) {
+    // مزامنة totalCount + تحذير الحد الأقصى — خارج queryFn لتفادي تداخل مع QueryObserver
+    useEffect(() => {
+      if (!query.isSuccess) return;
+      const c = lastCountRef.current;
+      if (typeof c === 'number') {
+        setTotalCount(c);
+        if (page === 0 && c > limit) {
           const key = `limit-warn-${queryKey}`;
           if (!limitWarnShown.has(key)) {
             limitWarnShown.add(key);
@@ -79,10 +105,22 @@ export function buildListHelpers<T extends TableName, TData>(
             setTimeout(() => { limitWarnShown.delete(key); }, 300_000);
           }
         }
+      }
+    }, [query.isSuccess, query.dataUpdatedAt, page]);
 
-        return data as TData[];
-      },
-    });
+    // تسجيل أخطاء الاستعلام والتعافي منها — يساعد على تتبع المصدر بدون toast إضافي
+    useEffect(() => {
+      if (query.error && query.error !== lastErrorRef.current) {
+        lastErrorRef.current = query.error;
+        logger.error('[useList] فشل استعلام', {
+          table, queryKey, label, page,
+          message: (query.error as Error)?.message,
+        });
+      } else if (!query.error && lastErrorRef.current && query.isSuccess) {
+        logger.info('[useList] تعافي بعد فشل سابق', { table, queryKey, page });
+        lastErrorRef.current = null;
+      }
+    }, [query.error, query.isSuccess, page]);
 
     const hasNextPage = (page + 1) * limit < totalCount;
     const hasPrevPage = page > 0;
@@ -99,9 +137,7 @@ export function buildListHelpers<T extends TableName, TData>(
       setPage(Math.max(0, p));
     }, []);
 
-    // ملاحظة: لا نلفّ بـ useMemo + spread لأن خصائص UseQueryResult getters متعقَّبة
-    // مرتبطة بـ QueryObserver نشط؛ تخزين النتيجة في closure يسبب
-    // "The provided callback is no longer runnable" عند إبطال الـ Observer.
+    // spread يتم مرة واحدة لكل render — لا closures طويلة العمر مع UseQueryResult
     return {
       ...query,
       page,
