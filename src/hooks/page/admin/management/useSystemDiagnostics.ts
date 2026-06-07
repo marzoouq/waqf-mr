@@ -97,7 +97,7 @@ export const useSystemDiagnostics = (autoRun = true) => {
   });
 
   return {
-    results, running, runningCategory, lastRun,
+    results, running, runningCategory, lastRun, progress,
     run, runSingle, exportResults,
     totalChecks, failures, warnings, allCategories,
   };
