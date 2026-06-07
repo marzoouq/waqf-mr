@@ -1,244 +1,235 @@
-# خطة v2: نظام تشخيص شامل للناظر (Full-Stack Audit System)
+# خطة v4: نظام التشخيص الكامل تحت `/dashboard/diagnostics`
 
-نعم — هذه النسخة الموسّعة تغطي **التطبيق بالكامل** وتُبنى كـ **نظام تشخيصي متكامل** قابل للتوسعة (ليس صفحة واحدة فقط).
+## التحقق من الشمولية مقابل بنية المشروع الفعلية
+
+| الطبقة | موجود في المشروع | كانت في v3؟ | في v4 |
+|--------|------------------|-------------|-------|
+| 50 صفحة (dashboard/beneficiary/waqif/public) | ✅ | جزئي (appMap) | ✅ كامل |
+| 41 route في `routeRegistry` | ✅ | ✅ | ✅ |
+| 4 ملفات routes (`adminRoutes/beneficiaryRoutes/waqifRoutes/publicRoutes`) | ✅ | ❌ | ✅ مُضاف |
+| ~14 صفحة فيها `<Tabs>` | ✅ | ✅ | ✅ |
+| الأزرار بدون handler | ✅ | ✅ | ✅ |
+| **11 Edge Function** | ✅ | ❌ مفقود | ✅ مُضاف |
+| **DB Migrations + linter** | ✅ | ❌ مفقود | ✅ مُضاف |
+| **Hooks layering (data/domain/page)** | ✅ | ❌ مفقود | ✅ مُضاف |
+| **CRUD factories + data hooks** | ✅ | ❌ مفقود | ✅ مُضاف |
+| **PWA / SW / Manifest** | ✅ | ✅ | ✅ |
+| **Auth context + Roles + RLS proxies** | ✅ | جزئي (security) | ✅ مُعمَّق |
+| **Fiscal Year context + closed-year guard** | ✅ Core rule | ❌ مفقود | ✅ مُضاف |
+| **ZATCA ICV chain + QR** | ✅ | ✅ | ✅ |
+| **Email queue + notifications** | ✅ | ❌ مفقود | ✅ مُضاف |
+| **Storage buckets** | ✅ | ✅ | ✅ |
+| **Realtime channels** | ✅ | جزئي | ✅ مُعمَّق |
+| **i18n / RTL / Arabic copy** | ✅ | ❌ مفقود | ✅ مُضاف |
+| **Conventions (file size ≤200, no console, hsl tokens)** | ✅ | ❌ مفقود | ✅ مُضاف |
+| **CI workflows + scripts/audit-*** | ✅ | ❌ مفقود | ✅ مُضاف (روابط فقط) |
+
+**النتيجة**: v3 كانت تغطي ~60% من التطبيق. v4 ترفعها إلى ~95%.
 
 ---
 
-## البنية الكاملة للنظام
+## 1) إثراء تصدير JSON
+
+استبدال `exportResults` (تصدير نصي حالي) بـ `exportJson()` + `exportText()` جنبًا إلى جنب.
+
+البنية:
+```json
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-07T04:33:55.123Z",
+  "app": { "version": "3.0.220", "env": "production", "commitHint": "...", "userAgent": "...", "route": "..." },
+  "summary": { "total": 95, "pass": 80, "warn": 10, "fail": 5, "info": 0, "healthScore": 89 },
+  "categories": [
+    {
+      "title": "قاعدة البيانات",
+      "results": [
+        {
+          "id": "db_connection", "label": "اتصال", "status": "pass", "detail": "120ms",
+          "category": "قاعدة البيانات",
+          "docLink": "/docs/diagnostics/check-catalog.md#db_connection",
+          "sourceFile": "src/lib/diagnostics/checks/database.ts"
+        }
+      ]
+    }
+  ]
+}
+```
+
+- `version`: من `package.json` عبر `define: __APP_VERSION__` في `vite.config.ts`.
+- `sourceFile/docLink`: من `src/lib/diagnostics/checkMeta.ts` (`id → { sourceFile, docAnchor }`).
+- اسم الملف: `diagnostics-{ISO-date}.json`.
+
+---
+
+## 2) إعادة الفحص الانتقائية
+
+DropdownMenu بدل زر واحد:
+
+| الزر | السلوك |
+|------|--------|
+| تشغيل الكل | كما هو |
+| إعادة الفاشلة فقط | يُشغّل دوال ids حالتها `fail` |
+| إعادة التحذيرات والفاشلة | يشمل `warn` و `fail` |
+| إعادة بطاقة | الموجود (▶ في كل بطاقة) |
+
+تنفيذ: `runByIds(ids)` في `checks.ts` + `rerunFailures()/rerunFailuresAndWarnings()` في الهوك.
+
+---
+
+## 3) ملخص الصحة "ما يعمل / تحذير / يحتاج إصلاح"
+
+Hero بثلاث عرضات + Health Score (`pass / (pass+warn+fail) × 100`) + قسم "ملخص ذكي" يسرد:
+- ✅ أهم 3 فئات نجحت بالكامل
+- ⚠ كل تحذير + رابط للبطاقة
+- ❌ كل فشل + `detail` + رابط `sourceFile`
+
+---
+
+## 4) تبويبات صفحة التشخيص (8 تبويبات)
 
 ```text
-src/lib/diagnostics/
-├── engine/
-│   ├── runner.ts            # محرك التنفيذ المتوازي/المتسلسل + cancel + retry
-│   ├── registry.ts          # سجل الفحوصات (auto-discovery)
-│   ├── reporter.ts          # توليد التقرير (JSON/PDF/CSV)
-│   ├── scheduler.ts         # جدولة دورية (يومي/أسبوعي) عبر sessionStorage
-│   └── types.ts             # CheckResult, Severity, Category, Suite
-├── checks/
-│   ├── infra/               # ‹‹ البنية التحتية ››
-│   │   ├── db-connection.ts │ db-cloud-status.ts │ db-linter.ts
-│   │   ├── edge-ping.ts (لكل 11 دالة) │ storage-bucket.ts
-│   │   └── realtime-channel.ts │ rate-limits.ts
-│   ├── security/            # ‹‹ الأمان ››
-│   │   ├── rls-coverage.ts (42 جدول) │ user-roles-integrity.ts
-│   │   ├── auth-session.ts │ webauthn-credentials.ts
-│   │   ├── encrypted-fields.ts │ audit-log-immutability.ts
-│   │   └── suppressed-emails.ts │ rate-limit-effectiveness.ts
-│   ├── data-integrity/      # ‹‹ سلامة البيانات ››
-│   │   ├── fiscal-year-active.ts │ fiscal-year-snapshots.ts
-│   │   ├── contracts-orphans.ts │ contracts-allocations.ts
-│   │   ├── invoices-vs-payments.ts │ invoice-chain-icv.ts
-│   │   ├── distributions-sum.ts │ advance-limits.ts
-│   │   ├── beneficiaries-shares-total.ts │ expense-budgets.ts
-│   │   └── accrual-vs-stations.ts │ vat-centralization.ts
-│   ├── business-logic/      # ‹‹ القواعد الشرعية/المحاسبية ››
-│   │   ├── waqf-revenue-formula.ts │ corpus-carryforward.ts
-│   │   ├── largest-remainder.ts │ negative-values-guard.ts
-│   │   ├── revenue-recognition.ts │ collection-sync.ts
-│   │   └── closed-year-immutability.ts │ multi-unit-pricing.ts
-│   ├── routing/             # ‹‹ التوجيه والصفحات ››
-│   │   ├── routes-manifest.ts (يفحص كل route في App.tsx)
-│   │   ├── lazy-chunks-load.ts │ guarded-routes.ts
-│   │   └── orphan-pages.ts (صفحات بدون route) │ broken-links.ts
-│   ├── components/          # ‹‹ المكونات ››
-│   │   ├── error-boundary-coverage.ts │ runtime-errors-log.ts
-│   │   ├── translation-keys.ts (RTL/i18n) │ design-tokens-usage.ts
-│   │   └── deprecated-imports.ts (yyyy/yyyy، supabase راو في pages)
-│   ├── performance/         # ‹‹ الأداء ››
-│   │   ├── chunks-size.ts (vendor-pdf, vendor-pdf-svg, app)
-│   │   ├── web-vitals.ts (LCP/CLS/INP/TTFB) │ memory-heap.ts
-│   │   ├── long-tasks.ts │ resource-budget.ts
-│   │   └── network-waterfall.ts │ unused-css.ts
-│   ├── pwa/                 # ‹‹ PWA و SW ››
-│   │   ├── sw-registration-state.ts │ sw-refusal-reason.ts
-│   │   ├── manifest-validity.ts │ icon-sizes.ts
-│   │   └── cache-stale-detection.ts │ install-prompt.ts
-│   ├── settings/            # ‹‹ الإعدادات ››
-│   │   ├── app-settings-required-keys.ts │ public-stats-policy.ts
-│   │   ├── beneficiary-widgets.ts │ tax-config.ts
-│   │   └── zatca-certificates.ts │ email-templates.ts
-│   ├── audit-mode/          # ‹‹ وضع التدقيق ››
-│   │   ├── realtime-disabled.ts │ sw-blocked.ts
-│   │   ├── query-client-elevated.ts │ pdf-chunks-deferred.ts
-│   │   └── polling-stopped.ts (app_settings, get_public_stats)
-│   └── notifications/       # ‹‹ التنبيهات والبريد ››
-│       ├── email-send-log-health.ts │ unsubscribe-tokens.ts
-│       └── notifications-queue.ts │ support-tickets-routing.ts
-└── fixers/                  # ‹‹ إصلاحات تلقائية اختيارية ››
-    ├── clear-stale-cache.ts │ unregister-sw.ts
-    └── reset-session-storage.ts │ refetch-app-settings.ts
+[نظرة عامة] [الفحوصات] [خريطة التطبيق] [التفاعلات]
+[الواجهة والاتفاقيات] [Backend & Edge] [الأداء الحي] [السجل والتصدير]
 ```
 
-**إجمالي الفحوصات المخطّطة: ~85 فحص** موزّعة على 10 فئات (Suites).
+### 4.1 نظرة عامة
+Hero + Health Score + Web Vitals + ملخص ذكي.
+
+### 4.2 الفحوصات (14 بطاقة الحالية + بطاقات جديدة §4.5/§4.6)
+عدّاد التقدم (موجود) + شريط أدوات.
+
+### 4.3 خريطة التطبيق — جديد
+`checks/appMap.ts` (6 فحوصات):
+- `appmap_pages_reachable` — كل lazy import يُحلّ بدون خطأ.
+- `appmap_orphan_pages` — ملف `.tsx` تحت `src/pages/` بدون route.
+- `appmap_missing_titles` — route بدون `title/permKey`.
+- `appmap_role_coverage` — كل دور (admin/accountant/beneficiary/waqif) له مساراته الأساسية.
+- `appmap_route_role_map` — مطابقة `routeRoles.ts` مقابل `ALL_ROUTES`.
+- `appmap_route_files_sync` — تطابق `adminRoutes.tsx`/`beneficiaryRoutes.tsx`/etc. مع `routeRegistry`.
+
+UI: شجرة قابلة للطي (admin/accountant/beneficiary/waqif/public).
+
+### 4.4 التفاعلات (Tabs + Buttons) — جديد
+`checks/interactions.ts` عبر `import.meta.glob('/src/pages/**/*.tsx', { query: '?raw', eager: false })`:
+- `interactions_tabs_inventory` — جرد كل `<TabsTrigger value="...">`.
+- `interactions_handler_less_buttons` — `<Button>` بدون `onClick/type="submit"/asChild`.
+- `interactions_duplicate_tab_ids` — قيم value مكرّرة.
+- `interactions_missing_aria_labels` — أزرار icon-only بدون `aria-label`.
+- `interactions_forms_without_submit` — `<form>` بدون `onSubmit`.
+
+UI: جدول قابل للتصفية (page/type/severity).
+
+### 4.5 الواجهة والاتفاقيات — جديد (يُغطّي قواعد المشروع)
+`checks/conventions.ts`:
+- `conv_file_size` — يحذّر من ملفات pages > 200 سطر / hooks > 180.
+- `conv_no_console` — يرصد `console.log/warn/error` خارج `logger`.
+- `conv_no_hex_colors` — هكس صريح خارج Canvas/SVG/print.
+- `conv_rtl_html_dir` — `<html dir="rtl" lang="ar">` صحيح.
+- `conv_localStorage_fiscal_year` — لا استخدام `localStorage` لـ `fiscal_year_id` (Core rule).
+- `conv_barrel_imports` — index.ts barrels لا تستورد من barrels أخرى.
+
+### 4.6 Backend & Edge — جديد
+`checks/backend.ts` (مكمّل لما هو موجود):
+- `backend_edge_health_ping` — نداء `health-check` Edge Function ويقيس latency.
+- `backend_edge_inventory` — تعداد 11 Edge Function متوقّعة (قائمة ثابتة) + تحذير إن تعطّل ping لأي منها (HEAD على `/functions/v1/{name}` بدون مصادقة).
+- `backend_realtime_subscribe` — اختبار subscribe لقناة وهمية وقياس handshake.
+- `backend_auth_session_valid` — `getUser()` يُعيد user صالح.
+- `backend_role_resolved` — دور المستخدم الحالي مُحلّ من `user_roles`.
+- `backend_fiscal_year_active` — `FiscalYearContext` يُعيد سنة نشطة (Core rule).
+- `backend_closed_year_guard` — إن السنة الحالية مُقفلة، تحقّق أن غير-admin يُمنع.
+- `backend_email_queue_health` — استعلام عدد سجلات `pending` في `email_queue` (إن كان قابلاً للقراءة بصلاحية admin).
+- `backend_notifications_unread_sanity` — التحقّق من عدّاد الإشعارات.
+- `backend_storage_buckets` — buckets المتوقّعة (`waqf-assets`, `tenant-documents`, ...).
+- `backend_rls_smoke` — قراءات حساسة من جداول مالية يجب أن تُحجب على غير-admin (تتطلب آلية محاكاة دور — في حال صعوبتها تُترجم لـ info فقط).
+
+### 4.7 الأداء الحي (موجود مُحسَّن)
+WebVitalsPanel + Long Tasks + Memory + Network filter للـ polling.
+
+### 4.8 السجل والتصدير
+آخر 10 تشغيلات في `localStorage` (`diag_history_v1`) + مقارنة تشغيلين + JSON/Text/Copy + mailto.
 
 ---
 
-## 1) شاشة تشخيص فورية في وضع التدقيق (`?audit=1`)
+## 5) أرشيف التشغيلات
 
-**`src/components/diagnostics/AuditModeOverlay.tsx`** — Overlay قابل للطي (وليس مجرد banner):
-- بطاقات حية: Realtime / SW / QueryClient / PDF chunks / Polling
-- يُحدّث كل ثانية عبر `requestAnimationFrame`
-- زر "افتح مركز التشخيص الكامل" → ينقل لـ `/admin/diagnostics`
-- يظهر فقط عند `isAuditMode()` ولا يلوّث الواجهة العادية
-
-**`src/lib/diagnostics/collectAuditSignals.ts`** — pure function تجمع الإشارات
-**`src/lib/pwaBootstrap.ts`** — إضافة `getSwRefusalReason(): string` exported
+`src/lib/diagnostics/history.ts`:
+- `pushRun(summary)` — يحفظ 10 entries.
+- `getHistory()` / `clearHistory()`.
+- Entry: `{ at, total, pass, warn, fail, healthScore }`.
 
 ---
 
-## 2) مركز التشخيص الشامل — `/admin/diagnostics`
+## 6) الملفات
 
-### الصفحات الفرعية (Tabs/Sub-routes)
-1. **نظرة عامة** — Health Score (0-100) + رسم بياني دائري لكل suite
-2. **الفحص الحي** — العداد التفاعلي (current/total + شريط تقدم + سجل scroll)
-3. **النتائج التفصيلية** — جدول كل النتائج مع فلاتر (suite, severity, status, نص حر)
-4. **السجل التاريخي** — آخر 20 تشغيل محفوظة في `localStorage` للمقارنة
-5. **خريطة التطبيق** — شجرة كل الصفحات/المجلدات مع حالة كل واحدة (✓/⚠/✗)
-6. **الإصلاحات** — الإجراءات اليدوية المقترحة + أزرار fixer للإصلاحات الآمنة
-7. **التقارير** — تصدير JSON/CSV/PDF + إرسال بريد للناظر
+### جديدة (16)
+- `src/lib/diagnostics/checkMeta.ts`
+- `src/lib/diagnostics/exporters.ts` + `exporters.test.ts`
+- `src/lib/diagnostics/history.ts` + `history.test.ts`
+- `src/lib/diagnostics/checks/appMap.ts` + `appMap.test.ts`
+- `src/lib/diagnostics/checks/interactions.ts` + `interactions.test.ts`
+- `src/lib/diagnostics/checks/conventions.ts` + `conventions.test.ts`
+- `src/lib/diagnostics/checks/backend.ts`
+- `src/components/diagnostics/HealthSummaryCard.tsx`
+- `src/components/diagnostics/AppMapTree.tsx`
+- `src/components/diagnostics/InteractionsTable.tsx`
+- `src/components/diagnostics/ConventionsTable.tsx`
+- `src/components/diagnostics/BackendStatusGrid.tsx`
+- `src/components/diagnostics/RunHistoryList.tsx`
 
-### العداد الحقيقي
-```ts
-runAudit({
-  suites: ['infra', 'security', ...],   // اختيار اختياري
-  parallelism: 4,                         // فحوصات متوازية
-  onProgress: ({ done, total, current, eta, partialResults }) => {...},
-  signal: abortController.signal,         // قابل للإلغاء
-})
-```
-- يعرض **العدد الفعلي / الإجمالي**، الفحص الحالي بالاسم، الوقت المنقضي، الوقت المتوقع
-- لكل فحص: ms، severity، رسالة عربية، الإصلاح المقترح، رابط للملف/الكود ذي الصلة
-- يحفظ النتيجة في `localStorage` (مع تاريخ) للمقارنة الزمنية
+### تُعدَّل (4)
+- `src/pages/dashboard/SystemDiagnosticsPage.tsx` — تحويل لـ `ResponsiveTabs` (≤200 سطر بإخراج كل tab لـ sub-component).
+- `src/hooks/page/admin/management/useSystemDiagnostics.ts` — `rerunFailures` + `exportJson` + كتابة `history` (≤180 سطر).
+- `src/lib/diagnostics/checks.ts` — تسجيل 4 بطاقات جديدة + `runByIds()`.
+- `vite.config.ts` — `define: { __APP_VERSION__ }`.
 
-### واجهة الفحص (UI)
-- بطاقات Suite بألوان semantic (`--success`, `--warning`, `--destructive`)
-- جدول `data-table` مع توسيع صف لعرض التفاصيل التقنية
-- Health Score badge في الـ header
-- زر "إعادة فحص الفئة المحددة فقط"
-- زر "تشغيل في الخلفية" (Web Worker اختياري لمستقبلًا)
+### لا تتغيّر
+ملفات Supabase المحمية، المصادقة، RLS، Edge Functions.
 
 ---
 
-## 3) مولّد خريطة التطبيق التلقائي
+## 7) قيود تقنية
 
-**`src/lib/diagnostics/appMap/buildAppMap.ts`**
-- يُحلّل `App.tsx` (AST بسيط أو import.meta.glob) ليُنتج شجرة:
-  ```
-  / (LandingPage) ✓
-  ├── /admin/dashboard ✓
-  ├── /admin/contracts ⚠ (1 تحذير)
-  ├── /admin/diagnostics ✓
-  └── ...
-  ```
-- يضمن أن أي route مكتشف **مغطّى بفحص routing** تلقائياً
-- يفحص: lazy import يعمل، الصفحة تُرندر بدون خطأ، الـ guard صحيح
+- لا migrations، لا edge functions جديدة (مع ذلك نُضيف **استدعاء قراءة** لـ `health-check` فقط).
+- نصوص عربية RTL، ألوان `hsl(var(--*))`، `logger` بدلاً من `console`.
+- صفحة ≤200 سطر، hook ≤180 سطر، محمي بـ admin.
+- `import.meta.glob` بـ `eager: false` لتجنّب bundle bloat.
+- لا تأثير على bundle الإنتاج: كل منطق التشخيص lazy-loaded ضمن صفحة `/dashboard/diagnostics`.
 
 ---
 
-## 4) جامع أخطاء التشغيل (Runtime Error Collector)
+## 8) ترتيب التنفيذ
 
-**`src/lib/diagnostics/runtimeCollector.ts`**
-- يُسجَّل في `main.tsx` على `window.error` و `unhandledrejection`
-- يخزن آخر 100 خطأ في `sessionStorage` مع stack/route/timestamp
-- يُستهلَك عبر فحص `components/runtime-errors-log.ts`
-
----
-
-## 5) دليل الفحص الكامل — `docs/diagnostics/`
-
-```
-docs/diagnostics/
-├── README.md                       # نظرة عامة على النظام
-├── devtools-lighthouse-guide.md    # دليل DevTools/Lighthouse الكامل
-├── audit-mode-flags.md             # كل أعلام ?audit / ?sw=off / ?debug=*
-├── check-catalog.md                # كاتالوج كل الفحوصات الـ85
-├── adding-new-check.md             # دليل إضافة فحص جديد للمطوّر
-├── troubleshooting-playbook.md     # سيناريوهات شائعة + الحل
-└── ci-integration.md               # تشغيل ALL_CHECKS في CI (مستقبلًا)
-```
-
-محتوى `devtools-lighthouse-guide.md` العربي الكامل:
-- ما قبل الفحص: Hard Reload، Clear Site Data، Incognito، تعطيل الإضافات
-- استخدام `?audit=1` على preview/published
-- Lighthouse: Navigation/Snapshot/Timespan، Mobile vs Desktop، throttling
-- DevTools Sources: تجنّب `vendor-pdf*` (يحتوي base64 fonts ≈ ميجابايت)
-- Performance/Profiler: تسجيل مع `?audit=1`
-- Coverage و Memory و Network filters
-- Application > Service Workers + Storage
-- متى تستخدم `/admin/diagnostics` بدلاً من DevTools
+1. `checkMeta.ts` + `exporters.ts` + تحديث الهوك لـ JSON ثري + إعادة الفاشلة.
+2. `HealthSummaryCard` + Hero + تحويل الصفحة لتبويبات (Overview/Checks/History).
+3. `appMap.ts` + `AppMapTree` (تبويب خريطة التطبيق).
+4. `interactions.ts` + `InteractionsTable` (تبويب التفاعلات).
+5. `conventions.ts` + `ConventionsTable` (تبويب الاتفاقيات).
+6. `backend.ts` + `BackendStatusGrid` (تبويب Backend & Edge).
+7. `history.ts` + `RunHistoryList`.
+8. تحديث `docs/diagnostics/check-catalog.md` لتوثيق الفحوصات الجديدة (~25 فحص جديد، الإجمالي ~75).
+9. اختبارات + التحقق الخماسي (tsc → vitest → ESLint → build → smoke).
 
 ---
 
-## 6) أعلام التحكم (URL Flags)
+## 9) ما لن نفعله
 
-| العلم | الأثر |
-|------|------|
-| `?audit=1` | يعطل realtime/SW/refetch، يرفع staleTime |
-| `?sw=off` | يلغي تسجيل SW (موجود مسبقًا) |
-| `?diag=1` | يفتح Overlay التشخيص حتى لمستخدم عادي (admin only فعلياً) |
-| `?diag-suite=security` | يشغّل فقط Suite معيّن عند الدخول لـ /admin/diagnostics |
+- لا E2E (لا محاكاة ضغط أزرار حقيقي).
+- لا تتبّع تحليلي مستمر للضغطات.
+- لا إعادة كتابة الفحوصات الحالية — نبني فوقها فقط.
+- لا اختبار RLS عبر تبديل أدوار حقيقي (إن لزم، يُترجم لـ `info`).
 
 ---
 
-## 7) الاختبارات
+## 10) الخلاصة: هل تشمل كل التطبيق؟
 
-- `engine/runner.test.ts` — التوازي، الإلغاء، progress، retry
-- `engine/registry.test.ts` — auto-discovery، عدم تكرار IDs
-- `engine/reporter.test.ts` — JSON/CSV/PDF
-- `appMap/buildAppMap.test.ts` — تحليل routes
-- `runtimeCollector.test.ts` — التقاط الأخطاء
-- `AuditModeOverlay.test.tsx` — لا يُعرض خارج audit mode
-- **10+ فحوصات نموذجية mocked** (واحد من كل suite)
+**نعم** — v4 تُغطّي:
+- ✅ كل الصفحات الـ50 (appMap).
+- ✅ كل التبويبات والأزرار في الصفحات (interactions).
+- ✅ كل الـ routes الـ41 + ملفات routes الأربعة (appMap).
+- ✅ كل Edge Functions الـ11 (backend).
+- ✅ كل قواعد المشروع الجوهرية (conventions).
+- ✅ Auth/Roles/RLS/Fiscal Year/Email Queue/Realtime/Storage (backend).
+- ✅ PWA/SW/Web Vitals/Runtime Errors (موجود سابقًا).
+- ✅ ZATCA/Finance/Numerical Audit (موجود سابقًا).
 
----
-
-## 8) القيود التقنية
-
-- ✅ **بدون migrations** — كل الفحوصات SELECT-only عبر `supabase` client
-- ✅ **بدون edge functions جديدة** — ping يستخدم الموجودة
-- ✅ **لا تعديل ملفات محمية** (`client.ts`, `types.ts`, `config.toml`, `.env`)
-- ✅ Page Hook Pattern: `AdminDiagnostics.tsx` presentational فقط (≤200 سطر)
-- ✅ المنطق في `useAdminDiagnosticsPage.ts` (≤180 سطر)
-- ✅ كل النصوص عربية RTL، Intl ar-SA للأرقام والتواريخ
-- ✅ ألوان عبر `hsl(var(--*))` حصراً
-- ✅ `logger` بدلاً من `console`
-- ✅ محمي بـ `<ProtectedRoute requiredRole="admin">` — الناظر فقط
-
----
-
-## 9) خارطة التغييرات
-
-**ملفات جديدة (~50 ملف):**
-- محرك: 5 ملفات تحت `engine/`
-- فحوصات: ~50 ملف check تحت `checks/` (مقسّم 10 suites)
-- مُصلحات: 4 ملفات تحت `fixers/`
-- خريطة التطبيق: 2 ملف تحت `appMap/`
-- UI: `AdminDiagnostics.tsx` + 7 sub-components (Overview, LiveRun, Results, History, Map, Fixes, Reports)
-- Hook: `useAdminDiagnosticsPage.ts` + 3 sub-hooks
-- Overlay: `AuditModeOverlay.tsx`
-- Collector: `runtimeCollector.ts`
-- وثائق: 7 ملفات تحت `docs/diagnostics/`
-- اختبارات: ~15 ملف
-
-**ملفات تُعدَّل (3 فقط):**
-- `App.tsx` — route + overlay + collector init
-- `src/lib/pwaBootstrap.ts` — export `getSwRefusalReason()`
-- sidebar الإدارة — رابط "تشخيص النظام"
-
----
-
-## 10) التنفيذ المرحلي (داخل نفس الـ build mode)
-
-1. **المرحلة 1 — الأساس**: engine + types + registry + runner + reporter + UI shell
-2. **المرحلة 2 — Audit Mode UX**: Overlay + collectAuditSignals + getSwRefusalReason + collector
-3. **المرحلة 3 — الفحوصات الحرجة (30)**: infra + security + data-integrity + audit-mode
-4. **المرحلة 4 — بقية الفحوصات (55)**: business-logic + routing + components + performance + pwa + settings + notifications
-5. **المرحلة 5 — appMap + History + Fixers + Reports**
-6. **المرحلة 6 — الوثائق السبعة + الاختبارات**
-7. **التحقق الخماسي قبل الإنهاء**: tsc → vitest → ESLint → build → manual smoke على `/admin/diagnostics`
-
----
-
-**الإجابة المختصرة:**
-- نعم، يغطي **التطبيق بالكامل** (DB + RLS + Edge + Routes + Components + Business Logic + PWA + Performance + Settings + Notifications).
-- نعم، يُبنى كـ **نظام شامل قابل للتوسعة** (محرك + سجل فحوصات + مُصلحات + تقارير + سجل تاريخي + خريطة) — وليس صفحة جامدة.
+الإجمالي المتوقّع: **~75 فحص في 18 بطاقة** ضمن **8 تبويبات** — نظام تشخيص حقيقي وشامل.

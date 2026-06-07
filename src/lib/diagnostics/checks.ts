@@ -48,6 +48,18 @@ export { checkSwRefusalReason, checkManifestPresent, checkSwActiveRegistration }
 // بطاقة 14 — أخطاء التشغيل
 export { checkRuntimeErrorsLog } from './checks/runtimeErrors';
 
+// بطاقة 15 — خريطة التطبيق
+export { checkAppMapPagesReachable, checkAppMapOrphanPages, checkAppMapMissingTitles, checkAppMapRoleCoverage, checkAppMapRouteRoleSync } from './checks/appMap';
+
+// بطاقة 16 — تفاعلات الواجهة
+export { checkInteractionsTabsInventory, checkInteractionsHandlerLess, checkInteractionsDuplicateTabs, checkInteractionsMissingAria } from './checks/interactions';
+
+// بطاقة 17 — اتفاقيات الكود
+export { checkConvFileSize, checkConvNoConsole, checkConvNoHexColors, checkConvRtlHtmlDir, checkConvFiscalYearStorage } from './checks/conventions';
+
+// بطاقة 18 — Backend & Edge
+export { checkBackendEdgeHealthPing, checkBackendEdgeInventory, checkBackendAuthSession, checkBackendRoleResolved, checkBackendFiscalYearActive, checkBackendStorageBuckets } from './checks/backend';
+
 // استيراد الدوال لبناء المجمّع
 import { checkSupabaseConnection, checkRealtimeChannels, checkAuthSession } from './checks/database';
 import { checkScrollPerformance, checkDomNodesCount, checkDeviceMemory, checkPagePerformance, checkWcagContrast } from './checks/performance';
@@ -63,6 +75,10 @@ import { checkRoutesRegistryConsistency, checkCurrentRouteResolved, checkNoBroke
 import { checkAuditModeFlag, checkAuditRealtimeDisabled, checkAuditSwBlocked, checkAuditQueryClientElevated, checkPdfChunksDeferred } from './checks/auditMode';
 import { checkSwRefusalReason, checkManifestPresent, checkSwActiveRegistration } from './checks/pwa';
 import { checkRuntimeErrorsLog } from './checks/runtimeErrors';
+import { checkAppMapPagesReachable, checkAppMapOrphanPages, checkAppMapMissingTitles, checkAppMapRoleCoverage, checkAppMapRouteRoleSync } from './checks/appMap';
+import { checkInteractionsTabsInventory, checkInteractionsHandlerLess, checkInteractionsDuplicateTabs, checkInteractionsMissingAria } from './checks/interactions';
+import { checkConvFileSize, checkConvNoConsole, checkConvNoHexColors, checkConvRtlHtmlDir, checkConvFiscalYearStorage } from './checks/conventions';
+import { checkBackendEdgeHealthPing, checkBackendEdgeInventory, checkBackendAuthSession, checkBackendRoleResolved, checkBackendFiscalYearActive, checkBackendStorageBuckets } from './checks/backend';
 import type { CheckResult, DiagnosticCategory } from './types';
 
 
@@ -127,6 +143,22 @@ export const diagnosticCategories: DiagnosticCategory[] = [
     title: 'أخطاء التشغيل',
     checks: [checkRuntimeErrorsLog],
   },
+  {
+    title: 'خريطة التطبيق',
+    checks: [checkAppMapPagesReachable, checkAppMapOrphanPages, checkAppMapMissingTitles, checkAppMapRoleCoverage, checkAppMapRouteRoleSync],
+  },
+  {
+    title: 'تفاعلات الواجهة',
+    checks: [checkInteractionsTabsInventory, checkInteractionsHandlerLess, checkInteractionsDuplicateTabs, checkInteractionsMissingAria],
+  },
+  {
+    title: 'اتفاقيات الكود',
+    checks: [checkConvFileSize, checkConvNoConsole, checkConvNoHexColors, checkConvRtlHtmlDir, checkConvFiscalYearStorage],
+  },
+  {
+    title: 'Backend & Edge',
+    checks: [checkBackendEdgeHealthPing, checkBackendEdgeInventory, checkBackendAuthSession, checkBackendRoleResolved, checkBackendFiscalYearActive, checkBackendStorageBuckets],
+  },
 ];
 
 /** خيارات تشغيل الفحص مع دعم progress و cancel. */
@@ -167,4 +199,23 @@ export async function runCategoryDiagnostics(categoryTitle: string): Promise<{ c
   const results = await Promise.all(cat.checks.map(fn => fn()));
   return { category: cat.title, results };
 }
+
+/**
+ * تشغيل فحوصات محدَّدة بـ ids — يستخدمه زر "إعادة الفاشلة فقط".
+ * يُعيد نتائج موزَّعة على بطاقاتها لدمجها مع الحالة الحالية.
+ */
+export async function runByIds(ids: string[]): Promise<{ category: string; results: CheckResult[] }[]> {
+  const want = new Set(ids);
+  const output: { category: string; results: CheckResult[] }[] = [];
+  for (const cat of diagnosticCategories) {
+    const matches: (() => Promise<CheckResult>)[] = [];
+    // نُشغّل كل فحوصات البطاقة ثم نُرشّح — أبسط من تتبّع id لكل دالة.
+    const results = await Promise.all(cat.checks.map(fn => fn()));
+    const filtered = results.filter(r => want.has(r.id));
+    if (filtered.length) output.push({ category: cat.title, results: filtered });
+    void matches;
+  }
+  return output;
+}
+
 

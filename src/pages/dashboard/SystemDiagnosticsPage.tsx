@@ -1,23 +1,27 @@
 /**
- * صفحة تشخيص النظام — 31 فحصاً في 7 بطاقات
+ * صفحة تشخيص النظام — مركز شامل بتبويبات
  * متاحة للمسؤولين فقط عبر /dashboard/diagnostics
  */
 import { lazy, Suspense } from 'react';
 import { DashboardLayout } from '@/components/layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download, ChevronDown } from 'lucide-react';
 import { sanitizeDiagnosticOutput } from '@/lib/diagnostics/sanitize';
 import type { CheckResult, CheckStatus } from '@/lib/diagnostics/types';
 import { useSystemDiagnostics } from '@/hooks/page/admin/management/useSystemDiagnostics';
 import { fmtDateTime } from '@/utils/format/format';
+import HealthSummaryCard from '@/components/diagnostics/HealthSummaryCard';
+import AppMapTree from '@/components/diagnostics/AppMapTree';
+import InteractionsTable from '@/components/diagnostics/InteractionsTable';
+import RunHistoryList from '@/components/diagnostics/RunHistoryList';
 
 const WebVitalsPanel = lazy(() => import('@/components/common/feedback/WebVitalsPanel'));
 
-interface Props {
-  autoRun?: boolean;
-}
+interface Props { autoRun?: boolean }
 
 const STATUS_CONFIG: Record<CheckStatus, { icon: typeof CheckCircle2; color: string; label: string }> = {
   pass: { icon: CheckCircle2, color: 'text-success', label: 'ناجح' },
@@ -27,50 +31,58 @@ const STATUS_CONFIG: Record<CheckStatus, { icon: typeof CheckCircle2; color: str
 };
 
 function CheckRow({ result }: { result: CheckResult }) {
-  const config = STATUS_CONFIG[result.status];
-  const Icon = config.icon;
+  const cfg = STATUS_CONFIG[result.status];
+  const Icon = cfg.icon;
   return (
     <div className="flex items-start gap-3 py-2 border-b border-border/50 last:border-0">
-      <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${config.color}`} />
+      <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${cfg.color}`} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium">{result.label}</p>
-        <p className="text-xs text-muted-foreground mt-0.5 break-all">
-          {sanitizeDiagnosticOutput(result.detail)}
-        </p>
+        <p className="text-xs text-muted-foreground mt-0.5 break-all">{sanitizeDiagnosticOutput(result.detail)}</p>
       </div>
-      <Badge variant="outline" className={`shrink-0 text-xs ${config.color}`}>
-        {config.label}
-      </Badge>
+      <Badge variant="outline" className={`shrink-0 text-xs ${cfg.color}`}>{cfg.label}</Badge>
     </div>
   );
 }
 
 export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
-  const {
-    running, runningCategory, lastRun, progress,
-    run, runSingle, exportResults,
-    totalChecks, failures, warnings, allCategories,
-    results,
-  } = useSystemDiagnostics(autoRun);
+  const d = useSystemDiagnostics(autoRun);
+  const { running, runningCategory, lastRun, progress, run, runSingle, exportJson, exportText, rerunFailures, rerunFailuresAndWarnings, summary, allCategories, results } = d;
 
   const content = (
     <div className="space-y-6">
       {/* شريط التحكم */}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <h1 className="text-2xl font-bold">تشخيص النظام</h1>
+          <h1 className="text-2xl font-bold">مركز تشخيص النظام</h1>
           {lastRun && (
             <p className="text-sm text-muted-foreground mt-1">
-              آخر تشغيل: {fmtDateTime(lastRun)} — {totalChecks} فحص | {failures} فشل | {warnings} تحذير
+              آخر تشغيل: {fmtDateTime(lastRun)} — درجة الصحة: {summary.healthScore}/100
             </p>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {results.length > 0 && (
-            <Button variant="outline" size="sm" onClick={exportResults}>
-              <Download className="w-4 h-4 ml-2" />
-              تصدير
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm"><Download className="w-4 h-4 ml-2" />تصدير<ChevronDown className="w-3 h-3 mr-1" /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportJson}>تصدير JSON (مع روابط ومصادر)</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportText}>تصدير نص</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {results.length > 0 && (summary.fail > 0 || summary.warn > 0) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={running}><RefreshCw className="w-4 h-4 ml-2" />إعادة فحص<ChevronDown className="w-3 h-3 mr-1" /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={rerunFailures} disabled={summary.fail === 0}>إعادة الفاشلة فقط ({summary.fail})</DropdownMenuItem>
+                <DropdownMenuItem onClick={rerunFailuresAndWarnings} disabled={summary.fail + summary.warn === 0}>إعادة الفاشلة والتحذيرات ({summary.fail + summary.warn})</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           <Button onClick={run} disabled={running || !!runningCategory} size="sm">
             <RefreshCw className={`w-4 h-4 ml-2 ${running ? 'animate-spin' : ''}`} />
@@ -88,67 +100,68 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
               <span className="font-mono text-xs">{progress.done} / {progress.total}</span>
             </div>
             <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all duration-200"
-                style={{ width: `${Math.min(100, (progress.done / progress.total) * 100)}%` }}
-              />
+              <div className="h-full bg-primary transition-all duration-200" style={{ width: `${Math.min(100, (progress.done / progress.total) * 100)}%` }} />
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* لوحة Core Web Vitals */}
-      <Suspense fallback={null}>
-        <WebVitalsPanel />
-      </Suspense>
+      <Tabs defaultValue="overview" dir="rtl">
+        <TabsList className="flex-wrap h-auto">
+          <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+          <TabsTrigger value="checks">الفحوصات</TabsTrigger>
+          <TabsTrigger value="appmap">خريطة التطبيق</TabsTrigger>
+          <TabsTrigger value="interactions">التفاعلات</TabsTrigger>
+          <TabsTrigger value="performance">الأداء الحي</TabsTrigger>
+          <TabsTrigger value="history">السجل والتصدير</TabsTrigger>
+        </TabsList>
 
-      {/* البطاقات */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {allCategories.map((cat) => {
-          const catFailures = cat.results?.filter(r => r.status === 'fail').length ?? 0;
-          const catWarnings = cat.results?.filter(r => r.status === 'warn').length ?? 0;
-          const isCatRunning = runningCategory === cat.title;
-          return (
-            <Card key={cat.title}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    {cat.title}
-                    {catFailures > 0 && <Badge variant="destructive" className="text-xs">{catFailures} فشل</Badge>}
-                    {catWarnings > 0 && <Badge variant="secondary" className="text-xs">{catWarnings} تحذير</Badge>}
-                  </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    disabled={running || !!runningCategory}
-                    onClick={() => runSingle(cat.title)}
-                    title={`تشغيل فحوصات ${cat.title}`}
-                    aria-label={`تشغيل فحوصات ${cat.title}`}
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isCatRunning ? 'animate-spin' : ''}`} />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {cat.results ? (
-                  cat.results.map(r => <CheckRow key={r.id} result={r} />)
-                ) : (
-                  <p className="text-xs text-muted-foreground text-center py-4">
-                    {cat.checksCount} فحص — اضغط ▶ لتشغيل هذه البطاقة
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+        <TabsContent value="overview" className="space-y-4">
+          {results.length > 0 ? (
+            <HealthSummaryCard summary={summary} categories={results} />
+          ) : (
+            <Card><CardContent className="py-8 text-center text-muted-foreground">شغّل الفحص لعرض ملخص الصحة.</CardContent></Card>
+          )}
+          <Suspense fallback={null}><WebVitalsPanel /></Suspense>
+        </TabsContent>
+
+        <TabsContent value="checks">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {allCategories.map(cat => {
+              const catFailures = cat.results?.filter(r => r.status === 'fail').length ?? 0;
+              const catWarnings = cat.results?.filter(r => r.status === 'warn').length ?? 0;
+              const isCatRunning = runningCategory === cat.title;
+              return (
+                <Card key={cat.title}>
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm">{cat.title}</span>
+                        {catFailures > 0 && <Badge variant="destructive" className="text-xs">{catFailures} فشل</Badge>}
+                        {catWarnings > 0 && <Badge variant="secondary" className="text-xs">{catWarnings} تحذير</Badge>}
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" disabled={running || !!runningCategory} onClick={() => runSingle(cat.title)} title={`تشغيل ${cat.title}`} aria-label={`تشغيل ${cat.title}`}>
+                        <RefreshCw className={`w-3.5 h-3.5 ${isCatRunning ? 'animate-spin' : ''}`} />
+                      </Button>
+                    </div>
+                    {cat.results ? cat.results.map(r => <CheckRow key={r.id} result={r} />) : (
+                      <p className="text-xs text-muted-foreground text-center py-4">{cat.checksCount} فحص — اضغط ▶ لتشغيلها</p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="appmap"><AppMapTree /></TabsContent>
+        <TabsContent value="interactions"><InteractionsTable /></TabsContent>
+        <TabsContent value="performance"><Suspense fallback={null}><WebVitalsPanel /></Suspense></TabsContent>
+        <TabsContent value="history"><RunHistoryList /></TabsContent>
+      </Tabs>
     </div>
   );
 
-  if (autoRun) {
-    return <DashboardLayout>{content}</DashboardLayout>;
-  }
-
+  if (autoRun) return <DashboardLayout>{content}</DashboardLayout>;
   return content;
 }
