@@ -64,6 +64,7 @@ export function canRegisterAppServiceWorker(): boolean {
   if (!import.meta.env.PROD) return false;
   if (isInIframe) return false;
   if (hasSwOffFlag()) return false;
+  if (isAuditMode()) return false;
   if (isPreviewOrDevHost(window.location.hostname)) return false;
   return true;
 }
