@@ -5,9 +5,12 @@
 import type { CheckResult } from '../types';
 
 const RAW_PAGES = import.meta.glob('/src/pages/**/*.tsx', { query: '?raw', import: 'default', eager: false });
+const RAW_DIAG = import.meta.glob('/src/components/diagnostics/**/*.tsx', { query: '?raw', import: 'default', eager: false });
+const RAW_LAYOUT = import.meta.glob('/src/components/layout/**/*.tsx', { query: '?raw', import: 'default', eager: false });
 
 async function loadAllSources(): Promise<{ file: string; source: string }[]> {
-  const entries = Object.entries(RAW_PAGES).filter(([f]) => !f.endsWith('.test.tsx'));
+  const all = { ...RAW_PAGES, ...RAW_DIAG, ...RAW_LAYOUT };
+  const entries = Object.entries(all).filter(([f]) => !f.endsWith('.test.tsx'));
   const results = await Promise.all(entries.map(async ([f, loader]) => {
     try {
       const source = (await (loader as () => Promise<string>)()) as string;
@@ -80,7 +83,7 @@ export async function getInteractionsRows(force = false): Promise<InteractionsAu
   const rows: InteractionsAuditRow[] = [];
   for (const { file, source } of sources) {
     if (!source) continue;
-    const short = file.replace('/src/pages/', '');
+    const short = file.replace('/src/pages/', '').replace('/src/components/', 'components/');
 
     // 1) tabs inventory
     const tabValues = [...source.matchAll(/<TabsTrigger[^>]*\svalue=["'`]([^"'`]+)["'`]/g)].map(m => m[1] as string);
@@ -105,11 +108,14 @@ export async function getInteractionsRows(force = false): Promise<InteractionsAu
     }
     if (handlerLess > 0) rows.push({ file: short, type: 'handler_less_button', severity: 'warn', detail: `${handlerLess} زر بدون onClick/submit/asChild` });
 
-    // 3) icon-only buttons missing aria-label
+    // 3) icon-only buttons missing aria-label (parent Link/Label with aria-label counts as labelled)
     let missingAria = 0;
-    for (const { tag } of tags) {
+    for (const { tag, start } of tags) {
       if (!/size=["'`]icon["'`]/.test(tag)) continue;
       if (/aria-label\s*=/.test(tag)) continue;
+      // اقبل aria-label على Link أب مباشر
+      const ctx = source.slice(Math.max(0, start - 300), start);
+      if (/<Link\b[^>]*aria-label\s*=[^>]*>\s*$/.test(ctx)) continue;
       missingAria++;
     }
     if (missingAria > 0) rows.push({ file: short, type: 'missing_aria', severity: 'warn', detail: `${missingAria} زر أيقونة بدون aria-label` });

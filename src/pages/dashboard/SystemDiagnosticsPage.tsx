@@ -6,13 +6,9 @@ import { lazy, Suspense, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
-import { sanitizeDiagnosticOutput } from '@/lib/diagnostics/sanitize';
-import type { CheckResult, CheckStatus } from '@/lib/diagnostics/types';
+import type { CheckStatus } from '@/lib/diagnostics/types';
 import { useSystemDiagnostics } from '@/hooks/page/admin/management/useSystemDiagnostics';
 import { runDeepClean } from '@/lib/diagnostics/deepClean';
 import { logger } from '@/lib/logger';
@@ -23,34 +19,13 @@ import InteractionsTable from '@/components/diagnostics/InteractionsTable';
 import RunHistoryList from '@/components/diagnostics/RunHistoryList';
 import NotificationFallbackCard from '@/components/diagnostics/NotificationFallbackCard';
 import BackendLogTable from '@/components/diagnostics/BackendLogTable';
-import StatusFilterChips, { type StatusFilter } from '@/components/diagnostics/StatusFilterChips';
+import { type StatusFilter } from '@/components/diagnostics/StatusFilterChips';
 import DiagnosticsToolbar from '@/components/diagnostics/DiagnosticsToolbar';
+import DiagnosticsChecksGrid from '@/components/diagnostics/DiagnosticsChecksGrid';
 
 const WebVitalsPanel = lazy(() => import('@/components/common/feedback/WebVitalsPanel'));
 
 interface Props { autoRun?: boolean }
-
-const STATUS_CONFIG: Record<CheckStatus, { icon: typeof CheckCircle2; color: string; label: string }> = {
-  pass: { icon: CheckCircle2, color: 'text-success', label: 'ناجح' },
-  warn: { icon: AlertTriangle, color: 'text-warning', label: 'تحذير' },
-  fail: { icon: XCircle, color: 'text-destructive', label: 'فشل' },
-  info: { icon: Info, color: 'text-info', label: 'معلومة' },
-};
-
-function CheckRow({ result }: { result: CheckResult }) {
-  const cfg = STATUS_CONFIG[result.status];
-  const Icon = cfg.icon;
-  return (
-    <div className="flex items-start gap-3 py-2 border-b border-border/50 last:border-0">
-      <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${cfg.color}`} />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium">{result.label}</p>
-        <p className="text-xs text-muted-foreground mt-0.5 break-all">{sanitizeDiagnosticOutput(result.detail)}</p>
-      </div>
-      <Badge variant="outline" className={`shrink-0 text-xs ${cfg.color}`}>{cfg.label}</Badge>
-    </div>
-  );
-}
 
 export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
   const d = useSystemDiagnostics(autoRun);
@@ -149,35 +124,12 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
         </TabsContent>
 
         <TabsContent value="checks">
-          {results.length > 0 && <StatusFilterChips value={filter} onChange={setFilter} counts={filterCounts} />}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {allCategories.map(cat => {
-              const visible = cat.results ? (filter === 'all' ? cat.results : cat.results.filter(r => r.status === filter)) : null;
-              if (cat.results && visible && visible.length === 0) return null;
-              const catFailures = cat.results?.filter(r => r.status === 'fail').length ?? 0;
-              const catWarnings = cat.results?.filter(r => r.status === 'warn').length ?? 0;
-              const isCatRunning = runningCategory === cat.title;
-              return (
-                <Card key={cat.title}>
-                  <CardContent className="p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm">{cat.title}</span>
-                        {catFailures > 0 && <Badge variant="destructive" className="text-xs">{catFailures} فشل</Badge>}
-                        {catWarnings > 0 && <Badge variant="secondary" className="text-xs">{catWarnings} تحذير</Badge>}
-                      </div>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" disabled={running || !!runningCategory} onClick={() => runSingle(cat.title)} title={`تشغيل ${cat.title}`} aria-label={`تشغيل ${cat.title}`}>
-                        <RefreshCw className={`w-3.5 h-3.5 ${isCatRunning ? 'animate-spin' : ''}`} />
-                      </Button>
-                    </div>
-                    {visible ? visible.map(r => <CheckRow key={r.id} result={r} />) : (
-                      <p className="text-xs text-muted-foreground text-center py-4">{cat.checksCount} فحص — اضغط ▶ لتشغيلها</p>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          <DiagnosticsChecksGrid
+            allCategories={allCategories}
+            filter={filter} setFilter={setFilter} filterCounts={filterCounts}
+            hasResults={results.length > 0} running={running} runningCategory={runningCategory}
+            onRunSingle={runSingle}
+          />
         </TabsContent>
 
         <TabsContent value="backend"><BackendLogTable results={results} /></TabsContent>
