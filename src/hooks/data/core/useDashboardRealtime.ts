@@ -6,8 +6,11 @@
 import { useCallback, useRef, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
+import { isAuditMode } from '@/lib/auditMode';
 
 const DEBOUNCE_MS = 500;
+// في وضع التدقيق نُعطّل الاشتراك حتى يصل Lighthouse إلى networkidle.
+const AUDIT = isAuditMode();
 
 /**
  * يشترك في تغييرات Realtime على الجداول المحددة ويبطل الكاش تلقائياً
