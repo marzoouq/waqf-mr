@@ -105,9 +105,9 @@ export function useBeneficiaryDashboardPage() {
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });
-    // Realtime: تحديث إعدادات التطبيق
+    // Realtime: تحديث إعدادات التطبيق — UPDATE فقط (INSERT/DELETE نادر ولا يؤثر على UI)
     channel.on('postgres_changes', {
-      event: '*', schema: 'public', table: 'app_settings',
+      event: 'UPDATE', schema: 'public', table: 'app_settings',
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });
