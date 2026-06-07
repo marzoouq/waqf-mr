@@ -87,7 +87,7 @@ export function buildListHelpers<T extends TableName, TData>(
         if (count !== null && count !== undefined) {
           lastCountRef.current = count;
         }
-        return (data ?? []) as TData[];
+        return data as TData[];
       },
     });
 
