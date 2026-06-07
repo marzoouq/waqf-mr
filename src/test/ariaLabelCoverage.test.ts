@@ -4,7 +4,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { resolve, relative } from 'node:path';
+import { relative } from 'node:path';
 import { sync as glob } from 'fast-glob';
 
 const ROOTS = ['src/pages', 'src/components/diagnostics', 'src/components/layout'];
