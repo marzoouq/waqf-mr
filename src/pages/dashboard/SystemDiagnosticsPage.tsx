@@ -57,6 +57,9 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
   const d = useSystemDiagnostics(autoRun);
   const { running, runningCategory, lastRun, progress, run, runSingle, exportJson, exportText, clearAll, rerunFailures, rerunFailuresAndWarnings, summary, allCategories, results } = d;
   const [filter, setFilter] = useState<StatusFilter>('all');
+  const [cleanDialog, setCleanDialog] = useState<null | 'light' | 'deep'>(null);
+  const [deepCleaning, setDeepCleaning] = useState(false);
+  const queryClient = useQueryClient();
 
   const filterCounts = useMemo(() => {
     const c: Record<CheckStatus, number> = { pass: 0, warn: 0, fail: 0, info: 0 };
@@ -64,9 +67,30 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
     return c;
   }, [results]);
 
-  const handleClear = () => {
+  const handleLightClean = () => {
     clearAll();
+    setCleanDialog(null);
     toast.success('تم تنظيف نتائج التشخيص وإعادة ضبط الواجهات');
+  };
+
+  const handleDeepClean = async () => {
+    setDeepCleaning(true);
+    try {
+      const report = await runDeepClean({ queryClient });
+      const msg = `تم التنظيف العميق: مفاتيح ${report.localStorageKeysCleared + report.sessionStorageKeysCleared}، SW ${report.serviceWorkersUnregistered}، Cache ${report.cachesDeleted.length}، IDB ${report.indexedDbsDeleted.length}. سيُعاد التحميل...`;
+      if (report.errors.length > 0) {
+        logger.warn('[DeepClean] أخطاء جزئية:', report.errors);
+        toast.warning(`${msg} (${report.errors.length} تحذير)`);
+      } else {
+        toast.success(msg);
+      }
+      setCleanDialog(null);
+      window.setTimeout(() => window.location.reload(), 2500);
+    } catch (e) {
+      logger.error('[DeepClean] فشل:', e);
+      toast.error('فشل التنظيف العميق — راجع السجل');
+      setDeepCleaning(false);
+    }
   };
 
   const content = (
