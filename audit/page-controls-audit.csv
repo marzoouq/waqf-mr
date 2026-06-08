@@ -55,9 +55,13 @@ src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,50,
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,51,Tab,"الأخطاء",tabs-radix,"Tabs>TabsList>Headset",OK
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,52,Tab,"الإحصائيات",tabs-radix,"TabsList>Headset>Bug",OK
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,32,Button,"تذكرة جديدة",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,70,Button,"تصدير",onClick,"",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,75,Button,"",onClick,"Download",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,102,Button,"",onClick,"WebVitalsPanel>Card>CardHeader",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,107,Tab,"نظرة عامة",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,108,Tab,"الفحوصات",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,109,Tab,"سجل Backend",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,110,Tab,"خريطة التطبيق",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,111,Tab,"التفاعلات",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,112,Tab,"الأداء الحي",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,113,Tab,"السجل والتصدير",tabs-radix,"Tabs>TabsList",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,72,Tab,"الفواتير",tabs-radix,"ZatcaHealthPanel>Tabs>TabsList",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,73,Tab,"الشهادات",tabs-radix,"Tabs>TabsList>FileText",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,74,Tab,"سلسلة التوقيع",tabs-radix,"TabsList>FileText>ShieldCheck",OK
