@@ -1,6 +1,6 @@
 # UI Permissions & Button Audit
 
-Generated: 2026-06-08T22:26:47.045Z
+Generated: 2026-06-08T22:28:47.951Z
 
 ## Scope & method
 
