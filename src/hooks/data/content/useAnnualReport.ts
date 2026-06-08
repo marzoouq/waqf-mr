@@ -12,11 +12,8 @@ import { annualReportService } from '@/lib/services/annualReportService';
 // ملاحظة: useIncomeComparison في طبقة domain — استورده مباشرة من
 // '@/hooks/domain/financial/useIncomeComparison' (طبقة data لا تعتمد على domain).
 
-// ---------------------------------------------------------------------------
-// أنواع البيانات — تُعرَّف في @/types/annualReport (اتجاه اعتماد صحيح)
-// ---------------------------------------------------------------------------
+// أنواع البيانات تُعرَّف في @/types/annualReport (اتجاه اعتماد صحيح)
 import type { SectionType, AnnualReportItem, AnnualReportStatus } from '@/types/annualReport';
-export type { SectionType, AnnualReportItem, AnnualReportStatus };
 
 // ---------------------------------------------------------------------------
 // عناصر التقرير
