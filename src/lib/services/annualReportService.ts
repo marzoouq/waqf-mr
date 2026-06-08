@@ -4,7 +4,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
-import type { AnnualReportItem, AnnualReportStatus } from '@/hooks/data/content/useAnnualReport';
+import type { AnnualReportItem, AnnualReportStatus } from '@/types/annualReport';
 
 const ITEM_FIELDS =
   'id, fiscal_year_id, section_type, title, content, property_id, sort_order, created_at, updated_at';
