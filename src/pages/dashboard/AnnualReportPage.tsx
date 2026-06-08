@@ -22,7 +22,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useAnnualReportPage } from '@/hooks/page/admin/reports/useAnnualReportPage';
-import type { SectionType } from '@/hooks/data/content/useAnnualReport';
+import type { SectionType } from '@/types/annualReport';
 
 const AnnualReportPage = () => {
   const isMobile = useIsMobile();
