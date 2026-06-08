@@ -1,69 +1,111 @@
-# تقرير فحص جنائي بعد تطبيق مسار A — اكتشاف ارتداد في اختبارات `numericalAudit`
+# خطة التنفيذ — بوابة Audit + حذف الكود الميت المؤكَّد
 
-## 1. الحالة الحالية
+## المبدأ الحاكم
+**لا يُحذف أي شيء قبل اجتياز `vitest run` + `tsc --noEmit` بنجاح**. أي فشل = إيقاف فوري + استرجاع.
 
-| المؤشر | القيمة | الحكم |
-|---|---|---|
-| `vitest run` | **8 فشل / 2113 نجاح** (من 2121) | ❌ ارتداد |
-| `audit:gate` | 9/9 ✅ | سليم |
-| Edge `dashboard-summary` (preview) | يستجيب في ~3.2s | سليم وظيفياً (بطء طبيعي لأول boot) |
-| Migration REVOKE | مطبَّق ✅ | الـ5 RPC أصبحت محصورة على service_role |
-| Linter | 1 ERROR + 36 WARN (نفس الموجود قبل التغيير) | غير مرتبط بمسار A |
+---
 
-## 2. الجذر الجنائي — لماذا فشلت 7 اختبارات في `numericalAudit.test.ts`؟
+## المرحلة 0 — بوابة التحقق (Audit Gate)
 
-سلسلة السبب → النتيجة:
+سكربت جديد `scripts/deletion-gate.mjs` يُشغَّل **قبل وبعد** كل دفعة حذف:
 
-1. تعديل سابق (مسار A): `diagnosticsReadService.getDashboardFullSummary` تحوّل من `rpc('get_dashboard_full_summary', …)` إلى `invoke('dashboard-summary', …)` (السطور 211–222 من `src/lib/services/diagnosticsReadService.ts`).
-2. ملف الاختبار `src/lib/diagnostics/checks/numericalAudit.test.ts` يُحاكي `@/integrations/supabase/client` فقط (السطور 28–76) — يَعترِض `supabase.rpc(...)` وليس `invoke(...)`.
-3. بعد التحوّل، `getDashboardFullSummary` يستدعي `invoke` الحقيقية → تفشل في بيئة الاختبار (لا شبكة، لا session) → الـtry/catch يُعيد `null`.
-4. كل اختبار يتلقى `rpc=null` → الكود يُرجع `status: 'warn'` ("RPC غير متاحة") → الاختبار يتوقع `'pass'`/`'fail'` → فشل (7 من 11).
-
-التحقق: الـ4 اختبارات الناجحة في نفس الملف (`returns info when no fiscal year exists`, `returns info when no closed year exists`, و2 من `checkSnapshotIntegrityClosedYear`) لا تعتمد على `getDashboardFullSummary` → تأكيد إضافي على دقّة الجذر.
-
-ارتداد جانبي: اختبار `checkSupabaseConnection` (في `checks.test.ts`) يستغرق 2500ms ويفشل أحياناً عند التشغيل المتوازي مع 244 ملف اختبار آخر بسبب timeout — flaky قديم سابق لمسار A (يمر منفرداً)، لا أتعرّض له هنا.
-
-## 3. الحل الجراحي (تعديل ملف اختبار واحد فقط)
-
-**ملف**: `src/lib/diagnostics/checks/numericalAudit.test.ts`
-**نطاق التعديل**: إضافة `vi.mock('@/lib/api/invoke', …)` بجوار الـmock الحالي لـ supabase، يُرجع `state.rpc.data` حين يكون `fnName === 'dashboard-summary'` ملفوفاً في `{ aggregated: … }` (الشكل الذي يتوقعه `getDashboardFullSummary`).
-
-التغيير diff تقريبي:
-
-```ts
-// أسفل vi.mock('@/integrations/supabase/client', …)
-vi.mock('@/lib/api/invoke', () => ({
-  invoke: vi.fn(async (fn: string) => {
-    if (fn === 'dashboard-summary') {
-      if (state.rpc.error) throw new Error(state.rpc.error.message);
-      return { aggregated: state.rpc.data };
-    }
-    throw new Error(`unmocked invoke: ${fn}`);
-  }),
-}));
+```text
+1. bunx tsc --noEmit                    → يجب 0 أخطاء
+2. bunx vitest run                      → يجب 2113/2113
+3. node scripts/audit-all.mjs           → audit:gate أخضر
+   فشل أي خطوة → exit 1 + رسالة واضحة + لا تكمل
 ```
 
-لا تغيير على الكود الإنتاجي. لا تغيير على بقية الاختبارات.
+التسلسل العام:
+```text
+baseline (gate) → دفعة حذف → gate → دفعة تالية → gate → ...
+```
+عند أي فشل: استرجاع آخر دفعة فقط ثم توقّف وإبلاغ.
 
-## 4. لماذا لا يجب الرجوع عن مسار A بدل تعديل المحاكي
+---
 
-- الـRPC مُغلقة فعلياً على authenticated في DB → أي `supabase.rpc('get_dashboard_full_summary')` من العميل سيرجع `42501 permission denied`. صفحة Diagnostics (admin-only) يجب أن تمرّ عبر Edge موثَّقة الدور.
-- الكود الإنتاجي صحيح وموثَّق (`dashboard-summary` Edge يتحقق من admin/accountant)؛ الخطأ في طبقة المحاكاة فقط.
+## المرحلة 1 — Baseline
+تشغيل `deletion-gate.mjs` على الحالة الراهنة لتثبيت 2113/2113 + 0 TS errors + audit أخضر. بدون هذا الـbaseline لا يبدأ أي حذف.
 
-## 5. التحقق بعد التنفيذ
+---
 
-1. `bunx vitest run src/lib/diagnostics/checks/numericalAudit.test.ts` → 11/11 ✅.
-2. `bunx vitest run` كاملاً → ≤1 flaky (checkSupabaseConnection) أو 0.
-3. لا تأثير على preview أو Edge logs.
+## المرحلة 2 — حذف 18 تصريحاً (دفعات صغيرة + gate بين كل دفعة)
 
-## 6. ملاحظات منفصلة (لا تُنفَّذ الآن — موصى بها لاحقاً)
+### الدفعة A — ثوابت/أنواع نقية (أدنى مخاطرة)
+| # | الرمز | الملف:السطر |
+|---|---|---|
+| 1 | `ALL_ROLES` | `src/constants/roles.ts:22` |
+| 2 | `CARRYFORWARD_NOTICE_COPY` | `src/constants/beneficiaryCopy.ts:85` |
+| 3 | `ProtectedAdminSectionKey` | `src/constants/sections.ts:51` |
+| 4 | `VoucherStatus` | `src/constants/entities.ts:84` |
+| 5 | `STALE_PUBLIC`, `STALE_DASHBOARD`, `STALE_REFERENCE` | `src/lib/queryStaleTime.ts:24,27,30` |
 
-- `checkSupabaseConnection` flaky (2500ms يقترب من حدّ vitest tests parallel) — يستحق `vi.useFakeTimers` أو زيادة timeout صريحة.
-- Linter 37 تحذيراً قائماً قبل مسار A — يستحق فحص جنائي منفصل للدوال `SECURITY DEFINER` غير المغطّاة (دوال الإقفال/التوزيع/المستخدمين).
-- بطء `dashboard-summary` 3.2s — أول boot للـEdge بعد إعادة النشر؛ يستحق رصد p95 لاحقاً.
+→ gate
+
+### الدفعة B — Utilities/Monitoring
+| # | الرمز | الملف:السطر |
+|---|---|---|
+| 6 | `getLargePayloads`, `clearLargePayloads` | `src/lib/monitoring/payloadMonitor.ts:33,37` |
+| 7 | `compareDateOnly`, `diffCalendarDays` | `src/utils/date/dateOnly.ts:31,36` |
+| 8 | `computeMonthlyData` | `src/utils/financial/dashboardComputations.ts:19` |
+| 9 | `cleanupThemeObserver` | `src/lib/theme/themeColor.utils.ts:55` |
+| 10 | `getExpectedEdgeFunctions` | `src/lib/diagnostics/checks/backend.ts:143` |
+
+→ gate
+
+### الدفعة C — Hooks/Types
+| # | الرمز | الملف:السطر |
+|---|---|---|
+| 11 | `useContractInvoiceSummary` | `src/hooks/data/invoices/usePaymentInvoices.ts:133` |
+| 12 | `PropertyPerformanceItem`, `PropertyPerformanceTotals` | `src/hooks/domain/financial/usePropertyPerformance.ts:36,47` |
+| 13 | `useFiscalYearMock` | `src/test/e2e/_helpers/mockFiscalYear.ts:50` |
+
+→ gate
+
+> ملاحظة `useFiscalYearMock`: قبل الحذف، فحص نهائي `rg "useFiscalYearMock" src/` — إن وُجد استعمال فعلي في أي test → يُنقل إلى KEEP وتُلغى الإزالة.
+
+---
+
+## المرحلة 3 — default exports الآمنة
+حذف سطر `export default` فقط (مع إبقاء الـnamed export):
+- `src/components/contracts/payment-invoices/paymentStatusBadge.tsx:25`
+- `src/components/reports/ChangeIndicator.tsx:24`
+
+→ gate
+
+---
+
+## المرحلة 4 — إعداد knip
+- `knip.json` يُعرّف entrypoints: `src/main.tsx`, `supabase/functions/*/index.ts`, `supabase/functions/*/*.test.ts`, `scripts/*.mjs`, `src/test/**/*.test.{ts,tsx}`.
+- `package.json` → إضافة `fast-glob` إلى `devDependencies` (يستخدمه `ariaLabelCoverage.test.ts`).
+
+→ gate نهائي
+
+---
+
+## ما لن يُنفَّذ في هذه الجولة
+- ❌ 171 unexport — مؤجَّلة لجولة لاحقة (آمنة لكن كبيرة الحجم وتستحق PR منفصل).
+- ❌ default exports الثلاثة الباقية (`PaymentInvoicesTab`, `RolePermissionsTab`, `SectionsTab`) — تكسر barrels.
+- ❌ أي ملف كامل (لا حذف ملفات).
+- ❌ أي تعديل على ملفات محمية (`client.ts`, `types.ts`, `config.toml`, `.env`, `AuthContext`).
+
+---
 
 ## المخرجات
+| النوع | العدد |
+|---|---|
+| سكربت جديد | 1 (`scripts/deletion-gate.mjs`) |
+| ملف إعداد جديد | 1 (`knip.json`) |
+| تعديل `package.json` | 1 (إضافة `fast-glob`) |
+| ملفات تُعدَّل (حذف رموز) | ~13 |
+| تعديلات سطر واحد (default exports) | 2 |
+| ملفات تُحذف | 0 |
 
-- تعديل ملف اختبار واحد فقط: إضافة `vi.mock('@/lib/api/invoke', …)`.
-- لا تعديل إنتاجي.
-- لا migration.
+## معايير النجاح
+- ✅ `tsc --noEmit` = 0 أخطاء بعد كل دفعة
+- ✅ `vitest run` = 2113/2113 بعد كل دفعة
+- ✅ `audit:gate` = 9/9 بعد كل دفعة
+- ✅ 0 ارتدادات
+
+## بروتوكول الفشل
+أي فشل في الـgate → استرجاع الدفعة الفاشلة فقط → الإبلاغ بالرمز المسبب → توقّف. الدفعات السابقة الناجحة تبقى.
