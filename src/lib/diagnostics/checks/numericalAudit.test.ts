@@ -75,6 +75,16 @@ vi.mock('@/integrations/supabase/client', () => {
   };
 });
 
+vi.mock('@/lib/api/invoke', () => ({
+  invoke: vi.fn(async (fn: string) => {
+    if (fn === 'dashboard-summary') {
+      if (state.rpc.error) throw new Error(state.rpc.error.message);
+      return { aggregated: state.rpc.data };
+    }
+    throw new Error(`unmocked invoke: ${fn}`);
+  }),
+}));
+
 import {
   checkDbVsRpcTotalIncome,
   checkDbVsRpcExpenses,
