@@ -4,26 +4,26 @@
 
 | Layer | Count | Total LOC | Avg LOC |
 |---|---:|---:|---:|
-| component | 459 | 36832 | 80 |
-| util | 160 | 13054 | 82 |
-| hook-data | 129 | 8119 | 63 |
-| hook-page | 111 | 11145 | 100 |
-| lib | 95 | 7258 | 76 |
-| page | 67 | 7569 | 113 |
-| test | 56 | 4766 | 85 |
-| constant | 26 | 1402 | 54 |
-| hook-auth | 24 | 2075 | 86 |
-| type | 24 | 974 | 41 |
-| hook-domain | 19 | 2695 | 142 |
+| component | 470 | 37685 | 80 |
+| util | 149 | 12304 | 83 |
+| hook-data | 129 | 8163 | 63 |
+| lib | 118 | 9140 | 77 |
+| hook-page | 113 | 11266 | 100 |
+| page | 69 | 7825 | 113 |
+| test | 58 | 4991 | 86 |
+| constant | 29 | 1701 | 59 |
+| hook-auth | 24 | 2082 | 87 |
+| type | 24 | 1004 | 42 |
+| hook-domain | 21 | 2745 | 131 |
 | hook-ui | 19 | 964 | 51 |
-| hook-application | 14 | 1102 | 79 |
-| route | 8 | 254 | 32 |
+| hook-application | 16 | 1111 | 69 |
+| app | 8 | 205 | 26 |
+| route | 8 | 258 | 32 |
 | context | 5 | 238 | 48 |
-| other | 3 | 104 | 35 |
-| app | 3 | 130 | 43 |
+| other | 3 | 66 | 22 |
 | integration | 3 | 2644 | 881 |
 
-## Files > 200 LOC (17)
+## Files > 200 LOC (18)
 
 | File | Layer | LOC |
 |---|---|---:|
@@ -42,5 +42,6 @@
 | test/incomeExpensesCrudReflection.test.tsx | test | 238 |
 | test/authFlowsIntegration.test.tsx | test | 237 |
 | test/edgeFunctionAuth.test.ts | test | 237 |
+| lib/diagnostics/checks.ts | lib | 224 |
 | lib/services/diagnosticsReadService.ts | lib | 220 |
 | hooks/data/support/useSupportTickets.test.ts | hook-data | 201 |
