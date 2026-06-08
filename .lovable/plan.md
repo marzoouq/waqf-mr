@@ -1,171 +1,132 @@
-# تقرير مراجعة شاملة للبنية (Read-Only Audit)
+# الخطوة #1 — إنشاء `appSettingsKeys.ts` وترحيل كل المستهلكين
 
-## ملخص تنفيذي
+## الجردة الدقيقة (11 موضع، 9 ملفات)
 
-**الحالة العامة: ممتازة.** المعمارية نظيفة، مُلتزمة بقواعد المشروع المعتمدة في الذاكرة، ومحمية بحواجز ESLint صارمة. لا توجد انتهاكات حرجة. التحسينات المقترحة كلها من فئة "صقل" وليست "إصلاح".
+### المفاتيح الأربعة وأشكالها الحالية
 
-### مؤشرات الصحة
+| المفتاح | الشكل الفعلي | غرضه |
+|---|---|---|
+| `app-settings` | `['app-settings', category]` (category: string) | إعدادات فئة واحدة (general/zatca/…) |
+| `app-settings-all` | `['app-settings-all']` | كل الإعدادات (للقراءة الكلية) |
+| `app-settings-history` | `['app-settings-history', filterKey ?? '__all__', limit]` | سجل التعديلات (filterKey + limit) |
+| `registration-enabled` | `['registration-enabled']` | حالة تفعيل التسجيل العام |
 
-| المعيار | النتيجة |
+### الملفات المنتجة (تُعرّف queryKey)
+
+| # | الملف | المفاتيح |
+|---|---|---|
+| 1 | `src/hooks/data/settings/app/useAppSettingsRead.ts` | `app-settings`, `app-settings-all` |
+| 2 | `src/hooks/data/settings/app/useAppSettings.ts` | `app-settings-all` |
+| 3 | `src/hooks/data/settings/app/useAppSettingsHistory.ts` | `app-settings-history` |
+| 4 | `src/hooks/data/settings/waqf/useWaqfInfo.ts` | `app-settings-all` |
+| 5 | `src/hooks/data/settings/permissions/useRegistrationEnabled.ts` | `registration-enabled` |
+
+### الملفات المستهلكة عبر `invalidateQueries`
+
+| # | الملف | المفاتيح المُلغاة |
+|---|---|---|
+| 6 | `src/hooks/data/settings/app/useAppSettingsWrite.ts` | `app-settings` (per cat), `app-settings-all` |
+| 7 | `src/hooks/page/admin/settings/useWaqfInfoSave.ts` | `app-settings/general`, `app-settings-all` |
+| 8 | `src/hooks/page/admin/settings/useLogoUpload.ts` | `app-settings/general`, `app-settings-all` |
+| 9 | `src/hooks/page/admin/management/zatca/useZatcaForm.ts` | `app-settings/zatca`, `app-settings-all` |
+| 10 | `src/hooks/page/admin/management/zatca/useZatcaCompliance.ts` | `app-settings/zatca`, `app-settings-all` |
+| 11 | `src/hooks/auth/role/useUserManagementMutations.ts` | `registration-enabled` |
+
+> لا توجد اختبارات تشير إلى هذه المفاتيح حرفياً → آمن للترحيل.
+
+---
+
+## الملف الجديد المقترح
+
+`src/lib/queryKeys/appSettingsKeys.ts` (نفس نمط `dashboardKeys.ts`):
+
+```ts
+/**
+ * مفاتيح React Query لإعدادات التطبيق — مصدر الحقيقة الوحيد.
+ *
+ * يخدم: app-settings (per category), app-settings-all (الكل),
+ *       app-settings-history (سجل), registration-enabled (تفعيل التسجيل).
+ *
+ * أول عنصر في كل مفتاح ثابت ولا يتغير (يستهلكه realtime عبر predicate).
+ */
+export const appSettingsKeys = {
+  /** إعدادات فئة واحدة (general | zatca | distribution | …) */
+  byCategory: (category: string) =>
+    ['app-settings', category] as const,
+
+  /** كل الإعدادات (للاستهلاك الكلي) */
+  all: () => ['app-settings-all'] as const,
+
+  /** سجل تعديلات الإعدادات */
+  history: (filterKey: string | null | undefined, limit: number) =>
+    ['app-settings-history', filterKey ?? '__all__', limit] as const,
+
+  /** حالة تفعيل التسجيل العام */
+  registrationEnabled: () => ['registration-enabled'] as const,
+
+  /** Prefixes — للاستخدام في invalidateQueries cross-file وrealtime */
+  prefixes: {
+    byCategory: ['app-settings'] as const,
+    all: ['app-settings-all'] as const,
+    history: ['app-settings-history'] as const,
+    registrationEnabled: ['registration-enabled'] as const,
+  },
+} as const;
+```
+
+---
+
+## أنماط الاستبدال (Search & Replace الذهنية)
+
+| نمط قديم | نمط جديد |
 |---|---|
-| `console.log/error/warn` في الإنتاج | **0** ✅ |
-| ألوان hex مباشرة في components/pages | **0** ✅ |
-| `any` صريح | **0** ✅ |
-| `TODO/FIXME/HACK` | **0** ✅ |
-| `supabase.from` خام في pages/components | **0** ✅ (محمي بـ ESLint) |
-| `supabase.auth` خام في pages/components | **0** ✅ (محمي بـ ESLint) |
-| `useQuery`/`useMutation` في components | **0** ✅ |
-| `toast` في hooks/data (إنتاج) | **0** ✅ |
-| Barrel-from-barrel | **0** ✅ |
-| ملفات > 300 سطر | **1** (auto-generated `types.ts` فقط) |
-| Page Hook Pattern | مُطبَّق على كل الصفحات ✅ |
-| طبقات hooks مفصولة | data(95) / page(103) / domain(15) / application(15) / ui(18) / auth(22) ✅ |
+| `queryKey: ['app-settings', category]` | `queryKey: appSettingsKeys.byCategory(category)` |
+| `queryKey: ['app-settings', 'general']` | `queryKey: appSettingsKeys.byCategory('general')` |
+| `queryKey: ['app-settings', 'zatca']` | `queryKey: appSettingsKeys.byCategory('zatca')` |
+| `queryKey: ['app-settings-all']` | `queryKey: appSettingsKeys.all()` |
+| `queryKey: ['app-settings-history', filterKey ?? '__all__', limit]` | `queryKey: appSettingsKeys.history(filterKey, limit)` |
+| `queryKey: ['registration-enabled']` | `queryKey: appSettingsKeys.registrationEnabled()` |
+| `invalidateQueries({ queryKey: ['app-settings', cat] })` | `invalidateQueries({ queryKey: appSettingsKeys.byCategory(cat) })` |
+| `invalidateQueries({ queryKey: ['app-settings-all'] })` | `invalidateQueries({ queryKey: appSettingsKeys.prefixes.all })` |
+| `invalidateQueries({ queryKey: ['registration-enabled'] })` | `invalidateQueries({ queryKey: appSettingsKeys.prefixes.registrationEnabled })` |
+
+**ملاحظة تصميمية**: لإلغاء كل المفاتيح من فئة `byCategory` (إن لزم لاحقاً) يكفي `prefixes.byCategory` لأن TanStack Query يطابق المُسبقات. حالياً كل invalidation لـ `app-settings` يستخدم category محددة → سنحافظ على نفس السلوك.
 
 ---
 
-## المشاكل والفُرص (مرتّبة من الأكثر تأثيراً)
+## ترتيب التنفيذ (11 خطوة فرعية)
 
-### 1. مركزة `queryKeys` — أهم تحسين متبقٍّ ⚠️
+كلها يمكن إجراؤها في commit واحد لأنها متماسكة موضوعياً، لكنها مرتّبة منطقياً:
 
-**المشهد**: 135 موضع `queryKey: [...]` موزّع على 62 ملفاً في `hooks/data/`. الملف الوحيد المركزي هو `lib/queryKeys/dashboardKeys.ts`.
-
-**المخاطر**:
-- خطر "drift" بين ملف يُخزّن المفتاح وملف يُلغي صلاحيته (`invalidateQueries`).
-- ملاحظة فعلية: `usePaymentInvoices.ts` يُلغي 6 مفاتيح مختلفة، أي خطأ كتابي واحد يكسر التزامن.
-- لا يوجد type-safety يضمن تطابق الأشكال.
-
-**التوصية**: إنشاء `lib/queryKeys/<feature>.ts` لكل مجال (invoices, contracts, advances, messaging, support, zatca, accounts…) على نمط `dashboardKeys`، واستيرادها من `hooks/data` بدل التضمين الحرفي.
-
-### 2. مكونات 180–186 سطر — تتجاوز سقف 180 ⚠️
-
-سبع ملفات تتجاوز معيار المكون التقديمي:
-
-```text
-186  src/components/invoices/InvoiceGridView.tsx
-186  src/components/beneficiary/my-share/AdvanceRequestDialog.tsx  (9 useState!)
-185  src/components/reports/ZakatEstimationReport.tsx
-182  src/components/settings/zatca/ZatcaFormCards.tsx
-182  src/components/accounts/DistributeDialog.tsx                  (8 useState)
-181  src/components/invoices/CreateInvoiceFromTemplate.tsx
-181  src/components/accounts/AccountsSummaryCards.tsx
-```
-
-**ملاحظة خاصة**: `AdvanceRequestDialog` و `DistributeDialog` يحتويان منطقاً ثقيلاً (9 و 8 `useState`) — مرشحان لاستخراج page hook خاص بهما.
-
-### 3. تنظيم `hooks/page/admin/financial/` — مجلد مسطّح يحتاج تقسيماً 🟡
-
-27 ملفاً في مجلد واحد بدون مجلدات فرعية، بينما `hooks/data/financial/` مقسّم إلى 8 مجلدات موضوعية (accounts, advances, contracts, distribution, expenses, fiscalYears, income, dashboard).
-
-**التوصية**: تطبيق نفس النمط على `hooks/page/admin/financial/`:
-```text
-hooks/page/admin/financial/
-  ├── accounts/      (useAccountsPage, useAccountsExports, useAccountsExtras)
-  ├── invoices/      (useInvoicesPage, useInvoicesFilters, useInvoiceFormState, useInvoiceSubmit, …)
-  ├── expenses/      (useExpensesPage, useVoucherActions)
-  ├── income/        (useIncomePage, useCollectionData)
-  ├── distributions/ (useDistributionsPage)
-  └── fiscalYears/   (useFiscalYearManagement)
-```
-
-### 4. ملفات PDF الكبيرة في `utils/pdf/` 🟡
-
-```text
-274  utils/pdf/reports/aggregatedAnnualReport.ts
-195  utils/pdf/entities/accountsPdf.ts
-184  utils/pdf/entities/beneficiary.ts
-169  utils/pdf/entities/entities.ts
-168  utils/pdf/reports/comparison.ts
-163  utils/pdf/reports/forensicAudit.ts
-152  utils/pdf/reports/annualDisclosurePdf.ts
-```
-
-PDF بطبيعتها طويلة، لكن `aggregatedAnnualReport.ts` (274) يستحق تقسيماً إلى أقسام (header, sections, footer, totals) لتسهيل الصيانة.
-
-### 5. `utils/financial/collection/collectionCompute.ts` (199 سطر) 🟡
-
-أكبر ملف في `utils/financial/`. يحتمل تقسيماً وفق المسؤوليات الفرعية (filtering, aggregation, formatting).
-
-### 6. مراجعة الحدود بين `hooks/application/` و `hooks/page/` 🟡
-
-`hooks/application/` معرّف بأنه "feature controllers عابرة للأدوار". لكن بعض الملفات الحالية تبدو خاصة بصفحة بعينها:
-- `useAuthPage.ts` — مُستهلَك من `/auth` صفحة واحدة → يبدو `page/` بطبيعته.
-- `useLayoutShell.ts` — يخدم layout root، مكانه الحالي مقبول لكنه على الحد.
-- `useLandingPage.ts` — صفحة واحدة → `page/` أنسب.
-- `useInstallAppPage.ts` — صفحة واحدة → `page/` أنسب.
-
-**التوصية**: مراجعة كل ملف في `application/` والتأكد أنه فعلاً عابر للأدوار/الصفحات. ما هو خاص بصفحة ينقل إلى `hooks/page/`.
-
-### 7. تكرار اسم `types.ts` (3 ملفات في productioncode) — تجميل اختياري 🟢
-
-```text
-src/components/accounts/collection/types.ts
-src/hooks/data/dashboard/types.ts
-src/lib/diagnostics/types.ts
-```
-
-النطاقات منفصلة بمسارها، فلا يوجد لبس فعلي. تجميل اختياري: تسمية مميزة (`collectionTypes.ts`, `dashboardDataTypes.ts`) لتسهيل البحث.
-
-### 8. `lib/services/` بحاجة مراجعة لاستخراج المشترك 🟢
-
-21 ملفاً، أكبرها:
-- `diagnosticsReadService.ts` (222)
-- `fiscalYearService.ts` (196)
-
-`diagnostics*` خاص: لديه 4 ملفات (`diagnosticsService`, `diagnosticsReadService`, مع 4 ملفات في `lib/diagnostics/checks/`). يُنصح بفحص هل يمكن دمج الاثنين أو فصل واضح للقراءة عن الكتابة.
-
-### 9. `routes/` يحتوي على `ProtectedRouteHelper.tsx` و `withRouteErrorBoundary.tsx` 🟢
-
-تنظيم جيد. اختياري: نقل الأدوار-routes إلى `app/routes/` لتركيز كل ما يخص bootstrap في مكان واحد. الترتيب الحالي مقبول.
+1. **إنشاء** `src/lib/queryKeys/appSettingsKeys.ts`.
+2. ترحيل `useAppSettingsRead.ts` (المنتج الأساسي — مفتاحان).
+3. ترحيل `useAppSettings.ts`.
+4. ترحيل `useAppSettingsHistory.ts`.
+5. ترحيل `useWaqfInfo.ts`.
+6. ترحيل `useRegistrationEnabled.ts`.
+7. ترحيل `useAppSettingsWrite.ts` (invalidations الداخلية).
+8. ترحيل `useWaqfInfoSave.ts`.
+9. ترحيل `useLogoUpload.ts`.
+10. ترحيل `useZatcaForm.ts` و `useZatcaCompliance.ts` (cross-domain لكن نفس المفاتيح).
+11. ترحيل `useUserManagementMutations.ts`.
 
 ---
 
-## خطة التنفيذ الموصى بها (مرتّبة حسب الأثر)
+## Definition of Done
 
-> **ملاحظة**: لا توجد بنود حرجة. كل البنود تحسينات تدريجية يمكن إجراؤها بأي ترتيب.
+1. **التحقق الحرفي**: `rg "['\"]app-settings|['\"]registration-enabled" src --type ts --type tsx -g '!**/queryKeys/**' -g '!*.test.*'` يُرجع **0** نتائج (خارج الملف المركزي).
+2. **typecheck** نظيف.
+3. **lint** نظيف.
+4. **الاختبارات** خضراء (Vitest لا يلامس هذه المفاتيح حرفياً، لكن نشغّل المجموعة كاملة للسلامة).
+5. **معاينة سريعة** في `/auth` و `/dashboard/settings` لاستبعاد أي regression في التزامن.
 
-### المرحلة 1 — تحسينات مرتفعة الأثر
+## التراجع
 
-1. **مركزة `queryKeys` لكل مجال**
-   إنشاء `lib/queryKeys/{invoices,contracts,advances,messaging,support,zatca,accounts,expenses,income,fiscalYear,distributions}.ts` على نمط `dashboardKeys.ts`، ثم refactor تدريجي لـ `hooks/data/` لاستخدامها. أكبر فائدة في `usePaymentInvoices.ts` الذي يُلغي 6 مفاتيح.
+`git revert` واحد. الملف الجديد قائم بذاته، والتعديلات الـ10 الأخرى تستبدل literals بـ function calls تنتج tuples متطابقة حرفياً → لا تغيير سلوكي ممكن.
 
-2. **تجزئة المكوّنين الأكثر تعقيداً**
-   - `AdvanceRequestDialog.tsx` (9 useState) → استخراج `useAdvanceRequestDialog` في `hooks/page/beneficiary/`.
-   - `DistributeDialog.tsx` (8 useState) → استخراج `useDistributeDialog` في `hooks/page/admin/financial/`.
+## بعد الانتهاء
 
-### المرحلة 2 — تنظيمية
+تحديث `mem://index.md` بإضافة مرجع جديد:
+`- [QueryKeys Centralization](mem://technical/architecture/querykeys-centralization) — مفاتيح TanStack مُجمَّعة في lib/queryKeys/<feature>.ts؛ ممنوع literals جديدة`
 
-3. **تقسيم `hooks/page/admin/financial/` إلى مجلدات موضوعية** (مطابقة لبنية `hooks/data/financial/`).
-4. **مراجعة `hooks/application/`** ونقل ما هو خاص بصفحة إلى `hooks/page/` (مرشحان واضحان: `useAuthPage`, `useLandingPage`, `useInstallAppPage`).
-5. **تقسيم 5 مكونات تقديمية > 180 سطر** (InvoiceGridView, ZakatEstimationReport, ZatcaFormCards, CreateInvoiceFromTemplate, AccountsSummaryCards).
-
-### المرحلة 3 — اختيارية (صقل)
-
-6. **تقسيم `utils/pdf/reports/aggregatedAnnualReport.ts` (274)** إلى أقسام.
-7. **تقسيم `utils/financial/collection/collectionCompute.ts` (199)** بحسب المسؤوليات.
-8. **مراجعة `lib/services/diagnostics*`** للحدّ من التداخل.
-9. **توحيد تسمية `types.ts` المكررة** بأسماء موضوعية مميزة.
-
----
-
-## نقاط القوة الجديرة بالحفاظ عليها
-
-- **حواجز ESLint قوية**: `no-restricted-syntax` يمنع supabase خام وألوان hex في pages/components — استمر في توسيع القائمة عند ظهور أنماط جديدة يجب منعها.
-- **Page Hook Pattern مُطبَّق 100%**: كل الصفحات < 200 سطر و 0 useQuery داخلها.
-- **طبقات hooks منفصلة بشكل نموذجي**: `data` (Supabase) → `domain` (computations) → `page` (orchestration) → `ui` (presentational helpers).
-- **lib/services يفصل I/O عن hooks** بشكل صحيح، وغالبية hooks/data تستدعي services بدلاً من supabase مباشرة.
-- **`utils/` نقي**: 0 استيراد من hooks/components، 0 toast، 0 supabase.
-- **اختبارات مُتعايشة** مع الكود (Vitest co-located) مع `src/test/` للتكامل.
-
----
-
-## ما لن يُغيَّر
-
-- **ملفات auto-generated**: `types.ts` (2610 سطر) — مُولَّد من Supabase، لا يُلمس.
-- **ملفات auth الحساسة**: `AuthContext.tsx`, `ProtectedRoute*`, `FiscalYearContext.tsx` — استخدام supabase داخل `AuthContext` مقصود (هو القناة الوحيدة المسموح بها).
-- **`contracts_safe` view و pre-auth RPCs**: موثّقة في `@security-memory`.
-
----
-
-## التوصية النهائية
-
-البنية في وضع نموذجي. **لا توجد إصلاحات عاجلة مطلوبة**. ابدأ بالمرحلة 1 (queryKeys + المكوّنين المعقّدين) لأنها أعلى عائد لأقل جهد. باقي المراحل يمكن أن تتم تدريجياً كجزء من المهام المستقبلية في تلك المجالات.
+(الذاكرة التفصيلية تُكتب بعد اكتمال الموجة أ الكاملة، ليس بعد هذه الخطوة وحدها.)
