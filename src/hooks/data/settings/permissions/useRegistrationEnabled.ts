@@ -4,10 +4,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 
 export function useRegistrationEnabled() {
   return useQuery({
-    queryKey: ['registration-enabled'],
+    queryKey: appSettingsKeys.registrationEnabled(),
     queryFn: async () => {
       const { data } = await supabase
         .from('app_settings')

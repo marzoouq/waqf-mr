@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { settingsQueryFn } from '@/hooks/data/settings/app/useAppSettingsRead';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 
 export interface WaqfInfo {
   waqf_name: string;
@@ -24,7 +25,7 @@ export interface WaqfInfo {
 
 export const useWaqfInfo = () => {
   const { data: settings, isLoading, error } = useQuery({
-    queryKey: ['app-settings-all'],
+    queryKey: appSettingsKeys.all(),
     queryFn: settingsQueryFn,
     staleTime: STALE_STATIC,
     gcTime: 1000 * 60 * 30,

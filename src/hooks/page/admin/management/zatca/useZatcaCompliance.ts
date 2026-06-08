@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp } from '@/lib/services';
 import { uiNotify } from '@/lib/notify';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 
 export type ConnectionTestResult = {
   loading: boolean;
@@ -28,8 +29,8 @@ export function useZatcaCompliance({ formData, setFormData, saveFirst }: Params)
     try {
       await clearZatcaOtp();
       setFormData(prev => ({ ...prev, zatca_otp_1: '', zatca_otp_2: '' }));
-      queryClient.invalidateQueries({ queryKey: ['app-settings', 'zatca'] });
-      queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+      queryClient.invalidateQueries({ queryKey: appSettingsKeys.byCategory('zatca') });
+      queryClient.invalidateQueries({ queryKey: appSettingsKeys.prefixes.all });
     } catch { /* صمت */ }
   };
 

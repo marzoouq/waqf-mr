@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { SAVE_MESSAGES } from '@/lib/messages';
 import { settingsAssetsService } from '@/lib/services/settingsAssetsService';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 
 interface WaqfField {
   key: string;
@@ -43,8 +44,8 @@ export const useWaqfInfoSave = (onSuccess: () => void) => {
         }
         await settingsAssetsService.setSetting(field.key, value);
       }
-      await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
-      await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+      await queryClient.invalidateQueries({ queryKey: appSettingsKeys.byCategory('general') });
+      await queryClient.invalidateQueries({ queryKey: appSettingsKeys.prefixes.all });
       uiNotify.success('تم حفظ بيانات الوقف بنجاح');
       onSuccess();
     } catch {

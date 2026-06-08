@@ -11,6 +11,7 @@ import { SAVE_MESSAGES } from '@/lib/messages';
 import { getCategoryFromKey } from '@/hooks/data/settings/app/appSettingsUtils';
 import { jsonSettingCache } from '@/hooks/data/settings/app/useAppSettingsRead';
 import { appSettingsService } from '@/lib/services/appSettingsService';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 
 export const useAppSettingsWrite = (data: Record<string, string> | undefined) => {
   const queryClient = useQueryClient();
@@ -19,9 +20,9 @@ export const useAppSettingsWrite = (data: Record<string, string> | undefined) =>
   const invalidateCategories = (keys: string[]) => {
     const categories = new Set(keys.map(getCategoryFromKey));
     categories.forEach((cat) => {
-      queryClient.invalidateQueries({ queryKey: ['app-settings', cat] });
+      queryClient.invalidateQueries({ queryKey: appSettingsKeys.byCategory(cat) });
     });
-    queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+    queryClient.invalidateQueries({ queryKey: appSettingsKeys.prefixes.all });
   };
 
   const updateSetting = useMutation({

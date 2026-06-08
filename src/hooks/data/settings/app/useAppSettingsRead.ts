@@ -13,6 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { getCategoryFromKey, type SettingsCategory } from '@/hooks/data/settings/app/appSettingsUtils';
 import { appSettingsService } from '@/lib/services/appSettingsService';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 
 /** ذاكرة مؤقتة لقيم JSON المُحلَّلة — مُشتركة بين read/write */
 export const jsonSettingCache = new Map<string, { raw: string; parsed: unknown }>();
@@ -25,7 +26,7 @@ export const settingsQueryFn = () => appSettingsService.listAll();
  */
 export const useSettingsCategory = (category: SettingsCategory) => {
   return useQuery({
-    queryKey: ['app-settings', category],
+    queryKey: appSettingsKeys.byCategory(category),
     queryFn: settingsQueryFn,
     staleTime: STALE_STATIC,
     gcTime: 1000 * 60 * 30,
@@ -47,7 +48,7 @@ export const useSettingsCategory = (category: SettingsCategory) => {
  */
 export const useSetting = (key: string, fallback = ''): string => {
   const { data } = useQuery({
-    queryKey: ['app-settings-all'],
+    queryKey: appSettingsKeys.all(),
     queryFn: settingsQueryFn,
     staleTime: STALE_STATIC,
     gcTime: 1000 * 60 * 30,

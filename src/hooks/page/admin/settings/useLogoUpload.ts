@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { resizeImage } from '@/utils/image/resizeImage';
 import { settingsAssetsService } from '@/lib/services/settingsAssetsService';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
 const MAX_SIZE = 2 * 1024 * 1024;
@@ -32,8 +33,8 @@ export const useLogoUpload = ({ settingKey, storagePath, currentUrl }: UseLogoUp
   }
 
   const invalidate = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ['app-settings', 'general'] });
-    await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+    await queryClient.invalidateQueries({ queryKey: appSettingsKeys.byCategory('general') });
+    await queryClient.invalidateQueries({ queryKey: appSettingsKeys.prefixes.all });
   }, [queryClient]);
 
   const handleSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
