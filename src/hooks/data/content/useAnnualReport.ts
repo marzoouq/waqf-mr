@@ -13,7 +13,7 @@ import { annualReportService } from '@/lib/services/annualReportService';
 // '@/hooks/domain/financial/useIncomeComparison' (طبقة data لا تعتمد على domain).
 
 // أنواع البيانات تُعرَّف في @/types/annualReport (اتجاه اعتماد صحيح)
-import type { SectionType, AnnualReportItem, AnnualReportStatus } from '@/types/annualReport';
+import type { AnnualReportItem } from '@/types/annualReport';
 
 // ---------------------------------------------------------------------------
 // عناصر التقرير
