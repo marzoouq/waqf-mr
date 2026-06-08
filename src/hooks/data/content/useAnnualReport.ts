@@ -15,7 +15,8 @@ import { annualReportService } from '@/lib/services/annualReportService';
 // ---------------------------------------------------------------------------
 // أنواع البيانات — تُعرَّف في @/types/annualReport (اتجاه اعتماد صحيح)
 // ---------------------------------------------------------------------------
-export type { SectionType, AnnualReportItem, AnnualReportStatus } from '@/types/annualReport';
+import type { SectionType, AnnualReportItem, AnnualReportStatus } from '@/types/annualReport';
+export type { SectionType, AnnualReportItem, AnnualReportStatus };
 
 // ---------------------------------------------------------------------------
 // عناصر التقرير
