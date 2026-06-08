@@ -6,7 +6,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useNowClock } from '@/lib/hooks/useNowClock';
 import { uiNotify } from '@/lib/notify';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
-import { getPaymentTypeLabel } from '@/utils/financial/contractHelpers';
+import { getPaymentTypeLabel } from '@/utils/financial/contracts/contractHelpers';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { safeNumber } from '@/utils/format/safeNumber';

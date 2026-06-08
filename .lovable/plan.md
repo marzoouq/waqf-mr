@@ -1,111 +1,104 @@
-# خطة التنفيذ — بوابة Audit + حذف الكود الميت المؤكَّد
 
-## المبدأ الحاكم
-**لا يُحذف أي شيء قبل اجتياز `vitest run` + `tsc --noEmit` بنجاح**. أي فشل = إيقاف فوري + استرجاع.
+## خطة التنفيذ النهائية — 3 مهام تنظيف معمارية
 
 ---
 
-## المرحلة 0 — بوابة التحقق (Audit Gate)
+### المهمة 1 — نقل `SectionType` و `AnnualReportItem` إلى `src/types/annualReport.ts`
 
-سكربت جديد `scripts/deletion-gate.mjs` يُشغَّل **قبل وبعد** كل دفعة حذف:
+**السبب**: حالياً `src/pages/dashboard/AnnualReportPage.tsx` و `src/components/annual-report/*` و `src/hooks/page/admin/reports/useAnnualReportPage.ts` تستورد types من `@/hooks/data/content/useAnnualReport` — يكسر اتجاه الاعتماد (UI → hooks/data).
+
+**التنفيذ**:
+1. إنشاء `src/types/annualReport.ts` يحتوي `SectionType` و `AnnualReportItem`.
+2. تعديل `src/hooks/data/content/useAnnualReport.ts`: استيراد الـtypes من `@/types/annualReport` ثم `export type { ... } from ...` للحفاظ على التوافق المؤقت.
+3. تحديث 4 ملفات لتستورد مباشرة من `@/types/annualReport`:
+   - `src/pages/dashboard/AnnualReportPage.tsx`
+   - `src/components/annual-report/ReportItemFormDialog.tsx`
+   - `src/components/annual-report/ReportSectionList.tsx`
+   - `src/hooks/page/admin/reports/useAnnualReportPage.ts`
+4. إزالة re-export المؤقت من `useAnnualReport.ts`.
+5. `tsc --noEmit` + `vitest run src/test src/pages/dashboard/AnnualReportPage.test.tsx`.
+
+---
+
+### المهمة 2 — تقسيم `src/utils/financial/` إلى مجلدات فرعية
+
+**الوضع**: 47 ملف مسطح.
+
+**التقسيم المعتمد** (6 مجلدات):
 
 ```text
-1. bunx tsc --noEmit                    → يجب 0 أخطاء
-2. bunx vitest run                      → يجب 2113/2113
-3. node scripts/audit-all.mjs           → audit:gate أخضر
-   فشل أي خطوة → exit 1 + رسالة واضحة + لا تكمل
+src/utils/financial/
+├── computations/   # dashboardComputations, buildMonthlyData, calcChangePercent,
+│                   # ratios(+test), recordConverters, multiYearHelpers(+test)
+├── distribution/   # distributionCalcPure(+test), distributionSummary(+test),
+│                   # myShareCalculation.test, availableAmount.test
+├── fiscalYear/     # activeYearFinancials, closedYearFinancials,
+│                   # findAccountByFY(+test), fiscalYearClosure.test,
+│                   # accountsCalculations(+test), calculateFinancials.test
+├── contracts/      # contractAllocation(+test), contractClassification(+test),
+│                   # contractHelpers(+test), documentationRate(+test)
+├── collection/     # collectionCompute, computeCollectionSummary.test,
+│                   # computeContractualRevenue(+test), incomeCompute,
+│                   # incomeAnomalies(+test), incomeFormValidation(+test),
+│                   # paymentInvoicesCompute, yearComparisonHelpers(+test)
+├── expenses/       # expensesCompute, expenseFormValidation(+test)
+└── zatca/          # zatcaSharedLogic.test, regressionFixes.test
 ```
 
-التسلسل العام:
-```text
-baseline (gate) → دفعة حذف → gate → دفعة تالية → gate → ...
-```
-عند أي فشل: استرجاع آخر دفعة فقط ثم توقّف وإبلاغ.
+**التنفيذ**:
+1. `mv` كل ملف إلى مجلده (دفعة واحدة بـ commands متوازية لكل مجلد).
+2. لكل ملف منقول: `rg -l "@/utils/financial/<name>"` ثم استبدال المسار بـ `@/utils/financial/<subfolder>/<name>`.
+3. **لا barrels** (التزاماً بـ `barrel-import-rule`).
+4. `tsc --noEmit` + `vitest run` بعد كل دفعة (6 دفعات).
+5. تشغيل `scripts/deletion-gate.mjs` كتحقق نهائي.
 
 ---
 
-## المرحلة 1 — Baseline
-تشغيل `deletion-gate.mjs` على الحالة الراهنة لتثبيت 2113/2113 + 0 TS errors + audit أخضر. بدون هذا الـbaseline لا يبدأ أي حذف.
+### المهمة 3 — تصليح `lookup-national-id` (الخيار المتشدّد)
+
+**القرارات الافتراضية المعتمدة**:
+- ✅ إزالة `SERVICE_ROLE_KEY` كلياً، الاعتماد على RPCs `SECURITY DEFINER` مع `GRANT EXECUTE TO anon`.
+- ⏸ تأجيل CAPTCHA (لا حاجة لمزود خارجي حالياً).
+
+**التنفيذ**:
+
+**أ) Migration** — تحديث/إنشاء 3 دوال:
+1. `lookup_by_national_id(p_national_id text)` — قراءة من `beneficiaries` + فك تشفير + إرجاع email المرتبط فقط.
+2. `check_rate_limit(p_key text, p_limit int, p_window_seconds int)` — تأكيد `SECURITY DEFINER` + `GRANT EXECUTE TO anon`.
+3. `log_access_event(p_event_type text, p_metadata jsonb)` — تأكيد `SECURITY DEFINER` + `GRANT EXECUTE TO anon`.
+- كل الدوال: `SET search_path = public`، scope صارم للقراءة فقط، تُرجع email فقط (لا PII أخرى).
+
+**ب) تعديل `supabase/functions/lookup-national-id/index.ts`**:
+1. استبدال `serviceRoleKey` بـ `anonKey` في `createClient`.
+2. إضافة **Luhn check** لرقم الهوية السعودي قبل أي استعلام (يرفض أرقاماً مزيّفة فوراً).
+3. إضافة **rate limit ثانٍ per-national_id**:
+   - مفتاح: `lookup_nid_target:${sha256(national_id)}` (hashed لمنع تسريب الأرقام في `rate_limits`).
+   - حد: 5 محاولات / ساعة.
+4. إضافة header comment يوثّق نية **pre-auth بالتصميم** ولماذا لا يصحّ استخدام `getUser()` هنا.
+
+**ج) تحديث `mem://security/...`** — توثيق أن `lookup-national-id` و `guard-signup` و `webauthn-*` pre-auth بالتصميم؛ يجب أن يتجاهلها فحص `SERVICE_ROLE`/`getUser` مستقبلاً.
+
+**د) التحقق**:
+- `supabase test_edge_functions` (تجارب: Luhn fail/pass, rate limit IP, rate limit per-id, success path).
+- `supabase curl_edge_functions` بطلب يدوي على الإصدار المنشور.
 
 ---
 
-## المرحلة 2 — حذف 18 تصريحاً (دفعات صغيرة + gate بين كل دفعة)
+## ترتيب التنفيذ والتحقق
 
-### الدفعة A — ثوابت/أنواع نقية (أدنى مخاطرة)
-| # | الرمز | الملف:السطر |
-|---|---|---|
-| 1 | `ALL_ROLES` | `src/constants/roles.ts:22` |
-| 2 | `CARRYFORWARD_NOTICE_COPY` | `src/constants/beneficiaryCopy.ts:85` |
-| 3 | `ProtectedAdminSectionKey` | `src/constants/sections.ts:51` |
-| 4 | `VoucherStatus` | `src/constants/entities.ts:84` |
-| 5 | `STALE_PUBLIC`, `STALE_DASHBOARD`, `STALE_REFERENCE` | `src/lib/queryStaleTime.ts:24,27,30` |
+| # | المهمة | المخاطر | تحقق |
+|---|--------|---------|------|
+| 1 | SectionType → types/ | منخفضة | tsc + vitest |
+| 2 | utils/financial subfolders | متوسطة (47 ملف) | tsc + vitest + deletion-gate |
+| 3 | lookup-national-id hardening | متوسطة (DB + edge) | test_edge_functions + curl |
 
-→ gate
+كل مهمة مستقلة. التنفيذ بالترتيب أعلاه (الأقل خطورة أولاً).
 
-### الدفعة B — Utilities/Monitoring
-| # | الرمز | الملف:السطر |
-|---|---|---|
-| 6 | `getLargePayloads`, `clearLargePayloads` | `src/lib/monitoring/payloadMonitor.ts:33,37` |
-| 7 | `compareDateOnly`, `diffCalendarDays` | `src/utils/date/dateOnly.ts:31,36` |
-| 8 | `computeMonthlyData` | `src/utils/financial/dashboardComputations.ts:19` |
-| 9 | `cleanupThemeObserver` | `src/lib/theme/themeColor.utils.ts:55` |
-| 10 | `getExpectedEdgeFunctions` | `src/lib/diagnostics/checks/backend.ts:143` |
+## القرارات الافتراضية المتّخذة
 
-→ gate
+- لا barrels في `utils/financial/`.
+- إزالة `SERVICE_ROLE_KEY` كلياً من `lookup-national-id`.
+- تأجيل CAPTCHA.
+- إبقاء `verify_jwt = false` (مقصود لـ pre-auth endpoints).
 
-### الدفعة C — Hooks/Types
-| # | الرمز | الملف:السطر |
-|---|---|---|
-| 11 | `useContractInvoiceSummary` | `src/hooks/data/invoices/usePaymentInvoices.ts:133` |
-| 12 | `PropertyPerformanceItem`, `PropertyPerformanceTotals` | `src/hooks/domain/financial/usePropertyPerformance.ts:36,47` |
-| 13 | `useFiscalYearMock` | `src/test/e2e/_helpers/mockFiscalYear.ts:50` |
-
-→ gate
-
-> ملاحظة `useFiscalYearMock`: قبل الحذف، فحص نهائي `rg "useFiscalYearMock" src/` — إن وُجد استعمال فعلي في أي test → يُنقل إلى KEEP وتُلغى الإزالة.
-
----
-
-## المرحلة 3 — default exports الآمنة
-حذف سطر `export default` فقط (مع إبقاء الـnamed export):
-- `src/components/contracts/payment-invoices/paymentStatusBadge.tsx:25`
-- `src/components/reports/ChangeIndicator.tsx:24`
-
-→ gate
-
----
-
-## المرحلة 4 — إعداد knip
-- `knip.json` يُعرّف entrypoints: `src/main.tsx`, `supabase/functions/*/index.ts`, `supabase/functions/*/*.test.ts`, `scripts/*.mjs`, `src/test/**/*.test.{ts,tsx}`.
-- `package.json` → إضافة `fast-glob` إلى `devDependencies` (يستخدمه `ariaLabelCoverage.test.ts`).
-
-→ gate نهائي
-
----
-
-## ما لن يُنفَّذ في هذه الجولة
-- ❌ 171 unexport — مؤجَّلة لجولة لاحقة (آمنة لكن كبيرة الحجم وتستحق PR منفصل).
-- ❌ default exports الثلاثة الباقية (`PaymentInvoicesTab`, `RolePermissionsTab`, `SectionsTab`) — تكسر barrels.
-- ❌ أي ملف كامل (لا حذف ملفات).
-- ❌ أي تعديل على ملفات محمية (`client.ts`, `types.ts`, `config.toml`, `.env`, `AuthContext`).
-
----
-
-## المخرجات
-| النوع | العدد |
-|---|---|
-| سكربت جديد | 1 (`scripts/deletion-gate.mjs`) |
-| ملف إعداد جديد | 1 (`knip.json`) |
-| تعديل `package.json` | 1 (إضافة `fast-glob`) |
-| ملفات تُعدَّل (حذف رموز) | ~13 |
-| تعديلات سطر واحد (default exports) | 2 |
-| ملفات تُحذف | 0 |
-
-## معايير النجاح
-- ✅ `tsc --noEmit` = 0 أخطاء بعد كل دفعة
-- ✅ `vitest run` = 2113/2113 بعد كل دفعة
-- ✅ `audit:gate` = 9/9 بعد كل دفعة
-- ✅ 0 ارتدادات
-
-## بروتوكول الفشل
-أي فشل في الـgate → استرجاع الدفعة الفاشلة فقط → الإبلاغ بالرمز المسبب → توقّف. الدفعات السابقة الناجحة تبقى.
+إن أردت تغيير أي من هذه القرارات أخبرني، وإلا اضغط **Implement plan** للبدء.

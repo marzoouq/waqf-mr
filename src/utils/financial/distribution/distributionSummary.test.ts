@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   filterDistributionsByFiscalYear,
   summarizeDistributions,
-} from '@/utils/financial/distributionSummary';
+} from '@/utils/financial/distribution/distributionSummary';
 
 const paid = (amount: number, fy = 'fy-1') => ({ status: 'paid', amount, fiscal_year_id: fy });
 const pend = (amount: number, fy = 'fy-1') => ({ status: 'pending', amount, fiscal_year_id: fy });

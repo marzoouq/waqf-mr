@@ -23,7 +23,7 @@ import {
   groupByContract,
   type InvoiceFilterStatus,
   type SortKey,
-} from '@/utils/financial/paymentInvoicesCompute';
+} from '@/utils/financial/collection/paymentInvoicesCompute';
 
 import type { SortDir } from '@/types/sorting';
 

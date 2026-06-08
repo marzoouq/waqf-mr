@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
-import { validateExpenseForm, getExpenseFieldErrors, type ExpenseFieldErrors, type ExpenseFormInput } from '@/utils/financial/expenseFormValidation';
+import { validateExpenseForm, getExpenseFieldErrors, type ExpenseFieldErrors, type ExpenseFormInput } from '@/utils/financial/expenses/expenseFormValidation';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import type { SortFieldOf } from '@/types/sorting';
@@ -17,9 +17,9 @@ import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
-import { computeDocumentationStats } from '@/utils/financial/documentationRate';
+import { computeDocumentationStats } from '@/utils/financial/contracts/documentationRate';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
-import { filterAndSortExpenses } from '@/utils/financial/expensesCompute';
+import { filterAndSortExpenses } from '@/utils/financial/expenses/expensesCompute';
 
 export type SortField = SortFieldOf<'amount' | 'date' | 'expense_type'>;
 

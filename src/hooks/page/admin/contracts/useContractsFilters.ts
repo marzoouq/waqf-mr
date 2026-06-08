@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Contract } from '@/types';
-import { getPaymentTypeLabel } from '@/utils/financial/contractHelpers';
-import { classifyContractOrigin } from '@/utils/financial/contractClassification';
+import { getPaymentTypeLabel } from '@/utils/financial/contracts/contractHelpers';
+import { classifyContractOrigin } from '@/utils/financial/contracts/contractClassification';
 
 const getBaseNumber = (num: string) => num.replace(/-R\d+$/, '');
 

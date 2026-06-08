@@ -4,7 +4,7 @@
  */
 import { useCallback } from 'react';
 import { usePrint } from '@/hooks/ui/usePrint';
-import type { AnnualReportItem } from '@/hooks/data/content/useAnnualReport';
+import type { AnnualReportItem } from '@/types/annualReport';
 import type { AnnualReportPdfData } from '@/utils/pdf/reports/annualReport';
 
 interface Property { id: string; property_number: string; location: string; }

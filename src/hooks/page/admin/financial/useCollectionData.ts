@@ -13,7 +13,7 @@ import {
   type CollectionFilterStatus,
   type CollectionRow,
   type CollectionSummary,
-} from '@/utils/financial/collectionCompute';
+} from '@/utils/financial/collection/collectionCompute';
 
 export type { CollectionFilterStatus, CollectionRow, CollectionSummary };
 

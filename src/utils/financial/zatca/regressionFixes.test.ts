@@ -5,7 +5,7 @@
  * #3 - contractAllocation recognizes both semi_annual and semi-annual
  */
 import { describe, it, expect } from "vitest";
-import { generatePaymentDueDates, allocateContractToFiscalYears } from "@/utils/financial/contractAllocation";
+import { generatePaymentDueDates, allocateContractToFiscalYears } from "@/utils/financial/contracts/contractAllocation";
 
 // ── #3: semi-annual vs semi_annual ──
 
@@ -63,7 +63,7 @@ describe("PDF payment denominator calculation", () => {
 
 // ── #2 regression: filterDistributionsByFiscalYear إصلاح المصفوفة الفارغة ──
 
-import { filterDistributionsByFiscalYear } from '@/utils/financial/distributionSummary';
+import { filterDistributionsByFiscalYear } from '@/utils/financial/distribution/distributionSummary';
 
 describe("[regression #2] filterDistributionsByFiscalYear — لا حساب ولا سنة محددة → []", () => {
   const dists = [

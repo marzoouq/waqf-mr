@@ -15,7 +15,7 @@ import { uiNotify } from '@/lib/notify';
 import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUserDashboardData';
 import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFinancials';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
-import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
+import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distribution/distributionSummary';
 import { toGregorianShort } from '@/utils/format/date';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { PDF_MESSAGES } from '@/lib/messages';

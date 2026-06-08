@@ -15,7 +15,7 @@ import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 import { useStableRef } from '@/lib/hooks/useStableRef';
-import { findAccountByFY } from '@/utils/financial/findAccountByFY';
+import { findAccountByFY } from '@/utils/financial/fiscalYear/findAccountByFY';
 import type { Account } from '@/types';
 
 interface SettingsParams {

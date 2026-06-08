@@ -3,7 +3,7 @@ import { EmptyState } from '@/components/common';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText } from 'lucide-react';
 import type { Contract } from '@/types';
-import { classifyContractOrigin } from '@/utils/financial/contractClassification';
+import { classifyContractOrigin } from '@/utils/financial/contracts/contractClassification';
 import AccountsContractsMobileList from './contracts/AccountsContractsMobileList';
 import AccountsContractsDesktopTable from './contracts/AccountsContractsDesktopTable';
 

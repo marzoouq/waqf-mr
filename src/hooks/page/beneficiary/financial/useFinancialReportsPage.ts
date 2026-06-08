@@ -11,7 +11,7 @@ import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { uiNotify } from '@/lib/notify';
-import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
+import { buildMonthlyData } from '@/utils/financial/computations/buildMonthlyData';
 import { PDF_MESSAGES } from '@/lib/messages';
 
 

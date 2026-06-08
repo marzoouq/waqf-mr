@@ -4,7 +4,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Clock, Link as LinkIcon, Banknote, TrendingDown, XCircle } from 'lucide-react';
-import { EXPENSE_RATIO_FULL_DEFICIT } from '@/utils/financial/ratios';
+import { EXPENSE_RATIO_FULL_DEFICIT } from '@/utils/financial/computations/ratios';
 
 interface DashboardAlertsProps {
   usingFallbackPct: boolean;

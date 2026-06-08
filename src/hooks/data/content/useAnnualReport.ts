@@ -12,30 +12,8 @@ import { annualReportService } from '@/lib/services/annualReportService';
 // ملاحظة: useIncomeComparison في طبقة domain — استورده مباشرة من
 // '@/hooks/domain/financial/useIncomeComparison' (طبقة data لا تعتمد على domain).
 
-// ---------------------------------------------------------------------------
-// أنواع البيانات
-// ---------------------------------------------------------------------------
-export type SectionType = 'achievement' | 'challenge' | 'future_plan' | 'property_status';
-
-export interface AnnualReportItem {
-  id: string;
-  fiscal_year_id: string;
-  section_type: string;
-  title: string;
-  content: string;
-  property_id: string | null;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface AnnualReportStatus {
-  id: string;
-  fiscal_year_id: string;
-  status: string;
-  published_at: string | null;
-  created_at: string;
-}
+// أنواع البيانات تُعرَّف في @/types/annualReport (اتجاه اعتماد صحيح)
+import type { AnnualReportItem } from '@/types/annualReport';
 
 // ---------------------------------------------------------------------------
 // عناصر التقرير

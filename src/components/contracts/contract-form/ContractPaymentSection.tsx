@@ -10,7 +10,7 @@ import { Info } from 'lucide-react';
 import { type ContractFormData } from '@/types/forms/contract';
 import { fmt } from '@/utils/format/format';
 import { VAT_RATE, VAT_INCLUSIVE_MULTIPLIER, VAT_RATE_LABEL } from '@/constants/vat';
-import { getContractSpanInfo } from '@/utils/financial/contractAllocation';
+import { getContractSpanInfo } from '@/utils/financial/contracts/contractAllocation';
 
 import type { FiscalYear } from '@/types';
 

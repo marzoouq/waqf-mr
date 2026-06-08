@@ -8,7 +8,7 @@ import { Plus } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { EXPENSE_TYPES } from '@/constants';
 import { fmt } from '@/utils/format/format';
-import type { ExpenseFieldErrors, ExpenseFormInput } from '@/utils/financial/expenseFormValidation';
+import type { ExpenseFieldErrors, ExpenseFormInput } from '@/utils/financial/expenses/expenseFormValidation';
 
 type ExpenseFormData = ExpenseFormInput;
 

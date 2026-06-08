@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
-import { validateIncomeForm, getIncomeFieldErrors, type IncomeFieldErrors, type IncomeFormInput } from '@/utils/financial/incomeFormValidation';
+import { validateIncomeForm, getIncomeFieldErrors, type IncomeFieldErrors, type IncomeFormInput } from '@/utils/financial/collection/incomeFormValidation';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import type { SortFieldOf } from '@/types/sorting';
@@ -17,8 +17,8 @@ import type { Income } from '@/types';
 import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
 import { uiNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
-import { computeLowIncomeMonths } from '@/utils/financial/incomeAnomalies';
-import { buildIncomeSummaryCards, filterAndSortIncome } from '@/utils/financial/incomeCompute';
+import { computeLowIncomeMonths } from '@/utils/financial/collection/incomeAnomalies';
+import { buildIncomeSummaryCards, filterAndSortIncome } from '@/utils/financial/collection/incomeCompute';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { logger } from '@/lib/logger';

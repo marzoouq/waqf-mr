@@ -5,7 +5,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
-import { mapEntry, type RpcYearEntry } from '@/utils/financial/multiYearHelpers';
+import { mapEntry, type RpcYearEntry } from '@/utils/financial/computations/multiYearHelpers';
 import type { YearSummaryEntry } from '@/types/financial/multiYear';
 
 // إعادة تصدير للتوافق العكسي مع المستهلكين الحاليين

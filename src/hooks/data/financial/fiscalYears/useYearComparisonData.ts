@@ -8,7 +8,7 @@ import { invoke } from '@/lib/api/invoke';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyAll } from '@/constants/fiscalYearIds';
-import { toMonthMap, toExpenseRecord, type MonthlyEntry, type ExpenseTypeEntry } from '@/utils/financial/yearComparisonHelpers';
+import { toMonthMap, toExpenseRecord, type MonthlyEntry, type ExpenseTypeEntry } from '@/utils/financial/collection/yearComparisonHelpers';
 
 interface YearSummary {
   total_income: number;
