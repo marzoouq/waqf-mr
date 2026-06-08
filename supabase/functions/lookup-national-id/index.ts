@@ -1,15 +1,57 @@
+/**
+ * lookup-national-id — Pre-auth endpoint (by design).
+ *
+ * يُستخدم في شاشة تسجيل الدخول لتحويل رقم الهوية إلى بريد إلكتروني
+ * ثم (اختيارياً) إجراء مصادقة بكلمة المرور. **لا يوجد JWT في هذه المرحلة**،
+ * لذا لا يصحّ استخدام `getUser()`. الحماية تعتمد على:
+ *   1) Luhn check لرقم الهوية السعودي (يرفض الأرقام المزيّفة فوراً).
+ *   2) Rate limit ثنائي: per-IP (3/5min) + per-national-id (5/hour).
+ *   3) Fixed/progressive delay لمنع timing enumeration.
+ *   4) ردود متطابقة (found:true دائماً) لمنع user enumeration.
+ *   5) RPCs مع `SECURITY DEFINER` فقط — لا `SERVICE_ROLE_KEY`.
+ *
+ * `verify_jwt = false` و `anonKey` مقصودان — هذا endpoint عام بالتصميم.
+ */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
 const RATE_LIMIT = 3;
 const RATE_WINDOW_SECONDS = 300;
+const TARGET_RATE_LIMIT = 5;
+const TARGET_RATE_WINDOW_SECONDS = 3600;
 
 // Body schema موحّد — يقبل أرقام عربية/فارسية وكلمة مرور اختيارية.
 const BodySchema = z.object({
   national_id: z.union([z.string(), z.number()]).transform((v) => String(v)),
   password: z.string().min(8).max(128).optional(),
 });
+
+/**
+ * Saudi National ID Luhn check (modified).
+ * Format: 10 digits, starts with 1 (citizen) or 2 (resident).
+ */
+function isValidSaudiNationalId(id: string): boolean {
+  if (!/^[12]\d{9}$/.test(id)) return false;
+  let sum = 0;
+  for (let i = 0; i < 10; i++) {
+    const digit = Number(id[i]);
+    if (i % 2 === 0) {
+      const doubled = digit * 2;
+      const s = doubled.toString().padStart(2, '0');
+      sum += Number(s[0]) + Number(s[1]);
+    } else {
+      sum += digit;
+    }
+  }
+  return sum % 10 === 0;
+}
+
+/** SHA-256 hex digest (for hashing national_id as rate-limit key). */
+async function sha256Hex(input: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 
 /** Mask email: "user@example.com" → "u***@example.com" */
