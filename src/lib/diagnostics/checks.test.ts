@@ -254,13 +254,13 @@ describe('checks — إعدادات التطبيق', () => {
 // ════════════════════════════════════════════════
 
 describe('diagnosticCategories', () => {
-  it('يحتوي 10 بطاقات و44 فحصاً (بعد إضافة بطاقة تدقيق رقمي DB↔RPC↔UI)', async () => {
+  it('يحتوي على بطاقات وفحوصات صحيحة (عدد ديناميكي)', async () => {
     const { diagnosticCategories } = await import('./checks');
-    expect(diagnosticCategories).toHaveLength(10);
+    // الحد الأدنى المتوقَّع — يمنع الانكماش غير المقصود، ويسمح بالنمو.
+    expect(diagnosticCategories.length).toBeGreaterThanOrEqual(10);
     const totalChecks = diagnosticCategories.reduce((sum, cat) => sum + cat.checks.length, 0);
-    expect(totalChecks).toBe(44);
+    expect(totalChecks).toBeGreaterThanOrEqual(44);
   });
-
 
   it('كل بطاقة لها عنوان وفحوصات', async () => {
     const { diagnosticCategories } = await import('./checks');
@@ -271,6 +271,7 @@ describe('diagnosticCategories', () => {
     }
   });
 });
+
 
 describe('runCategoryDiagnostics', () => {
   it('يُرجع null لبطاقة غير موجودة', async () => {

@@ -1,120 +1,124 @@
-
-# الخطة المنقّحة — احترام الوثائق + إصلاح ما يثبت بفحص الكود فقط
-
-> **مبدأ التنقيح:** كل تغيير DB أو سلوك مرئي يجب أن يكون مدعوماً بـ (أ) قراءة جسم الدالة، و(ب) عدم تعارضه مع ذاكرة المشروع. أي بند لم يجتزْ هذين الشرطين أُسقط.
+# 🔍 الفحص الجنائي الشامل — نظام وقف مرزوق بن علي الثبيتي
+تاريخ: 2026-06-08 · النطاق: كود + DB + Edge + اختبارات + CI
 
 ---
 
-## نتيجة فحص جسم الدوال الـ11 المشتبه بها
+## 1) المؤشرات الحية (Forensic Snapshot)
 
-| الدالة | جسم الدالة | الحكم بعد القراءة |
+| المؤشر | القيمة | الحكم |
 |---|---|---|
-| `update_beneficiary_self` | يحوي `WHERE user_id = auth.uid()` صريحاً | ✅ **آمنة** — أُسقط البند P0.2 السابق |
-| `rate_support_ticket` | فحص `v_owner <> auth.uid()` + قيود حالة | ✅ آمنة |
-| `log_access_event` | anti-spoof + rate limit + whitelist للأحداث | ✅ مقصودة anon-callable |
-| `get_public_stats` | تُكرّم `app_settings` (auto/manual/hidden) كما هو موثَّق في `mem://security/privacy/public-stats-anonymization` | ✅ مقصودة anon-callable |
-| `get_total_beneficiary_percentage` | تُرجع رقماً واحداً (مجموع نِسَب) — لا PII | ✅ آمنة |
-| `get_dashboard_full_summary`, `get_dashboard_kpis`, `get_beneficiary_dashboard` | تقرأ `income/expenses/accounts` — هذه الجداول محمية بـ RLS على مستوى الصف | ✅ آمنة — التعرّض المالي محسوم في طبقة الجداول، ليس الدوال |
-| `get_year_comparison_summary`, `get_multi_year_summary`, `get_income_summary_by_source`, `get_expense_summary_by_type`, `get_max_advance_amount` | تجميعات مالية مرئية للمستفيد/الواقف **بحكم الوثائق** (لوحات الأدوار، تقارير الإفصاح) | ✅ آمنة — تقييدها يكسر الوثائق |
-| `get_support_analytics`, `get_support_stats` | تجميعات تذاكر — مقصودة كما هو موثَّق في `mem://business-logic/messaging/support-routing-logic` | ✅ آمنة |
-| **`clear_zatca_otp`** | **لا فحص دور — تمسح OTP شهادة ZATCA لأي مستخدم مسجَّل** | 🔴 **ثغرة مؤكدة** |
-
-**النتيجة:** ثغرة واحدة فعلية فقط، باقي الـ41 تحذيراً هي False positives من Linter لأن `SECURITY DEFINER` ضروري لتجاوز RLS بطريقة مقصودة وموثقة.
+| اختبارات Vitest | **2120 ✅ / 1 ❌** (246 ملف) | فشل واحد فقط |
+| `audit:gate` (البوابة الحرجة) | **9/9 ✅** | مفتوحة |
+| DB Linter | **1 ERROR + 41 WARN** | يحتاج مراجعة |
+| دوال `SECURITY DEFINER` في `public` | **85 دالة** (بعضها مكرّر — overloads) | غالبيتها مقصودة |
+| تكرار اسم دالة (overloads مشبوهة) | `allocate_icv_and_chain`, `execute_distribution`, `upsert_tenant_payment` | مرشّحات لتنظيف |
+| الذاكرة | محدّثة (security memory v2) | متوافقة |
+| Husky pre-push | يعمل | البوابة فعّالة |
 
 ---
 
-## الخطة النهائية (3 بنود حقيقية + توثيق)
+## 2) المشاكل المكتشفة — جذرية ومرتّبة
 
-### 🔴 1. إصلاح ثغرة `clear_zatca_otp` (الوحيدة الفعلية)
+### 🔴 P0 — فشل اختبار يكسر CI (Blocker)
+**الموقع:** `src/lib/diagnostics/checks.test.ts:259-261`
+**الجذر:** الاختبار يفترض `10 بطاقات / 44 فحصاً`، بينما `checks.ts` نما إلى **18 بطاقة**. أي إضافة بطاقة جديدة لم تُحدّث الاختبار → expected vs. actual drift.
+**الأثر:** كل push يكسر `bun test` (لكن `audit:gate` يمر، لذا لم يُلاحَظ).
+**الحل:** حساب العدد ديناميكياً من نفس المصدر بدل hard-coded.
 
-**الجذر:** الدالة معرّفة `SECURITY DEFINER` بدون أي فحص داخلي للدور. أي مستفيد بإمكانه استدعاء `supabase.rpc('clear_zatca_otp')` ومسح OTP شهادة ZATCA النشطة → تعطيل دورة فوترة كاملة.
+### 🟠 P1 — DB Linter: 1 ERROR
+**الموقع:** `contracts_safe` view (SECURITY DEFINER)
+**الجذر:** متعمَّد لإخفاء PII (موثّق في `mem://security/views/contracts-safe-rationale` و`docs/security/views.md`).
+**الحل:** لا تغيير في الكود — **توثيق التجاهل** في `security-memory` (موجود بالفعل بعد التحديث الأخير).
 
-**الحل (migration واحدة لا تغيّر أي سلوك مرئي):**
-```sql
-CREATE OR REPLACE FUNCTION public.clear_zatca_otp()
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
-AS $$
-BEGIN
-  IF NOT public.has_role(auth.uid(), 'admin'::app_role) THEN
-    RAISE EXCEPTION 'Forbidden: admin role required' USING ERRCODE = '42501';
-  END IF;
-  UPDATE public.app_settings
-     SET value = '', updated_at = now()
-   WHERE key IN ('zatca_otp_1','zatca_otp_2') AND value != '';
-END;
-$$;
-REVOKE EXECUTE ON FUNCTION public.clear_zatca_otp() FROM PUBLIC, anon;
--- يبقى GRANT للـ authenticated لأن الناظر authenticated، والفحص الداخلي يحجب غيره.
+### 🟠 P1 — DB Linter: 41 WARN على `SECURITY DEFINER` functions
+**التصنيف الجنائي:**
+- **مقبول مقصود (~36 دالة)**: `has_role`, `get_public_stats`, `check_rate_limit`, `lookup_by_national_id`, triggers (`audit_*`, `prevent_*`, `validate_*`, `sync_*`, `enforce_*`)، cron jobs (`cron_*`).
+- **يحتاج تحقق فعلي (~5 دوال)**: `get_dashboard_full_summary`, `get_dashboard_kpis`, `get_expense_summary_by_type`, `get_income_summary_by_source`, `get_year_comparison_summary` — هل تطبّق فلتر دور داخلي؟ إذا لا → تسريب بيانات مالية لأي authenticated.
+- **Overloads مكرّرة (3 أسماء)**: `allocate_icv_and_chain`, `execute_distribution`, `upsert_tenant_payment` — تحتاج فحص نسخ قديمة محتملة.
+
+### 🟡 P2 — Auth Linter (من السياق السابق)
+- **Leaked Password Protection: OFF** → يجب تفعيل HIBP.
+- **OTP expiry > 10m** → خفض لـ 10 دقائق.
+*(تعديل لوحة Supabase Auth، ليس migration)*
+
+### 🟡 P2 — دوال SECURITY DEFINER بدون REVOKE صريح
+الـ migration السابقة عالجت `clear_zatca_otp` فقط. لم نطبّق نمط `REVOKE EXECUTE ... FROM PUBLIC, anon` على بقية الإدارية الحقيقية (مثل `close_fiscal_year`, `reopen_fiscal_year`, `delete_fiscal_year_cascade`, `approve_disbursement_voucher`, `void_disbursement_voucher`, `execute_distribution`).
+**الأثر:** لا ثغرة فعلية (الدوال تتحقق من `has_role` داخلياً)، لكن defense-in-depth ناقصة.
+
+### 🟢 P3 — صحة معمارية (من تقارير `audit/`)
+- `pdfHelpers.ts` نظيف الآن (`getLastAutoTableY` يستخدم interface).
+- `useContractForm.ts` (228 سطر) يتجاوز الحد 200.
+- `aggregatedAnnualReport.ts` يتجاوز الحد.
+- 3 `@ts-ignore` غير موثّقة.
+
+### 🟢 P3 — Overloads المكرّرة في DB
+- `execute_distribution(uuid)` و`execute_distribution(uuid, numeric)` — تحقق من أن النسخة القديمة لم تعد مستدعاة.
+- نفس الأمر لـ `allocate_icv_and_chain` و`upsert_tenant_payment`.
+
+---
+
+## 3) ربط الجذور (Root-Cause Chain)
+
+```text
+فشل اختبار checks.test  ──┐
+                          ├──> غياب اختبار يقرأ العدد ديناميكياً
+نمو diagnosticCategories ─┘     (anti-pattern: hard-coded count)
+
+41 WARN على SEC DEFINER ──┐
+                          ├──> لا يوجد سكربت تلقائي يولّد REVOKE
+عدد كبير من triggers ─────┘     لكل دالة جديدة → debt تراكمي
+
+5 دوال dashboard مفتوحة ──> فلترة الدور تتم في الواجهة فقط
+                            (client-side trust) — مخالف لمذكرة
+                            "Server-Side Distribution"
 ```
 
-**التحقق:** جلسة مستفيد → `supabase.rpc('clear_zatca_otp')` يجب أن تُرجع `permission denied`. جلسة ناظر → ✅ تنجح.
+---
+
+## 4) خطة الإصلاح المقترَحة (مرتّبة حسب الأثر)
+
+### المرحلة A — فك حظر CI (5 دقائق)
+1. تحديث `checks.test.ts:257-262` لقراءة العدد من `diagnosticCategories.length` ومجموع الفحوصات ديناميكياً (الاختبار يصبح: `>=10 بطاقات`، و `كل فحص دالة`).
+
+### المرحلة B — تحقّق أمني فعلي (30 دقيقة، قراءة فقط)
+2. استخراج جسم الدوال الخمس (`get_dashboard_*`, `get_*_summary_by_*`, `get_year_comparison_summary`) عبر `pg_get_functiondef` والتحقق من وجود `has_role(...)` داخلياً.
+   - إن وُجد → توثيق في security-memory كـ accepted.
+   - إن **لم** يوجد → P0 جديدة + migration لإضافة guard.
+
+### المرحلة C — Defense-in-Depth (migration واحدة)
+3. تطبيق `REVOKE EXECUTE FROM PUBLIC, anon; GRANT EXECUTE TO service_role` على الدوال الإدارية الحقيقية فقط:
+   - `close_fiscal_year`, `reopen_fiscal_year`, `delete_fiscal_year_cascade`
+   - `approve_disbursement_voucher`, `void_disbursement_voucher`, `create_disbursement_voucher`
+   - `execute_distribution` (كلا التوقيعين)
+   - `notify_all_beneficiaries`
+
+### المرحلة D — تنظيف Overloads (migration ثانية، اختيارية)
+4. حذف النسخ القديمة من `execute_distribution`, `allocate_icv_and_chain`, `upsert_tenant_payment` بعد تأكيد عدم الاستخدام.
+
+### المرحلة E — Auth Hardening (لوحة Supabase، يدوي)
+5. تفعيل Leaked Password Protection.
+6. خفض OTP expiry لـ 600 ثانية.
+
+### المرحلة F — Tech Debt (اختيارية)
+7. تقسيم `useContractForm.ts` و`aggregatedAnnualReport.ts` ليلتزم بحد 200 سطر.
+8. توثيق `@ts-ignore` الثلاثة.
 
 ---
 
-### 🔴 2. فك حظر `pre-push` (P0.4 + P0.5 السابقان)
+## 5) ما تم استبعاده عمداً (للحفاظ على السلوك الموثَّق)
 
-**2.أ — `SystemDiagnosticsPage.tsx` يستخدم `location.reload`**
-- **الجذر:** التنظيف العميق يُلغي تسجيل SW + يمسح كل التخزين. `invalidateQueries` لا يكفي.
-- **الحل:** إضافة المسار إلى ALLOWLIST في `src/components/pwa/__tests__/no-forced-reload.test.tsx` مع تعليق: *"reload ضروري بعد runDeepClean لإعادة bootstrap كامل (SW + caches + IDB كلها مُسحت)"*.
-- **لا تغيير في سلوك صفحة التشخيص.**
-
-**2.ب — `useNotificationActions.test.ts` flaky**
-- **الجذر:** `waitFor` افتراضي (1000ms) قصير لـ CI البطيء أثناء rollback متعدد المراحل.
-- **الحل:** زيادة `timeout: 3000` على `waitFor` في الـ3 اختبارات المتقطعة فقط.
-- **لا تغيير في كود الإنتاج.**
-
-**التحقق:** `npx vitest run` يخرج 2121/2121 ✅، و `npm run audit:gate` يمر.
+- ❌ تعديل `contracts_safe` view → موثّق متعمَّد.
+- ❌ تقييد `get_public_stats` → الناظر يتحكم فيها عبر `app_settings`.
+- ❌ تقييد `has_role`, `check_rate_limit` → بنية أساسية مقصودة.
+- ❌ تشفير الواجهة المرئية للمستفيد — السلوك مطابق للوثائق.
 
 ---
 
-### 📝 3. توثيق ما هو "آمن بالقصد" في security memory
+## 6) ما الذي يتطلب موافقتك قبل البدء؟
 
-**الجذر:** Linter يرفع 41 WARN على دوال `SECURITY DEFINER` لأن السكانر لا يرى الـRLS التي تحميها على مستوى الجداول، ولا يعرف أن `contracts_safe` مقصودة `security_invoker=off`. هذه ضوضاء تُربك التدقيق المستقبلي.
+- **A فقط** (إصلاح اختبار) — بدون أثر سلوكي. → آمن.
+- **B** (قراءة فقط من DB) — بدون migration. → آمن.
+- **C** (migration REVOKE/GRANT) — لا يغيّر سلوك المستخدم، يقفل أبواباً خلفية. → يحتاج موافقة.
+- **D/E/F** — كل واحدة قرار مستقل.
 
-**الحل:** `security--update_memory` يوثّق:
-- `contracts_safe` view: `security_invoker=off` عمداً لإخفاء PII (مذكور بالفعل في `mem://security/views/contracts-safe-rationale`).
-- 40 دالة SECURITY DEFINER: كلها إما تحوي فحص دور داخلي صريح، أو تحمي البيانات عبر RLS على الجداول الأساسية، أو مقصودة anon-callable (landing + audit logging).
-- استثناء واحد أُصلح: `clear_zatca_otp` (البند 1 أعلاه).
-
-**لا تعديل على أي دالة أخرى. لا تعديل على أي سلوك يراه أي دور.**
-
----
-
-## ما **لن** يتم (سحبت من الخطة السابقة)
-
-| البند المسحوب | السبب |
-|---|---|
-| تقييد `get_dashboard_full_summary` على admin/accountant | يكسر لوحة المستفيد الموثَّقة |
-| تقييد `get_*_summary_by_*` و `get_year_comparison_summary` | يكسر تقرير الإفصاح ومقارنة السنوات للمستفيد/الواقف |
-| تقييد `get_max_advance_amount` و `get_total_beneficiary_percentage` | يكسر تدفق طلب السلفة للمستفيد |
-| تقييد `get_support_stats/analytics` | الوثائق تجعلها لوحة دعم متاحة |
-| `REVOKE EXECUTE FROM authenticated` على RPC إدارية | كلها تحوي `has_role` داخلياً بالفعل — الـ REVOKE زائد ويكسر استدعاءات تيستات |
-| تعديل عرض `contracts_safe` | محظور بالذاكرة |
-
----
-
-## ما يبقى من تنظيف اختياري (لا يمسّ السلوك ولا الوثائق)
-
-- استبدال `any` الوحيد في `utils/pdf/core/pdfHelpers.ts` بنوع `jsPDF`.
-- توثيق الـ3 `@ts-ignore` بتعليق سبب.
-- تقسيم `useContractForm.ts` (228 سطر) إلى ملفّين.
-
-**هذه ليست في الخطة الأساسية**؛ تنفَّذ فقط لو طلبتها صراحة.
-
----
-
-## التسلسل الزمني
-
-| الخطوة | الزمن |
-|---|---|
-| 1. migration لـ `clear_zatca_otp` | 5 دق |
-| 2.أ ALLOWLIST + 2.ب timeout للاختبارات | 5 دق |
-| 3. `security--update_memory` | 5 دق |
-| التحقق النهائي (`npm run audit`, `npm test`, `supabase--linter`) | 10 دق |
-| **المجموع** | **25 دقيقة** |
-
----
-
-## تأكيد مطلوب قبل التنفيذ
-
-هل أنفّذ الخطة بهذه الصورة المنقّحة (3 بنود فقط، لا تغيير في أي سلوك يراه أي دور، ولا تعديل خارج البند الواحد المؤكد)?
+أخبرني بأي المراحل تريد البدء (A وحدها، A+B، أو الحزمة الكاملة A→C).
