@@ -9,8 +9,8 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import {
   useAnnualReportItems, useCreateReportItem, useUpdateReportItem,
   useDeleteReportItem, useReportStatus, useToggleReportPublish,
-  type AnnualReportItem, type SectionType,
 } from '@/hooks/data/content/useAnnualReport';
+import type { AnnualReportItem, SectionType } from '@/types/annualReport';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useIncomeByFiscalYear } from '@/hooks/data/financial/income/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpenses';
