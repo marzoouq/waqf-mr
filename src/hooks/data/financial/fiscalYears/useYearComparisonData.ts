@@ -1,9 +1,10 @@
 /**
- * هوك لجلب بيانات مقارنة السنوات المالية عبر RPC واحد
+ * هوك لجلب بيانات مقارنة السنوات المالية عبر Edge Function `year-comparison-summary`.
+ * RPC مغلقة على authenticated — تُستدعى حصراً عبر Edge موثَّقة الدور.
  */
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { rpc } from '@/lib/api/rpc';
+import { invoke } from '@/lib/api/invoke';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyAll } from '@/constants/fiscalYearIds';
@@ -43,12 +44,10 @@ export function useYearComparisonData(year1Id: string, year2Id: string) {
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
     queryFn: async () => {
-      const result = await rpc('get_year_comparison_summary', {
-        p_year1_id: year1Id,
-        p_year2_id: year2Id,
+      const result = await invoke<ComparisonRpcResult>('year-comparison-summary', {
+        body: { year1_id: year1Id, year2_id: year2Id },
       });
-      // RPC — cast مبرر، يحتاج Zod validation لاحقاً
-      return result as unknown as ComparisonRpcResult;
+      return result;
     },
   });
 

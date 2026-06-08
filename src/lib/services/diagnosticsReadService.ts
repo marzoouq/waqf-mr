@@ -210,8 +210,12 @@ export const diagnosticsReadService = {
 
   async getDashboardFullSummary(fyId: string): Promise<RpcAggregated | null> {
     try {
-      const data = await rpc<unknown>('get_dashboard_full_summary', { p_fiscal_year_id: fyId });
-      return (data as RpcAggregated) ?? null;
+      // RPC مغلقة على authenticated — تُستدعى عبر Edge `dashboard-summary` (يتحقق من الدور).
+      const { invoke } = await import('@/lib/api/invoke');
+      const res = await invoke<{ aggregated: unknown }>('dashboard-summary', {
+        body: { fiscal_year_id: fyId },
+      });
+      return ((res?.aggregated as RpcAggregated) ?? null);
     } catch {
       return null;
     }
