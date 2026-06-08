@@ -13,10 +13,11 @@ import { useQuery } from '@tanstack/react-query';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { settingsQueryFn } from '@/hooks/data/settings/app/useAppSettingsRead';
 import { useAppSettingsWrite } from '@/hooks/data/settings/app/useAppSettingsWrite';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 
 export const useAppSettings = () => {
   const query = useQuery({
-    queryKey: ['app-settings-all'],
+    queryKey: appSettingsKeys.all(),
     queryFn: settingsQueryFn,
     staleTime: STALE_STATIC,
     retry: 2,

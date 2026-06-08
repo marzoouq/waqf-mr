@@ -111,7 +111,7 @@ export const useToggleRegistration = () => {
       await callAdminApi({ action: 'toggle_registration', enabled });
     },
     onSuccess: (_, enabled) => {
-      queryClient.invalidateQueries({ queryKey: ['registration-enabled'] });
+      queryClient.invalidateQueries({ queryKey: appSettingsKeys.prefixes.registrationEnabled });
       uiNotify.success(enabled ? 'تم تفعيل التسجيل العام' : 'تم إيقاف التسجيل العام');
     },
     onError: (e: unknown) => uiNotify.error(getSafeErrorMessage(e)),

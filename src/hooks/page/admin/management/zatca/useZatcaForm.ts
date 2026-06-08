@@ -9,6 +9,7 @@ import { saveZatcaSettings } from '@/lib/services';
 import { uiNotify } from '@/lib/notify';
 import { validateZatcaSettingsForm } from '@/utils/zatca/validateZatcaForm';
 import { SAVE_MESSAGES } from '@/lib/messages';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 
 export const ZATCA_KEYS = [
   'vat_registration_number',
@@ -59,8 +60,8 @@ export function useZatcaForm() {
     try {
       const rows = ZATCA_KEYS.map((key) => ({ key, value: (formData[key] || '').trim() }));
       await saveZatcaSettings(rows);
-      queryClient.invalidateQueries({ queryKey: ['app-settings', 'zatca'] });
-      queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
+      queryClient.invalidateQueries({ queryKey: appSettingsKeys.byCategory('zatca') });
+      queryClient.invalidateQueries({ queryKey: appSettingsKeys.prefixes.all });
       uiNotify.success('تم حفظ إعدادات الضريبة بنجاح');
       return true;
     } catch {

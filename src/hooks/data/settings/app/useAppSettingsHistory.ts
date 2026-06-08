@@ -7,6 +7,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 
 export interface AppSettingHistoryEntry {
   id: string;
@@ -29,7 +30,7 @@ interface RawRow {
 
 export const useAppSettingsHistory = (filterKey?: string, limit = 50) => {
   return useQuery({
-    queryKey: ['app-settings-history', filterKey ?? '__all__', limit],
+    queryKey: appSettingsKeys.history(filterKey, limit),
     queryFn: async (): Promise<AppSettingHistoryEntry[]> => {
       const { data, error } = await supabase
         .from('audit_log')
