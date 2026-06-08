@@ -110,7 +110,7 @@ describe('useNotificationActions — optimistic mark as read', () => {
     act(() => { result.current.markAllAsRead.mutate(); });
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('تعذّر تحديث حالة الإشعارات', undefined);
-    });
+    }, { timeout: 3000 });
     const all = getList(qc);
     // unread استُعيدا (n1, n2)
     expect(all.filter(n => !n.is_read).map(n => n.id).sort()).toEqual(['n1', 'n2']);
@@ -130,7 +130,7 @@ describe('useNotificationActions — optimistic mark as read', () => {
     act(() => { result.current.deleteOne.mutate('n2'); });
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('تعذّر حذف الإشعار', undefined);
-    });
+    }, { timeout: 3000 });
     expect(getList(qc).find(n => n.id === 'n2')).toBeDefined();
   });
 

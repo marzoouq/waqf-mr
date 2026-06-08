@@ -1,97 +1,120 @@
-## خطة: إغلاق ثغرات aria-label + تقسيم وقائي + اختبارات ناقصة
 
-سأتعامل مع الطلبات الأربعة معاً مع اختياراتي الافتراضية حيث تخطّى المستخدم الأسئلة.
+# الخطة المنقّحة — احترام الوثائق + إصلاح ما يثبت بفحص الكود فقط
 
-### القرارات الافتراضية
-- **نطاق aria-label**: كل `src/pages/**` + `src/components/diagnostics/**` + `src/components/layout/**` (الأشمل — يغطّي header/sidebar الحرجَين).
-- **التقسيم الإضافي**: تقسيم آمن (هدف ≤150 سطر/ملف لإعطاء هامش ~25%).
-- **الاختبار الثالث**: `useAccountsActions.test.ts` (الملف الثالث من السلسلة السابقة الذي لا يملك اختباراً)، مع إضافة `useAiChat.test.ts` بشكل أساسي أيضاً لاكتمال السلسلة.
+> **مبدأ التنقيح:** كل تغيير DB أو سلوك مرئي يجب أن يكون مدعوماً بـ (أ) قراءة جسم الدالة، و(ب) عدم تعارضه مع ذاكرة المشروع. أي بند لم يجتزْ هذين الشرطين أُسقط.
 
 ---
 
-### 1) فحص اشمل لـ aria-label + اختبارات إخفاء/إظهار
+## نتيجة فحص جسم الدوال الـ11 المشتبه بها
 
-#### أ) تشديد الفحص في `src/lib/diagnostics/checks/interactions.ts`
-- توسيع المسح ليشمل `src/components/diagnostics/**` و`src/components/layout/**` (حالياً pages فقط).
-- إضافة فحص جديد `icon_link_no_aria`: عنصر `<Link>` يحتوي فقط `<Icon />` بلا `aria-label` ⇒ warn.
+| الدالة | جسم الدالة | الحكم بعد القراءة |
+|---|---|---|
+| `update_beneficiary_self` | يحوي `WHERE user_id = auth.uid()` صريحاً | ✅ **آمنة** — أُسقط البند P0.2 السابق |
+| `rate_support_ticket` | فحص `v_owner <> auth.uid()` + قيود حالة | ✅ آمنة |
+| `log_access_event` | anti-spoof + rate limit + whitelist للأحداث | ✅ مقصودة anon-callable |
+| `get_public_stats` | تُكرّم `app_settings` (auto/manual/hidden) كما هو موثَّق في `mem://security/privacy/public-stats-anonymization` | ✅ مقصودة anon-callable |
+| `get_total_beneficiary_percentage` | تُرجع رقماً واحداً (مجموع نِسَب) — لا PII | ✅ آمنة |
+| `get_dashboard_full_summary`, `get_dashboard_kpis`, `get_beneficiary_dashboard` | تقرأ `income/expenses/accounts` — هذه الجداول محمية بـ RLS على مستوى الصف | ✅ آمنة — التعرّض المالي محسوم في طبقة الجداول، ليس الدوال |
+| `get_year_comparison_summary`, `get_multi_year_summary`, `get_income_summary_by_source`, `get_expense_summary_by_type`, `get_max_advance_amount` | تجميعات مالية مرئية للمستفيد/الواقف **بحكم الوثائق** (لوحات الأدوار، تقارير الإفصاح) | ✅ آمنة — تقييدها يكسر الوثائق |
+| `get_support_analytics`, `get_support_stats` | تجميعات تذاكر — مقصودة كما هو موثَّق في `mem://business-logic/messaging/support-routing-logic` | ✅ آمنة |
+| **`clear_zatca_otp`** | **لا فحص دور — تمسح OTP شهادة ZATCA لأي مستخدم مسجَّل** | 🔴 **ثغرة مؤكدة** |
 
-#### ب) إضافة aria-label لكل زر/أيقونة بلا تسمية
-سأمسح المشروع وأضيف `aria-label` عربية معبّرة لكل:
-- أزرار `size="icon"` بدون aria-label
-- أزرار أيقونة-فقط (Icon child وحيد بدون نص)
-- `IconButton`/Link حول أيقونة فقط
-
-التغطية المتوقعة: ~10–20 زر بعد المسح (ChartOfAccountsPage و InvoicesPage و SystemDiagnosticsPage بالفعل صحيحة — سنفحص layout/diagnostics).
-
-#### ج) اختبارات Vitest جديدة: `src/test/ariaLabelCoverage.test.ts`
-- يستخدم `import.meta.glob` بـ `?raw` لقراءة كل ملفات `pages/**` و`components/{diagnostics,layout}/**`.
-- يستخرج وسوم Button/IconButton عبر نفس parser المعتمد في interactions.ts.
-- يفشل إن وُجد أي زر `size="icon"` بدون aria-label أو زر أيقونة-فقط بدون aria-label.
-- اختبار ثانٍ: يُحاكي إخفاء/إظهار DropdownMenu في DiagnosticsToolbar (عبر `@testing-library/react`) ويتحقق:
-  - عند `hasResults=false` ⇒ أزرار التصدير وإعادة الفحص محجوبة (`queryByRole('button', { name: /تصدير/ })` يعود null).
-  - عند `hasResults=true` ⇒ تظهر مع aria-label الصحيح.
+**النتيجة:** ثغرة واحدة فعلية فقط، باقي الـ41 تحذيراً هي False positives من Linter لأن `SECURITY DEFINER` ضروري لتجاوز RLS بطريقة مقصودة وموثقة.
 
 ---
 
-### 2) تقسيم وقائي للملفات الثلاث
+## الخطة النهائية (3 بنود حقيقية + توثيق)
 
-#### `SystemDiagnosticsPage.tsx` (194 → ~120)
-- استخراج جسم تبويب "checks" (التكرار على `allCategories` مع البطاقات والـ CheckRow) إلى:
-  - `src/components/diagnostics/DiagnosticsChecksGrid.tsx` (~70 سطر)
-- استخراج تبويب "overview" (NotificationFallbackCard + HealthSummaryCard + WebVitalsPanel) إلى:
-  - `src/components/diagnostics/DiagnosticsOverviewTab.tsx` (~25 سطر)
-- بقاء الصفحة كـ orchestrator نظيف.
+### 🔴 1. إصلاح ثغرة `clear_zatca_otp` (الوحيدة الفعلية)
 
-#### `useAiChat.ts` (153 → ~90)
-- استخراج إدارة الحالة الأساسية (open, messages, input, mode, error, refs) إلى:
-  - `src/hooks/application/ai/useAiChatState.ts` (~50 سطر)
-- يصبح `useAiChat.ts` غلافاً يجمع state + sendMessage + retryLast.
+**الجذر:** الدالة معرّفة `SECURITY DEFINER` بدون أي فحص داخلي للدور. أي مستفيد بإمكانه استدعاء `supabase.rpc('clear_zatca_otp')` ومسح OTP شهادة ZATCA النشطة → تعطيل دورة فوترة كاملة.
 
-#### `useAccountsActions.ts` (152 → ~80)
-- استخراج كل handler إلى ملف منفصل تحت `src/hooks/domain/financial/accountsActions/`:
-  - `useCreateAccountAction.ts` (~30 سطر)
-  - `useCloseFiscalYearAction.ts` (~40 سطر)
-  - `useExportAccountsPdf.ts` (~40 سطر)
-- `useAccountsActions.ts` يصبح composer يستدعي الثلاثة (~70 سطر).
-
-#### حارس حجم آلي — اختبار CI جديد
-`src/test/fileSizeBudget.test.ts`:
-```ts
-const BUDGET = { 'src/pages': 200, 'src/hooks': 180, 'src/components': 250 };
-// يفشل إن تجاوز أي ملف ميزانيته بأكثر من -5% (≥190/171/237 يحذّر فقط)
+**الحل (migration واحدة لا تغيّر أي سلوك مرئي):**
+```sql
+CREATE OR REPLACE FUNCTION public.clear_zatca_otp()
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.has_role(auth.uid(), 'admin'::app_role) THEN
+    RAISE EXCEPTION 'Forbidden: admin role required' USING ERRCODE = '42501';
+  END IF;
+  UPDATE public.app_settings
+     SET value = '', updated_at = now()
+   WHERE key IN ('zatca_otp_1','zatca_otp_2') AND value != '';
+END;
+$$;
+REVOKE EXECUTE ON FUNCTION public.clear_zatca_otp() FROM PUBLIC, anon;
+-- يبقى GRANT للـ authenticated لأن الناظر authenticated، والفحص الداخلي يحجب غيره.
 ```
 
----
-
-### 3) ضمان صفر زر بدون معالج في الصفحات الثلاث
-بعد التقسيم سأمرّر كل وسوم Button/Link في:
-- `SystemDiagnosticsPage.tsx` + المكوّنات المستخرَجة الجديدة
-- صفحات المستهلكة لـ `useAiChat` (AiChatPanel) و`useAccountsActions` (AccountsPage)
-
-وأتحقّق أن كل `<Button>` لديه واحد من: `onClick`، `type="submit"`، `asChild` مع Link/Trigger، `disabled`. إن وُجد أي زر/تبويب بدون handler ⇒ أضيفه فوراً أو أحذف الزر إن كان زائداً.
-
-اختبار توكيدي إضافي في `src/test/handlerCoverage.test.ts`: يطبّق نفس heuristic الموسّع على المسارات الثلاثة ويفشل إن وُجد أي تحذير.
+**التحقق:** جلسة مستفيد → `supabase.rpc('clear_zatca_otp')` يجب أن تُرجع `permission denied`. جلسة ناظر → ✅ تنجح.
 
 ---
 
-### 4) اختبار وحدة للهوكين الناقصَين
+### 🔴 2. فك حظر `pre-push` (P0.4 + P0.5 السابقان)
 
-#### `src/hooks/application/ai/useAiChatState.test.ts` (~40 سطر)
-- يتحقق من القيم الابتدائية، `setOpen`، `closePanel` (يلغي abort)، `clearMessages`، `handleModeChange` (يصفّر الرسائل عند تغيير الوضع).
+**2.أ — `SystemDiagnosticsPage.tsx` يستخدم `location.reload`**
+- **الجذر:** التنظيف العميق يُلغي تسجيل SW + يمسح كل التخزين. `invalidateQueries` لا يكفي.
+- **الحل:** إضافة المسار إلى ALLOWLIST في `src/components/pwa/__tests__/no-forced-reload.test.tsx` مع تعليق: *"reload ضروري بعد runDeepClean لإعادة bootstrap كامل (SW + caches + IDB كلها مُسحت)"*.
+- **لا تغيير في سلوك صفحة التشخيص.**
 
-#### `src/hooks/domain/financial/accountsActions/useAccountsActions.test.ts` (~60 سطر)
-- يَمُك `useCreateAccount` و`useCloseFiscalYear` عبر `vi.mock`.
-- يتحقق:
-  - `handleCreateAccount` يرفض بدون `selectedFY` ويستدعي toast خطأ.
-  - `handleCloseYear` يرفض إن لم يكن `role === 'admin'`.
-  - `handleCloseYear` يستدعي `closeFiscalYear.mutateAsync` بالـ payload الصحيح للنجاح.
+**2.ب — `useNotificationActions.test.ts` flaky**
+- **الجذر:** `waitFor` افتراضي (1000ms) قصير لـ CI البطيء أثناء rollback متعدد المراحل.
+- **الحل:** زيادة `timeout: 3000` على `waitFor` في الـ3 اختبارات المتقطعة فقط.
+- **لا تغيير في كود الإنتاج.**
+
+**التحقق:** `npx vitest run` يخرج 2121/2121 ✅، و `npm run audit:gate` يمر.
 
 ---
 
-### القيود والتحقق النهائي
-- **محظور**: ملفات auth/Supabase المحمية، لا migrations، لا تعديل علامات إعدادات أمنية.
-- **قيود تنسيق**: RTL، `hsl(var(--*))`، `logger`، حدود حجم 200/180.
-- **بعد التنفيذ**:
-  1. `bunx vitest run` ⇒ كل الاختبارات الجديدة خضراء.
-  2. `/dashboard/diagnostics` ⇒ "أزرار بدون معالج" و"aria-label للأيقونات" و"حدود حجم الملفات" جميعها **pass**.
-  3. لقطة شاشة سريعة عبر `browser--view_preview` للتأكد من سلامة التخطيط بعد التقسيم.
+### 📝 3. توثيق ما هو "آمن بالقصد" في security memory
+
+**الجذر:** Linter يرفع 41 WARN على دوال `SECURITY DEFINER` لأن السكانر لا يرى الـRLS التي تحميها على مستوى الجداول، ولا يعرف أن `contracts_safe` مقصودة `security_invoker=off`. هذه ضوضاء تُربك التدقيق المستقبلي.
+
+**الحل:** `security--update_memory` يوثّق:
+- `contracts_safe` view: `security_invoker=off` عمداً لإخفاء PII (مذكور بالفعل في `mem://security/views/contracts-safe-rationale`).
+- 40 دالة SECURITY DEFINER: كلها إما تحوي فحص دور داخلي صريح، أو تحمي البيانات عبر RLS على الجداول الأساسية، أو مقصودة anon-callable (landing + audit logging).
+- استثناء واحد أُصلح: `clear_zatca_otp` (البند 1 أعلاه).
+
+**لا تعديل على أي دالة أخرى. لا تعديل على أي سلوك يراه أي دور.**
+
+---
+
+## ما **لن** يتم (سحبت من الخطة السابقة)
+
+| البند المسحوب | السبب |
+|---|---|
+| تقييد `get_dashboard_full_summary` على admin/accountant | يكسر لوحة المستفيد الموثَّقة |
+| تقييد `get_*_summary_by_*` و `get_year_comparison_summary` | يكسر تقرير الإفصاح ومقارنة السنوات للمستفيد/الواقف |
+| تقييد `get_max_advance_amount` و `get_total_beneficiary_percentage` | يكسر تدفق طلب السلفة للمستفيد |
+| تقييد `get_support_stats/analytics` | الوثائق تجعلها لوحة دعم متاحة |
+| `REVOKE EXECUTE FROM authenticated` على RPC إدارية | كلها تحوي `has_role` داخلياً بالفعل — الـ REVOKE زائد ويكسر استدعاءات تيستات |
+| تعديل عرض `contracts_safe` | محظور بالذاكرة |
+
+---
+
+## ما يبقى من تنظيف اختياري (لا يمسّ السلوك ولا الوثائق)
+
+- استبدال `any` الوحيد في `utils/pdf/core/pdfHelpers.ts` بنوع `jsPDF`.
+- توثيق الـ3 `@ts-ignore` بتعليق سبب.
+- تقسيم `useContractForm.ts` (228 سطر) إلى ملفّين.
+
+**هذه ليست في الخطة الأساسية**؛ تنفَّذ فقط لو طلبتها صراحة.
+
+---
+
+## التسلسل الزمني
+
+| الخطوة | الزمن |
+|---|---|
+| 1. migration لـ `clear_zatca_otp` | 5 دق |
+| 2.أ ALLOWLIST + 2.ب timeout للاختبارات | 5 دق |
+| 3. `security--update_memory` | 5 دق |
+| التحقق النهائي (`npm run audit`, `npm test`, `supabase--linter`) | 10 دق |
+| **المجموع** | **25 دقيقة** |
+
+---
+
+## تأكيد مطلوب قبل التنفيذ
+
+هل أنفّذ الخطة بهذه الصورة المنقّحة (3 بنود فقط، لا تغيير في أي سلوك يراه أي دور، ولا تعديل خارج البند الواحد المؤكد)?
