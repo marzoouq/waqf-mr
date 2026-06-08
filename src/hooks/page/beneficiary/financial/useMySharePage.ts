@@ -12,7 +12,7 @@ import { useEndUserDashboardData } from '@/hooks/application/dashboard/useEndUse
 import { useMySharePdfHandlers } from '@/hooks/page/beneficiary';
 import { useEndUserFinancials } from '@/hooks/application/dashboard/useEndUserFinancials';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
-import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distributionSummary';
+import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils/financial/distribution/distributionSummary';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { safeNumber } from '@/utils/format/safeNumber';
 import type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';

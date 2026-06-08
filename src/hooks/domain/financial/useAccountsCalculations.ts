@@ -2,9 +2,9 @@
  * حسابات صفحة الحسابات — VAT، إيجارات، تحصيل، ملخصات مالية
  */
 import { useMemo, useCallback } from 'react';
-import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/financial/accountsCalculations';
-import { closedYearFinancials } from '@/utils/financial/closedYearFinancials';
-import { getPaymentCountFromMonths, getContractStatusLabel } from '@/utils/financial/contractHelpers';
+import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/financial/fiscalYear/accountsCalculations';
+import { closedYearFinancials } from '@/utils/financial/fiscalYear/closedYearFinancials';
+import { getPaymentCountFromMonths, getContractStatusLabel } from '@/utils/financial/contracts/contractHelpers';
 import type { useAccountsData } from './useAccountsData';
 
 type AccountsData = ReturnType<typeof useAccountsData>;

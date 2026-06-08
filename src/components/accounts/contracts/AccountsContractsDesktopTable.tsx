@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { classifyContractOrigin } from '@/utils/financial/contractClassification';
+import { classifyContractOrigin } from '@/utils/financial/contracts/contractClassification';
 import type { Contract } from '@/types';
 import { originBadge } from './originBadge';
 

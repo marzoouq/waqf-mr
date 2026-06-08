@@ -7,7 +7,7 @@
  */
 import { useMemo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { toSourceRecord, toExpenseRecord } from '@/utils/financial/recordConverters';
+import { toSourceRecord, toExpenseRecord } from '@/utils/financial/computations/recordConverters';
 import type { EndUserDashboardData } from './useEndUserDashboardData';
 
 export function useEndUserFinancials(dashData: EndUserDashboardData | undefined, fiscalYearId?: string | null) {

@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Plus } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import type { Income } from '@/types';
-import type { IncomeFieldErrors, IncomeFormInput } from '@/utils/financial/incomeFormValidation';
+import type { IncomeFieldErrors, IncomeFormInput } from '@/utils/financial/collection/incomeFormValidation';
 
 interface Property { id: string; property_number: string; location: string; }
 

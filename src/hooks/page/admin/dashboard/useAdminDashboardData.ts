@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { isFyAll } from '@/constants/fiscalYearIds';
 import { useAdminDashboardStats } from './useAdminDashboardStats';
 import { ROLE_LABELS } from '@/constants/roles';
-import { computeExpenseRatio } from '@/utils/financial/ratios';
+import { computeExpenseRatio } from '@/utils/financial/computations/ratios';
 import type { useDashboardSummary } from '@/hooks/data/financial/dashboard/useDashboardSummary';
 
 type DashboardSummary = Omit<ReturnType<typeof useDashboardSummary>, 'isLoading'>;

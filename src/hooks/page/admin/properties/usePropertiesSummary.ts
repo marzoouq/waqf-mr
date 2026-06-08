@@ -9,7 +9,7 @@ import { useExpensesByFiscalYear } from '@/hooks/data/financial/expenses/useExpe
 import { useAccountByFiscalYear } from '@/hooks/data/financial/accounts/useAccounts';
 import { useContractAllocationMap } from '@/hooks/domain/financial/useContractAllocationMap';
 import { useContractAllocations } from '@/hooks/data/financial/contracts/useContractAllocations';
-import { computeContractualRevenue } from '@/utils/financial/computeContractualRevenue';
+import { computeContractualRevenue } from '@/utils/financial/collection/computeContractualRevenue';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { safeNumber } from '@/utils/format/safeNumber';

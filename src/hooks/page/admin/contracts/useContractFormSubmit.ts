@@ -21,8 +21,8 @@ import {
   notifyInvoicesRegenerated,
   notifyContractsCreatedWithInvoices,
 } from '@/lib/contracts/invoiceSync';
-import { allocateContractToFiscalYears } from '@/utils/financial/contractAllocation';
-import { getPaymentCount } from '@/utils/financial/contractHelpers';
+import { allocateContractToFiscalYears } from '@/utils/financial/contracts/contractAllocation';
+import { getPaymentCount } from '@/utils/financial/contracts/contractHelpers';
 import { asMutationArg } from '@/hooks/data/core';
 import { buildContractPayload } from '@/utils/contracts/contractFormBuilders';
 import { validateContractForm } from '@/utils/contracts/contractFormValidation';

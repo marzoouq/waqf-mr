@@ -5,7 +5,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ExpenseFormDialog from '../ExpenseFormDialog';
-import type { ExpenseFormInput } from '@/utils/financial/expenseFormValidation';
+import type { ExpenseFormInput } from '@/utils/financial/expenses/expenseFormValidation';
 
 const baseProps = {
   isOpen: true,

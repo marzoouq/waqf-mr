@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateFinancials, computeTotals, groupIncomeBySource, groupExpensesByType } from '@/utils/financial/accountsCalculations';
+import { calculateFinancials, computeTotals, groupIncomeBySource, groupExpensesByType } from '@/utils/financial/fiscalYear/accountsCalculations';
 
 describe('calculateFinancials — التسلسل المالي الكامل', () => {
   const baseParams = {

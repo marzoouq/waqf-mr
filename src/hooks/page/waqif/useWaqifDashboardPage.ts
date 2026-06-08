@@ -5,11 +5,11 @@
 import { useMemo } from 'react';
 import { useGreeting } from '@/hooks/ui/useGreeting';
 import { fmt } from '@/utils/format/format';
-import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/dashboardComputations';
-import { computeExpenseRatio, EXPENSE_RATIO_FULL_DEFICIT } from '@/utils/financial/ratios';
+import { computeCollectionSummary, computeOccupancy } from '@/utils/financial/computations/dashboardComputations';
+import { computeExpenseRatio, EXPENSE_RATIO_FULL_DEFICIT } from '@/utils/financial/computations/ratios';
 import { safeNumber } from '@/utils/format/safeNumber';
-import { buildMonthlyData } from '@/utils/financial/buildMonthlyData';
-import { computeContractualRevenue } from '@/utils/financial/computeContractualRevenue';
+import { buildMonthlyData } from '@/utils/financial/computations/buildMonthlyData';
+import { computeContractualRevenue } from '@/utils/financial/collection/computeContractualRevenue';
 import { isFyReady } from '@/constants/fiscalYearIds';
 
 // #M6 — مصدر مشترك في طبقة application (لا cross-role coupling عبر beneficiary)

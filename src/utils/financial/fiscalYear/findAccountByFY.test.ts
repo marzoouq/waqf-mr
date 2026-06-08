@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { findAccountByFY } from '@/utils/financial/findAccountByFY';
+import { findAccountByFY } from '@/utils/financial/fiscalYear/findAccountByFY';
 
 const makeAcct = (fiscal_year: string, fiscal_year_id?: string | null) => ({
   fiscal_year,

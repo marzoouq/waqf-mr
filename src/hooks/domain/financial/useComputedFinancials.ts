@@ -5,9 +5,9 @@ import {
   calculateFinancials,
   groupIncomeBySource,
   groupExpensesByType,
-} from '@/utils/financial/accountsCalculations';
-import { activeYearFinancials } from '@/utils/financial/activeYearFinancials';
-import { closedYearFinancials } from '@/utils/financial/closedYearFinancials';
+} from '@/utils/financial/fiscalYear/accountsCalculations';
+import { activeYearFinancials } from '@/utils/financial/fiscalYear/activeYearFinancials';
+import { closedYearFinancials } from '@/utils/financial/fiscalYear/closedYearFinancials';
 import { isFyAll } from '@/constants/fiscalYearIds';
 import { safeNumber, safePercent } from '@/utils/format/safeNumber';
 
