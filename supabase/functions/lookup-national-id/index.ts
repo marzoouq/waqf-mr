@@ -71,25 +71,25 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
-    if (!supabaseUrl || !serviceRoleKey || !anonKey) {
+    if (!supabaseUrl || !anonKey) {
       return new Response(
         JSON.stringify({ error: "خطأ في إعدادات الخادم" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    // Anon client — RPCs are SECURITY DEFINER with EXECUTE granted to anon.
+    // SERVICE_ROLE_KEY is intentionally NOT used (no privileged operations needed here).
+    const supabase = createClient(supabaseUrl, anonKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // Rate limiting عبر قاعدة البيانات (يعمل بشكل موثوق عبر كل instances)
+    // ── Layer 1: per-IP rate limit ──
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const rateLimitKey = `lookup_nid:${clientIp}`;
 
-    // استعلام واحد: فحص + زيادة العداد (بدلاً من 3 استعلامات منفصلة)
     const { data: isLimited, error: rlError } = await supabase.rpc('check_rate_limit', {
       p_key: rateLimitKey,
       p_limit: RATE_LIMIT,
@@ -116,13 +116,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // حساب المحاولات المتبقية من استعلام واحد بعد الزيادة
-    const { data: updatedCount } = await supabase
-      .from('rate_limits')
-      .select('count')
-      .eq('key', rateLimitKey)
-      .maybeSingle();
-    const remaining = Math.max(0, RATE_LIMIT - (updatedCount?.count ?? 1));
+    // remaining count via RPC (rate_limits table is not directly readable by anon)
+    const { data: updatedCount } = await supabase.rpc('get_rate_limit_count', {
+      p_key: rateLimitKey,
+    });
+    const remaining = Math.max(0, RATE_LIMIT - (Number(updatedCount) || 1));
 
     const rawBody = await req.json().catch(() => ({}));
     const parsed = BodySchema.safeParse(rawBody);
@@ -147,6 +145,42 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Luhn check (Saudi National ID format) — يرفض الأرقام المزيّفة قبل أي استعلام DB
+    if (!isValidSaudiNationalId(national_id)) {
+      return new Response(
+        JSON.stringify({ error: "رقم الهوية غير صالح", remaining }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ── Layer 2: per-national-id rate limit (يمنع enumeration عبر IP rotation) ──
+    // المفتاح مُشفَّر (SHA-256) لمنع تسريب الأرقام الفعلية في جدول rate_limits
+    const idHash = await sha256Hex(national_id);
+    const targetKey = `lookup_nid_target:${idHash}`;
+    const { data: targetLimited, error: tlError } = await supabase.rpc('check_rate_limit', {
+      p_key: targetKey,
+      p_limit: TARGET_RATE_LIMIT,
+      p_window_seconds: TARGET_RATE_WINDOW_SECONDS,
+    });
+    if (tlError) {
+      console.error("target rate_limit check failed");
+      return new Response(
+        JSON.stringify({ error: "خطأ مؤقت في الخادم، يرجى المحاولة لاحقاً" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (targetLimited) {
+      return new Response(
+        JSON.stringify({
+          error: "تم تجاوز حد المحاولات، يرجى الانتظار",
+          remaining: 0,
+          retry_after: TARGET_RATE_WINDOW_SECONDS,
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
 
 
     // Fixed delay to prevent timing-based enumeration
