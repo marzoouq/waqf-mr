@@ -26,6 +26,9 @@ const ALLOWLIST = new Set<string>([
   'components/common/feedback/ErrorBoundary.tsx',
   // استرداد من chunk load failure بعد نشر جديد (مرة واحدة فقط مع علم session)
   'lib/lazyWithRetry.ts',
+  // reload ضروري بعد runDeepClean: إلغاء تسجيل SW + مسح كل caches/IDB/storage
+  // يتطلب bootstrap كامل لإعادة تركيب التطبيق من الصفر
+  'pages/dashboard/SystemDiagnosticsPage.tsx',
 ]);
 
 function walk(dir: string, out: string[] = []): string[] {
