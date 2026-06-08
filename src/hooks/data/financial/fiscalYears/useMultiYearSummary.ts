@@ -1,8 +1,9 @@
 /**
- * هوك لجلب ملخص مالي لعدة سنوات في استدعاء RPC واحد
+ * هوك لجلب ملخص مالي لعدة سنوات عبر Edge Function `multi-year-summary`.
+ * RPC مغلقة على authenticated — تُستدعى حصراً عبر Edge موثَّقة الدور.
  */
 import { useQuery } from '@tanstack/react-query';
-import { rpc } from '@/lib/api/rpc';
+import { invoke } from '@/lib/api/invoke';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { mapEntry, type RpcYearEntry } from '@/utils/financial/multiYearHelpers';
 import type { YearSummaryEntry } from '@/types/financial/multiYear';
@@ -19,12 +20,10 @@ export function useMultiYearSummary(yearIds: string[]) {
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
     queryFn: async () => {
-      const data = await rpc('get_multi_year_summary', {
-        p_year_ids: sortedIds,
+      const data = await invoke<RpcYearEntry[]>('multi-year-summary', {
+        body: { year_ids: sortedIds },
       });
-      // RPC — cast مبرر، يحتاج Zod validation لاحقاً
-      const arr = data as unknown as RpcYearEntry[];
-      return (arr ?? []).map(mapEntry);
+      return (data ?? []).map(mapEntry);
     },
   });
 }
