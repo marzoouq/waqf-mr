@@ -4,10 +4,11 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 
 export const useBeneficiariesForMessaging = () => {
   return useQuery({
-    queryKey: ['beneficiaries-safe', 'messaging-recipients'],
+    queryKey: beneficiariesKeys.messagingRecipients(),
     queryFn: async () => {
       // F-A2: استخدام beneficiaries_safe (view آمن) بدل جدول PII الخام.
       const { data, error } = await supabase

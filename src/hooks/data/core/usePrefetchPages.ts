@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { prefetchComponent } from '@/lib/componentPrefetch';
 import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
+import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 import { propertiesQueryOptions } from '@/hooks/data/properties/useProperties';
 import { contractsQueryOptions } from '@/hooks/data/contracts/useContracts';
 import { accountsQueryOptions } from '@/hooks/data/financial/accounts/useAccounts';
@@ -41,7 +42,7 @@ export function usePrefetchPages() {
     // F-A1: المفتاح ['beneficiaries-safe'] يطابق useBeneficiariesSafe لتفادي تصادم
     // الكاش مع useBeneficiaries (CRUD factory على جدول beneficiaries الحقيقي).
     queryClient.prefetchQuery({
-      queryKey: ['beneficiaries-safe'],
+      queryKey: beneficiariesKeys.safe(),
       staleTime: PREFETCH_STALE,
       queryFn: async () => {
         const { data, error } = await supabase

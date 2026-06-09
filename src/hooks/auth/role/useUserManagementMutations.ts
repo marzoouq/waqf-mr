@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
+import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 import { callAdminApi } from './useUserManagementData';
 
 export const useCreateUserMutation = (onSuccess?: () => void) => {
@@ -98,7 +99,7 @@ export const useLinkBeneficiaryMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unlinked-beneficiaries'] });
       queryClient.invalidateQueries({ queryKey: ['orphaned-beneficiaries'] });
-      queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] });
+      queryClient.invalidateQueries({ queryKey: beneficiariesKeys.prefixes.safe });
       uiNotify.success('تم ربط المستخدم بالمستفيد بنجاح');
     },
     onError: (e: unknown) => uiNotify.error(getSafeErrorMessage(e)),

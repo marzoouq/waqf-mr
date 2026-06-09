@@ -5,12 +5,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { invoke } from '@/lib/api/invoke';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 
 interface AdminUserRow { id: string; email?: string; role?: string }
 
 export const useBeneficiaryUsers = (enabled: boolean) => {
   return useQuery({
-    queryKey: ['beneficiary-users'],
+    queryKey: beneficiariesKeys.users(),
     staleTime: STALE_FINANCIAL,
     enabled,
     queryFn: async () => {

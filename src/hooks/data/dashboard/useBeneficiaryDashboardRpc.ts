@@ -11,13 +11,14 @@ import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import type { BeneficiaryDashboardData } from './types';
+import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 
 export const useBeneficiaryDashboardRpc = (fiscalYearId?: string) => {
   const { user } = useAuth();
   const fyReady = isFyReady(fiscalYearId);
 
   return useQuery<BeneficiaryDashboardData>({
-    queryKey: ['beneficiary-dashboard', user?.id, fiscalYearId],
+    queryKey: beneficiariesKeys.dashboard(user?.id, fiscalYearId),
     enabled: !!user && fyReady && !isFyAll(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
