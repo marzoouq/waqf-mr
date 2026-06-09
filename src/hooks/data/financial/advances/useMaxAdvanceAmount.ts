@@ -4,6 +4,7 @@
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
+import { advancesKeys } from '@/lib/queryKeys/advancesKeys';
 
 export interface ServerAdvanceData {
   estimated_share: number;
@@ -22,7 +23,7 @@ export const useMaxAdvanceAmount = (
   const queryClient = useQueryClient();
 
   const { data: serverData = null, isLoading: loading, error } = useQuery<ServerAdvanceData | null>({
-    queryKey: ['max-advance', beneficiaryId, fiscalYearId],
+    queryKey: advancesKeys.maxAdvance(beneficiaryId, fiscalYearId),
     enabled: enabled && !!beneficiaryId && !!fiscalYearId,
     staleTime: 30_000,
     queryFn: async () => {
@@ -36,7 +37,7 @@ export const useMaxAdvanceAmount = (
   });
 
   const reset = () => {
-    queryClient.removeQueries({ queryKey: ['max-advance', beneficiaryId, fiscalYearId] });
+    queryClient.removeQueries({ queryKey: advancesKeys.maxAdvance(beneficiaryId, fiscalYearId) });
   };
 
   return { serverData, loading, error, reset };

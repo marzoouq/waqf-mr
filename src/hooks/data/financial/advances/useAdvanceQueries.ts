@@ -4,6 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_REALTIME } from '@/lib/queryStaleTime';
+import { advancesKeys } from '@/lib/queryKeys/advancesKeys';
 import type { AdvanceRequest, AdvanceCarryforward } from '@/types/advance';
 
 // إعادة تصدير الأنواع للتوافقية
@@ -21,7 +22,7 @@ export interface MyBeneficiaryFinanceRaw {
 
 export const useMyBeneficiaryFinanceRaw = (beneficiaryId?: string) => {
   return useQuery({
-    queryKey: ['my_beneficiary_finance_raw', beneficiaryId],
+    queryKey: advancesKeys.myFinanceRaw(beneficiaryId),
     staleTime: STALE_REALTIME,
     queryFn: async (): Promise<MyBeneficiaryFinanceRaw> => {
       if (!beneficiaryId) return { advances: [], carryforwards: [] };
@@ -64,7 +65,7 @@ export const useMyBeneficiaryFinanceRaw = (beneficiaryId?: string) => {
  */
 export const useAllCarryforwards = (fiscalYearId?: string) => {
   return useQuery({
-    queryKey: ['advance_carryforward', 'all', fiscalYearId],
+    queryKey: advancesKeys.carryforwardAll(fiscalYearId),
     staleTime: STALE_REALTIME,
     queryFn: async () => {
       let query = supabase

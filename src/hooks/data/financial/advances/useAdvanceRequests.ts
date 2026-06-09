@@ -8,6 +8,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { advancesKeys } from '@/lib/queryKeys/advancesKeys';
 import {
   validateTargetStatus,
   buildStatusUpdates,
@@ -28,7 +29,7 @@ export { STATUS_SUCCESS_MESSAGES } from '@/lib/services/advanceService';
  */
 export const useAdvanceRequests = (fiscalYearId?: string) => {
   return useQuery({
-    queryKey: ['advance_requests', fiscalYearId ?? 'all'],
+    queryKey: advancesKeys.requestsByFiscalYear(fiscalYearId ?? 'all'),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       let query = supabase
@@ -71,8 +72,8 @@ export const useCreateAdvanceRequest = () => {
       return { ...data, _beneficiaryName: beneficiaryName ?? null };
     },
     onSuccess: (result, vars) => {
-      qc.invalidateQueries({ queryKey: ['advance_requests'] });
-      qc.invalidateQueries({ queryKey: ['my_beneficiary_finance'] });
+      qc.invalidateQueries({ queryKey: advancesKeys.prefixes.requests });
+      qc.invalidateQueries({ queryKey: advancesKeys.prefixes.myFinance });
       // push notification للناظر — ليس toast UI
       notifyOnCreate(result.beneficiary_id, result._beneficiaryName, Number(vars.amount));
     },
@@ -104,9 +105,9 @@ export const useUpdateAdvanceStatus = () => {
       if (!data?.length) throw new Error('لا يمكن تغيير الحالة — ربما تم تعديلها مسبقاً');
     },
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['advance_requests'] });
-      qc.invalidateQueries({ queryKey: ['advance_carryforward'] });
-      qc.invalidateQueries({ queryKey: ['my_beneficiary_finance'] });
+      qc.invalidateQueries({ queryKey: advancesKeys.prefixes.requests });
+      qc.invalidateQueries({ queryKey: advancesKeys.prefixes.carryforward });
+      qc.invalidateQueries({ queryKey: advancesKeys.prefixes.myFinance });
       if (vars.status === 'paid') qc.invalidateQueries({ queryKey: ['accounts'] });
       // push notification للمستفيد — ليس toast UI
       notifyOnStatusChange(vars.beneficiary_user_id, vars.status, vars.amount, vars.rejection_reason);
