@@ -1,10 +1,13 @@
 /**
  * هوك إدارة حالة نموذج إنشاء فاتورة من قالب
  */
-import { useState, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
 import type { Contract } from '@/types';
 import type { AllowanceChargeItem } from '@/types/invoices';
+import { useInvoiceLineItems, type LineItem } from './useInvoiceLineItems';
+
+export type { LineItem };
 
 export const INVOICE_TYPES = [
   { value: 'rent', label: 'إيجار' },
@@ -12,14 +15,6 @@ export const INVOICE_TYPES = [
   { value: 'utilities', label: 'خدمات (كهرباء/مياه)' },
   { value: 'other', label: 'أخرى' },
 ];
-
-export interface LineItem {
-  id: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  vatRate: number;
-}
 
 interface UseCreateInvoiceFormParams {
   contracts: Contract[];
@@ -39,6 +34,12 @@ interface UseCreateInvoiceFormParams {
   }) => Promise<void>;
 }
 
+/** نسبة الضريبة الفعلية حسب إعفاء العقار */
+const resolveVatRateFor = (c: Contract | undefined | null, defaultVatRate: number): number => {
+  const vatExempt = (c as unknown as { property?: { vat_exempt?: boolean } } | undefined)?.property?.vat_exempt;
+  return vatExempt ? 0 : safeNumber(defaultVatRate);
+};
+
 export function useCreateInvoiceForm({ contracts, onSave, defaultVatRate = 15 }: UseCreateInvoiceFormParams) {
   const [activeTab, setActiveTab] = useState<'form' | 'preview'>('form');
   const [invoiceNumber, setInvoiceNumber] = useState('');
@@ -47,73 +48,44 @@ export function useCreateInvoiceForm({ contracts, onSave, defaultVatRate = 15 }:
   const [contractId, setContractId] = useState('');
   const [propertyId, setPropertyId] = useState('');
   const [notes, setNotes] = useState('');
-  const [items, setItems] = useState<LineItem[]>([
-    { id: crypto.randomUUID(), description: '', quantity: 1, unitPrice: 0, vatRate: defaultVatRate },
-  ]);
   const [allowances, setAllowances] = useState<AllowanceChargeItem[]>([]);
   const [charges, setCharges] = useState<AllowanceChargeItem[]>([]);
   const [previewTemplate, setPreviewTemplate] = useState<'professional' | 'simplified'>('professional');
 
   const selectedContract = contracts.find(c => c.id === contractId);
 
-  /** نسبة الضريبة الفعلية حسب إعفاء العقار */
-  const resolveVatRate = (c?: Contract | null): number => {
-    // property.vat_exempt يأتي ضمن CONTRACT_SELECT_WITH_JOINS
-    const vatExempt = (c as unknown as { property?: { vat_exempt?: boolean } } | undefined)?.property?.vat_exempt;
-    return vatExempt ? 0 : safeNumber(defaultVatRate);
-  };
+  const resolveCurrentVatRate = useCallback(
+    () => resolveVatRateFor(contracts.find(c => c.id === contractId), defaultVatRate),
+    [contracts, contractId, defaultVatRate],
+  );
+
+  const {
+    items, setItems, addItem, removeItem, updateItem,
+    computedItems, totalExVat, totalVat, grandTotal, resetItems,
+  } = useInvoiceLineItems(defaultVatRate, resolveCurrentVatRate);
 
   // عند اختيار عقد — تعبئة تلقائية
   const handleContractChange = (cId: string) => {
     setContractId(cId);
     const c = contracts.find(ct => ct.id === cId);
-    if (c) {
-      setPropertyId(c.property_id);
-      const rate = resolveVatRate(c);
-      if (c.payment_amount) {
-        setItems([{
-          id: crypto.randomUUID(),
-          description: `إيجار — عقد ${c.contract_number}`,
-          quantity: 1,
-          unitPrice: safeNumber(c.payment_amount),
-          vatRate: rate,
-        }]);
-      } else {
-        // حدّث نسبة البنود القائمة لتعكس العقار المختار
-        setItems(prev => prev.map(it => ({ ...it, vatRate: rate })));
-      }
+    if (!c) return;
+    setPropertyId(c.property_id);
+    const rate = resolveVatRateFor(c, defaultVatRate);
+    if (c.payment_amount) {
+      setItems([{
+        id: crypto.randomUUID(),
+        description: `إيجار — عقد ${c.contract_number}`,
+        quantity: 1,
+        unitPrice: safeNumber(c.payment_amount),
+        vatRate: rate,
+      }]);
+    } else {
+      setItems(prev => prev.map(it => ({ ...it, vatRate: rate })));
     }
   };
 
-  const addItem = () => {
-    const rate = resolveVatRate(selectedContract);
-    setItems(prev => [...prev, { id: crypto.randomUUID(), description: '', quantity: 1, unitPrice: 0, vatRate: rate }]);
-  };
-
-  const removeItem = (id: string) => {
-    if (items.length <= 1) return;
-    setItems(prev => prev.filter(i => i.id !== id));
-  };
-
-  const updateItem = (id: string, field: keyof LineItem, value: string | number) => {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, [field]: value } : i));
-  };
-
-  // حسابات
-  const computedItems = useMemo(() => items.map(item => {
-    const subtotal = safeNumber(item.quantity) * safeNumber(item.unitPrice);
-    const vatAmount = Math.round(subtotal * (safeNumber(item.vatRate) / 100) * 100) / 100;
-    const total = Math.round((subtotal + vatAmount) * 100) / 100;
-    return { ...item, subtotal, vatAmount, total };
-  }), [items]);
-
-  const totalExVat = computedItems.reduce((s, i) => s + i.subtotal, 0);
-  const totalVat = computedItems.reduce((s, i) => s + i.vatAmount, 0);
-  const grandTotal = Math.round((totalExVat + totalVat) * 100) / 100;
-
   const isStandard = !!selectedContract?.tenant_tax_number;
 
-  // حقول ناقصة
   const missingFields: string[] = [];
   if (isStandard) {
     if (!selectedContract?.tenant_tax_number) missingFields.push('الرقم الضريبي للمشتري');
@@ -128,9 +100,13 @@ export function useCreateInvoiceForm({ contracts, onSave, defaultVatRate = 15 }:
     if (!invoiceType || !invoiceDate) return;
     if (grandTotal <= 0) return;
 
+    const totalBase = items.reduce((s, i) => s + (i.quantity * i.unitPrice), 0);
+    const vatRate = totalBase <= 0
+      ? (items[0]?.vatRate ?? resolveCurrentVatRate())
+      : Math.round(items.reduce((s, i) => s + ((i.quantity * i.unitPrice) / totalBase) * i.vatRate, 0) * 100) / 100;
+
     await onSave({
-      // حقل nullable لكن الـ type يتوقع string — cast ضروري
-      invoice_number: invoiceNumber || null as unknown as string,
+      invoice_number: invoiceNumber || (null as unknown as string),
       invoice_type: invoiceType,
       amount: grandTotal,
       date: invoiceDate,
@@ -138,11 +114,7 @@ export function useCreateInvoiceForm({ contracts, onSave, defaultVatRate = 15 }:
       contract_id: contractId || null,
       description: items.map(i => i.description).filter(Boolean).join(' | ') || notes || null,
       status: 'pending',
-      vat_rate: (() => {
-        const totalBase = items.reduce((s, i) => s + (i.quantity * i.unitPrice), 0);
-        if (totalBase <= 0) return items[0]?.vatRate ?? resolveVatRate(selectedContract);
-        return Math.round(items.reduce((s, i) => s + ((i.quantity * i.unitPrice) / totalBase) * i.vatRate, 0) * 100) / 100;
-      })(),
+      vat_rate: vatRate,
       vat_amount: totalVat,
     });
 
@@ -152,7 +124,7 @@ export function useCreateInvoiceForm({ contracts, onSave, defaultVatRate = 15 }:
     setContractId('');
     setPropertyId('');
     setNotes('');
-    setItems([{ id: crypto.randomUUID(), description: '', quantity: 1, unitPrice: 0, vatRate: safeNumber(defaultVatRate) }]);
+    resetItems();
     setAllowances([]);
     setCharges([]);
     setActiveTab('form');

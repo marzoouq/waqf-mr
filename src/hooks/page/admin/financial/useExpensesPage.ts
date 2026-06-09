@@ -18,8 +18,8 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 import { computeDocumentationStats } from '@/utils/financial/contracts/documentationRate';
-import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { filterAndSortExpenses } from '@/utils/financial/expenses/expensesCompute';
+import { useExpensesExporters } from './useExpensesExporters';
 
 export type SortField = SortFieldOf<'amount' | 'date' | 'expense_type'>;
 
@@ -154,22 +154,7 @@ export function useExpensesPage() {
   /** هل السنة المالية محددة ويمكن الإضافة؟ — #15 */
   const canAdd = !!fiscalYear?.id && !isLocked;
 
-  const handleExportPdf = useCallback(async () => {
-    const { generateExpensesPDF } = await import('@/utils/pdf');
-    return generateExpensesPDF(filteredExpenses, totalExpenses, pdfWaqfInfo);
-  }, [filteredExpenses, totalExpenses, pdfWaqfInfo]);
-
-  const handleExportCsv = useCallback(() => {
-    const csv = buildCsv(filteredExpenses.map(item => ({
-      'النوع': item.expense_type,
-      'المبلغ': safeNumber(item.amount),
-      'التاريخ': item.date,
-      'العقار': item.property?.property_number || '-',
-      'الوصف': item.description || '-',
-    })));
-    downloadCsv(csv, 'مصروفات.csv');
-    uiNotify.success('تم تصدير المصروفات بنجاح');
-  }, [filteredExpenses]);
+  const { handleExportPdf, handleExportCsv } = useExpensesExporters(filteredExpenses, totalExpenses, pdfWaqfInfo);
 
   return {
     pdfWaqfInfo, fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,
