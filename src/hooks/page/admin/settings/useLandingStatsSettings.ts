@@ -80,7 +80,7 @@ export function useLandingStatsSettings() {
     });
     await updateSettingsBatch.mutateAsync(rows);
     // إبطال cache الإحصائيات العامة فوراً
-    queryClient.invalidateQueries({ queryKey: ['public-stats'] });
+    queryClient.invalidateQueries({ queryKey: contentKeys.publicStats });
     // تنظيف التعديلات المحلية بعد نجاح الحفظ — تصبح القيم الجديدة هي remote
     setOverrides({});
   }, [forms, updateSettingsBatch, queryClient]);

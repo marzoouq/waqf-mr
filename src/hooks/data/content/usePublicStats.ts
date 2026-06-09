@@ -9,6 +9,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
+import { contentKeys } from '@/lib/queryKeys/contentKeys';
 
 interface PublicStat {
   key: string;
@@ -25,7 +26,7 @@ const placeholderStats: PublicStat[] = [
 
 export function usePublicStats() {
   const query = useQuery({
-    queryKey: ['public-stats'],
+    queryKey: contentKeys.publicStats,
     queryFn: async (): Promise<PublicStat[]> => {
       const data = await rpc('get_public_stats');
       const payload = data as { stats?: PublicStat[] } | null;

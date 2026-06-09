@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL, STALE_STATIC } from '@/lib/queryStaleTime';
 import { annualReportService } from '@/lib/services/annualReportService';
+import { contentKeys } from '@/lib/queryKeys/contentKeys';
 
 // ملاحظة: useIncomeComparison في طبقة domain — استورده مباشرة من
 // '@/hooks/domain/financial/useIncomeComparison' (طبقة data لا تعتمد على domain).
@@ -20,7 +21,7 @@ import type { AnnualReportItem } from '@/types/annualReport';
 // ---------------------------------------------------------------------------
 export const useAnnualReportItems = (fiscalYearId?: string) => {
   return useQuery({
-    queryKey: ['annual_report_items', fiscalYearId],
+    queryKey: contentKeys.annualReport.items(fiscalYearId),
     queryFn: () => (fiscalYearId ? annualReportService.listItems(fiscalYearId) : Promise.resolve([])),
     enabled: !!fiscalYearId,
     staleTime: STALE_FINANCIAL,
@@ -33,7 +34,7 @@ export const useCreateReportItem = () => {
     mutationFn: (item: Omit<AnnualReportItem, 'id' | 'created_at' | 'updated_at'> & { property_id?: string | null }) =>
       annualReportService.createItem(item),
     onSuccess: (_d, v) => {
-      qc.invalidateQueries({ queryKey: ['annual_report_items', v.fiscal_year_id] });
+      qc.invalidateQueries({ queryKey: contentKeys.annualReport.items(v.fiscal_year_id) });
     },
     onError: (e) => {
       logger.error('خطأ في إضافة عنصر التقرير:', e);
@@ -47,7 +48,7 @@ export const useUpdateReportItem = () => {
     mutationFn: ({ id, ...updates }: Partial<AnnualReportItem> & { id: string }) =>
       annualReportService.updateItem(id, updates),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['annual_report_items'], exact: false });
+      qc.invalidateQueries({ queryKey: contentKeys.annualReport.itemsPrefix, exact: false });
     },
   });
 };
@@ -57,7 +58,7 @@ export const useDeleteReportItem = () => {
   return useMutation({
     mutationFn: (id: string) => annualReportService.deleteItem(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['annual_report_items'] });
+      qc.invalidateQueries({ queryKey: contentKeys.annualReport.itemsPrefix });
     },
   });
 };
@@ -67,7 +68,7 @@ export const useDeleteReportItem = () => {
 // ---------------------------------------------------------------------------
 export const useReportStatus = (fiscalYearId?: string) => {
   return useQuery({
-    queryKey: ['annual_report_status', fiscalYearId],
+    queryKey: contentKeys.annualReport.status(fiscalYearId),
     queryFn: () => (fiscalYearId ? annualReportService.getStatus(fiscalYearId) : Promise.resolve(null)),
     enabled: !!fiscalYearId,
     staleTime: STALE_STATIC,
@@ -80,7 +81,7 @@ export const useToggleReportPublish = () => {
     mutationFn: ({ fiscalYearId, publish }: { fiscalYearId: string; publish: boolean }) =>
       annualReportService.setPublishStatus(fiscalYearId, publish),
     onSuccess: (_d, v) => {
-      qc.invalidateQueries({ queryKey: ['annual_report_status', v.fiscalYearId] });
+      qc.invalidateQueries({ queryKey: contentKeys.annualReport.status(v.fiscalYearId) });
     },
   });
 };
