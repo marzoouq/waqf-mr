@@ -3,6 +3,7 @@ import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { logger } from '@/lib/logger';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 /**
  * Returns the global sum of all beneficiary share percentages
@@ -13,7 +14,7 @@ import { logger } from '@/lib/logger';
  */
 export const useTotalBeneficiaryPercentage = () => {
   return useQuery({
-    queryKey: ['total-beneficiary-percentage'],
+    queryKey: financialKeys.dashboard.totalBeneficiaryPercentage(),
     queryFn: async () => {
       const data = await rpc('get_total_beneficiary_percentage');
       const result = safeNumber(data);

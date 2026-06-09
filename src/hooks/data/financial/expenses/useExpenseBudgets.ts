@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFySpecific } from '@/constants/fiscalYearIds';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 export interface BudgetRow {
   id: string;
@@ -15,7 +16,7 @@ export interface BudgetRow {
 
 export const useExpenseBudgets = (fiscalYearId: string) => {
   return useQuery({
-    queryKey: ['expense_budgets', fiscalYearId],
+    queryKey: financialKeys.expenses.budgets(fiscalYearId),
     enabled: !!isFySpecific(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
@@ -48,7 +49,7 @@ export const useSaveBudget = (fiscalYearId: string, budgetMap: Map<string, Budge
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expense_budgets', fiscalYearId] });
+      queryClient.invalidateQueries({ queryKey: financialKeys.expenses.budgets(fiscalYearId) });
     },
   });
 };

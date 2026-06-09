@@ -4,10 +4,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 export function useMyDistributions(beneficiaryId?: string | null, fiscalYearId?: string | null) {
   return useQuery({
-    queryKey: ['my-distributions', beneficiaryId, fiscalYearId],
+    queryKey: financialKeys.distributions.my(beneficiaryId, fiscalYearId),
     // التوزيعات لا تتغير كثيراً — staleTime مالي مرتفع
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {

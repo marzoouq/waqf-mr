@@ -6,6 +6,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 export interface IncomeComparison {
   label: string;
@@ -19,7 +20,7 @@ export interface IncomeComparisonRaw {
 
 export const useIncomeComparisonRaw = () => {
   return useQuery({
-    queryKey: ['income_comparison_raw'],
+    queryKey: financialKeys.income.comparison(),
     queryFn: async (): Promise<IncomeComparisonRaw> => {
       const { data: years, error: fyErr } = await supabase
         .from('fiscal_years')

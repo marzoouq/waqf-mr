@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { advancesKeys } from '@/lib/queryKeys/advancesKeys';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 import {
   validateTargetStatus,
   buildStatusUpdates,
@@ -108,7 +109,7 @@ export const useUpdateAdvanceStatus = () => {
       qc.invalidateQueries({ queryKey: advancesKeys.prefixes.requests });
       qc.invalidateQueries({ queryKey: advancesKeys.prefixes.carryforward });
       qc.invalidateQueries({ queryKey: advancesKeys.prefixes.myFinance });
-      if (vars.status === 'paid') qc.invalidateQueries({ queryKey: ['accounts'] });
+      if (vars.status === 'paid') qc.invalidateQueries({ queryKey: financialKeys.accounts.prefix });
       // push notification للمستفيد — ليس toast UI
       notifyOnStatusChange(vars.beneficiary_user_id, vars.status, vars.amount, vars.rejection_reason);
     },

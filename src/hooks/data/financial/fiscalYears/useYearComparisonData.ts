@@ -9,6 +9,7 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyAll } from '@/constants/fiscalYearIds';
 import { toMonthMap, toExpenseRecord, type MonthlyEntry, type ExpenseTypeEntry } from '@/utils/financial/collection/yearComparisonHelpers';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 interface YearSummary {
   total_income: number;
@@ -39,7 +40,7 @@ export function useYearComparisonData(year1Id: string, year2Id: string) {
     && !isFyAll(year1Id) && !isFyAll(year2Id);
 
   const { data, isLoading } = useQuery<ComparisonRpcResult>({
-    queryKey: ['year-comparison-summary', year1Id, year2Id],
+    queryKey: financialKeys.fiscalYearComparison.pair(year1Id, year2Id),
     enabled,
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,

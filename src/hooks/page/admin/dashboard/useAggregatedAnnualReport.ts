@@ -19,6 +19,7 @@ import { toGregorianShort } from '@/utils/format/date';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { AggregatedAnnualPdfData } from '@/utils/pdf/reports/aggregatedAnnualReport';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 export function useAggregatedAnnualReport() {
   const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
@@ -32,7 +33,7 @@ export function useAggregatedAnnualReport() {
   const { data: properties = [] } = useProperties();
 
   const { data: distributions = [] } = useQuery<AggregatedDistributionRow[]>({
-    queryKey: ['aggregated-distributions', fiscalYearId],
+    queryKey: financialKeys.distributions.aggregated(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     enabled: ready,
     queryFn: () => annualReportService.listAggregatedDistributions(fiscalYearId),
