@@ -4,10 +4,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { advancesKeys } from '@/lib/queryKeys/advancesKeys';
 
 export const usePaidAdvances = (fiscalYearId: string | undefined, enabled: boolean) => {
   return useQuery({
-    queryKey: ['advance_requests', 'paid_all', fiscalYearId],
+    queryKey: advancesKeys.paidAllByFiscalYear(fiscalYearId),
     queryFn: async () => {
       if (!fiscalYearId) return [];
       const { data, error } = await supabase
@@ -25,7 +26,7 @@ export const usePaidAdvances = (fiscalYearId: string | undefined, enabled: boole
 
 export const useActiveCarryforwards = (fiscalYearId: string | undefined, enabled: boolean) => {
   return useQuery({
-    queryKey: ['advance_carryforward', 'active_for_distribution', fiscalYearId],
+    queryKey: advancesKeys.carryforwardActiveForDistribution(fiscalYearId),
     queryFn: async () => {
       let query = supabase
         .from('advance_carryforward')
