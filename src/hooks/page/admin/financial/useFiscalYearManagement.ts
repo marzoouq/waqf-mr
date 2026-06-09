@@ -9,11 +9,12 @@ import { useFiscalYears, type FiscalYear } from '@/hooks/data/financial/fiscalYe
 import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY, deleteFiscalYearCascade, validateFiscalYearInput } from '@/lib/services';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeSessionGet, safeSessionRemove, safeSessionSet } from '@/lib/storage';
+import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 
 /** قائمة queryKeys التي تتأثر بتغيير حالة النشر لسنة مالية. */
 const PUBLISH_INVALIDATION_KEYS: readonly (readonly string[])[] = [
-  ['fiscal_years'],
-  ['fiscal_years_published_all'],
+  fiscalYearKeys.prefixes.all,
+  fiscalYearKeys.prefixes.publishedAll,
   ['public-stats'],
   ['annual_report_status'],
   ['annual_report_items'],
@@ -73,7 +74,7 @@ export function useFiscalYearManagement() {
     setActionLoading('create');
     try {
       await createFiscalYear(newFY);
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      queryClient.invalidateQueries({ queryKey: fiscalYearKeys.prefixes.all });
       uiNotify.success('تم إنشاء السنة المالية (محجوبة عن المستفيدين — يمكنك نشرها لاحقاً)');
       setNewFY({ label: '', start_date: '', end_date: '' });
       setSubmitError(null);
@@ -99,7 +100,7 @@ export function useFiscalYearManagement() {
     setActionLoading(fy.id);
     try {
       const data = await reopenFiscalYear(fy.id, reason);
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      queryClient.invalidateQueries({ queryKey: fiscalYearKeys.prefixes.all });
       uiNotify.success(`تم إعادة فتح السنة: ${data.label}`);
     } catch (err: unknown) {
       uiNotify.error(err instanceof Error ? err.message : 'حدث خطأ أثناء إعادة الفتح');
@@ -132,7 +133,7 @@ export function useFiscalYearManagement() {
     setActionLoading(fy.id);
     try {
       await deleteFY(fy.id);
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      queryClient.invalidateQueries({ queryKey: fiscalYearKeys.prefixes.all });
       cleanupSelectedFiscalYearIfDeleted(fy.id, fiscalYears);
       uiNotify.success(`تم حذف السنة: ${fy.label}`);
     } catch (err: unknown) {
@@ -155,7 +156,7 @@ export function useFiscalYearManagement() {
     try {
       const res = await deleteFiscalYearCascade(fy.id);
       cleanupSelectedFiscalYearIfDeleted(fy.id, fiscalYears);
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      queryClient.invalidateQueries({ queryKey: fiscalYearKeys.prefixes.all });
       queryClient.invalidateQueries();
       const total = Object.values(res?.deleted ?? {}).reduce((a, b) => a + (b || 0), 0);
       uiNotify.success(`تم حذف السنة "${fy.label}" وكل بياناتها (${total} سجل)`);

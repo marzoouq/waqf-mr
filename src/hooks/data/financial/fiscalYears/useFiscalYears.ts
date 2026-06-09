@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
+import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 import type { FiscalYear } from '@/types';
 
 export type { FiscalYear };
@@ -11,7 +12,7 @@ export type { FiscalYear };
 export const useFiscalYears = () => {
   const { user, role, loading } = useAuth();
   return useQuery({
-    queryKey: ['fiscal_years', user?.id],
+    queryKey: fiscalYearKeys.list(user?.id),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase

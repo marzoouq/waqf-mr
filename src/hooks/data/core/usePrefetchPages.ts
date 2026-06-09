@@ -8,6 +8,7 @@ import { useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { prefetchComponent } from '@/lib/componentPrefetch';
+import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 import { propertiesQueryOptions } from '@/hooks/data/properties/useProperties';
 import { contractsQueryOptions } from '@/hooks/data/contracts/useContracts';
 import { accountsQueryOptions } from '@/hooks/data/financial/accounts/useAccounts';
@@ -55,7 +56,7 @@ export function usePrefetchPages() {
   /** تحميل مسبق: السنوات المالية (لا CRUD factory — استعلام خاص) */
   const prefetchFiscalYears = useCallback(() => {
     queryClient.prefetchQuery({
-      queryKey: ['fiscal_years'],
+      queryKey: fiscalYearKeys.prefetch(),
       staleTime: PREFETCH_STALE,
       queryFn: async () => {
         const { data, error } = await supabase

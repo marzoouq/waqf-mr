@@ -3,10 +3,11 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 
 export const usePublishedFiscalYears = () => {
   return useQuery({
-    queryKey: ['fiscal_years_published_all'],
+    queryKey: fiscalYearKeys.publishedAll(),
     queryFn: async () => {
       const { data } = await supabase
         .from('fiscal_years')

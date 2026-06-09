@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 
 export interface FiscalYearSummary {
   fiscalYearId: string;
@@ -48,7 +49,7 @@ function mapRow(row: Record<string, unknown>): FiscalYearSummary {
 /** جلب ملخص سنة مالية واحدة */
 export function useFiscalYearSummary(fiscalYearId: string | undefined) {
   return useQuery<FiscalYearSummary | null>({
-    queryKey: ['fiscal-year-summary', fiscalYearId],
+    queryKey: fiscalYearKeys.summary(fiscalYearId),
     enabled: !!fiscalYearId,
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
@@ -71,7 +72,7 @@ export function useFiscalYearSummaries(fiscalYearIds: string[]) {
   const sortedIds = [...fiscalYearIds].filter(Boolean).sort();
 
   return useQuery<FiscalYearSummary[]>({
-    queryKey: ['fiscal-year-summaries', sortedIds],
+    queryKey: fiscalYearKeys.summaries(sortedIds),
     enabled: sortedIds.length > 0,
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
