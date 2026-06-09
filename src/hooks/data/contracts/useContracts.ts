@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+import { contractsKeys } from '@/lib/queryKeys/contractsKeys';
 
 /**
  * أعمدة العقد الكاملة — تشمل PII للمستأجر (id_number, tax_number, address...).
@@ -34,7 +35,7 @@ export const contractsQueryOptions = contractsCrud.getQueryOptions;
 /** Contracts filtered by fiscal year */
 export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
-    queryKey: ['contracts', 'fiscal_year', fiscalYearId],
+    queryKey: contractsKeys.byFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
@@ -61,7 +62,7 @@ export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
  */
 export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
-    queryKey: ['contracts_safe', 'fiscal_year', fiscalYearId],
+    queryKey: contractsKeys.safeByFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {

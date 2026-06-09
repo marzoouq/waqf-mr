@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { contractsKeys } from '@/lib/queryKeys/contractsKeys';
 
 interface TenantPayment {
   id: string;
@@ -33,7 +34,7 @@ interface UpsertPaymentParams {
 
 export const useTenantPayments = () => {
   return useQuery({
-    queryKey: ['tenant_payments'],
+    queryKey: contractsKeys.tenantPayments(),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tenant_payments')
@@ -62,7 +63,7 @@ export const useUpsertTenantPayment = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tenant_payments'] });
+      queryClient.invalidateQueries({ queryKey: contractsKeys.prefixes.tenantPayments });
       queryClient.invalidateQueries({ queryKey: ['income'] });
     },
   });
