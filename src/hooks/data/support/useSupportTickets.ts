@@ -4,6 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_REALTIME, STALE_LIVE } from '@/lib/queryStaleTime';
+import { supportKeys } from '@/lib/queryKeys/supportKeys';
 
 // إعادة تصدير من الوحدات الفرعية للتوافق مع الاستيرادات الحالية
 export { useCreateTicket, useUpdateTicketStatus, useAddTicketReply, useRateTicket } from './useSupportTicketMutations';
@@ -52,7 +53,7 @@ const TICKET_SELECT = 'id, ticket_number, title, description, category, priority
 /** جلب التذاكر مع server-side pagination */
 export const useSupportTickets = (statusFilter?: string, page = 1, pageSize = 20) => {
   return useQuery({
-    queryKey: ['support_tickets', statusFilter ?? 'all', page, pageSize],
+    queryKey: supportKeys.tickets.list(statusFilter, page, pageSize),
     staleTime: STALE_REALTIME,
     queryFn: async () => {
       const from = (page - 1) * pageSize;
@@ -80,7 +81,7 @@ export const useSupportTickets = (statusFilter?: string, page = 1, pageSize = 20
 /** جلب ردود تذكرة */
 export const useTicketReplies = (ticketId?: string) => {
   return useQuery({
-    queryKey: ['ticket_replies', ticketId],
+    queryKey: supportKeys.replies.byTicket(ticketId),
     staleTime: STALE_LIVE,
     enabled: !!ticketId,
     queryFn: async () => {

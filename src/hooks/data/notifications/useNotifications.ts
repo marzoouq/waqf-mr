@@ -8,6 +8,7 @@ import { useNotificationActions } from './useNotificationActions';
 import { useNotificationSettings } from '@/hooks/data/settings/notifications/useNotificationSettings';
 import { useNotificationVisibilityPrefs } from '@/hooks/ui/useNotificationVisibilityPrefs';
 import { shouldHideForBeneficiary } from '@/lib/notifications/beneficiaryNotificationVisibility';
+import { notificationsKeys } from '@/lib/queryKeys/notificationsKeys';
 
 // إعادة تصدير للتوافق
 export type { Notification };
@@ -28,7 +29,7 @@ export const useNotifications = () => {
   const userId = user?.id ?? '';
 
   const infiniteQuery = useInfiniteQuery({
-    queryKey: ['notifications', userId],
+    queryKey: notificationsKeys.byUser(userId),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       let query = supabase
         .from('notifications')
