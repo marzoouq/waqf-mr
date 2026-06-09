@@ -4,6 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fromView } from '@/integrations/supabase/viewHelper';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
 import type { ZatcaCertificateSafe } from '@/types/zatca';
 
 // إعادة تصدير للتوافق مع الاستيرادات القائمة من نفس الملف
@@ -11,7 +12,7 @@ export type { ZatcaCertificateSafe } from '@/types/zatca';
 
 export const useZatcaCertificates = () => {
   return useQuery<ZatcaCertificateSafe[]>({
-    queryKey: ['zatca-certificates'],
+    queryKey: zatcaKeys.certificates(),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await fromView('zatca_certificates_safe')

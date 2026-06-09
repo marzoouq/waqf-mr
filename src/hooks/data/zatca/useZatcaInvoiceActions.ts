@@ -5,6 +5,7 @@
 import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
+import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
 
 export function useZatcaInvoiceActions() {
   const queryClient = useQueryClient();
@@ -14,8 +15,8 @@ export function useZatcaInvoiceActions() {
   const removePending = (id: string) => setPendingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
 
   const invalidateInvoices = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['zatca-invoices'] });
-    queryClient.invalidateQueries({ queryKey: ['zatca-payment-invoices'] });
+    queryClient.invalidateQueries({ queryKey: zatcaKeys.prefixes.invoices });
+    queryClient.invalidateQueries({ queryKey: zatcaKeys.prefixes.paymentInvoices });
   }, [queryClient]);
 
   const generateXml = useMutation({

@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { zatcaOnboard, zatcaRenew, zatcaTestConnection, clearZatcaOtp } from '@/lib/services';
 import { uiNotify } from '@/lib/notify';
 import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
+import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
 
 export type ConnectionTestResult = {
   loading: boolean;
@@ -55,8 +56,8 @@ export function useZatcaCompliance({ formData, setFormData, saveFirst }: Params)
       if (!ok) return;
       await zatcaOnboard();
       uiNotify.success('تم التسجيل بنجاح في بوابة فاتورة');
-      queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
-      queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
+      queryClient.invalidateQueries({ queryKey: zatcaKeys.prefixes.certificates });
+      queryClient.invalidateQueries({ queryKey: zatcaKeys.prefixes.operationLog });
     } catch (e) {
       uiNotify.error(e instanceof Error ? e.message : 'فشل التسجيل');
     } finally {
@@ -82,8 +83,8 @@ export function useZatcaCompliance({ formData, setFormData, saveFirst }: Params)
       } else {
         throw new Error(data?.error || 'فشل التجديد');
       }
-      queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
-      queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
+      queryClient.invalidateQueries({ queryKey: zatcaKeys.prefixes.certificates });
+      queryClient.invalidateQueries({ queryKey: zatcaKeys.prefixes.operationLog });
     } catch (e) {
       uiNotify.error(e instanceof Error ? e.message : 'فشل تجديد الشهادة');
     } finally {
@@ -97,7 +98,7 @@ export function useZatcaCompliance({ formData, setFormData, saveFirst }: Params)
     try {
       const data = await zatcaTestConnection();
       setConnectionTest({ loading: false, result: data });
-      queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
+      queryClient.invalidateQueries({ queryKey: zatcaKeys.prefixes.operationLog });
       if (data?.connected) {
         uiNotify.success('✅ الاتصال ببوابة فاتورة ناجح');
       } else {
