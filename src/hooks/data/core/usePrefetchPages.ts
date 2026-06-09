@@ -11,6 +11,7 @@ import { prefetchComponent } from '@/lib/componentPrefetch';
 import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
+import { messagingKeys } from '@/lib/queryKeys/messagingKeys';
 import { propertiesQueryOptions } from '@/hooks/data/properties/useProperties';
 import { contractsQueryOptions } from '@/hooks/data/contracts/useContracts';
 import { accountsQueryOptions } from '@/hooks/data/financial/accounts/useAccounts';
@@ -124,7 +125,7 @@ export function usePrefetchPages() {
   /** تحميل مسبق: الرسائل */
   const prefetchMessages = useCallback(() => {
     queryClient.prefetchQuery({
-      queryKey: ['conversations'],
+      queryKey: messagingKeys.conversations.prefix,
       staleTime: PREFETCH_STALE,
       queryFn: async () => {
         const { data, error } = await supabase
