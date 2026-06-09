@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useAdminUsers, useOrphanedBeneficiaries, useUnlinkedBeneficiaries } from './useUserManagementData';
 import { useRegistrationEnabled } from '@/hooks/data/settings';
 import type { ManagedUser } from './useUserManagementData';
+import { adminUsersKeys } from '@/lib/queryKeys/adminUsersKeys';
 import {
   useCreateUserMutation, useConfirmEmailMutation, useUpdateEmailMutation,
   useUpdatePasswordMutation, useSetRoleMutation, useDeleteUserMutation,
@@ -23,7 +24,7 @@ export const useUserManagement = () => {
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
   const retryUsersList = useCallback(
-    () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
+    () => queryClient.invalidateQueries({ queryKey: adminUsersKeys.users.prefix }),
     [queryClient],
   );
 
