@@ -15,6 +15,7 @@ import { isFyReady } from '@/constants/fiscalYearIds';
 import { useBeneficiaryWidgets } from '@/hooks/data/settings/notifications/useBeneficiaryWidgets';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { isAuditMode } from '@/lib/auditMode';
+import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 
 export function useBeneficiaryDashboardPage() {
   const queryClient = useQueryClient();
