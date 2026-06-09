@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
+import { auditKeys } from '@/lib/queryKeys/auditKeys';
 
 // إعادة تصدير من utils/format لعدم كسر المستوردين الحاليين
 export { getTableNameAr, getOperationNameAr } from '@/utils/format/auditLabels';
@@ -20,7 +21,7 @@ export const useAuditLog = (filters?: {
   const pageSize = filters?.pageSize ?? 50;
 
   return useQuery({
-    queryKey: ['audit_log', filters?.tableName, filters?.operation, filters?.searchQuery, filters?.dateFrom, filters?.dateTo, page, pageSize],
+    queryKey: auditKeys.log.list(filters, page, pageSize),
     queryFn: async () => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;

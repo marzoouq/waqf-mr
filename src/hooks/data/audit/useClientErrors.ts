@@ -4,6 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
+import { auditKeys } from '@/lib/queryKeys/auditKeys';
 
 export interface ClientError {
   id: string;
@@ -18,7 +19,7 @@ export interface ClientError {
 /** جلب أخطاء التطبيق من سجل الوصول */
 export const useClientErrors = () => {
   return useQuery({
-    queryKey: ['client_errors'],
+    queryKey: auditKeys.clientErrors,
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data, error } = await supabase

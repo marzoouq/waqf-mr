@@ -108,7 +108,7 @@ export function usePrefetchPages() {
   /** تحميل مسبق: سجل المراجعة */
   const prefetchAuditLog = useCallback(() => {
     queryClient.prefetchQuery({
-      queryKey: ['audit_log', { page: 1 }],
+      queryKey: auditKeys.log.prefetchFirstPage,
       staleTime: PREFETCH_STALE,
       queryFn: async () => {
         const { data, error } = await supabase

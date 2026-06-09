@@ -4,12 +4,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
+import { auditKeys } from '@/lib/queryKeys/auditKeys';
 import type { AuditLogEntry } from './useAuditLog';
 
 /** عدد عمليات سجل المراجعة اليوم */
 export function useAuditLogTodayCount() {
   return useQuery({
-    queryKey: ['audit_log_today_count'],
+    queryKey: auditKeys.log.todayCount,
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const todayStr = new Date().toISOString().split('T')[0];
