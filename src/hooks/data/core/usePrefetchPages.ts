@@ -55,7 +55,7 @@ export function usePrefetchPages() {
   /** تحميل مسبق: السنوات المالية (لا CRUD factory — استعلام خاص) */
   const prefetchFiscalYears = useCallback(() => {
     queryClient.prefetchQuery({
-      queryKey: ['fiscal_years'],
+      queryKey: fiscalYearKeys.prefetch(),
       staleTime: PREFETCH_STALE,
       queryFn: async () => {
         const { data, error } = await supabase
