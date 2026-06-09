@@ -12,6 +12,7 @@ import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 import { messagingKeys } from '@/lib/queryKeys/messagingKeys';
+import { auditKeys } from '@/lib/queryKeys/auditKeys';
 import { propertiesQueryOptions } from '@/hooks/data/properties/useProperties';
 import { contractsQueryOptions } from '@/hooks/data/contracts/useContracts';
 import { accountsQueryOptions } from '@/hooks/data/financial/accounts/useAccounts';
