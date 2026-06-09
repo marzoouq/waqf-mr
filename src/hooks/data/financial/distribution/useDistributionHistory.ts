@@ -4,6 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
+import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 
 export interface DistributionRow {
   fiscal_year: string;
@@ -23,7 +24,7 @@ interface DistributionJoinRow {
 
 export const useDistributionHistory = (beneficiaryId: string) => {
   return useQuery({
-    queryKey: ['beneficiary-distribution-history', beneficiaryId],
+    queryKey: beneficiariesKeys.distributionHistory(beneficiaryId),
     staleTime: STALE_FINANCIAL,
     enabled: !!beneficiaryId,
     queryFn: async () => {

@@ -18,6 +18,7 @@ import { createCrudFactory } from '../core/useCrudFactory';
 import { Beneficiary } from '@/types';
 import { notifyAdmins } from '@/lib/services';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
+import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 
 const beneficiariesCrud = createCrudFactory<'beneficiaries', Beneficiary>({
   table: 'beneficiaries',
@@ -45,7 +46,7 @@ export const useBeneficiariesDecrypted = () => {
   const { role } = useAuth();
   const isAuthorized = role === 'admin' || role === 'accountant';
   return useQuery({
-    queryKey: ['beneficiaries-decrypted'],
+    queryKey: beneficiariesKeys.decrypted(),
     enabled: isAuthorized,
     staleTime: STALE_STATIC,
     queryFn: async () => {
@@ -74,7 +75,7 @@ export const useBeneficiariesDecrypted = () => {
 /** هوك للقراءة فقط من العرض الآمن — يُخفي البيانات الحساسة على مستوى الخادم */
 export const useBeneficiariesSafe = () => {
   return useQuery({
-    queryKey: ['beneficiaries-safe'],
+    queryKey: beneficiariesKeys.safe(),
     staleTime: STALE_STATIC,
     queryFn: async () => {
       const { data, error } = await supabase

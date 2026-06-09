@@ -7,6 +7,7 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
+import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 
 export interface UpdateBeneficiarySelfInput {
   bankAccount: string | null;
@@ -23,7 +24,7 @@ export const useUpdateBeneficiarySelf = () => {
       });
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['beneficiaries'] });
+      qc.invalidateQueries({ queryKey: beneficiariesKeys.prefixes.crud });
     },
   });
 };

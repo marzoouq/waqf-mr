@@ -98,7 +98,7 @@ export const useLinkBeneficiaryMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unlinked-beneficiaries'] });
       queryClient.invalidateQueries({ queryKey: ['orphaned-beneficiaries'] });
-      queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] });
+      queryClient.invalidateQueries({ queryKey: beneficiariesKeys.prefixes.safe });
       uiNotify.success('تم ربط المستخدم بالمستفيد بنجاح');
     },
     onError: (e: unknown) => uiNotify.error(getSafeErrorMessage(e)),
