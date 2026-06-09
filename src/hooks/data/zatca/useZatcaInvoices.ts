@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { zatcaInvoicesService } from '@/lib/services/zatcaInvoicesService';
+import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
 
 export const INVOICES_PER_PAGE = 20;
 
@@ -15,13 +16,13 @@ export function useZatcaInvoices() {
   const [invoicePage, setInvoicePage] = useState(1);
 
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
-    queryKey: ['zatca-invoices', statusFilter, fiscalYearId],
+    queryKey: zatcaKeys.invoices(statusFilter, fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: () => zatcaInvoicesService.listInvoices({ statusFilter, fiscalYearId }),
   });
 
   const { data: paymentInvoices = [] } = useQuery({
-    queryKey: ['zatca-payment-invoices', statusFilter, fiscalYearId],
+    queryKey: zatcaKeys.paymentInvoices(statusFilter, fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: () => zatcaInvoicesService.listPaymentInvoices({ statusFilter, fiscalYearId }),
   });

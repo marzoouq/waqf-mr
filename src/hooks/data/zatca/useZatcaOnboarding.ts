@@ -6,6 +6,7 @@ import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
 import { zatcaOnboard } from '@/lib/services/zatcaService';
+import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
 
 export function useZatcaOnboarding() {
   const queryClient = useQueryClient();
@@ -16,7 +17,7 @@ export function useZatcaOnboarding() {
     setOnboardLoading(true);
     try {
       await zatcaOnboard();
-      queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
+      queryClient.invalidateQueries({ queryKey: zatcaKeys.prefixes.certificates });
     } finally {
       setOnboardLoading(false);
     }
@@ -27,7 +28,7 @@ export function useZatcaOnboarding() {
     try {
       // maxAttempts:1 — تسجيل/ترقية شهادة لا يجوز تكرارها تلقائياً
       await invoke('zatca-onboard', { body: { action: 'production' } }, { maxAttempts: 1 });
-      queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
+      queryClient.invalidateQueries({ queryKey: zatcaKeys.prefixes.certificates });
     } finally {
       setProductionLoading(false);
     }

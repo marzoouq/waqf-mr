@@ -3,6 +3,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
 
 export interface ZatcaLogEntry {
   id: string;
@@ -18,7 +19,7 @@ export interface ZatcaLogEntry {
 
 export const useZatcaOperationLog = () => {
   return useQuery({
-    queryKey: ['zatca-operation-log'],
+    queryKey: zatcaKeys.operationLog(),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('zatca_operation_log')
