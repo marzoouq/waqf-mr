@@ -19,7 +19,7 @@ import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 
 export function useBeneficiaryDashboardPage() {
   const queryClient = useQueryClient();
-  const handleRetry = useRetryQueries(['beneficiary-dashboard']);
+  const handleRetry = useRetryQueries([...beneficiariesKeys.prefixes.dashboard]);
   const { isVisible, isLoading: widgetsLoading } = useBeneficiaryWidgets();
 
 
