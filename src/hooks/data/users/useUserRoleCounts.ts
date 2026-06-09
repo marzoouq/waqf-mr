@@ -4,6 +4,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { adminUsersKeys } from '@/lib/queryKeys/adminUsersKeys';
 
 export type UserRoleCounts = {
   total: number;
@@ -15,7 +16,7 @@ export type UserRoleCounts = {
 
 export const useUserRoleCounts = () => {
   return useQuery({
-    queryKey: ['user-role-counts'],
+    queryKey: adminUsersKeys.roleCounts,
     queryFn: async (): Promise<UserRoleCounts> => {
       const { data, error } = await supabase.from('user_roles').select('role');
       if (error) throw error;

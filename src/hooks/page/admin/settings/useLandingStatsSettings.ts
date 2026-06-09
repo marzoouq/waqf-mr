@@ -12,6 +12,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
+import { contentKeys } from '@/lib/queryKeys/contentKeys';
 
 export type StatMode = 'auto' | 'manual' | 'hidden';
 
@@ -80,7 +81,7 @@ export function useLandingStatsSettings() {
     });
     await updateSettingsBatch.mutateAsync(rows);
     // إبطال cache الإحصائيات العامة فوراً
-    queryClient.invalidateQueries({ queryKey: ['public-stats'] });
+    queryClient.invalidateQueries({ queryKey: contentKeys.publicStats });
     // تنظيف التعديلات المحلية بعد نجاح الحفظ — تصبح القيم الجديدة هي remote
     setOverrides({});
   }, [forms, updateSettingsBatch, queryClient]);

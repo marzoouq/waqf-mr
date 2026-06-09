@@ -7,6 +7,7 @@ import { invoke } from '@/lib/api/invoke';
 import { ApiError } from '@/lib/api/rpc';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
+import { adminUsersKeys } from '@/lib/queryKeys/adminUsersKeys';
 
 export interface ManagedUser {
   id: string;
@@ -33,7 +34,7 @@ export const callAdminApi = async (body: Record<string, unknown>) => {
 export const useAdminUsers = (currentPage: number) => {
   const { user: currentUser } = useAuth();
   return useQuery({
-    queryKey: ['admin-users', currentPage],
+    queryKey: adminUsersKeys.users.list(currentPage),
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const result = await callAdminApi({ action: 'list_users', page: currentPage });
@@ -56,7 +57,7 @@ export const useAdminUsers = (currentPage: number) => {
 export const useOrphanedBeneficiaries = (enabled = true) => {
   const { user: currentUser } = useAuth();
   return useQuery({
-    queryKey: ['orphaned-beneficiaries'],
+    queryKey: adminUsersKeys.orphanedBeneficiaries,
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data } = await supabase
@@ -72,7 +73,7 @@ export const useOrphanedBeneficiaries = (enabled = true) => {
 export const useUnlinkedBeneficiaries = (enabled = true) => {
   const { user: currentUser } = useAuth();
   return useQuery({
-    queryKey: ['unlinked-beneficiaries'],
+    queryKey: adminUsersKeys.unlinkedBeneficiaries,
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const { data } = await supabase

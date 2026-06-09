@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
 import { logger } from '@/lib/logger';
 import { uiNotify } from '@/lib/notify';
+import { emailKeys } from '@/lib/queryKeys/emailKeys';
 
 type DlqQueue = 'auth_emails' | 'transactional_emails';
 
@@ -31,8 +32,8 @@ export function useEmailMonitorActions() {
       } else {
         uiNotify.success(`تم إعادة جدولة ${data.moved} رسالة من ${queue === 'auth_emails' ? 'بريد المصادقة' : 'البريد التشغيلي'}`);
       }
-      qc.invalidateQueries({ queryKey: ['email-admin-stats'] });
-      qc.invalidateQueries({ queryKey: ['email-logs'] });
+      qc.invalidateQueries({ queryKey: emailKeys.adminStats });
+      qc.invalidateQueries({ queryKey: emailKeys.logsPrefix });
     },
     onError: (err: unknown) => {
       logger.error('retry_dlq failed', err);
@@ -44,8 +45,8 @@ export function useEmailMonitorActions() {
   });
 
   const refresh = useCallback(() => {
-    qc.invalidateQueries({ queryKey: ['email-logs'] });
-    qc.invalidateQueries({ queryKey: ['email-admin-stats'] });
+    qc.invalidateQueries({ queryKey: emailKeys.logsPrefix });
+    qc.invalidateQueries({ queryKey: emailKeys.adminStats });
   }, [qc]);
 
   const retryingQueue: DlqQueue | null = retryMutation.isPending ? activeQueue : null;

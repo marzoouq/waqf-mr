@@ -12,6 +12,7 @@ import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 import { messagingKeys } from '@/lib/queryKeys/messagingKeys';
+import { auditKeys } from '@/lib/queryKeys/auditKeys';
 import { propertiesQueryOptions } from '@/hooks/data/properties/useProperties';
 import { contractsQueryOptions } from '@/hooks/data/contracts/useContracts';
 import { accountsQueryOptions } from '@/hooks/data/financial/accounts/useAccounts';
@@ -108,7 +109,7 @@ export function usePrefetchPages() {
   /** تحميل مسبق: سجل المراجعة */
   const prefetchAuditLog = useCallback(() => {
     queryClient.prefetchQuery({
-      queryKey: ['audit_log', { page: 1 }],
+      queryKey: auditKeys.log.prefetchFirstPage,
       staleTime: PREFETCH_STALE,
       queryFn: async () => {
         const { data, error } = await supabase

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { PAGE_SIZE_AUDIT } from '@/constants/pagination';
+import { auditKeys } from '@/lib/queryKeys/auditKeys';
 
 export const ACCESS_LOG_ITEMS_PER_PAGE = PAGE_SIZE_AUDIT;
 
@@ -21,7 +22,7 @@ export interface AccessLogEntry {
 
 export const useAccessLogTab = (eventFilter: string, currentPage: number, searchQuery = '') => {
   return useQuery({
-    queryKey: ['access_log', eventFilter, currentPage, searchQuery],
+    queryKey: auditKeys.accessLog.list(eventFilter, currentPage, searchQuery),
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const from = (currentPage - 1) * ACCESS_LOG_ITEMS_PER_PAGE;
@@ -51,7 +52,7 @@ export const useAccessLogTab = (eventFilter: string, currentPage: number, search
 
 export const useFailedLoginsToday = () => {
   return useQuery({
-    queryKey: ['access_log_failed_today'],
+    queryKey: auditKeys.accessLog.failedToday,
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const todayStr = new Date().toISOString().split('T')[0];
@@ -67,7 +68,7 @@ export const useFailedLoginsToday = () => {
 
 export const useUnauthorizedAccessToday = () => {
   return useQuery({
-    queryKey: ['access_log_unauthorized_today'],
+    queryKey: auditKeys.accessLog.unauthorizedToday,
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const todayStr = new Date().toISOString().split('T')[0];

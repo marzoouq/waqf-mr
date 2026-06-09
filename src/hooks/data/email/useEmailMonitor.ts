@@ -7,6 +7,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { invoke } from '@/lib/api/invoke';
+import { emailKeys } from '@/lib/queryKeys/emailKeys';
 
 export interface EmailLogRow {
   id: string;
@@ -27,7 +28,7 @@ export interface EmailAdminStats {
 
 export function useEmailLogs(startIso: string, endIso: string) {
   return useQuery({
-    queryKey: ['email-logs', startIso, endIso],
+    queryKey: emailKeys.logs(startIso, endIso),
     queryFn: async (): Promise<EmailLogRow[]> => {
       const { data, error } = await supabase
         .from('email_send_log')
@@ -46,7 +47,7 @@ export function useEmailLogs(startIso: string, endIso: string) {
 
 export function useEmailAdminStats() {
   return useQuery({
-    queryKey: ['email-admin-stats'],
+    queryKey: emailKeys.adminStats,
     queryFn: async (): Promise<EmailAdminStats> => {
       const data = await invoke<Partial<EmailAdminStats>>('email-admin', {
         body: { action: 'get_stats' },

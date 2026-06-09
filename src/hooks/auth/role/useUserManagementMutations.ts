@@ -6,6 +6,7 @@ import { uiNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
+import { adminUsersKeys } from '@/lib/queryKeys/adminUsersKeys';
 import { callAdminApi } from './useUserManagementData';
 
 export const useCreateUserMutation = (onSuccess?: () => void) => {
@@ -14,7 +15,7 @@ export const useCreateUserMutation = (onSuccess?: () => void) => {
     mutationFn: (data: { email: string; password: string; role: string; nationalId: string; name: string }) =>
       callAdminApi({ action: 'create_user', ...data }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: adminUsersKeys.users.prefix });
       uiNotify.success('تم إنشاء المستخدم بنجاح');
       onSuccess?.();
     },
@@ -27,7 +28,7 @@ export const useConfirmEmailMutation = () => {
   return useMutation({
     mutationFn: async (userId: string) => callAdminApi({ action: 'confirm_email', userId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: adminUsersKeys.users.prefix });
       uiNotify.success('تم تفعيل البريد الإلكتروني');
     },
     onError: (e: Error) => uiNotify.error(getSafeErrorMessage(e)),
@@ -40,7 +41,7 @@ export const useUpdateEmailMutation = (onSuccess?: () => void) => {
     mutationFn: (data: { userId: string; email: string }) =>
       callAdminApi({ action: 'update_email', ...data }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: adminUsersKeys.users.prefix });
       uiNotify.success('تم تحديث البريد الإلكتروني');
       onSuccess?.();
     },
@@ -54,7 +55,7 @@ export const useUpdatePasswordMutation = (onSuccess?: () => void) => {
     mutationFn: (data: { userId: string; password: string }) =>
       callAdminApi({ action: 'update_password', ...data }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] }); 
+      queryClient.invalidateQueries({ queryKey: adminUsersKeys.users.prefix });
       uiNotify.success('تم تحديث كلمة المرور');
       onSuccess?.();
     },
@@ -68,9 +69,9 @@ export const useSetRoleMutation = (onSuccess?: () => void) => {
     mutationFn: (data: { userId: string; role: string }) =>
       callAdminApi({ action: 'set_role', ...data }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      queryClient.invalidateQueries({ queryKey: ['orphaned-beneficiaries'] });
-      queryClient.invalidateQueries({ queryKey: ['unlinked-beneficiaries'] });
+      queryClient.invalidateQueries({ queryKey: adminUsersKeys.users.prefix });
+      queryClient.invalidateQueries({ queryKey: adminUsersKeys.orphanedBeneficiaries });
+      queryClient.invalidateQueries({ queryKey: adminUsersKeys.unlinkedBeneficiaries });
       uiNotify.success('تم تحديث الدور');
       onSuccess?.();
     },
@@ -83,7 +84,7 @@ export const useDeleteUserMutation = (onSuccess?: () => void) => {
   return useMutation({
     mutationFn: (userId: string) => callAdminApi({ action: 'delete_user', userId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: adminUsersKeys.users.prefix });
       uiNotify.success('تم حذف المستخدم');
       onSuccess?.();
     },
@@ -97,8 +98,8 @@ export const useLinkBeneficiaryMutation = () => {
     mutationFn: async ({ beneficiaryId, userId }: { beneficiaryId: string; userId: string }) =>
       callAdminApi({ action: 'link_beneficiary', beneficiaryId, userId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['unlinked-beneficiaries'] });
-      queryClient.invalidateQueries({ queryKey: ['orphaned-beneficiaries'] });
+      queryClient.invalidateQueries({ queryKey: adminUsersKeys.unlinkedBeneficiaries });
+      queryClient.invalidateQueries({ queryKey: adminUsersKeys.orphanedBeneficiaries });
       queryClient.invalidateQueries({ queryKey: beneficiariesKeys.prefixes.safe });
       uiNotify.success('تم ربط المستخدم بالمستفيد بنجاح');
     },
