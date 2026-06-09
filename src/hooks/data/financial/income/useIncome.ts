@@ -12,6 +12,7 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { PER_FY_LIMIT } from '@/constants/pagination';
 import { supabase } from '@/integrations/supabase/client';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 export const INCOME_SELECT =
   'id, amount, date, source, notes, fiscal_year_id, property_id, contract_id, created_at, property:properties(id, property_number, location)';
@@ -47,7 +48,7 @@ async function fetchIncomeByFiscalYear(fiscalYearId: string | 'all'): Promise<In
 /** Income filtered by fiscal year */
 export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
-    queryKey: ['income', 'fiscal_year', fiscalYearId],
+    queryKey: financialKeys.income.byFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: () => fetchIncomeByFiscalYear(fiscalYearId),

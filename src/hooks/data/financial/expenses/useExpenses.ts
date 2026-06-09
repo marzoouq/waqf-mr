@@ -12,6 +12,7 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { PER_FY_LIMIT } from '@/constants/pagination';
 import { supabase } from '@/integrations/supabase/client';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 export const EXPENSE_SELECT =
   'id, amount, date, description, expense_type, fiscal_year_id, property_id, created_at, property:properties(id, property_number, location)';
@@ -47,7 +48,7 @@ async function fetchExpensesByFiscalYear(fiscalYearId: string | 'all'): Promise<
 /** Expenses filtered by fiscal year */
 export const useExpensesByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
-    queryKey: ['expenses', 'fiscal_year', fiscalYearId],
+    queryKey: financialKeys.expenses.byFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: () => fetchExpensesByFiscalYear(fiscalYearId),

@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { supabase } from '@/integrations/supabase/client';
 import { isFyReady } from '@/constants/fiscalYearIds';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 const accountsCrud = createCrudFactory<'accounts', Account>({
   table: 'accounts',
@@ -33,7 +34,7 @@ export const useAccountByFiscalYear = (
   fiscalYearId?: string,
 ) => {
   return useQuery({
-    queryKey: ['accounts', 'fiscal_year', fiscalYearId ?? fiscalYearLabel ?? 'all'],
+    queryKey: financialKeys.accounts.byFiscalYear(fiscalYearId ?? fiscalYearLabel),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     // smart retry: تجاهل أخطاء المصادقة لعدم استنزاف الشبكة

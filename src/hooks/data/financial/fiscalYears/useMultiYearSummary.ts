@@ -7,6 +7,7 @@ import { invoke } from '@/lib/api/invoke';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { mapEntry, type RpcYearEntry } from '@/utils/financial/computations/multiYearHelpers';
 import type { YearSummaryEntry } from '@/types/financial/multiYear';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 // إعادة تصدير للتوافق العكسي مع المستهلكين الحاليين
 export type { YearSummaryEntry };
@@ -15,7 +16,7 @@ export function useMultiYearSummary(yearIds: string[]) {
   const sortedIds = [...yearIds].sort();
 
   return useQuery<YearSummaryEntry[]>({
-    queryKey: ['multi-year-summary', sortedIds],
+    queryKey: financialKeys.fiscalYearComparison.multi(sortedIds),
     enabled: sortedIds.length > 0,
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,

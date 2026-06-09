@@ -3,10 +3,11 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 export const useMyBeneficiaryProfile = (userId?: string) => {
   return useQuery({
-    queryKey: ['my-beneficiary', userId],
+    queryKey: financialKeys.beneficiaryProfile.byUser(userId),
     queryFn: async () => {
       if (!userId) return null;
       const { data } = await supabase

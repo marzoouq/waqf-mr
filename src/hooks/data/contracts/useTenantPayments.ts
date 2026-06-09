@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { contractsKeys } from '@/lib/queryKeys/contractsKeys';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 interface TenantPayment {
   id: string;
@@ -64,7 +65,7 @@ export const useUpsertTenantPayment = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: contractsKeys.prefixes.tenantPayments });
-      queryClient.invalidateQueries({ queryKey: ['income'] });
+      queryClient.invalidateQueries({ queryKey: financialKeys.income.prefix });
     },
   });
 };

@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
 import { enqueueUserNotification } from '@/lib/services';
 import { advancesKeys } from '@/lib/queryKeys/advancesKeys';
+import { financialKeys } from '@/lib/queryKeys/financialKeys';
 
 interface DistributionInput {
   beneficiary_id: string;
@@ -32,9 +33,9 @@ export const useDistributeShares = () => {
   const qc = useQueryClient();
 
   const invalidateAll = () => {
-    qc.invalidateQueries({ queryKey: ['distributions'] });
-    qc.invalidateQueries({ queryKey: ['my-distributions'] });
-    qc.invalidateQueries({ queryKey: ['accounts'] });
+    qc.invalidateQueries({ queryKey: financialKeys.distributions.prefix });
+    qc.invalidateQueries({ queryKey: financialKeys.distributions.myPrefix });
+    qc.invalidateQueries({ queryKey: financialKeys.accounts.prefix });
     qc.invalidateQueries({ queryKey: advancesKeys.prefixes.requests });
     qc.invalidateQueries({ queryKey: advancesKeys.prefixes.carryforward });
   };
