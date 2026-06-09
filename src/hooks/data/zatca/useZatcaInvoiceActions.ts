@@ -34,7 +34,7 @@ export function useZatcaInvoiceActions() {
       addPending(invoiceId);
       return await invoke('zatca-signer', { body: { invoice_id: invoiceId, table } });
     },
-    onSuccess: () => { invalidateInvoices(); queryClient.invalidateQueries({ queryKey: ['invoice-chain'] }); },
+    onSuccess: () => { invalidateInvoices(); queryClient.invalidateQueries({ queryKey: invoicesKeys.prefixes.invoiceChain }); },
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
