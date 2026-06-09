@@ -9,11 +9,12 @@ import { useFiscalYears, type FiscalYear } from '@/hooks/data/financial/fiscalYe
 import { createFiscalYear, reopenFiscalYear, toggleFiscalYearPublished, deleteFiscalYear as deleteFY, deleteFiscalYearCascade, validateFiscalYearInput } from '@/lib/services';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeSessionGet, safeSessionRemove, safeSessionSet } from '@/lib/storage';
+import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 
 /** قائمة queryKeys التي تتأثر بتغيير حالة النشر لسنة مالية. */
 const PUBLISH_INVALIDATION_KEYS: readonly (readonly string[])[] = [
-  ['fiscal_years'],
-  ['fiscal_years_published_all'],
+  fiscalYearKeys.prefixes.all,
+  fiscalYearKeys.prefixes.publishedAll,
   ['public-stats'],
   ['annual_report_status'],
   ['annual_report_items'],
