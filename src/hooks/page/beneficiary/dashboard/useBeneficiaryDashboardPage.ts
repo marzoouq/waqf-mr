@@ -85,31 +85,31 @@ export function useBeneficiaryDashboardPage() {
       filter: `beneficiary_id=eq.${beneficiaryId}`,
     }, () => {
       // H6: ['my-distributions'] يُبطَّل في useMySharePage فقط (مصدره هناك)؛ لا داعي للتبطيل المزدوج هنا
-      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+      qcRef.current.invalidateQueries({ queryKey: beneficiariesKeys.prefixes.dashboard });
     });
     channel.on('postgres_changes', {
       event: '*', schema: 'public', table: 'accounts',
     }, () => {
-      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+      qcRef.current.invalidateQueries({ queryKey: beneficiariesKeys.prefixes.dashboard });
     });
     // Realtime: طلبات السلف الخاصة بهذا المستفيد
     channel.on('postgres_changes', {
       event: '*', schema: 'public', table: 'advance_requests',
       filter: `beneficiary_id=eq.${beneficiaryId}`,
     }, () => {
-      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+      qcRef.current.invalidateQueries({ queryKey: beneficiariesKeys.prefixes.dashboard });
     });
     // Realtime: حالة السنة المالية (كشف النشر)
     channel.on('postgres_changes', {
       event: 'UPDATE', schema: 'public', table: 'fiscal_years',
     }, () => {
-      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+      qcRef.current.invalidateQueries({ queryKey: beneficiariesKeys.prefixes.dashboard });
     });
     // Realtime: تحديث إعدادات التطبيق — UPDATE فقط (INSERT/DELETE نادر ولا يؤثر على UI)
     channel.on('postgres_changes', {
       event: 'UPDATE', schema: 'public', table: 'app_settings',
     }, () => {
-      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+      qcRef.current.invalidateQueries({ queryKey: beneficiariesKeys.prefixes.dashboard });
     });
   }, [beneficiaryId, qcRef]);
 
