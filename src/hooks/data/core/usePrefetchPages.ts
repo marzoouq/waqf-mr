@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { prefetchComponent } from '@/lib/componentPrefetch';
 import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
+import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 import { propertiesQueryOptions } from '@/hooks/data/properties/useProperties';
 import { contractsQueryOptions } from '@/hooks/data/contracts/useContracts';
 import { accountsQueryOptions } from '@/hooks/data/financial/accounts/useAccounts';
@@ -79,7 +80,7 @@ export function usePrefetchPages() {
   /** تحميل مسبق: فواتير الدفعات (لا CRUD factory — استعلام مخصص) */
   const prefetchPaymentInvoices = useCallback(() => {
     queryClient.prefetchQuery({
-      queryKey: ['payment_invoices', 'all'],
+      queryKey: invoicesKeys.paymentsPrefetch(),
       staleTime: PREFETCH_STALE,
       queryFn: async () => {
         const { data, error } = await supabase

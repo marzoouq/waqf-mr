@@ -7,6 +7,7 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { zatcaInvoicesService } from '@/lib/services/zatcaInvoicesService';
 import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
+import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 
 export const INVOICES_PER_PAGE = 20;
 
@@ -34,7 +35,7 @@ export function useZatcaInvoices() {
   }, [allInvoices, invoicePage]);
 
   const { data: chain = [], isLoading: chainLoading } = useQuery({
-    queryKey: ['invoice-chain'],
+    queryKey: invoicesKeys.invoiceChain(),
     staleTime: STALE_FINANCIAL,
     queryFn: () => zatcaInvoicesService.listInvoiceChain(),
     select: (result) => result.records,

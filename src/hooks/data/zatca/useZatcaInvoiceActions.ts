@@ -6,6 +6,7 @@ import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
 import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
+import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 
 export function useZatcaInvoiceActions() {
   const queryClient = useQueryClient();
@@ -33,7 +34,7 @@ export function useZatcaInvoiceActions() {
       addPending(invoiceId);
       return await invoke('zatca-signer', { body: { invoice_id: invoiceId, table } });
     },
-    onSuccess: () => { invalidateInvoices(); queryClient.invalidateQueries({ queryKey: ['invoice-chain'] }); },
+    onSuccess: () => { invalidateInvoices(); queryClient.invalidateQueries({ queryKey: invoicesKeys.prefixes.invoiceChain }); },
     onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
