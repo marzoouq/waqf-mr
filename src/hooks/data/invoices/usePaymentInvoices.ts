@@ -7,13 +7,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 
 export type { PaymentInvoice } from '@/types/invoices';
 import type { PaymentInvoice } from '@/types/invoices';
 
 export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
   return useQuery({
-    queryKey: ['payment_invoices', fiscalYearId],
+    queryKey: invoicesKeys.paymentsByFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async () => {
@@ -132,7 +133,7 @@ export const useDeleteContractPendingInvoices = () => {
  */
 export const useContractInvoiceSummary = (contractId: string | null | undefined) => {
   return useQuery({
-    queryKey: ['contract_invoice_summary', contractId],
+    queryKey: invoicesKeys.contractSummary(contractId),
     enabled: !!contractId,
     staleTime: STALE_FINANCIAL,
     queryFn: () => fetchContractInvoiceSummary(contractId!),

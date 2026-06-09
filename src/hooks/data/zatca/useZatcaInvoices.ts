@@ -7,6 +7,7 @@ import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { zatcaInvoicesService } from '@/lib/services/zatcaInvoicesService';
 import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
+import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 
 export const INVOICES_PER_PAGE = 20;
 

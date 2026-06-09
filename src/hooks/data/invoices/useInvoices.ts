@@ -7,6 +7,7 @@ import { invoke } from '@/lib/api/invoke';
 import { createCrudFactory } from '../core/useCrudFactory';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { invoicesService, INVOICES_SELECT } from '@/lib/services/invoicesService';
+import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 
 // إعادة تصدير أدوات الملفات للتوافق مع الاستيرادات الحالية
 export { uploadInvoiceFile, getInvoiceSignedUrl, ALLOWED_MIME_TYPES, MAX_FILE_SIZE, VALID_EXTENSIONS } from './useInvoiceFileUtils';
@@ -53,7 +54,7 @@ export const useUpdateInvoice = invoicesCrud.useUpdate;
 /** Invoices filtered by fiscal year */
 export const useInvoicesByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
-    queryKey: ['invoices', 'fiscal_year', fiscalYearId],
+    queryKey: invoicesKeys.byFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: () => invoicesService.listByFiscalYear(fiscalYearId),
@@ -71,7 +72,7 @@ export const useDeleteInvoice = () => {
     mutationFn: ({ id, file_path }: { id: string; file_path?: string | null }) =>
       invoicesService.remove(id, file_path),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: invoicesKeys.prefixes.invoices });
     },
   });
 };
@@ -108,7 +109,7 @@ export const useGenerateInvoicePdf = () => {
       return await invoke<GenerateInvoicePdfResult>('generate-invoice-pdf', { body });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: invoicesKeys.prefixes.invoices });
     },
   });
 };
