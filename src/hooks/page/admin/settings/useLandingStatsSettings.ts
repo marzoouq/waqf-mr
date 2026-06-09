@@ -12,6 +12,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
+import { contentKeys } from '@/lib/queryKeys/contentKeys';
 
 export type StatMode = 'auto' | 'manual' | 'hidden';
 
