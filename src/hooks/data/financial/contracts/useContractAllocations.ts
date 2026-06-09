@@ -9,6 +9,7 @@ import { logger } from '@/lib/logger';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import type { FiscalAllocation } from '@/utils/financial/contracts/contractAllocation';
 import { isFyAll } from '@/constants/fiscalYearIds';
+import { contractsKeys } from '@/lib/queryKeys/contractsKeys';
 
 export interface ContractFiscalAllocation {
   id: string;
@@ -25,7 +26,7 @@ const ALLOCATION_LIMIT = 500;
 
 export const useContractAllocations = (fiscalYearId?: string | null) => {
   return useQuery({
-    queryKey: ['contract_fiscal_allocations', fiscalYearId],
+    queryKey: contractsKeys.allocations(fiscalYearId),
     enabled: fiscalYearId !== undefined,
     queryFn: async () => {
       let query = supabase
@@ -66,7 +67,7 @@ export const useUpsertContractAllocations = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contract_fiscal_allocations'] });
+      queryClient.invalidateQueries({ queryKey: contractsKeys.prefixes.allocations });
     },
     onError: (error: Error) => {
       logger.error('Allocation error:', error.message);

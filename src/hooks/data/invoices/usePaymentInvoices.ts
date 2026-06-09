@@ -8,6 +8,7 @@ import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
+import { contractsKeys } from '@/lib/queryKeys/contractsKeys';
 
 export type { PaymentInvoice } from '@/types/invoices';
 import type { PaymentInvoice } from '@/types/invoices';
@@ -46,7 +47,7 @@ export const useGenerateContractInvoices = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.paymentInvoices });
-      qc.invalidateQueries({ queryKey: ['contracts'] });
+      qc.invalidateQueries({ queryKey: contractsKeys.prefixes.contracts });
       qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.contractSummary });
     },
   });
@@ -61,7 +62,7 @@ export const useGenerateAllInvoices = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.paymentInvoices });
-      qc.invalidateQueries({ queryKey: ['contracts'] });
+      qc.invalidateQueries({ queryKey: contractsKeys.prefixes.contracts });
       qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.contractSummary });
     },
   });
@@ -78,9 +79,9 @@ export const useMarkInvoicePaid = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.paymentInvoices });
-      qc.invalidateQueries({ queryKey: ['tenant_payments'] });
+      qc.invalidateQueries({ queryKey: contractsKeys.prefixes.tenantPayments });
       qc.invalidateQueries({ queryKey: ['income'] });
-      qc.invalidateQueries({ queryKey: ['contracts'] });
+      qc.invalidateQueries({ queryKey: contractsKeys.prefixes.contracts });
     },
   });
 };
@@ -95,9 +96,9 @@ export const useMarkInvoiceUnpaid = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.paymentInvoices });
-      qc.invalidateQueries({ queryKey: ['tenant_payments'] });
+      qc.invalidateQueries({ queryKey: contractsKeys.prefixes.tenantPayments });
       qc.invalidateQueries({ queryKey: ['income'] });
-      qc.invalidateQueries({ queryKey: ['contracts'] });
+      qc.invalidateQueries({ queryKey: contractsKeys.prefixes.contracts });
     },
   });
 };
@@ -122,7 +123,7 @@ export const useDeleteContractPendingInvoices = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.paymentInvoices });
-      qc.invalidateQueries({ queryKey: ['contracts'] });
+      qc.invalidateQueries({ queryKey: contractsKeys.prefixes.contracts });
       qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.contractSummary });
     },
   });

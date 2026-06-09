@@ -8,6 +8,7 @@ import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { Unit } from '@/types';
 import type { UnitInsert } from '@/types/models';
 import { supabase } from '@/integrations/supabase/client';
+import { contractsKeys } from '@/lib/queryKeys/contractsKeys';
 
 // Re-export types for backward compatibility
 export type UnitRow = Unit;
@@ -52,7 +53,7 @@ async function fetchUnitsByProperty(propertyId: string): Promise<Unit[]> {
 /** Fetch units filtered by property_id */
 export const useUnits = (propertyId?: string) => {
   return useQuery({
-    queryKey: ['units', propertyId],
+    queryKey: contractsKeys.units(propertyId),
     staleTime: STALE_STATIC,
     queryFn: () => fetchUnitsByProperty(propertyId!),
     enabled: !!propertyId,
@@ -69,8 +70,8 @@ export const useDeleteUnit = () => {
       return propertyId;
     },
     onSuccess: (propertyId) => {
-      queryClient.invalidateQueries({ queryKey: ['all-units'] });
-      queryClient.invalidateQueries({ queryKey: ['units', propertyId] });
+      queryClient.invalidateQueries({ queryKey: contractsKeys.prefixes.allUnits });
+      queryClient.invalidateQueries({ queryKey: contractsKeys.units(propertyId) });
     },
   });
 };

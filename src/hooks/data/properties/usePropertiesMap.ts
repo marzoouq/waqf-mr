@@ -4,11 +4,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
+import { contractsKeys } from '@/lib/queryKeys/contractsKeys';
 
 /** يُعيد خريطة { [propertyId]: اسم العقار } */
 export const usePropertiesMap = (propertyIds: string[]) => {
   return useQuery({
-    queryKey: ['properties_names', propertyIds],
+    queryKey: contractsKeys.propertiesNames(propertyIds),
     enabled: propertyIds.length > 0,
     staleTime: STALE_STATIC,
     queryFn: async () => {
