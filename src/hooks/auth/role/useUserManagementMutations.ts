@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { getSafeErrorMessage } from '@/utils/format/safeErrorMessage';
 import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
+import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 import { callAdminApi } from './useUserManagementData';
 
 export const useCreateUserMutation = (onSuccess?: () => void) => {
