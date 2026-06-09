@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 
 export interface FiscalYearSummary {
   fiscalYearId: string;

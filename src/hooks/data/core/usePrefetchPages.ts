@@ -8,6 +8,7 @@ import { useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { prefetchComponent } from '@/lib/componentPrefetch';
+import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 import { propertiesQueryOptions } from '@/hooks/data/properties/useProperties';
 import { contractsQueryOptions } from '@/hooks/data/contracts/useContracts';
 import { accountsQueryOptions } from '@/hooks/data/financial/accounts/useAccounts';
