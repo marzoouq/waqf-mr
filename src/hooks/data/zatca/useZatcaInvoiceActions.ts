@@ -6,6 +6,7 @@ import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@/lib/api/invoke';
 import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
+import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 
 export function useZatcaInvoiceActions() {
   const queryClient = useQueryClient();

@@ -35,7 +35,7 @@ export function useZatcaInvoices() {
   }, [allInvoices, invoicePage]);
 
   const { data: chain = [], isLoading: chainLoading } = useQuery({
-    queryKey: ['invoice-chain'],
+    queryKey: invoicesKeys.invoiceChain(),
     staleTime: STALE_FINANCIAL,
     queryFn: () => zatcaInvoicesService.listInvoiceChain(),
     select: (result) => result.records,
