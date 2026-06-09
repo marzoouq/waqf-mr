@@ -7,6 +7,7 @@ import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { useStableRef } from '@/lib/hooks/useStableRef';
 import { STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
 import { messagingService, MESSAGES_PAGE_SIZE } from '@/lib/services/messagingService';
+import { messagingKeys } from '@/lib/queryKeys/messagingKeys';
 
 export type { Conversation, Message };
 
@@ -15,7 +16,7 @@ export const useConversations = (type?: string) => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ['conversations', type],
+    queryKey: messagingKeys.conversations.byType(type),
     queryFn: () => messagingService.listConversations(type),
     enabled: !!user,
     staleTime: STALE_MESSAGING,
@@ -25,7 +26,7 @@ export const useConversations = (type?: string) => {
 
   const convSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
     channel.on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
-      queryClientRef.current.invalidateQueries({ queryKey: ['conversations'] });
+      queryClientRef.current.invalidateQueries({ queryKey: messagingKeys.conversations.prefix });
     });
   }, [queryClientRef]);
 
@@ -45,7 +46,7 @@ export const useMessages = (conversationId: string | null) => {
   type Cursor = { created_at: string; id: string } | undefined;
 
   const query = useInfiniteQuery({
-    queryKey: ['messages', conversationId],
+    queryKey: messagingKeys.messages.byConversation(conversationId),
     queryFn: async ({ pageParam }: { pageParam: Cursor }): Promise<Message[]> => {
       if (!conversationId) return [];
       return messagingService.listMessagesPage(conversationId, pageParam);
@@ -66,7 +67,7 @@ export const useMessages = (conversationId: string | null) => {
 
   const msgSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
     channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, () => {
-      queryClientRef.current.invalidateQueries({ queryKey: ['messages', conversationId] });
+      queryClientRef.current.invalidateQueries({ queryKey: messagingKeys.messages.byConversation(conversationId) });
     });
   }, [conversationId, queryClientRef]);
 
@@ -120,8 +121,8 @@ export const useSendMessage = () => {
       }
     },
     onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', vars.conversationId] });
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: messagingKeys.messages.byConversation(vars.conversationId) });
+      queryClient.invalidateQueries({ queryKey: messagingKeys.conversations.prefix });
     },
   });
 };
@@ -144,6 +145,6 @@ export const useCreateConversation = () => {
         pendingRef.current = false;
       }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conversations'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: messagingKeys.conversations.prefix }),
   });
 };

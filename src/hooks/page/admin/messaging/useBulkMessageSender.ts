@@ -8,6 +8,7 @@ import { messagingService, enqueueUserNotification } from '@/lib/services';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
+import { messagingKeys } from '@/lib/queryKeys/messagingKeys';
 
 export const useBulkMessageSender = () => {
   const { user } = useAuth();
@@ -54,7 +55,7 @@ export const useBulkMessageSender = () => {
 
       if (successCount > 0) {
         uiNotify.success(`تم إرسال الرسالة لـ ${successCount} مستفيد`);
-        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        queryClient.invalidateQueries({ queryKey: messagingKeys.conversations.prefix });
       } else {
         uiNotify.error('فشل إرسال الرسالة لجميع المستفيدين');
       }

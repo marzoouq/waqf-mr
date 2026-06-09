@@ -1,70 +1,58 @@
-# الموجة D — `financialKeys.ts`
+# الموجة E — `messagingKeys` + `supportKeys` + `notificationsKeys`
 
-## 1. إنشاء factory موحّد
+## 1. ثلاث factory جديدة
 
-**ملف جديد:** `src/lib/queryKeys/financialKeys.ts` (~80 سطر، ≤200)
-
-يغطي 12 prefix منفصل ضمن namespace واحد:
-
+### `src/lib/queryKeys/messagingKeys.ts`
 ```text
-financialKeys.accounts.byFiscalYear(idOrLabel)        → ['accounts', 'fiscal_year', key]
-financialKeys.accounts.prefix                          → ['accounts']
-financialKeys.income.byFiscalYear(fyId)                → ['income', 'fiscal_year', fyId]
-financialKeys.income.prefix                            → ['income']
-financialKeys.income.comparison()                      → ['income_comparison_raw']
-financialKeys.expenses.byFiscalYear(fyId)              → ['expenses', 'fiscal_year', fyId]
-financialKeys.expenses.prefix                          → ['expenses']
-financialKeys.expenses.budgets(fyId)                   → ['expense_budgets', fyId]
-financialKeys.expenses.budgetsPrefix                   → ['expense_budgets']
-financialKeys.distributions.prefix                     → ['distributions']
-financialKeys.distributions.aggregated(fyId)           → ['aggregated-distributions', fyId]
-financialKeys.distributions.my(beneficiaryId, fyId)    → ['my-distributions', beneficiaryId, fyId]
-financialKeys.distributions.myPrefix                   → ['my-distributions']
-financialKeys.beneficiaryProfile.byUser(userId)        → ['my-beneficiary', userId]
-financialKeys.beneficiaryProfile.prefix                → ['my-beneficiary']
-financialKeys.dashboard.totalBeneficiaryPercentage()   → ['total-beneficiary-percentage']
-financialKeys.fiscalYearComparison.multi(sortedIds)    → ['multi-year-summary', sortedIds]
-financialKeys.fiscalYearComparison.pair(id1, id2)      → ['year-comparison-summary', id1, id2]
+messagingKeys.conversations.byType(type)               → ['conversations', type]
+messagingKeys.conversations.prefix                      → ['conversations']
+messagingKeys.messages.byConversation(conversationId)  → ['messages', conversationId]
+messagingKeys.messages.prefix                           → ['messages']
+messagingKeys.unread.byUser(userId)                     → ['unread-messages-count', userId]
+messagingKeys.unread.prefix                             → ['unread-messages-count']
 ```
 
-> ملاحظة: `useAccounts` و `useIncome` و `useExpenses` يستخدمون `createCrudFactory({ queryKey: '...' })` للـ CRUD الأساسي؛ السلسلة هناك مستهلكة داخلياً (وليست `queryKey: [...]`)، لذلك تبقى كما هي ومتوافقة مع `prefix` المُعرَّف.
+### `src/lib/queryKeys/supportKeys.ts`
+```text
+supportKeys.tickets.list(statusFilter, page, pageSize) → ['support_tickets', statusFilter ?? 'all', page, pageSize]
+supportKeys.tickets.prefix                              → ['support_tickets']
+supportKeys.replies.byTicket(ticketId)                  → ['ticket_replies', ticketId]
+supportKeys.replies.prefix                              → ['ticket_replies']
+supportKeys.stats()                                     → ['support_stats']
+supportKeys.analytics()                                 → ['support_analytics']
+```
 
-## 2. تحديث 11 ملف data
+### `src/lib/queryKeys/notificationsKeys.ts`
+```text
+notificationsKeys.byUser(userId)                        → ['notifications', userId]
+notificationsKeys.prefix                                → ['notifications']
+```
 
-| الملف | التغيير |
+## 2. تحديث 9 ملفات
+
+| الملف | البنود |
 |---|---|
-| `hooks/data/financial/accounts/useAccounts.ts` | سطر 36 → `financialKeys.accounts.byFiscalYear(...)` |
-| `hooks/data/financial/income/useIncome.ts` | سطر 50 → `financialKeys.income.byFiscalYear(fiscalYearId)` |
-| `hooks/data/financial/income/useIncomeComparison.ts` | سطر 22 → `financialKeys.income.comparison()` |
-| `hooks/data/financial/expenses/useExpenses.ts` | سطر 50 → `financialKeys.expenses.byFiscalYear(fiscalYearId)` |
-| `hooks/data/financial/expenses/useExpenseBudgets.ts` | سطر 18 + 51 → `financialKeys.expenses.budgets(fiscalYearId)` |
-| `hooks/data/financial/distribution/useDistribute.ts` | أسطر 35-37 → `financialKeys.distributions.prefix` + `.myPrefix` + `accounts.prefix` |
-| `hooks/data/financial/dashboard/useTotalBeneficiaryPercentage.ts` | سطر 16 → `financialKeys.dashboard.totalBeneficiaryPercentage()` |
-| `hooks/data/financial/fiscalYears/useMultiYearSummary.ts` | سطر 18 → `financialKeys.fiscalYearComparison.multi(sortedIds)` |
-| `hooks/data/financial/fiscalYears/useYearComparisonData.ts` | سطر 42 → `financialKeys.fiscalYearComparison.pair(year1Id, year2Id)` |
-| `hooks/data/beneficiaries/useMyDistributions.ts` | سطر 10 → `financialKeys.distributions.my(beneficiaryId, fiscalYearId)` |
-| `hooks/data/beneficiaries/useMyBeneficiaryProfile.ts` | سطر 9 → `financialKeys.beneficiaryProfile.byUser(userId)` |
+| `hooks/data/messaging/useMessaging.ts` | 7 أسطر (18, 28, 48, 69, 123, 124, 147) |
+| `hooks/data/messaging/useUnreadMessages.ts` | سطر 14 |
+| `hooks/data/support/useSupportTickets.ts` | سطران 55, 83 |
+| `hooks/data/support/useSupportTicketMutations.ts` | 5 أسطر (18, 36, 49, 50, 62) |
+| `hooks/data/support/useSupportAnalytics.ts` | سطران 12, 43 |
+| `hooks/data/notifications/useNotifications.ts` | سطر 31 |
+| `hooks/data/notifications/useNotificationActions.ts` | سطر 154 |
+| `hooks/data/core/usePrefetchPages.ts` | سطر 127 (`{ queryKey: ['conversations'], ... }` prefetch) |
+| `hooks/page/admin/messaging/useBulkMessageSender.ts` | سطر 57 |
 
-## 3. تحديث Cross-domain invalidations
-
-| الملف | التغيير |
-|---|---|
-| `hooks/data/invoices/usePaymentInvoices.ts` | سطران 83 + 100: `['income']` → `financialKeys.income.prefix` |
-| `hooks/data/contracts/useTenantPayments.ts` | سطر 66: `['income']` → `financialKeys.income.prefix` |
-| `hooks/data/financial/advances/useAdvanceRequests.ts` | سطر 111: `['accounts']` → `financialKeys.accounts.prefix` |
-| `hooks/page/admin/dashboard/useAggregatedAnnualReport.ts` | سطر 35: `['aggregated-distributions', fiscalYearId]` → `financialKeys.distributions.aggregated(fiscalYearId)` |
-
-## 4. التحقق
+## 3. التحقق
 
 ```bash
-rg -n "queryKey:\s*\[['\"](?:income|expenses|expense_budgets|accounts|distributions|my-distributions|my-beneficiary|total-beneficiary-percentage|multi-year-summary|year-comparison-summary|income_comparison_raw|aggregated-distributions)" src/hooks
+rg -n "queryKey:\s*\[['\"](?:conversations|messages|unread-messages-count|support_tickets|ticket_replies|support_stats|support_analytics|notifications)" src/
 # expected: 0
+
+# الفحص الشامل لكل المشروع
+rg -n "queryKey:\s*\[['\"]" src/hooks src/components src/pages src/lib | grep -v "Keys\."
+# expected: فقط ما تبقى للموجة F (admin/audit/content/email) + page-hook retry literals
 ```
 
-تبقى `useRetryQueries(['my-distributions', 'my-beneficiary', ...])` في `hooks/page/beneficiary/financial/` كمدخلات نصية (مغطّاة بالخطوة #5 لاحقاً، ليست ضمن هذه الموجة).
-
 ## نطاق محدود
-
-- لا تغيير لمنطق الأعمال أو signatures
-- لا تعديل ملفات اختبار في هذه الموجة (يُحقَّق بعد البناء)
-- إجمالي الملفات: 1 جديد + 15 تعديل
+- لا تغيير لمنطق أو signatures
+- 3 ملفات جديدة + 9 تعديلات

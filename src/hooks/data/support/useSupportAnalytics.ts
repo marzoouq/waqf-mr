@@ -5,11 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
+import { supportKeys } from '@/lib/queryKeys/supportKeys';
 
 /** إحصائيات الدعم الفني — RPC واحد بدلاً من 9 استعلامات */
 export const useSupportStats = () => {
   return useQuery({
-    queryKey: ['support_stats'],
+    queryKey: supportKeys.stats(),
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
       const data = await rpc('get_support_stats');
@@ -40,7 +41,7 @@ export interface SupportAnalyticsData {
 
 export const useSupportAnalytics = () => {
   return useQuery({
-    queryKey: ['support_analytics'],
+    queryKey: supportKeys.analytics(),
     staleTime: STALE_MESSAGING,
     queryFn: async (): Promise<SupportAnalyticsData> => {
       const data = await rpc('get_support_analytics');

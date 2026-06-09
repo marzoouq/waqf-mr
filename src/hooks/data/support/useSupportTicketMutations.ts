@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { supportService } from '@/lib/services/supportService';
+import { supportKeys } from '@/lib/queryKeys/supportKeys';
 
 /** إنشاء تذكرة جديدة */
 export const useCreateTicket = () => {
@@ -15,7 +16,7 @@ export const useCreateTicket = () => {
     mutationFn: (ticket: { title: string; description: string; category: string; priority: string }) =>
       supportService.createTicket({ ...ticket, created_by: user?.id ?? '' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['support_tickets'] });
+      qc.invalidateQueries({ queryKey: supportKeys.tickets.prefix });
       rpc('notify_admins', {
         p_title: 'تذكرة دعم فني جديدة',
         p_message: 'تم استلام تذكرة دعم فني جديدة تحتاج مراجعة',
@@ -33,7 +34,7 @@ export const useUpdateTicketStatus = () => {
     mutationFn: (input: { id: string; status: string; resolution_notes?: string; assigned_to?: string }) =>
       supportService.updateTicketStatus(input),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['support_tickets'] });
+      qc.invalidateQueries({ queryKey: supportKeys.tickets.prefix });
     },
   });
 };
@@ -46,8 +47,8 @@ export const useAddTicketReply = () => {
     mutationFn: ({ ticket_id, content, is_internal }: { ticket_id: string; content: string; is_internal?: boolean }) =>
       supportService.addReply({ ticket_id, content, sender_id: user?.id ?? '', is_internal }),
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['ticket_replies', vars.ticket_id] });
-      qc.invalidateQueries({ queryKey: ['support_tickets'] });
+      qc.invalidateQueries({ queryKey: supportKeys.replies.byTicket(vars.ticket_id) });
+      qc.invalidateQueries({ queryKey: supportKeys.tickets.prefix });
     },
   });
 };
@@ -59,7 +60,7 @@ export const useRateTicket = () => {
     mutationFn: (input: { id: string; rating: number; rating_comment?: string }) =>
       supportService.rateTicket(input),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['support_tickets'] });
+      qc.invalidateQueries({ queryKey: supportKeys.tickets.prefix });
     },
   });
 };

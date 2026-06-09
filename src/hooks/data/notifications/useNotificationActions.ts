@@ -14,6 +14,7 @@ import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotificationSounds } from '@/hooks/ui/useNotificationSounds';
 import { logger } from '@/lib/logger';
+import { notificationsKeys } from '@/lib/queryKeys/notificationsKeys';
 
 type NotifPages = InfiniteData<AppNotification[]>;
 
@@ -151,7 +152,7 @@ export const useNotificationActions = (userId: string, hasUser: boolean, disable
       event: 'INSERT', schema: 'public', table: 'notifications',
       filter: `user_id=eq.${userId}`,
     }, (payload) => {
-      qcRef.current.invalidateQueries({ queryKey: ['notifications', userId] });
+      qcRef.current.invalidateQueries({ queryKey: notificationsKeys.byUser(userId) });
       const newNotif = payload.new as AppNotification;
       playSoundRef.current();
       showRef.current({ id: newNotif.id, title: newNotif.title, message: newNotif.message });
