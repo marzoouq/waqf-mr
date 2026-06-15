@@ -73,3 +73,38 @@ W4-017,4,🔵,auth,src/routes/waqifRoutes.tsx,withPermission=false skips Require
 W4-018,4,🔵,UX,src/pages/beneficiary/BeneficiaryMessagesPage.tsx,No per-conversation unread badge
 W4-019,4,⚪,layout,src/pages/beneficiary/MySharePage.tsx,Potential double DashboardLayout nesting
 W4-020,4,⚪,UX,src/pages/beneficiary/AnnualReportViewPage.tsx,Mobile uses native select
+W5-001,5,🔴,zatca,zatca-onboard/index.ts;zatca-renew/index.ts;zatca-report/index.ts,No HTTP timeouts on ZATCA external fetch calls
+W5-002,5,🟠,zatca,zatca-report/index.ts:160,Transient network error permanently marks invoice as rejected
+W5-003,5,🟡,zatca,zatca-onboard/index.ts:75-77,ZATCA OTP stored plaintext in app_settings
+W5-004,5,🟡,zatca,zatca-onboard/index.ts:109,ZATCA private key stored as raw hex in DB
+W5-005,5,🔵,zatca,zatca-report/index.ts:32-37,Body parsed sequentially after auth (not parallel)
+W5-007,5,🟡,ai,ai-assistant/index.ts:102;auth-email-hook/index.ts:92,LOVABLE_API_KEY shared across AI + email + sender
+W5-008,5,🟡,ai,ai-assistant/index.ts:156-158,AI streaming response has no timeout or size limit
+W5-009,5,🔵,ai,ai-assistant/index.ts:117-123,System prompt injection protection is instruction-based only
+W5-010,5,🔵,ai,ai-assistant/index.ts:108-111,In-memory cache has no TTL (stale data risk)
+W5-011,5,🟠,email,email-admin/index.ts:158-161,email-admin catch block leaks raw internal error message
+W5-012,5,🟡,email,auth-email-hook/index.ts:251;process-email-queue/utils.ts:59,recipient_email stored plaintext in email_send_log (PDPL PII)
+W5-013,5,🟡,email,auth-email-hook/index.ts:150,Payload typed as any after webhook verification
+W5-014,5,⚪,email,process-email-queue/index.ts:54-59,verify_jwt=true + isServiceRole() double validation (strength)
+W5-015,5,🔵,webauthn,webauthn/handlers/register-verify.ts:77-79,Challenge cleanup uses challenge value not UUID id
+W5-016,5,🟡,webauthn,webauthn/handlers/auth-verify.ts:37-46,Challenge expiry not enforced at query time
+W5-017,5,🔵,webauthn,webauthn/handlers/auth-options.ts:20-24,Rate-limit RPC error blocks legitimate WebAuthn login
+W5-018,5,🟡,storage,generate-invoice-pdf/index.ts:96-99,Invoice PDF bucket public status unverified
+W5-019,5,🔵,storage,generate-invoice-pdf/index.ts:91-93,PDF filename allows Unicode characters
+W5-020,5,⚪,storage,generate-voucher-pdf/index.ts,No test file for generate-voucher-pdf
+W5-021,5,🟡,national-id,lookup-national-id/index.ts:241-246,log_access_event stores raw client IP (PDPL PII)
+W5-022,5,⚪,national-id,lookup-national-id/index.ts:218-237,Excellent anti-enumeration and privacy design (strength)
+W5-023,5,🟠,admin,admin-manage-users/handlers/set-role.ts:8-16,No last-admin guard in set-role handler
+W5-024,5,🔵,admin,admin-manage-users/index.ts,bulk-create-users limit is application-only (50 users)
+W5-025,5,🔵,cron,check-contract-expiry/index.ts,No Zod body schema (cron function — low risk)
+W5-026,5,🟡,cron,check-contract-expiry/index.ts:87-90,Weekly expired-contract query creates per-contract notifications (flood risk)
+W5-027,5,⚪,cron,check-contract-expiry/index.ts:157-158,Tenant PII correctly scoped to admin notifications only (strength)
+W5-028,5,🟡,dashboard,supabase/config.toml,4 summary functions missing from config.toml; misleading verify_jwt comment
+W5-029,5,⚪,dashboard,dashboard-summary/index.ts:23,Consistent Cache-Control: private max-age=60 on summary functions (strength)
+W5-030,5,🟡,admin,guard-signup/index.ts:35-46,SERVICE_ROLE_KEY used for pre-auth rate-limit (should use anon key)
+W5-031,5,⚪,admin,guard-signup/index.ts:100-136,HIBP k-anonymity with AbortController correctly implemented (strength)
+W5-032,5,🟡,health,health-check/index.ts:24-34,Health-check uses SERVICE_ROLE_KEY without authentication
+W5-033,5,⚪,health,health-check/index.ts:1,Bare @supabase/supabase-js import resolves via importmap (strength)
+W5-034,5,🟠,cors,supabase/config.toml,15/16 functions have verify_jwt=false — no gateway JWT pre-rejection
+W5-035,5,🟡,testing,supabase/functions/,No test files for 13 of 22 edge functions
+W5-036,5,⚪,zatca,zatca-signer/index.ts:57-59,ICV chain is effective idempotency guard for double-signing (strength)
