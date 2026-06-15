@@ -1,15 +1,18 @@
 /**
  * هوكات إدارة العقود (CRUD)
  * يوفر: useContracts (جلب مع ربط العقار والوحدة), useCreateContract, useUpdateContract, useDeleteContract
+ * + useCreateContractWithInvoices (R1/W7-006): إنشاء ذرّي مع توليد الفواتير
  * الجدول: contracts | الربط: properties, units
  */
 import { createCrudFactory } from '../core/useCrudFactory';
 import { Contract } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { contractsKeys } from '@/lib/queryKeys/contractsKeys';
+import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 
 /**
  * أعمدة العقد الكاملة — تشمل PII للمستأجر (id_number, tax_number, address...).
