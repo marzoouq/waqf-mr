@@ -25,7 +25,7 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
         .from('payment_invoices')
         .select('id, contract_id, fiscal_year_id, invoice_number, payment_number, due_date, amount, status, paid_date, paid_amount, notes, vat_rate, vat_amount, zatca_uuid, zatca_status, file_path, created_at, updated_at, contract:contracts(contract_number, tenant_name, property_id, payment_count, status, property:properties(property_number))')
         .order('due_date', { ascending: true })
-        .limit(1000);
+        .limit(PER_FY_LIMIT);
       if (!isFyAll(fiscalYearId)) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
@@ -34,7 +34,7 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
       // nested join contract→property — cast مطلوب للعلاقة المتداخلة
       return data as unknown as PaymentInvoice[];
     },
-    meta: { warnLimit: 1000 },
+    meta: { warnLimit: PER_FY_LIMIT },
   });
 };
 
