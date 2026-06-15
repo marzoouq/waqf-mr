@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
+import { PER_FY_LIMIT } from '@/constants/pagination';
 import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 import { contractsKeys } from '@/lib/queryKeys/contractsKeys';
 import { financialKeys } from '@/lib/queryKeys/financialKeys';
