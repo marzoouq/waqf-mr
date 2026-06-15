@@ -1,0 +1,43 @@
+wave,path,kind,lines,notes
+W1,src/main.tsx,entry,28,منسّق إقلاع نظيف
+W1,src/App.tsx,entry,15,مفصول providers/router
+W1,src/app/providers.tsx,bootstrap,35,ترتيب providers صحيح
+W1,src/app/router.tsx,bootstrap,31,createBrowserRouter
+W1,src/app/root-layout.tsx,bootstrap,65,5 ErrorBoundary طبقات
+W1,src/app/bootstrap/removeSplash.ts,bootstrap,8,
+W1,src/app/bootstrap/preconnectBackend.ts,bootstrap,9,
+W1,src/app/bootstrap/registerPwa.ts,bootstrap,8,fire-and-forget
+W1,src/app/bootstrap/initMonitoring.ts,bootstrap,15,deferred via idle
+W1,src/app/bootstrap/mountReact.tsx,bootstrap,26,fallback HTML آمن
+W1,src/app/bootstrap/bootstrap.smoke.test.ts,test,82,smoke تغطي 5 وحدات
+W1,src/lib/lazyWithRetry.ts,lib,60,TTL 10s + reload مرة واحدة
+W1,src/lib/logger.ts,lib,40,dev/prod split
+W1,src/lib/queryClient.ts,lib,50,audit mode + retry policy
+W1,src/lib/diagnostics/runtimeCollector.ts,lib,60,sessionStorage 100 errors
+W1,src/components/common/feedback/ErrorBoundary.tsx,component,~110,2-stage reset + chunk error detection
+W1,index.html,config,~95,SEO/manifest/JSON-LD/splash
+W1,vite.config.ts,config,~200,PWA + manualChunks + visualizer
+W1,tsconfig.json,config,18,references
+W1,tsconfig.app.json,config,30,strict ممتاز
+W1,tailwind.config.ts,config,80+,CSS variables only
+W1,vitest.config.ts,config,55,threshold 60% + jsdom
+W1,components.json,config,17,shadcn
+W1,package.json,config,80,deps + scripts
+W1,public/_headers,config,4,CSP ناقصة
+W1,public/robots.txt,config,32,/install محجوب خطأ
+W1,public/sitemap.xml,config,20,قديم
+W1,public/manifest.webmanifest,config,17,مكرر مع VitePWA
+W1,public/llms.txt,config,16,
+W1,.github/workflows/ci.yml,ci,140,صارم وشامل
+W1,.github/workflows/test.yml,ci,55,coverage + codecov
+W1,.github/workflows/health-check.yml,ci,30,كل 30د
+W1,.github/workflows/auto-version.yml,ci,~180,bump+changelog عربي
+W1,.github/workflows/changelog.yml,ci,~70,on release
+W1,.github/dependabot.yml,ci,55,weekly grouped
+W1,.github/CODEOWNERS,ci,7,
+W1,.husky/pre-commit,ci,70,13 secret patterns
+W1,.husky/pre-push,ci,55,audit gate
+W1,scripts/security-gates.mjs,script,~110,PII+getSession+SERVICE_ROLE
+W1,scripts/deletion-gate.mjs,script,~70,tsc+vitest+audit
+W1,scripts/audit-all.mjs,script,~110,orchestrator
+W1,.env.example,config,5,
