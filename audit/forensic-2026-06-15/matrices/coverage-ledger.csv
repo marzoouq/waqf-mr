@@ -108,3 +108,33 @@ W5-033,5,⚪,health,health-check/index.ts:1,Bare @supabase/supabase-js import re
 W5-034,5,🟠,cors,supabase/config.toml,15/16 functions have verify_jwt=false — no gateway JWT pre-rejection
 W5-035,5,🟡,testing,supabase/functions/,No test files for 13 of 22 edge functions
 W5-036,5,⚪,zatca,zatca-signer/index.ts:57-59,ICV chain is effective idempotency guard for double-signing (strength)
+W6-001,6,🔴,RLS,migrations/20260403210830,jwt_role mass rollout replaced has_role across 25+ tables
+W6-002,6,🔴,Views,migrations/20260313162017,contracts_safe security_invoker=false bypasses RLS
+W6-003,6,🟠,Encryption,migrations/20260226235240,pii_encryption_key stored in app_settings not vault
+W6-004,6,🟠,Schema,migrations/20260209105205,FK directly to auth.users on user_roles/beneficiaries
+W6-005,6,🟠,Migrations,migrations/20260527201153,session_replication_role=replica data surgery in migration
+W6-006,6,🟠,RLS,migrations/20260209105205,Early USING(true) policies drop not verified
+W6-007,6,🟡,Cron,migrations/20260306023200;20260527222338,Duplicate cron registration expire-contracts-daily
+W6-008,6,🟡,Views,migrations/multi,beneficiaries_safe security_invoker toggled 6 times
+W6-009,6,🟡,Indexes,public.invoices,Missing composite index (fiscal_year_id,status)
+W6-010,6,🔵,Encryption,public.beneficiaries,email/phone plaintext only national_id/bank_account encrypted
+W6-011,6,🟡,RLS,public.distributions,verify anon grant scope after hardening
+W6-012,6,🟡,RLS,public.tenant_payments;invoice_chain,Missing RESTRICTIVE policy for unpublished years
+W6-013,6,🔵,RLS,public.rate_limits;webauthn_challenges,Missing expires_at index for cleanup
+W6-014,6,🟡,RLS,public.email_send_log,recipient_email plaintext
+W6-015,6,🟠,Functions,public.calculate_net_share,No explicit closed-year check; relies on triggers
+W6-016,6,🟡,Functions,public.execute_distribution,No FOR UPDATE lock; race condition possible
+W6-017,6,🟡,Triggers,public.accounts;account_categories,Missing prevent_closed_fy trigger
+W6-018,6,🔵,Functions,multi,Some triggers lack explicit SET search_path
+W6-019,6,🟠,Indexes,public.payment_invoices,Missing composite (contract_id,due_date)
+W6-020,6,🟡,Indexes,public.invoices,Missing index (status,due_date) for overdue queries
+W6-021,6,🟡,Indexes,public.email_send_log,Missing (message_id,created_at) for dedup query
+W6-022,6,🔵,Indexes,public.support_ticket_replies,Missing FK index on ticket_id
+W6-023,6,🔵,Indexes,public.access_log,Potentially redundant indexes on user_id
+W6-024,6,🔵,Indexes,public.webauthn_challenges,Missing expires_at index
+W6-025,6,🟡,Migrations,supabase/migrations,357 migrations no rollback scripts
+W6-026,6,🔵,Migrations,multi,Same trigger redefined multiple times
+W6-027,6,⚪,Migrations,all,gen_random_uuid used consistently (strength)
+W6-028,6,🟡,Cron,process-email-queue,5s frequency may overlap; needs advisory lock check
+W6-029,6,🟡,Views,contracts_safe;beneficiaries_safe,CASE-based PII masking lacks regression tests
+W6-030,6,🔵,Encryption,pgcrypto,AES key sourced from app_settings (links W6-003)
