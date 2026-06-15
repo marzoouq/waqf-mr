@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { zatcaFetch } from "../_shared/zatca-fetch.ts";
 import {
   ZATCA_COMMON_HEADERS,
   authenticateAdmin,
@@ -69,7 +70,7 @@ Deno.serve(async (req): Promise<Response> => {
       const bst = certData.certificate || "";
       const secret = certData.zatca_secret || "";
       try {
-        const complianceRes = await fetch(`${ZATCA_API_URL}/compliance/invoices`, {
+        const complianceRes = await zatcaFetch(`${ZATCA_API_URL}/compliance/invoices`, {
           method: "POST",
           headers: { ...ZATCA_COMMON_HEADERS, "Authorization": `Basic ${btoa(`${bst}:${secret}`)}`, "Accept-Language": "ar" },
           body: JSON.stringify({ invoiceHash: inv.invoice_hash, uuid: inv.zatca_uuid || "", invoice: btoa(inv.zatca_xml) }),
@@ -102,7 +103,7 @@ Deno.serve(async (req): Promise<Response> => {
       const bst = certData.certificate || "";
       const secret = certData.zatca_secret || "";
       try {
-        const qrRes = await fetch(`${ZATCA_API_URL}/compliance/${qrEndpoint}`, {
+        const qrRes = await zatcaFetch(`${ZATCA_API_URL}/compliance/${qrEndpoint}`, {
           method: "POST",
           headers: { ...ZATCA_COMMON_HEADERS, "Authorization": `Basic ${btoa(`${bst}:${secret}`)}`, "Accept-Language": "ar" },
           body: JSON.stringify({ invoiceHash: inv.invoice_hash, uuid: inv.zatca_uuid || "", invoice: btoa(inv.zatca_xml) }),
@@ -138,7 +139,7 @@ Deno.serve(async (req): Promise<Response> => {
       const secret = certData.zatca_secret || "";
 
       try {
-        const zatcaRes = await fetch(`${ZATCA_API_URL}/invoices/${endpoint}/single`, {
+        const zatcaRes = await zatcaFetch(`${ZATCA_API_URL}/invoices/${endpoint}/single`, {
           method: "POST",
           headers: { ...ZATCA_COMMON_HEADERS, "Authorization": `Basic ${btoa(`${bst}:${secret}`)}`, "Accept-Language": "ar", ...(action === "clearance" ? { "ClearanceStatus": "1" } : {}) },
           body: JSON.stringify({ invoiceHash: inv.invoice_hash, uuid: inv.zatca_uuid || "", invoice: btoa(xml) }),

@@ -1,15 +1,18 @@
 /**
  * هوكات إدارة العقود (CRUD)
  * يوفر: useContracts (جلب مع ربط العقار والوحدة), useCreateContract, useUpdateContract, useDeleteContract
+ * + useCreateContractWithInvoices (R1/W7-006): إنشاء ذرّي مع توليد الفواتير
  * الجدول: contracts | الربط: properties, units
  */
 import { createCrudFactory } from '../core/useCrudFactory';
 import { Contract } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { isFyReady, isFyAll } from '@/constants/fiscalYearIds';
 import { contractsKeys } from '@/lib/queryKeys/contractsKeys';
+import { invoicesKeys } from '@/lib/queryKeys/invoicesKeys';
 
 /**
  * أعمدة العقد الكاملة — تشمل PII للمستأجر (id_number, tax_number, address...).
@@ -79,6 +82,33 @@ export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
       const { data, error } = await query;
       if (error) throw error;
       return data;
+    },
+  });
+};
+
+/**
+ * R1/W7-006 — إنشاء عقد + توليد فواتيره في معاملة ذرّية واحدة.
+ * يستدعي RPC `create_contract_with_invoices` التي تضمن الـ rollback
+ * إذا فشل توليد الفواتير، فلا تتبقّى عقود يتيمة بلا فواتير.
+ *
+ * مخرج: `{ contract_id, invoice_count }`.
+ */
+export const useCreateContractWithInvoices = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (contractPayload: Record<string, unknown>) => {
+      const result = await rpc<Array<{ contract_id: string; invoice_count: number }>>(
+        'create_contract_with_invoices',
+        { p_contract: contractPayload },
+      );
+      const row = Array.isArray(result) ? result[0] : (result as unknown as { contract_id: string; invoice_count: number });
+      if (!row?.contract_id) throw new Error('فشل إنشاء العقد الذرّي');
+      return row;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: contractsKeys.prefixes.contracts });
+      qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.paymentInvoices });
+      qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.contractSummary });
     },
   });
 };

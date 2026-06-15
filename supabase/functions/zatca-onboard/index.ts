@@ -5,6 +5,7 @@
 
 import { p256 } from "npm:@noble/curves@1.4.0/p256";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { zatcaFetch } from "../_shared/zatca-fetch.ts";
 import {
   ZATCA_COMMON_HEADERS,
   authenticateAdmin,
@@ -51,7 +52,7 @@ Deno.serve(async (req): Promise<Response> => {
         return new Response(JSON.stringify({ connected: false, error: "لم يتم تحديد URL البوابة" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       try {
-        const testRes = await fetch(`${ZATCA_API_URL}/compliance`, { method: "GET", headers: { "Accept": "application/json", "Accept-Version": "V2" } });
+        const testRes = await zatcaFetch(`${ZATCA_API_URL}/compliance`, { method: "GET", headers: { "Accept": "application/json", "Accept-Version": "V2" } });
         const reachable = testRes.status >= 200 && testRes.status < 500;
         await testRes.text();
         await logZatcaOperation(admin, { operation_type: "test-connection", status: reachable ? "success" : "error", request_summary: { url: ZATCA_API_URL }, response_summary: { status_code: testRes.status, connected: reachable }, user_id: user.id });
@@ -131,7 +132,7 @@ Deno.serve(async (req): Promise<Response> => {
       };
 
       try {
-        const csrResponse = await fetch(`${ZATCA_API_URL}/compliance`, { method: "POST", headers: { ...ZATCA_COMMON_HEADERS, "OTP": otp }, body: JSON.stringify({ csr: csrPem }) });
+        const csrResponse = await zatcaFetch(`${ZATCA_API_URL}/compliance`, { method: "POST", headers: { ...ZATCA_COMMON_HEADERS, "OTP": otp }, body: JSON.stringify({ csr: csrPem }) });
         if (!csrResponse.ok) {
           const errText = await csrResponse.text();
           await logZatcaOperation(admin, { operation_type: "onboard", status: "error", request_summary: { url: `${ZATCA_API_URL}/compliance`, org: orgName }, response_summary: { status_code: csrResponse.status }, error_message: errText, user_id: user.id });
@@ -165,7 +166,7 @@ Deno.serve(async (req): Promise<Response> => {
       const secret = certData.zatca_secret || "";
 
       try {
-        const prodResponse = await fetch(`${ZATCA_API_URL}/production/csids`, { method: "POST", headers: { ...ZATCA_COMMON_HEADERS, "Authorization": `Basic ${btoa(`${bst}:${secret}`)}` }, body: JSON.stringify({ compliance_request_id: requestId }) });
+        const prodResponse = await zatcaFetch(`${ZATCA_API_URL}/production/csids`, { method: "POST", headers: { ...ZATCA_COMMON_HEADERS, "Authorization": `Basic ${btoa(`${bst}:${secret}`)}` }, body: JSON.stringify({ compliance_request_id: requestId }) });
         if (!prodResponse.ok) {
           const errText = await prodResponse.text();
           await logZatcaOperation(admin, { operation_type: "production", status: "error", request_summary: { url: `${ZATCA_API_URL}/production/csids` }, response_summary: { status_code: prodResponse.status }, error_message: errText, user_id: user.id });

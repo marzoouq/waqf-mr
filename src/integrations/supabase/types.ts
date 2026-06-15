@@ -2206,6 +2206,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_contract_with_invoices: {
+        Args: { p_contract: Json }
+        Returns: {
+          contract_id: string
+          invoice_count: number
+        }[]
+      }
       create_disbursement_voucher: {
         Args: {
           p_amount: number
@@ -2335,7 +2342,6 @@ export type Database = {
         Args: { p_fiscal_year_id: string }
         Returns: boolean
       }
-      jwt_role: { Args: never; Returns: string }
       log_access_event: {
         Args: {
           p_device_info?: string

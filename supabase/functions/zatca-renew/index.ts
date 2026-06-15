@@ -4,6 +4,7 @@
 
 import { p256 } from "npm:@noble/curves@1.4.0/p256";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { zatcaFetch } from "../_shared/zatca-fetch.ts";
 import {
   ZATCA_COMMON_HEADERS,
   authenticateAdmin,
@@ -101,7 +102,7 @@ Deno.serve(async (req): Promise<Response> => {
 
     try {
       // الخطوة 2: الحصول على Compliance CSID جديد
-      const csrResponse = await fetch(`${ZATCA_API_URL}/compliance`, { method: "POST", headers: { ...ZATCA_COMMON_HEADERS, "OTP": otp }, body: JSON.stringify({ csr: csrPem }) });
+      const csrResponse = await zatcaFetch(`${ZATCA_API_URL}/compliance`, { method: "POST", headers: { ...ZATCA_COMMON_HEADERS, "OTP": otp }, body: JSON.stringify({ csr: csrPem }) });
       if (!csrResponse.ok) {
         const errText = await csrResponse.text();
         await logZatcaOperation(admin, { operation_type: "renew", status: "error", request_summary: { step: "compliance", url: `${ZATCA_API_URL}/compliance` }, response_summary: { status_code: csrResponse.status }, error_message: errText, user_id: user.id });
@@ -114,7 +115,7 @@ Deno.serve(async (req): Promise<Response> => {
       const renewRequestId = csrData.requestID || "";
 
       // الخطوة 3: الحصول على Production CSID جديد
-      const prodResponse = await fetch(`${ZATCA_API_URL}/production/csids`, {
+      const prodResponse = await zatcaFetch(`${ZATCA_API_URL}/production/csids`, {
         method: "PATCH",
         headers: { ...ZATCA_COMMON_HEADERS, "Authorization": `Basic ${btoa(`${renewBst}:${renewSecret}`)}`, "OTP": otp },
         body: JSON.stringify({ compliance_request_id: renewRequestId }),

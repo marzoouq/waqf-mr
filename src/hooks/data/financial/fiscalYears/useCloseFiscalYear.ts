@@ -31,11 +31,13 @@ export function useCloseFiscalYear() {
     },
     onSuccess: () => {
       // قائمة شاملة: تشمل التوزيعات والسُلف والمرحّل والمستفيدين والفواتير ولوحات السنوات
+      // ملاحظة R1: مفاتيح TanStack Query تستخدم kebab-case (dashboard-summary وليس dashboard_summary)
       const keys = [
         'fiscal_years', 'accounts', 'income', 'expenses', 'contracts',
         'tenant_payments', 'payment_invoices', 'invoices', 'distributions',
         'advance_requests', 'advance_carryforward', 'beneficiaries',
-        'dashboard_summary', 'annual_report_status', 'annual_report_items',
+        'dashboard-summary', 'aggregated-distributions',
+        'annual_report_status', 'annual_report_items',
         'contract_fiscal_allocations',
       ];
       for (const key of keys) queryClient.invalidateQueries({ queryKey: [key] });

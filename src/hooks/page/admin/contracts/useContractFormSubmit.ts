@@ -8,7 +8,7 @@ import type { Contract } from '@/types';
 import type { ContractFormData } from '@/types/forms/contract';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
-import { useCreateContract, useUpdateContract } from '@/hooks/data/contracts/useContracts';
+import { useCreateContract, useUpdateContract, useCreateContractWithInvoices } from '@/hooks/data/contracts/useContracts';
 import { useUpsertContractAllocations } from '@/hooks/data/financial/contracts/useContractAllocations';
 import { useFiscalYears } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import {
@@ -36,6 +36,7 @@ interface Params {
 
 export function useContractFormSubmit({ fiscalYearId, fiscalYears, editingContract, requestRegenerateConfirm }: Params) {
   const createContract = useCreateContract();
+  const createContractAtomic = useCreateContractWithInvoices();
   const updateContract = useUpdateContract();
   const upsertAllocations = useUpsertContractAllocations();
   const generateInvoices = useGenerateContractInvoices();
@@ -105,16 +106,12 @@ export function useContractFormSubmit({ fiscalYearId, fiscalYears, editingContra
           ? (parseFloat(formData.rent_per_unit[unitId] ?? '0') || 0)
           : (parseFloat(formData.rent_amount) / units.length);
         const payload = buildContractPayload({ formData, contractNumber, unitId, rentAmount, paymentCount, fiscalYearId: activeFYId });
-        const createdMulti = await createContract.mutateAsync(asMutationArg(createContract, payload));
-        const newIdMulti = (createdMulti as { id?: string } | undefined)?.id;
+        // R1/W7-006: إنشاء ذرّي — العقد + الفواتير معاً أو لا شيء
+        const atomicResult = await createContractAtomic.mutateAsync(payload as unknown as Record<string, unknown>);
+        const newIdMulti = atomicResult.contract_id;
+        totalInvoices += atomicResult.invoice_count;
         if (newIdMulti) {
           await syncAllocations(newIdMulti, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
-          try {
-            const count = await generateInvoices.mutateAsync(newIdMulti);
-            totalInvoices += count;
-          } catch (err) {
-            logger.warn('Invoice generation failed:', err instanceof Error ? err.message : String(err));
-          }
         }
         createdContracts++;
       }
@@ -125,16 +122,12 @@ export function useContractFormSubmit({ fiscalYearId, fiscalYears, editingContra
         ? formData.unit_id
         : (formData.rental_mode === 'multi' && formData.selected_unit_ids.length === 1 ? formData.selected_unit_ids[0] : null)) || null;
       const payload = buildContractPayload({ formData, contractNumber: formData.contract_number, unitId, rentAmount, paymentCount, fiscalYearId: activeFYId });
-      const createdSingle = await createContract.mutateAsync(asMutationArg(createContract, payload));
-      const newIdSingle = (createdSingle as { id?: string } | undefined)?.id;
+      // R1/W7-006: إنشاء ذرّي — العقد + الفواتير معاً أو لا شيء
+      const atomicResult = await createContractAtomic.mutateAsync(payload as unknown as Record<string, unknown>);
+      const newIdSingle = atomicResult.contract_id;
       if (newIdSingle) {
         await syncAllocations(newIdSingle, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
-        try {
-          const count = await generateInvoices.mutateAsync(newIdSingle);
-          notifyInvoicesGenerated(count);
-        } catch (err) {
-          logger.warn('Invoice generation failed:', err instanceof Error ? err.message : String(err));
-        }
+        notifyInvoicesGenerated(atomicResult.invoice_count);
       }
     }
   };
