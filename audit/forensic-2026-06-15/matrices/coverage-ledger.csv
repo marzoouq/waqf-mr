@@ -138,3 +138,34 @@ W6-027,6,⚪,Migrations,all,gen_random_uuid used consistently (strength)
 W6-028,6,🟡,Cron,process-email-queue,5s frequency may overlap; needs advisory lock check
 W6-029,6,🟡,Views,contracts_safe;beneficiaries_safe,CASE-based PII masking lacks regression tests
 W6-030,6,🔵,Encryption,pgcrypto,AES key sourced from app_settings (links W6-003)
+W7-001,7,🟡,cache,useCollectPaymentInvoice,Cache key drift on income invalidation
+W7-002,7,🟡,realtime,payment_invoices,No realtime channel on payment_invoices
+W7-003,7,⚪,pagination,useMarkInvoicePaid,limit 1000 vs PER_FY_LIMIT 2000
+W7-004,7,🟠,cache,execute_distribution,Missing aggregated-distributions invalidation
+W7-005,7,🟡,idempotency,execute_distribution,No idempotency guard
+W7-006,7,🔴,atomicity,contract-create,Two-step contract creation not atomic
+W7-007,7,🟡,cache,useCreateContract,contract_fiscal_allocations not invalidated
+W7-008,7,🟠,cache,useCloseFiscalYear,Raw string literals not typed keys
+W7-009,7,🟡,guards,mutations,No frontend guard for closed-year writes
+W7-010,7,🟠,atomicity,useUpdateAdvanceStatus,Direct table update not RPC
+W7-011,7,🟡,race,advance-approve,Two admins can approve same advance
+W7-012,7,⚪,cache,zatca-report,No frontend cache invalidation after signing
+W7-013,7,🟡,naming,RPC,Function name 'n' obfuscated
+W7-014,7,🟡,cache,useUpdateBeneficiarySelf,Missing myFinanceRaw invalidation
+W7-015,7,🟠,atomicity,annual-report-publish,Direct table write no RPC guard
+W7-016,7,🟡,naming,migrations,n_status n_items obfuscated table names
+W7-017,7,🟡,reliability,support-ticket,Admin notification fire-and-forget
+W7-018,7,🟡,contract,fiscal_year_label,Client param ignored by edge function
+W7-019,7,🟡,types,supabase-joins,as unknown as casts unsound
+W7-020,7,🟡,types,non-test,as any scattered
+W7-021,7,🟠,cache,useCloseFiscalYear,dashboard_summary underscore vs hyphen mismatch
+W7-022,7,🟡,cache,useDistributeShares,No aggregated prefix invalidation
+W7-023,7,🟡,realtime,useDashboardRealtime,No cross-tab invalidation strategy
+W7-024,7,⚪,realtime,useBfcacheSafeChannel,instanceId appended to channel name
+W7-025,7,🟠,pagination,usePaymentInvoices,limit 1000 not PER_FY_LIMIT 2000
+W7-026,7,🟡,pagination,useAdvanceRequests,No hard limit when fiscalYearId undefined
+W7-027,7,🔵,UX,mutations,No optimistic updates anywhere
+W7-028,7,🟡,i18n,edge-errors,Arabic strings not localization keys
+W7-029,7,⚪,security,contracts_safe,Isolation correctly implemented (strength)
+W7-030,7,🔵,precision,client,No safeNumber utility found
+W7-PERF,7,🟠,performance,dashboard-summary,2438ms invoke observed cross-ref W6-009/019/020
