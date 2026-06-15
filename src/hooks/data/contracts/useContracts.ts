@@ -85,3 +85,30 @@ export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
     },
   });
 };
+
+/**
+ * R1/W7-006 — إنشاء عقد + توليد فواتيره في معاملة ذرّية واحدة.
+ * يستدعي RPC `create_contract_with_invoices` التي تضمن الـ rollback
+ * إذا فشل توليد الفواتير، فلا تتبقّى عقود يتيمة بلا فواتير.
+ *
+ * مخرج: `{ contract_id, invoice_count }`.
+ */
+export const useCreateContractWithInvoices = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (contractPayload: Record<string, unknown>) => {
+      const result = await rpc<Array<{ contract_id: string; invoice_count: number }>>(
+        'create_contract_with_invoices',
+        { p_contract: contractPayload },
+      );
+      const row = Array.isArray(result) ? result[0] : (result as unknown as { contract_id: string; invoice_count: number });
+      if (!row?.contract_id) throw new Error('فشل إنشاء العقد الذرّي');
+      return row;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: contractsKeys.prefixes.contracts });
+      qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.paymentInvoices });
+      qc.invalidateQueries({ queryKey: invoicesKeys.prefixes.contractSummary });
+    },
+  });
+};
