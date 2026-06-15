@@ -36,6 +36,7 @@ interface Params {
 
 export function useContractFormSubmit({ fiscalYearId, fiscalYears, editingContract, requestRegenerateConfirm }: Params) {
   const createContract = useCreateContract();
+  const createContractAtomic = useCreateContractWithInvoices();
   const updateContract = useUpdateContract();
   const upsertAllocations = useUpsertContractAllocations();
   const generateInvoices = useGenerateContractInvoices();
