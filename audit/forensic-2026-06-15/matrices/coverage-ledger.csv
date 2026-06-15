@@ -41,3 +41,11 @@ W1,scripts/security-gates.mjs,script,~110,PII+getSession+SERVICE_ROLE
 W1,scripts/deletion-gate.mjs,script,~70,tsc+vitest+audit
 W1,scripts/audit-all.mjs,script,~110,orchestrator
 W1,.env.example,config,5,
+W2,routing-auth,src/app/router.tsx,read,2026-06-15
+W2,routing-auth,src/routes/*.tsx,read,2026-06-15
+W2,routing-auth,src/components/auth/*.tsx,read,2026-06-15
+W2,routing-auth,src/contexts/AuthContext.tsx,read,2026-06-15
+W2,routing-auth,src/hooks/auth/**,read,2026-06-15
+W2,routing-auth,src/hooks/application/usePermissionCheck.ts,read,2026-06-15
+W2,routing-auth,src/constants/{roles,navigation,routeRegistry,routeRoles}.ts,read,2026-06-15
+W2,routing-auth,supabase/functions/guard-signup/index.ts,read,2026-06-15
