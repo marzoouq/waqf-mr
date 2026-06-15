@@ -53,3 +53,23 @@ W3,admin-dashboard,src/pages/dashboard/*.tsx (24 pages),read,2026-06-15
 W3,admin-dashboard,src/hooks/page/admin/**,size-scan,2026-06-15
 W3,admin-dashboard,src/components/layout/Sidebar.tsx,read,2026-06-15
 W3,admin-dashboard,src/hooks/page/admin/dashboard/useAdminDashboardPage.ts,read,2026-06-15
+W4-001,4,🔴,routing,src/routes/beneficiaryRoutes.tsx,Waqif included in ALL_NON_ACCOUNTANT can access beneficiary-only pages
+W4-002,4,🔴,PII,src/hooks/page/waqif/useWaqifDashboardPage.ts,Waqif displayName exposes raw auth email username
+W4-003,4,🟠,auth,src/pages/beneficiary/SupportPageGuard.tsx,SupportPageGuard does not redirect waqif role
+W4-004,4,🟠,performance,src/hooks/page/beneficiary/financial/useInvoicesViewPage.ts,Search input missing debounce on large lists
+W4-005,4,🟠,PII,src/hooks/data/contracts/useContracts.ts,tenant_name in contracts_safe may not be anonymized for beneficiary role
+W4-006,4,🟠,data-integrity,src/hooks/page/beneficiary/financial/useCarryforwardData.ts,activeBalance from active year shown without estimated disclaimer
+W4-007,4,🟠,UX,src/pages/beneficiary/BeneficiarySettingsPage.tsx,Tab state not reflected in URL
+W4-008,4,🟡,performance,src/hooks/page/beneficiary/views/useAnnualReportViewPage.ts,Heavy fetches unconditional before isPublished
+W4-009,4,🟡,audit,src/hooks/page/beneficiary/messaging/useBeneficiaryMessages.ts,Chat conversations lack reference ID
+W4-010,4,🟡,UX,src/pages/waqif/WaqifDashboard.tsx,No error state on data fetch failure
+W4-011,4,🟡,auth,src/hooks/page/beneficiary/settings/useBankAccountTab.ts,Bank account editable without re-authentication
+W4-012,4,🟡,data-integrity,src/hooks/page/beneficiary/financial/useDisclosurePage.ts,PDF may use wrong beneficiary if user_id maps to multiple records
+W4-013,4,🟡,UX,src/hooks/page/beneficiary/financial/useInvoicesViewPage.ts,Pagination not reset on fiscal year change
+W4-014,4,🟡,reliability,src/pages/beneficiary/NotificationsPage.tsx,No component-level ErrorBoundary
+W4-015,4,🔵,UX,src/pages/beneficiary/SupportPage.tsx,Loader2 not TableSkeleton
+W4-016,4,🔵,UX,src/hooks/page/beneficiary/financial/useMySharePage.ts,myShareIsEstimated fetched but unused
+W4-017,4,🔵,auth,src/routes/waqifRoutes.tsx,withPermission=false skips RequirePermission for waqif
+W4-018,4,🔵,UX,src/pages/beneficiary/BeneficiaryMessagesPage.tsx,No per-conversation unread badge
+W4-019,4,⚪,layout,src/pages/beneficiary/MySharePage.tsx,Potential double DashboardLayout nesting
+W4-020,4,⚪,UX,src/pages/beneficiary/AnnualReportViewPage.tsx,Mobile uses native select
