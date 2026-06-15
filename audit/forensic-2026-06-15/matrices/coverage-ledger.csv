@@ -49,3 +49,7 @@ W2,routing-auth,src/hooks/auth/**,read,2026-06-15
 W2,routing-auth,src/hooks/application/usePermissionCheck.ts,read,2026-06-15
 W2,routing-auth,src/constants/{roles,navigation,routeRegistry,routeRoles}.ts,read,2026-06-15
 W2,routing-auth,supabase/functions/guard-signup/index.ts,read,2026-06-15
+W3,admin-dashboard,src/pages/dashboard/*.tsx (24 pages),read,2026-06-15
+W3,admin-dashboard,src/hooks/page/admin/**,size-scan,2026-06-15
+W3,admin-dashboard,src/components/layout/Sidebar.tsx,read,2026-06-15
+W3,admin-dashboard,src/hooks/page/admin/dashboard/useAdminDashboardPage.ts,read,2026-06-15
