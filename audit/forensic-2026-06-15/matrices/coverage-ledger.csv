@@ -169,3 +169,31 @@ W7-028,7,🟡,i18n,edge-errors,Arabic strings not localization keys
 W7-029,7,⚪,security,contracts_safe,Isolation correctly implemented (strength)
 W7-030,7,🔵,precision,client,No safeNumber utility found
 W7-PERF,7,🟠,performance,dashboard-summary,2438ms invoke observed cross-ref W6-009/019/020
+W8-001,perf,min-h-screen on 22 spots breaks iOS Safari dynamic bar,orange,src/pages/*.tsx,Replace min-h-screen with min-h-dvh sitewide
+W8-002,perf,No preload for LCP image,orange,index.html,Add link rel=preload as=image for landing hero
+W8-003,perf,og-image hosted externally on gpt-engineer storage,yellow,index.html:24,Switch to local /og-image.webp
+W8-004,perf,Vendor PDF/recharts excluded from precache,blue,vite.config.ts,Strength - load on demand
+W8-005,perf,lazyWithRetry on 9 spots only,blue,src/lib/lazyWithRetry.ts,Pages are lazy loaded
+W8-006,perf,No vite-imagetools for AVIF conversion,yellow,vite.config.ts,Add imagetools plugin
+W8-007,perf,dashboard-summary 2438ms,orange,supabase rpc,Linked to W6-009 missing indexes
+W8-008,a11y,180 aria-label coverage,white,src/**/*.tsx,Good coverage
+W8-009,a11y,Zero console.* violations outside logger,white,src/**,Strict compliance
+W8-010,a11y,12 img alt with no content audit,yellow,src/**,Add eslint-plugin-jsx-a11y
+W8-011,a11y,18 ErrorBoundary placements,blue,src/**,Good isolation
+W8-012,a11y,No automated contrast scan,yellow,devDeps,Add axe-core/react or lighthouse-ci
+W8-013,a11y,No eslint rule against h-screen return,blue,eslint config,Add no-restricted-syntax rule
+W8-014,pwa,PWA setup fully matches skill/pwa rules,white,vite.config.ts,Strength
+W8-015,pwa,Workbox NetworkOnly on Supabase REST/Auth/Functions,white,vite.config.ts,Prevents DB cache leak
+W8-016,pwa,registerType=prompt requires SwUpdateBanner,blue,vite.config.ts,Verify banner present
+W8-017,pwa,No screenshots in manifest,yellow,vite.config.ts manifest,Add screenshots array
+W8-018,pwa,start_url=/ with display=standalone is locked,yellow,manifest,Cannot change without reinstall
+W8-019,seo,JSON-LD Organization + per-route canonical,white,index.html + RouteHead,Strength
+W8-020,seo,robots.txt blocks all private paths,white,public/robots.txt,Excellent coverage
+W8-021,seo,Static sitemap.xml only 3 entries,yellow,public/sitemap.xml,Convert to generator script
+W8-022,seo,og:image points to gpt-engineer storage,yellow,index.html,Use local /og-image.webp
+W8-023,seo,google-site-verification static,blue,index.html,Switch to DNS TXT
+W8-024,seo,llms.txt present,blue,public/llms.txt,Strength
+W8-025,test,255 test files vs 546 tsx components,white,src/**,~47% file ratio
+W8-026,test,audit:gate script needs CI gate verification,yellow,.github/workflows,Confirm enforced on PR
+W8-027,test,13 of 22 edge functions have no tests,yellow,supabase/functions,Linked to W5-035
+W8-028,monitor,initQueryMonitoring + errorReporter + logger present,blue,src/lib,No external Sentry integration
