@@ -8,7 +8,7 @@ import type { Contract } from '@/types';
 import type { ContractFormData } from '@/types/forms/contract';
 import { uiNotify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
-import { useCreateContract, useUpdateContract } from '@/hooks/data/contracts/useContracts';
+import { useCreateContract, useUpdateContract, useCreateContractWithInvoices } from '@/hooks/data/contracts/useContracts';
 import { useUpsertContractAllocations } from '@/hooks/data/financial/contracts/useContractAllocations';
 import { useFiscalYears } from '@/hooks/data/financial/fiscalYears/useFiscalYears';
 import {
