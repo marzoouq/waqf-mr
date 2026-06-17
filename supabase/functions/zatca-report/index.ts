@@ -113,9 +113,9 @@ Deno.serve(async (req): Promise<Response> => {
         await logZatcaOperation(admin, { operation_type: action, status: qrRes.ok ? "success" : "error", request_summary: { invoice_id, table, endpoint: qrEndpoint }, response_summary: { status_code: qrRes.status }, error_message: qrRes.ok ? undefined : JSON.stringify(qrData).slice(0, 500), invoice_id, user_id: user.id });
         return new Response(JSON.stringify({ success: qrRes.ok, status: qrRes.status, data: qrData }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (fetchErr) {
-        const errMsg = `ZATCA API unreachable: ${(fetchErr as Error).message}`;
-        await logZatcaOperation(admin, { operation_type: action, status: "error", error_message: errMsg, invoice_id, user_id: user.id });
-        return new Response(JSON.stringify({ error: errMsg }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        const errInternal = (fetchErr as Error).message;
+        await logZatcaOperation(admin, { operation_type: action, status: "error", error_message: errInternal, invoice_id, user_id: user.id });
+        return new Response(JSON.stringify({ error: "ZATCA API unreachable" }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
 
