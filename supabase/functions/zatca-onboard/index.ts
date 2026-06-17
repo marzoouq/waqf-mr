@@ -72,15 +72,14 @@ Deno.serve(async (req): Promise<Response> => {
         return new Response(JSON.stringify({ success: true, message: "Development certificate created. Configure ZATCA_API_URL for production onboarding." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // R4: استهلاك OTP عبر RPC آمنة (تفك التشفير من vault وتحذف القيمة)
+      // R6 (W5-#24): استهلاك OTP حصراً عبر RPC الخزنة — لا fallback لـ env (يتجاوز التشفير والاستخدام-مرة-واحدة)
       let otp = "";
       const { data: otpPlain } = await admin.rpc("consume_zatca_otp");
       if (typeof otpPlain === "string") otp = otpPlain;
-      if (!otp) otp = Deno.env.get("ZATCA_OTP") || "";
 
       if (!otp) {
         await logZatcaOperation(admin, { operation_type: "onboard", status: "error", error_message: "رمز التفعيل OTP مطلوب", user_id: user.id });
-        return new Response(JSON.stringify({ error: "رمز التفعيل OTP مطلوب. أدخله من صفحة إعدادات ZATCA أو عيّنه كمتغير بيئة." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "رمز التفعيل OTP مطلوب. أدخله من صفحة إعدادات ZATCA." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
       const { data: settingsRows } = await admin.from("app_settings").select("key, value").in("key", ["waqf_name", "vat_registration_number", "zatca_device_serial", "zatca_solution_name"]);
