@@ -58,9 +58,11 @@ Deno.serve(async (req): Promise<Response> => {
         await logZatcaOperation(admin, { operation_type: "test-connection", status: reachable ? "success" : "error", request_summary: { url: ZATCA_API_URL }, response_summary: { status_code: testRes.status, connected: reachable }, user_id: user.id });
         return new Response(JSON.stringify({ connected: reachable, url: ZATCA_API_URL, status_code: testRes.status, tested_at: new Date().toISOString() }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (fetchErr) {
-        const errMsg = (fetchErr as Error).message;
-        await logZatcaOperation(admin, { operation_type: "test-connection", status: "error", request_summary: { url: ZATCA_API_URL }, error_message: errMsg, user_id: user.id });
-        return new Response(JSON.stringify({ connected: false, url: ZATCA_API_URL, error: errMsg, tested_at: new Date().toISOString() }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        // R6 (W5-#18): تسجيل التفاصيل داخلياً فقط؛ نُعيد للعميل رسالة عامة
+        const errInternal = (fetchErr as Error).message;
+        const errPublic = "ZATCA API unreachable";
+        await logZatcaOperation(admin, { operation_type: "test-connection", status: "error", request_summary: { url: ZATCA_API_URL }, error_message: errInternal, user_id: user.id });
+        return new Response(JSON.stringify({ connected: false, url: ZATCA_API_URL, error: errPublic, tested_at: new Date().toISOString() }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
 
