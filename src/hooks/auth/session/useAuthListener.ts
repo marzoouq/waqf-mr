@@ -127,8 +127,8 @@ export function useAuthListener(): AuthListenerState {
     );
 
     // Fallback: إذا لم يصدر INITIAL_SESSION (race condition)
-    // نستخدم getUser() لإجبار تحقق خادمي (يكتشف الرموز الملغاة)،
-    // ثم getSession() للحصول على JWT claims المخزّنة محلياً.
+    // R7 (W2-F05/F08): نضبط lastUserIdRef مبكراً لمنع double-dispatch لو وصل
+    // INITIAL_SESSION أثناء await، ونعتمد على نتيجة getUser المُتحقَّق منها خادمياً.
     supabase.auth.getUser().then(async ({ data: { user: verifiedUser }, error }) => {
       if (!isMounted) return;
       if (error || !verifiedUser) {
@@ -136,6 +136,8 @@ export function useAuthListener(): AuthListenerState {
         return;
       }
       if (lastUserIdRef.current) return; // INITIAL_SESSION already handled it
+      // قفل ذرّي ضد سباق INITIAL_SESSION (يتم قبل أي await لاحق)
+      lastUserIdRef.current = verifiedUser.id;
 
       const { data: { session: existingSession } } = await supabase.auth.getSession();
       if (!isMounted || !existingSession?.user) {
@@ -144,7 +146,6 @@ export function useAuthListener(): AuthListenerState {
       }
       logger.info('[Auth] getUser fallback triggered (server-verified)');
       const jwtRole = getRoleFromSession(existingSession);
-      lastUserIdRef.current = existingSession.user.id;
       setSession(existingSession);
       setUser(existingSession.user);
       if (jwtRole) {
