@@ -34,7 +34,7 @@ const ContractsTabContent: React.FC = () => {
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <span className="text-destructive font-medium">
               يوجد {expiredContracts.length} عقد منتهي
-              {selectedForRenewal.size > 0 && <span className="text-foreground mr-1">— تم اختيار {selectedForRenewal.size}</span>}
+              {selectedForRenewal.size > 0 && <span className="text-foreground ms-1">— تم اختيار {selectedForRenewal.size}</span>}
             </span>
             <div className="flex items-center gap-2 flex-wrap">
               <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={selectedForRenewal.size === expiredContracts.length ? deselectAll : selectAllExpired}>

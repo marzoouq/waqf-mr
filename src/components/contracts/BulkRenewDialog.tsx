@@ -26,7 +26,7 @@ export default function BulkRenewDialog({ open, onOpenChange, contracts, selecte
           <AlertDialogDescription asChild>
             <div className="space-y-3">
               <p>سيتم إنشاء عقود جديدة بنفس البيانات مع تواريخ تبدأ من تاريخ انتهاء العقد السابق وبنفس المدة للعقود التالية:</p>
-              <ul className="max-h-40 overflow-y-auto space-y-1 text-sm pr-2">
+              <ul className="max-h-40 overflow-y-auto space-y-1 text-sm ps-2">
                 {selected.map(c => (
                   <li key={c.id} className="flex items-center gap-2 py-1 border-b border-border/50 last:border-0">
                     <CheckCircle className="w-3.5 h-3.5 text-success shrink-0" />

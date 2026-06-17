@@ -115,7 +115,7 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ value, onChange, disabled, 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>{hasInk ? 'تم التوقيع' : 'وقّع داخل المربع أعلاه'}</span>
         <Button type="button" variant="ghost" size="sm" onClick={clear} disabled={disabled || !hasInk}>
-          <Eraser className="w-3.5 h-3.5 ml-1" />
+          <Eraser className="w-3.5 h-3.5 me-1" />
           مسح
         </Button>
       </div>

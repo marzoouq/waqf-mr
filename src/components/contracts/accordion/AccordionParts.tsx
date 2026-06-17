@@ -26,7 +26,7 @@ export const InvoiceCard = ({
   <div className="flex items-center gap-2 rounded-md border border-border/50 bg-card px-3 py-2 text-sm">
     {invoiceStatusIcon[inv.status] || <Clock className="w-3.5 h-3.5 text-muted-foreground" />}
     <span className="text-muted-foreground">دفعة {inv.payment_number}</span>
-    <span className="font-medium mr-auto">{fmt(Number(inv.amount))} ر.س</span>
+    <span className="font-medium ms-auto">{fmt(Number(inv.amount))} ر.س</span>
     <span className={`text-[11px] px-1.5 py-0.5 rounded-full ${
       inv.status === 'paid' ? 'bg-success/15 text-success'
         : inv.status === 'overdue' ? 'bg-destructive/15 text-destructive'
@@ -34,7 +34,7 @@ export const InvoiceCard = ({
     }`}>
       {invoiceStatusLabel[inv.status] || inv.status}
     </span>
-    <div className="flex gap-0.5 mr-1">
+    <div className="flex gap-0.5 ms-1">
       {onDownloadInvoice && (
         <Button variant="ghost" size="icon" className="w-6 h-6" onClick={() => onDownloadInvoice(inv)} title="تحميل PDF" aria-label="تحميل PDF" disabled={loadingInvoiceId === inv.id}>
           {loadingInvoiceId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}

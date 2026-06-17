@@ -25,7 +25,7 @@ const BeneficiaryCard = ({ beneficiary, onEdit, onDelete }: BeneficiaryCardProps
             <div className="flex items-center gap-2">
               <CardTitle className="text-lg">{beneficiary.name}</CardTitle>
               {beneficiary.user_id && (
-                <Badge variant="secondary" className="text-xs"><UserCheck className="w-3 h-3 ml-1" />مرتبط</Badge>
+                <Badge variant="secondary" className="text-xs"><UserCheck className="w-3 h-3 me-1" />مرتبط</Badge>
               )}
             </div>
             <div className="flex gap-1">

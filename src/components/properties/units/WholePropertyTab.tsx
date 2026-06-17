@@ -94,7 +94,7 @@ const WholePropertyTab = ({ wholePropertyContract, onSave, isPending }: WholePro
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={openEditForm}>
-              <Edit className="w-4 h-4 ml-2" /> تعديل العقد
+              <Edit className="w-4 h-4 me-2" /> تعديل العقد
             </Button>
           </CardContent>
         </Card>
@@ -103,7 +103,7 @@ const WholePropertyTab = ({ wholePropertyContract, onSave, isPending }: WholePro
           <Building2 className="w-10 h-10 mx-auto text-muted-foreground" />
           <p className="text-muted-foreground">لا يوجد عقد لتأجير العقار كامل</p>
           <Button onClick={openEditForm}>
-            <Plus className="w-4 h-4 ml-2" /> إضافة عقد للعقار
+            <Plus className="w-4 h-4 me-2" /> إضافة عقد للعقار
           </Button>
         </div>
       ) : null}

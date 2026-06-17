@@ -122,7 +122,7 @@ export function TreeBranch({
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="border-r-2 border-muted mr-4">
+                <div className="border-r-2 border-muted ms-4">
                   <TreeBranch
                     nodes={node.children}
                     depth={depth + 1}

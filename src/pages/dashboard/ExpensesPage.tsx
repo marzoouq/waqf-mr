@@ -43,7 +43,7 @@ const ExpensesPage = () => {
         <div className="space-y-3">
           <div className="relative max-w-md">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="expenses-search" name="expenses-search" aria-label="بحث" placeholder="بحث في المصروفات..." value={h.searchQuery} onChange={(e) => { h.setSearchQuery(e.target.value); h.setCurrentPage(1); }} className="pr-10" />
+            <Input id="expenses-search" name="expenses-search" aria-label="بحث" placeholder="بحث في المصروفات..." value={h.searchQuery} onChange={(e) => { h.setSearchQuery(e.target.value); h.setCurrentPage(1); }} className="ps-10" />
           </div>
           <AdvancedFiltersBar
             filters={h.filters}

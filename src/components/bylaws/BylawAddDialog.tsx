@@ -79,7 +79,7 @@ export const BylawAddDialog = ({ open, onOpenChange, newBylaw, setNewBylaw, onAd
       <DialogFooter className="gap-2">
         <Button variant="outline" onClick={() => onOpenChange(false)}>إلغاء</Button>
         <Button onClick={onAdd} disabled={isPending || !newBylaw.part_title.trim()}>
-          {isPending && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+          {isPending && <Loader2 className="w-4 h-4 animate-spin me-2" />}
           إضافة البند
         </Button>
       </DialogFooter>

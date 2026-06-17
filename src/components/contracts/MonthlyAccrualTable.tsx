@@ -123,7 +123,7 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
         <CardTitle className="flex items-center gap-2 text-base">
           <CalendarDays className="w-5 h-5 text-primary" />
           جدول الاستحقاقات — {tableTitle}
-          <Badge variant="secondary" className="mr-2">{activeContracts.length} عقد</Badge>
+          <Badge variant="secondary" className="ms-2">{activeContracts.length} عقد</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 md:p-0">

@@ -60,7 +60,7 @@ const BiometricSettings = () => {
           تسجيل الدخول بالبصمة
           {isEnabled && (
             <Badge className="bg-success/20 text-success text-[11px]">
-              <ShieldCheck className="w-3 h-3 ml-1" />
+              <ShieldCheck className="w-3 h-3 me-1" />
               مفعّل
             </Badge>
           )}
@@ -75,7 +75,7 @@ const BiometricSettings = () => {
           <Info className="w-4 h-4" />
           <AlertDescription className="text-xs space-y-1">
             <p><strong>متطلبات التفعيل:</strong></p>
-            <ul className="list-disc list-inside space-y-0.5 mr-2">
+            <ul className="list-disc list-inside space-y-0.5 ms-2">
               <li>تفعيل البصمة أو التعرف على الوجه في إعدادات جهازك</li>
               <li>استخدام اتصال آمن (HTTPS)</li>
               <li>متصفح حديث يدعم WebAuthn ({SUPPORTED_BROWSERS.map(b => b.name).join('، ')})</li>

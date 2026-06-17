@@ -69,9 +69,9 @@ function ZatcaManagementPage() {
 
         <Tabs defaultValue="invoices" className="space-y-4">
           <TabsList aria-label="أقسام إدارة ZATCA" className="grid w-full grid-cols-3">
-            <TabsTrigger value="invoices"><FileText className="w-4 h-4 ml-1" />الفواتير</TabsTrigger>
-            <TabsTrigger value="certificates"><ShieldCheck className="w-4 h-4 ml-1" />الشهادات</TabsTrigger>
-            <TabsTrigger value="chain"><Link2 className="w-4 h-4 ml-1" />سلسلة التوقيع</TabsTrigger>
+            <TabsTrigger value="invoices"><FileText className="w-4 h-4 me-1" />الفواتير</TabsTrigger>
+            <TabsTrigger value="certificates"><ShieldCheck className="w-4 h-4 me-1" />الشهادات</TabsTrigger>
+            <TabsTrigger value="chain"><Link2 className="w-4 h-4 me-1" />سلسلة التوقيع</TabsTrigger>
           </TabsList>
 
           <TabsContent value="invoices">

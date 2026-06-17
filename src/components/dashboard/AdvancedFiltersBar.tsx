@@ -38,7 +38,7 @@ const AdvancedFiltersBar: React.FC<AdvancedFiltersBarProps> = ({
             className="h-6 px-2 text-xs text-destructive hover:text-destructive"
             onClick={() => onFiltersChange(EMPTY_FILTERS)}
           >
-            <X className="w-3 h-3 ml-1" />
+            <X className="w-3 h-3 me-1" />
             مسح الكل
           </Button>
         )}

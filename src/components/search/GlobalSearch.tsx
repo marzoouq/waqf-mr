@@ -85,7 +85,7 @@ const GlobalSearch = () => {
           onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
           onFocus={() => setIsOpen(true)}
           placeholder="بحث... (Ctrl+K)"
-          className="w-56 xl:w-72 pr-9 pl-8 h-9 text-sm bg-muted/50 border-border/50 focus:bg-background"
+          className="w-56 xl:w-72 ps-9 pe-8 h-9 text-sm bg-muted/50 border-border/50 focus:bg-background"
         />
         {query && (
           <Button

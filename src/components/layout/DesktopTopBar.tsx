@@ -47,7 +47,7 @@ const DesktopTopBar: React.FC<DesktopTopBarProps> = ({
         <NotificationBell />
         {user && (
           <div
-            className="flex items-center gap-2 border-r border-border pr-3 mr-1"
+            className="flex items-center gap-2 border-r border-border ps-3 ms-1"
             aria-label={`المستخدم الحالي: ${user.email?.split('@')[0] || 'مستخدم'} — ${ROLE_LABELS[role || ''] || role || ''}`}
           >
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary" aria-hidden="true">

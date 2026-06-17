@@ -73,7 +73,7 @@ export default function NotificationFallbackCard() {
           </div>
           {state.permission !== 'granted' && state.permission !== 'unsupported' && (
             <Button size="sm" variant="outline" onClick={onRequest} disabled={requesting}>
-              <RefreshCw className={`w-4 h-4 ml-2 ${requesting ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 me-2 ${requesting ? 'animate-spin' : ''}`} />
               طلب الإذن مجدداً
             </Button>
           )}

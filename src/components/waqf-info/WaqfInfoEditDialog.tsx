@@ -126,9 +126,9 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
               )}
               <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={resizing}>
                 {resizing ? (
-                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 me-2 animate-spin" />
                 ) : (
-                  <Upload className="w-4 h-4 ml-2" />
+                  <Upload className="w-4 h-4 me-2" />
                 )}
                 {resizing ? 'جارٍ المعالجة...' : logoPreview ? 'تغيير' : 'رفع شعار'}
               </Button>

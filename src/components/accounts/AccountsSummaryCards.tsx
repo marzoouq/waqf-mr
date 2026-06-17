@@ -36,7 +36,7 @@ const isOverridden = (current: number, original: number | undefined) =>
   original !== undefined && Math.abs(current - original) > 0.01;
 
 const UnsavedBadge = () => (
-  <span className="text-[10px] px-1 py-0.5 rounded bg-destructive/40 text-primary-foreground mr-1">غير محفوظ</span>
+  <span className="text-[10px] px-1 py-0.5 rounded bg-destructive/40 text-primary-foreground ms-1">غير محفوظ</span>
 );
 
 const AccountsSummaryCards = ({

@@ -55,7 +55,7 @@ export default function ContractMultiUnitBlock({
                     />
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-medium">{u.unit_type} {u.unit_number}</span>
-                      {u.floor && <span className="text-xs text-muted-foreground mr-2">({u.floor})</span>}
+                      {u.floor && <span className="text-xs text-muted-foreground ms-2">({u.floor})</span>}
                     </div>
                     {isOccupied && <span className="text-[11px] text-destructive">مؤجرة</span>}
                   </label>

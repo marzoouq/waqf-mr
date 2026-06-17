@@ -100,7 +100,7 @@ const ZatcaInvoiceRow = memo(function ZatcaInvoiceRow({
                 <TooltipTrigger asChild>
                   <Button size="sm" variant={hasXml ? 'ghost' : 'outline'} onClick={() => onGenerateXml(inv.id, inv.source)} disabled={rowBusy || hasSig}>
                     {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileCode className="w-3 h-3" />}
-                    <span className="mr-1 text-xs">XML</span>
+                    <span className="ms-1 text-xs">XML</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{hasSig ? 'لا يمكن إعادة توليد XML بعد التوقيع' : hasXml ? 'إعادة توليد XML' : 'توليد XML'}</TooltipContent>
@@ -113,7 +113,7 @@ const ZatcaInvoiceRow = memo(function ZatcaInvoiceRow({
                 <TooltipTrigger asChild>
                   <Button size="sm" variant={hasSig ? 'ghost' : 'outline'} onClick={() => onSignInvoice(inv.id, inv.source)} disabled={rowBusy || !canSign}>
                     {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <PenTool className="w-3 h-3" />}
-                    <span className="mr-1 text-xs">توقيع</span>
+                    <span className="ms-1 text-xs">توقيع</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{!hasXml ? 'يجب توليد XML أولاً' : hasSig ? 'موقّعة مسبقاً' : 'توقيع الفاتورة'}</TooltipContent>
@@ -126,7 +126,7 @@ const ZatcaInvoiceRow = memo(function ZatcaInvoiceRow({
                 <TooltipTrigger asChild>
                   <Button size="sm" variant="secondary" onClick={() => onComplianceCheck(inv.id, inv.source)} disabled={rowBusy}>
                     {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <ClipboardCheck className="w-3 h-3" />}
-                    <span className="mr-1 text-xs">فحص</span>
+                    <span className="ms-1 text-xs">فحص</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>فحص امتثال الفاتورة عبر بوابة ZATCA</TooltipContent>
@@ -142,7 +142,7 @@ const ZatcaInvoiceRow = memo(function ZatcaInvoiceRow({
                     onSubmitToZatca(inv.id, inv.source, action);
                   }} disabled={rowBusy || !canSubmit}>
                     {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-                    <span className="mr-1 text-xs">إرسال</span>
+                    <span className="ms-1 text-xs">إرسال</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{!hasXml ? 'يجب توليد XML أولاً' : !hasSig ? 'يجب التوقيع أولاً' : 'إرسال إلى ZATCA'}</TooltipContent>
@@ -154,7 +154,7 @@ const ZatcaInvoiceRow = memo(function ZatcaInvoiceRow({
               const action = inv.invoice_type === 'standard' ? 'clearance' : 'report';
               onSubmitToZatca(inv.id, inv.source, action);
             }} disabled={rowBusy}>
-              {rowBusy ? <Loader2 className="w-3 h-3 animate-spin ml-1" /> : <RefreshCw className="w-3 h-3 ml-1" />}
+              {rowBusy ? <Loader2 className="w-3 h-3 animate-spin me-1" /> : <RefreshCw className="w-3 h-3 me-1" />}
               إعادة إرسال
             </Button>
           )}

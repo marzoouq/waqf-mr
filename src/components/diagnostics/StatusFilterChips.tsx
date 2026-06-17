@@ -36,7 +36,7 @@ export default function StatusFilterChips({ value, onChange, counts }: Props) {
             className="h-8"
           >
             <span className={opt.cls}>{opt.label}</span>
-            <Badge variant="secondary" className="mr-2 text-xs">{count}</Badge>
+            <Badge variant="secondary" className="ms-2 text-xs">{count}</Badge>
           </Button>
         );
       })}

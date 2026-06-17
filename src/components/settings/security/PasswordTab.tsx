@@ -63,7 +63,7 @@ const PasswordTab = () => {
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="8 أحرف على الأقل"
-              className="pl-10"
+              className="pe-10"
             />
             <Button type="button" variant="ghost" size="icon" className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}>
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -81,7 +81,7 @@ const PasswordTab = () => {
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               placeholder="أعد كتابة كلمة المرور"
-              className="pl-10"
+              className="pe-10"
             />
             <Button type="button" variant="ghost" size="icon" className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setShowConfirm(!showConfirm)} aria-label={showConfirm ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}>
               {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -91,7 +91,7 @@ const PasswordTab = () => {
         </div>
 
         <Button onClick={handlePasswordChange} disabled={passwordLoading || !password} className="w-full sm:w-auto">
-          {passwordLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
+          {passwordLoading ? <Loader2 className="w-4 h-4 animate-spin me-2" /> : null}
           حفظ كلمة المرور
         </Button>
       </CardContent>

@@ -92,7 +92,7 @@ export default function ZatcaHealthPanel({ activeCert, chain, pendingInvoices }:
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className={textTone[certHealth.tone]}>
-                  {certHealth.tone === 'success' ? <CheckCircle2 className="w-3 h-3 ml-1" /> : <AlertTriangle className="w-3 h-3 ml-1" />}
+                  {certHealth.tone === 'success' ? <CheckCircle2 className="w-3 h-3 me-1" /> : <AlertTriangle className="w-3 h-3 me-1" />}
                   {certHealth.label}
                 </Badge>
                 {activeCert?.expires_at && (
@@ -136,7 +136,7 @@ export default function ZatcaHealthPanel({ activeCert, chain, pendingInvoices }:
           {pendingInvoices > 0 && (
             <div className="flex items-center gap-2 mt-2">
               <Badge variant="outline" className="text-warning">
-                <AlertTriangle className="w-3 h-3 ml-1" />
+                <AlertTriangle className="w-3 h-3 me-1" />
                 {pendingInvoices} فاتورة معلَّقة
               </Badge>
             </div>

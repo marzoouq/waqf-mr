@@ -124,7 +124,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         className={cn(
           'flex-1 transition-[margin] duration-300 min-h-screen overflow-y-auto',
           'pt-14 pb-16 lg:pt-0 lg:pb-0',
-          sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
+          sidebarOpen ? 'lg:ms-64' : 'lg:ms-16'
         )}
       >
         <Suspense fallback={null}><PrintHeader /></Suspense>

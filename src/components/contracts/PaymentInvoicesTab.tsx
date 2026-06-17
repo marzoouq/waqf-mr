@@ -104,7 +104,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         <div className="flex items-center gap-3 p-3 rounded-lg border border-success/30 bg-success/10">
           <Check className="w-4 h-4 text-success shrink-0" />
           <span className="text-sm font-medium">تم تحديد {selectedIds.size} فاتورة</span>
-          <Button size="sm" className="gap-2 mr-auto" onClick={handleBulkPay} disabled={bulkPaying}>
+          <Button size="sm" className="gap-2 ms-auto" onClick={handleBulkPay} disabled={bulkPaying}>
             {bulkPaying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
             تسديد المختارة
           </Button>

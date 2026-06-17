@@ -83,7 +83,7 @@ const BylawsPage = () => {
             placeholder="ابحث في بنود اللائحة..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pr-9 pl-9"
+            className="ps-9 pe-9"
             dir="rtl"
           />
           {search && (

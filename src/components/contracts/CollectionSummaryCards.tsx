@@ -80,7 +80,7 @@ export default function CollectionSummaryCards({ summary, expectedLabel }: Colle
             <span className="text-sm font-medium">معدل التحصيل العام</span>
             <span className="text-sm text-muted-foreground">
               {summary.completeCount} مكتمل من {summary.total} عقد
-              {summary.overdueCount > 0 && <span className="text-destructive mr-2">• {summary.overdueCount} متأخر</span>}
+              {summary.overdueCount > 0 && <span className="text-destructive ms-2">• {summary.overdueCount} متأخر</span>}
             </span>
           </div>
           <Progress

@@ -45,9 +45,9 @@ const BalanceSheetReport = ({
           <Scale className="w-5 h-5" />
           الميزانية العمومية {fiscalYearLabel && `(${fiscalYearLabel})`}
           {isBalanced ? (
-            <Badge variant="secondary" className="bg-success/10 text-success text-xs mr-auto">متوازنة ✓</Badge>
+            <Badge variant="secondary" className="bg-success/10 text-success text-xs ms-auto">متوازنة ✓</Badge>
           ) : (
-            <Badge variant="destructive" className="text-xs mr-auto">فرق: {fmtNum(balanceCheck)} ر.س</Badge>
+            <Badge variant="destructive" className="text-xs ms-auto">فرق: {fmtNum(balanceCheck)} ر.س</Badge>
           )}
         </CardTitle>
       </CardHeader>

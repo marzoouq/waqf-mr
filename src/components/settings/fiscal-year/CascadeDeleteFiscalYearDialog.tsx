@@ -51,7 +51,7 @@ const CascadeDeleteFiscalYearDialog = ({ fy, onConfirm, loading }: Props) => {
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm">
               <p>سيتم حذف السنة <strong>{fy.label}</strong> وجميع بياناتها المرتبطة نهائياً:</p>
-              <ul className="list-disc pr-5 text-xs text-muted-foreground space-y-0.5">
+              <ul className="list-disc ps-5 text-xs text-muted-foreground space-y-0.5">
                 <li>العقود وتخصيصاتها</li>
                 <li>فواتير الدفعات والفواتير الضريبية وعناصرها وسلسلتها</li>
                 <li>الدخل والمصروفات والميزانيات وسندات الصرف</li>

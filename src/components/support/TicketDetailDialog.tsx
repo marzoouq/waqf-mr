@@ -71,7 +71,7 @@ export default function TicketDetailDialog({ ticket, onClose, isAdmin }: Props) 
           <Badge className={s.color}>{s.label}</Badge>
           <Badge className={p.color}>{p.label}</Badge>
           <Badge variant="outline">{CATEGORY_MAP[ticket.category] || ticket.category}</Badge>
-          <Badge variant="outline" className="text-xs"><Clock className="w-3 h-3 ml-1" />عمر التذكرة: {ageLabel}</Badge>
+          <Badge variant="outline" className="text-xs"><Clock className="w-3 h-3 me-1" />عمر التذكرة: {ageLabel}</Badge>
         </div>
 
         {ticket.description && <div className="bg-muted/50 rounded-md p-3 text-sm">{ticket.description}</div>}
@@ -129,7 +129,7 @@ export default function TicketDetailDialog({ ticket, onClose, isAdmin }: Props) 
               <>
                 <Input id="resolution-notes" name="resolution_notes" placeholder="ملاحظات الحل..." value={resolutionNotes} onChange={e => setResolutionNotes(e.target.value)} className="flex-1 min-w-0 sm:min-w-[200px]" />
                 <Button className="gradient-primary" onClick={() => handleStatusChange('resolved')} disabled={updateStatus.isPending}>
-                  <CheckCircle className="w-4 h-4 ml-1" />تم الحل
+                  <CheckCircle className="w-4 h-4 me-1" />تم الحل
                 </Button>
               </>
             )}

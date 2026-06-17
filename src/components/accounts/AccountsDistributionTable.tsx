@@ -103,7 +103,7 @@ const AccountsDistributionTable = ({ summary: s, isClosed = false }: AccountsDis
             >
               <div className="min-w-0 flex-1">
                 <span className={`text-sm ${item.bold ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
-                {item.pct && <span className="text-xs text-muted-foreground mr-1">({item.pct})</span>}
+                {item.pct && <span className="text-xs text-muted-foreground ms-1">({item.pct})</span>}
               </div>
               <span className={`text-sm font-bold whitespace-nowrap ${item.amountClass || ''} ${item.highlight === 'accent' ? 'text-base' : ''}`}>
                 {item.amount}

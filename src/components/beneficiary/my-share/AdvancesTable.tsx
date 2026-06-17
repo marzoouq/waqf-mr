@@ -16,7 +16,7 @@ const getAdvanceStatusBadge = (status: string) => {
   };
   const s = map[status] || { label: status, cls: 'bg-muted text-muted-foreground', icon: Clock };
   const Icon = s.icon;
-  return <Badge className={s.cls}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>;
+  return <Badge className={s.cls}><Icon className="w-3 h-3 me-1" />{s.label}</Badge>;
 };
 
 interface Advance {

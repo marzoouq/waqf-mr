@@ -64,7 +64,7 @@ const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
             className="text-sm text-muted-foreground hover:text-primary p-0 h-auto"
             onClick={onResetPassword}
           >
-            <KeyRound className="w-3.5 h-3.5 ml-1" />
+            <KeyRound className="w-3.5 h-3.5 me-1" />
             نسيت كلمة المرور؟
           </Button>
         </div>

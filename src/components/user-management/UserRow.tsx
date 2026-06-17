@@ -39,7 +39,7 @@ const UserRow = memo(function UserRow({
       <TableCell dir="ltr">
         <span className="flex items-center gap-1">
           {user.email}
-          {isSelf && <Badge variant="outline" className="mr-2 text-xs">أنت</Badge>}
+          {isSelf && <Badge variant="outline" className="ms-2 text-xs">أنت</Badge>}
           {user.role === 'beneficiary' && isOrphaned && (
             <span title="مستفيد بدون ربط صحيح"><AlertTriangle className="w-4 h-4 text-destructive shrink-0" /></span>
           )}

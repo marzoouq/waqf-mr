@@ -20,7 +20,7 @@ export default function RunHistoryList() {
         <CardTitle className="text-base">آخر التشغيلات</CardTitle>
         {items.length > 0 && (
           <Button variant="ghost" size="sm" onClick={() => { clearHistory(); setItems([]); }}>
-            <Trash2 className="w-4 h-4 ml-1" /> مسح
+            <Trash2 className="w-4 h-4 me-1" /> مسح
           </Button>
         )}
       </CardHeader>

@@ -29,7 +29,7 @@ export default function CertificateActions({
     <div className={isInitial ? 'space-y-3' : 'flex flex-wrap gap-2 pt-2'}>
       {!canOnboard && (
         <p className={`text-sm text-destructive ${isInitial ? 'mt-2' : 'w-full'}`}>
-          <AlertTriangle className="w-4 h-4 inline ml-1" />
+          <AlertTriangle className="w-4 h-4 inline me-1" />
           يجب تعيين الإعدادات التالية {isInitial ? 'أولاً' : 'قبل التسجيل'}: {missingSettings.join('، ')}
         </p>
       )}
@@ -41,7 +41,7 @@ export default function CertificateActions({
             size={isInitial ? 'default' : 'sm'}
             disabled={onboardLoading || !canOnboard}
           >
-            {onboardLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
+            {onboardLoading ? <Loader2 className="w-4 h-4 animate-spin me-2" /> : null}
             {isInitial ? 'بدء التسجيل (Onboarding)' : 'إعادة التسجيل'}
           </Button>
         </AlertDialogTrigger>

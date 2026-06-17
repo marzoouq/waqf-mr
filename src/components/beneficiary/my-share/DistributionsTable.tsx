@@ -10,11 +10,11 @@ import { fmt, fmtDate } from '@/utils/format/format';
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'paid':
-      return <Badge className="bg-success/20 text-success hover:bg-success/30"><CheckCircle className="w-3 h-3 ml-1" /> مستلم</Badge>;
+      return <Badge className="bg-success/20 text-success hover:bg-success/30"><CheckCircle className="w-3 h-3 me-1" /> مستلم</Badge>;
     case 'pending':
-      return <Badge className="bg-warning/20 text-warning hover:bg-warning/30"><Clock className="w-3 h-3 ml-1" /> معلق</Badge>;
+      return <Badge className="bg-warning/20 text-warning hover:bg-warning/30"><Clock className="w-3 h-3 me-1" /> معلق</Badge>;
     case 'cancelled':
-      return <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/30"><XCircle className="w-3 h-3 ml-1" /> ملغى</Badge>;
+      return <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/30"><XCircle className="w-3 h-3 me-1" /> ملغى</Badge>;
     default:
       return <Badge variant="secondary">{status}</Badge>;
   }

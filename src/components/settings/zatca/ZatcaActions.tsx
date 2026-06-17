@@ -44,7 +44,7 @@ const ZatcaActions = ({
                   {activeCert.created_at ? fmtDate(activeCert.created_at) : ''}
                 </p>
               </div>
-              <Badge variant={activeCert.certificate_type === 'production' ? 'default' : 'secondary'} className="mr-auto">
+              <Badge variant={activeCert.certificate_type === 'production' ? 'default' : 'secondary'} className="ms-auto">
                 {activeCert.certificate_type === 'production' ? 'إنتاج' : 'امتثال'}
               </Badge>
             </div>

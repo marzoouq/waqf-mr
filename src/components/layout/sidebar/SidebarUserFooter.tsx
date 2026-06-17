@@ -37,7 +37,7 @@ export const SidebarUserFooter: React.FC<SidebarUserFooterProps> = ({
           onClick={onSignOut}
         >
           <LogOut className="w-5 h-5" />
-          <span className="mr-2">تسجيل الخروج</span>
+          <span className="ms-2">تسجيل الخروج</span>
         </Button>
       </div>
       {!sidebarOpen && (
@@ -64,7 +64,7 @@ export const SidebarUserFooter: React.FC<SidebarUserFooterProps> = ({
             onClick={onSignOut}
           >
             <LogOut className="w-5 h-5" />
-            <span className="mr-2">تسجيل الخروج</span>
+            <span className="ms-2">تسجيل الخروج</span>
           </Button>
         </div>
       )}

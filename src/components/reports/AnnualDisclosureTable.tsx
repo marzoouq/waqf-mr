@@ -82,7 +82,7 @@ const AnnualDisclosureTable = ({
               </tr>
               {incomeSourceData.map((item, index) => (
                 <tr key={`income-${index}`} className="border-b">
-                  <td className="py-2 px-4 pr-8 text-muted-foreground">  {item.name}</td>
+                  <td className="py-2 px-4 ps-8 text-muted-foreground">  {item.name}</td>
                   <td className="py-2 px-4 font-medium text-success">+{fmt(item.value)}</td>
                 </tr>
               ))}
@@ -102,7 +102,7 @@ const AnnualDisclosureTable = ({
               </tr>
               {expenseTypeData.map((item, index) => (
                 <tr key={`expense-${index}`} className="border-b">
-                  <td className="py-2 px-4 pr-8 text-muted-foreground">  {item.name}</td>
+                  <td className="py-2 px-4 ps-8 text-muted-foreground">  {item.name}</td>
                   <td className="py-2 px-4 font-medium text-destructive">-{fmt(item.value)}</td>
                 </tr>
               ))}

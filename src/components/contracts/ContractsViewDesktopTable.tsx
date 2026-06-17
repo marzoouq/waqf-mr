@@ -62,7 +62,7 @@ export default function ContractsViewDesktopTable({ contracts, propertiesMap, is
                       <Badge variant={st.variant}>{st.label}</Badge>
                       {isExpiringSoon(contract) && (
                         <Badge variant="outline" className="text-warning border-warning text-[11px]">
-                          <AlertTriangle className="w-3 h-3 ml-1" />قريب
+                          <AlertTriangle className="w-3 h-3 me-1" />قريب
                         </Badge>
                       )}
                     </div>

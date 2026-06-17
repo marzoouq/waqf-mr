@@ -97,7 +97,7 @@ class ErrorBoundary extends Component<Props, State> {
                 تم إصدار نسخة جديدة من التطبيق. يرجى تحديث الصفحة للحصول على أحدث إصدار.
               </p>
               <Button onClick={this.handleForceRefresh} className="gradient-primary">
-                <RefreshCw className="w-4 h-4 ml-2" />
+                <RefreshCw className="w-4 h-4 me-2" />
                 تحديث التطبيق
               </Button>
             </div>
