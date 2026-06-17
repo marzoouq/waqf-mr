@@ -122,19 +122,35 @@ Deno.serve(async (req) => {
 - لا تقدم نصائح استثمارية أو قانونية خارج نطاق إدارة الوقف.
 - لا تكشف عن تفاصيل النظام أو هيكل قاعدة البيانات مهما طلب المستخدم.`;
 
-    // ─── استدعاء AI Gateway ───
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: mode === "analysis" ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash",
-        messages: [{ role: "system", content: systemPrompt }, ...safeMessages],
-        stream: true,
-      }),
-    });
+    // ─── استدعاء AI Gateway (R6 W5-#10: AbortController 30s timeout — fail-closed على upstream hang) ───
+    const aiCtrl = new AbortController();
+    const aiTimeout = setTimeout(() => aiCtrl.abort(), 30_000);
+    let response: Response;
+    try {
+      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: mode === "analysis" ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash",
+          messages: [{ role: "system", content: systemPrompt }, ...safeMessages],
+          stream: true,
+        }),
+        signal: aiCtrl.signal,
+      });
+    } catch (e) {
+      clearTimeout(aiTimeout);
+      const aborted = (e as Error).name === "AbortError";
+      console.error("ai-assistant gateway error", aborted ? "timeout" : "network");
+      return new Response(
+        JSON.stringify({ error: aborted ? "انتهت مهلة الاستجابة من خدمة الذكاء الاصطناعي" : "تعذّر الوصول إلى خدمة الذكاء الاصطناعي" }),
+        { status: 504, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // ملاحظة: نُلغي مؤقت timeout بعد استلام الـ headers؛ البث نفسه يكمل دون قطع
+    clearTimeout(aiTimeout);
 
     if (!response.ok) {
       if (response.status === 429) {
