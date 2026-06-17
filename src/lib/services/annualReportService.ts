@@ -65,22 +65,12 @@ export const annualReportService = {
   },
 
   async setPublishStatus(fiscalYearId: string, publish: boolean) {
-    const newStatus = publish ? 'published' : 'draft';
-    const publishedAt = publish ? new Date().toISOString() : null;
-    const { data, error } = await supabase
-      .from('annual_report_status')
-      .upsert(
-        {
-          fiscal_year_id: fiscalYearId,
-          status: newStatus,
-          published_at: publishedAt,
-        } as Database['public']['Tables']['annual_report_status']['Insert'],
-        { onConflict: 'fiscal_year_id' },
-      )
-      .select()
-      .single();
-    if (error) throw error;
-    return data;
+    // R2: استدعاء RPC المخزّن مع حارس الناظر فقط
+    const { rpc } = await import('@/lib/api/rpc');
+    return await rpc<{ success: boolean; fiscal_year_id: string; status: string }>(
+      'set_annual_report_publish',
+      { p_fiscal_year_id: fiscalYearId, p_publish: publish },
+    );
   },
 
   // ── بيانات التقرير السنوي المُجمَّع ──
