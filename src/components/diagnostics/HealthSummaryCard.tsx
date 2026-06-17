@@ -73,7 +73,7 @@ export default function HealthSummaryCard({ summary, categories }: Props) {
           {passCats.length > 0 && (
             <div className="space-y-1">
               <p className="font-semibold text-success">✅ يعمل بالكامل</p>
-              <ul className="text-xs text-muted-foreground space-y-0.5 list-disc pr-4">
+              <ul className="text-xs text-muted-foreground space-y-0.5 list-disc ps-4">
                 {passCats.map(c => <li key={c}>{c}</li>)}
               </ul>
             </div>
@@ -81,7 +81,7 @@ export default function HealthSummaryCard({ summary, categories }: Props) {
           {warns.length > 0 && (
             <div className="space-y-1">
               <p className="font-semibold text-warning">⚠ تحذيرات</p>
-              <ul className="text-xs text-muted-foreground space-y-0.5 list-disc pr-4">
+              <ul className="text-xs text-muted-foreground space-y-0.5 list-disc ps-4">
                 {warns.map((w, i) => <li key={i}><span className="font-medium">{w.label}</span> — {w.detail.slice(0, 60)}</li>)}
               </ul>
             </div>
@@ -89,7 +89,7 @@ export default function HealthSummaryCard({ summary, categories }: Props) {
           {fails.length > 0 && (
             <div className="space-y-1">
               <p className="font-semibold text-destructive">❌ يحتاج إصلاح</p>
-              <ul className="text-xs text-muted-foreground space-y-0.5 list-disc pr-4">
+              <ul className="text-xs text-muted-foreground space-y-0.5 list-disc ps-4">
                 {fails.map((f, i) => <li key={i}><span className="font-medium">{f.label}</span> — {f.detail.slice(0, 60)}</li>)}
               </ul>
             </div>

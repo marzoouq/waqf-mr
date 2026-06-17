@@ -27,7 +27,7 @@ const CollectionTableRow = memo(function CollectionTableRow({ row }: Props) {
       <TableCell className="font-medium">
         {row.contract.contract_number}
         {row.contract.status === 'expired' && (
-          <Badge variant="outline" className="text-destructive border-destructive/30 text-[11px] mr-2">منتهي</Badge>
+          <Badge variant="outline" className="text-destructive border-destructive/30 text-[11px] ms-2">منتهي</Badge>
         )}
       </TableCell>
       <TableCell>{row.contract.tenant_name}</TableCell>
@@ -41,7 +41,7 @@ const CollectionTableRow = memo(function CollectionTableRow({ row }: Props) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="inline-flex items-center gap-0.5 mr-1 cursor-help">
+                  <span className="inline-flex items-center gap-0.5 ms-1 cursor-help">
                     <CalendarRange className="w-3 h-3 text-warning inline" />
                     <span className="text-muted-foreground text-[11px]">/{row.totalContractPayments}</span>
                   </span>

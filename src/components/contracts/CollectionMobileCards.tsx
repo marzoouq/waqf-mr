@@ -41,7 +41,7 @@ const CollectionMobileCards = ({ rows }: CollectionMobileCardsProps) => (
               <p className="font-medium">
                 {row.paid}/{row.paymentCount}
                 {row.spansMultipleYears && (
-                  <span className="text-muted-foreground text-[11px] mr-1">({row.totalContractPayments} إجمالي)</span>
+                  <span className="text-muted-foreground text-[11px] ms-1">({row.totalContractPayments} إجمالي)</span>
                 )}
               </p>
             </div>

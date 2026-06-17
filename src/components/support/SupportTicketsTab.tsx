@@ -44,7 +44,7 @@ export default function SupportTicketsTab({
           <div className="flex items-center gap-2 flex-wrap">
             <div className="relative w-full sm:w-auto">
               <Search className="w-4 h-4 absolute right-2.5 top-2.5 text-muted-foreground" />
-              <Input name="searchQuery" id="support-tickets-tab-field-1" placeholder="بحث بالعنوان أو الرقم..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pr-8 w-full sm:w-[180px]" />
+              <Input name="searchQuery" id="support-tickets-tab-field-1" placeholder="بحث بالعنوان أو الرقم..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="ps-8 w-full sm:w-[180px]" />
             </div>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[120px]"><SelectValue /></SelectTrigger>
@@ -71,7 +71,7 @@ export default function SupportTicketsTab({
               </Select>
             </div>
             <Button size="sm" variant="outline" onClick={onExport} disabled={filteredTickets.length === 0}>
-              <Download className="w-4 h-4 ml-1" />
+              <Download className="w-4 h-4 me-1" />
               <span className="hidden sm:inline">تصدير</span>
             </Button>
           </div>
@@ -120,7 +120,7 @@ export default function SupportTicketsTab({
                         <TableCell className="font-medium max-w-[200px] truncate">{ticket.title}</TableCell>
                         <TableCell>{CATEGORY_MAP[ticket.category] || ticket.category}</TableCell>
                         <TableCell><Badge className={p.color}>{p.label}</Badge></TableCell>
-                        <TableCell><Badge className={s.color}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge></TableCell>
+                        <TableCell><Badge className={s.color}><Icon className="w-3 h-3 me-1" />{s.label}</Badge></TableCell>
                         <TableCell><SlaIndicator ticket={ticket} /></TableCell>
                         <TableCell>
                           {ticket.rating ? (
@@ -134,7 +134,7 @@ export default function SupportTicketsTab({
                         <TableCell className="text-xs">{fmtDate(ticket.created_at)}</TableCell>
                         <TableCell>
                           <Button size="sm" variant="outline" onClick={() => onSelectTicket(ticket)}>
-                            <Eye className="w-3 h-3 ml-1" />عرض
+                            <Eye className="w-3 h-3 me-1" />عرض
                           </Button>
                         </TableCell>
                       </TableRow>

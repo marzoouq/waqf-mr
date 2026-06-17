@@ -75,7 +75,7 @@ const CloseYearDialog = ({
               </ul>
             )}
             <p>سيتم تنفيذ الخطوات التالية عند تأكيد الإقفال:</p>
-            <ul className="list-disc list-inside space-y-1 mr-2">
+            <ul className="list-disc list-inside space-y-1 ms-2">
               <li>حفظ الحساب الختامي النهائي وأرشفة جميع البيانات للسنة <strong className="text-foreground">{fyLabel}</strong></li>
               <li>إقفال السنة المالية نهائياً (لن يمكن التعديل بعد الإقفال)</li>
               <li>ترحيل رقبة الوقف <strong className="text-foreground">({fmt(waqfCorpusManual)} ر.س)</strong> للسنة الجديدة</li>

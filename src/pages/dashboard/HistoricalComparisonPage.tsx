@@ -34,7 +34,7 @@ function HistoricalComparisonPage() {
           actions={
             selectedYears.length >= 2 ? (
               <Button variant="outline" onClick={handleExportPdf} disabled={isAnyLoading}>
-                <FileDown className="w-4 h-4 ml-2" />
+                <FileDown className="w-4 h-4 me-2" />
                 تصدير PDF
               </Button>
             ) : undefined

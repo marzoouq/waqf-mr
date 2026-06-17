@@ -48,7 +48,7 @@ export default function ContractsViewGridCards({ contracts, propertiesMap, isExp
                   <Badge variant={st.variant}>{st.label}</Badge>
                   {isExpiringSoon(contract) && (
                     <Badge variant="outline" className="text-warning border-warning text-[11px]">
-                      <AlertTriangle className="w-3 h-3 ml-1" />ينتهي قريباً
+                      <AlertTriangle className="w-3 h-3 me-1" />ينتهي قريباً
                     </Badge>
                   )}
                 </div>

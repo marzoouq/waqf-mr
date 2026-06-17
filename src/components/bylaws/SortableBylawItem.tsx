@@ -68,7 +68,7 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
             </span>
             {!item.is_visible && (
               <Badge variant="outline" className="text-muted-foreground shrink-0 text-xs">
-                <EyeOff className="w-3 h-3 ml-1" /> مخفي
+                <EyeOff className="w-3 h-3 me-1" /> مخفي
               </Badge>
             )}
           </div>

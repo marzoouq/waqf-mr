@@ -72,7 +72,7 @@ const InvoicesViewPage = () => {
           </Tabs>
           <div className="relative flex-1 max-w-md">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input name="searchQuery" placeholder="بحث في الفواتير..." value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} className="pr-10" />
+            <Input name="searchQuery" placeholder="بحث في الفواتير..." value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} className="ps-10" />
           </div>
         </div>
 

@@ -51,7 +51,7 @@ const PropertiesPage = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div className="relative max-w-md flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="properties-search" name="properties-search" aria-label="بحث" placeholder="بحث في العقارات..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
+            <Input id="properties-search" name="properties-search" aria-label="بحث" placeholder="بحث في العقارات..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="ps-10" />
           </div>
           {uniqueTypes.length > 1 && (
             <NativeSelect

@@ -66,7 +66,7 @@ export const BylawEditDialog = ({
       <DialogFooter className="gap-2">
         <Button variant="outline" onClick={onClose}>إلغاء</Button>
         <Button onClick={onSave} disabled={isPending}>
-          {isPending && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+          {isPending && <Loader2 className="w-4 h-4 animate-spin me-2" />}
           حفظ التعديلات
         </Button>
       </DialogFooter>

@@ -95,7 +95,7 @@ const DistributeDialog = ({
                 </div>
                 {d.deficit > 0 && (
                   <Badge className="bg-destructive/20 text-destructive text-xs">
-                    <ArrowLeftRight className="w-3 h-3 ml-1 inline" />يُرحّل {fmt(d.deficit)}
+                    <ArrowLeftRight className="w-3 h-3 me-1 inline" />يُرحّل {fmt(d.deficit)}
                   </Badge>
                 )}
               </div>
@@ -127,7 +127,7 @@ const DistributeDialog = ({
                       <div className="space-y-1">
                         <span className="font-bold text-destructive">0</span>
                         <Badge className="bg-destructive/20 text-destructive text-xs block w-fit">
-                          <ArrowLeftRight className="w-3 h-3 ml-1 inline" />يُرحّل {fmt(d.deficit)}
+                          <ArrowLeftRight className="w-3 h-3 me-1 inline" />يُرحّل {fmt(d.deficit)}
                         </Badge>
                       </div>
                     ) : <span className="font-bold text-primary">{fmt(d.net_amount)}</span>}
@@ -163,15 +163,15 @@ const DistributeDialog = ({
 
         <DialogFooter className="gap-2">
           <Button variant="secondary" onClick={() => { const ok = printDistributionReport({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions, waqfName: pdfWaqfInfo.waqfName, deedNumber: pdfWaqfInfo.deedNumber, logoUrl: pdfWaqfInfo.logoUrl }); if (!ok) uiNotify.error('يرجى السماح بالنوافذ المنبثقة'); }} disabled={beneficiaries.length === 0}>
-            <Printer className="w-4 h-4 ml-2" />طباعة
+            <Printer className="w-4 h-4 me-2" />طباعة
           </Button>
           <Button variant="secondary" onClick={async () => { setPdfLoading(true); try { const { generateDistributionsPDF } = await import('@/utils/pdf'); await generateDistributionsPDF({ fiscalYearLabel: fiscalYearLabel || '', availableAmount, distributions }, pdfWaqfInfo); } catch { uiNotify.error(PDF_MESSAGES.exportError); } finally { setPdfLoading(false); } }} disabled={beneficiaries.length === 0 || pdfLoading}>
-            {pdfLoading ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <FileDown className="w-4 h-4 ml-2" />}تصدير PDF
+            {pdfLoading ? <Loader2 className="w-4 h-4 me-2 animate-spin" /> : <FileDown className="w-4 h-4 me-2" />}تصدير PDF
           </Button>
           <div className="flex-1" />
           <Button variant="outline" onClick={() => onOpenChange(false)}>إلغاء</Button>
           <Button onClick={handleConfirm} disabled={distribute.isPending || beneficiaries.length === 0}>
-            {distribute.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}تأكيد التوزيع
+            {distribute.isPending && <Loader2 className="w-4 h-4 me-2 animate-spin" />}تأكيد التوزيع
           </Button>
         </DialogFooter>
       </DialogContent>

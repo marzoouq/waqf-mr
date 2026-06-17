@@ -94,19 +94,19 @@ export const EquitySection = ({
         </TableRow>
         {waqfCorpusManual > 0 && (
           <TableRow className="bg-muted/30">
-            <TableCell className="text-muted-foreground pr-8 text-xs">↳ رقبة الوقف اليدوية (مُرحّلة)</TableCell>
+            <TableCell className="text-muted-foreground ps-8 text-xs">↳ رقبة الوقف اليدوية (مُرحّلة)</TableCell>
             <TableCell className="text-start text-xs text-muted-foreground">{fmt(waqfCorpusManual)} ر.س</TableCell>
           </TableRow>
         )}
         {distributionsAmount > 0 && (
           <TableRow className="bg-muted/30">
-            <TableCell className="text-muted-foreground pr-8 text-xs">↳ التوزيعات المُنفّذة</TableCell>
+            <TableCell className="text-muted-foreground ps-8 text-xs">↳ التوزيعات المُنفّذة</TableCell>
             <TableCell className="text-start text-xs text-success">{fmt(distributionsAmount)} ر.س</TableCell>
           </TableRow>
         )}
         {availableAmount > 0 && (
           <TableRow className="bg-muted/30">
-            <TableCell className="text-muted-foreground pr-8 text-xs">↳ الرصيد المتبقي</TableCell>
+            <TableCell className="text-muted-foreground ps-8 text-xs">↳ الرصيد المتبقي</TableCell>
             <TableCell className="text-start text-xs">{fmt(availableAmount - distributionsAmount)} ر.س</TableCell>
           </TableRow>
         )}

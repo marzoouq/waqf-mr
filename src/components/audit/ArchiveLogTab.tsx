@@ -44,7 +44,7 @@ const ArchiveLogTab = () => {
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input name="searchQuery" id="archive-log-tab-field-1" placeholder="بحث في كامل الأرشيف (بريد، مسار، جهاز)..." title="بحث خادمي عبر كل السجلات المؤرشفة — يُؤجَّل 300ms أثناء الكتابة" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pr-9" />
+          <Input name="searchQuery" id="archive-log-tab-field-1" placeholder="بحث في كامل الأرشيف (بريد، مسار، جهاز)..." title="بحث خادمي عبر كل السجلات المؤرشفة — يُؤجَّل 300ms أثناء الكتابة" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="ps-9" />
         </div>
         <Select value={eventFilter} onValueChange={v => { setEventFilter(v); setCurrentPage(1); }}>
           <SelectTrigger className="w-[180px]"><SelectValue placeholder="نوع الحدث" /></SelectTrigger>
@@ -75,7 +75,7 @@ const ArchiveLogTab = () => {
                   return (
                     <div key={log.id} className="p-3 rounded-lg border bg-card space-y-2">
                       <div className="flex items-center justify-between gap-2">
-                        <Badge className={config.color} variant="outline"><Icon className="w-3 h-3 ml-1" />{config.label}</Badge>
+                        <Badge className={config.color} variant="outline"><Icon className="w-3 h-3 me-1" />{config.label}</Badge>
                         <span className="text-[11px] text-muted-foreground shrink-0">{fmtDateTime(log.created_at)}</span>
                       </div>
                       {log.email && <p className="text-xs font-mono" dir="ltr">{log.email}</p>}
@@ -105,7 +105,7 @@ const ArchiveLogTab = () => {
                         <TableRow key={log.id}>
                           <TableCell className="text-sm">{fmtDateTime(log.created_at)}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">{fmtDate(log.archived_at)}</TableCell>
-                          <TableCell><Badge className={config.color} variant="outline"><Icon className="w-3 h-3 ml-1" />{config.label}</Badge></TableCell>
+                          <TableCell><Badge className={config.color} variant="outline"><Icon className="w-3 h-3 me-1" />{config.label}</Badge></TableCell>
                           <TableCell className="text-sm font-mono" dir="ltr">{log.email || '—'}</TableCell>
                           <TableCell className="text-sm font-mono" dir="ltr">{log.target_path || '—'}</TableCell>
                           <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{log.metadata ? JSON.stringify(log.metadata) : '—'}</TableCell>

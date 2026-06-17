@@ -114,7 +114,7 @@ const ResetPassword = () => {
             </div>
             <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium" disabled={isLoading}>
               {isLoading ? (
-                <><Loader2 className="w-4 h-4 animate-spin ml-2" /> جاري التغيير...</>
+                <><Loader2 className="w-4 h-4 animate-spin me-2" /> جاري التغيير...</>
               ) : (
                 'تغيير كلمة المرور'
               )}

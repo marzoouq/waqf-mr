@@ -67,7 +67,7 @@ const UsersTable = ({
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               تعذّر تحميل قائمة المستخدمين: {error instanceof Error ? error.message : 'خطأ غير متوقع'}
-              <Button variant="outline" size="sm" className="mr-3" onClick={onRetry}>إعادة المحاولة</Button>
+              <Button variant="outline" size="sm" className="ms-3" onClick={onRetry}>إعادة المحاولة</Button>
             </AlertDescription>
           </Alert>
         </div>

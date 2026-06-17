@@ -40,7 +40,7 @@ const ZatcaCertExpiryWarning = ({ warning, isProductionCert, onRenew, renewLoadi
           {isProductionCert && (
             <Button size="sm" variant="outline" onClick={onRenew} disabled={renewLoading} className="shrink-0">
               {renewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              <span className="mr-1">تجديد</span>
+              <span className="ms-1">تجديد</span>
             </Button>
           )}
         </div>

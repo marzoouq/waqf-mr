@@ -48,7 +48,7 @@ const ChartOfAccountsPage = () => {
 
         <div className="relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="بحث بالكود أو الاسم..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pr-9" />
+          <Input placeholder="بحث بالكود أو الاسم..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="ps-9" />
           {searchTerm && <Button variant="ghost" size="icon" className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setSearchTerm('')} aria-label="مسح البحث"><X className="w-4 h-4" /></Button>}
         </div>
 
@@ -106,7 +106,7 @@ const ChartOfAccountsPage = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>إلغاء</Button>
             <Button onClick={handleSave} disabled={createPending || updatePending}>
-              {(createPending || updatePending) && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+              {(createPending || updatePending) && <Loader2 className="w-4 h-4 animate-spin me-2" />}
               {editingCategory ? 'حفظ التعديلات' : 'إضافة'}
             </Button>
           </DialogFooter>

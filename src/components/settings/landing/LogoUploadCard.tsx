@@ -54,9 +54,9 @@ const LogoUploadCard: React.FC<LogoUploadCardProps> = ({
             disabled={saving}
           >
             {saving ? (
-              <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+              <Loader2 className="w-4 h-4 me-2 animate-spin" />
             ) : (
-              <Upload className="w-4 h-4 ml-2" />
+              <Upload className="w-4 h-4 me-2" />
             )}
             {saving ? 'جارٍ الرفع...' : preview ? 'تغيير' : 'رفع شعار'}
           </Button>

@@ -79,7 +79,7 @@ export default function PaymentInvoiceSummaryCards({ summary }: PaymentInvoiceSu
             <span className="text-sm font-medium">تقدم التحصيل</span>
             <span className="text-sm text-muted-foreground">
               {summary.paid} مسددة من {summary.total} فاتورة
-              {summary.overdue > 0 && <span className="text-destructive mr-2">• {summary.overdue} متأخرة</span>}
+              {summary.overdue > 0 && <span className="text-destructive ms-2">• {summary.overdue} متأخرة</span>}
             </span>
           </div>
           <Progress

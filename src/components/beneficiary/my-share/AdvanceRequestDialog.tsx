@@ -174,7 +174,7 @@ const AdvanceRequestDialog = ({ beneficiaryId, beneficiaryName, fiscalYearId, es
             onClick={handleSubmit}
             disabled={create.isPending || loading || numAmount <= 0 || isOverLimit || isBelowMin || maxAdvance <= 0}
           >
-            {create.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+            {create.isPending && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
             إرسال الطلب
           </Button>
         </DialogFooter>

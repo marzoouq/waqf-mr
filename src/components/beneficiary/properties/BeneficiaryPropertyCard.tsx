@@ -104,9 +104,9 @@ const BeneficiaryPropertyCard = ({
                 <div key={unit.id} className="flex justify-between items-center text-sm bg-muted/50 rounded p-2">
                   <div>
                     <span className="font-medium">{unit.unit_number}</span>
-                    <span className="text-muted-foreground mr-2">- {unit.unit_type}</span>
-                    {unit.floor && <span className="text-muted-foreground mr-2">| {unit.floor}</span>}
-                    {unit.area && <span className="text-muted-foreground mr-2">| {unit.area} م²</span>}
+                    <span className="text-muted-foreground ms-2">- {unit.unit_type}</span>
+                    {unit.floor && <span className="text-muted-foreground ms-2">| {unit.floor}</span>}
+                    {unit.area && <span className="text-muted-foreground ms-2">| {unit.area} م²</span>}
                   </div>
                   <Badge variant={isUnitRented ? 'default' : unit.status === 'صيانة' ? 'destructive' : 'secondary'}>
                     {isUnitRented ? 'مؤجرة' : unit.status}

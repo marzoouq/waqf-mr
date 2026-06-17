@@ -58,7 +58,7 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
       <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة مستفيد</span></Button></DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>{isEditing ? 'تعديل المستفيد' : 'إضافة مستفيد جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل بيانات مستفيد</DialogDescription></DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pl-2">
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pe-2">
           <div className="space-y-2">
             <Label htmlFor="beneficiary-form-dialog-field-1">الاسم *</Label>
             <Input name="name" id="beneficiary-form-dialog-field-1" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="اسم المستفيد" maxLength={100} />

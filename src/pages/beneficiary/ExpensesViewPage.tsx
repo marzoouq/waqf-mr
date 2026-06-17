@@ -69,7 +69,7 @@ const ExpensesViewPage = () => {
                 placeholder="بحث في المصروفات..."
                 value={h.searchQuery}
                 onChange={(e) => { h.setSearchQuery(e.target.value); h.setCurrentPage(1); }}
-                className="pr-10"
+                className="ps-10"
               />
             </div>
             <AdvancedFiltersBar

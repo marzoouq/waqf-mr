@@ -31,7 +31,7 @@ const TicketList = ({ tickets, onSelect }: TicketListProps) => {
                     <p className="font-bold text-sm truncate">{ticket.title}</p>
                     <p className="text-xs text-muted-foreground font-mono mt-0.5">{ticket.ticket_number}</p>
                   </div>
-                  <Badge className={s.color}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>
+                  <Badge className={s.color}><Icon className="w-3 h-3 me-1" />{s.label}</Badge>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -50,7 +50,7 @@ const TicketList = ({ tickets, onSelect }: TicketListProps) => {
                   </div>
                 </div>
                 <Button size="sm" variant="outline" className="w-full mt-1" onClick={() => onSelect(ticket)}>
-                  <Eye className="w-3 h-3 ml-1" />عرض
+                  <Eye className="w-3 h-3 me-1" />عرض
                 </Button>
               </CardContent>
             </Card>
@@ -80,7 +80,7 @@ const TicketList = ({ tickets, onSelect }: TicketListProps) => {
                   <TableCell className="font-mono text-xs">{ticket.ticket_number}</TableCell>
                   <TableCell className="font-medium">{ticket.title}</TableCell>
                   <TableCell>
-                    <Badge className={s.color}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>
+                    <Badge className={s.color}><Icon className="w-3 h-3 me-1" />{s.label}</Badge>
                   </TableCell>
                   <TableCell>
                     {ticket.rating ? (
@@ -98,7 +98,7 @@ const TicketList = ({ tickets, onSelect }: TicketListProps) => {
                   <TableCell className="text-xs">{fmtDate(ticket.created_at)}</TableCell>
                   <TableCell>
                     <Button size="sm" variant="outline" onClick={() => onSelect(ticket)}>
-                      <Eye className="w-3 h-3 ml-1" />عرض
+                      <Eye className="w-3 h-3 me-1" />عرض
                     </Button>
                   </TableCell>
                 </TableRow>

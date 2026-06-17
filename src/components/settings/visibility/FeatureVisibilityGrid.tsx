@@ -93,7 +93,7 @@ const FeatureVisibilityGrid = () => {
               placeholder="ابحث في الميزات..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pr-8"
+              className="ps-8"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -103,14 +103,14 @@ const FeatureVisibilityGrid = () => {
               onClick={handleReset}
               disabled={dirtyCount === 0 || updateSettingsBatch.isPending}
             >
-              <EyeOff className="w-4 h-4 ml-1" />تجاهل التغييرات
+              <EyeOff className="w-4 h-4 me-1" />تجاهل التغييرات
             </Button>
             <Button
               size="sm"
               onClick={handleSave}
               disabled={dirtyCount === 0 || updateSettingsBatch.isPending || isLoading}
             >
-              <Save className="w-4 h-4 ml-1" />
+              <Save className="w-4 h-4 me-1" />
               حفظ {dirtyCount > 0 ? `(${dirtyCount})` : ''}
             </Button>
           </div>
@@ -121,7 +121,7 @@ const FeatureVisibilityGrid = () => {
             {SCOPES.map((s) => (
               <TabsTrigger key={s} value={s}>
                 {FEATURE_SCOPE_LABELS[s]}
-                <span className="mr-1.5 text-xs text-muted-foreground">
+                <span className="ms-1.5 text-xs text-muted-foreground">
                   ({filteredByScope[s].length})
                 </span>
               </TabsTrigger>

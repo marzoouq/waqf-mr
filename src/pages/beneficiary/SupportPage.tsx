@@ -31,7 +31,7 @@ const BeneficiarySupportPage = () => {
           icon={Headset}
           actions={
             <Button onClick={() => setShowNewTicket(true)} className="gradient-primary">
-              <Plus className="w-4 h-4 ml-2" />
+              <Plus className="w-4 h-4 me-2" />
               طلب دعم جديد
             </Button>
           }

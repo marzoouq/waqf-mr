@@ -16,7 +16,7 @@ interface Props { status: string }
 const AdvanceStatusBadge = ({ status }: Props) => {
   const s = statusMap[status] ?? statusMap.pending!;
   const Icon = s.icon;
-  return <Badge className={`${s.color} hover:${s.color}`}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>;
+  return <Badge className={`${s.color} hover:${s.color}`}><Icon className="w-3 h-3 me-1" />{s.label}</Badge>;
 };
 
 export default AdvanceStatusBadge;

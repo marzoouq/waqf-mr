@@ -49,7 +49,7 @@ const DistributionHistory = ({ beneficiary }: Props) => {
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <History className="w-4 h-4" />سجل التوزيعات — {beneficiary.name}
-          <Badge variant="secondary" className="text-xs mr-auto">{yearlyData.length} سنوات</Badge>
+          <Badge variant="secondary" className="text-xs ms-auto">{yearlyData.length} سنوات</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">

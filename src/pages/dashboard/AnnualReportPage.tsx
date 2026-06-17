@@ -110,22 +110,22 @@ const AnnualReportPage = () => {
                 <TabsTrigger value="property_status" className="gap-1 text-sm">
                   <Building2 className="h-4 w-4" />
                   حالة العقارات
-                  <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.property_status.length}</Badge>
+                  <Badge variant="secondary" className="ms-1 text-xs">{r.grouped.property_status.length}</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="achievement" className="gap-1 text-sm">
                   <Trophy className="h-4 w-4" />
                   الإنجازات
-                  <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.achievement.length}</Badge>
+                  <Badge variant="secondary" className="ms-1 text-xs">{r.grouped.achievement.length}</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="challenge" className="gap-1 text-sm">
                   <AlertTriangle className="h-4 w-4" />
                   التحديات
-                  <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.challenge.length}</Badge>
+                  <Badge variant="secondary" className="ms-1 text-xs">{r.grouped.challenge.length}</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="future_plan" className="gap-1 text-sm">
                   <Lightbulb className="h-4 w-4" />
                   الخطط المستقبلية
-                  <Badge variant="secondary" className="mr-1 text-xs">{r.grouped.future_plan.length}</Badge>
+                  <Badge variant="secondary" className="ms-1 text-xs">{r.grouped.future_plan.length}</Badge>
                 </TabsTrigger>
               </TabsList>
             )}

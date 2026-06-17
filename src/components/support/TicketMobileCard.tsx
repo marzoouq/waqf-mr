@@ -26,7 +26,7 @@ export default function TicketMobileCard({ ticket, onSelect }: TicketMobileCardP
           <p className="text-xs text-muted-foreground font-mono mt-0.5">{ticket.ticket_number}</p>
         </div>
         <Badge className={s.color + ' shrink-0 text-[11px]'}>
-          <Icon className="w-3 h-3 ml-0.5" />{s.label}
+          <Icon className="w-3 h-3 me-0.5" />{s.label}
         </Badge>
       </div>
       <div className="flex items-center gap-2 flex-wrap text-xs">
@@ -48,7 +48,7 @@ export default function TicketMobileCard({ ticket, onSelect }: TicketMobileCardP
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">{fmtDate(ticket.created_at)}</span>
         <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onSelect(ticket)}>
-          <Eye className="w-3 h-3 ml-1" />عرض
+          <Eye className="w-3 h-3 me-1" />عرض
         </Button>
       </div>
     </div>

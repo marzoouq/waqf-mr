@@ -30,7 +30,7 @@ const SupportDashboardPage = () => {
           description="إدارة التذاكر والأخطاء ومراقبة الأداء"
           actions={role === 'admin' ? (
             <Button onClick={() => setShowNewTicket(true)} className="gradient-primary">
-              <Headset className="w-4 h-4 ml-2" />
+              <Headset className="w-4 h-4 me-2" />
               تذكرة جديدة
             </Button>
           ) : undefined}

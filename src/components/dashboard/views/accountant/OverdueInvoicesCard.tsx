@@ -36,7 +36,7 @@ const OverdueInvoicesCard = memo(function OverdueInvoicesCard({
         <CardTitle className="flex items-center gap-2 text-destructive">
           <AlertTriangle className="w-5 h-5" />
           فواتير متأخرة ({invoices.length})
-          <Badge variant="destructive" className="mr-auto">{fmtInt(total)} ر.س</Badge>
+          <Badge variant="destructive" className="ms-auto">{fmtInt(total)} ر.س</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -55,7 +55,7 @@ const OverdueInvoicesCard = memo(function OverdueInvoicesCard({
                   {inv.tenantName} — عقار {inv.propertyNumber}
                 </p>
               </div>
-              <span className="font-bold text-sm text-destructive shrink-0 mr-2">
+              <span className="font-bold text-sm text-destructive shrink-0 ms-2">
                 {fmtInt(inv.amount)} ر.س
               </span>
             </div>

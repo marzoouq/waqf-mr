@@ -59,7 +59,7 @@ export default function ChatArea({
               {hasMore && (
                 <div className="text-center py-2">
                   <Button variant="ghost" size="sm" onClick={() => loadMore()} disabled={isLoadingMore}>
-                    {isLoadingMore ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : null}
+                    {isLoadingMore ? <Loader2 className="w-4 h-4 animate-spin me-1" /> : null}
                     تحميل رسائل أقدم
                   </Button>
                 </div>

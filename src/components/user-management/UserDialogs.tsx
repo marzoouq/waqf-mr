@@ -110,7 +110,7 @@ export const UserPasswordDialog = ({
         <div className="space-y-2">
           <Label htmlFor="change-user-password">كلمة المرور الجديدة</Label>
           <div className="relative">
-            <Input id="change-user-password" name="new-password" type={showPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" dir="ltr" minLength={8} className="pl-10" />
+            <Input id="change-user-password" name="new-password" type={showPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" dir="ltr" minLength={8} className="pe-10" />
             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" tabIndex={-1} aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}>
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>

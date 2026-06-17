@@ -33,7 +33,7 @@ export default function DiagnosticsToolbar(p: Props) {
       {p.hasResults && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm"><Download className="w-4 h-4 ml-2" />تصدير<ChevronDown className="w-3 h-3 mr-1" /></Button>
+            <Button variant="outline" size="sm"><Download className="w-4 h-4 me-2" />تصدير<ChevronDown className="w-3 h-3 ms-1" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={p.onExportJson}>تصدير JSON (مع روابط ومصادر)</DropdownMenuItem>
@@ -44,7 +44,7 @@ export default function DiagnosticsToolbar(p: Props) {
       {p.hasResults && (p.summary.fail > 0 || p.summary.warn > 0) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" disabled={p.running}><RefreshCw className="w-4 h-4 ml-2" />إعادة فحص<ChevronDown className="w-3 h-3 mr-1" /></Button>
+            <Button variant="outline" size="sm" disabled={p.running}><RefreshCw className="w-4 h-4 me-2" />إعادة فحص<ChevronDown className="w-3 h-3 ms-1" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={p.onRerunFailures} disabled={p.summary.fail === 0}>إعادة الفاشلة فقط ({p.summary.fail})</DropdownMenuItem>
@@ -55,7 +55,7 @@ export default function DiagnosticsToolbar(p: Props) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" disabled={p.running || p.deepCleaning}>
-            <Trash2 className="w-4 h-4 ml-2" />تنظيف<ChevronDown className="w-3 h-3 mr-1" />
+            <Trash2 className="w-4 h-4 me-2" />تنظيف<ChevronDown className="w-3 h-3 ms-1" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -86,7 +86,7 @@ export default function DiagnosticsToolbar(p: Props) {
         onConfirm={p.onDeepClean}
       />
       <Button onClick={p.onRunAll} disabled={p.running || !!p.runningCategory} size="sm">
-        <RefreshCw className={`w-4 h-4 ml-2 ${p.running ? 'animate-spin' : ''}`} />
+        <RefreshCw className={`w-4 h-4 me-2 ${p.running ? 'animate-spin' : ''}`} />
         {p.running ? 'جارٍ الفحص...' : 'تشغيل الكل'}
       </Button>
     </div>
