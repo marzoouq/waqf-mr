@@ -7,12 +7,11 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { advancesKeys } from '@/lib/queryKeys/advancesKeys';
 import { financialKeys } from '@/lib/queryKeys/financialKeys';
 import {
-  validateTargetStatus,
-  buildStatusUpdates,
   notifyOnCreate,
   notifyOnStatusChange,
 } from '@/lib/services/advanceService';
