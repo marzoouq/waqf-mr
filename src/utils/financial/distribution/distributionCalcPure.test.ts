@@ -174,3 +174,38 @@ describe('تغطية الفروع المتقدمة', () => {
     expect(a.deficit).toBe(0);
   });
 });
+
+/**
+ * D2 PARITY — عقد LRM المُتطابق بين الخادم (execute_distribution) والعميل.
+ * أي تغيير في الصيغة هنا يَستوجب تحديث migration الخادم.
+ */
+describe('D2 LRM server/client parity contract', () => {
+  const totalCents = (rows: ReturnType<typeof calculateDistributions>) =>
+    rows.reduce((s, r) => s + Math.round(r.share_amount * 100), 0);
+
+  it('مجموع cents = available cents بالضبط — 3 نسب كسرية على 100', () => {
+    const bens = [makeBen('a', 33.33), makeBen('b', 33.33), makeBen('c', 33.34)];
+    const result = calculateDistributions(bens, 100);
+    expect(totalCents(result)).toBe(10000);
+  });
+
+  it('مجموع cents = available cents بالضبط — نسب أولية على 777.77', () => {
+    const bens = [makeBen('a', 7), makeBen('b', 11), makeBen('c', 13), makeBen('d', 17)];
+    const result = calculateDistributions(bens, 777.77);
+    expect(totalCents(result)).toBe(77777);
+  });
+
+  it('مجموع cents = available cents بالضبط — 7 مستفيدين متساويين على 1000', () => {
+    const bens = Array.from({ length: 7 }, (_, i) => makeBen(`b${i}`, 100 / 7));
+    const result = calculateDistributions(bens, 1000);
+    expect(totalCents(result)).toBe(100000);
+  });
+
+  it('استقرار: نفس المدخلات تُعطي نفس المخرجات (deterministic)', () => {
+    const bens = [makeBen('a', 33.33), makeBen('b', 33.33), makeBen('c', 33.34)];
+    const r1 = calculateDistributions(bens, 100);
+    const r2 = calculateDistributions(bens, 100);
+    expect(r1.map(r => r.share_amount)).toEqual(r2.map(r => r.share_amount));
+  });
+});
+
