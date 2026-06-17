@@ -251,15 +251,23 @@ Deno.serve(async (req) => {
     // If password provided, perform server-side authentication
     if (password && typeof password === "string" && password.length >= 8) {
       try {
-        // Use Supabase Auth REST API directly for password auth
-        const authResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": anonKey,
-          },
-          body: JSON.stringify({ email, password }),
-        });
+        // R6 (W5-#11): timeout 5s على auth REST
+        const authCtrl = new AbortController();
+        const authTimer = setTimeout(() => authCtrl.abort(), 5_000);
+        let authResponse: Response;
+        try {
+          authResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": anonKey,
+            },
+            body: JSON.stringify({ email, password }),
+            signal: authCtrl.signal,
+          });
+        } finally {
+          clearTimeout(authTimer);
+        }
 
         const authData = await authResponse.json();
 
@@ -293,8 +301,9 @@ Deno.serve(async (req) => {
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
-      } catch (authErr) {
-        console.error("Auth error:", (authErr as Error).message);
+      } catch (_authErr) {
+        // R6 (W5-#7): لا نطبع رسالة المصادقة لأنها قد تحوي email/password fragments
+        console.error("Auth error");
         return new Response(
           JSON.stringify({
             found: true,
