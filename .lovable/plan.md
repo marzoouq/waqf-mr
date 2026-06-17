@@ -1,62 +1,63 @@
-# R8-extra — اختبارات Support + RTL sweep
+# تدقيق منطق حساب الريع وتوزيع الحصص
 
-## الاستكشاف
+## السياق (مُتحقَّق منه فعلياً)
 
-- `useSupportAnalytics.ts` موجود ويحتوي 3 رموز قابلة للاختبار: `useSupportStats`, `useSupportAnalytics`, `fetchTicketsForExport`.
-- `usePropertyChecklist` **غير موجود** في الـ codebase (لا hook ولا util ولا component بهذا الاسم). الذِكر في W8 خاطئ — سأُهمله مع توثيقه في التقرير.
-- RTL: 99 ملف يستخدم `ml-/mr-/pl-/pr-` (وليس ~50 كما قُدِّر).
+**الصيغة المرجعية** في `src/utils/financial/fiscalYear/accountsCalculations.ts` (موثَّقة + مغطّاة بـ 15 اختبار):
 
-## ما سيُنفَّذ
+```
+grandTotal         = totalIncome + waqfCorpusPrevious
+netAfterExpenses   = grandTotal − totalExpenses
+netAfterVat        = netAfterExpenses − manualVat
+netAfterZakat      = netAfterVat − zakatAmount
+shareBase          = max(0, totalIncome − totalExpenses − zakatAmount)
+adminShare         = shareBase × adminPercent% (سنة مقفلة فقط)
+waqifShare         = shareBase × waqifPercent% (سنة مقفلة فقط)
+waqfRevenue        = netAfterZakat − adminShare − waqifShare
+availableAmount    = waqfRevenue − waqfCorpusManual
+remainingBalance   = availableAmount − manualDistributions
+حصة المستفيد       = availableAmount × (نسبته / مجموع النسب) — Largest Remainder
+```
 
-### 1) اختبارات `useSupportAnalytics`
-ملف جديد `src/hooks/data/support/useSupportAnalytics.test.ts` يغطي:
-- **`useSupportStats`**: mock `rpc('get_support_stats')` → يُرجع كائن الإحصائيات؛ تأكد من `data.totalTickets` وغيره.
-- **`useSupportAnalytics` happy path**: mock RPC + mock `parseOrThrow` (أو إدخال بيانات صحيحة) → يُرجع الـ shape.
-- **`useSupportAnalytics` schema failure**: RPC يُرجع بيانات ناقصة → الـ query تنتقل لحالة `isError`.
-- **`fetchTicketsForExport` success**: mock supabase chain → يُرجع المصفوفة.
-- **`fetchTicketsForExport` error**: mock يُرجع `{ error }` → `throw`.
+**ملاحظات مهمة** (من الذاكرة المُطبَّقة تلقائياً):
+- السنة النشطة: الحصص = 0 ديناميكياً.
+- السنة المقفلة: snapshot من DB.
+- Server-side authority: `execute_distribution` يُعيد حساب الحصص متجاهلاً قيم العميل.
+- Corpus يُستخرج من Waqf Revenue (لا تكرار).
+- Math.max(0) لمنع الحصص السالبة.
 
-استخدام: `renderHook` + `QueryClient` (retry: false) كما في الاختبارات الموجودة (`useContracts.test.ts` نموذج).
+## ما سيُنفَّذ — تدقيق فقط (لا تعديل كود)
 
-### 2) `usePropertyChecklist` — غير قابل للتنفيذ
-- توثيق في `R8-EXECUTED-v2.md` أنه FP من تقرير W8.
+### المرحلة 1: تقرير تدقيق شامل
+يُنتج subagent تقرير يغطي:
+1. **التطابق عبر الطبقات** — هل `activeYearFinancials.ts` و `closedYearFinancials.ts` تستخدم نفس الصيغة؟
+2. **`useMyShare.ts` + `myShareCalculation.ts`** — هل البَيس = `availableAmount` التناسبي أم شيء آخر؟
+3. **`distributionCalcPure.ts`** (Largest Remainder) — هل المجموع == `availableAmount` بالضبط؟
+4. **Server: `execute_distribution` RPC** — هل الصيغة تطابق العميل؟ فحص آخر migration.
+5. **تقارير PDF** — `annualDisclosurePdf`, `comprehensiveBeneficiary`, `aggregatedAnnualReport`, `ReportsPage.tsx`:
+   - هل تعرض `adminShare/waqifShare/waqfRevenue/availableAmount/myShare` من نفس المصدر؟
+   - هل أي تقرير يُعيد الحساب محلياً ببَيس مختلف؟
+6. **فجوات تغطية الاختبار** — أي طبقة بلا اختبار.
 
-### 3) RTL sweep على 99 ملف
-**النطاق المضبوط** — استبدال طبقات Tailwind الاتجاهية بمنطقية فقط:
-- `ml-{n|auto|px|[..]}` → `me-...` (margin-left → margin-end)
-- `mr-{...}` → `ms-...`
-- `pl-{...}` → `pe-...`
-- `pr-{...}` → `ps-...`
-- يدعم variant prefixes: `sm:ml-2` → `sm:me-2`, `hover:pl-1` → `hover:pe-1`, `group-hover:mr-4` → `group-hover:ms-4`.
+**الإخراج:** `audit/forensic-2026-06-17/REVENUE-DISTRIBUTION-AUDIT.md` مع جدول الانحرافات (file:line + severity).
 
-**Regex المعتمد** (Perl): `(?<![\w-])(ml|mr|pl|pr)-` → الاستبدال مُعجم: `{ml→me, mr→ms, pl→pe, pr→ps}`.
+### المرحلة 2: عرض النتائج عليك
+- لو 0 انحراف → تأكيد + إغلاق المهمة.
+- لو وُجدت انحرافات → خطة منفصلة لكل واحد (P1: divergence in formula, P2: report base mismatch, P3: missing test).
+- لا تعديل تلقائي بدون موافقتك.
 
-**ما لن يُلمس** (تجنب false positives):
-- `border-l/r`, `left-/right-`, `rounded-l/r-` (خارج طلب W8، تحتاج مراجعة فردية).
-- ملفات CSS (`.css`, `.scss`) — استبدالات Tailwind only في JSX/TSX.
-- التعليقات والـ strings داخل console/logger (regex على className فقط؟ — صعب؛ سنعتمد على الـ word boundary وفحص الـ diff).
-- `min-l-`, `max-r-` — لا تُطابق بسبب `\b` ما قبل.
-
-**خطة التحقق الخماسية:**
-1. تشغيل الاستبدال على `src/components/` و `src/pages/` و `src/routes/` فقط (نطاق UI).
-2. `git diff --stat` لإحصاء التغييرات.
-3. `git diff` يدوي على عيّنة من 10 ملفات للتأكد من عدم كسر سياق.
-4. `bunx tsc --noEmit` — صفر أخطاء نوعية (الأصناف الجديدة `ms-/me-/ps-/pe-` صالحة في Tailwind v3).
-5. `bunx vitest run` — جميع الاختبارات تمر (خاصة snapshot tests إن وُجدت).
-6. فحص بصري في `/dashboard` و `/dashboard/contracts` و `/beneficiary/disclosure`.
-
-**Rollback plan**: لو كسر شيء، التراجع ملف-بملف عبر `git checkout HEAD -- <file>`.
-
-### 4) تقرير `audit/forensic-2026-06-17/R8-EXECUTED-v2.md`
-- ملخص: ملف اختبار جديد + N ملف RTL مُعدَّل + FP usePropertyChecklist.
-- لقطة قبل/بعد لعدد الاستخدامات الاتجاهية.
+### المرحلة 3 (شرطية): اختبار E2E تحقق
+لو طلبت ضماناً عملياً:
+- اختبار `revenueFlow.integration.test.ts` يُحاكي سنة مالية كاملة (دخل + مصروفات + VAT + زكاة) ويتحقق أن نتيجة `calculateFinancials` تساوي مجموع توزيعات `distributionCalcPure` + corpus + admin + waqif بالضبط.
 
 ## ما لن يُنفَّذ
-- A11y الشامل (Dialogs, Inputs labels) — جلسة منفصلة.
-- `border-l/r`, `left-/right-`, `rounded-l/r-` — تحتاج فحص كل حالة.
-- `usePropertyChecklist` test — غير موجود.
+- إعادة كتابة الصيغ (إلا بطلب صريح).
+- تعديل DB migrations.
+- إعادة هندسة hooks/types.
 
-## الزمن المتوقع
-جلسة قصيرة. الاختبارات ~10 دقائق، RTL sweep + تحقق ~15 دقيقة.
+## الإخراج النهائي
+1. تقرير `REVENUE-DISTRIBUTION-AUDIT.md` (≤200 سطر) — موجز، مرتّب حسب الخطورة.
+2. ردّ مختصر يلخّص: عدد الانحرافات الحرجة، عدد الفجوات الاختبارية، توصية متابعة.
 
-موافق على البدء؟
+**الزمن:** subagent يحتاج ~3-5 دقائق للاستكشاف، ثم مراجعة سريعة.
+
+موافق على البدء؟ أم تريد توسيع النطاق (مثلاً: تدقيق `tenant_payments` + `payment_invoices` كذلك)؟
