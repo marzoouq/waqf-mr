@@ -161,4 +161,17 @@ describe('useMyShare', () => {
     }));
     expect(result.current.myShare).toBe(1000);
   });
+
+  it('D3: fallback يستخدم LRM ويطابق مجموع التوزيعات للمبلغ المتاح', () => {
+    // 3 مستفيدين متساوون على 100 ر.س — LRM يوزّع القروش الفائضة على الأكبر باقياً
+    const beneficiaries = [
+      { id: 'a', user_id: 'user-1', share_percentage: 33.33 },
+      { id: 'b', user_id: 'user-2', share_percentage: 33.33 },
+      { id: 'c', user_id: 'user-3', share_percentage: 33.34 },
+    ];
+    mockPct.mockReturnValue({ data: 100, isLoading: false } as any);
+    const { result } = renderHook(() => useMyShare({ beneficiaries, availableAmount: 100 }));
+    // user-1 يحصل على floor(100*33.33/100) = 33.33 (لا يحصل على قرش إضافي لأن باقيه أصغر)
+    expect(result.current.myShare).toBeCloseTo(33.33, 2);
+  });
 });
