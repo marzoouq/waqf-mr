@@ -2210,6 +2210,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      consume_zatca_otp: { Args: never; Returns: string }
       create_contract_with_invoices: {
         Args: { p_contract: Json }
         Returns: {
