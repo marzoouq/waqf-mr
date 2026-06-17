@@ -80,9 +80,10 @@ Deno.serve(async (req): Promise<Response> => {
         await logZatcaOperation(admin, { operation_type: "compliance-check", status: complianceRes.ok ? "success" : "error", request_summary: { invoice_id, table }, response_summary: { status_code: complianceRes.status, warnings: (vr.warningMessages || []).length, errors: (vr.errorMessages || []).length }, error_message: complianceRes.ok ? undefined : JSON.stringify(vr.errorMessages || []).slice(0, 500), invoice_id, user_id: user.id });
         return new Response(JSON.stringify({ success: complianceRes.ok, status: complianceRes.status, validationResults: vr, warningMessages: vr.warningMessages || complianceData?.warningMessages || [], errorMessages: vr.errorMessages || complianceData?.errorMessages || [], infoMessages: vr.infoMessages || complianceData?.infoMessages || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (fetchErr) {
-        const errMsg = `ZATCA API unreachable: ${(fetchErr as Error).message}`;
-        await logZatcaOperation(admin, { operation_type: "compliance-check", status: "error", error_message: errMsg, invoice_id, user_id: user.id });
-        return new Response(JSON.stringify({ error: errMsg }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        // R6 (W5-#20): تفاصيل الخطأ تبقى داخلياً
+        const errInternal = (fetchErr as Error).message;
+        await logZatcaOperation(admin, { operation_type: "compliance-check", status: "error", error_message: errInternal, invoice_id, user_id: user.id });
+        return new Response(JSON.stringify({ error: "ZATCA API unreachable" }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
 
