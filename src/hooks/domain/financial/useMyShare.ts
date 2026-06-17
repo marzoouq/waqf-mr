@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useTotalBeneficiaryPercentage } from '@/hooks/data/financial/dashboard/useTotalBeneficiaryPercentage';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { calculateDistributions } from '@/utils/financial/distribution/distributionCalcPure';
 
 interface BeneficiaryLike {
   user_id?: string | null;
@@ -26,7 +27,10 @@ interface UseMyShareParams {
  * هوك موحّد لحساب حصة المستفيد الحالي من الريع.
  * يُفضّل القيمة المحسوبة من الخادم (serverMyShare) عند توفرها
  * لضمان اتساق الأرقام مع RPC get_beneficiary_dashboard.
- * يعود للحساب المحلي كـ fallback (مثلاً عند معاينة الناظر).
+ *
+ * D3 fix: مسار الـ fallback يستخدم LRM (calculateDistributions) — نفس
+ * خوارزمية execute_distribution SQL — لضمان تطابق القرش-بالقرش مع الخادم
+ * وعدم إخفاء أي عجز أو فروق ناتجة عن التقريب التناسبي البسيط.
  */
 export const useMyShare = <T extends BeneficiaryLike>({
   beneficiaries,
@@ -47,11 +51,30 @@ export const useMyShare = <T extends BeneficiaryLike>({
     if (serverMyShare !== null && serverMyShare !== undefined && isFinite(serverMyShare)) {
       return Math.max(0, serverMyShare);
     }
-    // fallback: حساب محلي (للناظر أو عند غياب RPC)
-    if (!currentBeneficiary || totalBenPct <= 0) return 0;
-    const computed = Math.round(safeNumber(availableAmount) * safeNumber(currentBeneficiary.share_percentage) / totalBenPct * 100) / 100;
-    return Math.max(0, computed);
-  }, [serverMyShare, currentBeneficiary, availableAmount, totalBenPct]);
+    // D3 fallback: حساب محلي بـ LRM لمطابقة execute_distribution SQL.
+    const avail = safeNumber(availableAmount);
+    if (!currentBeneficiary || totalBenPct <= 0 || avail <= 0) return 0;
+
+    // بناء قائمة ذات id/name/share_percentage مستقرّة للـ LRM
+    const benForLrm = beneficiaries.map((b, idx) => ({
+      id: (b as { id?: string }).id ?? b.user_id ?? `idx-${idx}`,
+      name: String((b as { name?: string }).name ?? b.user_id ?? idx),
+      share_percentage: safeNumber(b.share_percentage),
+      user_id: b.user_id ?? null,
+    }));
+    const sumPct = benForLrm.reduce((s, b) => s + b.share_percentage, 0);
+    if (sumPct <= 0) return 0;
+
+    // إذا كان totalBenPct (الموثوق من الخادم) != sumPct (القائمة الممرّرة)،
+    // نُطبّق عامل تصحيح على المبلغ المتاح لاحترام المقام الموثوق دون كسر LRM.
+    const effectiveAvailable = avail * (sumPct / totalBenPct);
+    const rows = calculateDistributions(benForLrm, effectiveAvailable);
+    const myId = (currentBeneficiary as { id?: string }).id;
+    const myRow = rows.find(r =>
+      myId ? r.beneficiary_id === myId : r.beneficiary_user_id === currentBeneficiary.user_id,
+    );
+    return Math.max(0, myRow?.share_amount ?? 0);
+  }, [serverMyShare, currentBeneficiary, beneficiaries, availableAmount, totalBenPct]);
 
   return { currentBeneficiary, totalBenPct, pctLoading, myShare };
 };
