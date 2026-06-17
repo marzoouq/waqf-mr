@@ -16,8 +16,10 @@ export interface ContractForPdf {
 
 export function useContractsForPdf() {
   return useCallback(async (fiscalYearId?: string | null): Promise<ContractForPdf[]> => {
+    // R3 (W3-001 defense): استخدام contracts_safe بدلاً من contracts الخام
+    // يضمن إخفاء tenant_name تلقائياً عن غير الناظر/المحاسب عبر طبقة العرض الآمن
     let query = supabase
-      .from('contracts')
+      .from('contracts_safe')
       .select('contract_number, tenant_name, rent_amount, status')
       .order('created_at', { ascending: false });
     if (fiscalYearId && fiscalYearId !== 'all') {
