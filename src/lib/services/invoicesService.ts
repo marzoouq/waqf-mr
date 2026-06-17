@@ -34,15 +34,15 @@ export const invoicesService = {
     // 1) جلب الحالة قبل الحذف لمنع تدمير سجل دفع مرتبط
     const { data: existing, error: fetchErr } = await supabase
       .from('invoices')
-      .select('id, status, payment_status')
+      .select('id, status')
       .eq('id', id)
       .maybeSingle();
     if (fetchErr) throw fetchErr;
     if (!existing) throw new Error('الفاتورة غير موجودة');
 
     const blockedStatuses = new Set(['paid', 'partially_paid']);
-    const rec = existing as { status?: string | null; payment_status?: string | null };
-    if ((rec.status && blockedStatuses.has(rec.status)) || (rec.payment_status && blockedStatuses.has(rec.payment_status))) {
+    const rec = existing as { status?: string | null };
+    if (rec.status && blockedStatuses.has(rec.status)) {
       throw new Error('لا يمكن حذف فاتورة مدفوعة أو مدفوعة جزئياً — قم بإلغائها بدلاً من الحذف');
     }
 
