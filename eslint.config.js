@@ -209,4 +209,29 @@ export default tseslint.config(
       ],
     },
   },
+
+  // R3 (W3-001 defense-in-depth) — يُمنع الوصول إلى جدول contracts الخام
+  // في طبقات hooks/components المرتبطة بأدوار غير ناظر/محاسب. استخدم contracts_safe.
+  {
+    files: [
+      "src/hooks/data/contracts/**/*.{ts,tsx}",
+      "src/hooks/page/beneficiary/**/*.{ts,tsx}",
+      "src/hooks/page/waqif/**/*.{ts,tsx}",
+      "src/components/beneficiary/**/*.{ts,tsx}",
+      "src/components/waqif/**/*.{ts,tsx}",
+    ],
+    ignores: [
+      // الناظر/المحاسب يصلان للجدول الخام عبر هذا الهوك حصراً
+      "src/hooks/data/contracts/useContracts.ts",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.object.name='supabase'][callee.property.name='from'][arguments.0.value='contracts']",
+          message: "ممنوع الوصول إلى جدول contracts الخام من هذه الطبقة — استخدم contracts_safe لإخفاء PII تلقائياً.",
+        },
+      ],
+    },
+  },
 );
