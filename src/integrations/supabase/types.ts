@@ -2181,6 +2181,10 @@ export type Database = {
         Args: { p_voucher_id: string }
         Returns: undefined
       }
+      assert_fiscal_year_open: {
+        Args: { p_fiscal_year_id: string }
+        Returns: undefined
+      }
       check_rate_limit: {
         Args: { p_key: string; p_limit: number; p_window_seconds: number }
         Returns: boolean
@@ -2250,25 +2254,15 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
-      execute_distribution:
-        | {
-            Args: {
-              p_account_id: string
-              p_distributions?: Json
-              p_fiscal_year_id?: string
-              p_total_distributed?: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_account_id: string
-              p_distributions?: Json
-              p_fiscal_year_id?: string
-              p_total_distributed?: number
-            }
-            Returns: Json
-          }
+      execute_distribution: {
+        Args: {
+          p_account_id: string
+          p_distributions?: Json
+          p_fiscal_year_id?: string
+          p_total_distributed?: number
+        }
+        Returns: Json
+      }
       generate_all_active_invoices: { Args: never; Returns: number }
       generate_contract_invoices: {
         Args: { p_contract_id: string }
@@ -2412,12 +2406,20 @@ export type Database = {
       }
       reorder_bylaws: { Args: { items: Json }; Returns: undefined }
       reserve_icv: { Args: never; Returns: Json }
+      set_annual_report_publish: {
+        Args: { p_fiscal_year_id: string; p_publish: boolean }
+        Returns: Json
+      }
       sync_property_contract_invoice_vat: {
         Args: { p_property_id: string }
         Returns: Json
       }
       unpay_invoice_and_revert_collection: {
         Args: { p_invoice_id: string }
+        Returns: Json
+      }
+      update_advance_status: {
+        Args: { p_id: string; p_rejection_reason?: string; p_status: string }
         Returns: Json
       }
       update_beneficiary_self: {

@@ -7,12 +7,11 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import { advancesKeys } from '@/lib/queryKeys/advancesKeys';
 import { financialKeys } from '@/lib/queryKeys/financialKeys';
 import {
-  validateTargetStatus,
-  buildStatusUpdates,
   notifyOnCreate,
   notifyOnStatusChange,
 } from '@/lib/services/advanceService';
@@ -83,6 +82,7 @@ export const useCreateAdvanceRequest = () => {
 
 /**
  * تحديث حالة طلب السلفة (موافقة / رفض / صرف)
+ * R2: ينفَّذ عبر RPC `update_advance_status` ضمن حارس السنة المفتوحة وصلاحيات الناظر/المحاسب.
  */
 export const useUpdateAdvanceStatus = () => {
   const qc = useQueryClient();
@@ -91,19 +91,11 @@ export const useUpdateAdvanceStatus = () => {
       id: string; status: string; rejection_reason?: string;
       beneficiary_user_id?: string; amount?: number;
     }) => {
-      const allowedFrom = validateTargetStatus(status);
-      if (!allowedFrom) throw new Error('حالة غير صالحة');
-
-      const updates = buildStatusUpdates(status, rejection_reason);
-
-      const { data, error } = await supabase
-        .from('advance_requests')
-        .update(updates)
-        .eq('id', id)
-        .in('status', allowedFrom)
-        .select('id');
-      if (error) throw error;
-      if (!data?.length) throw new Error('لا يمكن تغيير الحالة — ربما تم تعديلها مسبقاً');
+      await rpc('update_advance_status', {
+        p_id: id,
+        p_status: status,
+        p_rejection_reason: rejection_reason ?? null,
+      });
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: advancesKeys.prefixes.requests });
