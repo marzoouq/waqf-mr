@@ -60,7 +60,7 @@ export default function PaymentInvoiceToolbar({
         <span className="text-muted-foreground text-xs">—</span>
         <Input name="dateTo" id="payment-invoices-tab-field-3" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-36 text-xs" placeholder="إلى" />
         {(dateFrom || dateTo) && (
-          <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => { setDateFrom(''); setDateTo(''); }} title="مسح التاريخ">
+          <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => { setDateFrom(''); setDateTo(''); }} title="مسح التاريخ" aria-label="مسح التاريخ">
             <X className="w-3.5 h-3.5" />
           </Button>
         )}
