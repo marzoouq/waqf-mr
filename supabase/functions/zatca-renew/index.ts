@@ -36,11 +36,10 @@ Deno.serve(async (req): Promise<Response> => {
       return new Response(JSON.stringify({ error: "لم يتم تحديد بوابة ZATCA." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // R4: استهلاك OTP عبر RPC آمنة (vault decrypt + delete)
+    // R6 (W5-#25): استهلاك OTP حصراً عبر RPC الخزنة — لا fallback لـ env
     let otp = "";
     const { data: otpPlain } = await admin.rpc("consume_zatca_otp");
     if (typeof otpPlain === "string") otp = otpPlain;
-    if (!otp) otp = Deno.env.get("ZATCA_OTP") || "";
 
     if (!otp) {
       await logZatcaOperation(admin, { operation_type: "renew", status: "error", error_message: "رمز التفعيل OTP مطلوب للتجديد", user_id: user.id });
