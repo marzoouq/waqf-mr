@@ -1,46 +1,62 @@
-# R8 — إصلاحات الاختبارات + A11y + RTL + Disclosure guards
+# R8-extra — اختبارات Support + RTL sweep
 
-## استكشاف سريع (نتائج فعلية)
+## الاستكشاف
 
-- **الاختبارات الفاشلة الحقيقية:** 1 فقط — `src/app/bootstrap/bootstrap.smoke.test.ts` (وليس 3 كما زعم W8-#1). لا توجد ملفات اختبار لـ `useSupportAnalytics` ولا `usePropertyChecklist` أصلاً.
-- **`<main>` landmark + lazy routes:** مُطبَّقة بالفعل (مُوثَّق في R7-EXECUTED).
-- **DisclosurePage/MySharePage published guard:** غير موجود — لا فحص على `annual_report_status.status='published'`.
-- **RTL utilities:** ~50 ملف يستخدم `ml-*/mr-*/pl-*/pr-*` بدل `ms-*/me-*/ps-*/pe-*`.
+- `useSupportAnalytics.ts` موجود ويحتوي 3 رموز قابلة للاختبار: `useSupportStats`, `useSupportAnalytics`, `fetchTicketsForExport`.
+- `usePropertyChecklist` **غير موجود** في الـ codebase (لا hook ولا util ولا component بهذا الاسم). الذِكر في W8 خاطئ — سأُهمله مع توثيقه في التقرير.
+- RTL: 99 ملف يستخدم `ml-/mr-/pl-/pr-` (وليس ~50 كما قُدِّر).
 
 ## ما سيُنفَّذ
 
-### 1) إصلاح اختبار bootstrap الفاشل (W8-#1)
-- قراءة `src/app/bootstrap/bootstrap.smoke.test.ts` لتحديد سبب الفشل (`schema] dashboard-summary validation failed`).
-- إصلاح التوقع أو الـ mock بحسب السبب الفعلي.
+### 1) اختبارات `useSupportAnalytics`
+ملف جديد `src/hooks/data/support/useSupportAnalytics.test.ts` يغطي:
+- **`useSupportStats`**: mock `rpc('get_support_stats')` → يُرجع كائن الإحصائيات؛ تأكد من `data.totalTickets` وغيره.
+- **`useSupportAnalytics` happy path**: mock RPC + mock `parseOrThrow` (أو إدخال بيانات صحيحة) → يُرجع الـ shape.
+- **`useSupportAnalytics` schema failure**: RPC يُرجع بيانات ناقصة → الـ query تنتقل لحالة `isError`.
+- **`fetchTicketsForExport` success**: mock supabase chain → يُرجع المصفوفة.
+- **`fetchTicketsForExport` error**: mock يُرجع `{ error }` → `throw`.
 
-### 2) Disclosure / MyShare published guard (W4-F06/F07)
-- إنشاء hook `useIsAnnualReportPublished(fiscalYearId)` في `src/hooks/data/annualReport/` يستعلم `annual_report_status` ويُرجع `{ isPublished, isLoading }`.
-- في `DisclosurePage.tsx` و `MySharePage.tsx`: إذا `!isPublished` → عرض بطاقة "التقرير قيد المراجعة — لم يُنشر بعد" بدل الأرقام المالية.
+استخدام: `renderHook` + `QueryClient` (retry: false) كما في الاختبارات الموجودة (`useContracts.test.ts` نموذج).
 
-### 3) RTL utilities — جولة آمنة (W8-#4)
-- script واحد يستبدل `mr-` → `ms-`, `ml-` → `me-`, `pr-` → `ps-`, `pl-` → `pe-` فقط في `src/components/` و `src/pages/` و **فقط** عند المتغيرات الرقمية القياسية (`ml-1` .. `ml-12`).
-- استثناء: `min-l-`, `max-r-`, إلخ (نادرة، لكن regex يأخذها بعين الاعتبار: `\b(m|p)(l|r)-(\d+|auto)\b`).
-- مراجعة diff قبل الاعتماد.
+### 2) `usePropertyChecklist` — غير قابل للتنفيذ
+- توثيق في `R8-EXECUTED-v2.md` أنه FP من تقرير W8.
 
-### 4) A11y review سريع
-- تشغيل skill/accessibility على المكونات الأكثر استخداماً (Dialogs, Buttons icon-only, Inputs بدون label).
-- إصلاح أبرز 5-10 مواضع `aria-label` ناقصة.
+### 3) RTL sweep على 99 ملف
+**النطاق المضبوط** — استبدال طبقات Tailwind الاتجاهية بمنطقية فقط:
+- `ml-{n|auto|px|[..]}` → `me-...` (margin-left → margin-end)
+- `mr-{...}` → `ms-...`
+- `pl-{...}` → `pe-...`
+- `pr-{...}` → `ps-...`
+- يدعم variant prefixes: `sm:ml-2` → `sm:me-2`, `hover:pl-1` → `hover:pe-1`, `group-hover:mr-4` → `group-hover:ms-4`.
 
-### 5) تقرير `R8-EXECUTED.md`
+**Regex المعتمد** (Perl): `(?<![\w-])(ml|mr|pl|pr)-` → الاستبدال مُعجم: `{ml→me, mr→ms, pl→pe, pr→ps}`.
+
+**ما لن يُلمس** (تجنب false positives):
+- `border-l/r`, `left-/right-`, `rounded-l/r-` (خارج طلب W8، تحتاج مراجعة فردية).
+- ملفات CSS (`.css`, `.scss`) — استبدالات Tailwind only في JSX/TSX.
+- التعليقات والـ strings داخل console/logger (regex على className فقط؟ — صعب؛ سنعتمد على الـ word boundary وفحص الـ diff).
+- `min-l-`, `max-r-` — لا تُطابق بسبب `\b` ما قبل.
+
+**خطة التحقق الخماسية:**
+1. تشغيل الاستبدال على `src/components/` و `src/pages/` و `src/routes/` فقط (نطاق UI).
+2. `git diff --stat` لإحصاء التغييرات.
+3. `git diff` يدوي على عيّنة من 10 ملفات للتأكد من عدم كسر سياق.
+4. `bunx tsc --noEmit` — صفر أخطاء نوعية (الأصناف الجديدة `ms-/me-/ps-/pe-` صالحة في Tailwind v3).
+5. `bunx vitest run` — جميع الاختبارات تمر (خاصة snapshot tests إن وُجدت).
+6. فحص بصري في `/dashboard` و `/dashboard/contracts` و `/beneficiary/disclosure`.
+
+**Rollback plan**: لو كسر شيء، التراجع ملف-بملف عبر `git checkout HEAD -- <file>`.
+
+### 4) تقرير `audit/forensic-2026-06-17/R8-EXECUTED-v2.md`
+- ملخص: ملف اختبار جديد + N ملف RTL مُعدَّل + FP usePropertyChecklist.
+- لقطة قبل/بعد لعدد الاستخدامات الاتجاهية.
 
 ## ما لن يُنفَّذ
-- إنشاء اختبارات جديدة لـ `useSupportAnalytics`/`usePropertyChecklist` (غير موجودة، لم يطلبها أحد).
-- W2-F13 WebAuthn HttpOnly (architectural debt — وُثِّق في R7).
-- W6-F17 GRANTs على 42 جدول → R9.
+- A11y الشامل (Dialogs, Inputs labels) — جلسة منفصلة.
+- `border-l/r`, `left-/right-`, `rounded-l/r-` — تحتاج فحص كل حالة.
+- `usePropertyChecklist` test — غير موجود.
 
-## ترتيب التنفيذ بعد الموافقة
-1. قراءة `bootstrap.smoke.test.ts` + إصلاح.
-2. hook `useIsAnnualReportPublished` + guards في الصفحتين.
-3. RTL sed على `src/components/` و `src/pages/`.
-4. A11y fixes (aria-label icon-only buttons).
-5. تشغيل `bunx vitest run` للتأكد من 0 فشل.
-6. تقرير.
-
-**الزمن المتوقع:** جلسة واحدة قصيرة (تغييرات معظمها ميكانيكية).
+## الزمن المتوقع
+جلسة قصيرة. الاختبارات ~10 دقائق، RTL sweep + تحقق ~15 دقيقة.
 
 موافق على البدء؟
