@@ -53,7 +53,7 @@ export default function WebVitalsPanel() {
             <Gauge className="w-4 h-4 text-primary" />
             مؤشرات الأداء (Core Web Vitals)
           </CardTitle>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={refresh} title="تحديث القراءات">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={refresh} title="تحديث القراءات" aria-label="تحديث القراءات">
             <RefreshCw className="w-3.5 h-3.5" />
           </Button>
         </div>

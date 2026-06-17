@@ -98,7 +98,7 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
                       <TableCell>{fmt(safeNumber(account.waqif_share))}</TableCell>
                       <TableCell className="text-primary font-medium">{fmt(safeNumber(account.waqf_revenue))}</TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => onDeleteAccount(account.id, `حساب ${account.fiscal_year}`)} className="text-destructive hover:text-destructive">
+                        <Button variant="ghost" size="icon" onClick={() => onDeleteAccount(account.id, `حساب ${account.fiscal_year}`)} className="text-destructive hover:text-destructive" aria-label="حذف الحساب">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </TableCell>

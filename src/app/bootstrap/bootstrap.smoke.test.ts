@@ -30,7 +30,8 @@ describe('app/bootstrap — smoke', () => {
     vi.useFakeTimers();
     const { removeSplash } = await import('@/app/bootstrap/removeSplash');
     expect(() => removeSplash()).not.toThrow();
-    vi.advanceTimersByTime(600);
+    // R7: fallback ارتفع إلى 2000ms (إزالة سباق setTimeout(500) المتوازي مع transitionend)
+    vi.advanceTimersByTime(2100);
     expect(document.getElementById('splash')).toBeNull();
   });
 
@@ -76,7 +77,7 @@ describe('app/bootstrap — smoke', () => {
       removeSplash();
     }).not.toThrow();
 
-    vi.advanceTimersByTime(2000);
+    vi.advanceTimersByTime(2100);
     expect(document.getElementById('splash')).toBeNull();
   });
 });

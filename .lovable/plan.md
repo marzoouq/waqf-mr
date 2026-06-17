@@ -1,99 +1,46 @@
-# خطة إكمال الموجات التصحيحية المتبقية
+# R8 — إصلاحات الاختبارات + A11y + RTL + Disclosure guards
 
-بعد فحص التقارير، الحالة الفعلية:
+## استكشاف سريع (نتائج فعلية)
 
-| الموجة | الحالة |
-|--------|--------|
-| R-NOW | ✅ 1 إصلاح (W7-1) + 4 false-positives موثّقة. **متبقٍ:** W4 F-05 فقط (bank_account نصاً صريحاً) |
-| R5 (DB) | ✅ مُنفَّذة بالكامل — W6 F01..F06/F18/F27 |
-| R6 (Edge) | ✅ مُنفَّذة بالكامل — 9 إصلاحات ZATCA/AI/lookup |
-| **R7 (Auth+WebAuthn+W1)** | ⏸️ **هذه الموجة** |
-| **R8 (Perf+A11y+Tests)** | ⏸️ **هذه الموجة** |
+- **الاختبارات الفاشلة الحقيقية:** 1 فقط — `src/app/bootstrap/bootstrap.smoke.test.ts` (وليس 3 كما زعم W8-#1). لا توجد ملفات اختبار لـ `useSupportAnalytics` ولا `usePropertyChecklist` أصلاً.
+- **`<main>` landmark + lazy routes:** مُطبَّقة بالفعل (مُوثَّق في R7-EXECUTED).
+- **DisclosurePage/MySharePage published guard:** غير موجود — لا فحص على `annual_report_status.status='published'`.
+- **RTL utilities:** ~50 ملف يستخدم `ml-*/mr-*/pl-*/pr-*` بدل `ms-*/me-*/ps-*/pe-*`.
 
-التقرير الذي استشهد به المستخدم (16 🔴) يعكس حالة قبل R5/R6 — كثير منه أُغلق فعلاً. هذه الخطة تنفّذ كل ما تبقى حقيقةً.
+## ما سيُنفَّذ
 
----
+### 1) إصلاح اختبار bootstrap الفاشل (W8-#1)
+- قراءة `src/app/bootstrap/bootstrap.smoke.test.ts` لتحديد سبب الفشل (`schema] dashboard-summary validation failed`).
+- إصلاح التوقع أو الـ mock بحسب السبب الفعلي.
 
-## R-NOW-tail — بند واحد متبقٍ
+### 2) Disclosure / MyShare published guard (W4-F06/F07)
+- إنشاء hook `useIsAnnualReportPublished(fiscalYearId)` في `src/hooks/data/annualReport/` يستعلم `annual_report_status` ويُرجع `{ isPublished, isLoading }`.
+- في `DisclosurePage.tsx` و `MySharePage.tsx`: إذا `!isPublished` → عرض بطاقة "التقرير قيد المراجعة — لم يُنشر بعد" بدل الأرقام المالية.
 
-### W4-F05 — `bank_account` نصاً صريحاً في `BeneficiarySettingsPage`
-- إخفاء قيمة الحقل افتراضياً (mask `••• 1234`) مع زر "إظهار" يستدعي RPC `decrypt_bank_account_for_owner` (موجود) عند الحاجة فقط.
-- منع تمرير القيمة الخام كـ defaultValue لـ Input.
+### 3) RTL utilities — جولة آمنة (W8-#4)
+- script واحد يستبدل `mr-` → `ms-`, `ml-` → `me-`, `pr-` → `ps-`, `pl-` → `pe-` فقط في `src/components/` و `src/pages/` و **فقط** عند المتغيرات الرقمية القياسية (`ml-1` .. `ml-12`).
+- استثناء: `min-l-`, `max-r-`, إلخ (نادرة، لكن regex يأخذها بعين الاعتبار: `\b(m|p)(l|r)-(\d+|auto)\b`).
+- مراجعة diff قبل الاعتماد.
 
----
+### 4) A11y review سريع
+- تشغيل skill/accessibility على المكونات الأكثر استخداماً (Dialogs, Buttons icon-only, Inputs بدون label).
+- إصلاح أبرز 5-10 مواضع `aria-label` ناقصة.
 
-## R7 — Auth & WebAuthn & W1 (5 🔴 + 2 🟠)
+### 5) تقرير `R8-EXECUTED.md`
 
-### 1) `useAuthListener` — إزالة السباقات (W2-F05/F08/F23, W1)
-- **F-05/F-08:** ضبط `lastUserIdRef.current` **قبل** استدعاء `getSession()` في كتلة fallback لمنع double-dispatch.
-- **F-23:** إزالة `getSession()` الزائد بعد `getUser()` — الاعتماد على `currentSession` من المستمع فقط (إذا لم يصدر INITIAL_SESSION خلال 200ms نستخدم `getUser` ثم `getSession` مرة واحدة).
-- **W1 double role:** dedup بـ `(userId, role)` بدل `userId` فقط لمنع overwrite دور JWT بدور DB متأخّر.
-
-### 2) WebAuthn — إخراج التوكنات من body (W2-F13)
-- تعديل `supabase/functions/webauthn/handlers/auth-verify.ts`:
-  - بدل إرجاع `{ access_token, refresh_token }` في body → إرجاع `Set-Cookie: sb-access-token=...; HttpOnly; Secure; SameSite=Strict; Path=/` و `sb-refresh-token` مماثل.
-  - body يصبح `{ ok: true, user_id }` فقط.
-- تعديل `src/hooks/auth/biometric/useWebAuthnAuth.ts`:
-  - حذف `supabase.auth.setSession({ access_token, refresh_token })` المباشر.
-  - بعد نجاح verify → `supabase.auth.refreshSession()` يلتقط الكوكي تلقائياً.
-
-### 3) WebAuthn — حماية auth-options من user enumeration (W2-F14)
-- إضافة rate-limit (5/دقيقة لكل IP) في `auth-options.ts` + إرجاع استجابة موحّدة (لا تكشف وجود/عدم وجود credential).
-
-### 4) `?from=` consume بعد login (W2-F18)
-- في `useRoleRedirect.ts`: قراءة `searchParams.get('from')`، التحقق أنه مسار داخلي آمن (`startsWith('/')` ولا يحتوي `//`)، ثم `navigate(from)` بدل default route.
-
-### 5) Bootstrap (W1)
-- **splash race:** إزالة `setTimeout(500)` المتوازي مع `transitionend` — الاعتماد على `transitionend` فقط مع fallback `2s` (وليس `0.5s` يسبق الـ transition).
-- **`<Outlet/>` بلا ErrorBoundary:** لفّ `<Outlet/>` في `root-layout.tsx` بـ `ErrorBoundary`.
-- **ProtectedRoute spinner بلا timeout (F-06):** إضافة `useEffect` يحوّل إلى `<Unauthorized/>` بعد 8s إذا بقي `loading=true` بسبب فشل جلب الدور.
-
----
-
-## R8 — Perf & A11y & Tests (3 🔴 + 5 🟠)
-
-### 1) إصلاح الاختبارات الفاشلة الثلاثة (W8-#1)
-- `useSupportAnalytics.test.ts` — إصلاح mock للـ RPC الجديد بعد R5 (يتطلب role).
-- `usePropertyChecklist.test.ts` — تحديث expected payload.
-- اختبار DB check — مزامنة مع schema الحالي.
-
-### 2) Lazy routes (W8-#2)
-- تحويل كل صفحات `adminRoutes`/`beneficiaryRoutes`/`waqifRoutes` إلى `lazyWithRetry` (موجود).
-- التحقق من split: `bun run build` ثم مراجعة `dist/assets/*.js` للتأكد من chunking لكل route.
-
-### 3) `<main>` landmark + skip-to-content (W8-#3)
-- تعديل `DashboardLayout`: لفّ المحتوى بـ `<main id="main-content" tabIndex={-1}>`.
-- إضافة skip link مرئي عند focus في `RootLayout`.
-
-### 4) RTL utilities (W8-#4)
-- استبدال 20 موضع `ml-*/mr-*/pl-*/pr-*` بـ `ms-*/me-*/ps-*/pe-*` (script grep+sed يدوي).
-
-### 5) DisclosurePage/MySharePage published check
-- إضافة guard على `annual_report_status.status === 'published'` قبل عرض الأرقام؛ غير ذلك → "التقرير قيد المراجعة".
-
-### 6) Carryforward IS NULL scope
-- في `useActiveCarryforwards`: تقييد `to_fiscal_year_id IS NULL` بأن السنة `fy` هي الأقدم بعد `from_fiscal_year_id` (window function أو filter في الكلاينت).
-
----
-
-## ما لن يُنفَّذ في هذه الخطة (مؤجَّل)
-
-| الموجة | البنود | السبب |
-|--------|--------|------|
-| R9 | حذف 10 فهارس مكررة + GRANTs على 42 جدول | تنظيف أداء، يحتاج migration كبيرة مستقلة |
-| R10 | 77 🟡 LOW (sitemap, og:url, manifest screenshots, console leaks, إلخ) | تجميل |
-| W5 المؤجَّل | Zod على check-contract-expiry, sendLovableEmail timeout, dual-role key | حُدِّد في R6 لـ R7-tail (نُنجزه لاحقاً) |
-
----
+## ما لن يُنفَّذ
+- إنشاء اختبارات جديدة لـ `useSupportAnalytics`/`usePropertyChecklist` (غير موجودة، لم يطلبها أحد).
+- W2-F13 WebAuthn HttpOnly (architectural debt — وُثِّق في R7).
+- W6-F17 GRANTs على 42 جدول → R9.
 
 ## ترتيب التنفيذ بعد الموافقة
+1. قراءة `bootstrap.smoke.test.ts` + إصلاح.
+2. hook `useIsAnnualReportPublished` + guards في الصفحتين.
+3. RTL sed على `src/components/` و `src/pages/`.
+4. A11y fixes (aria-label icon-only buttons).
+5. تشغيل `bunx vitest run` للتأكد من 0 فشل.
+6. تقرير.
 
-1. R-NOW-tail (W4-F05) — 1 ملف.
-2. R7 — 6 ملفات (`useAuthListener.ts`, `auth-verify.ts`, `auth-options.ts`, `useWebAuthnAuth.ts`, `useRoleRedirect.ts`, `root-layout.tsx`, `removeSplash.ts`, `ProtectedRoute.tsx`).
-3. R8 — تحديث 3 ملفات تست + تحويل 3 ملفات routes إلى lazy + تعديل `DashboardLayout.tsx` + sed RTL utilities + guards على Disclosure/MyShare + filter carryforward.
-4. تقرير `audit/forensic-2026-06-17/R7-R8-EXECUTED.md` يلخّص ما تم.
-5. تشغيل `bunx vitest run` للتحقق من المرور.
+**الزمن المتوقع:** جلسة واحدة قصيرة (تغييرات معظمها ميكانيكية).
 
-**زمن متوقع:** R-NOW-tail + R7 ≈ جلسة واحدة. R8 جلسة ثانية بسبب الـ build verification.
-
-هل أبدأ التنفيذ الآن، أم تريد تقسيمه (R7 الآن، R8 لاحقاً)؟
+موافق على البدء؟
