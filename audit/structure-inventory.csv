@@ -581,7 +581,7 @@ hooks/data/content/usePublishedFiscalYears.ts,hook-data,21,3,1,false,true,false,
 hooks/data/contracts/index.ts,hook-data,7,0,5,false,false,false,false,false
 hooks/data/contracts/useContracts.test.ts,hook-data,42,2,0,false,false,false,false,false
 hooks/data/contracts/useContracts.ts,hook-data,115,9,8,false,true,false,false,false
-hooks/data/contracts/useContractsForPdf.ts,hook-data,30,2,2,false,true,false,false,false
+hooks/data/contracts/useContractsForPdf.ts,hook-data,32,2,2,false,true,false,false,false
 hooks/data/contracts/useTenantPayments.test.ts,hook-data,119,5,0,false,false,false,false,false
 hooks/data/contracts/useTenantPayments.ts,hook-data,72,6,2,false,true,false,false,false
 hooks/data/contracts/useWholePropertyRental.ts,hook-data,68,4,2,false,false,false,false,false
