@@ -132,10 +132,11 @@ Deno.serve(async (req): Promise<Response> => {
       await logZatcaOperation(admin, { operation_type: "renew", status: "success", request_summary: { platform: isProduction ? "production" : "sandbox" }, response_summary: { request_id: prodData.requestID, certificate_type: "production" }, user_id: user.id });
       return new Response(JSON.stringify({ success: true, request_id: prodData.requestID, certificate_type: "production", message: "تم تجديد شهادة الإنتاج بنجاح" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     } catch (fetchErr) {
-      const errMsg = `ZATCA API unreachable: ${(fetchErr as Error).message}`;
-      await logZatcaOperation(admin, { operation_type: "renew", status: "error", error_message: errMsg, user_id: user.id });
+      // R6 (W5-#19): تفاصيل الخطأ تبقى داخلياً
+      const errInternal = (fetchErr as Error).message;
+      await logZatcaOperation(admin, { operation_type: "renew", status: "error", error_message: errInternal, user_id: user.id });
       await clearOtp();
-      return new Response(JSON.stringify({ error: errMsg }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "ZATCA API unreachable" }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
   } catch (e) {
     console.error('zatca-renew error:', e instanceof Error ? e.message : e);
