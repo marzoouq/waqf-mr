@@ -198,8 +198,9 @@ Deno.serve(async (req) => {
       if (!error && data && data.length > 0 && data[0]?.email) {
         email = data[0].email;
       }
-    } catch (dbErr) {
-      console.error("lookup_by_national_id failed:", (dbErr as Error).message);
+    } catch (_dbErr) {
+      // R6 (W5-#6): لا نطبع رسالة DB لأنها قد تحوي national_id المُمرَّر
+      console.error("lookup_by_national_id failed");
       return new Response(
         JSON.stringify({ error: "خطأ مؤقت في الخادم، يرجى المحاولة لاحقاً" }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
