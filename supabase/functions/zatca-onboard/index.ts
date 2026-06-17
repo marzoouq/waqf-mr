@@ -72,9 +72,10 @@ Deno.serve(async (req): Promise<Response> => {
         return new Response(JSON.stringify({ success: true, message: "Development certificate created. Configure ZATCA_API_URL for production onboarding." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
+      // R4: استهلاك OTP عبر RPC آمنة (تفك التشفير من vault وتحذف القيمة)
       let otp = "";
-      const { data: otpRows } = await admin.from("app_settings").select("key, value").in("key", ["zatca_otp_1"]);
-      if (otpRows?.length) otp = otpRows[0]?.value || "";
+      const { data: otpPlain } = await admin.rpc("consume_zatca_otp");
+      if (typeof otpPlain === "string") otp = otpPlain;
       if (!otp) otp = Deno.env.get("ZATCA_OTP") || "";
 
       if (!otp) {
