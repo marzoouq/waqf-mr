@@ -27,9 +27,25 @@ export const invoicesService = {
 
   /**
    * حذف فاتورة من قاعدة البيانات أولاً، ثم الملف من Storage (CRIT-4: ترتيب صحيح).
+   * R-NOW (W7-1): حارس صريح ضد حذف فواتير مدفوعة جزئياً/كلياً (Invoice Deletion Safeguard).
    * فشل الحذف من Storage غير قاتل ويُسجَّل كملف يتيم.
    */
   async remove(id: string, filePath?: string | null): Promise<void> {
+    // 1) جلب الحالة قبل الحذف لمنع تدمير سجل دفع مرتبط
+    const { data: existing, error: fetchErr } = await supabase
+      .from('invoices')
+      .select('id, status')
+      .eq('id', id)
+      .maybeSingle();
+    if (fetchErr) throw fetchErr;
+    if (!existing) throw new Error('الفاتورة غير موجودة');
+
+    const blockedStatuses = new Set(['paid', 'partially_paid']);
+    const rec = existing as { status?: string | null };
+    if (rec.status && blockedStatuses.has(rec.status)) {
+      throw new Error('لا يمكن حذف فاتورة مدفوعة أو مدفوعة جزئياً — قم بإلغائها بدلاً من الحذف');
+    }
+
     const { error } = await supabase.from('invoices').delete().eq('id', id);
     if (error) throw error;
 
