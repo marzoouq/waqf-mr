@@ -45,9 +45,11 @@ export function RootLayout() {
         <Suspense fallback={null}><SwUpdateBanner /></Suspense>
       </ErrorBoundary>
       <PagePerformanceTracker />
-      <Suspense fallback={<PageLoader />}>
-        <Outlet />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <Outlet />
+        </Suspense>
+      </ErrorBoundary>
       <ErrorBoundary>
         <Suspense fallback={null}><SecurityGuard /></Suspense>
       </ErrorBoundary>
