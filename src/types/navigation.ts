@@ -55,4 +55,6 @@ export const defaultMenuLabels: MenuLabels = {
   diagnostics: 'تشخيص النظام',
   email_monitor: 'مراقبة البريد',
   distributions: 'توزيع الحصص',
+  audit_report_final: 'تقرير التدقيق النهائي',
+  cleanup_report: 'تقرير التنظيف',
 };
