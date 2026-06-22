@@ -181,11 +181,10 @@ export async function runAllDiagnostics(opts: RunAuditOptions = {}): Promise<{ c
     const results: CheckResult[] = [];
     for (const fn of cat.checks) {
       if (signal?.aborted) break;
-      const label = `${cat.title}`;
-      onProgress?.({ done, total, current: label });
       results.push(await fn());
       done += 1;
-      onProgress?.({ done, total, current: label });
+      // تحديث واحد لكل فحص لتقليل re-renders
+      onProgress?.({ done, total, current: cat.title });
     }
     output.push({ category: cat.title, results });
     // yield بين البطاقات لتحسين INP وتفادي long task واحد
