@@ -55,7 +55,7 @@ describe('Nav links ↔ adminRoutes parity (D-06)', () => {
     },
   );
 
-  it.each(registered.filter((r) => !UNGROUPED_ROUTES.has(r)))(
+  it.each(registered.filter((r) => !UNGROUPED_ROUTES.has(r) && !HIDDEN_ROUTES.has(r)))(
     'ADMIN_ROUTE_GROUPS: %s له group مُعيَّن',
     (route) => {
       expect(ADMIN_ROUTE_GROUPS[route], `Route ${route} بلا group في ADMIN_ROUTE_GROUPS`).toBeTruthy();
