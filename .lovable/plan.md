@@ -1,52 +1,71 @@
-# خطة: تحقق تكامل + تنظيف F17–F26
+## نتائج الفحص المباشر لمركز التشخيص (/dashboard/diagnostics)
 
-## الجزء 1 — فحص تكامل (قراءة فقط، قبل التعديل)
+شُغّلت الصفحة فعلياً في المتصفح، وفُحص هوك `useSystemDiagnostics` ومحرك `checks.ts` و18 بطاقة فحص + Backend log + شاشات التبويبات السبعة، ورُوجعت قيود قاعدة البيانات. الصفحة تعمل ودرجة الصحة 88/100، لكن وُجدت أخطاء حقيقية وتحسينات مطلوبة.
 
-وكيل واحد متوازي `spawn_agent` يكتب `audit/forensic-2026-06-22/INTEGRATION-CHECK.md` يغطي:
+---
 
-1. **المسارات** — كل 41 route في `ROUTE_ROLES` ↔ `adminRoutes/beneficiaryRoutes/waqifRoutes/publicRoutes` (لا route يتيم/مكرر).
-2. **التبويبات** — كل `<Tabs>` في `src/pages` و`src/components`: تطابق `TabsTrigger.value` ↔ `TabsContent.value`.
-3. **روابط التنقل** — `bottomNavLinks`, `Sidebar`, كل `<NavLink>/<Link to=...>` يطابق route موجوداً.
-4. **الهوكات** — كل صفحة: data hooks → tables → edge functions (تحقق من invoke names).
-5. **الطباعة/PDF** — `generate-invoice-pdf`, `generate-voucher-pdf`, خطوط `Amiri/Tajawal` مضمّنة، استدعاءات jsPDF في الصفحات.
-6. **التأثير الانحداري** — تحقق أن تغييرات F1/F15 (حذف سياسات storage) لم تكسر تنزيل ملفات الفواتير لدى admin/accountant/beneficiary/waqif.
-7. **build + tests** — `npm run audit` + `vitest run` بشكل سريع.
+### A) أخطاء حقيقية (Bugs) — يجب إصلاحها
 
-التقرير يصدر بصيغة جدول: [Area | Status ✓/✗ | Evidence | Action].
+1. **خطأ INSERT صامت في كل تشغيل للتشخيص (حرج)**
+   `useSystemDiagnostics.run()` يُسجّل `logAccessEvent({ event_type: 'diagnostics_run' })`، لكن قيد `access_log_event_type_check` يقبل فقط: `login_success | login_failed | logout | idle_logout | unauthorized_access | signup_attempt | role_fetch | client_error`. النتيجة: استجابة 400 + تحذير في الكونسول عند كل تشغيل (شاهدناها مباشرة).
+   **الإصلاح:** ترحيل DB يُوسّع الـ CHECK ليشمل `'diagnostics_run'` (مع `pass_diagnostics_run` كأمان متعدد القيم لاحقاً)، بدون لمس البيانات.
 
-## الجزء 2 — تنفيذ F17–F26
+2. **فحص health-check يفشل دائماً في بيئة المعاينة (تشخيص خاطئ)**
+   `checkBackendEdgeHealthPing` يُرجع `fail: ms=1018 network_error=TypeError: Failed to fetch` بسبب CORS preflight على `localhost`/lovableproject. هذه ليست عطلاً في Edge Function — بل بيئة معاينة.
+   **الإصلاح:** عند `env === 'dev'` ووجود `TypeError: Failed to fetch` → الحالة `warn` بدلاً من `fail`، مع تفصيل واضح: «محظور CORS في المعاينة — سليم في الإنتاج».
 
-| ID | التغيير | الملف |
-|----|---------|-------|
-| F17 | `#0f172a` → `hsl(var(--foreground))` | `src/components/.../SignaturePad.tsx:61` |
-| F18 | استبدال 6 ألوان hex متبقية بـ tokens (`hsl(var(--*))`) — حسب مسح M5 | ملفات UI متعددة |
-| F19 | توثيق/حذف 7 hooks ميتة في `src/hooks/data/**` | إضافة JSDoc `@deprecated` أو حذف بعد التأكد |
-| F20 | توحيد 5 query keys نصية خام بـ key factories | hooks/data المتأثرة |
-| F21 | `REAL_KEY` → `MOCK_KEY` | `supabase/functions/_shared/auth.test.ts:4` |
-| F22 | تقليل تفاصيل خطأ HIBP | `supabase/functions/guard-signup/index.ts:135` |
-| F23 | إضافة أيقونات أو تعليق توثيقي | `audit-report-final`, `cleanup-report` routes/nav |
-| F24 | تأكيد توثيقي فقط (bucket عام مقصود) | `docs/security/views.md` |
-| F25 | تأكيد توثيقي (CORS `*` في `auth-email-hook`) | تعليق رأس الملف |
-| F26 | إضافة ملاحظة في خطة المراقبة | `docs/diagnostics/troubleshooting-playbook.md` |
+3. **`runByIds` يُشغّل كل فحوصات البطاقة ثم يُرشّح (هدر شبكة وقاعدة بيانات)**
+   زر «إعادة الفاشلة فقط» يُعيد تشغيل ~76 فحصاً ليُبقي 6 منها. مع فحوصات Supabase تعني عشرات طلبات DB لا لزوم لها.
+   **الإصلاح:** ربط كل دالة فحص بـ `id` ضمن `diagnosticCategories` لاستهداف الدوال المعنية فقط.
 
-### قواعد التنفيذ
-- لا تغيير سلوكي — فقط استبدال tokens/تسميات/تعليقات.
-- لكل ملف يُلمس: قراءة كاملة أولاً، استبدال دقيق عبر `line_replace`.
-- لو وُجدت بعد المسح ألوان hex إضافية، أضيفها لنفس الجولة.
+4. **`EXPECTED_EDGE_FUNCTIONS` متخلف عن الواقع**
+   القائمة بها 19 دالة بينما المنشور 24. «جرد Edge Functions» يعرض رقماً مضللاً.
+   **الإصلاح:** تحديث القائمة لتطابق `supabase/functions/*` (مع تعليق يربطها بمصدر الحقيقة).
 
-## الجزء 3 — تحديث التوثيق وملخص التغييرات
+5. **`WebVitalsPanel` مُرَكَّب في تبويبين**
+   نظرة عامة + الأداء الحي يستخدمانه معاً → اشتراكات PerformanceObserver مزدوجة وعمل زائد.
+   **الإصلاح:** إبقاؤه في تبويب «الأداء الحي» فقط، واستبداله بكرت ملخّص (آخر التحديث) في «نظرة عامة».
 
-- إنشاء `audit/forensic-2026-06-22/CHANGELOG-EXECUTION.md`: قائمة F1→F26 مع الحالة (✅ منفّذ / ⚪ false positive / ⏭ مؤجل) ومرجع migration/commit.
-- تحديث `FORENSIC-REPORT.md` §5: شطب البنود المنفّذة.
-- تحديث `.lovable/plan.md` بنتيجة V2.
+---
 
-## التحقق النهائي
-1. `npm run audit` — صفر critical/GAP جديدة.
-2. `vitest run` — لا اختبارات منكسرة.
-3. قراءة `INTEGRATION-CHECK.md` — صفر ✗.
-4. ملخص قصير في الرد بأبرز ما تغيّر.
+### B) ملاحظات/تحسينات (UX & Performance)
 
-## ما لن يُنفَّذ
-- لا migrations جديدة في هذه الجولة (تغييرات DB انتهت).
-- لا تعديل سلوكي على Edge Functions (فقط تسميات/تعليقات).
-- لا حذف ملفات قبل تأكيد عدم استخدامها (F19 يبدأ بـ `@deprecated`).
+6. **autoRun ينفذ كل الفحوصات (76) فور دخول الصفحة** — حتى لمستخدم يتصفح فقط. اقتراح: autoRun يُشغّل بطاقات «خفيفة» فقط (Storage/UI/Routing)، والباقي يدوي بزر «تشغيل الكل».
+7. **`progress` يُحدّث setState مرتين لكل فحص** (قبل/بعد) → re-renders زائدة. الاكتفاء بتحديث بعد الانتهاء.
+8. **`runAllDiagnostics` متسلسل تماماً** بين البطاقات للسماح بـ yield؛ يمكن تشغيل فحوصات بطاقة واحدة بـ `Promise.all` (كما يفعل `runCategoryDiagnostics`) دون التأثير على INP.
+9. **`clearAll` لا يستخدم `Promise` للمراحل** (event + storage)؛ ضوضاء بسيطة عند إعادة التحميل المباشرة.
+10. **«اتفاقيات الكود → الخطوط: Tajawal محمَّل — Amiri يُحمَّل عند الطباعة فقط (1 عائلة)»** — العدّ بعد lazy load غير دقيق؛ تحسين النص أو الانتظار حتى التحميل.
+11. **«تطبيق المسارات: 39 رابط»** — لا يفصّل المسارات المسجَّلة بدون عنوان (route titles)؛ تفصيل أعمق سيوضّح فجوات `app-map`.
+12. **`InteractionsTable`** يعرض tabs ثابتة من inventory مكتوب يدوياً — قد يتقادم؛ ربطه بـ glob على `src/pages` يحفظه محدّثاً.
+
+---
+
+### C) التنفيذ المقترح (Build Mode)
+
+| # | الملف | التغيير |
+|---|------|---------|
+| 1 | `supabase/migrations/<ts>_extend_access_log_event_types.sql` | DROP/ADD CHECK يشمل `'diagnostics_run'` |
+| 2 | `src/lib/diagnostics/checks/backend.ts` | معاملة `TypeError: Failed to fetch` في dev كـ `warn` + تفصيل |
+| 3 | `src/lib/diagnostics/checks/backend.ts` | تحديث `EXPECTED_EDGE_FUNCTIONS` لـ 24 |
+| 4 | `src/lib/diagnostics/checks.ts` | إضافة `idsByCategory` ثابت، وإعادة كتابة `runByIds` لاستدعاء الدوال المعنية فقط |
+| 5 | `src/pages/dashboard/SystemDiagnosticsPage.tsx` | حذف `<WebVitalsPanel/>` من تبويب «نظرة عامة» |
+| 6 | (اختياري) `useSystemDiagnostics.ts` | تحديث `setProgress` مرة واحدة لكل فحص |
+
+كل التغييرات في src غير سلوكية على البيانات؛ الترحيل يُوسّع قيداً ولا يحذف صفوفاً.
+
+---
+
+### تقنية (للمراجع)
+- التحقق من الكونسول الحي:
+  ```
+  [warning] logAccessEvent failed: new row for relation "access_log"
+   violates check constraint "access_log_event_type_check"
+  ```
+- قيد القاعدة الحالي (تم استعلامه مباشرة):
+  ```
+  CHECK (event_type = ANY (ARRAY['login_success','login_failed','logout',
+   'idle_logout','unauthorized_access','signup_attempt','role_fetch','client_error']))
+  ```
+- البيئة المعاينة تستخدم `localhost:8080` → CORS preflight يفشل على Edge Functions، وهي حالة معروفة لا تستوجب فشل التشخيص.
+
+هل أبدأ التنفيذ بالإصلاحات A1–A5 ثم تحسينات B6–B7 (أو حدّد نطاقاً مختلفاً)؟
