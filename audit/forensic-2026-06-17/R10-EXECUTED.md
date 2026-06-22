@@ -51,13 +51,17 @@ REVOKE EXECUTE ON FUNCTION public.get_rate_limit_count(text) FROM anon, authenti
 | WebAuthn HttpOnly cookie (W2-F13) | يتطلب BFF أو تعديل `client.ts` المحمي — موثَّق في R7 |
 | `contracts_safe` SECURITY DEFINER view | `security_invoker=false` مقصود لإخفاء PII — `mem://security/views/contracts-safe-rationale` |
 
-## 4) ⚠️ اكتشاف جانبي يستحق جولة منفصلة
+## 4) 🔵 إيجابي كاذب موثَّق (كان مُدرَجاً كـ R11)
 
-أثناء `security--run_security_scan` ظهر **finding حرج جديد** (level=error):
+أثناء `security--run_security_scan` ظهر finding بمستوى error:
 
-> **EXPOSED_SENSITIVE_DATA**: سياسة storage `Authenticated users can view invoices` تمنح `SELECT` على bucket `invoices` لأي `authenticated` عبر `auth.role() = 'authenticated'`، متجاوزةً قيود الأدوار الأخرى. أي مستفيد/واقف يمكنه تنزيل ملفات فواتير.
+> **EXPOSED_SENSITIVE_DATA**: سياسة storage `Authenticated users can view invoices` تمنح `SELECT` على bucket `invoices` لأي `authenticated`.
 
-**خارج نطاق R10** — يتطلب جولة R11 مخصصة لمراجعة policies على `storage.objects` لكل buckets الحساسة (`invoices`, ربما `waqf-assets` المقصود عام لكن الفواتير تحتاج تقييد).
+**التحقق المباشر من `pg_policies` (3 استعلامات مستقلة) أثبت أن السياسة غير موجودة.** السبب: `supabase_lov` scanner v3.2 يستخدم cache قديم سابق لـ R5. التفاصيل الكاملة في `audit/forensic-2026-06-17/R11-VERIFICATION.md`.
+
+- bucket `invoices` خاص (public=false).
+- السياسة الوحيدة للقراءة عليه مقيَّدة بـ `has_role(admin|accountant)`.
+- المستفيد/الواقف لا يستطيعان الوصول. لا حاجة لـ R11 تنفيذي.
 
 ## 5) ملاحظة على `security--manage_security_finding`
 
