@@ -43,7 +43,7 @@ export const allAdminLinks = [
   { to: '/dashboard/beneficiaries', icon: Users, label: 'المستفيدين' },
   { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير المالية والإفصاح' },
   { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات الختامية' },
-  { to: '/dashboard/distributions', icon: Users, label: 'توزيع الحصص' },
+  { to: '/dashboard/distributions', icon: Share2, label: 'توزيع الحصص' },
   { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
   { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
   { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
