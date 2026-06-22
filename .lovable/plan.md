@@ -1,83 +1,61 @@
 
-## R10 — خطة نهائية (تحقق ميداني مكتمل)
+## R11 — تحقق مزدوج: **لا توجد مشكلة، الـ finding كاذب**
 
-### الأدلة الجديدة من فحص بيئة مستقلة
+### الادعاء (يتكرر في كل scan)
 
-| الدالة | anon | auth | استدعاء من client/edges | قرار |
-|--------|------|------|--------------------------|------|
-| `get_public_stats` | ✅ | ✅ | `usePublicStats.ts` + `publicRpcAccess.test.ts` يحمي anon | **يبقى — مقصود** |
-| `log_access_event` | ✅ | ✅ | `errorReporter.ts`، `accessLogService.ts`، Edge `lookup-national-id`، اختبار anon موجود | **يبقى — مقصود** |
-| `check_rate_limit` | ✅ | ❌ | Edge Functions فقط (service_role) — لا استدعاء من client | **REVOKE من anon** آمن |
-| `get_rate_limit_count` | ✅ | ✅ | Edge `lookup-national-id` فقط (service_role) — لا استدعاء من client | **REVOKE من anon + authenticated** آمن |
+> سياسة `Authenticated users can view invoices` (تنطبق على `{public}`، تتحقق من `auth.role() = 'authenticated'`) تمنح كل مستخدم مسجَّل قراءة كل ملفات `invoices`.
 
-**اكتشاف إضافي:** فحص literal queryKey انتهاكات في `src/` (مستثنياً `lib/queryKeys/` والاختبارات) = **صفر**. قاعدة ESLint يمكن إضافتها كـ `error` مباشرة بدون مخاطر.
+### الأدلة المباشرة من DB (3 استعلامات منفصلة)
 
-اكتُشف أيضاً اختبار جاهز `src/test/publicRpcAccess.test.ts` يحمي `get_public_stats` و `log_access_event` فقط — لا يغطّي `check_rate_limit` ولا `get_rate_limit_count`، يؤكد أن REVOKE عليهما آمن.
+**1) قائمة كل السياسات على `storage.objects`:**
 
----
+14 سياسة فقط؛ كلها مقيَّدة بـ `has_role()` أو شروط محددة. السياسة الوحيدة لـ SELECT على `invoices`:
 
-### تنفيذ R10 — 4 إجراءات
+```
+Admin and accountant can view invoice files
+  cmd: SELECT  roles: {authenticated}
+  qual: bucket_id='invoices' AND (has_role(auth.uid(),'admin') OR has_role(auth.uid(),'accountant'))
+```
 
-#### 1) Migration واحدة — REVOKE EXECUTE موجَّه
+**2) فحص هدف بحثاً عن السياسة المزعومة:**
 
 ```sql
-REVOKE EXECUTE ON FUNCTION public.check_rate_limit(text, integer, integer) FROM anon;
-REVOKE EXECUTE ON FUNCTION public.get_rate_limit_count(text) FROM anon, authenticated;
--- service_role/postgres يحتفظان (تستخدمهما Edge Functions)
+SELECT ... WHERE 'public' = ANY(roles)
+       OR qual ILIKE '%auth.role()%'
+       OR (qual ILIKE '%authenticated%' AND qual NOT ILIKE '%has_role%')
+→ []  (صفر سجلات)
 ```
 
-تعليق: تقليل سطح الهجوم — لم يكن أحد يستدعيها من client أصلاً.
+**3) عدّاد قاطع:**
 
-#### 2) قاعدة ESLint جديدة في `eslint.config.js`
+| المقياس | القيمة |
+|---------|--------|
+| إجمالي policies على `storage.objects` | 14 |
+| سياسات باسم يحوي "authenticated users" | **0** |
+| سياسات تستخدم `auth.role()` في qual | **0** |
+| bucket `invoices` public | **false** |
 
-```js
-{
-  selector:
-    "Property[key.name='queryKey'] > ArrayExpression > Literal:first-child",
-  message: "استخدم helpers من @/lib/queryKeys بدلاً من string literal",
-}
-```
-مع `overrides` لـ `src/lib/queryKeys/**` و `**/*.{test,spec}.{ts,tsx}` و `src/test/**`.
+### الاستنتاج النهائي
 
-#### 3) Batch ignore للـ Linter findings المتبقية عبر `security--manage_security_finding`
+- السياسة المزعومة **غير موجودة** في القاعدة الحية.
+- bucket `invoices` خاص.
+- المستفيد/الواقف **لا يستطيعان** قراءة ملفات الفواتير (لا سياسة SELECT تسمح لهما).
+- الـ finding مصدره `supabase_lov` scanner v3.2 — يبدو أنه يقرأ من **cache قديم** لم يُحدَّث بعد R5 (الذي شدّد سياسات invoice storage).
 
-بعد تشغيل `security--get_scan_results`، إصدار `ignore` جماعي مع شروح موحَّدة لـ:
-- **ERROR 1** (`contracts_safe`): "security_invoker=false مقصود لإخفاء PII — `mem://security/views/contracts-safe-rationale` و `docs/security/views.md`."
-- **WARN B (~35 دالة authenticated):** "guarded internally بـ `has_role(auth.uid(), ...)` + RLS — SECURITY DEFINER ضروري لتجاوز RLS بعد التحقق."
-- **WARN C (دوال trigger/cron/crypto بدون EXECUTE خارجي):** "محصورة على postgres/service_role — غير قابلة للاستدعاء من Data API."
-- **WARN A (anon-exec الـ4):** بعد §1، يبقى 3 (public_stats, log_access_event, check_rate_limit/auth): "مقصودة للسطح العام، محمية بـ rate-limit و `publicRpcAccess.test.ts`."
+### الإجراء في R11 — توثيق فقط
 
-#### 4) توثيق
+1. إنشاء `audit/forensic-2026-06-17/R11-VERIFICATION.md` يحوي:
+   - الاستعلامات الثلاثة والنتائج.
+   - استنتاج: إيجابي كاذب من scanner cache stale.
+   - توصية: تجاهل هذا الـ finding في كل scan لاحق حتى يُحدَّث scanner cache.
+2. تحديث `audit/forensic-2026-06-17/R10-EXECUTED.md` §4 من "اكتشاف R11" → "إيجابي كاذب موثَّق في R11-VERIFICATION.md".
 
-`audit/forensic-2026-06-17/R10-EXECUTED.md`:
-- ✅ منفّذ سابقاً: rate-limit auth-options، `useCrudFactory.queryKey`.
-- 🔧 منفّذ الآن: REVOKEs (2 دوال) + قاعدة ESLint + accept لـ41 finding.
-- ⏸ دين معماري: WebAuthn HttpOnly cookie، contracts_safe view.
+**لا migration. لا تعديل على policies. لا تغيير على Edge Functions.**
 
----
+### بنود ثانوية (اختياري — أنتظر تأكيدك)
 
-### التحقق
+- إصلاح الـ2 خطأ ESLint السابقين في `src/hooks/application/useAiChat.ts` (`react-hooks/immutability` — لا علاقة بـ R10/R11). يحتاج إعادة هيكلة بسيطة (تمرير setters بدلاً من refs قابلة للتعديل).
 
-| فحص | متوقَّع |
-|-----|---------|
-| `bunx vitest run src/test/publicRpcAccess.test.ts` | ✅ (الدالتان المحميتان لم تُلمسا) |
-| `bunx vitest run` كامل | 2125/2125 |
-| `bun run lint` | لا أخطاء جديدة (0 انتهاكات قائمة) |
-| `supabase--linter` | يبقى 40-42 WARN لكنها كلها مقبولة عبر §3 |
-| `supabase--read_query` على `has_function_privilege('anon', …)` | `check_rate_limit` و `get_rate_limit_count` = `no` |
+### المخاطر
 
----
-
-### الملفات المتأثرة
-
-- جديد: 1 migration (REVOKE فقط).
-- جديد: `audit/forensic-2026-06-17/R10-EXECUTED.md`.
-- تعديل: `eslint.config.js` (إضافة rule + overrides).
-
-**لا تعديل على:** Edge Functions، RLS policies، client.ts، types.ts، .env، config.toml، أي منطق تطبيق.
-
-### المخاطر — كلها مخفَّفة بأدلة
-
-- ❌ ~~REVOKE يكسر استدعاءات client~~ — تحقّقت: لا استدعاءات client للدالتين.
-- ❌ ~~قاعدة ESLint تكسر الكود~~ — تحقّقت: 0 انتهاكات حالية.
-- ⚠️ قبول 41 finding عبر `manage_security_finding` يعتمد على تطابق `internal_id` مع scanner — سأجلبها أولاً عبر `get_scan_results` قبل الـ batch.
+- ❌ لا مخاطر — لا تغييرات تنفيذية، توثيق فقط.
