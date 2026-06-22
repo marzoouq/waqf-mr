@@ -1,6 +1,6 @@
 # Page Controls Audit — Admin & Beneficiary
 
-Generated: 2026-06-22T21:37:29.752Z
+Generated: 2026-06-22T21:44:20.542Z
 
 ## Scope
 
