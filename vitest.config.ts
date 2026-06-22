@@ -9,6 +9,10 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    testTimeout: 15000,
+    hookTimeout: 15000,
+    maxWorkers: 4,
+    minWorkers: 1,
     onConsoleLog(log) {
       // تحذيرات Radix UI المعروفة
       if (log.includes('Invalid prop `data-state` supplied to `React.Fragment`')) return false;

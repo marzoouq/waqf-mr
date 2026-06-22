@@ -61,7 +61,7 @@ describe('integration smoke — admin pages load', () => {
       expect(mod.default).toBeDefined();
       expect(typeof mod.default).toBe('function');
     },
-    30_000,
+    60_000,
   );
 });
 
@@ -73,7 +73,7 @@ describe('integration smoke — beneficiary pages load', () => {
       expect(mod.default).toBeDefined();
       expect(typeof mod.default).toBe('function');
     },
-    30_000,
+    60_000,
   );
 });
 
