@@ -47,8 +47,8 @@ export const ADMIN_ROUTES: Record<string, RouteMeta> = {
   '/dashboard/comparison': { title: 'المقارنة التاريخية', labelKey: 'comparison', permKey: 'comparison', sectionKey: 'comparison' },
   '/dashboard/diagnostics': { title: 'تشخيص النظام', labelKey: 'diagnostics', permKey: 'diagnostics', sectionKey: 'diagnostics' },
   '/dashboard/email-monitor': { title: 'مراقبة البريد', labelKey: 'email_monitor', permKey: 'email_monitor', sectionKey: 'email_monitor' },
-  '/dashboard/audit-report-final': { title: 'تقرير التدقيق النهائي', permKey: 'audit_report_final', sectionKey: 'audit_report_final' },
-  '/dashboard/cleanup-report': { title: 'تقرير التنظيف', permKey: 'cleanup_report', sectionKey: 'cleanup_report' },
+  '/dashboard/audit-report-final': { title: 'تقرير التدقيق النهائي', labelKey: 'audit_report_final', permKey: 'audit_report_final', sectionKey: 'audit_report_final' },
+  '/dashboard/cleanup-report': { title: 'تقرير التنظيف', labelKey: 'cleanup_report', permKey: 'cleanup_report', sectionKey: 'cleanup_report' },
 };
 
 /**
