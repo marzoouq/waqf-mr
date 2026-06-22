@@ -128,11 +128,12 @@ Deno.serve(async (req) => {
           }
         }
       } else {
-        console.warn(`HIBP check non-OK status: ${hibpRes.status}`);
+        // F22: لا نسجّل تفاصيل HIBP لتقليل ضوضاء logs
+        console.warn(`HIBP check non-OK (status ${hibpRes.status})`);
       }
     } catch (hibpErr) {
-      // Fail-open: نسجّل ونتابع
-      console.warn("HIBP check failed (fail-open):", hibpErr instanceof Error ? hibpErr.message : String(hibpErr));
+      // Fail-open: نتابع التسجيل بدون كشف تفاصيل الخطأ الخارجي
+      console.warn("HIBP check failed (fail-open):", hibpErr instanceof Error ? hibpErr.message : "unknown");
     }
 
     // Check registration_enabled setting

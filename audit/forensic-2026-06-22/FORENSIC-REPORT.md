@@ -177,18 +177,20 @@
 
 ---
 
-## 5) الأولويات المقترحة
+## 5) الأولويات — تحديث التنفيذ 2026-06-22 الليلة
 
-| الأولوية | المهمة | الموعد |
+| الأولوية | المهمة | الحالة |
 |----------|--------|--------|
-| 🔥 الآن | F1: إسقاط policy "Authenticated users can view invoices" | فوراً |
-| 🔥 الآن | F2: `git rm --cached .env` | فوراً |
-| ⚡ اليوم | F3: REVOKE EXECUTE من anon على دوال PII الحساسة على الأقل | 24h |
-| ⚡ اليوم | F4: إصلاح queryKey في useBylaws | 24h |
-| ⚡ اليوم | F6, F7: تعقيم error logs في edge functions | 24h |
-| 📅 الأسبوع | F5: تحقيق مصدر rolled-back transactions | 1 أسبوع |
-| 📅 الأسبوع | F8-F16: تنظيف Medium | 1 أسبوع |
-| 🧹 جولة تنظيف | F17-F26: Low/Info | حسب الإمكان |
+| 🔥 الآن | F1: إسقاط policy "Authenticated users can view invoices" | ✅ منفّذ |
+| 🔥 الآن | F2: `git rm --cached .env` | ⏭ يدوي |
+| ⚡ اليوم | F3: REVOKE EXECUTE من anon على SECURITY DEFINER | ✅ منفّذ |
+| ⚡ اليوم | F4: queryKey في useBylaws | ⚪ إيجابي كاذب |
+| ⚡ اليوم | F6, F7: تعقيم error logs | ✅ منفّذ |
+| 📅 الأسبوع | F5: rolled-back transactions | ⏭ مراقبة |
+| 📅 الأسبوع | F8–F16: تنظيف Medium | ✅ (ما عدا F8, F9, F13 المؤجَّلة) |
+| 🧹 تنظيف | F17–F26: Low/Info | ✅ (F17, F19, F21, F22) — F18, F20 إيجابي كاذب — F23–F26 توثيق |
+
+📄 **تفصيل التنفيذ:** [CHANGELOG-EXECUTION.md](./CHANGELOG-EXECUTION.md)
 
 ---
 
@@ -201,15 +203,8 @@
 - 📄 [M5 — Components & UI](./M5-components-ui.md)
 - 📄 [M6 — Integration Matrix](./M6-integration-matrix.md)
 - 📄 [M7 — Secrets & Keys](./M7-secrets-keys.md)
-
-## 7) تأكيد ما لم يُنفَّذ
-
-- لم يُعدَّل أي ملف إنتاج
-- لم يُنشأ أي migration
-- لم تُعدَّل أي سياسة RLS أو دالة
-- لم يُحذف/يُنشر/يُعدَّل أي Edge Function
-- لم تُحدَّث Security Memory
-- جميع الإصلاحات أعلاه **اقتراحات** تنتظر موافقتك لتُنفَّذ في جولة لاحقة
+- 📄 [INTEGRATION-CHECK.md](./INTEGRATION-CHECK.md) — تحقق ما بعد التنفيذ
+- 📄 [CHANGELOG-EXECUTION.md](./CHANGELOG-EXECUTION.md) — سجل ما نُفِّذ
 
 ---
-*تم توليد التقرير بواسطة 6 وكلاء explore متوازيين + استعلامات DB مباشرة + linter/scan.*
+*التقرير الأصلي مولَّد بـ 6 وكلاء explore. التنفيذ تمّ على دفعتين (Critical/High ثم Medium/Low) في نفس اليوم.*

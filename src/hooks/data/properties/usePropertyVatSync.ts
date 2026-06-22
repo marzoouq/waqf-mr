@@ -1,4 +1,8 @@
 /**
+ * @deprecated F19 (Forensic 2026-06-22): لا مستهلكين خارج هذا الملف.
+ * مرشّح للحذف بعد فترة مراقبة. لا تستخدمه في كود جديد.
+ */
+/**
  * usePropertyVatSync — مزامنة ضريبة القيمة المضافة على فواتير عقار
  * يستدعي RPC sync_property_contract_invoice_vat ويعيد نتيجة (updated, skipped).
  */

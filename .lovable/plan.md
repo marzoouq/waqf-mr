@@ -1,78 +1,52 @@
-# خطة الفحص الجنائي الشامل V2 — Forensic Audit 2026-06-22
+# خطة: تحقق تكامل + تنظيف F17–F26
 
-تنفيذ مباشر وعميق باستخدام كل الأدوات والوكلاء المتاحين. لا تعديلات على الكود — تقرير فقط.
+## الجزء 1 — فحص تكامل (قراءة فقط، قبل التعديل)
 
-## آلية التنفيذ (موازية قدر الإمكان)
+وكيل واحد متوازي `spawn_agent` يكتب `audit/forensic-2026-06-22/INTEGRATION-CHECK.md` يغطي:
 
-### الجولة 1 — جمع إشارات تلقائية (4 أدوات بالتوازي)
-1. `supabase--linter` (Live + Test)
-2. `security--run_security_scan` + `security--get_scan_results`
-3. `supabase--db_health` + `supabase--slow_queries`
-4. `npm run audit` (scripts/audit-all.mjs) → يولّد CSV/MD محدّثة
+1. **المسارات** — كل 41 route في `ROUTE_ROLES` ↔ `adminRoutes/beneficiaryRoutes/waqifRoutes/publicRoutes` (لا route يتيم/مكرر).
+2. **التبويبات** — كل `<Tabs>` في `src/pages` و`src/components`: تطابق `TabsTrigger.value` ↔ `TabsContent.value`.
+3. **روابط التنقل** — `bottomNavLinks`, `Sidebar`, كل `<NavLink>/<Link to=...>` يطابق route موجوداً.
+4. **الهوكات** — كل صفحة: data hooks → tables → edge functions (تحقق من invoke names).
+5. **الطباعة/PDF** — `generate-invoice-pdf`, `generate-voucher-pdf`, خطوط `Amiri/Tajawal` مضمّنة، استدعاءات jsPDF في الصفحات.
+6. **التأثير الانحداري** — تحقق أن تغييرات F1/F15 (حذف سياسات storage) لم تكسر تنزيل ملفات الفواتير لدى admin/accountant/beneficiary/waqif.
+7. **build + tests** — `npm run audit` + `vitest run` بشكل سريع.
 
-### الجولة 2 — 7 وكلاء فرعيون متوازيون (`spawn_agent`)
-كل وكيل يكتب إلى `audit/forensic-2026-06-22/M{n}-*.md`:
+التقرير يصدر بصيغة جدول: [Area | Status ✓/✗ | Evidence | Action].
 
-| # | الوكيل | النطاق |
-|---|--------|--------|
-| M1 | DB & RLS | جداول بدون RLS/GRANTs، policies بـ `USING(true)`، SECURITY DEFINER بدون `search_path`، 365 migration للتعارضات |
-| M2 | Edge Functions | 24 وظيفة: `getUser()`، Zod، CORS، تسريب أسرار في logs، استخدام service role غير مشروع |
-| M3 | Routes & Pages | كل route لديه `ProtectedRoute` صحيح، صفحات يتيمة، روابط مكسورة، lazy loading |
-| M4 | Hooks Layering | انتهاكات Page Hook Pattern، `supabase` خام في pages، `console.*`، toast في data hooks، barrel-of-barrels |
-| M5 | UI/Components | hex خام، مكونات >200 سطر، RTL، aria، single H1، تبويبات مكسورة |
-| M6 | Integration Matrix | Pages×Hooks×Tables×Edges، types من اتجاه خاطئ، query keys مكررة، realtime غير مُنظّف |
-| M7 | Secrets & Keys | `fetch_secrets`، grep لأنماط `sk_/eyJ/PRIVATE KEY/SERVICE_ROLE`، تحقق client bundle، `.env*` |
+## الجزء 2 — تنفيذ F17–F26
 
-### الجولة 3 — تحقق يدوي مباشر من الكود
-- قراءة عينات حرجة: `App.tsx`, `router.tsx`, `AuthContext.tsx`, `ProtectedRouteHelper.tsx`, `adminRoutes.tsx`, `beneficiaryRoutes.tsx`, `admin-manage-users/index.ts`, `webauthn/index.ts`
-- تنفيذ استعلامات psql مباشرة:
-  - جداول بدون RLS مفعّل
-  - policies تستخدم `auth.role()='authenticated'` بدون `has_role()`
-  - GRANTs مفقودة على جداول public
-  - دوال SECURITY DEFINER بدون `set search_path`
-  - FK بدون فهرس
+| ID | التغيير | الملف |
+|----|---------|-------|
+| F17 | `#0f172a` → `hsl(var(--foreground))` | `src/components/.../SignaturePad.tsx:61` |
+| F18 | استبدال 6 ألوان hex متبقية بـ tokens (`hsl(var(--*))`) — حسب مسح M5 | ملفات UI متعددة |
+| F19 | توثيق/حذف 7 hooks ميتة في `src/hooks/data/**` | إضافة JSDoc `@deprecated` أو حذف بعد التأكد |
+| F20 | توحيد 5 query keys نصية خام بـ key factories | hooks/data المتأثرة |
+| F21 | `REAL_KEY` → `MOCK_KEY` | `supabase/functions/_shared/auth.test.ts:4` |
+| F22 | تقليل تفاصيل خطأ HIBP | `supabase/functions/guard-signup/index.ts:135` |
+| F23 | إضافة أيقونات أو تعليق توثيقي | `audit-report-final`, `cleanup-report` routes/nav |
+| F24 | تأكيد توثيقي فقط (bucket عام مقصود) | `docs/security/views.md` |
+| F25 | تأكيد توثيقي (CORS `*` في `auth-email-hook`) | تعليق رأس الملف |
+| F26 | إضافة ملاحظة في خطة المراقبة | `docs/diagnostics/troubleshooting-playbook.md` |
 
-### الجولة 4 — التجميع والترتيب
-ملف نهائي `audit/forensic-2026-06-22/FORENSIC-REPORT.md`:
-- Executive Summary (عدّاد بحسب الخطورة)
-- جدول الملاحظات: [ID | Severity | Area | Location | Evidence | Impact | Recommendation]
-- ترتيب: Critical → High → Medium → Low → Info
-- روابط للملفات التفصيلية M1–M7
+### قواعد التنفيذ
+- لا تغيير سلوكي — فقط استبدال tokens/تسميات/تعليقات.
+- لكل ملف يُلمس: قراءة كاملة أولاً، استبدال دقيق عبر `line_replace`.
+- لو وُجدت بعد المسح ألوان hex إضافية، أضيفها لنفس الجولة.
 
-## المخرجات
-```
-audit/forensic-2026-06-22/
-  FORENSIC-REPORT.md              ← الموحّد (يبدأ القراءة من هنا)
-  EXECUTIVE-SUMMARY.md
-  M1-database-rls.md
-  M2-edge-functions.md
-  M3-routes-pages.md
-  M4-hooks-layering.md
-  M5-components-ui.md
-  M6-integration-matrix.md
-  M7-secrets-keys.md
-  raw/
-    linter-live.json
-    linter-test.json
-    security-scan.json
-    db-health.txt
-    psql-queries.sql
-```
+## الجزء 3 — تحديث التوثيق وملخص التغييرات
 
-## القيود (ما لن يتم)
-- لا تعديل على أي ملف إنتاج
-- لا migrations جديدة
-- لا حذف/تعديل سياسات أو دوال
-- لا تشغيل/حذف Edge Functions
-- لا تعديل ESLint config أو إصلاح أخطاء lint قائمة
-- الإصلاحات تُقترح داخل التقرير فقط، تُنفّذ في جولة لاحقة بأمرك
+- إنشاء `audit/forensic-2026-06-22/CHANGELOG-EXECUTION.md`: قائمة F1→F26 مع الحالة (✅ منفّذ / ⚪ false positive / ⏭ مؤجل) ومرجع migration/commit.
+- تحديث `FORENSIC-REPORT.md` §5: شطب البنود المنفّذة.
+- تحديث `.lovable/plan.md` بنتيجة V2.
 
-## التقدير الزمني
-- جولة 1: ~1 دقيقة
-- جولة 2: ~7-10 دقائق (متوازي)
-- جولة 3: ~3 دقائق
-- جولة 4: ~2 دقيقة
-- **الإجمالي: ~15 دقيقة**
+## التحقق النهائي
+1. `npm run audit` — صفر critical/GAP جديدة.
+2. `vitest run` — لا اختبارات منكسرة.
+3. قراءة `INTEGRATION-CHECK.md` — صفر ✗.
+4. ملخص قصير في الرد بأبرز ما تغيّر.
 
-## بعد موافقتك
-سأبدأ التنفيذ فوراً بالجولة 1 والجولة 2 بالتوازي، ثم أُرسل لك التقرير الموحّد مع أبرز 10 ملاحظات حرجة في الرد.
+## ما لن يُنفَّذ
+- لا migrations جديدة في هذه الجولة (تغييرات DB انتهت).
+- لا تعديل سلوكي على Edge Functions (فقط تسميات/تعليقات).
+- لا حذف ملفات قبل تأكيد عدم استخدامها (F19 يبدأ بـ `@deprecated`).

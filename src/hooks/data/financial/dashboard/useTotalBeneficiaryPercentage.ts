@@ -1,3 +1,7 @@
+/**
+ * @deprecated F19 (Forensic 2026-06-22): لا مستهلكين خارج هذا الملف.
+ * مرشّح للحذف بعد فترة مراقبة. لا تستخدمه في كود جديد.
+ */
 import { useQuery } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
 import { STALE_FINANCIAL } from '@/lib/queryStaleTime';

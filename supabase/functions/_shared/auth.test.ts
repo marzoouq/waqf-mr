@@ -1,8 +1,9 @@
 // اختبارات أمنية لـ isServiceRole — يجب رفض JWT المزوّر وقبول المفتاح الحقيقي فقط.
+// MOCK_KEY: قيمة وهمية لبيئة الاختبار فقط — ليست مفتاحاً حقيقياً.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-const REAL_KEY = "real-service-role-key-12345-abcdef";
-Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", REAL_KEY);
+const MOCK_KEY = "mock-service-role-key-12345-abcdef";
+Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", MOCK_KEY);
 Deno.env.set("SUPABASE_URL", "http://localhost");
 Deno.env.set("SUPABASE_ANON_KEY", "anon");
 
