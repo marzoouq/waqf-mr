@@ -1,4 +1,4 @@
-import { ShieldCheck, CalendarDays, CheckCircle2, FileText, ClipboardCheck } from 'lucide-react';
+import { FileCheck, CalendarDays, CheckCircle2, FileText, ClipboardCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
