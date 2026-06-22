@@ -134,15 +134,19 @@ Deno.serve(async (req) => {
                 );
                 movedCount++;
               } else {
-                lastError = enqErr.message;
+                // F7: لا تُسرَّب رسائل pgmq الداخلية للعميل
+                console.error('email-admin enqueue failed:', enqErr.message);
+                lastError = 'فشل نقل بعض الرسائل';
               }
             } catch (e) {
-              lastError = e instanceof Error ? e.message : String(e);
+              console.error('email-admin requeue exception:', e instanceof Error ? e.message : 'unknown');
+              lastError = 'فشل نقل بعض الرسائل';
             }
           }
         }
       } catch (e) {
-        lastError = e instanceof Error ? e.message : String(e);
+        console.error('email-admin DLQ read exception:', e instanceof Error ? e.message : 'unknown');
+        lastError = 'فشل قراءة قائمة الانتظار';
       }
 
       return new Response(
