@@ -16,7 +16,7 @@ const AuditReportFinalPage = () => {
         <PageHeaderCard
           title="تقرير التدقيق النهائي"
           description="نتائج التحقق الجنائي لجولة لوحة المستفيد (B1–B15) مع روابط الملفات المعدَّلة"
-          icon={ShieldCheck}
+          icon={FileCheck}
           actions={
             <div className="flex flex-wrap items-center gap-2">
               <Button asChild variant="outline" size="sm" className="gap-2">
