@@ -14,7 +14,7 @@ import {
   DollarSign, Receipt, ReceiptText, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
   ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity, Mail,
-  TrendingDown, ClipboardCheck,
+  TrendingDown,
 } from '@/constants/navigationIcons';
 import { ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
 import {
@@ -55,10 +55,10 @@ export const allAdminLinks = [
   { to: '/dashboard/annual-report', icon: ClipboardList, label: 'إدارة التقرير السنوي' },
   { to: '/dashboard/chart-of-accounts', icon: GitBranch, label: 'الشجرة المحاسبية' },
   { to: '/dashboard/comparison', icon: GitCompareArrows, label: 'المقارنة التاريخية' },
-    { to: '/dashboard/diagnostics', icon: Activity, label: 'تشخيص النظام' },
-    { to: '/dashboard/email-monitor', icon: Mail, label: 'مراقبة البريد' },
-  { to: '/dashboard/audit-report-final', icon: ShieldCheck, label: 'تقرير التدقيق النهائي' },
-  { to: '/dashboard/cleanup-report', icon: ClipboardCheck, label: 'تقرير التنظيف' },
+  { to: '/dashboard/diagnostics', icon: Activity, label: 'تشخيص النظام' },
+  { to: '/dashboard/email-monitor', icon: Mail, label: 'مراقبة البريد' },
+  // P1/C3: تقارير التدقيق الجنائي والتنظيف (audit-report-final, cleanup-report)
+  // نُقلت من القائمة الدائمة إلى أزرار داخل /dashboard/audit-log. المسارات لا تزال موجودة.
   { to: '/beneficiary', icon: Eye, label: 'معاينة بوابة المستفيد' },
 ];
 
@@ -109,8 +109,9 @@ export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/reports': 'finance',
   '/dashboard/chart-of-accounts': 'finance',
   '/dashboard/comparison': 'finance',
+  // P1/C2: نُقل التقرير السنوي من `reference` إلى `finance` لأنه وثيقة مالية بالكامل
+  '/dashboard/annual-report': 'finance',
   '/dashboard/bylaws': 'reference',
-  '/dashboard/annual-report': 'reference',
   '/dashboard/messages': 'communication',
   '/dashboard/support': 'communication',
   '/dashboard/users': 'administration',
@@ -119,8 +120,8 @@ export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/zatca': 'system',
   '/dashboard/email-monitor': 'system',
   '/dashboard/diagnostics': 'system',
-  '/dashboard/audit-report-final': 'system',
-  '/dashboard/cleanup-report': 'system',
+  // P1/C3: audit-report-final + cleanup-report خرجا من القائمة الجانبية
+  // ويُوصل إليهما الآن عبر أزرار داخل /dashboard/audit-log
   '/beneficiary': 'preview',
 };
 
@@ -173,7 +174,9 @@ export const ADMIN_ROUTE_PERM_KEYS: Record<string, string> = buildPermKeys(ADMIN
 export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = buildPermKeys(BENEFICIARY_ROUTES);
 
 // ─── Routes accountant can never access ───
-export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/dashboard/email-monitor', '/dashboard/comparison', '/dashboard/audit-report-final', '/dashboard/cleanup-report', '/beneficiary'];
+// P1: audit-report-final + cleanup-report لم يعودا في `allAdminLinks`، فلا حاجة لإدراجهما هنا.
+// نُبقي الباقي كطبقة حماية بجانب defaults الصلاحيات (P0/A2).
+export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/dashboard/email-monitor', '/dashboard/comparison', '/beneficiary'];
 
 // ─── Section visibility defaults (مشتقة من sections.ts — مصدر واحد للحقيقة #16/#17) ───
 export const defaultAdminSections: Record<string, boolean> = makeDefaults(ADMIN_SECTION_KEYS);
