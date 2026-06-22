@@ -34,31 +34,53 @@ export const linkLabelKeys = {
 };
 
 // ─── Navigation links ───
+// ─── Navigation links ───
+// P3/A7: `allAdminLinks` يُولَّد آليًا من ADMIN_ROUTES بدلاً من الكتابة اليدوية.
+// أي مسار جديد يُضاف للسجل + خريطة الأيقونات أدناه يظهر تلقائيًا في القائمة.
+// الترتيب يتبع ترتيب الإدخال في `ADMIN_ROUTES`.
+
+/** أيقونات الروابط — مفصولة عن السجل لتجنّب سحب Lucide إلى مستهلكي الميتاداتا فقط */
+const ADMIN_ROUTE_ICONS: Record<string, typeof Home> = {
+  '/dashboard': Home,
+  '/dashboard/properties': Building2,
+  '/dashboard/contracts': FileText,
+  '/dashboard/income': DollarSign,
+  '/dashboard/expenses': Receipt,
+  '/dashboard/beneficiaries': Users,
+  '/dashboard/reports': BarChart3,
+  '/dashboard/accounts': Wallet,
+  '/dashboard/distributions': Share2,
+  '/dashboard/users': UserCog,
+  '/dashboard/settings': Settings,
+  '/dashboard/messages': MessageSquare,
+  '/dashboard/invoices': ReceiptText,
+  '/dashboard/audit-log': ShieldCheck,
+  '/dashboard/bylaws': BookOpen,
+  '/dashboard/zatca': Lock,
+  '/dashboard/annual-report': ClipboardList,
+  '/dashboard/support': Headset,
+  '/dashboard/chart-of-accounts': GitBranch,
+  '/dashboard/comparison': GitCompareArrows,
+  '/dashboard/diagnostics': Activity,
+  '/dashboard/email-monitor': Mail,
+};
+
+/** مسارات مسجَّلة في ADMIN_ROUTES لكنها مُخفاة من القائمة الجانبية عمدًا.
+ *  P1/C3: تقارير التدقيق الجنائي والتنظيف يُوصل إليهما عبر أزرار داخل /dashboard/audit-log. */
+const ADMIN_SIDEBAR_HIDDEN = new Set<string>([
+  '/dashboard/audit-report-final',
+  '/dashboard/cleanup-report',
+]);
+
 export const allAdminLinks = [
-  { to: '/dashboard', icon: Home, label: 'الرئيسية' },
-  { to: '/dashboard/properties', icon: Building2, label: 'العقارات' },
-  { to: '/dashboard/contracts', icon: FileText, label: 'العقود' },
-  { to: '/dashboard/income', icon: DollarSign, label: 'الدخل' },
-  { to: '/dashboard/expenses', icon: Receipt, label: 'المصروفات' },
-  { to: '/dashboard/beneficiaries', icon: Users, label: 'المستفيدين' },
-  { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير المالية والإفصاح' },
-  { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات الختامية' },
-  { to: '/dashboard/distributions', icon: Share2, label: 'توزيع الحصص' },
-  { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
-  { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
-  { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
-  { to: '/dashboard/invoices', icon: ReceiptText, label: 'الفواتير الضريبية' },
-  { to: '/dashboard/audit-log', icon: ShieldCheck, label: 'سجل المراجعة' },
-  { to: '/dashboard/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
-  { to: '/dashboard/zatca', icon: Lock, label: 'تكامل ZATCA' },
-  { to: '/dashboard/support', icon: Headset, label: 'الدعم الفني' },
-  { to: '/dashboard/annual-report', icon: ClipboardList, label: 'إدارة التقرير السنوي' },
-  { to: '/dashboard/chart-of-accounts', icon: GitBranch, label: 'الشجرة المحاسبية' },
-  { to: '/dashboard/comparison', icon: GitCompareArrows, label: 'المقارنة التاريخية' },
-  { to: '/dashboard/diagnostics', icon: Activity, label: 'تشخيص النظام' },
-  { to: '/dashboard/email-monitor', icon: Mail, label: 'مراقبة البريد' },
-  // P1/C3: تقارير التدقيق الجنائي والتنظيف (audit-report-final, cleanup-report)
-  // نُقلت من القائمة الدائمة إلى أزرار داخل /dashboard/audit-log. المسارات لا تزال موجودة.
+  ...Object.entries(ADMIN_ROUTES)
+    .filter(([to]) => !ADMIN_SIDEBAR_HIDDEN.has(to))
+    .map(([to, meta]) => {
+      const icon = ADMIN_ROUTE_ICONS[to];
+      if (!icon) throw new Error(`[navigation] ADMIN_ROUTE_ICONS مفقود للمسار ${to}`);
+      return { to, icon, label: meta.title };
+    }),
+  // رابط معاينة بوابة المستفيد — مسجَّل في BENEFICIARY_ROUTES لكنه يظهر للناظر كمعاينة
   { to: '/beneficiary', icon: Eye, label: 'معاينة بوابة المستفيد' },
 ];
 
