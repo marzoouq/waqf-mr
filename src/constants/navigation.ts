@@ -121,7 +121,8 @@ export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/diagnostics': 'system',
   // P1/C3: audit-report-final + cleanup-report خرجا من القائمة الجانبية
   // ويُوصل إليهما الآن عبر أزرار داخل /dashboard/audit-log
-  '/beneficiary': 'preview',
+  // P2/C1+A3: دُمجت مجموعة `preview` ذات العنصر الواحد ضمن `administration` لإلغاء الخط الفاصل الزائد
+  '/beneficiary': 'administration',
 };
 
 export const BENEFICIARY_GROUP_ORDER = ['financial', 'documents', 'communication', 'account'] as const;
