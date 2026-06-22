@@ -12,11 +12,12 @@ src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,1
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,47,Button,"",onClick,"DashboardLayout>PageHeaderCard",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,57,Button,"PDF",onClick,"PageHeaderCard>FileEdit>Send",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,61,Button,"طباعة",onClick,"FileEdit>Send>FileDown",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,64,Tab,"سجل العمليات",tabs-radix,"Tabs>SelectValue>TabsList",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,65,Tab,"محاولات الوصول",tabs-radix,"SelectValue>TabsList>Activity",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,66,Tab,"الأرشيف",tabs-radix,"TabsList>Activity>ShieldAlert",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,33,Button,"تقرير التدقيق النهائي",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,43,Button,"",onClick,"DashboardLayout>PageHeaderCard>ClipboardCheck",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,75,Tab,"سجل العمليات",tabs-radix,"Tabs>SelectValue>TabsList",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,76,Tab,"محاولات الوصول",tabs-radix,"SelectValue>TabsList>Activity",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,77,Tab,"الأرشيف",tabs-radix,"TabsList>Activity>ShieldAlert",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,34,Button,"تقرير التدقيق النهائي",onClick,"DashboardLayout>PageHeaderCard",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,43,Button,"تقرير التنظيف",onClick,"DashboardLayout>PageHeaderCard>ClipboardCheck",OK
+src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,54,Button,"",onClick,"PageHeaderCard>ClipboardCheck>ClipboardCheck",OK
 src/pages/dashboard/AuditReportFinalPage.tsx,,/dashboard/audit-report-final,ADMIN_ONLY,22,Button,"تقرير التنظيف الأخير",asChild,"DashboardLayout>PageHeaderCard",OK
 src/pages/dashboard/AuditReportFinalPage.tsx,,/dashboard/audit-report-final,ADMIN_ONLY,28,Button,"تصدير PDF",onClick,"DashboardLayout>PageHeaderCard>ClipboardCheck",OK
 src/pages/dashboard/AuditReportFinalPage.tsx,,/dashboard/audit-report-final,ADMIN_ONLY,23,Link,"تقرير التنظيف الأخير",Link-to,"DashboardLayout>PageHeaderCard>Button",OK

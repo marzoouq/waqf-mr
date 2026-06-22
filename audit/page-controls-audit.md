@@ -1,6 +1,6 @@
 # Page Controls Audit — Admin & Beneficiary
 
-Generated: 2026-06-22T20:45:00.623Z
+Generated: 2026-06-22T20:58:33.907Z
 
 ## Scope
 
@@ -13,10 +13,10 @@ Generated: 2026-06-22T20:45:00.623Z
 
 | Metric | Value |
 |---|---|
-| Page-level controls | 92 |
+| Page-level controls | 93 |
 | Child-component controls | 25 |
-| Total controls | 117 |
-| OK | 117 |
+| Total controls | 118 |
+| OK | 118 |
 | GAP-NO-HANDLER | 0 |
 
 ## Per-page summary (page + recursed children)
@@ -43,7 +43,7 @@ Generated: 2026-06-22T20:45:00.623Z
 | `dashboard/AccountsPage.tsx` | `/dashboard/accounts` | ADMIN_ROLES | 0 | 0 | 4 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/AdminDashboard.tsx` | `/dashboard` | ADMIN_ROLES | 10 | 0 | 10 | 0 | 9 | 0 | ✅ 0 |
 | `dashboard/AnnualReportPage.tsx` | `/dashboard/annual-report` | ADMIN_ROLES | 0 | 4 | 3 | 0 | 0 | 0 | ✅ 0 |
-| `dashboard/AuditLogPage.tsx` | `/dashboard/audit-log` | ADMIN_ROLES | 0 | 3 | 2 | 0 | 0 | 0 | ✅ 0 |
+| `dashboard/AuditLogPage.tsx` | `/dashboard/audit-log` | ADMIN_ROLES | 0 | 3 | 3 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/AuditReportFinalPage.tsx` | `/dashboard/audit-report-final` | ADMIN_ONLY | 2 | 0 | 2 | 0 | 1 | 0 | ✅ 0 |
 | `dashboard/BeneficiariesPage.tsx` | `/dashboard/beneficiaries` | ADMIN_ROLES | 0 | 2 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/BylawsPage.tsx` | `/dashboard/bylaws` | ADMIN_ROLES | 0 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |

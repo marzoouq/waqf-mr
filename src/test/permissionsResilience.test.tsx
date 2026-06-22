@@ -70,11 +70,14 @@ describe('Permissions resilience matrix', () => {
 
   // ─────────────────────── ADMIN ───────────────────────
   describe('ناظر', () => {
-    it('كل أقسام الناظر ظاهرة افتراضياً (باستثناء /beneficiary المُلحقة)', () => {
+    it('كل أقسام الناظر ظاهرة افتراضياً (باستثناء /beneficiary المُلحقة وتقارير التدقيق المنقولة لـ audit-log)', () => {
       setup('admin');
       const { result } = renderHook(() => useNavLinks());
       const routes = tos(result.current);
+      // P1/C3: audit-report-final و cleanup-report نُقلتا إلى أزرار داخل /dashboard/audit-log
+      const HIDDEN_FROM_SIDEBAR = new Set(['/dashboard/audit-report-final', '/dashboard/cleanup-report']);
       for (const route of Object.keys(ADMIN_ROUTES)) {
+        if (HIDDEN_FROM_SIDEBAR.has(route)) continue;
         expect(routes, `missing admin route: ${route}`).toContain(route);
       }
     });

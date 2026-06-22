@@ -14,7 +14,7 @@ import {
   DollarSign, Receipt, ReceiptText, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
   ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity, Mail,
-  TrendingDown,
+  TrendingDown, Share2,
 } from '@/constants/navigationIcons';
 import { ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
 import {
@@ -43,7 +43,7 @@ export const allAdminLinks = [
   { to: '/dashboard/beneficiaries', icon: Users, label: 'المستفيدين' },
   { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير المالية والإفصاح' },
   { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات الختامية' },
-  { to: '/dashboard/distributions', icon: Users, label: 'توزيع الحصص' },
+  { to: '/dashboard/distributions', icon: Share2, label: 'توزيع الحصص' },
   { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
   { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
   { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
@@ -84,7 +84,7 @@ export const allBeneficiaryLinks = [
 // ─── Sidebar grouping (PR-1) ───
 // Single source of truth for which menu group a route belongs to.
 // Routes not listed appear ungrouped (above all groups for admin, below for beneficiary).
-export const ADMIN_GROUP_ORDER = ['operations', 'finance', 'reference', 'communication', 'administration', 'system', 'preview'] as const;
+export const ADMIN_GROUP_ORDER = ['operations', 'finance', 'reference', 'communication', 'administration', 'system'] as const;
 export type AdminGroupKey = typeof ADMIN_GROUP_ORDER[number];
 
 export const ADMIN_GROUP_LABELS: Record<AdminGroupKey, string> = {
@@ -94,7 +94,6 @@ export const ADMIN_GROUP_LABELS: Record<AdminGroupKey, string> = {
   communication: 'الاتصال',
   administration: 'الإدارة',
   system: 'النظام والتكاملات',
-  preview: 'المعاينة',
 };
 
 export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
@@ -122,7 +121,8 @@ export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/diagnostics': 'system',
   // P1/C3: audit-report-final + cleanup-report خرجا من القائمة الجانبية
   // ويُوصل إليهما الآن عبر أزرار داخل /dashboard/audit-log
-  '/beneficiary': 'preview',
+  // P2/C1+A3: دُمجت مجموعة `preview` ذات العنصر الواحد ضمن `administration` لإلغاء الخط الفاصل الزائد
+  '/beneficiary': 'administration',
 };
 
 export const BENEFICIARY_GROUP_ORDER = ['financial', 'documents', 'communication', 'account'] as const;

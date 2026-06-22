@@ -28,8 +28,11 @@ const extractRegisteredRoutes = (): string[] => {
 const PREVIEW_LINKS = new Set<string>(['/beneficiary']);
 
 /** المسارات المُسجّلة كـ Route لكنها لا تظهر في sidebar (مبرّرة).
- *  حاليًا: /dashboard نفسه (الصفحة الجذر تُعرض عبر رابط "الرئيسية"). */
-const HIDDEN_ROUTES = new Set<string>([]);
+ *  P1/C3: تقارير التدقيق الجنائي والتنظيف نُقلت إلى أزرار داخل /dashboard/audit-log. */
+const HIDDEN_ROUTES = new Set<string>([
+  '/dashboard/audit-report-final',
+  '/dashboard/cleanup-report',
+]);
 
 /** المسارات التي لا تنتمي لأي group في ADMIN_ROUTE_GROUPS (مبرّرة كـ ungrouped). */
 const UNGROUPED_ROUTES = new Set<string>(['/dashboard', '/dashboard/comparison']);
@@ -52,7 +55,7 @@ describe('Nav links ↔ adminRoutes parity (D-06)', () => {
     },
   );
 
-  it.each(registered.filter((r) => !UNGROUPED_ROUTES.has(r)))(
+  it.each(registered.filter((r) => !UNGROUPED_ROUTES.has(r) && !HIDDEN_ROUTES.has(r)))(
     'ADMIN_ROUTE_GROUPS: %s له group مُعيَّن',
     (route) => {
       expect(ADMIN_ROUTE_GROUPS[route], `Route ${route} بلا group في ADMIN_ROUTE_GROUPS`).toBeTruthy();
