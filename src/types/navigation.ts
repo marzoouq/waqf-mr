@@ -26,6 +26,9 @@ export interface MenuLabels {
   diagnostics: string;
   email_monitor: string;
   distributions: string;
+  // P3/A4: تسميات قابلة للترجمة الديناميكية لصفحتي التقارير الجنائية
+  audit_report_final: string;
+  cleanup_report: string;
 }
 
 export const defaultMenuLabels: MenuLabels = {
