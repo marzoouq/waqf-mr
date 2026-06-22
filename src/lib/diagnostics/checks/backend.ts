@@ -42,9 +42,20 @@ export async function checkBackendEdgeHealthPing(): Promise<CheckResult> {
     return { id, label: 'نداء health-check', status: 'fail', detail, meta };
   } catch (e) {
     const ms = Math.round(performance.now() - t0);
+    const msg = String(e);
+    // في بيئة المعاينة/التطوير، CORS preflight يحجب fetch إلى Edge Functions
+    // وهذا ليس عطلاً في الدالة نفسها — يُعامَل تحذيراً واضحاً بدلاً من فشل.
+    const isCorsLike = /Failed to fetch|NetworkError|TypeError/i.test(msg);
+    if (env !== 'prod' && isCorsLike) {
+      return {
+        id, label: 'نداء health-check', status: 'warn',
+        detail: `[GET /${fnName}] ms=${ms} env=${env} — محظور CORS في المعاينة (سليم في الإنتاج)`,
+        meta: { fnName, ms, env, reason: 'cors_preview' },
+      };
+    }
     return {
       id, label: 'نداء health-check', status: 'fail',
-      detail: `[GET /${fnName}] ms=${ms} network_error=${String(e)}`,
+      detail: `[GET /${fnName}] ms=${ms} network_error=${msg}`,
       meta: { fnName, ms, env },
     };
   }
