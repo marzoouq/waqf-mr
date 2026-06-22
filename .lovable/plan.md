@@ -1,75 +1,126 @@
-# P1 / D2 — تطابق LRM بين الخادم والعميل في `execute_distribution`
+# التحقق الجنائي الإضافي — قائمة الناظر (الجولة 2)
 
-## السياق
+كل بند أدناه مُتحقَّق منه بفحص الكود مباشرةً في هذه الجولة. النتائج الجديدة بخط عريض.
 
-- **العميل** (`distributionCalcPure.ts:30–82`) يستخدم **Largest Remainder Method**: floor كل حصة، ثم توزيع البواقي قرشاً قرشاً على أصحاب أكبر remainder. يضمن `sum == availableAmount` بالضبط.
-- **الخادم** (`execute_distribution:238`) يستخدم `ROUND(available × pct / total_pct, 2)` لكل مستفيد. مجموع الخادم قد يختلف عن `availableAmount` بـ `(N−1) × 0.01` في أسوأ الحالات.
-- النتيجة: معاينة العميل تُظهر مبلغاً، وبعد التنفيذ السجلات في `distributions` تجمع لرقم مختلف بفروق قروش.
+---
 
-## ما سيُنفَّذ
+## أ) النتائج الجنائية الجديدة (أعمق من الجولة 1)
 
-### 1) Migration — `execute_distribution` v2 (LRM)
-استبدال جسم الدالة بحيث:
+### A1 — اقتران صلاحيات خفي بين `accounts` و `distributions`
+**ملف**: `src/constants/routeRegistry.ts`
+- `/dashboard/accounts` → `permKey: 'accounts'`
+- `/dashboard/distributions` → `permKey: 'accounts'` ← **نفس المفتاح**
 
-```text
-A. تحميل قائمة المستفيدين (id, share_percentage) من جدول beneficiaries إلى متغير v_ben_array.
-B. حساب exact_share و floored و remainder لكل مستفيد عبر CTE واحدة.
-C. توزيع v_remaining_pennies = ROUND((available − Σfloored) × 100) على أعلى N remainder
-   (مع كسر التعادل بـ id تصاعدياً لاستقرار النتيجة).
-D. تخزين الناتج في jsonb map: v_shares := { ben_id: final_share, ... }.
-E. اللوب الحالي يستبدل سطر 238 بـ:
-      v_server_share := (v_shares->>v_beneficiary_id::text)::numeric;
-F. تشديد الحارس بسطر 337:
-      من: v_sum_distributions > v_available_amount + 0.01
-      إلى: ABS(Σv_server_share − v_available_amount) > 0.01
-   (يَفرض المساواة بدلاً من حدّ علوي فقط).
+**الأثر**: عند سحب صلاحية `accounts` من المحاسب (أو أي دور)، يختفي `distributions` تلقائيًا. لا يوجد تحكم مستقل. هذا تكرار صلاحية صامت لم يُذكر في الجولة 1.
+
+### A2 — 8 مسارات بدون `permKey` (تحكم وصول هش)
+المسارات التالية مسجَّلة في `ADMIN_ROUTES` بدون `permKey`:
+`users`, `settings`, `zatca`, `comparison`, `diagnostics`, `email-monitor`, `audit-report-final`, `cleanup-report` + `/dashboard` نفسه.
+
+**الأثر**: في `filterLinksByPermissions` (utils/auth/filterByVisibility.ts:43)، إذا كان `permKey` غير معرَّف → الرابط **يظهر دائمًا**. هذا يعني أن الحاجز الوحيد لمنع المحاسب من رؤية هذه المسارات هو القائمة الثابتة `ACCOUNTANT_EXCLUDED_ROUTES`. **أي مسار جديد بدون permKey سيُسرَّب للمحاسب** افتراضيًا.
+
+### A3 — `/beneficiary` (معاينة) في قائمة الناظر بلا قيد قسم
+- مسجَّل في `BENEFICIARY_ROUTES` فقط، غير موجود في `ADMIN_ROUTES`.
+- نتيجة: `ADMIN_ROUTE_TO_SECTION['/beneficiary'] = undefined`.
+- في `filterLinksBySectionVisibility` (utils/auth/filterByVisibility.ts:26) → "افتراض آمن: يبقى ظاهراً".
+- **لا يمكن للناظر إخفاء "معاينة بوابة المستفيد" عبر إعدادات الأقسام**، لأنها لا تملك مفتاح قسم في خريطة الناظر.
+
+### A4 — `audit-report-final` و `cleanup-report` بلا `labelKey`
+- المسارات الأخرى تُعرَّب تسمياتها ديناميكيًا عبر `menu_labels` من `useAppSettings`.
+- هذان الرابطان نصوصهما **مكتوبة في الكود فقط** (`'تقرير التدقيق النهائي'`, `'تقرير التنظيف'`) — لا يستطيع الناظر تغييرها من إعدادات الواجهة.
+
+### A5 — مطابقة كاملة بين القائمة والمسارات (لا روابط/صفحات يتيمة)
 ```
-
-**حافظ على السلوك الحالي:**
-- نفس signature الدالة، نفس RETURNS jsonb shape.
-- نفس منطق advances/carryforward/deficit/notifications.
-- نفس حارس `assert_fiscal_year_open` ومنع التكرار.
-- نفس `SECURITY DEFINER` و `search_path = public`.
-
-**نقطة قرار صغيرة** (سأختار الافتراضي ما لم تعارض):
-- LRM يَستخدم **كل المستفيدين** من جدول `beneficiaries` (مطابقاً للعميل). لو أرسل العميل `p_distributions` بقائمة منقوصة → اللوب يَتجاهل المستفيدين غير المُرسَلين، لكن الـ pre-pass يَحسب لهم حصص (تُهدر). هذا يحافظ على نسبية الحصص بدقة. **بديل:** LRM فقط على المُرسَلين — أبسط لكن قد يُعطي نتيجة مختلفة عن العميل لو القائمتان مختلفتان. أُفضّل الأول.
-
-### 2) اختبار JS regression (سريع، يَقفل العقد)
-إضافة `src/utils/financial/distribution/distributionCalcPure.test.ts` (لو غير موجود) أو توسيعه:
-- 3 حالات نِسَب كسرية ينتج عنها بواقٍ (مثلاً: 33.33/33.33/33.34, 1/3 لـ 100, أعداد أولية).
-- assertion: `Math.round(sum(share_amount) * 100) === Math.round(availableAmount * 100)` بالضبط.
-
-### 3) اختبار SQL تكاملي (اختياري — تأكيد فعلي)
-عبر `psql` (read access متاح، لكن execute_distribution write — نحتاج migration للتجريب). البديل: Deno test لـ edge function؟ لا توجد edge function هنا. **القرار:** أُهمله؛ نعتمد على:
-- مراجعتك للـ migration.
-- اختبار JS كمرآة منطقية.
-- يدوي بعد النشر: تنفيذ توزيع تجريبي على سنة test وفحص `distributions.amount` sum.
-
-### 4) تحديث الذاكرة
-إضافة قاعدة:
+nav admin links → routes: 100% match (25/25)
+routes → nav: 100% match
+pages → routes: 100% match (الـ ORPHAN PAGES الـ9 كلها .test.tsx فقط)
 ```
-mem://business-logic/finance/distribution-lrm-server-parity
-نوع: business-logic
-المحتوى: execute_distribution يَستخدم LRM مطابقاً لـ calculateDistributions في العميل
-        لضمان sum(server shares) == availableAmount بدقة القرش.
-        الحارس يَفرض المساواة المُطلقة (|sum − available| ≤ 0.01).
+**نفي للقلق**: لا يوجد ربط ميت ولا صفحة منتجة بلا مسار.
+
+### A6 — سلوك SidebarNavList مع مجموعة `preview` (عنصر واحد)
+**ملف**: `src/components/layout/sidebar/SidebarNavList.tsx:80`
+```tsx
+{groups.map((group, idx) => (
+  <div className={cn(idx > 0 && 'mt-3 pt-2 border-t border-sidebar-border/40')}>
 ```
+- المجموعة الأخيرة (`preview`) ترسم **خطًا فاصلًا كاملًا قبل رابط واحد فقط**.
+- ضوضاء بصرية مؤكَّدة، ليست افتراضية.
 
-### 5) تقرير تنفيذ
-`audit/forensic-2026-06-17/D2-FIXED-LRM-PARITY.md` يَوثّق:
-- قبل/بعد (snippet SQL).
-- مثال numeric للمشكلة (3 مستفيدين بنسب 33.33/33.33/33.34 على 100 ر.س).
-- نتيجة اختبار JS بعد الإصلاح.
+### A7 — التطابق بين `routeRegistry` و `allAdminLinks` مكسور جزئيًا
+- `allAdminLinks` (navigation.ts:37-63) **مكتوب يدويًا** برغم وجود `ADMIN_ROUTES` في السجل الموحَّد.
+- ترتيب الروابط في `allAdminLinks` لا يتطابق مع ترتيب `ADMIN_ROUTES`.
+- إضافة مسار في السجل لا تُضيفه للقائمة الجانبية تلقائيًا — يلزم تحديث ملفين.
+- **تناقض مع هدف التعليق في `routeRegistry.ts:5`** ("مصدر واحد للحقيقة").
 
-## ما لن يُنفَّذ في هذه الموجة
-- D1 (closed-year clamp): موجة لاحقة.
-- D3 (useMyShare fallback): تابع لـ D2 — بعد توافق الخادم، الـ fallback يُحدَّث إلى LRM في موجة منفصلة.
-- D4 (PDF row order): تجميلي — موجة لاحقة.
+### A8 — `linkLabelKeys` يُبنى من السجل، لكن `allAdminLinks` لا
+- navigation.ts:31-34 تبني `linkLabelKeys` من `buildLabelKeys(ADMIN_ROUTES)` ✓
+- لكن قائمة الروابط نفسها (`allAdminLinks`) ثابتة. عدم اتساق معماري.
 
-## التحقق الخماسي بعد التنفيذ
-1. `bunx vitest run distributionCalcPure` → سُمَّر اختبار الـ LRM contract.
-2. `bunx vitest run` كامل → 0 فشل.
-3. مراجعة بصرية للـ migration diff.
-4. (يدوي بعد النشر) تنفيذ توزيع تجريبي على سنة test + استعلام `SELECT SUM(amount) FROM distributions WHERE account_id = ...` ومقارنته بـ `accounts.waqf_revenue − waqf_corpus_manual`.
+---
 
-موافق على البدء؟
+## ب) تأكيد نتائج الجولة 1 (لم تتغير)
+
+| البند | الحالة |
+|---|---|
+| 25 رابط ناظر | ✓ مؤكد |
+| 7 مجموعات | ✓ مؤكد |
+| `Users` icon مكرر (beneficiaries + distributions) | ✓ مؤكد |
+| `ShieldCheck` icon مكرر (audit-log + audit-report-final) | ✓ مؤكد |
+| `preview` group بعنصر واحد | ✓ مؤكد + A6 يثبت الأثر البصري |
+| `annual-report` في `reference` بدل `finance` | ✓ مؤكد |
+| `finance` group بـ8 عناصر | ✓ مؤكد |
+| `system` group بـ6 عناصر | ✓ مؤكد |
+| ٤ مسافات بدل ٢ في الأسطر 58-59 | ✓ مؤكد |
+| `audit-report-final` + `cleanup-report` تقارير جنائية لمرة واحدة | ✓ مؤكد |
+
+---
+
+## ج) تصنيف نهائي للمشاكل بالخطورة
+
+| رقم | المشكلة | الخطورة | الفئة |
+|---|---|---|---|
+| **A1** | `distributions` و `accounts` يتقاسمان نفس `permKey` | **عالية** | أمان/تحكم |
+| **A2** | 8 مسارات بدون `permKey` — حماية المحاسب تعتمد على قائمة استبعاد يدوية | **عالية** | أمان/تحكم |
+| **A3** | `/beneficiary` (معاينة) غير قابل للإخفاء عبر إعدادات الأقسام | متوسطة | تحكم |
+| **A4** | تسميتان غير مُعرَّبتين ديناميكيًا | منخفضة | i18n |
+| **A7** | `allAdminLinks` يدوي رغم وجود سجل موحَّد | متوسطة | صيانة |
+| C1 | مجموعة preview بعنصر واحد | متوسطة | UX |
+| C2 | annual-report في reference | متوسطة | UX |
+| C3 | تقارير جنائية دائمة في القائمة | عالية | UX |
+| C4 | finance بـ8 عناصر | متوسطة | UX |
+| C5 | خطأ مسافة بادئة | منخفضة | تجميلي |
+| C6 | المحاسب محروم من `comparison` | متوسطة | سياسة |
+| C7 | أيقونات Receipt/ReceiptText متشابهة | منخفضة | UX |
+| تكرار أيقونة Users | تكرار أيقونة ShieldCheck | منخفضة | UX |
+
+---
+
+## د) ادعاءات سابقة لم يثبتها الفحص
+
+- **"finance بـ7 روابط"** — خطأ، الصحيح 8.
+- **"BylawsPage مكرر مع BylawsViewPage"** — خطأ، صفحات منفصلة لأدوار منفصلة.
+- **"ClipboardList مكرر في قائمة الناظر"** — خطأ، الرابط الثاني في قائمة المستفيد.
+
+---
+
+## هـ) المخرَج النهائي المقترح
+
+كتابة تقرير جنائي كامل تحت:
+```
+/mnt/documents/SIDEBAR-ADMIN-FORENSIC-2026-06-22.md
+```
+بهيكل:
+1. **Executive Summary** (3 مخاطر عالية: A1, A2, C3).
+2. **جدول التحقق الكامل** (25 رابط × 7 أعمدة: المسار، التسمية، الأيقونة، المجموعة، permKey، sectionKey، رقم سطر `routeRegistry.ts`).
+3. **مصفوفة المشاكل** (A1-A8 + C1-C7) مع رقم سطر/ملف لكل واحدة.
+4. **مصفوفة الأيقونات المكررة**.
+5. **خريطة الصلاحيات الفعلية** بعد تطبيق `filterLinksByPermissions` للأدوار الثلاثة (admin/accountant/beneficiary).
+6. **توصيات إصلاح مرتبة بالأولوية**:
+   - P0 (أمان): فك اقتران A1، إضافة `permKey` مستقل لـ A2.
+   - P1 (UX): تطبيق خيار B (نقل التقارير الجنائية لأرشيف).
+   - P2 (UX): إعادة تجميع (دمج preview، نقل annual-report).
+   - P3 (صيانة): توليد `allAdminLinks` من `ADMIN_ROUTES` تلقائيًا.
+
+**بدون أي تعديل كود** — التقرير وحده هو المخرج.
+
+هل أكتب التقرير الآن بهذا المحتوى المُتحقَّق جنائيًا؟
