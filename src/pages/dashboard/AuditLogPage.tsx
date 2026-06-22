@@ -30,15 +30,26 @@ const AuditLogPage = () => {
            actions={
              <div className="flex flex-wrap items-center gap-2">
                {role === 'admin' && (
-                 <Button
-                   variant="outline"
-                   size="sm"
-                   onClick={() => navigate('/dashboard/audit-report-final')}
-                   className="gap-2"
-                 >
-                   <ClipboardCheck className="w-4 h-4" />
-                   تقرير التدقيق النهائي
-                 </Button>
+                 <>
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={() => navigate('/dashboard/audit-report-final')}
+                     className="gap-2"
+                   >
+                     <ClipboardCheck className="w-4 h-4" />
+                     تقرير التدقيق النهائي
+                   </Button>
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={() => navigate('/dashboard/cleanup-report')}
+                     className="gap-2"
+                   >
+                     <ClipboardCheck className="w-4 h-4" />
+                     تقرير التنظيف
+                   </Button>
+                 </>
                )}
                <Button variant="outline" size="sm" onClick={h.handleExportPdf} disabled={h.exporting || h.logs.length === 0} className="gap-2">
                  <FileDown className="w-4 h-4" />{h.exporting ? 'جاري التصدير...' : 'تصدير PDF'}
