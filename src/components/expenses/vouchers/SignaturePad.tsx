@@ -56,9 +56,12 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ value, onChange, disabled, 
     if (disabled) return;
     e.preventDefault();
     setDrawing(true);
-    const ctx = canvasRef.current!.getContext('2d')!;
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext('2d')!;
     const { x, y } = getPos(e);
-    ctx.strokeStyle = '#0f172a';
+    // F17: قراءة لون النص من design tokens لدعم الوضع الداكن
+    const fg = getComputedStyle(canvas).getPropertyValue('--foreground').trim();
+    ctx.strokeStyle = fg ? `hsl(${fg})` : '#0f172a';
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.beginPath();
