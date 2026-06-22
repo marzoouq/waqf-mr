@@ -6,12 +6,14 @@ import { supabase } from '@/integrations/supabase/client';
 import type { CheckResult } from '../types';
 import { detectEnv } from '../types';
 
+// مصدر الحقيقة: مجلدات supabase/functions/* (باستثناء _shared و README.md)
+// آخر مزامنة: 2026-06-22 — 22 وظيفة
 const EXPECTED_EDGE_FUNCTIONS = [
   'admin-manage-users', 'ai-assistant', 'auth-email-hook', 'beneficiary-summary',
   'check-contract-expiry', 'dashboard-summary', 'email-admin', 'generate-invoice-pdf',
   'generate-voucher-pdf', 'guard-signup', 'health-check', 'lookup-national-id',
-  'process-email-queue', 'webauthn', 'zatca-onboard', 'zatca-renew', 'zatca-report',
-  'zatca-signer', 'zatca-xml-generator',
+  'multi-year-summary', 'process-email-queue', 'webauthn', 'year-comparison-summary',
+  'zatca-onboard', 'zatca-renew', 'zatca-report', 'zatca-signer', 'zatca-xml-generator',
 ];
 
 /**
