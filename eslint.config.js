@@ -234,4 +234,25 @@ export default tseslint.config(
       ],
     },
   },
+
+  // R10 — queryKey literals ممنوعة خارج src/lib/queryKeys/.
+  // استخدم helpers من @/lib/queryKeys بدلاً من ['table-name', ...] لضمان تناسق invalidation.
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: [
+      "src/lib/queryKeys/**",
+      "**/*.test.{ts,tsx}",
+      "**/*.spec.{ts,tsx}",
+      "src/test/**",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Property[key.name='queryKey'] > ArrayExpression > Literal:first-child",
+          message: "استخدم helpers من @/lib/queryKeys بدلاً من string literal في queryKey.",
+        },
+      ],
+    },
+  },
 );
