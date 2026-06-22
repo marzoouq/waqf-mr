@@ -109,8 +109,9 @@ export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/reports': 'finance',
   '/dashboard/chart-of-accounts': 'finance',
   '/dashboard/comparison': 'finance',
+  // P1/C2: نُقل التقرير السنوي من `reference` إلى `finance` لأنه وثيقة مالية بالكامل
+  '/dashboard/annual-report': 'finance',
   '/dashboard/bylaws': 'reference',
-  '/dashboard/annual-report': 'reference',
   '/dashboard/messages': 'communication',
   '/dashboard/support': 'communication',
   '/dashboard/users': 'administration',
@@ -119,8 +120,8 @@ export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/zatca': 'system',
   '/dashboard/email-monitor': 'system',
   '/dashboard/diagnostics': 'system',
-  '/dashboard/audit-report-final': 'system',
-  '/dashboard/cleanup-report': 'system',
+  // P1/C3: audit-report-final + cleanup-report خرجا من القائمة الجانبية
+  // ويُوصل إليهما الآن عبر أزرار داخل /dashboard/audit-log
   '/beneficiary': 'preview',
 };
 
