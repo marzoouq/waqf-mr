@@ -31,22 +31,24 @@ export const ADMIN_ROUTES: Record<string, RouteMeta> = {
   '/dashboard/beneficiaries': { title: 'المستفيدين', labelKey: 'beneficiaries', permKey: 'beneficiaries', sectionKey: 'beneficiaries' },
   '/dashboard/reports': { title: 'التقارير المالية والإفصاح', labelKey: 'reports', permKey: 'reports', sectionKey: 'reports' },
   '/dashboard/accounts': { title: 'الحسابات الختامية', labelKey: 'accounts', permKey: 'accounts', sectionKey: 'accounts' },
-  '/dashboard/distributions': { title: 'توزيع الحصص', labelKey: 'distributions', permKey: 'accounts', sectionKey: 'accounts' },
-  '/dashboard/users': { title: 'إدارة المستخدمين', labelKey: 'users', sectionKey: 'users' },
-  '/dashboard/settings': { title: 'الإعدادات', labelKey: 'settings', sectionKey: 'settings' },
+  // P0/A1: مفتاح صلاحية مستقل لفك الاقتران الصامت مع `accounts`
+  '/dashboard/distributions': { title: 'توزيع الحصص', labelKey: 'distributions', permKey: 'distributions', sectionKey: 'accounts' },
+  // P0/A2: مسارات إدارية بمفاتيح صلاحيات صريحة (Fail-Closed عبر defaults المحاسب = false)
+  '/dashboard/users': { title: 'إدارة المستخدمين', labelKey: 'users', permKey: 'users', sectionKey: 'users' },
+  '/dashboard/settings': { title: 'الإعدادات', labelKey: 'settings', permKey: 'settings', sectionKey: 'settings' },
   '/dashboard/messages': { title: 'المراسلات', labelKey: 'messages', permKey: 'messages', sectionKey: 'messages' },
   '/dashboard/invoices': { title: 'الفواتير الضريبية', labelKey: 'invoices', permKey: 'invoices', sectionKey: 'invoices' },
   '/dashboard/audit-log': { title: 'سجل المراجعة', labelKey: 'audit_log', permKey: 'audit_log', sectionKey: 'audit_log' },
   '/dashboard/bylaws': { title: 'اللائحة التنظيمية', labelKey: 'bylaws', permKey: 'bylaws', sectionKey: 'bylaws' },
-  '/dashboard/zatca': { title: 'تكامل ZATCA', labelKey: 'zatca', sectionKey: 'zatca' },
+  '/dashboard/zatca': { title: 'تكامل ZATCA', labelKey: 'zatca', permKey: 'zatca', sectionKey: 'zatca' },
   '/dashboard/annual-report': { title: 'إدارة التقرير السنوي', labelKey: 'annual_report', permKey: 'annual_report', sectionKey: 'annual_report' },
   '/dashboard/support': { title: 'الدعم الفني', labelKey: 'support', permKey: 'support', sectionKey: 'support' },
   '/dashboard/chart-of-accounts': { title: 'الشجرة المحاسبية', labelKey: 'chart_of_accounts', permKey: 'chart_of_accounts', sectionKey: 'chart_of_accounts' },
-  '/dashboard/comparison': { title: 'المقارنة التاريخية', labelKey: 'comparison', sectionKey: 'comparison' },
-  '/dashboard/diagnostics': { title: 'تشخيص النظام', labelKey: 'diagnostics', sectionKey: 'diagnostics' },
-  '/dashboard/email-monitor': { title: 'مراقبة البريد', labelKey: 'email_monitor', sectionKey: 'email_monitor' },
-  '/dashboard/audit-report-final': { title: 'تقرير التدقيق النهائي', sectionKey: 'audit_report_final' },
-  '/dashboard/cleanup-report': { title: 'تقرير التنظيف', sectionKey: 'cleanup_report' },
+  '/dashboard/comparison': { title: 'المقارنة التاريخية', labelKey: 'comparison', permKey: 'comparison', sectionKey: 'comparison' },
+  '/dashboard/diagnostics': { title: 'تشخيص النظام', labelKey: 'diagnostics', permKey: 'diagnostics', sectionKey: 'diagnostics' },
+  '/dashboard/email-monitor': { title: 'مراقبة البريد', labelKey: 'email_monitor', permKey: 'email_monitor', sectionKey: 'email_monitor' },
+  '/dashboard/audit-report-final': { title: 'تقرير التدقيق النهائي', permKey: 'audit_report_final', sectionKey: 'audit_report_final' },
+  '/dashboard/cleanup-report': { title: 'تقرير التنظيف', permKey: 'cleanup_report', sectionKey: 'cleanup_report' },
 };
 
 /**
