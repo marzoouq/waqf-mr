@@ -31,11 +31,8 @@
 - **ملاحظة:** ينقض ادعاء `R11-VERIFICATION.md` (الذي قال إن السياسة "غير مُنشرة"). السياسة **موجودة فعلاً** على Live.
 - **التوصية:** `DROP POLICY "Authenticated users can view invoices" ON storage.objects;` والاكتفاء بـ `Role-based users can view invoices` التي تتحقق من الأدوار المعنية.
 
-### C2 — سياسات INSERT على `storage.objects` بلا `with_check`
-- **الموقع:** `Accountants can upload invoices`, `Admins can upload invoices`, `Admins can upload waqf assets`
-- **الدليل:** `qual=NULL` و `with_check=NULL` ⇒ سياسة INSERT بلا قيد ⇒ ترفع لأي مسجَّل في أي bucket.
-- **الأثر:** أي مستخدم authenticated يستطيع رفع ملفات إلى أي bucket باسمه. (تخفيف: لا يكسر السرية لكن يفتح storage abuse).
-- **التوصية:** إضافة `WITH CHECK (bucket_id = 'invoices'::text AND has_role(auth.uid(),'accountant'))` ونظائرها.
+### C2 — (سُحب) سياسات INSERT على storage صحيحة
+- بعد التحقق المتعمّق: `with_check` موجود ومحدَّد على كل سياسات INSERT للـ buckets. `qual=NULL` للـ INSERT طبيعي ولا يعني انعدام التحقق. **إيجابي كاذب** — لا إجراء مطلوب.
 
 ### C3 — كل دوال `SECURITY DEFINER` العامة قابلة للتنفيذ من `anon`
 - **العدد:** ≥70 دالة في `public.*` (شامل `decrypt_pii`, `get_pii_key`, `encrypt_zatca_private_key`, `consume_zatca_otp`, `delete_fiscal_year_cascade`, `close_fiscal_year`, ...)
