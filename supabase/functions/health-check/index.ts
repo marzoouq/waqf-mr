@@ -21,9 +21,10 @@ Deno.serve(async (req: Request) => {
 
   // فحص اتصال قاعدة البيانات
   try {
+    // F14: استخدام ANON_KEY كافٍ لفحص الاتصال (لا حاجة لـ SERVICE_ROLE)
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
     );
     const { error } = await supabase
       .from("fiscal_years")

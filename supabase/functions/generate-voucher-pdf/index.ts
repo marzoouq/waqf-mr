@@ -100,19 +100,11 @@ Deno.serve(async (req): Promise<Response> => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("generate-voucher-pdf error:", formatError(err));
+    // F11: تعقيم — لا تُسجَّل stack traces (قد تكشف مسارات النظام)
+    console.error("generate-voucher-pdf error:", err instanceof Error ? err.message : "unknown");
     return jsonError("فشل توليد سند الصرف", 500, corsHeaders);
   }
 });
-
-function formatError(err: unknown): string {
-  if (err instanceof Error) return `${err.name}: ${err.message}\n${err.stack ?? ""}`;
-  try {
-    return JSON.stringify(err);
-  } catch {
-    return String(err);
-  }
-}
 
 function jsonError(message: string, status: number, corsHeaders: Record<string, string>) {
   return new Response(JSON.stringify({ error: message }), {

@@ -1,8 +1,8 @@
 /**
  * ROUTE_ROLES — مصدر حقيقة موحَّد لأدوار كل مسار في النظام
  *
- * مستخرَج صراحة من ملفات `src/routes/*.tsx` (39 مساراً):
- *  - 22 مسار admin (17 ADMIN_ROLES + 5 ADMIN_ONLY + /dashboard)
+ * مستخرَج صراحة من ملفات `src/routes/*.tsx` (41 مساراً محمياً):
+ *  - 24 مسار admin (16 ADMIN_ROLES + 8 ADMIN_ONLY)
  *  - 16 مسار beneficiary (مختلطة BENEFICIARY_ROLES و ALL_NON_ACCOUNTANT)
  *  - 1 مسار waqif (/waqif)
  *

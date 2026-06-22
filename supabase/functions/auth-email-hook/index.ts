@@ -313,7 +313,8 @@ Deno.serve(async (req) => {
   try {
     return await handleWebhook(req)
   } catch (error) {
-    console.error('Webhook handler error:', error)
+    // F6: تعقيم — تسجيل الرسالة فقط دون payload الذي قد يحتوي بريد/توكن
+    console.error('Webhook handler error:', error instanceof Error ? error.message : 'unknown')
     const message = error instanceof Error ? error.message : 'Unknown error'
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
