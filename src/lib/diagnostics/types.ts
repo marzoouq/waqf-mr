@@ -10,6 +10,8 @@ export interface CheckMeta {
   httpStatus?: number;
   ms?: number;
   env?: DiagnosticEnv;
+  /** سبب اختياري عند التحذيرات المُستهدفة (مثل cors_preview) */
+  reason?: string;
 }
 
 export interface CheckResult {

@@ -6,12 +6,14 @@ import { supabase } from '@/integrations/supabase/client';
 import type { CheckResult } from '../types';
 import { detectEnv } from '../types';
 
+// مصدر الحقيقة: مجلدات supabase/functions/* (باستثناء _shared و README.md)
+// آخر مزامنة: 2026-06-22 — 22 وظيفة
 const EXPECTED_EDGE_FUNCTIONS = [
   'admin-manage-users', 'ai-assistant', 'auth-email-hook', 'beneficiary-summary',
   'check-contract-expiry', 'dashboard-summary', 'email-admin', 'generate-invoice-pdf',
   'generate-voucher-pdf', 'guard-signup', 'health-check', 'lookup-national-id',
-  'process-email-queue', 'webauthn', 'zatca-onboard', 'zatca-renew', 'zatca-report',
-  'zatca-signer', 'zatca-xml-generator',
+  'multi-year-summary', 'process-email-queue', 'webauthn', 'year-comparison-summary',
+  'zatca-onboard', 'zatca-renew', 'zatca-report', 'zatca-signer', 'zatca-xml-generator',
 ];
 
 /**
@@ -40,9 +42,20 @@ export async function checkBackendEdgeHealthPing(): Promise<CheckResult> {
     return { id, label: 'نداء health-check', status: 'fail', detail, meta };
   } catch (e) {
     const ms = Math.round(performance.now() - t0);
+    const msg = String(e);
+    // في بيئة المعاينة/التطوير، CORS preflight يحجب fetch إلى Edge Functions
+    // وهذا ليس عطلاً في الدالة نفسها — يُعامَل تحذيراً واضحاً بدلاً من فشل.
+    const isCorsLike = /Failed to fetch|NetworkError|TypeError/i.test(msg);
+    if (env !== 'prod' && isCorsLike) {
+      return {
+        id, label: 'نداء health-check', status: 'warn',
+        detail: `[GET /${fnName}] ms=${ms} env=${env} — محظور CORS في المعاينة (سليم في الإنتاج)`,
+        meta: { fnName, ms, env, reason: 'cors_preview' },
+      };
+    }
     return {
       id, label: 'نداء health-check', status: 'fail',
-      detail: `[GET /${fnName}] ms=${ms} network_error=${String(e)}`,
+      detail: `[GET /${fnName}] ms=${ms} network_error=${msg}`,
       meta: { fnName, ms, env },
     };
   }

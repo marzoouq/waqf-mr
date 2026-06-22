@@ -120,7 +120,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           ) : (
             <Card><CardContent className="py-8 text-center text-muted-foreground">شغّل الفحص لعرض ملخص الصحة.</CardContent></Card>
           )}
-          <Suspense fallback={null}><WebVitalsPanel /></Suspense>
+          {/* تم نقل WebVitalsPanel حصراً إلى تبويب «الأداء الحي» لتفادي اشتراكات PerformanceObserver المزدوجة */}
         </TabsContent>
 
         <TabsContent value="checks">

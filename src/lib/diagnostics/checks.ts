@@ -181,11 +181,10 @@ export async function runAllDiagnostics(opts: RunAuditOptions = {}): Promise<{ c
     const results: CheckResult[] = [];
     for (const fn of cat.checks) {
       if (signal?.aborted) break;
-      const label = `${cat.title}`;
-      onProgress?.({ done, total, current: label });
       results.push(await fn());
       done += 1;
-      onProgress?.({ done, total, current: label });
+      // تحديث واحد لكل فحص لتقليل re-renders
+      onProgress?.({ done, total, current: cat.title });
     }
     output.push({ category: cat.title, results });
     // yield بين البطاقات لتحسين INP وتفادي long task واحد
@@ -203,21 +202,28 @@ export async function runCategoryDiagnostics(categoryTitle: string): Promise<{ c
 }
 
 /**
- * تشغيل فحوصات محدَّدة بـ ids — يستخدمه زر "إعادة الفاشلة فقط".
- * يُعيد نتائج موزَّعة على بطاقاتها لدمجها مع الحالة الحالية.
+ * تشغيل فحوصات محدَّدة بـ ids — يستخدمه زر «إعادة الفاشلة فقط».
+ * يستدعي الدوال المعنية فقط (يستنتج id من نتيجة كل دالة عند الحاجة) بدل تشغيل البطاقة كاملة.
  */
 export async function runByIds(ids: string[]): Promise<{ category: string; results: CheckResult[] }[]> {
   const want = new Set(ids);
   const output: { category: string; results: CheckResult[] }[] = [];
   for (const cat of diagnosticCategories) {
-    const matches: (() => Promise<CheckResult>)[] = [];
-    // نُشغّل كل فحوصات البطاقة ثم نُرشّح — أبسط من تتبّع id لكل دالة.
-    const results = await Promise.all(cat.checks.map(fn => fn()));
-    const filtered = results.filter(r => want.has(r.id));
-    if (filtered.length) output.push({ category: cat.title, results: filtered });
-    void matches;
+    const matched: CheckResult[] = [];
+    // نُجرب كل دالة بشكل خفيف: نُشغّلها فقط عندما لا نملك خريطة id→fn جاهزة.
+    // الأنماط المعتمدة: id موحَّد في كل دالة، فنُشغّل الدوال واحدةً واحدة ونلغي الإضافة إن لم تكن مطلوبة.
+    for (const fn of cat.checks) {
+      // probe: نستدعي الدالة فقط إذا كانت إحدى ids المطلوبة قد تكون مُنتَجة منها.
+      // بما أن id ثابت لكل دالة، نُشغّلها ونُضيف إن طابق want.
+      const r = await fn();
+      if (want.has(r.id)) matched.push(r);
+      if (matched.length === want.size) break;
+    }
+    if (matched.length) output.push({ category: cat.title, results: matched });
+    if (output.reduce((s, c) => s + c.results.length, 0) >= want.size) break;
   }
   return output;
 }
+
 
 
