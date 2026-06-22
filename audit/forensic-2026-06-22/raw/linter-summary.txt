@@ -1,0 +1,6 @@
+Run at 2026-06-22T22:57
+Linter total: 184 | Security scan: 185
+Top categories from preview:
+- ERROR x1: Security Definer View
+- WARN x N: Public Can Execute SECURITY DEFINER Function (many)
+- WARN: Public Bucket Allows Listing
