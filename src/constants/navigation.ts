@@ -55,10 +55,10 @@ export const allAdminLinks = [
   { to: '/dashboard/annual-report', icon: ClipboardList, label: 'إدارة التقرير السنوي' },
   { to: '/dashboard/chart-of-accounts', icon: GitBranch, label: 'الشجرة المحاسبية' },
   { to: '/dashboard/comparison', icon: GitCompareArrows, label: 'المقارنة التاريخية' },
-    { to: '/dashboard/diagnostics', icon: Activity, label: 'تشخيص النظام' },
-    { to: '/dashboard/email-monitor', icon: Mail, label: 'مراقبة البريد' },
-  { to: '/dashboard/audit-report-final', icon: ShieldCheck, label: 'تقرير التدقيق النهائي' },
-  { to: '/dashboard/cleanup-report', icon: ClipboardCheck, label: 'تقرير التنظيف' },
+  { to: '/dashboard/diagnostics', icon: Activity, label: 'تشخيص النظام' },
+  { to: '/dashboard/email-monitor', icon: Mail, label: 'مراقبة البريد' },
+  // P1/C3: تقارير التدقيق الجنائي والتنظيف (audit-report-final, cleanup-report)
+  // نُقلت من القائمة الدائمة إلى أزرار داخل /dashboard/audit-log. المسارات لا تزال موجودة.
   { to: '/beneficiary', icon: Eye, label: 'معاينة بوابة المستفيد' },
 ];
 
