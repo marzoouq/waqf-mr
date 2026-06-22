@@ -246,7 +246,8 @@ Deno.serve(async (req) => {
       }, 200, corsHeaders);
 
     } catch (signErr) {
-      console.error("Signing failed:", signErr);
+      // F12: تعقيم — تفاصيل p256.sign قد تكشف معلومات المفتاح الخاص
+      console.error("Signing failed:", signErr instanceof Error ? signErr.message : "unknown");
       return json({ error: "فشل التوقيع الإلكتروني. يرجى المحاولة لاحقاً أو التواصل مع الدعم." }, 500, corsHeaders);
     }
 

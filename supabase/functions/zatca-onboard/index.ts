@@ -123,7 +123,8 @@ Deno.serve(async (req): Promise<Response> => {
         const csrDer = asn1Sequence([certReqInfo, asn1Sequence([asn1Oid([1, 2, 840, 10045, 4, 3, 2])]), asn1BitString(signature.toDERRawBytes())]);
         csrPem = btoa(String.fromCharCode(...csrDer));
       } catch (csrErr) {
-        console.error("CSR generation error:", csrErr);
+        // F12: تعقيم — لا تُسجَّل تفاصيل CSR/p256
+        console.error("CSR generation error:", csrErr instanceof Error ? csrErr.message : "unknown");
         await logZatcaOperation(admin, { operation_type: "onboard", status: "error", error_message: "فشل توليد طلب الشهادة (CSR)", user_id: user.id });
         return new Response(JSON.stringify({ error: "فشل توليد طلب الشهادة (CSR)" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
