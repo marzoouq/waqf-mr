@@ -15,6 +15,9 @@ export const ADMIN_ROLES: AppRole[] = ['admin', 'accountant'];
 /** أدوار المستفيد + المدير */
 export const BENEFICIARY_ROLES: AppRole[] = ['admin', 'beneficiary'];
 
+/** أدوار الواقف + المدير */
+export const WAQIF_ROLES: AppRole[] = ['admin', 'waqif'];
+
 /** كل الأدوار باستثناء المحاسب */
 export const ALL_NON_ACCOUNTANT: AppRole[] = ['admin', 'beneficiary', 'waqif'];
 
