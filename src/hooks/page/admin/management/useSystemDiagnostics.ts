@@ -2,7 +2,7 @@
  * هوك صفحة التشخيص — يستخرج كل المنطق (تشغيل، تصدير، إعادة فاشلة، أرشيف)
  */
 import { useState, useEffect, useCallback } from 'react';
-import { runAllDiagnostics, runCategoryDiagnostics, runByIds, diagnosticCategories } from '@/lib/diagnostics/checks';
+import { runAllDiagnostics, runCategoryDiagnostics, runByIds, runLightDiagnostics, diagnosticCategories } from '@/lib/diagnostics/checks';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logger } from '@/lib/logger';
