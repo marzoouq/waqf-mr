@@ -11,7 +11,7 @@ export function useMyDistributions(beneficiaryId?: string | null, fiscalYearId?:
     queryKey: financialKeys.distributions.my(beneficiaryId, fiscalYearId),
     // التوزيعات لا تتغير كثيراً — staleTime مالي مرتفع
     staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!beneficiaryId) return [];
       let query = supabase
         .from('distributions')

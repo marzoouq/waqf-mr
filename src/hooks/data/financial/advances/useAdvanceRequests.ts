@@ -31,7 +31,7 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: advancesKeys.requestsByFiscalYear(fiscalYearId ?? 'all'),
     staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       let query = supabase
       .from('advance_requests')
         .select('id, beneficiary_id, fiscal_year_id, amount, reason, status, rejection_reason, approved_by, approved_at, paid_at, created_at, beneficiary:beneficiaries(id, name, share_percentage, user_id), fiscal_year:fiscal_years(label)')

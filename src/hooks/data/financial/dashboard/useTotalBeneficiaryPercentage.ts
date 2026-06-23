@@ -19,7 +19,7 @@ import { financialKeys } from '@/lib/queryKeys/financialKeys';
 export const useTotalBeneficiaryPercentage = () => {
   return useQuery({
     queryKey: financialKeys.dashboard.totalBeneficiaryPercentage(),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const data = await rpc('get_total_beneficiary_percentage');
       const result = safeNumber(data);
       if (result <= 0) return 0;

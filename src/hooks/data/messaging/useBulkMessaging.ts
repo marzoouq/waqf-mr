@@ -9,7 +9,7 @@ import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
 export const useBeneficiariesForMessaging = () => {
   return useQuery({
     queryKey: beneficiariesKeys.messagingRecipients(),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       // F-A2: استخدام beneficiaries_safe (view آمن) بدل جدول PII الخام.
       const { data, error } = await supabase
         .from('beneficiaries_safe')

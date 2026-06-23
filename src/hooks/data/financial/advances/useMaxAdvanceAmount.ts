@@ -26,7 +26,7 @@ export const useMaxAdvanceAmount = (
     queryKey: advancesKeys.maxAdvance(beneficiaryId, fiscalYearId),
     enabled: enabled && !!beneficiaryId && !!fiscalYearId,
     staleTime: 30_000,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const data = await rpc('get_max_advance_amount', {
         p_beneficiary_id: beneficiaryId,
         p_fiscal_year_id: fiscalYearId!,

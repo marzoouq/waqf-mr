@@ -41,7 +41,7 @@ export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
     queryKey: contractsKeys.byFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       let query = supabase
         .from('contracts')
         .select(CONTRACT_SELECT_WITH_JOINS)
@@ -68,7 +68,7 @@ export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
     queryKey: contractsKeys.safeByFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       let query = supabase
         .from('contracts_safe')
         .select('id, contract_number, tenant_name, property_id, unit_id, start_date, end_date, rent_amount, payment_type, payment_count, payment_amount, status, fiscal_year_id, created_at, updated_at, notes')

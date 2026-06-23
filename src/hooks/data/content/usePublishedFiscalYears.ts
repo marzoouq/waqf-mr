@@ -8,7 +8,7 @@ import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
 export const usePublishedFiscalYears = () => {
   return useQuery({
     queryKey: fiscalYearKeys.publishedAll(),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const { data } = await supabase
         .from('fiscal_years')
         .select('id, label')
