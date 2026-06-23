@@ -4,7 +4,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { EmailStatusBadge, formatEmailDateTime } from './EmailMonitorPrimitives';
+import { EmailStatusBadge } from './EmailMonitorPrimitives';
+import { formatEmailDateTime } from './emailMonitorUtils';
 
 interface EmailLogRow {
   id: string;

@@ -1,6 +1,7 @@
 /**
  * هوك منطق المساعد الذكي — يجمع الحالة (useAiChatState) مع إرسال الرسائل.
  * يدعم: Streaming، Fallback UI، إعادة المحاولة.
+ * تعديلات refs مُغلَّفة داخل useAiChatState لاحترام react-hooks/immutability.
  */
 import { useCallback } from 'react';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
@@ -10,30 +11,24 @@ import { useAiChatState, type Msg } from './ai/useAiChatState';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const AI_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai-assistant` : null;
-const SEND_COOLDOWN_MS = 2000;
 const HISTORY_LIMIT = 10;
 
 export function useAiChat() {
   const { user, role, session } = useAuth();
   const s = useAiChatState();
-  const { refs } = s;
 
   const isAvailable = role === 'admin' || role === 'accountant' || role === 'beneficiary' || role === 'waqif';
 
   const sendMessage = useCallback(async (messageText: string) => {
     const trimmed = messageText.trim().slice(0, 1000);
     if (!trimmed || s.isLoading) return;
-
-    const now = Date.now();
-    if (now - refs.lastSendTimeRef.current < SEND_COOLDOWN_MS) return;
-    refs.lastSendTimeRef.current = now;
-    refs.lastUserMsgRef.current = trimmed;
+    if (!s.tryBeginSend()) return;
+    s.setLastUserMsg(trimmed);
     s.setError(null);
 
     if (!AI_URL) { s.setError('خطأ في إعداد المساعد الذكي — تعذر الاتصال بالخادم.'); return; }
 
-    refs.abortControllerRef.current?.abort();
-    refs.abortControllerRef.current = new AbortController();
+    const signal = s.beginRequest();
 
     const userMsg: Msg = { role: 'user', content: trimmed };
     const allMessages = [...s.messages, userMsg].slice(-HISTORY_LIMIT);
@@ -49,7 +44,7 @@ export function useAiChat() {
         accessToken: session.access_token,
         apiKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         body: { messages: allMessages, mode: s.mode },
-        signal: refs.abortControllerRef.current.signal,
+        signal,
         onContent: (chunk) => {
           assistantContent += chunk;
           s.setMessages((prev) => {
@@ -70,7 +65,7 @@ export function useAiChat() {
     } finally {
       s.setIsLoading(false);
     }
-  }, [s, refs, session]);
+  }, [s, session]);
 
   const send = useCallback(() => { sendMessage(s.input); }, [s.input, sendMessage]);
 
@@ -80,8 +75,9 @@ export function useAiChat() {
       const last = prev[prev.length - 1];
       return last?.role === 'assistant' && last.content.startsWith('❌') ? prev.slice(0, -1) : prev;
     });
-    if (refs.lastUserMsgRef.current) sendMessage(refs.lastUserMsgRef.current);
-  }, [s, refs, sendMessage]);
+    const last = s.getLastUserMsg();
+    if (last) sendMessage(last);
+  }, [s, sendMessage]);
 
   return {
     user, role, isAvailable,
@@ -90,7 +86,7 @@ export function useAiChat() {
     input: s.input, setInput: s.setInput,
     isLoading: s.isLoading,
     mode: s.mode, handleModeChange: s.handleModeChange,
-    send, endRef: refs.endRef,
+    send, endRef: s.endRef,
     error: s.error, retryLast,
   };
 }

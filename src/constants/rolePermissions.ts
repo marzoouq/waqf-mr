@@ -12,6 +12,8 @@ export const DEFAULT_ROLE_PERMS: RolePerms = {
     support: true, chart_of_accounts: true,
     // P0/A1: مفتاح مستقل لتوزيع الحصص (كان مقترناً بـ`accounts`)
     distributions: true,
+    // الأرشيف متاح للمحاسب (وثائق تشغيلية مرجعية)
+    archive: true,
     // P0/A2: مسارات إدارية محظورة افتراضياً على المحاسب (Fail-Closed)
     // الأمن يعتمد الآن على مفاتيح صلاحيات صريحة بدلاً من ACCOUNTANT_EXCLUDED_ROUTES فقط
     users: false, settings: false, zatca: false, comparison: false,
@@ -25,6 +27,7 @@ export const DEFAULT_ROLE_PERMS: RolePerms = {
     carryforward: true, financial_reports: true,
     accounts: true, invoices: true, expenses: true, bylaws: true, messages: true,
     notifications: true, annual_report: true, support: true,
+    archive: true,
   },
   waqif: {
     properties: true, contracts: true, disclosure: false,
@@ -32,5 +35,6 @@ export const DEFAULT_ROLE_PERMS: RolePerms = {
     expenses: true, bylaws: true,
     share: false, notifications: true, annual_report: true,
     support: true,
+    archive: true,
   },
 };
