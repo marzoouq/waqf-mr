@@ -24,6 +24,7 @@ export const useSystemDiagnostics = (autoRun = true) => {
     pushRun({ total: s.total, pass: s.pass, warn: s.warn, fail: s.fail, info: s.info, healthScore: s.healthScore });
   }, []);
 
+  // F4: تشغيل كامل (يدوي) — يستدعيه زر «تشغيل كل الفحوصات»
   const run = useCallback(async () => {
     setRunning(true);
     setProgress({ done: 0, total: 0, current: '' });
@@ -47,6 +48,26 @@ export const useSystemDiagnostics = (autoRun = true) => {
       setRunning(false);
     }
   }, [user, persistRun]);
+
+  // F4: تشغيل خفيف (تلقائي عند تركيب الصفحة) — يتجنّب فحوصات DB/Edge الثقيلة
+  const runLight = useCallback(async () => {
+    setRunning(true);
+    setProgress({ done: 0, total: 0, current: '' });
+    try {
+      const output = await runLightDiagnostics({ onProgress: (info) => setProgress(info) });
+      // نُدمج مع النتائج الحالية بدل استبدالها (يحافظ على نتائج بطاقات DB إن وُجدت)
+      setResults(prev => {
+        const map = new Map(prev.map(c => [c.category, c]));
+        for (const c of output) map.set(c.category, c);
+        return Array.from(map.values());
+      });
+      setLastRun(new Date());
+    } catch (e) {
+      logger.error('[Diagnostics] فشل التشغيل الخفيف:', e);
+    } finally {
+      setRunning(false);
+    }
+  }, []);
 
   const runSingle = useCallback(async (categoryTitle: string) => {
     setRunningCategory(categoryTitle);
