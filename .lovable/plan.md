@@ -1,215 +1,132 @@
-## خطة: مركز أرشفة الوثائق — النسخة النهائية المحققة
+## خطة الفحص الشامل والعميق للتطبيق بالكامل
 
-**الهدف:** صفحة في لوحة الناظر لإدارة وثائق الوقف الرسمية + صفحة قراءة للمستفيدين والواقف.
-**القرارات المعتمدة:** 6 تصنيفات ثابتة · منشورة افتراضياً · PDF فقط ≤ 10MB.
-
----
-
-### تصحيحات إضافية بعد الفحص الثاني
-
-| # | الادعاء السابق | الواقع | الحل |
-|---|----------------|--------|------|
-| 6 | تسجيل المشاهدة في `audit_log` بنوع `document_viewed` | `audit_log` schema صارم: `table_name`, `operation`, `record_id`, `old_data`, `new_data` فقط — لا يقبل أنواعاً حرّة | **حذف تسجيل المشاهدة من MVP** (مؤجَّل لموجة لاحقة بجدول مخصص) |
-| 7 | "إضافة قسم `archive` لـ useSectionsVisibility" — مبهم | المصدر الحقيقي: `defaultAdminSections` و `defaultBeneficiarySections` في `src/constants/navigation.ts` + `PROTECTED_ADMIN_SECTIONS` في `src/constants/sections.ts` | تحديث `navigation.ts` (إضافة `archive: true`) — **بدون** إضافته لـ `PROTECTED_ADMIN_SECTIONS` (نسمح للناظر بإخفائه) |
-| 8 | المحاسب accountant سيرى زر الحذف ويفشل بـ RLS صامتاً | RLS يقصر الكتابة على admin فقط، لكن الواجهة لا تخفي الأزرار | في `ArchiveDocumentCard` و `ArchivePage`: استخدام `useAuth().role === 'admin'` لإخفاء أزرار رفع/تعديل/حذف عن المحاسب (المحاسب قراءة فقط) |
+فحص تدقيقي على **9 محاور** يغطي كل ملف، مجلد، صفحة، لوحة تحكم، Edge Function، جدول DB، ومسار مستخدم — دون أي تعديل على الكود.
 
 ---
 
-### A) قاعدة البيانات
+### المحور 1 — الكود الثابت (Static Analysis)
+- `bunx tsc --noEmit` — صفر أخطاء TypeScript
+- `bunx eslint src --max-warnings=0` — تقرير كامل
+- البحث عن أنماط محظورة في كامل `src/`:
+  - `console.log/warn/error` خام (يجب `logger`)
+  - `localStorage` لأدوار أو `fiscal_year_id` (يجب `sessionStorage`)
+  - `any` بدون مبرر
+  - ألوان hex خارج Canvas/SVG/print
+  - `@/integrations/supabase/client` داخل `src/pages/` و`src/components/`
+  - `toast` داخل `src/hooks/data/`
+  - استيرادات barrel → barrel
+  - ملفات > 200 سطر و > 180 سطر للمكونات
+  - props ≥ 5 غير مجمّعة
+- `tailwind.config` و`index.css`: التحقق من اكتمال tokens
 
-#### A1 — جدول `archived_documents` + RLS (migration واحد، بترتيب GRANT-then-RLS)
+### المحور 2 — المعمارية والاتفاقيات
+- تشغيل كامل: `node scripts/audit-all.mjs` (يغطي structure + conventions + hooks-layout + ui-permissions + page-controls)
+- التحقق من Page Hook Pattern: كل صفحة في `src/pages/` بدون منطق
+- فصل طبقات: `hooks/data/` نقي، `hooks/domain/` حسابات، `hooks/page/` تنسيق، `hooks/application/` controllers، `hooks/auth/` (session/role/biometric/flows)، `hooks/ui/` عرض
+- `utils/` (دوال نقية) vs `lib/` (stateful)
+- مراجعة `audit/conventions-deep-violations.csv` و`audit/hooks-layout-report.md` و`audit/ui-permissions-audit.csv` و`audit/page-controls-audit.md`
+- التحقق من `routeRegistry.ts` ↔ `routeRoles.ts` ↔ `adminRoutes.tsx` ↔ `beneficiaryRoutes.tsx` ↔ `waqifRoutes.tsx` متّسقة
 
-```sql
-CREATE TABLE public.archived_documents (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  title           text NOT NULL CHECK (char_length(title) BETWEEN 3 AND 200),
-  description     text CHECK (description IS NULL OR char_length(description) <= 500),
-  category        text NOT NULL CHECK (category IN (
-    'meeting_minutes','annual_reports','certificates',
-    'official_contracts','correspondence','other'
-  )),
-  storage_path    text NOT NULL UNIQUE,
-  file_size_bytes integer NOT NULL CHECK (file_size_bytes > 0 AND file_size_bytes <= 10485760),
-  mime_type       text NOT NULL DEFAULT 'application/pdf' CHECK (mime_type = 'application/pdf'),
-  document_date   date,
-  is_published    boolean NOT NULL DEFAULT true,
-  uploaded_by     uuid REFERENCES auth.users(id) ON DELETE SET NULL,
-  created_at      timestamptz NOT NULL DEFAULT now(),
-  updated_at      timestamptz NOT NULL DEFAULT now()
-);
+### المحور 3 — قاعدة البيانات والأمن
+- `supabase--linter` — تقرير المحاذير
+- `security--run_security_scan` + `security--get_scan_results`
+- استعلامات تحقق على كل الجداول الـ 42:
+  - RLS مفعّل + GRANT صحيح
+  - عدم وجود FK مباشرة إلى `auth.users`
+  - سياسات `archived_documents` + storage `waqf-documents` + `waqf-assets`
+  - دوال `SECURITY DEFINER` لها `SET search_path = public`
+  - استخدام `has_role()` بدلاً من `jwt_role()`
+- فحص الفهارس على الأعمدة الحرجة (fiscal_year_id, beneficiary_id, contract_id, is_published)
+- التحقق من triggers الـ 29 والدوال الـ 32
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.archived_documents TO authenticated;
-GRANT ALL ON public.archived_documents TO service_role;
+### المحور 4 — Edge Functions (الـ 11 وظيفة)
+لكل وظيفة في `supabase/functions/`:
+- `admin-manage-users`, `ai-assistant`, `auth-email-hook`, `check-contract-expiry`, `dashboard-summary`, `generate-invoice-pdf`, `generate-voucher-pdf`, `guard-signup`, `health-check`, `lookup-national-id`, `multi-year-summary`, `process-email-queue`, `webauthn`, `year-comparison-summary`, `zatca-xml-generator`
+- التحقق من:
+  - `getUser()` لا `getSession()`
+  - Zod validation على body
+  - عدم تسريب `SUPABASE_SERVICE_ROLE_KEY`
+  - CORS صحيحة (`_shared/cors.ts`)
+  - معالجة أخطاء موحّدة
+- `supabase--edge_function_logs` — قراءة آخر السجلات لكل وظيفة
 
-ALTER TABLE public.archived_documents ENABLE ROW LEVEL SECURITY;
+### المحور 5 — فحص وقت التشغيل (Runtime عبر Playwright)
+لكل دور، تنفيذ Playwright headless على localhost:8080 مع التقاط:
+- لقطة شاشة لكل صفحة
+- console errors
+- network 4xx/5xx
+- runtime errors
 
-CREATE INDEX idx_archived_docs_cat_pub_date
-  ON public.archived_documents (category, is_published, document_date DESC NULLS LAST, created_at DESC);
+**admin** (جميع المسارات):
+`/dashboard`, `/dashboard/contracts`, `/dashboard/properties`, `/dashboard/beneficiaries`, `/dashboard/income`, `/dashboard/expenses`, `/dashboard/advance-requests`, `/dashboard/distributions`, `/dashboard/invoices`, `/dashboard/vouchers`, `/dashboard/accounts`, `/dashboard/chart-of-accounts`, `/dashboard/annual-report`, `/dashboard/audit-report-final`, `/dashboard/historical-comparison`, `/dashboard/multi-year`, `/dashboard/archive`, `/dashboard/audit-log`, `/dashboard/access-log`, `/dashboard/cleanup-report`, `/dashboard/email-monitor`, `/dashboard/zatca`, `/dashboard/messages`, `/dashboard/support`, `/dashboard/users`, `/dashboard/settings`, `/dashboard/system-diagnostics`
 
-CREATE TRIGGER trg_archived_docs_updated_at
-  BEFORE UPDATE ON public.archived_documents
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+**accountant**: نفس المسارات + التحقق من حجب الإعدادات/المستخدمين/الإقفال
 
--- قراءة: ناظر/محاسب يرون الكل
-CREATE POLICY archived_docs_select_admin ON public.archived_documents
-  FOR SELECT TO authenticated
-  USING (has_role(auth.uid(),'admin'::app_role) OR has_role(auth.uid(),'accountant'::app_role));
+**beneficiary**:
+`/beneficiary/dashboard`, `/beneficiary/contracts`, `/beneficiary/invoices`, `/beneficiary/expenses`, `/beneficiary/accounts`, `/beneficiary/carryforward`, `/beneficiary/annual-report`, `/beneficiary/archive`, `/beneficiary/disclosure`, `/beneficiary/reports`, `/beneficiary/messages`, `/beneficiary/notifications`, `/beneficiary/support`, `/beneficiary/settings`
 
--- قراءة: مستفيد/واقف فقط المنشور
-CREATE POLICY archived_docs_select_published ON public.archived_documents
-  FOR SELECT TO authenticated
-  USING (
-    is_published = true
-    AND (has_role(auth.uid(),'beneficiary'::app_role) OR has_role(auth.uid(),'waqif'::app_role))
-  );
+**waqif**:
+`/waqif/dashboard` وكل الصفحات الفرعية
 
--- كتابة: ناظر فقط
-CREATE POLICY archived_docs_insert_admin ON public.archived_documents
-  FOR INSERT TO authenticated WITH CHECK (has_role(auth.uid(),'admin'::app_role));
-CREATE POLICY archived_docs_update_admin ON public.archived_documents
-  FOR UPDATE TO authenticated USING (has_role(auth.uid(),'admin'::app_role));
-CREATE POLICY archived_docs_delete_admin ON public.archived_documents
-  FOR DELETE TO authenticated USING (has_role(auth.uid(),'admin'::app_role));
-```
+**public**: `/`, `/auth`, `/reset-password`, `/install`, `/privacy`, `/terms`, `/unauthorized`, `/404`
 
-#### A2 — Storage bucket `waqf-documents` (private)
+لكل صفحة: التحقق من RTL، تحميل البيانات، عدم وجود شاشات بيضاء/أخطاء "حدث خطأ".
 
-- إنشاء عبر `supabase--storage_create_bucket(name='waqf-documents', public=false)`.
-- سياسات `storage.objects` (migration منفصل):
-  - SELECT ناظر/محاسب: كل ملفات `bucket_id='waqf-documents'`.
-  - SELECT مستفيد/واقف: فقط الملفات التي يطابق `name` لها `storage_path` لوثيقة `is_published=true` (`EXISTS` على `archived_documents`).
-  - INSERT/UPDATE/DELETE: admin فقط.
-- مسار الملف: `archive/{uuid}.pdf`.
-- المعاينة/التنزيل عبر `createSignedUrl(60s)` فقط — لا public URLs.
+### المحور 6 — لوحات التحكم والـ Widgets
+- **Admin Dashboard**: KPI cards، الرسوم البيانية، الإجراءات السريعة، التنبيهات
+- **Accountant Dashboard**: تحقق من الفلترة (عدم ظهور Waqf Revenue)
+- **Beneficiary Dashboard**: widgets قابلة للتخصيص عبر `app_settings`
+- **Waqif Dashboard**: تقارير عامة فقط
+- التحقق من `BeneficiaryQuickLinks`, `WaqifQuickLinks`, `bottomNavLinks`, `navigation.ts`, `sections.ts`
+- اتساق `useSectionsVisibility` مع DB
 
----
+### المحور 7 — المنطق المالي والأعمال
+استعلامات تحقق ضد قواعد الذاكرة:
+- **LRM parity** server (`execute_distribution`) vs client
+- **Revenue recognition** (upfront في السنة الحالية، periodic حسب due date)
+- **Net cash flow** = post-tax Waqf Revenue
+- **Advance limits** ≤ % من الحصص الفعلية
+- **Negative guards** `Math.max(0)` على net shares
+- **Fiscal year**: منع إقفال سنة فارغة، حماية reopen
+- **ZATCA ICV chain**: تسلسل صحيح، `reserve_icv` + `commit_icv_chain`
+- **Contract allocation v3**: حدود السنة المالية مع exclusive end dates
+- **Renewal PII**: نقل بيانات المستأجر عند التجديد
+- **Balance sheet**: Corpus مستخرج من Waqf Revenue (لا double counting)
+- **Invoice deletion safeguard**: منع حذف الفواتير المدفوعة جزئياً
+- **VAT centrality**: `vat_amount` فقط، لا إدخال يدوي
 
-### B) الواجهة الأمامية
+### المحور 8 — الاختبارات والجودة
+- `bunx vitest run` — تشغيل كل الاختبارات
+- تقرير التغطية للوحدات الحديثة
+- رصد ميزات بدون اختبارات (مثل archive)
+- مراجعة `audit/forensic-*` للقضايا المعلّقة
+- مراجعة `audit/beneficiary-deep-audit-*`
 
-#### B1 — ملفات جديدة (16 ملف)
-
-```text
-src/types/archive.ts                    — ARCHIVE_CATEGORIES + ArchivedDocument types
-src/utils/format/fileSize.ts            — formatBytes(bytes) — لا توجد حالياً
-src/lib/queryKeys/archiveKeys.ts        — { all, list(filters), byId }
-
-src/hooks/data/archive/
-  useArchivedDocuments.ts               — قائمة + فلترة (staleTime: STALE_STATIC=5min)
-  useArchivedDocumentMutations.ts       — upload / update / togglePublish / delete
-  useArchivedDocumentSignedUrl.ts       — signed URL on-demand (TTL 60s)
-
-src/hooks/page/admin/management/useArchivePage.ts
-src/hooks/page/beneficiary/useArchiveViewPage.ts
-
-src/components/archive/
-  ArchiveUploadDialog.tsx               — Zod (title 3-200, category, PDF ≤10MB)
-  ArchiveDocumentCard.tsx               — يخفي أزرار الكتابة عن غير admin
-  ArchiveDocumentList.tsx               — شبكة + skeleton + empty state
-  ArchiveFilters.tsx                    — Tabs الفئات + بحث
-  ArchiveEditDialog.tsx                 — ميتاداتا فقط (بدون استبدال الملف)
-  ArchiveDeleteDialog.tsx               — تأكيد + حذف storage + row
-  ArchivePdfPreviewDialog.tsx           — iframe(signedUrl)
-
-src/pages/dashboard/ArchivePage.tsx              — لوحة الناظر/المحاسب
-src/pages/beneficiary/ArchiveViewPage.tsx         — مستفيد/واقف (قراءة فقط)
-```
-
-#### B2 — تدفّق الرفع (atomic + rollback)
-
-1. تحقق Zod محلي (نوع/حجم/طول).
-2. `supabase.storage.from('waqf-documents').upload('archive/{uuid}.pdf', file, { contentType:'application/pdf' })`.
-3. `INSERT INTO archived_documents` بـ `storage_path` نفسه.
-4. **إذا فشل (3):** `supabase.storage.remove([path])` لمنع ملفات يتيمة.
-5. Toast نجاح/فشل بالعربية + `invalidate(archiveKeys.all)`.
-
-#### B3 — تحكم الواجهة بالدور (مهم — لا اعتماد على RLS فقط)
-
-```tsx
-const { role } = useAuth();
-const canWrite = role === 'admin';
-// إخفاء "رفع جديد" + "تعديل" + "حذف" + "نشر/إخفاء" عن المحاسب
-```
-
-#### B4 — Zod schema
-
-```ts
-const ArchiveUploadSchema = z.object({
-  title: z.string().trim().min(3).max(200),
-  category: z.enum(['meeting_minutes','annual_reports','certificates',
-                    'official_contracts','correspondence','other']),
-  description: z.string().trim().max(500).optional(),
-  document_date: z.string().date().optional(),
-  file: z.instanceof(File)
-    .refine(f => f.type === 'application/pdf', 'PDF فقط')
-    .refine(f => f.size <= 10*1024*1024, 'الحد الأقصى 10MB'),
-});
-```
+### المحور 9 — الأداء وإمكانية الوصول (a11y)
+- تحليل الاستعلامات البطيئة: `supabase--slow_queries`
+- `supabase--db_health` و`supabase--cloud_status`
+- رصد `dashboard-summary` (~3.4s) ومحاولات تحسين
+- تحذيرات `DialogContent` بدون `DialogDescription`
+- تحقق من `staleTime` ملائم (1-5 دقائق)
+- حدود الاستعلام (500 record warning, 2000 max)
+- PWA: `manifest.webmanifest`، service worker، `_headers`، تحديث التطبيق
 
 ---
 
-### C) التكاملات الكاملة
+### مخرجات التقرير النهائي
+1. **ملخّص تنفيذي**: حالة (🟢/🟡/🔴) لكل من — الكود، المعمارية، DB، Edge Functions، 4 لوحات تحكم، المنطق المالي، الأداء
+2. **يعمل بكفاءة**: قائمة الأقسام السليمة
+3. **مشاكل حرجة (Blockers)**: تمنع التشغيل — ملف:سطر
+4. **مشاكل متوسطة (Warnings)**: ديون تقنية، أداء
+5. **ملاحظات a11y/UX**
+6. **خروقات الاتفاقيات**: من `audit-all.mjs`
+7. **توصيات بأولويات** P0/P1/P2 مع تقدير الجهد
+8. **مرفقات**: لقطات شاشة لكل صفحة، مخرجات الأدوات الخام، CSVs
 
-| ملف | التعديل |
-|------|---------|
-| `src/routes/adminRoutes.tsx` | `<Route path="/dashboard/archive" element={pr(ADMIN_ROLES, <ArchivePage />)} />` |
-| `src/routes/beneficiaryRoutes.tsx` | `<Route path="/beneficiary/archive" element={pr(ALL_NON_ACCOUNTANT, <ArchiveViewPage />)} />` |
-| `src/constants/routeRegistry.ts` | إضافة الإدخالين لـ `ADMIN_ROUTES` و `BENEFICIARY_ROUTES` مع `title`, `labelKey:'archive'`, `permKey:'archive'`, `sectionKey:'archive'` |
-| `src/constants/routeRoles.ts` | `'/dashboard/archive': ['admin','accountant']` + `'/beneficiary/archive': ['admin','beneficiary','waqif']` |
-| `src/constants/navigation.ts` | تحديث `defaultAdminSections.archive = true` و `defaultBeneficiarySections.archive = true` + اشتقاق `ADMIN_ROUTE_TO_SECTION` تلقائي من `ADMIN_ROUTES.sectionKey` |
-| `src/types/navigation.ts` (`MenuLabels`) | إضافة `archive: string;` + `defaultMenuLabels.archive = 'الأرشيف'` |
-| `src/components/beneficiary/dashboard/BeneficiaryQuickLinks.tsx` | بطاقة جديدة «أرشيف الوثائق» (`FolderArchive` icon) |
-| `src/components/waqif/WaqifQuickLinks.tsx` | نفس البطاقة |
-| `src/lib/diagnostics/checks/backend.ts` (`required`) | `['waqf-assets', 'waqf-documents']` — لتمرير فحص التشخيص الجديد |
-| **بدون تعديل** | `bottomNavLinks.ts` (الـ 4 الرئيسية ممتلئة) · `PROTECTED_ADMIN_SECTIONS` (نسمح بالإخفاء) · `access_log` · `audit_log` |
+### حدود صارمة
+- صفر تعديل على أي ملف
+- لا migrations ولا deploys
+- لا مساس بـ `AuthContext`, `client.ts`, `types.ts`, `config.toml`, `.env`
+- جميع المشاكل تُعرض للمراجعة قبل أي إصلاح
 
----
-
-### D) ترتيب التنفيذ الفعلي
-
-```text
-1) supabase--storage_create_bucket(name='waqf-documents', public=false)
-2) Migration A1: جدول + GRANT + RLS + index + trigger
-3) Migration A2: سياسات storage.objects على waqf-documents
-4) Types + utils + queryKeys (3 ملفات صغيرة)
-5) hooks/data/archive/ (3 hooks)
-6) hooks/page/ (admin + beneficiary)
-7) 7 مكونات archive/
-8) صفحتان: ArchivePage + ArchiveViewPage
-9) التكامل (جدول C كاملاً — 9 ملفات)
-10) Tests: useArchivedDocuments.test.ts + ArchiveUploadDialog.test.tsx
-11) Playwright E2E يدوي:
-    أ) ناظر يرفع PDF صحيح → يظهر فوراً
-    ب) ناظر يرفع 11MB → رفض Zod
-    ج) ناظر يخفي → مستفيد لا يرى عند refetch
-    د) محاسب: لا يرى أزرار كتابة، يقرأ الكل
-    هـ) فحص التشخيص: waqf-documents يمرّ + الصفحتان في ROUTE_ROLES
-```
-
----
-
-### E) معايير القبول
-
-| # | المعيار | التحقق |
-|---|---------|--------|
-| 1 | ناظر يرفع PDF ≤10MB | يظهر فوراً + ملف في storage |
-| 2 | محاسب يرى الكل، لا أزرار كتابة | عبر `useAuth().role` UI gate |
-| 3 | مستفيد يرى المنشور فقط | RLS + UI |
-| 4 | ملف >10MB أو غير PDF | يُرفض بـ Zod + CHECK |
-| 5 | الحذف ذرّي: row + storage | بدون يتامى |
-| 6 | Signed URL ينتهي بعد 60s | تأكد devtools |
-| 7 | فحص التشخيص يكشف bucket والمسارات | `checkBackendStorageBuckets` + `appMap` |
-| 8 | الناظر يخفي قسم «الأرشيف» من الإعدادات | يختفي من التنقّل (ليس في PROTECTED) |
-
----
-
-### F) خارج النطاق (موجات لاحقة)
-
-- استبدال ملف موجود (الآن: حذف ثم رفع).
-- أنواع Word/Excel/صور.
-- إشعار بريدي عند النشر.
-- تصدير ZIP لفئة.
-- ربط الوثيقة بعقد/مستفيد محدد.
-- نسخ تاريخية (versioning).
-- تسجيل المشاهدات (يحتاج جدول `document_views` مخصص).
-
-هل أبدأ التنفيذ بالترتيب أعلاه؟
+هل أبدأ التنفيذ؟
