@@ -1,5 +1,6 @@
 /**
- * مكونات عرضية مساعدة لصفحة مراقبة البريد الإلكتروني
+ * مكونات عرضية مساعدة لصفحة مراقبة البريد الإلكتروني.
+ * Utilities غير-مكوّنة منقولة إلى ./emailMonitorUtils للحفاظ على fast-refresh.
  */
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +8,6 @@ import {
   Mail, CheckCircle2, AlertTriangle, XCircle, ShieldOff, Clock, AlertOctagon,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { fmtDateTime } from '@/utils/format/format';
 
 const STATUS_BADGE: Record<string, { label: string; className: string; icon: typeof CheckCircle2 }> = {
   sent: { label: 'مُرسلة', className: 'bg-success/10 text-success border-success/30', icon: CheckCircle2 },
@@ -48,10 +48,5 @@ export function EmailStatCard({
   );
 }
 
-export function formatEmailDateTime(iso: string | null) {
-  if (!iso) return '—';
-  try {
-    const d = new Date(iso);
-    return fmtDateTime(d, { dateStyle: 'short', timeStyle: 'medium' });
-  } catch { return iso; }
-}
+export { formatEmailDateTime } from './emailMonitorUtils';
+
