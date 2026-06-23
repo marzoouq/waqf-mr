@@ -42,7 +42,7 @@ describe('runDeepClean', () => {
 
   it('يستدعي queryClient.clear() عند توفّره', async () => {
     const clear = vi.fn();
-    const r = await runDeepClean({ queryClient: { clear } as unknown as Parameters<typeof runDeepClean>[0]['queryClient'] });
+    const r = await runDeepClean({ queryClient: { clear } as unknown as NonNullable<Parameters<typeof runDeepClean>[0]>['queryClient'] });
     expect(clear).toHaveBeenCalledOnce();
     expect(r.queryCacheCleared).toBe(true);
   });
