@@ -13,7 +13,7 @@ export const useSupportStats = () => {
     queryKey: supportKeys.stats(),
     staleTime: STALE_MESSAGING,
     queryFn: async ({ signal }) => {
-      const data = await rpc('get_support_stats');
+      const data = await rpc('get_support_stats', undefined, { signal });
       return data as {
         totalTickets: number;
         openTickets: number;

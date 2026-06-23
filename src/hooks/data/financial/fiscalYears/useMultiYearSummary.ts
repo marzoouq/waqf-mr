@@ -20,7 +20,7 @@ export function useMultiYearSummary(yearIds: string[]) {
     enabled: sortedIds.length > 0,
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       const data = await invoke<RpcYearEntry[]>('multi-year-summary', {
         body: { year_ids: sortedIds },
       });

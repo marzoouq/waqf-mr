@@ -14,7 +14,7 @@ export const useZatcaCertificates = () => {
   return useQuery<ZatcaCertificateSafe[]>({
     queryKey: zatcaKeys.certificates(),
     staleTime: STALE_FINANCIAL,
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       const { data, error } = await fromView('zatca_certificates_safe')
         .select('id, certificate_type, is_active, request_id, created_at, expires_at')
         .order('created_at', { ascending: false });

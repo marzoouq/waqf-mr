@@ -9,7 +9,7 @@ import { advancesKeys } from '@/lib/queryKeys/advancesKeys';
 export const usePaidAdvances = (fiscalYearId: string | undefined, enabled: boolean) => {
   return useQuery({
     queryKey: advancesKeys.paidAllByFiscalYear(fiscalYearId),
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       if (!fiscalYearId) return [];
       const { data, error } = await supabase
         .from('advance_requests')
@@ -27,7 +27,7 @@ export const usePaidAdvances = (fiscalYearId: string | undefined, enabled: boole
 export const useActiveCarryforwards = (fiscalYearId: string | undefined, enabled: boolean) => {
   return useQuery({
     queryKey: advancesKeys.carryforwardActiveForDistribution(fiscalYearId),
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       let query = supabase
         .from('advance_carryforward')
         .select('beneficiary_id, amount')

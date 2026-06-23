@@ -67,7 +67,7 @@ export const useAllCarryforwards = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: advancesKeys.carryforwardAll(fiscalYearId),
     staleTime: STALE_REALTIME,
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       let query = supabase
         .from('advance_carryforward')
         .select('*, beneficiary:beneficiaries(id, name)')

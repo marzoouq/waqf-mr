@@ -8,7 +8,7 @@ import { financialKeys } from '@/lib/queryKeys/financialKeys';
 export const useMyBeneficiaryProfile = (userId?: string) => {
   return useQuery({
     queryKey: financialKeys.beneficiaryProfile.byUser(userId),
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       if (!userId) return null;
       const { data } = await supabase
         .from('beneficiaries_safe')
