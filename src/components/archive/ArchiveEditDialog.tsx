@@ -1,7 +1,7 @@
 /**
  * Dialog تعديل ميتاداتا وثيقة (بدون استبدال الملف).
  */
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
