@@ -26,7 +26,7 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
     staleTime: STALE_FINANCIAL,
     // F2: إبقاء بيانات السنة السابقة ظاهرة أثناء جلب السنة الجديدة (تبديل سلس بلا skeleton كامل)
     placeholderData: (prev) => prev,
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       const raw = await invoke<DashboardSummaryResponse>(
         'dashboard-summary',
         { body: { fiscal_year_id: fiscalYearId, fiscal_year_label: fiscalYearLabel } },
@@ -84,7 +84,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
     staleTime: STALE_FINANCIAL,
     placeholderData: (prev) => prev,
     enabled: !!fiscalYearId && enabled && isFyReady(fiscalYearId),
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       let q = supabase
         .from('payment_invoices')
         .select('id, contract_id, invoice_number, payment_number, due_date, amount, status, paid_date, paid_amount, zatca_status, fiscal_year_id, contract:contracts(contract_number, tenant_name, property_id, payment_count, property:properties(property_number))')
@@ -102,7 +102,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
     staleTime: STALE_FINANCIAL,
     placeholderData: (prev) => prev,
     enabled: !!fiscalYearId && enabled && isFyReady(fiscalYearId),
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       let q = supabase
         .from('contracts')
         .select('id, contract_number, tenant_name, property_id, unit_id, start_date, end_date, rent_amount, payment_type, payment_count, payment_amount, status, fiscal_year_id, created_at, property:properties(id, property_number), unit:units(id, unit_number, status)')

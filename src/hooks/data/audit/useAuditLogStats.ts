@@ -16,7 +16,7 @@ export function useAuditLogTodayCount() {
   return useQuery({
     queryKey: auditKeys.log.todayCount,
     staleTime: STALE_MESSAGING,
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       const todayStr = new Date().toISOString().split('T')[0];
       const { count } = await supabase
         .from('audit_log')

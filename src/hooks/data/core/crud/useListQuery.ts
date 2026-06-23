@@ -38,15 +38,13 @@ export function buildListHelpers<T extends TableName, TData>(
     return {
       queryKey: [queryKey, { page }],
       staleTime,
-      queryFn: async ({ signal }) => {
+      queryFn: async () => {
         const query = supabase
           .from(table)
           .select(select, { count: 'exact' })
           .order(orderBy, { ascending })
           .range(rangeFrom, rangeTo);
-        
-        if (signal) query.abortSignal(signal);
-        
+
         const { data, error } = await query;
         if (error) throw error;
         return data as TData[];

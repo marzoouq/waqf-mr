@@ -1,79 +1,140 @@
-## نتيجة التحقق الجنائي
+## الهدف
 
-المشكلة الظاهرة في الإنتاج ليست فشل كلمة المرور بعد الإصلاح السابق. دليل الإنتاج من `access_log` يثبت أن المستخدم دخل بدور `beneficiary` ثم حاول الوصول لمسار ناظر:
+معالجة الأخطاء التالية على الصفحة الرئيسية `/` وفحص تكرارها في كامل التطبيق:
 
-```text
-event_type: unauthorized_access
-target_path: /dashboard/users
-current_role: beneficiary
-required_roles: [admin]
-```
+- `[Violation] 'message' handler took ...ms`
+- `[Violation] Forced reflow while executing JavaScript took ...ms`
+- `Uncaught (in promise) Error: The provided callback is no longer runnable`
 
-هذا يفسّر شاشة:
+مع التحقق في بيئة مستقلة قبل اعتبار الإصلاح ناجحاً.
 
-```text
-غير مصرح بالدخول
-دورك الحالي: مستفيد
-```
+## التشخيص الحالي
 
-## السبب المرجّح
+الأدلة من الكود تشير إلى سببين مترابطين:
 
-بعد تسجيل الدخول، `useRoleRedirect` يقرأ `?from=` من رابط `/auth` وينقل المستخدم إليه إذا كان داخلياً فقط. حالياً لا يتحقق هل هذا المسار مناسب لدور المستخدم.
+1. **استعلامات RPC غير قابلة للإلغاء**
+   - `src/lib/api/rpc.ts` ينفّذ retry داخلياً مع `sleep` ولا يستقبل `AbortSignal` من TanStack Query.
+   - إذا انتقل المستخدم أو أُعيد تركيب المكوّن بينما RPC ما زال يعمل، يمكن أن يكتمل الوعد بعد إلغاء الـ observer، فتظهر رسالة `The provided callback is no longer runnable`.
 
-لذلك إذا كان رابط الدخول مثل:
+2. **مراقبة React Query ثقيلة جداً**
+   - `src/lib/initQueryMonitoring.ts` يشترك في كل أحداث `QueryCache` ويبدأ/ينهي مؤقتات لكل fetch/success/error/removed.
+   - مع موجات الاستعلامات عند تحميل الصفحة أو إعادة التركيب، هذا قد يطيل عمل React Scheduler ويظهر كـ `message handler took ...ms`.
 
-```text
-/auth?from=/dashboard/users
-```
+3. **الصفحة الرئيسية تشغّل عدة استعلامات ثابتة عند الإقلاع**
+   - `/` يستخدم `useLandingPage`، والذي يجمع إعدادات التطبيق، معلومات الوقف، الشعار، والإحصائيات العامة.
+   - هذا يجعل الصفحة الرئيسية مكاناً مناسباً لظهور المشكلة حتى قبل دخول المستخدم.
 
-وسجّل المستفيد الدخول بنجاح، يتم إرساله إلى `/dashboard/users`، ثم `ProtectedRoute` يمنعه بشكل صحيح لأن هذا مسار ناظر فقط.
+## ما سيتم تنفيذه
 
-## الإصلاح المقترح
+### 1) جعل طبقة RPC قابلة للإلغاء
 
-تعديل `src/hooks/auth/role/useRoleRedirect.ts` فقط لإضافة فلترة حسب الدور قبل تنفيذ `navigate`:
+تعديل `src/lib/api/rpc.ts`:
 
-- `beneficiary` يسمح فقط بمسارات `/beneficiary`.
-- `waqif` يسمح فقط بمسارات `/waqif`.
-- `accountant` يسمح فقط بمسارات `/dashboard`.
-- `admin` يسمح بمسارات `/dashboard`، ويمكن إبقاء `/beneficiary` كمعاينة بوابة المستفيد للناظر.
-- إذا كان `from` غير مناسب للدور، يتم تجاهله والذهاب للمسار الافتراضي للدور.
+- إضافة `signal?: AbortSignal` إلى `RpcOptions`.
+- إيقاف الحلقة فوراً عند `signal.aborted`.
+- تحويل `sleep` إلى نوم قابل للإلغاء.
+- تمرير `signal` إلى عميل قاعدة البيانات عندما يدعمه الاستدعاء.
+- عدم إعادة المحاولة إذا كان الخطأ إلغاءً مقصوداً.
 
-## تفاصيل تقنية
+النتيجة: عند إلغاء TanStack Query للاستعلام، يتوقف RPC ولا يحاول إكمال callback قديم.
 
-إضافة دالة صغيرة بجانب `sanitizeFrom`:
+### 2) تمرير `signal` في استعلامات RPC عبر التطبيق
 
-```ts
-function isFromAllowedForRole(from: string, role: string): boolean {
-  if (role === 'admin') return from.startsWith('/dashboard') || from.startsWith('/beneficiary');
-  if (role === 'accountant') return from.startsWith('/dashboard');
-  if (role === 'beneficiary') return from.startsWith('/beneficiary');
-  if (role === 'waqif') return from.startsWith('/waqif');
-  return false;
-}
-```
+تعديل كل `useQuery` الذي يستدعي `rpc()` مباشرة، وأهمها:
 
-ثم داخل `useEffect`:
+- `src/hooks/data/content/usePublicStats.ts`
+- `src/hooks/data/dashboard/useBeneficiaryDashboardRpc.ts`
+- `src/hooks/data/support/useSupportAnalytics.ts`
+- `src/hooks/data/financial/dashboard/useTotalBeneficiaryPercentage.ts`
+- `src/hooks/data/financial/advances/useMaxAdvanceAmount.ts`
+
+النمط المطلوب:
 
 ```ts
-const sanitizedFrom = sanitizeFrom(searchParams.get('from'));
-const from = sanitizedFrom && isFromAllowedForRole(sanitizedFrom, role) ? sanitizedFrom : null;
-navigate(from ?? home, { replace: true });
+queryFn: ({ signal }) => rpc('function_name', params, { signal })
 ```
 
-## اختبار مستقل قبل الاعتماد
+أما RPC داخل mutations أو services اليدوية فلا تُعامل كاستعلام قابل للإلغاء إلا إذا كانت تُستدعى من queryFn.
 
-بعد التنفيذ سأضيف/أستخدم اختبار وحدة مستقل للمنطق دون الاعتماد على جلسة حقيقية أو بيانات إنتاج:
+### 3) تخفيف مراقبة QueryCache
 
-1. `role=beneficiary`, `from=/dashboard/users` → النتيجة `/beneficiary`.
-2. `role=beneficiary`, `from=/beneficiary/invoices` → النتيجة `/beneficiary/invoices`.
-3. `role=admin`, `from=/dashboard/users` → النتيجة `/dashboard/users`.
-4. `role=accountant`, `from=/dashboard/users` → النتيجة `/dashboard/users` أو يُمنع لاحقاً بواسطة `ProtectedRoute` إذا كان Admin-only؛ هذا سلوك قائم وصحيح.
-5. `from=//evil.com` أو `/auth` أو `/unauthorized` → يتم تجاهله كما هو حالياً.
+تعديل `src/lib/initQueryMonitoring.ts`:
 
-## حدود التنفيذ
+- إزالة المؤقت لكل حدث `fetch` لأن `rpc()` لديه مؤقت أداء مركزي بالفعل.
+- جعل مراقبة QueryCache خفيفة: تسجيل الأخطاء فقط أو تعطيلها في الإنتاج إذا كانت تسبب عبئاً.
+- منع تراكم المؤقتات عند إعادة التركيب أو فشل الاستعلامات.
 
-- لا تعديل على قاعدة البيانات.
-- لا تعديل على Edge Functions.
-- لا تعديل على `ProtectedRoute` أو `RequirePermission`.
-- لا تغيير في صلاحيات المسارات نفسها.
-- الإصلاح يمنع توجيه المستفيد لمسارات الناظر بعد تسجيل دخول ناجح، ولا يفتح أي صلاحية جديدة.
+النتيجة: تقليل ضغط main thread الذي يظهر كـ `message handler took ...ms`.
+
+### 4) فحص كامل التطبيق لنفس النمط
+
+فحص الملفات التالية وأنماطها:
+
+- كل `useQuery` مع `rpc()` بدون `signal`.
+- كل اشتراك Realtime/Auth للتأكد من وجود cleanup.
+- كل `getBoundingClientRect` / `offsetWidth` / `scrollHeight` للتأكد من عدم وجود read/write layout loop.
+- الصفحة الرئيسية، لوحة الناظر، لوحة المستفيد، الرسائل، الإشعارات، والتقارير المالية.
+
+لن يتم تعديل ملفات المصادقة المحمية (`AuthContext.tsx`, `ProtectedRoute.tsx`, `SecurityGuard.tsx`) إلا إذا ظهر سبب مباشر وطلبت ذلك صراحة.
+
+## اختبارات التحقق في بيئة مستقلة
+
+### اختبار 1 — وحدة RPC
+
+إنشاء/تحديث اختبار يثبت:
+
+- إذا أُرسل `AbortSignal` وتم إلغاؤه، يتوقف `rpc()` فوراً.
+- لا تحدث retries بعد الإلغاء.
+- الأخطاء العادية ما زالت تُصنّف وتُعاد محاولتها حسب القواعد الحالية.
+
+### اختبار 2 — الصفحة الرئيسية في متصفح مستقل
+
+باستخدام Playwright على بيئة localhost مستقلة:
+
+1. فتح `/` بصفحة جديدة.
+2. التقاط console errors/warnings.
+3. إعادة تحميل الصفحة سريعاً عدة مرات لمحاكاة unmount/remount.
+4. الانتقال من `/` إلى `/auth` والعودة.
+5. التأكد من عدم ظهور:
+   - `The provided callback is no longer runnable`
+   - `[App Error]` المرتبط بالاستعلامات
+
+### اختبار 3 — فحص شامل للمسارات العامة والأساسية
+
+تشغيل Playwright على:
+
+- `/`
+- `/auth`
+- `/unauthorized`
+- `/beneficiary` إذا توفرت جلسة اختبار محقونة
+- `/dashboard` إذا توفرت جلسة اختبار محقونة
+
+ومراقبة console + network + runtime errors.
+
+### اختبار 4 — قياس الأداء بعد الإصلاح
+
+- تشغيل Performance trace مختصر في Playwright/Chromium.
+- التحقق أن long tasks لم تعد تصل إلى ثوانٍ متعددة على `/`.
+- قبول تحذيرات DevTools الصغيرة فقط إذا كانت أقل من حدود خطورة عملية ولا تصاحبها أخطاء runtime.
+
+## معايير النجاح
+
+- اختفاء `The provided callback is no longer runnable` من `/` بعد reload/تنقل سريع.
+- عدم ظهور `[App Error]` المرتبط بـ React Query على الصفحة الرئيسية.
+- انخفاض `message handler` من ثوانٍ طويلة إلى قيم طبيعية.
+- عدم كسر عرض إحصائيات الصفحة الرئيسية أو إعدادات الوقف.
+- عدم كسر تسجيل دخول المستفيدين أو توجيههم.
+
+## الملفات المتوقع تعديلها
+
+- `src/lib/api/rpc.ts`
+- `src/lib/initQueryMonitoring.ts`
+- ملفات `useQuery` التي تستدعي `rpc()` مباشرة داخل `src/hooks/data/**`
+- اختبار جديد أو محدث لـ `rpc()` / إلغاء الاستعلامات
+
+## ما لن يتم تغييره
+
+- لا تغييرات في قاعدة البيانات.
+- لا تغييرات في Edge Functions.
+- لا تعديل على `src/integrations/supabase/client.ts` أو `.env` أو `supabase/config.toml`.
+- لا تعديل على ملفات المصادقة المحمية إلا بموافقة صريحة إذا أظهر الفحص ضرورة ذلك.

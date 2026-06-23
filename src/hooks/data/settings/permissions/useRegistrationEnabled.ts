@@ -9,7 +9,7 @@ import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 export function useRegistrationEnabled() {
   return useQuery({
     queryKey: appSettingsKeys.registrationEnabled(),
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       const { data } = await supabase
         .from('app_settings')
         .select('value')

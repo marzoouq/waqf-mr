@@ -55,7 +55,7 @@ export const useSupportTickets = (statusFilter?: string, page = 1, pageSize = 20
   return useQuery({
     queryKey: supportKeys.tickets.list(statusFilter, page, pageSize),
     staleTime: STALE_REALTIME,
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
@@ -84,7 +84,7 @@ export const useTicketReplies = (ticketId?: string) => {
     queryKey: supportKeys.replies.byTicket(ticketId),
     staleTime: STALE_LIVE,
     enabled: !!ticketId,
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       const { data, error } = await supabase
         .from('support_ticket_replies')
         .select('id, ticket_id, sender_id, content, is_internal, created_at')

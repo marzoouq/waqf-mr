@@ -3,10 +3,12 @@
  * - توقيت تلقائي عبر startPerfTimer
  * - تصنيف الأخطاء (auth/permission/validation/network/rate_limit/server)
  * - إعادة محاولة مع exponential backoff للفئات القابلة فقط
+ * - دعم AbortSignal من TanStack Query: عند الإلغاء نتوقف فوراً
+ *   ونرمي AbortError (يتجاهلها TanStack Query بصمت ولا تُحفظ كخطأ).
  *
  * استخدام:
  *   import { rpc } from '@/lib/api/rpc';
- *   const data = await rpc('get_dashboard_kpis', { p_year: 2024 });
+ *   queryFn: ({ signal }) => rpc('get_dashboard_kpis', { p_year: 2024 }, { signal })
  */
 import { supabase } from '@/integrations/supabase/client';
 import { classifyError, type ClassifiedError, isRetryableCategory } from '@/utils/error/getErrorStatus';
@@ -34,20 +36,44 @@ export class ApiError extends Error {
 const MAX_ATTEMPTS = 3;
 const BACKOFF_MS = [250, 500, 1000];
 
-const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+/** نوم قابل للإلغاء — يُرفض بـ AbortError إذا أُلغي signal */
+function abortableSleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'));
+      return;
+    }
+    const t = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      clearTimeout(t);
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
+function isAbortError(err: unknown): boolean {
+  if (!err) return false;
+  if (err instanceof DOMException && err.name === 'AbortError') return true;
+  const e = err as { name?: string; message?: string };
+  return e?.name === 'AbortError' || /aborted/i.test(e?.message ?? '');
+}
 
 export interface RpcOptions {
   /** عدد المحاولات الكلي (تشمل المحاولة الأولى). الافتراضي 3 */
   maxAttempts?: number;
   /** علامة label مخصصة لـ perf timer (الافتراضي: rpc:<name>) */
   label?: string;
-  /** إشارة إلغاء الاستعلام */
+  /** إشارة إلغاء من TanStack Query أو AbortController يدوي */
   signal?: AbortSignal;
 }
 
 /**
  * استدعاء RPC موحّد مع retry/backoff/تصنيف خطأ.
- * يُلقي ApiError عند الفشل النهائي.
+ * يُلقي ApiError عند الفشل النهائي، أو AbortError عند الإلغاء.
  */
 export async function rpc<T = unknown>(
   fnName: string,
@@ -55,23 +81,31 @@ export async function rpc<T = unknown>(
   options: RpcOptions = {},
 ): Promise<T> {
   const maxAttempts = options.maxAttempts ?? MAX_ATTEMPTS;
+  const signal = options.signal;
   const stopTimer = startPerfTimer(options.label ?? `rpc:${fnName}`);
   let lastError: unknown;
 
+  // إلغاء مسبق — لا تبدأ الطلب أصلاً
+  if (signal?.aborted) {
+    stopTimer();
+    throw new DOMException('Aborted', 'AbortError');
+  }
+
   try {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      if (options.signal?.aborted) {
-        throw new Error('Aborted');
-      }
-
       // Cast through unknown because supabase.rpc is heavily generic over fnName literal unions.
-      const query = (supabase.rpc as any)(fnName, params);
-      if (options.signal) {
-        query.abortSignal(options.signal);
+      // ملاحظة: supabase-js v2 لا يدعم signal مباشرة على .rpc؛ نعتمد على فحص signal
+      // بين المحاولات وقبل/بعد الـ await لمنع استكمال callback بعد الإلغاء.
+      const { data, error } = await (supabase.rpc as unknown as (
+        fn: string,
+        p?: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message?: string; status?: number; name?: string } | null }>)(fnName, params);
+
+      // إذا أُلغي الاستعلام أثناء الجلب، توقّف فوراً قبل أي معالجة
+      if (signal?.aborted) {
+        throw new DOMException('Aborted', 'AbortError');
       }
 
-      const { data, error } = await query;
-      
       if (!error) {
         if (import.meta.env.DEV && data !== null && data !== undefined) {
           try { recordPayloadSize(`rpc:${fnName}:response`, JSON.stringify(data).length); } catch { /* noop */ }
@@ -88,20 +122,14 @@ export async function rpc<T = unknown>(
 
       const delay = BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)] ?? 1000;
       logger.warn(`[rpc] إعادة محاولة ${fnName} (${attempt}/${maxAttempts}) بعد ${delay}ms — ${classified.category}`);
-      
-      if (options.signal) {
-        await Promise.race([
-          sleep(delay),
-          new Promise((_, reject) => {
-            options.signal?.addEventListener('abort', () => reject(new Error('Aborted')), { once: true });
-          })
-        ]);
-      } else {
-        await sleep(delay);
-      }
+      await abortableSleep(delay, signal);
     }
     // غير قابل للوصول منطقياً
     throw new ApiError(classifyError(lastError), lastError);
+  } catch (err) {
+    // أعِد رمي AbortError كما هي — TanStack Query يتعامل معها بصمت
+    if (isAbortError(err)) throw err;
+    throw err;
   } finally {
     stopTimer();
   }

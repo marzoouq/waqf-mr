@@ -30,7 +30,7 @@ export const useMaxAdvanceAmount = (
       const data = await rpc('get_max_advance_amount', {
         p_beneficiary_id: beneficiaryId,
         p_fiscal_year_id: fiscalYearId!,
-      });
+      }, { signal });
       // RPC — cast مبرر، يحتاج Zod validation لاحقاً
       return data as unknown as ServerAdvanceData;
     },

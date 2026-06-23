@@ -14,7 +14,7 @@ export const useBeneficiaryUsers = (enabled: boolean) => {
     queryKey: beneficiariesKeys.users(),
     staleTime: STALE_FINANCIAL,
     enabled,
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal: _signal }) => {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("يجب تسجيل الدخول أولاً");
       const data = await invoke<{ users?: AdminUserRow[] }>('admin-manage-users', {

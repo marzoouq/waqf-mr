@@ -46,7 +46,7 @@ export function usePrefetchPages() {
     queryClient.prefetchQuery({
       queryKey: beneficiariesKeys.safe(),
       staleTime: PREFETCH_STALE,
-      queryFn: async ({ signal }) => {
+      queryFn: async ({ signal: _signal }) => {
         const { data, error } = await supabase
           .from('beneficiaries_safe')
           .select('id, name, share_percentage, user_id, created_at, updated_at')
@@ -62,7 +62,7 @@ export function usePrefetchPages() {
     queryClient.prefetchQuery({
       queryKey: fiscalYearKeys.prefetch(),
       staleTime: PREFETCH_STALE,
-      queryFn: async ({ signal }) => {
+      queryFn: async ({ signal: _signal }) => {
         const { data, error } = await supabase
           .from('fiscal_years')
           .select('id, label, start_date, end_date, status, published, created_at')
@@ -85,7 +85,7 @@ export function usePrefetchPages() {
     queryClient.prefetchQuery({
       queryKey: invoicesKeys.paymentsPrefetch(),
       staleTime: PREFETCH_STALE,
-      queryFn: async ({ signal }) => {
+      queryFn: async ({ signal: _signal }) => {
         const { data, error } = await supabase
           .from('payment_invoices')
           .select('id, contract_id, fiscal_year_id, payment_number, due_date, amount, paid_date, paid_amount, status, invoice_number, vat_rate, vat_amount, notes, created_at, updated_at')
@@ -111,7 +111,7 @@ export function usePrefetchPages() {
     queryClient.prefetchQuery({
       queryKey: auditKeys.log.prefetchFirstPage,
       staleTime: PREFETCH_STALE,
-      queryFn: async ({ signal }) => {
+      queryFn: async ({ signal: _signal }) => {
         const { data, error } = await supabase
           .from('audit_log')
           .select('id, table_name, operation, record_id, user_id, created_at')
@@ -128,7 +128,7 @@ export function usePrefetchPages() {
     queryClient.prefetchQuery({
       queryKey: messagingKeys.conversations.prefix,
       staleTime: PREFETCH_STALE,
-      queryFn: async ({ signal }) => {
+      queryFn: async ({ signal: _signal }) => {
         const { data, error } = await supabase
           .from('conversations')
           .select('id, subject, type, status, created_by, participant_id, created_at, updated_at')

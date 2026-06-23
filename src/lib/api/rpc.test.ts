@@ -85,4 +85,38 @@ describe('rpc()', () => {
     expect(rpcMock).toHaveBeenCalledTimes(3);
     vi.useRealTimers();
   });
+
+  describe('AbortSignal', () => {
+    it('throws AbortError immediately if signal is already aborted (no rpc call)', async () => {
+      const ctrl = new AbortController();
+      ctrl.abort();
+      await expect(rpc('any', undefined, { signal: ctrl.signal })).rejects.toMatchObject({ name: 'AbortError' });
+      expect(rpcMock).not.toHaveBeenCalled();
+    });
+
+    it('stops retry loop when signal aborts during backoff', async () => {
+      vi.useFakeTimers();
+      rpcMock.mockResolvedValue({ data: null, error: { status: 500, message: 'boom' } });
+      const ctrl = new AbortController();
+      const promise = rpc('any', undefined, { maxAttempts: 3, signal: ctrl.signal });
+      promise.catch(() => {});
+      // First attempt finishes synchronously via microtask; backoff begins
+      await Promise.resolve();
+      ctrl.abort();
+      await vi.runAllTimersAsync();
+      await expect(promise).rejects.toMatchObject({ name: 'AbortError' });
+      // Only first attempt executed; second never started
+      expect(rpcMock).toHaveBeenCalledTimes(1);
+      vi.useRealTimers();
+    });
+
+    it('throws AbortError if signal aborts after request resolved but before next iteration', async () => {
+      const ctrl = new AbortController();
+      rpcMock.mockImplementationOnce(async () => {
+        ctrl.abort();
+        return { data: 'late', error: null };
+      });
+      await expect(rpc('any', undefined, { signal: ctrl.signal })).rejects.toMatchObject({ name: 'AbortError' });
+    });
+  });
 });
