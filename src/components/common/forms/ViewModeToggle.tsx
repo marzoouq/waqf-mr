@@ -1,7 +1,6 @@
 /**
  * مفتاح تبديل وضع العرض (جدول / شبكي) — مع حفظ التفضيل في sessionStorage
  */
-import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LayoutGrid, List } from 'lucide-react';
 
@@ -42,18 +41,5 @@ export function ViewModeToggle({ value, onChange, className }: ViewModeTogglePro
   );
 }
 
-/** هوك يحفظ تفضيل وضع العرض في sessionStorage */
-export function useViewMode(storageKey: string, initial: ViewMode = 'table'): [ViewMode, (m: ViewMode) => void] {
-  const [mode, setMode] = useState<ViewMode>(() => {
-    if (typeof window === 'undefined') return initial;
-    const saved = window.sessionStorage.getItem(`viewMode:${storageKey}`);
-    return saved === 'grid' || saved === 'table' ? saved : initial;
-  });
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    window.sessionStorage.setItem(`viewMode:${storageKey}`, mode);
-  }, [storageKey, mode]);
-
-  return [mode, setMode];
-}
+// useViewMode تم نقله إلى useViewMode.ts لدعم Fast Refresh
+export { useViewMode } from './useViewMode';
