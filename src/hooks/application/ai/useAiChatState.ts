@@ -1,10 +1,13 @@
 /**
  * حالة المساعد الذكي — الفصل بين الحالة وإرسال الرسائل لاحترام حدود الحجم.
+ * يكشف helpers لتعديل refs داخلياً ليحترم react-hooks/immutability في الـ consumer.
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 export type ChatMode = 'chat' | 'analysis' | 'report';
 export type Msg = { role: 'user' | 'assistant'; content: string };
+
+const SEND_COOLDOWN_MS = 2000;
 
 export function useAiChatState() {
   const [open, setOpen] = useState(false);
@@ -44,6 +47,24 @@ export function useAiChatState() {
     setError(null);
   }, []);
 
+  /** يفحص cooldown ويسجل وقت الإرسال إن نجح. يُرجع true إذا كان مسموحاً بالإرسال. */
+  const tryBeginSend = useCallback(() => {
+    const now = Date.now();
+    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) return false;
+    lastSendTimeRef.current = now;
+    return true;
+  }, []);
+
+  const setLastUserMsg = useCallback((msg: string) => { lastUserMsgRef.current = msg; }, []);
+  const getLastUserMsg = useCallback(() => lastUserMsgRef.current, []);
+
+  /** يلغي أي طلب جارٍ ويبدأ طلباً جديداً، ويُرجع AbortSignal. */
+  const beginRequest = useCallback(() => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
+    return abortControllerRef.current.signal;
+  }, []);
+
   return {
     open, setOpen, closePanel,
     messages, setMessages, clearMessages,
@@ -51,6 +72,7 @@ export function useAiChatState() {
     isLoading, setIsLoading,
     mode, handleModeChange,
     error, setError,
-    refs: { lastSendTimeRef, endRef, abortControllerRef, lastUserMsgRef },
+    endRef,
+    tryBeginSend, setLastUserMsg, getLastUserMsg, beginRequest,
   };
 }

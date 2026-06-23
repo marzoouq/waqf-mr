@@ -5,14 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getHistory, clearHistory, type HistoryEntry } from '@/lib/diagnostics/history';
 import { fmtDateTime } from '@/utils/format/format';
 
 export default function RunHistoryList() {
-  const [items, setItems] = useState<HistoryEntry[]>([]);
-
-  useEffect(() => { setItems(getHistory()); }, []);
+  // lazy initializer — يحلّ react-hooks/set-state-in-effect
+  const [items, setItems] = useState<HistoryEntry[]>(() => getHistory());
 
   return (
     <Card>

@@ -42,6 +42,8 @@ const ROUTE_TO_FILE: Record<string, string> = {
   '/dashboard/distributions': 'src/pages/dashboard/DistributionsPage.tsx',
   '/dashboard/audit-report-final': 'src/pages/dashboard/AuditReportFinalPage.tsx',
   '/dashboard/cleanup-report': 'src/pages/dashboard/CleanupReportPage.tsx',
+  '/dashboard/archive': 'src/pages/dashboard/ArchivePage.tsx',
+
 
   '/beneficiary': 'src/pages/beneficiary/BeneficiaryDashboard.tsx',
   '/beneficiary/properties': 'src/pages/beneficiary/PropertiesViewPage.tsx',
@@ -59,6 +61,7 @@ const ROUTE_TO_FILE: Record<string, string> = {
   '/beneficiary/settings': 'src/pages/beneficiary/BeneficiarySettingsPage.tsx',
   '/beneficiary/support': 'src/pages/beneficiary/SupportPage.tsx',
   '/beneficiary/annual-report': 'src/pages/beneficiary/AnnualReportViewPage.tsx',
+  '/beneficiary/archive': 'src/pages/beneficiary/ArchiveViewPage.tsx',
   '/waqif': 'src/pages/beneficiary/BeneficiaryDashboard.tsx',
 };
 
