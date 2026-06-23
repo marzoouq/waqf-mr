@@ -142,7 +142,7 @@ export function useAggregatedAnnualReport() {
     const ok = await generateAggregatedAnnualReportPDF(pdfData, waqfInfo);
     if (ok) uiNotify.success('تم تصدير التقرير السنوي المُجمَّع بنجاح');
     else uiNotify.error('فشل تصدير التقرير السنوي المُجمَّع');
-  }, [summary, fiscalYear, income, expenses, items, properties, distributions, waqfInfo]);
+  }, [summary, fiscalYear, isClosed, income, expenses, items, properties, distributions, waqfInfo]);
 
   const canExport = useMemo(
     () => ready && !!summary.aggregated && !summary.isLoading,

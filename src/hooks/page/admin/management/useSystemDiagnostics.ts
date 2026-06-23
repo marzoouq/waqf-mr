@@ -113,7 +113,6 @@ export const useSystemDiagnostics = (autoRun = true) => {
   }, [results]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- autoRun behavior is intentional initial mount side-effect
     if (!autoRun) return;
     // F4: autoRun يُشغّل البطاقات الخفيفة فقط — الثقيلة on-demand لتفادي LCP مرتفع
     const idleCb: () => void = () => { void runLight(); };
