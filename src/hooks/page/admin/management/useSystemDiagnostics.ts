@@ -115,7 +115,8 @@ export const useSystemDiagnostics = (autoRun = true) => {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- autoRun behavior is intentional initial mount side-effect
     if (!autoRun) return;
-    const idleCb: () => void = () => { void run(); };
+    // F4: autoRun يُشغّل البطاقات الخفيفة فقط — الثقيلة on-demand لتفادي LCP مرتفع
+    const idleCb: () => void = () => { void runLight(); };
     type IdleWin = Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number; cancelIdleCallback?: (id: number) => void };
     const w = window as unknown as IdleWin;
     if (typeof w.requestIdleCallback === 'function') {
@@ -124,7 +125,7 @@ export const useSystemDiagnostics = (autoRun = true) => {
     }
     const t = window.setTimeout(idleCb, 300);
     return () => window.clearTimeout(t);
-  }, [autoRun, run]);
+  }, [autoRun, runLight]);
 
   const exportJson = useCallback(() => downloadJson(results), [results]);
   const exportText = useCallback(() => downloadText(results), [results]);
