@@ -24,6 +24,8 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
   const query = useQuery<DashboardSummaryResponse>({
     queryKey: dashboardKeys.summary(fiscalYearId),
     staleTime: STALE_FINANCIAL,
+    // F2: إبقاء بيانات السنة السابقة ظاهرة أثناء جلب السنة الجديدة (تبديل سلس بلا skeleton كامل)
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       const raw = await invoke<DashboardSummaryResponse>(
         'dashboard-summary',
