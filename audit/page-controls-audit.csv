@@ -12,6 +12,7 @@ src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,1
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,47,Button,"",onClick,"DashboardLayout>PageHeaderCard",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,57,Button,"PDF",onClick,"PageHeaderCard>FileEdit>Send",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,61,Button,"طباعة",onClick,"FileEdit>Send>FileDown",OK
+src/pages/dashboard/ArchivePage.tsx,,/dashboard/archive,ADMIN_ROLES,57,Button,"رفع وثيقة",onClick,"DashboardLayout>AlertCircle>PageHeaderCard",OK
 src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,75,Tab,"سجل العمليات",tabs-radix,"Tabs>SelectValue>TabsList",OK
 src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,76,Tab,"محاولات الوصول",tabs-radix,"SelectValue>TabsList>Activity",OK
 src/pages/dashboard/AuditLogPage.tsx,,/dashboard/audit-log,ADMIN_ROLES,77,Tab,"الأرشيف",tabs-radix,"TabsList>Activity>ShieldAlert",OK
@@ -110,7 +111,7 @@ src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/RecentCo
 src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/RecentContractsCard.tsx,/dashboard,ADMIN_ROLES,73,Link,"عرض الكل",Link-to,"Skeleton>Skeleton>Skeleton",OK
 src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/kpi/DashboardStatsGrid.tsx,/dashboard,ADMIN_ROLES,22,Link,"{('yoyChange' in stat) && stat.yoyChange !== undefined && ( )}",Link-to,"StatsGridSkeleton",OK
 src/pages/dashboard/ExpensesPage.tsx,src/components/dashboard/AdvancedFiltersBar.tsx,/dashboard/expenses,ADMIN_ROLES,35,Button,"مسح الكل",onClick,"AdvancedFiltersBarProps>FilterState>Filter",OK
-src/pages/beneficiary/BeneficiaryDashboard.tsx,src/components/beneficiary/dashboard/BeneficiaryQuickLinks.tsx,/beneficiary,BENEFICIARY_ROLES,26,Link,"",Link-to,"",OK
+src/pages/beneficiary/BeneficiaryDashboard.tsx,src/components/beneficiary/dashboard/BeneficiaryQuickLinks.tsx,/beneficiary,BENEFICIARY_ROLES,27,Link,"",Link-to,"",OK
 src/pages/beneficiary/BeneficiaryDashboard.tsx,src/components/beneficiary/dashboard/BeneficiaryNotificationsCard.tsx,/beneficiary,BENEFICIARY_ROLES,44,Button,"عرض الكل",onClick,"Card>CardHeader>Bell",OK
 src/pages/beneficiary/BeneficiaryDashboard.tsx,src/components/beneficiary/dashboard/BeneficiaryAdvanceCard.tsx,/beneficiary,BENEFICIARY_ROLES,70,Button,"طلب سلفة",disabled,"Banknote>AdvanceRequestDialog",OK
 src/pages/beneficiary/BeneficiaryDashboard.tsx,src/components/beneficiary/dashboard/BeneficiaryAdvanceCard.tsx,/beneficiary,BENEFICIARY_ROLES,83,Link,"عرض السجل الكامل",Link-to,"AdvanceRequestDialog>Banknote",OK
