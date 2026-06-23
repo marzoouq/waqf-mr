@@ -43,7 +43,7 @@ export const useAccountByFiscalYear = (
       if (msg.includes('401') || msg.toLowerCase().includes('unauthorized')) return false;
       return count < 2;
     },
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       let query = supabase
         .from('accounts')
         .select('id, fiscal_year, fiscal_year_id, total_income, total_expenses, net_after_expenses, vat_amount, net_after_vat, zakat_amount, admin_share, waqif_share, waqf_revenue, waqf_corpus_manual, waqf_corpus_previous, distributions_amount, created_at, updated_at')

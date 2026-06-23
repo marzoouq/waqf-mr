@@ -1,16 +1,6 @@
 /**
  * useListQuery — استعلام قائمة مع تصفح وحماية حد أقصى
  * مفصول عن useCrudFactory لتقليل تعقيد الملف الرئيسي.
- *
- * ملاحظات تصميمية مهمة (لمنع تكرار عطل
- * "The provided callback is no longer runnable"):
- *  1) لا نلفّ نتيجة useQuery داخل useMemo + spread، لأن خصائص UseQueryResult
- *     تعتمد على getters متعقَّبة مربوطة بـ QueryObserver نشط؛ تخزينها في
- *     closure طويل العمر يسبب الخطأ عند إبطال الـ Observer.
- *  2) queryFn يبقى نقياً — لا setState داخله. نلتقط count عبر ref ثم نزامنه
- *     مع state عبر useEffect.
- *  3) نضيف meta للاستعلام لتسهيل التتبع عبر QueryCache.onError المركزي.
- *  4) شكل البيانات في الكاش يبقى TData[] للحفاظ على توافق getQueryOptions/prefetch.
  */
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useState, useCallback, useEffect, useRef } from 'react';
@@ -22,7 +12,6 @@ import type {
   TableName, PaginatedQueryResult, CrudQueryOptions,
 } from '@/types/data/crudFactory';
 
-// سجل تتبع تحذيرات الحد الأقصى — بديل آمن عن التخزين في window
 const limitWarnShown = new Set<string>();
 
 interface BuildListOptions<T extends TableName> {
@@ -43,19 +32,22 @@ export function buildListHelpers<T extends TableName, TData>(
   const { table, queryKey, select, orderBy, ascending, limit, label, staleTime, notifications } = config;
   const notify = crudNotifyAdapter(notifications);
 
-  /** إرجاع query options لصفحة محددة — مفيد لـ prefetchQuery */
   const getQueryOptions = (page = 0): CrudQueryOptions => {
     const rangeFrom = page * limit;
     const rangeTo = rangeFrom + limit - 1;
     return {
       queryKey: [queryKey, { page }],
       staleTime,
-      queryFn: async () => {
-        const { data, error } = await supabase
+      queryFn: async ({ signal }) => {
+        const query = supabase
           .from(table)
           .select(select, { count: 'exact' })
           .order(orderBy, { ascending })
           .range(rangeFrom, rangeTo);
+        
+        if (signal) query.abortSignal(signal);
+        
+        const { data, error } = await query;
         if (error) throw error;
         return data as TData[];
       },
@@ -75,15 +67,18 @@ export function buildListHelpers<T extends TableName, TData>(
       queryKey: [queryKey, { page }],
       staleTime,
       meta: { table, queryKey, label, page, rangeFrom, rangeTo },
-      queryFn: async () => {
-        const { data, error, count } = await supabase
+      queryFn: async ({ signal }) => {
+        const q = supabase
           .from(table)
           .select(select, { count: 'exact' })
           .order(orderBy, { ascending })
           .range(rangeFrom, rangeTo);
 
+        if (signal) q.abortSignal(signal);
+
+        const { data, error, count } = await q;
+
         if (error) throw error;
-        // التقاط العدد عبر ref فقط — لا setState داخل queryFn
         if (count !== null && count !== undefined) {
           lastCountRef.current = count;
         }
@@ -91,7 +86,6 @@ export function buildListHelpers<T extends TableName, TData>(
       },
     });
 
-    // مزامنة totalCount + تحذير الحد الأقصى — خارج queryFn لتفادي تداخل مع QueryObserver
     useEffect(() => {
       if (!query.isSuccess) return;
       const c = lastCountRef.current;
@@ -108,7 +102,6 @@ export function buildListHelpers<T extends TableName, TData>(
       }
     }, [query.isSuccess, query.dataUpdatedAt, page]);
 
-    // تسجيل أخطاء الاستعلام والتعافي منها — يساعد على تتبع المصدر بدون toast إضافي
     useEffect(() => {
       if (query.error && query.error !== lastErrorRef.current) {
         lastErrorRef.current = query.error;
@@ -137,7 +130,6 @@ export function buildListHelpers<T extends TableName, TData>(
       setPage(Math.max(0, p));
     }, []);
 
-    // spread يتم مرة واحدة لكل render — لا closures طويلة العمر مع UseQueryResult
     return {
       ...query,
       page,

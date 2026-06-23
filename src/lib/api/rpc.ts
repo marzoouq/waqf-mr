@@ -41,6 +41,8 @@ export interface RpcOptions {
   maxAttempts?: number;
   /** علامة label مخصصة لـ perf timer (الافتراضي: rpc:<name>) */
   label?: string;
+  /** إشارة إلغاء الاستعلام */
+  signal?: AbortSignal;
 }
 
 /**
@@ -58,11 +60,18 @@ export async function rpc<T = unknown>(
 
   try {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (options.signal?.aborted) {
+        throw new Error('Aborted');
+      }
+
       // Cast through unknown because supabase.rpc is heavily generic over fnName literal unions.
-      const { data, error } = await (supabase.rpc as unknown as (
-        fn: string,
-        p?: Record<string, unknown>,
-      ) => Promise<{ data: unknown; error: { message?: string; status?: number; name?: string } | null }>)(fnName, params);
+      const query = (supabase.rpc as any)(fnName, params);
+      if (options.signal) {
+        query.abortSignal(options.signal);
+      }
+
+      const { data, error } = await query;
+      
       if (!error) {
         if (import.meta.env.DEV && data !== null && data !== undefined) {
           try { recordPayloadSize(`rpc:${fnName}:response`, JSON.stringify(data).length); } catch { /* noop */ }
@@ -79,7 +88,17 @@ export async function rpc<T = unknown>(
 
       const delay = BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)] ?? 1000;
       logger.warn(`[rpc] إعادة محاولة ${fnName} (${attempt}/${maxAttempts}) بعد ${delay}ms — ${classified.category}`);
-      await sleep(delay);
+      
+      if (options.signal) {
+        await Promise.race([
+          sleep(delay),
+          new Promise((_, reject) => {
+            options.signal?.addEventListener('abort', () => reject(new Error('Aborted')), { once: true });
+          })
+        ]);
+      } else {
+        await sleep(delay);
+      }
     }
     // غير قابل للوصول منطقياً
     throw new ApiError(classifyError(lastError), lastError);

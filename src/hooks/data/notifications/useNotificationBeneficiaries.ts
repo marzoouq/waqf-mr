@@ -15,7 +15,7 @@ export const useNotificationBeneficiaries = () => {
   return useQuery({
     // مفتاح مستقل تحت بادئة beneficiaries-safe — لا يتداخل مع invalidation الخاص بـ CRUD
     queryKey: beneficiariesKeys.notificationRecipients(),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       // F-A2: استخدام beneficiaries_safe (view آمن) بدل جدول PII الخام.
       const { data, error } = await supabase
         .from('beneficiaries_safe')

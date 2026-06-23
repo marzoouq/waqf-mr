@@ -14,7 +14,7 @@ export const useFiscalYears = () => {
   return useQuery({
     queryKey: fiscalYearKeys.list(user?.id),
     staleTime: STALE_FINANCIAL,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const { data, error } = await supabase
         .from('fiscal_years')
         .select('id, label, start_date, end_date, status, published, created_at')
