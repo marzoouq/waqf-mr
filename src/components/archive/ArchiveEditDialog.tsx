@@ -26,23 +26,19 @@ interface Props {
 }
 
 const ArchiveEditDialog = ({ target, onClose, onSubmit, pending }: Props) => {
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<ArchiveCategory>('other');
-  const [description, setDescription] = useState('');
-  const [documentDate, setDocumentDate] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (target) {
-      setTitle(target.title);
-      setCategory(target.category);
-      setDescription(target.description ?? '');
-      setDocumentDate(target.document_date ?? '');
-      setErrors({});
-    }
-  }, [target]);
-
+  // مزامنة الحقول مع target عبر key على الحوار لتجنّب setState داخل effect
   if (!target) return null;
+  return <ArchiveEditDialogInner key={target.id} target={target} onClose={onClose} onSubmit={onSubmit} pending={pending} />;
+};
+
+type InnerProps = Props & { target: NonNullable<Props['target']> };
+
+const ArchiveEditDialogInner = ({ target, onClose, onSubmit, pending }: InnerProps) => {
+  const [title, setTitle] = useState(target.title);
+  const [category, setCategory] = useState<ArchiveCategory>(target.category);
+  const [description, setDescription] = useState(target.description ?? '');
+  const [documentDate, setDocumentDate] = useState(target.document_date ?? '');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
