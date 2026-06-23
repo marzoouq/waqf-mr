@@ -1,132 +1,106 @@
-## خطة الفحص الشامل والعميق للتطبيق بالكامل
+## خطة الإصلاح الشاملة — مراجعة نهائية مكتملة
 
-فحص تدقيقي على **9 محاور** يغطي كل ملف، مجلد، صفحة، لوحة تحكم، Edge Function، جدول DB، ومسار مستخدم — دون أي تعديل على الكود.
-
----
-
-### المحور 1 — الكود الثابت (Static Analysis)
-- `bunx tsc --noEmit` — صفر أخطاء TypeScript
-- `bunx eslint src --max-warnings=0` — تقرير كامل
-- البحث عن أنماط محظورة في كامل `src/`:
-  - `console.log/warn/error` خام (يجب `logger`)
-  - `localStorage` لأدوار أو `fiscal_year_id` (يجب `sessionStorage`)
-  - `any` بدون مبرر
-  - ألوان hex خارج Canvas/SVG/print
-  - `@/integrations/supabase/client` داخل `src/pages/` و`src/components/`
-  - `toast` داخل `src/hooks/data/`
-  - استيرادات barrel → barrel
-  - ملفات > 200 سطر و > 180 سطر للمكونات
-  - props ≥ 5 غير مجمّعة
-- `tailwind.config` و`index.css`: التحقق من اكتمال tokens
-
-### المحور 2 — المعمارية والاتفاقيات
-- تشغيل كامل: `node scripts/audit-all.mjs` (يغطي structure + conventions + hooks-layout + ui-permissions + page-controls)
-- التحقق من Page Hook Pattern: كل صفحة في `src/pages/` بدون منطق
-- فصل طبقات: `hooks/data/` نقي، `hooks/domain/` حسابات، `hooks/page/` تنسيق، `hooks/application/` controllers، `hooks/auth/` (session/role/biometric/flows)، `hooks/ui/` عرض
-- `utils/` (دوال نقية) vs `lib/` (stateful)
-- مراجعة `audit/conventions-deep-violations.csv` و`audit/hooks-layout-report.md` و`audit/ui-permissions-audit.csv` و`audit/page-controls-audit.md`
-- التحقق من `routeRegistry.ts` ↔ `routeRoles.ts` ↔ `adminRoutes.tsx` ↔ `beneficiaryRoutes.tsx` ↔ `waqifRoutes.tsx` متّسقة
-
-### المحور 3 — قاعدة البيانات والأمن
-- `supabase--linter` — تقرير المحاذير
-- `security--run_security_scan` + `security--get_scan_results`
-- استعلامات تحقق على كل الجداول الـ 42:
-  - RLS مفعّل + GRANT صحيح
-  - عدم وجود FK مباشرة إلى `auth.users`
-  - سياسات `archived_documents` + storage `waqf-documents` + `waqf-assets`
-  - دوال `SECURITY DEFINER` لها `SET search_path = public`
-  - استخدام `has_role()` بدلاً من `jwt_role()`
-- فحص الفهارس على الأعمدة الحرجة (fiscal_year_id, beneficiary_id, contract_id, is_published)
-- التحقق من triggers الـ 29 والدوال الـ 32
-
-### المحور 4 — Edge Functions (الـ 11 وظيفة)
-لكل وظيفة في `supabase/functions/`:
-- `admin-manage-users`, `ai-assistant`, `auth-email-hook`, `check-contract-expiry`, `dashboard-summary`, `generate-invoice-pdf`, `generate-voucher-pdf`, `guard-signup`, `health-check`, `lookup-national-id`, `multi-year-summary`, `process-email-queue`, `webauthn`, `year-comparison-summary`, `zatca-xml-generator`
-- التحقق من:
-  - `getUser()` لا `getSession()`
-  - Zod validation على body
-  - عدم تسريب `SUPABASE_SERVICE_ROLE_KEY`
-  - CORS صحيحة (`_shared/cors.ts`)
-  - معالجة أخطاء موحّدة
-- `supabase--edge_function_logs` — قراءة آخر السجلات لكل وظيفة
-
-### المحور 5 — فحص وقت التشغيل (Runtime عبر Playwright)
-لكل دور، تنفيذ Playwright headless على localhost:8080 مع التقاط:
-- لقطة شاشة لكل صفحة
-- console errors
-- network 4xx/5xx
-- runtime errors
-
-**admin** (جميع المسارات):
-`/dashboard`, `/dashboard/contracts`, `/dashboard/properties`, `/dashboard/beneficiaries`, `/dashboard/income`, `/dashboard/expenses`, `/dashboard/advance-requests`, `/dashboard/distributions`, `/dashboard/invoices`, `/dashboard/vouchers`, `/dashboard/accounts`, `/dashboard/chart-of-accounts`, `/dashboard/annual-report`, `/dashboard/audit-report-final`, `/dashboard/historical-comparison`, `/dashboard/multi-year`, `/dashboard/archive`, `/dashboard/audit-log`, `/dashboard/access-log`, `/dashboard/cleanup-report`, `/dashboard/email-monitor`, `/dashboard/zatca`, `/dashboard/messages`, `/dashboard/support`, `/dashboard/users`, `/dashboard/settings`, `/dashboard/system-diagnostics`
-
-**accountant**: نفس المسارات + التحقق من حجب الإعدادات/المستخدمين/الإقفال
-
-**beneficiary**:
-`/beneficiary/dashboard`, `/beneficiary/contracts`, `/beneficiary/invoices`, `/beneficiary/expenses`, `/beneficiary/accounts`, `/beneficiary/carryforward`, `/beneficiary/annual-report`, `/beneficiary/archive`, `/beneficiary/disclosure`, `/beneficiary/reports`, `/beneficiary/messages`, `/beneficiary/notifications`, `/beneficiary/support`, `/beneficiary/settings`
-
-**waqif**:
-`/waqif/dashboard` وكل الصفحات الفرعية
-
-**public**: `/`, `/auth`, `/reset-password`, `/install`, `/privacy`, `/terms`, `/unauthorized`, `/404`
-
-لكل صفحة: التحقق من RTL، تحميل البيانات، عدم وجود شاشات بيضاء/أخطاء "حدث خطأ".
-
-### المحور 6 — لوحات التحكم والـ Widgets
-- **Admin Dashboard**: KPI cards، الرسوم البيانية، الإجراءات السريعة، التنبيهات
-- **Accountant Dashboard**: تحقق من الفلترة (عدم ظهور Waqf Revenue)
-- **Beneficiary Dashboard**: widgets قابلة للتخصيص عبر `app_settings`
-- **Waqif Dashboard**: تقارير عامة فقط
-- التحقق من `BeneficiaryQuickLinks`, `WaqifQuickLinks`, `bottomNavLinks`, `navigation.ts`, `sections.ts`
-- اتساق `useSectionsVisibility` مع DB
-
-### المحور 7 — المنطق المالي والأعمال
-استعلامات تحقق ضد قواعد الذاكرة:
-- **LRM parity** server (`execute_distribution`) vs client
-- **Revenue recognition** (upfront في السنة الحالية، periodic حسب due date)
-- **Net cash flow** = post-tax Waqf Revenue
-- **Advance limits** ≤ % من الحصص الفعلية
-- **Negative guards** `Math.max(0)` على net shares
-- **Fiscal year**: منع إقفال سنة فارغة، حماية reopen
-- **ZATCA ICV chain**: تسلسل صحيح، `reserve_icv` + `commit_icv_chain`
-- **Contract allocation v3**: حدود السنة المالية مع exclusive end dates
-- **Renewal PII**: نقل بيانات المستأجر عند التجديد
-- **Balance sheet**: Corpus مستخرج من Waqf Revenue (لا double counting)
-- **Invoice deletion safeguard**: منع حذف الفواتير المدفوعة جزئياً
-- **VAT centrality**: `vat_amount` فقط، لا إدخال يدوي
-
-### المحور 8 — الاختبارات والجودة
-- `bunx vitest run` — تشغيل كل الاختبارات
-- تقرير التغطية للوحدات الحديثة
-- رصد ميزات بدون اختبارات (مثل archive)
-- مراجعة `audit/forensic-*` للقضايا المعلّقة
-- مراجعة `audit/beneficiary-deep-audit-*`
-
-### المحور 9 — الأداء وإمكانية الوصول (a11y)
-- تحليل الاستعلامات البطيئة: `supabase--slow_queries`
-- `supabase--db_health` و`supabase--cloud_status`
-- رصد `dashboard-summary` (~3.4s) ومحاولات تحسين
-- تحذيرات `DialogContent` بدون `DialogDescription`
-- تحقق من `staleTime` ملائم (1-5 دقائق)
-- حدود الاستعلام (500 record warning, 2000 max)
-- PWA: `manifest.webmanifest`، service worker، `_headers`، تحديث التطبيق
+تغطية كاملة لكل بند في التقرير الشامل، مقسّمة على **3 مراحل** + مرحلة تحقق نهائية.
 
 ---
 
-### مخرجات التقرير النهائي
-1. **ملخّص تنفيذي**: حالة (🟢/🟡/🔴) لكل من — الكود، المعمارية، DB، Edge Functions، 4 لوحات تحكم، المنطق المالي، الأداء
-2. **يعمل بكفاءة**: قائمة الأقسام السليمة
-3. **مشاكل حرجة (Blockers)**: تمنع التشغيل — ملف:سطر
-4. **مشاكل متوسطة (Warnings)**: ديون تقنية، أداء
-5. **ملاحظات a11y/UX**
-6. **خروقات الاتفاقيات**: من `audit-all.mjs`
-7. **توصيات بأولويات** P0/P1/P2 مع تقدير الجهد
-8. **مرفقات**: لقطات شاشة لكل صفحة، مخرجات الأدوات الخام، CSVs
+### المرحلة P0 — حرجة (تُكسر الاختبارات والـ ESLint حالياً)
 
-### حدود صارمة
-- صفر تعديل على أي ملف
-- لا migrations ولا deploys
-- لا مساس بـ `AuthContext`, `client.ts`, `types.ts`, `config.toml`, `.env`
-- جميع المشاكل تُعرض للمراجعة قبل أي إصلاح
+#### 1. إكمال ميتاداتا ميزة الأرشيف (يحل 4 اختبارات فاشلة)
+- **`src/test/dashboardRoutesContract.test.ts`** — إضافة إلى `ROUTE_TO_FILE`:
+  - `'/dashboard/archive': 'src/pages/dashboard/ArchivePage.tsx'`
+  - `'/beneficiary/archive': 'src/pages/beneficiary/ArchiveViewPage.tsx'`
+- **`src/constants/rolePermissions.ts`** — إضافة `archive` إلى `DEFAULT_ROLE_PERMS.accountant` (والتحقق من admin/beneficiary/waqif)
+- فحص `permissionKeysCoverage.test.ts` لمعرفة لماذا يفشل `/beneficiary/archive` رغم وجوده في `ROUTE_ROLES` — تطبيع المسار أو إضافة استثناء
 
-هل أبدأ التنفيذ؟
+#### 2. migration: GRANT لـ `log_access_event` (يحل اختبار publicRpcAccess)
+- جلب توقيع الدالة من DB
+- `GRANT EXECUTE ON FUNCTION public.log_access_event(<args>) TO anon, authenticated;`
+
+#### 3. إصلاح ESLint Errors الأربعة
+- **`src/components/diagnostics/RunHistoryList.tsx:15`** — استبدال `useEffect` بـ `useState` lazy initializer
+- **`src/hooks/application/useAiChat.ts:23-29`** — refactor: تحويل refs المتغيّرة إلى state داخل hook منفصل، أو استخدام setter ثابت بدلاً من تعديل `.current` خارج الـ hook
+
+**تحقق P0**: `bunx tsc --noEmit && bunx eslint src && bunx vitest run` — يجب أن يمر الكل
+
+---
+
+### المرحلة P1 — جودة (تحذيرات runtime + ESLint warnings)
+
+#### 4. مزامنة Zod schema لـ `dashboard-summary` (يحل تحذير console)
+- فحص `supabase/functions/dashboard-summary/index.ts` للتأكد من إرجاع `fetched_at` كـ ISO string
+- إن كان الحقل اختياري، تحديث Zod schema في client إلى `fetched_at: z.string().optional()`
+
+#### 5. إصلاح missing dependencies (2 تحذير)
+- **`src/hooks/page/admin/dashboard/useAggregatedAnnualReport.ts:145`** — إضافة `isClosed` إلى deps
+- **`src/hooks/page/beneficiary/dashboard/useBeneficiaryDashboardPage.ts:57`** — إضافة `fiscalYear` إلى deps (مع منع loops)
+
+#### 6. تنظيف ESLint warnings المتبقية (4 تحذيرات)
+- حذف `eslint-disable` غير المستخدم في `useSystemDiagnostics.ts:116` و`deepClean.test.ts:45`
+- **`EmailMonitorPrimitives.tsx:51`** — نقل الثوابت المُصدَّرة إلى `EmailMonitorConstants.ts` (fast-refresh)
+
+**تحقق P1**: `bunx eslint src --max-warnings=0` يمر صفر تحذيرات
+
+---
+
+### المرحلة P2 — تحسينات لاحقة
+
+#### 7. مراجعة دوال SECURITY DEFINER (75 WARN)
+- استعلام DB لجلب كل دوال `SECURITY DEFINER` في `public`
+- تصنيف:
+  - **public بضرورة** (`has_role`, `log_access_event`, RPCs المستخدمة من client) — لا تغيير
+  - **داخلية فقط** (triggers, helpers) — `REVOKE EXECUTE FROM authenticated, anon`
+- migration واحدة تجمع REVOKEs
+
+#### 8. تقسيم ملفات الإنتاج > 270 سطر
+- **`src/utils/pdf/reports/aggregatedAnnualReport.ts` (274 سطر)** → `aggregatedAnnualReportSections.ts` + `aggregatedAnnualReportLayout.ts` + orchestrator ≤180 سطر
+- **`src/lib/diagnostics/checks.ts` (273 سطر)** → تقسيم حسب الفئة: `checks/auth.ts`, `checks/db.ts`, `checks/edge.ts`, `checks/conventions.ts`
+
+---
+
+### تحذيرات مرصودة لا تتطلب إجراء
+
+- **`BfcacheSafe Channel CHANNEL_ERROR`** المتكررة في console — ناتجة عن `[vite] server connection lost. Polling for restart...` (dev-only، تختفي في production). **لا إجراء**.
+- **`Security Definer View` (1 ERROR)** — `contracts_safe` تستخدم `security_invoker=false` **عمداً** لإخفاء PII حسب الذاكرة المحفوظة (`mem://security/views/contracts-safe-rationale`). **ممنوع التبديل**.
+- ملفات الاختبارات > 200 سطر (`useComputedFinancials.test.ts`, إلخ) — مقبولة (اختبارات قد تكون طويلة).
+
+---
+
+### مرحلة التحقق النهائي (Verification Gate)
+
+بعد إنهاء P0+P1+P2:
+1. `bunx tsc --noEmit` → 0 errors
+2. `bunx eslint src --max-warnings=0` → 0 errors, 0 warnings
+3. `bunx vitest run` → 2135/2135 ناجح
+4. `node scripts/audit-all.mjs` → 0 critical, 0 GAP
+5. `supabase--linter` → 1 ERROR (مقصود) + < 20 WARN
+6. console preview نظيف من تحذيرات Zod
+7. اختبار Playwright سريع على `/dashboard` و`/dashboard/archive` و`/beneficiary/archive` لرصد أي regression بصري
+
+---
+
+### حدود وضمانات صارمة
+
+- **لا مساس بـ**: `AuthContext.tsx`, `ProtectedRoute.tsx`, `SecurityGuard.tsx`, `client.ts`, `types.ts`, `config.toml`, `.env`
+- **لا تغيير على**: `contracts_safe` view (SECURITY DEFINER مقصود)، `verify_jwt = false` في Edge Functions
+- **migration GRANT آمنة** (إضافة صلاحية، لا حذف بيانات)
+- جميع تعديلات P0/P1 موضعية (≤10 أسطر/ملف)
+- توقف فوري وإبلاغ المستخدم إن ظهر أي regression غير متوقع
+
+### تغطية البنود في التقرير
+
+| بند التقرير | المعالجة |
+|---|---|
+| 4 ESLint errors | P0 #3 |
+| 5 Vitest failures (4 archive + 1 RPC) | P0 #1, #2 |
+| Zod `fetched_at` | P1 #4 |
+| 2 missing deps | P1 #5 |
+| 4 ESLint warnings | P1 #6 |
+| 75 SECURITY DEFINER WARN | P2 #7 |
+| ملفات > 270 سطر | P2 #8 |
+| 1 Security Definer View | موثّق كمقصود |
+| BfcacheSafe warnings | موثّق كـ dev-only |
+
+✅ **التغطية: 100% من بنود التقرير**.
+
+هل أبدأ التنفيذ من P0؟
