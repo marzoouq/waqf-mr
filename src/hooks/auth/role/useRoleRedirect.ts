@@ -14,7 +14,7 @@ const ROLE_HOME: Record<string, string> = {
  * يتحقق أن مسار الـ `?from=` آمن (داخلي فقط — لا redirect خارجي).
  * R7 (W2-F18).
  */
-function sanitizeFrom(from: string | null): string | null {
+export function sanitizeFrom(from: string | null): string | null {
   if (!from) return null;
   if (!from.startsWith('/')) return null;
   if (from.startsWith('//')) return null; // protocol-relative
@@ -23,8 +23,20 @@ function sanitizeFrom(from: string | null): string | null {
 }
 
 /**
+ * يتحقق أن مسار `from` يطابق منطقة دور المستخدم.
+ * يمنع توجيه المستفيد لمسار الناظر بعد تسجيل دخول ناجح.
+ */
+export function isFromAllowedForRole(from: string, role: string): boolean {
+  if (role === 'admin') return from.startsWith('/dashboard') || from.startsWith('/beneficiary');
+  if (role === 'accountant') return from.startsWith('/dashboard');
+  if (role === 'beneficiary') return from.startsWith('/beneficiary');
+  if (role === 'waqif') return from.startsWith('/waqif');
+  return false;
+}
+
+/**
  * Hook لإعادة توجيه المستخدم بناءً على دوره بعد تسجيل الدخول.
- * R7 (W2-F18): يستهلك `?from=` إن كان مساراً داخلياً آمناً.
+ * R7 (W2-F18): يستهلك `?from=` إن كان مساراً داخلياً آمناً ومناسباً للدور.
  */
 export function useRoleRedirect(
   user: { id: string } | null | undefined,
@@ -41,9 +53,11 @@ export function useRoleRedirect(
     if (!user || !role) return;
     const home = ROLE_HOME[role];
     if (!home) return;
-    const from = sanitizeFrom(searchParams.get('from'));
+    const sanitized = sanitizeFrom(searchParams.get('from'));
+    const from = sanitized && isFromAllowedForRole(sanitized, role) ? sanitized : null;
     navigate(from ?? home, { replace: true });
   }, [user, role, loading, navigate, searchParams]);
+
 
   // مهلة انتظار الصلاحيات
   useEffect(() => {
