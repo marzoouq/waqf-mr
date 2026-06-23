@@ -15,6 +15,7 @@ export const SECTION_LABELS: Record<string, string> = {
   users: 'إدارة المستخدمين',
   invoices: 'الفواتير',
   bylaws: 'اللائحة التنظيمية',
+  archive: 'أرشيف الوثائق',
   messages: 'المراسلات',
   audit_log: 'سجل المراجعة',
   annual_report: 'التقرير السنوي',
@@ -37,7 +38,7 @@ export const SECTION_LABELS: Record<string, string> = {
 /** مفاتيح أقسام لوحة تحكم الناظر/المحاسب */
 export const ADMIN_SECTION_KEYS = [
   'properties', 'contracts', 'income', 'expenses', 'beneficiaries',
-  'reports', 'accounts', 'users', 'invoices', 'bylaws', 'messages',
+  'reports', 'accounts', 'users', 'invoices', 'bylaws', 'archive', 'messages',
   'audit_log', 'annual_report', 'support', 'chart_of_accounts',
   'settings', 'zatca', 'diagnostics', 'email_monitor', 'comparison',
   'audit_report_final', 'cleanup_report',
@@ -56,7 +57,7 @@ export const isProtectedAdminSection = (key: string): boolean =>
 /** مفاتيح أقسام واجهة المستفيد */
 export const BENEFICIARY_SECTION_KEYS = [
   'properties', 'contracts', 'disclosure', 'share', 'carryforward',
-  'financial_reports', 'accounts', 'invoices', 'expenses', 'bylaws',
+  'financial_reports', 'accounts', 'invoices', 'expenses', 'bylaws', 'archive',
   'messages', 'notifications', 'annual_report', 'support',
 ] as const;
 
@@ -75,6 +76,7 @@ export const ROLE_SECTION_DEFS: { key: string; label: string; roles: string[] }[
   { key: 'accounts', label: SECTION_LABELS['accounts'] ?? 'accounts', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'invoices', label: SECTION_LABELS['invoices'] ?? 'invoices', roles: ['accountant', 'beneficiary'] },
   { key: 'bylaws', label: SECTION_LABELS['bylaws'] ?? 'bylaws', roles: ['accountant', 'beneficiary', 'waqif'] },
+  { key: 'archive', label: SECTION_LABELS['archive'] ?? 'archive', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'disclosure', label: SECTION_LABELS['disclosure'] ?? 'disclosure', roles: ['beneficiary'] },
   { key: 'share', label: SECTION_LABELS['share'] ?? 'share', roles: ['beneficiary'] },
   { key: 'carryforward', label: SECTION_LABELS['carryforward'] ?? 'carryforward', roles: ['beneficiary'] },

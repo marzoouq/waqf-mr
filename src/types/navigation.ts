@@ -16,6 +16,7 @@ export interface MenuLabels {
   invoices: string;
   audit_log: string;
   bylaws: string;
+  archive: string;
   beneficiary_view: string;
   chart_of_accounts: string;
   // مسارات إضافية متاحة للناظر/المحاسب (#13 من تقرير الفحص)
@@ -46,6 +47,7 @@ export const defaultMenuLabels: MenuLabels = {
   invoices: 'الفواتير الضريبية',
   audit_log: 'سجل المراجعة',
   bylaws: 'اللائحة التنظيمية',
+  archive: 'أرشيف الوثائق',
   beneficiary_view: 'معاينة بوابة المستفيد',
   chart_of_accounts: 'الشجرة المحاسبية',
   zatca: 'تكامل ZATCA',

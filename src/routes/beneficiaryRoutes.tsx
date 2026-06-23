@@ -19,6 +19,7 @@ const CarryforwardHistoryPage = lazyWithRetry(() => import("@/pages/beneficiary/
 
 const BeneficiarySupportPage = lazyWithRetry(() => import("@/pages/beneficiary/SupportPageGuard"));
 const AnnualReportViewPage = lazyWithRetry(() => import("@/pages/beneficiary/AnnualReportViewPage"));
+const ArchiveViewPage = lazyWithRetry(() => import("@/pages/beneficiary/ArchiveViewPage"));
 
 import { BENEFICIARY_ROLES, ALL_NON_ACCOUNTANT } from '@/constants/roles';
 
@@ -41,5 +42,6 @@ export const beneficiaryRoutes = (
     <Route path="/beneficiary/carryforward" element={pr(BENEFICIARY_ROLES, <CarryforwardHistoryPage />)} />
     <Route path="/beneficiary/support" element={pr(BENEFICIARY_ROLES, <BeneficiarySupportPage />)} />
     <Route path="/beneficiary/annual-report" element={pr(ALL_NON_ACCOUNTANT, <AnnualReportViewPage />)} />
+    <Route path="/beneficiary/archive" element={pr(ALL_NON_ACCOUNTANT, <ArchiveViewPage />)} />
   </>
 );

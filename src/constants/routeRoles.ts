@@ -28,6 +28,7 @@ export const ROUTE_ROLES: Record<string, readonly AppRole[]> = {
   '/dashboard/invoices': ['admin', 'accountant'],
   '/dashboard/audit-log': ['admin', 'accountant'],
   '/dashboard/bylaws': ['admin', 'accountant'],
+  '/dashboard/archive': ['admin', 'accountant'],
   '/dashboard/support': ['admin', 'accountant'],
   '/dashboard/annual-report': ['admin', 'accountant'],
   '/dashboard/chart-of-accounts': ['admin', 'accountant'],
@@ -62,6 +63,7 @@ export const ROUTE_ROLES: Record<string, readonly AppRole[]> = {
   '/beneficiary/expenses': ['admin', 'beneficiary', 'waqif'],
   '/beneficiary/bylaws': ['admin', 'beneficiary', 'waqif'],
   '/beneficiary/annual-report': ['admin', 'beneficiary', 'waqif'],
+  '/beneficiary/archive': ['admin', 'beneficiary', 'waqif'],
 
   // ─── Waqif landing — 1 مسار ───
   '/waqif': ['admin', 'waqif'],
@@ -71,4 +73,4 @@ export const ROUTE_ROLES: Record<string, readonly AppRole[]> = {
 export const ALL_APP_ROLES: readonly AppRole[] = ['admin', 'accountant', 'beneficiary', 'waqif'] as const;
 
 /** عدد المسارات المتوقع (لاستخدام الاختبارات كـ sanity check) */
-export const EXPECTED_ROUTE_COUNT = 41;
+export const EXPECTED_ROUTE_COUNT = 43;

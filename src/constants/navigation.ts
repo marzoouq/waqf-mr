@@ -14,7 +14,7 @@ import {
   DollarSign, Receipt, ReceiptText, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
   ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity, Mail,
-  TrendingDown, Share2,
+  TrendingDown, Share2, FolderArchive,
 } from '@/constants/navigationIcons';
 import { ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
 import {
@@ -56,6 +56,7 @@ const ADMIN_ROUTE_ICONS: Record<string, typeof Home> = {
   '/dashboard/invoices': ReceiptText,
   '/dashboard/audit-log': ShieldCheck,
   '/dashboard/bylaws': BookOpen,
+  '/dashboard/archive': FolderArchive,
   '/dashboard/zatca': Lock,
   '/dashboard/annual-report': ClipboardList,
   '/dashboard/support': Headset,
@@ -98,6 +99,7 @@ export const allBeneficiaryLinks = [
   { to: '/beneficiary/invoices', icon: Receipt, label: 'الفواتير' },
   { to: '/beneficiary/expenses', icon: TrendingDown, label: 'المصروفات' },
   { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
+  { to: '/beneficiary/archive', icon: FolderArchive, label: 'أرشيف الوثائق' },
   { to: '/beneficiary/support', icon: Headset, label: 'الدعم الفني' },
   { to: '/beneficiary/annual-report', icon: ClipboardList, label: 'التقرير السنوي للوقف' },
   { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
@@ -133,6 +135,7 @@ export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   // P1/C2: نُقل التقرير السنوي من `reference` إلى `finance` لأنه وثيقة مالية بالكامل
   '/dashboard/annual-report': 'finance',
   '/dashboard/bylaws': 'reference',
+  '/dashboard/archive': 'reference',
   '/dashboard/messages': 'communication',
   '/dashboard/support': 'communication',
   '/dashboard/users': 'administration',
@@ -162,6 +165,7 @@ export const BENEFICIARY_ROUTE_GROUPS: Record<string, BeneficiaryGroupKey> = {
   '/beneficiary/contracts': 'documents',
   '/beneficiary/invoices': 'documents',
   '/beneficiary/bylaws': 'documents',
+  '/beneficiary/archive': 'documents',
   '/beneficiary/annual-report': 'documents',
   '/beneficiary/disclosure': 'financial',
   '/beneficiary/my-share': 'financial',
