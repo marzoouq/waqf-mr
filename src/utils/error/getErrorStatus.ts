@@ -33,6 +33,13 @@ export const classifyError = (error: unknown): ClassifiedError => {
 
   // network: fetch failed قبل أي استجابة
   if (e?.name === 'TypeError' && /fetch/i.test(message ?? '')) {
+    // F3: في DEV — أخطاء CORS/preflight لا تُحلّ بإعادة المحاولة (إعداد البيئة)؛ صنّفها كـ validation لكسر retry loop
+    if (
+      import.meta.env.DEV &&
+      /CORS|preflight|Access-Control|Failed to fetch|NetworkError/i.test(message ?? '')
+    ) {
+      return { status, code, category: 'validation', message };
+    }
     return { status, code, category: 'network', message };
   }
 

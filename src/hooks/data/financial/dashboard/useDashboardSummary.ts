@@ -24,6 +24,8 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
   const query = useQuery<DashboardSummaryResponse>({
     queryKey: dashboardKeys.summary(fiscalYearId),
     staleTime: STALE_FINANCIAL,
+    // F2: إبقاء بيانات السنة السابقة ظاهرة أثناء جلب السنة الجديدة (تبديل سلس بلا skeleton كامل)
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       const raw = await invoke<DashboardSummaryResponse>(
         'dashboard-summary',
@@ -77,6 +79,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
   const heatmapQuery = useQuery<HeatmapInvoice[]>({
     queryKey: dashboardKeys.heatmap(fiscalYearId),
     staleTime: STALE_FINANCIAL,
+    placeholderData: (prev) => prev,
     enabled: !!fiscalYearId && enabled && isFyReady(fiscalYearId),
     queryFn: async () => {
       let q = supabase
@@ -94,6 +97,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
   const recentQuery = useQuery<RecentContract[]>({
     queryKey: dashboardKeys.recentContracts(fiscalYearId),
     staleTime: STALE_FINANCIAL,
+    placeholderData: (prev) => prev,
     enabled: !!fiscalYearId && enabled && isFyReady(fiscalYearId),
     queryFn: async () => {
       let q = supabase

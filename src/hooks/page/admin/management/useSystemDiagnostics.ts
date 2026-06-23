@@ -2,7 +2,7 @@
  * هوك صفحة التشخيص — يستخرج كل المنطق (تشغيل، تصدير، إعادة فاشلة، أرشيف)
  */
 import { useState, useEffect, useCallback } from 'react';
-import { runAllDiagnostics, runCategoryDiagnostics, runByIds, diagnosticCategories } from '@/lib/diagnostics/checks';
+import { runAllDiagnostics, runCategoryDiagnostics, runByIds, runLightDiagnostics, diagnosticCategories } from '@/lib/diagnostics/checks';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { logger } from '@/lib/logger';
@@ -24,6 +24,7 @@ export const useSystemDiagnostics = (autoRun = true) => {
     pushRun({ total: s.total, pass: s.pass, warn: s.warn, fail: s.fail, info: s.info, healthScore: s.healthScore });
   }, []);
 
+  // F4: تشغيل كامل (يدوي) — يستدعيه زر «تشغيل كل الفحوصات»
   const run = useCallback(async () => {
     setRunning(true);
     setProgress({ done: 0, total: 0, current: '' });
@@ -47,6 +48,26 @@ export const useSystemDiagnostics = (autoRun = true) => {
       setRunning(false);
     }
   }, [user, persistRun]);
+
+  // F4: تشغيل خفيف (تلقائي عند تركيب الصفحة) — يتجنّب فحوصات DB/Edge الثقيلة
+  const runLight = useCallback(async () => {
+    setRunning(true);
+    setProgress({ done: 0, total: 0, current: '' });
+    try {
+      const output = await runLightDiagnostics({ onProgress: (info) => setProgress(info) });
+      // نُدمج مع النتائج الحالية بدل استبدالها (يحافظ على نتائج بطاقات DB إن وُجدت)
+      setResults(prev => {
+        const map = new Map(prev.map(c => [c.category, c]));
+        for (const c of output) map.set(c.category, c);
+        return Array.from(map.values());
+      });
+      setLastRun(new Date());
+    } catch (e) {
+      logger.error('[Diagnostics] فشل التشغيل الخفيف:', e);
+    } finally {
+      setRunning(false);
+    }
+  }, []);
 
   const runSingle = useCallback(async (categoryTitle: string) => {
     setRunningCategory(categoryTitle);
@@ -94,7 +115,8 @@ export const useSystemDiagnostics = (autoRun = true) => {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- autoRun behavior is intentional initial mount side-effect
     if (!autoRun) return;
-    const idleCb: () => void = () => { void run(); };
+    // F4: autoRun يُشغّل البطاقات الخفيفة فقط — الثقيلة on-demand لتفادي LCP مرتفع
+    const idleCb: () => void = () => { void runLight(); };
     type IdleWin = Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number; cancelIdleCallback?: (id: number) => void };
     const w = window as unknown as IdleWin;
     if (typeof w.requestIdleCallback === 'function') {
@@ -103,7 +125,7 @@ export const useSystemDiagnostics = (autoRun = true) => {
     }
     const t = window.setTimeout(idleCb, 300);
     return () => window.clearTimeout(t);
-  }, [autoRun, run]);
+  }, [autoRun, runLight]);
 
   const exportJson = useCallback(() => downloadJson(results), [results]);
   const exportText = useCallback(() => downloadText(results), [results]);

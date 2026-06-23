@@ -3,7 +3,8 @@
  */
 import { logger } from '@/lib/logger';
 
-const WARN_QUERY_THRESHOLD_MS = 2000;
+// F5: رُفع من 2000 إلى 3000 لتجاهل قمم cold-start المنعزلة على Edge Functions
+const WARN_QUERY_THRESHOLD_MS = 3000;
 const SLOW_QUERY_THRESHOLD_MS = 5000;
 
 export interface PerfEntry {

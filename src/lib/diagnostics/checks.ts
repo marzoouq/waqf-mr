@@ -161,7 +161,26 @@ export const diagnosticCategories: DiagnosticCategory[] = [
   },
 ];
 
-/** خيارات تشغيل الفحص مع دعم progress و cancel. */
+/**
+ * F4: قائمة البطاقات «الخفيفة» — لا تتصل بـ Supabase/DB ولا بـ Edge Functions.
+ * تُستخدم في autoRun عند تركيب صفحة التشخيص لتفادي LCP مرتفع.
+ * باقي البطاقات (DB/ZATCA/Backend/Financial/Audit/AppMap) تبقى on-demand.
+ */
+export const LIGHT_CATEGORY_TITLES = new Set<string>([
+  'المتصفح والأداء',
+  'التخزين',
+  'الواجهة والتصميم',
+  'الأمان والصلاحيات',
+  'إعدادات التطبيق',
+  'التوجيه والمسارات',
+  'وضع التدقيق (Lighthouse)',
+  'PWA و Service Worker',
+  'أخطاء التشغيل',
+  'تفاعلات الواجهة',
+  'اتفاقيات الكود',
+]);
+
+/** خيارات اختيارية لتشغيل الفحص مع دعم progress و cancel. */
 export interface RunAuditOptions {
   onProgress?: (info: { done: number; total: number; current: string }) => void;
   signal?: AbortSignal;
@@ -188,6 +207,31 @@ export async function runAllDiagnostics(opts: RunAuditOptions = {}): Promise<{ c
     }
     output.push({ category: cat.title, results });
     // yield بين البطاقات لتحسين INP وتفادي long task واحد
+    await new Promise<void>(r => setTimeout(r, 0));
+  }
+  return output;
+}
+
+/**
+ * F4: تشغيل البطاقات الخفيفة فقط (بلا DB/Edge) — يُستدعى من autoRun.
+ * يقلّل LCP صفحة التشخيص من ~27s إلى ~1-2s.
+ */
+export async function runLightDiagnostics(opts: RunAuditOptions = {}): Promise<{ category: string; results: CheckResult[] }[]> {
+  const { onProgress, signal } = opts;
+  const lightCats = diagnosticCategories.filter(c => LIGHT_CATEGORY_TITLES.has(c.title));
+  const total = lightCats.reduce((s, c) => s + c.checks.length, 0);
+  let done = 0;
+  const output: { category: string; results: CheckResult[] }[] = [];
+  for (const cat of lightCats) {
+    if (signal?.aborted) break;
+    const results: CheckResult[] = [];
+    for (const fn of cat.checks) {
+      if (signal?.aborted) break;
+      results.push(await fn());
+      done += 1;
+      onProgress?.({ done, total, current: cat.title });
+    }
+    output.push({ category: cat.title, results });
     await new Promise<void>(r => setTimeout(r, 0));
   }
   return output;
