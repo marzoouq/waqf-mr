@@ -34,13 +34,17 @@ export function useChartReady() {
       rafRef.current = requestAnimationFrame(() => setReady(true));
     };
 
-    // 1) فحص أولي متزامن
-    const rect = el.getBoundingClientRect();
-    if (rect.width >= MIN_DIM && rect.height >= MIN_DIM) {
-      markReady(rect.width, rect.height);
-    }
+    // 1) فحص أولي مُؤجَّل عبر rAF لتفادي forced reflow أثناء mount
+    //    (getBoundingClientRect المتزامن داخل useLayoutEffect كان يُسبّب
+    //     [Violation] Forced reflow في كل صفحة تحتوي رسماً بيانياً).
+    const initialRaf = requestAnimationFrame(() => {
+      const rect = el.getBoundingClientRect();
+      if (rect.width >= MIN_DIM && rect.height >= MIN_DIM) {
+        markReady(rect.width, rect.height);
+      }
+    });
 
-    // 2) مراقبة مستمرة (دون فصل بعد أول قياس)
+    // 2) مراقبة مستمرة (دون فصل بعد أول قياس) — ResizeObserver لا يُسبّب reflow
     const obs = new ResizeObserver((entries) => {
       const cr = entries[0]?.contentRect;
       if (!cr) return;
@@ -51,6 +55,7 @@ export function useChartReady() {
     obs.observe(el);
 
     return () => {
+      cancelAnimationFrame(initialRaf);
       obs.disconnect();
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };

@@ -1,4 +1,4 @@
-import { Label } from '@/components/ui/label';
+
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Mail, IdCard } from 'lucide-react';
 
@@ -13,7 +13,7 @@ interface LoginMethodSelectorProps {
 export default function LoginMethodSelector({ loginMethod, onChange, isLoading, idSuffix }: LoginMethodSelectorProps) {
   return (
     <div className="space-y-3">
-      <Label id="login-method-label" className="text-sm font-medium">طريقة تسجيل الدخول</Label>
+      <div id={`login-method-label${idSuffix}`} className="text-sm font-medium">طريقة تسجيل الدخول</div>
       <RadioGroup
         name={`login_method${idSuffix}`}
         value={loginMethod}
@@ -21,6 +21,7 @@ export default function LoginMethodSelector({ loginMethod, onChange, isLoading, 
         className="flex flex-wrap gap-3"
         dir="rtl"
         disabled={isLoading}
+        aria-labelledby={`login-method-label${idSuffix}`}
       >
         <label
           htmlFor={`method-email${idSuffix}`}

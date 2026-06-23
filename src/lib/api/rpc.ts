@@ -108,7 +108,19 @@ export async function rpc<T = unknown>(
 
       if (!error) {
         if (import.meta.env.DEV && data !== null && data !== undefined) {
-          try { recordPayloadSize(`rpc:${fnName}:response`, JSON.stringify(data).length); } catch { /* noop */ }
+          // تأجيل JSON.stringify إلى idle لتجنّب حجب main thread على الحمولات الكبيرة
+          try {
+            const schedule: (cb: () => void) => void =
+              typeof (globalThis as { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback === 'function'
+                ? (cb) => (globalThis as { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(cb)
+                : (cb) => setTimeout(cb, 0);
+            schedule(() => {
+              try {
+                const s = JSON.stringify(data);
+                if (s.length < 100_000) recordPayloadSize(`rpc:${fnName}:response`, s.length);
+              } catch { /* noop */ }
+            });
+          } catch { /* noop */ }
         }
         return data as T;
       }

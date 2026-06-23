@@ -27,7 +27,17 @@ export const useAppSettings = () => {
   });
 
   const writes = useAppSettingsWrite(query.data);
-  return { ...query, ...writes };
+  // ملاحظة: لا نستخدم {...query} لأن سكب UseQueryResult يكسر تتبّع QueryObserver
+  // ويُسبّب الخطأ "The provided callback is no longer runnable" + re-renders زائدة.
+  return {
+    data: query.data,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+    ...writes,
+  };
 };
 
 // Re-exports للتوافق الخلفي مع الاستيرادات القائمة
