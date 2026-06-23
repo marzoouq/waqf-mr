@@ -30,7 +30,17 @@ function safeWrite(entries: RuntimeErrorEntry[]): void {
   } catch { /* تجاهل quota */ }
 }
 
+// F5: قائمة أنماط تُسكت في «أخطاء التشغيل» — من مصادر خارجية لا يمكن إصلاحها (مثل web-vitals)
+const SILENT_PATTERNS: RegExp[] = [
+  /Deprecated API for given entry type/i,
+];
+
+function isSilenced(message: string): boolean {
+  return SILENT_PATTERNS.some(rx => rx.test(message));
+}
+
 function push(entry: RuntimeErrorEntry): void {
+  if (isSilenced(entry.message)) return;
   const all = safeRead();
   all.push(entry);
   safeWrite(all);
