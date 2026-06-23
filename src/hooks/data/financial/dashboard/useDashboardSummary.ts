@@ -79,6 +79,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
   const heatmapQuery = useQuery<HeatmapInvoice[]>({
     queryKey: dashboardKeys.heatmap(fiscalYearId),
     staleTime: STALE_FINANCIAL,
+    placeholderData: (prev) => prev,
     enabled: !!fiscalYearId && enabled && isFyReady(fiscalYearId),
     queryFn: async () => {
       let q = supabase
