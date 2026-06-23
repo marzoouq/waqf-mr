@@ -1,48 +1,71 @@
-## المشكلة
+## الفحص الجنائي — ما هو مُصلَح فعلاً وما هو متبقّي
 
-ملاحظتان في DevTools:
+### 1) تحذيرات Preload للخطوط (Tajawal-*-arabic.woff2)
+**الحالة:** مُصلَحة في الكود بالفعل.
+- `index.html` السطور 33-37: لا توجد وسوم `<link rel="preload">` للخطوط.
+- المصدر الوحيد للخطوط هو `@font-face` في `src/index.css` (السطور 75-153) مع `font-display: swap` وملفات موجودة في `public/fonts/`.
 
-### 1) تحذير `preload` للخطوط (مؤكد على `/`)
-`index.html` يحتوي على:
-```html
-<link rel="preload" href="/fonts/Tajawal-Regular-arabic.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="preload" href="/fonts/Tajawal-Bold-arabic.woff2" as="font" type="font/woff2" crossorigin />
-```
-وفي `src/index.css` نفس الخطوط معرّفة عبر `@font-face` مع `unicode-range` محدودة للعربية و`font-display: swap`. Chromium يحمّل ملف الـpreload لكن طلب CSS اللاحق يُعتبر طلباً مختلفاً (بسبب اختلاف credentials/cache key الناتج عن غياب unicode-range على الـpreload) فلا يُستخدم خلال 3 ثواني من `load` → التحذير المتكرر. النتيجة: تحميل مزدوج فعلياً ولا فائدة من الـpreload.
+**سبب استمرار ظهور التحذيرات على `https://waqf-wise.net`:** الموقع المنشور لا يزال يُقدّم الـ build القديم (`vendor-react-BpimhaYH.js`، `index-BJwUJnfw.js`) الذي يحتوي على وسوم preload. **الإصلاح يتطلّب إعادة النشر فقط** — لا تغيير كود مطلوب.
 
-### 2) "No label associated with a form field"
-لا توجد عناصر `<form>`/`<input>` على الصفحة الرئيسية `/` — لا في `Index.tsx` ولا في مكونات `landing/*`. الإشكال إذن مصدره صفحة أخرى زرتها (غالباً `/auth` أو حوار داخلي). لا أستطيع تحديد الحقل المخالف من تقرير DevTools وحده.
+### 2) `[Violation] 'message' handler took 1000-15000ms` + Forced reflow
+**التحليل الجنائي:**
+- `vendor-react-BpimhaYH.js:33` = React scheduler postMessage → عبء عمل ثقيل داخل work loop واحد.
+- `initQueryMonitoring.ts` الحالي خفيف (مجرد سجل أخطاء في DEV فقط) — ليس السبب الحالي. التقرير الفرعي اقتبس نسخة قديمة.
+- مصادر مرشّحة باقية:
+  - **`useAppSettings.ts:30`** — يستخدم `return { ...query, ...writes }`. سَكب كائن `UseQueryResult` يكسر تتبّع QueryObserver ويُسبّب re-renders زائدة + احتمال الخطأ `The provided callback is no longer runnable`.
+  - **`rpc.ts:110-112`** — `JSON.stringify(data).length` في DEV على كل استجابة (قد تكون كبيرة).
+  - **`useChartReady.ts:38`** — `getBoundingClientRect()` متزامن داخل `useLayoutEffect` يُسبّب forced reflow في كل mount لرسم بياني.
+  - **`usePagePerformance.ts`** — يُسجّل في كل تنقّل (مقبول، لا تغيير).
 
-## الحل
+### 3) "No label associated with a form field"
+يعود غالباً لـ `LoginMethodSelector`: `<RadioGroup>` بدون `<Label>` مرتبط بـ `id` المجموعة (الـ `htmlFor` غير موجود لـ `login_method`). نُضيف `<Label>` خفي مرتبط أو `aria-label` على `RadioGroup`.
 
-### A. إصلاح تحذير preload (تنفيذ فوري)
+---
 
-**ملف**: `index.html` (السطر 36-37)
+## خطة الإصلاح
 
-إزالة وسمَي `<link rel="preload">` للخطوط. المسوّغات:
-- جميع `@font-face` الموجودة تستعمل `font-display: swap` → لن يحدث FOIT.
-- النصوص العربية على الواجهة الأمامية تظهر فوراً بخط النظام ثم تستبدَل بـTajawal بسرعة (FOUT طفيف جداً غير ملحوظ في معظم الشبكات).
-- إزالة التحميل المضاعف توفّر ~30-50KB من نطاق التحميل الحرج وتلغي تحذير DevTools.
+### A. تحذيرات الخطوط (لا كود — إجراء واحد)
+**إعادة نشر الموقع** عبر زر النشر لإصدار build جديد يطابق المصدر الحالي. سيختفي التحذير تلقائياً من `waqf-wise.net`.
 
-بديل لو رفض المستخدم الإزالة: إبقاء الـpreload وإضافة `media="all"` صريح + التأكد أن مسار الـURL متطابق 100% مع طلب CSS — لكن في معظم الحالات السلوك لا يتحسّن.
+### B. بطء main thread + الخطأ "callback no longer runnable"
+1. **`src/hooks/data/settings/app/useAppSettings.ts`** — استبدال `return { ...query, ...writes }` بإرجاع صريح:
+   ```ts
+   return {
+     data: query.data,
+     isLoading: query.isLoading,
+     isError: query.isError,
+     error: query.error,
+     refetch: query.refetch,
+     ...writes,
+   };
+   ```
+   هذا يمنع كسر تتبّع QueryObserver ويقلّل re-renders.
 
-### B. إصلاح "No label" 
+2. **`src/lib/api/rpc.ts:110-112`** — تخطّي `JSON.stringify` للحمولات الكبيرة:
+   ```ts
+   if (import.meta.env.DEV && data) {
+     try {
+       const s = JSON.stringify(data);
+       if (s.length < 100_000) recordPayloadSize(`rpc:${fnName}:response`, s.length);
+     } catch { /* noop */ }
+   }
+   ```
 
-أحتاج توضيحاً قبل التنفيذ:
-- ما الصفحة التي ظهر فيها التحذير بالضبط؟ (URL مثلاً `/auth`، أو فتح حوار "إضافة مستفيد"…)
-- إن أمكن، نسخ HTML العنصر المخالف من DevTools → Issues → Affected resource.
+3. **`src/hooks/ui/useChartReady.ts`** — تأجيل القياس المتزامن إلى `requestAnimationFrame` لتجنّب forced reflow:
+   - نقل `getBoundingClientRect()` إلى داخل `rAF` أول، وإبقاء `ResizeObserver` كما هو.
 
-بمجرد تحديد الموضع: ربط `<Label htmlFor>` بـ`id` على الـ`<Input>`، أو لفّ الإدخال داخل `<label>` (في حالات الراديو/الشيك بوكس).
+### C. تحذير "No label associated with a form field"
+**`src/components/auth/login/LoginMethodSelector.tsx`** — إضافة `<Label htmlFor={...}>` للعنوان أو `aria-label` صريح على `RadioGroup`. سأتحقّق من جميع الحقول المماثلة في `LoginForm`/`PasswordField` ومعالجتها بنفس الطريقة إذا لزم.
 
-## التحقق
+### D. التحقّق
+- `bun run build` ثم `bunx vitest run` (لا تغيير سلوكي).
+- Playwright على `/` و `/auth`: التقاط console لمدة 10 ثوانٍ بعد load والتأكّد من غياب:
+  - `'message' handler took >500ms`
+  - `Forced reflow ... >50ms`
+  - `callback is no longer runnable`
+  - تحذيرات a11y على عناصر النموذج.
+- إعادة النشر للتحقّق من اختفاء تحذيرات preload في الإنتاج.
 
-1. `bun run build` ثم تحميل المعاينة، فتح DevTools → Console + Issues.
-2. التأكد من اختفاء رسالتَي preload خلال 5 ثوانٍ من تحميل `/`.
-3. تشغيل Playwright على `/` لالتقاط Performance trace والتأكد أن LCP لم يتراجع (هدف: ≤ +50ms).
-4. بعد تحديد مكان حقل النموذج المخالف: التحقق بـaxe-core أو Lighthouse a11y أن المشكلة اختفت.
-
-## القيود
-
-- بدون تعديل: `client.ts`, `types.ts`, `.env`, `config.toml`, ملفات المصادقة.
-- بدون لمس الـDB أو Edge Functions.
-- التعديل محصور في `index.html` + ملف واحد لاحقاً للـlabel.
+### قيود
+- لا تعديل على ملفات Auth/DB/Edge محمية.
+- التغييرات محصورة في 4 ملفات: `useAppSettings.ts`, `rpc.ts`, `useChartReady.ts`, `LoginMethodSelector.tsx`.
