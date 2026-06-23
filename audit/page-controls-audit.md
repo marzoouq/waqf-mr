@@ -1,10 +1,10 @@
 # Page Controls Audit — Admin & Beneficiary
 
-Generated: 2026-06-22T22:30:08.787Z
+Generated: 2026-06-23T01:16:56.047Z
 
 ## Scope
 
-- Pages scanned: **41** under `src/pages/dashboard` + `src/pages/beneficiary`.
+- Pages scanned: **43** under `src/pages/dashboard` + `src/pages/beneficiary`.
 - First-level child components recursed: **33** under `@/components/dashboard/`, `@/components/beneficiary/`, `@/components/shared/`, `@/components/admin/`.
 - Control types: Tab, Button, IconButton, DropdownItem, CommandItem, MenuItem, Link, FormSubmit.
 - Method: regex inventory (not full AST). A control is **OK** if it has `onClick` / `onSubmit` / `asChild` / `type=submit` / `to=` / `href=` / parent Trigger / Radix TabsTrigger.
@@ -13,10 +13,10 @@ Generated: 2026-06-22T22:30:08.787Z
 
 | Metric | Value |
 |---|---|
-| Page-level controls | 93 |
+| Page-level controls | 94 |
 | Child-component controls | 25 |
-| Total controls | 118 |
-| OK | 118 |
+| Total controls | 119 |
+| OK | 119 |
 | GAP-NO-HANDLER | 0 |
 
 ## Per-page summary (page + recursed children)
@@ -25,6 +25,7 @@ Generated: 2026-06-22T22:30:08.787Z
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|
 | `beneficiary/AccountsViewPage.tsx` | `/beneficiary/accounts` | ALL_NON_ACCOUNTANT | 1 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/AnnualReportViewPage.tsx` | `/beneficiary/annual-report` | ALL_NON_ACCOUNTANT | 0 | 4 | 3 | 0 | 0 | 0 | ✅ 0 |
+| `beneficiary/ArchiveViewPage.tsx` | `/beneficiary/archive` | ALL_NON_ACCOUNTANT | 0 | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/BeneficiaryDashboard.tsx` | `/beneficiary` | BENEFICIARY_ROLES | 6 | 0 | 2 | 0 | 2 | 0 | ✅ 0 |
 | `beneficiary/BeneficiaryMessagesPage.tsx` | `/beneficiary/messages` | BENEFICIARY_ROLES | 0 | 0 | 2 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/BeneficiarySettingsPage.tsx` | `/beneficiary/settings` | ALL_NON_ACCOUNTANT | 0 | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
@@ -43,6 +44,7 @@ Generated: 2026-06-22T22:30:08.787Z
 | `dashboard/AccountsPage.tsx` | `/dashboard/accounts` | ADMIN_ROLES | 0 | 0 | 4 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/AdminDashboard.tsx` | `/dashboard` | ADMIN_ROLES | 10 | 0 | 10 | 0 | 9 | 0 | ✅ 0 |
 | `dashboard/AnnualReportPage.tsx` | `/dashboard/annual-report` | ADMIN_ROLES | 0 | 4 | 3 | 0 | 0 | 0 | ✅ 0 |
+| `dashboard/ArchivePage.tsx` | `/dashboard/archive` | ADMIN_ROLES | 0 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/AuditLogPage.tsx` | `/dashboard/audit-log` | ADMIN_ROLES | 0 | 3 | 3 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/AuditReportFinalPage.tsx` | `/dashboard/audit-report-final` | ADMIN_ONLY | 2 | 0 | 2 | 0 | 1 | 0 | ✅ 0 |
 | `dashboard/BeneficiariesPage.tsx` | `/dashboard/beneficiaries` | ADMIN_ROLES | 0 | 2 | 0 | 0 | 0 | 0 | ✅ 0 |

@@ -1,7 +1,7 @@
 severity,rule,file,line,message
 Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,26,"hex color #ffffff"
-Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,61,"hex color #0f172a"
-Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,91,"hex color #ffffff"
+Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,64,"hex color #0f172a"
+Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,94,"hex color #ffffff"
 Info,HexColors,components/invoices/InvoicePreviewDialog.tsx,16,"hex color #ffffff"
 Warning,NoToastInDataHooks,hooks/data/core/crud/useCrudMutations.ts,8,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
 Warning,NoToastInDataHooks,hooks/data/core/crud/useCrudMutations.ts,9,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
