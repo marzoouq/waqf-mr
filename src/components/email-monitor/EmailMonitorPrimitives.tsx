@@ -48,5 +48,4 @@ export function EmailStatCard({
   );
 }
 
-export { formatEmailDateTime } from './emailMonitorUtils';
 
