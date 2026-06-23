@@ -27,7 +27,8 @@ export { default as MobileCardView } from './layout/MobileCardView';
 
 // forms
 export { default as ExportMenu } from './forms/ExportMenu';
-export { ViewModeToggle, useViewMode, type ViewMode } from './forms/ViewModeToggle';
+export { ViewModeToggle, type ViewMode } from './forms/ViewModeToggle';
+export { useViewMode } from './forms/useViewMode';
 
 // tables
 export { default as TablePagination } from './tables/TablePagination';

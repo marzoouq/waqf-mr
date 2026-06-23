@@ -40,6 +40,3 @@ export function ViewModeToggle({ value, onChange, className }: ViewModeTogglePro
     </div>
   );
 }
-
-// useViewMode تم نقله إلى useViewMode.ts لدعم Fast Refresh
-export { useViewMode } from './useViewMode';
