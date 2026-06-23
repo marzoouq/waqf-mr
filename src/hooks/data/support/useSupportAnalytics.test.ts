@@ -62,7 +62,7 @@ describe('useSupportStats', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(rpcMock).toHaveBeenCalled();
-    expect(rpcMock.mock.calls[0][0]).toBe('get_support_stats');
+    expect(rpcMock.mock.calls[0]?.[0]).toBe('get_support_stats');
     expect(result.current.data?.totalTickets).toBe(10);
     expect(result.current.data?.errorsLast24h).toBe(2);
   });
