@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, BarChart3, PieChart, BookOpen, ArrowLeft } from 'lucide-react';
+import { FileText, BarChart3, PieChart, BookOpen, FolderArchive, ArrowLeft } from 'lucide-react';
 
 interface BeneficiaryQuickLinksProps {
   role: string | null;
@@ -15,6 +15,7 @@ const BeneficiaryQuickLinks = ({ role }: BeneficiaryQuickLinksProps) => {
     ] : []),
     { title: 'التقارير المالية', description: 'الرسوم البيانية والإحصائيات', icon: BarChart3, path: '/beneficiary/financial-reports', color: 'bg-muted text-muted-foreground' },
     { title: 'اللائحة التنظيمية', description: 'أحكام ولوائح الوقف', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-secondary/10 text-secondary' },
+    { title: 'أرشيف الوثائق', description: 'الوثائق الرسمية للوقف', icon: FolderArchive, path: '/beneficiary/archive', color: 'bg-primary/10 text-primary' },
   ], [role]);
 
   return (

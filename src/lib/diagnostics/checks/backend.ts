@@ -131,7 +131,7 @@ export async function checkBackendStorageBuckets(): Promise<CheckResult> {
   const id = 'backend_storage_buckets';
   const env = detectEnv();
   const t0 = performance.now();
-  const required = ['waqf-assets'];
+  const required = ['waqf-assets', 'waqf-documents'];
   try {
     const { data, error } = await supabase.storage.listBuckets();
     const names = (!error && data) ? data.map(b => b.name) : [];

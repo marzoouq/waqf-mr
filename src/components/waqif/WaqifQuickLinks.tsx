@@ -3,7 +3,7 @@
  */
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
-import { Building2, FileText, BarChart3, Wallet, BookOpen } from 'lucide-react';
+import { Building2, FileText, BarChart3, Wallet, BookOpen, FolderArchive } from 'lucide-react';
 
 const quickLinks = [
   { title: 'العقارات', icon: Building2, path: '/beneficiary/properties', color: 'bg-primary/10 text-primary' },
@@ -11,6 +11,7 @@ const quickLinks = [
   { title: 'التقارير المالية', icon: BarChart3, path: '/beneficiary/financial-reports', color: 'bg-muted text-muted-foreground' },
   { title: 'الحسابات الختامية', icon: Wallet, path: '/beneficiary/accounts', color: 'bg-secondary/10 text-secondary' },
   { title: 'اللائحة', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-primary/10 text-primary' },
+  { title: 'الأرشيف', icon: FolderArchive, path: '/beneficiary/archive', color: 'bg-accent/10 text-accent-foreground' },
 ];
 
 const WaqifQuickLinks = () => {
