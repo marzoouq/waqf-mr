@@ -97,6 +97,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
   const recentQuery = useQuery<RecentContract[]>({
     queryKey: dashboardKeys.recentContracts(fiscalYearId),
     staleTime: STALE_FINANCIAL,
+    placeholderData: (prev) => prev,
     enabled: !!fiscalYearId && enabled && isFyReady(fiscalYearId),
     queryFn: async () => {
       let q = supabase
