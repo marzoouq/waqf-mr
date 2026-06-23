@@ -37,8 +37,11 @@ export const useDashboardSummary = (fiscalYearId: string, fiscalYearLabel?: stri
           },
         },
       );
-      const { dashboardSummarySchema, parseOrThrow } = await import('@/lib/api/schemas');
-      parseOrThrow(dashboardSummarySchema, raw, 'dashboard-summary');
+      // تخطّي التحقق إذا كان الردّ شكل خطأ (يُعالَج لاحقاً بواسطة invoke/throw)
+      if (raw && typeof raw === 'object' && !(raw as { error?: unknown }).error) {
+        const { dashboardSummarySchema, parseOrThrow } = await import('@/lib/api/schemas');
+        parseOrThrow(dashboardSummarySchema, raw, 'dashboard-summary');
+      }
       return raw;
     },
     enabled: !!fiscalYearId && isFyReady(fiscalYearId),
