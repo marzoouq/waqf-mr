@@ -467,6 +467,51 @@ export type Database = {
         }
         Relationships: []
       }
+      archived_documents: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          document_date: string | null
+          file_size_bytes: number
+          id: string
+          is_published: boolean
+          mime_type: string
+          storage_path: string
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          document_date?: string | null
+          file_size_bytes: number
+          id?: string
+          is_published?: boolean
+          mime_type?: string
+          storage_path: string
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          document_date?: string | null
+          file_size_bytes?: number
+          id?: string
+          is_published?: boolean
+          mime_type?: string
+          storage_path?: string
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           created_at: string
