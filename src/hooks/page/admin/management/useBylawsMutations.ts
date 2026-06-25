@@ -74,7 +74,7 @@ export function useBylawsMutations(params: Params) {
       {
         id: editForm.editItem.id,
         content: editForm.editContent,
-        part_number: editForm.editPartNumber,
+        part_number: editForm.editPartNumber ?? undefined,
         part_title: editForm.editPartTitle.trim(),
         chapter_title: editForm.editChapterTitle.trim() || null,
         chapter_number: editForm.editChapterNumber,
