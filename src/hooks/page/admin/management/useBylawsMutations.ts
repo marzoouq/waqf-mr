@@ -4,8 +4,10 @@
 import { useCallback } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 import type { DragEndEvent } from '@dnd-kit/core';
+import type { UseMutationResult } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import type { BylawEntry } from '@/hooks/data/content/useBylaws';
+import type { Insert, Update } from '@/types/data/crudFactory';
 
 type AddForm = {
   newBylaw: { part_number: number | null; part_title: string; chapter_title: string; content: string };
@@ -22,11 +24,15 @@ type EditForm = {
   setEditItem: (v: BylawEntry | null) => void;
 };
 
-interface MutationApi {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mutate: (data: any, opts?: { onSuccess?: () => void; onError?: () => void }) => void;
-  isPending?: boolean;
-}
+// نوع mutation عام مع متغيرات مكتوبة بدقة — يطابق UseMutationResult بدون unknown
+type MutationApi<TVariables> = Pick<
+  UseMutationResult<unknown, Error, TVariables>,
+  'mutate' | 'isPending'
+>;
+
+type CreateBylawVars = Insert<'waqf_bylaws'>;
+type UpdateBylawVars = Update<'waqf_bylaws'> & { id: string };
+type ReorderBylawVars = { id: string; sort_order: number }[];
 
 interface Params {
   allBylaws: readonly BylawEntry[];
@@ -35,10 +41,10 @@ interface Params {
   deleteItem: BylawEntry | null;
   setDeleteItem: (v: BylawEntry | null) => void;
   isPublished: boolean;
-  createBylaw: MutationApi;
-  updateBylaw: MutationApi;
-  deleteBylaw: MutationApi;
-  reorderBylaws: MutationApi;
+  createBylaw: MutationApi<CreateBylawVars>;
+  updateBylaw: MutationApi<UpdateBylawVars>;
+  deleteBylaw: MutationApi<string>;
+  reorderBylaws: MutationApi<ReorderBylawVars>;
   updateSetting: { mutateAsync: (v: { key: string; value: string }) => Promise<unknown> };
 }
 
@@ -68,7 +74,7 @@ export function useBylawsMutations(params: Params) {
       {
         id: editForm.editItem.id,
         content: editForm.editContent,
-        part_number: editForm.editPartNumber,
+        part_number: editForm.editPartNumber ?? undefined,
         part_title: editForm.editPartTitle.trim(),
         chapter_title: editForm.editChapterTitle.trim() || null,
         chapter_number: editForm.editChapterNumber,
@@ -95,7 +101,7 @@ export function useBylawsMutations(params: Params) {
     if (!addForm.newBylaw.part_title.trim()) return;
     createBylaw.mutate(
       {
-        part_number: addForm.newBylaw.part_number,
+        part_number: addForm.newBylaw.part_number ?? 0,
         part_title: addForm.newBylaw.part_title.trim(),
         chapter_title: addForm.newBylaw.chapter_title.trim() || undefined,
         content: addForm.newBylaw.content.trim(),
