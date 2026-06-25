@@ -1,9 +1,10 @@
 /**
- * هوك منطق صفحة المصروفات
+ * هوك منطق صفحة المصروفات — حالة UI + استعلامات.
+ * Mutations مستخرجة في useExpensesMutations.
  */
 import { useState, useMemo, useCallback } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
-import { validateExpenseForm, getExpenseFieldErrors, type ExpenseFieldErrors, type ExpenseFormInput } from '@/utils/financial/expenses/expenseFormValidation';
+import { getExpenseFieldErrors, type ExpenseFieldErrors, type ExpenseFormInput } from '@/utils/financial/expenses/expenseFormValidation';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import type { SortFieldOf } from '@/types/sorting';
@@ -15,16 +16,15 @@ import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { Expense } from '@/types';
 import { EMPTY_FILTERS, type FilterState } from '@/types/ui';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
-import { uiNotify } from '@/lib/notify';
 import { useTableSort } from '@/hooks/ui/useTableSort';
 import { computeDocumentationStats } from '@/utils/financial/contracts/documentationRate';
 import { filterAndSortExpenses } from '@/utils/financial/expenses/expensesCompute';
 import { useExpensesExporters } from './useExpensesExporters';
+import { useExpensesMutations } from './useExpensesMutations';
 
 export type SortField = SortFieldOf<'amount' | 'date' | 'expense_type'>;
 
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
-
 const EMPTY_EXPENSE_FORM = { expense_type: '', amount: '', date: '', property_id: '', description: '' };
 
 export function useExpensesPage() {
@@ -75,58 +75,14 @@ export function useExpensesPage() {
     setIsOpen(true);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const result = validateExpenseForm(formData);
-    if (!result.success) {
-      setErrors(getExpenseFieldErrors(formData));
-      uiNotify.error(result.error);
-      return;
-    }
-    setErrors({});
-    const { amount } = result.data;
-    const expenseData: Record<string, unknown> = { ...result.data };
-    if (!editingExpense) {
-      if (!fiscalYear?.id) { uiNotify.error('يرجى اختيار سنة مالية محددة قبل إضافة مصروف'); return; }
-      expenseData.fiscal_year_id = fiscalYear.id;
-    }
-    try {
-      if (editingExpense) {
-        type UpdateArg = Parameters<typeof updateExpense.mutateAsync>[0];
-        await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as UpdateArg);
-      } else {
-        type CreateArg = Parameters<typeof createExpense.mutateAsync>[0];
-        const created = await createExpense.mutateAsync(expenseData as CreateArg);
-        // فتح نافذة سند الصرف تلقائياً للمصاريف الجديدة فقط
-        if (created?.id) {
-          setPostCreateVoucherFor({
-            id: created.id,
-            amount,
-            description: result.data.description || result.data.expense_type,
-          });
-        }
-      }
-
-      setIsOpen(false);
-      resetForm();
-    } catch {
-      // onError in the mutation already shows a toast
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await deleteExpense.mutateAsync(deleteTarget.id);
-      setDeleteTarget(null);
-      // البقاء في الصفحة الحالية ما لم تصبح فارغة
-      const totalAfterDelete = expenses.length - 1;
-      const maxPage = Math.ceil(totalAfterDelete / ITEMS_PER_PAGE);
-      if (currentPage > maxPage) setCurrentPage(Math.max(1, maxPage));
-    } catch {
-      // onError in the mutation already shows a toast
-    }
-  };
+  const { handleSubmit, handleConfirmDelete } = useExpensesMutations({
+    formData, editingExpense, fiscalYear,
+    expensesCount: expenses.length, currentPage, itemsPerPage: ITEMS_PER_PAGE, deleteTarget,
+    createExpense: createExpense as Parameters<typeof useExpensesMutations>[0]['createExpense'],
+    updateExpense: updateExpense as Parameters<typeof useExpensesMutations>[0]['updateExpense'],
+    deleteExpense: deleteExpense as Parameters<typeof useExpensesMutations>[0]['deleteExpense'],
+    setErrors, setIsOpen, resetForm, setDeleteTarget, setCurrentPage, setPostCreateVoucherFor,
+  });
 
   const totalExpenses = useMemo(() => expenses.reduce((sum, item) => sum + safeNumber(item.amount), 0), [expenses]);
 
@@ -135,7 +91,6 @@ export function useExpensesPage() {
     return Array.from(types).sort();
   }, [expenses]);
 
-  // نسبة التوثيق: مصروف يُعتبر "موثقاً" إذا ارتبط بفاتورة واحدة على الأقل
   const { expenseInvoiceMap, documentedCount, documentationRate } = useMemo(
     () => computeDocumentationStats(expenses, allInvoices),
     [allInvoices, expenses],
@@ -151,7 +106,7 @@ export function useExpensesPage() {
     [filteredExpenses, currentPage]
   );
 
-  /** هل السنة المالية محددة ويمكن الإضافة؟ — #15 */
+  /** هل السنة المالية محددة ويمكن الإضافة؟ */
   const canAdd = !!fiscalYear?.id && !isLocked;
 
   const { handleExportPdf, handleExportCsv } = useExpensesExporters(filteredExpenses, totalExpenses, pdfWaqfInfo);
