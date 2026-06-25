@@ -14,35 +14,12 @@ export { useClientErrors } from '../audit/useClientErrors';
 export type { ClientError } from '../audit/useClientErrors';
 
 // ---------------------------------------------------------------------------
-// Types
+// Types — مُعرَّفة في src/types/support.ts (مصدر وحيد للحقيقة)
+// تُعاد التصدير هنا للحفاظ على التوافق مع الاستيرادات الحالية.
 // ---------------------------------------------------------------------------
 
-export interface SupportTicket {
-  id: string;
-  ticket_number: string;
-  title: string;
-  description: string;
-  category: string;
-  priority: string;
-  status: string;
-  created_by: string;
-  assigned_to: string | null;
-  resolved_at: string | null;
-  resolution_notes: string | null;
-  rating: number | null;
-  rating_comment: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface TicketReply {
-  id: string;
-  ticket_id: string;
-  sender_id: string;
-  content: string;
-  is_internal: boolean;
-  created_at: string;
-}
+export type { SupportTicket, TicketReply } from '@/types/support';
+import type { SupportTicket } from '@/types/support';
 
 // ---------------------------------------------------------------------------
 // Queries
