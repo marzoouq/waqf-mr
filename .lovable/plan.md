@@ -1,71 +1,80 @@
-في لحظة ظهور رسالتك توقّف استدعاء `plan--create` لذلك لم تُعرض الخطة بالكامل. سأعيد تقديمها وأجيب على سؤالك.
+## فحص جنائي شامل قبل الإطلاق — نظام وقف الثبيتي
 
-**الإجابة المختصرة:** لا، هذا ليس كل شيء. الفحص المُحفّظ (persisted) يُظهر **مشكلة أمنية واحدة حرجة** على دلو `invoices`. لكن الفحص التفصيلي المباشر (`security--run_security_scan`) رجّع **184 ملاحظة** منها تحذيرات من Linter Supabase حول `SECURITY DEFINER` ودلوه عامة وإمكانية تنفيذ دوال للـ `anon`. ليست كلها ثغرات — بعضها قد يكون مقصوداً — لكنها تستحق مراجعة سريعة.
+فحص متعدد الطبقات يغطي الأمان، البيانات، الأداء، والامتثال. ينتج تقرير نهائي مع تصنيف الخطورة (critical/high/medium/low) وقرار GO/NO-GO.
 
-## المشكلة الأمنية المُكتشفة (Severity: error)
+### 1. طبقة قاعدة البيانات (DB Forensics)
 
-من نتائج فحص `supabase_lov`:
+- `supabase--linter` — كشف RLS مفقود، SECURITY DEFINER غير آمن، أعمدة حساسة مكشوفة
+- فحص كل جدول (42 جدول) للتحقق من: تفعيل RLS، وجود سياسات SELECT/INSERT/UPDATE/DELETE، GRANT صحيح
+- مراجعة الدوال (32 stored procedure) — تأكيد `search_path` آمن و`SECURITY DEFINER` مبرّر
+- فحص المشغلات (29 trigger) — لا تسريب بيانات أو bypass للسياسات
+- التحقق من تشفير الحقول الحساسة (national_id، bank_account) عبر pgcrypto
+- اختبار سياسة `invoices` storage bucket (المُصلحة حديثاً)
 
-**العنوان:** `Invoice files accessible to all authenticated users regardless of role`
+### 2. طبقة Edge Functions
 
-**التحليل الفعلي بعد فحص السياسات الحالية على `storage.objects` لدلو `invoices`:**
+- تشغيل `scripts/security-gates.mjs` — كشف `getSession()`، PII في logs، استخدام SERVICE_ROLE خارج allowlist
+- التحقق من Zod validation في كل function تقرأ body
+- مراجعة CORS، rate limiting، معالجة الأخطاء
+- اختبار auth flow عبر `getUser()` في كل endpoint
 
-السياسة القديمة `Authenticated users can view invoices` تمت إزالتها بالفعل، لكن السياسة الحالية:
+### 3. طبقة الواجهة والصلاحيات
 
-```sql
-"Role-based users can view invoices"
-USING bucket_id = 'invoices' AND (
-  has_role(auth.uid(),'admin') OR
-  has_role(auth.uid(),'accountant') OR
-  has_role(auth.uid(),'beneficiary') OR
-  has_role(auth.uid(),'waqif')
-)
-```
+- تشغيل `scripts/audit-all.mjs` (structure + conventions + hooks-layout + UI permissions + page controls)
+- مراجعة `audit/ui-permissions-audit.csv` — تطابق RBAC للأدوار الأربعة (admin/accountant/beneficiary/waqif)
+- التحقق من حراس المسارات (route guards) لكل الصفحات المحمية
+- فحص تسريب بيانات بين الأدوار (cross-role data leakage)
 
-لا تزال **تمنح كل مستفيد وكل واقف وصولاً مباشراً لأي ملف PDF لأي فاتورة** في الدلو عبر URL التخزين (تجاوزاً لأي فلترة على مستوى التطبيق). هذا يخالف نموذج الصلاحيات المعتمد في المشروع (الفواتير الضريبية ZATCA = مستندات تشغيلية يطّلع عليها الناظر والمحاسب فقط).
+### 4. طبقة منطق الأعمال المالية
 
-## الخطة
+- التحقق من قواعد التوزيع (LRM parity بين server/client)
+- اختبار سلسلة ZATCA ICV (تسلسل الفواتير)
+- التحقق من حدود السلف (advance limits)
+- اختبار إقفال/إعادة فتح السنة المالية
+- مراجعة حسابات الريع والكاش فلو
 
-### 1. ترحيل قاعدة بيانات (migration واحد)
+### 5. طبقة الجودة والاختبارات
 
-استبدال السياسة `Role-based users can view invoices` بسياسة مقصورة على الناظر والمحاسب:
+- `tsgo` للتحقق من TypeScript strict
+- `bunx vitest run` للاختبارات (unit + integration)
+- ESLint gates
+- فحص `console.*` المباشر (يجب استخدام logger)
 
-```sql
-DROP POLICY IF EXISTS "Role-based users can view invoices" ON storage.objects;
+### 6. طبقة الأداء والـ PWA
 
-CREATE POLICY "Admin and accountant can view invoices"
-ON storage.objects FOR SELECT
-TO authenticated
-USING (
-  bucket_id = 'invoices'
-  AND (
-    has_role(auth.uid(), 'admin'::app_role)
-    OR has_role(auth.uid(), 'accountant'::app_role)
-  )
-);
-```
+- تحليل bundle size وlazy loading
+- التحقق من preload للخطوط (مشكلة سابقة)
+- فحص `usePagePerformance` ومقاييس Core Web Vitals
+- اختبار PWA manifest وservice worker
 
-سياسات INSERT/UPDATE/DELETE الحالية (admin + accountant) تبقى كما هي — صحيحة.
+### 7. طبقة الخصوصية والامتثال
 
-### 2. فحص مسارات التطبيق التي قد تُحمّل ملف الفاتورة لمستفيد/واقف
+- فحص masking للـ PII في logs وUI العامة
+- مراجعة `app_settings` لإحصائيات الهبوط
+- التحقق من `email_unsubscribe_tokens` وسياسات suppressed_emails
 
-البحث في الكود عن أي استخدام لـ `from('invoices').download` أو `getPublicUrl('invoices'...)` ضمن مسارات بيانية للمستفيد/الواقف. لو وُجد:
-- إما حذف الزر/الرابط من واجهات `beneficiary/` و `waqif/`
-- أو توجيه الطلب عبر Edge Function تتحقق من ملكية الفاتورة وتُعيد الملف موقَّعاً (signed URL).
+### المخرجات
 
-(لن يُكتب كود جديد للـ Edge Function إلا إذا اكتُشف اعتماد فعلي في الواجهات؛ غير ذلك يكفي ترحيل السياسة.)
+- `audit/forensic-pre-launch-2026-06-25/` يحتوي:
+  - `SUMMARY.md` — تصنيف نهائي + قرار GO/NO-GO
+  - `01-database.md` — نتائج DB layer
+  - `02-edge-functions.md`
+  - `03-ui-rbac.md`
+  - `04-business-logic.md`
+  - `05-quality.md`
+  - `06-performance.md`
+  - `07-privacy.md`
+  - `CRITICAL.md` — قائمة مرتبة بالأولوية للإصلاح قبل الإطلاق
 
-### 3. التحقق
+### ملاحظة مهمة
 
-- إعادة تشغيل `security--run_security_scan` للتأكد من اختفاء الـ finding.
-- اختبار يدوي: محاولة تنزيل ملف من دلو `invoices` بحساب مستفيد → يجب أن يفشل بـ 403.
-- تشغيل `supabase--linter` للتحقق من عدم استحداث أي تحذير جديد.
+هذا الفحص **قراءة فقط** — لن أُجري أي تعديلات. عند اكتشاف ثغرات حرجة، سأقترح خطة إصلاح منفصلة للموافقة عليها.
 
-### تنبيه — سؤال للمستخدم قبل التنفيذ
+### السؤال قبل البدء
 
-هل واجهة المستفيد/الواقف الحالية تعرض زر «تنزيل PDF» لملفات من دلو `invoices`؟
-- **(أ) لا** — نطبّق الترحيل مباشرة دون أي تغيير في الواجهة.
-- **(ب) نعم، وأرغب باستمرار الإتاحة المحدودة** — نضيف Edge Function تُصدر signed URL بعد التحقق من ربط الفاتورة بالمستفيد.
-- **(ج) نعم، ولكن يمكن إزالتها** — نزيل الأزرار من واجهات `beneficiary/` و `waqif/`.
-
-أرجو اختيار أحد الخيارات لأكمل الخطة وفقاً لذلك.
+هل تريد الفحص الكامل (السبع طبقات، ~15-20 دقيقة) أم نسخة مركّزة على الأمان فقط (طبقات 1+2+3، ~5-7 دقائق)؟  
+نفذ فحص كامل لجميع المخرجات   
+نفذ فحص عميق للروابط  
+فحص الحافه  
+الواجهات  
+كل ما بداخل التطبيق والمستودع 
