@@ -3,10 +3,11 @@
  *
  * ⚠️ معماري: لا يُعرّض refs خام للـ caller — بل يُغلّفها داخل
  * `sidebarProps` و `overlayProps` (jsx-spread-friendly objects).
- * هذا يمنع `react-hooks/refs` violations الناتجة عن قراءة `ref.current`
- * في render body من المستهلك.
+ *
+ * يستخدم React state لإدارة `dragOffset` بدل DOM mutation مباشر،
+ * لتفادي تعارض inline style مع React-managed style (يؤدي لتعليق على iOS).
  */
-import { useRef, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 
 interface UseSidebarSwipeParams {
   sidebarWidth?: number;
@@ -15,14 +16,17 @@ interface UseSidebarSwipeParams {
   setMobileSidebarOpen: (open: boolean) => void;
 }
 
+const EDGE_ZONE = 12; // px من الحافة اليمنى لتفعيل swipe-to-open (مُقلَّص لتفادي تعارض إيماءة Safari iOS)
+
 export function useSidebarSwipe({
   sidebarWidth = 256,
   closeThreshold = 80,
   mobileSidebarOpen,
   setMobileSidebarOpen,
 }: UseSidebarSwipeParams) {
-  const sidebarRef = useRef<HTMLElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
+  // dragOffset: المسافة الحالية للسحب — null يعني لا سحب نشط
+  const [dragOffset, setDragOffset] = useState<number | null>(null);
+
   const dragOffsetRef = useRef(0);
   const isDragging = useRef(false);
   const sidebarTouchStartX = useRef(0);
@@ -30,34 +34,28 @@ export function useSidebarSwipe({
 
   // Edge swipe refs
   const edgeStartX = useRef(0);
+  const edgeStartY = useRef(0);
   const edgeDragRef = useRef(0);
   const isEdgeSwiping = useRef(false);
 
-  const applyTransform = useCallback((offset: number, total: number) => {
+  // throttled setter — لتفادي إعادة الرسم في كل touchmove
+  const scheduleOffset = useCallback((offset: number) => {
     cancelAnimationFrame(rafId.current);
     rafId.current = requestAnimationFrame(() => {
-      if (sidebarRef.current) {
-        sidebarRef.current.style.transform = `translateX(${offset}px)`;
-        sidebarRef.current.style.willChange = 'transform';
-      }
-      if (overlayRef.current) {
-        const progress = Math.max(0, 1 - offset / total);
-        overlayRef.current.style.opacity = String(progress * 0.5);
-        overlayRef.current.style.willChange = 'opacity';
-      }
+      setDragOffset(offset);
     });
   }, []);
 
-  const clearInlineStyles = useCallback(() => {
+  const resetDrag = useCallback(() => {
     cancelAnimationFrame(rafId.current);
-    if (sidebarRef.current) {
-      sidebarRef.current.style.transform = '';
-      sidebarRef.current.style.willChange = '';
-    }
-    if (overlayRef.current) {
-      overlayRef.current.style.opacity = '';
-      overlayRef.current.style.willChange = '';
-    }
+    setDragOffset(null);
+  }, []);
+
+  // تنظيف rAF عند إلغاء mount
+  useEffect(() => {
+    return () => {
+      cancelAnimationFrame(rafId.current);
+    };
   }, []);
 
   // ─── Sidebar close swipe ───
@@ -72,25 +70,28 @@ export function useSidebarSwipe({
     const delta = Math.max(0, e.touches[0]!.clientX - sidebarTouchStartX.current);
     if (delta < 10) return;
     dragOffsetRef.current = delta;
-    applyTransform(delta, sidebarWidth);
-  }, [applyTransform, sidebarWidth]);
+    scheduleOffset(delta);
+  }, [scheduleOffset]);
 
   const handleTouchEnd = useCallback(() => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    clearInlineStyles();
-    if (dragOffsetRef.current > closeThreshold) {
+    const finalDelta = dragOffsetRef.current;
+    dragOffsetRef.current = 0;
+    resetDrag();
+    if (finalDelta > closeThreshold) {
       navigator.vibrate?.(15);
       setMobileSidebarOpen(false);
     }
-    dragOffsetRef.current = 0;
-  }, [clearInlineStyles, closeThreshold, setMobileSidebarOpen]);
+  }, [resetDrag, closeThreshold, setMobileSidebarOpen]);
 
   // ─── Edge swipe-to-open ───
   const handleMainTouchStart = useCallback((e: React.TouchEvent) => {
-    const x = e.touches[0]!.clientX;
-    if (x > window.innerWidth - 25 && !mobileSidebarOpen) {
+    const touch = e.touches[0]!;
+    const x = touch.clientX;
+    if (x > window.innerWidth - EDGE_ZONE && !mobileSidebarOpen) {
       edgeStartX.current = x;
+      edgeStartY.current = touch.clientY;
       isEdgeSwiping.current = true;
       edgeDragRef.current = 0;
     }
@@ -98,44 +99,80 @@ export function useSidebarSwipe({
 
   const handleMainTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isEdgeSwiping.current) return;
-    const delta = Math.max(0, Math.min(sidebarWidth, edgeStartX.current - e.touches[0]!.clientX));
+    const touch = e.touches[0]!;
+    const deltaX = edgeStartX.current - touch.clientX;
+    const deltaY = Math.abs(touch.clientY - edgeStartY.current);
+    // إذا كانت الحركة الرأسية أكبر، نلغي السحب (المستخدم يقوم بـ scroll)
+    if (deltaY > Math.abs(deltaX) && deltaY > 10) {
+      isEdgeSwiping.current = false;
+      edgeDragRef.current = 0;
+      resetDrag();
+      return;
+    }
+    const delta = Math.max(0, Math.min(sidebarWidth, deltaX));
     edgeDragRef.current = delta;
-    applyTransform(sidebarWidth - delta, sidebarWidth);
-  }, [applyTransform, sidebarWidth]);
+    scheduleOffset(sidebarWidth - delta);
+  }, [scheduleOffset, sidebarWidth, resetDrag]);
 
   const handleMainTouchEnd = useCallback(() => {
     if (!isEdgeSwiping.current) return;
     isEdgeSwiping.current = false;
-    clearInlineStyles();
-    if (edgeDragRef.current > closeThreshold) {
+    const finalDelta = edgeDragRef.current;
+    edgeDragRef.current = 0;
+    resetDrag();
+    if (finalDelta > closeThreshold) {
       navigator.vibrate?.(15);
       setMobileSidebarOpen(true);
     }
-    edgeDragRef.current = 0;
-  }, [clearInlineStyles, closeThreshold, setMobileSidebarOpen]);
+  }, [resetDrag, closeThreshold, setMobileSidebarOpen]);
 
-  // ✅ Props-bundles: نُغلّف refs+handlers+style كأشياء قابلة للـ spread.
-  // المستهلك يستخدم `<aside {...sidebarProps}>` بدلاً من قراءة .current في render.
-  const overlayProps = useMemo(() => ({
-    ref: overlayRef,
-    style: { backgroundColor: `rgba(0,0,0,${mobileSidebarOpen ? 0.5 : 0})` },
-  }), [mobileSidebarOpen]);
+  // ─── Style calculation ───
+  // dragOffset !== null أثناء السحب الفعلي → بلا transition للاستجابة الفورية
+  // dragOffset === null → استخدام حالة open/closed مع transition سلس
+  const sidebarTransform = useMemo(() => {
+    if (dragOffset !== null) {
+      return `translateX(${dragOffset}px)`;
+    }
+    return `translateX(${mobileSidebarOpen ? 0 : sidebarWidth}px)`;
+  }, [dragOffset, mobileSidebarOpen, sidebarWidth]);
+
+  const overlayProps = useMemo(() => {
+    // أثناء السحب، تتدرّج الشفافية بناءً على dragOffset
+    const opacity = dragOffset !== null
+      ? Math.max(0, 1 - dragOffset / sidebarWidth) * 0.5
+      : (mobileSidebarOpen ? 0.5 : 0);
+    return {
+      style: {
+        backgroundColor: `rgba(0,0,0,${opacity})`,
+        transition: dragOffset === null ? 'background-color 250ms ease-out' : 'none',
+      },
+      onTouchCancel: () => {
+        // حماية إضافية: أي إلغاء touch على overlay يُعيد ضبط الحالة
+        isDragging.current = false;
+        isEdgeSwiping.current = false;
+        resetDrag();
+      },
+    };
+  }, [dragOffset, mobileSidebarOpen, sidebarWidth, resetDrag]);
 
   const sidebarProps = useMemo(() => ({
-    ref: sidebarRef,
     onTouchStart: handleTouchStart,
     onTouchMove: handleTouchMove,
     onTouchEnd: handleTouchEnd,
+    onTouchCancel: handleTouchEnd,
     style: {
-      transform: `translateX(${mobileSidebarOpen ? 0 : sidebarWidth}px)`,
+      transform: sidebarTransform,
+      transition: dragOffset === null ? 'transform 250ms ease-out' : 'none',
       willChange: 'transform' as const,
     },
-  }), [handleTouchStart, handleTouchMove, handleTouchEnd, mobileSidebarOpen, sidebarWidth]);
+  }), [handleTouchStart, handleTouchMove, handleTouchEnd, sidebarTransform, dragOffset]);
 
   const mainTouchProps = useMemo(() => ({
     onTouchStart: handleMainTouchStart,
     onTouchMove: handleMainTouchMove,
     onTouchEnd: handleMainTouchEnd,
+    onTouchCancel: handleMainTouchEnd,
+    style: { touchAction: 'pan-y' as const },
   }), [handleMainTouchStart, handleMainTouchMove, handleMainTouchEnd]);
 
   return { overlayProps, sidebarProps, mainTouchProps };

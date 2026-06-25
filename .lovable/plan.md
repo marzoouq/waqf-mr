@@ -1,86 +1,80 @@
-# تقرير تدقيق معماري شامل (Read-Only)
+## فحص عميق — السبب الجذري الحقيقي
 
-**النطاق:** 1,311 ملف TS/TSX داخل `src/` + طبقة Supabase. **التاريخ:** 2026-06-25.
+بعد قراءة `useSidebarSwipe.ts` و`DashboardLayout.tsx` و`useLayoutShell.ts` و`MobileHeader.tsx` و`BottomNav.tsx` و`index.css`، السبب الحقيقي للتعليق ليس مجرد "race condition" — بل **تعارض مباشر بين DOM mutation و React-managed style**.
 
-## 1. الحكم العام
+### السبب #1 — الأخطر: `clearInlineStyles` يمسح transform الذي تُديره React
 
-البنية **نظيفة ومعيارية بدرجة عالية**. طبقات `pages → hooks/page → hooks/data → lib → supabase` مطبّقة فعلياً، ومدعومة بسكربتات حراسة (`audit-structure.mjs`, `audit-hooks-layout.mjs`, `security-gates.mjs`). لا توجد كسور معمارية حرجة. ما يلي ملاحظات تحسين، لا أعطال.
+السايدبار `<aside>` يستقبل `{...swipe.sidebarProps}` الذي يحتوي على:
+```js
+style: { transform: `translateX(${mobileSidebarOpen ? 0 : 256}px)`, willChange: 'transform' }
+```
 
-## 2. مؤشرات صحّية ممتازة (لا تحتاج عملاً)
+أثناء touchmove، `applyTransform` يكتب مباشرة على `sidebarRef.current.style.transform` (تجاوز React).
+عند touchend، `clearInlineStyles` يضع `style.transform = ''` — أي **يمسح القيمة كلياً من العنصر، بما فيها تلك التي تُديرها React**.
 
-- 0 `console.*` خارج `logger` (ما عدا `src/test/setup.ts` — مشروع).
-- 0 `: any` فعلية في كود الإنتاج (نتيجة واحدة فقط، test util).
-- 0 صفحة تستورد `@/integrations/supabase/client` مباشرة.
-- 0 مكوّن `components/**` يستدعي Supabase مباشرة.
-- 0 ملف في `utils/` يستورد `sonner` أو `supabase` أو `hooks/*`.
-- `hooks/` مقسّم بشكل صحيح: `auth/{session,role,biometric,flows}`, `data/{financial/*, settings/*}`, `domain`, `page`, `application`, `ui` — تقرير `hooks-layout-report.md`: **0 issues**.
-- متوسط حجم الملف منخفض (component 80 LOC، lib 71، hook-data 65). أكبر ملف غير-test هو `integrations/supabase/types.ts` (مُولَّد، محمي).
+إذا لم يتغيّر `mobileSidebarOpen` (لأن العتبة لم تُتجاوز)، **لا يحدث re-render**، فيبقى DOM بدون transform → السايدبار يصبح مرئياً عند `right:0` ولا يختفي حتى تغيير حالة قسري.
 
-## 3. الملاحظات (مرتبة حسب الأولوية)
+**هذا تفسير "التعليق" بدقة**: المستخدم يلمس الحافة فيظهر السايدبار جزئياً، يرفع إصبعه قبل العتبة، ثم يبقى السايدبار مرئياً بشكل دائم بدون إمكانية إغلاق (إلا بتغيير route).
 
-### حرجة (Critical)
+### السبب #2: edge swipe زاوية 25px تتعارض مع iOS Safari Back Gesture
+`handleMainTouchStart` ينشّط السحب عند `x > innerWidth - 25`. إيماءة "العودة" في Safari iOS تستخدم نفس المنطقة. النتيجة:
+- iOS يلتقط اللمسة كـ swipe-back فيُلغي `touchend` (يرسل `touchcancel` بدلاً منه).
+- الكود **لا يستمع لـ `touchcancel`** → `isEdgeSwiping.current` يبقى `true` و`clearInlineStyles` لا يُستدعى.
+- inline transform مكتوب من touchmove يبقى عالقاً.
 
-*لا يوجد.*
+### السبب #3: غياب `transition` يُضخّم الإحساس بالتعليق
+لا يوجد `transition: transform` على style، فأي إعادة فتح/إغلاق تحدث بدون انسياب — تبدو كقفزة أو "freeze" بصري.
 
-### عالية (High) — يُنصح بالمعالجة قبل الإطلاق
+### السبب #4: BottomNav زر "المزيد" يستدعي `setMobileSidebarOpen(true)` دون reset لأي transform عالق
+إذا كان transform عالقاً من سحب فاشل سابق، الضغط على زر "المزيد" يُغيّر الحالة لكن `useMemo` يُعيد توليد style بـ `translateX(0)` — React يطبّقه لكن DOM mutation السابق قد يكون لا يزال في `style.transform` (لأن empty string يجعل React يتركه فارغاً ثم يكتب القيمة الجديدة، لكن أحياناً يحدث flash).
 
-1. **كسر اتجاه اعتماد واحد في `lib/`:**
-  `src/lib/services/supportService.ts:8` يستورد نوعاً من `@/hooks/data/support/useSupportTickets`.
-  - المخالفة: `lib/` يجب ألا يعتمد على `hooks/` (انعكاس الاعتماد).
-  - الإصلاح المقترح: نقل `SupportTicket` إلى `src/types/support.ts` ثم استيراده من الجانبين.
+## خطة الإصلاح المُعمَّقة
 
-### متوسطة (Medium) — تحسين صيانة
+### 1) `src/hooks/ui/useSidebarSwipe.ts` — إصلاحات جوهرية
 
-2. `**src/integrations/supabase/types.ts` (2,665 LOC) محمي ومُولَّد** — لا فعل، فقط استبعاده من حسابات الحجم في التقارير لتفادي تشويش الأرقام.
-3. `**hooks/page/admin/financial/useExpensesPage.ts` (179)** و `**useFiscalYearManagement.ts` (178)** و `**useBylawsPage.ts` (178)**: قرب حدّ 200 LOC. يُنصح بتقسيم كل منها إلى:
-  - `useXxxQueries.ts` (TanStack queries)
-  - `useXxxMutations.ts` (mutations + toasts)
-  - `useXxxPage.ts` (تركيب وتنسيق فقط)
-4. **صفحات قرب الحد:** `AnnualReportPage.tsx` (196)، `DistributionsPage.tsx` (190)، `MySharePage.tsx` (189)، `ReportsPage.tsx` (187). معظمها تجميع أقسام؛ يمكن استخراج Sections إلى `components/<feature>/sections/` لتقليل JSX داخل الصفحة.
-5. `**lib/services/diagnosticsReadService.ts` (223 LOC)** يتجاوز حدّ 200. يُقسم إلى ملفات حسب نوع الفحص (security/perf/financial).
-6. `**utils/financial/collection/collectionCompute.ts` (199)** و `**utils/pdf/entities/accountsPdf.ts` (195)**: حالياً نقية لكنها كثيفة منطقياً — يفضّل فصل دوال المساعدة في ملفات `*Helpers.ts` لتيسير الاختبار المنفصل.
+**أ. استبدال DOM mutation بـ React state للسحب الجاري** (الأنظف معمارياً):
+- إضافة `const [dragOffset, setDragOffset] = useState<number | null>(null)`.
+- `applyTransform` يصبح `setDragOffset(offset)` (مع rAF throttle عبر `useRef` للأداء).
+- في `sidebarProps.style.transform` تُحسب القيمة:  
+  `dragOffset !== null ? translateX(${dragOffset}px) : translateX(${mobileSidebarOpen ? 0 : sidebarWidth}px)`.
+- `clearInlineStyles` يصبح `setDragOffset(null)` — يُجبر re-render فيستعيد React الـ style الصحيح.
 
-### منخفضة (Low) — تحسينات تجميلية
+**ب. إضافة معالج `touchcancel`** على كل من `sidebarProps` و`mainTouchProps`:
+```js
+onTouchCancel: handleTouchEnd  // والمعادل لـ edge
+```
+ضروري لـ iOS Safari عند تفعيل native gesture.
 
-7. `**constants/navigation.ts` (218 LOC)** — يمكن تقسيمه حسب الدور (`navigation/admin.ts`, `navigation/beneficiary.ts`, …).
-8. **عدد barrels = 34**: مقبول، لكن راجع أن أياً منها لا يستورد من barrel آخر (القاعدة محفوظة بالذاكرة). السكربت الحالي لا يفرضها — يُستحسن إضافة فحص في `scripts/audit-structure.mjs`.
-9. **5 تعليقات TODO/FIXME** خارج tests — تستحق فرزها (open/close) في issue tracker.
-10. `**components/ui/` يحوي 29 ملفاً**: بعضها (`native-select-dialog`) ليس shadcn أصلي. يُستحسن نقل المخصّص إلى `components/common/` لإبقاء `ui/` لـ shadcn primitives فقط.
+**ج. تقليص edge zone من 25px إلى 12px** ورفض السحب إذا كانت الحركة الرأسية > الأفقية:
+```js
+if (Math.abs(deltaY) > Math.abs(deltaX)) { isEdgeSwiping.current = false; return; }
+```
 
-### اختيارية (Optional Enhancements)
+**د. إضافة `transition`** متكيّفة:
+```js
+transition: dragOffset === null ? 'transform 250ms ease-out' : 'none'
+```
 
-11. إضافة قاعدة ESLint مخصصة (`no-restricted-imports`) تمنع رسمياً:
-  - `pages/** → @/integrations/supabase/*`
-    - `components/** → @/integrations/supabase/*`
-    - `lib/** → @/hooks/*`
-    - `utils/** → sonner|supabase|@/hooks/*`
-    حالياً يُحرس عبر سكربت Vitest gate؛ ESLint يعطي تغذية فورية في IDE.
-12. توليد رسم اعتمادات تلقائي (madge / dependency-cruiser) ودمجه في CI لرصد circular deps.
-13. تفعيل `import/no-cycle` و `import/order` في ESLint.
-14. توحيد أحجام الملفات في `audit/structure-inventory.md` لاستبعاد `types.ts` المُولَّد و tests لتسهيل قراءة المؤشرات الحقيقية.
-15. توثيق مختصر `ARCHITECTURE.md` في الجذر يلخّص المخطط من `audit/architecture-map.md` لمن لا يقرأ مجلد `audit/`.
+**هـ. إضافة `touchAction: 'pan-y'`** إلى `mainTouchProps.style` لمنع iOS من الاستحواذ على اللمسة كـ horizontal pan.
 
-## 4. خريطة الإجراءات المقترحة (مرتّبة)
+### 2) `src/components/layout/DashboardLayout.tsx` — تعديل طفيف
+- لا تغيير بنيوي. فقط إضافة `onTouchCancel={() => setMobileSidebarOpen(false)}` على overlay كحماية إضافية.
 
+### 3) اختبارات جديدة `src/hooks/ui/useSidebarSwipe.test.ts`
+- touchstart خارج edge zone → `sidebarProps.style.transform` بلا تغيير.
+- touchstart داخل edge + touchcancel → السايدبار يعود لحالة مغلقة (لا transform عالق).
+- touchmove ثم touchend بعتبة < 80px → `dragOffset` يعود `null` و transform يطابق `translateX(256px)`.
+- حركة رأسية تُلغي edge swipe.
 
-| #   | الإجراء                                                                                                       | الأولوية | الحجم         |
-| --- | ------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
-| 1   | نقل نوع `SupportTicket` إلى `src/types/support.ts` وإزالة استيراد `hooks` من `lib/services/supportService.ts` | High     | دقائق         |
-| 2   | تقسيم `useExpensesPage` / `useFiscalYearManagement` / `useBylawsPage` إلى queries+mutations+page              | Medium   | ساعة لكل واحد |
-| 3   | تقسيم `diagnosticsReadService.ts` حسب فئة الفحص                                                               | Medium   | 30 د          |
-| 4   | استخراج Sections من `AnnualReportPage` و `DistributionsPage` و `MySharePage` و `ReportsPage`                  | Medium   | ساعة لكل صفحة |
-| 5   | تقسيم `constants/navigation.ts` حسب الدور                                                                     | Low      | 20 د          |
-| 6   | نقل مكوّنات `components/ui/` غير-shadcn إلى `components/common/`                                              | Low      | 20 د          |
-| 7   | إضافة قاعدة `no-restricted-imports` في ESLint لتطبيق حدود الطبقات                                             | Optional | 30 د          |
-| 8   | إضافة فحص barrel-to-barrel في `scripts/audit-structure.mjs`                                                   | Optional | 20 د          |
-| 9   | دمج madge/dependency-cruiser في CI                                                                            | Optional | 45 د          |
-| 10  | إنشاء `ARCHITECTURE.md` ملخّص في الجذر                                                                        | Optional | 15 د          |
+### 4) التحقق
+- `bunx vitest run src/hooks/ui/useSidebarSwipe.test.ts`
+- `bunx tsgo --noEmit`
+- مراجعة بصرية على iPhone Simulator أو DevTools (Device Mode → iPhone 14 Pro، dir=rtl).
 
+## ملاحظات
 
-## 5. الخلاصة
+- **لا تغيير على المصادقة/RLS/Edge Functions.** التعديل محصور في طبقة UI touch.
+- **التأثير صفر على الديسكتوب** — `lg:hidden` يحجب المنطق على الشاشات الكبيرة، والـ aside الديسكتوب لا يستخدم `swipe.sidebarProps`.
+- بعد التنفيذ يلزم **نشر** التطبيق ليظهر الإصلاح في `waqf-wise.net` على iPhone.
 
-لا توجد ديون معمارية حرجة. **خطوة واحدة فقط (#1) تكسر قاعدة طبقات فعلياً**؛ الباقي تلميع جودة. النظام جاهز للإطلاق من ناحية البنية، مع توصية بتنفيذ #1 قبل النشر و #2–#4 خلال أول دورة صيانة.
-
-> هذا التقرير قراءة فقط. لم يُعدَّل أي ملف. اعتمد الخطة لأبدأ التنفيذ، أو حدّد بنوداً معيّنة فقط.  
->
-> عند مواجهة الأخطاء، اتبع منهجية علمية لتصحيح الأخطاء بدلاً من إجراء تغييرات عشوائية. ابدأ بإعادة إنتاج المشكلة نفسها في بيئة مُحكمة. اجمع بيانات شاملة تتضمن سجلات وحدة التحكم، وطلبات الشبكة، وحالة المكونات، ورسائل الخطأ. ضع فرضيات متعددة حول الأسباب المحتملة واختبر كل فرضية بشكل منهجي. اعزل المشكلة بتضييق نطاق المكونات المتأثرة وتحديد ظروف التشغيل. وثّق عملية تصحيح الأخطاء ونتائجها للرجوع إليها مستقبلاً. استخدم أدوات تصحيح الأخطاء المناسبة، بما في ذلك أدوات مطوري المتصفح، وأدوات مطوري React، وتقنيات تصحيح الأخطاء على مستوى الكود. تأكد دائمًا من أن الحل الذي توصلت إليه يحل المشكلة تمامًا دون التسبب في مشاكل جديدة أو تراجعات في أي مكان آخر من التطبيق.
+هل أبدأ التنفيذ بهذا الترتيب؟
