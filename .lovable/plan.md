@@ -1,80 +1,86 @@
-## فحص جنائي شامل قبل الإطلاق — نظام وقف الثبيتي
+# تقرير تدقيق معماري شامل (Read-Only)
 
-فحص متعدد الطبقات يغطي الأمان، البيانات، الأداء، والامتثال. ينتج تقرير نهائي مع تصنيف الخطورة (critical/high/medium/low) وقرار GO/NO-GO.
+**النطاق:** 1,311 ملف TS/TSX داخل `src/` + طبقة Supabase. **التاريخ:** 2026-06-25.
 
-### 1. طبقة قاعدة البيانات (DB Forensics)
+## 1. الحكم العام
 
-- `supabase--linter` — كشف RLS مفقود، SECURITY DEFINER غير آمن، أعمدة حساسة مكشوفة
-- فحص كل جدول (42 جدول) للتحقق من: تفعيل RLS، وجود سياسات SELECT/INSERT/UPDATE/DELETE، GRANT صحيح
-- مراجعة الدوال (32 stored procedure) — تأكيد `search_path` آمن و`SECURITY DEFINER` مبرّر
-- فحص المشغلات (29 trigger) — لا تسريب بيانات أو bypass للسياسات
-- التحقق من تشفير الحقول الحساسة (national_id، bank_account) عبر pgcrypto
-- اختبار سياسة `invoices` storage bucket (المُصلحة حديثاً)
+البنية **نظيفة ومعيارية بدرجة عالية**. طبقات `pages → hooks/page → hooks/data → lib → supabase` مطبّقة فعلياً، ومدعومة بسكربتات حراسة (`audit-structure.mjs`, `audit-hooks-layout.mjs`, `security-gates.mjs`). لا توجد كسور معمارية حرجة. ما يلي ملاحظات تحسين، لا أعطال.
 
-### 2. طبقة Edge Functions
+## 2. مؤشرات صحّية ممتازة (لا تحتاج عملاً)
 
-- تشغيل `scripts/security-gates.mjs` — كشف `getSession()`، PII في logs، استخدام SERVICE_ROLE خارج allowlist
-- التحقق من Zod validation في كل function تقرأ body
-- مراجعة CORS، rate limiting، معالجة الأخطاء
-- اختبار auth flow عبر `getUser()` في كل endpoint
+- 0 `console.*` خارج `logger` (ما عدا `src/test/setup.ts` — مشروع).
+- 0 `: any` فعلية في كود الإنتاج (نتيجة واحدة فقط، test util).
+- 0 صفحة تستورد `@/integrations/supabase/client` مباشرة.
+- 0 مكوّن `components/**` يستدعي Supabase مباشرة.
+- 0 ملف في `utils/` يستورد `sonner` أو `supabase` أو `hooks/*`.
+- `hooks/` مقسّم بشكل صحيح: `auth/{session,role,biometric,flows}`, `data/{financial/*, settings/*}`, `domain`, `page`, `application`, `ui` — تقرير `hooks-layout-report.md`: **0 issues**.
+- متوسط حجم الملف منخفض (component 80 LOC، lib 71، hook-data 65). أكبر ملف غير-test هو `integrations/supabase/types.ts` (مُولَّد، محمي).
 
-### 3. طبقة الواجهة والصلاحيات
+## 3. الملاحظات (مرتبة حسب الأولوية)
 
-- تشغيل `scripts/audit-all.mjs` (structure + conventions + hooks-layout + UI permissions + page controls)
-- مراجعة `audit/ui-permissions-audit.csv` — تطابق RBAC للأدوار الأربعة (admin/accountant/beneficiary/waqif)
-- التحقق من حراس المسارات (route guards) لكل الصفحات المحمية
-- فحص تسريب بيانات بين الأدوار (cross-role data leakage)
+### حرجة (Critical)
 
-### 4. طبقة منطق الأعمال المالية
+*لا يوجد.*
 
-- التحقق من قواعد التوزيع (LRM parity بين server/client)
-- اختبار سلسلة ZATCA ICV (تسلسل الفواتير)
-- التحقق من حدود السلف (advance limits)
-- اختبار إقفال/إعادة فتح السنة المالية
-- مراجعة حسابات الريع والكاش فلو
+### عالية (High) — يُنصح بالمعالجة قبل الإطلاق
 
-### 5. طبقة الجودة والاختبارات
+1. **كسر اتجاه اعتماد واحد في `lib/`:**
+  `src/lib/services/supportService.ts:8` يستورد نوعاً من `@/hooks/data/support/useSupportTickets`.
+  - المخالفة: `lib/` يجب ألا يعتمد على `hooks/` (انعكاس الاعتماد).
+  - الإصلاح المقترح: نقل `SupportTicket` إلى `src/types/support.ts` ثم استيراده من الجانبين.
 
-- `tsgo` للتحقق من TypeScript strict
-- `bunx vitest run` للاختبارات (unit + integration)
-- ESLint gates
-- فحص `console.*` المباشر (يجب استخدام logger)
+### متوسطة (Medium) — تحسين صيانة
 
-### 6. طبقة الأداء والـ PWA
+2. `**src/integrations/supabase/types.ts` (2,665 LOC) محمي ومُولَّد** — لا فعل، فقط استبعاده من حسابات الحجم في التقارير لتفادي تشويش الأرقام.
+3. `**hooks/page/admin/financial/useExpensesPage.ts` (179)** و `**useFiscalYearManagement.ts` (178)** و `**useBylawsPage.ts` (178)**: قرب حدّ 200 LOC. يُنصح بتقسيم كل منها إلى:
+  - `useXxxQueries.ts` (TanStack queries)
+  - `useXxxMutations.ts` (mutations + toasts)
+  - `useXxxPage.ts` (تركيب وتنسيق فقط)
+4. **صفحات قرب الحد:** `AnnualReportPage.tsx` (196)، `DistributionsPage.tsx` (190)، `MySharePage.tsx` (189)، `ReportsPage.tsx` (187). معظمها تجميع أقسام؛ يمكن استخراج Sections إلى `components/<feature>/sections/` لتقليل JSX داخل الصفحة.
+5. `**lib/services/diagnosticsReadService.ts` (223 LOC)** يتجاوز حدّ 200. يُقسم إلى ملفات حسب نوع الفحص (security/perf/financial).
+6. `**utils/financial/collection/collectionCompute.ts` (199)** و `**utils/pdf/entities/accountsPdf.ts` (195)**: حالياً نقية لكنها كثيفة منطقياً — يفضّل فصل دوال المساعدة في ملفات `*Helpers.ts` لتيسير الاختبار المنفصل.
 
-- تحليل bundle size وlazy loading
-- التحقق من preload للخطوط (مشكلة سابقة)
-- فحص `usePagePerformance` ومقاييس Core Web Vitals
-- اختبار PWA manifest وservice worker
+### منخفضة (Low) — تحسينات تجميلية
 
-### 7. طبقة الخصوصية والامتثال
+7. `**constants/navigation.ts` (218 LOC)** — يمكن تقسيمه حسب الدور (`navigation/admin.ts`, `navigation/beneficiary.ts`, …).
+8. **عدد barrels = 34**: مقبول، لكن راجع أن أياً منها لا يستورد من barrel آخر (القاعدة محفوظة بالذاكرة). السكربت الحالي لا يفرضها — يُستحسن إضافة فحص في `scripts/audit-structure.mjs`.
+9. **5 تعليقات TODO/FIXME** خارج tests — تستحق فرزها (open/close) في issue tracker.
+10. `**components/ui/` يحوي 29 ملفاً**: بعضها (`native-select-dialog`) ليس shadcn أصلي. يُستحسن نقل المخصّص إلى `components/common/` لإبقاء `ui/` لـ shadcn primitives فقط.
 
-- فحص masking للـ PII في logs وUI العامة
-- مراجعة `app_settings` لإحصائيات الهبوط
-- التحقق من `email_unsubscribe_tokens` وسياسات suppressed_emails
+### اختيارية (Optional Enhancements)
 
-### المخرجات
+11. إضافة قاعدة ESLint مخصصة (`no-restricted-imports`) تمنع رسمياً:
+  - `pages/** → @/integrations/supabase/*`
+    - `components/** → @/integrations/supabase/*`
+    - `lib/** → @/hooks/*`
+    - `utils/** → sonner|supabase|@/hooks/*`
+    حالياً يُحرس عبر سكربت Vitest gate؛ ESLint يعطي تغذية فورية في IDE.
+12. توليد رسم اعتمادات تلقائي (madge / dependency-cruiser) ودمجه في CI لرصد circular deps.
+13. تفعيل `import/no-cycle` و `import/order` في ESLint.
+14. توحيد أحجام الملفات في `audit/structure-inventory.md` لاستبعاد `types.ts` المُولَّد و tests لتسهيل قراءة المؤشرات الحقيقية.
+15. توثيق مختصر `ARCHITECTURE.md` في الجذر يلخّص المخطط من `audit/architecture-map.md` لمن لا يقرأ مجلد `audit/`.
 
-- `audit/forensic-pre-launch-2026-06-25/` يحتوي:
-  - `SUMMARY.md` — تصنيف نهائي + قرار GO/NO-GO
-  - `01-database.md` — نتائج DB layer
-  - `02-edge-functions.md`
-  - `03-ui-rbac.md`
-  - `04-business-logic.md`
-  - `05-quality.md`
-  - `06-performance.md`
-  - `07-privacy.md`
-  - `CRITICAL.md` — قائمة مرتبة بالأولوية للإصلاح قبل الإطلاق
+## 4. خريطة الإجراءات المقترحة (مرتّبة)
 
-### ملاحظة مهمة
 
-هذا الفحص **قراءة فقط** — لن أُجري أي تعديلات. عند اكتشاف ثغرات حرجة، سأقترح خطة إصلاح منفصلة للموافقة عليها.
+| #   | الإجراء                                                                                                       | الأولوية | الحجم         |
+| --- | ------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
+| 1   | نقل نوع `SupportTicket` إلى `src/types/support.ts` وإزالة استيراد `hooks` من `lib/services/supportService.ts` | High     | دقائق         |
+| 2   | تقسيم `useExpensesPage` / `useFiscalYearManagement` / `useBylawsPage` إلى queries+mutations+page              | Medium   | ساعة لكل واحد |
+| 3   | تقسيم `diagnosticsReadService.ts` حسب فئة الفحص                                                               | Medium   | 30 د          |
+| 4   | استخراج Sections من `AnnualReportPage` و `DistributionsPage` و `MySharePage` و `ReportsPage`                  | Medium   | ساعة لكل صفحة |
+| 5   | تقسيم `constants/navigation.ts` حسب الدور                                                                     | Low      | 20 د          |
+| 6   | نقل مكوّنات `components/ui/` غير-shadcn إلى `components/common/`                                              | Low      | 20 د          |
+| 7   | إضافة قاعدة `no-restricted-imports` في ESLint لتطبيق حدود الطبقات                                             | Optional | 30 د          |
+| 8   | إضافة فحص barrel-to-barrel في `scripts/audit-structure.mjs`                                                   | Optional | 20 د          |
+| 9   | دمج madge/dependency-cruiser في CI                                                                            | Optional | 45 د          |
+| 10  | إنشاء `ARCHITECTURE.md` ملخّص في الجذر                                                                        | Optional | 15 د          |
 
-### السؤال قبل البدء
 
-هل تريد الفحص الكامل (السبع طبقات، ~15-20 دقيقة) أم نسخة مركّزة على الأمان فقط (طبقات 1+2+3، ~5-7 دقائق)؟  
-نفذ فحص كامل لجميع المخرجات   
-نفذ فحص عميق للروابط  
-فحص الحافه  
-الواجهات  
-كل ما بداخل التطبيق والمستودع 
+## 5. الخلاصة
+
+لا توجد ديون معمارية حرجة. **خطوة واحدة فقط (#1) تكسر قاعدة طبقات فعلياً**؛ الباقي تلميع جودة. النظام جاهز للإطلاق من ناحية البنية، مع توصية بتنفيذ #1 قبل النشر و #2–#4 خلال أول دورة صيانة.
+
+> هذا التقرير قراءة فقط. لم يُعدَّل أي ملف. اعتمد الخطة لأبدأ التنفيذ، أو حدّد بنوداً معيّنة فقط.  
+>
+> عند مواجهة الأخطاء، اتبع منهجية علمية لتصحيح الأخطاء بدلاً من إجراء تغييرات عشوائية. ابدأ بإعادة إنتاج المشكلة نفسها في بيئة مُحكمة. اجمع بيانات شاملة تتضمن سجلات وحدة التحكم، وطلبات الشبكة، وحالة المكونات، ورسائل الخطأ. ضع فرضيات متعددة حول الأسباب المحتملة واختبر كل فرضية بشكل منهجي. اعزل المشكلة بتضييق نطاق المكونات المتأثرة وتحديد ظروف التشغيل. وثّق عملية تصحيح الأخطاء ونتائجها للرجوع إليها مستقبلاً. استخدم أدوات تصحيح الأخطاء المناسبة، بما في ذلك أدوات مطوري المتصفح، وأدوات مطوري React، وتقنيات تصحيح الأخطاء على مستوى الكود. تأكد دائمًا من أن الحل الذي توصلت إليه يحل المشكلة تمامًا دون التسبب في مشاكل جديدة أو تراجعات في أي مكان آخر من التطبيق.
