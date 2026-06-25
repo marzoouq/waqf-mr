@@ -5,7 +5,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { rpc } from '@/lib/api/rpc';
 import type { Database } from '@/integrations/supabase/types';
-import type { SupportTicket } from '@/hooks/data/support/useSupportTickets';
+import type { SupportTicket } from '@/types/support';
 
 type SupportTicketUpdate = Database['public']['Tables']['support_tickets']['Update'];
 
