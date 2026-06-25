@@ -79,7 +79,7 @@ describe('useBylawsMutations', () => {
       hook.rerender();
       act(() => hook.result.current.handleAdd());
       expect(createBylaw.mutate).toHaveBeenCalledTimes(1);
-      const vars = createBylaw.mutate.mock.calls[0][0] as { part_number: number };
+      const vars = createBylaw.mutate.mock.calls[0]![0] as { part_number: number };
       expect(vars.part_number).toBe(0);
     });
 
@@ -88,7 +88,7 @@ describe('useBylawsMutations', () => {
       params.addForm.newBylaw = { part_number: 5, part_title: 'باب', chapter_title: 'فصل', content: 'x' };
       hook.rerender();
       act(() => hook.result.current.handleAdd());
-      const vars = createBylaw.mutate.mock.calls[0][0] as { part_number: number; chapter_title: string };
+      const vars = createBylaw.mutate.mock.calls[0]![0] as { part_number: number; chapter_title: string };
       expect(vars.part_number).toBe(5);
       expect(vars.chapter_title).toBe('فصل');
     });
@@ -114,7 +114,7 @@ describe('useBylawsMutations', () => {
       });
       hook.rerender();
       act(() => hook.result.current.handleSave());
-      const vars = updateBylaw.mutate.mock.calls[0][0] as { part_number: number | undefined; id: string };
+      const vars = updateBylaw.mutate.mock.calls[0]![0] as { part_number: number | undefined; id: string };
       expect(vars.id).toBe('b1');
       expect(vars.part_number).toBeUndefined();
     });
