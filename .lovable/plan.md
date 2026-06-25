@@ -1,71 +1,71 @@
-## الفحص الجنائي — ما هو مُصلَح فعلاً وما هو متبقّي
+في لحظة ظهور رسالتك توقّف استدعاء `plan--create` لذلك لم تُعرض الخطة بالكامل. سأعيد تقديمها وأجيب على سؤالك.
 
-### 1) تحذيرات Preload للخطوط (Tajawal-*-arabic.woff2)
-**الحالة:** مُصلَحة في الكود بالفعل.
-- `index.html` السطور 33-37: لا توجد وسوم `<link rel="preload">` للخطوط.
-- المصدر الوحيد للخطوط هو `@font-face` في `src/index.css` (السطور 75-153) مع `font-display: swap` وملفات موجودة في `public/fonts/`.
+**الإجابة المختصرة:** لا، هذا ليس كل شيء. الفحص المُحفّظ (persisted) يُظهر **مشكلة أمنية واحدة حرجة** على دلو `invoices`. لكن الفحص التفصيلي المباشر (`security--run_security_scan`) رجّع **184 ملاحظة** منها تحذيرات من Linter Supabase حول `SECURITY DEFINER` ودلوه عامة وإمكانية تنفيذ دوال للـ `anon`. ليست كلها ثغرات — بعضها قد يكون مقصوداً — لكنها تستحق مراجعة سريعة.
 
-**سبب استمرار ظهور التحذيرات على `https://waqf-wise.net`:** الموقع المنشور لا يزال يُقدّم الـ build القديم (`vendor-react-BpimhaYH.js`، `index-BJwUJnfw.js`) الذي يحتوي على وسوم preload. **الإصلاح يتطلّب إعادة النشر فقط** — لا تغيير كود مطلوب.
+## المشكلة الأمنية المُكتشفة (Severity: error)
 
-### 2) `[Violation] 'message' handler took 1000-15000ms` + Forced reflow
-**التحليل الجنائي:**
-- `vendor-react-BpimhaYH.js:33` = React scheduler postMessage → عبء عمل ثقيل داخل work loop واحد.
-- `initQueryMonitoring.ts` الحالي خفيف (مجرد سجل أخطاء في DEV فقط) — ليس السبب الحالي. التقرير الفرعي اقتبس نسخة قديمة.
-- مصادر مرشّحة باقية:
-  - **`useAppSettings.ts:30`** — يستخدم `return { ...query, ...writes }`. سَكب كائن `UseQueryResult` يكسر تتبّع QueryObserver ويُسبّب re-renders زائدة + احتمال الخطأ `The provided callback is no longer runnable`.
-  - **`rpc.ts:110-112`** — `JSON.stringify(data).length` في DEV على كل استجابة (قد تكون كبيرة).
-  - **`useChartReady.ts:38`** — `getBoundingClientRect()` متزامن داخل `useLayoutEffect` يُسبّب forced reflow في كل mount لرسم بياني.
-  - **`usePagePerformance.ts`** — يُسجّل في كل تنقّل (مقبول، لا تغيير).
+من نتائج فحص `supabase_lov`:
 
-### 3) "No label associated with a form field"
-يعود غالباً لـ `LoginMethodSelector`: `<RadioGroup>` بدون `<Label>` مرتبط بـ `id` المجموعة (الـ `htmlFor` غير موجود لـ `login_method`). نُضيف `<Label>` خفي مرتبط أو `aria-label` على `RadioGroup`.
+**العنوان:** `Invoice files accessible to all authenticated users regardless of role`
 
----
+**التحليل الفعلي بعد فحص السياسات الحالية على `storage.objects` لدلو `invoices`:**
 
-## خطة الإصلاح
+السياسة القديمة `Authenticated users can view invoices` تمت إزالتها بالفعل، لكن السياسة الحالية:
 
-### A. تحذيرات الخطوط (لا كود — إجراء واحد)
-**إعادة نشر الموقع** عبر زر النشر لإصدار build جديد يطابق المصدر الحالي. سيختفي التحذير تلقائياً من `waqf-wise.net`.
+```sql
+"Role-based users can view invoices"
+USING bucket_id = 'invoices' AND (
+  has_role(auth.uid(),'admin') OR
+  has_role(auth.uid(),'accountant') OR
+  has_role(auth.uid(),'beneficiary') OR
+  has_role(auth.uid(),'waqif')
+)
+```
 
-### B. بطء main thread + الخطأ "callback no longer runnable"
-1. **`src/hooks/data/settings/app/useAppSettings.ts`** — استبدال `return { ...query, ...writes }` بإرجاع صريح:
-   ```ts
-   return {
-     data: query.data,
-     isLoading: query.isLoading,
-     isError: query.isError,
-     error: query.error,
-     refetch: query.refetch,
-     ...writes,
-   };
-   ```
-   هذا يمنع كسر تتبّع QueryObserver ويقلّل re-renders.
+لا تزال **تمنح كل مستفيد وكل واقف وصولاً مباشراً لأي ملف PDF لأي فاتورة** في الدلو عبر URL التخزين (تجاوزاً لأي فلترة على مستوى التطبيق). هذا يخالف نموذج الصلاحيات المعتمد في المشروع (الفواتير الضريبية ZATCA = مستندات تشغيلية يطّلع عليها الناظر والمحاسب فقط).
 
-2. **`src/lib/api/rpc.ts:110-112`** — تخطّي `JSON.stringify` للحمولات الكبيرة:
-   ```ts
-   if (import.meta.env.DEV && data) {
-     try {
-       const s = JSON.stringify(data);
-       if (s.length < 100_000) recordPayloadSize(`rpc:${fnName}:response`, s.length);
-     } catch { /* noop */ }
-   }
-   ```
+## الخطة
 
-3. **`src/hooks/ui/useChartReady.ts`** — تأجيل القياس المتزامن إلى `requestAnimationFrame` لتجنّب forced reflow:
-   - نقل `getBoundingClientRect()` إلى داخل `rAF` أول، وإبقاء `ResizeObserver` كما هو.
+### 1. ترحيل قاعدة بيانات (migration واحد)
 
-### C. تحذير "No label associated with a form field"
-**`src/components/auth/login/LoginMethodSelector.tsx`** — إضافة `<Label htmlFor={...}>` للعنوان أو `aria-label` صريح على `RadioGroup`. سأتحقّق من جميع الحقول المماثلة في `LoginForm`/`PasswordField` ومعالجتها بنفس الطريقة إذا لزم.
+استبدال السياسة `Role-based users can view invoices` بسياسة مقصورة على الناظر والمحاسب:
 
-### D. التحقّق
-- `bun run build` ثم `bunx vitest run` (لا تغيير سلوكي).
-- Playwright على `/` و `/auth`: التقاط console لمدة 10 ثوانٍ بعد load والتأكّد من غياب:
-  - `'message' handler took >500ms`
-  - `Forced reflow ... >50ms`
-  - `callback is no longer runnable`
-  - تحذيرات a11y على عناصر النموذج.
-- إعادة النشر للتحقّق من اختفاء تحذيرات preload في الإنتاج.
+```sql
+DROP POLICY IF EXISTS "Role-based users can view invoices" ON storage.objects;
 
-### قيود
-- لا تعديل على ملفات Auth/DB/Edge محمية.
-- التغييرات محصورة في 4 ملفات: `useAppSettings.ts`, `rpc.ts`, `useChartReady.ts`, `LoginMethodSelector.tsx`.
+CREATE POLICY "Admin and accountant can view invoices"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (
+  bucket_id = 'invoices'
+  AND (
+    has_role(auth.uid(), 'admin'::app_role)
+    OR has_role(auth.uid(), 'accountant'::app_role)
+  )
+);
+```
+
+سياسات INSERT/UPDATE/DELETE الحالية (admin + accountant) تبقى كما هي — صحيحة.
+
+### 2. فحص مسارات التطبيق التي قد تُحمّل ملف الفاتورة لمستفيد/واقف
+
+البحث في الكود عن أي استخدام لـ `from('invoices').download` أو `getPublicUrl('invoices'...)` ضمن مسارات بيانية للمستفيد/الواقف. لو وُجد:
+- إما حذف الزر/الرابط من واجهات `beneficiary/` و `waqif/`
+- أو توجيه الطلب عبر Edge Function تتحقق من ملكية الفاتورة وتُعيد الملف موقَّعاً (signed URL).
+
+(لن يُكتب كود جديد للـ Edge Function إلا إذا اكتُشف اعتماد فعلي في الواجهات؛ غير ذلك يكفي ترحيل السياسة.)
+
+### 3. التحقق
+
+- إعادة تشغيل `security--run_security_scan` للتأكد من اختفاء الـ finding.
+- اختبار يدوي: محاولة تنزيل ملف من دلو `invoices` بحساب مستفيد → يجب أن يفشل بـ 403.
+- تشغيل `supabase--linter` للتحقق من عدم استحداث أي تحذير جديد.
+
+### تنبيه — سؤال للمستخدم قبل التنفيذ
+
+هل واجهة المستفيد/الواقف الحالية تعرض زر «تنزيل PDF» لملفات من دلو `invoices`؟
+- **(أ) لا** — نطبّق الترحيل مباشرة دون أي تغيير في الواجهة.
+- **(ب) نعم، وأرغب باستمرار الإتاحة المحدودة** — نضيف Edge Function تُصدر signed URL بعد التحقق من ربط الفاتورة بالمستفيد.
+- **(ج) نعم، ولكن يمكن إزالتها** — نزيل الأزرار من واجهات `beneficiary/` و `waqif/`.
+
+أرجو اختيار أحد الخيارات لأكمل الخطة وفقاً لذلك.
