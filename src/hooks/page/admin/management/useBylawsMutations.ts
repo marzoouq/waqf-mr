@@ -101,7 +101,7 @@ export function useBylawsMutations(params: Params) {
     if (!addForm.newBylaw.part_title.trim()) return;
     createBylaw.mutate(
       {
-        part_number: addForm.newBylaw.part_number,
+        part_number: addForm.newBylaw.part_number ?? 0,
         part_title: addForm.newBylaw.part_title.trim(),
         chapter_title: addForm.newBylaw.chapter_title.trim() || undefined,
         content: addForm.newBylaw.content.trim(),
