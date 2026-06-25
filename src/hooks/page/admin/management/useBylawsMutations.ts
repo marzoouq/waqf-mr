@@ -22,9 +22,10 @@ type EditForm = {
   setEditItem: (v: BylawEntry | null) => void;
 };
 
-interface MutationApi<T = unknown> {
-  mutate: (data: T, opts?: { onSuccess?: () => void; onError?: () => void }) => void;
-  mutateAsync?: (data: T) => Promise<unknown>;
+interface MutationApi {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mutate: (data: any, opts?: { onSuccess?: () => void; onError?: () => void }) => void;
+  isPending?: boolean;
 }
 
 interface Params {
@@ -36,7 +37,7 @@ interface Params {
   isPublished: boolean;
   createBylaw: MutationApi;
   updateBylaw: MutationApi;
-  deleteBylaw: MutationApi<string>;
+  deleteBylaw: MutationApi;
   reorderBylaws: MutationApi;
   updateSetting: { mutateAsync: (v: { key: string; value: string }) => Promise<unknown> };
 }
