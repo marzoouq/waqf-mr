@@ -19,7 +19,7 @@ export type { ClientError } from '../audit/useClientErrors';
 // ---------------------------------------------------------------------------
 
 export type { SupportTicket, TicketReply } from '@/types/support';
-import type { SupportTicket } from '@/types/support';
+import type { SupportTicket, TicketReply } from '@/types/support';
 
 // ---------------------------------------------------------------------------
 // Queries
