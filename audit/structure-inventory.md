@@ -4,26 +4,26 @@
 
 | Layer | Count | Total LOC | Avg LOC |
 |---|---:|---:|---:|
-| component | 478 | 38348 | 80 |
-| util | 150 | 12364 | 82 |
-| lib | 134 | 9717 | 73 |
-| hook-data | 133 | 8603 | 65 |
-| hook-page | 118 | 11578 | 98 |
-| page | 71 | 8020 | 113 |
-| test | 58 | 5006 | 86 |
-| constant | 29 | 1748 | 60 |
+| component | 480 | 38355 | 80 |
+| util | 152 | 12393 | 82 |
+| lib | 136 | 9698 | 71 |
+| hook-data | 133 | 8604 | 65 |
+| hook-page | 118 | 11577 | 98 |
+| page | 71 | 8021 | 113 |
+| test | 58 | 5010 | 86 |
+| constant | 29 | 1752 | 60 |
 | type | 26 | 1088 | 42 |
-| hook-auth | 24 | 2106 | 88 |
+| hook-auth | 25 | 2161 | 86 |
 | hook-domain | 21 | 2781 | 132 |
-| hook-ui | 19 | 964 | 51 |
-| hook-application | 16 | 1111 | 69 |
+| hook-ui | 19 | 969 | 51 |
+| hook-application | 16 | 1129 | 71 |
 | app | 8 | 218 | 27 |
 | route | 8 | 261 | 33 |
 | context | 5 | 238 | 48 |
 | other | 3 | 66 | 22 |
 | integration | 3 | 2699 | 900 |
 
-## Files > 200 LOC (20)
+## Files > 200 LOC (18)
 
 | File | Layer | LOC |
 |---|---|---:|
@@ -35,8 +35,6 @@
 | utils/financial/zatca/zatcaSharedLogic.test.ts | util | 361 |
 | test/permissionsResilience.test.tsx | test | 346 |
 | lib/diagnostics/checks.test.ts | lib | 291 |
-| utils/pdf/reports/aggregatedAnnualReport.ts | util | 275 |
-| lib/diagnostics/checks.ts | lib | 274 |
 | hooks/domain/financial/financialIntegration.test.ts | hook-domain | 262 |
 | utils/pdf/entities/accounts.test.ts | util | 248 |
 | components/ui/native-select-dialog.integration.test.tsx | component | 240 |
