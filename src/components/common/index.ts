@@ -18,6 +18,7 @@ export { default as ConfirmDeleteDialog } from './feedback/ConfirmDeleteDialog';
 export { default as WebVitalsPanel } from './feedback/WebVitalsPanel';
 export { ErrorState, EmptyPageState } from './feedback/PageStateGuards';
 export { TableSkeleton, DashboardSkeleton, StatsGridSkeleton, KpiSkeleton } from './feedback/SkeletonLoaders';
+export { default as AnimatedCounter } from './feedback/AnimatedCounter';
 
 // layout
 export { default as PrintHeader } from './layout/PrintHeader';
@@ -27,6 +28,7 @@ export { default as MobileCardView } from './layout/MobileCardView';
 
 // forms
 export { default as ExportMenu } from './forms/ExportMenu';
+export { default as LoadingButton, type LoadingButtonProps } from './forms/LoadingButton';
 export { ViewModeToggle, type ViewMode } from './forms/ViewModeToggle';
 export { useViewMode } from './forms/useViewMode';
 
@@ -44,6 +46,7 @@ export { default as EstimatedShareBadge } from './finance/EstimatedShareBadge';
 // charts
 export { default as ChartBox } from './charts/ChartBox';
 export { default as ChartSkeleton } from './charts/ChartSkeleton';
+export { default as MiniSparkline } from './charts/MiniSparkline';
 
 // perf
 export { default as DeferredRender } from './perf/DeferredRender';
