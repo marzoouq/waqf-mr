@@ -18,7 +18,7 @@ import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 const BeneficiaryDashboard = () => {
   const {
     isLoading, dashError, dashLoading, noPublishedYears, fyReady, isVisible,
-    currentBeneficiary, myShare, distributions, role, fiscalYearId,
+    currentBeneficiary, myShare, distributions, role, fiscalYearId, myShareTrend,
     fiscalYear, isClosed, fyProgress,
     displayName, roleLabel, recentNotifications, unreadCount, greetingData,
     advanceEnabled, pendingAdvanceCount, advanceContext,
@@ -79,6 +79,7 @@ const BeneficiaryDashboard = () => {
             distributions={distributions}
             fiscalYearLabel={fiscalYear?.label || ''}
             fyProgress={fyProgress}
+            myShareTrend={myShareTrend}
           />
         )}
 
