@@ -23,6 +23,8 @@ const baseMetrics: AccountantMetrics = {
   undocumentedExpensesCount: null,
   documentationRate: null,
   monthlyCollection: [],
+  collectedTrend: [],
+  overdueTrend: [],
   unsubmittedZatcaCount: 0,
   orphanedContractsCount: 0,
   pendingInvoicesCount: 3,

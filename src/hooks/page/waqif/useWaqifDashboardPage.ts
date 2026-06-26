@@ -99,11 +99,26 @@ export const useWaqifDashboardPage = () => {
   /* ── التحية والتاريخ — هوك مشترك ── */
   const welcome = useGreeting();
 
+  const incomeTrend = useMemo(
+    () => monthlyData.slice(-6).map(m => Number(m.income) || 0),
+    [monthlyData],
+  );
+
   const overviewStats = [
-    { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
-    { title: 'العقود النشطة', value: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
-    { title: 'المستفيدون', value: beneficiaryCount || '—', icon: Users, bg: 'bg-secondary/10 text-secondary' },
-    { title: 'القابل للتوزيع', value: !fiscalYear ? '—' : (fiscalYear.status !== 'closed' ? 'تُحسب عند الإقفال' : `${fmt(safeNumber(availableAmount))} ر.س`), icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
+    { title: 'العقارات', value: properties.length, rawValue: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
+    { title: 'العقود النشطة', value: activeContracts.length, rawValue: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
+    { title: 'المستفيدون', value: beneficiaryCount || '—', rawValue: beneficiaryCount || undefined, icon: Users, bg: 'bg-secondary/10 text-secondary' },
+    {
+      title: 'القابل للتوزيع',
+      value: !fiscalYear ? '—' : (fiscalYear.status !== 'closed' ? 'تُحسب عند الإقفال' : `${fmt(safeNumber(availableAmount))} ر.س`),
+      rawValue: fiscalYear?.status === 'closed' ? safeNumber(availableAmount) : undefined,
+      decimals: 0,
+      numericSuffix: ' ر.س',
+      trend: fiscalYear?.status === 'closed' ? incomeTrend : undefined,
+      trendColor: 'primary' as const,
+      icon: TrendingUp,
+      bg: 'bg-primary/10 text-primary',
+    },
   ];
 
   const expenseData = useMemo(

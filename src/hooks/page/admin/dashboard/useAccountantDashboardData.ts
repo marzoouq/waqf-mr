@@ -4,6 +4,7 @@
 import { useMemo } from 'react';
 import type { AggregatedData } from '@/hooks/data/financial/dashboard/useDashboardSummary';
 import type { HeatmapInvoice } from '@/hooks/data/financial/dashboard/useDashboardSummary';
+import { computeOverdueTrend } from './computeOverdueTrend';
 
 export interface OverdueInvoice {
   id: string;
@@ -46,6 +47,10 @@ export interface AccountantMetrics {
   /** إجمالي المُحصّل / المتوقع */
   totalCollected: number;
   totalExpected: number;
+  /** اتجاه آخر 6 أشهر للمحصّل (sparkline) */
+  collectedTrend: number[];
+  /** اتجاه آخر 6 أشهر للمبالغ المتأخرة (sparkline) */
+  overdueTrend: number[];
 }
 
 interface UseAccountantDashboardDataParams {
@@ -135,6 +140,16 @@ export function useAccountantDashboardData({ aggregated, heatmapInvoices }: UseA
   const documentationRate: number | null = null;
   const undocumentedExpensesCount: number | null = null;
 
+  const collectedTrend = useMemo(
+    () => monthlyCollection.slice(-6).map(m => m.collected),
+    [monthlyCollection],
+  );
+
+  const overdueTrend = useMemo(
+    () => computeOverdueTrend(heatmapInvoices, today),
+    [heatmapInvoices, today],
+  );
+
   return {
     overdueInvoices,
     overdueTotal,
@@ -146,5 +161,7 @@ export function useAccountantDashboardData({ aggregated, heatmapInvoices }: UseA
     pendingInvoicesCount,
     totalCollected,
     totalExpected,
+    collectedTrend,
+    overdueTrend,
   };
 }

@@ -18,7 +18,7 @@ import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 const BeneficiaryDashboard = () => {
   const {
     isLoading, dashError, dashLoading, noPublishedYears, fyReady, isVisible,
-    currentBeneficiary, myShare, distributions, role, fiscalYearId,
+    currentBeneficiary, myShare, distributions, role, fiscalYearId, myShareTrend,
     fiscalYear, isClosed, fyProgress,
     displayName, roleLabel, recentNotifications, unreadCount, greetingData,
     advanceEnabled, pendingAdvanceCount, advanceContext,
@@ -54,7 +54,7 @@ const BeneficiaryDashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-primary-foreground/80">{greetingData.greeting}</p>
-                  <h1 className="text-xl sm:text-2xl font-bold font-display">{displayName}</h1>
+                  <h1 className="text-display-md font-display">{displayName}</h1>
                 </div>
               </div>
             </CardContent>
@@ -67,7 +67,7 @@ const BeneficiaryDashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="p-3 sm:p-6 space-y-6 sm:space-y-8">
         {isVisible('welcome_card') && (
           <BeneficiaryWelcomeCard displayName={displayName} roleLabel={roleLabel} greetingData={greetingData} />
         )}
@@ -79,6 +79,7 @@ const BeneficiaryDashboard = () => {
             distributions={distributions}
             fiscalYearLabel={fiscalYear?.label || ''}
             fyProgress={fyProgress}
+            myShareTrend={myShareTrend}
           />
         )}
 

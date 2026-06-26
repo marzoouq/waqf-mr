@@ -3,9 +3,11 @@
  *
  * ملاحظة Wave F: تم حذف كتلة "التسلسل المالي" (إجمالي الدخل/المصروفات/الريع القابل للتوزيع)
  * لأنها مكررة مع التقارير المالية + AnnualDisclosureTable. تُعرض الآن كرابط إرشادي للتقارير.
+ * Wave 3: AnimatedCounter لأرقام KPI.
  */
 import { fmt } from '@/utils/format/format';
 import { Link } from 'react-router-dom';
+import { AnimatedCounter } from '@/components/common';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -54,7 +56,12 @@ const WaqifFinancialSection = ({
           {kpis.map((kpi, idx) => (
             <div key={idx} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
               <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
-              <p className={`text-xl sm:text-3xl font-bold tabular-nums ${kpi.color}`}>{typeof kpi.value === 'number' ? fmt(kpi.value) : kpi.value}{kpi.suffix}</p>
+              <p className={`text-xl sm:text-3xl font-bold tabular-nums ${kpi.color}`}>
+                {typeof kpi.value === 'number'
+                  ? <AnimatedCounter value={kpi.value} decimals={0} />
+                  : kpi.value}
+                {kpi.suffix}
+              </p>
               {kpi.progressColor && <Progress value={Math.min(typeof kpi.value === 'number' ? kpi.value : 0, 100)} className={`h-2 ${kpi.progressColor}`} />}
             </div>
           ))}
