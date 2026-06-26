@@ -22,7 +22,7 @@ const BeneficiaryWelcomeCard = ({ displayName, roleLabel, greetingData }: Benefi
             </div>
             <div className="min-w-0">
               <p className="text-sm sm:text-base text-primary-foreground/80">{greeting}</p>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">
+              <h1 className="text-display-md font-display truncate">
                 {displayName}
               </h1>
               <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">{roleLabel}</p>
