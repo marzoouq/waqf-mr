@@ -44,7 +44,7 @@ const WaqifDashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="p-3 sm:p-6 space-y-6 sm:space-y-8">
         <WaqifWelcomeCard displayName={displayName} welcome={welcome} />
         <div className="flex items-center justify-end gap-2">
           <ExportMenu hidePdf />
