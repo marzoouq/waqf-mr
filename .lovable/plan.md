@@ -1,31 +1,42 @@
-## المرحلة 2 — A1: ترقيات Patch آمنة فقط
+# خطة الترقيات البصرية للتطبيق
 
-### الحزم (6)
+نظام التصميم الحالي قوي (CSS variables موحدة، Tailwind v4، Tajawal/Amiri، Dark Mode، RTL، 6 ثيمات قابلة للتبديل). الفرص الحقيقية ليست إعادة هوية — بل **تلميع** يرفع الإحساس بالجودة دون كسر شيء.
 
-| الحزمة | من → إلى |
-|--------|---------|
-| `vitest` | 4.1.2 → 4.1.9 |
-| `@vitest/coverage-v8` | 4.1.2 → 4.1.9 |
-| `postcss` | 8.5.14 → 8.5.15 |
-| `@types/react` | 19.2.14 → 19.2.17 |
-| `jspdf-autotable` | 5.0.7 → 5.0.8 |
-| `eslint-plugin-react-refresh` | 0.5.2 → 0.5.3 |
+## الموجة 1 — Polish أساسي (مخاطر صفر)
 
-### الاستبعادات
-- ❌ ESLint/typescript-eslint/react-hooks (Minor — مخاطر قواعد جديدة)
-- ❌ vite-plugin-pwa, lovable-tagger, modern-screenshot (Minor — مخاطر runtime)
-- ❌ jsdom, @types/node, globals, web-vitals, rollup-plugin-visualizer (Minor — مؤجّل)
+1. **توحيد الظلال** عبر CSS tokens جديدة:
+   - `--shadow-sm` / `--shadow-md` / `--shadow-elegant` / `--shadow-glow`
+   - استبدال أي `shadow-lg` متناثر في البطاقات الرئيسية
+2. **توحيد نصف القطر** (`--radius` حالياً مفرد) — إضافة طبقات `xl`/`2xl` لبطاقات KPI
+3. **Focus rings محسّنة** لـ a11y: ring بسماكة 2px بلون `--ring` مع offset
+4. **Skeleton loaders موحّدة** بدل spinners المتناثرة (مكوّن `<KpiSkeleton/>` و `<TableSkeleton/>`)
+5. **Empty states موحّدة**: مكوّن `<EmptyState icon title description action/>` بأيقونة Lucide ونص عربي
 
-### بوابات التحقق
-1. `bun install`
-2. `tsgo` — TypeScript clean
-3. `bunx vitest run` — 2168/2168 يجب أن تنجح
-4. `bunx eslint .` — لا زيادة في عدد الأخطاء (يبقى 0 errors / 22 warnings)
+## الموجة 2 — Motion & Micro-interactions
 
-### المخاطر
-🟢 منخفضة — جميعها Patch داخل نفس Minor، لا breaking changes متوقعة.
+6. **انتقالات الصفحات**: `fade-in` خفيف (200ms) على `<RouteOutlet>` لتخفيف القفز البصري
+7. **Hover states على الجداول**: تباين أعلى + cursor pointer للصفوف القابلة للنقر
+8. **Animated counters** لأرقام KPI الكبيرة في Dashboards (count-up 600ms)
+9. **Toast variants ملوّنة** (success/warning/destructive) بدل اللون الواحد الحالي
+10. **Loading button states**: spinner داخلي + تعطيل تلقائي أثناء mutations
 
-### Rollback
-في حال فشل أي بوابة: استرجاع `package.json` و `bun.lockb` من git.
+## الموجة 3 — Dashboard hierarchy (اختياري)
 
-جاهز للتنفيذ.
+11. **Bento Grid** لبطاقات KPI الرئيسية في `WaqifDashboard` و `BeneficiaryDashboard` (بطاقة كبيرة + 3 صغيرة)
+12. **Sparklines مصغّرة** داخل بطاقات الإيرادات/المصروفات (Recharts موجود)
+13. **Badge محسّن للحالات** (مدفوع/متأخر/معلّق) بألوان dot + نص
+
+## ما لن أغيّره
+- الهوية (Tajawal/Amiri، الثيمات الـ6، الألوان الأساسية)
+- البنية (Pages/Hooks/Components)
+- أي منطق أعمال
+
+## التحقق
+- TSC + Vitest بعد كل موجة
+- لقطات Playwright قبل/بعد لـ 3 صفحات (Dashboard ناظر، Dashboard مستفيد، Settings)
+
+## الاختيار
+- **(أ)** الموجة 1 فقط — دقائق، تأثير فوري ملموس
+- **(ب)** الموجتان 1 + 2 — موصى به
+- **(ج)** الموجات الثلاث كاملة
+- **(د)** تقرير تدقيق بصري مفصّل قبل أي تنفيذ
