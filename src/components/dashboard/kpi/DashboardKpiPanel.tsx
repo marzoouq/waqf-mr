@@ -2,8 +2,7 @@ import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Gauge, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { KpiSkeleton } from '@/components/common';
-import { fmt } from '@/utils/format/format';
+import { KpiSkeleton, AnimatedCounter } from '@/components/common';
 
 export type { KpiItem } from '@/types/dashboard';
 import type { KpiItem } from '@/types/dashboard';
