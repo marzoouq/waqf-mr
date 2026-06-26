@@ -1,49 +1,65 @@
-# تقرير تحقق ميداني — الالتزام بالمبادئ الـ15
+# خطة تسريع التطبيق — مُراجَعة بعد فحص الواقع
 
-تشغيل فعلي للأدوات في هذه الجلسة (لا ادعاءات).
+## ما تأكد من الفحص العميق
 
-## نتائج البوابات
+| البند | الواقع | الحكم |
+|------|-------|------|
+| Lazy routes | ✅ `lazyWithRetry` على كل صفحة admin | لا حاجة لتغيير |
+| `app_settings` staleTime | ✅ 5 دقائق بالفعل + gcTime 30د | لا حاجة لتغيير |
+| `notifications` فهرس | ⚠️ `(user_id, is_read, created_at DESC)` — `is_read` في الوسط يمنع استخدام sort للاستعلامات بدون فلتر `is_read` | يحتاج فهرس جديد |
+| `access_log` فهارس | ❌ 3 فهارس مفردة فقط، لا composite | فهرس مركّب مفقود |
+| `audit_log` فهارس | ❌ لا فهرس على `created_at` وحده | فهرس مفقود |
+| DB Health | Memory 56%، Disk 63%، Connections 7/60 | لا داعي لترقية compute |
+| Rolled-back tx | 1,176,851 منذ التشغيل | **مؤشر تحقيق منفصل** (RLS rejects؟) |
 
-| الفحص | النتيجة |
-|-------|---------|
-| `tsgo --noEmit` | ✅ نظيف (0 أخطاء) |
-| `node scripts/audit-all.mjs` | ✅ Critical=0, GAP=0, Info=4 |
-| `structure / conventions-deep / hooks-layout / ui-permissions / page-controls` | ✅ 5/5 ok |
-| Vitest (سابقاً) | ✅ 2168/2168 |
+## الخطة المُحدّثة
 
-## فحص الانتهاكات الفعلية
+### الموجة 1 — فهارس DB (Migration واحدة)
 
-| المؤشر | العدد | الحكم |
-|--------|-------|-------|
-| `console.*` خارج logger | **4** | ✅ كلها في `src/test/setup.ts` (التقاط مقصود) |
-| `: any` / `as any` | **2** | ✅ كلاهما داخل تعليق توضيحي أو نوع داخلي للـ inference (مبرّر) |
-| `TODO` / `FIXME` | **0** | ✅ نظيف تماماً |
-| `@deprecated` موسومة | **14** | ✅ ممنهج (F19 Forensic 2026-06-22) — يتتبع الطرق قبل الإزالة |
+```sql
+-- access_log: يخدم الاستعلام الأبطأ (22.2s إجمالي)
+CREATE INDEX IF NOT EXISTS idx_access_log_user_event_created
+  ON public.access_log (user_id, event_type, created_at DESC);
 
-## تصحيح للتقرير السابق
+-- audit_log: قراءة عامة بترتيب زمني (12.5s إجمالي)
+CREATE INDEX IF NOT EXISTS idx_audit_log_created_at
+  ON public.audit_log (created_at DESC);
 
-البند #3 (تتبع الطرق المهملة) كان مُصنّفاً ⚠️. **التحقق الميداني أثبت أنه ✅ نعم** — يوجد 14 وسم `@deprecated` ممنهج مرتبط بتقرير forensic موثّق (F19) ومتتبع عبر `audit-structure.mjs`.
+-- notifications: فهرس مرتب لـ created_at بدون اعتراض is_read (7.4s)
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created
+  ON public.notifications (user_id, created_at DESC);
+```
 
-## النتيجة النهائية المُحقّقة
+**ملاحظات تقنية:**
+- لا `CONCURRENTLY` (يفشل داخل migration transaction).
+- الفهارس الموجودة تبقى — `idx_notifications_user_read_created` ما زال مفيداً لاستعلامات is_read.
+- لا تأثير على RLS أو policies أو data.
 
-**15/15 ✅ التزام كامل**
+**القياس:** `EXPLAIN ANALYZE` قبل/بعد على عينة استعلام.
 
-| المبدأ | الحالة | الدليل المباشر |
-|--------|--------|----------------|
-| 1. إزالة الكود الميت | ✅ | `deletion-gate.mjs` (3 خطوات إلزامية) |
-| 2. التحقق قبل الحذف | ✅ | `audit-all` + ESLint no-unused |
-| 3. تتبع الطرق المهملة | ✅ | 14 `@deprecated` + F19 forensic |
-| 4. فحص المكونات اليتيمة | ✅ | `audit-structure.mjs` يكتشف orphans |
-| 5. الحفاظ على الميزات | ✅ | 2168/2168 + auditCriticalGate |
-| 6. حل المشكلات بعمق | ✅ | `audit/forensic-*` (7+ تقارير) |
-| 7. التحقق من DB | ✅ | RLS+GRANT+linter |
-| 8. اتساق UI | ✅ | CSS vars + shadcn + RTL |
-| 9. تصحيح أخطاء منهجي | ✅ | logger + RouteErrorBoundary + Playwright |
-| 10. سلامة النوع و Zod | ✅ | TS strict، `any`=2 مبرّرة، Zod إلزامي |
-| 11. تدفق البيانات | ✅ | TanStack + AbortSignal + طبقات صارمة |
-| 12. الأداء | ✅ | Lazy + Deferred + rAF |
-| 13. المرونة | ✅ | RouteErrorBoundary + fail-closed RLS |
-| 14. بنية المكونات | ✅ | Core Modularization v7 (≤200 LOC) |
-| 15. تكامل API | ✅ | `rpc.ts` موحّد + abort + retry |
+### الموجة 2 — تحقيق منفصل (لا تنفيذ بدون موافقة)
+1.176M rolled-back transactions = إشارة قوية لرفضات RLS متكررة أو فشل تحقق. أقترح:
+- استعلام `pg_stat_database` للتأكد.
+- فحص `access_log` لرصد `event_type='rls_denied'` (إن وُجد).
+- مراجعة edge functions للتأكد من معالجة الأخطاء قبل rollback.
 
-— تقرير قراءة فقط. لا حاجة لتنفيذ. الكود في حالة Production-Ready مؤكدة.
+### الموجة 3 — Frontend (بعد الموجة 1)
+- تشغيل `rollup-plugin-visualizer` (مُثبّت أصلاً) في build لرؤية أكبر chunks.
+- مراجعة `vendor-recharts` و `vendor-pdf` — هل تُحمَّل lazy فعلاً؟
+- صور: لا توجد صور كبيرة في `src/assets` (المشروع نظيف). لا حاجة لتحويل WebP الآن.
+
+### مالن أفعل
+- ❌ لن أرفع compute (لا داعي — memory 56%).
+- ❌ لن أعدّل cron الإيميل بدون قرار منتج.
+- ❌ لن ألمس staleTime (ضبطه جيد).
+- ❌ لن ألمس lazy routes (مُطبَّق).
+
+## التحقق
+1. `EXPLAIN ANALYZE` للاستعلام البطيء قبل migration.
+2. تطبيق migration.
+3. `EXPLAIN ANALYZE` بعد — يجب رؤية Index Scan بدل Seq Scan/Sort.
+4. `tsgo + vitest + audit-all` (لا تغيير كود).
+5. إعادة `slow_queries` بعد 24h لقياس الأثر الإنتاجي.
+
+---
+**اقتراح:** أبدأ بالموجة 1 (فهارس فقط — أثر فوري، صفر مخاطر) ثم نقرر الموجتين 2 و 3 بناء على القياس. موافق؟
