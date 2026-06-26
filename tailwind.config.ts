@@ -19,6 +19,12 @@ export default {
         arabic: ['Tajawal', 'sans-serif'],
         display: ['Amiri', 'serif'],
       },
+      // Wave 3: Hierarchy — responsive display sizes موحّدة عبر الداشبوردات
+      fontSize: {
+        'display-xs': ['clamp(1.125rem, 1rem + 0.5vw, 1.375rem)', { lineHeight: '1.3', fontWeight: '700' }],
+        'display-sm': ['clamp(1.25rem, 1.1rem + 0.75vw, 1.625rem)', { lineHeight: '1.25', fontWeight: '700' }],
+        'display-md': ['clamp(1.5rem, 1.25rem + 1.25vw, 2.125rem)', { lineHeight: '1.2', fontWeight: '700' }],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
