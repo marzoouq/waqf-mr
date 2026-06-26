@@ -47,7 +47,9 @@ export function RootLayout() {
       <PagePerformanceTracker />
       <ErrorBoundary>
         <Suspense fallback={<PageLoader />}>
-          <Outlet />
+          <div className="animate-page-in">
+            <Outlet />
+          </div>
         </Suspense>
       </ErrorBoundary>
       <ErrorBoundary>
