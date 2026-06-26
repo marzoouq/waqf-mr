@@ -54,6 +54,8 @@ interface UseAdminDashboardStatsParams {
   occupancy?: AggregatedOccupancy | null;
   /** دور المستخدم — يُستخدم لتصفية البطاقات حسب الصلاحية */
   role?: string | null;
+  /** بيانات شهرية للرسم البياني المصغّر (Sparkline) */
+  monthlyData?: Array<{ month: string; income: number; expenses: number }>;
 }
 
 export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
