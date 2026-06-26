@@ -3,8 +3,11 @@
  *
  * ملاحظة Wave F: تم حذف كتلة "التسلسل المالي" (إجمالي الدخل/المصروفات/الريع القابل للتوزيع)
  * لأنها مكررة مع التقارير المالية + AnnualDisclosureTable. تُعرض الآن كرابط إرشادي للتقارير.
+ * Wave 3: AnimatedCounter لأرقام KPI.
  */
 import { fmt } from '@/utils/format/format';
+import { Link } from 'react-router-dom';
+import { AnimatedCounter } from '@/components/common';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
