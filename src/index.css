@@ -263,6 +263,9 @@
     --status-special-foreground: 270 60% 60%;
     --caution: 38 92% 55%;
     --caution-foreground: 38 92% 45%;
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.35);
+    --shadow: 0 4px 6px -1px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 10px 25px -3px hsl(0 0% 0% / 0.5);
   }
 }
 
@@ -397,6 +400,25 @@
 
   .animate-glow {
     animation: glow 3s ease-in-out infinite alternate;
+  }
+
+  /* انتقال خفيف بين الصفحات — يحترم prefers-reduced-motion */
+  .animate-page-in {
+    animation: pageIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-page-in,
+    .animate-fade-in,
+    .animate-slide-up,
+    .animate-slide-right {
+      animation: none !important;
+    }
+  }
+
+  @keyframes pageIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes fadeIn {
