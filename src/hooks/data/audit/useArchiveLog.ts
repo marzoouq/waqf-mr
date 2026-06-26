@@ -3,7 +3,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { STALE_MESSAGING } from '@/lib/queryStaleTime';
+import { STALE_AUDIT } from '@/lib/queryStaleTime';
 import { PAGE_SIZE_AUDIT } from '@/constants/pagination';
 import { auditKeys } from '@/lib/queryKeys/auditKeys';
 
