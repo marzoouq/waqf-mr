@@ -121,6 +121,14 @@ export function useBeneficiaryDashboardPage() {
   );
 
   const recentNotifications = notifications.slice(0, 3);
+  // Wave 3: اتجاه آخر 6 توزيعات مدفوعة (sparkline)
+  const myShareTrend = useMemo(() => {
+    return [...distributions]
+      .filter(d => d.status === 'paid')
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-6)
+      .map(d => Number(d.amount) || 0);
+  }, [distributions]);
   const greetingData = useGreeting();
 
   return {
@@ -132,6 +140,7 @@ export function useBeneficiaryDashboardPage() {
     isVisible,
     // بيانات المستفيد
     currentBeneficiary, myShare, distributions, role, fiscalYearId,
+    myShareTrend,
     // بيانات السنة المالية
     fiscalYear, isClosed, fyProgress,
     // بيانات العرض
