@@ -64,8 +64,18 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
     totalIncome, totalExpenses, netAfterExpenses,
     waqfRevenue,
     beneficiariesCount, isYearActive, sharesNote,
-    yoy, collection, role,
+    yoy, collection, role, monthlyData,
   } = params;
+
+  // ── سلاسل الاتجاه لآخر 6 أشهر — تُغذّي MiniSparkline ──
+  const trends = useMemo(() => {
+    const md = (monthlyData ?? []).slice(-6);
+    return {
+      income: md.map(m => Number(m.income) || 0),
+      expenses: md.map(m => Number(m.expenses) || 0),
+      net: md.map(m => (Number(m.income) || 0) - (Number(m.expenses) || 0)),
+    };
+  }, [monthlyData]);
 
   // ── ملخص التحصيل (جاهز من RPC) ──
   // paidLikeCount = paid + partially_paid (تعريف موحّد مع لوحة المستفيد)
