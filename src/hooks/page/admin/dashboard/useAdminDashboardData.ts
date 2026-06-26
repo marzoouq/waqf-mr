@@ -74,6 +74,10 @@ export const useAdminDashboardData = ({
   // ── نسبة المصروفات (لتمريرها للتنبيهات) — تكشف عجز "إنفاق بلا دخل" ──
   const expenseRatio = computeExpenseRatio(totalIncome, totalExpenses);
 
+  // ── بيانات الرسوم البيانية (جاهزة من RPC) — تُستهلك أيضاً في Sparkline ──
+  const monthlyData = agg?.monthly_data ?? [];
+  const expenseTypes = agg?.expense_types ?? [];
+
   // ── إحصائيات البطاقات ──
   const { stats, kpis, collectionSummary, collectionColor } = useAdminDashboardStats({
     propertiesCount: counts?.properties ?? 0,
@@ -95,11 +99,8 @@ export const useAdminDashboardData = ({
     collection: agg?.collection ?? null,
     occupancy: agg?.occupancy ?? null,
     role,
+    monthlyData,
   });
-
-  // ── بيانات الرسوم البيانية (جاهزة من RPC) ──
-  const monthlyData = agg?.monthly_data ?? [];
-  const expenseTypes = agg?.expense_types ?? [];
 
   // ── نص التحية ──
   const greetingText = useMemo(() => {
