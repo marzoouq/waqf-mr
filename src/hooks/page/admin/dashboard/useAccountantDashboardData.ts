@@ -46,6 +46,10 @@ export interface AccountantMetrics {
   /** إجمالي المُحصّل / المتوقع */
   totalCollected: number;
   totalExpected: number;
+  /** اتجاه آخر 6 أشهر للمحصّل (sparkline) */
+  collectedTrend: number[];
+  /** اتجاه آخر 6 أشهر للمبالغ المتأخرة (sparkline) */
+  overdueTrend: number[];
 }
 
 interface UseAccountantDashboardDataParams {
@@ -135,6 +139,31 @@ export function useAccountantDashboardData({ aggregated, heatmapInvoices }: UseA
   const documentationRate: number | null = null;
   const undocumentedExpensesCount: number | null = null;
 
+  const collectedTrend = useMemo(
+    () => monthlyCollection.slice(-6).map(m => m.collected),
+    [monthlyCollection],
+  );
+
+  const overdueTrend = useMemo(() => {
+    if (!heatmapInvoices.length) return [];
+    const map = new Map<string, number>();
+    for (const inv of heatmapInvoices) {
+      const isPastDue = inv.due_date < today;
+      const isOverdue = inv.status === 'overdue'
+        || (isPastDue && (inv.status === 'pending' || inv.status === 'partially_paid'));
+      if (!isOverdue) continue;
+      const m = inv.due_date.slice(0, 7);
+      const remaining = inv.status === 'partially_paid'
+        ? Math.max(0, inv.amount - (inv.paid_amount ?? 0))
+        : inv.amount;
+      map.set(m, (map.get(m) ?? 0) + remaining);
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-6)
+      .map(([, v]) => v);
+  }, [heatmapInvoices, today]);
+
   return {
     overdueInvoices,
     overdueTotal,
@@ -146,5 +175,7 @@ export function useAccountantDashboardData({ aggregated, heatmapInvoices }: UseA
     pendingInvoicesCount,
     totalCollected,
     totalExpected,
+    collectedTrend,
+    overdueTrend,
   };
 }
