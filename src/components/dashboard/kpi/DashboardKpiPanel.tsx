@@ -2,8 +2,7 @@ import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Gauge, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { KpiSkeleton } from '@/components/common';
-import { fmt } from '@/utils/format/format';
+import { KpiSkeleton, AnimatedCounter } from '@/components/common';
 
 export type { KpiItem } from '@/types/dashboard';
 import type { KpiItem } from '@/types/dashboard';
@@ -38,7 +37,9 @@ const DashboardKpiPanel = ({ kpis, isLoading }: DashboardKpiPanelProps) => {
               <div key={kpi.label} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
                 <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
                 <p className={`text-lg sm:text-xl md:text-3xl font-bold ${kpi.color}`}>
-                  {kpi.value === 0 && !kpi.suffix ? '—' : <>{fmt(kpi.value)}{kpi.suffix}</>}
+                  {kpi.value === 0 && !kpi.suffix
+                    ? '—'
+                    : <AnimatedCounter value={kpi.value} decimals={kpi.decimals ?? 0} suffix={kpi.suffix} />}
                 </p>
                 {kpi.yoyChange !== null && kpi.yoyChange !== undefined && (
                   <div className={`flex items-center justify-center gap-1 text-xs font-medium ${yoyColor}`}>
