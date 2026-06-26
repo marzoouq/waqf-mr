@@ -1,8 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wallet, TrendingUp } from 'lucide-react';
-import { fmt } from '@/utils/format/format';
-import { EstimatedShareBadge } from '@/components/common';
+import { AnimatedCounter, MiniSparkline, EstimatedShareBadge } from '@/components/common';
 import { DISTRIBUTIONS_LABELS, FY_STATE_COPY } from '@/constants/beneficiaryCopy';
 
 interface Distribution {
@@ -24,9 +23,11 @@ interface BeneficiaryStatsRowProps {
   distributions: Distribution[];
   fiscalYearLabel: string;
   fyProgress: FiscalYearProgress;
+  /** Wave 3: اتجاه آخر التوزيعات المدفوعة */
+  myShareTrend?: number[];
 }
 
-const BeneficiaryStatsRow = ({ myShare, isClosed, distributions, fiscalYearLabel, fyProgress }: BeneficiaryStatsRowProps) => {
+const BeneficiaryStatsRow = ({ myShare, isClosed, distributions, fiscalYearLabel, fyProgress, myShareTrend }: BeneficiaryStatsRowProps) => {
   // N18: ابحث عن آخر مدفوع بتمرير واحد O(n) بدل sort+find
   const lastPaid = distributions.reduce<Distribution | null>((acc, d) => {
     if (d.status !== 'paid') return acc;
@@ -40,6 +41,8 @@ const BeneficiaryStatsRow = ({ myShare, isClosed, distributions, fiscalYearLabel
     : fyProgress.notStarted
       ? FY_STATE_COPY.notStarted.badge
       : FY_STATE_COPY.active.badge;
+
+  const hasTrend = Array.isArray(myShareTrend) && myShareTrend.length > 1;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -55,7 +58,16 @@ const BeneficiaryStatsRow = ({ myShare, isClosed, distributions, fiscalYearLabel
                 <p className="text-xs text-muted-foreground">حصتي من الريع</p>
                 <EstimatedShareBadge isEstimated={!isClosed} />
               </div>
-              <p className="text-lg sm:text-xl font-bold truncate">{fmt(myShare)} ر.س</p>
+              <p className="text-lg sm:text-xl font-bold truncate tabular-nums">
+                <AnimatedCounter value={myShare} decimals={2} suffix=" ر.س" />
+              </p>
+              {hasTrend && (
+                <MiniSparkline
+                  data={myShareTrend as number[]}
+                  color="primary"
+                  className="mt-1 opacity-80"
+                />
+              )}
             </div>
           </div>
         </CardContent>
@@ -72,8 +84,8 @@ const BeneficiaryStatsRow = ({ myShare, isClosed, distributions, fiscalYearLabel
               <p className="text-xs text-muted-foreground">{DISTRIBUTIONS_LABELS.lastPaid}</p>
               {lastPaid ? (
                 <>
-                  <p className="text-lg sm:text-xl font-bold truncate">
-                    {fmt(Number(lastPaid.amount))} ر.س
+                  <p className="text-lg sm:text-xl font-bold truncate tabular-nums">
+                    <AnimatedCounter value={Number(lastPaid.amount)} decimals={2} suffix=" ر.س" />
                   </p>
                   <p className="text-[11px] text-muted-foreground">
                     {new Date(lastPaid.date).toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' })}
