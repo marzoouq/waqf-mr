@@ -1,35 +1,31 @@
+## المرحلة 2 — A1: ترقيات Patch آمنة فقط
 
-## تنفيذ B2 — رفع staleTime لقوائم السجل التاريخية
+### الحزم (6)
 
-### النتيجة بعد التحقق
-- **B1 (ORDER BY):** كل الاستعلامات الـ 5 (`useAccessLogTab` × 3، `useAuditLog`، `useClientErrors`، `useArchiveLog`) تستخدم `.order('created_at', { ascending: false })` بالفعل. **لا تغيير مطلوب** — الفهارس من الموجة 1 ستُستخدم تلقائياً عند النشر.
-- **B2:** ثابت staleTime الحالي `STALE_MESSAGING = 30s` يُستخدم للرسائل والسجل معاً. الرسائل تحتاج تحديثاً سريعاً، السجل لا. سأفصلهما.
+| الحزمة | من → إلى |
+|--------|---------|
+| `vitest` | 4.1.2 → 4.1.9 |
+| `@vitest/coverage-v8` | 4.1.2 → 4.1.9 |
+| `postcss` | 8.5.14 → 8.5.15 |
+| `@types/react` | 19.2.14 → 19.2.17 |
+| `jspdf-autotable` | 5.0.7 → 5.0.8 |
+| `eslint-plugin-react-refresh` | 0.5.2 → 0.5.3 |
 
-### التغييرات (6 ملفات فقط)
+### الاستبعادات
+- ❌ ESLint/typescript-eslint/react-hooks (Minor — مخاطر قواعد جديدة)
+- ❌ vite-plugin-pwa, lovable-tagger, modern-screenshot (Minor — مخاطر runtime)
+- ❌ jsdom, @types/node, globals, web-vitals, rollup-plugin-visualizer (Minor — مؤجّل)
 
-**1) `src/lib/queryStaleTime.ts`** — إضافة ثابت جديد:
-```ts
-/** سجلات تاريخية (audit/access_log) — لا تتغير لحظياً */
-export const STALE_AUDIT = 2 * 60_000;
-```
-
-**2-6) استبدال `STALE_MESSAGING` بـ `STALE_AUDIT` في 5 هوكات سجل:**
-- `src/hooks/data/audit/useAccessLogTab.ts` (3 استعلامات)
-- `src/hooks/data/audit/useAuditLog.ts`
-- `src/hooks/data/audit/useClientErrors.ts`
-- `src/hooks/data/audit/useArchiveLog.ts`
-- `src/hooks/data/audit/useAuditLogStats.ts` (`useAuditLogTodayCount` فقط)
-
-`STALE_MESSAGING` يبقى للرسائل/المحادثات/تذاكر الدعم (التي تحتاج 30s).
-
-### المكسب المتوقع
-- استدعاءات `access_log` و`audit_log` تنخفض ~75% (من كل 30s إلى كل 2m)
-- توفير ~30 ثانية CPU / فترة قياس
-- لا أثر على بيانات حية (السجلات تاريخية)
+### بوابات التحقق
+1. `bun install`
+2. `tsgo` — TypeScript clean
+3. `bunx vitest run` — 2168/2168 يجب أن تنجح
+4. `bunx eslint .` — لا زيادة في عدد الأخطاء (يبقى 0 errors / 22 warnings)
 
 ### المخاطر
-- صفر — السجلات لا تُعدّل بعد إنشائها (RLS `USING(false)` للحذف/التعديل)
-- في حال إضافة سجل جديد، يظهر خلال دقيقتين كحد أقصى
+🟢 منخفضة — جميعها Patch داخل نفس Minor، لا breaking changes متوقعة.
 
-### التحقق
-- `bunx tsgo --noEmit` + `bunx vitest run` بعد التطبيق
+### Rollback
+في حال فشل أي بوابة: استرجاع `package.json` و `bun.lockb` من git.
+
+جاهز للتنفيذ.
