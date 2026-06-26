@@ -7,7 +7,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { STALE_MESSAGING } from '@/lib/queryStaleTime';
+import { STALE_AUDIT } from '@/lib/queryStaleTime';
 import { auditKeys } from '@/lib/queryKeys/auditKeys';
 import type { AuditLogEntry } from './useAuditLog';
 
@@ -15,7 +15,7 @@ import type { AuditLogEntry } from './useAuditLog';
 export function useAuditLogTodayCount() {
   return useQuery({
     queryKey: auditKeys.log.todayCount,
-    staleTime: STALE_MESSAGING,
+    staleTime: STALE_AUDIT,
     queryFn: async ({ signal: _signal }) => {
       const todayStr = new Date().toISOString().split('T')[0];
       const { count } = await supabase

@@ -28,3 +28,6 @@ export const STALE_DASHBOARD = 30_000;
 
 /** بيانات مرجعية ثابتة (الأدوار، الإعدادات الجامدة) */
 export const STALE_REFERENCE = 15 * 60_000;
+
+/** سجلات تاريخية (audit_log, access_log, client_errors) — لا تتغير لحظياً */
+export const STALE_AUDIT = 2 * 60_000;
