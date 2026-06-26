@@ -54,7 +54,7 @@ const BeneficiaryDashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-primary-foreground/80">{greetingData.greeting}</p>
-                  <h1 className="text-xl sm:text-2xl font-bold font-display">{displayName}</h1>
+                  <h1 className="text-display-md font-display">{displayName}</h1>
                 </div>
               </div>
             </CardContent>
