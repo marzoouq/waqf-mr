@@ -60,6 +60,6 @@ export const useAuditLog = (filters?: {
         totalCount: count ?? 0,
       };
     },
-    staleTime: STALE_MESSAGING,
+    staleTime: STALE_AUDIT,
   });
 };

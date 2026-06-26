@@ -23,7 +23,7 @@ export interface AccessLogEntry {
 export const useAccessLogTab = (eventFilter: string, currentPage: number, searchQuery = '') => {
   return useQuery({
     queryKey: auditKeys.accessLog.list(eventFilter, currentPage, searchQuery),
-    staleTime: STALE_MESSAGING,
+    staleTime: STALE_AUDIT,
     queryFn: async ({ signal: _signal }) => {
       const from = (currentPage - 1) * ACCESS_LOG_ITEMS_PER_PAGE;
       let query = supabase
@@ -53,7 +53,7 @@ export const useAccessLogTab = (eventFilter: string, currentPage: number, search
 export const useFailedLoginsToday = () => {
   return useQuery({
     queryKey: auditKeys.accessLog.failedToday,
-    staleTime: STALE_MESSAGING,
+    staleTime: STALE_AUDIT,
     queryFn: async ({ signal: _signal }) => {
       const todayStr = new Date().toISOString().split('T')[0];
       const { count } = await supabase
@@ -69,7 +69,7 @@ export const useFailedLoginsToday = () => {
 export const useUnauthorizedAccessToday = () => {
   return useQuery({
     queryKey: auditKeys.accessLog.unauthorizedToday,
-    staleTime: STALE_MESSAGING,
+    staleTime: STALE_AUDIT,
     queryFn: async ({ signal: _signal }) => {
       const todayStr = new Date().toISOString().split('T')[0];
       const { count } = await supabase

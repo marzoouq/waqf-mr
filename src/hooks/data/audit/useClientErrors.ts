@@ -20,7 +20,7 @@ export interface ClientError {
 export const useClientErrors = () => {
   return useQuery({
     queryKey: auditKeys.clientErrors,
-    staleTime: STALE_MESSAGING,
+    staleTime: STALE_AUDIT,
     queryFn: async ({ signal: _signal }) => {
       const { data, error } = await supabase
         .from('access_log')
