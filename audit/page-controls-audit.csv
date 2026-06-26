@@ -109,7 +109,7 @@ src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/QuickAct
 src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/QuickActionsCard.tsx,/dashboard,ADMIN_ROLES,50,Link,"",Link-to,"Wallet>QuickAction>Button",OK
 src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/RecentContractsCard.tsx,/dashboard,ADMIN_ROLES,74,Button,"عرض الكل",parent-Trigger,"Skeleton>Skeleton>Link",OK
 src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/RecentContractsCard.tsx,/dashboard,ADMIN_ROLES,73,Link,"عرض الكل",Link-to,"Skeleton>Skeleton>Skeleton",OK
-src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/kpi/DashboardStatsGrid.tsx,/dashboard,ADMIN_ROLES,22,Link,"{('yoyChange' in stat) && stat.yoyChange !== undefined && ( )}",Link-to,"StatsGridSkeleton",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/kpi/DashboardStatsGrid.tsx,/dashboard,ADMIN_ROLES,25,Link,"{hasRaw ? ( ) : ( stat.value )} {('yoyChange' in stat) && stat.yoyChange !== und",Link-to,"StatsGridSkeleton",OK
 src/pages/dashboard/ExpensesPage.tsx,src/components/dashboard/AdvancedFiltersBar.tsx,/dashboard/expenses,ADMIN_ROLES,35,Button,"مسح الكل",onClick,"AdvancedFiltersBarProps>FilterState>Filter",OK
 src/pages/beneficiary/BeneficiaryDashboard.tsx,src/components/beneficiary/dashboard/BeneficiaryQuickLinks.tsx,/beneficiary,BENEFICIARY_ROLES,27,Link,"",Link-to,"",OK
 src/pages/beneficiary/BeneficiaryDashboard.tsx,src/components/beneficiary/dashboard/BeneficiaryNotificationsCard.tsx,/beneficiary,BENEFICIARY_ROLES,44,Button,"عرض الكل",onClick,"Card>CardHeader>Bell",OK
