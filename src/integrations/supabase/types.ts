@@ -2295,6 +2295,7 @@ export type Database = {
         Args: { p_fiscal_year_id: string }
         Returns: Json
       }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       encrypt_pii: { Args: { p_value: string }; Returns: string }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
