@@ -181,14 +181,14 @@ export async function fetchWaqfData(
         sections.push("\n### الحسابات المالية:");
         for (const acc of filteredAccounts) {
           sections.push(`**السنة: ${acc.fiscal_year}**`);
-          sections.push(`- إجمالي الدخل: ${Number(acc.total_income).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- إجمالي المصروفات: ${Number(acc.total_expenses).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- صافي بعد المصروفات: ${Number(acc.net_after_expenses).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- الزكاة: ${Number(acc.zakat_amount).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- الضريبة: ${Number(acc.vat_amount).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- حصة الناظر (${adminPct}%): ${Number(acc.admin_share).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- حصة الواقف (${waqifPct}%): ${Number(acc.waqif_share).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- ريع الوقف للتوزيع: ${Number(acc.waqf_revenue).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- إجمالي الدخل: ${Number(acc.total_income).toLocaleString("en-US")} ر.س`);
+          sections.push(`- إجمالي المصروفات: ${Number(acc.total_expenses).toLocaleString("en-US")} ر.س`);
+          sections.push(`- صافي بعد المصروفات: ${Number(acc.net_after_expenses).toLocaleString("en-US")} ر.س`);
+          sections.push(`- الزكاة: ${Number(acc.zakat_amount).toLocaleString("en-US")} ر.س`);
+          sections.push(`- الضريبة: ${Number(acc.vat_amount).toLocaleString("en-US")} ر.س`);
+          sections.push(`- حصة الناظر (${adminPct}%): ${Number(acc.admin_share).toLocaleString("en-US")} ر.س`);
+          sections.push(`- حصة الواقف (${waqifPct}%): ${Number(acc.waqif_share).toLocaleString("en-US")} ر.س`);
+          sections.push(`- ريع الوقف للتوزيع: ${Number(acc.waqf_revenue).toLocaleString("en-US")} ر.س`);
         }
       } else {
         sections.push("\n### ملخص مالي عام:");
@@ -215,9 +215,9 @@ export async function fetchWaqfData(
           byType[key].total += Number(c.rent_amount);
         }
         sections.push(`\n### العقود النشطة (${contracts.length} عقد):`);
-        sections.push(`- إجمالي الإيجارات: ${totalRent.toLocaleString("ar-SA")} ر.س`);
+        sections.push(`- إجمالي الإيجارات: ${totalRent.toLocaleString("en-US")} ر.س`);
         for (const [type, info] of Object.entries(byType)) {
-          sections.push(`  - ${type}: ${info.count} عقد | ${info.total.toLocaleString("ar-SA")} ر.س`);
+          sections.push(`  - ${type}: ${info.count} عقد | ${info.total.toLocaleString("en-US")} ر.س`);
         }
         const sorted = [...contracts].sort((a, b) => String(a.end_date).localeCompare(String(b.end_date)));
         const soonest = sorted[0];
@@ -240,7 +240,7 @@ export async function fetchWaqfData(
       const pending = distributions.filter(d => d.status === "pending").length;
       const paid = distributions.filter(d => d.status === "paid").length;
       sections.push(`\n### آخر التوزيعات:`);
-      sections.push(`- إجمالي: ${totalDist.toLocaleString("ar-SA")} ر.س | مدفوعة: ${paid} | معلقة: ${pending}`);
+      sections.push(`- إجمالي: ${totalDist.toLocaleString("en-US")} ر.س | مدفوعة: ${paid} | معلقة: ${pending}`);
     } else if (!isAdmin && distributions?.length) {
       const myTotal = distributions.reduce((s, d) => s + Number(d.amount), 0);
       sections.push(`\n### توزيعاتك:`);
@@ -260,9 +260,9 @@ export async function fetchWaqfData(
           const totalRecords = incomeData.reduce((s, i) => s + Number(i.record_count ?? 0), 0);
           sections.push(`\n### الدخل للسنة النشطة (${activeFY.label}):`);
           if (isAdmin) {
-            sections.push(`- إجمالي الدخل: ${totalIncome.toLocaleString("ar-SA")} ر.س (${totalRecords} سجل)`);
+            sections.push(`- إجمالي الدخل: ${totalIncome.toLocaleString("en-US")} ر.س (${totalRecords} سجل)`);
             for (const row of incomeData) {
-              sections.push(`  - ${row.source}: ${Number(row.total_amount).toLocaleString("ar-SA")} ر.س (${row.record_count} سجل)`);
+              sections.push(`  - ${row.source}: ${Number(row.total_amount).toLocaleString("en-US")} ر.س (${row.record_count} سجل)`);
             }
           } else {
             sections.push(`- نطاق الدخل: ${toRange(totalIncome)} ر.س`);
@@ -274,8 +274,8 @@ export async function fetchWaqfData(
           for (const i of incomeData) { bySrc[i.source] = (bySrc[i.source] || 0) + Number(i.amount ?? 0); }
           sections.push(`\n### الدخل للسنة النشطة (${activeFY.label}):`);
           if (isAdmin) {
-            sections.push(`- إجمالي الدخل: ${totalIncome.toLocaleString("ar-SA")} ر.س (${incomeData.length} سجل)`);
-            for (const [src, amt] of Object.entries(bySrc)) { sections.push(`  - ${src}: ${amt.toLocaleString("ar-SA")} ر.س`); }
+            sections.push(`- إجمالي الدخل: ${totalIncome.toLocaleString("en-US")} ر.س (${incomeData.length} سجل)`);
+            for (const [src, amt] of Object.entries(bySrc)) { sections.push(`  - ${src}: ${amt.toLocaleString("en-US")} ر.س`); }
           } else {
             sections.push(`- نطاق الدخل: ${toRange(totalIncome)} ر.س`);
           }
@@ -292,9 +292,9 @@ export async function fetchWaqfData(
           const totalRecords = expensesData.reduce((s, e) => s + Number(e.record_count ?? 0), 0);
           sections.push(`\n### المصروفات للسنة النشطة (${activeFY.label}):`);
           if (isAdmin) {
-            sections.push(`- إجمالي المصروفات: ${totalExp.toLocaleString("ar-SA")} ر.س (${totalRecords} سجل)`);
+            sections.push(`- إجمالي المصروفات: ${totalExp.toLocaleString("en-US")} ر.س (${totalRecords} سجل)`);
             for (const row of expensesData) {
-              sections.push(`  - ${row.expense_type}: ${Number(row.total_amount).toLocaleString("ar-SA")} ر.س (${row.record_count} سجل)`);
+              sections.push(`  - ${row.expense_type}: ${Number(row.total_amount).toLocaleString("en-US")} ر.س (${row.record_count} سجل)`);
             }
           } else {
             sections.push(`- نطاق المصروفات: ${toRange(totalExp)} ر.س`);
@@ -305,8 +305,8 @@ export async function fetchWaqfData(
           for (const e of expensesData) { byType[e.expense_type] = (byType[e.expense_type] || 0) + Number(e.amount ?? 0); }
           sections.push(`\n### المصروفات للسنة النشطة (${activeFY.label}):`);
           if (isAdmin) {
-            sections.push(`- إجمالي المصروفات: ${totalExp.toLocaleString("ar-SA")} ر.س (${expensesData.length} سجل)`);
-            for (const [type, amt] of Object.entries(byType)) { sections.push(`  - ${type}: ${amt.toLocaleString("ar-SA")} ر.س`); }
+            sections.push(`- إجمالي المصروفات: ${totalExp.toLocaleString("en-US")} ر.س (${expensesData.length} سجل)`);
+            for (const [type, amt] of Object.entries(byType)) { sections.push(`  - ${type}: ${amt.toLocaleString("en-US")} ر.س`); }
           } else {
             sections.push(`- نطاق المصروفات: ${toRange(totalExp)} ر.س`);
           }
@@ -321,9 +321,9 @@ export async function fetchWaqfData(
       if (expiring?.length) {
         const totalExpRent = expiring.reduce((s, c) => s + Number(c.rent_amount), 0);
         sections.push(`\n### ⚠️ عقود تنتهي خلال 30 يوماً (${expiring.length}):`);
-        sections.push(`- إجمالي إيجاراتها: ${totalExpRent.toLocaleString("ar-SA")} ر.س`);
+        sections.push(`- إجمالي إيجاراتها: ${totalExpRent.toLocaleString("en-US")} ر.س`);
         for (const c of expiring) {
-          sections.push(`- عقد ${c.contract_number} | ينتهي ${c.end_date} | ${Number(c.rent_amount).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- عقد ${c.contract_number} | ينتهي ${c.end_date} | ${Number(c.rent_amount).toLocaleString("en-US")} ر.س`);
         }
       }
     }
