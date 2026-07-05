@@ -4,13 +4,25 @@
  */
 import type { CheckResult } from '../types';
 
-const RAW_PAGES = import.meta.glob('/src/pages/**/*.tsx', { query: '?raw', import: 'default', eager: false });
-const RAW_DIAG = import.meta.glob('/src/components/diagnostics/**/*.tsx', { query: '?raw', import: 'default', eager: false });
-const RAW_LAYOUT = import.meta.glob('/src/components/layout/**/*.tsx', { query: '?raw', import: 'default', eager: false });
+const RAW_PAGES = import.meta.glob([
+  '/src/pages/**/*.tsx',
+  '!/src/pages/**/*.test.tsx',
+  '!/src/pages/**/*.spec.tsx',
+], { query: '?raw', import: 'default', eager: false });
+const RAW_DIAG = import.meta.glob([
+  '/src/components/diagnostics/**/*.tsx',
+  '!/src/components/diagnostics/**/*.test.tsx',
+  '!/src/components/diagnostics/**/*.spec.tsx',
+], { query: '?raw', import: 'default', eager: false });
+const RAW_LAYOUT = import.meta.glob([
+  '/src/components/layout/**/*.tsx',
+  '!/src/components/layout/**/*.test.tsx',
+  '!/src/components/layout/**/*.spec.tsx',
+], { query: '?raw', import: 'default', eager: false });
 
 async function loadAllSources(): Promise<{ file: string; source: string }[]> {
   const all = { ...RAW_PAGES, ...RAW_DIAG, ...RAW_LAYOUT };
-  const entries = Object.entries(all).filter(([f]) => !f.endsWith('.test.tsx'));
+  const entries = Object.entries(all);
   const results = await Promise.all(entries.map(async ([f, loader]) => {
     try {
       const source = (await (loader as () => Promise<string>)()) as string;

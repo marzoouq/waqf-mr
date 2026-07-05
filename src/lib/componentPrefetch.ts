@@ -8,8 +8,16 @@ import {
 } from '@/constants/timing';
 
 /** خريطة مسار ← دالة import ديناميكي — مُولَّدة تلقائياً من هيكل الصفحات */
-const dashboardModules = import.meta.glob('/src/pages/dashboard/*.tsx');
-const beneficiaryModules = import.meta.glob('/src/pages/beneficiary/*.tsx');
+const dashboardModules = import.meta.glob([
+  '/src/pages/dashboard/*.tsx',
+  '!/src/pages/dashboard/*.test.tsx',
+  '!/src/pages/dashboard/*.spec.tsx',
+]);
+const beneficiaryModules = import.meta.glob([
+  '/src/pages/beneficiary/*.tsx',
+  '!/src/pages/beneficiary/*.test.tsx',
+  '!/src/pages/beneficiary/*.spec.tsx',
+]);
 
 /** تحويل مسار ملف إلى مسار URL */
 function fileToRoute(filePath: string, prefix: string): string {

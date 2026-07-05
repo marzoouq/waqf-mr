@@ -5,11 +5,15 @@ import { ALL_ROUTES, ADMIN_ROUTES, BENEFICIARY_ROUTES } from '@/constants/routeR
 import { ROUTE_ROLES } from '@/constants/routeRoles';
 import type { CheckResult } from '../types';
 
-// لا eager — مجرّد مفاتيح لتعداد الملفات.
-const PAGE_FILES = import.meta.glob('/src/pages/**/*.tsx');
+// لا eager — مجرّد مفاتيح لتعداد الملفات، مع استبعاد الاختبارات من حزمة الإنتاج.
+const PAGE_FILES = import.meta.glob([
+  '/src/pages/**/*.tsx',
+  '!/src/pages/**/*.test.tsx',
+  '!/src/pages/**/*.spec.tsx',
+]);
 
 function pageFiles(): string[] {
-  return Object.keys(PAGE_FILES).filter(p => !p.endsWith('.test.tsx'));
+  return Object.keys(PAGE_FILES);
 }
 
 export async function checkAppMapPagesReachable(): Promise<CheckResult> {
