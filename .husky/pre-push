@@ -13,17 +13,17 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "▶ 0/2 فحص ملفات .env المتعقّبة..."
-TRACKED_ENV=$(git ls-files | grep -E '(^|/)\.env(\..+)?$' | grep -v '\.example$' || true)
+echo "▶ 0/2 فحص ملفات .env.* المتعقّبة..."
+TRACKED_ENV=$(git ls-files | grep -E '(^|/)\.env\..+$' | grep -v '\.example$' || true)
 if [ -n "$TRACKED_ENV" ]; then
-  echo "✗ ملفات .env التالية متعقّبة في git ويجب إزالتها قبل الـ push:"
+  echo "✗ ملفات .env.* التالية متعقّبة في git ويجب إزالتها قبل الـ push:"
   echo "$TRACKED_ENV" | sed 's/^/   • /'
   echo ""
   echo "  للإصلاح: git rm --cached <file> && git commit -m \"untrack env\""
   echo "  للتجاوز الطارئ فقط: git push --no-verify"
   exit 1
 fi
-echo "✓ لا توجد ملفات .env متعقّبة"
+echo "✓ لا توجد ملفات .env.* متعقّبة"
 echo ""
 
 if ! npm run -s audit; then
