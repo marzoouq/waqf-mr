@@ -17,7 +17,7 @@ interface AnimatedCounterProps {
   prefix?: string;
   /** لاحقة (مثل %) */
   suffix?: string;
-  /** locale للتنسيق (افتراضي ar-SA) */
+  /** locale للتنسيق (افتراضي en-US لأرقام لاتينية موحّدة) */
   locale?: string;
   /** className اختياري */
   className?: string;
