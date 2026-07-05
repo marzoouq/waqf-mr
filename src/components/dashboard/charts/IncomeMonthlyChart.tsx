@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp } from 'lucide-react';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { fmt } from '@/utils/format/format';
 import { logger } from '@/lib/logger';
 
 import { MONTH_NAMES } from '@/constants/calendar';
@@ -101,7 +102,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, pay
             </span>
             {surplus > 0 && (
               <span className="text-success text-xs font-medium">
-                · فائض: +{surplus.toLocaleString()} ر.س
+                · فائض: +{fmt(surplus)} ر.س
               </span>
             )}
           </span>
