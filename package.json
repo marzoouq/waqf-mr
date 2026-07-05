@@ -96,13 +96,13 @@
     "vitest": "4.1.9"
   },
   "overrides": {
-    "postcss": "8.5.14",
+    "postcss": "8.5.15",
     "@babel/plugin-transform-modules-systemjs": "7.29.4",
     "dompurify": "3.4.11",
     "ws": "8.21.0"
   },
   "resolutions": {
-    "postcss": "8.5.14",
+    "postcss": "8.5.15",
     "@babel/plugin-transform-modules-systemjs": "7.29.4",
     "dompurify": "3.4.11",
     "ws": "8.21.0"
