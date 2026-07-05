@@ -64,7 +64,7 @@ export const useDistributeShares = () => {
           enqueueUserNotification(
             d.beneficiary_user_id,
             'صدور حصتك المالية',
-            `تم توزيع حصتك بمبلغ ${d.net_amount.toLocaleString('ar-SA')} ر.س. يرجى مراجعة التفاصيل.`,
+            `تم توزيع حصتك بمبلغ ${d.net_amount.toLocaleString('en-US')} ر.س. يرجى مراجعة التفاصيل.`,
             'success',
             '/beneficiary/my-share',
           );
