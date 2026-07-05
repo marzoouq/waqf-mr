@@ -2209,6 +2209,21 @@ export type Database = {
       }
     }
     Functions: {
+      admin_db_stats: { Args: never; Returns: Json }
+      admin_edge_functions_stats: { Args: { p_hours?: number }; Returns: Json }
+      admin_intrusion_summary: { Args: { p_hours?: number }; Returns: Json }
+      admin_recent_role_changes: {
+        Args: { p_hours?: number }
+        Returns: {
+          created_at: string
+          id: string
+          new_data: Json
+          old_data: Json
+          operation: string
+          record_id: string
+          user_id: string
+        }[]
+      }
       allocate_icv_and_chain:
         | {
             Args: { p_invoice_hash: string; p_invoice_id: string }
