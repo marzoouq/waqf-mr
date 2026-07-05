@@ -1,58 +1,66 @@
-## الهدف
-تعميم `AnimatedCounter` + `MiniSparkline` على داشبوردات المحاسب/المستفيد/الواقف، وإكمال موجة Hierarchy البصرية.
+# خطة الفحص الهجين الجنائي العميق قبل النشر
 
----
+الهدف: تشخيص شامل ومباشر للتطبيق (ستاتيكي + ديناميكي + قاعدة بيانات + أمن + أداء) وإخراج تقرير موحّد بالمشاكل والتوصيات ذات الأولوية، دون أي تعديل على الكود قبل موافقتك.
 
-## المرحلة 1 — تعميم العدادات والمؤشرات (Wave 3 — Data Binding)
+## نطاق الفحص (7 محاور)
 
-### 1.1 داشبورد المحاسب
-- **`AccountantDashboardView.tsx`**: ربط `MetricCard` بـ `AnimatedCounter`.
-- **`MetricCard.tsx`**: توسيع props لاستقبال `rawValue?: number`, `decimals?: number`, `prefix?: string`, `suffix?: string`, `trend?: number[]`. عرض `AnimatedCounter` للقيم الرقمية و`MiniSparkline` صغير أسفل العنوان عندما يتوفر `trend`.
-- **`useAccountantDashboardData.ts`**: اشتقاق `monthlyCollectionTrend` (آخر 6 أشهر مبالغ محصّلة) لتمريره كـ `trend` لبطاقتي «إجمالي المحصّل» و«فواتير متأخرة» (مبلغ متأخر شهري).
+### 1) الفحص الستاتيكي والمعماري
+- تشغيل `npm run audit` (السلسلة الكاملة: structure, conventions-deep, hooks-layout, ui-permissions, page-controls) + قراءة `audit/report.html`.
+- تشغيل `tsgo` (TypeScript) و ESLint لالتقاط الأخطاء والتحذيرات الحديثة.
+- تدقيق حدود الطبقات: pages → hooks/page → hooks/data، ومنع `supabase` خام في pages/components، و`sonner` في utils/hooks/data.
+- تدقيق قاعدة Barrel Imports و lib vs utils.
 
-### 1.2 داشبورد المستفيد
-- **`BeneficiaryStatsRow.tsx`**: استبدال أرقام `حصتي من الريع` و`آخر توزيع` بـ `AnimatedCounter` (مع `decimals=2`, suffix `ر.س`)، واحترام `prefers-reduced-motion`.
-- **بطاقة «حصتي من الريع»**: إضافة `MiniSparkline` لتاريخ التوزيعات المدفوعة الأخيرة (آخر 6 توزيعات).
-- **`useBeneficiaryDashboardPage.ts`**: استخراج `myShareTrend: number[]` من `distributions` (المدفوع فقط، مرتّب زمنياً، آخر 6).
+### 2) الفحص الأمني (Backend + Frontend)
+- `supabase--linter` (development): RLS، السياسات، الأعمدة الحساسة، أذونات public.
+- `security--run_security_scan` + مراجعة `security--get_scan_results` المُخزّنة.
+- مراجعة كل Edge Function: وجود `getUser()`, Zod validation, CORS, عدم استخدام `getSession()` أو `SERVICE_ROLE_KEY` كبديل مصادقة.
+- التحقق من `user_roles` (لا أدوار على profiles/localStorage) وسلامة `has_role()`.
+- تدقيق تشفير AES-256 للأعمدة الحساسة (pgcrypto).
 
-### 1.3 داشبورد الواقف
-- **`WaqifOverviewStats.tsx`**: توسيع `StatItem` بـ `rawValue?: number`, `decimals?: number`, `suffix?: string`, `trend?: number[]`، وعرض `AnimatedCounter` للقيم الرقمية و`MiniSparkline` للبطاقة المالية.
-- **`WaqifFinancialSection.tsx`**: استبدال أرقام KPI بـ `AnimatedCounter` (يحترم `decimals` و`suffix`).
-- **`useWaqifDashboardPage.ts`**: تمرير `rawValue` لـ «عدد العقارات/العقود/المستفيدين»، و`trend` (آخر 6 أشهر دخل) لبطاقة «القابل للتوزيع» من `monthlyData`.
+### 3) اختبارات الوحدة والتكامل
+- `bunx vitest run` كامل السويت (المتوقع ~2176 اختبار) + رصد الفشل/التذبذب.
+- تشغيل `npm run audit:gate` (بوابة Vitest الحرجة).
+- مراجعة تغطية اختبارات المسارات الحساسة: توزيع، إقفال سنة مالية، ZATCA ICV، advances.
 
----
+### 4) الفحص الديناميكي عبر Playwright
+- تشغيل التطبيق على `localhost:8080` مع حقن جلسة Supabase الموجودة.
+- محاكاة 4 أدوار (admin / accountant / beneficiary / waqif) والتنقل عبر المسارات الرئيسية في `ROUTE_ROLES` (43 مساراً).
+- التقاط: console errors, network 4xx/5xx, runtime errors, أزمنة التحميل.
+- التحقق من: RTL، تحميل الخطوط (Tajawal/Amiri)، توفر الأزرار الرئيسية، عمل النماذج الحرجة (عقد، فاتورة، توزيع).
 
-## المرحلة 2 — Hierarchy البصرية (Wave 3 — Polish)
+### 5) فحص قاعدة البيانات والأداء
+- `supabase--slow_queries` (top 20) لرصد الاستعلامات البطيئة.
+- `supabase--db_health` للتحقق من الاتصالات والفهارس.
+- مراجعة `runtime-errors` و`edge-function-logs` لأي أخطاء إنتاجية حديثة.
+- فحص pagination وحدود 500/2000 سجل.
 
-### 2.1 توحيد أحجام العناوين
-- إضافة tokens في `tailwind.config.ts` لـ Display sizes: `display-xs`, `display-sm`, `display-md` (clamp() responsive)، بحيث يصبح H1 الصفحات الرئيسية موحّداً بـ `display-md` و subtitle بـ `text-muted-foreground text-sm`.
-- تطبيق على رؤوس الداشبوردات الثلاث + `AdminDashboard` (`WaqifWelcomeCard`, `BeneficiaryWelcomeCard`, header الناظر).
+### 6) فحص السلامة المالية (Financial Integrity)
+- تشغيل diagnostics التطبيق الداخلية: `financial`, `cardConsistency`, `numericalAudit`, `zatca` عبر `runByIds`.
+- التحقق من: (i) `available_amount` غير سالب، (ii) توزيعات ≤ متاح، (iii) صيغة حصة المستفيد، (iv) advances ضمن الحصة، (v) LRM parity، (vi) ICV chain integrity، (vii) لا فواتير بلا سلسلة.
 
-### 2.2 التباعد
-- توحيد `space-y` للمستوى الأعلى على `space-y-6 sm:space-y-8` (حالياً 4-6 متذبذب).
-- توحيد `gap` للشبكات على `gap-3 sm:gap-4 lg:gap-5`.
+### 7) فحص PWA / SEO / A11y / Bundle
+- `manifest.webmanifest`, Service Worker registration, دفع الإشعارات.
+- الميتاداتا في `index.html` (title, description, og:*, twitter:*).
+- تدقيق a11y سريع: ألوان التباين (tokens)، أسماء الأزرار الأيقونية، عنصر `<main>` واحد لكل صفحة.
+- حجم الحزمة عبر Vite build report (إن توفّر).
 
-### 2.3 تسلسل البطاقات
-- تطبيق `card-elevated` (موجود ضمن tokens) على بطاقات KPI الرئيسية فقط (الصف الأول)، بينما تبقى البطاقات الثانوية بـ `shadow-sm` — يخلق تسلسلاً بصرياً واضحاً.
-- توحيد border-radius البطاقات على `rounded-xl` للبطاقات الكبيرة و`rounded-lg` للصغيرة.
+## المخرجات
 
-### 2.4 رؤوس البطاقات (CardHeader)
-- توحيد: `CardTitle` بـ `text-base sm:text-lg font-semibold`، أيقونة `w-4 h-4 text-muted-foreground`، `pb-2` بدلاً من `pb-3`.
+سأقدّم في نهاية الفحص تقريراً منظّماً يحتوي:
 
----
+1. **ملخص تنفيذي**: عدد المشاكل مصنّفة (Critical / High / Medium / Low / Info).
+2. **جدول المشاكل**: `[الأولوية | المحور | الملف/المسار | الوصف | التوصية | الجهد المقدَّر]`.
+3. **قسم Backend/RLS/Edge**: أي ثغرات أمنية أو مخاطر بيانات.
+4. **قسم الأداء**: الاستعلامات البطيئة + توصيات فهارس.
+5. **قسم مالي**: أي انحرافات في LRM / ICV / carryforward.
+6. **قسم UX/A11y/PWA**.
+7. **قائمة "لا تنشر حتى تُحلّ"**: البنود التي تمنع النشر.
+8. **خارطة إصلاح مقترحة** موزّعة على موجات (P0 قبل النشر، P1 بعد النشر، P2 تحسينات).
 
-## ملاحظات تقنية
+## ما لن أفعله في هذه الخطة
+- **لا تعديل كود** ولا migrations ولا مسح findings.
+- **لا نشر** — التقرير أولاً ثم قرارك.
+- **لا اقتراحات تجميلية** خارج نطاق ما يُرصد فعلياً.
 
-- لا تغييرات على Edge Functions / DB / RLS / Auth.
-- لا تعديل على ملفات Supabase التلقائية.
-- احترام `prefers-reduced-motion` بالكامل (مدمج في `AnimatedCounter`).
-- اختبارات: تحديث snapshots/unit tests للمكونات الثلاثة فقط عند الحاجة. الهدف: 100% pass.
-
----
-
-## معايير القبول
-1. الأرقام في البطاقات الرئيسية تعدّ تصاعدياً عند التحميل في الأدوار الأربعة.
-2. `MiniSparkline` يظهر على بطاقتين على الأقل لكل دور.
-3. أحجام العناوين متّسقة بين الداشبوردات.
-4. لا regression بصرية على الجوال (320px+).
-5. TSC نظيف + جميع الاختبارات تمر.
+## بعد موافقتك
+سأُشغّل الفحوصات بالتوازي حيثما أمكن (audit + linter + tests + Playwright)، ثم أُجمّع النتائج في تقرير واحد أعرضه هنا مباشرة قبل أي تنفيذ.
