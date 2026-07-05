@@ -1,0 +1,10 @@
+REVOKE EXECUTE ON FUNCTION public.cleanup_expired_challenges() FROM PUBLIC, authenticated, anon;
+REVOKE EXECUTE ON FUNCTION public.cleanup_pending_invoice_chain() FROM PUBLIC, authenticated, anon;
+REVOKE EXECUTE ON FUNCTION public.cron_archive_old_access_logs() FROM PUBLIC, authenticated, anon;
+REVOKE EXECUTE ON FUNCTION public.cron_auto_expire_contracts() FROM PUBLIC, authenticated, anon;
+REVOKE EXECUTE ON FUNCTION public.cron_check_contract_expiry() FROM PUBLIC, authenticated, anon;
+REVOKE EXECUTE ON FUNCTION public.cron_check_late_payments() FROM PUBLIC, authenticated, anon;
+REVOKE EXECUTE ON FUNCTION public.cron_check_slow_queries() FROM PUBLIC, authenticated, anon;
+REVOKE EXECUTE ON FUNCTION public.cron_check_zatca_cert_expiry() FROM PUBLIC, authenticated, anon;
+REVOKE EXECUTE ON FUNCTION public.cron_cleanup_old_notifications() FROM PUBLIC, authenticated, anon;
+REVOKE EXECUTE ON FUNCTION public.cron_update_overdue_invoices() FROM PUBLIC, authenticated, anon;

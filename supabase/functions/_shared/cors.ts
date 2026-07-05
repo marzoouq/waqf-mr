@@ -21,6 +21,8 @@ function getAllowedOrigin(req?: Request): string {
   ) {
     return origin;
   }
+  // Log rejected origins for diagnostic visibility (silent block otherwise)
+  console.warn("[CORS] rejected origin", { origin, path: new URL(req.url).pathname });
   return ""; // رفض صريح — المتصفح يرفض الطلب عندما يختلف الـ origin عن الـ header
 }
 
