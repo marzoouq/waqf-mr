@@ -24,6 +24,11 @@ import DiagnosticsToolbar from '@/components/diagnostics/DiagnosticsToolbar';
 import DiagnosticsChecksGrid from '@/components/diagnostics/DiagnosticsChecksGrid';
 
 const WebVitalsPanel = lazy(() => import('@/components/common/feedback/WebVitalsPanel'));
+const RuntimeErrorsPanel = lazy(() => import('@/components/diagnostics/RuntimeErrorsPanel'));
+const SecurityIntrusionPanel = lazy(() => import('@/components/diagnostics/SecurityIntrusionPanel'));
+const DbPerformancePanel = lazy(() => import('@/components/diagnostics/DbPerformancePanel'));
+const EdgeFunctionsPanel = lazy(() => import('@/components/diagnostics/EdgeFunctionsPanel'));
+const ActionsAndFixesPanel = lazy(() => import('@/components/diagnostics/ActionsAndFixesPanel'));
 
 interface Props { autoRun?: boolean }
 
@@ -105,6 +110,11 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
       <Tabs defaultValue="overview" dir="rtl">
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+          <TabsTrigger value="fixes">🛠 التوصيات والإصلاحات</TabsTrigger>
+          <TabsTrigger value="security">🛡 الأمان والاختراق</TabsTrigger>
+          <TabsTrigger value="errors">⚠️ الأخطاء الحيّة</TabsTrigger>
+          <TabsTrigger value="db">💾 أداء قاعدة البيانات</TabsTrigger>
+          <TabsTrigger value="edge">⚡ Edge Functions</TabsTrigger>
           <TabsTrigger value="checks">الفحوصات</TabsTrigger>
           <TabsTrigger value="backend">سجل Backend</TabsTrigger>
           <TabsTrigger value="appmap">خريطة التطبيق</TabsTrigger>
@@ -122,6 +132,12 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           )}
           {/* تم نقل WebVitalsPanel حصراً إلى تبويب «الأداء الحي» لتفادي اشتراكات PerformanceObserver المزدوجة */}
         </TabsContent>
+
+        <TabsContent value="fixes"><Suspense fallback={null}><ActionsAndFixesPanel /></Suspense></TabsContent>
+        <TabsContent value="security"><Suspense fallback={null}><SecurityIntrusionPanel /></Suspense></TabsContent>
+        <TabsContent value="errors"><Suspense fallback={null}><RuntimeErrorsPanel /></Suspense></TabsContent>
+        <TabsContent value="db"><Suspense fallback={null}><DbPerformancePanel /></Suspense></TabsContent>
+        <TabsContent value="edge"><Suspense fallback={null}><EdgeFunctionsPanel /></Suspense></TabsContent>
 
         <TabsContent value="checks">
           <DiagnosticsChecksGrid
