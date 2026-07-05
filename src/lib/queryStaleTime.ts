@@ -4,7 +4,7 @@
  */
 
 /** بيانات نادرة التغيّر — عقارات، وحدات، لوائح */
-export const STALE_STATIC = 5 * 60_000;
+export const STALE_STATIC = 15 * 60_000;
 
 /** ملاحظة: إعدادات التطبوق تستخدم STALE_STATIC مباشرةً (تم حذف alias STALE_SETTINGS في P7). */
 
