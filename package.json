@@ -16,7 +16,9 @@
     "test:watch": "vitest",
     "audit:report": "node scripts/build-audit-report.mjs",
     "audit": "node scripts/audit-all.mjs",
-    "audit:gate": "vitest run src/test/auditCriticalGate.test.ts"
+    "audit:gate": "vitest run src/test/auditCriticalGate.test.ts",
+    "audit:guard": "node scripts/audit-report-guard.mjs",
+    "audit:guard:staged": "node scripts/audit-report-guard.mjs --staged"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
