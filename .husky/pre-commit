@@ -68,4 +68,12 @@ if [ -n "$DIFF" ]; then
 fi
 
 echo -e "${GRN}✓ pre-commit: لا توجد ملفات .env أو أسرار في التغييرات${NC}"
+
+# 3) بوابة تقارير التدقيق: منع تقارير مكررة/منتهية في audit/
+if command -v node >/dev/null 2>&1; then
+  if ! node scripts/audit-report-guard.mjs --staged; then
+    exit 1
+  fi
+fi
+
 exit 0
