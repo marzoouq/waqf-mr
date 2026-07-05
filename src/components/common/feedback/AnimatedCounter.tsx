@@ -33,7 +33,7 @@ export default function AnimatedCounter({
   decimals = 0,
   prefix = '',
   suffix = '',
-  locale = 'ar-SA',
+  locale = 'en-US',
   className,
 }: AnimatedCounterProps) {
   const [display, setDisplay] = useState(value);
