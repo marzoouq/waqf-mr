@@ -1,65 +1,48 @@
-# حالة تنفيذ التقارير الجنائية — البنود المتبقية
+## سبب فشل النشر المُرجَّح
 
-مسحت 15 ملف تنفيذ (`R1..R11 + R-NOW/RESCAN + SIDEBAR-P0/P1 + forensic-06-22/CHANGELOG`) وقارنت مع تقارير الفحص الأصلية (W1..W8، SIDEBAR-ADMIN، forensic-06-22). فيما يلي **البنود غير المنفَّذة أو المؤجَّلة فقط** — البنود المكتملة (~85% من الإجمالي) لا تُذكر.
+رسالة "Publishing failed due to an internal error" في مشاريع Vite الكلاسيكية غالباً تنتج عن أحد سببين:
 
----
+1. **مشكلة في بيئة النشر المُدارة** (بيئة Lovable Cloud / Supabase غير مستقرة مؤقتاً) — فحص الحالة الآن يُرجع `SUPABASE_GENERIC_CLIENT_ERROR` مما يشير إلى تذبذب في البنية التحتية.
+2. **ملف `.env` غير متعقّب في git** — عندك `.env` موجود محلياً ويحتوي `VITE_SUPABASE_URL/PUBLISHABLE_KEY/PROJECT_ID`، لكن `.gitignore` يستثنيه. الـ build يتم من مصدر git، فتصبح المتغيرات `undefined` عند البناء والنشر يفشل.
 
-## 1) دَين معماري مؤجَّل بقرار صريح (لا يُنفَّذ بدون طلب)
+القاعدة الأمنية الحالية في CI (`Block tracked .env files`) و`pre-push` (`فحص ملفات .env المتعقّبة`) تمنع أصلاً تعقّب `.env` — وهذا يتعارض مع متطلبات النشر لمشاريع Vite الكلاسيكية (المفاتيح `VITE_*` علنية بطبيعتها، محمية عبر RLS).
 
-| المعرف | البند | المصدر | مبرر التأجيل |
-|---|---|---|---|
-| **W2-F13** | نقل توكنات WebAuthn إلى HttpOnly cookie | R7, R10 | يتطلب BFF أو تعديل `client.ts` المحمي |
-| **W6-002** | `contracts_safe` بـ `security_invoker=false` | R11, RESCAN-2 | مقصود — يخفي PII، موثَّق في memory |
-| **A3 (Sidebar)** | `/beneficiary` غير قابل للإخفاء عبر الأقسام | SIDEBAR-ADMIN §7 | قيد بنيوي مقبول |
-| **C4 (Sidebar)** | مجموعة `finance` بـ9 عناصر | SIDEBAR-ADMIN §3 | مقصود |
-| **C6 (Sidebar)** | المحاسب محروم من `comparison` | SIDEBAR-ADMIN §3 | سياسة صلاحيات معتمدة |
-| **F24** | bucket `waqf-assets` عام | forensic-06-22 | مقصود لـ Edge PDF/Email |
-| **F25** | CORS في `auth-email-hook` | forensic-06-22 | Supabase Auth webhook — يجب أن يكون مفتوحاً |
+## الخطة
 
----
+### 1. إعادة محاولة النشر أولاً (بدون تعديلات)
+- تذبذب Lovable Cloud قد يكون السبب الوحيد. جرّب النشر مجدداً بعد دقائق.
+- إن نجح → لا حاجة لأي تغيير.
 
-## 2) بنود مؤجَّلة تحتاج قرار المستخدم
+### 2. إن استمر الفشل: السماح بتعقّب `.env`
+تعديلات الملفات (بدون أي تغيير في كود التطبيق):
 
-| المعرف | البند | المصدر | ما ينقص |
-|---|---|---|---|
-| **F2** | `.env` متعقَّب في git | forensic-06-22 + forensic-07-05 | يتطلب أمر git يدوي: `git rm --cached .env` + push |
-| **F5** | تحقيق `xact_rollback` في DB | forensic-06-22 | مراقبة زمنية على prod |
-| **F8/F13** | Edge `beneficiary-summary` نقطة عامة + PII | forensic-06-22 | قرار: هل يظل عام أم يُحمى بـ JWT؟ |
-| **F9** | `useNotificationActions` يستخدم toast داخل hooks/data | forensic-06-22 | refactor بتأثير سلوكي — يحتاج مراجعة |
-| **W6-004** | FK مباشر لـ `auth.users` على `user_roles`/`beneficiaries` | R2 §مؤجَّل | يتطلب data migration + backfill + rollback plan |
-| **W5-021** | تجزئة IP في `access_log` مع salt دوّار | R2, R4 | يغيّر عمود قائم + يحتاج migration بيانات |
+**`.gitignore`** — استثناء `.env` من الحجب:
+```diff
+- .env
+- .env.*
+- !.env.example
++ .env.*
++ !.env.example
++ !.env
+```
+الملفات `.env.local` و`.env.production` وأي `.env.<x>` تبقى محجوبة (تحمل أسراراً حقيقية عادةً).
 
----
+**`.github/workflows/ci.yml`** — تخفيف بوابة "Block tracked .env files":
+- إزالة حظر `.env` الجذري.
+- إبقاء حظر `.env.local` / `.env.production` / `.env.*` (الحقيقية).
 
-## 3) تحسينات أداء/جودة مؤجَّلة (غير حرجة)
+**`.husky/pre-push`** — نفس التعديل: السماح بـ `.env` الجذري فقط، ورفض `.env.<variant>`.
 
-| المعرف | البند | المصدر |
-|---|---|---|
-| **W6-F19..F24** | حذف فهارس غير مستخدمة (6 فهارس) | R5, R9 — يحتاج 30 يوم مراقبة على prod |
-| **F19** | 7 hooks ميتة موسومة `@deprecated` — لم تُحذف | forensic-06-22 (فترة مراقبة) |
-| **P2 (07-05)** | فهرس مركّب `payment_invoices(fiscal_year_id, due_date)` | **نُفِّذ في 07-05** ✅ (لم يعد مؤجَّلاً) |
-| **W8-#4** | `border-l/r`, `left-/right-`, `rounded-l/r-` RTL sweep | R8-v2 — خارج نطاق W8 الأصلي |
-| **R3-Defer** | 5 صفحات لا تزال بـ inline `queryKey` | R3 §مؤجَّل — لا ضرر أمني، ESLint rule تمنع الجديد |
+**`gitleaks`**: يبقى فعّالاً كخط دفاع ثانٍ — سيرفض أي مفتاح فعلي حساس لو تسرّب.
 
----
+### 3. تأكيد السلامة الأمنية
+- `VITE_SUPABASE_URL` و`VITE_SUPABASE_PUBLISHABLE_KEY` **علنية بالتصميم** (تُشحن في bundle المتصفح، محمية بـ RLS) — موثّق في `<supabase-env-vars-classic>`.
+- `SUPABASE_SERVICE_ROLE_KEY` والمفاتيح السرية **ليست** في `.env` (تُدار كأسرار Edge Functions فقط).
+- التحقق يدوياً بعد التعديل: `grep -v '^VITE_\|^#\|^$' .env` يجب أن يكون فارغاً.
 
-## 4) بنود ضجيج linter بلا إجراء (موثَّقة كإيجابيات مقصودة)
+### 4. Commit + push + نشر
+- `git add .env .gitignore .github/workflows/ci.yml .husky/pre-push` ثم commit.
+- إعادة محاولة النشر.
 
-- **71–184 warning** من نوع `SECURITY DEFINER Function Executable` على `has_role`, `is_fiscal_year_accessible`, `check_rate_limit`, `execute_distribution`, `commit_icv_chain`, etc. — كلها محمية داخلياً بـ `has_role()` وضرورية لتفادي RLS recursive.
-- **1 ERROR** ثابت على `contracts_safe` view — مقصود (البند W6-002 أعلاه).
-- **1 WARN** `Public Bucket Allows Listing` على `waqf-assets` — مقصود (F24 أعلاه).
-
----
-
-## 5) الإجراء المقترح
-
-سأكتب هذا التلخيص كملف قابل للتنزيل:
-- `/mnt/documents/DEFERRED-ITEMS-STATUS-2026-07-05.md` — نفس المحتوى أعلاه بتنسيق قابل للطباعة.
-
-**قرارات تحتاج منك:**
-1. هل نُنفّذ **F2** (`git rm --cached .env`)؟ يحتاج أمر يدوي من طرفك.
-2. هل نغلق **F8/F13** بإضافة JWT verify على `beneficiary-summary`؟
-3. هل نبدأ **W6-004** (FK migration) الآن أم يظل مؤجَّلاً؟
-4. هل نحذف الـ7 hooks الميتة الموسومة `@deprecated` (F19) بعد شهر مراقبة؟
-
-اضغط "Implement plan" لأكتب الملف، أو أخبرني أي قرار من الأربعة تريد تنفيذه أولاً.
+## ملاحظة
+لن أنفّذ الخطوة 2 قبل تجربة الخطوة 1 لأن التذبذب الحالي في Lovable Cloud قد يكون السبب الوحيد. أخبرني بالنتيجة بعد إعادة المحاولة.
