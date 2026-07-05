@@ -3,11 +3,19 @@
  */
 import type { CheckResult } from '../types';
 
-const RAW_PAGES = import.meta.glob('/src/pages/**/*.tsx', { query: '?raw', import: 'default', eager: false });
-const RAW_HOOKS = import.meta.glob('/src/hooks/**/*.ts', { query: '?raw', import: 'default', eager: false });
+const RAW_PAGES = import.meta.glob([
+  '/src/pages/**/*.tsx',
+  '!/src/pages/**/*.test.tsx',
+  '!/src/pages/**/*.spec.tsx',
+], { query: '?raw', import: 'default', eager: false });
+const RAW_HOOKS = import.meta.glob([
+  '/src/hooks/**/*.ts',
+  '!/src/hooks/**/*.test.ts',
+  '!/src/hooks/**/*.spec.ts',
+], { query: '?raw', import: 'default', eager: false });
 
 async function readAll(map: Record<string, () => Promise<unknown>>): Promise<{ file: string; src: string }[]> {
-  const entries = Object.entries(map).filter(([f]) => !/\.test\.tsx?$/.test(f));
+  const entries = Object.entries(map);
   return Promise.all(entries.map(async ([file, load]) => {
     try { return { file, src: (await load()) as string }; }
     catch { return { file, src: '' }; }

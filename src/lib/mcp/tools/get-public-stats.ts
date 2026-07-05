@@ -5,6 +5,17 @@
 import { createClient } from "@supabase/supabase-js";
 import { defineTool } from "@lovable.dev/mcp-js";
 
+type RuntimeGlobal = typeof globalThis & {
+  Deno?: { env?: { get?: (key: string) => string | undefined } };
+  process?: { env?: Record<string, string | undefined> };
+};
+
+const runtimeGlobal = globalThis as RuntimeGlobal;
+
+function getRuntimeEnv(key: string): string | undefined {
+  return runtimeGlobal.Deno?.env?.get?.(key) ?? runtimeGlobal.process?.env?.[key];
+}
+
 export default defineTool({
   name: "get_public_waqf_stats",
   title: "Get public waqf statistics",
@@ -13,8 +24,8 @@ export default defineTool({
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async () => {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY;
+    const url = getRuntimeEnv("SUPABASE_URL");
+    const key = getRuntimeEnv("SUPABASE_PUBLISHABLE_KEY") ?? getRuntimeEnv("SUPABASE_ANON_KEY");
     if (!url || !key) {
       return { content: [{ type: "text", text: "Backend not configured" }], isError: true };
     }

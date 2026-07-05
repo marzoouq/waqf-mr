@@ -20,6 +20,10 @@ var echo_default = defineTool({
 // src/lib/mcp/tools/get-public-stats.ts
 import { createClient } from "npm:@supabase/supabase-js@^2.108.2";
 import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
+var runtimeGlobal = globalThis;
+function getRuntimeEnv(key) {
+  return runtimeGlobal.Deno?.env?.get?.(key) ?? runtimeGlobal.process?.env?.[key];
+}
 var get_public_stats_default = defineTool2({
   name: "get_public_waqf_stats",
   title: "Get public waqf statistics",
@@ -27,8 +31,8 @@ var get_public_stats_default = defineTool2({
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async () => {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY;
+    const url = getRuntimeEnv("SUPABASE_URL");
+    const key = getRuntimeEnv("SUPABASE_PUBLISHABLE_KEY") ?? getRuntimeEnv("SUPABASE_ANON_KEY");
     if (!url || !key) {
       return { content: [{ type: "text", text: "Backend not configured" }], isError: true };
     }
