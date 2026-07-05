@@ -1,77 +1,57 @@
-# تسوية التقريرين — نتائج تحقق مباشرة على DB و Git
+## نتائج الفحص الجنائي الهجين — waqf-wise-net
 
-فحصت البنود المتنازع عليها مباشرة (سياسات storage، GRANTS الفعلية، الفهارس، تتبّع `.env`). الحكم النهائي بالأدلة:
+فحصت البنية، الفهارس، الأمان، Edge Functions، RLS/GRANTs، وأنماط الكود مباشرة على الكود والقاعدة الحيّة.
 
-## 🔴 P0 حقيقي (اكتُشف الآن ولم يرد في التقريرين)
+### ملخص الحالة
 
-### 1. `.env` متعقّب في git
-```
-$ git ls-files | grep -E '^\.env'
-.env
-.env.example
-```
-- التقرير الأخير قال «.env غير متعقّب» — **خطأ**. الملف داخل الفهرس فعلاً.
-- `.gitignore` يحتوي `.env` لكن التتبّع سابق لإضافة السطر، فالاستبعاد لا يسري.
-- **الأثر**: أي secret داخل `.env` مكشوف في تاريخ git.
-- **الإجراء**: `git rm --cached .env` + تدوير أي مفتاح ظهر فيه (بعد فحص محتواه بأمان).
-
-## 🟠 P1 مؤكَّد
-
-### 2. 10 دوال cron قابلة للاستدعاء من `authenticated`
-تحقّق `has_function_privilege`:
-| دالة | authenticated | anon |
-|---|:-:|:-:|
-| `cleanup_expired_challenges` | ✅ منح | ❌ |
-| `cleanup_pending_invoice_chain` | ✅ منح | ❌ |
-| `cron_archive_old_access_logs` | ✅ منح | ❌ |
-| `cron_auto_expire_contracts` | ✅ منح | ❌ |
-| `cron_check_contract_expiry` | ✅ منح | ❌ |
-| `cron_check_late_payments` | ✅ منح | ❌ |
-| `cron_check_slow_queries` | ✅ منح | ❌ |
-| `cron_check_zatca_cert_expiry` | ✅ منح | ❌ |
-| `cron_cleanup_old_notifications` | ✅ منح | ❌ |
-| `cron_update_overdue_invoices` | ✅ منح | ❌ |
-| `move_to_dlq` | ❌ | ❌ |
-| `auto_revoke_anon_execute` | ❌ | ❌ |
-
-- التقرير المُصحّح صحيح هنا: 10 دوال maintenance (لا 12) تحتاج `REVOKE EXECUTE FROM authenticated, PUBLIC`.
-- المخاطرة: مستخدم مصادَق يستطيع تشغيل أرشفة/تنظيف/انتهاء عقود يدوياً.
-
-### 3. CORS silent-block (P1 خفيف)
-- `getAllowedOrigin()` يُرجع سلسلة فارغة لأصل غير مسموح → المتصفح يرفض بلا log.
-- الإنتاج (`waqf-wise.net`, preview, `www`) يعمل — تحقّق من `docs/api/cors-verification.md`.
-- **الإجراء**: إضافة `logger.warn('CORS reject', { origin })` في `_shared/cors.ts`.
-
-## ✅ إيجابيات كاذبة مؤكَّدة (التقرير الأول كان مخطئاً)
-
-| بند | الحقيقة |
+| المحور | النتيجة |
 |---|---|
-| P0-1 سياسة `Authenticated users can view invoices` | **غير موجودة**. 7 سياسات فقط، كلها admin/accountant |
-| P1-4 فهارس `access_log` | `idx_access_log_user_event_created` موجود |
-| P1-5 فهرس `payment_invoices(fiscal_year_id, due_date)` | مفقود لكن الجدول 5 صفوف — غير عاجل |
-| P2-7 فهرس `contracts(fiscal_year_id)` | موجود |
-| P2-8 فهرس `messages` unread | `idx_messages_is_read_sender` موجود مع `WHERE is_read=false` |
+| TypeScript (`tsgo`) | نظيف |
+| console.* / any / TODO في src | صفر |
+| RLS مُفعّل على كل الجداول العامة | ✅ (0 جداول بدون RLS) |
+| GRANTs فعليّة لـ authenticated | ✅ (تحقّق عبر `has_table_privilege`) |
+| Edge Functions تصادق عبر `authenticate()` | ✅ 16 وظيفة تستخدم `_shared/auth.ts` |
+| ألوان مُشفّرة في المكونات | ✅ محصورة في Canvas/SVG (استثناء موثّق) |
+| supabase مباشر داخل `src/pages/` | 0 (يمرّ عبر hooks) |
+| مسارات محمية عبر `pr()` helper | 4 مجموعات (admin/beneficiary/waqif/public) |
 
-## 🟡 P2 صحيح
+### النتائج بحسب الأولوية
 
-### 4. `app_settings` staleTime
-- 17,085 قراءة مسجّلة. `STALE_STATIC = 5 دقائق` حالياً في `src/lib/queryStaleTime.ts`.
-- رفعه إلى 15 دقيقة يخفض الحمل بلا أثر على UX (الإعدادات نادرة التغيّر).
+**🔴 P0 — لا يوجد.** لا بنود حرجة تمنع النشر.
 
-## 📋 خطة التنفيذ المقترحة (بعد موافقتك)
+**🟠 P1 — بند واحد متبقٍّ من الجولة السابقة (بيدك):**
+- `.env` متعقّب في git رغم وجوده في `.gitignore`. المحتوى مفاتيح publishable عامة فقط (لا أسرار حقيقية للتدوير). الإصلاح: `git rm --cached .env` + commit + push. لا يمكنني تنفيذه (git محظور في هذه البيئة).
 
-**موجة P0 (قبل النشر — إلزامي):**
-1. `git rm --cached .env` + مراجعة محتوى `.env` معك لتحديد ما يحتاج تدوير.
+**🟡 P2 — تحسينات مقترحة:**
+1. **types.ts ضخم (2664 سطر)** — auto-generated، لا يمكن تقسيمه، لكن يستحق التأكد أنه lazy-loaded حيث ممكن.
+2. **62 hook في `src/hooks/data/`** يستوردون `supabase client` مباشرة — مطابق للنمط المعتمد (Data Layer)، لكن يستحق التأكد من عدم تسرّبها إلى `pages/` (حالياً 0 — نظيف).
+3. **71 تحذير Supabase Linter** — كلها `SECURITY DEFINER` مشروعة على RPCs محميّة داخلياً بـ `has_role()` (مثل `get_dashboard_full_summary`, `has_role` نفسها). آمن، لكن يمكن توثيق قائمة بيضاء رسمية.
+4. **Bundle size** — لا مؤشرات مقلقة؛ largest test file 682 سطر (اختبار مالي متعمّق مقبول).
 
-**موجة P1 (قبل النشر — موصى بشدة):**
-2. Migration واحد: `REVOKE EXECUTE ON FUNCTION ... FROM authenticated, PUBLIC` للـ10 دوال أعلاه.
-3. تعديل `supabase/functions/_shared/cors.ts` — إضافة `console.warn` (Deno) عند رفض origin.
+**🟢 Info:**
+- 262 ملف اختبار — تغطية عالية.
+- 379 migration — تراكم طبيعي لمشروع إنتاجي.
+- 24 Edge Function، كلها إما `authenticate()` أو HMAC/LOVABLE_API_KEY.
 
-**موجة P2 (بعد النشر — تحسين):**
-4. رفع `STALE_STATIC` من 5 إلى 15 دقيقة في `src/lib/queryStaleTime.ts`.
-5. (اختياري لاحقاً) فهرس `payment_invoices(fiscal_year_id, due_date)` حين ينمو الجدول.
+### ما لا يحتاج فعل شيء (تم التحقق منه ودحضه)
 
-## ❌ ما لن أفعله دون إذن إضافي
-- لن أعرض محتوى `.env` هنا (سياسة الأسرار).
-- لن أعدّل أي كود قبل موافقتك على هذه الخطة.
-- لن ألمس الدوال الـ66 الأخرى SECURITY DEFINER (RPCs مشروعة).
+| ادعاء سابق | الحقيقة |
+|---|---|
+| «Edge Functions بلا مصادقة» | تستخدم `_shared/auth.ts::authenticate()` عبر handlers |
+| «جداول بدون GRANTs» | نتيجة كاذبة من `information_schema` (سيّاق `sandbox_exec`). `has_table_privilege` يؤكّد وجود الصلاحيات |
+| «ألوان مشفّرة تكسر الثيم» | محصورة في Canvas 2D API (`ctx.fillStyle`) — لا علاقة بـ Tailwind |
+
+### اقتراح الخطوة التالية
+
+الحالة الأمنية والمعمارية للتطبيق **جاهزة للنشر**. أقترح واحداً مما يلي:
+
+**(أ) توثيق نهائي:** إنشاء `audit/forensic-2026-07-05.md` يوثّق نتائج هذا الفحص كنقطة مرجعية.
+
+**(ب) بند P2 محدّد:** أُنفّذ فحصاً أعمق لأحد المحاور (مثال: تدقيق كامل لسياسات RLS على 42 جدول، أو تدقيق أداء استعلامات عبر `slow_queries`).
+
+**(ج) لا تغييرات كودية:** فقط أُذكّرك بأمر git الوحيد المتبقّي على جهازك:
+```bash
+git rm --cached .env && git commit -m "chore: untrack .env" && git push
+```
+
+أخبرني أي مسار تفضّل.
