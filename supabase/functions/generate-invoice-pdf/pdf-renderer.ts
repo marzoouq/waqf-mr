@@ -146,7 +146,7 @@ export async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: Waq
   const colLabelX = tableX + tableW;
   const rowH = 30;
 
-  const fmtNum = (n: number) => n.toLocaleString("ar-SA", { minimumFractionDigits: 2 });
+  const fmtNum = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const typeLabel = TYPE_AR[invoice.invoice_type] || (invoice.invoice_type ? invoice.invoice_type : "إيجار");
 
   const rows: [string, string][] = [
