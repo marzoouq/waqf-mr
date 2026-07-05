@@ -69,7 +69,7 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
     {
       label: 'قيد الانتظار',
       value: fmt(pending.length),
-      sub: `${pending.reduce((s, i) => s + safeNumber(i.amount), 0).toLocaleString()} ر.س`,
+      sub: `${fmt(pending.reduce((s, i) => s + safeNumber(i.amount), 0))} ر.س`,
       icon: Clock,
       color: 'text-warning',
       bg: 'bg-warning/10',
@@ -78,7 +78,7 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
     {
       label: 'المتأخرة',
       value: fmt(overdue.length + cancelled.length),
-      sub: overdue.length > 0 ? `${overdue.reduce((s, i) => s + safeNumber(i.amount), 0).toLocaleString()} ر.س` : 'لا يوجد',
+      sub: overdue.length > 0 ? `${fmt(overdue.reduce((s, i) => s + safeNumber(i.amount), 0))} ر.س` : 'لا يوجد',
       icon: overdue.length > 0 ? AlertTriangle : Ban,
       color: overdue.length > 0 ? 'text-destructive' : 'text-muted-foreground',
       bg: overdue.length > 0 ? 'bg-destructive/10' : 'bg-muted/30',
