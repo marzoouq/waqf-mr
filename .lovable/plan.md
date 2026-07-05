@@ -1,57 +1,65 @@
-## نتائج الفحص الجنائي الهجين — waqf-wise-net
+# حالة تنفيذ التقارير الجنائية — البنود المتبقية
 
-فحصت البنية، الفهارس، الأمان، Edge Functions، RLS/GRANTs، وأنماط الكود مباشرة على الكود والقاعدة الحيّة.
+مسحت 15 ملف تنفيذ (`R1..R11 + R-NOW/RESCAN + SIDEBAR-P0/P1 + forensic-06-22/CHANGELOG`) وقارنت مع تقارير الفحص الأصلية (W1..W8، SIDEBAR-ADMIN، forensic-06-22). فيما يلي **البنود غير المنفَّذة أو المؤجَّلة فقط** — البنود المكتملة (~85% من الإجمالي) لا تُذكر.
 
-### ملخص الحالة
+---
 
-| المحور | النتيجة |
-|---|---|
-| TypeScript (`tsgo`) | نظيف |
-| console.* / any / TODO في src | صفر |
-| RLS مُفعّل على كل الجداول العامة | ✅ (0 جداول بدون RLS) |
-| GRANTs فعليّة لـ authenticated | ✅ (تحقّق عبر `has_table_privilege`) |
-| Edge Functions تصادق عبر `authenticate()` | ✅ 16 وظيفة تستخدم `_shared/auth.ts` |
-| ألوان مُشفّرة في المكونات | ✅ محصورة في Canvas/SVG (استثناء موثّق) |
-| supabase مباشر داخل `src/pages/` | 0 (يمرّ عبر hooks) |
-| مسارات محمية عبر `pr()` helper | 4 مجموعات (admin/beneficiary/waqif/public) |
+## 1) دَين معماري مؤجَّل بقرار صريح (لا يُنفَّذ بدون طلب)
 
-### النتائج بحسب الأولوية
+| المعرف | البند | المصدر | مبرر التأجيل |
+|---|---|---|---|
+| **W2-F13** | نقل توكنات WebAuthn إلى HttpOnly cookie | R7, R10 | يتطلب BFF أو تعديل `client.ts` المحمي |
+| **W6-002** | `contracts_safe` بـ `security_invoker=false` | R11, RESCAN-2 | مقصود — يخفي PII، موثَّق في memory |
+| **A3 (Sidebar)** | `/beneficiary` غير قابل للإخفاء عبر الأقسام | SIDEBAR-ADMIN §7 | قيد بنيوي مقبول |
+| **C4 (Sidebar)** | مجموعة `finance` بـ9 عناصر | SIDEBAR-ADMIN §3 | مقصود |
+| **C6 (Sidebar)** | المحاسب محروم من `comparison` | SIDEBAR-ADMIN §3 | سياسة صلاحيات معتمدة |
+| **F24** | bucket `waqf-assets` عام | forensic-06-22 | مقصود لـ Edge PDF/Email |
+| **F25** | CORS في `auth-email-hook` | forensic-06-22 | Supabase Auth webhook — يجب أن يكون مفتوحاً |
 
-**🔴 P0 — لا يوجد.** لا بنود حرجة تمنع النشر.
+---
 
-**🟠 P1 — بند واحد متبقٍّ من الجولة السابقة (بيدك):**
-- `.env` متعقّب في git رغم وجوده في `.gitignore`. المحتوى مفاتيح publishable عامة فقط (لا أسرار حقيقية للتدوير). الإصلاح: `git rm --cached .env` + commit + push. لا يمكنني تنفيذه (git محظور في هذه البيئة).
+## 2) بنود مؤجَّلة تحتاج قرار المستخدم
 
-**🟡 P2 — تحسينات مقترحة:**
-1. **types.ts ضخم (2664 سطر)** — auto-generated، لا يمكن تقسيمه، لكن يستحق التأكد أنه lazy-loaded حيث ممكن.
-2. **62 hook في `src/hooks/data/`** يستوردون `supabase client` مباشرة — مطابق للنمط المعتمد (Data Layer)، لكن يستحق التأكد من عدم تسرّبها إلى `pages/` (حالياً 0 — نظيف).
-3. **71 تحذير Supabase Linter** — كلها `SECURITY DEFINER` مشروعة على RPCs محميّة داخلياً بـ `has_role()` (مثل `get_dashboard_full_summary`, `has_role` نفسها). آمن، لكن يمكن توثيق قائمة بيضاء رسمية.
-4. **Bundle size** — لا مؤشرات مقلقة؛ largest test file 682 سطر (اختبار مالي متعمّق مقبول).
+| المعرف | البند | المصدر | ما ينقص |
+|---|---|---|---|
+| **F2** | `.env` متعقَّب في git | forensic-06-22 + forensic-07-05 | يتطلب أمر git يدوي: `git rm --cached .env` + push |
+| **F5** | تحقيق `xact_rollback` في DB | forensic-06-22 | مراقبة زمنية على prod |
+| **F8/F13** | Edge `beneficiary-summary` نقطة عامة + PII | forensic-06-22 | قرار: هل يظل عام أم يُحمى بـ JWT؟ |
+| **F9** | `useNotificationActions` يستخدم toast داخل hooks/data | forensic-06-22 | refactor بتأثير سلوكي — يحتاج مراجعة |
+| **W6-004** | FK مباشر لـ `auth.users` على `user_roles`/`beneficiaries` | R2 §مؤجَّل | يتطلب data migration + backfill + rollback plan |
+| **W5-021** | تجزئة IP في `access_log` مع salt دوّار | R2, R4 | يغيّر عمود قائم + يحتاج migration بيانات |
 
-**🟢 Info:**
-- 262 ملف اختبار — تغطية عالية.
-- 379 migration — تراكم طبيعي لمشروع إنتاجي.
-- 24 Edge Function، كلها إما `authenticate()` أو HMAC/LOVABLE_API_KEY.
+---
 
-### ما لا يحتاج فعل شيء (تم التحقق منه ودحضه)
+## 3) تحسينات أداء/جودة مؤجَّلة (غير حرجة)
 
-| ادعاء سابق | الحقيقة |
-|---|---|
-| «Edge Functions بلا مصادقة» | تستخدم `_shared/auth.ts::authenticate()` عبر handlers |
-| «جداول بدون GRANTs» | نتيجة كاذبة من `information_schema` (سيّاق `sandbox_exec`). `has_table_privilege` يؤكّد وجود الصلاحيات |
-| «ألوان مشفّرة تكسر الثيم» | محصورة في Canvas 2D API (`ctx.fillStyle`) — لا علاقة بـ Tailwind |
+| المعرف | البند | المصدر |
+|---|---|---|
+| **W6-F19..F24** | حذف فهارس غير مستخدمة (6 فهارس) | R5, R9 — يحتاج 30 يوم مراقبة على prod |
+| **F19** | 7 hooks ميتة موسومة `@deprecated` — لم تُحذف | forensic-06-22 (فترة مراقبة) |
+| **P2 (07-05)** | فهرس مركّب `payment_invoices(fiscal_year_id, due_date)` | **نُفِّذ في 07-05** ✅ (لم يعد مؤجَّلاً) |
+| **W8-#4** | `border-l/r`, `left-/right-`, `rounded-l/r-` RTL sweep | R8-v2 — خارج نطاق W8 الأصلي |
+| **R3-Defer** | 5 صفحات لا تزال بـ inline `queryKey` | R3 §مؤجَّل — لا ضرر أمني، ESLint rule تمنع الجديد |
 
-### اقتراح الخطوة التالية
+---
 
-الحالة الأمنية والمعمارية للتطبيق **جاهزة للنشر**. أقترح واحداً مما يلي:
+## 4) بنود ضجيج linter بلا إجراء (موثَّقة كإيجابيات مقصودة)
 
-**(أ) توثيق نهائي:** إنشاء `audit/forensic-2026-07-05.md` يوثّق نتائج هذا الفحص كنقطة مرجعية.
+- **71–184 warning** من نوع `SECURITY DEFINER Function Executable` على `has_role`, `is_fiscal_year_accessible`, `check_rate_limit`, `execute_distribution`, `commit_icv_chain`, etc. — كلها محمية داخلياً بـ `has_role()` وضرورية لتفادي RLS recursive.
+- **1 ERROR** ثابت على `contracts_safe` view — مقصود (البند W6-002 أعلاه).
+- **1 WARN** `Public Bucket Allows Listing` على `waqf-assets` — مقصود (F24 أعلاه).
 
-**(ب) بند P2 محدّد:** أُنفّذ فحصاً أعمق لأحد المحاور (مثال: تدقيق كامل لسياسات RLS على 42 جدول، أو تدقيق أداء استعلامات عبر `slow_queries`).
+---
 
-**(ج) لا تغييرات كودية:** فقط أُذكّرك بأمر git الوحيد المتبقّي على جهازك:
-```bash
-git rm --cached .env && git commit -m "chore: untrack .env" && git push
-```
+## 5) الإجراء المقترح
 
-أخبرني أي مسار تفضّل.
+سأكتب هذا التلخيص كملف قابل للتنزيل:
+- `/mnt/documents/DEFERRED-ITEMS-STATUS-2026-07-05.md` — نفس المحتوى أعلاه بتنسيق قابل للطباعة.
+
+**قرارات تحتاج منك:**
+1. هل نُنفّذ **F2** (`git rm --cached .env`)؟ يحتاج أمر يدوي من طرفك.
+2. هل نغلق **F8/F13** بإضافة JWT verify على `beneficiary-summary`؟
+3. هل نبدأ **W6-004** (FK migration) الآن أم يظل مؤجَّلاً؟
+4. هل نحذف الـ7 hooks الميتة الموسومة `@deprecated` (F19) بعد شهر مراقبة؟
+
+اضغط "Implement plan" لأكتب الملف، أو أخبرني أي قرار من الأربعة تريد تنفيذه أولاً.
