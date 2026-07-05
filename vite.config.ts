@@ -8,7 +8,7 @@ import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 import pkg from "./package.json";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ command, mode }) => ({
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
     'import.meta.env.VITE_APP_BUILD_ID': JSON.stringify(pkg.version),
@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mcpPlugin(),
+    command === "serve" && mcpPlugin(),
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'prompt',
