@@ -24,22 +24,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: TypeScript type check
-        run: npx tsc --noEmit
+      # ملاحظة: TypeScript + ESLint + Security audit تُشغَّل حصراً في ci.yml
+      # كمرجع وحيد. هذا الـ workflow مخصص لتغطية Vitest فقط.
 
-      - name: ESLint check
-        run: npx eslint src/
-
-      - name: Security audit
-        run: |
-          npm audit --audit-level=high --omit=dev --json > audit-report.json || true
-          HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' audit-report.json)
-          CRIT=$(jq -r '.metadata.vulnerabilities.critical // 0' audit-report.json)
-          echo "High: $HIGH · Critical: $CRIT"
-          if [ "$((HIGH + CRIT))" -gt 0 ]; then
-            echo "::error::عثر على $CRIT حرجة / $HIGH عالية"
-            exit 1
-          fi
 
       - name: Run tests with coverage
         run: npx vitest run --coverage

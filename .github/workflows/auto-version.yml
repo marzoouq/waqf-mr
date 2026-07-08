@@ -5,8 +5,10 @@ on:
     branches: [main]
     paths-ignore:
       - 'public/changelog.json'
-      - 'docs/CHANGELOG.md'
-      - '.github/workflows/**'
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/**'
+      - 'audit/**'
       - 'package.json'
 
 permissions:
@@ -26,19 +28,39 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: "Gate — require feat/fix since last tag"
+        id: gate
+        run: |
+          LAST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1 || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            RANGE="HEAD"
+          else
+            RANGE="$LAST_TAG..HEAD"
+          fi
+          if git log $RANGE --pretty="%s" | grep -qiE '^(feat|fix)(\(|:)'; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::لا يوجد feat:/fix: منذ آخر tag — تخطي bump"
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+
       - name: Setup Node
+        if: steps.gate.outputs.proceed == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Get current version
         id: current
+        if: steps.gate.outputs.proceed == 'true'
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Bump patch version
         id: bump
+        if: steps.gate.outputs.proceed == 'true'
         run: |
           CURRENT="${{ steps.current.outputs.version }}"
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
@@ -54,10 +76,12 @@ jobs:
           "
 
       - name: Sync package-lock.json
+        if: steps.gate.outputs.proceed == 'true'
         run: npm install --package-lock-only --ignore-scripts
 
       - name: Generate Arabic date
         id: date
+        if: steps.gate.outputs.proceed == 'true'
         run: |
           MONTHS=("يناير" "فبراير" "مارس" "أبريل" "مايو" "يونيو" "يوليو" "أغسطس" "سبتمبر" "أكتوبر" "نوفمبر" "ديسمبر")
           DAY=$(date -u +%-d)
@@ -71,6 +95,7 @@ jobs:
 
       - name: Collect commits since last tag
         id: commits
+        if: steps.gate.outputs.proceed == 'true'
         run: |
           LAST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1 || echo "")
           if [ -z "$LAST_TAG" ]; then
@@ -102,6 +127,7 @@ jobs:
           "
 
       - name: Update changelog.json
+        if: steps.gate.outputs.proceed == 'true'
         run: |
           node -e "
             const fs = require('fs');
@@ -117,6 +143,7 @@ jobs:
 
       - name: Check if tag exists
         id: check_tag
+        if: steps.gate.outputs.proceed == 'true'
         run: |
           TAG="v${{ steps.bump.outputs.version }}"
           git fetch --tags --quiet || true
@@ -128,6 +155,7 @@ jobs:
           fi
 
       - name: Commit and push
+        if: steps.gate.outputs.proceed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -139,13 +167,15 @@ jobs:
             git tag "v${{ steps.bump.outputs.version }}"
           fi
           for i in 1 2 3; do
+            git pull --rebase origin main || { echo "Rebase failed"; sleep 5; continue; }
             if [ "$TAG_EXISTS" != "true" ]; then
-              git pull --rebase origin main && git push && git push --tags && exit 0
+              git push --atomic origin main "v${{ steps.bump.outputs.version }}" && exit 0
             else
-              git pull --rebase origin main && git push && exit 0
+              git push origin main && exit 0
             fi
             echo "Retry $i..."
             sleep 5
           done
           echo "::error::Push failed after 3 retries"
           exit 1
+
