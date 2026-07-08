@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Gate — require feat:/fix: since last tag
+      - name: "Gate — require feat/fix since last tag"
         id: gate
         run: |
           LAST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1 || echo "")
