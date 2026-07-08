@@ -1,7 +1,7 @@
 {
   "name": "waqf-mr",
   "private": true,
-  "version": "3.0.375",
+  "version": "3.0.376",
   "type": "module",
   "packageManager": "npm@11.6.2",
   "scripts": {
