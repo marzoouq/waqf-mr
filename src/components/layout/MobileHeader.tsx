@@ -1,10 +1,10 @@
 /**
  * رأس الصفحة للموبايل في لوحة التحكم
+ * ملاحظة: زر "نظام الوقف" مُزال — الرابط متاح في القائمة الجانبية لتفادي التكرار الثلاثي.
  */
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/auth/session/useAuthContext';
+import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import { ROUTE_TITLES } from '@/constants/navigation';
@@ -15,7 +15,6 @@ interface MobileHeaderProps {
 }
 
 const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLabel }) => {
-  const { role } = useAuth();
   const location = useLocation();
 
   const title = ROUTE_TITLES[location.pathname] ||
@@ -26,8 +25,8 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLa
     'إدارة الوقف';
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-40 flex items-center justify-between p-3 gradient-hero lg:hidden" role="banner" style={{ willChange: 'transform' }}>
-      <Button variant="ghost" size="icon" aria-label="فتح القائمة الجانبية" onClick={onOpenSidebar} className="text-sidebar-foreground">
+    <header className="fixed top-0 right-0 left-0 z-40 flex items-center justify-between p-3 gradient-hero lg:hidden" role="banner">
+      <Button variant="ghost" size="icon" aria-label="فتح القائمة الجانبية" onClick={onOpenSidebar} className="text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-primary/60">
         <Menu className="w-6 h-6" aria-hidden="true" />
       </Button>
       <div className="flex flex-col items-center">
@@ -37,11 +36,6 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLa
         )}
       </div>
       <div className="flex items-center gap-1">
-        <Link to={(role === 'admin' || role === 'accountant') ? '/dashboard/bylaws' : '/beneficiary/bylaws'} aria-label="نظام الوقف">
-          <Button variant="ghost" size="icon" aria-label="فتح نظام الوقف" className="text-sidebar-foreground hover:bg-sidebar-accent/50">
-            <BookOpen className="w-5 h-5" aria-hidden="true" />
-          </Button>
-        </Link>
         <ThemeToggle />
         <NotificationBell />
       </div>
@@ -50,3 +44,4 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLa
 };
 
 export default MobileHeader;
+

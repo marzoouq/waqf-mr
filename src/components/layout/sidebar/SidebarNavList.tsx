@@ -38,7 +38,8 @@ export const SidebarNavList: React.FC<SidebarNavListProps> = ({
         onClick={() => setMobileSidebarOpen(false)}
         onMouseEnter={() => getPrefetchHandler(link.to)?.()}
         className={cn(
-          'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200',
+          'flex items-center gap-3 px-3 py-2.5 min-h-11 rounded-lg transition-colors duration-200',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60',
           isActive
             ? 'bg-sidebar-accent text-sidebar-primary'
             : 'text-sidebar-foreground hover:bg-sidebar-accent/50',
@@ -69,7 +70,7 @@ export const SidebarNavList: React.FC<SidebarNavListProps> = ({
   };
 
   return (
-    <nav aria-label="القائمة الرئيسية" role="navigation" className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+    <nav aria-label="القائمة الرئيسية" className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
       <TooltipProvider delayDuration={0}>
         {groups.map((group, idx) => (
           <div key={group.key} className={cn(idx > 0 && 'mt-3 pt-2 border-t border-sidebar-border/40')}>
@@ -87,3 +88,4 @@ export const SidebarNavList: React.FC<SidebarNavListProps> = ({
     </nav>
   );
 };
+

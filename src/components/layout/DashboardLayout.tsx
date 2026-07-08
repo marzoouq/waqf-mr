@@ -74,12 +74,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onClick={() => setMobileSidebarOpen(false)}
       />
 
-      {/* Sidebar - Mobile (drawer dialog) */}
+      {/* Sidebar - Mobile (drawer dialog) — نستخدم inert بدلاً من aria-hidden لتفادي انتهاك a11y */}
       <aside
         role="dialog"
         aria-modal="true"
         aria-label="القائمة الجانبية"
-        aria-hidden={!mobileSidebarOpen}
+        {...(!mobileSidebarOpen && { inert: '' as unknown as boolean })}
         {...swipe.sidebarProps}
         className={cn(
           'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden',
@@ -100,7 +100,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <aside
         aria-label="القائمة الجانبية"
         className={cn(
-          'fixed inset-y-0 right-0 z-30 hidden lg:flex flex-col gradient-hero transition-[width] duration-300 shadow-elegant',
+          'fixed inset-y-0 right-0 z-30 hidden lg:flex flex-col gradient-hero transition-[width] duration-300 ease-in-out shadow-elegant',
           sidebarOpen ? 'w-64' : 'w-16'
         )}
       >
@@ -122,11 +122,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         tabIndex={-1}
         {...swipe.mainTouchProps}
         className={cn(
-          'flex-1 transition-[margin] duration-300 min-h-screen overflow-y-auto',
+          'flex-1 transition-[margin] duration-300 ease-in-out min-h-screen overflow-y-auto',
           'pt-14 pb-16 lg:pt-0 lg:pb-0',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset',
           sidebarOpen ? 'lg:ms-64' : 'lg:ms-16'
         )}
       >
+
         <Suspense fallback={null}><PrintHeader /></Suspense>
         <DesktopTopBar
           fiscalYearId={fiscalYearId}
