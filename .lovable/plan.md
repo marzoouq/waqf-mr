@@ -1,93 +1,132 @@
-# نتائج التحقق + خطة إغلاق النواقص
+## نتيجة التحقق الفعلي
 
-## ✅ تم بنجاح (Patch السابق مطبَّق فعلياً)
+تم فحص الملفات الحالية قراءةً فقط. النتيجة: بعض الإصلاحات مطبقة، لكن توجد نقاط حرجة ما زالت غير مغلقة.
 
-| البند | الدليل |
-|-------|--------|
-| `.gitignore` يستثني `.env` | السطر 27-28 |
-| CI/pre-commit/pre-push تلتقط `.env` نفسه | regex `(^\|/)\.env(\..+)?$` في الثلاثة |
-| `auto-version.yml` يزامن lockfile | `Sync package-lock.json` step + `git add package-lock.json` |
-| `test.yml` يستخدم jq | `jq -r '.metadata.vulnerabilities.high'` |
+## المشكلة مقابل الحل
 
-## 🔴 نواقص مؤكَّدة (لم تُعالج بعد)
+### 1. ملف `.env` داخل المستودع
+**الحالة:** غير محلولة.
 
-| # | الدليل | الحالة |
-|---|--------|--------|
-| 1 | `git ls-files` يُظهر `.env` **ما زال متعقَّباً** | حرج |
-| 2 | `health-check.yml:20` URL ثابت `nuzdeamtujezrsxbvpfi.supabase.co` | عالي |
-| 3 | `test.yml` يكرر `tsc` + `eslint` + `npm audit` الموجودة في `ci.yml` | عالي |
-| 4 | لا توجد سياسة تصفية دقيقة في `auto-version.yml` (يعمل على أي push) | متوسط |
-| 5 | لا توثيق CSP قابل للتدقيق | متوسط |
+**الدليل من الكود:**
+- ملف `.env` موجود في جذر المشروع.
+- `git ls-files` يُظهر أن `.env` ما زال متعقبًا.
+- `.gitignore` يحتوي `.env` و`.env.*` و`!.env.example`، لكن ذلك لا يزيل ملفًا تم تتبعه سابقًا.
 
----
+**تقييم الحل الحالي:**
+- بوابات المنع موجودة في `ci.yml` و`pre-commit` و`pre-push` وتلتقط `.env` نفسه.
+- لكن الحل الوقائي لا يكفي طالما الملف متعقب بالفعل.
 
-## المرحلة 1 — حرجة
-
-### 1.1 إزالة `.env` من التتبع
-- الوكيل **لا يستطيع** تنفيذ `git rm --cached .env` (git stateful ممنوع).
-- الإجراء اليدوي للمالك:
-  ```bash
-  git rm --cached .env
-  git commit -m "chore(security): untrack .env"
-  git push
-  ```
-- **تدوير مفاتيح Supabase** publishable عبر `supabase--rotate_api_keys` (يتطلب تأكيد المستخدم في build mode).
-- إنشاء `docs/security/incident-2026-07-08-env-leak.md` (جدول: المشكلة/الدليل/التأثير/الإصلاح/المالك/SLA).
+**الإجراء المطلوب في التنفيذ:**
+- إزالة `.env` من نسخة المشروع/التتبع.
+- تقوية `.gitignore` بإضافة `/.env` صراحة.
+- الإبقاء على fail-fast gate في CI.
+- تدوير مفاتيح anon/publishable احترازيًا عبر أداة backend، دون كشف أي قيمة.
 
 ---
 
-## المرحلة 2 — عالية
+### 2. ازدواج CI بين `ci.yml` و`test.yml`
+**الحالة:** محلولة جزئيًا.
 
-### 2.1 Parameterize health-check URL
-- تعديل `.github/workflows/health-check.yml:20`:
-  ```yaml
-  URL="${{ secrets.SUPABASE_PROJECT_URL }}/functions/v1/health-check"
-  ```
-- إضافة حارس: إذا `SUPABASE_PROJECT_URL` فارغ → فشل مع رسالة واضحة.
-- توثيق السر في `docs/diagnostics/README.md`.
+**الدليل من الكود:**
+- `ci.yml` ما زال هو بوابة الجودة/الأمان ويشغل:
+  - TypeScript
+  - ESLint
+  - tests
+  - dependency/security audit
+  - security gates
+  - build
+- `test.yml` لم يعد يشغل TypeScript أو ESLint أو audit.
+- `test.yml` يشغل فقط `vitest run --coverage` ويرفع coverage artifacts.
 
-### 2.2 إزالة الازدواج بين `ci.yml` و`test.yml`
-- في `test.yml` حذف الخطوات:
-  - `TypeScript type check` (السطر 28)
-  - `ESLint check` (السطر 31)
-  - `Security audit` (السطور 33-40)
-- الإبقاء فقط على: `Run tests with coverage` + رفع Codecov + artifact.
-- `ci.yml` يبقى المرجع الوحيد لبوابات الجودة والأمن.
+**تقييم الحل الحالي:**
+- ازدواج الجودة/الأمان تم حله.
+- ما زال يوجد تشغيل مزدوج للاختبارات على PR لأن `ci.yml` يشغل `vitest run` و`test.yml` يشغل coverage.
 
----
-
-## المرحلة 3 — متوسطة
-
-### 3.1 تشديد `auto-version.yml`
-- إضافة تصفية commits قبل الـ bump:
-  - تخطي إذا كل الملفات المتغيرة ضمن: `docs/**`, `*.md`, `.github/**`, `audit/**`.
-  - bump فقط عند وجود `feat:` أو `fix:` صريح منذ آخر tag.
-- استخدام `git push --atomic origin main <tag>` لمنع السباق.
-
-### 3.2 توثيق CSP
-- إنشاء `docs/security/csp-policy.md` بقيمة CSP الفعلية ومكان تعريفها.
-- إضافة تعليق مرجعي في أعلى `public/_headers`.
+**الإجراء المقترح:**
+- إن كان الهدف تقليل الزمن بالكامل: اجعل `test.yml` يعمل فقط يدويًا أو على push إلى main، واترك PR لـ `ci.yml`.
+- إن كان الهدف إبقاء التغطية على PR: الوضع الحالي مقبول، لكنه ليس خاليًا تمامًا من ازدواج تشغيل Vitest.
 
 ---
 
-## خارج النطاق
+### 3. تضخم `auto-version` و`changelog`
+**الحالة:** غير محلولة بالكامل.
 
-- ملفات المصادقة والملفات المحمية (`config.toml`, `client.ts`, `types.ts`, `.env`).
-- تنظيف تاريخ Git (BFG/filter-repo) — قرار المالك.
-- بنية RLS/Edge Functions.
+**الدليل من الكود:**
+- `auto-version.yml` يحتوي gate لـ `feat/fix` منذ آخر tag.
+- لكنه ما زال يحتوي fallback عام:
+  - `تحسينات وإصلاحات متنوعة`
+- `public/changelog.json` يحتوي 390 إدخالًا، وأول 50 إدخالًا كلها تقريبًا بنفس النص العام.
+
+**تقييم الحل الحالي:**
+- تم تقليل trigger عبر `paths-ignore` وشرط `feat/fix`.
+- لكن fallback العام يبقي خطر إنشاء changelog غير دلالي إذا مرّت البوابة ثم لم تُستخلص رسائل صالحة.
+
+**الإجراء المطلوب في التنفيذ:**
+- إزالة fallback العام.
+- إذا كانت قائمة التغييرات فارغة: أوقف workflow قبل bump/changelog/tag.
+- لا تنظف `public/changelog.json` القديم إلا بطلب صريح لأنه سجل منشور.
 
 ---
 
-## معيار النجاح
+### 4. `health-check` URL hardcoded
+**الحالة:** محلولة وظيفيًا.
 
-```bash
-# بعد التطبيق
-grep -q "SUPABASE_PROJECT_URL" .github/workflows/health-check.yml
-! grep -q "tsc --noEmit" .github/workflows/test.yml
-! grep -q "eslint" .github/workflows/test.yml
-! grep -q "npm audit" .github/workflows/test.yml
-test -f docs/security/csp-policy.md
-test -f docs/security/incident-2026-07-08-env-leak.md
-# يبقى للمالك:
-git ls-files | grep -x .env  # يجب أن يعود فارغاً
-```
+**الدليل من الكود:**
+- `health-check.yml` يستخدم secret للـ backend project URL.
+- لا يوجد endpoint ثابت مباشر داخل workflow.
+- يبني الرابط ديناميكيًا بإضافة `/functions/v1/health-check`.
+
+**تقييم الحل الحالي:**
+- المشكلة الأصلية محلولة.
+- يمكن تحسين الاسم لاحقًا ليكون أكثر عمومية، لكن ليس ضروريًا وظيفيًا.
+
+**الإجراء المقترح:**
+- الإبقاء على الوضع الحالي لتجنب تغيير إعدادات GitHub.
+- فقط توثيق ضرورة ضبط secret في GitHub Actions.
+
+---
+
+### 5. CSP في `public/_headers`
+**الحالة:** موثقة، لكنها جزئية عمدًا.
+
+**الدليل من الكود:**
+- `public/_headers` يحتوي:
+  - `Content-Security-Policy: frame-ancestors 'self'`
+  - `X-Frame-Options: DENY`
+  - `X-Content-Type-Options: nosniff`
+  - `Referrer-Policy`
+  - `Permissions-Policy`
+- `docs/security/csp-policy.md` يشرح أن CSP مبسط، ومتى يتم تشديده.
+
+**تقييم الحل الحالي:**
+- التوثيق موجود ومتسق.
+- لا يوجد تحقق آلي من أن الاستضافة تفرض هذه الرؤوس فعليًا.
+
+**الإجراء المقترح:**
+- إضافة فحص headers اختياري في health-check أو workflow منفصل لاحقًا، دون تعطيل الإصلاحات الحرجة الحالية.
+
+---
+
+## خطة التنفيذ المعدلة
+
+### أولوية 1 — إغلاق `.env`
+- إزالة `.env` من نسخة المشروع.
+- إضافة قاعدة `/.env` صريحة في `.gitignore`.
+- تحديث تقرير الحادث ليعكس أن الإزالة تمت في الكود بعد التنفيذ.
+- تدوير مفاتيح anon/publishable احترازيًا عبر أداة backend.
+
+### أولوية 2 — إنهاء ازدواج Vitest إن أردت تقليل CI
+- تعديل `test.yml` ليعمل على `workflow_dispatch` فقط أو push إلى main فقط.
+- إبقاء `ci.yml` كبوابة PR الوحيدة.
+
+### أولوية 3 — منع تضخم الإصدارات فعليًا
+- تعديل `auto-version.yml` لإزالة fallback العام.
+- جعل workflow يتوقف إذا لم توجد تغييرات changelog دلالية.
+- الإبقاء على شرط `feat/fix` و`paths-ignore` الحاليين.
+
+### أولوية 4 — توثيق الحالة النهائية
+- تحديث `docs/security/incident-2026-07-08-env-leak.md` بعد التنفيذ.
+- إضافة خلاصة تحقق: `.env` غير موجود/غير متعقب، CI fail-fast موجود، auto-version لا ينتج fallback عام، وhealth-check غير hardcoded.
+
+## قرار مطلوب قبل التنفيذ
+سأنفذ المسار الآمن التالي عند الموافقة: إغلاق `.env`، إزالة fallback من auto-version، وجعل `test.yml` غير مكرر على PR. لن أمس الملفات المحمية ولن أعرض أي مفاتيح.
