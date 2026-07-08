@@ -6,7 +6,7 @@ import { VitePWA } from "vite-plugin-pwa";
 import { visualizer } from "rollup-plugin-visualizer";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 import pkg from "./package.json";
-import { getManualChunks } from "./build/chunks";
+import { getManualChunks } from "./scripts/build-chunks";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const pwaRuntimeCaching: any[] = [
