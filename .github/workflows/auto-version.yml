@@ -53,6 +53,9 @@ jobs:
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
+      - name: Sync package-lock.json
+        run: npm install --package-lock-only --ignore-scripts
+
       - name: Generate Arabic date
         id: date
         run: |
@@ -128,7 +131,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add package.json public/changelog.json
+          git add package.json package-lock.json public/changelog.json
           git diff --cached --quiet && echo "No changes" && exit 0
           git commit -m "chore: bump version to v${{ steps.bump.outputs.version }} [skip ci]"
           TAG_EXISTS="${{ steps.check_tag.outputs.exists }}"

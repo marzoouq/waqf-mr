@@ -1,103 +1,62 @@
 
-## فحص جنائي شامل — النتائج والتوصيات
+## تحقق مباشر من الخطة مقابل الكود الفعلي ✅
 
-تم إجراء مسح مباشر على الكود الفعلي في `main`. فيما يلي كل المشاكل مصنفة بالخطورة مع الملفات المصدر، ثم خطة معالجة قابلة للتنفيذ.
+كل ادعاء في الخطة الخمس مؤكَّد بالمعاينة الحرفية للملفات:
 
----
+| # | الملف | السطر/المقتطف الحالي | التشخيص | الحالة |
+|---|-------|-----------------------|----------|--------|
+| 1 | `.github/workflows/auto-version.yml:131` | `git add package.json public/changelog.json` | لا يشمل `package-lock.json` — سبب drift مؤكد | ✅ صحيح |
+| 2 | `.github/workflows/ci.yml` (Block tracked secret env) | `grep -E '^\.env\..+$'` | regex يتطلب نقطة+حرف بعد `.env` → لا يلتقط `.env` نفسه | ✅ صحيح |
+| 3 | `.husky/pre-commit:16` | `grep -E '(^\|/)\.env\..+$'` | نفس القصور | ✅ صحيح |
+| 4 | `.husky/pre-push:20` | `grep -E '(^\|/)\.env\..+$'` | نفس القصور | ✅ صحيح |
+| 5 | `.github/workflows/test.yml:37` | `grep -c '"severity":"high"\|"severity":"critical"' audit-report.json` | تحليل JSON بـ grep — هش (يمكن أن يظهر داخل نصوص أخرى) | ✅ صحيح |
 
-### 🔴 حرجة (Blockers للـ push النهائي)
+### تحقق إضافي
 
-| # | المشكلة | الملف/الدليل | الأثر |
-|---|---------|--------------|-------|
-| C1 | `.env` ما زال متتبَّعاً في git | `.env` (git ls-files أكّده) | ملف يحوي anon key وproject ref مكشوف في التاريخ. `.gitignore` يستثنيه لكنه أُضيف قبل الاستثناء |
-| C2 | `bun.lock` عاد (337KB) رغم `packageManager: "npm@11.6.2"` | `bun.lock` | مصدر تشتت في auto-version + انحراف lockfile |
-| C3 | انحراف إصدارات: `package.json = 3.0.376` مقابل `package-lock.json = 3.0.373` | `package.json`, `package-lock.json` | `scripts/dependency-drift-check.mjs` يفشل → pre-push يُحجب |
+- `scripts/dependency-drift-check.mjs` يُستدعى في `pre-push` و`security-audit.yml` — لن يحتاج تعديل، فقط `auto-version.yml` هو الذي يُحدث سبب المشكلة.
+- `.env.example` مستثنى بالفعل عبر `grep -v '\.example$'` — الاستثناء سيبقى ساري بعد التوسيع.
+- لا يوجد استخدام آخر لـ `.env\..+$` في المستودع (فحصت `.husky/`, `.github/workflows/`).
 
-### 🟠 عالية
+### الخطة تبقى كما هي — 5 تعديلات دقيقة
 
-| # | المشكلة | الملف/الدليل |
-|---|---------|--------------|
-| H1 | `npm audit` معطَّل على مرآة Lovable الداخلية (404) — لا يمكن تشغيله محلياً | يجب الاعتماد على workflow `security-audit.yml` (يعمل على سجل npmjs الأصلي) أو `code--dependency_scan` |
-| H2 | لا يوجد حقل `engines` في `package.json` | `package.json` — يترك مطوّرين على Node/npm غير متوافقة |
-| H3 | 14 استخدام `console.*` في `src/` رغم قاعدة "Never use console.log" | `src/**` (باستثناء `src/lib/logger.ts` المشروع) |
-| H4 | 29 استخدام `any`/`as any` في `src/` | `src/**` |
+1. **`.github/workflows/auto-version.yml`** — بعد خطوة "Bump patch version" أضف خطوة `npm install --package-lock-only --ignore-scripts`، وعدّل السطر 131 إلى:
+   ```bash
+   git add package.json package-lock.json public/changelog.json
+   ```
 
-### 🟡 متوسطة
+2. **`.github/workflows/ci.yml`** — استبدل regex بـ:
+   ```bash
+   TRACKED_ENV=$(git ls-files | grep -E '(^|/)\.env(\..+)?$' | grep -v '\.example$' || true)
+   ```
 
-| # | المشكلة | الملف |
-|---|---------|-------|
-| M1 | حزم قديمة قابلة للترقية (@radix-ui × 15 patch، `@supabase/supabase-js` patch، `@vitejs/plugin-react-swc` major متاح) | `package.json` |
-| M2 | 4 ملفات تحوي `TODO/FIXME/XXX/HACK` | `src/**` |
+3. **`.husky/pre-commit`** — نفس التعديل على regex الفحص + regex الأنماط.
 
-### 🟢 معلوماتية (لا تتطلب فعلاً)
+4. **`.husky/pre-push`** — نفس التعديل على regex الفحص.
 
-- لا مطابقات لأنماط أسرار خطيرة (Stripe, AWS, GitHub, Slack, PRIVATE KEY blocks) في الكود.
-- `.env.example` نظيف بلا قيم حقيقية.
-- JWT الظاهر في `src/lib/diagnostics/sanitize.test.ts` = fixture اختبار متوقّع.
-- كل الظهورات لكلمة `service_role` مشروعة (migrations, docs, edge functions مرخّصة في allowlist).
-- Edge Functions (22 وظيفة) متوافقة مع `SECURITY.md` و`README.md`.
-- Husky hooks + CI workflow (`ci.yml`, `security-audit.yml`) قوية: gitleaks + drift check + security gates مفعّلة.
+5. **`.github/workflows/test.yml`** — استبدل خطوة "Security audit" بـ:
+   ```bash
+   npm audit --audit-level=high --omit=dev --json > audit-report.json || true
+   HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' audit-report.json)
+   CRIT=$(jq -r '.metadata.vulnerabilities.critical // 0' audit-report.json)
+   if [ "$((HIGH + CRIT))" -gt 0 ]; then
+     echo "::error::عثر على $CRIT حرجة / $HIGH عالية"
+     exit 1
+   fi
+   ```
 
----
+### خارج النطاق (كما في الجولة السابقة)
 
-## خطة التنفيذ (بعد الاعتماد والانتقال لوضع البناء)
+- `git rm --cached .env` — يبقى مسؤولية المالك بعد دمج الإصلاحات (بوابات ما بعد الدمج ستمنع أي إعادة إضافة).
+- ملفات المصادقة، `client.ts`, `types.ts`, `config.toml` — محمية.
+- بقية ملاحظات التقرير (changelog.yml, health-check.yml, ازدواجية CI/test) — مؤجّلة لجولة تحسين لاحقة.
 
-### الخطوة 1 — إصلاحات lockfile (C2 + C3)
+### معيار النجاح
+
 ```bash
-rm -f bun.lock
-npm install --package-lock-only --ignore-scripts
+grep -q "package-lock" .github/workflows/auto-version.yml
+grep -q '\\.env(\\\.\\.\\+)?\\$' .github/workflows/ci.yml
+grep -q '\\.env(\\\.\\.\\+)?\\$' .husky/pre-commit
+grep -q '\\.env(\\\.\\.\\+)?\\$' .husky/pre-push
+grep -q "jq" .github/workflows/test.yml
 ```
-النتيجة: `bun.lock` محذوف، والإصدارات الثلاثة (`package.json` / `package-lock.json` root / `packages[""]`) = `3.0.376`.
-
-### الخطوة 2 — إضافة `engines` (H2)
-تحديث `package.json` بإضافة:
-```json
-"engines": { "node": ">=22.0.0", "npm": ">=10.0.0" }
-```
-
-### الخطوة 3 — تقرير جنائي موثَّق (H3 + H4 + M1 + M2)
-كتابة `audit/forensic-report.md` يحوي:
-- قائمة كاملة (ملف:سطر) لكل `console.*` في `src/`.
-- قائمة كاملة لكل `any`/`as any`.
-- قائمة الحزم القديمة من `npm outdated`.
-- قائمة TODO/FIXME.
-- توصيات معالجة كل بند (بدون تعديل الكود — للمراجعة اليدوية لتفادي كسر إنتاجي).
-
-### الخطوة 4 — تشغيل بوابات التحقق
-```bash
-node scripts/dependency-drift-check.mjs
-node scripts/count-edge-functions.mjs --check
-node scripts/security-gates.mjs
-test ! -f bun.lock && echo "✅ bun.lock removed"
-```
-
-### الخطوة 5 — تحديث `.lovable/plan.md`
-بحالة النهائية للإغلاق (بما فيها بند `.env` المفتوح للمالك).
-
----
-
-## خارج نطاق التنفيذ التلقائي
-
-| البند | السبب |
-|-------|-------|
-| `git rm --cached .env` (C1) | أوامر git stateful ممنوعة داخلياً — يجب أن ينفّذها مالك المستودع يدوياً |
-| ترقيات major (`@vitejs/plugin-react-swc 3→4`, `@eslint/js 9→10`, `@types/node 25→26`) | تحتاج مراجعة breaking changes — طلب المستخدم صريح مطلوب |
-| تعديل ملفات المصادقة/`supabase/config.toml`/`client.ts`/`types.ts` | محمية بأوامر المشروع |
-| إعادة كتابة `console.*` أو `any` تلقائياً | يتطلب مراجعة سياق كل موقع — يُدرج في التقرير للمعالجة اليدوية |
-
----
-
-## معيار النجاح النهائي
-
-- ✅ `test ! -f bun.lock` ينجح
-- ✅ الإصدارات الثلاثة = `3.0.376`
-- ✅ `dependency-drift-check.mjs` يمر
-- ✅ `count-edge-functions.mjs --check` يمر
-- ✅ `security-gates.mjs` = 0 مخالفات
-- ✅ `engines` مضاف
-- ✅ `audit/forensic-report.md` جاهز
-- ⏳ `.env` مفتوح حتى ينفّذ المالك:
-  ```bash
-  git rm --cached .env
-  git commit -m "chore(security): untrack .env"
-  ```
+كل الأوامر ترجع 0.
