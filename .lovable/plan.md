@@ -3,9 +3,9 @@
 ## نتيجة التحقق الحالية
 
 - تم إصلاح فشل تحميل إعداد Vite بإزالة اعتماد `vite.config.ts` على استيراد ملفات `build/*.ts` أثناء build.
-- تم إصلاح عدم تطابق الإصدار: `package.json` و`package-lock.json` متطابقان الآن على `3.0.367`.
+- تم إصلاح عدم تطابق الإصدار: `package.json` و`package-lock.json` متطابقان الآن على `3.0.368`.
 - `.gitignore` يمنع `.env` و`.env.*` ويسمح فقط بـ `.env.example`.
-- ما زال `.env` متعقّباً في Git حسب `git ls-files`، وهذا يتطلب إزالة من فهرس Git بدون قراءة أو تعديل محتواه.
+- ما زال `.env` متعقّباً في Git حسب `git ls-files`، وهذا يتطلب إزالة من فهرس Git بدون قراءة أو تعديل محتواه عبر مالك المستودع.
 
 ## ما تم تنفيذه
 
@@ -20,9 +20,9 @@
 
 - تم تشغيل `npm install --package-lock-only --ignore-scripts`.
 - أصبحت القيم التالية متطابقة:
-  - `package.json`: `3.0.367`
-  - `package-lock.json`: `3.0.367`
-  - `package-lock.json packages[""].version`: `3.0.367`
+  - `package.json`: `3.0.368`
+  - `package-lock.json`: `3.0.368`
+  - `package-lock.json packages[""].version`: `3.0.368`
 
 ## المتبقي خارج تعديل الملفات
 
@@ -44,7 +44,7 @@ git ls-files --error-unmatch .env
 
 ## التحقق المطلوب
 
-1. `node scripts/dependency-drift-check.mjs` — يجب أن ينجح.
+1. `node scripts/dependency-drift-check.mjs` — يجب أن ينجح على النسخة `3.0.368`.
 2. `npm run build` — يجب أن ينجح.
 3. `git ls-files --error-unmatch .env` — يجب أن يفشل بعد تنفيذ `git rm --cached .env` خارج هذه البيئة.
 
