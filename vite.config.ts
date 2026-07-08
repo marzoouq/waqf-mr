@@ -6,8 +6,8 @@ import { VitePWA } from "vite-plugin-pwa";
 import { visualizer } from "rollup-plugin-visualizer";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 import pkg from "./package.json";
-import { getManualChunks } from "./build/chunks";
-import { PWA_RUNTIME_CACHING } from "./build/pwa-runtime-caching";
+import { getManualChunks } from "./build/chunks.ts";
+import { PWA_RUNTIME_CACHING } from "./build/pwa-runtime-caching.ts";
 
 
 // https://vitejs.dev/config/
