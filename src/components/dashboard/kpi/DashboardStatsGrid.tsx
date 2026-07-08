@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { StatsGridSkeleton, AnimatedCounter, MiniSparkline } from '@/components/common';
 import YoYBadge from './YoYBadge';
+import { cn } from '@/lib/cn';
 
 
 export type { StatItem } from '@/types/dashboard';
