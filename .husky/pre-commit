@@ -11,11 +11,11 @@ NC='\033[0m'
 STAGED=$(git diff --cached --name-only --diff-filter=ACM || true)
 [ -z "$STAGED" ] && exit 0
 
-# 1) حجب ملفات .env.* المُجهَّزة (ما عدا .env.example)
-ENV_FILES=$(echo "$STAGED" | grep -E '(^|/)\.env\..+$' | grep -v '\.example$' || true)
+# 1) حجب ملفات .env و .env.* المُجهَّزة (ما عدا .env.example)
+ENV_FILES=$(echo "$STAGED" | grep -E '(^|/)\.env(\..+)?$' | grep -v '\.example$' || true)
 if [ -n "$ENV_FILES" ]; then
   echo ""
-  echo -e "${RED}✗ pre-commit: محاولة إضافة ملف(ات) .env.* إلى المستودع${NC}"
+  echo -e "${RED}✗ pre-commit: محاولة إضافة ملف(ات) .env إلى المستودع${NC}"
   echo "$ENV_FILES" | sed 's/^/   • /'
   echo ""
   echo -e "${YEL}للإصلاح:${NC}"
