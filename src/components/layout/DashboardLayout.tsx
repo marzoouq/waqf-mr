@@ -79,7 +79,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         role="dialog"
         aria-modal="true"
         aria-label="القائمة الجانبية"
-        {...(!mobileSidebarOpen && { inert: '' as unknown as boolean })}
+        {...(!mobileSidebarOpen && { inert: true })}
         {...swipe.sidebarProps}
         className={cn(
           'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden',
