@@ -42,7 +42,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
   if (!role) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-border/50 bg-background/95" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', willChange: 'transform' }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-border/50 bg-background/95" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="التنقل السفلي">
       <div className="flex items-center justify-around h-14">
         {visibleLinks.map((link) => {
           const active = isActiveLink(location.pathname, link.to);
@@ -51,8 +51,10 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
               key={link.to}
               to={link.to}
               aria-label={link.label}
+              aria-current={active ? 'page' : undefined}
               className={cn(
                 'flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-inset',
                 active ? 'text-primary' : 'text-muted-foreground'
               )}
             >
@@ -71,7 +73,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
         <button
           onClick={onOpenSidebar}
           aria-label={unreadCount > 0 ? `المزيد — ${unreadCount} رسالة غير مقروءة` : 'المزيد'}
-          className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-muted-foreground transition-colors active:text-primary"
+          className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-muted-foreground transition-colors active:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-inset"
         >
           <div className="relative">
             <Menu className="w-5 h-5" aria-hidden="true" />
@@ -90,3 +92,4 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
 };
 
 export default BottomNav;
+

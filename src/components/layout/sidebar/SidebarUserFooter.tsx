@@ -1,5 +1,6 @@
 /**
  * SidebarUserFooter — معلومات المستخدم وزر تسجيل الخروج (presentational)
+ * نسخة موحّدة: زر واحد يستجيب لحالة الطي بدلاً من 3 نسخ مكرّرة.
  */
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -16,58 +17,47 @@ interface SidebarUserFooterProps {
 
 export const SidebarUserFooter: React.FC<SidebarUserFooterProps> = ({
   email, role, sidebarOpen, onSignOut,
-}) => (
-  <div
-    className="px-4 pt-4 pb-16 lg:pb-4 border-t border-sidebar-border"
-    onTouchStart={(e) => e.stopPropagation()}
-    onTouchMove={(e) => e.stopPropagation()}
-    onTouchEnd={(e) => e.stopPropagation()}
-  >
-    <div className={cn('mb-3 text-sm text-sidebar-foreground/80', !sidebarOpen && 'lg:hidden')}>
-      <p className="truncate">{email}</p>
-      <p className="text-xs text-sidebar-primary mt-1">
-        {ROLE_LABELS[role || ''] || role}
-      </p>
-    </div>
-    <TooltipProvider delayDuration={0}>
-      <div className="lg:hidden">
-        <Button
-          variant="ghost"
-          className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
-          onClick={onSignOut}
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="ms-2">تسجيل الخروج</span>
-        </Button>
+}) => {
+  const roleLabel = ROLE_LABELS[role || ''] || role;
+  const showLabel = sidebarOpen; // mobile drawer دائماً مفتوح بصريًا
+
+  const button = (
+    <Button
+      variant="ghost"
+      aria-label="تسجيل الخروج"
+      className={cn(
+        'w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive',
+        'focus-visible:ring-2 focus-visible:ring-destructive/60',
+        !showLabel && 'lg:px-0'
+      )}
+      onClick={onSignOut}
+    >
+      <LogOut className="w-5 h-5" aria-hidden="true" />
+      <span className={cn('ms-2 lg:inline', !sidebarOpen && 'lg:hidden')}>تسجيل الخروج</span>
+    </Button>
+  );
+
+  return (
+    <div
+      className="px-4 pt-4 pb-16 lg:pb-4 border-t border-sidebar-border"
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
+    >
+      <div className={cn('mb-3 text-sm text-sidebar-foreground/80', !sidebarOpen && 'lg:hidden')}>
+        {email && <p className="truncate">{email}</p>}
+        {roleLabel && <p className="text-xs text-sidebar-primary mt-1">{roleLabel}</p>}
       </div>
-      {!sidebarOpen && (
-        <div className="hidden lg:block">
+      {sidebarOpen ? (
+        button
+      ) : (
+        <TooltipProvider delayDuration={0}>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive px-0"
-                onClick={onSignOut}
-              >
-                <LogOut className="w-5 h-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">تسجيل الخروج</TooltipContent>
+            <TooltipTrigger asChild>{button}</TooltipTrigger>
+            <TooltipContent side="left" className="hidden lg:block">تسجيل الخروج</TooltipContent>
           </Tooltip>
-        </div>
+        </TooltipProvider>
       )}
-      {sidebarOpen && (
-        <div className="hidden lg:block">
-          <Button
-            variant="ghost"
-            className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
-            onClick={onSignOut}
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="ms-2">تسجيل الخروج</span>
-          </Button>
-        </div>
-      )}
-    </TooltipProvider>
-  </div>
-);
+    </div>
+  );
+};

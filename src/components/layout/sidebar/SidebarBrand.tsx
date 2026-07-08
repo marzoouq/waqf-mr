@@ -2,7 +2,7 @@
  * SidebarBrand — شعار/اسم الوقف وأزرار التبديل (presentational)
  */
 import { Button } from '@/components/ui/button';
-import { Building2, Menu, X, ChevronLeft } from 'lucide-react';
+import { Building2, PanelRightOpen, PanelRightClose, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 interface SidebarBrandProps {
@@ -34,10 +34,11 @@ export const SidebarBrand: React.FC<SidebarBrandProps> = ({
       size="icon"
       aria-label={sidebarOpen ? 'طي القائمة الجانبية' : 'توسيع القائمة الجانبية'}
       onClick={() => setSidebarOpen(!sidebarOpen)}
-      className="text-sidebar-foreground hover:bg-sidebar-accent hidden lg:flex"
+      className="text-sidebar-foreground hover:bg-sidebar-accent hidden lg:flex focus-visible:ring-2 focus-visible:ring-primary/60"
     >
-      {sidebarOpen ? <ChevronLeft className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      {sidebarOpen ? <PanelRightClose className="w-5 h-5" /> : <PanelRightOpen className="w-5 h-5" />}
     </Button>
+
     <Button
       variant="ghost"
       size="icon"
