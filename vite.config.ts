@@ -6,9 +6,129 @@ import { VitePWA } from "vite-plugin-pwa";
 import { visualizer } from "rollup-plugin-visualizer";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 import pkg from "./package.json";
-import { getManualChunks } from "./build/chunks.ts";
-import { PWA_RUNTIME_CACHING } from "./build/pwa-runtime-caching.ts";
 
+const chunkRules: ReadonlyArray<{
+  match: (id: string) => boolean;
+  name: string;
+}> = [
+  { match: (id) => id.includes('node_modules/react-dom'), name: 'vendor-react' },
+  { match: (id) => id.includes('node_modules/react/'), name: 'vendor-react' },
+  {
+    match: (id) =>
+      id.includes('node_modules/react-router') ||
+      id.includes('node_modules/turbo-stream') ||
+      id.includes('node_modules/@remix-run/'),
+    name: 'vendor-router',
+  },
+  { match: (id) => id.includes('node_modules/@radix-ui/'), name: 'vendor-radix' },
+  { match: (id) => id.includes('node_modules/@supabase/'), name: 'vendor-supabase' },
+  { match: (id) => id.includes('node_modules/@tanstack/'), name: 'vendor-query' },
+  { match: (id) => id.includes('node_modules/lucide-react'), name: 'vendor-icons' },
+  { match: (id) => id.includes('node_modules/zod'), name: 'vendor-form' },
+  { match: (id) => id.includes('node_modules/date-fns'), name: 'vendor-date' },
+  { match: (id) => id.includes('node_modules/sonner'), name: 'vendor-sonner' },
+  { match: (id) => id.includes('node_modules/@dnd-kit/'), name: 'vendor-dnd' },
+  { match: (id) => id.includes('node_modules/jspdf-autotable'), name: 'vendor-pdf-table' },
+  {
+    match: (id) =>
+      id.includes('node_modules/canvg') ||
+      id.includes('node_modules/rgbcolor') ||
+      id.includes('node_modules/stackblur-canvas'),
+    name: 'vendor-pdf-svg',
+  },
+  {
+    match: (id) => id.includes('node_modules/jspdf') || id.includes('node_modules/arabic-reshaper'),
+    name: 'vendor-pdf',
+  },
+  { match: (id) => id.includes('node_modules/recharts'), name: 'vendor-recharts' },
+  {
+    match: (id) => id.includes('node_modules/victory-vendor') || id.includes('node_modules/d3-'),
+    name: 'vendor-d3',
+  },
+  {
+    match: (id) =>
+      id.includes('node_modules/react-markdown') ||
+      id.includes('node_modules/remark-') ||
+      id.includes('node_modules/rehype-') ||
+      id.includes('node_modules/unified') ||
+      id.includes('node_modules/mdast-') ||
+      id.includes('node_modules/micromark') ||
+      id.includes('node_modules/hast-') ||
+      id.includes('node_modules/unist-'),
+    name: 'vendor-markdown',
+  },
+  { match: (id) => id.includes('node_modules/qrcode'), name: 'vendor-qr' },
+  {
+    match: (id) =>
+      id.includes('node_modules/class-variance-authority') ||
+      id.includes('node_modules/clsx') ||
+      id.includes('node_modules/tailwind-merge') ||
+      id.includes('node_modules/cmdk') ||
+      id.includes('node_modules/vaul') ||
+      id.includes('node_modules/input-otp') ||
+      id.includes('node_modules/embla-carousel') ||
+      id.includes('node_modules/next-themes') ||
+      id.includes('node_modules/react-resizable-panels'),
+    name: 'vendor-ui-utils',
+  },
+  { match: (id) => id.includes('node_modules/@simplewebauthn/'), name: 'vendor-webauthn' },
+];
+
+function getManualChunks(id: string): string | undefined {
+  for (const rule of chunkRules) {
+    if (rule.match(id)) return rule.name;
+  }
+  return undefined;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pwaRuntimeCaching: any[] = [
+  {
+    urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
+    handler: 'NetworkFirst',
+    options: {
+      cacheName: 'html-navigations',
+      networkTimeoutSeconds: 3,
+      expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 },
+    },
+  },
+  {
+    urlPattern: /\/assets\/vendor-(?:pdf|pdf-table|recharts|d3|markdown|dnd|webauthn|qr|arabic).+\.js$/i,
+    handler: 'StaleWhileRevalidate',
+    options: {
+      cacheName: 'lazy-vendor-chunks',
+      expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
+    },
+  },
+  {
+    urlPattern: /\/fonts\/.+\.(?:woff2?|ttf)$/i,
+    handler: 'CacheFirst',
+    options: {
+      cacheName: 'local-fonts',
+      expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+    },
+  },
+  {
+    urlPattern: /\/assets\/.+\.(?:js|css)$/i,
+    handler: 'NetworkFirst',
+    options: {
+      cacheName: 'static-assets',
+      networkTimeoutSeconds: 5,
+      expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
+    },
+  },
+  {
+    urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+    handler: 'CacheFirst',
+    options: {
+      cacheName: 'images',
+      expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 7 },
+    },
+  },
+  { urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i, handler: 'NetworkOnly' },
+  { urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/v1\/.*/i, handler: 'NetworkOnly' },
+  { urlPattern: /^https:\/\/.*\.supabase\.co\/functions\/v1\/.*/i, handler: 'NetworkOnly' },
+];
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => ({
@@ -70,7 +190,7 @@ export default defineConfig(({ command, mode }) => ({
           '**/vendor-qr*.js',
           '**/vendor-arabic*.js',
         ],
-        runtimeCaching: PWA_RUNTIME_CACHING,
+        runtimeCaching: pwaRuntimeCaching,
 
       },
       manifest: {
