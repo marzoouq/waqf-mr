@@ -36,7 +36,7 @@ const PageHeaderCard = ({ title, description, icon: Icon, badge, actions, classN
           )}
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-foreground break-words">
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-arabic sm:font-display font-bold text-foreground break-words leading-tight">
                 {title}
               </h1>
               {badge}
