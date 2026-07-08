@@ -59,6 +59,34 @@ Deno.serve(async (req) => {
     // ── الاستعلامات المتوازية ──
     const beneficiaryId = beneficiary.id;
 
+    // تحديد الدور: المستفيد يرى السنوات المنشورة فقط (يحترم RESTRICTIVE RLS).
+    // admin/accountant يرون كل السنوات كالمعتاد.
+    const { data: roleRows } = await admin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .in("role", ["admin", "accountant"]);
+    const isPrivileged = !!roleRows?.length;
+
+    let publishedFyIds: string[] | null = null;
+    if (!isPrivileged) {
+      const { data: fyRows, error: fyErr } = await admin
+        .from("fiscal_years")
+        .select("id")
+        .eq("published", true);
+      if (fyErr) throw fyErr;
+      publishedFyIds = (fyRows ?? []).map((r: { id: string }) => r.id);
+      // إذا لا توجد سنوات منشورة، لا شيء يجب عرضه.
+      if (publishedFyIds.length === 0) publishedFyIds = ["00000000-0000-0000-0000-000000000000"];
+      // إذا طُلبت سنة معيّنة غير منشورة، ارفض
+      if (fiscal_year_id && !publishedFyIds.includes(fiscal_year_id)) {
+        return new Response(
+          JSON.stringify({ error: "السنة المالية المطلوبة غير متاحة" }),
+          { status: 403, headers: jsonHeaders },
+        );
+      }
+    }
+
     // بناء استعلام التوزيعات
     let distQuery = admin
       .from("distributions")
@@ -69,26 +97,31 @@ Deno.serve(async (req) => {
 
     if (fiscal_year_id) {
       distQuery = distQuery.eq("fiscal_year_id", fiscal_year_id);
+    } else if (publishedFyIds) {
+      distQuery = distQuery.in("fiscal_year_id", publishedFyIds);
     }
 
+    let advQuery = admin
+      .from("advance_requests")
+      .select("id, beneficiary_id, fiscal_year_id, amount, reason, status, rejection_reason, approved_by, approved_at, paid_at, created_at")
+      .eq("beneficiary_id", beneficiaryId)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (publishedFyIds) advQuery = advQuery.in("fiscal_year_id", publishedFyIds);
+
+    // للترحيلات: نفلتر بحسب to_fiscal_year_id (السنة الهدف) لتفادي كشف مبالغ سنوات غير منشورة
+    let cfQuery = admin
+      .from("advance_carryforward")
+      .select("id, beneficiary_id, from_fiscal_year_id, to_fiscal_year_id, amount, status, notes, created_at")
+      .eq("beneficiary_id", beneficiaryId)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (publishedFyIds) cfQuery = cfQuery.in("to_fiscal_year_id", publishedFyIds);
+
     const [advRes, cfRes, distRes, pctRes] = await Promise.all([
-      // السُلف
-      admin
-        .from("advance_requests")
-        .select("id, beneficiary_id, fiscal_year_id, amount, reason, status, rejection_reason, approved_by, approved_at, paid_at, created_at")
-        .eq("beneficiary_id", beneficiaryId)
-        .order("created_at", { ascending: false })
-        .limit(100),
-      // الترحيلات
-      admin
-        .from("advance_carryforward")
-        .select("id, beneficiary_id, from_fiscal_year_id, to_fiscal_year_id, amount, status, notes, created_at")
-        .eq("beneficiary_id", beneficiaryId)
-        .order("created_at", { ascending: false })
-        .limit(100),
-      // التوزيعات
+      advQuery,
+      cfQuery,
       distQuery,
-      // نسبة المستفيدين الإجمالية
       admin.rpc("get_total_beneficiary_percentage"),
     ]);
 
