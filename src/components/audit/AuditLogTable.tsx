@@ -91,9 +91,8 @@ const AuditLogTable = ({
               {logs.map(log => {
                 const isExpanded = expandedRows.has(log.id);
                 return (
-                  <>
+                  <Fragment key={log.id}>
                     <TableRow
-                      key={log.id}
                       data-state={isExpanded ? 'open' : 'closed'}
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => toggleRow(log.id)}
@@ -105,9 +104,9 @@ const AuditLogTable = ({
                       <TableCell className="text-sm text-muted-foreground">{getSummary(log)}</TableCell>
                     </TableRow>
                     {isExpanded && (
-                      <tr key={`${log.id}-content`}><td colSpan={5} className="bg-muted/30 p-4 border-b"><DataDiff oldData={log.old_data as Record<string, unknown> | null} newData={log.new_data as Record<string, unknown> | null} operation={log.operation} /></td></tr>
+                      <tr><td colSpan={5} className="bg-muted/30 p-4 border-b"><DataDiff oldData={log.old_data as Record<string, unknown> | null} newData={log.new_data as Record<string, unknown> | null} operation={log.operation} /></td></tr>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </TableBody>
