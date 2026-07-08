@@ -65,6 +65,12 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Dependency version drift check
+        run: node scripts/dependency-drift-check.mjs
+
+      - name: Edge Functions doc drift check
+        run: node scripts/count-edge-functions.mjs --check
+
       - name: TypeScript type check
         run: npx tsc --noEmit
 

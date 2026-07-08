@@ -6,6 +6,9 @@ import { VitePWA } from "vite-plugin-pwa";
 import { visualizer } from "rollup-plugin-visualizer";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 import pkg from "./package.json";
+import { getManualChunks } from "./build/chunks";
+import { PWA_RUNTIME_CACHING } from "./build/pwa-runtime-caching";
+
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => ({
@@ -67,65 +70,8 @@ export default defineConfig(({ command, mode }) => ({
           '**/vendor-qr*.js',
           '**/vendor-arabic*.js',
         ],
-        runtimeCaching: [
-          // HTML navigations عبر NetworkFirst — يضمن أن المستخدم يستلم index.html محدّث
-          // فور توفر اتصال، بدون الاعتماد على precache (الذي كان يتغيّر مع كل بمب نسخة).
-          {
-            urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'html-navigations',
-              networkTimeoutSeconds: 3,
-              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 },
-            },
-          },
-          // تحميل الحزم المستبعدة عند الطلب مع تخزين مؤقت
-          {
-            urlPattern: /\/assets\/vendor-(?:pdf|pdf-table|recharts|d3|markdown|dnd|webauthn|qr|arabic).+\.js$/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'lazy-vendor-chunks',
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-          },
-          {
-            urlPattern: /\/fonts\/.+\.(?:woff2?|ttf)$/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'local-fonts',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-          {
-            urlPattern: /\/assets\/.+\.(?:js|css)$/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'static-assets',
-              networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
-            },
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images',
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 7 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: 'NetworkOnly',
-          },
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/v1\/.*/i,
-            handler: 'NetworkOnly',
-          },
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/functions\/v1\/.*/i,
-            handler: 'NetworkOnly',
-          },
-        ],
+        runtimeCaching: PWA_RUNTIME_CACHING,
+
       },
       manifest: {
         name: 'نظام إدارة الوقف - وقف مرزوق بن علي الثبيتي',
@@ -196,33 +142,10 @@ export default defineConfig(({ command, mode }) => ({
         /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(id) ||
         id.includes('__tests__'),
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules/react-dom')) return 'vendor-react';
-          if (id.includes('node_modules/react/')) return 'vendor-react';
-          if (id.includes('node_modules/react-router') || id.includes('node_modules/turbo-stream') || id.includes('node_modules/@remix-run/')) return 'vendor-router';
-          if (id.includes('node_modules/@radix-ui/')) return 'vendor-radix';
-          if (id.includes('node_modules/@supabase/')) return 'vendor-supabase';
-          if (id.includes('node_modules/@tanstack/')) return 'vendor-query';
-          if (id.includes('node_modules/lucide-react')) return 'vendor-icons';
-          if (id.includes('node_modules/zod')) return 'vendor-form';
-          if (id.includes('node_modules/date-fns')) return 'vendor-date';
-          if (id.includes('node_modules/sonner')) return 'vendor-sonner';
-          if (id.includes('node_modules/@dnd-kit/')) return 'vendor-dnd';
-          if (id.includes('node_modules/jspdf-autotable')) return 'vendor-pdf-table';
-          // فصل canvg/SVG-to-PDF عن jspdf — يُحمَّل فقط عند طباعة SVG (نادر)
-          if (id.includes('node_modules/canvg') || id.includes('node_modules/rgbcolor') || id.includes('node_modules/stackblur-canvas')) return 'vendor-pdf-svg';
-          // arabic-reshaper مستخدم فقط مع PDF — ضمّه إلى vendor-pdf لتقليل عدد chunks
-          if (id.includes('node_modules/jspdf') || id.includes('node_modules/arabic-reshaper')) return 'vendor-pdf';
-
-          if (id.includes('node_modules/recharts')) return 'vendor-recharts';
-          if (id.includes('node_modules/victory-vendor') || id.includes('node_modules/d3-')) return 'vendor-d3';
-          if (id.includes('node_modules/react-markdown') || id.includes('node_modules/remark-') || id.includes('node_modules/rehype-') || id.includes('node_modules/unified') || id.includes('node_modules/mdast-') || id.includes('node_modules/micromark') || id.includes('node_modules/hast-') || id.includes('node_modules/unist-')) return 'vendor-markdown';
-          if (id.includes('node_modules/qrcode')) return 'vendor-qr';
-          if (id.includes('node_modules/class-variance-authority') || id.includes('node_modules/clsx') || id.includes('node_modules/tailwind-merge') || id.includes('node_modules/cmdk') || id.includes('node_modules/vaul') || id.includes('node_modules/input-otp') || id.includes('node_modules/embla-carousel') || id.includes('node_modules/next-themes') || id.includes('node_modules/react-resizable-panels')) return 'vendor-ui-utils';
-          if (id.includes('node_modules/@simplewebauthn/')) return 'vendor-webauthn';
-        },
+        manualChunks: getManualChunks,
       },
     },
+
     chunkSizeWarningLimit: 600,
     // تطوير: sourcemap كامل يمنع تجمّد DevTools عند فتح ملفات vendor الكبيرة
     sourcemap: mode === 'production' ? false : true,
