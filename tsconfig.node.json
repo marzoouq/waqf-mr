@@ -13,5 +13,5 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["vite.config.ts", "build/**/*.ts"]
+  "include": ["vite.config.ts", "scripts/build-chunks.ts"]
 }

@@ -1,11 +1,11 @@
 /**
- * Snapshot صغير على أسماء chunks — يمنع كسراً صامتاً عند تعديل build/chunks.ts.
+ * Snapshot صغير على أسماء chunks — يمنع كسراً صامتاً عند تعديل scripts/build-chunks.ts.
  * لتحديث الـ snapshot عن قصد: `npx vitest run -u src/test/build-chunks.test.ts`.
  */
 import { describe, it, expect } from 'vitest';
-import { EXPECTED_CHUNK_NAMES, getManualChunks } from '../../build/chunks';
+import { EXPECTED_CHUNK_NAMES, getManualChunks } from '../../scripts/build-chunks';
 
-describe('build/chunks', () => {
+describe('scripts/build-chunks', () => {
   it('يحافظ على مجموعة chunks الأساسية', () => {
     expect(EXPECTED_CHUNK_NAMES).toMatchInlineSnapshot(`
       [
