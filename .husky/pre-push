@@ -26,6 +26,22 @@ fi
 echo "✓ لا توجد ملفات .env.* متعقّبة"
 echo ""
 
+echo "▶ 0.5/2 فحص انحراف الإصدارات (package.json vs lockfile)..."
+if ! node scripts/dependency-drift-check.mjs; then
+  echo "  للإصلاح: npm install --package-lock-only"
+  exit 1
+fi
+echo ""
+
+echo "▶ 0.6/2 فحص تطابق عدد Edge Functions في الوثائق..."
+if ! node scripts/count-edge-functions.mjs --check; then
+  echo "  للإصلاح: npm run docs:edge-count"
+  exit 1
+fi
+echo ""
+
+
+
 if ! npm run -s audit; then
   echo ""
   echo "✗ فشلت سلسلة Audit. راجع audit/report.html و audit/*.md"
