@@ -44,23 +44,55 @@ jobs:
             echo "proceed=false" >> "$GITHUB_OUTPUT"
           fi
 
-
       - name: Setup Node
         if: steps.gate.outputs.proceed == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      - name: Collect semantic commits since last tag
+        id: commits
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          LAST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1 || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            git log --no-merges -20 --pretty="%s" > /tmp/commits.txt
+          else
+            git log "$LAST_TAG"..HEAD --no-merges --pretty="%s" > /tmp/commits.txt
+          fi
+
+          node -e "
+            const fs = require('fs');
+            const lines = fs.readFileSync('/tmp/commits.txt','utf8').split('\n').filter(Boolean);
+            const changes = [];
+            for (const msg of lines) {
+              if (/\[skip ci\]/i.test(msg)) continue;
+              if (/^Merge /i.test(msg)) continue;
+              const match = msg.match(/^(feat|fix)(\([^)]+\))?:\s*(.+)$/i);
+              if (!match) continue;
+              const clean = match[3].trim();
+              if (clean.length < 5) continue;
+              const type = match[1].toLowerCase() === 'feat' ? 'feature' : 'fix';
+              changes.push({ type, text: clean });
+            }
+            fs.writeFileSync('/tmp/changes.json', JSON.stringify(changes));
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'has_changes=' + (changes.length > 0 ? 'true' : 'false') + '\n');
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'count=' + changes.length + '\n');
+          "
+          if [ "$(cat /tmp/changes.json)" = "[]" ]; then
+            echo "::notice::لا توجد تغييرات دلالية صالحة للـ changelog — تخطي bump"
+          fi
+
       - name: Get current version
         id: current
-        if: steps.gate.outputs.proceed == 'true'
+        if: steps.gate.outputs.proceed == 'true' && steps.commits.outputs.has_changes == 'true'
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Bump patch version
         id: bump
-        if: steps.gate.outputs.proceed == 'true'
+        if: steps.gate.outputs.proceed == 'true' && steps.commits.outputs.has_changes == 'true'
         run: |
           CURRENT="${{ steps.current.outputs.version }}"
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
@@ -76,12 +108,12 @@ jobs:
           "
 
       - name: Sync package-lock.json
-        if: steps.gate.outputs.proceed == 'true'
+        if: steps.gate.outputs.proceed == 'true' && steps.commits.outputs.has_changes == 'true'
         run: npm install --package-lock-only --ignore-scripts
 
       - name: Generate Arabic date
         id: date
-        if: steps.gate.outputs.proceed == 'true'
+        if: steps.gate.outputs.proceed == 'true' && steps.commits.outputs.has_changes == 'true'
         run: |
           MONTHS=("يناير" "فبراير" "مارس" "أبريل" "مايو" "يونيو" "يوليو" "أغسطس" "سبتمبر" "أكتوبر" "نوفمبر" "ديسمبر")
           DAY=$(date -u +%-d)
@@ -93,41 +125,8 @@ jobs:
           AR_DATE="$(to_arabic $DAY) ${MONTHS[$MONTH_IDX]} $(to_arabic $YEAR)"
           echo "arabic=$AR_DATE" >> "$GITHUB_OUTPUT"
 
-      - name: Collect commits since last tag
-        id: commits
-        if: steps.gate.outputs.proceed == 'true'
-        run: |
-          LAST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1 || echo "")
-          if [ -z "$LAST_TAG" ]; then
-            git log --oneline --no-merges -20 --pretty="%s" > /tmp/commits.txt
-          else
-            git log "$LAST_TAG"..HEAD --oneline --no-merges --pretty="%s" > /tmp/commits.txt
-          fi
-
-          node -e "
-            const fs = require('fs');
-            const lines = fs.readFileSync('/tmp/commits.txt','utf8').split('\n').filter(Boolean);
-            const SKIP_TYPES = /^(chore|refactor|perf|style|test|ci|build|docs)(\(|:)/i;
-            const hasArabic = (s) => /[\u0600-\u06FF]/.test(s);
-            const changes = [];
-            for (const msg of lines) {
-              if (/\[skip ci\]/i.test(msg)) continue;
-              if (/^Merge /i.test(msg)) continue;
-              if (SKIP_TYPES.test(msg)) continue;
-              const clean = msg.replace(/^(feat|fix|improvement)(\([^)]+\))?:\s*/i, '').trim();
-              if (clean.length < 5) continue;
-              // ارفض رسائل بدون عربية ما لم تكن feat/fix صريحة
-              const isExplicit = /^(feat|fix)(\(|:)/i.test(msg);
-              if (!isExplicit && !hasArabic(clean)) continue;
-              const type = /^feat(\(|:)/i.test(msg) ? 'feature' : /^fix(\(|:)/i.test(msg) ? 'fix' : 'improvement';
-              changes.push({ type, text: clean });
-            }
-            if (!changes.length) changes.push({ type: 'improvement', text: 'تحسينات وإصلاحات متنوعة' });
-            fs.writeFileSync('/tmp/changes.json', JSON.stringify(changes));
-          "
-
       - name: Update changelog.json
-        if: steps.gate.outputs.proceed == 'true'
+        if: steps.gate.outputs.proceed == 'true' && steps.commits.outputs.has_changes == 'true'
         run: |
           node -e "
             const fs = require('fs');
@@ -143,7 +142,7 @@ jobs:
 
       - name: Check if tag exists
         id: check_tag
-        if: steps.gate.outputs.proceed == 'true'
+        if: steps.gate.outputs.proceed == 'true' && steps.commits.outputs.has_changes == 'true'
         run: |
           TAG="v${{ steps.bump.outputs.version }}"
           git fetch --tags --quiet || true
@@ -155,7 +154,7 @@ jobs:
           fi
 
       - name: Commit and push
-        if: steps.gate.outputs.proceed == 'true'
+        if: steps.gate.outputs.proceed == 'true' && steps.commits.outputs.has_changes == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

@@ -2,7 +2,7 @@
 
 **التاريخ:** 8 يوليو 2026
 **الخطورة:** حرجة (Critical)
-**الحالة:** قيد المعالجة — إجراء يدوي مطلوب من المالك
+**الحالة:** مغلقة في الكود — يلزم commit/push من المالك لتثبيت الإزالة في Git
 
 ## الجدول التنفيذي
 
@@ -12,8 +12,8 @@
 | **الدليل** | `git ls-files \| grep -x .env` يُرجع `.env`؛ الملف يحتوي `VITE_SUPABASE_URL` و`VITE_SUPABASE_PUBLISHABLE_KEY` و`SUPABASE_URL` و`SUPABASE_PUBLISHABLE_KEY` |
 | **التأثير** | مفاتيح publishable/anon مكشوفة في تاريخ Git. لا تسريب لـ `SERVICE_ROLE_KEY`. RLS يحمي البيانات، لكن المفتاح يُمكِّن استعلامات anon محدودة |
 | **احتمال الاستغلال** | منخفض-متوسط — anon key عام بطبيعته لكن ظهوره في المستودع يخالف السياسات ويُبطل بوابات الأمن |
-| **الإصلاح الفوري** | 1) `git rm --cached .env && git commit -m "chore(security): untrack .env" && git push`<br>2) تدوير مفاتيح Supabase publishable عبر `supabase--rotate_api_keys`<br>3) (اختياري) تنظيف تاريخ Git بـ BFG/filter-repo |
-| **الإصلاحات الوقائية المطبَّقة** | ✅ توسيع regex في `ci.yml` + `pre-commit` + `pre-push` لالتقاط `.env` نفسه (سابقاً كان يلتقط `.env.*` فقط) — أي محاولة إعادة إضافة سترفض تلقائياً |
+| **الإصلاح الفوري** | 1) أُزيل `.env` من نسخة المشروع<br>2) يلزم commit/push لتثبيت حذف الملف من Git<br>3) تدوير مفاتيح publishable/anon احترازيًا<br>4) (اختياري) تنظيف تاريخ Git بـ BFG/filter-repo |
+| **الإصلاحات الوقائية المطبَّقة** | ✅ توسيع regex في `ci.yml` + `pre-commit` + `pre-push` لالتقاط `.env` نفسه (سابقاً كان يلتقط `.env.*` فقط) — أي محاولة إعادة إضافة سترفض تلقائياً<br>✅ إضافة قاعدة `/.env` صريحة في `.gitignore`<br>✅ منع `auto-version` من إنتاج changelog عام عند عدم وجود تغييرات دلالية |
 | **المالك** | ناظر الوقف (Admin) |
 | **SLA** | إزالة من التتبع: 24 ساعة · تدوير المفاتيح: 24 ساعة · تنظيف التاريخ: 7 أيام (اختياري) |
 
@@ -24,14 +24,16 @@
 ## التحقق بعد الإصلاح
 
 ```bash
-git ls-files | grep -x .env   # يجب أن يعود فارغاً
+test ! -f .env                # يجب ألا يوجد ملف .env في نسخة المشروع
+git ls-files | grep -x .env   # يجب أن يعود فارغاً بعد commit حذف الملف
 grep -q "(^|/)\.env(\..+)?$" .github/workflows/ci.yml   # ✅
 grep -q "(^|/)\.env(\..+)?$" .husky/pre-commit          # ✅
 grep -q "(^|/)\.env(\..+)?$" .husky/pre-push            # ✅
+! grep -q "تحسينات وإصلاحات متنوعة" .github/workflows/auto-version.yml # ✅
 ```
 
 ## ملاحظات
 
 - المفاتيح publishable/anon مصممة للظهور في bundle العميل — لا يوجد كشف بيانات مباشر.
 - `SERVICE_ROLE_KEY` **لم** يكن في `.env` المتسرب.
-- Lovable Cloud لا يمنح وصول Supabase Dashboard؛ تدوير المفاتيح يتم عبر أداة `supabase--rotate_api_keys` حصراً.
+- تدوير المفاتيح يتم عبر أداة backend المعتمدة فقط، دون عرض القيم أو حفظها في الكود.
