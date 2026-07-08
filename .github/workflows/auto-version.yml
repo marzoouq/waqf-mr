@@ -53,6 +53,9 @@ jobs:
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
+      - name: Sync package-lock.json
+        run: npm install --package-lock-only --ignore-scripts
+
       - name: Generate Arabic date
         id: date
         run: |
