@@ -3,7 +3,7 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
 
 // src/lib/mcp/tools/echo.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
@@ -50,11 +50,16 @@ var get_public_stats_default = defineTool2({
 });
 
 // src/lib/mcp/index.ts
+var projectRef = "nuzdeamtujezrsxbvpfi";
 var mcp_default = defineMcp({
   name: "waqf-wise-mcp",
   title: "Waqf Wise \u2014 Marzouq Al-Thubaiti Waqf",
   version: "0.1.0",
-  instructions: "Public tools for Marzouq bin Ali Al-Thubaiti Waqf management system. Use `echo` to verify connectivity and `get_public_waqf_stats` to read publicly disclosed statistics.",
+  instructions: "Authenticated tools for Marzouq bin Ali Al-Thubaiti Waqf management system. Sign in as a user of the app to use `echo` and `get_public_waqf_stats`.",
+  auth: auth.oauth.issuer({
+    issuer: `https://${projectRef}.supabase.co/auth/v1`,
+    acceptedAudiences: "authenticated"
+  }),
   tools: [echo_default, get_public_stats_default]
 });
 

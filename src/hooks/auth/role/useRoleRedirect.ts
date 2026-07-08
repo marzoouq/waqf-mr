@@ -27,6 +27,8 @@ export function sanitizeFrom(from: string | null): string | null {
  * يمنع توجيه المستفيد لمسار الناظر بعد تسجيل دخول ناجح.
  */
 export function isFromAllowedForRole(from: string, role: string): boolean {
+  // مسار موافقة OAuth (MCP) متاح لأي دور موثّق
+  if (from.startsWith('/.lovable/oauth/consent')) return true;
   if (role === 'admin') return from.startsWith('/dashboard') || from.startsWith('/beneficiary');
   if (role === 'accountant') return from.startsWith('/dashboard');
   if (role === 'beneficiary') return from.startsWith('/beneficiary');
