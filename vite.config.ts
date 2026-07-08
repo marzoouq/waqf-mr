@@ -6,6 +6,9 @@ import { VitePWA } from "vite-plugin-pwa";
 import { visualizer } from "rollup-plugin-visualizer";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 import pkg from "./package.json";
+import { getManualChunks } from "./build/chunks";
+import { PWA_RUNTIME_CACHING } from "./build/pwa-runtime-caching";
+
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => ({
@@ -67,65 +70,8 @@ export default defineConfig(({ command, mode }) => ({
           '**/vendor-qr*.js',
           '**/vendor-arabic*.js',
         ],
-        runtimeCaching: [
-          // HTML navigations عبر NetworkFirst — يضمن أن المستخدم يستلم index.html محدّث
-          // فور توفر اتصال، بدون الاعتماد على precache (الذي كان يتغيّر مع كل بمب نسخة).
-          {
-            urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'html-navigations',
-              networkTimeoutSeconds: 3,
-              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 },
-            },
-          },
-          // تحميل الحزم المستبعدة عند الطلب مع تخزين مؤقت
-          {
-            urlPattern: /\/assets\/vendor-(?:pdf|pdf-table|recharts|d3|markdown|dnd|webauthn|qr|arabic).+\.js$/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'lazy-vendor-chunks',
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-          },
-          {
-            urlPattern: /\/fonts\/.+\.(?:woff2?|ttf)$/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'local-fonts',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-          {
-            urlPattern: /\/assets\/.+\.(?:js|css)$/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'static-assets',
-              networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
-            },
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images',
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 7 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: 'NetworkOnly',
-          },
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/v1\/.*/i,
-            handler: 'NetworkOnly',
-          },
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/functions\/v1\/.*/i,
-            handler: 'NetworkOnly',
-          },
-        ],
+        runtimeCaching: PWA_RUNTIME_CACHING,
+
       },
       manifest: {
         name: 'نظام إدارة الوقف - وقف مرزوق بن علي الثبيتي',
