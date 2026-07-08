@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { StatsGridSkeleton, AnimatedCounter, MiniSparkline } from '@/components/common';
 import YoYBadge from './YoYBadge';
+import { cn } from '@/lib/cn';
 
 
 export type { StatItem } from '@/types/dashboard';
@@ -28,7 +29,10 @@ const DashboardStatsGrid = ({ stats, isLoading }: DashboardStatsGridProps) => {
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-tight">{stat.title}</p>
-                    <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold mt-1 truncate tabular-nums">
+                    <p className={cn(
+                      'text-base sm:text-lg md:text-xl lg:text-2xl font-bold mt-1 tabular-nums',
+                      hasRaw ? 'truncate' : 'break-words'
+                    )}>
                       {hasRaw ? (
                         <AnimatedCounter
                           value={stat.rawValue as number}

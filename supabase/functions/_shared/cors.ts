@@ -2,6 +2,10 @@ export const ALLOWED_ORIGINS = [
   "https://waqf-wise-net.lovable.app",
   "https://waqf-wise.net",
   "https://www.waqf-wise.net",
+  // Local development / automated end-to-end tests only. Safe to include:
+  // browsers only honor Access-Control-Allow-Origin when the request Origin matches exactly.
+  "http://localhost:8080",
+  "http://localhost:5173",
 ];
 
 // Tighten patterns to only match THIS project's preview subdomains (project UUID: 29470216-3df1-468f-b021-5c98b75b2920)

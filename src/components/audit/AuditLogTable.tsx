@@ -1,6 +1,7 @@
 /**
  * جدول سجل المراجعة — desktop + mobile
  */
+import { Fragment } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -91,22 +92,22 @@ const AuditLogTable = ({
               {logs.map(log => {
                 const isExpanded = expandedRows.has(log.id);
                 return (
-                  <Collapsible key={log.id} open={isExpanded} onOpenChange={() => toggleRow(log.id)} asChild>
-                    <>
-                      <CollapsibleTrigger asChild>
-                        <TableRow className="cursor-pointer hover:bg-muted/50">
-                          <TableCell><Button variant="ghost" size="icon" className="h-6 w-6" aria-label={isExpanded ? 'طي' : 'توسيع'}>{isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}</Button></TableCell>
-                          <TableCell className="text-sm">{fmtDateTime(log.created_at)}</TableCell>
-                          <TableCell>{getTableNameAr(log.table_name)}</TableCell>
-                          <TableCell><Badge className={operationColor(log.operation)} variant="outline">{getOperationNameAr(log.operation)}</Badge></TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{getSummary(log)}</TableCell>
-                        </TableRow>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent asChild>
-                        <tr><td colSpan={5} className="bg-muted/30 p-4 border-b"><DataDiff oldData={log.old_data as Record<string, unknown> | null} newData={log.new_data as Record<string, unknown> | null} operation={log.operation} /></td></tr>
-                      </CollapsibleContent>
-                    </>
-                  </Collapsible>
+                  <Fragment key={log.id}>
+                    <TableRow
+                      data-state={isExpanded ? 'open' : 'closed'}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => toggleRow(log.id)}
+                    >
+                      <TableCell><Button variant="ghost" size="icon" className="h-6 w-6" aria-label={isExpanded ? 'طي' : 'توسيع'} aria-expanded={isExpanded}>{isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}</Button></TableCell>
+                      <TableCell className="text-sm">{fmtDateTime(log.created_at)}</TableCell>
+                      <TableCell>{getTableNameAr(log.table_name)}</TableCell>
+                      <TableCell><Badge className={operationColor(log.operation)} variant="outline">{getOperationNameAr(log.operation)}</Badge></TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{getSummary(log)}</TableCell>
+                    </TableRow>
+                    {isExpanded && (
+                      <tr><td colSpan={5} className="bg-muted/30 p-4 border-b"><DataDiff oldData={log.old_data as Record<string, unknown> | null} newData={log.new_data as Record<string, unknown> | null} operation={log.operation} /></td></tr>
+                    )}
+                  </Fragment>
                 );
               })}
             </TableBody>
