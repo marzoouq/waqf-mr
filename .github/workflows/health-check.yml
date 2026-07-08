@@ -16,8 +16,15 @@ jobs:
     steps:
       - name: Ping health-check function
         id: ping
+        env:
+          SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
         run: |
-          URL="https://nuzdeamtujezrsxbvpfi.supabase.co/functions/v1/health-check"
+          if [ -z "$SUPABASE_PROJECT_URL" ]; then
+            echo "::error::السر SUPABASE_PROJECT_URL غير معرَّف — أضفه في Settings → Secrets"
+            echo "::error::المثال: https://<project-ref>.supabase.co"
+            exit 1
+          fi
+          URL="${SUPABASE_PROJECT_URL%/}/functions/v1/health-check"
           echo "Pinging $URL"
           HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" \
             -H "Content-Type: application/json" \
