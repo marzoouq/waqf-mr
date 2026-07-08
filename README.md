@@ -144,7 +144,7 @@ npm run dev
 | Lazy-loaded routes | **48 route** عبر `lazyWithRetry` |
 | GitHub Actions نشطة | **5 workflows** |
 | Database migrations | **298+ migration** (سلوك معتاد لـ Lovable Cloud) |
-| Edge Functions | **18 function** بمصادقة يدوية عبر `getUser()` (admin-manage-users, ai-assistant, auth-email-hook, beneficiary-summary, check-contract-expiry, dashboard-summary, email-admin, generate-invoice-pdf, guard-signup, health-check, lookup-national-id, process-email-queue, webauthn, zatca-onboard/renew/report/signer/xml-generator) |
+| Edge Functions | **<!-- edge-functions:count -->22<!-- /edge-functions:count --> function** بمصادقة يدوية عبر `getUser()` (<!-- edge-functions:list -->admin-manage-users, ai-assistant, auth-email-hook, beneficiary-summary, check-contract-expiry, dashboard-summary, email-admin, generate-invoice-pdf, generate-voucher-pdf, guard-signup, health-check, lookup-national-id, mcp, multi-year-summary, process-email-queue, webauthn, year-comparison-summary, zatca-onboard, zatca-renew, zatca-report, zatca-signer, zatca-xml-generator<!-- /edge-functions:list -->) |
 | RLS coverage | **100%** على الجداول الحساسة |
 
 استراتيجية الاختبارات موثّقة في `mem://testing/automated-test-suite-strategy`.

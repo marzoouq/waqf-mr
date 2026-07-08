@@ -54,7 +54,7 @@
 - تشفير تلقائي للمفاتيح الخاصة لشهادات ZATCA عبر trigger
 - تقنيع PII في العروض الآمنة عبر `CASE WHEN has_role()`
 
-### 4. أمن الوظائف الخلفية (16 Edge Function)
+### 4. أمن الوظائف الخلفية (<!-- edge-functions:count -->22<!-- /edge-functions:count --> Edge Function)
 - مصادقة يدوية عبر `getUser()` (لا `getSession()`)
 - `verify_jwt = false` مقصود — Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف
 - تقييد معدل الطلبات (Rate Limiting) على النقاط العامة

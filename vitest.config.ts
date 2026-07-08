@@ -14,18 +14,22 @@ export default defineConfig({
     maxWorkers: 4,
     minWorkers: 1,
     onConsoleLog(log) {
-      // تحذيرات Radix UI المعروفة
-      if (log.includes('Invalid prop `data-state` supplied to `React.Fragment`')) return false;
-      // تحذير useAuth خارج AuthProvider (مغطى بالموك العام)
-      if (log.includes('useAuth called outside AuthProvider')) return false;
-      // تحذيرات act() من مكونات Suspense/lazy (مغطاة بـ waitFor)
-      if (log.includes('was not wrapped in act(...)')) return false;
-      // مخرجات متوقعة من اختبارات معالجة الأخطاء
-      if (log.includes('create error:') || log.includes('delete error:')) return false;
-      if (log.includes('[ProtectedRoute]')) return false;
-      if (log.includes('فشل فحص الجهاز الجديد')) return false;
-      if (log.includes('[App Error]')) return false;
-      if (log.includes('Tenant payment error')) return false;
+      // كل نمط مبرَّر — لا تضف نمطاً بدون سبب موثَّق.
+      // إن ظهر log فيه /error/i لا يطابق أياً منها، لن يُكبَت (يفشل CI عند regression).
+      const ALLOWED: Array<{ pattern: RegExp; reason: string }> = [
+        { pattern: /Invalid prop `data-state` supplied to `React\.Fragment`/, reason: 'Radix UI warning معروف' },
+        { pattern: /useAuth called outside AuthProvider/, reason: 'موك عام يوفّر useAuth افتراضياً' },
+        { pattern: /was not wrapped in act\(\.\.\.\)/, reason: 'Suspense/lazy مغطى بـ waitFor' },
+        { pattern: /^create error:|^delete error:/, reason: 'اختبارات معالجة أخطاء CRUD متوقّعة' },
+        { pattern: /\[ProtectedRoute\]/, reason: 'مخرجات متوقّعة من اختبارات التوجيه' },
+        { pattern: /فشل فحص الجهاز الجديد/, reason: 'اختبار WebAuthn فشل متعمَّد' },
+      ];
+      for (const { pattern } of ALLOWED) {
+        if (pattern.test(log)) return false;
+      }
+      // أي رسالة أخرى — بما فيها [App Error]/Tenant payment error — تُظهَر.
+      // إن كان مطلوباً كبتها في اختبار محدد، استخدم vi.spyOn(console, 'error') داخل الاختبار نفسه.
+      return undefined;
     },
     coverage: {
       provider: "v8",
