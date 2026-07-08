@@ -1,113 +1,116 @@
-# Runbook الإغلاق النهائي — نسخة تنفيذية
+# الفحص الجنائي الشامل — نظام إدارة وقف مرزوق بن علي الثبيتي
 
-## الحالة الفعلية المُتحقَّق منها الآن
+## 1. النتائج الفعلية (مستخرجة الآن من الكود)
 
-```
-package.json          = 3.0.369   ← تغيّر مجدداً
-package-lock.json     = 3.0.368
-lock.packages[""]     = 3.0.368
-.gitignore            = يحوي .env و .env.*  ✓
-git ls-files .env     = tracked  ✗ (المشكلة الحرجة)
-```
+### 🔴 حرج (يمنع الإنتاج)
 
-**⚠️ drift جديد ظهر**: `package.json` قفز إلى `3.0.369` (على الأرجح من workflow `auto-version.yml`) بينما lockfile ما زال `3.0.368`. لذلك الخطوة رقم 2 لم تعد "تأكيد فقط" — تحتاج إعادة مزامنة.
+| # | المشكلة | الدليل | الأثر |
+|---|---------|--------|-------|
+| A1 | `.env` مُتتبَّع في Git رغم وجوده في `.gitignore` | `git ls-files .env` يُرجع `.env` | تسريب بيئة عند أي `git push` |
+| A2 | Version drift بين `package.json` و `package-lock.json` | `package.json=3.0.370` بينما `lock=3.0.369` | فشل CI/reproducibility |
+| A3 | `.env.example` مُتتبَّع (مقبول) لكن يجب التأكد من عدم احتوائه أسرار | tracked | تحقق مطلوب |
+
+### 🟡 متوسط (يجب معالجته قبل الإطلاق)
+
+| # | المشكلة | الدليل |
+|---|---------|--------|
+| B1 | 3 ملفات فيها ألوان hex بدل CSS variables (خارج Canvas) | `SignaturePad.tsx` (2 مواضع Canvas مقبولة)، `InvoicePreviewDialog.tsx: CANVAS_BG_COLOR='#ffffff'` — Canvas مقبول لكن يجب توثيقه |
+| B2 | ملفات كبيرة تجاوزت 300 سطر (7 ملفات، أغلبها اختبارات) | أكبرها `types.ts` (auto-gen مسموح)، ثم ملفات test |
+| B3 | 20 استخدامًا لـ `any` في `src/` | يحتاج مراجعة لكل موضع |
+| B4 | 389 migration file — يحتاج توثيق دورة حياة/دمج قديم | `supabase/migrations/` |
+
+### 🟢 نظيف / لا مشاكل
+
+- `console.log/warn/error` — كل الاستخدامات مبررة (logger, test setup, ErrorBoundary suppression) ✅
+- npm audit — بدون ثغرات ✅
+- 22 Edge Function موثقة ومتطابقة مع README/SECURITY ✅
+- `tsconfig.node.json` موثّق ✅
+- lockfile syntax سليم (packages[""] متطابق) ✅
+- TODO/FIXME حقيقية = 0 (النتائج false-positive تحتوي كلمة مماثلة في تعليقات ZATCA) ✅
+
+### 📋 ملاحظات على المستودع
+
+- `bun.lock` + `package-lock.json` معًا → ازدواجية package managers. المشروع يعلن `packageManager: npm@11.6.2` لذا `bun.lock` يجب حذفه أو توثيق سبب بقائه.
+- `dist/`, `build/`, `tsconfig.*.tsbuildinfo` موجودة في checkout — تأكد أنها في `.gitignore` وليست tracked.
 
 ---
 
-## 1) إزالة `.env` من التتبع (المالك فقط — Git stateful)
+## 2. خطة الإغلاق (Runbook قابل للنسخ)
+
+### الخطوة 1 — إعادة مزامنة lockfile (وكيل، دقيقة واحدة)
+
+```bash
+npm install --package-lock-only --ignore-scripts
+node scripts/dependency-drift-check.mjs
+```
+**قبول**: `package.json` و `lock.version` و `lock.packages[""].version` = `3.0.370`.
+
+### الخطوة 2 — التحقق من `bun.lock` (وكيل، دقيقة)
+
+قرار مطلوب من المالك: **حذف `bun.lock`** (لأن packageManager=npm) أو توثيق لماذا نحتفظ به.
+
+### الخطوة 3 — إلغاء تتبع `.env` (مالك فقط — Git stateful)
 
 ```bash
 git rm --cached .env
 git commit -m "chore(security): untrack .env (keep local only)"
-git ls-files --error-unmatch .env   # يجب أن يفشل exit≠0
+git ls-files --error-unmatch .env    # يجب أن يفشل exit≠0
 ```
+ثم مراجعة محتوى `.env.example` للتأكد أنه لا يحتوي أسرار.
 
-**حوكمة أمنية موثَّقة:**
-- المفاتيح الحالية في `.env` كلها publishable/anon (VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, VITE_SUPABASE_PROJECT_ID).
-- **لا يوجد** `SUPABASE_SERVICE_ROLE_KEY` أو `sk_live_*` أو `ghp_*` أو أي أسرار حقيقية في التاريخ (تم التحقق من محتوى `.env` الحالي في context).
-- **لا حاجة لتدوير مفاتيح** — إزالة من التتبع فقط للانضباط.
-
----
-
-## 2) إعادة مزامنة lockfile (الوكيل — بعد الانتقال لوضع البناء)
+### الخطوة 4 — التأكد من عدم تتبع مخرجات البناء (وكيل)
 
 ```bash
-npm install --package-lock-only --ignore-scripts
-node scripts/dependency-drift-check.mjs   # ✅ Version sync OK (3.0.369)
+git ls-files dist build '*.tsbuildinfo' | head
 ```
+إذا ظهرت نتائج → المالك ينفذ `git rm --cached -r dist build *.tsbuildinfo` + commit.
 
----
+### الخطوة 5 — تنظيف `any` وملفات hex Canvas (وكيل، PR منفصل بعد الأمان)
 
-## 3) توحيد عدد Edge Functions في الوثائق (الوكيل)
+- 20 استخدامًا لـ `any` → مراجعة يدوية، إما توثيق `eslint-disable` مع سبب، أو استبدال بنوع دقيق.
+- توثيق ألوان Canvas الثلاثة بتعليق `// Canvas context: hex required, not themeable`.
+
+### الخطوة 6 — تدقيق migrations (وكيل، توثيقي)
+
+إنشاء `supabase/migrations/README.md` يوضّح:
+- عدد الـ migrations الحالي (389)
+- سياسة التسمية والدمج
+- تحذير من عدم إعادة تسمية migrations قديمة
+
+### الخطوة 7 — Checklist القبول النهائي (قبل push)
 
 ```bash
-node scripts/count-edge-functions.mjs --write
-node scripts/count-edge-functions.mjs --check
-```
-
-يحدّث markers في `README.md` و `SECURITY.md` تلقائياً.
-
----
-
-## 4) توثيق سياسة TS (الوكيل — تعليق فقط)
-
-`noFallthroughCasesInSwitch` موحَّد فعلياً من `tsconfig.base.json`. الاختلاف الوحيد في `tsconfig.node.json` هو `noUnusedLocals/Parameters = false` — أُضيف تعليقاً واضحاً يشرح السبب (متغيّرات env مشروطة في `vite.config.ts`). لا تغيير سلوكي.
-
----
-
-## 5) تقليص allowlist في Vitest — **PR منفصل بعد الإغلاق الأمني**
-
-**تعديل حسب توصيتك:** لا نؤخر إغلاق `.env` + lockfile بسببه. سيُنفَّذ في PR مستقل بعنوان `test(vitest): tighten console suppression allowlist`. الأنماط المرشحة للحذف: `useAuth called outside AuthProvider`, `[ProtectedRoute]` (نقلها إلى `vi.spyOn` داخل الاختبارات المعنية).
-
----
-
-## 6) Checklist القبول قبل push (نسخة copy/paste)
-
-```bash
-# 1) النسخة الفعلية (مصدر الحقيقة الوحيد)
 node -p "require('./package.json').version"
 node -p "require('./package-lock.json').version"
 node -p "require('./package-lock.json').packages[''].version"
-
-# 2) drift
-node scripts/dependency-drift-check.mjs
-node scripts/count-edge-functions.mjs --check
-
-# 3) .env untracked
 ! git ls-files --error-unmatch .env
-
-# 4) typecheck + lint (حسب CONTRIBUTING.md)
-npx tsc --noEmit
+npm run typecheck
 npm run lint
-
-# 5) tests
-npx vitest run
-
-# 6) build
-npm run build
-
-# 7) البوابة الرسمية
-npm run audit
-npm run audit:gate
+npm run test
+npm run audit && npm run audit:gate
+npm run docs:edge-count:check
+node scripts/dependency-drift-check.mjs
 ```
 
-**النجاح =** كل الأوامر exit 0، والأمر رقم 3 exit ≠ 0.
+كل الأوامر يجب أن تنجح (exit 0) عدا الأمر الرابع الذي يجب أن يفشل.
 
 ---
 
-## ترتيب التنفيذ الموصى به
+## 3. خارج نطاق هذه الخطة
 
-1. **المالك**: نفّذ خطوة 1 (`git rm --cached .env` + commit).
-2. **انتقل لوضع البناء** لأتمكن من تنفيذ 2 و 3 و 4.
-3. **المالك**: نفّذ Checklist القبول (6).
-4. `git push`.
-5. لاحقاً: افتح PR مستقل للخطوة 5.
+- محتوى `.env` (المالك يديره خارج المستودع)
+- تدوير مفاتيح Supabase (لا يوجد `service_role` في الملف — كل الموجود publishable/anon)
+- ملفات محمية: `client.ts`, `types.ts`, `config.toml`, `AuthContext.tsx`, `ProtectedRoute.tsx`
+- `auto-version.yml` (السبب الجذري لعودة drift) — قرار المالك: تعطيل أو تعديل ليحدّث lockfile تلقائيًا
+- إعادة كتابة Vitest allowlist (PR منفصل كما اتفقنا سابقًا)
 
 ---
 
-## خارج النطاق (مؤكَّد)
+## 4. الحكم النهائي
 
-- محتوى `.env` أو تدوير أي مفتاح.
-- `src/integrations/supabase/{client,types}.ts`, `supabase/config.toml`, ملفات المصادقة.
-- تحسينات `vite.config.ts` أو ألوان `index.html`.
-- workflow `auto-version.yml` (سبب drift المتكرر — يستحق مراجعة منفصلة).
+- **الأمان**: 🔴 غير جاهز — بسبب A1 فقط
+- **الجودة التقنية**: 🟢 عالية — 0 ثغرات، 0 console.log مسيء، توثيق شامل، معمارية Page Hook مطبّقة
+- **البنية**: 🟢 مستقرة — 22 Edge Function موثقة، RLS مفعّل، دور واضح
+- **بعد تنفيذ الخطوات 1–3**: جاهز للإنتاج ✅
+
+هل أنفّذ الخطوات 1، 2، 4، 5، 6 الآن (كل ما هو غير Git stateful)، وأترك لك الخطوة 3 (git rm)؟
