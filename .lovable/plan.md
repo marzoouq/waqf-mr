@@ -1,43 +1,55 @@
-# إكمال الخطة — إصلاح فشل build
+## حالة خطة تدقيق main
 
-## سبب الفشل
+## نتيجة التحقق الحالية
 
-بعد استخراج `build/chunks.ts` و`build/pwa-runtime-caching.ts` وربطهما بـ `vite.config.ts`، فشل `vite build` أثناء تحميل ملف الإعداد:
+- تم إصلاح فشل تحميل إعداد Vite بإزالة اعتماد `vite.config.ts` على استيراد ملفات `build/*.ts` أثناء build.
+- تم إصلاح عدم تطابق الإصدار: `package.json` و`package-lock.json` متطابقان الآن على `3.0.367`.
+- `.gitignore` يمنع `.env` و`.env.*` ويسمح فقط بـ `.env.example`.
+- ما زال `.env` متعقّباً في Git حسب `git ls-files`، وهذا يتطلب إزالة من فهرس Git بدون قراءة أو تعديل محتواه.
 
+## ما تم تنفيذه
+
+### 1) إصلاح build
+
+- `vite.config.ts` لم يعد يحتوي على:
+  - `./build/chunks.ts`
+  - `./build/pwa-runtime-caching.ts`
+- تم إبقاء منطق manual chunks وruntime caching داخل إعداد Vite لتفادي فشل resolve في بيئة الإنتاج.
+
+### 2) إصلاح version drift
+
+- تم تشغيل `npm install --package-lock-only --ignore-scripts`.
+- أصبحت القيم التالية متطابقة:
+  - `package.json`: `3.0.367`
+  - `package-lock.json`: `3.0.367`
+  - `package-lock.json packages[""].version`: `3.0.367`
+
+## المتبقي خارج تعديل الملفات
+
+### إزالة `.env` من التتبع
+
+الملف `.env` محمي ولا يجب قراءة أو تعديل محتواه داخل المشروع. الإجراء الصحيح على Git هو:
+
+```bash
+git rm --cached .env
 ```
-vite.config.ts:9:32: ERROR: Could not resolve "./build/chunks"
-vite.config.ts:10:36: ERROR: Could not resolve "./build/pwa-runtime-caching"
+
+ثم التحقق:
+
+```bash
+git ls-files --error-unmatch .env
 ```
 
-الملفات موجودة فعلاً في `build/`، لكن esbuild — الذي يستخدمه Vite لتحميل ملف الإعداد — لا يجرّب `.ts` تلقائياً عند bundling ملف config خارج مسارات `include` في `tsconfig.node.json` (الذي يشمل `vite.config.ts` فقط).
+يجب أن يفشل الأمر الثاني، وهذا يعني أن الملف لم يعد متعقّباً.
 
-## الإصلاح (تعديل واحد + توسيع include)
+## التحقق المطلوب
 
-### 1) `vite.config.ts`
-تحديث الاستيرادات لتستخدم امتداد `.ts` صراحةً (مدعوم بـ `allowImportingTsExtensions: true` الموروث من الأساس):
+1. `node scripts/dependency-drift-check.mjs` — يجب أن ينجح.
+2. `npm run build` — يجب أن ينجح.
+3. `git ls-files --error-unmatch .env` — يجب أن يفشل بعد تنفيذ `git rm --cached .env` خارج هذه البيئة.
 
-```ts
-import { getManualChunks } from "./build/chunks.ts";
-import { PWA_RUNTIME_CACHING } from "./build/pwa-runtime-caching.ts";
-```
+## خارج النطاق
 
-### 2) `tsconfig.node.json`
-توسيع `include` ليغطي مساعدات build حتى يفحصها `tsgo`:
-
-```json
-"include": ["vite.config.ts", "build/**/*.ts"]
-```
-
-## التحقق (بعد تطبيق الإصلاح)
-
-1. `npx tsgo --noEmit` — يجب أن ينجح بدون أخطاء.
-2. `npm run build` — لا فشل في تحميل الإعداد؛ خرج البناء طبيعي.
-3. `npx vitest run src/test/build-chunks.test.ts` — snapshot يمر (لا تغيير في `build/chunks.ts` ذاته).
-4. `node scripts/dependency-drift-check.mjs` — ✅ 3.0.364 = 3.0.364.
-5. `node scripts/count-edge-functions.mjs --check` — ✅ 22 = 22.
-
-## خارج نطاق هذا الإصلاح
-
-- لا تغيير على منطق `getManualChunks` ولا `PWA_RUNTIME_CACHING`.
-- لا تغيير على `tsconfig.base.json` / `tsconfig.app.json` (الفحص السابق مرّ بها).
-- لا تغيير على أي ملف تطبيق (`src/**`).
+- لا تعديل على ملفات المصادقة أو صلاحيات المستخدمين.
+- لا تعديل على `tsconfig.app.json` أو `tsconfig.node.json` بخصوص `noFallthroughCasesInSwitch` لأن القيمة موحدة من `tsconfig.base.json`.
+- لا تغيير على محتوى `.env` أو قراءة أسراره.
