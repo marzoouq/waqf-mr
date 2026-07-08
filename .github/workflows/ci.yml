@@ -41,15 +41,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Block tracked secret env variants
+      - name: Block tracked .env files
         run: |
-          TRACKED_ENV=$(git ls-files | grep -E '^\.env\..+$' | grep -v '\.example$' || true)
+          TRACKED_ENV=$(git ls-files | grep -E '(^|/)\.env(\..+)?$' | grep -v '\.example$' || true)
           if [ -n "$TRACKED_ENV" ]; then
-            echo "::error::ملفات .env.* التالية متعقَّبة في git:"
+            echo "::error::ملفات .env التالية متعقَّبة في git — يجب إزالتها:"
             echo "$TRACKED_ENV"
+            echo "::error::للإصلاح: git rm --cached <file> && git commit -m 'chore(security): untrack env'"
             exit 1
           fi
-          echo "✅ لا توجد ملفات .env.* متعقَّبة"
+          echo "✅ لا توجد ملفات .env متعقَّبة"
 
       - name: Gitleaks secrets scan
         uses: gitleaks/gitleaks-action@v2
