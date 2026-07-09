@@ -9,9 +9,8 @@ import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 export function useRegistrationEnabled() {
   return useQuery({
     queryKey: appSettingsKeys.registrationEnabled(),
-    queryFn: async ({ signal: _signal }) => {
-      const { data } = await supabase
-        .from('app_settings')
+    queryFn: async ({ signal }) => {
+      const { data } = await supabase.from('app_settings').abortSignal(signal)
         .select('value')
         .eq('key', 'registration_enabled')
         .maybeSingle();

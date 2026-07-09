@@ -4,6 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
+import { STALE_AUDIT } from '@/lib/queryStaleTime';
 
 export interface ZatcaLogEntry {
   id: string;
@@ -20,9 +21,8 @@ export interface ZatcaLogEntry {
 export const useZatcaOperationLog = () => {
   return useQuery({
     queryKey: zatcaKeys.operationLog(),
-    queryFn: async ({ signal: _signal }) => {
-      const { data, error } = await supabase
-        .from('zatca_operation_log')
+    queryFn: async ({ signal }) => {
+      const { data, error } = await supabase.from('zatca_operation_log').abortSignal(signal)
         .select('id, operation_type, invoice_id, status, error_message, request_summary, response_summary, user_id, created_at')
         .order('created_at', { ascending: false })
         .limit(50);
@@ -32,5 +32,6 @@ export const useZatcaOperationLog = () => {
     refetchInterval: 30000,
     // #4 perf: لا تجلب في الخلفية — يوفر 120 طلب/ساعة لكل تبويب غير مرئي
     refetchIntervalInBackground: false,
+    staleTime: STALE_AUDIT,
   });
 };

@@ -21,9 +21,8 @@ export const useClientErrors = () => {
   return useQuery({
     queryKey: auditKeys.clientErrors,
     staleTime: STALE_AUDIT,
-    queryFn: async ({ signal: _signal }) => {
-      const { data, error } = await supabase
-        .from('access_log')
+    queryFn: async ({ signal }) => {
+      const { data, error } = await supabase.from('access_log').abortSignal(signal)
         .select('id, event_type, target_path, metadata, created_at, user_id, email')
         .eq('event_type', 'client_error')
         .order('created_at', { ascending: false })

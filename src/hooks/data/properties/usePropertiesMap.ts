@@ -12,9 +12,8 @@ export const usePropertiesMap = (propertyIds: string[]) => {
     queryKey: contractsKeys.propertiesNames(propertyIds),
     enabled: propertyIds.length > 0,
     staleTime: STALE_STATIC,
-    queryFn: async ({ signal: _signal }) => {
-      const { data } = await supabase
-        .from('properties')
+    queryFn: async ({ signal }) => {
+      const { data } = await supabase.from('properties').abortSignal(signal)
         .select('id, property_number, location')
         .in('id', propertyIds);
       const map: Record<string, string> = {};

@@ -41,9 +41,8 @@ export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
     queryKey: contractsKeys.byFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    queryFn: async ({ signal: _signal }) => {
-      let query = supabase
-        .from('contracts')
+    queryFn: async ({ signal }) => {
+      let query = supabase.from('contracts').abortSignal(signal)
         .select(CONTRACT_SELECT_WITH_JOINS)
         .order('start_date', { ascending: false });
       if (!isFyAll(fiscalYearId)) {
@@ -68,9 +67,8 @@ export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
     queryKey: contractsKeys.safeByFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    queryFn: async ({ signal: _signal }) => {
-      let query = supabase
-        .from('contracts_safe')
+    queryFn: async ({ signal }) => {
+      let query = supabase.from('contracts_safe').abortSignal(signal)
         .select('id, contract_number, tenant_name, property_id, unit_id, start_date, end_date, rent_amount, payment_type, payment_count, payment_amount, status, fiscal_year_id, created_at, updated_at, notes')
         .order('start_date', { ascending: false });
       if (!isFyAll(fiscalYearId)) {

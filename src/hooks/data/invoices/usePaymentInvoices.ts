@@ -20,9 +20,8 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
     queryKey: invoicesKeys.paymentsByFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    queryFn: async ({ signal: _signal }) => {
-      let query = supabase
-        .from('payment_invoices')
+    queryFn: async ({ signal }) => {
+      let query = supabase.from('payment_invoices').abortSignal(signal)
         .select('id, contract_id, fiscal_year_id, invoice_number, payment_number, due_date, amount, status, paid_date, paid_amount, notes, vat_rate, vat_amount, zatca_uuid, zatca_status, file_path, created_at, updated_at, contract:contracts(contract_number, tenant_name, property_id, payment_count, status, property:properties(property_number))')
         .order('due_date', { ascending: true })
         .limit(PER_FY_LIMIT);
@@ -114,8 +113,7 @@ export const useDeleteContractPendingInvoices = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (contractId: string) => {
-      const { data, error } = await supabase
-        .from('payment_invoices')
+      const { data, error } = await supabase.from('payment_invoices').abortSignal(signal)
         .delete()
         .eq('contract_id', contractId)
         .eq('status', 'pending')
@@ -148,8 +146,7 @@ export const useContractInvoiceSummary = (contractId: string | null | undefined)
  * مثل تعديل/حذف العقد حيث لا نحتاج اشتراك مكوّن.
  */
 export async function fetchContractInvoiceSummary(contractId: string) {
-  const { data, error } = await supabase
-    .from('payment_invoices')
+  const { data, error } = await supabase.from('payment_invoices').abortSignal(signal)
     .select('status')
     .eq('contract_id', contractId);
   if (error) throw error;

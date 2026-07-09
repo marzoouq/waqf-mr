@@ -27,10 +27,9 @@ export const useDistributionHistory = (beneficiaryId: string) => {
     queryKey: beneficiariesKeys.distributionHistory(beneficiaryId),
     staleTime: STALE_FINANCIAL,
     enabled: !!beneficiaryId,
-    queryFn: async ({ signal: _signal }) => {
+    queryFn: async ({ signal }) => {
       // left join — لا يُخفي توزيعات بدون حساب (#27)
-      const { data, error } = await supabase
-        .from('distributions')
+      const { data, error } = await supabase.from('distributions').abortSignal(signal)
         .select('amount, date, status, account_id, accounts(fiscal_year)')
         .eq('beneficiary_id', beneficiaryId)
         .order('date', { ascending: false });

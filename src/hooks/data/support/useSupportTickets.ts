@@ -32,12 +32,11 @@ export const useSupportTickets = (statusFilter?: string, page = 1, pageSize = 20
   return useQuery({
     queryKey: supportKeys.tickets.list(statusFilter, page, pageSize),
     staleTime: STALE_REALTIME,
-    queryFn: async ({ signal: _signal }) => {
+    queryFn: async ({ signal }) => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
-      let query = supabase
-        .from('support_tickets')
+      let query = supabase.from('support_tickets').abortSignal(signal)
         .select(TICKET_SELECT, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
@@ -61,9 +60,8 @@ export const useTicketReplies = (ticketId?: string) => {
     queryKey: supportKeys.replies.byTicket(ticketId),
     staleTime: STALE_LIVE,
     enabled: !!ticketId,
-    queryFn: async ({ signal: _signal }) => {
-      const { data, error } = await supabase
-        .from('support_ticket_replies')
+    queryFn: async ({ signal }) => {
+      const { data, error } = await supabase.from('support_ticket_replies').abortSignal(signal)
         .select('id, ticket_id, sender_id, content, is_internal, created_at')
         .eq('ticket_id', ticketId!)
         .order('created_at', { ascending: true })

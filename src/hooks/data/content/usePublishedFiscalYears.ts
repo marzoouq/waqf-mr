@@ -4,17 +4,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { fiscalYearKeys } from '@/lib/queryKeys/fiscalYearKeys';
+import { STALE_STATIC } from '@/lib/queryStaleTime';
 
 export const usePublishedFiscalYears = () => {
   return useQuery({
     queryKey: fiscalYearKeys.publishedAll(),
-    queryFn: async ({ signal: _signal }) => {
+    queryFn: async ({ signal }) => {
       const { data } = await supabase
         .from('fiscal_years')
         .select('id, label')
         .eq('published', true)
-        .order('start_date', { ascending: false });
+        .order('start_date', { ascending: false })
+        .abortSignal(signal);
       return data ?? [];
     },
+    staleTime: STALE_STATIC,
   });
 };

@@ -44,7 +44,7 @@ export function useYearComparisonData(year1Id: string, year2Id: string) {
     enabled,
     staleTime: STALE_FINANCIAL,
     gcTime: 5 * 60_000,
-    queryFn: async ({ signal: _signal }) => {
+    queryFn: async ({ signal }) => {
       const result = await invoke<ComparisonRpcResult>('year-comparison-summary', {
         body: { year1_id: year1Id, year2_id: year2Id },
       });
