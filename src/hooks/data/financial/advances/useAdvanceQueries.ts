@@ -28,14 +28,12 @@ export const useMyBeneficiaryFinanceRaw = (beneficiaryId?: string) => {
       if (!beneficiaryId) return { advances: [], carryforwards: [] };
 
       const [advRes, cfRes] = await Promise.all([
-        supabase
-          .from('advance_requests')
+        supabase.from('advance_requests').abortSignal(signal)
           .select('id, beneficiary_id, fiscal_year_id, amount, reason, status, rejection_reason, approved_by, approved_at, paid_at, created_at')
           .eq('beneficiary_id', beneficiaryId)
           .order('created_at', { ascending: false })
           .limit(100),
-        supabase
-          .from('advance_carryforward')
+        supabase.from('advance_carryforward').abortSignal(signal)
           .select('id, beneficiary_id, from_fiscal_year_id, to_fiscal_year_id, amount, status, notes, created_at')
           .eq('beneficiary_id', beneficiaryId)
           .order('created_at', { ascending: false })
@@ -67,9 +65,8 @@ export const useAllCarryforwards = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: advancesKeys.carryforwardAll(fiscalYearId),
     staleTime: STALE_REALTIME,
-    queryFn: async ({ signal: _signal }) => {
-      let query = supabase
-        .from('advance_carryforward')
+    queryFn: async ({ signal }) => {
+      let query = supabase.from('advance_carryforward').abortSignal(signal)
         .select('*, beneficiary:beneficiaries(id, name)')
         .eq('status', 'active');
       if (fiscalYearId) {

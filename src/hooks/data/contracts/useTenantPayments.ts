@@ -36,9 +36,8 @@ interface UpsertPaymentParams {
 export const useTenantPayments = () => {
   return useQuery({
     queryKey: contractsKeys.tenantPayments(),
-    queryFn: async ({ signal: _signal }) => {
-      const { data, error } = await supabase
-        .from('tenant_payments')
+    queryFn: async ({ signal }) => {
+      const { data, error } = await supabase.from('tenant_payments').abortSignal(signal)
         .select('id, contract_id, paid_months, notes, created_at, updated_at')
         .limit(500);
       if (error) throw error;

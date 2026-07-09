@@ -42,7 +42,7 @@ export function useDashboardPrefetch({ fiscalYearId, fiscalYears }: UseDashboard
       // مفتاح موحّد عبر dashboardKeys — يعتمد على fiscalYearId فقط
       // (label تم استبعاده لمنع double-invalidation — انظر dashboardKeys.ts)
       queryKey: dashboardKeys.summary(fiscalYearId),
-      queryFn: async ({ signal: _signal }) => {
+      queryFn: async ({ signal }) => {
         if (controller.signal.aborted) throw new Error('aborted');
         // ملاحظة: invoke() لا يدعم signal فعلياً (Supabase SDK v2 لا يلغي النقل)
         // لذا نُبقي فحوص aborted يدوياً قبل/بعد لمنع تلويث الكاش عند تغيير سريع للسنة.

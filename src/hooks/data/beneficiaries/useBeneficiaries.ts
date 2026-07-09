@@ -49,7 +49,7 @@ export const useBeneficiariesDecrypted = () => {
     queryKey: beneficiariesKeys.decrypted(),
     enabled: isAuthorized,
     staleTime: STALE_STATIC,
-    queryFn: async ({ signal: _signal }) => {
+    queryFn: async ({ signal }) => {
       if (!isAuthorized) return [];
       try {
         const data = await rpc<Beneficiary[]>('get_beneficiary_decrypted', {
@@ -60,8 +60,7 @@ export const useBeneficiariesDecrypted = () => {
       } catch (e) {
         // fallback to regular query if RPC fails
         logger.warn('فك التشفير غير متاح، عرض البيانات المشفرة:', e instanceof Error ? e.message : e);
-        const { data: fallback, error: fbError } = await supabase
-          .from('beneficiaries_safe')
+        const { data: fallback, error: fbError } = await supabase.from('beneficiaries_safe').abortSignal(signal)
           .select('id, name, share_percentage, email, phone, notes, user_id, created_at, updated_at')
           .order('name', { ascending: true })
           .limit(500);
@@ -77,9 +76,8 @@ export const useBeneficiariesSafe = () => {
   return useQuery({
     queryKey: beneficiariesKeys.safe(),
     staleTime: STALE_STATIC,
-    queryFn: async ({ signal: _signal }) => {
-      const { data, error } = await supabase
-        .from('beneficiaries_safe')
+    queryFn: async ({ signal }) => {
+      const { data, error } = await supabase.from('beneficiaries_safe').abortSignal(signal)
         .select('id, name, share_percentage, user_id, email, phone, national_id, bank_account, notes, created_at, updated_at')
         .order('name', { ascending: true })
         .limit(500);

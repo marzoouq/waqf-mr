@@ -22,13 +22,12 @@ export const useAuditLog = (filters?: {
 
   return useQuery({
     queryKey: auditKeys.log.list(filters, page, pageSize),
-    queryFn: async ({ signal: _signal }) => {
+    queryFn: async ({ signal }) => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
       // جلب الأعمدة الأساسية فقط — new_data/old_data ثقيلة ولا تُعرض في القائمة
-      let query = supabase
-        .from('audit_log')
+      let query = supabase.from('audit_log').abortSignal(signal)
         .select('id, table_name, operation, record_id, user_id, created_at', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
