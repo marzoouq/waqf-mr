@@ -31,7 +31,7 @@ export default function LoginMethodSelector({ loginMethod, onChange, isLoading, 
               : 'border-border hover:border-primary/30'
           } ${isLoading ? 'opacity-60 pointer-events-none' : ''}`}
         >
-          <RadioGroupItem value="email" id={`method-email${idSuffix}`} />
+          <RadioGroupItem value="email" id={`method-email${idSuffix}`} aria-label="تسجيل الدخول بالبريد الإلكتروني" />
           <Mail className="w-4 h-4" />
           <span className="text-sm">البريد الإلكتروني</span>
         </label>
