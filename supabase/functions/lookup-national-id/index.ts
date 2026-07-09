@@ -278,21 +278,22 @@ Deno.serve(async (req) => {
           return new Response(
             JSON.stringify({
               found: true,
-              masked_email: maskEmail(email),
+              masked_email: "***@***.com",
               remaining,
               auth_error: isInvalidCreds
-                ? "كلمة المرور غير صحيحة"
-                : "فشل تسجيل الدخول",
+                ? "بيانات الدخول غير صحيحة"
+                : "بيانات الدخول غير صحيحة",
             }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
-        // Auth success — return session tokens (NOT email)
+        // Auth success — return session tokens (masked email only after successful auth)
         return new Response(
           JSON.stringify({
             found: true,
             masked_email: maskEmail(email),
+
             remaining,
             session: {
               access_token: authData.access_token,
