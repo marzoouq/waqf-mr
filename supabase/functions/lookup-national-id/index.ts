@@ -278,21 +278,22 @@ Deno.serve(async (req) => {
           return new Response(
             JSON.stringify({
               found: true,
-              masked_email: maskEmail(email),
+              masked_email: "***@***.com",
               remaining,
               auth_error: isInvalidCreds
-                ? "كلمة المرور غير صحيحة"
-                : "فشل تسجيل الدخول",
+                ? "بيانات الدخول غير صحيحة"
+                : "بيانات الدخول غير صحيحة",
             }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
-        // Auth success — return session tokens (NOT email)
+        // Auth success — return session tokens (masked email only after successful auth)
         return new Response(
           JSON.stringify({
             found: true,
             masked_email: maskEmail(email),
+
             remaining,
             session: {
               access_token: authData.access_token,
@@ -307,9 +308,10 @@ Deno.serve(async (req) => {
         return new Response(
           JSON.stringify({
             found: true,
-            masked_email: maskEmail(email),
+            masked_email: "***@***.com",
             remaining,
             auth_error: "خطأ مؤقت في المصادقة",
+
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -317,10 +319,12 @@ Deno.serve(async (req) => {
     }
 
     // No password provided — return masked email only (never full email)
+    // No password provided — return placeholder (never reveal email pre-auth)
     return new Response(
-      JSON.stringify({ found: true, masked_email: maskEmail(email), remaining }),
+      JSON.stringify({ found: true, masked_email: "***@***.com", remaining }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+
   } catch {
     const corsHeaders = getCorsHeaders(req);
     return new Response(
