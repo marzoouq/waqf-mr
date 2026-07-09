@@ -1,15 +1,19 @@
 /**
  * معالجات mutations لصفحة المصروفات — مستخرجة من useExpensesPage لتقليل الحجم.
- * تحافظ على نفس السلوك (toasts عبر mutation onError + post-create voucher dialog).
+ * تدعم رفع مرفقات متعددة (فواتير) وربطها بالمصروف عبر invoices.expense_id.
  */
 import { useCallback } from 'react';
 import { uiNotify } from '@/lib/notify';
+import { logger } from '@/lib/logger';
 import {
   validateExpenseForm,
   getExpenseFieldErrors,
   type ExpenseFieldErrors,
 } from '@/utils/financial/expenses/expenseFormValidation';
+import { uploadInvoiceFile } from '@/hooks/data/invoices/useInvoiceFileUtils';
+import { mapExpenseTypeToInvoiceType } from '@/utils/financial/expenses/expenseInvoiceTypeMap';
 import type { Expense } from '@/types';
+import type { StagedFile } from '@/hooks/ui/useMultipleFilesUpload';
 
 type ExpenseFormState = {
   expense_type: string;
@@ -32,6 +36,9 @@ interface Params {
   createExpense: { mutateAsync: (data: unknown) => Promise<{ id?: string } | undefined> };
   updateExpense: { mutateAsync: (data: unknown) => Promise<unknown> };
   deleteExpense: { mutateAsync: (id: string) => Promise<unknown> };
+  createInvoice: { mutateAsync: (data: unknown) => Promise<unknown> };
+  stagedFiles: StagedFile[];
+  resetStagedFiles: () => void;
   setErrors: (errors: ExpenseFieldErrors) => void;
   setIsOpen: (open: boolean) => void;
   resetForm: () => void;
@@ -40,11 +47,59 @@ interface Params {
   setPostCreateVoucherFor: (v: PostCreateVoucher | null) => void;
 }
 
+/**
+ * يرفع الملفات المُحضَّرة وينشئ سجل فاتورة لكل واحد مربوطاً بـ expense_id.
+ * يستخدم Promise.allSettled لعدم إيقاف البقية عند فشل ملف واحد.
+ * @returns عدد الملفات التي فشلت
+ */
+async function attachFilesToExpense(params: {
+  files: StagedFile[];
+  expenseId: string;
+  expenseType: string;
+  amount: number;
+  date: string;
+  propertyId: string | null;
+  fiscalYearId: string;
+  description: string | null;
+  createInvoice: { mutateAsync: (data: unknown) => Promise<unknown> };
+}): Promise<number> {
+  const { files, expenseId, expenseType, amount, date, propertyId, fiscalYearId, description, createInvoice } = params;
+  if (files.length === 0) return 0;
+
+  const invoiceType = mapExpenseTypeToInvoiceType(expenseType);
+  const results = await Promise.allSettled(
+    files.map(async (sf) => {
+      const { path, name } = await uploadInvoiceFile(sf.file);
+      await createInvoice.mutateAsync({
+        expense_id: expenseId,
+        invoice_type: invoiceType,
+        amount,
+        date,
+        property_id: propertyId,
+        fiscal_year_id: fiscalYearId,
+        status: 'paid',
+        file_path: path,
+        file_name: name,
+        description,
+        vat_rate: 0,
+        vat_amount: 0,
+      });
+    })
+  );
+
+  const failed = results.filter((r) => r.status === 'rejected');
+  failed.forEach((r) => {
+    if (r.status === 'rejected') logger.error('Attach invoice to expense failed', r.reason);
+  });
+  return failed.length;
+}
+
 export function useExpensesMutations(params: Params) {
   const {
     formData, editingExpense, fiscalYear,
     expensesCount, currentPage, itemsPerPage, deleteTarget,
-    createExpense, updateExpense, deleteExpense,
+    createExpense, updateExpense, deleteExpense, createInvoice,
+    stagedFiles, resetStagedFiles,
     setErrors, setIsOpen, resetForm, setDeleteTarget, setCurrentPage, setPostCreateVoucherFor,
   } = params;
 
@@ -66,26 +121,61 @@ export function useExpensesMutations(params: Params) {
       }
       expenseData.fiscal_year_id = fiscalYear.id;
     }
+
+    const activeFiscalYearId = editingExpense
+      ? (editingExpense.fiscal_year_id as string)
+      : fiscalYear?.id;
+
     try {
+      let expenseId: string | undefined;
       if (editingExpense) {
         await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData });
+        expenseId = editingExpense.id;
       } else {
         const created = await createExpense.mutateAsync(expenseData);
-        if (created?.id) {
-          setPostCreateVoucherFor({
-            id: created.id,
-            amount,
-            description: result.data.description || result.data.expense_type,
-          });
+        expenseId = created?.id;
+      }
+
+      // رفع المرفقات (إن وُجدت)
+      let failedCount = 0;
+      if (expenseId && stagedFiles.length > 0 && activeFiscalYearId) {
+        failedCount = await attachFilesToExpense({
+          files: stagedFiles,
+          expenseId,
+          expenseType: result.data.expense_type,
+          amount,
+          date: result.data.date,
+          propertyId: result.data.property_id || null,
+          fiscalYearId: activeFiscalYearId,
+          description: result.data.description || null,
+          createInvoice,
+        });
+        const uploaded = stagedFiles.length - failedCount;
+        if (failedCount > 0) {
+          uiNotify.error(`تم رفع ${uploaded} من ${stagedFiles.length} مرفق — فشل ${failedCount}`);
+        } else if (uploaded > 0) {
+          uiNotify.success(`تم إرفاق ${uploaded} فاتورة بالمصروف`);
         }
       }
+
+      // فتح نافذة سند صرف بعد إنشاء مصروف جديد فقط
+      if (!editingExpense && expenseId) {
+        setPostCreateVoucherFor({
+          id: expenseId,
+          amount,
+          description: result.data.description || result.data.expense_type,
+        });
+      }
+
+      resetStagedFiles();
       setIsOpen(false);
       resetForm();
     } catch {
       // onError on mutation already surfaces toast
     }
   }, [
-    formData, editingExpense, fiscalYear, createExpense, updateExpense,
+    formData, editingExpense, fiscalYear, createExpense, updateExpense, createInvoice,
+    stagedFiles, resetStagedFiles,
     setErrors, setIsOpen, resetForm, setPostCreateVoucherFor,
   ]);
 
