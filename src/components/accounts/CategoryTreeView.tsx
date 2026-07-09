@@ -60,6 +60,7 @@ export function CategoryRow({
           checked={node.is_active}
           onCheckedChange={(v) => onToggle(node.id, v)}
           className="scale-75"
+          aria-label={node.is_active ? `تعطيل ${node.name}` : `تفعيل ${node.name}`}
         />
         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(node)} aria-label="تعديل الفئة">
           <Pencil className="w-3.5 h-3.5" />

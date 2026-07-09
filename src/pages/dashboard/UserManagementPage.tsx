@@ -38,7 +38,7 @@ const UserManagementPage = () => {
                 </p>
               </div>
             </div>
-            <Switch checked={mgmt.registrationEnabled} onCheckedChange={mgmt.toggleRegistration} disabled={mgmt.toggling} />
+            <Switch checked={mgmt.registrationEnabled} onCheckedChange={mgmt.toggleRegistration} disabled={mgmt.toggling} aria-label={mgmt.registrationEnabled ? 'إغلاق التسجيل العام' : 'فتح التسجيل العام'} />
           </CardContent>
         </Card>
 

@@ -66,8 +66,8 @@ const UserRow = memo(function UserRow({
           <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => onEdit(user)}><Edit className="w-3 h-3" />تعديل</Button>
           <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => onPasswordChange(user.id)}><Key className="w-3 h-3" />كلمة المرور</Button>
           {!isSelf && (
-            <Button size="sm" variant="outline" className="gap-1 text-xs text-destructive hover:text-destructive" onClick={() => onDelete({ id: user.id, email: user.email })}>
-              <Trash2 className="w-3 h-3" />
+            <Button size="sm" variant="outline" className="gap-1 text-xs text-destructive hover:text-destructive" onClick={() => onDelete({ id: user.id, email: user.email })} aria-label={`حذف المستخدم ${user.email}`}>
+              <Trash2 className="w-3 h-3" aria-hidden="true" />
             </Button>
           )}
         </div>

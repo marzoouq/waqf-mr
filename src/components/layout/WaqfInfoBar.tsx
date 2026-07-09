@@ -1,7 +1,7 @@
 /**
  * شريط معلومات الوقف — يعرض اسم الوقف مع بيانات تفصيلية عند النقر
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWaqfInfo } from '@/hooks/data/settings/app/useAppSettings';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -25,6 +25,8 @@ const WaqfInfoBar = () => {
   const { data: waqfInfo, isLoading } = useWaqfInfo();
   const { role } = useAuth();
   const [editOpen, setEditOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  useEffect(() => { setLogoError(false); }, [waqfInfo?.waqf_logo_url]);
 
   if (isLoading) {
     return (
@@ -50,11 +52,16 @@ const WaqfInfoBar = () => {
           <Popover>
             <PopoverTrigger asChild>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer group">
-                {waqfInfo.waqf_logo_url ? (
-                  <img src={waqfInfo.waqf_logo_url} alt="شعار الوقف" className="w-8 h-8 rounded-lg object-contain" />
+                {waqfInfo.waqf_logo_url && !logoError ? (
+                  <img
+                    src={waqfInfo.waqf_logo_url}
+                    alt="شعار الوقف"
+                    className="w-8 h-8 rounded-lg object-contain"
+                    onError={() => setLogoError(true)}
+                  />
                 ) : (
                   <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Building2 className="w-4 h-4 text-primary-foreground" />
+                    <Building2 className="w-4 h-4 text-primary-foreground" aria-hidden="true" />
                   </div>
                 )}
                 <span className="font-display font-bold text-sm md:text-base text-primary-foreground">
