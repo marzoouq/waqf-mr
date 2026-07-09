@@ -57,7 +57,7 @@ const ExpensesDesktopTable = ({ items, expenseInvoiceMap, expandedRow, setExpand
           const attachCount = expenseInvoiceMap.get(item.id) || 0;
           const isExpanded = expandedRow === item.id;
           const rows = [
-            <TableRow key={`${item.id}-main`} className={isExpanded ? 'border-b-0' : ''}>
+            <TableRow key={`${item.id}-main`} data-testid={`expense-row-${item.id}`} className={isExpanded ? 'border-b-0' : ''}>
               <TableCell className="p-1">
                 <Button variant="ghost" size="icon" className="w-6 h-6" onClick={() => setExpandedRow(isExpanded ? null : item.id)} aria-label={isExpanded ? 'طي' : 'توسيع'}>
                   {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -74,7 +74,7 @@ const ExpensesDesktopTable = ({ items, expenseInvoiceMap, expandedRow, setExpand
               <TableCell className="text-destructive font-medium">-{fmt(safeNumber(item.amount))} ر.س</TableCell>
               <TableCell>{item.date}</TableCell>
               <TableCell>{item.property?.property_number || '-'}</TableCell>
-              <TableCell>
+              <TableCell data-testid="attachments-count" data-count={attachCount}>
                 {attachCount > 0 ? <Badge variant="secondary" className="gap-1"><Paperclip className="w-3 h-3" />{attachCount}</Badge> : <span className="text-muted-foreground text-xs">—</span>}
               </TableCell>
               {!readOnly && (
