@@ -1,6 +1,7 @@
 /**
  * SidebarBrand — شعار/اسم الوقف وأزرار التبديل (presentational)
  */
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Building2, PanelRightOpen, PanelRightClose, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -15,14 +16,23 @@ interface SidebarBrandProps {
 
 export const SidebarBrand: React.FC<SidebarBrandProps> = ({
   waqfName, waqfLogoUrl, sidebarOpen, setSidebarOpen, setMobileSidebarOpen,
-}) => (
+}) => {
+  const [imgError, setImgError] = useState(false);
+  useEffect(() => { setImgError(false); }, [waqfLogoUrl]);
+  const showLogo = !!waqfLogoUrl && !imgError;
+  return (
   <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
     <div className={cn('flex items-center gap-3', !sidebarOpen && 'lg:justify-center')}>
       <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center shrink-0 shadow-gold overflow-hidden">
-        {waqfLogoUrl ? (
-          <img src={waqfLogoUrl} alt="شعار الوقف" className="w-full h-full object-contain rounded-xl p-0.5" />
+        {showLogo ? (
+          <img
+            src={waqfLogoUrl!}
+            alt="شعار الوقف"
+            className="w-full h-full object-contain rounded-xl p-0.5"
+            onError={() => setImgError(true)}
+          />
         ) : (
-          <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
+          <Building2 className="w-5 h-5 text-sidebar-primary-foreground" aria-hidden="true" />
         )}
       </div>
       <span className={cn('font-arabic font-bold text-lg text-sidebar-foreground truncate max-w-[150px]', !sidebarOpen && 'lg:hidden')}>
@@ -49,4 +59,5 @@ export const SidebarBrand: React.FC<SidebarBrandProps> = ({
       <X className="w-5 h-5" />
     </Button>
   </div>
-);
+  );
+};
