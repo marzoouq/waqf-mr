@@ -24,7 +24,7 @@ export const useAccessLogTab = (eventFilter: string, currentPage: number, search
   return useQuery({
     queryKey: auditKeys.accessLog.list(eventFilter, currentPage, searchQuery),
     staleTime: STALE_AUDIT,
-    queryFn: async ({ signal }) => {
+    queryFn: async () => {
       const from = (currentPage - 1) * ACCESS_LOG_ITEMS_PER_PAGE;
       let query = supabase.from('access_log')
         .select('id, event_type, email, user_id, device_info, target_path, metadata, created_at', { count: 'exact' })
@@ -53,7 +53,7 @@ export const useFailedLoginsToday = () => {
   return useQuery({
     queryKey: auditKeys.accessLog.failedToday,
     staleTime: STALE_AUDIT,
-    queryFn: async ({ signal }) => {
+    queryFn: async () => {
       const todayStr = new Date().toISOString().split('T')[0];
       const { count } = await supabase.from('access_log')
         .select('*', { count: 'exact', head: true })
@@ -68,7 +68,7 @@ export const useUnauthorizedAccessToday = () => {
   return useQuery({
     queryKey: auditKeys.accessLog.unauthorizedToday,
     staleTime: STALE_AUDIT,
-    queryFn: async ({ signal }) => {
+    queryFn: async () => {
       const todayStr = new Date().toISOString().split('T')[0];
       const { count } = await supabase.from('access_log')
         .select('*', { count: 'exact', head: true })

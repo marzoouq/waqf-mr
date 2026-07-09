@@ -19,7 +19,7 @@ export const useExpenseBudgets = (fiscalYearId: string) => {
     queryKey: financialKeys.expenses.budgets(fiscalYearId),
     enabled: !!isFySpecific(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    queryFn: async ({ signal }) => {
+    queryFn: async () => {
       const { data, error } = await supabase.from('expense_budgets')
         .select('id, fiscal_year_id, expense_type, budget_amount, created_at, updated_at')
         .eq('fiscal_year_id', fiscalYearId);

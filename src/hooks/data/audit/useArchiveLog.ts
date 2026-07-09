@@ -25,7 +25,7 @@ export const useArchiveLog = (eventFilter: string, currentPage: number, searchQu
   return useQuery({
     queryKey: auditKeys.accessLogArchive.list(eventFilter, currentPage, searchQuery),
     staleTime: STALE_AUDIT,
-    queryFn: async ({ signal }) => {
+    queryFn: async () => {
       const from = (currentPage - 1) * ARCHIVE_ITEMS_PER_PAGE;
       let query = supabase.from('access_log_archive')
         .select('id, event_type, email, user_id, device_info, target_path, metadata, created_at, archived_at', { count: 'exact' })

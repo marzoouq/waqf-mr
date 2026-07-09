@@ -22,7 +22,7 @@ export const useAuditLog = (filters?: {
 
   return useQuery({
     queryKey: auditKeys.log.list(filters, page, pageSize),
-    queryFn: async ({ signal }) => {
+    queryFn: async () => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
