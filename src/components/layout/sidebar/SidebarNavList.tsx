@@ -73,7 +73,7 @@ export const SidebarNavList: React.FC<SidebarNavListProps> = ({
   };
 
   return (
-    <nav aria-label="القائمة الرئيسية" className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+    <nav aria-label="القائمة الرئيسية" className="flex-1 py-4 space-y-1 px-2 overflow-y-auto min-h-0">
       <TooltipProvider delayDuration={0}>
         {groups.map((group, idx) => (
           <div key={group.key} className={cn(idx > 0 && 'mt-3 pt-2 border-t border-sidebar-border/40')}>

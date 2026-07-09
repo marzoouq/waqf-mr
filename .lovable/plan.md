@@ -1,103 +1,48 @@
-# خطة إصلاح تصميم لوحة الناظر (نسخة موسّعة)
+## الهدف
+إصلاح مشكلة تمدد الشريط الجانبي (Sidebar) بشكل زائد عن ارتفاع الشاشة، بحيث يمتد لآلاف البكسلات بدلاً من الالتزام بـ viewport، مع الحفاظ على ثباته أثناء التمرير.
 
-## نتائج الفحص المؤكدة
+## التشخيص
+الشريط الجانبي يستخدم `position: fixed inset-y-0` (صحيح)، لكن العنصر الداخلي `<nav>` الذي يحتوي القوائم يفتقر إلى `min-h-0`. في Flexbox، القيمة الافتراضية `min-height: auto` تمنع انكماش العنصر، فلا يعمل `overflow-y-auto` فعلياً، وبالتالي يتمدد المحتوى (22 رابط + 7 مجموعات + brand + footer) ليخترق حدود الـ aside.
 
-فحص Playwright على 10 صفحات (viewport 1440×900):
+## الخطوات التنفيذية
 
-| المسار | ارتفاع الشريط الجانبي | ارتفاع الـ viewport | صحيح؟ |
-|---|---|---|---|
-| /dashboard | 2976px | 900px | ❌ |
-| /dashboard/properties | 1344px | 900px | ❌ |
-| /dashboard/contracts | 900px | 900px | ✅ (صدفة — الصفحة قصيرة) |
-| /dashboard/income | 1176px | 900px | ❌ |
-| /dashboard/beneficiaries | 1255px | 900px | ❌ |
-| /dashboard/invoices | 900px | 900px | ✅ (صدفة) |
-| /dashboard/reports | 2441px | 900px | ❌ |
-| /dashboard/settings | 1562px | 900px | ❌ |
-| /dashboard/messages | 924px | 900px | ❌ |
-| /dashboard/audit-log | 1605px | 900px | ❌ |
-
-**7 من 10 صفحات مكسورة**. الصفحات "السليمة" سليمة صدفة فقط لأن ارتفاع محتواها ≤ viewport.
-
-## السبب الجذري (مثبت)
-
-في `src/app/root-layout.tsx` سطر 50:
-
-```jsx
-<div className="animate-page-in">
-  <Outlet />
-</div>
+### 1. إضافة `min-h-0` إلى عنصر `<nav>` في الشريط الجانبي
+**الملف:** `src/components/layout/SidebarNavList.tsx`  
+**السطر:** ~76  
+**التعديل:** إضافة `min-h-0` إلى قائمة CSS classes الخاصة بـ `<nav>`:
 ```
-
-في `src/index.css` سطر 406-422:
-
-```css
-.animate-page-in { animation: pageIn 0.22s cubic-bezier(...) both; }
-@keyframes pageIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+flex-1 py-4 space-y-1 px-2 overflow-y-auto min-h-0
 ```
+**النتيجة:** السماح للـ `<nav>` بالانكماش داخل الـ flex container، مما يفعّل `overflow-y-auto` ويظهر شريط التمرير الداخلي عند الحاجة.
 
-بسبب `animation-fill-mode: both`، تبقى `transform: translateY(0)` مطبقة إلى الأبد بعد الحركة. طبقاً لمواصفة CSS، **أي قيمة transform غير `none` تُنشئ containing block جديد** لكل الأحفاد ذوي `position: fixed` — فيتحول `inset-y-0` من "احتلال كامل الـ viewport" إلى "احتلال كامل ارتفاع الحاوية المتحوّلة" (= طول الصفحة كاملاً).
+### 2. إضافة احتواء للـ aside في Desktop و Mobile
+**الملف:** `src/components/layout/DashboardLayout.tsx`  
+**السطران:** ~85 (mobile aside) و ~103 (desktop aside)  
+**التعديل:** إضافة `min-h-0 overflow-hidden` إلى كلاسات الـ `<aside>`:
+- Mobile: `fixed inset-y-0 right-0 z-50 flex flex-col ... w-64 lg:hidden min-h-0 overflow-hidden`
+- Desktop: `fixed inset-y-0 right-0 z-50 hidden lg:flex lg:flex-col ... w-64 min-h-0 overflow-hidden`
+**النتيجة:** منع تمدد الـ aside نفسه بغض النظر عن أطفاله، مع الحفاظ على `position: fixed`.
 
-## العناصر المتأثرة
+### 3. التحقق البصري عبر Playwright
+**الاختبار:** فحص 10 صفحات مختلفة من لوحة الناظر (بما فيها الصفحات ذات المحتوى القصير والطويل).  
+**المقاييس:**
+- ارتفاع الـ aside يساوي ارتفاع viewport (900px في اختبار 1280×900).
+- لا يوجد overflow أفقي.
+- يظهر شريط التمرير الداخلي للقائمة عندما تتجاوز الروابط حدود الشاشة.
+- يبقى الشريط الجانبي ثابتاً عند scroll الصفحة الرئيسية.
 
-كل العناصر ذات `position: fixed` داخل `DashboardLayout` (شقيقة لـ `Outlet`):
+### 4. التحقق من عدم تأثير الإصلاح على الواجهات الأخرى
+**الملفات المرتبطة:**
+- `src/components/layout/Sidebar.tsx`
+- `src/components/layout/SidebarBrand.tsx`
+- `src/components/layout/SidebarFooter.tsx`
+**الإجراء:** التأكد أن أي تغييرات لا تكسر تنسيق المكونات الفرعية، وأن تباعد المجموعات والروابط يبقى كما هو.
 
-1. `<aside>` الشريط الجانبي (desktop + mobile drawer)
-2. `<MobileHeader>` (fixed top)
-3. `<BottomNav>` (fixed bottom على الجوال)
-4. طبقة `Mobile Sidebar Overlay` (`fixed inset-0`)
-5. زر Skip Link (`focus:fixed`)
+## معايير النجاح
+- [ ] ارتفاع الشريط الجانبي لا يتجاوز viewport في كل الصفحات المفحوصة.
+- [ ] القائمة الداخلية تظهر scrollbar عند الحاجة فقط.
+- [ ] لا يوجد اختلاف بصري في التباعد أو الخطوط.
+- [ ] لا توجد أخطاء في الكونسول أو build.
 
-## التغييرات المطلوبة
-
-### 1. `src/index.css` — تحويل `pageIn` إلى opacity-only (الإصلاح الجوهري)
-
-استبدال keyframes `pageIn` بإزالة `transform` كلياً:
-
-```css
-@keyframes pageIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-```
-
-- يبقى الانتقال الناعم بين الصفحات (0.22s fade)
-- يزيل containing block الطفيلي → يعود كل `position: fixed` للعمل نسبة للـ viewport
-- يحترم `prefers-reduced-motion` كما هو (بلا تغيير)
-
-### 2. `src/constants/navigation.ts` — تنظيف تنسيق مجموعة "الإدارة"
-
-- إضافة مجموعة جديدة `preview` إلى `ADMIN_GROUP_ORDER` (بعد `administration` وقبل `system`)
-- إضافتها إلى `ADMIN_GROUP_LABELS` بعنوان `'معاينة'`
-- تحديث `ADMIN_ROUTE_GROUPS['/beneficiary']` من `'administration'` إلى `'preview'`
-
-النتيجة: مجموعة "الإدارة" تحتوي فقط أدوات إدارية (المستخدمين + الإعدادات)، و"معاينة بوابة المستفيد" في مجموعة مستقلة صغيرة بعنوان واضح.
-
-### 3. `src/components/layout/sidebar/SidebarNavList.tsx` — تحسين وصولية شارة العدّاد
-
-- إضافة `<span className="sr-only">` قبل الشارة يحتوي فاصل قرائي (مثلاً " — ") لمنع التصاق "المراسلات" بالرقم عند النسخ/screen reader
-- أو الأفضل: إبقاء الرقم بصرياً فقط عبر `aria-hidden` كما هو، مع إضافة حاوية `<span className="sr-only">` تحمل النص الكامل "1 رسالة غير مقروءة" وحذف `aria-label` من الشارة (تجنب تكرار الإعلان)
-
-### 4. `src/components/layout/DashboardLayout.tsx` — فحص إضافي (لا تعديل)
-
-الـ `<main>` يستخدم `overflow-y-auto` — يعني التمرير يحدث داخله، والشريط الجانبي `fixed` نسبة للـ viewport (بعد الإصلاح) سيبقى ثابتاً بشكل مثالي.
-
-## خطة التحقق
-
-بعد التنفيذ، إعادة تشغيل نفس سكربت Playwright في `/tmp/browser/deep-audit/` والتأكد من:
-
-- ✅ `asideHeight ≈ 900` على كل الـ 10 مسارات (تسامح ±5px)
-- ✅ الشريط الجانبي، MobileHeader، BottomNav ثابتة عند تمرير `<main>`
-- ✅ لا كسر في مجموعات القائمة الجانبية (تشغيل `Sidebar.test.tsx` — 7 tests)
-- ✅ `Auth.test.tsx` و`AnnualReportPage.test.tsx` وباقي smoke tests تمر
-- ✅ فحص بصري للانتقال بين الصفحات — يبقى ناعماً (fade فقط)
-
-## ملاحظات معمارية
-
-- الإصلاح على مستوى النظام لا patch محلي — يستفيد منه أي `position: fixed` مستقبلي داخل الشجرة
-- لا حاجة لتغيير أي مكون من الـ 11 مكون المستخدم لـ `fixed`، لأن المشكلة في الأصل (containing block) لا في المستهلكين
-- لا تأثير على SEO أو حجم الحزمة (تعديل CSS + ثوابت فقط)
-- كل التعديلات محصورة في طبقة العرض (frontend) — لا تمس RLS ولا Edge Functions ولا business logic
+## ملاحظة
+لا يتطلب هذا التعديل أي تغيير في قاعدة البيانات أو Edge Functions أو ملفات أمان؛ هو إصلاح CSS محضر في طبقة العرض فقط.
