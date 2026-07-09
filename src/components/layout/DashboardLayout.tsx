@@ -82,7 +82,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         {...(!mobileSidebarOpen && { inert: true })}
         {...swipe.sidebarProps}
         className={cn(
-          'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden',
+          'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden min-h-0 overflow-hidden',
           !mobileSidebarOpen && 'pointer-events-none'
         )}
       >
@@ -100,7 +100,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <aside
         aria-label="القائمة الجانبية"
         className={cn(
-          'fixed inset-y-0 right-0 z-30 hidden lg:flex flex-col gradient-hero transition-[width] duration-300 ease-in-out shadow-elegant',
+          'fixed inset-y-0 right-0 z-30 hidden lg:flex flex-col gradient-hero transition-[width] duration-300 ease-in-out shadow-elegant min-h-0 overflow-hidden',
           sidebarOpen ? 'w-64' : 'w-16'
         )}
       >
