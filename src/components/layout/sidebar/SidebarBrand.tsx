@@ -1,6 +1,7 @@
 /**
  * SidebarBrand — شعار/اسم الوقف وأزرار التبديل (presentational)
  */
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Building2, PanelRightOpen, PanelRightClose, X } from 'lucide-react';
 import { cn } from '@/lib/cn';

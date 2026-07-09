@@ -1,31 +1,47 @@
-## الهدف
-التحقق البصري من أن `PageHeaderCard` بعد إصلاح الخط لا يتراكب مع العنوان على الجوال في 4 صفحات: dashboard، accounts، beneficiaries، audit-log.
+# خطة إصلاح لوحة الناظر — بعد فحص جنائي حي
 
-## الخطوات
+فحصت 25 مسار في لوحة الناظر بجلسة نظارة حقيقية عبر Playwright/Chromium على 1280×1800. النتيجة الإجمالية صحية:
 
-### سكربت Playwright واحد
-`/tmp/browser/admin-verify/verify_all_headers.py` يقوم بـ:
+- **التوجيه**: 25/25 مسار يستجيب `200` مع H1 صحيح
+- **الأخطاء**: 0 pageerror، 0 console.error
+- **القائمة الجانبية**: 24 رابطاً، تجميع groups يعمل (لم يظهر في DOM لأن الشريط كان مطويّاً افتراضياً — سلوك مقصود)
+- **RBAC**: كل الروابط داخل نطاق `admin`
 
-1. تشغيل متصفح بحجم جوال (411×738، dpr=2.625)
-2. حقن جلسة Supabase من env
-3. لكل مسار من `["/", "/accounts", "/beneficiaries", "/audit-log"]`:
-   - `page.goto` + انتظار `networkidle` + 1500ms
-   - تحديد h1 داخل بطاقة الهيدر (`Array.from(document.querySelectorAll('h1')).find(h => h.closest('.rounded-2xl'))`)
-   - قراءة: النص، `getComputedStyle` (fontFamily/fontSize)، `getBoundingClientRect`
-   - قراءة موقع أيقونة البطاقة (`div.gradient-gold` الشقيقة)
-   - التحقق برمجياً: هل `h1.right > icon.left` أو تتقاطع الصناديق؟
-   - أخذ element screenshot للبطاقة → `SC/mobile_<name>.png`
-4. طباعة جدول نتائج مع علامة PASS/FAIL لكل صفحة
+## المشاكل الحقيقية المكتشفة
 
-### معايير النجاح
-- fontFamily = Tajawal (ليس Amiri)
-- ارتفاع صندوق h1 ≤ 30px
-- عدم تقاطع صندوقي h1 والأيقونة أفقياً في RTL
-- لقطات البطاقات تُراجَع بصرياً عبر `code--view`
+### 1. شعار الوقف مكسور في الشريط الجانبي (P1 — مرئي للمستخدم)
 
-### المخرجات
-- تقرير موجز في الرد النهائي مع جدول 4 صفحات وحالة كل صفحة
-- 4 لقطات في `/tmp/browser/admin-verify/screenshots/mobile_*.png`
+`SidebarBrand.tsx` يعرض `<img src={waqfLogoUrl}>` بدون `onError`. الرابط الحالي `storage/v1/object/public/waqf-assets/logo.png` يُرجع **HTTP 400** (المتصفح يعرضه أيضاً `ERR_BLOCKED_BY_ORB`). النتيجة: مربّع ذهبي فارغ برمز صورة مكسورة أعلى القائمة.
 
-### الملفات
-لن يُعدَّل أي ملف مشروع. سكربت مؤقت فقط في `/tmp/`.
+**الإصلاح**: إضافة `onError` يُخفي الصورة ويسقط تلقائياً إلى أيقونة `Building2` الاحتياطية الموجودة بالفعل — بدون تغيير على قاعدة البيانات أو الإعدادات.
+
+### 2. عدّاد الرسائل الملتصق بالنص "المراسلات1" (P2 — a11y/UX خفيف)
+
+في `SidebarNavList.tsx` شارة العدّاد `<span class="ms-auto ...">` تُلحق مباشرة بنص الرابط بدون فاصل قرائي — قارئات الشاشة تنطقه "المراسلات واحد" ملتصقاً. `aria-label` موجود على الشارة لكن النص المرئي/textContent مندمج.
+
+**الإصلاح**: إضافة `aria-hidden="true"` على الرقم داخل الشارة (الـ`aria-label` يبقى على الحاوية) وضمان `ms-auto` مع padding يفصل بصرياً — تعديل صغير على span واحد.
+
+### 3. بطء نداء `invoke:email-admin` (P3 — perf log فقط)
+
+تحذير أداء واحد: `email-admin` أخذ 3333ms. ليس خطأ لكن يستحق تحقيقاً منفصلاً (خارج نطاق هذه الخطة — سأوثقه فقط).
+
+## ما ليس مشكلة (تم استبعاده بعد التحقق)
+
+- **مجموعات القائمة لا تظهر**: مقصود — الشريط مطويّ افتراضياً، عناوين المجموعات تختفي عمداً في وضع الأيقونات فقط (`SidebarNavList` سطر `group.label && sidebarOpen`).
+- **`ERR_ABORTED` على `messages?select=id`**: طبيعي — يحدث عند التنقل السريع بين المسارات (React Query يلغي الطلبات القديمة).
+- **`ERR_ABORTED` على ملفات `src/**` من Vite**: HMR/lazy تنظيف عادي.
+
+## الملفات المعدَّلة
+
+| ملف | التغيير |
+|---|---|
+| `src/components/layout/sidebar/SidebarBrand.tsx` | إضافة state محلي `imgError` + `onError` للفولباك |
+| `src/components/layout/sidebar/SidebarNavList.tsx` | `aria-hidden` على رقم الشارة + فاصل بصري خفيف |
+
+## التحقق بعد التنفيذ
+
+1. تشغيل `bunx vitest run src/components/layout/Sidebar.test.tsx`
+2. Playwright: زيارة `/dashboard` والتأكد من ظهور أيقونة `Building2` بدلاً من الصورة المكسورة
+3. فحص `nav[aria-label] a[href="/dashboard/messages"]` — النص المرئي "المراسلات" منفصل عن الشارة
+
+الخطة صغيرة ومحصورة في UI. لا تعديلات على المصادقة/RLS/قاعدة البيانات.
