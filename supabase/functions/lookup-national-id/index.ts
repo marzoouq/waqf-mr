@@ -308,9 +308,10 @@ Deno.serve(async (req) => {
         return new Response(
           JSON.stringify({
             found: true,
-            masked_email: maskEmail(email),
+            masked_email: "***@***.com",
             remaining,
             auth_error: "خطأ مؤقت في المصادقة",
+
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
