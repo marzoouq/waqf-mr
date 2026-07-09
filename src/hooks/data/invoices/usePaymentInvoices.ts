@@ -20,7 +20,7 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
     queryKey: invoicesKeys.paymentsByFiscalYear(fiscalYearId),
     enabled: isFyReady(fiscalYearId),
     staleTime: STALE_FINANCIAL,
-    queryFn: async ({ signal }) => {
+    queryFn: async () => {
       let query = supabase.from('payment_invoices')
         .select('id, contract_id, fiscal_year_id, invoice_number, payment_number, due_date, amount, status, paid_date, paid_amount, notes, vat_rate, vat_amount, zatca_uuid, zatca_status, file_path, created_at, updated_at, contract:contracts(contract_number, tenant_name, property_id, payment_count, status, property:properties(property_number))')
         .order('due_date', { ascending: true })
