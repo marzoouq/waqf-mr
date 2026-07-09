@@ -69,8 +69,8 @@ export default function UserMobileCard({
           <Button size="sm" variant="outline" className="gap-1 text-xs h-8" onClick={() => onEdit(user)}><Edit className="w-3 h-3" />تعديل</Button>
           <Button size="sm" variant="outline" className="gap-1 text-xs h-8" onClick={() => onPasswordChange(user.id)}><Key className="w-3 h-3" />كلمة المرور</Button>
           {!isSelf && (
-            <Button size="sm" variant="outline" className="gap-1 text-xs h-8 text-destructive hover:text-destructive" onClick={() => onDelete({ id: user.id, email: user.email })}>
-              <Trash2 className="w-3 h-3" />
+            <Button size="sm" variant="outline" className="gap-1 text-xs h-8 text-destructive hover:text-destructive" onClick={() => onDelete({ id: user.id, email: user.email })} aria-label={`حذف المستخدم ${user.email}`}>
+              <Trash2 className="w-3 h-3" aria-hidden="true" />
             </Button>
           )}
         </div>
