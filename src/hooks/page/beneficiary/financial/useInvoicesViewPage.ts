@@ -1,12 +1,14 @@
 /**
- * هوك صفحة الفواتير — يستخرج كل المنطق من InvoicesViewPage
- * يدمج فواتير الشراء (invoices) وفواتير الإيجار (payment_invoices) في عرض موحّد للمستفيد
+ * هوك صفحة الفواتير للمستفيد — فواتير الإيجار (ZATCA) فقط.
+ *
+ * فواتير الموردين (`invoices`) لا تُعرض هنا لتفادي التكرار مع صفحة
+ * "مصروفات الوقف" التي تعرضها كمستندات مرفقة بالمصروفات.
  */
 import { useState, useCallback, useMemo } from 'react';
 import { uiNotify } from '@/lib/notify';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { INVOICE_TYPE_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
+import { INVOICE_TYPE_LABELS } from '@/hooks/data/invoices/useInvoices';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
@@ -14,73 +16,54 @@ import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
-import type { InvoiceSourceFilter, UnifiedInvoiceItem } from '@/types/invoices';
+import type { UnifiedInvoiceItem } from '@/types/invoices';
 import { PDF_MESSAGES } from '@/lib/messages';
 
-export type { InvoiceSourceFilter, UnifiedInvoiceItem };
+export type { UnifiedInvoiceItem };
 
 export function useInvoicesViewPage() {
   const isMobile = useIsMobile();
-  const handleRetry = useRetryQueries(['invoices', 'payment_invoices']);
+  const handleRetry = useRetryQueries(['payment_invoices']);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
-  // H17: Realtime — تحديث فوري عند إصدار/تعديل فواتير الناظر
+  // Realtime — تحديث فوري عند إصدار/تعديل فواتير الإيجار
   useDashboardRealtime(
     'invoices-view-realtime',
-    ['invoices', 'payment_invoices', 'fiscal_years'],
+    ['payment_invoices'],
     true,
   );
 
-  const { data: expenseInvoices = [], isLoading: loadingExpense, isError: errExpense } = useInvoicesByFiscalYear(fiscalYearId);
-  const { data: rentInvoices = [], isLoading: loadingRent, isError: errRent } = usePaymentInvoices(fiscalYearId);
-
-  const isLoading = loadingExpense || loadingRent;
-  const isError = errExpense || errRent;
+  const { data: rentInvoices = [], isLoading, isError } = usePaymentInvoices(fiscalYearId);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [sourceFilter, setSourceFilter] = useState<InvoiceSourceFilter>('all');
   const [currentPage, setCurrentPage] = useState(1);
-
   const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
 
-  // دمج الفواتير من المصدرين بشكل موحّد
-  const unifiedInvoices: UnifiedInvoiceItem[] = useMemo(() => {
-    const expenseItems: UnifiedInvoiceItem[] = expenseInvoices.map((inv) => ({
-      id: inv.id,
-      invoice_type: inv.invoice_type,
-      invoice_number: inv.invoice_number,
-      amount: safeNumber(inv.amount),
-      date: inv.date,
-      status: inv.status,
-      file_path: inv.file_path,
-      file_name: inv.file_name,
-      property: inv.property ? { property_number: inv.property.property_number } : null,
-      source: 'purchase',
-    }));
-    const rentItems: UnifiedInvoiceItem[] = rentInvoices.map((inv) => ({
-      id: inv.id,
-      invoice_type: 'rent_invoice',
-      invoice_number: inv.invoice_number || null,
-      amount: safeNumber(inv.amount),
-      date: inv.due_date,
-      status: inv.status,
-      file_path: inv.file_path,
-      file_name: inv.invoice_number ? `${inv.invoice_number}.pdf` : null,
-      property: inv.contract?.property ? { property_number: inv.contract.property.property_number } : null,
-      source: 'rent',
-    }));
-    return [...expenseItems, ...rentItems].sort((a, b) => {
-      // H16/N7: مقارنة زمنية فعلية (تتعامل مع date و timestamptz)
-      const ta = a.date ? new Date(a.date).getTime() : 0;
-      const tb = b.date ? new Date(b.date).getTime() : 0;
-      return tb - ta;
-    });
-  }, [expenseInvoices, rentInvoices]);
+  const unifiedInvoices: UnifiedInvoiceItem[] = useMemo(
+    () => rentInvoices
+      .map((inv) => ({
+        id: inv.id,
+        invoice_type: 'rent_invoice',
+        invoice_number: inv.invoice_number || null,
+        amount: safeNumber(inv.amount),
+        date: inv.due_date,
+        status: inv.status,
+        file_path: inv.file_path,
+        file_name: inv.invoice_number ? `${inv.invoice_number}.pdf` : null,
+        property: inv.contract?.property ? { property_number: inv.contract.property.property_number } : null,
+        source: 'rent' as const,
+      }))
+      .sort((a, b) => {
+        const ta = a.date ? new Date(a.date).getTime() : 0;
+        const tb = b.date ? new Date(b.date).getTime() : 0;
+        return tb - ta;
+      }),
+    [rentInvoices],
+  );
 
   const filteredInvoices = useMemo(() => unifiedInvoices.filter((item) => {
-    if (sourceFilter !== 'all' && item.source !== sourceFilter) return false;
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -88,10 +71,9 @@ export function useInvoicesViewPage() {
       (INVOICE_TYPE_LABELS[item.invoice_type] || '').includes(q) ||
       item.date.includes(q)
     );
-  }), [unifiedInvoices, searchQuery, sourceFilter]);
+  }), [unifiedInvoices, searchQuery]);
 
   const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
-
   const paginatedInvoices = filteredInvoices.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleDownloadPDF = useCallback(async () => {
@@ -103,7 +85,7 @@ export function useInvoicesViewPage() {
       const { generateInvoicesViewPDF } = await import('@/utils/pdf');
       await generateInvoicesViewPDF(
         filteredInvoices.map(inv => ({
-          invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || (inv.source === 'rent' ? 'فاتورة إيجار' : inv.invoice_type),
+          invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || 'فاتورة إيجار',
           invoice_number: inv.invoice_number,
           amount: safeNumber(inv.amount),
           date: inv.date,
@@ -124,26 +106,15 @@ export function useInvoicesViewPage() {
     setCurrentPage(1);
   }, []);
 
-  const handleSourceFilterChange = useCallback((value: InvoiceSourceFilter) => {
-    setSourceFilter(value);
-    setCurrentPage(1);
-  }, []);
-
   return {
-    // حالات التحميل والخطأ
     isLoading, isError, isMobile,
-    // بيانات العرض
     viewMode, setViewMode,
     searchQuery, handleSearchChange,
-    sourceFilter, handleSourceFilterChange,
     currentPage, setCurrentPage,
     ITEMS_PER_PAGE,
-    // بيانات الفواتير
     filteredInvoices, paginatedInvoices,
     statusBadgeVariant: invoiceStatusBadgeVariant,
-    // عارض الملفات
     viewerFile, setViewerFile,
-    // دوال الإجراءات
     handleRetry, handleDownloadPDF,
   };
 }
