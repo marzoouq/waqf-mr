@@ -37,7 +37,7 @@ export const useTenantPayments = () => {
   return useQuery({
     queryKey: contractsKeys.tenantPayments(),
     queryFn: async ({ signal }) => {
-      const { data, error } = await supabase.from('tenant_payments').abortSignal(signal)
+      const { data, error } = await supabase.from('tenant_payments')
         .select('id, contract_id, paid_months, notes, created_at, updated_at')
         .limit(500);
       if (error) throw error;

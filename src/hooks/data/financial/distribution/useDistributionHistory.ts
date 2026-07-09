@@ -29,7 +29,7 @@ export const useDistributionHistory = (beneficiaryId: string) => {
     enabled: !!beneficiaryId,
     queryFn: async ({ signal }) => {
       // left join — لا يُخفي توزيعات بدون حساب (#27)
-      const { data, error } = await supabase.from('distributions').abortSignal(signal)
+      const { data, error } = await supabase.from('distributions')
         .select('amount, date, status, account_id, accounts(fiscal_year)')
         .eq('beneficiary_id', beneficiaryId)
         .order('date', { ascending: false });

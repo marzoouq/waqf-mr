@@ -13,7 +13,7 @@ export const usePropertiesMap = (propertyIds: string[]) => {
     enabled: propertyIds.length > 0,
     staleTime: STALE_STATIC,
     queryFn: async ({ signal }) => {
-      const { data } = await supabase.from('properties').abortSignal(signal)
+      const { data } = await supabase.from('properties')
         .select('id, property_number, location')
         .in('id', propertyIds);
       const map: Record<string, string> = {};

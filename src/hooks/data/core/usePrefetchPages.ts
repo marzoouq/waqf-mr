@@ -47,7 +47,7 @@ export function usePrefetchPages() {
       queryKey: beneficiariesKeys.safe(),
       staleTime: PREFETCH_STALE,
       queryFn: async ({ signal }) => {
-        const { data, error } = await supabase.from('beneficiaries_safe').abortSignal(signal)
+        const { data, error } = await supabase.from('beneficiaries_safe')
           .select('id, name, share_percentage, user_id, created_at, updated_at')
           .order('name');
         if (error) throw error;
@@ -62,7 +62,7 @@ export function usePrefetchPages() {
       queryKey: fiscalYearKeys.prefetch(),
       staleTime: PREFETCH_STALE,
       queryFn: async ({ signal }) => {
-        const { data, error } = await supabase.from('fiscal_years').abortSignal(signal)
+        const { data, error } = await supabase.from('fiscal_years')
           .select('id, label, start_date, end_date, status, published, created_at')
           .order('start_date', { ascending: false })
           .limit(50);
@@ -84,7 +84,7 @@ export function usePrefetchPages() {
       queryKey: invoicesKeys.paymentsPrefetch(),
       staleTime: PREFETCH_STALE,
       queryFn: async ({ signal }) => {
-        const { data, error } = await supabase.from('payment_invoices').abortSignal(signal)
+        const { data, error } = await supabase.from('payment_invoices')
           .select('id, contract_id, fiscal_year_id, payment_number, due_date, amount, paid_date, paid_amount, status, invoice_number, vat_rate, vat_amount, notes, created_at, updated_at')
           .order('due_date', { ascending: false })
           .limit(1000);
@@ -109,7 +109,7 @@ export function usePrefetchPages() {
       queryKey: auditKeys.log.prefetchFirstPage,
       staleTime: PREFETCH_STALE,
       queryFn: async ({ signal }) => {
-        const { data, error } = await supabase.from('audit_log').abortSignal(signal)
+        const { data, error } = await supabase.from('audit_log')
           .select('id, table_name, operation, record_id, user_id, created_at')
           .order('created_at', { ascending: false })
           .limit(50);
@@ -125,7 +125,7 @@ export function usePrefetchPages() {
       queryKey: messagingKeys.conversations.prefix,
       staleTime: PREFETCH_STALE,
       queryFn: async ({ signal }) => {
-        const { data, error } = await supabase.from('conversations').abortSignal(signal)
+        const { data, error } = await supabase.from('conversations')
           .select('id, subject, type, status, created_by, participant_id, created_at, updated_at')
           .order('updated_at', { ascending: false })
           .limit(100);

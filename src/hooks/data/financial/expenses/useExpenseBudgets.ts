@@ -20,7 +20,7 @@ export const useExpenseBudgets = (fiscalYearId: string) => {
     enabled: !!isFySpecific(fiscalYearId),
     staleTime: STALE_FINANCIAL,
     queryFn: async ({ signal }) => {
-      const { data, error } = await supabase.from('expense_budgets').abortSignal(signal)
+      const { data, error } = await supabase.from('expense_budgets')
         .select('id, fiscal_year_id, expense_type, budget_amount, created_at, updated_at')
         .eq('fiscal_year_id', fiscalYearId);
       if (error) throw error;
@@ -35,12 +35,12 @@ export const useSaveBudget = (fiscalYearId: string, budgetMap: Map<string, Budge
     mutationFn: async ({ expenseType, amount }: { expenseType: string; amount: number }) => {
       const existing = budgetMap.get(expenseType);
       if (existing) {
-        const { error } = await supabase.from('expense_budgets').abortSignal(signal)
+        const { error } = await supabase.from('expense_budgets')
           .update({ budget_amount: amount, updated_at: new Date().toISOString() })
           .eq('id', existing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('expense_budgets').abortSignal(signal)
+        const { error } = await supabase.from('expense_budgets')
           .insert({ fiscal_year_id: fiscalYearId, expense_type: expenseType, budget_amount: amount });
         if (error) throw error;
       }

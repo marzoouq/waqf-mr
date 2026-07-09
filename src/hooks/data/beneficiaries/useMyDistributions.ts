@@ -13,7 +13,7 @@ export function useMyDistributions(beneficiaryId?: string | null, fiscalYearId?:
     staleTime: STALE_FINANCIAL,
     queryFn: async ({ signal }) => {
       if (!beneficiaryId) return [];
-      let query = supabase.from('distributions').abortSignal(signal)
+      let query = supabase.from('distributions')
         .select('id, amount, date, status, fiscal_year_id, beneficiary_id, account:accounts(id, fiscal_year, fiscal_year_id)')
         .eq('beneficiary_id', beneficiaryId);
       if (fiscalYearId && fiscalYearId !== 'all') {
