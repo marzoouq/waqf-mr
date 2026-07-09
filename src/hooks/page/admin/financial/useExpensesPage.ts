@@ -9,7 +9,8 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { canModifyFiscalYear } from '@/utils/auth/permissions';
 import type { SortFieldOf } from '@/types/sorting';
 import { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/data/financial/expenses/useExpenses';
-import { useInvoicesByFiscalYear } from '@/hooks/data/invoices/useInvoices';
+import { useInvoicesByFiscalYear, useCreateInvoice, useDeleteInvoice } from '@/hooks/data/invoices/useInvoices';
+import { useMultipleFilesUpload } from '@/hooks/ui/useMultipleFilesUpload';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
@@ -39,6 +40,8 @@ export function useExpensesPage() {
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
+  const createInvoice = useCreateInvoice();
+  const deleteInvoice = useDeleteInvoice();
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -51,7 +54,10 @@ export function useExpensesPage() {
   const [formData, setFormDataRaw] = useState(EMPTY_EXPENSE_FORM);
   const [errors, setErrors] = useState<ExpenseFieldErrors>({});
   const [postCreateVoucherFor, setPostCreateVoucherFor] = useState<{ id: string; amount: number; description: string } | null>(null);
+  const [deletingExistingId, setDeletingExistingId] = useState<string | null>(null);
   const clearPostCreateVoucher = useCallback(() => setPostCreateVoucherFor(null), []);
+
+  const filesUpload = useMultipleFilesUpload();
 
   const setFormData = useCallback((data: typeof EMPTY_EXPENSE_FORM) => {
     setFormDataRaw(data);
@@ -66,14 +72,37 @@ export function useExpensesPage() {
     });
   }, []);
 
-  const resetForm = useCallback(() => { setFormDataRaw(EMPTY_EXPENSE_FORM); setEditingExpense(null); setErrors({}); }, []);
+  const resetForm = useCallback(() => {
+    setFormDataRaw(EMPTY_EXPENSE_FORM);
+    setEditingExpense(null);
+    setErrors({});
+    filesUpload.reset();
+  }, [filesUpload]);
 
   const handleEdit = useCallback((item: Expense) => {
     setEditingExpense(item);
     setFormDataRaw({ expense_type: item.expense_type, amount: item.amount.toString(), date: item.date, property_id: item.property_id || '', description: item.description || '' });
     setErrors({});
+    filesUpload.reset();
     setIsOpen(true);
-  }, []);
+  }, [filesUpload]);
+
+  // مرفقات المصروف قيد التعديل
+  const existingAttachments = useMemo(() => {
+    if (!editingExpense) return [];
+    return allInvoices
+      .filter((inv) => inv.expense_id === editingExpense.id)
+      .map((inv) => ({ id: inv.id, file_name: inv.file_name, file_path: inv.file_path }));
+  }, [allInvoices, editingExpense]);
+
+  const handleDeleteExisting = useCallback(async (id: string, filePath: string | null) => {
+    setDeletingExistingId(id);
+    try {
+      await deleteInvoice.mutateAsync({ id, file_path: filePath });
+    } finally {
+      setDeletingExistingId(null);
+    }
+  }, [deleteInvoice]);
 
   const { handleSubmit, handleConfirmDelete } = useExpensesMutations({
     formData, editingExpense, fiscalYear,
@@ -81,6 +110,9 @@ export function useExpensesPage() {
     createExpense: createExpense as Parameters<typeof useExpensesMutations>[0]['createExpense'],
     updateExpense: updateExpense as Parameters<typeof useExpensesMutations>[0]['updateExpense'],
     deleteExpense: deleteExpense as Parameters<typeof useExpensesMutations>[0]['deleteExpense'],
+    createInvoice: createInvoice as Parameters<typeof useExpensesMutations>[0]['createInvoice'],
+    stagedFiles: filesUpload.files,
+    resetStagedFiles: filesUpload.reset,
     setErrors, setIsOpen, resetForm, setDeleteTarget, setCurrentPage, setPostCreateVoucherFor,
   });
 
@@ -130,5 +162,16 @@ export function useExpensesPage() {
     filteredExpenses, paginatedExpenses,
     handleExportPdf, handleExportCsv,
     postCreateVoucherFor, clearPostCreateVoucher,
+    // مرفقات
+    stagedFiles: filesUpload.files,
+    filesError: filesUpload.error,
+    isDraggingFiles: filesUpload.isDragging,
+    setIsDraggingFiles: filesUpload.setIsDragging,
+    filesInputRef: filesUpload.fileInputRef,
+    addFiles: filesUpload.addFiles,
+    removeStagedFile: filesUpload.removeFile,
+    existingAttachments,
+    handleDeleteExistingAttachment: handleDeleteExisting,
+    deletingExistingAttachmentId: deletingExistingId,
   };
 }

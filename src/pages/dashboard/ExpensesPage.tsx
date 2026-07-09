@@ -20,7 +20,7 @@ const ExpensesPage = () => {
         <PageHeaderCard
           title="المصروفات التشغيلية"
           icon={TrendingDown}
-          description="سجل محاسبي داخلي للمصروفات — مستقل عن فواتير ZATCA (يمكن إرفاق فاتورة كتوثيق فقط)"
+          description="سجل محاسبي داخلي — يمكن إرفاق فاتورة شراء أو أكثر مع كل مصروف، وتظهر تلقائياً في إفصاح المستفيد"
           actions={<>
             <ExportMenu onExportPdf={h.handleExportPdf} onExportCsv={h.handleExportCsv} />
             {!isMobile && <ViewModeToggle value={viewMode} onChange={setViewMode} />}
@@ -29,6 +29,12 @@ const ExpensesPage = () => {
               isEditing={!!h.editingExpense} isPending={h.createExpense.isPending || h.updateExpense.isPending}
               properties={h.properties} onSubmit={h.handleSubmit} onReset={h.resetForm} disabled={h.isLocked}
               errors={h.errors} onFieldBlur={h.onFieldBlur}
+              stagedFiles={h.stagedFiles} filesError={h.filesError}
+              isDragging={h.isDraggingFiles} setIsDragging={h.setIsDraggingFiles}
+              fileInputRef={h.filesInputRef} onAddFiles={h.addFiles} onRemoveStaged={h.removeStagedFile}
+              existingAttachments={h.existingAttachments}
+              onDeleteExisting={h.handleDeleteExistingAttachment}
+              deletingExistingId={h.deletingExistingAttachmentId}
             />
           </>}
         />
