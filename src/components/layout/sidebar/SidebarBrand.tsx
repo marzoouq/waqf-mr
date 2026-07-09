@@ -59,4 +59,5 @@ export const SidebarBrand: React.FC<SidebarBrandProps> = ({
       <X className="w-5 h-5" />
     </Button>
   </div>
-);
+  );
+};
