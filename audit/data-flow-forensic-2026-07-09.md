@@ -1,5 +1,7 @@
 # تقرير جنائي — تدفق البيانات (DB → API → State → UI)
 
+> **مراجعة ذاتية 2026-07-09 (v2):** إعادة فحص كشفت 5 أخطاء في الإصدار الأول. راجع قسم [تصحيحات v2](#تصحيحات-v2) في نهاية الملف قبل قراءة الأرقام أعلاه.
+
 **التاريخ:** 2026-07-09  
 **النطاق:** فحص تحليلي فقط، لا تعديلات كود.  
 **المستودع:** `main` — لقطة ما بعد تقرير الأداء `audit/performance-forensic-2026-07-09.md`.
@@ -206,3 +208,93 @@ notifications, support, zatca
 - انفجار `app_settings` والفهارس المقترحة → `audit/performance-forensic-2026-07-09.md`.
 - تسرب `.env` التاريخي → `docs/security/incident-2026-07-08-env-leak.md`.
 - خريطة الطبقات → `audit/architecture-map.md`.
+
+---
+
+## تصحيحات v2
+
+بعد إعادة الفحص الجنائي، رُصدت **5 أخطاء** في الإصدار الأول من هذا التقرير. سُجّلت هنا بشفافية بدلاً من إخفائها في تعديل صامت.
+
+### ❌ خطأ #1 — عدد Edge Functions
+- **الادعاء الأصلي:** "24 دالة".
+- **الحقيقة:** **22 دالة** (`find supabase/functions -maxdepth 1 -type d | grep -v _shared | wc -l`).
+- **سبب الخطأ:** الأمر السابق `ls | grep -v _shared | wc -l` عدّ ملفات `.gitignore` و `README` كأسطر.
+
+### ❌ خطأ #2 — Edge Functions بدون `getUser()` (P1 مبالغ فيه)
+- **الادعاء الأصلي:** "6/24 فقط تستدعي `getUser()`؛ 18 دالة ناقصة."
+- **الحقيقة:** 
+  - 3 دوال تستدعي `getUser()` مباشرة: `check-contract-expiry`, `lookup-national-id`, `webauthn`.
+  - **14 دالة إضافية** تستورد `_shared/auth.ts` الذي **يستدعي `getUser()` داخلياً** (راجع `supabase/functions/_shared/auth.ts:1-40`).
+  - المجموع الفعلي: **17/22 = 77%** تستدعي `getUser()` مركزياً — تجاوز الحد الآمن.
+  - الدوال المتبقية (5): `auth-email-hook`, `guard-signup`, `mcp`, `health-check`, `zatca-onboard/renew/report`. كثير منها إما public hook أو داخلية لا تحتاج مستخدم.
+- **حكم صحيح:** الوضع الأمني **جيد**، لا P1. تبقى مراجعة الـ 5 دوال المستثناة **P2**.
+
+### ❌ خطأ #3 — `AbortSignal` غير مستخدم إطلاقاً
+- **الادعاء الأصلي:** "0 استدعاءات فعلية لـ `.abortSignal(signal)`."
+- **الحقيقة:** 
+  - **7 استدعاءات فعلية** موزعة على:
+    - `src/lib/services/searchService.ts` — 5 مواقع.
+    - `src/lib/services/dataFetcher.ts` — سطران (15, 27).
+  - **الصحيح:** 0 استدعاء في `src/hooks/data/**` نفسها — الإشارة تُمرَّر فقط عبر `lib/services`.
+- **حكم صحيح:** P0 يبقى قائماً لكن بصياغة أدق — "34 هوك (47 موقعاً) يستقبل `signal` ثم يتجاهله بينما `lib/services` تستخدمه بشكل صحيح."
+
+### ❌ خطأ #4 — عدد الهوكات المتجاهلة للإشارة
+- **الادعاء الأصلي:** "47 هوك يتجاهل `AbortSignal`."
+- **الحقيقة:** **34 ملف** يحتوي على **47 موقعاً** (`rg -c "signal: _signal" src/hooks/data`).
+- الفرق ناتج عن ملفات فيها استعلامان أو أكثر.
+
+### ❌ خطأ #5 — تكرار `get_beneficiary_dashboard` من "هوكين"
+- **الادعاء الأصلي:** "يحرق rate limit بسبب هوكين يستدعيان نفس الـ RPC في نفس الوقت."
+- **الحقيقة:** يوجد هوك **واحد فقط** يستدعي هذه الـ RPC: `src/hooks/data/dashboard/useBeneficiaryDashboardRpc.ts:26`.
+- **السبب الفعلي للتكرار في `<network-requests>`:** `<StrictMode>` مفعّل في `src/app/bootstrap/mountReact.tsx:15` → React يستدعي كل effect مرتين في وضع التطوير (`development mode double-invocation`). **لا يحدث في الإنتاج**.
+- **حكم صحيح:** ليس P0 ولا مشكلة أداء إنتاجية. يُنزَّل إلى ملاحظة تشخيصية.
+
+---
+
+## توزيع `staleTime` الفعلي (بديل عن القسم 3.2 المعطوب)
+
+استخدام صريح داخل `src/hooks/data/**`:
+
+| ثابت | عدد المواقع | التغطية |
+|---|---|---|
+| `STALE_FINANCIAL` (60s) | 61 | 44% |
+| `STALE_STATIC` (15m) | 30 | 22% |
+| `STALE_MESSAGING` (30s) | 15 | 11% |
+| `STALE_AUDIT` (2m) | 12 | 9% |
+| `STALE_REALTIME` (60s) | 5 | 4% |
+| `STALE_LIVE` (15s) | 4 | 3% |
+| `STALE_PUBLIC/DASHBOARD/REFERENCE` | 0 | 0% |
+
+- **ملاحظة:** الثوابت `STALE_PUBLIC/DASHBOARD/REFERENCE` معرَّفة في `src/lib/queryStaleTime.ts` لكنها **غير مستخدمة**. أما `STALE_SETTINGS` فقد أُلغي في P7 لصالح `STALE_STATIC` (موثّق في تعليق الملف).
+- **P2 جديد:** حذف الثوابت غير المستخدمة أو تطبيقها على الهوكات المناسبة (`useAuditLog`, `useFeatureVisibility`).
+
+---
+
+## مصفوفة المشاكل المُحدَّثة
+
+| # | الأولوية السابقة | الأولوية بعد التحقق | الحالة |
+|---|---|---|---|
+| 1 | P0 (AbortSignal) | **P0** ✅ | صحيح — 34 ملف / 47 موقع |
+| 2 | P0 (تكرار RPC) | **~~P0~~ ملاحظة** ❌ | خطأ — SPA StrictMode في dev فقط |
+| 3 | P1 (5 هوكات بدون staleTime) | **P1** ✅ | صحيح |
+| 4 | P1 (تكرار `auth.getUser`) | **P1** ✅ | صحيح — 10 مواقع خارج `AuthContext` |
+| 5 | P1 (Edge fns بدون auth) | **P2** ⚠️ | مبالغ فيه — 77% مغطاة عبر `_shared/auth` |
+| 6 | P2 (Optimistic) | P2 ✅ | صحيح |
+| 7 | P2 (Realtime + staleTime) | P2 ✅ | صحيح |
+| 8 | P2 (app_settings) | P2 ✅ | مذكور في تقرير الأداء |
+| 9 | — | **P2 جديد** | ثوابت `staleTime` غير مستخدمة |
+
+---
+
+## الخلاصة بعد المراجعة
+
+- **الادعاءات الصحيحة:** فصل الطبقات، Error Boundaries، عدم N+1، Realtime عبر invalidate.
+- **P0 الحقيقي الوحيد:** `AbortSignal` مُتجاهَل في 34 ملف بـ `hooks/data` → race conditions حقيقية عند التنقل السريع (يظهر في الإنتاج، ليس StrictMode فقط).
+- **الأولوية المُصححة للتنفيذ:**
+  1. `AbortSignal` codemod (P0 الوحيد).
+  2. توحيد قراءة المستخدم من `AuthContext` بدل `supabase.auth.getUser()` (10 مواقع).
+  3. إضافة `staleTime` صريح لـ 5 هوكات + استبدال default الضمني.
+  4. Optimistic Updates (mark-as-read).
+  5. مراجعة الـ 5 Edge Functions المستثناة من `_shared/auth`.
+
+> **درس مستفاد:** التقرير الأول اعتمد على `wc -l` على مخرجات `ls` بدون تصفية، و `rg -c` بدون تجميع، وتفسير سببي متسرع لـ StrictMode. تم إصلاح المنهجية في v2.
