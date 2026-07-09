@@ -108,7 +108,7 @@ export const allBeneficiaryLinks = [
 // ─── Sidebar grouping (PR-1) ───
 // Single source of truth for which menu group a route belongs to.
 // Routes not listed appear ungrouped (above all groups for admin, below for beneficiary).
-export const ADMIN_GROUP_ORDER = ['operations', 'finance', 'reference', 'communication', 'administration', 'system'] as const;
+export const ADMIN_GROUP_ORDER = ['operations', 'finance', 'reference', 'communication', 'administration', 'preview', 'system'] as const;
 export type AdminGroupKey = typeof ADMIN_GROUP_ORDER[number];
 
 export const ADMIN_GROUP_LABELS: Record<AdminGroupKey, string> = {
@@ -117,6 +117,7 @@ export const ADMIN_GROUP_LABELS: Record<AdminGroupKey, string> = {
   reference: 'المرجع',
   communication: 'الاتصال',
   administration: 'الإدارة',
+  preview: 'معاينة',
   system: 'النظام والتكاملات',
 };
 
@@ -146,8 +147,8 @@ export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/diagnostics': 'system',
   // P1/C3: audit-report-final + cleanup-report خرجا من القائمة الجانبية
   // ويُوصل إليهما الآن عبر أزرار داخل /dashboard/audit-log
-  // P2/C1+A3: دُمجت مجموعة `preview` ذات العنصر الواحد ضمن `administration` لإلغاء الخط الفاصل الزائد
-  '/beneficiary': 'administration',
+  // معاينة بوابة المستفيد في مجموعة مستقلة "معاينة" لعدم دمجها مع أدوات الإدارة الفعلية
+  '/beneficiary': 'preview',
 };
 
 export const BENEFICIARY_GROUP_ORDER = ['financial', 'documents', 'communication', 'account'] as const;

@@ -49,9 +49,12 @@ export const SidebarNavList: React.FC<SidebarNavListProps> = ({
         <link.icon className="w-5 h-5 shrink-0" aria-hidden="true" />
         <span className={cn(!sidebarOpen && 'lg:hidden')}>{link.label}</span>
         {link.to.includes('/messages') && unreadCount > 0 && (
-          <span aria-label={`${unreadCount} رسالة غير مقروءة`} className="ms-auto bg-destructive text-destructive-foreground text-[11px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-            <span aria-hidden="true">{unreadCount > 99 ? '99+' : unreadCount}</span>
-          </span>
+          <>
+            <span className="sr-only"> — {unreadCount} رسالة غير مقروءة</span>
+            <span aria-hidden="true" className="ms-auto bg-destructive text-destructive-foreground text-[11px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          </>
         )}
       </Link>
     );
