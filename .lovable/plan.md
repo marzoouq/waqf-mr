@@ -1,43 +1,64 @@
-## المشكلة (فحص جنائي)
 
-- **الجدول `public.invoices`**: سياسة SELECT تشمل بالفعل `beneficiary` و`waqif` (مع `is_fiscal_year_accessible`)، لذا صفوف الفواتير تظهر في UI.
-- **الـ Storage bucket `invoices`**: السياسة الحالية `Admin and accountant can view invoices` هي الوحيدة لـ SELECT، فتحجب `createSignedUrl` عن المستفيد/الواقف → يظهر خطأ `فشل في تحميل الملف` عند الضغط على زر الفاتورة.
-- الأزرار والمرفقات تعرض العدد الصحيح، لكن التحميل/المعاينة معطّل للمستفيد.
+## المشكلة
 
-## الإصلاح
+صفحة **"المصروفات التشغيلية"** في لوحة الناظر (`/dashboard/expenses`) لا تسمح بإرفاق فواتير عند إضافة/تعديل المصروف. المطلوب:
 
-Migration جديد يضيف سياسة SELECT على `storage.objects` تسمح لـ `beneficiary` و`waqif` بتوليد Signed URL لملف داخل bucket `invoices` **فقط إذا** كان الملف مرتبطاً بصف فاتورة تسمح لهم سياسة الجدول برؤيته (سنة منشورة + دور مصرّح).
+1. الناظر يستطيع إرفاق **ملف واحد أو أكثر** لكل مصروف (إنشاء + تعديل).
+2. المرفقات تظهر للمستفيد في صفحة "مصروفات الوقف".
+3. المستفيد يستطيع **فتح وتنزيل** كل مرفق.
 
-```sql
-CREATE POLICY "Beneficiaries and waqif can view invoice files"
-ON storage.objects
-FOR SELECT
-TO authenticated
-USING (
-  bucket_id = 'invoices'
-  AND (
-    has_role(auth.uid(), 'beneficiary'::app_role)
-    OR has_role(auth.uid(), 'waqif'::app_role)
-  )
-  AND EXISTS (
-    SELECT 1 FROM public.invoices i
-    WHERE i.file_path = storage.objects.name
-      AND is_fiscal_year_accessible(i.fiscal_year_id)
-  )
-);
-```
+## نتيجة التحقق المسبق (بدون تعارض)
 
-- تعتمد على `is_fiscal_year_accessible` فتحترم قواعد إخفاء السنوات غير المنشورة.
-- لا تلمس سياسة الأدمن/المحاسب.
-- Signed URL يبقى بـ TTL 5 دقائق كما في `getInvoiceSignedUrl`.
+- `invoices.expense_id` (nullable + FK) موجود — يدعم علاقة **مصروف واحد → عدة فواتير**.
+- `ExpenseAttachments` (لوحة المستفيد) **يعرض مسبقاً قائمة كل** الفواتير المرتبطة بالمصروف، وكل زر يفتح `InvoiceViewer` عبر `getInvoiceSignedUrl` (روابط موقّعة TTL=5د).
+- سياسة `storage.objects` لـ bucket `invoices` تمنح المستفيد قراءة الفواتير المرتبطة بسنة منشورة (مضافة سابقاً).
+- `uploadInvoiceFile`, `useInvoiceFileUpload`, `createInvoice`, `deleteInvoice`, `computeDocumentationStats` جاهزون للاستخدام.
+- Realtime على `invoices` مفعّل — ظهور فوري لدى المستفيد.
+- قيم `invoice_type` المدعومة: `utilities | maintenance | rent | other` فقط (`purchase` هو فلتر UI). سنشتق النوع من `expense_type`.
 
-## التحقق
+## الحل
 
-1. `bun run tsgo --noEmit` — لا تغييرات على TS.
-2. Playwright: تسجيل دخول كمستفيد → `/beneficiary/expenses` → توسيع مصروف له فاتورة → الضغط على الزر → التحقق من فتح `InvoiceViewer` وظهور محتوى PDF/صورة وعمل زر "تحميل".
-3. لقطة نهائية للتأكيد.
+### رفع متعدد داخل نموذج المصروف
 
-## خارج النطاق
+- خطاف جديد `useMultipleFilesUpload` يدير `File[]` + drag/drop + previews + add/remove/reset، يستفيد من `validateFileSignature`/MIME/size من `useInvoiceFileUtils`.
+- UI: dropzone + `input[multiple]` + قائمة الملفات المختارة مع زر حذف لكل واحد + معاينة للصور.
+- حد أعلى: **10 ملفات لكل مصروف**.
 
-- لا تغيير على UI أو الهوكات (مربوطة سلفاً).
-- لا تعديل على سياسات bucket أخرى.
+### دورة الحفظ
+
+1. إنشاء/تحديث `expenses` كالمعتاد.
+2. لكل ملف: `uploadInvoiceFile` → `createInvoice({ expense_id, invoice_type: mapExpenseTypeToInvoiceType(expense_type), amount, date, property_id, fiscal_year_id, status: 'paid', file_path, file_name, description, vat_rate: 0, vat_amount: 0 })`.
+3. `Promise.allSettled` — لا يوقف البقية إن فشل واحد؛ toast تحذيري بعدد الفاشل.
+4. `resetFiles()` بعد الإرسال.
+
+### التعديل
+
+- عرض قائمة المرفقات الحالية (من `useInvoices` filtered by `expense_id`) مع زر حذف يستدعي `useDeleteInvoice` (يحذف DB + Storage).
+- الملفات الجديدة تُضاف بجانب الحالية.
+
+## الملفات المتأثرة
+
+1. **`src/utils/financial/expenses/expenseInvoiceTypeMap.ts`** (جديد) — خريطة `expense_type` → `invoice_type`.
+2. **`src/hooks/ui/useMultipleFilesUpload.ts`** (جديد) — إدارة `File[]` + validation + previews.
+3. **`src/components/expenses/ExpenseFormDialog.tsx`** — قسم مرفقات (dropzone + قائمة + معاينة صور) + قسم مرفقات حالية عند التعديل مع زر حذف.
+4. **`src/hooks/page/admin/financial/useExpensesPage.ts`** — إدماج `useMultipleFilesUpload`, `createInvoice`, `deleteInvoice`، وتمرير مرفقات المصروف قيد التعديل.
+5. **`src/hooks/page/admin/financial/useExpensesMutations.ts`** — رفع الملفات وربطها بعد إنشاء/تحديث المصروف عبر `Promise.allSettled` + toast موحّد.
+6. **`src/pages/dashboard/ExpensesPage.tsx`** — تحديث النص التوضيحي.
+7. **اختبارات**: `useMultipleFilesUpload.test.ts`, `expenseInvoiceTypeMap.test.ts`, تحديث `useExpensesPage.test.ts` بسيناريو مصروف بثلاثة ملفات.
+
+## لوحة المستفيد
+
+**بدون تغييرات كود**. `ExpenseAttachments` يعرض قائمة المرفقات تلقائياً بأي عدد، و `InvoiceViewer` يفتح/يُنزّل كل واحد عبر رابط موقّع.
+
+## التحقق النهائي
+
+1. `tsgo --noEmit` نظيف.
+2. `vitest run` — الاختبارات الجديدة خضراء + `useExpensesPage`, `documentationRate`, `beneficiaryExpensesView` لا تنكسر.
+3. Playwright يدوي:
+   - ناظر: مصروف بـ 3 ملفات (PDF + JPG + PNG) → عمود المرفقات يظهر 3.
+   - مستفيد (سنة منشورة): توسيع الصف يعرض 3 ملفات؛ تنزيل كل واحد يعمل.
+
+## لا تعارض / لا تكرار
+
+- لا Migration، لا تغيير RLS، لا مساس بصفحة الفواتير الضريبية أو ملفات المصادقة.
+- إعادة استخدام كامل: `uploadInvoiceFile`, `createInvoice`, `deleteInvoice`, `ExpenseAttachments`, `InvoiceViewer`, `getInvoiceSignedUrl`, `computeDocumentationStats`.
