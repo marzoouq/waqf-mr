@@ -1,46 +1,43 @@
-## الهدف
-إعادة الإفصاح الكامل عن فواتير الشراء للمستفيد/الواقف مع إزالة التكرار: كل مصروف يظهر مع فواتيره المرفقة القابلة للفتح داخل صفحة "مصروفات الوقف" الموحّدة.
+## المشكلة (فحص جنائي)
 
-## التغييرات
+- **الجدول `public.invoices`**: سياسة SELECT تشمل بالفعل `beneficiary` و`waqif` (مع `is_fiscal_year_accessible`)، لذا صفوف الفواتير تظهر في UI.
+- **الـ Storage bucket `invoices`**: السياسة الحالية `Admin and accountant can view invoices` هي الوحيدة لـ SELECT، فتحجب `createSignedUrl` عن المستفيد/الواقف → يظهر خطأ `فشل في تحميل الملف` عند الضغط على زر الفاتورة.
+- الأزرار والمرفقات تعرض العدد الصحيح، لكن التحميل/المعاينة معطّل للمستفيد.
 
-### 1) `src/hooks/page/beneficiary/financial/useExpensesViewPage.ts` (إعادة كتابة)
-- إضافة `useInvoicesByFiscalYear(fiscalYearId)` بجانب `useExpensesByFiscalYear`.
-- استخدام `computeDocumentationStats` لبناء `expenseInvoiceMap` و`documentedCount` و`documentationRate`.
-- إضافة state ترقيم: `currentPage`, `setCurrentPage`, `ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE` و`paginatedExpenses`.
-- إضافة state توسيع صف: `expandedRow`, `setExpandedRow`.
-- توسيع `useDashboardRealtime` ليشمل `['expenses', 'invoices']`.
-- تحديث CSV export ليتضمن عمود "عدد الفواتير المرفقة".
-- `isLoading` يجمع تحميل المصروفات + الفواتير.
+## الإصلاح
 
-### 2) `src/pages/beneficiary/ExpensesViewPage.tsx` (تحديث)
-- إبقاء `ExpenseSummaryCards` بقيم `documentedCount/documentationRate` الحقيقية بدل الأصفار.
-- إبقاء `ExpensesPieChart`.
-- إضافة قسم "سجل المصروفات ومستنداتها" أسفلها يستخدم:
-  - `ExpensesMobileCards` (mobile) مع `readOnly` و`expenseInvoiceMap` وتوسّع لعرض `ExpenseAttachments`.
-  - `ExpensesDesktopTable` (desktop) بنفس الإعداد وبدون عمود إجراءات (`readOnly`).
-  - `TablePagination` أسفل السجل.
-- تحديث بانر التوضيح ليعكس الإفصاح الجديد.
+Migration جديد يضيف سياسة SELECT على `storage.objects` تسمح لـ `beneficiary` و`waqif` بتوليد Signed URL لملف داخل bucket `invoices` **فقط إذا** كان الملف مرتبطاً بصف فاتورة تسمح لهم سياسة الجدول برؤيته (سنة منشورة + دور مصرّح).
 
-### 3) `src/constants/beneficiaryCopy.ts` (إضافة)
-- إضافة `EXPENSES_SCOPE_COPY` (title/description/context) واستيراده في الصفحة.
-- إبقاء `INVOICES_SCOPE_COPY` كما هو (فواتير الإيجار فقط).
+```sql
+CREATE POLICY "Beneficiaries and waqif can view invoice files"
+ON storage.objects
+FOR SELECT
+TO authenticated
+USING (
+  bucket_id = 'invoices'
+  AND (
+    has_role(auth.uid(), 'beneficiary'::app_role)
+    OR has_role(auth.uid(), 'waqif'::app_role)
+  )
+  AND EXISTS (
+    SELECT 1 FROM public.invoices i
+    WHERE i.file_path = storage.objects.name
+      AND is_fiscal_year_accessible(i.fiscal_year_id)
+  )
+);
+```
 
-### 4) اختبارات موجودة
-- `src/test/invoiceSourceFilter.test.ts` يبقى أخضر (لا نُعيد `source: 'purchase'` لصفحة الفواتير).
-- إضافة اختبار خفيف `src/test/beneficiaryExpensesView.test.ts` يتحقّق:
-  - `useExpensesViewPage` يُرجع `expenseInvoiceMap` و`documentedCount` و`documentationRate`.
-  - CSV يتضمن عمود "عدد الفواتير المرفقة".
+- تعتمد على `is_fiscal_year_accessible` فتحترم قواعد إخفاء السنوات غير المنشورة.
+- لا تلمس سياسة الأدمن/المحاسب.
+- Signed URL يبقى بـ TTL 5 دقائق كما في `getInvoiceSignedUrl`.
 
-### 5) تحقق تشغيلي
-- `bun run tsgo --noEmit` نظيف.
-- `bunx vitest run src/test/beneficiaryExpensesView.test.ts src/test/invoiceSourceFilter.test.ts` أخضر.
-- Playwright: تسجيل دخول كمستفيد → `/beneficiary/expenses` → التقاط لقطة تُظهر بطاقات الإجماليات + سجل المصروفات + فتح مرفق ZATCA داخل `InvoiceViewer`.
+## التحقق
+
+1. `bun run tsgo --noEmit` — لا تغييرات على TS.
+2. Playwright: تسجيل دخول كمستفيد → `/beneficiary/expenses` → توسيع مصروف له فاتورة → الضغط على الزر → التحقق من فتح `InvoiceViewer` وظهور محتوى PDF/صورة وعمل زر "تحميل".
+3. لقطة نهائية للتأكيد.
 
 ## خارج النطاق
-- لا تغيير على لوحة الناظر أو RLS.
-- لا إعادة فواتير الشراء كتبويب مستقل في صفحة "الفواتير".
-- لا تعديل على `useInvoicesViewPage` أو `InvoicesViewPage`.
 
-## النتيجة النهائية للمستخدم
-- **صفحة "مصروفات الوقف"**: إجماليات + نسبة توثيق + مخطط + سجل تفصيلي لكل مصروف مع أزرار فواتيره المرفقة قابلة للفتح.
-- **صفحة "الفواتير"**: فواتير الإيجار (ZATCA) فقط — بدون تكرار.
+- لا تغيير على UI أو الهوكات (مربوطة سلفاً).
+- لا تعديل على سياسات bucket أخرى.
