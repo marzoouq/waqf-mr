@@ -74,7 +74,7 @@ export const ROLE_SECTION_DEFS: { key: string; label: string; roles: string[] }[
   { key: 'reports', label: SECTION_LABELS['reports'] ?? 'reports', roles: ['accountant'] },
   { key: 'financial_reports', label: SECTION_LABELS['financial_reports'] ?? 'financial_reports', roles: ['beneficiary', 'waqif'] },
   { key: 'accounts', label: SECTION_LABELS['accounts'] ?? 'accounts', roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'invoices', label: SECTION_LABELS['invoices'] ?? 'invoices', roles: ['accountant', 'beneficiary'] },
+  { key: 'invoices', label: SECTION_LABELS['invoices'] ?? 'invoices', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'bylaws', label: SECTION_LABELS['bylaws'] ?? 'bylaws', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'archive', label: SECTION_LABELS['archive'] ?? 'archive', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'disclosure', label: SECTION_LABELS['disclosure'] ?? 'disclosure', roles: ['beneficiary'] },
