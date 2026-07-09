@@ -3,7 +3,6 @@
  * ملخّص إفصاحي (بطاقات + مخطط) + سجل تفصيلي read-only لكل مصروف
  * مع أزرار فواتيره المرفقة (ZATCA) القابلة للفتح داخل InvoiceViewer.
  */
-import { useState } from 'react';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExportMenu, RequirePublishedYears, TablePagination, TableSkeleton } from '@/components/common';
@@ -23,8 +22,6 @@ const noopSort: (_field: SortField) => void = () => {};
 
 const ExpensesViewPage = () => {
   const h = useExpensesViewPage();
-  const [_unused] = useState(null);
-  void _unused;
 
   return (
     <RequirePublishedYears
