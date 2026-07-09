@@ -4,6 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { zatcaKeys } from '@/lib/queryKeys/zatcaKeys';
+import { STALE_AUDIT } from '@/lib/queryStaleTime';
 
 export interface ZatcaLogEntry {
   id: string;
