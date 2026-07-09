@@ -30,7 +30,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLa
         <Menu className="w-6 h-6" aria-hidden="true" />
       </Button>
       <div className="flex flex-col items-center">
-        <h1 className="font-arabic font-bold text-base text-sidebar-foreground leading-tight">{title}</h1>
+        <p role="heading" aria-level={1} className="font-arabic font-bold text-base text-sidebar-foreground leading-tight m-0">{title}</p>
         {fiscalYearLabel && (
           <span className="text-[11px] text-sidebar-foreground/70 leading-none">{fiscalYearLabel}</span>
         )}

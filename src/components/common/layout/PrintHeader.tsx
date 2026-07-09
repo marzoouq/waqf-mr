@@ -1,5 +1,5 @@
 import { useWaqfInfo } from '@/hooks/data/settings/app/useAppSettings';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { loadAmiriFonts } from '@/utils/fonts/loadAmiriFonts';
 const PrintHeader = () => {
   // #13 perf: تحميل الخط فقط عند نية الطباعة (beforeprint) بدلاً من mount
@@ -16,6 +16,8 @@ const PrintHeader = () => {
   const deedDate = waqfInfo?.waqf_deed_date || '';
   const court = waqfInfo?.waqf_court || '';
   const logoUrl = waqfInfo?.waqf_logo_url;
+  const [logoError, setLogoError] = useState(false);
+  useEffect(() => { setLogoError(false); }, [logoUrl]);
 
   const today = new Date();
   const gregorianDate = today.toLocaleDateString('ar-SA', {
@@ -38,19 +40,24 @@ const PrintHeader = () => {
                 background: 'linear-gradient(135deg, hsl(var(--secondary) / 0.15), hsl(var(--secondary) / 0.25))',
               }}
             >
-              {logoUrl ? (
-                <img src={logoUrl} alt="شعار الوقف" className="w-full h-full rounded-lg object-contain" />
+              {logoUrl && !logoError ? (
+                <img
+                  src={logoUrl}
+                  alt="شعار الوقف"
+                  className="w-full h-full rounded-lg object-contain"
+                  onError={() => setLogoError(true)}
+                />
               ) : (
                 <span className="text-2xl font-bold" style={{ color: 'hsl(var(--primary))', fontFamily: 'Amiri, serif' }}>وقف</span>
               )}
             </div>
             <div>
-              <h1
+              <h2
                 className="text-2xl font-bold mb-1"
                 style={{ fontFamily: 'Amiri, serif', color: 'hsl(var(--primary))' }}
               >
                 {waqfName}
-              </h1>
+              </h2>
               {waqfAdmin && (
                 <p className="text-sm text-foreground/70">
                   ناظر الوقف: <strong>{waqfAdmin}</strong>
