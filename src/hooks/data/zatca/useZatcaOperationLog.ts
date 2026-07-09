@@ -33,5 +33,6 @@ export const useZatcaOperationLog = () => {
     refetchInterval: 30000,
     // #4 perf: لا تجلب في الخلفية — يوفر 120 طلب/ساعة لكل تبويب غير مرئي
     refetchIntervalInBackground: false,
+    staleTime: STALE_AUDIT,
   });
 };
