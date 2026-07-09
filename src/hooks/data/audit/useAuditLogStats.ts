@@ -18,7 +18,7 @@ export function useAuditLogTodayCount() {
     staleTime: STALE_AUDIT,
     queryFn: async ({ signal }) => {
       const todayStr = new Date().toISOString().split('T')[0];
-      const { count } = await supabase.from('audit_log').abortSignal(signal)
+      const { count } = await supabase.from('audit_log')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', todayStr);
       return count ?? 0;
@@ -33,7 +33,7 @@ export async function fetchAuditLogForExport(filters: {
   dateFrom?: string;
   dateTo?: string;
 }): Promise<AuditLogEntry[]> {
-  let query = supabase.from('audit_log').abortSignal(signal)
+  let query = supabase.from('audit_log')
     .select('id, table_name, operation, record_id, old_data, new_data, user_id, created_at')
     .order('created_at', { ascending: false })
     .limit(1000);

@@ -11,7 +11,7 @@ export const usePaidAdvances = (fiscalYearId: string | undefined, enabled: boole
     queryKey: advancesKeys.paidAllByFiscalYear(fiscalYearId),
     queryFn: async ({ signal }) => {
       if (!fiscalYearId) return [];
-      const { data, error } = await supabase.from('advance_requests').abortSignal(signal)
+      const { data, error } = await supabase.from('advance_requests')
         .select('beneficiary_id, amount')
         .eq('status', 'paid')
         .eq('fiscal_year_id', fiscalYearId);
@@ -27,7 +27,7 @@ export const useActiveCarryforwards = (fiscalYearId: string | undefined, enabled
   return useQuery({
     queryKey: advancesKeys.carryforwardActiveForDistribution(fiscalYearId),
     queryFn: async ({ signal }) => {
-      let query = supabase.from('advance_carryforward').abortSignal(signal)
+      let query = supabase.from('advance_carryforward')
         .select('beneficiary_id, amount')
         .eq('status', 'active');
       if (fiscalYearId) {

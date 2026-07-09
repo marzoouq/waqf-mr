@@ -29,7 +29,7 @@ export const useContractAllocations = (fiscalYearId?: string | null) => {
     queryKey: contractsKeys.allocations(fiscalYearId),
     enabled: fiscalYearId !== undefined,
     queryFn: async ({ signal }) => {
-      let query = supabase.from('contract_fiscal_allocations').abortSignal(signal)
+      let query = supabase.from('contract_fiscal_allocations')
         .select('id, contract_id, fiscal_year_id, period_start, period_end, allocated_payments, allocated_amount, created_at')
         .limit(ALLOCATION_LIMIT);
       if (fiscalYearId && !isFyAll(fiscalYearId)) {

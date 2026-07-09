@@ -85,7 +85,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
     placeholderData: (prev) => prev,
     enabled: !!fiscalYearId && enabled && isFyReady(fiscalYearId),
     queryFn: async ({ signal }) => {
-      let q = supabase.from('payment_invoices').abortSignal(signal)
+      let q = supabase.from('payment_invoices')
         .select('id, contract_id, invoice_number, payment_number, due_date, amount, status, paid_date, paid_amount, zatca_status, fiscal_year_id, contract:contracts(contract_number, tenant_name, property_id, payment_count, property:properties(property_number))')
         .order('due_date', { ascending: true })
         .limit(2000);
@@ -102,7 +102,7 @@ export const useDashboardSecondary = (fiscalYearId: string, enabled: boolean) =>
     placeholderData: (prev) => prev,
     enabled: !!fiscalYearId && enabled && isFyReady(fiscalYearId),
     queryFn: async ({ signal }) => {
-      let q = supabase.from('contracts').abortSignal(signal)
+      let q = supabase.from('contracts')
         .select('id, contract_number, tenant_name, property_id, unit_id, start_date, end_date, rent_amount, payment_type, payment_count, payment_amount, status, fiscal_year_id, created_at, property:properties(id, property_number), unit:units(id, unit_number, status)')
         .order('created_at', { ascending: false })
         .limit(5);
