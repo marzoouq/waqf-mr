@@ -1,4 +1,5 @@
 severity,rule,file,line,message
+Warning,ComponentSize,components/expenses/ExpenseFormDialog.tsx,254,"component 254 lines > 250"
 Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,26,"hex color #ffffff"
 Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,64,"hex color #0f172a"
 Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,94,"hex color #ffffff"
@@ -9,3 +10,4 @@ Warning,NoToastInDataHooks,hooks/data/core/crud/useListQuery.ts,8,"hooks/data im
 Warning,NoToastInDataHooks,hooks/data/core/crud/useListQuery.ts,10,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
 Warning,NoToastInDataHooks,hooks/data/notifications/useNotificationActions.ts,11,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
 Warning,NoToastInDataHooks,hooks/data/settings/app/useAppSettingsWrite.ts,9,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
+Critical,CoreModV7,pages/OAuthConsent.tsx,8,"page imports supabase client directly"
