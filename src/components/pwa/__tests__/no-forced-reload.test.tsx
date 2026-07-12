@@ -29,6 +29,8 @@ const ALLOWLIST = new Set<string>([
   // reload ضروري بعد runDeepClean: إلغاء تسجيل SW + مسح كل caches/IDB/storage
   // يتطلب bootstrap كامل لإعادة تركيب التطبيق من الصفر
   'pages/dashboard/SystemDiagnosticsPage.tsx',
+  // إجراء إصلاح تشخيصي يُطلقه المستخدم من صفحة التشخيصات (post-fix reload)
+  'lib/diagnostics/fixActions.ts',
 ]);
 
 function walk(dir: string, out: string[] = []): string[] {

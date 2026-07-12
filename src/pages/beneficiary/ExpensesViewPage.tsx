@@ -15,7 +15,10 @@ import {
 } from '@/components/expenses';
 import { useExpensesViewPage } from '@/hooks/page/beneficiary';
 import { EXPENSES_SCOPE_COPY } from '@/constants/beneficiaryCopy';
-import type { SortField } from '@/hooks/page/admin/financial/useExpensesPage';
+import type { SortFieldOf } from '@/types/sorting';
+
+// نسخة محلية للمستفيد — لا استيراد من admin (عزل طبقات)
+type SortField = SortFieldOf<'amount' | 'date' | 'expense_type'>;
 
 const noop = () => {};
 const noopSort: (_field: SortField) => void = () => {};

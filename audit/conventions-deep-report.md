@@ -1,6 +1,6 @@
 # Conventions Deep Report
 
-Total violations: **12** (Critical: 1, Warning: 7, Info: 4)
+Total violations: **11** (Critical: 1, Warning: 6, Info: 4)
 
 ## By rule
 
@@ -8,7 +8,6 @@ Total violations: **12** (Critical: 1, Warning: 7, Info: 4)
 |---|---:|
 | NoToastInDataHooks | 6 |
 | HexColors | 4 |
-| ComponentSize | 1 |
 | CoreModV7 | 1 |
 
 ## Critical violations
@@ -21,7 +20,6 @@ Total violations: **12** (Critical: 1, Warning: 7, Info: 4)
 
 | File:Line | Rule | Message |
 |---|---|---|
-| components/expenses/ExpenseFormDialog.tsx:254 | ComponentSize | component 254 lines > 250 |
 | hooks/data/core/crud/useCrudMutations.ts:8 | NoToastInDataHooks | hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper) |
 | hooks/data/core/crud/useCrudMutations.ts:9 | NoToastInDataHooks | hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper) |
 | hooks/data/core/crud/useListQuery.ts:8 | NoToastInDataHooks | hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper) |
