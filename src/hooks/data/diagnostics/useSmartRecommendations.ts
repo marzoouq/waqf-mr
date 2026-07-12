@@ -40,7 +40,8 @@ export const useSmartRecommendations = () => {
     const s = intrusion.data;
     const d = db.data;
     const e = ef.data;
-    const errs = errors.data ?? [];
+    const errs = errors.data?.rows ?? [];
+    const errsLast24h = errors.data?.last24hCount ?? 0;
 
     if (s) {
       if (s.failed_logins >= 10) {
