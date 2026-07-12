@@ -4,6 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '@/hooks/data/invoices/useInvoiceFileUtils';
+import { safeUuid } from '@/lib/utils/safeUuid';
 
 export const DEFAULT_MAX_FILES = 10;
 
@@ -62,7 +63,7 @@ export function useMultipleFilesUpload(maxFiles: number = DEFAULT_MAX_FILES): Us
           continue;
         }
         next.push({
-          id: crypto.randomUUID(),
+          id: safeUuid(),
           file,
           previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
         });

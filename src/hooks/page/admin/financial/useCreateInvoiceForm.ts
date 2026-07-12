@@ -6,6 +6,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import type { Contract } from '@/types';
 import type { AllowanceChargeItem } from '@/types/invoices';
 import { useInvoiceLineItems, type LineItem } from './useInvoiceLineItems';
+import { safeUuid } from '@/lib/utils/safeUuid';
 
 export type { LineItem };
 
@@ -73,7 +74,7 @@ export function useCreateInvoiceForm({ contracts, onSave, defaultVatRate = 15 }:
     const rate = resolveVatRateFor(c, defaultVatRate);
     if (c.payment_amount) {
       setItems([{
-        id: crypto.randomUUID(),
+        id: safeUuid(),
         description: `إيجار — عقد ${c.contract_number}`,
         quantity: 1,
         unitPrice: safeNumber(c.payment_amount),

@@ -5,7 +5,7 @@
 import { logger } from '@/lib/logger';
 
 const STORAGE_KEY = 'diag_runtime_errors';
-const MAX_ENTRIES = 100;
+const MAX_ENTRIES = 50;
 
 export interface RuntimeErrorEntry {
   ts: number;

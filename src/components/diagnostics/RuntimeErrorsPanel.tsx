@@ -10,9 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, RefreshCw, Copy } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Copy, Eraser } from 'lucide-react';
 import { toast } from 'sonner';
 import { fmtDateTime } from '@/utils/format/format';
+import { clearRuntimeErrors } from '@/lib/diagnostics/runtimeCollector';
 
 function readMsg(m: Record<string, unknown> | null): string {
   if (!m) return '(بدون رسالة)';
@@ -122,6 +123,17 @@ export default function RuntimeErrorsPanel() {
             <Switch id="include-noise" checked={includeNoise} onCheckedChange={setIncludeNoise} />
             <Label htmlFor="include-noise" className="text-xs">تضمين ضجيج الاختبار</Label>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              clearRuntimeErrors();
+              toast.success('تم مسح الأخطاء المحلية للجلسة');
+            }}
+            title="مسح جامع الأخطاء في الجلسة (لا يُعدّل قاعدة البيانات)"
+          >
+            <Eraser className="w-4 h-4" />
+          </Button>
           <Button variant="outline" size="sm" onClick={() => void refetch()} disabled={isFetching}>
             <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
           </Button>

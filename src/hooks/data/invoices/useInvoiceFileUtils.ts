@@ -3,6 +3,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { compressImageFile } from '@/utils/image/imageCompression';
+import { safeUuid } from '@/lib/utils/safeUuid';
 
 // ---------------------------------------------------------------------------
 // ثوابت مشتركة
@@ -81,7 +82,7 @@ export const uploadInvoiceFile = async (file: File): Promise<{ path: string; nam
   // ضغط الصور قبل الرفع لتقليل الحجم
   const processedFile = await compressImageFile(file);
   const finalExt = processedFile.name.split('.').pop()?.toLowerCase() || ext;
-  const path = `${crypto.randomUUID()}.${finalExt}`;
+  const path = `${safeUuid()}.${finalExt}`;
 
   const { error } = await supabase.storage.from('invoices').upload(path, processedFile, {
     contentType: processedFile.type,

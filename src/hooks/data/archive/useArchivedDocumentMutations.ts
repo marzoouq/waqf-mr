@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { archiveKeys } from '@/lib/queryKeys/archiveKeys';
 import { ARCHIVE_FILE_LIMITS, type ArchiveCategory, type ArchivedDocument } from '@/types/archive';
+import { safeUuid } from '@/lib/utils/safeUuid';
 
 export interface ArchiveUploadInput {
   title: string;
@@ -17,7 +18,7 @@ export interface ArchiveUploadInput {
 }
 
 function newStoragePath(): string {
-  const uuid = crypto.randomUUID();
+  const uuid = safeUuid();
   return `${ARCHIVE_FILE_LIMITS.PATH_PREFIX}/${uuid}.pdf`;
 }
 
