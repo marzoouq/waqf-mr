@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeGet, safeSet } from '@/lib/storage';
 import { sanitizeErrorMetadata } from '@/lib/diagnostics/sanitizeErrorMetadata';
+import { safeUuid } from '@/lib/utils/safeUuid';
 
 
 interface ErrorMetadata {

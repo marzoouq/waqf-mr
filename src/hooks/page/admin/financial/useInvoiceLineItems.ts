@@ -4,6 +4,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { safeUuid } from '@/lib/utils/safeUuid';
 
 export interface LineItem {
   id: string;

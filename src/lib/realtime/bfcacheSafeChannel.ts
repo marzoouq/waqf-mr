@@ -6,6 +6,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { createRealtimeChannel, removeRealtimeChannel, getRealtimeChannels } from '@/lib/realtime/channelFactory';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+import { safeUuid } from '@/lib/utils/safeUuid';
 
 
 type SubscribeFn = (channel: RealtimeChannel) => void;

@@ -3,6 +3,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { compressImageFile } from '@/utils/image/imageCompression';
+import { safeUuid } from '@/lib/utils/safeUuid';
 
 // ---------------------------------------------------------------------------
 // ثوابت مشتركة
