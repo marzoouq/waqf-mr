@@ -1,0 +1,81 @@
+/**
+ * useMaintenanceMode — قراءة/تبديل وضع الصيانة مع realtime
+ *
+ * يعتمد على `app_settings` (المفاتيح: maintenance_mode, maintenance_message, maintenance_started_at).
+ * التحديث الفوري عبر Realtime على جدول app_settings.
+ */
+import { useCallback, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
+import { logger } from '@/lib/logger';
+
+export interface MaintenanceState {
+  isActive: boolean;
+  message: string;
+  startedAt: string | null;
+  isLoading: boolean;
+  saving: boolean;
+  toggle: (active: boolean, message?: string) => Promise<void>;
+  updateMessage: (message: string) => Promise<void>;
+}
+
+const DEFAULT_MESSAGE = 'النظام تحت الصيانة، سنعود قريباً بإذن الله';
+
+export const useMaintenanceMode = (): MaintenanceState => {
+  const { data: settings, isLoading, updateSettingsBatch, updateSetting } = useAppSettings();
+  const queryClient = useQueryClient();
+
+  const isActive = settings?.maintenance_mode === 'true';
+  const message = settings?.maintenance_message || DEFAULT_MESSAGE;
+  const startedAt = settings?.maintenance_started_at || null;
+
+  // Realtime subscription لمزامنة الحالة عبر كل الجلسات
+  useEffect(() => {
+    const channel = supabase
+      .channel('maintenance-mode-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'app_settings' },
+        (payload) => {
+          const key = (payload.new as { key?: string } | null)?.key
+            ?? (payload.old as { key?: string } | null)?.key;
+          if (key && (key === 'maintenance_mode' || key === 'maintenance_message' || key === 'maintenance_started_at')) {
+            queryClient.invalidateQueries({ queryKey: appSettingsKeys.all() });
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  const toggle = useCallback(async (active: boolean, msg?: string) => {
+    try {
+      await updateSettingsBatch.mutateAsync([
+        { key: 'maintenance_mode', value: active ? 'true' : 'false' },
+        ...(msg !== undefined ? [{ key: 'maintenance_message', value: msg || DEFAULT_MESSAGE }] : []),
+        { key: 'maintenance_started_at', value: active ? new Date().toISOString() : '' },
+      ]);
+    } catch (err) {
+      logger.error('[maintenance] toggle failed:', err);
+      throw err;
+    }
+  }, [updateSettingsBatch]);
+
+  const updateMessage = useCallback(async (msg: string) => {
+    await updateSetting.mutateAsync({ key: 'maintenance_message', value: msg || DEFAULT_MESSAGE });
+  }, [updateSetting]);
+
+  return {
+    isActive,
+    message,
+    startedAt,
+    isLoading,
+    saving: updateSettingsBatch.isPending || updateSetting.isPending,
+    toggle,
+    updateMessage,
+  };
+};
