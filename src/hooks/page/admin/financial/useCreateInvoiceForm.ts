@@ -73,7 +73,7 @@ export function useCreateInvoiceForm({ contracts, onSave, defaultVatRate = 15 }:
     const rate = resolveVatRateFor(c, defaultVatRate);
     if (c.payment_amount) {
       setItems([{
-        id: crypto.randomUUID(),
+        id: safeUuid(),
         description: `إيجار — عقد ${c.contract_number}`,
         quantity: 1,
         unitPrice: safeNumber(c.payment_amount),

@@ -29,7 +29,7 @@ export const useBfcacheSafeChannel = (
 
   // معرّف فريد ثابت لطول حياة الـ hook — مولّد مرة واحدة عبر useMemo
   // لا نستخدم Math.random() لأن الـ Compiler يعتبرها impure حتى داخل lazy-init
-  const instanceId = useMemo(() => `i${crypto.randomUUID().slice(0, 8)}`, []);
+  const instanceId = useMemo(() => `i${safeUuid().slice(0, 8)}`, []);
   const fallbackChannelName = `${channelName}-${instanceId}`;
 
   const clearRetry = useCallback(() => {

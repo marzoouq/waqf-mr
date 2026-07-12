@@ -66,7 +66,7 @@ export async function reportClientError(metadata: ErrorMetadata): Promise<void> 
   } catch {
     // Supabase غير متاح — حفظ محلياً كـ fallback
     try {
-      const sessionId = (globalThis as Record<string, unknown>).__ERROR_SESSION_ID ??= crypto.randomUUID();
+      const sessionId = (globalThis as Record<string, unknown>).__ERROR_SESSION_ID ??= safeUuid();
       const queue: unknown[] = safeGet(STORAGE_KEYS.ERROR_LOG_QUEUE, [] as unknown[]);
       queue.push({ ...safe, session_id: sessionId, logged_at: new Date().toISOString() });
       if (queue.length > 20) queue.shift();

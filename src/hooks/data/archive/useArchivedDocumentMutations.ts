@@ -17,7 +17,7 @@ export interface ArchiveUploadInput {
 }
 
 function newStoragePath(): string {
-  const uuid = crypto.randomUUID();
+  const uuid = safeUuid();
   return `${ARCHIVE_FILE_LIMITS.PATH_PREFIX}/${uuid}.pdf`;
 }
 

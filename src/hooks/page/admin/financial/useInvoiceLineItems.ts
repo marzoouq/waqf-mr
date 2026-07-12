@@ -14,7 +14,7 @@ export interface LineItem {
 }
 
 const makeBlankItem = (vatRate: number): LineItem => ({
-  id: crypto.randomUUID(),
+  id: safeUuid(),
   description: '',
   quantity: 1,
   unitPrice: 0,

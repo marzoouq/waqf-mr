@@ -81,7 +81,7 @@ export const uploadInvoiceFile = async (file: File): Promise<{ path: string; nam
   // ضغط الصور قبل الرفع لتقليل الحجم
   const processedFile = await compressImageFile(file);
   const finalExt = processedFile.name.split('.').pop()?.toLowerCase() || ext;
-  const path = `${crypto.randomUUID()}.${finalExt}`;
+  const path = `${safeUuid()}.${finalExt}`;
 
   const { error } = await supabase.storage.from('invoices').upload(path, processedFile, {
     contentType: processedFile.type,

@@ -62,7 +62,7 @@ export function useMultipleFilesUpload(maxFiles: number = DEFAULT_MAX_FILES): Us
           continue;
         }
         next.push({
-          id: crypto.randomUUID(),
+          id: safeUuid(),
           file,
           previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
         });
