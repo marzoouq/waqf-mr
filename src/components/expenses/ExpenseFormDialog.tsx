@@ -4,13 +4,13 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Upload, X, FileText, ImageIcon, Paperclip } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { EXPENSE_TYPES } from '@/constants';
 import { fmt } from '@/utils/format/format';
 import type { ExpenseFieldErrors, ExpenseFormInput } from '@/utils/financial/expenses/expenseFormValidation';
 import type { StagedFile } from '@/hooks/ui/useMultipleFilesUpload';
-import { DEFAULT_MAX_FILES } from '@/hooks/ui/useMultipleFilesUpload';
+import ExpenseAttachmentsUploader from './ExpenseAttachmentsUploader';
 
 type ExpenseFormData = ExpenseFormInput;
 
