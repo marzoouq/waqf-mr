@@ -28,7 +28,8 @@ export function useSupportDashboardPage() {
   const tickets = useMemo(() => ticketsData?.tickets ?? [], [ticketsData?.tickets]);
   const { data: stats } = useSupportStats();
   const { data: analytics } = useSupportAnalytics();
-  const { data: errors = [] } = useClientErrors();
+  const { data: errorsData } = useClientErrors();
+  const errors = useMemo(() => errorsData?.rows ?? [], [errorsData?.rows]);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [showNewTicket, setShowNewTicket] = useState(false);
   const [errorSearch, setErrorSearch] = useState('');

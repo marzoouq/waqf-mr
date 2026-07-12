@@ -18,7 +18,7 @@ vi.mock('@/hooks/data/useSupportTickets', () => ({
   useCreateTicket: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateTicketStatus: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useAddTicketReply: () => ({ mutateAsync: vi.fn(), isPending: false }),
-  useClientErrors: () => ({ data: [], isLoading: false }),
+  useClientErrors: () => ({ data: { rows: [], totalCount: 0, testNoiseCount: 0, last24hCount: 0, displayedCount: 0 }, isLoading: false }),
   useSupportStats: () => ({ data: { openTickets: 0, inProgressTickets: 0, resolvedTickets: 0, errorsLast24h: 0 } }),
   useSupportAnalytics: () => ({ data: [], isLoading: false }),
 }));

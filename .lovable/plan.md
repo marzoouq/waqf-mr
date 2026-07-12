@@ -1,55 +1,88 @@
-# خطة إصلاح نهائية — بدون تغيير تصميم أو سياسات
+# خطة إصلاح مركز تشخيص النظام والأخطاء الحيّة
 
-## تأكيد نطاق الخطة
-- ❌ **لا** تعديل UI/تصميم/ألوان/تخطيط
-- ❌ **لا** تعديل RLS أو سياسات قاعدة البيانات أو الأدوار
-- ❌ **لا** تعديل ملفات محمية (`client.ts`, `types.ts`, `.env`, `config.toml`, Auth)
-- ✅ فقط: إصلاح اختبارات فاشلة + تقليل حجم ملفين + تحسين mocks
+## نتائج الفحص المباشر (تم التحقق من DB)
 
-## المشاكل المؤكّدة بالفحص
+استعلمت `access_log` مباشرةً لـ `event_type = client_error`:
 
-| # | الملف | المشكلة | الحل |
-|---|-------|--------|------|
-| 1 | `src/pages/beneficiary/ExpensesViewPage.tsx` سطر 21 | `import type { SortField } from '@/hooks/page/admin/financial/useExpensesPage'` — انتهاك عزل طبقات (استيراد type من admin إلى beneficiary) | نقل `SortField` إلى `@/types/sorting.ts` أو تعريفه محلياً كـ literal type `'date'` |
-| 2 | `src/components/expenses/ExpenseFormDialog.tsx` = 255 سطر | يتجاوز الحد 250 | استخراج قسم "المرفقات" (UI السحب/الإفلات + قائمة الملفات) إلى `ExpenseAttachmentsUploader.tsx` — **نفس التصميم البصري 100%** |
-| 3 | `src/hooks/page/admin/financial/useExpensesMutations.ts` = 197 سطر | يتجاوز الحد 180 | استخراج منطق رفع الملفات → `src/lib/expenses/uploadExpenseAttachments.ts` (دالة خالصة) |
-| 4 | `src/hooks/page/admin/financial/useExpensesPage.test.ts` (6 حالات) و `src/pages/dashboard/ExpensesPage.test.tsx` (8 حالات) | الـ mock لـ `@/hooks/data/invoices/useInvoices` لا يُصدّر `useCreateInvoice`/`useUpdateInvoice`/`useDeleteInvoice` المستدعاة الآن | توسيع الـ mocks — **لا تغيير على الكود المُختبَر** |
-| 5 | `src/lib/diagnostics/fixActions.ts` سطر 65 يستخدم `location.reload()` | يفشل اختبار `no-forced-reload.test.tsx` (ملف جديد ليس في allowlist) | إضافته لـ ALLOWLIST مع تعليق مبرِّر (سياق تشخيصي بعد إصلاح يدوي) — **لا تغيير على السلوك** |
+| المؤشر | القيمة |
+|---|---|
+| إجمالي السجلات | **1,114** |
+| ضجيج اختبار (`Test explosion` + `Test route explosion`) | **904** (81%) |
+| آخر 7 أيام | 10 |
+| آخر 24 ساعة | **3** فقط |
+| مفتاح الرسالة الفعلي في metadata | `error_message` (1,062 سجل) |
+| مفتاح `message` الذي يقرأه الـ Panel حالياً | 52 سجل فقط |
 
-## خطوات التنفيذ
+### الأسباب الجذرية لظهور «(100)»
+1. **`useClientErrors`** يستخدم `.limit(100)` والعنوان يعرض `data.length` → دائماً يقف عند 100.
+2. **`RuntimeErrorsPanel`** يقرأ `metadata->>'message'` بينما 95% من السجلات تستخدم `error_message` → معظم الصفوف تعرض «(no msg)».
+3. **لا فلتر لضجيج الاختبار** → 904 سجل قديم يطمس 210 سجلاً حقيقياً.
+4. **فحص `runtime_errors_log`** في مركز التشخيص يقرأ من `sessionStorage` فقط (client-side) — لا يعكس ما هو مسجَّل في السيرفر.
 
-**خطوة 1** — إصلاح انتهاك عزل الطبقات:
-- `src/pages/beneficiary/ExpensesViewPage.tsx`: استبدال `import type { SortField } from '@/hooks/page/admin/...'` بتعريف محلي `type SortField = 'date' | 'amount' | 'type'` (نفس القيم).
+## نطاق الإصلاح — واجهة وقراءات فقط
 
-**خطوة 2** — تقسيم `ExpenseFormDialog`:
-- إنشاء `src/components/expenses/ExpenseAttachmentsUploader.tsx` يحتوي على نفس الـ JSX الحالي للسحب/الإفلات وقائمة الملفات المرحّلة.
-- `ExpenseFormDialog.tsx` يستبدل الكتلة بـ `<ExpenseAttachmentsUploader {...props} />` — النتيجة المرئية مطابقة.
+### 1) `src/hooks/data/audit/useClientErrors.ts` (34 → ~70 سطر)
+- إرجاع `{ rows, totalCount, testNoiseCount, last24hCount }`.
+- استعلامات متوازية عبر `Promise.all`:
+  - `select('id', { count: 'exact', head: true })` للإجمالي.
+  - نفس الشيء مع فلتر `Test %` لعدد الضجيج.
+  - نفس الشيء لآخر 24 ساعة.
+  - `select(..., limit 200)` مع فلتر يستبعد `Test %` افتراضياً (يُعطَّل بـ `includeTestNoise=true`).
+- توسيع نوع `ClientError.metadata` وقراءته آمن.
 
-**خطوة 3** — تقسيم `useExpensesMutations`:
-- إنشاء `src/lib/expenses/uploadExpenseAttachments.ts` تحتوي على دالة `uploadExpenseAttachments({ expenseId, files, supabase })` — منطق الرفع + إنشاء صفوف `invoices` بنفس الحقول الحالية.
-- الهوك يستدعيها فقط — نفس السلوك.
+### 2) `src/components/diagnostics/RuntimeErrorsPanel.tsx` (102 → ~160 سطر)
+- استخراج الرسالة: `error_message` → `message` → `error_name` → «(بدون رسالة)».
+- استخراج stack: `error_stack` → `stack` → `component_stack`.
+- عنوان اللوحة: `الأخطاء الحيّة (Nإجمالي • آخر 24س: X • معروض: M)` مع شارة «ضجيج مُخفي: K».
+- Switch «تضمين ضجيج الاختبار» (افتراضياً معطَّل).
+- تحسين `classify()` باستخدام `error_name` أولاً: `TypeError`, `ReferenceError`, `ChunkLoadError`, `NetworkError`, `AbortError`.
+- عمودان لكل مجموعة: أول ظهور + آخر ظهور + عدد.
+- لا تغيير على التصميم/الألوان — نفس مكونات shadcn الحالية.
 
-**خطوة 4** — إصلاح الـ mocks:
-```ts
-vi.mock('@/hooks/data/invoices/useInvoices', () => ({
-  useInvoicesByFiscalYear: vi.fn(() => ({ data: [], isLoading: false })),
-  useCreateInvoice:  vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
-  useUpdateInvoice:  vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
-  useDeleteInvoice:  vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
-}));
+### 3) `src/lib/diagnostics/checks/runtimeErrors.ts` (20 → ~40 سطر)
+- يقرأ من **runtimeCollector** (client) *و* يستدعي `useClientErrors` منطق العدّ (server) لآخر 24 ساعة عبر استعلام مباشر.
+- عتبات جديدة (بعد تجاهل الضجيج):
+  - server 0 + client 0 → `pass`
+  - client ≤3 أو server ≤5/24س → `warn`
+  - أكثر من ذلك → `fail`
+
+### 4) تحقق تغطية مركز التشخيص — بدون إضافة فحوصات
+- سأشغّل `runAllDiagnostics` عبر Playwright headless مع جلسة الناظر المدارة (`LOVABLE_BROWSER_AUTH_STATUS=injected`) وأحفظ:
+  - `audit/diagnostics-live-run.json` — النتيجة الكاملة.
+  - `audit/diagnostics-coverage-report.md` — مصفوفة (14 بطاقة × جميع الصفحات في `src/routes/*Routes.tsx`) مع تعليم أي فجوة.
+- أشغّل `checkAppMapPagesReachable` و `checkAppMapRouteRoleSync` وأعرض النتائج.
+- **لا إضافة فحوصات جديدة** إلا إذا كشف التحقق فجوة حقيقية — سأعرضها للموافقة قبل التنفيذ في خطة منفصلة.
+
+### 5) تنظيف اختياري لضجيج الاختبار (يتطلب موافقتك)
+Migration واحدة تحذف 904 سجل ضجيج فقط:
+```sql
+DELETE FROM public.access_log 
+WHERE event_type = 'client_error'
+  AND (metadata->>'error_message' ILIKE 'Test %' 
+    OR metadata->>'message' ILIKE 'Test %');
 ```
+**لن تُنفَّذ إلا إذا قلت «نعم للتنظيف».** بدونها، الفلتر في الواجهة كافٍ.
 
-**خطوة 5** — إضافة `src/lib/diagnostics/fixActions.ts` لـ ALLOWLIST في `src/components/pwa/__tests__/no-forced-reload.test.tsx` مع تعليق: `// diagnostics fix action — user-initiated post-fix reload`.
+## أدوات ستُستخدم في التنفيذ (Build mode)
+| الأداة | الغرض |
+|---|---|
+| `code--view`, `code--line_replace`, `code--write` | تعديل 3 ملفات فقط |
+| `supabase--read_query` | التحقق من نتائج فلاتر SQL قبل تجميدها |
+| `code--exec` (Playwright) | تشغيل مركز التشخيص headless بجلسة الناظر |
+| `lovable-exec test` (Vitest) | التأكد من عدم كسر 2181 اختباراً + إضافة اختبار لـ `useClientErrors` |
+| `supabase--migration` | فقط إذا وافقت على تنظيف الضجيج |
 
-## التحقق النهائي
-1. `bunx vitest run` → 0 فشل (كان 20)
-2. `npx tsgo --noEmit` → 0 خطأ
-3. مراجعة بصرية لنموذج المصروف: قسم المرفقات بنفس المظهر
-4. لا migrations — لا تغيير على DB إطلاقاً
+## ما لن يتغيّر (ضمانات)
+- لا تعديل على: `AuthContext`, `ProtectedRoute`, `SecurityGuard`, `client.ts`, `types.ts`, `config.toml`, `.env`.
+- لا تغيير في التصميم/الألوان/التخطيط.
+- لا تعديل RLS أو سياسات التخزين (السياسات الحالية على `access_log` كافية للناظر).
+- لا حذف كود موجود بلا سبب.
+- لا مساس بأي صفحة أخرى غير `SystemDiagnosticsPage` وأدواته.
 
-## المخرجات
-- **ملفات جديدة**: 3 (`ExpenseAttachmentsUploader.tsx`, `uploadExpenseAttachments.ts`, لا شيء آخر)
-- **ملفات معدّلة**: 5 (ExpensesViewPage للمستفيد + ExpenseFormDialog + useExpensesMutations + testان + allowlist)
-- **migrations**: 0
-- **تغييرات UI**: 0
-- **تغييرات سياسات/أدوار**: 0
+## معايير القبول
+1. عنوان اللوحة يعرض **1,114** (الإجمالي الحقيقي) و**3** (آخر 24س) و**904** (ضجيج مُخفي).
+2. كل صف يعرض رسالة الخطأ الحقيقية بدل «(no msg)».
+3. Switch يُظهر/يُخفي ضجيج الاختبار.
+4. فحص `runtime_errors_log` في المركز يعكس آخر 24س من السيرفر.
+5. تقرير `audit/diagnostics-coverage-report.md` موجود ويوثّق تغطية الـ14 بطاقة لكل الصفحات.
+6. `tsgo` نظيف + كل اختبارات Vitest تمر (2181+) + اختبار جديد لـ `useClientErrors` يمر.
