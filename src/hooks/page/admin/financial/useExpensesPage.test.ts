@@ -26,6 +26,9 @@ vi.mock('@/hooks/data/financial/expenses/useExpenses', () => ({
 
 vi.mock('@/hooks/data/invoices/useInvoices', () => ({
   useInvoicesByFiscalYear: () => ({ data: mockInvoices }),
+  useCreateInvoice: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateInvoice: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useDeleteInvoice: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 vi.mock('@/hooks/data/properties/useProperties', () => ({

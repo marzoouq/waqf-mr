@@ -19,6 +19,9 @@ vi.mock('@/hooks/data/financial/expenses/useExpenses', () => ({
 vi.mock('@/hooks/data/invoices/useInvoices', () => ({
   useInvoices: vi.fn(() => ({ data: [{ id: 'inv1', expense_id: 'e1' }] })),
   useInvoicesByFiscalYear: vi.fn(() => ({ data: [{ id: 'inv1', expense_id: 'e1' }] })),
+  useCreateInvoice: vi.fn(() => mockMutate),
+  useUpdateInvoice: vi.fn(() => mockMutate),
+  useDeleteInvoice: vi.fn(() => mockMutate),
 }));
 
 vi.mock('@/hooks/data/properties/useProperties', () => ({
