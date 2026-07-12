@@ -2542,7 +2542,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "beneficiary" | "waqif" | "accountant"
+      app_role: "admin" | "beneficiary" | "waqif" | "accountant" | "support"
       voucher_payment_method: "cash" | "bank_transfer" | "cheque" | "other"
       voucher_status: "draft" | "approved" | "void"
     }
@@ -2672,7 +2672,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "beneficiary", "waqif", "accountant"],
+      app_role: ["admin", "beneficiary", "waqif", "accountant", "support"],
       voucher_payment_method: ["cash", "bank_transfer", "cheque", "other"],
       voucher_status: ["draft", "approved", "void"],
     },
