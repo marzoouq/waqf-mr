@@ -1,6 +1,6 @@
 # Page Controls Audit — Admin & Beneficiary
 
-Generated: 2026-07-05T01:52:55.003Z
+Generated: 2026-07-12T05:49:57.721Z
 
 ## Scope
 
@@ -13,10 +13,10 @@ Generated: 2026-07-05T01:52:55.003Z
 
 | Metric | Value |
 |---|---|
-| Page-level controls | 94 |
+| Page-level controls | 96 |
 | Child-component controls | 25 |
-| Total controls | 119 |
-| OK | 119 |
+| Total controls | 121 |
+| OK | 121 |
 | GAP-NO-HANDLER | 0 |
 
 ## Per-page summary (page + recursed children)
@@ -35,7 +35,7 @@ Generated: 2026-07-05T01:52:55.003Z
 | `beneficiary/DisclosurePage.tsx` | `/beneficiary/disclosure` | BENEFICIARY_ROLES | 3 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/ExpensesViewPage.tsx` | `/beneficiary/expenses` | ALL_NON_ACCOUNTANT | 0 | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/FinancialReportsPage.tsx` | `/beneficiary/financial-reports` | ALL_NON_ACCOUNTANT | 0 | 0 | 0 | 0 | 1 | 0 | ✅ 0 |
-| `beneficiary/InvoicesViewPage.tsx` | `/beneficiary/invoices` | ALL_NON_ACCOUNTANT | 0 | 3 | 2 | 0 | 0 | 0 | ✅ 0 |
+| `beneficiary/InvoicesViewPage.tsx` | `/beneficiary/invoices` | ALL_NON_ACCOUNTANT | 0 | 0 | 2 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/MySharePage.tsx` | `/beneficiary/my-share` | BENEFICIARY_ROLES | 6 | 0 | 4 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/NotificationsPage.tsx` | `/beneficiary/notifications` | BENEFICIARY_ROLES | 0 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
 | `beneficiary/PropertiesViewPage.tsx` | `/beneficiary/properties` | ALL_NON_ACCOUNTANT | 1 | 0 | 1 | 0 | 2 | 0 | ✅ 0 |
@@ -63,7 +63,7 @@ Generated: 2026-07-05T01:52:55.003Z
 | `dashboard/ReportsPage.tsx` | `/dashboard/reports` | ADMIN_ROLES | 0 | 0 | 3 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/SettingsPage.tsx` | `/dashboard/settings` | ADMIN_ONLY | 0 | 1 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/SupportDashboardPage.tsx` | `/dashboard/support` | ADMIN_ROLES | 0 | 3 | 1 | 0 | 0 | 0 | ✅ 0 |
-| `dashboard/SystemDiagnosticsPage.tsx` | `/dashboard/diagnostics` | ADMIN_ONLY | 0 | 7 | 0 | 0 | 0 | 0 | ✅ 0 |
+| `dashboard/SystemDiagnosticsPage.tsx` | `/dashboard/diagnostics` | ADMIN_ONLY | 0 | 12 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/UserManagementPage.tsx` | `/dashboard/users` | ADMIN_ONLY | 0 | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/ZatcaManagementPage.tsx` | `/dashboard/zatca` | ADMIN_ONLY | 0 | 3 | 0 | 0 | 0 | 0 | ✅ 0 |
 
