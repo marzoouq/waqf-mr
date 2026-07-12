@@ -7,11 +7,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSmartRecommendations, type RecommendationAction } from '@/hooks/data/diagnostics/useSmartRecommendations';
 import {
   clearQueryCache, unregisterServiceWorker, forceTokenRefresh, hardReload, resetRealtimeChannels,
+  purgeOldClientErrors, testAllEdgeFunctions,
 } from '@/lib/diagnostics/fixActions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, AlertTriangle, Info, Wrench, RefreshCw, Trash2, Zap, LogIn, RadioTower, RotateCw } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Info, Wrench, RefreshCw, Trash2, Zap, LogIn, RadioTower, RotateCw, Broom, Gauge } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SEV_ICON = { critical: AlertCircle, warning: AlertTriangle, info: Info } as const;
