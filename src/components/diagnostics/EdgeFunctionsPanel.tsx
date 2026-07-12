@@ -1,13 +1,20 @@
 /**
- * EdgeFunctionsPanel — إحصائيات Edge Functions (نجاح/فشل/زمن)
+ * EdgeFunctionsPanel — إحصائيات Edge Functions (نجاح/فشل/زمن) + قياس Latency الحيّ
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useEdgeFunctionsStats } from '@/hooks/data/diagnostics/useEdgeFunctionsStats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Zap, RefreshCw } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Zap, RefreshCw, Activity } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
+import { toast } from 'sonner';
+
+interface PingResult { name: string; ok: boolean; status: number; latencyMs: number; error?: string }
 
 export default function EdgeFunctionsPanel() {
   const [hours, setHours] = useState('24');
