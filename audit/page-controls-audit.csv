@@ -3,8 +3,8 @@ src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,38,Button,
 src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,42,Button,"توزيع الحصص PDF",onClick,"PageHeaderCard>LockedYearBanner>FileText",OK
 src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,47,Button,"إنشاء حساب ختامي",onClick,"FileText>Users>ExportMenu",OK
 src/pages/dashboard/AccountsPage.tsx,,/dashboard/accounts,ADMIN_ROLES,52,Button,"إقفال السنة",onClick,"Users>ExportMenu>Plus",OK
-src/pages/dashboard/AdminDashboard.tsx,,/dashboard,ADMIN_ROLES,51,Button,"تقرير سنوي مُجمَّع",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/AdminDashboard.tsx,,/dashboard,ADMIN_ROLES,61,Button,"طباعة",onClick,"DashboardLayout>PageHeaderCard>FileDown",OK
+src/pages/dashboard/AdminDashboard.tsx,,/dashboard,ADMIN_ROLES,58,Button,"تقرير سنوي مُجمَّع",onClick,"DashboardLayout>CriticalAlertsBanner>PageHeaderCard",OK
+src/pages/dashboard/AdminDashboard.tsx,,/dashboard,ADMIN_ROLES,68,Button,"طباعة",onClick,"CriticalAlertsBanner>PageHeaderCard>FileDown",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,110,Tab,"حالة العقارات",tabs-radix,"Loader2>Tabs>TabsList",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,115,Tab,"الإنجازات",tabs-radix,"TabsList>Building2",OK
 src/pages/dashboard/AnnualReportPage.tsx,,/dashboard/annual-report,ADMIN_ROLES,120,Tab,"التحديات",tabs-radix,"TabsList>Building2>Trophy",OK
@@ -57,13 +57,18 @@ src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,50,
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,51,Tab,"الأخطاء",tabs-radix,"Tabs>TabsList>Headset",OK
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,52,Tab,"الإحصائيات",tabs-radix,"TabsList>Headset>Bug",OK
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,32,Button,"تذكرة جديدة",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,107,Tab,"نظرة عامة",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,108,Tab,"الفحوصات",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,109,Tab,"سجل Backend",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,110,Tab,"خريطة التطبيق",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,111,Tab,"التفاعلات",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,112,Tab,"الأداء الحي",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,113,Tab,"السجل والتصدير",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,112,Tab,"نظرة عامة",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,113,Tab,"🛠 التوصيات والإصلاحات",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,114,Tab,"🛡 الأمان والاختراق",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,115,Tab,"⚠️ الأخطاء الحيّة",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,116,Tab,"💾 أداء قاعدة البيانات",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,117,Tab,"⚡ Edge Functions",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,118,Tab,"الفحوصات",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,119,Tab,"سجل Backend",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,120,Tab,"خريطة التطبيق",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,121,Tab,"التفاعلات",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,122,Tab,"الأداء الحي",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,123,Tab,"السجل والتصدير",tabs-radix,"Tabs>TabsList",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,72,Tab,"الفواتير",tabs-radix,"ZatcaHealthPanel>Tabs>TabsList",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,73,Tab,"الشهادات",tabs-radix,"Tabs>TabsList>FileText",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,74,Tab,"سلسلة التوقيع",tabs-radix,"TabsList>FileText>ShieldCheck",OK
@@ -81,11 +86,8 @@ src/pages/beneficiary/BylawsViewPage.tsx,,/beneficiary/bylaws,ALL_NON_ACCOUNTANT
 src/pages/beneficiary/CarryforwardHistoryPage.tsx,,/beneficiary/carryforward,BENEFICIARY_ROLES,55,Button,"رجوع",onClick,"EmptyPageState>RequirePublishedYears>PageHeaderCard",OK
 src/pages/beneficiary/DisclosurePage.tsx,,/beneficiary/disclosure,BENEFICIARY_ROLES,72,Button,"تقرير شامل",onClick,"UnlinkedAccountNotice>ErrorState>PageHeaderCard",OK
 src/pages/beneficiary/FinancialReportsPage.tsx,,/beneficiary/financial-reports,ALL_NON_ACCOUNTANT,66,Link,"صفحة الإفصاح السنوي",Link-to,"ErrorState>PageHeaderCard>ExportMenu",OK
-src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,68,Tab,"الكل",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
-src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,69,Tab,"فواتير الإيجار",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
-src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,70,Tab,"فواتير الشراء",tabs-radix,"LayoutGrid>Tabs>TabsList",OK
-src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,56,Button,"جدول",onClick,"PageHeaderCard>ExportMenu>Info",OK
-src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,59,Button,"شبكي",onClick,"ExportMenu>Info>List",OK
+src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,53,Button,"جدول",onClick,"PageHeaderCard>ExportMenu>Info",OK
+src/pages/beneficiary/InvoicesViewPage.tsx,,/beneficiary/invoices,ALL_NON_ACCOUNTANT,56,Button,"شبكي",onClick,"ExportMenu>Info>List",OK
 src/pages/beneficiary/MySharePage.tsx,,/beneficiary/my-share,BENEFICIARY_ROLES,167,Button,"صفحة الإفصاح السنوي",onClick,"Card>CardContent>AlertCircle",OK
 src/pages/beneficiary/NotificationsPage.tsx,,/beneficiary/notifications,BENEFICIARY_ROLES,49,Button,"تفعيل الإشعارات المنبثقة تفعيل",onClick,"DashboardLayout>TableSkeleton>PageHeaderCard",OK
 src/pages/beneficiary/PropertiesViewPage.tsx,,/beneficiary/properties,ALL_NON_ACCOUNTANT,53,Button,"إعادة المحاولة",onClick,"DashboardLayout>Skeleton>AlertCircle",OK
@@ -109,7 +111,7 @@ src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/QuickAct
 src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/QuickActionsCard.tsx,/dashboard,ADMIN_ROLES,50,Link,"",Link-to,"Wallet>QuickAction>Button",OK
 src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/RecentContractsCard.tsx,/dashboard,ADMIN_ROLES,74,Button,"عرض الكل",parent-Trigger,"Skeleton>Skeleton>Link",OK
 src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/widgets/RecentContractsCard.tsx,/dashboard,ADMIN_ROLES,73,Link,"عرض الكل",Link-to,"Skeleton>Skeleton>Skeleton",OK
-src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/kpi/DashboardStatsGrid.tsx,/dashboard,ADMIN_ROLES,25,Link,"{hasRaw ? ( ) : ( stat.value )} {('yoyChange' in stat) && stat.yoyChange !== und",Link-to,"StatsGridSkeleton",OK
+src/pages/dashboard/AdminDashboard.tsx,src/components/dashboard/kpi/DashboardStatsGrid.tsx,/dashboard,ADMIN_ROLES,26,Link,"{hasRaw ? ( ) : ( stat.value )} {('yoyChange' in stat) && stat.yoyChange !== und",Link-to,"StatsGridSkeleton",OK
 src/pages/dashboard/ExpensesPage.tsx,src/components/dashboard/AdvancedFiltersBar.tsx,/dashboard/expenses,ADMIN_ROLES,35,Button,"مسح الكل",onClick,"AdvancedFiltersBarProps>FilterState>Filter",OK
 src/pages/beneficiary/BeneficiaryDashboard.tsx,src/components/beneficiary/dashboard/BeneficiaryQuickLinks.tsx,/beneficiary,BENEFICIARY_ROLES,27,Link,"",Link-to,"",OK
 src/pages/beneficiary/BeneficiaryDashboard.tsx,src/components/beneficiary/dashboard/BeneficiaryNotificationsCard.tsx,/beneficiary,BENEFICIARY_ROLES,44,Button,"عرض الكل",onClick,"Card>CardHeader>Bell",OK

@@ -9,4 +9,4 @@ Warning,NoToastInDataHooks,hooks/data/core/crud/useListQuery.ts,8,"hooks/data im
 Warning,NoToastInDataHooks,hooks/data/core/crud/useListQuery.ts,10,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
 Warning,NoToastInDataHooks,hooks/data/notifications/useNotificationActions.ts,11,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
 Warning,NoToastInDataHooks,hooks/data/settings/app/useAppSettingsWrite.ts,9,"hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper)"
-Critical,CoreModV7,pages/OAuthConsent.tsx,8,"page imports supabase client directly"
+Warning,HooksLayering,hooks/page/auth/useOAuthConsent.ts,6,"hooks/page imports supabase client directly — extract to lib/services/*"
