@@ -1,5 +1,4 @@
 severity,rule,file,line,message
-Warning,ComponentSize,components/expenses/ExpenseFormDialog.tsx,254,"component 254 lines > 250"
 Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,26,"hex color #ffffff"
 Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,64,"hex color #0f172a"
 Info,HexColors,components/expenses/vouchers/SignaturePad.tsx,94,"hex color #ffffff"
