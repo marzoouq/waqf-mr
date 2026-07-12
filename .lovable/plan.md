@@ -1,83 +1,55 @@
-## الهدف
+# خطة إصلاح نهائية — بدون تغيير تصميم أو سياسات
 
-اختبار Playwright E2E يتحقق أن **نسبة التوثيق** و**عدد الفواتير المرفقة لكل مصروف** متطابقة تماماً بين:
-- لوحة الناظر: `/dashboard/expenses`
-- لوحة المستفيد: `/beneficiary/expenses`
+## تأكيد نطاق الخطة
+- ❌ **لا** تعديل UI/تصميم/ألوان/تخطيط
+- ❌ **لا** تعديل RLS أو سياسات قاعدة البيانات أو الأدوار
+- ❌ **لا** تعديل ملفات محمية (`client.ts`, `types.ts`, `.env`, `config.toml`, Auth)
+- ✅ فقط: إصلاح اختبارات فاشلة + تقليل حجم ملفين + تحسين mocks
 
-لنفس السنة المالية (منشورة).
+## المشاكل المؤكّدة بالفحص
 
-## فحص مسبق (نتائج)
+| # | الملف | المشكلة | الحل |
+|---|-------|--------|------|
+| 1 | `src/pages/beneficiary/ExpensesViewPage.tsx` سطر 21 | `import type { SortField } from '@/hooks/page/admin/financial/useExpensesPage'` — انتهاك عزل طبقات (استيراد type من admin إلى beneficiary) | نقل `SortField` إلى `@/types/sorting.ts` أو تعريفه محلياً كـ literal type `'date'` |
+| 2 | `src/components/expenses/ExpenseFormDialog.tsx` = 255 سطر | يتجاوز الحد 250 | استخراج قسم "المرفقات" (UI السحب/الإفلات + قائمة الملفات) إلى `ExpenseAttachmentsUploader.tsx` — **نفس التصميم البصري 100%** |
+| 3 | `src/hooks/page/admin/financial/useExpensesMutations.ts` = 197 سطر | يتجاوز الحد 180 | استخراج منطق رفع الملفات → `src/lib/expenses/uploadExpenseAttachments.ts` (دالة خالصة) |
+| 4 | `src/hooks/page/admin/financial/useExpensesPage.test.ts` (6 حالات) و `src/pages/dashboard/ExpensesPage.test.tsx` (8 حالات) | الـ mock لـ `@/hooks/data/invoices/useInvoices` لا يُصدّر `useCreateInvoice`/`useUpdateInvoice`/`useDeleteInvoice` المستدعاة الآن | توسيع الـ mocks — **لا تغيير على الكود المُختبَر** |
+| 5 | `src/lib/diagnostics/fixActions.ts` سطر 65 يستخدم `location.reload()` | يفشل اختبار `no-forced-reload.test.tsx` (ملف جديد ليس في allowlist) | إضافته لـ ALLOWLIST مع تعليق مبرِّر (سياق تشخيصي بعد إصلاح يدوي) — **لا تغيير على السلوك** |
 
-- لا يوجد إعداد Playwright في المشروع حالياً (لا `playwright.config.ts`، لا مجلد `tests/`، لا تبعية في `package.json`). سيُضاف من الصفر.
-- المكوّنات المستهدفة موجودة: `ExpenseSummaryCards.tsx` (يعرض `documentationRate` + `documentedCount/expenses.length`) و `ExpensesDesktopTable.tsx` (يحسب `attachCount = expenseInvoiceMap.get(item.id)`).
-- لا `data-testid` في مكونات المصروفات — يجب إضافتها.
-- منطق الحساب موحد فعلاً في `computeDocumentationStats` ومُستخدَم في هوكَي الصفحتين، لذا الاختبار قبل كل شيء **جسر حماية ضد الانحراف المستقبلي**.
-- مفتاح `sessionStorage` للسنة المالية = `fiscal_year_id` (وفق قواعد المشروع).
+## خطوات التنفيذ
 
-## الملفات الجديدة
+**خطوة 1** — إصلاح انتهاك عزل الطبقات:
+- `src/pages/beneficiary/ExpensesViewPage.tsx`: استبدال `import type { SortField } from '@/hooks/page/admin/...'` بتعريف محلي `type SortField = 'date' | 'amount' | 'type'` (نفس القيم).
 
-1. **`playwright.config.ts`** (جذر المشروع):
-   - `testDir: 'tests/e2e'`, `baseURL: 'http://localhost:8080'`
-   - `use: { viewport: {width:1280,height:1800}, locale: 'ar-SA', trace: 'retain-on-failure', screenshot: 'only-on-failure' }`
-   - مشروع Chromium واحد headless.
-   - `webServer` غير مطلوب (الـ dev server يعمل مسبقاً في بيئتنا).
+**خطوة 2** — تقسيم `ExpenseFormDialog`:
+- إنشاء `src/components/expenses/ExpenseAttachmentsUploader.tsx` يحتوي على نفس الـ JSX الحالي للسحب/الإفلات وقائمة الملفات المرحّلة.
+- `ExpenseFormDialog.tsx` يستبدل الكتلة بـ `<ExpenseAttachmentsUploader {...props} />` — النتيجة المرئية مطابقة.
 
-2. **`tests/e2e/helpers/auth.ts`**:
-   - `restoreAdminSession(context, page)` — يستخدم `LOVABLE_BROWSER_SUPABASE_COOKIES_JSON` + `LOVABLE_BROWSER_SUPABASE_STORAGE_KEY` + `LOVABLE_BROWSER_SUPABASE_SESSION_JSON` (الجلسة المحقونة = الناظر الحالي).
-   - `loginViaUi(page, email, password)` — يزور `/auth`، يملأ النموذج ويضغط دخول (للمستفيد عبر `E2E_BENEFICIARY_EMAIL` / `E2E_BENEFICIARY_PASSWORD`).
-   - `selectFiscalYear(page, fiscalYearId)` — يضبط `sessionStorage.setItem('fiscal_year_id', id)` قبل التنقل، ثم يتحقق من ظهورها في `FiscalYearSwitcher` بعد الرندر.
+**خطوة 3** — تقسيم `useExpensesMutations`:
+- إنشاء `src/lib/expenses/uploadExpenseAttachments.ts` تحتوي على دالة `uploadExpenseAttachments({ expenseId, files, supabase })` — منطق الرفع + إنشاء صفوف `invoices` بنفس الحقول الحالية.
+- الهوك يستدعيها فقط — نفس السلوك.
 
-3. **`tests/e2e/helpers/readExpensesStats.ts`**:
-   - `readSummaryStats(page)` → `{ rate: number, documented: number, total: number }` بقراءة `[data-testid="documentation-rate"]` و `[data-testid="documented-count"]`.
-   - `readAttachmentCounts(page)` → `Record<expenseId, number>` بقراءة كل `[data-testid^="expense-row-"]` واستخراج `[data-testid="attachments-count"]`.
+**خطوة 4** — إصلاح الـ mocks:
+```ts
+vi.mock('@/hooks/data/invoices/useInvoices', () => ({
+  useInvoicesByFiscalYear: vi.fn(() => ({ data: [], isLoading: false })),
+  useCreateInvoice:  vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
+  useUpdateInvoice:  vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
+  useDeleteInvoice:  vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
+}));
+```
 
-4. **`tests/e2e/expenses-documentation-parity.spec.ts`**:
-   - `test.skip(!process.env.E2E_BENEFICIARY_EMAIL, 'missing beneficiary creds')`.
-   - Step 1: استعادة جلسة الناظر → زيارة `/dashboard/expenses` → اختيار سنة منشورة معروفة (`E2E_FISCAL_YEAR_ID`) → انتظار `[data-testid="documentation-rate"]` → التقاط `adminStats` + `adminCounts` + screenshot.
-   - Step 2: `context.clearCookies()` + `page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); })` → `loginViaUi` بمستفيد → زيارة `/beneficiary/expenses` → اختيار نفس السنة → التقاط `benStats` + `benCounts` + screenshot.
-   - Assertions:
-     - `expect(benStats.rate).toBe(adminStats.rate)`
-     - `expect(benStats.documented).toBe(adminStats.documented)`
-     - `expect(benStats.total).toBe(adminStats.total)`
-     - `expect(benCounts).toEqual(adminCounts)` (تطابق الخريطة كاملةً)
-   - Screenshots تُحفظ تحت `test-results/` بواسطة Playwright تلقائياً + استدعاءات صريحة لـ `page.screenshot({ path: 'test-results/parity/{step}.png' })`.
+**خطوة 5** — إضافة `src/lib/diagnostics/fixActions.ts` لـ ALLOWLIST في `src/components/pwa/__tests__/no-forced-reload.test.tsx` مع تعليق: `// diagnostics fix action — user-initiated post-fix reload`.
 
-## تعديلات صغيرة لدعم القراءة الآلية
+## التحقق النهائي
+1. `bunx vitest run` → 0 فشل (كان 20)
+2. `npx tsgo --noEmit` → 0 خطأ
+3. مراجعة بصرية لنموذج المصروف: قسم المرفقات بنفس المظهر
+4. لا migrations — لا تغيير على DB إطلاقاً
 
-5. **`src/components/expenses/ExpenseSummaryCards.tsx`**:
-   - `data-testid="documentation-rate"` على `<p>` قيمة النسبة.
-   - `data-testid="documented-count"` على `<p>` نص `{documentedCount}/{expenses.length}`.
-
-6. **`src/components/expenses/ExpensesDesktopTable.tsx`**:
-   - `data-testid={\`expense-row-${item.id}\`}` على `<tr>` الرئيسي.
-   - `data-testid="attachments-count"` على العنصر الذي يعرض `attachCount`.
-
-(الاختبار يعتمد على الجدول Desktop فقط لأن viewport = 1280.)
-
-## التبعيات وسكربتات npm
-
-7. **`package.json`** — إضافة devDependency `@playwright/test` وسكربت `"test:e2e": "playwright test"` وسكربت `"test:e2e:parity": "playwright test expenses-documentation-parity"`.
-
-## متغيرات البيئة المطلوبة
-
-- `LOVABLE_BROWSER_SUPABASE_*` — محقونة تلقائياً (جلسة الناظر).
-- `E2E_BENEFICIARY_EMAIL`, `E2E_BENEFICIARY_PASSWORD` — حساب مستفيد اختباري مرتبط بسنة منشورة.
-- `E2E_FISCAL_YEAR_ID` — UUID لسنة منشورة تحوي ≥ مصروفَين (أحدهما بمرفق، الآخر بدونه) لضمان نسبة توثيق ذات معنى.
-
-في غياب أيّ منها، الاختبار يُتخطّى مع رسالة `console.info` واضحة (لا يفشل CI).
-
-## خطوات التحقق من نجاح التنفيذ بالكامل
-
-1. `bun add -D @playwright/test` ثم `bunx playwright install chromium` (تلقائي في السكربت).
-2. `tsgo --noEmit` — نظيف (خصوصاً بعد إضافة `data-testid`).
-3. `bunx vitest run` — الاختبارات القائمة (`useExpensesPage.test.ts`, `documentationRate.test.ts`) لا تنكسر.
-4. `bunx playwright test tests/e2e/expenses-documentation-parity.spec.ts --reporter=list`:
-   - المتوقّع: `1 passed` عند توفر env vars، أو `1 skipped` مع رسالة واضحة عند غيابها.
-5. فحص Screenshots المولّدة في `test-results/parity/` بصرياً للتأكد أن السنة المالية المعروضة هي نفسها في اللقطتين.
-6. **اختبار قوة**: تشغيل الاختبار بعد رفع مرفق جديد لمصروف عبر واجهة الناظر يدوياً — يجب أن يظل الاختبار ناجحاً (لأن الحساب موحّد المصدر).
-
-## خارج النطاق
-
-- لا تعديل على `computeDocumentationStats` أو أي منطق حساب.
-- لا Migration، لا RLS، لا تغييرات UI مرئية (فقط `data-testid`).
-- لا يشمل مقارنة نسخة الموبايل (`ExpensesMobileCards`) — تُترك لتكرار لاحق إن طُلب.
+## المخرجات
+- **ملفات جديدة**: 3 (`ExpenseAttachmentsUploader.tsx`, `uploadExpenseAttachments.ts`, لا شيء آخر)
+- **ملفات معدّلة**: 5 (ExpensesViewPage للمستفيد + ExpenseFormDialog + useExpensesMutations + testان + allowlist)
+- **migrations**: 0
+- **تغييرات UI**: 0
+- **تغييرات سياسات/أدوار**: 0
