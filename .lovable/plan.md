@@ -1,35 +1,80 @@
-## خطة التحقق بعد إصلاح ESLint
+# خطة: فحص بصري للصفحات المحمية على الجوال (375×812)
 
-تشغيل سلسلة تحققات للتأكد من خلو المكونات المُعدَّلة من الأخطاء وعدم وجود انحدار في السلوك.
+## الهدف
+توسيع الفحص البصري الحالي ليغطي الصفحات خلف المصادقة (لوحات الناظر/المستفيد/الواقف والصفحات الفرعية) على viewport الجوال، **دون أي تعديل على الكود**. الناتج تقرير كشف موحّد.
 
-### الخطوات
+## المدخلات المطلوبة قبل التنفيذ
+1. **جلسة تسجيل دخول**: هل الجلسة المُدارة (`LOVABLE_BROWSER_AUTH_STATUS`) نشطة؟ يجب التحقق:
+   - إذا `injected` → استخدام session vars مباشرة، ولن يحتاج المستخدم لأي إجراء.
+   - إذا `signed_out` → أطلب من المستخدم تسجيل الدخول من معاينة Lovable مرة واحدة، وسيُحقن التوكن تلقائياً.
+   - إذا `external_unmanaged` أو `no_supabase` → لا يمكن فحص الصفحات المحمية end-to-end؛ سنكتفي بالعامة ونُبلغ المستخدم.
+2. **الدور المستهدف للفحص**: الحساب المسجَّل يحدد ما نراه. سنفحص الدور المتوفر أولاً (الأغلب `admin`/ناظر بناءً على سياق الجلسة الحالية).
 
-1. **ESLint مستهدف** — تشغيل على الملفات الخمسة فقط:
-   ```
-   npx eslint src/components/common/feedback/AnimatedCounter.tsx \
-              src/components/common/layout/PrintHeader.tsx \
-              src/components/layout/WaqfInfoBar.tsx \
-              src/components/layout/sidebar/SidebarBrand.tsx \
-              supabase/functions/mcp/index.ts
-   ```
-   والتأكد من 0 errors / 0 warnings.
+## نطاق الفحص (روابط مُختارة من `routeRegistry`)
 
-2. **ESLint شامل للمشروع** — `npx eslint .` لالتقاط أي انحدار جانبي.
+### مسارات الناظر (admin) — الأولوية
+- `/dashboard` — لوحة الناظر الرئيسية
+- `/dashboard/properties` — إدارة العقارات
+- `/dashboard/contracts` — العقود
+- `/dashboard/income` — الإيرادات
+- `/dashboard/expenses` — المصروفات التشغيلية
+- `/dashboard/beneficiaries` — المستفيدون
+- `/dashboard/zatca` — إدارة الفواتير الضريبية
+- `/dashboard/messages` — الرسائل
+- `/dashboard/audit-log` — سجل المراجعة
+- `/dashboard/diagnostics` — مركز التشخيص
 
-3. **Vitest كامل** — `npx vitest run` والتحقق أن العدد الإجمالي 2190+ اختباراً يمر بدون فشل، مع التركيز على اختبارات المكونات المعدلة إن وُجدت.
+### مسارات المستفيد (إن كان الدور beneficiary)
+- `/beneficiary` — لوحة المستفيد
+- `/beneficiary/invoices` — الفواتير
+- `/beneficiary/expenses` — عرض المصروفات
+- `/beneficiary/disclosure` — الإفصاح
+- `/beneficiary/messages`
 
-4. **Typecheck + Build** — `tsgo --noEmit` ثم `npm run build` للتأكد من نجاح البناء الإنتاجي.
+### مسارات الواقف (إن كان الدور waqif)
+- `/waqif` — لوحة الواقف
 
-5. **تحقق تشغيلي في المتصفح** — تشغيل Playwright مقابل `http://localhost:8080`:
-   - زيارة `/` لتفعيل `WaqfInfoBar` و `SidebarBrand`.
-   - زيارة لوحة تحوي `AnimatedCounter` (dashboard).
-   - تفعيل `beforeprint` لاختبار `PrintHeader` (يكفي `window.dispatchEvent(new Event('beforeprint'))`).
-   - جمع Console errors/warnings ولقطة شاشة.
+## معايير الفحص (نفس معايير المرحلة السابقة + إضافات)
 
-### مخرجات التقرير
+| المعيار | آلية الرصد |
+|---|---|
+| Overflow-X | `body.scrollWidth > viewport.width` |
+| عناصر تتجاوز الحافة | تعداد العناصر التي `right > vw` أو `left < 0` |
+| **Sidebar/Drawer overlap** | فحص عناصر `position:fixed` والتحقق من عدم تغطيتها لأزرار CTA أساسية |
+| **Bottom navigation** | إن وُجدت — قياس ارتفاعها وتأكد ألا تحجب المحتوى (padding-bottom كافٍ) |
+| **جداول عريضة** | كشف `<table>` بعرض > viewport؛ التحقق من وجود wrapper قابل للتمرير |
+| **بطاقات الإحصائيات** | التحقق أن الشبكة تنكسر لعمود واحد بشكل صحيح |
+| **نماذج المدخلات** | ارتفاع الحقول ≥ 44px، لا يفلت `input` من الحاوية |
+| **Modals / Dialogs** | إن انفتح واحد افتراضياً — التحقق من أن العرض لا يتجاوز 100vw |
+| Tap targets < 36px | زر/رابط بأبعاد فعلية أصغر من الحد |
+| RTL wrong-align | نص RTL بمحاذاة `text-align:left` |
+| Console errors / pageerror | تسجيل الأخطاء بلا استثناء |
+| **Chart responsiveness** | إن وُجد Recharts — التحقق أن `ResponsiveContainer` يعمل ولا يفيض |
 
-جدول موحد يبين لكل خطوة: الحالة (✅/❌)، عدد الأخطاء/التحذيرات، والملاحظات. إن ظهر أي فشل، تسجيل الملف والسطر بدون إجراء تعديلات (وضع خطة إصلاح لاحقة).
+## آلية التنفيذ (كود Playwright قراءة فقط — يُنفَّذ في build mode)
 
-### ملاحظة
+1. حقن جلسة Supabase من `LOVABLE_BROWSER_SUPABASE_*` قبل التنقل.
+2. لكل route:
+   - `page.goto(route, { waitUntil: 'networkidle' })`
+   - انتظار 800ms لاستقرار lazy-loading و animations
+   - أخذ لقطة PNG كاملة للـ viewport
+   - تنفيذ `page.evaluate` بمعايير الفحص أعلاه
+   - تسجيل النتائج في `report.json`
+3. عرض اللقطات الحرجة بـ `code--view` وتصنيف الملاحظات.
 
-هذه مهمة تحقق للقراءة فقط — لا تعديل ملفات ولا migrations ولا تغيير سلوك.
+## المخرجات
+
+1. **`/tmp/browser/mobile-auth/report.json`** — JSON مفصّل لكل route.
+2. **`/tmp/browser/mobile-auth/shots/*.png`** — لقطة لكل صفحة.
+3. **تقرير في المحادثة** بجدول:
+   - الصفحة | مشكلة | الحدة (حرجة/متوسطة/منخفضة/تجميلية) | دليل بصري
+4. **خلاصة** بعدد المشاكل حسب الحدة وأي أنماط متكررة (مثلاً جدول واحد يفيض في 5 صفحات → مشكلة نمطية).
+
+## قيود صريحة
+- **صفر تعديلات على الكود** — كشف فقط.
+- لا فتح Modals تلقائياً إلا إن انفتحت افتراضياً.
+- لا تسجيل خروج بعد الفحص (نترك الجلسة كما هي).
+- لا اقتحام مسارات لا يسمح دور الجلسة بها (نتوقع 401/302 ونرصدها كملاحظة، لا خطأ فحص).
+
+## بعد الفحص
+سأعرض النتائج مباشرة ثم أسأل: هل تريد خطة إصلاح للمشاكل المرصودة، أم توسيع الفحص لدور آخر / viewport آخر (tablet 768px)؟
