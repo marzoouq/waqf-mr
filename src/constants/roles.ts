@@ -37,4 +37,5 @@ export const ROLE_LABELS: Record<string, string> = {
   beneficiary: 'مستفيد',
   waqif: 'واقف',
   accountant: 'محاسب',
+  support: 'الدعم الفني',
 };
