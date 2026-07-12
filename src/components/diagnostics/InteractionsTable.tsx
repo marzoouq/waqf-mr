@@ -24,19 +24,38 @@ const SEV_VARIANT: Record<InteractionsAuditRow['severity'], string> = {
 
 export default function InteractionsTable() {
   const [rows, setRows] = useState<InteractionsAuditRow[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    getInteractionsRows()
+      .then(r => setRows(r))
+      .catch(e => logger.warn('[InteractionsTable]', e))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
     getInteractionsRows()
       .then(r => { if (active) setRows(r); })
-      .catch(e => logger.warn('[InteractionsTable]', e));
+      .catch(e => logger.warn('[InteractionsTable]', e))
+      .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base">جرد التفاعلات في كل الصفحات</CardTitle>
+        <button
+          type="button"
+          onClick={load}
+          disabled={loading}
+          className="text-xs px-2 py-1 border rounded-md hover:bg-muted disabled:opacity-50"
+        >
+          {loading ? 'جارٍ...' : 'إعادة المسح'}
+        </button>
       </CardHeader>
       <CardContent>
         {!rows && <p className="text-sm text-muted-foreground">جارٍ المسح...</p>}
