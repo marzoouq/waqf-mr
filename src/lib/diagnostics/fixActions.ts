@@ -81,3 +81,65 @@ export async function resetRealtimeChannels(): Promise<FixActionResult> {
     return { ok: false, message: 'فشل إعادة ضبط Realtime' };
   }
 }
+
+/** 6) حذف سجلات client_error الأقدم من 30 يوماً */
+export async function purgeOldClientErrors(): Promise<FixActionResult> {
+  try {
+    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { error, count } = await supabase
+      .from('access_log')
+      .delete({ count: 'exact' })
+      .eq('event_type', 'client_error')
+      .lt('created_at', cutoff);
+    if (error) throw error;
+    await logAccessEvent({ event_type: 'diagnostics_run', metadata: { action: 'purge_old_client_errors', deleted: count ?? 0 } });
+    return { ok: true, message: `تم حذف ${count ?? 0} خطأ عميل قديم (أقدم من 30 يوماً)` };
+  } catch (e) {
+    logger.error('[fix] purgeOldClientErrors:', e);
+    return { ok: false, message: 'فشل حذف الأخطاء القديمة' };
+  }
+}
+
+/** 7) اختبار latency لكل Edge Functions المسجّلة */
+export async function testAllEdgeFunctions(): Promise<FixActionResult> {
+  try {
+    const { data, error } = await supabase.functions.invoke('diagnostics-edge-ping', { body: {} });
+    if (error) throw error;
+    const results = (data as { results?: Array<{ name: string; ok: boolean; latencyMs: number }> } | null)?.results ?? [];
+    const okCount = results.filter((r) => r.ok).length;
+    const avgLatency = results.length ? Math.round(results.reduce((s, r) => s + r.latencyMs, 0) / results.length) : 0;
+    await logAccessEvent({ event_type: 'diagnostics_run', metadata: { action: 'test_edge_functions', okCount, total: results.length, avgLatency } });
+    return {
+      ok: okCount === results.length && results.length > 0,
+      message: `${okCount}/${results.length} دالة تعمل • متوسط الاستجابة: ${avgLatency}ms`,
+      details: results,
+    };
+  } catch (e) {
+    logger.error('[fix] testAllEdgeFunctions:', e);
+    return { ok: false, message: 'فشل اختبار Edge Functions' };
+  }
+}
+
+/** 8) تصدير تقرير التشخيص كملف JSON */
+export function exportDiagnosticsReport(payload: unknown, filename = 'diagnostics-report'): FixActionResult {
+  try {
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const report = {
+      generatedAt: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      payload,
+    };
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}-${stamp}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    return { ok: true, message: 'تم تنزيل تقرير التشخيص' };
+  } catch (e) {
+    logger.error('[fix] exportDiagnosticsReport:', e);
+    return { ok: false, message: 'فشل تصدير التقرير' };
+  }
+}

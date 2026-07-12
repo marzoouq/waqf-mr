@@ -7,11 +7,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSmartRecommendations, type RecommendationAction } from '@/hooks/data/diagnostics/useSmartRecommendations';
 import {
   clearQueryCache, unregisterServiceWorker, forceTokenRefresh, hardReload, resetRealtimeChannels,
+  purgeOldClientErrors, testAllEdgeFunctions,
 } from '@/lib/diagnostics/fixActions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, AlertTriangle, Info, Wrench, RefreshCw, Trash2, Zap, LogIn, RadioTower, RotateCw } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Info, Wrench, RefreshCw, Trash2, Zap, LogIn, RadioTower, RotateCw, Eraser, Gauge } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SEV_ICON = { critical: AlertCircle, warning: AlertTriangle, info: Info } as const;
@@ -95,6 +96,8 @@ export default function ActionsAndFixesPanel() {
           <FixButton icon={Zap} label="إلغاء تسجيل Service Worker" busy={busy === 'sw'} onClick={() => void runAction('sw', () => unregisterServiceWorker())} />
           <FixButton icon={LogIn} label="تحديث جلسة المصادقة" busy={busy === 'token'} onClick={() => void runAction('token', () => forceTokenRefresh())} />
           <FixButton icon={RadioTower} label="إعادة ضبط Realtime" busy={busy === 'rt'} onClick={() => void runAction('rt', () => resetRealtimeChannels())} />
+          <FixButton icon={Eraser} label="حذف أخطاء العملاء القديمة (>30 يوم)" busy={busy === 'purge'} onClick={() => void runAction('purge', () => purgeOldClientErrors())} />
+          <FixButton icon={Gauge} label="اختبار latency لكل Edge Functions" busy={busy === 'ping'} onClick={() => void runAction('ping', () => testAllEdgeFunctions())} />
           <FixButton icon={RotateCw} label="إعادة تحميل قسرية" busy={busy === 'reload'} onClick={() => void runAction('reload', () => hardReload())} variant="destructive" />
         </CardContent>
       </Card>

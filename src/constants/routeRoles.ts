@@ -67,10 +67,17 @@ export const ROUTE_ROLES: Record<string, readonly AppRole[]> = {
 
   // ─── Waqif landing — 1 مسار ───
   '/waqif': ['admin', 'waqif'],
+
+  // ─── Support surface — 5 مسار (admin + support) ───
+  '/support': ['admin', 'support'],
+  '/support/tickets': ['admin', 'support'],
+  '/support/diagnostics': ['admin', 'support'],
+  '/support/maintenance': ['admin', 'support'],
+  '/support/errors': ['admin', 'support'],
 } as const;
 
 /** قائمة كل الأدوار الفعلية المستخدمة في النظام (للمصفوفة الكاملة) */
-export const ALL_APP_ROLES: readonly AppRole[] = ['admin', 'accountant', 'beneficiary', 'waqif'] as const;
+export const ALL_APP_ROLES: readonly AppRole[] = ['admin', 'accountant', 'beneficiary', 'waqif', 'support'] as const;
 
 /** عدد المسارات المتوقع (لاستخدام الاختبارات كـ sanity check) */
-export const EXPECTED_ROUTE_COUNT = 43;
+export const EXPECTED_ROUTE_COUNT = 48;

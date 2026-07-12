@@ -13,6 +13,7 @@ import { publicRoutes, catchAllRoute } from "@/routes/publicRoutes";
 import { adminRoutes } from "@/routes/adminRoutes";
 import { beneficiaryRoutes } from "@/routes/beneficiaryRoutes";
 import { waqifRoutes } from "@/routes/waqifRoutes";
+import { supportRoutes } from "@/routes/supportRoutes";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -21,6 +22,7 @@ const router = createBrowserRouter(
       {adminRoutes}
       {beneficiaryRoutes}
       {waqifRoutes}
+      {supportRoutes}
       {catchAllRoute}
     </Route>
   )

@@ -29,6 +29,8 @@ const SecurityIntrusionPanel = lazy(() => import('@/components/diagnostics/Secur
 const DbPerformancePanel = lazy(() => import('@/components/diagnostics/DbPerformancePanel'));
 const EdgeFunctionsPanel = lazy(() => import('@/components/diagnostics/EdgeFunctionsPanel'));
 const ActionsAndFixesPanel = lazy(() => import('@/components/diagnostics/ActionsAndFixesPanel'));
+const MaintenanceModePanel = lazy(() => import('@/components/diagnostics/MaintenanceModePanel'));
+const LivePerformancePanel = lazy(() => import('@/components/diagnostics/LivePerformancePanel'));
 
 interface Props { autoRun?: boolean }
 
@@ -121,6 +123,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           <TabsTrigger value="interactions">التفاعلات</TabsTrigger>
           <TabsTrigger value="performance">الأداء الحي</TabsTrigger>
           <TabsTrigger value="history">السجل والتصدير</TabsTrigger>
+          <TabsTrigger value="maintenance">🛠️ وضع الصيانة</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -151,8 +154,16 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
         <TabsContent value="backend"><BackendLogTable results={results} /></TabsContent>
         <TabsContent value="appmap"><AppMapTree /></TabsContent>
         <TabsContent value="interactions"><InteractionsTable /></TabsContent>
-        <TabsContent value="performance"><Suspense fallback={null}><WebVitalsPanel /></Suspense></TabsContent>
+        <TabsContent value="performance">
+          <Suspense fallback={null}>
+            <div className="space-y-4">
+              <LivePerformancePanel />
+              <WebVitalsPanel />
+            </div>
+          </Suspense>
+        </TabsContent>
         <TabsContent value="history"><RunHistoryList /></TabsContent>
+        <TabsContent value="maintenance"><Suspense fallback={null}><MaintenanceModePanel /></Suspense></TabsContent>
       </Tabs>
     </div>
   );
