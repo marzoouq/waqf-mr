@@ -1,7 +1,7 @@
 /**
- * EdgeFunctionsPanel — إحصائيات Edge Functions (نجاح/فشل/زمن) + قياس Latency الحيّ
+ * EdgeFunctionsPanel — إحصائيات Edge Functions (نجاح/فشل/زمن) + قياس Latency حي
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useEdgeFunctionsStats } from '@/hooks/data/diagnostics/useEdgeFunctionsStats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,9 +21,44 @@ export default function EdgeFunctionsPanel() {
   const h = parseInt(hours, 10);
   const { data, isLoading, refetch, isFetching } = useEdgeFunctionsStats(h);
 
+  const [pings, setPings] = useState<PingResult[] | null>(null);
+  const [pingLoading, setPingLoading] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const timerRef = useRef<number | null>(null);
+
+  const runPing = async () => {
+    setPingLoading(true);
+    try {
+      const { data: res, error } = await supabase.functions.invoke('diagnostics-edge-ping');
+      if (error) throw error;
+      const list = (res as { results?: PingResult[] } | null)?.results ?? [];
+      setPings(list);
+    } catch (e) {
+      logger.error('[EdgeFunctionsPanel] ping فشل:', e);
+      toast.error('تعذّر قياس Latency');
+    } finally {
+      setPingLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!autoRefresh) {
+      if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = null; }
+      return;
+    }
+    timerRef.current = window.setInterval(() => {
+      void refetch();
+      void runPing();
+    }, 30_000);
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch مستقر عبر react-query
+  }, [autoRefresh]);
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
+    <div className="space-y-4" dir="rtl">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Select value={hours} onValueChange={setHours} dir="rtl">
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -32,10 +67,44 @@ export default function EdgeFunctionsPanel() {
             <SelectItem value="168">آخر أسبوع</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" size="sm" onClick={() => void refetch()} disabled={isFetching}>
-          <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Switch id="ef-auto" checked={autoRefresh} onCheckedChange={setAutoRefresh} />
+            <Label htmlFor="ef-auto" className="text-xs">تحديث تلقائي 30ث</Label>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => void refetch()} disabled={isFetching}>
+            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Activity className="w-4 h-4" /> قياس Latency الحيّ
+          </CardTitle>
+          <Button size="sm" onClick={() => void runPing()} disabled={pingLoading}>
+            <RefreshCw className={`w-4 h-4 me-1 ${pingLoading ? 'animate-spin' : ''}`} /> قياس الآن
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {!pings ? (
+            <p className="text-sm text-muted-foreground text-center py-4">اضغط «قياس الآن» لقياس زمن استجابة كل الدوال.</p>
+          ) : (
+            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+              {pings.map((p) => {
+                const color = !p.ok ? 'destructive' : p.latencyMs > 800 ? 'default' : 'outline';
+                return (
+                  <div key={p.name} className="flex items-center justify-between border rounded-md p-2 text-sm">
+                    <span className="font-mono text-xs">{p.name}</span>
+                    <Badge variant={color}>{p.ok ? `${p.latencyMs}ms` : `فشل ${p.status || ''}`}</Badge>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
