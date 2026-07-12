@@ -1,7 +1,7 @@
 /**
  * شريط معلومات الوقف — يعرض اسم الوقف مع بيانات تفصيلية عند النقر
  */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useWaqfInfo } from '@/hooks/data/settings/app/useAppSettings';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -25,8 +25,13 @@ const WaqfInfoBar = () => {
   const { data: waqfInfo, isLoading } = useWaqfInfo();
   const { role } = useAuth();
   const [editOpen, setEditOpen] = useState(false);
+  // نمط adjusting-state-during-render الرسمي لإعادة الضبط عند تغيّر الرابط
   const [logoError, setLogoError] = useState(false);
-  useEffect(() => { setLogoError(false); }, [waqfInfo?.waqf_logo_url]);
+  const [lastLogoUrl, setLastLogoUrl] = useState(waqfInfo?.waqf_logo_url);
+  if (lastLogoUrl !== waqfInfo?.waqf_logo_url) {
+    setLastLogoUrl(waqfInfo?.waqf_logo_url);
+    setLogoError(false);
+  }
 
   if (isLoading) {
     return (

@@ -1,7 +1,7 @@
 /**
  * SidebarBrand — شعار/اسم الوقف وأزرار التبديل (presentational)
  */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Building2, PanelRightOpen, PanelRightClose, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -17,8 +17,13 @@ interface SidebarBrandProps {
 export const SidebarBrand: React.FC<SidebarBrandProps> = ({
   waqfName, waqfLogoUrl, sidebarOpen, setSidebarOpen, setMobileSidebarOpen,
 }) => {
+  // نمط adjusting-state-during-render الرسمي من React لإعادة الضبط عند تغيّر prop
   const [imgError, setImgError] = useState(false);
-  useEffect(() => { setImgError(false); }, [waqfLogoUrl]);
+  const [lastUrl, setLastUrl] = useState(waqfLogoUrl);
+  if (lastUrl !== waqfLogoUrl) {
+    setLastUrl(waqfLogoUrl);
+    setImgError(false);
+  }
   const showLogo = !!waqfLogoUrl && !imgError;
   return (
   <div className="flex items-center justify-between p-4 border-b border-sidebar-border">

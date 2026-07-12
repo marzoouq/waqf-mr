@@ -45,8 +45,14 @@ export default function AnimatedCounter({
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if (reduced || !Number.isFinite(value)) {
-      setDisplay(value);
-      return;
+      // تعيين غير متزامن عبر RAF لتجنّب setState متزامن داخل useEffect
+      rafRef.current = requestAnimationFrame(() => {
+        setDisplay(value);
+        fromRef.current = value;
+      });
+      return () => {
+        if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      };
     }
 
     const start = performance.now();

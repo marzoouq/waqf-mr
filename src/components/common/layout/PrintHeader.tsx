@@ -16,8 +16,13 @@ const PrintHeader = () => {
   const deedDate = waqfInfo?.waqf_deed_date || '';
   const court = waqfInfo?.waqf_court || '';
   const logoUrl = waqfInfo?.waqf_logo_url;
+  // نمط adjusting-state-during-render الرسمي لإعادة الضبط عند تغيّر الرابط
   const [logoError, setLogoError] = useState(false);
-  useEffect(() => { setLogoError(false); }, [logoUrl]);
+  const [lastLogoUrl, setLastLogoUrl] = useState(logoUrl);
+  if (lastLogoUrl !== logoUrl) {
+    setLastLogoUrl(logoUrl);
+    setLogoError(false);
+  }
 
   const today = new Date();
   const gregorianDate = today.toLocaleDateString('ar-SA', {
