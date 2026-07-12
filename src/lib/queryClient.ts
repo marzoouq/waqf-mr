@@ -11,11 +11,13 @@ const AUDIT = isAuditMode();
 
 const queryCache = new QueryCache({
   onError: (error, query) => {
-    const { category } = classifyError(error);
+    const { category, status } = classifyError(error);
     if (category === 'auth') return;
-    // طباعة meta لربط الفشل بمصدره (table/queryKey/label/page) بدلاً من stack مصغّر مجهول.
+    // طباعة meta لربط الفشل بمصدره (table/queryKey/label/page) مع status/category للتصنيف السريع.
     logger.error('[QueryCache] خطأ في جلب البيانات', {
       message: error.message,
+      status,
+      category,
       queryKey: query.queryKey,
       meta: query.meta ?? null,
     });
