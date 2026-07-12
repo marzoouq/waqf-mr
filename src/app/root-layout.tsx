@@ -17,6 +17,7 @@ const SecurityGuard = lazyWithRetry(() => import("@/components/auth/SecurityGuar
 const PwaUpdateNotifier = lazyWithRetry(() => import("@/components/pwa/PwaUpdateNotifier"));
 const SwUpdateBanner = lazyWithRetry(() => import("@/components/pwa/SwUpdateBanner"));
 const AuditModeOverlay = lazyWithRetry(() => import("@/components/diagnostics/AuditModeOverlay"));
+const MaintenanceBanner = lazyWithRetry(() => import("@/components/common/MaintenanceBanner"));
 
 /** يتتبع أداء تحميل الصفحات */
 function PagePerformanceTracker() {
@@ -40,6 +41,9 @@ function RoleGatedAiAssistant() {
 export function RootLayout() {
   return (
     <>
+      <ErrorBoundary>
+        <Suspense fallback={null}><MaintenanceBanner /></Suspense>
+      </ErrorBoundary>
       <OfflineBanner />
       <ErrorBoundary>
         <Suspense fallback={null}><SwUpdateBanner /></Suspense>
