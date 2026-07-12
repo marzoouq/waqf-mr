@@ -13,6 +13,7 @@ const TermsOfUse = lazyWithRetry(() => import("@/pages/TermsOfUse"));
 const InstallApp = lazyWithRetry(() => import("@/pages/InstallApp"));
 const ResetPassword = lazyWithRetry(() => import("@/pages/ResetPassword"));
 const OAuthConsent = lazyWithRetry(() => import("@/pages/OAuthConsent"));
+const MaintenancePage = lazyWithRetry(() => import("@/pages/MaintenancePage"));
 
 export const publicRoutes = (
   <>
@@ -23,6 +24,7 @@ export const publicRoutes = (
     <Route path="/terms" element={eb(<TermsOfUse />)} />
     <Route path="/install" element={eb(<InstallApp />)} />
     <Route path="/reset-password" element={eb(<ResetPassword />)} />
+    <Route path="/maintenance" element={eb(<MaintenancePage />)} />
     <Route path="/.lovable/oauth/consent" element={eb(<OAuthConsent />)} />
   </>
 );
