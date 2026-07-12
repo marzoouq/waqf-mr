@@ -1,5 +1,5 @@
 import { useWaqfInfo } from '@/hooks/data/settings/app/useAppSettings';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { loadAmiriFonts } from '@/utils/fonts/loadAmiriFonts';
 const PrintHeader = () => {
   // #13 perf: تحميل الخط فقط عند نية الطباعة (beforeprint) بدلاً من mount
@@ -16,12 +16,12 @@ const PrintHeader = () => {
   const deedDate = waqfInfo?.waqf_deed_date || '';
   const court = waqfInfo?.waqf_court || '';
   const logoUrl = waqfInfo?.waqf_logo_url;
+  // نمط adjusting-state-during-render الرسمي لإعادة الضبط عند تغيّر الرابط
   const [logoError, setLogoError] = useState(false);
-  // إعادة الضبط عند تغيّر الرابط عبر نمط setState-during-render
-  const prevLogoUrlRef = useRef(logoUrl);
-  if (prevLogoUrlRef.current !== logoUrl) {
-    prevLogoUrlRef.current = logoUrl;
-    if (logoError) setLogoError(false);
+  const [lastLogoUrl, setLastLogoUrl] = useState(logoUrl);
+  if (lastLogoUrl !== logoUrl) {
+    setLastLogoUrl(logoUrl);
+    setLogoError(false);
   }
 
   const today = new Date();
