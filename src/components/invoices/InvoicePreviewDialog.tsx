@@ -4,6 +4,7 @@
  * تحميل PDF يأخذ لقطة من المعاينة مباشرة (WYSIWYG)
  */
 import { useState, useEffect, useCallback } from 'react';
+import { useIsMountedRef } from '@/hooks/ui/useIsMountedRef';
 import { usePrint } from '@/hooks/ui/usePrint';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
     invoice?.type === 'standard' ? 'professional' : 'simplified'
   );
   const [downloading, setDownloading] = useState(false);
+  const isMountedRef = useIsMountedRef();
   const handlePrint = usePrint();
 
   useEffect(() => {
@@ -82,9 +84,10 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
       logger.error('[InvoicePreviewDialog] PDF download error:', err);
       uiNotify.error('حدث خطأ أثناء تحميل الفاتورة');
     } finally {
-      setDownloading(false);
+      // تجنّب setState بعد تفكيك المكوّن (يسبب أخطاء غير مُلتقطة)
+      if (isMountedRef.current) setDownloading(false);
     }
-  }, [invoice]);
+  }, [invoice, isMountedRef]);
 
   if (!invoice) return null;
 

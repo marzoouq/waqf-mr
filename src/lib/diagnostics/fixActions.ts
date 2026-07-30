@@ -64,7 +64,7 @@ export async function hardReload(): Promise<FixActionResult> {
     await logAccessEvent({ event_type: 'diagnostics_run', metadata: { action: 'hard_reload' } });
     window.setTimeout(() => window.location.reload(), 300);
     return { ok: true, message: 'إعادة تحميل الصفحة...' };
-  } catch (e) {
+  } catch {
     return { ok: false, message: 'فشل إعادة التحميل' };
   }
 }

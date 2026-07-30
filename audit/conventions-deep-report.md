@@ -1,6 +1,6 @@
 # Conventions Deep Report
 
-Total violations: **12** (Critical: 1, Warning: 7, Info: 4)
+Total violations: **11** (Critical: 0, Warning: 7, Info: 4)
 
 ## By rule
 
@@ -9,13 +9,10 @@ Total violations: **12** (Critical: 1, Warning: 7, Info: 4)
 | NoToastInDataHooks | 6 |
 | HexColors | 4 |
 | HooksLayering | 1 |
-| CoreModV7 | 1 |
 
 ## Critical violations
 
-| File:Line | Rule | Message |
-|---|---|---|
-| pages/MaintenancePage.tsx:10 | CoreModV7 | page imports supabase client directly |
+_None._
 
 ## Warnings (top 30)
 

@@ -1,7 +1,7 @@
 /**
  * جدول التفاعلات — تبويبات، أزرار بدون handler، تكرارات، نقص aria.
  */
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -26,21 +26,19 @@ export default function InteractionsTable() {
   const [rows, setRows] = useState<InteractionsAuditRow[] | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
-    getInteractionsRows()
+    return getInteractionsRows()
       .then(r => setRows(r))
       .catch(e => logger.warn('[InteractionsTable]', e))
       .finally(() => setLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     getInteractionsRows()
       .then(r => { if (active) setRows(r); })
-      .catch(e => logger.warn('[InteractionsTable]', e))
-      .finally(() => { if (active) setLoading(false); });
+      .catch(e => logger.warn('[InteractionsTable]', e));
     return () => { active = false; };
   }, []);
 

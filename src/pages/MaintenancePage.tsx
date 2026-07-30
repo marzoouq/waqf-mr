@@ -2,20 +2,23 @@
  * MaintenancePage — الشاشة المعروضة لغير admin/support أثناء وضع الصيانة
  */
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Wrench, LogOut, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useMaintenanceMode } from '@/hooks/application/useMaintenanceMode';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 import { fmtDateTime } from '@/utils/format/format';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { MAINTENANCE_BYPASS_ROLES } from '@/constants/roles';
 import type { AppRole } from '@/types';
 
 export default function MaintenancePage() {
   const { isActive, message, startedAt, isLoading } = useMaintenanceMode();
-  const { role, user } = useAuth();
+  const { role, user, signOut } = useAuth();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [elapsed, setElapsed] = useState('');
 
   useEffect(() => {
@@ -41,9 +44,14 @@ export default function MaintenancePage() {
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/auth';
+    await signOut();
+    navigate('/auth', { replace: true });
   };
+
+  const handleRetry = () => {
+    queryClient.invalidateQueries({ queryKey: appSettingsKeys.all() });
+  };
+
 
   return (
     <div dir="rtl" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
@@ -71,7 +79,7 @@ export default function MaintenancePage() {
             <Button
               variant="outline"
               className="flex-1"
-              onClick={() => window.location.reload()}
+              onClick={handleRetry}
             >
               <RefreshCw className="w-4 h-4 ml-2" />
               إعادة المحاولة
