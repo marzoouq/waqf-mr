@@ -1,6 +1,6 @@
 # Hooks Layout Report
 
-Scanned 290 hook files in src/hooks/. Issues: **0**.
+Scanned 291 hook files in src/hooks/. Issues: **0**.
 
 ## Auth subfolders
 
