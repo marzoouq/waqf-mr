@@ -84,9 +84,10 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
       logger.error('[InvoicePreviewDialog] PDF download error:', err);
       uiNotify.error('حدث خطأ أثناء تحميل الفاتورة');
     } finally {
-      setDownloading(false);
+      // تجنّب setState بعد تفكيك المكوّن (يسبب أخطاء غير مُلتقطة)
+      if (isMountedRef.current) setDownloading(false);
     }
-  }, [invoice]);
+  }, [invoice, isMountedRef]);
 
   if (!invoice) return null;
 
