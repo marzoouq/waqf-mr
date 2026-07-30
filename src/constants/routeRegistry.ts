@@ -80,10 +80,20 @@ export const BENEFICIARY_ROUTES: Record<string, RouteMeta> = {
   '/waqif': { title: 'لوحة الواقف' },
 };
 
+/** مسارات لوحة الدعم الفني (admin + support) */
+export const SUPPORT_ROUTES: Record<string, RouteMeta> = {
+  '/support': { title: 'لوحة الدعم الفني' },
+  '/support/tickets': { title: 'تذاكر الدعم' },
+  '/support/diagnostics': { title: 'مركز التشخيص' },
+  '/support/maintenance': { title: 'وضع الصيانة' },
+  '/support/errors': { title: 'الأخطاء الحيّة' },
+};
+
 /** كل المسارات المعروفة (للوصول السريع لـ `title`) */
 export const ALL_ROUTES: Record<string, RouteMeta> = {
   ...ADMIN_ROUTES,
   ...BENEFICIARY_ROUTES,
+  ...SUPPORT_ROUTES,
 };
 
 // ─── Helpers لبناء maps قديمة من السجل ───
