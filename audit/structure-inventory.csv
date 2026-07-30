@@ -248,7 +248,7 @@ components/diagnostics/DiagnosticsChecksGrid.tsx,component,82,7,1,false,false,fa
 components/diagnostics/DiagnosticsToolbar.tsx,component,95,5,1,false,false,false,false,true
 components/diagnostics/EdgeFunctionsPanel.tsx,component,160,12,1,false,true,true,false,true
 components/diagnostics/HealthSummaryCard.tsx,component,102,3,1,false,false,false,false,true
-components/diagnostics/InteractionsTable.tsx,component,91,6,1,false,false,false,false,true
+components/diagnostics/InteractionsTable.tsx,component,89,6,1,false,false,false,false,true
 components/diagnostics/LivePerformancePanel.tsx,component,115,3,1,false,false,false,false,true
 components/diagnostics/MaintenanceModePanel.tsx,component,120,11,1,false,false,false,false,true
 components/diagnostics/NotificationFallbackCard.tsx,component,88,6,1,false,false,false,false,true
@@ -288,7 +288,7 @@ components/invoices/CreateInvoiceFromTemplate.tsx,component,182,10,1,false,false
 components/invoices/InvoiceGridView.test.tsx,component,101,4,0,false,false,false,false,false
 components/invoices/InvoiceGridView.tsx,component,187,13,2,false,false,false,false,true
 components/invoices/InvoicePreviewDialog.test.tsx,component,67,4,0,false,false,false,false,false
-components/invoices/InvoicePreviewDialog.tsx,component,134,8,2,false,false,false,false,true
+components/invoices/InvoicePreviewDialog.tsx,component,137,9,2,false,false,false,false,true
 components/invoices/InvoiceStepsGuide.tsx,component,131,6,1,false,false,false,false,true
 components/invoices/InvoiceSummaryCards.tsx,component,136,6,1,false,false,false,false,true
 components/invoices/InvoiceTableRow.tsx,component,67,8,1,false,false,false,false,true
@@ -527,7 +527,7 @@ constants/pagination.ts,constant,36,0,7,false,false,false,false,false
 constants/quickActions.ts,constant,39,2,2,false,false,false,false,false
 constants/rolePermissions.ts,constant,41,0,2,false,false,false,false,false
 constants/roles.ts,constant,42,1,9,false,false,false,false,false
-constants/routeRegistry.ts,constant,106,1,8,false,false,false,false,false
+constants/routeRegistry.ts,constant,116,1,9,false,false,false,false,false
 constants/routeRoles.ts,constant,84,1,3,false,false,false,false,false
 constants/sections.ts,constant,98,0,9,false,false,false,false,false
 constants/settingsCategories.ts,constant,61,1,3,false,false,false,false,false
@@ -1046,7 +1046,7 @@ pages/Auth.tsx,page,141,9,1,false,false,false,false,true
 pages/Index.tsx,page,57,7,1,false,false,false,false,true
 pages/InstallApp.test.tsx,page,24,4,0,false,false,false,false,false
 pages/InstallApp.tsx,page,97,6,1,false,false,false,false,true
-pages/MaintenancePage.tsx,page,99,11,1,false,true,false,false,true
+pages/MaintenancePage.tsx,page,107,12,1,false,false,false,false,true
 pages/NotFound.test.tsx,page,24,4,0,false,false,false,false,false
 pages/NotFound.tsx,page,63,4,1,false,false,false,false,true
 pages/OAuthConsent.tsx,page,73,5,1,false,false,false,false,true
