@@ -79,7 +79,7 @@ export default function MaintenancePage() {
             <Button
               variant="outline"
               className="flex-1"
-              onClick={() => window.location.reload()}
+              onClick={handleRetry}
             >
               <RefreshCw className="w-4 h-4 ml-2" />
               إعادة المحاولة
