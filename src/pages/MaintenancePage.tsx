@@ -2,14 +2,15 @@
  * MaintenancePage — الشاشة المعروضة لغير admin/support أثناء وضع الصيانة
  */
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Wrench, LogOut, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useMaintenanceMode } from '@/hooks/application/useMaintenanceMode';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 import { fmtDateTime } from '@/utils/format/format';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { MAINTENANCE_BYPASS_ROLES } from '@/constants/roles';
 import type { AppRole } from '@/types';
 
