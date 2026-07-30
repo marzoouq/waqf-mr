@@ -16,7 +16,9 @@ import type { AppRole } from '@/types';
 
 export default function MaintenancePage() {
   const { isActive, message, startedAt, isLoading } = useMaintenanceMode();
-  const { role, user } = useAuth();
+  const { role, user, signOut } = useAuth();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [elapsed, setElapsed] = useState('');
 
   useEffect(() => {
