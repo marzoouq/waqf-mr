@@ -32,6 +32,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
     invoice?.type === 'standard' ? 'professional' : 'simplified'
   );
   const [downloading, setDownloading] = useState(false);
+  const isMountedRef = useIsMountedRef();
   const handlePrint = usePrint();
 
   useEffect(() => {
