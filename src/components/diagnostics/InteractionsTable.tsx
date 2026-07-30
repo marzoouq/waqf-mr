@@ -26,21 +26,19 @@ export default function InteractionsTable() {
   const [rows, setRows] = useState<InteractionsAuditRow[] | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
-    getInteractionsRows()
+    return getInteractionsRows()
       .then(r => setRows(r))
       .catch(e => logger.warn('[InteractionsTable]', e))
       .finally(() => setLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     getInteractionsRows()
       .then(r => { if (active) setRows(r); })
-      .catch(e => logger.warn('[InteractionsTable]', e))
-      .finally(() => { if (active) setLoading(false); });
+      .catch(e => logger.warn('[InteractionsTable]', e));
     return () => { active = false; };
   }, []);
 
