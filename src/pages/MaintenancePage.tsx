@@ -44,9 +44,14 @@ export default function MaintenancePage() {
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/auth';
+    await signOut();
+    navigate('/auth', { replace: true });
   };
+
+  const handleRetry = () => {
+    queryClient.invalidateQueries({ queryKey: appSettingsKeys.all() });
+  };
+
 
   return (
     <div dir="rtl" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
