@@ -11,5 +11,6 @@ export function initDeferredMonitoring(): void {
   idle(() => {
     import('@/lib/monitoring').then((m) => m.reportPageLoadMetrics());
     import('@/lib/monitoring/webVitals').then((m) => m.initWebVitals());
+    import('@/lib/monitoring/initSentryFromSettings').then((m) => m.initSentryFromSettings());
   });
 }

@@ -9,6 +9,7 @@ import { Outlet } from "react-router-dom";
 
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
+import { usePageActivityTracker } from "@/hooks/data/audit/usePageActivityTracker";
 import { useAuth } from "@/hooks/auth/session/useAuthContext";
 import { ADMIN_ROLES } from "@/constants/roles";
 
@@ -18,6 +19,12 @@ const PwaUpdateNotifier = lazyWithRetry(() => import("@/components/pwa/PwaUpdate
 const SwUpdateBanner = lazyWithRetry(() => import("@/components/pwa/SwUpdateBanner"));
 const AuditModeOverlay = lazyWithRetry(() => import("@/components/diagnostics/AuditModeOverlay"));
 const MaintenanceBanner = lazyWithRetry(() => import("@/components/common/MaintenanceBanner"));
+
+/** يتتبع تحركات المستخدم (زيارات الصفحات ومدة البقاء) */
+function ActivityTracker() {
+  usePageActivityTracker();
+  return null;
+}
 
 /** يتتبع أداء تحميل الصفحات */
 function PagePerformanceTracker() {
@@ -49,6 +56,9 @@ export function RootLayout() {
         <Suspense fallback={null}><SwUpdateBanner /></Suspense>
       </ErrorBoundary>
       <PagePerformanceTracker />
+      <ErrorBoundary>
+        <ActivityTracker />
+      </ErrorBoundary>
       <ErrorBoundary>
         <Suspense fallback={<PageLoader />}>
           <div className="animate-page-in">
