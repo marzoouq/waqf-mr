@@ -23,6 +23,50 @@ export interface MaintenanceState {
 
 const DEFAULT_MESSAGE = 'النظام تحت الصيانة، سنعود قريباً بإذن الله';
 
+const MAINTENANCE_KEYS = ['maintenance_mode', 'maintenance_message', 'maintenance_started_at'];
+
+/**
+ * قناة Realtime واحدة مشتركة بين كل نسخ الهوك (refcount).
+ * سبب مهم: الهوك يُستخدم في أكثر من مكان (حارس المسار + البانر + لوحة التحكم)،
+ * وإنشاء قناة بنفس الاسم مرتين يرفع الخطأ:
+ * "cannot add `postgres_changes` callbacks ... after `subscribe()`".
+ */
+let sharedChannel: ReturnType<typeof supabase.channel> | null = null;
+let subscribers = 0;
+const listeners = new Set<() => void>();
+
+const ensureChannel = (onChange: () => void) => {
+  listeners.add(onChange);
+  subscribers += 1;
+  if (!sharedChannel) {
+    sharedChannel = supabase
+      .channel('maintenance-mode-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'app_settings' },
+        (payload) => {
+          const key = (payload.new as { key?: string } | null)?.key
+            ?? (payload.old as { key?: string } | null)?.key;
+          if (key && MAINTENANCE_KEYS.includes(key)) {
+            listeners.forEach((fn) => fn());
+          }
+        }
+      )
+      .subscribe();
+  }
+  return () => {
+    listeners.delete(onChange);
+    subscribers -= 1;
+    if (subscribers <= 0) {
+      subscribers = 0;
+      if (sharedChannel) {
+        supabase.removeChannel(sharedChannel);
+        sharedChannel = null;
+      }
+    }
+  };
+};
+
 export const useMaintenanceMode = (): MaintenanceState => {
   const { data: settings, isLoading, updateSettingsBatch, updateSetting } = useAppSettings();
   const queryClient = useQueryClient();
@@ -31,26 +75,13 @@ export const useMaintenanceMode = (): MaintenanceState => {
   const message = settings?.maintenance_message || DEFAULT_MESSAGE;
   const startedAt = settings?.maintenance_started_at || null;
 
-  // Realtime subscription لمزامنة الحالة عبر كل الجلسات
+  // Realtime subscription لمزامنة الحالة عبر كل الجلسات (قناة مشتركة)
   useEffect(() => {
-    const channel = supabase
-      .channel('maintenance-mode-sync')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'app_settings' },
-        (payload) => {
-          const key = (payload.new as { key?: string } | null)?.key
-            ?? (payload.old as { key?: string } | null)?.key;
-          if (key && (key === 'maintenance_mode' || key === 'maintenance_message' || key === 'maintenance_started_at')) {
-            queryClient.invalidateQueries({ queryKey: appSettingsKeys.all() });
-          }
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return ensureChannel(() => {
+      queryClient.invalidateQueries({ queryKey: appSettingsKeys.all() });
+    });
   }, [queryClient]);
+
 
   const toggle = useCallback(async (active: boolean, msg?: string) => {
     try {
