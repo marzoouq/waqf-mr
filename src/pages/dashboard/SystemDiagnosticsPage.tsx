@@ -33,6 +33,7 @@ const MaintenanceModePanel = lazy(() => import('@/components/diagnostics/Mainten
 const LivePerformancePanel = lazy(() => import('@/components/diagnostics/LivePerformancePanel'));
 const UserTrackingPanel = lazy(() => import('@/components/diagnostics/UserTrackingPanel'));
 const BlockedIpsPanel = lazy(() => import('@/components/diagnostics/BlockedIpsPanel'));
+const AlertsPanel = lazy(() => import('@/components/diagnostics/AlertsPanel'));
 const SentryStatusPanel = lazy(() => import('@/components/diagnostics/SentryStatusPanel'));
 
 interface Props { autoRun?: boolean }
@@ -118,6 +119,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           <TabsTrigger value="fixes">🛠 التوصيات والإصلاحات</TabsTrigger>
           <TabsTrigger value="security">🛡 الأمان والاختراق</TabsTrigger>
           <TabsTrigger value="errors">⚠️ الأخطاء الحيّة</TabsTrigger>
+          <TabsTrigger value="alerts">🔔 التنبيهات</TabsTrigger>
           <TabsTrigger value="db">💾 أداء قاعدة البيانات</TabsTrigger>
           <TabsTrigger value="edge">⚡ Edge Functions</TabsTrigger>
           <TabsTrigger value="checks">الفحوصات</TabsTrigger>
@@ -147,6 +149,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           <Suspense fallback={null}><SentryStatusPanel /></Suspense>
           <Suspense fallback={null}><RuntimeErrorsPanel /></Suspense>
         </TabsContent>
+        <TabsContent value="alerts"><Suspense fallback={null}><AlertsPanel /></Suspense></TabsContent>
         <TabsContent value="db"><Suspense fallback={null}><DbPerformancePanel /></Suspense></TabsContent>
         <TabsContent value="edge"><Suspense fallback={null}><EdgeFunctionsPanel /></Suspense></TabsContent>
 
