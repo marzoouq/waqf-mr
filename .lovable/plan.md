@@ -1,40 +1,58 @@
-## نتيجة الفحص
+# خطة: تكامل Sentry + تتبّع دقيق لحركة المستخدمين في مركز التشخيص
 
-فحصت الأنواع (TypeScript)، ESLint، سلسلة audit، ومجموعة الاختبارات (2190 اختبار).
+## أولاً: حقيقة مهمة قبل البدء (تم التحقق منها)
 
-**الجيد:** فحص الأنواع نظيف تماماً، و2179 اختبار ناجح، وبوابة GAP صفر.
+فحصت جدول `access_log` فعلياً. الأحداث المسجّلة حالياً هي فقط:
 
-### الأخطاء (يجب إصلاحها)
+| الحدث | العدد | آخر ظهور |
+|---|---|---|
+| role_fetch | 6244 | 2026-07-12 |
+| login_success | 217 | 2026-07-09 |
+| idle_logout | 51 | 2026-07-12 |
+| logout | 47 | 2026-07-09 |
+| login_failed | 45 | 2026-07-05 |
+| client_error | 31 | 2026-07-30 |
+| unauthorized_access | 22 | 2026-03-25 |
 
-1. **`MaintenancePage.tsx` — انتهاك حرج (Critical)**
-   الصفحة تستدعي `supabase.auth` مباشرة داخل الصفحة. هذا يكسر قاعدة Core Modularization ويوقف بوابة audit (تمنع الـ push). الإصلاح: نقل الاستدعاء إلى `useAuth()` أو hook في `hooks/page/`.
+**لا يوجد أي تسجيل لزيارات الصفحات (`page_view`) حتى اليوم.** لذلك بالنسبة للشهر السابق يمكن عرض: وقت الدخول، وقت الخروج/الخروج بالخمول، محاولات الدخول الفاشلة، والوصول غير المصرّح، بالإضافة إلى **كل عمليات التعديل على البيانات** من `audit_log` (783 سجلاً — إضافة/تعديل/حذف باسم كل مستخدم). أما "الصفحات التي زارها" و"مدة بقائه في كل صفحة" فهي بيانات غير موجودة تاريخياً، وستتوفّر بدقة كاملة من لحظة تنفيذ هذه الخطة وما بعدها.
 
-2. **`InteractionsTable.tsx` — خطأ ESLint**
-   `setLoading(true)` يُستدعى مباشرة داخل `useEffect` مما يسبب cascading renders. الإصلاح: نقل الجلب إلى TanStack Query أو ضبط الحالة داخل callback.
+---
 
-3. **اختبار مصفوفة صلاحيات الواجهة فاشل**
-   مسارات الدعم `/support`, `/support/tickets`, `/support/diagnostics`, `/support/maintenance`, `/support/errors` مضافة في `ROUTE_ROLES` لكنها غير مسجَّلة في `ALL_ROUTES`. الإصلاح: تسجيلها في مصدر المسارات المعتمد.
+## المكوّن 1: تكامل Sentry (بيئة الإنتاج فقط)
 
-4. **اختبار `no-forced-reload` فاشل**
-   استدعاء `location.reload()` خارج القائمة المسموحة (على الأرجح من كود الصيانة/التشخيص الجديد). الإصلاح: إما استبداله بتنقّل React Router أو إضافته للـ allowlist بمبرر.
+- تثبيت `@sentry/react` وتهيئته في `src/app/bootstrap/initSentry.ts`، يُستدعى من `main.tsx` قبل التركيب، ويُفعّل فقط عندما `import.meta.env.PROD` و`VITE_SENTRY_DSN` موجود (الـ DSN مفتاح عام — يوضع في المتغيرات، لا يُعدّ سراً).
+- ربطه بالقناة الموجودة: `logger.error` و`errorReporter.reportClientError` و`ErrorBoundary` ترسل إلى Sentry **إضافةً** إلى `access_log` (لا استبدال).
+- تمرير هوية آمنة: `user_id` والدور فقط — **بدون** بريد أو اسم أو أي PII، وتمرير كل حمولة الخطأ عبر `sanitizeErrorMetadata` القائم.
+- `tracesSampleRate: 0.1`، إيقاف Session Replay، وفلترة أخطاء الشبكة/الإضافات الضوضائية.
+- تبويب جديد صغير في مركز التشخيص يعرض حالة الاتصال بـ Sentry (مفعّل/غير مفعّل + آخر حدث مُرسل).
 
-5. **اختبار `auditCriticalGate` فاشل** — تبعية مباشرة للبند رقم 1، يُحل معه.
+الأمر المطلوب منك: إنشاء مشروع في Sentry وتزويدي بالـ DSN (أو أضيفه لاحقاً — الكود يعمل بدونه ويبقى صامتاً).
 
-6. **خطأ غير مُلتقط في `InvoicePreviewDialog.test.tsx`**
-   `ReferenceError: window is not defined` — setState بعد تفكيك بيئة الاختبار. الإصلاح: إلغاء العملية غير المتزامنة عند unmount.
+## المكوّن 2: تتبّع دقيق للتنقّل (جديد — يبدأ التسجيل من الآن)
 
-### تحذيرات (غير حاجزة)
+- إضافة حدثين لنوع `access_log`: `page_view` و`page_exit`.
+- `usePageActivityTracker` يُركّب في `root-layout` ويُسجّل عند كل تغيّر مسار: المسار، عنوان القسم من `routeRegistry`، مدة البقاء في الصفحة السابقة، ومعرّف جلسة متصفح (`session_id`) لربط الأحداث في رحلة واحدة.
+- الإرسال مُجمَّع (batch) عند الخمول + عبر `sendBeacon` عند إغلاق التبويب، حتى لا يؤثر على الأداء ولا يُفقد آخر حدث.
+- استثناء الأصول الثابتة والتحديثات المتكرّرة، واعتماد throttle لتجنّب تضخيم السجل، مع حماية بحد أعلى للأحداث في الدقيقة (`check_rate_limit` القائم).
 
-- `fixActions.ts:67` متغير `e` غير مستخدم.
-- `useBeneficiaryDashboardPage.ts:36` تعبير `distributions` يُعيد إنشاء تبعيات `useMemo` كل render.
-- `ProtectedRouteHelper.tsx` يصدّر غير مكوّنات (يكسر Fast Refresh).
-- 4 ألوان hex ثابتة في `SignaturePad.tsx` و`InvoicePreviewDialog.tsx` (مسموحة تقنياً في Canvas/طباعة).
-- 6 ملفات في `hooks/data/` تستورد `@/lib/notify` (دَين انتقالي).
+## المكوّن 3: تبويب جديد "👣 تتبّع المستخدمين" في مركز التشخيص
 
-### الترتيب المقترح للإصلاح
+ثلاث مناطق داخل التبويب:
 
-1. المسارات في `ALL_ROUTES` (يفك اختبارين).
-2. `MaintenancePage` supabase → `useAuth` (يفك البوابة الحرجة).
-3. `location.reload()` allowlist / استبدال.
-4. `InteractionsTable` setState-in-effect.
-5. تنظيف التحذيرات الصغيرة.
+1. **المتواجدون الآن** — عدد المستخدمين النشطين مع اسم كل مستخدم ودوره والمسار الحالي ومدة بقائه فيه، عبر Supabase Realtime Presence (قناة واحدة مشتركة بعدّاد مراجع، بنفس نمط `useMaintenanceMode` لتفادي خطأ تكرار الاشتراك).
+2. **جدول المستخدمين** — لكل مستخدم: آخر دخول، عدد الجلسات، إجمالي الوقت، عدد الصفحات، آخر مسار. مع بحث وفلترة بالدور والفترة (اليوم/7 أيام/30 يوماً/مدى مخصّص).
+3. **الخط الزمني للمستخدم** — عند اختيار مستخدم: رحلته الكاملة مرتّبة زمنياً — دخول ← الصفحات بالترتيب مع مدة كل صفحة ← عمليات التعديل من `audit_log` (ماذا أضاف/عدّل/حذف) ← خروج أو خمول، مع الجهاز و IP المقنّع. زر تصدير CSV/JSON للرحلة.
+
+## المكوّن 4: قاعدة البيانات والأمان
+
+- دالة `get_user_activity_summary(p_from, p_to)` و`get_user_activity_timeline(p_user_id, p_from, p_to)` — كلتاهما `SECURITY DEFINER` وتتحقّقان داخلياً `has_role(auth.uid(),'admin')` أو `'support'`، وترفضان غير ذلك (fail-closed).
+- فهارس على `access_log(user_id, created_at)` و`access_log(event_type, created_at)` لأداء الاستعلامات.
+- توسيع مهمة الأرشفة القائمة `cron_archive_old_access_logs` لتغطية أحداث التنقّل (احتفاظ 90 يوماً ثم أرشفة) حتى لا ينتفخ الجدول.
+- التتبّع للمستخدمين المسجّلين فقط، بدون تسجيل محتوى الشاشات أو أي بيانات مالية داخل الحمولة، وإضافة سطر في صفحة سياسة الخصوصية يوضّح تسجيل النشاط لأغراض التشغيل والأمان.
+
+## تفاصيل تقنية
+
+- ملفات جديدة: `src/app/bootstrap/initSentry.ts`، `src/lib/monitoring/sentry.ts`، `src/hooks/data/audit/usePageActivityTracker.ts`، `src/hooks/data/audit/useUserActivity.ts`، `src/hooks/data/audit/usePresence.ts`، `src/hooks/page/admin/useUserTrackingPanel.ts`، `src/components/diagnostics/UserTrackingPanel.tsx` + `PresenceList.tsx` + `UserTimeline.tsx` + `UserActivityTable.tsx`.
+- ملفات معدّلة: `main.tsx`، `root-layout.tsx`، `lib/logger.ts`، `lib/errorReporter.ts`، `accessLogService.ts` (توسيع `AccessEventType`)، `SystemDiagnosticsPage.tsx` (تبويبان جديدان)، `PrivacyPolicy.tsx`.
+- الالتزام بالمعايير: مكوّنات بلا منطق (المنطق في `hooks/page/`)، `logger` بدل `console`، عربية RTL، متغيّرات CSS للألوان، حدّ 200 سطر لكل ملف، واختبارات Vitest مرافقة لكل هوك جديد.
+- الترتيب: (1) هجرة الدوال والفهارس ← (2) طبقة التتبّع والهوكس ← (3) لوحة التتبّع والتبويبات ← (4) Sentry ← (5) تشغيل مصفوفة التحقق (types/lint/audit/tests).
