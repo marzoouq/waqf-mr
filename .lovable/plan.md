@@ -43,16 +43,33 @@
 2. **جدول المستخدمين** — لكل مستخدم: آخر دخول، عدد الجلسات، إجمالي الوقت، عدد الصفحات، آخر مسار. مع بحث وفلترة بالدور والفترة (اليوم/7 أيام/30 يوماً/مدى مخصّص).
 3. **الخط الزمني للمستخدم** — عند اختيار مستخدم: رحلته الكاملة مرتّبة زمنياً — دخول ← الصفحات بالترتيب مع مدة كل صفحة ← عمليات التعديل من `audit_log` (ماذا أضاف/عدّل/حذف) ← خروج أو خمول، مع الجهاز و IP المقنّع. زر تصدير CSV/JSON للرحلة.
 
-## المكوّن 4: قاعدة البيانات والأمان
+## المكوّن 4: الحجب التلقائي لعناوين IP المشبوهة (جديد)
+
+- جدول `blocked_ips`: العنوان، السبب، درجة الخطورة، عدد المحاولات، آخر مستخدم/بريد مرتبط، `blocked_at`، `blocked_until` (حجب مؤقّت) أو دائم، `unblocked_by` و`unblocked_at`. RLS: القراءة والتعديل للناظر والدعم فقط + `service_role`، مع GRANT صريح.
+- **أسباب الحجب التلقائي**: 5 محاولات دخول فاشلة في 10 دقائق، 3 محاولات وصول غير مصرّح (`unauthorized_access`)، تجاوز حدود المعدّل المتكرّر، أو انفجار أخطاء عميل مشبوهة من نفس العنوان. المنطق داخل دالة `evaluate_and_block_ip()` تُستدعى من `log_access_event` نفسها (trigger داخلي)، فيعمل الحجب تلقائياً بلا تدخّل.
+- **مكان التنفيذ (بصراحة)**: العميل لا يستطيع منع نفسه فعلياً، لذلك الإنفاذ في طبقتين حقيقيتين: (1) دالة `is_ip_blocked()` تُستدعى في `guard-signup` وفي مسار تحقّق تسجيل الدخول والـ Edge Functions الحسّاسة فترفض الطلب بـ 403؛ (2) الواجهة تُظهر شاشة "تم حجب الوصول" وتُنهي الجلسة. لا يمكن حجب الطلبات على مستوى الشبكة/CDN من داخل التطبيق — إن رغبت بحجب على مستوى الشبكة يتم عبر إعدادات النطاق لاحقاً.
+- **تبويب جديد "🚫 العناوين المحجوبة"** في مركز التشخيص: جدول العناوين المحجوبة مع السبب وعدد المحاولات وسجل أحداث كل عنوان، زر **فتح الحجب** (يسجّل من فتح ومتى في `audit_log`)، زر **حجب يدوي** لعنوان، وفلترة (نشط/منتهي/مفتوح) وتصدير CSV.
+- إشعار فوري للناظر والدعم عبر `notify_admins` عند كل حجب تلقائي، مع تنبيه على `CriticalAlertsBanner` القائم.
+- حماية من الخطأ: قائمة بيضاء لعناوين الناظر الحالية، وحد أقصى لمدة الحجب التلقائي (24 ساعة) حتى لا يُقفل مستخدم شرعي دائماً.
+
+## المكوّن 5: قاعدة البيانات والأمان
 
 - دالة `get_user_activity_summary(p_from, p_to)` و`get_user_activity_timeline(p_user_id, p_from, p_to)` — كلتاهما `SECURITY DEFINER` وتتحقّقان داخلياً `has_role(auth.uid(),'admin')` أو `'support'`، وترفضان غير ذلك (fail-closed).
-- فهارس على `access_log(user_id, created_at)` و`access_log(event_type, created_at)` لأداء الاستعلامات.
-- توسيع مهمة الأرشفة القائمة `cron_archive_old_access_logs` لتغطية أحداث التنقّل (احتفاظ 90 يوماً ثم أرشفة) حتى لا ينتفخ الجدول.
-- التتبّع للمستخدمين المسجّلين فقط، بدون تسجيل محتوى الشاشات أو أي بيانات مالية داخل الحمولة، وإضافة سطر في صفحة سياسة الخصوصية يوضّح تسجيل النشاط لأغراض التشغيل والأمان.
+- دوال الحجب: `block_ip(p_ip, p_reason, p_duration)`، `unblock_ip(p_ip)`، `is_ip_blocked(p_ip)`، `get_blocked_ips()` — بنفس تحقّق الدور fail-closed.
+- فهارس على `access_log(user_id, created_at)` و`access_log(event_type, created_at)` و`blocked_ips(ip)` لأداء الاستعلامات.
+- توسيع مهمة الأرشفة القائمة `cron_archive_old_access_logs` لتغطية أحداث التنقّل (احتفاظ 90 يوماً ثم أرشفة) حتى لا ينتفخ الجدول، ومهمة تنظيف للحجب المنتهي.
+- التتبّع للمستخدمين المسجّلين فقط، بدون تسجيل محتوى الشاشات أو أي بيانات مالية داخل الحمولة، وإضافة سطر في صفحة سياسة الخصوصية يوضّح تسجيل النشاط وعناوين IP لأغراض التشغيل والأمان.
 
 ## تفاصيل تقنية
 
-- ملفات جديدة: `src/app/bootstrap/initSentry.ts`، `src/lib/monitoring/sentry.ts`، `src/hooks/data/audit/usePageActivityTracker.ts`، `src/hooks/data/audit/useUserActivity.ts`، `src/hooks/data/audit/usePresence.ts`، `src/hooks/page/admin/useUserTrackingPanel.ts`، `src/components/diagnostics/UserTrackingPanel.tsx` + `PresenceList.tsx` + `UserTimeline.tsx` + `UserActivityTable.tsx`.
-- ملفات معدّلة: `main.tsx`، `root-layout.tsx`، `lib/logger.ts`، `lib/errorReporter.ts`، `accessLogService.ts` (توسيع `AccessEventType`)، `SystemDiagnosticsPage.tsx` (تبويبان جديدان)، `PrivacyPolicy.tsx`.
+- ملفات جديدة: `src/app/bootstrap/initSentry.ts`، `src/lib/monitoring/sentry.ts`، `src/hooks/data/audit/usePageActivityTracker.ts`، `src/hooks/data/audit/useUserActivity.ts`، `src/hooks/data/audit/usePresence.ts`، `src/hooks/data/security/useBlockedIps.ts`، `src/hooks/page/admin/useUserTrackingPanel.ts`، `src/hooks/page/admin/useBlockedIpsPanel.ts`، `src/components/diagnostics/UserTrackingPanel.tsx` + `PresenceList.tsx` + `UserTimeline.tsx` + `UserActivityTable.tsx` + `BlockedIpsPanel.tsx`.
+- ملفات معدّلة: `main.tsx`، `root-layout.tsx`، `lib/logger.ts`، `lib/errorReporter.ts`، `accessLogService.ts` (توسيع `AccessEventType` بـ `page_view`/`page_exit`/`ip_blocked`/`ip_unblocked`)، `SystemDiagnosticsPage.tsx` (ثلاثة تبويبات جديدة)، `guard-signup/index.ts`، `PrivacyPolicy.tsx`.
 - الالتزام بالمعايير: مكوّنات بلا منطق (المنطق في `hooks/page/`)، `logger` بدل `console`، عربية RTL، متغيّرات CSS للألوان، حدّ 200 سطر لكل ملف، واختبارات Vitest مرافقة لكل هوك جديد.
-- الترتيب: (1) هجرة الدوال والفهارس ← (2) طبقة التتبّع والهوكس ← (3) لوحة التتبّع والتبويبات ← (4) Sentry ← (5) تشغيل مصفوفة التحقق (types/lint/audit/tests).
+- الترتيب: (1) هجرة (دوال النشاط + جدول `blocked_ips` + الفهارس) ← (2) طبقة التتبّع والهوكس ← (3) لوحة التتبّع ولوحة الحجب والتبويبات ← (4) إنفاذ الحجب في Edge Functions ← (5) Sentry ← (6) مصفوفة التحقق (types/lint/audit/tests).
+
+## تحقّق من اكتمال الخطة
+
+مغطّى: Sentry للإنتاج + تنبيهات تلقائية، عدّاد المتواجدين الآن ومساراتهم، تتبّع كل مستفيد بالاسم، وقت الدخول والخروج، الأقسام والصفحات المُحمّلة ومدة كل صفحة، عمليات التعديل التاريخية من `audit_log`، تصدير كل ما يُعرض، والحجب التلقائي للـ IP مع الفتح من لوحة التحكم وعرض البيانات.
+
+غير قابل للتحقيق تاريخياً: صفحات الشهر الماضي — لم تُسجَّل قبل اليوم (المتوفّر: الدخول/الخروج/الفاشل + كل التعديلات). الدقة الكاملة تبدأ من لحظة التنفيذ.
+
