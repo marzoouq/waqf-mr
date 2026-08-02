@@ -7,6 +7,7 @@ import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { safeGet, safeSet } from '@/lib/storage';
 import { sanitizeErrorMetadata } from '@/lib/diagnostics/sanitizeErrorMetadata';
 import { safeUuid } from '@/lib/utils/safeUuid';
+import { captureSentryException } from '@/lib/monitoring/sentry';
 
 
 interface ErrorMetadata {
@@ -49,6 +50,11 @@ function shouldReport(metadata: ErrorMetadata): boolean {
 export async function reportClientError(metadata: ErrorMetadata): Promise<void> {
   if (!shouldReport(metadata)) return;
   const safe = sanitizeErrorMetadata(metadata);
+  // إرسال إلى Sentry (إن كان مفعّلاً) بالتوازي مع التسجيل الداخلي
+  captureSentryException(
+    Object.assign(new Error(safe.error_message), { name: safe.error_name, stack: safe.error_stack ?? undefined }),
+    { url: safe.url, component_stack: safe.component_stack },
+  );
   try {
     await supabase.rpc('log_access_event', {
       p_event_type: 'client_error',

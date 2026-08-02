@@ -40,4 +40,11 @@ export const auditKeys = {
     prefix: ['access_log_archive'] as const,
   },
   clientErrors: ['client_errors'] as const,
+  tracking: {
+    activeSessions: (minutes: number) => ['admin_active_sessions', minutes] as const,
+    activitySummary: (days: number) => ['admin_user_activity_summary', days] as const,
+    timeline: (userId: string | null, days: number) => ['admin_user_timeline', userId, days] as const,
+    blockedIps: ['admin_blocked_ips'] as const,
+    prefix: ['admin_active_sessions'] as const,
+  },
 } as const;
