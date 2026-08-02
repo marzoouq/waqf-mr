@@ -8,10 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { RefreshCw, Download, Users, Activity } from 'lucide-react';
+import { Download, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { fmtDateTime } from '@/utils/format/format';
 import { downloadJsonData } from '@/lib/diagnostics/downloadJsonData';
+import ActiveSessionsTable from '@/components/diagnostics/ActiveSessionsTable';
 import {
   useActiveSessions,
   useUserActivitySummary,
