@@ -70,47 +70,13 @@ export default function UserTrackingPanel() {
         </TabsList>
 
         <TabsContent value="presence">
-          <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                متواجدون خلال آخر 15 دقيقة: {sessions.data?.length ?? 0}
-              </CardTitle>
-              <Button variant="outline" size="sm" onClick={() => void sessions.refetch()} disabled={sessions.isFetching}>
-                <RefreshCw className={`h-4 w-4 ml-1 ${sessions.isFetching ? 'animate-spin' : ''}`} /> تحديث
-              </Button>
-            </CardHeader>
-            <CardContent className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>المستخدم</TableHead>
-                    <TableHead>الدور</TableHead>
-                    <TableHead>المسار الحالي</TableHead>
-                    <TableHead>آخر نشاط</TableHead>
-                    <TableHead>الأحداث</TableHead>
-                    <TableHead>IP</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(sessions.data ?? []).map((s) => (
-                    <TableRow key={`${s.user_id}-${s.session_id ?? '-'}`}>
-                      <TableCell className="font-medium">{s.display_name || s.email || s.user_id.slice(0, 8)}</TableCell>
-                      <TableCell><Badge variant="secondary">{s.roles ?? '—'}</Badge></TableCell>
-                      <TableCell className="font-mono text-xs">{s.current_path ?? '—'}</TableCell>
-                      <TableCell className="text-xs">{fmtDateTime(s.last_activity)}</TableCell>
-                      <TableCell>{s.events}</TableCell>
-                      <TableCell className="font-mono text-xs">{s.ip_address ?? '—'}</TableCell>
-                    </TableRow>
-                  ))}
-                  {(sessions.data?.length ?? 0) === 0 && (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">لا يوجد متواجدون حالياً</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <ActiveSessionsTable
+            sessions={sessions.data ?? []}
+            isFetching={sessions.isFetching}
+            onRefresh={() => void sessions.refetch()}
+          />
         </TabsContent>
+
 
         <TabsContent value="activity">
           <Card>
