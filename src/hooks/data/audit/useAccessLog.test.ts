@@ -32,7 +32,7 @@ describe('logAccessEvent', () => {
       p_user_id: 'u1',
       p_target_path: '/dashboard',
       p_device_info: expect.any(String),
-      p_metadata: { source: 'test' },
+      p_metadata: { source: 'test', session_id: expect.any(String) },
     });
   });
 
@@ -47,7 +47,7 @@ describe('logAccessEvent', () => {
       p_email: undefined,
       p_user_id: undefined,
       p_target_path: undefined,
-      p_metadata: {},
+      p_metadata: { session_id: expect.any(String) },
     }));
   });
 
