@@ -5,6 +5,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
 import { STALE_AUDIT } from '@/lib/queryStaleTime';
+import { auditKeys } from '@/lib/queryKeys/auditKeys';
 
 export interface ActiveSession {
   user_id: string;
@@ -48,7 +49,7 @@ export interface TimelineRow {
 /** المتواجدون الآن (نافذة زمنية بالدقائق) */
 export const useActiveSessions = (minutes = 15, autoRefresh = true) =>
   useQuery<ActiveSession[]>({
-    queryKey: ['admin_active_sessions', minutes],
+    queryKey: auditKeys.tracking.activeSessions(minutes),
     queryFn: ({ signal }) => rpc<ActiveSession[]>('admin_active_sessions', { p_minutes: minutes }, { signal }),
     refetchInterval: autoRefresh ? 20_000 : false,
     staleTime: 10_000,
@@ -57,7 +58,7 @@ export const useActiveSessions = (minutes = 15, autoRefresh = true) =>
 /** ملخص نشاط كل مستخدم خلال فترة */
 export const useUserActivitySummary = (days = 30) =>
   useQuery<UserActivityRow[]>({
-    queryKey: ['admin_user_activity_summary', days],
+    queryKey: auditKeys.tracking.activitySummary(days),
     queryFn: ({ signal }) => rpc<UserActivityRow[]>('admin_user_activity_summary', { p_days: days }, { signal }),
     staleTime: STALE_AUDIT,
   });
@@ -65,7 +66,7 @@ export const useUserActivitySummary = (days = 30) =>
 /** الخط الزمني الكامل لمستخدم محدد */
 export const useUserTimeline = (userId: string | null, days = 60) =>
   useQuery<TimelineRow[]>({
-    queryKey: ['admin_user_timeline', userId, days],
+    queryKey: auditKeys.tracking.timeline(userId, days),
     enabled: Boolean(userId),
     queryFn: ({ signal }) =>
       rpc<TimelineRow[]>('admin_user_timeline', { p_user_id: userId, p_days: days, p_limit: 500 }, { signal }),

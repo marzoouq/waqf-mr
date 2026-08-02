@@ -3,6 +3,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { rpc } from '@/lib/api/rpc';
+import { auditKeys } from '@/lib/queryKeys/auditKeys';
 
 export interface BlockedIpRow {
   id: string;
@@ -21,7 +22,7 @@ export interface BlockedIpRow {
   distinct_emails: number;
 }
 
-const KEY = ['admin_blocked_ips'] as const;
+const KEY = auditKeys.tracking.blockedIps;
 
 export const useBlockedIps = () => {
   const queryClient = useQueryClient();

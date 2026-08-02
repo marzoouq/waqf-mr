@@ -2,7 +2,7 @@
  * لوحة Sentry — حالة التكامل، ضبط DSN، وإرسال حدث تجريبي.
  * يُخزَّن DSN في `app_settings` بالمفتاح `sentry_dsn`.
  */
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,12 +15,11 @@ import { logger } from '@/lib/logger';
 
 export default function SentryStatusPanel() {
   const { data: settings, updateSetting } = useAppSettings();
-  const [dsn, setDsn] = useState('');
+  const savedDsn = settings?.sentry_dsn ?? '';
+  const [draft, setDraft] = useState<string | null>(null);
+  const dsn = draft ?? savedDsn;
+  const setDsn = (value: string) => setDraft(value);
   const [active, setActive] = useState(isSentryActive());
-
-  useEffect(() => {
-    setDsn(settings?.sentry_dsn ?? '');
-  }, [settings?.sentry_dsn]);
 
   const handleSave = async () => {
     try {

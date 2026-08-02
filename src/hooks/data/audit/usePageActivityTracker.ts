@@ -27,7 +27,7 @@ const labelForPath = (path: string): string => {
 export const usePageActivityTracker = (): null => {
   const { user } = useAuth();
   const location = useLocation();
-  const enteredAtRef = useRef<number>(Date.now());
+  const enteredAtRef = useRef<number>(0);
   const pathRef = useRef<string>(location.pathname);
 
   // جلب عنوان IP مرة واحدة لكل جلسة (يُرفق تلقائياً بكل حدث لاحق)
