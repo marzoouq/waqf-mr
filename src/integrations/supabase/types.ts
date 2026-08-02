@@ -21,7 +21,9 @@ export type Database = {
           email: string | null
           event_type: string
           id: string
+          ip_address: string | null
           metadata: Json | null
+          session_id: string | null
           target_path: string | null
           user_id: string | null
         }
@@ -31,7 +33,9 @@ export type Database = {
           email?: string | null
           event_type: string
           id?: string
+          ip_address?: string | null
           metadata?: Json | null
+          session_id?: string | null
           target_path?: string | null
           user_id?: string | null
         }
@@ -41,7 +45,9 @@ export type Database = {
           email?: string | null
           event_type?: string
           id?: string
+          ip_address?: string | null
           metadata?: Json | null
+          session_id?: string | null
           target_path?: string | null
           user_id?: string | null
         }
@@ -55,7 +61,9 @@ export type Database = {
           email: string | null
           event_type: string
           id: string
+          ip_address: string | null
           metadata: Json | null
+          session_id: string | null
           target_path: string | null
           user_id: string | null
         }
@@ -66,7 +74,9 @@ export type Database = {
           email?: string | null
           event_type: string
           id: string
+          ip_address?: string | null
           metadata?: Json | null
+          session_id?: string | null
           target_path?: string | null
           user_id?: string | null
         }
@@ -77,7 +87,9 @@ export type Database = {
           email?: string | null
           event_type?: string
           id?: string
+          ip_address?: string | null
           metadata?: Json | null
+          session_id?: string | null
           target_path?: string | null
           user_id?: string | null
         }
@@ -584,6 +596,57 @@ export type Database = {
           share_percentage?: number
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      blocked_ips: {
+        Row: {
+          auto_blocked: boolean
+          blocked_by: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          incident_count: number
+          ip_address: string
+          last_email: string | null
+          last_event_type: string | null
+          metadata: Json
+          reason: string
+          released_at: string | null
+          released_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          auto_blocked?: boolean
+          blocked_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          incident_count?: number
+          ip_address: string
+          last_email?: string | null
+          last_event_type?: string | null
+          metadata?: Json
+          reason: string
+          released_at?: string | null
+          released_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auto_blocked?: boolean
+          blocked_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          incident_count?: number
+          ip_address?: string
+          last_email?: string | null
+          last_event_type?: string | null
+          metadata?: Json
+          reason?: string
+          released_at?: string | null
+          released_by?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2209,6 +2272,44 @@ export type Database = {
       }
     }
     Functions: {
+      admin_active_sessions: {
+        Args: { p_minutes?: number }
+        Returns: {
+          current_path: string
+          device_info: string
+          display_name: string
+          email: string
+          events: number
+          ip_address: string
+          last_activity: string
+          roles: string
+          session_id: string
+          user_id: string
+        }[]
+      }
+      admin_block_ip: {
+        Args: { p_hours?: number; p_ip: string; p_reason?: string }
+        Returns: undefined
+      }
+      admin_blocked_ips: {
+        Args: never
+        Returns: {
+          auto_blocked: boolean
+          created_at: string
+          distinct_emails: number
+          expires_at: string
+          id: string
+          incident_count: number
+          ip_address: string
+          is_active: boolean
+          last_email: string
+          last_event_type: string
+          reason: string
+          recent_events: number
+          released_at: string
+          updated_at: string
+        }[]
+      }
       admin_db_stats: { Args: never; Returns: Json }
       admin_edge_functions_stats: { Args: { p_hours?: number }; Returns: Json }
       admin_intrusion_summary: { Args: { p_hours?: number }; Returns: Json }
@@ -2222,6 +2323,37 @@ export type Database = {
           operation: string
           record_id: string
           user_id: string
+        }[]
+      }
+      admin_unblock_ip: { Args: { p_ip: string }; Returns: undefined }
+      admin_user_activity_summary: {
+        Args: { p_days?: number }
+        Returns: {
+          display_name: string
+          distinct_paths: number
+          email: string
+          errors: number
+          first_seen: string
+          last_path: string
+          last_seen: string
+          page_views: number
+          roles: string
+          sessions: number
+          total_seconds: number
+          user_id: string
+        }[]
+      }
+      admin_user_timeline: {
+        Args: { p_days?: number; p_limit?: number; p_user_id: string }
+        Returns: {
+          detail: string
+          device_info: string
+          event_type: string
+          ip_address: string
+          occurred_at: string
+          session_id: string
+          source: string
+          target_path: string
         }[]
       }
       allocate_icv_and_chain:
@@ -2398,6 +2530,7 @@ export type Database = {
         Args: { p_fiscal_year_id: string }
         Returns: boolean
       }
+      is_ip_blocked: { Args: { p_ip: string }; Returns: boolean }
       log_access_event: {
         Args: {
           p_device_info?: string
