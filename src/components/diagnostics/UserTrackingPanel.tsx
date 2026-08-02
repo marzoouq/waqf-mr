@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { RefreshCw, Download, Users, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { fmtDateTime } from '@/utils/format/format';
-import { downloadJson } from '@/lib/diagnostics/exporters';
+import { downloadJsonData } from '@/lib/diagnostics/downloadJsonData';
 import {
   useActiveSessions,
   useUserActivitySummary,
@@ -121,7 +121,7 @@ export default function UserTrackingPanel() {
                 {[7, 30, 90].map((d) => (
                   <Button key={d} size="sm" variant={days === d ? 'default' : 'outline'} onClick={() => setDays(d)}>{d} يوم</Button>
                 ))}
-                <Button size="sm" variant="outline" onClick={() => { downloadJson(rows, `user-activity-${days}d`); toast.success('تم تصدير سجل النشاط'); }}>
+                <Button size="sm" variant="outline" onClick={() => { downloadJsonData(rows, `user-activity-${days}d`); toast.success('تم تصدير سجل النشاط'); }}>
                   <Download className="h-4 w-4 ml-1" /> تصدير
                 </Button>
               </div>
@@ -177,7 +177,7 @@ export default function UserTrackingPanel() {
                 {selected ? `الخط الزمني: ${selected.name}` : 'اختر مستخدماً من تبويب «نشاط المستخدمين»'}
               </CardTitle>
               {selected && (
-                <Button size="sm" variant="outline" onClick={() => { downloadJson(timeline.data ?? [], `timeline-${selected.id}`); toast.success('تم تصدير الخط الزمني'); }}>
+                <Button size="sm" variant="outline" onClick={() => { downloadJsonData(timeline.data ?? [], `timeline-${selected.id}`); toast.success('تم تصدير الخط الزمني'); }}>
                   <Download className="h-4 w-4 ml-1" /> تصدير
                 </Button>
               )}
