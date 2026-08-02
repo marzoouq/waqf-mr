@@ -21,7 +21,7 @@ const labelForPath = (path: string): string => {
   const match = Object.keys(ALL_ROUTES)
     .filter((p) => p !== '/' && path.startsWith(p))
     .sort((a, b) => b.length - a.length)[0];
-  return match ? ALL_ROUTES[match].title : path;
+  return match ? (ALL_ROUTES[match]?.title ?? path) : path;
 };
 
 export const usePageActivityTracker = (): null => {
