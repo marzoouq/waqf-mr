@@ -15,6 +15,7 @@ import { ADMIN_ROLES } from "@/constants/roles";
 
 const AiAssistant = lazyWithRetry(() => import("@/components/dashboard/AiAssistant"));
 const SecurityGuard = lazyWithRetry(() => import("@/components/auth/SecurityGuard"));
+const IpBlockGuard = lazyWithRetry(() => import("@/components/auth/IpBlockGuard"));
 const PwaUpdateNotifier = lazyWithRetry(() => import("@/components/pwa/PwaUpdateNotifier"));
 const SwUpdateBanner = lazyWithRetry(() => import("@/components/pwa/SwUpdateBanner"));
 const AuditModeOverlay = lazyWithRetry(() => import("@/components/diagnostics/AuditModeOverlay"));
@@ -68,6 +69,9 @@ export function RootLayout() {
       </ErrorBoundary>
       <ErrorBoundary>
         <Suspense fallback={null}><SecurityGuard /></Suspense>
+      </ErrorBoundary>
+      <ErrorBoundary>
+        <Suspense fallback={null}><IpBlockGuard /></Suspense>
       </ErrorBoundary>
       <ErrorBoundary>
         <Suspense fallback={null}><PwaUpdateNotifier /></Suspense>
