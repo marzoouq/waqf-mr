@@ -14,7 +14,7 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 // deno-lint-ignore no-explicit-any
 export type AdminClient = SupabaseClient<any, any, any>;
 
-export type AppRole = "admin" | "accountant" | "beneficiary" | "waqif";
+export type AppRole = "admin" | "accountant" | "beneficiary" | "waqif" | "support";
 
 export interface AuthOptions {
   /** الأدوار المسموح بها — يكفي توافق دور واحد منها. اتركها فارغة لتعطيل فحص الدور. */
