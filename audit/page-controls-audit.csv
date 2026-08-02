@@ -57,21 +57,22 @@ src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,50,
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,51,Tab,"الأخطاء",tabs-radix,"Tabs>TabsList>Headset",OK
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,52,Tab,"الإحصائيات",tabs-radix,"TabsList>Headset>Bug",OK
 src/pages/dashboard/SupportDashboardPage.tsx,,/dashboard/support,ADMIN_ROLES,32,Button,"تذكرة جديدة",onClick,"DashboardLayout>PageHeaderCard",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,117,Tab,"نظرة عامة",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,118,Tab,"🛠 التوصيات والإصلاحات",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,119,Tab,"🛡 الأمان والاختراق",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,120,Tab,"⚠️ الأخطاء الحيّة",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,121,Tab,"💾 أداء قاعدة البيانات",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,122,Tab,"⚡ Edge Functions",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,123,Tab,"الفحوصات",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,124,Tab,"سجل Backend",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,125,Tab,"خريطة التطبيق",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,126,Tab,"التفاعلات",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,127,Tab,"الأداء الحي",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,128,Tab,"السجل والتصدير",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,129,Tab,"🧭 تتبع المستخدمين",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,130,Tab,"🚫 العناوين المحجوبة",tabs-radix,"Tabs>TabsList",OK
-src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,131,Tab,"🛠️ وضع الصيانة",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,118,Tab,"نظرة عامة",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,119,Tab,"🛠 التوصيات والإصلاحات",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,120,Tab,"🛡 الأمان والاختراق",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,121,Tab,"⚠️ الأخطاء الحيّة",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,122,Tab,"🔔 التنبيهات",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,123,Tab,"💾 أداء قاعدة البيانات",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,124,Tab,"⚡ Edge Functions",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,125,Tab,"الفحوصات",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,126,Tab,"سجل Backend",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,127,Tab,"خريطة التطبيق",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,128,Tab,"التفاعلات",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,129,Tab,"الأداء الحي",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,130,Tab,"السجل والتصدير",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,131,Tab,"🧭 تتبع المستخدمين",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,132,Tab,"🚫 العناوين المحجوبة",tabs-radix,"Tabs>TabsList",OK
+src/pages/dashboard/SystemDiagnosticsPage.tsx,,/dashboard/diagnostics,ADMIN_ONLY,133,Tab,"🛠️ وضع الصيانة",tabs-radix,"Tabs>TabsList",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,72,Tab,"الفواتير",tabs-radix,"ZatcaHealthPanel>Tabs>TabsList",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,73,Tab,"الشهادات",tabs-radix,"Tabs>TabsList>FileText",OK
 src/pages/dashboard/ZatcaManagementPage.tsx,,/dashboard/zatca,ADMIN_ONLY,74,Tab,"سلسلة التوقيع",tabs-radix,"TabsList>FileText>ShieldCheck",OK
