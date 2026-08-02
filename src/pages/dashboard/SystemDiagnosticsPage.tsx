@@ -31,6 +31,9 @@ const EdgeFunctionsPanel = lazy(() => import('@/components/diagnostics/EdgeFunct
 const ActionsAndFixesPanel = lazy(() => import('@/components/diagnostics/ActionsAndFixesPanel'));
 const MaintenanceModePanel = lazy(() => import('@/components/diagnostics/MaintenanceModePanel'));
 const LivePerformancePanel = lazy(() => import('@/components/diagnostics/LivePerformancePanel'));
+const UserTrackingPanel = lazy(() => import('@/components/diagnostics/UserTrackingPanel'));
+const BlockedIpsPanel = lazy(() => import('@/components/diagnostics/BlockedIpsPanel'));
+const SentryStatusPanel = lazy(() => import('@/components/diagnostics/SentryStatusPanel'));
 
 interface Props { autoRun?: boolean }
 
@@ -123,6 +126,8 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           <TabsTrigger value="interactions">التفاعلات</TabsTrigger>
           <TabsTrigger value="performance">الأداء الحي</TabsTrigger>
           <TabsTrigger value="history">السجل والتصدير</TabsTrigger>
+          <TabsTrigger value="tracking">🧭 تتبع المستخدمين</TabsTrigger>
+          <TabsTrigger value="blocked">🚫 العناوين المحجوبة</TabsTrigger>
           <TabsTrigger value="maintenance">🛠️ وضع الصيانة</TabsTrigger>
         </TabsList>
 
@@ -138,7 +143,10 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
 
         <TabsContent value="fixes"><Suspense fallback={null}><ActionsAndFixesPanel /></Suspense></TabsContent>
         <TabsContent value="security"><Suspense fallback={null}><SecurityIntrusionPanel /></Suspense></TabsContent>
-        <TabsContent value="errors"><Suspense fallback={null}><RuntimeErrorsPanel /></Suspense></TabsContent>
+        <TabsContent value="errors" className="space-y-4">
+          <Suspense fallback={null}><SentryStatusPanel /></Suspense>
+          <Suspense fallback={null}><RuntimeErrorsPanel /></Suspense>
+        </TabsContent>
         <TabsContent value="db"><Suspense fallback={null}><DbPerformancePanel /></Suspense></TabsContent>
         <TabsContent value="edge"><Suspense fallback={null}><EdgeFunctionsPanel /></Suspense></TabsContent>
 
@@ -163,6 +171,8 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           </Suspense>
         </TabsContent>
         <TabsContent value="history"><RunHistoryList /></TabsContent>
+        <TabsContent value="tracking"><Suspense fallback={null}><UserTrackingPanel /></Suspense></TabsContent>
+        <TabsContent value="blocked"><Suspense fallback={null}><BlockedIpsPanel /></Suspense></TabsContent>
         <TabsContent value="maintenance"><Suspense fallback={null}><MaintenanceModePanel /></Suspense></TabsContent>
       </Tabs>
     </div>
