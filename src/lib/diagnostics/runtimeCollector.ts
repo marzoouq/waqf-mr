@@ -3,6 +3,7 @@
  * ويحفظ آخر 100 خطأ في sessionStorage ليستهلكها فحص runtime-errors-log.
  */
 import { logger } from '@/lib/logger';
+import { isRealtimeIssue, reportRealtimeIssue } from '@/lib/monitoring/realtimeMonitor';
 
 const STORAGE_KEY = 'diag_runtime_errors';
 const MAX_ENTRIES = 50;
@@ -41,6 +42,10 @@ function isSilenced(message: string): boolean {
 
 function push(entry: RuntimeErrorEntry): void {
   if (isSilenced(entry.message)) return;
+  // جسر التنبيهات: أخطاء Realtime تُبلَّغ للخادم لتفعيل قواعد التنبيه
+  if (isRealtimeIssue(entry.message)) {
+    reportRealtimeIssue(entry.message, { stack: entry.stack ?? null });
+  }
   const all = safeRead();
   all.push(entry);
   safeWrite(all);

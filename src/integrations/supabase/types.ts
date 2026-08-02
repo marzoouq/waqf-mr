@@ -361,6 +361,128 @@ export type Database = {
           },
         ]
       }
+      alert_incidents: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          notified_at: string | null
+          occurrences: number
+          resolved_at: string | null
+          resolved_by: string | null
+          rule_code: string
+          sample_metadata: Json
+          severity: string
+          status: string
+          summary: string
+          target_path: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          notified_at?: string | null
+          occurrences?: number
+          resolved_at?: string | null
+          resolved_by?: string | null
+          rule_code: string
+          sample_metadata?: Json
+          severity?: string
+          status?: string
+          summary?: string
+          target_path?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          notified_at?: string | null
+          occurrences?: number
+          resolved_at?: string | null
+          resolved_by?: string | null
+          rule_code?: string
+          sample_metadata?: Json
+          severity?: string
+          status?: string
+          summary?: string
+          target_path?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_incidents_rule_code_fkey"
+            columns: ["rule_code"]
+            isOneToOne: false
+            referencedRelation: "alert_rules"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      alert_rules: {
+        Row: {
+          code: string
+          cooldown_minutes: number
+          created_at: string
+          event_type: string
+          id: string
+          is_active: boolean
+          match_pattern: string | null
+          name: string
+          notify_email: boolean
+          notify_in_app: boolean
+          severity: string
+          threshold_count: number
+          updated_at: string
+          window_minutes: number
+        }
+        Insert: {
+          code: string
+          cooldown_minutes?: number
+          created_at?: string
+          event_type?: string
+          id?: string
+          is_active?: boolean
+          match_pattern?: string | null
+          name: string
+          notify_email?: boolean
+          notify_in_app?: boolean
+          severity?: string
+          threshold_count?: number
+          updated_at?: string
+          window_minutes?: number
+        }
+        Update: {
+          code?: string
+          cooldown_minutes?: number
+          created_at?: string
+          event_type?: string
+          id?: string
+          is_active?: boolean
+          match_pattern?: string | null
+          name?: string
+          notify_email?: boolean
+          notify_in_app?: boolean
+          severity?: string
+          threshold_count?: number
+          updated_at?: string
+          window_minutes?: number
+        }
+        Relationships: []
+      }
       annual_report_items: {
         Row: {
           content: string
@@ -2430,6 +2552,7 @@ export type Database = {
       cron_check_late_payments: { Args: never; Returns: undefined }
       cron_check_slow_queries: { Args: never; Returns: undefined }
       cron_check_zatca_cert_expiry: { Args: never; Returns: undefined }
+      cron_cleanup_old_alert_incidents: { Args: never; Returns: undefined }
       cron_cleanup_old_notifications: { Args: never; Returns: undefined }
       cron_update_overdue_invoices: { Args: never; Returns: undefined }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
@@ -2571,6 +2694,15 @@ export type Database = {
         Returns: undefined
       }
       notify_all_beneficiaries: {
+        Args: {
+          p_link?: string
+          p_message: string
+          p_title: string
+          p_type?: string
+        }
+        Returns: undefined
+      }
+      notify_ops: {
         Args: {
           p_link?: string
           p_message: string

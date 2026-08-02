@@ -1,6 +1,6 @@
 # Page Controls Audit — Admin & Beneficiary
 
-Generated: 2026-08-02T08:31:06.278Z
+Generated: 2026-08-02T14:37:56.199Z
 
 ## Scope
 
@@ -13,10 +13,10 @@ Generated: 2026-08-02T08:31:06.278Z
 
 | Metric | Value |
 |---|---|
-| Page-level controls | 99 |
+| Page-level controls | 100 |
 | Child-component controls | 25 |
-| Total controls | 124 |
-| OK | 124 |
+| Total controls | 125 |
+| OK | 125 |
 | GAP-NO-HANDLER | 0 |
 
 ## Per-page summary (page + recursed children)
@@ -63,7 +63,7 @@ Generated: 2026-08-02T08:31:06.278Z
 | `dashboard/ReportsPage.tsx` | `/dashboard/reports` | ADMIN_ROLES | 0 | 0 | 3 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/SettingsPage.tsx` | `/dashboard/settings` | ADMIN_ONLY | 0 | 1 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/SupportDashboardPage.tsx` | `/dashboard/support` | ADMIN_ROLES | 0 | 3 | 1 | 0 | 0 | 0 | ✅ 0 |
-| `dashboard/SystemDiagnosticsPage.tsx` | `/dashboard/diagnostics` | ADMIN_ONLY | 0 | 15 | 0 | 0 | 0 | 0 | ✅ 0 |
+| `dashboard/SystemDiagnosticsPage.tsx` | `/dashboard/diagnostics` | ADMIN_ONLY | 0 | 16 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/UserManagementPage.tsx` | `/dashboard/users` | ADMIN_ONLY | 0 | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/ZatcaManagementPage.tsx` | `/dashboard/zatca` | ADMIN_ONLY | 0 | 3 | 0 | 0 | 0 | 0 | ✅ 0 |
 
