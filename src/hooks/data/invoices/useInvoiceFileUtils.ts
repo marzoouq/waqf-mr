@@ -92,18 +92,31 @@ export const uploadInvoiceFile = async (file: File): Promise<{ path: string; nam
   return { path, name: file.name };
 };
 
-// CRIT-5: استبدال download() بـ createSignedUrl مع TTL + path validation
-export const getInvoiceSignedUrl = async (filePath: string): Promise<string> => {
-  // فحص path traversal
-  if (filePath.includes('..') || filePath.startsWith('/') || filePath.includes('\\')) {
+/**
+ * CRIT-5 / SEC: التنزيل يمر حصراً عبر Edge Function `invoice-file-url`
+ * التي تتحقق على الخادم من الدور والسنة المالية وحجب IP وانتماء الملف لفاتورة.
+ * لا توجد سياسة قراءة مباشرة على حاوية `invoices` — لا يمكن توليد الرابط من المتصفح.
+ */
+export const getInvoiceSignedUrl = async (filePath: string, downloadAs?: string): Promise<string> => {
+  // فحص path traversal قبل إرسال أي طلب
+  if (!filePath || filePath.includes('..') || filePath.startsWith('/') || filePath.includes('\\')) {
     throw new Error('مسار الملف غير صالح');
   }
 
-  const { data, error } = await supabase.storage
-    .from('invoices')
-    .createSignedUrl(filePath, 300); // TTL = 5 دقائق
+  const { data, error } = await supabase.functions.invoke<{ url?: string; error?: string }>(
+    'invoice-file-url',
+    { body: { file_path: filePath, ...(downloadAs ? { download: downloadAs } : {}) } },
+  );
 
-  if (error || !data?.signedUrl) throw new Error('فشل في إنشاء رابط التحميل');
+  if (error) {
+    const status = (error as { context?: { status?: number } }).context?.status;
+    if (status === 403) throw new Error('لا تملك صلاحية تنزيل هذه الفاتورة');
+    if (status === 404) throw new Error('الملف غير مسجّل في النظام');
+    if (status === 429) throw new Error('تجاوزت حد المحاولات — حاول بعد دقيقة');
+    throw new Error('فشل في إنشاء رابط التحميل');
+  }
 
-  return data.signedUrl;
+  if (!data?.url) throw new Error(data?.error || 'فشل في إنشاء رابط التحميل');
+
+  return data.url;
 };
