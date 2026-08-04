@@ -98,7 +98,7 @@
     "globals": "^17.4.0",
     "jsdom": "^29.0.1",
     "lovable-tagger": "^1.1.13",
-    "postcss": "8.5.15",
+    "postcss": "8.5.23",
     "rollup-plugin-visualizer": "^5.12.0",
     "tailwindcss": "^4.3.1",
     "typescript": "~5.8.3",
@@ -108,13 +108,13 @@
     "vitest": "4.1.9"
   },
   "overrides": {
-    "postcss": "8.5.15",
+    "postcss": "8.5.23",
     "@babel/plugin-transform-modules-systemjs": "7.29.4",
     "dompurify": "3.4.11",
     "ws": "8.21.0"
   },
   "resolutions": {
-    "postcss": "8.5.15",
+    "postcss": "8.5.23",
     "@babel/plugin-transform-modules-systemjs": "7.29.4",
     "dompurify": "3.4.11",
     "ws": "8.21.0"
