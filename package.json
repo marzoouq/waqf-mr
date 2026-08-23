@@ -28,7 +28,8 @@
     "docs:edge-count": "node scripts/count-edge-functions.mjs --write",
     "docs:edge-count:check": "node scripts/count-edge-functions.mjs --check",
     "check:drift": "node scripts/dependency-drift-check.mjs",
-    "security:deps": "node scripts/dependency-security-gate.mjs"
+    "security:deps": "node scripts/dependency-security-gate.mjs",
+    "quality:dup": "node scripts/duplication-gate.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

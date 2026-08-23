@@ -1,0 +1,117 @@
+{
+  "duplicates": [
+    {
+      "firstFile": {
+        "end": 62,
+        "endLoc": {
+          "column": 1,
+          "line": 62,
+          "position": 3171
+        },
+        "name": "components/contracts/ContractsViewGridCards.tsx",
+        "start": 42,
+        "startLoc": {
+          "column": 96,
+          "line": 42,
+          "position": 2381
+        }
+      },
+      "format": "tsx",
+      "fragment": "                <span className=\"font-medium truncate max-w-[60%] text-end\">{propertyName}</span>\n              </div>\n              <div className=\"flex justify-between text-sm\">\n                <span className=\"text-muted-foreground\">الإيجار</span>\n                <span className=\"font-medium\">{fmt(contract.rent_amount ?? 0)} ر.س</span>\n              </div>\n              <div className=\"flex justify-between text-sm\">\n                <span className=\"text-muted-foreground\">من</span>\n                <span>{fmtDate(contract.start_date ?? '')}</span>\n              </div>\n              <div className=\"flex justify-between text-sm\">\n                <span className=\"text-muted-foreground\">إلى</span>\n                <span>{fmtDate(contract.end_date ?? '')}</span>\n              </div>\n            </CardContent>\n          </Card>\n        );\n      })}\n    </div>\n  );\n}",
+      "lines": 21,
+      "secondFile": {
+        "end": 55,
+        "endLoc": {
+          "column": 1,
+          "line": 55,
+          "position": 2458
+        },
+        "name": "components/contracts/ContractsViewMobileCards.tsx",
+        "start": 35,
+        "startLoc": {
+          "column": 21,
+          "line": 35,
+          "position": 1668
+        }
+      },
+      "tokens": 159
+    },
+    {
+      "firstFile": {
+        "end": 90,
+        "endLoc": {
+          "column": 52,
+          "line": 90,
+          "position": 3449
+        },
+        "name": "components/messages/ChatArea.tsx",
+        "start": 68,
+        "startLoc": {
+          "column": 60,
+          "line": 68,
+          "position": 2385
+        }
+      },
+      "format": "tsx",
+      "fragment": "                const isMe = msg.sender_id === currentUserId;\n                return (\n                  <div key={msg.id} className={cn('flex', isMe ? 'justify-end' : 'justify-start')}>\n                    <div className={cn(\n                      'max-w-[75%] rounded-xl px-4 py-2 text-sm',\n                      isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'\n                    )}>\n                      <p>{msg.content}</p>\n                      <p className={cn('text-[11px] mt-1 opacity-60', isMe ? 'text-primary-foreground' : 'text-muted-foreground')}>\n                        {new Date(msg.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}\n                      </p>\n                    </div>\n                  </div>\n                );\n              })}\n              <div ref={messagesEndRef} />\n            </div>\n          </ScrollArea>\n          <div className=\"p-3 border-t border-border flex gap-2\">\n            <Input\n              value={newMessage}\n              onChange={(e) => setNewMessage(e.target.value)}\n              placeholder=\"اكتب رسالتك...\"",
+      "lines": 23,
+      "secondFile": {
+        "end": 83,
+        "endLoc": {
+          "column": 52,
+          "line": 83,
+          "position": 3731
+        },
+        "name": "components/messages/MessageThread.tsx",
+        "start": 61,
+        "startLoc": {
+          "column": 53,
+          "line": 61,
+          "position": 2667
+        }
+      },
+      "tokens": 175
+    }
+  ],
+  "statistics": {
+    "detectionDate": "2026-08-23T06:28:04.535Z",
+    "formats": {
+      "tsx": {
+        "clones": 2,
+        "duplicatedLines": 42,
+        "duplicatedTokens": 334,
+        "lines": 43149,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 0.0973371341166655,
+        "percentageTokens": 0.10854799186215056,
+        "sources": 489,
+        "tokens": 307698
+      },
+      "typescript": {
+        "clones": 0,
+        "duplicatedLines": 0,
+        "duplicatedTokens": 0,
+        "lines": 40066,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 0.0,
+        "percentageTokens": 0.0,
+        "sources": 519,
+        "tokens": 250170
+      }
+    },
+    "total": {
+      "clones": 2,
+      "duplicatedLines": 42,
+      "duplicatedTokens": 334,
+      "lines": 83215,
+      "newClones": 0,
+      "newDuplicatedLines": 0,
+      "percentage": 0.05047166977107493,
+      "percentageTokens": 0.05987079380785419,
+      "sources": 1008,
+      "tokens": 557868
+    }
+  }
+}
