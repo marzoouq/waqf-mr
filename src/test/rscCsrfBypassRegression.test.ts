@@ -20,8 +20,9 @@ const MIN_PATCHED = [7, 18, 2] as const;
 const gte = (version: string, min: readonly number[]): boolean => {
   const parts = version.replace(/^[^\d]*/, "").split(".").map((n) => Number.parseInt(n, 10) || 0);
   for (let i = 0; i < min.length; i += 1) {
-    if ((parts[i] ?? 0) > min[i]) return true;
-    if ((parts[i] ?? 0) < min[i]) return false;
+    const bound = min[i] ?? 0;
+    if ((parts[i] ?? 0) > bound) return true;
+    if ((parts[i] ?? 0) < bound) return false;
   }
   return true;
 };
@@ -55,10 +56,10 @@ describe("RSC Mode CSRF Bypass — اختبار رجعي", () => {
       const path = join(ROOT, lock);
       if (!existsSync(path)) continue;
       const raw = readFileSync(path, "utf8");
-      const versions = [...raw.matchAll(/react-router(?:-dom)?@(\d+\.\d+\.\d+)/g)].map((m) => m[1]);
+      const versions = [...raw.matchAll(/react-router(?:-dom)?@(\d+\.\d+\.\d+)/g)].map((m) => m[1] ?? "").filter(Boolean);
       const nodeModulesVersions = [
         ...raw.matchAll(/"node_modules\/react-router(?:-dom)?"[\s\S]{0,200}?"version":\s*"(\d+\.\d+\.\d+)"/g),
-      ].map((m) => m[1]);
+      ].map((m) => m[1] ?? "").filter(Boolean);
       for (const v of [...versions, ...nodeModulesVersions]) {
         expect(gte(v, MIN_PATCHED), `${lock} يحتوي react-router@${v} المصاب`).toBe(true);
       }
