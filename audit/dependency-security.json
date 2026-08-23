@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-08-23T06:13:06.038Z",
+  "strict_dev": false,
+  "totals": {
+    "critical": 0,
+    "high": 2,
+    "moderate": 0,
+    "low": 1,
+    "info": 0
+  },
+  "blocking_count": 2,
+  "advisories": [
+    {
+      "package": "react-router",
+      "severity": "high",
+      "isDirect": false,
+      "devOnly": false,
+      "range": "<7.18.2",
+      "fixAvailable": true,
+      "titles": [
+        "RSC Mode CSRF Bypass"
+      ],
+      "urls": [
+        "https://github.com/advisories/GHSA-x"
+      ]
+    },
+    {
+      "package": "esbuild",
+      "severity": "high",
+      "isDirect": false,
+      "devOnly": false,
+      "range": "<0.25",
+      "fixAvailable": true,
+      "titles": [
+        "dev server SSRF"
+      ],
+      "urls": [
+        "https://x"
+      ]
+    }
+  ],
+  "linked_reports": [
+    "docs/security/weekly-audit.md",
+    "docs/security/views.md",
+    "docs/security/security-definer-allowlist.md",
+    "docs/security/incident-2026-07-08-env-leak.md",
+    "docs/security/csp-policy.md"
+  ]
+}
