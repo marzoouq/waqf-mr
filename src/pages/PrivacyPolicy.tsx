@@ -1,10 +1,9 @@
 import { Shield } from 'lucide-react';
-import { LegalPageFooter } from '@/components/common';
-import { RouteHead } from '@/components/seo/RouteHead';
+import { LegalPageShell, type LegalSection } from '@/components/legal/LegalPageShell';
 
 const PrivacyPolicy = () => {
 
-  const sections = [
+  const sections: LegalSection[] = [
     {
       title: 'المقدمة',
       content: 'نلتزم في نظام إدارة وقف مرزوق بن علي الثبيتي بحماية خصوصية مستخدمي النظام. توضح هذه السياسة كيفية جمع واستخدام وحماية بياناتك الشخصية عند استخدامك لمنصتنا.',
@@ -44,45 +43,13 @@ const PrivacyPolicy = () => {
   ];
 
   return (
-    <main dir="rtl" className="min-h-screen bg-background">
-      <RouteHead
-        title="سياسة الخصوصية"
-        description="سياسة خصوصية نظام إدارة وقف مرزوق بن علي الثبيتي: البيانات التي نجمعها، كيف نستخدمها، إجراءات الحماية والتشفير، وحقوق المستخدم في الاطلاع والتصحيح."
-        path="/privacy"
-      />
-      {/* Header */}
-      <div className="gradient-primary py-16">
-        <div className="container mx-auto px-4 text-center">
-          <div className="mx-auto w-16 h-16 gradient-gold rounded-2xl flex items-center justify-center shadow-gold mb-6">
-            <Shield className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
-            سياسة الخصوصية
-          </h1>
-          <p className="text-primary-foreground/70 text-sm">
-            آخر تحديث: {new Date().toLocaleDateString('ar-SA')}
-          </p>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="container mx-auto px-4 py-12 max-w-3xl">
-        <div className="space-y-8">
-          {sections.map((section, index) => (
-            <section key={index} className="border-b border-border/40 pb-8 last:border-0">
-              <h2 className="font-display text-xl font-bold text-foreground mb-3">
-                {index + 1}. {section.title}
-              </h2>
-              <p className="text-muted-foreground leading-relaxed text-sm">
-                {section.content}
-              </p>
-            </section>
-          ))}
-        </div>
-
-      </div>
-      <LegalPageFooter />
-    </main>
+    <LegalPageShell
+      icon={Shield}
+      title="سياسة الخصوصية"
+      description="سياسة خصوصية نظام إدارة وقف مرزوق بن علي الثبيتي: البيانات التي نجمعها، كيف نستخدمها، إجراءات الحماية والتشفير، وحقوق المستخدم في الاطلاع والتصحيح."
+      path="/privacy"
+      sections={sections}
+    />
   );
 };
 
