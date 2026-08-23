@@ -82,12 +82,10 @@ function loadDevDeps() {
 
 function relatedReports() {
   if (!existsSync(DOCS_DIR)) return [];
-  return readdirSync(DOCS_DIR)
-    .filter((f) => f.endsWith('.md'))
-    .sort()
-    .reverse()
-    .slice(0, 5)
-    .map((f) => `${DOCS_DIR}/${f}`);
+  const all = readdirSync(DOCS_DIR).filter((f) => f.endsWith('.md'));
+  const scans = all.filter((f) => /^SECURITY-SCAN-/i.test(f)).sort().reverse().slice(0, 3);
+  const others = all.filter((f) => !/^SECURITY-SCAN-/i.test(f)).sort().slice(0, 3);
+  return [...scans, ...others].map((f) => `${DOCS_DIR}/${f}`);
 }
 
 function main() {

@@ -16,10 +16,9 @@
 
 ### التقارير الأمنية المرتبطة
 
-- `docs/security/weekly-audit.md`
-- `docs/security/views.md`
-- `docs/security/security-definer-allowlist.md`
-- `docs/security/incident-2026-07-08-env-leak.md`
+- `docs/security/SECURITY-SCAN-2026-08-23.md`
 - `docs/security/csp-policy.md`
+- `docs/security/incident-2026-07-08-env-leak.md`
+- `docs/security/security-definer-allowlist.md`
 
 التقرير الكامل: artifact `dependency-security-report` (`audit/dependency-security.json`).

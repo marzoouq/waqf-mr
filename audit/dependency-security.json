@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-23T06:13:06.038Z",
+  "generated_at": "2026-08-23T06:13:16.823Z",
   "strict_dev": false,
   "totals": {
     "critical": 0,
@@ -40,10 +40,9 @@
     }
   ],
   "linked_reports": [
-    "docs/security/weekly-audit.md",
-    "docs/security/views.md",
-    "docs/security/security-definer-allowlist.md",
+    "docs/security/SECURITY-SCAN-2026-08-23.md",
+    "docs/security/csp-policy.md",
     "docs/security/incident-2026-07-08-env-leak.md",
-    "docs/security/csp-policy.md"
+    "docs/security/security-definer-allowlist.md"
   ]
 }
