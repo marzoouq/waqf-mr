@@ -14,7 +14,7 @@ import {
   type ArchiveUploadInput,
   type ArchiveUpdateInput,
 } from '@/hooks/data/archive/useArchivedDocumentMutations';
-import { useArchivedDocumentSignedUrl } from '@/hooks/data/archive/useArchivedDocumentSignedUrl';
+import { useArchiveDocumentViewer } from '@/hooks/application/archive/useArchiveDocumentViewer';
 import type { ArchiveCategory, ArchivedDocument } from '@/types/archive';
 
 export type CategoryFilter = ArchiveCategory | 'all';
@@ -28,8 +28,6 @@ export function useArchivePage() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ArchivedDocument | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ArchivedDocument | null>(null);
-  const [previewTarget, setPreviewTarget] = useState<ArchivedDocument | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const filters = useMemo(() => ({ category, search }), [category, search]);
   const query = useArchivedDocuments(filters);
@@ -38,7 +36,7 @@ export function useArchivePage() {
   const updateM = useUpdateArchivedDocument();
   const toggleM = useToggleArchivedDocumentPublish();
   const deleteM = useDeleteArchivedDocument();
-  const signedM = useArchivedDocumentSignedUrl();
+  const viewer = useArchiveDocumentViewer();
 
   const stats = useMemo(() => {
     const docs = query.data ?? [];
@@ -93,33 +91,6 @@ export function useArchivePage() {
     }
   };
 
-  const handlePreview = async (doc: ArchivedDocument) => {
-    try {
-      const url = await signedM.mutateAsync({ storagePath: doc.storage_path });
-      setPreviewTarget(doc);
-      setPreviewUrl(url);
-    } catch (e) {
-      toast.error('تعذّر فتح المعاينة', { description: (e as Error)?.message });
-    }
-  };
-
-  const handleDownload = async (doc: ArchivedDocument) => {
-    try {
-      const url = await signedM.mutateAsync({
-        storagePath: doc.storage_path,
-        downloadAs: `${doc.title}.pdf`,
-      });
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (e) {
-      toast.error('تعذّر التنزيل', { description: (e as Error)?.message });
-    }
-  };
-
-  const closePreview = () => {
-    setPreviewTarget(null);
-    setPreviewUrl(null);
-  };
-
   return {
     canWrite,
     isLoading: query.isLoading,
@@ -133,12 +104,16 @@ export function useArchivePage() {
     uploadOpen, setUploadOpen,
     editTarget, setEditTarget,
     deleteTarget, setDeleteTarget,
-    previewTarget, previewUrl, closePreview,
+    previewTarget: viewer.previewTarget,
+    previewUrl: viewer.previewUrl,
+    closePreview: viewer.closePreview,
 
     handleUpload, uploadPending: uploadM.isPending,
     handleUpdate, updatePending: updateM.isPending,
     handleTogglePublish, togglePending: toggleM.isPending,
     handleDelete, deletePending: deleteM.isPending,
-    handlePreview, handleDownload, signedPending: signedM.isPending,
+    handlePreview: viewer.handlePreview,
+    handleDownload: viewer.handleDownload,
+    signedPending: viewer.signedPending,
   };
 }

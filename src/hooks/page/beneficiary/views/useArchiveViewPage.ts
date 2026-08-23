@@ -30,6 +30,6 @@ export function useArchiveViewPage() {
     closePreview: viewer.closePreview,
     handlePreview: viewer.handlePreview,
     handleDownload: viewer.handleDownload,
-    signedPending: signedM.isPending,
+    signedPending: viewer.signedPending,
   };
 }
