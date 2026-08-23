@@ -5,30 +5,16 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { classifyContractOrigin } from '@/utils/financial/contracts/contractClassification';
-import type { Contract } from '@/types';
 import { originBadge } from './originBadge';
+import type { AccountsContractsViewProps } from './accountsContractsTypes';
 
-interface Props {
-  contracts: Contract[];
-  getPaymentPerPeriod: (c: Contract) => number;
-  getExpectedPayments: (c: Contract) => number;
-  totalPaymentPerPeriod: number;
-  totalAnnualRent: number;
-  totalPayments: number;
-  statusLabel: (status: string) => string;
-  onEditContract: (c: Contract) => void;
-  onDeleteContract: (id: string, name: string) => void;
-  fiscalYearStartDate: string | null;
-  countInYear: number;
-  countFromPrevious: number;
-}
 
 const AccountsContractsMobileList = ({
   contracts, getPaymentPerPeriod, getExpectedPayments,
   totalPaymentPerPeriod, totalAnnualRent, totalPayments,
   statusLabel, onEditContract, onDeleteContract,
   fiscalYearStartDate, countInYear, countFromPrevious,
-}: Props) => {
+}: AccountsContractsViewProps) => {
   const showOrigin = fiscalYearStartDate !== null;
 
   return (

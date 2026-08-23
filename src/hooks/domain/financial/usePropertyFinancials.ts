@@ -4,7 +4,7 @@
  */
 import { safeNumber } from '@/utils/format/safeNumber';
 
-interface Contract {
+export interface PropertyContractInput {
   id?: string | null;
   property_id?: string | null;
   unit_id?: string | null;
@@ -14,13 +14,13 @@ interface Contract {
   payment_amount?: number | null;
 }
 
-interface Expense {
+export interface PropertyExpenseInput {
   id?: string | null;
   property_id?: string | null;
   amount?: number | null;
 }
 
-interface Unit {
+export interface PropertyUnitInput {
   id?: string | null;
   property_id?: string | null;
   status?: string | null;
@@ -59,9 +59,9 @@ export interface PropertyFinancials {
 
 export function computePropertyFinancials(params: {
   propertyId: string;
-  contracts: Contract[];
-  expenses: Expense[];
-  units: Unit[];
+  contracts: PropertyContractInput[];
+  expenses: PropertyExpenseInput[];
+  units: PropertyUnitInput[];
   isSpecificYear: boolean;
   /** خريطة التخصيص — إن وُجدت تُستخدم بدلاً من rent_amount الكامل */
   allocationMap?: Map<string, { allocated_amount: number }>;

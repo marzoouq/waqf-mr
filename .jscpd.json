@@ -1,0 +1,18 @@
+{
+  "threshold": 0.4,
+  "minLines": 20,
+  "minTokens": 70,
+  "reporters": ["console", "json"],
+  "output": "audit/duplication",
+  "format": ["typescript", "tsx"],
+  "absolute": false,
+  "gitignore": true,
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/src/integrations/supabase/types.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/src/lib/theme/themes/**"
+  ]
+}

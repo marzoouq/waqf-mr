@@ -1,10 +1,9 @@
 import { FileText } from 'lucide-react';
-import { LegalPageFooter } from '@/components/common';
-import { RouteHead } from '@/components/seo/RouteHead';
+import { LegalPageShell, type LegalSection } from '@/components/legal/LegalPageShell';
 
 const TermsOfUse = () => {
 
-  const sections = [
+  const sections: LegalSection[] = [
     {
       title: 'القبول بالشروط',
       content: 'باستخدامك لنظام إدارة وقف مرزوق بن علي الثبيتي، فإنك توافق على الالتزام بهذه الشروط والأحكام. إذا لم توافق على أي من هذه الشروط، يُرجى عدم استخدام النظام.',
@@ -48,45 +47,13 @@ const TermsOfUse = () => {
   ];
 
   return (
-    <main dir="rtl" className="min-h-screen bg-background">
-      <RouteHead
-        title="شروط الاستخدام"
-        description="الشروط والأحكام التي تحكم استخدام نظام إدارة وقف مرزوق بن علي الثبيتي: حسابات المستخدمين، الصلاحيات، الاستخدام المقبول، والملكية الفكرية."
-        path="/terms"
-      />
-      {/* Header */}
-      <div className="gradient-primary py-16">
-        <div className="container mx-auto px-4 text-center">
-          <div className="mx-auto w-16 h-16 gradient-gold rounded-2xl flex items-center justify-center shadow-gold mb-6">
-            <FileText className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
-            شروط الاستخدام
-          </h1>
-          <p className="text-primary-foreground/70 text-sm">
-            آخر تحديث: {new Date().toLocaleDateString('ar-SA')}
-          </p>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="container mx-auto px-4 py-12 max-w-3xl">
-        <div className="space-y-8">
-          {sections.map((section, index) => (
-            <section key={index} className="border-b border-border/40 pb-8 last:border-0">
-              <h2 className="font-display text-xl font-bold text-foreground mb-3">
-                {index + 1}. {section.title}
-              </h2>
-              <p className="text-muted-foreground leading-relaxed text-sm">
-                {section.content}
-              </p>
-            </section>
-          ))}
-        </div>
-
-      </div>
-      <LegalPageFooter />
-    </main>
+    <LegalPageShell
+      icon={FileText}
+      title="شروط الاستخدام"
+      description="الشروط والأحكام التي تحكم استخدام نظام إدارة وقف مرزوق بن علي الثبيتي: حسابات المستخدمين، الصلاحيات، الاستخدام المقبول، والملكية الفكرية."
+      path="/terms"
+      sections={sections}
+    />
   );
 };
 
