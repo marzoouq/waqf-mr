@@ -8,7 +8,14 @@ import { generateQrDataUrl } from '@/utils/zatca/zatcaQr';
 /** مكوّن QR موحّد */
 export function QrImage({ data, size, className }: { data: string; size: number; className?: string }) {
   const [src, setSrc] = useState<string | null>(null);
-  useEffect(() => { generateQrDataUrl(data).then(setSrc); }, [data]);
+  useEffect(() => {
+    let active = true;
+    // تجنّب setState بعد تفكيك المكوّن
+    generateQrDataUrl(data)
+      .then((url) => { if (active) setSrc(url); })
+      .catch(() => { if (active) setSrc(null); });
+    return () => { active = false; };
+  }, [data]);
   if (!src) return <div style={{ width: size, height: size }} className="animate-pulse bg-muted rounded" />;
   return <img src={src} width={size} height={size} alt="QR Code" className={className} />;
 }
