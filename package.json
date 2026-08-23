@@ -27,7 +27,8 @@
     "audit:guard:staged": "node scripts/audit-report-guard.mjs --staged",
     "docs:edge-count": "node scripts/count-edge-functions.mjs --write",
     "docs:edge-count:check": "node scripts/count-edge-functions.mjs --check",
-    "check:drift": "node scripts/dependency-drift-check.mjs"
+    "check:drift": "node scripts/dependency-drift-check.mjs",
+    "security:deps": "node scripts/dependency-security-gate.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
