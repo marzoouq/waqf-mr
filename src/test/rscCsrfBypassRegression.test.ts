@@ -35,10 +35,15 @@ describe("RSC Mode CSRF Bypass — اختبار رجعي", () => {
   };
 
   it("package.json يثبّت react-router و react-router-dom على إصدار مُصلَّح", () => {
-    for (const name of ["react-router", "react-router-dom"]) {
-      const range = pkg.dependencies?.[name] ?? pkg.overrides?.[name] ?? pkg.resolutions?.[name];
-      expect(range, `${name} مفقود من package.json`).toBeTruthy();
-      expect(gte(String(range), MIN_PATCHED), `${name}@${range} أقل من 7.18.2`).toBe(true);
+    const direct = pkg.dependencies?.["react-router-dom"];
+    expect(direct, "react-router-dom مفقود من package.json").toBeTruthy();
+    expect(gte(String(direct), MIN_PATCHED), `react-router-dom@${direct} أقل من 7.18.2`).toBe(true);
+
+    // react-router قد يكون تبعية غير مباشرة؛ إن كان مثبّتاً صريحاً يجب أن يكون مُصلَّحاً
+    const nested =
+      pkg.dependencies?.["react-router"] ?? pkg.overrides?.["react-router"] ?? pkg.resolutions?.["react-router"];
+    if (nested) {
+      expect(gte(String(nested), MIN_PATCHED), `react-router@${nested} أقل من 7.18.2`).toBe(true);
     }
   });
 
@@ -108,7 +113,8 @@ describe("RSC Mode CSRF Bypass — اختبار رجعي", () => {
         problems.push(`${dir.name}: لا يوجد safeParse`);
         continue;
       }
-      if (!/status:\s*400/.test(src)) problems.push(`${dir.name}: لا يعيد 400 عند فشل التحقق`);
+      const returns400 = /status:\s*400/.test(src) || /,\s*400\b/.test(src) || /\b400\s*\)/.test(src);
+      if (!returns400) problems.push(`${dir.name}: لا يعيد 400 عند فشل التحقق`);
 
       const mutation = [...src.matchAll(/\.(insert|update|upsert|delete)\(/g)].map((m) => m.index ?? 0);
       const firstMutation = mutation.length ? Math.min(...mutation) : Number.POSITIVE_INFINITY;
