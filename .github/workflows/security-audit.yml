@@ -31,14 +31,13 @@ jobs:
       - name: Edge Functions doc drift check
         run: node scripts/count-edge-functions.mjs --check
 
-      - name: npm audit (prod deps, high+)
+      - name: Dependency security gate (same gate as CI)
         id: audit
         run: |
           set +e
-          npm audit --omit=dev --audit-level=high --json > npm-audit.json
+          npm run security:deps
           CODE=$?
           echo "code=$CODE" >> "$GITHUB_OUTPUT"
-          jq '{ vulnerabilities: .metadata.vulnerabilities }' npm-audit.json || cat npm-audit.json
           exit 0
 
       - name: Upload audit artifact
@@ -46,7 +45,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: npm-audit-report
-          path: npm-audit.json
+          path: |
+            audit/dependency-security.json
+            audit/dependency-security.md
           retention-days: 90
 
       - name: Open issue on high/critical
