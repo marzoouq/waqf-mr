@@ -3,34 +3,17 @@
  * يعتمد على computePropertyFinancials الموجود مسبقاً
  */
 import { useMemo } from 'react';
-import { computePropertyFinancials } from '@/hooks/domain/financial/usePropertyFinancials';
+import {
+  computePropertyFinancials,
+  type PropertyContractInput,
+  type PropertyExpenseInput,
+  type PropertyUnitInput,
+} from '@/hooks/domain/financial/usePropertyFinancials';
 
 interface Property {
   id: string;
   property_number: string;
   property_type: string;
-}
-
-interface Contract {
-  id?: string | null;
-  property_id?: string | null;
-  unit_id?: string | null;
-  status?: string | null;
-  rent_amount?: number | null;
-  payment_type?: string | null;
-  payment_amount?: number | null;
-}
-
-interface Expense {
-  id?: string | null;
-  property_id?: string | null;
-  amount?: number | null;
-}
-
-interface Unit {
-  id?: string | null;
-  property_id?: string | null;
-  status?: string | null;
 }
 
 export interface PropertyPerformanceItem {
@@ -53,9 +36,9 @@ export interface PropertyPerformanceTotals {
 
 export function usePropertyPerformance(
   properties: Property[],
-  contracts: Contract[],
-  expenses: Expense[],
-  allUnits: Unit[],
+  contracts: PropertyContractInput[],
+  expenses: PropertyExpenseInput[],
+  allUnits: PropertyUnitInput[],
   isSpecificYear: boolean,
   allocationMap?: Map<string, { allocated_amount: number }>,
 ) {
