@@ -42,3 +42,12 @@ node scripts/count-edge-functions.mjs --write   # مزامنة الوثائق
 - `SECURITY.md` — سياسة الأمن العامة.
 - `CONTRIBUTING.md` — بروتوكول ما قبل الدفع الإلزامي.
 - `.github/dependabot.yml` — تحديثات dependencies الأسبوعية.
+
+## بوابة أمان التبعيات في CI (مفعّلة)
+
+- الأمر: `npm run security:deps` (`scripts/dependency-security-gate.mjs`).
+- تعمل في **كل Pull Request** داخل `ci.yml` وفي الفحص الأسبوعي `security-audit.yml`.
+- **ترفض الدمج** (exit 1) عند أي ثغرة `high` أو `critical` في تبعيات الإنتاج. ثغرات dev-only غير حاجزة إلا مع `--strict-dev` / `STRICT_DEV=true`.
+- تفشل أيضاً (exit 2) إذا تعذّر تشغيل `npm audit` — fail-closed.
+- المخرجات: `audit/dependency-security.json` + `audit/dependency-security.md`، تُرفع كـ artifact `dependency-security-report` (90 يوماً)، وتُلخَّص في Job Summary، وتُنشر كتعليق مُحدَّث على الـ PR.
+- كل تقرير يربط أحدث ملفات `docs/security/SECURITY-SCAN-*.md` لمقارنة الاتجاه قبل/بعد التحديثات.
