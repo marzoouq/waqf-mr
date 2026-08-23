@@ -5,22 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format/format';
-
-interface ContractItem {
-  id: string | null;
-  contract_number: string | null;
-  tenant_name: string | null;
-  rent_amount: number | null;
-  start_date: string | null;
-  end_date: string | null;
-  status: string | null;
-}
-
-const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  active: { label: 'نشط', variant: 'default' },
-  expired: { label: 'منتهي', variant: 'destructive' },
-  cancelled: { label: 'ملغي', variant: 'secondary' },
-};
+import { STATUS_MAP, type ContractItem } from './contractsViewShared';
 
 interface ContractsViewMobileCardsProps {
   contracts: ContractItem[];
