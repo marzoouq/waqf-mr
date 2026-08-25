@@ -4,30 +4,30 @@
 
 | Layer | Count | Total LOC | Avg LOC |
 |---|---:|---:|---:|
-| component | 497 | 40055 | 81 |
+| component | 506 | 40785 | 81 |
 | util | 154 | 12440 | 81 |
-| lib | 143 | 10156 | 71 |
-| hook-data | 139 | 8924 | 64 |
-| hook-page | 126 | 12066 | 96 |
-| page | 78 | 8316 | 107 |
-| test | 59 | 5060 | 86 |
+| lib | 149 | 10487 | 70 |
+| hook-data | 144 | 9330 | 65 |
+| hook-page | 126 | 12013 | 95 |
+| page | 78 | 8263 | 106 |
+| test | 61 | 5283 | 87 |
 | constant | 29 | 1784 | 62 |
 | type | 27 | 1136 | 42 |
 | hook-auth | 25 | 2163 | 87 |
 | hook-ui | 22 | 1320 | 60 |
-| hook-domain | 21 | 2781 | 132 |
-| hook-application | 17 | 1211 | 71 |
+| hook-domain | 21 | 2764 | 132 |
+| hook-application | 18 | 1293 | 72 |
 | route | 9 | 311 | 35 |
-| app | 8 | 226 | 28 |
+| app | 8 | 241 | 30 |
 | context | 5 | 238 | 48 |
+| integration | 4 | 3070 | 768 |
 | other | 3 | 66 | 22 |
-| integration | 3 | 2715 | 905 |
 
 ## Files > 200 LOC (18)
 
 | File | Layer | LOC |
 |---|---|---:|
-| integrations/supabase/types.ts | integration | 2681 |
+| integrations/supabase/types.ts | integration | 2946 |
 | hooks/domain/financial/useComputedFinancials.test.ts | hook-domain | 683 |
 | utils/financial/fiscalYear/fiscalYearClosure.test.ts | util | 408 |
 | hooks/auth/biometric/useWebAuthn.test.ts | hook-auth | 405 |
