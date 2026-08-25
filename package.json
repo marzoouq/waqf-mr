@@ -29,7 +29,8 @@
     "docs:edge-count:check": "node scripts/count-edge-functions.mjs --check",
     "check:drift": "node scripts/dependency-drift-check.mjs",
     "security:deps": "node scripts/dependency-security-gate.mjs",
-    "quality:dup": "node scripts/duplication-gate.mjs"
+    "quality:dup": "node scripts/duplication-gate.mjs",
+    "check:migrations": "node scripts/migration-drift-gate.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -97,6 +98,7 @@
     "eslint": "^9.27.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "0.5.3",
+    "fast-glob": "^3.3.3",
     "globals": "^17.4.0",
     "jsdom": "^29.0.1",
     "lovable-tagger": "^1.1.13",

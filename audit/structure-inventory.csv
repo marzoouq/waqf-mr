@@ -251,6 +251,7 @@ components/diagnostics/CriticalAlertsBanner.tsx,component,44,5,1,false,false,fal
 components/diagnostics/DbPerformancePanel.tsx,component,93,7,1,false,false,false,false,true
 components/diagnostics/DeepCleanConfirmDialog.tsx,component,136,5,1,false,false,false,false,true
 components/diagnostics/DiagnosticsChecksGrid.tsx,component,82,7,1,false,false,false,false,true
+components/diagnostics/DiagnosticsTabsNav.tsx,component,115,2,5,false,false,false,false,true
 components/diagnostics/DiagnosticsToolbar.tsx,component,95,5,1,false,false,false,false,true
 components/diagnostics/EdgeFunctionsPanel.tsx,component,160,12,1,false,true,true,false,true
 components/diagnostics/HealthSummaryCard.tsx,component,102,3,1,false,false,false,false,true
@@ -1131,7 +1132,7 @@ pages/dashboard/SettingsPage.tsx,page,99,8,1,false,false,false,false,true
 pages/dashboard/SupportDashboardPage.test.tsx,page,52,5,0,false,false,false,false,false
 pages/dashboard/SupportDashboardPage.tsx,page,101,6,1,false,false,false,false,true
 pages/dashboard/SystemDiagnosticsPage.test.tsx,page,51,5,0,false,false,false,false,false
-pages/dashboard/SystemDiagnosticsPage.tsx,page,187,20,1,false,false,true,false,true
+pages/dashboard/SystemDiagnosticsPage.tsx,page,173,21,1,false,false,true,false,true
 pages/dashboard/UserManagementPage.test.tsx,page,106,5,0,false,false,false,false,false
 pages/dashboard/UserManagementPage.tsx,page,174,12,1,false,false,false,false,true
 pages/dashboard/ZatcaManagementPage.tsx,page,125,13,1,false,false,false,false,true
@@ -1203,6 +1204,7 @@ test/routePermissionParity.test.ts,test,157,5,0,false,false,false,false,false
 test/rscCsrfBypassRegression.test.ts,test,153,5,0,false,false,false,false,false
 test/sectionsVisibilityProtection.test.ts,test,41,3,0,false,false,false,false,false
 test/setup.ts,test,86,4,3,false,false,false,true,false
+test/storagePolicyRegression.test.ts,test,76,3,0,false,false,false,false,false
 test/surfaceComponentIsolation.test.ts,test,54,3,0,false,false,false,false,false
 test/uiPermissionsMatrix.test.ts,test,125,5,0,false,false,false,false,false
 test/vitest.d.ts,test,2,0,0,false,false,false,false,false

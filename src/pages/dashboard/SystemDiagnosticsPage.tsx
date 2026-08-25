@@ -6,7 +6,8 @@ import { lazy, Suspense, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import DiagnosticsTabsNav from '@/components/diagnostics/DiagnosticsTabsNav';
 import { toast } from 'sonner';
 import type { CheckStatus } from '@/lib/diagnostics/types';
 import { useSystemDiagnostics } from '@/hooks/page/admin/management/useSystemDiagnostics';
@@ -42,6 +43,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
   const d = useSystemDiagnostics(autoRun);
   const { running, runningCategory, lastRun, progress, run, runSingle, exportJson, exportText, clearAll, rerunFailures, rerunFailuresAndWarnings, summary, allCategories, results } = d;
   const [filter, setFilter] = useState<StatusFilter>('all');
+  const [activeTab, setActiveTab] = useState('overview');
   const [cleanDialog, setCleanDialog] = useState<null | 'light' | 'deep'>(null);
   const [deepCleaning, setDeepCleaning] = useState(false);
   const queryClient = useQueryClient();
@@ -113,25 +115,9 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
         </Card>
       )}
 
-      <Tabs defaultValue="overview" dir="rtl">
-        <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-          <TabsTrigger value="fixes">🛠 التوصيات والإصلاحات</TabsTrigger>
-          <TabsTrigger value="security">🛡 الأمان والاختراق</TabsTrigger>
-          <TabsTrigger value="errors">⚠️ الأخطاء الحيّة</TabsTrigger>
-          <TabsTrigger value="alerts">🔔 التنبيهات</TabsTrigger>
-          <TabsTrigger value="db">💾 أداء قاعدة البيانات</TabsTrigger>
-          <TabsTrigger value="edge">⚡ Edge Functions</TabsTrigger>
-          <TabsTrigger value="checks">الفحوصات</TabsTrigger>
-          <TabsTrigger value="backend">سجل Backend</TabsTrigger>
-          <TabsTrigger value="appmap">خريطة التطبيق</TabsTrigger>
-          <TabsTrigger value="interactions">التفاعلات</TabsTrigger>
-          <TabsTrigger value="performance">الأداء الحي</TabsTrigger>
-          <TabsTrigger value="history">السجل والتصدير</TabsTrigger>
-          <TabsTrigger value="tracking">🧭 تتبع المستخدمين</TabsTrigger>
-          <TabsTrigger value="blocked">🚫 العناوين المحجوبة</TabsTrigger>
-          <TabsTrigger value="maintenance">🛠️ وضع الصيانة</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
+        <DiagnosticsTabsNav value={activeTab} onValueChange={setActiveTab} />
+
 
         <TabsContent value="overview" className="space-y-4">
           <NotificationFallbackCard />
