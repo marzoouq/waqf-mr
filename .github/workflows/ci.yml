@@ -119,6 +119,11 @@ jobs:
       - name: Run tests
         run: npx vitest run
 
+      - name: Migration drift gate (repo vs applied schema)
+        run: npm run check:migrations
+
+
+
 
       - name: Dependency security gate (block merge on high/critical)
         id: deps_gate

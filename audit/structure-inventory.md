@@ -4,13 +4,13 @@
 
 | Layer | Count | Total LOC | Avg LOC |
 |---|---:|---:|---:|
-| component | 506 | 40785 | 81 |
+| component | 507 | 40900 | 81 |
 | util | 154 | 12440 | 81 |
 | lib | 149 | 10487 | 70 |
 | hook-data | 144 | 9330 | 65 |
 | hook-page | 126 | 12013 | 95 |
-| page | 78 | 8263 | 106 |
-| test | 61 | 5283 | 87 |
+| page | 78 | 8249 | 106 |
+| test | 62 | 5359 | 86 |
 | constant | 29 | 1784 | 62 |
 | type | 27 | 1136 | 42 |
 | hook-auth | 25 | 2163 | 87 |

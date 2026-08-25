@@ -74,19 +74,19 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-08-25T08:54:38.903Z",
+    "detectionDate": "2026-08-25T09:29:56.941Z",
     "formats": {
       "tsx": {
         "clones": 2,
         "duplicatedLines": 42,
         "duplicatedTokens": 334,
-        "lines": 43149,
+        "lines": 43249,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.0973371341166655,
-        "percentageTokens": 0.10854799186215056,
-        "sources": 489,
-        "tokens": 307698
+        "percentage": 0.09711207195542093,
+        "percentageTokens": 0.10839158569750311,
+        "sources": 490,
+        "tokens": 308142
       },
       "typescript": {
         "clones": 0,
@@ -105,13 +105,13 @@
       "clones": 2,
       "duplicatedLines": 42,
       "duplicatedTokens": 334,
-      "lines": 83303,
+      "lines": 83403,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.05041835228023,
-      "percentageTokens": 0.059792445027649535,
-      "sources": 1009,
-      "tokens": 558599
+      "percentage": 0.050357900794935434,
+      "percentageTokens": 0.05974495700688498,
+      "sources": 1010,
+      "tokens": 559043
     }
   }
 }
