@@ -7,6 +7,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { isFyReady } from '@/constants/fiscalYearIds';
+import { sanitizeOrPattern } from '@/lib/postgrestFilter';
 
 export interface SearchOpts {
   pattern: string;
@@ -46,7 +47,8 @@ export interface ExpenseSearchRow {
 
 const CONTRACT_FIELDS = 'id, contract_number, tenant_name, status, fiscal_year_id';
 
-export async function searchProperties({ pattern, limit = 5, signal }: SearchOpts): Promise<PropertySearchRow[]> {
+export async function searchProperties({ pattern: rawPattern, limit = 5, signal }: SearchOpts): Promise<PropertySearchRow[]> {
+  const pattern = sanitizeOrPattern(rawPattern);
   const { data } = await supabase
     .from('properties')
     .select('id, property_number, property_type, location')
@@ -57,9 +59,10 @@ export async function searchProperties({ pattern, limit = 5, signal }: SearchOpt
 }
 
 export async function searchContracts(
-  { pattern, fiscalYearId, limit = 5, signal }: SearchOpts,
+  { pattern: rawPattern, fiscalYearId, limit = 5, signal }: SearchOpts,
   variant: 'admin' | 'safe',
 ): Promise<ContractSearchRow[]> {
+  const pattern = sanitizeOrPattern(rawPattern);
   const filter = `contract_number.ilike.${pattern},tenant_name.ilike.${pattern}`;
   if (variant === 'admin') {
     let q = supabase.from('contracts').select(CONTRACT_FIELDS).or(filter).limit(limit);
@@ -83,7 +86,8 @@ export async function searchBeneficiaries({ pattern, limit = 5, signal }: Search
   return (data ?? []) as BeneficiarySearchRow[];
 }
 
-export async function searchExpenses({ pattern, fiscalYearId, limit = 5, signal }: SearchOpts): Promise<ExpenseSearchRow[]> {
+export async function searchExpenses({ pattern: rawPattern, fiscalYearId, limit = 5, signal }: SearchOpts): Promise<ExpenseSearchRow[]> {
+  const pattern = sanitizeOrPattern(rawPattern);
   let q = supabase
     .from('expenses')
     .select('id, expense_type, description, amount, fiscal_year_id')

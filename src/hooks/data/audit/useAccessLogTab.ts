@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { STALE_AUDIT } from '@/lib/queryStaleTime';
 import { PAGE_SIZE_AUDIT } from '@/constants/pagination';
 import { auditKeys } from '@/lib/queryKeys/auditKeys';
+import { toSafeIlikePattern } from '@/lib/postgrestFilter';
 
 export const ACCESS_LOG_ITEMS_PER_PAGE = PAGE_SIZE_AUDIT;
 
@@ -36,9 +37,9 @@ export const useAccessLogTab = (eventFilter: string, currentPage: number, search
       const q = searchQuery.trim();
       if (q.length > 0) {
         // تنظيف % و _ لمنع wildcards غير مقصودة
-        const safe = q.replace(/[%_]/g, (m) => `\\${m}`);
+        const safe = toSafeIlikePattern(q);
         query = query.or(
-          `email.ilike.%${safe}%,target_path.ilike.%${safe}%,device_info.ilike.%${safe}%`,
+          `email.ilike.${safe},target_path.ilike.${safe},device_info.ilike.${safe}`,
         );
       }
       const { data, error, count } = await query;
