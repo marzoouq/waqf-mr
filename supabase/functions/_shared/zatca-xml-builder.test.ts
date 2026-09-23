@@ -295,18 +295,21 @@ Deno.test("buildUBL — PIH uses default when empty", () => {
   assertStringIncludes(xml, "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzlj");
 });
 
-Deno.test("buildUBL — two TaxTotal elements (first without subtotals, second with)", () => {
+Deno.test("buildUBL — two document-level TaxTotal (first without subtotals, second with)", () => {
   const xml = buildUBL({
     ...baseInvoice,
     line_items: [{ name: "بند", quantity: 1, unit_price: 1000, vat_rate: 15 }],
   }, defaultSettings, "");
-  const taxTotalMatches = xml.match(/<cac:TaxTotal>/g);
-  assertEquals(taxTotalMatches?.length, 2, "يجب وجود عنصرين TaxTotal");
-  // First TaxSubtotal appears in second TaxTotal
-  const firstTaxTotal = xml.indexOf("<cac:TaxTotal>");
-  const secondTaxTotal = xml.indexOf("<cac:TaxTotal>", firstTaxTotal + 1);
-  const firstSubtotal = xml.indexOf("<cac:TaxSubtotal>", firstTaxTotal);
-  assert(firstSubtotal > secondTaxTotal, "TaxSubtotal يجب أن يظهر في TaxTotal الثاني");
+  // مستوى الفاتورة: مسافتان بادئتان — مستوى البند: أربع مسافات (InvoiceLine)
+  const docLevel = xml.match(/^ {2}<cac:TaxTotal>$/gm);
+  assertEquals(docLevel?.length, 2, "يجب وجود عنصرين TaxTotal على مستوى الفاتورة");
+  const lineLevel = xml.match(/^ {4}<cac:TaxTotal>$/gm);
+  assertEquals(lineLevel?.length, 1, "يجب وجود TaxTotal واحد لكل بند");
+  // TaxSubtotal يظهر فقط داخل TaxTotal الثاني على مستوى الفاتورة
+  const firstDoc = xml.search(/^ {2}<cac:TaxTotal>$/m);
+  const secondDoc = xml.indexOf("\n  <cac:TaxTotal>", firstDoc + 1);
+  const firstSubtotal = xml.indexOf("<cac:TaxSubtotal>");
+  assert(firstSubtotal > secondDoc, "TaxSubtotal يجب أن يظهر في TaxTotal الثاني");
 });
 
 Deno.test("buildUBL — currency is always SAR", () => {
