@@ -31,7 +31,8 @@
     "security:deps": "node scripts/dependency-security-gate.mjs",
     "quality:dup": "node scripts/duplication-gate.mjs",
     "check:migrations": "node scripts/migration-drift-gate.mjs",
-    "verify:deploy": "node scripts/post-deploy-verify.mjs"
+    "verify:deploy": "node scripts/post-deploy-verify.mjs",
+    "test:edge": "deno test -A --no-check --node-modules-dir=none supabase/functions/"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

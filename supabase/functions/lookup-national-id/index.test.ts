@@ -1,74 +1,74 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
-import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
+/**
+ * اختبارات وحدة نقية لمنطق التحقق في lookup-national-id.
+ * لا تعتمد على الشبكة أو rate limit — تختبر السلوك الأمني الفعلي مباشرةً.
+ */
+import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  isValidSaudiNationalId,
+  maskEmail,
+  normalizeDigits,
+  sha256Hex,
+} from "./validation.ts";
 
-// Read env vars from .env file manually (avoid dotenv strict mode)
-const envText = await Deno.readTextFile(".env").catch(() => "");
-const envMap: Record<string, string> = {};
-for (const line of envText.split("\n")) {
-  const match = line.match(/^([A-Z_]+)=(.*)$/);
-  if (match) envMap[match[1]] = match[2].replace(/^["']|["']$/g, "");
-}
+// رقم صالح Luhn يبدأ بـ 1 (مواطن)
+const VALID_CITIZEN_ID = "1000000008";
 
-const SUPABASE_URL = envMap["VITE_SUPABASE_URL"] || Deno.env.get("VITE_SUPABASE_URL")!;
-const SUPABASE_ANON_KEY = envMap["VITE_SUPABASE_PUBLISHABLE_KEY"] || Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
-const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/lookup-national-id`;
-
-const headers = {
-  "Content-Type": "application/json",
-  "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-};
-
-Deno.test("GET request should be rejected", async () => {
-  const res = await fetch(FUNCTION_URL, { method: "GET", headers });
-  const body = await res.text();
-  // GET should fail (either 405 or 500 since body parsing fails)
-  assert(res.status >= 400, `Expected 4xx/5xx, got ${res.status}: ${body}`);
+Deno.test("normalizeDigits تحوّل الأرقام العربية-الهندية إلى لاتينية", () => {
+  assertEquals(normalizeDigits("٩٩٩٩٩٩٩٩٩٩"), "9999999999");
 });
 
-Deno.test("Missing body should return error", async () => {
-  const res = await fetch(FUNCTION_URL, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({}),
-  });
-  const data = await res.json();
-  // No national_id → 400
-  assertEquals(res.status, 400);
-  assert(data.error !== undefined);
+Deno.test("normalizeDigits تحوّل الأرقام الفارسية إلى لاتينية", () => {
+  assertEquals(normalizeDigits("۱۲۳۴۵۶۷۸۹۰"), "1234567890");
 });
 
-Deno.test("Short national ID should return 400", async () => {
-  const res = await fetch(FUNCTION_URL, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ national_id: "12345" }),
-  });
-  const data = await res.json();
-  assertEquals(res.status, 400);
-  assert(data.error.includes("10"));
+Deno.test("normalizeDigits تُزيل المسافات المحيطة", () => {
+  assertEquals(normalizeDigits("  ١٠٠٠٠٠٠٠٠٨  "), "1000000008");
 });
 
-Deno.test("Non-existent ID returns found:true (anti-enumeration)", async () => {
-  const res = await fetch(FUNCTION_URL, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ national_id: "9999999999" }),
-  });
-  const data = await res.json();
-  assertEquals(res.status, 200);
-  assertEquals(data.found, true);
-  // Masked email should be generic placeholder
-  assert(data.masked_email !== undefined);
+Deno.test("isValidSaudiNationalId تقبل رقم مواطن صالح", () => {
+  assertEquals(isValidSaudiNationalId(VALID_CITIZEN_ID), true);
 });
 
-Deno.test("Arabic-Indic digits are normalized", async () => {
-  const res = await fetch(FUNCTION_URL, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ national_id: "٩٩٩٩٩٩٩٩٩٩" }),
-  });
-  const data = await res.json();
-  // Should be normalized to 9999999999 and processed normally
-  assertEquals(res.status, 200);
-  assertEquals(data.found, true);
+Deno.test("isValidSaudiNationalId ترفض ما لا يبدأ بـ 1 أو 2", () => {
+  assertEquals(isValidSaudiNationalId("9999999999"), false);
+  assertEquals(isValidSaudiNationalId("3000000008"), false);
+});
+
+Deno.test("isValidSaudiNationalId ترفض الطول غير العشري", () => {
+  assertEquals(isValidSaudiNationalId("12345"), false);
+  assertEquals(isValidSaudiNationalId("10000000088"), false);
+});
+
+Deno.test("isValidSaudiNationalId ترفض الأحرف غير الرقمية", () => {
+  assertEquals(isValidSaudiNationalId("10000000A8"), false);
+  assertEquals(isValidSaudiNationalId(""), false);
+});
+
+Deno.test("isValidSaudiNationalId ترفض رقماً يفشل Luhn", () => {
+  assertEquals(isValidSaudiNationalId("1000000009"), false);
+});
+
+Deno.test("التطبيع ثم التحقق يعملان معاً على مدخل عربي", () => {
+  assertEquals(isValidSaudiNationalId(normalizeDigits("١٠٠٠٠٠٠٠٠٨")), true);
+});
+
+Deno.test("sha256Hex يُنتج 64 حرفاً hex ثابتاً", async () => {
+  const hash = await sha256Hex(VALID_CITIZEN_ID);
+  assertEquals(hash.length, 64);
+  assert(/^[0-9a-f]{64}$/.test(hash));
+  assertEquals(hash, await sha256Hex(VALID_CITIZEN_ID));
+});
+
+Deno.test("sha256Hex لا يحتوي على الرقم الأصلي (منع التسريب)", async () => {
+  const hash = await sha256Hex(VALID_CITIZEN_ID);
+  assertEquals(hash.includes(VALID_CITIZEN_ID), false);
+});
+
+Deno.test("maskEmail يُخفي معظم الجزء المحلي", () => {
+  assertEquals(maskEmail("abdullah@example.com"), "abd***@example.com");
+  assertEquals(maskEmail("a@example.com"), "a***@example.com");
+});
+
+Deno.test("maskEmail يرد قيمة محجوبة لمدخل غير بريدي", () => {
+  assertEquals(maskEmail("not-an-email"), "***@***");
 });

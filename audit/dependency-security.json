@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-09-23T19:01:27.022Z",
+  "strict_dev": false,
+  "totals": {
+    "critical": 0,
+    "high": 0,
+    "moderate": 0,
+    "low": 0,
+    "info": 0
+  },
+  "blocking_count": 0,
+  "advisories": [],
+  "linked_reports": [
+    "docs/security/SECURITY-SCAN-2026-08-23.md",
+    "docs/security/csp-policy.md",
+    "docs/security/incident-2026-07-08-env-leak.md",
+    "docs/security/incident-2026-08-25-migration-drift.md"
+  ]
+}

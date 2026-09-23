@@ -29,13 +29,13 @@ Deno.test("isServiceRole rejects random string", () => {
 });
 
 Deno.test("isServiceRole accepts exact SERVICE_ROLE_KEY", () => {
-  assertEquals(isServiceRole(REAL_KEY), true);
+  assertEquals(isServiceRole(MOCK_KEY), true);
 });
 
 Deno.test("isServiceRole rejects key with extra char (constant-time mismatch)", () => {
-  assertEquals(isServiceRole(REAL_KEY + "x"), false);
+  assertEquals(isServiceRole(MOCK_KEY + "x"), false);
 });
 
 Deno.test("isServiceRole rejects key prefix", () => {
-  assertEquals(isServiceRole(REAL_KEY.slice(0, -1)), false);
+  assertEquals(isServiceRole(MOCK_KEY.slice(0, -1)), false);
 });

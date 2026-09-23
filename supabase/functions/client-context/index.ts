@@ -7,16 +7,7 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { getCorsHeaders } from "../_shared/cors.ts";
-
-/** استخراج أول عنوان IP حقيقي من ترويسات الوكيل */
-const resolveIp = (req: Request): string | null => {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first) return first;
-  }
-  return req.headers.get("cf-connecting-ip") ?? req.headers.get("x-real-ip") ?? null;
-};
+import { extractClientIp } from "../_shared/client-ip.ts";
 
 Deno.serve(async (req) => {
   const cors = getCorsHeaders(req);
@@ -28,7 +19,7 @@ Deno.serve(async (req) => {
 
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
-  const ip = resolveIp(req);
+  const ip = extractClientIp(req);
   if (!ip) return json({ ip: null, blocked: false, reason: null });
 
   try {

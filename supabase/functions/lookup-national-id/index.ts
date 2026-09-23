@@ -15,6 +15,12 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import {
+  isValidSaudiNationalId,
+  maskEmail,
+  normalizeDigits,
+  sha256Hex,
+} from "./validation.ts";
 
 const RATE_LIMIT = 3;
 const RATE_WINDOW_SECONDS = 300;
@@ -26,41 +32,6 @@ const BodySchema = z.object({
   national_id: z.union([z.string(), z.number()]).transform((v) => String(v)),
   password: z.string().min(8).max(128).optional(),
 });
-
-/**
- * Saudi National ID Luhn check (modified).
- * Format: 10 digits, starts with 1 (citizen) or 2 (resident).
- */
-function isValidSaudiNationalId(id: string): boolean {
-  if (!/^[12]\d{9}$/.test(id)) return false;
-  let sum = 0;
-  for (let i = 0; i < 10; i++) {
-    const digit = Number(id[i]);
-    if (i % 2 === 0) {
-      const doubled = digit * 2;
-      const s = doubled.toString().padStart(2, '0');
-      sum += Number(s[0]) + Number(s[1]);
-    } else {
-      sum += digit;
-    }
-  }
-  return sum % 10 === 0;
-}
-
-/** SHA-256 hex digest (for hashing national_id as rate-limit key). */
-async function sha256Hex(input: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-
-/** Mask email: "user@example.com" → "u***@example.com" */
-function maskEmail(email: string): string {
-  const [local, domain] = email.split("@");
-  if (!domain) return "***@***";
-  const visible = local.slice(0, Math.max(1, Math.ceil(local.length * 0.3)));
-  return `${visible}***@${domain}`;
-}
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -133,10 +104,7 @@ Deno.serve(async (req) => {
     const password = parsed.data.password;
 
     // تحويل الأرقام العربية-الهندية والفارسية إلى لاتينية (Defense in Depth)
-    const national_id = parsed.data.national_id
-      .replace(/[٠-٩]/g, (d: string) => String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48))
-      .replace(/[۰-۹]/g, (d: string) => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48))
-      .trim();
+    const national_id = normalizeDigits(parsed.data.national_id);
 
     // Input validation: must be exactly 10 digits (بعد التحويل)
     if (!/^\d{10}$/.test(national_id)) {
