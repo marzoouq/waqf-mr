@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_STATIC } from '@/lib/queryStaleTime';
 import { archiveKeys, type ArchiveListFilters } from '@/lib/queryKeys/archiveKeys';
+import { toSafeIlikePattern } from '@/lib/postgrestFilter';
 import type { ArchivedDocument } from '@/types/archive';
 
 export function useArchivedDocuments(filters: ArchiveListFilters = {}) {
@@ -25,8 +26,9 @@ export function useArchivedDocuments(filters: ArchiveListFilters = {}) {
         q = q.eq('is_published', true);
       }
       if (filters.search?.trim()) {
-        const term = filters.search.trim().replace(/[%,]/g, '');
-        q = q.or(`title.ilike.%${term}%,description.ilike.%${term}%`);
+        // تنظيف موحّد: يمنع حقن صيغة الفلتر و wildcards غير مقصودة
+        const term = toSafeIlikePattern(filters.search);
+        q = q.or(`title.ilike.${term},description.ilike.${term}`);
       }
 
       const { data, error } = await q;
