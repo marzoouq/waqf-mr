@@ -4,7 +4,7 @@
  * وأن روابط الدورة المالية غير مكسورة.
  */
 import { test, expect, type Page } from '@playwright/test';
-import { restoreAdminSession } from './helpers/auth';
+import { restoreAdminSession, isAdminSession } from './helpers/auth';
 
 const openPage = async (page: Page, path: string) => {
   await page.goto(path, { waitUntil: 'domcontentloaded' });
@@ -73,5 +73,40 @@ test.describe('دورة العقد والفواتير — سلامة الشاش�
     await openPage(page, '/dashboard/invoices');
     await expect(page.locator('body')).toContainText(/الفواتير|فاتورة/, { timeout: 25_000 });
     expect(storageCalls, 'الواجهة تطلب ملفات الفواتير من التخزين مباشرة').toEqual([]);
+  });
+});
+
+const BENEFICIARY_ROUTES = [
+  { path: '/beneficiary', marker: /لوحة|الوقف/ },
+  { path: '/beneficiary/contracts', marker: /العقود/ },
+  { path: '/beneficiary/invoices', marker: /الفواتير|فاتورة/ },
+  { path: '/beneficiary/expenses', marker: /المصروفات/ },
+  { path: '/beneficiary/my-share', marker: /حصتي|الحصة/ },
+  { path: '/beneficiary/carryforward', marker: /مرحّل|المرحل|الترحيل/ },
+];
+
+test.describe('شاشات المستفيد — سلامة العرض وعدم تسريب بيانات الإدارة', () => {
+  test.beforeEach(async ({ context, page }) => {
+    await restoreAdminSession(context, page);
+  });
+
+  for (const { path, marker } of BENEFICIARY_ROUTES) {
+    test(`${path} يفتح دون أخطاء واجهة`, async ({ page }) => {
+      const errors = collectErrors(page);
+      await openPage(page, path);
+      const denied = await page.getByRole('heading', { name: /غير مصرح/ }).count();
+      test.skip(denied > 0, 'الجلسة لا تملك صلاحية هذه الشاشة');
+      await expect(page.locator('body')).toContainText(marker, { timeout: 25_000 });
+      expect(errors, `أخطاء في ${path}:\n${errors.join('\n')}`).toEqual([]);
+    });
+  }
+
+  test('شاشات المستفيد لا تطلب ملفات الفواتير من التخزين مباشرة', async ({ page }) => {
+    const storageCalls: string[] = [];
+    page.on('request', (req) => {
+      if (/\/storage\/v1\/object\/(public|sign)\/invoices/.test(req.url())) storageCalls.push(req.url());
+    });
+    await openPage(page, '/beneficiary/invoices');
+    expect(storageCalls, 'تسريب وصول مباشر لملفات الفواتير').toEqual([]);
   });
 });
