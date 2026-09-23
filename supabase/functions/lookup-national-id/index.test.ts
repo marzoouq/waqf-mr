@@ -11,7 +11,7 @@ import {
 } from "./validation.ts";
 
 // رقم صالح Luhn يبدأ بـ 1 (مواطن)
-const VALID_CITIZEN_ID = "1000000019";
+const VALID_CITIZEN_ID = "1000000008";
 
 Deno.test("normalizeDigits تحوّل الأرقام العربية-الهندية إلى لاتينية", () => {
   assertEquals(normalizeDigits("٩٩٩٩٩٩٩٩٩٩"), "9999999999");
@@ -22,7 +22,7 @@ Deno.test("normalizeDigits تحوّل الأرقام الفارسية إلى ل�
 });
 
 Deno.test("normalizeDigits تُزيل المسافات المحيطة", () => {
-  assertEquals(normalizeDigits("  ١٠٠٠٠٠٠٠١٩  "), "1000000019");
+  assertEquals(normalizeDigits("  ١٠٠٠٠٠٠٠٠٨  "), "1000000008");
 });
 
 Deno.test("isValidSaudiNationalId تقبل رقم مواطن صالح", () => {
@@ -31,25 +31,25 @@ Deno.test("isValidSaudiNationalId تقبل رقم مواطن صالح", () => {
 
 Deno.test("isValidSaudiNationalId ترفض ما لا يبدأ بـ 1 أو 2", () => {
   assertEquals(isValidSaudiNationalId("9999999999"), false);
-  assertEquals(isValidSaudiNationalId("3000000019"), false);
+  assertEquals(isValidSaudiNationalId("3000000008"), false);
 });
 
 Deno.test("isValidSaudiNationalId ترفض الطول غير العشري", () => {
   assertEquals(isValidSaudiNationalId("12345"), false);
-  assertEquals(isValidSaudiNationalId("10000000199"), false);
+  assertEquals(isValidSaudiNationalId("10000000088"), false);
 });
 
 Deno.test("isValidSaudiNationalId ترفض الأحرف غير الرقمية", () => {
-  assertEquals(isValidSaudiNationalId("10000000A9"), false);
+  assertEquals(isValidSaudiNationalId("10000000A8"), false);
   assertEquals(isValidSaudiNationalId(""), false);
 });
 
 Deno.test("isValidSaudiNationalId ترفض رقماً يفشل Luhn", () => {
-  assertEquals(isValidSaudiNationalId("1000000018"), false);
+  assertEquals(isValidSaudiNationalId("1000000009"), false);
 });
 
 Deno.test("التطبيع ثم التحقق يعملان معاً على مدخل عربي", () => {
-  assertEquals(isValidSaudiNationalId(normalizeDigits("١٠٠٠٠٠٠٠١٩")), true);
+  assertEquals(isValidSaudiNationalId(normalizeDigits("١٠٠٠٠٠٠٠٠٨")), true);
 });
 
 Deno.test("sha256Hex يُنتج 64 حرفاً hex ثابتاً", async () => {
