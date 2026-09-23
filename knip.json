@@ -14,7 +14,12 @@
     "playwright.config.ts",
     "tailwind.config.ts"
   ],
-  "project": ["src/**/*.{ts,tsx}", "scripts/**/*.mjs", "supabase/functions/**/*.ts"],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "scripts/**/*.mjs",
+    "supabase/functions/**/*.ts",
+    "tests/e2e/**/*.ts"
+  ],
   "ignore": [
     "src/integrations/supabase/types.ts",
     "src/integrations/supabase/client.ts",
