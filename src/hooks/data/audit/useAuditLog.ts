@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_AUDIT } from '@/lib/queryStaleTime';
 import { auditKeys } from '@/lib/queryKeys/auditKeys';
+import { toSafeIlikePattern } from '@/lib/postgrestFilter';
 
 // إعادة تصدير من utils/format لعدم كسر المستوردين الحاليين
 export { getTableNameAr, getOperationNameAr } from '@/utils/format/auditLabels';
@@ -38,12 +39,10 @@ export const useAuditLog = (filters?: {
       if (filters?.operation) {
         query = query.eq('operation', filters.operation);
       }
-      if (filters?.searchQuery) {
-        // تنظيف: إزالة الأحرف الخاصة لمنع التلاعب بالاستعلام
-        const safe = filters.searchQuery.replace(/[%_\\(),.*]/g, '');
-        if (safe.length > 0) {
-          query = query.or(`table_name.ilike.%${safe}%,operation.ilike.%${safe}%`);
-        }
+      if (filters?.searchQuery?.trim()) {
+        // تنظيف موحّد: يمنع حقن صيغة الفلتر و wildcards غير مقصودة
+        const safe = toSafeIlikePattern(filters.searchQuery);
+        query = query.or(`table_name.ilike.${safe},operation.ilike.${safe}`);
       }
       if (filters?.dateFrom) {
         query = query.gte('created_at', filters.dateFrom);

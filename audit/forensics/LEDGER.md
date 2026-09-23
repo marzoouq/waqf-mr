@@ -10,6 +10,7 @@
 | 2 | بوابة منع الانفصال | مقفلة ✅ | 2026-08-25 | `phases/phase-2-drift-gate.md` |
 | 3 | جرد SECURITY DEFINER | مقفلة ✅ | 2026-08-25 | `phases/phase-3-security-definer.md` |
 | 4 | الواجهة والتنظيف | مقفلة ✅ | 2026-08-25 | `phases/phase-4-ui-cleanup.md` |
+| 5 | إغلاق الملاحظات الأمنية المتبقية (11 بنداً) | مقفلة ✅ | 2026-08-26 | `phases/phase-5-security-findings-closure.md` |
 
 ## بصمة التحقق الموحّدة (2026-08-25)
 

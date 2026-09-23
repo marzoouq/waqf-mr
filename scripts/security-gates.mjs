@@ -28,6 +28,9 @@ const SERVICE_ROLE_ALLOWLIST = new Set([
   'biometric-authenticate',
   'biometric-enroll',
   'check-contract-expiry',
+  // client-context: يفحص حجب IP قبل المصادقة (is_ip_blocked + blocked_ips) — لا جلسة مستخدم متاحة،
+  // ولا يُعيد أي بيانات وقفية: فقط { ip, blocked, reason }.
+  'client-context',
   'dashboard-summary',
   'distribute-shares',
   'execute-distribution',
