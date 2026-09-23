@@ -50,3 +50,14 @@ export async function selectFiscalYear(page: Page, fiscalYearId: string) {
     window.sessionStorage.setItem('fiscal_year_id', id);
   }, fiscalYearId);
 }
+
+/**
+ * يستنتج دور الجلسة الحالية من شاشة "غير مصرح" أو من لوحة الناظر.
+ * يُستخدم لتشغيل مسارات الناظر فقط عندما تكون الجلسة إدارية فعلاً.
+ */
+export async function isAdminSession(page: Page): Promise<boolean> {
+  await page.goto(`${APP_ORIGIN}/dashboard/diagnostics`, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(3000);
+  const denied = await page.getByRole('heading', { name: /غير مصرح/ }).count();
+  return denied === 0 && /\/dashboard\/diagnostics/.test(page.url());
+}

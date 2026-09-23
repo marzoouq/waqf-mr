@@ -1,5 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * مسار متصفح بديل (اختياري) — يُستخدم في البيئات التي تُوفّر Chromium مثبّتاً مسبقاً
+ * بنسخة لا تطابق نسخة Playwright. في CI يُترك فارغاً فيُستخدم متصفح Playwright.
+ */
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined;
+
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 60_000,
@@ -14,6 +20,9 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'], launchOptions: { executablePath } },
+    },
   ],
 });
