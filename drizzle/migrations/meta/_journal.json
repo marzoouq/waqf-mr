@@ -8,6 +8,13 @@
       "when": 1790146411667,
       "tag": "0000_drop_legacy_open_storage_read_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790191809579,
+      "tag": "0001_ensure_drop_open_storage_read_policies",
+      "breakpoints": true
     }
   ]
 }
