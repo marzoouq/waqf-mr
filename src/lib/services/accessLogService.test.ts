@@ -30,7 +30,8 @@ describe('logAccessEvent', () => {
   it('يُرفق معرّف الجلسة وعنوان IP بالبيانات الوصفية', async () => {
     await logAccessEvent({ event_type: 'login_success', email: 'a@b.co' });
 
-    const [name, params] = rpcMock.mock.calls[0];
+    const call = rpcMock.mock.calls[0]!;
+    const [name, params] = call as [string, Record<string, unknown>];
     expect(name).toBe('log_access_event');
     expect(params.p_event_type).toBe('login_success');
     expect(params.p_metadata).toMatchObject({ session_id: 'session-123', ip_address: '203.0.113.5' });
@@ -39,7 +40,7 @@ describe('logAccessEvent', () => {
   it('يحافظ على البيانات الوصفية المُمرَّرة من المستدعي', async () => {
     await logAccessEvent({ event_type: 'page_view', metadata: { path: '/dashboard' } });
 
-    expect(rpcMock.mock.calls[0][1].p_metadata).toMatchObject({
+    expect(rpcMock.mock.calls[0]![1].p_metadata).toMatchObject({
       path: '/dashboard',
       session_id: 'session-123',
     });
@@ -49,7 +50,7 @@ describe('logAccessEvent', () => {
     ipValue = null;
     await logAccessEvent({ event_type: 'logout' });
 
-    expect(rpcMock.mock.calls[0][1].p_metadata).not.toHaveProperty('ip_address');
+    expect(rpcMock.mock.calls[0]![1].p_metadata).not.toHaveProperty('ip_address');
   });
 
   it('يُمرّر مسار الهدف ومعرّف المستخدم عند توفرهما', async () => {
@@ -59,7 +60,7 @@ describe('logAccessEvent', () => {
       target_path: '/dashboard/users',
     });
 
-    const params = rpcMock.mock.calls[0][1];
+    const params = rpcMock.mock.calls[0]![1];
     expect(params.p_user_id).toBe('u-1');
     expect(params.p_target_path).toBe('/dashboard/users');
   });
