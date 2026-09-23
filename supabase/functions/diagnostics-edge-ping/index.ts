@@ -3,8 +3,8 @@
  * يستدعيها admin/support من مركز التشخيص. يستخدم OPTIONS/HEAD sanity check
  * بدلاً من استدعاء دوال حقيقية قد تستهلك موارد.
  */
-import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 const FUNCTIONS = [
   'dashboard-summary',
@@ -18,6 +18,7 @@ const FUNCTIONS = [
 ];
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
