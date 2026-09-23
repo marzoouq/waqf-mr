@@ -36,6 +36,8 @@ const FINANCIAL_ROUTES = [
 test.describe('دورة العقد والفواتير — سلامة الشاشات', () => {
   test.beforeEach(async ({ context, page }) => {
     await restoreAdminSession(context, page);
+    const admin = await isAdminSession(page);
+    test.skip(!admin, 'جلسة الاختبار ليست لناظر — تخطّي شاشات الإدارة');
   });
 
   for (const { path, marker } of FINANCIAL_ROUTES) {
