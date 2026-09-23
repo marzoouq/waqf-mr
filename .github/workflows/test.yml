@@ -30,6 +30,15 @@ jobs:
       - name: Run tests with coverage
         run: npx vitest run --coverage
 
+      # اختبارات دوال الحافة (Deno) — بوابة إلزامية بعد إدراجها في المسار
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run edge function tests
+        run: npm run test:edge
+
       - name: Upload coverage to Codecov
         if: ${{ always() && secrets.CODECOV_TOKEN != '' && hashFiles('coverage/coverage-final.json') != '' }}
         uses: codecov/codecov-action@v5
