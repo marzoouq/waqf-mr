@@ -33,3 +33,5 @@ project_id = "nuzdeamtujezrsxbvpfi"
     verify_jwt = true
   [functions.email-admin]
     verify_jwt = false
+  [functions.client-context]
+    verify_jwt = false
