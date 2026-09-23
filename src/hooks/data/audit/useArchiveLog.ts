@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { STALE_AUDIT } from '@/lib/queryStaleTime';
 import { PAGE_SIZE_AUDIT } from '@/constants/pagination';
 import { auditKeys } from '@/lib/queryKeys/auditKeys';
+import { toSafeIlikePattern } from '@/lib/postgrestFilter';
 
 export const ARCHIVE_ITEMS_PER_PAGE = PAGE_SIZE_AUDIT;
 
@@ -38,9 +39,9 @@ export const useArchiveLog = (eventFilter: string, currentPage: number, searchQu
 
       const q = searchQuery.trim();
       if (q.length > 0) {
-        const safe = q.replace(/[%_]/g, (m) => `\\${m}`);
+        const safe = toSafeIlikePattern(q);
         query = query.or(
-          `email.ilike.%${safe}%,target_path.ilike.%${safe}%,device_info.ilike.%${safe}%`,
+          `email.ilike.${safe},target_path.ilike.${safe},device_info.ilike.${safe}`,
         );
       }
 
