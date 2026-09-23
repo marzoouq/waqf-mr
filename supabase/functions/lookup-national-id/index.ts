@@ -104,10 +104,7 @@ Deno.serve(async (req) => {
     const password = parsed.data.password;
 
     // تحويل الأرقام العربية-الهندية والفارسية إلى لاتينية (Defense in Depth)
-    const national_id = parsed.data.national_id
-      .replace(/[٠-٩]/g, (d: string) => String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48))
-      .replace(/[۰-۹]/g, (d: string) => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48))
-      .trim();
+    const national_id = normalizeDigits(parsed.data.national_id);
 
     // Input validation: must be exactly 10 digits (بعد التحويل)
     if (!/^\d{10}$/.test(national_id)) {
