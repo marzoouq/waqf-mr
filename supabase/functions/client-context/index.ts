@@ -19,7 +19,11 @@ Deno.serve(async (req) => {
 
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
-  const ip = extractClientIp(req);
+  // عنوان الاتصال الحقيقي فقط: آخر قيمة يضيفها الوكيل الموثوق (لا يمكن للزائر
+  // تزويرها بترويسة x-forwarded-for من طرفه) — لا يُقبل أي عنوان يختاره المستدعي.
+  const forwarded = req.headers.get("x-forwarded-for");
+  const lastHop = forwarded?.split(",").map((s) => s.trim()).filter(Boolean).pop();
+  const ip = (lastHop ?? extractClientIp(req))?.substring(0, 64) ?? null;
   if (!ip) return json({ ip: null, blocked: false, reason: null });
 
   try {
@@ -31,18 +35,8 @@ Deno.serve(async (req) => {
 
     const { data, error } = await client.rpc("is_ip_blocked", { p_ip: ip });
     if (error) throw error;
-    if (!data) return json({ ip, blocked: false, reason: null });
-
-    const { data: row } = await client
-      .from("blocked_ips")
-      .select("reason")
-      .eq("ip_address", ip)
-      .is("released_at", null)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    return json({ ip, blocked: true, reason: row?.reason ?? null });
+    // سبب الحجب سجل داخلي — لا يُكشف أبداً للزائر
+    return json({ ip, blocked: Boolean(data), reason: null });
   } catch (e) {
     // fail-open على مستوى الحجب فقط — مع إرجاع IP كي لا تفقد السجلات مصدرها
     console.error("[client-context] failed:", e instanceof Error ? e.message : e);
