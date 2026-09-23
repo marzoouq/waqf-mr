@@ -18,6 +18,8 @@
       },
       "format": "tsx",
       "fragment": "                <span className=\"font-medium truncate max-w-[60%] text-end\">{propertyName}</span>\n              </div>\n              <div className=\"flex justify-between text-sm\">\n                <span className=\"text-muted-foreground\">الإيجار</span>\n                <span className=\"font-medium\">{fmt(contract.rent_amount ?? 0)} ر.س</span>\n              </div>\n              <div className=\"flex justify-between text-sm\">\n                <span className=\"text-muted-foreground\">من</span>\n                <span>{fmtDate(contract.start_date ?? '')}</span>\n              </div>\n              <div className=\"flex justify-between text-sm\">\n                <span className=\"text-muted-foreground\">إلى</span>\n                <span>{fmtDate(contract.end_date ?? '')}</span>\n              </div>\n            </CardContent>\n          </Card>\n        );\n      })}\n    </div>\n  );\n}",
+      "isNew": false,
+      "kind": "exact",
       "lines": 21,
       "secondFile": {
         "end": 55,
@@ -54,6 +56,8 @@
       },
       "format": "tsx",
       "fragment": "                const isMe = msg.sender_id === currentUserId;\n                return (\n                  <div key={msg.id} className={cn('flex', isMe ? 'justify-end' : 'justify-start')}>\n                    <div className={cn(\n                      'max-w-[75%] rounded-xl px-4 py-2 text-sm',\n                      isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'\n                    )}>\n                      <p>{msg.content}</p>\n                      <p className={cn('text-[11px] mt-1 opacity-60', isMe ? 'text-primary-foreground' : 'text-muted-foreground')}>\n                        {new Date(msg.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}\n                      </p>\n                    </div>\n                  </div>\n                );\n              })}\n              <div ref={messagesEndRef} />\n            </div>\n          </ScrollArea>\n          <div className=\"p-3 border-t border-border flex gap-2\">\n            <Input\n              value={newMessage}\n              onChange={(e) => setNewMessage(e.target.value)}\n              placeholder=\"اكتب رسالتك...\"",
+      "isNew": false,
+      "kind": "exact",
       "lines": 23,
       "secondFile": {
         "end": 83,
@@ -74,16 +78,16 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-08-25T09:29:56.941Z",
+    "detectionDate": "2026-09-23T19:01:25.740Z",
     "formats": {
       "tsx": {
         "clones": 2,
-        "duplicatedLines": 42,
+        "duplicatedLines": 44,
         "duplicatedTokens": 334,
         "lines": 43249,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.09711207195542093,
+        "percentage": 0.1017364563342505,
         "percentageTokens": 0.10839158569750311,
         "sources": 490,
         "tokens": 308142
@@ -103,12 +107,12 @@
     },
     "total": {
       "clones": 2,
-      "duplicatedLines": 42,
+      "duplicatedLines": 44,
       "duplicatedTokens": 334,
       "lines": 83403,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.050357900794935434,
+      "percentage": 0.052755896070884746,
       "percentageTokens": 0.05974495700688498,
       "sources": 1010,
       "tokens": 559043
