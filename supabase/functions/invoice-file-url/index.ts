@@ -5,34 +5,10 @@
  */
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
-import { z } from "npm:zod@3";
-
-const SIGNED_URL_TTL = 120; // ثانية
-
-const BodySchema = z.object({
-  file_path: z
-    .string()
-    .min(1, "مسار الملف مطلوب")
-    .max(300, "مسار الملف طويل جداً")
-    .refine(
-      (p) => !p.includes("..") && !p.startsWith("/") && !p.includes("\\"),
-      "مسار الملف غير صالح",
-    ),
-  download: z.string().max(200).optional(),
-});
+import { extractClientIp } from "../_shared/client-ip.ts";
+import { BodySchema, SIGNED_URL_TTL } from "./validation.ts";
 
 type Row = { id: string; fiscal_year_id: string | null; invoice_number: string | null };
-
-const extractIp = (req: Request): string | null => {
-  const fwd = req.headers.get("x-forwarded-for");
-  if (fwd) {
-    const first = fwd.split(",")[0]?.trim();
-    if (first) return first.substring(0, 64);
-  }
-  return req.headers.get("cf-connecting-ip")?.substring(0, 64)
-    ?? req.headers.get("x-real-ip")?.substring(0, 64)
-    ?? null;
-};
 
 Deno.serve(async (req): Promise<Response> => {
   const corsHeaders = getCorsHeaders(req);
@@ -62,7 +38,7 @@ Deno.serve(async (req): Promise<Response> => {
       return json({ error: parsed.error.issues[0]?.message ?? "بيانات غير صالحة" }, 400);
     }
     const { file_path, download } = parsed.data;
-    const ip = extractIp(req);
+    const ip = extractClientIp(req);
 
     const logAttempt = async (
       allowed: boolean,
