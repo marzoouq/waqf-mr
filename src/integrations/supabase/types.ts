@@ -2649,6 +2649,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      html_escape: { Args: { p: string }; Returns: string }
       is_fiscal_year_accessible: {
         Args: { p_fiscal_year_id: string }
         Returns: boolean
