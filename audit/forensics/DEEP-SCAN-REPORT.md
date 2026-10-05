@@ -1,6 +1,6 @@
 # تقرير الفحص الجنائي الشامل
 
-تاريخ: 2026-10-05T02:54:28.651Z
+تاريخ: 2026-10-05T03:09:23.920Z
 
 | المؤشر | القيمة |
 |---|---|
@@ -10,9 +10,9 @@
 | security_definer_functions | 108 |
 | edge_functions | 25 |
 | pages | 59 |
-| untested_pages | 41 |
+| untested_pages | 40 |
 | hooks | 292 |
-| untested_hooks | 232 |
+| untested_hooks | 229 |
 | critical | 0 |
 | gap | 0 |
 | info | 0 |

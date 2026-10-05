@@ -40,7 +40,13 @@ if ! node scripts/count-edge-functions.mjs --check; then
 fi
 echo ""
 
-
+echo "▶ 0.7/2 الفحص الجنائي الشامل (يرفض الدفع عند أي ملاحظة حرجة)..."
+if ! npm run -s audit:forensic; then
+  echo "✗ الفحص الجنائي وجد ملاحظات حرجة. راجع audit/forensics/DEEP-SCAN-REPORT.md"
+  echo "  للتجاوز الطارئ فقط: git push --no-verify"
+  exit 1
+fi
+echo ""
 
 if ! npm run -s audit; then
   echo ""

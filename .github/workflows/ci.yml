@@ -78,6 +78,9 @@ jobs:
       - name: ESLint check
         run: npx eslint src/
 
+      - name: Deep forensic audit gate (blocks merge on critical)
+        run: npm run audit:forensic
+
       - name: Lint conventions (lib/hooks/page boundary)
         run: npm run lint:conventions
 
