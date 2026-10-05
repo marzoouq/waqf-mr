@@ -19,6 +19,41 @@ export const getRealtimeChannels = () => {
   return supabase.getChannels();
 };
 
+export const refreshAuthSession = async () => {
+  return supabase.auth.refreshSession();
+};
+
+/** يغلق كل قنوات Realtime ويُرجع عددها */
+export const removeAllRealtimeChannels = async (): Promise<number> => {
+  const channels = supabase.getChannels();
+  for (const c of channels) await supabase.removeChannel(c);
+  return channels.length;
+};
+
+export const deleteClientErrorsBefore = async (cutoffIso: string) => {
+  return supabase
+    .from('access_log')
+    .delete({ count: 'exact' })
+    .eq('event_type', 'client_error')
+    .lt('created_at', cutoffIso);
+};
+
+export const getUserRoleRows = async (userId: string) => {
+  return supabase.from('user_roles').select('role').eq('user_id', userId);
+};
+
+export const getActiveFiscalYearRow = async () => {
+  return supabase.from('fiscal_years').select('id, label, status').eq('status', 'active').limit(1).maybeSingle();
+};
+
+export const listStorageBuckets = async () => {
+  return supabase.storage.listBuckets();
+};
+
+export const probeStorageBucket = async (bucket: string) => {
+  return supabase.storage.from(bucket).list('', { limit: 1 });
+};
+
 /* ─── ZATCA ─── */
 
 export const getActiveCertificate = async () => {

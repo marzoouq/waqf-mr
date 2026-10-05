@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Zap, RefreshCw, Activity } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/api/invoke';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 
@@ -29,8 +29,7 @@ export default function EdgeFunctionsPanel() {
   const runPing = async () => {
     setPingLoading(true);
     try {
-      const { data: res, error } = await supabase.functions.invoke('diagnostics-edge-ping');
-      if (error) throw error;
+      const res = await invoke<unknown>('diagnostics-edge-ping', {}, { maxAttempts: 1 });
       const list = (res as { results?: PingResult[] } | null)?.results ?? [];
       setPings(list);
     } catch (e) {
