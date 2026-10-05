@@ -29,6 +29,13 @@
       "when": 1790194713371,
       "tag": "0003_escape_system_alert_email_html",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791167432877,
+      "tag": "0004_enforce_explicit_table_grants",
+      "breakpoints": true
     }
   ]
 }
