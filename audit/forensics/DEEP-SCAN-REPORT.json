@@ -1,6 +1,6 @@
 {
   "summary": {
-    "generated_at": "2026-10-05T02:37:40.000Z",
+    "generated_at": "2026-10-05T02:53:07.056Z",
     "scanned": {
       "src_files": 1123,
       "migrations": 403,
@@ -17,7 +17,7 @@
     "totals": {
       "critical": 0,
       "gap": 0,
-      "info": 13
+      "info": 1
     }
   },
   "findings": [
@@ -25,91 +25,7 @@
       "severity": "info",
       "area": "testing",
       "rule": "edge-untested",
-      "file": "supabase/functions/ai-assistant",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
-      "file": "supabase/functions/auth-email-hook",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
-      "file": "supabase/functions/beneficiary-summary",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
-      "file": "supabase/functions/check-contract-expiry",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
-      "file": "supabase/functions/dashboard-summary",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
-      "file": "supabase/functions/diagnostics-edge-ping",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
-      "file": "supabase/functions/email-admin",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
-      "file": "supabase/functions/generate-invoice-pdf",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
-      "file": "supabase/functions/generate-voucher-pdf",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
       "file": "supabase/functions/health-check",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
-      "file": "supabase/functions/mcp",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
-      "file": "supabase/functions/multi-year-summary",
-      "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "info",
-      "area": "testing",
-      "rule": "edge-untested",
-      "file": "supabase/functions/year-comparison-summary",
       "detail": "وظيفة بلا اختبار"
     }
   ]
