@@ -1,6 +1,6 @@
 {
   "summary": {
-    "generated_at": "2026-10-05T02:18:41.234Z",
+    "generated_at": "2026-10-05T02:18:55.325Z",
     "scanned": {
       "src_files": 1123,
       "migrations": 398,
@@ -15,7 +15,7 @@
       "untested_hooks": 232
     },
     "totals": {
-      "critical": 4,
+      "critical": 0,
       "gap": 2,
       "info": 54
     }
@@ -34,13 +34,6 @@
       "rule": "no-any",
       "file": "src/hooks/data/core/inferMutationArg.ts",
       "detail": "استخدام any بدون تبرير"
-    },
-    {
-      "severity": "critical",
-      "area": "security",
-      "rule": "xss-innerhtml",
-      "file": "src/pages/Index.tsx",
-      "detail": "dangerouslySetInnerHTML بلا تنقية"
     },
     {
       "severity": "info",
@@ -419,27 +412,6 @@
       "rule": "edge-untested",
       "file": "supabase/functions/year-comparison-summary",
       "detail": "وظيفة بلا اختبار"
-    },
-    {
-      "severity": "critical",
-      "area": "edge",
-      "rule": "auth-missing",
-      "file": "supabase/functions/zatca-onboard",
-      "detail": "لا تحقق من المستخدم (getUser)"
-    },
-    {
-      "severity": "critical",
-      "area": "edge",
-      "rule": "auth-missing",
-      "file": "supabase/functions/zatca-renew",
-      "detail": "لا تحقق من المستخدم (getUser)"
-    },
-    {
-      "severity": "critical",
-      "area": "edge",
-      "rule": "auth-missing",
-      "file": "supabase/functions/zatca-report",
-      "detail": "لا تحقق من المستخدم (getUser)"
     }
   ]
 }

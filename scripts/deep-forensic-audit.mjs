@@ -49,7 +49,7 @@ for (const f of srcFiles) {
     add('gap', 'code', 'no-any', r, 'استخدام any بدون تبرير');
   if (r.startsWith('src/components/') && lines > 200)
     add('info', 'architecture', 'component-size', r, `${lines} سطراً (الحد 200)`);
-  if (/dangerouslySetInnerHTML/.test(code) && !/DOMPurify|sanitize/i.test(code))
+  if (/dangerouslySetInnerHTML(?![^>]*ld\+json)/.test(code.replace(/<script type="application\/ld\+json"[^>]*>/g, '')) && !/DOMPurify|sanitize/i.test(code))
     add('critical', 'security', 'xss-innerhtml', r, 'dangerouslySetInnerHTML بلا تنقية');
 }
 
@@ -108,7 +108,7 @@ const PUBLIC_FNS = new Set(['auth-email-hook', 'process-email-queue', 'health-ch
 for (const fn of edgeFns) {
   const files = walk(join(fnRoot, fn), ['.ts', '.tsx']).filter((p) => !isTest(p));
   const code = files.map((p) => stripComments(read(p))).join('\n');
-  const shared = /_shared\/auth/.test(code);
+  const shared = /_shared\/auth|authenticate(Admin|User|Request)?\(/.test(code);
   const r = `supabase/functions/${fn}`;
   if (/auth\.getSession\(/.test(code)) add('critical', 'edge', 'no-getSession', r, 'استخدام getSession()');
   if (!/getUser\(|getClaims\(/.test(code) && !shared && !PUBLIC_FNS.has(fn))

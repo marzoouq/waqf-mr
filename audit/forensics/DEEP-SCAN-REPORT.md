@@ -1,6 +1,6 @@
 # تقرير الفحص الجنائي الشامل
 
-تاريخ: 2026-10-05T02:18:41.234Z
+تاريخ: 2026-10-05T02:18:55.325Z
 
 | المؤشر | القيمة |
 |---|---|
@@ -13,19 +13,11 @@
 | untested_pages | 41 |
 | hooks | 292 |
 | untested_hooks | 232 |
-| critical | 4 |
+| critical | 0 |
 | gap | 2 |
 | info | 54 |
 
 ## CRITICAL
-
-### security / xss-innerhtml (1)
-- `src/pages/Index.tsx` — dangerouslySetInnerHTML بلا تنقية
-
-### edge / auth-missing (3)
-- `supabase/functions/zatca-onboard` — لا تحقق من المستخدم (getUser)
-- `supabase/functions/zatca-renew` — لا تحقق من المستخدم (getUser)
-- `supabase/functions/zatca-report` — لا تحقق من المستخدم (getUser)
 
 ## GAP
 
