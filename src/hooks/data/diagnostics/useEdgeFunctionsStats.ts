@@ -2,7 +2,7 @@
  * useEdgeFunctionsStats — إحصائيات استدعاء Edge Functions (نجاح/فشل/زمن)
  */
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 
 export interface EdgeFunctionStat {
@@ -22,10 +22,9 @@ export const useEdgeFunctionsStats = (hours = 24) => {
   return useQuery({
     queryKey: ['diagnostics', 'edge_functions_stats', hours] as const,
     staleTime: STALE_MESSAGING,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_edge_functions_stats', { p_hours: hours });
-      if (error) throw error;
-      return data as unknown as EdgeFunctionsStatsResult;
+    queryFn: async ({ signal }) => {
+      const data = await rpc<EdgeFunctionsStatsResult | null>('admin_edge_functions_stats', { p_hours: hours }, { signal });
+      return data as EdgeFunctionsStatsResult;
     },
   });
 };

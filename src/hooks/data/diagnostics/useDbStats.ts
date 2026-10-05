@@ -2,7 +2,7 @@
  * useDbStats — إحصائيات صحة قاعدة البيانات (اتصالات + حجم)
  */
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 
 export interface DbStats {
@@ -19,10 +19,9 @@ export const useDbStats = () => {
   return useQuery({
     queryKey: ['diagnostics', 'db_stats'] as const,
     staleTime: STALE_MESSAGING,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_db_stats');
-      if (error) throw error;
-      return data as unknown as DbStats;
+    queryFn: async ({ signal }) => {
+      const data = await rpc<DbStats | null>('admin_db_stats', undefined, { signal });
+      return data as DbStats;
     },
   });
 };
