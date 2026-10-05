@@ -3,7 +3,8 @@
  * كلها إجراءات حقيقية (لا mock) وتُسجَّل في access_log عبر logAccessEvent.
  */
 import type { QueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { refreshAuthSession, removeAllRealtimeChannels, deleteClientErrorsBefore } from '@/lib/services/diagnosticsService';
+import { invoke } from '@/lib/api/invoke';
 import { logAccessEvent } from '@/lib/services/accessLogService';
 import { logger } from '@/lib/logger';
 
@@ -48,7 +49,7 @@ export async function unregisterServiceWorker(): Promise<FixActionResult> {
 /** 3) تحديث رمز المصادقة قسراً */
 export async function forceTokenRefresh(): Promise<FixActionResult> {
   try {
-    const { error } = await supabase.auth.refreshSession();
+    const { error } = await refreshAuthSession();
     if (error) throw error;
     await logAccessEvent({ event_type: 'diagnostics_run', metadata: { action: 'force_token_refresh' } });
     return { ok: true, message: 'تم تحديث جلسة المصادقة' };
@@ -72,10 +73,9 @@ export async function hardReload(): Promise<FixActionResult> {
 /** 5) إبطال جميع اشتراكات Realtime */
 export async function resetRealtimeChannels(): Promise<FixActionResult> {
   try {
-    const channels = supabase.getChannels();
-    for (const c of channels) await supabase.removeChannel(c);
-    await logAccessEvent({ event_type: 'diagnostics_run', metadata: { action: 'reset_realtime', count: channels.length } });
-    return { ok: true, message: `أُغلقت ${channels.length} قناة Realtime` };
+    const count = await removeAllRealtimeChannels();
+    await logAccessEvent({ event_type: 'diagnostics_run', metadata: { action: 'reset_realtime', count } });
+    return { ok: true, message: `أُغلقت ${count} قناة Realtime` };
   } catch (e) {
     logger.error('[fix] resetRealtimeChannels:', e);
     return { ok: false, message: 'فشل إعادة ضبط Realtime' };
@@ -86,11 +86,7 @@ export async function resetRealtimeChannels(): Promise<FixActionResult> {
 export async function purgeOldClientErrors(): Promise<FixActionResult> {
   try {
     const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const { error, count } = await supabase
-      .from('access_log')
-      .delete({ count: 'exact' })
-      .eq('event_type', 'client_error')
-      .lt('created_at', cutoff);
+    const { error, count } = await deleteClientErrorsBefore(cutoff);
     if (error) throw error;
     await logAccessEvent({ event_type: 'diagnostics_run', metadata: { action: 'purge_old_client_errors', deleted: count ?? 0 } });
     return { ok: true, message: `تم حذف ${count ?? 0} خطأ عميل قديم (أقدم من 30 يوماً)` };
@@ -103,8 +99,7 @@ export async function purgeOldClientErrors(): Promise<FixActionResult> {
 /** 7) اختبار latency لكل Edge Functions المسجّلة */
 export async function testAllEdgeFunctions(): Promise<FixActionResult> {
   try {
-    const { data, error } = await supabase.functions.invoke('diagnostics-edge-ping', { body: {} });
-    if (error) throw error;
+    const data = await invoke<unknown>('diagnostics-edge-ping', { body: {} }, { maxAttempts: 1 });
     const results = (data as { results?: Array<{ name: string; ok: boolean; latencyMs: number }> } | null)?.results ?? [];
     const okCount = results.filter((r) => r.ok).length;
     const avgLatency = results.length ? Math.round(results.reduce((s, r) => s + r.latencyMs, 0) / results.length) : 0;

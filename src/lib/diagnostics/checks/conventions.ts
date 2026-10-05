@@ -67,11 +67,15 @@ export async function checkConvRtlHtmlDir(): Promise<CheckResult> {
   return { id, label: 'dir="rtl" و lang="ar"', status: 'fail', detail: `dir=${dir ?? 'مفقود'} lang=${lang ?? 'مفقود'}` };
 }
 
+/** فحص سلبي: يتأكد من غياب مفتاح السنة المالية في التخزين الدائم */
+const FISCAL_STORAGE_LABEL = 'مفتاح السنة المالية ليس في التخزين الدائم';
+
 export async function checkConvFiscalYearStorage(): Promise<CheckResult> {
   const id = 'conv_fiscal_year_storage';
-  if (typeof localStorage === 'undefined') return { id, label: 'fiscal_year_id ليس في localStorage', status: 'info', detail: 'غير متاح' };
+  const label = FISCAL_STORAGE_LABEL;
+  if (typeof localStorage === 'undefined') return { id, label, status: 'info', detail: 'غير متاح' };
   const keys = Object.keys(localStorage);
   const offenders = keys.filter(k => k.toLowerCase().includes('fiscal_year'));
-  if (offenders.length === 0) return { id, label: 'fiscal_year_id ليس في localStorage', status: 'pass', detail: 'مطابق للقاعدة الأساسية' };
-  return { id, label: 'fiscal_year_id ليس في localStorage', status: 'fail', detail: `مفاتيح ممنوعة: ${offenders.join('، ')}` };
+  if (offenders.length === 0) return { id, label, status: 'pass', detail: 'مطابق للقاعدة الأساسية' };
+  return { id, label, status: 'fail', detail: `مفاتيح ممنوعة: ${offenders.join('، ')}` };
 }

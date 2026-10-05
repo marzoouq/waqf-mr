@@ -4,7 +4,7 @@
  * معرّف الجلسة يُخزَّن في sessionStorage (تبويب واحد = جلسة واحدة).
  * عنوان IP يُجلب مرة واحدة من Edge Function `client-context` ويُخزَّن مؤقتاً.
  */
-import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/api/invoke';
 import { logger } from '@/lib/logger';
 
 const SESSION_KEY = 'activity_session_id';
@@ -52,8 +52,8 @@ export const resolveClientContext = async (force = false): Promise<ClientContext
 
   inflight = (async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('client-context', { body: {} });
-      if (error) throw error;
+      // محاولة واحدة دون تحويل data.error لفشل — المسار fail-open
+      const data = await invoke<unknown>('client-context', { body: {} }, { maxAttempts: 1, treatDataErrorAsFailure: false });
       const ctx: ClientContext = {
         ip: (data as { ip?: string })?.ip ?? null,
         blocked: Boolean((data as { blocked?: boolean })?.blocked),

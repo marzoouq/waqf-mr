@@ -3,7 +3,7 @@
  * يعتمد على RPC admin_intrusion_summary (SECURITY DEFINER + admin guard)
  */
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 
 export interface IntrusionSummary {
@@ -22,10 +22,9 @@ export const useIntrusionSummary = (hours = 24) => {
   return useQuery({
     queryKey: ['diagnostics', 'intrusion_summary', hours] as const,
     staleTime: STALE_MESSAGING,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_intrusion_summary', { p_hours: hours });
-      if (error) throw error;
-      return data as unknown as IntrusionSummary;
+    queryFn: async ({ signal }) => {
+      const data = await rpc<IntrusionSummary | null>('admin_intrusion_summary', { p_hours: hours }, { signal });
+      return data as IntrusionSummary;
     },
   });
 };

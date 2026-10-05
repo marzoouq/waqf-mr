@@ -2,7 +2,7 @@
  * useRecentRoleChanges — كشف تغييرات صلاحيات المستخدمين لكشف التصعيد غير المصرح
  */
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { rpc } from '@/lib/api/rpc';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 
 export interface RoleChange {
@@ -19,10 +19,9 @@ export const useRecentRoleChanges = (hours = 168) => {
   return useQuery({
     queryKey: ['diagnostics', 'role_changes', hours] as const,
     staleTime: STALE_MESSAGING,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_recent_role_changes', { p_hours: hours });
-      if (error) throw error;
-      return (data ?? []) as unknown as RoleChange[];
+    queryFn: async ({ signal }) => {
+      const data = await rpc<RoleChange[] | null>('admin_recent_role_changes', { p_hours: hours }, { signal });
+      return (data ?? []) as RoleChange[];
     },
   });
 };

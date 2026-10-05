@@ -2,7 +2,7 @@
  * فحوصات Backend & Edge — health-check و auth و storage و edge inventory.
  * كل فحص يملأ `meta` ليُعرض في «سجل Backend».
  */
-import { supabase } from '@/integrations/supabase/client';
+import { getAuthUser, getUserRoleRows, getActiveFiscalYearRow, listStorageBuckets, probeStorageBucket } from '@/lib/services/diagnosticsService';
 import type { CheckResult } from '../types';
 import { detectEnv } from '../types';
 
@@ -76,7 +76,7 @@ export async function checkBackendAuthSession(): Promise<CheckResult> {
   const env = detectEnv();
   const t0 = performance.now();
   try {
-    const { data, error } = await supabase.auth.getUser();
+    const { data, error } = await getAuthUser();
     const ms = Math.round(performance.now() - t0);
     if (error || !data.user) return { id, label: 'صلاحية الجلسة', status: 'warn', detail: error?.message ?? 'لا يوجد user', meta: { ms, env } };
     return { id, label: 'صلاحية الجلسة', status: 'pass', detail: 'الجلسة فعّالة', meta: { ms, env } };
@@ -91,12 +91,12 @@ export async function checkBackendRoleResolved(): Promise<CheckResult> {
   const env = detectEnv();
   const t0 = performance.now();
   try {
-    const { data: userRes } = await supabase.auth.getUser();
+    const { data: userRes } = await getAuthUser();
     if (!userRes.user) {
       const ms = Math.round(performance.now() - t0);
       return { id, label: 'دور المستخدم', status: 'info', detail: 'بدون جلسة', meta: { ms, env } };
     }
-    const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', userRes.user.id);
+    const { data, error } = await getUserRoleRows(userRes.user.id);
     const ms = Math.round(performance.now() - t0);
     if (error) return { id, label: 'دور المستخدم', status: 'warn', detail: error.message, meta: { ms, env } };
     const roles = (data ?? []).map(r => r.role).join('، ');
@@ -112,7 +112,7 @@ export async function checkBackendFiscalYearActive(): Promise<CheckResult> {
   const env = detectEnv();
   const t0 = performance.now();
   try {
-    const { data, error } = await supabase.from('fiscal_years').select('id, label, status').eq('status', 'active').limit(1).maybeSingle();
+    const { data, error } = await getActiveFiscalYearRow();
     const ms = Math.round(performance.now() - t0);
     if (error) return { id, label: 'سنة مالية نشطة', status: 'warn', detail: error.message, meta: { ms, env } };
     if (!data) return { id, label: 'سنة مالية نشطة', status: 'fail', detail: 'لا توجد سنة نشطة', meta: { ms, env } };
@@ -133,12 +133,12 @@ export async function checkBackendStorageBuckets(): Promise<CheckResult> {
   const t0 = performance.now();
   const required = ['waqf-assets', 'waqf-documents'];
   try {
-    const { data, error } = await supabase.storage.listBuckets();
+    const { data, error } = await listStorageBuckets();
     const names = (!error && data) ? data.map(b => b.name) : [];
     const missing: string[] = [];
     for (const r of required) {
       if (names.includes(r)) continue;
-      const probe = await supabase.storage.from(r).list('', { limit: 1 });
+      const probe = await probeStorageBucket(r);
       if (probe.error && /not found|does not exist/i.test(probe.error.message)) {
         missing.push(r);
       }
