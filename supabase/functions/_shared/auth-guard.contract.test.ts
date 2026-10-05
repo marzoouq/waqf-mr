@@ -26,6 +26,8 @@ const PROTECTED_FUNCTIONS = [
   "check-contract-expiry",
   "diagnostics-edge-ping",
   "lookup-national-id",
+  "auth-email-hook", // يرفض أي طلب بلا توقيع webhook صحيح
+  "mcp", // يتطلب رمز OAuth صادراً من خادم المصادقة
 ];
 
 /** حالات مقبولة للرفض: مصادقة/صلاحية/حد معدل. 400 مقبولة فقط إن كان التحقق من المدخلات أولاً. */

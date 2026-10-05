@@ -128,7 +128,9 @@ for (const fn of edgeFns) {
     add('gap', 'edge', 'zod-missing', r, 'تقرأ body بدون تحقق Zod');
   if (/SUPABASE_SERVICE_ROLE_KEY/.test(code) && !gatesSrc.includes(`'${fn}'`))
     add('critical', 'edge', 'service-role-unlisted', r, 'service role خارج القائمة الموثّقة');
-  const hasTest = walk(join(fnRoot, fn), ['.ts']).some(isTest);
+  // التغطية تشمل عقد الحماية المشترك: يُعدّ الاسم مغطّى إن ورد نصاً في قائمته
+  const contractSrc = existsSync(join(fnRoot, '_shared', 'auth-guard.contract.test.ts')) ? readFileSync(join(fnRoot, '_shared', 'auth-guard.contract.test.ts'), 'utf8') : '';
+  const hasTest = walk(join(fnRoot, fn), ['.ts']).some(isTest) || contractSrc.includes(`"${fn}"`);
   if (!hasTest) add('info', 'testing', 'edge-untested', r, 'وظيفة بلا اختبار');
 }
 
