@@ -110,7 +110,7 @@ describe('useAccountsCalculations', () => {
 
   it('بدون تخصيص يرجع إلى قيمة العقد ÷ عدد الدفعات', () => {
     const r = run({}, { allocationMap: new Map() });
-    expect(r.getPaymentPerPeriod(r.collectionData.length ? (buildData().contracts[0] as never) : (null as never))).toBe(1000);
+    expect(r.getPaymentPerPeriod(buildData().contracts[0] as never)).toBe(1000);
   });
 
   it('يجمع نسب المستفيدين الفعلية (أساس التوزيع التناسبي)', () => {
