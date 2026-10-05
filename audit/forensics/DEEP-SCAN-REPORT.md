@@ -1,6 +1,6 @@
 # تقرير الفحص الجنائي الشامل
 
-تاريخ: 2026-10-05T02:31:12.736Z
+تاريخ: 2026-10-05T02:37:40.000Z
 
 | المؤشر | القيمة |
 |---|---|
@@ -15,16 +15,13 @@
 | untested_hooks | 232 |
 | critical | 0 |
 | gap | 0 |
-| info | 14 |
+| info | 13 |
 
 ## CRITICAL
 
 ## GAP
 
 ## INFO
-
-### database / policy-jwt-role (1)
-- `supabase/migrations/20260403210830_9bf41e5f-46d1-44be-9121-612385faa878.sql` — سياسة تستخدم jwt_role() بدل has_role() (تحقق أنها أُعيد تعريفها لاحقاً)
 
 ### testing / edge-untested (13)
 - `supabase/functions/ai-assistant` — وظيفة بلا اختبار

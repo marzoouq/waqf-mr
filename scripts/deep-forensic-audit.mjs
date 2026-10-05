@@ -92,10 +92,13 @@ for (const [fn, { file, header }] of fnLast) {
     add('gap', 'database', 'definer-search-path', file, `${fn}: SECURITY DEFINER بلا search_path`);
 }
 
-// 2c: jwt_role في السياسات
-for (const { file, sql } of allSql)
+// 2c: jwt_role في السياسات — يُتجاهل ما سبق إسقاط الدالة نهائياً (إسقاطها يُفشل أي سياسة حيّة تعتمد عليها)
+const jwtDropIdx = allSql.findLastIndex(({ sql }) => /drop\s+function\s+(?:if\s+exists\s+)?(?:public\.)?jwt_role\s*\(/i.test(sql));
+allSql.forEach(({ file, sql }, i) => {
+  if (i <= jwtDropIdx) return;
   if (/create\s+policy[\s\S]{0,400}?jwt_role\(/i.test(sql))
-    add('info', 'database', 'policy-jwt-role', file, 'سياسة تستخدم jwt_role() بدل has_role() (تحقق أنها أُعيد تعريفها لاحقاً)');
+    add('gap', 'database', 'policy-jwt-role', file, 'سياسة تستخدم jwt_role() بدل has_role()');
+});
 
 // 2d: سياسة SELECT على حزمة invoices لم تُسقط
 const pol = new Map();
