@@ -7,7 +7,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 const s = vi.hoisted(() => ({ fy: { noPublishedYears: false } as Record<string, unknown>, page: {} as Record<string, unknown> }));
-const Null = () => null;
+const { Null } = vi.hoisted(() => ({ Null: () => null }));
 
 vi.mock('@/contexts/FiscalYearContext', () => ({ useFiscalYear: () => s.fy }));
 vi.mock('@/hooks/page/beneficiary', () => ({
@@ -32,8 +32,11 @@ vi.mock('@/components/beneficiary/disclosure/DisclosureSummaryCards', () => ({ d
 vi.mock('@/components/beneficiary/disclosure/DisclosureContractsSection', () => ({ default: Null }));
 vi.mock('@/components/beneficiary/disclosure/DisclosureFinancialStatement', () => ({ default: Null }));
 vi.mock('@/components/beneficiary/dashboard/BeneficiaryWelcomeCard', () => ({ default: () => <div>محتوى سليم</div> }));
-for (const c of ['BeneficiaryStatsRow', 'BeneficiaryQuickLinks', 'BeneficiaryRecentDistributions', 'BeneficiaryNotificationsCard', 'BeneficiaryAdvanceCard'])
-  vi.doMock(`@/components/beneficiary/dashboard/${c}`, () => ({ default: Null }));
+vi.mock('@/components/beneficiary/dashboard/BeneficiaryStatsRow', () => ({ default: Null }));
+vi.mock('@/components/beneficiary/dashboard/BeneficiaryQuickLinks', () => ({ default: Null }));
+vi.mock('@/components/beneficiary/dashboard/BeneficiaryRecentDistributions', () => ({ default: Null }));
+vi.mock('@/components/beneficiary/dashboard/BeneficiaryNotificationsCard', () => ({ default: Null }));
+vi.mock('@/components/beneficiary/dashboard/BeneficiaryAdvanceCard', () => ({ default: Null }));
 
 import DisclosurePage from './DisclosurePage';
 import AccountsViewPage from './AccountsViewPage';
