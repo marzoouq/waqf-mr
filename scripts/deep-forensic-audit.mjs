@@ -55,9 +55,17 @@ for (const f of srcFiles) {
 
 // ═══ 2. قاعدة البيانات عبر الهجرات ═══
 const migDir = join(ROOT, 'supabase/migrations');
-const migs = walk(migDir, ['.sql']).sort();
+const drizzleDir = join(ROOT, 'drizzle/migrations');
+const migs = [...walk(migDir, ['.sql']), ...(existsSync(drizzleDir) ? walk(drizzleDir, ['.sql']) : [])].sort();
 const allSql = migs.map((m) => ({ file: rel(m), sql: read(m) }));
 const joined = allSql.map((m) => m.sql).join('\n');
+
+// جداول مُنحت صلاحياتها عبر حلقة GRANT ديناميكية (format('GRANT ... %I'))
+const loopGranted = new Set();
+for (const { sql } of allSql)
+  if (/grant[^;]*%I/i.test(sql))
+    for (const a of sql.matchAll(/ARRAY\s*\[([^\]]+)\]/gi))
+      for (const n of a[1].matchAll(/'(\w+)'/g)) loopGranted.add(n[1].toLowerCase());
 
 // 2a: CREATE TABLE بدون GRANT ولا RLS
 const tables = new Map();
@@ -67,7 +75,7 @@ for (const { file, sql } of allSql)
 for (const [t, file] of tables) {
   if (!new RegExp(`alter\\s+table\\s+(?:public\\.)?"?${t}"?\\s+enable\\s+row\\s+level\\s+security`, 'i').test(joined))
     add('critical', 'database', 'rls-missing', file, `جدول ${t} بدون تفعيل RLS في الهجرات`);
-  if (!new RegExp(`grant[^;]*on\\s+(?:table\\s+)?(?:public\\.)?"?${t}"?\\b`, 'i').test(joined))
+  if (!loopGranted.has(t) && !new RegExp(`grant[^;]*on\\s+(?:table\\s+)?(?:public\\.)?"?${t}"?\\b`, 'i').test(joined))
     add('info', 'database', 'grant-missing', file, `جدول ${t} بدون GRANT صريح (قد يعتمد على صلاحيات افتراضية قديمة)`);
 }
 
