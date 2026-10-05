@@ -46,6 +46,7 @@ const healthy = {
   isLoading: false, finLoading: false, dashLoading: false, isError: false, finError: false, dashError: false,
   handleRetry: vi.fn(), currentBeneficiary: { id: 'b1', name: 'مستفيد' }, isAccountMissing: false,
   selectedFY: { id: 'fy-1', label: '2024-2025', status: 'closed' }, fiscalYearId: 'fy-1',
+  fyReady: true, isVisible: () => true, greetingData: { greetingIconName: 'sun' },
 };
 
 const PAGES = [
@@ -86,4 +87,12 @@ describe.each(PAGES)('$name — حراس الحالات', ({ C, loading, error, 
       expect(screen.queryByText('محتوى سليم')).toBeNull();
     });
   }
+});
+
+describe('لوحة المستفيد — H2', () => {
+  it('لا يُعرض «غير مرتبط» قبل جاهزية السنة المالية', () => {
+    s.page = { ...healthy, fyReady: false, currentBeneficiary: null, dashLoading: false };
+    renderC(BeneficiaryDashboard);
+    expect(screen.queryByText('حساب غير مرتبط')).toBeNull();
+  });
 });
