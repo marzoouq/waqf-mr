@@ -26,6 +26,8 @@ const PROTECTED_FUNCTIONS = [
   "check-contract-expiry",
   "diagnostics-edge-ping",
   "lookup-national-id",
+  "auth-email-hook", // يرفض أي طلب بلا توقيع webhook صحيح
+  "mcp", // يتطلب رمز OAuth صادراً من خادم المصادقة
 ];
 
 /** حالات مقبولة للرفض: مصادقة/صلاحية/حد معدل. 400 مقبولة فقط إن كان التحقق من المدخلات أولاً. */
@@ -89,6 +91,10 @@ for (const name of PROTECTED_FUNCTIONS) {
     }
   });
 }
+
+/** وظيفة عامة مقصودة — تُختبر بعقد منفصل. */
+const PUBLIC_FUNCTIONS = ["health-check"];
+void PUBLIC_FUNCTIONS;
 
 Deno.test("health-check: عامة وتُرجع الحالة فقط دون تفاصيل داخلية", async () => {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/health-check`, {
