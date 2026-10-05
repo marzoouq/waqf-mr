@@ -23,7 +23,8 @@
 - [ ] أدوات ناقصة: Lighthouse CI لانحدار الأداء، Mutation testing للمعادلات المالية، مقارنة بصرية لمخرجات PDF.
 - [ ] نشر معلّق (حاجز خارجي): هجرات إغلاق قراءة التخزين — آخرها `0002_enforce_zero_invoice_bucket_read_policies` (تُسقط 8 سياسات + حارس يفشل الترحيل عند بقاء أي سياسة). حتى النشر تبقى 7 سياسات قراءة قائمة في الإنتاج. بعد النشر: `npm run verify:deploy` ثم `npm run check:migrations`.
 
-## المرحلة 4 (مفتوحة) — تغطية الشاشات وخطافات المال
+## المرحلة 4 (مقفلة)  — تغطية الشاشات وخطافات المال
 - [x] useAccountsCalculations — 10 اختبارات + إثبات أحمر (حقن خطأ الضريبة → فشل 2)
-- [ ] useAccountsSettings / useAccountsEditing / usePropertyPerformance / useIncomeComparison / useContractAllocationMap
-- [ ] شاشات المستفيد: MySharePage، DisclosurePage، AccountsViewPage، BeneficiaryDashboard
+- [x] useAccountsSettings / useAccountsEditing / usePropertyPerformance / useIncomeComparison / useContractAllocationMap — 15 اختباراً + 6 إثباتات حمراء
+- [x] شاشات المستفيد: MySharePage، DisclosurePage، AccountsViewPage، BeneficiaryDashboard — 17 اختباراً + 4 إثباتات حمراء
+- [x] حارس بعد: tsgo 0، lint 0، تكرار ضمن الحد، 2305/2305
