@@ -36,6 +36,13 @@
       "when": 1791167432877,
       "tag": "0004_enforce_explicit_table_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791174068759,
+      "tag": "0005_drop_legacy_storage_read_policies",
+      "breakpoints": true
     }
   ]
 }
