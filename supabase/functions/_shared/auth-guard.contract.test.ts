@@ -92,6 +92,10 @@ for (const name of PROTECTED_FUNCTIONS) {
   });
 }
 
+/** وظيفة عامة مقصودة — تُختبر بعقد منفصل. */
+const PUBLIC_FUNCTIONS = ["health-check"];
+void PUBLIC_FUNCTIONS;
+
 Deno.test("health-check: عامة وتُرجع الحالة فقط دون تفاصيل داخلية", async () => {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/health-check`, {
     method: "GET",

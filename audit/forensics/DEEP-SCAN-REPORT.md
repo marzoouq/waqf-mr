@@ -1,6 +1,6 @@
 # تقرير الفحص الجنائي الشامل
 
-تاريخ: 2026-10-05T02:53:07.056Z
+تاريخ: 2026-10-05T02:54:28.651Z
 
 | المؤشر | القيمة |
 |---|---|
@@ -15,13 +15,10 @@
 | untested_hooks | 232 |
 | critical | 0 |
 | gap | 0 |
-| info | 1 |
+| info | 0 |
 
 ## CRITICAL
 
 ## GAP
 
 ## INFO
-
-### testing / edge-untested (1)
-- `supabase/functions/health-check` — وظيفة بلا اختبار
