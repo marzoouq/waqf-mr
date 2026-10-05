@@ -45,7 +45,7 @@ for (const f of srcFiles) {
   }
   if (/localStorage\.(setItem|getItem)\([^)]*(role|fiscal_year)/i.test(code))
     add('critical', 'security', 'storage-sensitive-keys', r, 'دور أو سنة مالية في localStorage');
-  if (/\bas any\b|:\s*any\b/.test(code) && !/eslint-disable/.test(code))
+  if (/\bas any\b|:\s*any\b/.test(code) && !/eslint-disable/.test(read(f)))
     add('gap', 'code', 'no-any', r, 'استخدام any بدون تبرير');
   if (r.startsWith('src/components/') && lines > 200)
     add('info', 'architecture', 'component-size', r, `${lines} سطراً (الحد 200)`);

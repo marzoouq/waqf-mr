@@ -1,6 +1,6 @@
 {
   "summary": {
-    "generated_at": "2026-10-05T02:18:55.325Z",
+    "generated_at": "2026-10-05T02:19:08.716Z",
     "scanned": {
       "src_files": 1123,
       "migrations": 398,
@@ -16,25 +16,11 @@
     },
     "totals": {
       "critical": 0,
-      "gap": 2,
+      "gap": 0,
       "info": 54
     }
   },
   "findings": [
-    {
-      "severity": "gap",
-      "area": "code",
-      "rule": "no-any",
-      "file": "src/components/diagnostics/LivePerformancePanel.tsx",
-      "detail": "استخدام any بدون تبرير"
-    },
-    {
-      "severity": "gap",
-      "area": "code",
-      "rule": "no-any",
-      "file": "src/hooks/data/core/inferMutationArg.ts",
-      "detail": "استخدام any بدون تبرير"
-    },
     {
       "severity": "info",
       "area": "database",

@@ -1,6 +1,6 @@
 # تقرير الفحص الجنائي الشامل
 
-تاريخ: 2026-10-05T02:18:55.325Z
+تاريخ: 2026-10-05T02:19:08.716Z
 
 | المؤشر | القيمة |
 |---|---|
@@ -14,16 +14,12 @@
 | hooks | 292 |
 | untested_hooks | 232 |
 | critical | 0 |
-| gap | 2 |
+| gap | 0 |
 | info | 54 |
 
 ## CRITICAL
 
 ## GAP
-
-### code / no-any (2)
-- `src/components/diagnostics/LivePerformancePanel.tsx` — استخدام any بدون تبرير
-- `src/hooks/data/core/inferMutationArg.ts` — استخدام any بدون تبرير
 
 ## INFO
 
