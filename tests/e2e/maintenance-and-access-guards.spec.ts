@@ -8,6 +8,13 @@ import { restoreAdminSession, clearSession, isAdminSession } from './helpers/aut
 
 const DIAGNOSTICS = '/dashboard/diagnostics';
 
+// لوحة الصيانة أصبحت في تبويب مستقل — نفتح الصفحة ثم التبويب
+async function openMaintenance(page: import('@playwright/test').Page) {
+  await page.goto(DIAGNOSTICS, { waitUntil: 'domcontentloaded' });
+  await page.getByText('وضع الصيانة').first().click({ timeout: 20_000 });
+  return page.getByLabel('تبديل وضع الصيانة');
+}
+
 test.describe('مركز التشخيص — تحكم الناظر بوضع الصيانة', () => {
   test.beforeEach(async ({ context, page }) => {
     await restoreAdminSession(context, page);
@@ -16,14 +23,12 @@ test.describe('مركز التشخيص — تحكم الناظر بوضع الص
   });
 
   test('صفحة التشخيص تفتح وتعرض لوحة وضع الصيانة', async ({ page }) => {
-    await page.goto(DIAGNOSTICS, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByText('وضع الصيانة').first()).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByLabel('تبديل وضع الصيانة')).toBeVisible();
+    const toggle = await openMaintenance(page);
+    await expect(toggle).toBeVisible({ timeout: 20_000 });
   });
 
   test('تفعيل الصيانة ثم إيقافها — يبقى دخول الناظر ممكناً', async ({ page }) => {
-    await page.goto(DIAGNOSTICS, { waitUntil: 'domcontentloaded' });
-    const toggle = page.getByLabel('تبديل وضع الصيانة');
+    const toggle = await openMaintenance(page);
     await expect(toggle).toBeVisible({ timeout: 20_000 });
 
     const wasActive = (await toggle.getAttribute('data-state')) === 'checked';
@@ -38,8 +43,7 @@ test.describe('مركز التشخيص — تحكم الناظر بوضع الص
       await expect(page).toHaveURL(/\/dashboard/);
       await expect(page.getByText(/صيانة/).first()).toBeVisible({ timeout: 20_000 });
     } finally {
-      await page.goto(DIAGNOSTICS, { waitUntil: 'domcontentloaded' });
-      const restore = page.getByLabel('تبديل وضع الصيانة');
+      const restore = await openMaintenance(page);
       await expect(restore).toBeVisible({ timeout: 20_000 });
       if ((await restore.getAttribute('data-state')) === 'checked') {
         await restore.click();
@@ -49,8 +53,7 @@ test.describe('مركز التشخيص — تحكم الناظر بوضع الص
   });
 
   test('تبويبات التشخيص الأساسية متاحة للناظر', async ({ page }) => {
-    await page.goto(DIAGNOSTICS, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByLabel('تبديل وضع الصيانة')).toBeVisible({ timeout: 20_000 });
+    await expect(await openMaintenance(page)).toBeVisible({ timeout: 20_000 });
     const tabs = page.getByRole('tab');
     expect(await tabs.count()).toBeGreaterThan(3);
   });
