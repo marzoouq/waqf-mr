@@ -1,6 +1,6 @@
 {
   "summary": {
-    "generated_at": "2026-10-05T02:54:28.651Z",
+    "generated_at": "2026-10-05T03:09:33.654Z",
     "scanned": {
       "src_files": 1123,
       "migrations": 403,
@@ -10,9 +10,9 @@
     },
     "coverage": {
       "pages": 59,
-      "untested_pages": 41,
+      "untested_pages": 40,
       "hooks": 292,
-      "untested_hooks": 232
+      "untested_hooks": 229
     },
     "totals": {
       "critical": 0,
