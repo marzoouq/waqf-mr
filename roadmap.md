@@ -22,3 +22,8 @@
 - [ ] E2E لمسار الكتابة الكامل (إنشاء عقد ← فواتير ← سداد ← قيد) وإقفال السنة — يحتاج جلسة ناظر مخصّصة للاختبار.
 - [ ] أدوات ناقصة: Lighthouse CI لانحدار الأداء، Mutation testing للمعادلات المالية، مقارنة بصرية لمخرجات PDF.
 - [ ] نشر معلّق (حاجز خارجي): هجرات إغلاق قراءة التخزين — آخرها `0002_enforce_zero_invoice_bucket_read_policies` (تُسقط 8 سياسات + حارس يفشل الترحيل عند بقاء أي سياسة). حتى النشر تبقى 7 سياسات قراءة قائمة في الإنتاج. بعد النشر: `npm run verify:deploy` ثم `npm run check:migrations`.
+
+## المرحلة 4 (مفتوحة) — تغطية الشاشات وخطافات المال
+- [x] useAccountsCalculations — 10 اختبارات + إثبات أحمر (حقن خطأ الضريبة → فشل 2)
+- [ ] useAccountsSettings / useAccountsEditing / usePropertyPerformance / useIncomeComparison / useContractAllocationMap
+- [ ] شاشات المستفيد: MySharePage، DisclosurePage، AccountsViewPage، BeneficiaryDashboard
