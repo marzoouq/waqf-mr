@@ -47,3 +47,4 @@
 - **ممنوعات Lovable** → `mem://conventions/lovable-forbidden-actions`
 
 عند أي تعارض بين هذا الملف والذاكرة، تُعتمد الذاكرة لأنها الأحدث.
+- File access: every storage.objects policy must call public.can_access_file (overseer rules in file_access_rules + per-file grants); invoices have no SELECT policy and download only via invoice-file-url, which also calls it. Why: single fail-closed decision point.

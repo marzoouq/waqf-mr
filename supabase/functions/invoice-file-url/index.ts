@@ -104,6 +104,18 @@ Deno.serve(async (req): Promise<Response> => {
       return json({ error: "الملف غير مسجّل في النظام" }, 404);
     }
 
+    // 5.5) قرار الناظر المركزي (قواعد الأدوار + الإذن/الحجب الفردي) — fail-closed
+    const { data: decision, error: decErr } = await admin.rpc("can_access_file", {
+      _user_id: user.id,
+      _bucket: "invoices",
+      _path: file_path,
+      _action: download ? "download" : "read",
+    });
+    if (decErr || decision !== true) {
+      await logAttempt(false, "overseer_denied", row, source);
+      return json({ error: "لا تملك صلاحية تنزيل هذه الفاتورة" }, 403);
+    }
+
     // 6) تحقق الصلاحية على الخادم — الدور + السنة المالية
     if (!privileged) {
       if (!row.fiscal_year_id) {
