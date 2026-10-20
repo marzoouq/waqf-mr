@@ -1,18 +1,18 @@
 {
   "summary": {
-    "generated_at": "2026-10-05T03:09:33.654Z",
+    "generated_at": "2026-10-20T21:15:20.962Z",
     "scanned": {
-      "src_files": 1123,
-      "migrations": 403,
-      "tables": 47,
-      "security_definer_functions": 108,
+      "src_files": 1135,
+      "migrations": 408,
+      "tables": 51,
+      "security_definer_functions": 120,
       "edge_functions": 25
     },
     "coverage": {
       "pages": 59,
       "untested_pages": 40,
-      "hooks": 292,
-      "untested_hooks": 229
+      "hooks": 298,
+      "untested_hooks": 235
     },
     "totals": {
       "critical": 0,
