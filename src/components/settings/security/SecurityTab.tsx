@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save } from 'lucide-react';
 import { useSecuritySettings } from '@/hooks/application/useSecuritySettings';
+import FileAccessRulesPanel from './FileAccessRulesPanel';
 
 const SecurityTab = () => {
   const { isLoading, saving, idleMinutes, setIdleMinutes, handleSaveIdleTimeout } = useSecuritySettings();
@@ -10,6 +11,7 @@ const SecurityTab = () => {
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
   return (
+    <div className="space-y-4">
     <Card>
       <CardHeader>
         <CardTitle className="font-display text-lg">إعدادات الأمان</CardTitle>
@@ -39,6 +41,8 @@ const SecurityTab = () => {
         </Button>
       </CardContent>
     </Card>
+    <FileAccessRulesPanel />
+    </div>
   );
 };
 
