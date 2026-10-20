@@ -7,16 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Headset, Send, Loader2, CheckCircle, Clock, Star } from 'lucide-react';
+import { Headset, Send, CheckCircle, Clock, Star } from 'lucide-react';
+import TicketThread from './TicketThread';
+import TicketTimeline from './TicketTimeline';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import {
-  useTicketReplies, useUpdateTicketStatus, useAddTicketReply,
+  useTicketConversation, useUpdateTicketStatus, useAddTicketReply,
   type SupportTicket,
 } from '@/hooks/data/support/useSupportTickets';
 import { PRIORITY_MAP, STATUS_MAP, CATEGORY_MAP } from '@/constants/support';
 import { useNowClock } from '@/lib/hooks/useNowClock';
 import { uiNotify } from '@/lib/notify';
-import { fmtDateTime } from '@/utils/format/format';
 
 interface Props {
   ticket: SupportTicket;
@@ -24,8 +25,9 @@ interface Props {
   isAdmin: boolean;
 }
 
-export default function TicketDetailDialog({ ticket, onClose, isAdmin }: Props) {
-  const { data: replies = [], isLoading } = useTicketReplies(ticket.id);
+export default function TicketDetailDialog({ ticket: initialTicket, onClose, isAdmin }: Props) {
+  const { user } = useAuth();
+  const { ticket, replies, senderRoles, events, isLoading } = useTicketConversation(initialTicket);
   const updateStatus = useUpdateTicketStatus();
   const addReply = useAddTicketReply();
   const [replyContent, setReplyContent] = useState('');
@@ -74,7 +76,7 @@ export default function TicketDetailDialog({ ticket, onClose, isAdmin }: Props) 
           <Badge variant="outline" className="text-xs"><Clock className="w-3 h-3 me-1" />عمر التذكرة: {ageLabel}</Badge>
         </div>
 
-        {ticket.description && <div className="bg-muted/50 rounded-md p-3 text-sm">{ticket.description}</div>}
+        <TicketTimeline events={events} />
         {ticket.resolution_notes && (
           <div className="bg-success/10 border border-success/20 rounded-md p-3 text-sm">
             <span className="font-medium text-success">ملاحظات الحل:</span> {ticket.resolution_notes}
@@ -95,30 +97,14 @@ export default function TicketDetailDialog({ ticket, onClose, isAdmin }: Props) 
           </div>
         )}
 
-        <ScrollArea className="flex-1 min-h-0 max-h-[300px]">
-          <div className="space-y-3 p-1">
-            {isLoading ? (
-              <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin" /></div>
-            ) : replies.length === 0 ? (
-              <p className="text-center text-muted-foreground text-sm py-4">لا توجد ردود بعد</p>
-            ) : replies.map(reply => (
-              <div key={reply.id} className={`rounded-lg p-3 text-sm ${reply.is_internal ? 'bg-warning/10 border border-warning/20' : 'bg-muted/50'}`}>
-                <p>{reply.content}</p>
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  {fmtDateTime(reply.created_at)}
-                  {reply.is_internal && ' — ملاحظة داخلية'}
-                </p>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
+        <TicketThread ticket={ticket} replies={replies} senderRoles={senderRoles} currentUserId={user?.id} isLoading={isLoading} />
 
-        <div className="flex gap-2">
+        {ticket.status !== 'closed' && <div className="flex gap-2">
           <Textarea value={replyContent} onChange={e => setReplyContent(e.target.value)} placeholder="اكتب رداً..." className="flex-1 min-h-[60px]" />
           <Button size="icon" onClick={handleSendReply} disabled={!replyContent.trim() || addReply.isPending} aria-label="إرسال الرد">
             <Send className="w-4 h-4" />
           </Button>
-        </div>
+        </div>}
 
         {isAdmin && ticket.status !== 'closed' && (
           <DialogFooter className="flex-wrap gap-2">

@@ -92,6 +92,13 @@ export function useEmailMonitorPage() {
     return s;
   }, [filteredLogs]);
 
+  // آخر تشغيل فعلي من سجل الإرسال + كشف الطابور المتوقف (رسائل معلّقة > 10 دقائق)
+  const lastSentAt = dedupedLogs[0]?.created_at ?? null;
+  const stalledCount = useMemo(() => {
+    const cutoff = Date.now() - 10 * 60 * 1000;
+    return dedupedLogs.filter((r) => r.status === 'pending' && new Date(r.created_at).getTime() < cutoff).length;
+  }, [dedupedLogs]);
+
   // pagination
   const pagedLogs = useMemo(
     () => filteredLogs.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE),
@@ -118,6 +125,8 @@ export function useEmailMonitorPage() {
     PAGE_SIZE,
     // data
     logs: pagedLogs,
+    lastSentAt,
+    stalledCount,
     totalCount: filteredLogs.length,
     templates,
     stats,

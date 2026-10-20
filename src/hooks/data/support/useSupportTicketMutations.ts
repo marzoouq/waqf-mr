@@ -58,3 +58,16 @@ export const useRateTicket = () => {
     },
   });
 };
+
+/** قفل التذكرة أو إعادة فتحها من صاحبها (بعد «تم الحل» فقط — يتحقق الخادم) */
+export const useOwnerTicketAction = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { id: string; action: 'close' | 'reopen'; reason?: string }) =>
+      supportService.ownerTicketAction(input),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: supportKeys.tickets.prefix });
+      qc.invalidateQueries({ queryKey: supportKeys.events.byTicket(vars.id) });
+    },
+  });
+};

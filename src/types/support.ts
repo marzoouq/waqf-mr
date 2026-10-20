@@ -29,3 +29,14 @@ export interface TicketReply {
   is_internal: boolean;
   created_at: string;
 }
+
+export interface TicketEvent {
+  id: string;
+  ticket_id: string;
+  event_type: string;
+  from_status: string | null;
+  to_status: string | null;
+  actor_id: string | null;
+  note: string | null;
+  created_at: string;
+}

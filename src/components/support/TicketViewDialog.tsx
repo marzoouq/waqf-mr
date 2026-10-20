@@ -6,10 +6,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Loader2, Star } from 'lucide-react';
-import { useTicketReplies, useAddTicketReply, useRateTicket, type SupportTicket } from '@/hooks/data/support/useSupportTickets';
-import { fmtDate } from '@/utils/format/format';
+import TicketThread from './TicketThread';
+import TicketTimeline from './TicketTimeline';
+import OwnerResolutionActions from './OwnerResolutionActions';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
+import { useTicketConversation, useAddTicketReply, useRateTicket, type SupportTicket } from '@/hooks/data/support/useSupportTickets';
 import { STATUS_MAP } from '@/constants/support';
 import { uiNotify } from '@/lib/notify';
 
@@ -18,8 +20,9 @@ interface TicketViewDialogProps {
   onClose: () => void;
 }
 
-const TicketViewDialog = ({ ticket, onClose }: TicketViewDialogProps) => {
-  const { data: replies = [], isLoading } = useTicketReplies(ticket.id);
+const TicketViewDialog = ({ ticket: initialTicket, onClose }: TicketViewDialogProps) => {
+  const { user } = useAuth();
+  const { ticket, replies, senderRoles, events, isLoading } = useTicketConversation(initialTicket);
   const addReply = useAddTicketReply();
   const rateTicket = useRateTicket();
   const [replyContent, setReplyContent] = useState('');
@@ -52,7 +55,7 @@ const TicketViewDialog = ({ ticket, onClose }: TicketViewDialogProps) => {
   };
 
   const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
-  const canRate = (ticket.status === 'resolved' || ticket.status === 'closed') && !ticket.rating;
+  const canRate = ticket.status === 'closed' && !ticket.rating;
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -65,9 +68,7 @@ const TicketViewDialog = ({ ticket, onClose }: TicketViewDialogProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        {ticket.description && (
-          <div className="bg-muted/50 rounded p-3 text-sm">{ticket.description}</div>
-        )}
+        <TicketTimeline events={events} />
 
         {ticket.resolution_notes && (
           <div className="bg-success/10 border border-success/20 rounded p-3 text-sm">
@@ -91,18 +92,11 @@ const TicketViewDialog = ({ ticket, onClose }: TicketViewDialogProps) => {
           </div>
         )}
 
-        <ScrollArea className="flex-1 min-h-0 max-h-[250px]">
-          <div className="space-y-2 p-1">
-            {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-            ) : replies.map(r => (
-              <div key={r.id} className="bg-muted/50 rounded p-2 text-sm">
-                <p>{r.content}</p>
-                <p className="text-[11px] text-muted-foreground mt-1">{fmtDate(r.created_at)}</p>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
+        <TicketThread ticket={ticket} replies={replies} senderRoles={senderRoles} currentUserId={user?.id} isLoading={isLoading} />
+
+        {ticket.status === 'resolved' && ticket.created_by === user?.id && (
+          <OwnerResolutionActions ticketId={ticket.id} onClosed={() => setShowRating(!ticket.rating)} />
+        )}
 
         {ticket.status !== 'closed' && ticket.status !== 'resolved' && (
           <div className="flex gap-2">

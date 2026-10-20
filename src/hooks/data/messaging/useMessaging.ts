@@ -1,6 +1,9 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { rpc } from '@/lib/api/rpc';
+import { logger } from '@/lib/logger';
+import { notificationsKeys } from '@/lib/queryKeys/notificationsKeys';
 import { Conversation, Message } from '@/types';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { useStableRef } from '@/lib/hooks/useStableRef';
@@ -77,6 +80,18 @@ export const useMessages = (conversationId: string | null) => {
   );
 
   const allMessages = query.data?.pages.flat() ?? [];
+
+  // تعليم رسائل الطرف الآخر كمقروءة عند فتح المحادثة أو وصول رسالة جديدة
+  const hasUnreadFromOthers = allMessages.some((m) => !m.is_read && m.sender_id !== user?.id);
+  useEffect(() => {
+    if (!conversationId || !hasUnreadFromOthers) return;
+    rpc('mark_conversation_read', { p_conversation_id: conversationId })
+      .then(() => {
+        queryClientRef.current.invalidateQueries({ queryKey: messagingKeys.unread.prefix });
+        queryClientRef.current.invalidateQueries({ queryKey: notificationsKeys.prefix });
+      })
+      .catch((err: unknown) => logger.error('mark_conversation_read failed:', err));
+  }, [conversationId, hasUnreadFromOthers, queryClientRef]);
 
   return {
     ...query,

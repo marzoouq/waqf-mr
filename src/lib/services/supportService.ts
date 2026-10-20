@@ -68,4 +68,8 @@ export const supportService = {
       p_comment: input.rating_comment || undefined,
     });
   },
+
+  async ownerTicketAction(input: { id: string; action: 'close' | 'reopen'; reason?: string }): Promise<void> {
+    await rpc('close_or_reopen_own_ticket', { p_id: input.id, p_action: input.action, p_reason: input.reason || undefined });
+  },
 };

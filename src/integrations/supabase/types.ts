@@ -1943,6 +1943,47 @@ export type Database = {
         }
         Relationships: []
       }
+      support_ticket_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          from_status: string | null
+          id: string
+          note: string | null
+          ticket_id: string
+          to_status: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          ticket_id: string
+          to_status?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          ticket_id?: string
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_events_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_ticket_replies: {
         Row: {
           content: string
@@ -2640,6 +2681,10 @@ export type Database = {
         }
         Returns: Json
       }
+      close_or_reopen_own_ticket: {
+        Args: { p_action: string; p_id: string; p_reason?: string }
+        Returns: undefined
+      }
       commit_icv_chain: {
         Args: {
           p_icv: number
@@ -2673,6 +2718,7 @@ export type Database = {
         Returns: string
       }
       cron_archive_old_access_logs: { Args: never; Returns: undefined }
+      cron_auto_close_resolved_tickets: { Args: never; Returns: undefined }
       cron_auto_expire_contracts: { Args: never; Returns: undefined }
       cron_check_contract_expiry: { Args: never; Returns: undefined }
       cron_check_late_payments: { Args: never; Returns: undefined }
@@ -2763,6 +2809,13 @@ export type Database = {
       get_rate_limit_count: { Args: { p_key: string }; Returns: number }
       get_support_analytics: { Args: never; Returns: Json }
       get_support_stats: { Args: never; Returns: Json }
+      get_ticket_reply_roles: {
+        Args: { p_ticket_id: string }
+        Returns: {
+          role: string
+          sender_id: string
+        }[]
+      }
       get_total_beneficiary_percentage: { Args: never; Returns: number }
       get_year_comparison_summary: {
         Args: { p_year1_id: string; p_year2_id: string }
@@ -2797,6 +2850,14 @@ export type Database = {
         Returns: {
           email: string
         }[]
+      }
+      mark_conversation_read: {
+        Args: { p_conversation_id: string }
+        Returns: number
+      }
+      mark_ticket_notifications_read: {
+        Args: { p_ticket_id: string }
+        Returns: undefined
       }
       mask_audit_fields:
         | { Args: { p_data: Json }; Returns: Json }
@@ -2842,6 +2903,16 @@ export type Database = {
         Args: { p_link: string; p_message: string; p_title: string }
         Returns: undefined
       }
+      notify_ticket_staff: {
+        Args: {
+          p_category: string
+          p_exclude: string
+          p_link: string
+          p_message: string
+          p_title: string
+        }
+        Returns: undefined
+      }
       pay_invoice_and_record_collection: {
         Args: { p_invoice_id: string; p_paid_amount?: number }
         Returns: Json
@@ -2871,6 +2942,10 @@ export type Database = {
       sync_property_contract_invoice_vat: {
         Args: { p_property_id: string }
         Returns: Json
+      }
+      ticket_recipient_roles: {
+        Args: { p_category: string }
+        Returns: string[]
       }
       unpay_invoice_and_revert_collection: {
         Args: { p_invoice_id: string }

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useCreateTicket } from '@/hooks/data/support/useSupportTickets';
 import { uiNotify } from '@/lib/notify';
+import { getTicketRecipientLabel } from '@/constants/support';
 
 interface NewTicketDialogProps {
   open: boolean;
@@ -51,6 +52,7 @@ const NewTicketDialog = ({ open, onClose }: NewTicketDialogProps) => {
             { value: 'account', label: 'حساب' },
             { value: 'suggestion', label: 'اقتراح' },
           ]} />
+          <p className="text-xs text-muted-foreground">ستصل تذكرتك إلى: <span className="font-medium text-foreground">{getTicketRecipientLabel(category)}</span></p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>إلغاء</Button>
