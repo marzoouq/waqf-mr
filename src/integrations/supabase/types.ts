@@ -1380,6 +1380,48 @@ export type Database = {
         }
         Relationships: []
       }
+      file_category_rules: {
+        Row: {
+          bucket_id: string
+          can_delete: boolean
+          can_download: boolean
+          can_read: boolean
+          can_upload: boolean
+          category: string
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          bucket_id?: string
+          can_delete?: boolean
+          can_download?: boolean
+          can_read?: boolean
+          can_upload?: boolean
+          category: string
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          bucket_id?: string
+          can_delete?: boolean
+          can_download?: boolean
+          can_read?: boolean
+          can_upload?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       fiscal_years: {
         Row: {
           created_at: string

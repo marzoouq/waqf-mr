@@ -39,3 +39,22 @@ describe('عزل الملفات بقرار الناظر', () => {
     expect(fn).toMatch(/can_access_file/);
   });
 });
+
+describe('قرار الناظر: الأذونات الفردية وقواعد الفئات', () => {
+  const all = sqls.join('\n');
+  const last = all.slice(all.lastIndexOf('CREATE OR REPLACE FUNCTION public.can_access_file'));
+  it('الحجب الفردي يُفحص قبل أي سماح', () => {
+    expect(last.indexOf("g = 'deny'")).toBeGreaterThan(0);
+    expect(last.indexOf("g = 'deny'")).toBeLessThan(last.indexOf("g = 'allow'"));
+  });
+  it('الإذن المنتهي لا يُحتسب', () => {
+    expect(last).toMatch(/expires_at IS NULL OR expires_at > now\(\)/);
+  });
+  it('قاعدة فئة الأرشيف تُقدَّم على قاعدة الحاوية', () => {
+    expect(last.indexOf('file_category_rules')).toBeGreaterThan(0);
+    expect(last.indexOf('file_category_rules')).toBeLessThan(last.indexOf('FROM public.file_access_rules'));
+  });
+  it('فئات المستفيد والواقف تبدأ محجوبة', () => {
+    expect(all).toMatch(/AND r\.role = 'accountant'/);
+  });
+});

@@ -50,6 +50,13 @@
       "when": 1792521992580,
       "tag": "0006_overseer_file_access_control",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792526587733,
+      "tag": "0007_archive_category_file_rules",
+      "breakpoints": true
     }
   ]
 }
