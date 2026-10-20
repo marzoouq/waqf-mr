@@ -1,15 +1,28 @@
 /**
  * هوك لعد الرسائل غير المقروءة للمستخدم الحالي.
- * يعتمد على Realtime invalidation بدلاً من polling.
+ * يتحدّث مباشرة عبر Realtime عند أي إدراج أو تعليم مقروء.
  */
-import { useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 import { messagingKeys } from '@/lib/queryKeys/messagingKeys';
+import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
+import { useStableRef } from '@/lib/hooks/useStableRef';
 
 export const useUnreadMessages = () => {
   const { user } = useAuth();
+  const queryClientRef = useStableRef(useQueryClient());
+
+  const subscribeFn = useCallback((channel: RealtimeChannel) => {
+    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
+      queryClientRef.current.invalidateQueries({ queryKey: messagingKeys.unread.prefix });
+    });
+  }, [queryClientRef]);
+
+  useBfcacheSafeChannel(`unread-msgs-${user?.id ?? 'none'}`, subscribeFn, !!user);
 
   return useQuery({
     queryKey: messagingKeys.unread.byUser(user?.id),

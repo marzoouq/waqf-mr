@@ -26,3 +26,27 @@ export const CATEGORY_MAP: Record<string, string> = {
 };
 
 export const SLA_HOURS: Record<string, number> = { critical: 4, high: 12, medium: 24, low: 48 };
+
+/** الأدوار التي تستلم التذكرة حسب القسم — مطابق لدالة الخادم ticket_recipient_roles */
+export type TicketRecipientRole = 'admin' | 'accountant' | 'support';
+
+export interface CategoryRoute { roles: TicketRecipientRole[]; label: string; }
+
+export const CATEGORY_ROUTING: Record<string, CategoryRoute> = {
+  financial: { roles: ['admin', 'accountant'], label: 'ناظر الوقف والمحاسب' },
+  technical: { roles: ['admin', 'support'], label: 'ناظر الوقف وفريق الدعم الفني' },
+  account: { roles: ['admin', 'support'], label: 'ناظر الوقف وفريق الدعم الفني' },
+  general: { roles: ['admin'], label: 'ناظر الوقف' },
+  suggestion: { roles: ['admin'], label: 'ناظر الوقف' },
+};
+
+export const getTicketRecipientRoles = (category: string): TicketRecipientRole[] =>
+  CATEGORY_ROUTING[category]?.roles ?? ['admin'];
+
+export const getTicketRecipientLabel = (category: string): string =>
+  CATEGORY_ROUTING[category]?.label ?? 'ناظر الوقف';
+
+/** تسميات أدوار مرسلي الردود */
+export const SENDER_ROLE_LABEL: Record<string, string> = {
+  admin: 'ناظر الوقف', accountant: 'المحاسب', support: 'الدعم الفني', beneficiary: 'المستفيد', waqif: 'الواقف',
+};

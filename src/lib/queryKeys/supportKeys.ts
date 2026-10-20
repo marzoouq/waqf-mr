@@ -16,6 +16,12 @@ export const supportKeys = {
       ['ticket_replies', ticketId] as const,
     prefix: ['ticket_replies'] as const,
   },
+  events: {
+    byTicket: (ticketId: string | null | undefined) => ['ticket_events', ticketId] as const,
+  },
+  replyRoles: {
+    byTicket: (ticketId: string | null | undefined) => ['ticket_reply_roles', ticketId] as const,
+  },
   stats: () => ['support_stats'] as const,
   analytics: () => ['support_analytics'] as const,
 } as const;

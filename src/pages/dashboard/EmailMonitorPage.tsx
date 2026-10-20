@@ -29,7 +29,8 @@ import { EmailLogsTable } from '@/components/email-monitor/EmailLogsTable';
 export default function EmailMonitorPage() {
   const h = useEmailMonitorPage();
 
-  const lastRunLabel = h.adminStats?.last_log_at ? formatEmailDateTime(h.adminStats.last_log_at) : 'لا يوجد';
+  const lastRunAt = h.adminStats?.last_log_at ?? h.lastSentAt;
+  const lastRunLabel = lastRunAt ? formatEmailDateTime(lastRunAt) : 'لا يوجد';
   const rateLimitedUntil = h.adminStats?.rate_limited_until;
   const isRateLimited = rateLimitedUntil && new Date(rateLimitedUntil) > new Date();
 
@@ -51,6 +52,18 @@ export default function EmailMonitorPage() {
             تحديث
           </Button>
         </div>
+
+        {h.stalledCount > 0 && (
+          <Card className="border-destructive/40 bg-destructive/5">
+            <CardContent className="p-4 flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium">الطابور متوقف</p>
+                <p className="text-muted-foreground">{h.stalledCount} رسالة معلّقة منذ أكثر من 10 دقائق ولم تُرسل.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {isRateLimited && (
           <Card className="border-warning/40 bg-warning/5">
