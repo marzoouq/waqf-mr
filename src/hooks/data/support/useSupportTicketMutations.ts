@@ -3,7 +3,6 @@
  * الإشعارات تُضاف من طبقة الصفحة/المكوّن عبر `mutate(vars, { onSuccess, onError })`.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { rpc } from '@/lib/api/rpc';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { supportService } from '@/lib/services/supportService';
 import { supportKeys } from '@/lib/queryKeys/supportKeys';
@@ -15,14 +14,9 @@ export const useCreateTicket = () => {
   return useMutation({
     mutationFn: (ticket: { title: string; description: string; category: string; priority: string }) =>
       supportService.createTicket({ ...ticket, created_by: user?.id ?? '' }),
+    // إشعار الناظر يتم خادميا عبر المشغّل trg_notify_staff_ticket
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: supportKeys.tickets.prefix });
-      rpc('notify_admins', {
-        p_title: 'تذكرة دعم فني جديدة',
-        p_message: 'تم استلام تذكرة دعم فني جديدة تحتاج مراجعة',
-        p_type: 'info',
-        p_link: '/dashboard/support',
-      }).then(() => {}, () => {});
     },
   });
 };

@@ -2838,6 +2838,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      notify_staff_internal: {
+        Args: { p_link: string; p_message: string; p_title: string }
+        Returns: undefined
+      }
       pay_invoice_and_record_collection: {
         Args: { p_invoice_id: string; p_paid_amount?: number }
         Returns: Json

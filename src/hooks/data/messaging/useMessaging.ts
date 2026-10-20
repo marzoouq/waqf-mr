@@ -2,7 +2,6 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tansta
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useCallback, useRef } from 'react';
 import { Conversation, Message } from '@/types';
-import { enqueueUserNotification } from '@/lib/services';
 import { useBfcacheSafeChannel } from '@/lib/realtime/bfcacheSafeChannel';
 import { useStableRef } from '@/lib/hooks/useStableRef';
 import { STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
@@ -90,7 +89,7 @@ export const useMessages = (conversationId: string | null) => {
 
 export const useSendMessage = () => {
   const queryClient = useQueryClient();
-  const { role } = useAuth();
+
   return useMutation({
     mutationFn: async ({ conversationId, content, senderId }: { conversationId: string; content: string; senderId: string }) => {
       const trimmed = content.trim();
@@ -100,25 +99,7 @@ export const useSendMessage = () => {
         sender_id: senderId,
         content: trimmed,
       });
-      await messagingService.touchConversation(conversationId);
-
-      // إشعار المستفيد عند إرسال رسالة من المسؤول أو المحاسب
-      if (role === 'admin' || role === 'accountant') {
-        try {
-          const conv = await messagingService.getConversationParticipant(conversationId);
-          if (conv?.participant_id) {
-            enqueueUserNotification(
-              conv.participant_id,
-              'رسالة جديدة من ناظر الوقف',
-              `لديك رسالة جديدة في محادثة "${conv.subject || 'محادثة'}"`,
-              'info',
-              '/beneficiary/messages',
-            );
-          }
-        } catch {
-          // فشل الإشعار غير حرج
-        }
-      }
+      // تحديث وقت النشاط والإشعار (للناظر أو المستفيد) يتمان خادميا عبر trg_notify_message
     },
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: messagingKeys.messages.byConversation(vars.conversationId) });
