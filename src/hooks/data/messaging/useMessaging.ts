@@ -82,16 +82,21 @@ export const useMessages = (conversationId: string | null) => {
   const allMessages = query.data?.pages.flat() ?? [];
 
   // تعليم رسائل الطرف الآخر كمقروءة عند فتح المحادثة أو وصول رسالة جديدة
-  const hasUnreadFromOthers = allMessages.some((m) => !m.is_read && m.sender_id !== user?.id);
+  // مفتاح يتغيّر مع كل رسالة غير مقروءة جديدة — لا مجرد علم منطقي
+  const unreadFromOthersKey = allMessages
+    .filter((m) => !m.is_read && m.sender_id !== user?.id)
+    .map((m) => m.id)
+    .join(',');
   useEffect(() => {
-    if (!conversationId || !hasUnreadFromOthers) return;
+    if (!conversationId || !unreadFromOthersKey) return;
     rpc('mark_conversation_read', { p_conversation_id: conversationId })
       .then(() => {
+        queryClientRef.current.invalidateQueries({ queryKey: messagingKeys.messages.byConversation(conversationId) });
         queryClientRef.current.invalidateQueries({ queryKey: messagingKeys.unread.prefix });
         queryClientRef.current.invalidateQueries({ queryKey: notificationsKeys.prefix });
       })
       .catch((err: unknown) => logger.error('mark_conversation_read failed:', err));
-  }, [conversationId, hasUnreadFromOthers, queryClientRef]);
+  }, [conversationId, unreadFromOthersKey, queryClientRef]);
 
   return {
     ...query,
