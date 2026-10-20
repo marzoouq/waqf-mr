@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Save } from 'lucide-react';
 import { useSecuritySettings } from '@/hooks/application/useSecuritySettings';
 import FileAccessRulesPanel from './FileAccessRulesPanel';
+import FileAccessGrantsPanel from './FileAccessGrantsPanel';
 
 const SecurityTab = () => {
   const { isLoading, saving, idleMinutes, setIdleMinutes, handleSaveIdleTimeout } = useSecuritySettings();
@@ -42,6 +43,7 @@ const SecurityTab = () => {
       </CardContent>
     </Card>
     <FileAccessRulesPanel />
+    <FileAccessGrantsPanel />
     </div>
   );
 };
