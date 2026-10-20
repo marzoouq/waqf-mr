@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Save } from 'lucide-react';
 import { useSecuritySettings } from '@/hooks/application/useSecuritySettings';
 import FileAccessRulesPanel from './FileAccessRulesPanel';
+import FileCategoryRulesPanel from './FileCategoryRulesPanel';
 import FileAccessGrantsPanel from './FileAccessGrantsPanel';
 
 const SecurityTab = () => {
@@ -43,6 +44,7 @@ const SecurityTab = () => {
       </CardContent>
     </Card>
     <FileAccessRulesPanel />
+    <FileCategoryRulesPanel />
     <FileAccessGrantsPanel />
     </div>
   );
