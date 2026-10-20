@@ -43,6 +43,13 @@
       "when": 1791174068759,
       "tag": "0005_drop_legacy_storage_read_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792521992580,
+      "tag": "0006_overseer_file_access_control",
+      "breakpoints": true
     }
   ]
 }

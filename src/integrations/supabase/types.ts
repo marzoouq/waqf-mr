@@ -1305,6 +1305,81 @@ export type Database = {
           },
         ]
       }
+      file_access_grants: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          created_by: string | null
+          effect: string
+          expires_at: string | null
+          id: string
+          notes: string | null
+          object_path: string
+          user_id: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          created_by?: string | null
+          effect?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          object_path: string
+          user_id: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          created_by?: string | null
+          effect?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          object_path?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      file_access_rules: {
+        Row: {
+          bucket_id: string
+          can_delete: boolean
+          can_download: boolean
+          can_read: boolean
+          can_upload: boolean
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          bucket_id: string
+          can_delete?: boolean
+          can_download?: boolean
+          can_read?: boolean
+          can_upload?: boolean
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          bucket_id?: string
+          can_delete?: boolean
+          can_download?: boolean
+          can_read?: boolean
+          can_upload?: boolean
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       fiscal_years: {
         Row: {
           created_at: string
@@ -2498,6 +2573,15 @@ export type Database = {
       assert_fiscal_year_open: {
         Args: { p_fiscal_year_id: string }
         Returns: undefined
+      }
+      can_access_file: {
+        Args: {
+          _action: string
+          _bucket: string
+          _path: string
+          _user_id: string
+        }
+        Returns: boolean
       }
       check_rate_limit: {
         Args: { p_key: string; p_limit: number; p_window_seconds: number }
