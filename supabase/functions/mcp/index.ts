@@ -50,7 +50,7 @@ var get_public_stats_default = defineTool2({
 });
 
 // src/lib/mcp/index.ts
-var projectRef = "nuzdeamtujezrsxbvpfi";
+var projectRef = "epopjqrwsztgxigmgurj";
 var mcp_default = defineMcp({
   name: "waqf-wise-mcp",
   title: "Waqf Wise \u2014 Marzouq Al-Thubaiti Waqf",
