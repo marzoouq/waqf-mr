@@ -4,12 +4,9 @@ import { useMultipleFilesUpload } from './useMultipleFilesUpload';
 
 beforeEach(() => {
   // jsdom: توفير stubs
-  if (!('createObjectURL' in URL)) {
-    // @ts-expect-error test stub
-    URL.createObjectURL = vi.fn(() => 'blob:mock');
-    // @ts-expect-error test stub
-    URL.revokeObjectURL = vi.fn();
-  }
+  // jsdom 30 يوفّر createObjectURL جزئياً لا يقبل File من Node — نستبدله دائماً
+  URL.createObjectURL = vi.fn(() => 'blob:mock');
+  URL.revokeObjectURL = vi.fn();
   if (!('randomUUID' in crypto)) {
     // @ts-expect-error test stub
     crypto.randomUUID = () => Math.random().toString(36).slice(2);

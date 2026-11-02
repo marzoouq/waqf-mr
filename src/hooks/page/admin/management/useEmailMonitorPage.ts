@@ -94,10 +94,16 @@ export function useEmailMonitorPage() {
 
   // آخر تشغيل فعلي من سجل الإرسال + كشف الطابور المتوقف (رسائل معلّقة > 10 دقائق)
   const lastSentAt = dedupedLogs[0]?.created_at ?? null;
+  // الوقت الحالي في state يُحدَّث كل دقيقة — يبقي الحساب نقياً أثناء العرض
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(t);
+  }, []);
   const stalledCount = useMemo(() => {
-    const cutoff = Date.now() - 10 * 60 * 1000;
+    const cutoff = nowMs - 10 * 60 * 1000;
     return dedupedLogs.filter((r) => r.status === 'pending' && new Date(r.created_at).getTime() < cutoff).length;
-  }, [dedupedLogs]);
+  }, [dedupedLogs, nowMs]);
 
   // pagination
   const pagedLogs = useMemo(

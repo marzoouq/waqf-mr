@@ -25,7 +25,7 @@ export const callAdminApi = async (body: Record<string, unknown>) => {
   try {
     return await invoke<Record<string, unknown>>('admin-manage-users', { body });
   } catch (e) {
-    if (e instanceof ApiError) throw new Error(e.message);
+    if (e instanceof ApiError) throw Object.assign(new Error(e.message), { cause: e });
     throw e;
   }
 };

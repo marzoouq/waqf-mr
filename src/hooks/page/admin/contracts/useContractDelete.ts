@@ -57,8 +57,8 @@ export function useContractDelete({ onSettled }: UseContractDeleteParams = {}) {
 
   const deleteWithGuard = useCallback(
     async (target: { id: string; name: string }) => {
-      let paidCount = 0;
-      let pendingCount = 0;
+      let paidCount: number;
+      let pendingCount: number;
       try {
         const summary = await fetchContractInvoiceSummary(target.id);
         paidCount = summary.paidCount;

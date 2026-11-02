@@ -27,7 +27,16 @@ export const initSentry = async (dsn: string | null | undefined): Promise<boolea
       tracesSampleRate: 0.1,
       replaysOnErrorSampleRate: 0,
       replaysSessionSampleRate: 0,
-      sendDefaultPii: false,
+      // Sentry 11: بديل sendDefaultPii:false — نوقف كل جمع للبيانات الشخصية صراحةً
+      dataCollection: {
+        userInfo: false,
+        cookies: false,
+        httpHeaders: false,
+        httpBodies: [],
+        urlQueryParams: false,
+        graphQL: { document: false, variables: false },
+        genAI: { inputs: false, outputs: false },
+      },
       beforeSend: (event) => {
         // لا نرسل بيانات شخصية: نحذف عنوان البريد وعناوين IP
         if (event.user) {
