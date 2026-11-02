@@ -3,10 +3,10 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@3.4.0";
 
 // src/lib/mcp/tools/echo.ts
-import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool } from "npm:@lovable.dev/mcp-js@3.4.0";
 import { z } from "npm:zod@^4.6.6";
 var echo_default = defineTool({
   name: "echo",
@@ -19,7 +19,7 @@ var echo_default = defineTool({
 
 // src/lib/mcp/tools/get-public-stats.ts
 import { createClient } from "npm:@supabase/supabase-js@^2.108.2";
-import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@3.4.0";
 var runtimeGlobal = globalThis;
 function getRuntimeEnv(key) {
   return runtimeGlobal.Deno?.env?.get?.(key) ?? runtimeGlobal.process?.env?.[key];
@@ -64,5 +64,5 @@ var mcp_default = defineMcp({
 });
 
 // lovable-mcp-supabase-entry.ts
-import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.0/stacks/supabase";
+import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@3.4.0/stacks/supabase";
 Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));
