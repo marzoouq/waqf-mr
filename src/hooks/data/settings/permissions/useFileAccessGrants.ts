@@ -1,6 +1,7 @@
 /**
  * أذونات الملفات الفردية — يمنحها الناظر وحده لمستفيد محدد على ملف واحد (RLS: admin فقط).
  */
+import { fileAccessKeys } from '@/lib/queryKeys/fileAccessKeys';
 import { useQuery } from '@tanstack/react-query';
 import { createCrudFactory } from '@/hooks/data/core/useCrudFactory';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,7 +28,7 @@ export interface GrantableBeneficiary { userId: string; name: string }
 /** الملفات القابلة للإذن حسب الحاوية */
 export function useGrantableFiles(bucket: string) {
   return useQuery({
-    queryKey: ['grantable_files', bucket],
+    queryKey: fileAccessKeys.grantableFiles(bucket),
     enabled: !!bucket,
     staleTime: 60_000,
     queryFn: async (): Promise<GrantableFile[]> => {
@@ -56,7 +57,7 @@ export function useGrantableFiles(bucket: string) {
 /** المستفيدون المرتبطون بحساب دخول */
 export function useGrantableBeneficiaries() {
   return useQuery({
-    queryKey: ['grantable_beneficiaries'],
+    queryKey: fileAccessKeys.grantableBeneficiaries(),
     staleTime: 60_000,
     queryFn: async (): Promise<GrantableBeneficiary[]> => {
       const { data, error } = await supabase.from('beneficiaries').select('name,user_id').not('user_id', 'is', null).order('name');
