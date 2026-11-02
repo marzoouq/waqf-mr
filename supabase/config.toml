@@ -1,1 +1,49 @@
 project_id = "epopjqrwsztgxigmgurj"
+
+  [functions.admin-manage-users]
+    verify_jwt = false
+
+  [functions.ai-assistant]
+    verify_jwt = false
+
+  [functions.auth-email-hook]
+    verify_jwt = false
+
+  [functions.check-contract-expiry]
+    verify_jwt = false
+
+  [functions.generate-invoice-pdf]
+    verify_jwt = false
+
+  [functions.guard-signup]
+    verify_jwt = false
+
+  [functions.lookup-national-id]
+    verify_jwt = false
+
+  [functions.webauthn]
+    verify_jwt = false
+
+  [functions.zatca-onboard]
+    verify_jwt = false
+
+  [functions.zatca-renew]
+    verify_jwt = false
+
+  [functions.zatca-report]
+    verify_jwt = false
+
+  [functions.zatca-signer]
+    verify_jwt = false
+
+  [functions.zatca-xml-generator]
+    verify_jwt = false
+
+  [functions.health-check]
+    verify_jwt = false
+
+  [functions.process-email-queue]
+    verify_jwt = true
+
+  [functions.email-admin]
+    verify_jwt = false
