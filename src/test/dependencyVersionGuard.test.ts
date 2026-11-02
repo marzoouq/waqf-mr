@@ -12,7 +12,10 @@ function resolvedVersion(pkg: string): number[] {
 }
 
 function compare(a: number[], b: number[]): number {
-  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] - b[i];
+  for (let i = 0; i < 3; i++) {
+    const diff = (a[i] ?? 0) - (b[i] ?? 0);
+    if (diff !== 0) return diff;
+  }
   return 0;
 }
 
