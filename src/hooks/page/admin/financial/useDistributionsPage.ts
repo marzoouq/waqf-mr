@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useAccountsPage } from './useAccountsPage';
 import { useDistributionCalculation } from '@/hooks/domain/financial/useDistributionCalculation';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
+import { computeDistributionBase } from '@/utils/financial/distribution/distributionBase';
 
 export function useDistributionsPage() {
   const acc = useAccountsPage();
@@ -15,9 +16,11 @@ export function useDistributionsPage() {
 
   const fyId = acc.fiscalYearId && acc.fiscalYearId !== 'all' ? acc.fiscalYearId : undefined;
 
+  // أساس التوزيع: المقرر من الناظر (دون تجاوز المتاح) وإلا المتاح كاملاً
+  const distBase = computeDistributionBase(acc.availableAmount, acc.manualDistributions);
   const calc = useDistributionCalculation(
     acc.beneficiaries,
-    acc.availableAmount,
+    distBase.base,
     fyId,
     true, // نحمّل السلف والمرحّل دائماً في الصفحة
   );

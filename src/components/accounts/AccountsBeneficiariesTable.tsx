@@ -9,6 +9,7 @@ import { Users, Banknote } from 'lucide-react';
 import { formatPercentage } from '@/utils/format';
 import DistributeDialog from './DistributeDialog';
 import { isFyAll } from '@/constants/fiscalYearIds';
+import { computeDistributionBase, isPercentageTotalOff, shareOf } from '@/utils/financial/distribution/distributionBase';
 
 interface Beneficiary {
   id: string;
@@ -24,18 +25,18 @@ interface AccountsBeneficiariesTableProps {
   accountId?: string;
   fiscalYearId?: string;
   fiscalYearLabel?: string;
+  isClosed?: boolean;
 }
 
 const AccountsBeneficiariesTable = ({
   beneficiaries, manualDistributions, totalBeneficiaryPercentage,
-  availableAmount = 0, accountId, fiscalYearId, fiscalYearLabel,
+  availableAmount = 0, accountId, fiscalYearId, fiscalYearLabel, isClosed = false,
 }: AccountsBeneficiariesTableProps) => {
   const [distributeOpen, setDistributeOpen] = useState(false);
 
+  const dist = computeDistributionBase(availableAmount, manualDistributions);
   const getShare = (b: Beneficiary) =>
-    totalBeneficiaryPercentage > 0
-      ? availableAmount * Number(b.share_percentage) / totalBeneficiaryPercentage
-      : 0;
+    shareOf(dist.base, Number(b.share_percentage), totalBeneficiaryPercentage);
 
   return (
     <Card className="shadow-sm">
@@ -45,7 +46,7 @@ const AccountsBeneficiariesTable = ({
             <Users className="w-5 h-5" />
             توزيع حصص المستفيدين
           </span>
-          {accountId && fiscalYearId && !isFyAll(fiscalYearId) && (
+          {accountId && fiscalYearId && !isFyAll(fiscalYearId) && !isClosed && (
             <Button size="sm" className="gap-2" onClick={() => setDistributeOpen(true)}>
               <Banknote className="w-4 h-4" />
               توزيع الحصص
@@ -100,7 +101,19 @@ const AccountsBeneficiariesTable = ({
               </Table>
             </div>
 
-            {totalBeneficiaryPercentage > 0 && totalBeneficiaryPercentage !== 100 && (
+            <div className="mt-2 px-3 py-2 bg-muted/40 rounded-md text-xs text-muted-foreground">
+              {isClosed
+                ? `سنة مقفلة — التوزيع المنفّذ ${fmt(dist.base)} ريال (للقراءة فقط)`
+                : dist.usesDecided
+                  ? `أساس التوزيع: المقرر ${fmt(dist.decided)} من المتاح ${fmt(dist.available)} — المتبقي ${fmt(dist.remaining)} (تقديري — يُعتمد عند الإقفال)`
+                  : `أساس التوزيع: المتاح ${fmt(dist.available)} (تقديري — يُعتمد عند الإقفال)`}
+            </div>
+            {dist.exceeds && !isClosed && (
+              <div className="mt-2 px-3 py-2 bg-destructive/10 border border-destructive/30 rounded-md text-xs text-destructive">
+                المبلغ المقرر أكبر من المتاح للتوزيع — اقتصر الجدول على المتاح
+              </div>
+            )}
+            {isPercentageTotalOff(totalBeneficiaryPercentage) && (
               <div className="mt-2 px-3 py-2 bg-warning/10 border border-warning/30 rounded-md text-xs text-warning flex items-center gap-1">
                 ⚠ مجموع نسب المستفيدين ({totalBeneficiaryPercentage}%) لا يساوي 100% — التوزيع يتم بشكل تناسبي
               </div>
@@ -108,7 +121,7 @@ const AccountsBeneficiariesTable = ({
             <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
               <span className="font-medium">إجمالي التوزيع</span>
               <span className="font-bold text-primary">
-                {fmt(manualDistributions)} ريال
+                {fmt(dist.base)} ريال
               </span>
             </div>
           </>

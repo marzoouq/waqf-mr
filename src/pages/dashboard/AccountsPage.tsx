@@ -142,6 +142,7 @@ const AccountsPage = () => {
               accountId={page.currentAccount?.id}
               fiscalYearId={page.fiscalYearId === 'all' ? undefined : page.fiscalYearId}
               fiscalYearLabel={page.selectedFY?.label}
+              isClosed={page.isClosed}
             />
           </Suspense>
         </DeferredRender>

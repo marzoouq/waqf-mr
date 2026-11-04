@@ -6,6 +6,7 @@ import { useCallback } from 'react';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { uiNotify } from '@/lib/notify';
+import { computeDistributionBase, shareOf } from '@/utils/financial/distribution/distributionBase';
 
 interface ExportsInput {
   fiscalYearLabel: string;
@@ -80,9 +81,10 @@ export function useAccountsExports(input: ExportsInput) {
         beneficiaries: input.beneficiaries.map(b => ({
           name: b.name ?? 'غير معروف',
           share_percentage: Number(b.share_percentage ?? 0),
-          amount: input.totalBenPct > 0
-            ? (input.availableAmount * Number(b.share_percentage ?? 0)) / input.totalBenPct
-            : 0,
+          amount: shareOf(
+            computeDistributionBase(input.availableAmount, input.manualDistributions).base,
+            Number(b.share_percentage ?? 0), input.totalBenPct,
+          ),
         })),
         adminPct: input.adminPercent,
         waqifPct: input.waqifPercent,
