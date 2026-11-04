@@ -158,3 +158,16 @@ export async function fetchContractInvoiceSummary(contractId: string) {
   }
   return { paidCount, pendingCount, totalCount: data?.length ?? 0 };
 }
+
+/** يجلب معرّف الدفعة الأولى لعقد (payment_number الأصغر) — لسداد الدفعة عند التعاقد */
+export async function fetchFirstContractInvoiceId(contractId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('payment_invoices')
+    .select('id')
+    .eq('contract_id', contractId)
+    .order('payment_number', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.id ?? null;
+}
