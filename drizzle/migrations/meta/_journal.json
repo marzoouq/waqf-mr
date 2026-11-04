@@ -148,6 +148,13 @@
       "when": 1793817673622,
       "tag": "0020_audit_tree_and_official_letters",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793824378432,
+      "tag": "0021_audit_coverage_admin_tables",
+      "breakpoints": true
     }
   ]
 }

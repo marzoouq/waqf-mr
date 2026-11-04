@@ -2822,6 +2822,14 @@ export type Database = {
         Args: { p_fiscal_year_id: string }
         Returns: undefined
       }
+      audit_log_actors: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          email: string
+          role: string
+          user_id: string
+        }[]
+      }
       audit_reconciliation: {
         Args: { p_fiscal_year_id: string }
         Returns: Json
