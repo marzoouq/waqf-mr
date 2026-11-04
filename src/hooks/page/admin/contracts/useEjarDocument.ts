@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import {
-  useContractDocuments, useUploadEjarDocument, useDeleteEjarDocument, getEjarDownloadUrl,
+  useContractDocuments, useContractsWithEjar, useUploadEjarDocument, useDeleteEjarDocument, getEjarDownloadUrl,
   type ContractDocumentRow, type EjarMeta,
 } from '@/hooks/data/contracts/useContractDocuments';
 import { validateEjarFile, ejarErrorMessage, ejarDatesMismatch } from '@/utils/contracts/ejarDocument';
@@ -16,6 +16,7 @@ export const useEjarDocument = (contract: { id: string; start_date: string; end_
   const docs = useContractDocuments(contract.id, open);
   const upload = useUploadEjarDocument(contract.id);
   const del = useDeleteEjarDocument(contract.id);
+  const withEjar = useContractsWithEjar();
 
   const current = docs.data?.find(d => d.is_current) ?? null;
   const history = docs.data?.filter(d => !d.is_current) ?? [];
@@ -47,6 +48,7 @@ export const useEjarDocument = (contract: { id: string; start_date: string; end_
   };
 
   return {
+    hasEjar: withEjar.data?.has(contract.id) ?? false,
     open, setOpen, file, setFile, meta, setMeta, current, history, mismatch,
     isLoading: docs.isLoading, uploading: upload.isPending, canDelete: role === 'admin',
     submit, download, remove,

@@ -8,10 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useEjarDocument } from '@/hooks/page/admin/contracts/useEjarDocument';
 
-interface Props { contract: { id: string; contract_number: string; start_date: string; end_date: string }; hasEjar: boolean }
+interface Props { contract: { id: string; contract_number: string; start_date: string; end_date: string } }
 
-export const EjarDocumentButton = ({ contract, hasEjar }: Props) => {
+export const EjarDocumentButton = ({ contract }: Props) => {
   const h = useEjarDocument(contract);
+  const hasEjar = h.hasEjar;
   return (
     <>
       <Button
