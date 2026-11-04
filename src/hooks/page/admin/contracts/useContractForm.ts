@@ -50,8 +50,8 @@ export function useContractForm({ fiscalYearId, fiscalYears }: UseContractFormPa
     setFormInitialData(emptyFormData);
   }, []);
 
-  const handleRenew = useCallback((contract: Contract) => {
-    setFormInitialData(buildRenewInitialData(contract));
+  const handleRenew = useCallback((contract: Contract, existingNumbers: readonly string[] = []) => {
+    setFormInitialData(buildRenewInitialData(contract, existingNumbers));
     setEditingContract(null);
     setIsOpen(true);
   }, []);

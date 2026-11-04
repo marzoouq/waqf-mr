@@ -4,11 +4,13 @@
  */
 import type { Contract } from '@/types';
 import { emptyFormData, type ContractFormData } from '@/types/forms/contract';
+import { nextRenewalNumber } from './renewalNumber';
 
-export const buildRenewInitialData = (contract: Contract): ContractFormData => {
-  const num = contract.contract_number;
-  const match = num.match(/-R(\d+)$/);
-  const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]!) + 1}`) : `${num}-R1`;
+export const buildRenewInitialData = (
+  contract: Contract,
+  existingNumbers: readonly string[] = [],
+): ContractFormData => {
+  const newNumber = nextRenewalNumber(contract.contract_number, existingNumbers);
   const oldStart = new Date(contract.start_date);
   const oldEnd = new Date(contract.end_date);
   const durationMs = oldEnd.getTime() - oldStart.getTime();

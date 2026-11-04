@@ -10,6 +10,9 @@ export function getSafeErrorMessage(error: unknown): string {
   // تكرار بيانات (duplicate key / unique constraint)
   if (msg.includes('already registered') || msg.includes('duplicate') || msg.includes('unique')) {
     // التمييز بين أنواع التكرار حسب اسم الجدول/المفهوم في الرسالة
+    if (msg.includes('contract_number')) {
+      return 'رقم العقد مستخدم مسبقًا. للتجديد بالرقم نفسه استخدم زر «تجديد» ليُضاف رقم نسخة مثل ‎-R1';
+    }
     if (msg.includes('contract') || msg.includes('عقد')) return 'يوجد عقد بنفس البيانات بالفعل';
     if (msg.includes('invoice') || msg.includes('فاتورة')) return 'يوجد فاتورة بنفس الرقم بالفعل';
     if (msg.includes('property') || msg.includes('عقار')) return 'يوجد عقار بنفس الرقم بالفعل';

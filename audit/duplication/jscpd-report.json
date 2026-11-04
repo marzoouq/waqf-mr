@@ -78,7 +78,7 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-11-04T17:33:44.051Z",
+    "detectionDate": "2026-11-04T18:08:44.835Z",
     "formats": {
       "tsx": {
         "clones": 2,
@@ -96,26 +96,26 @@
         "clones": 0,
         "duplicatedLines": 0,
         "duplicatedTokens": 0,
-        "lines": 40894,
+        "lines": 40906,
         "newClones": 0,
         "newDuplicatedLines": 0,
         "percentage": 0.0,
         "percentageTokens": 0.0,
         "sources": 527,
-        "tokens": 256520
+        "tokens": 256568
       }
     },
     "total": {
       "clones": 2,
       "duplicatedLines": 44,
       "duplicatedTokens": 334,
-      "lines": 84614,
+      "lines": 84626,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.05200085092301511,
-      "percentageTokens": 0.05872909534334541,
+      "percentage": 0.05199347718195354,
+      "percentageTokens": 0.058724138961708,
       "sources": 1025,
-      "tokens": 568713
+      "tokens": 568761
     }
   }
 }
