@@ -45,3 +45,11 @@ describe('scripts/build-chunks', () => {
     expect(getManualChunks('x/src/App.tsx')).toBeUndefined();
   });
 });
+
+describe('حارس: مساعد التحميل الديناميكي لا يسحب أداة PDF', () => {
+  it('vite/preload-helper يذهب للنواة لا vendor-pdf', async () => {
+    const { getManualChunks } = await import('../../scripts/build-chunks');
+    expect(getManualChunks('\0vite/preload-helper.js')).toBe('vendor-react');
+    expect(getManualChunks('\0commonjsHelpers.js')).toBe('vendor-react');
+  });
+});
