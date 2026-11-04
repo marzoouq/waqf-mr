@@ -36,26 +36,24 @@ export function generatePaymentDueDates(contract: ContractInfo): string[] {
   const paymentCount = getPaymentCount(contract);
   const dates: string[] = [];
 
+  // الاستحقاق يبدأ من تاريخ العقد (دفع مقدّم) — العقد يُحسب كاملاً دون بتر شهر
   if (paymentCount === 1) {
-    // دفعة واحدة — تاريخ الاستحقاق بعد شهر من البداية
-    const due = safeAddMonths(start, 1);
-    dates.push(toISODate(due));
+    dates.push(toISODate(start));
   } else {
-    // Monthly or multi: payments due each period after start
     for (let i = 0; i < paymentCount; i++) {
       let due: Date;
       if (contract.payment_type === 'monthly') {
-        due = safeAddMonths(start, i + 1);
+        due = safeAddMonths(start, i);
       } else if (contract.payment_type === 'quarterly') {
-        due = safeAddMonths(start, (i + 1) * 3);
+        due = safeAddMonths(start, i * 3);
       } else if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') {
-        due = safeAddMonths(start, (i + 1) * 6);
+        due = safeAddMonths(start, i * 6);
       } else {
-        // Multi-payment: evenly spaced
+        // Multi-payment: evenly spaced from the start date
         due = new Date(start);
         const totalDays = daysBetween(start, new Date(contract.end_date));
         const interval = totalDays / paymentCount;
-        due.setDate(due.getDate() + Math.round(interval * (i + 1)));
+        due.setDate(due.getDate() + Math.round(interval * i));
       }
       dates.push(toISODate(due));
     }

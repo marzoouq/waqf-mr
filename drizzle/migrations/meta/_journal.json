@@ -92,6 +92,13 @@
       "when": 1793785843738,
       "tag": "0012_fix_create_contract_defaults",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793789179048,
+      "tag": "0013_contract_invoices_start_from_contract_date",
+      "breakpoints": true
     }
   ]
 }
