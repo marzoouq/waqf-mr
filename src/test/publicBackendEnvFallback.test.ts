@@ -28,9 +28,11 @@ describe("public backend env fallback", () => {
   });
 
   it("only ships the public anon key, never a service role key", () => {
-    const payload = JSON.parse(
-      Buffer.from(PUBLIC_BACKEND_ENV.VITE_SUPABASE_PUBLISHABLE_KEY.split(".")[1], "base64").toString(),
-    ) as { role: string; ref: string };
+    const segment = PUBLIC_BACKEND_ENV.VITE_SUPABASE_PUBLISHABLE_KEY.split(".")[1] ?? "";
+    const payload = JSON.parse(Buffer.from(segment, "base64").toString()) as {
+      role: string;
+      ref: string;
+    };
     expect(payload.role).toBe("anon");
     expect(PUBLIC_BACKEND_ENV.VITE_SUPABASE_URL).toContain(payload.ref);
   });
