@@ -39,6 +39,7 @@ export const useContractsBulkRenew = ({ contracts, fiscalYearId, createContractA
       const activeFY = await fetchActiveFiscalYear();
       const contractsToRenew = expiredContracts.filter(c => selectedForRenewal.has(c.id));
       let created = 0;
+      const usedNumbers = contracts.map(c => c.contract_number);
       for (const contract of contractsToRenew) {
         const oldStart = new Date(contract.start_date);
         const oldEnd = new Date(contract.end_date);
@@ -47,9 +48,8 @@ export const useContractsBulkRenew = ({ contracts, fiscalYearId, createContractA
         const newEnd = new Date(newStart.getTime() + durationMs);
         const startDate = newStart.toISOString().split('T')[0];
         const endDate = newEnd.toISOString().split('T')[0];
-        const num = contract.contract_number;
-        const match = num.match(/-R(\d+)$/);
-        const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]!) + 1}`) : `${num}-R1`;
+        const newNumber = nextRenewalNumber(contract.contract_number, usedNumbers);
+        usedNumbers.push(newNumber);
         const paymentCount = contract.payment_type === 'monthly' ? 12 : contract.payment_type === 'quarterly' ? 4 : contract.payment_type === 'semi_annual' ? 2 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
         const paymentAmount = safeNumber(contract.rent_amount) / paymentCount;
         const newContract: Record<string, unknown> = {
