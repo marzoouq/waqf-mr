@@ -1,3 +1,4 @@
+import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
@@ -93,7 +94,7 @@ export const generateAnnualDisclosurePDF = async (
     ...baseTableStyles(fontFamily),
   });
 
-  let y = getLastAutoTableY(doc, 138) + 12;
+  let y = startSectionPage(doc, startY, getLastAutoTableY(doc, 138) + 12);
 
   // 2. Income by source
   doc.setFont(fontFamily, 'bold');
@@ -110,7 +111,7 @@ export const generateAnnualDisclosurePDF = async (
     ...baseTableStyles(fontFamily),
   });
 
-  y = getLastAutoTableY(doc, 188) + 12;
+  y = startSectionPage(doc, startY, getLastAutoTableY(doc, 188) + 12);
 
   // 3. Expenses by type
   doc.setFont(fontFamily, 'bold');
@@ -126,7 +127,7 @@ export const generateAnnualDisclosurePDF = async (
     ...baseTableStyles(fontFamily),
   });
 
-  y = getLastAutoTableY(doc, 238) + 12;
+  y = startSectionPage(doc, startY, getLastAutoTableY(doc, 238) + 12);
 
   // 4. Beneficiary distributions
   const totalBenPct = data.beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
