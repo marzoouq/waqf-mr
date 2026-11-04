@@ -62,7 +62,7 @@ const PropertyFormDialog = ({
           <NativeSelect
             id="property-type"
             value={isCustomType ? OTHER_TYPE : formData.property_type}
-            onValueChange={(v) => setFormData({ ...formData, property_type: v === OTHER_TYPE ? '' : v })}
+            onValueChange={handleTypeChange}
             placeholder="اختر نوع العقار"
             options={[...PROPERTY_TYPES.map(t => ({ value: t, label: t })), { value: OTHER_TYPE, label: 'أخرى (اكتب النوع)' }]}
           />
@@ -87,6 +87,7 @@ const PropertyFormDialog = ({
       </form>
     </DialogContent>
   </Dialog>
-);
+  );
+};
 
 export default PropertyFormDialog;
