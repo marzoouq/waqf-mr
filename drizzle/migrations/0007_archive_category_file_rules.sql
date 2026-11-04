@@ -1,4 +1,4 @@
-CREATE TABLE public.file_category_rules (
+CREATE TABLE IF NOT EXISTS public.file_category_rules (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   bucket_id text NOT NULL DEFAULT 'waqf-documents',
   category text NOT NULL,
@@ -15,6 +15,7 @@ CREATE TABLE public.file_category_rules (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.file_category_rules TO authenticated;
 GRANT ALL ON public.file_category_rules TO service_role;
 ALTER TABLE public.file_category_rules ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admin manages category rules" ON public.file_category_rules;
 CREATE POLICY "Admin manages category rules" ON public.file_category_rules FOR ALL TO authenticated
   USING (public.has_role(auth.uid(), 'admin'::app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::app_role));
 

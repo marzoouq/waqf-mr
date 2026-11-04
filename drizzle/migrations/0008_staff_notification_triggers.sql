@@ -17,6 +17,7 @@ EXCEPTION WHEN OTHERS THEN RETURN NEW;
 END $$;
 REVOKE ALL ON FUNCTION public.trg_notify_staff_ticket_fn() FROM PUBLIC, anon, authenticated;
 
+DROP TRIGGER IF EXISTS trg_notify_staff_ticket ON public.support_tickets;
 CREATE TRIGGER trg_notify_staff_ticket
   AFTER INSERT ON public.support_tickets
   FOR EACH ROW EXECUTE FUNCTION public.trg_notify_staff_ticket_fn();
@@ -38,6 +39,7 @@ EXCEPTION WHEN OTHERS THEN RETURN NEW;
 END $$;
 REVOKE ALL ON FUNCTION public.trg_notify_staff_reply_fn() FROM PUBLIC, anon, authenticated;
 
+DROP TRIGGER IF EXISTS trg_notify_staff_reply ON public.support_ticket_replies;
 CREATE TRIGGER trg_notify_staff_reply
   AFTER INSERT ON public.support_ticket_replies
   FOR EACH ROW EXECUTE FUNCTION public.trg_notify_staff_reply_fn();
@@ -70,11 +72,13 @@ EXCEPTION WHEN OTHERS THEN RETURN NEW;
 END $$;
 REVOKE ALL ON FUNCTION public.trg_notify_message_fn() FROM PUBLIC, anon, authenticated;
 
+DROP TRIGGER IF EXISTS trg_notify_message ON public.messages;
 CREATE TRIGGER trg_notify_message
   AFTER INSERT ON public.messages
   FOR EACH ROW EXECUTE FUNCTION public.trg_notify_message_fn();
 
 -- المشارك يستطيع تحديث وقت النشاط فقط
+DROP POLICY IF EXISTS "Participants can touch conversations" ON public.conversations;
 CREATE POLICY "Participants can touch conversations" ON public.conversations
   FOR UPDATE TO authenticated
   USING (participant_id IS NOT NULL AND auth.uid() = participant_id)
@@ -94,6 +98,7 @@ BEGIN
   RETURN NEW;
 END $$;
 
+DROP TRIGGER IF EXISTS trg_guard_participant_conversation_update ON public.conversations;
 CREATE TRIGGER trg_guard_participant_conversation_update
   BEFORE UPDATE ON public.conversations
   FOR EACH ROW EXECUTE FUNCTION public.guard_participant_conversation_update();

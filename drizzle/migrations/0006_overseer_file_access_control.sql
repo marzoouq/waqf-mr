@@ -1,4 +1,4 @@
-CREATE TABLE public.file_access_rules (
+CREATE TABLE IF NOT EXISTS public.file_access_rules (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   bucket_id text NOT NULL,
   role public.app_role NOT NULL,
@@ -14,10 +14,11 @@ CREATE TABLE public.file_access_rules (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.file_access_rules TO authenticated;
 GRANT ALL ON public.file_access_rules TO service_role;
 ALTER TABLE public.file_access_rules ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admin manages file rules" ON public.file_access_rules;
 CREATE POLICY "Admin manages file rules" ON public.file_access_rules FOR ALL TO authenticated
   USING (public.has_role(auth.uid(), 'admin'::app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::app_role));
 
-CREATE TABLE public.file_access_grants (
+CREATE TABLE IF NOT EXISTS public.file_access_grants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   bucket_id text NOT NULL,
   object_path text NOT NULL,
@@ -29,10 +30,11 @@ CREATE TABLE public.file_access_grants (
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (bucket_id, object_path, user_id)
 );
-CREATE INDEX file_access_grants_lookup ON public.file_access_grants (bucket_id, object_path, user_id);
+CREATE INDEX IF NOT EXISTS file_access_grants_lookup ON public.file_access_grants (bucket_id, object_path, user_id);
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.file_access_grants TO authenticated;
 GRANT ALL ON public.file_access_grants TO service_role;
 ALTER TABLE public.file_access_grants ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admin manages file grants" ON public.file_access_grants;
 CREATE POLICY "Admin manages file grants" ON public.file_access_grants FOR ALL TO authenticated
   USING (public.has_role(auth.uid(), 'admin'::app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::app_role));
 
@@ -51,7 +53,8 @@ INSERT INTO public.file_access_rules (bucket_id, role, can_read, can_download, c
   ('waqf-documents','accountant', true, true, false, false),
   ('waqf-documents','beneficiary', true, true, false, false),
   ('waqf-documents','waqif', true, true, false, false),
-  ('waqf-assets','accountant', true, true, false, false);
+  ('waqf-assets','accountant', true, true, false, false)
+ON CONFLICT DO NOTHING;
 
 -- قرار الوصول المركزي: الناظر دائماً؛ الحجب الفردي يغلب؛ ثم الإذن الفردي؛ ثم قاعدة الدور + شروط الحزمة؛ وإلا رفض
 CREATE OR REPLACE FUNCTION public.can_access_file(_user_id uuid, _bucket text, _path text, _action text)
@@ -132,16 +135,20 @@ DO $$ DECLARE p record; BEGIN
 END $$;
 
 -- سياسات موحّدة: كل عملية تمر عبر قرار الناظر (لا قراءة مباشرة للفواتير)
+DROP POLICY IF EXISTS "fac_select" ON storage.objects;
 CREATE POLICY "fac_select" ON storage.objects FOR SELECT TO authenticated
   USING (bucket_id IN ('disbursement-vouchers','waqf-documents','waqf-assets')
          AND public.can_access_file(auth.uid(), bucket_id, name, 'read'));
+DROP POLICY IF EXISTS "fac_insert" ON storage.objects;
 CREATE POLICY "fac_insert" ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id IN ('invoices','disbursement-vouchers','waqf-documents','waqf-assets')
          AND public.can_access_file(auth.uid(), bucket_id, name, 'upload'));
+DROP POLICY IF EXISTS "fac_update" ON storage.objects;
 CREATE POLICY "fac_update" ON storage.objects FOR UPDATE TO authenticated
   USING (bucket_id IN ('invoices','disbursement-vouchers','waqf-documents','waqf-assets')
          AND public.can_access_file(auth.uid(), bucket_id, name, 'upload'))
   WITH CHECK (public.can_access_file(auth.uid(), bucket_id, name, 'upload'));
+DROP POLICY IF EXISTS "fac_delete" ON storage.objects;
 CREATE POLICY "fac_delete" ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id IN ('invoices','disbursement-vouchers','waqf-documents','waqf-assets')
          AND public.can_access_file(auth.uid(), bucket_id, name, 'delete'));

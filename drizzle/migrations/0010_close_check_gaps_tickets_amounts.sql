@@ -1,4 +1,5 @@
 DROP POLICY IF EXISTS "Users can create tickets" ON public.support_tickets;
+DROP POLICY IF EXISTS "Users can create tickets" ON public.support_tickets;
 CREATE POLICY "Users can create tickets" ON public.support_tickets FOR INSERT TO authenticated
 WITH CHECK (auth.uid() = created_by AND status = 'open' AND assigned_to IS NULL);
 
@@ -26,5 +27,7 @@ BEGIN
 END;
 $$;
 
+ALTER TABLE public.income DROP CONSTRAINT IF EXISTS income_amount_non_negative;
 ALTER TABLE public.income ADD CONSTRAINT income_amount_non_negative CHECK (amount >= 0);
+ALTER TABLE public.expenses DROP CONSTRAINT IF EXISTS expenses_amount_non_negative;
 ALTER TABLE public.expenses ADD CONSTRAINT expenses_amount_non_negative CHECK (amount >= 0);
