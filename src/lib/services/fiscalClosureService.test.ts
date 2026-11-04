@@ -5,6 +5,7 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: { from: mocks.from 
 import { fetchClosureDisclosure } from '@/lib/services/fiscalClosureService';
 
 beforeEach(() => {
+  mocks.from.mockClear();
   mocks.year = { status: 'closed' };
   mocks.summary = { overdue_count: 2, overdue_amount: 2000, upcoming_count: 16, upcoming_amount: 20200 };
   mocks.from.mockImplementation((table: string) => {
