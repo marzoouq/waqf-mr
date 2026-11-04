@@ -156,9 +156,9 @@ export async function renderVoucherPdf(v: VoucherData, waqf: WaqfHeader = { name
   }
   text(waqf.name || "وقف مرزوق بن علي الثبيتي", R, 62, 17, "bold", accent);
   let hy = 82;
-  if (waqf.deed_number) { labelValue("صك الوقف رقم:", waqf.deed_number, R, hy, 10); hy += 15; }
-  if (waqf.court) { labelValue("جهة التوثيق:", waqf.court, R, hy, 10); hy += 15; }
-  if (waqf.vat_number) { labelValue("الرقم الضريبي:", waqf.vat_number, R, hy, 10); hy += 15; }
+  if (waqf.deed_number) { labelValue("صك الوقف رقم", waqf.deed_number, R, hy, 10); hy += 15; }
+  if (waqf.court) { labelValue("جهة التوثيق", waqf.court, R, hy, 10); hy += 15; }
+  if (waqf.vat_number) { labelValue("الرقم الضريبي", waqf.vat_number, R, hy, 10); hy += 15; }
   headerBottom = Math.max(headerBottom, hy + 4);
   drawLine(doc, H, L, H - headerBottom, R, H - headerBottom, gold, 1.2);
 
@@ -168,9 +168,13 @@ export async function renderVoucherPdf(v: VoucherData, waqf: WaqfHeader = { name
   y += 26;
   const issued = (v.approved_at || v.created_at || "").slice(0, 10);
   const dates = formatHijriGregorian(issued);
-  labelValue("رقم السند:", v.voucher_number, R, y);
-  text(`${dates.hijri}  -  ${dates.gregorian} م`, L, y, 11, "normal", ink, "left");
-  text("التاريخ:", L + 190, y, 11, "bold", muted, "left");
+  labelValue("رقم السند", v.voucher_number, R, y);
+  // التاريخ: هجري ثم ميلادي، كل جزء مرسوم منفصلاً لضبط الاتجاه
+  text("م", L, y, 11, "normal", ink, "left");
+  text(dates.gregorian, L + 12, y, 11, "normal", ink, "left");
+  text("هـ", L + 82, y, 11, "normal", ink, "left");
+  text(dates.hijri.replace(/\s*هـ$/, ""), L + 98, y, 11, "normal", ink, "left");
+  text("التاريخ", L + 160, y, 11, "bold", muted, "left");
   y += 18;
 
   // ── جدول البيانات ──
@@ -179,7 +183,7 @@ export async function renderVoucherPdf(v: VoucherData, waqf: WaqfHeader = { name
   ];
   if (v.recipient_id_number) rows.push(["رقم الهوية", v.recipient_id_number]);
   if (v.recipient_phone) rows.push(["الجوال", v.recipient_phone]);
-  rows.push(["مبلغاً وقدره", `${fmtAmount(v.amount)} ريال سعودي`]);
+  rows.push(["المبلغ (ريال سعودي)", fmtAmount(v.amount)]);
   rows.push(["المبلغ كتابةً", amountToArabicWords(v.amount)]);
   rows.push(["طريقة الصرف", PAYMENT_AR[v.payment_method] || v.payment_method]);
   if (v.transfer_reference) rows.push(["رقم المرجع", v.transfer_reference]);
@@ -189,13 +193,14 @@ export async function renderVoucherPdf(v: VoucherData, waqf: WaqfHeader = { name
   doc.setLineWidth(0.5);
   doc.setDrawColor(accent[0], accent[1], accent[2]);
   for (const [label, value] of rows) {
+    const lines = wrapArabic(value, 60).slice(0, 3);
+    const h = Math.max(rowH, 10 + lines.length * 16);
     setFill(doc, [244, 239, 226]);
-    doc.rect(R - labelW, y, labelW, rowH, "FD");
-    doc.rect(L, y, R - labelW - L, rowH, "S");
+    doc.rect(R - labelW, y, labelW, h, "FD");
+    doc.rect(L, y, R - labelW - L, h, "S");
     text(label, R - 8, y + 17, 11, "bold", accent);
-    const lines = wrapArabic(value, 62);
-    text(lines[0] ?? "", R - labelW - 8, y + 17, 11, "normal", ink);
-    y += rowH;
+    lines.forEach((line, i) => text(line, R - labelW - 8, y + 17 + i * 16, 11, "normal", ink));
+    y += h;
   }
 
   // ── وذلك عن: الأعمال المنفذة ──
@@ -226,7 +231,7 @@ export async function renderVoucherPdf(v: VoucherData, waqf: WaqfHeader = { name
   doc.line(W / 2 - 60, sigY + 62, W / 2 + 60, sigY + 62);
   doc.line(L, sigY + 62, L + 160, sigY + 62);
   doc.setLineDashPattern([], 0);
-  drawStamp(doc, L + 80, sigY + 38, 46, accent, text, waqf.name, v.voucher_number, dates.gregorian);
+  drawStamp(doc, L + 80, sigY + 70, 46, accent, text, waqf.name, v.voucher_number, dates.gregorian);
 
   // ── تذييل ──
   setFill(doc, [247, 242, 224]);
