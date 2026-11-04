@@ -17,6 +17,12 @@ describe('أساس التوزيع', () => {
     expect(r.base).toBe(500_000);
     expect(r.exceeds).toBe(true);
   });
+  it('المقرر 500,000 يُوزَّع 500,000 ويبقى 884,986.63', () => {
+    const r = computeDistributionBase(1_384_986.63, 500_000);
+    expect(r.base).toBe(500_000);
+    expect(r.remaining).toBe(884_986.63);
+    expect(shareOf(r.base, 10.294, 100)).toBeCloseTo(51_470, 0);
+  });
   it('بدون مقرر يُوزَّع المتاح كاملاً', () => {
     expect(computeDistributionBase(995_000.78, 0).base).toBe(995_000.78);
   });

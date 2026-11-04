@@ -43,6 +43,7 @@ export function useDistributionsPage() {
 
     // أرقام مالية
     availableAmount: acc.availableAmount,
+    distributionBase: distBase.base,
     waqfRevenue: acc.waqfRevenue,
     adminShare: acc.adminShare,
     waqifShare: acc.waqifShare,
