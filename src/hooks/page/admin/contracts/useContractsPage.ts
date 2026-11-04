@@ -132,7 +132,9 @@ export const useContractsPage = () => {
     isOpen: form.isOpen, setIsOpen: form.setIsOpen, editingContract: form.editingContract,
     deleteTarget: form.deleteTarget, setDeleteTarget: form.setDeleteTarget,
     formInitialData: form.formInitialData,
-    resetForm: form.resetForm, handleRenew: form.handleRenew, handleEdit: form.handleEdit,
+    resetForm: form.resetForm,
+    handleRenew: (c: Contract) => form.handleRenew(c, contracts.map(x => x.contract_number)),
+    handleEdit: form.handleEdit,
     handleFormSubmit: form.handleFormSubmit, handleConfirmDelete: form.handleConfirmDelete,
     // Batch 2E — تأكيدات AlertDialog
     regenConfirmTarget: form.regenConfirmTarget,
