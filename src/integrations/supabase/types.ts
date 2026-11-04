@@ -1842,6 +1842,45 @@ export type Database = {
         }
         Relationships: []
       }
+      official_letters: {
+        Row: {
+          body: string
+          created_at: string
+          doc_number: string | null
+          id: string
+          issued_by: string | null
+          letter_type: string
+          recipient: string
+          status: string
+          subject: string
+          verification_code: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          doc_number?: string | null
+          id?: string
+          issued_by?: string | null
+          letter_type: string
+          recipient: string
+          status?: string
+          subject: string
+          verification_code?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          doc_number?: string | null
+          id?: string
+          issued_by?: string | null
+          letter_type?: string
+          recipient?: string
+          status?: string
+          subject?: string
+          verification_code?: string | null
+        }
+        Relationships: []
+      }
       payment_invoices: {
         Row: {
           amount: number
@@ -2783,6 +2822,10 @@ export type Database = {
         Args: { p_fiscal_year_id: string }
         Returns: undefined
       }
+      audit_reconciliation: {
+        Args: { p_fiscal_year_id: string }
+        Returns: Json
+      }
       can_access_file: {
         Args: {
           _action: string
@@ -3174,6 +3217,10 @@ export type Database = {
       }
       void_disbursement_voucher: {
         Args: { p_reason: string; p_voucher_id: string }
+        Returns: undefined
+      }
+      void_official_letter: {
+        Args: { p_letter_id: string }
         Returns: undefined
       }
       void_receipt_voucher: {
