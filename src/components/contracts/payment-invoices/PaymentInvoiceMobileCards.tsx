@@ -9,6 +9,7 @@ import { fmt } from '@/utils/format/format';
 import type { PaymentInvoice } from '@/types';
 import { PaymentStatusBadge } from './paymentStatusBadge';
 import { ReceiptVoucherButton } from './ReceiptVoucherButton';
+import { InvoiceAgeLabel } from '@/components/invoices/InvoiceAgeLabel';
 
 interface PaymentInvoiceMobileCardsProps {
   groupedPaginated: Map<string, PaymentInvoice[]>;
@@ -51,6 +52,7 @@ export default function PaymentInvoiceMobileCards({
                     </div>
                     <PaymentStatusBadge status={inv.status} />
                   </div>
+                  <InvoiceAgeLabel invoice={inv} />
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div><span className="text-muted-foreground text-xs">تاريخ الاستحقاق</span><p className="font-medium">{inv.due_date}</p></div>
                     <div><span className="text-muted-foreground text-xs">المبلغ</span><p className="font-medium">{fmt(Number(inv.amount))} ر.س</p></div>

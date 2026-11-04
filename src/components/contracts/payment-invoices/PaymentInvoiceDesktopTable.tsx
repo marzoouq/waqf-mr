@@ -14,6 +14,7 @@ import type { SortKey } from '@/hooks/page/admin/financial/usePaymentInvoicesTab
 import type { PaymentInvoice } from '@/types';
 import { PaymentStatusBadge } from './paymentStatusBadge';
 import { ReceiptVoucherButton } from './ReceiptVoucherButton';
+import { InvoiceAgeLabel } from '@/components/invoices/InvoiceAgeLabel';
 
 interface PaymentInvoiceDesktopTableProps {
   groupedPaginated: Map<string, PaymentInvoice[]>;
@@ -95,9 +96,7 @@ export default function PaymentInvoiceDesktopTable({
                     )}
                     <TableCell className="font-medium font-mono text-xs">
                       {inv.invoice_number}
-                      {inv.origin_fiscal_year_id && inv.status !== 'paid' && (
-                        <span className="block mt-1 text-[10px] font-sans text-warning">متأخرة من السنة السابقة</span>
-                      )}
+                      <InvoiceAgeLabel invoice={inv} />
                     </TableCell>
                     <TableCell>{inv.contract?.tenant_name || '-'}</TableCell>
                     <TableCell>{inv.contract?.property?.property_number || '-'}</TableCell>
