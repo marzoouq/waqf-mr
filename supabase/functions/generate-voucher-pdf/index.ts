@@ -17,6 +17,7 @@ const RequestSchema = z.object({
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const PUBLIC_SITE_URL = (Deno.env.get("PUBLIC_SITE_URL") || "https://waqf-wise.net").replace(/\/+$/, "");
 
 Deno.serve(async (req): Promise<Response> => {
   const corsHeaders = getCorsHeaders(req);
@@ -75,7 +76,18 @@ Deno.serve(async (req): Promise<Response> => {
       .in("key", ["waqf_name", "waqf_deed_number", "waqf_court", "vat_registration_number", "waqf_logo_url"]);
     const s = Object.fromEntries((settingRows ?? []).map((r: { key: string; value: unknown }) => [r.key, typeof r.value === "string" ? r.value : String(r.value ?? "")]));
 
+    // تسجيل السند في سجل الوثائق الرسمية (مرة واحدة لكل سند) للحصول على رمز التحقق
+    const { data: issued } = await userClient.rpc("issue_document", {
+      p_doc_type: "disbursement_voucher",
+      p_fiscal_year_id: voucher.fiscal_year_id,
+      p_source_id: voucher.id,
+      p_doc_number: voucher.voucher_number,
+    });
+    const verifyCode = Array.isArray(issued) ? issued[0]?.verification_code : null;
+    const verifyUrl = verifyCode ? `${PUBLIC_SITE_URL}/verify/document/${verifyCode}` : null;
+
     const pdfBytes = await renderVoucherPdf({
+      verify_url: verifyUrl,
       voucher_number: voucher.voucher_number,
       recipient_name: voucher.recipient_name,
       recipient_id_number: voucher.recipient_id_number,
