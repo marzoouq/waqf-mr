@@ -8,8 +8,11 @@ import { Eye, FileText } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format/format';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from '@/hooks/data/invoices/useInvoices';
+import { InvoiceAgeLabel } from '@/components/invoices/InvoiceAgeLabel';
 
 interface InvoiceItem {
+  origin_fiscal_year_id?: string | null;
+  collection_status?: string | null;
   id: string;
   invoice_type: string;
   invoice_number: string | null;
@@ -59,6 +62,7 @@ export default function InvoicesViewMobileCards({ invoices, statusBadgeVariant, 
             {item.invoice_number && (
               <p className="text-xs text-muted-foreground font-mono">{item.invoice_number}</p>
             )}
+            {item.source === 'rent' && <InvoiceAgeLabel invoice={item} />}
             <div className="flex items-center justify-between text-sm">
               <span className="font-semibold text-primary">{fmt(safeNumber(item.amount))} ر.س</span>
               <span className="text-xs text-muted-foreground">{fmtDate(item.date)}</span>

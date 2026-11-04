@@ -90,7 +90,7 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
     else { setSortKey(key); setSortDir('asc'); }
   };
 
-  const unpaidFiltered = useMemo(() => sorted.filter(i => i.status !== 'paid'), [sorted]);
+  const unpaidFiltered = useMemo(() => sorted.filter(i => i.status !== 'paid' && i.collection_status !== 'uncollectible'), [sorted]);
 
   const buildPaymentPreviewData = (inv: PaymentInvoice): InvoicePreviewData => {
     const fullContract = contracts.find(c => c.id === inv.contract_id);

@@ -4,8 +4,9 @@
  */
 import type { PaymentInvoice } from '@/types';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { invoiceRemaining } from '@/utils/financial/collection/invoiceAge';
 
-export type InvoiceFilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';
+export type InvoiceFilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid' | 'uncollectible';
 export type SortKey = 'due_date' | 'amount' | 'status' | 'payment_number';
 export type SortDir = 'asc' | 'desc';
 
@@ -26,14 +27,14 @@ export interface PaymentInvoicesSummary {
 export function summarizePaymentInvoices(invoices: PaymentInvoice[]): PaymentInvoicesSummary {
   const total = invoices.length;
   const paid = invoices.filter(i => i.status === 'paid').length;
-  const overdue = invoices.filter(i => i.status === 'overdue').length;
+  const overdue = invoices.filter(i => i.status === 'overdue' && i.collection_status !== 'uncollectible').length;
   const pending = invoices.filter(i => i.status === 'pending').length;
   const partiallyPaid = invoices.filter(i => i.status === 'partially_paid').length;
   const totalAmount = invoices.reduce((s, i) => s + safeNumber(i.amount), 0);
   const paidAmount = invoices
     .filter(i => i.status === 'paid' || i.status === 'partially_paid')
     .reduce((s, i) => s + safeNumber(i.paid_amount ?? (i.status === 'paid' ? i.amount : 0)), 0);
-  const overdueAmount = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + safeNumber(i.amount), 0);
+  const overdueAmount = invoices.filter(i => i.status === 'overdue' && i.collection_status !== 'uncollectible').reduce((s, i) => s + invoiceRemaining(safeNumber(i.amount), safeNumber(i.paid_amount), i.status), 0);
   const collectionRate = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
   return { total, paid, overdue, pending, partiallyPaid, totalAmount, paidAmount, overdueAmount, collectionRate };
 }
@@ -45,7 +46,7 @@ export function filterPaymentInvoices(
   dateFrom: string,
   dateTo: string,
 ): PaymentInvoice[] {
-  let result = invoices;
+  let result = filter === 'uncollectible' ? invoices.filter(i => i.collection_status === 'uncollectible') : filter === 'all' ? invoices : invoices.filter(i => i.collection_status !== 'uncollectible');
   if (filter === 'paid') result = result.filter(i => i.status === 'paid');
   else if (filter === 'overdue') result = result.filter(i => i.status === 'overdue');
   else if (filter === 'pending') result = result.filter(i => i.status === 'pending');
@@ -88,7 +89,7 @@ export function groupByContract(invoices: PaymentInvoice[]): Map<string, Payment
   for (const inv of invoices) {
     const key = inv.contract_id;
     if (!grouped.has(key)) grouped.set(key, []);
-    grouped.get(key)!.push(inv);
+    grouped.get(key)?.push(inv);
   }
   return grouped;
 }

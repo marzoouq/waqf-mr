@@ -37,6 +37,8 @@ export interface PaymentInvoice {
   fiscal_year_id: string | null;
   /** السنة التي كانت الفاتورة متأخرة فيها قبل ترحيلها عند الإقفال */
   origin_fiscal_year_id?: string | null;
+  collection_status?: 'collectible' | 'uncollectible';
+  collection_reason?: string | null;
   invoice_number: string;
   payment_number: number;
   due_date: string;
@@ -75,6 +77,8 @@ export type InvoiceSourceFilter = 'all' | 'purchase' | 'rent';
 
 /** صف فاتورة موحّد يدمج invoices + payment_invoices للعرض المشترك */
 export interface UnifiedInvoiceItem {
+  origin_fiscal_year_id?: string | null;
+  collection_status?: string | null;
   id: string;
   invoice_type: string;
   invoice_number: string | null;

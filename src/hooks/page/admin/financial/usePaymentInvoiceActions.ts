@@ -7,6 +7,7 @@
  */
 import { useState, useCallback, useMemo } from 'react';
 import { uiNotify } from '@/lib/notify';
+import { invoiceRemaining } from '@/utils/financial/collection/invoiceAge';
 import {
   type PaymentInvoice,
   useMarkInvoicePaid,
@@ -37,8 +38,9 @@ export function usePaymentInvoiceActions() {
   );
 
   const openPayDialog = (inv: PaymentInvoice) => {
+    if (inv.collection_status === 'uncollectible') { uiNotify.error('الفاتورة غير قابلة للتحصيل'); return; }
     setPayDialog({ inv });
-    setPayAmount(String(inv.amount ?? 0));
+    setPayAmount(String(invoiceRemaining(Number(inv.amount), Number(inv.paid_amount), inv.status)));
   };
 
   const handlePay = () => {
@@ -46,6 +48,7 @@ export function usePaymentInvoiceActions() {
     const amount = parseFloat(payAmount);
     if (!(amount > 0)) { uiNotify.error('يرجى إدخال مبلغ صحيح'); return; }
     const inv = payDialog.inv;
+    if (amount > invoiceRemaining(Number(inv.amount), Number(inv.paid_amount), inv.status)) { uiNotify.error('مبلغ السداد يتجاوز المتبقي'); return; }
     setPayingInvoiceId(inv.id);
     setPayDialog(null);
     markPaidRaw.mutate(

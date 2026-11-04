@@ -9,6 +9,8 @@ import type { InvoiceSourceFilter, UnifiedInvoiceItem } from '@/types/invoices';
 import { safeNumber } from '@/utils/format/safeNumber';
 
 interface RentInvoiceLike {
+  origin_fiscal_year_id?: string | null;
+  collection_status?: string | null;
   id: string;
   invoice_number: string | null;
   amount: number | string | null;
@@ -42,6 +44,8 @@ export const useUnifiedInvoices = (
       source: 'purchase',
     }));
     const rentItems: UnifiedInvoiceItem[] = rentInvoices.map((inv) => ({
+      origin_fiscal_year_id: inv.origin_fiscal_year_id,
+      collection_status: inv.collection_status,
       id: inv.id,
       invoice_type: 'rent_invoice',
       invoice_number: inv.invoice_number || null,

@@ -8,8 +8,11 @@ import { Eye, FileText } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format/format';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from '@/hooks/data/invoices/useInvoices';
+import { InvoiceAgeLabel } from '@/components/invoices/InvoiceAgeLabel';
 
 interface InvoiceItem {
+  origin_fiscal_year_id?: string | null;
+  collection_status?: string | null;
   id: string;
   invoice_type: string;
   invoice_number: string | null;
@@ -65,7 +68,7 @@ export default function InvoicesViewDesktopTable({ invoices, statusBadgeVariant,
               <TableCell className="font-medium">
                 {item.source === 'rent' ? 'فاتورة إيجار' : (INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type)}
               </TableCell>
-              <TableCell className="font-mono text-xs">{item.invoice_number || '-'}</TableCell>
+              <TableCell className="font-mono text-xs">{item.invoice_number || '-'}{item.source === 'rent' && <InvoiceAgeLabel invoice={item} />}</TableCell>
               <TableCell className="font-medium">{fmt(safeNumber(item.amount))} ر.س</TableCell>
               <TableCell>{fmtDate(item.date)}</TableCell>
               <TableCell>{item.property?.property_number || '-'}</TableCell>
