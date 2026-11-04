@@ -113,6 +113,13 @@
       "when": 1793801678686,
       "tag": "0015_income_date_from_invoice_due_date",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793809006912,
+      "tag": "0016_receipt_vouchers",
+      "breakpoints": true
     }
   ]
 }
