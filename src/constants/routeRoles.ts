@@ -32,6 +32,7 @@ export const ROUTE_ROLES: Record<string, readonly AppRole[]> = {
   '/dashboard/support': ['admin', 'accountant'],
   '/dashboard/annual-report': ['admin', 'accountant'],
   '/dashboard/chart-of-accounts': ['admin', 'accountant'],
+  '/dashboard/audit-tree': ['admin', 'accountant'],
 
   // ─── Admin only — 8 مسار ───
   '/dashboard/users': ['admin'],
@@ -40,6 +41,7 @@ export const ROUTE_ROLES: Record<string, readonly AppRole[]> = {
   '/dashboard/comparison': ['admin'],
   '/dashboard/diagnostics': ['admin'],
   '/dashboard/email-monitor': ['admin'],
+  '/dashboard/official-letters': ['admin'],
   '/dashboard/audit-report-final': ['admin'],
   '/dashboard/cleanup-report': ['admin'],
 

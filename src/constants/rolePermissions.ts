@@ -14,10 +14,11 @@ export const DEFAULT_ROLE_PERMS: RolePerms = {
     distributions: true,
     // الأرشيف متاح للمحاسب (وثائق تشغيلية مرجعية)
     archive: true,
+    audit_tree: true,
     // P0/A2: مسارات إدارية محظورة افتراضياً على المحاسب (Fail-Closed)
     // الأمن يعتمد الآن على مفاتيح صلاحيات صريحة بدلاً من ACCOUNTANT_EXCLUDED_ROUTES فقط
     users: false, settings: false, zatca: false, comparison: false,
-    diagnostics: false, email_monitor: false,
+    diagnostics: false, email_monitor: false, official_letters: false,
     audit_report_final: false, cleanup_report: false,
   },
   // P0: استبدلنا مفتاح `reports` legacy بمفاتيح متطابقة مع routeRegistry:

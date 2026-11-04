@@ -64,6 +64,8 @@ const ADMIN_ROUTE_ICONS: Record<string, typeof Home> = {
   '/dashboard/comparison': GitCompareArrows,
   '/dashboard/diagnostics': Activity,
   '/dashboard/email-monitor': Mail,
+  '/dashboard/audit-tree': GitBranch,
+  '/dashboard/official-letters': ClipboardList,
 };
 
 /** مسارات مسجَّلة في ADMIN_ROUTES لكنها مُخفاة من القائمة الجانبية عمدًا.
@@ -133,6 +135,8 @@ export const ADMIN_ROUTE_GROUPS: Record<string, AdminGroupKey> = {
   '/dashboard/reports': 'finance',
   '/dashboard/chart-of-accounts': 'finance',
   '/dashboard/comparison': 'finance',
+  '/dashboard/audit-tree': 'finance',
+  '/dashboard/official-letters': 'administration',
   // P1/C2: نُقل التقرير السنوي من `reference` إلى `finance` لأنه وثيقة مالية بالكامل
   '/dashboard/annual-report': 'finance',
   '/dashboard/bylaws': 'reference',
@@ -203,7 +207,7 @@ export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = buildPermKeys
 // ─── Routes accountant can never access ───
 // P1: audit-report-final + cleanup-report لم يعودا في `allAdminLinks`، فلا حاجة لإدراجهما هنا.
 // نُبقي الباقي كطبقة حماية بجانب defaults الصلاحيات (P0/A2).
-export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/dashboard/email-monitor', '/dashboard/comparison', '/beneficiary'];
+export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/dashboard/email-monitor', '/dashboard/official-letters', '/dashboard/comparison', '/beneficiary'];
 
 // ─── Section visibility defaults (مشتقة من sections.ts — مصدر واحد للحقيقة #16/#17) ───
 export const defaultAdminSections: Record<string, boolean> = makeDefaults(ADMIN_SECTION_KEYS);

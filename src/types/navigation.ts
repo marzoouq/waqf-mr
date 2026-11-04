@@ -26,6 +26,8 @@ export interface MenuLabels {
   comparison: string;
   diagnostics: string;
   email_monitor: string;
+  audit_tree: string;
+  official_letters: string;
   distributions: string;
   // P3/A4: تسميات قابلة للترجمة الديناميكية لصفحتي التقارير الجنائية
   audit_report_final: string;
@@ -56,6 +58,8 @@ export const defaultMenuLabels: MenuLabels = {
   comparison: 'المقارنة التاريخية',
   diagnostics: 'تشخيص النظام',
   email_monitor: 'مراقبة البريد',
+  audit_tree: 'شجرة التدقيق',
+  official_letters: 'الوثائق المعتمدة',
   distributions: 'توزيع الحصص',
   audit_report_final: 'تقرير التدقيق النهائي',
   cleanup_report: 'تقرير التنظيف',
