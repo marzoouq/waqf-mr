@@ -15,6 +15,8 @@ import {
   useGenerateContractInvoices,
   useDeleteContractPendingInvoices,
   fetchContractInvoiceSummary,
+  fetchFirstContractInvoiceId,
+  useMarkInvoicePaid,
 } from '@/hooks/data/invoices/usePaymentInvoices';
 import {
   notifyInvoicesGenerated,
@@ -38,6 +40,20 @@ export function useContractFormSubmit({ fiscalYearId, fiscalYears, editingContra
   const createContract = useCreateContract();
   const createContractAtomic = useCreateContractWithInvoices();
   const updateContract = useUpdateContract();
+  const markPaid = useMarkInvoicePaid();
+
+  // سداد الدفعة الأولى عبر المسار الموحّد (فاتورة + دخل ذرّياً)
+  const payFirstInvoice = async (contractId: string) => {
+    try {
+      const invoiceId = await fetchFirstContractInvoiceId(contractId);
+      if (!invoiceId) { uiNotify.error('لم تُعثر على الدفعة الأولى لتسديدها'); return; }
+      await markPaid.mutateAsync({ invoiceId });
+      uiNotify.success('تم تسديد الدفعة الأولى وتسجيل التحصيل');
+    } catch (err) {
+      logger.warn('First payment failed:', err instanceof Error ? err.message : String(err));
+      uiNotify.error('أُنشئ العقد لكن فشل تسديد الدفعة الأولى — سدّدها من بطاقة العقد');
+    }
+  };
   const upsertAllocations = useUpsertContractAllocations();
   const generateInvoices = useGenerateContractInvoices();
   const deletePendingInvoices = useDeleteContractPendingInvoices();
@@ -113,6 +129,7 @@ export function useContractFormSubmit({ fiscalYearId, fiscalYears, editingContra
         if (newIdMulti) {
           await syncAllocations(newIdMulti, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
         }
+        if (newIdMulti && formData.pay_first_now) await payFirstInvoice(newIdMulti);
         createdContracts++;
       }
       notifyContractsCreatedWithInvoices(formData.tenant_name, createdContracts, totalInvoices);
@@ -128,6 +145,7 @@ export function useContractFormSubmit({ fiscalYearId, fiscalYears, editingContra
       if (newIdSingle) {
         await syncAllocations(newIdSingle, { start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount, payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: rentAmount / paymentCount });
         notifyInvoicesGenerated(atomicResult.invoice_count);
+        if (formData.pay_first_now) await payFirstInvoice(newIdSingle);
       }
     }
   };

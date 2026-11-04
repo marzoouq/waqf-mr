@@ -9,6 +9,8 @@ import { TableSkeleton, TablePagination } from '@/components/common';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { useContractsContext } from '@/contexts/useContractsContext';
+import { usePaymentInvoiceActions } from '@/hooks/page/admin/financial/usePaymentInvoiceActions';
+import PayInvoiceDialog from './payment-invoices/PayInvoiceDialog';
 
 const ContractsTabContent: React.FC = () => {
   const {
@@ -23,9 +25,12 @@ const ContractsTabContent: React.FC = () => {
     setBulkRenewOpen, setFiscalYearId, setDeleteTarget, handleEdit, handleRenew,
     fiscalYearStartDate,
   } = useContractsContext();
+  // تسديد الدفعات مباشرة من بطاقة العقد — عبر المسار الموحّد (فاتورة + دخل)
+  const pay = usePaymentInvoiceActions();
 
   return (
     <div className="space-y-5">
+      <PayInvoiceDialog payDialog={pay.payDialog} setPayDialog={pay.setPayDialog} payAmount={pay.payAmount} setPayAmount={pay.setPayAmount} handlePay={pay.handlePay} />
       <ContractStatsCards stats={stats} isLoading={isLoading} revenueSource={stats.revenueSource} />
 
       {expiredContracts.length > 0 && (
@@ -97,7 +102,9 @@ const ContractsTabContent: React.FC = () => {
               invoicePaidMap={invoicePaidMap} expiredIds={expiredIds} selectedForRenewal={selectedForRenewal}
               onToggleSelection={toggleSelection} onEdit={handleEdit}
               onDelete={(c) => setDeleteTarget({ id: c.id, name: `العقد ${c.contract_number}` })}
-              onRenew={handleRenew} isClosed={isClosed && role !== 'admin'} open={expandedGroups.has(baseNumber)}
+              onRenew={handleRenew}
+              onPayInvoice={pay.openPayDialog} onUnpayInvoice={pay.markUnpaid.mutate} payingInvoiceId={pay.payingInvoiceId}
+              isClosed={isClosed && role !== 'admin'} open={expandedGroups.has(baseNumber)}
               onOpenChange={(isOpen) => {
                 setExpandedGroups(prev => {
                   const next = new Set(prev);
