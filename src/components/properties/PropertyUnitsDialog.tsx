@@ -31,7 +31,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
   return (
     <>
       <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent className="max-w-6xl w-[95vw] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl w-[95vw] max-h-[85dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
               <Building2 className="w-5 h-5" />

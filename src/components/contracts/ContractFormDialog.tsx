@@ -56,7 +56,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
 
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { handleClose(); } }}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader><DialogTitle>{editingContract ? 'تعديل العقد' : 'إضافة عقد جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل عقد إيجار</DialogDescription></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <h3 className="text-sm font-semibold text-primary border-b border-border pb-1">بيانات العقد والعقار</h3>

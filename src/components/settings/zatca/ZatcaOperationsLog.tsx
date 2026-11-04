@@ -84,7 +84,7 @@ const ZatcaOperationsLog = () => {
         </CardContent>
       </Card>
       <Dialog open={!!detailItem} onOpenChange={(open) => !open && setDetailItem(null)}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[80dvh] overflow-y-auto">
           <DialogHeader><DialogTitle>تفاصيل العملية</DialogTitle></DialogHeader>
           <pre className="text-xs bg-muted p-3 rounded-lg overflow-auto whitespace-pre-wrap font-mono" dir="ltr">{JSON.stringify(detailItem, null, 2)}</pre>
         </DialogContent>

@@ -89,7 +89,7 @@ const VoucherFormDialog: React.FC<VoucherFormDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); onOpenChange(o); }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle>سند صرف داخلي</DialogTitle>
           <DialogDescription>

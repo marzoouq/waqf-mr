@@ -54,7 +54,7 @@ const InvoiceUploadDialog = ({
     <DialogTrigger asChild>
       <Button className="gradient-primary gap-2" disabled={isLocked}><Plus className="w-4 h-4" /><span className="hidden sm:inline">رفع فاتورة</span></Button>
     </DialogTrigger>
-    <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+    <DialogContent className="max-w-md max-h-[90dvh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>{isEditing ? 'تعديل الفاتورة' : 'رفع فاتورة جديدة'}</DialogTitle>
         <DialogDescription className="sr-only">نموذج رفع أو تعديل فاتورة</DialogDescription>

@@ -63,7 +63,7 @@ export default function TicketDetailDialog({ ticket: initialTicket, onClose, isA
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col" dir="rtl">
+      <DialogContent className="max-w-2xl max-h-[85dvh] overflow-hidden flex flex-col" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><Headset className="w-5 h-5" />تذكرة: {ticket.ticket_number}</DialogTitle>
           <DialogDescription>{ticket.title}</DialogDescription>

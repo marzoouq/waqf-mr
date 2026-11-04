@@ -73,7 +73,7 @@ const ExpenseFormDialog = ({
       <DialogTrigger asChild>
         <Button className="gradient-primary gap-2" disabled={disabled}><Plus className="w-4 h-4" />إضافة مصروف</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'تعديل المصروف' : 'إضافة مصروف جديد'}</DialogTitle>
           <DialogDescription className="sr-only">نموذج إضافة أو تعديل مصروف مع إمكانية إرفاق فواتير</DialogDescription>

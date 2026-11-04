@@ -94,7 +94,7 @@ const WaqfInfoEditDialog: React.FC<WaqfInfoEditDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-lg max-h-[90dvh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle className="font-display text-lg">تعديل بيانات الوقف</DialogTitle>
           <DialogDescription className="sr-only">نموذج تعديل بيانات الوقف</DialogDescription>

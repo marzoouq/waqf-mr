@@ -80,7 +80,7 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col p-0">
+      <DialogContent className="max-w-4xl w-[95vw] h-[85dvh] flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-3 flex flex-row items-center justify-between gap-4 border-b">
           <div className="flex-1 min-w-0">
             <DialogTitle className="truncate">{fileName || 'عرض الملف'}</DialogTitle>
