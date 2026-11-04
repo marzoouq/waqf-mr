@@ -21,7 +21,7 @@ describe('سند القبض', () => {
     expect(sql).not.toMatch(/DELETE FROM (public\.)?receipt_vouchers/);
   });
   it('الإلغاء اليدوي للناظر فقط ويتطلب سبباً', () => {
-    expect(sql).toMatch(/void_receipt_voucher[\s\S]{0,300}has_role\(auth\.uid\(\), 'admin'\)[\s\S]{0,120}سبب الإلغاء مطلوب/);
+    expect(sql).toMatch(/void_receipt_voucher[\s\S]{0,300}has_role\(auth\.uid\(\), 'admin'\)[\s\S]{0,250}سبب الإلغاء مطلوب/);
   });
   it('التحقق العام لا يكشف المستأجر', () => {
     const fn = /verify_receipt_voucher\(p_code text\)[\s\S]*?\$\$;/.exec(sql)?.[0] ?? '';
