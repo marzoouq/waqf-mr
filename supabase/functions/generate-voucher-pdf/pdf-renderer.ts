@@ -183,7 +183,7 @@ export async function renderVoucherPdf(v: VoucherData, waqf: WaqfHeader = { name
   ];
   if (v.recipient_id_number) rows.push(["رقم الهوية", v.recipient_id_number]);
   if (v.recipient_phone) rows.push(["الجوال", v.recipient_phone]);
-  rows.push(["المبلغ (ريال سعودي)", fmtAmount(v.amount)]);
+  rows.push(["المبلغ بالريال", fmtAmount(v.amount)]);
   rows.push(["المبلغ كتابةً", amountToArabicWords(v.amount)]);
   rows.push(["طريقة الصرف", PAYMENT_AR[v.payment_method] || v.payment_method]);
   if (v.transfer_reference) rows.push(["رقم المرجع", v.transfer_reference]);
@@ -264,7 +264,7 @@ function drawStamp(doc: jsPDF, cx: number, cy: number, r: number, color: Rgb, te
   doc.circle(cx, cy, r - 17, "S");
   doc.setLineDashPattern([], 0);
   const n = (name || "وقف مرزوق بن علي الثبيتي").slice(0, 30);
-  text(n, cx, cy - r + 14, n.length > 22 ? 7 : 8, "bold", color, "center");
+  text(n, cx, cy - r + 13, n.length > 22 ? 5.5 : 7, "bold", color, "center");
   text("ختم الوقف", cx, cy + 1, 11, "bold", color, "center");
   text("ناظر الوقف", cx, cy + 12, 7, "normal", color, "center");
   text(serial, cx, cy + r - 15, 6, "normal", color, "center");
