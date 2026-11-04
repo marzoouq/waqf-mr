@@ -41,6 +41,13 @@ export const useAuditReconciliation = (fiscalYearId: string | null, enabled: boo
     queryKey: ['audit_reconciliation', fiscalYearId],
     enabled: enabled && !!fiscalYearId,
     staleTime: 60_000,
-    queryFn: async ({ signal }) =>
-      (await rpc('audit_reconciliation', { p_fiscal_year_id: fiscalYearId as string }, { signal })) as unknown as AuditReconciliation,
+    queryFn: async ({ signal }) => {
+      const id = fiscalYearId as string;
+      const [base, ejar] = await Promise.all([
+        rpc('audit_reconciliation', { p_fiscal_year_id: id }, { signal }),
+        rpc('audit_ejar_issues', { p_fiscal_year_id: id }, { signal }),
+      ]);
+      const r = base as unknown as AuditReconciliation;
+      return { ...r, issues: [...(r.issues ?? []), ...((ejar as unknown as AuditIssue[]) ?? [])] };
+    },
   });

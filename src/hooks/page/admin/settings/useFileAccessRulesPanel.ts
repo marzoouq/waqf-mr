@@ -14,6 +14,7 @@ export const BUCKET_LABELS: Record<string, string> = {
   'disbursement-vouchers': 'سندات الصرف',
   'waqf-documents': 'وثائق الأرشيف',
   'waqf-assets': 'الأصول والقوالب',
+  'contract-documents': 'عقود إيجار الموثقة',
 };
 
 export const FLAG_LABELS: Record<FileAccessFlag, string> = {

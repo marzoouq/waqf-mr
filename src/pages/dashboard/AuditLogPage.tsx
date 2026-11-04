@@ -111,6 +111,7 @@ const AuditLogPage = () => {
                     expandedRows={h.expandedRows}
                     toggleRow={h.toggleRow}
                     getSummary={h.getSummary}
+                    getActor={h.getActor}
                     currentPage={h.currentPage}
                     totalCount={h.totalCount}
                     itemsPerPage={h.ITEMS_PER_PAGE}
