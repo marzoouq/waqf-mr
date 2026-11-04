@@ -98,6 +98,9 @@ export const TABLE_HEAD_RED: [number, number, number] = [180, 40, 40];
 
 export const baseTableStyles = (fontFamily: string) => ({
   styles: { halign: 'right' as const, font: fontFamily, fontStyle: 'normal' as const, cellPadding: 4 },
+  // مساحة سفلية لسطر تاريخ الإصدار ورقم الوثيقة حتى لا يتداخل مع الجداول
+  margin: { bottom: 30 },
+  rowPageBreak: 'avoid' as const,
 });
 
 export const headStyles = (color: [number, number, number], fontFamily: string) => ({
@@ -106,6 +109,8 @@ export const headStyles = (color: [number, number, number], fontFamily: string) 
 
 export const footStyles = (color: [number, number, number], fontFamily: string) => ({
   footStyles: { fillColor: color, font: fontFamily, fontStyle: 'bold' as const, cellPadding: 4 },
+  // سطر الإجمالي يُطبع مرة واحدة في نهاية الجدول لا في كل صفحة
+  showFoot: 'lastPage' as const,
 });
 
 export interface UnitPdfRow {

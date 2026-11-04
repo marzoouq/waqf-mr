@@ -62,7 +62,8 @@ const pwaRuntimeCaching: any[] = [
 export default defineConfig(({ command, mode }) => ({
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
-    'import.meta.env.VITE_APP_BUILD_ID': JSON.stringify(pkg.version),
+    // بصمة فريدة لكل بناء — حتى لا يُخفي "لاحقاً" تحديثات أحدث بنفس رقم الإصدار
+    'import.meta.env.VITE_APP_BUILD_ID': JSON.stringify(`${pkg.version}-${Date.now().toString(36)}`),
     // احتياط لقيم الاتصال العامة عند غياب `.env` في بناء النشر
     ...backendEnvFallbackDefines({ ...process.env, ...loadEnv(mode, process.cwd(), 'VITE_') }),
   },
