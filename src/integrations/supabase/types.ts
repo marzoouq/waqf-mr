@@ -1494,6 +1494,71 @@ export type Database = {
         }
         Relationships: []
       }
+      fiscal_closure_summaries: {
+        Row: {
+          closed_at: string
+          closed_by: string | null
+          fiscal_year_id: string
+          id: string
+          next_fiscal_year_id: string
+          overdue_amount: number
+          overdue_count: number
+          upcoming_amount: number
+          upcoming_count: number
+        }
+        Insert: {
+          closed_at?: string
+          closed_by?: string | null
+          fiscal_year_id: string
+          id?: string
+          next_fiscal_year_id: string
+          overdue_amount: number
+          overdue_count: number
+          upcoming_amount: number
+          upcoming_count: number
+        }
+        Update: {
+          closed_at?: string
+          closed_by?: string | null
+          fiscal_year_id?: string
+          id?: string
+          next_fiscal_year_id?: string
+          overdue_amount?: number
+          overdue_count?: number
+          upcoming_amount?: number
+          upcoming_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_closure_summaries_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiscal_closure_summaries_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+          {
+            foreignKeyName: "fiscal_closure_summaries_next_fiscal_year_id_fkey"
+            columns: ["next_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiscal_closure_summaries_next_fiscal_year_id_fkey"
+            columns: ["next_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+        ]
+      }
       fiscal_years: {
         Row: {
           created_at: string
@@ -1533,6 +1598,7 @@ export type Database = {
           fiscal_year_id: string
           id: string
           notes: string | null
+          payment_invoice_id: string | null
           property_id: string | null
           source: string
         }
@@ -1544,6 +1610,7 @@ export type Database = {
           fiscal_year_id: string
           id?: string
           notes?: string | null
+          payment_invoice_id?: string | null
           property_id?: string | null
           source: string
         }
@@ -1555,6 +1622,7 @@ export type Database = {
           fiscal_year_id?: string
           id?: string
           notes?: string | null
+          payment_invoice_id?: string | null
           property_id?: string | null
           source?: string
         }
@@ -1588,11 +1656,87 @@ export type Database = {
             referencedColumns: ["fiscal_year_id"]
           },
           {
+            foreignKeyName: "income_payment_invoice_id_fkey"
+            columns: ["payment_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "payment_invoices"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "income_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_carry_events: {
+        Row: {
+          carried_at: string
+          carried_by: string | null
+          from_fiscal_year_id: string
+          id: string
+          invoice_id: string
+          outstanding_amount: number
+          to_fiscal_year_id: string
+          was_overdue: boolean
+        }
+        Insert: {
+          carried_at?: string
+          carried_by?: string | null
+          from_fiscal_year_id: string
+          id?: string
+          invoice_id: string
+          outstanding_amount: number
+          to_fiscal_year_id: string
+          was_overdue: boolean
+        }
+        Update: {
+          carried_at?: string
+          carried_by?: string | null
+          from_fiscal_year_id?: string
+          id?: string
+          invoice_id?: string
+          outstanding_amount?: number
+          to_fiscal_year_id?: string
+          was_overdue?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_carry_events_from_fiscal_year_id_fkey"
+            columns: ["from_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_carry_events_from_fiscal_year_id_fkey"
+            columns: ["from_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+          {
+            foreignKeyName: "invoice_carry_events_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "payment_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_carry_events_to_fiscal_year_id_fkey"
+            columns: ["to_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_carry_events_to_fiscal_year_id_fkey"
+            columns: ["to_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
           },
         ]
       }
@@ -1956,6 +2100,10 @@ export type Database = {
       payment_invoices: {
         Row: {
           amount: number
+          collection_changed_at: string | null
+          collection_changed_by: string | null
+          collection_reason: string | null
+          collection_status: string
           contract_id: string
           created_at: string
           due_date: string
@@ -1981,6 +2129,10 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          collection_changed_at?: string | null
+          collection_changed_by?: string | null
+          collection_reason?: string | null
+          collection_status?: string
           contract_id: string
           created_at?: string
           due_date: string
@@ -2006,6 +2158,10 @@ export type Database = {
         }
         Update: {
           amount?: number
+          collection_changed_at?: string | null
+          collection_changed_by?: string | null
+          collection_reason?: string | null
+          collection_status?: string
           contract_id?: string
           created_at?: string
           due_date?: string
@@ -3229,6 +3385,14 @@ export type Database = {
       set_annual_report_publish: {
         Args: { p_fiscal_year_id: string; p_publish: boolean }
         Returns: Json
+      }
+      set_invoice_collectibility: {
+        Args: {
+          p_invoice_id: string
+          p_reason: string
+          p_uncollectible: boolean
+        }
+        Returns: undefined
       }
       sync_property_contract_invoice_vat: {
         Args: { p_property_id: string }
