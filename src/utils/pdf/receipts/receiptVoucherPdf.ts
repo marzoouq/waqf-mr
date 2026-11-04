@@ -8,6 +8,7 @@ import { getPdfThemeColors } from '@/utils/pdf/core/themeColors';
 import { amountToArabicWords } from '@/utils/format/arabicNumberWords';
 import { formatHijriGregorian } from '@/utils/format/hijriDate';
 import { fmt } from '@/utils/format/format';
+import { drawWaqfStamp } from '@/utils/pdf/receipts/waqfStamp';
 
 export interface ReceiptVoucherPdfData {
   receiptNumber: string;
@@ -49,7 +50,9 @@ export async function generateReceiptVoucherPDF(data: ReceiptVoucherPdfData, waq
   const dates = formatHijriGregorian(data.paidDate);
   doc.setFontSize(10);
   doc.setFont(fontFamily, 'normal');
-  doc.text(rs(`رقم السند: ${data.receiptNumber}`), right, y, { align: 'right' });
+  // التسمية والرقم منفصلان لتفادي انعكاس الترتيب في النص المختلط
+  doc.text(rs('رقم السند:'), right, y, { align: 'right' });
+  doc.text(data.receiptNumber, right - doc.getTextWidth(rs('رقم السند:')) - 2, y, { align: 'right' });
   doc.text(rs(`التاريخ: ${dates.hijri}  -  ${dates.gregorian} م`), 20, y, { align: 'left' });
   y += 10;
 
@@ -93,6 +96,10 @@ export async function generateReceiptVoucherPDF(data: ReceiptVoucherPdfData, waq
   doc.line(right - 45, y, right, y);
   doc.line(pageW / 2 - 40, y, pageW / 2 + 20, y);
   doc.setLineDashPattern([], 0);
+  drawWaqfStamp(doc, {
+    cx: pageW / 2 - 10, cy: y - 9, fontFamily,
+    waqfName: waqfInfo?.waqfName, serial: data.receiptNumber, dateText: data.paidDate,
+  });
 
   // رمز QR للتحقق
   try {
