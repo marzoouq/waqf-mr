@@ -22,6 +22,8 @@ export interface FinancialParams {
   manualDistributions: number;
   /** عند false (سنة نشطة) تُصفّر الحصص ورقبة الوقف */
   isClosed?: boolean;
+  /** Compute live estimated shares for an open year (staff screens only) */
+  estimateWhenOpen?: boolean;
 }
 
 /** نتيجة موحّدة لكل حسابات التسلسل المالي (نشطة/مقفلة) */

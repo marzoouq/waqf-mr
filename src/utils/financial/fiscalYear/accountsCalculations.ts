@@ -41,7 +41,7 @@ export const calculateFinancials = (params: FinancialParams): FinancialResult =>
   const {
     totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,
     zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions,
-    isClosed = false,
+    isClosed = false, estimateWhenOpen = false,
   } = params;
 
   const grandTotal = totalIncome + waqfCorpusPrevious;
@@ -50,8 +50,8 @@ export const calculateFinancials = (params: FinancialParams): FinancialResult =>
   const netAfterZakat = netAfterVat - zakatAmount;
   const shareBase = Math.max(0, totalIncome - totalExpenses - zakatAmount);
 
-  // Shares and corpus only apply after fiscal year closure
-  if (!isClosed) {
+  // السنة النشطة: تُصفّر الحصص إلا إذا طُلب التقدير الحي (شاشات الموظفين)
+  if (!isClosed && !estimateWhenOpen) {
     return {
       grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
       shareBase,

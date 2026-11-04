@@ -78,6 +78,7 @@ export function useAccountsCalculations({
       zakatAmount, adminPercent, waqifPercent,
       waqfCorpusManual, manualDistributions,
       isClosed,
+      estimateWhenOpen: true,
     });
   }, [isClosed, currentAccount, totalIncome, totalExpenses, waqfCorpusPrevious, manualVat, zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions]);
 
