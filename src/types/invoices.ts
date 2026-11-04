@@ -35,6 +35,8 @@ export interface PaymentInvoice {
   id: string;
   contract_id: string;
   fiscal_year_id: string | null;
+  /** السنة التي كانت الفاتورة متأخرة فيها قبل ترحيلها عند الإقفال */
+  origin_fiscal_year_id?: string | null;
   invoice_number: string;
   payment_number: number;
   due_date: string;

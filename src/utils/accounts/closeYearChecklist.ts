@@ -44,7 +44,7 @@ export function buildClosureChecklist(params: {
     label: params.unpaidInvoices === 0 ? 'جميع الفواتير مسددة' : `${params.unpaidInvoices} فاتورة غير مسددة`,
     passed: params.unpaidInvoices === 0,
     severity: 'warning',
-    detail: 'يوجد فواتير معلقة — سيتم أرشفتها بحالتها الحالية',
+    detail: 'سيتم ترحيل الفواتير غير المسددة إلى السنة التالية — المتأخرة منها بإشعار "متأخرة من السنة السابقة" وتُحسب في السنة الجديدة عند التحصيل، ولا تؤثر على أرقام السنة المقفلة',
   });
 
   items.push({

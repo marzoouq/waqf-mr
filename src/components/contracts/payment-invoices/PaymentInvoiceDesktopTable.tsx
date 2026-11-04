@@ -93,7 +93,12 @@ export default function PaymentInvoiceDesktopTable({
                         {inv.status !== 'paid' && <Checkbox checked={selectedIds.has(inv.id)} onCheckedChange={() => toggleSelect(inv.id)} />}
                       </TableCell>
                     )}
-                    <TableCell className="font-medium font-mono text-xs">{inv.invoice_number}</TableCell>
+                    <TableCell className="font-medium font-mono text-xs">
+                      {inv.invoice_number}
+                      {inv.origin_fiscal_year_id && inv.status !== 'paid' && (
+                        <span className="block mt-1 text-[10px] font-sans text-warning">متأخرة من السنة السابقة</span>
+                      )}
+                    </TableCell>
                     <TableCell>{inv.contract?.tenant_name || '-'}</TableCell>
                     <TableCell>{inv.contract?.property?.property_number || '-'}</TableCell>
                     <TableCell className="text-center">{inv.payment_number}</TableCell>
