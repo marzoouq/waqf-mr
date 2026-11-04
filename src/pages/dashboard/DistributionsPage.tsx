@@ -174,7 +174,7 @@ const DistributionsPage = () => {
               open={p.dialogOpen}
               onOpenChange={p.setDialogOpen}
               beneficiaries={p.beneficiaries}
-              availableAmount={p.availableAmount}
+              availableAmount={p.distributionBase}
               totalBeneficiaryPercentage={p.totalBeneficiaryPercentage}
               accountId={p.currentAccount.id}
               fiscalYearId={p.fiscalYearId !== 'all' ? p.fiscalYearId : undefined}

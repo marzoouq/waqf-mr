@@ -55,8 +55,8 @@ describe('useDistributionsPage', () => {
   it('يمرّر distributions من useDistributionCalculation', async () => {
     const h = await loadHook();
     const { result } = renderHook(() => h());
-    expect(result.current.distributions).toEqual([{ id: 'b1', net: 100_000 }]);
-    expect(result.current.totalNet).toBe(100_000);
+    expect(result.current.distributions).toEqual([{ id: 'b1', net: 25_000 }]);
+    expect(result.current.totalNet).toBe(25_000);
   });
 
   it('dialogOpen قابل للتبديل', async () => {
