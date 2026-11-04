@@ -99,6 +99,13 @@
       "when": 1793789179048,
       "tag": "0013_contract_invoices_start_from_contract_date",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793791383708,
+      "tag": "0014_sync_contract_fiscal_allocations",
+      "breakpoints": true
     }
   ]
 }
