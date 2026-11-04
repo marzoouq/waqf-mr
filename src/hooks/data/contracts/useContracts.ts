@@ -35,6 +35,18 @@ export const useUpdateContract = contractsCrud.useUpdate;
 export const useDeleteContract = contractsCrud.useDelete;
 export const contractsQueryOptions = contractsCrud.getQueryOptions;
 
+/**
+ * فلتر السنة: عقود السنة + العقود المرحّلة إليها (لها دفعات/تخصيص في السنة).
+ * العقود لا تُنقل سجلاتها عند الإقفال؛ تظهر في السنة التالية عبر تخصيصها.
+ */
+async function fiscalYearContractFilter(fiscalYearId: string): Promise<string> {
+  const { data, error } = await supabase.from('contract_fiscal_allocations')
+    .select('contract_id').eq('fiscal_year_id', fiscalYearId);
+  if (error) throw error;
+  const ids = [...new Set((data ?? []).map(a => a.contract_id))];
+  return ids.length ? `fiscal_year_id.eq.${fiscalYearId},id.in.(${ids.join(',')})` : `fiscal_year_id.eq.${fiscalYearId}`;
+}
+
 /** Contracts filtered by fiscal year */
 export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
@@ -46,7 +58,7 @@ export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
         .select(CONTRACT_SELECT_WITH_JOINS)
         .order('start_date', { ascending: false });
       if (!isFyAll(fiscalYearId)) {
-        query = query.eq('fiscal_year_id', fiscalYearId);
+        query = query.or(await fiscalYearContractFilter(fiscalYearId));
       }
       if (isFyAll(fiscalYearId)) {
         query = query.limit(1000);
@@ -72,7 +84,7 @@ export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
         .select('id, contract_number, tenant_name, property_id, unit_id, start_date, end_date, rent_amount, payment_type, payment_count, payment_amount, status, fiscal_year_id, created_at, updated_at, notes')
         .order('start_date', { ascending: false });
       if (!isFyAll(fiscalYearId)) {
-        query = query.eq('fiscal_year_id', fiscalYearId);
+        query = query.or(await fiscalYearContractFilter(fiscalYearId));
       }
       if (isFyAll(fiscalYearId)) {
         query = query.limit(1000);
