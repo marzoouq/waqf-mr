@@ -51,3 +51,4 @@
 - Support ticket routing: recipients per category live in `ticket_recipient_roles` (SQL) and `CATEGORY_ROUTING` (client) and must match; a guard test enforces parity. Why: one routing truth on both sides.
 - Read state: messages/ticket notifications are marked read only via `mark_conversation_read` / `mark_ticket_notifications_read`, not direct updates. Why: server checks participation.
 - Vite stays on major 5 and vitest on major 4 (vitest 5 requires Vite 6+); TypeScript stays ~5.8.3. Why: platform supports Vite 5 and project rule pins TS.
+- Backend URL/publishable key have a build-time fallback in `scripts/public-backend-env.ts` (wired via vite `define`), because `.env` is gitignored and publish builds otherwise ship without them (live site stuck on loader). Values in `.env` always win.
