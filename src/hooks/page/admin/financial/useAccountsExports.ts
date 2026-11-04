@@ -6,6 +6,7 @@ import { useCallback } from 'react';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { uiNotify } from '@/lib/notify';
+import { computeDistributionBase, shareOf } from '@/utils/financial/distribution/distributionBase';
 
 interface ExportsInput {
   fiscalYearLabel: string;
