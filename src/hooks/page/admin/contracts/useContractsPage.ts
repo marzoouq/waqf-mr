@@ -22,6 +22,7 @@ import { useContractsFilters } from './useContractsFilters';
 import { useContractsBulkRenew } from './useContractsBulkRenew';
 import { useContractForm } from './useContractForm';
 import { asMutationArg } from '@/hooks/data/core';
+import type { Contract } from '@/types';
 
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
