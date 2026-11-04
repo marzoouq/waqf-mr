@@ -15,7 +15,7 @@ const id = () => `id-${++seq}`;
 
 const mkIncome = (source: string, amount: number, date = '2024-06-01'): Income => ({
   id: id(), source, amount, date, created_at: date,
-  fiscal_year_id: 'fy1', contract_id: null, notes: null, property_id: null,
+  fiscal_year_id: 'fy1', contract_id: null, notes: null, property_id: null, payment_invoice_id: null,
 });
 
 const mkExpense = (type: string, amount: number, desc?: string): Expense => ({

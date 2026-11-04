@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useInvoiceCollectibility } from '@/hooks/data/invoices/useInvoiceCollectibility';
 import { uiNotify } from '@/lib/notify';
 
