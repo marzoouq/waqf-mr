@@ -8,6 +8,7 @@ import { Check, X, Download, Loader2, Eye } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 import type { PaymentInvoice } from '@/types';
 import { PaymentStatusBadge } from './paymentStatusBadge';
+import { ReceiptVoucherButton } from './ReceiptVoucherButton';
 
 interface PaymentInvoiceMobileCardsProps {
   groupedPaginated: Map<string, PaymentInvoice[]>;
@@ -59,6 +60,7 @@ export default function PaymentInvoiceMobileCards({
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}><Eye className="w-3.5 h-3.5" />معاينة</Button>
                     <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}><Download className="w-3.5 h-3.5" />PDF</Button>
+                    <ReceiptVoucherButton inv={inv} />
                     {!isClosed && inv.status !== 'paid' && (
                       <Button size="sm" variant="outline" className="gap-1 flex-1 text-success" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
                         {payingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}تسديد
