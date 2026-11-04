@@ -33,7 +33,7 @@ export const drawOfficialMarks = async (
     doc.setFont(fontFamily, 'normal');
     doc.setFontSize(7);
     doc.setTextColor(60, 60, 60);
-    doc.text(rs(line), pageW / 2, pageH - 19.5, { align: 'center' });
+    doc.text(rs(line), pageW / 2, pageH - 20.5, { align: 'center' });
     doc.setTextColor(0, 0, 0);
   }
 
