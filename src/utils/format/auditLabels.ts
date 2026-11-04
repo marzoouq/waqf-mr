@@ -57,6 +57,7 @@ const OPERATION_NAMES_AR: Record<string, string> = {
   INSERT: 'إضافة',
   UPDATE: 'تعديل',
   DELETE: 'حذف',
+  DOWNLOAD: 'تنزيل',
   REOPEN: 'إعادة فتح',
   CLOSE: 'إقفال',
 };
