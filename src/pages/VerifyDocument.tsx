@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useVerifyDocumentPage } from '@/hooks/page/public/useVerifyDocumentPage';
 import { formatHijriGregorian } from '@/utils/format/hijriDate';
 
-const TYPE_LABEL: Record<string, string> = { disbursement_voucher: 'سند صرف' };
+const TYPE_LABEL: Record<string, string> = { disbursement_voucher: 'سند صرف', official_letter: 'وثيقة معتمدة من ناظر الوقف' };
 
 const VerifyDocument = () => {
   const { valid, document, isLoading } = useVerifyDocumentPage();
