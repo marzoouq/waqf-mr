@@ -3104,6 +3104,14 @@ export type Database = {
         }
         Returns: Json
       }
+      close_fiscal_year_with_summary: {
+        Args: {
+          p_account_data: Json
+          p_fiscal_year_id: string
+          p_waqf_corpus_manual?: number
+        }
+        Returns: Json
+      }
       close_or_reopen_own_ticket: {
         Args: { p_action: string; p_id: string; p_reason?: string }
         Returns: undefined
@@ -3360,6 +3368,10 @@ export type Database = {
         Args: { p_invoice_id: string; p_paid_amount?: number }
         Returns: Json
       }
+      pay_invoice_remaining_and_record_collection: {
+        Args: { p_invoice_id: string; p_paid_amount?: number }
+        Returns: Json
+      }
       rate_support_ticket: {
         Args: { p_comment?: string; p_id: string; p_rating: number }
         Returns: undefined
@@ -3394,6 +3406,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_invoice_collectibility_internal: {
+        Args: {
+          p_invoice_id: string
+          p_reason: string
+          p_uncollectible: boolean
+        }
+        Returns: undefined
+      }
       sync_property_contract_invoice_vat: {
         Args: { p_property_id: string }
         Returns: Json
@@ -3403,6 +3423,10 @@ export type Database = {
         Returns: string[]
       }
       unpay_invoice_and_revert_collection: {
+        Args: { p_invoice_id: string }
+        Returns: Json
+      }
+      unpay_invoice_collection_internal: {
         Args: { p_invoice_id: string }
         Returns: Json
       }
