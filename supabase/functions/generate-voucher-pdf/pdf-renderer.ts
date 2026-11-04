@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { jsPDF } from "npm:jspdf@3.0.4";
+import QRCode from "npm:qrcode@1.5.4";
 import { amountToArabicWords } from "../_shared/arabicNumberWords.ts";
 import { formatHijriGregorian } from "../_shared/hijriDate.ts";
 
@@ -37,6 +38,8 @@ export interface VoucherData {
   signature_data: string | null;
   approved_at: string | null;
   created_at: string;
+  /** رابط صفحة التحقق العامة — يُطبع كرمز QR */
+  verify_url?: string | null;
 }
 
 async function fetchFont(name: string): Promise<Uint8Array> {
@@ -232,6 +235,15 @@ export async function renderVoucherPdf(v: VoucherData, waqf: WaqfHeader = { name
   doc.line(L, sigY + 62, L + 160, sigY + 62);
   doc.setLineDashPattern([], 0);
   drawStamp(doc, L + 80, sigY + 70, 46, accent, text, waqf.name, v.voucher_number, dates.gregorian);
+
+  // ── رمز QR للتحقق العام ──
+  if (v.verify_url) {
+    try {
+      const qr = await QRCode.toDataURL(v.verify_url, { margin: 1, width: 220 });
+      doc.addImage(qr, "PNG", W / 2 - 28, sigY + 72, 56, 56);
+      text("امسح للتحقق من صحة السند", W / 2, sigY + 138, 8, "normal", muted, "center");
+    } catch { /* يصدر السند دون QR إذا تعذّر توليده */ }
+  }
 
   // ── تذييل ──
   setFill(doc, [247, 242, 224]);

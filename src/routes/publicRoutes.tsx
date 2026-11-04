@@ -15,6 +15,7 @@ const ResetPassword = lazyWithRetry(() => import("@/pages/ResetPassword"));
 const OAuthConsent = lazyWithRetry(() => import("@/pages/OAuthConsent"));
 const MaintenancePage = lazyWithRetry(() => import("@/pages/MaintenancePage"));
 const VerifyReceipt = lazyWithRetry(() => import("@/pages/VerifyReceipt"));
+const VerifyDocument = lazyWithRetry(() => import("@/pages/VerifyDocument"));
 
 export const publicRoutes = (
   <>
@@ -27,6 +28,7 @@ export const publicRoutes = (
     <Route path="/reset-password" element={eb(<ResetPassword />)} />
     <Route path="/maintenance" element={eb(<MaintenancePage />)} />
     <Route path="/verify/receipt/:code" element={eb(<VerifyReceipt />)} />
+    <Route path="/verify/document/:code" element={eb(<VerifyDocument />)} />
     <Route path="/.lovable/oauth/consent" element={eb(<OAuthConsent />)} />
   </>
 );

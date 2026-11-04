@@ -50,17 +50,22 @@ export const createPdfDocument = async (
 /**
  * إنهاء وحفظ مستند PDF مع ترويسة الصفحات وتذييل
  */
-export const finalizePdf = (
+export const finalizePdf = async (
   doc: jsPDF,
   fontFamily: string,
   filename: string,
   waqfInfo?: PdfWaqfInfo,
-  options?: { skipHeaders?: boolean }
-) => {
+  options?: { skipHeaders?: boolean; skipOfficialMarks?: boolean; fiscalYearId?: string | null }
+): Promise<void> => {
   if (!options?.skipHeaders) {
     addHeaderToAllPages(doc, fontFamily, waqfInfo);
   }
   addFooter(doc, fontFamily, waqfInfo);
+  if (!options?.skipOfficialMarks) {
+    // رقم مرجعي + تاريخ مزدوج + QR تحقق — يُسجَّل في سجل الوثائق
+    const { applyOfficialMarks } = await import('./officialStamp');
+    await applyOfficialMarks(doc, fontFamily, filename, options?.fiscalYearId);
+  }
   doc.save(filename);
 };
 

@@ -127,6 +127,20 @@
       "when": 1793809021710,
       "tag": "0017_receipt_vouchers_keep_history_on_invoice_regen",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793816010553,
+      "tag": "0018_issued_documents_registry",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793816185126,
+      "tag": "0019_verify_document_reflects_voided_vouchers",
+      "breakpoints": true
     }
   ]
 }

@@ -1717,6 +1717,63 @@ export type Database = {
           },
         ]
       }
+      issued_documents: {
+        Row: {
+          content_hash: string | null
+          doc_number: string
+          doc_type: string
+          fiscal_year_id: string | null
+          id: string
+          issued_at: string
+          issued_by: string | null
+          page_count: number | null
+          source_id: string | null
+          status: string
+          verification_code: string
+        }
+        Insert: {
+          content_hash?: string | null
+          doc_number: string
+          doc_type: string
+          fiscal_year_id?: string | null
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          page_count?: number | null
+          source_id?: string | null
+          status?: string
+          verification_code?: string
+        }
+        Update: {
+          content_hash?: string | null
+          doc_number?: string
+          doc_type?: string
+          fiscal_year_id?: string | null
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          page_count?: number | null
+          source_id?: string | null
+          status?: string
+          verification_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issued_documents_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issued_documents_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -2904,6 +2961,21 @@ export type Database = {
         Returns: boolean
       }
       is_ip_blocked: { Args: { p_ip: string }; Returns: boolean }
+      issue_document: {
+        Args: {
+          p_content_hash?: string
+          p_doc_number?: string
+          p_doc_type: string
+          p_fiscal_year_id?: string
+          p_page_count?: number
+          p_source_id?: string
+        }
+        Returns: {
+          doc_number: string
+          issued_at: string
+          verification_code: string
+        }[]
+      }
       log_access_event: {
         Args: {
           p_device_info?: string
@@ -3081,6 +3153,16 @@ export type Database = {
             }
             Returns: Json
           }
+      verify_issued_document: {
+        Args: { p_code: string }
+        Returns: {
+          doc_number: string
+          doc_type: string
+          issued_at: string
+          page_count: number
+          status: string
+        }[]
+      }
       verify_receipt_voucher: {
         Args: { p_code: string }
         Returns: {

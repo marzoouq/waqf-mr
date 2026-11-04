@@ -11,6 +11,7 @@ import { registerPwa } from "@/app/bootstrap/registerPwa";
 import { initDeferredMonitoring } from "@/app/bootstrap/initMonitoring";
 import { mountReact } from "@/app/bootstrap/mountReact";
 import { installRuntimeCollector } from "@/lib/diagnostics/runtimeCollector";
+import { installDocumentRegistrar } from "@/lib/pdf/installDocumentRegistrar";
 
 // ─── Pre-render setup ───
 initThemeFromStorage();
@@ -18,6 +19,7 @@ initQueryMonitoring();
 preconnectBackend();
 registerPwa();
 installRuntimeCollector();
+installDocumentRegistrar();
 
 // ─── Mount + cleanup ───
 try {

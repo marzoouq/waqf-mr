@@ -124,5 +124,5 @@ export async function generateReceiptVoucherPDF(data: ReceiptVoucherPdfData, waq
   }
 
   addPageBorder(doc);
-  finalizePdf(doc, fontFamily, receiptVoucherFilename(data.receiptNumber), waqfInfo, { skipHeaders: true });
+  finalizePdf(doc, fontFamily, receiptVoucherFilename(data.receiptNumber), waqfInfo, { skipHeaders: true, skipOfficialMarks: true });
 }
