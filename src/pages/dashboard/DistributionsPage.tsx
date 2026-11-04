@@ -15,6 +15,8 @@ import { formatPercentage } from '@/utils/format';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { useDistributionsPage } from '@/hooks/page/admin/financial/useDistributionsPage';
 
+import DistributionDeliveryCard from '@/components/distributions/DistributionDeliveryCard';
+
 const DistributeDialog = lazy(() => import('@/components/accounts/DistributeDialog'));
 
 const DistributionsPage = () => {
@@ -107,6 +109,10 @@ const DistributionsPage = () => {
               المبلغ المتاح للتوزيع صفر — لا يمكن تنفيذ التوزيع قبل ظهور ريع موجب.
             </AlertDescription>
           </Alert>
+        )}
+
+        {p.role === 'admin' && p.fiscalYearId && p.fiscalYearId !== 'all' && (
+          <DistributionDeliveryCard fiscalYearId={p.fiscalYearId} />
         )}
 
         <Card className="shadow-sm">
