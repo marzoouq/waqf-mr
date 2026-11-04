@@ -7,6 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import { NativeSelect } from '@/components/ui/native-select';
+import { PROPERTY_TYPES } from './propertyTypes';
+
+const OTHER_TYPE = '__other__';
 
 interface PropertyFormData {
   property_number: string;
@@ -32,8 +37,16 @@ interface PropertyFormDialogProps {
 const PropertyFormDialog = ({
   isOpen, setIsOpen, editingProperty, formData, setFormData,
   resetForm, handleSubmit, createPending, updatePending,
-}: PropertyFormDialogProps) => (
-  <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+}: PropertyFormDialogProps) => {
+  const [otherPicked, setOtherPicked] = useState(false);
+  // نوع مخصص: اختار المستخدم «أخرى» أو القيمة المحفوظة خارج القائمة
+  const isCustomType = otherPicked || (formData.property_type !== '' && !PROPERTY_TYPES.includes(formData.property_type));
+  const handleTypeChange = (v: string) => {
+    setOtherPicked(v === OTHER_TYPE);
+    setFormData({ ...formData, property_type: v === OTHER_TYPE ? '' : v });
+  };
+  return (
+  <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) { resetForm(); setOtherPicked(false); } }}>
     <DialogTrigger asChild>
       <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة عقار</Button>
     </DialogTrigger>
