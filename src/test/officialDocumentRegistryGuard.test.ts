@@ -23,7 +23,7 @@ describe("official document registry", () => {
   });
   it("disbursement voucher is registered and carries a verification QR", () => {
     expect(voucherIndex).toMatch(/rpc\("issue_document"/);
-    expect(renderer).toMatch(/addImage\(qr/);
+    expect(renderer).toMatch(/addImage\(qr, "PNG"/);
   });
   it("public verification page is routed", () => {
     expect(routes).toContain('/verify/document/:code');
