@@ -29,7 +29,7 @@ describe('create_contract_with_invoices defaults', () => {
     'fills default for %s before populate',
     (col) => {
       expect(def).toMatch(new RegExp(`'${col}'\\s*,`));
-      expect(def).toMatch(/\|\|\s*p_contract/);
+      expect(def).toMatch(/\|\|\s*(jsonb_strip_nulls\()?p_contract/);
     },
   );
 });
