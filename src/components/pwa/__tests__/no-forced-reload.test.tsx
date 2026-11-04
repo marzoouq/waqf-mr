@@ -26,6 +26,8 @@ const ALLOWLIST = new Set<string>([
   'components/common/feedback/ErrorBoundary.tsx',
   // استرداد من chunk load failure بعد نشر جديد (مرة واحدة فقط مع علم session)
   'lib/lazyWithRetry.ts',
+  // احتياط بعد ضغط المستخدم "تحديث الآن" إن لم تصل إشارة تحكم النسخة الجديدة خلال 3ث
+  'components/pwa/SwUpdateBanner.tsx',
   // reload ضروري بعد runDeepClean: إلغاء تسجيل SW + مسح كل caches/IDB/storage
   // يتطلب bootstrap كامل لإعادة تركيب التطبيق من الصفر
   'pages/dashboard/SystemDiagnosticsPage.tsx',

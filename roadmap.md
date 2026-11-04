@@ -69,3 +69,6 @@
 - [x] إجراء للناظر لتسجيل تعذر التحصيل مع السبب وسجل المراجعة، دون حذف أو تغيير الفاتورة الضريبية.
 - [ ] تحقق كتابة إقفال/ترحيل/تحصيل/تعذر على بيانات معزولة ومراجعة PDF فعلي قبل النشر — لا يُختبر بإقفال السنة الحقيقية؛ بوابة الجودة العامة بها 13 خطأ سابقاً خارج هذه الملفات.
 - [x] حارس أحمر/أخضر واختبارات مالية وتكرار وتحقق بنيوي للهجرات؛ السداد الجزئي موقوف لحين سند مستقل لكل دفعة.
+- [ ] Update banner: immediate check, per-build snooze, guaranteed reload.
+- [ ] PDF totals once (showFoot lastPage) + footer margin.
+- [ ] Contracts carried to new fiscal year (allocations) + status from end date.
