@@ -1,11 +1,11 @@
 import { useRegisterSW } from "virtual:pwa-register/react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { safeGet, safeSet } from '@/lib/storage';
 import { canRegisterAppServiceWorker } from '@/lib/pwaBootstrap';
 
-const FIRST_CHECK_DELAY_MS = 30 * 1000;        // 30ث قبل أول فحص (لا ضوضاء عند فتح بارد)
+const RELOAD_FALLBACK_MS = 3000;                // إعادة تحميل قسرية إن لم تصل إشارة التحكم
 const PERIODIC_CHECK_MS = 5 * 60 * 1000;       // فحص كل 5 دقائق بدل 60ث
 const SNOOZE_MS = 30 * 60 * 1000;              // 30 دقيقة snooze افتراضي
 const SNOOZE_VERSION_TTL_MS = 24 * 60 * 60 * 1000; // لا نُعيد عرض نفس النسخة قبل 24ساعة
@@ -23,18 +23,21 @@ const SwUpdateBanner = () => {
 };
 
 const SwUpdateBannerInner = () => {
+  const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
+  const [updating, setUpdating] = useState(false);
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(_url, registration) {
       if (!registration) return;
-      // تأجيل أول فحص — يمنع ظهور البانر فور الإقلاع
-      const initial = setTimeout(() => registration.update(), FIRST_CHECK_DELAY_MS);
-      // فحص دوري كل 5 دقائق (وليس 60ث) — يقلل الضوضاء على PWA المثبّت
-      const periodic = setInterval(() => registration.update(), PERIODIC_CHECK_MS);
-      // تنظيف عند unmount/HMR
-      return () => { clearTimeout(initial); clearInterval(periodic); };
+      registrationRef.current = registration;
+      const check = () => { registration.update().catch(() => undefined); };
+      // فحص فوري عند الفتح، وعند العودة للتطبيق، ثم كل 5 دقائق
+      check();
+      const onVisible = () => { if (document.visibilityState === 'visible') check(); };
+      document.addEventListener('visibilitychange', onVisible);
+      setInterval(check, PERIODIC_CHECK_MS);
     },
   });
 
@@ -68,7 +71,11 @@ const SwUpdateBannerInner = () => {
   const handleUpdate = useCallback(() => {
     // علم لـ PwaUpdateNotifier ليعرض سجل التغييرات بعد reload — مصدر حقيقة وحيد
     safeSet('pwa_just_updated', { ts: Date.now(), version: swFingerprint });
-    updateServiceWorker(true);
+    setUpdating(true);
+    // أمر التفعيل مباشرة للنسخة المنتظرة — لا نعتمد على إشارة واحدة
+    registrationRef.current?.waiting?.postMessage({ type: 'SKIP_WAITING' });
+    void Promise.resolve(updateServiceWorker(true)).catch(() => undefined);
+    setTimeout(() => window.location.reload(), RELOAD_FALLBACK_MS);
   }, [updateServiceWorker, swFingerprint]);
 
   const handleSnooze = useCallback(() => {
@@ -93,9 +100,10 @@ const SwUpdateBannerInner = () => {
           size="sm"
           variant="secondary"
           onClick={handleUpdate}
+          disabled={updating}
           className="h-7 px-3 text-xs font-bold"
         >
-          تحديث الآن
+          {updating ? 'جاري التحديث...' : 'تحديث الآن'}
         </Button>
         <button
           onClick={handleSnooze}
