@@ -30,6 +30,8 @@ export interface ContractFormData {
   tenant_district: string;
   tenant_city: string;
   tenant_postal_code: string;
+  /** سداد الدفعة الأولى فور إنشاء العقد (إنشاء فقط) */
+  pay_first_now: boolean;
 }
 
 export const emptyFormData: ContractFormData = {
@@ -38,4 +40,5 @@ export const emptyFormData: ContractFormData = {
   rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {},
   vat_applicable: false,
   tenant_id_type: 'NAT', tenant_id_number: '', tenant_tax_number: '', tenant_crn: '', tenant_street: '', tenant_building: '', tenant_district: '', tenant_city: '', tenant_postal_code: '',
+  pay_first_now: false,
 };
