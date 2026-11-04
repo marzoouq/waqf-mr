@@ -162,6 +162,13 @@
       "when": 1793824557223,
       "tag": "0022_contract_ejar_documents",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1793829389129,
+      "tag": "0023_carry_unpaid_invoices_on_close",
+      "breakpoints": true
     }
   ]
 }

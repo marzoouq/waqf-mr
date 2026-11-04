@@ -1967,6 +1967,7 @@ export type Database = {
           invoice_number: string
           invoice_type: string | null
           notes: string | null
+          origin_fiscal_year_id: string | null
           paid_amount: number | null
           paid_date: string | null
           payment_number: number
@@ -1991,6 +1992,7 @@ export type Database = {
           invoice_number: string
           invoice_type?: string | null
           notes?: string | null
+          origin_fiscal_year_id?: string | null
           paid_amount?: number | null
           paid_date?: string | null
           payment_number?: number
@@ -2015,6 +2017,7 @@ export type Database = {
           invoice_number?: string
           invoice_type?: string | null
           notes?: string | null
+          origin_fiscal_year_id?: string | null
           paid_amount?: number | null
           paid_date?: string | null
           payment_number?: number
@@ -2051,6 +2054,20 @@ export type Database = {
           {
             foreignKeyName: "payment_invoices_fiscal_year_id_fkey"
             columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+          {
+            foreignKeyName: "payment_invoices_origin_fiscal_year_id_fkey"
+            columns: ["origin_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_invoices_origin_fiscal_year_id_fkey"
+            columns: ["origin_fiscal_year_id"]
             isOneToOne: false
             referencedRelation: "v_fiscal_year_summary"
             referencedColumns: ["fiscal_year_id"]
