@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Clock, Check, X, Download, Loader2 } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 import type { PaymentInvoice } from '@/types';
+import { ReceiptVoucherButton } from '../payment-invoices/ReceiptVoucherButton';
 import { invoiceStatusIcon, invoiceStatusLabel } from './accordionConstants';
 
 interface InvoiceCardProps {
@@ -40,6 +41,7 @@ export const InvoiceCard = ({
           {loadingInvoiceId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
         </Button>
       )}
+      {(onPayInvoice || onUnpayInvoice) && <ReceiptVoucherButton inv={inv} />}
       {!isClosed && inv.status !== 'paid' && onPayInvoice && (
         <Button variant="ghost" size="icon" className="w-6 h-6 text-success hover:text-success/80" onClick={() => onPayInvoice(inv)} title="تسديد" aria-label="تسديد" disabled={payingInvoiceId === inv.id}>
           {payingInvoiceId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
