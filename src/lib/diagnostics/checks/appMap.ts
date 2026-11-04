@@ -37,7 +37,7 @@ export async function checkAppMapOrphanPages(): Promise<CheckResult> {
   // تقدير تقريبي للأيتام: ملف pages لا يحتوي اسمه على أي جزء من routes
   const orphans = pageNames.filter(name => {
     if (!name) return false;
-    if (['Index', 'NotFound', 'Auth', 'Unauthorized', 'ResetPassword', 'InstallApp', 'PrivacyPolicy', 'TermsOfUse', 'SupportPageGuard'].includes(name)) return false;
+    if (['Index', 'NotFound', 'Auth', 'Unauthorized', 'ResetPassword', 'InstallApp', 'PrivacyPolicy', 'TermsOfUse', 'SupportPageGuard', 'VerifyReceipt'].includes(name)) return false;
     const lower = name.toLowerCase().replace(/page$/, '').replace(/view$/, '');
     return !routeNames.some(rn => lower.includes(rn.replace(/-/g, '')));
   });

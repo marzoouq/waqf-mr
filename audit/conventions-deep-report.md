@@ -1,6 +1,6 @@
 # Conventions Deep Report
 
-Total violations: **11** (Critical: 0, Warning: 7, Info: 4)
+Total violations: **12** (Critical: 0, Warning: 8, Info: 4)
 
 ## By rule
 
@@ -8,7 +8,7 @@ Total violations: **11** (Critical: 0, Warning: 7, Info: 4)
 |---|---:|
 | NoToastInDataHooks | 6 |
 | HexColors | 4 |
-| HooksLayering | 1 |
+| HooksLayering | 2 |
 
 ## Critical violations
 
@@ -24,4 +24,5 @@ _None._
 | hooks/data/core/crud/useListQuery.ts:10 | NoToastInDataHooks | hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper) |
 | hooks/data/notifications/useNotificationActions.ts:11 | NoToastInDataHooks | hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper) |
 | hooks/data/settings/app/useAppSettingsWrite.ts:9 | NoToastInDataHooks | hooks/data imports @/lib/notify (transitional — move notification to hooks/page wrapper) |
+| hooks/page/admin/financial/useReceiptVoucherDownload.ts:5 | HooksLayering | hooks/page imports supabase client directly — extract to lib/services/* |
 | hooks/page/auth/useOAuthConsent.ts:6 | HooksLayering | hooks/page imports supabase client directly — extract to lib/services/* |

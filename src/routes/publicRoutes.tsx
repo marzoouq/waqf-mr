@@ -14,6 +14,7 @@ const InstallApp = lazyWithRetry(() => import("@/pages/InstallApp"));
 const ResetPassword = lazyWithRetry(() => import("@/pages/ResetPassword"));
 const OAuthConsent = lazyWithRetry(() => import("@/pages/OAuthConsent"));
 const MaintenancePage = lazyWithRetry(() => import("@/pages/MaintenancePage"));
+const VerifyReceipt = lazyWithRetry(() => import("@/pages/VerifyReceipt"));
 
 export const publicRoutes = (
   <>
@@ -25,6 +26,7 @@ export const publicRoutes = (
     <Route path="/install" element={eb(<InstallApp />)} />
     <Route path="/reset-password" element={eb(<ResetPassword />)} />
     <Route path="/maintenance" element={eb(<MaintenancePage />)} />
+    <Route path="/verify/receipt/:code" element={eb(<VerifyReceipt />)} />
     <Route path="/.lovable/oauth/consent" element={eb(<OAuthConsent />)} />
   </>
 );

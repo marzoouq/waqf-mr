@@ -13,6 +13,7 @@ import { fmt } from '@/utils/format/format';
 import type { SortKey } from '@/hooks/page/admin/financial/usePaymentInvoicesTab';
 import type { PaymentInvoice } from '@/types';
 import { PaymentStatusBadge } from './paymentStatusBadge';
+import { ReceiptVoucherButton } from './ReceiptVoucherButton';
 
 interface PaymentInvoiceDesktopTableProps {
   groupedPaginated: Map<string, PaymentInvoice[]>;
@@ -107,6 +108,7 @@ export default function PaymentInvoiceDesktopTable({
                       <div className="flex items-center justify-center gap-1">
                         <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewTemplate(inv)} title="معاينة الفاتورة"><Eye className="w-3.5 h-3.5" /></Button>
                         <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewTemplate(inv)} title="تحميل PDF"><Download className="w-3.5 h-3.5" /></Button>
+                        <ReceiptVoucherButton inv={inv} />
                         {!isClosed && (
                           inv.status !== 'paid' ? (
                             <Button size="sm" variant="ghost" className="gap-1 text-success h-8" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>

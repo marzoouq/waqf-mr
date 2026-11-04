@@ -1943,6 +1943,75 @@ export type Database = {
         }
         Relationships: []
       }
+      receipt_vouchers: {
+        Row: {
+          amount: number
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          fiscal_year_id: string | null
+          id: string
+          paid_date: string
+          payment_invoice_id: string
+          payment_method: string
+          receipt_number: string
+          status: string
+          verification_code: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          amount: number
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          fiscal_year_id?: string | null
+          id?: string
+          paid_date: string
+          payment_invoice_id: string
+          payment_method?: string
+          receipt_number: string
+          status?: string
+          verification_code?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          amount?: number
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          fiscal_year_id?: string | null
+          id?: string
+          paid_date?: string
+          payment_invoice_id?: string
+          payment_method?: string
+          receipt_number?: string
+          status?: string
+          verification_code?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_vouchers_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receipt_vouchers_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+        ]
+      }
       support_ticket_events: {
         Row: {
           actor_id: string | null
@@ -2757,6 +2826,7 @@ export type Database = {
         Args: { p_contract_id: string }
         Returns: number
       }
+      generate_receipt_number: { Args: { p_date: string }; Returns: string }
       generate_voucher_number: { Args: never; Returns: string }
       get_active_zatca_certificate: { Args: never; Returns: Json }
       get_beneficiary_dashboard: {
@@ -3011,8 +3081,21 @@ export type Database = {
             }
             Returns: Json
           }
+      verify_receipt_voucher: {
+        Args: { p_code: string }
+        Returns: {
+          amount: number
+          paid_date: string
+          receipt_number: string
+          status: string
+        }[]
+      }
       void_disbursement_voucher: {
         Args: { p_reason: string; p_voucher_id: string }
+        Returns: undefined
+      }
+      void_receipt_voucher: {
+        Args: { p_id: string; p_reason: string }
         Returns: undefined
       }
     }
