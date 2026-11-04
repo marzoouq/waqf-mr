@@ -10,13 +10,13 @@ function below1000(n: number): string {
   const parts: string[] = [];
   const h = Math.floor(n / 100);
   const r = n % 100;
-  if (h) parts.push(HUNDREDS[h]);
-  if (r >= 10 && r < 20) parts.push(TEENS[r - 10]);
+  if (h) parts.push(HUNDREDS[h] ?? '');
+  if (r >= 10 && r < 20) parts.push(TEENS[r - 10] ?? '');
   else if (r) {
     const o = r % 10;
     const t = Math.floor(r / 10);
-    if (o) parts.push(ONES[o]);
-    if (t) parts.push(TENS[t]);
+    if (o) parts.push(ONES[o] ?? '');
+    if (t) parts.push(TENS[t] ?? '');
   }
   return parts.join(' و');
 }
