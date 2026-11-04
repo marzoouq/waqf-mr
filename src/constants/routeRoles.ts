@@ -82,4 +82,4 @@ export const ROUTE_ROLES: Record<string, readonly AppRole[]> = {
 export const ALL_APP_ROLES: readonly AppRole[] = ['admin', 'accountant', 'beneficiary', 'waqif', 'support'] as const;
 
 /** عدد المسارات المتوقع (لاستخدام الاختبارات كـ sanity check) */
-export const EXPECTED_ROUTE_COUNT = 48;
+export const EXPECTED_ROUTE_COUNT = 50;

@@ -155,3 +155,11 @@ route,role,role_allowed,perm_key,section_key,effective_allowed,access_basis,stat
 /waqif,accountant,false,,,false,denied-role,DENIED
 /waqif,beneficiary,false,,,false,denied-role,DENIED
 /waqif,waqif,true,,,true,uncontrolled,ALLOWED
+/dashboard/audit-tree,admin,true,,audit_tree,true,admin-override,ALLOWED
+/dashboard/audit-tree,accountant,true,audit_tree,audit_tree,true,role+perm,ALLOWED
+/dashboard/audit-tree,beneficiary,false,,audit_tree,false,denied-role,DENIED
+/dashboard/audit-tree,waqif,false,,audit_tree,false,denied-role,DENIED
+/dashboard/official-letters,admin,true,,official_letters,true,admin-override,ALLOWED
+/dashboard/official-letters,accountant,false,,official_letters,false,denied-role,DENIED
+/dashboard/official-letters,beneficiary,false,,official_letters,false,denied-role,DENIED
+/dashboard/official-letters,waqif,false,,official_letters,false,denied-role,DENIED

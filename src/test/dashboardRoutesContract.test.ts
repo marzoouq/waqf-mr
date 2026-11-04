@@ -20,6 +20,8 @@ const ROOT = process.cwd();
 const ROUTE_TO_FILE: Record<string, string> = {
   '/dashboard': 'src/pages/dashboard/AdminDashboard.tsx',
   '/dashboard/properties': 'src/pages/dashboard/PropertiesPage.tsx',
+  '/dashboard/audit-tree': 'src/pages/dashboard/AuditTreePage.tsx',
+  '/dashboard/official-letters': 'src/pages/dashboard/OfficialLettersPage.tsx',
   '/dashboard/contracts': 'src/pages/dashboard/ContractsPage.tsx',
   '/dashboard/income': 'src/pages/dashboard/IncomePage.tsx',
   '/dashboard/expenses': 'src/pages/dashboard/ExpensesPage.tsx',
