@@ -71,11 +71,10 @@ describe('useAccountsCalculations', () => {
     expect(r.commercialRent).toBe(0);
   });
 
-  it('السنة المفتوحة: لا حصص ولا ريع (تُحسب عند الإقفال فقط)', () => {
+  it('السنة المفتوحة: حصص وريع تقديرية حية لشاشة الناظر', () => {
     const r = run({ isClosed: false });
-    expect(r.adminShare).toBe(0);
-    expect(r.waqifShare).toBe(0);
-    expect(r.waqfRevenue).toBe(0);
+    expect(r.adminShare).toBeGreaterThan(0);
+    expect(r.waqfRevenue).toBeGreaterThan(0);
     expect(r.netAfterZakat).toBe(120000 + 10000 - 30000 - 1200 - 2000);
   });
 
