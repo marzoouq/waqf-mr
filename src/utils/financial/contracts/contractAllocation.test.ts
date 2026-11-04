@@ -11,7 +11,7 @@ describe('generatePaymentDueDates', () => {
       rent_amount: 12000, payment_type: 'monthly',
     });
     expect(dates).toHaveLength(12);
-    expect(dates[0]).toBe('2024-02-01');
+    expect(dates[0]).toBe('2024-01-01');
   });
 
   it('يولّد تاريخ واحد للعقد السنوي', () => {

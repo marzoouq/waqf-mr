@@ -36,26 +36,24 @@ export function generatePaymentDueDates(contract: ContractInfo): string[] {
   const paymentCount = getPaymentCount(contract);
   const dates: string[] = [];
 
+  // الاستحقاق يبدأ من تاريخ العقد (دفع مقدّم) — العقد يُحسب كاملاً دون بتر شهر
   if (paymentCount === 1) {
-    // دفعة واحدة — تاريخ الاستحقاق بعد شهر من البداية
-    const due = safeAddMonths(start, 1);
-    dates.push(toISODate(due));
+    dates.push(toISODate(start));
   } else {
-    // Monthly or multi: payments due each period after start
     for (let i = 0; i < paymentCount; i++) {
       let due: Date;
       if (contract.payment_type === 'monthly') {
-        due = safeAddMonths(start, i + 1);
+        due = safeAddMonths(start, i);
       } else if (contract.payment_type === 'quarterly') {
-        due = safeAddMonths(start, (i + 1) * 3);
+        due = safeAddMonths(start, i * 3);
       } else if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') {
-        due = safeAddMonths(start, (i + 1) * 6);
+        due = safeAddMonths(start, i * 6);
       } else {
-        // Multi-payment: evenly spaced
+        // Multi-payment: evenly spaced from the start date
         due = new Date(start);
         const totalDays = daysBetween(start, new Date(contract.end_date));
         const interval = totalDays / paymentCount;
-        due.setDate(due.getDate() + Math.round(interval * (i + 1)));
+        due.setDate(due.getDate() + Math.round(interval * i));
       }
       dates.push(toISODate(due));
     }
@@ -130,19 +128,15 @@ function findFiscalYearForDate(date: Date, sortedFYs: FiscalYear[]): FiscalYear 
   return null;
 }
 
+// مطابق لدالة الخادم generate_contract_invoices: العقد 12 شهراً كاملاً دون بتر شهر
 function getPaymentCount(contract: ContractInfo): number {
-  const months = monthsBetween(new Date(contract.start_date), new Date(contract.end_date));
-  if (contract.payment_type === 'monthly') return Math.max(1, months);
-  if (contract.payment_type === 'quarterly') return Math.max(1, Math.ceil(months / 3));
-  if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') return Math.max(1, Math.ceil(months / 6));
-  if (contract.payment_type === 'annual') return Math.max(1, Math.ceil(months / 12));
+  if (contract.payment_type === 'monthly') return 12;
+  if (contract.payment_type === 'quarterly') return 4;
+  if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') return 2;
+  if (contract.payment_type === 'annual') return 1;
   return contract.payment_count || 1;
 }
 
-/** Calculate whole months between two dates */
-function monthsBetween(a: Date, b: Date): number {
-  return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
-}
 
 function getPaymentAmount(contract: ContractInfo): number {
   if (contract.payment_amount !== null && contract.payment_amount !== undefined) return safeNumber(contract.payment_amount);
