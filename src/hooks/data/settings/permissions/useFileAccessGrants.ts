@@ -49,6 +49,12 @@ export function useGrantableFiles(bucket: string) {
         if (error) throw error;
         return (data ?? []).map((d) => ({ path: d.file_path as string, label: d.invoice_number ?? d.file_name ?? 'فاتورة' }));
       }
+      if (bucket === 'contract-documents') {
+        const { data, error } = await supabase.from('contract_documents')
+          .select('storage_path,file_name,ejar_number').eq('is_current', true).limit(500);
+        if (error) throw error;
+        return (data ?? []).map((d) => ({ path: d.storage_path, label: d.ejar_number ? `عقد إيجار ${d.ejar_number}` : d.file_name }));
+      }
       return [];
     },
   });

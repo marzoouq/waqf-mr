@@ -8,7 +8,7 @@ import {
   useGrantableFiles, useGrantableBeneficiaries, type FileAccessGrant,
 } from '@/hooks/data/settings/permissions/useFileAccessGrants';
 
-export const GRANT_BUCKETS = ['invoices', 'disbursement-vouchers', 'waqf-documents'] as const;
+export const GRANT_BUCKETS = ['invoices', 'disbursement-vouchers', 'waqf-documents', 'contract-documents'] as const;
 export type GrantEffect = 'allow' | 'deny';
 
 export function useFileAccessGrantsPanel() {
