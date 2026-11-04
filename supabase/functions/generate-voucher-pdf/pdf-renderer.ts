@@ -4,7 +4,12 @@
 
 import { jsPDF } from "npm:jspdf@3.0.4";
 
-const FONT_BASE_URL = `${Deno.env.get("SUPABASE_URL")!}/storage/v1/object/public/waqf-assets/fonts`;
+// مصادر الخط بالترتيب: الحزمة ثم الموقع المنشور (الحزمة ترفض نوع ملفات ttf)
+export const FONT_SOURCES = [
+  `${Deno.env.get("SUPABASE_URL") ?? ""}/storage/v1/object/public/waqf-assets/fonts`,
+  "https://waqf-wise.net/fonts",
+  "https://waqf-wise-net.lovable.app/fonts",
+];
 
 let cachedFonts: { regular: Uint8Array; bold: Uint8Array } | null = null;
 
@@ -33,9 +38,18 @@ export interface VoucherData {
 }
 
 async function fetchFont(name: string): Promise<Uint8Array> {
-  const res = await fetch(`${FONT_BASE_URL}/${name}`);
-  if (!res.ok) throw new Error(`Failed to fetch font ${name}: ${res.status}`);
-  return new Uint8Array(await res.arrayBuffer());
+  const failures: string[] = [];
+  for (const base of FONT_SOURCES) {
+    try {
+      const res = await fetch(`${base}/${name}`);
+      if (res.ok) return new Uint8Array(await res.arrayBuffer());
+      failures.push(`${base}: ${res.status}`);
+      await res.body?.cancel();
+    } catch (e) {
+      failures.push(`${base}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+  throw new Error(`Failed to fetch font ${name} (${failures.join("; ")})`);
 }
 
 async function getFonts() {
