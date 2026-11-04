@@ -6,6 +6,8 @@ const mockAutoTable = vi.fn();
 
 vi.mock('jspdf', () => {
   const JsPDFMock = function(this: Record<string, unknown>) {
+    this.addPage = vi.fn();
+    this.getNumberOfPages = () => 1;
     this.setFont = vi.fn();
     this.setFontSize = vi.fn();
     this.text = mockText;

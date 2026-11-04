@@ -30,6 +30,8 @@ export const SECTION_LABELS: Record<string, string> = {
   zatca: 'إدارة ZATCA',
   diagnostics: 'تشخيص النظام',
   email_monitor: 'مراقبة البريد',
+  audit_tree: 'شجرة التدقيق',
+  official_letters: 'الوثائق المعتمدة',
   comparison: 'المقارنة التاريخية',
   audit_report_final: 'تقرير التدقيق النهائي',
   cleanup_report: 'تقرير التنظيف',
@@ -40,7 +42,7 @@ export const ADMIN_SECTION_KEYS = [
   'properties', 'contracts', 'income', 'expenses', 'beneficiaries',
   'reports', 'accounts', 'users', 'invoices', 'bylaws', 'archive', 'messages',
   'audit_log', 'annual_report', 'support', 'chart_of_accounts',
-  'settings', 'zatca', 'diagnostics', 'email_monitor', 'comparison',
+  'settings', 'zatca', 'diagnostics', 'email_monitor', 'comparison', 'audit_tree', 'official_letters',
   'audit_report_final', 'cleanup_report',
 ] as const satisfies readonly (keyof typeof SECTION_LABELS)[];
 

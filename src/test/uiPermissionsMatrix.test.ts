@@ -1,7 +1,7 @@
 /**
  * Round W — uiPermissionsMatrix: تحقق صارم من audit/ui-permissions-matrix.csv
  *
- * يتأكد أن المصفوفة المُولَّدة (156 صف بيانات + header) متّسقة مع المصادر:
+ * يتأكد أن المصفوفة المُولَّدة (164 صف بيانات + header) متّسقة مع المصادر:
  *   - ROUTE_ROLES يغطي كل الـ routes
  *   - كل route ظاهر بأربعة صفوف (دور لكل)
  *   - effective_allowed=true يحمل access_basis صالح
@@ -62,11 +62,11 @@ describe('Round W — UI Permissions Matrix (audit/ui-permissions-matrix.csv)', 
     ]);
   });
 
-  it('عدد صفوف البيانات = 156 (39 مسار × 4 أدوار)', () => {
-    expect(csv.rows.length).toBe(156);
+  it('عدد صفوف البيانات = 164 (41 مسار × 4 أدوار)', () => {
+    expect(csv.rows.length).toBe(164);
   });
 
-  it('ROUTE_ROLES يحتوي 39 مفتاحاً صراحة', () => {
+  it('ROUTE_ROLES يحتوي 41 مفتاحاً صراحة', () => {
     expect(Object.keys(ROUTE_ROLES)).toHaveLength(EXPECTED_ROUTE_COUNT);
   });
 
@@ -117,7 +117,7 @@ describe('Round W — UI Permissions Matrix (audit/ui-permissions-matrix.csv)', 
 
   it('admin مسموح في كل المسارات (admin-override)', () => {
     const adminRows = csv.rows.filter(r => r.role === 'admin');
-    expect(adminRows).toHaveLength(39);
+    expect(adminRows).toHaveLength(41);
     const denied = adminRows.filter(r => r.effective_allowed !== 'true');
     expect(denied.map(d => d.route)).toEqual([]);
   });

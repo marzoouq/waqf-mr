@@ -17,3 +17,19 @@ describe('startSectionPage — كل قسم في صفحة مستقلة', () => {
     expect(doc.addPage).not.toHaveBeenCalled();
   });
 });
+
+describe('insertTableOfContents — فهرس في الصفحة الأولى', () => {
+  it('يُدرج صفحة فهرس عند وجود 3 أقسام فأكثر', async () => {
+    const { insertTableOfContents } = await import('@/utils/pdf/core/pdfLayout');
+    let pages = 1;
+    const doc = {
+      addPage: vi.fn(() => { pages++; }), getNumberOfPages: () => pages,
+      insertPage: vi.fn(), setPage: vi.fn(), setFont: vi.fn(), setFontSize: vi.fn(),
+      text: vi.fn(), setDrawColor: vi.fn(), line: vi.fn(), getTextWidth: () => 10,
+      internal: { pageSize: { width: 210 } },
+    } as unknown as jsPDF & { insertPage: ReturnType<typeof vi.fn> };
+    ['الإيرادات', 'المصروفات', 'التوزيعات'].forEach(t => startSectionPage(doc, 25, 100, t));
+    expect(insertTableOfContents(doc, 'Amiri')).toBe(true);
+    expect(doc.insertPage).toHaveBeenCalledWith(1);
+  });
+});

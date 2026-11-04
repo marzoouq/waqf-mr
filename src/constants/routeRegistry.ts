@@ -47,6 +47,8 @@ export const ADMIN_ROUTES: Record<string, RouteMeta> = {
   '/dashboard/chart-of-accounts': { title: 'الشجرة المحاسبية', labelKey: 'chart_of_accounts', permKey: 'chart_of_accounts', sectionKey: 'chart_of_accounts' },
   '/dashboard/comparison': { title: 'المقارنة التاريخية', labelKey: 'comparison', permKey: 'comparison', sectionKey: 'comparison' },
   '/dashboard/diagnostics': { title: 'تشخيص النظام', labelKey: 'diagnostics', permKey: 'diagnostics', sectionKey: 'diagnostics' },
+  '/dashboard/audit-tree': { title: 'شجرة التدقيق', labelKey: 'audit_tree', permKey: 'audit_tree', sectionKey: 'audit_tree' },
+  '/dashboard/official-letters': { title: 'الوثائق المعتمدة', labelKey: 'official_letters', permKey: 'official_letters', sectionKey: 'official_letters' },
   '/dashboard/email-monitor': { title: 'مراقبة البريد', labelKey: 'email_monitor', permKey: 'email_monitor', sectionKey: 'email_monitor' },
   '/dashboard/audit-report-final': { title: 'تقرير التدقيق النهائي', labelKey: 'audit_report_final', permKey: 'audit_report_final', sectionKey: 'audit_report_final' },
   '/dashboard/cleanup-report': { title: 'تقرير التنظيف', labelKey: 'cleanup_report', permKey: 'cleanup_report', sectionKey: 'cleanup_report' },

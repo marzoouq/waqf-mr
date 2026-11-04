@@ -56,17 +56,21 @@ export const finalizePdf = async (
   filename: string,
   waqfInfo?: PdfWaqfInfo,
   options?: { skipHeaders?: boolean; skipOfficialMarks?: boolean; fiscalYearId?: string | null }
-): Promise<void> => {
+): Promise<import('./officialRegistry').IssuedDocumentRef | null> => {
+  const { insertTableOfContents } = await import('./pdfLayout');
+  insertTableOfContents(doc, fontFamily);
   if (!options?.skipHeaders) {
     addHeaderToAllPages(doc, fontFamily, waqfInfo);
   }
   addFooter(doc, fontFamily, waqfInfo);
+  let ref: import('./officialRegistry').IssuedDocumentRef | null = null;
   if (!options?.skipOfficialMarks) {
     // رقم مرجعي + تاريخ مزدوج + QR تحقق — يُسجَّل في سجل الوثائق
     const { applyOfficialMarks } = await import('./officialStamp');
-    await applyOfficialMarks(doc, fontFamily, filename, options?.fiscalYearId);
+    ref = await applyOfficialMarks(doc, fontFamily, filename, options?.fiscalYearId);
   }
   doc.save(filename);
+  return ref;
 };
 
 /**

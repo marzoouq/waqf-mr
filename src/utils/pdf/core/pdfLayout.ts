@@ -131,12 +131,52 @@ export const addFooter = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo
   }
 };
 
+/** سجل أقسام كل مستند لبناء فهرس المحتويات */
+const sectionRegistry = new WeakMap<jsPDF, { title: string; page: number }[]>();
+
+export const getRegisteredSections = (doc: jsPDF) => sectionRegistry.get(doc) ?? [];
+
 /**
- * Start a report section on its own page (skips when the current page is still empty).
- * يُستخدم لفصل أقسام التقارير: الإيرادات، المصروفات، المستفيدون، التوزيعات...
+ * Start a report section on its own page (skips when the current page is still empty)
+ * and register it for the table of contents.
  */
-export const startSectionPage = (doc: jsPDF, topY: number, currentY: number): number => {
-  if (currentY <= topY + 1) return currentY;
-  doc.addPage();
-  return topY;
+export const startSectionPage = (doc: jsPDF, topY: number, currentY: number, title?: string): number => {
+  let y = currentY;
+  if (currentY > topY + 1) {
+    doc.addPage();
+    y = topY;
+  }
+  if (title) {
+    const list = sectionRegistry.get(doc) ?? [];
+    list.push({ title, page: doc.getNumberOfPages() });
+    sectionRegistry.set(doc, list);
+  }
+  return y;
+};
+
+/**
+ * Insert a table-of-contents page at the start when the document has 3+ registered sections.
+ * Returns true when a page was inserted.
+ */
+export const insertTableOfContents = (doc: jsPDF, fontFamily: string, topY = 40): boolean => {
+  const sections = getRegisteredSections(doc);
+  if (sections.length < 3) return false;
+  doc.insertPage(1);
+  doc.setPage(1);
+  const pageW = doc.internal.pageSize.width;
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(16);
+  doc.text(rs('فهرس المحتويات'), pageW / 2, topY, { align: 'center' });
+  doc.setFontSize(11);
+  let y = topY + 14;
+  sections.forEach((s, i) => {
+    doc.setFont(fontFamily, 'normal');
+    doc.text(rs(`${i + 1}. ${s.title}`), pageW - 25, y, { align: 'right' });
+    doc.text(String(s.page + 1), 25, y, { align: 'left' });
+    doc.setDrawColor(200, 200, 200);
+    doc.line(35, y + 1.5, pageW - 25 - doc.getTextWidth(rs(`${i + 1}. ${s.title}`)) - 3, y + 1.5);
+    y += 9;
+  });
+  sectionRegistry.delete(doc);
+  return true;
 };

@@ -1,3 +1,4 @@
+import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
 /**
  * دوال بناء جداول التقرير الشامل للمستفيد — مستخرجة لتقليل حجم الملف الرئيسي
  * أقسام التسلسل المالي وحصتي مستخرجة في `comprehensiveBeneficiaryFinancial.ts`.
@@ -20,13 +21,9 @@ export { renderFinancialSequenceTable, renderShareTable } from './comprehensiveB
 type AutoTableFn = (doc: jsPDF, options: UserOptions) => void;
 
 const ensureSpace = (doc: jsPDF, needed: number): number => {
-  const pageH = doc.internal.pageSize.height;
-  const currentY = getLastAutoTableY(doc) + 10;
-  if (currentY + needed > pageH - 30) {
-    doc.addPage();
-    return 25;
-  }
-  return currentY;
+  // كل قسم في صفحة مستقلة؛ needed يُبقى للتوافق
+  void needed;
+  return startSectionPage(doc, 25, getLastAutoTableY(doc) + 10);
 };
 
 /** القسم الثاني: العقود */

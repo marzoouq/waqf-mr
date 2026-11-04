@@ -141,6 +141,13 @@
       "when": 1793816185126,
       "tag": "0019_verify_document_reflects_voided_vouchers",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793817673622,
+      "tag": "0020_audit_tree_and_official_letters",
+      "breakpoints": true
     }
   ]
 }

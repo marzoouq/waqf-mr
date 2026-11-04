@@ -1,3 +1,4 @@
+import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
 /**
  * أقسام التسلسل المالي وحصتي من الريع — مستخرجة من comprehensiveBeneficiaryTables.ts
  */
@@ -15,13 +16,9 @@ import type { ComprehensiveBeneficiaryData } from './comprehensiveBeneficiary';
 type AutoTableFn = (doc: jsPDF, options: UserOptions) => void;
 
 function ensureSpace(doc: jsPDF, needed: number): number {
-  const pageH = doc.internal.pageSize.height;
-  const currentY = getLastAutoTableY(doc) + 10;
-  if (currentY + needed > pageH - 30) {
-    doc.addPage();
-    return 25;
-  }
-  return currentY;
+  // كل قسم في صفحة مستقلة؛ needed يُبقى للتوافق
+  void needed;
+  return startSectionPage(doc, 25, getLastAutoTableY(doc) + 10);
 }
 
 /** القسم الخامس: التسلسل المالي */
