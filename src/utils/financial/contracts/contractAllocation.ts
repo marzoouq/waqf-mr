@@ -137,10 +137,6 @@ function getPaymentCount(contract: ContractInfo): number {
   return contract.payment_count || 1;
 }
 
-/** Calculate whole months between two dates */
-function monthsBetween(a: Date, b: Date): number {
-  return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
-}
 
 function getPaymentAmount(contract: ContractInfo): number {
   if (contract.payment_amount !== null && contract.payment_amount !== undefined) return safeNumber(contract.payment_amount);
