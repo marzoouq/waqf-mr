@@ -2,6 +2,7 @@
  * تقرير سنوي مُجمَّع للناظر — orchestrator
  * تم تقسيمه إلى: types.ts, sections.ts للالتزام بحدّ ≤200 سطر/ملف.
  */
+import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
 import {
   createPdfDocument, finalizePdf,
   reshapeArabic as rs,
@@ -50,31 +51,32 @@ export const generateAggregatedAnnualReportPDF = async (
 
     const incomeEntries = Object.entries(data.incomeBySource ?? {}).filter(([, v]) => v > 0) as [string, number][];
     if (incomeEntries.length) {
-      if (y > 240) { doc.addPage(); y = 25; }
+      y = startSectionPage(doc, 25, y);
       y = renderKeyValueTable(doc, autoTable, f, 'ثالثاً: الإيرادات حسب المصدر', ['المصدر', 'المبلغ (ر.س)'], incomeEntries, y);
     }
 
     const expensesEntries = Object.entries(data.expensesByType ?? {}).filter(([, v]) => v > 0) as [string, number][];
     if (expensesEntries.length) {
-      if (y > 240) { doc.addPage(); y = 25; }
+      y = startSectionPage(doc, 25, y);
       y = renderKeyValueTable(doc, autoTable, f, 'رابعاً: المصروفات حسب النوع (بدون VAT)', ['النوع', 'المبلغ (ر.س)'], expensesEntries, y);
     }
 
     if (data.beneficiaries.length) {
-      if (y > 230) { doc.addPage(); y = 25; }
+      y = startSectionPage(doc, 25, y);
       y = renderBeneficiaries(doc, autoTable, f, data, y);
     }
 
     if (data.distributions.length) {
-      if (y > 230) { doc.addPage(); y = 25; }
+      y = startSectionPage(doc, 25, y);
       y = renderDistributions(doc, autoTable, f, data, y);
     }
 
     if (data.yoy) {
-      if (y > 240) { doc.addPage(); y = 25; }
+      y = startSectionPage(doc, 25, y);
       y = renderYoY(doc, autoTable, f, data, y);
     }
 
+    y = startSectionPage(doc, 25, y);
     y = writeNarrative(doc, f, 'ثامناً: حالة العقارات', data.propertyStatuses, [71, 85, 105], y);
     y = writeNarrative(doc, f, 'تاسعاً: الإنجازات', data.achievements, [22, 101, 52], y);
     y = writeNarrative(doc, f, 'عاشراً: التحديات', data.challenges, [180, 120, 20], y);

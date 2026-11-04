@@ -130,3 +130,13 @@ export const addFooter = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo
     doc.text(`${i} / ${pageCount}`, pageW - margin, footerY, { align: 'right' });
   }
 };
+
+/**
+ * Start a report section on its own page (skips when the current page is still empty).
+ * يُستخدم لفصل أقسام التقارير: الإيرادات، المصروفات، المستفيدون، التوزيعات...
+ */
+export const startSectionPage = (doc: jsPDF, topY: number, currentY: number): number => {
+  if (currentY <= topY + 1) return currentY;
+  doc.addPage();
+  return topY;
+};
