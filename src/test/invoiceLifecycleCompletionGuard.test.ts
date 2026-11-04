@@ -3,6 +3,15 @@ import { readFileSync } from 'node:fs';
 import { invoiceRemaining } from '@/utils/financial/collection/invoiceAge';
 
 describe('حماية الإقفال والتحصيل', () => {
+  it('لا سداد جزئي بلا سند مستقل ولا إلغاء جماعي لدفعات متعددة', () => {
+    const sql = readFileSync('drizzle/migrations/0025_protect_collection_receipts_and_close_warnings.sql', 'utf8');
+    expect(sql).toContain('p_paid_amount<>v_remaining');
+    expect(sql).toContain('WHERE payment_invoice_id=p_invoice_id)>1');
+    expect(sql).toContain("status='partially_paid'");
+    expect(sql.match(/pg_advisory_xact_lock\(724601\)/g)?.length).toBe(4);
+    expect(sql).toContain("v_warnings||v_result->'warnings'");
+    expect(sql).toContain('REVOKE ALL ON FUNCTION public.pay_invoice_remaining_and_record_collection(uuid,numeric) FROM PUBLIC,anon,authenticated');
+  });
   it('توجد لقطة إقفال ثابتة وسجل انتقال ولا تحديث رجعي', () => {
     const sql = readFileSync('drizzle/migrations/0024_complete_invoice_lifecycle.sql', 'utf8');
     expect(sql).toContain('public.fiscal_closure_summaries');

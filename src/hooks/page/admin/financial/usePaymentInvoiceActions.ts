@@ -49,6 +49,7 @@ export function usePaymentInvoiceActions() {
     if (!(amount > 0)) { uiNotify.error('يرجى إدخال مبلغ صحيح'); return; }
     const inv = payDialog.inv;
     if (amount > invoiceRemaining(Number(inv.amount), Number(inv.paid_amount), inv.status)) { uiNotify.error('مبلغ السداد يتجاوز المتبقي'); return; }
+    if (amount < invoiceRemaining(Number(inv.amount), Number(inv.paid_amount), inv.status)) { uiNotify.error('السداد الجزئي غير متاح حتى إصدار سند مستقل لكل دفعة'); return; }
     setPayingInvoiceId(inv.id);
     setPayDialog(null);
     markPaidRaw.mutate(
