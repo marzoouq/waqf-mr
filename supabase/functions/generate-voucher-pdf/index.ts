@@ -68,6 +68,13 @@ Deno.serve(async (req): Promise<Response> => {
       if (!adminRole) return jsonError("لا يمكن إصدار سند سنة مالية مقفلة إلا بواسطة الناظر", 403, corsHeaders);
     }
 
+    // ترويسة الوقف الرسمية من الإعدادات
+    const { data: settingRows } = await admin
+      .from("app_settings")
+      .select("key, value")
+      .in("key", ["waqf_name", "waqf_deed_number", "waqf_court", "vat_registration_number", "waqf_logo_url"]);
+    const s = Object.fromEntries((settingRows ?? []).map((r: { key: string; value: unknown }) => [r.key, typeof r.value === "string" ? r.value : String(r.value ?? "")]));
+
     const pdfBytes = await renderVoucherPdf({
       voucher_number: voucher.voucher_number,
       recipient_name: voucher.recipient_name,
@@ -80,6 +87,12 @@ Deno.serve(async (req): Promise<Response> => {
       signature_data: voucher.signature_data,
       approved_at: voucher.approved_at,
       created_at: voucher.created_at,
+    }, {
+      name: s.waqf_name || "",
+      deed_number: s.waqf_deed_number || null,
+      court: s.waqf_court || null,
+      vat_number: s.vat_registration_number || null,
+      logo_url: s.waqf_logo_url || null,
     });
 
     const safeName = voucher.voucher_number.replace(/[./\\]+/g, "_");
