@@ -93,7 +93,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-0">
+      <DialogContent className="max-w-4xl w-[95vw] max-h-[90dvh] overflow-y-auto p-0">
         <DialogHeader className="px-6 pt-5 pb-3 border-b flex flex-row items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <DialogTitle className="text-base">معاينة الفاتورة الضريبية</DialogTitle>

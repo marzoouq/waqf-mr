@@ -32,7 +32,7 @@ export const BylawEditDialog = ({
   onSave, isPending,
 }: EditDialogProps) => (
   <Dialog open={!!editItem} onOpenChange={(open) => !open && onClose()}>
-    <DialogContent className="max-w-2xl max-h-[80vh]">
+    <DialogContent className="max-w-2xl max-h-[80dvh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>تعديل: {editItem?.chapter_title || editItem?.part_title}</DialogTitle>
         <DialogDescription>يمكنك تعديل المحتوى باستخدام تنسيق Markdown. سيتم تسجيل التعديل في سجل المراجعة.</DialogDescription>

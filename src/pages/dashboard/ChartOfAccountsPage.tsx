@@ -75,7 +75,7 @@ const ChartOfAccountsPage = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>{editingCategory ? 'تعديل حساب' : 'إضافة حساب جديد'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5"><Label htmlFor="chart-code">الكود</Label><Input id="chart-code" value={form.code} onChange={(e) => setForm(p => ({ ...p, code: e.target.value }))} placeholder="مثال: 110" maxLength={10} /></div>
               <div className="space-y-1.5"><Label htmlFor="chart-sort">الترتيب</Label><Input id="chart-sort" type="number" value={form.sort_order} onChange={(e) => setForm(p => ({ ...p, sort_order: Number(e.target.value) }))} /></div>
             </div>

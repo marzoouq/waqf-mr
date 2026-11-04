@@ -59,7 +59,7 @@ const TicketViewDialog = ({ ticket: initialTicket, onClose }: TicketViewDialogPr
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col" dir="rtl">
+      <DialogContent className="max-w-lg max-h-[80dvh] overflow-hidden flex flex-col" dir="rtl">
         <DialogHeader>
           <DialogTitle>{ticket.title}</DialogTitle>
           <DialogDescription className="flex gap-2 pt-1">

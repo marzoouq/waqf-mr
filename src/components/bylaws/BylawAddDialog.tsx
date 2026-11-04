@@ -25,7 +25,7 @@ interface AddDialogProps {
 
 export const BylawAddDialog = ({ open, onOpenChange, newBylaw, setNewBylaw, onAdd, isPending }: AddDialogProps) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+    <DialogContent className="max-w-2xl max-h-[80dvh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>إضافة بند جديد</DialogTitle>
         <DialogDescription>أضف بنداً جديداً إلى اللائحة التنظيمية. يدعم المحتوى تنسيق Markdown.</DialogDescription>

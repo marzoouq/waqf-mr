@@ -54,7 +54,7 @@ const InvoiceUploadDialog = ({
     <DialogTrigger asChild>
       <Button className="gradient-primary gap-2" disabled={isLocked}><Plus className="w-4 h-4" /><span className="hidden sm:inline">رفع فاتورة</span></Button>
     </DialogTrigger>
-    <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+    <DialogContent className="max-w-md max-h-[90dvh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>{isEditing ? 'تعديل الفاتورة' : 'رفع فاتورة جديدة'}</DialogTitle>
         <DialogDescription className="sr-only">نموذج رفع أو تعديل فاتورة</DialogDescription>
@@ -91,11 +91,11 @@ const InvoiceUploadDialog = ({
         </div>
 
         {/* حقول النموذج */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2"><Label htmlFor="invoice-number">رقم الفاتورة</Label><Input id="invoice-number" name="invoice_number" value={formData.invoice_number} onChange={(e) => setFormData({ ...formData, invoice_number: e.target.value })} placeholder="INV-001" /></div>
           <div className="space-y-2"><Label htmlFor="invoice-amount">المبلغ (ر.س) *</Label><Input id="invoice-amount" name="amount" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="10000" /></div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2"><Label htmlFor="invoice-date">التاريخ *</Label><Input id="invoice-date" name="date" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
           <div className="space-y-2">
             <Label htmlFor="invoice-type">نوع الفاتورة *</Label>
