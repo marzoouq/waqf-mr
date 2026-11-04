@@ -25,6 +25,32 @@ const TABLE_NAMES_AR: Record<string, string> = {
   beneficiaries: 'المستفيدين',
   units: 'الوحدات',
   fiscal_years: 'السنوات المالية',
+  payment_invoices: 'فواتير الإيجار',
+  receipt_vouchers: 'سندات القبض',
+  disbursement_vouchers: 'سندات الصرف',
+  app_settings: 'إعدادات النظام',
+  user_roles: 'أدوار المستخدمين',
+  file_access_rules: 'صلاحيات الملفات',
+  file_access_grants: 'أذونات الملفات',
+  file_category_rules: 'صلاحيات فئات الأرشيف',
+  account_categories: 'الشجرة المحاسبية',
+  expense_budgets: 'الموازنات',
+  annual_report_items: 'بنود التقرير السنوي',
+  annual_report_status: 'حالة التقرير السنوي',
+  contract_fiscal_allocations: 'تخصيص العقود',
+  tenant_payments: 'الأشهر المسددة',
+  official_letters: 'الوثائق المعتمدة',
+  webauthn_credentials: 'الأجهزة البيومترية',
+  zatca_certificates: 'شهادات ZATCA',
+  blocked_ips: 'العناوين المحجوبة',
+  alert_rules: 'قواعد التنبيهات',
+  archived_documents: 'أرشيف الوثائق',
+  contract_documents: 'عقود إيجار الموثقة',
+  advance_requests: 'طلبات السلف',
+  advance_carryforward: 'ترحيل السلف',
+  waqf_bylaws: 'اللائحة',
+  support_tickets: 'تذاكر الدعم',
+  support_ticket_replies: 'ردود التذاكر',
 };
 
 const OPERATION_NAMES_AR: Record<string, string> = {
@@ -68,4 +94,14 @@ export const formatValue = (val: unknown): string => {
   if (val === null || val === undefined) return '—';
   if (typeof val === 'object') return JSON.stringify(val, null, 2);
   return String(val);
+};
+
+const ROLE_AR: Record<string, string> = { admin: 'ناظر', accountant: 'محاسب', beneficiary: 'مستفيد', waqif: 'واقف', support: 'دعم فني' };
+
+/** Executor label for an audit row: null user = automated system action. */
+export const getAuditActorLabel = (
+  userId: string | null, actor?: { email: string | null; role: string | null },
+): { name: string; role: string } => {
+  if (!userId) return { name: 'النظام', role: 'إجراء آلي' };
+  return { name: actor?.email ?? 'مستخدم غير معروف', role: actor?.role ? (ROLE_AR[actor.role] ?? actor.role) : 'بدون دور' };
 };
