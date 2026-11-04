@@ -31,6 +31,7 @@ interface AuditLogTableProps {
   expandedRows: Set<string>;
   toggleRow: (id: string) => void;
   getSummary: (log: AuditLog) => string;
+  getActor: (log: AuditLog) => { name: string; role: string };
   currentPage: number;
   totalCount: number;
   itemsPerPage: number;
@@ -38,7 +39,7 @@ interface AuditLogTableProps {
 }
 
 const AuditLogTable = ({
-  logs, isLoading, isMobile, expandedRows, toggleRow, getSummary,
+  logs, isLoading, isMobile, expandedRows, toggleRow, getSummary, getActor,
   currentPage, totalCount, itemsPerPage, setCurrentPage,
 }: AuditLogTableProps) => {
   if (isLoading) return <TableSkeleton rows={5} cols={4} />;
@@ -64,6 +65,7 @@ const AuditLogTable = ({
                       <span className="font-medium">{getTableNameAr(log.table_name)}</span>
                       <span className="h-6 w-6 flex items-center justify-center">{expandedRows.has(log.id) ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}</span>
                     </div>
+                    <p className="text-xs">{getActor(log).name} <Badge variant="secondary" className="text-[10px]">{getActor(log).role}</Badge></p>
                     <p className="text-xs text-muted-foreground">{getSummary(log)}</p>
                   </CardContent>
                 </CollapsibleTrigger>
@@ -85,6 +87,7 @@ const AuditLogTable = ({
                 <TableHead className="text-right">التاريخ والوقت</TableHead>
                 <TableHead className="text-right">الجدول</TableHead>
                 <TableHead className="text-right">العملية</TableHead>
+                <TableHead className="text-right">المنفّذ</TableHead>
                 <TableHead className="text-right">ملخص</TableHead>
               </TableRow>
             </TableHeader>
@@ -102,10 +105,11 @@ const AuditLogTable = ({
                       <TableCell className="text-sm">{fmtDateTime(log.created_at)}</TableCell>
                       <TableCell>{getTableNameAr(log.table_name)}</TableCell>
                       <TableCell><Badge className={operationColor(log.operation)} variant="outline">{getOperationNameAr(log.operation)}</Badge></TableCell>
+                      <TableCell className="text-sm">{getActor(log).name} <Badge variant="secondary" className="text-[10px]">{getActor(log).role}</Badge></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{getSummary(log)}</TableCell>
                     </TableRow>
                     {isExpanded && (
-                      <tr><td colSpan={5} className="bg-muted/30 p-4 border-b"><DataDiff oldData={log.old_data as Record<string, unknown> | null} newData={log.new_data as Record<string, unknown> | null} operation={log.operation} /></td></tr>
+                      <tr><td colSpan={6} className="bg-muted/30 p-4 border-b"><DataDiff oldData={log.old_data as Record<string, unknown> | null} newData={log.new_data as Record<string, unknown> | null} operation={log.operation} /></td></tr>
                     )}
                   </Fragment>
                 );

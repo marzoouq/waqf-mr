@@ -4,6 +4,8 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useAuditLog, getTableNameAr } from '@/hooks/data/audit/useAuditLog';
 import { useAuditLogTodayCount, fetchAuditLogForExport } from '@/hooks/data/audit/useAuditLogStats';
+import { useAuditActors } from '@/hooks/data/audit/useAuditActors';
+import { getAuditActorLabel } from '@/utils/format/auditLabels';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 import { PAGE_SIZE_AUDIT } from '@/constants/pagination';
@@ -38,6 +40,11 @@ export function useAuditLogPage() {
 
   const logs = useMemo(() => auditData?.logs ?? [], [auditData?.logs]);
   const totalCount = auditData?.totalCount ?? 0;
+  const { data: actors } = useAuditActors(logs.map(l => l.user_id).filter((x): x is string => !!x));
+  const getActor = useCallback(
+    (log: { user_id: string | null }) => getAuditActorLabel(log.user_id, log.user_id ? actors?.get(log.user_id) : undefined),
+    [actors],
+  );
 
   const { data: todayCount = 0 } = useAuditLogTodayCount();
 
@@ -86,7 +93,7 @@ export function useAuditLogPage() {
     activeTab, setActiveTab,
     exporting, hasDateFilter, clearDateFilters,
     isLoading, logs, totalCount, todayCount,
-    handleExportPdf, getSummary,
+    handleExportPdf, getSummary, getActor,
     ITEMS_PER_PAGE,
   };
 }
