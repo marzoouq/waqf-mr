@@ -1,4 +1,5 @@
 import { fmt } from '@/utils/format/format';
+import { isPercentageTotalOff } from '@/utils/financial/distribution/distributionBase';
 export interface ChecklistItem {
   label: string;
   passed: boolean;
@@ -19,7 +20,7 @@ export function buildClosureChecklist(params: {
   const items: ChecklistItem[] = [];
 
   items.push({
-    label: 'تم إنشاء الحساب الختامي',
+    label: params.hasAccount ? 'تم إنشاء الحساب الختامي' : 'لم يُنشأ الحساب الختامي بعد',
     passed: params.hasAccount,
     severity: 'error',
     detail: 'يجب إنشاء حساب ختامي قبل الإقفال',
@@ -35,7 +36,7 @@ export function buildClosureChecklist(params: {
 
   items.push({
     label: `إجمالي نسب المستفيدين: ${params.beneficiaryPercentage}%`,
-    passed: params.beneficiaryPercentage > 0 && params.beneficiaryPercentage <= 100,
+    passed: params.beneficiaryPercentage > 0 && !(params.beneficiaryPercentage > 100 && isPercentageTotalOff(params.beneficiaryPercentage)),
     severity: params.beneficiaryPercentage > 100 ? 'error' : 'warning',
     detail: params.beneficiaryPercentage > 100 ? 'إجمالي النسب يتجاوز 100%!' : 'لم يتم تحديد نسب المستفيدين',
   });
