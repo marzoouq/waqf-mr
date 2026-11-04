@@ -17,8 +17,9 @@ describe("official document registry", () => {
   it("registry table is read-only for clients and verification exposes no personal data", () => {
     expect(migrations).toContain("CREATE TABLE public.issued_documents");
     expect(migrations).not.toMatch(/ON public\.issued_documents FOR (INSERT|UPDATE|DELETE)/);
-    const verify = migrations.slice(migrations.lastIndexOf("FUNCTION public.verify_issued_document"));
-    expect(verify).not.toMatch(/issued_by|source_id|recipient/);
+    const returns = migrations.match(/verify_issued_document\(p_code text\)\s*RETURNS TABLE\(([^)]*)\)/g) ?? [];
+    expect(returns.length).toBeGreaterThan(0);
+    for (const r of returns) expect(r).not.toMatch(/issued_by|source_id|recipient|hash/);
   });
   it("disbursement voucher is registered and carries a verification QR", () => {
     expect(voucherIndex).toMatch(/rpc\("issue_document"/);
