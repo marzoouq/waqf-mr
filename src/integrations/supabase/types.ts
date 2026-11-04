@@ -1997,20 +1997,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "receipt_vouchers_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: false
-            referencedRelation: "contracts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "receipt_vouchers_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: false
-            referencedRelation: "contracts_safe"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "receipt_vouchers_fiscal_year_id_fkey"
             columns: ["fiscal_year_id"]
             isOneToOne: false
@@ -2023,13 +2009,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_fiscal_year_summary"
             referencedColumns: ["fiscal_year_id"]
-          },
-          {
-            foreignKeyName: "receipt_vouchers_payment_invoice_id_fkey"
-            columns: ["payment_invoice_id"]
-            isOneToOne: false
-            referencedRelation: "payment_invoices"
-            referencedColumns: ["id"]
           },
         ]
       }
