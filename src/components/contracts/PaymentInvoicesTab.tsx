@@ -21,6 +21,7 @@ import PaymentInvoiceSummaryCards from './payment-invoices/PaymentInvoiceSummary
 import PaymentInvoiceToolbar from './payment-invoices/PaymentInvoiceToolbar';
 import PaymentInvoiceMobileCards from './payment-invoices/PaymentInvoiceMobileCards';
 import PaymentInvoiceDesktopTable from './payment-invoices/PaymentInvoiceDesktopTable';
+import PayInvoiceDialog from './payment-invoices/PayInvoiceDialog';
 
 interface PaymentInvoicesTabProps {
   fiscalYearId: string;
@@ -61,29 +62,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         invoice={previewInvoice}
       />
 
-      {/* Dialog الدفع الجزئي */}
-      <Dialog open={!!payDialog} onOpenChange={(open) => { if (!open) setPayDialog(null); }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>تسديد فاتورة {payDialog?.inv.invoice_number}</DialogTitle>
-            <DialogDescription>أدخل المبلغ المدفوع — إذا كان أقل من الإجمالي ستُسجّل كدفعة جزئية</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">إجمالي الفاتورة</span>
-              <span className="font-bold">{fmt(Number(payDialog?.inv.amount || 0))} ر.س</span>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="payment-invoices-tab-field-1">المبلغ المدفوع (ر.س)</Label>
-              <Input name="payAmount" id="payment-invoices-tab-field-1" type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} min={0} max={Number(payDialog?.inv.amount || 0)} step="0.01" />
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setPayDialog(null)}>إلغاء</Button>
-            <Button onClick={handlePay} className="gap-1"><Check className="w-4 h-4" />تسديد</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <PayInvoiceDialog payDialog={payDialog} setPayDialog={setPayDialog} payAmount={payAmount} setPayAmount={setPayAmount} handlePay={handlePay} />
 
       <PaymentInvoiceSummaryCards summary={summary} />
 
