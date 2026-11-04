@@ -128,12 +128,12 @@ function findFiscalYearForDate(date: Date, sortedFYs: FiscalYear[]): FiscalYear 
   return null;
 }
 
+// مطابق لدالة الخادم generate_contract_invoices: العقد 12 شهراً كاملاً دون بتر شهر
 function getPaymentCount(contract: ContractInfo): number {
-  const months = monthsBetween(new Date(contract.start_date), new Date(contract.end_date));
-  if (contract.payment_type === 'monthly') return Math.max(1, months);
-  if (contract.payment_type === 'quarterly') return Math.max(1, Math.ceil(months / 3));
-  if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') return Math.max(1, Math.ceil(months / 6));
-  if (contract.payment_type === 'annual') return Math.max(1, Math.ceil(months / 12));
+  if (contract.payment_type === 'monthly') return 12;
+  if (contract.payment_type === 'quarterly') return 4;
+  if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') return 2;
+  if (contract.payment_type === 'annual') return 1;
   return contract.payment_count || 1;
 }
 
