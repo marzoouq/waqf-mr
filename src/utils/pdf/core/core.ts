@@ -57,6 +57,8 @@ export const finalizePdf = async (
   waqfInfo?: PdfWaqfInfo,
   options?: { skipHeaders?: boolean; skipOfficialMarks?: boolean; fiscalYearId?: string | null }
 ): Promise<void> => {
+  const { insertTableOfContents } = await import('./pdfLayout');
+  insertTableOfContents(doc, fontFamily);
   if (!options?.skipHeaders) {
     addHeaderToAllPages(doc, fontFamily, waqfInfo);
   }

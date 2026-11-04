@@ -1,3 +1,4 @@
+import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
 // autoTable يُحمّل ديناميكياً داخل كل دالة لمنع تحميل vendor-pdf مبكراً
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
@@ -75,7 +76,7 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
     ...baseTableStyles(f),
   });
 
-  let y = getLastAutoTableY(doc, 88) + 12;
+  let y = startSectionPage(doc, startY, getLastAutoTableY(doc, 88) + 12, 'المقارنة الشهرية التفصيلية');
 
   // 2. Monthly comparison table
   doc.setFont(f, 'bold');
@@ -115,7 +116,7 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
     columnStyles: { 0: { cellWidth: 22 } },
   });
 
-  y = getLastAutoTableY(doc, 188) + 12;
+  y = startSectionPage(doc, startY, getLastAutoTableY(doc, 188) + 12, 'تفاصيل الإيرادات والمصروفات');
 
   // 3. Expenses by type - Year 1
   doc.setFont(f, 'bold');

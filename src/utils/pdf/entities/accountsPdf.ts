@@ -1,3 +1,4 @@
+import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
 /**
  * تقرير الحسابات الختامية — PDF
  * Helpers (صفوف التوزيع وصفوف المستفيدين) في accountsPdf.helpers.ts.
@@ -88,7 +89,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  let y = getLastAutoTableY(doc, 90) + 10;
+  let y = startSectionPage(doc, startY, getLastAutoTableY(doc, 90) + 10, 'الإيرادات');
 
   // الإيرادات
   doc.setFont(fontFamily, 'bold');
@@ -105,7 +106,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = getLastAutoTableY(doc, 140) + 10;
+  y = startSectionPage(doc, startY, getLastAutoTableY(doc, 140) + 10, 'المصروفات');
 
   // المصروفات
   doc.setFont(fontFamily, 'bold');
@@ -121,7 +122,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = getLastAutoTableY(doc, 190) + 10;
+  y = startSectionPage(doc, startY, getLastAutoTableY(doc, 190) + 10, 'المتأخرات والتوزيع');
 
   // المتأخرات حسب السنة المالية — يظهر فقط عند توفر بداية السنة ووجود متأخرات
   const overduePrev = data.overdueFromPreviousAmount || 0;
@@ -177,7 +178,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = getLastAutoTableY(doc, 240) + 10;
+  y = startSectionPage(doc, startY, getLastAutoTableY(doc, 240) + 10, 'حصص المستفيدين');
 
   // حصص المستفيدين
   doc.setFont(fontFamily, 'bold');

@@ -1,3 +1,4 @@
+import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
 /**
  * مولّد PDF للتقرير السنوي للإنجازات
  * ملاحظة: لا يستورد toast — يُرجع نتيجة نجاح/فشل والطبقة المستدعية تتولى الإشعار
@@ -57,7 +58,7 @@ export const generateAnnualReportPDF = async (
     // دالة مساعدة لكتابة قسم
     const writeSection = (title: string, items: { title: string; content: string; propertyName?: string }[], color: [number, number, number]) => {
       if (items.length === 0) return;
-      if (y > 250) { doc.addPage(); y = 20; }
+      y = startSectionPage(doc, 20, y, title);
       doc.setFont(fontFamily, 'bold');
       doc.setFontSize(14);
       doc.setTextColor(color[0], color[1], color[2]);

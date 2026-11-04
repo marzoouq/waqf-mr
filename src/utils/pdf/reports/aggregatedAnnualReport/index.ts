@@ -51,32 +51,32 @@ export const generateAggregatedAnnualReportPDF = async (
 
     const incomeEntries = Object.entries(data.incomeBySource ?? {}).filter(([, v]) => v > 0) as [string, number][];
     if (incomeEntries.length) {
-      y = startSectionPage(doc, 25, y);
+      y = startSectionPage(doc, 25, y, 'الإيرادات حسب المصدر');
       y = renderKeyValueTable(doc, autoTable, f, 'ثالثاً: الإيرادات حسب المصدر', ['المصدر', 'المبلغ (ر.س)'], incomeEntries, y);
     }
 
     const expensesEntries = Object.entries(data.expensesByType ?? {}).filter(([, v]) => v > 0) as [string, number][];
     if (expensesEntries.length) {
-      y = startSectionPage(doc, 25, y);
+      y = startSectionPage(doc, 25, y, 'المصروفات حسب النوع');
       y = renderKeyValueTable(doc, autoTable, f, 'رابعاً: المصروفات حسب النوع (بدون VAT)', ['النوع', 'المبلغ (ر.س)'], expensesEntries, y);
     }
 
     if (data.beneficiaries.length) {
-      y = startSectionPage(doc, 25, y);
+      y = startSectionPage(doc, 25, y, 'المستفيدون');
       y = renderBeneficiaries(doc, autoTable, f, data, y);
     }
 
     if (data.distributions.length) {
-      y = startSectionPage(doc, 25, y);
+      y = startSectionPage(doc, 25, y, 'التوزيعات');
       y = renderDistributions(doc, autoTable, f, data, y);
     }
 
     if (data.yoy) {
-      y = startSectionPage(doc, 25, y);
+      y = startSectionPage(doc, 25, y, 'المقارنة السنوية');
       y = renderYoY(doc, autoTable, f, data, y);
     }
 
-    y = startSectionPage(doc, 25, y);
+    y = startSectionPage(doc, 25, y, 'حالة العقارات والإنجازات والخطط');
     y = writeNarrative(doc, f, 'ثامناً: حالة العقارات', data.propertyStatuses, [71, 85, 105], y);
     y = writeNarrative(doc, f, 'تاسعاً: الإنجازات', data.achievements, [22, 101, 52], y);
     y = writeNarrative(doc, f, 'عاشراً: التحديات', data.challenges, [180, 120, 20], y);
