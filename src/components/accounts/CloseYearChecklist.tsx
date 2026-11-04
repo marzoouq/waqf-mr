@@ -41,7 +41,7 @@ const CloseYearChecklist: React.FC<CloseYearChecklistProps> = ({ items, classNam
       </ul>
       {hasErrors && (
         <p className="text-xs text-destructive font-medium mt-2">
-          ⚠️ يوجد عناصر حرجة لم تكتمل — يُنصح بمعالجتها قبل الإقفال
+          ⚠️ يوجد عناصر حرجة لم تكتمل — لا يمكن الإقفال قبل معالجتها: {items.filter(i => !i.passed && i.severity === 'error').map(i => i.label).join('، ')}
         </p>
       )}
     </div>

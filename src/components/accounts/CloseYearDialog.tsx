@@ -70,7 +70,7 @@ const CloseYearDialog = ({
                 <SummaryRow label="صافي بعد المصروفات" value={netAfterExpenses} />
                 <SummaryRow label="المتاح للتوزيع" value={availableAmount} className="font-medium text-primary" />
                 {distributionsAmount > 0 && (
-                  <SummaryRow label="الموزَّع فعلياً" value={distributionsAmount} />
+                  <SummaryRow label="مبلغ التوزيع" value={distributionsAmount} />
                 )}
               </ul>
             )}

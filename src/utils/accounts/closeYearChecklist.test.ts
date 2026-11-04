@@ -76,4 +76,11 @@ describe('buildClosureChecklist', () => {
     const items = buildClosureChecklist(defaults);
     expect(items).toHaveLength(6);
   });
+  it('فرق تقريب 100.000003% لا يمنع الإقفال، و100.5% يمنع', () => {
+    const ok = buildClosureChecklist({ ...defaults, beneficiaryPercentage: 100.000003 }).find(i => i.label.includes('نسب'));
+    expect(ok?.passed).toBe(true);
+    const bad = buildClosureChecklist({ ...defaults, beneficiaryPercentage: 100.5 }).find(i => i.label.includes('نسب'));
+    expect(bad?.passed).toBe(false);
+    expect(bad?.severity).toBe('error');
+  });
 });
