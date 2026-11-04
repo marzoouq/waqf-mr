@@ -7,6 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import { NativeSelect } from '@/components/ui/native-select';
+import { PROPERTY_TYPES } from './propertyTypes';
+
+const OTHER_TYPE = '__other__';
 
 interface PropertyFormData {
   property_number: string;
@@ -32,8 +37,16 @@ interface PropertyFormDialogProps {
 const PropertyFormDialog = ({
   isOpen, setIsOpen, editingProperty, formData, setFormData,
   resetForm, handleSubmit, createPending, updatePending,
-}: PropertyFormDialogProps) => (
-  <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+}: PropertyFormDialogProps) => {
+  const [otherPicked, setOtherPicked] = useState(false);
+  // نوع مخصص: اختار المستخدم «أخرى» أو القيمة المحفوظة خارج القائمة
+  const isCustomType = otherPicked || (formData.property_type !== '' && !PROPERTY_TYPES.includes(formData.property_type));
+  const handleTypeChange = (v: string) => {
+    setOtherPicked(v === OTHER_TYPE);
+    setFormData({ ...formData, property_type: v === OTHER_TYPE ? '' : v });
+  };
+  return (
+  <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) { resetForm(); setOtherPicked(false); } }}>
     <DialogTrigger asChild>
       <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة عقار</Button>
     </DialogTrigger>
@@ -44,7 +57,19 @@ const PropertyFormDialog = ({
       </DialogHeader>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2"><Label htmlFor="property-number">رقم العقار *</Label><Input id="property-number" name="property-number" value={formData.property_number} onChange={(e) => setFormData({ ...formData, property_number: e.target.value })} placeholder="مثال: W-001" /></div>
-        <div className="space-y-2"><Label htmlFor="property-type">نوع العقار *</Label><Input id="property-type" name="property-type" value={formData.property_type} onChange={(e) => setFormData({ ...formData, property_type: e.target.value })} placeholder="شقة، محل تجاري، مبنى..." /></div>
+        <div className="space-y-2">
+          <Label htmlFor="property-type">نوع العقار *</Label>
+          <NativeSelect
+            id="property-type"
+            value={isCustomType ? OTHER_TYPE : formData.property_type}
+            onValueChange={handleTypeChange}
+            placeholder="اختر نوع العقار"
+            options={[...PROPERTY_TYPES.map(t => ({ value: t, label: t })), { value: OTHER_TYPE, label: 'أخرى (اكتب النوع)' }]}
+          />
+          {isCustomType && (
+            <Input id="property-type-custom" name="property-type-custom" value={formData.property_type} onChange={(e) => setFormData({ ...formData, property_type: e.target.value })} placeholder="اكتب نوع العقار" />
+          )}
+        </div>
         <div className="space-y-2"><Label htmlFor="property-location">الموقع *</Label><Input id="property-location" name="property-location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="المدينة، الحي، الشارع" /></div>
         <div className="space-y-2"><Label htmlFor="property-area">المساحة (م²) *</Label><Input id="property-area" name="property-area" type="number" value={formData.area} onChange={(e) => setFormData({ ...formData, area: e.target.value })} placeholder="100" /></div>
         <div className="space-y-2"><Label htmlFor="property-description">الوصف</Label><Input id="property-description" name="property-description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي للعقار" /></div>
@@ -62,6 +87,7 @@ const PropertyFormDialog = ({
       </form>
     </DialogContent>
   </Dialog>
-);
+  );
+};
 
 export default PropertyFormDialog;
