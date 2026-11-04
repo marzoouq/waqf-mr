@@ -44,6 +44,7 @@ EXCEPTION WHEN OTHERS THEN RETURN NEW;
 END $$;
 
 -- المحاسب يرد على التذاكر المالية فقط
+DROP POLICY IF EXISTS "Accountants reply on financial tickets" ON public.support_ticket_replies;
 CREATE POLICY "Accountants reply on financial tickets" ON public.support_ticket_replies
   FOR INSERT TO authenticated
   WITH CHECK (public.has_role(auth.uid(), 'accountant') AND auth.uid() = sender_id AND is_internal = false
@@ -67,7 +68,7 @@ REVOKE ALL ON FUNCTION public.get_ticket_reply_roles(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.get_ticket_reply_roles(uuid) TO authenticated;
 
 -- سجل أحداث التذكرة (إلحاق فقط)
-CREATE TABLE public.support_ticket_events (
+CREATE TABLE IF NOT EXISTS public.support_ticket_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   ticket_id uuid NOT NULL REFERENCES public.support_tickets(id) ON DELETE CASCADE,
   event_type text NOT NULL,
@@ -77,10 +78,11 @@ CREATE TABLE public.support_ticket_events (
   note text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_support_ticket_events_ticket ON public.support_ticket_events(ticket_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_support_ticket_events_ticket ON public.support_ticket_events(ticket_id, created_at);
 GRANT SELECT ON public.support_ticket_events TO authenticated;
 GRANT ALL ON public.support_ticket_events TO service_role;
 ALTER TABLE public.support_ticket_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Ticket events visible to owner and staff" ON public.support_ticket_events;
 CREATE POLICY "Ticket events visible to owner and staff" ON public.support_ticket_events
   FOR SELECT TO authenticated
   USING (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'support')
@@ -112,6 +114,7 @@ EXCEPTION WHEN OTHERS THEN RETURN NEW;
 END $$;
 REVOKE ALL ON FUNCTION public.trg_ticket_status_events_fn() FROM PUBLIC, anon, authenticated;
 
+DROP TRIGGER IF EXISTS trg_ticket_status_events ON public.support_tickets;
 CREATE TRIGGER trg_ticket_status_events
   AFTER INSERT OR UPDATE OF status ON public.support_tickets
   FOR EACH ROW EXECUTE FUNCTION public.trg_ticket_status_events_fn();
