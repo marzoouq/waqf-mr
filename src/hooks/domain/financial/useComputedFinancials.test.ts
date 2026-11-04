@@ -9,6 +9,7 @@ import type { Account } from '@/types';
 const mkIncome = (overrides: Partial<Income> = {}): Income => ({
   id: crypto.randomUUID(),
   source: 'إيجار',
+  payment_invoice_id: null,
   amount: 10000,
   date: '2024-01-01',
   created_at: '2024-01-01',

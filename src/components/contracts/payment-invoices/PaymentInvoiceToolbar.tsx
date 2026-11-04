@@ -48,6 +48,7 @@ export default function PaymentInvoiceToolbar({
           <SelectItem value="pending">قيد الانتظار ({summary.pending})</SelectItem>
           <SelectItem value="overdue">متأخرة ({summary.overdue})</SelectItem>
           <SelectItem value="paid">مسددة ({summary.paid})</SelectItem>
+          <SelectItem value="uncollectible">غير قابلة للتحصيل</SelectItem>
           {summary.partiallyPaid > 0 && (
             <SelectItem value="partially_paid">مسددة جزئياً ({summary.partiallyPaid})</SelectItem>
           )}

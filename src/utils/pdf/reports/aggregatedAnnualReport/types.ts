@@ -1,6 +1,7 @@
 /** أنواع التقرير السنوي المُجمَّع — مستخرجة من aggregatedAnnualReport.ts */
 
 export interface AggregatedAnnualPdfData {
+  closureDisclosure?: string;
   fiscalYearLabel: string;
   gregorianRange?: string;
   isClosed: boolean;

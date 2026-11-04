@@ -14,6 +14,8 @@ import type { SortKey } from '@/hooks/page/admin/financial/usePaymentInvoicesTab
 import type { PaymentInvoice } from '@/types';
 import { PaymentStatusBadge } from './paymentStatusBadge';
 import { ReceiptVoucherButton } from './ReceiptVoucherButton';
+import { InvoiceAgeLabel } from '@/components/invoices/InvoiceAgeLabel';
+import { InvoiceCollectibilityButton } from '@/components/contracts/payment-invoices/InvoiceCollectibilityButton';
 
 interface PaymentInvoiceDesktopTableProps {
   groupedPaginated: Map<string, PaymentInvoice[]>;
@@ -90,14 +92,12 @@ export default function PaymentInvoiceDesktopTable({
                   <TableRow key={inv.id} className={inv.status === 'overdue' ? 'bg-destructive/5' : ''}>
                     {!isClosed && (
                       <TableCell className="text-center">
-                        {inv.status !== 'paid' && <Checkbox checked={selectedIds.has(inv.id)} onCheckedChange={() => toggleSelect(inv.id)} />}
+                        {inv.status !== 'paid' && inv.collection_status !== 'uncollectible' && <Checkbox checked={selectedIds.has(inv.id)} onCheckedChange={() => toggleSelect(inv.id)} />}
                       </TableCell>
                     )}
                     <TableCell className="font-medium font-mono text-xs">
                       {inv.invoice_number}
-                      {inv.origin_fiscal_year_id && inv.status !== 'paid' && (
-                        <span className="block mt-1 text-[10px] font-sans text-warning">متأخرة من السنة السابقة</span>
-                      )}
+                      <InvoiceAgeLabel invoice={inv} />
                     </TableCell>
                     <TableCell>{inv.contract?.tenant_name || '-'}</TableCell>
                     <TableCell>{inv.contract?.property?.property_number || '-'}</TableCell>
@@ -114,8 +114,9 @@ export default function PaymentInvoiceDesktopTable({
                         <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewTemplate(inv)} title="معاينة الفاتورة"><Eye className="w-3.5 h-3.5" /></Button>
                         <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewTemplate(inv)} title="تحميل PDF"><Download className="w-3.5 h-3.5" /></Button>
                         <ReceiptVoucherButton inv={inv} />
+                        {!isClosed && inv.status !== 'paid' && <InvoiceCollectibilityButton id={inv.id} uncollectible={inv.collection_status === 'uncollectible'} />}
                         {!isClosed && (
-                          inv.status !== 'paid' ? (
+                          inv.status !== 'paid' ? inv.collection_status === 'uncollectible' ? null : (
                             <Button size="sm" variant="ghost" className="gap-1 text-success h-8" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
                               {payingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}تسديد
                             </Button>

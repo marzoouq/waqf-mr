@@ -169,6 +169,20 @@
       "when": 1793829389129,
       "tag": "0023_carry_unpaid_invoices_on_close",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793830635237,
+      "tag": "0024_complete_invoice_lifecycle",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793830879649,
+      "tag": "0025_protect_collection_receipts_and_close_warnings",
+      "breakpoints": true
     }
   ]
 }

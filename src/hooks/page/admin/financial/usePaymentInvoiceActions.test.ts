@@ -70,6 +70,15 @@ describe('usePaymentInvoiceActions', () => {
       expect.any(Object),
     );
   });
+  it('يرفض سداد 1000 جزئياً من فاتورة 2000 حتى وجود سند مستقل', async () => {
+    const h = await loadHook();
+    const { result } = renderHook(() => h());
+    act(() => result.current.openPayDialog({ id: 'i1', amount: 2000, paid_amount: 0, status: 'pending' } as never));
+    act(() => result.current.setPayAmount('1000'));
+    act(() => result.current.handlePay());
+    expect(markPaidMutate).not.toHaveBeenCalled();
+    expect(notifyError).toHaveBeenCalledWith(expect.stringContaining('سند مستقل'));
+  });
 
   it('handleBulkPay يدفع كل الفواتير المختارة ويعرض النجاح', async () => {
     const h = await loadHook();

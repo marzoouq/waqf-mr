@@ -3,6 +3,7 @@
  * تم تقسيمه إلى: types.ts, sections.ts للالتزام بحدّ ≤200 سطر/ملف.
  */
 import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
+import { renderClosureDisclosure } from '@/utils/pdf/core/closureDisclosure';
 import {
   createPdfDocument, finalizePdf,
   reshapeArabic as rs,
@@ -82,7 +83,8 @@ export const generateAggregatedAnnualReportPDF = async (
     y = writeNarrative(doc, f, 'عاشراً: التحديات', data.challenges, [180, 120, 20], y);
     y = writeNarrative(doc, f, 'حادي عشر: الخطط المستقبلية', data.futurePlans, [37, 99, 235], y);
 
-    finalizePdf(doc, f, `التقرير_السنوي_المُجمَّع_${data.fiscalYearLabel}.pdf`, waqfInfo);
+    renderClosureDisclosure(doc, f, data.closureDisclosure);
+    await finalizePdf(doc, f, `التقرير_السنوي_المُجمَّع_${data.fiscalYearLabel}.pdf`, waqfInfo);
     return true;
   } catch (e) {
     logger.error('aggregated-annual-report', { error: e });

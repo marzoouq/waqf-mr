@@ -1,4 +1,5 @@
 import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
+import { renderClosureDisclosure } from '@/utils/pdf/core/closureDisclosure';
 /**
  * تقرير الحسابات الختامية — PDF
  * Helpers (صفوف التوزيع وصفوف المستفيدين) في accountsPdf.helpers.ts.
@@ -15,6 +16,7 @@ import { fmt } from '@/utils/format/format';
 import { buildDistributionRows, buildBeneficiaryRows } from './accountsPdf.helpers';
 
 export const generateAccountsPDF = async (data: {
+  closureDisclosure?: string;
   contracts: Array<{ contract_number: string; tenant_name: string; rent_amount: number; status: string; start_date?: string | null }>;
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
@@ -192,5 +194,6 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  finalizePdf(doc, fontFamily, 'accounts-report.pdf', waqfInfo);
+  renderClosureDisclosure(doc, fontFamily, data.closureDisclosure);
+  await finalizePdf(doc, fontFamily, 'accounts-report.pdf', waqfInfo);
 };

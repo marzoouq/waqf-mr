@@ -9,6 +9,8 @@ import { fmt } from '@/utils/format/format';
 import type { PaymentInvoice } from '@/types';
 import { PaymentStatusBadge } from './paymentStatusBadge';
 import { ReceiptVoucherButton } from './ReceiptVoucherButton';
+import { InvoiceAgeLabel } from '@/components/invoices/InvoiceAgeLabel';
+import { InvoiceCollectibilityButton } from '@/components/contracts/payment-invoices/InvoiceCollectibilityButton';
 
 interface PaymentInvoiceMobileCardsProps {
   groupedPaginated: Map<string, PaymentInvoice[]>;
@@ -44,13 +46,14 @@ export default function PaymentInvoiceMobileCards({
                 <CardContent className="p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {!isClosed && inv.status !== 'paid' && (
+                      {!isClosed && inv.status !== 'paid' && inv.collection_status !== 'uncollectible' && (
                         <Checkbox checked={selectedIds.has(inv.id)} onCheckedChange={() => toggleSelect(inv.id)} />
                       )}
                       <span className="font-mono text-xs font-medium">{inv.invoice_number}</span>
                     </div>
                     <PaymentStatusBadge status={inv.status} />
                   </div>
+                  <InvoiceAgeLabel invoice={inv} />
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div><span className="text-muted-foreground text-xs">تاريخ الاستحقاق</span><p className="font-medium">{inv.due_date}</p></div>
                     <div><span className="text-muted-foreground text-xs">المبلغ</span><p className="font-medium">{fmt(Number(inv.amount))} ر.س</p></div>
@@ -61,7 +64,8 @@ export default function PaymentInvoiceMobileCards({
                     <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}><Eye className="w-3.5 h-3.5" />معاينة</Button>
                     <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}><Download className="w-3.5 h-3.5" />PDF</Button>
                     <ReceiptVoucherButton inv={inv} />
-                    {!isClosed && inv.status !== 'paid' && (
+                    {!isClosed && inv.status !== 'paid' && <InvoiceCollectibilityButton id={inv.id} uncollectible={inv.collection_status === 'uncollectible'} />}
+                    {!isClosed && inv.status !== 'paid' && inv.collection_status !== 'uncollectible' && (
                       <Button size="sm" variant="outline" className="gap-1 flex-1 text-success" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
                         {payingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}تسديد
                       </Button>
