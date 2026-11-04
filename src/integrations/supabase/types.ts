@@ -1133,6 +1133,9 @@ export type Database = {
           date: string
           fiscal_year_id: string
           id: string
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
           status: string
         }
         Insert: {
@@ -1143,6 +1146,9 @@ export type Database = {
           date: string
           fiscal_year_id: string
           id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
           status?: string
         }
         Update: {
@@ -1153,6 +1159,9 @@ export type Database = {
           date?: string
           fiscal_year_id?: string
           id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
           status?: string
         }
         Relationships: [
@@ -3125,6 +3134,15 @@ export type Database = {
           p_source_table?: string
         }
         Returns: undefined
+      }
+      confirm_distribution_delivery: {
+        Args: {
+          p_ids: string[]
+          p_method: string
+          p_paid_at: string
+          p_reference?: string
+        }
+        Returns: number
       }
       consume_zatca_otp: { Args: never; Returns: string }
       create_contract_with_invoices: {

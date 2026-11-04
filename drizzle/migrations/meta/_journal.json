@@ -183,6 +183,13 @@
       "when": 1793830879649,
       "tag": "0025_protect_collection_receipts_and_close_warnings",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793834019639,
+      "tag": "0026_confirm_distribution_delivery",
+      "breakpoints": true
     }
   ]
 }
