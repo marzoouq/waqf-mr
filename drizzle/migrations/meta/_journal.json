@@ -155,6 +155,13 @@
       "when": 1793824378432,
       "tag": "0021_audit_coverage_admin_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793824557223,
+      "tag": "0022_contract_ejar_documents",
+      "breakpoints": true
     }
   ]
 }

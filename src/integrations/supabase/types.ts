@@ -772,6 +772,78 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_documents: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          contract_id: string
+          created_at: string
+          doc_type: string
+          documented_at: string | null
+          ejar_end_date: string | null
+          ejar_number: string | null
+          ejar_start_date: string | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          is_current: boolean
+          mime_type: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          contract_id: string
+          created_at?: string
+          doc_type?: string
+          documented_at?: string | null
+          ejar_end_date?: string | null
+          ejar_number?: string | null
+          ejar_start_date?: string | null
+          file_name: string
+          file_size_bytes?: number
+          id?: string
+          is_current?: boolean
+          mime_type: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          contract_id?: string
+          created_at?: string
+          doc_type?: string
+          documented_at?: string | null
+          ejar_end_date?: string | null
+          ejar_number?: string | null
+          ejar_start_date?: string | null
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          is_current?: boolean
+          mime_type?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_fiscal_allocations: {
         Row: {
           allocated_amount: number
@@ -2822,6 +2894,7 @@ export type Database = {
         Args: { p_fiscal_year_id: string }
         Returns: undefined
       }
+      audit_ejar_issues: { Args: { p_fiscal_year_id: string }; Returns: Json }
       audit_log_actors: {
         Args: { p_user_ids: string[] }
         Returns: {
@@ -3037,6 +3110,10 @@ export type Database = {
           p_user_id?: string
         }
         Returns: undefined
+      }
+      log_contract_document_download: {
+        Args: { p_document_id: string }
+        Returns: string
       }
       lookup_by_national_id: {
         Args: { p_national_id: string }
