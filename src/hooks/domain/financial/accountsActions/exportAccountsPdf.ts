@@ -2,12 +2,14 @@
  * مُصدِّر PDF للحسابات الختامية — مفصول من useAccountsActions لاحترام حدود الحجم.
  */
 import { uiNotify } from '@/lib/notify';
+import { fetchClosureDisclosure } from '@/lib/services/fiscalClosureService';
 import type { AccountsActionsParams } from '@/types/financial/accountsActions';
 
 export async function exportAccountsPdf(p: AccountsActionsParams): Promise<void> {
   try {
     const { generateAccountsPDF } = await import('@/utils/pdf');
     await generateAccountsPDF({
+      closureDisclosure: await fetchClosureDisclosure(p.selectedFY?.id),
       contracts: p.contracts,
       incomeBySource: p.incomeBySource,
       expensesByType: p.expensesByType,

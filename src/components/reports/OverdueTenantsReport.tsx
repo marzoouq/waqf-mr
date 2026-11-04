@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { invoiceAgeDays, invoiceRemaining } from '@/utils/financial/collection/invoiceAge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead } from '@/components/ui/table';
 import { AlertTriangle, Clock } from 'lucide-react';
@@ -36,20 +37,19 @@ const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportPro
     const contractOverdue = new Map<string, { count: number; totalAmount: number; oldestDue: string; maxDays: number }>();
 
     for (const inv of paymentInvoices) {
-      if (inv.status !== 'paid') {
-        const dueDate = new Date(inv.due_date);
-        const daysPast = Math.floor((now - dueDate.getTime()) / (1000 * 3600 * 24));
+      if (inv.status !== 'paid' && inv.collection_status !== 'uncollectible') {
+        const daysPast = invoiceAgeDays(inv.due_date, inv.status, new Date(now));
         if (daysPast > 0) {
           const existing = contractOverdue.get(inv.contract_id);
           if (existing) {
             existing.count++;
-            existing.totalAmount += safeNumber(inv.amount);
+            existing.totalAmount += invoiceRemaining(safeNumber(inv.amount), safeNumber(inv.paid_amount), inv.status);
             if (inv.due_date < existing.oldestDue) existing.oldestDue = inv.due_date;
             if (daysPast > existing.maxDays) existing.maxDays = daysPast;
           } else {
             contractOverdue.set(inv.contract_id, {
               count: 1,
-              totalAmount: safeNumber(inv.amount),
+              totalAmount: invoiceRemaining(safeNumber(inv.amount), safeNumber(inv.paid_amount), inv.status),
               oldestDue: inv.due_date,
               maxDays: daysPast,
             });
@@ -60,8 +60,9 @@ const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportPro
 
     return contracts
       .filter(c => contractOverdue.has(c.id))
-      .map(c => {
-        const overdue = contractOverdue.get(c.id)!;
+      .flatMap(c => {
+        const overdue = contractOverdue.get(c.id);
+        if (!overdue) return [];
         return {
           contractNumber: c.contract_number,
           tenantName: c.tenant_name,

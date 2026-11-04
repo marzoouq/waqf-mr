@@ -3,6 +3,8 @@
  * مستخرج من useAccountsPage للحفاظ على حد 200 سطر.
  */
 import { useCallback } from 'react';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { fetchClosureDisclosure } from '@/lib/services/fiscalClosureService';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
 import { uiNotify } from '@/lib/notify';
@@ -36,6 +38,7 @@ interface ExportsInput {
 }
 
 export function useAccountsExports(input: ExportsInput) {
+  const { fiscalYearId } = useFiscalYear();
   const pdfWaqfInfo = usePdfWaqfInfo();
 
   const handleExportCsv = useCallback(() => {
@@ -59,6 +62,7 @@ export function useAccountsExports(input: ExportsInput) {
     try {
       const { generateAnnualDisclosurePDF } = await import('@/utils/pdf');
       await generateAnnualDisclosurePDF({
+        closureDisclosure: await fetchClosureDisclosure(fiscalYearId),
         fiscalYear: input.fiscalYearLabel,
         totalIncome: input.totalIncome,
         totalExpenses: input.totalExpenses,
@@ -93,7 +97,7 @@ export function useAccountsExports(input: ExportsInput) {
     } catch {
       uiNotify.error('تعذّر تصدير الإفصاح السنوي');
     }
-  }, [input, pdfWaqfInfo]);
+  }, [input, pdfWaqfInfo, fiscalYearId]);
 
   const handleExportDistributionPdf = useCallback(async () => {
     try {

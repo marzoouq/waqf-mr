@@ -2,6 +2,7 @@
  * هوك صفحة الحسابات الختامية — محسّن: يستخدم useEndUserFinancials المشترك
  */
 import { useCallback } from 'react';
+import { fetchClosureDisclosure } from '@/lib/services/fiscalClosureService';
 import { useNavigate } from 'react-router-dom';
 import { uiNotify } from '@/lib/notify';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -51,6 +52,7 @@ export function useAccountsViewPage() {
     try {
       const { generateAccountsPDF } = await import('@/utils/pdf');
       await generateAccountsPDF({
+        closureDisclosure: await fetchClosureDisclosure(fiscalYearId),
         contracts: contracts.filter(c => c.status === 'active').map(c => ({
           contract_number: c.contract_number ?? '', tenant_name: c.tenant_name ?? '',
           rent_amount: safeNumber(c.rent_amount), status: c.status ?? '',
@@ -68,7 +70,7 @@ export function useAccountsViewPage() {
     } catch {
       uiNotify.error(PDF_MESSAGES.exportError);
     }
-  }, [contracts, fin, remainingBalance, pdfWaqfInfo]);
+  }, [contracts, fin, remainingBalance, pdfWaqfInfo, fiscalYearId]);
 
   return {
     finLoading, finError,

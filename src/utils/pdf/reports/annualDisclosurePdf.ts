@@ -1,4 +1,5 @@
 import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
+import { renderClosureDisclosure } from '@/utils/pdf/core/closureDisclosure';
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
@@ -9,6 +10,7 @@ import { getLastAutoTableY } from '../core/pdfHelpers';
 import { fmt } from '@/utils/format/format';
 
 export interface AnnualDisclosureData {
+  closureDisclosure?: string;
   fiscalYear: string;
   totalIncome: number;
   totalExpenses: number;
@@ -149,5 +151,6 @@ export const generateAnnualDisclosurePDF = async (
     ...baseTableStyles(fontFamily),
   });
 
-  finalizePdf(doc, fontFamily, `annual-disclosure-${data.fiscalYear}.pdf`, waqfInfo);
+  renderClosureDisclosure(doc, fontFamily, data.closureDisclosure);
+  await finalizePdf(doc, fontFamily, `annual-disclosure-${data.fiscalYear}.pdf`, waqfInfo);
 };

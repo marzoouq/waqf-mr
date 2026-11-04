@@ -5,6 +5,8 @@
  * بحيث لا تُحمَّل وحدة PDF إلا عند أول طلب تصدير.
  */
 import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { fetchClosureDisclosure } from '@/lib/services/fiscalClosureService';
 import { uiNotify } from '@/lib/notify';
 
 /** مُحمِّل موحد لوحدة PDF — الاستيراد التالي يأتي من cache المتصفح */
@@ -42,6 +44,7 @@ export interface ReportsExportInput {
 }
 
 export function useReportsExport(input: ReportsExportInput) {
+  const { fiscalYearId } = useFiscalYear();
   const handleExportPDF = async () => {
     const { generateAnnualReportPDF } = await loadPdfModule();
     await generateAnnualReportPDF({
@@ -65,6 +68,7 @@ export function useReportsExport(input: ReportsExportInput) {
   const handleExportDisclosure = async () => {
     const { generateAnnualDisclosurePDF } = await loadPdfModule();
     await generateAnnualDisclosurePDF({
+      closureDisclosure: await fetchClosureDisclosure(fiscalYearId),
       fiscalYear: input.fiscalYearLabel,
       totalIncome: input.totalIncome,
       totalExpenses: input.totalExpenses,

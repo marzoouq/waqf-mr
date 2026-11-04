@@ -4,6 +4,7 @@
  * مصدر التفاصيل: income/expenses/distributions/beneficiaries/annual_report_items
  */
 import { useCallback, useMemo } from 'react';
+import { fetchClosureDisclosure } from '@/lib/services/fiscalClosureService';
 import { useQuery } from '@tanstack/react-query';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useDashboardSummary } from '@/hooks/data/financial/dashboard/useDashboardSummary';
@@ -81,6 +82,7 @@ export function useAggregatedAnnualReport() {
       : undefined;
 
     const pdfData: AggregatedAnnualPdfData = {
+      closureDisclosure: await fetchClosureDisclosure(fiscalYearId),
       fiscalYearLabel: fiscalYear.label,
       gregorianRange,
       isClosed,
@@ -142,7 +144,7 @@ export function useAggregatedAnnualReport() {
     const ok = await generateAggregatedAnnualReportPDF(pdfData, waqfInfo);
     if (ok) uiNotify.success('تم تصدير التقرير السنوي المُجمَّع بنجاح');
     else uiNotify.error('فشل تصدير التقرير السنوي المُجمَّع');
-  }, [summary, fiscalYear, isClosed, income, expenses, items, properties, distributions, waqfInfo]);
+  }, [summary, fiscalYear, fiscalYearId, isClosed, income, expenses, items, properties, distributions, waqfInfo]);
 
   const canExport = useMemo(
     () => ready && !!summary.aggregated && !summary.isLoading,
