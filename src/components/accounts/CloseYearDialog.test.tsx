@@ -27,7 +27,7 @@ describe('CloseYearDialog', () => {
     expect(screen.getByText('إجمالي الدخل')).toBeInTheDocument();
     expect(screen.getByText('إجمالي المصروفات')).toBeInTheDocument();
     expect(screen.getByText('المتاح للتوزيع')).toBeInTheDocument();
-    expect(screen.getByText('الموزَّع فعلياً')).toBeInTheDocument();
+    expect(screen.getByText('مبلغ التوزيع')).toBeInTheDocument();
   });
 
   it('يخفي الملخص المالي عند totalIncome=0 و totalExpenses=0', () => {
