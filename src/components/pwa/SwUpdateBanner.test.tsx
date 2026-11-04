@@ -118,4 +118,20 @@ describe('SwUpdateBanner', () => {
     expect(setNeedRefresh).not.toHaveBeenCalled();
     expect(screen.getByText(/يوجد تحديث جديد للتطبيق/)).toBeInTheDocument();
   });
+
+  it('7) "تحديث الآن" يعيد التحميل قسراً بعد 3 ثوانٍ إن لم تصل إشارة التحكم', () => {
+    vi.useFakeTimers();
+    const reload = vi.fn();
+    const original = window.location;
+    Object.defineProperty(window, 'location', { value: { ...original, reload }, configurable: true });
+    setupHook({ needRefresh: true });
+    render(<SwUpdateBanner />);
+    fireEvent.click(screen.getByText('تحديث الآن'));
+    expect(screen.getByText('جاري التحديث...')).toBeInTheDocument();
+    expect(reload).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(3000);
+    expect(reload).toHaveBeenCalledTimes(1);
+    Object.defineProperty(window, 'location', { value: original, configurable: true });
+    vi.useRealTimers();
+  });
 });
