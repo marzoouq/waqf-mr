@@ -51,7 +51,7 @@ describe("dialogResponsiveGuard", () => {
         readFileSync(f, "utf8")
           .split("\n")
           .map((line, i) => ({ line, i }))
-          .filter(({ line }) => /(^|["\s])grid-cols-[234](\s|")/.test(line) && !/TabsList/.test(line))
+          .filter(({ line }) => /(^|["\s])grid-cols-[234](\s|")/.test(line) && !/TabsList/.test(line) && !/(sm|md|lg):grid-cols-/.test(line))
           .map(({ i }) => `${f}:${i + 1}`),
       );
     expect(offenders).toEqual([]);

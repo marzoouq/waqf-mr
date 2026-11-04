@@ -88,7 +88,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
 
           <ContractTenantIdSection formData={formData} onChange={(patch) => setFormData(prev => ({ ...prev, ...patch }))} />
           <h3 className="text-sm font-semibold text-primary border-b border-border pb-1">المدة والشروط المالية</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2"><Label htmlFor="contract-form-dialog-field-3">تاريخ البداية *</Label><Input name="start_date" id="contract-form-dialog-field-2" type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} /></div>
             <div className="space-y-2"><Label htmlFor="contract-form-dialog-field-4">تاريخ النهاية *</Label><Input name="end_date" id="contract-form-dialog-field-3" type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} /></div>
           </div>
