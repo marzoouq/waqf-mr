@@ -22,7 +22,7 @@ describe("official disbursement voucher", () => {
     );
   });
   it("draws the official stamp and page border", () => {
-    expect(renderer).toContain("drawStamp(");
-    expect(renderer).toContain("drawBorder(");
+    expect(renderer).toMatch(/\bdrawStamp\(doc, L/);
+    expect(renderer).toMatch(/\bdrawBorder\(doc, W/);
   });
 });
