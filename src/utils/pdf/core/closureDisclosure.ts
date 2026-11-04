@@ -4,7 +4,7 @@ import { reshapeArabic } from '@/utils/pdf/core/arabicReshaper';
 
 export function renderClosureDisclosure(doc: jsPDF, font: string, text?: string) {
   if (!text) return;
-  const y = startSectionPage(doc, 35, 35, 'إفصاح الذمم عند الإقفال');
+  const y = startSectionPage(doc, 35, 36, 'إفصاح الذمم عند الإقفال');
   doc.setFont(font, 'bold');
   doc.setFontSize(14);
   doc.text(reshapeArabic('إفصاح الذمم عند الإقفال — للعلم فقط'), 105, y, { align: 'center' });

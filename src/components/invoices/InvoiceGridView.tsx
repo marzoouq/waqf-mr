@@ -11,9 +11,12 @@ import { cn } from '@/lib/cn';
 import { fmt, fmtDate } from '@/utils/format/format';
 import { invoiceStatusBadgeVariant } from '@/utils/ui/badgeVariants';
 import { PAGE_SIZE_GRID } from '@/constants/pagination';
+import { InvoiceAgeLabel } from '@/components/invoices/InvoiceAgeLabel';
 
 /** الحد الأدنى من الحقول المطلوبة لعرض الشبكة — يقبل Invoice و UnifiedInvoiceItem */
 export interface GridInvoiceItem {
+  origin_fiscal_year_id?: string | null;
+  collection_status?: string | null;
   id: string;
   invoice_type: string;
   invoice_number: string | null;
@@ -71,7 +74,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
     <>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
       {paginated.map((inv) => {
-        const config = statusConfig[inv.status] ?? statusConfig.pending!;
+        const config = statusConfig[inv.status] ?? { color: 'text-muted-foreground', bg: 'bg-muted', border: 'border-border' };
         return (
           <Card
             key={inv.id}
@@ -104,7 +107,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
                   className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity gap-1 shadow-sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setViewerFile({ path: inv.file_path!, name: inv.file_name });
+                    if (inv.file_path) setViewerFile({ path: inv.file_path, name: inv.file_name });
                   }}
                 >
                   <Eye className="w-3 h-3" />
@@ -120,6 +123,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
             </div>
 
             <CardContent className="p-3 space-y-2">
+              {inv.source === 'rent' && <InvoiceAgeLabel invoice={inv} />}
               {/* نوع الفاتورة ورقمها */}
               <div className="flex items-center justify-between gap-1">
                 <span className="text-sm font-semibold truncate">
