@@ -40,6 +40,44 @@
     },
     {
       "firstFile": {
+        "end": 28,
+        "endLoc": {
+          "column": 9,
+          "line": 28,
+          "position": 986
+        },
+        "name": "components/invoices/InvoicesViewDesktopTable.tsx",
+        "start": 6,
+        "startLoc": {
+          "column": 101,
+          "line": 6,
+          "position": 284
+        }
+      },
+      "format": "tsx",
+      "fragment": "import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';\nimport { Eye, FileText } from 'lucide-react';\nimport { fmt, fmtDate } from '@/utils/format/format';\nimport { safeNumber } from '@/utils/format/safeNumber';\nimport { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from '@/hooks/data/invoices/useInvoices';\nimport { InvoiceAgeLabel } from '@/components/invoices/InvoiceAgeLabel';\n\ninterface InvoiceItem {\n  origin_fiscal_year_id?: string | null;\n  collection_status?: string | null;\n  id: string;\n  invoice_type: string;\n  invoice_number: string | null;\n  amount: number;\n  date: string;\n  status: string;\n  file_path: string | null;\n  file_name: string | null;\n  property?: { property_number: string } | null;\n  source?: 'purchase' | 'rent';\n}\n\ninterface InvoicesViewDesktopTableProps {",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 23,
+      "secondFile": {
+        "end": 28,
+        "endLoc": {
+          "column": 9,
+          "line": 28,
+          "position": 938
+        },
+        "name": "components/invoices/InvoicesViewMobileCards.tsx",
+        "start": 6,
+        "startLoc": {
+          "column": 45,
+          "line": 6,
+          "position": 236
+        }
+      },
+      "tokens": 117
+    },
+    {
+      "firstFile": {
         "end": 90,
         "endLoc": {
           "column": 52,
@@ -78,44 +116,44 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-11-04T18:18:28.578Z",
+    "detectionDate": "2026-11-04T22:23:27.954Z",
     "formats": {
       "tsx": {
-        "clones": 2,
-        "duplicatedLines": 44,
-        "duplicatedTokens": 334,
-        "lines": 43772,
+        "clones": 3,
+        "duplicatedLines": 67,
+        "duplicatedTokens": 451,
+        "lines": 44154,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.10052088092844741,
-        "percentageTokens": 0.10682906390233136,
-        "sources": 499,
-        "tokens": 312649
+        "percentage": 0.15174163156225937,
+        "percentageTokens": 0.14225244604815765,
+        "sources": 503,
+        "tokens": 317042
       },
       "typescript": {
         "clones": 0,
         "duplicatedLines": 0,
         "duplicatedTokens": 0,
-        "lines": 41069,
+        "lines": 41734,
         "newClones": 0,
         "newDuplicatedLines": 0,
         "percentage": 0.0,
         "percentageTokens": 0.0,
-        "sources": 531,
-        "tokens": 257717
+        "sources": 540,
+        "tokens": 263379
       }
     },
     "total": {
-      "clones": 2,
-      "duplicatedLines": 44,
-      "duplicatedTokens": 334,
-      "lines": 84841,
+      "clones": 3,
+      "duplicatedLines": 67,
+      "duplicatedTokens": 451,
+      "lines": 85888,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.05186171780153464,
-      "percentageTokens": 0.058558890256431836,
-      "sources": 1030,
-      "tokens": 570366
+      "percentage": 0.07800856929955291,
+      "percentageTokens": 0.07770221959577617,
+      "sources": 1043,
+      "tokens": 580421
     }
   }
 }
