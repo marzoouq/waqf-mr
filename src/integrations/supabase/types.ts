@@ -2929,6 +2929,10 @@ export type Database = {
           read_ct: number
         }[]
       }
+      recompute_contract_allocations: {
+        Args: { p_contract_id: string }
+        Returns: undefined
+      }
       reopen_fiscal_year: {
         Args: { p_fiscal_year_id: string; p_reason: string }
         Returns: Json
