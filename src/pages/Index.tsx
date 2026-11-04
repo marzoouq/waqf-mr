@@ -36,9 +36,8 @@ const Index = () => {
         title="نظام إدارة الوقف | وقف مرزوق بن علي الثبيتي"
         description="منصة متكاملة لإدارة وقف مرزوق بن علي الثبيتي العقاري: العقارات، العقود، تحصيل الإيرادات، الإفصاحات السنوية وتوزيع الحصص على المستفيدين بشفافية كاملة."
         path="/"
+        jsonLd={[orgJsonLd, webAppJsonLd]}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: orgJsonLd }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: webAppJsonLd }} />
       <LandingHero
         content={content}
         waqfLogoUrl={waqfLogoUrl}

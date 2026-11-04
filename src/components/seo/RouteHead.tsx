@@ -12,9 +12,11 @@ interface RouteHeadProps {
   description: string;
   path: string;
   noindex?: boolean;
+  /** JSON-LD strings rendered inside <head> (not the body). */
+  jsonLd?: readonly string[];
 }
 
-export function RouteHead({ title, description, path, noindex }: RouteHeadProps) {
+export function RouteHead({ title, description, path, noindex, jsonLd }: RouteHeadProps) {
   const url = `${SITE_URL}${path}`;
   const fullTitle = title.includes('نظام إدارة الوقف') ? title : `${title} | نظام إدارة الوقف`;
   return (
@@ -28,6 +30,9 @@ export function RouteHead({ title, description, path, noindex }: RouteHeadProps)
       <meta property="og:site_name" content={SITE_NAME} />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
+      {jsonLd?.map((json, i) => (
+        <script key={i} type="application/ld+json">{json}</script>
+      ))}
       {noindex && <meta name="robots" content="noindex, nofollow" />}
     </Helmet>
   );

@@ -6,6 +6,12 @@ const chunkRules: ReadonlyArray<{
   match: (id: string) => boolean;
   name: string;
 }> = [
+  // مساعدات Vite/Rollup المشتركة تبقى في النواة المحمّلة دائمًا — وإلا التقطها vendor-pdf
+  // فصار كل import() ديناميكي يجلب أداة PDF (126KB) حتى في صفحة الهبوط.
+  {
+    match: (id) => id.includes('vite/preload-helper') || id.includes('commonjsHelpers'),
+    name: 'vendor-react',
+  },
   { match: (id) => id.includes('node_modules/react-dom'), name: 'vendor-react' },
   { match: (id) => id.includes('node_modules/react/'), name: 'vendor-react' },
   {
