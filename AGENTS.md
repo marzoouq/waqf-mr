@@ -53,3 +53,4 @@
 - Vite stays on major 5 and vitest on major 4 (vitest 5 requires Vite 6+); TypeScript stays ~5.8.3. Why: platform supports Vite 5 and project rule pins TS.
 - Backend URL/publishable key have a build-time fallback in `scripts/public-backend-env.ts` (wired via vite `define`), because `.env` is gitignored and publish builds otherwise ship without them (live site stuck on loader). Values in `.env` always win.
 - Dialogs: every Dialog/AlertDialog inherits the shared frame (mobile margin, dvh max-height, scroll); form grids inside dialogs are single-column on mobile; enforced by `src/test/dialogResponsiveGuard.test.ts`. Why: dialogs must fit every screen.
+- Receipt vouchers: issued/voided only by the trigger on payment_invoices status and void_receipt_voucher (admin); never deleted; public QR check via verify_receipt_voucher returns no tenant data. Why: one numbering truth and no PII leak.

@@ -86,7 +86,7 @@ export async function generateReceiptVoucherPDF(data: ReceiptVoucherPdfData, waq
 
   // التوقيع والختم
   doc.setFont(fontFamily, 'bold');
-  doc.text(rs('المستلم (المحاسب)'), right - 20, y, { align: 'center' });
+  doc.text(rs('المستلم — المحاسب'), right - 20, y, { align: 'center' });
   doc.text(rs('ناظر الوقف — التوقيع والختم'), pageW / 2 - 10, y, { align: 'center' });
   y += 18;
   doc.setLineDashPattern([1, 1], 0);
