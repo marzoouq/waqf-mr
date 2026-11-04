@@ -1,10 +1,10 @@
 # Page Controls Audit — Admin & Beneficiary
 
-Generated: 2026-11-04T18:18:33.374Z
+Generated: 2026-11-04T18:44:16.106Z
 
 ## Scope
 
-- Pages scanned: **43** under `src/pages/dashboard` + `src/pages/beneficiary`.
+- Pages scanned: **45** under `src/pages/dashboard` + `src/pages/beneficiary`.
 - First-level child components recursed: **33** under `@/components/dashboard/`, `@/components/beneficiary/`, `@/components/shared/`, `@/components/admin/`.
 - Control types: Tab, Button, IconButton, DropdownItem, CommandItem, MenuItem, Link, FormSubmit.
 - Method: regex inventory (not full AST). A control is **OK** if it has `onClick` / `onSubmit` / `asChild` / `type=submit` / `to=` / `href=` / parent Trigger / Radix TabsTrigger.
@@ -13,10 +13,10 @@ Generated: 2026-11-04T18:18:33.374Z
 
 | Metric | Value |
 |---|---|
-| Page-level controls | 84 |
+| Page-level controls | 88 |
 | Child-component controls | 25 |
-| Total controls | 109 |
-| OK | 109 |
+| Total controls | 113 |
+| OK | 113 |
 | GAP-NO-HANDLER | 0 |
 
 ## Per-page summary (page + recursed children)
@@ -47,6 +47,7 @@ Generated: 2026-11-04T18:18:33.374Z
 | `dashboard/ArchivePage.tsx` | `/dashboard/archive` | ADMIN_ROLES | 0 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/AuditLogPage.tsx` | `/dashboard/audit-log` | ADMIN_ROLES | 0 | 3 | 3 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/AuditReportFinalPage.tsx` | `/dashboard/audit-report-final` | ADMIN_ONLY | 2 | 0 | 2 | 0 | 1 | 0 | ✅ 0 |
+| `dashboard/AuditTreePage.tsx` | `/dashboard/audit-tree` | ADMIN_ROLES | 0 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/BeneficiariesPage.tsx` | `/dashboard/beneficiaries` | ADMIN_ROLES | 0 | 2 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/BylawsPage.tsx` | `/dashboard/bylaws` | ADMIN_ROLES | 0 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/ChartOfAccountsPage.tsx` | `/dashboard/chart-of-accounts` | ADMIN_ROLES | 0 | 0 | 5 | 0 | 0 | 0 | ✅ 0 |
@@ -59,6 +60,7 @@ Generated: 2026-11-04T18:18:33.374Z
 | `dashboard/IncomePage.tsx` | `/dashboard/income` | ADMIN_ROLES | 0 | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/InvoicesPage.tsx` | `/dashboard/invoices` | ADMIN_ROLES | 0 | 3 | 5 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/MessagesPage.tsx` | `/dashboard/messages` | ADMIN_ROLES | 0 | 0 | 1 | 0 | 0 | 0 | ✅ 0 |
+| `dashboard/OfficialLettersPage.tsx` | `/dashboard/official-letters` | ADMIN_ONLY | 0 | 0 | 3 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/PropertiesPage.tsx` | `/dashboard/properties` | ADMIN_ROLES | 0 | 0 | 0 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/ReportsPage.tsx` | `/dashboard/reports` | ADMIN_ROLES | 0 | 0 | 3 | 0 | 0 | 0 | ✅ 0 |
 | `dashboard/SettingsPage.tsx` | `/dashboard/settings` | ADMIN_ONLY | 0 | 1 | 0 | 0 | 0 | 0 | ✅ 0 |
