@@ -37,21 +37,17 @@ export default function EmailMonitorPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Mail className="w-6 h-6 text-primary" />
-              مراقبة نظام البريد الإلكتروني
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              حالة الطابور وإحصاءات الإرسال وإدارة الرسائل الفاشلة
-            </p>
-          </div>
-          <Button variant="outline" onClick={h.refresh} disabled={h.isLoading}>
-            <RefreshCw className={cn('w-4 h-4', h.isLoading && 'animate-spin')} />
-            تحديث
-          </Button>
-        </div>
+        <PageHeaderCard
+          title="مراقبة نظام البريد الإلكتروني"
+          icon={Mail}
+          description="حالة الطابور وإحصاءات الإرسال وإدارة الرسائل الفاشلة"
+          actions={
+            <Button variant="outline" onClick={h.refresh} disabled={h.isLoading}>
+              <RefreshCw className={cn('w-4 h-4', h.isLoading && 'animate-spin')} />
+              تحديث
+            </Button>
+          }
+        />
 
         {h.stalledCount > 0 && (
           <Card className="border-destructive/40 bg-destructive/5">

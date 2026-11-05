@@ -34,12 +34,11 @@ const AnnualReportPage = () => {
     <DashboardLayout>
       <div className="space-y-6 print:space-y-4">
         {/* ترويسة */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <PageHeaderCard
             title="إدارة التقرير السنوي"
             icon={Trophy}
             description={`تقرير إنجازات السنة المالية ${r.fiscalYear?.label || ''}`}
-          />
+            actions={
           <div className="flex items-center gap-2 flex-wrap print:hidden">
             <Badge variant={r.isPublished ? 'default' : 'secondary'} className="text-xs">
               {r.isPublished ? 'منشور' : 'مسودة'}
@@ -63,7 +62,8 @@ const AnnualReportPage = () => {
               طباعة
             </Button>
           </div>
-        </div>
+            }
+          />
 
         {/* بطاقات ملخصة */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
