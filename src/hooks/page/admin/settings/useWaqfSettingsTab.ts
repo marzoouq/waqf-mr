@@ -85,5 +85,5 @@ export const useWaqfSettingsTab = () => {
     }
   };
 
-  return { formData, onFieldChange, handleSave, saving, isLoading, waqfLogoUrl };
+  return { formData, onFieldChange, handleSave, saving, isLoading, waqfLogoUrl, fiscalYearLabel };
 };

@@ -42,6 +42,8 @@ export const useBulkNotifications = () => {
       return;
     }
     setSending(true);
+    let excludedCount = 0;
+    let sentCount = 0;
     try {
       if (isAll) {
         await notifyAllBeneficiaries(title, message, type, link || undefined);
@@ -54,6 +56,8 @@ export const useBulkNotifications = () => {
         if (validUsers.length === 0) {
           throw new Error('المستفيدون المختارون ليس لديهم حسابات مرتبطة');
         }
+        excludedCount = selected.length - validUsers.length;
+        sentCount = validUsers.length;
         await insertNotifications(
           validUsers.map((b) => ({
             user_id: b.user_id,
@@ -67,7 +71,7 @@ export const useBulkNotifications = () => {
       uiNotify.success(
         isAll
           ? `تم إرسال الإشعار لجميع المستفيدين`
-          : `تم إرسال الإشعار لـ ${selectedBeneficiaries.length} مستفيد`
+          : `تم إرسال الإشعار لـ ${sentCount} مستفيد${excludedCount > 0 ? ` (استُبعد ${excludedCount} بلا حساب)` : ''}`
       );
       setMessage('');
       setSelectedBeneficiaries([]);
