@@ -48,7 +48,8 @@ export async function checkBackendEdgeHealthPing(): Promise<CheckResult> {
     const isCorsLike = /Failed to fetch|NetworkError|TypeError/i.test(msg);
     if (env !== 'prod' && isCorsLike) {
       return {
-        id, label: 'نداء health-check', status: 'warn',
+        // معلومة لا تُنقص مؤشر الصحة — القيد خاص بالمعاينة وحدها
+        id, label: 'نداء health-check', status: 'info',
         detail: `[GET /${fnName}] ms=${ms} env=${env} — محظور CORS في المعاينة (سليم في الإنتاج)`,
         meta: { fnName, ms, env, reason: 'cors_preview' },
       };
