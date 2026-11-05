@@ -26,6 +26,7 @@ import {
   BENEFICIARY_GROUP_LABELS,
   BENEFICIARY_ROUTE_GROUPS,
   WAQIF_HIDDEN_ROUTES,
+  supportLinks,
 } from '@/constants/navigation';
 import { filterLinksBySectionVisibility, filterLinksByPermissions } from '@/utils/auth/filterByVisibility';
 
@@ -93,6 +94,10 @@ export function useNavLinks() {
         links: labelled,
         groups: groupLinks(labelled, ADMIN_ROUTE_GROUPS, ADMIN_GROUP_ORDER, ADMIN_GROUP_LABELS),
       };
+    }
+
+    if (role === 'support') {
+      return { links: supportLinks, groups: [{ key: '_top', label: null, items: supportLinks }] };
     }
 
     const roleKey = role === 'waqif' ? 'waqif' : 'beneficiary';
