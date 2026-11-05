@@ -112,12 +112,14 @@ const BulkNotificationsTab = () => {
                   <p className="text-sm text-muted-foreground text-center py-2">لا يوجد مستفيدون مرتبطون بحسابات</p>
                 ) : (
                   beneficiaries.map(b => (
-                    <label key={b.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1.5 rounded">
+                    <label key={b.id} className={`flex items-center gap-2 p-1.5 rounded ${b.user_id ? 'cursor-pointer hover:bg-muted/50' : 'opacity-60 cursor-not-allowed'}`}>
                       <Checkbox
-                        checked={selectedBeneficiaries.includes(b.id)}
+                        checked={!!b.user_id && selectedBeneficiaries.includes(b.id)}
+                        disabled={!b.user_id}
                         onCheckedChange={() => toggleBeneficiary(b.id)}
                       />
                       <span className="text-sm">{b.name || 'بدون اسم'}</span>
+                      {!b.user_id && <span className="text-xs text-muted-foreground border rounded px-1.5">بلا حساب</span>}
                     </label>
                   ))
                 )}

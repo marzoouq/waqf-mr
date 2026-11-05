@@ -1,3 +1,4 @@
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 /**
  * Page hook: WaqfSettingsTab
  * يدير form state وحفظ بيانات الوقف والنسب المالية.
@@ -24,10 +25,12 @@ export const FINANCIAL_FIELDS: WaqfFieldDef[] = [
   { key: 'admin_share_percentage', label: 'نسبة الناظر (%)' },
   { key: 'waqif_share_percentage', label: 'نسبة الواقف (%)' },
   { key: 'zakat_percentage', label: 'نسبة الزكاة (%)' },
-  { key: 'fiscal_year', label: 'السنة المالية' },
 ];
 
 export const useWaqfSettingsTab = () => {
+  // السنة المالية تُعرض للقراءة فقط من السنة الفعلية — تُدار من تبويب السنوات المالية
+  const { fiscalYear } = useFiscalYear();
+  const fiscalYearLabel = fiscalYear?.label ?? '—';
   const { data: settings, isLoading, updateSettingsBatch } = useAppSettings();
   const waqfLogoUrl = useSetting('waqf_logo_url');
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -82,5 +85,5 @@ export const useWaqfSettingsTab = () => {
     }
   };
 
-  return { formData, onFieldChange, handleSave, saving, isLoading, waqfLogoUrl };
+  return { formData, onFieldChange, handleSave, saving, isLoading, waqfLogoUrl, fiscalYearLabel };
 };

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { uiNotify } from '@/lib/notify';
 import { buildCsv, downloadCsv } from '@/utils/export/csv';
-import { buildXlsx, downloadXlsx } from '@/utils/export/xlsx';
+import { buildXlsx, buildXlsxWorkbook, downloadXlsx, type XlsxSheet } from '@/utils/export/xlsx';
 import { fetchTableData } from '@/lib/services/dataFetcher';
 
 export type { ExportableTable } from '@/types/ui';
@@ -61,9 +61,11 @@ export const useDataExport = () => {
     }
   };
 
+  /** التصدير الشامل: ملف Excel واحد بورقة لكل جدول لتفادي حظر المتصفح للتنزيلات المتتالية */
   const handleExportAll = async () => {
     setExporting('all');
     const failedTables: string[] = [];
+    const sheets: XlsxSheet[] = [];
     try {
       for (const table of exportTables) {
         const { data, error } = await fetchTableData(table.key);
@@ -71,16 +73,18 @@ export const useDataExport = () => {
           failedTables.push(table.label);
           continue;
         }
-        if (data && data.length > 0) {
-          const date = new Date().toISOString().slice(0, 10);
-          const ext = format === 'xlsx' ? 'xlsx' : 'csv';
-          exportData(data, `${table.key}_${date}.${ext}`);
-        }
+        if (data && data.length > 0) sheets.push({ name: table.label, data });
+      }
+      if (sheets.length === 0) {
+        uiNotify.info('لا توجد بيانات للتصدير');
+      } else {
+        const date = new Date().toISOString().slice(0, 10);
+        downloadXlsx(buildXlsxWorkbook(sheets), `waqf_all_data_${date}.xlsx`);
       }
       if (failedTables.length > 0) {
         uiNotify.warning(`تعذر تصدير: ${failedTables.join('، ')}`);
-      } else {
-        uiNotify.success('تم تصدير جميع البيانات بنجاح');
+      } else if (sheets.length > 0) {
+        uiNotify.success(`تم تصدير ${sheets.length} جدولاً في ملف Excel واحد`);
       }
     } catch {
       uiNotify.error('حدث خطأ أثناء التصدير الشامل');

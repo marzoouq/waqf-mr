@@ -5,24 +5,9 @@ import { useState, useEffect } from 'react';
 import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
 import { defaultMenuLabels, type MenuLabels } from '@/types/navigation';
 
-export const MENU_ITEMS: { key: keyof MenuLabels; defaultLabel: string }[] = [
-  { key: 'home', defaultLabel: 'الرئيسية' },
-  { key: 'properties', defaultLabel: 'العقارات' },
-  { key: 'contracts', defaultLabel: 'العقود' },
-  { key: 'income', defaultLabel: 'الدخل' },
-  { key: 'expenses', defaultLabel: 'المصروفات' },
-  { key: 'beneficiaries', defaultLabel: 'المستفيدين' },
-  { key: 'reports', defaultLabel: 'التقارير' },
-  { key: 'accounts', defaultLabel: 'الحسابات' },
-  { key: 'users', defaultLabel: 'إدارة المستخدمين' },
-  { key: 'settings', defaultLabel: 'الإعدادات' },
-  { key: 'messages', defaultLabel: 'المراسلات' },
-  { key: 'invoices', defaultLabel: 'الفواتير' },
-  { key: 'audit_log', defaultLabel: 'سجل المراجعة' },
-  { key: 'bylaws', defaultLabel: 'اللائحة التنظيمية' },
-  { key: 'chart_of_accounts', defaultLabel: 'الشجرة المحاسبية' },
-  { key: 'beneficiary_view', defaultLabel: 'واجهة المستفيد' },
-];
+/** كل مسميات القائمة القابلة للتخصيص — مشتقة من الافتراضيات حتى لا تنقص أي صفحة */
+export const MENU_ITEMS: { key: keyof MenuLabels; defaultLabel: string }[] =
+  (Object.keys(defaultMenuLabels) as (keyof MenuLabels)[]).map((key) => ({ key, defaultLabel: defaultMenuLabels[key] }));
 
 export const useMenuCustomizationTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();

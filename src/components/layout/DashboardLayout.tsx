@@ -148,7 +148,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <Suspense fallback={null}><GlobalSearch /></Suspense>
           </div>
         </div>
-        {(role === 'admin' || role === 'accountant') && <BetaBanner />}
+        <BetaBanner />
         {children}
         <Suspense fallback={null}><PrintFooter /></Suspense>
       </main>
