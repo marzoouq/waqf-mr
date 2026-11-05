@@ -104,9 +104,10 @@ export function useAccountsExports(input: ExportsInput) {
       const { generateDistributionsPDF } = await import('@/utils/pdf');
       const distributions = input.beneficiaries.map(b => {
         const pct = Number(b.share_percentage ?? 0);
-        const amount = input.totalBenPct > 0
-          ? (input.availableAmount * pct) / input.totalBenPct
-          : 0;
+        // نفس أساس الإفصاح وصفحة التوزيعات: المبلغ المقرر إن وُجد
+        const amount = shareOf(
+          computeDistributionBase(input.availableAmount, input.manualDistributions).base, pct, input.totalBenPct,
+        );
         return {
           beneficiary_name: b.name ?? 'غير معروف',
           share_percentage: pct,

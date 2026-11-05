@@ -96,7 +96,9 @@ export function useNavLinks() {
 
     const roleKey = role === 'waqif' ? 'waqif' : 'beneficiary';
     const perms = getPermissionsForRole(roleKey);
-    const remapped = allBeneficiaryLinks.map(link =>
+    const remapped = allBeneficiaryLinks
+      .filter(link => role !== 'waqif' || !WAQIF_HIDDEN_ROUTES.has(link.to))
+      .map(link =>
       role === 'waqif' && link.to === '/beneficiary' ? { ...link, to: '/waqif' } : link,
     );
     const bySection = filterLinksBySectionVisibility(remapped, BENEFICIARY_ROUTE_TO_SECTION, beneficiarySections);
