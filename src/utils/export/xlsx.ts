@@ -38,28 +38,25 @@ export function sanitizeXlsxCell(val: string): string {
   return val;
 }
 
-/**
- * بناء ملف XLSX (كـ Blob) من مصفوفة كائنات
- * يستخدم SpreadsheetML XML مباشرة في ZIP مبسط (PK)
- */
-export function buildXlsx(data: Record<string, unknown>[]): Blob {
-  if (!data.length) {
-    return new Blob([], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  }
+const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
+/** ورقة واحدة داخل مصنف متعدد الأوراق */
+export interface XlsxSheet {
+  name: string;
+  data: Record<string, unknown>[];
+}
+
+/** بناء XML لورقة واحدة */
+function buildSheetXml(data: Record<string, unknown>[], selected: boolean): string {
   const headers = Object.keys(data[0] ?? {});
-
-  // بناء صفوف XML
   const headerCells = headers.map((h, i) =>
     `<c r="${colLetter(i)}1" t="inlineStr"><is><t>${escXml(h)}</t></is></c>`
   ).join('');
-
   const dataRows = data.map((row, ri) => {
     const rowNum = ri + 2;
     const cells = headers.map((h, ci) => {
       const raw = row[h];
       const val = raw === null || raw === undefined ? '' : String(raw);
-      // تحقق إن كانت القيمة رقمية بحتة
       const num = Number(val);
       if (val !== '' && !isNaN(num) && isFinite(num)) {
         return `<c r="${colLetter(ci)}${rowNum}"><v>${num}</v></c>`;
@@ -68,36 +65,47 @@ export function buildXlsx(data: Record<string, unknown>[]): Blob {
     }).join('');
     return `<row r="${rowNum}">${cells}</row>`;
   }).join('\n');
-
-  const sheetXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<sheetViews><sheetView rightToLeft="true" tabSelected="1" workbookViewId="0"/></sheetViews>
+<sheetViews><sheetView rightToLeft="true"${selected ? ' tabSelected="1"' : ''} workbookViewId="0"/></sheetViews>
 <sheetData>
 <row r="1">${headerCells}</row>
 ${dataRows}
 </sheetData>
 </worksheet>`;
+}
 
+/** تنظيف اسم الورقة وفق قيود Excel (31 حرفاً بلا رموز محظورة) */
+export function sanitizeSheetName(name: string, index: number): string {
+  const cleaned = name.replace(/[\\/?*[\]:]/g, ' ').trim().slice(0, 31);
+  return cleaned || `ورقة ${index + 1}`;
+}
+
+/** بناء مصنف XLSX متعدد الأوراق — ورقة لكل جدول */
+export function buildXlsxWorkbook(sheets: XlsxSheet[]): Blob {
+  const valid = sheets.filter((s) => s.data.length > 0);
+  if (!valid.length) return new Blob([], { type: XLSX_MIME });
+
+  const sheetEntries = valid.map((s, i) => `<sheet name="${escXml(sanitizeSheetName(s.name, i))}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('');
   const workbookXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
           xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<sheets><sheet name="بيانات" sheetId="1" r:id="rId1"/></sheets>
+<sheets>${sheetEntries}</sheets>
 </workbook>`;
-
+  const relEntries = valid.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join('\n');
   const workbookRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+${relEntries}
 </Relationships>`;
-
+  const overrides = valid.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('\n');
   const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
 <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
 <Default Extension="xml" ContentType="application/xml"/>
 <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
-<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+${overrides}
 </Types>`;
-
   const relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
@@ -108,8 +116,13 @@ ${dataRows}
     { path: '_rels/.rels', content: relsXml },
     { path: 'xl/workbook.xml', content: workbookXml },
     { path: 'xl/_rels/workbook.xml.rels', content: workbookRels },
-    { path: 'xl/worksheets/sheet1.xml', content: sheetXml },
+    ...valid.map((s, i) => ({ path: `xl/worksheets/sheet${i + 1}.xml`, content: buildSheetXml(s.data, i === 0) })),
   ]);
+}
+
+/** بناء ملف XLSX من ورقة واحدة */
+export function buildXlsx(data: Record<string, unknown>[]): Blob {
+  return buildXlsxWorkbook([{ name: 'بيانات', data }]);
 }
 
 /** تحميل ملف XLSX */

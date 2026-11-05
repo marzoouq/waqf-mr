@@ -42,7 +42,6 @@ export { default as SecurityTab } from './security/SecurityTab';
 export { default as AppearanceTab } from './system/AppearanceTab';
 export { default as DataExportTab } from './system/DataExportTab';
 export { default as MenuCustomizationTab } from './system/MenuCustomizationTab';
-export { default as SectionsTab } from './system/SectionsTab';
 export { default as SystemSettingsTab } from './system/SystemSettingsTab';
 export { default as WaqfSettingsTab } from './system/WaqfSettingsTab';
 
