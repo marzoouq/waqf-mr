@@ -107,6 +107,12 @@ export const allBeneficiaryLinks = [
   { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
 ];
 
+/** روابط محجوبة عن الواقف بحراسة المسار (BENEFICIARY_ROLES) — تُخفى من قائمته */
+export const WAQIF_HIDDEN_ROUTES: ReadonlySet<string> = new Set([
+  '/beneficiary/disclosure', '/beneficiary/my-share', '/beneficiary/carryforward',
+  '/beneficiary/messages', '/beneficiary/notifications', '/beneficiary/support',
+]);
+
 // ─── Sidebar grouping (PR-1) ───
 // Single source of truth for which menu group a route belongs to.
 // Routes not listed appear ungrouped (above all groups for admin, below for beneficiary).

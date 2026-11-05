@@ -28,7 +28,7 @@ const emptyForm: FormState = {
 };
 
 export function useChartOfAccountsPage() {
-  const { tree, categories, isLoading } = useAccountCategoryTree();
+  const { tree, categories, isLoading, error } = useAccountCategoryTree();
   const createMutation = useCreateAccountCategory();
   const updateMutation = useUpdateAccountCategory();
   const deleteMutation = useDeleteAccountCategory();
@@ -152,6 +152,7 @@ export function useChartOfAccountsPage() {
 
   return {
     isLoading,
+    isError: Boolean(error),
     // بحث
     searchTerm, setSearchTerm,
     // حوارات

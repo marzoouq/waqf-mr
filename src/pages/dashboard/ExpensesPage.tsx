@@ -1,3 +1,4 @@
+import { ErrorState } from '@/components/common/feedback/PageStateGuards';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,8 @@ const ExpensesPage = () => {
   const h = useExpensesPage();
   const isMobile = useIsMobile();
   const [viewMode, setViewMode] = useViewMode('admin-expenses', 'table');
+
+  if (h.isError) return <ErrorState message="تعذّر تحميل البيانات" description="تحقق من الاتصال ثم حدّث الصفحة. لم تُعرض أرقام ناقصة حتى لا تُفهم خطأً." />;
 
   return (
     <DashboardLayout>

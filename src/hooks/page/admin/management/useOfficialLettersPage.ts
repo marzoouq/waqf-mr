@@ -42,11 +42,16 @@ export const useOfficialLettersPage = () => {
 
   const reprint = async (row: OfficialLetterRow) => {
     if (!row.doc_number || !row.verification_code) return;
-    const { generateOfficialLetterPDF } = await import('@/utils/pdf/entities/officialLetterPdf');
-    await generateOfficialLetterPDF({
-      letterType: row.letter_type, recipient: row.recipient, subject: row.subject, body: row.body, status: row.status,
-      existingRef: { docNumber: row.doc_number, verificationCode: row.verification_code, issuedAt: row.created_at },
-    }, waqfInfo);
+    try {
+      const { generateOfficialLetterPDF } = await import('@/utils/pdf/entities/officialLetterPdf');
+      await generateOfficialLetterPDF({
+        letterType: row.letter_type, recipient: row.recipient, subject: row.subject, body: row.body, status: row.status,
+        existingRef: { docNumber: row.doc_number, verificationCode: row.verification_code, issuedAt: row.created_at },
+      }, waqfInfo);
+    } catch (err) {
+      logger.error('[official-letter] reprint failed', err);
+      toast.error('تعذّر تنزيل الوثيقة');
+    }
   };
 
   const cancel = async (row: OfficialLetterRow) => {
@@ -54,5 +59,5 @@ export const useOfficialLettersPage = () => {
     catch (err) { logger.error('[official-letter] void failed', err); toast.error('تعذّر إلغاء الوثيقة'); }
   };
 
-  return { form, setForm, canIssue, issuing, issue, letters: letters.data ?? [], isLoading: letters.isLoading, reprint, cancel };
+  return { form, setForm, canIssue, issuing, issue, letters: letters.data ?? [], isLoading: letters.isLoading, isError: letters.isError, reprint, cancel };
 };

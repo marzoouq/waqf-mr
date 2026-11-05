@@ -2,7 +2,7 @@
  * AuditTreePage — شجرة التدقيق المحاسبي مع فحص تلقائي (قراءة فقط).
  */
 import { GitBranch, RefreshCw, ShieldCheck, AlertTriangle } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -49,20 +49,17 @@ const AuditTreePage = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <GitBranch className="w-6 h-6 text-primary" /> شجرة التدقيق المحاسبي
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              ربط فواتير الإيجار وسندات القبض والصرف بقائمة الدخل والمصروفات والقائمة الختامية {h.yearLabel && `— ${h.yearLabel}`}
-            </p>
-          </div>
-          <Button onClick={h.runCheck} disabled={h.isLoading || !h.hasYear}>
-            <RefreshCw className={cn('w-4 h-4', h.isLoading && 'animate-spin')} /> تشغيل الفحص
-          </Button>
-        </div>
+      <div className="p-4 sm:p-6 space-y-6">
+        <PageHeaderCard
+          title="شجرة التدقيق"
+          description={`ربط فواتير الإيجار وسندات القبض والصرف بقائمة الدخل والمصروفات والقائمة الختامية${h.yearLabel ? ` — ${h.yearLabel}` : ''}`}
+          icon={GitBranch}
+          actions={
+            <Button onClick={h.runCheck} disabled={h.isLoading || !h.hasYear}>
+              <RefreshCw className={cn('w-4 h-4', h.isLoading && 'animate-spin')} /> تشغيل الفحص
+            </Button>
+          }
+        />
 
         {!h.hasYear && <Card><CardContent className="p-6 text-center text-muted-foreground">اختر سنة مالية محددة لعرض شجرة التدقيق</CardContent></Card>}
         {h.error && <Card className="border-destructive/40"><CardContent className="p-4 text-destructive">تعذّر تشغيل الفحص</CardContent></Card>}

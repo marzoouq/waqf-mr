@@ -35,7 +35,7 @@ export function useReportsData() {
 
   const selectedFiscalYearLabel = fiscalYear?.label;
 
-  const { income, expenses, accounts, beneficiaries, settings, isLoading, isError: _isError } =
+  const { income, expenses, accounts, beneficiaries, settings, isLoading, isError } =
     useRawFinancialData(fiscalYearId || undefined, selectedFiscalYearLabel);
 
   const computed = useComputedFinancials({
@@ -172,6 +172,6 @@ export function useReportsData() {
     availableAmount, remainingBalance, beneficiariesShare,
     netRevenue, incomeSourceData, expenseTypeData, distributionData,
     propertyPerformance, perfTotals,
-    forensicAuditData, isLoading,
+    forensicAuditData, isLoading, isError,
   };
 }

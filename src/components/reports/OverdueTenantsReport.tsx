@@ -29,7 +29,7 @@ interface OverdueTenantsReportProps {
  */
 const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportProps) => {
   const { fiscalYearId } = useFiscalYear();
-  const { data: paymentInvoices = [], isLoading: invoicesLoading } = usePaymentInvoices(fiscalYearId ?? 'all');
+  const { data: paymentInvoices = [], isLoading: invoicesLoading, isError: invoicesError } = usePaymentInvoices(fiscalYearId ?? 'all');
   const now = useNowClock();
 
   const overdueData: OverdueRowData[] = useMemo(() => {
@@ -84,6 +84,16 @@ const OverdueTenantsReport = ({ contracts, properties }: OverdueTenantsReportPro
       <Card className="shadow-sm">
         <CardContent className="py-12 text-center">
           <p className="text-muted-foreground">جاري تحميل بيانات الفواتير...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (invoicesError) {
+    return (
+      <Card className="shadow-sm border-destructive/40">
+        <CardContent className="py-12 text-center">
+          <p className="text-destructive">تعذّر تحميل الفواتير — لا يمكن الحكم بعدم وجود متأخرات</p>
         </CardContent>
       </Card>
     );

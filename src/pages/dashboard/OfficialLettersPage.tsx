@@ -2,7 +2,7 @@
  * OfficialLettersPage — إصدار وثيقة معتمدة من الناظر مع رقم مرجعي وQR للتحقق.
  */
 import { FileSignature, Download, Ban } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,13 +19,12 @@ const OfficialLettersPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <FileSignature className="w-6 h-6 text-primary" /> إصدار وثيقة معتمدة
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">تصدر برقم مرجعي وختم الوقف ورمز QR يمكن التحقق منه علنًا</p>
-        </div>
+      <div className="p-4 sm:p-6 space-y-6">
+        <PageHeaderCard
+          title="الوثائق المعتمدة"
+          description="إصدار وثيقة برقم مرجعي وختم الوقف ورمز QR يمكن التحقق منه علنًا"
+          icon={FileSignature}
+        />
 
         <Card>
           <CardHeader><CardTitle className="text-base">بيانات الوثيقة</CardTitle></CardHeader>
@@ -63,7 +62,8 @@ const OfficialLettersPage = () => {
           <CardHeader><CardTitle className="text-base">الوثائق الصادرة</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             {h.isLoading && <p className="text-sm text-muted-foreground">جارٍ التحميل…</p>}
-            {!h.isLoading && h.letters.length === 0 && <p className="text-sm text-muted-foreground">لا توجد وثائق صادرة بعد</p>}
+            {h.isError && <p className="text-sm text-destructive">تعذّر تحميل الوثائق الصادرة — حدّث الصفحة</p>}
+            {!h.isLoading && !h.isError && h.letters.length === 0 && <p className="text-sm text-muted-foreground">لا توجد وثائق صادرة بعد</p>}
             {h.letters.map(l => (
               <div key={l.id} className="flex flex-wrap items-center gap-2 border-b pb-2 last:border-0 text-sm">
                 <span className="font-mono">{l.doc_number}</span>

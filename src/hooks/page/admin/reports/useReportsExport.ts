@@ -46,6 +46,7 @@ export interface ReportsExportInput {
 export function useReportsExport(input: ReportsExportInput) {
   const { fiscalYearId } = useFiscalYear();
   const handleExportPDF = async () => {
+    try {
     const { generateAnnualReportPDF } = await loadPdfModule();
     await generateAnnualReportPDF({
       fiscalYear: input.fiscalYearLabel,
@@ -63,9 +64,13 @@ export function useReportsExport(input: ReportsExportInput) {
         amount: d.amount,
       })),
     }, input.pdfWaqfInfo);
+    } catch {
+      uiNotify.error('تعذّر تصدير التقرير');
+    }
   };
 
   const handleExportDisclosure = async () => {
+    try {
     const { generateAnnualDisclosurePDF } = await loadPdfModule();
     await generateAnnualDisclosurePDF({
       closureDisclosure: await fetchClosureDisclosure(fiscalYearId),
@@ -96,6 +101,9 @@ export function useReportsExport(input: ReportsExportInput) {
       adminPct: input.adminPct,
       waqifPct: input.waqifPct,
     }, input.pdfWaqfInfo);
+    } catch {
+      uiNotify.error('تعذّر تصدير الإفصاح السنوي');
+    }
   };
 
   const handleExportForensic = async () => {

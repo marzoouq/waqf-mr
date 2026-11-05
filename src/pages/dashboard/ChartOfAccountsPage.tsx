@@ -1,6 +1,7 @@
 /**
  * صفحة الشجرة المحاسبية — عرض هرمي + CRUD كامل
  */
+import { ErrorState } from '@/components/common/feedback/PageStateGuards';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import { useChartOfAccountsPage } from '@/hooks/page/admin/management/useChartOf
 
 const ChartOfAccountsPage = () => {
   const {
-    isLoading,
+    isLoading, isError,
     searchTerm, setSearchTerm,
     dialogOpen, setDialogOpen, deleteDialogOpen, setDeleteDialogOpen,
     editingCategory, deletingCategory,
@@ -24,6 +25,8 @@ const ChartOfAccountsPage = () => {
     openCreateDialog, openEditDialog, handleSave, handleDelete, handleToggle, confirmDelete,
     createPending, updatePending,
   } = useChartOfAccountsPage();
+
+  if (isError) return <ErrorState message="تعذّر تحميل البيانات" description="تحقق من الاتصال ثم حدّث الصفحة. لم تُعرض أرقام ناقصة حتى لا تُفهم خطأً." />;
 
   return (
     <DashboardLayout>
