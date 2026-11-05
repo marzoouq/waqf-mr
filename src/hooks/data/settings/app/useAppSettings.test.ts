@@ -19,6 +19,9 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
+// الاختبار يستدعي الهوك خارج React — نجعل useCallback تمريراً مباشراً
+vi.mock('react', async (orig) => ({ ...(await orig<typeof import('react')>()), useCallback: <T,>(fn: T) => fn }));
+
 let storedData: Record<string, string> | undefined;
 
 vi.mock('@tanstack/react-query', () => ({
