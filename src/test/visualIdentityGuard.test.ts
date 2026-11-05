@@ -31,3 +31,24 @@ describe('visual identity guard', () => {
     }
   });
 });
+
+describe('menu and layout separation guard', () => {
+  it('support team menu lists only /support pages', async () => {
+    const { supportLinks } = await import('@/constants/navigation');
+    expect(supportLinks.map((l) => l.to)).toEqual([
+      '/support', '/support/tickets', '/support/diagnostics', '/support/maintenance', '/support/errors',
+    ]);
+    expect(read('src/hooks/application/useNavLinks.ts')).toContain("role === 'support'");
+  });
+
+  it('year closing lives in the end-of-year tab, not the header', () => {
+    const src = page('AccountsPage');
+    const header = src.slice(src.indexOf('<PageHeaderCard'), src.indexOf('<Tabs'));
+    expect(header).not.toContain('setCloseYearOpen');
+    expect(src).toContain('value="year-end"');
+  });
+
+  it('Ejar contract file access for accountants is in the saved setup steps', () => {
+    expect(read('drizzle/migrations/0027_contract_documents_access_rules.sql')).toMatch(/'contract-documents','accountant', true, true, true/);
+  });
+});
