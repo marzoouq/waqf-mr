@@ -11,7 +11,7 @@
  *
  * مكون حاوية رفيع: يمرّر بيانات الـ page hook إلى مكونات عرضية مفصولة.
  */
-import { DashboardLayout } from '@/components/layout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
