@@ -81,7 +81,7 @@ const AnnualReportPage = () => {
         </div>
 
         {/* مقارنة الدخل */}
-        <Suspense fallback={null}>
+        <Suspense fallback={<div className="h-64 rounded-lg bg-muted animate-pulse" />}>
           <IncomeComparisonChart />
         </Suspense>
 
