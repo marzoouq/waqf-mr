@@ -3,11 +3,12 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import LogoUploadCard from '../landing/LogoUploadCard';
 import { useWaqfSettingsTab, WAQF_FIELDS, FINANCIAL_FIELDS } from '@/hooks/page/admin/settings/useWaqfSettingsTab';
 
 const WaqfSettingsTab = () => {
-  const { formData, onFieldChange, handleSave, saving, isLoading, waqfLogoUrl } = useWaqfSettingsTab();
+  const { formData, onFieldChange, handleSave, saving, isLoading, waqfLogoUrl, fiscalYearLabel } = useWaqfSettingsTab();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
@@ -57,6 +58,11 @@ const WaqfSettingsTab = () => {
               </div>
             );
           })}
+          <div className="space-y-1.5">
+            <Label htmlFor="waqf-settings-tab-fiscal-year">السنة المالية</Label>
+            <Input id="waqf-settings-tab-fiscal-year" value={fiscalYearLabel} readOnly disabled />
+            <Link to="/dashboard/settings?tab=fiscal" className="text-xs text-primary underline">تُدار من تبويب السنوات المالية</Link>
+          </div>
         </CardContent>
       </Card>
       <Button onClick={handleSave} disabled={saving} className="gap-2">
