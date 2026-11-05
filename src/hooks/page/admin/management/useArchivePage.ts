@@ -15,6 +15,8 @@ import {
   type ArchiveUpdateInput,
 } from '@/hooks/data/archive/useArchivedDocumentMutations';
 import { useArchiveDocumentViewer } from '@/hooks/application/archive/useArchiveDocumentViewer';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { filterByYearRange } from '@/utils/fiscalYear/yearScope';
 import type { ArchiveCategory, ArchivedDocument } from '@/types/archive';
 
 export type CategoryFilter = ArchiveCategory | 'all';
@@ -38,14 +40,22 @@ export function useArchivePage() {
   const deleteM = useDeleteArchivedDocument();
   const viewer = useArchiveDocumentViewer();
 
+  const { fiscalYear, isSpecificYear } = useFiscalYear();
+  const [allYears, setAllYears] = useState(false);
+  const yearRange = !allYears && isSpecificYear && fiscalYear ? fiscalYear : null;
+  const documents = useMemo(
+    () => filterByYearRange(query.data ?? [], (d) => d.document_date ?? d.created_at, yearRange),
+    [query.data, yearRange],
+  );
+
   const stats = useMemo(() => {
-    const docs = query.data ?? [];
+    const docs = documents;
     return {
       total: docs.length,
       published: docs.filter((d) => d.is_published).length,
       drafts: docs.filter((d) => !d.is_published).length,
     };
-  }, [query.data]);
+  }, [documents]);
 
   const handleUpload = async (input: Omit<ArchiveUploadInput, 'uploadedBy'>) => {
     if (!user?.id) {
@@ -95,7 +105,8 @@ export function useArchivePage() {
     canWrite,
     isLoading: query.isLoading,
     isError: query.isError,
-    documents: query.data ?? [],
+    documents,
+    allYears, setAllYears, yearLabel: fiscalYear?.label,
     stats,
 
     category, setCategory,

@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { filterByYearRange } from '@/utils/fiscalYear/yearScope';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
@@ -16,6 +18,10 @@ export const useOfficialLettersPage = () => {
   const letters = useOfficialLetters();
   const save = useSaveOfficialLetter();
   const voidLetter = useVoidOfficialLetter();
+  const { fiscalYear, isSpecificYear } = useFiscalYear();
+  const [allYears, setAllYears] = useState(false);
+  const yearRange = !allYears && isSpecificYear && fiscalYear ? fiscalYear : null;
+  const scoped = useMemo(() => filterByYearRange(letters.data ?? [], (l) => l.created_at, yearRange), [letters.data, yearRange]);
 
   const canIssue = form.recipient.trim().length > 1 && form.subject.trim().length > 1 && form.body.trim().length > 5;
 
@@ -59,5 +65,5 @@ export const useOfficialLettersPage = () => {
     catch (err) { logger.error('[official-letter] void failed', err); toast.error('تعذّر إلغاء الوثيقة'); }
   };
 
-  return { form, setForm, canIssue, issuing, issue, letters: letters.data ?? [], isLoading: letters.isLoading, isError: letters.isError, reprint, cancel };
+  return { form, setForm, canIssue, issuing, issue, letters: scoped, allYears, setAllYears, yearLabel: fiscalYear?.label, isLoading: letters.isLoading, isError: letters.isError, reprint, cancel };
 };
