@@ -2,11 +2,11 @@ import { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { Plus, Lock, Wallet, FileText, Users } from 'lucide-react';
+import { Plus, Wallet, FileText, Users } from 'lucide-react';
 import { ExportMenu, DeferredRender, StatsGridSkeleton, LockedYearBanner } from '@/components/common';
 import { useAccountsPage } from '@/hooks/page/admin/financial/useAccountsPage';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
+import AccountsYearEndCard from '@/components/accounts/AccountsYearEndCard';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 // مكونات أساسية (تُحمّل فوراً)
@@ -148,24 +148,10 @@ const AccountsPage = () => {
           </TabsContent>
 
           <TabsContent value="year-end" className="space-y-5 sm:space-y-6 mt-4">
-            <Card>
-              <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <p className="font-bold">إقفال السنة المالية {page.selectedFY?.label ?? ''}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {page.selectedFY?.status === 'active'
-                      ? 'يُجري فحص ما قبل الإقفال ثم يحفظ لقطة نهائية للسنة.'
-                      : 'هذه السنة مقفلة — أرقامها محفوظة للقراءة فقط.'}
-                  </p>
-                </div>
-                {role === 'admin' && page.selectedFY?.status === 'active' && (
-                  <Button variant="destructive" onClick={() => page.setCloseYearOpen(true)} className="gap-2">
-                    <Lock className="w-4 h-4" />
-                    إقفال السنة
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+            <AccountsYearEndCard
+              fyLabel={page.selectedFY?.label} isActive={page.selectedFY?.status === 'active'}
+              canClose={role === 'admin'} onClose={() => page.setCloseYearOpen(true)}
+            />
         <DeferredRender delay={500}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsSavedTable
