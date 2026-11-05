@@ -30,7 +30,7 @@ const ChartOfAccountsPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-4 md:p-6">
+      <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
           icon={GitBranch}
           title="الشجرة المحاسبية"

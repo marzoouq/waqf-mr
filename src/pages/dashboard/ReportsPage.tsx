@@ -18,7 +18,6 @@ import {
 } from '@/components/reports';
 import ReportsSummaryCards from '@/components/reports/ReportsSummaryCards';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { Button } from '@/components/ui/button';
 import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ExportMenu } from '@/components/common';
@@ -73,19 +72,11 @@ const ReportsPage = () => {
           description="عرض التقارير والإحصائيات"
           badge={fiscalYear ? <Badge variant="secondary" className="text-xs">{fiscalYear.label}</Badge> : undefined}
           actions={<>
-            <Button onClick={handleExportDisclosure} variant="outline" className="gap-2">
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">الإفصاح السنوي PDF</span>
-            </Button>
-            <Button onClick={handleExportDistribution} variant="outline" className="gap-2">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">توزيع الحصص PDF</span>
-            </Button>
-            <Button onClick={handleExportForensic} variant="outline" className="gap-2">
-              <ShieldCheck className="w-4 h-4" />
-              <span className="hidden sm:inline">الفحص الجنائي PDF</span>
-            </Button>
-            <ExportMenu onExportPdf={handleExportPDF} />
+            <ExportMenu onExportPdf={handleExportPDF} extraItems={[
+              { label: 'الإفصاح السنوي PDF', icon: FileText, onClick: handleExportDisclosure },
+              { label: 'توزيع الحصص PDF', icon: Users, onClick: handleExportDistribution },
+              { label: 'الفحص الجنائي PDF', icon: ShieldCheck, onClick: handleExportForensic },
+            ]} />
           </>}
         />
 

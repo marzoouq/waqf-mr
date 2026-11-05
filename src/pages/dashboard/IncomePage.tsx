@@ -40,7 +40,7 @@ const IncomePage = () => {
     <DashboardLayout>
        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
-          title="إدارة الدخل"
+          title="الدخل"
           icon={TrendingUp}
           description="تسجيل ومتابعة مصادر الدخل"
           actions={<>

@@ -11,10 +11,10 @@
  */
 import {
   Building2, Home, FileText, Wallet, Users, BarChart3,
-  DollarSign, Receipt, ReceiptText, UserCog, Eye, Settings, MessageSquare,
+  Receipt, ReceiptText, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
   ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity, Mail,
-  TrendingDown, Share2, FolderArchive,
+  TrendingDown, TrendingUp, Trophy, FileSignature, Share2, FolderArchive,
 } from '@/constants/navigationIcons';
 import { ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
 import {
@@ -44,8 +44,8 @@ const ADMIN_ROUTE_ICONS: Record<string, typeof Home> = {
   '/dashboard': Home,
   '/dashboard/properties': Building2,
   '/dashboard/contracts': FileText,
-  '/dashboard/income': DollarSign,
-  '/dashboard/expenses': Receipt,
+  '/dashboard/income': TrendingUp,
+  '/dashboard/expenses': TrendingDown,
   '/dashboard/beneficiaries': Users,
   '/dashboard/reports': BarChart3,
   '/dashboard/accounts': Wallet,
@@ -58,14 +58,14 @@ const ADMIN_ROUTE_ICONS: Record<string, typeof Home> = {
   '/dashboard/bylaws': BookOpen,
   '/dashboard/archive': FolderArchive,
   '/dashboard/zatca': Lock,
-  '/dashboard/annual-report': ClipboardList,
+  '/dashboard/annual-report': Trophy,
   '/dashboard/support': Headset,
   '/dashboard/chart-of-accounts': GitBranch,
   '/dashboard/comparison': GitCompareArrows,
   '/dashboard/diagnostics': Activity,
   '/dashboard/email-monitor': Mail,
   '/dashboard/audit-tree': GitBranch,
-  '/dashboard/official-letters': ClipboardList,
+  '/dashboard/official-letters': FileSignature,
 };
 
 /** مسارات مسجَّلة في ADMIN_ROUTES لكنها مُخفاة من القائمة الجانبية عمدًا.
@@ -103,7 +103,7 @@ export const allBeneficiaryLinks = [
   { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/beneficiary/archive', icon: FolderArchive, label: 'أرشيف الوثائق' },
   { to: '/beneficiary/support', icon: Headset, label: 'الدعم الفني' },
-  { to: '/beneficiary/annual-report', icon: ClipboardList, label: 'التقرير السنوي للوقف' },
+  { to: '/beneficiary/annual-report', icon: Trophy, label: 'التقرير السنوي للوقف' },
   { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
 ];
 

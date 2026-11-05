@@ -13,7 +13,7 @@ export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
   const qrData = generateQR(data, grandTotal, totalVat);
 
   return (
-    <div className="bg-white dark:bg-card border rounded-lg shadow-sm text-foreground max-w-md mx-auto" dir="rtl">
+    <div className="bg-card border rounded-lg shadow-sm text-foreground max-w-md mx-auto" dir="rtl">
       <div className="rounded-t-lg px-5 py-4 bg-accent/30 border-b-2 border-accent text-center space-y-1">
         <h2 className="text-base font-bold text-foreground">{data.sellerName}</h2>
         {data.sellerVatNumber && <p className="text-xs text-muted-foreground">الرقم الضريبي: <span className="font-mono" dir="ltr">{data.sellerVatNumber}</span></p>}

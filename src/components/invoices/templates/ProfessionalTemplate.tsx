@@ -29,7 +29,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
   if (!data.sellerVatNumber) missingFields.push('الرقم الضريبي للبائع');
 
   return (
-    <div className="bg-white dark:bg-card border rounded-lg shadow-sm text-foreground" dir="rtl">
+    <div className="bg-card border rounded-lg shadow-sm text-foreground" dir="rtl">
       <ProfessionalHeader data={data} missingFields={missingFields} />
 
       <div className="p-6 space-y-5">

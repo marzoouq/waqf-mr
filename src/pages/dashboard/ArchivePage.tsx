@@ -13,6 +13,7 @@ import ArchiveUploadDialog from '@/components/archive/ArchiveUploadDialog';
 import ArchiveEditDialog from '@/components/archive/ArchiveEditDialog';
 import ArchiveDeleteDialog from '@/components/archive/ArchiveDeleteDialog';
 import ArchivePdfPreviewDialog from '@/components/archive/ArchivePdfPreviewDialog';
+import YearScopeToggle from '@/components/common/YearScopeToggle';
 import { useArchivePage } from '@/hooks/page/admin/management/useArchivePage';
 
 const StatCard = ({
@@ -47,7 +48,7 @@ const ArchivePage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
           title="أرشيف الوثائق"
           description="إدارة الوثائق الرسمية للوقف ونشرها للمستفيدين"
@@ -67,6 +68,8 @@ const ArchivePage = () => {
           <StatCard label="منشورة" value={a.stats.published} icon={FileText} tone="bg-success/10 text-success" />
           <StatCard label="مسودات" value={a.stats.drafts} icon={EyeOff} tone="bg-warning/10 text-warning" />
         </div>
+
+        <YearScopeToggle allYears={a.allYears} onChange={a.setAllYears} yearLabel={a.yearLabel} />
 
         <ArchiveFilters
           category={a.category} onCategoryChange={a.setCategory}

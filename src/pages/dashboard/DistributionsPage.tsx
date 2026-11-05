@@ -57,7 +57,7 @@ const DistributionsPage = () => {
           <Skeleton className="h-32 w-full rounded-lg" />
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-            <Card className="shadow-sm">
+            <Card className="shadow-sm col-span-2 lg:col-span-1">
               <CardContent className="p-3 sm:p-4">
                 <p className="text-xs sm:text-sm text-muted-foreground">المبلغ المتاح للتوزيع</p>
                 <p className="text-lg sm:text-2xl font-bold text-primary tabular-nums truncate">{fmt(p.availableAmount)} ر.س</p>

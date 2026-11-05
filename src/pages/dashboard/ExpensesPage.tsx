@@ -21,7 +21,7 @@ const ExpensesPage = () => {
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
-          title="المصروفات التشغيلية"
+          title="المصروفات"
           icon={TrendingDown}
           description="سجل محاسبي داخلي — يمكن إرفاق فاتورة شراء أو أكثر مع كل مصروف، وتظهر تلقائياً في إفصاح المستفيد"
           actions={<>

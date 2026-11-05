@@ -4,7 +4,8 @@
  */
 import { lazy, Suspense, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { DashboardLayout } from '@/components/layout';
+import { DashboardLayout, PageHeaderCard } from '@/components/layout';
+import { Activity } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import DiagnosticsTabsNav from '@/components/diagnostics/DiagnosticsTabsNav';
@@ -82,15 +83,11 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
 
   const content = (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3 justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">مركز تشخيص النظام</h1>
-          {lastRun && (
-            <p className="text-sm text-muted-foreground mt-1">
-              آخر تشغيل: {fmtDateTime(lastRun)} — درجة الصحة: {summary.healthScore}/100
-            </p>
-          )}
-        </div>
+      <PageHeaderCard
+        title="مركز تشخيص النظام"
+        icon={Activity}
+        description={lastRun ? `آخر تشغيل: ${fmtDateTime(lastRun)} — درجة الصحة: ${summary.healthScore}/100` : 'فحص صحة النظام وأدائه وأمانه'}
+        actions={
         <DiagnosticsToolbar
           hasResults={results.length > 0} running={running} runningCategory={runningCategory}
           deepCleaning={deepCleaning} summary={{ fail: summary.fail, warn: summary.warn }}
@@ -99,7 +96,8 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           onRerunFailures={rerunFailures} onRerunFailuresAndWarnings={rerunFailuresAndWarnings}
           onLightClean={handleLightClean} onDeepClean={() => void handleDeepClean()}
         />
-      </div>
+        }
+      />
 
       {running && progress && progress.total > 0 && (
         <Card>

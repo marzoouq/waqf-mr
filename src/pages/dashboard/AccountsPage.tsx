@@ -35,15 +35,10 @@ const AccountsPage = () => {
           actions={<>
             {/* #6 — استخدام LockedYearBanner بدل span inline */}
             <LockedYearBanner isClosed={page.isClosed} role={role} />
-            <Button onClick={page.handleExportDisclosurePdf} variant="outline" size="sm" className="gap-1.5">
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">الإفصاح PDF</span>
-            </Button>
-            <Button onClick={page.handleExportDistributionPdf} variant="outline" size="sm" className="gap-1.5">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">توزيع الحصص PDF</span>
-            </Button>
-            <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={page.handleExportCsv} />
+            <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={page.handleExportCsv} extraItems={[
+              { label: 'الإفصاح PDF', icon: FileText, onClick: page.handleExportDisclosurePdf },
+              { label: 'توزيع الحصص PDF', icon: Users, onClick: page.handleExportDistributionPdf },
+            ]} />
             <Button onClick={page.handleCreateAccount} className="gradient-primary gap-2" disabled={page.createAccountPending}>
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">إنشاء حساب ختامي</span>
