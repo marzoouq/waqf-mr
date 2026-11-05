@@ -51,11 +51,8 @@ export const useAdminDashboardPage = () => {
   const summary = useDashboardSummary(fiscalYearId, fiscalYear?.label);
   const isLoading = summary.isLoading;
 
-  // D-05: هوك ثانوي يُفعَّل فقط إذا اكتمل summary بنجاح (لا بعد فشل)
-  const secondary = useDashboardSecondary(
-    fiscalYearId,
-    !summary.isLoading && !summary.isError
-  );
+  // D-05: الهوك الثانوي يعمل بالتوازي مع الملخص (لا شلال)، ويتوقف فقط إذا فشل الملخص
+  const secondary = useDashboardSecondary(fiscalYearId, !summary.isError);
 
   const adminData = useAdminDashboardData({
     user,
