@@ -25,6 +25,7 @@ import {
   BENEFICIARY_GROUP_ORDER,
   BENEFICIARY_GROUP_LABELS,
   BENEFICIARY_ROUTE_GROUPS,
+  WAQIF_HIDDEN_ROUTES,
 } from '@/constants/navigation';
 import { filterLinksBySectionVisibility, filterLinksByPermissions } from '@/utils/auth/filterByVisibility';
 
