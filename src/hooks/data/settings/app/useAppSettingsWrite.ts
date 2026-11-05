@@ -5,6 +5,7 @@
  * `updateJsonSetting` يحتفظ بـ toast نجاح/فشل (SAVE_MESSAGES) لأنه
  * facade عالي المستوى مُستخدَم من 15+ صفحة تعتمد على هذه الدلالة.
  */
+import { useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { uiNotify } from '@/lib/notify';
 import { SAVE_MESSAGES } from '@/lib/messages';
@@ -37,7 +38,8 @@ export const useAppSettingsWrite = (data: Record<string, string> | undefined) =>
     onSuccess: (keys) => { invalidateCategories(keys); },
   });
 
-  const getJsonSetting = <T>(key: string, fallback: T): T => {
+  // مرجع ثابت طالما البيانات لم تتغير — يمنع حلقات useEffect لدى المستهلكين
+  const getJsonSetting = useCallback(<T,>(key: string, fallback: T): T => {
     const raw = data?.[key];
     if (raw === undefined || raw === null) return fallback;
 
@@ -51,7 +53,7 @@ export const useAppSettingsWrite = (data: Record<string, string> | undefined) =>
     } catch {
       return fallback;
     }
-  };
+  }, [data]);
 
   /** يحفظ قيمة JSON. يُظهر SAVE_MESSAGES.saveSuccess/saveError تلقائياً. */
   const updateJsonSetting = async (key: string, value: object) => {

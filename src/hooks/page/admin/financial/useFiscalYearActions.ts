@@ -87,10 +87,9 @@ export function useFiscalYearActions(params: Params) {
 
   const handleClose = useCallback(async (fy: FiscalYear) => {
     if (fy.status !== 'active') return;
-    uiNotify.warning(
-      'لإقفال السنة المالية بشكل صحيح مع حفظ الحساب الختامي وترحيل الرصيد، يرجى استخدام صفحة "الحسابات الختامية".',
-      { duration: 6000, action: { label: 'فتح الحسابات', onClick: () => navigate('/dashboard/accounts') } },
-    );
+    // الإقفال الصحيح (لقطة + ترحيل) يتم فقط من صفحة الحسابات الختامية — ننتقل إليها مباشرة
+    uiNotify.info('جارٍ فتح صفحة الحسابات الختامية لإكمال الإقفال');
+    navigate('/dashboard/accounts');
   }, [navigate]);
 
   const handleReopen = useCallback(async (fy: FiscalYear, reason: string) => {

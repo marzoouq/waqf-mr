@@ -130,10 +130,10 @@ const FiscalYearManagementTab = () => {
                             <AlertDialogTitle>إقفال السنة المالية</AlertDialogTitle>
                             <AlertDialogDescription className="space-y-2">
                               <p>هل أنت متأكد من إقفال "{fy.label}"؟</p>
-                              <p className="text-destructive font-medium">⚠ يُفضّل إقفال السنة من صفحة "الحسابات الختامية".</p>
+                              <p className="text-muted-foreground">يتم الإقفال من صفحة "الحسابات الختامية" لحفظ الحساب الختامي وترحيل الرصيد.</p>
                             </AlertDialogDescription>
                           </AlertDialogHeader>
-                          <AlertDialogFooter className="gap-2"><AlertDialogCancel>إلغاء</AlertDialogCancel><AlertDialogAction onClick={() => handleClose(fy)}>إقفال</AlertDialogAction></AlertDialogFooter>
+                          <AlertDialogFooter className="gap-2"><AlertDialogCancel>إلغاء</AlertDialogCancel><AlertDialogAction onClick={() => handleClose(fy)}>الانتقال للإقفال</AlertDialogAction></AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
                     )}
