@@ -5,6 +5,7 @@ import { Building2, Star, ArrowRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { LandingPageContent } from '@/types/landing';
+import { handleLogoError } from '@/lib/branding/logoFallback';
 
 /** لون النقش الإسلامي الذهبي — مُربط بـ --secondary للثيم النشط */
 const GOLD_PATTERN_COLOR = 'hsl(var(--secondary))';
@@ -39,7 +40,7 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
         <div className="mb-10">
           {waqfLogoUrl ? (
             <div className="mx-auto w-24 h-24 rounded-3xl overflow-hidden shadow-gold animate-glow mb-8 bg-white/10 backdrop-blur-xs flex items-center justify-center">
-              <img src={waqfLogoUrl} alt="شعار الوقف" className="w-20 h-20 object-contain" loading="eager" />
+              <img src={waqfLogoUrl} alt="شعار الوقف" className="w-20 h-20 object-contain" loading="eager" onError={handleLogoError} />
             </div>
           ) : (
             <div className="mx-auto w-24 h-24 gradient-gold rounded-3xl flex items-center justify-center shadow-gold animate-glow mb-8">
