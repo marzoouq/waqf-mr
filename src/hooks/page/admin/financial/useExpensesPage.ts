@@ -34,7 +34,7 @@ export function useExpensesPage() {
   const { role } = useAuth();
   const isLocked = !canModifyFiscalYear(role, isClosed);
 
-  const { data: expenses = [], isLoading } = useExpensesByFiscalYear(fiscalYearId);
+  const { data: expenses = [], isLoading, isError } = useExpensesByFiscalYear(fiscalYearId);
   const { data: allInvoices = [] } = useInvoicesByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const createExpense = useCreateExpense();
@@ -145,7 +145,7 @@ export function useExpensesPage() {
 
   return {
     pdfWaqfInfo, fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,
-    expenses, isLoading, properties,
+    expenses, isLoading, isError, properties,
     createExpense, updateExpense,
     isOpen, setIsOpen, editingExpense,
     searchQuery, setSearchQuery,

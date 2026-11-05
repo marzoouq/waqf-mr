@@ -12,7 +12,7 @@ const ITEMS_PER_PAGE = PAGE_SIZE_BENEFICIARIES;
 
 export function useBeneficiariesPage() {
   const beneficiariesQuery = useBeneficiaries();
-  const { data: beneficiaries = [], isLoading } = beneficiariesQuery;
+  const { data: beneficiaries = [], isLoading, isError } = beneficiariesQuery;
   const { data: decryptedBeneficiaries = [] } = useBeneficiariesDecrypted();
   const createBeneficiary = useCreateBeneficiary();
   const updateBeneficiary = useUpdateBeneficiary();
@@ -123,7 +123,7 @@ export function useBeneficiariesPage() {
   }, [filteredBeneficiaries]);
 
   return {
-    beneficiaries, isLoading, filteredBeneficiaries, paginatedBeneficiaries,
+    beneficiaries, isLoading, isError, filteredBeneficiaries, paginatedBeneficiaries,
     isOpen, setIsOpen, editingBeneficiary, formData, setFormData,
     availableUsers, resetForm, handleSubmit, handleEdit,
     isPending: createBeneficiary.isPending || updateBeneficiary.isPending,

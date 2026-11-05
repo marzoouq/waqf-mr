@@ -1,3 +1,4 @@
+import { ErrorState } from '@/components/common/feedback/PageStateGuards';
 import { fmt } from '@/utils/format/format';
 import { lazy, Suspense } from 'react';
 
@@ -17,7 +18,7 @@ const CollectionReport = lazy(() => import('@/components/contracts/CollectionRep
 
 const IncomePage = () => {
   const {
-    income, isLoading, properties, contracts, paymentInvoices,
+    income, isLoading, isError, properties, contracts, paymentInvoices,
     fiscalYearId, fiscalYear, isClosed, role, isLocked,
     isOpen, setIsOpen, editingIncome, formData, setFormData, errors, onFieldBlur,
     resetForm, handleEdit, handleSubmit,
@@ -32,6 +33,8 @@ const IncomePage = () => {
   } = useIncomePage();
   const isMobile = useIsMobile();
   const [viewMode, setViewMode] = useViewMode('admin-income', 'table');
+
+  if (isError) return <ErrorState message="تعذّر تحميل البيانات" description="تحقق من الاتصال ثم حدّث الصفحة. لم تُعرض أرقام ناقصة حتى لا تُفهم خطأً." />;
 
   return (
     <DashboardLayout>

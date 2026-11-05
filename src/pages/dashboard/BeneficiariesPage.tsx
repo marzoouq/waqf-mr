@@ -1,3 +1,4 @@
+import { ErrorState } from '@/components/common/feedback/PageStateGuards';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +12,8 @@ import { useBeneficiariesPage } from '@/hooks/page/admin/management/useBeneficia
 
 const BeneficiariesPage = () => {
   const h = useBeneficiariesPage();
+
+  if (h.isError) return <ErrorState message="تعذّر تحميل البيانات" description="تحقق من الاتصال ثم حدّث الصفحة. لم تُعرض أرقام ناقصة حتى لا تُفهم خطأً." />;
 
   return (
     <DashboardLayout>

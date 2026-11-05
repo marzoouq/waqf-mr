@@ -4,6 +4,7 @@
  * - lazy() مجمّعة في كتلة واحدة بعدها
  * - منطق التصدير مفصول في useReportsExport (موجة 17)
  */
+import { ErrorState } from '@/components/common/feedback/PageStateGuards';
 import { ViewportRender } from '@/components/common';
 import { lazy, Suspense } from 'react';
 
@@ -44,7 +45,7 @@ const ReportsPage = () => {
     availableAmount, remainingBalance, beneficiariesShare,
     netRevenue, incomeSourceData, expenseTypeData, distributionData,
     propertyPerformance, perfTotals,
-    forensicAuditData, isLoading,
+    forensicAuditData, isLoading, isError,
   } = useReportsData();
 
   const fiscalYearLabel = currentAccount?.fiscal_year || fiscalYear?.label || '';
@@ -60,6 +61,8 @@ const ReportsPage = () => {
     incomeSourceData, expenseTypeData, distributionData,
     forensicAuditData,
   });
+
+  if (isError) return <ErrorState message="تعذّر تحميل البيانات" description="تحقق من الاتصال ثم حدّث الصفحة. لم تُعرض أرقام ناقصة حتى لا تُفهم خطأً." />;
 
   return (
     <DashboardLayout>
@@ -143,13 +146,13 @@ const ReportsPage = () => {
           </TabsContent>
 
           <TabsContent value="monthly" className="space-y-6">
-            <Suspense fallback={null}>
+            <Suspense fallback={<div className="h-64 rounded-lg bg-muted animate-pulse" />}>
               <MonthlyPerformanceReport income={income} expenses={expenses} fiscalYear={currentAccount?.fiscal_year} />
             </Suspense>
           </TabsContent>
 
           <TabsContent value="cashflow" className="space-y-6">
-            <Suspense fallback={null}>
+            <Suspense fallback={<div className="h-64 rounded-lg bg-muted animate-pulse" />}>
               <CashFlowReport income={income} expenses={expenses} fiscalYear={fiscalYear} />
             </Suspense>
           </TabsContent>

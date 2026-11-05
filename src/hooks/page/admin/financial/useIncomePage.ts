@@ -33,7 +33,7 @@ export function useIncomePage() {
   const { role } = useAuth();
   const isLocked = !canModifyFiscalYear(role, isClosed);
 
-  const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
+  const { data: income = [], isLoading, isError } = useIncomeByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
@@ -150,7 +150,7 @@ export function useIncomePage() {
   const { handleExportPdf, handleExportCsv } = useIncomeExporters(filteredIncome, totalIncome, pdfWaqfInfo);
 
   return {
-    income, isLoading, properties, contracts, paymentInvoices,
+    income, isLoading, isError, properties, contracts, paymentInvoices,
     fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,
     isOpen, setIsOpen, editingIncome, formData, setFormData, errors, onFieldBlur,
     resetForm, handleEdit, handleSubmit,
