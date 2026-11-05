@@ -15,6 +15,9 @@ import { settingsQueryFn } from '@/hooks/data/settings/app/useAppSettingsRead';
 import { useAppSettingsWrite } from '@/hooks/data/settings/app/useAppSettingsWrite';
 import { appSettingsKeys } from '@/lib/queryKeys/appSettingsKeys';
 
+// ثابت على مستوى الوحدة حتى لا يتغير مرجع البيانات أثناء التحميل
+const EMPTY_SETTINGS: Record<string, string> = {};
+
 export const useAppSettings = () => {
   const query = useQuery({
     queryKey: appSettingsKeys.all(),
@@ -23,7 +26,7 @@ export const useAppSettings = () => {
     retry: 2,
     retryDelay: 1500,
     gcTime: 1000 * 60 * 30,
-    placeholderData: {} as Record<string, string>,
+    placeholderData: EMPTY_SETTINGS,
   });
 
   const writes = useAppSettingsWrite(query.data);
