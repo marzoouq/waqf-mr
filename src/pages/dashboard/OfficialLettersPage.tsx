@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useOfficialLettersPage } from '@/hooks/page/admin/management/useOfficialLettersPage';
+import YearScopeToggle from '@/components/common/YearScopeToggle';
 import { LETTER_TYPE_LABELS } from '@/utils/pdf/entities/officialLetterPdf';
 
 const OfficialLettersPage = () => {
@@ -59,11 +60,14 @@ const OfficialLettersPage = () => {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-base">الوثائق الصادرة</CardTitle></CardHeader>
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0">
+            <CardTitle className="text-base">الوثائق الصادرة</CardTitle>
+            <YearScopeToggle allYears={h.allYears} onChange={h.setAllYears} yearLabel={h.yearLabel} />
+          </CardHeader>
           <CardContent className="space-y-2">
             {h.isLoading && <p className="text-sm text-muted-foreground">جارٍ التحميل…</p>}
             {h.isError && <p className="text-sm text-destructive">تعذّر تحميل الوثائق الصادرة — حدّث الصفحة</p>}
-            {!h.isLoading && !h.isError && h.letters.length === 0 && <p className="text-sm text-muted-foreground">لا توجد وثائق صادرة بعد</p>}
+            {!h.isLoading && !h.isError && h.letters.length === 0 && <p className="text-sm text-muted-foreground">لا توجد وثائق صادرة في هذا النطاق</p>}
             {h.letters.map(l => (
               <div key={l.id} className="flex flex-wrap items-center gap-2 border-b pb-2 last:border-0 text-sm">
                 <span className="font-mono">{l.doc_number}</span>
