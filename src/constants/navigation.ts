@@ -107,6 +107,15 @@ export const allBeneficiaryLinks = [
   { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
 ];
 
+/** قائمة فريق الدعم الفني — مسارات /support فقط (لا روابط مستفيد مرفوضة) */
+export const supportLinks = [
+  { to: '/support', icon: Home, label: 'لوحة الدعم الفني' },
+  { to: '/support/tickets', icon: Headset, label: 'تذاكر الدعم' },
+  { to: '/support/diagnostics', icon: Activity, label: 'مركز التشخيص' },
+  { to: '/support/maintenance', icon: Lock, label: 'وضع الصيانة' },
+  { to: '/support/errors', icon: ShieldCheck, label: 'الأخطاء الحيّة' },
+];
+
 /** روابط محجوبة عن الواقف بحراسة المسار (BENEFICIARY_ROLES) — تُخفى من قائمته */
 export const WAQIF_HIDDEN_ROUTES: ReadonlySet<string> = new Set([
   '/beneficiary/disclosure', '/beneficiary/my-share', '/beneficiary/carryforward',

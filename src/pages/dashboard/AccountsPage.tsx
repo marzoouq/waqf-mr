@@ -2,9 +2,11 @@ import { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { Plus, Lock, Wallet, FileText, Users } from 'lucide-react';
+import { Plus, Wallet, FileText, Users } from 'lucide-react';
 import { ExportMenu, DeferredRender, StatsGridSkeleton, LockedYearBanner } from '@/components/common';
 import { useAccountsPage } from '@/hooks/page/admin/financial/useAccountsPage';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AccountsYearEndCard from '@/components/accounts/AccountsYearEndCard';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 
 // مكونات أساسية (تُحمّل فوراً)
@@ -43,15 +45,16 @@ const AccountsPage = () => {
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">إنشاء حساب ختامي</span>
             </Button>
-            {role === 'admin' && page.selectedFY && page.selectedFY.status === 'active' && (
-              <Button variant="destructive" size="sm" onClick={() => page.setCloseYearOpen(true)} className="gap-2">
-                <Lock className="w-4 h-4" />
-                <span className="hidden sm:inline">إقفال السنة</span>
-              </Button>
-            )}
           </>}
         />
 
+        <Tabs defaultValue="review" dir="rtl">
+          <TabsList aria-label="أقسام الحسابات الختامية" className="w-full sm:w-auto">
+            <TabsTrigger value="review">استعراض الحساب</TabsTrigger>
+            <TabsTrigger value="year-end">إجراءات نهاية العام</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="review" className="space-y-5 sm:space-y-6 mt-4">
         <AccountsSettingsBar
           fiscalYear={page.fiscalYear} adminPercent={page.adminPercent} waqifPercent={page.waqifPercent}
           waqfCorpusPrevious={page.waqfCorpusPrevious} manualVat={page.manualVat} zakatAmount={page.zakatAmount}
@@ -142,6 +145,13 @@ const AccountsPage = () => {
           </Suspense>
         </DeferredRender>
 
+          </TabsContent>
+
+          <TabsContent value="year-end" className="space-y-5 sm:space-y-6 mt-4">
+            <AccountsYearEndCard
+              fyLabel={page.selectedFY?.label} isActive={page.selectedFY?.status === 'active'}
+              canClose={role === 'admin'} onClose={() => page.setCloseYearOpen(true)}
+            />
         <DeferredRender delay={500}>
           <Suspense fallback={<SectionFallback />}>
             <AccountsSavedTable
@@ -150,6 +160,8 @@ const AccountsPage = () => {
             />
           </Suspense>
         </DeferredRender>
+          </TabsContent>
+        </Tabs>
 
         <AccountsDialogs
           deleteTarget={page.deleteTarget} setDeleteTarget={page.setDeleteTarget}
