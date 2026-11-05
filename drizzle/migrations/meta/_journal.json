@@ -204,6 +204,13 @@
       "when": 1793904308352,
       "tag": "0028_public_branding_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793904380580,
+      "tag": "0029_request_account_link",
+      "breakpoints": true
     }
   ]
 }

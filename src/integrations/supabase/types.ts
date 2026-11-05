@@ -3411,6 +3411,7 @@ export type Database = {
         Returns: Json
       }
       reorder_bylaws: { Args: { items: Json }; Returns: undefined }
+      request_account_link: { Args: never; Returns: string }
       reserve_icv: { Args: never; Returns: Json }
       set_annual_report_publish: {
         Args: { p_fiscal_year_id: string; p_publish: boolean }
