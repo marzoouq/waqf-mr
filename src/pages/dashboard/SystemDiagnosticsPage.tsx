@@ -46,7 +46,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
   const { running, runningCategory, lastRun, progress, run, runSingle, exportJson, exportText, clearAll, rerunFailures, rerunFailuresAndWarnings, summary, allCategories, results } = d;
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [activeTab, setActiveTab] = useState('overview');
-  const [cleanDialog, setCleanDialog] = useState<null | 'light' | 'deep'>(null);
+  const [cleanDialog, setCleanDialog] = useState<null | 'light' | 'deep' | 'server'>(null);
   const [deepCleaning, setDeepCleaning] = useState(false);
   const queryClient = useQueryClient();
   // بعد مسح سجل الأخطاء: تصفير النتائج وإعادة الفحص لقراءة نظيفة
