@@ -3104,6 +3104,7 @@ export type Database = {
       }
       cleanup_expired_challenges: { Args: never; Returns: undefined }
       cleanup_pending_invoice_chain: { Args: never; Returns: undefined }
+      clear_client_error_logs: { Args: never; Returns: Json }
       clear_zatca_otp: { Args: never; Returns: undefined }
       close_fiscal_year: {
         Args: {
