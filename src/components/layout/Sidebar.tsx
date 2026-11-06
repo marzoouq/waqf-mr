@@ -9,6 +9,7 @@ import { useSetting } from '@/hooks/data/settings/app/useAppSettings';
 import { SidebarBrand } from './sidebar/SidebarBrand';
 import { SidebarNavList, type NavLinkItem, type NavGroupItem } from './sidebar/SidebarNavList';
 import { SidebarUserFooter } from './sidebar/SidebarUserFooter';
+import { useClearAppCache } from '@/hooks/application/useClearAppCache';
 
 interface SidebarContentProps {
   links: NavLinkItem[] & { groups?: NavGroupItem[] };
@@ -25,6 +26,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   const { user, role } = useAuth();
   const waqfName = useSetting('waqf_name', 'إدارة الوقف');
   const waqfLogoUrl = useSetting('waqf_logo_url');
+  const { clear: clearCache, clearing: clearingCache } = useClearAppCache();
 
   return (
     <>
@@ -46,6 +48,8 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
         role={role}
         sidebarOpen={sidebarOpen}
         onSignOut={onSignOut}
+        onClearCache={() => void clearCache()}
+        clearingCache={clearingCache}
       />
     </>
   );
