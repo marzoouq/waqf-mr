@@ -218,6 +218,13 @@
       "when": 1793907407136,
       "tag": "0030_escape_alert_email_html",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793976333421,
+      "tag": "0031_clear_client_error_logs",
+      "breakpoints": true
     }
   ]
 }

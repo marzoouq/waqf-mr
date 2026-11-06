@@ -8,7 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { RefreshCw, Download, ChevronDown, Trash2 } from 'lucide-react';
 import DeepCleanConfirmDialog from './DeepCleanConfirmDialog';
 
-type CleanDialog = null | 'light' | 'deep';
+type CleanDialog = null | 'light' | 'deep' | 'server';
 
 interface Props {
   hasResults: boolean;
@@ -25,6 +25,8 @@ interface Props {
   onRerunFailuresAndWarnings: () => void;
   onLightClean: () => void;
   onDeepClean: () => void;
+  onServerClean: () => void;
+  serverCleaning: boolean;
 }
 
 export default function DiagnosticsToolbar(p: Props) {
@@ -61,6 +63,7 @@ export default function DiagnosticsToolbar(p: Props) {
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => p.setCleanDialog('light')}>تنظيف خفيف (نتائج التشخيص)</DropdownMenuItem>
           <DropdownMenuItem onClick={() => p.setCleanDialog('deep')}>تنظيف عميق (كاش + SW + IDB)</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => p.setCleanDialog('server')}>مسح سجل أخطاء الواجهة المحفوظ</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <AlertDialog open={p.cleanDialog === 'light'} onOpenChange={(o) => !o && p.setCleanDialog(null)}>
@@ -75,6 +78,22 @@ export default function DiagnosticsToolbar(p: Props) {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction onClick={(e) => { e.preventDefault(); p.onLightClean(); }}>
               تأكيد
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={p.cleanDialog === 'server'} onOpenChange={(o) => !o && p.setCleanDialog(null)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>مسح سجل أخطاء الواجهة</AlertDialogTitle>
+            <AlertDialogDescription>
+              تُحذف أخطاء الواجهة المحفوظة فقط وتُغلق التنبيهات المفتوحة، لتبدأ عملية الرصد من جديد. لا يمسّ البيانات المالية ولا سجل المراجعة ولا سجلات الدخول، وتُوثَّق العملية في سجل المراجعة.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction disabled={p.serverCleaning} onClick={(e) => { e.preventDefault(); p.onServerClean(); }}>
+              تأكيد المسح
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

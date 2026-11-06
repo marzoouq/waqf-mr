@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import type { CheckStatus } from '@/lib/diagnostics/types';
 import { useSystemDiagnostics } from '@/hooks/page/admin/management/useSystemDiagnostics';
 import { runDeepClean } from '@/lib/diagnostics/deepClean';
+import { useClearClientErrorLogs } from '@/hooks/application/useClearClientErrorLogs';
 import { logger } from '@/lib/logger';
 import { fmtDateTime } from '@/utils/format/format';
 import HealthSummaryCard from '@/components/diagnostics/HealthSummaryCard';
@@ -45,9 +46,11 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
   const { running, runningCategory, lastRun, progress, run, runSingle, exportJson, exportText, clearAll, rerunFailures, rerunFailuresAndWarnings, summary, allCategories, results } = d;
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [activeTab, setActiveTab] = useState('overview');
-  const [cleanDialog, setCleanDialog] = useState<null | 'light' | 'deep'>(null);
+  const [cleanDialog, setCleanDialog] = useState<null | 'light' | 'deep' | 'server'>(null);
   const [deepCleaning, setDeepCleaning] = useState(false);
   const queryClient = useQueryClient();
+  // بعد مسح سجل الأخطاء: تصفير النتائج وإعادة الفحص لقراءة نظيفة
+  const serverClean = useClearClientErrorLogs(() => { setCleanDialog(null); clearAll(); void run(); });
 
   const filterCounts = useMemo(() => {
     const c: Record<CheckStatus, number> = { pass: 0, warn: 0, fail: 0, info: 0 };
@@ -95,6 +98,7 @@ export default function SystemDiagnosticsPage({ autoRun = true }: Props) {
           onRunAll={run} onExportJson={exportJson} onExportText={exportText}
           onRerunFailures={rerunFailures} onRerunFailuresAndWarnings={rerunFailuresAndWarnings}
           onLightClean={handleLightClean} onDeepClean={() => void handleDeepClean()}
+          onServerClean={() => void serverClean.clear()} serverCleaning={serverClean.busy}
         />
         }
       />

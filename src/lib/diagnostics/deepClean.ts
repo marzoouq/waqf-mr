@@ -4,6 +4,7 @@
  */
 import type { QueryClient } from '@tanstack/react-query';
 import { logger } from '@/lib/logger';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { clearHistory } from '@/lib/diagnostics/history';
 import { resetFallbackBanner } from '@/lib/notifications/fallbackPolling';
 
@@ -20,7 +21,13 @@ export type DeepCleanReport = {
 
 // مفاتيح localStorage محمية (لا تُمسّ)
 const LS_PROTECTED_PREFIXES = ['sb-', 'supabase.'];
-const LS_PROTECTED_EXACT = new Set(['theme', 'i18nextLng']);
+// تفضيلات الجهاز تبقى: البصمة، السنة المختارة، الثيم، صوت ونغمة الإشعارات
+const LS_PROTECTED_EXACT = new Set([
+  'theme', 'i18nextLng',
+  STORAGE_KEYS.BIOMETRIC_ENABLED, STORAGE_KEYS.FISCAL_YEAR, STORAGE_KEYS.THEME_COLOR,
+  STORAGE_KEYS.NOTIFICATION_SOUND, STORAGE_KEYS.NOTIFICATION_TONE, STORAGE_KEYS.NOTIFICATION_VOLUME,
+  STORAGE_KEYS.NOTIFICATION_PREFS, STORAGE_KEYS.NOTIFICATION_DISABLED_TYPES,
+]);
 
 // مفاتيح localStorage تُمسح صراحة
 const LS_CLEAR_PREFIXES = ['diagnostics_', 'tickPoll_', 'lovable-cache-', 'dismissed_warnings'];

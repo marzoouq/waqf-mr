@@ -4,7 +4,7 @@
  */
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { LogOut } from 'lucide-react';
+import { LogOut, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { ROLE_LABELS } from '@/constants/roles';
 
@@ -13,10 +13,12 @@ interface SidebarUserFooterProps {
   role?: string | null;
   sidebarOpen: boolean;
   onSignOut: () => void;
+  onClearCache?: () => void;
+  clearingCache?: boolean;
 }
 
 export const SidebarUserFooter: React.FC<SidebarUserFooterProps> = ({
-  email, role, sidebarOpen, onSignOut,
+  email, role, sidebarOpen, onSignOut, onClearCache, clearingCache,
 }) => {
   const roleLabel = ROLE_LABELS[role || ''] || role;
   const showLabel = sidebarOpen; // mobile drawer دائماً مفتوح بصريًا
@@ -48,6 +50,20 @@ export const SidebarUserFooter: React.FC<SidebarUserFooterProps> = ({
         {email && <p className="truncate">{email}</p>}
         {roleLabel && <p className="text-xs text-sidebar-primary mt-1">{roleLabel}</p>}
       </div>
+      {onClearCache && (
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label="تحديث التطبيق ومسح الذاكرة المؤقتة"
+          title="تحديث التطبيق ومسح الذاكرة المؤقتة"
+          disabled={clearingCache}
+          className={cn('w-full mb-1 text-sidebar-foreground/80 hover:bg-sidebar-accent', !showLabel && 'lg:px-0')}
+          onClick={onClearCache}
+        >
+          <RefreshCw className={cn('w-4 h-4', clearingCache && 'animate-spin')} aria-hidden="true" />
+          <span className={cn('ms-2 text-xs lg:inline', !sidebarOpen && 'lg:hidden')}>تحديث التطبيق ومسح الذاكرة المؤقتة</span>
+        </Button>
+      )}
       {sidebarOpen ? (
         button
       ) : (
