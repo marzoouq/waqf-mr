@@ -33,6 +33,8 @@ const ALLOWLIST = new Set<string>([
   'pages/dashboard/SystemDiagnosticsPage.tsx',
   // إجراء إصلاح تشخيصي يُطلقه المستخدم من صفحة التشخيصات (post-fix reload)
   'lib/diagnostics/fixActions.ts',
+  // زر «تحديث التطبيق ومسح الذاكرة المؤقتة» يضغطه المستخدم بنفسه؛ إعادة التحميل تُكمل المسح
+  'hooks/application/useClearAppCache.ts',
 ]);
 
 function walk(dir: string, out: string[] = []): string[] {

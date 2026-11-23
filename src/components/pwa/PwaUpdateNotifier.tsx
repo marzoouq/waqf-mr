@@ -3,6 +3,7 @@ import { uiNotify } from '@/lib/notify';
 import { safeGet, safeRemove, safeSet } from '@/lib/storage';
 import { logger } from '@/lib/logger';
 import { compareSemver } from '@/lib/pwa/semver';
+import { meaningfulChangelog } from '@/lib/pwa/changelog';
 import ChangelogDialog, { type ChangelogEntry } from './ChangelogDialog';
 
 const LAST_SEEN_KEY = 'pwa_last_seen_version';
@@ -43,6 +44,8 @@ const PwaUpdateNotifier = () => {
             const filtered = changelog.filter(e => compareSemver(e.version, lastSeen) > 0);
             entries = filtered.slice(0, 3);
           }
+          // لا نعرض البنود العامة («تحسينات وإصلاحات متنوعة») في نافذة ما الجديد
+          entries = meaningfulChangelog(entries, 3);
 
           if (entries.length === 0) {
             safeSet(LAST_SEEN_KEY, latestVersion);

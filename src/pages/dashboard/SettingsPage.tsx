@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Settings } from 'lucide-react';
 
 import { SETTINGS_CATEGORIES } from '@/constants/settingsCategories';
+import AppVersionBadge from '@/components/pwa/AppVersionBadge';
 
 // — مكونات محمّلة كسول مُجمّعة حسب المجال —
 const WaqfSettingsTab = lazy(() => import('@/components/settings/system/WaqfSettingsTab'));
@@ -34,7 +35,7 @@ const SettingsPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <PageHeaderCard title="الإعدادات العامة" icon={Settings} description="إدارة جميع إعدادات النظام من مكان واحد" />
+        <PageHeaderCard title="الإعدادات العامة" icon={Settings} description="إدارة جميع إعدادات النظام من مكان واحد" actions={<AppVersionBadge />} />
         <Tabs dir="rtl" onValueChange={setActiveSettingsTab} value={activeSettingsTab}>
           {isMobile ? (
             <div className="mb-4">
