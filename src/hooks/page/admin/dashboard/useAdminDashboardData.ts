@@ -29,7 +29,7 @@ interface UseAdminDashboardDataParams {
   isSpecificYear: boolean;
   summary: DashboardSummary;
   /** عقود السنة المختارة — لعدّ النشطة بما يطابق صفحة العقود */
-  yearContracts?: ReadonlyArray<{ status: string }>;
+  yearContracts?: ReadonlyArray<{ status: string; end_date?: string | null }>;
 }
 
 

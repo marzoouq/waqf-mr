@@ -1,6 +1,7 @@
 /**
  * مؤشرات لوحة الناظر/المحاسب — دوال نقية.
  */
+import { getEffectiveContractStatus } from '@/utils/contracts/contractStatus';
 
 interface SharePercentSettings {
   admin_share_percentage?: number | null;
@@ -22,10 +23,12 @@ export function isUsingFallbackSharePct(settings: SharePercentSettings | null | 
  * عند اختيار سنة محددة يُعدّ من عقود تلك السنة ليطابق صفحة العقود؛ وإلا يُستخدم عدد الخادم.
  */
 export function resolveActiveContractsCount(
-  yearContracts: ReadonlyArray<{ status: string }> | undefined,
+  yearContracts: ReadonlyArray<{ status: string; end_date?: string | null }> | undefined,
   isSpecificYear: boolean,
   serverCount: number,
+  today?: string,
 ): number {
   if (!isSpecificYear || !yearContracts) return serverCount;
-  return yearContracts.filter((c) => c.status === 'active').length;
+  // الحالة الظاهرة: العقد الذي تجاوز تاريخ انتهائه يُعدّ منتهياً (عرض فقط، لا كتابة)
+  return yearContracts.filter((c) => getEffectiveContractStatus(c.status, c.end_date, today) === 'active').length;
 }

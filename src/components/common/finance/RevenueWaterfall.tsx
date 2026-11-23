@@ -56,7 +56,9 @@ const RevenueWaterfall = ({ rows, base, className }: RevenueWaterfallProps) => {
               )}
             </span>
             <span className="col-span-2 lg:col-span-1 order-3 lg:order-none relative h-1.5 lg:h-2.5 rounded-full bg-muted overflow-hidden" aria-hidden="true">
-              <span className={cn('absolute inset-y-0 rounded-full', tone.bar)} style={{ right: `${bar.start}%`, width: `${Math.max(bar.width, 0.8)}%` }} />
+              {bar.width > 0 && (
+                <span className={cn('absolute inset-y-0 rounded-full', tone.bar)} style={{ right: `${bar.start}%`, width: `${Math.max(bar.width, 0.8)}%` }} />
+              )}
             </span>
             <span className={cn('num text-end tabular-nums', tone.value)}>
               {fmt(row.value)} <span className="text-[11px] font-medium text-muted-foreground">ر.س</span>

@@ -15,16 +15,17 @@ import { useActiveFiscalYear } from '@/hooks/data/financial/fiscalYears/useFisca
 const STORAGE_KEY = STORAGE_KEYS.FISCAL_YEAR;
 
 export function useFiscalYearPersistence() {
-  const { fiscalYears, isLoading } = useActiveFiscalYear();
+  const { fiscalYears, isSuccess } = useActiveFiscalYear();
 
   const [selectedId, setSelectedId] = useState<string>(() => {
     const stored = safeSessionGet(STORAGE_KEY, '');
     return UUID_REGEX.test(stored) ? stored : '';
   });
 
-  // تنظيف selection غير الصالح بعد تحميل القائمة
+  // تنظيف selection غير الصالح بعد تحميل القائمة فعلياً — لا قبل بدء الجلب
+  // (الاستعلام معطّل أثناء تحميل الجلسة فتكون القائمة فارغة مؤقتاً، فيضيع اختيار السنة عند تحديث الصفحة)
   useEffect(() => {
-    if (!isLoading && selectedId) {
+    if (isSuccess && selectedId) {
       if (fiscalYears.length === 0) {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- invalidate stale selection when remote list loads
         setSelectedId('');
@@ -37,7 +38,7 @@ export function useFiscalYearPersistence() {
         }
       }
     }
-  }, [isLoading, fiscalYears, selectedId]);
+  }, [isSuccess, fiscalYears, selectedId]);
 
   const setFiscalYearId = useCallback((id: string) => {
     setSelectedId(id);

@@ -18,4 +18,12 @@ describe('resolveActiveContractsCount', () => {
   it('كل السنوات: يستخدم عدد الخادم', () => {
     expect(resolveActiveContractsCount(year, false, 19)).toBe(19);
   });
+  it('سنة مقفلة: العقد المحفوظ «نشط» وانتهى تاريخه لا يُعدّ نشطاً', () => {
+    const closed = [
+      { status: 'active', end_date: '2026-10-24' },
+      { status: 'active', end_date: '2027-03-01' },
+      { status: 'active', end_date: '2026-05-31' },
+    ];
+    expect(resolveActiveContractsCount(closed, true, 19, '2026-11-23')).toBe(1);
+  });
 });
