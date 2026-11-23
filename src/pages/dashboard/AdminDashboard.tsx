@@ -1,20 +1,24 @@
 /**
- * AdminDashboard — UI خالصة بعد استخراج المنطق إلى useAdminDashboardPage (A2)
+ * AdminDashboard — مركز قيادة الناظر بخمس طبقات (UI خالصة؛ المنطق في useAdminDashboardPage)
+ * 1) السياق: العنوان والسنة المالية  2) يحتاج انتباهك  3) المركز المالي
+ * 4) المحفظة والسنة والتحصيل  5) الإجراءات السريعة وتفاصيل التشغيل
  */
 import { ChartSkeleton, ErrorBoundary } from '@/components/common';
 import { lazy } from 'react';
 
 import DashboardLazySection from '@/components/dashboard/DashboardLazySection';
 import { Button } from '@/components/ui/button';
+import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import FiscalYearWidget from '@/components/dashboard/widgets/FiscalYearWidget';
 import DashboardAlerts from '@/components/dashboard/widgets/DashboardAlerts';
 import QuickActionsCard from '@/components/dashboard/widgets/QuickActionsCard';
 import RecentContractsCard from '@/components/dashboard/widgets/RecentContractsCard';
-import DashboardStatsGrid from '@/components/dashboard/kpi/DashboardStatsGrid';
-import DashboardKpiPanel from '@/components/dashboard/kpi/DashboardKpiPanel';
 import CollectionSummaryCard from '@/components/dashboard/kpi/CollectionSummaryCard';
 import YearComparisonCard from '@/components/dashboard/kpi/YearComparisonCard';
+import ExecutiveFinancialCards from '@/components/dashboard/executive/ExecutiveFinancialCards';
+import PortfolioCard from '@/components/dashboard/executive/PortfolioCard';
 import AccountantDashboardView from '@/components/dashboard/views/AccountantDashboardView';
+import SectionHeading from '@/components/layout/SectionHeading';
 import { Printer, Gauge, FileDown } from 'lucide-react';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
 import type { FiscalYear } from '@/types';
@@ -48,32 +52,35 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        <PageHeaderCard
-          title="لوحة التحكم"
-          icon={Gauge}
-          description={ctx.greetingText}
-          actions={
-            <div className="flex items-center gap-2 flex-wrap">
-              {ctx.role === 'admin' && (
-                <Button
-                  variant="outline"
-                  onClick={aggregated.handleExport}
-                  disabled={!aggregated.canExport}
-                  className="gap-2"
-                >
-                  <FileDown className="w-4 h-4" />
-                  <span className="hidden sm:inline">تقرير سنوي مُجمَّع</span>
+        {/* الطبقة 1 — السياق (السنة المختارة ظاهرة في الشريط العلوي) */}
+        <div>
+          <PageHeaderCard
+            title="لوحة التحكم"
+            icon={Gauge}
+            description={ctx.greetingText}
+            actions={
+              <div className="flex items-center gap-2 flex-wrap">
+                {ctx.role === 'admin' && (
+                  <Button
+                    variant="outline"
+                    onClick={aggregated.handleExport}
+                    disabled={!aggregated.canExport}
+                    className="gap-2"
+                  >
+                    <FileDown className="w-4 h-4" />
+                    <span className="hidden sm:inline">تقرير سنوي مُجمَّع</span>
+                  </Button>
+                )}
+                <Button variant="outline" onClick={ctx.print} className="gap-2">
+                  <Printer className="w-4 h-4" />
+                  <span className="hidden sm:inline">طباعة</span>
                 </Button>
-              )}
-              <Button variant="outline" onClick={ctx.print} className="gap-2">
-                <Printer className="w-4 h-4" />
-                <span className="hidden sm:inline">طباعة</span>
-              </Button>
-            </div>
-          }
-        />
+              </div>
+            }
+          />
+        </div>
 
-        {/* 1) ما يحتاج إجراء — أعلى الصفحة */}
+        {/* الطبقة 2 — يحتاج انتباهك */}
         <DashboardAlerts
           usingFallbackPct={ctx.usingFallbackPct}
           expiringContractsCount={ctx.expiringContractsCount}
@@ -85,10 +92,23 @@ const AdminDashboard = () => {
           canConfigureRatios={ctx.role === 'admin'}
         />
 
-        {/* 2) ملخص السنة */}
-        <DashboardStatsGrid stats={ctx.stats} isLoading={ctx.isLoading} />
+        {/* الطبقة 3 — المركز المالي (أرقام الخادم كما هي) */}
+        <ExecutiveFinancialCards
+          cards={ctx.executiveCards}
+          isLoading={ctx.isLoading}
+          isClosedYear={ctx.isClosedYear}
+          expenseKpi={ctx.expenseKpi}
+        />
 
-        {/* 3) التحصيل — نسبة التحصيل تظهر هنا مرة واحدة فقط */}
+        {/* الطبقة 4 — المحفظة والتحصيل */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <PortfolioCard portfolio={ctx.portfolio} />
+          <FiscalYearWidget
+            fiscalYear={ctx.fiscalYear}
+            totalIncome={ctx.totalIncome}
+            contractualRevenue={ctx.contractualRevenue}
+          />
+        </div>
         <ErrorBoundary>
           <CollectionSummaryCard
             collectionSummary={ctx.collectionSummary}
@@ -96,18 +116,8 @@ const AdminDashboard = () => {
           />
         </ErrorBoundary>
 
-        {/* 4) إجراءات سريعة */}
+        {/* الطبقة 5 — الإجراءات وتفاصيل التشغيل */}
         <QuickActionsCard role={ctx.role} />
-
-        {/* 5) المؤشرات والسنة المالية جنباً إلى جنب على الكمبيوتر */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          <DashboardKpiPanel kpis={ctx.performanceKpis} isLoading={ctx.isLoading} />
-          <FiscalYearWidget
-            fiscalYear={ctx.fiscalYear}
-            totalIncome={ctx.totalIncome}
-            contractualRevenue={ctx.contractualRevenue}
-          />
-        </div>
 
         {ctx.isAccountant && (
           <DashboardLazySection minHeight={200}>
@@ -119,51 +129,63 @@ const AdminDashboard = () => {
           </DashboardLazySection>
         )}
 
-        <DashboardLazySection minHeight={160} printHidden>
-          <CollectionHeatmap
-            paymentInvoices={ctx.heatmapInvoices}
-            fiscalYearStart={ctx.heatmapBounds.start}
-            fiscalYearEnd={ctx.heatmapBounds.end}
-          />
-        </DashboardLazySection>
+        <section aria-label="تفاصيل التشغيل">
+          <SectionHeading title="تفاصيل التشغيل" />
+          <ResponsiveTabs items={[...ctx.detailTabs]} defaultValue="heatmap" ariaLabel="اختر تفاصيل التشغيل">
+            <TabsContent value="heatmap">
+              <DashboardLazySection minHeight={160} printHidden>
+                <CollectionHeatmap
+                  paymentInvoices={ctx.heatmapInvoices}
+                  fiscalYearStart={ctx.heatmapBounds.start}
+                  fiscalYearEnd={ctx.heatmapBounds.end}
+                />
+              </DashboardLazySection>
+            </TabsContent>
 
-        {/* PendingActions / Charts / YearComparison — حصرية للناظر (تكشف بيانات حساسة) */}
-        {ctx.role === 'admin' && (
-          <>
-            <DashboardLazySection minHeight={200} printHidden>
-              <PendingActionsTable
-                advanceRequests={ctx.pendingAdvances}
-                paymentInvoices={ctx.heatmapInvoices}
-              />
-            </DashboardLazySection>
+            {/* PendingActions / Charts / YearComparison — حصرية للناظر (تكشف بيانات حساسة) */}
+            {ctx.role === 'admin' && (
+              <>
+                <TabsContent value="pending">
+                  <DashboardLazySection minHeight={200} printHidden>
+                    <PendingActionsTable
+                      advanceRequests={ctx.pendingAdvances}
+                      paymentInvoices={ctx.heatmapInvoices}
+                    />
+                  </DashboardLazySection>
+                </TabsContent>
+                <TabsContent value="charts">
+                  <DashboardLazySection minHeight={300} printHidden fallback={<ChartSkeleton />}>
+                    <DashboardCharts monthlyData={ctx.monthlyData} expenseTypes={ctx.expenseTypes} />
+                  </DashboardLazySection>
+                </TabsContent>
+                <TabsContent value="comparison">
+                  <DashboardLazySection minHeight={200}>
+                    <YearComparisonCard
+                      allFiscalYears={ctx.allFiscalYears as FiscalYear[]}
+                      fiscalYearId={ctx.fiscalYearId}
+                    />
+                  </DashboardLazySection>
+                </TabsContent>
+              </>
+            )}
 
-            <DashboardLazySection minHeight={300} printHidden fallback={<ChartSkeleton />}>
-              <DashboardCharts monthlyData={ctx.monthlyData} expenseTypes={ctx.expenseTypes} />
-            </DashboardLazySection>
-
-            <DashboardLazySection minHeight={200}>
-              <YearComparisonCard
-                allFiscalYears={ctx.allFiscalYears as FiscalYear[]}
-                fiscalYearId={ctx.fiscalYearId}
-              />
-            </DashboardLazySection>
-          </>
-        )}
+            <TabsContent value="contracts">
+              <DashboardLazySection minHeight={200}>
+                <RecentContractsCard
+                  contracts={ctx.recentContracts}
+                  isLoading={ctx.secondaryIsLoading}
+                  isError={ctx.isRecentContractsError}
+                />
+              </DashboardLazySection>
+            </TabsContent>
+          </ResponsiveTabs>
+        </section>
 
         {ctx.showPerformanceCard && (
           <DashboardLazySection minHeight={200} printHidden>
             <PagePerformanceCard />
           </DashboardLazySection>
         )}
-
-        <DashboardLazySection minHeight={200}>
-          <RecentContractsCard
-            contracts={ctx.recentContracts}
-            isLoading={ctx.secondaryIsLoading}
-            isError={ctx.isRecentContractsError}
-          />
-        </DashboardLazySection>
-
       </div>
     </DashboardLayout>
   );

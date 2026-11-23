@@ -36,6 +36,10 @@ export const adminDashboardFixture: AdminDashboardPageCtx = {
   orphanedContractsCount: 0,
   expenseRatio: 0.25,
   stats: [],
+  executiveCards: [],
+  portfolio: { properties: 0, activeContracts: 0, beneficiaries: 0, occupancy: null },
+  isClosedYear: false,
+  expenseKpi: null,
   kpis: [],
   performanceKpis: [],
   collectionSummary: {
@@ -59,6 +63,7 @@ export const adminDashboardFixture: AdminDashboardPageCtx = {
   accountantMetrics: {} as never,
   accountantAggregated: null,
 
+  detailTabs: [],
   showPerformanceCard: true,
 };
 

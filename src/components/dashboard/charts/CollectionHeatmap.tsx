@@ -92,7 +92,16 @@ const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: 
   // تحديد الشهر الحالي
   const currentMonth = new Date().getMonth();
 
-  if (totalCollected === 0) return null;
+  // حالة فارغة واضحة بدل اختفاء القسم (يظهر داخل تبويب «التحصيل الشهري»)
+  if (totalCollected === 0) {
+    return (
+      <Card className="shadow-sm">
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+          لا توجد مبالغ محصّلة بتاريخ سداد داخل هذه السنة المالية
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-sm">

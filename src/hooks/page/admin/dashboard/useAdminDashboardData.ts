@@ -7,6 +7,7 @@ import { useAdminDashboardStats } from './useAdminDashboardStats';
 import { ROLE_LABELS } from '@/constants/roles';
 import { isUsingFallbackSharePct, resolveActiveContractsCount } from '@/utils/dashboard/dashboardIndicators';
 import { computeExpenseRatio } from '@/utils/financial/computations/ratios';
+import { buildExecutiveCards } from '@/utils/dashboard/executiveSummary';
 import type { useDashboardSummary } from '@/hooks/data/financial/dashboard/useDashboardSummary';
 
 type DashboardSummary = Omit<ReturnType<typeof useDashboardSummary>, 'isLoading'>;
@@ -70,10 +71,29 @@ export const useAdminDashboardData = ({
   const monthlyData = agg?.monthly_data ?? [];
   const expenseTypes = agg?.expense_types ?? [];
 
+  const activeContractsCount = resolveActiveContractsCount(yearContracts, isSpecificYear, counts?.active_contracts ?? 0);
+  const isClosed = agg?.is_closed ?? (fiscalYear?.status === 'closed');
+
+  // ── المربع المالي القيادي: أرقام الخادم كما هي بلا أي جمع أو طرح ──
+  const executiveCards = useMemo(() => buildExecutiveCards({
+    totals,
+    isClosed,
+    isAdmin: role === 'admin',
+    yoy: summary.yoy,
+  }), [totals, isClosed, role, summary.yoy]);
+
+  // ── المحفظة: أعداد جاهزة من الخادم؛ الإشغال يمثل الوضع الحالي فلا يظهر للسنوات المقفلة ──
+  const portfolio = useMemo(() => ({
+    properties: counts?.properties ?? 0,
+    activeContracts: activeContractsCount,
+    beneficiaries: counts?.beneficiaries ?? 0,
+    occupancy: isYearActive ? (agg?.occupancy ?? null) : null,
+  }), [counts?.properties, counts?.beneficiaries, activeContractsCount, isYearActive, agg?.occupancy]);
+
   // ── إحصائيات البطاقات ──
   const { stats, kpis, collectionSummary, collectionColor } = useAdminDashboardStats({
     propertiesCount: counts?.properties ?? 0,
-    activeContractsCount: resolveActiveContractsCount(yearContracts, isSpecificYear, counts?.active_contracts ?? 0),
+    activeContractsCount,
     contractualRevenue,
     totalIncome,
     totalExpenses,
@@ -124,6 +144,9 @@ export const useAdminDashboardData = ({
     allFiscalYears: (agg?.fiscal_years ?? []) as DashboardFiscalYear[],
     fiscalYear,
     isYearActive,
+    isClosed,
+    executiveCards,
+    portfolio,
     isError: summary.isError,
   };
 };

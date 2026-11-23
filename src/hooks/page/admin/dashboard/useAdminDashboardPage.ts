@@ -21,6 +21,19 @@ import type { HeatmapInvoice } from '@/hooks/data/financial/dashboard/useDashboa
 
 const EMPTY_HEATMAP: HeatmapInvoice[] = [];
 
+export type DashboardDetailTab = 'heatmap' | 'pending' | 'charts' | 'comparison' | 'contracts';
+const ADMIN_DETAIL_TABS: ReadonlyArray<{ value: DashboardDetailTab; label: string }> = [
+  { value: 'heatmap', label: 'التحصيل الشهري' },
+  { value: 'pending', label: 'الإجراءات المعلقة' },
+  { value: 'charts', label: 'الدخل والمصروفات' },
+  { value: 'comparison', label: 'مقارنة السنوات' },
+  { value: 'contracts', label: 'أحدث العقود' },
+];
+const ACCOUNTANT_DETAIL_TABS: ReadonlyArray<{ value: DashboardDetailTab; label: string }> = [
+  { value: 'heatmap', label: 'التحصيل الشهري' },
+  { value: 'contracts', label: 'أحدث العقود' },
+];
+
 export const useAdminDashboardPage = () => {
   const { role, user } = useAuth();
   const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
@@ -116,6 +129,10 @@ export const useAdminDashboardPage = () => {
     orphanedContractsCount: adminData.orphanedContractsCount,
     expenseRatio: adminData.expenseRatio,
     stats: adminData.stats,
+    executiveCards: adminData.executiveCards,
+    portfolio: adminData.portfolio,
+    isClosedYear: adminData.isClosed,
+    expenseKpi: adminData.kpis.find((k) => k.id === 'expense') ?? null,
     kpis: adminData.kpis,
     // نسبة التحصيل تظهر في ملخص التحصيل — لا تتكرر في لوحة المؤشرات
     performanceKpis: adminData.kpis.filter((k) => k.id !== 'collection'),
@@ -132,6 +149,9 @@ export const useAdminDashboardPage = () => {
     accountantMetrics,
     accountantAggregated: isAccountant ? summary.aggregated : null,
 
+
+    // تبويبات «تفاصيل التشغيل» — الرسوم والمقارنة والإجراءات المعلقة حصرية للناظر
+    detailTabs: role === 'admin' ? ADMIN_DETAIL_TABS : ACCOUNTANT_DETAIL_TABS,
 
     // D-07: علم عرض البطاقة منقول من JSX إلى hook
     showPerformanceCard: role === 'admin',

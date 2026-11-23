@@ -60,3 +60,4 @@
 - Contract status shown to users comes from getEffectiveContractStatus (end_date past => expired) and never writes to the database; the nightly expiry job skips closed years. Why: closed years must stay exactly as issued.
 - Icons: navigation, bottom nav and dashboard cards take icons from `src/constants/domainIcons.ts` (one icon per meaning); guarded by `src/test/domainIconsGuard.test.ts`. Why: same meaning must look the same everywhere.
 - Fiscal-year labels inside Arabic sentences go through `ltr()` from `@/utils/format/bidi` (standalone badges/selects need nothing). Why: RTL bidi renders hyphenated years reversed.
+- Admin dashboard money figures go through `buildExecutiveCards` (`src/utils/dashboard/executiveSummary.ts`), which only passes server totals through: no client sums, expenses and VAT always separate rows, waqf revenue shown only for closed years. Why: the dashboard must show exactly what was issued; guarded by its test.
