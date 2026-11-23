@@ -4,7 +4,7 @@
  * للهاتف، بينما `allAdminLinks`/`allBeneficiaryLinks` في navigation.ts قوائم
  * كاملة للقائمة الجانبية. مصدر الحقيقة للمسارات يبقى `navigation.ts`.
  */
-import { Home, Building2, FileText, Wallet, ClipboardList, Receipt, TrendingUp, TrendingDown, MessageSquare } from 'lucide-react';
+import { DOMAIN_ICONS as I } from '@/constants/domainIcons';
 import type { LucideIcon } from 'lucide-react';
 
 export interface BottomNavLink {
@@ -15,27 +15,27 @@ export interface BottomNavLink {
 
 export const BOTTOM_NAV_LINKS: Record<string, BottomNavLink[]> = {
   admin: [
-    { to: '/dashboard', icon: Home, label: 'الرئيسية' },
-    { to: '/dashboard/properties', icon: Building2, label: 'العقارات' },
-    { to: '/dashboard/contracts', icon: FileText, label: 'العقود' },
-    { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات' },
+    { to: '/dashboard', icon: I.home, label: 'الرئيسية' },
+    { to: '/dashboard/properties', icon: I.property, label: 'العقارات' },
+    { to: '/dashboard/contracts', icon: I.contract, label: 'العقود' },
+    { to: '/dashboard/accounts', icon: I.accounts, label: 'الحسابات' },
   ],
   accountant: [
-    { to: '/dashboard', icon: Home, label: 'الرئيسية' },
-    { to: '/dashboard/income', icon: TrendingUp, label: 'الدخل' },
-    { to: '/dashboard/expenses', icon: TrendingDown, label: 'المصروفات' },
-    { to: '/dashboard/invoices', icon: Receipt, label: 'الفواتير' },
+    { to: '/dashboard', icon: I.home, label: 'الرئيسية' },
+    { to: '/dashboard/income', icon: I.income, label: 'الدخل' },
+    { to: '/dashboard/expenses', icon: I.expense, label: 'المصروفات' },
+    { to: '/dashboard/invoices', icon: I.invoice, label: 'الفواتير' },
   ],
   beneficiary: [
-    { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
-    { to: '/beneficiary/my-share', icon: Wallet, label: 'حصتي' },
-    { to: '/beneficiary/disclosure', icon: ClipboardList, label: 'الإفصاح' },
-    { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
+    { to: '/beneficiary', icon: I.home, label: 'الرئيسية' },
+    { to: '/beneficiary/my-share', icon: I.share, label: 'حصتي' },
+    { to: '/beneficiary/disclosure', icon: I.disclosure, label: 'الإفصاح' },
+    { to: '/beneficiary/messages', icon: I.messages, label: 'المراسلات' },
   ],
   waqif: [
-    { to: '/waqif', icon: Home, label: 'الرئيسية' },
-    { to: '/beneficiary/properties', icon: Building2, label: 'العقارات' },
-    { to: '/beneficiary/contracts', icon: FileText, label: 'العقود' },
-    { to: '/beneficiary/accounts', icon: Wallet, label: 'الحسابات' },
+    { to: '/waqif', icon: I.home, label: 'الرئيسية' },
+    { to: '/beneficiary/properties', icon: I.property, label: 'العقارات' },
+    { to: '/beneficiary/contracts', icon: I.contract, label: 'العقود' },
+    { to: '/beneficiary/accounts', icon: I.accounts, label: 'الحسابات' },
   ],
 };

@@ -6,7 +6,8 @@ import { fmtInt } from '@/utils/format/format';
 import { safeNumber } from '@/utils/format/safeNumber';
 import { calcChangePercent } from '@/utils/financial/computations/calcChangePercent';
 import { computeExpenseRatio, EXPENSE_RATIO_FULL_DEFICIT } from '@/utils/financial/computations/ratios';
-import { Building2, FileText, TrendingDown, Users, DollarSign, Landmark, ArrowDownUp } from 'lucide-react';
+import { Landmark, ArrowDownUp } from 'lucide-react';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import type { StatItem, KpiItem } from '@/types/dashboard';
 import type { AggregatedCollection, AggregatedOccupancy } from '@/hooks/data/financial/dashboard/useDashboardSummary';
 
@@ -112,12 +113,12 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
     //  • حصة الناظر / حصة الواقف → /dashboard/accounts (AccountsSummaryCards + Distribution)
     //  • نسبة التوزيع الفعلي → /dashboard/distributions (بطاقة جديدة)
     const allStats: StatItem[] = [
-      { title: 'إجمالي العقارات', value: propertiesCount, rawValue: propertiesCount, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
-      { title: 'العقود النشطة', value: activeContractsCount, rawValue: activeContractsCount, icon: FileText, color: 'bg-secondary', link: '/dashboard/contracts' },
-      { title: 'إجمالي الدخل الفعلي', value: `${fmtInt(totalIncome)} ر.س`, rawValue: totalIncome, numericSuffix: ' ر.س', icon: DollarSign, color: 'bg-primary', link: '/dashboard/income', yoyChange: incomeChange, invertColor: false, trend: trends.income, trendColor: 'primary' },
-      { title: 'إجمالي المصروفات', value: `${fmtInt(totalExpenses)} ر.س`, rawValue: totalExpenses, numericSuffix: ' ر.س', icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true, trend: trends.expenses, trendColor: 'destructive' },
+      { title: 'إجمالي العقارات', value: propertiesCount, rawValue: propertiesCount, icon: DOMAIN_ICONS.property, color: 'bg-primary', link: '/dashboard/properties' },
+      { title: 'العقود النشطة', value: activeContractsCount, rawValue: activeContractsCount, icon: DOMAIN_ICONS.contract, color: 'bg-secondary', link: '/dashboard/contracts' },
+      { title: 'إجمالي الدخل الفعلي', value: `${fmtInt(totalIncome)} ر.س`, rawValue: totalIncome, numericSuffix: ' ر.س', icon: DOMAIN_ICONS.income, color: 'bg-primary', link: '/dashboard/income', yoyChange: incomeChange, invertColor: false, trend: trends.income, trendColor: 'primary' },
+      { title: 'إجمالي المصروفات', value: `${fmtInt(totalExpenses)} ر.س`, rawValue: totalExpenses, numericSuffix: ' ر.س', icon: DOMAIN_ICONS.expense, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true, trend: trends.expenses, trendColor: 'destructive' },
       { title: `صافي بعد المصروفات${sharesNote}`, value: `${fmtInt(netAfterExpenses)} ر.س`, rawValue: netAfterExpenses, numericSuffix: ' ر.س', icon: Landmark, color: 'bg-success', link: '/dashboard/accounts', yoyChange: netChange, invertColor: false, trend: trends.net, trendColor: 'success' },
-      { title: 'المستفيدون النشطون', value: beneficiariesCount, rawValue: beneficiariesCount, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
+      { title: 'المستفيدون النشطون', value: beneficiariesCount, rawValue: beneficiariesCount, icon: DOMAIN_ICONS.beneficiaries, color: 'bg-muted', link: '/dashboard/beneficiaries' },
       { title: `التدفق النقدي الصافي${sharesNote}`, value: isYearActive ? 'يُحسب عند الإقفال' : `${fmtInt(netCashFlow)} ر.س`, rawValue: isYearActive ? undefined : netCashFlow, numericSuffix: ' ر.س', icon: ArrowDownUp, color: netCashFlow >= 0 ? 'bg-success' : 'bg-destructive', link: '/dashboard/accounts', visibility: 'admin-only', trend: trends.net, trendColor: netCashFlow >= 0 ? 'success' : 'destructive' },
     ];
 

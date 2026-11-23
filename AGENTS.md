@@ -58,3 +58,4 @@
 - Invoice lifecycle: closure disclosures read immutable fiscal_closure_summaries via fiscalClosureService; invoice ageing uses invoiceAge in Riyadh days and shared InvoiceAgeLabel. Why: history must not change with later collections, and phone/desktop calculations must match.
 - Payment RPCs serialize with close using one advisory lock; partial payments stay blocked until installment-level receipts exist. Why: the existing receipt trigger issues one cumulative receipt per fully paid invoice.
 - Contract status shown to users comes from getEffectiveContractStatus (end_date past => expired) and never writes to the database; the nightly expiry job skips closed years. Why: closed years must stay exactly as issued.
+- Icons: navigation, bottom nav and dashboard cards take icons from `src/constants/domainIcons.ts` (one icon per meaning); guarded by `src/test/domainIconsGuard.test.ts`. Why: same meaning must look the same everywhere.

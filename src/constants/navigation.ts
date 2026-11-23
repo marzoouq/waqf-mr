@@ -5,17 +5,13 @@
  * #26 من تقرير الفحص: مسار `/waqif` مُستخدم فعلياً في BottomNav, Sidebar,
  * useRoleRedirect, Index, Unauthorized. الادعاء بأنه "يتيم" غير دقيق — إبقاؤه إلزامي.
  *
- * #22/#23/#69 من الفحص العميق: تم نقل الأيقونات إلى `navigationIcons.ts`،
+ * #22/#23/#69 من الفحص العميق: الأيقونات من قاموس `domainIcons.ts` الموحّد،
  * وإعادة بناء جميع maps المسارات (titles/labels/perms/sections) من
  * `routeRegistry.ts` الموحّد. الـ exports القديمة محفوظة بالكامل للتوافق العكسي.
  */
-import {
-  Building2, Home, FileText, Wallet, Users, BarChart3,
-  Receipt, ReceiptText, UserCog, Eye, Settings, MessageSquare,
-  Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
-  ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows, Activity, Mail,
-  TrendingDown, TrendingUp, Trophy, FileSignature, Share2, FolderArchive,
-} from '@/constants/navigationIcons';
+import { Wrench, Bug } from 'lucide-react';
+import { DOMAIN_ICONS as I } from '@/constants/domainIcons';
+import type { LucideIcon } from 'lucide-react';
 import { ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, makeDefaults } from '@/constants/sections';
 import {
   ADMIN_ROUTES,
@@ -40,32 +36,32 @@ export const linkLabelKeys = {
 // الترتيب يتبع ترتيب الإدخال في `ADMIN_ROUTES`.
 
 /** أيقونات الروابط — مفصولة عن السجل لتجنّب سحب Lucide إلى مستهلكي الميتاداتا فقط */
-const ADMIN_ROUTE_ICONS: Record<string, typeof Home> = {
-  '/dashboard': Home,
-  '/dashboard/properties': Building2,
-  '/dashboard/contracts': FileText,
-  '/dashboard/income': TrendingUp,
-  '/dashboard/expenses': TrendingDown,
-  '/dashboard/beneficiaries': Users,
-  '/dashboard/reports': BarChart3,
-  '/dashboard/accounts': Wallet,
-  '/dashboard/distributions': Share2,
-  '/dashboard/users': UserCog,
-  '/dashboard/settings': Settings,
-  '/dashboard/messages': MessageSquare,
-  '/dashboard/invoices': ReceiptText,
-  '/dashboard/audit-log': ShieldCheck,
-  '/dashboard/bylaws': BookOpen,
-  '/dashboard/archive': FolderArchive,
-  '/dashboard/zatca': Lock,
-  '/dashboard/annual-report': Trophy,
-  '/dashboard/support': Headset,
-  '/dashboard/chart-of-accounts': GitBranch,
-  '/dashboard/comparison': GitCompareArrows,
-  '/dashboard/diagnostics': Activity,
-  '/dashboard/email-monitor': Mail,
-  '/dashboard/audit-tree': GitBranch,
-  '/dashboard/official-letters': FileSignature,
+const ADMIN_ROUTE_ICONS: Record<string, LucideIcon> = {
+  '/dashboard': I.home,
+  '/dashboard/properties': I.property,
+  '/dashboard/contracts': I.contract,
+  '/dashboard/income': I.income,
+  '/dashboard/expenses': I.expense,
+  '/dashboard/beneficiaries': I.beneficiaries,
+  '/dashboard/reports': I.reports,
+  '/dashboard/accounts': I.accounts,
+  '/dashboard/distributions': I.distribution,
+  '/dashboard/users': I.users,
+  '/dashboard/settings': I.settings,
+  '/dashboard/messages': I.messages,
+  '/dashboard/invoices': I.invoice,
+  '/dashboard/audit-log': I.audit,
+  '/dashboard/bylaws': I.bylaws,
+  '/dashboard/archive': I.archive,
+  '/dashboard/zatca': I.zatca,
+  '/dashboard/annual-report': I.annualReport,
+  '/dashboard/support': I.support,
+  '/dashboard/chart-of-accounts': I.chartOfAccounts,
+  '/dashboard/comparison': I.comparison,
+  '/dashboard/diagnostics': I.diagnostics,
+  '/dashboard/email-monitor': I.email,
+  '/dashboard/audit-tree': I.auditTree,
+  '/dashboard/official-letters': I.officialLetter,
 };
 
 /** مسارات مسجَّلة في ADMIN_ROUTES لكنها مُخفاة من القائمة الجانبية عمدًا.
@@ -84,36 +80,36 @@ export const allAdminLinks = [
       return { to, icon, label: meta.title };
     }),
   // رابط معاينة بوابة المستفيد — مسجَّل في BENEFICIARY_ROUTES لكنه يظهر للناظر كمعاينة
-  { to: '/beneficiary', icon: Eye, label: 'معاينة بوابة المستفيد' },
+  { to: '/beneficiary', icon: I.preview, label: 'معاينة بوابة المستفيد' },
 ];
 
 export const allBeneficiaryLinks = [
-  { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
-  { to: '/beneficiary/properties', icon: Building2, label: 'العقارات' },
-  { to: '/beneficiary/contracts', icon: FileText, label: 'العقود' },
-  { to: '/beneficiary/disclosure', icon: ClipboardList, label: 'الإفصاح السنوي' },
-  { to: '/beneficiary/my-share', icon: Wallet, label: 'حصتي من الريع' },
-  { to: '/beneficiary/carryforward', icon: ArrowDownUp, label: 'الترحيلات والخصومات' },
-  { to: '/beneficiary/financial-reports', icon: BarChart3, label: 'التقارير المالية' },
-  { to: '/beneficiary/accounts', icon: Calculator, label: 'الحسابات الختامية' },
-  { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
-  { to: '/beneficiary/notifications', icon: Bell, label: 'سجل الإشعارات' },
-  { to: '/beneficiary/invoices', icon: Receipt, label: 'الفواتير' },
-  { to: '/beneficiary/expenses', icon: TrendingDown, label: 'المصروفات' },
-  { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
-  { to: '/beneficiary/archive', icon: FolderArchive, label: 'أرشيف الوثائق' },
-  { to: '/beneficiary/support', icon: Headset, label: 'الدعم الفني' },
-  { to: '/beneficiary/annual-report', icon: Trophy, label: 'التقرير السنوي للوقف' },
-  { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
+  { to: '/beneficiary', icon: I.home, label: 'الرئيسية' },
+  { to: '/beneficiary/properties', icon: I.property, label: 'العقارات' },
+  { to: '/beneficiary/contracts', icon: I.contract, label: 'العقود' },
+  { to: '/beneficiary/disclosure', icon: I.disclosure, label: 'الإفصاح السنوي' },
+  { to: '/beneficiary/my-share', icon: I.share, label: 'حصتي من الريع' },
+  { to: '/beneficiary/carryforward', icon: I.carryforward, label: 'الترحيلات والخصومات' },
+  { to: '/beneficiary/financial-reports', icon: I.reports, label: 'التقارير المالية' },
+  { to: '/beneficiary/accounts', icon: I.accounts, label: 'الحسابات الختامية' },
+  { to: '/beneficiary/messages', icon: I.messages, label: 'المراسلات' },
+  { to: '/beneficiary/notifications', icon: I.notifications, label: 'سجل الإشعارات' },
+  { to: '/beneficiary/invoices', icon: I.invoice, label: 'الفواتير' },
+  { to: '/beneficiary/expenses', icon: I.expense, label: 'المصروفات' },
+  { to: '/beneficiary/bylaws', icon: I.bylaws, label: 'اللائحة التنظيمية' },
+  { to: '/beneficiary/archive', icon: I.archive, label: 'أرشيف الوثائق' },
+  { to: '/beneficiary/support', icon: I.support, label: 'الدعم الفني' },
+  { to: '/beneficiary/annual-report', icon: I.annualReport, label: 'التقرير السنوي للوقف' },
+  { to: '/beneficiary/settings', icon: I.settings, label: 'الإعدادات' },
 ];
 
 /** قائمة فريق الدعم الفني — مسارات /support فقط (لا روابط مستفيد مرفوضة) */
 export const supportLinks = [
-  { to: '/support', icon: Home, label: 'لوحة الدعم الفني' },
-  { to: '/support/tickets', icon: Headset, label: 'تذاكر الدعم' },
-  { to: '/support/diagnostics', icon: Activity, label: 'مركز التشخيص' },
-  { to: '/support/maintenance', icon: Lock, label: 'وضع الصيانة' },
-  { to: '/support/errors', icon: ShieldCheck, label: 'الأخطاء الحيّة' },
+  { to: '/support', icon: I.home, label: 'لوحة الدعم الفني' },
+  { to: '/support/tickets', icon: I.support, label: 'تذاكر الدعم' },
+  { to: '/support/diagnostics', icon: I.diagnostics, label: 'مركز التشخيص' },
+  { to: '/support/maintenance', icon: Wrench, label: 'وضع الصيانة' },
+  { to: '/support/errors', icon: Bug, label: 'الأخطاء الحيّة' },
 ];
 
 /** روابط محجوبة عن الواقف بحراسة المسار (BENEFICIARY_ROLES) — تُخفى من قائمته */
