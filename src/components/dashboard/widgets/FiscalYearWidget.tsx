@@ -37,7 +37,7 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Lock className="w-5 h-5 text-muted-foreground" />
-            السنة المالية: {fiscalYear.label}
+            السنة المالية: <bdi dir="ltr" className="tabular-nums">{fiscalYear.label}</bdi>
             <Badge variant="outline" className="text-xs">{statusLabel}</Badge>
           </CardTitle>
         </CardHeader>
@@ -73,7 +73,7 @@ const ActiveFiscalYearWidget: React.FC<{ fiscalYear: FiscalYearInfo; totalIncome
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Calendar className="w-5 h-5" />
-          السنة المالية: {fiscalYear.label}
+          السنة المالية: <bdi dir="ltr" className="tabular-nums">{fiscalYear.label}</bdi>
         </CardTitle>
       </CardHeader>
       <CardContent>

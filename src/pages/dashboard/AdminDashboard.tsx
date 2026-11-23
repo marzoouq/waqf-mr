@@ -35,7 +35,7 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="p-3 sm:p-6 space-y-6 sm:space-y-8">
         {ctx.role === 'admin' && (
           <DashboardLazySection minHeight={0}>
             <CriticalAlertsBanner />
@@ -73,6 +73,7 @@ const AdminDashboard = () => {
           }
         />
 
+        {/* 1) ما يحتاج إجراء — أعلى الصفحة */}
         <DashboardAlerts
           usingFallbackPct={ctx.usingFallbackPct}
           expiringContractsCount={ctx.expiringContractsCount}
@@ -84,16 +85,29 @@ const AdminDashboard = () => {
           canConfigureRatios={ctx.role === 'admin'}
         />
 
+        {/* 2) ملخص السنة */}
         <DashboardStatsGrid stats={ctx.stats} isLoading={ctx.isLoading} />
-        <DashboardKpiPanel kpis={ctx.kpis} isLoading={ctx.isLoading} />
 
-        <FiscalYearWidget
-          fiscalYear={ctx.fiscalYear}
-          totalIncome={ctx.totalIncome}
-          contractualRevenue={ctx.contractualRevenue}
-        />
+        {/* 3) التحصيل — نسبة التحصيل تظهر هنا مرة واحدة فقط */}
+        <ErrorBoundary>
+          <CollectionSummaryCard
+            collectionSummary={ctx.collectionSummary}
+            collectionColor={ctx.collectionColor}
+          />
+        </ErrorBoundary>
 
+        {/* 4) إجراءات سريعة */}
         <QuickActionsCard role={ctx.role} />
+
+        {/* 5) المؤشرات والسنة المالية جنباً إلى جنب على الكمبيوتر */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <DashboardKpiPanel kpis={ctx.performanceKpis} isLoading={ctx.isLoading} />
+          <FiscalYearWidget
+            fiscalYear={ctx.fiscalYear}
+            totalIncome={ctx.totalIncome}
+            contractualRevenue={ctx.contractualRevenue}
+          />
+        </div>
 
         {ctx.isAccountant && (
           <DashboardLazySection minHeight={200}>
@@ -104,13 +118,6 @@ const AdminDashboard = () => {
             />
           </DashboardLazySection>
         )}
-
-        <ErrorBoundary>
-          <CollectionSummaryCard
-            collectionSummary={ctx.collectionSummary}
-            collectionColor={ctx.collectionColor}
-          />
-        </ErrorBoundary>
 
         <DashboardLazySection minHeight={160} printHidden>
           <CollectionHeatmap

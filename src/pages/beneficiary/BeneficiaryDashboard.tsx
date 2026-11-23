@@ -18,7 +18,7 @@ import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 const BeneficiaryDashboard = () => {
   const {
     isLoading, dashError, dashLoading, noPublishedYears, fyReady, isVisible,
-    currentBeneficiary, myShare, distributions, role, fiscalYearId, myShareTrend,
+    currentBeneficiary, myShare, distributions, role, fiscalYearId, deliveryStages,
     fiscalYear, isClosed, fyProgress,
     displayName, roleLabel, recentNotifications, unreadCount, greetingData,
     advanceEnabled, pendingAdvanceCount, advanceContext,
@@ -67,11 +67,12 @@ const BeneficiaryDashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-3 sm:p-6 space-y-6 sm:space-y-8">
+      <div className="p-3 sm:p-6 space-y-6 max-w-5xl mx-auto">
         {isVisible('welcome_card') && (
           <BeneficiaryWelcomeCard displayName={displayName} roleLabel={roleLabel} greetingData={greetingData} />
         )}
 
+        {/* بطاقة «حصتي» — الرقم الأهم أولاً */}
         {isVisible('stats_row') && (
           <BeneficiaryStatsRow
             myShare={myShare}
@@ -79,7 +80,8 @@ const BeneficiaryDashboard = () => {
             distributions={distributions}
             fiscalYearLabel={fiscalYear?.label || ''}
             fyProgress={fyProgress}
-            myShareTrend={myShareTrend}
+            deliveryStages={deliveryStages}
+            showShareLinks={role !== 'waqif'}
           />
         )}
 
@@ -87,9 +89,6 @@ const BeneficiaryDashboard = () => {
         {isVisible('fiscal_year_notice') && fiscalYear && !isClosed && (
           <FiscalYearStateNotice state={fyProgress.notStarted ? 'notStarted' : 'active'} />
         )}
-
-        {/* U3: مرجعية الصفحة */}
-        <p className="text-xs text-muted-foreground px-1">{PAGE_RESPONSIBILITY_COPY.dashboard}</p>
 
         {/* بطاقة طلب السُلفة — CR-07: تنقل إلى MyShare */}
         {isVisible('advance_card') && advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
@@ -103,7 +102,7 @@ const BeneficiaryDashboard = () => {
         )}
 
         <DeferredRender delay={500}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {isVisible('recent_distributions') && (
               <BeneficiaryRecentDistributions distributions={distributions} />
             )}
@@ -112,6 +111,9 @@ const BeneficiaryDashboard = () => {
             )}
           </div>
         </DeferredRender>
+
+        {/* U3: مرجعية الصفحة */}
+        <p className="text-xs text-muted-foreground px-1 text-center">{PAGE_RESPONSIBILITY_COPY.dashboard}</p>
       </div>
     </DashboardLayout>
   );

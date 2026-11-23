@@ -35,6 +35,8 @@ export interface StatItem {
 }
 
 export interface KpiItem {
+  /** معرّف ثابت للمؤشر (لا يعتمد على النص) */
+  id?: 'collection' | 'expense';
   label: string;
   value: number;
   suffix: string;

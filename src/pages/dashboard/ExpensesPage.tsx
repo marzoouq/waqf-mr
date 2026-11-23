@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner, ConfirmDeleteDialog, ViewModeToggle, useViewMode } from '@/components/common';
 import { TrendingDown, Search } from 'lucide-react';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
 import VoucherFormDialog from '@/components/expenses/vouchers/VoucherFormDialog';
 import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
@@ -22,7 +23,7 @@ const ExpensesPage = () => {
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
           title="المصروفات"
-          icon={TrendingDown}
+          icon={DOMAIN_ICONS.expense}
           description="سجل محاسبي داخلي — يمكن إرفاق فاتورة شراء أو أكثر مع كل مصروف، وتظهر تلقائياً في إفصاح المستفيد"
           actions={<>
             <ExportMenu onExportPdf={h.handleExportPdf} onExportCsv={h.handleExportCsv} />

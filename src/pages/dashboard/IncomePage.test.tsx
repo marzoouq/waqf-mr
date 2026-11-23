@@ -67,7 +67,7 @@ const renderPage = () => {
 describe('IncomePage', () => {
   it('renders page title', () => {
     renderPage();
-    expect(screen.getByText('إدارة الدخل')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'الدخل' })).toBeInTheDocument();
   });
 
   it('shows total income', () => {

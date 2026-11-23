@@ -4,8 +4,8 @@
  * في لوحات التحكم (مع iconClass وألوان)، وليست روابط تنقل قياسية.
  * مصدر الحقيقة للمسارات/التسميات يبقى `navigation.ts`.
  */
-import { FileText, TrendingUp, TrendingDown, Users, Printer, Gauge, ArrowUpDown, Landmark, GitBranch, Receipt, BarChart3 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { DOMAIN_ICONS as I } from '@/constants/domainIcons';
 
 export interface QuickActionItem {
   to: string;
@@ -14,25 +14,26 @@ export interface QuickActionItem {
   label: string;
 }
 
+// الأيقونات من القاموس الموحّد — نفس المعنى بنفس الأيقونة في القائمة والشريط واللوحة
 export const QUICK_ACTIONS: Record<string, QuickActionItem[]> = {
   accountant: [
-    { to: '/dashboard/income', icon: TrendingUp, iconClass: 'text-success', label: 'تسجيل دخل' },
-    { to: '/dashboard/expenses', icon: TrendingDown, iconClass: 'text-destructive', label: 'تسجيل مصروف' },
-    { to: '/dashboard/accounts', icon: FileText, iconClass: 'text-primary', label: 'الحسابات الختامية' },
-    { to: '/dashboard/invoices', icon: FileText, iconClass: 'text-secondary', label: 'إدارة الفواتير' },
-    { to: '/dashboard/chart-of-accounts', icon: GitBranch, iconClass: 'text-accent-foreground', label: 'الشجرة المحاسبية' },
+    { to: '/dashboard/income', icon: I.income, iconClass: 'text-success', label: 'تسجيل دخل' },
+    { to: '/dashboard/expenses', icon: I.expense, iconClass: 'text-destructive', label: 'تسجيل مصروف' },
+    { to: '/dashboard/accounts', icon: I.accounts, iconClass: 'text-primary', label: 'الحسابات الختامية' },
+    { to: '/dashboard/invoices', icon: I.invoice, iconClass: 'text-primary', label: 'إدارة الفواتير' },
+    { to: '/dashboard/chart-of-accounts', icon: I.chartOfAccounts, iconClass: 'text-primary', label: 'الشجرة المحاسبية' },
     // إزالة `/dashboard/comparison` — admin-only، كان يسرّب رابطاً محجوباً للمحاسب
-    { to: '/dashboard/annual-report', icon: Printer, iconClass: 'text-primary', label: 'التقرير السنوي' },
-    { to: '/dashboard/reports', icon: Gauge, iconClass: 'text-secondary', label: 'التقارير المالية' },
+    { to: '/dashboard/annual-report', icon: I.annualReport, iconClass: 'text-secondary', label: 'التقرير السنوي' },
+    { to: '/dashboard/reports', icon: I.reports, iconClass: 'text-primary', label: 'التقارير المالية' },
   ],
   admin: [
-    { to: '/dashboard/contracts', icon: FileText, iconClass: 'text-primary', label: 'مراجعة العقود' },
-    { to: '/dashboard/beneficiaries', icon: Users, iconClass: 'text-success', label: 'إدارة المستفيدين' },
-    { to: '/dashboard/accounts', icon: Landmark, iconClass: 'text-secondary', label: 'الحسابات الختامية' },
-    { to: '/dashboard/zatca', icon: Receipt, iconClass: 'text-warning', label: 'ZATCA' },
-    { to: '/dashboard/comparison', icon: ArrowUpDown, iconClass: 'text-accent-foreground', label: 'المقارنة التاريخية' },
-    { to: '/dashboard/annual-report', icon: Printer, iconClass: 'text-primary', label: 'التقرير السنوي' },
-    { to: '/dashboard/reports', icon: BarChart3, iconClass: 'text-muted-foreground', label: 'التقارير' },
-    { to: '/dashboard/settings', icon: Gauge, iconClass: 'text-foreground', label: 'الإعدادات' },
+    { to: '/dashboard/contracts', icon: I.contract, iconClass: 'text-primary', label: 'العقود' },
+    { to: '/dashboard/beneficiaries', icon: I.beneficiaries, iconClass: 'text-primary', label: 'المستفيدون' },
+    { to: '/dashboard/accounts', icon: I.accounts, iconClass: 'text-primary', label: 'الحسابات' },
+    { to: '/dashboard/zatca', icon: I.zatca, iconClass: 'text-primary', label: 'ZATCA' },
+    { to: '/dashboard/comparison', icon: I.comparison, iconClass: 'text-primary', label: 'المقارنة' },
+    { to: '/dashboard/annual-report', icon: I.annualReport, iconClass: 'text-secondary', label: 'التقرير السنوي' },
+    { to: '/dashboard/reports', icon: I.reports, iconClass: 'text-primary', label: 'التقارير' },
+    { to: '/dashboard/settings', icon: I.settings, iconClass: 'text-muted-foreground', label: 'الإعدادات' },
   ],
 };

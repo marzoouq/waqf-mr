@@ -7,15 +7,15 @@ const page = (n: string) => read(`src/pages/dashboard/${n}.tsx`);
 
 describe('visual identity guard', () => {
   it.each([
-    ['/dashboard/income', 'TrendingUp', 'IncomePage', 'الدخل'],
-    ['/dashboard/expenses', 'TrendingDown', 'ExpensesPage', 'المصروفات'],
-    ['/dashboard/annual-report', 'Trophy', 'AnnualReportPage', 'إدارة التقرير السنوي'],
-    ['/dashboard/official-letters', 'FileSignature', 'OfficialLettersPage', 'الوثائق المعتمدة'],
-  ])('%s: menu icon and page header match', (route, icon, file, title) => {
-    expect(nav).toContain(`'${route}': ${icon},`);
+    ['/dashboard/income', 'income', 'IncomePage', 'الدخل'],
+    ['/dashboard/expenses', 'expense', 'ExpensesPage', 'المصروفات'],
+    ['/dashboard/annual-report', 'annualReport', 'AnnualReportPage', 'إدارة التقرير السنوي'],
+    ['/dashboard/official-letters', 'officialLetter', 'OfficialLettersPage', 'الوثائق المعتمدة'],
+  ])('%s: menu icon and page header use the same dictionary icon', (route, key, file, title) => {
+    expect(nav).toContain(`'${route}': I.${key},`);
     const src = page(file);
     expect(src).toContain(`title="${title}"`);
-    expect(src).toMatch(new RegExp(`icon=\\{${icon}\\}`));
+    expect(src).toContain(`icon={DOMAIN_ICONS.${key}}`);
   });
 
   it.each(['SystemDiagnosticsPage', 'EmailMonitorPage', 'AnnualReportPage'])('%s uses the shared header with actions', (f) => {

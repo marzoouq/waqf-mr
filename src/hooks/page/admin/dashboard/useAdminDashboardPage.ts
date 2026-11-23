@@ -117,6 +117,8 @@ export const useAdminDashboardPage = () => {
     expenseRatio: adminData.expenseRatio,
     stats: adminData.stats,
     kpis: adminData.kpis,
+    // نسبة التحصيل تظهر في ملخص التحصيل — لا تتكرر في لوحة المؤشرات
+    performanceKpis: adminData.kpis.filter((k) => k.id !== 'collection'),
     collectionSummary: adminData.collectionSummary,
     collectionColor: adminData.collectionColor,
     monthlyData: adminData.monthlyData,

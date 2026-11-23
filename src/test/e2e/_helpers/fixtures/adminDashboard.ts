@@ -37,6 +37,7 @@ export const adminDashboardFixture: AdminDashboardPageCtx = {
   expenseRatio: 0.25,
   stats: [],
   kpis: [],
+  performanceKpis: [],
   collectionSummary: {
     paid_count: 10,
     partial_count: 2,

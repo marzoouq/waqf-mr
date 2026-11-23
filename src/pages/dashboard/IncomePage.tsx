@@ -6,6 +6,7 @@ import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { TrendingUp, Search, AlertTriangle } from 'lucide-react';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import { IncomeSummaryCards, IncomeMobileCards, IncomeDesktopTable, IncomeFormDialog } from '@/components/income';
 import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner, ConfirmDeleteDialog, ViewModeToggle, useViewMode } from '@/components/common';
 import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
@@ -41,7 +42,7 @@ const IncomePage = () => {
        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
           title="الدخل"
-          icon={TrendingUp}
+          icon={DOMAIN_ICONS.income}
           description="تسجيل ومتابعة مصادر الدخل"
           actions={<>
             <ExportMenu onExportPdf={handleExportPdf} onExportCsv={handleExportCsv} />

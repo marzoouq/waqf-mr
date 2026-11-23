@@ -57,6 +57,8 @@ export interface BeneficiaryDashboardData {
     amount: number;
     date: string;
     status: string;
+    fiscal_year_id?: string | null;
+    fiscal_year_label?: string | null;
   }>;
   pending_advance_count: number;
   advance_settings: {

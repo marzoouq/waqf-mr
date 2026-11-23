@@ -1,7 +1,8 @@
 /**
  * OfficialLettersPage — إصدار وثيقة معتمدة من الناظر مع رقم مرجعي وQR للتحقق.
  */
-import { FileSignature, Download, Ban } from 'lucide-react';
+import { Download, Ban } from 'lucide-react';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ const OfficialLettersPage = () => {
         <PageHeaderCard
           title="الوثائق المعتمدة"
           description="إصدار وثيقة برقم مرجعي وختم الوقف ورمز QR يمكن التحقق منه علنًا"
-          icon={FileSignature}
+          icon={DOMAIN_ICONS.officialLetter}
         />
 
         <Card>
@@ -54,7 +55,7 @@ const OfficialLettersPage = () => {
               <Textarea id="ol-body" rows={8} value={h.form.body} onChange={e => set('body')(e.target.value)} />
             </div>
             <Button onClick={h.issue} disabled={!h.canIssue || h.issuing}>
-              <FileSignature className="w-4 h-4" /> {h.issuing ? 'جارٍ الإصدار…' : 'إصدار وتنزيل PDF'}
+              <DOMAIN_ICONS.officialLetter className="w-4 h-4" /> {h.issuing ? 'جارٍ الإصدار…' : 'إصدار وتنزيل PDF'}
             </Button>
           </CardContent>
         </Card>

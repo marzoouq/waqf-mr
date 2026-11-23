@@ -68,7 +68,7 @@ import ExpensesPage from './ExpensesPage';
 describe('ExpensesPage', () => {
   it('renders page title', () => {
     render(<ExpensesPage />);
-    expect(screen.getByText('المصروفات التشغيلية')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'المصروفات' })).toBeInTheDocument();
   });
 
   it('shows total expenses', () => {

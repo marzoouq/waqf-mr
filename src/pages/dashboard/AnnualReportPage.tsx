@@ -12,6 +12,7 @@ import {
   Trophy, AlertTriangle, Lightbulb, Building2, FileDown, Printer,
   Send, FileEdit, Loader2,
 } from 'lucide-react';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import ReportSectionList from '@/components/annual-report/ReportSectionList';
 import ReportItemFormDialog from '@/components/annual-report/ReportItemFormDialog';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';
@@ -36,7 +37,7 @@ const AnnualReportPage = () => {
         {/* ترويسة */}
           <PageHeaderCard
             title="إدارة التقرير السنوي"
-            icon={Trophy}
+            icon={DOMAIN_ICONS.annualReport}
             description={`تقرير إنجازات السنة المالية ${r.fiscalYear?.label || ''}`}
             actions={
           <div className="flex items-center gap-2 flex-wrap print:hidden">

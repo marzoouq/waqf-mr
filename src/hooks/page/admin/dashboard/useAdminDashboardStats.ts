@@ -146,8 +146,9 @@ export function useAdminDashboardStats(params: UseAdminDashboardStatsParams) {
     const hasInvoicesDue = collectionSummary.total > 0;
 
     return [
-      { label: 'نسبة التحصيل', value: hasInvoicesDue ? collectionRate : 0, suffix: hasInvoicesDue ? '%' : '', color: hasInvoicesDue ? colColor.text : 'text-muted-foreground', progressColor: hasInvoicesDue ? colColor.bar : '' },
+      { id: 'collection', label: 'نسبة التحصيل', value: hasInvoicesDue ? collectionRate : 0, suffix: hasInvoicesDue ? '%' : '', color: hasInvoicesDue ? colColor.text : 'text-muted-foreground', progressColor: hasInvoicesDue ? colColor.bar : '' },
       {
+        id: 'expense',
         label: isFullDeficit ? 'عجز: إنفاق بلا دخل' : isDeficit ? 'عجز مالي' : 'نسبة المصروفات',
         value: isFullDeficit ? 100 : expenseRatio,
         suffix: '%',

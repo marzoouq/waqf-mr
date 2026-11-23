@@ -1,10 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Bell } from 'lucide-react';
 import { fmtDate } from '@/utils/format/format';
 import { NOTIFICATIONS_COPY } from '@/constants/beneficiaryCopy';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
+import SectionHeading from '@/components/layout/SectionHeading';
+import { cn } from '@/lib/cn';
 
 interface Notification {
   id: string;
@@ -20,56 +18,38 @@ interface BeneficiaryNotificationsCardProps {
 }
 
 const BeneficiaryNotificationsCard = ({ notifications, unreadCount }: BeneficiaryNotificationsCardProps) => {
-  const navigate = useNavigate();
   // CR-03: تمييز الحالتين الفارغتين
-  const emptyText =
-    notifications.length === 0 ? NOTIFICATIONS_COPY.emptyAll : NOTIFICATIONS_COPY.emptyUnread;
+  const emptyText = notifications.length === 0 ? NOTIFICATIONS_COPY.emptyAll : NOTIFICATIONS_COPY.emptyUnread;
+  const Icon = DOMAIN_ICONS.notifications;
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-          <Bell className="w-5 h-5" />
-          {NOTIFICATIONS_COPY.cardTitle}
-          {unreadCount > 0 && (
-            <Badge
-              variant="destructive"
-              className="text-[11px] px-1.5"
-              aria-label={`${unreadCount} غير مقروء`}
-            >
-              {unreadCount}
-            </Badge>
-          )}
-        </CardTitle>
-        <Button variant="ghost" size="sm" onClick={() => navigate('/beneficiary/notifications')}>عرض الكل</Button>
-      </CardHeader>
-      <CardContent>
+    <section>
+      <SectionHeading
+        title={NOTIFICATIONS_COPY.cardTitle}
+        count={unreadCount}
+        action={{ label: 'عرض الكل', to: '/beneficiary/notifications' }}
+      />
+      <div className="rounded-2xl border bg-card shadow-sm divide-y">
         {notifications.length === 0 ? (
-          <p className="text-center text-muted-foreground py-6 text-sm">{emptyText}</p>
+          <p className="text-center text-muted-foreground py-8 text-sm">{emptyText}</p>
         ) : (
-          <div className="space-y-3">
-            {notifications.map((n) => (
-              <div key={n.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">{n.title}</p>
-                    {!n.is_read && (
-                      <Badge variant="secondary" className="text-[11px] px-1.5 py-0">
-                        {NOTIFICATIONS_COPY.unreadBadge}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{n.message}</p>
-                </div>
-                <span className="text-[11px] text-muted-foreground whitespace-nowrap">{fmtDate(n.created_at)}</span>
+          notifications.map((n) => (
+            <div key={n.id} className="flex items-start gap-3 p-3.5">
+              <span className={cn('relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', n.is_read ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary')}>
+                <Icon className="h-5 w-5" aria-hidden="true" />
+                {!n.is_read && <span className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 rounded-full bg-secondary ring-2 ring-card" aria-label={NOTIFICATIONS_COPY.unreadBadge} />}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-foreground truncate">{n.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{n.message}</p>
               </div>
-            ))}
-          </div>
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap tabular-nums">{fmtDate(n.created_at)}</span>
+            </div>
+          ))
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 };
 
 export default BeneficiaryNotificationsCard;
-

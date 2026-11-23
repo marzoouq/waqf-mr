@@ -16,6 +16,7 @@ import { useBeneficiaryWidgets } from '@/hooks/data/settings/notifications/useBe
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { isAuditMode } from '@/lib/auditMode';
 import { beneficiariesKeys } from '@/lib/queryKeys/beneficiariesKeys';
+import { buildDeliveryStages } from '@/utils/dashboard/deliveryStages';
 
 export function useBeneficiaryDashboardPage() {
   const queryClient = useQueryClient();
@@ -130,6 +131,11 @@ export function useBeneficiaryDashboardPage() {
       .map(d => Number(d.amount) || 0);
   }, [distributions]);
   const greetingData = useGreeting();
+  // مراحل تسليم الحصة للسنة المختارة (عرض فقط)
+  const deliveryStages = useMemo(
+    () => buildDeliveryStages({ isClosed, fiscalYearId, distributions }),
+    [isClosed, fiscalYearId, distributions],
+  );
 
   return {
     // حالات التحميل والخطأ
@@ -140,7 +146,7 @@ export function useBeneficiaryDashboardPage() {
     isVisible,
     // بيانات المستفيد
     currentBeneficiary, myShare, distributions, role, fiscalYearId,
-    myShareTrend,
+    myShareTrend, deliveryStages,
     // بيانات السنة المالية
     fiscalYear, isClosed, fyProgress,
     // بيانات العرض
