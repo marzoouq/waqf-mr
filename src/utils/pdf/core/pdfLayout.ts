@@ -5,6 +5,7 @@ import type jsPDF from 'jspdf';
 import { reshapeArabic as rs } from './arabicReshaper';
 import { loadLogoBase64 } from './pdfFonts';
 import { getPdfThemeColors } from './themeColors';
+import { formatHijriGregorian } from '@/utils/format/hijriDate';
 import type { PdfWaqfInfo } from './core';
 
 // ترويسة احترافية مع شعار واسم الوقف وخط ذهبي فاصل
@@ -49,17 +50,21 @@ export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWa
     currentY += 7;
   }
 
+  // فاصل الهوية: خط برونزي عريض يليه خط أخضر رفيع
   const themeColors = getPdfThemeColors();
   doc.setDrawColor(...themeColors.secondary);
-  doc.setLineWidth(0.8);
+  doc.setLineWidth(0.9);
   doc.line(margin, currentY + 2, pageW - margin, currentY + 2);
-  currentY += 8;
+  doc.setDrawColor(...themeColors.primary);
+  doc.setLineWidth(0.25);
+  doc.line(margin, currentY + 3.6, pageW - margin, currentY + 3.6);
+  currentY += 9;
 
   return currentY;
 };
 
-// إضافة الترويسة لجميع الصفحات (للمستندات متعددة الصفحات)
-export const addHeaderToAllPages = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo) => {
+// ترويسة مختصرة لبقية الصفحات (الصفحة ذات الترويسة الكاملة تُستثنى)
+export const addHeaderToAllPages = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo, fullHeaderPage = 1) => {
   if (!waqfInfo?.waqfName) return;
 
   const themeColors = getPdfThemeColors();
@@ -67,14 +72,17 @@ export const addHeaderToAllPages = (doc: jsPDF, fontFamily: string, waqfInfo?: P
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
 
-  for (let i = 2; i <= pageCount; i++) {
+  for (let i = 1; i <= pageCount; i++) {
+    if (i === fullHeaderPage) continue;
     doc.setPage(i);
     doc.setFont(fontFamily, 'bold');
-    doc.setFontSize(11);
-    doc.text(rs(waqfInfo.waqfName), pageW / 2, 12, { align: 'center' });
+    doc.setFontSize(10);
+    doc.setTextColor(...themeColors.primary);
+    doc.text(rs(waqfInfo.waqfName), pageW - margin, 15, { align: 'right' });
+    doc.setTextColor(0, 0, 0);
     doc.setDrawColor(...themeColors.secondary);
     doc.setLineWidth(0.5);
-    doc.line(margin, 16, pageW - margin, 16);
+    doc.line(margin, 17.5, pageW - margin, 17.5);
   }
 };
 
@@ -100,11 +108,32 @@ export const addPageBorder = (doc: jsPDF) => {
   doc.rect(pageW - 8 - cs, pageH - 8 - cs, cs, cs, 'F');
 };
 
-// تذييل مع التاريخ واسم الوقف ورقم الصفحة
+/**
+ * يرسم جملة عربية مختلطة بالأرقام كقطع منفصلة بترتيب القراءة (من اليمين)،
+ * فلا ينعكس ترتيب الأرقام كما يحدث عند تشكيل الجملة دفعة واحدة.
+ */
+const drawRtlSegments = (doc: jsPDF, segments: string[], x: number, y: number, anchor: 'left' | 'right') => {
+  const gap = doc.getTextWidth(' ');
+  const parts = segments.map((seg) => (/[\u0600-\u06FF]/.test(seg) ? rs(seg) : seg));
+  const total = parts.reduce((w, p) => w + doc.getTextWidth(p), 0) + gap * (parts.length - 1);
+  let cursor = anchor === 'right' ? x : x + total;
+  for (const part of parts) {
+    doc.text(part, cursor, y, { align: 'right' });
+    cursor -= doc.getTextWidth(part) + gap;
+  }
+};
+
+/** تاريخ اليوم بتوقيت الرياض (YYYY-MM-DD) */
+const riyadhToday = (now: Date) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+
+// تذييل موحّد: تاريخ الطباعة هجري/ميلادي، اسم الوقف، ورقم الصفحة
 export const addFooter = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo) => {
   const pageCount = doc.getNumberOfPages();
-  const now = new Date();
-  const dateStr = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+  const dates = formatHijriGregorian(riyadhToday(new Date()));
+  const hijriNum = dates.hijri.replace(/\s*هـ$/, '');
+  const dateSegments = ['طُبع في', hijriNum, 'هـ', '-', dates.gregorian, 'م'];
+  const themeColors = getPdfThemeColors();
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
 
@@ -115,19 +144,21 @@ export const addFooter = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo
 
     addPageBorder(doc);
 
-    doc.setDrawColor(180, 180, 180);
+    doc.setDrawColor(...themeColors.secondary);
     doc.setLineWidth(0.3);
     doc.line(margin, footerY - 5, pageW - margin, footerY - 5);
 
     doc.setFontSize(8);
     doc.setFont(fontFamily, 'normal');
-    doc.text(dateStr, margin, footerY, { align: 'left' });
+    doc.setTextColor(90, 90, 90);
+    drawRtlSegments(doc, dateSegments, margin, footerY, 'left');
 
     if (waqfInfo?.waqfName) {
       doc.text(rs(waqfInfo.waqfName), pageW / 2, footerY, { align: 'center' });
     }
 
-    doc.text(`${i} / ${pageCount}`, pageW - margin, footerY, { align: 'right' });
+    drawRtlSegments(doc, ['صفحة', String(i), 'من', String(pageCount)], pageW - margin, footerY, 'right');
+    doc.setTextColor(0, 0, 0);
   }
 };
 

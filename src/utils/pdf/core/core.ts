@@ -58,9 +58,10 @@ export const finalizePdf = async (
   options?: { skipHeaders?: boolean; skipOfficialMarks?: boolean; fiscalYearId?: string | null }
 ): Promise<import('./officialRegistry').IssuedDocumentRef | null> => {
   const { insertTableOfContents } = await import('./pdfLayout');
-  insertTableOfContents(doc, fontFamily);
+  // عند إدراج الفهرس تصبح صفحة الترويسة الكاملة هي الثانية
+  const hasToc = insertTableOfContents(doc, fontFamily);
   if (!options?.skipHeaders) {
-    addHeaderToAllPages(doc, fontFamily, waqfInfo);
+    addHeaderToAllPages(doc, fontFamily, waqfInfo, hasToc ? 2 : 1);
   }
   addFooter(doc, fontFamily, waqfInfo);
   let ref: import('./officialRegistry').IssuedDocumentRef | null = null;
@@ -92,14 +93,15 @@ export const addSectionTitle = (
 };
 
 // Shared table styles
-export const TABLE_HEAD_GREEN: [number, number, number] = [22, 101, 52];
-export const TABLE_HEAD_GOLD: [number, number, number] = [202, 138, 4];
-export const TABLE_HEAD_RED: [number, number, number] = [180, 40, 40];
+// ألوان الهوية الوقفية للطباعة (ثابتة لا تتأثر بالوضع الداكن)
+export const TABLE_HEAD_GREEN: [number, number, number] = [18, 73, 57];
+export const TABLE_HEAD_GOLD: [number, number, number] = [150, 112, 44];
+export const TABLE_HEAD_RED: [number, number, number] = [167, 64, 57];
 
 export const baseTableStyles = (fontFamily: string) => ({
   styles: { halign: 'right' as const, font: fontFamily, fontStyle: 'normal' as const, cellPadding: 4 },
-  // مساحة سفلية لسطر تاريخ الإصدار ورقم الوثيقة حتى لا يتداخل مع الجداول
-  margin: { bottom: 30 },
+  // أعلى: مساحة للترويسة المختصرة في الصفحات التالية؛ أسفل: لسطر رقم الوثيقة والتذييل
+  margin: { top: 24, bottom: 30, left: 18, right: 18 },
   rowPageBreak: 'avoid' as const,
 });
 

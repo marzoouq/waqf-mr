@@ -51,8 +51,9 @@ export async function generateReceiptVoucherPDF(data: ReceiptVoucherPdfData, waq
   doc.setFontSize(10);
   doc.setFont(fontFamily, 'normal');
   // التسمية والرقم منفصلان لتفادي انعكاس الترتيب في النص المختلط
-  doc.text(rs('رقم السند:'), right, y, { align: 'right' });
-  doc.text(data.receiptNumber, right - doc.getTextWidth(rs('رقم السند:')) - 2, y, { align: 'right' });
+  // دون نقطتين: علامة الترقيم في آخر نص عربي منفرد تُطبع في الجهة الخطأ
+  doc.text(rs('رقم السند'), right, y, { align: 'right' });
+  doc.text(data.receiptNumber, right - doc.getTextWidth(rs('رقم السند')) - 3, y, { align: 'right' });
   doc.text(rs(`التاريخ: ${dates.hijri}  -  ${dates.gregorian} م`), 20, y, { align: 'left' });
   y += 10;
 
@@ -91,13 +92,14 @@ export async function generateReceiptVoucherPDF(data: ReceiptVoucherPdfData, waq
   doc.setFont(fontFamily, 'bold');
   doc.text(rs('المستلم — المحاسب'), right - 20, y, { align: 'center' });
   doc.text(rs('ناظر الوقف — التوقيع والختم'), pageW / 2 - 10, y, { align: 'center' });
-  y += 18;
+  // مسافة كافية حتى لا يغطي الختم عنوان التوقيع
+  y += 34;
   doc.setLineDashPattern([1, 1], 0);
   doc.line(right - 45, y, right, y);
   doc.line(pageW / 2 - 40, y, pageW / 2 + 20, y);
   doc.setLineDashPattern([], 0);
   drawWaqfStamp(doc, {
-    cx: pageW / 2 - 10, cy: y - 9, fontFamily,
+    cx: pageW / 2 - 10, cy: y - 12, fontFamily,
     waqfName: waqfInfo?.waqfName, serial: data.receiptNumber, dateText: data.paidDate,
   });
 

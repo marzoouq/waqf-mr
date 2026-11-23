@@ -19,9 +19,9 @@ export interface PdfThemeColors {
 
 /** ألوان احتياطية تطابق التصميم الكلاسيكي للوقف */
 export const DEFAULT_PDF_COLORS: PdfThemeColors = {
-  primary: [22, 101, 52],   // أخضر إسلامي
-  secondary: [202, 138, 4], // ذهبي
-  destructive: [180, 40, 40],
+  primary: [18, 73, 57],     // أخضر وقفي عميق
+  secondary: [181, 140, 64], // برونزي
+  destructive: [167, 64, 57],
 };
 
 /**
@@ -67,6 +67,9 @@ export function getPdfThemeColors(): PdfThemeColors {
   if (typeof document === 'undefined' || typeof getComputedStyle === 'undefined') {
     return DEFAULT_PDF_COLORS;
   }
+
+  // الوثائق الرسمية تُطبع بألوان الهوية الفاتحة دائمًا — الوضع الداكن لا ينتقل للورق
+  if (document.documentElement.classList.contains('dark')) return DEFAULT_PDF_COLORS;
 
   try {
     const styles = getComputedStyle(document.documentElement);
