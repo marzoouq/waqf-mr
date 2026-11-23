@@ -3,7 +3,7 @@
  * ملاحظة: زر "نظام الوقف" مُزال — الرابط في القائمة الجانبية لتفادي التكرار.
  */
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
-import { Lock, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
 import { NotificationBell } from '@/components/notifications';
@@ -21,7 +21,7 @@ interface DesktopTopBarProps {
 }
 
 const DesktopTopBar: React.FC<DesktopTopBarProps> = ({
-  fiscalYearId, onFiscalYearChange, showAll, isClosed,
+  fiscalYearId, onFiscalYearChange, showAll,
 }) => {
   const { user, role } = useAuth();
 
@@ -31,11 +31,6 @@ const DesktopTopBar: React.FC<DesktopTopBarProps> = ({
       <div className="flex items-center gap-3 px-4 py-2">
         <Suspense fallback={null}><GlobalSearch /></Suspense>
         <FiscalYearSelector value={fiscalYearId} onChange={onFiscalYearChange} showAll={showAll} />
-        {isClosed && (
-          <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-2 py-1 rounded-md border border-warning/30 print:hidden">
-            <Lock className="w-3 h-3" /> مقفلة
-          </span>
-        )}
         <ThemeToggle />
         <NotificationBell />
         {user && (

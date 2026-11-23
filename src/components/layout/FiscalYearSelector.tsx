@@ -15,7 +15,7 @@ const FiscalYearSelector: React.FC<FiscalYearSelectorProps> = ({ value, onChange
   if (isLoading) return (
     <div className="flex items-center gap-2">
       <Calendar className="w-4 h-4 text-muted-foreground" />
-      <div className="h-9 w-[140px] sm:w-[200px] rounded-md bg-muted animate-pulse" />
+      <div className="h-9 w-[176px] sm:w-[200px] rounded-md bg-muted animate-pulse" />
     </div>
   );
 
@@ -23,7 +23,7 @@ const FiscalYearSelector: React.FC<FiscalYearSelectorProps> = ({ value, onChange
     <div className="flex items-center gap-2">
       <Calendar className="w-4 h-4 text-muted-foreground" />
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-[140px] sm:w-[200px]">
+        <SelectTrigger className="w-[176px] sm:w-[200px]">
           <SelectValue placeholder="السنة المالية" />
         </SelectTrigger>
         <SelectContent>

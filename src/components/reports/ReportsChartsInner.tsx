@@ -6,6 +6,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Ba
 import { fmt } from '@/utils/format/format';
 import { tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 
+import { formatAxisTick, AXIS_TICK_WIDTH } from '@/utils/chart/axisTick';
 const REPORT_COLORS = [
   'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
   'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
@@ -47,7 +48,7 @@ const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceDat
             <BarChart data={expenseTypeData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis />
+              <YAxis width={AXIS_TICK_WIDTH} tickFormatter={formatAxisTick} tick={{ fontSize: 11 }} />
               <Tooltip formatter={((value: number | undefined) => `${fmt(value ?? 0)} ر.س`) as never} contentStyle={tooltipStyleRtl} />
               <Bar dataKey="value" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
             </BarChart>

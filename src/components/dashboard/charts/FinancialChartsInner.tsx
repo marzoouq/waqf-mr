@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { fmt } from '@/utils/format/format';
 import { formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 
+import { formatAxisTick, AXIS_TICK_WIDTH } from '@/utils/chart/axisTick';
 const FINANCIAL_COLORS = [
   'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))',
   'hsl(var(--warning))', 'hsl(var(--chart-4))', 'hsl(var(--primary))',
@@ -34,7 +35,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
           <BarChart data={incomeVsExpenses}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 11 }} width={40} tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)} />
+            <YAxis tick={{ fontSize: 11 }} width={AXIS_TICK_WIDTH} tickFormatter={formatAxisTick} />
             <Tooltip formatter={((value: number | undefined) => fmt(value ?? 0) + ' ر.س') as never} contentStyle={tooltipStyleRtl} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {incomeVsExpenses.map((entry, index) => (
@@ -110,7 +111,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
           <BarChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
-            <YAxis tick={{ fontSize: 11 }} width={40} tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)} />
+            <YAxis tick={{ fontSize: 11 }} width={AXIS_TICK_WIDTH} tickFormatter={formatAxisTick} />
             <Tooltip formatter={((value: number | undefined) => fmt(Math.round(value ?? 0)) + ' ر.س') as never} contentStyle={tooltipStyleRtl} labelFormatter={formatArabicMonth} />
             <Bar dataKey="income" fill="hsl(var(--success))" name="الإيرادات" radius={[4, 4, 0, 0]} />
           </BarChart>

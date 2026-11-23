@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fmt } from '@/utils/format/format';
 import { tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 
+import { formatAxisTick, AXIS_TICK_WIDTH } from '@/utils/chart/axisTick';
 interface MonthData {
   label: string;
   income: number;
@@ -34,7 +35,7 @@ const MonthlyPerformanceChartsInner: React.FC<MonthlyPerformanceChartsInnerProps
             <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+              <YAxis tick={{ fontSize: 11 }} width={AXIS_TICK_WIDTH} tickFormatter={formatAxisTick} />
               <Tooltip
                 contentStyle={tooltipStyleRtl}
                 formatter={((value: number | undefined, name: string | undefined) => [
@@ -63,7 +64,7 @@ const MonthlyPerformanceChartsInner: React.FC<MonthlyPerformanceChartsInnerProps
             <AreaChart data={monthlyData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+              <YAxis tick={{ fontSize: 11 }} width={AXIS_TICK_WIDTH} tickFormatter={formatAxisTick} />
               <Tooltip
                 contentStyle={tooltipStyleRtl}
                 formatter={((value: number | undefined) => [`${fmt(value ?? 0)} ر.س`, 'صافي الدخل']) as never}

@@ -14,7 +14,7 @@ interface MobileHeaderProps {
   fiscalYearLabel?: string;
 }
 
-const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLabel }) => {
+const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar }) => {
   const location = useLocation();
 
   const title = ROUTE_TITLES[location.pathname] ||
@@ -31,9 +31,6 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar, fiscalYearLa
       </Button>
       <div className="flex flex-col items-center">
         <p role="heading" aria-level={1} className="font-arabic font-bold text-base text-sidebar-foreground leading-tight m-0">{title}</p>
-        {fiscalYearLabel && (
-          <span className="text-[11px] text-sidebar-foreground/70 leading-none">{fiscalYearLabel}</span>
-        )}
       </div>
       <div className="flex items-center gap-1">
         <ThemeToggle />

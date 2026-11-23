@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { isFyAll } from '@/constants/fiscalYearIds';
 import { useAdminDashboardStats } from './useAdminDashboardStats';
 import { ROLE_LABELS } from '@/constants/roles';
+import { isUsingFallbackSharePct, resolveActiveContractsCount } from '@/utils/dashboard/dashboardIndicators';
 import { computeExpenseRatio } from '@/utils/financial/computations/ratios';
 import type { useDashboardSummary } from '@/hooks/data/financial/dashboard/useDashboardSummary';
 
@@ -26,11 +27,13 @@ interface UseAdminDashboardDataParams {
   fiscalYear: { label: string; status: string; start_date: string; end_date: string } | undefined;
   isSpecificYear: boolean;
   summary: DashboardSummary;
+  /** عقود السنة المختارة — لعدّ النشطة بما يطابق صفحة العقود */
+  yearContracts?: ReadonlyArray<{ status: string }>;
 }
 
 
 export const useAdminDashboardData = ({
-  user, role, fiscalYearId, fiscalYear, isSpecificYear: _isSpecificYear, summary,
+  user, role, fiscalYearId, fiscalYear, isSpecificYear, summary, yearContracts,
 }: UseAdminDashboardDataParams) => {
   const agg = summary.aggregated;
   const totals = agg?.totals;
@@ -54,18 +57,7 @@ export const useAdminDashboardData = ({
   const sharesNote = isYearActive ? ' *تقديري' : '';
 
   // ── تحقق إن كانت الإعدادات تستخدم قيم افتراضية — يشمل waqf_corpus_percentage ──
-  const usingFallbackPct = useMemo(() => {
-    const s = agg?.settings;
-    if (!s) return false;
-    const adminPct = s.admin_share_percentage;
-    const waqifPct = s.waqif_share_percentage;
-    const corpusPct = s.waqf_corpus_percentage;
-    return (
-      adminPct === null || adminPct === undefined ||
-      waqifPct === null || waqifPct === undefined ||
-      corpusPct === null || corpusPct === undefined
-    );
-  }, [agg?.settings]);
+  const usingFallbackPct = useMemo(() => isUsingFallbackSharePct(agg?.settings), [agg?.settings]);
 
   // ── أعداد العقود (من counts المُجمّعة) ──
   const expiringContractsCount = counts?.expiring_contracts ?? 0;
@@ -81,7 +73,7 @@ export const useAdminDashboardData = ({
   // ── إحصائيات البطاقات ──
   const { stats, kpis, collectionSummary, collectionColor } = useAdminDashboardStats({
     propertiesCount: counts?.properties ?? 0,
-    activeContractsCount: counts?.active_contracts ?? 0,
+    activeContractsCount: resolveActiveContractsCount(yearContracts, isSpecificYear, counts?.active_contracts ?? 0),
     contractualRevenue,
     totalIncome,
     totalExpenses,
@@ -111,8 +103,8 @@ export const useAdminDashboardData = ({
     const base = role === 'accountant'
       ? `مرحباً بك، ${displayName} — يمكنك إدارة الحسابات والعمليات المالية`
       : `مرحباً بك، ${displayName}`;
-    return base + (isFyAll(fiscalYearId) ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '');
-  }, [user, role, fiscalYearId, fiscalYear]);
+    return base + (isFyAll(fiscalYearId) ? ' — عرض إجمالي جميع السنوات' : '');
+  }, [user, role, fiscalYearId]);
 
   return {
     pendingAdvancesCount,

@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { fmt } from '@/utils/format/format';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
+import { formatAxisTick, AXIS_TICK_WIDTH } from '@/utils/chart/axisTick';
 interface IncomeMonthlyChartInnerProps {
   chartData: Array<{ month: string; actual: number; expected: number; gap: number }>;
 }
@@ -19,7 +20,7 @@ const IncomeMonthlyChartInner = ({ chartData }: IncomeMonthlyChartInnerProps) =>
           <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
             <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-            <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+            <YAxis tick={{ fontSize: 10 }} width={AXIS_TICK_WIDTH} tickFormatter={formatAxisTick} />
             <Tooltip
               contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }}
               formatter={((value: number | undefined, name: string | undefined) => [

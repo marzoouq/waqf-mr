@@ -7,7 +7,6 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { BetaBanner } from '@/components/common';
-import { Lock } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { cn } from '@/lib/cn';
 import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
@@ -140,11 +139,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <WaqfInfoBar />
           <div className="flex items-center gap-2 px-3 py-1.5 print:hidden flex-wrap">
             <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={showAll} />
-            {isClosed && (
-              <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-2 py-1 rounded-md border border-warning/30">
-                <Lock className="w-3 h-3" /> مقفلة
-              </span>
-            )}
             <Suspense fallback={null}><GlobalSearch /></Suspense>
           </div>
         </div>

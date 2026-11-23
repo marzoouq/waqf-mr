@@ -60,10 +60,10 @@ const NotificationFiltersBar = ({
         <Filter className="w-4 h-4 text-muted-foreground" />
         <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger className="w-32 h-9">
-            <SelectValue placeholder="الكل" />
+            <SelectValue placeholder="كل الأنواع" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">الكل</SelectItem>
+            <SelectItem value="all">كل الأنواع</SelectItem>
             {(categoryFilter === 'all' ? uniqueTypes : uniqueTypes.filter(t => {
               const cat = NOTIFICATION_CATEGORIES.find(c => c.id === categoryFilter);
               return cat?.types.includes(t);

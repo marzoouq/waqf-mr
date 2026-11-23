@@ -8,6 +8,7 @@ import { CHART_COLORS, formatArabicMonth, tooltipStyleRtl } from '@/utils/chart/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+import { formatAxisTick, AXIS_TICK_WIDTH } from '@/utils/chart/axisTick';
 interface DashboardChartsInnerProps {
   monthlyData: Array<{ month: string; income: number; expenses: number }>;
   expenseTypes: Array<{ name: string; value: number }>;
@@ -28,7 +29,7 @@ const DashboardChartsInner = ({ monthlyData, expenseTypes }: DashboardChartsInne
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
-                  <YAxis tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
+                  <YAxis width={AXIS_TICK_WIDTH} tickFormatter={formatAxisTick} />
                   <Tooltip formatter={((value: number | undefined) => `${fmt(value ?? 0)} ر.س`) as never} contentStyle={tooltipStyleRtl} labelFormatter={formatArabicMonth} />
                   <Legend />
                   <Bar dataKey="income" fill="hsl(var(--primary))" name="الدخل" radius={[4, 4, 0, 0]} />

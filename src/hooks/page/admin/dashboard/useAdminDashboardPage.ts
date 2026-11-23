@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useDashboardSummary, useDashboardSecondary } from '@/hooks/data/financial/dashboard/useDashboardSummary';
 import { useAdminDashboardData } from '@/hooks/page/admin/dashboard/useAdminDashboardData';
 import { useAccountantDashboardData } from '@/hooks/page/admin/dashboard/useAccountantDashboardData';
+import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { dashboardKeys } from '@/lib/queryKeys/dashboardKeys';
 import type { HeatmapInvoice } from '@/hooks/data/financial/dashboard/useDashboardSummary';
 
@@ -54,6 +55,9 @@ export const useAdminDashboardPage = () => {
   // D-05: الهوك الثانوي يعمل بالتوازي مع الملخص (لا شلال)، ويتوقف فقط إذا فشل الملخص
   const secondary = useDashboardSecondary(fiscalYearId, !summary.isError);
 
+  // عقود السنة المختارة — نفس مصدر صفحة العقود لتطابق العدد
+  const { data: yearContracts } = useContractsByFiscalYear(fiscalYearId);
+
   const adminData = useAdminDashboardData({
     user,
     role,
@@ -61,6 +65,7 @@ export const useAdminDashboardPage = () => {
     fiscalYear: fiscalYear ?? undefined,
     isSpecificYear,
     summary,
+    yearContracts,
   });
 
   // هوك بيانات المحاسب المخصصة — يُمرَّر بيانات فارغة للأدوار الأخرى لتفادي المعالجة الزائدة

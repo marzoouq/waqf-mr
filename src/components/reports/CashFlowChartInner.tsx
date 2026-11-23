@@ -5,6 +5,7 @@ import { memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { useChartReady } from '@/hooks/ui/useChartReady';
 
+import { formatAxisTick, AXIS_TICK_WIDTH } from '@/utils/chart/axisTick';
 interface MonthData {
   month: string;
   income: number;
@@ -28,7 +29,7 @@ const CashFlowChartInner: React.FC<CashFlowChartInnerProps> = memo(({ monthlyDat
           <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
             <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-            <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+            <YAxis tick={{ fontSize: 11 }} width={AXIS_TICK_WIDTH} tickFormatter={formatAxisTick} />
             <Tooltip
               contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }}
               formatter={((value: number | undefined, name: string | undefined) => [

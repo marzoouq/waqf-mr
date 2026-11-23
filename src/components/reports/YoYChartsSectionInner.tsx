@@ -11,6 +11,7 @@ import { tooltipStyleRtl } from '@/utils/chart/chartHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
+import { formatAxisTick, AXIS_TICK_WIDTH } from '@/utils/chart/axisTick';
 const COLORS = [
   'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
   'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
@@ -41,7 +42,7 @@ const YoYChartsSectionInner = ({
             <BarChart data={comparisonData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+              <YAxis tick={{ fontSize: 11 }} width={AXIS_TICK_WIDTH} tickFormatter={formatAxisTick} />
               <Tooltip contentStyle={tooltipStyleRtl} formatter={((value: number | undefined, name: string | undefined) => [`${fmt(value ?? 0)} ر.س`, name ?? '']) as never} />
               <Legend />
               <Bar dataKey={`دخل ${year1Label}`} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
@@ -63,7 +64,7 @@ const YoYChartsSectionInner = ({
             <LineChart data={comparisonData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+              <YAxis tick={{ fontSize: 11 }} width={AXIS_TICK_WIDTH} tickFormatter={formatAxisTick} />
               <Tooltip contentStyle={tooltipStyleRtl} formatter={((value: number | undefined, name: string | undefined) => [`${fmt(value ?? 0)} ر.س`, name ?? '']) as never} />
               <Legend />
               <Line type="monotone" dataKey="net1" stroke="hsl(var(--primary))" strokeWidth={2} name={`صافي ${year1Label}`} dot={{ r: 4 }} />
