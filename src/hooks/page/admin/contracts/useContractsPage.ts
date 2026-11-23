@@ -15,6 +15,7 @@ import { useProperties } from '@/hooks/data/properties/useProperties';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useContractAllocations } from '@/hooks/data/financial/contracts/useContractAllocations';
+import { getEffectiveContractStatus } from '@/utils/contracts/contractStatus';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
@@ -73,8 +74,9 @@ export const useContractsPage = () => {
   const [activeTab, setActiveTab] = useState('contracts');
 
   const stats = useMemo(() => {
-    const active = contracts.filter(c => c.status === 'active');
-    const expired = contracts.filter(c => c.status === 'expired');
+    // عدادات العرض فقط: لا نغيّر status المحفوظ، ولا قيم العقود أو التخصيصات
+    const active = contracts.filter(c => getEffectiveContractStatus(c.status, c.end_date) === 'active');
+    const expired = contracts.filter(c => getEffectiveContractStatus(c.status, c.end_date) === 'expired');
     let totalRent: number;
     let activeRent: number;
     const useAllocations = isSpecificYear && contractAllocations.length > 0;

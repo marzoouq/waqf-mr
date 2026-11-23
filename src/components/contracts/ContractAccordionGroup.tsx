@@ -15,6 +15,7 @@ import { fmt } from '@/utils/format/format';
 import { statusConfig } from './accordion/accordionConstants';
 import { InvoiceCard } from './accordion/AccordionParts';
 import { EjarDocumentButton } from './EjarDocumentButton';
+import { getEffectiveContractStatus } from '@/utils/contracts/contractStatus';
 
 interface ContractAccordionGroupProps {
   baseNumber: string;
@@ -45,7 +46,8 @@ const ContractAccordionGroup = ({
 }: ContractAccordionGroupProps) => {
   const latest = contracts[0]!;
   const hasMultiple = contracts.length > 1;
-  const latestStatus = statusConfig[latest.status] || { label: latest.status, className: 'bg-muted' };
+  const effectiveLatestStatus = getEffectiveContractStatus(latest.status, latest.end_date);
+  const latestStatus = statusConfig[effectiveLatestStatus] || { label: effectiveLatestStatus, className: 'bg-muted' };
 
   const latestInvoices = useMemo(
     () => invoices.filter(inv => inv.contract_id === latest.id).sort((a, b) => a.payment_number - b.payment_number),
@@ -106,7 +108,8 @@ const ContractAccordionGroup = ({
         <div className="border-t border-border bg-muted/30">
           <div className="divide-y divide-border/50">
             {contracts.map((contract) => {
-              const st = statusConfig[contract.status] || { label: contract.status, className: 'bg-muted' };
+              const effectiveStatus = getEffectiveContractStatus(contract.status, contract.end_date);
+              const st = statusConfig[effectiveStatus] || { label: effectiveStatus, className: 'bg-muted' };
               const isExpired = expiredIds.has(contract.id);
               return (
                 <div key={contract.id} className="flex items-center gap-3 px-5 py-2.5 hover:bg-muted/50 transition-colors">

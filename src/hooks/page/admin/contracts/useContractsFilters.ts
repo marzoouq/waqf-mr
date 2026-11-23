@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { Contract } from '@/types';
 import { getPaymentTypeLabel } from '@/utils/financial/contracts/contractHelpers';
 import { classifyContractOrigin } from '@/utils/financial/contracts/contractClassification';
+import { getEffectiveContractStatus } from '@/utils/contracts/contractStatus';
 
 const getBaseNumber = (num: string) => num.replace(/-R\d+$/, '');
 
@@ -19,9 +20,11 @@ interface UseContractsFiltersParams {
   overdueContractIds: Set<string>;
   /** بداية السنة المالية الحالية (ISO). null في وضع "كل السنوات" — يُعطّل فلاتر السنة. */
   fiscalYearStartDate: string | null;
+  /** تاريخ مرجعي للعرض؛ يُمرَّر في الاختبارات فقط لضمان نتيجة ثابتة */
+  today?: string;
 }
 
-export const useContractsFilters = ({ contracts, overdueContractIds, fiscalYearStartDate }: UseContractsFiltersParams) => {
+export const useContractsFilters = ({ contracts, overdueContractIds, fiscalYearStartDate, today }: UseContractsFiltersParams) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
@@ -59,7 +62,7 @@ export const useContractsFilters = ({ contracts, overdueContractIds, fiscalYearS
     let active = 0, expired = 0, cancelled = 0;
     let contractsInYear = 0, contractsFromPrevious = 0;
     for (const [base, group] of groupedContracts) {
-      const latestStatus = group[0]!.status;
+      const latestStatus = getEffectiveContractStatus(group[0]!.status, group[0]!.end_date, today);
       if (latestStatus === 'active') active++;
       else if (latestStatus === 'cancelled') cancelled++;
       else expired++;
@@ -74,7 +77,7 @@ export const useContractsFilters = ({ contracts, overdueContractIds, fiscalYearS
       all: groupedContracts.length,
       contractsInYear, contractsFromPrevious,
     };
-  }, [groupedContracts, overdueContractIds, groupOriginMap]);
+  }, [groupedContracts, overdueContractIds, groupOriginMap, today]);
 
   // فلترة المجموعات
   const filteredGroups = useMemo(() => {
@@ -87,7 +90,7 @@ export const useContractsFilters = ({ contracts, overdueContractIds, fiscalYearS
       result = result.filter(([base]) => groupOriginMap.get(base) === 'fromPrevious');
     } else if (statusFilter !== 'all') {
       result = result.filter(([, group]) => {
-        const latestStatus = group[0]!.status;
+        const latestStatus = getEffectiveContractStatus(group[0]!.status, group[0]!.end_date, today);
         if (statusFilter === 'active') return latestStatus === 'active';
         if (statusFilter === 'cancelled') return latestStatus === 'cancelled';
         return latestStatus !== 'active' && latestStatus !== 'cancelled';
@@ -107,7 +110,7 @@ export const useContractsFilters = ({ contracts, overdueContractIds, fiscalYearS
       ));
     }
     return result;
-  }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter, overdueContractIds, groupOriginMap]);
+  }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter, overdueContractIds, groupOriginMap, today]);
 
   const allExpanded = filteredGroups.length > 0 && filteredGroups.every(([base]) => expandedGroups.has(base));
   const toggleAllGroups = useCallback(() => {

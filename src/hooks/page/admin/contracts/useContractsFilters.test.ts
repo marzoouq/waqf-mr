@@ -46,8 +46,8 @@ const contracts: Contract[] = [
 const overdueContractIds = new Set(['c3']);
 
 describe('useContractsFilters', () => {
-  const setup = (fiscalYearStartDate: string | null = '2025-01-01') =>
-    renderHook(() => useContractsFilters({ contracts, overdueContractIds, fiscalYearStartDate }));
+  const setup = (fiscalYearStartDate: string | null = '2025-01-01', today = '2025-06-01') =>
+    renderHook(() => useContractsFilters({ contracts, overdueContractIds, fiscalYearStartDate, today }));
 
   it('يجمع العقود حسب الرقم الأساسي', () => {
     const { result } = setup();
@@ -71,6 +71,41 @@ describe('useContractsFilters', () => {
     const { result } = setup();
     act(() => result.current.setStatusFilter('active'));
     expect(result.current.filteredGroups.every(([, group]) => group[0]!.status === 'active')).toBe(true);
+  });
+
+  it('يعدّ العقد النشط المحفوظ منتهياً في العدادات إذا مضى تاريخ انتهائه', () => {
+    const datedContracts = [
+      makeContract({ id: 'old', contract_number: 'CON-OLD', status: 'active', end_date: '2026-10-31' }),
+      makeContract({ id: 'current', contract_number: 'CON-CURRENT', status: 'active', end_date: '2027-08-30' }),
+    ];
+    const { result } = renderHook(() => useContractsFilters({
+      contracts: datedContracts,
+      overdueContractIds: new Set(),
+      fiscalYearStartDate: '2025-01-01',
+      today: '2026-11-23',
+    }));
+
+    expect(result.current.statusCounts.active).toBe(1);
+    expect(result.current.statusCounts.expired).toBe(1);
+    expect(datedContracts[0]!.status).toBe('active');
+  });
+
+  it('يضع العقد منتهي التاريخ في فلتر «منتهي» لا في «نشط»', () => {
+    const datedContracts = [
+      makeContract({ id: 'old', contract_number: 'CON-OLD', status: 'active', end_date: '2026-10-31' }),
+      makeContract({ id: 'current', contract_number: 'CON-CURRENT', status: 'active', end_date: '2027-08-30' }),
+    ];
+    const { result } = renderHook(() => useContractsFilters({
+      contracts: datedContracts,
+      overdueContractIds: new Set(),
+      fiscalYearStartDate: '2025-01-01',
+      today: '2026-11-23',
+    }));
+
+    act(() => result.current.setStatusFilter('expired'));
+    expect(result.current.filteredGroups.map(([base]) => base)).toEqual(['CON-OLD']);
+    act(() => result.current.setStatusFilter('active'));
+    expect(result.current.filteredGroups.map(([base]) => base)).toEqual(['CON-CURRENT']);
   });
 
   it('يصفّي حسب المتأخرة "overdue"', () => {
