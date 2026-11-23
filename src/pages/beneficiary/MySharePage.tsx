@@ -1,10 +1,8 @@
 /**
  * صفحة حصتي من الريع — مُفكّكة إلى hook + مكونات فرعية
  */
-import { useNavigate } from 'react-router-dom';
-import { Wallet, AlertCircle, FileDown, FileText } from 'lucide-react';
+import { Wallet, AlertCircle, FileDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { RequirePublishedYears, ExportMenu, DashboardSkeleton, ErrorState, FiscalYearStateNotice } from '@/components/common';
 import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
@@ -29,7 +27,6 @@ const MySharePage = () => {
     advancesEnabled, advanceSettings, fiscalYearId, selectedFY,
     handleDownloadPDF, handleDownloadDistributionsPDF, handleDownloadComprehensivePDF, handlePrintReport,
   } = useMySharePage();
-  const navigate = useNavigate();
 
   // B2: حارس السنوات المنشورة قبل أي فرع — يمنع UnlinkedAccountNotice الخاطئة عند noPublishedYears
   if (noPublishedYears) {
@@ -156,21 +153,6 @@ const MySharePage = () => {
               </CardContent>
             </Card>
           )}
-
-          {/* رابط الإفصاح */}
-          <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <p className="text-sm text-muted-foreground">
-                  لمعرفة تفاصيل احتساب الحصة والتسلسل المالي الكامل
-                </p>
-                <Button variant="link" className="text-primary gap-1" onClick={() => navigate('/beneficiary/disclosure')}>
-                  <FileText className="w-4 h-4" />
-                  صفحة الإفصاح السنوي
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* سجل التوزيعات */}
           <DistributionsTable distributions={filteredDistributions} />

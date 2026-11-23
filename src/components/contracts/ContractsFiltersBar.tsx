@@ -4,7 +4,8 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, ChevronsUpDown, Filter } from 'lucide-react';
+import { Search, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/cn';
 
 interface StatusCounts {
   all: number;
@@ -42,29 +43,40 @@ export default function ContractsFiltersBar({
   fiscalYearStartDate,
 }: ContractsFiltersBarProps) {
   const showYearFilters = fiscalYearStartDate !== null;
+  const pills: Array<{ value: string; label: string; count: number }> = [
+    { value: 'all', label: 'الكل', count: statusCounts.all },
+    { value: 'active', label: 'نشط', count: statusCounts.active },
+    { value: 'overdue', label: 'متأخر > 30 يوم', count: statusCounts.overdue },
+    { value: 'expired', label: 'منتهي', count: statusCounts.expired },
+    { value: 'cancelled', label: 'ملغي', count: statusCounts.cancelled },
+    ...(showYearFilters ? [
+      { value: 'contractsInYear', label: 'جديدة في السنة', count: statusCounts.contractsInYear },
+      { value: 'contractsFromPrevious', label: 'مستمرة من سنة سابقة', count: statusCounts.contractsFromPrevious },
+    ] : []),
+  ];
   return (
+    <div className="space-y-3">
+    {/* فلاتر الحالة — كبسولات بأعدادها (بديل القائمة المنسدلة) */}
+    <div role="radiogroup" aria-label="حالة العقود" className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+      {pills.map((p) => (
+        <button
+          key={p.value} type="button" role="radio" aria-checked={statusFilter === p.value}
+          onClick={() => { setStatusFilter(p.value); resetPage(); }}
+          className={cn(
+            'shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3.5 h-9 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            statusFilter === p.value ? 'bg-primary text-primary-foreground border-primary font-bold' : 'bg-card text-foreground hover:bg-accent',
+          )}
+        >
+          {p.label}
+          <bdi dir="ltr" className={cn('num text-xs font-bold', statusFilter === p.value ? 'text-primary-foreground/80' : 'text-muted-foreground')}>{p.count}</bdi>
+        </button>
+      ))}
+    </div>
     <div className="flex flex-wrap items-start sm:items-center gap-3">
       <div className="relative w-full sm:max-w-md sm:flex-1">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input name="searchQuery" placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); resetPage(); }} className="ps-10" />
+        <Input name="searchQuery" placeholder="بحث بالاسم أو رقم العقد..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); resetPage(); }} className="ps-10" />
       </div>
-      <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); resetPage(); }}>
-        <SelectTrigger className="w-full sm:w-48 shrink-0"><Filter className="w-4 h-4 me-2" /><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">الكل ({statusCounts.all})</SelectItem>
-          <SelectItem value="active">نشط ({statusCounts.active})</SelectItem>
-          <SelectItem value="expired">منتهي ({statusCounts.expired})</SelectItem>
-          <SelectItem value="cancelled">ملغي ({statusCounts.cancelled})</SelectItem>
-          <SelectItem value="overdue">متأخر &gt; 30 يوم ({statusCounts.overdue})</SelectItem>
-          {showYearFilters && (
-            <>
-              <div className="px-2 py-1.5 text-[10px] text-muted-foreground border-t mt-1">─── حسب السنة المالية ───</div>
-              <SelectItem value="contractsInYear">عقود جديدة في السنة ({statusCounts.contractsInYear})</SelectItem>
-              <SelectItem value="contractsFromPrevious">عقود مستمرة من سنة سابقة ({statusCounts.contractsFromPrevious})</SelectItem>
-            </>
-          )}
-        </SelectContent>
-      </Select>
       <Select value={propertyFilter} onValueChange={(v) => { setPropertyFilter(v); resetPage(); }}>
         <SelectTrigger className="w-full sm:w-48 shrink-0"><SelectValue placeholder="كل العقارات" /></SelectTrigger>
         <SelectContent>
@@ -87,6 +99,7 @@ export default function ContractsFiltersBar({
           <ChevronsUpDown className="w-4 h-4" />{allExpanded ? 'طي الكل' : 'توسيع الكل'}
         </Button>
       )}
+    </div>
     </div>
   );
 }

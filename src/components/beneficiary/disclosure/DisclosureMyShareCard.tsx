@@ -12,11 +12,11 @@ const DisclosureMyShareCard = ({
   myShare, totalReceived, pendingAmount,
   currentBeneficiaryName, currentBeneficiaryPct,
 }: Props) => (
-  <div className="bg-primary/10 rounded-xl p-4 sm:p-6 mt-4 space-y-4">
+  <div className="bg-bronze-soft border border-bronze-line rounded-xl p-4 sm:p-6 mt-4 space-y-4">
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
       <div>
         <p className="text-xs sm:text-sm text-muted-foreground">حصتي المستحقة ({currentBeneficiaryPct}%)</p>
-        <p className="font-bold text-xl sm:text-2xl text-primary">{fmt(myShare)} ر.س</p>
+        <p className="num font-extrabold text-2xl sm:text-3xl text-primary dark:text-foreground">{fmt(myShare)} <span className="text-sm font-medium text-muted-foreground">ر.س</span></p>
       </div>
       <div className="sm:text-end">
         <p className="text-xs sm:text-sm text-muted-foreground">الاسم</p>
@@ -24,7 +24,7 @@ const DisclosureMyShareCard = ({
       </div>
     </div>
     {(totalReceived > 0 || pendingAmount > 0) && (
-      <div className="border-t border-primary/20 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="border-t border-bronze-line pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <p className="text-xs sm:text-sm text-muted-foreground">المبلغ المستلم</p>
           <p className="font-bold text-base sm:text-lg text-success">{fmt(totalReceived)} ر.س</p>

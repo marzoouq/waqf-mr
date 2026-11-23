@@ -8,6 +8,7 @@ import { cn } from '@/lib/cn';
 
 interface SidebarBrandProps {
   waqfName: string;
+  portalLabel: string;
   waqfLogoUrl?: string | null;
   sidebarOpen: boolean;
   setSidebarOpen: (v: boolean) => void;
@@ -15,7 +16,7 @@ interface SidebarBrandProps {
 }
 
 export const SidebarBrand: React.FC<SidebarBrandProps> = ({
-  waqfName, waqfLogoUrl, sidebarOpen, setSidebarOpen, setMobileSidebarOpen,
+  waqfName, portalLabel, waqfLogoUrl, sidebarOpen, setSidebarOpen, setMobileSidebarOpen,
 }) => {
   // نمط adjusting-state-during-render الرسمي من React لإعادة الضبط عند تغيّر prop
   const [imgError, setImgError] = useState(false);
@@ -26,9 +27,9 @@ export const SidebarBrand: React.FC<SidebarBrandProps> = ({
   }
   const showLogo = !!waqfLogoUrl && !imgError;
   return (
-  <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+  <div className="flex items-center justify-between px-4 py-5 border-b border-sidebar-border">
     <div className={cn('flex items-center gap-3', !sidebarOpen && 'lg:justify-center')}>
-      <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center shrink-0 shadow-gold overflow-hidden">
+      <div className="w-11 h-11 bg-card rounded-xl flex items-center justify-center shrink-0 ring-1 ring-sidebar-primary/40 overflow-hidden">
         {showLogo ? (
           <img
             src={waqfLogoUrl!}
@@ -37,12 +38,13 @@ export const SidebarBrand: React.FC<SidebarBrandProps> = ({
             onError={() => setImgError(true)}
           />
         ) : (
-          <Building2 className="w-5 h-5 text-sidebar-primary-foreground" aria-hidden="true" />
+          <Building2 className="w-5 h-5 text-primary" aria-hidden="true" />
         )}
       </div>
-      <span className={cn('font-arabic font-bold text-lg text-sidebar-foreground truncate max-w-[150px]', !sidebarOpen && 'lg:hidden')}>
-        {waqfName}
-      </span>
+      <div className={cn('min-w-0 leading-tight', !sidebarOpen && 'lg:hidden')}>
+        <span className="block font-display font-bold text-base text-sidebar-foreground truncate max-w-[150px]">{waqfName}</span>
+        <span className="block text-[11px] text-sidebar-primary truncate max-w-[150px]">{portalLabel}</span>
+      </div>
     </div>
     <Button
       variant="ghost"

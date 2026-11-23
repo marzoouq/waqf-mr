@@ -49,3 +49,16 @@ export interface KpiItem {
   /** عدد المنازل العشرية لـ AnimatedCounter (افتراضي 0) */
   decimals?: number;
 }
+
+/** صف واحد في «مسار الريع» — القيمة تُعرض كما تصل من الخادم دون أي جمع أو طرح */
+export type WaterfallRowKind = 'plus' | 'minus' | 'vat' | 'share' | 'subtotal' | 'total' | 'mine';
+
+export interface WaterfallRow {
+  kind: WaterfallRowKind;
+  label: string;
+  value: number;
+  /** ملاحظة صغيرة بجانب البند (مثل النسبة) */
+  note?: string;
+  /** وسم حالة: تقديري (سنة مفتوحة) أو غير محفوظ (تعديل يدوي في الواجهة) */
+  flag?: 'estimated' | 'unsaved';
+}

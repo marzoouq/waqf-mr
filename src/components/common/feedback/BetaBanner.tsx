@@ -35,12 +35,13 @@ const BetaBanner = () => {
     <div
       role="status"
       aria-live="polite"
+      aria-hidden={isHidden || undefined}
       className={cn(
         isBottom && "fixed bottom-0 left-0 right-0",
-        "z-60 flex items-center justify-center gap-2 px-4 py-1.5 text-primary-foreground text-sm font-medium shadow-md print:hidden transition-[height,padding] duration-200",
-        !isHidden && bgClass,
+        "z-60 flex items-center justify-center gap-2 px-4 py-1.5 text-primary-foreground text-sm font-medium print:hidden transition-[height,padding] duration-200",
+        !isHidden && [bgClass, "shadow-md"],
       )}
-      style={{ minHeight: isBottom ? 0 : 32, height: isHidden ? 0 : 'auto', padding: isHidden ? '0' : undefined, overflow: 'hidden' }}
+      style={{ minHeight: isBottom || isHidden ? 0 : 32, height: isHidden ? 0 : 'auto', padding: isHidden ? '0' : undefined, overflow: 'hidden' }}
     >
       <FlaskConical className="h-4 w-4 shrink-0" />
       <span>{settings.text}</span>

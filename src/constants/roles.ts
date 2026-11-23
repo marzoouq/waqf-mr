@@ -30,6 +30,16 @@ export const MAINTENANCE_BYPASS_ROLES: AppRole[] = ['admin', 'support'];
 /** جميع الأدوار في النظام */
 export const ALL_ROLES: AppRole[] = ['admin', 'accountant', 'beneficiary', 'waqif', 'support'];
 
+// ─── اسم البوابة تحت اسم الوقف في الهيدر الموحّد ───
+
+export const PORTAL_SUBTITLES: Record<string, string> = {
+  admin: 'منظومة إدارة الوقف',
+  accountant: 'منظومة إدارة الوقف',
+  beneficiary: 'بوابة المستفيدين',
+  waqif: 'بوابة الواقف',
+  support: 'الدعم الفني',
+};
+
 // ─── تسميات الأدوار ───
 
 export const ROLE_LABELS: Record<string, string> = {

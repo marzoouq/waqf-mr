@@ -61,6 +61,16 @@
   --color-caution: hsl(var(--caution));
   --color-caution-foreground: hsl(var(--caution-foreground));
 
+  /* ── الهوية الوقفية: الحبر الأخضر، البرونز، الضريبة ── */
+  --color-ink: hsl(var(--ink));
+  --color-ink-foreground: hsl(var(--ink-foreground));
+  --color-bronze: hsl(var(--bronze));
+  --color-bronze-soft: hsl(var(--bronze-soft));
+  --color-bronze-line: hsl(var(--bronze-line));
+  --color-bronze-foreground: hsl(var(--bronze-foreground));
+  --color-vat: hsl(var(--vat));
+  --color-vat-muted: hsl(var(--vat-muted));
+
   /* ── الحدود الدائرية ── */
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -154,46 +164,69 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* Amiri fonts loaded dynamically — see loadAmiriFonts() in utils */
+/* Amiri — خط العناوين الرسمية في الواجهة (يُحمّل عند أول استخدام فقط) */
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/Amiri-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Amiri-Regular.woff2') format('woff2');
+}
 
 @layer base {
   :root {
-    --background: 44 40% 96%;
-    --foreground: 150 30% 15%;
+    /* الهوية الوقفية: عاجي دافئ، أخضر وقفي عميق، برونزي هادئ */
+    --background: 45 22% 96%;
+    --foreground: 155 20% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 150 30% 15%;
+    --card-foreground: 155 20% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 150 30% 15%;
-    --primary: 162 61% 21%;
-    --primary-foreground: 40 30% 98%;
-    --secondary: 41 52% 47%;
-    --secondary-foreground: 150 30% 15%;
-    --muted: 40 20% 94%;
-    --muted-foreground: 150 15% 40%;
-    --accent: 158 45% 92%;
-    --accent-foreground: 162 61% 21%;
-    --destructive: 9 59% 45%;
+    --popover-foreground: 155 20% 11%;
+    --primary: 162 60% 18%;
+    --primary-foreground: 45 30% 98%;
+    --secondary: 39 48% 48%;
+    --secondary-foreground: 163 65% 12%;
+    --muted: 43 22% 93%;
+    --muted-foreground: 150 6% 42%;
+    --accent: 150 28% 92%;
+    --accent-foreground: 162 60% 18%;
+    --destructive: 6 49% 44%;
     --destructive-foreground: 0 0% 100%;
-    --border: 43 28% 87%;
-    --input: 43 28% 87%;
-    --ring: 162 61% 21%;
+    --border: 43 22% 88%;
+    --input: 43 22% 86%;
+    --ring: 162 60% 18%;
     --radius: 1rem;
-    --sidebar-background: 162 61% 18%;
-    --sidebar-foreground: 40 30% 98%;
-    --sidebar-primary: 41 52% 52%;
-    --sidebar-primary-foreground: 150 30% 15%;
-    --sidebar-accent: 158 50% 30%;
-    --sidebar-accent-foreground: 40 30% 98%;
-    --sidebar-border: 158 50% 30%;
-    --sidebar-ring: 41 52% 52%;
-    --success: 158 64% 40%;
-    --success-foreground: 162 61% 21%;
-    --success-muted: 158 50% 94%;
-    --warning: 43 90% 50%;
-    --warning-foreground: 30 95% 28%;
-    --info: 200 80% 50%;
+    --sidebar-background: 163 65% 12%;
+    --sidebar-foreground: 150 22% 90%;
+    --sidebar-primary: 40 50% 57%;
+    --sidebar-primary-foreground: 163 65% 12%;
+    --sidebar-accent: 162 45% 18%;
+    --sidebar-accent-foreground: 45 30% 98%;
+    --sidebar-border: 162 40% 20%;
+    --sidebar-ring: 40 50% 57%;
+    --ink: 163 65% 12%;
+    --ink-foreground: 45 30% 98%;
+    --bronze: 39 48% 48%;
+    --bronze-soft: 40 55% 91%;
+    --bronze-line: 39 50% 83%;
+    --bronze-foreground: 38 60% 24%;
+    --vat: 36 80% 36%;
+    --vat-muted: 38 75% 93%;
+    --success: 154 60% 30%;
+    --success-foreground: 154 60% 24%;
+    --success-muted: 150 35% 92%;
+    --warning: 38 80% 45%;
+    --warning-foreground: 30 85% 28%;
+    --info: 200 70% 42%;
     --info-foreground: 200 80% 28%;
-    --info-muted: 200 60% 94%;
+    --info-muted: 200 50% 94%;
     --discount: 145 60% 40%;
     --discount-foreground: 145 60% 28%;
     --discount-muted: 145 40% 96%;
@@ -208,9 +241,9 @@
     --status-special-foreground: 270 60% 45%;
     --caution: 38 92% 50%;
     --caution-foreground: 28 95% 30%;
-    --shadow-sm: 0 1px 2px 0 hsl(150 30% 15% / 0.05);
-    --shadow: 0 4px 6px -1px hsl(150 30% 15% / 0.1);
-    --shadow-lg: 0 10px 25px -3px hsl(150 30% 15% / 0.15);
+    --shadow-sm: 0 1px 0 hsl(163 65% 12% / 0.03), 0 8px 24px -18px hsl(163 65% 12% / 0.22);
+    --shadow: 0 4px 14px -6px hsl(163 65% 12% / 0.14);
+    --shadow-lg: 0 18px 40px -22px hsl(163 65% 12% / 0.45);
   }
 
   .dark {
@@ -222,7 +255,7 @@
     --popover-foreground: 40 30% 98%;
     --primary: 158 55% 45%;
     --primary-foreground: 150 30% 8%;
-    --secondary: 41 55% 58%;
+    --secondary: 40 50% 57%;
     --secondary-foreground: 150 30% 8%;
     --muted: 150 20% 18%;
     --muted-foreground: 40 15% 65%;
@@ -241,6 +274,14 @@
     --sidebar-accent-foreground: 40 30% 98%;
     --sidebar-border: 150 20% 15%;
     --sidebar-ring: 43 74% 55%;
+    --ink: 163 45% 9%;
+    --ink-foreground: 45 30% 96%;
+    --bronze: 40 50% 57%;
+    --bronze-soft: 40 30% 16%;
+    --bronze-line: 40 30% 26%;
+    --bronze-foreground: 40 60% 78%;
+    --vat: 38 75% 60%;
+    --vat-muted: 38 40% 15%;
     --success: 158 55% 50%;
     --success-foreground: 158 55% 70%;
     --success-muted: 158 40% 15%;
@@ -329,11 +370,32 @@
   }
 
   .gradient-gold {
-    background: linear-gradient(135deg, hsl(41 52% 44%) 0%, hsl(39 50% 54%) 50%, hsl(41 52% 47%) 100%);
+    background: linear-gradient(135deg, hsl(var(--bronze)) 0%, hsl(40 50% 57%) 55%, hsl(var(--bronze)) 100%);
   }
 
+  /* سطح وقفي: أخضر عميق مع زخرفة النجمة الثمانية */
   .gradient-hero {
-    background: linear-gradient(160deg, hsl(var(--primary) / 0.9) 0%, hsl(var(--primary)) 40%, hsl(var(--primary) / 0.85) 70%, hsl(var(--secondary) / 0.15) 100%);
+    background-color: hsl(var(--ink));
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23C9A55C' stroke-opacity='0.16' stroke-width='0.9'%3E%3Crect x='18' y='18' width='28' height='28'/%3E%3Crect x='18' y='18' width='28' height='28' transform='rotate(45 32 32)'/%3E%3Ccircle cx='32' cy='32' r='6'/%3E%3Cpath d='M0 0l8 8M64 0l-8 8M0 64l8-8M64 64l-8-8'/%3E%3C/g%3E%3C/svg%3E"), linear-gradient(160deg, hsl(var(--ink)) 0%, hsl(var(--primary)) 100%);
+    background-size: 64px 64px, 100% 100%;
+  }
+
+  .waqf-surface {
+    background-color: hsl(var(--ink));
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23C9A55C' stroke-opacity='0.16' stroke-width='0.9'%3E%3Crect x='18' y='18' width='28' height='28'/%3E%3Crect x='18' y='18' width='28' height='28' transform='rotate(45 32 32)'/%3E%3Ccircle cx='32' cy='32' r='6'/%3E%3Cpath d='M0 0l8 8M64 0l-8 8M0 64l8-8M64 64l-8-8'/%3E%3C/g%3E%3C/svg%3E"), linear-gradient(135deg, hsl(var(--ink)) 0%, hsl(var(--primary)) 100%);
+    background-size: 64px 64px, 100% 100%;
+    color: hsl(var(--ink-foreground));
+  }
+
+  /* إطار داخلي برونزي رفيع — يُستخدم لبطاقة صك الحصة */
+  .waqf-frame {
+    box-shadow: inset 0 0 0 1px hsl(var(--bronze) / 0.35), var(--shadow-lg);
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+    unicode-bidi: isolate;
+    white-space: nowrap;
   }
 
   .gradient-auth {

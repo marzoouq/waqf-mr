@@ -12,7 +12,7 @@ interface SectionHeadingProps {
 /** عنوان قسم موحّد داخل الصفحات: عنوان + عدد اختياري + رابط «عرض الكل» */
 const SectionHeading = ({ title, count, action, extra }: SectionHeadingProps) => (
   <div className="flex items-center justify-between gap-2 px-1 mb-2.5">
-    <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
+    <h2 className="flex items-center gap-2 font-display text-lg font-bold text-primary dark:text-foreground">
       {title}
       {typeof count === 'number' && count > 0 && (
         <span className="inline-flex min-w-[22px] items-center justify-center rounded-full bg-warning/15 px-1.5 text-xs font-bold text-warning-foreground tabular-nums">

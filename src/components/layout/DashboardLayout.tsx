@@ -9,7 +9,6 @@ import {
 import { BetaBanner } from '@/components/common';
 import { lazy, Suspense } from 'react';
 import { cn } from '@/lib/cn';
-import WaqfInfoBar from '@/components/layout/WaqfInfoBar';
 const PrintHeader = lazy(() => import('@/components/common/layout/PrintHeader'));
 const PrintFooter = lazy(() => import('@/components/common/layout/PrintFooter'));
 
@@ -34,8 +33,8 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const {
-    role, links, unreadCount,
-    fiscalYearId, setFiscalYearId, fiscalYear, isClosed, showAll,
+    role, links, unreadCount, waqfName, portalLabel,
+    fiscalYearId, setFiscalYearId, isClosed, showAll,
     sidebarOpen, setSidebarOpen,
     mobileSidebarOpen, setMobileSidebarOpen,
     logoutOpen, setLogoutOpen,
@@ -59,7 +58,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       {/* Mobile Header */}
       <MobileHeader
         onOpenSidebar={() => setMobileSidebarOpen(true)}
-        fiscalYearLabel={fiscalYear?.label}
+        waqfName={waqfName}
+        portalLabel={portalLabel}
       />
 
       {/* Mobile Sidebar Overlay */}
@@ -122,7 +122,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         {...swipe.mainTouchProps}
         className={cn(
           'flex-1 transition-[margin] duration-300 ease-in-out min-h-screen overflow-y-auto',
-          'pt-14 pb-16 lg:pt-0 lg:pb-0',
+          'pt-14 pb-20 lg:pt-0 lg:pb-0',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset',
           sidebarOpen ? 'lg:ms-64' : 'lg:ms-16'
         )}
@@ -135,12 +135,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           showAll={showAll}
           isClosed={isClosed}
         />
-        <div className="lg:hidden">
-          <WaqfInfoBar />
-          <div className="flex items-center gap-2 px-3 py-1.5 print:hidden flex-wrap">
-            <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={showAll} />
-            <Suspense fallback={null}><GlobalSearch /></Suspense>
-          </div>
+        {/* شريط السياق على الجوال: السنة المالية والبحث في سطر واحد */}
+        <div className="lg:hidden flex items-center gap-2 px-3 py-2 border-b border-border/70 bg-background print:hidden">
+          <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={showAll} />
+          <div className="flex-1" />
+          <Suspense fallback={null}><GlobalSearch /></Suspense>
         </div>
         <BetaBanner />
         {children}

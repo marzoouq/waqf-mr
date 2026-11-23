@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Check, Clock, CheckCircle2, ArrowLeft } from 'lucide-react';
-import { AnimatedCounter } from '@/components/common';
+import ShareDeedShell from '@/components/beneficiary/ShareDeedShell';
 import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import { SHARE_BADGE, FY_STATE_COPY } from '@/constants/beneficiaryCopy';
 import { fmt, fmtDate } from '@/utils/format/format';
@@ -51,31 +51,11 @@ const BeneficiaryStatsRow = ({
   const DisclosureIcon = DOMAIN_ICONS.disclosure;
 
   return (
-    <section aria-label="حصتي" className="relative overflow-hidden rounded-2xl gradient-hero text-primary-foreground shadow-lg animate-slide-up">
-      {/* زخرفة هادئة */}
-      <div className="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full bg-primary-foreground/5" aria-hidden="true" />
-      <div className="pointer-events-none absolute -bottom-20 left-24 h-40 w-40 rounded-full border border-secondary/20" aria-hidden="true" />
-
-      <div className="relative p-5 sm:p-7 space-y-5">
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-sm text-primary-foreground/80">
-            حصتك من ريع {ltr(fiscalYearLabel) || '—'}
-          </p>
-          <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-bold text-secondary-foreground shrink-0">
-            <BadgeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-            {badge.label}
-          </span>
-        </div>
-
-        <p className="text-4xl sm:text-5xl font-bold tabular-nums leading-none tracking-tight">
-          <AnimatedCounter value={myShare} decimals={2} />
-          <span className="text-lg sm:text-xl font-medium text-primary-foreground/80 ms-2">ر.س</span>
-        </p>
-
+    <ShareDeedShell label={<>حصتك من ريع {ltr(fiscalYearLabel) || '—'}</>} amount={myShare} badgeLabel={badge.label} badgeIcon={BadgeIcon}>
         {!isClosed && (
           <div className="space-y-1.5">
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary-foreground/15">
-              <div className="h-full rounded-full bg-secondary transition-[width] duration-500" style={{ width: `${fyProgress.percent}%` }} />
+              <div className="h-full rounded-full bg-sidebar-primary transition-[width] duration-500" style={{ width: `${fyProgress.percent}%` }} />
             </div>
             <p className="text-xs text-primary-foreground/75">
               {fyProgress.notStarted ? FY_STATE_COPY.notStarted.badge : `متبقي ${fyProgress.daysLeft} يوم على نهاية السنة — الرقم تقديري حتى الإقفال`}
@@ -84,14 +64,14 @@ const BeneficiaryStatsRow = ({
         )}
 
         {deliveryStages.length > 0 && (
-          <ol className="flex items-start" aria-label="مراحل التسليم">
+          <ol className="flex items-start rounded-xl bg-ink/25 border border-primary-foreground/10 px-3 py-3" aria-label="مراحل التسليم">
             {deliveryStages.map((st, i) => (
               <li key={st.key} className="flex flex-1 items-start last:flex-none">
                 <div className="flex flex-col items-center gap-1.5 min-w-[64px]">
                   <span
                     className={cn(
                       'flex h-7 w-7 items-center justify-center rounded-full border-2',
-                      st.done ? 'border-secondary bg-secondary text-secondary-foreground' : 'border-primary-foreground/35 text-primary-foreground/50',
+                      st.done ? 'border-sidebar-primary bg-sidebar-primary text-sidebar-primary-foreground' : 'border-primary-foreground/35 text-primary-foreground/50',
                     )}
                     aria-hidden="true"
                   >
@@ -104,7 +84,7 @@ const BeneficiaryStatsRow = ({
                   </span>
                 </div>
                 {i < deliveryStages.length - 1 && (
-                  <span className={cn('mt-3.5 h-0.5 flex-1 rounded-full', deliveryStages[i + 1]?.done ? 'bg-secondary' : 'bg-primary-foreground/20')} aria-hidden="true" />
+                  <span className={cn('mt-3.5 h-0.5 flex-1 rounded-full', deliveryStages[i + 1]?.done ? 'bg-sidebar-primary' : 'bg-primary-foreground/20')} aria-hidden="true" />
                 )}
               </li>
             ))}
@@ -121,7 +101,7 @@ const BeneficiaryStatsRow = ({
           <div className="grid grid-cols-2 gap-2.5">
             <Link
               to="/beneficiary/my-share"
-              className="flex items-center justify-center gap-2 rounded-xl border border-primary-foreground/25 bg-primary-foreground/10 px-3 py-2.5 text-sm font-medium transition-colors hover:bg-primary-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+              className="flex items-center justify-center gap-2 rounded-xl bg-sidebar-primary px-3 py-2.5 text-sm font-bold text-sidebar-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground"
             >
               <ShareIcon className="h-4 w-4" aria-hidden="true" />
               تفاصيل حصتي
@@ -136,8 +116,7 @@ const BeneficiaryStatsRow = ({
             </Link>
           </div>
         )}
-      </div>
-    </section>
+    </ShareDeedShell>
   );
 };
 

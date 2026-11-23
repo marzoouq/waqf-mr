@@ -22,12 +22,12 @@ describe('PageHeaderCard', () => {
   it('يعرض الأيقونة عند تمريرها', () => {
     const { container } = render(<PageHeaderCard title="العقارات" icon={Building2} />);
     // الأيقونة داخل div مع gradient-gold
-    expect(container.querySelector('.gradient-gold')).toBeInTheDocument();
+    expect(container.querySelector('[data-slot="page-icon"]')).toBeInTheDocument();
   });
 
   it('لا يعرض الأيقونة عند عدم تمريرها', () => {
     const { container } = render(<PageHeaderCard title="العقارات" />);
-    expect(container.querySelector('.gradient-gold')).toBeNull();
+    expect(container.querySelector('[data-slot="page-icon"]')).toBeNull();
   });
 
   it('يعرض الشارة (badge) عند تمريرها', () => {

@@ -42,6 +42,9 @@ export { default as RequirePublishedYears } from './finance/RequirePublishedYear
 export { default as LockedYearBanner } from './finance/LockedYearBanner';
 export { default as FiscalYearStateNotice } from './finance/FiscalYearStateNotice';
 export { default as EstimatedShareBadge } from './finance/EstimatedShareBadge';
+export { default as FigureTile } from './finance/FigureTile';
+export type { FigureTone } from './finance/FigureTile';
+export { default as RevenueWaterfall } from './finance/RevenueWaterfall';
 
 // charts
 export { default as ChartBox } from './charts/ChartBox';

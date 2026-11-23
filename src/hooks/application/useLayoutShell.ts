@@ -13,6 +13,8 @@ import { useNavLinks } from '@/hooks/application/useNavLinks';
 import { useUnreadMessages } from '@/hooks/data/messaging/useUnreadMessages';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { SHOW_ALL_ROUTES } from '@/constants/navigation';
+import { PORTAL_SUBTITLES } from '@/constants/roles';
+import { useSetting } from '@/hooks/data/settings/app/useAppSettings';
 
 const SIDEBAR_W = 256;
 
@@ -23,6 +25,8 @@ export function useLayoutShell() {
   const showAll = SHOW_ALL_ROUTES.includes(location.pathname);
 
   const links = useNavLinks();
+  const waqfName = useSetting('waqf_name', 'إدارة الوقف');
+  const portalLabel = PORTAL_SUBTITLES[role || ''] ?? 'منظومة إدارة الوقف';
   const { performLogout } = useLogoutFlow();
 
   // ─── Sidebar State ───
@@ -60,7 +64,7 @@ export function useLayoutShell() {
   const { data: unreadCount = 0 } = useUnreadMessages();
 
   return {
-    user, role, links, unreadCount,
+    user, role, links, unreadCount, waqfName, portalLabel,
     fiscalYearId, setFiscalYearId, fiscalYear, isClosed, showAll,
     sidebarOpen, setSidebarOpen,
     mobileSidebarOpen, setMobileSidebarOpen,

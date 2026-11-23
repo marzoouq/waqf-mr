@@ -1,4 +1,5 @@
-import { fmt } from '@/utils/format/format';
+import { RevenueWaterfall } from '@/components/common';
+import type { WaterfallRow } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -35,10 +36,6 @@ interface AccountsSummaryCardsProps {
 const isOverridden = (current: number, original: number | undefined) =>
   original !== undefined && Math.abs(current - original) > 0.01;
 
-const UnsavedBadge = () => (
-  <span className="text-[10px] px-1 py-0.5 rounded bg-destructive/40 text-primary-foreground ms-1">غير محفوظ</span>
-);
-
 const AccountsSummaryCards = ({
   waqfCorpusPrevious, totalIncome, grandTotal, totalExpenses,
   netAfterExpenses, manualVat, netAfterVat, zakatAmount, netAfterZakat,
@@ -53,126 +50,61 @@ const AccountsSummaryCards = ({
   const corpusOverridden = isOverridden(waqfCorpusManual, defaultWaqfCorpusManual);
   const distOverridden = isOverridden(manualDistributions, defaultManualDistributions);
   const anyOverridden = vatOverridden || zakatOverridden || corpusOverridden || distOverridden;
+  const est = isClosed ? undefined : ('estimated' as const);
+  const unsaved = (flag: boolean) => (flag ? ('unsaved' as const) : undefined);
+  const hasCarry = waqfCorpusPrevious > 0;
+
+  // نفس البنود والقيم السابقة بالترتيب المحاسبي — تُعرض كما هي دون حساب جديد
+  const rows: WaterfallRow[] = [
+    { kind: 'plus', label: 'إجمالي الدخل', value: totalIncome },
+    ...(hasCarry ? [
+      { kind: 'plus', label: 'رقبة وقف مرحلة', value: waqfCorpusPrevious },
+      { kind: 'subtotal', label: 'الإجمالي الشامل', value: grandTotal },
+    ] satisfies WaterfallRow[] : []),
+    { kind: 'minus', label: 'المصروفات التشغيلية', value: totalExpenses },
+    { kind: 'subtotal', label: 'الصافي بعد المصاريف', value: netAfterExpenses },
+    { kind: 'vat', label: 'ضريبة القيمة المضافة', value: manualVat, flag: unsaved(vatOverridden) },
+    { kind: 'subtotal', label: 'الصافي بعد الضريبة', value: netAfterVat },
+    { kind: 'minus', label: 'الزكاة', value: zakatAmount, flag: unsaved(zakatOverridden) },
+    { kind: 'subtotal', label: 'الصافي بعد الزكاة', value: computedNetAfterZakat },
+    { kind: 'share', label: `حصة الناظر (${adminPercent}%)`, value: adminShare, flag: est },
+    { kind: 'share', label: `حصة الواقف (${waqifPercent}%)`, value: waqifShare, flag: est },
+    { kind: 'total', label: 'ريع الوقف', value: waqfRevenue, flag: est },
+    { kind: 'minus', label: 'رقبة الوقف (الحالي)', value: waqfCorpusManual, flag: unsaved(corpusOverridden) },
+    { kind: 'minus', label: 'التوزيعات', value: manualDistributions, flag: unsaved(distOverridden) },
+    { kind: 'total', label: 'الرصيد المتبقي', value: remainingBalance },
+  ];
+
   return (
-    <Card className="shadow-sm gradient-hero text-primary-foreground">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calculator className="w-5 h-5" />
+    <Card className="shadow-sm overflow-hidden">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 font-display text-xl text-primary dark:text-foreground">
+          <Calculator className="w-5 h-5 text-bronze" aria-hidden="true" />
           ملخص الحسابات الحالية
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        {!isClosed && (
-          <Alert className="mb-4 border-warning/50 bg-warning/20 text-primary-foreground">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              هذه أرقام تقديرية — يتم اعتمادها رسمياً عند إقفال السنة المالية
-            </AlertDescription>
-          </Alert>
-        )}
-        {usingFallbackPct && (
-          <Alert className="mb-4 border-warning/50 bg-warning/20 text-primary-foreground">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              تُستخدَم النسب الافتراضية (ناظر 10%، واقف 5%) — يمكنك تعديلها من إعدادات الحسابات
-            </AlertDescription>
-          </Alert>
-        )}
-        {anyOverridden && (
-          <Alert className="mb-4 border-destructive/60 bg-destructive/25 text-primary-foreground">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              تم تعديل قيمة يدوية في الواجهة فقط — لم تُحفظ في قاعدة البيانات وستُفقد عند تحديث الصفحة.
-            </AlertDescription>
-          </Alert>
-        )}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
-          {waqfCorpusPrevious > 0 && (
-            <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-              <p className="text-xs sm:text-sm text-primary-foreground/90">رقبة وقف مرحلة</p>
-              <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfCorpusPrevious)}</p>
-            </div>
+      <CardContent className="px-0 pb-0">
+        <div className="px-4 sm:px-6 space-y-3 empty:hidden">
+          {!isClosed && (
+            <Alert className="border-vat/30 bg-vat-muted">
+              <AlertTriangle className="h-4 w-4 text-vat" />
+              <AlertDescription>هذه أرقام تقديرية — يتم اعتمادها رسمياً عند إقفال السنة المالية</AlertDescription>
+            </Alert>
           )}
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">إجمالي الدخل</p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(totalIncome)}</p>
-          </div>
-          {waqfCorpusPrevious > 0 && (
-            <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-              <p className="text-xs sm:text-sm text-primary-foreground/90">الإجمالي الشامل</p>
-              <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(grandTotal)}</p>
-            </div>
+          {usingFallbackPct && (
+            <Alert className="border-vat/30 bg-vat-muted">
+              <AlertTriangle className="h-4 w-4 text-vat" />
+              <AlertDescription>تُستخدَم النسب الافتراضية (ناظر 10%، واقف 5%) — يمكنك تعديلها من إعدادات الحسابات</AlertDescription>
+            </Alert>
           )}
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">المصروفات التشغيلية</p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(totalExpenses)}</p>
-          </div>
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">الصافي بعد المصاريف</p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(netAfterExpenses)}</p>
-          </div>
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
-              ضريبة القيمة المضافة
-              {vatOverridden && <UnsavedBadge />}
-            </p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(manualVat)}</p>
-          </div>
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">الصافي بعد الضريبة</p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(netAfterVat)}</p>
-          </div>
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
-              الزكاة
-              {zakatOverridden && <UnsavedBadge />}
-            </p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(zakatAmount)}</p>
-          </div>
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">الصافي بعد الزكاة</p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(computedNetAfterZakat)}</p>
-          </div>
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
-              حصة الناظر ({adminPercent}%)
-              {!isClosed && <span className="text-[10px] px-1 py-0.5 rounded bg-warning/40 text-primary-foreground">تقديري</span>}
-            </p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(adminShare)}</p>
-          </div>
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
-              حصة الواقف ({waqifPercent}%)
-              {!isClosed && <span className="text-[10px] px-1 py-0.5 rounded bg-warning/40 text-primary-foreground">تقديري</span>}
-            </p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqifShare)}</p>
-          </div>
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
-              ريع الوقف
-              {!isClosed && <span className="text-[10px] px-1 py-0.5 rounded bg-warning/40 text-primary-foreground">تقديري</span>}
-            </p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfRevenue)}</p>
-          </div>
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
-              رقبة الوقف (الحالي)
-              {corpusOverridden && <UnsavedBadge />}
-            </p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfCorpusManual)}</p>
-          </div>
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90 flex items-center justify-center gap-1">
-              التوزيعات
-              {distOverridden && <UnsavedBadge />}
-            </p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(manualDistributions)}</p>
-          </div>
-          <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
-            <p className="text-xs sm:text-sm text-primary-foreground/90">الرصيد المتبقي</p>
-            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(remainingBalance)}</p>
-          </div>
+          {anyOverridden && (
+            <Alert className="border-destructive/40 bg-destructive/10">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <AlertDescription>تم تعديل قيمة يدوية في الواجهة فقط — لم تُحفظ في قاعدة البيانات وستُفقد عند تحديث الصفحة.</AlertDescription>
+            </Alert>
+          )}
         </div>
+        <RevenueWaterfall rows={rows} base={hasCarry ? grandTotal : totalIncome} className="mt-3 border-t" />
       </CardContent>
     </Card>
   );

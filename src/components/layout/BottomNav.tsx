@@ -42,8 +42,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
   if (!role) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-border/50 bg-background/95" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="التنقل السفلي">
-      <div className="flex items-center justify-around h-14">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-border bg-card/95 backdrop-blur print:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="التنقل السفلي">
+      <div className="flex items-center justify-around h-16">
         {visibleLinks.map((link) => {
           const active = isActiveLink(location.pathname, link.to);
           return (
@@ -55,10 +55,10 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar, unreadCount = 0 })
               className={cn(
                 'flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-inset',
-                active ? 'text-primary' : 'text-muted-foreground'
+                active ? 'text-primary font-bold' : 'text-muted-foreground'
               )}
             >
-              <div className="relative">
+              <div className={cn('relative rounded-xl px-3.5 py-1 transition-colors', active && 'bg-accent')}>
                 <link.icon className={cn('w-5 h-5', active && 'stroke-[2.5]')} aria-hidden="true" />
                 {link.to.includes('/messages') && unreadCount > 0 && (
                   <span className="absolute -top-1 -left-1 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-0.5">

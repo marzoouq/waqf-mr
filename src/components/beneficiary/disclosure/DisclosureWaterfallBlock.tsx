@@ -1,4 +1,9 @@
-import { fmt } from '@/utils/format/format';
+/**
+ * مسار الريع في الإفصاح — نفس البنود والقيم السابقة، معروضة بأشرطة متتالية.
+ * لا حساب هنا: كل قيمة تصل جاهزة من الخادم وتُعرض كما هي.
+ */
+import { RevenueWaterfall } from '@/components/common';
+import type { WaterfallRow } from '@/types';
 
 interface Props {
   waqfCorpusPrevious: number;
@@ -16,67 +21,35 @@ interface Props {
   beneficiariesShare: number;
 }
 
-const DisclosureWaterfallBlock = ({
-  waqfCorpusPrevious, grandTotal, netAfterExpenses, vatAmount, netAfterVat,
-  zakatAmount, netAfterZakat, adminShare, adminPct, waqifShare, waqifPct,
-  waqfCorpusManual, beneficiariesShare,
-}: Props) => (
-  <div className="border-t-2 pt-4 space-y-2 sm:space-y-3">
-    {waqfCorpusPrevious > 0 && (
-      <>
-        <div className="flex justify-between items-center py-2 text-info text-sm sm:text-base">
-          <span>(+) رقبة الوقف المرحّلة من العام السابق</span>
-          <span className="whitespace-nowrap ms-2">+{fmt(waqfCorpusPrevious)} ر.س</span>
-        </div>
-        <div className="flex justify-between items-center py-2">
-          <span className="font-bold text-sm sm:text-base">الإجمالي الشامل</span>
-          <span className="font-bold text-base sm:text-lg whitespace-nowrap ms-2">{fmt(grandTotal)} ر.س</span>
-        </div>
-      </>
-    )}
-    <div className="flex justify-between items-center py-2">
-      <span className="font-bold text-sm sm:text-base">الصافي بعد المصاريف</span>
-      <span className="font-bold text-base sm:text-lg whitespace-nowrap ms-2">{fmt(netAfterExpenses)} ر.س</span>
-    </div>
-    <div className="flex justify-between items-center py-2 text-destructive text-sm sm:text-base">
-      <span>(-) ضريبة القيمة المضافة</span>
-      <span className="whitespace-nowrap ms-2">-{fmt(vatAmount)} ر.س</span>
-    </div>
-    <div className="flex justify-between items-center py-2">
-      <span className="font-bold text-sm sm:text-base">الصافي بعد خصم الضريبة</span>
-      <span className="font-bold text-primary text-base sm:text-lg whitespace-nowrap ms-2">{fmt(netAfterVat)} ر.س</span>
-    </div>
-    {zakatAmount > 0 && (
-      <>
-        <div className="flex justify-between items-center py-2 text-destructive text-sm sm:text-base">
-          <span>(-) الزكاة</span>
-          <span className="whitespace-nowrap ms-2">-{fmt(zakatAmount)} ر.س</span>
-        </div>
-        <div className="flex justify-between items-center py-2">
-          <span className="font-bold text-sm sm:text-base">الصافي بعد الزكاة</span>
-          <span className="font-bold whitespace-nowrap ms-2">{fmt(netAfterZakat)} ر.س</span>
-        </div>
-      </>
-    )}
-    <div className="flex justify-between items-center py-2 text-muted-foreground text-xs sm:text-sm">
-      <span>(-) حصة الناظر ({adminPct}%)</span>
-      <span className="whitespace-nowrap ms-2">-{fmt(adminShare)} ر.س</span>
-    </div>
-    <div className="flex justify-between items-center py-2 text-muted-foreground text-xs sm:text-sm">
-      <span>(-) حصة الواقف ({waqifPct}%)</span>
-      <span className="whitespace-nowrap ms-2">-{fmt(waqifShare)} ر.س</span>
-    </div>
-    {waqfCorpusManual > 0 && (
-      <div className="flex justify-between items-center py-2 text-muted-foreground text-xs sm:text-sm">
-        <span>(-) احتياطي رقبة الوقف</span>
-        <span className="whitespace-nowrap ms-2">-{fmt(waqfCorpusManual)} ر.س</span>
+const DisclosureWaterfallBlock = (p: Props) => {
+  const rows: WaterfallRow[] = [
+    ...(p.waqfCorpusPrevious > 0 ? [
+      { kind: 'plus', label: 'رقبة الوقف المرحّلة من العام السابق', value: p.waqfCorpusPrevious },
+      { kind: 'subtotal', label: 'الإجمالي الشامل', value: p.grandTotal },
+    ] satisfies WaterfallRow[] : []),
+    { kind: 'subtotal', label: 'الصافي بعد المصاريف', value: p.netAfterExpenses },
+    { kind: 'vat', label: 'ضريبة القيمة المضافة', value: p.vatAmount },
+    { kind: 'subtotal', label: 'الصافي بعد خصم الضريبة', value: p.netAfterVat },
+    ...(p.zakatAmount > 0 ? [
+      { kind: 'minus', label: 'الزكاة', value: p.zakatAmount },
+      { kind: 'subtotal', label: 'الصافي بعد الزكاة', value: p.netAfterZakat },
+    ] satisfies WaterfallRow[] : []),
+    { kind: 'share', label: 'حصة الناظر', value: p.adminShare, note: p.adminPct > 0 ? `${p.adminPct}%` : undefined },
+    { kind: 'share', label: 'حصة الواقف', value: p.waqifShare, note: p.waqifPct > 0 ? `${p.waqifPct}%` : undefined },
+    ...(p.waqfCorpusManual > 0 ? [
+      { kind: 'minus', label: 'احتياطي رقبة الوقف', value: p.waqfCorpusManual },
+    ] satisfies WaterfallRow[] : []),
+    { kind: 'total', label: 'الإجمالي القابل للتوزيع', value: p.beneficiariesShare },
+  ];
+  const base = p.waqfCorpusPrevious > 0 ? p.grandTotal : Math.max(p.grandTotal, p.netAfterExpenses);
+  return (
+    <section aria-label="مسار الريع" className="border-t-2 pt-4">
+      <h4 className="font-display font-bold text-lg text-primary dark:text-foreground mb-2">مسار الريع</h4>
+      <div className="-mx-4 sm:-mx-5 rounded-lg overflow-hidden">
+        <RevenueWaterfall rows={rows} base={base} />
       </div>
-    )}
-    <div className="flex justify-between items-center py-2 font-bold text-sm sm:text-base">
-      <span>الإجمالي القابل للتوزيع</span>
-      <span className="whitespace-nowrap ms-2">{fmt(beneficiariesShare)} ر.س</span>
-    </div>
-  </div>
-);
+    </section>
+  );
+};
 
 export default DisclosureWaterfallBlock;

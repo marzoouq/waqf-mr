@@ -1,12 +1,14 @@
 /**
- * بطاقات ملخص الحصة — نسبة، حصة (تقديرية/نهائية)، إجمالي مستلم، معلّقة، سُلف
- * تتبع CR-02 و CR-09.
+ * ملخص الحصة (الهوية الوقفية) — «صك الحصة» بالمبلغ والنسبة، ثم بطاقات: المستلم، المعلّق، السُّلف.
+ * تتبع CR-02 و CR-09. الأرقام تُعرض كما تصل دون أي حساب.
  */
-import { Card, CardContent } from '@/components/ui/card';
-import { Wallet, Clock, CheckCircle, Banknote, PieChart } from 'lucide-react';
-import { fmt } from '@/utils/format/format';
-import { EstimatedShareBadge } from '@/components/common';
-import { DISTRIBUTIONS_LABELS } from '@/constants/beneficiaryCopy';
+import { Link } from 'react-router-dom';
+import { Clock, CheckCircle, CheckCircle2, Banknote, ArrowLeft } from 'lucide-react';
+import { FigureTile } from '@/components/common';
+import ShareDeedShell from '@/components/beneficiary/ShareDeedShell';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
+import { DISTRIBUTIONS_LABELS, SHARE_BADGE } from '@/constants/beneficiaryCopy';
+import { cn } from '@/lib/cn';
 
 interface Props {
   sharePercentage: number;
@@ -21,91 +23,37 @@ interface Props {
 const MyShareSummaryCards = ({
   sharePercentage, myShare, totalReceived, pendingAmount,
   paidAdvancesTotal, isClosed, advancesEnabled,
-}: Props) => (
-  <div className={`grid grid-cols-2 ${advancesEnabled ? 'lg:grid-cols-5' : 'sm:grid-cols-4'} gap-3 sm:gap-4`}>
-    {/* نسبة الحصة (G-01) */}
-    <Card className="shadow-sm border-primary/20">
-      <CardContent className="p-3 sm:p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-          <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-            <PieChart className="w-4 h-4 sm:w-6 sm:h-6 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs sm:text-sm text-muted-foreground">نسبة الحصة</p>
-            <p className="text-base sm:text-2xl font-bold truncate">{sharePercentage}%</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+}: Props) => {
+  const badge = isClosed ? SHARE_BADGE.final : SHARE_BADGE.estimated;
+  const DisclosureIcon = DOMAIN_ICONS.disclosure;
+  return (
+    <div className="space-y-4">
+      <ShareDeedShell
+        label={isClosed ? 'الحصة النهائية' : 'الحصة التقديرية'}
+        amount={myShare}
+        badgeLabel={badge.label}
+        badgeIcon={isClosed ? CheckCircle2 : Clock}
+        sub={<>نسبة الحصة <bdi dir="ltr" className="num font-bold text-primary-foreground">{sharePercentage}%</bdi> — {badge.hint}</>}
+      >
+        <Link
+          to="/beneficiary/disclosure"
+          className="inline-flex items-center gap-2 rounded-xl border border-primary-foreground/25 bg-primary-foreground/10 px-4 py-2.5 text-sm font-bold transition-colors hover:bg-primary-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-primary"
+        >
+          <DisclosureIcon className="h-4 w-4" aria-hidden="true" />
+          كيف حُسبت حصتي؟
+          <ArrowLeft className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
+        </Link>
+      </ShareDeedShell>
 
-    {/* الحصة (تقديرية أو نهائية) — CR-02 */}
-    <Card className="shadow-sm gradient-primary text-primary-foreground">
-      <CardContent className="p-3 sm:p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-          <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-            <Wallet className="w-4 h-4 sm:w-6 sm:h-6" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <p className="text-xs sm:text-sm text-primary-foreground/90">
-                {isClosed ? 'الحصة النهائية' : 'الحصة التقديرية'}
-              </p>
-              <EstimatedShareBadge isEstimated={!isClosed} />
-            </div>
-            <p className="text-base sm:text-2xl font-bold truncate">{fmt(myShare)} ر.س</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-
-    {/* CR-09: إجمالي المستلم */}
-    <Card className="shadow-sm">
-      <CardContent className="p-3 sm:p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-          <div className="w-9 h-9 sm:w-12 sm:h-12 bg-success/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-            <CheckCircle className="w-4 h-4 sm:w-6 sm:h-6 text-success" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs sm:text-sm text-muted-foreground">{DISTRIBUTIONS_LABELS.totalReceived}</p>
-            <p className="text-base sm:text-2xl font-bold text-success truncate">{fmt(totalReceived)} ر.س</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-
-    {/* CR-09: المبالغ المعلّقة */}
-    <Card className="shadow-sm">
-      <CardContent className="p-3 sm:p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-          <div className="w-9 h-9 sm:w-12 sm:h-12 bg-warning/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-warning" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs sm:text-sm text-muted-foreground">{DISTRIBUTIONS_LABELS.pending}</p>
-            <p className="text-base sm:text-2xl font-bold text-warning truncate">{fmt(pendingAmount)} ر.س</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-
-    {/* السُلف المصروفة */}
-    {advancesEnabled && (
-      <Card className="shadow-sm">
-        <CardContent className="p-3 sm:p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-            <div className="w-9 h-9 sm:w-12 sm:h-12 bg-accent/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-              <Banknote className="w-4 h-4 sm:w-6 sm:h-6 text-accent-foreground" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-muted-foreground">السُلف المصروفة</p>
-              <p className="text-base sm:text-2xl font-bold text-accent-foreground truncate">{fmt(paidAdvancesTotal)} ر.س</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )}
-  </div>
-);
+      <div className={cn('grid grid-cols-2 gap-3 sm:gap-4', advancesEnabled ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
+        <FigureTile label={DISTRIBUTIONS_LABELS.totalReceived} value={totalReceived} icon={CheckCircle} tone="success" />
+        <FigureTile label={DISTRIBUTIONS_LABELS.pending} value={pendingAmount} icon={Clock} tone="warning" />
+        {advancesEnabled && (
+          <FigureTile label="السُّلف المصروفة" value={paidAdvancesTotal} icon={Banknote} tone="share" className="col-span-2 sm:col-span-1" />
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default MyShareSummaryCards;
-

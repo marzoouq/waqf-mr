@@ -10,6 +10,7 @@ import { SidebarBrand } from './sidebar/SidebarBrand';
 import { SidebarNavList, type NavLinkItem, type NavGroupItem } from './sidebar/SidebarNavList';
 import { SidebarUserFooter } from './sidebar/SidebarUserFooter';
 import { useClearAppCache } from '@/hooks/application/useClearAppCache';
+import { PORTAL_SUBTITLES } from '@/constants/roles';
 
 interface SidebarContentProps {
   links: NavLinkItem[] & { groups?: NavGroupItem[] };
@@ -32,6 +33,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
     <>
       <SidebarBrand
         waqfName={waqfName}
+        portalLabel={PORTAL_SUBTITLES[role || ''] ?? 'منظومة إدارة الوقف'}
         waqfLogoUrl={waqfLogoUrl}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}

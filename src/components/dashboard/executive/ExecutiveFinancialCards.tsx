@@ -25,18 +25,21 @@ const CARD_ICON: Record<ExecutiveCardId, LucideIcon> = {
 
 /** شريط اللون على حافة البطاقة — من ألوان الهوية فقط */
 const CARD_ACCENT: Record<ExecutiveCardId, string> = {
-  income: 'border-s-primary',
+  income: 'border-s-success',
   expenses: 'border-s-destructive/70',
-  waqf: 'border-s-secondary',
-  distributions: 'border-s-success',
+  waqf: 'border-s-bronze',
+  distributions: 'border-s-bronze',
 };
 
 const ICON_TONE: Record<ExecutiveCardId, string> = {
-  income: 'bg-primary/10 text-primary',
+  income: 'bg-success-muted text-success-foreground',
   expenses: 'bg-destructive/10 text-destructive',
-  waqf: 'bg-secondary/15 text-secondary-foreground',
-  distributions: 'bg-success/10 text-success',
+  waqf: 'bg-primary-foreground/10 text-sidebar-primary',
+  distributions: 'bg-bronze-soft text-bronze-foreground',
 };
+
+/** بطاقة ريع الوقف هي البطاقة القيادية: سطح وقفي أخضر بزخرفة النجمة */
+const HERO_SURFACE = 'waqf-surface border-transparent [&_.text-foreground]:text-ink-foreground [&_.text-muted-foreground]:text-sidebar-foreground/75 [&_.bg-muted]:bg-primary-foreground/10';
 
 interface ExecutiveFinancialCardsProps {
   cards: ExecutiveCard[];
@@ -61,7 +64,7 @@ const ExecutiveCardView = memo(function ExecutiveCardView({ card, expenseKpi }: 
       className={cn(
         'group flex h-full flex-col rounded-2xl border border-s-4 bg-card p-4 sm:p-5 shadow-sm transition-shadow hover:shadow-md',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        CARD_ACCENT[card.id],
+        card.id === 'waqf' ? HERO_SURFACE : CARD_ACCENT[card.id],
       )}
     >
       <div className="flex items-center gap-2.5">
