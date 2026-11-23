@@ -59,4 +59,4 @@
 - Payment RPCs serialize with close using one advisory lock; partial payments stay blocked until installment-level receipts exist. Why: the existing receipt trigger issues one cumulative receipt per fully paid invoice.
 - Contract status shown to users comes from getEffectiveContractStatus (end_date past => expired) and never writes to the database; the nightly expiry job skips closed years. Why: closed years must stay exactly as issued.
 - Icons: navigation, bottom nav and dashboard cards take icons from `src/constants/domainIcons.ts` (one icon per meaning); guarded by `src/test/domainIconsGuard.test.ts`. Why: same meaning must look the same everywhere.
-- Fiscal-year labels inside Arabic sentences are wrapped in `<bdi dir="ltr">` so 2025-2026 never renders reversed. Why: RTL bidi flips hyphenated years.
+- Fiscal-year labels inside Arabic sentences go through `ltr()` from `@/utils/format/bidi` (standalone badges/selects need nothing). Why: RTL bidi renders hyphenated years reversed.

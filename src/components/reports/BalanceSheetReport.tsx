@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Scale } from 'lucide-react';
 import { fmt as fmtNum } from '@/utils/format/format';
 import { AssetsSection, LiabilitiesSection, EquitySection, BalanceSummary } from './balance-sheet/BalanceSheetSections';
+import { ltr } from '@/utils/format/bidi';
 
 interface BalanceSheetProps {
   totalIncome: number;
@@ -43,7 +44,7 @@ const BalanceSheetReport = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Scale className="w-5 h-5" />
-          الميزانية العمومية {fiscalYearLabel && `(${fiscalYearLabel})`}
+          الميزانية العمومية {fiscalYearLabel && `(${ltr(fiscalYearLabel)})`}
           {isBalanced ? (
             <Badge variant="secondary" className="bg-success/10 text-success text-xs ms-auto">متوازنة ✓</Badge>
           ) : (

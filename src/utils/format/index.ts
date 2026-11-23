@@ -11,3 +11,4 @@ export { getTableNameAr, getOperationNameAr, type AuditLogEntry } from './auditL
 export { toGregorianShort } from './date';
 export { maskPhone, maskEmail } from './maskData';
 export { safePercent } from './safeNumber';
+export { ltr } from './bidi';

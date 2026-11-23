@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, TrendingUp, CheckCircle2, Lock } from 'lucide-react';
 import { useFiscalYearWidget } from '@/hooks/page/admin/dashboard/useFiscalYearWidget';
+import { ltr } from '@/utils/format/bidi';
 
 interface FiscalYearInfo {
   label: string;
@@ -37,7 +38,7 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Lock className="w-5 h-5 text-muted-foreground" />
-            السنة المالية: <bdi dir="ltr" className="tabular-nums">{fiscalYear.label}</bdi>
+            السنة المالية: {ltr(fiscalYear.label)}
             <Badge variant="outline" className="text-xs">{statusLabel}</Badge>
           </CardTitle>
         </CardHeader>
@@ -73,7 +74,7 @@ const ActiveFiscalYearWidget: React.FC<{ fiscalYear: FiscalYearInfo; totalIncome
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Calendar className="w-5 h-5" />
-          السنة المالية: <bdi dir="ltr" className="tabular-nums">{fiscalYear.label}</bdi>
+          السنة المالية: {ltr(fiscalYear.label)}
         </CardTitle>
       </CardHeader>
       <CardContent>

@@ -13,6 +13,7 @@ import { printDistributionReport } from '@/utils/export/printDistributionReport'
 import { uiNotify } from '@/lib/notify';
 import { useDistributionCalculation } from '@/hooks/domain/financial/useDistributionCalculation';
 import { PDF_MESSAGES } from '@/lib/messages';
+import { ltr } from '@/utils/format/bidi';
 
 interface Beneficiary {
   id: string;
@@ -70,7 +71,7 @@ const DistributeDialog = ({
         <DialogHeader>
           <DialogTitle>توزيع حصص المستفيدين</DialogTitle>
           <DialogDescription>
-            {fiscalYearLabel && `السنة المالية: ${fiscalYearLabel} — `}
+            {fiscalYearLabel && `السنة المالية: ${ltr(fiscalYearLabel)} — `}
             المبلغ المتاح للتوزيع: {fmt(availableAmount)} ر.س
           </DialogDescription>
         </DialogHeader>

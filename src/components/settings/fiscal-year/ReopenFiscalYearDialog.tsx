@@ -12,6 +12,7 @@ import {
 import { Loader2, Unlock } from 'lucide-react';
 import { uiNotify } from '@/lib/notify';
 import type { FiscalYear } from '@/types';
+import { ltr } from '@/utils/format/bidi';
 
 interface Props {
   fy: FiscalYear;
@@ -45,7 +46,7 @@ const ReopenFiscalYearDialog = ({ fy, onConfirm, loading }: Props) => {
         <AlertDialogHeader>
           <AlertDialogTitle>⚠️ إعادة فتح سنة مقفلة — عملية حساسة</AlertDialogTitle>
           <AlertDialogDescription className="space-y-2 text-sm">
-            <p>إعادة فتح <strong>{fy.label}</strong> ستسمح بتعديل بياناتها المالية المؤرشفة.</p>
+            <p>إعادة فتح <strong>{ltr(fy.label)}</strong> ستسمح بتعديل بياناتها المالية المؤرشفة.</p>
             <p>لن تعود الفواتير المرحّلة تلقائياً، ولن تتغير فواتير أو حسابات السنوات اللاحقة المقفلة؛ تبقى التحصيلات في سنتها المحاسبية الحالية.</p>
             <p className="text-destructive font-medium">هذه العملية تُسجَّل في سجل المراجعة ولا يمكن إخفاؤها.</p>
           </AlertDialogDescription>

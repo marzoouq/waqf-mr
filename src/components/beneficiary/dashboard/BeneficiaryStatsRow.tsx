@@ -6,6 +6,7 @@ import { SHARE_BADGE, FY_STATE_COPY } from '@/constants/beneficiaryCopy';
 import { fmt, fmtDate } from '@/utils/format/format';
 import { cn } from '@/lib/cn';
 import type { DeliveryStage } from '@/utils/dashboard/deliveryStages';
+import { ltr } from '@/utils/format/bidi';
 
 interface Distribution {
   id: string;
@@ -58,7 +59,7 @@ const BeneficiaryStatsRow = ({
       <div className="relative p-5 sm:p-7 space-y-5">
         <div className="flex items-start justify-between gap-3">
           <p className="text-sm text-primary-foreground/80">
-            حصتك من ريع <bdi dir="ltr" className="tabular-nums">{fiscalYearLabel || '—'}</bdi>
+            حصتك من ريع {ltr(fiscalYearLabel) || '—'}
           </p>
           <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-bold text-secondary-foreground shrink-0">
             <BadgeIcon className="h-3.5 w-3.5" aria-hidden="true" />

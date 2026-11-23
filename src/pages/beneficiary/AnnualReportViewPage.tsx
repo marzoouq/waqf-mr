@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RequirePublishedYears } from '@/components/common';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAnnualReportViewPage } from '@/hooks/page/beneficiary';
+import { ltr } from '@/utils/format/bidi';
 
 const AnnualReportViewPage = () => {
   const { noPublishedYears } = useFiscalYear();
@@ -69,7 +70,7 @@ const AnnualReportViewPage = () => {
           <PageHeaderCard
             title="التقرير السنوي"
             icon={Trophy}
-            description={`تقرير إنجازات السنة المالية ${fiscalYear?.label || ''}`}
+            description={`تقرير إنجازات السنة المالية ${ltr(fiscalYear?.label)}`}
           />
           <div className="flex items-center gap-2 print:hidden">
             <Badge variant="default" className="text-xs">منشور</Badge>

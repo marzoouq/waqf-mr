@@ -2,6 +2,7 @@ import { fmt, fmtDate } from '@/utils/format/format';
 import { DISTRIBUTIONS_LABELS } from '@/constants/beneficiaryCopy';
 import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import SectionHeading from '@/components/layout/SectionHeading';
+import { ltr } from '@/utils/format/bidi';
 
 interface Distribution {
   id: string;
@@ -33,7 +34,7 @@ const BeneficiaryRecentDistributions = ({ distributions }: BeneficiaryRecentDist
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-foreground truncate">
-                    {d.fiscal_year_label ? <>ريع <bdi dir="ltr" className="tabular-nums">{d.fiscal_year_label}</bdi></> : 'توزيع'}
+                    {d.fiscal_year_label ? `ريع ${ltr(d.fiscal_year_label)}` : 'توزيع'}
                   </p>
                   <p className="text-xs text-muted-foreground tabular-nums">
                     {paid ? 'سُلّم' : 'معلق'} {fmtDate(d.date)}

@@ -4,6 +4,7 @@
 import { fmt } from '@/utils/format/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText } from 'lucide-react';
+import { ltr } from '@/utils/format/bidi';
 
 interface AnnualDisclosureTableProps {
   fiscalYearLabel: string;
@@ -57,13 +58,13 @@ const AnnualDisclosureTable = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="w-5 h-5" />
-          الإفصاح السنوي ({fiscalYearLabel})
+          الإفصاح السنوي ({ltr(fiscalYearLabel)})
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
-            <caption className="sr-only">جدول الإفصاح السنوي للوقف للسنة المالية {fiscalYearLabel}</caption>
+            <caption className="sr-only">جدول الإفصاح السنوي للوقف للسنة المالية {ltr(fiscalYearLabel)}</caption>
             <thead>
               <tr className="border-b-2 border-primary">
                 <th className="py-3 px-4 text-right font-bold text-primary">البند</th>

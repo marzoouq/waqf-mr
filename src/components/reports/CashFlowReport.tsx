@@ -9,6 +9,7 @@ import { fmtInt } from '@/utils/format/format';
 import { Skeleton } from '@/components/ui/skeleton';
 import CashFlowTable from './CashFlowTable';
 import { MONTH_NAMES } from '@/constants/calendar';
+import { ltr } from '@/utils/format/bidi';
 
 const CashFlowChartInner = lazy(() => import('./CashFlowChartInner'));
 
@@ -102,7 +103,7 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Banknote className="w-5 h-5" />
-            التدفق النقدي الشهري {fiscalYear ? `(${fiscalYear.label})` : ''}
+            التدفق النقدي الشهري {fiscalYear ? `(${ltr(fiscalYear.label)})` : ''}
           </CardTitle>
         </CardHeader>
         <CardContent>

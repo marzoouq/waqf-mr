@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAnnualReportPage } from '@/hooks/page/admin/reports/useAnnualReportPage';
 import type { SectionType } from '@/types/annualReport';
+import { ltr } from '@/utils/format/bidi';
 
 const AnnualReportPage = () => {
   const isMobile = useIsMobile();
@@ -38,7 +39,7 @@ const AnnualReportPage = () => {
           <PageHeaderCard
             title="إدارة التقرير السنوي"
             icon={DOMAIN_ICONS.annualReport}
-            description={`تقرير إنجازات السنة المالية ${r.fiscalYear?.label || ''}`}
+            description={`تقرير إنجازات السنة المالية ${ltr(r.fiscalYear?.label)}`}
             actions={
           <div className="flex items-center gap-2 flex-wrap print:hidden">
             <Badge variant={r.isPublished ? 'default' : 'secondary'} className="text-xs">

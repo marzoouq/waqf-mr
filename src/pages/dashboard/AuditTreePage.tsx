@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
 import { useAuditTreePage } from '@/hooks/page/admin/financial/useAuditTreePage';
 import type { AuditTreeNode } from '@/hooks/data/audit/useAuditReconciliation';
+import { ltr } from '@/utils/format/bidi';
 
 const fmt = (n: number | null | undefined) =>
   n == null ? '—' : Number(n).toLocaleString('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -52,7 +53,7 @@ const AuditTreePage = () => {
       <div className="p-4 sm:p-6 space-y-6">
         <PageHeaderCard
           title="شجرة التدقيق"
-          description={`ربط فواتير الإيجار وسندات القبض والصرف بقائمة الدخل والمصروفات والقائمة الختامية${h.yearLabel ? ` — ${h.yearLabel}` : ''}`}
+          description={`ربط فواتير الإيجار وسندات القبض والصرف بقائمة الدخل والمصروفات والقائمة الختامية${h.yearLabel ? ` — ${ltr(h.yearLabel)}` : ''}`}
           icon={GitBranch}
           actions={
             <Button onClick={h.runCheck} disabled={h.isLoading || !h.hasYear}>

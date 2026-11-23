@@ -12,6 +12,7 @@ import {
 import { AlertTriangle } from 'lucide-react';
 import { uiNotify } from '@/lib/notify';
 import type { FiscalYear } from '@/types';
+import { ltr } from '@/utils/format/bidi';
 
 interface Props {
   fy: FiscalYear;
@@ -50,7 +51,7 @@ const CascadeDeleteFiscalYearDialog = ({ fy, onConfirm, loading }: Props) => {
           <AlertDialogTitle className="text-destructive">⚠️ حذف شامل — لا يمكن التراجع</AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm">
-              <p>سيتم حذف السنة <strong>{fy.label}</strong> وجميع بياناتها المرتبطة نهائياً:</p>
+              <p>سيتم حذف السنة <strong>{ltr(fy.label)}</strong> وجميع بياناتها المرتبطة نهائياً:</p>
               <ul className="list-disc ps-5 text-xs text-muted-foreground space-y-0.5">
                 <li>العقود وتخصيصاتها</li>
                 <li>فواتير الدفعات والفواتير الضريبية وعناصرها وسلسلتها</li>

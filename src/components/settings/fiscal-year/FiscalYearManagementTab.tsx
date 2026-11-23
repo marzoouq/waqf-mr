@@ -15,6 +15,7 @@ import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff, AlertCircle
 import { useFiscalYearManagement } from '@/hooks/page/admin/financial/useFiscalYearManagement';
 import ReopenFiscalYearDialog from './ReopenFiscalYearDialog';
 import CascadeDeleteFiscalYearDialog from './CascadeDeleteFiscalYearDialog';
+import { ltr } from '@/utils/format/bidi';
 
 
 const FiscalYearManagementTab = () => {
@@ -116,7 +117,7 @@ const FiscalYearManagementTab = () => {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>{fy.published ? 'حجب السنة المالية' : 'نشر السنة المالية'}</AlertDialogTitle>
-                          <AlertDialogDescription>{fy.published ? `هل أنت متأكد من حجب السنة "${fy.label}" عن المستفيدين؟` : `هل أنت متأكد من نشر السنة "${fy.label}" للمستفيدين؟`}</AlertDialogDescription>
+                          <AlertDialogDescription>{fy.published ? `هل أنت متأكد من حجب السنة "${ltr(fy.label)}" عن المستفيدين؟` : `هل أنت متأكد من نشر السنة "${ltr(fy.label)}" للمستفيدين؟`}</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter className="gap-2"><AlertDialogCancel>إلغاء</AlertDialogCancel><AlertDialogAction onClick={() => togglePublished(fy)}>{fy.published ? 'حجب' : 'نشر'}</AlertDialogAction></AlertDialogFooter>
                       </AlertDialogContent>
@@ -129,7 +130,7 @@ const FiscalYearManagementTab = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>إقفال السنة المالية</AlertDialogTitle>
                             <AlertDialogDescription className="space-y-2">
-                              <p>هل أنت متأكد من إقفال "{fy.label}"؟</p>
+                              <p>هل أنت متأكد من إقفال "{ltr(fy.label)}"؟</p>
                               <p className="text-muted-foreground">يتم الإقفال من صفحة "الحسابات الختامية" لحفظ الحساب الختامي وترحيل الرصيد.</p>
                             </AlertDialogDescription>
                           </AlertDialogHeader>
@@ -145,7 +146,7 @@ const FiscalYearManagementTab = () => {
                         <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive gap-1 text-xs" disabled={actionLoading === fy.id || fy.status === 'active'} title={fy.status === 'active' ? 'استخدم "حذف السنة وكل بياناتها"' : 'حذف'}><Trash2 className="w-3 h-3" /></Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
-                        <AlertDialogHeader><AlertDialogTitle>حذف السنة المالية</AlertDialogTitle><AlertDialogDescription>هل أنت متأكد من حذف السنة "{fy.label}"؟ (تعمل فقط إذا لم تكن مرتبطة ببيانات)</AlertDialogDescription></AlertDialogHeader>
+                        <AlertDialogHeader><AlertDialogTitle>حذف السنة المالية</AlertDialogTitle><AlertDialogDescription>هل أنت متأكد من حذف السنة "{ltr(fy.label)}"؟ (تعمل فقط إذا لم تكن مرتبطة ببيانات)</AlertDialogDescription></AlertDialogHeader>
                         <AlertDialogFooter className="gap-2"><AlertDialogCancel>إلغاء</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(fy)} className="bg-destructive hover:bg-destructive/90">حذف</AlertDialogAction></AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
