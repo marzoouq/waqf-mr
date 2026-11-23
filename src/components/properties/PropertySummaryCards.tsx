@@ -1,10 +1,11 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+/**
+ * ملخص العقارات (الهوية الوقفية) — أعداد الوحدات والإشغال كما تصل، ومتوسط الإيجار بنفس الصيغة السابقة.
+ */
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link } from 'react-router-dom';
-import { Building2, Layers, ArrowLeft, Wallet, AlertTriangle } from 'lucide-react';
-import { fmt } from '@/utils/format/format';
+import { Layers, ArrowLeft, Wallet, AlertTriangle, KeyRound, DoorOpen } from 'lucide-react';
+import { FigureTile, FigureTileGrid, ProgressSummaryBar } from '@/components/common';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
 
 interface PropertySummary {
   totalProperties: number;
@@ -30,16 +31,11 @@ interface PropertySummaryCardsProps {
 }
 
 const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps) => {
-  const occColor = summary.overallOccupancy >= 80 ? 'text-success' : summary.overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
-  const occBarColor = summary.overallOccupancy >= 80 ? '[&>div]:bg-success' : summary.overallOccupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
-
   if (isLoading) {
     return (
       <div className="space-y-4 animate-slide-up">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20" />)}
-        </div>
-        <Skeleton className="h-14" />
+        <FigureTileGrid isLoading cols="sm:grid-cols-3 lg:grid-cols-6" skeletonCount={6} />
+        <Skeleton className="h-16 rounded-xl" />
       </div>
     );
   }
@@ -51,89 +47,36 @@ const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps)
 
   return (
     <div className="space-y-4 animate-slide-up">
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><Building2 className="w-5 h-5 text-primary" /></div>
-            <div><p className="text-xs text-muted-foreground">إجمالي العقارات</p><p className="text-xl font-bold">{summary.totalProperties}</p></div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-accent/50"><Layers className="w-5 h-5 text-accent-foreground" /></div>
-            <div><p className="text-xs text-muted-foreground">إجمالي الوحدات</p><p className="text-xl font-bold">{summary.totalUnitsCount}</p></div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-success/10"><div className="w-5 h-5 rounded-full bg-success" /></div>
-            <div><p className="text-xs text-muted-foreground">مؤجرة</p><p className="text-xl font-bold text-success">{summary.totalRented}</p></div>
-          </CardContent>
-        </Card>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Card className="shadow-sm cursor-help">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-warning/10"><div className="w-5 h-5 rounded-full bg-warning" /></div>
-                <div><p className="text-xs text-muted-foreground">وحدات شاغرة</p><p className="text-xl font-bold text-warning">{summary.totalVacant}</p></div>
-              </CardContent>
-            </Card>
-          </TooltipTrigger>
-          <TooltipContent>وحدات بدون عقد فعّال (لا تشمل العقارات بدون وحدات).</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Card className="shadow-sm cursor-help">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-destructive/10"><AlertTriangle className="w-5 h-5 text-destructive" /></div>
-                <div>
-                  <p className="text-xs text-muted-foreground">عقارات بدون وحدات</p>
-                  <p className="text-xl font-bold text-destructive">{summary.propertiesWithoutUnits}</p>
-                  {summary.propertiesWithoutUnitsRented > 0 && (
-                    <p className="text-[10px] text-muted-foreground">منها {summary.propertiesWithoutUnitsRented} مؤجَّر كاملاً</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TooltipTrigger>
-          <TooltipContent>عقارات لم تُعرَّف لها وحدات بعد — تحتاج إدخال الوحدات لاحتسابها ضمن الإشغال.</TooltipContent>
-        </Tooltip>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><Wallet className="w-5 h-5 text-primary" /></div>
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">متوسط الإيجار</p>
-              <p className="text-base sm:text-xl font-bold tabular-nums truncate text-primary">{fmt(avgRent)} <span className="text-xs font-normal">ر.س</span></p>
-            </div>
-          </CardContent>
-        </Card>
+      <FigureTileGrid cols="sm:grid-cols-3 lg:grid-cols-6">
+        <FigureTile label="إجمالي العقارات" value={summary.totalProperties} icon={DOMAIN_ICONS.property} unit="count" />
+        <FigureTile label="إجمالي الوحدات" value={summary.totalUnitsCount} icon={Layers} unit="count" />
+        <FigureTile label="مؤجرة" value={summary.totalRented} icon={KeyRound} tone="success" unit="count" />
+        <FigureTile
+          label="وحدات شاغرة" value={summary.totalVacant} icon={DoorOpen} tone={summary.totalVacant > 0 ? 'warning' : 'neutral'} unit="count"
+          hint="دون عقد فعّال" title="وحدات بدون عقد فعّال (لا تشمل العقارات بدون وحدات)."
+        />
+        <FigureTile
+          label="عقارات بدون وحدات" value={summary.propertiesWithoutUnits} icon={AlertTriangle}
+          tone={summary.propertiesWithoutUnits > 0 ? 'expense' : 'neutral'} unit="count"
+          title="عقارات لم تُعرَّف لها وحدات بعد — تحتاج إدخال الوحدات لاحتسابها ضمن الإشغال."
+          hint={summary.propertiesWithoutUnitsRented > 0 ? `منها ${summary.propertiesWithoutUnitsRented} مؤجَّر كاملاً` : 'تحتاج تعريف الوحدات'}
+        />
+        <FigureTile label="متوسط الإيجار" value={avgRent} icon={Wallet} tone="share" hint="للوحدة المؤجرة في السنة" />
+      </FigureTileGrid>
+
+      <ProgressSummaryBar label="نسبة الإشغال الإجمالية" rate={summary.overallOccupancy} />
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed bg-muted/30 px-4 py-3 text-xs sm:text-sm">
+        <span className="text-muted-foreground">للاطلاع على الإيرادات والمصروفات وصافي الدخل، انتقل إلى صفحات الاختصاص.</span>
+        <div className="flex items-center gap-3 shrink-0">
+          <Link to="/dashboard/reports" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
+            التقارير المالية <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+          </Link>
+          <Link to="/dashboard/invoices" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
+            الفواتير <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+          </Link>
+        </div>
       </div>
-
-      <Card className="shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">نسبة الإشغال الإجمالية</span>
-            <span className={`text-sm font-bold ${occColor}`}>{summary.overallOccupancy}%</span>
-          </div>
-          <Progress value={summary.overallOccupancy} className={`h-3 ${occBarColor}`} />
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm bg-muted/30">
-        <CardContent className="p-3 flex items-center justify-between gap-3 text-xs sm:text-sm">
-          <span className="text-muted-foreground">
-            للاطلاع على الإيرادات والمصروفات وصافي الدخل، انتقل إلى صفحات الاختصاص.
-          </span>
-          <div className="flex items-center gap-2 shrink-0">
-            <Link to="/dashboard/reports" className="inline-flex items-center gap-1 text-primary hover:underline">
-              التقارير المالية <ArrowLeft className="w-3.5 h-3.5" />
-            </Link>
-            <Link to="/dashboard/invoices" className="inline-flex items-center gap-1 text-primary hover:underline">
-              الفواتير <ArrowLeft className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

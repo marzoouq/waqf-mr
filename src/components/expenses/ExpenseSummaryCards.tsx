@@ -1,8 +1,11 @@
+/**
+ * ملخص المصروفات (الهوية الوقفية) — الضريبة لا تدخل هنا؛ تُعرض في سطرها المستقل.
+ */
 import { useMemo } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { TrendingDown, Paperclip, Calculator, Star } from 'lucide-react';
+import { Paperclip, Calculator, Star } from 'lucide-react';
 import { Expense } from '@/types';
+import { FigureTile, FigureTileGrid } from '@/components/common';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import { fmt } from '@/utils/format/format';
 
 interface ExpenseSummaryCardsProps {
@@ -25,51 +28,20 @@ const ExpenseSummaryCards = ({ expenses, totalExpenses, documentedCount, documen
     return { avg, topType, topTypeAmount };
   }, [expenses, totalExpenses]);
 
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="shadow-sm">
-            <CardContent className="p-4 flex items-center gap-3">
-              <Skeleton className="w-9 h-9 rounded-lg" />
-              <div className="space-y-2 flex-1">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-6 w-24" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <Card className="shadow-sm">
-        <CardContent className="p-4 flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-destructive/10 shrink-0"><TrendingDown className="w-5 h-5 text-destructive" /></div>
-          <div className="min-w-0"><p className="text-xs text-muted-foreground">إجمالي المصروفات</p><p className="text-base sm:text-xl font-bold text-destructive tabular-nums truncate">{fmt(totalExpenses)} <span className="text-xs font-normal">ريال</span></p></div>
-        </CardContent>
-      </Card>
-      <Card className="shadow-sm">
-        <CardContent className="p-4 flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10 shrink-0"><Paperclip className="w-5 h-5 text-primary" /></div>
-          <div className="min-w-0"><p className="text-xs text-muted-foreground">نسبة التوثيق</p><p data-testid="documentation-rate" className="text-base sm:text-xl font-bold tabular-nums">{documentationRate}%</p><p data-testid="documented-count" className="text-xs text-muted-foreground">{documentedCount}/{expenses.length}</p></div>
-        </CardContent>
-      </Card>
-      <Card className="shadow-sm">
-        <CardContent className="p-4 flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-accent/50 shrink-0"><Calculator className="w-5 h-5 text-accent-foreground" /></div>
-          <div className="min-w-0"><p className="text-xs text-muted-foreground">متوسط المصروف</p><p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(avg)} <span className="text-xs font-normal">ريال</span></p></div>
-        </CardContent>
-      </Card>
-      <Card className="shadow-sm">
-        <CardContent className="p-4 flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-warning/10 shrink-0"><Star className="w-5 h-5 text-warning" /></div>
-          <div className="min-w-0"><p className="text-xs text-muted-foreground">أعلى نوع</p><p className="text-sm font-bold truncate">{topType}</p><p className="text-xs text-muted-foreground tabular-nums truncate">{fmt(topTypeAmount)} ريال</p></div>
-        </CardContent>
-      </Card>
-    </div>
+    <FigureTileGrid isLoading={isLoading}>
+      <FigureTile label="إجمالي المصروفات" value={totalExpenses} icon={DOMAIN_ICONS.expense} tone="expense" />
+      <FigureTile
+        label="نسبة التوثيق" value={documentationRate} icon={Paperclip} unit="percent"
+        tone={documentationRate >= 80 ? 'success' : 'warning'}
+        hint={<span data-testid="documented-count"><bdi dir="ltr" className="num">{documentedCount}/{expenses.length}</bdi> مستند مرفق</span>}
+      />
+      <FigureTile label="متوسط المصروف" value={avg} icon={Calculator} />
+      <FigureTile
+        label="أعلى نوع" value={topType} icon={Star} tone="share" unit="text"
+        hint={<><bdi dir="ltr" className="num">{fmt(topTypeAmount)}</bdi> ر.س</>}
+      />
+    </FigureTileGrid>
   );
 };
 

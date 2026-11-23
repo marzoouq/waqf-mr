@@ -1,9 +1,9 @@
 /**
- * بطاقات ملخص التحصيل + شريط التقدم العام
+ * بطاقات ملخص التحصيل + شريط التقدم العام (الهوية الوقفية) — الأرقام كما تصل.
  */
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Banknote, TrendingUp, TrendingDown, FileWarning } from 'lucide-react';
+import { Banknote, AlertTriangle, Percent } from 'lucide-react';
+import { FigureTile, FigureTileGrid, ProgressSummaryBar } from '@/components/common';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import { fmt } from '@/utils/format/format';
 import type { CollectionSummary } from '@/hooks/page/admin/financial/useCollectionData';
 
@@ -12,87 +12,34 @@ interface CollectionSummaryCardsProps {
   expectedLabel: string;
 }
 
+const Amount = ({ value }: { value: number }) => <bdi dir="ltr" className="num font-medium text-foreground">{fmt(value)}</bdi>;
+
 export default function CollectionSummaryCards({ summary, expectedLabel }: CollectionSummaryCardsProps) {
+  const hasSplit = summary.overdueFromPreviousAmount > 0 || summary.overdueInYearAmount > 0;
   return (
     <>
-      {/* بطاقات الملخص */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Banknote className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{expectedLabel}</p>
-              <p className="text-lg font-bold">{fmt(summary.totalExpected)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-success" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">المحصّل</p>
-              <p className="text-lg font-bold text-success">{fmt(summary.totalCollected)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
-              <TrendingDown className="w-5 h-5 text-destructive" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">المتأخر</p>
-              <p className="text-lg font-bold text-destructive">{fmt(summary.totalOverdue)}</p>
-              {(summary.overdueFromPreviousAmount > 0 || summary.overdueInYearAmount > 0) && (
-                <div className="mt-1 space-y-0.5 text-[10px] text-muted-foreground leading-tight">
-                  {summary.overdueFromPreviousAmount > 0 && (
-                    <div>من سنوات سابقة: <span className="font-medium text-foreground">{fmt(summary.overdueFromPreviousAmount)}</span></div>
-                  )}
-                  {summary.overdueInYearAmount > 0 && (
-                    <div>هذه السنة: <span className="font-medium text-foreground">{fmt(summary.overdueInYearAmount)}</span></div>
-                  )}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
-              <FileWarning className="w-5 h-5 text-warning" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">نسبة التحصيل</p>
-              <p className="text-lg font-bold">{summary.collectionRate.toFixed(0)}%</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* شريط التحصيل العام */}
-      <Card className="shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">معدل التحصيل العام</span>
-            <span className="text-sm text-muted-foreground">
-              {summary.completeCount} مكتمل من {summary.total} عقد
-              {summary.overdueCount > 0 && <span className="text-destructive ms-2">• {summary.overdueCount} متأخر</span>}
+      <FigureTileGrid>
+        <FigureTile label={expectedLabel} value={summary.totalExpected} icon={Banknote} />
+        <FigureTile label="المحصّل" value={summary.totalCollected} icon={DOMAIN_ICONS.income} tone="success" />
+        <FigureTile
+          label="المتأخر" value={summary.totalOverdue} icon={AlertTriangle} tone={summary.totalOverdue > 0 ? 'expense' : 'neutral'}
+          hint={hasSplit ? (
+            <span className="flex flex-col gap-0.5 leading-tight">
+              {summary.overdueFromPreviousAmount > 0 && <span>من سنوات سابقة: <Amount value={summary.overdueFromPreviousAmount} /></span>}
+              {summary.overdueInYearAmount > 0 && <span>هذه السنة: <Amount value={summary.overdueInYearAmount} /></span>}
             </span>
-          </div>
-          <Progress
-            value={summary.collectionRate}
-            className={`h-3 ${
-              summary.collectionRate >= 80 ? '[&>div]:bg-success' :
-              summary.collectionRate >= 50 ? '[&>div]:bg-warning' :
-              '[&>div]:bg-destructive'
-            }`}
-          />
-        </CardContent>
-      </Card>
+          ) : undefined}
+        />
+        <FigureTile label="نسبة التحصيل" value={`${summary.collectionRate.toFixed(0)}%`} unit="percent" icon={Percent} tone="share" />
+      </FigureTileGrid>
+
+      <ProgressSummaryBar
+        label="معدل التحصيل العام" rate={summary.collectionRate}
+        meta={<>
+          <bdi dir="ltr" className="num">{summary.completeCount}</bdi> مكتمل من <bdi dir="ltr" className="num">{summary.total}</bdi> عقد
+          {summary.overdueCount > 0 && <span className="text-destructive ms-2">• <bdi dir="ltr" className="num">{summary.overdueCount}</bdi> متأخر</span>}
+        </>}
+      />
     </>
   );
 }

@@ -65,6 +65,8 @@ describe('aria-label coverage in pages, diagnostics, layout', () => {
         const ctx = src.slice(Math.max(0, start - 300), start);
         if (/<Link\b[^>]*>\s*$/.test(ctx)) continue;
         if (/asChild\b[^<]*>\s*$/.test(ctx)) continue;
+        // مُشغّل asChild يختار بين زرين بشرط: <Trigger asChild>{cond ? (<Button…
+        if (/asChild\b[^<]*>\s*\{[^<]*\?\s*\(\s*$/.test(ctx)) continue;
         offenders.push(`${file} :: ${tag.slice(0, 120)}`);
       }
     }

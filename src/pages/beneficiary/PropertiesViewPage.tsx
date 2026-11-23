@@ -8,11 +8,12 @@
  */
 
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { RequirePublishedYears, ExportMenu, EmptyState } from '@/components/common';
+import { RequirePublishedYears, ExportMenu, EmptyState, FigureTile, FigureTileGrid } from '@/components/common';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
-import { Building2, Layers, AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Building2, Layers, AlertCircle, RefreshCw, ArrowLeft, KeyRound, DoorOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -73,13 +74,13 @@ const PropertiesViewPage = () => {
 
           {/* بطاقات الملخص الإجمالية */}
           <div className="space-y-4 animate-slide-up">
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-primary/10"><Building2 className="w-5 h-5 text-primary" /></div><div><p className="text-xs text-muted-foreground">إجمالي العقارات</p><p className="text-xl font-bold">{totalProperties}</p></div></CardContent></Card>
-              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-accent/50"><Layers className="w-5 h-5 text-accent-foreground" /></div><div><p className="text-xs text-muted-foreground">إجمالي الوحدات</p><p className="text-xl font-bold">{totalUnits}</p></div></CardContent></Card>
-              <Card className="shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-success/10"><div className="w-5 h-5 rounded-full bg-success" /></div><div><p className="text-xs text-muted-foreground">مؤجرة</p><p className="text-xl font-bold text-success">{occupiedUnits}</p></div></CardContent></Card>
-              <Tooltip><TooltipTrigger asChild><Card className="shadow-sm cursor-help"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-warning/10"><div className="w-5 h-5 rounded-full bg-warning" /></div><div><p className="text-xs text-muted-foreground">وحدات شاغرة</p><p className="text-xl font-bold text-warning">{vacantUnits}</p></div></CardContent></Card></TooltipTrigger><TooltipContent>وحدات مسجَّلة غير مؤجَّرة</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><Card className="shadow-sm cursor-help"><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-muted"><Building2 className="w-5 h-5 text-muted-foreground" /></div><div><p className="text-xs text-muted-foreground">عقارات بدون وحدات</p><p className="text-xl font-bold text-muted-foreground">{propertiesWithoutUnits}</p></div></CardContent></Card></TooltipTrigger><TooltipContent>عقارات لم تُسجَّل لها وحدات ولا تتبعها عقود</TooltipContent></Tooltip>
-            </div>
+            <FigureTileGrid cols="sm:grid-cols-3 lg:grid-cols-5">
+              <FigureTile label="إجمالي العقارات" value={totalProperties} icon={DOMAIN_ICONS.property} unit="count" />
+              <FigureTile label="إجمالي الوحدات" value={totalUnits} icon={Layers} unit="count" />
+              <FigureTile label="مؤجرة" value={occupiedUnits} icon={KeyRound} tone="success" unit="count" />
+              <FigureTile label="وحدات شاغرة" value={vacantUnits} icon={DoorOpen} tone={vacantUnits > 0 ? 'warning' : 'neutral'} unit="count" hint="مسجَّلة غير مؤجَّرة" />
+              <FigureTile label="عقارات بدون وحدات" value={propertiesWithoutUnits} icon={DOMAIN_ICONS.property} unit="count" hint="لا تتبعها وحدات مسجّلة" />
+            </FigureTileGrid>
             <p className="sr-only">إجمالي الشواغر: {totalVacant}</p>
 
             <Card className="shadow-sm bg-muted/30">

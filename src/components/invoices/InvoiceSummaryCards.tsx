@@ -1,7 +1,10 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+/**
+ * ملخص الفواتير (الهوية الوقفية) — نفس الحسابات السابقة حرفيًا، تغيّر العرض فقط.
+ */
 import { safeNumber } from '@/utils/format/safeNumber';
-import { FileText, CheckCircle2, Clock, AlertTriangle, Ban, TrendingUp } from 'lucide-react';
+import { CheckCircle2, Clock, AlertTriangle, Ban } from 'lucide-react';
+import { FigureTile, FigureTileGrid } from '@/components/common';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import { cn } from '@/lib/cn';
 import { fmt } from '@/utils/format/format';
 
@@ -17,21 +20,10 @@ interface InvoiceSummaryCardsProps {
   isLoading: boolean;
 }
 
+const Sar = ({ value }: { value: number }) => <><bdi dir="ltr" className="num">{fmt(value)}</bdi> ر.س</>;
+
 const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) => {
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i} className="shadow-sm">
-            <CardContent className="p-3 sm:p-4 space-y-2">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-7 w-24" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
+  if (isLoading) return <FigureTileGrid isLoading cols="lg:grid-cols-5" skeletonCount={5} />;
 
   const total = invoices.length;
   // المسدد يشمل paid و partially_paid (موحّد عبر التطبيق)
@@ -45,90 +37,36 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
   const totalVat = invoices.reduce((s, i) => s + safeNumber(i.vat_amount ?? 0), 0);
   // نسبة التحصيل بالمبلغ (موحدة مع PaymentInvoicesTab)
   const collectionRate = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
-
-
-  const cards = [
-    {
-      label: 'إجمالي الفواتير',
-      value: fmt(total),
-      sub: `${fmt(totalAmount)} ر.س`,
-      icon: FileText,
-      color: 'text-primary',
-      bg: 'bg-primary/10',
-      border: 'border-primary/20',
-    },
-    {
-      label: 'المسددة',
-      value: fmt(paid.length),
-      sub: `${fmt(paidAmount)} ر.س`,
-      icon: CheckCircle2,
-      color: 'text-success',
-      bg: 'bg-success/10',
-      border: 'border-success/20',
-    },
-    {
-      label: 'قيد الانتظار',
-      value: fmt(pending.length),
-      sub: `${fmt(pending.reduce((s, i) => s + safeNumber(i.amount), 0))} ر.س`,
-      icon: Clock,
-      color: 'text-warning',
-      bg: 'bg-warning/10',
-      border: 'border-warning/20',
-    },
-    {
-      label: 'المتأخرة',
-      value: fmt(overdue.length + cancelled.length),
-      sub: overdue.length > 0 ? `${fmt(overdue.reduce((s, i) => s + safeNumber(i.amount), 0))} ر.س` : 'لا يوجد',
-      icon: overdue.length > 0 ? AlertTriangle : Ban,
-      color: overdue.length > 0 ? 'text-destructive' : 'text-muted-foreground',
-      bg: overdue.length > 0 ? 'bg-destructive/10' : 'bg-muted/30',
-      border: overdue.length > 0 ? 'border-destructive/20' : 'border-muted',
-    },
-    {
-      label: 'نسبة التحصيل',
-      value: `${collectionRate}%`,
-      sub: totalVat > 0 ? `ضريبة: ${fmt(totalVat)} ر.س` : 'بدون ضريبة',
-      icon: TrendingUp,
-      color: collectionRate >= 70 ? 'text-success' : collectionRate >= 40 ? 'text-warning' : 'text-destructive',
-      bg: collectionRate >= 70 ? 'bg-success/10' : collectionRate >= 40 ? 'bg-warning/10' : 'bg-destructive/10',
-      border: collectionRate >= 70 ? 'border-success/20' : collectionRate >= 40 ? 'border-warning/20' : 'border-destructive/20',
-    },
-  ];
+  const pendingAmount = pending.reduce((s, i) => s + safeNumber(i.amount), 0);
+  const overdueAmount = overdue.reduce((s, i) => s + safeNumber(i.amount), 0);
+  const rateTone = collectionRate >= 70 ? 'success' : collectionRate >= 40 ? 'warning' : 'expense';
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-      {cards.map((card, i) => {
-        const Icon = card.icon;
-        return (
-          <Card key={i} className={cn('shadow-sm border transition-colors', card.border)}>
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="space-y-1 min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{card.label}</p>
-                  <p className={cn('text-lg sm:text-2xl font-bold', card.color)}>{card.value}</p>
-                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate">{card.sub}</p>
-                </div>
-                <div className={cn('rounded-lg p-2 shrink-0', card.bg)}>
-                  <Icon className={cn('w-4 h-4 sm:w-5 sm:h-5', card.color)} />
-                </div>
-              </div>
-              {/* شريط تقدم صغير للبطاقة الأخيرة */}
-              {i === 4 && total > 0 && (
-                <div className="mt-2 w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className={cn(
-                      'h-full rounded-full transition-[width] duration-500',
-                      collectionRate >= 70 ? 'bg-success' : collectionRate >= 40 ? 'bg-warning' : 'bg-destructive'
-                    )}
-                    style={{ width: `${collectionRate}%` }}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+    <FigureTileGrid cols="sm:grid-cols-3 lg:grid-cols-5">
+      <FigureTile label="إجمالي الفواتير" value={total} icon={DOMAIN_ICONS.invoice} unit="count" hint={<Sar value={totalAmount} />} />
+      <FigureTile label="المسددة" value={paid.length} icon={CheckCircle2} tone="success" unit="count" hint={<Sar value={paidAmount} />} />
+      <FigureTile label="قيد الانتظار" value={pending.length} icon={Clock} tone="warning" unit="count" hint={<Sar value={pendingAmount} />} />
+      <FigureTile
+        label="المتأخرة" value={overdue.length + cancelled.length} unit="count"
+        icon={overdue.length > 0 ? AlertTriangle : Ban} tone={overdue.length > 0 ? 'expense' : 'neutral'}
+        hint={overdue.length > 0 ? <Sar value={overdueAmount} /> : 'لا يوجد'}
+      />
+      <FigureTile
+        label="نسبة التحصيل" value={collectionRate} unit="percent" icon={DOMAIN_ICONS.income} tone={rateTone}
+        hint={totalVat > 0 ? <>ضريبة: <Sar value={totalVat} /></> : 'بدون ضريبة'}
+        className="col-span-2 sm:col-span-1"
+      >
+        {total > 0 && (
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted" aria-hidden="true">
+            <div
+              className={cn('h-full rounded-full transition-[width] duration-500',
+                collectionRate >= 70 ? 'bg-success' : collectionRate >= 40 ? 'bg-warning' : 'bg-destructive')}
+              style={{ width: `${collectionRate}%` }}
+            />
+          </div>
+        )}
+      </FigureTile>
+    </FigureTileGrid>
   );
 };
 

@@ -44,6 +44,8 @@ export { default as FiscalYearStateNotice } from './finance/FiscalYearStateNotic
 export { default as EstimatedShareBadge } from './finance/EstimatedShareBadge';
 export { default as FigureTile } from './finance/FigureTile';
 export type { FigureTone } from './finance/FigureTile';
+export { default as FigureTileGrid } from './finance/FigureTileGrid';
+export { default as ProgressSummaryBar } from './finance/ProgressSummaryBar';
 export { default as RevenueWaterfall } from './finance/RevenueWaterfall';
 
 // charts

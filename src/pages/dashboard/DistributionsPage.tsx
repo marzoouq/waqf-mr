@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Users, PieChart, AlertTriangle, Wallet, PercentCircle } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 import { formatPercentage } from '@/utils/format';
@@ -16,6 +15,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { useDistributionsPage } from '@/hooks/page/admin/financial/useDistributionsPage';
 
 import DistributionDeliveryCard from '@/components/distributions/DistributionDeliveryCard';
+import { FigureTile, FigureTileGrid } from '@/components/common';
+import { DOMAIN_ICONS } from '@/constants/domainIcons';
 
 const DistributeDialog = lazy(() => import('@/components/accounts/DistributeDialog'));
 
@@ -53,45 +54,16 @@ const DistributionsPage = () => {
           }
         />
 
-        {p.isLoading ? (
-          <Skeleton className="h-32 w-full rounded-lg" />
-        ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-            <Card className="shadow-sm col-span-2 lg:col-span-1">
-              <CardContent className="p-3 sm:p-4">
-                <p className="text-xs sm:text-sm text-muted-foreground">المبلغ المتاح للتوزيع</p>
-                <p className="text-lg sm:text-2xl font-bold text-primary tabular-nums truncate">{fmt(p.availableAmount)} ر.س</p>
-              </CardContent>
-            </Card>
-            <Card className="shadow-sm">
-              <CardContent className="p-3 sm:p-4">
-                <p className="text-xs sm:text-sm text-muted-foreground">ريع الوقف</p>
-                <p className="text-lg sm:text-2xl font-bold text-success tabular-nums truncate">{fmt(p.waqfRevenue)} ر.س</p>
-              </CardContent>
-            </Card>
-            <Card className="shadow-sm">
-              <CardContent className="p-3 sm:p-4">
-                <p className="text-xs sm:text-sm text-muted-foreground">إجمالي المرحّل المخصوم</p>
-                <p className="text-lg sm:text-2xl font-bold text-warning tabular-nums truncate">{fmt(p.totalCarryforward)} ر.س</p>
-              </CardContent>
-            </Card>
-            <Card className="shadow-sm">
-              <CardContent className="p-3 sm:p-4">
-                <p className="text-xs sm:text-sm text-muted-foreground">إجمالي السُلف المخصومة</p>
-                <p className="text-lg sm:text-2xl font-bold text-destructive tabular-nums truncate">{fmt(p.totalAdvances)} ر.س</p>
-              </CardContent>
-            </Card>
-            <Card className="shadow-sm">
-              <CardContent className="p-3 sm:p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-accent/50 shrink-0"><PercentCircle className="w-5 h-5 text-accent-foreground" /></div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground">نسبة التوزيع الفعلي</p>
-                  <p className="text-lg sm:text-2xl font-bold tabular-nums">{p.distributionRatio}%</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        <FigureTileGrid isLoading={p.isLoading} cols="sm:grid-cols-3 lg:grid-cols-5" skeletonCount={5}>
+          <FigureTile
+            label="المبلغ المتاح للتوزيع" value={p.availableAmount} icon={DOMAIN_ICONS.distribution} tone="share"
+            className="col-span-2 sm:col-span-3 lg:col-span-1"
+          />
+          <FigureTile label="ريع الوقف" value={p.waqfRevenue} icon={DOMAIN_ICONS.income} tone="income" />
+          <FigureTile label="إجمالي المرحّل المخصوم" value={p.totalCarryforward} icon={DOMAIN_ICONS.carryforward} tone="warning" />
+          <FigureTile label="إجمالي السُلف المخصومة" value={p.totalAdvances} icon={Wallet} tone="expense" />
+          <FigureTile label="نسبة التوزيع الفعلي" value={p.distributionRatio} icon={PercentCircle} unit="percent" />
+        </FigureTileGrid>
 
         {!p.currentAccount && !p.isLoading && (
           <Alert className="border-warning/50 bg-warning/10">

@@ -11,16 +11,19 @@ export type FigureTone = 'income' | 'expense' | 'vat' | 'share' | 'success' | 'w
 
 interface FigureTileProps {
   label: string;
-  value: number;
+  /** رقم يُنسَّق حسب الوحدة، أو نص جاهز (مثل اسم أعلى مصدر) */
+  value: number | string;
   icon: LucideIcon;
   tone?: FigureTone;
   hint?: ReactNode;
   badge?: ReactNode;
   /** عرض الرقم كنسبة بدل مبلغ */
-  unit?: 'currency' | 'percent' | 'count';
+  unit?: 'currency' | 'percent' | 'count' | 'text';
   className?: string;
   /** تلميح عند المرور (يشرح مصدر الرقم) */
   title?: string;
+  /** محتوى إضافي أسفل البطاقة (مثل شريط تقدم) */
+  children?: ReactNode;
 }
 
 const TONES: Record<FigureTone, { icon: string; value: string; edge: string }> = {
@@ -33,14 +36,16 @@ const TONES: Record<FigureTone, { icon: string; value: string; edge: string }> =
   neutral: { icon: 'bg-accent text-primary', value: 'text-foreground', edge: 'before:bg-primary/40' },
 };
 
-const formatValue = (value: number, unit: FigureTileProps['unit']) => {
+const formatValue = (value: number | string, unit: FigureTileProps['unit']) => {
+  if (typeof value === 'string') return value;
   if (unit === 'percent') return `${value}%`;
   if (unit === 'count') return String(value);
   return fmt(value);
 };
 
-const FigureTile = ({ label, value, icon: Icon, tone = 'neutral', hint, badge, unit = 'currency', className, title }: FigureTileProps) => {
+const FigureTile = ({ label, value, icon: Icon, tone = 'neutral', hint, badge, unit = 'currency', className, title, children }: FigureTileProps) => {
   const t = TONES[tone];
+  const isText = unit === 'text';
   return (
     <div
       title={title}
@@ -57,11 +62,15 @@ const FigureTile = ({ label, value, icon: Icon, tone = 'neutral', hint, badge, u
         <span className="line-clamp-2 leading-snug">{label}</span>
         {badge && <span className="ms-auto shrink-0">{badge}</span>}
       </div>
-      <p className={cn('num text-xl sm:text-2xl font-extrabold leading-none', t.value)}>
-        <bdi dir="ltr">{formatValue(value, unit)}</bdi>
+      <p className={cn(
+        isText ? 'text-base sm:text-lg font-bold leading-snug truncate' : 'num text-xl sm:text-2xl font-extrabold leading-none',
+        t.value,
+      )}>
+        {isText ? formatValue(value, unit) : <bdi dir="ltr">{formatValue(value, unit)}</bdi>}
         {unit === 'currency' && <span className="ms-1.5 text-xs font-medium text-muted-foreground">ر.س</span>}
       </p>
       {hint && <p className="text-[11px] sm:text-xs text-muted-foreground">{hint}</p>}
+      {children}
     </div>
   );
 };
