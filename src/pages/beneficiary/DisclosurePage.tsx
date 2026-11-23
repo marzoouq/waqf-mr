@@ -97,7 +97,7 @@ const DisclosurePage = () => {
             <FiscalYearStateNotice state="active" />
           )}
 
-          <DisclosureContractsSection contracts={contracts} isLoading={isLoading} />
+          <DisclosureContractsSection contracts={contracts} isLoading={isLoading} isClosed={selectedFY?.status === 'closed'} />
 
           <DisclosureFinancialStatement
             incomeBySource={incomeBySource}
@@ -122,6 +122,7 @@ const DisclosurePage = () => {
             pendingAmount={pendingAmount}
             currentBeneficiaryName={currentBeneficiary?.name || ''}
             currentBeneficiaryPct={currentBeneficiary?.share_percentage ?? 0}
+            isClosed={selectedFY?.status === 'closed'}
           />
         </div>
       </DashboardLayout>

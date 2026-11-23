@@ -20,6 +20,9 @@ export interface ComprehensiveBeneficiaryData {
   beneficiaryName: string;
   fiscalYear: string;
   isFiscalYearActive?: boolean;
+  /** رقبة الوقف المرحّلة من العام السابق — تُطبع للسنوات غير المقفلة فقط */
+  waqfCorpusPrevious?: number;
+  grandTotal?: number;
   totalIncome: number;
   totalExpenses: number;
   netAfterExpenses: number;
@@ -44,6 +47,7 @@ export interface ComprehensiveBeneficiaryData {
     tenant_name: string;
     rent_amount: number;
     status: string;
+    end_date?: string | null;
   }>;
   distributions: Array<{
     date: string;

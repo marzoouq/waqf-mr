@@ -28,6 +28,7 @@ interface Props {
   pendingAmount: number;
   currentBeneficiaryName: string;
   currentBeneficiaryPct: number;
+  isClosed?: boolean;
 }
 
 const DisclosureFinancialStatement = (props: Props) => (
@@ -48,6 +49,7 @@ const DisclosureFinancialStatement = (props: Props) => (
           expensesByType={props.expensesByType}
           totalExpenses={props.totalExpenses}
           vatAmount={props.vatAmount}
+          isClosed={props.isClosed}
         />
         <DisclosureWaterfallBlock
           waqfCorpusPrevious={props.waqfCorpusPrevious}

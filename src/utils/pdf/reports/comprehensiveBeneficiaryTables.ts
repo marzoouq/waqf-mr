@@ -1,3 +1,4 @@
+import { getEffectiveContractStatus } from '@/utils/contracts/contractStatus';
 import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
 /**
  * دوال بناء جداول التقرير الشامل للمستفيد — مستخرجة لتقليل حجم الملف الرئيسي
@@ -44,7 +45,7 @@ export const renderContractsTable = (
         c.tenant_name,
         fmt(Number(c.rent_amount)),
         fmtInt(Math.round(Number(c.rent_amount) / 12)),
-        c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status,
+        ((st) => st === 'active' ? 'نشط' : st === 'expired' ? 'منتهي' : st)(getEffectiveContractStatus(c.status, c.end_date)),
       ])),
       foot: [reshapeRow([
         'الإجمالي', '',

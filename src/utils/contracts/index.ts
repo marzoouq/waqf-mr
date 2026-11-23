@@ -1,4 +1,4 @@
 /**
  * Barrel file — دوال العقود المساعدة
  */
-export { getContractStatusInfo } from './contractStatus';
+export { getContractStatusInfo, getEffectiveContractStatus } from './contractStatus';

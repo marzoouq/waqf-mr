@@ -22,6 +22,17 @@ function ensureSpace(doc: jsPDF, needed: number): number {
 }
 
 /** القسم الخامس: التسلسل المالي */
+/** السنوات غير المقفلة فقط: سطر المرحّل والإجمالي الشامل (السنة المقفلة تُطبع كما صدرت) */
+export const buildCarryForwardRows = (data: ComprehensiveBeneficiaryData): string[][] => {
+  const prev = data.waqfCorpusPrevious ?? 0;
+  if (!data.isFiscalYearActive || prev <= 0) return [];
+  const grand = data.grandTotal ?? data.totalIncome + prev;
+  return [
+    ['(+) رقبة الوقف المرحّلة من العام السابق', `+${fmt(prev)}`],
+    ['الإجمالي الشامل', fmt(grand)],
+  ];
+};
+
 export const renderFinancialSequenceTable = (
   doc: jsPDF, autoTable: AutoTableFn, f: string, data: ComprehensiveBeneficiaryData,
 ) => {
@@ -32,6 +43,7 @@ export const renderFinancialSequenceTable = (
 
   const sequenceRows: (string | number)[][] = [
     ['إجمالي الدخل', `+${fmt(data.totalIncome)}`],
+    ...buildCarryForwardRows(data),
     ['(-) المصروفات التشغيلية', `(${fmt(data.totalExpenses)})`],
     ['الصافي بعد المصاريف', fmt(data.netAfterExpenses)],
     ['(-) ضريبة القيمة المضافة', `(${fmt(data.vatAmount)})`],

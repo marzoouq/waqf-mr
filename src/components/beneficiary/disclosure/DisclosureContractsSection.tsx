@@ -5,6 +5,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { FileText } from 'lucide-react';
 import { fmt } from '@/utils/format/format';
 import { safeNumber } from '@/utils/format/safeNumber';
+import { getEffectiveContractStatus } from '@/utils/contracts/contractStatus';
+import InfoHint from './InfoHint';
 
 interface Contract {
   id?: string | null;
@@ -12,11 +14,13 @@ interface Contract {
   tenant_name?: string | null;
   rent_amount?: number | null;
   status?: string | null;
+  end_date?: string | null;
 }
 
 interface Props {
   contracts: Contract[];
   isLoading: boolean;
+  isClosed?: boolean;
 }
 
 const statusLabel = (s: string | null | undefined) => {
@@ -26,7 +30,12 @@ const statusLabel = (s: string | null | undefined) => {
   return s || '';
 };
 
-const DisclosureContractsSection = ({ contracts, isLoading }: Props) => {
+export const CONTRACTS_TOTAL_HINT = 'القيمة التعاقدية الكاملة للعقود، وقد يخص جزء منها سنوات قادمة أو أقساطاً مرحّلة، لذا قد تختلف عن إجمالي الإيرادات.';
+
+const DisclosureContractsSection = ({ contracts, isLoading, isClosed = false }: Props) => {
+  // السنوات غير المقفلة فقط: مسمى أوضح مع شرح عند اللمس
+  const totalLabel = isClosed ? 'الإجمالي' : 'إجمالي القيمة السنوية للعقود';
+  const totalHint = isClosed ? null : <InfoHint label="شرح الإجمالي" text={CONTRACTS_TOTAL_HINT} />;
   const activeContracts = contracts.filter(c => c.status === 'active');
   const totalRent = activeContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
 
@@ -53,7 +62,7 @@ const DisclosureContractsSection = ({ contracts, isLoading }: Props) => {
                 <div key={c.id || i} className="p-3 rounded-lg border bg-muted/20 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-sm">{c.contract_number}</span>
-                    <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>{statusLabel(c.status)}</Badge>
+                    <Badge variant={getEffectiveContractStatus(c.status, c.end_date) === 'active' ? 'default' : 'secondary'}>{statusLabel(getEffectiveContractStatus(c.status, c.end_date))}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">{c.tenant_name}</p>
                   <div className="flex justify-between text-xs">
@@ -63,7 +72,7 @@ const DisclosureContractsSection = ({ contracts, isLoading }: Props) => {
                 </div>
               ))}
               <div className="p-3 rounded-lg bg-primary/10 font-bold text-sm flex justify-between">
-                <span>الإجمالي</span>
+                <span className="flex items-center gap-1">{totalLabel}{totalHint}</span>
                 <span>{fmt(totalRent)} ر.س</span>
               </div>
             </div>
@@ -87,12 +96,12 @@ const DisclosureContractsSection = ({ contracts, isLoading }: Props) => {
                       <TableCell>{fmt(safeNumber(c.rent_amount))} ر.س</TableCell>
                       <TableCell>{fmt(Math.round(safeNumber(c.rent_amount) / 12), 0)} ر.س</TableCell>
                       <TableCell>
-                        <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>{statusLabel(c.status)}</Badge>
+                        <Badge variant={getEffectiveContractStatus(c.status, c.end_date) === 'active' ? 'default' : 'secondary'}>{statusLabel(getEffectiveContractStatus(c.status, c.end_date))}</Badge>
                       </TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/30 font-bold">
-                    <TableCell colSpan={2}>الإجمالي</TableCell>
+                    <TableCell colSpan={2}><span className="flex items-center gap-1">{totalLabel}{totalHint}</span></TableCell>
                     <TableCell>{fmt(totalRent)} ر.س</TableCell>
                     <TableCell>{fmt(Math.round(totalRent / 12), 0)} ر.س</TableCell>
                     <TableCell />

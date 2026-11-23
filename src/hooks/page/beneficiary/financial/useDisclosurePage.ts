@@ -101,6 +101,8 @@ export const useDisclosurePage = () => {
       await generateComprehensiveBeneficiaryPDF({
         beneficiaryName: currentBeneficiary?.name || '',
         fiscalYear: gregorianFiscalYear, totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
+        isFiscalYearActive: selectedFY?.status !== 'closed',
+        waqfCorpusPrevious: fin.waqfCorpusPrevious, grandTotal: fin.grandTotal,
         netAfterExpenses: fin.netAfterExpenses, vatAmount: fin.vatAmount, netAfterVat: fin.netAfterVat,
         zakatAmount: fin.zakatAmount, netAfterZakat: fin.netAfterZakat,
         adminShare: fin.adminShare, waqifShare: fin.waqifShare, adminPct, waqifPct,
@@ -112,6 +114,7 @@ export const useDisclosurePage = () => {
           tenant_name: c.tenant_name ?? '',
           rent_amount: safeNumber(c.rent_amount),
           status: c.status ?? '',
+          end_date: c.end_date ?? null,
         })),
         distributions: filteredDistributions.map(d => ({
           date: d.date,
@@ -124,7 +127,7 @@ export const useDisclosurePage = () => {
     } catch {
       uiNotify.error('حدث خطأ أثناء تصدير التقرير الشامل');
     }
-  }, [currentBeneficiary, gregorianFiscalYear, fin, adminPct, waqifPct, beneficiariesShare, myShare, totalReceived, pendingAmount, contracts, filteredDistributions, pdfWaqfInfo]);
+  }, [currentBeneficiary, gregorianFiscalYear, fin, adminPct, waqifPct, beneficiariesShare, myShare, totalReceived, pendingAmount, contracts, filteredDistributions, pdfWaqfInfo, selectedFY?.status]);
 
   return {
     // توحيد loading states (#37) — يشمل distLoading لمنع الـ flickering
