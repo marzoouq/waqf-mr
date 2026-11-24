@@ -56,7 +56,7 @@ const Index = () => {
       {content.show_pillars && <LandingPillars title={content.features_title} subtitle={content.features_subtitle} />}
       {content.show_verify && <LandingVerify title={content.verify_title} subtitle={content.verify_subtitle} onVerify={handleVerify} />}
       {content.show_cta && <LandingCTA content={content} onNavigateAuth={handleNavigateAuth} />}
-      <LandingFooter content={content} />
+      <LandingFooter content={content} waqfName={waqfName} />
     </main>
   );
 };

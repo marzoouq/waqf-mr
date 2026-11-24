@@ -1,14 +1,11 @@
 /**
- * قسم البطل في الصفحة الرئيسية
+ * قسم البطل المؤسسي: نص وأزرار في جهة، وختم الوقف الدائري في الجهة الأخرى
  */
-import { Building2, Star, ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Building2, SearchCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { LandingPageContent } from '@/types/landing';
 import { handleLogoError } from '@/lib/branding/logoFallback';
-
-/** لون النقش الإسلامي الذهبي — مُربط بـ --secondary للثيم النشط */
-const GOLD_PATTERN_COLOR = 'hsl(var(--secondary))';
 
 interface LandingHeroProps {
   content: LandingPageContent;
@@ -19,81 +16,58 @@ interface LandingHeroProps {
 }
 
 const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, statsLoading, onNavigateAuth }) => (
-  <header className="relative overflow-hidden gradient-hero min-h-[85svh] md:min-h-[80vh] flex items-center" role="banner">
-    <div className="absolute inset-0 opacity-[0.07]" aria-hidden="true">
-      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-        <defs>
-          <pattern id="islamicPattern" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
-            <path d="M60 0L120 60L60 120L0 60Z" fill="none" stroke={GOLD_PATTERN_COLOR} strokeWidth="0.8"/>
-            <path d="M60 15L105 60L60 105L15 60Z" fill="none" stroke={GOLD_PATTERN_COLOR} strokeWidth="0.5"/>
-            <path d="M60 30L90 60L60 90L30 60Z" fill="none" stroke={GOLD_PATTERN_COLOR} strokeWidth="0.4"/>
-            <circle cx="60" cy="60" r="10" fill="none" stroke={GOLD_PATTERN_COLOR} strokeWidth="0.4"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#islamicPattern)"/>
-      </svg>
-    </div>
-    <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-secondary/5 blur-3xl -translate-x-1/2 -translate-y-1/2" aria-hidden="true" style={{ contain: 'strict' }} />
-    <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-secondary/8 blur-3xl translate-x-1/3 translate-y-1/3" aria-hidden="true" style={{ contain: 'strict' }} />
-    <div className="container mx-auto px-4 py-10 sm:py-20 relative z-10">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="mb-10">
-          {waqfLogoUrl ? (
-            <div className="mx-auto w-24 h-24 rounded-3xl overflow-hidden shadow-gold animate-glow mb-8 bg-white/10 backdrop-blur-xs flex items-center justify-center">
-              <img src={waqfLogoUrl} alt="شعار الوقف" className="w-20 h-20 object-contain" loading="eager" onError={handleLogoError} />
-            </div>
-          ) : (
-            <div className="mx-auto w-24 h-24 gradient-gold rounded-3xl flex items-center justify-center shadow-gold animate-glow mb-8">
-              <Building2 className="w-12 h-12 text-primary-foreground" />
-            </div>
-          )}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="h-px w-16 bg-gradient-to-l from-secondary/60 to-transparent" />
-            <Star className="w-4 h-4 text-secondary fill-secondary/30" />
-            <div className="h-px w-16 bg-gradient-to-r from-secondary/60 to-transparent" />
-          </div>
-          <h1 className="font-arabic text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
+  <>
+    <header className={`relative overflow-hidden gradient-hero pattern-islamic text-primary-foreground ${stats.length ? 'pb-24 md:pb-32' : 'pb-14 md:pb-24'} pt-10 md:pt-20`} role="banner">
+      <div className="container mx-auto px-5 grid md:grid-cols-[1.15fr_.85fr] gap-10 md:gap-14 items-center relative z-10">
+        <div className="text-center md:text-right">
+          <span className="inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/10 text-secondary px-3.5 py-1.5 text-xs md:text-sm">
+            ✦ {content.hero_tagline}
+          </span>
+          <h1 className="font-display font-bold text-[1.75rem] leading-snug sm:text-4xl md:text-5xl lg:text-6xl md:leading-tight mt-5 mb-4">
             {content.hero_title}
           </h1>
-          <p className="text-lg md:text-xl text-white/90 mb-4 max-w-2xl mx-auto leading-relaxed font-arabic">
+          <p className="text-sm sm:text-base md:text-lg leading-loose text-primary-foreground/80 max-w-xl mx-auto md:mx-0">
             {content.hero_subtitle}
           </p>
-          <p className="text-sm md:text-base text-white mb-10 font-arabic font-semibold drop-shadow-md">
-            {content.hero_tagline}
-          </p>
+          <div className="flex gap-3 mt-7 flex-wrap justify-center md:justify-start">
+            <Button onClick={onNavigateAuth} size="lg" className="gradient-gold text-primary gap-2 rounded-xl font-bold shadow-gold flex-1 sm:flex-none">
+              {content.cta_text}
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            {content.show_verify && (
+              <Button asChild size="lg" variant="outline" className="bg-transparent border-secondary text-secondary hover:bg-secondary/10 hover:text-secondary gap-2 rounded-xl font-bold flex-1 sm:flex-none">
+                <a href="#verify"><SearchCheck className="w-4 h-4" />تحقّق من وثيقة</a>
+              </Button>
+            )}
+          </div>
         </div>
-        <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
-          <Button
-            onClick={onNavigateAuth}
-            size="lg"
-            className="gradient-gold text-primary-foreground gap-3 shadow-gold hover:scale-105 transition-transform duration-300 text-lg px-10 py-6 rounded-2xl font-bold"
-          >
-            <ArrowRight className="w-5 h-5" />
-            {content.cta_text}
-          </Button>
+        <div className="relative mx-auto w-56 sm:w-64 md:w-full md:max-w-sm aspect-square rounded-full border-2 border-secondary/50 grid place-items-center bg-[radial-gradient(circle,hsl(var(--secondary)/0.15),transparent_70%)]" aria-hidden="true">
+          <div className="absolute inset-4 md:inset-6 rounded-full border border-dashed border-secondary/50" />
+          <div className="w-[46%] aspect-square rounded-3xl bg-background p-3 shadow-2xl grid place-items-center">
+            {waqfLogoUrl
+              ? <img src={waqfLogoUrl} alt="" className="w-full h-full object-contain" loading="eager" onError={handleLogoError} />
+              : <Building2 className="w-1/2 h-1/2 text-primary" />}
+          </div>
+          <span className="absolute bottom-[13%] font-display text-secondary text-sm md:text-lg">وَقْفٌ لِلّٰهِ تَعَالَى</span>
         </div>
-        {stats.length > 0 && (<div className="mt-10 md:mt-16 flex justify-center gap-8 md:gap-16 animate-fade-in" style={{ animationDelay: '500ms' }}>
-          {stats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              {statsLoading ? (
-                <Skeleton className="h-10 w-16 mx-auto mb-1 bg-white/20" />
-              ) : (
-                <div className="text-3xl md:text-4xl font-bold text-gradient-gold font-display">{stat.value}</div>
-              )}
-              <div className="text-sm text-white/70 mt-1">{stat.label}</div>
+      </div>
+      <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-secondary to-transparent" />
+    </header>
+    {stats.length > 0 && (
+      <div className="container mx-auto px-5 -mt-14 md:-mt-16 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 rounded-2xl bg-card border border-secondary/30 shadow-xl overflow-hidden divide-x divide-x-reverse divide-border">
+          {stats.map(stat => (
+            <div key={stat.label} className="p-5 md:p-7 text-center border-t border-border md:border-t-0">
+              {statsLoading
+                ? <Skeleton className="h-9 w-14 mx-auto mb-1" />
+                : <div className="font-display text-3xl md:text-4xl font-bold text-primary">{stat.value}</div>}
+              <div className="text-xs md:text-sm text-muted-foreground mt-1">{stat.label}</div>
             </div>
           ))}
-        </div>)}
+        </div>
       </div>
-    </div>
-    <button
-      className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce cursor-pointer bg-transparent border-0"
-      aria-label="انتقل للمحتوى"
-      onClick={() => document.getElementById('testament') ?? document.getElementById('pillars')?.scrollIntoView({ behavior: 'smooth' })}
-    >
-      <ChevronDown className="w-6 h-6 text-white" />
-    </button>
-  </header>
+    )}
+  </>
 );
 
 export default LandingHero;

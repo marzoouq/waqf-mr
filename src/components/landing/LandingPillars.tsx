@@ -17,14 +17,15 @@ interface LandingPillarsProps {
 }
 
 const LandingPillars = ({ title, subtitle }: LandingPillarsProps) => (
-  <LandingSection id="pillars" title={title} subtitle={subtitle} className="bg-muted/40">
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+  <LandingSection id="pillars" eyebrow="ركائز الحوكمة" title={title} subtitle={subtitle} className="bg-muted/60 pattern-islamic">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
       {PILLARS.map(p => (
-        <div key={p.title} className="rounded-2xl bg-card border border-border border-t-4 border-t-secondary p-6">
-          <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center mb-4">
-            <p.icon className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
+        <div key={p.title} className="relative overflow-hidden rounded-2xl bg-card border border-secondary/20 p-6">
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-l from-primary to-secondary" />
+          <div className="w-12 h-12 rounded-xl bg-primary grid place-items-center mb-4">
+            <p.icon className="w-6 h-6 text-secondary" aria-hidden="true" />
           </div>
-          <h3 className="font-display text-lg font-bold mb-2">{p.title}</h3>
+          <h3 className="font-display text-xl font-bold text-primary mb-2">{p.title}</h3>
           <p className="text-sm text-muted-foreground leading-relaxed">{p.description}</p>
         </div>
       ))}
