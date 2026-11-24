@@ -7,6 +7,8 @@ const mockSetFont = vi.fn();
 const mockSetFontSize = vi.fn();
 let mockDoc: Record<string, unknown>;
 
+// الختم يُختبر في approvalStamp.test.ts
+vi.mock('../core/approvalStamp', () => ({ stampAfterContent: vi.fn(), addApprovalStamp: vi.fn() }));
 vi.mock('jspdf', () => {
   return {
     default: function JsPDFMock() {

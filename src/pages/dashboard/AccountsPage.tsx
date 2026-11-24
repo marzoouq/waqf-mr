@@ -19,6 +19,7 @@ const AccountsDistributionTable = lazy(() => import('@/components/accounts/Accou
 const AccountsBeneficiariesTable = lazy(() => import('@/components/accounts/AccountsBeneficiariesTable'));
 const AccountsSavedTable = lazy(() => import('@/components/accounts/AccountsSavedTable'));
 const CloseYearDialog = lazy(() => import('@/components/accounts/CloseYearDialog'));
+const WaqfBankAccountSection = lazy(() => import('@/components/bank/WaqfBankAccountSection'));
 
 const SectionFallback = () => <Skeleton className="h-32 w-full rounded-lg" />;
 
@@ -52,6 +53,7 @@ const AccountsPage = () => {
           <TabsList aria-label="أقسام الحسابات الختامية" className="w-full sm:w-auto">
             <TabsTrigger value="review">استعراض الحساب</TabsTrigger>
             <TabsTrigger value="year-end">إجراءات نهاية العام</TabsTrigger>
+            <TabsTrigger value="bank">الحساب البنكي</TabsTrigger>
           </TabsList>
 
           <TabsContent value="review" className="space-y-5 sm:space-y-6 mt-4">
@@ -160,6 +162,10 @@ const AccountsPage = () => {
             />
           </Suspense>
         </DeferredRender>
+          </TabsContent>
+
+          <TabsContent value="bank" className="mt-4">
+            <Suspense fallback={<SectionFallback />}><WaqfBankAccountSection /></Suspense>
           </TabsContent>
         </Tabs>
 

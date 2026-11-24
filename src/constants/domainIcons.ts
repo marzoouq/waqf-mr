@@ -7,7 +7,7 @@ import {
   Home, Building2, FileSignature, TrendingUp, TrendingDown, Users, BarChart3, Calculator,
   Share2, UserCog, Settings, MessageSquare, ReceiptText, ShieldCheck, BookOpen, FolderArchive,
   QrCode, Trophy, Headset, GitBranch, GitCompareArrows, Activity, Mail, Network, ScrollText,
-  Wallet, ClipboardList, ArrowDownUp, Bell, Lock, Eye,
+  Wallet, ClipboardList, ArrowDownUp, Bell, Lock, Eye, Landmark,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -43,6 +43,7 @@ export const DOMAIN_ICONS = {
   notifications: Bell,
   closedYear: Lock,
   preview: Eye,
+  bankAccount: Landmark,
 } as const satisfies Record<string, LucideIcon>;
 
 export type DomainIconKey = keyof typeof DOMAIN_ICONS;

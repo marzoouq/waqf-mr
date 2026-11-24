@@ -20,6 +20,8 @@ export interface PdfWaqfInfo {
   bankName?: string;
   bankAccount?: string;
   bankIBAN?: string;
+  /** اسم ناظر الوقف — يظهر في كتلة الاعتماد */
+  adminName?: string;
 }
 
 // ═══ Factory Functions — توحيد إنشاء وإنهاء PDF ═══

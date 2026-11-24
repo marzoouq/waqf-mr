@@ -2626,6 +2626,165 @@ export type Database = {
         }
         Relationships: []
       }
+      waqf_bank_account: {
+        Row: {
+          account_holder: string
+          account_number: string | null
+          balance_as_of: string | null
+          balance_source: string
+          bank_name: string
+          created_at: string
+          iban: string | null
+          id: string
+          notes: string | null
+          recorded_balance: number
+          singleton: boolean
+          source_fiscal_year_id: string | null
+          statement_visible_to_beneficiaries: boolean
+          updated_at: string
+          updated_by: string | null
+          visible_to_beneficiaries: boolean
+        }
+        Insert: {
+          account_holder?: string
+          account_number?: string | null
+          balance_as_of?: string | null
+          balance_source?: string
+          bank_name?: string
+          created_at?: string
+          iban?: string | null
+          id?: string
+          notes?: string | null
+          recorded_balance?: number
+          singleton?: boolean
+          source_fiscal_year_id?: string | null
+          statement_visible_to_beneficiaries?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          visible_to_beneficiaries?: boolean
+        }
+        Update: {
+          account_holder?: string
+          account_number?: string | null
+          balance_as_of?: string | null
+          balance_source?: string
+          bank_name?: string
+          created_at?: string
+          iban?: string | null
+          id?: string
+          notes?: string | null
+          recorded_balance?: number
+          singleton?: boolean
+          source_fiscal_year_id?: string | null
+          statement_visible_to_beneficiaries?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          visible_to_beneficiaries?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waqf_bank_account_source_fiscal_year_id_fkey"
+            columns: ["source_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waqf_bank_account_source_fiscal_year_id_fkey"
+            columns: ["source_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+        ]
+      }
+      waqf_bank_balance_log: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          fiscal_year_id: string | null
+          id: string
+          new_balance: number
+          note: string | null
+          previous_balance: number | null
+          source: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          fiscal_year_id?: string | null
+          id?: string
+          new_balance: number
+          note?: string | null
+          previous_balance?: number | null
+          source: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          fiscal_year_id?: string | null
+          id?: string
+          new_balance?: number
+          note?: string | null
+          previous_balance?: number | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waqf_bank_balance_log_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waqf_bank_balance_log_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "v_fiscal_year_summary"
+            referencedColumns: ["fiscal_year_id"]
+          },
+        ]
+      }
+      waqf_bank_statements: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size_bytes: number
+          id: string
+          is_current: boolean
+          mime_type: string
+          notes: string | null
+          statement_date: string | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size_bytes?: number
+          id?: string
+          is_current?: boolean
+          mime_type: string
+          notes?: string | null
+          statement_date?: string | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          is_current?: boolean
+          mime_type?: string
+          notes?: string | null
+          statement_date?: string | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       waqf_bylaws: {
         Row: {
           chapter_number: number | null
@@ -3089,6 +3248,8 @@ export type Database = {
         Args: { p_fiscal_year_id: string }
         Returns: Json
       }
+      bank_section_visible: { Args: { _user_id: string }; Returns: boolean }
+      bank_statement_visible: { Args: { _user_id: string }; Returns: boolean }
       can_access_file: {
         Args: {
           _action: string

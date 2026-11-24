@@ -1,13 +1,11 @@
 /** Pure rules for documented Ejar contract files. */
-export const EJAR_ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'] as const;
-export const EJAR_MAX_BYTES = 10 * 1024 * 1024;
+import { OFFICIAL_FILE_TYPES, OFFICIAL_FILE_MAX_BYTES, validateOfficialFile } from '@/utils/files/officialFile';
 
-export const validateEjarFile = (file: { type: string; size: number } | null): string | null => {
-  if (!file) return 'اختر ملف العقد الموثق';
-  if (!(EJAR_ALLOWED_TYPES as readonly string[]).includes(file.type)) return 'نوع الملف غير مقبول — PDF أو JPG أو PNG فقط';
-  if (file.size > EJAR_MAX_BYTES) return 'حجم الملف يتجاوز 10 ميغابايت';
-  return null;
-};
+export const EJAR_ALLOWED_TYPES = OFFICIAL_FILE_TYPES;
+export const EJAR_MAX_BYTES = OFFICIAL_FILE_MAX_BYTES;
+
+export const validateEjarFile = (file: { type: string; size: number } | null): string | null =>
+  validateOfficialFile(file, 'اختر ملف العقد الموثق');
 
 export const ejarDatesMismatch = (
   doc: { ejar_start_date: string | null; ejar_end_date: string | null },

@@ -15,6 +15,7 @@ import { fmt } from '@/utils/format/format';
 import { statusConfig } from './accordion/accordionConstants';
 import { InvoiceCard } from './accordion/AccordionParts';
 import { EjarDocumentButton } from './EjarDocumentButton';
+import { SingleContractPdfButton } from './SingleContractPdfButton';
 import { getEffectiveContractStatus } from '@/utils/contracts/contractStatus';
 
 interface ContractAccordionGroupProps {
@@ -134,6 +135,7 @@ const ContractAccordionGroup = ({
                     </div>
                   </div>
                   <div className="flex gap-0.5 shrink-0 items-center">
+                    <SingleContractPdfButton contract={contract} withPayments />
                     <EjarDocumentButton contract={contract} />
                     <Button variant="ghost" size="icon" className="w-7 h-7 text-success hover:text-success/80" onClick={() => onRenew(contract)} title="تجديد" aria-label="تجديد العقد">
                       <RefreshCw className="w-3.5 h-3.5" />

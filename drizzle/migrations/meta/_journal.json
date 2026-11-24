@@ -232,6 +232,20 @@
       "when": 1795421221277,
       "tag": "0032_future_years_pct_and_skip_closed_contract_expiry",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1795486607065,
+      "tag": "0033_waqf_bank_account",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1795487529462,
+      "tag": "0034_bank_statement_grants_cannot_bypass_visibility",
+      "breakpoints": true
     }
   ]
 }

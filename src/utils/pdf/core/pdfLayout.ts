@@ -8,6 +8,9 @@ import { getPdfThemeColors } from './themeColors';
 import { formatHijriGregorian } from '@/utils/format/hijriDate';
 import type { PdfWaqfInfo } from './core';
 
+/** شعار كل مستند — يُعاد استخدامه في ترويسة الصفحات التالية */
+const logoByDoc = new WeakMap<jsPDF, string>();
+
 // ترويسة احترافية مع شعار واسم الوقف وخط ذهبي فاصل
 export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo): Promise<number> => {
   if (!waqfInfo?.waqfName) return 15;
@@ -21,6 +24,7 @@ export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWa
     if (logoData) {
       try {
         doc.addImage(logoData, 'PNG', pageW - margin - 22, currentY - 6, 22, 22);
+        logoByDoc.set(doc, logoData);
       } catch {
         // logo failed, continue without it
       }
@@ -78,7 +82,12 @@ export const addHeaderToAllPages = (doc: jsPDF, fontFamily: string, waqfInfo?: P
     doc.setFont(fontFamily, 'bold');
     doc.setFontSize(10);
     doc.setTextColor(...themeColors.primary);
-    doc.text(rs(waqfInfo.waqfName), pageW - margin, 15, { align: 'right' });
+    const logo = logoByDoc.get(doc);
+    let nameX = pageW - margin;
+    if (logo) {
+      try { doc.addImage(logo, 'PNG', pageW - margin - 7, 9.5, 7, 7); nameX -= 9; } catch { /* يستمر دون شعار */ }
+    }
+    doc.text(rs(waqfInfo.waqfName), nameX, 15, { align: 'right' });
     doc.setTextColor(0, 0, 0);
     doc.setDrawColor(...themeColors.secondary);
     doc.setLineWidth(0.5);
@@ -124,7 +133,7 @@ const drawRtlSegments = (doc: jsPDF, segments: string[], x: number, y: number, a
 };
 
 /** تاريخ اليوم بتوقيت الرياض (YYYY-MM-DD) */
-const riyadhToday = (now: Date) =>
+export const riyadhToday = (now: Date) =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
 
 // تذييل موحّد: تاريخ الطباعة هجري/ميلادي، اسم الوقف، ورقم الصفحة

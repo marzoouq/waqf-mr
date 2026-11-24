@@ -4,6 +4,8 @@ const mockSave = vi.fn();
 const mockText = vi.fn();
 const mockAutoTable = vi.fn();
 
+// الختم يُختبر في approvalStamp.test.ts
+vi.mock('../core/approvalStamp', () => ({ stampAfterContent: vi.fn(), addApprovalStamp: vi.fn() }));
 vi.mock('jspdf', () => {
   const JsPDFMock = function(this: Record<string, unknown>) {
     this.addPage = vi.fn();

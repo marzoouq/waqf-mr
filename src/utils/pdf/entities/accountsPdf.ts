@@ -1,5 +1,6 @@
 import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
 import { renderClosureDisclosure } from '@/utils/pdf/core/closureDisclosure';
+import { stampAfterContent } from '@/utils/pdf/core/approvalStamp';
 /**
  * تقرير الحسابات الختامية — PDF
  * Helpers (صفوف التوزيع وصفوف المستفيدين) في accountsPdf.helpers.ts.
@@ -194,6 +195,6 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  renderClosureDisclosure(doc, fontFamily, data.closureDisclosure);
+  stampAfterContent(doc, fontFamily, waqfInfo, renderClosureDisclosure(doc, fontFamily, data.closureDisclosure));
   await finalizePdf(doc, fontFamily, 'accounts-report.pdf', waqfInfo);
 };

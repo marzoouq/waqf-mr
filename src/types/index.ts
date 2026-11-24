@@ -22,3 +22,4 @@ export * from './sorting';
 export * from './forms/beneficiary';
 export * from './forms/contract';
 export * from './forms/property';
+export * from './waqfBank';

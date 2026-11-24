@@ -8,7 +8,7 @@ import { getPdfThemeColors } from '@/utils/pdf/core/themeColors';
 import { amountToArabicWords } from '@/utils/format/arabicNumberWords';
 import { formatHijriGregorian } from '@/utils/format/hijriDate';
 import { fmt } from '@/utils/format/format';
-import { drawWaqfStamp } from '@/utils/pdf/receipts/waqfStamp';
+import { drawWaqfStamp } from '@/utils/pdf/core/waqfStamp';
 
 export interface ReceiptVoucherPdfData {
   receiptNumber: string;

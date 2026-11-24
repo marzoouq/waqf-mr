@@ -2,11 +2,12 @@ import { Wallet, PieChart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageHeaderCard, DashboardLayout } from '@/components/layout';
-import { ExportMenu, RequirePublishedYears, DashboardSkeleton, ErrorState } from '@/components/common';
+import { ExportMenu, RequirePublishedYears, DashboardSkeleton, ErrorState, DeferredRender } from '@/components/common';
 import { AccountsSummaryCards, AccountsViewMyShare } from '@/components/accounts';
 import UnlinkedAccountNotice from '@/components/beneficiary/UnlinkedAccountNotice';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAccountsViewPage } from '@/hooks/page/beneficiary';
+import WaqfBankAccountSection from '@/components/bank/WaqfBankAccountSection';
 
 const AccountsViewPage = () => {
   const { noPublishedYears } = useFiscalYear();
@@ -84,6 +85,9 @@ const AccountsViewPage = () => {
         />
 
         {currentBeneficiary && <AccountsViewMyShare myShare={myShare} />}
+
+        {/* يظهر فقط إذا أتاحه الناظر */}
+        <DeferredRender delay={100}><WaqfBankAccountSection /></DeferredRender>
 
         <Card className="shadow-sm border-primary/20 bg-primary/5">
           <CardContent className="p-4 sm:p-5">

@@ -1,4 +1,5 @@
 import type { jsPDF } from 'jspdf';
+import { stampAfterContent } from '@/utils/pdf/core/approvalStamp';
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN,
@@ -107,5 +108,6 @@ export const generateComprehensiveBeneficiaryPDF = async (
   renderShareTable(doc, autoTable as (d: jsPDF, o: Parameters<typeof autoTable>[1]) => void, f, data);
   renderDistributionsTable(doc, autoTable as (d: jsPDF, o: Parameters<typeof autoTable>[1]) => void, f, data);
 
+  stampAfterContent(doc, f, waqfInfo);
   finalizePdf(doc, f, `تقرير-شامل-${data.beneficiaryName}-${data.fiscalYear}.pdf`, waqfInfo);
 };

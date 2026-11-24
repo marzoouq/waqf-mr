@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format/format';
 import { STATUS_MAP, type ContractItem } from './contractsViewShared';
+import { SingleContractPdfButton } from './SingleContractPdfButton';
 
 interface ContractsViewDesktopTableProps {
   contracts: ContractItem[];
@@ -28,6 +29,7 @@ export default function ContractsViewDesktopTable({ contracts, propertiesMap, is
               <TableHead className="text-right">تاريخ البداية</TableHead>
               <TableHead className="text-right">تاريخ النهاية</TableHead>
               <TableHead className="text-right">الحالة</TableHead>
+              <TableHead className="text-right"><span className="sr-only">طباعة</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -50,6 +52,9 @@ export default function ContractsViewDesktopTable({ contracts, propertiesMap, is
                         </Badge>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <SingleContractPdfButton contract={contract} propertyLabel={(contract.property_id && propertiesMap[contract.property_id]) || null} />
                   </TableCell>
                 </TableRow>
               );

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format/format';
 import { STATUS_MAP, type ContractItem } from './contractsViewShared';
+import { SingleContractPdfButton } from './SingleContractPdfButton';
 
 interface ContractsViewMobileCardsProps {
   contracts: ContractItem[];
@@ -45,6 +46,9 @@ export default function ContractsViewMobileCards({ contracts, isExpiringSoon }: 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">إلى</span>
                 <span>{fmtDate(contract.end_date ?? '')}</span>
+              </div>
+              <div className="flex justify-end pt-1">
+                <SingleContractPdfButton contract={contract} withLabel />
               </div>
             </CardContent>
           </Card>

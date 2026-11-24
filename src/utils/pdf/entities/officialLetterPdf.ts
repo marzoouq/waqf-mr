@@ -6,7 +6,7 @@ import { createPdfDocument, finalizePdf, reshapeArabic as rs, type PdfWaqfInfo }
 import { addPageBorder } from '@/utils/pdf/core/pdfLayout';
 import { drawOfficialMarks } from '@/utils/pdf/core/officialStamp';
 import type { IssuedDocumentRef } from '@/utils/pdf/core/officialRegistry';
-import { drawWaqfStamp } from '@/utils/pdf/receipts/waqfStamp';
+import { drawWaqfStamp } from '@/utils/pdf/core/waqfStamp';
 import { formatHijriGregorian } from '@/utils/format/hijriDate';
 
 export const OFFICIAL_LETTER_FILENAME = 'official_letter.pdf';

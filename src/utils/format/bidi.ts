@@ -6,3 +6,9 @@ export function ltr(value: string | null | undefined): string {
   if (!value) return '';
   return `\u2066${value}\u2069`;
 }
+
+/** Isolates every fiscal-year label ("YYYY-YYYY") inside free Arabic text (e.g. stored notes). */
+export function ltrYears(text: string | null | undefined): string {
+  if (!text) return '';
+  return text.replace(/(?<!\u2066)\b(\d{4}-\d{4})\b/g, (m) => ltr(m));
+}

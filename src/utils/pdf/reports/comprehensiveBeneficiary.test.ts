@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockSave = vi.fn();
+// الختم يُختبر في approvalStamp.test.ts
+vi.mock('../core/approvalStamp', () => ({ stampAfterContent: vi.fn(), addApprovalStamp: vi.fn() }));
 vi.mock('jspdf', () => ({
   default: function JsPDFMock() {
     return {

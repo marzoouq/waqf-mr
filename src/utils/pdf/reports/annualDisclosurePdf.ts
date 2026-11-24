@@ -1,5 +1,6 @@
 import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
 import { renderClosureDisclosure } from '@/utils/pdf/core/closureDisclosure';
+import { stampAfterContent } from '@/utils/pdf/core/approvalStamp';
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
@@ -151,6 +152,6 @@ export const generateAnnualDisclosurePDF = async (
     ...baseTableStyles(fontFamily),
   });
 
-  renderClosureDisclosure(doc, fontFamily, data.closureDisclosure);
+  stampAfterContent(doc, fontFamily, waqfInfo, renderClosureDisclosure(doc, fontFamily, data.closureDisclosure));
   await finalizePdf(doc, fontFamily, `annual-disclosure-${data.fiscalYear}.pdf`, waqfInfo);
 };

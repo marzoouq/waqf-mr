@@ -1,3 +1,4 @@
+import { stampAfterContent } from '@/utils/pdf/core/approvalStamp';
 // autoTable is dynamically imported inside each function
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
@@ -104,6 +105,7 @@ export const generateMySharePDF = async (data: {
     });
   }
 
+  stampAfterContent(doc, fontFamily, waqfInfo);
   finalizePdf(doc, fontFamily, `my-share-${data.beneficiaryName}-${data.fiscalYear || 'all'}.pdf`, waqfInfo);
 };
 
@@ -180,5 +182,6 @@ export const generateDisclosurePDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
+  stampAfterContent(doc, fontFamily, waqfInfo);
   finalizePdf(doc, fontFamily, `disclosure-${data.fiscalYear}.pdf`, waqfInfo);
 };
