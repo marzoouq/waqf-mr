@@ -260,6 +260,13 @@
       "when": 1795542405894,
       "tag": "0036_harden_payouts_vouchers_rate_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1795555316457,
+      "tag": "0037_migration",
+      "breakpoints": true
     }
   ]
 }

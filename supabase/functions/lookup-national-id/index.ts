@@ -130,7 +130,9 @@ Deno.serve(async (req) => {
     // ── Layer 2: per-national-id rate limit (يمنع enumeration عبر IP rotation) ──
     // المفتاح مُشفَّر (SHA-256) لمنع تسريب الأرقام الفعلية في جدول rate_limits
     const idHash = await sha256Hex(national_id);
-    const targetKey = `lookup_nid_target:${idHash}`;
+    // مربوط بعنوان الزائر كي لا يستهلك أحدٌ حصة هوية شخص آخر
+    const ipHash = await sha256Hex(clientIp);
+    const targetKey = `lookup_nid_target:${idHash}:${ipHash}`;
     const { data: targetLimited, error: tlError } = await rlClient.rpc('check_rate_limit', {
       p_key: targetKey,
       p_limit: TARGET_RATE_LIMIT,

@@ -1,5 +1,5 @@
 /**
- * إنشاء signed URL على الطلب لمعاينة/تنزيل وثيقة. TTL = 60 ثانية.
+ * إنشاء signed URL على الطلب لمعاينة/تنزيل وثيقة. TTL = 10 ثوانٍ (يقلّل بقاء الرابط بعد سحب الصلاحية).
  * لا نخزّن النتيجة في React state دائم؛ يُستدعى عند فتح المعاينة فقط.
  */
 import { useMutation } from '@tanstack/react-query';
@@ -17,7 +17,7 @@ export function useArchivedDocumentSignedUrl() {
     mutationFn: async ({ storagePath, downloadAs }: SignedUrlInput): Promise<string> => {
       const { data, error } = await supabase.storage
         .from(ARCHIVE_FILE_LIMITS.BUCKET)
-        .createSignedUrl(storagePath, 60, downloadAs ? { download: downloadAs } : undefined);
+        .createSignedUrl(storagePath, 10, downloadAs ? { download: downloadAs } : undefined);
       if (error || !data?.signedUrl) throw error ?? new Error('تعذّر إنشاء رابط المعاينة');
       return data.signedUrl;
     },
