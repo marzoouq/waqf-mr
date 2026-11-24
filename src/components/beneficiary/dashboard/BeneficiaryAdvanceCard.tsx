@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Banknote } from 'lucide-react';
+import { Banknote, Lock } from 'lucide-react';
 import { ADVANCE_CARD_COPY } from '@/constants/beneficiaryCopy';
 import AdvanceRequestDialog from '@/components/beneficiary/my-share/AdvanceRequestDialog';
 
@@ -40,56 +38,40 @@ const BeneficiaryAdvanceCard = ({ pendingAdvanceCount, advanceContext }: Benefic
       : null;
 
   return (
-    <Card className="shadow-sm border-accent/30">
-      <CardContent className="p-4 sm:p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 bg-accent/10 rounded-xl flex items-center justify-center shrink-0">
-              <Banknote className="w-5 h-5 text-accent-foreground" />
-            </div>
-            <div className="min-w-0">
-              <p className="font-bold text-sm">{ADVANCE_CARD_COPY.title}</p>
-              <p className="text-xs text-muted-foreground">{disabledHint ?? text}</p>
-            </div>
-          </div>
-          <div className="flex flex-col items-stretch sm:items-end gap-1 shrink-0">
-            {canRequest ? (
-              <AdvanceRequestDialog
-                beneficiaryId={advanceContext.beneficiaryId}
-                beneficiaryName={advanceContext.beneficiaryName}
-                fiscalYearId={advanceContext.fiscalYearId}
-                estimatedShare={advanceContext.estimatedShare}
-                paidAdvances={advanceContext.paidAdvances}
-                carryforwardBalance={advanceContext.carryforwardBalance}
-                isFiscalYearActive={advanceContext.isFiscalYearActive}
-                minAmount={advanceContext.minAmount}
-                maxPercentage={advanceContext.maxPercentage}
-              />
-            ) : (
-              // B7: استخدام Button بـ themed tokens بدل <button> خام
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled
-                title={disabledHint ?? undefined}
-                aria-label={disabledHint ?? 'طلب سلفة'}
-                className="gap-2"
-              >
-                <Banknote className="w-4 h-4" />
-                طلب سلفة
-              </Button>
-            )}
-            <Link
-              to="/beneficiary/my-share"
-              className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline text-center sm:text-end"
-            >
-              عرض السجل الكامل
-            </Link>
-          </div>
+    <section aria-label={ADVANCE_CARD_COPY.title} className="rounded-2xl border bg-card p-4 shadow-sm">
+      <div className="flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary/15 text-secondary-foreground">
+          <Banknote className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-foreground">{ADVANCE_CARD_COPY.title}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{disabledHint ?? text}</p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="mt-3 flex items-center justify-between gap-2">
+        {canRequest ? (
+          <AdvanceRequestDialog
+            beneficiaryId={advanceContext.beneficiaryId}
+            beneficiaryName={advanceContext.beneficiaryName}
+            fiscalYearId={advanceContext.fiscalYearId}
+            estimatedShare={advanceContext.estimatedShare}
+            paidAdvances={advanceContext.paidAdvances}
+            carryforwardBalance={advanceContext.carryforwardBalance}
+            isFiscalYearActive={advanceContext.isFiscalYearActive}
+            minAmount={advanceContext.minAmount}
+            maxPercentage={advanceContext.maxPercentage}
+          />
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground" aria-label={disabledHint ?? 'طلب سلفة'}>
+            <Lock className="h-3 w-3" aria-hidden="true" />
+            غير متاح الآن
+          </span>
+        )}
+        <Link to="/beneficiary/my-share" className="text-xs font-medium text-primary underline-offset-2 hover:underline">
+          عرض السجل الكامل
+        </Link>
+      </div>
+    </section>
   );
 };
 

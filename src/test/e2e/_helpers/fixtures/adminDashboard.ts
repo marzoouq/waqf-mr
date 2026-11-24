@@ -56,6 +56,7 @@ export const adminDashboardFixture: AdminDashboardPageCtx = {
   monthlyData: [],
   expenseTypes: [],
   greetingText: 'مرحباً بك أيها الناظر',
+  greetingData: { greeting: 'مساء الخير', greetingIconName: 'moon', hijriDate: '١ رجب ١٤٤٦ هـ', gregorianDate: '1 يناير 2025' } as AdminDashboardPageCtx['greetingData'],
   allFiscalYears: [],
   fy: undefined,
 

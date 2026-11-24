@@ -67,22 +67,9 @@ const BeneficiaryDashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-3 sm:p-6 space-y-6 max-w-5xl mx-auto">
+      <div className="p-3 sm:p-6 space-y-6 max-w-6xl mx-auto">
         {isVisible('welcome_card') && (
           <BeneficiaryWelcomeCard displayName={displayName} roleLabel={roleLabel} greetingData={greetingData} />
-        )}
-
-        {/* بطاقة «حصتي» — الرقم الأهم أولاً */}
-        {isVisible('stats_row') && (
-          <BeneficiaryStatsRow
-            myShare={myShare}
-            isClosed={isClosed}
-            distributions={distributions}
-            fiscalYearLabel={fiscalYear?.label || ''}
-            fyProgress={fyProgress}
-            deliveryStages={deliveryStages}
-            showShareLinks={role !== 'waqif'}
-          />
         )}
 
         {/* CR-01: تنبيه حالة السنة (موحَّد) */}
@@ -90,27 +77,42 @@ const BeneficiaryDashboard = () => {
           <FiscalYearStateNotice state={fyProgress.notStarted ? 'notStarted' : 'active'} />
         )}
 
-        {/* بطاقة طلب السُلفة — CR-07: تنقل إلى MyShare */}
-        {isVisible('advance_card') && advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
-          <DeferredRender delay={300}>
-            <BeneficiaryAdvanceCard pendingAdvanceCount={pendingAdvanceCount} advanceContext={advanceContext} />
-          </DeferredRender>
-        )}
-
-        {isVisible('quick_links') && (
-          <BeneficiaryQuickLinks role={role} />
-        )}
-
-        <DeferredRender delay={500}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {isVisible('recent_distributions') && (
-              <BeneficiaryRecentDistributions distributions={distributions} />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* العمود الرئيسي: الحصة ثم سجل التوزيعات */}
+          <div className="lg:col-span-8 space-y-6">
+            {isVisible('stats_row') && (
+              <BeneficiaryStatsRow
+                myShare={myShare}
+                isClosed={isClosed}
+                distributions={distributions}
+                fiscalYearLabel={fiscalYear?.label || ''}
+                fyProgress={fyProgress}
+                deliveryStages={deliveryStages}
+                showShareLinks={role !== 'waqif'}
+              />
             )}
-            {isVisible('notifications_card') && (
-              <BeneficiaryNotificationsCard notifications={recentNotifications} unreadCount={unreadCount} />
+            {isVisible('recent_distributions') && (
+              <DeferredRender delay={300}>
+                <BeneficiaryRecentDistributions distributions={distributions} />
+              </DeferredRender>
             )}
           </div>
-        </DeferredRender>
+
+          {/* العمود الجانبي: الوصول السريع والسلفة والإشعارات */}
+          <aside className="lg:col-span-4 space-y-6">
+            {isVisible('quick_links') && <BeneficiaryQuickLinks role={role} />}
+            {isVisible('advance_card') && advanceEnabled && role !== 'waqif' && currentBeneficiary && isFyReady(fiscalYearId) && (
+              <DeferredRender delay={300}>
+                <BeneficiaryAdvanceCard pendingAdvanceCount={pendingAdvanceCount} advanceContext={advanceContext} />
+              </DeferredRender>
+            )}
+            {isVisible('notifications_card') && (
+              <DeferredRender delay={500}>
+                <BeneficiaryNotificationsCard notifications={recentNotifications} unreadCount={unreadCount} />
+              </DeferredRender>
+            )}
+          </aside>
+        </div>
 
         {/* U3: مرجعية الصفحة */}
         <p className="text-xs text-muted-foreground px-1 text-center">{PAGE_RESPONSIBILITY_COPY.dashboard}</p>

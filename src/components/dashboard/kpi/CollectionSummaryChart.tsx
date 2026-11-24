@@ -34,7 +34,7 @@ const CollectionSummaryChart = ({ onTime, late, partial = 0 }: CollectionSummary
   ];
 
   return (
-    <div ref={ref} className="w-[180px] h-[180px] min-h-[180px] shrink-0">
+    <div ref={ref} className="h-full w-full min-h-[120px] shrink-0">
       {ready && (
         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <PieChart>
@@ -42,8 +42,8 @@ const CollectionSummaryChart = ({ onTime, late, partial = 0 }: CollectionSummary
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={40}
-              outerRadius={70}
+              innerRadius={38}
+              outerRadius={56}
               dataKey="value"
               startAngle={90}
               endAngle={-270}

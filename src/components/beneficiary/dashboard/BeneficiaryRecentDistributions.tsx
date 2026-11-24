@@ -28,7 +28,7 @@ const BeneficiaryRecentDistributions = ({ distributions }: BeneficiaryRecentDist
           distributions.map((d) => {
             const paid = d.status === 'paid';
             return (
-              <div key={d.id} className="flex items-center gap-3 p-3.5">
+              <div key={d.id} className="flex items-center gap-3 p-4">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </span>
@@ -36,8 +36,11 @@ const BeneficiaryRecentDistributions = ({ distributions }: BeneficiaryRecentDist
                   <p className="text-sm font-bold text-foreground truncate">
                     {d.fiscal_year_label ? `ريع ${ltr(d.fiscal_year_label)}` : 'توزيع'}
                   </p>
-                  <p className="text-xs text-muted-foreground tabular-nums">
-                    {paid ? 'سُلّم' : 'معلق'} {fmtDate(d.date)}
+                  <p className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground tabular-nums">
+                    <span className={paid ? 'rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success' : 'rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-bold text-warning'}>
+                      {paid ? 'سُلّم' : 'معلق'}
+                    </span>
+                    {fmtDate(d.date)}
                   </p>
                 </div>
                 <p className="text-sm font-bold tabular-nums text-foreground whitespace-nowrap">

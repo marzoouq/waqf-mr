@@ -9,6 +9,7 @@
  */
 import { useMemo } from 'react';
 import { usePrint } from '@/hooks/ui/usePrint';
+import { useGreeting } from '@/hooks/ui/useGreeting';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
@@ -38,6 +39,7 @@ export const useAdminDashboardPage = () => {
   const { role, user } = useAuth();
   const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
   const print = usePrint();
+  const greetingData = useGreeting();
 
   // D-02: قناة مالية تبطل dashboard-summary (يشمل app_settings — تعديل الإعدادات يُحدّث النسب فورًا)
   useDashboardRealtime(
@@ -141,6 +143,7 @@ export const useAdminDashboardPage = () => {
     monthlyData: adminData.monthlyData,
     expenseTypes: adminData.expenseTypes,
     greetingText: adminData.greetingText,
+    greetingData,
     allFiscalYears: adminData.allFiscalYears,
     fy: adminData.fiscalYear,
 

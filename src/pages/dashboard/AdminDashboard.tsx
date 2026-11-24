@@ -9,7 +9,7 @@ import { lazy } from 'react';
 import DashboardLazySection from '@/components/dashboard/DashboardLazySection';
 import { Button } from '@/components/ui/button';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
-import FiscalYearWidget from '@/components/dashboard/widgets/FiscalYearWidget';
+import AdminCommandHeader from '@/components/dashboard/command/AdminCommandHeader';
 import DashboardAlerts from '@/components/dashboard/widgets/DashboardAlerts';
 import QuickActionsCard from '@/components/dashboard/widgets/QuickActionsCard';
 import RecentContractsCard from '@/components/dashboard/widgets/RecentContractsCard';
@@ -19,8 +19,8 @@ import ExecutiveFinancialCards from '@/components/dashboard/executive/ExecutiveF
 import PortfolioCard from '@/components/dashboard/executive/PortfolioCard';
 import AccountantDashboardView from '@/components/dashboard/views/AccountantDashboardView';
 import SectionHeading from '@/components/layout/SectionHeading';
-import { Printer, Gauge, FileDown } from 'lucide-react';
-import { PageHeaderCard, DashboardLayout } from '@/components/layout';
+import { Printer, FileDown } from 'lucide-react';
+import { DashboardLayout } from '@/components/layout';
 import type { FiscalYear } from '@/types';
 
 import { useAdminDashboardPage } from '@/hooks/page/admin/dashboard/useAdminDashboardPage';
@@ -39,7 +39,7 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-3 sm:p-6 space-y-6 sm:space-y-8">
+      <div className="p-3 sm:p-6 space-y-6 sm:space-y-8 max-w-7xl mx-auto">
         {ctx.role === 'admin' && (
           <DashboardLazySection minHeight={0}>
             <CriticalAlertsBanner />
@@ -52,33 +52,28 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* الطبقة 1 — السياق (السنة المختارة ظاهرة في الشريط العلوي) */}
-        <div>
-          <PageHeaderCard
-            title="لوحة التحكم"
-            icon={Gauge}
-            description={ctx.greetingText}
-            actions={
-              <div className="flex items-center gap-2 flex-wrap">
-                {ctx.role === 'admin' && (
-                  <Button
-                    variant="outline"
-                    onClick={aggregated.handleExport}
-                    disabled={!aggregated.canExport}
-                    className="gap-2"
-                  >
-                    <FileDown className="w-4 h-4" />
-                    <span className="hidden sm:inline">تقرير سنوي مُجمَّع</span>
-                  </Button>
-                )}
-                <Button variant="outline" onClick={ctx.print} className="gap-2">
-                  <Printer className="w-4 h-4" />
-                  <span className="hidden sm:inline">طباعة</span>
+        {/* الطبقة 1 — رأس مركز القيادة: التحية والتاريخ والسنة المالية والإجراءات */}
+        <AdminCommandHeader
+          greetingData={ctx.greetingData}
+          subtitle={ctx.greetingText}
+          fiscalYear={ctx.fiscalYear}
+          totalIncome={ctx.totalIncome}
+          contractualRevenue={ctx.contractualRevenue}
+          actions={
+            <>
+              {ctx.role === 'admin' && (
+                <Button variant="secondary" size="sm" onClick={aggregated.handleExport} disabled={!aggregated.canExport} className="gap-2">
+                  <FileDown className="w-4 h-4" />
+                  تقرير سنوي مُجمَّع
                 </Button>
-              </div>
-            }
-          />
-        </div>
+              )}
+              <Button variant="outline" size="sm" onClick={ctx.print} className="gap-2 border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground">
+                <Printer className="w-4 h-4" />
+                طباعة
+              </Button>
+            </>
+          }
+        />
 
         {/* الطبقة 2 — يحتاج انتباهك */}
         <DashboardAlerts
@@ -100,21 +95,15 @@ const AdminDashboard = () => {
           expenseKpi={ctx.expenseKpi}
         />
 
-        {/* الطبقة 4 — المحفظة والتحصيل */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          <PortfolioCard portfolio={ctx.portfolio} />
-          <FiscalYearWidget
-            fiscalYear={ctx.fiscalYear}
-            totalIncome={ctx.totalIncome}
-            contractualRevenue={ctx.contractualRevenue}
-          />
+        {/* الطبقة 4 — المحفظة والتحصيل جنباً إلى جنب */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <div className="lg:col-span-5"><PortfolioCard portfolio={ctx.portfolio} /></div>
+          <div className="lg:col-span-7">
+            <ErrorBoundary>
+              <CollectionSummaryCard collectionSummary={ctx.collectionSummary} collectionColor={ctx.collectionColor} />
+            </ErrorBoundary>
+          </div>
         </div>
-        <ErrorBoundary>
-          <CollectionSummaryCard
-            collectionSummary={ctx.collectionSummary}
-            collectionColor={ctx.collectionColor}
-          />
-        </ErrorBoundary>
 
         {/* الطبقة 5 — الإجراءات وتفاصيل التشغيل */}
         <QuickActionsCard role={ctx.role} />
