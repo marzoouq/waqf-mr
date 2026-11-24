@@ -4,9 +4,10 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import ContractStatusChip from './ContractStatusChip';
 import { AlertTriangle } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format/format';
-import { STATUS_MAP, type ContractItem } from './contractsViewShared';
+import { type ContractItem } from './contractsViewShared';
 import { SingleContractPdfButton } from './SingleContractPdfButton';
 
 interface ContractsViewDesktopTableProps {
@@ -34,18 +35,17 @@ export default function ContractsViewDesktopTable({ contracts, propertiesMap, is
           </TableHeader>
           <TableBody>
             {contracts.map(contract => {
-              const st = STATUS_MAP[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
               return (
                 <TableRow key={contract.id}>
                   <TableCell className="font-medium">{contract.contract_number ?? ''}</TableCell>
                   <TableCell>{contract.tenant_name ?? ''}</TableCell>
                   <TableCell>{(contract.property_id && propertiesMap[contract.property_id]) || '-'}</TableCell>
-                  <TableCell>{fmt(contract.rent_amount ?? 0)} ر.س</TableCell>
+                  <TableCell className="num font-semibold text-primary">{fmt(contract.rent_amount ?? 0)} ر.س</TableCell>
                   <TableCell>{fmtDate(contract.start_date ?? '')}</TableCell>
                   <TableCell>{fmtDate(contract.end_date ?? '')}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1.5">
-                      <Badge variant={st.variant}>{st.label}</Badge>
+                      <ContractStatusChip status={contract.status} />
                       {isExpiringSoon(contract) && (
                         <Badge variant="outline" className="text-warning border-warning text-[11px]">
                           <AlertTriangle className="w-3 h-3 me-1" />قريب

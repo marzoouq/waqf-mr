@@ -2,12 +2,13 @@
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
-import { DashboardLayout, PageHeaderCard } from '@/components/layout';
+import { DashboardLayout, PageHero } from '@/components/layout';
 import { RequirePublishedYears, ExportMenu, TablePagination, ViewModeToggle, useViewMode, ErrorState } from '@/components/common';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Info } from 'lucide-react';
+import { FileText } from 'lucide-react';
+import { fmt } from '@/utils/format/format';
+import { cn } from '@/lib/cn';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ContractStatsCards } from '@/components/contracts';
 import ContractsViewMobileCards from '@/components/contracts/ContractsViewMobileCards';
 import ContractsViewDesktopTable from '@/components/contracts/ContractsViewDesktopTable';
 import ContractsViewGridCards from '@/components/contracts/ContractsViewGridCards';
@@ -24,8 +25,13 @@ const ContractsViewPage = () => {
     currentPage, setCurrentPage,
     propertiesMap, isExpiringSoon, stats,
     paginatedContracts, handleExportPdf,
-    totalItems, itemsPerPage,
+    totalItems, itemsPerPage, statusFilter, setStatusFilter,
   } = useContractsViewPage();
+  const filters = [
+    { key: 'all', label: 'الكل', count: stats.total },
+    { key: 'active', label: 'نشطة', count: stats.active },
+    { key: 'expired', label: 'منتهية', count: stats.expired },
+  ] as const;
 
   // B2: حارس السنوات المنشورة قبل أي فرع
   if (noPublishedYears) {
@@ -46,22 +52,43 @@ const ContractsViewPage = () => {
   return (
     <RequirePublishedYears title={CONTRACTS_SCOPE_COPY.title} icon={FileText} description={CONTRACTS_SCOPE_COPY.description}>
       <DashboardLayout>
-        <div className="p-4 md:p-6 space-y-6">
-          <PageHeaderCard title={CONTRACTS_SCOPE_COPY.title} icon={FileText} description={CONTRACTS_SCOPE_COPY.description} actions={
-            <div className="flex items-center gap-2">
-              {!isMobile && <ViewModeToggle value={viewMode} onChange={setViewMode} />}
-              <ExportMenu onExportPdf={handleExportPdf} />
-            </div>
-          } />
+        <div className="mx-auto max-w-7xl p-4 md:p-6 space-y-5">
+          <PageHero
+            title={CONTRACTS_SCOPE_COPY.title}
+            icon={FileText}
+            description={CONTRACTS_SCOPE_COPY.context}
+            actions={
+              <>
+                {!isMobile && <ViewModeToggle value={viewMode} onChange={setViewMode} />}
+                <ExportMenu onExportPdf={handleExportPdf} />
+              </>
+            }
+            facts={[
+              { label: 'إجمالي العقود', value: stats.total },
+              { label: 'عقود نشطة', value: stats.active, hint: `${stats.activePercent}% من العقود` },
+              { label: 'عقود منتهية', value: stats.expired },
+              { label: 'القيمة السنوية للعقود', value: <>{fmt(stats.totalRent)} <span className="text-xs font-normal">ر.س</span></> },
+            ]}
+          />
 
-          <Card className="shadow-sm border-info/30 bg-info/5">
-            <CardContent className="p-3 flex items-start gap-2">
-              <Info className="w-4 h-4 text-info shrink-0 mt-0.5" />
-              <p className="text-xs text-muted-foreground">{CONTRACTS_SCOPE_COPY.context}</p>
-            </CardContent>
-          </Card>
-
-          <ContractStatsCards stats={stats} isLoading={!!isLoading} variant="beneficiary" />
+          <div role="tablist" aria-label="تصفية العقود بالحالة" className="flex gap-2 overflow-x-auto pb-1">
+            {filters.map(f => (
+              <button
+                key={f.key}
+                role="tab"
+                type="button"
+                aria-selected={statusFilter === f.key}
+                onClick={() => setStatusFilter(f.key)}
+                className={cn(
+                  'inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
+                  statusFilter === f.key ? 'border-primary bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground',
+                )}
+              >
+                {f.label}
+                <span className={cn('num rounded-full px-1.5 text-xs', statusFilter === f.key ? 'bg-primary-foreground/20' : 'bg-muted')}>{f.count}</span>
+              </button>
+            ))}
+          </div>
 
           {isLoading ? (
             <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
@@ -76,7 +103,7 @@ const ContractsViewPage = () => {
             <>
               {isMobile ? (
                 <>
-                  <ContractsViewMobileCards contracts={paginatedContracts} isExpiringSoon={isExpiringSoon} />
+                  <ContractsViewMobileCards contracts={paginatedContracts} propertiesMap={propertiesMap} isExpiringSoon={isExpiringSoon} />
                   <TablePagination currentPage={currentPage} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
                 </>
               ) : viewMode === 'grid' ? (

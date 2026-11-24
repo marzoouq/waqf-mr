@@ -13,6 +13,8 @@ export { default as IdleTimeoutManager } from './IdleTimeoutManager';
 export { default as MobileHeader } from './MobileHeader';
 export { NavLink } from './NavLink';
 export { default as PageHeaderCard } from './PageHeaderCard';
+export { default as PageHero } from './PageHero';
+export type { PageHeroFact } from './PageHero';
 export { default as Sidebar } from './Sidebar';
 export { default as WaqfInfoBar } from './WaqfInfoBar';
 export {

@@ -7,13 +7,11 @@
  * - إزالة non-null assertion (!)
  */
 
-import { DashboardLayout, PageHeaderCard } from '@/components/layout';
-import { RequirePublishedYears, ExportMenu, EmptyState, FigureTile, FigureTileGrid } from '@/components/common';
-import { DOMAIN_ICONS } from '@/constants/domainIcons';
-import { Card, CardContent } from '@/components/ui/card';
+import { DashboardLayout, PageHero } from '@/components/layout';
+import { RequirePublishedYears, ExportMenu, EmptyState } from '@/components/common';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
-import { Building2, Layers, AlertCircle, RefreshCw, ArrowLeft, KeyRound, DoorOpen } from 'lucide-react';
+import { Building2, AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -38,7 +36,7 @@ const PropertiesViewPage = () => {
   } = usePropertiesViewPage();
   const { role } = useAuth();
 
-  const { totalProperties, totalVacant, vacantUnits, propertiesWithoutUnits, overallOccupancy, occColor, occBarColor } = summaryData;
+  const { totalProperties, totalVacant, vacantUnits, propertiesWithoutUnits, overallOccupancy } = summaryData;
 
   if (isLoading) {
     return <DashboardLayout><div className="p-4 md:p-6 space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div></DashboardLayout>;
@@ -64,47 +62,42 @@ const PropertiesViewPage = () => {
     <DashboardLayout>
       {/* #20: TooltipProvider مرة واحدة فقط لكل الصفحة */}
       <TooltipProvider>
-        <div className="p-4 md:p-6 space-y-6">
-          <PageHeaderCard
+        <div className="mx-auto max-w-7xl p-4 md:p-6 space-y-5">
+          <PageHero
             title="العقارات"
-            description="عرض العقارات والوحدات والمؤشرات التشغيلية"
+            description="أصول الوقف ووحداتها ومؤشراتها التشغيلية"
             icon={Building2}
             actions={<ExportMenu onExportPdf={handleExportPdf} />}
-          />
-
-          {/* بطاقات الملخص الإجمالية */}
-          <div className="space-y-4 animate-slide-up">
-            <FigureTileGrid cols="sm:grid-cols-3 lg:grid-cols-5">
-              <FigureTile label="إجمالي العقارات" value={totalProperties} icon={DOMAIN_ICONS.property} unit="count" />
-              <FigureTile label="إجمالي الوحدات" value={totalUnits} icon={Layers} unit="count" />
-              <FigureTile label="مؤجرة" value={occupiedUnits} icon={KeyRound} tone="success" unit="count" />
-              <FigureTile label="وحدات شاغرة" value={vacantUnits} icon={DoorOpen} tone={vacantUnits > 0 ? 'warning' : 'neutral'} unit="count" hint="مسجَّلة غير مؤجَّرة" />
-              <FigureTile label="عقارات بدون وحدات" value={propertiesWithoutUnits} icon={DOMAIN_ICONS.property} unit="count" hint="لا تتبعها وحدات مسجّلة" />
-            </FigureTileGrid>
+            facts={[
+              { label: 'إجمالي العقارات', value: totalProperties, hint: propertiesWithoutUnits > 0 ? `${propertiesWithoutUnits} بدون وحدات` : undefined },
+              { label: 'إجمالي الوحدات', value: totalUnits },
+              { label: 'وحدات مؤجرة', value: occupiedUnits },
+              { label: 'وحدات شاغرة', value: vacantUnits, hint: 'مسجَّلة غير مؤجَّرة' },
+            ]}
+          >
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help space-y-1.5">
+                  <div className="flex items-center justify-between text-xs sm:text-sm">
+                    <span className="text-primary-foreground/80">نسبة الإشغال الإجمالية</span>
+                    <span className="num font-bold text-sidebar-primary">{overallOccupancy}%</span>
+                  </div>
+                  <Progress value={overallOccupancy} className="h-2.5 bg-primary-foreground/15 [&>div]:bg-sidebar-primary" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>مؤجرة: {occupiedUnits} من {totalUnits} وحدة | وحدات شاغرة: {vacantUnits} | عقارات بدون وحدات: {propertiesWithoutUnits}</TooltipContent>
+            </Tooltip>
             <p className="sr-only">إجمالي الشواغر: {totalVacant}</p>
+          </PageHero>
 
-            <Card className="shadow-sm bg-muted/30">
-              <CardContent className="p-3 flex items-center justify-between gap-3 text-xs sm:text-sm">
-                <span className="text-muted-foreground">للاطلاع على التفاصيل المالية، انتقل إلى صفحات الاختصاص.</span>
-                <div className="flex items-center gap-3 shrink-0">
-                  <Link to="/beneficiary/financial-reports" className="inline-flex items-center gap-1 text-primary hover:underline">التقارير المالية <ArrowLeft className="w-3.5 h-3.5" /></Link>
-                  {role !== 'waqif' && (
-                    <Link to="/beneficiary/my-share" className="inline-flex items-center gap-1 text-primary hover:underline">حصتي <ArrowLeft className="w-3.5 h-3.5" /></Link>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-
-            <Card className="shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">نسبة الإشغال الإجمالية</span>
-                  <span className={`text-sm font-bold ${occColor}`}>{overallOccupancy}%</span>
-                </div>
-                <Tooltip><TooltipTrigger asChild><div className="cursor-help"><Progress value={overallOccupancy} className={`h-3 ${occBarColor}`} /></div></TooltipTrigger><TooltipContent>مؤجرة: {occupiedUnits} من {totalUnits} وحدة | وحدات شاغرة: {vacantUnits} | عقارات بدون وحدات: {propertiesWithoutUnits}</TooltipContent></Tooltip>
-              </CardContent>
-            </Card>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-xs sm:text-sm">
+            <span className="text-muted-foreground">للاطلاع على التفاصيل المالية، انتقل إلى صفحات الاختصاص.</span>
+            <div className="flex items-center gap-3 shrink-0">
+              <Link to="/beneficiary/financial-reports" className="inline-flex items-center gap-1 text-primary hover:underline">التقارير المالية <ArrowLeft className="w-3.5 h-3.5" /></Link>
+              {role !== 'waqif' && (
+                <Link to="/beneficiary/my-share" className="inline-flex items-center gap-1 text-primary hover:underline">حصتي <ArrowLeft className="w-3.5 h-3.5" /></Link>
+              )}
+            </div>
           </div>
 
           {!properties?.length ? (

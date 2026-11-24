@@ -1,59 +1,69 @@
 /**
- * بطاقات الجوال لعرض العقود — المستفيد
+ * بطاقات الجوال لعرض العقود — المستفيد (الهوية الوقفية)
+ * الحالة تصل مشتقة من تاريخ الانتهاء عبر هوك الصفحة.
  */
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, CalendarRange, Building2 } from 'lucide-react';
 import { fmt, fmtDate } from '@/utils/format/format';
-import { STATUS_MAP, type ContractItem } from './contractsViewShared';
+import { cn } from '@/lib/cn';
+import { type ContractItem } from './contractsViewShared';
 import { SingleContractPdfButton } from './SingleContractPdfButton';
+import ContractStatusChip from './ContractStatusChip';
 
 interface ContractsViewMobileCardsProps {
   contracts: ContractItem[];
+  propertiesMap?: Record<string, string>;
   isExpiringSoon: (c: { status: string | null; end_date: string | null }) => boolean;
 }
 
-export default function ContractsViewMobileCards({ contracts, isExpiringSoon }: ContractsViewMobileCardsProps) {
+export default function ContractsViewMobileCards({ contracts, propertiesMap = {}, isExpiringSoon }: ContractsViewMobileCardsProps) {
   return (
-    <div className="space-y-3">
+    <ul className="space-y-3">
       {contracts.map(contract => {
-        const st = STATUS_MAP[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
+        const active = contract.status === 'active';
+        const property = (contract.property_id && propertiesMap[contract.property_id]) || null;
         return (
-          <Card key={contract.id}>
-            <CardContent className="p-4 space-y-2">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-bold text-foreground">{contract.contract_number ?? ''}</p>
-                  <p className="text-sm text-muted-foreground">{contract.tenant_name ?? ''}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <Badge variant={st.variant}>{st.label}</Badge>
-                  {isExpiringSoon(contract) && (
-                    <Badge variant="outline" className="text-warning border-warning text-[11px]">
-                      <AlertTriangle className="w-3 h-3 me-1" />ينتهي قريباً
-                    </Badge>
-                  )}
-                </div>
+          <li
+            key={contract.id}
+            className={cn(
+              'overflow-hidden rounded-2xl border bg-card shadow-sm border-s-4',
+              active ? 'border-s-primary' : 'border-s-muted-foreground/40',
+            )}
+          >
+            <div className="flex items-start justify-between gap-3 p-4 pb-3">
+              <div className="min-w-0">
+                <p className="text-[11px] text-muted-foreground">رقم العقد</p>
+                <p className="num truncate font-bold text-foreground">{contract.contract_number ?? ''}</p>
+                {property && (
+                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                    <Building2 className="h-3.5 w-3.5" aria-hidden="true" />{property}
+                  </p>
+                )}
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">الإيجار</span>
-                <span className="font-medium">{fmt(contract.rent_amount ?? 0)} ر.س</span>
+              <div className="flex flex-col items-end gap-1">
+                <ContractStatusChip status={contract.status} />
+                {isExpiringSoon(contract) && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-[11px] text-warning">
+                    <AlertTriangle className="h-3 w-3" aria-hidden="true" />ينتهي قريباً
+                  </span>
+                )}
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">من</span>
-                <span>{fmtDate(contract.start_date ?? '')}</span>
+            </div>
+            <div className="flex items-end justify-between gap-3 bg-muted/40 px-4 py-3">
+              <div>
+                <p className="text-[11px] text-muted-foreground">قيمة الإيجار</p>
+                <p className="num text-lg font-bold text-primary">{fmt(contract.rent_amount ?? 0)} <span className="text-xs font-normal text-muted-foreground">ر.س</span></p>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">إلى</span>
-                <span>{fmtDate(contract.end_date ?? '')}</span>
-              </div>
-              <div className="flex justify-end pt-1">
-                <SingleContractPdfButton contract={contract} withLabel />
-              </div>
-            </CardContent>
-          </Card>
+              <p className="flex items-center gap-1 text-xs text-muted-foreground tabular-nums">
+                <CalendarRange className="h-3.5 w-3.5" aria-hidden="true" />
+                <bdi dir="ltr">{fmtDate(contract.start_date ?? '')}</bdi> ← <bdi dir="ltr">{fmtDate(contract.end_date ?? '')}</bdi>
+              </p>
+            </div>
+            <div className="flex justify-end border-t px-3 py-2">
+              <SingleContractPdfButton contract={contract} propertyLabel={property} withLabel />
+            </div>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }

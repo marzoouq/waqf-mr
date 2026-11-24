@@ -13,6 +13,8 @@ import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { PDF_MESSAGES } from '@/lib/messages';
 import { getEffectiveContractStatus } from '@/utils/contracts/contractStatus';
 
+export type ContractStatusFilter = 'all' | 'active' | 'expired';
+
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
 export const useContractsViewPage = () => {
@@ -27,6 +29,9 @@ export const useContractsViewPage = () => {
 
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
   const [currentPage, setCurrentPage] = useState(1);
+  // فلتر الحالة الظاهرة (عرض فقط)
+  const [statusFilter, setStatusFilterState] = useState<ContractStatusFilter>('all');
+  const setStatusFilter = useCallback((v: ContractStatusFilter) => { setStatusFilterState(v); setCurrentPage(1); }, []);
 
   const propertyIds = useMemo(() => {
     if (!contracts) return [];
@@ -58,11 +63,21 @@ export const useContractsViewPage = () => {
     };
   }, [contracts, isExpiringSoon]);
 
+  // الحالة المعروضة مشتقة من تاريخ الانتهاء — لا كتابة في قاعدة البيانات
+  const displayContracts = useMemo(
+    () => (contracts ?? []).map(c => ({ ...c, status: getEffectiveContractStatus(c.status, c.end_date) })),
+    [contracts],
+  );
+
+  const filteredContracts = useMemo(
+    () => statusFilter === 'all' ? displayContracts : displayContracts.filter(c => c.status === statusFilter),
+    [displayContracts, statusFilter],
+  );
+
   const paginatedContracts = useMemo(() => {
-    if (!contracts) return [];
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return contracts.slice(start, start + ITEMS_PER_PAGE);
-  }, [contracts, currentPage]);
+    return filteredContracts.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredContracts, currentPage]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- reset pagination عند تغيّر السنة المالية
   useEffect(() => { setCurrentPage(1); }, [fiscalYearId]);
@@ -89,7 +104,8 @@ export const useContractsViewPage = () => {
     currentPage, setCurrentPage,
     propertiesMap, isExpiringSoon, stats,
     paginatedContracts, handleExportPdf,
-    totalItems: contracts?.length ?? 0,
+    statusFilter, setStatusFilter,
+    totalItems: filteredContracts.length,
     itemsPerPage: ITEMS_PER_PAGE,
   };
 };

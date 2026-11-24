@@ -68,7 +68,7 @@ const MySharePage = () => {
   return (
     <RequirePublishedYears title="حصتي من الريع" icon={Wallet} description="تفاصيل حصتك من ريع الوقف">
       <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
+        <div className="mx-auto max-w-7xl p-4 sm:p-6 space-y-5 sm:space-y-6">
           <PageHeaderCard
             title="حصتي من الريع"
             description="تفاصيل حصتك من ريع الوقف"
@@ -107,6 +107,8 @@ const MySharePage = () => {
           {/* U3: مرجعية الصفحة */}
           <p className="text-xs text-muted-foreground">{PAGE_RESPONSIBILITY_COPY.myShare}</p>
 
+          <div className="grid gap-5 lg:grid-cols-12 lg:items-start">
+          <div className="space-y-5 lg:col-span-8">
           {/* بطاقات الملخص */}
           <MyShareSummaryCards
             sharePercentage={currentBeneficiary.share_percentage ?? 0}
@@ -118,6 +120,17 @@ const MySharePage = () => {
             advancesEnabled={advancesEnabled}
           />
 
+          {/* سجل التوزيعات */}
+          <DistributionsTable distributions={filteredDistributions} />
+
+          {/* سجل السُلف */}
+          {advancesEnabled && <AdvancesTable advances={myAdvances} />}
+
+          {/* الفروق المرحّلة */}
+          <CarryforwardsTable carryforwards={myCarryforwards} />
+          </div>
+
+          <aside className="space-y-4 lg:col-span-4 lg:sticky lg:top-20" aria-label="توضيحات ومستندات">
           {/* بطاقة تفسير الخصومات (عند وجود سُلف أو فروق في سنة مقفلة) */}
           <DeductionsExplanationCard
             myShare={myShare}
@@ -154,14 +167,28 @@ const MySharePage = () => {
             </Card>
           )}
 
-          {/* سجل التوزيعات */}
-          <DistributionsTable distributions={filteredDistributions} />
-
-          {/* سجل السُلف */}
-          {advancesEnabled && <AdvancesTable advances={myAdvances} />}
-
-          {/* الفروق المرحّلة */}
-          <CarryforwardsTable carryforwards={myCarryforwards} />
+            {isClosed && (
+              <section className="rounded-2xl border bg-card p-4 shadow-sm">
+                <h2 className="font-display text-lg font-bold text-primary">مستنداتي الرسمية</h2>
+                <p className="mt-1 text-xs text-muted-foreground">نسخ معتمدة بختم الوقف ورمز تحقق.</p>
+                <ul className="mt-3 divide-y">
+                  {[
+                    { label: 'كشف حصتي', onClick: handleDownloadPDF },
+                    { label: 'تقرير التوزيع', onClick: handleDownloadDistributionsPDF },
+                    { label: 'التقرير الشامل', onClick: handleDownloadComprehensivePDF },
+                  ].map(d => (
+                    <li key={d.label}>
+                      <button type="button" onClick={d.onClick} className="flex w-full items-center justify-between gap-2 py-2.5 text-sm font-medium text-foreground hover:text-primary">
+                        <span className="flex items-center gap-2"><FileDown className="h-4 w-4 text-bronze-foreground" aria-hidden="true" />{d.label}</span>
+                        <span className="text-xs text-muted-foreground">PDF</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </aside>
+          </div>
         </div>
       </DashboardLayout>
     </RequirePublishedYears>
