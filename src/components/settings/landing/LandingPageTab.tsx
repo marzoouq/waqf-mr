@@ -43,6 +43,7 @@ const SECTIONS: { title: string; toggle?: LandingToggleKey; fields: FieldDef[] }
   ] },
   { title: 'التذييل', fields: [
     { field: 'footer_text', label: 'نص التذييل', max: 200, placeholder: 'استخدم {year} لإدراج السنة تلقائياً' },
+    { field: 'contact_phone', label: 'جوال ناظر الوقف', max: 20, placeholder: '0500000000' },
   ] },
 ];
 

@@ -9,4 +9,8 @@ describe('landing defaults', () => {
     expect(withLandingDefaults({ hero_title: 'قديم' }).show_stats).toBe(false);
     expect(withLandingDefaults({ hero_title: 'قديم' }).hero_title).toBe('قديم');
   });
+  it('يعرض جوال ناظر الوقف المعتمد ويورثه للإعدادات القديمة', () => {
+    expect(LANDING_DEFAULTS.contact_phone).toBe('0500060098');
+    expect(withLandingDefaults({ hero_title: 'قديم' }).contact_phone).toBe('0500060098');
+  });
 });

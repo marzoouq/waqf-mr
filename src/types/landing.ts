@@ -16,6 +16,7 @@ export interface LandingPageContent {
   cta_section_title: string;
   cta_section_subtitle: string;
   footer_text: string;
+  contact_phone: string;
   /** أقسام يتحكم الناظر بظهورها */
   show_stats: boolean;
   show_testament: boolean;

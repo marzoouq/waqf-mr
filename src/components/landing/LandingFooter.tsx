@@ -37,6 +37,19 @@ const LandingFooter: React.FC<LandingFooterProps> = ({ content, waqfName }) => (
         <div>
           <h4 className="font-display text-lg text-secondary mb-3">التواصل</h4>
           <p className="text-primary-foreground/70" dir="ltr">waqf-wise.net</p>
+          {content.contact_phone && (
+            <div className="mt-3">
+              <p className="text-primary-foreground/70">جوال ناظر الوقف</p>
+              <a
+                href={`tel:${content.contact_phone.replace(/\s/g, '')}`}
+                className={`${linkCls} inline-block mt-1`}
+                dir="ltr"
+                aria-label={`الاتصال بناظر الوقف على ${content.contact_phone}`}
+              >
+                {content.contact_phone}
+              </a>
+            </div>
+          )}
         </div>
       </div>
       <div className="border-t border-primary-foreground/15 mt-10 pt-5 text-xs text-primary-foreground/60 text-center md:text-right">

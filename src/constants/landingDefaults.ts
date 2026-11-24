@@ -18,6 +18,7 @@ export const LANDING_DEFAULTS: LandingPageContent = {
   cta_section_title: 'بوابة المستحقين والنظارة',
   cta_section_subtitle: 'الدخول متاح للمصرّح لهم فقط',
   footer_text: 'وقف مرزوق بن علي الثبيتي © {year} — جميع الحقوق محفوظة',
+  contact_phone: '0500060098',
   show_stats: false,
   show_testament: true,
   show_pillars: true,
