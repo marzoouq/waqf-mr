@@ -466,6 +466,16 @@
     animation: glow 3s ease-in-out infinite alternate;
   }
 
+  /* طفو بطيء للشعار في صفحة الهبوط */
+  .animate-float {
+    animation: floatSoft 7s ease-in-out infinite;
+  }
+
+  @keyframes floatSoft {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
   /* انتقال خفيف بين الصفحات — يحترم prefers-reduced-motion */
   .animate-page-in {
     animation: pageIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -475,7 +485,8 @@
     .animate-page-in,
     .animate-fade-in,
     .animate-slide-up,
-    .animate-slide-right {
+    .animate-slide-right,
+    .animate-float {
       animation: none !important;
     }
   }

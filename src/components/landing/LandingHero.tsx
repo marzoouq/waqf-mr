@@ -41,13 +41,16 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
             )}
           </div>
         </div>
-        <div className="relative mx-auto w-56 sm:w-64 md:w-full md:max-w-sm aspect-square rounded-full border-2 border-secondary/50 grid place-items-center bg-[radial-gradient(circle,hsl(var(--secondary)/0.15),transparent_70%)]" aria-hidden="true">
-          <div className="absolute inset-4 md:inset-6 rounded-full border border-dashed border-secondary/50" />
-          <div className="w-[46%] aspect-square rounded-3xl bg-background p-3 shadow-2xl grid place-items-center">
-            {waqfLogoUrl
-              ? <img src={waqfLogoUrl} alt="" className="w-full h-full object-contain" loading="eager" onError={handleLogoError} />
-              : <Building2 className="w-1/2 h-1/2 text-primary" />}
-          </div>
+        <div className="relative mx-auto w-56 sm:w-64 md:w-full md:max-w-sm aspect-square grid place-items-center" aria-hidden="true">
+          {/* الهالة الذهبية: توهج دافئ يذوب في الخلفية بلا حدود */}
+          <div className="absolute inset-[-14%] bg-[radial-gradient(circle,hsl(var(--secondary)/0.45)_0%,hsl(var(--secondary)/0.14)_45%,transparent_72%)] blur-2xl" />
+          {/* مسرح النور: ضياء عاجي ناعم يحمل الشعار ويمنحه تباينًا على الأخضر العميق */}
+          <div className="absolute inset-[8%] bg-[radial-gradient(circle,hsl(var(--ink-foreground)/0.95)_0%,hsl(var(--ink-foreground)/0.62)_34%,hsl(var(--secondary)/0.22)_58%,transparent_78%)] blur-[10px]" />
+          {/* ظل أرضي خفيف يثبت الشعار في الفضاء */}
+          <div className="absolute inset-x-[24%] bottom-[14%] h-[9%] rounded-full bg-[radial-gradient(ellipse,hsl(var(--ink)/0.5),transparent_70%)] blur-md" />
+          {waqfLogoUrl
+            ? <img src={waqfLogoUrl} alt="" className="relative w-[58%] object-contain animate-float drop-shadow-[0_16px_26px_hsl(var(--ink)/0.35)]" loading="eager" onError={handleLogoError} />
+            : <Building2 className="relative w-[34%] h-[34%] text-secondary animate-float" />}
         </div>
       </div>
       <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-secondary to-transparent" />
