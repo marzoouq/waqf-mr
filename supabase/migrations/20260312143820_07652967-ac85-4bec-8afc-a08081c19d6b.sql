@@ -1,5 +1,3 @@
-
--- Reset dev-test password to 'Test1234!'
-UPDATE auth.users 
-SET encrypted_password = crypt('Test1234!', gen_salt('bf'))
-WHERE email = 'dev-test@waqfwise.app';
+-- REDACTED: this migration previously reset a test account password to a fixed literal.
+-- The test account no longer exists and the statement was removed so no credential lives in the repository.
+SELECT 1;

@@ -52,8 +52,13 @@ Deno.serve(async (req) => {
     }
 
     // Anon client — RPCs are SECURITY DEFINER with EXECUTE granted to anon.
-    // SERVICE_ROLE_KEY is intentionally NOT used (no privileged operations needed here).
+    // Anon client for lookups; service role only for the rate-limit counter below.
     const supabase = createClient(supabaseUrl, anonKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // عدّاد المحاولات يُستدعى بصلاحية الخادم فقط (الدالة محجوبة عن الزوار)
+    const rlClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
@@ -61,7 +66,7 @@ Deno.serve(async (req) => {
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const rateLimitKey = `lookup_nid:${clientIp}`;
 
-    const { data: isLimited, error: rlError } = await supabase.rpc('check_rate_limit', {
+    const { data: isLimited, error: rlError } = await rlClient.rpc('check_rate_limit', {
       p_key: rateLimitKey,
       p_limit: RATE_LIMIT,
       p_window_seconds: RATE_WINDOW_SECONDS,
@@ -126,7 +131,7 @@ Deno.serve(async (req) => {
     // المفتاح مُشفَّر (SHA-256) لمنع تسريب الأرقام الفعلية في جدول rate_limits
     const idHash = await sha256Hex(national_id);
     const targetKey = `lookup_nid_target:${idHash}`;
-    const { data: targetLimited, error: tlError } = await supabase.rpc('check_rate_limit', {
+    const { data: targetLimited, error: tlError } = await rlClient.rpc('check_rate_limit', {
       p_key: targetKey,
       p_limit: TARGET_RATE_LIMIT,
       p_window_seconds: TARGET_RATE_WINDOW_SECONDS,
