@@ -148,6 +148,14 @@ describe('generateAccountsPDF', () => {
     remainingBalance: 0,
   };
 
+  it('exports a contract summary without individual tenant records for beneficiary reports', async () => {
+    const { generateAccountsPDF } = await import('../entities/accounts');
+    await generateAccountsPDF({ ...fullData, contractsSummary: { total: 19, active: 4, expired: 15, cancelled: 0, annualValue: 1778800 } });
+    const output = JSON.stringify(mockAutoTable.mock.calls[0]?.[1]?.body);
+    expect(output).not.toContain('W-001'); expect(output).not.toContain('أحمد');
+    expect(output).toContain('1,778,800.00');
+  });
+
   it('ينشئ PDF باسم accounts-report.pdf', async () => {
     const { generateAccountsPDF } = await import('../entities/accounts');
     await generateAccountsPDF(fullData);

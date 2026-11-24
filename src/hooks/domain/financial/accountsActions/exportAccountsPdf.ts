@@ -10,7 +10,8 @@ export async function exportAccountsPdf(p: AccountsActionsParams): Promise<void>
     const { generateAccountsPDF } = await import('@/utils/pdf');
     await generateAccountsPDF({
       closureDisclosure: await fetchClosureDisclosure(p.selectedFY?.id),
-      contracts: p.contracts,
+      contracts: p.contracts, fiscalYearLabel: p.selectedFY?.label,
+      netAfterExpenses: p.netAfterExpenses, netAfterVat: p.netAfterVat,
       incomeBySource: p.incomeBySource,
       expensesByType: p.expensesByType,
       totalIncome: p.totalIncome,

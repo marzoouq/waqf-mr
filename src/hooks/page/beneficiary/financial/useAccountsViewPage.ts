@@ -15,6 +15,7 @@ import { safeNumber } from '@/utils/format/safeNumber';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
+import { summarizeDisclosureContracts } from '@/utils/contracts/disclosureContractsSummary';
 import { PDF_MESSAGES } from '@/lib/messages';
 
 
@@ -53,10 +54,8 @@ export function useAccountsViewPage() {
       const { generateAccountsPDF } = await import('@/utils/pdf');
       await generateAccountsPDF({
         closureDisclosure: await fetchClosureDisclosure(fiscalYearId),
-        contracts: contracts.filter(c => c.status === 'active').map(c => ({
-          contract_number: c.contract_number ?? '', tenant_name: c.tenant_name ?? '',
-          rent_amount: safeNumber(c.rent_amount), status: c.status ?? '',
-        })),
+        contracts: [], contractsSummary: summarizeDisclosureContracts(contracts),
+        fiscalYearLabel: selectedFY?.label,
         incomeBySource: fin.incomeBySource, expensesByType: fin.expensesByTypeExcludingVat,
         totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses, netRevenue: fin.netAfterZakat,
         adminShare: fin.adminShare, waqifShare: fin.waqifShare, waqfRevenue: fin.waqfRevenue,
@@ -70,7 +69,7 @@ export function useAccountsViewPage() {
     } catch {
       uiNotify.error(PDF_MESSAGES.exportError);
     }
-  }, [contracts, fin, remainingBalance, pdfWaqfInfo, fiscalYearId]);
+  }, [contracts, fin, remainingBalance, pdfWaqfInfo, fiscalYearId, selectedFY?.label]);
 
   return {
     finLoading, finError,

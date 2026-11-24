@@ -27,6 +27,11 @@ const makeEntry = (overrides: Partial<RpcYearEntry> = {}): RpcYearEntry => ({
 });
 
 describe('mapEntry', () => {
+  it('preserves both recorded corpus figures for export without recomputing them', () => {
+    const result = mapEntry(makeEntry());
+    expect(result.waqfCorpusPrevious).toBe(5000);
+    expect(result.waqfCorpusManual).toBe(10000);
+  });
   it('يحوّل صف RPC إلى YearSummaryEntry بشكل صحيح', () => {
     const result = mapEntry(makeEntry());
     expect(result.yearId).toBe('fy-1');

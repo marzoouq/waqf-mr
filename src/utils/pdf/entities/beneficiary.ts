@@ -22,6 +22,7 @@ const distributionStatusLabel = (s: string): string => {
 };
 
 export const generateMySharePDF = async (data: {
+  waqfCorpusManual?: number; waqfRevenue?: number; availableAmount?: number; netShare?: number;
   beneficiaryName: string;
   sharePercentage: number;
   myShare: number;
@@ -56,6 +57,8 @@ export const generateMySharePDF = async (data: {
     reshapeRow([`(-) حصة الناظر (${data.adminPct ?? 10}%)`, `${fmt(data.adminShare)} ر.س`]),
     reshapeRow([`(-) حصة الواقف (${data.waqifPct ?? 5}%)`, `${fmt(data.waqifShare)} ر.س`]),
     reshapeRow(['صافي ريع المستفيدين', `${fmt(data.beneficiariesShare)} ر.س`]),
+    ...(data.waqfCorpusManual !== undefined ? [reshapeRow(['رقبة الوقف المستقطعة', `${fmt(data.waqfCorpusManual)} ر.س`])] : []),
+    ...(data.availableAmount !== undefined ? [reshapeRow(['المبلغ المقرر للتوزيع', `${fmt(data.availableAmount)} ر.س`])] : []),
     reshapeRow(['حصتي المستحقة', `${fmt(data.myShare)} ر.س`]),
     reshapeRow(['المبالغ المستلمة', `${fmt(data.totalReceived)} ر.س`]),
     reshapeRow(['المبالغ المعلقة', `${fmt(data.pendingAmount)} ر.س`]),
@@ -71,7 +74,7 @@ export const generateMySharePDF = async (data: {
     bodyRows.push(reshapeRow(['(-) فروق مرحّلة مخصومة', `(${fmt(cf)}) ر.س`]));
   }
   if (advances > 0 || cf > 0) {
-    const net = Math.max(0, data.myShare - advances - cf);
+    const net = data.netShare ?? Math.max(0, data.myShare - advances - cf);
     bodyRows.push(reshapeRow([{ content: rs('صافي المبلغ المستحق'), styles: { fontStyle: 'bold' as const } }, { content: `${fmt(net)} ر.س`, styles: { fontStyle: 'bold' as const } }]));
   }
 
@@ -106,7 +109,7 @@ export const generateMySharePDF = async (data: {
   }
 
   stampAfterContent(doc, fontFamily, waqfInfo);
-  finalizePdf(doc, fontFamily, `my-share-${data.beneficiaryName}-${data.fiscalYear || 'all'}.pdf`, waqfInfo);
+  return finalizePdf(doc, fontFamily, `my-share-${data.beneficiaryName}-${data.fiscalYear || 'all'}.pdf`, waqfInfo);
 };
 
 export const generateDisclosurePDF = async (data: {
@@ -189,7 +192,7 @@ export const generateDisclosurePDF = async (data: {
   });
 
   stampAfterContent(doc, fontFamily, waqfInfo);
-  finalizePdf(doc, fontFamily, `disclosure-${data.fiscalYear}.pdf`, waqfInfo);
+  return finalizePdf(doc, fontFamily, `disclosure-${data.fiscalYear}.pdf`, waqfInfo);
 };
 
 /** التسلسل المالي للإفصاح بنفس ترتيب الشاشة: المصروفات والضريبة بندان مستقلان بلا دمج */

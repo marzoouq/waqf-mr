@@ -138,14 +138,15 @@ export function usePropertiesViewPage() {
         (properties ?? []).map(p => ({
           property_number: p.property_number, property_type: p.property_type,
           location: p.location, area: p.area, description: p.description,
+          financials: propertyFinancialsMap.get(p.id),
         })),
-        pdfWaqfInfo,
+        pdfWaqfInfo, { fiscalYearLabel: fiscalYear?.label },
       );
       uiNotify.success('تم تصدير العقارات بنجاح');
     } catch {
       uiNotify.error(PDF_MESSAGES.exportError);
     }
-  }, [properties, pdfWaqfInfo]);
+  }, [properties, pdfWaqfInfo, propertyFinancialsMap, fiscalYear?.label]);
 
   return {
     properties, units, contracts, expenses, isLoading, isError,

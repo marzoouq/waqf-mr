@@ -29,6 +29,8 @@ interface PdfHandlersParams {
   beneficiariesShare: number;
   paidAdvancesTotal: number;
   carryforwardBalance: number;
+  waqfCorpusPrevious?: number; grandTotal?: number;
+  adminPct?: number; waqifPct?: number;
   totalIncome: number;
   totalExpenses: number;
   netAfterExpenses: number;
@@ -71,6 +73,8 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
         beneficiaryName: params.currentBeneficiary.name ?? 'غير معروف',
         sharePercentage: params.currentBeneficiary.share_percentage ?? 0,
         myShare: params.myShare,
+        waqfCorpusManual: params.waqfCorpusManual, waqfRevenue: params.waqfRevenue,
+        availableAmount: params.beneficiariesShare, adminPct: params.adminPct, waqifPct: params.waqifPct,
         totalReceived: params.totalReceived,
         pendingAmount: params.pendingAmount,
         netRevenue: params.netAfterZakat,
@@ -130,6 +134,7 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
         beneficiaryName: params.currentBeneficiary.name ?? 'غير معروف',
         fiscalYear: params.fiscalYearLabel || '',
         totalIncome: params.totalIncome, totalExpenses: params.totalExpenses,
+        waqfCorpusPrevious: params.waqfCorpusPrevious, grandTotal: params.grandTotal,
         netAfterExpenses: params.netAfterExpenses, vatAmount: params.vatAmount,
         netAfterVat: params.netAfterVat, zakatAmount: params.zakatAmount,
         netAfterZakat: params.netAfterZakat, adminShare: params.adminShare,

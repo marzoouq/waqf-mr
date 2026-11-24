@@ -11,11 +11,12 @@ import { uiNotify } from '@/lib/notify';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { useDashboardRealtime } from '@/hooks/data/core/useDashboardRealtime';
 import { PDF_MESSAGES } from '@/lib/messages';
+import { getEffectiveContractStatus } from '@/utils/contracts/contractStatus';
 
 const ITEMS_PER_PAGE = DEFAULT_PAGE_SIZE;
 
 export const useContractsViewPage = () => {
-  const { fiscalYearId } = useFiscalYear();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
 
   // Realtime: انعكاس فوري لتعديلات العقود وفواتير الدفعات
   useDashboardRealtime(
@@ -40,19 +41,19 @@ export const useContractsViewPage = () => {
 
   const isExpiringSoon = useCallback(
     (c: { status: string | null; end_date: string | null }) =>
-      c.status === 'active' && !!c.end_date && new Date(c.end_date) <= in90Days,
+      getEffectiveContractStatus(c.status, c.end_date) === 'active' && !!c.end_date && new Date(c.end_date) <= in90Days,
     [in90Days],
   );
 
   const stats = useMemo(() => {
     if (!contracts) return { total: 0, active: 0, expired: 0, totalRent: 0, expiringSoon: 0, activePercent: 0, activeRent: 0 };
-    const active = contracts.filter(c => c.status === 'active');
+    const active = contracts.filter(c => getEffectiveContractStatus(c.status, c.end_date) === 'active');
     const totalRent = contracts.reduce((sum, c) => sum + (c.rent_amount || 0), 0);
     const activeRent = active.reduce((sum, c) => sum + (c.rent_amount || 0), 0);
     const activePercent = contracts.length > 0 ? Math.round((active.length / contracts.length) * 100) : 0;
     return {
       total: contracts.length, active: active.length, activePercent, activeRent,
-      expired: contracts.filter(c => c.status === 'expired').length,
+      expired: contracts.filter(c => getEffectiveContractStatus(c.status, c.end_date) === 'expired').length,
       totalRent, expiringSoon: active.filter(c => isExpiringSoon(c)).length,
     };
   }, [contracts, isExpiringSoon]);
@@ -75,13 +76,13 @@ export const useContractsViewPage = () => {
           start_date: c.start_date ?? '', end_date: c.end_date ?? '',
           rent_amount: c.rent_amount ?? 0, status: c.status ?? '',
         })),
-        pdfWaqfInfo
+        pdfWaqfInfo, { fiscalYearLabel: fiscalYear?.label, totalRent: stats.totalRent }
       );
       uiNotify.success('تم تصدير العقود بنجاح');
     } catch {
       uiNotify.error(PDF_MESSAGES.exportError);
     }
-  }, [contracts, pdfWaqfInfo]);
+  }, [contracts, pdfWaqfInfo, fiscalYear?.label, stats.totalRent]);
 
   return {
     contracts, isLoading, isError, refetch,

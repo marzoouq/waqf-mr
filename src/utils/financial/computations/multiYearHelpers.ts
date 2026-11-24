@@ -48,6 +48,7 @@ export function mapEntry(raw: RpcYearEntry): YearSummaryEntry {
   const rawAvailable = acct?.available_amount ?? (waqfRevenue - corpusManual);
 
   return {
+    waqfCorpusPrevious: acct?.waqf_corpus_previous, waqfCorpusManual: acct?.waqf_corpus_manual,
     yearId: raw.year_id,
     label: raw.label,
     status: raw.status,

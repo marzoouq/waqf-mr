@@ -30,6 +30,17 @@ import { generateMySharePDF, generateDisclosurePDF } from '../entities/beneficia
 describe('generateMySharePDF', () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it('prints distribution base separately from waqf revenue and preserves entitlement', async () => {
+    await generateMySharePDF({ beneficiaryName: 'أحمد', sharePercentage: 10, myShare: 100000,
+      totalReceived: 0, pendingAmount: 100000, netRevenue: 1629323.94, adminShare: 162891.56,
+      waqifShare: 81445.78, beneficiariesShare: 1000000, waqfCorpusManual: 384986.60,
+      availableAmount: 1000000, distributions: [] });
+    const { default: table } = await import('jspdf-autotable');
+    const values = JSON.stringify(vi.mocked(table).mock.calls);
+    expect(values).toContain('384,986.60'); expect(values).toContain('1,000,000.00');
+    expect(values).toContain('100,000.00');
+  });
+
   it('saves PDF with beneficiary name', async () => {
     await generateMySharePDF({
       beneficiaryName: 'أحمد',

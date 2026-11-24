@@ -6,10 +6,13 @@ import {
   reshapeArabic as rs, reshapeRow,
 } from '../core/core';
 import { getLastAutoTableY } from '../core/pdfHelpers';
+import { buildDisclosureSequenceRows } from '@/utils/pdf/entities/beneficiary';
 import { fmt } from '@/utils/format/format';
 
 export interface ReportData {
   fiscalYear: string;
+  waqfCorpusPrevious?: number; grandTotal?: number; netAfterExpenses?: number; vatAmount?: number;
+  netAfterVat?: number; zakatAmount?: number; waqfCorpusManual?: number; availableAmount?: number;
   totalIncome: number;
   totalExpenses: number;
   netRevenue: number;
@@ -49,10 +52,7 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
       reshapeRow([{ content: rs('-- المصروفات --'), colSpan: 2, styles: { halign: 'center', fontStyle: 'bold', fillColor: [254, 226, 226] } }]),
       ...data.expensesByType.map(e => reshapeRow([`  ${e.type}`, `-${fmt(e.amount)}`])),
       reshapeRow([{ content: rs('إجمالي المصروفات'), styles: { fontStyle: 'bold' } }, { content: `(${fmt(data.totalExpenses)})`, styles: { fontStyle: 'bold' } }]),
-      reshapeRow(['صافي الريع', fmt(data.netRevenue)]),
-      reshapeRow([`حصة الناظر (${data.adminPct ?? 10}%)`, fmt(data.adminShare)]),
-      reshapeRow([`حصة الواقف (${data.waqifPct ?? 5}%)`, fmt(data.waqifShare)]),
-      reshapeRow(['ريع المستفيدين', fmt(data.waqfRevenue)]),
+      ...buildDisclosureSequenceRows({ ...data, beneficiariesShare: data.availableAmount ?? data.waqfRevenue }).map(row => reshapeRow(row)),
     ],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -77,5 +77,5 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
     ...baseTableStyles(fontFamily),
   });
 
-  finalizePdf(doc, fontFamily, `waqf-report-${data.fiscalYear}.pdf`, waqfInfo);
+  return finalizePdf(doc, fontFamily, `waqf-report-${data.fiscalYear}.pdf`, waqfInfo);
 };

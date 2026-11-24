@@ -17,6 +17,8 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
   date: string;
   property_number: string;
   status: string;
+  tenant_name?: string | null;
+  contract_number?: string | null;
 }>, waqfInfo?: PdfWaqfInfo, fiscalYearLabel?: string) => {
   const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
@@ -40,7 +42,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
 
   autoTable(doc, {
     startY: startY + 14,
-    head: [reshapeRow(['#', 'النوع', 'رقم الفاتورة', 'المبلغ', 'التاريخ', 'العقار', 'الحالة'])],
+    head: [reshapeRow(['#', 'النوع', 'رقم الفاتورة', 'المبلغ', 'التاريخ', 'العقار', 'المستأجر', 'رقم العقد', 'الحالة'])],
     body: invoices.map((item, i) => reshapeRow([
       i + 1,
       item.invoice_type,
@@ -48,16 +50,17 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
       `${fmt(safeNumber(item.amount))} ر.س`,
       fmtDate(item.date),
       item.property_number || '-',
+      item.tenant_name || '—', item.contract_number || '—',
       statusLabel(item.status),
     ])),
-    foot: [reshapeRow(['الإجمالي', '', '', `${fmt(total)} ر.س`, '', '', ''])],
+    foot: [reshapeRow(['الإجمالي', '', '', `${fmt(total)} ر.س`, '', '', '', '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
     ...baseTableStyles(fontFamily),
   });
 
-  finalizePdf(doc, fontFamily, 'invoices-report.pdf', waqfInfo);
+  return finalizePdf(doc, fontFamily, 'invoices-report.pdf', waqfInfo);
 };
 
 /**

@@ -15,7 +15,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { useDistributionsPage } from '@/hooks/page/admin/financial/useDistributionsPage';
 
 import DistributionDeliveryCard from '@/components/distributions/DistributionDeliveryCard';
-import { FigureTile, FigureTileGrid } from '@/components/common';
+import { FigureTile, FigureTileGrid, ExportMenu } from '@/components/common';
 import { DOMAIN_ICONS } from '@/constants/domainIcons';
 
 const DistributeDialog = lazy(() => import('@/components/accounts/DistributeDialog'));
@@ -42,7 +42,7 @@ const DistributionsPage = () => {
           icon={Users}
           description="عرض المبلغ المتاح للتوزيع وتنفيذ صرف الحصص للمستفيدين"
           badge={fyLabel ? <Badge variant="secondary" className="text-xs">{fyLabel}</Badge> : undefined}
-          actions={
+          actions={<><ExportMenu onExportPdf={p.handleExportPdf} />
             <Button
               className="gradient-primary gap-2"
               onClick={() => p.setDialogOpen(true)}
@@ -50,7 +50,7 @@ const DistributionsPage = () => {
             >
               <Wallet className="w-4 h-4" />
               <span>تنفيذ التوزيع</span>
-            </Button>
+            </Button></>
           }
         />
 

@@ -33,6 +33,7 @@ vi.mock('@/hooks/domain/financial/useDistributionCalculation', () => ({
 vi.mock('@/hooks/auth/session/useAuthContext', () => ({
   useAuth: () => ({ role: 'admin' }),
 }));
+vi.mock('@/hooks/data/settings/waqf/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: () => ({ waqfName: 'وقف' }) }));
 
 const loadHook = async () => (await import('./useDistributionsPage')).useDistributionsPage;
 

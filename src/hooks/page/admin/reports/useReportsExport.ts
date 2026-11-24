@@ -50,6 +50,10 @@ export function useReportsExport(input: ReportsExportInput) {
     const { generateAnnualReportPDF } = await loadPdfModule();
     await generateAnnualReportPDF({
       fiscalYear: input.fiscalYearLabel,
+      waqfCorpusPrevious: input.waqfCorpusPrevious, grandTotal: input.grandTotal,
+      netAfterExpenses: input.netAfterExpenses, vatAmount: input.vatAmount, netAfterVat: input.netAfterVat,
+      zakatAmount: input.zakatAmount, waqfCorpusManual: input.waqfCorpusManual, availableAmount: input.availableAmount,
+      adminPct: input.adminPct, waqifPct: input.waqifPct,
       totalIncome: input.totalIncome,
       totalExpenses: input.totalExpenses,
       netRevenue: input.netRevenue,

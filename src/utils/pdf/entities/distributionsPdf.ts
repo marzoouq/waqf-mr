@@ -15,6 +15,7 @@ import { fmt } from '@/utils/format/format';
 export const generateDistributionsPDF = async (data: {
   fiscalYearLabel: string;
   availableAmount: number;
+  distributionBase?: number; waqfRevenue?: number; waqfCorpusManual?: number;
   distributions: Array<{
     beneficiary_name: string;
     share_percentage: number;
@@ -41,6 +42,9 @@ export const generateDistributionsPDF = async (data: {
   const totalDeficit = data.distributions.reduce((s, d) => s + d.deficit, 0);
 
   const summaryRows = [
+    ...(data.waqfRevenue !== undefined ? [reshapeRow(['ريع الوقف', fmt(data.waqfRevenue)])] : []),
+    ...(data.waqfCorpusManual !== undefined ? [reshapeRow(['رقبة الوقف المستقطعة', fmt(data.waqfCorpusManual)])] : []),
+    ...(data.distributionBase !== undefined ? [reshapeRow(['المبلغ المقرر للتوزيع', fmt(data.distributionBase)])] : []),
     reshapeRow(['المبلغ المتاح للتوزيع', `${fmt(data.availableAmount)} ر.س`]),
     reshapeRow(['إجمالي السُلف المخصومة', `(${fmt(totalAdvances)}) ر.س`]),
     reshapeRow(['إجمالي المرحّل المخصوم', `(${fmt(totalCarryforward)}) ر.س`]),
@@ -83,7 +87,7 @@ export const generateDistributionsPDF = async (data: {
     head: [reshapeRow(['المستفيد', 'النسبة', 'الحصة', 'السُلف', 'المرحّل', 'الصافي', 'فرق مرحّل'])],
     body: bodyRows,
     foot: [reshapeRow([
-      'الإجمالي', '100%',
+      'الإجمالي', `${data.distributions.reduce((sum, row) => sum + row.share_percentage, 0).toFixed(6)}%`,
       fmt(totalShareAmt),
       totalAdvances > 0 ? `(${fmt(totalAdvances)})` : '—',
       totalCarryforward > 0 ? `(${fmt(totalCarryforward)})` : '—',
@@ -104,5 +108,5 @@ export const generateDistributionsPDF = async (data: {
     },
   });
 
-  finalizePdf(doc, fontFamily, `distributions-report-${data.fiscalYearLabel}.pdf`, waqfInfo);
+  return finalizePdf(doc, fontFamily, `distributions-report-${data.fiscalYearLabel}.pdf`, waqfInfo);
 };

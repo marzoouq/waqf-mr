@@ -3,6 +3,7 @@
  * يعيد استخدام منطق التوزيع الموجود (useAccountsPage + useDistributionCalculation)
  * بدون تكرار حسابات أو منطق RPC.
  */
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useState } from 'react';
 import { useAccountsPage } from './useAccountsPage';
 import { useDistributionCalculation } from '@/hooks/domain/financial/useDistributionCalculation';
@@ -11,6 +12,7 @@ import { computeDistributionBase } from '@/utils/financial/distribution/distribu
 
 export function useDistributionsPage() {
   const acc = useAccountsPage();
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { role } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -31,7 +33,15 @@ export function useDistributionsPage() {
     ? Math.round((acc.manualDistributions / acc.availableAmount) * 100)
     : 0;
 
+  const handleExportPdf = async () => {
+    if (acc.isLoading) return;
+    const { generateDistributionsPDF } = await import('@/utils/pdf');
+    return generateDistributionsPDF({ fiscalYearLabel: acc.selectedFY?.label ?? '',
+      availableAmount: acc.availableAmount, distributionBase: distBase.base,
+      waqfRevenue: acc.waqfRevenue, waqfCorpusManual: acc.waqfCorpusManual, distributions: calc.distributions }, pdfWaqfInfo);
+  };
   return {
+    handleExportPdf,
     // سياق
     role,
     fiscalYear: acc.fiscalYear,

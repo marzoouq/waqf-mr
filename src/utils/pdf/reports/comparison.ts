@@ -49,22 +49,17 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
 
   // 1. Summary comparison — يدعم 3 صفوف صافي منفصلة عند توفّر البيانات
   const fmtPctLocal = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`;
-  const hasBreakdown =
-    data.year1.netAfterExpenses !== undefined && data.year1.netAfterZakat !== undefined && data.year1.waqfRevenue !== undefined;
   type Row = ReturnType<typeof reshapeRow>;
   const body: Row[] = [
     reshapeRow(['إجمالي الدخل', fmt(data.year1.income), fmt(data.year2.income), fmtPctLocal(data.incomeChange)]),
     reshapeRow(['إجمالي المصروفات', fmt(data.year1.expenses), fmt(data.year2.expenses), fmtPctLocal(data.expenseChange)]),
   ];
-  if (hasBreakdown) {
-    const ne1 = data.year1.netAfterExpenses!, ne2 = data.year2.netAfterExpenses!;
-    const nz1 = data.year1.netAfterZakat!,    nz2 = data.year2.netAfterZakat!;
-    const wr1 = data.year1.waqfRevenue!,      wr2 = data.year2.waqfRevenue!;
-    const ch = (a: number, b: number) => b !== 0 ? ((a - b) / Math.abs(b)) * 100 : 0;
-    body.push(reshapeRow(['صافي بعد المصروفات', fmt(ne1), fmt(ne2), fmtPctLocal(ch(ne2, ne1))]));
-    body.push(reshapeRow(['صافي بعد الزكاة',    fmt(nz1), fmt(nz2), fmtPctLocal(ch(nz2, nz1))]));
-    body.push(reshapeRow(['ريع الوقف',          fmt(wr1), fmt(wr2), fmtPctLocal(ch(wr2, wr1))]));
-  } else {
+  const ch = (a: number, b: number) => b !== 0 ? ((a - b) / Math.abs(b)) * 100 : 0;
+  for (const [label, key] of [['صافي بعد المصروفات', 'netAfterExpenses'], ['صافي بعد الزكاة', 'netAfterZakat'], ['ريع الوقف', 'waqfRevenue']] as const) {
+    const a = data.year1[key], b = data.year2[key];
+    if (a !== undefined && b !== undefined) body.push(reshapeRow([label, fmt(a), fmt(b), fmtPctLocal(ch(b, a))]));
+  }
+  if (data.year1.netAfterZakat === undefined || data.year2.netAfterZakat === undefined) {
     body.push(reshapeRow(['صافي الدخل', fmt(data.year1.net), fmt(data.year2.net), fmtPctLocal(data.netChange)]));
   }
   autoTable(doc, {
@@ -165,5 +160,5 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
     });
   }
 
-  finalizePdf(doc, f, `year-comparison-${data.year1Label}-vs-${data.year2Label}.pdf`, waqfInfo);
+  return finalizePdf(doc, f, `year-comparison-${data.year1Label}-vs-${data.year2Label}.pdf`, waqfInfo);
 };

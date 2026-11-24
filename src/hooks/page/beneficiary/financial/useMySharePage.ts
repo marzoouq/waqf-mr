@@ -88,6 +88,8 @@ export const useMySharePage = () => {
     currentBeneficiary: currentBeneficiary ?? null, isClosed: !!isClosed, myShare, totalReceived, pendingAmount,
     netAfterZakat: fin.netAfterZakat, adminShare: fin.adminShare, waqifShare: fin.waqifShare,
     beneficiariesShare, paidAdvancesTotal,
+    waqfCorpusPrevious: fin.waqfCorpusPrevious, grandTotal: fin.grandTotal,
+    adminPct: dashData?.admin_share_pct, waqifPct: dashData?.waqif_share_pct,
     carryforwardBalance, totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
     netAfterExpenses: fin.netAfterExpenses, vatAmount: fin.vatAmount,
     netAfterVat: fin.netAfterVat, zakatAmount: fin.zakatAmount, waqfRevenue: fin.waqfRevenue,

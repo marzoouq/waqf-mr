@@ -29,10 +29,43 @@ import { generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, 
 describe('entities PDF', () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it('prints effective expiry without mutating the recorded contract or rent', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-24T11:50:00Z'));
+    const contract = { contract_number: 'W-001', tenant_name: 'أحمد', start_date: '2025-01-01', end_date: '2026-01-01', rent_amount: 1778800, status: 'active' };
+    try {
+      await generateContractsPDF([contract]);
+      const { default: table } = await import('jspdf-autotable');
+      const output = JSON.stringify(vi.mocked(table).mock.calls);
+      expect(output).toContain('منتهي');
+      expect(output).toContain('1,778,800');
+      expect(contract.status).toBe('active');
+      expect(contract.rent_amount).toBe(1778800);
+    } finally { vi.useRealTimers(); }
+  });
+
   it('generatePropertiesPDF saves correctly', async () => {
     await generatePropertiesPDF([{ property_number: 'P-1', property_type: 'تجاري', location: 'الرياض', area: 500 }]);
     expect(vi.mocked((await import('../core/core')).finalizePdf)).toHaveBeenCalled();
     expect(vi.mocked((await import('../core/core')).finalizePdf).mock.calls[0]?.[2]).toBe('properties-report.pdf');
+  });
+
+  it('exports property operating figures unchanged, not recalculated', async () => {
+    await generatePropertiesPDF([{ property_number: 'P-1', property_type: 'تجاري', location: 'الرياض', area: 500,
+      financials: { totalUnits: 19, occupancy: 79, contractualRevenue: 1778800, totalExpenses: 127984.44, netIncome: 1650815.56 } }]);
+    const { default: table } = await import('jspdf-autotable');
+    const output = JSON.stringify(vi.mocked(table).mock.calls);
+    expect(output).toContain('1,778,800');
+    expect(output).toContain('127,984.44');
+    expect(output).toContain('1,650,815.56');
+  });
+
+  it('keeps historical unit occupancy while printing actual contract expiry', async () => {
+    await generateUnitsPDF('P-1', 'الرياض', [{ unit_number: '1', unit_type: 'شقة', status: 'مؤجرة', contract_status: 'active', tenant_name: 'أحمد', start_date: '2025-01-01', end_date: '2026-01-01', rent_amount: 12000, paid_months: 12 }]);
+    const { default: table } = await import('jspdf-autotable');
+    const body = vi.mocked(table).mock.calls[0]?.[1]?.body;
+    expect(JSON.stringify(body)).toContain('مؤجرة');
+    expect(JSON.stringify(body)).toContain('منتهي');
   });
 
   it('generateContractsPDF saves correctly', async () => {

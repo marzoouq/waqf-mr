@@ -23,7 +23,7 @@ const PropertiesPage = () => {
     serverPage, serverNextPage, serverPrevPage, serverHasNextPage, serverHasPrevPage, serverPageSize,
     selectedProperty, setSelectedProperty,
     filteredProperties,
-    pdfWaqfInfo,
+    handleExportPdf,
   } = usePropertiesPage();
 
   const paginatedProperties = useMemo(
@@ -39,7 +39,7 @@ const PropertiesPage = () => {
           icon={Building2}
           description="عرض وإدارة جميع عقارات الوقف"
           actions={<>
-            <ExportMenu onExportPdf={async () => { const { generatePropertiesPDF } = await import('@/utils/pdf'); return generatePropertiesPDF(properties, pdfWaqfInfo); }} />
+            <ExportMenu onExportPdf={handleExportPdf} />
             <PropertyFormDialog
               isOpen={isOpen} setIsOpen={setIsOpen} editingProperty={editingProperty}
               formData={formData} setFormData={setFormData} resetForm={resetForm}

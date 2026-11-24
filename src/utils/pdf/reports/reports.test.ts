@@ -50,6 +50,17 @@ import { generateAnnualReportPDF, generateBeneficiaryStatementPDF, generateAnnua
 describe('generateAnnualReportPDF', () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it('prints recorded carryforward, VAT and corpus with no financial recalculation', async () => {
+    await generateAnnualReportPDF({ fiscalYear: '2025-2026', totalIncome: 1756900, totalExpenses: 127984.44,
+      netRevenue: 1629323.94, adminShare: 162891.56, waqifShare: 81445.78, waqfRevenue: 1384986.60,
+      waqfCorpusPrevious: 107913.20, grandTotal: 1864813.20, netAfterExpenses: 1736828.76,
+      vatAmount: 107504.82, netAfterVat: 1629323.94, zakatAmount: 0, waqfCorpusManual: 384986.60,
+      availableAmount: 1000000, expensesByType: [], incomeBySource: [], beneficiaries: [] });
+    const { default: table } = await import('jspdf-autotable');
+    const output = JSON.stringify(vi.mocked(table).mock.calls);
+    for (const value of ['107,913.20', '1,864,813.20', '127,984.44', '107,504.82', '384,986.60', '1,000,000.00']) expect(output).toContain(value);
+  });
+
   it('generates and saves PDF', async () => {
     await generateAnnualReportPDF({
       fiscalYear: '2024-2025',

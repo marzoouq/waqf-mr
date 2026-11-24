@@ -10,6 +10,7 @@ import { getLastAutoTableY } from '../core/pdfHelpers';
 import { fmt } from '@/utils/format/format';
 
 export interface MultiYearComparisonEntry {
+  waqfCorpusPrevious?: number; waqfCorpusManual?: number; availableAmount?: number;
   label: string;
   income: number;
   expenses: number;
@@ -75,6 +76,9 @@ export const generateMultiYearComparisonPDF = async (
     { label: 'حصة الناظر', pick: e => e.adminShare ?? 0 },
     { label: 'حصة الواقف', pick: e => e.waqifShare ?? 0 },
     { label: 'ريع الوقف', pick: e => e.waqfRevenue },
+    ...(years.every(y => y.waqfCorpusPrevious !== undefined) ? [{ label: 'رقبة الوقف المرحّلة', pick: (e: MultiYearComparisonEntry) => e.waqfCorpusPrevious ?? 0 }] : []),
+    ...(years.every(y => y.waqfCorpusManual !== undefined) ? [{ label: 'رقبة الوقف الحالية', pick: (e: MultiYearComparisonEntry) => e.waqfCorpusManual ?? 0 }] : []),
+    ...(years.every(y => y.availableAmount !== undefined) ? [{ label: 'المتاح للتوزيع', pick: (e: MultiYearComparisonEntry) => e.availableAmount ?? 0 }] : []),
     { label: 'التوزيعات', pick: e => e.distributionsAmount ?? 0 },
   ];
 
@@ -127,5 +131,5 @@ export const generateMultiYearComparisonPDF = async (
   }
 
   const fileLabel = years.map(y => y.label).join('-vs-');
-  finalizePdf(doc, f, `historical-comparison-${fileLabel}.pdf`, waqfInfo);
+  return finalizePdf(doc, f, `historical-comparison-${fileLabel}.pdf`, waqfInfo);
 };

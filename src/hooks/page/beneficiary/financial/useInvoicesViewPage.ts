@@ -91,6 +91,8 @@ export function useInvoicesViewPage() {
           date: inv.date,
           property_number: inv.property?.property_number || '-',
           status: inv.status,
+          tenant_name: rentInvoices.find(row => row.id === inv.id)?.contract?.tenant_name,
+          contract_number: rentInvoices.find(row => row.id === inv.id)?.contract?.contract_number,
         })),
         pdfWaqfInfo,
         fiscalYearLabel
@@ -99,7 +101,7 @@ export function useInvoicesViewPage() {
     } catch {
       uiNotify.error(PDF_MESSAGES.exportError);
     }
-  }, [searchQuery, filteredInvoices, fiscalYear, pdfWaqfInfo]);
+  }, [searchQuery, filteredInvoices, fiscalYear, pdfWaqfInfo, rentInvoices]);
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);

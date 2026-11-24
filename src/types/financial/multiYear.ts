@@ -7,6 +7,8 @@
 
 /** شكل البيانات لكل سنة — متوافق مع واجهة useFinancialSummary */
 export interface YearSummaryEntry {
+  waqfCorpusPrevious?: number;
+  waqfCorpusManual?: number;
   yearId: string;
   label: string;
   status: string;

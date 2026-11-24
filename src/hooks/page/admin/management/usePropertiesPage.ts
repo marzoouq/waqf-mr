@@ -6,7 +6,7 @@
  *
  * يحافظ على نفس public API للحفاظ على PropertiesPage.tsx بدون تغيير.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useProperties } from '@/hooks/data/properties/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/contracts/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -28,7 +28,7 @@ export function usePropertiesPage() {
 
   const propertiesQuery = useProperties();
   const { data: properties = [], isLoading } = propertiesQuery;
-  const { fiscalYearId } = useFiscalYear();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
 
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -59,6 +59,12 @@ export function usePropertiesPage() {
   const filters = usePropertiesFilters({ properties, propertyOccupancy: summary.propertyOccupancy });
   const form = usePropertiesForm();
   const pdfWaqfInfo = usePdfWaqfInfo();
+
+  const handleExportPdf = useCallback(async () => {
+    if (summary.summaryLoading) return;
+    const { generatePropertiesPDF } = await import('@/utils/pdf');
+    return generatePropertiesPDF(filters.filteredProperties.map(p => ({ ...p, financials: summary.propertyFinancialsMap.get(p.id) })), pdfWaqfInfo, { fiscalYearLabel: fiscalYear?.label });
+  }, [summary.summaryLoading, summary.propertyFinancialsMap, filters.filteredProperties, pdfWaqfInfo, fiscalYear?.label]);
 
   return {
     // بيانات
@@ -93,6 +99,6 @@ export function usePropertiesPage() {
     // عقار مختار
     selectedProperty, setSelectedProperty,
     // PDF
-    pdfWaqfInfo,
+    pdfWaqfInfo, handleExportPdf,
   };
 }

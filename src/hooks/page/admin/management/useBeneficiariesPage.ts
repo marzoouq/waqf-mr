@@ -107,8 +107,8 @@ export function useBeneficiariesPage() {
 
   const handleExportPdf = useCallback(async () => {
     const { generateBeneficiariesPDF } = await import('@/utils/pdf');
-    return generateBeneficiariesPDF(filteredBeneficiaries, pdfWaqfInfo);
-  }, [filteredBeneficiaries, pdfWaqfInfo]);
+    return generateBeneficiariesPDF(filteredBeneficiaries, pdfWaqfInfo, { filterLabel: searchQuery ? 'نتائج البحث المحددة' : undefined });
+  }, [filteredBeneficiaries, pdfWaqfInfo, searchQuery]);
 
   const handleExportCsv = useCallback(() => {
     const csv = buildCsv(filteredBeneficiaries.map(b => ({

@@ -14,11 +14,12 @@ export function useExpensesExporters(
   filteredExpenses: Expense[],
   totalExpenses: number,
   pdfWaqfInfo: PdfWaqfInfo,
+  fiscalYearLabel?: string,
 ) {
   const handleExportPdf = useCallback(async () => {
     const { generateExpensesPDF } = await import('@/utils/pdf');
-    return generateExpensesPDF(filteredExpenses, totalExpenses, pdfWaqfInfo);
-  }, [filteredExpenses, totalExpenses, pdfWaqfInfo]);
+    return generateExpensesPDF(filteredExpenses, totalExpenses, pdfWaqfInfo, fiscalYearLabel);
+  }, [filteredExpenses, totalExpenses, pdfWaqfInfo, fiscalYearLabel]);
 
   const handleExportCsv = useCallback(() => {
     const csv = buildCsv(filteredExpenses.map(item => ({

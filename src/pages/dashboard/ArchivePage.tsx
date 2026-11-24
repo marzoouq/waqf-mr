@@ -5,7 +5,7 @@
  */
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { FigureTile, FigureTileGrid } from '@/components/common';
 import { FolderArchive, Plus, AlertCircle, FileText, EyeOff } from 'lucide-react';
 import ArchiveFilters from '@/components/archive/ArchiveFilters';
 import ArchiveDocumentList from '@/components/archive/ArchiveDocumentList';
@@ -15,22 +15,6 @@ import ArchiveDeleteDialog from '@/components/archive/ArchiveDeleteDialog';
 import ArchivePdfPreviewDialog from '@/components/archive/ArchivePdfPreviewDialog';
 import YearScopeToggle from '@/components/common/YearScopeToggle';
 import { useArchivePage } from '@/hooks/page/admin/management/useArchivePage';
-
-const StatCard = ({
-  label, value, icon: Icon, tone,
-}: { label: string; value: number; icon: typeof FileText; tone: string }) => (
-  <Card>
-    <CardContent className="p-4 flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${tone}`}>
-        <Icon className="w-5 h-5" />
-      </div>
-      <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-xl font-bold">{value}</p>
-      </div>
-    </CardContent>
-  </Card>
-);
 
 const ArchivePage = () => {
   const a = useArchivePage();
@@ -63,11 +47,11 @@ const ArchivePage = () => {
           }
         />
 
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <StatCard label="إجمالي الوثائق" value={a.stats.total} icon={FolderArchive} tone="bg-primary/10 text-primary" />
-          <StatCard label="منشورة" value={a.stats.published} icon={FileText} tone="bg-success/10 text-success" />
-          <StatCard label="مسودات" value={a.stats.drafts} icon={EyeOff} tone="bg-warning/10 text-warning" />
-        </div>
+        <FigureTileGrid isLoading={a.isLoading} cols="grid-cols-1 sm:grid-cols-3" skeletonCount={3}>
+          <FigureTile label="إجمالي الوثائق" value={a.stats.total} icon={FolderArchive} unit="count" />
+          <FigureTile label="منشورة" value={a.stats.published} icon={FileText} tone="success" unit="count" />
+          <FigureTile label="مسودات" value={a.stats.drafts} icon={EyeOff} tone="warning" unit="count" />
+        </FigureTileGrid>
 
         <YearScopeToggle allYears={a.allYears} onChange={a.setAllYears} yearLabel={a.yearLabel} />
 

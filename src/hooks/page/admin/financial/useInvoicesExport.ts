@@ -54,6 +54,7 @@ export const useInvoicesExport = ({
           date: inv.date,
           property_number: inv.property?.property_number || '-',
           status: inv.status,
+          tenant_name: inv.contract?.tenant_name, contract_number: inv.contract?.contract_number,
         })),
         pdfWaqfInfo,
         fyLabel,

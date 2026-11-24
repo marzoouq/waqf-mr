@@ -27,6 +27,7 @@ const WaqifDashboard = () => {
     activeContracts, expiredContracts,
     contractualRevenue, collectionSummary,
     monthlyData, expenseData,
+    handleExportPdf,
   } = useWaqifDashboardPage();
 
   if (isLoading) return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
@@ -47,7 +48,7 @@ const WaqifDashboard = () => {
       <div className="p-3 sm:p-6 space-y-6 sm:space-y-8">
         <WaqifWelcomeCard displayName={displayName} welcome={welcome} />
         <div className="flex items-center justify-end gap-2">
-          <ExportMenu hidePdf />
+          <ExportMenu onExportPdf={handleExportPdf} />
         </div>
 
         <WaqifOverviewStats stats={overviewStats} />

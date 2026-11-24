@@ -24,8 +24,13 @@ import { useContractsSafeByFiscalYear } from '@/hooks/data/contracts/useContract
 import { useAllUnits } from '@/hooks/data/properties/useUnits';
 import { usePaymentInvoices } from '@/hooks/data/invoices/usePaymentInvoices';
 import { Building2, FileText, Users, TrendingUp } from 'lucide-react';
+import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
+import { useFeatureVisibility } from '@/hooks/data/settings/permissions/useFeatureVisibility';
+import { uiNotify } from '@/lib/notify';
 
 export const useWaqifDashboardPage = () => {
+  const waqfInfo = usePdfWaqfInfo();
+  const visibility = useFeatureVisibility();
   const { user } = useAuth();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears, isSpecificYear } = useFiscalYear();
 
@@ -126,7 +131,20 @@ export const useWaqifDashboardPage = () => {
     [expensesByTypeExcludingVat],
   );
 
+  const handleExportPdf = async () => {
+    if (isLoading || noPublishedYears || visibility.isLoading) return;
+    const rows: Array<[string, string]> = overviewStats.map(s => [s.title, String(s.value)]);
+    if (visibility.isVisible('waqif', 'financial_section')) {
+      rows.push(...kpis.map(k => [k.label, `${k.value}${k.suffix}`] as [string, string]));
+      rows.push(['العقود النشطة', String(activeContracts.length)], ['العقود المنتهية', String(expiredContracts.length)], ['الإيراد التعاقدي', fmt(contractualRevenue)]);
+    }
+    try {
+      const { generateSummaryPdf } = await import('@/utils/pdf/reports/summaryPdf');
+      await generateSummaryPdf({ title: 'ملخص الوقف', subtitle: fiscalYear?.label, filename: 'waqif-summary.pdf', rows }, waqfInfo);
+    } catch { uiNotify.error('تعذّر إصدار ملخص الوقف'); }
+  };
   return {
+    handleExportPdf,
     isLoading, noPublishedYears,
     displayName, welcome,
     overviewStats, kpis,

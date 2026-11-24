@@ -141,7 +141,7 @@ export function useExpensesPage() {
   /** هل السنة المالية محددة ويمكن الإضافة؟ */
   const canAdd = !!fiscalYear?.id && !isLocked;
 
-  const { handleExportPdf, handleExportCsv } = useExpensesExporters(filteredExpenses, totalExpenses, pdfWaqfInfo);
+  const { handleExportPdf, handleExportCsv } = useExpensesExporters(filteredExpenses, totalExpenses, pdfWaqfInfo, fiscalYear?.label);
 
   return {
     pdfWaqfInfo, fiscalYearId, fiscalYear, isClosed, role, isLocked, canAdd,

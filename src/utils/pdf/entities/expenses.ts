@@ -8,7 +8,7 @@ import {
 } from '../core/core';
 import { fmt } from '@/utils/format/format';
 
-export const generateIncomePDF = async (income: Array<{ source: string; amount: number; date: string; notes?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo) => {
+export const generateIncomePDF = async (income: Array<{ source: string; amount: number; date: string; notes?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo, fiscalYearLabel?: string) => {
   const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
@@ -16,8 +16,9 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
   doc.setFontSize(18);
   doc.text(rs('تقرير الدخل'), 105, startY + 5, { align: 'center' });
 
+  if (fiscalYearLabel) doc.text(fiscalYearLabel, 105, startY + 12, { align: 'center' });
   autoTable(doc, {
-    startY: startY + 14,
+    startY: startY + 20,
     head: [reshapeRow(['#', 'المصدر', 'المبلغ', 'التاريخ', 'ملاحظات'])],
     body: income.map((item, i) => reshapeRow([
       i + 1,
@@ -33,10 +34,10 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
     ...baseTableStyles(fontFamily),
   });
 
-  finalizePdf(doc, fontFamily, `income-report-${new Date().toISOString().slice(0, 10)}.pdf`, waqfInfo);
+  return finalizePdf(doc, fontFamily, `income-report-${fiscalYearLabel ?? 'all'}.pdf`, waqfInfo);
 };
 
-export const generateExpensesPDF = async (expenses: Array<{ expense_type: string; amount: number; date: string; description?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo) => {
+export const generateExpensesPDF = async (expenses: Array<{ expense_type: string; amount: number; date: string; description?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo, fiscalYearLabel?: string) => {
   const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
@@ -44,8 +45,9 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
   doc.setFontSize(18);
   doc.text(rs('تقرير المصروفات'), 105, startY + 5, { align: 'center' });
 
+  if (fiscalYearLabel) doc.text(fiscalYearLabel, 105, startY + 12, { align: 'center' });
   autoTable(doc, {
-    startY: startY + 14,
+    startY: startY + 20,
     head: [reshapeRow(['#', 'النوع', 'المبلغ', 'التاريخ', 'الوصف'])],
     body: expenses.map((item, i) => reshapeRow([
       i + 1,
@@ -61,5 +63,5 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
     ...baseTableStyles(fontFamily),
   });
 
-  finalizePdf(doc, fontFamily, `expenses-report-${new Date().toISOString().slice(0, 10)}.pdf`, waqfInfo);
+  return finalizePdf(doc, fontFamily, `expenses-report-${fiscalYearLabel ?? 'all'}.pdf`, waqfInfo);
 };

@@ -89,12 +89,13 @@ export function useHistoricalComparison() {
 
   // تصدير PDF — يدعم 2-4 سنوات
   const handleExportPdf = useCallback(async () => {
-    if (selectedYears.length < 2) return;
+    if (selectedYears.length < 2 || multiLoading || multiError || yearData.some(d => !d)) return;
     try {
       const { generateMultiYearComparisonPDF } = await import('@/utils/pdf/reports/multiYearComparison');
       const years = selectedYears.map((fy, i) => {
         const d = yearData[i];
         return {
+          waqfCorpusPrevious: d?.waqfCorpusPrevious, waqfCorpusManual: d?.waqfCorpusManual, availableAmount: d?.availableAmount,
           label: fy.label,
           income: d?.totalIncome ?? 0,
           expenses: d?.totalExpenses ?? 0,
@@ -114,7 +115,7 @@ export function useHistoricalComparison() {
     } catch {
       uiNotify.error('فشل تصدير PDF');
     }
-  }, [selectedYears, yearData, waqfInfo]);
+  }, [selectedYears, yearData, waqfInfo, multiLoading, multiError]);
 
   return {
     fiscalYears,

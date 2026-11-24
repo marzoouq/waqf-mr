@@ -106,8 +106,8 @@ export const useContractsPage = () => {
 
   const handleExportPdf = useCallback(async () => {
     const { generateContractsPDF } = await import('@/utils/pdf');
-    return generateContractsPDF(contracts, pdfWaqfInfo);
-  }, [contracts, pdfWaqfInfo]);
+    return generateContractsPDF(filters.filteredGroups.flatMap(([, group]) => group), pdfWaqfInfo, { fiscalYearLabel: fiscalYear?.label, totalRent: stats.totalRent });
+  }, [filters.filteredGroups, pdfWaqfInfo, fiscalYear?.label, stats.totalRent]);
 
   const handleExportCsv = useCallback(() => {
     const csv = buildCsv(contracts.map(c => ({

@@ -20,7 +20,7 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 
 export function useExpensesViewPage() {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, isClosed } = useFiscalYear();
+  const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
 
   useDashboardRealtime(
     'expenses-view-realtime',
@@ -52,8 +52,8 @@ export function useExpensesViewPage() {
 
   const handleExportPdf = useCallback(async () => {
     const { generateExpensesPDF } = await import('@/utils/pdf');
-    return generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo);
-  }, [expenses, totalExpenses, pdfWaqfInfo]);
+    return generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo, fiscalYear?.label);
+  }, [expenses, totalExpenses, pdfWaqfInfo, fiscalYear?.label]);
 
   const handleExportCsv = useCallback(() => {
     const csv = buildCsv(expenses.map((item) => ({

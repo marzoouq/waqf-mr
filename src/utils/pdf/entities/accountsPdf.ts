@@ -13,11 +13,14 @@ import {
 } from '../core/core';
 import { getLastAutoTableY } from '../core/pdfHelpers';
 import { safeNumber } from '@/utils/format/safeNumber';
+import type { DisclosureContractsSummary } from '@/utils/contracts/disclosureContractsSummary';
 import { fmt } from '@/utils/format/format';
 import { buildDistributionRows, buildBeneficiaryRows } from './accountsPdf.helpers';
 
 export const generateAccountsPDF = async (data: {
   closureDisclosure?: string;
+  fiscalYearLabel?: string;
+  contractsSummary?: DisclosureContractsSummary;
   contracts: Array<{ contract_number: string; tenant_name: string; rent_amount: number; status: string; start_date?: string | null }>;
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
@@ -59,6 +62,7 @@ export const generateAccountsPDF = async (data: {
   doc.setFontSize(18);
   doc.text(rs('الحسابات الختامية'), 105, startY + 5, { align: 'center' });
 
+  if (data.fiscalYearLabel) doc.text(data.fiscalYearLabel, 105, startY + 12, { align: 'center' });
   // العقود
   doc.setFontSize(13);
   doc.text(rs('العقود'), 105, startY + 18, { align: 'center' });
@@ -78,14 +82,19 @@ export const generateAccountsPDF = async (data: {
         : [c.contract_number, c.tenant_name, annual, monthly],
     );
   });
+  const annualTotal = data.contracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
   const contractFoot = showOrigin
-    ? [reshapeRow(['الإجمالي', `${data.contracts.length} عقد`, `مُرحّل: ${countFromPrevious} / جديد: ${countInYear}`, '', ''])]
-    : [reshapeRow(['الإجمالي', `${data.contracts.length} عقد`, '', ''])];
+    ? [reshapeRow(['الإجمالي', `${data.contracts.length} عقد`, `مُرحّل: ${countFromPrevious} / جديد: ${countInYear}`, fmt(annualTotal), fmt(annualTotal / 12)])]
+    : [reshapeRow(['الإجمالي', `${data.contracts.length} عقد`, fmt(annualTotal), fmt(annualTotal / 12)])];
   autoTable(doc, {
     startY: startY + 24,
-    head: [reshapeRow(contractHead)],
-    body: contractBody,
-    foot: contractFoot,
+    head: [reshapeRow(data.contractsSummary ? ['المؤشر', 'القيمة'] : contractHead)],
+    body: data.contractsSummary ? [
+      reshapeRow(['عدد العقود', data.contractsSummary.total]),
+      reshapeRow(['نشطة', data.contractsSummary.active]), reshapeRow(['منتهية', data.contractsSummary.expired]),
+      reshapeRow(['القيمة السنوية الاسمية', fmt(data.contractsSummary.annualValue)]),
+    ] : contractBody,
+    foot: data.contractsSummary ? undefined : contractFoot,
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),

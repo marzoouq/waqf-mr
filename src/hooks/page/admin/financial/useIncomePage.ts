@@ -147,7 +147,7 @@ export function useIncomePage() {
 
   /** هل السنة المالية محددة ويمكن الإضافة؟ — #14 */
   const canAdd = !!fiscalYear?.id && !isLocked;
-  const { handleExportPdf, handleExportCsv } = useIncomeExporters(filteredIncome, totalIncome, pdfWaqfInfo);
+  const { handleExportPdf, handleExportCsv } = useIncomeExporters(filteredIncome, totalIncome, pdfWaqfInfo, fiscalYear?.label);
 
   return {
     income, isLoading, isError, properties, contracts, paymentInvoices,

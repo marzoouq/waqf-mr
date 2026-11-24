@@ -141,6 +141,7 @@ export const footStyles = (color: [number, number, number], fontFamily: string) 
 });
 
 export interface UnitPdfRow {
+  contract_status?: string;
   unit_number: string;
   unit_type: string;
   status: string;

@@ -15,16 +15,17 @@ export function useIncomeExporters(
   filteredIncome: Income[],
   totalIncome: number,
   pdfWaqfInfo: PdfWaqfInfo,
+  fiscalYearLabel?: string,
 ) {
   const handleExportPdf = useCallback(async () => {
     try {
       const { generateIncomePDF } = await import('@/utils/pdf');
-      await generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo);
+      await generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo, fiscalYearLabel);
     } catch (e) {
       logger.error('PDF Income failed:', e);
       uiNotify.error('تعذّر توليد ملف PDF');
     }
-  }, [filteredIncome, totalIncome, pdfWaqfInfo]);
+  }, [filteredIncome, totalIncome, pdfWaqfInfo, fiscalYearLabel]);
 
   const handleExportCsv = useCallback(() => {
     const csv = buildCsv(filteredIncome.map(item => ({
