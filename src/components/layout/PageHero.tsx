@@ -45,7 +45,7 @@ const PageHero = ({ title, description, icon: Icon, eyebrow, actions, facts, chi
           </div>
         </div>
         {actions && (
-          <div className="flex flex-wrap items-center gap-2 print:hidden [&_button]:border-primary-foreground/25 [&_button]:bg-primary-foreground/10 [&_button]:text-primary-foreground [&_button:hover]:bg-primary-foreground/20">
+          <div className="flex flex-wrap items-center gap-2 print:hidden [&_button]:border-primary-foreground/25 [&_button]:bg-primary-foreground/10 [&_button]:text-primary-foreground [&_button:hover]:bg-primary-foreground/20 [&_button.bg-primary]:border-sidebar-primary [&_button.bg-primary]:bg-sidebar-primary [&_button.bg-primary]:text-sidebar-primary-foreground [&_button.bg-primary]:font-bold">
             {actions}
           </div>
         )}
