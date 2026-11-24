@@ -20,6 +20,8 @@ export const addApprovalStamp = (
   const pageW = doc.internal.pageSize.width;
   const pageH = doc.internal.pageSize.height;
   let y = contentEndY + 8;
+  // تضييق المسافة قبل الختم أولاً لتجنّب صفحة أخيرة لا تحمل إلا الختم
+  if (y + BLOCK_H > pageH - FOOTER_RESERVE) y = contentEndY + 2;
   if (y + BLOCK_H > pageH - FOOTER_RESERVE) {
     doc.addPage();
     y = 30;
