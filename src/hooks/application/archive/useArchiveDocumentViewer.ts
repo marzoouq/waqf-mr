@@ -28,13 +28,21 @@ export function useArchiveDocumentViewer() {
         storagePath: doc.storage_path,
         downloadAs: `${doc.title}.pdf`,
       });
-      window.open(url, '_blank', 'noopener,noreferrer');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${doc.title}.pdf`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) {
       toast.error('تعذّر التنزيل', { description: (e as Error)?.message });
     }
   }, [signedM]);
 
   const closePreview = useCallback(() => {
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
     setPreviewTarget(null);
     setPreviewUrl(null);
   }, []);

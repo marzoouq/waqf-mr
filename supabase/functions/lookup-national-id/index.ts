@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
 
     try {
       // البحث بالهوية مع فك التشفير عبر دالة مخصصة
-      const { data, error } = await supabase.rpc('lookup_by_national_id', {
+      const { data, error } = await rlClient.rpc('lookup_by_national_id', {
         p_national_id: national_id,
       });
 

@@ -1,6 +1,7 @@
 import { generateAuthenticationOptions } from "npm:@simplewebauthn/server@11";
 import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { RpInfo } from "../helpers.ts";
+import { extractClientIp } from "../../_shared/client-ip.ts";
 
 export async function handleAuthOptions(
   req: Request,
@@ -9,9 +10,7 @@ export async function handleAuthOptions(
   cors: Record<string, string>,
 ): Promise<Response> {
   // Rate limiting: 10 طلبات/دقيقة لكل IP
-  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-    || req.headers.get("x-real-ip")
-    || "unknown";
+  const clientIp = extractClientIp(req) ?? "unknown";
   const { data: isLimited, error: rlError } = await admin.rpc("check_rate_limit", {
     p_key: `webauthn:auth:${clientIp}`,
     p_limit: 10,

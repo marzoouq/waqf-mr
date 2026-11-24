@@ -1,6 +1,6 @@
 /**
- * إنشاء signed URL على الطلب لمعاينة/تنزيل وثيقة. TTL = 10 ثوانٍ (يقلّل بقاء الرابط بعد سحب الصلاحية).
- * لا نخزّن النتيجة في React state دائم؛ يُستدعى عند فتح المعاينة فقط.
+ * جلب وثيقة الأرشيف مباشرة بجلسة المستخدم (تُفحص الصلاحية لحظة الطلب عبر can_access_file)
+ * وتحويلها لرابط محلي (blob) — لا يُنشأ أي رابط موقّع قابل للمشاركة يبقى صالحًا بعد سحب الصلاحية.
  */
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,12 +14,12 @@ export interface SignedUrlInput {
 
 export function useArchivedDocumentSignedUrl() {
   return useMutation({
-    mutationFn: async ({ storagePath, downloadAs }: SignedUrlInput): Promise<string> => {
+    mutationFn: async ({ storagePath }: SignedUrlInput): Promise<string> => {
       const { data, error } = await supabase.storage
         .from(ARCHIVE_FILE_LIMITS.BUCKET)
-        .createSignedUrl(storagePath, 10, downloadAs ? { download: downloadAs } : undefined);
-      if (error || !data?.signedUrl) throw error ?? new Error('تعذّر إنشاء رابط المعاينة');
-      return data.signedUrl;
+        .download(storagePath);
+      if (error || !data) throw error ?? new Error('تعذّر فتح الوثيقة');
+      return URL.createObjectURL(data);
     },
   });
 }

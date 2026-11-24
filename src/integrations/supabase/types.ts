@@ -3446,6 +3446,10 @@ export type Database = {
         Returns: boolean
       }
       is_ip_blocked: { Args: { p_ip: string }; Returns: boolean }
+      is_own_beneficiary: {
+        Args: { p_beneficiary_id: string }
+        Returns: boolean
+      }
       issue_document: {
         Args: {
           p_content_hash?: string
