@@ -49,7 +49,7 @@ export const useBulkMessageSender = () => {
 
           successCount++;
         } catch (err) {
-          logger.error('خطأ أثناء إرسال رسالة للمستفيد:', b.name, err);
+          logger.error('خطأ أثناء إرسال رسالة للمستفيد', err);
         }
       }
 

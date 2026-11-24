@@ -3,7 +3,7 @@
  */
 import { z } from "npm:zod@3";
 
-export const SIGNED_URL_TTL = 120; // ثانية
+export const SIGNED_URL_TTL = 30; // ثانية
 
 export const BodySchema = z.object({
   file_path: z

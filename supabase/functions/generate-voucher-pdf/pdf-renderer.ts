@@ -147,9 +147,9 @@ export async function renderVoucherPdf(v: VoucherData, waqf: WaqfHeader = { name
 
   // ── الترويسة: الشعار + بيانات الوقف ──
   let headerBottom = 120;
-  if (waqf.logo_url) {
+  if (waqf.logo_url && isAllowedLogoUrl(waqf.logo_url)) {
     try {
-      const res = await fetch(waqf.logo_url);
+      const res = await fetch(waqf.logo_url, { redirect: "error" });
       if (res.ok) {
         const bytes = new Uint8Array(await res.arrayBuffer());
         const type = (res.headers.get("content-type") || "").includes("png") ? "PNG" : "JPEG";
@@ -297,4 +297,15 @@ function wrapArabic(text: string, maxChars: number): string[] {
   }
   if (current) lines.push(current);
   return lines;
+}
+
+/** Only fetch logos hosted on this project's own storage (prevents SSRF). */
+function isAllowedLogoUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    const base = new URL(Deno.env.get("SUPABASE_URL") ?? "");
+    return u.protocol === "https:" && u.host === base.host && u.pathname.startsWith("/storage/v1/object/public/");
+  } catch {
+    return false;
+  }
 }

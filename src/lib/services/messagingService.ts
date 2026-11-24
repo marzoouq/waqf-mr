@@ -110,7 +110,7 @@ export const messagingService = {
       .single();
 
     if (convError || !conv) {
-      logger.error('فشل إنشاء محادثة للمستفيد:', payload.recipientName, convError);
+      logger.error('فشل إنشاء محادثة للمستفيد', convError);
       return false;
     }
 
@@ -123,7 +123,7 @@ export const messagingService = {
       });
 
     if (msgError) {
-      logger.error('فشل إرسال رسالة للمستفيد:', payload.recipientName, msgError);
+      logger.error('فشل إرسال رسالة للمستفيد', msgError);
       return false;
     }
 
