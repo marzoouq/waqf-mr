@@ -8,6 +8,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { Edit, Trash2, Building2, MapPin, Ruler, Home, DoorOpen, AlertTriangle } from 'lucide-react';
 import { fmt, fmtInt } from '@/utils/format/format';
 import type { Property } from '@/types';
+import PropertyFigureGrid from './PropertyFigureGrid';
 
 interface PropertyFinancials {
   totalUnits: number;
@@ -123,23 +124,15 @@ const PropertyCard = ({ property, financials, hasActiveContracts, onSelect, onEd
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          {([
-            ['الإيرادات التعاقدية', `${fmt(contractualRevenue)} ريال`, 'font-semibold'],
-            ['الإيراد التعاقدي المخصص', `${fmt(activeAnnualRent)} ريال`, 'font-medium text-success'],
-            ['الاستحقاق الشهري', `${fmtInt(monthlyRent)} ريال`, 'font-medium'],
-            ['المصروفات', `${fmt(totalExpenses)} ريال`, 'font-medium'],
-          ] as const).map(([label, value, cls]) => (
-            <div key={label} className="rounded-lg bg-muted/40 px-2.5 py-2">
-              <div className="text-[11px] text-muted-foreground">{label}</div>
-              <div className={cls}>{value}</div>
-            </div>
-          ))}
-          <div className="col-span-2 flex items-center justify-between rounded-lg border border-primary/15 bg-primary/5 px-2.5 py-2">
-            <span className="text-muted-foreground">صافي مستحق تقديري</span>
-            <span className={`font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(netIncome)} ريال</span>
-          </div>
-        </div>
+        <PropertyFigureGrid
+          figures={[
+            { label: 'الإيرادات التعاقدية', value: `${fmt(contractualRevenue)} ريال`, className: 'font-semibold' },
+            { label: 'الإيراد التعاقدي المخصص', value: `${fmt(activeAnnualRent)} ريال`, className: 'font-medium text-success' },
+            { label: 'الاستحقاق الشهري', value: `${fmtInt(monthlyRent)} ريال` },
+            { label: 'المصروفات', value: `${fmt(totalExpenses)} ريال` },
+          ]}
+          netLabel="صافي مستحق تقديري" netValue={`${fmt(netIncome)} ريال`} netPositive={netIncome >= 0}
+        />
 
         <div className="border-t pt-2 mt-1 flex items-center gap-2 text-xs text-primary">
           <DoorOpen className="w-3.5 h-3.5" /><span>اضغط لعرض الوحدات</span>

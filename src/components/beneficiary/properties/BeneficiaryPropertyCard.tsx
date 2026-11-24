@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Building2, MapPin, Home, DoorOpen, Ruler } from 'lucide-react';
 import { fmt, fmtInt } from '@/utils/format/format';
+import PropertyFigureGrid from '@/components/properties/PropertyFigureGrid';
 
 interface PropertyUnit {
   id: string;
@@ -57,9 +58,9 @@ const BeneficiaryPropertyCard = ({
   const total = units.length;
 
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={onToggle}>
-      <CardHeader className="pb-2"><CardTitle className="text-lg">{property.property_number}</CardTitle></CardHeader>
-      <CardContent className="space-y-3">
+    <Card className="overflow-hidden border-primary/15 shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer" onClick={onToggle}>
+      <CardHeader className="pb-2 bg-gradient-to-l from-primary/5 to-transparent border-b border-primary/10"><div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Building2 className="w-4 h-4" /></span><CardTitle className="text-lg">{property.property_number}</CardTitle></div></CardHeader>
+      <CardContent className="space-y-3 pt-3">
         <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
           <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" />{property.property_type}</span>
           <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{property.location}</span>
@@ -88,12 +89,14 @@ const BeneficiaryPropertyCard = ({
           )}
         </div>
 
-        <div className="border-t pt-3 space-y-1 text-sm">
-          <div className="flex justify-between"><span className="text-muted-foreground">الإيراد التعاقدي المخصص:</span><span className="font-medium text-success">{fmt(activeAnnualRent)} ريال</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">الاستحقاق الشهري:</span><span className="font-medium">{fmtInt(monthlyRent)} ريال</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">المصروفات:</span><span className="font-medium">{fmt(totalExpenses)} ريال</span></div>
-          <div className="flex justify-between border-t pt-1 mt-1"><span className="text-muted-foreground">صافي مستحق تقديري:</span><span className={`font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(netIncome)} ريال</span></div>
-        </div>
+        <PropertyFigureGrid
+          figures={[
+            { label: 'الإيراد التعاقدي المخصص', value: `${fmt(activeAnnualRent)} ريال`, className: 'font-medium text-success' },
+            { label: 'الاستحقاق الشهري', value: `${fmtInt(monthlyRent)} ريال` },
+            { label: 'المصروفات', value: `${fmt(totalExpenses)} ريال` },
+          ]}
+          netLabel="صافي مستحق تقديري" netValue={`${fmt(netIncome)} ريال`} netPositive={netIncome >= 0}
+        />
 
         {isExpanded && units.length > 0 && (
           <div className="border-t pt-3 space-y-2">
