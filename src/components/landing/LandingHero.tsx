@@ -48,7 +48,6 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
               ? <img src={waqfLogoUrl} alt="" className="w-full h-full object-contain" loading="eager" onError={handleLogoError} />
               : <Building2 className="w-1/2 h-1/2 text-primary" />}
           </div>
-          <span className="absolute bottom-[13%] font-display text-secondary text-sm md:text-lg">وَقْفٌ لِلّٰهِ تَعَالَى</span>
         </div>
       </div>
       <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-secondary to-transparent" />

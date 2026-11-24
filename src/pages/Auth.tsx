@@ -86,7 +86,6 @@ const Auth = () => {
                 </Suspense>
               </div>
               <div className="space-y-1.5">
-                <p className="text-xs font-medium tracking-wide text-secondary">وَقْفٌ لِلّٰهِ تَعَالَى</p>
                 <CardTitle className="text-2xl sm:text-3xl font-display font-bold text-primary">
                   بوّابة الدخول الموحّدة
                 </CardTitle>
