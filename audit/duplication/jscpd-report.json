@@ -2,44 +2,6 @@
   "duplicates": [
     {
       "firstFile": {
-        "end": 62,
-        "endLoc": {
-          "column": 1,
-          "line": 62,
-          "position": 3171
-        },
-        "name": "components/contracts/ContractsViewGridCards.tsx",
-        "start": 42,
-        "startLoc": {
-          "column": 96,
-          "line": 42,
-          "position": 2381
-        }
-      },
-      "format": "tsx",
-      "fragment": "                <span className=\"font-medium truncate max-w-[60%] text-end\">{propertyName}</span>\n              </div>\n              <div className=\"flex justify-between text-sm\">\n                <span className=\"text-muted-foreground\">الإيجار</span>\n                <span className=\"font-medium\">{fmt(contract.rent_amount ?? 0)} ر.س</span>\n              </div>\n              <div className=\"flex justify-between text-sm\">\n                <span className=\"text-muted-foreground\">من</span>\n                <span>{fmtDate(contract.start_date ?? '')}</span>\n              </div>\n              <div className=\"flex justify-between text-sm\">\n                <span className=\"text-muted-foreground\">إلى</span>\n                <span>{fmtDate(contract.end_date ?? '')}</span>\n              </div>\n            </CardContent>\n          </Card>\n        );\n      })}\n    </div>\n  );\n}",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 21,
-      "secondFile": {
-        "end": 55,
-        "endLoc": {
-          "column": 1,
-          "line": 55,
-          "position": 2458
-        },
-        "name": "components/contracts/ContractsViewMobileCards.tsx",
-        "start": 35,
-        "startLoc": {
-          "column": 21,
-          "line": 35,
-          "position": 1668
-        }
-      },
-      "tokens": 159
-    },
-    {
-      "firstFile": {
         "end": 28,
         "endLoc": {
           "column": 9,
@@ -116,44 +78,44 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-11-24T01:57:17.825Z",
+    "detectionDate": "2026-11-24T20:51:14.312Z",
     "formats": {
       "tsx": {
-        "clones": 3,
-        "duplicatedLines": 67,
-        "duplicatedTokens": 451,
-        "lines": 44204,
+        "clones": 2,
+        "duplicatedLines": 46,
+        "duplicatedTokens": 292,
+        "lines": 44911,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.1515699936657316,
-        "percentageTokens": 0.14206737962860877,
-        "sources": 515,
-        "tokens": 317455
+        "percentage": 0.10242479570706509,
+        "percentageTokens": 0.09040247678018576,
+        "sources": 528,
+        "tokens": 323000
       },
       "typescript": {
         "clones": 0,
         "duplicatedLines": 0,
         "duplicatedTokens": 0,
-        "lines": 42580,
+        "lines": 43534,
         "newClones": 0,
         "newDuplicatedLines": 0,
         "percentage": 0.0,
         "percentageTokens": 0.0,
-        "sources": 555,
-        "tokens": 269056
+        "sources": 568,
+        "tokens": 277806
       }
     },
     "total": {
-      "clones": 3,
-      "duplicatedLines": 67,
-      "duplicatedTokens": 451,
-      "lines": 86784,
+      "clones": 2,
+      "duplicatedLines": 46,
+      "duplicatedTokens": 292,
+      "lines": 88445,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.07720317109144544,
-      "percentageTokens": 0.07689540349626861,
-      "sources": 1070,
-      "tokens": 586511
+      "percentage": 0.05200972355701284,
+      "percentageTokens": 0.048601378814459244,
+      "sources": 1096,
+      "tokens": 600806
     }
   }
 }
